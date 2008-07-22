@@ -161,6 +161,7 @@ class FileDownloader(object):
 
 	def download(self, url_list):
 		"""Download a given list of URLs."""
+		retcode = 0
 		if len(url_list) > 1 and self.fixed_template():
 			sys.exit('ERROR: fixed output name but more than one file to download')
 
@@ -171,7 +172,10 @@ class FileDownloader(object):
 					continue
 				# Suitable InfoExtractor found
 				suitable_found = True
-				results = [x for x in ie.extract(url) if x is not None]
+				all_results = ie.extract(url)
+				results = [x for x in all_results if x is not None]
+				if len(results) != len(all_results):
+					retcode = 1
 
 				if len(results) > 1 and self.fixed_template():
 					sys.exit('ERROR: fixed output name but more than one file to download')
@@ -192,29 +196,37 @@ class FileDownloader(object):
 						filename = self._params['outtmpl'] % result
 					except (ValueError, KeyError), err:
 						self.to_stderr('ERROR: invalid output template: %s' % str(err))
+						retcode = 1
 						continue
 					try:
 						self.pmkdir(filename)
 					except (OSError, IOError), err:
 						self.to_stderr('ERROR: unable to create directories: %s' % str(err))
+						retcode = 1
 						continue
 					try:
 						outstream = open(filename, 'wb')
 					except (OSError, IOError), err:
 						self.to_stderr('ERROR: unable to open for writing: %s' % str(err))
+						retcode = 1
 						continue
 					try:
 						self._do_download(outstream, result['url'])
 						outstream.close()
 					except (OSError, IOError), err:
 						self.to_stderr('ERROR: unable to write video data: %s' % str(err))
+						retcode = 1
 						continue
 					except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 						self.to_stderr('ERROR: unable to download video data: %s' % str(err))
+						retcode = 1
 						continue
 				break
 			if not suitable_found:
 				self.to_stderr('ERROR: no suitable InfoExtractor: %s' % url)
+				retcode = 1
+
+		return retcode
 	
 	def _do_download(self, stream, url):
 		request = urllib2.Request(url, None, std_headers)
@@ -359,10 +371,10 @@ class YoutubeIE(InfoExtractor):
 			self.to_stdout('[youtube] Logging in')
 			login_results = urllib2.urlopen(request).read()
 			if re.search(r'(?i)<form[^>]* name="loginForm"', login_results) is not None:
-				self.to_stderr('WARNING: Unable to log in: bad username or password')
+				self.to_stderr('WARNING: unable to log in: bad username or password')
 				return
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self.to_stderr('WARNING: Unable to log in: %s' % str(err))
+			self.to_stderr('WARNING: unable to log in: %s' % str(err))
 			return
 	
 		# Confirm age
@@ -375,13 +387,13 @@ class YoutubeIE(InfoExtractor):
 			self.to_stdout('[youtube] Confirming age')
 			age_results = urllib2.urlopen(request).read()
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			sys.exit('ERROR: Unable to confirm age: %s' % str(err))
+			sys.exit('ERROR: unable to confirm age: %s' % str(err))
 
 	def _real_extract(self, url):
 		# Extract video id from URL
 		mobj = re.match(r'^((?:http://)?(?:\w+\.)?youtube\.com/(?:(?:v/)|(?:(?:watch(?:\.php)?)?\?(?:.+&)?v=)))?([0-9A-Za-z_-]+)(?(1).+)?$', url)
 		if mobj is None:
-			self.to_stderr('ERROR: Invalid URL: %s' % url)
+			self.to_stderr('ERROR: invalid URL: %s' % url)
 			return [None]
 		video_id = mobj.group(2)
 
@@ -403,13 +415,13 @@ class YoutubeIE(InfoExtractor):
 			self.to_stdout('[youtube] %s: Downloading video webpage' % video_id)
 			video_webpage = urllib2.urlopen(request).read()
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			sys.exit('ERROR: Unable to download video: %s' % str(err))
+			sys.exit('ERROR: unable to download video: %s' % str(err))
 		self.to_stdout('[youtube] %s: Extracting video information' % video_id)
 		
 		# "t" param
 		mobj = re.search(r', "t": "([^"]+)"', video_webpage)
 		if mobj is None:
-			self.to_stderr('ERROR: Unable to extract "t" parameter')
+			self.to_stderr('ERROR: unable to extract "t" parameter')
 			return [None]
 		video_real_url = 'http://www.youtube.com/get_video?video_id=%s&t=%s' % (video_id, mobj.group(1))
 		if format_param is not None:
@@ -419,14 +431,14 @@ class YoutubeIE(InfoExtractor):
 		# uploader
 		mobj = re.search(r'More From: ([^<]*)<', video_webpage)
 		if mobj is None:
-			self.to_stderr('ERROR: Unable to extract uploader nickname')
+			self.to_stderr('ERROR: unable to extract uploader nickname')
 			return [None]
 		video_uploader = mobj.group(1)
 
 		# title
 		mobj = re.search(r'(?im)<title>YouTube - ([^<]*)</title>', video_webpage)
 		if mobj is None:
-			self.to_stderr('ERROR: Unable to extract video title')
+			self.to_stderr('ERROR: unable to extract video title')
 			return [None]
 		video_title = mobj.group(1).decode('utf-8')
 		video_title = re.sub(ur'(?u)&(.+?);', lambda x: unichr(htmlentitydefs.name2codepoint[x.group(1)]), video_title)
@@ -526,7 +538,8 @@ if __name__ == '__main__':
 				or '%(id)s.%(ext)s'),
 			})
 		fd.add_info_extractor(youtube_ie)
-		fd.download(args)
+		retcode = fd.download(args)
+		sys.exit(retcode)
 
 	except KeyboardInterrupt:
 		sys.exit('\nERROR: Interrupted by user')
