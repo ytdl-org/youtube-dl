@@ -1,1 +1,3 @@
+syntax: glob
 youtube-dl-old
+.*.swp
