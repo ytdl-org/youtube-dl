@@ -519,7 +519,8 @@ if __name__ == '__main__':
 			'forcetitle': opts.gettitle,
 			'simulate': (opts.simulate or opts.geturl or opts.gettitle),
 			'format': opts.format,
-			'outtmpl': ((opts.usetitle and '%(stitle)s-%(id)s.%(ext)s')
+			'outtmpl': ((opts.outtmpl is not None and opts.outtmpl)
+				or (opts.usetitle and '%(stitle)s-%(id)s.%(ext)s')
 				or (opts.useliteral and '%(title)s-%(id)s.%(ext)s')
 				or '%(id)s.%(ext)s'),
 			})
