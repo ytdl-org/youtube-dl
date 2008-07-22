@@ -525,11 +525,6 @@ if __name__ == '__main__':
 			})
 		fd.add_info_extractor(youtube_ie)
 		fd.download(args)
-		#fd.download([
-		#	'http://www.youtube.com/watch?v=t7qdwI7TVe8',
-		#	'http://www.youtube.com/watch?v=IJyn3pRcy_Q',
-		#	'http://www.youtube.com/watch?v=DZRXe1wtC-M',
-		#	])
 
 	except KeyboardInterrupt:
 		sys.exit('\nERROR: Interrupted by user')
