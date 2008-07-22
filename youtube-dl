@@ -193,6 +193,19 @@ class FileDownloader(object):
 			raise DownloadError(message)
 		return 1
 
+	def report_destination(self, filename):
+		"""Report destination filename."""
+		self.to_stdout('[download] Destination: %s' % filename)
+	
+	def report_progress(self, percent_str, data_len_str, speed_str, eta_str):
+		"""Report download progress."""
+		self.to_stdout('\r[download] %s of %s at %s ETA %s' %
+				(percent_str, data_len_str, speed_str, eta_str), skip_eol=True)
+	
+	def report_finish(self):
+		"""Report download finished."""
+		self.to_stdout('')
+
 	def download(self, url_list):
 		"""Download a given list of URLs."""
 		retcode = 0
@@ -228,7 +241,7 @@ class FileDownloader(object):
 
 					try:
 						filename = self._params['outtmpl'] % result
-						self.to_stdout('[download] Destination: %s' % filename)
+						self.report_destination(filename)
 					except (ValueError, KeyError), err:
 						retcode = self.trouble('ERROR: invalid output template: %s' % str(err))
 						continue
@@ -266,12 +279,13 @@ class FileDownloader(object):
 		block_size = 1024
 		start = time.time()
 		while True:
+			# Progress message
 			percent_str = self.calc_percent(byte_counter, data_len)
 			eta_str = self.calc_eta(start, time.time(), data_len, byte_counter)
 			speed_str = self.calc_speed(start, time.time(), byte_counter)
-			self.to_stdout('\r[download] %s of %s at %s ETA %s' %
-					(percent_str, data_len_str, speed_str, eta_str), skip_eol=True)
+			self.report_progress(percent_str, data_len_str, speed_str, eta_str)
 
+			# Download and write
 			before = time.time()
 			data_block = data.read(block_size)
 			after = time.time()
@@ -282,7 +296,7 @@ class FileDownloader(object):
 			stream.write(data_block)
 			block_size = self.best_block_size(after - before, data_block_len)
 
-		self.to_stdout('')
+		self.report_finish()
 		if data_len is not None and str(byte_counter) != data_len:
 			raise ValueError('Content too short: %s/%s bytes' % (byte_counter, data_len))
 
@@ -362,6 +376,26 @@ class YoutubeIE(InfoExtractor):
 	_AGE_URL = 'http://www.youtube.com/verify_age?next_url=/'
 	_NETRC_MACHINE = 'youtube'
 
+	def report_login(self):
+		"""Report attempt to log in."""
+		self.to_stdout('[youtube] Logging in')
+	
+	def report_age_confirmation(self):
+		"""Report attempt to confirm age."""
+		self.to_stdout('[youtube] Confirming age')
+	
+	def report_webpage_download(self, video_id):
+		"""Report attempt to download webpage."""
+		self.to_stdout('[youtube] %s: Downloading video webpage' % video_id)
+	
+	def report_information_extraction(self, video_id):
+		"""Report attempt to extract video information."""
+		self.to_stdout('[youtube] %s: Extracting video information' % video_id)
+	
+	def report_video_url(self, video_id, video_real_url):
+		"""Report extracted video URL."""
+		self.to_stdout('[youtube] %s: URL: %s' % (video_id, video_real_url))
+
 	def _real_initialize(self):
 		if self._downloader is None:
 			return
@@ -400,7 +434,7 @@ class YoutubeIE(InfoExtractor):
 				}
 		request = urllib2.Request(self._LOGIN_URL, urllib.urlencode(login_form), std_headers)
 		try:
-			self.to_stdout('[youtube] Logging in')
+			self.report_login()
 			login_results = urllib2.urlopen(request).read()
 			if re.search(r'(?i)<form[^>]* name="loginForm"', login_results) is not None:
 				self.to_stderr('WARNING: unable to log in: bad username or password')
@@ -416,7 +450,7 @@ class YoutubeIE(InfoExtractor):
 				}
 		request = urllib2.Request(self._AGE_URL, urllib.urlencode(age_form), std_headers)
 		try:
-			self.to_stdout('[youtube] Confirming age')
+			self.report_age_confirmation()
 			age_results = urllib2.urlopen(request).read()
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 			self.to_stderr('ERROR: unable to confirm age: %s' % str(err))
@@ -445,12 +479,12 @@ class YoutubeIE(InfoExtractor):
 			normalized_url = '%s&fmt=%s' % (normalized_url, format_param)
 		request = urllib2.Request(normalized_url, None, std_headers)
 		try:
-			self.to_stdout('[youtube] %s: Downloading video webpage' % video_id)
+			self.report_webpage_download(video_id)
 			video_webpage = urllib2.urlopen(request).read()
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 			self.to_stderr('ERROR: unable to download video webpage: %s' % str(err))
 			return [None]
-		self.to_stdout('[youtube] %s: Extracting video information' % video_id)
+		self.report_information_extraction(video_id)
 		
 		# "t" param
 		mobj = re.search(r', "t": "([^"]+)"', video_webpage)
@@ -460,7 +494,7 @@ class YoutubeIE(InfoExtractor):
 		video_real_url = 'http://www.youtube.com/get_video?video_id=%s&t=%s' % (video_id, mobj.group(1))
 		if format_param is not None:
 			video_real_url = '%s&fmt=%s' % (video_real_url, format_param)
-		self.to_stdout('[youtube] %s: URL: %s' % (video_id, video_real_url))
+		self.report_video_url(video_id, video_real_url)
 
 		# uploader
 		mobj = re.search(r'More From: ([^<]*)<', video_webpage)
