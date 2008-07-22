@@ -540,7 +540,7 @@ if __name__ == '__main__':
 		# Parse command line
 		parser = optparse.OptionParser(
 				usage='Usage: %prog [options] url...',
-				version='INTERNAL',
+				version='2008.07.22',
 				conflict_handler='resolve',
 				)
 		parser.add_option('-h', '--help',
@@ -570,9 +570,9 @@ if __name__ == '__main__':
 		parser.add_option('-f', '--format',
 				dest='format', metavar='FMT', help='video format code')
 		parser.add_option('-b', '--best-quality',
-				action='store_const', dest='video_format', help='alias for -f 18', const='18')
+				action='store_const', dest='format', help='alias for -f 18', const='18')
 		parser.add_option('-m', '--mobile-version',
-				action='store_const', dest='video_format', help='alias for -f 17', const='17')
+				action='store_const', dest='format', help='alias for -f 17', const='17')
 		parser.add_option('-i', '--ignore-errors',
 				action='store_true', dest='ignoreerrors', help='continue on download errors', default=False)
 		(opts, args) = parser.parse_args()
