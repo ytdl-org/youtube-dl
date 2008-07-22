@@ -430,6 +430,7 @@ class YoutubeIE(InfoExtractor):
 			return [None]
 		video_title = mobj.group(1).decode('utf-8')
 		video_title = re.sub(ur'(?u)&(.+?);', lambda x: unichr(htmlentitydefs.name2codepoint[x.group(1)]), video_title)
+		video_title = video_title.replace(os.sep, u'%')
 
 		# simplified title
 		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
