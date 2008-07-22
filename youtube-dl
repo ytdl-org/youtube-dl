@@ -155,7 +155,7 @@ class FileDownloader(object):
 	
 	def fixed_template(self):
 		"""Checks if the output template is fixed."""
-		return (re.search(ur'%\(.+?\)s', self._params['outtmpl']) is None)
+		return (re.search(ur'(?u)%\(.+?\)s', self._params['outtmpl']) is None)
 
 	def download(self, url_list):
 		"""Download a given list of URLs."""
@@ -419,11 +419,11 @@ class YoutubeIE(InfoExtractor):
 			self.to_stderr('ERROR: Unable to extract video title')
 			return [None]
 		video_title = mobj.group(1).decode('utf-8')
-		video_title = re.sub(u'&(.+?);', lambda x: unichr(htmlentitydefs.name2codepoint[x.group(1)]), video_title)
+		video_title = re.sub(ur'(?u)&(.+?);', lambda x: unichr(htmlentitydefs.name2codepoint[x.group(1)]), video_title)
 
 		# simplified title
-		simple_title = re.sub(u'([^%s]+)' % simple_title_chars, u'_', video_title)
-		simple_title = simple_title.strip(u'_')
+		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
+		simple_title = simple_title.strip(ur'_')
 
 		# Return information
 		return [{
