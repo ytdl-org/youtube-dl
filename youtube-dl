@@ -392,7 +392,7 @@ class YoutubeIE(InfoExtractor):
 			format_param = params.get('format', None)
 
 		# Extension
-		video_extension = {18: 'mp4'}.get(format_param, 'flv')
+		video_extension = {'18': 'mp4'}.get(format_param, 'flv')
 
 		# Normalize URL, including format
 		normalized_url = 'http://www.youtube.com/watch?v=%s' % video_id
@@ -447,9 +447,15 @@ class YoutubeIE(InfoExtractor):
 
 if __name__ == '__main__':
 	try:
+		# Modules needed only when running the main program
+		import optparse
+
 		# General configuration
 		urllib2.install_opener(urllib2.build_opener(urllib2.ProxyHandler()))
 		urllib2.install_opener(urllib2.build_opener(urllib2.HTTPCookieProcessor()))
+		socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
+
+		# Parse command line
 
 		# Information extractors
 		youtube_ie = YoutubeIE()
@@ -459,12 +465,12 @@ if __name__ == '__main__':
 			'usenetrc': False,
 			'username': None,
 			'password': None,
-			'quiet': False,
-			'forceurl': False,
-			'forcetitle': False,
-			'simulate': False,
+			'quiet': True,
+			'forceurl': True,
+			'forcetitle': True,
+			'simulate': True,
 			'format': None,
-			'outtmpl': '%(ext)s/%(ext)s/%(id)s.%(ext)s'
+			'outtmpl': '%(id)s.%(ext)s'
 			})
 		fd.add_info_extractor(youtube_ie)
 		fd.download([
