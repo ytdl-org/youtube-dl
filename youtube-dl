@@ -448,6 +448,7 @@ class YoutubeIE(InfoExtractor):
 if __name__ == '__main__':
 	try:
 		# Modules needed only when running the main program
+		import getpass
 		import optparse
 
 		# General configuration
@@ -456,28 +457,79 @@ if __name__ == '__main__':
 		socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
 
 		# Parse command line
+		parser = optparse.OptionParser(
+				usage='Usage: %prog [options] url...',
+				version='INTERNAL',
+				conflict_handler='resolve',
+				)
+		parser.add_option('-h', '--help',
+				action='help', help='print this help text and exit')
+		parser.add_option('-v', '--version',
+				action='version', help='print program version and exit')
+		parser.add_option('-u', '--username',
+				dest='username', metavar='UN', help='account username')
+		parser.add_option('-p', '--password',
+				dest='password', metavar='PW', help='account password')
+		parser.add_option('-o', '--output',
+				dest='outtmpl', metavar='TPL', help='output filename template')
+		parser.add_option('-q', '--quiet',
+				action='store_true', dest='quiet', help='activates quiet mode', default=False)
+		parser.add_option('-s', '--simulate',
+				action='store_true', dest='simulate', help='do not download video', default=False)
+		parser.add_option('-t', '--title',
+				action='store_true', dest='usetitle', help='use title in file name', default=False)
+		parser.add_option('-l', '--literal',
+				action='store_true', dest='useliteral', help='use literal title in file name', default=False)
+		parser.add_option('-n', '--netrc',
+				action='store_true', dest='usenetrc', help='use .netrc authentication data', default=False)
+		parser.add_option('-g', '--get-url',
+				action='store_true', dest='geturl', help='simulate, quiet but print URL', default=False)
+		parser.add_option('-e', '--get-title',
+				action='store_true', dest='gettitle', help='simulate, quiet but print title', default=False)
+		parser.add_option('-f', '--format',
+				dest='format', metavar='FMT', help='video format code')
+		parser.add_option('-b', '--best-quality',
+				action='store_const', dest='video_format', help='alias for -f 18', const='18')
+		(opts, args) = parser.parse_args()
+
+		# Conflicting, missing and erroneous options
+		if len(args) < 1:
+			sys.exit('ERROR: you must provide at least one URL')
+		if opts.usenetrc and (opts.username is not None or opts.password is not None):
+			sys.exit('ERROR: using .netrc conflicts with giving username/password')
+		if opts.password is not None and opts.username is None:
+			sys.exit('ERROR: account username missing')
+		if opts.outtmpl is not None and (opts.useliteral or opts.usetitle):
+			sys.exit('ERROR: using output template conflicts with using title or literal title')
+		if opts.usetitle and opts.useliteral:
+			sys.exit('ERROR: using title conflicts with using literal title')
+		if opts.username is not None and opts.password is None:
+			opts.password = getpass.getpass('Type account password and press return:')
 
 		# Information extractors
 		youtube_ie = YoutubeIE()
 
 		# File downloader
 		fd = FileDownloader({
-			'usenetrc': False,
-			'username': None,
-			'password': None,
-			'quiet': True,
-			'forceurl': True,
-			'forcetitle': True,
-			'simulate': True,
-			'format': None,
-			'outtmpl': '%(id)s.%(ext)s'
+			'usenetrc': opts.usenetrc,
+			'username': opts.username,
+			'password': opts.password,
+			'quiet': (opts.quiet or opts.geturl or opts.gettitle),
+			'forceurl': opts.geturl,
+			'forcetitle': opts.gettitle,
+			'simulate': (opts.simulate or opts.geturl or opts.gettitle),
+			'format': opts.format,
+			'outtmpl': ((opts.usetitle and '%(stitle)s-%(id)s.%(ext)s')
+				or (opts.useliteral and '%(title)s-%(id)s.%(ext)s')
+				or '%(id)s.%(ext)s'),
 			})
 		fd.add_info_extractor(youtube_ie)
-		fd.download([
-			'http://www.youtube.com/watch?v=t7qdwI7TVe8',
-			'http://www.youtube.com/watch?v=IJyn3pRcy_Q',
-			'http://www.youtube.com/watch?v=DZRXe1wtC-M',
-			])
+		fd.download(args)
+		#fd.download([
+		#	'http://www.youtube.com/watch?v=t7qdwI7TVe8',
+		#	'http://www.youtube.com/watch?v=IJyn3pRcy_Q',
+		#	'http://www.youtube.com/watch?v=DZRXe1wtC-M',
+		#	])
 
 	except KeyboardInterrupt:
 		sys.exit('\nERROR: Interrupted by user')
