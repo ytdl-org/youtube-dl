@@ -60,6 +60,7 @@ class FileDownloader(object):
 	simulate:	Do not download the video files.
 	format:		Video format code.
 	outtmpl:	Template for output names.
+	ignoreerrors:	Do not stop on download errors.
 	"""
 
 	_params = None
@@ -159,6 +160,21 @@ class FileDownloader(object):
 		"""Checks if the output template is fixed."""
 		return (re.search(ur'(?u)%\(.+?\)s', self._params['outtmpl']) is None)
 
+	def trouble(self, message=None):
+		"""Determine action to take when a download problem appears.
+
+		Depending on if the downloader has been configured to ignore
+		download errors or not, this method may exit the program or
+		not when errors are found, after printing the message. If it
+		doesn't exit, it returns an error code suitable to be returned
+		later as a program exit code to indicate error.
+		"""
+		if message is not None:
+			self.to_stderr(message)
+		if not self._params.get('ignoreerrors', False):
+			sys.exit(1)
+		return 1
+
 	def download(self, url_list):
 		"""Download a given list of URLs."""
 		retcode = 0
@@ -175,7 +191,7 @@ class FileDownloader(object):
 				all_results = ie.extract(url)
 				results = [x for x in all_results if x is not None]
 				if len(results) != len(all_results):
-					retcode = 1
+					retcode = self.trouble()
 
 				if len(results) > 1 and self.fixed_template():
 					sys.exit('ERROR: fixed output name but more than one file to download')
@@ -195,36 +211,30 @@ class FileDownloader(object):
 					try:
 						filename = self._params['outtmpl'] % result
 					except (ValueError, KeyError), err:
-						self.to_stderr('ERROR: invalid output template: %s' % str(err))
-						retcode = 1
+						retcode = self.trouble('ERROR: invalid output template: %s' % str(err))
 						continue
 					try:
 						self.pmkdir(filename)
 					except (OSError, IOError), err:
-						self.to_stderr('ERROR: unable to create directories: %s' % str(err))
-						retcode = 1
+						retcode = self.trouble('ERROR: unable to create directories: %s' % str(err))
 						continue
 					try:
 						outstream = open(filename, 'wb')
 					except (OSError, IOError), err:
-						self.to_stderr('ERROR: unable to open for writing: %s' % str(err))
-						retcode = 1
+						retcode = self.trouble('ERROR: unable to open for writing: %s' % str(err))
 						continue
 					try:
 						self._do_download(outstream, result['url'])
 						outstream.close()
 					except (OSError, IOError), err:
-						self.to_stderr('ERROR: unable to write video data: %s' % str(err))
-						retcode = 1
+						retcode = self.trouble('ERROR: unable to write video data: %s' % str(err))
 						continue
 					except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-						self.to_stderr('ERROR: unable to download video data: %s' % str(err))
-						retcode = 1
+						retcode = self.trouble('ERROR: unable to download video data: %s' % str(err))
 						continue
 				break
 			if not suitable_found:
-				self.to_stderr('ERROR: no suitable InfoExtractor: %s' % url)
-				retcode = 1
+				retcode = self.trouble('ERROR: no suitable InfoExtractor: %s' % url)
 
 		return retcode
 	
@@ -503,6 +513,8 @@ if __name__ == '__main__':
 				dest='format', metavar='FMT', help='video format code')
 		parser.add_option('-b', '--best-quality',
 				action='store_const', dest='video_format', help='alias for -f 18', const='18')
+		parser.add_option('-i', '--ignore-errors',
+				action='store_true', dest='ignoreerrors', help='continue on download errors', default=False)
 		(opts, args) = parser.parse_args()
 
 		# Conflicting, missing and erroneous options
@@ -536,6 +548,7 @@ if __name__ == '__main__':
 				or (opts.usetitle and '%(stitle)s-%(id)s.%(ext)s')
 				or (opts.useliteral and '%(title)s-%(id)s.%(ext)s')
 				or '%(id)s.%(ext)s'),
+			'ignoreerrors': opts.ignoreerrors,
 			})
 		fd.add_info_extractor(youtube_ie)
 		retcode = fd.download(args)
