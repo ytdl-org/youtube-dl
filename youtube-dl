@@ -94,6 +94,7 @@ class FileDownloader(object):
 		"""Create directory components in filename. Similar to Unix "mkdir -p"."""
 		components = filename.split(os.sep)
 		aggregate = [os.sep.join(components[0:x]) for x in xrange(1, len(components))]
+		aggregate = ['%s%s' % (x, os.sep) for x in aggregate] # Finish names with separator
 		for dir in aggregate:
 			if not os.path.exists(dir):
 				os.mkdir(dir)
