@@ -179,10 +179,7 @@ class FileDownloader(object):
 	def to_stdout(self, message, skip_eol=False):
 		"""Print message to stdout if not in quiet mode."""
 		if not self._params.get('quiet', False):
-			if skip_eol:
-				print message,
-			else:
-				print message
+			print u'%s%s' % (message, [u'\n', u''][skip_eol]),
 			sys.stdout.flush()
 	
 	def to_stderr(self, message):
