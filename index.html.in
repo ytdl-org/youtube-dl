@@ -31,7 +31,7 @@
 		li {
 			margin-bottom: 0.5ex;
 		}
-		#copyright {
+		.smallnote {
 			font-size: x-small;
 			text-align: center;
 		}
@@ -40,15 +40,16 @@
 <body>
 <h1>youtube-dl: Download videos from YouTube.com</h1>
 
+<p class="smallnote">(and more...)</p>
+
 <h2>What is it?</h2>
 
 <p><em>youtube-dl</em> is a small command-line program to download videos
 from YouTube.com. It requires the <a href="http://www.python.org/">Python
 interpreter</a>, version 2.4 or later, and it's not platform specific.
 It should work in your Unix box, in Windows or in Mac OS X. The latest version
-is <strong>@PROGRAM_VERSION@</strong>. It's licensed under the MIT License, which
-means you can modify it, redistribute it or use it however you like
-complying with a few simple conditions.</p>
+is <strong>@PROGRAM_VERSION@</strong>. It's released to the public domain,
+which means you can modify it, redistribute it or use it however you like.</p>
 
 <p>I'll try to keep it updated if YouTube.com changes the way you access
 their videos. After all, it's a simple and short program. However, I can't
@@ -61,11 +62,6 @@ at <a href="http://freshmeat.net/~rg3/">freshmeat.net</a>.</p>
 
 <p>Thanks for all the feedback received so far. I'm glad people find my
 program useful.</p>
-
-<p><strong>Related projects</strong>:
-<a href="../metacafe-dl/">metacafe-dl</a>
-<a href="../pornotube-dl/">pornotube-dl</a>
-</p>
 
 <h2>Usage instructions</h2>
 
@@ -99,7 +95,8 @@ is too old.</p>
 <ul>
 
 <li>You can change the file name of the video using the -o option, like in
-<em>youtube-dl -o vid.flv "http://www.youtube.com/watch?v=foobar"</em>.</li>
+<em>youtube-dl -o vid.flv "http://www.youtube.com/watch?v=foobar"</em>.
+Read the <em>Output template</em> section for more details on this.</li>
 
 <li>Some videos require an account to be downloaded, mostly because they're
 flagged as mature content. You can pass the program a username and password
@@ -122,8 +119,8 @@ in order to pipe it to another program without interferences.</li>
 <li>The program can be told to simply print the final video URL to standard
 output using the -g or --get-url option.</li>
 
-<li>Combined with the above option, the -2 or --title-too option tells the
-program to print the video title too.</li>
+<li>In a similar line, the -e or --get-title option tells the program to print
+the video title.</li>
 
 <li>The default filename is <em>video_id.flv</em>. But you can also use the
 video title in the filename with the -t or --title option, or preserve the
@@ -135,6 +132,12 @@ quality versions of the videos when available.</li>
 
 <li><em>youtube-dl</em> can attempt to download the best quality version of
 a video by using the -b or --best-quality option.</li>
+
+<li><em>youtube-dl</em> can attempt to download the mobile quality version of
+a video by using the -m or --mobile-version option.</li>
+
+<li>Normally, the program will stop on the first error, but you can tell it
+to attempt to download every video with the -i or --ignore-errors option.</li>
 
 <li><em>youtube-dl</em> honors the <em>http_proxy</em> environment variable
 if you want to use a proxy. Set it to something like
@@ -168,6 +171,42 @@ are using.</p>
         <li><strong>SHA256</strong>: @PROGRAM_SHA256SUM@</li>
 </ul>
 
-<p id="copyright">Copyright &copy; 2006-2007 Ricardo Garcia Gonzalez</p>
+<h2>Output template</h2>
+
+<p>The -o option allows users to indicate a template for the output file names.
+The basic usage is not to set any template arguments when downloading a single
+file, like in <em>youtube-dl -o funny_video.flv 'http://some/video'</em>.
+However, it may contain special sequences that will be replaced when
+downloading each video. The special sequences have the format
+<strong>%(NAME)s</strong>. To clarify, that's a percent symbol followed by a
+name in parenthesis, followed by a lowercase S. Allowed names are:</p>
+
+<ul>
+<li><em>id</em>: The sequence will be replaced by the video identifier.</li>
+<li><em>url</em>: The sequence will be replaced by the video URL.</li>
+<li><em>uploader</em>: The sequence will be replaced by the nickname of the
+person who uploaded the video.</li>
+<li><em>title</em>: The sequence will be replaced by the literal video
+title.</li>
+<li><em>stitle</em>: The sequence will be replaced by a simplified video
+title.</li>
+<li><em>ext</em>: The sequence will be replaced by the appropriate
+extension.</li>
+</ul>
+
+<p>As you may have guessed, the default template is <em>%(id)s.%(ext)s</em>.
+When some command line options are used, it's replaced by other templates like
+<em>%(title)s-%(id)s.%(ext)s</em>. You can specify your own.</p>
+
+<h2>Authors</h2>
+
+<ul>
+<li>Ricardo Garcia Gonzalez: program core, YouTube.com InfoExtractor,
+metacafe.com InfoExtractor and YouTube playlist InfoExtractor.</li>
+<li>Many other people contributing patches, code, ideas and kind messages. Too
+many to be listed here. You know who you are. Thank you very much.</li>
+</ul>
+
+<p class="smallnote">Copyright &copy; 2006-2007 Ricardo Garcia Gonzalez</p>
 </body>
 </html>
