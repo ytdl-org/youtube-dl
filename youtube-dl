@@ -676,6 +676,66 @@ class MetacafeIE(InfoExtractor):
 			'ext':		video_extension,
 			}]
 
+class YoutubePlaylistIE(InfoExtractor):
+	"""Information Extractor for YouTube playlists."""
+
+	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/view_play_list\?p=(.+)'
+	_TEMPLATE_URL = 'http://www.youtube.com/view_play_list?p=%s&page=%s'
+	_VIDEO_INDICATOR = r'/watch\?v=(.+?)&'
+	_MORE_PAGES_INDICATOR = r'class="pagerNotCurrent">Next</a>'
+	_youtube_ie = None
+
+	def __init__(self, youtube_ie, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+		self._youtube_ie = youtube_ie
+	
+	@staticmethod
+	def suitable(url):
+		return (re.match(YoutubePlaylistIE._VALID_URL, url) is not None)
+
+	def report_download_page(self, playlist_id, pagenum):
+		"""Report attempt to download playlist page with given number."""
+		self.to_stdout('[youtube] PL %s: Downloading page #%s' % (playlist_id, pagenum))
+
+	def _real_initialize(self):
+		self._youtube_ie.initialize()
+	
+	def _real_extract(self, url):
+		# Extract playlist id
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self.to_stderr('ERROR: invalid url: %s' % url)
+			return [None]
+
+		# Download playlist pages
+		playlist_id = mobj.group(1)
+		video_ids = []
+		pagenum = 1
+
+		while True:
+			self.report_download_page(playlist_id, pagenum)
+			request = urllib2.Request(self._TEMPLATE_URL % (playlist_id, pagenum), None, std_headers)
+			try:
+				page = urllib2.urlopen(request).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self.to_stderr('ERROR: unable to download webpage: %s' % str(err))
+				return [None]
+
+			# Extract video identifiers
+			ids_in_page = set()
+			for mobj in re.finditer(self._VIDEO_INDICATOR, page):
+				ids_in_page.add(mobj.group(1))
+			video_ids.extend(list(ids_in_page))
+
+			if self._MORE_PAGES_INDICATOR not in page:
+				break
+			pagenum = pagenum + 1
+
+		information = []
+		for id in video_ids:
+			information.extend(self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id))
+		return information
+
 if __name__ == '__main__':
 	try:
 		# Modules needed only when running the main program
@@ -751,6 +811,7 @@ if __name__ == '__main__':
 		# Information extractors
 		youtube_ie = YoutubeIE()
 		metacafe_ie = MetacafeIE(youtube_ie)
+		youtube_pl_ie = YoutubePlaylistIE(youtube_ie)
 
 		# File downloader
 		fd = FileDownloader({
@@ -769,6 +830,7 @@ if __name__ == '__main__':
 			'ignoreerrors': opts.ignoreerrors,
 			'ratelimit': opts.ratelimit,
 			})
+		fd.add_info_extractor(youtube_pl_ie)
 		fd.add_info_extractor(metacafe_ie)
 		fd.add_info_extractor(youtube_ie)
 		retcode = fd.download(args)
