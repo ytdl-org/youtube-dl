@@ -267,7 +267,7 @@ class FileDownloader(object):
 						filename = self._params['outtmpl'] % result
 						self.report_destination(filename)
 					except (ValueError, KeyError), err:
-						retcode = self.trouble('ERROR: invalid output template: %s' % str(err))
+						retcode = self.trouble('ERROR: invalid output template or system charset: %s' % str(err))
 						continue
 					try:
 						self.pmkdir(filename)
