@@ -42,6 +42,14 @@ class SameFileError(Exception):
 	"""
 	pass
 
+class PostProcessingError(Exception):
+	"""Post Processing exception.
+
+	This exception may be raised by PostProcessor's .run() method to
+	indicate an error in the postprocessing task.
+	"""
+	pass
+
 class FileDownloader(object):
 	"""File Downloader class.
 
@@ -83,10 +91,12 @@ class FileDownloader(object):
 
 	_params = None
 	_ies = []
+	_pps = []
 
 	def __init__(self, params):
 		"""Create a FileDownloader object with the given options."""
 		self._ies = []
+		self._pps = []
 		self.set_params(params)
 	
 	@staticmethod
@@ -175,6 +185,11 @@ class FileDownloader(object):
 		"""Add an InfoExtractor object to the end of the list."""
 		self._ies.append(ie)
 		ie.set_downloader(self)
+	
+	def add_post_processor(self, pp):
+		"""Add a PostProcessor object to the end of the chain."""
+		self._pps.append(pp)
+		pp.set_downloader(self)
 	
 	def to_stdout(self, message, skip_eol=False):
 		"""Print message to stdout if not in quiet mode."""
@@ -288,11 +303,26 @@ class FileDownloader(object):
 					except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 						retcode = self.trouble('ERROR: unable to download video data: %s' % str(err))
 						continue
+					try:
+						self.post_process(filename, result)
+					except (PostProcessingError), err:
+						retcode = self.trouble('ERROR: postprocessing: %s' % str(err))
+						continue
+
 				break
 			if not suitable_found:
 				retcode = self.trouble('ERROR: no suitable InfoExtractor: %s' % url)
 
 		return retcode
+
+	def post_process(self, filename, ie_info):
+		"""Run the postprocessing chain on the given file."""
+		info = dict(ie_info)
+		info['filepath'] = filename
+		for pp in self._pps:
+			info = pp.run(info)
+			if info is None:
+				break
 	
 	def _do_download(self, stream, url):
 		request = urllib2.Request(url, None, std_headers)
@@ -736,6 +766,62 @@ class YoutubePlaylistIE(InfoExtractor):
 			information.extend(self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id))
 		return information
 
+class PostProcessor(object):
+	"""Post Processor class.
+
+	PostProcessor objects can be added to downloaders with their
+	add_post_processor() method. When the downloader has finished a
+	successful download, it will take its internal chain of PostProcessors
+	and start calling the run() method on each one of them, first with
+	an initial argument and then with the returned value of the previous
+	PostProcessor.
+
+	The chain will be stopped if one of them ever returns None or the end
+	of the chain is reached.
+
+	PostProcessor objects follow a "mutual registration" process similar
+	to InfoExtractor objects.
+	"""
+
+	_downloader = None
+
+	def __init__(self, downloader=None):
+		self._downloader = downloader
+
+	def to_stdout(self, message):
+		"""Print message to stdout if downloader is not in quiet mode."""
+		if self._downloader is None or not self._downloader.get_params().get('quiet', False):
+			print message
+	
+	def to_stderr(self, message):
+		"""Print message to stderr."""
+		print >>sys.stderr, message
+
+	def set_downloader(self, downloader):
+		"""Sets the downloader for this PP."""
+		self._downloader = downloader
+	
+	def run(self, information):
+		"""Run the PostProcessor.
+
+		The "information" argument is a dictionary like the ones
+		returned by InfoExtractors. The only difference is that this
+		one has an extra field called "filepath" that points to the
+		downloaded file.
+
+		When this method returns None, the postprocessing chain is
+		stopped. However, this method may return an information
+		dictionary that will be passed to the next postprocessing
+		object in the chain. It can be the one it received after
+		changing some fields.
+
+		In addition, this method may raise a PostProcessingError
+		exception that will be taken into account by the downloader
+		it was called from.
+		"""
+		return information # by default, do nothing
+	
+### MAIN PROGRAM ###
 if __name__ == '__main__':
 	try:
 		# Modules needed only when running the main program
