@@ -96,7 +96,8 @@ is too old.</p>
 
 <li>You can change the file name of the video using the -o option, like in
 <em>youtube-dl -o vid.flv "http://www.youtube.com/watch?v=foobar"</em>.
-Read the <em>Output template</em> section for more details on this.</li>
+Read the <a href="#otpl">Output template</a> section for more details on
+this.</li>
 
 <li>Some videos require an account to be downloaded, mostly because they're
 flagged as mature content. You can pass the program a username and password
@@ -130,11 +131,9 @@ literal title in the filename with the -l or --literal option.</li>
 by using the -f or --format option. This makes it possible to download high
 quality versions of the videos when available.</li>
 
-<li><em>youtube-dl</em> can attempt to download the best quality version of
-a video by using the -b or --best-quality option.</li>
+<li>The -b or --best-quality option is an alias for -f 18.</li>
 
-<li><em>youtube-dl</em> can attempt to download the mobile quality version of
-a video by using the -m or --mobile-version option.</li>
+<li>The -m or --mobile-version option is an alias for -f 17.</li>
 
 <li>Normally, the program will stop on the first error, but you can tell it
 to attempt to download every video with the -i or --ignore-errors option.</li>
@@ -156,7 +155,7 @@ That's ok.</li>
 
 </ul>
 
-<h2>Download it</h2>
+<h2 id="otpl">Download it</h2>
 
 <p>Note that if you directly click on these hyperlinks, your web browser will
 most likely display the program contents. It's usually better to
@@ -189,9 +188,9 @@ person who uploaded the video.</li>
 <li><em>title</em>: The sequence will be replaced by the literal video
 title.</li>
 <li><em>stitle</em>: The sequence will be replaced by a simplified video
-title.</li>
+title, restricted to alphanumeric characters and dashes.</li>
 <li><em>ext</em>: The sequence will be replaced by the appropriate
-extension.</li>
+extension (like <em>flv</em> or <em>mp4</em>).</li>
 </ul>
 
 <p>As you may have guessed, the default template is <em>%(id)s.%(ext)s</em>.
