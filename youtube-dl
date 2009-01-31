@@ -889,10 +889,20 @@ if __name__ == '__main__':
 				action='store_true', dest='ignoreerrors', help='continue on download errors', default=False)
 		parser.add_option('-r', '--rate-limit',
 				dest='ratelimit', metavar='L', help='download rate limit (e.g. 50k or 44.6m)')
+		parser.add_option('-a', '--batch-file',
+				dest='batchfile', metavar='F', help='file containing URLs to download')
 		(opts, args) = parser.parse_args()
 
+		# Batch file verification
+		if opts.batchfile is not None:
+			try:
+				batchurls = [line.strip() for line in open(opts.batchfile, 'r')]
+			except IOError:
+				sys.exit(u'ERROR: batch file could not be read')
+		all_urls = batchurls + args
+
 		# Conflicting, missing and erroneous options
-		if len(args) < 1:
+		if len(all_urls) < 1:
 			sys.exit(u'ERROR: you must provide at least one URL')
 		if opts.usenetrc and (opts.username is not None or opts.password is not None):
 			sys.exit(u'ERROR: using .netrc conflicts with giving username/password')
@@ -938,7 +948,7 @@ if __name__ == '__main__':
 		fd.add_info_extractor(youtube_pl_ie)
 		fd.add_info_extractor(metacafe_ie)
 		fd.add_info_extractor(youtube_ie)
-		retcode = fd.download(args)
+		retcode = fd.download(all_urls)
 		sys.exit(retcode)
 
 	except DownloadError:
