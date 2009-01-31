@@ -138,6 +138,9 @@ quality versions of the videos when available.</li>
 <li>Normally, the program will stop on the first error, but you can tell it
 to attempt to download every video with the -i or --ignore-errors option.</li>
 
+<li>The -a or --batch-file option lets you specify a file to read URLs from.
+The file must contain one URL per line.</li>
+
 <li><em>youtube-dl</em> honors the <em>http_proxy</em> environment variable
 if you want to use a proxy. Set it to something like
 <em>http://proxy.example.com:8080</em>, and do not leave the <em>http://</em>
