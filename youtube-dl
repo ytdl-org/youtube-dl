@@ -431,13 +431,18 @@ class YoutubeIE(InfoExtractor):
 	"""Information extractor for youtube.com."""
 
 	_VALID_URL = r'^((?:http://)?(?:\w+\.)?youtube\.com/(?:(?:v/)|(?:(?:watch(?:\.php)?)?\?(?:.+&)?v=)))?([0-9A-Za-z_-]+)(?(1).+)?$'
-	_LOGIN_URL = 'http://uk.youtube.com/login?next=/'
-	_AGE_URL = 'http://uk.youtube.com/verify_age?next_url=/'
+	_LANG_URL = r'http://uk.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
+	_LOGIN_URL = 'http://www.youtube.com/signup?next=/&gl=US&hl=en'
+	_AGE_URL = 'http://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
 	_NETRC_MACHINE = 'youtube'
 
 	@staticmethod
 	def suitable(url):
 		return (re.match(YoutubeIE._VALID_URL, url) is not None)
+
+	def report_lang(self):
+		"""Report attempt to set language."""
+		self.to_stdout(u'[youtube] Setting language')
 
 	def report_login(self):
 		"""Report attempt to log in."""
@@ -485,6 +490,15 @@ class YoutubeIE(InfoExtractor):
 
 		# No authentication to be performed
 		if username is None:
+			return
+
+		# Set language
+		request = urllib2.Request(self._LOGIN_URL, None, std_headers)
+		try:
+			self.report_lang()
+			urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self.to_stderr(u'WARNING: unable to set language: %s' % str(err))
 			return
 
 		# Log in
@@ -537,7 +551,7 @@ class YoutubeIE(InfoExtractor):
 		video_extension = {'18': 'mp4', '17': '3gp'}.get(format_param, 'flv')
 
 		# Normalize URL, including format
-		normalized_url = 'http://uk.youtube.com/watch?v=%s' % video_id
+		normalized_url = 'http://www.youtube.com/watch?v=%s&gl=US&hl=en' % video_id
 		if format_param is not None:
 			normalized_url = '%s&fmt=%s' % (normalized_url, format_param)
 		request = urllib2.Request(normalized_url, None, std_headers)
@@ -554,7 +568,7 @@ class YoutubeIE(InfoExtractor):
 		if mobj is None:
 			self.to_stderr(u'ERROR: unable to extract "t" parameter')
 			return [None]
-		video_real_url = 'http://uk.youtube.com/get_video?video_id=%s&t=%s' % (video_id, mobj.group(1))
+		video_real_url = 'http://www.youtube.com/get_video?video_id=%s&t=%s' % (video_id, mobj.group(1))
 		if format_param is not None:
 			video_real_url = '%s&fmt=%s' % (video_real_url, format_param)
 		self.report_video_url(video_id, video_real_url)
@@ -655,7 +669,7 @@ class MetacafeIE(InfoExtractor):
 		# Check if video comes from YouTube
 		mobj2 = re.match(r'^yt-(.*)$', video_id)
 		if mobj2 is not None:
-			return self._youtube_ie.extract('http://uk.youtube.com/watch?v=%s' % mobj2.group(1))
+			return self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % mobj2.group(1))
 
 		simple_title = mobj.group(2).decode('utf-8')
 		video_extension = 'flv'
@@ -711,7 +725,7 @@ class YoutubePlaylistIE(InfoExtractor):
 	"""Information Extractor for YouTube playlists."""
 
 	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/view_play_list\?p=(.+)'
-	_TEMPLATE_URL = 'http://uk.youtube.com/view_play_list?p=%s&page=%s'
+	_TEMPLATE_URL = 'http://www.youtube.com/view_play_list?p=%s&page=%s&gl=US&hl=en'
 	_VIDEO_INDICATOR = r'/watch\?v=(.+?)&'
 	_MORE_PAGES_INDICATOR = r'/view_play_list?p=%s&amp;page=%s'
 	_youtube_ie = None
@@ -765,7 +779,7 @@ class YoutubePlaylistIE(InfoExtractor):
 
 		information = []
 		for id in video_ids:
-			information.extend(self._youtube_ie.extract('http://uk.youtube.com/watch?v=%s' % id))
+			information.extend(self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id))
 		return information
 
 class PostProcessor(object):
