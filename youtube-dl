@@ -894,6 +894,7 @@ if __name__ == '__main__':
 		(opts, args) = parser.parse_args()
 
 		# Batch file verification
+		batchurls = []
 		if opts.batchfile is not None:
 			try:
 				batchurls = [line.strip() for line in open(opts.batchfile, 'r')]
