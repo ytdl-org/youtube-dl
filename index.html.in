@@ -141,6 +141,17 @@ to attempt to download every video with the -i or --ignore-errors option.</li>
 <li>The -a or --batch-file option lets you specify a file to read URLs from.
 The file must contain one URL per line.</li>
 
+<li>For YouTube, you can also use the URL of a playlist, and it will download
+all the videos in that playlist.</li>
+
+<li>For YouTube, you can also use the special word <em>ytsearch</em> to
+download search results. With <em>ytsearch</em> it will download the
+first search result. With <em>ytsearchN</em>, where N is a number, it
+will download the first N results. With <em>ytsearchall</em> it will
+download every result for that search. In most systems you'll need to
+use quotes for multiple words. Example: <em>youtube-dl "ytsearch3:cute
+kittens"</em>.
+
 <li><em>youtube-dl</em> honors the <em>http_proxy</em> environment variable
 if you want to use a proxy. Set it to something like
 <em>http://proxy.example.com:8080</em>, and do not leave the <em>http://</em>
@@ -158,7 +169,7 @@ That's ok.</li>
 
 </ul>
 
-<h2 id="otpl">Download it</h2>
+<h2>Download it</h2>
 
 <p>Note that if you directly click on these hyperlinks, your web browser will
 most likely display the program contents. It's usually better to
@@ -173,7 +184,7 @@ are using.</p>
         <li><strong>SHA256</strong>: @PROGRAM_SHA256SUM@</li>
 </ul>
 
-<h2>Output template</h2>
+<h2 id="otpl">Output template</h2>
 
 <p>The -o option allows users to indicate a template for the output file names.
 The basic usage is not to set any template arguments when downloading a single
