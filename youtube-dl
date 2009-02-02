@@ -776,7 +776,7 @@ class YoutubeSearchIE(InfoExtractor):
 
 		while True:
 			self.report_download_page(query, pagenum)
-			result_url = self._TEMPLATE_URL % (urllib.quote(query.replace(' ', '+')), pagenum)
+			result_url = self._TEMPLATE_URL % (urllib.quote_plus(query), pagenum)
 			request = urllib2.Request(result_url, None, std_headers)
 			try:
 				page = urllib2.urlopen(request).read()
