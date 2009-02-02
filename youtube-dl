@@ -721,6 +721,90 @@ class MetacafeIE(InfoExtractor):
 			'ext':		video_extension.decode('utf-8'),
 			}]
 
+
+class YoutubeSearchIE(InfoExtractor):
+	"""Information Extractor for YouTube search queries."""
+	_VALID_QUERY = r'ytsearch(\d+|all)?:[\s\S]+'
+	_TEMPLATE_URL = 'http://www.youtube.com/results?search_query=%s&page=%s&gl=US&hl=en'
+	_VIDEO_INDICATOR = r'href="/watch\?v=.+?"'
+	_MORE_PAGES_INDICATOR = r'>Next</a>'
+	_youtube_ie = None
+
+	def __init__(self, youtube_ie, downloader=None): 
+		InfoExtractor.__init__(self, downloader)
+		self._youtube_ie = youtube_ie
+	
+	@staticmethod
+	def suitable(url):
+		return (re.match(YoutubeSearchIE._VALID_QUERY, url) is not None)
+
+	def report_download_page(self, query, pagenum):
+		"""Report attempt to download playlist page with given number."""
+		self.to_stdout(u'[youtube] query "%s": Downloading page %s' % (query, pagenum))
+
+	def _real_initialize(self):
+		self._youtube_ie.initialize()
+	
+	def _real_extract(self, query):
+		mobj = re.match(self._VALID_QUERY, query)
+		if mobj is None:
+			self.to_stderr(u'ERROR: invalid search query "%s"' % query)
+			return [None]
+
+		prefix, query = query.split(':')
+		prefix = prefix[8:]
+		if prefix == '': 
+			return self._download_n_results(query, 1)
+		elif prefix == 'all': 
+			return self._download_n_results(query, -1)
+		else: 
+			try:
+				n = int(prefix)
+				if n <= 0:
+					self.to_stderr(u'ERROR: invalid download number %s for query "%s"' % (n, query))
+					return [None]
+				return self._download_n_results(query, n)
+			except ValueError: # parsing prefix as int fails
+				return self._download_n_results(query, 1)
+
+	def _download_n_results(self, query, n):
+		"""Downloads a specified number of results for a query"""
+
+		video_ids = []
+		already_seen = set()
+		pagenum = 1
+
+		while True:
+			self.report_download_page(query, pagenum)
+			result_url = self._TEMPLATE_URL % (urllib.quote(query.replace(' ', '+')), pagenum)
+			request = urllib2.Request(result_url, None, std_headers)
+			try:
+				page = urllib2.urlopen(request).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self.to_stderr(u'ERROR: unable to download webpage: %s' % str(err))
+				return [None]
+
+			# Extract video identifiers
+			for mobj in re.finditer(self._VIDEO_INDICATOR, page):
+				video_id = page[mobj.span()[0]:mobj.span()[1]].split('=')[2][:-1]
+				if video_id not in already_seen:
+					video_ids.append(video_id)
+					already_seen.add(video_id)
+					if len(video_ids) == n:
+						# Specified n videos reached
+						information = []
+						for id in video_ids:
+							information.extend(self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id))
+						return information
+
+			if self._MORE_PAGES_INDICATOR not in page:
+				information = []
+				for id in video_ids:
+					information.extend(self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id))
+				return information
+
+			pagenum = pagenum + 1
+
 class YoutubePlaylistIE(InfoExtractor):
 	"""Information Extractor for YouTube playlists."""
 
@@ -925,6 +1009,7 @@ if __name__ == '__main__':
 		youtube_ie = YoutubeIE()
 		metacafe_ie = MetacafeIE(youtube_ie)
 		youtube_pl_ie = YoutubePlaylistIE(youtube_ie)
+		youtube_search_ie = YoutubeSearchIE(youtube_ie)
 
 		# File downloader
 		charset = locale.getdefaultlocale()[1]
@@ -946,6 +1031,7 @@ if __name__ == '__main__':
 			'ignoreerrors': opts.ignoreerrors,
 			'ratelimit': opts.ratelimit,
 			})
+		fd.add_info_extractor(youtube_search_ie)
 		fd.add_info_extractor(youtube_pl_ie)
 		fd.add_info_extractor(metacafe_ie)
 		fd.add_info_extractor(youtube_ie)
