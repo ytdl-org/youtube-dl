@@ -141,6 +141,9 @@ to attempt to download every video with the -i or --ignore-errors option.</li>
 <li>The -a or --batch-file option lets you specify a file to read URLs from.
 The file must contain one URL per line.</li>
 
+<li>The program can be told not to overwrite existing files using the -w or
+--no-overwrites option.</li>
+
 <li>For YouTube, you can also use the URL of a playlist, and it will download
 all the videos in that playlist.</li>
 
