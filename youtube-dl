@@ -89,6 +89,7 @@ class FileDownloader(object):
 	outtmpl:	Template for output names.
 	ignoreerrors:	Do not stop on download errors.
 	ratelimit:	Download speed limit, in bytes/sec.
+	nooverwrites:	Prevent overwriting files.
 	"""
 
 	_params = None
@@ -285,6 +286,9 @@ class FileDownloader(object):
 						self.report_destination(filename)
 					except (ValueError, KeyError), err:
 						retcode = self.trouble('ERROR: invalid output template or system charset: %s' % str(err))
+						continue
+					if self._params['nooverwrites'] and os.path.exists(filename):
+						self.to_stderr('WARNING: file exists: %s; skipping' % filename)
 						continue
 					try:
 						self.pmkdir(filename)
@@ -976,6 +980,8 @@ if __name__ == '__main__':
 				dest='ratelimit', metavar='L', help='download rate limit (e.g. 50k or 44.6m)')
 		parser.add_option('-a', '--batch-file',
 				dest='batchfile', metavar='F', help='file containing URLs to download')
+		parser.add_option('-w', '--no-overwrites',
+				action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
 		(opts, args) = parser.parse_args()
 
 		# Batch file verification
@@ -1031,6 +1037,7 @@ if __name__ == '__main__':
 				or u'%(id)s.%(ext)s'),
 			'ignoreerrors': opts.ignoreerrors,
 			'ratelimit': opts.ratelimit,
+			'nooverwrites': opts.nooverwrites,
 			})
 		fd.add_info_extractor(youtube_search_ie)
 		fd.add_info_extractor(youtube_pl_ie)
