@@ -144,7 +144,7 @@ class FileDownloader(object):
 			return '--:--'
 		return '%02d:%02d' % (eta_mins, eta_secs)
 
- 	@staticmethod
+	@staticmethod
 	def calc_speed(start, now, bytes):
 		dif = now - start
 		if bytes == 0 or dif < 0.001: # One millisecond
