@@ -493,17 +493,17 @@ class YoutubeIE(InfoExtractor):
 				self.to_stderr(u'WARNING: parsing .netrc: %s' % str(err))
 				return
 
-		# No authentication to be performed
-		if username is None:
-			return
-
 		# Set language
-		request = urllib2.Request(self._LOGIN_URL, None, std_headers)
+		request = urllib2.Request(self._LANG_URL, None, std_headers)
 		try:
 			self.report_lang()
 			urllib2.urlopen(request).read()
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 			self.to_stderr(u'WARNING: unable to set language: %s' % str(err))
+			return
+
+		# No authentication to be performed
+		if username is None:
 			return
 
 		# Log in
