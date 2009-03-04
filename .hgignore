@@ -1,4 +1,2 @@
 syntax: glob
-index.html
-youtube-dl-*
 .*.swp
