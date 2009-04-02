@@ -18,7 +18,7 @@ import time
 import urllib
 import urllib2
 
-std_headers = {	
+std_headers = {
 	'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.5) Gecko/2008120122 Firefox/3.0.5',
 	'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
 	'Accept': 'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5',
@@ -729,7 +729,7 @@ class YoutubeSearchIE(InfoExtractor):
 	_MORE_PAGES_INDICATOR = r'>Next</a>'
 	_youtube_ie = None
 
-	def __init__(self, youtube_ie, downloader=None): 
+	def __init__(self, youtube_ie, downloader=None):
 		InfoExtractor.__init__(self, downloader)
 		self._youtube_ie = youtube_ie
 	
@@ -752,11 +752,11 @@ class YoutubeSearchIE(InfoExtractor):
 
 		prefix, query = query.split(':')
 		prefix = prefix[8:]
-		if prefix == '': 
+		if prefix == '':
 			return self._download_n_results(query, 1)
-		elif prefix == 'all': 
+		elif prefix == 'all':
 			return self._download_n_results(query, -1)
-		else: 
+		else:
 			try:
 				n = int(prefix)
 				if n <= 0:
