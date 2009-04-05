@@ -435,6 +435,29 @@ class YoutubeIE(InfoExtractor):
 	def suitable(url):
 		return (re.match(YoutubeIE._VALID_URL, url) is not None)
 
+	@staticmethod
+	def htmlentity_transform(matchobj):
+		"""Transforms an HTML entity to a Unicode character."""
+		entity = matchobj.group(1)
+
+		# Known non-numeric HTML entity
+		if entity in htmlentitydefs.name2codepoint:
+			return unichr(htmlentitydefs.name2codepoint[entity])
+
+		# Unicode character
+		mobj = re.match(ur'(?u)#(x?\d+)', entity)
+		if mobj is not None:
+			numstr = mobj.group(1)
+			if numstr.startswith(u'x'):
+				base = 16
+				numstr = u'0%s' % numstr
+			else:
+				base = 10
+			return unichr(long(numstr, base))
+
+		# Unknown entity in name, return its literal representation
+		return (u'&%s;' % entity)
+
 	def report_lang(self):
 		"""Report attempt to set language."""
 		self.to_stdout(u'[youtube] Setting language')
@@ -458,7 +481,7 @@ class YoutubeIE(InfoExtractor):
 	def report_video_url(self, video_id, video_real_url):
 		"""Report extracted video URL."""
 		self.to_stdout(u'[youtube] %s: URL: %s' % (video_id, video_real_url))
-
+	
 	def _real_initialize(self):
 		if self._downloader is None:
 			return
@@ -585,7 +608,7 @@ class YoutubeIE(InfoExtractor):
 			self.to_stderr(u'ERROR: unable to extract video title')
 			return [None]
 		video_title = mobj.group(1).decode('utf-8')
-		video_title = re.sub(ur'(?u)&(.+?);', lambda x: unichr(htmlentitydefs.name2codepoint[x.group(1)]), video_title)
+		video_title = re.sub(ur'(?u)&(.+?);', self.htmlentity_transform, video_title)
 		video_title = video_title.replace(os.sep, u'%')
 
 		# simplified title
