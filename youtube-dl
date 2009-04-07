@@ -751,6 +751,7 @@ class YoutubeSearchIE(InfoExtractor):
 	_VIDEO_INDICATOR = r'href="/watch\?v=.+?"'
 	_MORE_PAGES_INDICATOR = r'>Next</a>'
 	_youtube_ie = None
+	_max_youtube_results = 1000
 
 	def __init__(self, youtube_ie, downloader=None):
 		InfoExtractor.__init__(self, downloader)
@@ -778,7 +779,7 @@ class YoutubeSearchIE(InfoExtractor):
 		if prefix == '':
 			return self._download_n_results(query, 1)
 		elif prefix == 'all':
-			return self._download_n_results(query, -1)
+			return self._download_n_results(query, self._max_youtube_results)
 		else:
 			try:
 				n = int(prefix)
