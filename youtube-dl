@@ -239,6 +239,48 @@ class FileDownloader(object):
 		"""Report download finished."""
 		self.to_stdout(u'')
 
+	def process_info(self, info_dict):
+		"""Process a single dictionary returned by an InfoExtractor."""
+		# Forced printings
+		if self.params.get('forcetitle', False):
+			print info_dict['title']
+		if self.params.get('forceurl', False):
+			print info_dict['url']
+			
+		# Do nothing else if in simulate mode
+		if self.params.get('simulate', False):
+			return 0
+
+		try:
+			filename = self.params['outtmpl'] % info_dict
+			self.report_destination(filename)
+		except (ValueError, KeyError), err:
+			return self.trouble('ERROR: invalid output template or system charset: %s' % str(err))
+		if self.params['nooverwrites'] and os.path.exists(filename):
+			self.to_stderr('WARNING: file exists: %s; skipping' % filename)
+			return 0
+		try:
+			self.pmkdir(filename)
+		except (OSError, IOError), err:
+			return self.trouble('ERROR: unable to create directories: %s' % str(err))
+		try:
+			outstream = open(filename, 'wb')
+		except (OSError, IOError), err:
+			return self.trouble('ERROR: unable to open for writing: %s' % str(err))
+		try:
+			self._do_download(outstream, info_dict['url'])
+			outstream.close()
+		except (OSError, IOError), err:
+			return self.trouble('ERROR: unable to write video data: %s' % str(err))
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			return self.trouble('ERROR: unable to download video data: %s' % str(err))
+		try:
+			self.post_process(filename, info_dict)
+		except (PostProcessingError), err:
+			return self.trouble('ERROR: postprocessing: %s' % str(err))
+
+		return 0
+
 	def download(self, url_list):
 		"""Download a given list of URLs."""
 		retcode = 0
@@ -248,64 +290,36 @@ class FileDownloader(object):
 		for url in url_list:
 			suitable_found = False
 			for ie in self._ies:
+				# Go to next InfoExtractor if not suitable
 				if not ie.suitable(url):
 					continue
+
 				# Suitable InfoExtractor found
 				suitable_found = True
+
+				# Extract information from URL
 				all_results = ie.extract(url)
 				results = [x for x in all_results if x is not None]
+
+				# See if there were problems extracting any information
 				if len(results) != len(all_results):
 					retcode = self.trouble()
 
+				# Two results could go to the same file
 				if len(results) > 1 and self.fixed_template():
 					raise SameFileError(self.params['outtmpl'])
 
+				# Process each result
 				for result in results:
-					# Forced printings
-					if self.params.get('forcetitle', False):
-						print result['title']
-					if self.params.get('forceurl', False):
-						print result['url']
-						
-					# Do nothing else if in simulate mode
-					if self.params.get('simulate', False):
-						continue
+					result = self.process_info(result)
 
-					try:
-						filename = self.params['outtmpl'] % result
-						self.report_destination(filename)
-					except (ValueError, KeyError), err:
-						retcode = self.trouble('ERROR: invalid output template or system charset: %s' % str(err))
-						continue
-					if self.params['nooverwrites'] and os.path.exists(filename):
-						self.to_stderr('WARNING: file exists: %s; skipping' % filename)
-						continue
-					try:
-						self.pmkdir(filename)
-					except (OSError, IOError), err:
-						retcode = self.trouble('ERROR: unable to create directories: %s' % str(err))
-						continue
-					try:
-						outstream = open(filename, 'wb')
-					except (OSError, IOError), err:
-						retcode = self.trouble('ERROR: unable to open for writing: %s' % str(err))
-						continue
-					try:
-						self._do_download(outstream, result['url'])
-						outstream.close()
-					except (OSError, IOError), err:
-						retcode = self.trouble('ERROR: unable to write video data: %s' % str(err))
-						continue
-					except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-						retcode = self.trouble('ERROR: unable to download video data: %s' % str(err))
-						continue
-					try:
-						self.post_process(filename, result)
-					except (PostProcessingError), err:
-						retcode = self.trouble('ERROR: postprocessing: %s' % str(err))
-						continue
+					# Do not overwrite an error code with a success code
+					if result != 0:
+						retcode = result
 
+				# Suitable InfoExtractor had been found; go to next URL
 				break
+
 			if not suitable_found:
 				retcode = self.trouble('ERROR: no suitable InfoExtractor: %s' % url)
 
