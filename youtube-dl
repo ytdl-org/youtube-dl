@@ -1056,7 +1056,7 @@ if __name__ == '__main__':
 		youtube_search_ie = YoutubeSearchIE(youtube_ie)
 
 		# File downloader
-		charset = locale.getdefaultlocale()[1]
+		charset = locale.getpreferredencoding()
 		if charset is None:
 			charset = 'ascii'
 		fd = FileDownloader({
