@@ -65,9 +65,10 @@ class FileDownloader(object):
 	For this, file downloader objects have a method that allows
 	InfoExtractors to be registered in a given order. When it is passed
 	a URL, the file downloader handles it to the first InfoExtractor it
-	finds that reports being able to handle it. The InfoExtractor returns
-	all the information to the FileDownloader and the latter downloads the
-	file or does whatever it's instructed to do.
+	finds that reports being able to handle it. The InfoExtractor extracts
+	all the information about the video or videos the URL refers to, and
+	asks the FileDownloader to process the video information, possibly
+	downloading the video.
 
 	File downloaders accept a lot of parameters. In order not to saturate
 	the object constructor with arguments, it receives a dictionary of
@@ -360,9 +361,10 @@ class InfoExtractor(object):
 	Information extractors are the classes that, given a URL, extract
 	information from the video (or videos) the URL refers to. This
 	information includes the real video URL, the video title and simplified
-	title, author and others. It is returned in a list of dictionaries when
-	calling its extract() method. It is a list because a URL can refer to
-	more than one video (think of playlists). The dictionaries must include
+	title, author and others. The information is stored in a dictionary
+	which is then passed to the FileDownloader. The FileDownloader
+	processes this information possibly downloading the video to the file
+	system, among other possible outcomes. The dictionaries must include
 	the following fields:
 
 	id:		Video identifier.
