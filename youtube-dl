@@ -301,21 +301,8 @@ class FileDownloader(object):
 				# Suitable InfoExtractor found
 				suitable_found = True
 
-				# Extract information from URL
-				all_results = ie.extract(url)
-				results = [x for x in all_results if x is not None]
-
-				# See if there were problems extracting any information
-				if len(results) != len(all_results):
-					self.trouble()
-
-				# Two results could go to the same file
-				if len(results) > 1 and self.fixed_template():
-					raise SameFileError(self.params['outtmpl'])
-
-				# Process each result
-				for result in results:
-					self.process_info(result)
+				# Extract information from URL and process it
+				ie.extract(url)
 
 				# Suitable InfoExtractor had been found; go to next URL
 				break
@@ -508,7 +495,7 @@ class YoutubeIE(InfoExtractor):
 				else:
 					raise netrc.NetrcParseError('No authenticators for %s' % self._NETRC_MACHINE)
 			except (IOError, netrc.NetrcParseError), err:
-				self._downloader.trouble(u'WARNING: parsing .netrc: %s' % str(err))
+				self._downloader.to_stderr(u'WARNING: parsing .netrc: %s' % str(err))
 				return
 
 		# Set language
@@ -517,7 +504,7 @@ class YoutubeIE(InfoExtractor):
 			self.report_lang()
 			urllib2.urlopen(request).read()
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self._downloader.trouble(u'WARNING: unable to set language: %s' % str(err))
+			self._downloader.to_stderr(u'WARNING: unable to set language: %s' % str(err))
 			return
 
 		# No authentication to be performed
@@ -537,10 +524,10 @@ class YoutubeIE(InfoExtractor):
 			self.report_login()
 			login_results = urllib2.urlopen(request).read()
 			if re.search(r'(?i)<form[^>]* name="loginForm"', login_results) is not None:
-				self._downloader.trouble(u'WARNING: unable to log in: bad username or password')
+				self._downloader.to_stderr(u'WARNING: unable to log in: bad username or password')
 				return
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self._downloader.trouble(u'WARNING: unable to log in: %s' % str(err))
+			self._downloader.to_stderr(u'WARNING: unable to log in: %s' % str(err))
 			return
 	
 		# Confirm age
@@ -561,7 +548,7 @@ class YoutubeIE(InfoExtractor):
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
-			return [None]
+			return
 		video_id = mobj.group(2)
 
 		# Downloader parameters
@@ -587,14 +574,14 @@ class YoutubeIE(InfoExtractor):
 			video_webpage = urllib2.urlopen(request).read()
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 			self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % str(err))
-			return [None]
+			return
 		self.report_information_extraction(video_id)
 		
 		# "t" param
 		mobj = re.search(r', "t": "([^"]+)"', video_webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract "t" parameter')
-			return [None]
+			return
 		video_real_url = 'http://www.youtube.com/get_video?video_id=%s&t=%s&el=detailpage&ps=' % (video_id, mobj.group(1))
 		if format_param is not None:
 			video_real_url = '%s&fmt=%s' % (video_real_url, format_param)
@@ -604,14 +591,14 @@ class YoutubeIE(InfoExtractor):
 		mobj = re.search(r"var watchUsername = '([^']+)';", video_webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
-			return [None]
+			return
 		video_uploader = mobj.group(1)
 
 		# title
 		mobj = re.search(r'(?im)<title>YouTube - ([^<]*)</title>', video_webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract video title')
-			return [None]
+			return
 		video_title = mobj.group(1).decode('utf-8')
 		video_title = re.sub(ur'(?u)&(.+?);', self.htmlentity_transform, video_title)
 		video_title = video_title.replace(os.sep, u'%')
@@ -621,14 +608,14 @@ class YoutubeIE(InfoExtractor):
 		simple_title = simple_title.strip(ur'_')
 
 		# Process video information
-		return [{
+		self._downloader.process_info({
 			'id':		video_id.decode('utf-8'),
 			'url':		video_real_url.decode('utf-8'),
 			'uploader':	video_uploader.decode('utf-8'),
 			'title':	video_title,
 			'stitle':	simple_title,
 			'ext':		video_extension.decode('utf-8'),
-			}]
+			})
 
 class MetacafeIE(InfoExtractor):
 	"""Information Extractor for metacafe.com."""
@@ -689,14 +676,15 @@ class MetacafeIE(InfoExtractor):
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
-			return [None]
+			return
 
 		video_id = mobj.group(1)
 
 		# Check if video comes from YouTube
 		mobj2 = re.match(r'^yt-(.*)$', video_id)
 		if mobj2 is not None:
-			return self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % mobj2.group(1))
+			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % mobj2.group(1))
+			return
 
 		simple_title = mobj.group(2).decode('utf-8')
 		video_extension = 'flv'
@@ -708,20 +696,20 @@ class MetacafeIE(InfoExtractor):
 			webpage = urllib2.urlopen(request).read()
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 			self._downloader.trouble(u'ERROR: unable retrieve video webpage: %s' % str(err))
-			return [None]
+			return
 
 		# Extract URL, uploader and title from webpage
 		self.report_extraction(video_id)
 		mobj = re.search(r'(?m)"mediaURL":"(http.*?\.flv)"', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
-			return [None]
+			return
 		mediaURL = mobj.group(1).replace('\\', '')
 
 		mobj = re.search(r'(?m)"gdaKey":"(.*?)"', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract gdaKey')
-			return [None]
+			return
 		gdaKey = mobj.group(1)
 
 		video_url = '%s?__gda__=%s' % (mediaURL, gdaKey)
@@ -729,24 +717,24 @@ class MetacafeIE(InfoExtractor):
 		mobj = re.search(r'(?im)<title>(.*) - Video</title>', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract title')
-			return [None]
+			return
 		video_title = mobj.group(1).decode('utf-8')
 
 		mobj = re.search(r'(?m)<li id="ChnlUsr">.*?Submitter:<br />(.*?)</li>', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
-			return [None]
+			return
 		video_uploader = re.sub(r'<.*?>', '', mobj.group(1))
 
-		# Return information
-		return [{
+		# Process video information
+		self._downloader.process_info({
 			'id':		video_id.decode('utf-8'),
 			'url':		video_url.decode('utf-8'),
 			'uploader':	video_uploader.decode('utf-8'),
 			'title':	video_title,
 			'stitle':	simple_title,
 			'ext':		video_extension.decode('utf-8'),
-			}]
+			})
 
 
 class YoutubeSearchIE(InfoExtractor):
@@ -777,26 +765,30 @@ class YoutubeSearchIE(InfoExtractor):
 		mobj = re.match(self._VALID_QUERY, query)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid search query "%s"' % query)
-			return [None]
+			return
 
 		prefix, query = query.split(':')
 		prefix = prefix[8:]
 		if prefix == '':
-			return self._download_n_results(query, 1)
+			self._download_n_results(query, 1)
+			return
 		elif prefix == 'all':
-			return self._download_n_results(query, self._max_youtube_results)
+			self._download_n_results(query, self._max_youtube_results)
+			return
 		else:
 			try:
 				n = int(prefix)
 				if n <= 0:
 					self._downloader.trouble(u'ERROR: invalid download number %s for query "%s"' % (n, query))
-					return [None]
+					return
 				elif n > self._max_youtube_results:
-					self._downloader.trouble(u'WARNING: ytsearch returns max %i results (you requested %i)'  % (self._max_youtube_results, n))
+					self._downloader.to_stderr(u'WARNING: ytsearch returns max %i results (you requested %i)'  % (self._max_youtube_results, n))
 					n = self._max_youtube_results
-				return self._download_n_results(query, n)
+				self._download_n_results(query, n)
+				return
 			except ValueError: # parsing prefix as int fails
-				return self._download_n_results(query, 1)
+				self._download_n_results(query, 1)
+				return
 
 	def _download_n_results(self, query, n):
 		"""Downloads a specified number of results for a query"""
@@ -813,7 +805,7 @@ class YoutubeSearchIE(InfoExtractor):
 				page = urllib2.urlopen(request).read()
 			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 				self._downloader.trouble(u'ERROR: unable to download webpage: %s' % str(err))
-				return [None]
+				return
 
 			# Extract video identifiers
 			for mobj in re.finditer(self._VIDEO_INDICATOR, page):
@@ -823,16 +815,14 @@ class YoutubeSearchIE(InfoExtractor):
 					already_seen.add(video_id)
 					if len(video_ids) == n:
 						# Specified n videos reached
-						information = []
 						for id in video_ids:
-							information.extend(self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id))
-						return information
+							self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
+						return
 
 			if self._MORE_PAGES_INDICATOR not in page:
-				information = []
 				for id in video_ids:
-					information.extend(self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id))
-				return information
+					self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
+				return
 
 			pagenum = pagenum + 1
 
@@ -865,7 +855,7 @@ class YoutubePlaylistIE(InfoExtractor):
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid url: %s' % url)
-			return [None]
+			return
 
 		# Download playlist pages
 		playlist_id = mobj.group(1)
@@ -879,7 +869,7 @@ class YoutubePlaylistIE(InfoExtractor):
 				page = urllib2.urlopen(request).read()
 			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 				self._downloader.trouble(u'ERROR: unable to download webpage: %s' % str(err))
-				return [None]
+				return
 
 			# Extract video identifiers
 			ids_in_page = []
@@ -892,10 +882,9 @@ class YoutubePlaylistIE(InfoExtractor):
 				break
 			pagenum = pagenum + 1
 
-		information = []
 		for id in video_ids:
-			information.extend(self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id))
-		return information
+			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
+		return
 
 class PostProcessor(object):
 	"""Post Processor class.
