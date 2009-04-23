@@ -95,11 +95,13 @@ class FileDownloader(object):
 	params = None
 	_ies = []
 	_pps = []
+	_download_retcode = None
 
 	def __init__(self, params):
 		"""Create a FileDownloader object with the given options."""
 		self._ies = []
 		self._pps = []
+		self._download_retcode = 0
 		self.params = params
 	
 	@staticmethod
@@ -203,15 +205,13 @@ class FileDownloader(object):
 
 		Depending on if the downloader has been configured to ignore
 		download errors or not, this method may throw an exception or
-		not when errors are found, after printing the message. If it
-		doesn't raise, it returns an error code suitable to be returned
-		later as a program exit code to indicate error.
+		not when errors are found, after printing the message.
 		"""
 		if message is not None:
 			self.to_stderr(message)
 		if not self.params.get('ignoreerrors', False):
 			raise DownloadError(message)
-		return 1
+		self._download_retcode = 1
 
 	def slow_down(self, start_time, byte_counter):
 		"""Sleep if the download speed is over the rate limit."""
@@ -249,41 +249,45 @@ class FileDownloader(object):
 			
 		# Do nothing else if in simulate mode
 		if self.params.get('simulate', False):
-			return 0
+			return
 
 		try:
 			filename = self.params['outtmpl'] % info_dict
 			self.report_destination(filename)
 		except (ValueError, KeyError), err:
-			return self.trouble('ERROR: invalid output template or system charset: %s' % str(err))
+			self.trouble('ERROR: invalid output template or system charset: %s' % str(err))
 		if self.params['nooverwrites'] and os.path.exists(filename):
 			self.to_stderr('WARNING: file exists: %s; skipping' % filename)
-			return 0
+			return
 		try:
 			self.pmkdir(filename)
 		except (OSError, IOError), err:
-			return self.trouble('ERROR: unable to create directories: %s' % str(err))
+			self.trouble('ERROR: unable to create directories: %s' % str(err))
+			return
 		try:
 			outstream = open(filename, 'wb')
 		except (OSError, IOError), err:
-			return self.trouble('ERROR: unable to open for writing: %s' % str(err))
+			self.trouble('ERROR: unable to open for writing: %s' % str(err))
+			return
 		try:
 			self._do_download(outstream, info_dict['url'])
 			outstream.close()
 		except (OSError, IOError), err:
-			return self.trouble('ERROR: unable to write video data: %s' % str(err))
+			self.trouble('ERROR: unable to write video data: %s' % str(err))
+			return
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			return self.trouble('ERROR: unable to download video data: %s' % str(err))
+			self.trouble('ERROR: unable to download video data: %s' % str(err))
+			return
 		try:
 			self.post_process(filename, info_dict)
 		except (PostProcessingError), err:
-			return self.trouble('ERROR: postprocessing: %s' % str(err))
+			self.trouble('ERROR: postprocessing: %s' % str(err))
+			return
 
-		return 0
+		return
 
 	def download(self, url_list):
 		"""Download a given list of URLs."""
-		retcode = 0
 		if len(url_list) > 1 and self.fixed_template():
 			raise SameFileError(self.params['outtmpl'])
 
@@ -303,7 +307,7 @@ class FileDownloader(object):
 
 				# See if there were problems extracting any information
 				if len(results) != len(all_results):
-					retcode = self.trouble()
+					self.trouble()
 
 				# Two results could go to the same file
 				if len(results) > 1 and self.fixed_template():
@@ -311,19 +315,15 @@ class FileDownloader(object):
 
 				# Process each result
 				for result in results:
-					result = self.process_info(result)
-
-					# Do not overwrite an error code with a success code
-					if result != 0:
-						retcode = result
+					self.process_info(result)
 
 				# Suitable InfoExtractor had been found; go to next URL
 				break
 
 			if not suitable_found:
-				retcode = self.trouble('ERROR: no suitable InfoExtractor: %s' % url)
+				self.trouble('ERROR: no suitable InfoExtractor: %s' % url)
 
-		return retcode
+		return self._download_retcode
 
 	def post_process(self, filename, ie_info):
 		"""Run the postprocessing chain on the given file."""
