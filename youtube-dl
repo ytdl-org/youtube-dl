@@ -919,7 +919,7 @@ class PostProcessor(object):
 		"""Run the PostProcessor.
 
 		The "information" argument is a dictionary like the ones
-		returned by InfoExtractors. The only difference is that this
+		composed by InfoExtractors. The only difference is that this
 		one has an extra field called "filepath" that points to the
 		downloaded file.
 
