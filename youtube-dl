@@ -997,7 +997,9 @@ if __name__ == '__main__':
 		batchurls = []
 		if opts.batchfile is not None:
 			try:
-				batchurls = [line.strip() for line in open(opts.batchfile, 'r')]
+				batchurls = open(opts.batchfile, 'r').readlines()
+				batchurls = [x.strip() for x in batchurls]
+				batchurls = [x for x in batchurls if len(x) > 0]
 			except IOError:
 				sys.exit(u'ERROR: batch file could not be read')
 		all_urls = batchurls + args
