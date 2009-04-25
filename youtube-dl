@@ -624,6 +624,7 @@ class MetacafeIE(InfoExtractor):
 
 	_VALID_URL = r'(?:http://)?(?:www\.)?metacafe\.com/watch/([^/]+)/([^/]+)/.*'
 	_DISCLAIMER = 'http://www.metacafe.com/family_filter/'
+	_FILTER_POST = 'http://www.metacafe.com/f/index.php?inputType=filter&controllerGroup=user'
 	_youtube_ie = None
 
 	def __init__(self, youtube_ie, downloader=None):
@@ -665,7 +666,7 @@ class MetacafeIE(InfoExtractor):
 			'filters': '0',
 			'submit': "Continue - I'm over 18",
 			}
-		request = urllib2.Request('http://www.metacafe.com/', urllib.urlencode(disclaimer_form), std_headers)
+		request = urllib2.Request(self._FILTER_POST, urllib.urlencode(disclaimer_form), std_headers)
 		try:
 			self.report_age_confirmation()
 			disclaimer = urllib2.urlopen(request).read()
@@ -702,13 +703,13 @@ class MetacafeIE(InfoExtractor):
 
 		# Extract URL, uploader and title from webpage
 		self.report_extraction(video_id)
-		mobj = re.search(r'(?m)"mediaURL":"(http.*?\.flv)"', webpage)
+		mobj = re.search(r'(?m)&mediaURL=(http.*?\.flv)', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
 			return
-		mediaURL = mobj.group(1).replace('\\', '')
+		mediaURL = urllib.unquote(mobj.group(1))
 
-		mobj = re.search(r'(?m)"gdaKey":"(.*?)"', webpage)
+		mobj = re.search(r'(?m)&gdaKey=(.*?)&', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract gdaKey')
 			return
@@ -722,11 +723,11 @@ class MetacafeIE(InfoExtractor):
 			return
 		video_title = mobj.group(1).decode('utf-8')
 
-		mobj = re.search(r'(?m)<li id="ChnlUsr">.*?Submitter:<br />(.*?)</li>', webpage)
+		mobj = re.search(r'(?ms)<li id="ChnlUsr">.*?Submitter:.*?<a .*?>(.*?)<', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
 			return
-		video_uploader = re.sub(r'<.*?>', '', mobj.group(1))
+		video_uploader = mobj.group(1)
 
 		# Process video information
 		self._downloader.process_info({
