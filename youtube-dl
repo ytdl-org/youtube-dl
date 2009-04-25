@@ -190,7 +190,7 @@ class FileDownloader(object):
 	def to_stdout(self, message, skip_eol=False):
 		"""Print message to stdout if not in quiet mode."""
 		if not self.params.get('quiet', False):
-			print u'%s%s' % (message, [u'\n', u''][skip_eol]),
+			print (u'%s%s' % (message, [u'\n', u''][skip_eol])).encode(locale.getpreferredencoding()),
 			sys.stdout.flush()
 	
 	def to_stderr(self, message):
@@ -244,9 +244,9 @@ class FileDownloader(object):
 		"""Process a single dictionary returned by an InfoExtractor."""
 		# Forced printings
 		if self.params.get('forcetitle', False):
-			print info_dict['title']
+			print info_dict['title'].encode(locale.getpreferredencoding())
 		if self.params.get('forceurl', False):
-			print info_dict['url']
+			print info_dict['url'].encode(locale.getpreferredencoding())
 			
 		# Do nothing else if in simulate mode
 		if self.params.get('simulate', False):
@@ -1027,9 +1027,6 @@ if __name__ == '__main__':
 		youtube_search_ie = YoutubeSearchIE(youtube_ie)
 
 		# File downloader
-		charset = locale.getpreferredencoding()
-		if charset is None:
-			charset = 'ascii'
 		fd = FileDownloader({
 			'usenetrc': opts.usenetrc,
 			'username': opts.username,
@@ -1039,7 +1036,7 @@ if __name__ == '__main__':
 			'forcetitle': opts.gettitle,
 			'simulate': (opts.simulate or opts.geturl or opts.gettitle),
 			'format': opts.format,
-			'outtmpl': ((opts.outtmpl is not None and opts.outtmpl.decode(charset))
+			'outtmpl': ((opts.outtmpl is not None and opts.outtmpl.decode(locale.getpreferredencoding()))
 				or (opts.usetitle and u'%(stitle)s-%(id)s.%(ext)s')
 				or (opts.useliteral and u'%(title)s-%(id)s.%(ext)s')
 				or u'%(id)s.%(ext)s'),
