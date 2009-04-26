@@ -561,7 +561,8 @@ class YoutubeIE(InfoExtractor):
 
 		# Extension
 		video_extension = {
-			'17': '3gp',
+			'13': '3gp',
+			'17': 'mp4',
 			'18': 'mp4',
 			'22': 'mp4',
 		}.get(format_param, 'flv')
