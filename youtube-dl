@@ -1015,13 +1015,13 @@ if __name__ == '__main__':
 
 		video_format = optparse.OptionGroup(parser, 'Video Format Options')
 		video_format.add_option('-f', '--format',
-				dest='format', metavar='FMT', help='video format code')
+				action='append', dest='format', metavar='FMT', help='video format code')
 		video_format.add_option('-b', '--best-quality',
-				action='store_const', dest='format', help='download the best quality video possible', const='0')
+				action='append_const', dest='format', help='download the best quality video possible', const='0')
 		video_format.add_option('-m', '--mobile-version',
-				action='store_const', dest='format', help='alias for -f 17', const='17')
+				action='append_const', dest='format', help='alias for -f 17', const='17')
 		video_format.add_option('-d', '--high-def',
-				action='store_const', dest='format', help='alias for -f 22', const='22')
+				action='append_const', dest='format', help='alias for -f 22', const='22')
 		parser.add_option_group(video_format)
 
 		verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
@@ -1063,22 +1063,24 @@ if __name__ == '__main__':
 
 		# Conflicting, missing and erroneous options
 		if len(all_urls) < 1:
-			sys.exit(u'ERROR: you must provide at least one URL')
+			parser.error(u'you must provide at least one URL')
 		if opts.usenetrc and (opts.username is not None or opts.password is not None):
-			sys.exit(u'ERROR: using .netrc conflicts with giving username/password')
+			parser.error(u'using .netrc conflicts with giving username/password')
 		if opts.password is not None and opts.username is None:
-			sys.exit(u'ERROR: account username missing')
+			parser.error(u'account username missing')
 		if opts.outtmpl is not None and (opts.useliteral or opts.usetitle):
-			sys.exit(u'ERROR: using output template conflicts with using title or literal title')
+			parser.error(u'using output template conflicts with using title or literal title')
 		if opts.usetitle and opts.useliteral:
-			sys.exit(u'ERROR: using title conflicts with using literal title')
+			parser.error(u'using title conflicts with using literal title')
 		if opts.username is not None and opts.password is None:
 			opts.password = getpass.getpass(u'Type account password and press return:')
 		if opts.ratelimit is not None:
 			numeric_limit = FileDownloader.parse_bytes(opts.ratelimit)
 			if numeric_limit is None:
-				sys.exit(u'ERROR: invalid rate limit specified')
+				parser.error(u'invalid rate limit specified')
 			opts.ratelimit = numeric_limit
+		if len(opts.format) > 1:
+			parser.error(u'pass at most one of the video format option flags (-f, -b, -m, -d)')
 
 		# Information extractors
 		youtube_ie = YoutubeIE()
@@ -1095,7 +1097,7 @@ if __name__ == '__main__':
 			'forceurl': opts.geturl,
 			'forcetitle': opts.gettitle,
 			'simulate': (opts.simulate or opts.geturl or opts.gettitle),
-			'format': opts.format,
+			'format': opts.format[0],
 			'outtmpl': ((opts.outtmpl is not None and opts.outtmpl.decode(locale.getpreferredencoding()))
 				or (opts.usetitle and u'%(stitle)s-%(id)s.%(ext)s')
 				or (opts.useliteral and u'%(title)s-%(id)s.%(ext)s')
