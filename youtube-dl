@@ -284,11 +284,8 @@ class FileDownloader(object):
 			self._do_download(outstream, info_dict['url'])
 			outstream.close()
 		except (OSError, IOError), err:
-			if info_dict['best_quality']:
-				raise UnavailableFormatError
-			else:
-				self.trouble('ERROR: unable to write video data: %s' % str(err))
-				return
+			os.remove(filename)
+			raise UnavailableFormatError
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 			self.trouble('ERROR: unable to download video data: %s' % str(err))
 			return
@@ -643,21 +640,25 @@ class YoutubeIE(InfoExtractor):
 					'title':	video_title,
 					'stitle':	simple_title,
 					'ext':		video_extension.decode('utf-8'),
-					'best_quality': best_quality,
 				})
 
 				return
 
-			except UnavailableFormatError:
-				if quality_index == len(self._available_formats) - 1:
-					# I don't ever expect this to happen
-					self._downloader.trouble(u'ERROR: no known formats available for video')
+			except UnavailableFormatError, err:
+				if best_quality:
+					if quality_index == len(self._available_formats) - 1:
+						# I don't ever expect this to happen
+						self._downloader.trouble(u'ERROR: no known formats available for video')
+						return
+					else:
+						self.report_unavailable_format(video_id, format_param)
+						quality_index += 1
+						format_param = self._available_formats[quality_index]
+						continue
+				else: 
+					self._downloader.trouble('ERROR: format not available for video')
 					return
-				else:
-					self.report_unavailable_format(video_id, format_param)
-					quality_index += 1
-					format_param = self._available_formats[quality_index]
-					continue
+
 
 class MetacafeIE(InfoExtractor):
 	"""Information Extractor for metacafe.com."""
@@ -769,16 +770,18 @@ class MetacafeIE(InfoExtractor):
 			return
 		video_uploader = mobj.group(1)
 
-		# Process video information
-		self._downloader.process_info({
-			'id':		video_id.decode('utf-8'),
-			'url':		video_url.decode('utf-8'),
-			'uploader':	video_uploader.decode('utf-8'),
-			'title':	video_title,
-			'stitle':	simple_title,
-			'ext':		video_extension.decode('utf-8'),
-			'best_quality': False, # TODO
-		})
+		try:
+			# Process video information
+			self._downloader.process_info({
+				'id':		video_id.decode('utf-8'),
+				'url':		video_url.decode('utf-8'),
+				'uploader':	video_uploader.decode('utf-8'),
+				'title':	video_title,
+				'stitle':	simple_title,
+				'ext':		video_extension.decode('utf-8'),
+			})
+		except UnavailableFormatError:
+			self._downloader.trouble(u'ERROR: format not available for video')
 
 
 class YoutubeSearchIE(InfoExtractor):
@@ -1079,8 +1082,13 @@ if __name__ == '__main__':
 			if numeric_limit is None:
 				parser.error(u'invalid rate limit specified')
 			opts.ratelimit = numeric_limit
-		if len(opts.format) > 1:
+		if opts.format is not None and len(opts.format) > 1:
 			parser.error(u'pass at most one of the video format option flags (-f, -b, -m, -d)')
+		if opts.format is None:
+			real_format = None
+		else:
+			real_format = opts.format[0]
+
 
 		# Information extractors
 		youtube_ie = YoutubeIE()
@@ -1097,7 +1105,7 @@ if __name__ == '__main__':
 			'forceurl': opts.geturl,
 			'forcetitle': opts.gettitle,
 			'simulate': (opts.simulate or opts.geturl or opts.gettitle),
-			'format': opts.format[0],
+			'format': real_format,
 			'outtmpl': ((opts.outtmpl is not None and opts.outtmpl.decode(locale.getpreferredencoding()))
 				or (opts.usetitle and u'%(stitle)s-%(id)s.%(ext)s')
 				or (opts.useliteral and u'%(title)s-%(id)s.%(ext)s')
