@@ -52,6 +52,13 @@ class PostProcessingError(Exception):
 	"""
 	pass
 
+class UnavailableFormatError(Exception):
+	"""Unavailable Format exception.
+
+	This exception will be thrown when a video is requested
+	in a format that is not available for that video.
+	"""
+
 class FileDownloader(object):
 	"""File Downloader class.
 
@@ -260,32 +267,37 @@ class FileDownloader(object):
 		if self.params['nooverwrites'] and os.path.exists(filename):
 			self.to_stderr('WARNING: file exists: %s; skipping' % filename)
 			return
+
 		try:
 			self.pmkdir(filename)
 		except (OSError, IOError), err:
 			self.trouble('ERROR: unable to create directories: %s' % str(err))
 			return
+
 		try:
 			outstream = open(filename, 'wb')
 		except (OSError, IOError), err:
 			self.trouble('ERROR: unable to open for writing: %s' % str(err))
 			return
+
 		try:
 			self._do_download(outstream, info_dict['url'])
 			outstream.close()
 		except (OSError, IOError), err:
-			self.trouble('ERROR: unable to write video data: %s' % str(err))
-			return
+			if info_dict['best_quality']:
+				raise UnavailableFormatError
+			else:
+				self.trouble('ERROR: unable to write video data: %s' % str(err))
+				return
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 			self.trouble('ERROR: unable to download video data: %s' % str(err))
 			return
+
 		try:
 			self.post_process(filename, info_dict)
 		except (PostProcessingError), err:
 			self.trouble('ERROR: postprocessing: %s' % str(err))
 			return
-
-		return
 
 	def download(self, url_list):
 		"""Download a given list of URLs."""
@@ -424,6 +436,13 @@ class YoutubeIE(InfoExtractor):
 	_LOGIN_URL = 'http://www.youtube.com/signup?next=/&gl=US&hl=en'
 	_AGE_URL = 'http://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
 	_NETRC_MACHINE = 'youtube'
+	_available_formats = ['22', '18', '17', '13'] # listed in order of priority for -b flag
+	_video_extensions = {
+		'13': '3gp',
+		'17': 'mp4',
+		'18': 'mp4',
+		'22': 'mp4',
+	}
 
 	@staticmethod
 	def suitable(url):
@@ -475,6 +494,10 @@ class YoutubeIE(InfoExtractor):
 	def report_video_url(self, video_id, video_real_url):
 		"""Report extracted video URL."""
 		self._downloader.to_stdout(u'[youtube] %s: URL: %s' % (video_id, video_real_url))
+	
+	def report_unavailable_format(self, video_id, format):
+		"""Report extracted video URL."""
+		self._downloader.to_stdout(u'[youtube] %s: Format %s not available' % (video_id, format))
 	
 	def _real_initialize(self):
 		if self._downloader is None:
@@ -554,71 +577,87 @@ class YoutubeIE(InfoExtractor):
 		video_id = mobj.group(2)
 
 		# Downloader parameters
+		best_quality = False
 		format_param = None
+		quality_index = 0
 		if self._downloader is not None:
 			params = self._downloader.params
 			format_param = params.get('format', None)
+			if format_param == '0':
+				format_param = self._available_formats[quality_index]
+				best_quality = True
 
-		# Extension
-		video_extension = {
-			'13': '3gp',
-			'17': 'mp4',
-			'18': 'mp4',
-			'22': 'mp4',
-		}.get(format_param, 'flv')
+		while True:
+			try:
+				# Extension
+				video_extension = self._video_extensions.get(format_param, 'flv')
 
-		# Normalize URL, including format
-		normalized_url = 'http://www.youtube.com/watch?v=%s&gl=US&hl=en' % video_id
-		if format_param is not None:
-			normalized_url = '%s&fmt=%s' % (normalized_url, format_param)
-		request = urllib2.Request(normalized_url, None, std_headers)
-		try:
-			self.report_webpage_download(video_id)
-			video_webpage = urllib2.urlopen(request).read()
-		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % str(err))
-			return
-		self.report_information_extraction(video_id)
-		
-		# "t" param
-		mobj = re.search(r', "t": "([^"]+)"', video_webpage)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract "t" parameter')
-			return
-		video_real_url = 'http://www.youtube.com/get_video?video_id=%s&t=%s&el=detailpage&ps=' % (video_id, mobj.group(1))
-		if format_param is not None:
-			video_real_url = '%s&fmt=%s' % (video_real_url, format_param)
-		self.report_video_url(video_id, video_real_url)
+				# Normalize URL, including format
+				normalized_url = 'http://www.youtube.com/watch?v=%s&gl=US&hl=en' % video_id
+				if format_param is not None:
+					normalized_url = '%s&fmt=%s' % (normalized_url, format_param)
+				request = urllib2.Request(normalized_url, None, std_headers)
+				try:
+					self.report_webpage_download(video_id)
+					video_webpage = urllib2.urlopen(request).read()
+				except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+					self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % str(err))
+					return
+				self.report_information_extraction(video_id)
+				
+				# "t" param
+				mobj = re.search(r', "t": "([^"]+)"', video_webpage)
+				if mobj is None:
+					self._downloader.trouble(u'ERROR: unable to extract "t" parameter')
+					return
+				video_real_url = 'http://www.youtube.com/get_video?video_id=%s&t=%s&el=detailpage&ps=' % (video_id, mobj.group(1))
+				if format_param is not None:
+					video_real_url = '%s&fmt=%s' % (video_real_url, format_param)
+				self.report_video_url(video_id, video_real_url)
 
-		# uploader
-		mobj = re.search(r"var watchUsername = '([^']+)';", video_webpage)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
-			return
-		video_uploader = mobj.group(1)
+				# uploader
+				mobj = re.search(r"var watchUsername = '([^']+)';", video_webpage)
+				if mobj is None:
+					self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
+					return
+				video_uploader = mobj.group(1)
 
-		# title
-		mobj = re.search(r'(?im)<title>YouTube - ([^<]*)</title>', video_webpage)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract video title')
-			return
-		video_title = mobj.group(1).decode('utf-8')
-		video_title = re.sub(ur'(?u)&(.+?);', self.htmlentity_transform, video_title)
-		video_title = video_title.replace(os.sep, u'%')
+				# title
+				mobj = re.search(r'(?im)<title>YouTube - ([^<]*)</title>', video_webpage)
+				if mobj is None:
+					self._downloader.trouble(u'ERROR: unable to extract video title')
+					return
+				video_title = mobj.group(1).decode('utf-8')
+				video_title = re.sub(ur'(?u)&(.+?);', self.htmlentity_transform, video_title)
+				video_title = video_title.replace(os.sep, u'%')
 
-		# simplified title
-		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
-		simple_title = simple_title.strip(ur'_')
+				# simplified title
+				simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
+				simple_title = simple_title.strip(ur'_')
 
-		# Process video information
-		self._downloader.process_info({
-			'id':		video_id.decode('utf-8'),
-			'url':		video_real_url.decode('utf-8'),
-			'uploader':	video_uploader.decode('utf-8'),
-			'title':	video_title,
-			'stitle':	simple_title,
-			'ext':		video_extension.decode('utf-8'),
-			})
+				# Process video information
+				self._downloader.process_info({
+					'id':		video_id.decode('utf-8'),
+					'url':		video_real_url.decode('utf-8'),
+					'uploader':	video_uploader.decode('utf-8'),
+					'title':	video_title,
+					'stitle':	simple_title,
+					'ext':		video_extension.decode('utf-8'),
+					'best_quality': best_quality,
+				})
+
+				return
+
+			except UnavailableFormatError:
+				if quality_index == len(self._available_formats) - 1:
+					# I don't ever expect this to happen
+					self._downloader.trouble(u'ERROR: no known formats available for video')
+					return
+				else:
+					self.report_unavailable_format(video_id, format_param)
+					quality_index += 1
+					format_param = self._available_formats[quality_index]
+					continue
 
 class MetacafeIE(InfoExtractor):
 	"""Information Extractor for metacafe.com."""
@@ -738,7 +777,8 @@ class MetacafeIE(InfoExtractor):
 			'title':	video_title,
 			'stitle':	simple_title,
 			'ext':		video_extension.decode('utf-8'),
-			})
+			'best_quality': False, # TODO
+		})
 
 
 class YoutubeSearchIE(InfoExtractor):
@@ -950,48 +990,64 @@ if __name__ == '__main__':
 
 		# Parse command line
 		parser = optparse.OptionParser(
-				usage='Usage: %prog [options] url...',
-				version='INTERNAL',
-				conflict_handler='resolve',
-				)
+			usage='Usage: %prog [options] url...',
+			version='INTERNAL',
+			conflict_handler='resolve',
+		)
+
 		parser.add_option('-h', '--help',
 				action='help', help='print this help text and exit')
 		parser.add_option('-v', '--version',
 				action='version', help='print program version and exit')
-		parser.add_option('-u', '--username',
-				dest='username', metavar='UN', help='account username')
-		parser.add_option('-p', '--password',
-				dest='password', metavar='PW', help='account password')
-		parser.add_option('-o', '--output',
-				dest='outtmpl', metavar='TPL', help='output filename template')
-		parser.add_option('-q', '--quiet',
-				action='store_true', dest='quiet', help='activates quiet mode', default=False)
-		parser.add_option('-s', '--simulate',
-				action='store_true', dest='simulate', help='do not download video', default=False)
-		parser.add_option('-t', '--title',
-				action='store_true', dest='usetitle', help='use title in file name', default=False)
-		parser.add_option('-l', '--literal',
-				action='store_true', dest='useliteral', help='use literal title in file name', default=False)
-		parser.add_option('-n', '--netrc',
-				action='store_true', dest='usenetrc', help='use .netrc authentication data', default=False)
-		parser.add_option('-g', '--get-url',
-				action='store_true', dest='geturl', help='simulate, quiet but print URL', default=False)
-		parser.add_option('-e', '--get-title',
-				action='store_true', dest='gettitle', help='simulate, quiet but print title', default=False)
-		parser.add_option('-f', '--format',
-				dest='format', metavar='FMT', help='video format code')
-		parser.add_option('-m', '--mobile-version',
-				action='store_const', dest='format', help='alias for -f 17', const='17')
-		parser.add_option('-d', '--high-def',
-				action='store_const', dest='format', help='alias for -f 22', const='22')
 		parser.add_option('-i', '--ignore-errors',
 				action='store_true', dest='ignoreerrors', help='continue on download errors', default=False)
 		parser.add_option('-r', '--rate-limit',
 				dest='ratelimit', metavar='L', help='download rate limit (e.g. 50k or 44.6m)')
-		parser.add_option('-a', '--batch-file',
+
+		authentication = optparse.OptionGroup(parser, 'Authentication Options')
+		authentication.add_option('-u', '--username',
+				dest='username', metavar='UN', help='account username')
+		authentication.add_option('-p', '--password',
+				dest='password', metavar='PW', help='account password')
+		authentication.add_option('-n', '--netrc',
+				action='store_true', dest='usenetrc', help='use .netrc authentication data', default=False)
+		parser.add_option_group(authentication)
+
+		video_format = optparse.OptionGroup(parser, 'Video Format Options')
+		video_format.add_option('-f', '--format',
+				dest='format', metavar='FMT', help='video format code')
+		video_format.add_option('-b', '--best-quality',
+				action='store_const', dest='format', help='download the best quality video possible', const='0')
+		video_format.add_option('-m', '--mobile-version',
+				action='store_const', dest='format', help='alias for -f 17', const='17')
+		video_format.add_option('-d', '--high-def',
+				action='store_const', dest='format', help='alias for -f 22', const='22')
+		parser.add_option_group(video_format)
+
+		verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
+		verbosity.add_option('-q', '--quiet',
+				action='store_true', dest='quiet', help='activates quiet mode', default=False)
+		verbosity.add_option('-s', '--simulate',
+				action='store_true', dest='simulate', help='do not download video', default=False)
+		verbosity.add_option('-g', '--get-url',
+				action='store_true', dest='geturl', help='simulate, quiet but print URL', default=False)
+		verbosity.add_option('-e', '--get-title',
+				action='store_true', dest='gettitle', help='simulate, quiet but print title', default=False)
+		verbosity.add_option('-t', '--title',
+				action='store_true', dest='usetitle', help='use title in file name', default=False)
+		verbosity.add_option('-l', '--literal',
+				action='store_true', dest='useliteral', help='use literal title in file name', default=False)
+		parser.add_option_group(verbosity)
+
+		filesystem = optparse.OptionGroup(parser, 'Filesystem Options')
+		filesystem.add_option('-o', '--output',
+				dest='outtmpl', metavar='TPL', help='output filename template')
+		filesystem.add_option('-a', '--batch-file',
 				dest='batchfile', metavar='F', help='file containing URLs to download')
-		parser.add_option('-w', '--no-overwrites',
+		filesystem.add_option('-w', '--no-overwrites',
 				action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
+		parser.add_option_group(filesystem)
+
 		(opts, args) = parser.parse_args()
 
 		# Batch file verification
