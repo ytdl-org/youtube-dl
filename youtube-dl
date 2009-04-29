@@ -1036,13 +1036,13 @@ if __name__ == '__main__':
 				action='store_true', dest='geturl', help='simulate, quiet but print URL', default=False)
 		verbosity.add_option('-e', '--get-title',
 				action='store_true', dest='gettitle', help='simulate, quiet but print title', default=False)
-		verbosity.add_option('-t', '--title',
-				action='store_true', dest='usetitle', help='use title in file name', default=False)
-		verbosity.add_option('-l', '--literal',
-				action='store_true', dest='useliteral', help='use literal title in file name', default=False)
 		parser.add_option_group(verbosity)
 
 		filesystem = optparse.OptionGroup(parser, 'Filesystem Options')
+		filesystem.add_option('-t', '--title',
+				action='store_true', dest='usetitle', help='use title in file name', default=False)
+		filesystem.add_option('-l', '--literal',
+				action='store_true', dest='useliteral', help='use literal title in file name', default=False)
 		filesystem.add_option('-o', '--output',
 				dest='outtmpl', metavar='TPL', help='output filename template')
 		filesystem.add_option('-a', '--batch-file',
