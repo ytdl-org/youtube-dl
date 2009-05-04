@@ -260,7 +260,9 @@ class FileDownloader(object):
 			return
 
 		try:
-			filename = self.params['outtmpl'] % info_dict
+			template_dict = dict(info_dict)
+			template_dict['epoch'] = unicode(long(time.time()))
+			filename = self.params['outtmpl'] % template_dict
 			self.report_destination(filename)
 		except (ValueError, KeyError), err:
 			self.trouble('ERROR: invalid output template or system charset: %s' % str(err))
