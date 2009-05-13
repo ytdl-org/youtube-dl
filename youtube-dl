@@ -1022,11 +1022,11 @@ if __name__ == '__main__':
 		video_format.add_option('-f', '--format',
 				action='append', dest='format', metavar='FMT', help='video format code')
 		video_format.add_option('-b', '--best-quality',
-				action='append_const', dest='format', help='download the best quality video possible', const='0')
+				action='store_const', dest='format', help='download the best quality video possible', const='0')
 		video_format.add_option('-m', '--mobile-version',
-				action='append_const', dest='format', help='alias for -f 17', const='17')
+				action='store_const', dest='format', help='alias for -f 17', const='17')
 		video_format.add_option('-d', '--high-def',
-				action='append_const', dest='format', help='alias for -f 22', const='22')
+				action='store_const', dest='format', help='alias for -f 22', const='22')
 		parser.add_option_group(video_format)
 
 		verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
