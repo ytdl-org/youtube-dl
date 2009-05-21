@@ -58,6 +58,22 @@ class UnavailableFormatError(Exception):
 	This exception will be thrown when a video is requested
 	in a format that is not available for that video.
 	"""
+	pass
+
+class ContentTooShortError(Exception):
+	"""Content Too Short exception.
+
+	This exception may be raised by FileDownloader objects when a file they
+	download is too small for what the server announced first, indicating
+	the connection was probably interrupted.
+	"""
+	# Both in bytes
+	downloaded = None
+	expected = None
+
+	def __init__(self, downloaded, expected):
+		self.downloaded = downloaded
+		self.expected = expected
 
 class FileDownloader(object):
 	"""File Downloader class.
@@ -292,6 +308,9 @@ class FileDownloader(object):
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 			self.trouble('ERROR: unable to download video data: %s' % str(err))
 			return
+		except (ContentTooShortError, ), err:
+			self.trouble('ERROR: content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
+			return
 
 		try:
 			self.post_process(filename, info_dict)
@@ -365,7 +384,7 @@ class FileDownloader(object):
 
 		self.report_finish()
 		if data_len is not None and str(byte_counter) != data_len:
-			raise ValueError('Content too short: %s/%s bytes' % (byte_counter, data_len))
+			raise ContentTooShortError(byte_counter, long(data_len))
 
 class InfoExtractor(object):
 	"""Information Extractor class.
