@@ -286,6 +286,7 @@ class FileDownloader(object):
 			self._do_download(outstream, info_dict['url'])
 			outstream.close()
 		except (OSError, IOError), err:
+			outstream.close()
 			os.remove(filename)
 			raise UnavailableFormatError
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
