@@ -200,6 +200,14 @@ class FileDownloader(object):
 		multiplier = 1024.0 ** 'bkmgtpezy'.index(matchobj.group(2).lower())
 		return long(round(number * multiplier))
 
+	@staticmethod
+	def verify_url(url):
+		"""Verify a URL is valid and data could be downloaded."""
+		request = urllib2.Request(url, None, std_headers)
+		data = urllib2.urlopen(request)
+		data.read(1)
+		data.close()
+
 	def add_info_extractor(self, ie):
 		"""Add an InfoExtractor object to the end of the list."""
 		self._ies.append(ie)
@@ -265,15 +273,21 @@ class FileDownloader(object):
 
 	def process_info(self, info_dict):
 		"""Process a single dictionary returned by an InfoExtractor."""
-		# Forced printings
-		if self.params.get('forcetitle', False):
-			print info_dict['title'].encode(locale.getpreferredencoding())
-		if self.params.get('forceurl', False):
-			print info_dict['url'].encode(locale.getpreferredencoding())
-			
 		# Do nothing else if in simulate mode
 		if self.params.get('simulate', False):
+			try:
+				self.verify_url(info_dict['url'])
+			except (OSError, IOError, urllib2.URLError, httplib.HTTPException, socket.error), err:
+				raise UnavailableFormatError
+
+			# Forced printings
+			if self.params.get('forcetitle', False):
+				print info_dict['title'].encode(locale.getpreferredencoding())
+			if self.params.get('forceurl', False):
+				print info_dict['url'].encode(locale.getpreferredencoding())
+
 			return
+			
 
 		try:
 			template_dict = dict(info_dict)
