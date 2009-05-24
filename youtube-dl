@@ -288,7 +288,6 @@ class FileDownloader(object):
 
 			return
 			
-
 		try:
 			template_dict = dict(info_dict)
 			template_dict['epoch'] = unicode(long(time.time()))
@@ -621,53 +620,53 @@ class YoutubeIE(InfoExtractor):
 				best_quality = True
 
 		while True:
+			# Extension
+			video_extension = self._video_extensions.get(format_param, 'flv')
+
+			# Normalize URL, including format
+			normalized_url = 'http://www.youtube.com/watch?v=%s&gl=US&hl=en' % video_id
+			if format_param is not None:
+				normalized_url = '%s&fmt=%s' % (normalized_url, format_param)
+			request = urllib2.Request(normalized_url, None, std_headers)
 			try:
-				# Extension
-				video_extension = self._video_extensions.get(format_param, 'flv')
+				self.report_webpage_download(video_id)
+				video_webpage = urllib2.urlopen(request).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % str(err))
+				return
+			self.report_information_extraction(video_id)
+			
+			# "t" param
+			mobj = re.search(r', "t": "([^"]+)"', video_webpage)
+			if mobj is None:
+				self._downloader.trouble(u'ERROR: unable to extract "t" parameter')
+				return
+			video_real_url = 'http://www.youtube.com/get_video?video_id=%s&t=%s&el=detailpage&ps=' % (video_id, mobj.group(1))
+			if format_param is not None:
+				video_real_url = '%s&fmt=%s' % (video_real_url, format_param)
+			self.report_video_url(video_id, video_real_url)
 
-				# Normalize URL, including format
-				normalized_url = 'http://www.youtube.com/watch?v=%s&gl=US&hl=en' % video_id
-				if format_param is not None:
-					normalized_url = '%s&fmt=%s' % (normalized_url, format_param)
-				request = urllib2.Request(normalized_url, None, std_headers)
-				try:
-					self.report_webpage_download(video_id)
-					video_webpage = urllib2.urlopen(request).read()
-				except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-					self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % str(err))
-					return
-				self.report_information_extraction(video_id)
-				
-				# "t" param
-				mobj = re.search(r', "t": "([^"]+)"', video_webpage)
-				if mobj is None:
-					self._downloader.trouble(u'ERROR: unable to extract "t" parameter')
-					return
-				video_real_url = 'http://www.youtube.com/get_video?video_id=%s&t=%s&el=detailpage&ps=' % (video_id, mobj.group(1))
-				if format_param is not None:
-					video_real_url = '%s&fmt=%s' % (video_real_url, format_param)
-				self.report_video_url(video_id, video_real_url)
+			# uploader
+			mobj = re.search(r"var watchUsername = '([^']+)';", video_webpage)
+			if mobj is None:
+				self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
+				return
+			video_uploader = mobj.group(1)
 
-				# uploader
-				mobj = re.search(r"var watchUsername = '([^']+)';", video_webpage)
-				if mobj is None:
-					self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
-					return
-				video_uploader = mobj.group(1)
+			# title
+			mobj = re.search(r'(?im)<title>YouTube - ([^<]*)</title>', video_webpage)
+			if mobj is None:
+				self._downloader.trouble(u'ERROR: unable to extract video title')
+				return
+			video_title = mobj.group(1).decode('utf-8')
+			video_title = re.sub(ur'(?u)&(.+?);', self.htmlentity_transform, video_title)
+			video_title = video_title.replace(os.sep, u'%')
 
-				# title
-				mobj = re.search(r'(?im)<title>YouTube - ([^<]*)</title>', video_webpage)
-				if mobj is None:
-					self._downloader.trouble(u'ERROR: unable to extract video title')
-					return
-				video_title = mobj.group(1).decode('utf-8')
-				video_title = re.sub(ur'(?u)&(.+?);', self.htmlentity_transform, video_title)
-				video_title = video_title.replace(os.sep, u'%')
+			# simplified title
+			simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
+			simple_title = simple_title.strip(ur'_')
 
-				# simplified title
-				simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
-				simple_title = simple_title.strip(ur'_')
-
+			try:
 				# Process video information
 				self._downloader.process_info({
 					'id':		video_id.decode('utf-8'),
