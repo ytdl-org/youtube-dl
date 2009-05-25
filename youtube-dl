@@ -1117,13 +1117,6 @@ if __name__ == '__main__':
 			if numeric_limit is None:
 				parser.error(u'invalid rate limit specified')
 			opts.ratelimit = numeric_limit
-		if opts.format is not None and len(opts.format) > 1:
-			parser.error(u'pass at most one of the video format option flags (-f, -b, -m, -d)')
-		if opts.format is None:
-			real_format = None
-		else:
-			real_format = opts.format[0]
-
 
 		# Information extractors
 		youtube_ie = YoutubeIE()
@@ -1140,7 +1133,7 @@ if __name__ == '__main__':
 			'forceurl': opts.geturl,
 			'forcetitle': opts.gettitle,
 			'simulate': (opts.simulate or opts.geturl or opts.gettitle),
-			'format': real_format,
+			'format': opts.format,
 			'outtmpl': ((opts.outtmpl is not None and opts.outtmpl.decode(locale.getpreferredencoding()))
 				or (opts.usetitle and u'%(stitle)s-%(id)s.%(ext)s')
 				or (opts.useliteral and u'%(title)s-%(id)s.%(ext)s')
