@@ -306,7 +306,7 @@ class FileDownloader(object):
 			return
 
 		try:
-			outstream = open(filename, 'wb')
+			outstream = open(filename, 'ab')
 		except (OSError, IOError), err:
 			self.trouble('ERROR: unable to open for writing: %s' % str(err))
 			return
@@ -368,7 +368,27 @@ class FileDownloader(object):
 	
 	def _do_download(self, stream, url):
 		request = urllib2.Request(url, None, std_headers)
-		data = urllib2.urlopen(request)
+		# Resume transfer if filesize is non-zero
+		resume_len = stream.tell()
+		if self.params["continue"] and resume_len != 0:
+			print "[download] Resuming download at byte %d" % resume_len
+			request.add_header("Range","bytes=%d-" % resume_len)
+		else:
+			stream.close()
+			stream = open(stream.name,'wb')
+		try:
+			data = urllib2.urlopen(request)
+		except urllib2.HTTPError, e:
+			if not e.code == 416: #  416 is 'Requested range not satisfiable'
+				raise
+			data = urllib2.urlopen(url)
+			if int(data.info()['Content-Length']) == resume_len:
+				print '[download] %s has already been downloaded' % stream.name
+				return
+			else:
+				print "[download] Unable to resume, restarting download from the beginning"
+				stream.close()
+				stream = open(stream.name,'wb')
 		data_len = data.info().get('Content-length', None)
 		data_len_str = self.format_bytes(data_len)
 		byte_counter = 0
@@ -1084,6 +1104,8 @@ if __name__ == '__main__':
 				dest='batchfile', metavar='F', help='file containing URLs to download')
 		filesystem.add_option('-w', '--no-overwrites',
 				action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
+		filesystem.add_option('-c', '--continue',
+				action='store_true', dest='continue_dl', help='resume partially downloaded files', default=False)
 		parser.add_option_group(filesystem)
 
 		(opts, args) = parser.parse_args()
@@ -1141,6 +1163,7 @@ if __name__ == '__main__':
 			'ignoreerrors': opts.ignoreerrors,
 			'ratelimit': opts.ratelimit,
 			'nooverwrites': opts.nooverwrites,
+			'continue': opts.continue_dl,
 			})
 		fd.add_info_extractor(youtube_search_ie)
 		fd.add_info_extractor(youtube_pl_ie)
