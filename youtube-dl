@@ -1053,7 +1053,7 @@ if __name__ == '__main__':
 
 		video_format = optparse.OptionGroup(parser, 'Video Format Options')
 		video_format.add_option('-f', '--format',
-				action='append', dest='format', metavar='FMT', help='video format code')
+				action='store', dest='format', metavar='FMT', help='video format code')
 		video_format.add_option('-b', '--best-quality',
 				action='store_const', dest='format', help='download the best quality video possible', const='0')
 		video_format.add_option('-m', '--mobile-version',
