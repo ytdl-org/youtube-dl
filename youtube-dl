@@ -182,13 +182,13 @@ class FileDownloader(object):
 		new_min = max(bytes / 2.0, 1.0)
 		new_max = min(max(bytes * 2.0, 1.0), 4194304) # Do not surpass 4 MB
 		if elapsed_time < 0.001:
-			return int(new_max)
+			return long(new_max)
 		rate = bytes / elapsed_time
 		if rate > new_max:
-			return int(new_max)
+			return long(new_max)
 		if rate < new_min:
-			return int(new_min)
-		return int(rate)
+			return long(new_min)
+		return long(rate)
 
 	@staticmethod
 	def parse_bytes(bytestr):
@@ -895,7 +895,7 @@ class YoutubeSearchIE(InfoExtractor):
 			return
 		else:
 			try:
-				n = int(prefix)
+				n = long(prefix)
 				if n <= 0:
 					self._downloader.trouble(u'ERROR: invalid download number %s for query "%s"' % (n, query))
 					return
@@ -904,7 +904,7 @@ class YoutubeSearchIE(InfoExtractor):
 					n = self._max_youtube_results
 				self._download_n_results(query, n)
 				return
-			except ValueError: # parsing prefix as int fails
+			except ValueError: # parsing prefix as integer fails
 				self._download_n_results(query, 1)
 				return
 
