@@ -114,6 +114,7 @@ class FileDownloader(object):
 	ignoreerrors:	Do not stop on download errors.
 	ratelimit:	Download speed limit, in bytes/sec.
 	nooverwrites:	Prevent overwriting files.
+	continuedl:	Try to continue downloads if possible.
 	"""
 
 	params = None
