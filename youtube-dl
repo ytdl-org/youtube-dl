@@ -266,6 +266,18 @@ class FileDownloader(object):
 		"""Report download progress."""
 		self.to_stdout(u'\r[download] %s of %s at %s ETA %s' %
 				(percent_str, data_len_str, speed_str, eta_str), skip_eol=True)
+
+	def report_resuming_byte(self, resume_len):
+		"""Report attemtp to resume at given byte."""
+		self.to_stdout(u'[download] Resuming download at byte %s' % resume_len)
+	
+	def report_file_already_downloaded(self, file_name):
+		"""Report file has already been fully downloaded."""
+		self.to_stdout(u'[download] %s has already been downloaded' % file_name)
+	
+	def report_unable_to_resume(self):
+		"""Report it was impossible to resume download."""
+		self.to_stdout(u'[download] Unable to resume')
 	
 	def report_finish(self):
 		"""Report download finished."""
@@ -367,12 +379,14 @@ class FileDownloader(object):
 				break
 	
 	def _do_download(self, stream, url):
+		basic_request = urllib2.Request(url, None, std_headers)
 		request = urllib2.Request(url, None, std_headers)
+
 		# Resume transfer if filesize is non-zero
 		resume_len = stream.tell()
-		if self.params["continue"] and resume_len != 0:
-			print "[download] Resuming download at byte %d" % resume_len
-			request.add_header("Range","bytes=%d-" % resume_len)
+		if self.params['continuedl'] and resume_len != 0:
+			self.report_resuming_byte(resume_len)
+			request.add_header('Range','bytes=%d-' % resume_len)
 		else:
 			stream.close()
 			stream = open(stream.name,'wb')
@@ -381,14 +395,16 @@ class FileDownloader(object):
 		except urllib2.HTTPError, e:
 			if not e.code == 416: #  416 is 'Requested range not satisfiable'
 				raise
-			data = urllib2.urlopen(url)
-			if int(data.info()['Content-Length']) == resume_len:
-				print '[download] %s has already been downloaded' % stream.name
+			data = urllib2.urlopen(basic_request)
+			content_length = data.info()['Content-Length']
+			if content_length is not None and content_length == resume_len:
+				self.report_file_already_downloaded(self.name)
 				return
 			else:
-				print "[download] Unable to resume, restarting download from the beginning"
+				self.report_unable_to_resume()
 				stream.close()
 				stream = open(stream.name,'wb')
+
 		data_len = data.info().get('Content-length', None)
 		data_len_str = self.format_bytes(data_len)
 		byte_counter = 0
@@ -1163,7 +1179,7 @@ if __name__ == '__main__':
 			'ignoreerrors': opts.ignoreerrors,
 			'ratelimit': opts.ratelimit,
 			'nooverwrites': opts.nooverwrites,
-			'continue': opts.continue_dl,
+			'continuedl': opts.continue_dl,
 			})
 		fd.add_info_extractor(youtube_search_ie)
 		fd.add_info_extractor(youtube_pl_ie)
