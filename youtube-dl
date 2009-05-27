@@ -397,8 +397,8 @@ class FileDownloader(object):
 				raise
 			data = urllib2.urlopen(basic_request)
 			content_length = data.info()['Content-Length']
-			if content_length is not None and content_length == resume_len:
-				self.report_file_already_downloaded(self.name)
+			if content_length is not None and long(content_length) == resume_len:
+				self.report_file_already_downloaded(stream.name)
 				return
 			else:
 				self.report_unable_to_resume()
