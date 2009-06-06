@@ -305,7 +305,6 @@ class FileDownloader(object):
 			template_dict = dict(info_dict)
 			template_dict['epoch'] = unicode(long(time.time()))
 			filename = self.params['outtmpl'] % template_dict
-			self.report_destination(filename)
 		except (ValueError, KeyError), err:
 			self.trouble('ERROR: invalid output template or system charset: %s' % str(err))
 		if self.params['nooverwrites'] and os.path.exists(filename):
@@ -319,17 +318,8 @@ class FileDownloader(object):
 			return
 
 		try:
-			outstream = open(filename, 'ab')
+			success = self._do_download(filename, info_dict['url'])
 		except (OSError, IOError), err:
-			self.trouble('ERROR: unable to open for writing: %s' % str(err))
-			return
-
-		try:
-			self._do_download(outstream, info_dict['url'])
-			outstream.close()
-		except (OSError, IOError), err:
-			outstream.close()
-			os.remove(filename)
 			raise UnavailableFormatError
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 			self.trouble('ERROR: unable to download video data: %s' % str(err))
@@ -338,11 +328,12 @@ class FileDownloader(object):
 			self.trouble('ERROR: content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
 			return
 
-		try:
-			self.post_process(filename, info_dict)
-		except (PostProcessingError), err:
-			self.trouble('ERROR: postprocessing: %s' % str(err))
-			return
+		if success:
+			try:
+				self.post_process(filename, info_dict)
+			except (PostProcessingError), err:
+				self.trouble('ERROR: postprocessing: %s' % str(err))
+				return
 
 	def download(self, url_list):
 		"""Download a given list of URLs."""
@@ -379,32 +370,36 @@ class FileDownloader(object):
 			if info is None:
 				break
 	
-	def _do_download(self, stream, url):
+	def _do_download(self, filename, url):
+		stream = None
+		open_mode = 'ab'
+
 		basic_request = urllib2.Request(url, None, std_headers)
 		request = urllib2.Request(url, None, std_headers)
 
-		# Resume transfer if filesize is non-zero
-		resume_len = stream.tell()
+		# Attempt to resume download with "continuedl" option
+		if os.path.isfile(filename):
+			resume_len = os.path.getsize(filename)
+		else:
+			resume_len = 0
 		if self.params['continuedl'] and resume_len != 0:
 			self.report_resuming_byte(resume_len)
 			request.add_header('Range','bytes=%d-' % resume_len)
-		else:
-			stream.close()
-			stream = open(stream.name,'wb')
+
+		# Establish connection
 		try:
 			data = urllib2.urlopen(request)
-		except urllib2.HTTPError, e:
-			if not e.code == 416: #  416 is 'Requested range not satisfiable'
+		except (urllib2.HTTPError, ), err:
+			if err.code != 416: #  416 is 'Requested range not satisfiable'
 				raise
 			data = urllib2.urlopen(basic_request)
 			content_length = data.info()['Content-Length']
 			if content_length is not None and long(content_length) == resume_len:
-				self.report_file_already_downloaded(stream.name)
-				return
+				self.report_file_already_downloaded(filename)
+				return True
 			else:
 				self.report_unable_to_resume()
-				stream.close()
-				stream = open(stream.name,'wb')
+				open_mode = 'wb'
 
 		data_len = data.info().get('Content-length', None)
 		data_len_str = self.format_bytes(data_len)
@@ -412,12 +407,6 @@ class FileDownloader(object):
 		block_size = 1024
 		start = time.time()
 		while True:
-			# Progress message
-			percent_str = self.calc_percent(byte_counter, data_len)
-			eta_str = self.calc_eta(start, time.time(), data_len, byte_counter)
-			speed_str = self.calc_speed(start, time.time(), byte_counter)
-			self.report_progress(percent_str, data_len_str, speed_str, eta_str)
-
 			# Download and write
 			before = time.time()
 			data_block = data.read(block_size)
@@ -426,8 +415,23 @@ class FileDownloader(object):
 			if data_block_len == 0:
 				break
 			byte_counter += data_block_len
+
+			# Open file just in time
+			if stream is None:
+				try:
+					stream = open(filename, open_mode)
+					self.report_destination(filename)
+				except (OSError, IOError), err:
+					self.trouble('ERROR: unable to open for writing: %s' % str(err))
+					return False
 			stream.write(data_block)
 			block_size = self.best_block_size(after - before, data_block_len)
+
+			# Progress message
+			percent_str = self.calc_percent(byte_counter, data_len)
+			eta_str = self.calc_eta(start, time.time(), data_len, byte_counter)
+			speed_str = self.calc_speed(start, time.time(), byte_counter)
+			self.report_progress(percent_str, data_len_str, speed_str, eta_str)
 
 			# Apply rate limit
 			self.slow_down(start, byte_counter)
@@ -435,6 +439,7 @@ class FileDownloader(object):
 		self.report_finish()
 		if data_len is not None and str(byte_counter) != data_len:
 			raise ContentTooShortError(byte_counter, long(data_len))
+		return True
 
 class InfoExtractor(object):
 	"""Information Extractor class.
