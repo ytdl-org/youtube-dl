@@ -956,7 +956,7 @@ class YoutubePlaylistIE(InfoExtractor):
 	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/view_play_list\?p=(.+)'
 	_TEMPLATE_URL = 'http://www.youtube.com/view_play_list?p=%s&page=%s&gl=US&hl=en'
 	_VIDEO_INDICATOR = r'/watch\?v=(.+?)&'
-	_MORE_PAGES_INDICATOR = r'/view_play_list?p=%s&amp;page=%s'
+	_MORE_PAGES_INDICATOR = r'/view_play_list?p=%s&page=%s'
 	_youtube_ie = None
 
 	def __init__(self, youtube_ie, downloader=None):
@@ -1002,7 +1002,7 @@ class YoutubePlaylistIE(InfoExtractor):
 					ids_in_page.append(mobj.group(1))
 			video_ids.extend(ids_in_page)
 
-			if (self._MORE_PAGES_INDICATOR % (playlist_id, pagenum + 1)) not in page:
+			if (self._MORE_PAGES_INDICATOR % (playlist_id.upper(), pagenum + 1)) not in page:
 				break
 			pagenum = pagenum + 1
 
