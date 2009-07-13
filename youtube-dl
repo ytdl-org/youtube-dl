@@ -227,7 +227,7 @@ class FileDownloader(object):
 	
 	def to_stderr(self, message):
 		"""Print message to stderr."""
-		print >>sys.stderr, message
+		print >>sys.stderr, message.encode(locale.getpreferredencoding())
 	
 	def fixed_template(self):
 		"""Checks if the output template is fixed."""
@@ -308,7 +308,7 @@ class FileDownloader(object):
 		except (ValueError, KeyError), err:
 			self.trouble('ERROR: invalid output template or system charset: %s' % str(err))
 		if self.params['nooverwrites'] and os.path.exists(filename):
-			self.to_stderr('WARNING: file exists: %s; skipping' % filename)
+			self.to_stderr(u'WARNING: file exists: %s; skipping' % filename)
 			return
 
 		try:
