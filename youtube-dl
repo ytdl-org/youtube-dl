@@ -510,7 +510,7 @@ class YoutubeIE(InfoExtractor):
 	_LOGIN_URL = 'http://www.youtube.com/signup?next=/&gl=US&hl=en'
 	_AGE_URL = 'http://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
 	_NETRC_MACHINE = 'youtube'
-	_available_formats = ['22', '35', '18', '17', '13'] # listed in order of priority for -b flag
+	_available_formats = ['22', '35', '18', '5', '17', '13'] # listed in order of priority for -b flag
 	_video_extensions = {
 		'13': '3gp',
 		'17': 'mp4',
