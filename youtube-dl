@@ -143,10 +143,12 @@ class FileDownloader(object):
 	def format_bytes(bytes):
 		if bytes is None:
 			return 'N/A'
-		if bytes == 0:
+		if type(bytes) is str:
+			bytes = float(bytes)
+		if bytes == 0.0:
 			exponent = 0
 		else:
-			exponent = long(math.log(float(bytes), 1024.0))
+			exponent = long(math.log(bytes, 1024.0))
 		suffix = 'bkMGTPEZY'[exponent]
 		converted = float(bytes) / float(1024**exponent)
 		return '%.2f%s' % (converted, suffix)
