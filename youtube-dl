@@ -559,9 +559,9 @@ class YoutubeIE(InfoExtractor):
 		"""Report attempt to confirm age."""
 		self._downloader.to_stdout(u'[youtube] Confirming age')
 	
-	def report_webpage_download(self, video_id):
-		"""Report attempt to download webpage."""
-		self._downloader.to_stdout(u'[youtube] %s: Downloading video webpage' % video_id)
+	def report_video_info_webpage_download(self, video_id):
+		"""Report attempt to download video info webpage."""
+		self._downloader.to_stdout(u'[youtube] %s: Downloading video info webpage' % video_id)
 	
 	def report_information_extraction(self, video_id):
 		"""Report attempt to extract video information."""
@@ -667,42 +667,51 @@ class YoutubeIE(InfoExtractor):
 			# Extension
 			video_extension = self._video_extensions.get(format_param, 'flv')
 
-			# Normalize URL, including format
-			normalized_url = 'http://www.youtube.com/watch?v=%s&gl=US&hl=en' % video_id
-			if format_param is not None:
-				normalized_url = '%s&fmt=%s' % (normalized_url, format_param)
-			request = urllib2.Request(normalized_url, None, std_headers)
+			# Get video info
+			video_info_url = 'http://www.youtube.com/get_video_info?&video_id=%s&el=detailpage&ps=default&eurl=&gl=US&hl=en' % video_id
+			request = urllib2.Request(video_info_url, None, std_headers)
 			try:
-				self.report_webpage_download(video_id)
-				video_webpage = urllib2.urlopen(request).read()
+				self.report_video_info_webpage_download(video_id)
+				video_info_webpage = urllib2.urlopen(request).read()
 			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-				self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % str(err))
+				self._downloader.trouble(u'ERROR: unable to download video info webpage: %s' % str(err))
 				return
 			self.report_information_extraction(video_id)
-			
+
 			# "t" param
-			mobj = re.search(r', "t": "([^"]+)"', video_webpage)
+			mobj = re.search(r'(?m)&token=([^&]+)(?:&|$)', video_info_webpage)
 			if mobj is None:
-				self._downloader.trouble(u'ERROR: unable to extract "t" parameter')
+				# Attempt to see if YouTube has issued an error message
+				mobj = re.search(r'(?m)&reason=([^&]+)(?:&|$)', video_info_webpage)
+				if mobj is None:
+					self._downloader.trouble(u'ERROR: unable to extract "t" parameter for unknown reason')
+					stream = open('reportme-ydl-%s.dat' % time.time(), 'wb')
+					stream.write(video_info_webpage)
+					stream.close()
+				else:
+					reason = urllib.unquote_plus(mobj.group(1))
+					self._downloader.trouble(u'ERROR: YouTube said: %s' % reason.decode('utf-8'))
 				return
-			video_real_url = 'http://www.youtube.com/get_video?video_id=%s&t=%s&el=detailpage&ps=' % (video_id, mobj.group(1))
+			token = urllib.unquote(mobj.group(1))
+			video_real_url = 'http://www.youtube.com/get_video?video_id=%s&t=%s&eurl=&el=detailpage&ps=default&gl=US&hl=en' % (video_id, token)
 			if format_param is not None:
 				video_real_url = '%s&fmt=%s' % (video_real_url, format_param)
 			self.report_video_url(video_id, video_real_url)
 
 			# uploader
-			mobj = re.search(r"var watchUsername = '([^']+)';", video_webpage)
+			mobj = re.search(r'(?m)&author=([^&]+)(?:&|$)', video_info_webpage)
 			if mobj is None:
 				self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
 				return
-			video_uploader = mobj.group(1)
+			video_uploader = urllib.unquote(mobj.group(1))
 
 			# title
-			mobj = re.search(r'(?im)<title>YouTube - ([^<]*)</title>', video_webpage)
+			mobj = re.search(r'(?m)&title=([^&]+)(?:&|$)', video_info_webpage)
 			if mobj is None:
 				self._downloader.trouble(u'ERROR: unable to extract video title')
 				return
-			video_title = mobj.group(1).decode('utf-8')
+			video_title = urllib.unquote(mobj.group(1))
+			video_title = video_title.decode('utf-8')
 			video_title = re.sub(ur'(?u)&(.+?);', self.htmlentity_transform, video_title)
 			video_title = video_title.replace(os.sep, u'%')
 
