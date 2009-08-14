@@ -879,7 +879,7 @@ class YoutubeSearchIE(InfoExtractor):
 	_VALID_QUERY = r'ytsearch(\d+|all)?:[\s\S]+'
 	_TEMPLATE_URL = 'http://www.youtube.com/results?search_query=%s&page=%s&gl=US&hl=en'
 	_VIDEO_INDICATOR = r'href="/watch\?v=.+?"'
-	_MORE_PAGES_INDICATOR = r'>Next</a>'
+	_MORE_PAGES_INDICATOR = r'(?m)>\s*Next\s*</a>'
 	_youtube_ie = None
 	_max_youtube_results = 1000
 
@@ -956,7 +956,7 @@ class YoutubeSearchIE(InfoExtractor):
 							self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
 						return
 
-			if self._MORE_PAGES_INDICATOR not in page:
+			if re.search(self._MORE_PAGES_INDICATOR, page) is None:
 				for id in video_ids:
 					self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
 				return
