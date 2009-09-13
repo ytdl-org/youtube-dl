@@ -221,11 +221,13 @@ class FileDownloader(object):
 
 	@staticmethod
 	def verify_url(url):
-		"""Verify a URL is valid and data could be downloaded."""
+		"""Verify a URL is valid and data could be downloaded. Return real data URL."""
 		request = urllib2.Request(url, None, std_headers)
 		data = urllib2.urlopen(request)
 		data.read(1)
+		url = data.geturl()
 		data.close()
+		return url
 
 	def add_info_extractor(self, ie):
 		"""Add an InfoExtractor object to the end of the list."""
@@ -307,7 +309,7 @@ class FileDownloader(object):
 		# Do nothing else if in simulate mode
 		if self.params.get('simulate', False):
 			try:
-				self.verify_url(info_dict['url'])
+				info_dict['url'] = self.verify_url(info_dict['url'])
 			except (OSError, IOError, urllib2.URLError, httplib.HTTPException, socket.error), err:
 				raise UnavailableFormatError
 
@@ -583,10 +585,6 @@ class YoutubeIE(InfoExtractor):
 		"""Report attempt to extract video information."""
 		self._downloader.to_stdout(u'[youtube] %s: Extracting video information' % video_id)
 	
-	def report_video_url(self, video_id, video_real_url):
-		"""Report extracted video URL."""
-		self._downloader.to_stdout(u'[youtube] %s: URL: %s' % (video_id, video_real_url))
-	
 	def report_unavailable_format(self, video_id, format):
 		"""Report extracted video URL."""
 		self._downloader.to_stdout(u'[youtube] %s: Format %s not available' % (video_id, format))
@@ -712,7 +710,6 @@ class YoutubeIE(InfoExtractor):
 			video_real_url = 'http://www.youtube.com/get_video?video_id=%s&t=%s&eurl=&el=detailpage&ps=default&gl=US&hl=en' % (video_id, token)
 			if format_param is not None:
 				video_real_url = '%s&fmt=%s' % (video_real_url, format_param)
-			self.report_video_url(video_id, video_real_url)
 
 			# uploader
 			mobj = re.search(r'(?m)&author=([^&]+)(?:&|$)', video_info_webpage)
