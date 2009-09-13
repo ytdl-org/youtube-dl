@@ -27,6 +27,22 @@ std_headers = {
 
 simple_title_chars = string.ascii_letters.decode('ascii') + string.digits.decode('ascii')
 
+def preferredencoding():
+	"""Get preferred encoding.
+
+	Returns the best encoding scheme for the system, based on
+	locale.getpreferredencoding() and some further tweaks.
+	"""
+	try:
+		pref = locale.getpreferredencoding()
+		# Mac OSX systems have this problem sometimes
+		if pref == '':
+			return 'UTF-8'
+		return pref
+	except:
+		sys.stderr.write('WARNING: problem obtaining preferred encoding. Falling back to UTF-8.\n')
+		return 'UTF-8'
+
 class DownloadError(Exception):
 	"""Download Error exception.
 	
@@ -224,12 +240,12 @@ class FileDownloader(object):
 	def to_stdout(self, message, skip_eol=False):
 		"""Print message to stdout if not in quiet mode."""
 		if not self.params.get('quiet', False):
-			print (u'%s%s' % (message, [u'\n', u''][skip_eol])).encode(locale.getpreferredencoding()),
+			print (u'%s%s' % (message, [u'\n', u''][skip_eol])).encode(preferredencoding()),
 			sys.stdout.flush()
 	
 	def to_stderr(self, message):
 		"""Print message to stderr."""
-		print >>sys.stderr, message.encode(locale.getpreferredencoding())
+		print >>sys.stderr, message.encode(preferredencoding())
 	
 	def fixed_template(self):
 		"""Checks if the output template is fixed."""
@@ -297,9 +313,9 @@ class FileDownloader(object):
 
 			# Forced printings
 			if self.params.get('forcetitle', False):
-				print info_dict['title'].encode(locale.getpreferredencoding())
+				print info_dict['title'].encode(preferredencoding())
 			if self.params.get('forceurl', False):
-				print info_dict['url'].encode(locale.getpreferredencoding())
+				print info_dict['url'].encode(preferredencoding())
 
 			return
 			
@@ -1191,7 +1207,7 @@ if __name__ == '__main__':
 			'forcetitle': opts.gettitle,
 			'simulate': (opts.simulate or opts.geturl or opts.gettitle),
 			'format': opts.format,
-			'outtmpl': ((opts.outtmpl is not None and opts.outtmpl.decode(locale.getpreferredencoding()))
+			'outtmpl': ((opts.outtmpl is not None and opts.outtmpl.decode(preferredencoding()))
 				or (opts.usetitle and u'%(stitle)s-%(id)s.%(ext)s')
 				or (opts.useliteral and u'%(title)s-%(id)s.%(ext)s')
 				or u'%(id)s.%(ext)s'),
