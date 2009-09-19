@@ -309,7 +309,7 @@ class FileDownloader(object):
 		# Do nothing else if in simulate mode
 		if self.params.get('simulate', False):
 			try:
-				info_dict['url'] = self.verify_url(info_dict['url'])
+				info_dict['url'] = self.verify_url(info_dict['url'].encode('utf-8')).decode('utf-8')
 			except (OSError, IOError, urllib2.URLError, httplib.HTTPException, socket.error), err:
 				raise UnavailableFormatError
 
@@ -338,7 +338,7 @@ class FileDownloader(object):
 			return
 
 		try:
-			success = self._do_download(filename, info_dict['url'])
+			success = self._do_download(filename, info_dict['url'].encode('utf-8'))
 		except (OSError, IOError), err:
 			raise UnavailableFormatError
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
