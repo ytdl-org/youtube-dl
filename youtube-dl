@@ -33,15 +33,15 @@ def preferredencoding():
 	Returns the best encoding scheme for the system, based on
 	locale.getpreferredencoding() and some further tweaks.
 	"""
-	try:
-		pref = locale.getpreferredencoding()
-		# Mac OSX systems have this problem sometimes
-		if pref == '':
-			return 'UTF-8'
-		return pref
-	except:
-		sys.stderr.write('WARNING: problem obtaining preferred encoding. Falling back to UTF-8.\n')
-		return 'UTF-8'
+	def yield_preferredencoding():
+		try:
+			pref = locale.getpreferredencoding()
+			u'TEST'.encode(pref)
+		except:
+			pref = 'UTF-8'
+		while True:
+			yield pref
+	return yield_preferredencoding().next()
 
 class DownloadError(Exception):
 	"""Download Error exception.
