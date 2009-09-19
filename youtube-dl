@@ -327,7 +327,7 @@ class FileDownloader(object):
 			filename = self.params['outtmpl'] % template_dict
 		except (ValueError, KeyError), err:
 			self.trouble('ERROR: invalid output template or system charset: %s' % str(err))
-		if self.params['nooverwrites'] and os.path.exists(filename):
+		if self.params.get('nooverwrites', False) and os.path.exists(filename):
 			self.to_stderr(u'WARNING: file exists: %s; skipping' % filename)
 			return
 
@@ -402,7 +402,7 @@ class FileDownloader(object):
 			resume_len = os.path.getsize(filename)
 		else:
 			resume_len = 0
-		if self.params['continuedl'] and resume_len != 0:
+		if self.params.get('continuedl', False) and resume_len != 0:
 			self.report_resuming_byte(resume_len)
 			request.add_header('Range','bytes=%d-' % resume_len)
 
