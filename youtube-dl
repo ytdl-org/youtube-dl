@@ -719,7 +719,7 @@ class YoutubeIE(InfoExtractor):
 			video_uploader = urllib.unquote(mobj.group(1))
 
 			# title
-			mobj = re.search(r'(?m)&title=([^&]+)(?:&|$)', video_info_webpage)
+			mobj = re.search(r'(?m)&title=([^&]*)(?:&|$)', video_info_webpage)
 			if mobj is None:
 				self._downloader.trouble(u'ERROR: unable to extract video title')
 				return
