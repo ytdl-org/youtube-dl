@@ -1089,6 +1089,22 @@ if __name__ == '__main__':
 		import getpass
 		import optparse
 
+		# Function to update the program file with the latest version from bitbucket.org
+		def update_self(downloader, filename):
+			# Note: downloader only used for options
+			if not os.access (filename, os.W_OK):
+				sys.exit('ERROR: no write permissions on %s' % filename)
+
+			downloader.to_stdout('Updating to latest stable version...')
+			latest_url = 'http://bitbucket.org/rg3/youtube-dl/raw/tip/LATEST_VERSION'
+			latest_version = urllib.urlopen(latest_url).read().strip()
+			prog_url = 'http://bitbucket.org/rg3/youtube-dl/raw/%s/youtube-dl' % latest_version
+			newcontent = urllib.urlopen(prog_url).read()
+			stream = open(filename, 'w')
+			stream.write(newcontent)
+			stream.close()
+			downloader.to_stdout('Updated to version %s' % latest_version)
+
 		# General configuration
 		urllib2.install_opener(urllib2.build_opener(urllib2.ProxyHandler()))
 		urllib2.install_opener(urllib2.build_opener(urllib2.HTTPCookieProcessor()))
@@ -1105,6 +1121,8 @@ if __name__ == '__main__':
 				action='help', help='print this help text and exit')
 		parser.add_option('-v', '--version',
 				action='version', help='print program version and exit')
+		parser.add_option('-U', '--update',
+				action='store_true', dest='update_self', help='update this program to latest stable version')
 		parser.add_option('-i', '--ignore-errors',
 				action='store_true', dest='ignoreerrors', help='continue on download errors', default=False)
 		parser.add_option('-r', '--rate-limit',
@@ -1157,7 +1175,7 @@ if __name__ == '__main__':
 		parser.add_option_group(filesystem)
 
 		(opts, args) = parser.parse_args()
-
+        
 		# Batch file verification
 		batchurls = []
 		if opts.batchfile is not None:
@@ -1170,8 +1188,6 @@ if __name__ == '__main__':
 		all_urls = batchurls + args
 
 		# Conflicting, missing and erroneous options
-		if len(all_urls) < 1:
-			parser.error(u'you must provide at least one URL')
 		if opts.usenetrc and (opts.username is not None or opts.password is not None):
 			parser.error(u'using .netrc conflicts with giving username/password')
 		if opts.password is not None and opts.username is None:
@@ -1217,6 +1233,17 @@ if __name__ == '__main__':
 		fd.add_info_extractor(youtube_pl_ie)
 		fd.add_info_extractor(metacafe_ie)
 		fd.add_info_extractor(youtube_ie)
+
+		# Update version
+		if opts.update_self:
+			update_self(fd, sys.argv[0])
+
+		# Maybe do nothing
+		if len(all_urls) < 1:
+			if not opts.update_self:
+				parser.error(u'you must provide at least one URL')
+			else:
+				sys.exit()
 		retcode = fd.download(all_urls)
 		sys.exit(retcode)
 
