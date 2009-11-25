@@ -1037,6 +1037,62 @@ class YoutubePlaylistIE(InfoExtractor):
 			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
 		return
 
+class YoutubeUserIE(InfoExtractor):
+	"""Information Extractor for YouTube users."""
+
+	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/user/(.*)'
+	_TEMPLATE_URL = 'http://gdata.youtube.com/feeds/api/users/%s'
+	_VIDEO_INDICATOR = r'http://gdata.youtube.com/feeds/api/videos/(.*)'
+	_youtube_ie = None
+
+	def __init__(self, youtube_ie, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+		self._youtube_ie = youtube_ie
+	
+	@staticmethod
+	def suitable(url):
+		return (re.match(YoutubeUserIE._VALID_URL, url) is not None)
+
+	def report_download_page(self, username):
+		"""Report attempt to download user page."""
+		self._downloader.to_stdout(u'[youtube] USR %s: Downloading page ' % (username))
+
+	def _real_initialize(self):
+		self._youtube_ie.initialize()
+	
+	def _real_extract(self, url):
+		# Extract username
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid url: %s' % url)
+			return
+
+		# Download user page
+		username = mobj.group(1)
+		video_ids = []
+		pagenum = 1
+
+		self.report_download_page(username)
+		request = urllib2.Request(self._TEMPLATE_URL % (username), None, std_headers)
+		try:
+			page = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download webpage: %s' % str(err))
+			return
+
+		# Extract video identifiers
+		ids_in_page = []
+
+		for mobj in re.finditer(self._VIDEO_INDICATOR, page):
+			print mobj.group(1)
+			if mobj.group(1) not in ids_in_page:
+				ids_in_page.append(mobj.group(1))
+		video_ids.extend(ids_in_page)
+
+		for id in video_ids:
+			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
+		return
+
 class PostProcessor(object):
 	"""Post Processor class.
 
@@ -1209,6 +1265,7 @@ if __name__ == '__main__':
 		youtube_ie = YoutubeIE()
 		metacafe_ie = MetacafeIE(youtube_ie)
 		youtube_pl_ie = YoutubePlaylistIE(youtube_ie)
+		youtube_user_ie = YoutubeUserIE(youtube_ie)
 		youtube_search_ie = YoutubeSearchIE(youtube_ie)
 
 		# File downloader
@@ -1232,6 +1289,7 @@ if __name__ == '__main__':
 			})
 		fd.add_info_extractor(youtube_search_ie)
 		fd.add_info_extractor(youtube_pl_ie)
+		fd.add_info_extractor(youtube_user_ie)
 		fd.add_info_extractor(metacafe_ie)
 		fd.add_info_extractor(youtube_ie)
 
