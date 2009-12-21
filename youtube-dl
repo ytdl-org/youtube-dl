@@ -392,19 +392,21 @@ class FileDownloader(object):
 	
 	def _do_download(self, filename, url):
 		stream = None
-		open_mode = 'ab'
-
+		open_mode = 'wb'
 		basic_request = urllib2.Request(url, None, std_headers)
 		request = urllib2.Request(url, None, std_headers)
 
-		# Attempt to resume download with "continuedl" option
+		# Establish possible resume length
 		if os.path.isfile(filename):
 			resume_len = os.path.getsize(filename)
 		else:
 			resume_len = 0
+
+		# Request parameters in case of being able to resume
 		if self.params.get('continuedl', False) and resume_len != 0:
 			self.report_resuming_byte(resume_len)
 			request.add_header('Range','bytes=%d-' % resume_len)
+			open_mode = 'ab'
 
 		# Establish connection
 		try:
@@ -412,12 +414,16 @@ class FileDownloader(object):
 		except (urllib2.HTTPError, ), err:
 			if err.code != 416: #  416 is 'Requested range not satisfiable'
 				raise
+			# Unable to resume
 			data = urllib2.urlopen(basic_request)
 			content_length = data.info()['Content-Length']
+
 			if content_length is not None and long(content_length) == resume_len:
+				# Because the file had already been fully downloaded
 				self.report_file_already_downloaded(filename)
 				return True
 			else:
+				# Because the server didn't let us
 				self.report_unable_to_resume()
 				open_mode = 'wb'
 
