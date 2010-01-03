@@ -1085,7 +1085,7 @@ class YoutubeUserIE(InfoExtractor):
 
 	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/user/(.*)'
 	_TEMPLATE_URL = 'http://gdata.youtube.com/feeds/api/users/%s'
-	_VIDEO_INDICATOR = r'http://gdata.youtube.com/feeds/api/videos/(.*)'
+	_VIDEO_INDICATOR = r'http://gdata.youtube.com/feeds/api/videos/(.*)' # XXX Fix this.
 	_youtube_ie = None
 
 	def __init__(self, youtube_ie, downloader=None):
@@ -1098,7 +1098,7 @@ class YoutubeUserIE(InfoExtractor):
 
 	def report_download_page(self, username):
 		"""Report attempt to download user page."""
-		self._downloader.to_stdout(u'[youtube] USR %s: Downloading page ' % (username))
+		self._downloader.to_stdout(u'[youtube] user %s: Downloading page ' % (username))
 
 	def _real_initialize(self):
 		self._youtube_ie.initialize()
@@ -1127,7 +1127,6 @@ class YoutubeUserIE(InfoExtractor):
 		ids_in_page = []
 
 		for mobj in re.finditer(self._VIDEO_INDICATOR, page):
-			print mobj.group(1)
 			if mobj.group(1) not in ids_in_page:
 				ids_in_page.append(mobj.group(1))
 		video_ids.extend(ids_in_page)
