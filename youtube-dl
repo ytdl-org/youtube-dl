@@ -13,10 +13,12 @@ import os.path
 import re
 import socket
 import string
+import subprocess
 import sys
 import time
 import urllib
 import urllib2
+import urlparse
 
 std_headers = {
 	'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.2) Gecko/20090729 Firefox/3.5.2',
@@ -390,7 +392,36 @@ class FileDownloader(object):
 			if info is None:
 				break
 	
+	def _download_with_rtmpdump(self, filename, url):
+		self.report_destination(filename)
+
+		# Check for rtmpdump first
+		try:
+			subprocess.call(['rtmpdump', '-h'], stdout=(file(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
+		except (OSError, IOError):
+			self.trouble(u'ERROR: RTMP download detected but "rtmpdump" could not be run')
+			return False
+
+		# Download using rtmpdump. rtmpdump returns exit code 2 when
+		# the connection was interrumpted and resuming appears to be
+		# possible. This is part of rtmpdump's normal usage, AFAIK.
+		retval = subprocess.call(['rtmpdump', '-q', '-r', url, '-o', filename] + [[], ['-e']][self.params.get('continuedl', False)])
+		while retval == 2:
+			self.to_stdout(u'\r[rtmpdump] %s bytes' % os.path.getsize(filename), skip_eol=True)
+			time.sleep(2.0) # This seems to be needed
+			retval = subprocess.call(['rtmpdump', '-q', '-e', '-r', url, '-o', filename])
+		if retval == 0:
+			self.to_stdout(u'\r[rtmpdump] %s bytes' % os.path.getsize(filename))
+			return True
+		else:
+			self.trouble('ERROR: rtmpdump exited with code %d' % retval)
+			return False
+
 	def _do_download(self, filename, url):
+		# Attempt to download using rtmpdump
+		if url.startswith('rtmp'):
+			return self._download_with_rtmpdump(filename, url)
+
 		stream = None
 		open_mode = 'wb'
 		basic_request = urllib2.Request(url, None, std_headers)
@@ -596,6 +627,10 @@ class YoutubeIE(InfoExtractor):
 		"""Report extracted video URL."""
 		self._downloader.to_stdout(u'[youtube] %s: Format %s not available' % (video_id, format))
 	
+	def report_rtmp_download(self):
+		"""Indicate the download will use the RTMP protocol."""
+		self._downloader.to_stdout(u'[youtube] RTMP download detected')
+	
 	def _real_initialize(self):
 		if self._downloader is None:
 			return
@@ -694,43 +729,45 @@ class YoutubeIE(InfoExtractor):
 			try:
 				self.report_video_info_webpage_download(video_id)
 				video_info_webpage = urllib2.urlopen(request).read()
+				video_info = urlparse.parse_qs(video_info_webpage)
 			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 				self._downloader.trouble(u'ERROR: unable to download video info webpage: %s' % str(err))
 				return
 			self.report_information_extraction(video_id)
 
 			# "t" param
-			mobj = re.search(r'(?m)&token=([^&]+)(?:&|$)', video_info_webpage)
-			if mobj is None:
+			if 'token' not in video_info:
 				# Attempt to see if YouTube has issued an error message
-				mobj = re.search(r'(?m)&reason=([^&]+)(?:&|$)', video_info_webpage)
-				if mobj is None:
+				if 'reason' not in video_info:
 					self._downloader.trouble(u'ERROR: unable to extract "t" parameter for unknown reason')
 					stream = open('reportme-ydl-%s.dat' % time.time(), 'wb')
 					stream.write(video_info_webpage)
 					stream.close()
 				else:
-					reason = urllib.unquote_plus(mobj.group(1))
+					reason = urllib.unquote_plus(video_info['reason'][0])
 					self._downloader.trouble(u'ERROR: YouTube said: %s' % reason.decode('utf-8'))
 				return
-			token = urllib.unquote(mobj.group(1))
+			token = urllib.unquote_plus(video_info['token'][0])
 			video_real_url = 'http://www.youtube.com/get_video?video_id=%s&t=%s&eurl=&el=detailpage&ps=default&gl=US&hl=en' % (video_id, token)
 			if format_param is not None:
 				video_real_url = '%s&fmt=%s' % (video_real_url, format_param)
 
+			# Check possible RTMP download
+			if 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
+				self.report_rtmp_download()
+				video_real_url = video_info['conn'][0]
+
 			# uploader
-			mobj = re.search(r'(?m)&author=([^&]+)(?:&|$)', video_info_webpage)
-			if mobj is None:
+			if 'author' not in video_info:
 				self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
 				return
-			video_uploader = urllib.unquote(mobj.group(1))
+			video_uploader = urllib.unquote_plus(video_info['author'][0])
 
 			# title
-			mobj = re.search(r'(?m)&title=([^&]*)(?:&|$)', video_info_webpage)
-			if mobj is None:
+			if 'title' not in video_info:
 				self._downloader.trouble(u'ERROR: unable to extract video title')
 				return
-			video_title = urllib.unquote_plus(mobj.group(1))
+			video_title = urllib.unquote_plus(video_info['title'][0])
 			video_title = video_title.decode('utf-8')
 			video_title = re.sub(ur'(?u)&(.+?);', self.htmlentity_transform, video_title)
 			video_title = video_title.replace(os.sep, u'%')
