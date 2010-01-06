@@ -18,7 +18,12 @@ import sys
 import time
 import urllib
 import urllib2
-import urlparse
+
+# parse_qs was moved from the cgi module to the urlparse module recently.
+try:
+	from urlparse import parse_qs
+except ImportError:
+	from cgi import parse_qs
 
 std_headers = {
 	'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.2) Gecko/20090729 Firefox/3.5.2',
@@ -729,7 +734,7 @@ class YoutubeIE(InfoExtractor):
 			try:
 				self.report_video_info_webpage_download(video_id)
 				video_info_webpage = urllib2.urlopen(request).read()
-				video_info = urlparse.parse_qs(video_info_webpage)
+				video_info = parse_qs(video_info_webpage)
 			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 				self._downloader.trouble(u'ERROR: unable to download video info webpage: %s' % str(err))
 				return
