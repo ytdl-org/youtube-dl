@@ -316,10 +316,12 @@ class FileDownloader(object):
 		"""Process a single dictionary returned by an InfoExtractor."""
 		# Do nothing else if in simulate mode
 		if self.params.get('simulate', False):
-			try:
-				info_dict['url'] = self.verify_url(info_dict['url'].encode('utf-8')).decode('utf-8')
-			except (OSError, IOError, urllib2.URLError, httplib.HTTPException, socket.error), err:
-				raise UnavailableFormatError
+			# Verify URL if it's an HTTP one
+			if info_dict['url'].startswith('http'):
+				try:
+					info_dict['url'] = self.verify_url(info_dict['url'].encode('utf-8')).decode('utf-8')
+				except (OSError, IOError, urllib2.URLError, httplib.HTTPException, socket.error), err:
+					raise UnavailableFormatError
 
 			# Forced printings
 			if self.params.get('forcetitle', False):
