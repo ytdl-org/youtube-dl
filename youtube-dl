@@ -413,11 +413,12 @@ class FileDownloader(object):
 		# Download using rtmpdump. rtmpdump returns exit code 2 when
 		# the connection was interrumpted and resuming appears to be
 		# possible. This is part of rtmpdump's normal usage, AFAIK.
-		retval = subprocess.call(['rtmpdump', '-q', '-r', url, '-o', filename] + [[], ['-e']][self.params.get('continuedl', False)])
-		while retval == 2:
+		basic_args = ['rtmpdump', '-q', '-r', url, '-o', filename]
+		retval = subprocess.call(basic_args + [[], ['-e', '-k', '1']][self.params.get('continuedl', False)])
+		while retval == 2 or retval == 1:
 			self.to_stdout(u'\r[rtmpdump] %s bytes' % os.path.getsize(filename), skip_eol=True)
 			time.sleep(2.0) # This seems to be needed
-			retval = subprocess.call(['rtmpdump', '-q', '-e', '-r', url, '-o', filename])
+			retval = subprocess.call(basic_args + ['-e'] + [[], ['-k', '1']][retval == 1])
 		if retval == 0:
 			self.to_stdout(u'\r[rtmpdump] %s bytes' % os.path.getsize(filename))
 			return True
