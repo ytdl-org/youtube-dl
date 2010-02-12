@@ -27,7 +27,7 @@ except ImportError:
 	from cgi import parse_qs
 
 std_headers = {
-	'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.2) Gecko/20090729 Firefox/3.5.2',
+	'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2) Gecko/20100115 Firefox/3.6'
 	'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
 	'Accept': 'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5',
 	'Accept-Language': 'en-us,en;q=0.5',
