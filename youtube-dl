@@ -51,6 +51,43 @@ def preferredencoding():
 			yield pref
 	return yield_preferredencoding().next()
 
+def htmlentity_transform(matchobj):
+	"""Transforms an HTML entity to a Unicode character.
+	
+	This function receives a match object and is intended to be used with
+	the re.sub() function.
+	"""
+	entity = matchobj.group(1)
+
+	# Known non-numeric HTML entity
+	if entity in htmlentitydefs.name2codepoint:
+		return unichr(htmlentitydefs.name2codepoint[entity])
+
+	# Unicode character
+	mobj = re.match(ur'(?u)#(x?\d+)', entity)
+	if mobj is not None:
+		numstr = mobj.group(1)
+		if numstr.startswith(u'x'):
+			base = 16
+			numstr = u'0%s' % numstr
+		else:
+			base = 10
+		return unichr(long(numstr, base))
+
+	# Unknown entity in name, return its literal representation
+	return (u'&%s;' % entity)
+
+def sanitize_title(utitle):
+	"""Sanitizes a video title so it could be used as part of a filename.
+
+	This triggers different transformations based on the platform we
+	are running.
+	"""
+	utitle = re.sub(ur'(?u)&(.+?);', htmlentity_transform, utitle)
+	if sys.platform == 'win32':
+		return re.replace(ur'<>:"\|\?\*', u'-', title)
+	return utitle.replace(unicode(os.sep), u'%')
+
 class DownloadError(Exception):
 	"""Download Error exception.
 	
@@ -325,9 +362,9 @@ class FileDownloader(object):
 
 			# Forced printings
 			if self.params.get('forcetitle', False):
-				print info_dict['title'].encode(preferredencoding())
+				print info_dict['title'].encode(preferredencoding(), 'xmlcharrefreplace')
 			if self.params.get('forceurl', False):
-				print info_dict['url'].encode(preferredencoding())
+				print info_dict['url'].encode(preferredencoding(), 'xmlcharrefreplace')
 
 			return
 			
@@ -589,29 +626,6 @@ class YoutubeIE(InfoExtractor):
 	def suitable(url):
 		return (re.match(YoutubeIE._VALID_URL, url) is not None)
 
-	@staticmethod
-	def htmlentity_transform(matchobj):
-		"""Transforms an HTML entity to a Unicode character."""
-		entity = matchobj.group(1)
-
-		# Known non-numeric HTML entity
-		if entity in htmlentitydefs.name2codepoint:
-			return unichr(htmlentitydefs.name2codepoint[entity])
-
-		# Unicode character
-		mobj = re.match(ur'(?u)#(x?\d+)', entity)
-		if mobj is not None:
-			numstr = mobj.group(1)
-			if numstr.startswith(u'x'):
-				base = 16
-				numstr = u'0%s' % numstr
-			else:
-				base = 10
-			return unichr(long(numstr, base))
-
-		# Unknown entity in name, return its literal representation
-		return (u'&%s;' % entity)
-
 	def report_lang(self):
 		"""Report attempt to set language."""
 		self._downloader.to_stdout(u'[youtube] Setting language')
@@ -778,8 +792,7 @@ class YoutubeIE(InfoExtractor):
 				return
 			video_title = urllib.unquote_plus(video_info['title'][0])
 			video_title = video_title.decode('utf-8')
-			video_title = re.sub(ur'(?u)&(.+?);', self.htmlentity_transform, video_title)
-			video_title = video_title.replace(os.sep, u'%')
+			video_title = sanitize_title(video_title)
 
 			# simplified title
 			simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
@@ -919,6 +932,7 @@ class MetacafeIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract title')
 			return
 		video_title = mobj.group(1).decode('utf-8')
+		video_title = sanitize_title(video_title)
 
 		mobj = re.search(r'(?ms)By:\s*<a .*?>(.+?)<', webpage)
 		if mobj is None:
@@ -943,7 +957,7 @@ class MetacafeIE(InfoExtractor):
 class GoogleIE(InfoExtractor):
 	"""Information extractor for video.google.com."""
 
-	_VALID_URL = r'(?:http://)?video\.google\.com/videoplay\?docid=([^\&]+).*'
+	_VALID_URL = r'(?:http://)?video\.google\.(?:com(?:\.au)?|co\.(?:uk|jp|kr|cr)|ca|de|es|fr|it|nl|pl)/videoplay\?docid=([^\&]+).*'
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
@@ -975,7 +989,7 @@ class GoogleIE(InfoExtractor):
 		video_extension = 'mp4'
 
 		# Retrieve video webpage to extract further information
-		request = urllib2.Request('http://video.google.com/videoplay?docid=%s' % video_id)
+		request = urllib2.Request('http://video.google.com/videoplay?docid=%s&hl=en&oe=utf-8' % video_id)
 		try:
 			self.report_download_webpage(video_id)
 			webpage = urllib2.urlopen(request).read()
@@ -985,7 +999,10 @@ class GoogleIE(InfoExtractor):
 
 		# Extract URL, uploader, and title from webpage
 		self.report_extraction(video_id)
-		mobj = re.search(r"download_url:'(.*)'", webpage)
+		mobj = re.search(r"download_url:'([^']+)'", webpage)
+		if mobj is None:
+			video_extension = 'flv'
+			mobj = re.search(r"(?i)videoUrl\\x3d(.+?)\\x26", webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
 			return
@@ -1000,9 +1017,10 @@ class GoogleIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract title')
 			return
 		video_title = mobj.group(1).decode('utf-8')
+		video_title = sanitize_title(video_title)
 
 		# Google Video doesn't show uploader nicknames?
-		video_uploader = 'uploader'
+		video_uploader = 'NA'
 
 		try:
 			# Process video information
@@ -1010,8 +1028,8 @@ class GoogleIE(InfoExtractor):
 				'id':		video_id.decode('utf-8'),
 				'url':		video_url.decode('utf-8'),
 				'uploader':	video_uploader.decode('utf-8'),
-				'title':	video_title.decode('utf-8'),
-				'stitle':	video_title.decode('utf-8'),
+				'title':	video_title,
+				'stitle':	video_title,
 				'ext':		video_extension.decode('utf-8'),
 			})
 		except UnavailableFormatError:
@@ -1076,6 +1094,7 @@ class PhotobucketIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract title')
 			return
 		video_title = mobj.group(1).decode('utf-8')
+		video_title = sanitize_title(video_title)
 
 		video_uploader = mobj.group(2).decode('utf-8')
 
@@ -1084,9 +1103,102 @@ class PhotobucketIE(InfoExtractor):
 			self._downloader.process_info({
 				'id':		video_id.decode('utf-8'),
 				'url':		video_url.decode('utf-8'),
-				'uploader':	video_uploader.decode('utf-8'),
-				'title':	video_title.decode('utf-8'),
-				'stitle':	video_title.decode('utf-8'),
+				'uploader':	video_uploader,
+				'title':	video_title,
+				'stitle':	video_title,
+				'ext':		video_extension.decode('utf-8'),
+			})
+		except UnavailableFormatError:
+			self._downloader.trouble(u'ERROR: format not available for video')
+
+
+class GenericIE(InfoExtractor):
+	"""Generic last-resort information extractor."""
+
+	def __init__(self, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+
+	@staticmethod
+	def suitable(url):
+		return True
+
+	def report_download_webpage(self, video_id):
+		"""Report webpage download."""
+		self._downloader.to_stdout(u'WARNING: Falling back on generic information extractor.')
+		self._downloader.to_stdout(u'[generic] %s: Downloading webpage' % video_id)
+
+	def report_extraction(self, video_id):
+		"""Report information extraction."""
+		self._downloader.to_stdout(u'[generic] %s: Extracting information' % video_id)
+
+	def _real_initialize(self):
+		return
+
+	def _real_extract(self, url):
+		video_id = url.split('/')[-1]
+		request = urllib2.Request(url)
+		try:
+			self.report_download_webpage(video_id)
+			webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: Unable to retrieve video webpage: %s' % str(err))
+			return
+		except ValueError, err:
+			# since this is the last-resort InfoExtractor, if
+			# this error is thrown, it'll be thrown here
+			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
+			return
+
+		# Start with something easy: JW Player in SWFObject
+		mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
+		if mobj is None:
+			# Broaden the search a little bit
+			mobj = re.search(r'[^A-Za-z0-9]?(?:file|source)=(http[^\'"&]*)', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
+			return
+
+		# It's possible that one of the regexes
+		# matched, but returned an empty group:
+		if mobj.group(1) is None:
+			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
+			return
+
+		video_url = urllib.unquote(mobj.group(1))
+		video_id  = os.path.basename(video_url)
+
+		# here's a fun little line of code for you:
+		video_extension = os.path.splitext(video_id)[1][1:]
+		video_id        = os.path.splitext(video_id)[0]
+
+		# it's tempting to parse this further, but you would
+		# have to take into account all the variations like
+		#   Video Title - Site Name
+		#   Site Name | Video Title
+		#   Video Title - Tagline | Site Name
+		# and so on and so forth; it's just not practical
+		mobj = re.search(r'<title>(.*)</title>', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract title')
+			return
+		video_title = mobj.group(1).decode('utf-8')
+		video_title = sanitize_title(video_title)
+
+		# video uploader is domain name
+		mobj = re.match(r'(?:https?://)?([^/]*)/.*', url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract title')
+			return
+		video_uploader = mobj.group(1).decode('utf-8')
+
+		try:
+			# Process video information
+			self._downloader.process_info({
+				'id':		video_id.decode('utf-8'),
+				'url':		video_url.decode('utf-8'),
+				'uploader':	video_uploader,
+				'title':	video_title,
+				'stitle':	video_title,
 				'ext':		video_extension.decode('utf-8'),
 			})
 		except UnavailableFormatError:
@@ -1112,6 +1224,7 @@ class YoutubeSearchIE(InfoExtractor):
 
 	def report_download_page(self, query, pagenum):
 		"""Report attempt to download playlist page with given number."""
+		query = query.decode(preferredencoding())
 		self._downloader.to_stdout(u'[youtube] query "%s": Downloading page %s' % (query, pagenum))
 
 	def _real_initialize(self):
@@ -1125,6 +1238,7 @@ class YoutubeSearchIE(InfoExtractor):
 
 		prefix, query = query.split(':')
 		prefix = prefix[8:]
+		query  = query.encode('utf-8')
 		if prefix == '':
 			self._download_n_results(query, 1)
 			return
@@ -1374,7 +1488,7 @@ if __name__ == '__main__':
 		# Parse command line
 		parser = optparse.OptionParser(
 			usage='Usage: %prog [options] url...',
-			version='2010.01.19',
+			version='INTERNAL',
 			conflict_handler='resolve',
 		)
 
@@ -1448,6 +1562,10 @@ if __name__ == '__main__':
 				sys.exit(u'ERROR: batch file could not be read')
 		all_urls = batchurls + args
 
+		# Make sure all URLs are in our preferred encoding
+		for i in range(0, len(all_urls)):
+			all_urls[i] = unicode(all_urls[i], preferredencoding())
+
 		# Conflicting, missing and erroneous options
 		if opts.usenetrc and (opts.username is not None or opts.password is not None):
 			parser.error(u'using .netrc conflicts with giving username/password')
@@ -1473,6 +1591,7 @@ if __name__ == '__main__':
 		youtube_search_ie = YoutubeSearchIE(youtube_ie)
 		google_ie = GoogleIE()
 		photobucket_ie = PhotobucketIE()
+		generic_ie = GenericIE()
 
 		# File downloader
 		fd = FileDownloader({
@@ -1500,6 +1619,10 @@ if __name__ == '__main__':
 		fd.add_info_extractor(youtube_ie)
 		fd.add_info_extractor(google_ie)
 		fd.add_info_extractor(photobucket_ie)
+
+		# This must come last since it's the
+		# fallback if none of the others work
+		fd.add_info_extractor(generic_ie)
 
 		# Update version
 		if opts.update_self:
