@@ -85,7 +85,7 @@ def sanitize_title(utitle):
 	"""
 	utitle = re.sub(ur'(?u)&(.+?);', htmlentity_transform, utitle)
 	if sys.platform == 'win32':
-		return re.replace(ur'<>:"\|\?\*', u'-', title)
+		utitle = re.replace(ur'<>:"\|\?\*\\', u'-', utitle)
 	return utitle.replace(unicode(os.sep), u'%')
 
 class DownloadError(Exception):
