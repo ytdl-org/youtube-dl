@@ -78,15 +78,31 @@ def htmlentity_transform(matchobj):
 	return (u'&%s;' % entity)
 
 def sanitize_title(utitle):
-	"""Sanitizes a video title so it could be used as part of a filename.
-
-	This triggers different transformations based on the platform we
-	are running.
-	"""
+	"""Sanitizes a video title so it could be used as part of a filename."""
 	utitle = re.sub(ur'(?u)&(.+?);', htmlentity_transform, utitle)
-	if sys.platform == 'win32':
-		utitle = re.replace(ur'<>:"\|\?\*\\', u'-', utitle)
 	return utitle.replace(unicode(os.sep), u'%')
+
+def sanitize_open(filename, open_mode):
+	"""Try to open the given filename, and slightly tweak it if this fails.
+
+	Attempts to open the given filename. If this fails, it tries to change
+	the filename slightly, step by step, until it's either able to open it
+	or it fails and raises a final exception, like the standard open()
+	function.
+
+	It returns the tuple (stream, definitive_file_name).
+	"""
+	try:
+		stream = open(filename, open_mode)
+		return (stream, filename)
+	except (IOError, OSError), err:
+		# In case of error, try to remove win32 forbidden chars
+		filename = re.sub(ur'[<>:"\|\?\*]', u'#', filename)
+
+		# An exception here should be caught in the caller
+		stream = open(filename, open_mode)
+		return (stream, filename)
+
 
 class DownloadError(Exception):
 	"""Download Error exception.
@@ -522,7 +538,7 @@ class FileDownloader(object):
 			# Open file just in time
 			if stream is None:
 				try:
-					stream = open(filename, open_mode)
+					(stream, filename) = sanitize_open(filename, open_mode)
 					self.report_destination(filename)
 				except (OSError, IOError), err:
 					self.trouble('ERROR: unable to open for writing: %s' % str(err))
