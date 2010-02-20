@@ -1578,10 +1578,6 @@ if __name__ == '__main__':
 				sys.exit(u'ERROR: batch file could not be read')
 		all_urls = batchurls + args
 
-		# Make sure all URLs are in our preferred encoding
-		for i in range(0, len(all_urls)):
-			all_urls[i] = unicode(all_urls[i], preferredencoding())
-
 		# Conflicting, missing and erroneous options
 		if opts.usenetrc and (opts.username is not None or opts.password is not None):
 			parser.error(u'using .netrc conflicts with giving username/password')
