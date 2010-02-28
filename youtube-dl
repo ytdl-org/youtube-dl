@@ -300,11 +300,15 @@ class FileDownloader(object):
 		self._pps.append(pp)
 		pp.set_downloader(self)
 	
-	def to_stdout(self, message, skip_eol=False):
+	def to_stdout(self, message, skip_eol=False, ignore_encoding_errors=False):
 		"""Print message to stdout if not in quiet mode."""
-		if not self.params.get('quiet', False):
-			print (u'%s%s' % (message, [u'\n', u''][skip_eol])).encode(preferredencoding()),
+		try:
+			if not self.params.get('quiet', False):
+				print (u'%s%s' % (message, [u'\n', u''][skip_eol])).encode(preferredencoding()),
 			sys.stdout.flush()
+		except (UnicodeEncodeError), err:
+			if not ignore_encoding_errors:
+				raise
 	
 	def to_stderr(self, message):
 		"""Print message to stderr."""
@@ -342,7 +346,7 @@ class FileDownloader(object):
 
 	def report_destination(self, filename):
 		"""Report destination filename."""
-		self.to_stdout(u'[download] Destination: %s' % filename)
+		self.to_stdout(u'[download] Destination: %s' % filename, ignore_encoding_errors=True)
 	
 	def report_progress(self, percent_str, data_len_str, speed_str, eta_str):
 		"""Report download progress."""
@@ -355,7 +359,10 @@ class FileDownloader(object):
 	
 	def report_file_already_downloaded(self, file_name):
 		"""Report file has already been fully downloaded."""
-		self.to_stdout(u'[download] %s has already been downloaded' % file_name)
+		try:
+			self.to_stdout(u'[download] %s has already been downloaded' % file_name)
+		except (UnicodeEncodeError), err:
+			self.to_stdout(u'[download] The file has already been downloaded')
 	
 	def report_unable_to_resume(self):
 		"""Report it was impossible to resume download."""
