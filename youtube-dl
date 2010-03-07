@@ -192,6 +192,7 @@ class FileDownloader(object):
 	ratelimit:	Download speed limit, in bytes/sec.
 	nooverwrites:	Prevent overwriting files.
 	continuedl:	Try to continue downloads if possible.
+	noprogress:	Do not print the progress bar.
 	"""
 
 	params = None
@@ -350,6 +351,8 @@ class FileDownloader(object):
 	
 	def report_progress(self, percent_str, data_len_str, speed_str, eta_str):
 		"""Report download progress."""
+		if self.params.get('noprogress', False):
+			return
 		self.to_stdout(u'\r[download] %s of %s at %s ETA %s' %
 				(percent_str, data_len_str, speed_str, eta_str), skip_eol=True)
 
@@ -370,7 +373,10 @@ class FileDownloader(object):
 	
 	def report_finish(self):
 		"""Report download finished."""
-		self.to_stdout(u'')
+		if self.params.get('noprogress', False):
+			self.to_stdout(u'[download] Download completed')
+		else:
+			self.to_stdout(u'')
 
 	def process_info(self, info_dict):
 		"""Process a single dictionary returned by an InfoExtractor."""
@@ -1558,6 +1564,8 @@ if __name__ == '__main__':
 				action='store_true', dest='geturl', help='simulate, quiet but print URL', default=False)
 		verbosity.add_option('-e', '--get-title',
 				action='store_true', dest='gettitle', help='simulate, quiet but print title', default=False)
+		verbosity.add_option('--no-progress',
+				action='store_true', dest='noprogress', help='do not print progress bar', default=False)
 		parser.add_option_group(verbosity)
 
 		filesystem = optparse.OptionGroup(parser, 'Filesystem Options')
@@ -1633,6 +1641,7 @@ if __name__ == '__main__':
 			'ratelimit': opts.ratelimit,
 			'nooverwrites': opts.nooverwrites,
 			'continuedl': opts.continue_dl,
+			'noprogress': opts.noprogress,
 			})
 		fd.add_info_extractor(youtube_search_ie)
 		fd.add_info_extractor(youtube_pl_ie)
