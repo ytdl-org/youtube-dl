@@ -385,7 +385,7 @@ class FileDownloader(object):
 			# Verify URL if it's an HTTP one
 			if info_dict['url'].startswith('http'):
 				try:
-					info_dict['url'] = self.verify_url(info_dict['url'].encode('utf-8')).decode('utf-8')
+					self.verify_url(info_dict['url'].encode('utf-8')).decode('utf-8')
 				except (OSError, IOError, urllib2.URLError, httplib.HTTPException, socket.error), err:
 					raise UnavailableFormatError
 
