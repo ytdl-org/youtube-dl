@@ -593,6 +593,7 @@ class InfoExtractor(object):
 	title:		Literal title.
 	stitle:		Simplified title.
 	ext:		Video filename extension.
+	format:		Video format.
 
 	Subclasses of this one should re-define the _real_initialize() and
 	_real_extract() methods, as well as the suitable() static method.
@@ -764,6 +765,7 @@ class YoutubeIE(InfoExtractor):
 
 		# Downloader parameters
 		best_quality = False
+		all_formats = False
 		format_param = None
 		quality_index = 0
 		if self._downloader is not None:
@@ -772,6 +774,9 @@ class YoutubeIE(InfoExtractor):
 			if format_param == '0':
 				format_param = self._available_formats[quality_index]
 				best_quality = True
+			elif format_param == '-1':
+				format_param = self._available_formats[quality_index]
+				all_formats = True
 
 		while True:
 			# Extension
@@ -838,20 +843,35 @@ class YoutubeIE(InfoExtractor):
 					'title':	video_title,
 					'stitle':	simple_title,
 					'ext':		video_extension.decode('utf-8'),
+					'format':	(format_param is None and u'NA' or format_param.decode('utf-8')),
 				})
+
+				if all_formats:
+					if quality_index == len(self._available_formats) - 1:
+						# None left to get
+						return
+					else:
+						quality_index += 1
+						format_param = self._available_formats[quality_index]
+						if format_param == None:
+							return
+						continue
 
 				return
 
 			except UnavailableFormatError, err:
-				if best_quality:
+				if best_quality or all_formats:
 					if quality_index == len(self._available_formats) - 1:
 						# I don't ever expect this to happen
-						self._downloader.trouble(u'ERROR: no known formats available for video')
+						if not all_formats:
+							self._downloader.trouble(u'ERROR: no known formats available for video')
 						return
 					else:
 						self.report_unavailable_format(video_id, format_param)
 						quality_index += 1
 						format_param = self._available_formats[quality_index]
+						if format_param == None:
+							return
 						continue
 				else: 
 					self._downloader.trouble('ERROR: format not available for video')
@@ -980,6 +1000,7 @@ class MetacafeIE(InfoExtractor):
 				'title':	video_title,
 				'stitle':	simple_title,
 				'ext':		video_extension.decode('utf-8'),
+				'format':	u'NA',
 			})
 		except UnavailableFormatError:
 			self._downloader.trouble(u'ERROR: format not available for video')
@@ -1051,18 +1072,16 @@ class GoogleIE(InfoExtractor):
 		video_title = sanitize_title(video_title)
 		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
 
-		# Google Video doesn't show uploader nicknames?
-		video_uploader = 'NA'
-
 		try:
 			# Process video information
 			self._downloader.process_info({
 				'id':		video_id.decode('utf-8'),
 				'url':		video_url.decode('utf-8'),
-				'uploader':	video_uploader.decode('utf-8'),
+				'uploader':	u'NA',
 				'title':	video_title,
 				'stitle':	simple_title,
 				'ext':		video_extension.decode('utf-8'),
+				'format':	u'NA',
 			})
 		except UnavailableFormatError:
 			self._downloader.trouble(u'ERROR: format not available for video')
@@ -1140,6 +1159,7 @@ class PhotobucketIE(InfoExtractor):
 				'title':	video_title,
 				'stitle':	simple_title,
 				'ext':		video_extension.decode('utf-8'),
+				'format':	u'NA',
 			})
 		except UnavailableFormatError:
 			self._downloader.trouble(u'ERROR: format not available for video')
@@ -1234,6 +1254,7 @@ class GenericIE(InfoExtractor):
 				'title':	video_title,
 				'stitle':	simple_title,
 				'ext':		video_extension.decode('utf-8'),
+				'format':	u'NA',
 			})
 		except UnavailableFormatError:
 			self._downloader.trouble(u'ERROR: format not available for video')
@@ -1555,6 +1576,8 @@ if __name__ == '__main__':
 				action='store_const', dest='format', help='alias for -f 17', const='17')
 		video_format.add_option('-d', '--high-def',
 				action='store_const', dest='format', help='alias for -f 22', const='22')
+		video_format.add_option('--all-formats',
+				action='store_const', dest='format', help='download all available video formats', const='-1')
 		parser.add_option_group(video_format)
 
 		verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
@@ -1636,6 +1659,9 @@ if __name__ == '__main__':
 			'simulate': (opts.simulate or opts.geturl or opts.gettitle),
 			'format': opts.format,
 			'outtmpl': ((opts.outtmpl is not None and opts.outtmpl.decode(preferredencoding()))
+				or (opts.format == '-1' and opts.usetitle and u'%(stitle)s-%(id)s-%(format)s.%(ext)s')
+				or (opts.format == '-1' and opts.useliteral and u'%(title)s-%(id)s-%(format)s.%(ext)s')
+				or (opts.format == '-1' and u'%(id)s-%(format)s.%(ext)s')
 				or (opts.usetitle and u'%(stitle)s-%(id)s.%(ext)s')
 				or (opts.useliteral and u'%(title)s-%(id)s.%(ext)s')
 				or u'%(id)s.%(ext)s'),
