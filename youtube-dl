@@ -93,6 +93,8 @@ def sanitize_open(filename, open_mode):
 	It returns the tuple (stream, definitive_file_name).
 	"""
 	try:
+		if filename == u'-':
+			return (sys.stdout, filename)
 		stream = open(filename, open_mode)
 		return (stream, filename)
 	except (IOError, OSError), err:
