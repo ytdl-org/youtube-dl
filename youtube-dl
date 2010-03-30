@@ -491,7 +491,7 @@ class FileDownloader(object):
 			self.to_stdout(u'\r[rtmpdump] %s bytes' % os.path.getsize(filename))
 			return True
 		else:
-			self.trouble('ERROR: rtmpdump exited with code %d' % retval)
+			self.trouble('\nERROR: rtmpdump exited with code %d' % retval)
 			return False
 
 	def _do_download(self, filename, url):
