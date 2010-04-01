@@ -783,7 +783,7 @@ class YoutubeIE(InfoExtractor):
 			video_extension = self._video_extensions.get(format_param, 'flv')
 
 			# Get video info
-			video_info_url = 'http://www.youtube.com/get_video_info?&video_id=%s&el=detailpage&ps=default&eurl=&gl=US&hl=en' % video_id
+			video_info_url = 'http://www.youtube.com/get_video_info?&video_id=%s&el=embedded&ps=default&eurl=&gl=US&hl=en' % video_id
 			request = urllib2.Request(video_info_url, None, std_headers)
 			try:
 				self.report_video_info_webpage_download(video_id)
