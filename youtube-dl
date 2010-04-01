@@ -1165,6 +1165,141 @@ class PhotobucketIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: format not available for video')
 
 
+class YahooIE(InfoExtractor):
+	"""Information extractor for video.yahoo.com."""
+
+	# _VALID_URL matches all Yahoo! Video URLs
+	# _VPAGE_URL matches only the extractable '/watch/' URLs
+	_VALID_URL = r'(?:http://)?(?:[a-z]+\.)?video\.yahoo\.com/(?:watch|network)/([0-9]+)(?:/|\?v=)([0-9]+)(?:[#\?].*)?'
+	_VPAGE_URL = r'(?:http://)?video\.yahoo\.com/watch/([0-9]+)/([0-9]+)(?:[#\?].*)?'
+
+	def __init__(self, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+
+	@staticmethod
+	def suitable(url):
+		return (re.match(YahooIE._VALID_URL, url) is not None)
+
+	def report_download_webpage(self, video_id):
+		"""Report webpage download."""
+		self._downloader.to_stdout(u'[video.yahoo] %s: Downloading webpage' % video_id)
+
+	def report_extraction(self, video_id):
+		"""Report information extraction."""
+		self._downloader.to_stdout(u'[video.yahoo] %s: Extracting information' % video_id)
+
+	def _real_initialize(self):
+		return
+
+	def _real_extract(self, url):
+		# Extract ID from URL
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
+			return
+
+		video_id = mobj.group(2)
+		video_extension = 'flv'
+
+		# Rewrite valid but non-extractable URLs as
+		# extractable English language /watch/ URLs
+		if re.match(self._VPAGE_URL, url) is None:
+			request = urllib2.Request(url)
+			try:
+				webpage = urllib2.urlopen(request).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'ERROR: Unable to retrieve video webpage: %s' % str(err))
+				return
+
+			mobj = re.search(r'\("id", "([0-9]+)"\);', webpage)
+			if mobj is None:
+				self._downloader.trouble(u'ERROR: Unable to extract id field')
+				return
+			yahoo_id = mobj.group(1)
+
+			mobj = re.search(r'\("vid", "([0-9]+)"\);', webpage)
+			if mobj is None:
+				self._downloader.trouble(u'ERROR: Unable to extract vid field')
+				return
+			yahoo_vid = mobj.group(1)
+
+			url = 'http://video.yahoo.com/watch/%s/%s' % (yahoo_vid, yahoo_id)
+			return self._real_extract(url)
+
+		# Retrieve video webpage to extract further information
+		request = urllib2.Request(url)
+		try:
+			self.report_download_webpage(video_id)
+			webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: Unable to retrieve video webpage: %s' % str(err))
+			return
+
+		# Extract uploader and title from webpage
+		self.report_extraction(video_id)
+		mobj = re.search(r'<meta name="title" content="(.*)" />', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video title')
+			return
+		video_title = mobj.group(1).decode('utf-8')
+		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
+
+		mobj = re.search(r'<h2 class="ti-5"><a href="http://video\.yahoo\.com/(people|profile)/[0-9]+" beacon=".*">(.*)</a></h2>', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video uploader')
+			return
+		video_uploader = mobj.group(1).decode('utf-8')
+
+		# Extract video height and width
+		mobj = re.search(r'<meta name="video_height" content="([0-9]+)" />', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video height')
+			return
+		yv_video_height = mobj.group(1)
+
+		mobj = re.search(r'<meta name="video_width" content="([0-9]+)" />', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video width')
+			return
+		yv_video_width = mobj.group(1)
+
+		# Retrieve video playlist to extract media URL
+		# I'm not completely sure what all these options are, but we
+		# seem to need most of them, otherwise the server sends a 401.
+		yv_lg = 'R0xx6idZnW2zlrKP8xxAIR'  # not sure what this represents
+		yv_bitrate = '700'  # according to Wikipedia this is hard-coded
+		request = urllib2.Request('http://cosmos.bcst.yahoo.com/up/yep/process/getPlaylistFOP.php?node_id=' + video_id +
+				          '&tech=flash&mode=playlist&lg=' + yv_lg + '&bitrate=' + yv_bitrate + '&vidH=' + yv_video_height +
+					  '&vidW=' + yv_video_width + '&swf=as3&rd=video.yahoo.com&tk=null&adsupported=v1,v2,&eventid=1301797')
+		try:
+			self.report_download_webpage(video_id)
+			webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: Unable to retrieve video webpage: %s' % str(err))
+			return
+
+		# Extract media URL from playlist XML
+		mobj = re.search(r'<STREAM APP="(http://.*)" FULLPATH="/?(/.*\.flv\?[^"]*)"', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: Unable to extract media URL')
+			return
+		video_url = urllib.unquote(mobj.group(1) + mobj.group(2)).decode('utf-8')
+		video_url = re.sub(r'(?u)&(.+?);', htmlentity_transform, video_url)
+
+		try:
+			# Process video information
+			self._downloader.process_info({
+				'id':		video_id.decode('utf-8'),
+				'url':		video_url,
+				'uploader':	video_uploader,
+				'title':	video_title,
+				'stitle':	simple_title,
+				'ext':		video_extension.decode('utf-8'),
+			})
+		except UnavailableFormatError:
+			self._downloader.trouble(u'ERROR: format not available for video')
+
+
 class GenericIE(InfoExtractor):
 	"""Generic last-resort information extractor."""
 
@@ -1646,6 +1781,7 @@ if __name__ == '__main__':
 		youtube_search_ie = YoutubeSearchIE(youtube_ie)
 		google_ie = GoogleIE()
 		photobucket_ie = PhotobucketIE()
+		yahoo_ie = YahooIE()
 		generic_ie = GenericIE()
 
 		# File downloader
@@ -1678,6 +1814,7 @@ if __name__ == '__main__':
 		fd.add_info_extractor(youtube_ie)
 		fd.add_info_extractor(google_ie)
 		fd.add_info_extractor(photobucket_ie)
+		fd.add_info_extractor(yahoo_ie)
 
 		# This must come last since it's the
 		# fallback if none of the others work
