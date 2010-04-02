@@ -783,15 +783,19 @@ class YoutubeIE(InfoExtractor):
 			video_extension = self._video_extensions.get(format_param, 'flv')
 
 			# Get video info
-			video_info_url = 'http://www.youtube.com/get_video_info?&video_id=%s&el=embedded&ps=default&eurl=&gl=US&hl=en' % video_id
-			request = urllib2.Request(video_info_url, None, std_headers)
-			try:
-				self.report_video_info_webpage_download(video_id)
-				video_info_webpage = urllib2.urlopen(request).read()
-				video_info = parse_qs(video_info_webpage)
-			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-				self._downloader.trouble(u'ERROR: unable to download video info webpage: %s' % str(err))
-				return
+			self.report_video_info_webpage_download(video_id)
+			for el_type in ['embedded', 'detailpage']:
+				video_info_url = ('http://www.youtube.com/get_video_info?&video_id=%s&el=%s&ps=default&eurl=&gl=US&hl=en'
+						   % (video_id, el_type))
+				request = urllib2.Request(video_info_url, None, std_headers)
+				try:
+					video_info_webpage = urllib2.urlopen(request).read()
+					video_info = parse_qs(video_info_webpage)
+					if 'token' in video_info:
+						break
+				except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+					self._downloader.trouble(u'ERROR: unable to download video info webpage: %s' % str(err))
+					return
 			self.report_information_extraction(video_id)
 
 			# "t" param
