@@ -201,12 +201,14 @@ class FileDownloader(object):
 	_ies = []
 	_pps = []
 	_download_retcode = None
+	_num_downloads = None
 
 	def __init__(self, params):
 		"""Create a FileDownloader object with the given options."""
 		self._ies = []
 		self._pps = []
 		self._download_retcode = 0
+		self._num_downloads = 0
 		self.params = params
 	
 	@staticmethod
@@ -402,6 +404,7 @@ class FileDownloader(object):
 		try:
 			template_dict = dict(info_dict)
 			template_dict['epoch'] = unicode(long(time.time()))
+			template_dict['ord'] = unicode('%05d' % self._num_downloads)
 			filename = self.params['outtmpl'] % template_dict
 		except (ValueError, KeyError), err:
 			self.trouble('ERROR: invalid output template or system charset: %s' % str(err))
@@ -555,6 +558,7 @@ class FileDownloader(object):
 				try:
 					(stream, filename) = sanitize_open(filename, open_mode)
 					self.report_destination(filename)
+					self._num_downloads += 1
 				except (OSError, IOError), err:
 					self.trouble('ERROR: unable to open for writing: %s' % str(err))
 					return False
