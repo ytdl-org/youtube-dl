@@ -788,7 +788,7 @@ class YoutubeIE(InfoExtractor):
 
 			# Get video info
 			self.report_video_info_webpage_download(video_id)
-			for el_type in ['embedded', 'detailpage']:
+			for el_type in ['embedded', 'detailpage', 'vevo']:
 				video_info_url = ('http://www.youtube.com/get_video_info?&video_id=%s&el=%s&ps=default&eurl=&gl=US&hl=en'
 						   % (video_id, el_type))
 				request = urllib2.Request(video_info_url, None, std_headers)
