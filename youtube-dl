@@ -398,6 +398,10 @@ class FileDownloader(object):
 				print info_dict['title'].encode(preferredencoding(), 'xmlcharrefreplace')
 			if self.params.get('forceurl', False):
 				print info_dict['url'].encode(preferredencoding(), 'xmlcharrefreplace')
+			if self.params.get('forcethumbnail', False) and 'thumbnail' in info_dict:
+				print info_dict['thumbnail'].encode(preferredencoding(), 'xmlcharrefreplace')
+			if self.params.get('forcedescription', False) and 'description' in info_dict:
+				print info_dict['description'].encode(preferredencoding(), 'xmlcharrefreplace')
 
 			return
 			
@@ -598,6 +602,14 @@ class InfoExtractor(object):
 	stitle:		Simplified title.
 	ext:		Video filename extension.
 	format:		Video format.
+
+	The following fields are optional. Their primary purpose is to allow
+	youtube-dl to serve as the backend for a video search function, such
+	as the one in youtube2mp3.  They are only used when their respective
+	forced printing functions are called:
+
+	thumbnail:	Full URL to a video thumbnail image.
+	description:	One-line video description.
 
 	Subclasses of this one should re-define the _real_initialize() and
 	_real_extract() methods, as well as the suitable() static method.
@@ -842,6 +854,28 @@ class YoutubeIE(InfoExtractor):
 			simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
 			simple_title = simple_title.strip(ur'_')
 
+			# thumbnail image
+			if 'thumbnail_url' not in video_info:
+				self._downloader.trouble(u'WARNING: unable to extract video thumbnail')
+				video_thumbnail = ''
+			else:	# don't panic if we can't find it
+				video_thumbnail = urllib.unquote_plus(video_info['thumbnail_url'][0])
+
+			# get video description
+			video_description = 'No description available.'    # we need something to pass to self._downloader
+			# this requires an additional HTTP request and a little
+			# more time, so don't do it unless absolutely necessary
+			if self._downloader.params.get('forcedescription', False):
+				video_page_url = 'http://www.youtube.com/watch?v=' + video_id
+				request = urllib2.Request(video_page_url, None, std_headers)
+				try:
+					video_page_webpage = urllib2.urlopen(request).read()
+					mobj = re.search(r'<meta name="description" content="(.*)"(?:\s*/)?>', video_page_webpage)
+					if mobj is not None:
+						video_description = mobj.group(1)
+				except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+					pass    # don't panic if we can't find it
+
 			try:
 				# Process video information
 				self._downloader.process_info({
@@ -852,6 +886,8 @@ class YoutubeIE(InfoExtractor):
 					'stitle':	simple_title,
 					'ext':		video_extension.decode('utf-8'),
 					'format':	(format_param is None and u'NA' or format_param.decode('utf-8')),
+					'thumbnail':	video_thumbnail.decode('utf-8'),
+					'description':	video_description.decode('utf-8'),
 				})
 
 				if all_formats:
@@ -1080,6 +1116,32 @@ class GoogleIE(InfoExtractor):
 		video_title = sanitize_title(video_title)
 		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
 
+		# Extract video description
+		mobj = re.search(r'<span id=short-desc-content>([^<]*)</span>', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video description')
+			return
+		video_description = mobj.group(1).decode('utf-8')
+		if not video_description:
+			video_description = 'No description available.'
+
+		# Extract video thumbnail
+		if self._downloader.params.get('forcethumbnail', False):
+			request = urllib2.Request('http://video.google.com/videosearch?q=%s+site:video.google.com&hl=en' % abs(int(video_id)))
+			try:
+				webpage = urllib2.urlopen(request).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'ERROR: Unable to retrieve video webpage: %s' % str(err))
+				return
+			mobj = re.search(r'<img class=thumbnail-img (?:.* )?src=(http.*)>', webpage)
+			if mobj is None:
+				self._downloader.trouble(u'ERROR: unable to extract video thumbnail')
+				return
+			video_thumbnail = mobj.group(1)
+		else:	# we need something to pass to process_info
+			video_thumbnail = ''
+
+
 		try:
 			# Process video information
 			self._downloader.process_info({
@@ -1258,6 +1320,21 @@ class YahooIE(InfoExtractor):
 			return
 		video_uploader = mobj.group(1).decode('utf-8')
 
+		# Extract video thumbnail
+		mobj = re.search(r'<link rel="image_src" href="(.*)" />', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video thumbnail')
+			return
+		video_thumbnail = mobj.group(1).decode('utf-8')
+
+		# Extract video description
+		mobj = re.search(r'<meta name="description" content="(.*)" />', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video description')
+			return
+		video_description = mobj.group(1).decode('utf-8')
+		if not video_description: video_description = 'No description available.'
+
 		# Extract video height and width
 		mobj = re.search(r'<meta name="video_height" content="([0-9]+)" />', webpage)
 		if mobj is None:
@@ -1303,6 +1380,10 @@ class YahooIE(InfoExtractor):
 				'title':	video_title,
 				'stitle':	simple_title,
 				'ext':		video_extension.decode('utf-8'),
+				'thumbnail':	video_thumbnail.decode('utf-8'),
+				'description':	video_description,
+				'thumbnail':	video_thumbnail,
+				'description':	video_description,
 			})
 		except UnavailableFormatError:
 			self._downloader.trouble(u'ERROR: format not available for video')
@@ -1490,6 +1571,188 @@ class YoutubeSearchIE(InfoExtractor):
 			if re.search(self._MORE_PAGES_INDICATOR, page) is None:
 				for id in video_ids:
 					self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
+				return
+
+			pagenum = pagenum + 1
+
+class GoogleSearchIE(InfoExtractor):
+	"""Information Extractor for Google Video search queries."""
+	_VALID_QUERY = r'gvsearch(\d+|all)?:[\s\S]+'
+	_TEMPLATE_URL = 'http://video.google.com/videosearch?q=%s+site:video.google.com&start=%s&hl=en'
+	_VIDEO_INDICATOR = r'videoplay\?docid=([^\&>]+)\&'
+	_MORE_PAGES_INDICATOR = r'<span>Next</span>'
+	_google_ie = None
+	_max_google_results = 1000
+
+	def __init__(self, google_ie, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+		self._google_ie = google_ie
+	
+	@staticmethod
+	def suitable(url):
+		return (re.match(GoogleSearchIE._VALID_QUERY, url) is not None)
+
+	def report_download_page(self, query, pagenum):
+		"""Report attempt to download playlist page with given number."""
+		query = query.decode(preferredencoding())
+		self._downloader.to_stdout(u'[video.google] query "%s": Downloading page %s' % (query, pagenum))
+
+	def _real_initialize(self):
+		self._google_ie.initialize()
+	
+	def _real_extract(self, query):
+		mobj = re.match(self._VALID_QUERY, query)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid search query "%s"' % query)
+			return
+
+		prefix, query = query.split(':')
+		prefix = prefix[8:]
+		query  = query.encode('utf-8')
+		if prefix == '':
+			self._download_n_results(query, 1)
+			return
+		elif prefix == 'all':
+			self._download_n_results(query, self._max_google_results)
+			return
+		else:
+			try:
+				n = long(prefix)
+				if n <= 0:
+					self._downloader.trouble(u'ERROR: invalid download number %s for query "%s"' % (n, query))
+					return
+				elif n > self._max_google_results:
+					self._downloader.to_stderr(u'WARNING: gvsearch returns max %i results (you requested %i)'  % (self._max_google_results, n))
+					n = self._max_google_results
+				self._download_n_results(query, n)
+				return
+			except ValueError: # parsing prefix as integer fails
+				self._download_n_results(query, 1)
+				return
+
+	def _download_n_results(self, query, n):
+		"""Downloads a specified number of results for a query"""
+
+		video_ids = []
+		already_seen = set()
+		pagenum = 1
+
+		while True:
+			self.report_download_page(query, pagenum)
+			result_url = self._TEMPLATE_URL % (urllib.quote_plus(query), pagenum)
+			request = urllib2.Request(result_url, None, std_headers)
+			try:
+				page = urllib2.urlopen(request).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'ERROR: unable to download webpage: %s' % str(err))
+				return
+
+			# Extract video identifiers
+			for mobj in re.finditer(self._VIDEO_INDICATOR, page):
+				video_id = mobj.group(1)
+				if video_id not in already_seen:
+					video_ids.append(video_id)
+					already_seen.add(video_id)
+					if len(video_ids) == n:
+						# Specified n videos reached
+						for id in video_ids:
+							self._google_ie.extract('http://video.google.com/videoplay?docid=%s' % id)
+						return
+
+			if re.search(self._MORE_PAGES_INDICATOR, page) is None:
+				for id in video_ids:
+					self._google_ie.extract('http://video.google.com/videoplay?docid=%s' % id)
+				return
+
+			pagenum = pagenum + 1
+
+class YahooSearchIE(InfoExtractor):
+	"""Information Extractor for Yahoo! Video search queries."""
+	_VALID_QUERY = r'yvsearch(\d+|all)?:[\s\S]+'
+	_TEMPLATE_URL = 'http://video.yahoo.com/search/?p=%s&o=%s'
+	_VIDEO_INDICATOR = r'href="http://video\.yahoo\.com/watch/([0-9]+/[0-9]+)"'
+	_MORE_PAGES_INDICATOR = r'\s*Next'
+	_yahoo_ie = None
+	_max_yahoo_results = 1000
+
+	def __init__(self, yahoo_ie, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+		self._yahoo_ie = yahoo_ie
+	
+	@staticmethod
+	def suitable(url):
+		return (re.match(YahooSearchIE._VALID_QUERY, url) is not None)
+
+	def report_download_page(self, query, pagenum):
+		"""Report attempt to download playlist page with given number."""
+		query = query.decode(preferredencoding())
+		self._downloader.to_stdout(u'[video.yahoo] query "%s": Downloading page %s' % (query, pagenum))
+
+	def _real_initialize(self):
+		self._yahoo_ie.initialize()
+	
+	def _real_extract(self, query):
+		mobj = re.match(self._VALID_QUERY, query)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid search query "%s"' % query)
+			return
+
+		prefix, query = query.split(':')
+		prefix = prefix[8:]
+		query  = query.encode('utf-8')
+		if prefix == '':
+			self._download_n_results(query, 1)
+			return
+		elif prefix == 'all':
+			self._download_n_results(query, self._max_yahoo_results)
+			return
+		else:
+			try:
+				n = long(prefix)
+				if n <= 0:
+					self._downloader.trouble(u'ERROR: invalid download number %s for query "%s"' % (n, query))
+					return
+				elif n > self._max_yahoo_results:
+					self._downloader.to_stderr(u'WARNING: yvsearch returns max %i results (you requested %i)'  % (self._max_yahoo_results, n))
+					n = self._max_yahoo_results
+				self._download_n_results(query, n)
+				return
+			except ValueError: # parsing prefix as integer fails
+				self._download_n_results(query, 1)
+				return
+
+	def _download_n_results(self, query, n):
+		"""Downloads a specified number of results for a query"""
+
+		video_ids = []
+		already_seen = set()
+		pagenum = 1
+
+		while True:
+			self.report_download_page(query, pagenum)
+			result_url = self._TEMPLATE_URL % (urllib.quote_plus(query), pagenum)
+			request = urllib2.Request(result_url, None, std_headers)
+			try:
+				page = urllib2.urlopen(request).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'ERROR: unable to download webpage: %s' % str(err))
+				return
+
+			# Extract video identifiers
+			for mobj in re.finditer(self._VIDEO_INDICATOR, page):
+				video_id = mobj.group(1)
+				if video_id not in already_seen:
+					video_ids.append(video_id)
+					already_seen.add(video_id)
+					if len(video_ids) == n:
+						# Specified n videos reached
+						for id in video_ids:
+							self._yahoo_ie.extract('http://video.yahoo.com/watch/%s' % id)
+						return
+
+			if re.search(self._MORE_PAGES_INDICATOR, page) is None:
+				for id in video_ids:
+					self._yahoo_ie.extract('http://video.yahoo.com/watch/%s' % id)
 				return
 
 			pagenum = pagenum + 1
@@ -1732,6 +1995,10 @@ if __name__ == '__main__':
 				action='store_true', dest='geturl', help='simulate, quiet but print URL', default=False)
 		verbosity.add_option('-e', '--get-title',
 				action='store_true', dest='gettitle', help='simulate, quiet but print title', default=False)
+		verbosity.add_option('--get-thumbnail',
+				action='store_true', dest='getthumbnail', help='simulate, quiet but print thumbnail URL', default=False)
+		verbosity.add_option('--get-description',
+				action='store_true', dest='getdescription', help='simulate, quiet but print video description', default=False)
 		verbosity.add_option('--no-progress',
 				action='store_true', dest='noprogress', help='do not print progress bar', default=False)
 		parser.add_option_group(verbosity)
@@ -1788,8 +2055,10 @@ if __name__ == '__main__':
 		youtube_user_ie = YoutubeUserIE(youtube_ie)
 		youtube_search_ie = YoutubeSearchIE(youtube_ie)
 		google_ie = GoogleIE()
+		google_search_ie = GoogleSearchIE(google_ie)
 		photobucket_ie = PhotobucketIE()
 		yahoo_ie = YahooIE()
+		yahoo_search_ie = YahooSearchIE(yahoo_ie)
 		generic_ie = GenericIE()
 
 		# File downloader
@@ -1797,10 +2066,12 @@ if __name__ == '__main__':
 			'usenetrc': opts.usenetrc,
 			'username': opts.username,
 			'password': opts.password,
-			'quiet': (opts.quiet or opts.geturl or opts.gettitle),
+			'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription),
 			'forceurl': opts.geturl,
 			'forcetitle': opts.gettitle,
-			'simulate': (opts.simulate or opts.geturl or opts.gettitle),
+			'forcethumbnail': opts.getthumbnail,
+			'forcedescription': opts.getdescription,
+			'simulate': (opts.simulate or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription),
 			'format': opts.format,
 			'outtmpl': ((opts.outtmpl is not None and opts.outtmpl.decode(preferredencoding()))
 				or (opts.format == '-1' and opts.usetitle and u'%(stitle)s-%(id)s-%(format)s.%(ext)s')
@@ -1821,8 +2092,10 @@ if __name__ == '__main__':
 		fd.add_info_extractor(metacafe_ie)
 		fd.add_info_extractor(youtube_ie)
 		fd.add_info_extractor(google_ie)
+		fd.add_info_extractor(google_search_ie)
 		fd.add_info_extractor(photobucket_ie)
 		fd.add_info_extractor(yahoo_ie)
+		fd.add_info_extractor(yahoo_search_ie)
 
 		# This must come last since it's the
 		# fallback if none of the others work
