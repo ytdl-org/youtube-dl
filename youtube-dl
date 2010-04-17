@@ -566,7 +566,10 @@ class FileDownloader(object):
 				except (OSError, IOError), err:
 					self.trouble('ERROR: unable to open for writing: %s' % str(err))
 					return False
-			stream.write(data_block)
+			try:
+				stream.write(data_block)
+			except (IOError, OSError), err:
+				self.trouble('ERROR: unable to write data: %s' % str(err))
 			block_size = self.best_block_size(after - before, data_block_len)
 
 			# Progress message
