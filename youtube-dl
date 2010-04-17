@@ -891,21 +891,18 @@ class YoutubeIE(InfoExtractor):
 				})
 
 				if all_formats:
-					if quality_index == len(self._available_formats) - 1:
+					if quality_index == len(self._available_formats):
 						# None left to get
 						return
 					else:
 						quality_index += 1
 						format_param = self._available_formats[quality_index]
-						if format_param == None:
-							return
 						continue
-
 				return
 
 			except UnavailableFormatError, err:
 				if best_quality or all_formats:
-					if quality_index == len(self._available_formats) - 1:
+					if quality_index == len(self._available_formats):
 						# I don't ever expect this to happen
 						if not all_formats:
 							self._downloader.trouble(u'ERROR: no known formats available for video')
@@ -914,8 +911,6 @@ class YoutubeIE(InfoExtractor):
 						self.report_unavailable_format(video_id, format_param)
 						quality_index += 1
 						format_param = self._available_formats[quality_index]
-						if format_param == None:
-							return
 						continue
 				else: 
 					self._downloader.trouble('ERROR: format not available for video')
