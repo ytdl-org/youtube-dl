@@ -536,6 +536,7 @@ class FileDownloader(object):
 			if content_length is not None and long(content_length) == resume_len:
 				# Because the file had already been fully downloaded
 				self.report_file_already_downloaded(filename)
+				self._num_downloads += 1
 				return True
 			else:
 				# Because the server didn't let us
