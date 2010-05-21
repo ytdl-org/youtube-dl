@@ -2010,7 +2010,7 @@ if __name__ == '__main__':
 		filesystem.add_option('-o', '--output',
 				dest='outtmpl', metavar='TPL', help='output filename template')
 		filesystem.add_option('-a', '--batch-file',
-				dest='batchfile', metavar='F', help='file containing URLs to download')
+				dest='batchfile', metavar='F', help='file containing URLs to download (\'-\' for stdin)')
 		filesystem.add_option('-w', '--no-overwrites',
 				action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
 		filesystem.add_option('-c', '--continue',
@@ -2018,12 +2018,16 @@ if __name__ == '__main__':
 		parser.add_option_group(filesystem)
 
 		(opts, args) = parser.parse_args()
-        
+
 		# Batch file verification
 		batchurls = []
 		if opts.batchfile is not None:
 			try:
-				batchurls = open(opts.batchfile, 'r').readlines()
+				if opts.batchfile == '-':
+					batchfd = sys.stdin
+				else:
+					batchfd = open(opts.batchfile, 'r')
+				batchurls = batchfd.readlines()
 				batchurls = [x.strip() for x in batchurls]
 				batchurls = [x for x in batchurls if len(x) > 0]
 			except IOError:
