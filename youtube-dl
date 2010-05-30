@@ -691,6 +691,8 @@ class YoutubeIE(InfoExtractor):
 		'18': 'mp4',
 		'22': 'mp4',
 		'37': 'mp4',
+		'43': 'webm',
+		'45': 'webm',
 	}
 
 	@staticmethod
