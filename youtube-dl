@@ -193,6 +193,7 @@ class FileDownloader(object):
 	ignoreerrors:	Do not stop on download errors.
 	ratelimit:	Download speed limit, in bytes/sec.
 	nooverwrites:	Prevent overwriting files.
+	retries:	Number of times to retry for HTTP error 503
 	continuedl:	Try to continue downloads if possible.
 	noprogress:	Do not print the progress bar.
 	"""
@@ -364,6 +365,10 @@ class FileDownloader(object):
 		"""Report attemtp to resume at given byte."""
 		self.to_stdout(u'[download] Resuming download at byte %s' % resume_len)
 	
+	def report_retry(self, count, retries):
+		"""Report retry in case of HTTP error 503"""
+		self.to_stdout(u'[download] Got HTTP error 503. Retrying (attempt %d of %d)...' % (count, retries))
+	
 	def report_file_already_downloaded(self, file_name):
 		"""Report file has already been fully downloaded."""
 		try:
@@ -527,25 +532,34 @@ class FileDownloader(object):
 			request.add_header('Range','bytes=%d-' % resume_len)
 			open_mode = 'ab'
 
-		# Establish connection
-		try:
-			data = urllib2.urlopen(request)
-		except (urllib2.HTTPError, ), err:
-			if err.code != 416: #  416 is 'Requested range not satisfiable'
-				raise
-			# Unable to resume
-			data = urllib2.urlopen(basic_request)
-			content_length = data.info()['Content-Length']
+		count = 0
+		retries = self.params.get('retries', 0)
+		while True:
+			# Establish connection
+			try:
+				data = urllib2.urlopen(request)
+				break
+			except (urllib2.HTTPError, ), err:
+				if err.code == 503:
+					# Retry in case of HTTP error 503
+					count += 1
+					if count <= retries:
+						self.report_retry(count, retries)
+						continue
+				if err.code != 416: #  416 is 'Requested range not satisfiable'
+					raise
+				# Unable to resume
+				data = urllib2.urlopen(basic_request)
+				content_length = data.info()['Content-Length']
 
-			if content_length is not None and long(content_length) == resume_len:
-				# Because the file had already been fully downloaded
-				self.report_file_already_downloaded(filename)
-				self._num_downloads += 1
-				return True
-			else:
-				# Because the server didn't let us
-				self.report_unable_to_resume()
-				open_mode = 'wb'
+				if content_length is not None and long(content_length) == resume_len:
+					# Because the file had already been fully downloaded
+					self.report_file_already_downloaded(filename)
+					return True
+				else:
+					# Because the server didn't let us
+					self.report_unable_to_resume()
+					open_mode = 'wb'
 
 		data_len = data.info().get('Content-length', None)
 		data_len_str = self.format_bytes(data_len)
@@ -1985,6 +1999,8 @@ if __name__ == '__main__':
 				action='store_true', dest='ignoreerrors', help='continue on download errors', default=False)
 		parser.add_option('-r', '--rate-limit',
 				dest='ratelimit', metavar='L', help='download rate limit (e.g. 50k or 44.6m)')
+		parser.add_option('-R', '--retries',
+				dest='retries', metavar='T', help='number of retries (default is 10)', default=10)
 
 		authentication = optparse.OptionGroup(parser, 'Authentication Options')
 		authentication.add_option('-u', '--username',
@@ -2073,6 +2089,11 @@ if __name__ == '__main__':
 			if numeric_limit is None:
 				parser.error(u'invalid rate limit specified')
 			opts.ratelimit = numeric_limit
+		if opts.retries is not None:
+			try:
+				opts.retries = long(opts.retries)
+			except (TypeError, ValueError), err:
+				parser.error(u'invalid retry count specified')
 
 		# Information extractors
 		youtube_ie = YoutubeIE()
@@ -2109,6 +2130,7 @@ if __name__ == '__main__':
 			'ignoreerrors': opts.ignoreerrors,
 			'ratelimit': opts.ratelimit,
 			'nooverwrites': opts.nooverwrites,
+			'retries': opts.retries,
 			'continuedl': opts.continue_dl,
 			'noprogress': opts.noprogress,
 			})
