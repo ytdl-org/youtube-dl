@@ -423,7 +423,7 @@ class FileDownloader(object):
 			return
 
 		try:
-			success = self._do_download(filename, info_dict['url'].encode('utf-8'))
+			success = self._do_download(filename, info_dict['url'].encode('utf-8'), info_dict.get('player_url', None))
 		except (OSError, IOError), err:
 			raise UnavailableFormatError
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
@@ -475,7 +475,7 @@ class FileDownloader(object):
 			if info is None:
 				break
 	
-	def _download_with_rtmpdump(self, filename, url):
+	def _download_with_rtmpdump(self, filename, url, player_url):
 		self.report_destination(filename)
 
 		# Check for rtmpdump first
@@ -488,12 +488,16 @@ class FileDownloader(object):
 		# Download using rtmpdump. rtmpdump returns exit code 2 when
 		# the connection was interrumpted and resuming appears to be
 		# possible. This is part of rtmpdump's normal usage, AFAIK.
-		basic_args = ['rtmpdump', '-q', '-r', url, '-o', filename]
+		basic_args = ['rtmpdump', '-q'] + [[], ['-W', player_url]][player_url is not None] + ['-r', url, '-o', filename]
 		retval = subprocess.call(basic_args + [[], ['-e', '-k', '1']][self.params.get('continuedl', False)])
 		while retval == 2 or retval == 1:
-			self.to_stdout(u'\r[rtmpdump] %s bytes' % os.path.getsize(filename), skip_eol=True)
-			time.sleep(2.0) # This seems to be needed
+			prevsize = os.path.getsize(filename)
+			self.to_stdout(u'\r[rtmpdump] %s bytes' % prevsize, skip_eol=True)
+			time.sleep(5.0) # This seems to be needed
 			retval = subprocess.call(basic_args + ['-e'] + [[], ['-k', '1']][retval == 1])
+			cursize = os.path.getsize(filename)
+			if prevsize == cursize and retval == 1:
+				break
 		if retval == 0:
 			self.to_stdout(u'\r[rtmpdump] %s bytes' % os.path.getsize(filename))
 			return True
@@ -501,10 +505,10 @@ class FileDownloader(object):
 			self.trouble('\nERROR: rtmpdump exited with code %d' % retval)
 			return False
 
-	def _do_download(self, filename, url):
+	def _do_download(self, filename, url, player_url):
 		# Attempt to download using rtmpdump
 		if url.startswith('rtmp'):
-			return self._download_with_rtmpdump(filename, url)
+			return self._download_with_rtmpdump(filename, url, player_url)
 
 		stream = None
 		open_mode = 'wb'
@@ -606,6 +610,7 @@ class InfoExtractor(object):
 	stitle:		Simplified title.
 	ext:		Video filename extension.
 	format:		Video format.
+	player_url:	SWF Player URL (may be None).
 
 	The following fields are optional. Their primary purpose is to allow
 	youtube-dl to serve as the backend for a video search function, such
@@ -689,6 +694,10 @@ class YoutubeIE(InfoExtractor):
 	def report_age_confirmation(self):
 		"""Report attempt to confirm age."""
 		self._downloader.to_stdout(u'[youtube] Confirming age')
+	
+	def report_video_webpage_download(self, video_id):
+		"""Report attempt to download video webpage."""
+		self._downloader.to_stdout(u'[youtube] %s: Downloading video webpage' % video_id)
 	
 	def report_video_info_webpage_download(self, video_id):
 		"""Report attempt to download video info webpage."""
@@ -802,6 +811,22 @@ class YoutubeIE(InfoExtractor):
 			# Extension
 			video_extension = self._video_extensions.get(format_param, 'flv')
 
+			# Get video webpage
+			self.report_video_webpage_download(video_id)
+			request = urllib2.Request('http://www.youtube.com/watch?v=%s&gl=US&hl=en' % video_id, None, std_headers)
+			try:
+				video_webpage = urllib2.urlopen(request).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % str(err))
+				return
+
+			# Attempt to extract SWF player URL
+			mobj = re.search(r'swfConfig.*"(http://.*?watch-.*?\.swf)"', video_webpage)
+			if mobj is not None:
+				player_url = mobj.group(1)
+			else:
+				player_url = None
+
 			# Get video info
 			self.report_video_info_webpage_download(video_id)
 			for el_type in ['&el=embedded', '&el=detailpage', '&el=vevo', '']:
@@ -865,20 +890,12 @@ class YoutubeIE(InfoExtractor):
 			else:	# don't panic if we can't find it
 				video_thumbnail = urllib.unquote_plus(video_info['thumbnail_url'][0])
 
-			# get video description
-			video_description = 'No description available.'    # we need something to pass to self._downloader
-			# this requires an additional HTTP request and a little
-			# more time, so don't do it unless absolutely necessary
+			# description
+			video_description = 'No description available.'
 			if self._downloader.params.get('forcedescription', False):
-				video_page_url = 'http://www.youtube.com/watch?v=' + video_id
-				request = urllib2.Request(video_page_url, None, std_headers)
-				try:
-					video_page_webpage = urllib2.urlopen(request).read()
-					mobj = re.search(r'<meta name="description" content="(.*)"(?:\s*/)?>', video_page_webpage)
-					if mobj is not None:
-						video_description = mobj.group(1)
-				except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-					pass    # don't panic if we can't find it
+				mobj = re.search(r'<meta name="description" content="(.*)"(?:\s*/)?>', video_webpage)
+				if mobj is not None:
+					video_description = mobj.group(1)
 
 			try:
 				# Process video information
@@ -892,6 +909,7 @@ class YoutubeIE(InfoExtractor):
 					'format':	(format_param is None and u'NA' or format_param.decode('utf-8')),
 					'thumbnail':	video_thumbnail.decode('utf-8'),
 					'description':	video_description.decode('utf-8'),
+					'player_url':	player_url,
 				})
 
 				if all_formats:
@@ -1044,6 +1062,7 @@ class MetacafeIE(InfoExtractor):
 				'stitle':	simple_title,
 				'ext':		video_extension.decode('utf-8'),
 				'format':	u'NA',
+				'player_url':	None,
 			})
 		except UnavailableFormatError:
 			self._downloader.trouble(u'ERROR: format not available for video')
@@ -1151,6 +1170,7 @@ class GoogleIE(InfoExtractor):
 				'stitle':	simple_title,
 				'ext':		video_extension.decode('utf-8'),
 				'format':	u'NA',
+				'player_url':	None,
 			})
 		except UnavailableFormatError:
 			self._downloader.trouble(u'ERROR: format not available for video')
@@ -1229,6 +1249,7 @@ class PhotobucketIE(InfoExtractor):
 				'stitle':	simple_title,
 				'ext':		video_extension.decode('utf-8'),
 				'format':	u'NA',
+				'player_url':	None,
 			})
 		except UnavailableFormatError:
 			self._downloader.trouble(u'ERROR: format not available for video')
@@ -1383,6 +1404,7 @@ class YahooIE(InfoExtractor):
 				'description':	video_description,
 				'thumbnail':	video_thumbnail,
 				'description':	video_description,
+				'player_url':	None,
 			})
 		except UnavailableFormatError:
 			self._downloader.trouble(u'ERROR: format not available for video')
@@ -1478,6 +1500,7 @@ class GenericIE(InfoExtractor):
 				'stitle':	simple_title,
 				'ext':		video_extension.decode('utf-8'),
 				'format':	u'NA',
+				'player_url':	None,
 			})
 		except UnavailableFormatError:
 			self._downloader.trouble(u'ERROR: format not available for video')
