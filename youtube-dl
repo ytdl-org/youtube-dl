@@ -1085,6 +1085,123 @@ class MetacafeIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: format not available for video')
 
 
+class DailymotionIE(InfoExtractor):
+	"""Information Extractor for Dailymotion"""
+
+	_VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^_/]+)_([^/]+)'
+	_DISCLAIMER = ''
+	_FILTER_POST = ''
+
+	def __init__(self, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+
+	@staticmethod
+	def suitable(url):
+		return (re.match(DailymotionIE._VALID_URL, url) is not None)
+
+	def report_disclaimer(self):
+		"""Report disclaimer retrieval."""
+		self._downloader.to_stdout(u'[dailymotion] Retrieving disclaimer')
+
+	def report_age_confirmation(self):
+		"""Report attempt to confirm age."""
+		self._downloader.to_stdout(u'[dailymotion] Confirming age')
+	
+	def report_download_webpage(self, video_id):
+		"""Report webpage download."""
+		self._downloader.to_stdout(u'[dailymotion] %s: Downloading webpage' % video_id)
+	
+	def report_extraction(self, video_id):
+		"""Report information extraction."""
+		self._downloader.to_stdout(u'[dailymotion] %s: Extracting information' % video_id)
+
+	def _real_initialize(self):
+		return
+
+		# Retrieve disclaimer
+		request = urllib2.Request(self._DISCLAIMER, None, std_headers)
+		try:
+			self.report_disclaimer()
+			disclaimer = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to retrieve disclaimer: %s' % str(err))
+			return
+
+		# Confirm age
+		disclaimer_form = {
+			'filters': '0',
+			'submit': "Continue - I'm over 18",
+			}
+		request = urllib2.Request(self._FILTER_POST, urllib.urlencode(disclaimer_form), std_headers)
+		try:
+			self.report_age_confirmation()
+			disclaimer = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to confirm age: %s' % str(err))
+			return
+	
+	def _real_extract(self, url):
+		# Extract id and simplified title from URL
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+			return
+
+		video_id = mobj.group(1)
+
+		simple_title = mobj.group(2).decode('utf-8')
+		video_extension = 'flv'
+
+		# Retrieve video webpage to extract further information
+		request = urllib2.Request(url)
+		try:
+			self.report_download_webpage(video_id)
+			webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable retrieve video webpage: %s' % str(err))
+			return
+
+		# Extract URL, uploader and title from webpage
+		self.report_extraction(video_id)
+		mobj = re.search(r'(?i)addVariable\(\"video\"\s*,\s*\"([^\"]*)\"\)', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract media URL')
+			return
+		mediaURL = urllib.unquote(mobj.group(1))
+
+		# if needed add http://www.dailymotion.com/ if relative URL
+
+		video_url = mediaURL
+
+		# '<meta\s+name="title"\s+content="Dailymotion\s*[:\-]\s*(.*?)"\s*\/\s*>'
+		mobj = re.search(r'(?im)<title>Dailymotion\s*[\-:]\s*(.+?)</title>', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract title')
+			return
+		video_title = mobj.group(1).decode('utf-8')
+		video_title = sanitize_title(video_title)
+
+		mobj = re.search(r'(?im)<div class="dmco_html owner"><a class="name" href="/.+">(.+?)</a></div>', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
+			return
+		video_uploader = mobj.group(1)
+
+		try:
+			# Process video information
+			self._downloader.process_info({
+				'id':		video_id.decode('utf-8'),
+				'url':		video_url.decode('utf-8'),
+				'uploader':	video_uploader.decode('utf-8'),
+				'title':	video_title,
+				'stitle':	simple_title,
+				'ext':		video_extension.decode('utf-8'),
+				'format':	u'NA',
+				'player_url':	None,
+			})
+		except UnavailableFormatError:
+			self._downloader.trouble(u'ERROR: format not available for video')
+
 class GoogleIE(InfoExtractor):
 	"""Information extractor for video.google.com."""
 
@@ -2101,6 +2218,7 @@ if __name__ == '__main__':
 		# Information extractors
 		youtube_ie = YoutubeIE()
 		metacafe_ie = MetacafeIE(youtube_ie)
+		dailymotion_ie = DailymotionIE()
 		youtube_pl_ie = YoutubePlaylistIE(youtube_ie)
 		youtube_user_ie = YoutubeUserIE(youtube_ie)
 		youtube_search_ie = YoutubeSearchIE(youtube_ie)
@@ -2141,6 +2259,7 @@ if __name__ == '__main__':
 		fd.add_info_extractor(youtube_pl_ie)
 		fd.add_info_extractor(youtube_user_ie)
 		fd.add_info_extractor(metacafe_ie)
+		fd.add_info_extractor(dailymotion_ie)
 		fd.add_info_extractor(youtube_ie)
 		fd.add_info_extractor(google_ie)
 		fd.add_info_extractor(google_search_ie)
