@@ -1089,8 +1089,6 @@ class DailymotionIE(InfoExtractor):
 	"""Information Extractor for Dailymotion"""
 
 	_VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^_/]+)_([^/]+)'
-	_DISCLAIMER = ''
-	_FILTER_POST = ''
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
@@ -1118,28 +1116,6 @@ class DailymotionIE(InfoExtractor):
 	def _real_initialize(self):
 		return
 
-		# Retrieve disclaimer
-		request = urllib2.Request(self._DISCLAIMER, None, std_headers)
-		try:
-			self.report_disclaimer()
-			disclaimer = urllib2.urlopen(request).read()
-		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self._downloader.trouble(u'ERROR: unable to retrieve disclaimer: %s' % str(err))
-			return
-
-		# Confirm age
-		disclaimer_form = {
-			'filters': '0',
-			'submit': "Continue - I'm over 18",
-			}
-		request = urllib2.Request(self._FILTER_POST, urllib.urlencode(disclaimer_form), std_headers)
-		try:
-			self.report_age_confirmation()
-			disclaimer = urllib2.urlopen(request).read()
-		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self._downloader.trouble(u'ERROR: unable to confirm age: %s' % str(err))
-			return
-	
 	def _real_extract(self, url):
 		# Extract id and simplified title from URL
 		mobj = re.match(self._VALID_URL, url)
