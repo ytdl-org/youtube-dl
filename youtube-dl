@@ -1097,14 +1097,6 @@ class DailymotionIE(InfoExtractor):
 	def suitable(url):
 		return (re.match(DailymotionIE._VALID_URL, url) is not None)
 
-	def report_disclaimer(self):
-		"""Report disclaimer retrieval."""
-		self._downloader.to_stdout(u'[dailymotion] Retrieving disclaimer')
-
-	def report_age_confirmation(self):
-		"""Report attempt to confirm age."""
-		self._downloader.to_stdout(u'[dailymotion] Confirming age')
-	
 	def report_download_webpage(self, video_id):
 		"""Report webpage download."""
 		self._downloader.to_stdout(u'[dailymotion] %s: Downloading webpage' % video_id)
