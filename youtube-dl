@@ -847,7 +847,7 @@ class YoutubeIE(InfoExtractor):
 				return
 
 			# Attempt to extract SWF player URL
-			mobj = re.search(r'swfConfig.*"(http://.*?watch-.*?\.swf)"', video_webpage)
+			mobj = re.search(r'swfConfig.*"(http://.*?watch.*?-.*?\.swf)"', video_webpage)
 			if mobj is not None:
 				player_url = mobj.group(1)
 			else:
