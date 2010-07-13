@@ -387,6 +387,10 @@ class FileDownloader(object):
 			self.to_stdout(u'[download] Download completed')
 		else:
 			self.to_stdout(u'')
+	
+	def increment_downloads(self):
+		"""Increment the ordinal that assigns a number to each file."""
+		self._num_downloads += 1
 
 	def process_info(self, info_dict):
 		"""Process a single dictionary returned by an InfoExtractor."""
@@ -582,7 +586,6 @@ class FileDownloader(object):
 				try:
 					(stream, filename) = sanitize_open(filename, open_mode)
 					self.report_destination(filename)
-					self._num_downloads += 1
 				except (OSError, IOError), err:
 					self.trouble('ERROR: unable to open for writing: %s' % str(err))
 					return False
@@ -809,6 +812,10 @@ class YoutubeIE(InfoExtractor):
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
 			return
+
+		# At this point we have a new video
+		if self._downloader is not None:
+			self._downloader.increment_downloads()
 		video_id = mobj.group(2)
 
 		# Downloader parameters
@@ -1035,6 +1042,10 @@ class MetacafeIE(InfoExtractor):
 			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % mobj2.group(1))
 			return
 
+		# At this point we have a new video
+		if self._downloader is not None:
+			self._downloader.increment_downloads()
+
 		simple_title = mobj.group(2).decode('utf-8')
 		video_extension = 'flv'
 
@@ -1124,6 +1135,9 @@ class DailymotionIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
 			return
 
+		# At this point we have a new video
+		if self._downloader is not None:
+			self._downloader.increment_downloads()
 		video_id = mobj.group(1)
 
 		simple_title = mobj.group(2).decode('utf-8')
@@ -1209,6 +1223,9 @@ class GoogleIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
 			return
 
+		# At this point we have a new video
+		if self._downloader is not None:
+			self._downloader.increment_downloads()
 		video_id = mobj.group(1)
 
 		video_extension = 'mp4'
@@ -1317,6 +1334,9 @@ class PhotobucketIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
 			return
 
+		# At this point we have a new video
+		if self._downloader is not None:
+			self._downloader.increment_downloads()
 		video_id = mobj.group(1)
 
 		video_extension = 'flv'
@@ -1392,13 +1412,16 @@ class YahooIE(InfoExtractor):
 	def _real_initialize(self):
 		return
 
-	def _real_extract(self, url):
+	def _real_extract(self, url, new_video=True):
 		# Extract ID from URL
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
 			return
 
+		# At this point we have a new video
+		if self._downloader is not None and new_video:
+			self._downloader.increment_downloads()
 		video_id = mobj.group(2)
 		video_extension = 'flv'
 
@@ -1425,7 +1448,7 @@ class YahooIE(InfoExtractor):
 			yahoo_vid = mobj.group(1)
 
 			url = 'http://video.yahoo.com/watch/%s/%s' % (yahoo_vid, yahoo_id)
-			return self._real_extract(url)
+			return self._real_extract(url, new_video=False)
 
 		# Retrieve video webpage to extract further information
 		request = urllib2.Request(url)
@@ -1544,6 +1567,10 @@ class GenericIE(InfoExtractor):
 		return
 
 	def _real_extract(self, url):
+		# At this point we have a new video
+		if self._downloader is not None:
+			self._downloader.increment_downloads()
+
 		video_id = url.split('/')[-1]
 		request = urllib2.Request(url)
 		try:
