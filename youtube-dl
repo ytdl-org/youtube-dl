@@ -688,8 +688,8 @@ class YoutubeIE(InfoExtractor):
 	_LOGIN_URL = 'http://www.youtube.com/signup?next=/&gl=US&hl=en'
 	_AGE_URL = 'http://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
 	_NETRC_MACHINE = 'youtube'
-	# Listed in order of priority for the -b option
-	_available_formats = ['38', '37', '22', '45', '35', '34', '43', '18', '6', '5', '17', '13', None]
+	# Listed in order of quality
+	_available_formats = ['38', '37', '22', '45', '35', '34', '43', '18', '6', '5', '17', '13']
 	_video_extensions = {
 		'13': '3gp',
 		'17': 'mp4',
@@ -812,124 +812,109 @@ class YoutubeIE(InfoExtractor):
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
 			return
-
-		# At this point we have a new video
-		if self._downloader is not None:
-			self._downloader.increment_downloads()
 		video_id = mobj.group(2)
 
-		# Downloader parameters
-		best_quality = False
-		all_formats = False
-		format_param = None
-		quality_index = 0
-		if self._downloader is not None:
-			params = self._downloader.params
-			format_param = params.get('format', None)
-			if format_param == '0':
-				format_limit = params.get('format_limit', None)
-				if format_limit is not None:
-					try:
-						# Start at a different format if the user has limited the maximum quality
-						quality_index = self._available_formats.index(format_limit)
-					except ValueError:
-						pass
-				format_param = self._available_formats[quality_index]
-				best_quality = True
-			elif format_param == '-1':
-				format_param = self._available_formats[quality_index]
-				all_formats = True
+		# Get video webpage
+		self.report_video_webpage_download(video_id)
+		request = urllib2.Request('http://www.youtube.com/watch?v=%s&gl=US&hl=en' % video_id, None, std_headers)
+		try:
+			video_webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % str(err))
+			return
 
-		while True:
+		# Attempt to extract SWF player URL
+		mobj = re.search(r'swfConfig.*"(http://.*?watch.*?-.*?\.swf)"', video_webpage)
+		if mobj is not None:
+			player_url = mobj.group(1)
+		else:
+			player_url = None
+
+		# Get video info
+		self.report_video_info_webpage_download(video_id)
+		for el_type in ['&el=embedded', '&el=detailpage', '&el=vevo', '']:
+			video_info_url = ('http://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
+					   % (video_id, el_type))
+			request = urllib2.Request(video_info_url, None, std_headers)
+			try:
+				video_info_webpage = urllib2.urlopen(request).read()
+				video_info = parse_qs(video_info_webpage)
+				if 'token' in video_info:
+					break
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'ERROR: unable to download video info webpage: %s' % str(err))
+				return
+		self.report_information_extraction(video_id)
+
+		# uploader
+		if 'author' not in video_info:
+			self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
+			return
+		video_uploader = urllib.unquote_plus(video_info['author'][0])
+
+		# title
+		if 'title' not in video_info:
+			self._downloader.trouble(u'ERROR: unable to extract video title')
+			return
+		video_title = urllib.unquote_plus(video_info['title'][0])
+		video_title = video_title.decode('utf-8')
+		video_title = sanitize_title(video_title)
+
+		# simplified title
+		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
+		simple_title = simple_title.strip(ur'_')
+
+		# thumbnail image
+		if 'thumbnail_url' not in video_info:
+			self._downloader.trouble(u'WARNING: unable to extract video thumbnail')
+			video_thumbnail = ''
+		else:	# don't panic if we can't find it
+			video_thumbnail = urllib.unquote_plus(video_info['thumbnail_url'][0])
+
+		# description
+		video_description = 'No description available.'
+		if self._downloader.params.get('forcedescription', False):
+			mobj = re.search(r'<meta name="description" content="(.*)"(?:\s*/)?>', video_webpage)
+			if mobj is not None:
+				video_description = mobj.group(1)
+
+		# Decide which formats to download
+		if 'fmt_url_map' in video_info:
+			url_map = dict(tuple(pair.split('|')) for pair in video_info['fmt_url_map'][0].split(','))
+			format_limit = self._downloader.params.get('format_limit', None)
+			if format_limit is not None and format_limit in self._available_formats:
+				format_list = self._available_formats[self._available_formats.index(format_limit):]
+			else:
+				format_list = self._available_formats
+			existing_formats = [x for x in format_list if x in url_map]
+			if len(existing_formats) == 0:
+				self._downloader.trouble(u'ERROR: no known formats available for video')
+				return
+			requested_format = self._downloader.params.get('format', None)
+			if requested_format is None:
+				video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
+			elif requested_format == '-1':
+				video_url_list = url_map.items() # All formats
+			else:
+				if requested_format not in existing_formats:
+					self._downloader.trouble(u'ERROR: format not available for video')
+					return
+				video_url_list = [(requested_format, url_map[requested_format])] # Specific format
+		elif 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
+			self.report_rtmp_download()
+			video_url_list = [(None, video_info['conn'][0])]
+		else:
+			self._downloader.trouble(u'ERROR: no fmt_url_map or conn information found in video info')
+			return
+
+		for format_param, video_real_url in video_url_list:
+			# At this point we have a new video
+			self._downloader.increment_downloads()
+
 			# Extension
 			video_extension = self._video_extensions.get(format_param, 'flv')
 
-			# Get video webpage
-			self.report_video_webpage_download(video_id)
-			request = urllib2.Request('http://www.youtube.com/watch?v=%s&gl=US&hl=en' % video_id, None, std_headers)
-			try:
-				video_webpage = urllib2.urlopen(request).read()
-			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-				self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % str(err))
-				return
-
-			# Attempt to extract SWF player URL
-			mobj = re.search(r'swfConfig.*"(http://.*?watch.*?-.*?\.swf)"', video_webpage)
-			if mobj is not None:
-				player_url = mobj.group(1)
-			else:
-				player_url = None
-
-			# Get video info
-			self.report_video_info_webpage_download(video_id)
-			for el_type in ['&el=embedded', '&el=detailpage', '&el=vevo', '']:
-				video_info_url = ('http://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
-						   % (video_id, el_type))
-				request = urllib2.Request(video_info_url, None, std_headers)
-				try:
-					video_info_webpage = urllib2.urlopen(request).read()
-					video_info = parse_qs(video_info_webpage)
-					if 'token' in video_info:
-						break
-				except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-					self._downloader.trouble(u'ERROR: unable to download video info webpage: %s' % str(err))
-					return
-			self.report_information_extraction(video_id)
-
-			# "t" param
-			if 'token' not in video_info:
-				# Attempt to see if YouTube has issued an error message
-				if 'reason' not in video_info:
-					self._downloader.trouble(u'ERROR: unable to extract "t" parameter for unknown reason')
-					stream = open('reportme-ydl-%s.dat' % time.time(), 'wb')
-					stream.write(video_info_webpage)
-					stream.close()
-				else:
-					reason = urllib.unquote_plus(video_info['reason'][0])
-					self._downloader.trouble(u'ERROR: YouTube said: %s' % reason.decode('utf-8'))
-				return
-			token = urllib.unquote_plus(video_info['token'][0])
-			video_real_url = 'http://www.youtube.com/get_video?video_id=%s&t=%s&eurl=&el=detailpage&ps=default&gl=US&hl=en' % (video_id, token)
-			if format_param is not None:
-				video_real_url = '%s&fmt=%s' % (video_real_url, format_param)
-
-			# Check possible RTMP download
-			if 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
-				self.report_rtmp_download()
-				video_real_url = video_info['conn'][0]
-
-			# uploader
-			if 'author' not in video_info:
-				self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
-				return
-			video_uploader = urllib.unquote_plus(video_info['author'][0])
-
-			# title
-			if 'title' not in video_info:
-				self._downloader.trouble(u'ERROR: unable to extract video title')
-				return
-			video_title = urllib.unquote_plus(video_info['title'][0])
-			video_title = video_title.decode('utf-8')
-			video_title = sanitize_title(video_title)
-
-			# simplified title
-			simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
-			simple_title = simple_title.strip(ur'_')
-
-			# thumbnail image
-			if 'thumbnail_url' not in video_info:
-				self._downloader.trouble(u'WARNING: unable to extract video thumbnail')
-				video_thumbnail = ''
-			else:	# don't panic if we can't find it
-				video_thumbnail = urllib.unquote_plus(video_info['thumbnail_url'][0])
-
-			# description
-			video_description = 'No description available.'
-			if self._downloader.params.get('forcedescription', False):
-				mobj = re.search(r'<meta name="description" content="(.*)"(?:\s*/)?>', video_webpage)
-				if mobj is not None:
-					video_description = mobj.group(1)
-
+			# Find the video URL in fmt_url_map or conn paramters
 			try:
 				# Process video information
 				self._downloader.process_info({
@@ -944,32 +929,8 @@ class YoutubeIE(InfoExtractor):
 					'description':	video_description.decode('utf-8'),
 					'player_url':	player_url,
 				})
-
-				if all_formats:
-					quality_index += 1
-					if quality_index == len(self._available_formats):
-						# None left to get
-						return
-					else:
-						format_param = self._available_formats[quality_index]
-						continue
-				return
-
-			except UnavailableFormatError, err:
-				if best_quality or all_formats:
-					quality_index += 1
-					if quality_index == len(self._available_formats):
-						# I don't ever expect this to happen
-						if not all_formats:
-							self._downloader.trouble(u'ERROR: no known formats available for video')
-						return
-					else:
-						self.report_unavailable_format(video_id, format_param)
-						format_param = self._available_formats[quality_index]
-						continue
-				else: 
-					self._downloader.trouble('ERROR: format not available for video')
-					return
+			except UnavailableVideoError, err:
+				self._downloader.trouble(u'ERROR: unable to download video')
 
 
 class MetacafeIE(InfoExtractor):
