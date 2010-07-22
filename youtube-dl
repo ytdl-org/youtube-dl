@@ -1043,8 +1043,7 @@ class MetacafeIE(InfoExtractor):
 			return
 
 		# At this point we have a new video
-		if self._downloader is not None:
-			self._downloader.increment_downloads()
+		self._downloader.increment_downloads()
 
 		simple_title = mobj.group(2).decode('utf-8')
 		video_extension = 'flv'
@@ -1136,8 +1135,7 @@ class DailymotionIE(InfoExtractor):
 			return
 
 		# At this point we have a new video
-		if self._downloader is not None:
-			self._downloader.increment_downloads()
+		self._downloader.increment_downloads()
 		video_id = mobj.group(1)
 
 		simple_title = mobj.group(2).decode('utf-8')
@@ -1224,8 +1222,7 @@ class GoogleIE(InfoExtractor):
 			return
 
 		# At this point we have a new video
-		if self._downloader is not None:
-			self._downloader.increment_downloads()
+		self._downloader.increment_downloads()
 		video_id = mobj.group(1)
 
 		video_extension = 'mp4'
@@ -1335,8 +1332,7 @@ class PhotobucketIE(InfoExtractor):
 			return
 
 		# At this point we have a new video
-		if self._downloader is not None:
-			self._downloader.increment_downloads()
+		self._downloader.increment_downloads()
 		video_id = mobj.group(1)
 
 		video_extension = 'flv'
@@ -1420,8 +1416,7 @@ class YahooIE(InfoExtractor):
 			return
 
 		# At this point we have a new video
-		if self._downloader is not None and new_video:
-			self._downloader.increment_downloads()
+		self._downloader.increment_downloads()
 		video_id = mobj.group(2)
 		video_extension = 'flv'
 
@@ -1568,8 +1563,7 @@ class GenericIE(InfoExtractor):
 
 	def _real_extract(self, url):
 		# At this point we have a new video
-		if self._downloader is not None:
-			self._downloader.increment_downloads()
+		self._downloader.increment_downloads()
 
 		video_id = url.split('/')[-1]
 		request = urllib2.Request(url)
