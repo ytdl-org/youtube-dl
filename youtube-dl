@@ -131,7 +131,7 @@ class PostProcessingError(Exception):
 	"""
 	pass
 
-class UnavailableFormatError(Exception):
+class UnavailableVideoError(Exception):
 	"""Unavailable Format exception.
 
 	This exception will be thrown when a video is requested
@@ -401,7 +401,7 @@ class FileDownloader(object):
 				try:
 					self.verify_url(info_dict['url'].encode('utf-8')).decode('utf-8')
 				except (OSError, IOError, urllib2.URLError, httplib.HTTPException, socket.error), err:
-					raise UnavailableFormatError
+					raise UnavailableVideoError
 
 			# Forced printings
 			if self.params.get('forcetitle', False):
@@ -435,7 +435,7 @@ class FileDownloader(object):
 		try:
 			success = self._do_download(filename, info_dict['url'].encode('utf-8'), info_dict.get('player_url', None))
 		except (OSError, IOError), err:
-			raise UnavailableFormatError
+			raise UnavailableVideoError
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 			self.trouble('ERROR: unable to download video data: %s' % str(err))
 			return
@@ -1101,8 +1101,8 @@ class MetacafeIE(InfoExtractor):
 				'format':	u'NA',
 				'player_url':	None,
 			})
-		except UnavailableFormatError:
-			self._downloader.trouble(u'ERROR: format not available for video')
+		except UnavailableVideoError:
+			self._downloader.trouble(u'ERROR: unable to download video')
 
 
 class DailymotionIE(InfoExtractor):
@@ -1190,8 +1190,8 @@ class DailymotionIE(InfoExtractor):
 				'format':	u'NA',
 				'player_url':	None,
 			})
-		except UnavailableFormatError:
-			self._downloader.trouble(u'ERROR: format not available for video')
+		except UnavailableVideoError:
+			self._downloader.trouble(u'ERROR: unable to download video')
 
 class GoogleIE(InfoExtractor):
 	"""Information extractor for video.google.com."""
@@ -1300,8 +1300,8 @@ class GoogleIE(InfoExtractor):
 				'format':	u'NA',
 				'player_url':	None,
 			})
-		except UnavailableFormatError:
-			self._downloader.trouble(u'ERROR: format not available for video')
+		except UnavailableVideoError:
+			self._downloader.trouble(u'ERROR: unable to download video')
 
 
 class PhotobucketIE(InfoExtractor):
@@ -1382,8 +1382,8 @@ class PhotobucketIE(InfoExtractor):
 				'format':	u'NA',
 				'player_url':	None,
 			})
-		except UnavailableFormatError:
-			self._downloader.trouble(u'ERROR: format not available for video')
+		except UnavailableVideoError:
+			self._downloader.trouble(u'ERROR: unable to download video')
 
 
 class YahooIE(InfoExtractor):
@@ -1540,8 +1540,8 @@ class YahooIE(InfoExtractor):
 				'description':	video_description,
 				'player_url':	None,
 			})
-		except UnavailableFormatError:
-			self._downloader.trouble(u'ERROR: format not available for video')
+		except UnavailableVideoError:
+			self._downloader.trouble(u'ERROR: unable to download video')
 
 
 class GenericIE(InfoExtractor):
@@ -1640,8 +1640,8 @@ class GenericIE(InfoExtractor):
 				'format':	u'NA',
 				'player_url':	None,
 			})
-		except UnavailableFormatError:
-			self._downloader.trouble(u'ERROR: format not available for video')
+		except UnavailableVideoError, err:
+			self._downloader.trouble(u'ERROR: unable to download video')
 
 
 class YoutubeSearchIE(InfoExtractor):
