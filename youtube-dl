@@ -2132,16 +2132,12 @@ if __name__ == '__main__':
 		video_format = optparse.OptionGroup(parser, 'Video Format Options')
 		video_format.add_option('-f', '--format',
 				action='store', dest='format', metavar='FORMAT', help='video format code')
-		video_format.add_option('-b', '--best-quality',
-				action='store_const', dest='format', help='download the best quality video possible', const='0')
 		video_format.add_option('-m', '--mobile-version',
 				action='store_const', dest='format', help='alias for -f 17', const='17')
-		video_format.add_option('-d', '--high-def',
-				action='store_const', dest='format', help='alias for -f 22', const='22')
 		video_format.add_option('--all-formats',
 				action='store_const', dest='format', help='download all available video formats', const='-1')
 		video_format.add_option('--max-quality',
-				action='store', dest='format_limit', metavar='FORMAT', help='highest quality format limit for -b')
+				action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
 		parser.add_option_group(video_format)
 
 		verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
