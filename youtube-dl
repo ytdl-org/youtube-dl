@@ -878,37 +878,14 @@ class YoutubeIE(InfoExtractor):
 			if mobj is not None:
 				video_description = mobj.group(1)
 
+		# token
+		video_token = urllib.unquote_plus(video_info['token'][0])
+
 		# Decide which formats to download
 		requested_format = self._downloader.params.get('format', None)
+		get_video_template = 'http://www.youtube.com/get_video?video_id=%s&t=%s&eurl=&el=&ps=&asv=&fmt=%%s' % (video_id, video_token)
 
-		if requested_format in ["43", "45"]: # webm formats
-			# Join the HTML5 beta
-			html5form = { "enable_html5": "true" }
-			request = urllib2.Request('http://www.youtube.com/html5', urllib.urlencode(html5form), std_headers)
-			try:
-				self._downloader.to_stdout(u'[youtube] Joining the HTML5 Beta')
-				urllib2.urlopen(request).read()
-			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-				self._downloader.trouble(u'ERROR: unable to join the HTML5 Beta: %s' % str(err))
-				return
-
-			# Request the video webpage with webm enabled
-			request = urllib2.Request('http://www.youtube.com/watch?v=%s&webm=1' % video_id, None, std_headers)
-			try:
-				self._downloader.to_stdout(u'[youtube] Requesting HTML5 video webpage')
-				video_webpage = urllib2.urlopen(request).read()
-			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-				self._downloader.trouble(u'ERROR: unable to get the HTML5 video webpage: %s' % str(err))
-				return
-
-			# Find the URL for the requested format
-			mobj = re.search(ur'setAvailableFormat\("(.*?)".*?"%s"\);' % requested_format, video_webpage)
-			if mobj is None:
-				self._downloader.trouble(u'ERROR: format not available for video')
-				return
-			video_url_list = [(requested_format, mobj.group(1))]
-
-		elif 'fmt_url_map' in video_info:
+		if 'fmt_url_map' in video_info:
 			url_map = dict(tuple(pair.split('|')) for pair in video_info['fmt_url_map'][0].split(','))
 			format_limit = self._downloader.params.get('format_limit', None)
 			if format_limit is not None and format_limit in self._available_formats:
@@ -920,14 +897,11 @@ class YoutubeIE(InfoExtractor):
 				self._downloader.trouble(u'ERROR: no known formats available for video')
 				return
 			if requested_format is None:
-				video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
+				video_url_list = [(existing_formats[0], get_video_template % existing_formats[0])] # Best quality
 			elif requested_format == '-1':
-				video_url_list = url_map.items() # All formats
+				video_url_list = [(f, get_video_template % f) for f in existing_formats] # All formats
 			else:
-				if requested_format not in existing_formats:
-					self._downloader.trouble(u'ERROR: format not available for video')
-					return
-				video_url_list = [(requested_format, url_map[requested_format])] # Specific format
+				video_url_list = [(requested_format, get_video_template % requested_format)] # Specific format
 
 		elif 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
 			self.report_rtmp_download()
@@ -960,7 +934,7 @@ class YoutubeIE(InfoExtractor):
 					'player_url':	player_url,
 				})
 			except UnavailableVideoError, err:
-				self._downloader.trouble(u'ERROR: unable to download video')
+				self._downloader.trouble(u'ERROR: unable to download video (format may not be available)')
 
 
 class MetacafeIE(InfoExtractor):
