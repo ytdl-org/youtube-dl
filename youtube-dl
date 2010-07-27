@@ -287,16 +287,6 @@ class FileDownloader(object):
 		multiplier = 1024.0 ** 'bkmgtpezy'.index(matchobj.group(2).lower())
 		return long(round(number * multiplier))
 
-	@staticmethod
-	def verify_url(url):
-		"""Verify a URL is valid and data could be downloaded. Return real data URL."""
-		request = urllib2.Request(url, None, std_headers)
-		data = urllib2.urlopen(request)
-		data.read(1)
-		url = data.geturl()
-		data.close()
-		return url
-
 	def add_info_extractor(self, ie):
 		"""Add an InfoExtractor object to the end of the list."""
 		self._ies.append(ie)
@@ -396,13 +386,6 @@ class FileDownloader(object):
 		"""Process a single dictionary returned by an InfoExtractor."""
 		# Do nothing else if in simulate mode
 		if self.params.get('simulate', False):
-			# Verify URL if it's an HTTP one
-			if info_dict['url'].startswith('http'):
-				try:
-					self.verify_url(info_dict['url'].encode('utf-8')).decode('utf-8')
-				except (OSError, IOError, urllib2.URLError, httplib.HTTPException, socket.error), err:
-					raise UnavailableVideoError
-
 			# Forced printings
 			if self.params.get('forcetitle', False):
 				print info_dict['title'].encode(preferredencoding(), 'xmlcharrefreplace')
@@ -539,32 +522,43 @@ class FileDownloader(object):
 
 		count = 0
 		retries = self.params.get('retries', 0)
-		while True:
+		while count <= retries:
 			# Establish connection
 			try:
 				data = urllib2.urlopen(request)
 				break
 			except (urllib2.HTTPError, ), err:
-				if err.code == 503:
-					# Retry in case of HTTP error 503
-					count += 1
-					if count <= retries:
-						self.report_retry(count, retries)
-						continue
-				if err.code != 416: #  416 is 'Requested range not satisfiable'
+				if err.code != 503 and err.code != 416:
+					# Unexpected HTTP error
 					raise
-				# Unable to resume
-				data = urllib2.urlopen(basic_request)
-				content_length = data.info()['Content-Length']
+				elif err.code == 416:
+					# Unable to resume (requested range not satisfiable)
+					try:
+						# Open the connection again without the range header
+						data = urllib2.urlopen(basic_request)
+						content_length = data.info()['Content-Length']
+					except (urllib2.HTTPError, ), err:
+						if err.code != 503:
+							raise
+					else:
+						# Examine the reported length
+						if content_length is not None and long(content_length) == resume_len:
+							# The file had already been fully downloaded
+							self.report_file_already_downloaded(filename)
+							return True
+						else:
+							# The length does not match, we start the download over
+							self.report_unable_to_resume()
+							open_mode = 'wb'
+							break
+			# Retry
+			count += 1
+			if count <= retries:
+				self.report_retry(count, retries)
 
-				if content_length is not None and long(content_length) == resume_len:
-					# Because the file had already been fully downloaded
-					self.report_file_already_downloaded(filename)
-					return True
-				else:
-					# Because the server didn't let us
-					self.report_unable_to_resume()
-					open_mode = 'wb'
+		if count > retries:
+			self.trouble(u'ERROR: giving up after %s retries' % retries)
+			return False
 
 		data_len = data.info().get('Content-length', None)
 		data_len_str = self.format_bytes(data_len)
