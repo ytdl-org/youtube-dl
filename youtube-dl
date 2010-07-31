@@ -542,8 +542,15 @@ class FileDownloader(object):
 							raise
 					else:
 						# Examine the reported length
-						if content_length is not None and long(content_length) == resume_len:
-							# The file had already been fully downloaded
+						if (content_length is not None and
+						    resume_len - 100 < long(content_length) < resume_len + 100):
+							# The file had already been fully downloaded.
+							# Explanation to the above condition: in issue #175 it was revealed that
+							# YouTube sometimes adds or removes a few bytes from the end of the file,
+							# changing the file size slightly and causing problems for some users. So
+							# I decided to implement a suggested change and consider the file
+							# completely downloaded if the file size differs less than 100 bytes from
+							# the one in the hard drive.
 							self.report_file_already_downloaded(filename)
 							return True
 						else:
