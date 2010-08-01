@@ -2112,6 +2112,8 @@ if __name__ == '__main__':
 				action='store_const', dest='format', help='download all available video formats', const='-1')
 		video_format.add_option('--max-quality',
 				action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
+		video_format.add_option('-b', '--best-quality',
+				action='store_true', dest='bestquality', help='download the best video quality (DEPRECATED)')
 		parser.add_option_group(video_format)
 
 		verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
@@ -2164,6 +2166,8 @@ if __name__ == '__main__':
 		all_urls = batchurls + args
 
 		# Conflicting, missing and erroneous options
+		if opts.bestquality:
+			print >>sys.stderr, u'\nWARNING: -b/--best-quality IS DEPRECATED AS IT IS THE DEFAULT BEHAVIOR NOW\n'
 		if opts.usenetrc and (opts.username is not None or opts.password is not None):
 			parser.error(u'using .netrc conflicts with giving username/password')
 		if opts.password is not None and opts.username is None:
