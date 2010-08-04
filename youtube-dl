@@ -543,7 +543,7 @@ class FileDownloader(object):
 					else:
 						# Examine the reported length
 						if (content_length is not None and
-						    resume_len - 100 < long(content_length) < resume_len + 100):
+						    (resume_len - 100 < long(content_length) < resume_len + 100)):
 							# The file had already been fully downloaded.
 							# Explanation to the above condition: in issue #175 it was revealed that
 							# YouTube sometimes adds or removes a few bytes from the end of the file,
@@ -1941,6 +1941,11 @@ class YoutubePlaylistIE(InfoExtractor):
 				break
 			pagenum = pagenum + 1
 
+		playliststart = self._downloader.params.get('playliststart', 1)
+		playliststart -= 1 #our arrays are zero-based but the playlist is 1-based
+		if playliststart > 0:
+			video_ids = video_ids[playliststart:]
+			
 		for id in video_ids:
 			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
 		return
@@ -1995,6 +2000,11 @@ class YoutubeUserIE(InfoExtractor):
 			if mobj.group(1) not in ids_in_page:
 				ids_in_page.append(mobj.group(1))
 		video_ids.extend(ids_in_page)
+
+		playliststart = self._downloader.params.get('playliststart', 1)
+		playliststart = playliststart-1 #our arrays are zero-based but the playlist is 1-based
+		if playliststart > 0:
+			video_ids = video_ids[playliststart:]	
 
 		for id in video_ids:
 			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
@@ -2093,6 +2103,8 @@ if __name__ == '__main__':
 				dest='ratelimit', metavar='LIMIT', help='download rate limit (e.g. 50k or 44.6m)')
 		parser.add_option('-R', '--retries',
 				dest='retries', metavar='RETRIES', help='number of retries (default is 10)', default=10)
+		parser.add_option('--playlist-start',
+				dest='playliststart', metavar='NUMBER', help='playlist video to start at (default is 1)', default=1)
 
 		authentication = optparse.OptionGroup(parser, 'Authentication Options')
 		authentication.add_option('-u', '--username',
@@ -2188,6 +2200,11 @@ if __name__ == '__main__':
 				opts.retries = long(opts.retries)
 			except (TypeError, ValueError), err:
 				parser.error(u'invalid retry count specified')
+		if opts.playliststart is not None:
+			try:
+				opts.playliststart = long(opts.playliststart)
+			except (TypeError, ValueError), err:
+				parser.error(u'invalid playlist page specified')
 
 		# Information extractors
 		youtube_ie = YoutubeIE()
@@ -2229,6 +2246,7 @@ if __name__ == '__main__':
 			'retries': opts.retries,
 			'continuedl': opts.continue_dl,
 			'noprogress': opts.noprogress,
+			'playliststart': opts.playliststart,
 			})
 		fd.add_info_extractor(youtube_search_ie)
 		fd.add_info_extractor(youtube_pl_ie)
