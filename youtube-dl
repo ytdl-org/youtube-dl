@@ -1022,7 +1022,6 @@ class MetacafeIE(InfoExtractor):
 		self._downloader.increment_downloads()
 
 		simple_title = mobj.group(2).decode('utf-8')
-		video_extension = 'flv'
 
 		# Retrieve video webpage to extract further information
 		request = urllib2.Request('http://www.metacafe.com/watch/%s/' % video_id)
@@ -1038,6 +1037,7 @@ class MetacafeIE(InfoExtractor):
 		mobj = re.search(r'(?m)&mediaURL=([^&]+)', webpage)
 		if mobj is not None:
 			mediaURL = urllib.unquote(mobj.group(1))
+			video_extension = mediaURL[-3:]
 			
 			# Extract gdaKey if available
 			mobj = re.search(r'(?m)&gdaKey=(.*?)&', webpage)
@@ -1059,7 +1059,9 @@ class MetacafeIE(InfoExtractor):
 			if mobj is None:
 				self._downloader.trouble(u'ERROR: unable to extract media URL')
 				return
-			video_url = '%s?__gda__=%s' % (mobj.group(1).replace('\\/', '/'), mobj.group(2))
+			mediaURL = mobj.group(1).replace('\\/', '/')
+			video_extension = mediaURL[-3:]
+			video_url = '%s?__gda__=%s' % (mediaURL, mobj.group(2))
 
 		mobj = re.search(r'(?im)<title>(.*) - Video</title>', webpage)
 		if mobj is None:
