@@ -413,7 +413,7 @@ class FileDownloader(object):
 		try:
 			self.pmkdir(filename)
 		except (OSError, IOError), err:
-			self.trouble('ERROR: unable to create directories: %s' % str(err))
+			self.trouble(u'ERROR: unable to create directories: %s' % str(err))
 			return
 
 		try:
@@ -421,17 +421,17 @@ class FileDownloader(object):
 		except (OSError, IOError), err:
 			raise UnavailableVideoError
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self.trouble('ERROR: unable to download video data: %s' % str(err))
+			self.trouble(u'ERROR: unable to download video data: %s' % str(err))
 			return
 		except (ContentTooShortError, ), err:
-			self.trouble('ERROR: content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
+			self.trouble(u'ERROR: content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
 			return
 
 		if success:
 			try:
 				self.post_process(filename, info_dict)
 			except (PostProcessingError), err:
-				self.trouble('ERROR: postprocessing: %s' % str(err))
+				self.trouble(u'ERROR: postprocessing: %s' % str(err))
 				return
 
 	def download(self, url_list):
@@ -456,7 +456,7 @@ class FileDownloader(object):
 				break
 
 			if not suitable_found:
-				self.trouble('ERROR: no suitable InfoExtractor: %s' % url)
+				self.trouble(u'ERROR: no suitable InfoExtractor: %s' % url)
 
 		return self._download_retcode
 
@@ -496,7 +496,7 @@ class FileDownloader(object):
 			self.to_stdout(u'\r[rtmpdump] %s bytes' % os.path.getsize(filename))
 			return True
 		else:
-			self.trouble('\nERROR: rtmpdump exited with code %d' % retval)
+			self.trouble(u'\nERROR: rtmpdump exited with code %d' % retval)
 			return False
 
 	def _do_download(self, filename, url, player_url):
@@ -589,7 +589,7 @@ class FileDownloader(object):
 					(stream, filename) = sanitize_open(filename, open_mode)
 					self.report_destination(filename)
 				except (OSError, IOError), err:
-					self.trouble('ERROR: unable to open for writing: %s' % str(err))
+					self.trouble(u'ERROR: unable to open for writing: %s' % str(err))
 					return False
 			try:
 				stream.write(data_block)
