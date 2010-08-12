@@ -404,7 +404,8 @@ class FileDownloader(object):
 			template_dict['ord'] = unicode('%05d' % self._num_downloads)
 			filename = self.params['outtmpl'] % template_dict
 		except (ValueError, KeyError), err:
-			self.trouble('ERROR: invalid output template or system charset: %s' % str(err))
+			self.trouble(u'ERROR: invalid system charset or erroneous output template')
+			return
 		if self.params.get('nooverwrites', False) and os.path.exists(filename):
 			self.to_stderr(u'WARNING: file exists: %s; skipping' % filename)
 			return
