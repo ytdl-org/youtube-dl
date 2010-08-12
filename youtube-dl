@@ -353,7 +353,7 @@ class FileDownloader(object):
 				(percent_str, data_len_str, speed_str, eta_str), skip_eol=True)
 
 	def report_resuming_byte(self, resume_len):
-		"""Report attemtp to resume at given byte."""
+		"""Report attempt to resume at given byte."""
 		self.to_stdout(u'[download] Resuming download at byte %s' % resume_len)
 	
 	def report_retry(self, count, retries):
