@@ -194,7 +194,7 @@ class FileDownloader(object):
 	ignoreerrors:	Do not stop on download errors.
 	ratelimit:	Download speed limit, in bytes/sec.
 	nooverwrites:	Prevent overwriting files.
-	retries:	Number of times to retry for HTTP error 503
+	retries:	Number of times to retry for HTTP error 5xx
 	continuedl:	Try to continue downloads if possible.
 	noprogress:	Do not print the progress bar.
 	"""
@@ -357,8 +357,8 @@ class FileDownloader(object):
 		self.to_stdout(u'[download] Resuming download at byte %s' % resume_len)
 	
 	def report_retry(self, count, retries):
-		"""Report retry in case of HTTP error 503"""
-		self.to_stdout(u'[download] Got HTTP error 503. Retrying (attempt %d of %d)...' % (count, retries))
+		"""Report retry in case of HTTP error 5xx"""
+		self.to_stdout(u'[download] Got server HTTP error. Retrying (attempt %d of %d)...' % (count, retries))
 	
 	def report_file_already_downloaded(self, file_name):
 		"""Report file has already been fully downloaded."""
@@ -529,7 +529,7 @@ class FileDownloader(object):
 				data = urllib2.urlopen(request)
 				break
 			except (urllib2.HTTPError, ), err:
-				if err.code != 503 and err.code != 416:
+				if err.code != 500 and err.code != 503 and err.code != 416:
 					# Unexpected HTTP error
 					raise
 				elif err.code == 416:
@@ -539,7 +539,7 @@ class FileDownloader(object):
 						data = urllib2.urlopen(basic_request)
 						content_length = data.info()['Content-Length']
 					except (urllib2.HTTPError, ), err:
-						if err.code != 503:
+						if err.code != 503 and err.code != 500:
 							raise
 					else:
 						# Examine the reported length
