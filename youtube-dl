@@ -1158,7 +1158,7 @@ class DailymotionIE(InfoExtractor):
 		video_title = mobj.group(1).decode('utf-8')
 		video_title = sanitize_title(video_title)
 
-		mobj = re.search(r'(?im)<div class="dmco_html owner">.*?<a class="name" href="/.+?">(.+?)</a></div>', webpage)
+		mobj = re.search(r'(?im)<div class="dmco_html owner">.*?<a class="name" href="/.+?">(.+?)</a>', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
 			return
