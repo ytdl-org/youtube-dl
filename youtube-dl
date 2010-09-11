@@ -407,7 +407,7 @@ class FileDownloader(object):
 			self.trouble(u'ERROR: invalid system charset or erroneous output template')
 			return
 		if self.params.get('nooverwrites', False) and os.path.exists(filename):
-			self.to_stderr(u'WARNING: file exists: %s; skipping' % filename)
+			self.to_stderr(u'WARNING: file exists and will be skipped')
 			return
 
 		try:
