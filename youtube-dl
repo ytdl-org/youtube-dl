@@ -529,7 +529,7 @@ class FileDownloader(object):
 				data = urllib2.urlopen(request)
 				break
 			except (urllib2.HTTPError, ), err:
-				if err.code != 500 and err.code != 503 and err.code != 416:
+				if (err.code < 500 or err.code >= 600) and err.code != 416:
 					# Unexpected HTTP error
 					raise
 				elif err.code == 416:
@@ -539,7 +539,7 @@ class FileDownloader(object):
 						data = urllib2.urlopen(basic_request)
 						content_length = data.info()['Content-Length']
 					except (urllib2.HTTPError, ), err:
-						if err.code != 503 and err.code != 500:
+						if err.code < 500 or err.code >= 600:
 							raise
 					else:
 						# Examine the reported length
