@@ -4,6 +4,7 @@
 # Author: Danny Colligan
 # Author: Benjamin Johnson
 # License: Public domain code
+import cookielib
 import htmlentitydefs
 import httplib
 import locale
@@ -184,22 +185,25 @@ class FileDownloader(object):
 
 	Available options:
 
-	username:	Username for authentication purposes.
-	password:	Password for authentication purposes.
-	usenetrc:	Use netrc for authentication instead.
-	quiet:		Do not print messages to stdout.
-	forceurl:	Force printing final URL.
-	forcetitle:	Force printing title.
-	simulate:	Do not download the video files.
-	format:		Video format code.
-	format_limit:	Highest quality format to try.
-	outtmpl:	Template for output names.
-	ignoreerrors:	Do not stop on download errors.
-	ratelimit:	Download speed limit, in bytes/sec.
-	nooverwrites:	Prevent overwriting files.
-	retries:	Number of times to retry for HTTP error 5xx
-	continuedl:	Try to continue downloads if possible.
-	noprogress:	Do not print the progress bar.
+	username:         Username for authentication purposes.
+	password:         Password for authentication purposes.
+	usenetrc:         Use netrc for authentication instead.
+	quiet:            Do not print messages to stdout.
+	forceurl:         Force printing final URL.
+	forcetitle:       Force printing title.
+	forcethumbnail:   Force printing thumbnail URL.
+	forcedescription: Force printing description.
+	simulate:         Do not download the video files.
+	format:           Video format code.
+	format_limit:     Highest quality format to try.
+	outtmpl:          Template for output names.
+	ignoreerrors:     Do not stop on download errors.
+	ratelimit:        Download speed limit, in bytes/sec.
+	nooverwrites:     Prevent overwriting files.
+	retries:          Number of times to retry for HTTP error 5xx
+	continuedl:       Try to continue downloads if possible.
+	noprogress:       Do not print the progress bar.
+	playliststart:    Playlist item to start at.
 	"""
 
 	params = None
@@ -2096,11 +2100,6 @@ if __name__ == '__main__':
 			stream.close()
 			downloader.to_stdout('Updated to version %s' % latest_version)
 
-		# General configuration
-		urllib2.install_opener(urllib2.build_opener(urllib2.ProxyHandler()))
-		urllib2.install_opener(urllib2.build_opener(urllib2.HTTPCookieProcessor()))
-		socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
-
 		# Parse command line
 		parser = optparse.OptionParser(
 			usage='Usage: %prog [options] url...',
@@ -2175,9 +2174,26 @@ if __name__ == '__main__':
 				action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
 		filesystem.add_option('-c', '--continue',
 				action='store_true', dest='continue_dl', help='resume partially downloaded files', default=False)
+		filesystem.add_option('--cookies',
+				dest='cookiefile', metavar='FILE', help='file to dump cookie jar to')
 		parser.add_option_group(filesystem)
 
 		(opts, args) = parser.parse_args()
+
+		# Open appropriate CookieJar
+		if opts.cookiefile is None:
+			jar = cookielib.CookieJar()
+		else:
+			try:
+				jar = cookielib.MozillaCookieJar(opts.cookiefile)
+			except (IOError, OSError), err:
+				sys.exit(u'ERROR: unable to open cookie file')
+
+		# General configuration
+		cookie_processor = urllib2.HTTPCookieProcessor(jar)
+		urllib2.install_opener(urllib2.build_opener(urllib2.ProxyHandler()))
+		urllib2.install_opener(urllib2.build_opener(cookie_processor))
+		socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
 
 		# Batch file verification
 		batchurls = []
@@ -2292,6 +2308,14 @@ if __name__ == '__main__':
 			else:
 				sys.exit()
 		retcode = fd.download(all_urls)
+
+		# Dump cookie jar if requested
+		if opts.cookiefile is not None:
+			try:
+				jar.save()
+			except (IOError, OSError), err:
+				sys.exit(u'ERROR: unable to save cookie jar')
+
 		sys.exit(retcode)
 
 	except DownloadError:
