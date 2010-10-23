@@ -204,6 +204,7 @@ class FileDownloader(object):
 	continuedl:       Try to continue downloads if possible.
 	noprogress:       Do not print the progress bar.
 	playliststart:    Playlist item to start at.
+	logtostderr:      Log messages to stderr instead of stdout.
 	"""
 
 	params = None
@@ -211,6 +212,7 @@ class FileDownloader(object):
 	_pps = []
 	_download_retcode = None
 	_num_downloads = None
+	_screen_file = None
 
 	def __init__(self, params):
 		"""Create a FileDownloader object with the given options."""
@@ -218,6 +220,7 @@ class FileDownloader(object):
 		self._pps = []
 		self._download_retcode = 0
 		self._num_downloads = 0
+		self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
 		self.params = params
 	
 	@staticmethod
@@ -304,12 +307,13 @@ class FileDownloader(object):
 		self._pps.append(pp)
 		pp.set_downloader(self)
 	
-	def to_stdout(self, message, skip_eol=False, ignore_encoding_errors=False):
+	def to_screen(self, message, skip_eol=False, ignore_encoding_errors=False):
 		"""Print message to stdout if not in quiet mode."""
 		try:
 			if not self.params.get('quiet', False):
-				print (u'%s%s' % (message, [u'\n', u''][skip_eol])).encode(preferredencoding()),
-			sys.stdout.flush()
+				terminator = [u'\n', u''][skip_eol]
+				print >>self._screen_file, (u'%s%s' % (message, terminator)).encode(preferredencoding()),
+			self._screen_file.flush()
 		except (UnicodeEncodeError), err:
 			if not ignore_encoding_errors:
 				raise
@@ -350,40 +354,40 @@ class FileDownloader(object):
 
 	def report_destination(self, filename):
 		"""Report destination filename."""
-		self.to_stdout(u'[download] Destination: %s' % filename, ignore_encoding_errors=True)
+		self.to_screen(u'[download] Destination: %s' % filename, ignore_encoding_errors=True)
 	
 	def report_progress(self, percent_str, data_len_str, speed_str, eta_str):
 		"""Report download progress."""
 		if self.params.get('noprogress', False):
 			return
-		self.to_stdout(u'\r[download] %s of %s at %s ETA %s' %
+		self.to_screen(u'\r[download] %s of %s at %s ETA %s' %
 				(percent_str, data_len_str, speed_str, eta_str), skip_eol=True)
 
 	def report_resuming_byte(self, resume_len):
 		"""Report attempt to resume at given byte."""
-		self.to_stdout(u'[download] Resuming download at byte %s' % resume_len)
+		self.to_screen(u'[download] Resuming download at byte %s' % resume_len)
 	
 	def report_retry(self, count, retries):
 		"""Report retry in case of HTTP error 5xx"""
-		self.to_stdout(u'[download] Got server HTTP error. Retrying (attempt %d of %d)...' % (count, retries))
+		self.to_screen(u'[download] Got server HTTP error. Retrying (attempt %d of %d)...' % (count, retries))
 	
 	def report_file_already_downloaded(self, file_name):
 		"""Report file has already been fully downloaded."""
 		try:
-			self.to_stdout(u'[download] %s has already been downloaded' % file_name)
+			self.to_screen(u'[download] %s has already been downloaded' % file_name)
 		except (UnicodeEncodeError), err:
-			self.to_stdout(u'[download] The file has already been downloaded')
+			self.to_screen(u'[download] The file has already been downloaded')
 	
 	def report_unable_to_resume(self):
 		"""Report it was impossible to resume download."""
-		self.to_stdout(u'[download] Unable to resume')
+		self.to_screen(u'[download] Unable to resume')
 	
 	def report_finish(self):
 		"""Report download finished."""
 		if self.params.get('noprogress', False):
-			self.to_stdout(u'[download] Download completed')
+			self.to_screen(u'[download] Download completed')
 		else:
-			self.to_stdout(u'')
+			self.to_screen(u'')
 	
 	def increment_downloads(self):
 		"""Increment the ordinal that assigns a number to each file."""
@@ -493,14 +497,14 @@ class FileDownloader(object):
 		retval = subprocess.call(basic_args + [[], ['-e', '-k', '1']][self.params.get('continuedl', False)])
 		while retval == 2 or retval == 1:
 			prevsize = os.path.getsize(filename)
-			self.to_stdout(u'\r[rtmpdump] %s bytes' % prevsize, skip_eol=True)
+			self.to_screen(u'\r[rtmpdump] %s bytes' % prevsize, skip_eol=True)
 			time.sleep(5.0) # This seems to be needed
 			retval = subprocess.call(basic_args + ['-e'] + [[], ['-k', '1']][retval == 1])
 			cursize = os.path.getsize(filename)
 			if prevsize == cursize and retval == 1:
 				break
 		if retval == 0:
-			self.to_stdout(u'\r[rtmpdump] %s bytes' % os.path.getsize(filename))
+			self.to_screen(u'\r[rtmpdump] %s bytes' % os.path.getsize(filename))
 			return True
 		else:
 			self.trouble(u'\nERROR: rtmpdump exited with code %d' % retval)
@@ -717,35 +721,35 @@ class YoutubeIE(InfoExtractor):
 
 	def report_lang(self):
 		"""Report attempt to set language."""
-		self._downloader.to_stdout(u'[youtube] Setting language')
+		self._downloader.to_screen(u'[youtube] Setting language')
 
 	def report_login(self):
 		"""Report attempt to log in."""
-		self._downloader.to_stdout(u'[youtube] Logging in')
+		self._downloader.to_screen(u'[youtube] Logging in')
 	
 	def report_age_confirmation(self):
 		"""Report attempt to confirm age."""
-		self._downloader.to_stdout(u'[youtube] Confirming age')
+		self._downloader.to_screen(u'[youtube] Confirming age')
 	
 	def report_video_webpage_download(self, video_id):
 		"""Report attempt to download video webpage."""
-		self._downloader.to_stdout(u'[youtube] %s: Downloading video webpage' % video_id)
+		self._downloader.to_screen(u'[youtube] %s: Downloading video webpage' % video_id)
 	
 	def report_video_info_webpage_download(self, video_id):
 		"""Report attempt to download video info webpage."""
-		self._downloader.to_stdout(u'[youtube] %s: Downloading video info webpage' % video_id)
+		self._downloader.to_screen(u'[youtube] %s: Downloading video info webpage' % video_id)
 	
 	def report_information_extraction(self, video_id):
 		"""Report attempt to extract video information."""
-		self._downloader.to_stdout(u'[youtube] %s: Extracting video information' % video_id)
+		self._downloader.to_screen(u'[youtube] %s: Extracting video information' % video_id)
 	
 	def report_unavailable_format(self, video_id, format):
 		"""Report extracted video URL."""
-		self._downloader.to_stdout(u'[youtube] %s: Format %s not available' % (video_id, format))
+		self._downloader.to_screen(u'[youtube] %s: Format %s not available' % (video_id, format))
 	
 	def report_rtmp_download(self):
 		"""Indicate the download will use the RTMP protocol."""
-		self._downloader.to_stdout(u'[youtube] RTMP download detected')
+		self._downloader.to_screen(u'[youtube] RTMP download detected')
 	
 	def _real_initialize(self):
 		if self._downloader is None:
@@ -973,19 +977,19 @@ class MetacafeIE(InfoExtractor):
 
 	def report_disclaimer(self):
 		"""Report disclaimer retrieval."""
-		self._downloader.to_stdout(u'[metacafe] Retrieving disclaimer')
+		self._downloader.to_screen(u'[metacafe] Retrieving disclaimer')
 
 	def report_age_confirmation(self):
 		"""Report attempt to confirm age."""
-		self._downloader.to_stdout(u'[metacafe] Confirming age')
+		self._downloader.to_screen(u'[metacafe] Confirming age')
 	
 	def report_download_webpage(self, video_id):
 		"""Report webpage download."""
-		self._downloader.to_stdout(u'[metacafe] %s: Downloading webpage' % video_id)
+		self._downloader.to_screen(u'[metacafe] %s: Downloading webpage' % video_id)
 	
 	def report_extraction(self, video_id):
 		"""Report information extraction."""
-		self._downloader.to_stdout(u'[metacafe] %s: Extracting information' % video_id)
+		self._downloader.to_screen(u'[metacafe] %s: Extracting information' % video_id)
 
 	def _real_initialize(self):
 		# Retrieve disclaimer
@@ -1113,11 +1117,11 @@ class DailymotionIE(InfoExtractor):
 
 	def report_download_webpage(self, video_id):
 		"""Report webpage download."""
-		self._downloader.to_stdout(u'[dailymotion] %s: Downloading webpage' % video_id)
+		self._downloader.to_screen(u'[dailymotion] %s: Downloading webpage' % video_id)
 	
 	def report_extraction(self, video_id):
 		"""Report information extraction."""
-		self._downloader.to_stdout(u'[dailymotion] %s: Extracting information' % video_id)
+		self._downloader.to_screen(u'[dailymotion] %s: Extracting information' % video_id)
 
 	def _real_initialize(self):
 		return
@@ -1200,11 +1204,11 @@ class GoogleIE(InfoExtractor):
 
 	def report_download_webpage(self, video_id):
 		"""Report webpage download."""
-		self._downloader.to_stdout(u'[video.google] %s: Downloading webpage' % video_id)
+		self._downloader.to_screen(u'[video.google] %s: Downloading webpage' % video_id)
 
 	def report_extraction(self, video_id):
 		"""Report information extraction."""
-		self._downloader.to_stdout(u'[video.google] %s: Extracting information' % video_id)
+		self._downloader.to_screen(u'[video.google] %s: Extracting information' % video_id)
 
 	def _real_initialize(self):
 		return
@@ -1310,11 +1314,11 @@ class PhotobucketIE(InfoExtractor):
 
 	def report_download_webpage(self, video_id):
 		"""Report webpage download."""
-		self._downloader.to_stdout(u'[photobucket] %s: Downloading webpage' % video_id)
+		self._downloader.to_screen(u'[photobucket] %s: Downloading webpage' % video_id)
 
 	def report_extraction(self, video_id):
 		"""Report information extraction."""
-		self._downloader.to_stdout(u'[photobucket] %s: Extracting information' % video_id)
+		self._downloader.to_screen(u'[photobucket] %s: Extracting information' % video_id)
 
 	def _real_initialize(self):
 		return
@@ -1394,11 +1398,11 @@ class YahooIE(InfoExtractor):
 
 	def report_download_webpage(self, video_id):
 		"""Report webpage download."""
-		self._downloader.to_stdout(u'[video.yahoo] %s: Downloading webpage' % video_id)
+		self._downloader.to_screen(u'[video.yahoo] %s: Downloading webpage' % video_id)
 
 	def report_extraction(self, video_id):
 		"""Report information extraction."""
-		self._downloader.to_stdout(u'[video.yahoo] %s: Extracting information' % video_id)
+		self._downloader.to_screen(u'[video.yahoo] %s: Extracting information' % video_id)
 
 	def _real_initialize(self):
 		return
@@ -1546,12 +1550,12 @@ class GenericIE(InfoExtractor):
 
 	def report_download_webpage(self, video_id):
 		"""Report webpage download."""
-		self._downloader.to_stdout(u'WARNING: Falling back on generic information extractor.')
-		self._downloader.to_stdout(u'[generic] %s: Downloading webpage' % video_id)
+		self._downloader.to_screen(u'WARNING: Falling back on generic information extractor.')
+		self._downloader.to_screen(u'[generic] %s: Downloading webpage' % video_id)
 
 	def report_extraction(self, video_id):
 		"""Report information extraction."""
-		self._downloader.to_stdout(u'[generic] %s: Extracting information' % video_id)
+		self._downloader.to_screen(u'[generic] %s: Extracting information' % video_id)
 
 	def _real_initialize(self):
 		return
@@ -1653,7 +1657,7 @@ class YoutubeSearchIE(InfoExtractor):
 	def report_download_page(self, query, pagenum):
 		"""Report attempt to download playlist page with given number."""
 		query = query.decode(preferredencoding())
-		self._downloader.to_stdout(u'[youtube] query "%s": Downloading page %s' % (query, pagenum))
+		self._downloader.to_screen(u'[youtube] query "%s": Downloading page %s' % (query, pagenum))
 
 	def _real_initialize(self):
 		self._youtube_ie.initialize()
@@ -1744,7 +1748,7 @@ class GoogleSearchIE(InfoExtractor):
 	def report_download_page(self, query, pagenum):
 		"""Report attempt to download playlist page with given number."""
 		query = query.decode(preferredencoding())
-		self._downloader.to_stdout(u'[video.google] query "%s": Downloading page %s' % (query, pagenum))
+		self._downloader.to_screen(u'[video.google] query "%s": Downloading page %s' % (query, pagenum))
 
 	def _real_initialize(self):
 		self._google_ie.initialize()
@@ -1835,7 +1839,7 @@ class YahooSearchIE(InfoExtractor):
 	def report_download_page(self, query, pagenum):
 		"""Report attempt to download playlist page with given number."""
 		query = query.decode(preferredencoding())
-		self._downloader.to_stdout(u'[video.yahoo] query "%s": Downloading page %s' % (query, pagenum))
+		self._downloader.to_screen(u'[video.yahoo] query "%s": Downloading page %s' % (query, pagenum))
 
 	def _real_initialize(self):
 		self._yahoo_ie.initialize()
@@ -1925,7 +1929,7 @@ class YoutubePlaylistIE(InfoExtractor):
 
 	def report_download_page(self, playlist_id, pagenum):
 		"""Report attempt to download playlist page with given number."""
-		self._downloader.to_stdout(u'[youtube] PL %s: Downloading page #%s' % (playlist_id, pagenum))
+		self._downloader.to_screen(u'[youtube] PL %s: Downloading page #%s' % (playlist_id, pagenum))
 
 	def _real_initialize(self):
 		self._youtube_ie.initialize()
@@ -1989,7 +1993,7 @@ class YoutubeUserIE(InfoExtractor):
 
 	def report_download_page(self, username):
 		"""Report attempt to download user page."""
-		self._downloader.to_stdout(u'[youtube] user %s: Downloading page ' % (username))
+		self._downloader.to_screen(u'[youtube] user %s: Downloading page ' % (username))
 
 	def _real_initialize(self):
 		self._youtube_ie.initialize()
@@ -2090,7 +2094,7 @@ if __name__ == '__main__':
 			if not os.access (filename, os.W_OK):
 				sys.exit('ERROR: no write permissions on %s' % filename)
 
-			downloader.to_stdout('Updating to latest stable version...')
+			downloader.to_screen('Updating to latest stable version...')
 			latest_url = 'http://bitbucket.org/rg3/youtube-dl/raw/tip/LATEST_VERSION'
 			latest_version = urllib.urlopen(latest_url).read().strip()
 			prog_url = 'http://bitbucket.org/rg3/youtube-dl/raw/%s/youtube-dl' % latest_version
@@ -2098,7 +2102,7 @@ if __name__ == '__main__':
 			stream = open(filename, 'w')
 			stream.write(newcontent)
 			stream.close()
-			downloader.to_stdout('Updated to version %s' % latest_version)
+			downloader.to_screen('Updated to version %s' % latest_version)
 
 		# Parse command line
 		parser = optparse.OptionParser(
@@ -2280,6 +2284,7 @@ if __name__ == '__main__':
 			'continuedl': opts.continue_dl,
 			'noprogress': opts.noprogress,
 			'playliststart': opts.playliststart,
+			'logtostderr': opts.outtmpl == '-',
 			})
 		fd.add_info_extractor(youtube_search_ie)
 		fd.add_info_extractor(youtube_pl_ie)
