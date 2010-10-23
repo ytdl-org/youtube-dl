@@ -94,6 +94,9 @@ def sanitize_open(filename, open_mode):
 	"""
 	try:
 		if filename == u'-':
+			if sys.platform == 'win32':
+				import msvcrt
+				msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
 			return (sys.stdout, filename)
 		stream = open(filename, open_mode)
 		return (stream, filename)
