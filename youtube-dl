@@ -2095,9 +2095,9 @@ if __name__ == '__main__':
 				sys.exit('ERROR: no write permissions on %s' % filename)
 
 			downloader.to_screen('Updating to latest stable version...')
-			latest_url = 'http://bitbucket.org/rg3/youtube-dl/raw/tip/LATEST_VERSION'
+			latest_url = 'http://github.com/rg3/youtube-dl/raw/master/LATEST_VERSION'
 			latest_version = urllib.urlopen(latest_url).read().strip()
-			prog_url = 'http://bitbucket.org/rg3/youtube-dl/raw/%s/youtube-dl' % latest_version
+			prog_url = 'http://github.com/rg3/youtube-dl/raw/%s/youtube-dl' % latest_version
 			newcontent = urllib.urlopen(prog_url).read()
 			stream = open(filename, 'w')
 			stream.write(newcontent)
