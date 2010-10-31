@@ -1,0 +1,25 @@
+body {
+	font-family: sans-serif;
+	margin-left: 10%;
+	margin-right: 10%;
+	margin-top: 2ex;
+	margin-bottom: 3ex;
+	background-color: white;
+	color: black;
+}
+.note {
+	text-align: center;
+	font-size: x-small;
+}
+h1 {
+	color: #006699;
+	text-align: center;
+	border: 1px solid #dddddd;
+	background: #eeeeee;
+}
+h2 {
+	color: #006699;
+}
+tt {
+	background: #dddddd;
+}

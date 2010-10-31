@@ -1,0 +1,101 @@
+﻿<html>
+<head>
+<title>youtube-dl</title>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+<h1>youtube-dl: Download videos from YouTube.com</h1>
+
+<div class="note">(and more...)</div>
+
+<h2>What is it?</h2>
+
+<p><em>youtube-dl</em> is a small command-line program to download videos from YouTube.com and a few more sites. It requires the <a href="http://www.python.org/">Python interpreter</a>, version 2.x (x being at least 4), and it's not platform specific. It should work in your Unix box, in Windows or in Mac OS X. The latest version is <strong>2010.10.24</strong>. It's released to the public domain, which means you can modify it, redistribute it or use it however you like.</p>
+
+<p>I'll try to keep it updated if YouTube.com changes the way you access their videos. After all, it's a simple and short program. However, I can't guarantee anything. If you detect it stops working, check for new versions and/or inform me about the problem, indicating the program version you are using. My contact information is at <a href="http://rg03.wordpress.com/contact-me/">rg03.wordpress.com</a>. If the program stops working and I can't solve the problem but you have a solution, I'd like to know it. If that happens and you feel you can maintain the program yourself, tell me.</p>
+
+<p>Thanks for all the feedback received so far. I'm glad people find my program useful.</p>
+
+<h2>Usage instructions</h2>
+
+<p>In Windows, once you have installed the Python interpreter, save the program with the <em>.py</em> extension and put it somewhere in the PATH. Try to follow the <a href="windows.html">guide to install youtube-dl under Windows</a>.</p>
+
+<p>In Unix, download it, give it execution permission and copy it to one of the PATH directories (typically, <em>/usr/local/bin</em>).</p>
+
+<p>After that, you should be able to call it from the command line as <em>youtube-dl</em> or <em>youtube-dl.py</em>. I will use <em>youtube-dl</em> in the following examples. Usage instructions are easy. Use <em>youtube-dl</em> followed by a video URL or identifier. Example: <em>youtube-dl "http://www.youtube.com/watch?v=foobar"</em>. The video will be saved to the file <em>foobar.flv</em> in that example. As YouTube.com videos are usually in Flash Video format, their extension should be <em>flv</em>. In Linux and other unices, video players using a recent version of <em>ffmpeg</em> can play them. That includes VLC, MPlayer, etc. Those two work under Windows and other platforms, but you could also get a specific FLV player of your taste.</p>
+
+<p>If you try to run the program and you receive an error message containing the keyword <em>SyntaxError</em> near the end, it means your Python interpreter is too old.</p>
+
+<h2>More usage tips</h2>
+
+<p>The program is usually invoked as <em>youtube-dl</em> followed by options and the video URLs. Listing all the options here would make this text too long, so you can run <em>youtube-dl --help</em> and get a summary of them. From that point on you can start experimenting with the different options yourself. The most common ones are -t (or -l) to include the video title in the file name. Also, the -o option can specify the output file name and path. It allows special character sequences that can be used as templates to be replaced. See the "Output template" section for more details.</p>
+
+<h2>Download it</h2>
+
+<p>Note that if you directly click on these hyperlinks, your web browser will most likely display the program contents. It's usually better to right-click on it and choose the appropriate option, normally called <em>Save Target As</em> or <em>Save Link As</em>, depending on the web browser you are using.</p>
+
+<h3><a href="http://github.com/rg3/youtube-dl/raw/2010.10.24/youtube-dl">2010.10.24</a></h3>
+
+<ul>
+<li><strong>MD5</strong>: 4408021502046e52bc3d3ddd95123d44</li>
+<li><strong>SHA1</strong>: 5c5e68776be8eeefc2ddeeabccbc12185312fd69</li>
+<li><strong>SHA256</strong>: 1ec91cd1d791c62777724fb650fde3d6da1ad5c86b4f46ec0368759ce7a7a381</li>
+</ul>
+
+<h2>FAQ</h2>
+
+<p>The <a href="faq.html">Frequently Asked Questions</a> page contains answers to some common questions that pop up in my e-mail and in the <a href="http://github.com/rg3/youtube-dl/issues">issue tracker</a>. Be sure to check it before reporting problems.</p>
+
+<h2>Supported sites</h2>
+
+<ul>
+<li>YouTube.com.</li>
+<li>YouTube.com playlists (playlist URLs in "view_play_list" form).</li>
+<li>YouTube.com searches, using the special keyword "ytsearch" as a form of URL, as in "ytsearch:cute kittens". Do not forget the quotes if you want to include spaces in your search. Other variants are "ytsearchN" to download more than the first result, with N being a number, and "ytsearchall".</li>
+<li>metacafe.com.</li>
+<li>Google Video.</li>
+<li>Google Video searches ("gvsearch" keyword).</li>
+<li>Photobucket videos.</li>
+<li>Yahoo! video.</li>
+<li>Yahoo! video searches ("ybsearch" keyword).</li>
+<li>Dailymotion.</li>
+<li>A generic downloader that works in some sites.</li>
+</ul>
+
+<h2>Proxy support</h2>
+
+<p>youtube-dl supports downloading videos through a proxy, by setting the http_proxy environment variable to the proxy URL, as in <em>http://proxy_machine_name:port/</em>.</p>
+
+<h2>YouTube formats</h2>
+
+<p>Using the -f option and other related options, you can specify the video format to be downloaded from YouTube. Instead of keeping a video format table here, I will refer you to the <a href="http://en.wikipedia.org/wiki/YouTube#Quality_and_codecs">list of YouTube formats on Wikipedia</a>.</p>
+
+<h2>Output template</h2>
+
+<p>The -o option allows users to indicate a template for the output file names. The basic usage is not to set any template arguments when downloading a single file, like in <em>youtube-dl -o funny_video.flv "http://some/video"</em>. However, it may contain special sequences that will be replaced when downloading each video. The special sequences have the format <strong>%(NAME)s</strong>. To clarify, that's a percent symbol followed by a name in parenthesis, followed by a lowercase S. Allowed names are:</p>
+
+<ul>
+<li><em>id</em>: The sequence will be replaced by the video identifier.</li>
+<li><em>url</em>: The sequence will be replaced by the video URL.</li>
+<li><em>uploader</em>: The sequence will be replaced by the nickname of the person who uploaded the video.</li>
+<li><em>title</em>: The sequence will be replaced by the literal video title.</li>
+<li><em>stitle</em>: The sequence will be replaced by a simplified video title, restricted to alphanumeric characters and dashes.</li>
+<li><em>ext</em>: The sequence will be replaced by the appropriate extension (like <em>flv</em> or <em>mp4</em>).</li>
+<li><em>epoch</em>: The sequence will be replaced by the Unix epoch when creating the file.</li>
+<li><em>ord</em>: The sequence will be replaced by a five-digit number that will be increased with each download, starting at zero.</li>
+</ul>
+
+<p>As you may have guessed, the default template is <em>%(id)s.%(ext)s</em>. When some command line options are used, it's replaced by other templates like <em>%(title)s-%(id)s.%(ext)s</em>. You can specify your own.</p>
+
+<h2>Authors</h2>
+
+<ul>
+<li>Ricardo Garcia Gonzalez: program core, YouTube.com InfoExtractor, metacafe.com InfoExtractor and YouTube playlist InfoExtractor.</li>
+<li>Danny Colligan: YouTube search InfoExtractor, ideas and patches.</li>
+<li>Benjamin Johnson: Google Video InfoExtractor, Photobucket InfoExtractor, Yahoo! Video InfoExtractor, generic InfoExtractor, ideas, patches, etc.</li>
+<li>Many other people contributing patches, code, ideas and kind messages. Too many to be listed here. You know who you are. Thank you very much.</li>
+</ul>
+
+<div class="note">Copyright © 2006-2010 Ricardo Garcia Gonzalez</div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+import hashlib
+import subprocess
+import sys
+
+# Run command line and get output
+def output(cmdline):
+	p = subprocess.Popen(cmdline, shell=True, stdout=subprocess.PIPE)
+	retval = p.communicate()[0]
+	p.wait()
+	return retval
+
+# Read template page
+template = file('index.html.in', 'r').read()
+
+# Build replacement strings
+version = output('cd ../master && git tag | tail -1').strip()
+data = output('cd ../master && git show %s:youtube-dl' % version)
+url = 'http://github.com/rg3/youtube-dl/raw/%s/youtube-dl' % version
+md5sum = hashlib.md5(data).hexdigest()
+sha1sum = hashlib.sha1(data).hexdigest()
+sha256sum = hashlib.sha256(data).hexdigest()
+template = template.replace('@PROGRAM_VERSION@', version)
+template = template.replace('@PROGRAM_URL@', url)
+template = template.replace('@PROGRAM_MD5SUM@', md5sum)
+template = template.replace('@PROGRAM_SHA1SUM@', sha1sum)
+template = template.replace('@PROGRAM_SHA256SUM@', sha256sum)
+file('index.html', 'w').write(template)

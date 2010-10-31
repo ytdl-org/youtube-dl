@@ -1,0 +1,55 @@
+﻿<html>
+<head>
+<title>youtube-dl under Windows</title>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+<h1>youtube-dl under Windows</h1>
+
+<p>The following text explains how to run <em>youtube-dl</em> under <em>Microsoft Windows</em>. The first part describes some generic instructions about installing a command line program, followed by specific instructions on running <em>youtube-dl</em>.</p>
+
+<h2>Disclaimer</h2>
+
+<p>User <em>nishad</em> provides a standalone executable for youtube-dl. With it, you don't need the Python interpreter. In addition, he has created an optional graphical user interface to ease using the program. The following instructions apply if you want to install the official version of youtube-dl with the Python interpreter, and still apply if you want to install the standalone executable. In that case, you can skip the step of installing the Python interpreter.</p>
+
+<p>His contributions can be downloaded from <a href="http://www.himili.com/blog/downloads/youtube-video-downloader/">http://www.himili.com/blog/downloads/youtube-video-downloader/</a>. If you use these versions and find a problem, contact him first. He will redirect real youtube-dl issues to me.</p>
+
+<h2>Preparing to install a command line program</h2>
+
+<p>The Windows command line interpreter is a program called <em>cmd</em>. It can be found somewhere in the applications menu, but many people prefer to run it by clicking on <em>Start</em> &gt; <em>Run</em> and then typing <tt>cmd</tt> and pressing the enter key. It's very similar to the DOS command line interpreter, if you're old enough to remember it. When you launch it, it will be usually running at your home directory. It's <tt>C:\Documents and Settings\&lt;username&gt;</tt> usually, where <tt>&lt;username&gt;</tt> is your user name in that computer, and it will be waiting for you to input commands followed by the enter key. The text to the left of the cursor usually indicates the so-called <em>current working directory</em>, followed by a greater than (&gt;) symbol. You can go up the directory hierarchy with the command <tt>cd ..</tt>, change the current working drive letter by typing its name as a command, like <tt>D:</tt>, and you can go to a subdirectory (or subfolder, as Windows prefers to call it) by typing the command <tt>cd</tt> followed by its path, maybe using double quotes if the name contains spaces, like in <tt>cd "My Documents\My Porn\My Hardcore Orgies\Animals"</tt>. Just kidding. The cd command stands for <em>change [to] directory</em>.</p>
+
+<p>The goal here is to use <em>youtube-dl.py</em> as one of those system commands. The problem is that <em>youtube-dl.py</em> is a simple text file you will download from a webserver and will be stored in some obscure place in your hard drive. If you want to type <em>youtube-dl.py</em> in the command line interpreter and have it run the program, you will have to give the command line interpreter at least a clue about where to find the program, or it will find <em>youtube-dl.py</em> to be a meaningless name.</p>
+
+<p>This is where the PATH environment variable is important. Environment variables are pairs of names and values that are available to any program that is running on the computer. This environment variable is specially useful for the command line interpreter, as its value is a list of folders where system commands and programs can be found. So what we will do is to create a personal folder where we can drop command line programs, and add that folder to the list of folders in the PATH environment variable.</p>
+
+<p>So let's go to our home directory. Our home directory or folder is the one that contains folders such as <em>My Documents</em> or the <em>Desktop</em> folder. However, for some reason, Microsoft didn't make it simple to reach that directory. One would expect that going to the <em>My Documents</em> folder and going up one level, you'd reach the home directory, but that's not the case. The Windows explorer will take you to a different place if you go up from the <em>My Documents</em> folder. One straightforward way of going there is to click on <em>Start</em> &gt; <em>Run</em> and typing <tt>explorer "%USERPROFILE%"</tt> literally, followed by the enter key. Once there, right click on an empty space and choose to create a new folder, giving it an appropriate name like <em>Commands</em> or something similar. Double click to enter the newly created folder, and don't close that explorer window yet.</p>
+
+<p>Now click with the right mouse button on any <em>My Computer</em> icon, and choose <em>Properties</em>. There should be an <em>Advanced Options</em> tab, which has a <em>Environment Variables</em> button at the bottom, which you have to press. In the window that will be opened you can set your user or personal environment variables, and the system environment variables if you have enough security privileges. Modifying the personal environment variables will be enough for our case.</p>
+
+<p>First, check to see if you have a PATH environment variable among your personal variables. Usually, you won't have it, so you'll have to create a new variable, with the name PATH, and use <tt>%USERPROFILE%\Commands</tt>, literally, as the variable value. Be careful when typing that and don't forget to change the word <em>Commands</em> to the appropriate name if you didn't use that name when creating the folder. In the case a PATH environment variable already exists, it should contain one or more directories or folders, separated by semicolon characters. In that case, simply append <tt>;%USERPROFILE%\Commands</tt> at the end. Note the semicolon character used as a separator. It's also a good idea to create a personal variable named HOME with the value <tt>%USERPROFILE%</tt> at this moment. Finally, accept all the changes. Programs started from now on will have the new folder in the PATH environment variable.</p>
+
+<p>Up to this point, we have created a <em>Commands</em> folder where we can drop command line programs and later use them in the command line interpreter, because the interpreter will be able to find them. These steps were all generic, and you can drop any command line program in there. In the next step, we'll drop <em>youtube-dl.py</em> in it.</p>
+
+<h2>Running youtube-dl.py</h2>
+
+<p>If the <a href="http://www.python.org/">Python</a> interpreter is not installed in your system, install it now. There is a download section in the previous webpage that lets you download a Windows installer to run Python programs. Remember you have to get version 2.x, with x being at least 4.</p>
+
+<p>Now go to the <em>youtube-dl</em> webpage and download the program to your Windows Desktop. Under Windows, it's important that you use the .py suffix in the program name, so be sure to set it when downloading, or at least rename it after the download.</p>
+
+<p>Right click on it and select <em>Cut</em>. Go to the explorer Window we left open previously, right click on an emtpy space and choose <em>Paste</em>. Tadah! Installation finished.</p>
+
+<p>Now let's suppose I want to download a video to my Windows Desktop. Piece of cake: go to <em>Start</em> > <em>Run</em>, type <tt>cmd</tt> and press the enter key. Type the command <tt>cd desktop</tt> and then type the command <tt>youtube-dl.py "<url>"</tt>, where <tt><url></tt> is a YouTube video URL you can copy from your web browser program address bar, and paste it to the command line interpreter window by right clicking and choosing <em>Paste</em>, for example. Remember commands are always followed by pressing the enter key in the command line interpreter.</p>
+
+<h2>One final tip</h2>
+
+<p>If you are going to store all your videos in a fixed folder, some people find it handy to create a shortcut to <em>cmd</em> that starts with the current working directory set to that folder, so as to avoid typing a <em>cd</em> command each time they launch <em>cmd</em>. To do this, right click on an empty space in your Desktop and choose to create a new shortcut. The program you want to launch is <em>cmd</em> and you can give the shortcut any name you want. After it's created, right click on it, choose <em>Properties</em> and, in the <tt>Shortcut</tt> tab, which should be the one selected by default, there's an option called <tt>Start in:</tt>. Put something like <tt>%USERPROFILE%\Desktop</tt> or <tt>%USERPROFILE%\My Documents</tt> in it. Some people also prefer to put that shortcut in the quickstart bar to the right of the <em>Start</em> button. Whatever floats your boat.</p>
+
+<h2>Conclusions</h2>
+
+<p>The hardest part is preparing the Windows system to run user command line programs, as it's not initially prepared to do that. Linux, MacOSX and other systems are, in my humble opinion, better prepared, out of the box, for downloading and running your own command line programs easily.</p>
+
+<p>A remaining question is how to play those videos. You'll need a video player capable of playing FLV videos. I know a couple of them, but you should better ask a Windows expert about it. At least the video files will be in your hard drive, so sooner or later you'll be able to play them.</p>
+
+<p>Good luck!</p>
+</body>
+</html>

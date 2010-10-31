@@ -1,0 +1,31 @@
+﻿<html>
+<head>
+<title>youtube-dl Frequently Asked Questions</title>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+<h1>youtube-dl Frequently Asked Questions</h1>
+
+<h2>The program has stopped working. Please fix it.</h2>
+
+<p>First, that is not a question. Second, when reporting this type of issue please make sure you're using the latest version, and mention the version you're using in the bug report. You should also copy the command line you're using to call the program, and the program output so I can see how it fails and have an example of a specific video that's giving you problems.</p>
+
+<p>The preferred method to report bugs is to write me an e-mail. You can find my address in the <a href="http://rg03.wordpress.com/contact-me/">contact information page at rg03.wordpress.com</a>. Together with this, you should check if there's a similar recent issue reported in the issue tracker. If you decide to open a new issue or post a comment in an existing issue, mention that in the e-mail as well. Writing me by e-mail lets me answer you directly and I have your contact information, so I can get back to you for more information or ask you to test a solution for your problem.</p>
+
+<h2>Can you please put the -b option back?</h2>
+
+<p>Most people asking this question are not aware that youtube-dl now defaults to downloading the highest available quality as reported by YouTube, which will be 1080p or 720p in some cases, so you no longer need the -b option. For some specific videos, maybe YouTube does not report them to be available in a specific high quality format you're interested in. In that case, simply request it with the -f option and youtube-dl will try to download it.</p>
+
+<h2>I get  HTTP error 402 when trying to download a video. What's this?</h2>
+
+<p>Apparently YouTube requires you to pass a CAPTCHA test if you download too much. At this moment, there is no plan to solve this issue, as youtube-dl is a command line program that is many times used without X and in an unattended fashion, so there's no easy way of solving this, in my humble opinion. I have no plans to solve it at this moment, but let me know your ideas and code if you come up with something.</p>
+
+<h2>I have downloaded a video but how can I play it?</h2>
+
+<p>If you used youtube-dl to download a video and it wrote the video file to your hard drive, finishing with a completion message of 100%, the video is downloaded, so youtube-dl has finished its job and usually it's not to blame for problems that happen later. Not every video player supports FLV or MP4 files and every codec out there needed to play YouTube videos. In Linux, for example, I am generally pleased with <a href="http://www.mplayerhq.hu/">MPlayer</a>. In Windows, I tend to use <a href="http://www.videolan.org/">VLC</a>. Those usually work flawlessly.</p>
+
+<h2>Sometimes the program does not download the best quality format</h2>
+
+<p>This issue happens on YouTube and related to formats 34 and 18. Format 34 is, for many videos, 360p widescreen, and of higher quality than the same video in format 18. However, sometimes format 18 provides a better quality version, as format 34 appears to be just 240p for some videos. There is no plan to fix this. Currently the only way of finding out which version gives higher quality is to download a chunk of both formats and peek into the files themselves to find out, if you know how. As, in my experience, format 34 usually wins, and in many future videos uploaded in high definition formats it will be 360p, format 34 will remain as the format to download in case of doubt.</p>
+</body>
+</html>
