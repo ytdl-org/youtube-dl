@@ -16,9 +16,15 @@ h1 {
 	text-align: center;
 	border: 1px solid #dddddd;
 	background: #eeeeee;
+	margin-bottom: 3ex;
 }
 h2 {
+	margin-top: 2ex;
 	color: #006699;
+}
+p {
+	margin-left: 5%;
+	margin-right: 5%;
 }
 tt {
 	background: #dddddd;
