@@ -26,6 +26,14 @@ p {
 	margin-left: 5%;
 	margin-right: 5%;
 }
+ul {
+	margin-left: 5%;
+	margin-right: 5%;
+}
+li {
+	margin-top: 0.5ex;
+	margin-bottom: 0.5ex;
+}
 tt {
 	background: #dddddd;
 }
