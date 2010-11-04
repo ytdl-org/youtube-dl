@@ -204,6 +204,7 @@ class FileDownloader(object):
 	continuedl:       Try to continue downloads if possible.
 	noprogress:       Do not print the progress bar.
 	playliststart:    Playlist item to start at.
+	playlistend:      Playlist item to end at.
 	logtostderr:      Log messages to stderr instead of stdout.
 	"""
 
@@ -1968,8 +1969,8 @@ class YoutubePlaylistIE(InfoExtractor):
 
 		playliststart = self._downloader.params.get('playliststart', 1)
 		playliststart -= 1 #our arrays are zero-based but the playlist is 1-based
-		if playliststart > 0:
-			video_ids = video_ids[playliststart:]
+		playlistend = self._downloader.params.get('playlistend', -1) #last item of video_ids is not used
+		video_ids = video_ids[playliststart:playlistend] #always use slice as options have default values
 			
 		for id in video_ids:
 			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
@@ -2027,9 +2028,9 @@ class YoutubeUserIE(InfoExtractor):
 		video_ids.extend(ids_in_page)
 
 		playliststart = self._downloader.params.get('playliststart', 1)
-		playliststart = playliststart-1 #our arrays are zero-based but the playlist is 1-based
-		if playliststart > 0:
-			video_ids = video_ids[playliststart:]	
+		playliststart -= 1 #our arrays are zero-based but the playlist is 1-based
+		playlistend = self._downloader.params.get('playlistend', -1) #last item of video_ids is not used
+		video_ids = video_ids[playliststart:playlistend] #always use slice as options have default values
 
 		for id in video_ids:
 			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
@@ -2125,6 +2126,8 @@ if __name__ == '__main__':
 				dest='retries', metavar='RETRIES', help='number of retries (default is 10)', default=10)
 		parser.add_option('--playlist-start',
 				dest='playliststart', metavar='NUMBER', help='playlist video to start at (default is 1)', default=1)
+		parser.add_option('--playlist-end',
+				dest='playlistend', metavar='NUMBER', help='playlist video to end at (default is last)', default=-1)
 
 		authentication = optparse.OptionGroup(parser, 'Authentication Options')
 		authentication.add_option('-u', '--username',
@@ -2243,7 +2246,12 @@ if __name__ == '__main__':
 			try:
 				opts.playliststart = long(opts.playliststart)
 			except (TypeError, ValueError), err:
-				parser.error(u'invalid playlist page specified')
+				parser.error(u'invalid playlist-start page specified')
+		if opts.playlistend is not None:
+			try:
+				opts.playlistend = long(opts.playlistend)
+			except (TypeError, ValueError), err:
+				parser.error(u'invalid playlist-end page specified')
 
 		# Information extractors
 		youtube_ie = YoutubeIE()
@@ -2286,6 +2294,7 @@ if __name__ == '__main__':
 			'continuedl': opts.continue_dl,
 			'noprogress': opts.noprogress,
 			'playliststart': opts.playliststart,
+			'playlistend': opts.playlistend,
 			'logtostderr': opts.outtmpl == '-',
 			})
 		fd.add_info_extractor(youtube_search_ie)
