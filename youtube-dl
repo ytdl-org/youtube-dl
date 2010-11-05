@@ -2212,7 +2212,7 @@ if __name__ == '__main__':
 					batchfd = open(opts.batchfile, 'r')
 				batchurls = batchfd.readlines()
 				batchurls = [x.strip() for x in batchurls]
-				batchurls = [x for x in batchurls if len(x) > 0]
+				batchurls = [x for x in batchurls if len(x) > 0 and not re.search(r'^[#/;]', x)]
 			except IOError:
 				sys.exit(u'ERROR: batch file could not be read')
 		all_urls = batchurls + args
