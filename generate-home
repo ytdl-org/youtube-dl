@@ -16,7 +16,7 @@ template = file('index.html.in', 'r').read()
 # Build replacement strings
 version = output('cd ../master && git tag | tail -1').strip()
 data = output('cd ../master && git show %s:youtube-dl' % version)
-url = 'http://github.com/rg3/youtube-dl/raw/%s/youtube-dl' % version
+url = 'https://github.com/rg3/youtube-dl/raw/%s/youtube-dl' % version
 md5sum = hashlib.md5(data).hexdigest()
 sha1sum = hashlib.sha1(data).hexdigest()
 sha256sum = hashlib.sha256(data).hexdigest()

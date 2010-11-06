@@ -15,7 +15,7 @@
 
 <p><em>youtube-dl</em> is a small command-line program to download videos from YouTube.com and a few more sites. It requires the <a href="http://www.python.org/">Python interpreter</a>, version 2.x (x being at least 4), and it's not platform specific. It should work in your Unix box, in Windows or in Mac OS X. The latest version is <strong>@PROGRAM_VERSION@</strong>. It's released to the public domain, which means you can modify it, redistribute it or use it however you like.</p>
 
-<p>I'll try to keep it updated if YouTube.com changes the way you access their videos. After all, it's a simple and short program. However, I can't guarantee anything. If you detect it stops working, check for new versions and/or inform me about the problem, indicating the program version you are using. My contact information is at <a href="http://rg03.wordpress.com/contact-me/">rg03.wordpress.com</a>. If the program stops working and I can't solve the problem but you have a solution, I'd like to know it. If that happens and you feel you can maintain the program yourself, tell me.</p>
+<p>I'll try to keep it updated if YouTube.com changes the way you access their videos. After all, it's a simple and short program. However, I can't guarantee anything. If you detect it stops working, check for new versions and/or inform me about the problem, indicating the program version you are using. My contact information is at <a href="https://rg03.wordpress.com/contact-me/">rg03.wordpress.com</a>. If the program stops working and I can't solve the problem but you have a solution, I'd like to know it. If that happens and you feel you can maintain the program yourself, tell me.</p>
 
 <p>Thanks for all the feedback received so far. I'm glad people find my program useful.</p>
 
@@ -47,7 +47,7 @@
 
 <h2>FAQ</h2>
 
-<p>The <a href="faq.html">Frequently Asked Questions</a> page contains answers to some common questions that pop up in my e-mail and in the <a href="http://github.com/rg3/youtube-dl/issues">issue tracker</a>. Be sure to check it before reporting problems.</p>
+<p>The <a href="faq.html">Frequently Asked Questions</a> page contains answers to some common questions that pop up in my e-mail and in the <a href="https://github.com/rg3/youtube-dl/issues">issue tracker</a>. Be sure to check it before reporting problems.</p>
 
 <h2>Supported sites</h2>
 
