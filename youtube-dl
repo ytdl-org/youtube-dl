@@ -413,7 +413,7 @@ class FileDownloader(object):
 		try:
 			template_dict = dict(info_dict)
 			template_dict['epoch'] = unicode(long(time.time()))
-			template_dict['ord'] = unicode('%05d' % self._num_downloads)
+			template_dict['autonumber'] = unicode('%05d' % self._num_downloads)
 			filename = self.params['outtmpl'] % template_dict
 		except (ValueError, KeyError), err:
 			self.trouble(u'ERROR: invalid system charset or erroneous output template')
@@ -2171,6 +2171,8 @@ if __name__ == '__main__':
 				action='store_true', dest='usetitle', help='use title in file name', default=False)
 		filesystem.add_option('-l', '--literal',
 				action='store_true', dest='useliteral', help='use literal title in file name', default=False)
+		filesystem.add_option('-A', '--auto-number',
+				action='store_true', dest='autonumber', help='number downloaded URLs starting from 00000', default=False)
 		filesystem.add_option('-o', '--output',
 				dest='outtmpl', metavar='TEMPLATE', help='output filename template')
 		filesystem.add_option('-a', '--batch-file',
@@ -2224,8 +2226,8 @@ if __name__ == '__main__':
 			parser.error(u'using .netrc conflicts with giving username/password')
 		if opts.password is not None and opts.username is None:
 			parser.error(u'account username missing')
-		if opts.outtmpl is not None and (opts.useliteral or opts.usetitle):
-			parser.error(u'using output template conflicts with using title or literal title')
+		if opts.outtmpl is not None and (opts.useliteral or opts.usetitle or opts.autonumber):
+			parser.error(u'using output template conflicts with using title, literal title or auto number')
 		if opts.usetitle and opts.useliteral:
 			parser.error(u'using title conflicts with using literal title')
 		if opts.username is not None and opts.password is None:
@@ -2284,8 +2286,11 @@ if __name__ == '__main__':
 				or (opts.format == '-1' and opts.usetitle and u'%(stitle)s-%(id)s-%(format)s.%(ext)s')
 				or (opts.format == '-1' and opts.useliteral and u'%(title)s-%(id)s-%(format)s.%(ext)s')
 				or (opts.format == '-1' and u'%(id)s-%(format)s.%(ext)s')
+				or (opts.usetitle and opts.autonumber and u'%(autonumber)s-%(stitle)s-%(id)s.%(ext)s')
+				or (opts.useliteral and opts.autonumber and u'%(autonumber)s-%(title)s-%(id)s.%(ext)s')
 				or (opts.usetitle and u'%(stitle)s-%(id)s.%(ext)s')
 				or (opts.useliteral and u'%(title)s-%(id)s.%(ext)s')
+				or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
 				or u'%(id)s.%(ext)s'),
 			'ignoreerrors': opts.ignoreerrors,
 			'ratelimit': opts.ratelimit,
