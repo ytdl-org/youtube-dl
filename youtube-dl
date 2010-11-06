@@ -2172,7 +2172,7 @@ if __name__ == '__main__':
 		filesystem.add_option('-l', '--literal',
 				action='store_true', dest='useliteral', help='use literal title in file name', default=False)
 		filesystem.add_option('-A', '--auto-number',
-				action='store_true', dest='autonumber', help='number downloaded URLs starting from 00000', default=False)
+				action='store_true', dest='autonumber', help='number downloaded files starting from 00000', default=False)
 		filesystem.add_option('-o', '--output',
 				dest='outtmpl', metavar='TEMPLATE', help='output filename template')
 		filesystem.add_option('-a', '--batch-file',
