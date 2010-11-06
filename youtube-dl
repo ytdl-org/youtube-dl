@@ -20,6 +20,7 @@ import sys
 import time
 import urllib
 import urllib2
+import xml
 
 # parse_qs was moved from the cgi module to the urlparse module recently.
 try:
@@ -1381,6 +1382,85 @@ class PhotobucketIE(InfoExtractor):
 		except UnavailableVideoError:
 			self._downloader.trouble(u'ERROR: unable to download video')
 
+class VimeoIE(InfoExtractor):
+	"""Information extractor for vimeo.com."""
+
+	_VALID_URL = r'(?:http://)?vimeo\.com\/(\d+)'
+
+	def __init__(self, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+
+	@staticmethod
+	def suitable(url):
+		return (re.match(VimeoIE._VALID_URL, url) is not None)
+
+	def report_download_webpage(self, video_id):
+		"""Report webpage download."""
+		self._downloader.to_screen(u'[vimeo] %s: Downloading webpage' % video_id)
+
+	def report_extraction(self, video_id):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[vimeo] %s: Extracting information' % video_id)
+
+	def _real_initialize(self):
+		return
+
+	def _real_extract(self, url):
+		# Extract id from URL
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
+			return
+
+		# At this point we have a new video
+		self._downloader.increment_downloads()
+		video_id = mobj.group(1)
+
+		video_extension = 'mp4'
+
+		# Retrieve video webpage to extract further information
+		download_url = "http://vimeo.com/moogaloop/load/clip:%s/embed/?moog_width=1680&moog_height=556&embed_location=&param_clip_id=%s" % (video_id,
+video_id)
+		request = urllib2.Request(download_url, None, std_headers)
+		try:
+			self.report_download_webpage(video_id)
+			webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: Unable to retrieve video webpage: %s' % str(err))
+			return
+
+		# Extract URL, uploader, and title from webpage
+		self.report_extraction(video_id)
+
+		from xml.etree.ElementTree import ElementTree
+		root = xml.etree.ElementTree.fromstring(webpage)
+
+		request_signature = root.find('request_signature').text
+		timestamp = root.find('request_signature_expires').text
+	
+		video_url = "http://vimeo.com/moogaloop/play/clip:%s/%s/%s/?q=hd&type=embed&embed_location=" % (video_id, request_signature, timestamp)
+
+		video_title = root.find('video/caption').text
+		video_title = sanitize_title(video_title)
+		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
+		simple_title = simple_title.strip(ur'_')
+
+		video_uploader = root.find('video/uploader_display_name').text
+
+		try:
+			# Process video information
+			self._downloader.process_info({
+				'id':		video_id.decode('utf-8'),
+				'url':		video_url.decode('utf-8'),
+				'uploader':	video_uploader,
+				'title':	video_title,
+				'stitle':	simple_title,
+				'ext':		video_extension.decode('utf-8'),
+				'format':	u'NA',
+				'player_url':	None,
+			})
+		except UnavailableVideoError:
+			self._downloader.trouble(u'ERROR: unable to download video')
 
 class YahooIE(InfoExtractor):
 	"""Information extractor for video.yahoo.com."""
@@ -2263,6 +2343,7 @@ if __name__ == '__main__':
 		google_ie = GoogleIE()
 		google_search_ie = GoogleSearchIE(google_ie)
 		photobucket_ie = PhotobucketIE()
+		vimeo_ie = VimeoIE()
 		yahoo_ie = YahooIE()
 		yahoo_search_ie = YahooSearchIE(yahoo_ie)
 		generic_ie = GenericIE()
@@ -2306,6 +2387,7 @@ if __name__ == '__main__':
 		fd.add_info_extractor(google_ie)
 		fd.add_info_extractor(google_search_ie)
 		fd.add_info_extractor(photobucket_ie)
+		fd.add_info_extractor(vimeo_ie)
 		fd.add_info_extractor(yahoo_ie)
 		fd.add_info_extractor(yahoo_search_ie)
 
