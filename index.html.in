@@ -33,6 +33,8 @@
 
 <p>The program is usually invoked as <em>youtube-dl</em> followed by options and the video URLs. Listing all the options here would make this text too long, so you can run <em>youtube-dl --help</em> and get a summary of them. From that point on you can start experimenting with the different options yourself. The most common ones are -t (or -l) to include the video title in the file name. Also, the -o option can specify the output file name and path. It allows special character sequences that can be used as templates to be replaced. See the "Output template" section for more details.</p>
 
+<p>Some YouTube videos are served using Adobe's proprietary RTMP protocol, which imposes DRM restrictions and encrypts the connection. <em>youtube-dl</em> is not able to download these videos by itself. However, it will attempt to use the <a href="http://rtmpdump.mplayerhq.hu/">rtmpdump</a> program, if it's installed in your system, to download these videos.</p>
+
 <h2>Download it</h2>
 
 <p>Note that if you directly click on these hyperlinks, your web browser will most likely display the program contents. It's usually better to right-click on it and choose the appropriate option, normally called <em>Save Target As</em> or <em>Save Link As</em>, depending on the web browser you are using.</p>
