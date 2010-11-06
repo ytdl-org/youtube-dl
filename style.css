@@ -22,6 +22,10 @@ h2 {
 	margin-top: 2ex;
 	color: #006699;
 }
+h3 {
+	margin-left: 5%;
+	margin-right: 5%;
+}
 p {
 	margin-left: 5%;
 	margin-right: 5%;
@@ -31,6 +35,7 @@ ul {
 	margin-right: 5%;
 }
 li {
+	margin-left: 3%;
 	margin-top: 0.5ex;
 	margin-bottom: 0.5ex;
 }
