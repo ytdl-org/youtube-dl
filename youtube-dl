@@ -831,7 +831,7 @@ class YoutubeIE(InfoExtractor):
 
 		# Get video webpage
 		self.report_video_webpage_download(video_id)
-		request = urllib2.Request('http://www.youtube.com/watch?v=%s&gl=US&hl=en' % video_id, None, std_headers)
+		request = urllib2.Request('http://www.youtube.com/watch?v=%s&gl=US&hl=en&amp;has_verified=1' % video_id, None, std_headers)
 		try:
 			video_webpage = urllib2.urlopen(request).read()
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
@@ -1027,7 +1027,7 @@ class MetacafeIE(InfoExtractor):
 		# Check if video comes from YouTube
 		mobj2 = re.match(r'^yt-(.*)$', video_id)
 		if mobj2 is not None:
-			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s&amp;has_verified=1' % mobj2.group(1))
+			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % mobj2.group(1))
 			return
 
 		# At this point we have a new video
