@@ -7,17 +7,21 @@
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body>
-<h1>youtube-dl under Windows</h1>
+
+<table class="heading"><tr>
+	<td class="title"><a href="index.html">youtube-dl</a></td>
+	<td class="subtitle">Running it under Windows</td>
+</tr></table>
 
 <p>The following text explains how to run <em>youtube-dl</em> under <em>Microsoft Windows</em>. The first part describes some generic instructions about installing a command line program, followed by specific instructions on running <em>youtube-dl</em>.</p>
 
-<h2>Disclaimer</h2>
+<h1>Disclaimer</h1>
 
 <p>User <em>nishad</em> provides a standalone executable for youtube-dl. With it, you don't need the Python interpreter. In addition, he has created an optional graphical user interface to ease using the program. The following instructions apply if you want to install the official version of youtube-dl with the Python interpreter, and still apply if you want to install the standalone executable. In that case, you can skip the step of installing the Python interpreter.</p>
 
 <p>His contributions can be downloaded from <a href="http://www.himili.com/blog/downloads/youtube-video-downloader/">http://www.himili.com/blog/downloads/youtube-video-downloader/</a>. If you use these versions and find a problem, contact him first. He will redirect real youtube-dl issues to me.</p>
 
-<h2>Preparing to install a command line program</h2>
+<h1>Preparing to install a command line program</h1>
 
 <p>The Windows command line interpreter is a program called <em>cmd</em>. It can be found somewhere in the applications menu, but many people prefer to run it by clicking on <em>Start</em> &gt; <em>Run</em> and then typing <tt>cmd</tt> and pressing the enter key. It's very similar to the DOS command line interpreter, if you're old enough to remember it. When you launch it, it will be usually running at your home directory. It's <tt>C:\Documents and Settings\&lt;username&gt;</tt> usually, where <tt>&lt;username&gt;</tt> is your user name in that computer, and it will be waiting for you to input commands followed by the enter key. The text to the left of the cursor usually indicates the so-called <em>current working directory</em>, followed by a greater than (&gt;) symbol. You can go up the directory hierarchy with the command <tt>cd ..</tt>, change the current working drive letter by typing its name as a command, like <tt>D:</tt>, and you can go to a subdirectory (or subfolder, as Windows prefers to call it) by typing the command <tt>cd</tt> followed by its path, maybe using double quotes if the name contains spaces, like in <tt>cd "My Documents\My Porn\My Hardcore Orgies\Animals"</tt>. Just kidding. The cd command stands for <em>change [to] directory</em>.</p>
 
@@ -33,7 +37,7 @@
 
 <p>Up to this point, we have created a <em>Commands</em> folder where we can drop command line programs and later use them in the command line interpreter, because the interpreter will be able to find them. These steps were all generic, and you can drop any command line program in there. In the next step, we'll drop <em>youtube-dl.py</em> in it.</p>
 
-<h2>Running youtube-dl.py</h2>
+<h1>Running youtube-dl.py</h1>
 
 <p>If the <a href="http://www.python.org/">Python</a> interpreter is not installed in your system, install it now. There is a download section in the previous webpage that lets you download a Windows installer to run Python programs. Remember you have to get version 2.x, with x being at least 4.</p>
 
@@ -43,11 +47,11 @@
 
 <p>Now let's suppose I want to download a video to my Windows Desktop. Piece of cake: go to <em>Start</em> > <em>Run</em>, type <tt>cmd</tt> and press the enter key. Type the command <tt>cd desktop</tt> and then type the command <tt>youtube-dl.py "&lt;url&gt;"</tt>, where <tt>&lt;url&gt;</tt> is a YouTube video URL you can copy from your web browser program address bar, and paste it to the command line interpreter window by right clicking and choosing <em>Paste</em>, for example. Remember commands are always followed by pressing the enter key in the command line interpreter.</p>
 
-<h2>One final tip</h2>
+<h1>One final tip</h1>
 
 <p>If you are going to store all your videos in a fixed folder, some people find it handy to create a shortcut to <em>cmd</em> that starts with the current working directory set to that folder, so as to avoid typing a <em>cd</em> command each time they launch <em>cmd</em>. To do this, right click on an empty space in your Desktop and choose to create a new shortcut. The program you want to launch is <em>cmd</em> and you can give the shortcut any name you want. After it's created, right click on it, choose <em>Properties</em> and, in the <tt>Shortcut</tt> tab, which should be the one selected by default, there's an option called <tt>Start in:</tt>. Put something like <tt>%USERPROFILE%\Desktop</tt> or <tt>%USERPROFILE%\My Documents</tt> in it. Some people also prefer to put that shortcut in the quickstart bar to the right of the <em>Start</em> button. Whatever floats your boat.</p>
 
-<h2>Conclusions</h2>
+<h1>Conclusions</h1>
 
 <p>The hardest part is preparing the Windows system to run user command line programs, as it's not initially prepared to do that. Linux, MacOSX and other systems are, in my humble opinion, better prepared, out of the box, for downloading and running your own command line programs easily.</p>
 

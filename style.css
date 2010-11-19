@@ -6,23 +6,80 @@ body {
 	margin-bottom: 3ex;
 	background-color: white;
 	color: black;
+	/*background-color: #fff1db;*/
+	background-color: white;
+	/*
+	background-image: url("gradient.png");
+	background-repeat: repeat-x;
+	*/
+	/*
+	background-image: url("gradient2.png");
+	background-repeat: repeat-y;
+	*/
+	/*
+	background-image: url("gradient3.png");
+	background-repeat: repeat-x;
+	*/
+	/*
+	background-image: url("gradient4.png");
+	background-repeat: repeat-y;
+	*/
+	background-image: url("gradient5.png");
+	background-repeat: repeat-x;
+}
+.heading {
+	border: 0;
+	color: black;
+	font-size: xx-large;
+	font-weight: bold;
+	padding-bottom: 1ex;
+	border-bottom: 1px solid black;
+	margin-bottom: 2ex;
+	width: 100%;
+}
+.heading tr {
+	border: 0;
+}
+.heading td {
+	border: 0;
+}
+.heading a {
+	text-decoration: none;
+	color: black;
+}
+.title {
+	text-align: left;
+}
+.subtitle {
+	text-align: right;
+}
+.toc {
+	padding-left: 2ex;
+	border: 1px solid #aaaaaa;
+	background-color: white;
+	padding-bottom: 1ex;
+	border-radius: 10px;
+	-moz-border-radius: 10px;
+}
+hr {
+	margin-top: 3ex;
+	margin-bottom: 3ex;
+	width: 50%;
 }
 .note {
+	margin-top: 10ex;
 	text-align: center;
 	font-size: x-small;
 }
 h1 {
-	color: #006699;
-	text-align: center;
-	border: 1px solid #dddddd;
-	background: #eeeeee;
-	margin-bottom: 3ex;
+	font-size: x-large;
+	margin-top: 2ex;
+	color: black;
+	margin-left: 2%;
+	margin-right: 2%;
 }
 h2 {
-	margin-top: 2ex;
-	color: #006699;
-}
-h3 {
+	font-size: large;
 	margin-left: 5%;
 	margin-right: 5%;
 }
@@ -40,5 +97,34 @@ li {
 	margin-bottom: 0.5ex;
 }
 tt {
+	padding-left: 0.5ex;
+	padding-right: 0.5ex;
 	background: #dddddd;
+}
+#rgb {
+	width: 95%;
+	margin: 3ex auto;
+}
+.button {
+	color: white;
+	font-weight: bold;
+	font-size: x-large;
+	text-decoration: none;
+	text-align: center;
+	display: block;
+	padding: 2ex;
+	border-radius: 10px;
+	-moz-border-radius: 10px;
+}
+#r {
+	background-color: #884444;
+	border: 2px solid #880000;
+}
+#g {
+	background-color: #448844;
+	border: 2px solid #006600;
+}
+#b {
+	background-color: #444488;
+	border: 2px solid #000088;
 }

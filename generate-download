@@ -11,7 +11,7 @@ def output(cmdline):
 	return retval
 
 # Read template page
-template = file('index.html.in', 'r').read()
+template = file('download.html.in', 'r').read()
 
 # Build replacement strings
 version = output('cd ../master && git tag | tail -1').strip()
@@ -25,4 +25,4 @@ template = template.replace('@PROGRAM_URL@', url)
 template = template.replace('@PROGRAM_MD5SUM@', md5sum)
 template = template.replace('@PROGRAM_SHA1SUM@', sha1sum)
 template = template.replace('@PROGRAM_SHA256SUM@', sha256sum)
-file('index.html', 'w').write(template)
+file('download.html', 'w').write(template)

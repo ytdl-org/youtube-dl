@@ -3,23 +3,31 @@
 <html>
 <head>
 <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
-<title>youtube-dl</title>
+<title>youtube-dl: Documentation</title>
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body>
-<h1>youtube-dl: Download videos from YouTube.com</h1>
 
-<div class="note">(and more...)</div>
+<table class="heading"><tr>
+	<td class="title"><a href="index.html">youtube-dl</a></td>
+	<td class="subtitle">Documentation</td>
+</tr></table>
 
-<h2>What is it?</h2>
+<div class="toc">
+<h1>Index</h1>
 
-<p><em>youtube-dl</em> is a small command-line program to download videos from YouTube.com and a few more sites. It requires the <a href="http://www.python.org/">Python interpreter</a>, version 2.x (x being at least 4), and it's not platform specific. It should work in your Unix box, in Windows or in Mac OS X. The latest version is <strong>@PROGRAM_VERSION@</strong>. It's released to the public domain, which means you can modify it, redistribute it or use it however you like.</p>
+<p>
+<a href="#d1">Getting started</a><br>
+<a href="#d2">More usage tips</a><br>
+<a href="#d3">Frequently Asked Questions</a><br>
+<a href="#d4">Supported sites</a><br>
+<a href="#d5">Proxy support</a><br>
+<a href="#d6">YouTube formats</a><br>
+<a href="#d7">Output template</a><br>
+</p>
+</div>
 
-<p>I'll try to keep it updated if YouTube.com changes the way you access their videos. After all, it's a simple and short program. However, I can't guarantee anything. If you detect it stops working, check for new versions and/or inform me about the problem, indicating the program version you are using. My contact information is at <a href="https://rg03.wordpress.com/contact-me/">rg03.wordpress.com</a>. If the program stops working and I can't solve the problem but you have a solution, I'd like to know it. If that happens and you feel you can maintain the program yourself, tell me.</p>
-
-<p>Thanks for all the feedback received so far. I'm glad people find my program useful.</p>
-
-<h2>Usage instructions</h2>
+<h1 id="d1">Getting started</h1>
 
 <p>In Windows, once you have installed the Python interpreter, save the program with the <em>.py</em> extension and put it somewhere in the PATH. Try to follow the <a href="windows.html">guide to install youtube-dl under Windows</a>.</p>
 
@@ -29,29 +37,17 @@
 
 <p>If you try to run the program and you receive an error message containing the keyword <em>SyntaxError</em> near the end, it means your Python interpreter is too old or from the 3.x branch.</p>
 
-<h2>More usage tips</h2>
+<h1 id="d2">More usage tips</h1>
 
 <p>The program is usually invoked as <em>youtube-dl</em> followed by options and the video URLs. Listing all the options here would make this text too long, so you can run <em>youtube-dl --help</em> and get a summary of them. From that point on you can start experimenting with the different options yourself. The most common ones are -t (or -l) to include the video title in the file name. Also, the -o option can specify the output file name and path. It allows special character sequences that can be used as templates to be replaced. See the "Output template" section for more details.</p>
 
 <p>Some YouTube videos are served using Adobe's proprietary RTMP protocol, which imposes DRM restrictions and encrypts the connection. <em>youtube-dl</em> is not able to download these videos by itself. However, it will attempt to use the <a href="http://rtmpdump.mplayerhq.hu/">rtmpdump</a> program, if it's installed in your system, to download these videos.</p>
 
-<h2>Download it</h2>
-
-<p>Note that if you directly click on these hyperlinks, your web browser will most likely display the program contents. It's usually better to right-click on it and choose the appropriate option, normally called <em>Save Target As</em> or <em>Save Link As</em>, depending on the web browser you are using.</p>
-
-<h3><a href="@PROGRAM_URL@">@PROGRAM_VERSION@</a></h3>
-
-<ul>
-<li><strong>MD5</strong>: @PROGRAM_MD5SUM@</li>
-<li><strong>SHA1</strong>: @PROGRAM_SHA1SUM@</li>
-<li><strong>SHA256</strong>: @PROGRAM_SHA256SUM@</li>
-</ul>
-
-<h2>FAQ</h2>
+<h1 id="d3">Frequently Asked Questions</h1>
 
 <p>The <a href="faq.html">Frequently Asked Questions</a> page contains answers to some common questions that pop up in my e-mail and in the <a href="https://github.com/rg3/youtube-dl/issues">issue tracker</a>. Be sure to check it before reporting problems.</p>
 
-<h2>Supported sites</h2>
+<h1 id="d4">Supported sites</h1>
 
 <ul>
 <li>YouTube.com.</li>
@@ -67,15 +63,15 @@
 <li>A generic downloader that works in some sites.</li>
 </ul>
 
-<h2>Proxy support</h2>
+<h1 id="d5">Proxy support</h1>
 
-<p>youtube-dl supports downloading videos through a proxy, by setting the http_proxy environment variable to the proxy URL, as in <em>http://proxy_machine_name:port/</em>.</p>
+<p>youtube-dl supports downloading videos through a proxy, by setting the <em>http_proxy</em> environment variable to the proxy URL, as in <tt>http://proxy_machine_name:port/</tt>.</p>
 
-<h2>YouTube formats</h2>
+<h1 id="d6">YouTube formats</h1>
 
 <p>Using the -f option and other related options, you can specify the video format to be downloaded from YouTube. Instead of keeping a video format table here, I will refer you to the <a href="http://en.wikipedia.org/wiki/YouTube#Quality_and_codecs">list of YouTube formats on Wikipedia</a>.</p>
 
-<h2>Output template</h2>
+<h1 id="d7">Output template</h1>
 
 <p>The -o option allows users to indicate a template for the output file names. The basic usage is not to set any template arguments when downloading a single file, like in <em>youtube-dl -o funny_video.flv "http://some/video"</em>. However, it may contain special sequences that will be replaced when downloading each video. The special sequences have the format <strong>%(NAME)s</strong>. To clarify, that's a percent symbol followed by a name in parenthesis, followed by a lowercase S. Allowed names are:</p>
 
@@ -91,15 +87,6 @@
 </ul>
 
 <p>As you may have guessed, the default template is <em>%(id)s.%(ext)s</em>. When some command line options are used, it's replaced by other templates like <em>%(title)s-%(id)s.%(ext)s</em>. You can specify your own.</p>
-
-<h2>Authors</h2>
-
-<ul>
-<li>Ricardo Garcia Gonzalez: program core, YouTube.com InfoExtractor, metacafe.com InfoExtractor and YouTube playlist InfoExtractor.</li>
-<li>Danny Colligan: YouTube search InfoExtractor, ideas and patches.</li>
-<li>Benjamin Johnson: Google Video InfoExtractor, Photobucket InfoExtractor, Yahoo! Video InfoExtractor, generic InfoExtractor, ideas, patches, etc.</li>
-<li>Many other people contributing patches, code, ideas and kind messages. Too many to be listed here. You know who you are. Thank you very much.</li>
-</ul>
 
 <div class="note">Copyright © 2006-2010 Ricardo Garcia Gonzalez</div>
 </body>
