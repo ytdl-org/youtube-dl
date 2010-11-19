@@ -5,7 +5,6 @@
 # Author: Benjamin Johnson
 # License: Public domain code
 import cookielib
-import datetime
 import htmlentitydefs
 import httplib
 import locale
@@ -36,6 +35,21 @@ std_headers = {
 }
 
 simple_title_chars = string.ascii_letters.decode('ascii') + string.digits.decode('ascii')
+
+month_name_to_number = {
+	'January':	'01',
+	'February':	'02',
+	'March':	'03',
+	'April':	'04',
+	'May':		'05',
+	'June':		'06',
+	'July':		'07',
+	'August':	'08',
+	'September':	'09',
+	'October':	'10',
+	'November':	'11',
+	'December':	'12',
+}
 
 def preferredencoding():
 	"""Get preferred encoding.
@@ -899,13 +913,18 @@ class YoutubeIE(InfoExtractor):
 		upload_date = u'NA'
 		mobj = re.search(r'id="eow-date".*?>(.*?)</span>', video_webpage, re.DOTALL)
 		if mobj is not None:
-			upload_date = mobj.group(1).split()
-			format_expressions = ['%d %B %Y', '%B %d, %Y']
-			for expression in format_expressions:
-				try:
-					upload_date = datetime.datetime.strptime(upload_date, expression).strftime('%Y%m%d')
-				except:
-					pass
+			try:
+				if ',' in mobj.group(1):
+					# Month Day, Year
+					m, d, y = mobj.group(1).replace(',', '').split()
+				else:
+					# Day Month Year, we'll suppose
+					d, m, y = mobj.group(1).split()
+				m = month_name_to_number[m]
+				d = '%02d' % (long(d))
+				upload_date = '%s%s%s' % (y, m, d)
+			except:
+				upload_date = u'NA'
 
 		# description
 		video_description = 'No description available.'
@@ -961,7 +980,7 @@ class YoutubeIE(InfoExtractor):
 					'id':		video_id.decode('utf-8'),
 					'url':		video_real_url.decode('utf-8'),
 					'uploader':	video_uploader.decode('utf-8'),
-					'uploaddate':	upload_date,
+					'upload_date':	upload_date,
 					'title':	video_title,
 					'stitle':	simple_title,
 					'ext':		video_extension.decode('utf-8'),
@@ -1108,7 +1127,7 @@ class MetacafeIE(InfoExtractor):
 				'id':		video_id.decode('utf-8'),
 				'url':		video_url.decode('utf-8'),
 				'uploader':	video_uploader.decode('utf-8'),
-				'uploaddate':	u'NA',
+				'upload_date':	u'NA',
 				'title':	video_title,
 				'stitle':	simple_title,
 				'ext':		video_extension.decode('utf-8'),
@@ -1197,7 +1216,7 @@ class DailymotionIE(InfoExtractor):
 				'id':		video_id.decode('utf-8'),
 				'url':		video_url.decode('utf-8'),
 				'uploader':	video_uploader.decode('utf-8'),
-				'uploaddate':	u'NA',
+				'upload_date':	u'NA',
 				'title':	video_title,
 				'stitle':	simple_title,
 				'ext':		video_extension.decode('utf-8'),
@@ -1307,7 +1326,7 @@ class GoogleIE(InfoExtractor):
 				'id':		video_id.decode('utf-8'),
 				'url':		video_url.decode('utf-8'),
 				'uploader':	u'NA',
-				'uploaddate':	u'NA',
+				'upload_date':	u'NA',
 				'title':	video_title,
 				'stitle':	simple_title,
 				'ext':		video_extension.decode('utf-8'),
@@ -1389,7 +1408,7 @@ class PhotobucketIE(InfoExtractor):
 				'id':		video_id.decode('utf-8'),
 				'url':		video_url.decode('utf-8'),
 				'uploader':	video_uploader,
-				'uploaddate':	u'NA',
+				'upload_date':	u'NA',
 				'title':	video_title,
 				'stitle':	simple_title,
 				'ext':		video_extension.decode('utf-8'),
@@ -1544,7 +1563,7 @@ class YahooIE(InfoExtractor):
 				'id':		video_id.decode('utf-8'),
 				'url':		video_url,
 				'uploader':	video_uploader,
-				'uploaddate':	u'NA',
+				'upload_date':	u'NA',
 				'title':	video_title,
 				'stitle':	simple_title,
 				'ext':		video_extension.decode('utf-8'),
@@ -1647,7 +1666,7 @@ class GenericIE(InfoExtractor):
 				'id':		video_id.decode('utf-8'),
 				'url':		video_url.decode('utf-8'),
 				'uploader':	video_uploader,
-				'uploaddate':	u'NA',
+				'upload_date':	u'NA',
 				'title':	video_title,
 				'stitle':	simple_title,
 				'ext':		video_extension.decode('utf-8'),
