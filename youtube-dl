@@ -1718,6 +1718,118 @@ class YahooIE(InfoExtractor):
 			self._downloader.trouble(u'\nERROR: unable to download video')
 
 
+class VimeoIE(InfoExtractor):
+	"""Information extractor for vimeo.com."""
+
+	# _VALID_URL matches Vimeo URLs
+	_VALID_URL = r'(?:http://)?vimeo\.com/([0-9]+)'
+
+	def __init__(self, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+
+	@staticmethod
+	def suitable(url):
+		return (re.match(VimeoIE._VALID_URL, url) is not None)
+
+	def report_download_webpage(self, video_id):
+		"""Report webpage download."""
+		self._downloader.to_screen(u'[video.vimeo] %s: Downloading webpage' % video_id)
+
+	def report_extraction(self, video_id):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[video.vimeo] %s: Extracting information' % video_id)
+
+	def _real_initialize(self):
+		return
+
+	def _real_extract(self, url, new_video=True):
+		# Extract ID from URL
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
+			return
+
+		# At this point we have a new video
+		self._downloader.increment_downloads()
+		video_id = mobj.group(1)
+		video_extension = 'flv' # FIXME
+
+		# Retrieve video webpage to extract further information
+		request = urllib2.Request("http://vimeo.com/moogaloop/load/clip:%s" % video_id, None, std_headers)
+		try:
+			self.report_download_webpage(video_id)
+			webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: Unable to retrieve video webpage: %s' % str(err))
+			return
+
+		# Extract uploader and title from webpage
+		self.report_extraction(video_id)
+		mobj = re.search(r'<caption>(.*)</caption>', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video title')
+			return
+		video_title = mobj.group(1).decode('utf-8')
+		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
+
+		mobj = re.search(r'<uploader_url>http://vimeo.com/(.*)</uploader_url>', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video uploader')
+			return
+		video_uploader = mobj.group(1).decode('utf-8')
+
+		# Extract video thumbnail
+		mobj = re.search(r'<thumbnail>(.*)</thumbnail>', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video thumbnail')
+			return
+		video_thumbnail = mobj.group(1).decode('utf-8')
+
+		# # Extract video description
+		# mobj = re.search(r'<meta property="og:description" content="(.*)" />', webpage)
+		# if mobj is None:
+		# 	self._downloader.trouble(u'ERROR: unable to extract video description')
+		# 	return
+		# video_description = mobj.group(1).decode('utf-8')
+		# if not video_description: video_description = 'No description available.'
+		video_description = 'Foo.'
+
+		# Extract request signature
+		mobj = re.search(r'<request_signature>(.*)</request_signature>', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract request signature')
+			return
+		sig = mobj.group(1).decode('utf-8')
+
+		# Extract request signature expiration
+		mobj = re.search(r'<request_signature_expires>(.*)</request_signature_expires>', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract request signature expiration')
+			return
+		sig_exp = mobj.group(1).decode('utf-8')
+
+		video_url = "http://vimeo.com/moogaloop/play/clip:%s/%s/%s" % (video_id, sig, sig_exp)
+
+		try:
+			# Process video information
+			self._downloader.process_info({
+				'id':		video_id.decode('utf-8'),
+				'url':		video_url,
+				'uploader':	video_uploader,
+				'upload_date':	u'NA',
+				'title':	video_title,
+				'stitle':	simple_title,
+				'ext':		video_extension.decode('utf-8'),
+				'thumbnail':	video_thumbnail.decode('utf-8'),
+				'description':	video_description,
+				'thumbnail':	video_thumbnail,
+				'description':	video_description,
+				'player_url':	None,
+			})
+		except UnavailableVideoError:
+			self._downloader.trouble(u'ERROR: unable to download video')
+
+
 class GenericIE(InfoExtractor):
 	"""Generic last-resort information extractor."""
 
@@ -2537,6 +2649,7 @@ if __name__ == '__main__':
 			parser.error(u'invalid playlist end number specified')
 
 		# Information extractors
+		vimeo_ie = VimeoIE()
 		youtube_ie = YoutubeIE()
 		metacafe_ie = MetacafeIE(youtube_ie)
 		dailymotion_ie = DailymotionIE()
@@ -2588,6 +2701,7 @@ if __name__ == '__main__':
 			'nopart': opts.nopart,
 			'updatetime': opts.updatetime,
 			})
+		fd.add_info_extractor(vimeo_ie)
 		fd.add_info_extractor(youtube_search_ie)
 		fd.add_info_extractor(youtube_pl_ie)
 		fd.add_info_extractor(youtube_user_ie)
