@@ -236,6 +236,11 @@ class FileDownloader(object):
 				os.mkdir(dir)
 	
 	@staticmethod
+	def temp_name(filename):
+		"""Returns a temporary filename for the given filename."""
+		return filename + '.part'
+	
+	@staticmethod
 	def format_bytes(bytes):
 		if bytes is None:
 			return 'N/A'
@@ -353,6 +358,12 @@ class FileDownloader(object):
 		speed = float(byte_counter) / elapsed
 		if speed > rate_limit:
 			time.sleep((byte_counter - rate_limit * (now - start_time)) / rate_limit)
+	
+	def try_rename(self, old_filename, new_filename):
+		try:
+			os.rename(old_filename, new_filename)
+		except (IOError, OSError), err:
+			self.trouble(u'ERROR: unable to rename file')
 
 	def report_destination(self, filename):
 		"""Report destination filename."""
@@ -484,6 +495,7 @@ class FileDownloader(object):
 	
 	def _download_with_rtmpdump(self, filename, url, player_url):
 		self.report_destination(filename)
+		tmpfilename = self.temp_name(filename)
 
 		# Check for rtmpdump first
 		try:
@@ -495,36 +507,43 @@ class FileDownloader(object):
 		# Download using rtmpdump. rtmpdump returns exit code 2 when
 		# the connection was interrumpted and resuming appears to be
 		# possible. This is part of rtmpdump's normal usage, AFAIK.
-		basic_args = ['rtmpdump', '-q'] + [[], ['-W', player_url]][player_url is not None] + ['-r', url, '-o', filename]
+		basic_args = ['rtmpdump', '-q'] + [[], ['-W', player_url]][player_url is not None] + ['-r', url, '-o', tmpfilename]
 		retval = subprocess.call(basic_args + [[], ['-e', '-k', '1']][self.params.get('continuedl', False)])
 		while retval == 2 or retval == 1:
-			prevsize = os.path.getsize(filename)
+			prevsize = os.path.getsize(tmpfilename)
 			self.to_screen(u'\r[rtmpdump] %s bytes' % prevsize, skip_eol=True)
 			time.sleep(5.0) # This seems to be needed
 			retval = subprocess.call(basic_args + ['-e'] + [[], ['-k', '1']][retval == 1])
-			cursize = os.path.getsize(filename)
+			cursize = os.path.getsize(tmpfilename)
 			if prevsize == cursize and retval == 1:
 				break
 		if retval == 0:
-			self.to_screen(u'\r[rtmpdump] %s bytes' % os.path.getsize(filename))
+			self.to_screen(u'\r[rtmpdump] %s bytes' % os.path.getsize(tmpfilename))
+			self.try_rename(tmpfilename, filename)
 			return True
 		else:
 			self.trouble(u'\nERROR: rtmpdump exited with code %d' % retval)
 			return False
 
 	def _do_download(self, filename, url, player_url):
+		# Check file already present
+		if self.params.get('continuedl', False) and os.path.isfile(filename):
+			self.report_file_already_downloaded(filename)
+			return True
+
 		# Attempt to download using rtmpdump
 		if url.startswith('rtmp'):
 			return self._download_with_rtmpdump(filename, url, player_url)
 
+		tmpfilename = self.temp_name(filename)
 		stream = None
 		open_mode = 'wb'
 		basic_request = urllib2.Request(url, None, std_headers)
 		request = urllib2.Request(url, None, std_headers)
 
 		# Establish possible resume length
-		if os.path.isfile(filename):
-			resume_len = os.path.getsize(filename)
+		if os.path.isfile(tmpfilename):
+			resume_len = os.path.getsize(tmpfilename)
 		else:
 			resume_len = 0
 
@@ -566,6 +585,7 @@ class FileDownloader(object):
 							# completely downloaded if the file size differs less than 100 bytes from
 							# the one in the hard drive.
 							self.report_file_already_downloaded(filename)
+							self.try_rename(tmpfilename, filename)
 							return True
 						else:
 							# The length does not match, we start the download over
@@ -599,7 +619,7 @@ class FileDownloader(object):
 			# Open file just in time
 			if stream is None:
 				try:
-					(stream, filename) = sanitize_open(filename, open_mode)
+					(stream, tmpfilename) = sanitize_open(tmpfilename, open_mode)
 					self.report_destination(filename)
 				except (OSError, IOError), err:
 					self.trouble(u'ERROR: unable to open for writing: %s' % str(err))
@@ -623,6 +643,7 @@ class FileDownloader(object):
 		self.report_finish()
 		if data_len is not None and str(byte_counter) != data_len:
 			raise ContentTooShortError(byte_counter, long(data_len))
+		self.try_rename(tmpfilename, filename)
 		return True
 
 class InfoExtractor(object):
