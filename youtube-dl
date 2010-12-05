@@ -110,6 +110,17 @@ def sanitize_open(filename, open_mode):
 		stream = open(filename, open_mode)
 		return (stream, filename)
 
+def sanitize_html_message(message):
+	"""Sanitize message so it will be printed as it supposed to look in html
+	(i.e. remove multiple spaces)"""
+
+	# Remove repeated spaces
+	words = message.split(' ')
+	stripped_words = []
+	for word in words:
+		if len(word.strip()) > 0:
+			stripped_words.append(word.strip())
+	return ' '.join(stripped_words)
 
 class DownloadError(Exception):
 	"""Download Error exception.
@@ -158,6 +169,13 @@ class ContentTooShortError(Exception):
 	def __init__(self, downloaded, expected):
 		self.downloaded = downloaded
 		self.expected = expected
+
+class DownloadRestrictionError(Exception):
+	"""Download Restriction Error exception.
+
+	Some services may restrict downloading in different ways. For example
+	they may limit amount of downloads per period of time.
+	"""
 
 class FileDownloader(object):
 	"""File Downloader class.
@@ -2075,6 +2093,84 @@ class YoutubeUserIE(InfoExtractor):
 			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
 		return
 
+class DepositFilesIE(InfoExtractor):
+	"""Information extractor for depositfiles.com"""
+
+	_VALID_URL = r'(?:http://)?(?:\w+\.)?depositfiles.com/(?:../(?#locale))?files/(.+)'
+
+	def __init__(self, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+
+	@staticmethod
+	def suitable(url):
+		return (re.match(DepositFilesIE._VALID_URL, url) is not None)
+
+	def report_download_webpage(self, file_id):
+		"""Report webpage download."""
+		self._downloader.to_screen(u'[DepositFiles] %s: Downloading webpage' % file_id)
+
+	def report_extraction(self, file_id):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[DepositFiles] %s: Extracting information' % file_id)
+
+	def _real_initialize(self):
+		return
+
+	def _real_extract(self, url):
+		# At this point we have a new file
+		self._downloader.increment_downloads()
+
+		file_id = url.split('/')[-1]
+		# Rebuild url in english locale
+		url = 'http://depositfiles.com/en/files/' + file_id
+
+		# Retrieve file webpage with 'Free download' button pressed
+		free_download_indication = { 'gateway_result' : '1' }
+		request = urllib2.Request(url, urllib.urlencode(free_download_indication))
+		try:
+			self.report_download_webpage(file_id)
+			webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: Unable to retrieve file webpage: %s' % str(err))
+			return
+
+		# Search for the real file URL
+		mobj = re.search(r'<form action="(http://fileshare.+?)"', webpage)
+		if (mobj is None) or (mobj.group(1) is None):
+			# Try to figure out reason of the error.
+			mobj = re.search(r'<strong>(Attention.*?)</strong>', webpage, re.DOTALL)
+			if (mobj is not None) and (mobj.group(1) is not None):
+				raise DownloadRestrictionError(sanitize_html_message(mobj.group(1)))
+
+			self._downloader.trouble(u'ERROR: unable to extract download URL from: %s' % url)
+			return
+
+		file_url = mobj.group(1)
+		file_extension = os.path.splitext(file_url)[1][1:]
+
+		# Search for file title
+		mobj = re.search(r'<b title="(.*?)">', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract title')
+			return
+		file_title = simple_title = mobj.group(1).decode('utf-8')
+
+		try:
+			# Process file information
+			self._downloader.process_info({
+				'id':		file_id.decode('utf-8'),
+				'url':		file_url.decode('utf-8'),
+				'uploader':	u'NA',
+				'upload_date':	u'NA',
+				'title':	file_title,
+				'stitle':	simple_title,
+				'ext':		file_extension.decode('utf-8'),
+				'format':	u'NA',
+				'player_url':	None,
+			})
+		except UnavailableVideoError, err:
+			self._downloader.trouble(u'ERROR: unable to download file')
+
 class PostProcessor(object):
 	"""Post Processor class.
 
@@ -2308,6 +2404,7 @@ if __name__ == '__main__':
 		photobucket_ie = PhotobucketIE()
 		yahoo_ie = YahooIE()
 		yahoo_search_ie = YahooSearchIE(yahoo_ie)
+		deposit_files_ie = DepositFilesIE()
 		generic_ie = GenericIE()
 
 		# File downloader
@@ -2354,6 +2451,7 @@ if __name__ == '__main__':
 		fd.add_info_extractor(photobucket_ie)
 		fd.add_info_extractor(yahoo_ie)
 		fd.add_info_extractor(yahoo_search_ie)
+		fd.add_info_extractor(deposit_files_ie)
 
 		# This must come last since it's the
 		# fallback if none of the others work
