@@ -1619,6 +1619,7 @@ class GenericIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
 			return
 
+		self.report_extraction(video_id)
 		# Start with something easy: JW Player in SWFObject
 		mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
 		if mobj is None:
