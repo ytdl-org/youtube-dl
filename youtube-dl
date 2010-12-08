@@ -110,18 +110,6 @@ def sanitize_open(filename, open_mode):
 		stream = open(filename, open_mode)
 		return (stream, filename)
 
-def sanitize_html_message(message):
-	"""Sanitize message so it will be printed as it supposed to look in html
-	(i.e. remove multiple spaces)"""
-
-	# Remove repeated spaces
-	words = message.split(' ')
-	stripped_words = []
-	for word in words:
-		if len(word.strip()) > 0:
-			stripped_words.append(word.strip())
-	return ' '.join(stripped_words)
-
 class DownloadError(Exception):
 	"""Download Error exception.
 	
@@ -169,13 +157,6 @@ class ContentTooShortError(Exception):
 	def __init__(self, downloaded, expected):
 		self.downloaded = downloaded
 		self.expected = expected
-
-class DownloadRestrictionError(Exception):
-	"""Download Restriction Error exception.
-
-	Some services may restrict downloading in different ways. For example
-	they may limit amount of downloads per period of time.
-	"""
 
 class FileDownloader(object):
 	"""File Downloader class.
@@ -2126,7 +2107,7 @@ class DepositFilesIE(InfoExtractor):
 
 		# Retrieve file webpage with 'Free download' button pressed
 		free_download_indication = { 'gateway_result' : '1' }
-		request = urllib2.Request(url, urllib.urlencode(free_download_indication))
+		request = urllib2.Request(url, urllib.urlencode(free_download_indication), std_headers)
 		try:
 			self.report_download_webpage(file_id)
 			webpage = urllib2.urlopen(request).read()
@@ -2140,9 +2121,10 @@ class DepositFilesIE(InfoExtractor):
 			# Try to figure out reason of the error.
 			mobj = re.search(r'<strong>(Attention.*?)</strong>', webpage, re.DOTALL)
 			if (mobj is not None) and (mobj.group(1) is not None):
-				raise DownloadRestrictionError(sanitize_html_message(mobj.group(1)))
-
-			self._downloader.trouble(u'ERROR: unable to extract download URL from: %s' % url)
+				restriction_message = re.sub('\s+', ' ', mobj.group(1)).strip()
+				self._downloader.trouble(u'ERROR: %s' % restriction_message)
+			else:
+				self._downloader.trouble(u'ERROR: unable to extract download URL from: %s' % url)
 			return
 
 		file_url = mobj.group(1)
@@ -2153,7 +2135,7 @@ class DepositFilesIE(InfoExtractor):
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract title')
 			return
-		file_title = simple_title = mobj.group(1).decode('utf-8')
+		file_title = mobj.group(1).decode('utf-8')
 
 		try:
 			# Process file information
@@ -2163,7 +2145,7 @@ class DepositFilesIE(InfoExtractor):
 				'uploader':	u'NA',
 				'upload_date':	u'NA',
 				'title':	file_title,
-				'stitle':	simple_title,
+				'stitle':	file_title,
 				'ext':		file_extension.decode('utf-8'),
 				'format':	u'NA',
 				'player_url':	None,
