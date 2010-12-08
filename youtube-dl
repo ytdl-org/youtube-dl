@@ -639,6 +639,7 @@ class FileDownloader(object):
 			# Apply rate limit
 			self.slow_down(start, byte_counter)
 
+		stream.close()
 		self.report_finish()
 		if data_len is not None and str(byte_counter) != data_len:
 			raise ContentTooShortError(byte_counter, long(data_len))
@@ -1618,6 +1619,7 @@ class GenericIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
 			return
 
+		self.report_extraction(video_id)
 		# Start with something easy: JW Player in SWFObject
 		mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
 		if mobj is None:
