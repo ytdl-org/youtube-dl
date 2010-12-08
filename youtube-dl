@@ -3,6 +3,7 @@
 # Author: Ricardo Garcia Gonzalez
 # Author: Danny Colligan
 # Author: Benjamin Johnson
+# Author: Vasyl' Vavrychuk
 # License: Public domain code
 import cookielib
 import datetime
