@@ -944,7 +944,7 @@ class YoutubeIE(InfoExtractor):
 		video_token = urllib.unquote_plus(video_info['token'][0])
 
 		# Decide which formats to download
-		requested_format = self._downloader.params.get('format', None)
+		req_format = self._downloader.params.get('format', None)
 		get_video_template = 'http://www.youtube.com/get_video?video_id=%s&t=%s&eurl=&el=&ps=&asv=&fmt=%%s' % (video_id, video_token)
 
 		if 'fmt_url_map' in video_info:
@@ -958,12 +958,15 @@ class YoutubeIE(InfoExtractor):
 			if len(existing_formats) == 0:
 				self._downloader.trouble(u'ERROR: no known formats available for video')
 				return
-			if requested_format is None:
+			if req_format is None:
 				video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
-			elif requested_format == '-1':
+			elif req_format == '-1':
 				video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
 			else:
-				video_url_list = [(requested_format, get_video_template % requested_format)] # Specific format
+				if req_format in url_map:
+					video_url_list = [(req_format, url_map[req_format])] # Specific format
+				else:
+					video_url_list = [(req_format, get_video_template % req_format)] # Specific format
 
 		elif 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
 			self.report_rtmp_download()
