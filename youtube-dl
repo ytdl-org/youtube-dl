@@ -955,9 +955,9 @@ class YoutubeIE(InfoExtractor):
 				self._downloader.trouble(u'ERROR: no known formats available for video')
 				return
 			if requested_format is None:
-				video_url_list = [(existing_formats[0], get_video_template % existing_formats[0])] # Best quality
+				video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
 			elif requested_format == '-1':
-				video_url_list = [(f, get_video_template % f) for f in existing_formats] # All formats
+				video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
 			else:
 				video_url_list = [(requested_format, get_video_template % requested_format)] # Specific format
 
