@@ -238,7 +238,9 @@ class FileDownloader(object):
 	@staticmethod
 	def temp_name(filename):
 		"""Returns a temporary filename for the given filename."""
-		return filename + '.part'
+		if filename == u'-' or (os.path.exists(filename) and not os.path.isfile(filename)):
+			return filename
+		return filename + u'.part'
 	
 	@staticmethod
 	def format_bytes(bytes):
@@ -361,6 +363,8 @@ class FileDownloader(object):
 	
 	def try_rename(self, old_filename, new_filename):
 		try:
+			if old_filename == new_filename:
+				return
 			os.rename(old_filename, new_filename)
 		except (IOError, OSError), err:
 			self.trouble(u'ERROR: unable to rename file')
