@@ -2044,7 +2044,10 @@ class YoutubeUserIE(InfoExtractor):
 		self._downloader.to_screen("[youtube] user %s: Collected %d video ids" % (username, len(video_ids)))
 
 		for video_id in video_ids:
-			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % video_id)
+			try:
+				self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % video_id)
+			except DownloadError:
+				continue
 
 class PostProcessor(object):
 	"""Post Processor class.
