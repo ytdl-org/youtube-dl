@@ -606,8 +606,10 @@ class FileDownloader(object):
 			return False
 
 		data_len = data.info().get('Content-length', None)
+		if data_len is not None:
+			data_len = long(data_len) + resume_len
 		data_len_str = self.format_bytes(data_len)
-		byte_counter = 0
+		byte_counter = 0 + resume_len
 		block_size = 1024
 		start = time.time()
 		while True:
