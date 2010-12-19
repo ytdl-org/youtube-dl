@@ -33,6 +33,7 @@ std_headers = {
 	'User-Agent': 'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.12) Gecko/20101028 Firefox/3.6.12',
 	'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
 	'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+	'Accept-Encoding': 'gzip, deflate',
 	'Accept-Language': 'en-us,en;q=0.5',
 }
 
@@ -617,10 +618,9 @@ class FileDownloader(object):
 			before = time.time()
 			data_block = data.read(block_size)
 			after = time.time()
-			data_block_len = len(data_block)
-			if data_block_len == 0:
+			if len(data_block) == 0:
 				break
-			byte_counter += data_block_len
+			byte_counter += len(data_block)
 
 			# Open file just in time
 			if stream is None:
@@ -635,20 +635,20 @@ class FileDownloader(object):
 			except (IOError, OSError), err:
 				self.trouble(u'\nERROR: unable to write data: %s' % str(err))
 				return False
-			block_size = self.best_block_size(after - before, data_block_len)
+			block_size = self.best_block_size(after - before, len(data_block))
 
 			# Progress message
 			percent_str = self.calc_percent(byte_counter, data_len)
-			eta_str = self.calc_eta(start, time.time(), data_len, byte_counter)
-			speed_str = self.calc_speed(start, time.time(), byte_counter)
+			eta_str = self.calc_eta(start, time.time(), data_len - resume_len, byte_counter - resume_len)
+			speed_str = self.calc_speed(start, time.time(), byte_counter - resume_len)
 			self.report_progress(percent_str, data_len_str, speed_str, eta_str)
 
 			# Apply rate limit
-			self.slow_down(start, byte_counter)
+			self.slow_down(start, byte_counter - resume_len)
 
 		stream.close()
 		self.report_finish()
-		if data_len is not None and str(byte_counter) != data_len:
+		if data_len is not None and byte_counter != data_len:
 			raise ContentTooShortError(byte_counter, long(data_len))
 		self.try_rename(tmpfilename, filename)
 		return True
