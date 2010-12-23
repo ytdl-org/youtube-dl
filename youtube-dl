@@ -33,7 +33,7 @@ std_headers = {
 	'User-Agent': 'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.12) Gecko/20101028 Firefox/3.6.12',
 	'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
 	'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-	'Accept-Encoding': 'gzip, deflate',
+#	'Accept-Encoding': 'gzip, deflate',
 	'Accept-Language': 'en-us,en;q=0.5',
 }
 
@@ -2086,12 +2086,15 @@ class YoutubeUserIE(InfoExtractor):
 				if mobj.group(1) not in ids_in_page:
 					ids_in_page.append(mobj.group(1))
 
-			if len(ids_in_page) == 0:
-				# Got them all, now download!
+			video_ids.extend(ids_in_page)
+
+			# A little optimization - if current page is not "full", ie. does not contain PAGE_SIZE video ids then we can assume
+			# that this page is the last one - there are no more ids on further pages - no need to query again.
+
+			if len(ids_in_page) < self._GDATA_PAGE_SIZE:
 				break
 
 			pagenum += 1
-			video_ids.extend(ids_in_page)
 
 		self._downloader.to_screen("[youtube] user %s: Collected %d video ids" % (username, len(video_ids)))
 
