@@ -446,7 +446,7 @@ class FileDownloader(object):
 			return
 
 		try:
-			success = self._do_download(filename, info_dict['url'].encode('utf-8'), info_dict.get('player_url', None))
+			success = self._do_download(filename, info_dict['url'].encode('utf-8'), info_dict.get('player_url', None), info_dict['app'].encode('utf-8'))
 		except (OSError, IOError), err:
 			raise UnavailableVideoError
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
@@ -498,7 +498,7 @@ class FileDownloader(object):
 			if info is None:
 				break
 	
-	def _download_with_rtmpdump(self, filename, url, player_url):
+	def _download_with_rtmpdump(self, filename, url, player_url, app):
 		self.report_destination(filename)
 		tmpfilename = self.temp_name(filename)
 
@@ -512,7 +512,7 @@ class FileDownloader(object):
 		# Download using rtmpdump. rtmpdump returns exit code 2 when
 		# the connection was interrumpted and resuming appears to be
 		# possible. This is part of rtmpdump's normal usage, AFAIK.
-		basic_args = ['rtmpdump', '-q'] + [[], ['-W', player_url]][player_url is not None] + ['-r', url, '-o', tmpfilename]
+		basic_args = ['rtmpdump', '-q'] + [[], ['-W', player_url]][player_url is not None] + ['-y', app] + ['-r', url, '-o', tmpfilename]
 		retval = subprocess.call(basic_args + [[], ['-e', '-k', '1']][self.params.get('continuedl', False)])
 		while retval == 2 or retval == 1:
 			prevsize = os.path.getsize(tmpfilename)
@@ -530,7 +530,7 @@ class FileDownloader(object):
 			self.trouble(u'\nERROR: rtmpdump exited with code %d' % retval)
 			return False
 
-	def _do_download(self, filename, url, player_url):
+	def _do_download(self, filename, url, player_url, app):
 		# Check file already present
 		if self.params.get('continuedl', False) and os.path.isfile(filename):
 			self.report_file_already_downloaded(filename)
@@ -538,7 +538,7 @@ class FileDownloader(object):
 
 		# Attempt to download using rtmpdump
 		if url.startswith('rtmp'):
-			return self._download_with_rtmpdump(filename, url, player_url)
+			return self._download_with_rtmpdump(filename, url, player_url, app)
 
 		tmpfilename = self.temp_name(filename)
 		stream = None
@@ -948,8 +948,12 @@ class YoutubeIE(InfoExtractor):
 		# Decide which formats to download
 		req_format = self._downloader.params.get('format', None)
 
-		if 'fmt_url_map' in video_info:
-			url_map = dict(tuple(pair.split('|')) for pair in video_info['fmt_url_map'][0].split(','))
+		if 'fmt_stream_map' in video_info:
+			lst = []
+			for pair in (video_info['fmt_stream_map'][0].split(',')):
+				x = pair.split('|')
+				lst.append((x[0],(x[1],x[2])))
+			url_map = dict(lst)
 			format_limit = self._downloader.params.get('format_limit', None)
 			if format_limit is not None and format_limit in self._available_formats:
 				format_list = self._available_formats[self._available_formats.index(format_limit):]
@@ -960,15 +964,15 @@ class YoutubeIE(InfoExtractor):
 				self._downloader.trouble(u'ERROR: no known formats available for video')
 				return
 			if req_format is None:
-				video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
+				video_url_list = [(existing_formats[0], url_map[existing_formats[0]][0],  url_map[existing_formats[0]][1])] # Best quality
 			elif req_format == '-1':
-				video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
+				video_url_list = [(f, url_map[f][0], url_map[f][1]) for f in existing_formats] # All formats
 			else:
 				# Specific format
 				if req_format not in url_map:
 					self._downloader.trouble(u'ERROR: requested format not available')
 					return
-				video_url_list = [(req_format, url_map[req_format])] # Specific format
+				video_url_list = [(req_format, url_map[req_format][0], url_map[req_format][1])] # Specific format
 
 		elif 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
 			self.report_rtmp_download()
@@ -978,7 +982,7 @@ class YoutubeIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: no fmt_url_map or conn information found in video info')
 			return
 
-		for format_param, video_real_url in video_url_list:
+		for format_param, video_real_app, video_real_url in video_url_list:
 			# At this point we have a new video
 			self._downloader.increment_downloads()
 
@@ -991,6 +995,7 @@ class YoutubeIE(InfoExtractor):
 				self._downloader.process_info({
 					'id':		video_id.decode('utf-8'),
 					'url':		video_real_url.decode('utf-8'),
+					'app':		video_real_app.decode('utf-8'),
 					'uploader':	video_uploader.decode('utf-8'),
 					'upload_date':	upload_date,
 					'title':	video_title,
