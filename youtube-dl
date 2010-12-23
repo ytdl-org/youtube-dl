@@ -952,8 +952,11 @@ class YoutubeIE(InfoExtractor):
 			lst = []
 			for pair in (video_info['fmt_stream_map'][0].split(',')):
 				x = pair.split('|')
+				if x[2] == '':
+					x[2] = x[1]
 				lst.append((x[0],(x[1],x[2])))
 			url_map = dict(lst)
+			print(url_map)
 			format_limit = self._downloader.params.get('format_limit', None)
 			if format_limit is not None and format_limit in self._available_formats:
 				format_list = self._available_formats[self._available_formats.index(format_limit):]
