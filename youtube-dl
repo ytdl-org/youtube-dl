@@ -33,7 +33,7 @@ std_headers = {
 	'User-Agent': 'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.12) Gecko/20101028 Firefox/3.6.12',
 	'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
 	'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-	'Accept-Encoding': 'gzip, deflate',
+#	'Accept-Encoding': 'gzip, deflate',
 	'Accept-Language': 'en-us,en;q=0.5',
 }
 
@@ -2039,7 +2039,9 @@ class YoutubeUserIE(InfoExtractor):
 
 	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/user/(.*)'
 	_TEMPLATE_URL = 'http://gdata.youtube.com/feeds/api/users/%s'
-	_VIDEO_INDICATOR = r'http://gdata.youtube.com/feeds/api/videos/(.*)' # XXX Fix this.
+	_GDATA_PAGE_SIZE = 50
+	_GDATA_URL = 'http://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d'
+	_VIDEO_INDICATOR = r'/watch\?v=(.+?)&'
 	_youtube_ie = None
 
 	def __init__(self, youtube_ie, downloader=None):
@@ -2050,9 +2052,9 @@ class YoutubeUserIE(InfoExtractor):
 	def suitable(url):
 		return (re.match(YoutubeUserIE._VALID_URL, url) is not None)
 
-	def report_download_page(self, username):
+	def report_download_page(self, username, start_index):
 		"""Report attempt to download user page."""
-		self._downloader.to_screen(u'[youtube] user %s: Downloading page ' % (username))
+		self._downloader.to_screen(u'[youtube] user %s: Downloading video ids from %d to %d' % (username, start_index, start_index + self._GDATA_PAGE_SIZE))
 
 	def _real_initialize(self):
 		self._youtube_ie.initialize()
@@ -2064,34 +2066,50 @@ class YoutubeUserIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: invalid url: %s' % url)
 			return
 
-		# Download user page
 		username = mobj.group(1)
+
+		# Download video ids using YouTube Data API. Result size per query is limited (currently to 50 videos) so
+		# we need to query page by page until there are no video ids - it means we got all of them.
+
 		video_ids = []
-		pagenum = 1
+		pagenum = 0
 
-		self.report_download_page(username)
-		request = urllib2.Request(self._TEMPLATE_URL % (username), None, std_headers)
-		try:
-			page = urllib2.urlopen(request).read()
-		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self._downloader.trouble(u'ERROR: unable to download webpage: %s' % str(err))
-			return
+		while True:
+			start_index = pagenum * self._GDATA_PAGE_SIZE + 1
+			self.report_download_page(username, start_index)
 
-		# Extract video identifiers
-		ids_in_page = []
+			request = urllib2.Request(self._GDATA_URL % (username, self._GDATA_PAGE_SIZE, start_index), None, std_headers)
 
-		for mobj in re.finditer(self._VIDEO_INDICATOR, page):
-			if mobj.group(1) not in ids_in_page:
-				ids_in_page.append(mobj.group(1))
-		video_ids.extend(ids_in_page)
+			try:
+				page = urllib2.urlopen(request).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'ERROR: unable to download webpage: %s' % str(err))
+				return
 
-		playliststart = self._downloader.params.get('playliststart', 1) - 1
-		playlistend = self._downloader.params.get('playlistend', -1)
-		video_ids = video_ids[playliststart:playlistend]
+			# Extract video identifiers
+			ids_in_page = []
 
-		for id in video_ids:
-			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
-		return
+			for mobj in re.finditer(self._VIDEO_INDICATOR, page):
+				if mobj.group(1) not in ids_in_page:
+					ids_in_page.append(mobj.group(1))
+
+			video_ids.extend(ids_in_page)
+
+			# A little optimization - if current page is not "full", ie. does not contain PAGE_SIZE video ids then we can assume
+			# that this page is the last one - there are no more ids on further pages - no need to query again.
+
+			if len(ids_in_page) < self._GDATA_PAGE_SIZE:
+				break
+
+			pagenum += 1
+
+		self._downloader.to_screen("[youtube] user %s: Collected %d video ids" % (username, len(video_ids)))
+
+		for video_id in video_ids:
+			try:
+				self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % video_id)
+			except DownloadError:
+				continue
 
 class DepositFilesIE(InfoExtractor):
 	"""Information extractor for depositfiles.com"""
