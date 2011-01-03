@@ -1002,7 +1002,7 @@ class YoutubeIE(InfoExtractor):
 					'player_url':	player_url,
 				})
 			except UnavailableVideoError, err:
-				self._downloader.trouble(u'ERROR: unable to download video')
+				self._downloader.trouble(u'\nERROR: unable to download video')
 
 
 class MetacafeIE(InfoExtractor):
@@ -1147,7 +1147,7 @@ class MetacafeIE(InfoExtractor):
 				'player_url':	None,
 			})
 		except UnavailableVideoError:
-			self._downloader.trouble(u'ERROR: unable to download video')
+			self._downloader.trouble(u'\nERROR: unable to download video')
 
 
 class DailymotionIE(InfoExtractor):
@@ -1236,7 +1236,7 @@ class DailymotionIE(InfoExtractor):
 				'player_url':	None,
 			})
 		except UnavailableVideoError:
-			self._downloader.trouble(u'ERROR: unable to download video')
+			self._downloader.trouble(u'\nERROR: unable to download video')
 
 class GoogleIE(InfoExtractor):
 	"""Information extractor for video.google.com."""
@@ -1346,7 +1346,7 @@ class GoogleIE(InfoExtractor):
 				'player_url':	None,
 			})
 		except UnavailableVideoError:
-			self._downloader.trouble(u'ERROR: unable to download video')
+			self._downloader.trouble(u'\nERROR: unable to download video')
 
 
 class PhotobucketIE(InfoExtractor):
@@ -1428,7 +1428,7 @@ class PhotobucketIE(InfoExtractor):
 				'player_url':	None,
 			})
 		except UnavailableVideoError:
-			self._downloader.trouble(u'ERROR: unable to download video')
+			self._downloader.trouble(u'\nERROR: unable to download video')
 
 
 class YahooIE(InfoExtractor):
@@ -1586,7 +1586,7 @@ class YahooIE(InfoExtractor):
 				'player_url':	None,
 			})
 		except UnavailableVideoError:
-			self._downloader.trouble(u'ERROR: unable to download video')
+			self._downloader.trouble(u'\nERROR: unable to download video')
 
 
 class GenericIE(InfoExtractor):
@@ -1687,7 +1687,7 @@ class GenericIE(InfoExtractor):
 				'player_url':	None,
 			})
 		except UnavailableVideoError, err:
-			self._downloader.trouble(u'ERROR: unable to download video')
+			self._downloader.trouble(u'\nERROR: unable to download video')
 
 
 class YoutubeSearchIE(InfoExtractor):
