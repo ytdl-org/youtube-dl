@@ -6,6 +6,7 @@
 # Author: Vasyl' Vavrychuk
 # License: Public domain code
 import cookielib
+import ctypes
 import datetime
 import htmlentitydefs
 import httplib
@@ -208,6 +209,7 @@ class FileDownloader(object):
 	playliststart:    Playlist item to start at.
 	playlistend:      Playlist item to end at.
 	logtostderr:      Log messages to stderr instead of stdout.
+	consoletitle:     Display progress in console window's titlebar.
 	"""
 
 	params = None
@@ -332,6 +334,17 @@ class FileDownloader(object):
 		"""Print message to stderr."""
 		print >>sys.stderr, message.encode(preferredencoding())
 	
+	def to_cons_title(self, message):
+		"""Set console/terminal window title to message."""
+		if not self.params.get('consoletitle', False):
+			return
+		if os.name == 'nt' and ctypes.windll.kernel32.GetConsoleWindow():
+			# c_wchar_p() might not be necessary if `message` is
+			# already of type unicode()
+			ctypes.windll.kernel32.SetConsoleTitleW(ctypes.c_wchar_p(message))
+		elif 'TERM' in os.environ:
+			sys.stderr.write('\033]0;%s\007' % message.encode(preferredencoding()))
+
 	def fixed_template(self):
 		"""Checks if the output template is fixed."""
 		return (re.search(ur'(?u)%\(.+?\)s', self.params['outtmpl']) is None)
@@ -380,6 +393,8 @@ class FileDownloader(object):
 			return
 		self.to_screen(u'\r[download] %s of %s at %s ETA %s' %
 				(percent_str, data_len_str, speed_str, eta_str), skip_eol=True)
+		self.to_cons_title(u'youtube-dl - %s of %s at %s ETA %s' %
+				(percent_str.strip(), data_len_str.strip(), speed_str.strip(), eta_str.strip()))
 
 	def report_resuming_byte(self, resume_len):
 		"""Report attempt to resume at given byte."""
@@ -2293,6 +2308,8 @@ if __name__ == '__main__':
 				action='store_true', dest='getdescription', help='simulate, quiet but print video description', default=False)
 		verbosity.add_option('--no-progress',
 				action='store_true', dest='noprogress', help='do not print progress bar', default=False)
+		verbosity.add_option('--console-title',
+				action='store_true', dest='consoletitle', help='display progress in console titlebar', default=False)
 		parser.add_option_group(verbosity)
 
 		filesystem = optparse.OptionGroup(parser, 'Filesystem Options')
@@ -2434,6 +2451,7 @@ if __name__ == '__main__':
 			'playliststart': opts.playliststart,
 			'playlistend': opts.playlistend,
 			'logtostderr': opts.outtmpl == '-',
+			'consoletitle': opts.consoletitle,
 			})
 		fd.add_info_extractor(youtube_search_ie)
 		fd.add_info_extractor(youtube_pl_ie)
