@@ -2461,9 +2461,9 @@ if __name__ == '__main__':
 		# Dump regular expressions used to match supported sites
 		if opts.dump_regexps:
 			for ie in fd.ies:
-			    regex = ie.url_regex()
-			    if regex is not None:
-				print ie.url_regex()
+				regex = ie.url_regex()
+				if regex is not None:
+					print ie.url_regex()
 			sys.exit(0)
 
 		# Update version
