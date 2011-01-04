@@ -211,7 +211,7 @@ class FileDownloader(object):
 	"""
 
 	params = None
-	_ies = []
+	ies = []
 	_pps = []
 	_download_retcode = None
 	_num_downloads = None
@@ -219,7 +219,7 @@ class FileDownloader(object):
 
 	def __init__(self, params):
 		"""Create a FileDownloader object with the given options."""
-		self._ies = []
+		self.ies = []
 		self._pps = []
 		self._download_retcode = 0
 		self._num_downloads = 0
@@ -309,7 +309,7 @@ class FileDownloader(object):
 
 	def add_info_extractor(self, ie):
 		"""Add an InfoExtractor object to the end of the list."""
-		self._ies.append(ie)
+		self.ies.append(ie)
 		ie.set_downloader(self)
 	
 	def add_post_processor(self, pp):
@@ -470,7 +470,7 @@ class FileDownloader(object):
 
 		for url in url_list:
 			suitable_found = False
-			for ie in self._ies:
+			for ie in self.ies:
 				# Go to next InfoExtractor if not suitable
 				if not ie.suitable(url):
 					continue
@@ -715,6 +715,10 @@ class InfoExtractor(object):
 	def set_downloader(self, downloader):
 		"""Sets the downloader for this IE."""
 		self._downloader = downloader
+
+	def url_regex(self):
+		"""Returns the regular expression used by this info extractor to match a URL."""
+		return getattr(self, '_VALID_URL', None)
 	
 	def _real_initialize(self):
 		"""Real initialization process. Redefine in subclasses."""
@@ -2259,6 +2263,8 @@ if __name__ == '__main__':
 				dest='playlistend', metavar='NUMBER', help='playlist video to end at (default is last)', default=-1)
 		parser.add_option('--dump-user-agent',
 				action='store_true', dest='dump_user_agent', help='display the current browser identification', default=False)
+		parser.add_option('--dump-regexps',
+				action='store_true', dest='dump_regexps', help='display the regular expressions used to match supported sites', default=False)
 
 		authentication = optparse.OptionGroup(parser, 'Authentication Options')
 		authentication.add_option('-u', '--username',
@@ -2451,6 +2457,14 @@ if __name__ == '__main__':
 		# This must come last since it's the
 		# fallback if none of the others work
 		fd.add_info_extractor(generic_ie)
+
+		# Dump regular expressions used to match supported sites
+		if opts.dump_regexps:
+			for ie in fd.ies:
+			    regex = ie.url_regex()
+			    if regex is not None:
+				print ie.url_regex()
+			sys.exit(0)
 
 		# Update version
 		if opts.update_self:
