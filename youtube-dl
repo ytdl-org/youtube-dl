@@ -210,6 +210,7 @@ class FileDownloader(object):
 	playlistend:      Playlist item to end at.
 	logtostderr:      Log messages to stderr instead of stdout.
 	consoletitle:     Display progress in console window's titlebar.
+	nopart:           Do not use temporary .part files.
 	"""
 
 	params = None
@@ -237,14 +238,7 @@ class FileDownloader(object):
 		for dir in aggregate:
 			if not os.path.exists(dir):
 				os.mkdir(dir)
-	
-	@staticmethod
-	def temp_name(filename):
-		"""Returns a temporary filename for the given filename."""
-		if filename == u'-' or (os.path.exists(filename) and not os.path.isfile(filename)):
-			return filename
-		return filename + u'.part'
-	
+
 	@staticmethod
 	def format_bytes(bytes):
 		if bytes is None:
@@ -374,7 +368,14 @@ class FileDownloader(object):
 		speed = float(byte_counter) / elapsed
 		if speed > rate_limit:
 			time.sleep((byte_counter - rate_limit * (now - start_time)) / rate_limit)
-	
+
+	def temp_name(self, filename):
+		"""Returns a temporary filename for the given filename."""
+		if self.params.get('nopart', False) or filename == u'-' or \
+				(os.path.exists(filename) and not os.path.isfile(filename)):
+			return filename
+		return filename + u'.part'
+
 	def try_rename(self, old_filename, new_filename):
 		try:
 			if old_filename == new_filename:
@@ -547,7 +548,7 @@ class FileDownloader(object):
 
 	def _do_download(self, filename, url, player_url):
 		# Check file already present
-		if self.params.get('continuedl', False) and os.path.isfile(filename):
+		if self.params.get('continuedl', False) and os.path.isfile(filename) and not self.params.get('nopart', False):
 			self.report_file_already_downloaded(filename)
 			return True
 
@@ -2329,6 +2330,8 @@ if __name__ == '__main__':
 				action='store_true', dest='continue_dl', help='resume partially downloaded files', default=False)
 		filesystem.add_option('--cookies',
 				dest='cookiefile', metavar='FILE', help='file to dump cookie jar to')
+		filesystem.add_option('--no-part',
+				action='store_true', dest='nopart', help='do not use .part files', default=False)
 		parser.add_option_group(filesystem)
 
 		(opts, args) = parser.parse_args()
@@ -2452,6 +2455,7 @@ if __name__ == '__main__':
 			'playlistend': opts.playlistend,
 			'logtostderr': opts.outtmpl == '-',
 			'consoletitle': opts.consoletitle,
+			'nopart': opts.nopart,
 			})
 		fd.add_info_extractor(youtube_search_ie)
 		fd.add_info_extractor(youtube_pl_ie)
