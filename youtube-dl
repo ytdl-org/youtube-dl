@@ -429,6 +429,11 @@ class FileDownloader(object):
 			return filename
 		return filename + u'.part'
 
+	def undo_temp_name(self, filename):
+		if filename.endswith(u'.part'):
+			return filename[:-len(u'.part')]
+		return filename
+
 	def try_rename(self, old_filename, new_filename):
 		try:
 			if old_filename == new_filename:
@@ -698,6 +703,7 @@ class FileDownloader(object):
 			if stream is None:
 				try:
 					(stream, tmpfilename) = sanitize_open(tmpfilename, open_mode)
+					filename = self.undo_temp_name(tmpfilename)
 					self.report_destination(filename)
 				except (OSError, IOError), err:
 					self.trouble(u'ERROR: unable to open for writing: %s' % str(err))
