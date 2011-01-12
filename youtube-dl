@@ -2296,20 +2296,26 @@ if __name__ == '__main__':
 		import getpass
 		import optparse
 
-		# Function to update the program file with the latest version from bitbucket.org
+		# Function to update the program file with the latest version from the repository.
 		def update_self(downloader, filename):
 			# Note: downloader only used for options
-			if not os.access (filename, os.W_OK):
+			if not os.access(filename, os.W_OK):
 				sys.exit('ERROR: no write permissions on %s' % filename)
 
 			downloader.to_screen('Updating to latest stable version...')
-			latest_url = 'http://github.com/rg3/youtube-dl/raw/master/LATEST_VERSION'
-			latest_version = urllib.urlopen(latest_url).read().strip()
-			prog_url = 'http://github.com/rg3/youtube-dl/raw/%s/youtube-dl' % latest_version
-			newcontent = urllib.urlopen(prog_url).read()
-			stream = open(filename, 'w')
-			stream.write(newcontent)
-			stream.close()
+			try:
+				latest_url = 'http://github.com/rg3/youtube-dl/raw/master/LATEST_VERSION'
+				latest_version = urllib.urlopen(latest_url).read().strip()
+				prog_url = 'http://github.com/rg3/youtube-dl/raw/%s/youtube-dl' % latest_version
+				newcontent = urllib.urlopen(prog_url).read()
+			except (IOError, OSError), err:
+				sys.exit('ERROR: unable to download latest version')
+			try:
+				stream = open(filename, 'w')
+				stream.write(newcontent)
+				stream.close()
+			except (IOError, OSError), err:
+				sys.exit('ERROR: unable to overwrite current version')
 			downloader.to_screen('Updated to version %s' % latest_version)
 
 		# Parse command line
