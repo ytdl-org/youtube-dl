@@ -189,6 +189,12 @@ class YoutubeDLHandler(urllib2.HTTPHandler):
 		except zlib.error:
 			return zlib.decompress(data)
 	
+	@staticmethod
+	def addinfourl_wrapper(stream, headers, url, code):
+		if hasattr(urllib2.addinfourl, 'getcode'):
+			return urllib2.addinfourl(stream, headers, url, code)
+		return urllib2.addinfourl(stream, headers, url)
+	
 	def http_request(self, req):
 		for h in std_headers:
 			if h in req.headers:
@@ -205,12 +211,12 @@ class YoutubeDLHandler(urllib2.HTTPHandler):
 		# gzip
 		if resp.headers.get('Content-encoding', '') == 'gzip':
 			gz = gzip.GzipFile(fileobj=StringIO.StringIO(resp.read()), mode='r')
-			resp = urllib2.addinfourl(gz, old_resp.headers, old_resp.url)
+			resp = self.addinfourl_wrapper(gz, old_resp.headers, old_resp.url, old_resp.code)
 			resp.msg = old_resp.msg
 		# deflate
 		if resp.headers.get('Content-encoding', '') == 'deflate':
 			gz = StringIO.StringIO(self.deflate(resp.read()))
-			resp = urllib2.addinfourl(gz, old_resp.headers, old_resp.url)
+			resp = self.addinfourl_wrapper(gz, old_resp.headers, old_resp.url, old_resp.code)
 			resp.msg = old_resp.msg
 		return resp
 
