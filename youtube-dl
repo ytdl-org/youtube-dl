@@ -205,12 +205,12 @@ class YoutubeDLHandler(urllib2.HTTPHandler):
 		# gzip
 		if resp.headers.get('Content-encoding', '') == 'gzip':
 			gz = gzip.GzipFile(fileobj=StringIO.StringIO(resp.read()), mode='r')
-			resp = urllib2.addinfourl(gz, old_resp.headers, old_resp.url, old_resp.code)
+			resp = urllib2.addinfourl(gz, old_resp.headers, old_resp.url)
 			resp.msg = old_resp.msg
 		# deflate
 		if resp.headers.get('Content-encoding', '') == 'deflate':
 			gz = StringIO.StringIO(self.deflate(resp.read()))
-			resp = urllib2.addinfourl(gz, old_resp.headers, old_resp.url, old_resp.code)
+			resp = urllib2.addinfourl(gz, old_resp.headers, old_resp.url)
 			resp.msg = old_resp.msg
 		return resp
 
