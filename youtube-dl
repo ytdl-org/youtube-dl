@@ -193,7 +193,9 @@ class YoutubeDLHandler(urllib2.HTTPHandler):
 	def addinfourl_wrapper(stream, headers, url, code):
 		if hasattr(urllib2.addinfourl, 'getcode'):
 			return urllib2.addinfourl(stream, headers, url, code)
-		return urllib2.addinfourl(stream, headers, url)
+		ret = urllib2.addinfourl(stream, headers, url)
+		ret.code = code
+		return ret
 	
 	def http_request(self, req):
 		for h in std_headers:
