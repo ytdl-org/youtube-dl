@@ -4,6 +4,7 @@
 # Author: Danny Colligan
 # Author: Benjamin Johnson
 # Author: Vasyl' Vavrychuk
+# Author: Witold Baryluk
 # License: Public domain code
 import cookielib
 import ctypes
