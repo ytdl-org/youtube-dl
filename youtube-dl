@@ -258,6 +258,7 @@ class FileDownloader(object):
 	forcetitle:       Force printing title.
 	forcethumbnail:   Force printing thumbnail URL.
 	forcedescription: Force printing description.
+	forcefilename:    Force printing final filename.
 	simulate:         Do not download the video files.
 	format:           Video format code.
 	format_limit:     Highest quality format to try.
@@ -494,8 +495,21 @@ class FileDownloader(object):
 		"""Increment the ordinal that assigns a number to each file."""
 		self._num_downloads += 1
 
+	def prepare_filename(self, info_dict):
+		"""Generate the output filename."""
+		try:
+			template_dict = dict(info_dict)
+			template_dict['epoch'] = unicode(long(time.time()))
+			template_dict['autonumber'] = unicode('%05d' % self._num_downloads)
+			filename = self.params['outtmpl'] % template_dict
+			return filename
+		except (ValueError, KeyError), err:
+			self.trouble(u'ERROR: invalid system charset or erroneous output template')
+			return None
+
 	def process_info(self, info_dict):
 		"""Process a single dictionary returned by an InfoExtractor."""
+		filename = self.prepare_filename(info_dict)
 		# Do nothing else if in simulate mode
 		if self.params.get('simulate', False):
 			# Forced printings
@@ -507,16 +521,12 @@ class FileDownloader(object):
 				print info_dict['thumbnail'].encode(preferredencoding(), 'xmlcharrefreplace')
 			if self.params.get('forcedescription', False) and 'description' in info_dict:
 				print info_dict['description'].encode(preferredencoding(), 'xmlcharrefreplace')
+			if self.params.get('forcefilename', False) and filename is not None:
+				print filename.encode(preferredencoding(), 'xmlcharrefreplace')
 
 			return
 
-		try:
-			template_dict = dict(info_dict)
-			template_dict['epoch'] = unicode(long(time.time()))
-			template_dict['autonumber'] = unicode('%05d' % self._num_downloads)
-			filename = self.params['outtmpl'] % template_dict
-		except (ValueError, KeyError), err:
-			self.trouble(u'ERROR: invalid system charset or erroneous output template')
+		if filename is None:
 			return
 		if self.params.get('nooverwrites', False) and os.path.exists(filename):
 			self.to_stderr(u'WARNING: file exists and will be skipped')
@@ -2384,6 +2394,8 @@ if __name__ == '__main__':
 				action='store_true', dest='getthumbnail', help='simulate, quiet but print thumbnail URL', default=False)
 		verbosity.add_option('--get-description',
 				action='store_true', dest='getdescription', help='simulate, quiet but print video description', default=False)
+		verbosity.add_option('--get-filename',
+				action='store_true', dest='getfilename', help='simulate, quiet but print output filename', default=False)
 		verbosity.add_option('--no-progress',
 				action='store_true', dest='noprogress', help='do not print progress bar', default=False)
 		verbosity.add_option('--console-title',
@@ -2503,12 +2515,13 @@ if __name__ == '__main__':
 			'usenetrc': opts.usenetrc,
 			'username': opts.username,
 			'password': opts.password,
-			'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription),
+			'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription or opts.getfilename),
 			'forceurl': opts.geturl,
 			'forcetitle': opts.gettitle,
 			'forcethumbnail': opts.getthumbnail,
 			'forcedescription': opts.getdescription,
-			'simulate': (opts.simulate or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription),
+			'forcefilename': opts.getfilename,
+			'simulate': (opts.simulate or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription or opts.getfilename),
 			'format': opts.format,
 			'format_limit': opts.format_limit,
 			'outtmpl': ((opts.outtmpl is not None and opts.outtmpl.decode(preferredencoding()))
