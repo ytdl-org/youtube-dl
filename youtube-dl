@@ -6,6 +6,7 @@
 # Author: Vasyl' Vavrychuk
 # Author: Witold Baryluk
 # License: Public domain code
+import calendar
 import cookielib
 import ctypes
 import datetime
@@ -18,6 +19,7 @@ import netrc
 import os
 import os.path
 import re
+import rfc822
 import socket
 import string
 import StringIO
@@ -116,6 +118,17 @@ def sanitize_open(filename, open_mode):
 		# An exception here should be caught in the caller
 		stream = open(filename, open_mode)
 		return (stream, filename)
+
+def timeconvert(timestr):
+    """Convert RFC 2822-defined time string into system timestamp"""
+    timestamp = None
+    timetuple = rfc822.parsedate_tz(timestr)
+    if timetuple is not None:
+        timestamp = calendar.timegm(timetuple)
+        # adjust time if there's a time zone
+        if timetuple[9] is not None:
+            timestamp -= timetuple[9]
+    return timestamp
 
 class DownloadError(Exception):
 	"""Download Error exception.
@@ -748,6 +761,15 @@ class FileDownloader(object):
 		if data_len is not None and byte_counter != data_len:
 			raise ContentTooShortError(byte_counter, long(data_len))
 		self.try_rename(tmpfilename, filename)
+		# Update file modification time
+		timestr = data.info().get('last-modified', None)
+		if timestr is not None:
+			filetime = timeconvert(timestr)
+			if filetime is not None:
+				try:
+					os.utime(filename,(time.time(), filetime))
+				except:
+					pass
 		return True
 
 class InfoExtractor(object):
