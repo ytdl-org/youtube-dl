@@ -2117,7 +2117,7 @@ class YoutubePlaylistIE(InfoExtractor):
 class YoutubeUserIE(InfoExtractor):
 	"""Information Extractor for YouTube users."""
 
-	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/user/(.*)'
+	_VALID_URL = r'(?:(?:http://)?(?:\w+\.)?youtube.com/user/(.*)|ytuser:([^\s]+))'
 	_TEMPLATE_URL = 'http://gdata.youtube.com/feeds/api/users/%s'
 	_GDATA_PAGE_SIZE = 50
 	_GDATA_URL = 'http://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d'
@@ -2147,6 +2147,10 @@ class YoutubeUserIE(InfoExtractor):
 			return
 
 		username = mobj.group(1)
+
+		if not username:
+			# Probably the second group matched - meaning that the argument in the format "ytuser:USERNAME" was used.
+			username = mobj.group(2)
 
 		# Download video ids using YouTube Data API. Result size per query is limited (currently to 50 videos) so
 		# we need to query page by page until there are no video ids - it means we got all of them.
