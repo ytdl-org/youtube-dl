@@ -2187,7 +2187,16 @@ class YoutubeUserIE(InfoExtractor):
 
 			pagenum += 1
 
-		self._downloader.to_screen("[youtube] user %s: Collected %d video ids" % (username, len(video_ids)))
+		all_ids_count = len(video_ids)
+		playliststart = self._downloader.params.get('playliststart', 1) - 1
+		playlistend = self._downloader.params.get('playlistend', -1)
+
+		if playlistend == -1:
+			video_ids = video_ids[playliststart:]
+		else:
+			video_ids = video_ids[playliststart:playlistend]
+			
+		self._downloader.to_screen("[youtube] user %s: Collected %d video ids (downloading %d of them)" % (username, all_ids_count, len(video_ids)))
 
 		for video_id in video_ids:
 			try:
