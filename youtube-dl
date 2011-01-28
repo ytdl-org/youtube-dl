@@ -283,6 +283,7 @@ class FileDownloader(object):
 	logtostderr:      Log messages to stderr instead of stdout.
 	consoletitle:     Display progress in console window's titlebar.
 	nopart:           Do not use temporary .part files.
+	updatetime:       Use the Last-modified header to set output file timestamps.
 	"""
 
 	params = None
@@ -460,6 +461,23 @@ class FileDownloader(object):
 			os.rename(old_filename, new_filename)
 		except (IOError, OSError), err:
 			self.trouble(u'ERROR: unable to rename file')
+	
+	def try_utime(self, filename, last_modified_hdr):
+		"""Try to set the last-modified time of the given file."""
+		if last_modified_hdr is None:
+			return
+		if not os.path.isfile(filename):
+			return
+		timestr = last_modified_hdr
+		if timestr is None:
+			return
+		filetime = timeconvert(timestr)
+		if filetime is None:
+			return
+		try:
+			os.utime(filename,(time.time(), filetime))
+		except:
+			pass
 
 	def report_destination(self, filename):
 		"""Report destination filename."""
@@ -757,15 +775,11 @@ class FileDownloader(object):
 		if data_len is not None and byte_counter != data_len:
 			raise ContentTooShortError(byte_counter, long(data_len))
 		self.try_rename(tmpfilename, filename)
+
 		# Update file modification time
-		timestr = data.info().get('last-modified', None)
-		if timestr is not None:
-			filetime = timeconvert(timestr)
-			if filetime is not None:
-				try:
-					os.utime(filename,(time.time(), filetime))
-				except:
-					pass
+		if self.params.get('updatetime', True):
+			self.try_utime(filename, data.info().get('last-modified', None))
+
 		return True
 
 class InfoExtractor(object):
@@ -2439,6 +2453,9 @@ if __name__ == '__main__':
 				dest='cookiefile', metavar='FILE', help='file to dump cookie jar to')
 		filesystem.add_option('--no-part',
 				action='store_true', dest='nopart', help='do not use .part files', default=False)
+		filesystem.add_option('--no-mtime',
+				action='store_false', dest='updatetime',
+				help='do not use the Last-modified header to set the file modification time', default=True)
 		parser.add_option_group(filesystem)
 
 		(opts, args) = parser.parse_args()
@@ -2563,6 +2580,7 @@ if __name__ == '__main__':
 			'logtostderr': opts.outtmpl == '-',
 			'consoletitle': opts.consoletitle,
 			'nopart': opts.nopart,
+			'updatetime': opts.updatetime,
 			})
 		fd.add_info_extractor(youtube_search_ie)
 		fd.add_info_extractor(youtube_pl_ie)
