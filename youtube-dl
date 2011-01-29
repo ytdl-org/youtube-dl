@@ -5,6 +5,7 @@
 # Author: Benjamin Johnson
 # Author: Vasyl' Vavrychuk
 # Author: Witold Baryluk
+# Author: Paweł Paprota
 # License: Public domain code
 import cookielib
 import ctypes
@@ -2159,9 +2160,11 @@ class YoutubePlaylistIE(InfoExtractor):
 class YoutubeUserIE(InfoExtractor):
 	"""Information Extractor for YouTube users."""
 
-	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/user/(.*)'
+	_VALID_URL = r'(?:(?:(?:http://)?(?:\w+\.)?youtube.com/user/)|ytuser:)([A-Za-z0-9_-]+)'
 	_TEMPLATE_URL = 'http://gdata.youtube.com/feeds/api/users/%s'
-	_VIDEO_INDICATOR = r'http://gdata.youtube.com/feeds/api/videos/(.*)' # XXX Fix this.
+	_GDATA_PAGE_SIZE = 50
+	_GDATA_URL = 'http://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d'
+	_VIDEO_INDICATOR = r'/watch\?v=(.+?)&'
 	_youtube_ie = None
 
 	def __init__(self, youtube_ie, downloader=None):
@@ -2172,9 +2175,10 @@ class YoutubeUserIE(InfoExtractor):
 	def suitable(url):
 		return (re.match(YoutubeUserIE._VALID_URL, url) is not None)
 
-	def report_download_page(self, username):
+	def report_download_page(self, username, start_index):
 		"""Report attempt to download user page."""
-		self._downloader.to_screen(u'[youtube] user %s: Downloading page ' % (username))
+		self._downloader.to_screen(u'[youtube] user %s: Downloading video ids from %d to %d' %
+				           (username, start_index, start_index + self._GDATA_PAGE_SIZE))
 
 	def _real_initialize(self):
 		self._youtube_ie.initialize()
@@ -2186,34 +2190,63 @@ class YoutubeUserIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: invalid url: %s' % url)
 			return
 
-		# Download user page
 		username = mobj.group(1)
+
+		# Download video ids using YouTube Data API. Result size per
+		# query is limited (currently to 50 videos) so we need to query
+		# page by page until there are no video ids - it means we got
+		# all of them.
+
 		video_ids = []
-		pagenum = 1
+		pagenum = 0
 
-		self.report_download_page(username)
-		request = urllib2.Request(self._TEMPLATE_URL % (username))
-		try:
-			page = urllib2.urlopen(request).read()
-		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self._downloader.trouble(u'ERROR: unable to download webpage: %s' % str(err))
-			return
+		while True:
+			start_index = pagenum * self._GDATA_PAGE_SIZE + 1
+			self.report_download_page(username, start_index)
 
-		# Extract video identifiers
-		ids_in_page = []
+			request = urllib2.Request(self._GDATA_URL % (username, self._GDATA_PAGE_SIZE, start_index))
 
-		for mobj in re.finditer(self._VIDEO_INDICATOR, page):
-			if mobj.group(1) not in ids_in_page:
-				ids_in_page.append(mobj.group(1))
-		video_ids.extend(ids_in_page)
+			try:
+				page = urllib2.urlopen(request).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'ERROR: unable to download webpage: %s' % str(err))
+				return
 
+			# Extract video identifiers
+			ids_in_page = []
+
+			for mobj in re.finditer(self._VIDEO_INDICATOR, page):
+				if mobj.group(1) not in ids_in_page:
+					ids_in_page.append(mobj.group(1))
+
+			video_ids.extend(ids_in_page)
+
+			# A little optimization - if current page is not
+			# "full", ie. does not contain PAGE_SIZE video ids then
+			# we can assume that this page is the last one - there
+			# are no more ids on further pages - no need to query
+			# again.
+
+			if len(ids_in_page) < self._GDATA_PAGE_SIZE:
+				break
+
+			pagenum += 1
+
+		all_ids_count = len(video_ids)
 		playliststart = self._downloader.params.get('playliststart', 1) - 1
 		playlistend = self._downloader.params.get('playlistend', -1)
-		video_ids = video_ids[playliststart:playlistend]
 
-		for id in video_ids:
-			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
-		return
+		if playlistend == -1:
+			video_ids = video_ids[playliststart:]
+		else:
+			video_ids = video_ids[playliststart:playlistend]
+			
+		self._downloader.to_screen("[youtube] user %s: Collected %d video ids (downloading %d of them)" %
+				           (username, all_ids_count, len(video_ids)))
+
+		for video_id in video_ids:
+			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % video_id)
+
 
 class DepositFilesIE(InfoExtractor):
 	"""Information extractor for depositfiles.com"""
