@@ -1765,21 +1765,21 @@ class VimeoIE(InfoExtractor):
 
 		# Extract uploader and title from webpage
 		self.report_extraction(video_id)
-		mobj = re.search(r'<caption>(.*)</caption>', webpage)
+		mobj = re.search(r'<caption>(.*?)</caption>', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract video title')
 			return
 		video_title = mobj.group(1).decode('utf-8')
 		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
 
-		mobj = re.search(r'<uploader_url>http://vimeo.com/(.*)</uploader_url>', webpage)
+		mobj = re.search(r'<uploader_url>http://vimeo.com/(.*?)</uploader_url>', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract video uploader')
 			return
 		video_uploader = mobj.group(1).decode('utf-8')
 
 		# Extract video thumbnail
-		mobj = re.search(r'<thumbnail>(.*)</thumbnail>', webpage)
+		mobj = re.search(r'<thumbnail>(.*?)</thumbnail>', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract video thumbnail')
 			return
@@ -1795,14 +1795,14 @@ class VimeoIE(InfoExtractor):
 		video_description = 'Foo.'
 
 		# Extract request signature
-		mobj = re.search(r'<request_signature>(.*)</request_signature>', webpage)
+		mobj = re.search(r'<request_signature>(.*?)</request_signature>', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract request signature')
 			return
 		sig = mobj.group(1).decode('utf-8')
 
 		# Extract request signature expiration
-		mobj = re.search(r'<request_signature_expires>(.*)</request_signature_expires>', webpage)
+		mobj = re.search(r'<request_signature_expires>(.*?)</request_signature_expires>', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract request signature expiration')
 			return
