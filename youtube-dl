@@ -2405,7 +2405,7 @@ if __name__ == '__main__':
 		# Parse command line
 		parser = optparse.OptionParser(
 			usage='Usage: %prog [options] url...',
-			version='2010.12.09',
+			version='2011.01.30',
 			conflict_handler='resolve',
 		)
 
