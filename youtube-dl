@@ -2096,8 +2096,8 @@ class YahooSearchIE(InfoExtractor):
 class YoutubePlaylistIE(InfoExtractor):
 	"""Information Extractor for YouTube playlists."""
 
-	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/(?:(?:view_play_list|my_playlists)\?.*?p=|user/.*?/user/|p/)([^&]+).*'
-	_TEMPLATE_URL = 'http://www.youtube.com/view_play_list?p=%s&page=%s&gl=US&hl=en'
+	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/(?:(?:view_play_list|my_playlists|artist)\?.*?(p|a)=|user/.*?/user/|p/)([^&]+).*'
+	_TEMPLATE_URL = 'http://www.youtube.com/%s?%s=%s&page=%s&gl=US&hl=en'
 	_VIDEO_INDICATOR = r'/watch\?v=(.+?)&'
 	_MORE_PAGES_INDICATOR = r'(?m)>\s*Next\s*</a>'
 	_youtube_ie = None
@@ -2125,13 +2125,19 @@ class YoutubePlaylistIE(InfoExtractor):
 			return
 
 		# Download playlist pages
-		playlist_id = mobj.group(1)
+		# prefix is 'p' as default for playlists but there are other types that need extra care
+		playlist_prefix = mobj.group(1)
+		if playlist_prefix == 'a':
+			playlist_access = 'artist'
+		else:
+			playlist_access = 'view_play_list'
+		playlist_id = mobj.group(2)
 		video_ids = []
 		pagenum = 1
 
 		while True:
 			self.report_download_page(playlist_id, pagenum)
-			request = urllib2.Request(self._TEMPLATE_URL % (playlist_id, pagenum))
+			request = urllib2.Request(self._TEMPLATE_URL % (playlist_access, playlist_prefix, playlist_id, pagenum))
 			try:
 				page = urllib2.urlopen(request).read()
 			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
