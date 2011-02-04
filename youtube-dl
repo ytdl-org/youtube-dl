@@ -1723,7 +1723,7 @@ class VimeoIE(InfoExtractor):
 	"""Information extractor for vimeo.com."""
 
 	# _VALID_URL matches Vimeo URLs
-	_VALID_URL = r'(?:http://)?vimeo\.com/([0-9]+)'
+	_VALID_URL = r'(?:http://)?(?:www.)?vimeo\.com/([0-9]+)'
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
