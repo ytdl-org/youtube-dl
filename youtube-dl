@@ -2096,7 +2096,8 @@ class YahooSearchIE(InfoExtractor):
 class YoutubePlaylistIE(InfoExtractor):
 	"""Information Extractor for YouTube playlists."""
 
-	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/(?:(?:view_play_list|my_playlists|artist)\?.*?(p|a)=|user/.*?/user/|p/)([^&]+).*'
+	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/(?:(?:view_play_list|my_playlists|artist)\?.*?(?P<Pre1>p|a)=|user/.*?/user/|p/|user/.*?#(?P<Pre2>g|p)/c/)(?P<ID>[^&]+).*'
+	_COMBO_ID = r'(?:[^&]+)/(?:[^&]+)/(?P<ID>[^&]+)'
 	_TEMPLATE_URL = 'http://www.youtube.com/%s?%s=%s&page=%s&gl=US&hl=en'
 	_VIDEO_INDICATOR = r'/watch\?v=(.+?)&'
 	_MORE_PAGES_INDICATOR = r'(?m)>\s*Next\s*</a>'
@@ -2125,17 +2126,28 @@ class YoutubePlaylistIE(InfoExtractor):
 			return
 
 		# Download playlist pages
-		# prefix is 'p' as default for playlists but there are other types that need extra care
-		playlist_prefix = mobj.group(1)
-		if playlist_prefix == 'a':
-			playlist_access = 'artist'
-		else:
-			playlist_access = 'view_play_list'
-		playlist_id = mobj.group(2)
+		playlist_prefix = mobj.group('Pre1')
+		playlist_altprefix = mobj.group('Pre2')
+		playlist_id = mobj.group('ID')
+		is_playlist = True
 		video_ids = []
 		pagenum = 1
 
-		while True:
+		# prefix is 'p' as default for playlists but there are other types that need extra care
+		if playlist_prefix == 'a':
+			playlist_access = 'artist'
+		else:
+			if playlist_altprefix == 'p':
+				# Not really a playlist but single video within the list:
+				ids = re.match(self._COMBO_ID, playlist_id)
+				if ids is not None:
+					is_playlist = False
+					video_ids = [ids.group('ID')]
+			if is_playlist:
+				playlist_prefix = 'p'
+				playlist_access = 'view_play_list'
+
+		while is_playlist:
 			self.report_download_page(playlist_id, pagenum)
 			request = urllib2.Request(self._TEMPLATE_URL % (playlist_access, playlist_prefix, playlist_id, pagenum))
 			try:
@@ -2155,9 +2167,10 @@ class YoutubePlaylistIE(InfoExtractor):
 				break
 			pagenum = pagenum + 1
 
-		playliststart = self._downloader.params.get('playliststart', 1) - 1
-		playlistend = self._downloader.params.get('playlistend', -1)
-		video_ids = video_ids[playliststart:playlistend]
+		if is_playlist:
+			playliststart = self._downloader.params.get('playliststart', 1) - 1
+			playlistend = self._downloader.params.get('playlistend', -1)
+			video_ids = video_ids[playliststart:playlistend]
 
 		for id in video_ids:
 			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
