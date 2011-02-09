@@ -2096,7 +2096,7 @@ class YahooSearchIE(InfoExtractor):
 class YoutubePlaylistIE(InfoExtractor):
 	"""Information Extractor for YouTube playlists."""
 
-	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/(?:(?:view_play_list|my_playlists|artist)\?.*?(p|a)=|user/.*?/user/|p/)([^&]+).*'
+	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/(?:(?:view_play_list|my_playlists|artist)\?.*?(p|a)=|user/.*?/user/|p/|user/.*g/c/)([^&]+).*'
 	_TEMPLATE_URL = 'http://www.youtube.com/%s?%s=%s&page=%s&gl=US&hl=en'
 	_VIDEO_INDICATOR = r'/watch\?v=(.+?)&'
 	_MORE_PAGES_INDICATOR = r'(?m)>\s*Next\s*</a>'
@@ -2130,6 +2130,7 @@ class YoutubePlaylistIE(InfoExtractor):
 		if playlist_prefix == 'a':
 			playlist_access = 'artist'
 		else:
+			playlist_prefix = 'p'
 			playlist_access = 'view_play_list'
 		playlist_id = mobj.group(2)
 		video_ids = []
