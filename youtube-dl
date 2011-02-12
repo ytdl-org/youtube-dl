@@ -2096,7 +2096,7 @@ class YahooSearchIE(InfoExtractor):
 class YoutubePlaylistIE(InfoExtractor):
 	"""Information Extractor for YouTube playlists."""
 
-	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/(?:(?:view_play_list|my_playlists|artist)\?.*?(p|a)=|user/.*?/user/|p/)([^&]+).*'
+	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/(?:(?:view_play_list|my_playlists|artist)\?.*?(p|a)=|user/.*?/user/|p/|user/.*?#[pg]/c/)([0-9A-Za-z]+)(?:/.*?/([0-9A-Za-z_-]+))?.*'
 	_TEMPLATE_URL = 'http://www.youtube.com/%s?%s=%s&page=%s&gl=US&hl=en'
 	_VIDEO_INDICATOR = r'/watch\?v=(.+?)&'
 	_MORE_PAGES_INDICATOR = r'(?m)>\s*Next\s*</a>'
@@ -2122,6 +2122,11 @@ class YoutubePlaylistIE(InfoExtractor):
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid url: %s' % url)
+			return
+
+		# Single video case
+		if mobj.group(3) is not None:
+			self._youtube_ie.extract(mobj.group(3))
 			return
 
 		# Download playlist pages
