@@ -2135,6 +2135,7 @@ class YoutubePlaylistIE(InfoExtractor):
 		if playlist_prefix == 'a':
 			playlist_access = 'artist'
 		else:
+			playlist_prefix = 'p'
 			playlist_access = 'view_play_list'
 		playlist_id = mobj.group(2)
 		video_ids = []
