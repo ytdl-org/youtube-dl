@@ -20,6 +20,13 @@ Allows you to download and transcode video from supported sites. Needs ffmpeg fo
     $ sudo wget --no-check-certificate https://github.com/dz0ny/youtube-dl/raw/master/youtube-dl -O /usr/local/bin/youtube-dl && sudo chmod a+x /usr/local/bin/youtube-dl
 
 ## Usage
+
+### Example
+
+    $ youtube-dl http://www.youtube.com/watch?v=BRHRssf3B6o -T mp4 -C 'sh -c "cp <filepath> <stitle>.mp4 && rm <filepath>"'
+
+  Command line options:
+
     $ youtube-dl [options] url...
 
     Options:
@@ -86,10 +93,16 @@ Allows you to download and transcode video from supported sites. Needs ffmpeg fo
                             pass additional parameters to ffmpeg (example: -vcodec
                             libx264 -vpre slow -vpre ipod640 -b 2048k -acodec
                             libfaac -ab 96k)
+                            
+      Post download action:
+        -C COMMAND, --command=COMMAND
+                            command to run after file has been downloaded
+                            (example: 'sh -c "cp <filepath> <stitle>.mp4 && rm <filepath>"' )
 
 # License 
   
   Public domain code
+
 
 # Authors
   

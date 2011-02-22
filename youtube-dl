@@ -2639,7 +2639,7 @@ class Transcode(PostProcessor):
 		self._downloader.to_screen(u'[transcode] Started transcoding of %s to %s' % ( self._file_path, self._new_file_path) )
 		stringish_command = 'ffmpeg -y -i "%s" %s "%s"' % (self._file_path, self.args, self._new_file_path)
 		self.encode(stringish_command)
-		return None
+		return information
 
 	def encode(self, cmd):
 		pipe = subprocess.Popen(
@@ -2651,6 +2651,27 @@ class Transcode(PostProcessor):
 		while retval == 2 or retval == 1:
 			pass
 		self._downloader.to_screen(u'[transcode] Completed transcoding of %s to %s' % ( self._file_path, self._new_file_path) )
+
+class SimplePostProcessor(PostProcessor):
+	"""Post Processor for file transcoding"""
+	def __init__(self,command):
+		self.command_raw = command
+		PostProcessor.__init__(self, None)
+
+	def run(self, information):
+		for key, value in information.iteritems():
+			self.command_raw = self.command_raw.replace("<" + key + ">", value)	
+		self.command = shlex.split( str( self.command_raw ) )
+		self._downloader.to_screen(u'[PostProcessor] Started command %s' %  self.command_raw )
+		pipe = subprocess.Popen(
+			( self.command )
+		)
+		retval = pipe.wait()
+		while retval == 2 or retval == 1:
+			pass
+		self._downloader.to_screen(u'[PostProcessor] Finnished command %s' %  self.command_raw )
+
+		return information
 
 ### MAIN PROGRAM ###
 if __name__ == '__main__':
@@ -2782,6 +2803,11 @@ if __name__ == '__main__':
 		transcode.add_option('--transcode_extra',
 				action='store', dest='transcode_extra', metavar='ARGS', help='pass additional parameters to ffmpeg (example: -vcodec libx264 -vpre slow -vpre ipod640 -b 2048k -acodec libfaac -ab 96k)', default=False)
 		parser.add_option_group(transcode)
+
+		postprocess = optparse.OptionGroup(parser, 'Post download action')
+		postprocess.add_option('-C','--command',
+				action='store', dest='post_download_command', metavar='COMMAND', help='command to run after file has been downloaded (example: "sh -c cp <filepath> /tmp/<title>.tmp && rm <filepath>" )', default=False)
+		parser.add_option_group(postprocess)
 
 		(opts, args) = parser.parse_args()
 
@@ -2931,6 +2957,14 @@ if __name__ == '__main__':
 			try:
 				transcoder = Transcode(opts.transcode_to, opts.transcode_extra)
 				fd.add_post_processor(transcoder)
+			except PostProcessingError, err:
+				sys.exit(err)
+
+		# Custom command parser
+		if opts.post_download_command:
+			try:
+				post_download_command = SimplePostProcessor(opts.post_download_command)
+				fd.add_post_processor(post_download_command)
 			except PostProcessingError, err:
 				sys.exit(err)
 
