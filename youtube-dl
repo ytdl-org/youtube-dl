@@ -1767,7 +1767,10 @@ class GenericIE(InfoExtractor):
 		mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
 		if mobj is None:
 			# Broaden the search a little bit
-			mobj = re.search(r'[^A-Za-z0-9]?(?:file|source)=(http[^\'"&]*)', webpage)
+			mobj = re.search(r'[^A-Za-z0-9]?(?:file|source|video_url)=(http[^\'"&]*)', webpage)
+		if mobj is None:
+			# Search in javascript
+			mobj = re.search(r'video_url.+(http[^\'"&]*)', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
 			return
@@ -2930,7 +2933,7 @@ if __name__ == '__main__':
 				fd.add_post_processor(transcoder)
 			except PostProcessingError, err:
 				sys.exit(err)
-				
+
 		# Update version
 		if opts.update_self:
 			update_self(fd, sys.argv[0])
