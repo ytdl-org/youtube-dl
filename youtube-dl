@@ -5,6 +5,8 @@
 # Author: Benjamin Johnson
 # Author: Vasyl' Vavrychuk
 # Author: Witold Baryluk
+# Author: Paweł Paprota
+# Author: Gergely Imreh
 # License: Public domain code
 import cookielib
 import ctypes
@@ -36,7 +38,7 @@ except ImportError:
 	from cgi import parse_qs
 
 std_headers = {
-	'User-Agent': 'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.12) Gecko/20101028 Firefox/3.6.12',
+	'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:2.0b10) Gecko/20100101 Firefox/4.0b10',
 	'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
 	'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
 	'Accept-Encoding': 'gzip, deflate',
@@ -2207,8 +2209,8 @@ class YahooSearchIE(InfoExtractor):
 class YoutubePlaylistIE(InfoExtractor):
 	"""Information Extractor for YouTube playlists."""
 
-	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/(?:(?:view_play_list|my_playlists)\?.*?p=|user/.*?/user/|p/)([^&]+).*'
-	_TEMPLATE_URL = 'http://www.youtube.com/view_play_list?p=%s&page=%s&gl=US&hl=en'
+	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/(?:(?:view_play_list|my_playlists|artist)\?.*?(p|a)=|user/.*?/user/|p/|user/.*?#[pg]/c/)([0-9A-Za-z]+)(?:/.*?/([0-9A-Za-z_-]+))?.*'
+	_TEMPLATE_URL = 'http://www.youtube.com/%s?%s=%s&page=%s&gl=US&hl=en'
 	_VIDEO_INDICATOR = r'/watch\?v=(.+?)&'
 	_MORE_PAGES_INDICATOR = r'(?m)>\s*Next\s*</a>'
 	_youtube_ie = None
@@ -2235,14 +2237,26 @@ class YoutubePlaylistIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: invalid url: %s' % url)
 			return
 
+		# Single video case
+		if mobj.group(3) is not None:
+			self._youtube_ie.extract(mobj.group(3))
+			return
+
 		# Download playlist pages
-		playlist_id = mobj.group(1)
+		# prefix is 'p' as default for playlists but there are other types that need extra care
+		playlist_prefix = mobj.group(1)
+		if playlist_prefix == 'a':
+			playlist_access = 'artist'
+		else:
+			playlist_prefix = 'p'
+			playlist_access = 'view_play_list'
+		playlist_id = mobj.group(2)
 		video_ids = []
 		pagenum = 1
 
 		while True:
 			self.report_download_page(playlist_id, pagenum)
-			request = urllib2.Request(self._TEMPLATE_URL % (playlist_id, pagenum))
+			request = urllib2.Request(self._TEMPLATE_URL % (playlist_access, playlist_prefix, playlist_id, pagenum))
 			try:
 				page = urllib2.urlopen(request).read()
 			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
@@ -2271,9 +2285,11 @@ class YoutubePlaylistIE(InfoExtractor):
 class YoutubeUserIE(InfoExtractor):
 	"""Information Extractor for YouTube users."""
 
-	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/user/(.*)'
+	_VALID_URL = r'(?:(?:(?:http://)?(?:\w+\.)?youtube.com/user/)|ytuser:)([A-Za-z0-9_-]+)'
 	_TEMPLATE_URL = 'http://gdata.youtube.com/feeds/api/users/%s'
-	_VIDEO_INDICATOR = r'http://gdata.youtube.com/feeds/api/videos/(.*)' # XXX Fix this.
+	_GDATA_PAGE_SIZE = 50
+	_GDATA_URL = 'http://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d'
+	_VIDEO_INDICATOR = r'/watch\?v=(.+?)&'
 	_youtube_ie = None
 
 	def __init__(self, youtube_ie, downloader=None):
@@ -2284,9 +2300,10 @@ class YoutubeUserIE(InfoExtractor):
 	def suitable(url):
 		return (re.match(YoutubeUserIE._VALID_URL, url) is not None)
 
-	def report_download_page(self, username):
+	def report_download_page(self, username, start_index):
 		"""Report attempt to download user page."""
-		self._downloader.to_screen(u'[youtube] user %s: Downloading page ' % (username))
+		self._downloader.to_screen(u'[youtube] user %s: Downloading video ids from %d to %d' %
+				           (username, start_index, start_index + self._GDATA_PAGE_SIZE))
 
 	def _real_initialize(self):
 		self._youtube_ie.initialize()
@@ -2298,34 +2315,63 @@ class YoutubeUserIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: invalid url: %s' % url)
 			return
 
-		# Download user page
 		username = mobj.group(1)
+
+		# Download video ids using YouTube Data API. Result size per
+		# query is limited (currently to 50 videos) so we need to query
+		# page by page until there are no video ids - it means we got
+		# all of them.
+
 		video_ids = []
-		pagenum = 1
+		pagenum = 0
 
-		self.report_download_page(username)
-		request = urllib2.Request(self._TEMPLATE_URL % (username))
-		try:
-			page = urllib2.urlopen(request).read()
-		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self._downloader.trouble(u'ERROR: unable to download webpage: %s' % str(err))
-			return
+		while True:
+			start_index = pagenum * self._GDATA_PAGE_SIZE + 1
+			self.report_download_page(username, start_index)
 
-		# Extract video identifiers
-		ids_in_page = []
+			request = urllib2.Request(self._GDATA_URL % (username, self._GDATA_PAGE_SIZE, start_index))
 
-		for mobj in re.finditer(self._VIDEO_INDICATOR, page):
-			if mobj.group(1) not in ids_in_page:
-				ids_in_page.append(mobj.group(1))
-		video_ids.extend(ids_in_page)
+			try:
+				page = urllib2.urlopen(request).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'ERROR: unable to download webpage: %s' % str(err))
+				return
 
+			# Extract video identifiers
+			ids_in_page = []
+
+			for mobj in re.finditer(self._VIDEO_INDICATOR, page):
+				if mobj.group(1) not in ids_in_page:
+					ids_in_page.append(mobj.group(1))
+
+			video_ids.extend(ids_in_page)
+
+			# A little optimization - if current page is not
+			# "full", ie. does not contain PAGE_SIZE video ids then
+			# we can assume that this page is the last one - there
+			# are no more ids on further pages - no need to query
+			# again.
+
+			if len(ids_in_page) < self._GDATA_PAGE_SIZE:
+				break
+
+			pagenum += 1
+
+		all_ids_count = len(video_ids)
 		playliststart = self._downloader.params.get('playliststart', 1) - 1
 		playlistend = self._downloader.params.get('playlistend', -1)
-		video_ids = video_ids[playliststart:playlistend]
 
-		for id in video_ids:
-			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
-		return
+		if playlistend == -1:
+			video_ids = video_ids[playliststart:]
+		else:
+			video_ids = video_ids[playliststart:playlistend]
+			
+		self._downloader.to_screen("[youtube] user %s: Collected %d video ids (downloading %d of them)" %
+				           (username, all_ids_count, len(video_ids)))
+
+		for video_id in video_ids:
+			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % video_id)
+
 
 class DepositFilesIE(InfoExtractor):
 	"""Information extractor for depositfiles.com"""
@@ -2406,6 +2452,229 @@ class DepositFilesIE(InfoExtractor):
 		except UnavailableVideoError, err:
 			self._downloader.trouble(u'ERROR: unable to download file')
 
+class FacebookIE(InfoExtractor):
+	"""Information Extractor for Facebook"""
+
+	_VALID_URL = r'^(?:https?://)?(?:\w+\.)?facebook.com/video/video.php\?(?:.*?)v=(?P<ID>\d+)(?:.*)'
+	_LOGIN_URL = 'https://login.facebook.com/login.php?m&next=http%3A%2F%2Fm.facebook.com%2Fhome.php&'
+	_NETRC_MACHINE = 'facebook'
+	_available_formats = ['highqual', 'lowqual']
+	_video_extensions = {
+		'highqual': 'mp4',
+		'lowqual': 'mp4',
+	}
+
+	def __init__(self, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+
+	@staticmethod
+	def suitable(url):
+		return (re.match(FacebookIE._VALID_URL, url) is not None)
+
+	def _reporter(self, message):
+		"""Add header and report message."""
+		self._downloader.to_screen(u'[facebook] %s' % message)
+
+	def report_login(self):
+		"""Report attempt to log in."""
+		self._reporter(u'Logging in')
+
+	def report_video_webpage_download(self, video_id):
+		"""Report attempt to download video webpage."""
+		self._reporter(u'%s: Downloading video webpage' % video_id)
+
+	def report_information_extraction(self, video_id):
+		"""Report attempt to extract video information."""
+		self._reporter(u'%s: Extracting video information' % video_id)
+
+	def _parse_page(self, video_webpage):
+		"""Extract video information from page"""
+		# General data
+		data = {'title': r'class="video_title datawrap">(.*?)</',
+			'description': r'<div class="datawrap">(.*?)</div>',
+			'owner': r'\("video_owner_name", "(.*?)"\)',
+			'upload_date': r'data-date="(.*?)"',
+			'thumbnail':  r'\("thumb_url", "(?P<THUMB>.*?)"\)',
+			}
+		video_info = {}
+		for piece in data.keys():
+			mobj = re.search(data[piece], video_webpage)
+			if mobj is not None:
+				video_info[piece] = urllib.unquote_plus(mobj.group(1).decode("unicode_escape"))
+
+		# Video urls
+		video_urls = {}
+		for fmt in self._available_formats:
+			mobj = re.search(r'\("%s_src\", "(.+?)"\)' % fmt, video_webpage)
+			if mobj is not None:
+				# URL is in a Javascript segment inside an escaped Unicode format within
+				# the generally utf-8 page
+				video_urls[fmt] = urllib.unquote_plus(mobj.group(1).decode("unicode_escape"))
+		video_info['video_urls'] = video_urls
+
+		return video_info
+
+	def _real_initialize(self):
+		if self._downloader is None:
+			return
+
+		useremail = None
+		password = None
+		downloader_params = self._downloader.params
+
+		# Attempt to use provided username and password or .netrc data
+		if downloader_params.get('username', None) is not None:
+			useremail = downloader_params['username']
+			password = downloader_params['password']
+		elif downloader_params.get('usenetrc', False):
+			try:
+				info = netrc.netrc().authenticators(self._NETRC_MACHINE)
+				if info is not None:
+					useremail = info[0]
+					password = info[2]
+				else:
+					raise netrc.NetrcParseError('No authenticators for %s' % self._NETRC_MACHINE)
+			except (IOError, netrc.NetrcParseError), err:
+				self._downloader.to_stderr(u'WARNING: parsing .netrc: %s' % str(err))
+				return
+
+		if useremail is None:
+			return
+
+		# Log in
+		login_form = {
+			'email': useremail,
+			'pass': password,
+			'login': 'Log+In'
+			}
+		request = urllib2.Request(self._LOGIN_URL, urllib.urlencode(login_form))
+		try:
+			self.report_login()
+			login_results = urllib2.urlopen(request).read()
+			if re.search(r'<form(.*)name="login"(.*)</form>', login_results) is not None:
+				self._downloader.to_stderr(u'WARNING: unable to log in: bad username/password, or exceded login rate limit (~3/min). Check credentials or wait.')
+				return
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.to_stderr(u'WARNING: unable to log in: %s' % str(err))
+			return
+
+	def _real_extract(self, url):
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+			return
+		video_id = mobj.group('ID')
+
+		# Get video webpage
+		self.report_video_webpage_download(video_id)
+		request = urllib2.Request('https://www.facebook.com/video/video.php?v=%s' % video_id)
+		try:
+			page = urllib2.urlopen(request)
+			video_webpage = page.read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % str(err))
+			return
+
+		# Start extracting information
+		self.report_information_extraction(video_id)
+
+		# Extract information
+		video_info = self._parse_page(video_webpage)
+
+		# uploader
+		if 'owner' not in video_info:
+			self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
+			return
+		video_uploader = video_info['owner']
+
+		# title
+		if 'title' not in video_info:
+			self._downloader.trouble(u'ERROR: unable to extract video title')
+			return
+		video_title = video_info['title']
+		video_title = video_title.decode('utf-8')
+		video_title = sanitize_title(video_title)
+
+		# simplified title
+		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
+		simple_title = simple_title.strip(ur'_')
+
+		# thumbnail image
+		if 'thumbnail' not in video_info:
+			self._downloader.trouble(u'WARNING: unable to extract video thumbnail')
+			video_thumbnail = ''
+		else:
+			video_thumbnail = video_info['thumbnail']
+
+		# upload date
+		upload_date = u'NA'
+		if 'upload_date' in video_info:
+			upload_time = video_info['upload_date']
+			timetuple = email.utils.parsedate_tz(upload_time)
+			if timetuple is not None:
+				try:
+					upload_date = time.strftime('%Y%m%d', timetuple[0:9])
+				except:
+					pass
+
+		# description
+		video_description = 'No description available.'
+		if (self._downloader.params.get('forcedescription', False) and
+		    'description' in video_info):
+			video_description = video_info['description']
+
+		url_map = video_info['video_urls']
+		if len(url_map.keys()) > 0:
+			# Decide which formats to download
+			req_format = self._downloader.params.get('format', None)
+			format_limit = self._downloader.params.get('format_limit', None)
+
+			if format_limit is not None and format_limit in self._available_formats:
+				format_list = self._available_formats[self._available_formats.index(format_limit):]
+			else:
+				format_list = self._available_formats
+			existing_formats = [x for x in format_list if x in url_map]
+			if len(existing_formats) == 0:
+				self._downloader.trouble(u'ERROR: no known formats available for video')
+				return
+			if req_format is None:
+				video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
+			elif req_format == '-1':
+				video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
+			else:
+				# Specific format
+				if req_format not in url_map:
+					self._downloader.trouble(u'ERROR: requested format not available')
+					return
+				video_url_list = [(req_format, url_map[req_format])] # Specific format
+
+		for format_param, video_real_url in video_url_list:
+
+			# At this point we have a new video
+			self._downloader.increment_downloads()
+
+			# Extension
+			video_extension = self._video_extensions.get(format_param, 'mp4')
+
+			# Find the video URL in fmt_url_map or conn paramters
+			try:
+				# Process video information
+				self._downloader.process_info({
+					'id':		video_id.decode('utf-8'),
+					'url':		video_real_url.decode('utf-8'),
+					'uploader':	video_uploader.decode('utf-8'),
+					'upload_date':	upload_date,
+					'title':	video_title,
+					'stitle':	simple_title,
+					'ext':		video_extension.decode('utf-8'),
+					'format':	(format_param is None and u'NA' or format_param.decode('utf-8')),
+					'thumbnail':	video_thumbnail.decode('utf-8'),
+					'description':	video_description.decode('utf-8'),
+					'player_url':	None,
+				})
+			except UnavailableVideoError, err:
+				self._downloader.trouble(u'\nERROR: unable to download video')
+
 class PostProcessor(object):
 	"""Post Processor class.
 
@@ -2484,7 +2753,7 @@ if __name__ == '__main__':
 		# Parse command line
 		parser = optparse.OptionParser(
 			usage='Usage: %prog [options] url...',
-			version='2010.12.09',
+			version='2011.01.30',
 			conflict_handler='resolve',
 		)
 
@@ -2662,6 +2931,7 @@ if __name__ == '__main__':
 		yahoo_ie = YahooIE()
 		yahoo_search_ie = YahooSearchIE(yahoo_ie)
 		deposit_files_ie = DepositFilesIE()
+		facebook_ie = FacebookIE()
 		generic_ie = GenericIE()
 
 		# File downloader
@@ -2714,6 +2984,7 @@ if __name__ == '__main__':
 		fd.add_info_extractor(yahoo_ie)
 		fd.add_info_extractor(yahoo_search_ie)
 		fd.add_info_extractor(deposit_files_ie)
+		fd.add_info_extractor(facebook_ie)
 
 		# This must come last since it's the
 		# fallback if none of the others work
