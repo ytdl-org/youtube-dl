@@ -13,6 +13,7 @@ Allows you to download and transcode video from supported sites. Needs ffmpeg fo
   * DepositFiles
   * Facebook
   * Sites with JW Player
+
 ## Installation
 
     $ sudo apt-get install ffmpeg # for Ubuntu
