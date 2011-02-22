@@ -7,6 +7,7 @@
 # Author: Witold Baryluk
 # Author: Paweł Paprota
 # Author: Gergely Imreh
+# Author: Janez Troha
 # License: Public domain code
 import cookielib
 import ctypes
@@ -21,6 +22,7 @@ import netrc
 import os
 import os.path
 import re
+import shlex
 import socket
 import string
 import StringIO
@@ -2609,6 +2611,44 @@ class PostProcessor(object):
 		"""
 		return information # by default, do nothing
 
+class Transcode(PostProcessor):
+	"""Post Processor for file transcoding"""
+	def __init__(self,file_type, args):
+		# Check for ffmepg first
+		try:
+			subprocess.call(['ffmpeg', '-v'], stdout=(file(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
+		except (OSError, IOError):
+			raise PostProcessingError(u'ERROR: "ffmpeg" could not be found')
+
+		self.file_type = file_type
+
+		if args:
+			self.args = str(args)
+		else:
+			self.args = str("")
+		
+		PostProcessor.__init__(self, None)
+
+	def run(self, information):
+		self._file_path = str(information["filepath"])
+		basename, extension = os.path.splitext(self._file_path)
+		self._new_file_path = self._file_path.replace(extension, "."+self.file_type)
+		self._downloader.to_screen(u'[transcode] Started transcoding of %s to %s' % ( self._file_path, self._new_file_path) )
+		stringish_command = 'ffmpeg -y -i "%s" %s "%s"' % (self._file_path, self.args, self._new_file_path)
+		self.encode(stringish_command)
+		return None
+
+	def encode(self, cmd):
+		pipe = subprocess.Popen(
+			shlex.split( cmd ),
+			stdout=(file(os.path.devnull, 'w')),
+			stderr=subprocess.STDOUT
+		)
+		retval = pipe.wait()
+		while retval == 2 or retval == 1:
+			pass
+		self._downloader.to_screen(u'[transcode] Completed transcoding of %s to %s' % ( self._file_path, self._new_file_path) )
+
 ### MAIN PROGRAM ###
 if __name__ == '__main__':
 	try:
@@ -2732,6 +2772,13 @@ if __name__ == '__main__':
 				action='store_false', dest='updatetime',
 				help='do not use the Last-modified header to set the file modification time', default=True)
 		parser.add_option_group(filesystem)
+
+		transcode = optparse.OptionGroup(parser, 'Transcoding Options (uses ffmpeg)')
+		transcode.add_option('-T','--transcode_to',
+				action='store', dest='transcode_to', metavar='FILE_TYPE', help='transcode to specific video or audio format (example: mp3 mp4 mov mkv)', default=False)
+		transcode.add_option('--transcode_extra',
+				action='store', dest='transcode_extra', metavar='ARGS', help='pass additional parameters to ffmpeg (example: -vcodec libx264 -vpre slow -vpre ipod640 -b 2048k -acodec libfaac -ab 96k)', default=False)
+		parser.add_option_group(transcode)
 
 		(opts, args) = parser.parse_args()
 
@@ -2876,6 +2923,14 @@ if __name__ == '__main__':
 		# fallback if none of the others work
 		fd.add_info_extractor(generic_ie)
 
+		# Transcodig parser
+		if opts.transcode_to:
+			try:
+				transcoder = Transcode(opts.transcode_to, opts.transcode_extra)
+				fd.add_post_processor(transcoder)
+			except PostProcessingError, err:
+				sys.exit(err)
+				
 		# Update version
 		if opts.update_self:
 			update_self(fd, sys.argv[0])
