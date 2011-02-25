@@ -1059,7 +1059,7 @@ class YoutubeIE(InfoExtractor):
 		mobj = re.search(r'id="eow-date".*?>(.*?)</span>', video_webpage, re.DOTALL)
 		if mobj is not None:
 			upload_date = ' '.join(re.sub(r'[/,-]', r' ', mobj.group(1)).split())
-			format_expressions = ['%d %B %Y', '%B %d %Y']
+			format_expressions = ['%d %B %Y', '%B %d %Y', '%b %d %Y']
 			for expression in format_expressions:
 				try:
 					upload_date = datetime.datetime.strptime(upload_date, expression).strftime('%Y%m%d')
