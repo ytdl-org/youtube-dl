@@ -38,7 +38,7 @@ except ImportError:
 	from cgi import parse_qs
 
 std_headers = {
-	'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:2.0b10) Gecko/20100101 Firefox/4.0b10',
+	'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:2.0b11) Gecko/20100101 Firefox/4.0b11',
 	'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
 	'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
 	'Accept-Encoding': 'gzip, deflate',
@@ -1059,7 +1059,7 @@ class YoutubeIE(InfoExtractor):
 		mobj = re.search(r'id="eow-date".*?>(.*?)</span>', video_webpage, re.DOTALL)
 		if mobj is not None:
 			upload_date = ' '.join(re.sub(r'[/,-]', r' ', mobj.group(1)).split())
-			format_expressions = ['%d %B %Y', '%B %d %Y']
+			format_expressions = ['%d %B %Y', '%B %d %Y', '%b %d %Y']
 			for expression in format_expressions:
 				try:
 					upload_date = datetime.datetime.strptime(upload_date, expression).strftime('%Y%m%d')
@@ -2726,6 +2726,88 @@ class PostProcessor(object):
 		"""
 		return information # by default, do nothing
 
+class FFmpegExtractAudioPP(PostProcessor):
+
+	def __init__(self, downloader=None, preferredcodec=None):
+		PostProcessor.__init__(self, downloader)
+		if preferredcodec is None:
+			preferredcodec = 'best'
+		self._preferredcodec = preferredcodec
+
+	@staticmethod
+	def get_audio_codec(path):
+		try:
+			handle = subprocess.Popen(['ffprobe', '-show_streams', path],
+					stderr=file(os.path.devnull, 'w'), stdout=subprocess.PIPE)
+			output = handle.communicate()[0]
+			if handle.wait() != 0:
+				return None
+		except (IOError, OSError):
+			return None
+		audio_codec = None
+		for line in output.split('\n'):
+			if line.startswith('codec_name='):
+				audio_codec = line.split('=')[1].strip()
+			elif line.strip() == 'codec_type=audio' and audio_codec is not None:
+				return audio_codec
+		return None
+
+	@staticmethod
+	def run_ffmpeg(path, out_path, codec, more_opts):
+		try:
+			ret = subprocess.call(['ffmpeg', '-y', '-i', path, '-vn', '-acodec', codec] + more_opts + [out_path],
+					stdout=file(os.path.devnull, 'w'), stderr=subprocess.STDOUT)
+			return (ret == 0)
+		except (IOError, OSError):
+			return False
+
+	def run(self, information):
+		path = information['filepath']
+
+		filecodec = self.get_audio_codec(path)
+		if filecodec is None:
+			self._downloader.to_stderr(u'WARNING: unable to obtain file audio codec with ffprobe')
+			return None
+
+		more_opts = []
+		if self._preferredcodec == 'best' or self._preferredcodec == filecodec:
+			if filecodec == 'aac' or filecodec == 'mp3':
+				# Lossless if possible
+				acodec = 'copy'
+				extension = filecodec
+				if filecodec == 'aac':
+					more_opts = ['-f', 'adts']
+			else:
+				# MP3 otherwise.
+				acodec = 'libmp3lame'
+				extension = 'mp3'
+				more_opts = ['-ab', '128k']
+		else:
+			# We convert the audio (lossy)
+			acodec = {'mp3': 'libmp3lame', 'aac': 'aac'}[self._preferredcodec]
+			extension = self._preferredcodec
+			more_opts = ['-ab', '128k']
+			if self._preferredcodec == 'aac':
+				more_opts += ['-f', 'adts']
+
+		(prefix, ext) = os.path.splitext(path)
+		new_path = prefix + '.' + extension
+		self._downloader.to_screen(u'[ffmpeg] Destination: %s' % new_path)
+		status = self.run_ffmpeg(path, new_path, acodec, more_opts)
+
+		if not status:
+			self._downloader.to_stderr(u'WARNING: error running ffmpeg')
+			return None
+
+		try:
+			os.remove(path)
+		except (IOError, OSError):
+			self._downloader.to_stderr(u'WARNING: Unable to remove downloaded video file')
+			return None
+
+		information['filepath'] = new_path
+		return information
+
 ### MAIN PROGRAM ###
 if __name__ == '__main__':
 	try:
@@ -2758,7 +2840,7 @@ if __name__ == '__main__':
 		# Parse command line
 		parser = optparse.OptionParser(
 			usage='Usage: %prog [options] url...',
-			version='2011.01.30',
+			version='2011.02.25b',
 			conflict_handler='resolve',
 		)
 
@@ -2850,6 +2932,13 @@ if __name__ == '__main__':
 				help='do not use the Last-modified header to set the file modification time', default=True)
 		parser.add_option_group(filesystem)
 
+		postproc = optparse.OptionGroup(parser, 'Post-processing Options')
+		postproc.add_option('--extract-audio', action='store_true', dest='extractaudio', default=False,
+				help='convert video files to audio-only files (requires ffmpeg and ffprobe)')
+		postproc.add_option('--audio-format', metavar='FORMAT', dest='audioformat', default='best',
+				help='"best", "aac" or "mp3"; best by default')
+		parser.add_option_group(postproc)
+
 		(opts, args) = parser.parse_args()
 
 		# Open appropriate CookieJar
@@ -2921,6 +3010,9 @@ if __name__ == '__main__':
 				raise ValueError
 		except (TypeError, ValueError), err:
 			parser.error(u'invalid playlist end number specified')
+		if opts.extractaudio:
+			if opts.audioformat not in ['best', 'aac', 'mp3']:
+				parser.error(u'invalid audio format specified')
 
 		# Information extractors
 		vimeo_ie = VimeoIE()
@@ -2994,6 +3086,10 @@ if __name__ == '__main__':
 		# This must come last since it's the
 		# fallback if none of the others work
 		fd.add_info_extractor(generic_ie)
+
+		# PostProcessors
+		if opts.extractaudio:
+			fd.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat))
 
 		# Update version
 		if opts.update_self:
