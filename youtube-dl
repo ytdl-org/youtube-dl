@@ -2676,7 +2676,7 @@ class FFmpegExtractAudioPP(PostProcessor):
 		status = self.run_ffmpeg(path, new_path, acodec, more_opts)
 
 		if not status:
-			self._downloader.to_stderr(u'WARNING: error running ffmpeg' % ret)
+			self._downloader.to_stderr(u'WARNING: error running ffmpeg')
 			return None
 
 		try:
