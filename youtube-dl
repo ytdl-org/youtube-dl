@@ -2619,10 +2619,13 @@ class FFmpegExtractAudioPP(PostProcessor):
 
 	@staticmethod
 	def get_audio_codec(path):
-		handle = subprocess.Popen(['ffprobe', '-show_streams', path],
-				stderr=file(os.path.devnull, 'w'), stdout=subprocess.PIPE)
-		output = handle.communicate()[0]
-		if handle.wait() != 0:
+		try:
+			handle = subprocess.Popen(['ffprobe', '-show_streams', path],
+					stderr=file(os.path.devnull, 'w'), stdout=subprocess.PIPE)
+			output = handle.communicate()[0]
+			if handle.wait() != 0:
+				return None
+		except (IOError, OSError):
 			return None
 		audio_codec = None
 		for line in output.split('\n'):
@@ -2646,7 +2649,7 @@ class FFmpegExtractAudioPP(PostProcessor):
 
 		filecodec = self.get_audio_codec(path)
 		if filecodec is None:
-			self._downloader.to_stderr(u'WARNING: no audio codec found in file')
+			self._downloader.to_stderr(u'WARNING: unable to obtain file audio codec with ffprobe')
 			return None
 
 		more_opts = []
