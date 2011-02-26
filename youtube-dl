@@ -2737,7 +2737,7 @@ class FFmpegExtractAudioPP(PostProcessor):
 	@staticmethod
 	def get_audio_codec(path):
 		try:
-			handle = subprocess.Popen(['ffprobe', '-show_streams', path],
+			handle = subprocess.Popen(['ffprobe', '-show_streams', '--', path],
 					stderr=file(os.path.devnull, 'w'), stdout=subprocess.PIPE)
 			output = handle.communicate()[0]
 			if handle.wait() != 0:
@@ -2755,7 +2755,7 @@ class FFmpegExtractAudioPP(PostProcessor):
 	@staticmethod
 	def run_ffmpeg(path, out_path, codec, more_opts):
 		try:
-			ret = subprocess.call(['ffmpeg', '-y', '-i', path, '-vn', '-acodec', codec] + more_opts + [out_path],
+			ret = subprocess.call(['ffmpeg', '-y', '-i', path, '-vn', '-acodec', codec] + more_opts + ['--', out_path],
 					stdout=file(os.path.devnull, 'w'), stderr=subprocess.STDOUT)
 			return (ret == 0)
 		except (IOError, OSError):
@@ -2840,7 +2840,7 @@ if __name__ == '__main__':
 		# Parse command line
 		parser = optparse.OptionParser(
 			usage='Usage: %prog [options] url...',
-			version='2011.02.25b',
+			version='2011.02.25c',
 			conflict_handler='resolve',
 		)
 
