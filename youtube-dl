@@ -7,6 +7,7 @@
 # Author: Witold Baryluk
 # Author: Paweł Paprota
 # Author: Gergely Imreh
+# Author: Amaury Gauthier
 # License: Public domain code
 import cookielib
 import ctypes
@@ -1719,6 +1720,97 @@ class YahooIE(InfoExtractor):
 		except UnavailableVideoError:
 			self._downloader.trouble(u'\nERROR: unable to download video')
 
+class VimeoIE(InfoExtractor):
+	"""Information extractor for Vimeo"""
+
+	_VALID_URL = r'(?:http://)?(?:www\.)?vimeo\.com/(\d+)'
+	_VIDEO_INFO = 'http://vimeo.com/moogaloop/load/clip:'
+	_VIDEO_URL = 'http://vimeo.com/moogaloop/play/clip:%s/%s/%s/?q=sd'
+
+	def __init__(self, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+
+	@staticmethod
+	def suitable(url):
+		return (re.match(VimeoIE._VALID_URL, url) is not None)
+
+	def report_download_webpage(self, video_id):
+		"""Report webpage download."""
+		self._downloader.to_screen(u'[vimeo] %s: Downloading video information' % video_id)
+
+	def report_extraction(self, video_id):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[vimeo] %s: Extracting information' % video_id)
+
+	def _real_initialize(self):
+		return
+
+	def _real_extract(self, url, new_video=True):
+		# Extract ID from URL
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
+			return
+
+		# At this point we have a new video
+		self._downloader.increment_downloads()
+		video_id = mobj.group(1)
+
+		# Retrieve video webpage to extract further information
+		request = urllib2.Request(self._VIDEO_INFO+video_id)
+		try:
+			self.report_download_webpage(self._VIDEO_INFO+video_id)
+			webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: Unable to retrieve video webpage: %s' % str(err))
+			return
+
+		self.report_extraction(self._VIDEO_INFO+video_id)
+		# Extract credentials
+		mobj = re.search(r'<request_signature>(\w+)</request_signature>', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract request signature')
+			return
+		signature = mobj.group(1)
+
+		mobj = re.search(r'<request_signature_expires>(\d+)</request_signature_expires>', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract request signature expires')
+			return
+		signature_expires = mobj.group(1)
+		video_url = self._VIDEO_URL % (video_id, signature, signature_expires)
+
+		# Extract video informations
+		mobj = re.search(r'<uploader_display_name>(.+)</uploader_display_name>', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video uploader')
+			return
+		video_uploader = mobj.group(1).decode('utf-8')
+
+		mobj = re.search(r'<caption>(.+)</caption>', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video title')
+			return
+		video_title = mobj.group(1).decode('utf-8')
+
+		try:
+			# Process video information
+			self._downloader.process_info({
+				'id':		video_id,
+				'url':		video_url,
+				'uploader':	video_uploader,
+				'upload_date':	u'NA',
+				'title':	video_title,
+				'stitle':	u'NA',
+				'ext':		u'mp4',
+				'thumbnail':	u'NA',
+				'description':	u'NA',
+				'thumbnail':	u'NA',
+				'player_url':	u'NA',
+			})
+		except UnavailableVideoError:
+			self._downloader.trouble(u'\nERROR: unable to download video')
+
 
 class GenericIE(InfoExtractor):
 	"""Generic last-resort information extractor."""
@@ -2908,6 +3000,7 @@ if __name__ == '__main__':
 		google_search_ie = GoogleSearchIE(google_ie)
 		photobucket_ie = PhotobucketIE()
 		yahoo_ie = YahooIE()
+		vimeo_ie = VimeoIE()
 		yahoo_search_ie = YahooSearchIE(yahoo_ie)
 		deposit_files_ie = DepositFilesIE()
 		facebook_ie = FacebookIE()
@@ -2960,6 +3053,7 @@ if __name__ == '__main__':
 		fd.add_info_extractor(google_search_ie)
 		fd.add_info_extractor(photobucket_ie)
 		fd.add_info_extractor(yahoo_ie)
+		fd.add_info_extractor(vimeo_ie)
 		fd.add_info_extractor(yahoo_search_ie)
 		fd.add_info_extractor(deposit_files_ie)
 		fd.add_info_extractor(facebook_ie)
