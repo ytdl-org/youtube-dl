@@ -1713,7 +1713,6 @@ class YahooIE(InfoExtractor):
 				'thumbnail':	video_thumbnail.decode('utf-8'),
 				'description':	video_description,
 				'thumbnail':	video_thumbnail,
-				'description':	video_description,
 				'player_url':	None,
 			})
 		except UnavailableVideoError:
