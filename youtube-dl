@@ -544,6 +544,8 @@ class FileDownloader(object):
 			# Forced printings
 			if self.params.get('forcetitle', False):
 				print info_dict['title'].encode(preferredencoding(), 'xmlcharrefreplace')
+			if self.params.get('forceformat', False):
+				print info_dict['format'].encode(preferredencoding(), 'xmlcharrefreplace')
 			if self.params.get('forceurl', False):
 				print info_dict['url'].encode(preferredencoding(), 'xmlcharrefreplace')
 			if self.params.get('forcethumbnail', False) and 'thumbnail' in info_dict:
@@ -2774,6 +2776,9 @@ if __name__ == '__main__':
 				action='store_true', dest='geturl', help='simulate, quiet but print URL', default=False)
 		verbosity.add_option('-e', '--get-title',
 				action='store_true', dest='gettitle', help='simulate, quiet but print title', default=False)
+		verbosity.add_option('-x', '--get-format',
+				action='store_true', dest='getformat',
+				help='simulate, quiet but print output format', default=False)
 		verbosity.add_option('--get-thumbnail',
 				action='store_true', dest='getthumbnail',
 				help='simulate, quiet but print thumbnail URL', default=False)
@@ -2918,13 +2923,14 @@ if __name__ == '__main__':
 			'usenetrc': opts.usenetrc,
 			'username': opts.username,
 			'password': opts.password,
-			'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription or opts.getfilename),
+			'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat),
 			'forceurl': opts.geturl,
 			'forcetitle': opts.gettitle,
+			'forceformat': opts.getformat,
 			'forcethumbnail': opts.getthumbnail,
 			'forcedescription': opts.getdescription,
 			'forcefilename': opts.getfilename,
-			'simulate': (opts.simulate or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription or opts.getfilename),
+			'simulate': (opts.simulate or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat),
 			'format': opts.format,
 			'format_limit': opts.format_limit,
 			'outtmpl': ((opts.outtmpl is not None and opts.outtmpl.decode(preferredencoding()))
