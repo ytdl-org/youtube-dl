@@ -858,7 +858,7 @@ class InfoExtractor(object):
 class YoutubeIE(InfoExtractor):
 	"""Information extractor for youtube.com."""
 
-	_VALID_URL = r'^((?:https?://)?(?:youtu\.be/|(?:\w+\.)?youtube(?:-nocookie)?\.com/)(?:(?:(?:v|embed)/)|(?:(?:watch(?:_popup)?(?:\.php)?)?(?:\?|#!?)(?:.+&)?v=)))?([0-9A-Za-z_-]+)(?(1).+)?$'
+	_VALID_URL = r'^((?:https?://)?(?:youtu\.be/|(?:\w+\.)?youtube(?:-nocookie)?\.com/)(?:(?:(?:v|embed|e)/)|(?:(?:watch(?:_popup)?(?:\.php)?)?(?:\?|#!?)(?:.+&)?v=)))?([0-9A-Za-z_-]+)(?(1).+)?$'
 	_LANG_URL = r'http://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
 	_LOGIN_URL = 'https://www.youtube.com/signup?next=/&gl=US&hl=en'
 	_AGE_URL = 'http://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
@@ -1056,7 +1056,7 @@ class YoutubeIE(InfoExtractor):
 
 		# upload date
 		upload_date = u'NA'
-		mobj = re.search(r'id="eow-date".*?>(.*?)</span>', video_webpage, re.DOTALL)
+		mobj = re.search(r'id="eow-date.*?>(.*?)</span>', video_webpage, re.DOTALL)
 		if mobj is not None:
 			upload_date = ' '.join(re.sub(r'[/,-]', r' ', mobj.group(1)).split())
 			format_expressions = ['%d %B %Y', '%B %d %Y', '%b %d %Y']
@@ -1079,7 +1079,7 @@ class YoutubeIE(InfoExtractor):
 		# Decide which formats to download
 		req_format = self._downloader.params.get('format', None)
 
-		if 'fmt_url_map' in video_info:
+		if 'fmt_url_map' in video_info and len(video_info['fmt_url_map']) >= 1 and ',' in video_info['fmt_url_map'][0]:
 			url_map = dict(tuple(pair.split('|')) for pair in video_info['fmt_url_map'][0].split(','))
 			format_limit = self._downloader.params.get('format_limit', None)
 			if format_limit is not None and format_limit in self._available_formats:
@@ -2737,8 +2737,8 @@ class FFmpegExtractAudioPP(PostProcessor):
 	@staticmethod
 	def get_audio_codec(path):
 		try:
-			handle = subprocess.Popen(['ffprobe', '-show_streams', '--', path],
-					stderr=file(os.path.devnull, 'w'), stdout=subprocess.PIPE)
+			cmd = ['ffprobe', '-show_streams', '--', path]
+			handle = subprocess.Popen(cmd, stderr=file(os.path.devnull, 'w'), stdout=subprocess.PIPE)
 			output = handle.communicate()[0]
 			if handle.wait() != 0:
 				return None
@@ -2755,8 +2755,8 @@ class FFmpegExtractAudioPP(PostProcessor):
 	@staticmethod
 	def run_ffmpeg(path, out_path, codec, more_opts):
 		try:
-			ret = subprocess.call(['ffmpeg', '-y', '-i', path, '-vn', '-acodec', codec] + more_opts + ['--', out_path],
-					stdout=file(os.path.devnull, 'w'), stderr=subprocess.STDOUT)
+			cmd = ['ffmpeg', '-y', '-i', path, '-vn', '-acodec', codec] + more_opts + ['--', out_path]
+			ret = subprocess.call(cmd, stdout=file(os.path.devnull, 'w'), stderr=subprocess.STDOUT)
 			return (ret == 0)
 		except (IOError, OSError):
 			return False
@@ -2840,7 +2840,7 @@ if __name__ == '__main__':
 		# Parse command line
 		parser = optparse.OptionParser(
 			usage='Usage: %prog [options] url...',
-			version='2011.02.25c',
+			version='2011.03.29',
 			conflict_handler='resolve',
 		)
 
