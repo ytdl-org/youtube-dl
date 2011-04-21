@@ -1754,7 +1754,6 @@ class VimeoIE(InfoExtractor):
 		# At this point we have a new video
 		self._downloader.increment_downloads()
 		video_id = mobj.group(1)
-		video_extension = 'flv' # FIXME
 
 		# Retrieve video webpage to extract further information
 		request = urllib2.Request("http://vimeo.com/moogaloop/load/clip:%s" % video_id, None, std_headers)
@@ -1826,7 +1825,7 @@ class VimeoIE(InfoExtractor):
 				'upload_date':	u'NA',
 				'title':	video_title,
 				'stitle':	simple_title,
-				'ext':		video_extension.decode('utf-8'),
+				'ext':		u'mp4',
 				'thumbnail':	video_thumbnail.decode('utf-8'),
 				'description':	video_description,
 				'thumbnail':	video_thumbnail,
