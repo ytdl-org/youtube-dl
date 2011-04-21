@@ -1735,11 +1735,11 @@ class VimeoIE(InfoExtractor):
 
 	def report_download_webpage(self, video_id):
 		"""Report webpage download."""
-		self._downloader.to_screen(u'[video.vimeo] %s: Downloading webpage' % video_id)
+		self._downloader.to_screen(u'[vimeo] %s: Downloading webpage' % video_id)
 
 	def report_extraction(self, video_id):
 		"""Report information extraction."""
-		self._downloader.to_screen(u'[video.vimeo] %s: Extracting information' % video_id)
+		self._downloader.to_screen(u'[vimeo] %s: Extracting information' % video_id)
 
 	def _real_initialize(self):
 		return
