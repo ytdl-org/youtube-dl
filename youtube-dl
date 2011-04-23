@@ -1320,6 +1320,8 @@ class YoutubeIE(InfoExtractor):
 				return
 			if req_format is None:
 				video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
+			elif req_format == 'worst':
+				video_url_list = [(existing_formats[len(existing_formats)-1], url_map[existing_formats[len(existing_formats)-1]])] # worst quality
 			elif req_format == '-1':
 				video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
 			else:
@@ -2832,6 +2834,8 @@ class FacebookIE(InfoExtractor):
 				return
 			if req_format is None:
 				video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
+			elif req_format == 'worst':
+				video_url_list = [(existing_formats[len(existing_formats)-1], url_map[existing_formats[len(existing_formats)-1]])] # worst quality
 			elif req_format == '-1':
 				video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
 			else:
