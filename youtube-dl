@@ -480,6 +480,7 @@ class FileDownloader(object):
             os.utime(filename,(time.time(), filetime))
         except:
             pass
+        return filetime
 
     def report_destination(self, filename):
         """Report destination filename."""
@@ -568,7 +569,7 @@ class FileDownloader(object):
             return
 
         try:
-            success = self._do_download(filename, info_dict['url'].encode('utf-8'), info_dict.get('player_url', None))
+            success, filetime = self._do_download(filename, info_dict['url'].encode('utf-8'), info_dict.get('player_url', None))
         except (OSError, IOError), err:
             raise UnavailableVideoError
         except (urllib2.URLError, httplib.HTTPException, socket.error), err:
@@ -580,6 +581,7 @@ class FileDownloader(object):
 
         if success:
             try:
+                info_dict['filetime'] = filetime
                 self.post_process(filename, info_dict)
             except (PostProcessingError), err:
                 self.trouble(u'ERROR: postprocessing: %s' % str(err))
@@ -780,9 +782,9 @@ class FileDownloader(object):
 
         # Update file modification time
         if self.params.get('updatetime', True):
-            self.try_utime(filename, data.info().get('last-modified', None))
+            filetime = self.try_utime(filename, data.info().get('last-modified', None))
 
-        return True
+        return True, filetime
 
 class InfoExtractor(object):
     """Information Extractor class.
@@ -2681,6 +2683,12 @@ class FFmpegExtractAudioPP(PostProcessor):
         if not status:
             self._downloader.to_stderr(u'WARNING: error running ffmpeg')
             return None
+
+        # Try to update the date time for extracted audio file.
+        try:
+            os.utime(new_path,(time.time(), information['filetime']))
+        except:
+            pass
 
         try:
             os.remove(path)
