@@ -625,11 +625,12 @@ class FileDownloader(object):
 			return
 		filetime = timeconvert(timestr)
 		if filetime is None:
-			return
+			return filetime
 		try:
 			os.utime(filename, (time.time(), filetime))
 		except:
 			pass
+		return filetime
 
 	def report_writedescription(self, descfn):
 		""" Report that the description file is being written """
@@ -772,7 +773,8 @@ class FileDownloader(object):
 
 		if not self.params.get('skip_download', False):
 			try:
-				success = self._do_download(filename, info_dict['url'].encode('utf-8'), info_dict.get('player_url', None))
+				success,add_data = self._do_download(filename, info_dict['url'].encode('utf-8'), info_dict.get('player_url', None))
+				info_dict.update(add_data)
 			except (OSError, IOError), err:
 				raise UnavailableVideoError
 			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
@@ -992,10 +994,11 @@ class FileDownloader(object):
 		self.try_rename(tmpfilename, filename)
 
 		# Update file modification time
+		filetime = None
 		if self.params.get('updatetime', True):
-			self.try_utime(filename, data.info().get('last-modified', None))
+			filetime = self.try_utime(filename, data.info().get('last-modified', None))
 
-		return True
+		return True, {'filetime': filetime}
 
 
 class InfoExtractor(object):
@@ -3354,6 +3357,13 @@ class FFmpegExtractAudioPP(PostProcessor):
 		if not status:
 			self._downloader.to_stderr(u'WARNING: error running ffmpeg')
 			return None
+
+ 		# Try to update the date time for extracted audio file.
+		if information.get('filetime') is not None:
+			try:
+				os.utime(new_path, (time.time(), information['filetime']))
+			except:
+				self._downloader.to_stderr(u'WARNING: Cannot update utime of audio file')
 
 		try:
 			os.remove(path)
