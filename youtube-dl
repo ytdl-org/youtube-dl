@@ -509,6 +509,16 @@ class FileDownloader(object):
 		except (UnicodeEncodeError), err:
 			self.to_screen(u'[download] The file has already been downloaded')
 
+	def report_file_partly_downloaded(self, file_name):
+		"""Report file has already been partly downloaded."""
+		msg = (u'ERROR: %s has already been partly downloaded; '
+		       u'please select either --continue or --no-continue')
+
+		try:
+			self.to_screen(msg % file_name)
+		except (UnicodeEncodeError), err:
+			self.to_screen(msg % u'The file')
+
 	def report_unable_to_resume(self):
 		"""Report it was impossible to resume download."""
 		self.to_screen(u'[download] Unable to resume')
@@ -683,6 +693,9 @@ class FileDownloader(object):
 				self.report_resuming_byte(resume_len)
 				request.add_header('Range','bytes=%d-' % resume_len)
 				open_mode = 'ab'
+			elif self.params.get('continuedl') is None:
+				self.report_file_partly_downloaded(filename)
+				return False
 			else:
 				resume_len = 0
 
@@ -2808,7 +2821,10 @@ if __name__ == '__main__':
 		filesystem.add_option('-w', '--no-overwrites',
 				action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
 		filesystem.add_option('-c', '--continue',
-				action='store_true', dest='continue_dl', help='resume partially downloaded files', default=False)
+				action='store_true', dest='continue_dl', help='resume partially downloaded files', default=None)
+		filesystem.add_option('--no-continue',
+				action='store_false', dest='continue_dl',
+				help='do not resume partially downloaded files (restart from beginning)')
 		filesystem.add_option('--cookies',
 				dest='cookiefile', metavar='FILE', help='file to dump cookie jar to')
 		filesystem.add_option('--no-part',
