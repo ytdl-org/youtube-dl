@@ -877,7 +877,6 @@ class FileDownloader(object):
 
 		tmpfilename = self.temp_name(filename)
 		stream = None
-		open_mode = 'wb'
 
 		# Do not include the Accept-Encoding header
 		headers = {'Youtubedl-no-compression': 'True'}
@@ -890,11 +889,14 @@ class FileDownloader(object):
 		else:
 			resume_len = 0
 
-		# Request parameters in case of being able to resume
-		if self.params.get('continuedl', False) and resume_len != 0:
-			self.report_resuming_byte(resume_len)
-			request.add_header('Range', 'bytes=%d-' % resume_len)
-			open_mode = 'ab'
+		open_mode = 'wb'
+		if resume_len != 0:
+			if self.params.get('continuedl', False):
+				self.report_resuming_byte(resume_len)
+				request.add_header('Range','bytes=%d-' % resume_len)
+				open_mode = 'ab'
+			else:
+				resume_len = 0
 
 		count = 0
 		retries = self.params.get('retries', 0)
