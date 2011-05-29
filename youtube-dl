@@ -1338,11 +1338,15 @@ class DailymotionIE(InfoExtractor):
 
 		# if needed add http://www.dailymotion.com/ if relative URL
 		sequenceJsonContent = urllib.unquote_plus(mobj.group(1))
-		sequenceJson = json.loads(sequenceJsonContent)
+		try:
+			sequenceJson = json.loads(sequenceJsonContent)
+		except:
+			self._downloader.trouble(u'ERROR: unable to extract media URL (Bad JSON encoding)')
+			return
 		try:
 			video_url = sequenceJson[0]["layerList"][0]["sequenceList"][1]["layerList"][2]["param"]["videoPluginParameters"]["hqURL"]
 		except:
-			self._downloader.trouble(u'ERROR: unable to extract media URL')
+			self._downloader.trouble(u'ERROR: unable to extract media URL (Unable to find the URL)')
 			return
 
 		# '<meta\s+name="title"\s+content="Dailymotion\s*[:\-]\s*(.*?)"\s*\/\s*>'
