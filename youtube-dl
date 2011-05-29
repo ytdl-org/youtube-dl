@@ -30,6 +30,7 @@ import time
 import urllib
 import urllib2
 import zlib
+import json
 
 # parse_qs was moved from the cgi module to the urlparse module recently.
 try:
@@ -1328,16 +1329,21 @@ class DailymotionIE(InfoExtractor):
 			return
 
 		# Extract URL, uploader and title from webpage
+		# First we need to get the sequence urlencoded json variable
 		self.report_extraction(video_id)
-		mobj = re.search(r'(?i)addVariable\(\"video\"\s*,\s*\"([^\"]*)\"\)', webpage)
+		mobj = re.search(r'(?i)addVariable\(\"sequence\"\s*,\s*\"([^\"]*)\"\)', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
 			return
-		mediaURL = urllib.unquote(mobj.group(1))
 
 		# if needed add http://www.dailymotion.com/ if relative URL
-
-		video_url = mediaURL
+		sequenceJsonContent = urllib.unquote_plus(mobj.group(1))
+		sequenceJson = json.loads(sequenceJsonContent)
+		try:
+			video_url = sequenceJson[0]["layerList"][0]["sequenceList"][1]["layerList"][2]["param"]["videoPluginParameters"]["hqURL"]
+		except:
+			self._downloader.trouble(u'ERROR: unable to extract media URL')
+			return
 
 		# '<meta\s+name="title"\s+content="Dailymotion\s*[:\-]\s*(.*?)"\s*\/\s*>'
 		mobj = re.search(r'(?im)<title>Dailymotion\s*[\-:]\s*(.+?)</title>', webpage)
@@ -1347,11 +1353,12 @@ class DailymotionIE(InfoExtractor):
 		video_title = mobj.group(1).decode('utf-8')
 		video_title = sanitize_title(video_title)
 
-		mobj = re.search(r'(?im)<Attribute name="owner">(.+?)</Attribute>', webpage)
-		if mobj is None:
+		# Extract the video uploader nickname from the sequence JSON
+		try:
+			video_uploader = sequenceJson[0]["layerList"][0]["sequenceList"][1]["layerList"][0]["param"]["metadata"]["uploader"]
+		except:
 			self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
 			return
-		video_uploader = mobj.group(1)
 
 		try:
 			# Process video information
