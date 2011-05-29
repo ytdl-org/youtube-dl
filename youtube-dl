@@ -1317,7 +1317,7 @@ class DailymotionIE(InfoExtractor):
 		video_id = mobj.group(1)
 
 		simple_title = mobj.group(2).decode('utf-8')
-		video_extension = 'flv'
+		video_extension = 'mp4'
 
 		# Retrieve video webpage to extract further information
 		request = urllib2.Request(url)
