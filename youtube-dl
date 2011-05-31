@@ -1338,6 +1338,12 @@ class DailymotionIE(InfoExtractor):
 
 		# if needed add http://www.dailymotion.com/ if relative URL
 		sequenceJsonContent = urllib.unquote_plus(mobj.group(1))
+
+		# JSON does not suppot escaping of '.
+		# Replace every \' by a ' in the JSON string
+		sequenceJsonContent = sequenceJsonContent.replace("\\'", "'")
+
+		# Build the JSON object based on the string
 		try:
 			sequenceJson = json.loads(sequenceJsonContent)
 		except:
