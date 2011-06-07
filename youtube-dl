@@ -2611,11 +2611,17 @@ class PostProcessor(object):
 
 class FFmpegExtractAudioPP(PostProcessor):
 
-	def __init__(self, downloader=None, preferredcodec=None):
+	def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, keepvideo=None):
 		PostProcessor.__init__(self, downloader)
 		if preferredcodec is None:
 			preferredcodec = 'best'
+		if preferredquality is None:
+			preferredquality = '128K'
+		if keepvideo is None:
+			keepvideo = False;
 		self._preferredcodec = preferredcodec
+		self._preferredquality = preferredquality
+		self._keepvideo = keepvideo
 
 	@staticmethod
 	def get_audio_codec(path):
@@ -2653,6 +2659,8 @@ class FFmpegExtractAudioPP(PostProcessor):
 			return None
 
 		more_opts = []
+		if (self._preferredquality != '128K') and (self._preferredquality != '160K') and (self._preferredquality != '192K'):
+			self._preferredquality = '128K'
 		if self._preferredcodec == 'best' or self._preferredcodec == filecodec:
 			if filecodec == 'aac' or filecodec == 'mp3':
 				# Lossless if possible
@@ -2664,12 +2672,12 @@ class FFmpegExtractAudioPP(PostProcessor):
 				# MP3 otherwise.
 				acodec = 'libmp3lame'
 				extension = 'mp3'
-				more_opts = ['-ab', '128k']
+				more_opts = ['-ab', self._preferredquality]
 		else:
 			# We convert the audio (lossy)
 			acodec = {'mp3': 'libmp3lame', 'aac': 'aac'}[self._preferredcodec]
 			extension = self._preferredcodec
-			more_opts = ['-ab', '128k']
+			more_opts = ['-ab', self._preferredquality]
 			if self._preferredcodec == 'aac':
 				more_opts += ['-f', 'adts']
 
@@ -2682,11 +2690,12 @@ class FFmpegExtractAudioPP(PostProcessor):
 			self._downloader.to_stderr(u'WARNING: error running ffmpeg')
 			return None
 
-		try:
-			os.remove(path)
-		except (IOError, OSError):
-			self._downloader.to_stderr(u'WARNING: Unable to remove downloaded video file')
-			return None
+		if not self._keepvideo:
+			try:
+				os.remove(path)
+			except (IOError, OSError):
+				self._downloader.to_stderr(u'WARNING: Unable to remove downloaded video file')
+				return None
 
 		information['filepath'] = new_path
 		return information
@@ -2820,6 +2829,10 @@ if __name__ == '__main__':
 				help='convert video files to audio-only files (requires ffmpeg and ffprobe)')
 		postproc.add_option('--audio-format', metavar='FORMAT', dest='audioformat', default='best',
 				help='"best", "aac" or "mp3"; best by default')
+		postproc.add_option('--audio-quality', metavar='QUALITY', dest='audioquality', default='128K',
+				help='128K, 160K or 192K; 128K by default')
+		postproc.add_option('-k', '--keep-video', action='store_true', dest='keepvideo', default=False,
+				help='keeps the video file on disk after the post-processing; the video is erased by default')
 		parser.add_option_group(postproc)
 
 		(opts, args) = parser.parse_args()
@@ -2970,7 +2983,7 @@ if __name__ == '__main__':
 
 		# PostProcessors
 		if opts.extractaudio:
-			fd.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat))
+			fd.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat,preferredquality=opts.audioquality,keepvideo=opts.keepvideo))
 
 		# Update version
 		if opts.update_self:
