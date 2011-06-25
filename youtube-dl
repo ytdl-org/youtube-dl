@@ -2567,24 +2567,16 @@ class FacebookIE(InfoExtractor):
 class BlipTVIE(InfoExtractor):
 	"""Information extractor for blip.tv"""
 
-	_VALID_URL = r'^(?:https?://)?(?:\w+\.)?blip.tv/(.+)$'
+	_VALID_URL = r'^(?:https?://)?(?:\w+\.)?blip.tv(/.+)$'
 	_URL_EXT = r'^.*\.([a-z0-9]+)$'
 
 	@staticmethod
 	def suitable(url):
 		return (re.match(BlipTVIE._VALID_URL, url) is not None)
 
-	def report_download_webpage(self, file_id):
-		"""Report webpage download."""
-		self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.service_name, file_id))
-
 	def report_extraction(self, file_id):
 		"""Report information extraction."""
-		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.service_name, file_id))
-
-	@property
-	def service_name(self):
-		return u'blip.tv'
+		self._downloader.to_screen(u'[blip.tv] %s: Extracting information' % file_id)
 
 	def _simplify_title(self, title):
 		res = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', title)
@@ -2599,6 +2591,7 @@ class BlipTVIE(InfoExtractor):
 
 		json_url = url + ('&' if '?' in url else '?') + 'skin=json&version=2&no_wrap=1'
 		request = urllib2.Request(json_url)
+		self.report_extraction(mobj.group(1))
 		try:
 			json_code = urllib2.urlopen(request).read()
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
@@ -2606,7 +2599,7 @@ class BlipTVIE(InfoExtractor):
 			return
 		try:
 			json_data = json.loads(json_code)
-			data = json_data['Post']
+			data = json_data['Post'] if 'Post' in json_data else json_data
 
 			upload_date = datetime.datetime.strptime(data['datestamp'], '%m-%d-%y %H:%M%p').strftime('%Y%m%d')
 			video_url = data['media']['url']
@@ -2629,7 +2622,7 @@ class BlipTVIE(InfoExtractor):
 				'player_url': data['embedUrl']
 			}
 		except (ValueError,KeyError), err:
-			self._downloader.trouble(u'ERROR: unable to parse video information: %s' % str(err))
+			self._downloader.trouble(u'ERROR: unable to parse video information: %s' % repr(err))
 			return
 
 		try:
