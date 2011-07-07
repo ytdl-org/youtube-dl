@@ -8,6 +8,10 @@
 # Author: Paweł Paprota
 # Author: Gergely Imreh
 # License: Public domain code
+
+from __future__ import with_statement
+
+import contextlib
 import cookielib
 import ctypes
 import datetime
@@ -301,6 +305,7 @@ class FileDownloader(object):
 	consoletitle:     Display progress in console window's titlebar.
 	nopart:           Do not use temporary .part files.
 	updatetime:       Use the Last-modified header to set output file timestamps.
+	writedescription: Write the video description to a .description file
 	"""
 
 	params = None
@@ -496,6 +501,10 @@ class FileDownloader(object):
 		except:
 			pass
 
+	def report_writedescription(self, descfn):
+		""" Report that the description file has been written """
+		self.to_screen(u'[info] Video description written to: %s' % descfn, ignore_encoding_errors=True)
+
 	def report_destination(self, filename):
 		"""Report destination filename."""
 		self.to_screen(u'[download] Destination: %s' % filename, ignore_encoding_errors=True)
@@ -581,6 +590,16 @@ class FileDownloader(object):
 		except (OSError, IOError), err:
 			self.trouble(u'ERROR: unable to create directories: %s' % str(err))
 			return
+
+		if self.params.get('writedescription', False):
+			try:
+				descfn = filename + '.description'
+				with contextlib.closing(open(descfn, 'wb')) as descfile:
+					descfile.write(info_dict['description'].encode('utf-8'))
+				self.report_writedescription(descfn)
+			except (OSError, IOError):
+				self.trouble(u'ERROR: Cannot write description file: %s' % str(descfn))
+				return
 
 		try:
 			success = self._do_download(filename, info_dict['url'].encode('utf-8'), info_dict.get('player_url', None))
@@ -1086,7 +1105,7 @@ class YoutubeIE(InfoExtractor):
 			lxml.etree
 		except NameError:
 			video_description = u'No description available.'
-			if self._downloader.params.get('forcedescription', False):
+			if self._downloader.params.get('forcedescription', False) or self._downloader.params.get('writedescription', False):
 				warnings.warn(u'You are using an old Python version, install Python 2.6+ or lxml. Falling back to old video description extractor.')
 				mobj = re.search(r'<meta name="description" content="(.*)"(?:\s*/)?>', video_webpage)
 				if mobj is not None:
@@ -2529,10 +2548,7 @@ class FacebookIE(InfoExtractor):
 					pass
 
 		# description
-		video_description = 'No description available.'
-		if (self._downloader.params.get('forcedescription', False) and
-		    'description' in video_info):
-			video_description = video_info['description']
+		video_description = video_info.get('description', 'No description available.')
 
 		url_map = video_info['video_urls']
 		if len(url_map.keys()) > 0:
@@ -2903,6 +2919,9 @@ if __name__ == '__main__':
 		filesystem.add_option('--no-mtime',
 				action='store_false', dest='updatetime',
 				help='do not use the Last-modified header to set the file modification time', default=True)
+		filesystem.add_option('--write-description',
+				action='store_true', dest='writedescription',
+				help='write video description to a .description file', default=False)
 		parser.add_option_group(filesystem)
 
 		postproc = optparse.OptionGroup(parser, 'Post-processing Options')
@@ -3040,6 +3059,7 @@ if __name__ == '__main__':
 			'consoletitle': opts.consoletitle,
 			'nopart': opts.nopart,
 			'updatetime': opts.updatetime,
+			'writedescription': opts.writedescription,
 			})
 		fd.add_info_extractor(youtube_search_ie)
 		fd.add_info_extractor(youtube_pl_ie)
