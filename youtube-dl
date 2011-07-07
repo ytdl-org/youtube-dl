@@ -15,7 +15,6 @@ import email.utils
 import gzip
 import htmlentitydefs
 import httplib
-import json # TODO: json for 2.5
 import locale
 import math
 import netrc
@@ -24,19 +23,34 @@ import os.path
 import re
 import socket
 import string
-import StringIO
 import subprocess
 import sys
 import time
 import urllib
 import urllib2
+import warnings
 import zlib
+
+try:
+	import json
+except ImportError:
+	warnings.warn('No JSON support (TODO: insert trivialjson here)')
+
+try:
+	import cStringIO as StringIO
+except ImportError:
+	import StringIO
 
 # parse_qs was moved from the cgi module to the urlparse module recently.
 try:
 	from urlparse import parse_qs
 except ImportError:
 	from cgi import parse_qs
+
+try:
+	import lxml.etree
+except ImportError: # Python < 2.6
+	pass # Handled below
 
 std_headers = {
 	'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:2.0b11) Gecko/20100101 Firefox/4.0b11',
@@ -1068,11 +1082,19 @@ class YoutubeIE(InfoExtractor):
 					pass
 
 		# description
-		video_description = 'No description available.'
-		if self._downloader.params.get('forcedescription', False):
-			mobj = re.search(r'<meta name="description" content="(.*)"(?:\s*/)?>', video_webpage)
-			if mobj is not None:
-				video_description = mobj.group(1)
+		try:
+			lxml.etree
+		except NameError:
+			video_description = u'No description available.'
+			if self._downloader.params.get('forcedescription', False):
+				warnings.warn(u'You are using an old Python version, install Python 2.6+ or lxml. Falling back to old video description extractor.')
+				mobj = re.search(r'<meta name="description" content="(.*)"(?:\s*/)?>', video_webpage)
+				if mobj is not None:
+					video_description = mobj.group(1).decode('utf-8')
+		else:
+			html_parser = lxml.etree.HTMLParser(encoding='utf-8')
+			vwebpage_doc = lxml.etree.parse(StringIO.StringIO(video_webpage), html_parser)
+			video_description = u''.join(vwebpage_doc.xpath('id("eow-description")//text()'))
 
 		# token
 		video_token = urllib.unquote_plus(video_info['token'][0])
@@ -1130,7 +1152,7 @@ class YoutubeIE(InfoExtractor):
 					'ext':		video_extension.decode('utf-8'),
 					'format':	(format_param is None and u'NA' or format_param.decode('utf-8')),
 					'thumbnail':	video_thumbnail.decode('utf-8'),
-					'description':	video_description.decode('utf-8'),
+					'description':	video_description,
 					'player_url':	player_url,
 				})
 			except UnavailableVideoError, err:
