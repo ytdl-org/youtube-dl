@@ -2646,6 +2646,8 @@ class BlipTVIE(InfoExtractor):
 				raise ValueError('Can not determine filename extension')
 			ext = umobj.group(1)
 
+			self._downloader.increment_downloads()
+
 			info = {
 				'id': data['item_id'],
 				'url': video_url,
