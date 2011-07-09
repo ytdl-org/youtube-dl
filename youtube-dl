@@ -30,6 +30,8 @@ import time
 import urllib
 import urllib2
 import zlib
+import threading
+import Queue
 
 # parse_qs was moved from the cgi module to the urlparse module recently.
 try:
@@ -46,6 +48,8 @@ std_headers = {
 }
 
 simple_title_chars = string.ascii_letters.decode('ascii') + string.digits.decode('ascii')
+
+downloadqueue=Queue.Queue()
 
 def preferredencoding():
 	"""Get preferred encoding.
@@ -303,6 +307,7 @@ class FileDownloader(object):
 		self._num_downloads = 0
 		self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
 		self.params = params
+		self.queue=Queue.Queue
 
 	@staticmethod
 	def pmkdir(filename):
@@ -651,8 +656,17 @@ class FileDownloader(object):
 		else:
 			self.trouble(u'\nERROR: rtmpdump exited with code %d' % retval)
 			return False
-
+		
 	def _do_download(self, filename, url, player_url):
+		if self.params.get('parallel') > 0:
+			downloadqueue.put({'filename':filename,'url':url,'player_url':player_url,'params':self.params})
+			return False
+		else:
+			self._do_real_download(filename, url, player_url)
+		
+		
+		
+	def _do_real_download(self, filename, url, player_url):
 		# Check file already present
 		if self.params.get('continuedl', False) and os.path.isfile(filename) and not self.params.get('nopart', False):
 			self.report_file_already_downloaded(filename)
@@ -783,6 +797,27 @@ class FileDownloader(object):
 			self.try_utime(filename, data.info().get('last-modified', None))
 
 		return True
+	
+	
+class FileDownloadHelper(FileDownloader,threading.Thread):
+	"""File Downloader that does threaded download if needed.
+	Download parameters are added to downloadqueue in FileDownloader class,
+	which each thread waits on and calls FileDownloader._do_real_download .
+ 	Individual threads are created in main function.
+	"""
+	
+	def	__init__(self):
+		threading.Thread.__init__(self)
+
+		
+	def run(self):
+		while True:
+			d=downloadqueue.get()
+			self.params=d['params']
+			super(FileDownloadHelper,self).__init__(d['params'])
+			self._do_real_download(d['filename'],d['url'],d['player_url'])
+			downloadqueue.task_done()
+	
 
 class InfoExtractor(object):
 	"""Information Extractor class.
@@ -2097,7 +2132,7 @@ class YahooSearchIE(InfoExtractor):
 class YoutubePlaylistIE(InfoExtractor):
 	"""Information Extractor for YouTube playlists."""
 
-	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/(?:(?:view_play_list|my_playlists|artist)\?.*?(p|a)=|user/.*?/user/|p/|user/.*?#[pg]/c/)([0-9A-Za-z]+)(?:/.*?/([0-9A-Za-z_-]+))?.*'
+	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/(?:(?:view_play_list|playlist|my_playlists|artist)\?.*?(p|a|list)=|user/.*?/user/|p/|user/.*?#[pg]/c/)([0-9A-Za-z]+)(?:/.*?/([0-9A-Za-z_-]+))?.*'
 	_TEMPLATE_URL = 'http://www.youtube.com/%s?%s=%s&page=%s&gl=US&hl=en'
 	_VIDEO_INDICATOR = r'/watch\?v=(.+?)&'
 	_MORE_PAGES_INDICATOR = r'(?m)>\s*Next\s*</a>'
@@ -2746,6 +2781,8 @@ if __name__ == '__main__':
 		parser.add_option('--dump-user-agent',
 				action='store_true', dest='dump_user_agent',
 				help='display the current browser identification', default=False)
+		parser.add_option('-P','--parallel',
+				type="int",dest='parallel',help='Number of parallel downloads',default=0)
 
 		authentication = optparse.OptionGroup(parser, 'Authentication Options')
 		authentication.add_option('-u', '--username',
@@ -2949,6 +2986,7 @@ if __name__ == '__main__':
 			'consoletitle': opts.consoletitle,
 			'nopart': opts.nopart,
 			'updatetime': opts.updatetime,
+			'parallel': opts.parallel,
 			})
 		fd.add_info_extractor(youtube_search_ie)
 		fd.add_info_extractor(youtube_pl_ie)
@@ -2975,6 +3013,14 @@ if __name__ == '__main__':
 		# Update version
 		if opts.update_self:
 			update_self(fd, sys.argv[0])
+			
+		#create downloader threads that wait for url's
+		downloadparallel=opts.parallel
+		if downloadparallel > 0:
+			for threadcount in xrange(downloadparallel):
+				d=FileDownloadHelper()
+				d.setDaemon(True)
+				d.start()
 
 		# Maybe do nothing
 		if len(all_urls) < 1:
@@ -2983,6 +3029,14 @@ if __name__ == '__main__':
 			else:
 				sys.exit()
 		retcode = fd.download(all_urls)
+		
+		#wait for download threads to terminate
+		if downloadparallel > 0:
+			while True:
+				if downloadqueue.empty():
+					break
+				time.sleep(10) #otherwise, join won't let main thread catch keyboard interrupt
+				
 
 		# Dump cookie jar if requested
 		if opts.cookiefile is not None:
