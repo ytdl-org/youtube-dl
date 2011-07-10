@@ -413,6 +413,7 @@ class FileDownloader(object):
 	nopart:           Do not use temporary .part files.
 	updatetime:       Use the Last-modified header to set output file timestamps.
 	writedescription: Write the video description to a .description file
+	writeinfojson:    Write the video description to a .info.json file
 	"""
 
 	params = None
@@ -609,8 +610,12 @@ class FileDownloader(object):
 			pass
 
 	def report_writedescription(self, descfn):
-		""" Report that the description file has been written """
-		self.to_screen(u'[info] Video description written to: %s' % descfn, ignore_encoding_errors=True)
+		""" Report that the description file is being written """
+		self.to_screen(u'[info] Writing video description to: %s' % descfn, ignore_encoding_errors=True)
+
+	def report_writeinfojson(self, infofn):
+		""" Report that the metadata file has been written """
+		self.to_screen(u'[info] Video description metadata as JSON to: %s' % infofn, ignore_encoding_errors=True)
 
 	def report_destination(self, filename):
 		"""Report destination filename."""
@@ -701,11 +706,27 @@ class FileDownloader(object):
 		if self.params.get('writedescription', False):
 			try:
 				descfn = filename + '.description'
+				self.report_writedescription(descfn)
 				with contextlib.closing(open(descfn, 'wb')) as descfile:
 					descfile.write(info_dict['description'].encode('utf-8'))
-				self.report_writedescription(descfn)
 			except (OSError, IOError):
 				self.trouble(u'ERROR: Cannot write description file: %s' % str(descfn))
+				return
+
+		print(repr(self.params))
+		if self.params.get('writeinfojson', False):
+			infofn = filename + '.info.json'
+			self.report_writeinfojson(infofn)
+			try:
+				json.dump
+			except (NameError,AttributeError):
+				self.trouble(u'ERROR: No JSON encoder found. Update to Python 2.6+, setup a json module, or leave out --write-info-json.')
+				return
+			try:
+				with contextlib.closing(open(infofn, 'wb')) as infof:
+					json.dump(info_dict, infof)
+			except (OSError, IOError):
+				self.trouble(u'ERROR: Cannot write metadata to JSON file: %s' % str(infofn))
 				return
 
 		try:
@@ -3031,6 +3052,9 @@ if __name__ == '__main__':
 		filesystem.add_option('--write-description',
 				action='store_true', dest='writedescription',
 				help='write video description to a .description file', default=False)
+		filesystem.add_option('--write-info-json',
+				action='store_true', dest='writeinfojson',
+				help='write video metadata to a .info.json file', default=False)
 		parser.add_option_group(filesystem)
 
 		postproc = optparse.OptionGroup(parser, 'Post-processing Options')
@@ -3169,6 +3193,7 @@ if __name__ == '__main__':
 			'nopart': opts.nopart,
 			'updatetime': opts.updatetime,
 			'writedescription': opts.writedescription,
+			'writeinfojson': opts.writeinfojson,
 			})
 		fd.add_info_extractor(youtube_search_ie)
 		fd.add_info_extractor(youtube_pl_ie)
