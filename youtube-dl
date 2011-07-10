@@ -713,7 +713,6 @@ class FileDownloader(object):
 				self.trouble(u'ERROR: Cannot write description file: %s' % str(descfn))
 				return
 
-		print(repr(self.params))
 		if self.params.get('writeinfojson', False):
 			infofn = filename + '.info.json'
 			self.report_writeinfojson(infofn)
