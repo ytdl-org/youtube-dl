@@ -3055,10 +3055,11 @@ if __name__ == '__main__':
 		
 		#wait for download threads to terminate
 		if downloadparallel > 0:
-			while True:
-				if( not threads[0].isAlive()):
-					break
-				time.sleep(1)
+			for threadcount in xrange(downloadparallel):
+				while True:
+					if( not threads[threadcount].isAlive()):
+						break
+					time.sleep(1)
 			for threadcount in xrange(downloadparallel):
 				threads[threadcount].join()
 				
