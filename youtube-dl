@@ -608,8 +608,8 @@ class FileDownloader(object):
 				# Extract information from URL and process it
 				ie.extract(url)
                 
-                #parallel downloader needs dummy at the end to signal end of queue
-                #for the thread to exit
+		                #parallel downloader needs dummy at the end to signal end of queue
+        		        #for the thread to exit
 				for i in xrange(self.params.get('parallel')):
 					downloadqueue.put({'filename':None } )
 
@@ -2796,7 +2796,7 @@ if __name__ == '__main__':
 		parser.add_option('-P','--parallel',
 				type="int",dest='parallel',help='Number of parallel downloads',default=0)
 		parser.add_option('-s', '--save-playlist',
-				action='store_true', dest='saveplaylist', help='do not create playlist file for playlists')
+				action='store_true', dest='saveplaylist', help='Save file list to a playlist file')
 
 
 
