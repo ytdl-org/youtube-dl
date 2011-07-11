@@ -3061,10 +3061,6 @@ if __name__ == '__main__':
 				time.sleep(1)
 			for threadcount in xrange(downloadparallel):
 				threads[threadcount].join()
-			# while True:
-			# 	if downloadqueue.empty():
-			# 		break
-			# 	time.sleep(1) #otherwise, join won't let main thread catch keyboard interrupt
 				
 
 		# Dump cookie jar if requested
