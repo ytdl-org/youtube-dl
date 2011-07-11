@@ -607,6 +607,11 @@ class FileDownloader(object):
 
 				# Extract information from URL and process it
 				ie.extract(url)
+                
+                #parallel downloader needs dummy at the end to signal end of queue
+                #for the thread to exit
+				for i in xrange(self.params.get('parallel')):
+					downloadqueue.put({'filename':None } )
 
 				# Suitable InfoExtractor had been found; go to next URL
 				break
@@ -658,6 +663,11 @@ class FileDownloader(object):
 			return False
 		
 	def _do_download(self, filename, url, player_url):
+		if ( self.params.get('playlistfile') != None ):
+			self.params.get('playlistfile').write(filename+"\n")
+			self.params.get('playlistfile').flush()
+            
+			             
 		if self.params.get('parallel') > 0:
 			downloadqueue.put({'filename':filename,'url':url,'player_url':player_url,'params':self.params})
 			return False
@@ -799,11 +809,11 @@ class FileDownloader(object):
 		return True
 	
 	
-class FileDownloadHelper(FileDownloader,threading.Thread):
+class FileDownloadHelper(threading.Thread):
 	"""File Downloader that does threaded download if needed.
 	Download parameters are added to downloadqueue in FileDownloader class,
-	which each thread waits on and calls FileDownloader._do_real_download .
- 	Individual threads are created in main function.
+	which each thread waits on and calls FileDownloader._do_real_download
+	Individual threads are created in main function.
 	"""
 	
 	def	__init__(self):
@@ -813,9 +823,11 @@ class FileDownloadHelper(FileDownloader,threading.Thread):
 	def run(self):
 		while True:
 			d=downloadqueue.get()
+			if ( d['filename'] == None):
+				break
 			self.params=d['params']
-			super(FileDownloadHelper,self).__init__(d['params'])
-			self._do_real_download(d['filename'],d['url'],d['player_url'])
+			fd=FileDownloader(d['params'])
+			fd._do_real_download(d['filename'],d['url'],d['player_url'])
 			downloadqueue.task_done()
 	
 
@@ -2783,6 +2795,10 @@ if __name__ == '__main__':
 				help='display the current browser identification', default=False)
 		parser.add_option('-P','--parallel',
 				type="int",dest='parallel',help='Number of parallel downloads',default=0)
+		parser.add_option('-s', '--save-playlist',
+				action='store_true', dest='saveplaylist', help='do not create playlist file for playlists')
+
+
 
 		authentication = optparse.OptionGroup(parser, 'Authentication Options')
 		authentication.add_option('-u', '--username',
@@ -2950,6 +2966,10 @@ if __name__ == '__main__':
 		facebook_ie = FacebookIE()
 		generic_ie = GenericIE()
 
+		playlistfile=None
+		if ( opts.saveplaylist):
+			playlistfile=open("playlist.m3u","w")
+	
 		# File downloader
 		fd = FileDownloader({
 			'usenetrc': opts.usenetrc,
@@ -2987,6 +3007,7 @@ if __name__ == '__main__':
 			'nopart': opts.nopart,
 			'updatetime': opts.updatetime,
 			'parallel': opts.parallel,
+			'playlistfile':playlistfile
 			})
 		fd.add_info_extractor(youtube_search_ie)
 		fd.add_info_extractor(youtube_pl_ie)
@@ -3014,13 +3035,15 @@ if __name__ == '__main__':
 		if opts.update_self:
 			update_self(fd, sys.argv[0])
 			
-		#create downloader threads that wait for url's
+		#create downloader threads that wait for URLs
 		downloadparallel=opts.parallel
+		threads=[]
 		if downloadparallel > 0:
 			for threadcount in xrange(downloadparallel):
 				d=FileDownloadHelper()
 				d.setDaemon(True)
 				d.start()
+				threads.append(d)
 
 		# Maybe do nothing
 		if len(all_urls) < 1:
@@ -3033,9 +3056,15 @@ if __name__ == '__main__':
 		#wait for download threads to terminate
 		if downloadparallel > 0:
 			while True:
-				if downloadqueue.empty():
+				if( not threads[0].isAlive()):
 					break
-				time.sleep(10) #otherwise, join won't let main thread catch keyboard interrupt
+				time.sleep(1)
+			for threadcount in xrange(downloadparallel):
+				threads[threadcount].join()
+			# while True:
+			# 	if downloadqueue.empty():
+			# 		break
+			# 	time.sleep(1) #otherwise, join won't let main thread catch keyboard interrupt
 				
 
 		# Dump cookie jar if requested
@@ -3045,6 +3074,8 @@ if __name__ == '__main__':
 			except (IOError, OSError), err:
 				sys.exit(u'ERROR: unable to save cookie jar')
 
+		if ( opts.saveplaylist):
+			playlistfile.close()
 		sys.exit(retcode)
 
 	except DownloadError:
