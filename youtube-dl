@@ -49,7 +49,7 @@ std_headers = {
 
 simple_title_chars = string.ascii_letters.decode('ascii') + string.digits.decode('ascii')
 
-downloadqueue=Queue.Queue()
+downloadqueue = Queue.Queue()
 
 def preferredencoding():
 	"""Get preferred encoding.
@@ -307,7 +307,6 @@ class FileDownloader(object):
 		self._num_downloads = 0
 		self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
 		self.params = params
-		self.queue=Queue.Queue
 
 	@staticmethod
 	def pmkdir(filename):
@@ -607,11 +606,10 @@ class FileDownloader(object):
 
 				# Extract information from URL and process it
 				ie.extract(url)
-                
-		                #parallel downloader needs dummy at the end to signal end of queue
-        		        #for the thread to exit
+				#parallel downloader needs dummy at the end to signal end of queue
+				#for the thread to exit
 				for i in xrange(self.params.get('parallel')):
-					downloadqueue.put({'filename':None } )
+					downloadqueue.put({'filename':None })
 
 				# Suitable InfoExtractor had been found; go to next URL
 				break
@@ -663,18 +661,14 @@ class FileDownloader(object):
 			return False
 		
 	def _do_download(self, filename, url, player_url):
-		if ( self.params.get('playlistfile') != None ):
+		if (self.params.get('playlistfile') != None):
 			self.params.get('playlistfile').write(filename+"\n")
 			self.params.get('playlistfile').flush()
-            
-			             
 		if self.params.get('parallel') > 0:
 			downloadqueue.put({'filename':filename,'url':url,'player_url':player_url,'params':self.params})
 			return False
 		else:
 			self._do_real_download(filename, url, player_url)
-		
-		
 		
 	def _do_real_download(self, filename, url, player_url):
 		# Check file already present
@@ -809,26 +803,19 @@ class FileDownloader(object):
 		return True
 	
 	
-class FileDownloadHelper(threading.Thread):
+def threadedFileDownloader():
 	"""File Downloader that does threaded download if needed.
 	Download parameters are added to downloadqueue in FileDownloader class,
 	which each thread waits on and calls FileDownloader._do_real_download
 	Individual threads are created in main function.
 	"""
-	
-	def	__init__(self):
-		threading.Thread.__init__(self)
-
-		
-	def run(self):
-		while True:
-			d=downloadqueue.get()
-			if ( d['filename'] == None):
-				break
-			self.params=d['params']
-			fd=FileDownloader(d['params'])
-			fd._do_real_download(d['filename'],d['url'],d['player_url'])
-			downloadqueue.task_done()
+	while True:
+		d = downloadqueue.get()
+		if (d['filename'] == None):
+			break
+		fd=FileDownloader(d['params'])
+		fd._do_real_download(d['filename'],d['url'],d['player_url'])
+		downloadqueue.task_done()
 	
 
 class InfoExtractor(object):
@@ -2796,7 +2783,7 @@ if __name__ == '__main__':
 		parser.add_option('-P','--parallel',
 				type="int",dest='parallel',help='Number of parallel downloads',default=0)
 		parser.add_option('-s', '--save-playlist',
-				action='store_true', dest='saveplaylist', help='Save file list to a playlist file')
+				action='store', dest='saveplaylist', help='Save file list to a playlist file')
 
 
 
@@ -2966,9 +2953,13 @@ if __name__ == '__main__':
 		facebook_ie = FacebookIE()
 		generic_ie = GenericIE()
 
-		playlistfile=None
-		if ( opts.saveplaylist):
-			playlistfile=open("playlist.m3u","w")
+		playlistfile = None
+		if (opts.saveplaylist != None):
+			if(opts.saveplaylist.find(".")  == -1 ):
+				playlist_filename = opts.saveplaylist + ".m3u"
+			else:
+				playlist_filename = opts.saveplaylist
+			playlistfile=open(playlist_filename,"w")
 	
 		# File downloader
 		fd = FileDownloader({
@@ -3007,7 +2998,7 @@ if __name__ == '__main__':
 			'nopart': opts.nopart,
 			'updatetime': opts.updatetime,
 			'parallel': opts.parallel,
-			'playlistfile':playlistfile
+			'playlistfile': playlistfile
 			})
 		fd.add_info_extractor(youtube_search_ie)
 		fd.add_info_extractor(youtube_pl_ie)
@@ -3036,14 +3027,14 @@ if __name__ == '__main__':
 			update_self(fd, sys.argv[0])
 			
 		#create downloader threads that wait for URLs
-		downloadparallel=opts.parallel
-		threads=[]
+		downloadparallel = opts.parallel
+		threads = []
 		if downloadparallel > 0:
 			for threadcount in xrange(downloadparallel):
-				d=FileDownloadHelper()
-				d.setDaemon(True)
-				d.start()
-				threads.append(d)
+				t = threading.Thread(target=threadedFileDownloader)
+				t.setDaemon(True)
+				t.start()
+				threads.append(t)
 
 		# Maybe do nothing
 		if len(all_urls) < 1:
@@ -3055,14 +3046,8 @@ if __name__ == '__main__':
 		
 		#wait for download threads to terminate
 		if downloadparallel > 0:
-			for threadcount in xrange(downloadparallel):
-				while True:
-					if( not threads[threadcount].isAlive()):
-						break
-					time.sleep(1)
-			for threadcount in xrange(downloadparallel):
-				threads[threadcount].join()
-				
+			for t in threads:
+				t.join(2**32)
 
 		# Dump cookie jar if requested
 		if opts.cookiefile is not None:
