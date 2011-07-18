@@ -62,7 +62,7 @@ simple_title_chars = string.ascii_letters.decode('ascii') + string.digits.decode
 
 try:
 	import json
-except ImportError: # Python <2.5, use trivialjson (https://github.com/phihag/trivialjson):
+except ImportError: # Python <2.6, use trivialjson (https://github.com/phihag/trivialjson):
 	import re
 	class json(object):
 		@staticmethod
@@ -1241,6 +1241,7 @@ class YoutubeIE(InfoExtractor):
 			html_parser = lxml.etree.HTMLParser(encoding='utf-8')
 			vwebpage_doc = lxml.etree.parse(StringIO.StringIO(video_webpage), html_parser)
 			video_description = u''.join(vwebpage_doc.xpath('id("eow-description")//text()'))
+			# TODO use another parser
 
 		# token
 		video_token = urllib.unquote_plus(video_info['token'][0])
@@ -1248,7 +1249,7 @@ class YoutubeIE(InfoExtractor):
 		# Decide which formats to download
 		req_format = self._downloader.params.get('format', None)
 
-		if 'fmt_url_map' in video_info and len(video_info['fmt_url_map']) >= 1 and ',' in video_info['fmt_url_map'][0]:
+		if 'fmt_url_map' in video_info and len(video_info['fmt_url_map']) >= 1:
 			url_map = dict(tuple(pair.split('|')) for pair in video_info['fmt_url_map'][0].split(','))
 			format_limit = self._downloader.params.get('format_limit', None)
 			if format_limit is not None and format_limit in self._available_formats:
