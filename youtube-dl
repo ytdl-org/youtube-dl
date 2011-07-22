@@ -1233,7 +1233,6 @@ class YoutubeIE(InfoExtractor):
 		except NameError:
 			video_description = u'No description available.'
 			if self._downloader.params.get('forcedescription', False) or self._downloader.params.get('writedescription', False):
-				warnings.warn(u'You are using an old Python version, install Python 2.6+ or lxml. Falling back to old video description extractor.')
 				mobj = re.search(r'<meta name="description" content="(.*)"(?:\s*/)?>', video_webpage)
 				if mobj is not None:
 					video_description = mobj.group(1).decode('utf-8')
