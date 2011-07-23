@@ -282,6 +282,8 @@ class FileDownloader(object):
 	noprogress:       Do not print the progress bar.
 	playliststart:    Playlist item to start at.
 	playlistend:      Playlist item to end at.
+	matchtitle:       Download only matching titles.
+	rejecttitle:      Reject downloads for matching titles.
 	logtostderr:      Log messages to stderr instead of stdout.
 	consoletitle:     Display progress in console window's titlebar.
 	nopart:           Do not use temporary .part files.
@@ -557,6 +559,17 @@ class FileDownloader(object):
 
 		if filename is None:
 			return
+
+		matchtitle=self.params.get('matchtitle',False)
+		rejecttitle=self.params.get('rejecttitle',False)
+		title=info_dict['title'].encode(preferredencoding(), 'xmlcharrefreplace')
+		if matchtitle and not re.search(matchtitle, title, re.IGNORECASE):
+			self.to_screen(u'[download] "%s" title did not match pattern "%s"' % (title, matchtitle))
+			return
+		if rejecttitle and re.search(rejecttitle, title, re.IGNORECASE):
+			self.to_screen(u'[download] "%s" title matched reject pattern "%s"' % (title, rejecttitle))
+			return
+			
 		if self.params.get('nooverwrites', False) and os.path.exists(filename):
 			self.to_stderr(u'WARNING: file exists and will be skipped')
 			return
@@ -2743,6 +2756,8 @@ if __name__ == '__main__':
 				dest='playliststart', metavar='NUMBER', help='playlist video to start at (default is 1)', default=1)
 		parser.add_option('--playlist-end',
 				dest='playlistend', metavar='NUMBER', help='playlist video to end at (default is last)', default=-1)
+		parser.add_option('--match-title', dest='matchtitle', metavar='REGEX',help='download only matching titles (regex or caseless sub-string)')
+		parser.add_option('--reject-title', dest='rejecttitle', metavar='REGEX',help='skip download for matching titles (regex or caseless sub-string)')
 		parser.add_option('--dump-user-agent',
 				action='store_true', dest='dump_user_agent',
 				help='display the current browser identification', default=False)
@@ -2945,6 +2960,8 @@ if __name__ == '__main__':
 			'noprogress': opts.noprogress,
 			'playliststart': opts.playliststart,
 			'playlistend': opts.playlistend,
+			'matchtitle':opts.matchtitle,
+			'rejecttitle':opts.rejecttitle,
 			'logtostderr': opts.outtmpl == '-',
 			'consoletitle': opts.consoletitle,
 			'nopart': opts.nopart,
