@@ -1248,8 +1248,14 @@ class YoutubeIE(InfoExtractor):
 		# Decide which formats to download
 		req_format = self._downloader.params.get('format', None)
 
+		raw_map = None
 		if 'fmt_url_map' in video_info and len(video_info['fmt_url_map']) >= 1:
-			url_map = dict(tuple(pair.split('|')) for pair in video_info['fmt_url_map'][0].split(','))
+			raw_map = video_info['fmt_url_map'][0]
+		elif 'fmt_stream_map' in video_info and len(video_info['fmt_stream_map']) >= 1:
+			raw_map = video_info['fmt_stream_map'][0]
+
+		if raw_map is not None:
+			url_map = dict(tuple(pair.split('|')[:2]) for pair in raw_map.split(','))
 			format_limit = self._downloader.params.get('format_limit', None)
 			if format_limit is not None and format_limit in self._available_formats:
 				format_list = self._available_formats[self._available_formats.index(format_limit):]
