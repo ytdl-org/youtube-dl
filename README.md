@@ -1,11 +1,9 @@
 # youtube-dl
 
 ## USAGE
-***
 youtube-dl [OPTIONS] URL
 
 ## DESCRIPTION
-***
 **youtube-dl** is a small command-line program to download videos from
 YouTube.com and a few more sites. It requires the Python interpreter, version
 2.x (x being at least 5), and it is not platform specific. It should work in
@@ -13,7 +11,6 @@ your Unix box, in Windows or in Mac OS X. It is released to the public domain,
 which means you can modify it, redistribute it or use it however you like.
 
 ## OPTIONS
-***
     -h, --help            print this help text and exit
     -v, --version         print program version and exit
     -U, --update          update this program to latest stable version
@@ -76,13 +73,11 @@ which means you can modify it, redistribute it or use it however you like.
                         "best", "aac" or "mp3"; best by default
 
 ## COPYRIGHT
-***
 **youtube-dl**: Copyright © 2006-2011 Ricardo Garcia Gonzalez. The program is
 released into the public domain by the copyright holder. This README file was
 originally written by Daniel Bolton (<https://github.com/dbbolton>) and is
 likewise released into the public domain.
 
 ## BUGS
-***
 Bugs should be reported at: <https://github.com/rg3/youtube-dl/issues>
 
