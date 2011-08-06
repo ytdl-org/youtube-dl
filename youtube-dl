@@ -1251,7 +1251,6 @@ class YoutubeIE(InfoExtractor):
 		if 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
 			self.report_rtmp_download()
 			video_url_list = [(None, video_info['conn'][0])]
-			print(repr(video_info['conn'][0]))
 		elif 'url_encoded_fmt_stream_map' in video_info and len(video_info['url_encoded_fmt_stream_map']) >= 1:
 			url_data_strs = video_info['url_encoded_fmt_stream_map'][0].split(',')
 			url_data = [dict(pairStr.split('=') for pairStr in uds.split('&')) for uds in url_data_strs]
