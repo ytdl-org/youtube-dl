@@ -9,8 +9,6 @@
 # Author: Gergely Imreh
 # Author: Philipp Hagemeister <phihag@phihag.de>
 # License: Public domain code
-from __future__ import with_statement
-import contextlib
 import cookielib
 import datetime
 import gzip
@@ -712,8 +710,11 @@ class FileDownloader(object):
 			try:
 				descfn = filename + '.description'
 				self.report_writedescription(descfn)
-				with contextlib.closing(open(descfn, 'wb')) as descfile:
+				descfile = open(descfn, 'wb')
+				try:
 					descfile.write(info_dict['description'].encode('utf-8'))
+				finally:
+					descfile.close()
 			except (OSError, IOError):
 				self.trouble(u'ERROR: Cannot write description file: %s' % str(descfn))
 				return
@@ -727,8 +728,11 @@ class FileDownloader(object):
 				self.trouble(u'ERROR: No JSON encoder found. Update to Python 2.6+, setup a json module, or leave out --write-info-json.')
 				return
 			try:
-				with contextlib.closing(open(infofn, 'wb')) as infof:
+				infof = open(infofn, 'wb')
+				try:
 					json.dump(info_dict, infof)
+				finally:
+					infof.close()
 			except (OSError, IOError):
 				self.trouble(u'ERROR: Cannot write metadata to JSON file: %s' % str(infofn))
 				return
@@ -2761,7 +2765,11 @@ class BlipTVIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
 			return
 
-		json_url = url + ('&' if '?' in url else '?') + 'skin=json&version=2&no_wrap=1'
+		if '?' in url:
+			cchar = '&'
+		else:
+			cchar = '?'
+		json_url = url + cchar + 'skin=json&version=2&no_wrap=1'
 		request = urllib2.Request(json_url)
 		self.report_extraction(mobj.group(1))
 		try:
@@ -2771,7 +2779,10 @@ class BlipTVIE(InfoExtractor):
 			return
 		try:
 			json_data = json.loads(json_code)
-			data = json_data['Post'] if 'Post' in json_data else json_data
+			if 'Post' in json_data:
+				data = json_data['Post']
+			else:
+				data = json_data
 
 			upload_date = datetime.datetime.strptime(data['datestamp'], '%m-%d-%y %H:%M%p').strftime('%Y%m%d')
 			video_url = data['media']['url']
