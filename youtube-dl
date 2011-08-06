@@ -1286,7 +1286,7 @@ class YoutubeIE(InfoExtractor):
 					return
 				video_url_list = [(req_format, url_map[req_format])] # Specific format
 		else:
-			self._downloader.trouble(u'ERROR: no fmt_url_map or conn information found in video info')
+			self._downloader.trouble(u'ERROR: no conn or url_encoded_fmt_stream_map information found in video info')
 			return
 
 		for format_param, video_real_url in video_url_list:
@@ -1296,7 +1296,6 @@ class YoutubeIE(InfoExtractor):
 			# Extension
 			video_extension = self._video_extensions.get(format_param, 'flv')
 
-			# Find the video URL in fmt_url_map or conn paramters
 			try:
 				# Process video information
 				self._downloader.process_info({
