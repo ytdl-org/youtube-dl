@@ -1248,9 +1248,14 @@ class YoutubeIE(InfoExtractor):
 		# Decide which formats to download
 		req_format = self._downloader.params.get('format', None)
 
-		if 'url_encoded_fmt_stream_map' in video_info and len(video_info['url_encoded_fmt_stream_map']) >= 1:
+		if 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
+			self.report_rtmp_download()
+			video_url_list = [(None, video_info['conn'][0])]
+			print(repr(video_info['conn'][0]))
+		elif 'url_encoded_fmt_stream_map' in video_info and len(video_info['url_encoded_fmt_stream_map']) >= 1:
 			url_data_strs = video_info['url_encoded_fmt_stream_map'][0].split(',')
 			url_data = [dict(pairStr.split('=') for pairStr in uds.split('&')) for uds in url_data_strs]
+			url_data = filter(lambda ud: 'itag' in ud and 'url' in ud, url_data)
 			url_map = dict((ud['itag'], urllib.unquote(ud['url'])) for ud in url_data)
 			
 			format_limit = self._downloader.params.get('format_limit', None)
@@ -1272,11 +1277,6 @@ class YoutubeIE(InfoExtractor):
 					self._downloader.trouble(u'ERROR: requested format not available')
 					return
 				video_url_list = [(req_format, url_map[req_format])] # Specific format
-
-		elif 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
-			self.report_rtmp_download()
-			video_url_list = [(None, video_info['conn'][0])]
-
 		else:
 			self._downloader.trouble(u'ERROR: no fmt_url_map or conn information found in video info')
 			return
