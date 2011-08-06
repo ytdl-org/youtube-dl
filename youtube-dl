@@ -12,9 +12,7 @@
 from __future__ import with_statement
 import contextlib
 import cookielib
-import ctypes
 import datetime
-import email.utils
 import gzip
 import htmlentitydefs
 import httplib
@@ -34,6 +32,13 @@ import urllib2
 import warnings
 import zlib
 
+if os.name == 'nt':
+	import ctypes
+
+try:
+	import email.utils
+except ImportError: # Python 2.4
+	import email.Utils
 try:
 	import cStringIO as StringIO
 except ImportError:
