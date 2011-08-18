@@ -2741,7 +2741,7 @@ class FacebookIE(InfoExtractor):
 class BlipTVIE(InfoExtractor):
 	"""Information extractor for blip.tv"""
 
-	_VALID_URL = r'^(?:https?://)?(?:\w+\.)?blip.tv(/.+)$'
+	_VALID_URL = r'^(?:https?://)?(?:\w+\.)?blip\.tv(/.+)$'
 	_URL_EXT = r'^.*\.([a-z0-9]+)$'
 
 	@staticmethod
