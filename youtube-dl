@@ -3001,3 +3001,5 @@ if __name__ == '__main__':
 		sys.exit(u'ERROR: fixed output name but more than one file to download')
 	except KeyboardInterrupt:
 		sys.exit(u'\nERROR: Interrupted by user')
+
+# vim: set ts=4 sw=4 sts=4 noet ai si filetype=python:
