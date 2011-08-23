@@ -12,6 +12,7 @@ __author__  = (
 	)
 
 __license__ = "Public Domain"
+__version__ = '2011.08.04'
 
 import cookielib
 import ctypes
@@ -2725,116 +2726,149 @@ def updateSelf(downloader, filename):
 	downloader.to_screen('Updated to version %s' % latest_version)
 
 
+def parseOpts():
+	# Deferred imports
+	import getpass
+	import optparse
+
+	def _format_option_string(option):
+		''' ('-o', '--option') -> -o, --format METAVAR'''
+
+		opts = []
+
+		if option._short_opts: opts.append(option._short_opts[0])
+		if option._long_opts: opts.append(option._long_opts[0])
+		if len(opts) > 1: opts.insert(1, ', ')
+
+		if option.takes_value(): opts.append(' %s' % option.metavar)
+
+		return "".join(opts)
+
+	fmt = optparse.IndentedHelpFormatter()
+	fmt.format_option_strings = _format_option_string
+
+	kw = {
+		'version'   : __version__,
+		'formatter' : fmt,
+		'usage' : 'Usage : %prog [options] url...',
+		'conflict_handler' : 'resolve',
+	}
+
+	parser = optparse.OptionParser(**kw)
+
+	# option groups
+	general        = optparse.OptionGroup(parser, 'General Options')
+	authentication = optparse.OptionGroup(parser, 'Authentication Options')
+	video_format   = optparse.OptionGroup(parser, 'Video Format Options')
+	postproc       = optparse.OptionGroup(parser, 'Post-processing Options')
+	filesystem     = optparse.OptionGroup(parser, 'Filesystem Options')
+	verbosity      = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
+
+	general.add_option('-h', '--help',
+			action='help', help='print this help text and exit')
+	general.add_option('-v', '--version',
+			action='version', help='print program version and exit')
+	general.add_option('-U', '--update',
+			action='store_true', dest='update_self', help='update this program to latest stable version')
+	general.add_option('-i', '--ignore-errors',
+			action='store_true', dest='ignoreerrors', help='continue on download errors', default=False)
+	general.add_option('-r', '--rate-limit',
+			dest='ratelimit', metavar='LIMIT', help='download rate limit (e.g. 50k or 44.6m)')
+	general.add_option('-R', '--retries',
+			dest='retries', metavar='RETRIES', help='number of retries (default is 10)', default=10)
+	general.add_option('--playlist-start',
+			dest='playliststart', metavar='NUMBER', help='playlist video to start at (default is 1)', default=1)
+	general.add_option('--playlist-end',
+			dest='playlistend', metavar='NUMBER', help='playlist video to end at (default is last)', default=-1)
+	general.add_option('--dump-user-agent',
+			action='store_true', dest='dump_user_agent',
+			help='display the current browser identification', default=False)
+
+	authentication.add_option('-u', '--username',
+			dest='username', metavar='USERNAME', help='account username')
+	authentication.add_option('-p', '--password',
+			dest='password', metavar='PASSWORD', help='account password')
+	authentication.add_option('-n', '--netrc',
+			action='store_true', dest='usenetrc', help='use .netrc authentication data', default=False)
+
+
+	video_format.add_option('-f', '--format',
+			action='store', dest='format', metavar='FORMAT', help='video format code')
+	video_format.add_option('--all-formats',
+			action='store_const', dest='format', help='download all available video formats', const='-1')
+	video_format.add_option('--max-quality',
+			action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
+
+
+	verbosity.add_option('-q', '--quiet',
+			action='store_true', dest='quiet', help='activates quiet mode', default=False)
+	verbosity.add_option('-s', '--simulate',
+			action='store_true', dest='simulate', help='do not download video', default=False)
+	verbosity.add_option('-g', '--get-url',
+			action='store_true', dest='geturl', help='simulate, quiet but print URL', default=False)
+	verbosity.add_option('-e', '--get-title',
+			action='store_true', dest='gettitle', help='simulate, quiet but print title', default=False)
+	verbosity.add_option('--get-thumbnail',
+			action='store_true', dest='getthumbnail',
+			help='simulate, quiet but print thumbnail URL', default=False)
+	verbosity.add_option('--get-description',
+			action='store_true', dest='getdescription',
+			help='simulate, quiet but print video description', default=False)
+	verbosity.add_option('--get-filename',
+			action='store_true', dest='getfilename',
+			help='simulate, quiet but print output filename', default=False)
+	verbosity.add_option('--no-progress',
+			action='store_true', dest='noprogress', help='do not print progress bar', default=False)
+	verbosity.add_option('--console-title',
+			action='store_true', dest='consoletitle',
+			help='display progress in console titlebar', default=False)
+
+
+	filesystem.add_option('-t', '--title',
+			action='store_true', dest='usetitle', help='use title in file name', default=False)
+	filesystem.add_option('-l', '--literal',
+			action='store_true', dest='useliteral', help='use literal title in file name', default=False)
+	filesystem.add_option('-A', '--auto-number',
+			action='store_true', dest='autonumber',
+			help='number downloaded files starting from 00000', default=False)
+	filesystem.add_option('-o', '--output',
+			dest='outtmpl', metavar='TEMPLATE', help='output filename template')
+	filesystem.add_option('-a', '--batch-file',
+			dest='batchfile', metavar='FILE', help='file containing URLs to download (\'-\' for stdin)')
+	filesystem.add_option('-w', '--no-overwrites',
+			action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
+	filesystem.add_option('-c', '--continue',
+			action='store_true', dest='continue_dl', help='resume partially downloaded files', default=False)
+	filesystem.add_option('--cookies',
+			dest='cookiefile', metavar='FILE', help='file to dump cookie jar to')
+	filesystem.add_option('--no-part',
+			action='store_true', dest='nopart', help='do not use .part files', default=False)
+	filesystem.add_option('--no-mtime',
+			action='store_false', dest='updatetime',
+			help='do not use the Last-modified header to set the file modification time', default=True)
+
+
+	postproc.add_option('--extract-audio', action='store_true', dest='extractaudio', default=False,
+			help='convert video files to audio-only files (requires ffmpeg and ffprobe)')
+	postproc.add_option('--audio-format', metavar='FORMAT', dest='audioformat', default='best',
+			help='"best", "aac" or "mp3"; best by default')
+
+
+	parser.add_option_group(general)
+	parser.add_option_group(filesystem)
+	parser.add_option_group(verbosity)
+	parser.add_option_group(video_format)
+	parser.add_option_group(authentication)
+	parser.add_option_group(postproc)
+
+	opts, args = parser.parse_args()
+
+	return parser, opts, args
+
+
 if __name__ == '__main__':
 	try:
-		# Modules needed only when running the main program
-		import getpass
-		import optparse
-
-
-		# Parse command line
-		parser = optparse.OptionParser(
-			usage='Usage: %prog [options] url...',
-			version='2011.08.04',
-			conflict_handler='resolve',
-		)
-
-		parser.add_option('-h', '--help',
-				action='help', help='print this help text and exit')
-		parser.add_option('-v', '--version',
-				action='version', help='print program version and exit')
-		parser.add_option('-U', '--update',
-				action='store_true', dest='update_self', help='update this program to latest stable version')
-		parser.add_option('-i', '--ignore-errors',
-				action='store_true', dest='ignoreerrors', help='continue on download errors', default=False)
-		parser.add_option('-r', '--rate-limit',
-				dest='ratelimit', metavar='LIMIT', help='download rate limit (e.g. 50k or 44.6m)')
-		parser.add_option('-R', '--retries',
-				dest='retries', metavar='RETRIES', help='number of retries (default is 10)', default=10)
-		parser.add_option('--playlist-start',
-				dest='playliststart', metavar='NUMBER', help='playlist video to start at (default is 1)', default=1)
-		parser.add_option('--playlist-end',
-				dest='playlistend', metavar='NUMBER', help='playlist video to end at (default is last)', default=-1)
-		parser.add_option('--dump-user-agent',
-				action='store_true', dest='dump_user_agent',
-				help='display the current browser identification', default=False)
-
-		authentication = optparse.OptionGroup(parser, 'Authentication Options')
-		authentication.add_option('-u', '--username',
-				dest='username', metavar='USERNAME', help='account username')
-		authentication.add_option('-p', '--password',
-				dest='password', metavar='PASSWORD', help='account password')
-		authentication.add_option('-n', '--netrc',
-				action='store_true', dest='usenetrc', help='use .netrc authentication data', default=False)
-		parser.add_option_group(authentication)
-
-		video_format = optparse.OptionGroup(parser, 'Video Format Options')
-		video_format.add_option('-f', '--format',
-				action='store', dest='format', metavar='FORMAT', help='video format code')
-		video_format.add_option('--all-formats',
-				action='store_const', dest='format', help='download all available video formats', const='-1')
-		video_format.add_option('--max-quality',
-				action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
-		parser.add_option_group(video_format)
-
-		verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
-		verbosity.add_option('-q', '--quiet',
-				action='store_true', dest='quiet', help='activates quiet mode', default=False)
-		verbosity.add_option('-s', '--simulate',
-				action='store_true', dest='simulate', help='do not download video', default=False)
-		verbosity.add_option('-g', '--get-url',
-				action='store_true', dest='geturl', help='simulate, quiet but print URL', default=False)
-		verbosity.add_option('-e', '--get-title',
-				action='store_true', dest='gettitle', help='simulate, quiet but print title', default=False)
-		verbosity.add_option('--get-thumbnail',
-				action='store_true', dest='getthumbnail',
-				help='simulate, quiet but print thumbnail URL', default=False)
-		verbosity.add_option('--get-description',
-				action='store_true', dest='getdescription',
-				help='simulate, quiet but print video description', default=False)
-		verbosity.add_option('--get-filename',
-				action='store_true', dest='getfilename',
-				help='simulate, quiet but print output filename', default=False)
-		verbosity.add_option('--no-progress',
-				action='store_true', dest='noprogress', help='do not print progress bar', default=False)
-		verbosity.add_option('--console-title',
-				action='store_true', dest='consoletitle',
-				help='display progress in console titlebar', default=False)
-		parser.add_option_group(verbosity)
-
-		filesystem = optparse.OptionGroup(parser, 'Filesystem Options')
-		filesystem.add_option('-t', '--title',
-				action='store_true', dest='usetitle', help='use title in file name', default=False)
-		filesystem.add_option('-l', '--literal',
-				action='store_true', dest='useliteral', help='use literal title in file name', default=False)
-		filesystem.add_option('-A', '--auto-number',
-				action='store_true', dest='autonumber',
-				help='number downloaded files starting from 00000', default=False)
-		filesystem.add_option('-o', '--output',
-				dest='outtmpl', metavar='TEMPLATE', help='output filename template')
-		filesystem.add_option('-a', '--batch-file',
-				dest='batchfile', metavar='FILE', help='file containing URLs to download (\'-\' for stdin)')
-		filesystem.add_option('-w', '--no-overwrites',
-				action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
-		filesystem.add_option('-c', '--continue',
-				action='store_true', dest='continue_dl', help='resume partially downloaded files', default=False)
-		filesystem.add_option('--cookies',
-				dest='cookiefile', metavar='FILE', help='file to dump cookie jar to')
-		filesystem.add_option('--no-part',
-				action='store_true', dest='nopart', help='do not use .part files', default=False)
-		filesystem.add_option('--no-mtime',
-				action='store_false', dest='updatetime',
-				help='do not use the Last-modified header to set the file modification time', default=True)
-		parser.add_option_group(filesystem)
-
-		postproc = optparse.OptionGroup(parser, 'Post-processing Options')
-		postproc.add_option('--extract-audio', action='store_true', dest='extractaudio', default=False,
-				help='convert video files to audio-only files (requires ffmpeg and ffprobe)')
-		postproc.add_option('--audio-format', metavar='FORMAT', dest='audioformat', default='best',
-				help='"best", "aac" or "mp3"; best by default')
-		parser.add_option_group(postproc)
-
-		(opts, args) = parser.parse_args()
+		parser, opts, args = parseOpts()
 
 		# Open appropriate CookieJar
 		if opts.cookiefile is None:
