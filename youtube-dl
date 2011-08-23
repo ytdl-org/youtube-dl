@@ -2698,34 +2698,39 @@ class FFmpegExtractAudioPP(PostProcessor):
 		information['filepath'] = new_path
 		return information
 
-### MAIN PROGRAM ###
+
+def updateSelf(downloader, filename):
+	''' Update the program file with the latest version from the repository '''
+	# Note: downloader only used for options
+	if not os.access(filename, os.W_OK):
+		sys.exit('ERROR: no write permissions on %s' % filename)
+
+	downloader.to_screen('Updating to latest stable version...')
+
+	try:
+		latest_url = 'http://github.com/rg3/youtube-dl/raw/master/LATEST_VERSION'
+		latest_version = urllib.urlopen(latest_url).read().strip()
+		prog_url = 'http://github.com/rg3/youtube-dl/raw/%s/youtube-dl' % latest_version
+		newcontent = urllib.urlopen(prog_url).read()
+	except (IOError, OSError), err:
+		sys.exit('ERROR: unable to download latest version')
+
+	try:
+		stream = open(filename, 'w')
+		stream.write(newcontent)
+		stream.close()
+	except (IOError, OSError), err:
+		sys.exit('ERROR: unable to overwrite current version')
+
+	downloader.to_screen('Updated to version %s' % latest_version)
+
+
 if __name__ == '__main__':
 	try:
 		# Modules needed only when running the main program
 		import getpass
 		import optparse
 
-		# Function to update the program file with the latest version from the repository.
-		def update_self(downloader, filename):
-			# Note: downloader only used for options
-			if not os.access(filename, os.W_OK):
-				sys.exit('ERROR: no write permissions on %s' % filename)
-
-			downloader.to_screen('Updating to latest stable version...')
-			try:
-				latest_url = 'http://github.com/rg3/youtube-dl/raw/master/LATEST_VERSION'
-				latest_version = urllib.urlopen(latest_url).read().strip()
-				prog_url = 'http://github.com/rg3/youtube-dl/raw/%s/youtube-dl' % latest_version
-				newcontent = urllib.urlopen(prog_url).read()
-			except (IOError, OSError), err:
-				sys.exit('ERROR: unable to download latest version')
-			try:
-				stream = open(filename, 'w')
-				stream.write(newcontent)
-				stream.close()
-			except (IOError, OSError), err:
-				sys.exit('ERROR: unable to overwrite current version')
-			downloader.to_screen('Updated to version %s' % latest_version)
 
 		# Parse command line
 		parser = optparse.OptionParser(
@@ -2981,7 +2986,7 @@ if __name__ == '__main__':
 
 		# Update version
 		if opts.update_self:
-			update_self(fd, sys.argv[0])
+			updateSelf(fd, sys.argv[0])
 
 		# Maybe do nothing
 		if len(all_urls) < 1:
