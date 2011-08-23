@@ -2744,11 +2744,21 @@ def parseOpts():
 
 		return "".join(opts)
 
+	def _find_term_columns():
+		columns = os.environ.get('COLUMNS', None)
+		if columns: return int(columns)
+
+		if sys.platform.startswith('linux'):
+			try: columns = os.popen('stty size', 'r').read().split()[1]
+			except: pass
+
+		if columns: return int(columns)
+
 	max_width = 80
 	max_help_position = 80
 
 	# No need to wrap help messages if we're on a wide console
-	columns = os.environ.get('COLUMNS', None)
+	columns = _find_term_columns()
 	if columns: max_width = columns
 
 	fmt = optparse.IndentedHelpFormatter(width=max_width, max_help_position=max_help_position)
