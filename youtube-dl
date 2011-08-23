@@ -1,13 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author: Ricardo Garcia Gonzalez
-# Author: Danny Colligan
-# Author: Benjamin Johnson
-# Author: Vasyl' Vavrychuk
-# Author: Witold Baryluk
-# Author: Paweł Paprota
-# Author: Gergely Imreh
-# License: Public domain code
+
+__author__  = (
+	"Ricardo Garcia Gonzalez",
+	"Danny Colligan",
+	"Benjamin Johnson",
+	"Vasyl' Vavrychuk",
+	"Witold Baryluk",
+	"Paweł Paprota",
+	"Gergely Imreh",
+	)
+
+__license__ = "Public Domain"
+
 import cookielib
 import ctypes
 import datetime
