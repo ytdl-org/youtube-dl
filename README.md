@@ -11,66 +11,56 @@ your Unix box, in Windows or in Mac OS X. It is released to the public domain,
 which means you can modify it, redistribute it or use it however you like.
 
 ## OPTIONS
-    -h, --help            print this help text and exit
-    -v, --version         print program version and exit
-    -U, --update          update this program to latest stable version
-    -i, --ignore-errors   continue on download errors
-    -r LIMIT, --rate-limit=LIMIT
-                          download rate limit (e.g. 50k or 44.6m)
-    -R RETRIES, --retries=RETRIES
-                          number of retries (default is 10)
-    --playlist-start=NUMBER
-                          playlist video to start at (default is 1)
-    --playlist-end=NUMBER
-                          playlist video to end at (default is last)
-    --dump-user-agent     display the current browser identification
+    -h, --help               print this help text and exit
+    -v, --version            print program version and exit
+    -U, --update             update this program to latest stable version
+    -i, --ignore-errors      continue on download errors
+    -r, --rate-limit LIMIT   download rate limit (e.g. 50k or 44.6m)
+    -R, --retries RETRIES    number of retries (default is 10)
+    --playlist-start NUMBER  playlist video to start at (default is 1)
+    --playlist-end NUMBER    playlist video to end at (default is last)
+    --dump-user-agent        display the current browser identification
 
-###  Authentication Options
-    -u USERNAME, --username=USERNAME
-                        account username
-    -p PASSWORD, --password=PASSWORD
-                        account password
-    -n, --netrc         use .netrc authentication data
+### Filesystem Options:
+    -t, --title              use title in file name
+    -l, --literal            use literal title in file name
+    -A, --auto-number        number downloaded files starting from 00000
+    -o, --output TEMPLATE    output filename template
+    -a, --batch-file FILE    file containing URLs to download ('-' for stdin)
+    -w, --no-overwrites      do not overwrite files
+    -c, --continue           resume partially downloaded files
+    --cookies FILE           file to dump cookie jar to
+    --no-part                do not use .part files
+    --no-mtime               do not use the Last-modified header to set the file
+                             modification time
+    --write-description      write video description to a .description file
+    --write-info-json        write video metadata to a .info.json file
 
-###  Video Format Options
-    -f FORMAT, --format=FORMAT
-                        video format code
-    --all-formats       download all available video formats
-    --max-quality=FORMAT
-                        highest quality format to download
+### Verbosity / Simulation Options:
+    -q, --quiet              activates quiet mode
+    -s, --simulate           do not download video
+    -g, --get-url            simulate, quiet but print URL
+    -e, --get-title          simulate, quiet but print title
+    --get-thumbnail          simulate, quiet but print thumbnail URL
+    --get-description        simulate, quiet but print video description
+    --get-filename           simulate, quiet but print output filename
+    --no-progress            do not print progress bar
+    --console-title          display progress in console titlebar
 
-### Verbosity / Simulation Options
-    -q, --quiet         activates quiet mode
-    -s, --simulate      do not download video
-    -g, --get-url       simulate, quiet but print URL
-    -e, --get-title     simulate, quiet but print title
-    --get-thumbnail     simulate, quiet but print thumbnail URL
-    --get-description   simulate, quiet but print video description
-    --get-filename      simulate, quiet but print output filename
-    --no-progress       do not print progress bar
-    --console-title     display progress in console titlebar
+### Video Format Options:
+    -f, --format FORMAT      video format code
+    --all-formats            download all available video formats
+    --max-quality FORMAT     highest quality format to download
 
-### Filesystem Options
-    -t, --title         use title in file name
-    -l, --literal       use literal title in file name
-    -A, --auto-number   number downloaded files starting from 00000
-    -o TEMPLATE, --output=TEMPLATE
-                        output filename template
-    -a FILE, --batch-file=FILE
-                        file containing URLs to download ('-' for stdin)
-    -w, --no-overwrites
-                        do not overwrite files
-    -c, --continue      resume partially downloaded files
-    --cookies=FILE      file to dump cookie jar to
-    --no-part           do not use .part files
-    --no-mtime          do not use the Last-modified header to set the file
-                        modification time
+### Authentication Options:
+    -u, --username USERNAME  account username
+    -p, --password PASSWORD  account password
+    -n, --netrc              use .netrc authentication data
 
 ### Post-processing Options:
-    --extract-audio     convert video files to audio-only files (requires
-                        ffmpeg and ffprobe)
-    --audio-format=FORMAT
-                        "best", "aac" or "mp3"; best by default
+    --extract-audio          convert video files to audio-only files (requires
+                             ffmpeg and ffprobe)
+    --audio-format FORMAT    "best", "aac" or "mp3"; best by default
 
 ## COPYRIGHT
 **youtube-dl**: Copyright © 2006-2011 Ricardo Garcia Gonzalez. The program is
@@ -80,4 +70,3 @@ likewise released into the public domain.
 
 ## BUGS
 Bugs should be reported at: <https://github.com/rg3/youtube-dl/issues>
-
