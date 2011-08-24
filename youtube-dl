@@ -2996,11 +2996,12 @@ def parseOpts():
 		if columns:
 			return int(columns)
 
-		# TODO: Breaks on phihag's system
-		#if sys.platform.startswith('linux'):
-		#	try:
-		#		return os.popen('stty size', 'r').read().split()[1]
-		#	except: pass
+		try:
+			sp = subprocess.Popen(['stty', 'size'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			out,err = sp.communicate()
+			return out.split()[1]
+		except:
+			pass
 		return None
 
 	max_width = 80
