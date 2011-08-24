@@ -2999,7 +2999,7 @@ def parseOpts():
 		try:
 			sp = subprocess.Popen(['stty', 'size'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 			out,err = sp.communicate()
-			return out.split()[1]
+			return int(out.split()[1])
 		except:
 			pass
 		return None
