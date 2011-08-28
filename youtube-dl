@@ -15,6 +15,8 @@ __author__  = (
 __license__ = 'Public Domain'
 __version__ = '2011.08.28-phihag'
 
+UPDATE_URL = 'https://raw.github.com/phihag/youtube-dl/master/youtube-dl'
+
 import cookielib
 import datetime
 import gzip
@@ -3071,24 +3073,27 @@ def updateSelf(downloader, filename):
 	if not os.access(filename, os.W_OK):
 		sys.exit('ERROR: no write permissions on %s' % filename)
 
-	downloader.to_screen('Updating to latest stable version...')
+	downloader.to_screen('Updating to latest version...')
 
 	try:
-		latest_url = 'http://github.com/rg3/youtube-dl/raw/master/LATEST_VERSION'
-		latest_version = urllib.urlopen(latest_url).read().strip()
-		prog_url = 'http://github.com/rg3/youtube-dl/raw/%s/youtube-dl' % latest_version
-		newcontent = urllib.urlopen(prog_url).read()
+		try:
+			urlh = urllib.urlopen(UPDATE_URL)
+			newcontent = urlh.read()
+		finally:
+			urlh.close()
 	except (IOError, OSError), err:
 		sys.exit('ERROR: unable to download latest version')
 
 	try:
-		stream = open(filename, 'wb')
-		stream.write(newcontent)
-		stream.close()
+		outf = open(filename, 'wb')
+		try:
+			outf.write(newcontent)
+		finally:
+			outf.close()
 	except (IOError, OSError), err:
 		sys.exit('ERROR: unable to overwrite current version')
 
-	downloader.to_screen('Updated to version %s' % latest_version)
+	downloader.to_screen('Updated youtube-dl. Restart to use the new version.')
 
 def parseOpts():
 	# Deferred imports
