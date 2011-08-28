@@ -10,6 +10,7 @@ __author__  = (
 	'Paweł Paprota',
 	'Gergely Imreh',
 	'Rogério Brito',
+	'Philipp Hagemeister',
 	)
 
 __license__ = 'Public Domain'

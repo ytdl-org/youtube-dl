@@ -69,4 +69,4 @@ originally written by Daniel Bolton (<https://github.com/dbbolton>) and is
 likewise released into the public domain.
 
 ## BUGS
-Bugs should be reported at: <https://github.com/rg3/youtube-dl/issues>
+Bugs should be reported at: <https://github.com/phihag/youtube-dl/issues>
