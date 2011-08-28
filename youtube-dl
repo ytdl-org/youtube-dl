@@ -2965,7 +2965,7 @@ def updateSelf(downloader, filename):
 		sys.exit('ERROR: unable to download latest version')
 
 	try:
-		stream = open(filename, 'w')
+		stream = open(filename, 'wb')
 		stream.write(newcontent)
 		stream.close()
 	except (IOError, OSError), err:
