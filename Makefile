@@ -1,3 +1,6 @@
+default: update
+
+update: update-readme
 
 
 update-readme:
@@ -12,4 +15,4 @@ update-readme:
 
 
 
-.PHONY: update-readme
+.PHONY: default update update-readme
