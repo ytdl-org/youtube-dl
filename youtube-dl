@@ -9,10 +9,11 @@ __author__  = (
 	'Witold Baryluk',
 	'Paweł Paprota',
 	'Gergely Imreh',
+	'Rogério Brito',
 	)
 
 __license__ = 'Public Domain'
-__version__ = '2011.08.24-phihag'
+__version__ = '2011.08.28-phihag'
 
 import cookielib
 import datetime
