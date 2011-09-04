@@ -13,7 +13,7 @@ which means you can modify it, redistribute it or use it however you like.
 ## OPTIONS
     -h, --help               print this help text and exit
     -v, --version            print program version and exit
-    -U, --update             update this program to latest stable version
+    -U, --update             update this program to latest version
     -i, --ignore-errors      continue on download errors
     -r, --rate-limit LIMIT   download rate limit (e.g. 50k or 44.6m)
     -R, --retries RETRIES    number of retries (default is 10)
