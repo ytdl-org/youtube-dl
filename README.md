@@ -62,6 +62,24 @@ which means you can modify it, redistribute it or use it however you like.
                              ffmpeg and ffprobe)
     --audio-format FORMAT    "best", "aac" or "mp3"; best by default
 
+## FAQ
+
+### Can you please put the -b option back?
+
+Most people asking this question are not aware that youtube-dl now defaults to downloading the highest available quality as reported by YouTube, which will be 1080p or 720p in some cases, so you no longer need the -b option. For some specific videos, maybe YouTube does not report them to be available in a specific high quality format you''re interested in. In that case, simply request it with the -f option and youtube-dl will try to download it.
+
+### I get HTTP error 402 when trying to download a video. What''s this?
+
+Apparently YouTube requires you to pass a CAPTCHA test if you download too much. We''re [considering to provide a way to let you solve the CAPTCHA](https://github.com/phihag/youtube-dl/issues/8), but at the moment, your best course of action is pointing a webbrowser to the youtube URL, solving the CAPTCHA, and restart youtube-dl.
+
+### I have downloaded a video but how can I play it?
+
+Once the video is fully downloaded, use any video player, such as [vlc](http://www.videolan.org) or [mplayer](http://www.mplayerhq.hu/).
+
+### The links provided by youtube-dl -g are not working anymore
+
+The URLs youtube-dl outputs require the downloader to have the correct cookies. Use the `--cookies` option to write the required cookies into a file, and advise your downloader to read cookies from that file.
+
 ## COPYRIGHT
 **youtube-dl**: Copyright © 2006-2011 Ricardo Garcia Gonzalez. The program is
 released into the public domain by the copyright holder. This README file was
