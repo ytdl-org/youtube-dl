@@ -456,16 +456,6 @@ class FileDownloader(object):
 		self.params = params
 
 	@staticmethod
-	def pmkdir(filename):
-		"""Create directory components in filename. Similar to Unix "mkdir -p"."""
-		components = filename.split(os.sep)
-		aggregate = [os.sep.join(components[0:x]) for x in xrange(1, len(components))]
-		aggregate = ['%s%s' % (x, os.sep) for x in aggregate] # Finish names with separator
-		for dir in aggregate:
-			if not os.path.exists(dir):
-				os.mkdir(dir)
-
-	@staticmethod
 	def format_bytes(bytes):
 		if bytes is None:
 			return 'N/A'
@@ -721,7 +711,7 @@ class FileDownloader(object):
 			return
 
 		try:
-			self.pmkdir(filename)
+			os.makedirs(os.path.dirname(filename))
 		except (OSError, IOError), err:
 			self.trouble(u'ERROR: unable to create directories: %s' % str(err))
 			return
