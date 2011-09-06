@@ -711,7 +711,9 @@ class FileDownloader(object):
 			return
 
 		try:
-			os.makedirs(os.path.dirname(filename))
+			dn = os.path.dirname(filename)
+			if dn != '' and not os.path.exists(dn):
+				os.makedirs(dn)
 		except (OSError, IOError), err:
 			self.trouble(u'ERROR: unable to create directories: %s' % str(err))
 			return
