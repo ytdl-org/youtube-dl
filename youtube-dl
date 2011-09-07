@@ -3074,13 +3074,22 @@ class ComedyCentralIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to download webpage: %s' % unicode(err))
 			return
 
-		mMovieParams = re.findall('<param name="movie" value="(http://media.mtvnservices.com/(.*?:episode:.*?:)(.*?))"/>', html)
+		mMovieParams = re.findall('<param name="movie" value="(http://media.mtvnservices.com/(.*?:episode:([^:]*):)(.*?))"/>', html)
 		if len(mMovieParams) == 0:
 			self._downloader.trouble(u'ERROR: unable to find Flash URL in webpage ' + url)
 			return
-		ACT_COUNT = 4
+		show_id = mMovieParams[0][2]
+		ACT_COUNT = { # TODO: Detect this dynamically
+			'thedailyshow.com': 4,
+			'colbertnation.com': 3,
+		}.get(show_id, 4)
+		OFFSET = {
+			'thedailyshow.com': -ACT_COUNT,
+			'colbertnation.com': 1,
+		}.get(show_id, -ACT_COUNT)
+
 		first_player_url = mMovieParams[0][0]
-		mediaNum = int(mMovieParams[0][2]) - ACT_COUNT
+		mediaNum = int(mMovieParams[0][3]) + OFFSET
 		movieId = mMovieParams[0][1]
 
 		playerReq = urllib2.Request(first_player_url)
@@ -3093,6 +3102,7 @@ class ComedyCentralIE(InfoExtractor):
 		player_url = playerResponse.geturl()
 
 		for actNum in range(ACT_COUNT):
+			actTitle = 'act' + str(actNum+1)
 			mediaId = movieId + str(mediaNum + actNum)
 			configUrl = ('http://www.comedycentral.com/global/feeds/entertainment/media/mediaGenEntertainment.jhtml?' +
 						urllib.urlencode({'uri': mediaId}))
@@ -3110,18 +3120,23 @@ class ComedyCentralIE(InfoExtractor):
 				finfo = (rendition.attrib['bitrate'], rendition.findall('./src')[0].text)
 				turls.append(finfo)
 
+			if len(turls) == 0:
+				self._downloader.trouble(u'\nERROR: unable to download ' + actTitle + ': No videos found')
+				continue
+
 			# For now, just pick the highest bitrate
 			format,video_url = turls[-1]
 
 			self._downloader.increment_downloads()
-			actTitle = 'act' + str(actNum+1)
+
+			effTitle = show_id.replace('.com', '') + '-' + epTitle
 			info = {
 				'id': actTitle,
 				'url': video_url,
-				'uploader': 'NA',
+				'uploader': show_id,
 				'upload_date': 'NA',
-				'title': epTitle,
-				'stitle': self._simplify_title(epTitle),
+				'title': effTitle,
+				'stitle': self._simplify_title(effTitle),
 				'ext': 'mp4',
 				'format': format,
 				'thumbnail': None,
@@ -3132,7 +3147,8 @@ class ComedyCentralIE(InfoExtractor):
 			try:
 				self._downloader.process_info(info)
 			except UnavailableVideoError, err:
-				self._downloader.trouble(u'\nERROR: unable to download video')
+				self._downloader.trouble(u'\nERROR: unable to download ' + actTitle)
+				continue
 
 
 class PostProcessor(object):
