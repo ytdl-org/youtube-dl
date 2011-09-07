@@ -63,6 +63,11 @@ try:
 except ImportError:
 	pass # Handled below
 
+try:
+	import xml.etree.ElementTree
+except ImportError: # Python<2.5
+	pass # Not officially supported, but let it slip
+
 std_headers = {
 	'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:5.0.1) Gecko/20100101 Firefox/5.0.1',
 	'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
@@ -817,7 +822,7 @@ class FileDownloader(object):
 		# Download using rtmpdump. rtmpdump returns exit code 2 when
 		# the connection was interrumpted and resuming appears to be
 		# possible. This is part of rtmpdump's normal usage, AFAIK.
-		basic_args = ['rtmpdump', '-q'] + [[], ['-W', player_url]][player_url is not None] + ['-r', url, '-o', tmpfilename]
+		basic_args = ['rtmpdump'] + [[], ['-W', player_url]][player_url is not None] + ['-r', url, '-o', tmpfilename]
 		retval = subprocess.call(basic_args + [[], ['-e', '-k', '1']][self.params.get('continuedl', False)])
 		while retval == 2 or retval == 1:
 			prevsize = os.path.getsize(tmpfilename)
@@ -3031,6 +3036,91 @@ class MyVideoIE(InfoExtractor):
 		except UnavailableVideoError:
 			self._downloader.trouble(u'\nERROR: Unable to download video')
 
+class ComedyCentralIE(InfoExtractor):
+	"""Information extractor for blip.tv"""
+
+	_VALID_URL = r'^(?:https?://)?(www\.)?(thedailyshow|colbertnation)\.com/full-episodes/(.*)$'
+
+	@staticmethod
+	def suitable(url):
+		return (re.match(ComedyCentralIE._VALID_URL, url) is not None)
+
+	def report_extraction(self, episode_id):
+		self._downloader.to_screen(u'[comedycentral] %s: Extracting information' % episode_id)
+	
+	def report_config_download(self, episode_id):
+		self._downloader.to_screen(u'[comedycentral] %s: Downloading configuration' % episode_id)
+
+	def _simplify_title(self, title):
+		res = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', title)
+		res = res.strip(ur'_')
+		return res
+
+	def _real_extract(self, url):
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+			return
+		epTitle = mobj.group(3)
+
+		req = urllib2.Request(url)
+		self.report_extraction(epTitle)
+		try:
+			html = urllib2.urlopen(req).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download webpage: %s' % unicode(err))
+			return
+
+		mMovieParams = re.findall('<param name="movie" value="http://media.mtvnservices.com/(.*?:episode:.*?:)(.*?)"/>', html)
+		if len(mMovieParams) == 0:
+			self._downloader.trouble(u'ERROR: unable to find Flash URL in webpage ' + url)
+			return
+		ACT_COUNT = 4
+		mediaNum = int(mMovieParams[0][1]) - ACT_COUNT
+
+		for actNum in range(ACT_COUNT):
+			mediaId = mMovieParams[0][0] + str(mediaNum + actNum)
+			configUrl = ('http://www.comedycentral.com/global/feeds/entertainment/media/mediaGenEntertainment.jhtml?' +
+						urllib.urlencode({'uri': mediaId}))
+			configReq = urllib2.Request(configUrl)
+			self.report_config_download(epTitle)
+			try:
+				configXml = urllib2.urlopen(configReq).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'ERROR: unable to download webpage: %s' % unicode(err))
+				return
+	
+			cdoc = xml.etree.ElementTree.fromstring(configXml)
+			turls = []
+			for rendition in cdoc.findall('.//rendition'):
+				finfo = (rendition.attrib['bitrate'], rendition.findall('./src')[0].text)
+				turls.append(finfo)
+
+			# For now, just pick the highest bitrate
+			format,video_url = turls[-1]
+
+			self._downloader.increment_downloads()
+			actTitle = epTitle + '-act' + str(actNum+1)
+			info = {
+				'id': epTitle,
+				'url': video_url,
+				'uploader': 'NA',
+				'upload_date': 'NA',
+				'title': actTitle,
+				'stitle': self._simplify_title(actTitle),
+				'ext': 'mp4',
+				'format': format,
+				'thumbnail': None,
+				'description': 'TODO: Not yet supported',
+				'player_url': None
+			}
+	
+			try:
+				self._downloader.process_info(info)
+			except UnavailableVideoError, err:
+				self._downloader.trouble(u'\nERROR: unable to download video')
+
+
 class PostProcessor(object):
 	"""Post Processor class.
 
@@ -3375,7 +3465,8 @@ def main():
 
 	# General configuration
 	cookie_processor = urllib2.HTTPCookieProcessor(jar)
-	urllib2.install_opener(urllib2.build_opener(urllib2.ProxyHandler(), cookie_processor, YoutubeDLHandler()))
+	opener = urllib2.build_opener(urllib2.ProxyHandler(), cookie_processor, YoutubeDLHandler())
+	urllib2.install_opener(opener)
 	socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
 
 	# Batch file verification
@@ -3447,6 +3538,7 @@ def main():
 	bliptv_ie = BlipTVIE()
 	vimeo_ie = VimeoIE()
 	myvideo_ie = MyVideoIE()
+	comedycentral_ie = ComedyCentralIE()
 
 	generic_ie = GenericIE()
 
@@ -3505,6 +3597,7 @@ def main():
 	fd.add_info_extractor(bliptv_ie)
 	fd.add_info_extractor(vimeo_ie)
 	fd.add_info_extractor(myvideo_ie)
+	fd.add_info_extractor(comedycentral_ie)
 
 	# This must come last since it's the
 	# fallback if none of the others work
