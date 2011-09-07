@@ -3071,15 +3071,17 @@ class ComedyCentralIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to download webpage: %s' % unicode(err))
 			return
 
-		mMovieParams = re.findall('<param name="movie" value="http://media.mtvnservices.com/(.*?:episode:.*?:)(.*?)"/>', html)
+		mMovieParams = re.findall('<param name="movie" value="(http://media.mtvnservices.com/(.*?:episode:.*?:)(.*?))"/>', html)
 		if len(mMovieParams) == 0:
 			self._downloader.trouble(u'ERROR: unable to find Flash URL in webpage ' + url)
 			return
 		ACT_COUNT = 4
-		mediaNum = int(mMovieParams[0][1]) - ACT_COUNT
+		player_url = mMovieParams[0][0]
+		mediaNum = int(mMovieParams[0][2]) - ACT_COUNT
+		movieId = mMovieParams[0][1]
 
 		for actNum in range(ACT_COUNT):
-			mediaId = mMovieParams[0][0] + str(mediaNum + actNum)
+			mediaId = movieId + str(mediaNum + actNum)
 			configUrl = ('http://www.comedycentral.com/global/feeds/entertainment/media/mediaGenEntertainment.jhtml?' +
 						urllib.urlencode({'uri': mediaId}))
 			configReq = urllib2.Request(configUrl)
@@ -3112,7 +3114,7 @@ class ComedyCentralIE(InfoExtractor):
 				'format': format,
 				'thumbnail': None,
 				'description': 'TODO: Not yet supported',
-				'player_url': None
+				'player_url': player_url
 			}
 	
 			try:
