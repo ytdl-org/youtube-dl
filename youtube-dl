@@ -716,7 +716,7 @@ class FileDownloader(object):
 			if dn != '' and not os.path.exists(dn):
 				os.makedirs(dn)
 		except (OSError, IOError), err:
-			self.trouble(u'ERROR: unable to create directories: %s' % str(err))
+			self.trouble(u'ERROR: unable to create directory ' + unicode(err))
 			return
 
 		if self.params.get('writedescription', False):
@@ -729,7 +729,7 @@ class FileDownloader(object):
 				finally:
 					descfile.close()
 			except (OSError, IOError):
-				self.trouble(u'ERROR: Cannot write description file: %s' % str(descfn))
+				self.trouble(u'ERROR: Cannot write description file ' + descfn)
 				return
 
 		if self.params.get('writeinfojson', False):
@@ -747,7 +747,7 @@ class FileDownloader(object):
 				finally:
 					infof.close()
 			except (OSError, IOError):
-				self.trouble(u'ERROR: Cannot write metadata to JSON file: %s' % str(infofn))
+				self.trouble(u'ERROR: Cannot write metadata to JSON file ' + infofn)
 				return
 
 		try:
