@@ -3051,6 +3051,9 @@ class ComedyCentralIE(InfoExtractor):
 	def report_config_download(self, episode_id):
 		self._downloader.to_screen(u'[comedycentral] %s: Downloading configuration' % episode_id)
 
+	def report_player_url(self, episode_id):
+		self._downloader.to_screen(u'[comedycentral] %s: Determining player URL' % episode_id)
+
 	def _simplify_title(self, title):
 		res = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', title)
 		res = res.strip(ur'_')
@@ -3076,9 +3079,18 @@ class ComedyCentralIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to find Flash URL in webpage ' + url)
 			return
 		ACT_COUNT = 4
-		player_url = mMovieParams[0][0]
+		first_player_url = mMovieParams[0][0]
 		mediaNum = int(mMovieParams[0][2]) - ACT_COUNT
 		movieId = mMovieParams[0][1]
+
+		playerReq = urllib2.Request(first_player_url)
+		self.report_player_url(epTitle)
+		try:
+			playerResponse = urllib2.urlopen(playerReq)
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download player: %s' % unicode(err))
+			return
+		player_url = playerResponse.geturl()
 
 		for actNum in range(ACT_COUNT):
 			mediaId = movieId + str(mediaNum + actNum)
@@ -3102,7 +3114,7 @@ class ComedyCentralIE(InfoExtractor):
 			format,video_url = turls[-1]
 
 			self._downloader.increment_downloads()
-			actTitle = epTitle + '-act' + str(actNum+1)
+			actTitle = 'act' + str(actNum+1)
 			info = {
 				'id': epTitle,
 				'url': video_url,
