@@ -3103,7 +3103,7 @@ class ComedyCentralIE(InfoExtractor):
 			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 				self._downloader.trouble(u'ERROR: unable to download webpage: %s' % unicode(err))
 				return
-	
+
 			cdoc = xml.etree.ElementTree.fromstring(configXml)
 			turls = []
 			for rendition in cdoc.findall('.//rendition'):
@@ -3116,19 +3116,19 @@ class ComedyCentralIE(InfoExtractor):
 			self._downloader.increment_downloads()
 			actTitle = 'act' + str(actNum+1)
 			info = {
-				'id': epTitle,
+				'id': actTitle,
 				'url': video_url,
 				'uploader': 'NA',
 				'upload_date': 'NA',
-				'title': actTitle,
-				'stitle': self._simplify_title(actTitle),
+				'title': epTitle,
+				'stitle': self._simplify_title(epTitle),
 				'ext': 'mp4',
 				'format': format,
 				'thumbnail': None,
 				'description': 'TODO: Not yet supported',
 				'player_url': player_url
 			}
-	
+
 			try:
 				self._downloader.process_info(info)
 			except UnavailableVideoError, err:
