@@ -3089,7 +3089,7 @@ class ComedyCentralIE(InfoExtractor):
 		}.get(show_id, -ACT_COUNT)
 
 		first_player_url = mMovieParams[0][0]
-		mediaNum = int(mMovieParams[0][3]) + OFFSET
+		startMediaNum = int(mMovieParams[0][3]) + OFFSET
 		movieId = mMovieParams[0][1]
 
 		playerReq = urllib2.Request(first_player_url)
@@ -3102,8 +3102,8 @@ class ComedyCentralIE(InfoExtractor):
 		player_url = playerResponse.geturl()
 
 		for actNum in range(ACT_COUNT):
-			actTitle = 'act' + str(actNum+1)
-			mediaId = movieId + str(mediaNum + actNum)
+			mediaNum = startMediaNum + actNum
+			mediaId = movieId + str(mediaNum)
 			configUrl = ('http://www.comedycentral.com/global/feeds/entertainment/media/mediaGenEntertainment.jhtml?' +
 						urllib.urlencode({'uri': mediaId}))
 			configReq = urllib2.Request(configUrl)
@@ -3121,7 +3121,7 @@ class ComedyCentralIE(InfoExtractor):
 				turls.append(finfo)
 
 			if len(turls) == 0:
-				self._downloader.trouble(u'\nERROR: unable to download ' + actTitle + ': No videos found')
+				self._downloader.trouble(u'\nERROR: unable to download ' + str(mediaNum) + ': No videos found')
 				continue
 
 			# For now, just pick the highest bitrate
@@ -3131,7 +3131,7 @@ class ComedyCentralIE(InfoExtractor):
 
 			effTitle = show_id.replace('.com', '') + '-' + epTitle
 			info = {
-				'id': actTitle,
+				'id': str(mediaNum),
 				'url': video_url,
 				'uploader': show_id,
 				'upload_date': 'NA',
@@ -3147,7 +3147,7 @@ class ComedyCentralIE(InfoExtractor):
 			try:
 				self._downloader.process_info(info)
 			except UnavailableVideoError, err:
-				self._downloader.trouble(u'\nERROR: unable to download ' + actTitle)
+				self._downloader.trouble(u'\nERROR: unable to download ' + str(mediaNum))
 				continue
 
 
