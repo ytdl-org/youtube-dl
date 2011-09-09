@@ -30,6 +30,7 @@ import time
 import urllib
 import urllib2
 import zlib
+import mutagen
 
 # parse_qs was moved from the cgi module to the urlparse module recently.
 try:
@@ -1121,6 +1122,9 @@ class YoutubeIE(InfoExtractor):
             # Find the video URL in fmt_url_map or conn paramters
             try:
                 # Process video information
+
+                global videotitle
+                videotitle=video_title
                 self._downloader.process_info({
                     'id':        video_id.decode('utf-8'),
                     'url':        video_real_url.decode('utf-8'),
@@ -2679,6 +2683,10 @@ class FFmpegExtractAudioPP(PostProcessor):
         new_path = prefix + '.' + extension
         self._downloader.to_screen(u'[ffmpeg] Destination: %s' % new_path)
         status = self.run_ffmpeg(path, new_path, acodec, more_opts)
+
+        audio = mutagen.mp3.EasyMP3(new_path)
+        audio["title"] = videotitle
+        audio.save()
 
         if not status:
             self._downloader.to_stderr(u'WARNING: error running ffmpeg')
