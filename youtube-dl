@@ -15,7 +15,7 @@ __author__  = (
 	)
 
 __license__ = 'Public Domain'
-__version__ = '2011.09.06-phihag'
+__version__ = '2011.09.09-phihag'
 
 UPDATE_URL = 'https://raw.github.com/phihag/youtube-dl/master/youtube-dl'
 
@@ -3084,9 +3084,9 @@ class ComedyCentralIE(InfoExtractor):
 			'colbertnation.com': 3,
 		}.get(show_id, 4)
 		OFFSET = {
-			'thedailyshow.com': -ACT_COUNT,
+			'thedailyshow.com': 1,
 			'colbertnation.com': 1,
-		}.get(show_id, -ACT_COUNT)
+		}.get(show_id, 1)
 
 		first_player_url = mMovieParams[0][0]
 		startMediaNum = int(mMovieParams[0][3]) + OFFSET
