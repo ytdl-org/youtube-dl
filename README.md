@@ -80,6 +80,10 @@ Once the video is fully downloaded, use any video player, such as [vlc](http://w
 
 The URLs youtube-dl outputs require the downloader to have the correct cookies. Use the `--cookies` option to write the required cookies into a file, and advise your downloader to read cookies from that file.
 
+### ERROR: no fmt_url_map or conn information found in video info
+
+youtube has switched to a new video info format in July 2011 which is not supported by old versions of youtube-dl. You can update youtube-dl with `sudo youtube-dl -U`.
+
 ## COPYRIGHT
 **youtube-dl**: Copyright © 2006-2011 Ricardo Garcia Gonzalez. The program is
 released into the public domain by the copyright holder. This README file was
@@ -87,4 +91,4 @@ originally written by Daniel Bolton (<https://github.com/dbbolton>) and is
 likewise released into the public domain.
 
 ## BUGS
-Bugs should be reported at: <https://github.com/phihag/youtube-dl/issues>
+Bugs and suggestions should be reported at: <https://github.com/phihag/youtube-dl/issues>
