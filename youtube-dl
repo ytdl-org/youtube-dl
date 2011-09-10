@@ -30,7 +30,7 @@ import time
 import urllib
 import urllib2
 import zlib
-import mutagen
+from mutagen.mp3 import EasyMP3 as MP3
 
 # parse_qs was moved from the cgi module to the urlparse module recently.
 try:
@@ -1125,6 +1125,9 @@ class YoutubeIE(InfoExtractor):
 
                 global videotitle
                 videotitle=video_title
+                global simpletitle 
+                simpletitle=simple_title
+
                 self._downloader.process_info({
                     'id':        video_id.decode('utf-8'),
                     'url':        video_real_url.decode('utf-8'),
@@ -2646,6 +2649,10 @@ class FFmpegExtractAudioPP(PostProcessor):
         try:
             cmd = ['ffmpeg', '-y', '-i', path, '-vn', '-acodec', codec] + more_opts + ['--', out_path]
             ret = subprocess.call(cmd, stdout=file(os.path.devnull, 'w'), stderr=subprocess.STDOUT)
+            audio = MP3(out_path)
+            audio["title"] = videotitle
+            audio.save()
+
             return (ret == 0)
         except (IOError, OSError):
             return False
@@ -2661,6 +2668,7 @@ class FFmpegExtractAudioPP(PostProcessor):
         more_opts = []
         if self._preferredcodec == 'best' or self._preferredcodec == filecodec:
             if filecodec == 'aac' or filecodec == 'mp3':
+                print "Entrando a run21"
                 # Lossless if possible
                 acodec = 'copy'
                 extension = filecodec
@@ -2680,13 +2688,10 @@ class FFmpegExtractAudioPP(PostProcessor):
                 more_opts += ['-f', 'adts']
 
         (prefix, ext) = os.path.splitext(path)
-        new_path = prefix + '.' + extension
+        new_path = simpletitle + '.' + extension
         self._downloader.to_screen(u'[ffmpeg] Destination: %s' % new_path)
         status = self.run_ffmpeg(path, new_path, acodec, more_opts)
 
-        audio = mutagen.mp3.EasyMP3(new_path)
-        audio["title"] = videotitle
-        audio.save()
 
         if not status:
             self._downloader.to_stderr(u'WARNING: error running ffmpeg')
