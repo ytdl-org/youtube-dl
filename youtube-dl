@@ -47,6 +47,7 @@ std_headers = {
 
 simple_title_chars = string.ascii_letters.decode('ascii') + string.digits.decode('ascii')
 
+
 def preferredencoding():
 	"""Get preferred encoding.
 
@@ -62,6 +63,7 @@ def preferredencoding():
 		while True:
 			yield pref
 	return yield_preferredencoding().next()
+
 
 def htmlentity_transform(matchobj):
 	"""Transforms an HTML entity to a Unicode character.
@@ -89,10 +91,12 @@ def htmlentity_transform(matchobj):
 	# Unknown entity in name, return its literal representation
 	return (u'&%s;' % entity)
 
+
 def sanitize_title(utitle):
 	"""Sanitizes a video title so it could be used as part of a filename."""
 	utitle = re.sub(ur'(?u)&(.+?);', htmlentity_transform, utitle)
 	return utitle.replace(unicode(os.sep), u'%')
+
 
 def sanitize_open(filename, open_mode):
 	"""Try to open the given filename, and slightly tweak it if this fails.
@@ -120,13 +124,15 @@ def sanitize_open(filename, open_mode):
 		stream = open(filename, open_mode)
 		return (stream, filename)
 
+
 def timeconvert(timestr):
-    """Convert RFC 2822 defined time string into system timestamp"""
-    timestamp = None
-    timetuple = email.utils.parsedate_tz(timestr)
-    if timetuple is not None:
-        timestamp = email.utils.mktime_tz(timetuple)
-    return timestamp
+	"""Convert RFC 2822 defined time string into system timestamp"""
+	timestamp = None
+	timetuple = email.utils.parsedate_tz(timestr)
+	if timetuple is not None:
+		timestamp = email.utils.mktime_tz(timetuple)
+	return timestamp
+
 
 class DownloadError(Exception):
 	"""Download Error exception.
@@ -137,6 +143,7 @@ class DownloadError(Exception):
 	"""
 	pass
 
+
 class SameFileError(Exception):
 	"""Same File exception.
 
@@ -144,6 +151,7 @@ class SameFileError(Exception):
 	multiple files would have to be downloaded to the same file on disk.
 	"""
 	pass
+
 
 class PostProcessingError(Exception):
 	"""Post Processing exception.
@@ -153,6 +161,7 @@ class PostProcessingError(Exception):
 	"""
 	pass
 
+
 class UnavailableVideoError(Exception):
 	"""Unavailable Format exception.
 
@@ -160,6 +169,7 @@ class UnavailableVideoError(Exception):
 	in a format that is not available for that video.
 	"""
 	pass
+
 
 class ContentTooShortError(Exception):
 	"""Content Too Short exception.
@@ -176,6 +186,7 @@ class ContentTooShortError(Exception):
 		self.downloaded = downloaded
 		self.expected = expected
 
+
 class YoutubeDLHandler(urllib2.HTTPHandler):
 	"""Handler for HTTP requests and responses.
 
@@ -185,11 +196,11 @@ class YoutubeDLHandler(urllib2.HTTPHandler):
 	a particular request, the original request in the program code only has
 	to include the HTTP header "Youtubedl-No-Compression", which will be
 	removed before making the real request.
-	
+
 	Part of this code was copied from:
 
-	  http://techknack.net/python-urllib2-handlers/
-	  
+	http://techknack.net/python-urllib2-handlers/
+
 	Andrew Rowls, the author of that code, agreed to release it to the
 	public domain.
 	"""
@@ -200,7 +211,7 @@ class YoutubeDLHandler(urllib2.HTTPHandler):
 			return zlib.decompress(data, -zlib.MAX_WBITS)
 		except zlib.error:
 			return zlib.decompress(data)
-	
+
 	@staticmethod
 	def addinfourl_wrapper(stream, headers, url, code):
 		if hasattr(urllib2.addinfourl, 'getcode'):
@@ -208,7 +219,7 @@ class YoutubeDLHandler(urllib2.HTTPHandler):
 		ret = urllib2.addinfourl(stream, headers, url)
 		ret.code = code
 		return ret
-	
+
 	def http_request(self, req):
 		for h in std_headers:
 			if h in req.headers:
@@ -233,6 +244,7 @@ class YoutubeDLHandler(urllib2.HTTPHandler):
 			resp = self.addinfourl_wrapper(gz, old_resp.headers, old_resp.url, old_resp.code)
 			resp.msg = old_resp.msg
 		return resp
+
 
 class FileDownloader(object):
 	"""File Downloader class.
@@ -325,7 +337,7 @@ class FileDownloader(object):
 		else:
 			exponent = long(math.log(bytes, 1024.0))
 		suffix = 'bkMGTPEZY'[exponent]
-		converted = float(bytes) / float(1024**exponent)
+		converted = float(bytes) / float(1024 ** exponent)
 		return '%.2f%s' % (converted, suffix)
 
 	@staticmethod
@@ -463,7 +475,7 @@ class FileDownloader(object):
 			os.rename(old_filename, new_filename)
 		except (IOError, OSError), err:
 			self.trouble(u'ERROR: unable to rename file')
-	
+
 	def try_utime(self, filename, last_modified_hdr):
 		"""Try to set the last-modified time of the given file."""
 		if last_modified_hdr is None:
@@ -477,7 +489,7 @@ class FileDownloader(object):
 		if filetime is None:
 			return
 		try:
-			os.utime(filename,(time.time(), filetime))
+			os.utime(filename, (time.time(), filetime))
 		except:
 			pass
 
@@ -680,7 +692,7 @@ class FileDownloader(object):
 		# Request parameters in case of being able to resume
 		if self.params.get('continuedl', False) and resume_len != 0:
 			self.report_resuming_byte(resume_len)
-			request.add_header('Range','bytes=%d-' % resume_len)
+			request.add_header('Range', 'bytes=%d-' % resume_len)
 			open_mode = 'ab'
 
 		count = 0
@@ -706,7 +718,7 @@ class FileDownloader(object):
 					else:
 						# Examine the reported length
 						if (content_length is not None and
-						    (resume_len - 100 < long(content_length) < resume_len + 100)):
+								(resume_len - 100 < long(content_length) < resume_len + 100)):
 							# The file had already been fully downloaded.
 							# Explanation to the above condition: in issue #175 it was revealed that
 							# YouTube sometimes adds or removes a few bytes from the end of the file,
@@ -784,6 +796,7 @@ class FileDownloader(object):
 
 		return True
 
+
 class InfoExtractor(object):
 	"""Information Extractor class.
 
@@ -854,6 +867,7 @@ class InfoExtractor(object):
 	def _real_extract(self, url):
 		"""Real extraction process. Redefine in subclasses."""
 		pass
+
 
 class YoutubeIE(InfoExtractor):
 	"""Information extractor for youtube.com."""
@@ -1009,7 +1023,7 @@ class YoutubeIE(InfoExtractor):
 		self.report_video_info_webpage_download(video_id)
 		for el_type in ['&el=embedded', '&el=detailpage', '&el=vevo', '']:
 			video_info_url = ('http://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
-					   % (video_id, el_type))
+					% (video_id, el_type))
 			request = urllib2.Request(video_info_url)
 			try:
 				video_info_webpage = urllib2.urlopen(request).read()
@@ -1371,6 +1385,7 @@ class DailymotionIE(InfoExtractor):
 		except UnavailableVideoError:
 			self._downloader.trouble(u'\nERROR: unable to download video')
 
+
 class GoogleIE(InfoExtractor):
 	"""Information extractor for video.google.com."""
 
@@ -1463,7 +1478,6 @@ class GoogleIE(InfoExtractor):
 			video_thumbnail = mobj.group(1)
 		else:	# we need something to pass to process_info
 			video_thumbnail = ''
-
 
 		try:
 			# Process video information
@@ -1664,7 +1678,8 @@ class YahooIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract video description')
 			return
 		video_description = mobj.group(1).decode('utf-8')
-		if not video_description: video_description = 'No description available.'
+		if not video_description:
+			video_description = 'No description available.'
 
 		# Extract video height and width
 		mobj = re.search(r'<meta name="video_height" content="([0-9]+)" />', webpage)
@@ -1685,8 +1700,8 @@ class YahooIE(InfoExtractor):
 		yv_lg = 'R0xx6idZnW2zlrKP8xxAIR'  # not sure what this represents
 		yv_bitrate = '700'  # according to Wikipedia this is hard-coded
 		request = urllib2.Request('http://cosmos.bcst.yahoo.com/up/yep/process/getPlaylistFOP.php?node_id=' + video_id +
-				          '&tech=flash&mode=playlist&lg=' + yv_lg + '&bitrate=' + yv_bitrate + '&vidH=' + yv_video_height +
-					  '&vidW=' + yv_video_width + '&swf=as3&rd=video.yahoo.com&tk=null&adsupported=v1,v2,&eventid=1301797')
+				'&tech=flash&mode=playlist&lg=' + yv_lg + '&bitrate=' + yv_bitrate + '&vidH=' + yv_video_height +
+				'&vidW=' + yv_video_width + '&swf=as3&rd=video.yahoo.com&tk=null&adsupported=v1,v2,&eventid=1301797')
 		try:
 			self.report_download_webpage(video_id)
 			webpage = urllib2.urlopen(request).read()
@@ -1779,11 +1794,11 @@ class GenericIE(InfoExtractor):
 			return
 
 		video_url = urllib.unquote(mobj.group(1))
-		video_id  = os.path.basename(video_url)
+		video_id = os.path.basename(video_url)
 
 		# here's a fun little line of code for you:
 		video_extension = os.path.splitext(video_id)[1][1:]
-		video_id        = os.path.splitext(video_id)[0]
+		video_id = os.path.splitext(video_id)[0]
 
 		# it's tempting to parse this further, but you would
 		# have to take into account all the variations like
@@ -1856,7 +1871,7 @@ class YoutubeSearchIE(InfoExtractor):
 
 		prefix, query = query.split(':')
 		prefix = prefix[8:]
-		query  = query.encode('utf-8')
+		query = query.encode('utf-8')
 		if prefix == '':
 			self._download_n_results(query, 1)
 			return
@@ -1870,7 +1885,7 @@ class YoutubeSearchIE(InfoExtractor):
 					self._downloader.trouble(u'ERROR: invalid download number %s for query "%s"' % (n, query))
 					return
 				elif n > self._max_youtube_results:
-					self._downloader.to_stderr(u'WARNING: ytsearch returns max %i results (you requested %i)'  % (self._max_youtube_results, n))
+					self._downloader.to_stderr(u'WARNING: ytsearch returns max %i results (you requested %i)' % (self._max_youtube_results, n))
 					n = self._max_youtube_results
 				self._download_n_results(query, n)
 				return
@@ -1914,6 +1929,7 @@ class YoutubeSearchIE(InfoExtractor):
 
 			pagenum = pagenum + 1
 
+
 class GoogleSearchIE(InfoExtractor):
 	"""Information Extractor for Google Video search queries."""
 	_VALID_QUERY = r'gvsearch(\d+|all)?:[\s\S]+'
@@ -1947,7 +1963,7 @@ class GoogleSearchIE(InfoExtractor):
 
 		prefix, query = query.split(':')
 		prefix = prefix[8:]
-		query  = query.encode('utf-8')
+		query = query.encode('utf-8')
 		if prefix == '':
 			self._download_n_results(query, 1)
 			return
@@ -1961,7 +1977,7 @@ class GoogleSearchIE(InfoExtractor):
 					self._downloader.trouble(u'ERROR: invalid download number %s for query "%s"' % (n, query))
 					return
 				elif n > self._max_google_results:
-					self._downloader.to_stderr(u'WARNING: gvsearch returns max %i results (you requested %i)'  % (self._max_google_results, n))
+					self._downloader.to_stderr(u'WARNING: gvsearch returns max %i results (you requested %i)' % (self._max_google_results, n))
 					n = self._max_google_results
 				self._download_n_results(query, n)
 				return
@@ -2005,6 +2021,7 @@ class GoogleSearchIE(InfoExtractor):
 
 			pagenum = pagenum + 1
 
+
 class YahooSearchIE(InfoExtractor):
 	"""Information Extractor for Yahoo! Video search queries."""
 	_VALID_QUERY = r'yvsearch(\d+|all)?:[\s\S]+'
@@ -2038,7 +2055,7 @@ class YahooSearchIE(InfoExtractor):
 
 		prefix, query = query.split(':')
 		prefix = prefix[8:]
-		query  = query.encode('utf-8')
+		query = query.encode('utf-8')
 		if prefix == '':
 			self._download_n_results(query, 1)
 			return
@@ -2052,7 +2069,7 @@ class YahooSearchIE(InfoExtractor):
 					self._downloader.trouble(u'ERROR: invalid download number %s for query "%s"' % (n, query))
 					return
 				elif n > self._max_yahoo_results:
-					self._downloader.to_stderr(u'WARNING: yvsearch returns max %i results (you requested %i)'  % (self._max_yahoo_results, n))
+					self._downloader.to_stderr(u'WARNING: yvsearch returns max %i results (you requested %i)' % (self._max_yahoo_results, n))
 					n = self._max_yahoo_results
 				self._download_n_results(query, n)
 				return
@@ -2095,6 +2112,7 @@ class YahooSearchIE(InfoExtractor):
 				return
 
 			pagenum = pagenum + 1
+
 
 class YoutubePlaylistIE(InfoExtractor):
 	"""Information Extractor for YouTube playlists."""
@@ -2172,6 +2190,7 @@ class YoutubePlaylistIE(InfoExtractor):
 			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
 		return
 
+
 class YoutubeUserIE(InfoExtractor):
 	"""Information Extractor for YouTube users."""
 
@@ -2193,7 +2212,7 @@ class YoutubeUserIE(InfoExtractor):
 	def report_download_page(self, username, start_index):
 		"""Report attempt to download user page."""
 		self._downloader.to_screen(u'[youtube] user %s: Downloading video ids from %d to %d' %
-				           (username, start_index, start_index + self._GDATA_PAGE_SIZE))
+				(username, start_index, start_index + self._GDATA_PAGE_SIZE))
 
 	def _real_initialize(self):
 		self._youtube_ie.initialize()
@@ -2255,9 +2274,9 @@ class YoutubeUserIE(InfoExtractor):
 			video_ids = video_ids[playliststart:]
 		else:
 			video_ids = video_ids[playliststart:playlistend]
-			
+
 		self._downloader.to_screen("[youtube] user %s: Collected %d video ids (downloading %d of them)" %
-				           (username, all_ids_count, len(video_ids)))
+				(username, all_ids_count, len(video_ids)))
 
 		for video_id in video_ids:
 			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % video_id)
@@ -2341,6 +2360,7 @@ class DepositFilesIE(InfoExtractor):
 			})
 		except UnavailableVideoError, err:
 			self._downloader.trouble(u'ERROR: unable to download file')
+
 
 class FacebookIE(InfoExtractor):
 	"""Information Extractor for Facebook"""
@@ -2510,7 +2530,7 @@ class FacebookIE(InfoExtractor):
 		# description
 		video_description = 'No description available.'
 		if (self._downloader.params.get('forcedescription', False) and
-		    'description' in video_info):
+			'description' in video_info):
 			video_description = video_info['description']
 
 		url_map = video_info['video_urls']
@@ -2565,6 +2585,7 @@ class FacebookIE(InfoExtractor):
 			except UnavailableVideoError, err:
 				self._downloader.trouble(u'\nERROR: unable to download video')
 
+
 class PostProcessor(object):
 	"""Post Processor class.
 
@@ -2610,6 +2631,7 @@ class PostProcessor(object):
 		it was called from.
 		"""
 		return information # by default, do nothing
+
 
 class FFmpegExtractAudioPP(PostProcessor):
 
