@@ -1,13 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author: Ricardo Garcia Gonzalez
-# Author: Danny Colligan
-# Author: Benjamin Johnson
-# Author: Vasyl' Vavrychuk
-# Author: Witold Baryluk
-# Author: Paweł Paprota
-# Author: Gergely Imreh
-# License: Public domain code
+
+__author__  = (
+	"Ricardo Garcia Gonzalez",
+	"Danny Colligan",
+	"Benjamin Johnson",
+	"Vasyl' Vavrychuk",
+	"Witold Baryluk",
+	"Paweł Paprota",
+	"Gergely Imreh",
+	)
+
+__license__ = "Public Domain"
+__version__ = '2011.08.04'
+
 import cookielib
 import ctypes
 import datetime
@@ -706,7 +712,7 @@ class FileDownloader(object):
 					else:
 						# Examine the reported length
 						if (content_length is not None and
-						    (resume_len - 100 < long(content_length) < resume_len + 100)):
+							(resume_len - 100 < long(content_length) < resume_len + 100)):
 							# The file had already been fully downloaded.
 							# Explanation to the above condition: in issue #175 it was revealed that
 							# YouTube sometimes adds or removes a few bytes from the end of the file,
@@ -1685,8 +1691,8 @@ class YahooIE(InfoExtractor):
 		yv_lg = 'R0xx6idZnW2zlrKP8xxAIR'  # not sure what this represents
 		yv_bitrate = '700'  # according to Wikipedia this is hard-coded
 		request = urllib2.Request('http://cosmos.bcst.yahoo.com/up/yep/process/getPlaylistFOP.php?node_id=' + video_id +
-				          '&tech=flash&mode=playlist&lg=' + yv_lg + '&bitrate=' + yv_bitrate + '&vidH=' + yv_video_height +
-					  '&vidW=' + yv_video_width + '&swf=as3&rd=video.yahoo.com&tk=null&adsupported=v1,v2,&eventid=1301797')
+								  '&tech=flash&mode=playlist&lg=' + yv_lg + '&bitrate=' + yv_bitrate + '&vidH=' + yv_video_height +
+								  '&vidW=' + yv_video_width + '&swf=as3&rd=video.yahoo.com&tk=null&adsupported=v1,v2,&eventid=1301797')
 		try:
 			self.report_download_webpage(video_id)
 			webpage = urllib2.urlopen(request).read()
@@ -2255,9 +2261,9 @@ class YoutubeUserIE(InfoExtractor):
 			video_ids = video_ids[playliststart:]
 		else:
 			video_ids = video_ids[playliststart:playlistend]
-			
+
 		self._downloader.to_screen("[youtube] user %s: Collected %d video ids (downloading %d of them)" %
-				           (username, all_ids_count, len(video_ids)))
+								  (username, all_ids_count, len(video_ids)))
 
 		for video_id in video_ids:
 			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % video_id)
@@ -2510,7 +2516,7 @@ class FacebookIE(InfoExtractor):
 		# description
 		video_description = 'No description available.'
 		if (self._downloader.params.get('forcedescription', False) and
-		    'description' in video_info):
+			'description' in video_info):
 			video_description = video_info['description']
 
 		url_map = video_info['video_urls']
@@ -2693,311 +2699,370 @@ class FFmpegExtractAudioPP(PostProcessor):
 		information['filepath'] = new_path
 		return information
 
-### MAIN PROGRAM ###
+
+def updateSelf(downloader, filename):
+	''' Update the program file with the latest version from the repository '''
+	# Note: downloader only used for options
+	if not os.access(filename, os.W_OK):
+		sys.exit('ERROR: no write permissions on %s' % filename)
+
+	downloader.to_screen('Updating to latest stable version...')
+
+	try:
+		latest_url = 'http://github.com/rg3/youtube-dl/raw/master/LATEST_VERSION'
+		latest_version = urllib.urlopen(latest_url).read().strip()
+		prog_url = 'http://github.com/rg3/youtube-dl/raw/%s/youtube-dl' % latest_version
+		newcontent = urllib.urlopen(prog_url).read()
+	except (IOError, OSError), err:
+		sys.exit('ERROR: unable to download latest version')
+
+	try:
+		stream = open(filename, 'w')
+		stream.write(newcontent)
+		stream.close()
+	except (IOError, OSError), err:
+		sys.exit('ERROR: unable to overwrite current version')
+
+	downloader.to_screen('Updated to version %s' % latest_version)
+
+
+def parseOpts():
+	# Deferred imports
+	import getpass
+	import optparse
+
+	def _format_option_string(option):
+		''' ('-o', '--option') -> -o, --format METAVAR'''
+
+		opts = []
+
+		if option._short_opts: opts.append(option._short_opts[0])
+		if option._long_opts: opts.append(option._long_opts[0])
+		if len(opts) > 1: opts.insert(1, ', ')
+
+		if option.takes_value(): opts.append(' %s' % option.metavar)
+
+		return "".join(opts)
+
+	def _find_term_columns():
+		columns = os.environ.get('COLUMNS', None)
+		if columns: return int(columns)
+
+		if sys.platform.startswith('linux'):
+			try: columns = os.popen('stty size', 'r').read().split()[1]
+			except: pass
+
+		if columns: return int(columns)
+
+	max_width = 80
+	max_help_position = 80
+
+	# No need to wrap help messages if we're on a wide console
+	columns = _find_term_columns()
+	if columns: max_width = columns
+
+	fmt = optparse.IndentedHelpFormatter(width=max_width, max_help_position=max_help_position)
+	fmt.format_option_strings = _format_option_string
+
+	kw = {
+		'version'   : __version__,
+		'formatter' : fmt,
+		'usage' : 'Usage : %prog [options] url...',
+		'conflict_handler' : 'resolve',
+	}
+
+	parser = optparse.OptionParser(**kw)
+
+	# option groups
+	general        = optparse.OptionGroup(parser, 'General Options')
+	authentication = optparse.OptionGroup(parser, 'Authentication Options')
+	video_format   = optparse.OptionGroup(parser, 'Video Format Options')
+	postproc       = optparse.OptionGroup(parser, 'Post-processing Options')
+	filesystem     = optparse.OptionGroup(parser, 'Filesystem Options')
+	verbosity      = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
+
+	general.add_option('-h', '--help',
+			action='help', help='print this help text and exit')
+	general.add_option('-v', '--version',
+			action='version', help='print program version and exit')
+	general.add_option('-U', '--update',
+			action='store_true', dest='update_self', help='update this program to latest stable version')
+	general.add_option('-i', '--ignore-errors',
+			action='store_true', dest='ignoreerrors', help='continue on download errors', default=False)
+	general.add_option('-r', '--rate-limit',
+			dest='ratelimit', metavar='LIMIT', help='download rate limit (e.g. 50k or 44.6m)')
+	general.add_option('-R', '--retries',
+			dest='retries', metavar='RETRIES', help='number of retries (default is 10)', default=10)
+	general.add_option('--playlist-start',
+			dest='playliststart', metavar='NUMBER', help='playlist video to start at (default is 1)', default=1)
+	general.add_option('--playlist-end',
+			dest='playlistend', metavar='NUMBER', help='playlist video to end at (default is last)', default=-1)
+	general.add_option('--dump-user-agent',
+			action='store_true', dest='dump_user_agent',
+			help='display the current browser identification', default=False)
+
+	authentication.add_option('-u', '--username',
+			dest='username', metavar='USERNAME', help='account username')
+	authentication.add_option('-p', '--password',
+			dest='password', metavar='PASSWORD', help='account password')
+	authentication.add_option('-n', '--netrc',
+			action='store_true', dest='usenetrc', help='use .netrc authentication data', default=False)
+
+
+	video_format.add_option('-f', '--format',
+			action='store', dest='format', metavar='FORMAT', help='video format code')
+	video_format.add_option('--all-formats',
+			action='store_const', dest='format', help='download all available video formats', const='-1')
+	video_format.add_option('--max-quality',
+			action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
+
+
+	verbosity.add_option('-q', '--quiet',
+			action='store_true', dest='quiet', help='activates quiet mode', default=False)
+	verbosity.add_option('-s', '--simulate',
+			action='store_true', dest='simulate', help='do not download video', default=False)
+	verbosity.add_option('-g', '--get-url',
+			action='store_true', dest='geturl', help='simulate, quiet but print URL', default=False)
+	verbosity.add_option('-e', '--get-title',
+			action='store_true', dest='gettitle', help='simulate, quiet but print title', default=False)
+	verbosity.add_option('--get-thumbnail',
+			action='store_true', dest='getthumbnail',
+			help='simulate, quiet but print thumbnail URL', default=False)
+	verbosity.add_option('--get-description',
+			action='store_true', dest='getdescription',
+			help='simulate, quiet but print video description', default=False)
+	verbosity.add_option('--get-filename',
+			action='store_true', dest='getfilename',
+			help='simulate, quiet but print output filename', default=False)
+	verbosity.add_option('--no-progress',
+			action='store_true', dest='noprogress', help='do not print progress bar', default=False)
+	verbosity.add_option('--console-title',
+			action='store_true', dest='consoletitle',
+			help='display progress in console titlebar', default=False)
+
+
+	filesystem.add_option('-t', '--title',
+			action='store_true', dest='usetitle', help='use title in file name', default=False)
+	filesystem.add_option('-l', '--literal',
+			action='store_true', dest='useliteral', help='use literal title in file name', default=False)
+	filesystem.add_option('-A', '--auto-number',
+			action='store_true', dest='autonumber',
+			help='number downloaded files starting from 00000', default=False)
+	filesystem.add_option('-o', '--output',
+			dest='outtmpl', metavar='TEMPLATE', help='output filename template')
+	filesystem.add_option('-a', '--batch-file',
+			dest='batchfile', metavar='FILE', help='file containing URLs to download (\'-\' for stdin)')
+	filesystem.add_option('-w', '--no-overwrites',
+			action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
+	filesystem.add_option('-c', '--continue',
+			action='store_true', dest='continue_dl', help='resume partially downloaded files', default=False)
+	filesystem.add_option('--cookies',
+			dest='cookiefile', metavar='FILE', help='file to dump cookie jar to')
+	filesystem.add_option('--no-part',
+			action='store_true', dest='nopart', help='do not use .part files', default=False)
+	filesystem.add_option('--no-mtime',
+			action='store_false', dest='updatetime',
+			help='do not use the Last-modified header to set the file modification time', default=True)
+
+
+	postproc.add_option('--extract-audio', action='store_true', dest='extractaudio', default=False,
+			help='convert video files to audio-only files (requires ffmpeg and ffprobe)')
+	postproc.add_option('--audio-format', metavar='FORMAT', dest='audioformat', default='best',
+			help='"best", "aac" or "mp3"; best by default')
+
+
+	parser.add_option_group(general)
+	parser.add_option_group(filesystem)
+	parser.add_option_group(verbosity)
+	parser.add_option_group(video_format)
+	parser.add_option_group(authentication)
+	parser.add_option_group(postproc)
+
+	opts, args = parser.parse_args()
+
+	return parser, opts, args
+
+def main():
+	parser, opts, args = parseOpts()
+
+	# Open appropriate CookieJar
+	if opts.cookiefile is None:
+		jar = cookielib.CookieJar()
+	else:
+		try:
+			jar = cookielib.MozillaCookieJar(opts.cookiefile)
+			if os.path.isfile(opts.cookiefile) and os.access(opts.cookiefile, os.R_OK):
+				jar.load()
+		except (IOError, OSError), err:
+			sys.exit(u'ERROR: unable to open cookie file')
+
+	# Dump user agent
+	if opts.dump_user_agent:
+		print std_headers['User-Agent']
+		sys.exit(0)
+
+	# General configuration
+	cookie_processor = urllib2.HTTPCookieProcessor(jar)
+	urllib2.install_opener(urllib2.build_opener(urllib2.ProxyHandler(), cookie_processor, YoutubeDLHandler()))
+	socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
+
+	# Batch file verification
+	batchurls = []
+	if opts.batchfile is not None:
+		try:
+			if opts.batchfile == '-':
+				batchfd = sys.stdin
+			else:
+				batchfd = open(opts.batchfile, 'r')
+			batchurls = batchfd.readlines()
+			batchurls = [x.strip() for x in batchurls]
+			batchurls = [x for x in batchurls if len(x) > 0 and not re.search(r'^[#/;]', x)]
+		except IOError:
+			sys.exit(u'ERROR: batch file could not be read')
+	all_urls = batchurls + args
+
+	# Conflicting, missing and erroneous options
+	if opts.usenetrc and (opts.username is not None or opts.password is not None):
+		parser.error(u'using .netrc conflicts with giving username/password')
+	if opts.password is not None and opts.username is None:
+		parser.error(u'account username missing')
+	if opts.outtmpl is not None and (opts.useliteral or opts.usetitle or opts.autonumber):
+		parser.error(u'using output template conflicts with using title, literal title or auto number')
+	if opts.usetitle and opts.useliteral:
+		parser.error(u'using title conflicts with using literal title')
+	if opts.username is not None and opts.password is None:
+		opts.password = getpass.getpass(u'Type account password and press return:')
+	if opts.ratelimit is not None:
+		numeric_limit = FileDownloader.parse_bytes(opts.ratelimit)
+		if numeric_limit is None:
+			parser.error(u'invalid rate limit specified')
+		opts.ratelimit = numeric_limit
+	if opts.retries is not None:
+		try:
+			opts.retries = long(opts.retries)
+		except (TypeError, ValueError), err:
+			parser.error(u'invalid retry count specified')
+	try:
+		opts.playliststart = long(opts.playliststart)
+		if opts.playliststart <= 0:
+			raise ValueError
+	except (TypeError, ValueError), err:
+		parser.error(u'invalid playlist start number specified')
+	try:
+		opts.playlistend = long(opts.playlistend)
+		if opts.playlistend != -1 and (opts.playlistend <= 0 or opts.playlistend < opts.playliststart):
+			raise ValueError
+	except (TypeError, ValueError), err:
+		parser.error(u'invalid playlist end number specified')
+	if opts.extractaudio:
+		if opts.audioformat not in ['best', 'aac', 'mp3']:
+			parser.error(u'invalid audio format specified')
+
+	# Information extractors
+	youtube_ie = YoutubeIE()
+	metacafe_ie = MetacafeIE(youtube_ie)
+	dailymotion_ie = DailymotionIE()
+	youtube_pl_ie = YoutubePlaylistIE(youtube_ie)
+	youtube_user_ie = YoutubeUserIE(youtube_ie)
+	youtube_search_ie = YoutubeSearchIE(youtube_ie)
+	google_ie = GoogleIE()
+	google_search_ie = GoogleSearchIE(google_ie)
+	photobucket_ie = PhotobucketIE()
+	yahoo_ie = YahooIE()
+	yahoo_search_ie = YahooSearchIE(yahoo_ie)
+	deposit_files_ie = DepositFilesIE()
+	facebook_ie = FacebookIE()
+	generic_ie = GenericIE()
+
+	# File downloader
+	fd = FileDownloader({
+		'usenetrc': opts.usenetrc,
+		'username': opts.username,
+		'password': opts.password,
+		'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription or opts.getfilename),
+		'forceurl': opts.geturl,
+		'forcetitle': opts.gettitle,
+		'forcethumbnail': opts.getthumbnail,
+		'forcedescription': opts.getdescription,
+		'forcefilename': opts.getfilename,
+		'simulate': (opts.simulate or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription or opts.getfilename),
+		'format': opts.format,
+		'format_limit': opts.format_limit,
+		'outtmpl': ((opts.outtmpl is not None and opts.outtmpl.decode(preferredencoding()))
+			or (opts.format == '-1' and opts.usetitle and u'%(stitle)s-%(id)s-%(format)s.%(ext)s')
+			or (opts.format == '-1' and opts.useliteral and u'%(title)s-%(id)s-%(format)s.%(ext)s')
+			or (opts.format == '-1' and u'%(id)s-%(format)s.%(ext)s')
+			or (opts.usetitle and opts.autonumber and u'%(autonumber)s-%(stitle)s-%(id)s.%(ext)s')
+			or (opts.useliteral and opts.autonumber and u'%(autonumber)s-%(title)s-%(id)s.%(ext)s')
+			or (opts.usetitle and u'%(stitle)s-%(id)s.%(ext)s')
+			or (opts.useliteral and u'%(title)s-%(id)s.%(ext)s')
+			or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
+			or u'%(id)s.%(ext)s'),
+		'ignoreerrors': opts.ignoreerrors,
+		'ratelimit': opts.ratelimit,
+		'nooverwrites': opts.nooverwrites,
+		'retries': opts.retries,
+		'continuedl': opts.continue_dl,
+		'noprogress': opts.noprogress,
+		'playliststart': opts.playliststart,
+		'playlistend': opts.playlistend,
+		'logtostderr': opts.outtmpl == '-',
+		'consoletitle': opts.consoletitle,
+		'nopart': opts.nopart,
+		'updatetime': opts.updatetime,
+		})
+	fd.add_info_extractor(youtube_search_ie)
+	fd.add_info_extractor(youtube_pl_ie)
+	fd.add_info_extractor(youtube_user_ie)
+	fd.add_info_extractor(metacafe_ie)
+	fd.add_info_extractor(dailymotion_ie)
+	fd.add_info_extractor(youtube_ie)
+	fd.add_info_extractor(google_ie)
+	fd.add_info_extractor(google_search_ie)
+	fd.add_info_extractor(photobucket_ie)
+	fd.add_info_extractor(yahoo_ie)
+	fd.add_info_extractor(yahoo_search_ie)
+	fd.add_info_extractor(deposit_files_ie)
+	fd.add_info_extractor(facebook_ie)
+
+	# This must come last since it's the
+	# fallback if none of the others work
+	fd.add_info_extractor(generic_ie)
+
+	# PostProcessors
+	if opts.extractaudio:
+		fd.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat))
+
+	# Update version
+	if opts.update_self:
+		updateSelf(fd, sys.argv[0])
+
+	# Maybe do nothing
+	if len(all_urls) < 1:
+		if not opts.update_self:
+			parser.error(u'you must provide at least one URL')
+		else:
+			sys.exit()
+	retcode = fd.download(all_urls)
+
+	# Dump cookie jar if requested
+	if opts.cookiefile is not None:
+		try:
+			jar.save()
+		except (IOError, OSError), err:
+			sys.exit(u'ERROR: unable to save cookie jar')
+
+	sys.exit(retcode)
+
+
 if __name__ == '__main__':
 	try:
-		# Modules needed only when running the main program
-		import getpass
-		import optparse
-
-		# Function to update the program file with the latest version from the repository.
-		def update_self(downloader, filename):
-			# Note: downloader only used for options
-			if not os.access(filename, os.W_OK):
-				sys.exit('ERROR: no write permissions on %s' % filename)
-
-			downloader.to_screen('Updating to latest stable version...')
-			try:
-				latest_url = 'http://github.com/rg3/youtube-dl/raw/master/LATEST_VERSION'
-				latest_version = urllib.urlopen(latest_url).read().strip()
-				prog_url = 'http://github.com/rg3/youtube-dl/raw/%s/youtube-dl' % latest_version
-				newcontent = urllib.urlopen(prog_url).read()
-			except (IOError, OSError), err:
-				sys.exit('ERROR: unable to download latest version')
-			try:
-				stream = open(filename, 'w')
-				stream.write(newcontent)
-				stream.close()
-			except (IOError, OSError), err:
-				sys.exit('ERROR: unable to overwrite current version')
-			downloader.to_screen('Updated to version %s' % latest_version)
-
-		# Parse command line
-		parser = optparse.OptionParser(
-			usage='Usage: %prog [options] url...',
-			version='2011.08.04',
-			conflict_handler='resolve',
-		)
-
-		parser.add_option('-h', '--help',
-				action='help', help='print this help text and exit')
-		parser.add_option('-v', '--version',
-				action='version', help='print program version and exit')
-		parser.add_option('-U', '--update',
-				action='store_true', dest='update_self', help='update this program to latest stable version')
-		parser.add_option('-i', '--ignore-errors',
-				action='store_true', dest='ignoreerrors', help='continue on download errors', default=False)
-		parser.add_option('-r', '--rate-limit',
-				dest='ratelimit', metavar='LIMIT', help='download rate limit (e.g. 50k or 44.6m)')
-		parser.add_option('-R', '--retries',
-				dest='retries', metavar='RETRIES', help='number of retries (default is 10)', default=10)
-		parser.add_option('--playlist-start',
-				dest='playliststart', metavar='NUMBER', help='playlist video to start at (default is 1)', default=1)
-		parser.add_option('--playlist-end',
-				dest='playlistend', metavar='NUMBER', help='playlist video to end at (default is last)', default=-1)
-		parser.add_option('--dump-user-agent',
-				action='store_true', dest='dump_user_agent',
-				help='display the current browser identification', default=False)
-
-		authentication = optparse.OptionGroup(parser, 'Authentication Options')
-		authentication.add_option('-u', '--username',
-				dest='username', metavar='USERNAME', help='account username')
-		authentication.add_option('-p', '--password',
-				dest='password', metavar='PASSWORD', help='account password')
-		authentication.add_option('-n', '--netrc',
-				action='store_true', dest='usenetrc', help='use .netrc authentication data', default=False)
-		parser.add_option_group(authentication)
-
-		video_format = optparse.OptionGroup(parser, 'Video Format Options')
-		video_format.add_option('-f', '--format',
-				action='store', dest='format', metavar='FORMAT', help='video format code')
-		video_format.add_option('--all-formats',
-				action='store_const', dest='format', help='download all available video formats', const='-1')
-		video_format.add_option('--max-quality',
-				action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
-		parser.add_option_group(video_format)
-
-		verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
-		verbosity.add_option('-q', '--quiet',
-				action='store_true', dest='quiet', help='activates quiet mode', default=False)
-		verbosity.add_option('-s', '--simulate',
-				action='store_true', dest='simulate', help='do not download video', default=False)
-		verbosity.add_option('-g', '--get-url',
-				action='store_true', dest='geturl', help='simulate, quiet but print URL', default=False)
-		verbosity.add_option('-e', '--get-title',
-				action='store_true', dest='gettitle', help='simulate, quiet but print title', default=False)
-		verbosity.add_option('--get-thumbnail',
-				action='store_true', dest='getthumbnail',
-				help='simulate, quiet but print thumbnail URL', default=False)
-		verbosity.add_option('--get-description',
-				action='store_true', dest='getdescription',
-				help='simulate, quiet but print video description', default=False)
-		verbosity.add_option('--get-filename',
-				action='store_true', dest='getfilename',
-				help='simulate, quiet but print output filename', default=False)
-		verbosity.add_option('--no-progress',
-				action='store_true', dest='noprogress', help='do not print progress bar', default=False)
-		verbosity.add_option('--console-title',
-				action='store_true', dest='consoletitle',
-				help='display progress in console titlebar', default=False)
-		parser.add_option_group(verbosity)
-
-		filesystem = optparse.OptionGroup(parser, 'Filesystem Options')
-		filesystem.add_option('-t', '--title',
-				action='store_true', dest='usetitle', help='use title in file name', default=False)
-		filesystem.add_option('-l', '--literal',
-				action='store_true', dest='useliteral', help='use literal title in file name', default=False)
-		filesystem.add_option('-A', '--auto-number',
-				action='store_true', dest='autonumber',
-				help='number downloaded files starting from 00000', default=False)
-		filesystem.add_option('-o', '--output',
-				dest='outtmpl', metavar='TEMPLATE', help='output filename template')
-		filesystem.add_option('-a', '--batch-file',
-				dest='batchfile', metavar='FILE', help='file containing URLs to download (\'-\' for stdin)')
-		filesystem.add_option('-w', '--no-overwrites',
-				action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
-		filesystem.add_option('-c', '--continue',
-				action='store_true', dest='continue_dl', help='resume partially downloaded files', default=False)
-		filesystem.add_option('--cookies',
-				dest='cookiefile', metavar='FILE', help='file to dump cookie jar to')
-		filesystem.add_option('--no-part',
-				action='store_true', dest='nopart', help='do not use .part files', default=False)
-		filesystem.add_option('--no-mtime',
-				action='store_false', dest='updatetime',
-				help='do not use the Last-modified header to set the file modification time', default=True)
-		parser.add_option_group(filesystem)
-
-		postproc = optparse.OptionGroup(parser, 'Post-processing Options')
-		postproc.add_option('--extract-audio', action='store_true', dest='extractaudio', default=False,
-				help='convert video files to audio-only files (requires ffmpeg and ffprobe)')
-		postproc.add_option('--audio-format', metavar='FORMAT', dest='audioformat', default='best',
-				help='"best", "aac" or "mp3"; best by default')
-		parser.add_option_group(postproc)
-
-		(opts, args) = parser.parse_args()
-
-		# Open appropriate CookieJar
-		if opts.cookiefile is None:
-			jar = cookielib.CookieJar()
-		else:
-			try:
-				jar = cookielib.MozillaCookieJar(opts.cookiefile)
-				if os.path.isfile(opts.cookiefile) and os.access(opts.cookiefile, os.R_OK):
-					jar.load()
-			except (IOError, OSError), err:
-				sys.exit(u'ERROR: unable to open cookie file')
-
-		# Dump user agent
-		if opts.dump_user_agent:
-			print std_headers['User-Agent']
-			sys.exit(0)
-
-		# General configuration
-		cookie_processor = urllib2.HTTPCookieProcessor(jar)
-		urllib2.install_opener(urllib2.build_opener(urllib2.ProxyHandler(), cookie_processor, YoutubeDLHandler()))
-		socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
-
-		# Batch file verification
-		batchurls = []
-		if opts.batchfile is not None:
-			try:
-				if opts.batchfile == '-':
-					batchfd = sys.stdin
-				else:
-					batchfd = open(opts.batchfile, 'r')
-				batchurls = batchfd.readlines()
-				batchurls = [x.strip() for x in batchurls]
-				batchurls = [x for x in batchurls if len(x) > 0 and not re.search(r'^[#/;]', x)]
-			except IOError:
-				sys.exit(u'ERROR: batch file could not be read')
-		all_urls = batchurls + args
-
-		# Conflicting, missing and erroneous options
-		if opts.usenetrc and (opts.username is not None or opts.password is not None):
-			parser.error(u'using .netrc conflicts with giving username/password')
-		if opts.password is not None and opts.username is None:
-			parser.error(u'account username missing')
-		if opts.outtmpl is not None and (opts.useliteral or opts.usetitle or opts.autonumber):
-			parser.error(u'using output template conflicts with using title, literal title or auto number')
-		if opts.usetitle and opts.useliteral:
-			parser.error(u'using title conflicts with using literal title')
-		if opts.username is not None and opts.password is None:
-			opts.password = getpass.getpass(u'Type account password and press return:')
-		if opts.ratelimit is not None:
-			numeric_limit = FileDownloader.parse_bytes(opts.ratelimit)
-			if numeric_limit is None:
-				parser.error(u'invalid rate limit specified')
-			opts.ratelimit = numeric_limit
-		if opts.retries is not None:
-			try:
-				opts.retries = long(opts.retries)
-			except (TypeError, ValueError), err:
-				parser.error(u'invalid retry count specified')
-		try:
-			opts.playliststart = long(opts.playliststart)
-			if opts.playliststart <= 0:
-				raise ValueError
-		except (TypeError, ValueError), err:
-			parser.error(u'invalid playlist start number specified')
-		try:
-			opts.playlistend = long(opts.playlistend)
-			if opts.playlistend != -1 and (opts.playlistend <= 0 or opts.playlistend < opts.playliststart):
-				raise ValueError
-		except (TypeError, ValueError), err:
-			parser.error(u'invalid playlist end number specified')
-		if opts.extractaudio:
-			if opts.audioformat not in ['best', 'aac', 'mp3']:
-				parser.error(u'invalid audio format specified')
-
-		# Information extractors
-		youtube_ie = YoutubeIE()
-		metacafe_ie = MetacafeIE(youtube_ie)
-		dailymotion_ie = DailymotionIE()
-		youtube_pl_ie = YoutubePlaylistIE(youtube_ie)
-		youtube_user_ie = YoutubeUserIE(youtube_ie)
-		youtube_search_ie = YoutubeSearchIE(youtube_ie)
-		google_ie = GoogleIE()
-		google_search_ie = GoogleSearchIE(google_ie)
-		photobucket_ie = PhotobucketIE()
-		yahoo_ie = YahooIE()
-		yahoo_search_ie = YahooSearchIE(yahoo_ie)
-		deposit_files_ie = DepositFilesIE()
-		facebook_ie = FacebookIE()
-		generic_ie = GenericIE()
-
-		# File downloader
-		fd = FileDownloader({
-			'usenetrc': opts.usenetrc,
-			'username': opts.username,
-			'password': opts.password,
-			'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription or opts.getfilename),
-			'forceurl': opts.geturl,
-			'forcetitle': opts.gettitle,
-			'forcethumbnail': opts.getthumbnail,
-			'forcedescription': opts.getdescription,
-			'forcefilename': opts.getfilename,
-			'simulate': (opts.simulate or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription or opts.getfilename),
-			'format': opts.format,
-			'format_limit': opts.format_limit,
-			'outtmpl': ((opts.outtmpl is not None and opts.outtmpl.decode(preferredencoding()))
-				or (opts.format == '-1' and opts.usetitle and u'%(stitle)s-%(id)s-%(format)s.%(ext)s')
-				or (opts.format == '-1' and opts.useliteral and u'%(title)s-%(id)s-%(format)s.%(ext)s')
-				or (opts.format == '-1' and u'%(id)s-%(format)s.%(ext)s')
-				or (opts.usetitle and opts.autonumber and u'%(autonumber)s-%(stitle)s-%(id)s.%(ext)s')
-				or (opts.useliteral and opts.autonumber and u'%(autonumber)s-%(title)s-%(id)s.%(ext)s')
-				or (opts.usetitle and u'%(stitle)s-%(id)s.%(ext)s')
-				or (opts.useliteral and u'%(title)s-%(id)s.%(ext)s')
-				or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
-				or u'%(id)s.%(ext)s'),
-			'ignoreerrors': opts.ignoreerrors,
-			'ratelimit': opts.ratelimit,
-			'nooverwrites': opts.nooverwrites,
-			'retries': opts.retries,
-			'continuedl': opts.continue_dl,
-			'noprogress': opts.noprogress,
-			'playliststart': opts.playliststart,
-			'playlistend': opts.playlistend,
-			'logtostderr': opts.outtmpl == '-',
-			'consoletitle': opts.consoletitle,
-			'nopart': opts.nopart,
-			'updatetime': opts.updatetime,
-			})
-		fd.add_info_extractor(youtube_search_ie)
-		fd.add_info_extractor(youtube_pl_ie)
-		fd.add_info_extractor(youtube_user_ie)
-		fd.add_info_extractor(metacafe_ie)
-		fd.add_info_extractor(dailymotion_ie)
-		fd.add_info_extractor(youtube_ie)
-		fd.add_info_extractor(google_ie)
-		fd.add_info_extractor(google_search_ie)
-		fd.add_info_extractor(photobucket_ie)
-		fd.add_info_extractor(yahoo_ie)
-		fd.add_info_extractor(yahoo_search_ie)
-		fd.add_info_extractor(deposit_files_ie)
-		fd.add_info_extractor(facebook_ie)
-
-		# This must come last since it's the
-		# fallback if none of the others work
-		fd.add_info_extractor(generic_ie)
-
-		# PostProcessors
-		if opts.extractaudio:
-			fd.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat))
-
-		# Update version
-		if opts.update_self:
-			update_self(fd, sys.argv[0])
-
-		# Maybe do nothing
-		if len(all_urls) < 1:
-			if not opts.update_self:
-				parser.error(u'you must provide at least one URL')
-			else:
-				sys.exit()
-		retcode = fd.download(all_urls)
-
-		# Dump cookie jar if requested
-		if opts.cookiefile is not None:
-			try:
-				jar.save()
-			except (IOError, OSError), err:
-				sys.exit(u'ERROR: unable to save cookie jar')
-
-		sys.exit(retcode)
-
+		main()
 	except DownloadError:
 		sys.exit(1)
 	except SameFileError:
 		sys.exit(u'ERROR: fixed output name but more than one file to download')
 	except KeyboardInterrupt:
 		sys.exit(u'\nERROR: Interrupted by user')
+
+# vim: set ts=4 sw=4 sts=4 noet ai si filetype=python:
