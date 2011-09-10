@@ -30,6 +30,8 @@ import time
 import urllib
 import urllib2
 import zlib
+import threading
+import Queue
 
 # parse_qs was moved from the cgi module to the urlparse module recently.
 try:
@@ -46,6 +48,7 @@ std_headers = {
 }
 
 simple_title_chars = string.ascii_letters.decode('ascii') + string.digits.decode('ascii')
+
 
 def preferredencoding():
 	"""Get preferred encoding.
@@ -609,6 +612,11 @@ class FileDownloader(object):
 			if not suitable_found:
 				self.trouble(u'ERROR: no suitable InfoExtractor: %s' % url)
 
+		#parallel downloader needs dummy at the end to signal end of queue
+		#for the thread to exit
+		for i in xrange(self.params.get('parallel')):
+			FileDownloader.downloadqueue.put({'filename':None })
+
 		return self._download_retcode
 
 	def post_process(self, filename, ie_info):
@@ -651,8 +659,18 @@ class FileDownloader(object):
 		else:
 			self.trouble(u'\nERROR: rtmpdump exited with code %d' % retval)
 			return False
-
+		
 	def _do_download(self, filename, url, player_url):
+		if (FileDownloader.playlistfile != None):
+			FileDownloader.playlistfile.write(filename+"\n")
+			FileDownloader.playlistfile.flush()
+		if self.params.get('parallel') > 0:
+			FileDownloader.downloadqueue.put({'filename':filename,'url':url,'player_url':player_url,'params':self.params})
+			return False
+		else:
+			self._do_real_download(filename, url, player_url)
+		
+	def _do_real_download(self, filename, url, player_url):
 		# Check file already present
 		if self.params.get('continuedl', False) and os.path.isfile(filename) and not self.params.get('nopart', False):
 			self.report_file_already_downloaded(filename)
@@ -783,6 +801,22 @@ class FileDownloader(object):
 			self.try_utime(filename, data.info().get('last-modified', None))
 
 		return True
+	
+	
+def threadedFileDownloader():
+	"""File Downloader that does threaded download if needed.
+	Download parameters are added to downloadqueue in FileDownloader class,
+	which each thread waits on and calls FileDownloader._do_real_download
+	Individual threads are created in main function.
+	"""
+	while True:
+		d = FileDownloader.downloadqueue.get()
+		if (d['filename'] is None):
+			break
+		fd=FileDownloader(d['params'])
+		fd._do_real_download(d['filename'],d['url'],d['player_url'])
+		FileDownloader.downloadqueue.task_done()
+	
 
 class InfoExtractor(object):
 	"""Information Extractor class.
@@ -2099,7 +2133,7 @@ class YahooSearchIE(InfoExtractor):
 class YoutubePlaylistIE(InfoExtractor):
 	"""Information Extractor for YouTube playlists."""
 
-	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/(?:(?:view_play_list|my_playlists|artist)\?.*?(p|a)=|user/.*?/user/|p/|user/.*?#[pg]/c/)([0-9A-Za-z]+)(?:/.*?/([0-9A-Za-z_-]+))?.*'
+	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/(?:(?:view_play_list|playlist|my_playlists|artist)\?.*?(p|a|list)=|user/.*?/user/|p/|user/.*?#[pg]/c/)([0-9A-Za-z]+)(?:/.*?/([0-9A-Za-z_-]+))?.*'
 	_TEMPLATE_URL = 'http://www.youtube.com/%s?%s=%s&page=%s&gl=US&hl=en'
 	_VIDEO_INDICATOR = r'/watch\?v=(.+?)&'
 	_MORE_PAGES_INDICATOR = r'(?m)>\s*Next\s*</a>'
@@ -2748,6 +2782,12 @@ if __name__ == '__main__':
 		parser.add_option('--dump-user-agent',
 				action='store_true', dest='dump_user_agent',
 				help='display the current browser identification', default=False)
+		parser.add_option('-P','--parallel',
+				type="int",dest='parallel',help='Number of parallel downloads',default=0)
+		parser.add_option('-s', '--save-playlist',
+				action='store', dest='saveplaylist', help='Save file list to a playlist file')
+
+
 
 		authentication = optparse.OptionGroup(parser, 'Authentication Options')
 		authentication.add_option('-u', '--username',
@@ -2915,6 +2955,11 @@ if __name__ == '__main__':
 		facebook_ie = FacebookIE()
 		generic_ie = GenericIE()
 
+		if (opts.saveplaylist != None):
+			FileDownloader.playlistfile = open(opts.saveplaylist, "w")
+		else:
+			FileDownloader.playlistfile = None
+	
 		# File downloader
 		fd = FileDownloader({
 			'usenetrc': opts.usenetrc,
@@ -2951,6 +2996,7 @@ if __name__ == '__main__':
 			'consoletitle': opts.consoletitle,
 			'nopart': opts.nopart,
 			'updatetime': opts.updatetime,
+			'parallel': opts.parallel,
 			})
 		fd.add_info_extractor(youtube_search_ie)
 		fd.add_info_extractor(youtube_pl_ie)
@@ -2977,6 +3023,17 @@ if __name__ == '__main__':
 		# Update version
 		if opts.update_self:
 			update_self(fd, sys.argv[0])
+			
+		#create downloader threads that wait for URLs
+		downloadparallel = opts.parallel
+		threads = []
+		if downloadparallel > 0:
+			FileDownloader.downloadqueue = Queue.Queue()
+			for threadcount in xrange(downloadparallel):
+				t = threading.Thread(target=threadedFileDownloader)
+				t.setDaemon(True)
+				t.start()
+				threads.append(t)
 
 		# Maybe do nothing
 		if len(all_urls) < 1:
@@ -2985,6 +3042,14 @@ if __name__ == '__main__':
 			else:
 				sys.exit()
 		retcode = fd.download(all_urls)
+		
+		#wait for download threads to terminate
+		if downloadparallel > 0:
+			while True:
+				for t in threads:
+					t.join(2**32)
+				if all(not t.isAlive() for t in threads):
+					break
 
 		# Dump cookie jar if requested
 		if opts.cookiefile is not None:
@@ -2993,6 +3058,8 @@ if __name__ == '__main__':
 			except (IOError, OSError), err:
 				sys.exit(u'ERROR: unable to save cookie jar')
 
+		if ( opts.saveplaylist):
+			FileDownloader.playlistfile.close()
 		sys.exit(retcode)
 
 	except DownloadError:
