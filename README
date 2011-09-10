@@ -1,0 +1,37 @@
+youtube-dl is a small command-line program to download videos from
+YouTube.com and a few more sites. It requires the Python interpreter,
+version 2.x (x being at least 5), and it is not platform specific. It
+should work in your Unix box, in Windows or in Mac OS X. It is
+released to the PUBLIC DOMAIN, which means you can modify it,
+redistribute it or use it however you like. The project is currently
+being developed at github.com. 
+
+I will try to keep it updated if YouTube.com changes the way you
+access their videos. After all, it is a simple and short
+program. However, I can not guarantee anything. If you detect it stops
+working, check for new versions and/or inform me about the problem,
+indicating the program version you are using. My contact information
+is at rg03.wordpress.com. If the program stops working and I can not
+solve the problem but you have a solution, I would like to know
+it. Furthermore, if you think you can maintain the program yourself,
+tell me. 
+
+Thanks for all the feedback received so far. I am glad people find my
+program useful. 
+
+AUTHORS:
+* Ricardo Garcia Gonzalez: program core, YouTube.com InfoExtractor,
+metacafe.com InfoExtractor and YouTube playlist InfoExtractor.  
+* Danny Colligan: YouTube search InfoExtractor, ideas and patches.
+* Benjamin Johnson: Google Video InfoExtractor, Photobucket
+InfoExtractor, Yahoo! Video InfoExtractor, generic InfoExtractor,
+ideas, patches, etc. 
+* Vasyl' Vavrychuk: DepositFiles InfoExtractor, ideas and patches.
+* Witold Baryluk: Dailymotion InfoExtractor.
+* Paweł Paprota: YouTube user videos InfoExtractor.
+* Gergely Imreh: Facebook InfoExtractor, ideas and patches.
+
+Many other people contributing patches, code, ideas and kind
+messages. Too many to be listed here. You know who you are. Thank you
+very much. 
+
