@@ -1523,6 +1523,7 @@ class DailymotionIE(InfoExtractor):
 
 		# Retrieve video webpage to extract further information
 		request = urllib2.Request(url)
+		request.add_header('Cookie', 'family_filter=off')
 		try:
 			self.report_download_webpage(video_id)
 			webpage = urllib2.urlopen(request).read()
@@ -1532,25 +1533,29 @@ class DailymotionIE(InfoExtractor):
 
 		# Extract URL, uploader and title from webpage
 		self.report_extraction(video_id)
-		mobj = re.search(r'(?i)addVariable\(\"video\"\s*,\s*\"([^\"]*)\"\)', webpage)
+		mobj = re.search(r'(?i)addVariable\(\"sequence\"\s*,\s*\"([^\"]+?)\"\)', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
 			return
-		mediaURL = urllib.unquote(mobj.group(1))
+		sequence = urllib.unquote(mobj.group(1))
+		mobj = re.search(r',\"sdURL\"\:\"([^\"]+?)\",', sequence)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract media URL')
+			return
+		mediaURL = urllib.unquote(mobj.group(1)).replace('\\', '')
 
 		# if needed add http://www.dailymotion.com/ if relative URL
 
 		video_url = mediaURL
 
-		# '<meta\s+name="title"\s+content="Dailymotion\s*[:\-]\s*(.*?)"\s*\/\s*>'
-		mobj = re.search(r'(?im)<title>Dailymotion\s*[\-:]\s*(.+?)</title>', webpage)
+		mobj = re.search(r'(?im)<title>Dailymotion\s*-\s*(.+)\s*-\s*[^<]+?</title>', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract title')
 			return
 		video_title = mobj.group(1).decode('utf-8')
 		video_title = sanitize_title(video_title)
 
-		mobj = re.search(r'(?im)<Attribute name="owner">(.+?)</Attribute>', webpage)
+		mobj = re.search(r'(?im)<span class="owner[^\"]+?">[^<]+?<a [^>]+?>([^<]+?)</a></span>', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
 			return
