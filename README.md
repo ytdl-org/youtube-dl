@@ -85,10 +85,10 @@ The URLs youtube-dl outputs require the downloader to have the correct cookies. 
 youtube has switched to a new video info format in July 2011 which is not supported by old versions of youtube-dl. You can update youtube-dl with `sudo youtube-dl --update`.
 
 ## COPYRIGHT
-**youtube-dl**: Copyright © 2006-2011 Ricardo Garcia Gonzalez. The program is
-released into the public domain by the copyright holder. This README file was
-originally written by Daniel Bolton (<https://github.com/dbbolton>) and is
-likewise released into the public domain.
+
+youtube-dl is released into the public domain by the copyright holders.
+
+This README file was originally written by Daniel Bolton (<https://github.com/dbbolton>) and is likewise released into the public domain.
 
 ## BUGS
 
