@@ -15,7 +15,7 @@ __author__  = (
 	)
 
 __license__ = 'Public Domain'
-__version__ = '2011.09.09-phihag'
+__version__ = '2011.09.13'
 
 UPDATE_URL = 'https://raw.github.com/phihag/youtube-dl/master/youtube-dl'
 
