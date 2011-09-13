@@ -82,7 +82,7 @@ The URLs youtube-dl outputs require the downloader to have the correct cookies. 
 
 ### ERROR: no fmt_url_map or conn information found in video info
 
-youtube has switched to a new video info format in July 2011 which is not supported by old versions of youtube-dl. You can update youtube-dl with `sudo youtube-dl -U`.
+youtube has switched to a new video info format in July 2011 which is not supported by old versions of youtube-dl. You can update youtube-dl with `sudo youtube-dl --update`.
 
 ## COPYRIGHT
 **youtube-dl**: Copyright © 2006-2011 Ricardo Garcia Gonzalez. The program is
