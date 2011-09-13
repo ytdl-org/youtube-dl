@@ -1,7 +1,9 @@
 default: update
 
-update: update-readme
+update: update-readme update-latest
 
+update-latest:
+	./youtube-dl --version > LATEST_VERSION
 
 update-readme:
 	@options=$$(COLUMNS=80 ./youtube-dl --help | sed -e '1,/.*General Options.*/ d' -e 's/^\W\{2\}\(\w\)/### \1/') && \
@@ -15,4 +17,4 @@ update-readme:
 
 
 
-.PHONY: default update update-readme
+.PHONY: default update update-latest update-readme
