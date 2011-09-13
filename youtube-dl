@@ -39,6 +39,7 @@ import urllib
 import urllib2
 import warnings
 import zlib
+import json
 
 if os.name == 'nt':
 	import ctypes
@@ -1519,7 +1520,7 @@ class DailymotionIE(InfoExtractor):
 		video_id = mobj.group(1)
 
 		simple_title = mobj.group(2).decode('utf-8')
-		video_extension = 'flv'
+		video_extension = 'mp4'
 
 		# Retrieve video webpage to extract further information
 		request = urllib2.Request(url)
@@ -1531,16 +1532,31 @@ class DailymotionIE(InfoExtractor):
 			return
 
 		# Extract URL, uploader and title from webpage
+		# First we need to get the sequence urlencoded json variable
 		self.report_extraction(video_id)
-		mobj = re.search(r'(?i)addVariable\(\"video\"\s*,\s*\"([^\"]*)\"\)', webpage)
+		mobj = re.search(r'(?i)addVariable\(\"sequence\"\s*,\s*\"([^\"]*)\"\)', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
 			return
-		mediaURL = urllib.unquote(mobj.group(1))
 
 		# if needed add http://www.dailymotion.com/ if relative URL
+		sequenceJsonContent = urllib.unquote_plus(mobj.group(1))
 
-		video_url = mediaURL
+		# JSON does not suppot escaping of '.
+		# Replace every \' by a ' in the JSON string
+		sequenceJsonContent = sequenceJsonContent.replace("\\'", "'")
+
+		# Build the JSON object based on the string
+		try:
+			sequenceJson = json.loads(sequenceJsonContent)
+		except:
+			self._downloader.trouble(u'ERROR: unable to extract media URL (Bad JSON encoding)')
+			return
+		try:
+			video_url = sequenceJson[0]["layerList"][0]["sequenceList"][1]["layerList"][2]["param"]["videoPluginParameters"]["hqURL"]
+		except:
+			self._downloader.trouble(u'ERROR: unable to extract media URL (Unable to find the URL)')
+			return
 
 		# '<meta\s+name="title"\s+content="Dailymotion\s*[:\-]\s*(.*?)"\s*\/\s*>'
 		mobj = re.search(r'(?im)<title>Dailymotion\s*[\-:]\s*(.+?)</title>', webpage)
@@ -1550,11 +1566,12 @@ class DailymotionIE(InfoExtractor):
 		video_title = mobj.group(1).decode('utf-8')
 		video_title = sanitize_title(video_title)
 
-		mobj = re.search(r'(?im)<Attribute name="owner">(.+?)</Attribute>', webpage)
-		if mobj is None:
+		# Extract the video uploader nickname from the sequence JSON
+		try:
+			video_uploader = sequenceJson[0]["layerList"][0]["sequenceList"][1]["layerList"][0]["param"]["metadata"]["uploader"]
+		except:
 			self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
 			return
-		video_uploader = mobj.group(1)
 
 		try:
 			# Process video information
