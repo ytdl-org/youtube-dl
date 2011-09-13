@@ -70,7 +70,7 @@ Most people asking this question are not aware that youtube-dl now defaults to d
 
 ### I get HTTP error 402 when trying to download a video. What''s this?
 
-Apparently YouTube requires you to pass a CAPTCHA test if you download too much. We''re [considering to provide a way to let you solve the CAPTCHA](https://github.com/phihag/youtube-dl/issues/8), but at the moment, your best course of action is pointing a webbrowser to the youtube URL, solving the CAPTCHA, and restart youtube-dl.
+Apparently YouTube requires you to pass a CAPTCHA test if you download too much. We''re [considering to provide a way to let you solve the CAPTCHA](https://github.com/rg3/youtube-dl/issues/154), but at the moment, your best course of action is pointing a webbrowser to the youtube URL, solving the CAPTCHA, and restart youtube-dl.
 
 ### I have downloaded a video but how can I play it?
 
@@ -92,7 +92,7 @@ This README file was originally written by Daniel Bolton (<https://github.com/db
 
 ## BUGS
 
-Bugs and suggestions should be reported at: <https://github.com/phihag/youtube-dl/issues>
+Bugs and suggestions should be reported at: <https://github.com/rg3/youtube-dl/issues>
 
 Please include:
 
