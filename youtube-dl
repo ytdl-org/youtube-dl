@@ -3037,9 +3037,9 @@ class MyVideoIE(InfoExtractor):
 			self._downloader.trouble(u'\nERROR: Unable to download video')
 
 class ComedyCentralIE(InfoExtractor):
-	"""Information extractor for blip.tv"""
+	"""Information extractor for The Daily Show and Colbert Report """
 
-	_VALID_URL = r'^(?:https?://)?(www\.)?(thedailyshow|colbertnation)\.com/full-episodes/(.*)$'
+	_VALID_URL = r'^(:(?P<shortname>tds|thedailyshow|cr|colbert|colbertnation|colbertreport))|(https?://)?(www\.)(?P<showname>thedailyshow|colbertnation)\.com/full-episodes/(?P<episode>.*)$'
 
 	@staticmethod
 	def suitable(url):
@@ -3064,15 +3064,39 @@ class ComedyCentralIE(InfoExtractor):
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
 			return
-		epTitle = mobj.group(3)
+
+		if mobj.group('shortname'):
+			if mobj.group('shortname') in ('tds', 'thedailyshow'):
+				url = 'http://www.thedailyshow.com/full-episodes/'
+			else:
+				url = 'http://www.colbertnation.com/full-episodes/'
+			mobj = re.match(self._VALID_URL, url)
+			assert mobj is not None
+
+		dlNewest = not mobj.group('episode')
+		if dlNewest:
+			epTitle = mobj.group('showname')
+		else:
+			epTitle = mobj.group('episode')
 
 		req = urllib2.Request(url)
 		self.report_extraction(epTitle)
 		try:
-			html = urllib2.urlopen(req).read()
+			htmlHandle = urllib2.urlopen(req)
+			html = htmlHandle.read()
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 			self._downloader.trouble(u'ERROR: unable to download webpage: %s' % unicode(err))
 			return
+		if dlNewest:
+			url = htmlHandle.geturl()
+			mobj = re.match(self._VALID_URL, url)
+			if mobj is None:
+				self._downloader.trouble(u'ERROR: Invalid redirected URL: ' + url)
+				return
+			if mobj.group('episode') == '':
+				self._downloader.trouble(u'ERROR: Redirected URL is still not specific: ' + url)
+				return
+			epTitle = mobj.group('episode')
 
 		mMovieParams = re.findall('<param name="movie" value="(http://media.mtvnservices.com/(.*?:episode:([^:]*):)(.*?))"/>', html)
 		if len(mMovieParams) == 0:
