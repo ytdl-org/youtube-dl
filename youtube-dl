@@ -822,7 +822,7 @@ class FileDownloader(object):
 		# Download using rtmpdump. rtmpdump returns exit code 2 when
 		# the connection was interrumpted and resuming appears to be
 		# possible. This is part of rtmpdump's normal usage, AFAIK.
-		basic_args = ['rtmpdump'] + [[], ['-W', player_url]][player_url is not None] + ['-r', url, '-o', tmpfilename]
+		basic_args = ['rtmpdump', '-q'] + [[], ['-W', player_url]][player_url is not None] + ['-r', url, '-o', tmpfilename]
 		retval = subprocess.call(basic_args + [[], ['-e', '-k', '1']][self.params.get('continuedl', False)])
 		while retval == 2 or retval == 1:
 			prevsize = os.path.getsize(tmpfilename)
@@ -831,6 +831,11 @@ class FileDownloader(object):
 			retval = subprocess.call(basic_args + ['-e'] + [[], ['-k', '1']][retval == 1])
 			cursize = os.path.getsize(tmpfilename)
 			if prevsize == cursize and retval == 1:
+				break
+			 # Some rtmp streams seem abort after ~ 99.8%. Don't complain for those
+			if prevsize == cursize and retval == 2 and cursize > 1024:
+				self.to_screen(u'\r[rtmpdump] Could not download the whole video. This can happen for some advertisements.')
+				retval = 0
 				break
 		if retval == 0:
 			self.to_screen(u'\r[rtmpdump] %s bytes' % os.path.getsize(tmpfilename))
@@ -3055,6 +3060,9 @@ class ComedyCentralIE(InfoExtractor):
 	def report_config_download(self, episode_id):
 		self._downloader.to_screen(u'[comedycentral] %s: Downloading configuration' % episode_id)
 
+	def report_index_download(self, episode_id):
+		self._downloader.to_screen(u'[comedycentral] %s: Downloading show index' % episode_id)
+
 	def report_player_url(self, episode_id):
 		self._downloader.to_screen(u'[comedycentral] %s: Determining player URL' % episode_id)
 
@@ -3102,36 +3110,38 @@ class ComedyCentralIE(InfoExtractor):
 				return
 			epTitle = mobj.group('episode')
 
-		mMovieParams = re.findall('<param name="movie" value="(http://media.mtvnservices.com/(.*?:episode:([^:]*):)(.*?))"/>', html)
+		mMovieParams = re.findall('<param name="movie" value="(http://media.mtvnservices.com/([^"]*episode.*?:.*?))"/>', html)
 		if len(mMovieParams) == 0:
 			self._downloader.trouble(u'ERROR: unable to find Flash URL in webpage ' + url)
 			return
-		show_id = mMovieParams[0][2]
-		ACT_COUNT = { # TODO: Detect this dynamically
-			'thedailyshow.com': 4,
-			'colbertnation.com': 3,
-		}.get(show_id, 4)
-		OFFSET = {
-			'thedailyshow.com': 1,
-			'colbertnation.com': 1,
-		}.get(show_id, 1)
 
-		first_player_url = mMovieParams[0][0]
-		startMediaNum = int(mMovieParams[0][3]) + OFFSET
-		movieId = mMovieParams[0][1]
-
-		playerReq = urllib2.Request(first_player_url)
+		playerUrl_raw = mMovieParams[0][0]
 		self.report_player_url(epTitle)
 		try:
-			playerResponse = urllib2.urlopen(playerReq)
+			urlHandle = urllib2.urlopen(playerUrl_raw)
+			playerUrl = urlHandle.geturl()
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self._downloader.trouble(u'ERROR: unable to download player: %s' % unicode(err))
+			self._downloader.trouble(u'ERROR: unable to find out player URL: ' + unicode(err))
 			return
-		player_url = playerResponse.geturl()
 
-		for actNum in range(ACT_COUNT):
-			mediaNum = startMediaNum + actNum
-			mediaId = movieId + str(mediaNum)
+		uri = mMovieParams[0][1]
+		indexUrl = 'http://shadow.comedycentral.com/feeds/video_player/mrss/?' + urllib.urlencode({'uri': uri})
+		self.report_index_download(epTitle)
+		try:
+			indexXml = urllib2.urlopen(indexUrl).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download episode index: ' + unicode(err))
+			return
+
+		idoc = xml.etree.ElementTree.fromstring(indexXml)
+		itemEls = idoc.findall('.//item')
+		for itemEl in itemEls:
+			mediaId = itemEl.findall('./guid')[0].text
+			shortMediaId = mediaId.split(':')[-1]
+			showId = mediaId.split(':')[-2].replace('.com', '')
+			officialTitle = itemEl.findall('./title')[0].text
+			officialDate = itemEl.findall('./pubDate')[0].text
+
 			configUrl = ('http://www.comedycentral.com/global/feeds/entertainment/media/mediaGenEntertainment.jhtml?' +
 						urllib.urlencode({'uri': mediaId}))
 			configReq = urllib2.Request(configUrl)
@@ -3149,7 +3159,7 @@ class ComedyCentralIE(InfoExtractor):
 				turls.append(finfo)
 
 			if len(turls) == 0:
-				self._downloader.trouble(u'\nERROR: unable to download ' + str(mediaNum) + ': No videos found')
+				self._downloader.trouble(u'\nERROR: unable to download ' + mediaId + ': No videos found')
 				continue
 
 			# For now, just pick the highest bitrate
@@ -3157,25 +3167,25 @@ class ComedyCentralIE(InfoExtractor):
 
 			self._downloader.increment_downloads()
 
-			effTitle = show_id.replace('.com', '') + '-' + epTitle
+			effTitle = showId + '-' + epTitle
 			info = {
-				'id': str(mediaNum),
+				'id': shortMediaId,
 				'url': video_url,
-				'uploader': show_id,
-				'upload_date': 'NA',
+				'uploader': showId,
+				'upload_date': officialDate,
 				'title': effTitle,
 				'stitle': self._simplify_title(effTitle),
 				'ext': 'mp4',
 				'format': format,
 				'thumbnail': None,
-				'description': 'TODO: Not yet supported',
-				'player_url': player_url
+				'description': officialTitle,
+				'player_url': playerUrl
 			}
 
 			try:
 				self._downloader.process_info(info)
 			except UnavailableVideoError, err:
-				self._downloader.trouble(u'\nERROR: unable to download ' + str(mediaNum))
+				self._downloader.trouble(u'\nERROR: unable to download ' + mediaId)
 				continue
 
 
