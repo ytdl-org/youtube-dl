@@ -1,7 +1,7 @@
 # youtube-dl
 
 ## USAGE
-youtube-dl [OPTIONS] URL [URL...]
+youtube-dl [options] url [url...]
 
 ## DESCRIPTION
 **youtube-dl** is a small command-line program to download videos from
