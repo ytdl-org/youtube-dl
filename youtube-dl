@@ -23,6 +23,7 @@ import cookielib
 import datetime
 import gzip
 import htmlentitydefs
+import HTMLParser
 import httplib
 import locale
 import math
@@ -3189,6 +3190,93 @@ class ComedyCentralIE(InfoExtractor):
 				continue
 
 
+class EscapistIE(InfoExtractor):
+	"""Information extractor for The Escapist """
+
+	_VALID_URL = r'^(https?://)?(www\.)escapistmagazine.com/videos/view/(?P<showname>[^/]+)/(?P<episode>[^/?]+)[/?].*$'
+
+	@staticmethod
+	def suitable(url):
+		return (re.match(EscapistIE._VALID_URL, url) is not None)
+
+	def report_extraction(self, showName):
+		self._downloader.to_screen(u'[escapist] %s: Extracting information' % showName)
+
+	def report_config_download(self, showName):
+		self._downloader.to_screen(u'[escapist] %s: Downloading configuration' % showName)
+
+	def _simplify_title(self, title):
+		res = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', title)
+		res = res.strip(ur'_')
+		return res
+
+	def _real_extract(self, url):
+		htmlParser = HTMLParser.HTMLParser()
+
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+			return
+		showName = mobj.group('showname')
+		videoId = mobj.group('episode')
+
+		self.report_extraction(showName)
+		try:
+			webPage = urllib2.urlopen(url).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download webpage: ' + unicode(err))
+			return
+
+		descMatch = re.search('<meta name="description" content="([^"]*)"', webPage)
+		description = htmlParser.unescape(descMatch.group(1))
+		imgMatch = re.search('<meta property="og:image" content="([^"]*)"', webPage)
+		imgUrl = htmlParser.unescape(imgMatch.group(1))
+		playerUrlMatch = re.search('<meta property="og:video" content="([^"]*)"', webPage)
+		playerUrl = htmlParser.unescape(playerUrlMatch.group(1))
+		configUrlMatch = re.search('config=(.*)$', playerUrl)
+		configUrl = urllib2.unquote(configUrlMatch.group(1))
+
+		self.report_config_download(showName)
+		try:
+			configJSON = urllib2.urlopen(configUrl).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download configuration: ' + unicode(err))
+			return
+
+		# Technically, it's JavaScript, not JSON
+		configJSON = configJSON.replace("'", '"')
+
+		try:
+			config = json.loads(configJSON)
+		except (ValueError,), err:
+			self._downloader.trouble(u'ERROR: Invalid JSON in configuration file: ' + unicode(err))
+			return
+
+		playlist = config['playlist']
+		videoUrl = playlist[1]['url']
+
+		self._downloader.increment_downloads()
+		info = {
+			'id': videoId,
+			'url': videoUrl,
+			'uploader': showName,
+			'upload_date': None,
+			'title': showName,
+			'stitle': self._simplify_title(showName),
+			'ext': 'flv',
+			'format': 'flv',
+			'thumbnail': imgUrl,
+			'description': description,
+			'player_url': playerUrl,
+		}
+
+		try:
+			self._downloader.process_info(info)
+		except UnavailableVideoError, err:
+			self._downloader.trouble(u'\nERROR: unable to download ' + videoId)
+
+
+
 class PostProcessor(object):
 	"""Post Processor class.
 
@@ -3611,6 +3699,7 @@ def main():
 		VimeoIE(),
 		MyVideoIE(),
 		ComedyCentralIE(),
+		EscapistIE(),
 
 		GenericIE()
 	]
