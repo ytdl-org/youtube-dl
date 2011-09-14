@@ -17,9 +17,15 @@ which means you can modify it, redistribute it or use it however you like.
     -i, --ignore-errors      continue on download errors
     -r, --rate-limit LIMIT   download rate limit (e.g. 50k or 44.6m)
     -R, --retries RETRIES    number of retries (default is 10)
+    --dump-user-agent        display the current browser identification
+
+### Video Selection:
     --playlist-start NUMBER  playlist video to start at (default is 1)
     --playlist-end NUMBER    playlist video to end at (default is last)
-    --dump-user-agent        display the current browser identification
+    --match-title REGEX      download only matching titles (regex or caseless
+                             sub-string)
+    --reject-title REGEX     skip download for matching titles (regex or
+                             caseless sub-string)
 
 ### Filesystem Options:
     -t, --title              use title in file name
