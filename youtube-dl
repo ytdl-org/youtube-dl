@@ -3591,24 +3591,29 @@ def main():
 
 	# Information extractors
 	youtube_ie = YoutubeIE()
-	metacafe_ie = MetacafeIE(youtube_ie)
-	dailymotion_ie = DailymotionIE()
-	youtube_pl_ie = YoutubePlaylistIE(youtube_ie)
-	youtube_user_ie = YoutubeUserIE(youtube_ie)
-	youtube_search_ie = YoutubeSearchIE(youtube_ie)
 	google_ie = GoogleIE()
-	google_search_ie = GoogleSearchIE(google_ie)
-	photobucket_ie = PhotobucketIE()
 	yahoo_ie = YahooIE()
-	yahoo_search_ie = YahooSearchIE(yahoo_ie)
-	deposit_files_ie = DepositFilesIE()
-	facebook_ie = FacebookIE()
-	bliptv_ie = BlipTVIE()
-	vimeo_ie = VimeoIE()
-	myvideo_ie = MyVideoIE()
-	comedycentral_ie = ComedyCentralIE()
+	extractors = [ # Order does matter
+		youtube_ie,
+		MetacafeIE(youtube_ie),
+		DailymotionIE(),
+		YoutubePlaylistIE(youtube_ie),
+		YoutubeUserIE(youtube_ie),
+		YoutubeSearchIE(youtube_ie),
+		google_ie,
+		GoogleSearchIE(google_ie),
+		PhotobucketIE(),
+		yahoo_ie,
+		YahooSearchIE(yahoo_ie),
+		DepositFilesIE(),
+		FacebookIE(),
+		BlipTVIE(),
+		VimeoIE(),
+		MyVideoIE(),
+		ComedyCentralIE(),
 
-	generic_ie = GenericIE()
+		GenericIE()
+	]
 
 	# File downloader
 	fd = FileDownloader({
@@ -3649,27 +3654,8 @@ def main():
 		'writedescription': opts.writedescription,
 		'writeinfojson': opts.writeinfojson,
 		})
-	fd.add_info_extractor(youtube_search_ie)
-	fd.add_info_extractor(youtube_pl_ie)
-	fd.add_info_extractor(youtube_user_ie)
-	fd.add_info_extractor(metacafe_ie)
-	fd.add_info_extractor(dailymotion_ie)
-	fd.add_info_extractor(youtube_ie)
-	fd.add_info_extractor(google_ie)
-	fd.add_info_extractor(google_search_ie)
-	fd.add_info_extractor(photobucket_ie)
-	fd.add_info_extractor(yahoo_ie)
-	fd.add_info_extractor(yahoo_search_ie)
-	fd.add_info_extractor(deposit_files_ie)
-	fd.add_info_extractor(facebook_ie)
-	fd.add_info_extractor(bliptv_ie)
-	fd.add_info_extractor(vimeo_ie)
-	fd.add_info_extractor(myvideo_ie)
-	fd.add_info_extractor(comedycentral_ie)
-
-	# This must come last since it's the
-	# fallback if none of the others work
-	fd.add_info_extractor(generic_ie)
+	for extractor in extractors:
+		fd.add_info_extractor(extractor)
 
 	# PostProcessors
 	if opts.extractaudio:
