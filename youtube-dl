@@ -3175,7 +3175,7 @@ class ComedyCentralIE(InfoExtractor):
 class EscapistIE(InfoExtractor):
 	"""Information extractor for The Escapist """
 
-	_VALID_URL = r'^(https?://)?(www\.)escapistmagazine.com/videos/view/(?P<showname>[^/]+)/(?P<episode>[^/?]+)[/?].*$'
+	_VALID_URL = r'^(https?://)?(www\.)?escapistmagazine.com/videos/view/(?P<showname>[^/]+)/(?P<episode>[^/?]+)[/?]?.*$'
 	IE_NAME = u'escapist'
 
 	def report_extraction(self, showName):
