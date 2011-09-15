@@ -697,20 +697,21 @@ class FileDownloader(object):
 	def process_info(self, info_dict):
 		"""Process a single dictionary returned by an InfoExtractor."""
 		filename = self.prepare_filename(info_dict)
+		
+		# Forced printings
+		if self.params.get('forcetitle', False):
+			print info_dict['title'].encode(preferredencoding(), 'xmlcharrefreplace')
+		if self.params.get('forceurl', False):
+			print info_dict['url'].encode(preferredencoding(), 'xmlcharrefreplace')
+		if self.params.get('forcethumbnail', False) and 'thumbnail' in info_dict:
+			print info_dict['thumbnail'].encode(preferredencoding(), 'xmlcharrefreplace')
+		if self.params.get('forcedescription', False) and 'description' in info_dict:
+			print info_dict['description'].encode(preferredencoding(), 'xmlcharrefreplace')
+		if self.params.get('forcefilename', False) and filename is not None:
+			print filename.encode(preferredencoding(), 'xmlcharrefreplace')
+
 		# Do nothing else if in simulate mode
 		if self.params.get('simulate', False):
-			# Forced printings
-			if self.params.get('forcetitle', False):
-				print info_dict['title'].encode(preferredencoding(), 'xmlcharrefreplace')
-			if self.params.get('forceurl', False):
-				print info_dict['url'].encode(preferredencoding(), 'xmlcharrefreplace')
-			if self.params.get('forcethumbnail', False) and 'thumbnail' in info_dict:
-				print info_dict['thumbnail'].encode(preferredencoding(), 'xmlcharrefreplace')
-			if self.params.get('forcedescription', False) and 'description' in info_dict:
-				print info_dict['description'].encode(preferredencoding(), 'xmlcharrefreplace')
-			if self.params.get('forcefilename', False) and filename is not None:
-				print filename.encode(preferredencoding(), 'xmlcharrefreplace')
-
 			return
 
 		if filename is None:
@@ -769,23 +770,24 @@ class FileDownloader(object):
 				self.trouble(u'ERROR: Cannot write metadata to JSON file ' + infofn)
 				return
 
-		try:
-			success = self._do_download(filename, info_dict['url'].encode('utf-8'), info_dict.get('player_url', None))
-		except (OSError, IOError), err:
-			raise UnavailableVideoError
-		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self.trouble(u'ERROR: unable to download video data: %s' % str(err))
-			return
-		except (ContentTooShortError, ), err:
-			self.trouble(u'ERROR: content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
-			return
-
-		if success:
+		if not self.params.get('skip_download', False):
 			try:
-				self.post_process(filename, info_dict)
-			except (PostProcessingError), err:
-				self.trouble(u'ERROR: postprocessing: %s' % str(err))
+				success = self._do_download(filename, info_dict['url'].encode('utf-8'), info_dict.get('player_url', None))
+			except (OSError, IOError), err:
+				raise UnavailableVideoError
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self.trouble(u'ERROR: unable to download video data: %s' % str(err))
 				return
+			except (ContentTooShortError, ), err:
+				self.trouble(u'ERROR: content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
+				return
+	
+			if success:
+				try:
+					self.post_process(filename, info_dict)
+				except (PostProcessingError), err:
+					self.trouble(u'ERROR: postprocessing: %s' % str(err))
+					return
 
 	def download(self, url_list):
 		"""Download a given list of URLs."""
@@ -3495,7 +3497,9 @@ def parseOpts():
 	verbosity.add_option('-q', '--quiet',
 			action='store_true', dest='quiet', help='activates quiet mode', default=False)
 	verbosity.add_option('-s', '--simulate',
-			action='store_true', dest='simulate', help='do not download video', default=False)
+			action='store_true', dest='simulate', help='do not download the video and do not write anything to disk', default=False)
+	verbosity.add_option('--skip-download',
+			action='store_true', dest='skip_download', help='do not download the video', default=False)
 	verbosity.add_option('-g', '--get-url',
 			action='store_true', dest='geturl', help='simulate, quiet but print URL', default=False)
 	verbosity.add_option('-e', '--get-title',
@@ -3693,7 +3697,8 @@ def main():
 		'forcethumbnail': opts.getthumbnail,
 		'forcedescription': opts.getdescription,
 		'forcefilename': opts.getfilename,
-		'simulate': (opts.simulate or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription or opts.getfilename),
+		'simulate': opts.simulate,
+		'skip_download': (opts.skip_download or opts.simulate or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription or opts.getfilename),
 		'format': opts.format,
 		'format_limit': opts.format_limit,
 		'outtmpl': ((opts.outtmpl is not None and opts.outtmpl.decode(preferredencoding()))
