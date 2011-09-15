@@ -1086,6 +1086,7 @@ class YoutubeIE(InfoExtractor):
 		'43': 'webm',
 		'45': 'webm',
 	}
+	IE_NAME = u'youtube'
 
 	def report_lang(self):
 		"""Report attempt to set language."""
@@ -1359,6 +1360,7 @@ class MetacafeIE(InfoExtractor):
 	_DISCLAIMER = 'http://www.metacafe.com/family_filter/'
 	_FILTER_POST = 'http://www.metacafe.com/f/index.php?inputType=filter&controllerGroup=user'
 	_youtube_ie = None
+	IE_NAME = u'metacafe'
 
 	def __init__(self, youtube_ie, downloader=None):
 		InfoExtractor.__init__(self, downloader)
@@ -1497,6 +1499,7 @@ class DailymotionIE(InfoExtractor):
 	"""Information Extractor for Dailymotion"""
 
 	_VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^_/]+)_([^/]+)'
+	IE_NAME = u'dailymotion'
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
@@ -1587,6 +1590,7 @@ class GoogleIE(InfoExtractor):
 	"""Information extractor for video.google.com."""
 
 	_VALID_URL = r'(?:http://)?video\.google\.(?:com(?:\.au)?|co\.(?:uk|jp|kr|cr)|ca|de|es|fr|it|nl|pl)/videoplay\?docid=([^\&]+).*'
+	IE_NAME = u'video.google'
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
@@ -1693,6 +1697,7 @@ class PhotobucketIE(InfoExtractor):
 	"""Information extractor for photobucket.com."""
 
 	_VALID_URL = r'(?:http://)?(?:[a-z0-9]+\.)?photobucket\.com/.*[\?\&]current=(.*\.flv)'
+	IE_NAME = u'photobucket'
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
@@ -1774,6 +1779,7 @@ class YahooIE(InfoExtractor):
 	# _VPAGE_URL matches only the extractable '/watch/' URLs
 	_VALID_URL = r'(?:http://)?(?:[a-z]+\.)?video\.yahoo\.com/(?:watch|network)/([0-9]+)(?:/|\?v=)([0-9]+)(?:[#\?].*)?'
 	_VPAGE_URL = r'(?:http://)?video\.yahoo\.com/watch/([0-9]+)/([0-9]+)(?:[#\?].*)?'
+	IE_NAME = u'video.yahoo'
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
@@ -1926,6 +1932,7 @@ class VimeoIE(InfoExtractor):
 
 	# _VALID_URL matches Vimeo URLs
 	_VALID_URL = r'(?:https?://)?(?:(?:www|player).)?vimeo\.com/(?:groups/[^/]+/)?(?:videos?/)?([0-9]+)'
+	IE_NAME = u'vimeo'
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
@@ -2036,7 +2043,8 @@ class VimeoIE(InfoExtractor):
 class GenericIE(InfoExtractor):
 	"""Generic last-resort information extractor."""
 
-	_VALID_URL = '.*'
+	_VALID_URL = r'.*'
+	IE_NAME = u'generic'
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
@@ -2140,6 +2148,7 @@ class YoutubeSearchIE(InfoExtractor):
 	_MORE_PAGES_INDICATOR = r'(?m)>\s*Next\s*</a>'
 	_youtube_ie = None
 	_max_youtube_results = 1000
+	IE_NAME = u'youtube:search'
 
 	def __init__(self, youtube_ie, downloader=None):
 		InfoExtractor.__init__(self, downloader)
@@ -2228,6 +2237,7 @@ class GoogleSearchIE(InfoExtractor):
 	_MORE_PAGES_INDICATOR = r'<span>Next</span>'
 	_google_ie = None
 	_max_google_results = 1000
+	IE_NAME = u'video.google:search'
 
 	def __init__(self, google_ie, downloader=None):
 		InfoExtractor.__init__(self, downloader)
@@ -2316,6 +2326,7 @@ class YahooSearchIE(InfoExtractor):
 	_MORE_PAGES_INDICATOR = r'\s*Next'
 	_yahoo_ie = None
 	_max_yahoo_results = 1000
+	IE_NAME = u'video.yahoo:search'
 
 	def __init__(self, yahoo_ie, downloader=None):
 		InfoExtractor.__init__(self, downloader)
@@ -2404,6 +2415,7 @@ class YoutubePlaylistIE(InfoExtractor):
 	_VIDEO_INDICATOR = r'/watch\?v=(.+?)&'
 	_MORE_PAGES_INDICATOR = r'(?m)>\s*Next\s*</a>'
 	_youtube_ie = None
+	IE_NAME = u'youtube:playlist'
 
 	def __init__(self, youtube_ie, downloader=None):
 		InfoExtractor.__init__(self, downloader)
@@ -2478,6 +2490,7 @@ class YoutubeUserIE(InfoExtractor):
 	_GDATA_URL = 'http://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d'
 	_VIDEO_INDICATOR = r'/watch\?v=(.+?)&'
 	_youtube_ie = None
+	IE_NAME = u'youtube:user'
 
 	def __init__(self, youtube_ie, downloader=None):
 		InfoExtractor.__init__(self, downloader)
@@ -2560,6 +2573,7 @@ class DepositFilesIE(InfoExtractor):
 	"""Information extractor for depositfiles.com"""
 
 	_VALID_URL = r'(?:http://)?(?:\w+\.)?depositfiles.com/(?:../(?#locale))?files/(.+)'
+	IE_NAME = u'DepositFiles'
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
@@ -2643,6 +2657,7 @@ class FacebookIE(InfoExtractor):
 		'highqual': 'mp4',
 		'lowqual': 'mp4',
 	}
+	IE_NAME = u'facebook'
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
@@ -2852,6 +2867,7 @@ class BlipTVIE(InfoExtractor):
 
 	_VALID_URL = r'^(?:https?://)?(?:\w+\.)?blip\.tv(/.+)$'
 	_URL_EXT = r'^.*\.([a-z0-9]+)$'
+	IE_NAME = u'blip.tv'
 
 	def report_extraction(self, file_id):
 		"""Report information extraction."""
@@ -2923,6 +2939,7 @@ class MyVideoIE(InfoExtractor):
 	"""Information Extractor for myvideo.de."""
 
 	_VALID_URL = r'(?:http://)?(?:www\.)?myvideo\.de/watch/([0-9]+)/([^?/]+).*'
+	IE_NAME = u'myvideo'
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
@@ -2994,7 +3011,8 @@ class MyVideoIE(InfoExtractor):
 class ComedyCentralIE(InfoExtractor):
 	"""Information extractor for The Daily Show and Colbert Report """
 
-	_VALID_URL = r'^(:(?P<shortname>tds|thedailyshow|cr|colbert|colbertnation|colbertreport))|(https?://)?(www\.)(?P<showname>thedailyshow|colbertnation)\.com/full-episodes/(?P<episode>.*)$'
+	_VALID_URL = r'^(:(?P<shortname>tds|thedailyshow|cr|colbert|colbertnation|colbertreport))|(https?://)?(www\.)?(?P<showname>thedailyshow|colbertnation)\.com/full-episodes/(?P<episode>.*)$'
+	IE_NAME = u'comedycentral'
 
 	def report_extraction(self, episode_id):
 		self._downloader.to_screen(u'[comedycentral] %s: Extracting information' % episode_id)
@@ -3135,6 +3153,7 @@ class EscapistIE(InfoExtractor):
 	"""Information extractor for The Escapist """
 
 	_VALID_URL = r'^(https?://)?(www\.)escapistmagazine.com/videos/view/(?P<showname>[^/]+)/(?P<episode>[^/?]+)[/?].*$'
+	IE_NAME = u'escapist'
 
 	def report_extraction(self, showName):
 		self._downloader.to_screen(u'[escapist] %s: Extracting information' % showName)
@@ -3446,6 +3465,9 @@ def parseOpts():
 	general.add_option('--dump-user-agent',
 			action='store_true', dest='dump_user_agent',
 			help='display the current browser identification', default=False)
+	general.add_option('--list-extractors',
+			action='store_true', dest='list_extractors',
+			help='List all supported extractors and the URLs they would handle', default=False)
 
 	selection.add_option('--playlist-start',
 			dest='playliststart', metavar='NUMBER', help='playlist video to start at (default is 1)', default=1)
@@ -3542,6 +3564,36 @@ def parseOpts():
 
 	return parser, opts, args
 
+def gen_extractors():
+	""" Return a list of an instance of every supported extractor.
+	The order does matter; the first extractor matched is the one handling the URL.
+	"""
+	youtube_ie = YoutubeIE()
+	google_ie = GoogleIE()
+	yahoo_ie = YahooIE()
+	return [
+		youtube_ie,
+		MetacafeIE(youtube_ie),
+		DailymotionIE(),
+		YoutubePlaylistIE(youtube_ie),
+		YoutubeUserIE(youtube_ie),
+		YoutubeSearchIE(youtube_ie),
+		google_ie,
+		GoogleSearchIE(google_ie),
+		PhotobucketIE(),
+		yahoo_ie,
+		YahooSearchIE(yahoo_ie),
+		DepositFilesIE(),
+		FacebookIE(),
+		BlipTVIE(),
+		VimeoIE(),
+		MyVideoIE(),
+		ComedyCentralIE(),
+		EscapistIE(),
+
+		GenericIE()
+	]
+
 def main():
 	parser, opts, args = parseOpts()
 
@@ -3561,12 +3613,6 @@ def main():
 		print std_headers['User-Agent']
 		sys.exit(0)
 
-	# General configuration
-	cookie_processor = urllib2.HTTPCookieProcessor(jar)
-	opener = urllib2.build_opener(urllib2.ProxyHandler(), cookie_processor, YoutubeDLHandler())
-	urllib2.install_opener(opener)
-	socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
-
 	# Batch file verification
 	batchurls = []
 	if opts.batchfile is not None:
@@ -3581,6 +3627,23 @@ def main():
 		except IOError:
 			sys.exit(u'ERROR: batch file could not be read')
 	all_urls = batchurls + args
+
+	# General configuration
+	cookie_processor = urllib2.HTTPCookieProcessor(jar)
+	opener = urllib2.build_opener(urllib2.ProxyHandler(), cookie_processor, YoutubeDLHandler())
+	urllib2.install_opener(opener)
+	socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
+
+	extractors = gen_extractors()
+
+	if opts.list_extractors:
+		for ie in extractors:
+			print(ie.IE_NAME)
+			matchedUrls = filter(lambda url: ie.suitable(url), all_urls)
+			all_urls = filter(lambda url: url not in matchedUrls, all_urls)
+			for mu in matchedUrls:
+				print(u'  ' + mu)
+		sys.exit(0)
 
 	# Conflicting, missing and erroneous options
 	if opts.usenetrc and (opts.username is not None or opts.password is not None):
@@ -3618,33 +3681,6 @@ def main():
 	if opts.extractaudio:
 		if opts.audioformat not in ['best', 'aac', 'mp3']:
 			parser.error(u'invalid audio format specified')
-
-	# Information extractors
-	youtube_ie = YoutubeIE()
-	google_ie = GoogleIE()
-	yahoo_ie = YahooIE()
-	extractors = [ # Order does matter
-		youtube_ie,
-		MetacafeIE(youtube_ie),
-		DailymotionIE(),
-		YoutubePlaylistIE(youtube_ie),
-		YoutubeUserIE(youtube_ie),
-		YoutubeSearchIE(youtube_ie),
-		google_ie,
-		GoogleSearchIE(google_ie),
-		PhotobucketIE(),
-		yahoo_ie,
-		YahooSearchIE(yahoo_ie),
-		DepositFilesIE(),
-		FacebookIE(),
-		BlipTVIE(),
-		VimeoIE(),
-		MyVideoIE(),
-		ComedyCentralIE(),
-		EscapistIE(),
-
-		GenericIE()
-	]
 
 	# File downloader
 	fd = FileDownloader({
