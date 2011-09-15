@@ -3409,6 +3409,11 @@ def updateSelf(downloader, filename):
 		try:
 			urlh = urllib.urlopen(UPDATE_URL)
 			newcontent = urlh.read()
+			
+			vmatch = re.search("__version__ = '([^']+)'", newcontent)
+			if vmatch is not None and vmatch.group(1) == __version__:
+				downloader.to_screen('youtube-dl is up-to-date (' + __version__ + ')')
+				return
 		finally:
 			urlh.close()
 	except (IOError, OSError), err:
