@@ -1026,9 +1026,8 @@ class InfoExtractor(object):
 	description:	One-line video description.
 
 	Subclasses of this one should re-define the _real_initialize() and
-	_real_extract() methods, as well as the suitable() static method.
-	Probably, they should also be instantiated and added to the main
-	downloader.
+	_real_extract() methods and define a _VALID_URL regexp.
+	Probably, they should also be added to the list of extractors.
 	"""
 
 	_ready = False
@@ -1039,10 +1038,9 @@ class InfoExtractor(object):
 		self._ready = False
 		self.set_downloader(downloader)
 
-	@staticmethod
-	def suitable(url):
+	def suitable(self, url):
 		"""Receives a URL and returns True if suitable for this IE."""
-		return False
+		return re.match(self._VALID_URL, url) is not None
 
 	def initialize(self):
 		"""Initializes an instance (authentication, etc)."""
@@ -1088,10 +1086,6 @@ class YoutubeIE(InfoExtractor):
 		'43': 'webm',
 		'45': 'webm',
 	}
-
-	@staticmethod
-	def suitable(url):
-		return (re.match(YoutubeIE._VALID_URL, url) is not None)
 
 	def report_lang(self):
 		"""Report attempt to set language."""
@@ -1370,10 +1364,6 @@ class MetacafeIE(InfoExtractor):
 		InfoExtractor.__init__(self, downloader)
 		self._youtube_ie = youtube_ie
 
-	@staticmethod
-	def suitable(url):
-		return (re.match(MetacafeIE._VALID_URL, url) is not None)
-
 	def report_disclaimer(self):
 		"""Report disclaimer retrieval."""
 		self._downloader.to_screen(u'[metacafe] Retrieving disclaimer')
@@ -1511,10 +1501,6 @@ class DailymotionIE(InfoExtractor):
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
 
-	@staticmethod
-	def suitable(url):
-		return (re.match(DailymotionIE._VALID_URL, url) is not None)
-
 	def report_download_webpage(self, video_id):
 		"""Report webpage download."""
 		self._downloader.to_screen(u'[dailymotion] %s: Downloading webpage' % video_id)
@@ -1604,10 +1590,6 @@ class GoogleIE(InfoExtractor):
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
-
-	@staticmethod
-	def suitable(url):
-		return (re.match(GoogleIE._VALID_URL, url) is not None)
 
 	def report_download_webpage(self, video_id):
 		"""Report webpage download."""
@@ -1715,10 +1697,6 @@ class PhotobucketIE(InfoExtractor):
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
 
-	@staticmethod
-	def suitable(url):
-		return (re.match(PhotobucketIE._VALID_URL, url) is not None)
-
 	def report_download_webpage(self, video_id):
 		"""Report webpage download."""
 		self._downloader.to_screen(u'[photobucket] %s: Downloading webpage' % video_id)
@@ -1799,10 +1777,6 @@ class YahooIE(InfoExtractor):
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
-
-	@staticmethod
-	def suitable(url):
-		return (re.match(YahooIE._VALID_URL, url) is not None)
 
 	def report_download_webpage(self, video_id):
 		"""Report webpage download."""
@@ -1956,10 +1930,6 @@ class VimeoIE(InfoExtractor):
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
 
-	@staticmethod
-	def suitable(url):
-		return (re.match(VimeoIE._VALID_URL, url) is not None)
-
 	def report_download_webpage(self, video_id):
 		"""Report webpage download."""
 		self._downloader.to_screen(u'[vimeo] %s: Downloading webpage' % video_id)
@@ -2066,12 +2036,10 @@ class VimeoIE(InfoExtractor):
 class GenericIE(InfoExtractor):
 	"""Generic last-resort information extractor."""
 
+	_VALID_URL = '.*'
+
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
-
-	@staticmethod
-	def suitable(url):
-		return True
 
 	def report_download_webpage(self, video_id):
 		"""Report webpage download."""
@@ -2166,7 +2134,7 @@ class GenericIE(InfoExtractor):
 
 class YoutubeSearchIE(InfoExtractor):
 	"""Information Extractor for YouTube search queries."""
-	_VALID_QUERY = r'ytsearch(\d+|all)?:[\s\S]+'
+	_VALID_URL = r'ytsearch(\d+|all)?:[\s\S]+'
 	_TEMPLATE_URL = 'http://www.youtube.com/results?search_query=%s&page=%s&gl=US&hl=en'
 	_VIDEO_INDICATOR = r'href="/watch\?v=.+?"'
 	_MORE_PAGES_INDICATOR = r'(?m)>\s*Next\s*</a>'
@@ -2177,10 +2145,6 @@ class YoutubeSearchIE(InfoExtractor):
 		InfoExtractor.__init__(self, downloader)
 		self._youtube_ie = youtube_ie
 
-	@staticmethod
-	def suitable(url):
-		return (re.match(YoutubeSearchIE._VALID_QUERY, url) is not None)
-
 	def report_download_page(self, query, pagenum):
 		"""Report attempt to download playlist page with given number."""
 		query = query.decode(preferredencoding())
@@ -2190,7 +2154,7 @@ class YoutubeSearchIE(InfoExtractor):
 		self._youtube_ie.initialize()
 
 	def _real_extract(self, query):
-		mobj = re.match(self._VALID_QUERY, query)
+		mobj = re.match(self._VALID_URL, query)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid search query "%s"' % query)
 			return
@@ -2258,7 +2222,7 @@ class YoutubeSearchIE(InfoExtractor):
 
 class GoogleSearchIE(InfoExtractor):
 	"""Information Extractor for Google Video search queries."""
-	_VALID_QUERY = r'gvsearch(\d+|all)?:[\s\S]+'
+	_VALID_URL = r'gvsearch(\d+|all)?:[\s\S]+'
 	_TEMPLATE_URL = 'http://video.google.com/videosearch?q=%s+site:video.google.com&start=%s&hl=en'
 	_VIDEO_INDICATOR = r'videoplay\?docid=([^\&>]+)\&'
 	_MORE_PAGES_INDICATOR = r'<span>Next</span>'
@@ -2269,10 +2233,6 @@ class GoogleSearchIE(InfoExtractor):
 		InfoExtractor.__init__(self, downloader)
 		self._google_ie = google_ie
 
-	@staticmethod
-	def suitable(url):
-		return (re.match(GoogleSearchIE._VALID_QUERY, url) is not None)
-
 	def report_download_page(self, query, pagenum):
 		"""Report attempt to download playlist page with given number."""
 		query = query.decode(preferredencoding())
@@ -2282,7 +2242,7 @@ class GoogleSearchIE(InfoExtractor):
 		self._google_ie.initialize()
 
 	def _real_extract(self, query):
-		mobj = re.match(self._VALID_QUERY, query)
+		mobj = re.match(self._VALID_URL, query)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid search query "%s"' % query)
 			return
@@ -2350,7 +2310,7 @@ class GoogleSearchIE(InfoExtractor):
 
 class YahooSearchIE(InfoExtractor):
 	"""Information Extractor for Yahoo! Video search queries."""
-	_VALID_QUERY = r'yvsearch(\d+|all)?:[\s\S]+'
+	_VALID_URL = r'yvsearch(\d+|all)?:[\s\S]+'
 	_TEMPLATE_URL = 'http://video.yahoo.com/search/?p=%s&o=%s'
 	_VIDEO_INDICATOR = r'href="http://video\.yahoo\.com/watch/([0-9]+/[0-9]+)"'
 	_MORE_PAGES_INDICATOR = r'\s*Next'
@@ -2361,10 +2321,6 @@ class YahooSearchIE(InfoExtractor):
 		InfoExtractor.__init__(self, downloader)
 		self._yahoo_ie = yahoo_ie
 
-	@staticmethod
-	def suitable(url):
-		return (re.match(YahooSearchIE._VALID_QUERY, url) is not None)
-
 	def report_download_page(self, query, pagenum):
 		"""Report attempt to download playlist page with given number."""
 		query = query.decode(preferredencoding())
@@ -2374,7 +2330,7 @@ class YahooSearchIE(InfoExtractor):
 		self._yahoo_ie.initialize()
 
 	def _real_extract(self, query):
-		mobj = re.match(self._VALID_QUERY, query)
+		mobj = re.match(self._VALID_URL, query)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid search query "%s"' % query)
 			return
@@ -2453,10 +2409,6 @@ class YoutubePlaylistIE(InfoExtractor):
 		InfoExtractor.__init__(self, downloader)
 		self._youtube_ie = youtube_ie
 
-	@staticmethod
-	def suitable(url):
-		return (re.match(YoutubePlaylistIE._VALID_URL, url) is not None)
-
 	def report_download_page(self, playlist_id, pagenum):
 		"""Report attempt to download playlist page with given number."""
 		self._downloader.to_screen(u'[youtube] PL %s: Downloading page #%s' % (playlist_id, pagenum))
@@ -2530,10 +2482,6 @@ class YoutubeUserIE(InfoExtractor):
 	def __init__(self, youtube_ie, downloader=None):
 		InfoExtractor.__init__(self, downloader)
 		self._youtube_ie = youtube_ie
-
-	@staticmethod
-	def suitable(url):
-		return (re.match(YoutubeUserIE._VALID_URL, url) is not None)
 
 	def report_download_page(self, username, start_index):
 		"""Report attempt to download user page."""
@@ -2615,10 +2563,6 @@ class DepositFilesIE(InfoExtractor):
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
-
-	@staticmethod
-	def suitable(url):
-		return (re.match(DepositFilesIE._VALID_URL, url) is not None)
 
 	def report_download_webpage(self, file_id):
 		"""Report webpage download."""
@@ -2702,10 +2646,6 @@ class FacebookIE(InfoExtractor):
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
-
-	@staticmethod
-	def suitable(url):
-		return (re.match(FacebookIE._VALID_URL, url) is not None)
 
 	def _reporter(self, message):
 		"""Add header and report message."""
@@ -2913,10 +2853,6 @@ class BlipTVIE(InfoExtractor):
 	_VALID_URL = r'^(?:https?://)?(?:\w+\.)?blip\.tv(/.+)$'
 	_URL_EXT = r'^.*\.([a-z0-9]+)$'
 
-	@staticmethod
-	def suitable(url):
-		return (re.match(BlipTVIE._VALID_URL, url) is not None)
-
 	def report_extraction(self, file_id):
 		"""Report information extraction."""
 		self._downloader.to_screen(u'[blip.tv] %s: Extracting information' % file_id)
@@ -2991,10 +2927,6 @@ class MyVideoIE(InfoExtractor):
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
 	
-	@staticmethod
-	def suitable(url):
-		return (re.match(MyVideoIE._VALID_URL, url) is not None)
-
 	def report_download_webpage(self, video_id):
 		"""Report webpage download."""
 		self._downloader.to_screen(u'[myvideo] %s: Downloading webpage' % video_id)
@@ -3063,10 +2995,6 @@ class ComedyCentralIE(InfoExtractor):
 	"""Information extractor for The Daily Show and Colbert Report """
 
 	_VALID_URL = r'^(:(?P<shortname>tds|thedailyshow|cr|colbert|colbertnation|colbertreport))|(https?://)?(www\.)(?P<showname>thedailyshow|colbertnation)\.com/full-episodes/(?P<episode>.*)$'
-
-	@staticmethod
-	def suitable(url):
-		return (re.match(ComedyCentralIE._VALID_URL, url) is not None)
 
 	def report_extraction(self, episode_id):
 		self._downloader.to_screen(u'[comedycentral] %s: Extracting information' % episode_id)
@@ -3207,10 +3135,6 @@ class EscapistIE(InfoExtractor):
 	"""Information extractor for The Escapist """
 
 	_VALID_URL = r'^(https?://)?(www\.)escapistmagazine.com/videos/view/(?P<showname>[^/]+)/(?P<episode>[^/?]+)[/?].*$'
-
-	@staticmethod
-	def suitable(url):
-		return (re.match(EscapistIE._VALID_URL, url) is not None)
 
 	def report_extraction(self, showName):
 		self._downloader.to_screen(u'[escapist] %s: Extracting information' % showName)
