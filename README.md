@@ -37,6 +37,8 @@ which means you can modify it, redistribute it or use it however you like.
     -a, --batch-file FILE    file containing URLs to download ('-' for stdin)
     -w, --no-overwrites      do not overwrite files
     -c, --continue           resume partially downloaded files
+    --no-continue            do not resume partially downloaded files (restart
+                             from beginning)
     --cookies FILE           file to dump cookie jar to
     --no-part                do not use .part files
     --no-mtime               do not use the Last-modified header to set the file
