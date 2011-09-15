@@ -18,6 +18,8 @@ which means you can modify it, redistribute it or use it however you like.
     -r, --rate-limit LIMIT   download rate limit (e.g. 50k or 44.6m)
     -R, --retries RETRIES    number of retries (default is 10)
     --dump-user-agent        display the current browser identification
+    --list-extractors        List all supported extractors and the URLs they
+                             would handle
 
 ### Video Selection:
     --playlist-start NUMBER  playlist video to start at (default is 1)
@@ -44,12 +46,15 @@ which means you can modify it, redistribute it or use it however you like.
 
 ### Verbosity / Simulation Options:
     -q, --quiet              activates quiet mode
-    -s, --simulate           do not download video
+    -s, --simulate           do not download the video and do not write anything
+                             to disk
+    --skip-download          do not download the video
     -g, --get-url            simulate, quiet but print URL
     -e, --get-title          simulate, quiet but print title
     --get-thumbnail          simulate, quiet but print thumbnail URL
     --get-description        simulate, quiet but print video description
     --get-filename           simulate, quiet but print output filename
+    --get-format             simulate, quiet but print output format
     --no-progress            do not print progress bar
     --console-title          display progress in console titlebar
 
@@ -67,6 +72,9 @@ which means you can modify it, redistribute it or use it however you like.
     --extract-audio          convert video files to audio-only files (requires
                              ffmpeg and ffprobe)
     --audio-format FORMAT    "best", "aac" or "mp3"; best by default
+    --audio-quality QUALITY  ffmpeg audio bitrate specification, 128k by default
+    -k, --keep-video         keeps the video file on disk after the post-
+                             processing; the video is erased by default
 
 ## FAQ
 
