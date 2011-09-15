@@ -1320,18 +1320,24 @@ class YoutubeIE(InfoExtractor):
 			if len(existing_formats) == 0:
 				self._downloader.trouble(u'ERROR: no known formats available for video')
 				return
-			if req_format is None:
+			if req_format is None or req_format == 'best':
 				video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
 			elif req_format == 'worst':
 				video_url_list = [(existing_formats[len(existing_formats)-1], url_map[existing_formats[len(existing_formats)-1]])] # worst quality
-			elif req_format == '-1':
+			elif req_format in ('-1', 'all'):
 				video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
 			else:
-				# Specific format
-				if req_format not in url_map:
+				# Specific formats. We pick the first in a slash-delimeted sequence.
+				# For example, if '1/2/3/4' is requested and '2' and '4' are available, we pick '2'.
+				req_formats = req_format.split('/')
+				video_url_list = None
+				for rf in req_formats:
+					if rf in url_map:
+						video_url_list = [(rf, url_map[rf])]
+						break
+				if video_url_list is None:
 					self._downloader.trouble(u'ERROR: requested format not available')
 					return
-				video_url_list = [(req_format, url_map[req_format])] # Specific format
 		else:
 			self._downloader.trouble(u'ERROR: no conn or url_encoded_fmt_stream_map information found in video info')
 			return
@@ -3512,7 +3518,7 @@ def parseOpts():
 	video_format.add_option('-f', '--format',
 			action='store', dest='format', metavar='FORMAT', help='video format code')
 	video_format.add_option('--all-formats',
-			action='store_const', dest='format', help='download all available video formats', const='-1')
+			action='store_const', dest='format', help='download all available video formats', const='all')
 	video_format.add_option('--max-quality',
 			action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
 
