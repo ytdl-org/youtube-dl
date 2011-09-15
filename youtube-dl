@@ -982,10 +982,13 @@ class FileDownloader(object):
 			block_size = self.best_block_size(after - before, len(data_block))
 
 			# Progress message
-			percent_str = self.calc_percent(byte_counter, data_len)
-			eta_str = self.calc_eta(start, time.time(), data_len - resume_len, byte_counter - resume_len)
 			speed_str = self.calc_speed(start, time.time(), byte_counter - resume_len)
-			self.report_progress(percent_str, data_len_str, speed_str, eta_str)
+			if data_len is None:
+				self.report_progress('Unknown %', data_len_str, speed_str, 'Unknown ETA')
+			else:
+				percent_str = self.calc_percent(byte_counter, data_len)
+				eta_str = self.calc_eta(start, time.time(), data_len - resume_len, byte_counter - resume_len)
+				self.report_progress(percent_str, data_len_str, speed_str, eta_str)
 
 			# Apply rate limit
 			self.slow_down(start, byte_counter - resume_len)
