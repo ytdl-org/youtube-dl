@@ -775,8 +775,7 @@ class FileDownloader(object):
 
 		if not self.params.get('skip_download', False):
 			try:
-				success,add_data = self._do_download(filename, info_dict['url'].encode('utf-8'), info_dict.get('player_url', None))
-				info_dict.update(add_data)
+				success = self._do_download(filename, info_dict)
 			except (OSError, IOError), err:
 				raise UnavailableVideoError
 			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
@@ -865,7 +864,10 @@ class FileDownloader(object):
 			self.trouble(u'\nERROR: rtmpdump exited with code %d' % retval)
 			return False
 
-	def _do_download(self, filename, url, player_url):
+	def _do_download(self, filename, info_dict):
+		url = info_dict['url']
+		player_url = info_dict.get('player_url', None)
+
 		# Check file already present
 		if self.params.get('continuedl', False) and os.path.isfile(filename) and not self.params.get('nopart', False):
 			self.report_file_already_downloaded(filename)
@@ -998,11 +1000,10 @@ class FileDownloader(object):
 		self.try_rename(tmpfilename, filename)
 
 		# Update file modification time
-		filetime = None
 		if self.params.get('updatetime', True):
-			filetime = self.try_utime(filename, data.info().get('last-modified', None))
+			info_dict['filetime'] = self.try_utime(filename, data.info().get('last-modified', None))
 
-		return True, {'filetime': filetime}
+		return True
 
 
 class InfoExtractor(object):
