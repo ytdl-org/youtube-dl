@@ -3568,7 +3568,10 @@ def parseOpts():
 	filesystem.add_option('-w', '--no-overwrites',
 			action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
 	filesystem.add_option('-c', '--continue',
-			action='store_true', dest='continue_dl', help='resume partially downloaded files', default=False)
+			action='store_true', dest='continue_dl', help='resume partially downloaded files', default=True)
+	filesystem.add_option('--no-continue',
+			action='store_false', dest='continue_dl',
+			help='do not resume partially downloaded files (restart from beginning)')
 	filesystem.add_option('--cookies',
 			dest='cookiefile', metavar='FILE', help='file to dump cookie jar to')
 	filesystem.add_option('--no-part',
