@@ -3428,7 +3428,7 @@ def updateSelf(downloader, filename):
 	except (IOError, OSError), err:
 		sys.exit('ERROR: unable to overwrite current version')
 
-	downloader.to_screen('Updated youtube-dl. Restart to use the new version.')
+	downloader.to_screen('Updated youtube-dl. Restart youtube-dl to use the new version.')
 
 def parseOpts():
 	# Deferred imports
