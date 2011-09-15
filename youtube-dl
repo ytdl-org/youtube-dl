@@ -66,8 +66,8 @@ except ImportError:
 
 try:
 	import xml.etree.ElementTree
-except ImportError: # Python<2.5
-	pass # Not officially supported, but let it slip
+except ImportError: # Python<2.5: Not officially supported, but let it slip
+	warnings.warn('xml.etree.ElementTree support is missing. Consider upgrading to Python >= 2.5 if you get related errors.')
 
 std_headers = {
 	'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:5.0.1) Gecko/20100101 Firefox/5.0.1',
