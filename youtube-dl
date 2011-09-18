@@ -3583,7 +3583,7 @@ def parseOpts():
 			action='store_false', dest='continue_dl',
 			help='do not resume partially downloaded files (restart from beginning)')
 	filesystem.add_option('--cookies',
-			dest='cookiefile', metavar='FILE', help='file to dump cookie jar to')
+			dest='cookiefile', metavar='FILE', help='file to read cookies from and dump cookie jar in')
 	filesystem.add_option('--no-part',
 			action='store_true', dest='nopart', help='do not use .part files', default=False)
 	filesystem.add_option('--no-mtime',
