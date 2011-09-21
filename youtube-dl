@@ -3351,7 +3351,7 @@ class FFmpegExtractAudioPP(PostProcessor):
 
 		more_opts = []
 		if self._preferredcodec == 'best' or self._preferredcodec == filecodec:
-			if filecodec == 'aac' or filecodec == 'mp3' or filecodec == 'vorbis':
+			if filecodec in ['aac', 'mp3', 'vorbis']:
 				# Lossless if possible
 				acodec = 'copy'
 				extension = filecodec
