@@ -39,7 +39,7 @@ which means you can modify it, redistribute it or use it however you like.
     -c, --continue           resume partially downloaded files
     --no-continue            do not resume partially downloaded files (restart
                              from beginning)
-    --cookies FILE           file to dump cookie jar to
+    --cookies FILE           file to read cookies from and dump cookie jar in
     --no-part                do not use .part files
     --no-mtime               do not use the Last-modified header to set the file
                              modification time
@@ -73,7 +73,7 @@ which means you can modify it, redistribute it or use it however you like.
 ### Post-processing Options:
     --extract-audio          convert video files to audio-only files (requires
                              ffmpeg and ffprobe)
-    --audio-format FORMAT    "best", "aac" or "mp3"; best by default
+    --audio-format FORMAT    "best", "aac", "vorbis" or "mp3"; best by default
     --audio-quality QUALITY  ffmpeg audio bitrate specification, 128k by default
     -k, --keep-video         keeps the video file on disk after the post-
                              processing; the video is erased by default
