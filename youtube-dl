@@ -3351,12 +3351,14 @@ class FFmpegExtractAudioPP(PostProcessor):
 
 		more_opts = []
 		if self._preferredcodec == 'best' or self._preferredcodec == filecodec:
-			if filecodec == 'aac' or filecodec == 'mp3':
+			if filecodec == 'aac' or filecodec == 'mp3' or filecodec == 'vorbis':
 				# Lossless if possible
 				acodec = 'copy'
 				extension = filecodec
 				if filecodec == 'aac':
 					more_opts = ['-f', 'adts']
+				if filecodec == 'vorbis':
+					extension = 'ogg'
 			else:
 				# MP3 otherwise.
 				acodec = 'libmp3lame'
@@ -3366,13 +3368,15 @@ class FFmpegExtractAudioPP(PostProcessor):
 					more_opts += ['-ab', self._preferredquality]
 		else:
 			# We convert the audio (lossy)
-			acodec = {'mp3': 'libmp3lame', 'aac': 'aac'}[self._preferredcodec]
+			acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'vorbis': 'libvorbis'}[self._preferredcodec]
 			extension = self._preferredcodec
 			more_opts = []
 			if self._preferredquality is not None:
 				more_opts += ['-ab', self._preferredquality]
 			if self._preferredcodec == 'aac':
 				more_opts += ['-f', 'adts']
+			if self._preferredcodec == 'vorbis':
+				extension = 'ogg'
 
 		(prefix, ext) = os.path.splitext(path)
 		new_path = prefix + '.' + extension
@@ -3600,7 +3604,7 @@ def parseOpts():
 	postproc.add_option('--extract-audio', action='store_true', dest='extractaudio', default=False,
 			help='convert video files to audio-only files (requires ffmpeg and ffprobe)')
 	postproc.add_option('--audio-format', metavar='FORMAT', dest='audioformat', default='best',
-			help='"best", "aac" or "mp3"; best by default')
+			help='"best", "aac", "vorbis" or "mp3"; best by default')
 	postproc.add_option('--audio-quality', metavar='QUALITY', dest='audioquality', default='128K',
 			help='ffmpeg audio bitrate specification, 128k by default')
 	postproc.add_option('-k', '--keep-video', action='store_true', dest='keepvideo', default=False,
@@ -3734,7 +3738,7 @@ def main():
 	except (TypeError, ValueError), err:
 		parser.error(u'invalid playlist end number specified')
 	if opts.extractaudio:
-		if opts.audioformat not in ['best', 'aac', 'mp3']:
+		if opts.audioformat not in ['best', 'aac', 'mp3', 'vorbis']:
 			parser.error(u'invalid audio format specified')
 
 	# File downloader
