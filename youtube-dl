@@ -2432,7 +2432,7 @@ class YahooSearchIE(InfoExtractor):
 class YoutubePlaylistIE(InfoExtractor):
 	"""Information Extractor for YouTube playlists."""
 
-	_VALID_URL = r'(?:http://)?(?:\w+\.)?youtube.com/(?:(?:view_play_list|my_playlists|artist|playlist)\?.*?(p|a|list)=|user/.*?/user/|p/|user/.*?#[pg]/c/)([0-9A-Za-z]+)(?:/.*?/([0-9A-Za-z_-]+))?.*'
+	_VALID_URL = r'(?:https?://)?(?:\w+\.)?youtube\.com/(?:(?:view_play_list|my_playlists|artist|playlist)\?.*?(p|a|list)=|user/.*?/user/|p/|user/.*?#[pg]/c/)([0-9A-Za-z]+)(?:/.*?/([0-9A-Za-z_-]+))?.*'
 	_TEMPLATE_URL = 'http://www.youtube.com/%s?%s=%s&page=%s&gl=US&hl=en'
 	_VIDEO_INDICATOR = r'/watch\?v=(.+?)&'
 	_MORE_PAGES_INDICATOR = r'(?m)>\s*Next\s*</a>'
@@ -2506,7 +2506,7 @@ class YoutubePlaylistIE(InfoExtractor):
 class YoutubeUserIE(InfoExtractor):
 	"""Information Extractor for YouTube users."""
 
-	_VALID_URL = r'(?:(?:(?:http://)?(?:\w+\.)?youtube.com/user/)|ytuser:)([A-Za-z0-9_-]+)'
+	_VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?youtube\.com/user/)|ytuser:)([A-Za-z0-9_-]+)'
 	_TEMPLATE_URL = 'http://gdata.youtube.com/feeds/api/users/%s'
 	_GDATA_PAGE_SIZE = 50
 	_GDATA_URL = 'http://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d'
@@ -2594,7 +2594,7 @@ class YoutubeUserIE(InfoExtractor):
 class DepositFilesIE(InfoExtractor):
 	"""Information extractor for depositfiles.com"""
 
-	_VALID_URL = r'(?:http://)?(?:\w+\.)?depositfiles.com/(?:../(?#locale))?files/(.+)'
+	_VALID_URL = r'(?:http://)?(?:\w+\.)?depositfiles\.com/(?:../(?#locale))?files/(.+)'
 	IE_NAME = u'DepositFiles'
 
 	def __init__(self, downloader=None):
@@ -2671,7 +2671,7 @@ class DepositFilesIE(InfoExtractor):
 class FacebookIE(InfoExtractor):
 	"""Information Extractor for Facebook"""
 
-	_VALID_URL = r'^(?:https?://)?(?:\w+\.)?facebook.com/video/video.php\?(?:.*?)v=(?P<ID>\d+)(?:.*)'
+	_VALID_URL = r'^(?:https?://)?(?:\w+\.)?facebook\.com/video/video\.php\?(?:.*?)v=(?P<ID>\d+)(?:.*)'
 	_LOGIN_URL = 'https://login.facebook.com/login.php?m&next=http%3A%2F%2Fm.facebook.com%2Fhome.php&'
 	_NETRC_MACHINE = 'facebook'
 	_available_formats = ['highqual', 'lowqual']
@@ -3176,7 +3176,7 @@ class ComedyCentralIE(InfoExtractor):
 class EscapistIE(InfoExtractor):
 	"""Information extractor for The Escapist """
 
-	_VALID_URL = r'^(https?://)?(www\.)?escapistmagazine.com/videos/view/(?P<showname>[^/]+)/(?P<episode>[^/?]+)[/?]?.*$'
+	_VALID_URL = r'^(https?://)?(www\.)?escapistmagazine\.com/videos/view/(?P<showname>[^/]+)/(?P<episode>[^/?]+)[/?]?.*$'
 	IE_NAME = u'escapist'
 
 	def report_extraction(self, showName):
