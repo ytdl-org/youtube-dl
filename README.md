@@ -33,7 +33,11 @@ which means you can modify it, redistribute it or use it however you like.
     -t, --title              use title in file name
     -l, --literal            use literal title in file name
     -A, --auto-number        number downloaded files starting from 00000
-    -o, --output TEMPLATE    output filename template
+    -o, --output TEMPLATE    output filename template. Use %(stitle)s to get the
+                             title, %(uploader)s for the uploader name,
+                             %(autonumber)s to get an automatically incremented
+                             number, %(ext)s for the filename extension, and %%
+                             for a literal percent
     -a, --batch-file FILE    file containing URLs to download ('-' for stdin)
     -w, --no-overwrites      do not overwrite files
     -c, --continue           resume partially downloaded files
