@@ -689,7 +689,7 @@ class FileDownloader(object):
 			template_dict = dict(info_dict)
 			template_dict['epoch'] = unicode(long(time.time()))
 			template_dict['autonumber'] = unicode('%05d' % self._num_downloads)
-			filename = self.params['outtmpl'] % template_dict
+			filename = self.params['outtmpl'].replace('%','%%') % template_dict
 			return filename
 		except (ValueError, KeyError), err:
 			self.trouble(u'ERROR: invalid system charset or erroneous output template')
