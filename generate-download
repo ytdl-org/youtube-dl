@@ -10,7 +10,7 @@ except ImportError: # Python < 2.7
 		p = subprocess.Popen(*args, stdout=subprocess.PIPE, **kwargs)
 		out,err = p.communicate()
 		if p.returncode != 0:
-			raise subprocess.CalledProcessError(p.returncode, p.args)
+			raise subprocess.CalledProcessError(p.returncode, args)
 		return out
 
 youtubeDlDir = os.path.join(os.path.dirname(__file__), '..', 'youtube-dl')
