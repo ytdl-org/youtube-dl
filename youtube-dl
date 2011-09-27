@@ -1103,6 +1103,21 @@ class YoutubeIE(InfoExtractor):
 		'44': 'webm',
 		'45': 'webm',
 	}
+	_video_dimensions = {
+		'5': '240x400',
+		'6': '???',
+		'13': '???',
+		'17': '144x176',
+		'18': '360x640',
+		'22': '720x1280',
+		'34': '360x640',
+		'35': '480x854',
+		'37': '1080x1920',
+		'38': '3072x4096',
+		'43': '360x640',
+		'44': '480x854',
+		'45': '720x1280',
+	}	
 	IE_NAME = u'youtube'
 
 	def report_lang(self):
@@ -1136,6 +1151,11 @@ class YoutubeIE(InfoExtractor):
 	def report_rtmp_download(self):
 		"""Indicate the download will use the RTMP protocol."""
 		self._downloader.to_screen(u'[youtube] RTMP download detected')
+
+	def _print_formats(self, formats):
+		print 'Available formats:'
+		for x in formats:
+			print '%s\t:\t%s\t[%s]' %(x, self._video_extensions.get(x, 'flv'), self._video_dimensions.get(x, '???'))
 
 	def _real_initialize(self):
 		if self._downloader is None:
@@ -1330,6 +1350,9 @@ class YoutubeIE(InfoExtractor):
 			if len(existing_formats) == 0:
 				self._downloader.trouble(u'ERROR: no known formats available for video')
 				return
+			if self._downloader.params.get('listformats', None):
+				self._print_formats(existing_formats)
+				sys.exit(0)
 			if req_format is None or req_format == 'best':
 				video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
 			elif req_format == 'worst':
@@ -3564,6 +3587,8 @@ def parseOpts():
 			action='store_const', dest='format', help='download all available video formats', const='all')
 	video_format.add_option('--max-quality',
 			action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
+	video_format.add_option('-L', '--list-formats',
+			action='store_true', dest='listformats', help='list all available formats')
 
 
 	verbosity.add_option('-q', '--quiet',
@@ -3784,6 +3809,7 @@ def main():
 		'skip_download': (opts.skip_download or opts.simulate or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat),
 		'format': opts.format,
 		'format_limit': opts.format_limit,
+		'listformats': opts.listformats,
 		'outtmpl': ((opts.outtmpl is not None and opts.outtmpl.decode(preferredencoding()))
 			or (opts.format == '-1' and opts.usetitle and u'%(stitle)s-%(id)s-%(format)s.%(ext)s')
 			or (opts.format == '-1' and opts.useliteral and u'%(title)s-%(id)s-%(format)s.%(ext)s')
