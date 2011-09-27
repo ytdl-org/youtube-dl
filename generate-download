@@ -1,7 +1,17 @@
 #!/usr/bin/env python
 import hashlib
-import subprocess
 import os.path
+import subprocess
+
+try:
+	from subprocess import check_output
+except ImportError: # Python < 2.7
+	def check_output(*args, **kwargs):
+		p = subprocess.Popen(*args, stdout=subprocess.PIPE, **kwargs)
+		out,err = p.communicate()
+		if p.returncode != 0:
+			raise subprocess.CalledProcessError(p.returncode, p.args)
+		return out
 
 youtubeDlDir = os.path.join(os.path.dirname(__file__), '..', 'youtube-dl')
 
@@ -9,8 +19,9 @@ youtubeDlDir = os.path.join(os.path.dirname(__file__), '..', 'youtube-dl')
 template = file('download.html.in', 'r').read()
 
 # Build replacement strings
-version = subprocess.check_output([os.path.join(youtubeDlDir, 'youtube-dl'), '--version']).strip()
-data = subprocess.check_output(['git', 'show', '%s:youtube-dl' % version], cwd=youtubeDlDir)
+version = check_output([os.path.join(youtubeDlDir, 'youtube-dl'), '--version']).strip()
+data = check_output(['git', 'show', '%s:youtube-dl' % version], cwd=youtubeDlDir)
+
 url = 'https://github.com/rg3/youtube-dl/raw/%s/youtube-dl' % version
 md5sum = hashlib.md5(data).hexdigest()
 sha1sum = hashlib.sha1(data).hexdigest()
