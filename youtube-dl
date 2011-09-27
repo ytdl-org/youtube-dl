@@ -766,7 +766,8 @@ class FileDownloader(object):
 			try:
 				infof = open(infofn, 'wb')
 				try:
-					json.dump(info_dict, infof)
+					json_info_dict = dict((k,v) for k,v in info_dict.iteritems() if not k in ('urlhandle',))
+					json.dump(json_info_dict, infof)
 				finally:
 					infof.close()
 			except (OSError, IOError):
@@ -905,6 +906,8 @@ class FileDownloader(object):
 		while count <= retries:
 			# Establish connection
 			try:
+				if count == 0 and 'urlhandle' in info_dict:
+					data = info_dict['urlhandle']
 				data = urllib2.urlopen(request)
 				break
 			except (urllib2.HTTPError, ), err:
@@ -2895,7 +2898,11 @@ class BlipTVIE(InfoExtractor):
 
 	def report_extraction(self, file_id):
 		"""Report information extraction."""
-		self._downloader.to_screen(u'[blip.tv] %s: Extracting information' % file_id)
+		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, file_id))
+
+	def report_direct_download(self, title):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[%s] %s: Direct download detected' % (self.IE_NAME, title))
 
 	def _simplify_title(self, title):
 		res = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', title)
@@ -2915,43 +2922,64 @@ class BlipTVIE(InfoExtractor):
 		json_url = url + cchar + 'skin=json&version=2&no_wrap=1'
 		request = urllib2.Request(json_url)
 		self.report_extraction(mobj.group(1))
+		info = None
 		try:
-			json_code = urllib2.urlopen(request).read()
+			urlh = urllib2.urlopen(request)
+			if urlh.headers.get('Content-Type', '').startswith('video/'): # Direct download
+				basename = url.split('/')[-1]
+				title,ext = os.path.splitext(basename)
+				ext = ext.replace('.', '')
+				self.report_direct_download(title)
+				info = {
+					'id': title,
+					'url': url,
+					'title': title,
+					'stitle': self._simplify_title(title),
+					'ext': ext,
+					'urlhandle': urlh
+				}
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 			self._downloader.trouble(u'ERROR: unable to download video info webpage: %s' % str(err))
 			return
-		try:
-			json_data = json.loads(json_code)
-			if 'Post' in json_data:
-				data = json_data['Post']
-			else:
-				data = json_data
+		if info is None: # Regular URL
+			try:
+				json_code = urlh.read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'ERROR: unable to read video info webpage: %s' % str(err))
+				return
 
-			upload_date = datetime.datetime.strptime(data['datestamp'], '%m-%d-%y %H:%M%p').strftime('%Y%m%d')
-			video_url = data['media']['url']
-			umobj = re.match(self._URL_EXT, video_url)
-			if umobj is None:
-				raise ValueError('Can not determine filename extension')
-			ext = umobj.group(1)
+			try:
+				json_data = json.loads(json_code)
+				if 'Post' in json_data:
+					data = json_data['Post']
+				else:
+					data = json_data
+	
+				upload_date = datetime.datetime.strptime(data['datestamp'], '%m-%d-%y %H:%M%p').strftime('%Y%m%d')
+				video_url = data['media']['url']
+				umobj = re.match(self._URL_EXT, video_url)
+				if umobj is None:
+					raise ValueError('Can not determine filename extension')
+				ext = umobj.group(1)
+	
+				info = {
+					'id': data['item_id'],
+					'url': video_url,
+					'uploader': data['display_name'],
+					'upload_date': upload_date,
+					'title': data['title'],
+					'stitle': self._simplify_title(data['title']),
+					'ext': ext,
+					'format': data['media']['mimeType'],
+					'thumbnail': data['thumbnailUrl'],
+					'description': data['description'],
+					'player_url': data['embedUrl']
+				}
+			except (ValueError,KeyError), err:
+				self._downloader.trouble(u'ERROR: unable to parse video information: %s' % repr(err))
+				return
 
-			self._downloader.increment_downloads()
-
-			info = {
-				'id': data['item_id'],
-				'url': video_url,
-				'uploader': data['display_name'],
-				'upload_date': upload_date,
-				'title': data['title'],
-				'stitle': self._simplify_title(data['title']),
-				'ext': ext,
-				'format': data['media']['mimeType'],
-				'thumbnail': data['thumbnailUrl'],
-				'description': data['description'],
-				'player_url': data['embedUrl']
-			}
-		except (ValueError,KeyError), err:
-			self._downloader.trouble(u'ERROR: unable to parse video information: %s' % repr(err))
-			return
+		self._downloader.increment_downloads()
 
 		try:
 			self._downloader.process_info(info)
@@ -3017,7 +3045,6 @@ class MyVideoIE(InfoExtractor):
 		video_title = sanitize_title(video_title)
 
 		try:
-			print(video_url)
 			self._downloader.process_info({
 				'id':		video_id,
 				'url':		video_url,
