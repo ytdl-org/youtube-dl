@@ -16,14 +16,15 @@
 <div class="toc">
 <h1>Questions</h1>
 
-<p>
-<a href="#q-bugs">The program has stopped working / I want to suggest a feature.</a><br>
-<a href="#q2">Can you please put the -b option back?</a><br>
-<a href="#q3">I get  HTTP error 402 when trying to download a video. What's this?</a><br>
-<a href="#q4">I have downloaded a video but how can I play it?</a><br>
-<a href="#q5">Sometimes the program does not download the best quality format</a><br>
-<a href="#q6">The links provided by youtube-dl -g are not working anymore</a></br>
-</p>
+<ul>
+<li><a href="#q-bugs">The program has stopped working / I want to suggest a feature.</a></li>
+<li><a href="#q-best-option">Can you please put the -b option back?</a></li>
+<li><a href="#q-http-402">I get  HTTP error 402 when trying to download a video. What's this?</a></li>
+<li><a href="#q-play-video">I have downloaded a video but how can I play it?</a></li>
+<li><a href="#q-g-links">The links provided by youtube-dl -g are not working anymore</a></li>
+<li><a href="#q-no-fmt_url_map">ERROR: no fmt_url_map or conn information found in video info</a></li>
+</ul>
+
 </div>
 
 <h1 id="q-bugs">The program has stopped working / I want to suggest a feature.</h1>
@@ -46,25 +47,26 @@ If you're suggesting a feature, any details can help:
 </ul>
 </p>
 
-<h1 id="q2">Can you please put the -b option back?</h1>
+<h1 id="q-best-option">Can you please put the -b option back?</h1>
 
 <p>Most people asking this question are not aware that youtube-dl now defaults to downloading the highest available quality as reported by YouTube, which will be 1080p or 720p in some cases, so you no longer need the -b option. For some specific videos, maybe YouTube does not report them to be available in a specific high quality format you're interested in. In that case, simply request it with the -f option and youtube-dl will try to download it.</p>
 
-<h1 id="q3">I get  HTTP error 402 when trying to download a video. What's this?</h1>
+<h1 id="q-http-402">I get  HTTP error 402 when trying to download a video. What's this?</h1>
 
 <p>Apparently YouTube requires you to pass a CAPTCHA test if you download too much. At this moment, there is no plan to solve this issue, as youtube-dl is a command line program that is many times used without X and in an unattended fashion, so there's no easy way of solving this, in my humble opinion. I have no plans to solve it at this moment, but let me know your ideas and code if you come up with something.</p>
 
-<h1 id="q4">I have downloaded a video but how can I play it?</h1>
+<h1 id="#q-play-video">I have downloaded a video but how can I play it?</h1>
 
 <p>If you used youtube-dl to download a video and it wrote the video file to your hard drive, finishing with a completion message of 100%, the video is downloaded, so youtube-dl has finished its job and usually it's not to blame for problems that happen later. Not every video player supports FLV or MP4 files and every codec out there needed to play YouTube videos. In Linux, for example, I am generally pleased with <a href="http://www.mplayerhq.hu/">MPlayer</a>. In Windows, I tend to use <a href="http://www.videolan.org/">VLC</a>. Those usually work flawlessly.</p>
 
-<h1 id="q5">Sometimes the program does not download the best quality format</h1>
+<h1 id="q-g-links">The links provided by youtube-dl -g are not working anymore</h1>
 
-<p>This issue happens on YouTube and related to formats 34 and 18. Format 34 is, for many videos, 360p widescreen, and of higher quality than the same video in format 18. However, sometimes format 18 provides a better quality version, as format 34 appears to be just 240p for some videos. There is no plan to fix this. Currently the only way of finding out which version gives higher quality is to download a chunk of both formats and peek into the files themselves to find out, if you know how. As, in my experience, format 34 usually wins, and in many future videos uploaded in high definition formats it will be 360p, format 34 will remain as the format to download in case of doubt.</p>
+<p>Due to changes in YouTube, youtube-dl is now forced to provide the final video URL directly instead of the ones it used to provide, which were based on the "get_video" resource. The new URLs are real and work too, but they need to be used in combination with the <code>--cookies</code> option to be useful for external applications. <a href="https://github.com/rg3/youtube-dl/issues/closed#issue/41">Issue 41</a> in the issue tracker contains a bit more information about the problem.</p>
 
-<h1 id="q6">The links provided by youtube-dl -g are not working anymore</h1>
+<h1 id="q-no-fmt_url_map">ERROR: no fmt_url_map or conn information found in video info</h1>
 
-<p>Due to changes in YouTube, youtube-dl is now forced to provide the final video URL directly instead of the ones it used to provide, which were based on the "get_video" resource. The new URLs are real and work too, but they need to be used in combination with the --cookies option to be useful for external applications. <a href="https://github.com/rg3/youtube-dl/issues/closed#issue/41">Issue 41</a> in the issue tracker contains a bit more information about the problem.</p>
+<p>youtube has switched to a new video info format in July 2011 which is not supported by old versions of youtube-dl. You can update youtube-dl with <code style="white-space:pre;">sudo youtube-dl --update</code> (or <code>python youtube-dl --update</code>).
+</p>
 
 <div class="note">
 <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">

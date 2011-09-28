@@ -61,6 +61,9 @@ body {
 	border-radius: 10px;
 	-moz-border-radius: 10px;
 }
+.toc ul {
+	margin: 0; list-style-type: none;
+}
 hr {
 	margin-top: 3ex;
 	margin-bottom: 3ex;
