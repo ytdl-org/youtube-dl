@@ -1352,7 +1352,7 @@ class YoutubeIE(InfoExtractor):
 				return
 			if self._downloader.params.get('listformats', None):
 				self._print_formats(existing_formats)
-				sys.exit(0)
+				return
 			if req_format is None or req_format == 'best':
 				video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
 			elif req_format == 'worst':
@@ -3587,8 +3587,8 @@ def parseOpts():
 			action='store_const', dest='format', help='download all available video formats', const='all')
 	video_format.add_option('--max-quality',
 			action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
-	video_format.add_option('-L', '--list-formats',
-			action='store_true', dest='listformats', help='list all available formats')
+	video_format.add_option('-F', '--list-formats',
+			action='store_true', dest='listformats', help='list all available formats (currently youtube only)')
 
 
 	verbosity.add_option('-q', '--quiet',

@@ -68,6 +68,7 @@ which means you can modify it, redistribute it or use it however you like.
     -f, --format FORMAT      video format code
     --all-formats            download all available video formats
     --max-quality FORMAT     highest quality format to download
+    -F, --list-formats       list all available formats (currently youtube only)
 
 ### Authentication Options:
     -u, --username USERNAME  account username
