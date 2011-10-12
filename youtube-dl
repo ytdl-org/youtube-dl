@@ -1236,7 +1236,7 @@ class YoutubeIE(InfoExtractor):
 
 		# Get video webpage
 		self.report_video_webpage_download(video_id)
-		request = urllib2.Request('http://www.youtube.com/watch?v=%s&gl=US&hl=en&amp;has_verified=1' % video_id)
+		request = urllib2.Request('http://www.youtube.com/watch?v=%s&gl=US&hl=en&has_verified=1' % video_id)
 		try:
 			video_webpage = urllib2.urlopen(request).read()
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
@@ -3306,6 +3306,82 @@ class EscapistIE(InfoExtractor):
 			self._downloader.trouble(u'\nERROR: unable to download ' + videoId)
 
 
+class CollegeHumorIE(InfoExtractor):
+	"""Information extractor for collegehumor.com"""
+
+	_VALID_URL = r'^(?:https?://)?(?:www\.)?collegehumor\.com/video/(?P<videoid>[0-9]+)/(?P<shorttitle>.*)$'
+	IE_NAME = u'collegehumor'
+
+	def report_webpage(self, video_id):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, video_id))
+
+	def report_extraction(self, video_id):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+
+	def _simplify_title(self, title):
+		res = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', title)
+		res = res.strip(ur'_')
+		return res
+
+	def _real_extract(self, url):
+		htmlParser = HTMLParser.HTMLParser()
+
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+			return
+		video_id = mobj.group('videoid')
+
+		self.report_webpage(video_id)
+		request = urllib2.Request(url)
+		try:
+			webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % str(err))
+			return
+
+		m = re.search(r'id="video:(?P<internalvideoid>[0-9]+)"', webpage)
+		if m is None:
+			self._downloader.trouble(u'ERROR: Cannot extract internal video ID')
+			return
+		internal_video_id = m.group('internalvideoid')
+
+		info = {
+			'id': video_id,
+			'internal_id': internal_video_id,
+		}
+
+		self.report_extraction(video_id)
+		xmlUrl = 'http://www.collegehumor.com/moogaloop/video:' + internal_video_id
+		try:
+			metaXml = urllib2.urlopen(xmlUrl).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download video info XML: %s' % str(err))
+			return
+
+		mdoc = xml.etree.ElementTree.fromstring(metaXml)
+		try:
+			videoNode = mdoc.findall('./video')[0]
+			info['description'] = videoNode.findall('./description')[0].text
+			info['title'] = videoNode.findall('./caption')[0].text
+			info['stitle'] = self._simplify_title(info['title'])
+			info['url'] = videoNode.findall('./file')[0].text
+			info['thumbnail'] = videoNode.findall('./thumbnail')[0].text
+			info['ext'] = info['url'].rpartition('.')[2]
+			info['format'] = info['ext']
+		except IndexError:
+			self._downloader.trouble(u'\nERROR: Invalid metadata XML file')
+			return
+
+		self._downloader.increment_downloads()
+
+		try:
+			self._downloader.process_info(info)
+		except UnavailableVideoError, err:
+			self._downloader.trouble(u'\nERROR: unable to download video')
+
 
 class PostProcessor(object):
 	"""Post Processor class.
@@ -3701,6 +3777,7 @@ def gen_extractors():
 		MyVideoIE(),
 		ComedyCentralIE(),
 		EscapistIE(),
+		CollegeHumorIE(),
 
 		GenericIE()
 	]
