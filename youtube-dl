@@ -3383,6 +3383,92 @@ class CollegeHumorIE(InfoExtractor):
 			self._downloader.trouble(u'\nERROR: unable to download video')
 
 
+class XVideosIE(InfoExtractor):
+	"""Information extractor for xvideos.com"""
+
+	_VALID_URL = r'^(?:https?://)?(?:www\.)?xvideos\.com/video([0-9]+)(?:.*)'
+	IE_NAME = u'xvideos'
+
+	def report_webpage(self, video_id):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, video_id))
+
+	def report_extraction(self, video_id):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+
+	def _simplify_title(self, title):
+		res = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', title)
+		res = res.strip(ur'_')
+		return res
+
+	def _real_extract(self, url):
+		htmlParser = HTMLParser.HTMLParser()
+
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+			return
+		video_id = mobj.group(1).decode('utf-8')
+
+		self.report_webpage(video_id)
+
+		request = urllib2.Request(url)
+		try:
+			webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % str(err))
+			return
+
+		self.report_extraction(video_id)
+
+
+		# Extract video URL
+		mobj = re.search(r'flv_url=(.+?)&', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video title')
+			return
+		video_url = urllib2.unquote(mobj.group(1).decode('utf-8'))
+
+
+		# Extract title
+		mobj = re.search(r'<title>(.*?)</title>', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video title')
+			return
+		video_title = mobj.group(1).decode('utf-8')
+
+
+		# Extract video thumbnail
+		mobj = re.search(r'http://(?:img.*?\.)xvideos.com/videos/thumbs/[a-fA-F0-9]/[a-fA-F0-9]/[a-fA-F0-9]/([a-fA-F0-9.]+jpg)', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video thumbnail')
+			return
+		video_thumbnail = mobj.group(1).decode('utf-8')
+
+
+
+		self._downloader.increment_downloads()
+		info = {
+			'id': video_id,
+			'url': video_url,
+			'uploader': None,
+			'upload_date': None,
+			'title': video_title,
+			'stitle': self._simplify_title(video_title),
+			'ext': 'flv',
+			'format': 'flv',
+			'thumbnail': video_thumbnail,
+			'description': None,
+			'player_url': None,
+		}
+
+		try:
+			self._downloader.process_info(info)
+		except UnavailableVideoError, err:
+			self._downloader.trouble(u'\nERROR: unable to download ' + video_id)
+
+
 class PostProcessor(object):
 	"""Post Processor class.
 
@@ -3778,6 +3864,7 @@ def gen_extractors():
 		ComedyCentralIE(),
 		EscapistIE(),
 		CollegeHumorIE(),
+		XVideosIE(),
 
 		GenericIE()
 	]
