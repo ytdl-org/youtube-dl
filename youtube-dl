@@ -2059,6 +2059,18 @@ class VimeoIE(InfoExtractor):
 			return
 		sig = mobj.group(1).decode('utf-8')
 
+		# Vimeo specific: extract video quality information
+		mobj = re.search(r'<isHD>(\d+)</isHD>', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video quality information')
+			return
+		quality = mobj.group(1).decode('utf-8')
+
+		if int(quality) == 1:
+			quality = 'hd'
+		else:
+			quality = 'sd'
+
 		# Vimeo specific: Extract request signature expiration
 		mobj = re.search(r'<request_signature_expires>(.*?)</request_signature_expires>', webpage)
 		if mobj is None:
@@ -2066,7 +2078,7 @@ class VimeoIE(InfoExtractor):
 			return
 		sig_exp = mobj.group(1).decode('utf-8')
 
-		video_url = "http://vimeo.com/moogaloop/play/clip:%s/%s/%s" % (video_id, sig, sig_exp)
+		video_url = "http://vimeo.com/moogaloop/play/clip:%s/%s/%s/?q=%s" % (video_id, sig, sig_exp, quality)
 
 		try:
 			# Process video information
