@@ -3413,7 +3413,7 @@ class XVideosIE(InfoExtractor):
 
 		self.report_webpage(video_id)
 
-		request = urllib2.Request(url)
+		request = urllib2.Request(r'http://www.xvideos.com/video' + video_id)
 		try:
 			webpage = urllib2.urlopen(request).read()
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
