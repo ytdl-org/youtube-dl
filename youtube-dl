@@ -3432,7 +3432,7 @@ class XVideosIE(InfoExtractor):
 
 
 		# Extract title
-		mobj = re.search(r'<title>(.*?)</title>', webpage)
+		mobj = re.search(r'<title>(.*?)\s+-\s+XVID', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract video title')
 			return
