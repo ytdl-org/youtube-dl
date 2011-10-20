@@ -2742,7 +2742,7 @@ class FacebookIE(InfoExtractor):
 	def _parse_page(self, video_webpage):
 		"""Extract video information from page"""
 		# General data
-		data = {'title': r'class="video_title datawrap">(.*?)</',
+		data = {'title': r'\("video_title", "(.*?)"\)',
 			'description': r'<div class="datawrap">(.*?)</div>',
 			'owner': r'\("video_owner_name", "(.*?)"\)',
 			'upload_date': r'data-date="(.*?)"',
