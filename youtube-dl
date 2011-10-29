@@ -444,8 +444,9 @@ class FileDownloader(object):
 	consoletitle:     Display progress in console window's titlebar.
 	nopart:           Do not use temporary .part files.
 	updatetime:       Use the Last-modified header to set output file timestamps.
-	writedescription: Write the video description to a .description file
-	writeinfojson:    Write the video description to a .info.json file
+	writedescription: Write the video description to a .description file.
+	writeinfojson:    Write the video description to a .info.json file.
+	writetostdout:	  Write downloaded video to stdout.
 	"""
 
 	params = None
@@ -870,7 +871,7 @@ class FileDownloader(object):
 		player_url = info_dict.get('player_url', None)
 
 		# Check file already present
-		if self.params.get('continuedl', False) and os.path.isfile(filename) and not self.params.get('nopart', False):
+		if self.params.get('writetostdout', False) and self.params.get('continuedl', False) and os.path.isfile(filename) and not self.params.get('nopart', False):
 			self.report_file_already_downloaded(filename)
 			return True
 
@@ -885,9 +886,9 @@ class FileDownloader(object):
 		headers = {'Youtubedl-no-compression': 'True'}
 		basic_request = urllib2.Request(url, None, headers)
 		request = urllib2.Request(url, None, headers)
-
+		
 		# Establish possible resume length
-		if os.path.isfile(tmpfilename):
+		if self.params.get('writetostdout', False) and os.path.isfile(tmpfilename):
 			resume_len = os.path.getsize(tmpfilename)
 		else:
 			resume_len = 0
@@ -969,14 +970,17 @@ class FileDownloader(object):
 
 			# Open file just in time
 			if stream is None:
-				try:
-					(stream, tmpfilename) = sanitize_open(tmpfilename, open_mode)
-					assert stream is not None
-					filename = self.undo_temp_name(tmpfilename)
-					self.report_destination(filename)
-				except (OSError, IOError), err:
-					self.trouble(u'ERROR: unable to open for writing: %s' % str(err))
-					return False
+				if self.params.get('writetostdout', True):
+					stream = sys.stdout
+				else:
+					try:
+						(stream, tmpfilename) = sanitize_open(tmpfilename, open_mode)
+						assert stream is not None
+						filename = self.undo_temp_name(tmpfilename)
+						self.report_destination(filename)
+					except (OSError, IOError), err:
+						self.trouble(u'ERROR: unable to open for writing: %s' % str(err))
+						return False
 			try:
 				stream.write(data_block)
 			except (IOError, OSError), err:
@@ -999,7 +1003,8 @@ class FileDownloader(object):
 		if stream is None:
 			self.trouble(u'\nERROR: Did not get any data blocks')
 			return False
-		stream.close()
+		if self.params.get('writetostdout', False):
+			stream.close() # if we're using stdout, it was already open
 		self.report_finish()
 		if data_len is not None and byte_counter != data_len:
 			raise ContentTooShortError(byte_counter, long(data_len))
@@ -3825,6 +3830,9 @@ def parseOpts():
 	filesystem.add_option('--write-info-json',
 			action='store_true', dest='writeinfojson',
 			help='write video metadata to a .info.json file', default=False)
+	filesystem.add_option('--stdout',
+			action='store_true', dest='writetostdout',
+			help='write video to STDOUT', default=False)
 
 
 	postproc.add_option('--extract-audio', action='store_true', dest='extractaudio', default=False,
@@ -3974,7 +3982,7 @@ def main():
 		'usenetrc': opts.usenetrc,
 		'username': opts.username,
 		'password': opts.password,
-		'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat),
+		'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.writetostdout),
 		'forceurl': opts.geturl,
 		'forcetitle': opts.gettitle,
 		'forcethumbnail': opts.getthumbnail,
@@ -4012,6 +4020,7 @@ def main():
 		'writeinfojson': opts.writeinfojson,
 		'matchtitle': opts.matchtitle,
 		'rejecttitle': opts.rejecttitle,
+		'writetostdout': opts.writetostdout
 		})
 	for extractor in extractors:
 		fd.add_info_extractor(extractor)
