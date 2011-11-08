@@ -3481,6 +3481,13 @@ class XVideosIE(InfoExtractor):
 			self._downloader.trouble(u'\nERROR: unable to download ' + video_id)
 
 
+class SoundcloudIE(InformationExtractor):
+	"""Information extractor for soundcloud.com"""
+
+	_VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/(\w\d-]+)'
+	IE_NAME = u'soundcloud'
+
+
 class PostProcessor(object):
 	"""Post Processor class.
 
