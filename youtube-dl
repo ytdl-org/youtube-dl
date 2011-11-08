@@ -3484,9 +3484,63 @@ class XVideosIE(InfoExtractor):
 class SoundcloudIE(InformationExtractor):
 	"""Information extractor for soundcloud.com"""
 
-	_VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/(\w\d-]+)'
+	_VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/([\w\d-]+)'
 	IE_NAME = u'soundcloud'
 
+    def __init__(self, downloader=None):
+        InfoExtractor.__init__(self, downloader)
+
+	def report_webpage(self, video_id):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, video_id))
+
+	def report_extraction(self, video_id):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+
+    def _real_initialize(self):
+        return
+
+	def _real_extract(self, url):
+		htmlParser = HTMLParser.HTMLParser()
+
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+			return
+
+        # extract uploader 
+        uploader = mobj.group(3).decode('utf-8')
+        # extract simple title (uploader + slug of song title)
+		slug_title =  mobj.group(4).decode('utf-8')
+		simple_title = uploader + '-' + slug_title
+
+		self.report_webpage('%s/%s' % (uploader, slug_title))
+
+		request = urllib2.Request('http://soundcloud.com/%s/%s' % (uploader, slug_title))
+		try:
+			webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % str(err))
+			return
+
+		self.report_extraction('%s/%s' % (uploader, slug_title))
+
+        # extract video_id (soundcloud uid of song)
+        mobj = re.search
+
+        try:
+            self._download.process_info({
+				'id':		video_id,
+				'url':		video_url,
+				'uploader':	uploader,
+				'upload_date':  u'NA',
+				'title':	video_title,
+				'stitle':	simple_title,
+				'ext':		u'mp3',
+				'format':	u'NA',
+				'player_url':	None,
+            })
 
 class PostProcessor(object):
 	"""Post Processor class.
