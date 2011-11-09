@@ -3482,7 +3482,13 @@ class XVideosIE(InfoExtractor):
 
 
 class SoundcloudIE(InformationExtractor):
-	"""Information extractor for soundcloud.com"""
+	"""Information extractor for soundcloud.com
+       To access the media, the uid of the song and a stream token
+       must be extracted from the page source and the script must make
+       a request to media.soundcloud.com/crossdomain.xml. Then
+       the media can be grabbed by requesting from an url composed
+       of the stream token and uid
+     """
 
 	_VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/([\w\d-]+)'
 	IE_NAME = u'soundcloud'
@@ -3509,7 +3515,7 @@ class SoundcloudIE(InformationExtractor):
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
 			return
 
-        # extract uploader 
+        # extract uploader (which is in the url)
         uploader = mobj.group(3).decode('utf-8')
         # extract simple title (uploader + slug of song title)
 		slug_title =  mobj.group(4).decode('utf-8')
@@ -3526,20 +3532,42 @@ class SoundcloudIE(InformationExtractor):
 
 		self.report_extraction('%s/%s' % (uploader, slug_title))
 
-        # extract video_id (soundcloud uid of song)
-        mobj = re.search
+        # extract uid and access token
+        mobj = re.search('"uid":"([\w\d]+?)".*?stream_token=([\w\d]+)', page)   
+        if mobj:
+            video_id = match.group(1)
+            stream_token = match.group(2)
+
+        # construct media url (with uid/token) to request song
+        mediaURL = "http://media.soundcloud.com/stream/%s?stream_token=%s"
+        mediaURL = mediaURL % (video_id, stream_token)
+
+        # description
+        description = u'No description available'
+        mobj = re.search('track-description-value"><p>(.*?)</p>', page)
+        if mobj:
+            description = mobj.group(1)
+        
+        # upload date
+        mobj = re.search("pretty-date'>on ([\w]+ [\d]+, [\d]+ \d+:\d+)</abbr></h2>", page)
+        if mobj:
+            try:
+    		    upload_date = datetime.datetime.strptime(match.group(1), '%B %d, %Y %H:%M').strftime('%Y%m%d')
+            except:
+                pass
 
         try:
             self._download.process_info({
 				'id':		video_id,
 				'url':		video_url,
 				'uploader':	uploader,
-				'upload_date':  u'NA',
+				'upload_date':  upload_date,
 				'title':	video_title,
 				'stitle':	simple_title,
 				'ext':		u'mp3',
 				'format':	u'NA',
 				'player_url':	None,
+                'description': description
             })
 
 class PostProcessor(object):
