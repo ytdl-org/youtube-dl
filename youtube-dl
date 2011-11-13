@@ -3581,6 +3581,7 @@ class SoundcloudIE(InfoExtractor):
 		except UnavailableVideoError:
 			self._downloader.trouble(u'\nERROR: unable to download video')
 
+
 class PostProcessor(object):
 	"""Post Processor class.
 
