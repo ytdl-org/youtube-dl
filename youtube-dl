@@ -3532,13 +3532,18 @@ class SoundcloudIE(InfoExtractor):
 
 		self.report_extraction('%s/%s' % (uploader, slug_title))
 
-		# extract uid and access token
+		# extract uid and stream token that soundcloud hands out for access
 		mobj = re.search('"uid":"([\w\d]+?)".*?stream_token=([\w\d]+)', webpage)   
 		if mobj:
 			video_id = mobj.group(1)
 			stream_token = mobj.group(2)
 
-		# construct media url (with uid/token) to request song
+		# extract unsimplified title
+		mobj = re.search('"title":"(.*?)",', webpage)
+		if mobj:
+			title = mobj.group(1)
+
+		# construct media url (with uid/token)
 		mediaURL = "http://media.soundcloud.com/stream/%s?stream_token=%s"
 		mediaURL = mediaURL % (video_id, stream_token)
 
@@ -3557,22 +3562,21 @@ class SoundcloudIE(InfoExtractor):
 			except Exception as e:
 				print str(e)
 
-		# for soundcloud, a request must be made to a cross domain to establish
-		# needed cookies
+		# for soundcloud, a request to a cross domain is required for cookies
 		request = urllib2.Request('http://media.soundcloud.com/crossdomain.xml', std_headers)
 
 		try:
 			self._downloader.process_info({
-				'id':		video_id,
+				'id':		video_id.decode('utf-8'),
 				'url':		mediaURL,
-				'uploader':	uploader,
+				'uploader':	uploader.decode('utf-8'),
 				'upload_date':  upload_date,
-				'title':	simple_title,
-				'stitle':	simple_title,
+				'title':	simple_title.decode('utf-8'),
+				'stitle':	simple_title.decode('utf-8'),
 				'ext':		u'mp3',
 				'format':	u'NA',
 				'player_url':	None,
-				'description': description
+				'description': description.decode('utf-8')
 			})
 		except UnavailableVideoError:
 			self._downloader.trouble(u'\nERROR: unable to download video')
