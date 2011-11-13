@@ -3978,7 +3978,7 @@ def gen_extractors():
 		EscapistIE(),
 		CollegeHumorIE(),
 		XVideosIE(),
-        SoundcloudIE(),
+		SoundcloudIE(),
 
 		GenericIE()
 	]
