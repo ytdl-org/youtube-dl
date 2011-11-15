@@ -3583,6 +3583,92 @@ class SoundcloudIE(InfoExtractor):
 			self._downloader.trouble(u'\nERROR: unable to download video')
 
 
+class InfoQIE(InfoExtractor):
+	"""Information extractor for infoq.com"""
+
+	_VALID_URL = r'^(?:https?://)?(?:www\.)?infoq\.com/[^/]+/[^/]+$'
+	IE_NAME = u'infoq'
+
+	def report_webpage(self, video_id):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, video_id))
+
+	def report_extraction(self, video_id):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+
+	def _simplify_title(self, title):
+		res = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', title)
+		res = res.strip(ur'_')
+		return res
+
+	def _real_extract(self, url):
+		htmlParser = HTMLParser.HTMLParser()
+
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+			return
+
+		self.report_webpage(url)
+
+		request = urllib2.Request(url)
+		try:
+			webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % str(err))
+			return
+
+		self.report_extraction(url)
+
+
+		# Extract video URL
+		mobj = re.search(r"jsclassref='([^']*)'", webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video url')
+			return
+		video_url = 'rtmpe://video.infoq.com/cfx/st/' + urllib2.unquote(mobj.group(1).decode('base64'))
+
+
+		# Extract title
+		mobj = re.search(r'contentTitle = "(.*?)";', webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video title')
+			return
+		video_title = mobj.group(1).decode('utf-8')
+
+
+		# Extract description
+		video_description = u'No description available.'
+		mobj = re.search(r'<meta name="description" content="(.*)"(?:\s*/)?>', webpage)
+		if mobj is not None:
+			video_description = mobj.group(1).decode('utf-8')
+
+		video_filename = video_url.split('/')[-1]
+		video_id, extension = video_filename.split('.')
+
+		self._downloader.increment_downloads()
+		info = {
+			'id': video_id,
+			'url': video_url,
+			'uploader': None,
+			'upload_date': None,
+			'title': video_title,
+			'stitle': self._simplify_title(video_title),
+			'ext': extension,
+			'format': extension, # Extension is always(?) mp4, but seems to be flv
+			'thumbnail': None,
+			'description': video_description,
+			'player_url': None,
+		}
+
+		try:
+			self._downloader.process_info(info)
+		except UnavailableVideoError, err:
+			self._downloader.trouble(u'\nERROR: unable to download ' + video_url)
+
+
+
 class PostProcessor(object):
 	"""Post Processor class.
 
@@ -3980,6 +4066,7 @@ def gen_extractors():
 		CollegeHumorIE(),
 		XVideosIE(),
 		SoundcloudIE(),
+		InfoQIE(),
 
 		GenericIE()
 	]
