@@ -3482,6 +3482,107 @@ class XVideosIE(InfoExtractor):
 			self._downloader.trouble(u'\nERROR: unable to download ' + video_id)
 
 
+class SoundcloudIE(InfoExtractor):
+	"""Information extractor for soundcloud.com
+	   To access the media, the uid of the song and a stream token
+	   must be extracted from the page source and the script must make
+	   a request to media.soundcloud.com/crossdomain.xml. Then
+	   the media can be grabbed by requesting from an url composed
+	   of the stream token and uid
+	 """
+
+	_VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/([\w\d-]+)'
+	IE_NAME = u'soundcloud'
+
+	def __init__(self, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+
+	def report_webpage(self, video_id):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, video_id))
+
+	def report_extraction(self, video_id):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+
+	def _real_initialize(self):
+		return
+
+	def _real_extract(self, url):
+		htmlParser = HTMLParser.HTMLParser()
+
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+			return
+
+		# extract uploader (which is in the url)
+		uploader = mobj.group(1).decode('utf-8')
+		# extract simple title (uploader + slug of song title)
+		slug_title =  mobj.group(2).decode('utf-8')
+		simple_title = uploader + '-' + slug_title
+
+		self.report_webpage('%s/%s' % (uploader, slug_title))
+
+		request = urllib2.Request('http://soundcloud.com/%s/%s' % (uploader, slug_title))
+		try:
+			webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % str(err))
+			return
+
+		self.report_extraction('%s/%s' % (uploader, slug_title))
+
+		# extract uid and stream token that soundcloud hands out for access
+		mobj = re.search('"uid":"([\w\d]+?)".*?stream_token=([\w\d]+)', webpage)   
+		if mobj:
+			video_id = mobj.group(1)
+			stream_token = mobj.group(2)
+
+		# extract unsimplified title
+		mobj = re.search('"title":"(.*?)",', webpage)
+		if mobj:
+			title = mobj.group(1)
+
+		# construct media url (with uid/token)
+		mediaURL = "http://media.soundcloud.com/stream/%s?stream_token=%s"
+		mediaURL = mediaURL % (video_id, stream_token)
+
+		# description
+		description = u'No description available'
+		mobj = re.search('track-description-value"><p>(.*?)</p>', webpage)
+		if mobj:
+			description = mobj.group(1)
+		
+		# upload date
+		upload_date = None
+		mobj = re.search("pretty-date'>on ([\w]+ [\d]+, [\d]+ \d+:\d+)</abbr></h2>", webpage)
+		if mobj:
+			try:
+				upload_date = datetime.datetime.strptime(mobj.group(1), '%B %d, %Y %H:%M').strftime('%Y%m%d')
+			except Exception as e:
+				print str(e)
+
+		# for soundcloud, a request to a cross domain is required for cookies
+		request = urllib2.Request('http://media.soundcloud.com/crossdomain.xml', std_headers)
+
+		try:
+			self._downloader.process_info({
+				'id':		video_id.decode('utf-8'),
+				'url':		mediaURL,
+				'uploader':	uploader.decode('utf-8'),
+				'upload_date':  upload_date,
+				'title':	simple_title.decode('utf-8'),
+				'stitle':	simple_title.decode('utf-8'),
+				'ext':		u'mp3',
+				'format':	u'NA',
+				'player_url':	None,
+				'description': description.decode('utf-8')
+			})
+		except UnavailableVideoError:
+			self._downloader.trouble(u'\nERROR: unable to download video')
+
+
 class PostProcessor(object):
 	"""Post Processor class.
 
@@ -3878,6 +3979,7 @@ def gen_extractors():
 		EscapistIE(),
 		CollegeHumorIE(),
 		XVideosIE(),
+		SoundcloudIE(),
 
 		GenericIE()
 	]
