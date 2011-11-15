@@ -2549,7 +2549,7 @@ class YoutubeUserIE(InfoExtractor):
 	_TEMPLATE_URL = 'http://gdata.youtube.com/feeds/api/users/%s'
 	_GDATA_PAGE_SIZE = 50
 	_GDATA_URL = 'http://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d'
-	_VIDEO_INDICATOR = r'/watch\?v=(.+?)&'
+	_VIDEO_INDICATOR = r'/watch\?v=(.+?)[\<&]'
 	_youtube_ie = None
 	IE_NAME = u'youtube:user'
 
