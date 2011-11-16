@@ -12,6 +12,8 @@ __author__  = (
 	'Rogério Brito',
 	'Philipp Hagemeister',
 	'Sören Schulze',
+	'Kevin Ngo',
+	'Ori Avtalion',
 	)
 
 __license__ = 'Public Domain'
