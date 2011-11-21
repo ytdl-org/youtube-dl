@@ -1,6 +1,6 @@
 default: update
 
-update: update-readme update-latest
+update: compile update-readme update-latest
 
 update-latest:
 	./youtube-dl --version > LATEST_VERSION
@@ -15,6 +15,7 @@ update-readme:
 		echo -e '\n## FAQ' >> README.md && \
 		echo "$${footer}" >> README.md
 
+compile:
+	cp youtube_dl/__init__.py youtube-dl
 
-
-.PHONY: default update update-latest update-readme
+.PHONY: default compile update update-latest update-readme
