@@ -278,7 +278,8 @@ def timeconvert(timestr):
 	return timestamp
 
 def _simplify_title(title):
-	return re.sub(ur'[^\w\d_\-]+', u'_', title).strip(u'_')
+	expr = re.compile(ur'[^\w\d_\-]+', flags=re.UNICODE)
+	return expr.sub(u'_', title).strip(u'_')
 
 class DownloadError(Exception):
 	"""Download Error exception.
@@ -2937,6 +2938,7 @@ class BlipTVIE(InfoExtractor):
 			if urlh.headers.get('Content-Type', '').startswith('video/'): # Direct download
 				basename = url.split('/')[-1]
 				title,ext = os.path.splitext(basename)
+				title = title.decode('UTF-8')
 				ext = ext.replace('.', '')
 				self.report_direct_download(title)
 				info = {
@@ -3089,9 +3091,9 @@ class ComedyCentralIE(InfoExtractor):
 
 		if mobj.group('shortname'):
 			if mobj.group('shortname') in ('tds', 'thedailyshow'):
-				url = 'http://www.thedailyshow.com/full-episodes/'
+				url = u'http://www.thedailyshow.com/full-episodes/'
 			else:
-				url = 'http://www.colbertnation.com/full-episodes/'
+				url = u'http://www.colbertnation.com/full-episodes/'
 			mobj = re.match(self._VALID_URL, url)
 			assert mobj is not None
 
@@ -3177,7 +3179,7 @@ class ComedyCentralIE(InfoExtractor):
 
 			self._downloader.increment_downloads()
 
-			effTitle = showId + '-' + epTitle
+			effTitle = showId + u'-' + epTitle
 			info = {
 				'id': shortMediaId,
 				'url': video_url,

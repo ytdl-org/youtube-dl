@@ -16,13 +16,14 @@ def test_simplify_title():
 	assert u'/' not in youtube_dl._simplify_title(u'abc/de')
 	assert u'abc' in youtube_dl._simplify_title(u'abc/de')
 	assert u'de' in youtube_dl._simplify_title(u'abc/de')
+	assert u'/' not in youtube_dl._simplify_title(u'abc/de///')
 
 	assert u'\\' not in youtube_dl._simplify_title(u'abc\\de')
 	assert u'abc' in youtube_dl._simplify_title(u'abc\\de')
 	assert u'de' in youtube_dl._simplify_title(u'abc\\de')
 
-	# TODO: Fix #220
-	#assert youtube_dl._simplify_title(u'ä') == u'ä'
+	assert youtube_dl._simplify_title(u'ä') == u'ä'
+	assert youtube_dl._simplify_title(u'кириллица') == u'кириллица'
 
 	# Strip underlines
 	assert youtube_dl._simplify_title(u'\'a_') == u'a'
