@@ -1562,9 +1562,6 @@ class DailymotionIE(InfoExtractor):
 		"""Report information extraction."""
 		self._downloader.to_screen(u'[dailymotion] %s: Extracting information' % video_id)
 
-	def _real_initialize(self):
-		return
-
 	def _real_extract(self, url):
 		# Extract id and simplified title from URL
 		mobj = re.match(self._VALID_URL, url)
@@ -1652,9 +1649,6 @@ class GoogleIE(InfoExtractor):
 	def report_extraction(self, video_id):
 		"""Report information extraction."""
 		self._downloader.to_screen(u'[video.google] %s: Extracting information' % video_id)
-
-	def _real_initialize(self):
-		return
 
 	def _real_extract(self, url):
 		# Extract id from URL
@@ -1760,9 +1754,6 @@ class PhotobucketIE(InfoExtractor):
 		"""Report information extraction."""
 		self._downloader.to_screen(u'[photobucket] %s: Extracting information' % video_id)
 
-	def _real_initialize(self):
-		return
-
 	def _real_extract(self, url):
 		# Extract id from URL
 		mobj = re.match(self._VALID_URL, url)
@@ -1841,9 +1832,6 @@ class YahooIE(InfoExtractor):
 	def report_extraction(self, video_id):
 		"""Report information extraction."""
 		self._downloader.to_screen(u'[video.yahoo] %s: Extracting information' % video_id)
-
-	def _real_initialize(self):
-		return
 
 	def _real_extract(self, url, new_video=True):
 		# Extract ID from URL
@@ -1995,9 +1983,6 @@ class VimeoIE(InfoExtractor):
 		"""Report information extraction."""
 		self._downloader.to_screen(u'[vimeo] %s: Extracting information' % video_id)
 
-	def _real_initialize(self):
-		return
-
 	def _real_extract(self, url, new_video=True):
 		# Extract ID from URL
 		mobj = re.match(self._VALID_URL, url)
@@ -2119,9 +2104,6 @@ class GenericIE(InfoExtractor):
 	def report_extraction(self, video_id):
 		"""Report information extraction."""
 		self._downloader.to_screen(u'[generic] %s: Extracting information' % video_id)
-
-	def _real_initialize(self):
-		return
 
 	def _real_extract(self, url):
 		# At this point we have a new video
@@ -2649,9 +2631,6 @@ class DepositFilesIE(InfoExtractor):
 		"""Report information extraction."""
 		self._downloader.to_screen(u'[DepositFiles] %s: Extracting information' % file_id)
 
-	def _real_initialize(self):
-		return
-
 	def _real_extract(self, url):
 		# At this point we have a new file
 		self._downloader.increment_downloads()
@@ -3041,9 +3020,6 @@ class MyVideoIE(InfoExtractor):
 	def report_extraction(self, video_id):
 		"""Report information extraction."""
 		self._downloader.to_screen(u'[myvideo] %s: Extracting information' % video_id)
-
-	def _real_initialize(self):
-		return
 
 	def _real_extract(self,url):
 		mobj = re.match(self._VALID_URL, url)
@@ -3507,9 +3483,6 @@ class SoundcloudIE(InfoExtractor):
 		"""Report information extraction."""
 		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
 
-	def _real_initialize(self):
-		return
-
 	def _real_extract(self, url):
 		htmlParser = HTMLParser.HTMLParser()
 
@@ -3536,7 +3509,7 @@ class SoundcloudIE(InfoExtractor):
 		self.report_extraction('%s/%s' % (uploader, slug_title))
 
 		# extract uid and stream token that soundcloud hands out for access
-		mobj = re.search('"uid":"([\w\d]+?)".*?stream_token=([\w\d]+)', webpage)   
+		mobj = re.search('"uid":"([\w\d]+?)".*?stream_token=([\w\d]+)', webpage)
 		if mobj:
 			video_id = mobj.group(1)
 			stream_token = mobj.group(2)
@@ -3638,7 +3611,6 @@ class InfoQIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract video title')
 			return
 		video_title = mobj.group(1).decode('utf-8')
-
 
 		# Extract description
 		video_description = u'No description available.'
