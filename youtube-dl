@@ -279,6 +279,8 @@ def timeconvert(timestr):
 		timestamp = email.utils.mktime_tz(timetuple)
 	return timestamp
 
+def _simplify_title(title):
+	return re.sub(ur'[^\w\d_\-]+', u'_', title)
 
 class DownloadError(Exception):
 	"""Download Error exception.
