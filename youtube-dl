@@ -79,8 +79,6 @@ std_headers = {
 	'Accept-Language': 'en-us,en;q=0.5',
 }
 
-simple_title_chars = string.ascii_letters.decode('ascii') + string.digits.decode('ascii')
-
 try:
 	import json
 except ImportError: # Python <2.6, use trivialjson (https://github.com/phihag/trivialjson):
@@ -280,7 +278,7 @@ def timeconvert(timestr):
 	return timestamp
 
 def _simplify_title(title):
-	return re.sub(ur'[^\w\d_\-]+', u'_', title)
+	return re.sub(ur'[^\w\d_\-]+', u'_', title).strip(u'_')
 
 class DownloadError(Exception):
 	"""Download Error exception.
@@ -1293,8 +1291,7 @@ class YoutubeIE(InfoExtractor):
 		video_title = sanitize_title(video_title)
 
 		# simplified title
-		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
-		simple_title = simple_title.strip(ur'_')
+		simple_title = _simplify_title(video_title)
 
 		# thumbnail image
 		if 'thumbnail_url' not in video_info:
@@ -1695,7 +1692,7 @@ class GoogleIE(InfoExtractor):
 			return
 		video_title = mobj.group(1).decode('utf-8')
 		video_title = sanitize_title(video_title)
-		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
+		simple_title = _simplify_title(video_title)
 
 		# Extract video description
 		mobj = re.search(r'<span id=short-desc-content>([^<]*)</span>', webpage)
@@ -1794,7 +1791,7 @@ class PhotobucketIE(InfoExtractor):
 			return
 		video_title = mobj.group(1).decode('utf-8')
 		video_title = sanitize_title(video_title)
-		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
+		simple_title = _simplify_title(vide_title)
 
 		video_uploader = mobj.group(2).decode('utf-8')
 
@@ -1888,7 +1885,7 @@ class YahooIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract video title')
 			return
 		video_title = mobj.group(1).decode('utf-8')
-		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
+		simple_title = _simplify_title(video_title)
 
 		mobj = re.search(r'<h2 class="ti-5"><a href="http://video\.yahoo\.com/(people|profile)/[0-9]+" beacon=".*">(.*)</a></h2>', webpage)
 		if mobj is None:
@@ -2016,7 +2013,7 @@ class VimeoIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract video title')
 			return
 		video_title = mobj.group(1).decode('utf-8')
-		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
+		simple_title = _simple_title(video_title)
 
 		# Extract uploader
 		mobj = re.search(r'<uploader_url>http://vimeo.com/(.*?)</uploader_url>', webpage)
@@ -2160,7 +2157,7 @@ class GenericIE(InfoExtractor):
 			return
 		video_title = mobj.group(1).decode('utf-8')
 		video_title = sanitize_title(video_title)
-		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
+		simple_title = _simplify_title(video_title)
 
 		# video uploader is domain name
 		mobj = re.match(r'(?:https?://)?([^/]*)/.*', url)
@@ -2830,9 +2827,7 @@ class FacebookIE(InfoExtractor):
 		video_title = video_title.decode('utf-8')
 		video_title = sanitize_title(video_title)
 
-		# simplified title
-		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', video_title)
-		simple_title = simple_title.strip(ur'_')
+		simple_title = _simplify_title(video_title)
 
 		# thumbnail image
 		if 'thumbnail' not in video_info:
@@ -2923,11 +2918,6 @@ class BlipTVIE(InfoExtractor):
 		"""Report information extraction."""
 		self._downloader.to_screen(u'[%s] %s: Direct download detected' % (self.IE_NAME, title))
 
-	def _simplify_title(self, title):
-		res = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', title)
-		res = res.strip(ur'_')
-		return res
-
 	def _real_extract(self, url):
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
@@ -2953,7 +2943,7 @@ class BlipTVIE(InfoExtractor):
 					'id': title,
 					'url': url,
 					'title': title,
-					'stitle': self._simplify_title(title),
+					'stitle': _simplify_title(title),
 					'ext': ext,
 					'urlhandle': urlh
 				}
@@ -2987,7 +2977,7 @@ class BlipTVIE(InfoExtractor):
 					'uploader': data['display_name'],
 					'upload_date': upload_date,
 					'title': data['title'],
-					'stitle': self._simplify_title(data['title']),
+					'stitle': _simplify_title(data['title']),
 					'ext': ext,
 					'format': data['media']['mimeType'],
 					'thumbnail': data['thumbnailUrl'],
@@ -3030,10 +3020,6 @@ class MyVideoIE(InfoExtractor):
 			return
 
 		video_id = mobj.group(1)
-		simple_title = mobj.group(2).decode('utf-8')
-		# should actually not be necessary
-		simple_title = sanitize_title(simple_title)
-		simple_title = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', simple_title)
 
 		# Get video webpage
 		request = urllib2.Request('http://www.myvideo.de/watch/%s' % video_id)
@@ -3059,6 +3045,8 @@ class MyVideoIE(InfoExtractor):
 
 		video_title = mobj.group(1)
 		video_title = sanitize_title(video_title)
+
+		simple_title = _simplify_title(video_title)
 
 		try:
 			self._downloader.process_info({
@@ -3092,11 +3080,6 @@ class ComedyCentralIE(InfoExtractor):
 
 	def report_player_url(self, episode_id):
 		self._downloader.to_screen(u'[comedycentral] %s: Determining player URL' % episode_id)
-
-	def _simplify_title(self, title):
-		res = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', title)
-		res = res.strip(ur'_')
-		return res
 
 	def _real_extract(self, url):
 		mobj = re.match(self._VALID_URL, url)
@@ -3228,11 +3211,6 @@ class EscapistIE(InfoExtractor):
 	def report_config_download(self, showName):
 		self._downloader.to_screen(u'[escapist] %s: Downloading configuration' % showName)
 
-	def _simplify_title(self, title):
-		res = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', title)
-		res = res.strip(ur'_')
-		return res
-
 	def _real_extract(self, url):
 		htmlParser = HTMLParser.HTMLParser()
 
@@ -3285,7 +3263,7 @@ class EscapistIE(InfoExtractor):
 			'uploader': showName,
 			'upload_date': None,
 			'title': showName,
-			'stitle': self._simplify_title(showName),
+			'stitle': _simplify_title(showName),
 			'ext': 'flv',
 			'format': 'flv',
 			'thumbnail': imgUrl,
@@ -3312,11 +3290,6 @@ class CollegeHumorIE(InfoExtractor):
 	def report_extraction(self, video_id):
 		"""Report information extraction."""
 		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
-
-	def _simplify_title(self, title):
-		res = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', title)
-		res = res.strip(ur'_')
-		return res
 
 	def _real_extract(self, url):
 		htmlParser = HTMLParser.HTMLParser()
@@ -3359,7 +3332,7 @@ class CollegeHumorIE(InfoExtractor):
 			videoNode = mdoc.findall('./video')[0]
 			info['description'] = videoNode.findall('./description')[0].text
 			info['title'] = videoNode.findall('./caption')[0].text
-			info['stitle'] = self._simplify_title(info['title'])
+			info['stitle'] = _simplify_title(info['title'])
 			info['url'] = videoNode.findall('./file')[0].text
 			info['thumbnail'] = videoNode.findall('./thumbnail')[0].text
 			info['ext'] = info['url'].rpartition('.')[2]
@@ -3389,11 +3362,6 @@ class XVideosIE(InfoExtractor):
 	def report_extraction(self, video_id):
 		"""Report information extraction."""
 		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
-
-	def _simplify_title(self, title):
-		res = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', title)
-		res = res.strip(ur'_')
-		return res
 
 	def _real_extract(self, url):
 		htmlParser = HTMLParser.HTMLParser()
@@ -3448,7 +3416,7 @@ class XVideosIE(InfoExtractor):
 			'uploader': None,
 			'upload_date': None,
 			'title': video_title,
-			'stitle': self._simplify_title(video_title),
+			'stitle': _simplify_title(video_title),
 			'ext': 'flv',
 			'format': 'flv',
 			'thumbnail': video_thumbnail,
@@ -3574,11 +3542,6 @@ class InfoQIE(InfoExtractor):
 		"""Report information extraction."""
 		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
 
-	def _simplify_title(self, title):
-		res = re.sub(ur'(?u)([^%s]+)' % simple_title_chars, ur'_', title)
-		res = res.strip(ur'_')
-		return res
-
 	def _real_extract(self, url):
 		htmlParser = HTMLParser.HTMLParser()
 
@@ -3630,7 +3593,7 @@ class InfoQIE(InfoExtractor):
 			'uploader': None,
 			'upload_date': None,
 			'title': video_title,
-			'stitle': self._simplify_title(video_title),
+			'stitle': _simplify_title(video_title),
 			'ext': extension,
 			'format': extension, # Extension is always(?) mp4, but seems to be flv
 			'thumbnail': None,
