@@ -3186,7 +3186,7 @@ class ComedyCentralIE(InfoExtractor):
 				'uploader': showId,
 				'upload_date': officialDate,
 				'title': effTitle,
-				'stitle': self._simplify_title(effTitle),
+				'stitle': _simplify_title(effTitle),
 				'ext': 'mp4',
 				'format': format,
 				'thumbnail': None,
