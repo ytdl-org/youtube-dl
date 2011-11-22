@@ -17,7 +17,7 @@ __author__  = (
 	)
 
 __license__ = 'Public Domain'
-__version__ = '2011.11.21'
+__version__ = '2011.11.22'
 
 UPDATE_URL = 'https://raw.github.com/rg3/youtube-dl/master/youtube-dl'
 
