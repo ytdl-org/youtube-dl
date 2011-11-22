@@ -3507,7 +3507,7 @@ class SoundcloudIE(InfoExtractor):
 		if mobj:
 			try:
 				upload_date = datetime.datetime.strptime(mobj.group(1), '%B %d, %Y %H:%M').strftime('%Y%m%d')
-			except Exception as e:
+			except Exception, e:
 				print str(e)
 
 		# for soundcloud, a request to a cross domain is required for cookies
