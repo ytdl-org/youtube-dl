@@ -2711,42 +2711,56 @@ class DepositFilesIE(InfoExtractor):
 class MixcloudIE(InfoExtractor):
 	"""Information extractor for www.mixcloud.com"""
 	_VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/([\w\d-]+)/([\w\d-]+)'
-	_IE_NAME = u'mixcloud'
+	IE_NAME = u'mixcloud'
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
 
-	def report_download_webpage(self, file_id):
-		"""Report webpage download."""
-		self._downloader.to_screen(u'[Mixcloud] Downloading json')
+	def report_download_json(self, file_id):
+		"""Report JSON download."""
+		self._downloader.to_screen(u'[%s] Downloading json' % self.IE_NAME)
 
 	def report_extraction(self, file_id):
 		"""Report information extraction."""
-		self._downloader.to_screen(u'[Mixcloud] %s: Extracting information' % file_id)
+		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, file_id))
 
-	def check_url(self, url_list):
-		for file_url in url_list:
+	def get_urls(self, jsonData, fmt, bitrate='best'):
+		"""Get urls from 'audio_formats' section in json"""
+		file_url = None
+		try:
+			bitrate_list = jsonData[fmt]
+			if bitrate is None or bitrate == 'best' or bitrate not in bitrate_list:
+				bitrate = max(bitrate_list) # select highest
+
+			url_list = jsonData[fmt][bitrate]
+		except TypeError: # we have no bitrate info.
+			url_list = jsonData[fmt]
+				
+		return url_list
+			
+	def check_urls(self, url_list):
+		"""Returns 1st active url from list"""
+		for url in url_list:
 			try:
-				urllib2.urlopen(file_url)
-				return file_url
-			except urllib2.HTTPError, err:
-				print '[ww] "%s" (%u)' % (file_url, err.code)
-				file_url = None
-		return None
+				urllib2.urlopen(url)
+				return url
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				url = None
 
-	def _real_initialize(self):
-		return
+		return None
 
 	def _print_formats(self, formats):
 		print 'Available formats:'
 		for fmt in formats.keys():
 			for b in formats[fmt]:
-				if fmt == 'mp3':
-					print '%s\t%s\t[%s]' % (fmt, '??', ext.split('.')[-1])
-					break
-				else:
+				try:
 					ext = formats[fmt][b][0]
 					print '%s\t%s\t[%s]' % (fmt, b, ext.split('.')[-1])
+				except TypeError: # we have no bitrate info
+					ext = formats[fmt][0]
+					print '%s\t%s\t[%s]' % (fmt, '??', ext.split('.')[-1])
+					break
+
 	def _real_extract(self, url):
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
@@ -2754,23 +2768,21 @@ class MixcloudIE(InfoExtractor):
 			return
 		# extract uploader & filename from url
 		uploader = mobj.group(1).decode('utf-8')
-		slug_title = mobj.group(2).decode('utf-8')
+		file_id = uploader + "-" + mobj.group(2).decode('utf-8')
 
 		# construct API request
 		file_url = 'http://www.mixcloud.com/api/1/cloudcast/' + '/'.join(url.split('/')[-3:-1]) + '.json'
 		# retrieve .json file with links to files
 		request = urllib2.Request(file_url)
 		try:
-			self.report_download_webpage(file_url)
-			webpage = urllib2.urlopen(request).read()
+			self.report_download_json(file_url)
+			jsonData = urllib2.urlopen(request).read()
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 			self._downloader.trouble(u'ERROR: Unable to retrieve file: %s' % str(err))
 			return
 
 		# parse JSON
-		json_data = json.loads(webpage)
-		title = json_data['name']
-		file_id = json_data['id']
+		json_data = json.loads(jsonData)
 		player_url = json_data['player_swf_url']
 		formats = dict(json_data['audio_formats'])
 
@@ -2783,71 +2795,32 @@ class MixcloudIE(InfoExtractor):
 
 		if req_format is None or req_format == 'best':
 			for format_param in formats.keys():
-				if type(formats[format_param]) == dict:
-					bitrate_list = formats[format_param]
-					bitrate = max(bitrate_list)
-					url_list = formats[format_param][bitrate]
-				else: # we have no bitrate choice.
-					url_list = formats[format_param]
-
+				url_list = self.get_urls(formats, format_param)
 				# check urls
-				file_url = self.check_url(url_list)
+				file_url = self.check_urls(url_list)
 				if file_url is not None:
 					break # got it!
-
-		elif req_format == 'aac': # user choose aac
+		else:
 			if req_format not in formats.keys():
 				self._downloader.trouble(u'ERROR: format is not available')
 				return
-			format_param = 'aac'
-			if type(formats[format_param]) == dict:
-				bitrate_list = sorted(formats[format_param], reverse=True)
-				for bitrate in bitrate_list:
-					url_list = formats[format_param][bitrate]
-					file_url = self.check_url(url_list)
-					if file_url is not None:
-						break
 
-		elif req_format == 'm4a': # user choose m4a
-			if req_format not in formats.keys():
-				self._downloader.trouble(u'ERROR: format is not available')
-				return
-			format_param = 'm4a'
-			if type(formats[format_param]) == dict:
-				bitrate_list = sorted(formats[format_param], reverse=True)
-				for bitrate in bitrate_list:
-					url_list = formats[format_param][bitrate]
-					file_url = self.check_url(url_list)
-					if file_url is not None:
-						break
+			url_list = self.get_urls(formats, req_format)
+			file_url = self.check_urls(url_list)
+			format_param = req_format
 
-		elif req_format == 'mp3': # user choose mp3
-			if req_format not in formats.keys():
-				self._downloader.trouble(u'ERROR: format is not available')
-				return
-			format_param = 'mp3'
-			url_list = formats[format_param]
-			file_url = self.check_url(url_list)
-
-		if file_url is None:
-			self._downloader.trouble(u'ERROR: unable to download file')
-			return
-
-		# print 'selected format: %s %skbps' % (format_param, (bitrate is None and u'NA' or bitrate))
-		# we have audio
+		# We have audio
 		self._downloader.increment_downloads()
-		file_extension = file_url.split('.')[-1]
-
 		try:
 			# Process file information
 			self._downloader.process_info({
-				'id':		slug_title.decode('utf-8'), #str(file_id).decode('utf-8'),
+				'id':		file_id.decode('utf-8'),
 				'url':		file_url.decode('utf-8'),
 				'uploader':	uploader.decode('utf-8'),
 				'upload_date':	u'NA',
-				'title':	title,
-				'stitle':	slug_title,
-				'ext':		file_extension.decode('utf-8'),
+				'title':	json_data['name'],
+				'stitle':	json_data['name'],
+				'ext':		file_url.split('.')[-1].decode('utf-8'),
 				'format':	(format_param is None and u'NA' or format_param.decode('utf-8')),
 				'thumbnail':    json_data['thumbnail_url'],
 				'description':  json_data['description'],
