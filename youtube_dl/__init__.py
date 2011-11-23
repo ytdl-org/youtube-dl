@@ -17,7 +17,7 @@ __author__  = (
 	)
 
 __license__ = 'Public Domain'
-__version__ = '2011.11.22'
+__version__ = '2011.11.23'
 
 UPDATE_URL = 'https://raw.github.com/rg3/youtube-dl/master/youtube-dl'
 
@@ -2014,7 +2014,7 @@ class VimeoIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract video title')
 			return
 		video_title = mobj.group(1).decode('utf-8')
-		simple_title = _simple_title(video_title)
+		simple_title = _simplify_title(video_title)
 
 		# Extract uploader
 		mobj = re.search(r'<uploader_url>http://vimeo.com/(.*?)</uploader_url>', webpage)
