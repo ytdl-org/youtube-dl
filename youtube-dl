@@ -14,6 +14,7 @@ __author__  = (
 	'Sören Schulze',
 	'Kevin Ngo',
 	'Ori Avtalion',
+	'shizeeg',
 	)
 
 __license__ = 'Public Domain'
