@@ -3637,7 +3637,7 @@ class MixcloudIE(InfoExtractor):
 			url_list = jsonData[fmt]
 				
 		return url_list
-			
+
 	def check_urls(self, url_list):
 		"""Returns 1st active url from list"""
 		for url in url_list:
@@ -3728,6 +3728,8 @@ class MixcloudIE(InfoExtractor):
 			})
 		except UnavailableVideoError, err:
 			self._downloader.trouble(u'ERROR: unable to download file')
+
+
 
 class PostProcessor(object):
 	"""Post Processor class.
