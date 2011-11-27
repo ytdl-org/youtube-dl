@@ -28,6 +28,7 @@ which means you can modify it, redistribute it or use it however you like.
                              sub-string)
     --reject-title REGEX     skip download for matching titles (regex or
                              caseless sub-string)
+    --max-downloads NUMBER   Abort after downloading NUMBER files
 
 ### Filesystem Options:
     -t, --title              use title in file name

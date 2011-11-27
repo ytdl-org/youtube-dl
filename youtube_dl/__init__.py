@@ -14,6 +14,7 @@ __author__  = (
 	'Sören Schulze',
 	'Kevin Ngo',
 	'Ori Avtalion',
+	'shizeeg',
 	)
 
 __license__ = 'Public Domain'
@@ -700,6 +701,13 @@ class FileDownloader(object):
 
 	def process_info(self, info_dict):
 		"""Process a single dictionary returned by an InfoExtractor."""
+
+		max_downloads = int(self.params.get('max_downloads'))
+		if max_downloads is not None:
+			if self._num_downloads > max_downloads:
+				self.to_screen(u'[download] Maximum number of downloads reached. Skipping ' + info_dict['title'])
+				return
+		
 		filename = self.prepare_filename(info_dict)
 		
 		# Forced printings
@@ -3996,6 +4004,7 @@ def parseOpts():
 			dest='playlistend', metavar='NUMBER', help='playlist video to end at (default is last)', default=-1)
 	selection.add_option('--match-title', dest='matchtitle', metavar='REGEX',help='download only matching titles (regex or caseless sub-string)')
 	selection.add_option('--reject-title', dest='rejecttitle', metavar='REGEX',help='skip download for matching titles (regex or caseless sub-string)')
+	selection.add_option('--max-downloads', metavar='NUMBER', dest='max_downloads', help='Abort after downloading NUMBER files', default=None)
 
 	authentication.add_option('-u', '--username',
 			dest='username', metavar='USERNAME', help='account username')
@@ -4265,6 +4274,7 @@ def _real_main():
 		'writeinfojson': opts.writeinfojson,
 		'matchtitle': opts.matchtitle,
 		'rejecttitle': opts.rejecttitle,
+		'max_downloads': int(opts.max_downloads),
 		})
 	for extractor in extractors:
 		fd.add_info_extractor(extractor)
