@@ -702,8 +702,9 @@ class FileDownloader(object):
 		"""Process a single dictionary returned by an InfoExtractor."""
 		filename = self.prepare_filename(info_dict)
 
-                # Stop downloading at max_files
-                if int(self._num_downloads) > int(self.params.get('max_files', 0)):
+                # Stop downloading at max_files (0 means no limit)
+                if int(self.params.get('max_files', 0)) != 0 and \
+                    (int(self._num_downloads) > int(self.params.get('max_files', 0))):
                    return
 
 		# Forced printings
