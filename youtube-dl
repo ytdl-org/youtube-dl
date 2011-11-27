@@ -701,7 +701,12 @@ class FileDownloader(object):
 	def process_info(self, info_dict):
 		"""Process a single dictionary returned by an InfoExtractor."""
 		filename = self.prepare_filename(info_dict)
-		
+
+                # Stop downloading at max_downloads (negative means no limit)
+                if int(self.params.get('max_downloads', -1)) >= 0 and \
+                    int(self._num_downloads) > int(self.params.get('max_downloads', -1)):
+                   return
+
 		# Forced printings
 		if self.params.get('forcetitle', False):
 			print info_dict['title'].encode(preferredencoding(), 'xmlcharrefreplace')
@@ -3996,6 +4001,8 @@ def parseOpts():
 			dest='playlistend', metavar='NUMBER', help='playlist video to end at (default is last)', default=-1)
 	selection.add_option('--match-title', dest='matchtitle', metavar='REGEX',help='download only matching titles (regex or caseless sub-string)')
 	selection.add_option('--reject-title', dest='rejecttitle', metavar='REGEX',help='skip download for matching titles (regex or caseless sub-string)')
+	selection.add_option('--max-downloads', metavar='NUMBER',
+			dest='max_downloads', help='Maximum number of files to download, -1 means no limit', default=-1)
 
 	authentication.add_option('-u', '--username',
 			dest='username', metavar='USERNAME', help='account username')
@@ -4075,7 +4082,6 @@ def parseOpts():
 	filesystem.add_option('--write-info-json',
 			action='store_true', dest='writeinfojson',
 			help='write video metadata to a .info.json file', default=False)
-
 
 	postproc.add_option('--extract-audio', action='store_true', dest='extractaudio', default=False,
 			help='convert video files to audio-only files (requires ffmpeg and ffprobe)')
@@ -4265,6 +4271,7 @@ def _real_main():
 		'writeinfojson': opts.writeinfojson,
 		'matchtitle': opts.matchtitle,
 		'rejecttitle': opts.rejecttitle,
+		'max_downloads': opts.max_downloads,
 		})
 	for extractor in extractors:
 		fd.add_info_extractor(extractor)
