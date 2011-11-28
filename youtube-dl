@@ -702,9 +702,9 @@ class FileDownloader(object):
 	def process_info(self, info_dict):
 		"""Process a single dictionary returned by an InfoExtractor."""
 
-		max_downloads = int(self.params.get('max_downloads'))
+		max_downloads = self.params.get('max_downloads')
 		if max_downloads is not None:
-			if self._num_downloads > max_downloads:
+			if self._num_downloads > int(max_downloads):
 				self.to_screen(u'[download] Maximum number of downloads reached. Skipping ' + info_dict['title'])
 				return
 		
@@ -3924,6 +3924,20 @@ def parseOpts():
 	# Deferred imports
 	import getpass
 	import optparse
+	import shlex
+
+	def _readOptions(filename):
+		try:
+			optionf = open(filename)
+		except IOError:
+			return [] # silently skip if file is not present
+		try:
+			res = []
+			for l in optionf:
+				res += shlex.split(l, comments=True)
+		finally:
+			optionf.close()
+		return res
 
 	def _format_option_string(option):
 		''' ('-o', '--option') -> -o, --format METAVAR'''
@@ -4104,7 +4118,8 @@ def parseOpts():
 	parser.add_option_group(authentication)
 	parser.add_option_group(postproc)
 
-	opts, args = parser.parse_args()
+	argv = _readOptions('/etc/youtube-dl.conf') + _readOptions(os.path.expanduser('~/.youtube-dl.conf')) + sys.argv[1:]
+	opts, args = parser.parse_args(argv)
 
 	return parser, opts, args
 
@@ -4274,7 +4289,7 @@ def _real_main():
 		'writeinfojson': opts.writeinfojson,
 		'matchtitle': opts.matchtitle,
 		'rejecttitle': opts.rejecttitle,
-		'max_downloads': int(opts.max_downloads),
+		'max_downloads': opts.max_downloads,
 		})
 	for extractor in extractors:
 		fd.add_info_extractor(extractor)
