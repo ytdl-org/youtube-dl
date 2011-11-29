@@ -4125,7 +4125,12 @@ def parseOpts():
 	parser.add_option_group(authentication)
 	parser.add_option_group(postproc)
 
-	argv = _readOptions('/etc/youtube-dl.conf') + _readOptions(os.path.expanduser('~/.youtube-dl.conf')) + sys.argv[1:]
+	xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
+	if xdg_config_home:
+		userConf = os.path.join(xdg_config_home, 'youtube-dl.conf')
+	else:
+		userConf = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
+	argv = _readOptions('/etc/youtube-dl.conf') + _readOptions(userConf) + sys.argv[1:]
 	opts, args = parser.parse_args(argv)
 
 	return parser, opts, args
