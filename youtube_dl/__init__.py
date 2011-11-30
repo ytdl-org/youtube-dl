@@ -3623,6 +3623,84 @@ class InfoQIE(InfoExtractor):
 		except UnavailableVideoError, err:
 			self._downloader.trouble(u'\nERROR: unable to download ' + video_url)
 
+class OpenClassroomIE(InfoExtractor):
+	"""Information extractor for openclassroom.stanford.edu"""
+	_VALID_URL = r'^(?:https?://)?openclassroom\.stanford\.edu/([\w\d-]+)/(?:[\w\d-]+).*\?course=(.*)&video=(.*)&'
+	IE_NAME = u'openclassroom'
+
+	def __init__(self, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+
+	def report_download_xml(self, file_id):
+		"""Report XML download"""
+		self._downloader.to_screen(u'[%s] Downloading xml %s' % (self.IE_NAME, file_id))
+
+	def _real_extract(self, url):
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+			return
+
+		section = mobj.group(1)
+		course = mobj.group(2)
+		file_id = mobj.group(3)
+
+		# fetch xml first
+		file_url = 'http://openclassroom.stanford.edu/%s/courses/%s/videos/%s' % (section, course, file_id) + '.xml'
+		request = urllib2.Request(file_url)
+		try:
+			self.report_download_xml(file_id)
+			xmlData = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: Unable to retrieve xml: %s' % str(err))
+			return
+
+		# parse xml
+		try:
+			mobj = re.search(r'<title>(.*)</title>', xmlData)
+			title = mobj.group(1)
+		except:
+			self._downloader.screen_to(u'WARNING: unable to extract title')
+
+		description = u'(no description)'
+		try:
+			rx = re.compile(r'<text>(.*)</text>', re.DOTALL)
+			mobj = re.search(rx, xmlData)
+			description = mobj.group(1)
+			description = description.replace('<![CDATA[', '').replace(']]>', '')\
+			    .replace('<p>', '').replace('</p>', '').replace('<br>', '\n')
+			description = description.replace('  ', '').strip()
+
+		except:
+			pass
+		try:
+			mobj = re.search(r'<videoFile>(.*)</videoFile>', xmlData)
+			video_id = mobj.group(1)
+			ext = video_id.split('.')[-1]
+		except:
+			self._downloader.trouble(u'ERROR: unable to extract video id')
+			ext = '.flv'
+			video_id = file_id + ext # we have no video id, so try to guess from &video= in url
+
+		file_url = 'http://openclassroom.stanford.edu/%s/courses/%s/videos/%s' % (section, course, video_id)
+		self._downloader.increment_downloads()
+		try:
+			# Process file information
+			self._downloader.process_info({
+				'id':		file_id.decode('utf-8'),
+				'url':		file_url.decode('utf-8'),
+				'uploader':	u'NA',
+				'upload_date':	u'NA',
+				'title':	title.decode('utf-8'),
+				'stitle':	_simplify_title(title.decode('utf-8')),
+				'ext':		ext.decode('utf-8'),
+				'format':	ext.decode('utf-8').upper(),
+				'description':  description,
+			})
+		except UnavailableVideoError, err:
+			self._downloader.trouble(u'ERROR: unable to download video')
+
+
 class MixcloudIE(InfoExtractor):
 	"""Information extractor for www.mixcloud.com"""
 	_VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/([\w\d-]+)/([\w\d-]+)'
@@ -4166,6 +4244,7 @@ def gen_extractors():
 		SoundcloudIE(),
 		InfoQIE(),
 		MixcloudIE(),
+		OpenClassroomIE(),
 
 		GenericIE()
 	]
