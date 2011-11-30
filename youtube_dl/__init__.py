@@ -711,6 +711,25 @@ class FileDownloader(object):
 			return u'"' + title + '" title matched reject pattern "' + rejecttitle + '"'
 		return None
 
+	def process_dict(self, info_dict):
+		""" Download and handle the extracted information.
+		For details on the specification of the various types of content, refer to the _process_* functions. """
+		if info_dict['type'] == 'playlist':
+			self._process_playlist(info_dict)
+		elif info_dict['type'] == 'legacy-video':
+			self.process_info(info_dict)
+		else:
+			raise ValueError('Invalid item type')
+
+	def _process_playlist(self, info_dict):
+		assert info_dict['type'] == 'playlist'
+		assert 'title' in info_dict
+		assert 'stitle' in info_dict
+		entries = info_dict['list']
+
+		for e in entries:
+			self.process_dict(e)
+
 	def process_info(self, info_dict):
 		"""Process a single dictionary returned by an InfoExtractor."""
 
@@ -3744,6 +3763,59 @@ class MixcloudIE(InfoExtractor):
 		except UnavailableVideoError, err:
 			self._downloader.trouble(u'ERROR: unable to download file')
 
+class StanfordOpenClassroomIE(InfoExtractor):
+	"""Information extractor for Stanford's Open ClassRoom"""
+
+	_VALID_URL = r'^(?:https?://)?openclassroom.stanford.edu(?P<path>/|(/MainFolder/(?:HomePage|CoursePage|VideoPage)\.php([?]course=(?P<course>[^&]+)(&video=(?P<video>[^&]+))?(&.*)?)?))$'
+	IE_NAME = u'stanfordoc'
+
+	def report_extraction(self, video_id):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+
+	def _real_extract(self, url):
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+			return
+
+		if mobj.group('course') and mobj.group('video'): # A specific video
+			course = mobj.group('course')
+			video = mobj.group('video')
+			info = {
+				'id': _simplify_title(course + '_' + video),
+			}
+	
+			self.report_extraction(info['id'])
+			baseUrl = 'http://openclassroom.stanford.edu/MainFolder/courses/' + course + '/videos/'
+			xmlUrl = baseUrl + video + '.xml'
+			try:
+				metaXml = urllib2.urlopen(xmlUrl).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'ERROR: unable to download video info XML: %s' % str(err))
+				return
+			mdoc = xml.etree.ElementTree.fromstring(metaXml)
+			try:
+				info['title'] = mdoc.findall('./title')[0].text
+				info['url'] = baseUrl + mdoc.findall('./videoFile')[0].text
+			except IndexError:
+				self._downloader.trouble(u'\nERROR: Invalid metadata XML file')
+				return
+			info['stitle'] = _simplify_title(info['title'])
+			info['ext'] = info['url'].rpartition('.')[2]
+			info['format'] = info['ext']
+			self._downloader.increment_downloads()
+			try:
+				self._downloader.process_info(info)
+			except UnavailableVideoError, err:
+				self._downloader.trouble(u'\nERROR: unable to download video')
+		else:
+			print('TODO: Not yet implemented')
+			1/0
+
+
+
+
 
 
 class PostProcessor(object):
@@ -4166,6 +4238,7 @@ def gen_extractors():
 		SoundcloudIE(),
 		InfoQIE(),
 		MixcloudIE(),
+		StanfordOpenClassroomIE(),
 
 		GenericIE()
 	]
