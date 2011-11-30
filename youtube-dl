@@ -1618,7 +1618,7 @@ class DailymotionIE(InfoExtractor):
 
 		video_url = mediaURL
 
-		mobj = re.search(r'(?im)<title>Dailymotion\s*-\s*(.+)\s*-\s*[^<]+?</title>', webpage)
+		mobj = re.search(r'(?im)<title>\s*(.+)\s*-\s*Video\s+Dailymotion</title>', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract title')
 			return
