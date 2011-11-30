@@ -3794,14 +3794,14 @@ class PostProcessor(object):
 
 
 class FFmpegExtractAudioPP(PostProcessor):
-
-	def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, keepvideo=False):
+	def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, keepvideo=False, isformat=None):
 		PostProcessor.__init__(self, downloader)
 		if preferredcodec is None:
 			preferredcodec = 'best'
 		self._preferredcodec = preferredcodec
 		self._preferredquality = preferredquality
 		self._keepvideo = keepvideo
+		self._isformat = isformat
 
 	@staticmethod
 	def get_audio_codec(path):
@@ -3867,8 +3867,12 @@ class FFmpegExtractAudioPP(PostProcessor):
 			if self._preferredcodec == 'vorbis':
 				extension = 'ogg'
 
-		(prefix, ext) = os.path.splitext(path)
-		new_path = prefix + '.' + extension
+		if self._isformat:
+			new_path = path + '.' + extension
+		else:
+			(prefix, ext) = os.path.splitext(path)
+			new_path = prefix + '.' + extension
+
 		self._downloader.to_screen(u'[ffmpeg] Destination: %s' % new_path)
 		status = self.run_ffmpeg(path, new_path, acodec, more_opts)
 
@@ -4308,7 +4312,7 @@ def _real_main():
 
 	# PostProcessors
 	if opts.extractaudio:
-		fd.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, keepvideo=opts.keepvideo))
+		fd.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, keepvideo=opts.keepvideo, isformat=opts.outtmpl))
 
 	# Update version
 	if opts.update_self:
