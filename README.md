@@ -18,7 +18,7 @@ which means you can modify it, redistribute it or use it however you like.
     -r, --rate-limit LIMIT   download rate limit (e.g. 50k or 44.6m)
     -R, --retries RETRIES    number of retries (default is 10)
     --dump-user-agent        display the current browser identification
-    --list-extractors        List all supported extractors and the URLs they
+    --list-extractors        list all supported extractors and the URLs they
                              would handle
 
 ### Video Selection:
@@ -28,7 +28,7 @@ which means you can modify it, redistribute it or use it however you like.
                              sub-string)
     --reject-title REGEX     skip download for matching titles (regex or
                              caseless sub-string)
-    --max-downloads NUMBER   Abort after downloading NUMBER files
+    --max-downloads NUMBER   download a maximum of NUMBER files
 
 ### Filesystem Options:
     -t, --title              use title in file name
