@@ -10,9 +10,11 @@ update-readme:
 		header=$$(sed -e '/.*## OPTIONS/,$$ d' README.md) && \
 		footer=$$(sed -e '1,/.*## FAQ/ d' README.md) && \
 		echo "$${header}" > README.md && \
-		echo -e '\n## OPTIONS' >> README.md && \
+		echo >> README.md && \
+		echo '## OPTIONS' >> README.md && \
 		echo "$${options}" >> README.md&& \
-		echo -e '\n## FAQ' >> README.md && \
+		echo >> README.md && \
+		echo '## FAQ' >> README.md && \
 		echo "$${footer}" >> README.md
 
 compile:
