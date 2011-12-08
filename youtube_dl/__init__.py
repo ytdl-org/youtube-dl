@@ -3968,8 +3968,13 @@ class FFmpegExtractAudioPP(PostProcessor):
 			return None
 
 		more_opts = []
-		if self._preferredcodec == 'best' or self._preferredcodec == filecodec:
-			if filecodec in ['aac', 'mp3', 'vorbis']:
+		if self._preferredcodec == 'best' or self._preferredcodec == filecodec or (self._preferredcodec == 'm4a' and filecodec == 'aac'):
+			if self._preferredcodec == 'm4a' and filecodec == 'aac':
+				# Lossless, but in another container
+				acodec = 'copy'
+				extension = self._preferredcodec
+				more_opts = ['-absf', 'aac_adtstoasc']
+			elif filecodec in ['aac', 'mp3', 'vorbis']:
 				# Lossless if possible
 				acodec = 'copy'
 				extension = filecodec
@@ -3986,13 +3991,15 @@ class FFmpegExtractAudioPP(PostProcessor):
 					more_opts += ['-ab', self._preferredquality]
 		else:
 			# We convert the audio (lossy)
-			acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'vorbis': 'libvorbis'}[self._preferredcodec]
+			acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'm4a': 'aac', 'vorbis': 'libvorbis'}[self._preferredcodec]
 			extension = self._preferredcodec
 			more_opts = []
 			if self._preferredquality is not None:
 				more_opts += ['-ab', self._preferredquality]
 			if self._preferredcodec == 'aac':
 				more_opts += ['-f', 'adts']
+			if self._preferredcodec == 'm4a':
+				more_opts += ['-absf', 'aac_adtstoasc']
 			if self._preferredcodec == 'vorbis':
 				extension = 'ogg'
 
@@ -4239,7 +4246,7 @@ def parseOpts():
 	postproc.add_option('--extract-audio', action='store_true', dest='extractaudio', default=False,
 			help='convert video files to audio-only files (requires ffmpeg and ffprobe)')
 	postproc.add_option('--audio-format', metavar='FORMAT', dest='audioformat', default='best',
-			help='"best", "aac", "vorbis" or "mp3"; best by default')
+			help='"best", "aac", "vorbis", "mp3", or "m4a"; best by default')
 	postproc.add_option('--audio-quality', metavar='QUALITY', dest='audioquality', default='128K',
 			help='ffmpeg audio bitrate specification, 128k by default')
 	postproc.add_option('-k', '--keep-video', action='store_true', dest='keepvideo', default=False,
@@ -4385,7 +4392,7 @@ def _real_main():
 	except (TypeError, ValueError), err:
 		parser.error(u'invalid playlist end number specified')
 	if opts.extractaudio:
-		if opts.audioformat not in ['best', 'aac', 'mp3', 'vorbis']:
+		if opts.audioformat not in ['best', 'aac', 'mp3', 'vorbis', 'm4a']:
 			parser.error(u'invalid audio format specified')
 
 	# File downloader
