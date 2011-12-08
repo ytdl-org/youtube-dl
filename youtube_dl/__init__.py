@@ -1121,6 +1121,7 @@ class YoutubeIE(InfoExtractor):
 	_NETRC_MACHINE = 'youtube'
 	# Listed in order of quality
 	_available_formats = ['38', '37', '22', '45', '35', '44', '34', '18', '43', '6', '5', '17', '13']
+	_available_formats_prefer_free = ['38', '37', '45', '22', '44', '35', '43', '34', '18', '6', '5', '17', '13']
 	_video_extensions = {
 		'13': '3gp',
 		'17': 'mp4',
@@ -1370,10 +1371,11 @@ class YoutubeIE(InfoExtractor):
 			url_map = dict((ud['itag'][0], ud['url'][0]) for ud in url_data)
 
 			format_limit = self._downloader.params.get('format_limit', None)
-			if format_limit is not None and format_limit in self._available_formats:
-				format_list = self._available_formats[self._available_formats.index(format_limit):]
+			available_formats = self._available_formats_prefer_free if self._downloader.params.get('prefer_free_formats', False) else self._available_formats
+			if format_limit is not None and format_limit in available_formats:
+				format_list = available_formats[available_formats.index(format_limit):]
 			else:
-				format_list = self._available_formats
+				format_list = available_formats
 			existing_formats = [x for x in format_list if x in url_map]
 			if len(existing_formats) == 0:
 				self._downloader.trouble(u'ERROR: no known formats available for video')
@@ -4175,6 +4177,8 @@ def parseOpts():
 			action='store', dest='format', metavar='FORMAT', help='video format code')
 	video_format.add_option('--all-formats',
 			action='store_const', dest='format', help='download all available video formats', const='all')
+	video_format.add_option('--prefer-free-formats',
+			action='store_true', dest='prefer_free_formats', default=False, help='prefer free video formats unless a specific one is requested')
 	video_format.add_option('--max-quality',
 			action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
 	video_format.add_option('-F', '--list-formats',
@@ -4439,6 +4443,7 @@ def _real_main():
 		'matchtitle': opts.matchtitle,
 		'rejecttitle': opts.rejecttitle,
 		'max_downloads': opts.max_downloads,
+		'prefer_free_formats': opts.prefer_free_formats,
 		})
 	for extractor in extractors:
 		fd.add_info_extractor(extractor)
