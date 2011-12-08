@@ -317,6 +317,10 @@ class PostProcessingError(Exception):
 	"""
 	pass
 
+class MaxDownloadsReached(Exception):
+	""" --max-downloads limit has been reached. """
+	pass
+
 
 class UnavailableVideoError(Exception):
 	"""Unavailable Format exception.
@@ -730,8 +734,7 @@ class FileDownloader(object):
 		max_downloads = self.params.get('max_downloads')
 		if max_downloads is not None:
 			if self._num_downloads > int(max_downloads):
-				self.to_screen(u'[download] Maximum number of downloads reached. Skipping ' + info_dict['title'])
-				return
+				raise MaxDownloadsReached()
 
 		filename = self.prepare_filename(info_dict)
 		
@@ -4447,7 +4450,12 @@ def _real_main():
 			parser.error(u'you must provide at least one URL')
 		else:
 			sys.exit()
-	retcode = fd.download(all_urls)
+	
+	try:
+		retcode = fd.download(all_urls)
+	except MaxDownloadsReached:
+		fd.to_screen(u'--max-download limit reached, aborting.')
+		retcode = 101
 
 	# Dump cookie jar if requested
 	if opts.cookiefile is not None:
