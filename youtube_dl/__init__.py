@@ -282,6 +282,14 @@ def _simplify_title(title):
 	expr = re.compile(ur'[^\w\d_\-]+', flags=re.UNICODE)
 	return expr.sub(u'_', title).strip(u'_')
 
+def _orderedSet(iterable):
+	""" Remove all duplicates from the input iterable """
+	res = []
+	for el in iterable:
+		if el not in res:
+			res.append(el)
+	return res
+
 class DownloadError(Exception):
 	"""Download Error exception.
 
@@ -710,25 +718,6 @@ class FileDownloader(object):
 		if rejecttitle and re.search(rejecttitle, title, re.IGNORECASE):
 			return u'"' + title + '" title matched reject pattern "' + rejecttitle + '"'
 		return None
-
-	def process_dict(self, info_dict):
-		""" Download and handle the extracted information.
-		For details on the specification of the various types of content, refer to the _process_* functions. """
-		if info_dict['type'] == 'playlist':
-			self._process_playlist(info_dict)
-		elif info_dict['type'] == 'legacy-video':
-			self.process_info(info_dict)
-		else:
-			raise ValueError('Invalid item type')
-
-	def _process_playlist(self, info_dict):
-		assert info_dict['type'] == 'playlist'
-		assert 'title' in info_dict
-		assert 'stitle' in info_dict
-		entries = info_dict['list']
-
-		for e in entries:
-			self.process_dict(e)
 
 	def process_info(self, info_dict):
 		"""Process a single dictionary returned by an InfoExtractor."""
@@ -3766,8 +3755,12 @@ class MixcloudIE(InfoExtractor):
 class StanfordOpenClassroomIE(InfoExtractor):
 	"""Information extractor for Stanford's Open ClassRoom"""
 
-	_VALID_URL = r'^(?:https?://)?openclassroom.stanford.edu(?P<path>/|(/MainFolder/(?:HomePage|CoursePage|VideoPage)\.php([?]course=(?P<course>[^&]+)(&video=(?P<video>[^&]+))?(&.*)?)?))$'
+	_VALID_URL = r'^(?:https?://)?openclassroom.stanford.edu(?P<path>/?|(/MainFolder/(?:HomePage|CoursePage|VideoPage)\.php([?]course=(?P<course>[^&]+)(&video=(?P<video>[^&]+))?(&.*)?)?))$'
 	IE_NAME = u'stanfordoc'
+
+	def report_download_webpage(self, objid):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, objid))
 
 	def report_extraction(self, video_id):
 		"""Report information extraction."""
@@ -3792,7 +3785,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			try:
 				metaXml = urllib2.urlopen(xmlUrl).read()
 			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-				self._downloader.trouble(u'ERROR: unable to download video info XML: %s' % str(err))
+				self._downloader.trouble(u'ERROR: unable to download video info XML: %s' % unicode(err))
 				return
 			mdoc = xml.etree.ElementTree.fromstring(metaXml)
 			try:
@@ -3809,13 +3802,74 @@ class StanfordOpenClassroomIE(InfoExtractor):
 				self._downloader.process_info(info)
 			except UnavailableVideoError, err:
 				self._downloader.trouble(u'\nERROR: unable to download video')
-		else:
-			print('TODO: Not yet implemented')
-			1/0
+		elif mobj.group('course'): # A course page
+			unescapeHTML = HTMLParser.HTMLParser().unescape
 
+			course = mobj.group('course')
+			info = {
+				'id': _simplify_title(course),
+				'type': 'playlist',
+			}
 
+			self.report_download_webpage(info['id'])
+			try:
+				coursepage = urllib2.urlopen(url).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'ERROR: unable to download course info page: ' + unicode(err))
+				return
 
+			m = re.search('<h1>([^<]+)</h1>', coursepage)
+			if m:
+				info['title'] = unescapeHTML(m.group(1))
+			else:
+				info['title'] = info['id']
+			info['stitle'] = _simplify_title(info['title'])
 
+			m = re.search('<description>([^<]+)</description>', coursepage)
+			if m:
+				info['description'] = unescapeHTML(m.group(1))
+
+			links = _orderedSet(re.findall('<a href="(VideoPage.php\?[^"]+)">', coursepage))
+			info['list'] = [
+				{
+					'type': 'reference',
+					'url': 'http://openclassroom.stanford.edu/MainFolder/' + unescapeHTML(vpage),
+				}
+					for vpage in links]
+
+			for entry in info['list']:
+				assert entry['type'] == 'reference'
+				self.extract(entry['url'])
+		else: # Root page
+			unescapeHTML = HTMLParser.HTMLParser().unescape
+
+			info = {
+				'id': 'Stanford OpenClassroom',
+				'type': 'playlist',
+			}
+
+			self.report_download_webpage(info['id'])
+			rootURL = 'http://openclassroom.stanford.edu/MainFolder/HomePage.php'
+			try:
+				rootpage = urllib2.urlopen(rootURL).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'ERROR: unable to download course info page: ' + unicode(err))
+				return
+
+			info['title'] = info['id']
+			info['stitle'] = _simplify_title(info['title'])
+
+			links = _orderedSet(re.findall('<a href="(CoursePage.php\?[^"]+)">', rootpage))
+			info['list'] = [
+				{
+					'type': 'reference',
+					'url': 'http://openclassroom.stanford.edu/MainFolder/' + unescapeHTML(cpage),
+				}
+					for cpage in links]
+
+			for entry in info['list']:
+				assert entry['type'] == 'reference'
+				self.extract(entry['url'])
 
 
 class PostProcessor(object):
