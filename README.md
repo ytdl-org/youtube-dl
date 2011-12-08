@@ -70,6 +70,8 @@ which means you can modify it, redistribute it or use it however you like.
 ### Video Format Options:
     -f, --format FORMAT      video format code
     --all-formats            download all available video formats
+    --prefer-free-formats    prefer free video formats unless a specific one is
+                             requested
     --max-quality FORMAT     highest quality format to download
     -F, --list-formats       list all available formats (currently youtube only)
 
@@ -81,7 +83,8 @@ which means you can modify it, redistribute it or use it however you like.
 ### Post-processing Options:
     --extract-audio          convert video files to audio-only files (requires
                              ffmpeg and ffprobe)
-    --audio-format FORMAT    "best", "aac", "vorbis" or "mp3"; best by default
+    --audio-format FORMAT    "best", "aac", "vorbis", "mp3", or "m4a"; best by
+                             default
     --audio-quality QUALITY  ffmpeg audio bitrate specification, 128k by default
     -k, --keep-video         keeps the video file on disk after the post-
                              processing; the video is erased by default
