@@ -4171,7 +4171,7 @@ def parseOpts():
 	selection.add_option('--playlist-end',
 			dest='playlistend', metavar='NUMBER', help='playlist video to end at (default is last)', default=-1)
 	selection.add_option('--reverse-order', action='store_true', dest='reverseorder', help='reverse download order for user pages/playlists', default=False)
-	selection.add_option('--match-title', action='store_true', dest='matchtitle', metavar='REGEX', help='download only matching titles (regex or caseless sub-string)')
+	selection.add_option('--match-title', dest='matchtitle', metavar='REGEX',help='download only matching titles (regex or caseless sub-string)')
 	selection.add_option('--reject-title', dest='rejecttitle', metavar='REGEX',help='skip download for matching titles (regex or caseless sub-string)')
 	selection.add_option('--max-downloads', metavar='NUMBER', dest='max_downloads', help='Abort after downloading NUMBER files', default=None)
 
