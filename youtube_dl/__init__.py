@@ -759,10 +759,6 @@ class FileDownloader(object):
 		if filename is None:
 			return
 
-		if self.params.get('nooverwrites', False) and os.path.exists(filename):
-			self.to_stderr(u'WARNING: file exists and will be skipped')
-			return
-
 		try:
 			dn = os.path.dirname(filename)
 			if dn != '' and not os.path.exists(dn):
@@ -804,16 +800,19 @@ class FileDownloader(object):
 				return
 
 		if not self.params.get('skip_download', False):
-			try:
-				success = self._do_download(filename, info_dict)
-			except (OSError, IOError), err:
-				raise UnavailableVideoError
-			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-				self.trouble(u'ERROR: unable to download video data: %s' % str(err))
-				return
-			except (ContentTooShortError, ), err:
-				self.trouble(u'ERROR: content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
-				return
+			if self.params.get('nooverwrites', False) and os.path.exists(filename):
+				success = True
+			else:
+				try:
+					success = self._do_download(filename, info_dict)
+				except (OSError, IOError), err:
+					raise UnavailableVideoError
+				except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+					self.trouble(u'ERROR: unable to download video data: %s' % str(err))
+					return
+				except (ContentTooShortError, ), err:
+					self.trouble(u'ERROR: content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
+					return
 	
 			if success:
 				try:
