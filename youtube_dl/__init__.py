@@ -3924,6 +3924,9 @@ class PostProcessor(object):
 		"""
 		return information # by default, do nothing
 
+class AudioConversionError(BaseException):
+	def __init__(self, message):
+		self.message = message
 
 class FFmpegExtractAudioPP(PostProcessor):
 
@@ -3955,12 +3958,23 @@ class FFmpegExtractAudioPP(PostProcessor):
 
 	@staticmethod
 	def run_ffmpeg(path, out_path, codec, more_opts):
+		if codec is None:
+			acodec_opts = []
+		else:
+			acodec_opts = ['-acodec', codec]
+		cmd = ['ffmpeg', '-y', '-i', path, '-vn'] + acodec_opts + more_opts + ['--', out_path]
 		try:
-			cmd = ['ffmpeg', '-y', '-i', path, '-vn', '-acodec', codec] + more_opts + ['--', out_path]
-			ret = subprocess.call(cmd, stdout=file(os.path.devnull, 'w'), stderr=subprocess.STDOUT)
-			return (ret == 0)
+			p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			stdout,stderr = p.communicate()
 		except (IOError, OSError):
-			return False
+			e = sys.exc_info()[1]
+			if isinstance(e, OSError) and e.errno == 2:
+				raise AudioConversionError('ffmpeg not found. Please install ffmpeg.')
+			else:
+				raise e
+		if p.returncode != 0:
+			msg = stderr.strip().split('\n')[-1]
+			raise AudioConversionError(msg)
 
 	def run(self, information):
 		path = information['filepath']
@@ -3994,7 +4008,7 @@ class FFmpegExtractAudioPP(PostProcessor):
 					more_opts += ['-ab', self._preferredquality]
 		else:
 			# We convert the audio (lossy)
-			acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'm4a': 'aac', 'vorbis': 'libvorbis'}[self._preferredcodec]
+			acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'm4a': 'aac', 'vorbis': 'libvorbis', 'wav': None}[self._preferredcodec]
 			extension = self._preferredcodec
 			more_opts = []
 			if self._preferredquality is not None:
@@ -4005,14 +4019,21 @@ class FFmpegExtractAudioPP(PostProcessor):
 				more_opts += ['-absf', 'aac_adtstoasc']
 			if self._preferredcodec == 'vorbis':
 				extension = 'ogg'
+			if self._preferredcodec == 'wav':
+				extension = 'wav'
+				more_opts += ['-f', 'wav']
 
 		(prefix, ext) = os.path.splitext(path)
 		new_path = prefix + '.' + extension
 		self._downloader.to_screen(u'[ffmpeg] Destination: %s' % new_path)
-		status = self.run_ffmpeg(path, new_path, acodec, more_opts)
-
-		if not status:
-			self._downloader.to_stderr(u'WARNING: error running ffmpeg')
+		try:
+			self.run_ffmpeg(path, new_path, acodec, more_opts)
+		except:
+			etype,e,tb = sys.exc_info()
+			if isinstance(e, AudioConversionError):
+				self._downloader.to_stderr(u'ERROR: audio conversion failed: ' + e.message)
+			else:
+				self._downloader.to_stderr(u'ERROR: error running ffmpeg')
 			return None
 
  		# Try to update the date time for extracted audio file.
@@ -4251,7 +4272,7 @@ def parseOpts():
 	postproc.add_option('--extract-audio', action='store_true', dest='extractaudio', default=False,
 			help='convert video files to audio-only files (requires ffmpeg and ffprobe)')
 	postproc.add_option('--audio-format', metavar='FORMAT', dest='audioformat', default='best',
-			help='"best", "aac", "vorbis", "mp3", or "m4a"; best by default')
+			help='"best", "aac", "vorbis", "mp3", "m4a", or "wav"; best by default')
 	postproc.add_option('--audio-quality', metavar='QUALITY', dest='audioquality', default='128K',
 			help='ffmpeg audio bitrate specification, 128k by default')
 	postproc.add_option('-k', '--keep-video', action='store_true', dest='keepvideo', default=False,
@@ -4397,7 +4418,7 @@ def _real_main():
 	except (TypeError, ValueError), err:
 		parser.error(u'invalid playlist end number specified')
 	if opts.extractaudio:
-		if opts.audioformat not in ['best', 'aac', 'mp3', 'vorbis', 'm4a']:
+		if opts.audioformat not in ['best', 'aac', 'mp3', 'vorbis', 'm4a', 'wav']:
 			parser.error(u'invalid audio format specified')
 
 	# File downloader
