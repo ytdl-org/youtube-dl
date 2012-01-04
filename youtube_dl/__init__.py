@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__author__  = (
+__authors__  = (
 	'Ricardo Garcia Gonzalez',
 	'Danny Colligan',
 	'Benjamin Johnson',
