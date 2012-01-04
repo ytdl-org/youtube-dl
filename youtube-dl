@@ -1635,7 +1635,7 @@ class DailymotionIE(InfoExtractor):
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract title')
 			return
-		video_title = htmlParser.unescape(mobj.group('title')).decode('utf-8')
+		video_title = htmlParser.unescape(mobj.group('title').decode('utf-8'))
 		video_title = sanitize_title(video_title)
 		simple_title = _simplify_title(video_title)
 
