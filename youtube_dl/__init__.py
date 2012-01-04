@@ -3151,7 +3151,7 @@ class ComedyCentralIE(InfoExtractor):
 				return
 			epTitle = mobj.group('episode')
 
-		mMovieParams = re.findall('<param name="movie" value="(http://media.mtvnservices.com/([^"]*episode.*?:.*?))"/>', html)
+		mMovieParams = re.findall('(?:<param name="movie" value=")|(?:var url = ")(http://media.mtvnservices.com/([^"]*episode.*?:.*?))"', html)
 		if len(mMovieParams) == 0:
 			self._downloader.trouble(u'ERROR: unable to find Flash URL in webpage ' + url)
 			return
