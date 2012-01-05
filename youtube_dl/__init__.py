@@ -290,6 +290,15 @@ def _orderedSet(iterable):
 			res.append(el)
 	return res
 
+def _unescapeHTML(s):
+    """
+    @param s a string (of type unicode)
+    """
+    assert type(s) == type(u'')
+
+    htmlParser = HTMLParser.HTMLParser()
+    return htmlParser.unescape(s)
+
 class DownloadError(Exception):
 	"""Download Error exception.
 
@@ -1590,8 +1599,6 @@ class DailymotionIE(InfoExtractor):
 		self._downloader.to_screen(u'[dailymotion] %s: Extracting information' % video_id)
 
 	def _real_extract(self, url):
-		htmlParser = HTMLParser.HTMLParser()
-		
 		# Extract id and simplified title from URL
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
@@ -1635,7 +1642,7 @@ class DailymotionIE(InfoExtractor):
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract title')
 			return
-		video_title = htmlParser.unescape(mobj.group('title')).decode('utf-8')
+		video_title = _unescapeHTML(mobj.group('title').decode('utf-8'))
 		video_title = sanitize_title(video_title)
 		simple_title = _simplify_title(video_title)
 
