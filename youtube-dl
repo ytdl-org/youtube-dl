@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__author__  = (
+__authors__  = (
 	'Ricardo Garcia Gonzalez',
 	'Danny Colligan',
 	'Benjamin Johnson',
@@ -18,7 +18,7 @@ __author__  = (
 	)
 
 __license__ = 'Public Domain'
-__version__ = '2011.12.18'
+__version__ = '2012.01.05'
 
 UPDATE_URL = 'https://raw.github.com/rg3/youtube-dl/master/youtube-dl'
 
@@ -289,6 +289,15 @@ def _orderedSet(iterable):
 		if el not in res:
 			res.append(el)
 	return res
+
+def _unescapeHTML(s):
+    """
+    @param s a string (of type unicode)
+    """
+    assert type(s) == type(u'')
+
+    htmlParser = HTMLParser.HTMLParser()
+    return htmlParser.unescape(s)
 
 class DownloadError(Exception):
 	"""Download Error exception.
@@ -1590,8 +1599,6 @@ class DailymotionIE(InfoExtractor):
 		self._downloader.to_screen(u'[dailymotion] %s: Extracting information' % video_id)
 
 	def _real_extract(self, url):
-		htmlParser = HTMLParser.HTMLParser()
-		
 		# Extract id and simplified title from URL
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
@@ -1635,7 +1642,7 @@ class DailymotionIE(InfoExtractor):
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract title')
 			return
-		video_title = htmlParser.unescape(mobj.group('title')).decode('utf-8')
+		video_title = _unescapeHTML(mobj.group('title').decode('utf-8'))
 		video_title = sanitize_title(video_title)
 		simple_title = _simplify_title(video_title)
 
@@ -3151,7 +3158,7 @@ class ComedyCentralIE(InfoExtractor):
 				return
 			epTitle = mobj.group('episode')
 
-		mMovieParams = re.findall('<param name="movie" value="(http://media.mtvnservices.com/([^"]*episode.*?:.*?))"/>', html)
+		mMovieParams = re.findall('(?:<param name="movie" value="|var url = ")(http://media.mtvnservices.com/([^"]*episode.*?:.*?))"', html)
 		if len(mMovieParams) == 0:
 			self._downloader.trouble(u'ERROR: unable to find Flash URL in webpage ' + url)
 			return
