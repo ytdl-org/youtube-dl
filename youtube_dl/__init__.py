@@ -3884,6 +3884,100 @@ class StanfordOpenClassroomIE(InfoExtractor):
 				assert entry['type'] == 'reference'
 				self.extract(entry['url'])
 
+class MTVIE(InfoExtractor):
+    """Information extractor for MTV.com"""
+
+    _VALID_URL = r'^(?P<proto>https?://)?(?:www\.)?mtv\.com/videos/[^/]+/(?P<videoid>[0-9]+)/[^/]+$'
+    IE_NAME = u'mtv'
+
+    def report_webpage(self, video_id):
+        """Report information extraction."""
+        self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, video_id))
+
+    def report_extraction(self, video_id):
+        """Report information extraction."""
+        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+            return
+        if not mobj.group('proto'):
+            url = 'http://' + url
+        video_id = mobj.group('videoid')
+        self.report_webpage(video_id)
+
+        request = urllib2.Request(url)
+        try:
+            webpage = urllib2.urlopen(request).read()
+        except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+            self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % str(err))
+            return
+
+        mobj = re.search(r'<meta name="mtv_vt" content="([^"]+)"/>', webpage)
+        if mobj is None:
+            self._downloader.trouble(u'ERROR: unable to extract song name')
+            return
+        song_name = _unescapeHTML(mobj.group(1).decode('iso-8859-1'))
+        mobj = re.search(r'<meta name="mtv_an" content="([^"]+)"/>', webpage)
+        if mobj is None:
+            self._downloader.trouble(u'ERROR: unable to extract performer')
+            return
+        performer = _unescapeHTML(mobj.group(1).decode('iso-8859-1'))
+        video_title = performer + ' - ' + song_name 
+
+        mobj = re.search(r'<meta name="mtvn_uri" content="([^"]+)"/>', webpage)
+        if mobj is None:
+            self._downloader.trouble(u'ERROR: unable to mtvn_uri')
+            return
+        mtvn_uri = mobj.group(1)
+
+        mobj = re.search(r'MTVN.Player.defaultPlaylistId = ([0-9]+);', webpage)
+        if mobj is None:
+            self._downloader.trouble(u'ERROR: unable to extract content id')
+            return
+        content_id = mobj.group(1)
+
+        videogen_url = 'http://www.mtv.com/player/includes/mediaGen.jhtml?uri=' + mtvn_uri + '&id=' + content_id + '&vid=' + video_id + '&ref=www.mtvn.com&viewUri=' + mtvn_uri
+        self.report_extraction(video_id)
+        request = urllib2.Request(videogen_url)
+        try:
+            metadataXml = urllib2.urlopen(request).read()
+        except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+            self._downloader.trouble(u'ERROR: unable to download video metadata: %s' % str(err))
+            return
+
+        mdoc = xml.etree.ElementTree.fromstring(metadataXml)
+        renditions = mdoc.findall('.//rendition')
+
+        # For now, always pick the highest quality.
+        rendition = renditions[-1]
+
+        try:
+            _,_,ext = rendition.attrib['type'].partition('/')
+            format = ext + '-' + rendition.attrib['width'] + 'x' + rendition.attrib['height'] + '_' + rendition.attrib['bitrate']
+            video_url = rendition.find('./src').text
+        except KeyError:
+            self._downloader.trouble('Invalid rendition field.')
+            return
+
+        self._downloader.increment_downloads()
+        info = {
+            'id': video_id,
+            'url': video_url,
+            'uploader': performer,
+            'title': video_title,
+            'stitle': _simplify_title(video_title),
+            'ext': ext,
+            'format': format,
+        }
+
+        try:
+            self._downloader.process_info(info)
+        except UnavailableVideoError, err:
+            self._downloader.trouble(u'\nERROR: unable to download ' + video_id)
+
 
 class PostProcessor(object):
 	"""Post Processor class.
@@ -4336,6 +4430,7 @@ def gen_extractors():
 		InfoQIE(),
 		MixcloudIE(),
 		StanfordOpenClassroomIE(),
+		MTVIE(),
 
 		GenericIE()
 	]
