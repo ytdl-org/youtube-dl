@@ -18,7 +18,7 @@ __authors__  = (
 	)
 
 __license__ = 'Public Domain'
-__version__ = '2012.01.08'
+__version__ = '2012.01.08b'
 
 UPDATE_URL = 'https://raw.github.com/rg3/youtube-dl/master/youtube-dl'
 
@@ -2652,7 +2652,7 @@ class YoutubeUserIE(InfoExtractor):
 		else:
 			video_ids = video_ids[playliststart:playlistend]
 
-		self._downloader.to_screen("[youtube] user %s: Collected %d video ids (downloading %d of them)" %
+		self._downloader.to_screen(u"[youtube] user %s: Collected %d video ids (downloading %d of them)" %
 				(username, all_ids_count, len(video_ids)))
 
 		for video_id in video_ids:
@@ -4170,7 +4170,7 @@ def updateSelf(downloader, filename):
 	if not os.access(filename, os.W_OK):
 		sys.exit('ERROR: no write permissions on %s' % filename)
 
-	downloader.to_screen('Updating to latest version...')
+	downloader.to_screen(u'Updating to latest version...')
 
 	try:
 		try:
@@ -4179,7 +4179,7 @@ def updateSelf(downloader, filename):
 			
 			vmatch = re.search("__version__ = '([^']+)'", newcontent)
 			if vmatch is not None and vmatch.group(1) == __version__:
-				downloader.to_screen('youtube-dl is up-to-date (' + __version__ + ')')
+				downloader.to_screen(u'youtube-dl is up-to-date (' + __version__ + ')')
 				return
 		finally:
 			urlh.close()
@@ -4195,7 +4195,7 @@ def updateSelf(downloader, filename):
 	except (IOError, OSError), err:
 		sys.exit('ERROR: unable to overwrite current version')
 
-	downloader.to_screen('Updated youtube-dl. Restart youtube-dl to use the new version.')
+	downloader.to_screen(u'Updated youtube-dl. Restart youtube-dl to use the new version.')
 
 def parseOpts():
 	# Deferred imports
