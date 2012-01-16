@@ -305,7 +305,14 @@ def _encodeFilename(s):
 	"""
 
 	assert type(s) == type(u'')
-	return s.encode(sys.getfilesystemencoding(), 'ignore')
+
+	if sys.platform == 'win32' and sys.getwindowsversion().major >= 5:
+		# Pass u'' directly to use Unicode APIs on Windows 2000 and up
+		# (Detecting Windows NT 4 is tricky because 'major >= 4' would
+		# match Windows 9x series as well. Besides, NT 4 is obsolete.)
+		return s
+	else:
+		return s.encode(sys.getfilesystemencoding(), 'ignore')
 
 class DownloadError(Exception):
 	"""Download Error exception.
