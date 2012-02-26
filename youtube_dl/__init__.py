@@ -22,8 +22,10 @@ __version__ = '2012.01.08b'
 
 UPDATE_URL = 'https://raw.github.com/rg3/youtube-dl/master/youtube-dl'
 
+
 import cookielib
 import datetime
+import getpass
 import gzip
 import htmlentitydefs
 import HTMLParser
@@ -31,9 +33,11 @@ import httplib
 import locale
 import math
 import netrc
+import optparse
 import os
 import os.path
 import re
+import shlex
 import socket
 import string
 import subprocess
@@ -4205,11 +4209,6 @@ def updateSelf(downloader, filename):
 	downloader.to_screen(u'Updated youtube-dl. Restart youtube-dl to use the new version.')
 
 def parseOpts():
-	# Deferred imports
-	import getpass
-	import optparse
-	import shlex
-
 	def _readOptions(filename_bytes):
 		try:
 			optionf = open(filename_bytes)
