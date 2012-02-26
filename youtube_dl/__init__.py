@@ -4351,6 +4351,8 @@ def parseOpts():
 	verbosity.add_option('--console-title',
 			action='store_true', dest='consoletitle',
 			help='display progress in console titlebar', default=False)
+	verbosity.add_option('-v', '--verbose',
+			action='store_true', dest='verbose', help='print various debugging information', default=False)
 
 
 	filesystem.add_option('-t', '--title',
@@ -4487,9 +4489,13 @@ def _real_main():
 
 	# General configuration
 	cookie_processor = urllib2.HTTPCookieProcessor(jar)
-	opener = urllib2.build_opener(urllib2.ProxyHandler(), cookie_processor, YoutubeDLHandler())
+	proxy_handler = urllib2.ProxyHandler()
+	opener = urllib2.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
 	urllib2.install_opener(opener)
 	socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
+
+	if opts.verbose:
+		print(u'[debug] Proxy map: ' + str(proxy_handler.proxies))
 
 	extractors = gen_extractors()
 
