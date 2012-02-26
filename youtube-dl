@@ -18,12 +18,14 @@ __authors__  = (
 	)
 
 __license__ = 'Public Domain'
-__version__ = '2012.01.08b'
+__version__ = '2012.02.26'
 
 UPDATE_URL = 'https://raw.github.com/rg3/youtube-dl/master/youtube-dl'
 
+
 import cookielib
 import datetime
+import getpass
 import gzip
 import htmlentitydefs
 import HTMLParser
@@ -31,9 +33,11 @@ import httplib
 import locale
 import math
 import netrc
+import optparse
 import os
 import os.path
 import re
+import shlex
 import socket
 import string
 import subprocess
@@ -305,7 +309,14 @@ def _encodeFilename(s):
 	"""
 
 	assert type(s) == type(u'')
-	return s.encode(sys.getfilesystemencoding(), 'ignore')
+
+	if sys.platform == 'win32' and sys.getwindowsversion().major >= 5:
+		# Pass u'' directly to use Unicode APIs on Windows 2000 and up
+		# (Detecting Windows NT 4 is tricky because 'major >= 4' would
+		# match Windows 9x series as well. Besides, NT 4 is obsolete.)
+		return s
+	else:
+		return s.encode(sys.getfilesystemencoding(), 'ignore')
 
 class DownloadError(Exception):
 	"""Download Error exception.
@@ -889,7 +900,15 @@ class FileDownloader(object):
 		# the connection was interrumpted and resuming appears to be
 		# possible. This is part of rtmpdump's normal usage, AFAIK.
 		basic_args = ['rtmpdump', '-q'] + [[], ['-W', player_url]][player_url is not None] + ['-r', url, '-o', tmpfilename]
-		retval = subprocess.call(basic_args + [[], ['-e', '-k', '1']][self.params.get('continuedl', False)])
+		args = basic_args + [[], ['-e', '-k', '1']][self.params.get('continuedl', False)]
+		if self.params['verbose']:
+			try:
+				import pipes
+				shell_quote = lambda args: ' '.join(map(pipes.quote, args))
+			except ImportError:
+				shell_quote = repr
+			self.to_screen(u'[debug] rtmpdump command line: ' + shell_quote(args))
+		retval = subprocess.call(args)
 		while retval == 2 or retval == 1:
 			prevsize = os.path.getsize(_encodeFilename(tmpfilename))
 			self.to_screen(u'\r[rtmpdump] %s bytes' % prevsize, skip_eol=True)
@@ -2014,7 +2033,7 @@ class VimeoIE(InfoExtractor):
 	"""Information extractor for vimeo.com."""
 
 	# _VALID_URL matches Vimeo URLs
-	_VALID_URL = r'(?:https?://)?(?:(?:www|player).)?vimeo\.com/(?:groups/[^/]+/)?(?:videos?/)?(?:moogaloop.swf\?clip_id=)?([0-9]+)'
+	_VALID_URL = r'(?:https?://)?(?:(?:www|player).)?vimeo\.com/(?:groups/[^/]+/)?(?:videos?/)?([0-9]+)'
 	IE_NAME = u'vimeo'
 
 	def __init__(self, downloader=None):
@@ -4198,11 +4217,6 @@ def updateSelf(downloader, filename):
 	downloader.to_screen(u'Updated youtube-dl. Restart youtube-dl to use the new version.')
 
 def parseOpts():
-	# Deferred imports
-	import getpass
-	import optparse
-	import shlex
-
 	def _readOptions(filename_bytes):
 		try:
 			optionf = open(filename_bytes)
@@ -4344,6 +4358,8 @@ def parseOpts():
 	verbosity.add_option('--console-title',
 			action='store_true', dest='consoletitle',
 			help='display progress in console titlebar', default=False)
+	verbosity.add_option('-v', '--verbose',
+			action='store_true', dest='verbose', help='print various debugging information', default=False)
 
 
 	filesystem.add_option('-t', '--title',
@@ -4360,7 +4376,7 @@ def parseOpts():
 	filesystem.add_option('-w', '--no-overwrites',
 			action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
 	filesystem.add_option('-c', '--continue',
-			action='store_true', dest='continue_dl', help='resume partially downloaded files', default=False)
+			action='store_true', dest='continue_dl', help='resume partially downloaded files', default=True)
 	filesystem.add_option('--no-continue',
 			action='store_false', dest='continue_dl',
 			help='do not resume partially downloaded files (restart from beginning)')
@@ -4480,9 +4496,13 @@ def _real_main():
 
 	# General configuration
 	cookie_processor = urllib2.HTTPCookieProcessor(jar)
-	opener = urllib2.build_opener(urllib2.ProxyHandler(), cookie_processor, YoutubeDLHandler())
+	proxy_handler = urllib2.ProxyHandler()
+	opener = urllib2.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
 	urllib2.install_opener(opener)
 	socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
+
+	if opts.verbose:
+		print(u'[debug] Proxy map: ' + str(proxy_handler.proxies))
 
 	extractors = gen_extractors()
 
@@ -4577,6 +4597,7 @@ def _real_main():
 		'rejecttitle': opts.rejecttitle,
 		'max_downloads': opts.max_downloads,
 		'prefer_free_formats': opts.prefer_free_formats,
+		'verbose': opts.verbose,
 		})
 	for extractor in extractors:
 		fd.add_info_extractor(extractor)

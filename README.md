@@ -12,7 +12,7 @@ which means you can modify it, redistribute it or use it however you like.
 
 ## OPTIONS
     -h, --help               print this help text and exit
-    -v, --version            print program version and exit
+    --version                print program version and exit
     -U, --update             update this program to latest version
     -i, --ignore-errors      continue on download errors
     -r, --rate-limit LIMIT   download rate limit (e.g. 50k or 44.6m)
@@ -66,6 +66,7 @@ which means you can modify it, redistribute it or use it however you like.
     --get-format             simulate, quiet but print output format
     --no-progress            do not print progress bar
     --console-title          display progress in console titlebar
+    -v, --verbose            print various debugging information
 
 ### Video Format Options:
     -f, --format FORMAT      video format code
