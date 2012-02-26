@@ -1593,7 +1593,7 @@ class MetacafeIE(InfoExtractor):
 class DailymotionIE(InfoExtractor):
 	"""Information Extractor for Dailymotion"""
 
-	_VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^_/]+)_([^/]+)'
+	_VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/(.+)'
 	IE_NAME = u'dailymotion'
 
 	def __init__(self, downloader=None):
@@ -1608,7 +1608,7 @@ class DailymotionIE(InfoExtractor):
 		self._downloader.to_screen(u'[dailymotion] %s: Extracting information' % video_id)
 
 	def _real_extract(self, url):
-		# Extract id and simplified title from URL
+		# Extract id
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
