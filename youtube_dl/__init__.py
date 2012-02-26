@@ -18,7 +18,7 @@ __authors__  = (
 	)
 
 __license__ = 'Public Domain'
-__version__ = '2012.01.08b'
+__version__ = '2012.01.25'
 
 UPDATE_URL = 'https://raw.github.com/rg3/youtube-dl/master/youtube-dl'
 
@@ -900,7 +900,15 @@ class FileDownloader(object):
 		# the connection was interrumpted and resuming appears to be
 		# possible. This is part of rtmpdump's normal usage, AFAIK.
 		basic_args = ['rtmpdump', '-q'] + [[], ['-W', player_url]][player_url is not None] + ['-r', url, '-o', tmpfilename]
-		retval = subprocess.call(basic_args + [[], ['-e', '-k', '1']][self.params.get('continuedl', False)])
+		args = basic_args + [[], ['-e', '-k', '1']][self.params.get('continuedl', False)]
+		if self.params['verbose']:
+			try:
+				import pipes
+				shell_quote = lambda args: ' '.join(map(pipes.quote, args))
+			except ImportError:
+				shell_quote = repr
+			self.to_screen(u'[debug] rtmpdump command line: ' + shell_quote(args))
+		retval = subprocess.call(args)
 		while retval == 2 or retval == 1:
 			prevsize = os.path.getsize(_encodeFilename(tmpfilename))
 			self.to_screen(u'\r[rtmpdump] %s bytes' % prevsize, skip_eol=True)
@@ -4589,6 +4597,7 @@ def _real_main():
 		'rejecttitle': opts.rejecttitle,
 		'max_downloads': opts.max_downloads,
 		'prefer_free_formats': opts.prefer_free_formats,
+		'verbose': opts.verbose,
 		})
 	for extractor in extractors:
 		fd.add_info_extractor(extractor)
