@@ -18,7 +18,7 @@ __authors__  = (
 	)
 
 __license__ = 'Public Domain'
-__version__ = '2012.02.26'
+__version__ = '2012.02.27'
 
 UPDATE_URL = 'https://raw.github.com/rg3/youtube-dl/master/youtube-dl'
 
@@ -901,7 +901,7 @@ class FileDownloader(object):
 		# possible. This is part of rtmpdump's normal usage, AFAIK.
 		basic_args = ['rtmpdump', '-q'] + [[], ['-W', player_url]][player_url is not None] + ['-r', url, '-o', tmpfilename]
 		args = basic_args + [[], ['-e', '-k', '1']][self.params.get('continuedl', False)]
-		if self.params['verbose']:
+		if self.params.get('verbose', False):
 			try:
 				import pipes
 				shell_quote = lambda args: ' '.join(map(pipes.quote, args))
@@ -1381,10 +1381,9 @@ class YoutubeIE(InfoExtractor):
 			lxml.etree
 		except NameError:
 			video_description = u'No description available.'
-			if self._downloader.params.get('forcedescription', False) or self._downloader.params.get('writedescription', False):
-				mobj = re.search(r'<meta name="description" content="(.*)"(?:\s*/)?>', video_webpage)
-				if mobj is not None:
-					video_description = mobj.group(1).decode('utf-8')
+			mobj = re.search(r'<meta name="description" content="(.*?)">', video_webpage)
+			if mobj is not None:
+				video_description = mobj.group(1).decode('utf-8')
 		else:
 			html_parser = lxml.etree.HTMLParser(encoding='utf-8')
 			vwebpage_doc = lxml.etree.parse(StringIO.StringIO(video_webpage), html_parser)
