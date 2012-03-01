@@ -2340,8 +2340,8 @@ class GoogleSearchIE(InfoExtractor):
 	"""Information Extractor for Google Video search queries."""
 	_VALID_URL = r'gvsearch(\d+|all)?:[\s\S]+'
 	_TEMPLATE_URL = 'http://video.google.com/videosearch?q=%s+site:video.google.com&start=%s&hl=en'
-	_VIDEO_INDICATOR = r'videoplay\?docid=([^\&>]+)\&'
-	_MORE_PAGES_INDICATOR = r'<span>Next</span>'
+	_VIDEO_INDICATOR = r'<a href="http://video\.google\.com/videoplay\?docid=([^"\&]+)'
+	_MORE_PAGES_INDICATOR = r'class="pn" id="pnnext"'
 	_google_ie = None
 	_max_google_results = 1000
 	IE_NAME = u'video.google:search'
@@ -2392,12 +2392,11 @@ class GoogleSearchIE(InfoExtractor):
 		"""Downloads a specified number of results for a query"""
 
 		video_ids = []
-		already_seen = set()
-		pagenum = 1
+		pagenum = 0
 
 		while True:
 			self.report_download_page(query, pagenum)
-			result_url = self._TEMPLATE_URL % (urllib.quote_plus(query), pagenum)
+			result_url = self._TEMPLATE_URL % (urllib.quote_plus(query), pagenum*10)
 			request = urllib2.Request(result_url)
 			try:
 				page = urllib2.urlopen(request).read()
@@ -2408,9 +2407,8 @@ class GoogleSearchIE(InfoExtractor):
 			# Extract video identifiers
 			for mobj in re.finditer(self._VIDEO_INDICATOR, page):
 				video_id = mobj.group(1)
-				if video_id not in already_seen:
+				if video_id not in video_ids:
 					video_ids.append(video_id)
-					already_seen.add(video_id)
 					if len(video_ids) == n:
 						# Specified n videos reached
 						for id in video_ids:
