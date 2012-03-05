@@ -2058,7 +2058,7 @@ class VimeoIE(InfoExtractor):
 		video_id = mobj.group(1)
 
 		# Retrieve video webpage to extract further information
-		request = urllib2.Request("http://vimeo.com/moogaloop/load/clip:%s" % video_id, None, std_headers)
+		request = urllib2.Request(url, None, std_headers)
 		try:
 			self.report_download_webpage(video_id)
 			webpage = urllib2.urlopen(request).read()
@@ -2071,77 +2071,66 @@ class VimeoIE(InfoExtractor):
 		# and latter we extract those that are Vimeo specific.
 		self.report_extraction(video_id)
 
-		# Extract title
-		mobj = re.search(r'<caption>(.*?)</caption>', webpage)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract video title')
+		# Extract the config JSON
+		config = webpage.split(' = {config:')[1].split(',assets:')[0]
+		try:
+			config = json.loads(config)
+		except:
+			self._downloader.trouble(u'ERROR: unable to extract info section')
 			return
-		video_title = mobj.group(1).decode('utf-8')
+		
+		# Extract title
+		video_title = config["video"]["title"]
 		simple_title = _simplify_title(video_title)
 
 		# Extract uploader
-		mobj = re.search(r'<uploader_url>http://vimeo.com/(.*?)</uploader_url>', webpage)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract video uploader')
-			return
-		video_uploader = mobj.group(1).decode('utf-8')
+		video_uploader = config["video"]["owner"]["name"]
 
 		# Extract video thumbnail
-		mobj = re.search(r'<thumbnail>(.*?)</thumbnail>', webpage)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract video thumbnail')
-			return
-		video_thumbnail = mobj.group(1).decode('utf-8')
+		video_thumbnail = config["video"]["thumbnail"]
 
-		# # Extract video description
-		# mobj = re.search(r'<meta property="og:description" content="(.*)" />', webpage)
-		# if mobj is None:
-		# 	self._downloader.trouble(u'ERROR: unable to extract video description')
-		# 	return
-		# video_description = mobj.group(1).decode('utf-8')
-		# if not video_description: video_description = 'No description available.'
-		video_description = 'Foo.'
+		# Extract video description
+		try:
+			lxml.etree
+		except NameError:
+			video_description = u'No description available.'
+			mobj = re.search(r'<meta name="description" content="(.*?)" />', webpage, re.MULTILINE)
+			if mobj is not None:
+				video_description = mobj.group(1)
+		else:
+			html_parser = lxml.etree.HTMLParser()
+			vwebpage_doc = lxml.etree.parse(StringIO.StringIO(webpage), html_parser)
+			video_description = u''.join(vwebpage_doc.xpath('id("description")//text()')).strip()
+			# TODO use another parser
 
-		# Vimeo specific: extract request signature
-		mobj = re.search(r'<request_signature>(.*?)</request_signature>', webpage)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract request signature')
-			return
-		sig = mobj.group(1).decode('utf-8')
+		# Extract upload date
+		video_upload_date = u'NA'
+		mobj = re.search(r'<span id="clip-date" style="display:none">[^:]*: (.*?)( \([^\(]*\))?</span>', webpage)
+		if mobj is not None:
+			video_upload_date = mobj.group(1)
+
+		# Vimeo specific: extract request signature and timestamp
+		sig = config['request']['signature']
+		timestamp = config['request']['timestamp']
 
 		# Vimeo specific: extract video quality information
-		mobj = re.search(r'<isHD>(\d+)</isHD>', webpage)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract video quality information')
-			return
-		quality = mobj.group(1).decode('utf-8')
+		# TODO bind to format param
+		if 'hd' in config["video"]["files"]["h264"]: quality = 'hd'
+		else: quality = 'sd'
 
-		if int(quality) == 1:
-			quality = 'hd'
-		else:
-			quality = 'sd'
-
-		# Vimeo specific: Extract request signature expiration
-		mobj = re.search(r'<request_signature_expires>(.*?)</request_signature_expires>', webpage)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract request signature expiration')
-			return
-		sig_exp = mobj.group(1).decode('utf-8')
-
-		video_url = "http://vimeo.com/moogaloop/play/clip:%s/%s/%s/?q=%s" % (video_id, sig, sig_exp, quality)
+		video_url = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=H264&type=moogaloop_local&embed_location=" \
+					%(video_id, sig, timestamp, quality)
 
 		try:
 			# Process video information
 			self._downloader.process_info({
-				'id':		video_id.decode('utf-8'),
+				'id':		video_id,
 				'url':		video_url,
 				'uploader':	video_uploader,
-				'upload_date':	u'NA',
+				'upload_date':	video_upload_date,
 				'title':	video_title,
 				'stitle':	simple_title,
 				'ext':		u'mp4',
-				'thumbnail':	video_thumbnail.decode('utf-8'),
-				'description':	video_description,
 				'thumbnail':	video_thumbnail,
 				'description':	video_description,
 				'player_url':	None,
