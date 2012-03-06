@@ -62,7 +62,7 @@ except ImportError:
 
 # parse_qs was moved from the cgi module to the urlparse module recently.
 try:
-	from urlparse import parse_qs
+	from urlparse import parse_qs, urlparse
 except ImportError:
 	from cgi import parse_qs
 
@@ -75,6 +75,9 @@ try:
 	import xml.etree.ElementTree
 except ImportError: # Python<2.5: Not officially supported, but let it slip
 	warnings.warn('xml.etree.ElementTree support is missing. Consider upgrading to Python >= 2.5 if you get related errors.')
+
+from socks import PROXY_TYPE_SOCKS4, PROXY_TYPE_SOCKS5
+from socksipyhandler import SocksiPyHandler
 
 std_headers = {
 	'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:5.0.1) Gecko/20100101 Firefox/5.0.1',
@@ -4494,8 +4497,19 @@ def _real_main():
 	all_urls = batchurls + args
 
 	# General configuration
+	def build_proxy_handler():
+		for name, value in os.environ.items():
+			#print name, value
+			name = name.lower()
+			if value and name == 'socks_proxy':
+				parsed_proxy_url = urlparse(value)
+				socks_host = str(parsed_proxy_url.netloc.split(':')[0])
+				socks_port = parsed_proxy_url.port
+				return SocksiPyHandler(PROXY_TYPE_SOCKS5, socks_host, socks_port)
+		return urllib2.ProxyHandler()
 	cookie_processor = urllib2.HTTPCookieProcessor(jar)
-	proxy_handler = urllib2.ProxyHandler()
+	#proxy_handler = urllib2.ProxyHandler()
+	proxy_handler = build_proxy_handler()
 	opener = urllib2.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
 	urllib2.install_opener(opener)
 	socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
