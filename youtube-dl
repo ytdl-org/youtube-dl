@@ -2113,13 +2113,22 @@ class VimeoIE(InfoExtractor):
 		sig = config['request']['signature']
 		timestamp = config['request']['timestamp']
 
-		# Vimeo specific: extract video quality information
+		# Vimeo specific: extract video codec and quality information
 		# TODO bind to format param
-		if 'hd' in config["video"]["files"]["h264"]: quality = 'hd'
-		else: quality = 'sd'
+		codecs = [('h264', 'mp4'), ('vp8', 'flv'), ('vp6', 'flv')]
+		for codec in codecs:
+			if codec[0] in config["video"]["files"]:
+				video_codec = codec[0]
+				video_extension = codec[1]
+				if 'hd' in config["video"]["files"][codec[0]]: quality = 'hd'
+				else: quality = 'sd'
+				break
+		else:
+			self._downloader.trouble(u'ERROR: no known codec found')
+			return
 
-		video_url = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=H264&type=moogaloop_local&embed_location=" \
-					%(video_id, sig, timestamp, quality)
+		video_url = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=%s&type=moogaloop_local&embed_location=" \
+					%(video_id, sig, timestamp, quality, video_codec.upper())
 
 		try:
 			# Process video information
@@ -2130,7 +2139,7 @@ class VimeoIE(InfoExtractor):
 				'upload_date':	video_upload_date,
 				'title':	video_title,
 				'stitle':	simple_title,
-				'ext':		u'mp4',
+				'ext':		video_extension,
 				'thumbnail':	video_thumbnail,
 				'description':	video_description,
 				'player_url':	None,
