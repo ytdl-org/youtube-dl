@@ -4462,6 +4462,25 @@ def gen_extractors():
 		GenericIE()
 	]
 
+# General configuration
+def _get_proxy_handler():
+	for name, value in os.environ.items():
+		name = name.lower()
+		# socks_proxy, socks4_proxy, and socks4a_proxy are all aliases for each other
+		if value and name in [ 'socks_proxy', 'socks4_proxy', 'socks4a_proxy', ]:
+			parsed_proxy_url = urlparse(value)
+			socks_host = str(parsed_proxy_url.netloc.split(':')[0])
+			socks_port = parsed_proxy_url.port
+			return SocksiPyHandler(PROXY_TYPE_SOCKS4, socks_host, socks_port)
+		if value and name in [ 'socks5_proxy', ]:
+			parsed_proxy_url = urlparse(value)
+			socks_host = str(parsed_proxy_url.netloc.split(':')[0])
+			socks_port = parsed_proxy_url.port
+			return SocksiPyHandler(PROXY_TYPE_SOCKS5, socks_host, socks_port)
+
+	# return the standard proxy handler, since we didn't find any requests for socks
+	return urllib2.ProxyHandler()
+
 def _real_main():
 	parser, opts, args = parseOpts()
 
@@ -4496,20 +4515,8 @@ def _real_main():
 			sys.exit(u'ERROR: batch file could not be read')
 	all_urls = batchurls + args
 
-	# General configuration
-	def build_proxy_handler():
-		for name, value in os.environ.items():
-			#print name, value
-			name = name.lower()
-			if value and name == 'socks_proxy':
-				parsed_proxy_url = urlparse(value)
-				socks_host = str(parsed_proxy_url.netloc.split(':')[0])
-				socks_port = parsed_proxy_url.port
-				return SocksiPyHandler(PROXY_TYPE_SOCKS5, socks_host, socks_port)
-		return urllib2.ProxyHandler()
 	cookie_processor = urllib2.HTTPCookieProcessor(jar)
-	#proxy_handler = urllib2.ProxyHandler()
-	proxy_handler = build_proxy_handler()
+	proxy_handler = _get_proxy_handler()
 	opener = urllib2.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
 	urllib2.install_opener(opener)
 	socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
