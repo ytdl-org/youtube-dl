@@ -62,7 +62,7 @@ except ImportError:
 
 # parse_qs was moved from the cgi module to the urlparse module recently.
 try:
-	from urlparse import parse_qs
+	from urlparse import parse_qs, urlparse
 except ImportError:
 	from cgi import parse_qs
 
@@ -75,6 +75,9 @@ try:
 	import xml.etree.ElementTree
 except ImportError: # Python<2.5: Not officially supported, but let it slip
 	warnings.warn('xml.etree.ElementTree support is missing. Consider upgrading to Python >= 2.5 if you get related errors.')
+
+from socks import PROXY_TYPE_SOCKS4, PROXY_TYPE_SOCKS5
+from socksipyhandler import SocksiPyHandler
 
 std_headers = {
 	'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:5.0.1) Gecko/20100101 Firefox/5.0.1',
@@ -4459,6 +4462,25 @@ def gen_extractors():
 		GenericIE()
 	]
 
+# General configuration
+def _get_proxy_handler():
+	for name, value in os.environ.items():
+		name = name.lower()
+		# socks_proxy, socks4_proxy, and socks4a_proxy are all aliases for each other
+		if value and name in [ 'socks_proxy', 'socks4_proxy', 'socks4a_proxy', ]:
+			parsed_proxy_url = urlparse(value)
+			socks_host = str(parsed_proxy_url.netloc.split(':')[0])
+			socks_port = parsed_proxy_url.port
+			return SocksiPyHandler(PROXY_TYPE_SOCKS4, socks_host, socks_port)
+		if value and name in [ 'socks5_proxy', ]:
+			parsed_proxy_url = urlparse(value)
+			socks_host = str(parsed_proxy_url.netloc.split(':')[0])
+			socks_port = parsed_proxy_url.port
+			return SocksiPyHandler(PROXY_TYPE_SOCKS5, socks_host, socks_port)
+
+	# return the standard proxy handler, since we didn't find any requests for socks
+	return urllib2.ProxyHandler()
+
 def _real_main():
 	parser, opts, args = parseOpts()
 
@@ -4493,9 +4515,8 @@ def _real_main():
 			sys.exit(u'ERROR: batch file could not be read')
 	all_urls = batchurls + args
 
-	# General configuration
 	cookie_processor = urllib2.HTTPCookieProcessor(jar)
-	proxy_handler = urllib2.ProxyHandler()
+	proxy_handler = _get_proxy_handler()
 	opener = urllib2.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
 	urllib2.install_opener(opener)
 	socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
