@@ -490,6 +490,7 @@ class FileDownloader(object):
 	updatetime:       Use the Last-modified header to set output file timestamps.
 	writedescription: Write the video description to a .description file
 	writeinfojson:    Write the video description to a .info.json file
+	writesubtitles:   Write the video subtitles to a .srt file
 	"""
 
 	params = None
@@ -681,6 +682,10 @@ class FileDownloader(object):
 		""" Report that the description file is being written """
 		self.to_screen(u'[info] Writing video description to: ' + descfn)
 
+	def report_writesubtitles(self, srtfn):
+		""" Report that the subtitles file is being written """
+		self.to_screen(u'[info] Writing video subtitles to: ' + srtfn)
+
 	def report_writeinfojson(self, infofn):
 		""" Report that the metadata file has been written """
 		self.to_screen(u'[info] Video description metadata as JSON to: ' + infofn)
@@ -807,6 +812,21 @@ class FileDownloader(object):
 					descfile.close()
 			except (OSError, IOError):
 				self.trouble(u'ERROR: Cannot write description file ' + descfn)
+				return
+				
+		if self.params.get('writesubtitles', False) and 'subtitles' in info_dict and info_dict['subtitles']:
+			# subtitles download errors are already managed as troubles in relevant IE
+			# that way it will silently go on when used with unsupporting IE 
+			try:
+				srtfn = filename.rsplit('.', 1)[0] + u'.srt'
+				self.report_writesubtitles(srtfn)
+				srtfile = open(_encodeFilename(srtfn), 'wb')
+				try:
+					srtfile.write(info_dict['subtitles'].encode('utf-8'))
+				finally:
+					srtfile.close()
+			except (OSError, IOError):
+				self.trouble(u'ERROR: Cannot write subtitles file ' + descfn)
 				return
 
 		if self.params.get('writeinfojson', False):
@@ -1206,6 +1226,10 @@ class YoutubeIE(InfoExtractor):
 		"""Report attempt to download video info webpage."""
 		self._downloader.to_screen(u'[youtube] %s: Downloading video info webpage' % video_id)
 
+	def report_video_subtitles_download(self, video_id):
+		"""Report attempt to download video info webpage."""
+		self._downloader.to_screen(u'[youtube] %s: Downloading video subtitles' % video_id)
+
 	def report_information_extraction(self, video_id):
 		"""Report attempt to extract video information."""
 		self._downloader.to_screen(u'[youtube] %s: Extracting video information' % video_id)
@@ -1217,6 +1241,23 @@ class YoutubeIE(InfoExtractor):
 	def report_rtmp_download(self):
 		"""Indicate the download will use the RTMP protocol."""
 		self._downloader.to_screen(u'[youtube] RTMP download detected')
+
+	def _closed_captions_xml_to_srt(self, xml_string):
+		srt = ''
+		texts = re.findall(r'<text start="([\d\.]+)"( dur="([\d\.]+)")?>([^<]+)</text>', xml_string, re.MULTILINE)
+		# TODO parse xml instead of regex
+		for n, (start, dur_tag, dur, caption) in enumerate(texts):
+			if not dur: dur = '4'
+			start = float(start)
+			end = start + float(dur)
+			start = "%02i:%02i:%02i,%03i" %(start/(60*60), start/60%60, start%60, start%1*1000)
+			end = "%02i:%02i:%02i,%03i" %(end/(60*60), end/60%60, end%60, end%1*1000)
+			caption = re.sub(ur'(?u)&(.+?);', htmlentity_transform, caption)
+			caption = re.sub(ur'(?u)&(.+?);', htmlentity_transform, caption) # double cycle, inentional
+			srt += str(n) + '\n'
+			srt += start + ' --> ' + end + '\n'
+			srt += caption + '\n\n'
+		return srt
 
 	def _print_formats(self, formats):
 		print 'Available formats:'
@@ -1389,6 +1430,30 @@ class YoutubeIE(InfoExtractor):
 			vwebpage_doc = lxml.etree.parse(StringIO.StringIO(video_webpage), html_parser)
 			video_description = u''.join(vwebpage_doc.xpath('id("eow-description")//text()'))
 			# TODO use another parser
+			
+		# closed captions
+		video_subtitles = None
+		if self._downloader.params.get('writesubtitles', False):
+			self.report_video_subtitles_download(video_id)
+			request = urllib2.Request('http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id)
+			try:
+				srt_list = urllib2.urlopen(request).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'WARNING: unable to download video subtitles: %s' % str(err))
+			else:
+				srt_lang_list = re.findall(r'lang_code="([\w\-]+)"', srt_list)
+				if srt_lang_list:
+					if 'en' in srt_lang_list: srt_lang = 'en'
+					else: srt_lang = srt_lang_list[0] # TODO choose better and provide an override
+					request = urllib2.Request('http://video.google.com/timedtext?hl=en&lang=%s&v=%s' % (srt_lang, video_id))
+					try:
+						srt_xml = urllib2.urlopen(request).read()
+					except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+						self._downloader.trouble(u'WARNING: unable to download video subtitles: %s' % str(err))
+					else:
+						video_subtitles = self._closed_captions_xml_to_srt(srt_xml.decode('utf-8'))
+				else:
+					self._downloader.trouble(u'WARNING: video has no subtitles')
 
 		# token
 		video_token = urllib.unquote_plus(video_info['token'][0])
@@ -1461,6 +1526,7 @@ class YoutubeIE(InfoExtractor):
 					'thumbnail':	video_thumbnail.decode('utf-8'),
 					'description':	video_description,
 					'player_url':	player_url,
+					'subtitles':	video_subtitles
 				})
 			except UnavailableVideoError, err:
 				self._downloader.trouble(u'\nERROR: unable to download video')
@@ -4388,6 +4454,9 @@ def parseOpts():
 	filesystem.add_option('--write-info-json',
 			action='store_true', dest='writeinfojson',
 			help='write video metadata to a .info.json file', default=False)
+	filesystem.add_option('--write-srt',
+			action='store_true', dest='writesubtitles',
+			help='write video subtitles to a .srt file', default=False)
 
 
 	postproc.add_option('--extract-audio', action='store_true', dest='extractaudio', default=False,
@@ -4588,6 +4657,7 @@ def _real_main():
 		'updatetime': opts.updatetime,
 		'writedescription': opts.writedescription,
 		'writeinfojson': opts.writeinfojson,
+		'writesubtitles': opts.writesubtitles,
 		'matchtitle': opts.matchtitle,
 		'rejecttitle': opts.rejecttitle,
 		'max_downloads': opts.max_downloads,
