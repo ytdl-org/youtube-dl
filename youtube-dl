@@ -2058,7 +2058,7 @@ class VimeoIE(InfoExtractor):
 		video_id = mobj.group(1)
 
 		# Retrieve video webpage to extract further information
-		request = urllib2.Request("http://vimeo.com/moogaloop/load/clip:%s" % video_id, None, std_headers)
+		request = urllib2.Request(url, None, std_headers)
 		try:
 			self.report_download_webpage(video_id)
 			webpage = urllib2.urlopen(request).read()
@@ -2071,77 +2071,75 @@ class VimeoIE(InfoExtractor):
 		# and latter we extract those that are Vimeo specific.
 		self.report_extraction(video_id)
 
-		# Extract title
-		mobj = re.search(r'<caption>(.*?)</caption>', webpage)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract video title')
+		# Extract the config JSON
+		config = webpage.split(' = {config:')[1].split(',assets:')[0]
+		try:
+			config = json.loads(config)
+		except:
+			self._downloader.trouble(u'ERROR: unable to extract info section')
 			return
-		video_title = mobj.group(1).decode('utf-8')
+		
+		# Extract title
+		video_title = config["video"]["title"]
 		simple_title = _simplify_title(video_title)
 
 		# Extract uploader
-		mobj = re.search(r'<uploader_url>http://vimeo.com/(.*?)</uploader_url>', webpage)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract video uploader')
-			return
-		video_uploader = mobj.group(1).decode('utf-8')
+		video_uploader = config["video"]["owner"]["name"]
 
 		# Extract video thumbnail
-		mobj = re.search(r'<thumbnail>(.*?)</thumbnail>', webpage)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract video thumbnail')
-			return
-		video_thumbnail = mobj.group(1).decode('utf-8')
+		video_thumbnail = config["video"]["thumbnail"]
 
-		# # Extract video description
-		# mobj = re.search(r'<meta property="og:description" content="(.*)" />', webpage)
-		# if mobj is None:
-		# 	self._downloader.trouble(u'ERROR: unable to extract video description')
-		# 	return
-		# video_description = mobj.group(1).decode('utf-8')
-		# if not video_description: video_description = 'No description available.'
-		video_description = 'Foo.'
-
-		# Vimeo specific: extract request signature
-		mobj = re.search(r'<request_signature>(.*?)</request_signature>', webpage)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract request signature')
-			return
-		sig = mobj.group(1).decode('utf-8')
-
-		# Vimeo specific: extract video quality information
-		mobj = re.search(r'<isHD>(\d+)</isHD>', webpage)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract video quality information')
-			return
-		quality = mobj.group(1).decode('utf-8')
-
-		if int(quality) == 1:
-			quality = 'hd'
+		# Extract video description
+		try:
+			lxml.etree
+		except NameError:
+			video_description = u'No description available.'
+			mobj = re.search(r'<meta name="description" content="(.*?)" />', webpage, re.MULTILINE)
+			if mobj is not None:
+				video_description = mobj.group(1)
 		else:
-			quality = 'sd'
+			html_parser = lxml.etree.HTMLParser()
+			vwebpage_doc = lxml.etree.parse(StringIO.StringIO(webpage), html_parser)
+			video_description = u''.join(vwebpage_doc.xpath('id("description")//text()')).strip()
+			# TODO use another parser
 
-		# Vimeo specific: Extract request signature expiration
-		mobj = re.search(r'<request_signature_expires>(.*?)</request_signature_expires>', webpage)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract request signature expiration')
+		# Extract upload date
+		video_upload_date = u'NA'
+		mobj = re.search(r'<span id="clip-date" style="display:none">[^:]*: (.*?)( \([^\(]*\))?</span>', webpage)
+		if mobj is not None:
+			video_upload_date = mobj.group(1)
+
+		# Vimeo specific: extract request signature and timestamp
+		sig = config['request']['signature']
+		timestamp = config['request']['timestamp']
+
+		# Vimeo specific: extract video codec and quality information
+		# TODO bind to format param
+		codecs = [('h264', 'mp4'), ('vp8', 'flv'), ('vp6', 'flv')]
+		for codec in codecs:
+			if codec[0] in config["video"]["files"]:
+				video_codec = codec[0]
+				video_extension = codec[1]
+				if 'hd' in config["video"]["files"][codec[0]]: quality = 'hd'
+				else: quality = 'sd'
+				break
+		else:
+			self._downloader.trouble(u'ERROR: no known codec found')
 			return
-		sig_exp = mobj.group(1).decode('utf-8')
 
-		video_url = "http://vimeo.com/moogaloop/play/clip:%s/%s/%s/?q=%s" % (video_id, sig, sig_exp, quality)
+		video_url = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=%s&type=moogaloop_local&embed_location=" \
+					%(video_id, sig, timestamp, quality, video_codec.upper())
 
 		try:
 			# Process video information
 			self._downloader.process_info({
-				'id':		video_id.decode('utf-8'),
+				'id':		video_id,
 				'url':		video_url,
 				'uploader':	video_uploader,
-				'upload_date':	u'NA',
+				'upload_date':	video_upload_date,
 				'title':	video_title,
 				'stitle':	simple_title,
-				'ext':		u'mp4',
-				'thumbnail':	video_thumbnail.decode('utf-8'),
-				'description':	video_description,
+				'ext':		video_extension,
 				'thumbnail':	video_thumbnail,
 				'description':	video_description,
 				'player_url':	None,
@@ -2250,9 +2248,7 @@ class GenericIE(InfoExtractor):
 class YoutubeSearchIE(InfoExtractor):
 	"""Information Extractor for YouTube search queries."""
 	_VALID_URL = r'ytsearch(\d+|all)?:[\s\S]+'
-	_TEMPLATE_URL = 'http://www.youtube.com/results?search_query=%s&page=%s&gl=US&hl=en'
-	_VIDEO_INDICATOR = r'href="/watch\?v=.+?"'
-	_MORE_PAGES_INDICATOR = r'(?m)>\s*Next\s*</a>'
+	_API_URL = 'https://gdata.youtube.com/feeds/api/videos?q=%s&start-index=%i&max-results=50&v=2&alt=jsonc'
 	_youtube_ie = None
 	_max_youtube_results = 1000
 	IE_NAME = u'youtube:search'
@@ -2303,45 +2299,39 @@ class YoutubeSearchIE(InfoExtractor):
 		"""Downloads a specified number of results for a query"""
 
 		video_ids = []
-		already_seen = set()
-		pagenum = 1
+		pagenum = 0
+		limit = n
 
-		while True:
-			self.report_download_page(query, pagenum)
-			result_url = self._TEMPLATE_URL % (urllib.quote_plus(query), pagenum)
+		while (50 * pagenum) < limit:
+			self.report_download_page(query, pagenum+1)
+			result_url = self._API_URL % (urllib.quote_plus(query), (50*pagenum)+1)
 			request = urllib2.Request(result_url)
 			try:
-				page = urllib2.urlopen(request).read()
+				data = urllib2.urlopen(request).read()
 			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-				self._downloader.trouble(u'ERROR: unable to download webpage: %s' % str(err))
+				self._downloader.trouble(u'ERROR: unable to download API page: %s' % str(err))
 				return
+			api_response = json.loads(data)['data']
 
-			# Extract video identifiers
-			for mobj in re.finditer(self._VIDEO_INDICATOR, page):
-				video_id = page[mobj.span()[0]:mobj.span()[1]].split('=')[2][:-1]
-				if video_id not in already_seen:
-					video_ids.append(video_id)
-					already_seen.add(video_id)
-					if len(video_ids) == n:
-						# Specified n videos reached
-						for id in video_ids:
-							self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
-						return
+			new_ids = list(video['id'] for video in api_response['items'])
+			video_ids += new_ids
 
-			if re.search(self._MORE_PAGES_INDICATOR, page) is None:
-				for id in video_ids:
-					self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
-				return
+			limit = min(n, api_response['totalItems'])
+			pagenum += 1
 
-			pagenum = pagenum + 1
+		if len(video_ids) > n:
+			video_ids = video_ids[:n]
+		for id in video_ids:
+			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
+		return
 
 
 class GoogleSearchIE(InfoExtractor):
 	"""Information Extractor for Google Video search queries."""
 	_VALID_URL = r'gvsearch(\d+|all)?:[\s\S]+'
 	_TEMPLATE_URL = 'http://video.google.com/videosearch?q=%s+site:video.google.com&start=%s&hl=en'
-	_VIDEO_INDICATOR = r'videoplay\?docid=([^\&>]+)\&'
-	_MORE_PAGES_INDICATOR = r'<span>Next</span>'
+	_VIDEO_INDICATOR = r'<a href="http://video\.google\.com/videoplay\?docid=([^"\&]+)'
+	_MORE_PAGES_INDICATOR = r'class="pn" id="pnnext"'
 	_google_ie = None
 	_max_google_results = 1000
 	IE_NAME = u'video.google:search'
@@ -2392,12 +2382,11 @@ class GoogleSearchIE(InfoExtractor):
 		"""Downloads a specified number of results for a query"""
 
 		video_ids = []
-		already_seen = set()
-		pagenum = 1
+		pagenum = 0
 
 		while True:
 			self.report_download_page(query, pagenum)
-			result_url = self._TEMPLATE_URL % (urllib.quote_plus(query), pagenum)
+			result_url = self._TEMPLATE_URL % (urllib.quote_plus(query), pagenum*10)
 			request = urllib2.Request(result_url)
 			try:
 				page = urllib2.urlopen(request).read()
@@ -2408,9 +2397,8 @@ class GoogleSearchIE(InfoExtractor):
 			# Extract video identifiers
 			for mobj in re.finditer(self._VIDEO_INDICATOR, page):
 				video_id = mobj.group(1)
-				if video_id not in already_seen:
+				if video_id not in video_ids:
 					video_ids.append(video_id)
-					already_seen.add(video_id)
 					if len(video_ids) == n:
 						# Specified n videos reached
 						for id in video_ids:
