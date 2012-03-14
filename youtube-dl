@@ -2248,9 +2248,7 @@ class GenericIE(InfoExtractor):
 class YoutubeSearchIE(InfoExtractor):
 	"""Information Extractor for YouTube search queries."""
 	_VALID_URL = r'ytsearch(\d+|all)?:[\s\S]+'
-	_TEMPLATE_URL = 'http://www.youtube.com/results?search_query=%s&page=%s&gl=US&hl=en'
-	_VIDEO_INDICATOR = r'href="/watch\?v=.+?"'
-	_MORE_PAGES_INDICATOR = r'(?m)>\s*Next\s*</a>'
+	_API_URL = 'https://gdata.youtube.com/feeds/api/videos?q=%s&start-index=%i&max-results=50&v=2&alt=jsonc'
 	_youtube_ie = None
 	_max_youtube_results = 1000
 	IE_NAME = u'youtube:search'
@@ -2301,37 +2299,31 @@ class YoutubeSearchIE(InfoExtractor):
 		"""Downloads a specified number of results for a query"""
 
 		video_ids = []
-		already_seen = set()
-		pagenum = 1
+		pagenum = 0
+		limit = n
 
-		while True:
-			self.report_download_page(query, pagenum)
-			result_url = self._TEMPLATE_URL % (urllib.quote_plus(query), pagenum)
+		while (50 * pagenum) < limit:
+			self.report_download_page(query, pagenum+1)
+			result_url = self._API_URL % (urllib.quote_plus(query), (50*pagenum)+1)
 			request = urllib2.Request(result_url)
 			try:
-				page = urllib2.urlopen(request).read()
+				data = urllib2.urlopen(request).read()
 			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-				self._downloader.trouble(u'ERROR: unable to download webpage: %s' % str(err))
+				self._downloader.trouble(u'ERROR: unable to download API page: %s' % str(err))
 				return
+			api_response = json.loads(data)['data']
 
-			# Extract video identifiers
-			for mobj in re.finditer(self._VIDEO_INDICATOR, page):
-				video_id = page[mobj.span()[0]:mobj.span()[1]].split('=')[2][:-1]
-				if video_id not in already_seen:
-					video_ids.append(video_id)
-					already_seen.add(video_id)
-					if len(video_ids) == n:
-						# Specified n videos reached
-						for id in video_ids:
-							self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
-						return
+			new_ids = list(video['id'] for video in api_response['items'])
+			video_ids += new_ids
 
-			if re.search(self._MORE_PAGES_INDICATOR, page) is None:
-				for id in video_ids:
-					self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
-				return
+			limit = min(n, api_response['totalItems'])
+			pagenum += 1
 
-			pagenum = pagenum + 1
+		if len(video_ids) > n:
+			video_ids = video_ids[:n]
+		for id in video_ids:
+			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
+		return
 
 
 class GoogleSearchIE(InfoExtractor):
