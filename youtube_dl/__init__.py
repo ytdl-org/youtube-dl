@@ -3094,14 +3094,14 @@ class BlipTVIE(InfoExtractor):
 					data = json_data['Post']
 				else:
 					data = json_data
-	
+
 				upload_date = datetime.datetime.strptime(data['datestamp'], '%m-%d-%y %H:%M%p').strftime('%Y%m%d')
 				video_url = data['media']['url']
 				umobj = re.match(self._URL_EXT, video_url)
 				if umobj is None:
 					raise ValueError('Can not determine filename extension')
 				ext = umobj.group(1)
-	
+
 				info = {
 					'id': data['item_id'],
 					'url': video_url,
@@ -3202,7 +3202,7 @@ class ComedyCentralIE(InfoExtractor):
 
 	def report_extraction(self, episode_id):
 		self._downloader.to_screen(u'[comedycentral] %s: Extracting information' % episode_id)
-	
+
 	def report_config_download(self, episode_id):
 		self._downloader.to_screen(u'[comedycentral] %s: Downloading configuration' % episode_id)
 
@@ -3764,7 +3764,6 @@ class MixcloudIE(InfoExtractor):
 			url_list = jsonData[fmt][bitrate]
 		except TypeError: # we have no bitrate info.
 			url_list = jsonData[fmt]
-				
 		return url_list
 
 	def check_urls(self, url_list):
@@ -3884,7 +3883,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			info = {
 				'id': _simplify_title(course + '_' + video),
 			}
-	
+
 			self.report_extraction(info['id'])
 			baseUrl = 'http://openclassroom.stanford.edu/MainFolder/courses/' + course + '/videos/'
 			xmlUrl = baseUrl + video + '.xml'
@@ -4689,7 +4688,7 @@ def _real_main():
 			parser.error(u'you must provide at least one URL')
 		else:
 			sys.exit()
-	
+
 	try:
 		retcode = fd.download(all_urls)
 	except MaxDownloadsReached:
