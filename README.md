@@ -75,6 +75,10 @@ which means you can modify it, redistribute it or use it however you like.
                              requested
     --max-quality FORMAT     highest quality format to download
     -F, --list-formats       list all available formats (currently youtube only)
+    --write-srt              write video closed captions to a .srt file
+                             (currently youtube only)
+    --srt-lang LANG          language of the closed captions to download
+                             (optional) use IETF language tags like 'en'
 
 ### Authentication Options:
     -u, --username USERNAME  account username
@@ -106,7 +110,7 @@ Once the video is fully downloaded, use any video player, such as [vlc](http://w
 
 ### The links provided by youtube-dl -g are not working anymore
 
-The URLs youtube-dl outputs require the downloader to have the correct cookies. Use the `--cookies` option to write the required cookies into a file, and advise your downloader to read cookies from that file.
+The URLs youtube-dl outputs require the downloader to have the correct cookies. Use the `--cookies` option to write the required cookies into a file, and advise your downloader to read cookies from that file. Some sites also require a common user agent to be used, use `--dump-user-agent` to see the one in use by youtube-dl.
 
 ### ERROR: no fmt_url_map or conn information found in video info
 

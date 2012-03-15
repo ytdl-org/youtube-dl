@@ -491,6 +491,7 @@ class FileDownloader(object):
 	writedescription: Write the video description to a .description file
 	writeinfojson:    Write the video description to a .info.json file
 	writesubtitles:   Write the video subtitles to a .srt file
+	subtitleslang:    Language of the subtitles to download
 	"""
 
 	params = None
@@ -1443,17 +1444,24 @@ class YoutubeIE(InfoExtractor):
 			else:
 				srt_lang_list = re.findall(r'lang_code="([\w\-]+)"', srt_list)
 				if srt_lang_list:
-					if 'en' in srt_lang_list: srt_lang = 'en'
-					else: srt_lang = srt_lang_list[0] # TODO choose better and provide an override
-					request = urllib2.Request('http://video.google.com/timedtext?hl=en&lang=%s&v=%s' % (srt_lang, video_id))
-					try:
-						srt_xml = urllib2.urlopen(request).read()
-					except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-						self._downloader.trouble(u'WARNING: unable to download video subtitles: %s' % str(err))
+					if self._downloader.params.get('subtitleslang', False):
+						srt_lang = self._downloader.params.get('subtitleslang')
+					elif 'en' in srt_lang_list:
+						srt_lang = 'en'
 					else:
-						video_subtitles = self._closed_captions_xml_to_srt(srt_xml.decode('utf-8'))
+						srt_lang = srt_lang_list[0]
+					if not srt_lang in srt_lang_list:
+						self._downloader.trouble(u'WARNING: no closed captions found in the specified language')
+					else:
+						request = urllib2.Request('http://video.google.com/timedtext?hl=en&lang=%s&v=%s' % (srt_lang, video_id))
+						try:
+							srt_xml = urllib2.urlopen(request).read()
+						except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+							self._downloader.trouble(u'WARNING: unable to download video subtitles: %s' % str(err))
+						else:
+							video_subtitles = self._closed_captions_xml_to_srt(srt_xml.decode('utf-8'))
 				else:
-					self._downloader.trouble(u'WARNING: video has no subtitles')
+					self._downloader.trouble(u'WARNING: video has no closed captions')
 
 		# token
 		video_token = urllib.unquote_plus(video_info['token'][0])
@@ -4385,6 +4393,12 @@ def parseOpts():
 			action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
 	video_format.add_option('-F', '--list-formats',
 			action='store_true', dest='listformats', help='list all available formats (currently youtube only)')
+	video_format.add_option('--write-srt',
+			action='store_true', dest='writesubtitles',
+			help='write video closed captions to a .srt file (currently youtube only)', default=False)
+	video_format.add_option('--srt-lang',
+			action='store', dest='subtitleslang', metavar='LANG',
+			help='language of the closed captions to download (optional) use IETF language tags like \'en\'')
 
 
 	verbosity.add_option('-q', '--quiet',
@@ -4449,9 +4463,6 @@ def parseOpts():
 	filesystem.add_option('--write-info-json',
 			action='store_true', dest='writeinfojson',
 			help='write video metadata to a .info.json file', default=False)
-	filesystem.add_option('--write-srt',
-			action='store_true', dest='writesubtitles',
-			help='write video subtitles to a .srt file', default=False)
 
 
 	postproc.add_option('--extract-audio', action='store_true', dest='extractaudio', default=False,
@@ -4653,6 +4664,7 @@ def _real_main():
 		'writedescription': opts.writedescription,
 		'writeinfojson': opts.writeinfojson,
 		'writesubtitles': opts.writesubtitles,
+		'subtitleslang': opts.subtitleslang,
 		'matchtitle': opts.matchtitle,
 		'rejecttitle': opts.rejecttitle,
 		'max_downloads': opts.max_downloads,
