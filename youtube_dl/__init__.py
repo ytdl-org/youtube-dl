@@ -2241,7 +2241,67 @@ class GenericIE(InfoExtractor):
 		"""Report information extraction."""
 		self._downloader.to_screen(u'[generic] %s: Extracting information' % video_id)
 
+	def report_following_redirect(self, new_url):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[redirect] Following redirect to %s' % new_url)
+		
+	def _test_redirect(self, url):
+		"""Check if it is a redirect, like url shorteners, in case restart chain."""
+		class HeadRequest(urllib2.Request):
+			def get_method(self):
+				return "HEAD"
+
+		class HEADRedirectHandler(urllib2.HTTPRedirectHandler):
+			"""
+			Subclass the HTTPRedirectHandler to make it use our 
+			HeadRequest also on the redirected URL
+			"""
+			def redirect_request(self, req, fp, code, msg, headers, newurl): 
+				if code in (301, 302, 303, 307):
+				    newurl = newurl.replace(' ', '%20') 
+				    newheaders = dict((k,v) for k,v in req.headers.items()
+				                      if k.lower() not in ("content-length", "content-type"))
+				    return HeadRequest(newurl, 
+				                       headers=newheaders,
+				                       origin_req_host=req.get_origin_req_host(), 
+				                       unverifiable=True) 
+				else: 
+				    raise urllib2.HTTPError(req.get_full_url(), code, msg, headers, fp) 
+				    
+		class HTTPMethodFallback(urllib2.BaseHandler):
+			"""
+			Fallback to GET if HEAD is not allowed (405 HTTP error)
+			"""
+			def http_error_405(self, req, fp, code, msg, headers): 
+				fp.read()
+				fp.close()
+
+				newheaders = dict((k,v) for k,v in req.headers.items()
+				                  if k.lower() not in ("content-length", "content-type"))
+				return self.parent.open(urllib2.Request(req.get_full_url(), 
+				                                 headers=newheaders, 
+				                                 origin_req_host=req.get_origin_req_host(), 
+				                                 unverifiable=True))
+
+		# Build our opener
+		opener = urllib2.OpenerDirector() 
+		for handler in [urllib2.HTTPHandler, urllib2.HTTPDefaultErrorHandler,
+				        HTTPMethodFallback, HEADRedirectHandler,
+				        urllib2.HTTPErrorProcessor, urllib2.HTTPSHandler]:
+			opener.add_handler(handler())
+
+		response = opener.open(HeadRequest(url))
+		new_url = response.geturl()
+		
+		if url == new_url: return False
+		
+		self.report_following_redirect(new_url)
+		self._downloader.download([new_url])
+		return True
+
 	def _real_extract(self, url):
+		if self._test_redirect(url): return
+		
 		# At this point we have a new video
 		self._downloader.increment_downloads()
 
