@@ -4563,6 +4563,7 @@ def _real_main():
 		except IOError:
 			sys.exit(u'ERROR: batch file could not be read')
 	all_urls = batchurls + args
+	all_urls = map(lambda url: url.strip(), all_urls)
 
 	# General configuration
 	cookie_processor = urllib2.HTTPCookieProcessor(jar)
