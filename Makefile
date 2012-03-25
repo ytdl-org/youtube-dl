@@ -18,6 +18,9 @@ update-readme:
 		echo "$${footer}" >> README.md
 
 compile:
-	cp youtube_dl/__init__.py youtube-dl
+	zip --junk-paths youtube-dl youtube_dl/*.py
+	echo '#!/usr/bin/env python' > youtube-dl
+	cat youtube-dl.zip >> youtube-dl
+	rm youtube-dl.zip
 
 .PHONY: default compile update update-latest update-readme
