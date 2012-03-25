@@ -1176,6 +1176,7 @@ class YoutubeIE(InfoExtractor):
 	_LANG_URL = r'http://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
 	_LOGIN_URL = 'https://www.youtube.com/signup?next=/&gl=US&hl=en'
 	_AGE_URL = 'http://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
+	_NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
 	_NETRC_MACHINE = 'youtube'
 	# Listed in order of quality
 	_available_formats = ['38', '37', '22', '45', '35', '44', '34', '18', '43', '6', '5', '17', '13']
@@ -1336,6 +1337,11 @@ class YoutubeIE(InfoExtractor):
 			return
 
 	def _real_extract(self, url):
+		# Extract original video URL from URL with redirection, like age verification, using next_url parameter
+		mobj = re.search(self._NEXT_URL_RE, url)
+		if mobj:
+			url = 'http://www.youtube.com/' + urllib.unquote(mobj.group(1)).lstrip('/')
+
 		# Extract video id from URL
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
@@ -4624,6 +4630,7 @@ def _real_main():
 		except IOError:
 			sys.exit(u'ERROR: batch file could not be read')
 	all_urls = batchurls + args
+	all_urls = map(lambda url: url.strip(), all_urls)
 
 	# General configuration
 	cookie_processor = urllib2.HTTPCookieProcessor(jar)
