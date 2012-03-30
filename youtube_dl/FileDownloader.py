@@ -470,7 +470,13 @@ class FileDownloader(object):
 				suitable_found = True
 
 				# Extract information from URL and process it
-				ie.extract(url)
+				videos = ie.extract(url)
+				for video in videos or []:
+					try:
+						self.increment_downloads()
+						self.process_info(video)
+					except UnavailableVideoError:
+						self.trouble(u'\nERROR: unable to download video')
 
 				# Suitable InfoExtractor had been found; go to next URL
 				break

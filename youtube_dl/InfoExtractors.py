@@ -458,31 +458,26 @@ class YoutubeIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: no conn or url_encoded_fmt_stream_map information found in video info')
 			return
 
+		results = []
 		for format_param, video_real_url in video_url_list:
-			# At this point we have a new video
-			self._downloader.increment_downloads()
-
 			# Extension
 			video_extension = self._video_extensions.get(format_param, 'flv')
 
-			try:
-				# Process video information
-				self._downloader.process_info({
-					'id':		video_id.decode('utf-8'),
-					'url':		video_real_url.decode('utf-8'),
-					'uploader':	video_uploader.decode('utf-8'),
-					'upload_date':	upload_date,
-					'title':	video_title,
-					'stitle':	simple_title,
-					'ext':		video_extension.decode('utf-8'),
-					'format':	(format_param is None and u'NA' or format_param.decode('utf-8')),
-					'thumbnail':	video_thumbnail.decode('utf-8'),
-					'description':	video_description,
-					'player_url':	player_url,
-					'subtitles':	video_subtitles
-				})
-			except UnavailableVideoError, err:
-				self._downloader.trouble(u'\nERROR: unable to download video')
+			results.append({
+				'id':		video_id.decode('utf-8'),
+				'url':		video_real_url.decode('utf-8'),
+				'uploader':	video_uploader.decode('utf-8'),
+				'upload_date':	upload_date,
+				'title':	video_title,
+				'stitle':	simple_title,
+				'ext':		video_extension.decode('utf-8'),
+				'format':	(format_param is None and u'NA' or format_param.decode('utf-8')),
+				'thumbnail':	video_thumbnail.decode('utf-8'),
+				'description':	video_description,
+				'player_url':	player_url,
+				'subtitles':	video_subtitles
+			})
+		return results
 
 
 class MetacafeIE(InfoExtractor):
@@ -491,12 +486,10 @@ class MetacafeIE(InfoExtractor):
 	_VALID_URL = r'(?:http://)?(?:www\.)?metacafe\.com/watch/([^/]+)/([^/]+)/.*'
 	_DISCLAIMER = 'http://www.metacafe.com/family_filter/'
 	_FILTER_POST = 'http://www.metacafe.com/f/index.php?inputType=filter&controllerGroup=user'
-	_youtube_ie = None
 	IE_NAME = u'metacafe'
 
-	def __init__(self, youtube_ie, downloader=None):
+	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
-		self._youtube_ie = youtube_ie
 
 	def report_disclaimer(self):
 		"""Report disclaimer retrieval."""
@@ -549,11 +542,8 @@ class MetacafeIE(InfoExtractor):
 		# Check if video comes from YouTube
 		mobj2 = re.match(r'^yt-(.*)$', video_id)
 		if mobj2 is not None:
-			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % mobj2.group(1))
+			self._downloader.download(['http://www.youtube.com/watch?v=%s' % mobj2.group(1)])
 			return
-
-		# At this point we have a new video
-		self._downloader.increment_downloads()
 
 		simple_title = mobj.group(2).decode('utf-8')
 
@@ -610,21 +600,17 @@ class MetacafeIE(InfoExtractor):
 			return
 		video_uploader = mobj.group(1)
 
-		try:
-			# Process video information
-			self._downloader.process_info({
-				'id':		video_id.decode('utf-8'),
-				'url':		video_url.decode('utf-8'),
-				'uploader':	video_uploader.decode('utf-8'),
-				'upload_date':	u'NA',
-				'title':	video_title,
-				'stitle':	simple_title,
-				'ext':		video_extension.decode('utf-8'),
-				'format':	u'NA',
-				'player_url':	None,
-			})
-		except UnavailableVideoError:
-			self._downloader.trouble(u'\nERROR: unable to download video')
+		return [{
+			'id':		video_id.decode('utf-8'),
+			'url':		video_url.decode('utf-8'),
+			'uploader':	video_uploader.decode('utf-8'),
+			'upload_date':	u'NA',
+			'title':	video_title,
+			'stitle':	simple_title,
+			'ext':		video_extension.decode('utf-8'),
+			'format':	u'NA',
+			'player_url':	None,
+		}]
 
 
 class DailymotionIE(InfoExtractor):
@@ -651,8 +637,6 @@ class DailymotionIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
 			return
 
-		# At this point we have a new video
-		self._downloader.increment_downloads()
 		video_id = mobj.group(1)
 
 		video_extension = 'flv'
@@ -698,21 +682,17 @@ class DailymotionIE(InfoExtractor):
 			return
 		video_uploader = mobj.group(1)
 
-		try:
-			# Process video information
-			self._downloader.process_info({
-				'id':		video_id.decode('utf-8'),
-				'url':		video_url.decode('utf-8'),
-				'uploader':	video_uploader.decode('utf-8'),
-				'upload_date':	u'NA',
-				'title':	video_title,
-				'stitle':	simple_title,
-				'ext':		video_extension.decode('utf-8'),
-				'format':	u'NA',
-				'player_url':	None,
-			})
-		except UnavailableVideoError:
-			self._downloader.trouble(u'\nERROR: unable to download video')
+		return [{
+			'id':		video_id.decode('utf-8'),
+			'url':		video_url.decode('utf-8'),
+			'uploader':	video_uploader.decode('utf-8'),
+			'upload_date':	u'NA',
+			'title':	video_title,
+			'stitle':	simple_title,
+			'ext':		video_extension.decode('utf-8'),
+			'format':	u'NA',
+			'player_url':	None,
+		}]
 
 
 class GoogleIE(InfoExtractor):
@@ -739,8 +719,6 @@ class GoogleIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
 			return
 
-		# At this point we have a new video
-		self._downloader.increment_downloads()
 		video_id = mobj.group(1)
 
 		video_extension = 'mp4'
@@ -802,21 +780,17 @@ class GoogleIE(InfoExtractor):
 		else:	# we need something to pass to process_info
 			video_thumbnail = ''
 
-		try:
-			# Process video information
-			self._downloader.process_info({
-				'id':		video_id.decode('utf-8'),
-				'url':		video_url.decode('utf-8'),
-				'uploader':	u'NA',
-				'upload_date':	u'NA',
-				'title':	video_title,
-				'stitle':	simple_title,
-				'ext':		video_extension.decode('utf-8'),
-				'format':	u'NA',
-				'player_url':	None,
-			})
-		except UnavailableVideoError:
-			self._downloader.trouble(u'\nERROR: unable to download video')
+		return [{
+			'id':		video_id.decode('utf-8'),
+			'url':		video_url.decode('utf-8'),
+			'uploader':	u'NA',
+			'upload_date':	u'NA',
+			'title':	video_title,
+			'stitle':	simple_title,
+			'ext':		video_extension.decode('utf-8'),
+			'format':	u'NA',
+			'player_url':	None,
+		}]
 
 
 class PhotobucketIE(InfoExtractor):
@@ -843,8 +817,6 @@ class PhotobucketIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
 			return
 
-		# At this point we have a new video
-		self._downloader.increment_downloads()
 		video_id = mobj.group(1)
 
 		video_extension = 'flv'
@@ -878,21 +850,17 @@ class PhotobucketIE(InfoExtractor):
 
 		video_uploader = mobj.group(2).decode('utf-8')
 
-		try:
-			# Process video information
-			self._downloader.process_info({
-				'id':		video_id.decode('utf-8'),
-				'url':		video_url.decode('utf-8'),
-				'uploader':	video_uploader,
-				'upload_date':	u'NA',
-				'title':	video_title,
-				'stitle':	simple_title,
-				'ext':		video_extension.decode('utf-8'),
-				'format':	u'NA',
-				'player_url':	None,
-			})
-		except UnavailableVideoError:
-			self._downloader.trouble(u'\nERROR: unable to download video')
+		return [{
+			'id':		video_id.decode('utf-8'),
+			'url':		video_url.decode('utf-8'),
+			'uploader':	video_uploader,
+			'upload_date':	u'NA',
+			'title':	video_title,
+			'stitle':	simple_title,
+			'ext':		video_extension.decode('utf-8'),
+			'format':	u'NA',
+			'player_url':	None,
+		}]
 
 
 class YahooIE(InfoExtractor):
@@ -922,8 +890,6 @@ class YahooIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
 			return
 
-		# At this point we have a new video
-		self._downloader.increment_downloads()
 		video_id = mobj.group(2)
 		video_extension = 'flv'
 
@@ -1028,23 +994,19 @@ class YahooIE(InfoExtractor):
 		video_url = urllib.unquote(mobj.group(1) + mobj.group(2)).decode('utf-8')
 		video_url = re.sub(r'(?u)&(.+?);', htmlentity_transform, video_url)
 
-		try:
-			# Process video information
-			self._downloader.process_info({
-				'id':		video_id.decode('utf-8'),
-				'url':		video_url,
-				'uploader':	video_uploader,
-				'upload_date':	u'NA',
-				'title':	video_title,
-				'stitle':	simple_title,
-				'ext':		video_extension.decode('utf-8'),
-				'thumbnail':	video_thumbnail.decode('utf-8'),
-				'description':	video_description,
-				'thumbnail':	video_thumbnail,
-				'player_url':	None,
-			})
-		except UnavailableVideoError:
-			self._downloader.trouble(u'\nERROR: unable to download video')
+		return [{
+			'id':		video_id.decode('utf-8'),
+			'url':		video_url,
+			'uploader':	video_uploader,
+			'upload_date':	u'NA',
+			'title':	video_title,
+			'stitle':	simple_title,
+			'ext':		video_extension.decode('utf-8'),
+			'thumbnail':	video_thumbnail.decode('utf-8'),
+			'description':	video_description,
+			'thumbnail':	video_thumbnail,
+			'player_url':	None,
+		}]
 
 
 class VimeoIE(InfoExtractor):
@@ -1072,8 +1034,6 @@ class VimeoIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
 			return
 
-		# At this point we have a new video
-		self._downloader.increment_downloads()
 		video_id = mobj.group(1)
 
 		# Retrieve video webpage to extract further information
@@ -1149,22 +1109,18 @@ class VimeoIE(InfoExtractor):
 		video_url = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=%s&type=moogaloop_local&embed_location=" \
 					%(video_id, sig, timestamp, quality, video_codec.upper())
 
-		try:
-			# Process video information
-			self._downloader.process_info({
-				'id':		video_id,
-				'url':		video_url,
-				'uploader':	video_uploader,
-				'upload_date':	video_upload_date,
-				'title':	video_title,
-				'stitle':	simple_title,
-				'ext':		video_extension,
-				'thumbnail':	video_thumbnail,
-				'description':	video_description,
-				'player_url':	None,
-			})
-		except UnavailableVideoError:
-			self._downloader.trouble(u'ERROR: unable to download video')
+		return [{
+			'id':		video_id,
+			'url':		video_url,
+			'uploader':	video_uploader,
+			'upload_date':	video_upload_date,
+			'title':	video_title,
+			'stitle':	simple_title,
+			'ext':		video_extension,
+			'thumbnail':	video_thumbnail,
+			'description':	video_description,
+			'player_url':	None,
+		}]
 
 
 class GenericIE(InfoExtractor):
@@ -1245,9 +1201,6 @@ class GenericIE(InfoExtractor):
 
 	def _real_extract(self, url):
 		if self._test_redirect(url): return
-		
-		# At this point we have a new video
-		self._downloader.increment_downloads()
 
 		video_id = url.split('/')[-1]
 		request = urllib2.Request(url)
@@ -1307,42 +1260,33 @@ class GenericIE(InfoExtractor):
 			return
 		video_uploader = mobj.group(1).decode('utf-8')
 
-		try:
-			# Process video information
-			self._downloader.process_info({
-				'id':		video_id.decode('utf-8'),
-				'url':		video_url.decode('utf-8'),
-				'uploader':	video_uploader,
-				'upload_date':	u'NA',
-				'title':	video_title,
-				'stitle':	simple_title,
-				'ext':		video_extension.decode('utf-8'),
-				'format':	u'NA',
-				'player_url':	None,
-			})
-		except UnavailableVideoError, err:
-			self._downloader.trouble(u'\nERROR: unable to download video')
+		return [{
+			'id':		video_id.decode('utf-8'),
+			'url':		video_url.decode('utf-8'),
+			'uploader':	video_uploader,
+			'upload_date':	u'NA',
+			'title':	video_title,
+			'stitle':	simple_title,
+			'ext':		video_extension.decode('utf-8'),
+			'format':	u'NA',
+			'player_url':	None,
+		}]
 
 
 class YoutubeSearchIE(InfoExtractor):
 	"""Information Extractor for YouTube search queries."""
 	_VALID_URL = r'ytsearch(\d+|all)?:[\s\S]+'
 	_API_URL = 'https://gdata.youtube.com/feeds/api/videos?q=%s&start-index=%i&max-results=50&v=2&alt=jsonc'
-	_youtube_ie = None
 	_max_youtube_results = 1000
 	IE_NAME = u'youtube:search'
 
-	def __init__(self, youtube_ie, downloader=None):
+	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
-		self._youtube_ie = youtube_ie
 
 	def report_download_page(self, query, pagenum):
 		"""Report attempt to download playlist page with given number."""
 		query = query.decode(preferredencoding())
 		self._downloader.to_screen(u'[youtube] query "%s": Downloading page %s' % (query, pagenum))
-
-	def _real_initialize(self):
-		self._youtube_ie.initialize()
 
 	def _real_extract(self, query):
 		mobj = re.match(self._VALID_URL, query)
@@ -1401,7 +1345,7 @@ class YoutubeSearchIE(InfoExtractor):
 		if len(video_ids) > n:
 			video_ids = video_ids[:n]
 		for id in video_ids:
-			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
+			self._downloader.download(['http://www.youtube.com/watch?v=%s' % id])
 		return
 
 
@@ -1411,21 +1355,16 @@ class GoogleSearchIE(InfoExtractor):
 	_TEMPLATE_URL = 'http://video.google.com/videosearch?q=%s+site:video.google.com&start=%s&hl=en'
 	_VIDEO_INDICATOR = r'<a href="http://video\.google\.com/videoplay\?docid=([^"\&]+)'
 	_MORE_PAGES_INDICATOR = r'class="pn" id="pnnext"'
-	_google_ie = None
 	_max_google_results = 1000
 	IE_NAME = u'video.google:search'
 
-	def __init__(self, google_ie, downloader=None):
+	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
-		self._google_ie = google_ie
 
 	def report_download_page(self, query, pagenum):
 		"""Report attempt to download playlist page with given number."""
 		query = query.decode(preferredencoding())
 		self._downloader.to_screen(u'[video.google] query "%s": Downloading page %s' % (query, pagenum))
-
-	def _real_initialize(self):
-		self._google_ie.initialize()
 
 	def _real_extract(self, query):
 		mobj = re.match(self._VALID_URL, query)
@@ -1481,12 +1420,12 @@ class GoogleSearchIE(InfoExtractor):
 					if len(video_ids) == n:
 						# Specified n videos reached
 						for id in video_ids:
-							self._google_ie.extract('http://video.google.com/videoplay?docid=%s' % id)
+							self._downloader.download(['http://video.google.com/videoplay?docid=%s' % id])
 						return
 
 			if re.search(self._MORE_PAGES_INDICATOR, page) is None:
 				for id in video_ids:
-					self._google_ie.extract('http://video.google.com/videoplay?docid=%s' % id)
+					self._downloader.download(['http://video.google.com/videoplay?docid=%s' % id])
 				return
 
 			pagenum = pagenum + 1
@@ -1498,21 +1437,16 @@ class YahooSearchIE(InfoExtractor):
 	_TEMPLATE_URL = 'http://video.yahoo.com/search/?p=%s&o=%s'
 	_VIDEO_INDICATOR = r'href="http://video\.yahoo\.com/watch/([0-9]+/[0-9]+)"'
 	_MORE_PAGES_INDICATOR = r'\s*Next'
-	_yahoo_ie = None
 	_max_yahoo_results = 1000
 	IE_NAME = u'video.yahoo:search'
 
-	def __init__(self, yahoo_ie, downloader=None):
+	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
-		self._yahoo_ie = yahoo_ie
 
 	def report_download_page(self, query, pagenum):
 		"""Report attempt to download playlist page with given number."""
 		query = query.decode(preferredencoding())
 		self._downloader.to_screen(u'[video.yahoo] query "%s": Downloading page %s' % (query, pagenum))
-
-	def _real_initialize(self):
-		self._yahoo_ie.initialize()
 
 	def _real_extract(self, query):
 		mobj = re.match(self._VALID_URL, query)
@@ -1570,12 +1504,12 @@ class YahooSearchIE(InfoExtractor):
 					if len(video_ids) == n:
 						# Specified n videos reached
 						for id in video_ids:
-							self._yahoo_ie.extract('http://video.yahoo.com/watch/%s' % id)
+							self._downloader.download(['http://video.yahoo.com/watch/%s' % id])
 						return
 
 			if re.search(self._MORE_PAGES_INDICATOR, page) is None:
 				for id in video_ids:
-					self._yahoo_ie.extract('http://video.yahoo.com/watch/%s' % id)
+					self._downloader.download(['http://video.yahoo.com/watch/%s' % id])
 				return
 
 			pagenum = pagenum + 1
@@ -1588,19 +1522,14 @@ class YoutubePlaylistIE(InfoExtractor):
 	_TEMPLATE_URL = 'http://www.youtube.com/%s?%s=%s&page=%s&gl=US&hl=en'
 	_VIDEO_INDICATOR_TEMPLATE = r'/watch\?v=(.+?)&amp;list=PL%s&'
 	_MORE_PAGES_INDICATOR = r'(?m)>\s*Next\s*</a>'
-	_youtube_ie = None
 	IE_NAME = u'youtube:playlist'
 
-	def __init__(self, youtube_ie, downloader=None):
+	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
-		self._youtube_ie = youtube_ie
 
 	def report_download_page(self, playlist_id, pagenum):
 		"""Report attempt to download playlist page with given number."""
 		self._downloader.to_screen(u'[youtube] PL %s: Downloading page #%s' % (playlist_id, pagenum))
-
-	def _real_initialize(self):
-		self._youtube_ie.initialize()
 
 	def _real_extract(self, url):
 		# Extract playlist id
@@ -1611,7 +1540,7 @@ class YoutubePlaylistIE(InfoExtractor):
 
 		# Single video case
 		if mobj.group(3) is not None:
-			self._youtube_ie.extract(mobj.group(3))
+			self._downloader.download([mobj.group(3)])
 			return
 
 		# Download playlist pages
@@ -1655,7 +1584,7 @@ class YoutubePlaylistIE(InfoExtractor):
 			video_ids = video_ids[playliststart:playlistend]
 
 		for id in video_ids:
-			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % id)
+			self._downloader.download(['http://www.youtube.com/watch?v=%s' % id])
 		return
 
 
@@ -1667,20 +1596,15 @@ class YoutubeUserIE(InfoExtractor):
 	_GDATA_PAGE_SIZE = 50
 	_GDATA_URL = 'http://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d'
 	_VIDEO_INDICATOR = r'/watch\?v=(.+?)[\<&]'
-	_youtube_ie = None
 	IE_NAME = u'youtube:user'
 
-	def __init__(self, youtube_ie, downloader=None):
+	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
-		self._youtube_ie = youtube_ie
 
 	def report_download_page(self, username, start_index):
 		"""Report attempt to download user page."""
 		self._downloader.to_screen(u'[youtube] user %s: Downloading video ids from %d to %d' %
 				(username, start_index, start_index + self._GDATA_PAGE_SIZE))
-
-	def _real_initialize(self):
-		self._youtube_ie.initialize()
 
 	def _real_extract(self, url):
 		# Extract username
@@ -1744,7 +1668,7 @@ class YoutubeUserIE(InfoExtractor):
 				(username, all_ids_count, len(video_ids)))
 
 		for video_id in video_ids:
-			self._youtube_ie.extract('http://www.youtube.com/watch?v=%s' % video_id)
+			self._downloader.download(['http://www.youtube.com/watch?v=%s' % video_id])
 
 
 class DepositFilesIE(InfoExtractor):
@@ -1765,9 +1689,6 @@ class DepositFilesIE(InfoExtractor):
 		self._downloader.to_screen(u'[DepositFiles] %s: Extracting information' % file_id)
 
 	def _real_extract(self, url):
-		# At this point we have a new file
-		self._downloader.increment_downloads()
-
 		file_id = url.split('/')[-1]
 		# Rebuild url in english locale
 		url = 'http://depositfiles.com/en/files/' + file_id
@@ -1804,21 +1725,17 @@ class DepositFilesIE(InfoExtractor):
 			return
 		file_title = mobj.group(1).decode('utf-8')
 
-		try:
-			# Process file information
-			self._downloader.process_info({
-				'id':		file_id.decode('utf-8'),
-				'url':		file_url.decode('utf-8'),
-				'uploader':	u'NA',
-				'upload_date':	u'NA',
-				'title':	file_title,
-				'stitle':	file_title,
-				'ext':		file_extension.decode('utf-8'),
-				'format':	u'NA',
-				'player_url':	None,
-			})
-		except UnavailableVideoError, err:
-			self._downloader.trouble(u'ERROR: unable to download file')
+		return [{
+			'id':		file_id.decode('utf-8'),
+			'url':		file_url.decode('utf-8'),
+			'uploader':	u'NA',
+			'upload_date':	u'NA',
+			'title':	file_title,
+			'stitle':	file_title,
+			'ext':		file_extension.decode('utf-8'),
+			'format':	u'NA',
+			'player_url':	None,
+		}]
 
 
 class FacebookIE(InfoExtractor):
@@ -2011,31 +1928,25 @@ class FacebookIE(InfoExtractor):
 					return
 				video_url_list = [(req_format, url_map[req_format])] # Specific format
 
+		results = []
 		for format_param, video_real_url in video_url_list:
-
-			# At this point we have a new video
-			self._downloader.increment_downloads()
-
 			# Extension
 			video_extension = self._video_extensions.get(format_param, 'mp4')
 
-			try:
-				# Process video information
-				self._downloader.process_info({
-					'id':		video_id.decode('utf-8'),
-					'url':		video_real_url.decode('utf-8'),
-					'uploader':	video_uploader.decode('utf-8'),
-					'upload_date':	upload_date,
-					'title':	video_title,
-					'stitle':	simple_title,
-					'ext':		video_extension.decode('utf-8'),
-					'format':	(format_param is None and u'NA' or format_param.decode('utf-8')),
-					'thumbnail':	video_thumbnail.decode('utf-8'),
-					'description':	video_description.decode('utf-8'),
-					'player_url':	None,
-				})
-			except UnavailableVideoError, err:
-				self._downloader.trouble(u'\nERROR: unable to download video')
+			results.append({
+				'id':		video_id.decode('utf-8'),
+				'url':		video_real_url.decode('utf-8'),
+				'uploader':	video_uploader.decode('utf-8'),
+				'upload_date':	upload_date,
+				'title':	video_title,
+				'stitle':	simple_title,
+				'ext':		video_extension.decode('utf-8'),
+				'format':	(format_param is None and u'NA' or format_param.decode('utf-8')),
+				'thumbnail':	video_thumbnail.decode('utf-8'),
+				'description':	video_description.decode('utf-8'),
+				'player_url':	None,
+			})
+		return results
 
 class BlipTVIE(InfoExtractor):
 	"""Information extractor for blip.tv"""
@@ -2123,12 +2034,7 @@ class BlipTVIE(InfoExtractor):
 				self._downloader.trouble(u'ERROR: unable to parse video information: %s' % repr(err))
 				return
 
-		self._downloader.increment_downloads()
-
-		try:
-			self._downloader.process_info(info)
-		except UnavailableVideoError, err:
-			self._downloader.trouble(u'\nERROR: unable to download video')
+		return [info]
 
 
 class MyVideoIE(InfoExtractor):
@@ -2183,20 +2089,17 @@ class MyVideoIE(InfoExtractor):
 
 		simple_title = simplify_title(video_title)
 
-		try:
-			self._downloader.process_info({
-				'id':		video_id,
-				'url':		video_url,
-				'uploader':	u'NA',
-				'upload_date':  u'NA',
-				'title':	video_title,
-				'stitle':	simple_title,
-				'ext':		u'flv',
-				'format':	u'NA',
-				'player_url':	None,
-			})
-		except UnavailableVideoError:
-			self._downloader.trouble(u'\nERROR: Unable to download video')
+		return [{
+			'id':		video_id,
+			'url':		video_url,
+			'uploader':	u'NA',
+			'upload_date':  u'NA',
+			'title':	video_title,
+			'stitle':	simple_title,
+			'ext':		u'flv',
+			'format':	u'NA',
+			'player_url':	None,
+		}]
 
 class ComedyCentralIE(InfoExtractor):
 	"""Information extractor for The Daily Show and Colbert Report """
@@ -2278,6 +2181,8 @@ class ComedyCentralIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to download episode index: ' + unicode(err))
 			return
 
+		results = []
+
 		idoc = xml.etree.ElementTree.fromstring(indexXml)
 		itemEls = idoc.findall('.//item')
 		for itemEl in itemEls:
@@ -2310,8 +2215,6 @@ class ComedyCentralIE(InfoExtractor):
 			# For now, just pick the highest bitrate
 			format,video_url = turls[-1]
 
-			self._downloader.increment_downloads()
-
 			effTitle = showId + u'-' + epTitle
 			info = {
 				'id': shortMediaId,
@@ -2327,11 +2230,9 @@ class ComedyCentralIE(InfoExtractor):
 				'player_url': playerUrl
 			}
 
-			try:
-				self._downloader.process_info(info)
-			except UnavailableVideoError, err:
-				self._downloader.trouble(u'\nERROR: unable to download ' + mediaId)
-				continue
+			results.append(info)
+			
+		return results
 
 
 class EscapistIE(InfoExtractor):
@@ -2391,7 +2292,6 @@ class EscapistIE(InfoExtractor):
 		playlist = config['playlist']
 		videoUrl = playlist[1]['url']
 
-		self._downloader.increment_downloads()
 		info = {
 			'id': videoId,
 			'url': videoUrl,
@@ -2406,10 +2306,7 @@ class EscapistIE(InfoExtractor):
 			'player_url': playerUrl,
 		}
 
-		try:
-			self._downloader.process_info(info)
-		except UnavailableVideoError, err:
-			self._downloader.trouble(u'\nERROR: unable to download ' + videoId)
+		return [info]
 
 
 class CollegeHumorIE(InfoExtractor):
@@ -2476,12 +2373,7 @@ class CollegeHumorIE(InfoExtractor):
 			self._downloader.trouble(u'\nERROR: Invalid metadata XML file')
 			return
 
-		self._downloader.increment_downloads()
-
-		try:
-			self._downloader.process_info(info)
-		except UnavailableVideoError, err:
-			self._downloader.trouble(u'\nERROR: unable to download video')
+		return [info]
 
 
 class XVideosIE(InfoExtractor):
@@ -2542,9 +2434,6 @@ class XVideosIE(InfoExtractor):
 			return
 		video_thumbnail = mobj.group(1).decode('utf-8')
 
-
-
-		self._downloader.increment_downloads()
 		info = {
 			'id': video_id,
 			'url': video_url,
@@ -2559,10 +2448,7 @@ class XVideosIE(InfoExtractor):
 			'player_url': None,
 		}
 
-		try:
-			self._downloader.process_info(info)
-		except UnavailableVideoError, err:
-			self._downloader.trouble(u'\nERROR: unable to download ' + video_id)
+		return [info]
 
 
 class SoundcloudIE(InfoExtractor):
@@ -2646,21 +2532,18 @@ class SoundcloudIE(InfoExtractor):
 		# for soundcloud, a request to a cross domain is required for cookies
 		request = urllib2.Request('http://media.soundcloud.com/crossdomain.xml', std_headers)
 
-		try:
-			self._downloader.process_info({
-				'id':		video_id.decode('utf-8'),
-				'url':		mediaURL,
-				'uploader':	uploader.decode('utf-8'),
-				'upload_date':  upload_date,
-				'title':	simple_title.decode('utf-8'),
-				'stitle':	simple_title.decode('utf-8'),
-				'ext':		u'mp3',
-				'format':	u'NA',
-				'player_url':	None,
-				'description': description.decode('utf-8')
-			})
-		except UnavailableVideoError:
-			self._downloader.trouble(u'\nERROR: unable to download video')
+		return [{
+			'id':		video_id.decode('utf-8'),
+			'url':		mediaURL,
+			'uploader':	uploader.decode('utf-8'),
+			'upload_date':  upload_date,
+			'title':	simple_title.decode('utf-8'),
+			'stitle':	simple_title.decode('utf-8'),
+			'ext':		u'mp3',
+			'format':	u'NA',
+			'player_url':	None,
+			'description': description.decode('utf-8')
+		}]
 
 
 class InfoQIE(InfoExtractor):
@@ -2721,7 +2604,6 @@ class InfoQIE(InfoExtractor):
 		video_filename = video_url.split('/')[-1]
 		video_id, extension = video_filename.split('.')
 
-		self._downloader.increment_downloads()
 		info = {
 			'id': video_id,
 			'url': video_url,
@@ -2736,10 +2618,7 @@ class InfoQIE(InfoExtractor):
 			'player_url': None,
 		}
 
-		try:
-			self._downloader.process_info(info)
-		except UnavailableVideoError, err:
-			self._downloader.trouble(u'\nERROR: unable to download ' + video_url)
+		return [info]
 
 class MixcloudIE(InfoExtractor):
 	"""Information extractor for www.mixcloud.com"""
@@ -2842,25 +2721,19 @@ class MixcloudIE(InfoExtractor):
 			file_url = self.check_urls(url_list)
 			format_param = req_format
 
-		# We have audio
-		self._downloader.increment_downloads()
-		try:
-			# Process file information
-			self._downloader.process_info({
-				'id': file_id.decode('utf-8'),
-				'url': file_url.decode('utf-8'),
-				'uploader':	uploader.decode('utf-8'),
-				'upload_date': u'NA',
-				'title': json_data['name'],
-				'stitle': simplify_title(json_data['name']),
-				'ext': file_url.split('.')[-1].decode('utf-8'),
-				'format': (format_param is None and u'NA' or format_param.decode('utf-8')),
-				'thumbnail': json_data['thumbnail_url'],
-				'description': json_data['description'],
-				'player_url': player_url.decode('utf-8'),
-			})
-		except UnavailableVideoError, err:
-			self._downloader.trouble(u'ERROR: unable to download file')
+		return [{
+			'id': file_id.decode('utf-8'),
+			'url': file_url.decode('utf-8'),
+			'uploader':	uploader.decode('utf-8'),
+			'upload_date': u'NA',
+			'title': json_data['name'],
+			'stitle': simplify_title(json_data['name']),
+			'ext': file_url.split('.')[-1].decode('utf-8'),
+			'format': (format_param is None and u'NA' or format_param.decode('utf-8')),
+			'thumbnail': json_data['thumbnail_url'],
+			'description': json_data['description'],
+			'player_url': player_url.decode('utf-8'),
+		}]
 
 class StanfordOpenClassroomIE(InfoExtractor):
 	"""Information extractor for Stanford's Open ClassRoom"""
@@ -2907,11 +2780,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			info['stitle'] = simplify_title(info['title'])
 			info['ext'] = info['url'].rpartition('.')[2]
 			info['format'] = info['ext']
-			self._downloader.increment_downloads()
-			try:
-				self._downloader.process_info(info)
-			except UnavailableVideoError, err:
-				self._downloader.trouble(u'\nERROR: unable to download video')
+			return [info]
 		elif mobj.group('course'): # A course page
 			unescapeHTML = HTMLParser.HTMLParser().unescape
 
@@ -2946,10 +2815,12 @@ class StanfordOpenClassroomIE(InfoExtractor):
 					'url': 'http://openclassroom.stanford.edu/MainFolder/' + unescapeHTML(vpage),
 				}
 					for vpage in links]
-
+			results = []
 			for entry in info['list']:
 				assert entry['type'] == 'reference'
-				self.extract(entry['url'])
+				results += self.extract(entry['url'])
+			return results
+			
 		else: # Root page
 			unescapeHTML = HTMLParser.HTMLParser().unescape
 
@@ -2977,9 +2848,11 @@ class StanfordOpenClassroomIE(InfoExtractor):
 				}
 					for cpage in links]
 
+			results = []
 			for entry in info['list']:
 				assert entry['type'] == 'reference'
-				self.extract(entry['url'])
+				results += self.extract(entry['url'])
+			return results
 
 class MTVIE(InfoExtractor):
 	"""Information extractor for MTV.com"""
@@ -3059,7 +2932,6 @@ class MTVIE(InfoExtractor):
 			self._downloader.trouble('Invalid rendition field.')
 			return
 
-		self._downloader.increment_downloads()
 		info = {
 			'id': video_id,
 			'url': video_url,
@@ -3070,7 +2942,4 @@ class MTVIE(InfoExtractor):
 			'format': format,
 		}
 
-		try:
-			self._downloader.process_info(info)
-		except UnavailableVideoError, err:
-			self._downloader.trouble(u'\nERROR: unable to download ' + video_id)
+		return [info]

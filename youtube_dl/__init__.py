@@ -291,21 +291,18 @@ def gen_extractors():
 	""" Return a list of an instance of every supported extractor.
 	The order does matter; the first extractor matched is the one handling the URL.
 	"""
-	youtube_ie = YoutubeIE()
-	google_ie = GoogleIE()
-	yahoo_ie = YahooIE()
 	return [
-		YoutubePlaylistIE(youtube_ie),
-		YoutubeUserIE(youtube_ie),
-		YoutubeSearchIE(youtube_ie),
-		youtube_ie,
-		MetacafeIE(youtube_ie),
+		YoutubePlaylistIE(),
+		YoutubeUserIE(),
+		YoutubeSearchIE(),
+		YoutubeIE(),
+		MetacafeIE(),
 		DailymotionIE(),
-		google_ie,
-		GoogleSearchIE(google_ie),
+		GoogleIE(),
+		GoogleSearchIE(),
 		PhotobucketIE(),
-		yahoo_ie,
-		YahooSearchIE(yahoo_ie),
+		YahooIE(),
+		YahooSearchIE(),
 		DepositFilesIE(),
 		FacebookIE(),
 		BlipTVIE(),
