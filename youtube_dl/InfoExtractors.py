@@ -1158,16 +1158,16 @@ class GenericIE(InfoExtractor):
 			"""
 			def redirect_request(self, req, fp, code, msg, headers, newurl): 
 				if code in (301, 302, 303, 307):
-				    newurl = newurl.replace(' ', '%20') 
-				    newheaders = dict((k,v) for k,v in req.headers.items()
-				                      if k.lower() not in ("content-length", "content-type"))
-				    return HeadRequest(newurl, 
-				                       headers=newheaders,
-				                       origin_req_host=req.get_origin_req_host(), 
-				                       unverifiable=True) 
+					newurl = newurl.replace(' ', '%20') 
+					newheaders = dict((k,v) for k,v in req.headers.items()
+									  if k.lower() not in ("content-length", "content-type"))
+					return HeadRequest(newurl, 
+									   headers=newheaders,
+									   origin_req_host=req.get_origin_req_host(), 
+									   unverifiable=True) 
 				else: 
-				    raise urllib2.HTTPError(req.get_full_url(), code, msg, headers, fp) 
-				    
+					raise urllib2.HTTPError(req.get_full_url(), code, msg, headers, fp) 
+
 		class HTTPMethodFallback(urllib2.BaseHandler):
 			"""
 			Fallback to GET if HEAD is not allowed (405 HTTP error)
@@ -1177,17 +1177,17 @@ class GenericIE(InfoExtractor):
 				fp.close()
 
 				newheaders = dict((k,v) for k,v in req.headers.items()
-				                  if k.lower() not in ("content-length", "content-type"))
+								  if k.lower() not in ("content-length", "content-type"))
 				return self.parent.open(urllib2.Request(req.get_full_url(), 
-				                                 headers=newheaders, 
-				                                 origin_req_host=req.get_origin_req_host(), 
-				                                 unverifiable=True))
+												 headers=newheaders, 
+												 origin_req_host=req.get_origin_req_host(), 
+												 unverifiable=True))
 
 		# Build our opener
 		opener = urllib2.OpenerDirector() 
 		for handler in [urllib2.HTTPHandler, urllib2.HTTPDefaultErrorHandler,
-				        HTTPMethodFallback, HEADRedirectHandler,
-				        urllib2.HTTPErrorProcessor, urllib2.HTTPSHandler]:
+						HTTPMethodFallback, HEADRedirectHandler,
+						urllib2.HTTPErrorProcessor, urllib2.HTTPSHandler]:
 			opener.add_handler(handler())
 
 		response = opener.open(HeadRequest(url))
