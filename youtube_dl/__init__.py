@@ -75,7 +75,7 @@ def updateSelf(downloader, filename):
 			b = open(bat, 'w')
 			
 			print >> b, """
-timeout /t 5 /nobreak
+ping 127.0.0.1 -n 5 -w 1000 > NUL
 move /Y "%s.new" "%s"
 del "%s"
 			""" %(exe, exe, bat)
