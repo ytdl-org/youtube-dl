@@ -22,6 +22,8 @@ __license__ = 'Public Domain'
 __version__ = '2012.02.27'
 
 UPDATE_URL = 'https://raw.github.com/rg3/youtube-dl/master/youtube-dl'
+UPDATE_URL_VERSION = 'https://raw.github.com/rg3/youtube-dl/master/LATEST_VERSION'
+UPDATE_URL_EXE = 'https://raw.github.com/rg3/youtube-dl/master/youtube-dl.exe'
 
 
 import cookielib
@@ -44,33 +46,62 @@ from PostProcessing import *
 def updateSelf(downloader, filename):
 	''' Update the program file with the latest version from the repository '''
 	# Note: downloader only used for options
+	
 	if not os.access(filename, os.W_OK):
 		sys.exit('ERROR: no write permissions on %s' % filename)
 
 	downloader.to_screen(u'Updating to latest version...')
 
-	try:
+	urlv = urllib2.urlopen(UPDATE_URL_VERSION)
+	newversion = urlv.read().strip()
+	if newversion == __version__:
+		downloader.to_screen(u'youtube-dl is up-to-date (' + __version__ + ')')
+		return
+	urlv.close()
+
+	if hasattr(sys, "frozen"): #py2exe
+		directory = os.path.dirname(filename)
+		exe = os.path.abspath(filename)
+		if not os.access(directory, os.W_OK):
+			sys.exit('ERROR: no write permissions on %s' % directory)
+			
+		try:
+			urllib.urlretrieve(UPDATE_URL_EXE, exe + '.new')
+		except (IOError, OSError), err:
+			sys.exit('ERROR: unable to download latest version')
+			
+		try:
+			bat = os.path.join(directory, 'youtube-dl-updater.bat')
+			b = open(bat, 'w')
+			
+			print >> b, """
+timeout /t 5 /nobreak
+move /Y "%s.new" "%s"
+del "%s"
+			""" %(exe, exe, bat)
+			
+			b.close()
+			
+			os.startfile(bat)
+		except (IOError, OSError), err:
+			sys.exit('ERROR: unable to overwrite current version')
+
+	else:
 		try:
 			urlh = urllib2.urlopen(UPDATE_URL)
 			newcontent = urlh.read()
-			
-			vmatch = re.search("__version__ = '([^']+)'", newcontent)
-			if vmatch is not None and vmatch.group(1) == __version__:
-				downloader.to_screen(u'youtube-dl is up-to-date (' + __version__ + ')')
-				return
-		finally:
 			urlh.close()
-	except (IOError, OSError), err:
-		sys.exit('ERROR: unable to download latest version')
+		except (IOError, OSError), err:
+			sys.exit('ERROR: unable to download latest version')
 
-	try:
-		outf = open(filename, 'wb')
 		try:
-			outf.write(newcontent)
-		finally:
-			outf.close()
-	except (IOError, OSError), err:
-		sys.exit('ERROR: unable to overwrite current version')
+			outf = open(filename, 'wb')
+			try:
+				outf.write(newcontent)
+			finally:
+				outf.close()
+		except (IOError, OSError), err:
+			sys.exit('ERROR: unable to overwrite current version')
 
 	downloader.to_screen(u'Updated youtube-dl. Restart youtube-dl to use the new version.')
 
