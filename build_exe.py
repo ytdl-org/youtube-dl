@@ -2,11 +2,13 @@ from distutils.core import setup
 import py2exe
 import sys, os
 
+"""This will create an exe that needs Microsoft Visual C++ 2008 Redistributable Package"""
+
 # If run without args, build executables
 if len(sys.argv) == 1:
     sys.argv.append("py2exe")
 
-os.chdir(os.path.dirname(sys.argv[0]))
+# os.chdir(os.path.dirname(os.path.abspath(sys.argv[0]))) # conflict with wine-py2exe.sh
 sys.path.append('./youtube_dl')
 
 options = {
