@@ -6,7 +6,7 @@ import subprocess
 import sys
 import time
 
-from Utils import *
+from utils import *
 
 
 class PostProcessor(object):

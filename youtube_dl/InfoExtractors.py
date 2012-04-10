@@ -34,7 +34,7 @@ try:
 except ImportError: # Python<2.5: Not officially supported, but let it slip
 	warnings.warn('xml.etree.ElementTree support is missing. Consider upgrading to Python >= 2.5 if you get related errors.')
 
-from Utils import *
+from utils import *
 
 
 class InfoExtractor(object):

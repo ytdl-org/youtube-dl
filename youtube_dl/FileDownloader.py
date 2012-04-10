@@ -14,7 +14,7 @@ import urllib2
 if os.name == 'nt':
 	import ctypes
 	
-from Utils import *
+from utils import *
 
 
 class FileDownloader(object):

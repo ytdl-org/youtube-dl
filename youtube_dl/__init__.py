@@ -38,10 +38,10 @@ import sys
 import urllib2
 import warnings
 
-from Utils import *
+from utils import *
 from FileDownloader import *
 from InfoExtractors import *
-from PostProcessing import *
+from PostProcessor import *
 
 def updateSelf(downloader, filename):
 	''' Update the program file with the latest version from the repository '''
