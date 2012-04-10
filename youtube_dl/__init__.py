@@ -308,13 +308,13 @@ def clean_html(html):
 	# Strip html tags
 	html = re.sub('<.*?>', '', html)
 	# Replace html entities
-	html = re.sub(ur'(?u)&(.+?);', htmlentity_transform, html)
+	html = _unescapeHTML(html)
 	return html
 
 
 def sanitize_title(utitle):
 	"""Sanitizes a video title so it could be used as part of a filename."""
-	utitle = re.sub(ur'(?u)&(.+?);', htmlentity_transform, utitle)
+	utitle = _unescapeHTML(utitle)
 	return utitle.replace(unicode(os.sep), u'%')
 
 
@@ -371,8 +371,8 @@ def _unescapeHTML(s):
 	"""
 	assert type(s) == type(u'')
 
-	htmlParser = HTMLParser.HTMLParser()
-	return htmlParser.unescape(s)
+	result = re.sub(ur'(?u)&(.+?);', htmlentity_transform, s)
+	return result
 
 def _encodeFilename(s):
 	"""
@@ -1324,8 +1324,8 @@ class YoutubeIE(InfoExtractor):
 			end = start + float(dur)
 			start = "%02i:%02i:%02i,%03i" %(start/(60*60), start/60%60, start%60, start%1*1000)
 			end = "%02i:%02i:%02i,%03i" %(end/(60*60), end/60%60, end%60, end%1*1000)
-			caption = re.sub(ur'(?u)&(.+?);', htmlentity_transform, caption)
-			caption = re.sub(ur'(?u)&(.+?);', htmlentity_transform, caption) # double cycle, inentional
+			caption = _unescapeHTML(caption)
+			caption = _unescapeHTML(caption) # double cycle, inentional
 			srt += str(n) + '\n'
 			srt += start + ' --> ' + end + '\n'
 			srt += caption + '\n\n'
@@ -2143,7 +2143,7 @@ class YahooIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: Unable to extract media URL')
 			return
 		video_url = urllib.unquote(mobj.group(1) + mobj.group(2)).decode('utf-8')
-		video_url = re.sub(r'(?u)&(.+?);', htmlentity_transform, video_url)
+		video_url = _unescapeHTML(video_url)
 
 		try:
 			# Process video information
@@ -3410,11 +3410,11 @@ class EscapistIE(InfoExtractor):
 			return
 
 		descMatch = re.search('<meta name="description" content="([^"]*)"', webPage)
-		description = unescapeHTML(descMatch.group(1))
+		description = _unescapeHTML(descMatch.group(1))
 		imgMatch = re.search('<meta property="og:image" content="([^"]*)"', webPage)
-		imgUrl = unescapeHTML(imgMatch.group(1))
+		imgUrl = _unescapeHTML(imgMatch.group(1))
 		playerUrlMatch = re.search('<meta property="og:video" content="([^"]*)"', webPage)
-		playerUrl = unescapeHTML(playerUrlMatch.group(1))
+		playerUrl = _unescapeHTML(playerUrlMatch.group(1))
 		configUrlMatch = re.search('config=(.*)$', playerUrl)
 		configUrl = urllib2.unquote(configUrlMatch.group(1))
 
@@ -3966,20 +3966,20 @@ class StanfordOpenClassroomIE(InfoExtractor):
 
 			m = re.search('<h1>([^<]+)</h1>', coursepage)
 			if m:
-				info['title'] = unescapeHTML(m.group(1))
+				info['title'] = _unescapeHTML(m.group(1))
 			else:
 				info['title'] = info['id']
 			info['stitle'] = _simplify_title(info['title'])
 
 			m = re.search('<description>([^<]+)</description>', coursepage)
 			if m:
-				info['description'] = unescapeHTML(m.group(1))
+				info['description'] = _unescapeHTML(m.group(1))
 
 			links = _orderedSet(re.findall('<a href="(VideoPage.php\?[^"]+)">', coursepage))
 			info['list'] = [
 				{
 					'type': 'reference',
-					'url': 'http://openclassroom.stanford.edu/MainFolder/' + unescapeHTML(vpage),
+					'url': 'http://openclassroom.stanford.edu/MainFolder/' + _unescapeHTML(vpage),
 				}
 					for vpage in links]
 
@@ -4007,7 +4007,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			info['list'] = [
 				{
 					'type': 'reference',
-					'url': 'http://openclassroom.stanford.edu/MainFolder/' + unescapeHTML(cpage),
+					'url': 'http://openclassroom.stanford.edu/MainFolder/' + _unescapeHTML(cpage),
 				}
 					for cpage in links]
 
