@@ -252,7 +252,10 @@ class IDParser(HTMLParser.HTMLParser):
 def get_element_by_id(id, html):
 	"""Return the content of the tag with the specified id in the passed HTML document"""
 	parser = IDParser(id)
-	parser.loads(html)
+	try:
+		parser.loads(html)
+	except HTMLParser.HTMLParseError:
+		pass
 	return parser.get_result()
 
 
