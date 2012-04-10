@@ -18,7 +18,6 @@ if [ ! -d wine-py2exe ]; then
 
     axel -a "http://www.python.org/ftp/python/2.7/python-2.7.msi"
     axel -a "http://downloads.sourceforge.net/project/py2exe/py2exe/0.6.9/py2exe-0.6.9.win32-py2.7.exe"
-    axel -a "http://pypi.python.org/packages/2.7/l/lxml/lxml-2.3.win32-py2.7.exe"
     #axel -a "http://winetricks.org/winetricks"
 
     # http://appdb.winehq.org/objectManager.php?sClass=version&iId=21957
@@ -28,13 +27,9 @@ if [ ! -d wine-py2exe ]; then
     echo "Follow py2exe setup on screen"
     wine py2exe-0.6.9.win32-py2.7.exe
     
-    echo "Follow lxml setup on screen"
-    wine lxml-2.3.win32-py2.7.exe
-    
     #echo "Follow Microsoft Visual C++ 2008 Redistributable Package setup on screen"
     #bash winetricks vcrun2008
 
-    rm lxml-2.3.win32-py2.7.exe
     rm py2exe-0.6.9.win32-py2.7.exe
     rm python-2.7.msi
     #rm winetricks

@@ -25,11 +25,6 @@ except ImportError:
 	from cgi import parse_qs
 
 try:
-	import lxml.etree
-except ImportError:
-	pass # Handled below
-
-try:
 	import xml.etree.ElementTree
 except ImportError: # Python<2.5: Not officially supported, but let it slip
 	warnings.warn('xml.etree.ElementTree support is missing. Consider upgrading to Python >= 2.5 if you get related errors.')
@@ -193,8 +188,8 @@ class YoutubeIE(InfoExtractor):
 			end = start + float(dur)
 			start = "%02i:%02i:%02i,%03i" %(start/(60*60), start/60%60, start%60, start%1*1000)
 			end = "%02i:%02i:%02i,%03i" %(end/(60*60), end/60%60, end%60, end%1*1000)
-			caption = re.sub(ur'(?u)&(.+?);', htmlentity_transform, caption)
-			caption = re.sub(ur'(?u)&(.+?);', htmlentity_transform, caption) # double cycle, inentional
+			caption = unescapeHTML(caption)
+			caption = unescapeHTML(caption) # double cycle, inentional
 			srt += str(n) + '\n'
 			srt += start + ' --> ' + end + '\n'
 			srt += caption + '\n\n'
@@ -364,18 +359,9 @@ class YoutubeIE(InfoExtractor):
 					pass
 
 		# description
-		try:
-			lxml.etree
-		except NameError:
-			video_description = u'No description available.'
-			mobj = re.search(r'<meta name="description" content="(.*?)">', video_webpage)
-			if mobj is not None:
-				video_description = mobj.group(1).decode('utf-8')
-		else:
-			html_parser = lxml.etree.HTMLParser(encoding='utf-8')
-			vwebpage_doc = lxml.etree.parse(StringIO.StringIO(video_webpage), html_parser)
-			video_description = u''.join(vwebpage_doc.xpath('id("eow-description")//text()'))
-			# TODO use another parser
+		video_description = get_element_by_id("eow-description", video_webpage)
+		if video_description: video_description = clean_html(video_description.decode('utf8'))
+		else: video_description = ''
 			
 		# closed captions
 		video_subtitles = None
@@ -992,7 +978,7 @@ class YahooIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: Unable to extract media URL')
 			return
 		video_url = urllib.unquote(mobj.group(1) + mobj.group(2)).decode('utf-8')
-		video_url = re.sub(r'(?u)&(.+?);', htmlentity_transform, video_url)
+		video_url = unescapeHTML(video_url)
 
 		return [{
 			'id':		video_id.decode('utf-8'),
@@ -1069,18 +1055,9 @@ class VimeoIE(InfoExtractor):
 		video_thumbnail = config["video"]["thumbnail"]
 
 		# Extract video description
-		try:
-			lxml.etree
-		except NameError:
-			video_description = u'No description available.'
-			mobj = re.search(r'<meta name="description" content="(.*?)" />', webpage, re.MULTILINE)
-			if mobj is not None:
-				video_description = mobj.group(1)
-		else:
-			html_parser = lxml.etree.HTMLParser()
-			vwebpage_doc = lxml.etree.parse(StringIO.StringIO(webpage), html_parser)
-			video_description = u''.join(vwebpage_doc.xpath('id("description")//text()')).strip()
-			# TODO use another parser
+		video_description = get_element_by_id("description", webpage)
+		if video_description: video_description = clean_html(video_description.decode('utf8'))
+		else: video_description = ''
 
 		# Extract upload date
 		video_upload_date = u'NA'
@@ -2248,8 +2225,6 @@ class EscapistIE(InfoExtractor):
 		self._downloader.to_screen(u'[escapist] %s: Downloading configuration' % showName)
 
 	def _real_extract(self, url):
-		htmlParser = HTMLParser.HTMLParser()
-
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
@@ -2265,11 +2240,11 @@ class EscapistIE(InfoExtractor):
 			return
 
 		descMatch = re.search('<meta name="description" content="([^"]*)"', webPage)
-		description = htmlParser.unescape(descMatch.group(1))
+		description = unescapeHTML(descMatch.group(1))
 		imgMatch = re.search('<meta property="og:image" content="([^"]*)"', webPage)
-		imgUrl = htmlParser.unescape(imgMatch.group(1))
+		imgUrl = unescapeHTML(imgMatch.group(1))
 		playerUrlMatch = re.search('<meta property="og:video" content="([^"]*)"', webPage)
-		playerUrl = htmlParser.unescape(playerUrlMatch.group(1))
+		playerUrl = unescapeHTML(playerUrlMatch.group(1))
 		configUrlMatch = re.search('config=(.*)$', playerUrl)
 		configUrl = urllib2.unquote(configUrlMatch.group(1))
 
@@ -2324,8 +2299,6 @@ class CollegeHumorIE(InfoExtractor):
 		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
 
 	def _real_extract(self, url):
-		htmlParser = HTMLParser.HTMLParser()
-
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
@@ -2391,8 +2364,6 @@ class XVideosIE(InfoExtractor):
 		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
 
 	def _real_extract(self, url):
-		htmlParser = HTMLParser.HTMLParser()
-
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
@@ -2475,8 +2446,6 @@ class SoundcloudIE(InfoExtractor):
 		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
 
 	def _real_extract(self, url):
-		htmlParser = HTMLParser.HTMLParser()
-
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
@@ -2561,8 +2530,6 @@ class InfoQIE(InfoExtractor):
 		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
 
 	def _real_extract(self, url):
-		htmlParser = HTMLParser.HTMLParser()
-
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
@@ -2782,8 +2749,6 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			info['format'] = info['ext']
 			return [info]
 		elif mobj.group('course'): # A course page
-			unescapeHTML = HTMLParser.HTMLParser().unescape
-
 			course = mobj.group('course')
 			info = {
 				'id': simplify_title(course),
@@ -2822,8 +2787,6 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			return results
 			
 		else: # Root page
-			unescapeHTML = HTMLParser.HTMLParser().unescape
-
 			info = {
 				'id': 'Stanford OpenClassroom',
 				'type': 'playlist',
