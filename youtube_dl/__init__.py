@@ -242,6 +242,18 @@ def htmlentity_transform(matchobj):
 	return (u'&%s;' % entity)
 
 
+def clean_html(html):
+	"""Clean an HTML snippet into a readable string"""
+	# Newline vs <br />
+	html = html.replace('\n', ' ')
+	html = re.sub('<\s*br\s*/?\s*>', '\n', html)
+	# Strip html tags
+	html = re.sub('<.*?>', '', html)
+	# Replace html entities
+	html = re.sub(ur'(?u)&(.+?);', htmlentity_transform, html)
+	return html
+
+
 def sanitize_title(utitle):
 	"""Sanitizes a video title so it could be used as part of a filename."""
 	utitle = re.sub(ur'(?u)&(.+?);', htmlentity_transform, utitle)
@@ -3343,8 +3355,6 @@ class EscapistIE(InfoExtractor):
 		self._downloader.to_screen(u'[escapist] %s: Downloading configuration' % showName)
 
 	def _real_extract(self, url):
-		htmlParser = HTMLParser.HTMLParser()
-
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
@@ -3360,11 +3370,11 @@ class EscapistIE(InfoExtractor):
 			return
 
 		descMatch = re.search('<meta name="description" content="([^"]*)"', webPage)
-		description = htmlParser.unescape(descMatch.group(1))
+		description = unescapeHTML(descMatch.group(1))
 		imgMatch = re.search('<meta property="og:image" content="([^"]*)"', webPage)
-		imgUrl = htmlParser.unescape(imgMatch.group(1))
+		imgUrl = unescapeHTML(imgMatch.group(1))
 		playerUrlMatch = re.search('<meta property="og:video" content="([^"]*)"', webPage)
-		playerUrl = htmlParser.unescape(playerUrlMatch.group(1))
+		playerUrl = unescapeHTML(playerUrlMatch.group(1))
 		configUrlMatch = re.search('config=(.*)$', playerUrl)
 		configUrl = urllib2.unquote(configUrlMatch.group(1))
 
@@ -3423,8 +3433,6 @@ class CollegeHumorIE(InfoExtractor):
 		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
 
 	def _real_extract(self, url):
-		htmlParser = HTMLParser.HTMLParser()
-
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
@@ -3495,8 +3503,6 @@ class XVideosIE(InfoExtractor):
 		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
 
 	def _real_extract(self, url):
-		htmlParser = HTMLParser.HTMLParser()
-
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
@@ -3585,8 +3591,6 @@ class SoundcloudIE(InfoExtractor):
 		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
 
 	def _real_extract(self, url):
-		htmlParser = HTMLParser.HTMLParser()
-
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
@@ -3674,8 +3678,6 @@ class InfoQIE(InfoExtractor):
 		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
 
 	def _real_extract(self, url):
-		htmlParser = HTMLParser.HTMLParser()
-
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
@@ -3909,8 +3911,6 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			except UnavailableVideoError, err:
 				self._downloader.trouble(u'\nERROR: unable to download video')
 		elif mobj.group('course'): # A course page
-			unescapeHTML = HTMLParser.HTMLParser().unescape
-
 			course = mobj.group('course')
 			info = {
 				'id': _simplify_title(course),
@@ -3947,8 +3947,6 @@ class StanfordOpenClassroomIE(InfoExtractor):
 				assert entry['type'] == 'reference'
 				self.extract(entry['url'])
 		else: # Root page
-			unescapeHTML = HTMLParser.HTMLParser().unescape
-
 			info = {
 				'id': 'Stanford OpenClassroom',
 				'type': 'playlist',
