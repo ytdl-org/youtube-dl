@@ -73,7 +73,7 @@ def htmlentity_transform(matchobj):
 	# Unknown entity in name, return its literal representation
 	return (u'&%s;' % entity)
 
-
+HTMLParser.locatestarttagend = re.compile(r"""<[a-zA-Z][-.a-zA-Z0-9:_]*(?:\s+(?:(?<=['"\s])[^\s/>][^\s/=>]*(?:\s*=+\s*(?:'[^']*'|"[^"]*"|(?!['"])[^>\s]*))?\s*)*)?\s*""", re.VERBOSE) # backport bugfix
 class IDParser(HTMLParser.HTMLParser):
 	"""Modified HTMLParser that isolates a tag with the specified id"""
 	def __init__(self, id):
@@ -83,7 +83,16 @@ class IDParser(HTMLParser.HTMLParser):
 		self.depth = {}
 		self.html = None
 		self.watch_startpos = False
+		self.error_count = 0
 		HTMLParser.HTMLParser.__init__(self)
+
+	def error(self, message):
+		print self.getpos()
+		if self.error_count > 10 or self.started:
+			raise HTMLParser.HTMLParseError(message, self.getpos())
+		self.rawdata = '\n'.join(self.html.split('\n')[self.getpos()[0]:]) # skip one line
+		self.error_count += 1
+		self.goahead(1)
 
 	def loads(self, html):
 		self.html = html

@@ -359,8 +359,8 @@ class YoutubeIE(InfoExtractor):
 					pass
 
 		# description
-		video_description = get_element_by_id("eow-description", video_webpage)
-		if video_description: video_description = clean_html(video_description.decode('utf8'))
+		video_description = get_element_by_id("eow-description", video_webpage.decode('utf8'))
+		if video_description: video_description = clean_html(video_description)
 		else: video_description = ''
 			
 		# closed captions
@@ -1055,8 +1055,8 @@ class VimeoIE(InfoExtractor):
 		video_thumbnail = config["video"]["thumbnail"]
 
 		# Extract video description
-		video_description = get_element_by_id("description", webpage)
-		if video_description: video_description = clean_html(video_description.decode('utf8'))
+		video_description = get_element_by_id("description", webpage.decode('utf8'))
+		if video_description: video_description = clean_html(video_description)
 		else: video_description = ''
 
 		# Extract upload date
