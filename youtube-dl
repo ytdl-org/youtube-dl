@@ -68,11 +68,6 @@ except ImportError:
 	from cgi import parse_qs
 
 try:
-	import lxml.etree
-except ImportError:
-	pass # Handled below
-
-try:
 	import xml.etree.ElementTree
 except ImportError: # Python<2.5: Not officially supported, but let it slip
 	warnings.warn('xml.etree.ElementTree support is missing. Consider upgrading to Python >= 2.5 if you get related errors.')
@@ -198,6 +193,72 @@ except ImportError: # Python <2.6, use trivialjson (https://github.com/phihag/tr
 				raise ValueError('Extra data at end of input (index ' + str(i) + ' of ' + repr(s) + ': ' + repr(s[i:]) + ')')
 			return res
 
+
+class IDParser(HTMLParser.HTMLParser):
+	"""Modified HTMLParser that isolates a tag with the specified id"""
+	def __init__(self, id):
+		self.id = id
+		self.result = None
+		self.started = False
+		self.depth = {}
+		self.html = None
+		self.watch_startpos = False
+		HTMLParser.HTMLParser.__init__(self)
+
+	def loads(self, html):
+		self.html = html
+		self.feed(html)
+		self.close()
+
+	def handle_starttag(self, tag, attrs):
+		attrs = dict(attrs)
+		if self.started:
+			self.find_startpos(None)
+		if 'id' in attrs and attrs['id'] == self.id:
+			self.result = [tag]
+			self.started = True
+			self.watch_startpos = True
+		if self.started:
+			if not tag in self.depth: self.depth[tag] = 0
+			self.depth[tag] += 1
+
+	def handle_endtag(self, tag):
+		if self.started:
+			if tag in self.depth: self.depth[tag] -= 1
+			if self.depth[self.result[0]] == 0:
+				self.started = False
+				self.result.append(self.getpos())
+
+	def find_startpos(self, x):
+		"""Needed to put the start position of the result (self.result[1])
+		after the opening tag with the requested id"""
+		if self.watch_startpos:
+			self.watch_startpos = False
+			self.result.append(self.getpos())
+	handle_entityref = handle_charref = handle_data = handle_comment = \
+	handle_decl = handle_pi = unknown_decl = find_startpos
+
+	def get_result(self):
+		if self.result == None: return None
+		if len(self.result) != 3: return None
+		lines = self.html.split('\n')
+		lines = lines[self.result[1][0]-1:self.result[2][0]]
+		lines[0] = lines[0][self.result[1][1]:]
+		if len(lines) == 1:
+			lines[-1] = lines[-1][:self.result[2][1]-self.result[1][1]]
+		lines[-1] = lines[-1][:self.result[2][1]]
+		return '\n'.join(lines).strip()
+
+def get_element_by_id(id, html):
+	"""Return the content of the tag with the specified id in the passed HTML document"""
+	parser = IDParser(id)
+	try:
+		parser.loads(html)
+	except HTMLParser.HTMLParseError:
+		pass
+	return parser.get_result()
+
+
 def preferredencoding():
 	"""Get preferred encoding.
 
@@ -242,9 +303,21 @@ def htmlentity_transform(matchobj):
 	return (u'&%s;' % entity)
 
 
+def clean_html(html):
+	"""Clean an HTML snippet into a readable string"""
+	# Newline vs <br />
+	html = html.replace('\n', ' ')
+	html = re.sub('\s*<\s*br\s*/?\s*>\s*', '\n', html)
+	# Strip html tags
+	html = re.sub('<.*?>', '', html)
+	# Replace html entities
+	html = _unescapeHTML(html)
+	return html
+
+
 def sanitize_title(utitle):
 	"""Sanitizes a video title so it could be used as part of a filename."""
-	utitle = re.sub(ur'(?u)&(.+?);', htmlentity_transform, utitle)
+	utitle = _unescapeHTML(utitle)
 	return utitle.replace(unicode(os.sep), u'%')
 
 
@@ -301,8 +374,8 @@ def _unescapeHTML(s):
 	"""
 	assert type(s) == type(u'')
 
-	htmlParser = HTMLParser.HTMLParser()
-	return htmlParser.unescape(s)
+	result = re.sub(ur'(?u)&(.+?);', htmlentity_transform, s)
+	return result
 
 def _encodeFilename(s):
 	"""
@@ -1256,8 +1329,8 @@ class YoutubeIE(InfoExtractor):
 			end = start + float(dur)
 			start = "%02i:%02i:%02i,%03i" %(start/(60*60), start/60%60, start%60, start%1*1000)
 			end = "%02i:%02i:%02i,%03i" %(end/(60*60), end/60%60, end%60, end%1*1000)
-			caption = re.sub(ur'(?u)&(.+?);', htmlentity_transform, caption)
-			caption = re.sub(ur'(?u)&(.+?);', htmlentity_transform, caption) # double cycle, inentional
+			caption = _unescapeHTML(caption)
+			caption = _unescapeHTML(caption) # double cycle, inentional
 			srt += str(n) + '\n'
 			srt += start + ' --> ' + end + '\n'
 			srt += caption + '\n\n'
@@ -1422,18 +1495,9 @@ class YoutubeIE(InfoExtractor):
 					pass
 
 		# description
-		try:
-			lxml.etree
-		except NameError:
-			video_description = u'No description available.'
-			mobj = re.search(r'<meta name="description" content="(.*?)">', video_webpage)
-			if mobj is not None:
-				video_description = mobj.group(1).decode('utf-8')
-		else:
-			html_parser = lxml.etree.HTMLParser(encoding='utf-8')
-			vwebpage_doc = lxml.etree.parse(StringIO.StringIO(video_webpage), html_parser)
-			video_description = u''.join(vwebpage_doc.xpath('id("eow-description")//text()'))
-			# TODO use another parser
+		video_description = get_element_by_id("eow-description", video_webpage)
+		if video_description: video_description = clean_html(video_description.decode('utf8'))
+		else: video_description = ''
 			
 		# closed captions
 		video_subtitles = None
@@ -2084,7 +2148,7 @@ class YahooIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: Unable to extract media URL')
 			return
 		video_url = urllib.unquote(mobj.group(1) + mobj.group(2)).decode('utf-8')
-		video_url = re.sub(r'(?u)&(.+?);', htmlentity_transform, video_url)
+		video_url = _unescapeHTML(video_url)
 
 		try:
 			# Process video information
@@ -2167,18 +2231,9 @@ class VimeoIE(InfoExtractor):
 		video_thumbnail = config["video"]["thumbnail"]
 
 		# Extract video description
-		try:
-			lxml.etree
-		except NameError:
-			video_description = u'No description available.'
-			mobj = re.search(r'<meta name="description" content="(.*?)" />', webpage, re.MULTILINE)
-			if mobj is not None:
-				video_description = mobj.group(1)
-		else:
-			html_parser = lxml.etree.HTMLParser()
-			vwebpage_doc = lxml.etree.parse(StringIO.StringIO(webpage), html_parser)
-			video_description = u''.join(vwebpage_doc.xpath('id("description")//text()')).strip()
-			# TODO use another parser
+		video_description = get_element_by_id("description", webpage)
+		if video_description: video_description = clean_html(video_description.decode('utf8'))
+		else: video_description = ''
 
 		# Extract upload date
 		video_upload_date = u'NA'
@@ -3345,8 +3400,6 @@ class EscapistIE(InfoExtractor):
 		self._downloader.to_screen(u'[escapist] %s: Downloading configuration' % showName)
 
 	def _real_extract(self, url):
-		htmlParser = HTMLParser.HTMLParser()
-
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
@@ -3362,11 +3415,11 @@ class EscapistIE(InfoExtractor):
 			return
 
 		descMatch = re.search('<meta name="description" content="([^"]*)"', webPage)
-		description = htmlParser.unescape(descMatch.group(1))
+		description = _unescapeHTML(descMatch.group(1))
 		imgMatch = re.search('<meta property="og:image" content="([^"]*)"', webPage)
-		imgUrl = htmlParser.unescape(imgMatch.group(1))
+		imgUrl = _unescapeHTML(imgMatch.group(1))
 		playerUrlMatch = re.search('<meta property="og:video" content="([^"]*)"', webPage)
-		playerUrl = htmlParser.unescape(playerUrlMatch.group(1))
+		playerUrl = _unescapeHTML(playerUrlMatch.group(1))
 		configUrlMatch = re.search('config=(.*)$', playerUrl)
 		configUrl = urllib2.unquote(configUrlMatch.group(1))
 
@@ -3425,8 +3478,6 @@ class CollegeHumorIE(InfoExtractor):
 		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
 
 	def _real_extract(self, url):
-		htmlParser = HTMLParser.HTMLParser()
-
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
@@ -3497,8 +3548,6 @@ class XVideosIE(InfoExtractor):
 		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
 
 	def _real_extract(self, url):
-		htmlParser = HTMLParser.HTMLParser()
-
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
@@ -3587,8 +3636,6 @@ class SoundcloudIE(InfoExtractor):
 		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
 
 	def _real_extract(self, url):
-		htmlParser = HTMLParser.HTMLParser()
-
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
@@ -3676,8 +3723,6 @@ class InfoQIE(InfoExtractor):
 		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
 
 	def _real_extract(self, url):
-		htmlParser = HTMLParser.HTMLParser()
-
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
@@ -3910,8 +3955,6 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			except UnavailableVideoError, err:
 				self._downloader.trouble(u'\nERROR: unable to download video')
 		elif mobj.group('course'): # A course page
-			unescapeHTML = HTMLParser.HTMLParser().unescape
-
 			course = mobj.group('course')
 			info = {
 				'id': _simplify_title(course),
@@ -3927,20 +3970,20 @@ class StanfordOpenClassroomIE(InfoExtractor):
 
 			m = re.search('<h1>([^<]+)</h1>', coursepage)
 			if m:
-				info['title'] = unescapeHTML(m.group(1))
+				info['title'] = _unescapeHTML(m.group(1))
 			else:
 				info['title'] = info['id']
 			info['stitle'] = _simplify_title(info['title'])
 
 			m = re.search('<description>([^<]+)</description>', coursepage)
 			if m:
-				info['description'] = unescapeHTML(m.group(1))
+				info['description'] = _unescapeHTML(m.group(1))
 
 			links = _orderedSet(re.findall('<a href="(VideoPage.php\?[^"]+)">', coursepage))
 			info['list'] = [
 				{
 					'type': 'reference',
-					'url': 'http://openclassroom.stanford.edu/MainFolder/' + unescapeHTML(vpage),
+					'url': 'http://openclassroom.stanford.edu/MainFolder/' + _unescapeHTML(vpage),
 				}
 					for vpage in links]
 
@@ -3948,8 +3991,6 @@ class StanfordOpenClassroomIE(InfoExtractor):
 				assert entry['type'] == 'reference'
 				self.extract(entry['url'])
 		else: # Root page
-			unescapeHTML = HTMLParser.HTMLParser().unescape
-
 			info = {
 				'id': 'Stanford OpenClassroom',
 				'type': 'playlist',
@@ -3970,7 +4011,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			info['list'] = [
 				{
 					'type': 'reference',
-					'url': 'http://openclassroom.stanford.edu/MainFolder/' + unescapeHTML(cpage),
+					'url': 'http://openclassroom.stanford.edu/MainFolder/' + _unescapeHTML(cpage),
 				}
 					for cpage in links]
 
