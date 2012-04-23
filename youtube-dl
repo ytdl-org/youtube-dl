@@ -1749,12 +1749,16 @@ class DailymotionIE(InfoExtractor):
 		video_title = _unescapeHTML(mobj.group('title').decode('utf-8'))
 		video_title = sanitize_title(video_title)
 		simple_title = _simplify_title(video_title)
-
-		mobj = re.search(r'(?im)<span class="owner[^\"]+?">[^<]+?<a [^>]+?>([^<]+?)</a></span>', webpage)
+		
+		spanowner = re.search(r'(?im)<span class="owner[^\"]+?">[^<]+?<a [^>]+?>([^<]+?)</a></span>', webpage)
+		spanname = re.search(r'(?im)<span class="name[^\"]+?"[^\>]+?>([^\>]+?)</span>', webpage)
+		mobj = spanowner if spanowner else spanname
 		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
-			return
-		video_uploader = mobj.group(1)
+			video_uploader = "Unknown" 
+			#you need to use -i option to discard this error and continue with the download
+			self._downloader.trouble(u'WARNING: unable to extract uploader nickname')
+		else:
+			video_uploader = mobj.group(1)
 
 		try:
 			# Process video information
