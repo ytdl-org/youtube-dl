@@ -1038,7 +1038,7 @@ class FileDownloader(object):
 			return False
 
 		data_len = data.info().get('Content-length', None)
-		print '[youtube] File size: ' + data_len + ' bytes'
+		self.to_screen(u'[info] File size: ' + self.format_bytes(data_len) + ' bytes')
 		if self.params.get('skip_download', False):
 			return True;
 		if data_len is not None:
