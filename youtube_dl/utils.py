@@ -11,16 +11,12 @@ import sys
 import zlib
 import urllib2
 import email.utils
+import json
 
 try:
 	import cStringIO as StringIO
 except ImportError:
 	import StringIO
-		
-try:
-	import json
-except ImportError: # Python <2.6, use trivialjson (https://github.com/phihag/trivialjson):
-	import trivialjson as json
 
 std_headers = {
 	'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:5.0.1) Gecko/20100101 Firefox/5.0.1',

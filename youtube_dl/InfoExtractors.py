@@ -12,22 +12,13 @@ import time
 import urllib
 import urllib2
 import email.utils
+import xml.etree.ElementTree
+from urlparse import parse_qs
 
 try:
 	import cStringIO as StringIO
 except ImportError:
 	import StringIO
-
-# parse_qs was moved from the cgi module to the urlparse module recently.
-try:
-	from urlparse import parse_qs
-except ImportError:
-	from cgi import parse_qs
-
-try:
-	import xml.etree.ElementTree
-except ImportError: # Python<2.5: Not officially supported, but let it slip
-	warnings.warn('xml.etree.ElementTree support is missing. Consider upgrading to Python >= 2.5 if you get related errors.')
 
 from utils import *
 
