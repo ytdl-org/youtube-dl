@@ -156,12 +156,6 @@ def clean_html(html):
 	return html
 
 
-def sanitize_title(utitle):
-	"""Sanitizes a video title so it could be used as part of a filename."""
-	utitle = unescapeHTML(utitle)
-	return utitle.replace(unicode(os.sep), u'%')
-
-
 def sanitize_open(filename, open_mode):
 	"""Try to open the given filename, and slightly tweak it if this fails.
 
@@ -196,10 +190,14 @@ def timeconvert(timestr):
 	if timetuple is not None:
 		timestamp = email.utils.mktime_tz(timetuple)
 	return timestamp
-
-def simplify_title(title):
-	expr = re.compile(ur'[^\w\d_\-]+', flags=re.UNICODE)
-	return expr.sub(u'_', title).strip(u'_')
+	
+def sanitize_filename(s):
+	"""Sanitizes a string so it could be used as part of a filename."""
+	def replace_insane(char):
+		if char in u' .\\/|?*<>:"' or ord(char) < 32:
+			return '_'
+		return char
+	return u''.join(map(replace_insane, s)).strip('_')
 
 def orderedSet(iterable):
 	""" Remove all duplicates from the input iterable """

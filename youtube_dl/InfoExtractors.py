@@ -39,7 +39,6 @@ class InfoExtractor(object):
 	url:		Final video URL.
 	uploader:	Nickname of the video uploader.
 	title:		Literal title.
-	stitle:		Simplified title.
 	ext:		Video filename extension.
 	format:		Video format.
 	player_url:	SWF Player URL (may be None).
@@ -327,10 +326,6 @@ class YoutubeIE(InfoExtractor):
 			return
 		video_title = urllib.unquote_plus(video_info['title'][0])
 		video_title = video_title.decode('utf-8')
-		video_title = sanitize_title(video_title)
-
-		# simplified title
-		simple_title = simplify_title(video_title)
 
 		# thumbnail image
 		if 'thumbnail_url' not in video_info:
@@ -447,7 +442,6 @@ class YoutubeIE(InfoExtractor):
 				'uploader':	video_uploader.decode('utf-8'),
 				'upload_date':	upload_date,
 				'title':	video_title,
-				'stitle':	simple_title,
 				'ext':		video_extension.decode('utf-8'),
 				'format':	(format_param is None and u'NA' or format_param.decode('utf-8')),
 				'thumbnail':	video_thumbnail.decode('utf-8'),
@@ -523,8 +517,6 @@ class MetacafeIE(InfoExtractor):
 			self._downloader.download(['http://www.youtube.com/watch?v=%s' % mobj2.group(1)])
 			return
 
-		simple_title = mobj.group(2).decode('utf-8')
-
 		# Retrieve video webpage to extract further information
 		request = urllib2.Request('http://www.metacafe.com/watch/%s/' % video_id)
 		try:
@@ -570,7 +562,6 @@ class MetacafeIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract title')
 			return
 		video_title = mobj.group(1).decode('utf-8')
-		video_title = sanitize_title(video_title)
 
 		mobj = re.search(r'(?ms)By:\s*<a .*?>(.+?)<', webpage)
 		if mobj is None:
@@ -584,7 +575,6 @@ class MetacafeIE(InfoExtractor):
 			'uploader':	video_uploader.decode('utf-8'),
 			'upload_date':	u'NA',
 			'title':	video_title,
-			'stitle':	simple_title,
 			'ext':		video_extension.decode('utf-8'),
 			'format':	u'NA',
 			'player_url':	None,
@@ -651,8 +641,6 @@ class DailymotionIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract title')
 			return
 		video_title = unescapeHTML(mobj.group('title').decode('utf-8'))
-		video_title = sanitize_title(video_title)
-		simple_title = simplify_title(video_title)
 
 		mobj = re.search(r'(?im)<span class="owner[^\"]+?">[^<]+?<a [^>]+?>([^<]+?)</a></span>', webpage)
 		if mobj is None:
@@ -666,7 +654,6 @@ class DailymotionIE(InfoExtractor):
 			'uploader':	video_uploader.decode('utf-8'),
 			'upload_date':	u'NA',
 			'title':	video_title,
-			'stitle':	simple_title,
 			'ext':		video_extension.decode('utf-8'),
 			'format':	u'NA',
 			'player_url':	None,
@@ -730,8 +717,6 @@ class GoogleIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract title')
 			return
 		video_title = mobj.group(1).decode('utf-8')
-		video_title = sanitize_title(video_title)
-		simple_title = simplify_title(video_title)
 
 		# Extract video description
 		mobj = re.search(r'<span id=short-desc-content>([^<]*)</span>', webpage)
@@ -764,7 +749,6 @@ class GoogleIE(InfoExtractor):
 			'uploader':	u'NA',
 			'upload_date':	u'NA',
 			'title':	video_title,
-			'stitle':	simple_title,
 			'ext':		video_extension.decode('utf-8'),
 			'format':	u'NA',
 			'player_url':	None,
@@ -823,8 +807,6 @@ class PhotobucketIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract title')
 			return
 		video_title = mobj.group(1).decode('utf-8')
-		video_title = sanitize_title(video_title)
-		simple_title = simplify_title(video_title)
 
 		video_uploader = mobj.group(2).decode('utf-8')
 
@@ -834,7 +816,6 @@ class PhotobucketIE(InfoExtractor):
 			'uploader':	video_uploader,
 			'upload_date':	u'NA',
 			'title':	video_title,
-			'stitle':	simple_title,
 			'ext':		video_extension.decode('utf-8'),
 			'format':	u'NA',
 			'player_url':	None,
@@ -912,7 +893,6 @@ class YahooIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract video title')
 			return
 		video_title = mobj.group(1).decode('utf-8')
-		simple_title = simplify_title(video_title)
 
 		mobj = re.search(r'<h2 class="ti-5"><a href="http://video\.yahoo\.com/(people|profile)/[0-9]+" beacon=".*">(.*)</a></h2>', webpage)
 		if mobj is None:
@@ -978,7 +958,6 @@ class YahooIE(InfoExtractor):
 			'uploader':	video_uploader,
 			'upload_date':	u'NA',
 			'title':	video_title,
-			'stitle':	simple_title,
 			'ext':		video_extension.decode('utf-8'),
 			'thumbnail':	video_thumbnail.decode('utf-8'),
 			'description':	video_description,
@@ -1038,7 +1017,6 @@ class VimeoIE(InfoExtractor):
 		
 		# Extract title
 		video_title = config["video"]["title"]
-		simple_title = simplify_title(video_title)
 
 		# Extract uploader
 		video_uploader = config["video"]["owner"]["name"]
@@ -1084,7 +1062,6 @@ class VimeoIE(InfoExtractor):
 			'uploader':	video_uploader,
 			'upload_date':	video_upload_date,
 			'title':	video_title,
-			'stitle':	simple_title,
 			'ext':		video_extension,
 			'thumbnail':	video_thumbnail,
 			'description':	video_description,
@@ -1219,8 +1196,6 @@ class GenericIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract title')
 			return
 		video_title = mobj.group(1).decode('utf-8')
-		video_title = sanitize_title(video_title)
-		simple_title = simplify_title(video_title)
 
 		# video uploader is domain name
 		mobj = re.match(r'(?:https?://)?([^/]*)/.*', url)
@@ -1235,7 +1210,6 @@ class GenericIE(InfoExtractor):
 			'uploader':	video_uploader,
 			'upload_date':	u'NA',
 			'title':	video_title,
-			'stitle':	simple_title,
 			'ext':		video_extension.decode('utf-8'),
 			'format':	u'NA',
 			'player_url':	None,
@@ -1700,7 +1674,6 @@ class DepositFilesIE(InfoExtractor):
 			'uploader':	u'NA',
 			'upload_date':	u'NA',
 			'title':	file_title,
-			'stitle':	file_title,
 			'ext':		file_extension.decode('utf-8'),
 			'format':	u'NA',
 			'player_url':	None,
@@ -1845,9 +1818,6 @@ class FacebookIE(InfoExtractor):
 			return
 		video_title = video_info['title']
 		video_title = video_title.decode('utf-8')
-		video_title = sanitize_title(video_title)
-
-		simple_title = simplify_title(video_title)
 
 		# thumbnail image
 		if 'thumbnail' not in video_info:
@@ -1908,7 +1878,6 @@ class FacebookIE(InfoExtractor):
 				'uploader':	video_uploader.decode('utf-8'),
 				'upload_date':	upload_date,
 				'title':	video_title,
-				'stitle':	simple_title,
 				'ext':		video_extension.decode('utf-8'),
 				'format':	(format_param is None and u'NA' or format_param.decode('utf-8')),
 				'thumbnail':	video_thumbnail.decode('utf-8'),
@@ -1958,7 +1927,6 @@ class BlipTVIE(InfoExtractor):
 					'id': title,
 					'url': url,
 					'title': title,
-					'stitle': simplify_title(title),
 					'ext': ext,
 					'urlhandle': urlh
 				}
@@ -1992,7 +1960,6 @@ class BlipTVIE(InfoExtractor):
 					'uploader': data['display_name'],
 					'upload_date': upload_date,
 					'title': data['title'],
-					'stitle': simplify_title(data['title']),
 					'ext': ext,
 					'format': data['media']['mimeType'],
 					'thumbnail': data['thumbnailUrl'],
@@ -2054,9 +2021,6 @@ class MyVideoIE(InfoExtractor):
 			return
 
 		video_title = mobj.group(1)
-		video_title = sanitize_title(video_title)
-
-		simple_title = simplify_title(video_title)
 
 		return [{
 			'id':		video_id,
@@ -2064,7 +2028,6 @@ class MyVideoIE(InfoExtractor):
 			'uploader':	u'NA',
 			'upload_date':  u'NA',
 			'title':	video_title,
-			'stitle':	simple_title,
 			'ext':		u'flv',
 			'format':	u'NA',
 			'player_url':	None,
@@ -2191,7 +2154,6 @@ class ComedyCentralIE(InfoExtractor):
 				'uploader': showId,
 				'upload_date': officialDate,
 				'title': effTitle,
-				'stitle': simplify_title(effTitle),
 				'ext': 'mp4',
 				'format': format,
 				'thumbnail': None,
@@ -2265,7 +2227,6 @@ class EscapistIE(InfoExtractor):
 			'uploader': showName,
 			'upload_date': None,
 			'title': showName,
-			'stitle': simplify_title(showName),
 			'ext': 'flv',
 			'format': 'flv',
 			'thumbnail': imgUrl,
@@ -2329,7 +2290,6 @@ class CollegeHumorIE(InfoExtractor):
 			videoNode = mdoc.findall('./video')[0]
 			info['description'] = videoNode.findall('./description')[0].text
 			info['title'] = videoNode.findall('./caption')[0].text
-			info['stitle'] = simplify_title(info['title'])
 			info['url'] = videoNode.findall('./file')[0].text
 			info['thumbnail'] = videoNode.findall('./thumbnail')[0].text
 			info['ext'] = info['url'].rpartition('.')[2]
@@ -2403,7 +2363,6 @@ class XVideosIE(InfoExtractor):
 			'uploader': None,
 			'upload_date': None,
 			'title': video_title,
-			'stitle': simplify_title(video_title),
 			'ext': 'flv',
 			'format': 'flv',
 			'thumbnail': video_thumbnail,
@@ -2447,7 +2406,7 @@ class SoundcloudIE(InfoExtractor):
 		uploader = mobj.group(1).decode('utf-8')
 		# extract simple title (uploader + slug of song title)
 		slug_title =  mobj.group(2).decode('utf-8')
-		simple_title = uploader + '-' + slug_title
+		simple_title = uploader + u'-' + slug_title
 
 		self.report_webpage('%s/%s' % (uploader, slug_title))
 
@@ -2469,7 +2428,9 @@ class SoundcloudIE(InfoExtractor):
 		# extract unsimplified title
 		mobj = re.search('"title":"(.*?)",', webpage)
 		if mobj:
-			title = mobj.group(1)
+			title = mobj.group(1).decode('utf-8')
+		else:
+			title = simple_title
 
 		# construct media url (with uid/token)
 		mediaURL = "http://media.soundcloud.com/stream/%s?stream_token=%s"
@@ -2498,8 +2459,7 @@ class SoundcloudIE(InfoExtractor):
 			'url':		mediaURL,
 			'uploader':	uploader.decode('utf-8'),
 			'upload_date':  upload_date,
-			'title':	simple_title.decode('utf-8'),
-			'stitle':	simple_title.decode('utf-8'),
+			'title':	title,
 			'ext':		u'mp3',
 			'format':	u'NA',
 			'player_url':	None,
@@ -2569,7 +2529,6 @@ class InfoQIE(InfoExtractor):
 			'uploader': None,
 			'upload_date': None,
 			'title': video_title,
-			'stitle': simplify_title(video_title),
 			'ext': extension,
 			'format': extension, # Extension is always(?) mp4, but seems to be flv
 			'thumbnail': None,
@@ -2685,7 +2644,6 @@ class MixcloudIE(InfoExtractor):
 			'uploader':	uploader.decode('utf-8'),
 			'upload_date': u'NA',
 			'title': json_data['name'],
-			'stitle': simplify_title(json_data['name']),
 			'ext': file_url.split('.')[-1].decode('utf-8'),
 			'format': (format_param is None and u'NA' or format_param.decode('utf-8')),
 			'thumbnail': json_data['thumbnail_url'],
@@ -2717,7 +2675,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			course = mobj.group('course')
 			video = mobj.group('video')
 			info = {
-				'id': simplify_title(course + '_' + video),
+				'id': course + '_' + video,
 			}
 
 			self.report_extraction(info['id'])
@@ -2735,14 +2693,13 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			except IndexError:
 				self._downloader.trouble(u'\nERROR: Invalid metadata XML file')
 				return
-			info['stitle'] = simplify_title(info['title'])
 			info['ext'] = info['url'].rpartition('.')[2]
 			info['format'] = info['ext']
 			return [info]
 		elif mobj.group('course'): # A course page
 			course = mobj.group('course')
 			info = {
-				'id': simplify_title(course),
+				'id': course,
 				'type': 'playlist',
 			}
 
@@ -2758,7 +2715,6 @@ class StanfordOpenClassroomIE(InfoExtractor):
 				info['title'] = unescapeHTML(m.group(1))
 			else:
 				info['title'] = info['id']
-			info['stitle'] = simplify_title(info['title'])
 
 			m = re.search('<description>([^<]+)</description>', coursepage)
 			if m:
@@ -2792,7 +2748,6 @@ class StanfordOpenClassroomIE(InfoExtractor):
 				return
 
 			info['title'] = info['id']
-			info['stitle'] = simplify_title(info['title'])
 
 			links = orderedSet(re.findall('<a href="(CoursePage.php\?[^"]+)">', rootpage))
 			info['list'] = [
@@ -2891,7 +2846,6 @@ class MTVIE(InfoExtractor):
 			'url': video_url,
 			'uploader': performer,
 			'title': video_title,
-			'stitle': simplify_title(video_title),
 			'ext': ext,
 			'format': format,
 		}
