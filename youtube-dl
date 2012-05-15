@@ -850,27 +850,26 @@ class FileDownloader(object):
 				self.trouble(u'ERROR: Cannot write metadata to JSON file ' + infofn)
 				return
 
-		if not self.params.get('skip_download', False):
-			if self.params.get('nooverwrites', False) and os.path.exists(_encodeFilename(filename)):
-				success = True
-			else:
-				try:
-					success = self._do_download(filename, info_dict)
-				except (OSError, IOError), err:
-					raise UnavailableVideoError
-				except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-					self.trouble(u'ERROR: unable to download video data: %s' % str(err))
-					return
-				except (ContentTooShortError, ), err:
-					self.trouble(u'ERROR: content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
-					return
-	
-			if success:
-				try:
-					self.post_process(filename, info_dict)
-				except (PostProcessingError), err:
-					self.trouble(u'ERROR: postprocessing: %s' % str(err))
-					return
+		if self.params.get('nooverwrites', False) and os.path.exists(_encodeFilename(filename)):
+			success = True
+		else:
+			try:
+				success = self._do_download(filename, info_dict)
+			except (OSError, IOError), err:
+				raise UnavailableVideoError
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self.trouble(u'ERROR: unable to download video data: %s' % str(err))
+				return
+			except (ContentTooShortError, ), err:
+				self.trouble(u'ERROR: content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
+				return
+
+		if success:
+			try:
+				self.post_process(filename, info_dict)
+			except (PostProcessingError), err:
+				self.trouble(u'ERROR: postprocessing: %s' % str(err))
+				return
 
 	def download(self, url_list):
 		"""Download a given list of URLs."""
@@ -1039,6 +1038,9 @@ class FileDownloader(object):
 			return False
 
 		data_len = data.info().get('Content-length', None)
+		self.to_screen(u'[info] File size: ' + self.format_bytes(data_len) + ' bytes')
+		if self.params.get('skip_download', False):
+			return True;
 		if data_len is not None:
 			data_len = long(data_len) + resume_len
 		data_len_str = self.format_bytes(data_len)
