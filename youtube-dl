@@ -4259,7 +4259,7 @@ def updateSelf(downloader, filename):
 
 	try:
 		try:
-			urlh = urllib.urlopen(UPDATE_URL)
+			urlh = urllib2.urlopen(UPDATE_URL)
 			newcontent = urlh.read()
 			
 			vmatch = re.search("__version__ = '([^']+)'", newcontent)
