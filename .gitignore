@@ -1,3 +1,5 @@
 *.pyc
 *.pyo
 *~
+wine-py2exe/
+py2exe.log
