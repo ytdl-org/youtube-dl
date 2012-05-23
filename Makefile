@@ -18,7 +18,7 @@ update-readme:
 		echo "$${footer}" >> README.md
 
 compile:
-	zip --junk-paths youtube-dl youtube_dl/*.py
+	zip --quiet --junk-paths youtube-dl youtube_dl/*.py
 	echo '#!/usr/bin/env python' > youtube-dl
 	cat youtube-dl.zip >> youtube-dl
 	rm youtube-dl.zip
