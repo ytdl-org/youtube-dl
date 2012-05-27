@@ -60,13 +60,17 @@ def updateSelf(downloader, filename):
 	urlv.close()
 
 	if hasattr(sys, "frozen"): #py2exe
-		directory = os.path.dirname(filename)
 		exe = os.path.abspath(filename)
+		directory = os.path.dirname(exe)
 		if not os.access(directory, os.W_OK):
 			sys.exit('ERROR: no write permissions on %s' % directory)
 			
 		try:
-			urllib.urlretrieve(UPDATE_URL_EXE, exe + '.new')
+			urlh = urllib2.urlopen(UPDATE_URL_EXE)
+			newcontent = urlh.read()
+			urlh.close()
+			with open(exe + '.new', 'wb') as outf:
+				outf.write(newcontent)
 		except (IOError, OSError), err:
 			sys.exit('ERROR: unable to download latest version')
 			
@@ -75,6 +79,7 @@ def updateSelf(downloader, filename):
 			b = open(bat, 'w')
 			
 			print >> b, """
+echo Updating youtube-dl...
 ping 127.0.0.1 -n 5 -w 1000 > NUL
 move /Y "%s.new" "%s"
 del "%s"
@@ -95,11 +100,8 @@ del "%s"
 			sys.exit('ERROR: unable to download latest version')
 
 		try:
-			outf = open(filename, 'wb')
-			try:
+			with open(filename, 'wb') as outf:
 				outf.write(newcontent)
-			finally:
-				outf.close()
 		except (IOError, OSError), err:
 			sys.exit('ERROR: unable to overwrite current version')
 
