@@ -83,7 +83,7 @@ class IDParser(HTMLParser.HTMLParser):
 		HTMLParser.HTMLParser.__init__(self)
 
 	def error(self, message):
-		print self.getpos()
+		print >> sys.stderr, self.getpos()
 		if self.error_count > 10 or self.started:
 			raise HTMLParser.HTMLParseError(message, self.getpos())
 		self.rawdata = '\n'.join(self.html.split('\n')[self.getpos()[0]:]) # skip one line

@@ -181,7 +181,7 @@ class YoutubeIE(InfoExtractor):
 			start = "%02i:%02i:%02i,%03i" %(start/(60*60), start/60%60, start%60, start%1*1000)
 			end = "%02i:%02i:%02i,%03i" %(end/(60*60), end/60%60, end%60, end%1*1000)
 			caption = unescapeHTML(caption)
-			caption = unescapeHTML(caption) # double cycle, inentional
+			caption = unescapeHTML(caption) # double cycle, intentional
 			srt += str(n) + '\n'
 			srt += start + ' --> ' + end + '\n'
 			srt += caption + '\n\n'
@@ -2450,7 +2450,7 @@ class SoundcloudIE(InfoExtractor):
 			try:
 				upload_date = datetime.datetime.strptime(mobj.group(1), '%B %d, %Y %H:%M').strftime('%Y%m%d')
 			except Exception, e:
-				print str(e)
+				self._downloader.to_stderr(str(e))
 
 		# for soundcloud, a request to a cross domain is required for cookies
 		request = urllib2.Request('http://media.soundcloud.com/crossdomain.xml', std_headers)
