@@ -396,9 +396,6 @@ def _real_main():
 	urllib2.install_opener(opener)
 	socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
 
-	if opts.verbose:
-		print(u'[debug] Proxy map: ' + str(proxy_handler.proxies))
-
 	extractors = gen_extractors()
 
 	if opts.list_extractors:
@@ -496,6 +493,10 @@ def _real_main():
 		'prefer_free_formats': opts.prefer_free_formats,
 		'verbose': opts.verbose,
 		})
+
+	if opts.verbose:
+		fd.to_screen(u'[debug] Proxy map: ' + str(proxy_handler.proxies))
+
 	for extractor in extractors:
 		fd.add_info_extractor(extractor)
 
