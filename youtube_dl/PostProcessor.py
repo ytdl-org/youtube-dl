@@ -60,7 +60,6 @@ class AudioConversionError(BaseException):
 		self.message = message
 
 class FFmpegExtractAudioPP(PostProcessor):
-
 	def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, keepvideo=False):
 		PostProcessor.__init__(self, downloader)
 		if preferredcodec is None:
@@ -68,11 +67,22 @@ class FFmpegExtractAudioPP(PostProcessor):
 		self._preferredcodec = preferredcodec
 		self._preferredquality = preferredquality
 		self._keepvideo = keepvideo
+		self._exes = self.detect_executables()
 
 	@staticmethod
-	def get_audio_codec(path):
+	def detect_executables():
+		available = {'avprobe' : False, 'avconv' : False, 'ffmpeg' : False, 'ffprobe' : False}
+		for path in os.environ["PATH"].split(os.pathsep):
+			for program in available.keys():
+				exe_file = os.path.join(path, program)
+				if os.path.isfile(exe_file) and os.access(exe_file, os.X_OK):
+					available[program] = exe_file
+		return available
+
+	def get_audio_codec(self, path):
+		if not self._exes['ffprobe'] and not self._exes['avprobe']: return None
 		try:
-			cmd = ['ffprobe', '-show_streams', '--', encodeFilename(path)]
+			cmd = [self._exes['avprobe'] or self._exes['ffprobe'], '-show_streams', '--', encodeFilename(path)]
 			handle = subprocess.Popen(cmd, stderr=file(os.path.devnull, 'w'), stdout=subprocess.PIPE)
 			output = handle.communicate()[0]
 			if handle.wait() != 0:
@@ -87,22 +97,18 @@ class FFmpegExtractAudioPP(PostProcessor):
 				return audio_codec
 		return None
 
-	@staticmethod
-	def run_ffmpeg(path, out_path, codec, more_opts):
+	def run_ffmpeg(self, path, out_path, codec, more_opts):
+		if not self._exes['ffmpeg'] and not self._exes['avconv']:
+			raise AudioConversionError('ffmpeg or avconv not found. Please install avconv.')	
 		if codec is None:
 			acodec_opts = []
 		else:
 			acodec_opts = ['-acodec', codec]
-		cmd = ['ffmpeg', '-y', '-i', encodeFilename(path), '-vn'] + acodec_opts + more_opts + ['--', encodeFilename(out_path)]
-		try:
-			p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-			stdout,stderr = p.communicate()
-		except (IOError, OSError):
-			e = sys.exc_info()[1]
-			if isinstance(e, OSError) and e.errno == 2:
-				raise AudioConversionError('ffmpeg not found. Please install ffmpeg.')
-			else:
-				raise e
+		cmd = ([self._exes['avconv'] or self._exes['ffmpeg'], '-y', '-i', encodeFilename(path), '-vn']
+			   + acodec_opts + more_opts +
+			   ['--', encodeFilename(out_path)])
+		p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		stdout,stderr = p.communicate()
 		if p.returncode != 0:
 			msg = stderr.strip().split('\n')[-1]
 			raise AudioConversionError(msg)
@@ -121,7 +127,7 @@ class FFmpegExtractAudioPP(PostProcessor):
 				# Lossless, but in another container
 				acodec = 'copy'
 				extension = self._preferredcodec
-				more_opts = ['-absf', 'aac_adtstoasc']
+				more_opts = [self._exes['avconv'] and '-bsf:a' or '-absf', 'aac_adtstoasc']
 			elif filecodec in ['aac', 'mp3', 'vorbis']:
 				# Lossless if possible
 				acodec = 'copy'
@@ -136,18 +142,18 @@ class FFmpegExtractAudioPP(PostProcessor):
 				extension = 'mp3'
 				more_opts = []
 				if self._preferredquality is not None:
-					more_opts += ['-ab', self._preferredquality]
+					more_opts += [self._exes['avconv'] and '-b:a' or '-ab', self._preferredquality]
 		else:
 			# We convert the audio (lossy)
 			acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'm4a': 'aac', 'vorbis': 'libvorbis', 'wav': None}[self._preferredcodec]
 			extension = self._preferredcodec
 			more_opts = []
 			if self._preferredquality is not None:
-				more_opts += ['-ab', self._preferredquality]
+				more_opts += [self._exes['avconv'] and '-b:a' or '-ab', self._preferredquality]
 			if self._preferredcodec == 'aac':
 				more_opts += ['-f', 'adts']
 			if self._preferredcodec == 'm4a':
-				more_opts += ['-absf', 'aac_adtstoasc']
+				more_opts += [self._exes['avconv'] and '-bsf:a' or '-absf', 'aac_adtstoasc']
 			if self._preferredcodec == 'vorbis':
 				extension = 'ogg'
 			if self._preferredcodec == 'wav':
