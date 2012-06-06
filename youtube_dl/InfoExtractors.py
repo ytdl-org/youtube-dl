@@ -1614,6 +1614,98 @@ class YoutubeUserIE(InfoExtractor):
 			self._downloader.download(['http://www.youtube.com/watch?v=%s' % video_id])
 
 
+class BlipTVUserIE(InfoExtractor):
+	"""Information Extractor for blip.tv users."""
+
+	_VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?blip\.tv/)|bliptvuser:)([^/]+)/*$'
+	_PAGE_SIZE = 10
+	IE_NAME = u'blip.tv:user'
+
+	def __init__(self, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+
+	def report_download_page(self, username, pagenum):
+		"""Report attempt to download user page."""
+		self._downloader.to_screen(u'[%s] user %s: Downloading video ids from page %d' %
+				(self.IE_NAME, username, pagenum))
+
+	def _real_extract(self, url):
+		# Extract username
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid url: %s' % url)
+			return
+
+		username = mobj.group(1)
+
+		page_base = None
+
+		request = urllib2.Request(url)
+
+		try:
+			page = urllib2.urlopen(request).read().decode('utf-8')
+			mobj = re.search(r'data-source-url="([^"]+)"', page)
+			page_base = "http://blip.tv" + unescapeHTML(mobj.group(1))
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download webpage: %s' % str(err))
+			return
+
+
+		# Download video ids using BlipTV Page API. Result size per
+		# query is limited (currently to 10 videos) so we need to query
+		# page by page until there are no video ids - it means we got
+		# all of them.
+
+		video_ids = []
+		pagenum = 0
+
+		while True:
+			self.report_download_page(username, pagenum)
+
+			request = urllib2.Request( page_base + "&page=" + str(pagenum+1) )
+
+			try:
+				page = urllib2.urlopen(request).read().decode('utf-8')
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'ERROR: unable to download webpage: %s' % str(err))
+				return
+
+			# Extract video identifiers
+			ids_in_page = []
+
+			for mobj in re.finditer(r'href="/([^"]+)"', page):
+				if mobj.group(1) not in ids_in_page:
+					ids_in_page.append(unescapeHTML(mobj.group(1)))
+
+			video_ids.extend(ids_in_page)
+
+			# A little optimization - if current page is not
+			# "full", ie. does not contain PAGE_SIZE video ids then
+			# we can assume that this page is the last one - there
+			# are no more ids on further pages - no need to query
+			# again.
+
+			if len(ids_in_page) < self._PAGE_SIZE:
+				break
+
+			pagenum += 1
+
+		all_ids_count = len(video_ids)
+		playliststart = self._downloader.params.get('playliststart', 1) - 1
+		playlistend = self._downloader.params.get('playlistend', -1)
+
+		if playlistend == -1:
+			video_ids = video_ids[playliststart:]
+		else:
+			video_ids = video_ids[playliststart:playlistend]
+
+		self._downloader.to_screen(u"[%s] user %s: Collected %d video ids (downloading %d of them)" %
+				(self.IE_NAME, username, all_ids_count, len(video_ids)))
+
+		for video_id in video_ids:
+			self._downloader.download([u'http://blip.tv/'+video_id])
+
+
 class DepositFilesIE(InfoExtractor):
 	"""Information extractor for depositfiles.com"""
 
