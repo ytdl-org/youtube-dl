@@ -1912,7 +1912,7 @@ class BlipTVIE(InfoExtractor):
 		else:
 			cchar = '?'
 		json_url = url + cchar + 'skin=json&version=2&no_wrap=1'
-		request = urllib2.Request(json_url)
+		request = urllib2.Request(json_url.encode('utf-8'))
 		self.report_extraction(mobj.group(1))
 		info = None
 		try:
