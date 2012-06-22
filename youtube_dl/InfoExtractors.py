@@ -311,6 +311,11 @@ class YoutubeIE(InfoExtractor):
 				self._downloader.trouble(u'ERROR: "token" parameter not in video info for unknown reason')
 			return
 
+		# Check for "rental" videos
+		if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
+			self._downloader.trouble(u'ERROR: "rental" videos not supported')
+			return
+
 		# Start extracting information
 		self.report_information_extraction(video_id)
 
