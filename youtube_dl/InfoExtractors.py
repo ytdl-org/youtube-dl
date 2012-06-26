@@ -182,7 +182,7 @@ class YoutubeIE(InfoExtractor):
 			end = "%02i:%02i:%02i,%03i" %(end/(60*60), end/60%60, end%60, end%1*1000)
 			caption = unescapeHTML(caption)
 			caption = unescapeHTML(caption) # double cycle, intentional
-			srt += str(n) + '\n'
+			srt += str(n+1) + '\n'
 			srt += start + ' --> ' + end + '\n'
 			srt += caption + '\n\n'
 		return srt
