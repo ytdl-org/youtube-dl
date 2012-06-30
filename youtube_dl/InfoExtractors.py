@@ -1232,7 +1232,7 @@ class YoutubeSearchIE(InfoExtractor):
 		InfoExtractor.__init__(self, downloader)
 
 	def report_download_page(self, query, pagenum):
-		"""Report attempt to download playlist page with given number."""
+		"""Report attempt to download search page with given number."""
 		query = query.decode(preferredencoding())
 		self._downloader.to_screen(u'[youtube] query "%s": Downloading page %s' % (query, pagenum))
 
@@ -1468,8 +1468,8 @@ class YoutubePlaylistIE(InfoExtractor):
 
 	_VALID_URL = r'(?:https?://)?(?:\w+\.)?youtube\.com/(?:(?:course|view_play_list|my_playlists|artist|playlist)\?.*?(p|a|list)=|user/.*?/user/|p/|user/.*?#[pg]/c/)(?:PL)?([0-9A-Za-z-_]+)(?:/.*?/([0-9A-Za-z_-]+))?.*'
 	_TEMPLATE_URL = 'http://www.youtube.com/%s?%s=%s&page=%s&gl=US&hl=en'
-	_VIDEO_INDICATOR_TEMPLATE = r'/watch\?v=(.+?)&amp;list=PL%s&'
-	_MORE_PAGES_INDICATOR = r'(?m)>\s*Next\s*</a>'
+	_VIDEO_INDICATOR_TEMPLATE = r'/watch\?v=(.+?)&amp;list=(PL)?%s&'
+	_MORE_PAGES_INDICATOR = r'yt-uix-pager-next'
 	IE_NAME = u'youtube:playlist'
 
 	def __init__(self, downloader=None):
