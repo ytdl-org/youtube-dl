@@ -545,8 +545,9 @@ class FileDownloader(object):
 
 	# Keep a copy of the main cookiejar to pass to external downloaders
 	#
-	# This seems like a stupid way of copying a cookie, but if Alex Martelli says so...
-	# http://stackoverflow.com/questions/1023224/how-to-pickle-a-cookiejar/1023235#1023235
+	# This seems like a stupid way of copying a cookie, but if Alex
+	# Martelli says so...
+	# http://stackoverflow.com/a/1023235/962311
 	def _keep_cookie_jar(self):
 		from __init__ import jar
 		import tempfile
