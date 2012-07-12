@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import cookielib
 import httplib
 import math
 import os
@@ -542,6 +543,59 @@ class FileDownloader(object):
 			self.trouble(u'\nERROR: rtmpdump exited with code %d' % retval)
 			return False
 
+	# Keep a copy of the main cookiejar to pass to external downloaders
+	#
+	# This seems like a stupid way of copying a cookie, but if Alex Martelli says so...
+	# http://stackoverflow.com/questions/1023224/how-to-pickle-a-cookiejar/1023235#1023235
+	def _keep_cookie_jar(self):
+		from __init__ import jar
+		import tempfile
+
+		new_filedesc, new_filename = tempfile.mkstemp()
+		new_jar = cookielib.MozillaCookieJar(new_filename)
+
+		for c in jar:
+			new_jar.set_cookie(c)
+
+		new_jar.save(new_filename)
+
+		return new_filename
+
+	def _download_with_aria2c(self, filename, url):
+		self.report_destination(filename)
+
+		# Check for aria2c first
+		try:
+			subprocess.call(['aria2c', '-h'],
+					stdout=(file(os.path.devnull, 'w')),
+					stderr=subprocess.STDOUT)
+		except (OSError, IOError):
+			self.trouble(u'ERROR: external program requested, but "aria2c" could not be run')
+			return False
+
+		tmp_jar_name = self._keep_cookie_jar()
+
+		basic_args = ['aria2c', '-c']
+		basic_args += ['--min-split-size', '1M']
+		basic_args += ['--max-connection-per-server', '4']
+		basic_args += ['--user-agent', std_headers['User-Agent']]
+		basic_args += ['--load-cookies=' + tmp_jar_name ]
+		basic_args += ['-o', filename, url]
+
+		retval = subprocess.call(basic_args)
+
+		# The cookie jar is not necessary anymore
+		os.unlink(tmp_jar_name)
+
+
+		if retval == 0:
+			self.to_screen(u'\r[aria2c] %s bytes' % os.path.getsize(filename))
+			return True
+		else:
+			self.trouble(u'\nERROR: aria2c exited with code %d' % retval)
+			return False
+
+
 	def _do_download(self, filename, info_dict):
 		url = info_dict['url']
 		player_url = info_dict.get('player_url', None)
@@ -556,6 +610,8 @@ class FileDownloader(object):
 			return self._download_with_rtmpdump(filename, url, player_url)
 
 		tmpfilename = self.temp_name(filename)
+		return self._download_with_aria2c(filename, url)
+
 		stream = None
 
 		# Do not include the Accept-Encoding header
