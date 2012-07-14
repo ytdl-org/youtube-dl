@@ -296,8 +296,8 @@ def parseOpts():
 			help='convert video files to audio-only files (requires ffmpeg or avconv and ffprobe or avprobe)')
 	postproc.add_option('--audio-format', metavar='FORMAT', dest='audioformat', default='best',
 			help='"best", "aac", "vorbis", "mp3", "m4a", or "wav"; best by default')
-	postproc.add_option('--audio-quality', metavar='QUALITY', dest='audioquality', default='128K',
-			help='ffmpeg/avconv audio bitrate specification, 128k by default')
+	postproc.add_option('--audio-quality', metavar='QUALITY', dest='audioquality', default='5',
+			help='ffmpeg/avconv audio quality specification, insert a value between 0 (highest) and 9 (lowest) or a specific bitrate like 128 (default 5)')
 	postproc.add_option('-k', '--keep-video', action='store_true', dest='keepvideo', default=False,
 			help='keeps the video file on disk after the post-processing; the video is erased by default')
 
