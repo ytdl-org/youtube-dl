@@ -162,7 +162,7 @@ class FFmpegExtractAudioPP(PostProcessor):
 
 		prefix, sep, ext = path.rpartition(u'.') # not os.path.splitext, since the latter does not work on unicode in all setups
 		new_path = prefix + sep + extension
-		self._downloader.to_screen(u'[' + self._exes['avconv'] and 'avconv' or 'ffmpeg' + '] Destination: ' + new_path)
+		self._downloader.to_screen(u'[' + (self._exes['avconv'] and 'avconv' or 'ffmpeg') + '] Destination: ' + new_path)
 		try:
 			self.run_ffmpeg(path, new_path, acodec, more_opts)
 		except:
@@ -170,7 +170,7 @@ class FFmpegExtractAudioPP(PostProcessor):
 			if isinstance(e, AudioConversionError):
 				self._downloader.to_stderr(u'ERROR: audio conversion failed: ' + e.message)
 			else:
-				self._downloader.to_stderr(u'ERROR: error running ' + self._exes['avconv'] and 'avconv' or 'ffmpeg')
+				self._downloader.to_stderr(u'ERROR: error running ' + (self._exes['avconv'] and 'avconv' or 'ffmpeg'))
 			return None
 
  		# Try to update the date time for extracted audio file.
