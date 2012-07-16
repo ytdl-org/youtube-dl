@@ -61,6 +61,8 @@ class FileDownloader(object):
 	ratelimit:        Download speed limit, in bytes/sec.
 	nooverwrites:     Prevent overwriting files.
 	retries:          Number of times to retry for HTTP error 5xx
+	buffersize:       Size of download buffer in bytes.
+	noresizebuffer:   Do not automatically resize the download buffer.
 	continuedl:       Try to continue downloads if possible.
 	noprogress:       Do not print the progress bar.
 	playliststart:    Playlist item to start at.
@@ -633,7 +635,7 @@ class FileDownloader(object):
 			data_len = long(data_len) + resume_len
 		data_len_str = self.format_bytes(data_len)
 		byte_counter = 0 + resume_len
-		block_size = 1024
+		block_size = self.params.get('buffersize', 1024)
 		start = time.time()
 		while True:
 			# Download and write
@@ -659,7 +661,8 @@ class FileDownloader(object):
 			except (IOError, OSError), err:
 				self.trouble(u'\nERROR: unable to write data: %s' % str(err))
 				return False
-			block_size = self.best_block_size(after - before, len(data_block))
+			if not self.params.get('noresizebuffer', False):
+				block_size = self.best_block_size(after - before, len(data_block))
 
 			# Progress message
 			speed_str = self.calc_speed(start, time.time(), byte_counter - resume_len)
