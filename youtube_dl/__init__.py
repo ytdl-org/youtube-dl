@@ -187,11 +187,11 @@ def parseOpts():
 			dest='ratelimit', metavar='LIMIT', help='download rate limit (e.g. 50k or 44.6m)')
 	general.add_option('-R', '--retries',
 			dest='retries', metavar='RETRIES', help='number of retries (default is 10)', default=10)
-	general.add_option('-b', '--buffer-size',
+	general.add_option('--buffer-size',
 			dest='buffersize', metavar='SIZE', help='size of download buffer (e.g. 1024 or 16k) (default is 1024)', default="1024")
 	general.add_option('--no-resize-buffer',
 			action='store_true', dest='noresizebuffer',
-			help='do not automatically adjust the buffer size', default=False)
+			help='do not automatically adjust the buffer size. By default, the buffer size is automatically resized from an initial value of SIZE.', default=False)
 	general.add_option('--dump-user-agent',
 			action='store_true', dest='dump_user_agent',
 			help='display the current browser identification', default=False)
