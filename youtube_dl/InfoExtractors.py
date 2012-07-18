@@ -2193,12 +2193,14 @@ class EscapistIE(InfoExtractor):
 
 		self.report_extraction(showName)
 		try:
-			webPageBytes = urllib2.urlopen(url).read()
+			webPage = urllib2.urlopen(url)
+			webPageBytes = webPage.read()
+			m = re.match(r'text/html; charset="?([^"]+)"?', webPage.headers['Content-Type'])
+			webPage = webPageBytes.decode(m.group(1) if m else 'utf-8')
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 			self._downloader.trouble(u'ERROR: unable to download webpage: ' + unicode(err))
 			return
 
-		webPage = webPageBytes.decode('utf-8')
 		descMatch = re.search('<meta name="description" content="([^"]*)"', webPage)
 		description = unescapeHTML(descMatch.group(1))
 		imgMatch = re.search('<meta property="og:image" content="([^"]*)"', webPage)
