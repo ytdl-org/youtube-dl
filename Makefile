@@ -23,4 +23,7 @@ compile:
 	cat youtube-dl.zip >> youtube-dl
 	rm youtube-dl.zip
 
-.PHONY: default compile update update-latest update-readme
+install: youtube-dl
+	install -m 755 --owner root --group root youtube-dl /usr/local/bin/
+
+.PHONY: default compile update update-latest update-readme install
