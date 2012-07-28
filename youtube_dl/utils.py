@@ -166,6 +166,22 @@ def sanitize_open(filename, open_mode):
 
 	It returns the tuple (stream, definitive_file_name).
 	"""
+
+	# do not overwrite existing files
+	if filename != u'-':
+		if filename.endswith(u'.part'):
+        		_addpart = u'.part'
+        		_name, _ext = os.path.splitext(filename[:-len(u'.part')])
+        		filename = filename[:-len(u'.part')]
+    		else:
+        		_addpart = u''
+        		_name, _ext = os.path.splitext(filename)
+    		_count = 0
+    		while os.path.isfile(filename):
+        		_count += 1
+        		filename = "%s-%s%s" % (_name, _count, _ext)
+    		filename = "%s%s" % (filename,_addpart)
+
 	try:
 		if filename == u'-':
 			if sys.platform == 'win32':
