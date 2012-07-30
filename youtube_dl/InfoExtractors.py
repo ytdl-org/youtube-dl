@@ -2359,11 +2359,11 @@ class XVideosIE(InfoExtractor):
 
 
 		# Extract video thumbnail
-		mobj = re.search(r'http://(?:img.*?\.)xvideos.com/videos/thumbs/[a-fA-F0-9]/[a-fA-F0-9]/[a-fA-F0-9]/([a-fA-F0-9.]+jpg)', webpage)
+		mobj = re.search(r'http://(?:img.*?\.)xvideos.com/videos/thumbs/[a-fA-F0-9]+/[a-fA-F0-9]+/[a-fA-F0-9]+/[a-fA-F0-9]+/([a-fA-F0-9.]+jpg)', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract video thumbnail')
 			return
-		video_thumbnail = mobj.group(1).decode('utf-8')
+		video_thumbnail = mobj.group(0).decode('utf-8')
 
 		info = {
 			'id': video_id,
