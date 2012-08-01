@@ -1,16 +1,19 @@
-# youtube-dl
+% youtube-dl(1)
 
-## USAGE
-youtube-dl [options] url [url...]
+# NAME
+youtube-dl
 
-## DESCRIPTION
+# SYNOPSIS
+**youtube-dl** [OPTIONS] URL [URL...]
+
+# DESCRIPTION
 **youtube-dl** is a small command-line program to download videos from
 YouTube.com and a few more sites. It requires the Python interpreter, version
 2.x (x being at least 6), and it is not platform specific. It should work in
 your Unix box, in Windows or in Mac OS X. It is released to the public domain,
 which means you can modify it, redistribute it or use it however you like.
 
-## OPTIONS
+# OPTIONS
     -h, --help               print this help text and exit
     --version                print program version and exit
     -U, --update             update this program to latest version
@@ -21,7 +24,7 @@ which means you can modify it, redistribute it or use it however you like.
     --list-extractors        List all supported extractors and the URLs they
                              would handle
 
-### Video Selection:
+## Video Selection:
     --playlist-start NUMBER  playlist video to start at (default is 1)
     --playlist-end NUMBER    playlist video to end at (default is last)
     --match-title REGEX      download only matching titles (regex or caseless
@@ -30,7 +33,7 @@ which means you can modify it, redistribute it or use it however you like.
                              caseless sub-string)
     --max-downloads NUMBER   Abort after downloading NUMBER files
 
-### Filesystem Options:
+## Filesystem Options:
     -t, --title              use title in file name
     -l, --literal            use literal title in file name
     -A, --auto-number        number downloaded files starting from 00000
@@ -53,7 +56,7 @@ which means you can modify it, redistribute it or use it however you like.
     --write-description      write video description to a .description file
     --write-info-json        write video metadata to a .info.json file
 
-### Verbosity / Simulation Options:
+## Verbosity / Simulation Options:
     -q, --quiet              activates quiet mode
     -s, --simulate           do not download the video and do not write anything
                              to disk
@@ -68,7 +71,7 @@ which means you can modify it, redistribute it or use it however you like.
     --console-title          display progress in console titlebar
     -v, --verbose            print various debugging information
 
-### Video Format Options:
+## Video Format Options:
     -f, --format FORMAT      video format code
     --all-formats            download all available video formats
     --prefer-free-formats    prefer free video formats unless a specific one is
@@ -80,12 +83,12 @@ which means you can modify it, redistribute it or use it however you like.
     --srt-lang LANG          language of the closed captions to download
                              (optional) use IETF language tags like 'en'
 
-### Authentication Options:
+## Authentication Options:
     -u, --username USERNAME  account username
     -p, --password PASSWORD  account password
     -n, --netrc              use .netrc authentication data
 
-### Post-processing Options:
+## Post-processing Options:
     --extract-audio          convert video files to audio-only files (requires
                              ffmpeg or avconv and ffprobe or avprobe)
     --audio-format FORMAT    "best", "aac", "vorbis", "mp3", "m4a", or "wav";
@@ -95,7 +98,7 @@ which means you can modify it, redistribute it or use it however you like.
     -k, --keep-video         keeps the video file on disk after the post-
                              processing; the video is erased by default
 
-## FAQ
+# FAQ
 
 ### Can you please put the -b option back?
 
@@ -117,13 +120,13 @@ The URLs youtube-dl outputs require the downloader to have the correct cookies. 
 
 youtube has switched to a new video info format in July 2011 which is not supported by old versions of youtube-dl. You can update youtube-dl with `sudo youtube-dl --update`.
 
-## COPYRIGHT
+# COPYRIGHT
 
 youtube-dl is released into the public domain by the copyright holders.
 
 This README file was originally written by Daniel Bolton (<https://github.com/dbbolton>) and is likewise released into the public domain.
 
-## BUGS
+# BUGS
 
 Bugs and suggestions should be reported at: <https://github.com/rg3/youtube-dl/issues>
 
