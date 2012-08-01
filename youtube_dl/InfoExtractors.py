@@ -2062,6 +2062,7 @@ class BlipTVIE(InfoExtractor):
 				self._downloader.trouble(u'ERROR: unable to parse video information: %s' % repr(err))
 				return
 
+		std_headers['User-Agent'] = 'iTunes/10.6.1'
 		return [info]
 
 
