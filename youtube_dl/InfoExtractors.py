@@ -1618,7 +1618,7 @@ class BlipTVUserIE(InfoExtractor):
 	"""Information Extractor for blip.tv users."""
 
 	_VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?blip\.tv/)|bliptvuser:)([^/]+)/*$'
-	_PAGE_SIZE = 10
+	_PAGE_SIZE = 12
 	IE_NAME = u'blip.tv:user'
 
 	def __init__(self, downloader=None):
@@ -1638,31 +1638,31 @@ class BlipTVUserIE(InfoExtractor):
 
 		username = mobj.group(1)
 
-		page_base = None
+		page_base = 'http://m.blip.tv/pr/show_get_full_episode_list?users_id=%s&lite=0&esi=1'
 
 		request = urllib2.Request(url)
 
 		try:
 			page = urllib2.urlopen(request).read().decode('utf-8')
-			mobj = re.search(r'data-source-url="([^"]+)"', page)
-			page_base = "http://blip.tv" + unescapeHTML(mobj.group(1))
+			mobj = re.search(r'data-users-id="([^"]+)"', page)
+			page_base = page_base % mobj.group(1)
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
 			self._downloader.trouble(u'ERROR: unable to download webpage: %s' % str(err))
 			return
 
 
-		# Download video ids using BlipTV Page API. Result size per
-		# query is limited (currently to 10 videos) so we need to query
+		# Download video ids using BlipTV Ajax calls. Result size per
+		# query is limited (currently to 12 videos) so we need to query
 		# page by page until there are no video ids - it means we got
 		# all of them.
 
 		video_ids = []
-		pagenum = 0
+		pagenum = 1
 
 		while True:
 			self.report_download_page(username, pagenum)
 
-			request = urllib2.Request( page_base + "&page=" + str(pagenum+1) )
+			request = urllib2.Request( page_base + "&page=" + str(pagenum) )
 
 			try:
 				page = urllib2.urlopen(request).read().decode('utf-8')
