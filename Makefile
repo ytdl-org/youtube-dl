@@ -1,4 +1,4 @@
-all: compile exe readme man-page update-latest
+all: compile exe readme man-page bash-completion update-latest
 
 update-latest:
 	./youtube-dl --version > LATEST_VERSION
@@ -18,6 +18,11 @@ readme:
 man-page:
 	pandoc -s -w man README.md -o youtube-dl.1
 
+bash-completion:
+	@options=`egrep -o '(--[a-z-]+) ' README.md | sort -u | xargs echo` && \
+		content=`sed "s/opts=\"[^\"]*\"/opts=\"$${options}\"/g" youtube-dl.bash-completion` && \
+		echo "$${content}" > youtube-dl.bash-completion
+
 compile:
 	zip --quiet --junk-paths youtube-dl youtube_dl/*.py
 	echo '#!/usr/bin/env python' > youtube-dl
@@ -30,5 +35,6 @@ exe:
 install:
 	install -m 755 --owner root --group root youtube-dl /usr/local/bin/
 	install -m 644 --owner root --group root youtube-dl.1 /usr/local/man/man1
+	install -m 644 --owner root --group root youtube-dl.bash-completion /etc/bash_completion.d/youtube-dl
 
-.PHONY: all update-latest readme man-page compile exe install
+.PHONY: all update-latest readme man-page bash-completion compile exe install
