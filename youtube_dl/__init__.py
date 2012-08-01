@@ -338,6 +338,7 @@ def gen_extractors():
 		YahooSearchIE(),
 		DepositFilesIE(),
 		FacebookIE(),
+		BlipTVUserIE(),
 		BlipTVIE(),
 		VimeoIE(),
 		MyVideoIE(),
