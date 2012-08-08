@@ -3074,11 +3074,11 @@ class YoukuIE(InfoExtractor):
 		#fileid[7:9] should be changed
 		for index, key in enumerate(keys):
 
-			temp_fileid = '%s%02x%s' % (fileid[0:8], index, fileid[10:])
-			download_url = 'http://f.youku.com/player/getFlvPath/sid/%s_%02x/st/flv/fileid/%s?k=%s' % (sid, index, temp_fileid, key)
+			temp_fileid = '%s%02X%s' % (fileid[0:8], index, fileid[10:])
+			download_url = 'http://f.youku.com/player/getFlvPath/sid/%s_%02X/st/flv/fileid/%s?k=%s' % (sid, index, temp_fileid, key)
 			print download_url
 			info = {
-				'id': '%s_part%02x' % (video_id, index),
+				'id': '%s_part%d' % (video_id, index),
 				'url': download_url,
 				'uploader': None,
 				'title': video_title
