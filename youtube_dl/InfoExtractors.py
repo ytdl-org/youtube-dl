@@ -3035,11 +3035,27 @@ class YoukuIE(InfoExtractor):
 
 			video_title =  config['data'][0]['title']
 			seed = config['data'][0]['seed']
-			#choose format flv first
-			format = 'flv'
+
+			format = self._downloader.params.get('format', None)
+			supported_format = config['data'][0]['streamfileids'].keys()
+
+			if format is None or format == 'best':
+				if 'hd2' in supported_format:
+					format = 'hd2'
+				else:
+					format = 'flv'
+				ext = u'flv'
+			elif format == 'worst':
+				format = 'mp4'
+				ext = u'mp4'
+			else:
+				format = 'flv'
+				ext = u'flv'
+
 
 			fileid = config['data'][0]['streamfileids'][format]
 			seg_number = len(config['data'][0]['segs'][format])
+
 			keys=[]
 			for i in xrange(seg_number):
 				keys.append(config['data'][0]['segs'][format][i]['k'])
@@ -3065,8 +3081,8 @@ class YoukuIE(InfoExtractor):
 				'id': '%s_part%02x' % (video_id, index),
 				'url': download_url,
 				'uploader': None,
-				'title': '%s_part%02x' % (video_title, index),
-				'ext': u'flv',
+				'title': video_title
+				'ext': ext,
 				'format': u'NA'
 			}
 			files_info.append(info)
