@@ -351,6 +351,7 @@ def gen_extractors():
 		MixcloudIE(),
 		StanfordOpenClassroomIE(),
 		MTVIE(),
+		YoukuIE(),
 
 		GenericIE()
 	]
