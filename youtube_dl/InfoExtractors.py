@@ -3078,10 +3078,10 @@ class YoukuIE(InfoExtractor):
 			download_url = 'http://f.youku.com/player/getFlvPath/sid/%s_%02X/st/flv/fileid/%s?k=%s' % (sid, index, temp_fileid, key)
 			print download_url
 			info = {
-				'id': '%s_part%d' % (video_id, index),
+				'id': '%s_part%02d' % (video_id, index),
 				'url': download_url,
 				'uploader': None,
-				'title': video_title
+				'title': video_title,
 				'ext': ext,
 				'format': u'NA'
 			}
