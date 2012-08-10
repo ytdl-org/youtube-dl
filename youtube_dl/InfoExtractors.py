@@ -3019,7 +3019,10 @@ class YoukuIE(InfoExtractor):
 		video_id = mobj.group('ID')
 
 		info_url = 'http://v.youku.com/player/getPlayList/VideoIDS/' + video_id
+<<<<<<< HEAD
 		print info_url
+=======
+>>>>>>> 51661d86005ffbdd4debd051cd9683cf5f5c2fe9
 
 		request = urllib2.Request(info_url, None, std_headers)
 		try:
@@ -3088,4 +3091,3 @@ class YoukuIE(InfoExtractor):
 			files_info.append(info)
 
 		return files_info
-# vim: tabstop=4 shiftwidth=4 softtabstop=4 noexpandtab
