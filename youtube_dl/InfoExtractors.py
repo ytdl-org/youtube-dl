@@ -95,7 +95,24 @@ class InfoExtractor(object):
 class YoutubeIE(InfoExtractor):
 	"""Information extractor for youtube.com."""
 
-	_VALID_URL = r'^((?:https?://)?(?:youtu\.be/|(?:\w+\.)?youtube(?:-nocookie)?\.com/)(?!view_play_list|my_playlists|artist|playlist)(?:(?:(?:v|embed|e)/)|(?:(?:watch(?:_popup)?(?:\.php)?)?(?:\?|#!?)(?:.+&)?v=))?)?([0-9A-Za-z_-]+)(?(1).+)?$'
+	_VALID_URL = r"""^
+	                 (
+	                     (?:https?://)?                                       # http(s):// (optional)
+	                     (?:youtu\.be/|(?:\w+\.)?youtube(?:-nocookie)?\.com/) # the various hostnames, with wildcard subdomains
+	                     (?!view_play_list|my_playlists|artist|playlist)      # ignore playlist URLs
+	                     (?:                                                  # the various things that can precede the ID:
+	                         (?:(?:v|embed|e)/)                               # v/ or embed/ or e/
+	                         |(?:                                             # or the v= param in all its forms
+	                             (?:watch(?:_popup)?(?:\.php)?)?              # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
+	                             (?:\?|\#!?)                                  # the params delimiter ? or # or #!
+	                             (?:.+&)?                                     # any other preceding param (like /?s=tuff&v=xxxx)
+	                             v=
+	                         )
+	                     )?                                                   # optional -> youtube.com/xxxx is OK
+	                 )?                                                       # all until now is optional -> you can pass the naked ID
+	                 ([0-9A-Za-z_-]+)                                         # here is it! the YouTube video ID
+	                 (?(1).+)?                                                # if we found the ID, everything can follow
+	                 $"""
 	_LANG_URL = r'http://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
 	_LOGIN_URL = 'https://www.youtube.com/signup?next=/&gl=US&hl=en'
 	_AGE_URL = 'http://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
@@ -133,6 +150,10 @@ class YoutubeIE(InfoExtractor):
 		'46': '1080x1920',
 	}	
 	IE_NAME = u'youtube'
+
+	def suitable(self, url):
+		"""Receives a URL and returns True if suitable for this IE."""
+		return re.match(self._VALID_URL, url, re.VERBOSE) is not None
 
 	def report_lang(self):
 		"""Report attempt to set language."""
@@ -268,7 +289,7 @@ class YoutubeIE(InfoExtractor):
 			url = 'http://www.youtube.com/' + urllib.unquote(mobj.group(1)).lstrip('/')
 
 		# Extract video id from URL
-		mobj = re.match(self._VALID_URL, url)
+		mobj = re.match(self._VALID_URL, url, re.VERBOSE)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
 			return
