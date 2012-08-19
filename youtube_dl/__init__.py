@@ -352,6 +352,7 @@ def gen_extractors():
 		StanfordOpenClassroomIE(),
 		MTVIE(),
 		YoukuIE(),
+		XNXXIE(),
 
 		GenericIE()
 	]

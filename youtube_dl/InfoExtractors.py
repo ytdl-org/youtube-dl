@@ -2959,7 +2959,6 @@ class MTVIE(InfoExtractor):
 		return [info]
 
 
-
 class YoukuIE(InfoExtractor):
 
 	_VALID_URL =  r'(?:http://)?v\.youku\.com/v_show/id_(?P<ID>[A-Za-z0-9]+)\.html'
@@ -3080,3 +3079,74 @@ class YoukuIE(InfoExtractor):
 			files_info.append(info)
 
 		return files_info
+
+
+class XNXXIE(InfoExtractor):
+	"""Information extractor for xnxx.com"""
+
+	_VALID_URL = r'^http://video\.xnxx\.com/video([0-9]+)/(.*)'
+	IE_NAME = u'xnxx'
+	VIDEO_URL_RE = r'flv_url=(.*?)&amp;'
+	VIDEO_TITLE_RE = r'<title>(.*?)\s+-\s+XNXX.COM'
+	VIDEO_THUMB_RE = r'url_bigthumb=(.*?)&amp;'
+
+	def report_webpage(self, video_id):
+		"""Report information extraction"""
+		self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, video_id))
+
+	def report_extraction(self, video_id):
+		"""Report information extraction"""
+		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+
+	def extract_video_url(self, webpage):
+		"Extract the url for the video from the webpage"
+		
+		result = re.search(self.VIDEO_URL_RE, webpage)
+		if result is None:
+			self._downloader.trouble(u'ERROR: unable to extract video url')
+		return urllib.unquote(result.group(1).decode('utf-8'))
+
+	def extract_video_title(self, webpage):
+		"Extract the title for the video from the webpage"
+
+		result = re.search(self.VIDEO_TITLE_RE, webpage)
+		if result is None:
+			self._downloader.trouble(u'ERROR: unable to extract video title')
+		return result.group(1).decode('utf-8')
+
+	def extract_video_thumbnail(self, webpage):
+		"Extract the thumbnail for the video from the webpage"
+
+		result = re.search(self.VIDEO_THUMB_RE, webpage)
+		if result is None:
+			self._downloader.trouble(u'ERROR: unable to extract video thumbnail')
+		return result.group(1).decode('utf-8')
+
+	def _real_extract(self, url):
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+			return
+		video_id = mobj.group(1).decode('utf-8')
+
+		self.report_webpage(video_id)
+
+		# Get webpage content
+		try:
+			webpage = urllib2.urlopen(url).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % err)
+			return
+
+		info = {'id': video_id,
+				'url': self.extract_video_url(webpage),
+				'uploader': None,
+				'upload_date': None,
+				'title': self.extract_video_title(webpage),
+				'ext': 'flv',
+				'format': 'flv',
+				'thumbnail': self.extract_video_thumbnail(webpage),
+				'description': None,
+				'player_url': None}
+
+		return [info]
