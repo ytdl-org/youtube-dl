@@ -3098,30 +3098,6 @@ class XNXXIE(InfoExtractor):
 		"""Report information extraction"""
 		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
 
-	def extract_video_url(self, webpage):
-		"Extract the url for the video from the webpage"
-		
-		result = re.search(self.VIDEO_URL_RE, webpage)
-		if result is None:
-			self._downloader.trouble(u'ERROR: unable to extract video url')
-		return urllib.unquote(result.group(1).decode('utf-8'))
-
-	def extract_video_title(self, webpage):
-		"Extract the title for the video from the webpage"
-
-		result = re.search(self.VIDEO_TITLE_RE, webpage)
-		if result is None:
-			self._downloader.trouble(u'ERROR: unable to extract video title')
-		return result.group(1).decode('utf-8')
-
-	def extract_video_thumbnail(self, webpage):
-		"Extract the thumbnail for the video from the webpage"
-
-		result = re.search(self.VIDEO_THUMB_RE, webpage)
-		if result is None:
-			self._downloader.trouble(u'ERROR: unable to extract video thumbnail')
-		return result.group(1).decode('utf-8')
-
 	def _real_extract(self, url):
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
@@ -3138,14 +3114,32 @@ class XNXXIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % err)
 			return
 
+		result = re.search(self.VIDEO_URL_RE, webpage)
+		if result is None:
+			self._downloader.trouble(u'ERROR: unable to extract video url')
+			return
+		video_url = urllib.unquote(result.group(1).decode('utf-8'))
+
+		result = re.search(self.VIDEO_TITLE_RE, webpage)
+		if result is None:
+			self._downloader.trouble(u'ERROR: unable to extract video title')
+			return
+		video_title = result.group(1).decode('utf-8')
+
+		result = re.search(self.VIDEO_THUMB_RE, webpage)
+		if result is None:
+			self._downloader.trouble(u'ERROR: unable to extract video thumbnail')
+			return
+		video_thumbnail = result.group(1).decode('utf-8')
+
 		info = {'id': video_id,
-				'url': self.extract_video_url(webpage),
+				'url': video_url,
 				'uploader': None,
 				'upload_date': None,
-				'title': self.extract_video_title(webpage),
+				'title': video_title,
 				'ext': 'flv',
 				'format': 'flv',
-				'thumbnail': self.extract_video_thumbnail(webpage),
+				'thumbnail': video_thumbnail,
 				'description': None,
 				'player_url': None}
 
