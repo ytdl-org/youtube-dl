@@ -2995,21 +2995,14 @@ class YoukuIE(InfoExtractor):
 		#return ''.join(mixed)
 		return mixed
 
-
 	def _get_file_id(self, fileId, seed):
 		mixed = self._get_file_ID_mix_string(seed)
 		ids = fileId.split('*')
 		realId = []
 		for ch in ids:
-			if ch is not '':
+			if ch:
 				realId.append(mixed[int(ch)])
 		return ''.join(realId)
-
-	def _gen_key(self, key1, key2):
-		pass
-
-
-
 
 	def _real_extract(self, url):
 		mobj = re.match(self._VALID_URL, url)
@@ -3019,10 +3012,6 @@ class YoukuIE(InfoExtractor):
 		video_id = mobj.group('ID')
 
 		info_url = 'http://v.youku.com/player/getPlayList/VideoIDS/' + video_id
-<<<<<<< HEAD
-		print info_url
-=======
->>>>>>> 51661d86005ffbdd4debd051cd9683cf5f5c2fe9
 
 		request = urllib2.Request(info_url, None, std_headers)
 		try:
@@ -3079,7 +3068,7 @@ class YoukuIE(InfoExtractor):
 
 			temp_fileid = '%s%02X%s' % (fileid[0:8], index, fileid[10:])
 			download_url = 'http://f.youku.com/player/getFlvPath/sid/%s_%02X/st/flv/fileid/%s?k=%s' % (sid, index, temp_fileid, key)
-			print download_url
+
 			info = {
 				'id': '%s_part%02d' % (video_id, index),
 				'url': download_url,
