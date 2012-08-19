@@ -91,8 +91,8 @@ which means you can modify it, redistribute it or use it however you like.
     --audio-format FORMAT    "best", "aac", "vorbis", "mp3", "m4a", or "wav";
                              best by default
     --audio-quality QUALITY  ffmpeg/avconv audio quality specification, insert a
-                             value between 0 (highest) and 9 (lowest) or a
-                             specific bitrate like 128 (default 5)
+                             value between 0 (better) and 9 (worse) for VBR or a
+                             specific bitrate like 128K (default 5)
     -k, --keep-video         keeps the video file on disk after the post-
                              processing; the video is erased by default
 
