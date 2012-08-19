@@ -223,7 +223,7 @@ def encodeFilename(s):
 
 	assert type(s) == type(u'')
 
-	if sys.platform == 'win32' and sys.getwindowsversion().major >= 5:
+	if sys.platform == 'win32' and sys.getwindowsversion()[0] >= 5:
 		# Pass u'' directly to use Unicode APIs on Windows 2000 and up
 		# (Detecting Windows NT 4 is tricky because 'major >= 4' would
 		# match Windows 9x series as well. Besides, NT 4 is obsolete.)
