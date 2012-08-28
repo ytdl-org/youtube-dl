@@ -631,6 +631,9 @@ class DailymotionIE(InfoExtractor):
 		self.report_extraction(video_id)
 		mobj = re.search(r'(?i)addVariable\(\"sequence\"\s*,\s*\"([^\"]+?)\"\)', webpage)
 		if mobj is None:
+			mobj = re.search(r'"video_url":"(.*?)",', urllib.unquote(webpage))
+            if mobj:
+                return urllib.unquote(mobj.group(1))
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
 			return
 		sequence = urllib.unquote(mobj.group(1))
