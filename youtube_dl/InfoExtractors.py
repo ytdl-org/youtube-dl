@@ -1471,7 +1471,7 @@ class YoutubePlaylistIE(InfoExtractor):
 
 	_VALID_URL = r'(?:https?://)?(?:\w+\.)?youtube\.com/(?:(?:course|view_play_list|my_playlists|artist|playlist)\?.*?(p|a|list)=|user/.*?/user/|p/|user/.*?#[pg]/c/)(?:PL)?([0-9A-Za-z-_]+)(?:/.*?/([0-9A-Za-z_-]+))?.*'
 	_TEMPLATE_URL = 'http://www.youtube.com/%s?%s=%s&page=%s&gl=US&hl=en'
-	_VIDEO_INDICATOR_TEMPLATE = r'/watch\?v=(.+?)&amp;list=(PL)?%s&'
+	_VIDEO_INDICATOR = r'/watch\?v=(.+?)&amp;list=(.+?)&'
 	_MORE_PAGES_INDICATOR = r'yt-uix-pager-next'
 	IE_NAME = u'youtube:playlist'
 
@@ -1518,8 +1518,8 @@ class YoutubePlaylistIE(InfoExtractor):
 
 			# Extract video identifiers
 			ids_in_page = []
-			for mobj in re.finditer(self._VIDEO_INDICATOR_TEMPLATE % playlist_id, page):
-				if mobj.group(1) not in ids_in_page:
+			for mobj in re.finditer(self._VIDEO_INDICATOR, page):
+				if mobj.group(1) not in ids_in_page and mobj.group(2)[2:] == playlist_id:
 					ids_in_page.append(mobj.group(1))
 			video_ids.extend(ids_in_page)
 
