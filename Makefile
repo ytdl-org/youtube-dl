@@ -1,8 +1,9 @@
 all: youtube-dl youtube-dl.exe README.md youtube-dl.1 youtube-dl.bash-completion LATEST_VERSION
 
+PREFIX=/usr/local
 install: youtube-dl youtube-dl.1 youtube-dl.bash-completion
-	install -m 755 --owner root --group root youtube-dl /usr/local/bin/
-	install -m 644 --owner root --group root youtube-dl.1 /usr/local/man/man1
+	install -m 755 --owner root --group root youtube-dl $(PREFIX)/bin/
+	install -m 644 --owner root --group root youtube-dl.1 $(PREFIX)/man/man1
 	install -m 644 --owner root --group root youtube-dl.bash-completion /etc/bash_completion.d/youtube-dl
 
 .PHONY: all install
