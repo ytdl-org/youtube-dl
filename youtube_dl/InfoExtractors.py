@@ -131,7 +131,7 @@ class YoutubeIE(InfoExtractor):
 		'44': '480x854',
 		'45': '720x1280',
 		'46': '1080x1920',
-	}
+	}	
 	IE_NAME = u'youtube'
 
 	def report_lang(self):
@@ -355,7 +355,7 @@ class YoutubeIE(InfoExtractor):
 		video_description = get_element_by_id("eow-description", video_webpage.decode('utf8'))
 		if video_description: video_description = clean_html(video_description)
 		else: video_description = ''
-
+			
 		# closed captions
 		video_subtitles = None
 		if self._downloader.params.get('writesubtitles', False):
@@ -1022,7 +1022,7 @@ class VimeoIE(InfoExtractor):
 		except:
 			self._downloader.trouble(u'ERROR: unable to extract info section')
 			return
-
+		
 		# Extract title
 		video_title = config["video"]["title"]
 
@@ -1098,7 +1098,7 @@ class GenericIE(InfoExtractor):
 	def report_following_redirect(self, new_url):
 		"""Report information extraction."""
 		self._downloader.to_screen(u'[redirect] Following redirect to %s' % new_url)
-
+		
 	def _test_redirect(self, url):
 		"""Check if it is a redirect, like url shorteners, in case restart chain."""
 		class HeadRequest(urllib2.Request):
@@ -1107,38 +1107,38 @@ class GenericIE(InfoExtractor):
 
 		class HEADRedirectHandler(urllib2.HTTPRedirectHandler):
 			"""
-			Subclass the HTTPRedirectHandler to make it use our
+			Subclass the HTTPRedirectHandler to make it use our 
 			HeadRequest also on the redirected URL
 			"""
-			def redirect_request(self, req, fp, code, msg, headers, newurl):
+			def redirect_request(self, req, fp, code, msg, headers, newurl): 
 				if code in (301, 302, 303, 307):
-					newurl = newurl.replace(' ', '%20')
+					newurl = newurl.replace(' ', '%20') 
 					newheaders = dict((k,v) for k,v in req.headers.items()
 									  if k.lower() not in ("content-length", "content-type"))
-					return HeadRequest(newurl,
+					return HeadRequest(newurl, 
 									   headers=newheaders,
-									   origin_req_host=req.get_origin_req_host(),
-									   unverifiable=True)
-				else:
-					raise urllib2.HTTPError(req.get_full_url(), code, msg, headers, fp)
+									   origin_req_host=req.get_origin_req_host(), 
+									   unverifiable=True) 
+				else: 
+					raise urllib2.HTTPError(req.get_full_url(), code, msg, headers, fp) 
 
 		class HTTPMethodFallback(urllib2.BaseHandler):
 			"""
 			Fallback to GET if HEAD is not allowed (405 HTTP error)
 			"""
-			def http_error_405(self, req, fp, code, msg, headers):
+			def http_error_405(self, req, fp, code, msg, headers): 
 				fp.read()
 				fp.close()
 
 				newheaders = dict((k,v) for k,v in req.headers.items()
 								  if k.lower() not in ("content-length", "content-type"))
-				return self.parent.open(urllib2.Request(req.get_full_url(),
-												 headers=newheaders,
-												 origin_req_host=req.get_origin_req_host(),
+				return self.parent.open(urllib2.Request(req.get_full_url(), 
+												 headers=newheaders, 
+												 origin_req_host=req.get_origin_req_host(), 
 												 unverifiable=True))
 
 		# Build our opener
-		opener = urllib2.OpenerDirector()
+		opener = urllib2.OpenerDirector() 
 		for handler in [urllib2.HTTPHandler, urllib2.HTTPDefaultErrorHandler,
 						HTTPMethodFallback, HEADRedirectHandler,
 						urllib2.HTTPErrorProcessor, urllib2.HTTPSHandler]:
@@ -1146,9 +1146,9 @@ class GenericIE(InfoExtractor):
 
 		response = opener.open(HeadRequest(url))
 		new_url = response.geturl()
-
+		
 		if url == new_url: return False
-
+		
 		self.report_following_redirect(new_url)
 		self._downloader.download([new_url])
 		return True
@@ -2082,7 +2082,7 @@ class MyVideoIE(InfoExtractor):
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
-
+	
 	def report_download_webpage(self, video_id):
 		"""Report webpage download."""
 		self._downloader.to_screen(u'[myvideo] %s: Downloading webpage' % video_id)
@@ -2263,7 +2263,7 @@ class ComedyCentralIE(InfoExtractor):
 			}
 
 			results.append(info)
-
+			
 		return results
 
 
@@ -2545,7 +2545,7 @@ class SoundcloudIE(InfoExtractor):
 		mobj = re.search('track-description-value"><p>(.*?)</p>', webpage)
 		if mobj:
 			description = mobj.group(1)
-
+		
 		# upload date
 		upload_date = None
 		mobj = re.search("pretty-date'>on ([\w]+ [\d]+, [\d]+ \d+:\d+)</abbr></h2>", webpage)
@@ -2836,7 +2836,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
 				assert entry['type'] == 'reference'
 				results += self.extract(entry['url'])
 			return results
-
+			
 		else: # Root page
 			info = {
 				'id': 'Stanford OpenClassroom',
@@ -2908,7 +2908,7 @@ class MTVIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract performer')
 			return
 		performer = unescapeHTML(mobj.group(1).decode('iso-8859-1'))
-		video_title = performer + ' - ' + song_name
+		video_title = performer + ' - ' + song_name 
 
 		mobj = re.search(r'<meta name="mtvn_uri" content="([^"]+)"/>', webpage)
 		if mobj is None:
@@ -2955,127 +2955,3 @@ class MTVIE(InfoExtractor):
 		}
 
 		return [info]
-
-class GoolePlus(InfoExtractor):
-	"""Information extractor for plus.google.com."""
-
-	_VALID_URL = r'(?:https://)?plus\.google\.com/(\d+)/posts/(\w+)'
-	IE_NAME = u'plus.google'
-
-	def __init__(self, downloader=None):
-		InfoExtractor.__init__(self, downloader)
-
-	def report_extract_entry(self, url):
-		"""Report downloading extry"""
-		self._downloader.to_screen(u'[plus.google] Downloading entry: %s' % url.decode('utf-8'))
-
-	def report_date(self, upload_date):
-		"""Report downloading extry"""
-		self._downloader.to_screen(u'[plus.google] Entry date: %s' % upload_date)
-
-	def report_uploader(self, uploader):
-		"""Report downloading extry"""
-		self._downloader.to_screen(u'[plus.google] Uploader: %s' % uploader.decode('utf-8'))
-
-	def report_title(self, video_title):
-		"""Report downloading extry"""
-		self._downloader.to_screen(u'[plus.google] Title: %s' % video_title.decode('utf-8'))
-
-	def report_extract_vid_page(self, video_page):
-		"""Report information extraction."""
-		self._downloader.to_screen(u'[plus.google] Extracting video page: %s' % video_page.decode('utf-8'))
-
-	def _real_extract(self, url):
-		# Extract id from URL
-		mobj = re.match(self._VALID_URL, url)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
-			return
-
-		post_url = mobj.group(0)
-		video_id = mobj.group(2)
-
-		video_extension = 'flv'
-
-		# Step 1, Retrieve post webpage to extract further information
-		request = urllib2.Request(post_url)
-		try:
-			self.report_extract_entry(post_url)
-			webpage = urllib2.urlopen(request).read()
-		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self._downloader.trouble(u'ERROR: Unable to retrieve entry webpage: %s' % str(err))
-			return
-
-		# Extract update date
-		upload_date = u'NA'
-		pattern = 'title="Timestamp">(.*?)</a>'
-		mobj = re.search(pattern, webpage)
-		if mobj:
-			upload_date = mobj.group(1)
-			"""Convert timestring to a format suitable for filename"""
-			upload_date = datetime.datetime.strptime(upload_date, "%Y-%m-%d")
-			upload_date = upload_date.strftime('%Y%m%d')
-		self.report_date(upload_date)
-
-		# Extract uploader
-		uploader = u'NA'
-		pattern = r'rel\="author".*?>(.*?)</a>'
-		mobj = re.search(pattern, webpage)
-		if mobj:
-			uploader = mobj.group(1)
-		self.report_uploader(uploader)
-
-		# Extract title
-		"""Get the first line for title"""
-		video_title = u'NA'
-		pattern = r'<meta name\=\"Description\" content\=\"(.*?)[\s<"]'
-		mobj = re.search(pattern, webpage)
-		if mobj:
-			video_title = mobj.group(1)
-		self.report_title(video_title)
-
-		# Step 2, Stimulate clicking the image box to launch video
-		pattern = '"(https\://plus\.google\.com/photos/.*?)",,"image/jpeg","video"\]'
-		mobj = re.search(pattern, webpage)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract video page URL')
-
-		video_page = mobj.group(1)
-		request = urllib2.Request(video_page)
-		try:
-			webpage = urllib2.urlopen(request).read()
-		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self._downloader.trouble(u'ERROR: Unable to retrieve video webpage: %s' % str(err))
-			return
-		self.report_extract_vid_page(video_page)
-
-
-		# Extract video links on video page
-		"""Extract video links of all sizes"""
-		pattern = '\d+,\d+,(\d+),"(http\://redirector\.googlevideo\.com.*?)"'
-		mobj = re.findall(pattern, webpage)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract video links')
-
-		# Sort in resolution
-		links = sorted(mobj)
-
-		# Choose the lowest of the sort, i.e. highest resolution
-		video_url = links[-1]
-		# Only get the url. The resolution part in the tuple has no use anymore
-		video_url = video_url[-1]
-		# Treat escaped \u0026 style hex
-		video_url = unicode(video_url, "unicode_escape").encode("utf8")
-
-
-		return [{
-			'id':		video_id.decode('utf-8'),
-			'url':		video_url.decode('utf-8'),
-			'uploader':	uploader.decode('utf-8'),
-			'upload_date':	upload_date.decode('utf-8'),
-			'title':	video_title.decode('utf-8'),
-			'ext':		video_extension.decode('utf-8'),
-			'format':	u'NA',
-			'player_url':	None,
-		}]
-
