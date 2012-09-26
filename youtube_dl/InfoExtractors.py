@@ -445,7 +445,6 @@ class YoutubeIE(InfoExtractor):
 			video_extension = self._video_extensions.get(format_param, 'flv')
 
 			results.append({
-				'provider': IE_NAME,
 				'id':		video_id.decode('utf-8'),
 				'url':		video_real_url.decode('utf-8'),
 				'uploader':	video_uploader.decode('utf-8'),
@@ -579,7 +578,6 @@ class MetacafeIE(InfoExtractor):
 		video_uploader = mobj.group(1)
 
 		return [{
-			'provider': IE_NAME,
 			'id':		video_id.decode('utf-8'),
 			'url':		video_url.decode('utf-8'),
 			'uploader':	video_uploader.decode('utf-8'),
@@ -659,7 +657,6 @@ class DailymotionIE(InfoExtractor):
 		video_uploader = mobj.group(1)
 
 		return [{
-			'provider': IE_NAME,
 			'id':		video_id.decode('utf-8'),
 			'url':		video_url.decode('utf-8'),
 			'uploader':	video_uploader.decode('utf-8'),
@@ -755,7 +752,6 @@ class GoogleIE(InfoExtractor):
 			video_thumbnail = ''
 
 		return [{
-			'provider': IE_NAME,
 			'id':		video_id.decode('utf-8'),
 			'url':		video_url.decode('utf-8'),
 			'uploader':	u'NA',
@@ -823,7 +819,6 @@ class PhotobucketIE(InfoExtractor):
 		video_uploader = mobj.group(2).decode('utf-8')
 
 		return [{
-			'provider': IE_NAME,
 			'id':		video_id.decode('utf-8'),
 			'url':		video_url.decode('utf-8'),
 			'uploader':	video_uploader,
@@ -966,7 +961,6 @@ class YahooIE(InfoExtractor):
 		video_url = unescapeHTML(video_url)
 
 		return [{
-			'provider': IE_NAME,
 			'id':		video_id.decode('utf-8'),
 			'url':		video_url,
 			'uploader':	video_uploader,
@@ -1071,7 +1065,6 @@ class VimeoIE(InfoExtractor):
 					%(video_id, sig, timestamp, quality, video_codec.upper())
 
 		return [{
-			'provider': IE_NAME,
 			'id':		video_id,
 			'url':		video_url,
 			'uploader':	video_uploader,
@@ -1220,7 +1213,6 @@ class GenericIE(InfoExtractor):
 		video_uploader = mobj.group(1).decode('utf-8')
 
 		return [{
-			'provider': IE_NAME,
 			'id':		video_id.decode('utf-8'),
 			'url':		video_url.decode('utf-8'),
 			'uploader':	video_uploader,
@@ -1777,7 +1769,6 @@ class DepositFilesIE(InfoExtractor):
 		file_title = mobj.group(1).decode('utf-8')
 
 		return [{
-			'provider': IE_NAME,
 			'id':		file_id.decode('utf-8'),
 			'url':		file_url.decode('utf-8'),
 			'uploader':	u'NA',
@@ -1982,7 +1973,6 @@ class FacebookIE(InfoExtractor):
 			video_extension = self._video_extensions.get(format_param, 'mp4')
 
 			results.append({
-				'provider': IE_NAME,
 				'id':		video_id.decode('utf-8'),
 				'url':		video_real_url.decode('utf-8'),
 				'uploader':	video_uploader.decode('utf-8'),
@@ -2034,7 +2024,6 @@ class BlipTVIE(InfoExtractor):
 				ext = ext.replace('.', '')
 				self.report_direct_download(title)
 				info = {
-					'provider': IE_NAME,
 					'id': title,
 					'url': url,
 					'title': title,
@@ -2066,7 +2055,6 @@ class BlipTVIE(InfoExtractor):
 				ext = umobj.group(1)
 
 				info = {
-					'provider': IE_NAME,
 					'id': data['item_id'],
 					'url': video_url,
 					'uploader': data['display_name'],
@@ -2136,7 +2124,6 @@ class MyVideoIE(InfoExtractor):
 		video_title = mobj.group(1)
 
 		return [{
-			'provider': IE_NAME,
 			'id':		video_id,
 			'url':		video_url,
 			'uploader':	u'NA',
@@ -2263,7 +2250,6 @@ class ComedyCentralIE(InfoExtractor):
 
 			effTitle = showId + u'-' + epTitle
 			info = {
-				'provider': IE_NAME,
 				'id': shortMediaId,
 				'url': video_url,
 				'uploader': showId,
@@ -2340,7 +2326,6 @@ class EscapistIE(InfoExtractor):
 		videoUrl = playlist[1]['url']
 
 		info = {
-			'provider': IE_NAME,
 			'id': videoId,
 			'url': videoUrl,
 			'uploader': showName,
@@ -2392,7 +2377,6 @@ class CollegeHumorIE(InfoExtractor):
 		internal_video_id = m.group('internalvideoid')
 
 		info = {
-			'provider': IE_NAME,
 			'id': video_id,
 			'internal_id': internal_video_id,
 		}
@@ -2478,7 +2462,6 @@ class XVideosIE(InfoExtractor):
 		video_thumbnail = mobj.group(0).decode('utf-8')
 
 		info = {
-			'provider': IE_NAME,
 			'id': video_id,
 			'url': video_url,
 			'uploader': None,
@@ -2576,7 +2559,6 @@ class SoundcloudIE(InfoExtractor):
 		request = urllib2.Request('http://media.soundcloud.com/crossdomain.xml', std_headers)
 
 		return [{
-			'provider': IE_NAME,
 			'id':		video_id.decode('utf-8'),
 			'url':		mediaURL,
 			'uploader':	uploader.decode('utf-8'),
@@ -2646,7 +2628,6 @@ class InfoQIE(InfoExtractor):
 		video_id, extension = video_filename.split('.')
 
 		info = {
-			'provider': IE_NAME,
 			'id': video_id,
 			'url': video_url,
 			'uploader': None,
@@ -2762,7 +2743,6 @@ class MixcloudIE(InfoExtractor):
 			format_param = req_format
 
 		return [{
-			'provider': IE_NAME,
 			'id': file_id.decode('utf-8'),
 			'url': file_url.decode('utf-8'),
 			'uploader':	uploader.decode('utf-8'),
@@ -2799,7 +2779,6 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			course = mobj.group('course')
 			video = mobj.group('video')
 			info = {
-				'provider': IE_NAME,
 				'id': course + '_' + video,
 			}
 
@@ -2824,7 +2803,6 @@ class StanfordOpenClassroomIE(InfoExtractor):
 		elif mobj.group('course'): # A course page
 			course = mobj.group('course')
 			info = {
-				'provider': IE_NAME,
 				'id': course,
 				'type': 'playlist',
 			}
@@ -2861,7 +2839,6 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			
 		else: # Root page
 			info = {
-				'provider': IE_NAME,
 				'id': 'Stanford OpenClassroom',
 				'type': 'playlist',
 			}
@@ -2969,7 +2946,6 @@ class MTVIE(InfoExtractor):
 			return
 
 		info = {
-			'provider': IE_NAME,
 			'id': video_id,
 			'url': video_url,
 			'uploader': performer,
