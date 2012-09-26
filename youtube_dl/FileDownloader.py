@@ -341,7 +341,7 @@ class FileDownloader(object):
 			return u'"' + title + '" title matched reject pattern "' + rejecttitle + '"'
 		return None
 
-	def process_info(self, info_dict, provider):
+	def process_info(self, info_dict):
 		"""Process a single dictionary returned by an InfoExtractor."""
 
 		info_dict['stitle'] = sanitize_filename(info_dict['title'])
@@ -475,8 +475,9 @@ class FileDownloader(object):
 				videos = ie.extract(url)
 				for video in videos or []:
 					try:
+						video['provider'] = ie.IE_NAME
 						self.increment_downloads()
-						self.process_info(video, ie.IE_NAME)
+						self.process_info(video)
 					except UnavailableVideoError:
 						self.trouble(u'\nERROR: unable to download video')
 
