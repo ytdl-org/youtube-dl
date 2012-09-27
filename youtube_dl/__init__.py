@@ -190,6 +190,8 @@ def parseOpts():
 	general.add_option('--dump-user-agent',
 			action='store_true', dest='dump_user_agent',
 			help='display the current browser identification', default=False)
+	general.add_option('--user-agent',
+			action='store', dest='useragent', help='specify a custom user agent')
 	general.add_option('--list-extractors',
 			action='store_true', dest='list_extractors',
 			help='List all supported extractors and the URLs they would handle', default=False)
@@ -370,7 +372,10 @@ def _real_main():
 				jar.load()
 		except (IOError, OSError), err:
 			sys.exit(u'ERROR: unable to open cookie file')
-
+	# Set user agent
+	if opts.useragent is not None:
+		std_headers['User-Agent'] = opts.useragent
+		
 	# Dump user agent
 	if opts.dump_user_agent:
 		print std_headers['User-Agent']
