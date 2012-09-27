@@ -22,6 +22,8 @@
 <li><a href="#q-play-video">I have downloaded a video but how can I play it?</a></li>
 <li><a href="#q-g-links">The links provided by youtube-dl -g are not working anymore</a></li>
 <li><a href="#q-no-fmt_url_map">ERROR: no fmt_url_map or conn information found in video info</a></li>
+<li><a href="#q-unable-to-download-video">ERROR: unable to download video</a></li>
+<li><a href="#q-syntax-error-non-ascii">SyntaxError:Non-ASCII character</a></li>
 </ul>
 
 </div>
@@ -65,6 +67,28 @@
 
 <p>youtube has switched to a new video info format in July 2011 which is not supported by old versions of youtube-dl. You can update youtube-dl with <code style="white-space:pre;">sudo youtube-dl --update</code> (or <code>python youtube-dl --update</code>).
 </p>
+
+<h1 id="q-unable-to-download-video">ERROR: unable to download video</h1>
+
+<p>youtube requires an additional signature since September 2012 which is not supported by old versions of youtube-dl. You can update youtube-dl with <code style="white-space:pre;">sudo youtube-dl --update</code> (or <code>python youtube-dl --update</code>).</p>
+
+<h1 id="q-syntax-error-non-ascii">SyntaxError:Non-ASCII character</h1>
+
+<p>The error
+
+<code style="white-space:pre; display: block; margin: 1em 2em;">File "youtube-dl", line 2
+SyntaxError: Non-ASCII character '\x93' ...</code>
+
+means you're using an outdated version of Python. Please update to Python 2.6 or 2.7.</p>
+
+<p>To run youtube-dl under Python 2.5, you'll have to manually check it out and run it like this:
+
+<code style="white-space:pre; display: block; margin: 1em 2em;">git clone git://github.com/rg3/youtube-dl.git
+cd youtube-dl
+python -m youtube-dl --help</code>
+
+Please note that Python 2.5 is not supported anymore.</p>
+
 
 <div class="note">
 <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">
