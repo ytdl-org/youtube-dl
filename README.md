@@ -6,7 +6,7 @@ youtube-dl [options] url [url...]
 ## DESCRIPTION
 **youtube-dl** is a small command-line program to download videos from
 YouTube.com and a few more sites. It requires the Python interpreter, version
-2.x (x being at least 5), and it is not platform specific. It should work in
+2.x (x being at least 6), and it is not platform specific. It should work in
 your Unix box, in Windows or in Mac OS X. It is released to the public domain,
 which means you can modify it, redistribute it or use it however you like.
 
@@ -87,10 +87,11 @@ which means you can modify it, redistribute it or use it however you like.
 
 ### Post-processing Options:
     --extract-audio          convert video files to audio-only files (requires
-                             ffmpeg and ffprobe)
+                             ffmpeg or avconv and ffprobe or avprobe)
     --audio-format FORMAT    "best", "aac", "vorbis", "mp3", "m4a", or "wav";
                              best by default
-    --audio-quality QUALITY  ffmpeg audio bitrate specification, 128k by default
+    --audio-quality QUALITY  ffmpeg/avconv audio bitrate specification, 128k by
+                             default
     -k, --keep-video         keeps the video file on disk after the post-
                              processing; the video is erased by default
 
