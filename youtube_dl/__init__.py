@@ -186,18 +186,18 @@ def parseOpts():
 	general.add_option('-r', '--rate-limit',
 			dest='ratelimit', metavar='LIMIT', help='download rate limit (e.g. 50k or 44.6m)')
 	general.add_option('-R', '--retries',
-			dest='retries', metavar='RETRIES', help='number of retries (default is 10)', default=10)
+			dest='retries', metavar='RETRIES', help='number of retries (default is %default)', default=10)
 	general.add_option('--dump-user-agent',
 			action='store_true', dest='dump_user_agent',
 			help='display the current browser identification', default=False)
 	general.add_option('--user-agent',
-			action='store', dest='useragent', help='specify a custom user agent')
+			dest='user_agent', help='specify a custom user agent', metavar='UA')
 	general.add_option('--list-extractors',
 			action='store_true', dest='list_extractors',
 			help='List all supported extractors and the URLs they would handle', default=False)
 
 	selection.add_option('--playlist-start',
-			dest='playliststart', metavar='NUMBER', help='playlist video to start at (default is 1)', default=1)
+			dest='playliststart', metavar='NUMBER', help='playlist video to start at (default is %default)', default=1)
 	selection.add_option('--playlist-end',
 			dest='playlistend', metavar='NUMBER', help='playlist video to end at (default is last)', default=-1)
 	selection.add_option('--match-title', dest='matchtitle', metavar='REGEX',help='download only matching titles (regex or caseless sub-string)')
@@ -373,9 +373,9 @@ def _real_main():
 		except (IOError, OSError), err:
 			sys.exit(u'ERROR: unable to open cookie file')
 	# Set user agent
-	if opts.useragent is not None:
-		std_headers['User-Agent'] = opts.useragent
-		
+	if opts.user_agent is not None:
+		std_headers['User-Agent'] = opts.user_agent
+
 	# Dump user agent
 	if opts.dump_user_agent:
 		print std_headers['User-Agent']
