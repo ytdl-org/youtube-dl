@@ -402,7 +402,7 @@ class YoutubeIE(InfoExtractor):
 			url_data_strs = video_info['url_encoded_fmt_stream_map'][0].split(',')
 			url_data = [parse_qs(uds) for uds in url_data_strs]
 			url_data = filter(lambda ud: 'itag' in ud and 'url' in ud, url_data)
-			url_map = dict((ud['itag'][0], ud['url'][0]) for ud in url_data)
+			url_map = dict((ud['itag'][0], ud['url'][0] + '&signature=' + ud['sig'][0]) for ud in url_data)
 
 			format_limit = self._downloader.params.get('format_limit', None)
 			available_formats = self._available_formats_prefer_free if self._downloader.params.get('prefer_free_formats', False) else self._available_formats
