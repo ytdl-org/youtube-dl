@@ -12,7 +12,7 @@ install: youtube-dl youtube-dl.1 youtube-dl.bash-completion
 	install -m 644 --owner root --group root youtube-dl.bash-completion /etc/bash_completion.d/youtube-dl
 
 .PHONY: all clean install README.md youtube-dl.bash-completion
-# TODO un-phone README.md and youtube-dl.bash_completion by reading from .in files and generating from them
+# TODO un-phony README.md and youtube-dl.bash_completion by reading from .in files and generating from them
 
 youtube-dl: youtube_dl/*.py
 	zip --quiet --junk-paths youtube-dl youtube_dl/*.py
@@ -24,8 +24,8 @@ youtube-dl: youtube_dl/*.py
 youtube-dl.exe: youtube_dl/*.py
 	bash devscripts/wine-py2exe.sh build_exe.py
 
-README.md: youtube-dl
-	@options=$$(COLUMNS=80 ./youtube-dl --help | sed -e '1,/.*General Options.*/ d' -e 's/^\W\{2\}\(\w\)/## \1/') && \
+README.md:
+	@options=$$(COLUMNS=80 python -m youtube_dl --help | sed -e '1,/.*General Options.*/ d' -e 's/^\W\{2\}\(\w\)/## \1/') && \
 		header=$$(sed -e '/.*# OPTIONS/,$$ d' README.md) && \
 		footer=$$(sed -e '1,/.*# FAQ/ d' README.md) && \
 		echo "$${header}" > README.md && \
@@ -44,5 +44,5 @@ youtube-dl.bash-completion: README.md
 		content=`sed "s/opts=\"[^\"]*\"/opts=\"$${options}\"/g" youtube-dl.bash-completion` && \
 		echo "$${content}" > youtube-dl.bash-completion
 
-LATEST_VERSION: youtube-dl
-	./youtube-dl --version > LATEST_VERSION
+LATEST_VERSION:
+	python -m youtube_dl --version > LATEST_VERSION
