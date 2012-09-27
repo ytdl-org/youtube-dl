@@ -298,8 +298,8 @@ def parseOpts():
 			help='convert video files to audio-only files (requires ffmpeg or avconv and ffprobe or avprobe)')
 	postproc.add_option('--audio-format', metavar='FORMAT', dest='audioformat', default='best',
 			help='"best", "aac", "vorbis", "mp3", "m4a", or "wav"; best by default')
-	postproc.add_option('--audio-quality', metavar='QUALITY', dest='audioquality', default='128K',
-			help='ffmpeg/avconv audio bitrate specification, 128k by default')
+	postproc.add_option('--audio-quality', metavar='QUALITY', dest='audioquality', default='5',
+			help='ffmpeg/avconv audio quality specification, insert a value between 0 (better) and 9 (worse) for VBR or a specific bitrate like 128K (default 5)')
 	postproc.add_option('-k', '--keep-video', action='store_true', dest='keepvideo', default=False,
 			help='keeps the video file on disk after the post-processing; the video is erased by default')
 
@@ -451,6 +451,10 @@ def _real_main():
 	if opts.extractaudio:
 		if opts.audioformat not in ['best', 'aac', 'mp3', 'vorbis', 'm4a', 'wav']:
 			parser.error(u'invalid audio format specified')
+	if opts.audioquality:
+		opts.audioquality = opts.audioquality.strip('k').strip('K')
+		if not opts.audioquality.isdigit():
+			parser.error(u'invalid audio quality specified')
 
 	# File downloader
 	fd = FileDownloader({

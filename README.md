@@ -21,6 +21,7 @@ which means you can modify it, redistribute it or use it however you like.
     -r, --rate-limit LIMIT   download rate limit (e.g. 50k or 44.6m)
     -R, --retries RETRIES    number of retries (default is 10)
     --dump-user-agent        display the current browser identification
+    --user-agent None        specify a custom user agent
     --list-extractors        List all supported extractors and the URLs they
                              would handle
 
@@ -93,8 +94,9 @@ which means you can modify it, redistribute it or use it however you like.
                              ffmpeg or avconv and ffprobe or avprobe)
     --audio-format FORMAT    "best", "aac", "vorbis", "mp3", "m4a", or "wav";
                              best by default
-    --audio-quality QUALITY  ffmpeg/avconv audio bitrate specification, 128k by
-                             default
+    --audio-quality QUALITY  ffmpeg/avconv audio quality specification, insert a
+                             value between 0 (better) and 9 (worse) for VBR or a
+                             specific bitrate like 128K (default 5)
     -k, --keep-video         keeps the video file on disk after the post-
                              processing; the video is erased by default
 
