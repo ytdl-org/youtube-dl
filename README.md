@@ -122,6 +122,27 @@ The URLs youtube-dl outputs require the downloader to have the correct cookies. 
 
 youtube has switched to a new video info format in July 2011 which is not supported by old versions of youtube-dl. You can update youtube-dl with `sudo youtube-dl --update`.
 
+### ERROR: unable to download video ###
+
+youtube requires an additional signature since September 2012 which is not supported by old versions of youtube-dl. You can update youtube-dl with `sudo youtube-dl --update`.
+
+### SyntaxError:Non-ASCII character ###
+
+The error
+
+    File "youtube-dl", line 2
+    SyntaxError: Non-ASCII character '\x93' ...
+
+means you're using an outdated version of Python. Please update to Python 2.6 or 2.7.
+
+To run youtube-dl under Python 2.5, you'll have to manually check it out like this:
+
+	git clone git://github.com/rg3/youtube-dl.git
+	cd youtube-dl
+	python -m youtube-dl --help
+
+Please note that Python 2.5 is not supported anymore.
+
 # COPYRIGHT
 
 youtube-dl is released into the public domain by the copyright holders.

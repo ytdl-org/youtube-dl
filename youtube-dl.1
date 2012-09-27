@@ -167,6 +167,37 @@ Some sites also require a common user agent to be used, use
 youtube has switched to a new video info format in July 2011 which is
 not supported by old versions of youtube-dl.
 You can update youtube-dl with \f[C]sudo\ youtube-dl\ --update\f[].
+.SS ERROR: unable to download video
+.PP
+youtube requires an additional signature since September 2012 which is
+not supported by old versions of youtube-dl.
+You can update youtube-dl with \f[C]sudo\ youtube-dl\ --update\f[].
+.SS SyntaxError:Non-ASCII character
+.PP
+The error
+.IP
+.nf
+\f[C]
+File\ "youtube-dl",\ line\ 2
+SyntaxError:\ Non-ASCII\ character\ \[aq]\\x93\[aq]\ ...
+\f[]
+.fi
+.PP
+means you\[aq]re using an outdated version of Python.
+Please update to Python 2.6 or 2.7.
+.PP
+To run youtube-dl under Python 2.5, you\[aq]ll have to manually check it
+out like this:
+.IP
+.nf
+\f[C]
+git\ clone\ git://github.com/rg3/youtube-dl.git
+cd\ youtube-dl
+python\ -m\ youtube-dl\ --help
+\f[]
+.fi
+.PP
+Please note that Python 2.5 is not supported anymore.
 .SH COPYRIGHT
 .PP
 youtube-dl is released into the public domain by the copyright holders.
