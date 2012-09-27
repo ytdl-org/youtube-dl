@@ -475,6 +475,7 @@ class FileDownloader(object):
 				videos = ie.extract(url)
 				for video in videos or []:
 					try:
+						video['provider'] = ie.IE_NAME
 						self.increment_downloads()
 						self.process_info(video)
 					except UnavailableVideoError:
