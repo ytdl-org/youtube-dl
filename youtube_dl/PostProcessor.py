@@ -142,14 +142,20 @@ class FFmpegExtractAudioPP(PostProcessor):
 				extension = 'mp3'
 				more_opts = []
 				if self._preferredquality is not None:
-					more_opts += [self._exes['avconv'] and '-b:a' or '-ab', self._preferredquality]
+					if int(self._preferredquality) < 10:
+						more_opts += [self._exes['avconv'] and '-q:a' or '-aq', self._preferredquality]
+					else:
+						more_opts += [self._exes['avconv'] and '-b:a' or '-ab', self._preferredquality]
 		else:
 			# We convert the audio (lossy)
 			acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'm4a': 'aac', 'vorbis': 'libvorbis', 'wav': None}[self._preferredcodec]
 			extension = self._preferredcodec
 			more_opts = []
 			if self._preferredquality is not None:
-				more_opts += [self._exes['avconv'] and '-b:a' or '-ab', self._preferredquality]
+				if int(self._preferredquality) < 10:
+					more_opts += [self._exes['avconv'] and '-q:a' or '-aq', self._preferredquality]
+				else:
+					more_opts += [self._exes['avconv'] and '-b:a' or '-ab', self._preferredquality]
 			if self._preferredcodec == 'aac':
 				more_opts += ['-f', 'adts']
 			if self._preferredcodec == 'm4a':
