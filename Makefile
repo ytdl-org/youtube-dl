@@ -49,4 +49,7 @@ LATEST_VERSION: youtube_dl/__init__.py
 test:
 	nosetests2 test/*
 
-.PHONY: default compile update update-latest update-readme test
+clean:
+	$$(rm **/*.pyc)
+
+.PHONY: default compile update update-latest update-readme test clean
