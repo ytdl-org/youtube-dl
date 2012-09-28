@@ -22,13 +22,12 @@ class TestUtil(unittest.TestCase):
 
         self.assertEqual(sanitize_filename(u'123'), u'123')
 
-        self.assertNotIn(u'/', sanitize_filename(u'abc/de'))
-        self.assertNotIn(u'abc', sanitize_filename(u'abc/de'))
+        self.assertEqual(u'abc_de', sanitize_filename(u'abc/de'))
         self.assertIn(u'de', sanitize_filename(u'abc/de'))
         self.assertNotIn(u'/', sanitize_filename(u'abc/de///'))
 
-        self.assertIn(u'\\', sanitize_filename(u'abc\\de'))
-        self.assertIn(u'abc', sanitize_filename(u'abc\\de'))
+        self.assertEqual(u'abc_de', sanitize_filename(u'abc\\de'))
+        self.assertEqual(u'abc_de', sanitize_filename(u'abc\\de'))
         self.assertIn(u'de', sanitize_filename(u'abc\\de'))
 
         self.assertEqual(sanitize_filename(u'ä'), u'ä')
@@ -43,6 +42,5 @@ class TestUtil(unittest.TestCase):
 
     def test_unescape_html(self):
         self.assertEqual(unescapeHTML(u"%20;"), u"%20;")
-        self.assertEqual(unescapeHTML(u"gre&tre&yre"), [u'gre', u'tre', u'yre'])
 
 
