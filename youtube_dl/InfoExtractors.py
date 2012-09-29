@@ -617,7 +617,7 @@ class DailymotionIE(InfoExtractor):
 
 		video_id = mobj.group(1)
 
-		video_extension = 'flv'
+		video_extension = 'mp4'
 
 		# Retrieve video webpage to extract further information
 		request = urllib2.Request(url)
@@ -631,20 +631,18 @@ class DailymotionIE(InfoExtractor):
 
 		# Extract URL, uploader and title from webpage
 		self.report_extraction(video_id)
-		mobj = re.search(r'(?i)addVariable\(\"sequence\"\s*,\s*\"([^\"]+?)\"\)', webpage)
+		mobj = re.search(r'\s*var flashvars = (.*)', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
 			return
-		sequence = urllib.unquote(mobj.group(1))
-		mobj = re.search(r',\"sdURL\"\:\"([^\"]+?)\",', sequence)
+		flashvars = urllib.unquote(mobj.group(1))
+		mobj = re.search(r'"hqURL":"(.+?)"', flashvars)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
 			return
-		mediaURL = urllib.unquote(mobj.group(1)).replace('\\', '')
+		hqURL = mobj.group(1).replace('\\/', '/')
 
-		# if needed add http://www.dailymotion.com/ if relative URL
-
-		video_url = mediaURL
+		# TODO: support ldurl and sdurl qualities
 
 		mobj = re.search(r'<meta property="og:title" content="(?P<title>[^"]*)" />', webpage)
 		if mobj is None:
@@ -660,7 +658,7 @@ class DailymotionIE(InfoExtractor):
 
 		return [{
 			'id':		video_id.decode('utf-8'),
-			'url':		video_url.decode('utf-8'),
+			'url':		hqURL.decode('utf-8'),
 			'uploader':	video_uploader.decode('utf-8'),
 			'upload_date':	u'NA',
 			'title':	video_title,
