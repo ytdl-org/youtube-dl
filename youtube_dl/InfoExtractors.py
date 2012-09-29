@@ -636,13 +636,16 @@ class DailymotionIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
 			return
 		flashvars = urllib.unquote(mobj.group(1))
-		mobj = re.search(r'"hqURL":"(.+?)"', flashvars)
+		if 'hqURL' in flashvars: max_quality = 'hqURL'
+		elif 'sdURL' in flashvars: max_quality = 'sdURL'
+		else: max_quality = 'ldURL'
+		mobj = re.search(r'"' + max_quality + r'":"(.+?)"', flashvars)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
 			return
-		hqURL = mobj.group(1).replace('\\/', '/')
+		video_url = mobj.group(1).replace('\\/', '/')
 
-		# TODO: support ldurl and sdurl qualities
+		# TODO: support choosing qualities
 
 		mobj = re.search(r'<meta property="og:title" content="(?P<title>[^"]*)" />', webpage)
 		if mobj is None:
@@ -658,7 +661,7 @@ class DailymotionIE(InfoExtractor):
 
 		return [{
 			'id':		video_id.decode('utf-8'),
-			'url':		hqURL.decode('utf-8'),
+			'url':		video_url.decode('utf-8'),
 			'uploader':	video_uploader.decode('utf-8'),
 			'upload_date':	u'NA',
 			'title':	video_title,
