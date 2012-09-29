@@ -629,18 +629,24 @@ class DailymotionIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable retrieve video webpage: %s' % str(err))
 			return
 
-		# Extract URL, uploader and title from webpage
+    	# Extract URL, uploader and title from webpage
+		mediaURL = None
 		self.report_extraction(video_id)
 		mobj = re.search(r'(?i)addVariable\(\"sequence\"\s*,\s*\"([^\"]+?)\"\)', webpage)
 		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract media URL')
-			return
+			mobj = re.search(r'"video_url":"(.*?)",', urllib.unquote(webpage))
+			if mobj:
+				mediaURL = urllib.unquote(mobj.group(1))
+			else:
+				self._downloader.trouble(u'ERROR: unable to extract media URL')
+				return
 		sequence = urllib.unquote(mobj.group(1))
 		mobj = re.search(r',\"sdURL\"\:\"([^\"]+?)\",', sequence)
-		if mobj is None:
+		if mobj is None and not mediaURL:
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
 			return
-		mediaURL = urllib.unquote(mobj.group(1)).replace('\\', '')
+		if not mediaURL:
+			mediaURL = urllib.unquote(mobj.group(1)).replace('\\', '')
 
 		# if needed add http://www.dailymotion.com/ if relative URL
 
