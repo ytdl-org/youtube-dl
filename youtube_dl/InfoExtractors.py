@@ -663,9 +663,11 @@ class DailymotionIE(InfoExtractor):
 		else: max_quality = 'ldURL'
 		mobj = re.search(r'"' + max_quality + r'":"(.+?)"', flashvars)
 		if mobj is None:
+			mobj = re.search(r'"video_url":"(.*?)",', urllib.unquote(webpage))
+		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
 			return
-		video_url = mobj.group(1).replace('\\/', '/')
+		video_url = urllib.unquote(mobj.group(1)).replace('\\/', '/')
 
 		# TODO: support choosing qualities
 
