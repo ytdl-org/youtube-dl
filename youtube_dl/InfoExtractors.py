@@ -97,7 +97,25 @@ class InfoExtractor(object):
 class YoutubeIE(InfoExtractor):
 	"""Information extractor for youtube.com."""
 
-	_VALID_URL = r'^((?:https?://)?(?:youtu\.be/|(?:\w+\.)?youtube(?:-nocookie)?\.com/|tube\.majestyc\.net/)(?!view_play_list|my_playlists|artist|playlist)(?:(?:(?:v|embed|e)/)|(?:(?:watch(?:_popup)?(?:\.php)?)?(?:\?|#!?)(?:.+&)?v=))?)?([0-9A-Za-z_-]+)(?(1).+)?$'
+	_VALID_URL = r"""^
+	                 (
+	                     (?:https?://)?                                       # http(s):// (optional)
+	                     (?:youtu\.be/|(?:\w+\.)?youtube(?:-nocookie)?\.com/|
+	                     	tube\.majestyc\.net/)                             # the various hostnames, with wildcard subdomains
+	                     (?!view_play_list|my_playlists|artist|playlist)      # ignore playlist URLs
+	                     (?:                                                  # the various things that can precede the ID:
+	                         (?:(?:v|embed|e)/)                               # v/ or embed/ or e/
+	                         |(?:                                             # or the v= param in all its forms
+	                             (?:watch(?:_popup)?(?:\.php)?)?              # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
+	                             (?:\?|\#!?)                                  # the params delimiter ? or # or #!
+	                             (?:.+&)?                                     # any other preceding param (like /?s=tuff&v=xxxx)
+	                             v=
+	                         )
+	                     )?                                                   # optional -> youtube.com/xxxx is OK
+	                 )?                                                       # all until now is optional -> you can pass the naked ID
+	                 ([0-9A-Za-z_-]+)                                         # here is it! the YouTube video ID
+	                 (?(1).+)?                                                # if we found the ID, everything can follow
+	                 $"""
 	_LANG_URL = r'http://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
 	_LOGIN_URL = 'https://www.youtube.com/signup?next=/&gl=US&hl=en'
 	_AGE_URL = 'http://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
@@ -135,6 +153,10 @@ class YoutubeIE(InfoExtractor):
 		'46': '1080x1920',
 	}	
 	IE_NAME = u'youtube'
+
+	def suitable(self, url):
+		"""Receives a URL and returns True if suitable for this IE."""
+		return re.match(self._VALID_URL, url, re.VERBOSE) is not None
 
 	def report_lang(self):
 		"""Report attempt to set language."""
@@ -270,7 +292,7 @@ class YoutubeIE(InfoExtractor):
 			url = 'http://www.youtube.com/' + urllib.unquote(mobj.group(1)).lstrip('/')
 
 		# Extract video id from URL
-		mobj = re.match(self._VALID_URL, url)
+		mobj = re.match(self._VALID_URL, url, re.VERBOSE)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
 			return
@@ -594,7 +616,7 @@ class MetacafeIE(InfoExtractor):
 class DailymotionIE(InfoExtractor):
 	"""Information Extractor for Dailymotion"""
 
-	_VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^_/]+)_([^/]+)'
+	_VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^/]+)'
 	IE_NAME = u'dailymotion'
 
 	def __init__(self, downloader=None):
@@ -615,9 +637,9 @@ class DailymotionIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
 			return
 
-		video_id = mobj.group(1)
+		video_id = mobj.group(1).split('_')[0].split('?')[0]
 
-		video_extension = 'flv'
+		video_extension = 'mp4'
 
 		# Retrieve video webpage to extract further information
 		request = urllib2.Request(url)
@@ -631,20 +653,23 @@ class DailymotionIE(InfoExtractor):
 
 		# Extract URL, uploader and title from webpage
 		self.report_extraction(video_id)
-		mobj = re.search(r'(?i)addVariable\(\"sequence\"\s*,\s*\"([^\"]+?)\"\)', webpage)
+		mobj = re.search(r'\s*var flashvars = (.*)', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
 			return
-		sequence = urllib.unquote(mobj.group(1))
-		mobj = re.search(r',\"sdURL\"\:\"([^\"]+?)\",', sequence)
+		flashvars = urllib.unquote(mobj.group(1))
+		if 'hqURL' in flashvars: max_quality = 'hqURL'
+		elif 'sdURL' in flashvars: max_quality = 'sdURL'
+		else: max_quality = 'ldURL'
+		mobj = re.search(r'"' + max_quality + r'":"(.+?)"', flashvars)
+		if mobj is None:
+			mobj = re.search(r'"video_url":"(.*?)",', flashvars)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
 			return
-		mediaURL = urllib.unquote(mobj.group(1)).replace('\\', '')
+		video_url = urllib.unquote(mobj.group(1)).replace('\\/', '/')
 
-		# if needed add http://www.dailymotion.com/ if relative URL
-
-		video_url = mediaURL
+		# TODO: support choosing qualities
 
 		mobj = re.search(r'<meta property="og:title" content="(?P<title>[^"]*)" />', webpage)
 		if mobj is None:

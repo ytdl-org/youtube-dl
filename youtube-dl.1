@@ -54,9 +54,10 @@ redistribute it or use it however you like.
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ title,\ %(uploader)s\ for\ the\ uploader\ name,
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ %(autonumber)s\ to\ get\ an\ automatically\ incremented
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ number,\ %(ext)s\ for\ the\ filename\ extension,
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ %(upload_date)s\ for\ the\ upload\ date\ (YYYYMMDD),\ and
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ %%\ for\ a\ literal\ percent.\ Use\ -\ to\ output\ to
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stdout.
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ %(upload_date)s\ for\ the\ upload\ date\ (YYYYMMDD),
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ %(extractor)s\ for\ the\ extractor\ used\ (youtube,\ metacafe,
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ etc),\ %(id)s\ for\ the\ video\ id\ and\ %%\ for\ a\ literal
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ percent.\ Use\ -\ to\ output\ to\ stdout.
 -a,\ --batch-file\ FILE\ \ \ \ file\ containing\ URLs\ to\ download\ (\[aq]-\[aq]\ for\ stdin)
 -w,\ --no-overwrites\ \ \ \ \ \ do\ not\ overwrite\ files
 -c,\ --continue\ \ \ \ \ \ \ \ \ \ \ resume\ partially\ downloaded\ files
@@ -172,7 +173,7 @@ You can update youtube-dl with \f[C]sudo\ youtube-dl\ --update\f[].
 youtube requires an additional signature since September 2012 which is
 not supported by old versions of youtube-dl.
 You can update youtube-dl with \f[C]sudo\ youtube-dl\ --update\f[].
-.SS SyntaxError:Non-ASCII character
+.SS SyntaxError: Non-ASCII character
 .PP
 The error
 .IP
@@ -193,11 +194,24 @@ out like this:
 \f[C]
 git\ clone\ git://github.com/rg3/youtube-dl.git
 cd\ youtube-dl
-python\ -m\ youtube-dl\ --help
+python\ -m\ youtube_dl\ --help
 \f[]
 .fi
 .PP
 Please note that Python 2.5 is not supported anymore.
+.SS What is this binary file? Where has the code gone?
+.PP
+Since June 2012 (#342) youtube-dl is packed as an executable zipfile,
+simply unzip it (might need renaming to \f[C]youtube-dl.zip\f[] first on
+some systems) or clone the git repo to see the code.
+If you modify the code, you can run it by executing the
+\f[C]__main__.py\f[] file.
+To recompile the executable, run \f[C]make\ compile\f[].
+.SS The exe throws a \f[I]Runtime error from Visual C++\f[]
+.PP
+To run the exe you need to install first the Microsoft Visual C++ 2008
+Redistributable
+Package (http://www.microsoft.com/en-us/download/details.aspx?id=29).
 .SH COPYRIGHT
 .PP
 youtube-dl is released into the public domain by the copyright holders.
