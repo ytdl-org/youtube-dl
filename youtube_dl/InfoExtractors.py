@@ -616,7 +616,7 @@ class MetacafeIE(InfoExtractor):
 class DailymotionIE(InfoExtractor):
 	"""Information Extractor for Dailymotion"""
 
-	_VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^_/]+)_([^/]+)'
+	_VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^/]+)'
 	IE_NAME = u'dailymotion'
 
 	def __init__(self, downloader=None):
