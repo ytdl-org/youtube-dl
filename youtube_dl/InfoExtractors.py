@@ -637,7 +637,7 @@ class DailymotionIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
 			return
 
-		video_id = mobj.group(1)
+		video_id = mobj.group(1).split('_')[0].split('?')[0]
 
 		video_extension = 'mp4'
 
@@ -663,7 +663,7 @@ class DailymotionIE(InfoExtractor):
 		else: max_quality = 'ldURL'
 		mobj = re.search(r'"' + max_quality + r'":"(.+?)"', flashvars)
 		if mobj is None:
-			mobj = re.search(r'"video_url":"(.*?)",', urllib.unquote(webpage))
+			mobj = re.search(r'"video_url":"(.*?)",', flashvars)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
 			return
