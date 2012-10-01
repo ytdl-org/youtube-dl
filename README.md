@@ -43,7 +43,7 @@ which means you can modify it, redistribute it or use it however you like.
                              %(autonumber)s to get an automatically incremented
                              number, %(ext)s for the filename extension,
                              %(upload_date)s for the upload date (YYYYMMDD),
-                             %(provider)s for the provider (youtube, metacafe,
+                             %(extractor)s for the provider (youtube, metacafe,
                              etc), %(id)s for the video id and %% for a literal
                              percent. Use - to output to stdout.
     -a, --batch-file FILE    file containing URLs to download ('-' for stdin)
