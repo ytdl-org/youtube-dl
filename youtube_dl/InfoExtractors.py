@@ -616,7 +616,7 @@ class MetacafeIE(InfoExtractor):
 class DailymotionIE(InfoExtractor):
 	"""Information Extractor for Dailymotion"""
 
-	_VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^_/]+)_([^/]+)'
+	_VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^/]+)'
 	IE_NAME = u'dailymotion'
 
 	def __init__(self, downloader=None):
@@ -637,7 +637,7 @@ class DailymotionIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
 			return
 
-		video_id = mobj.group(1)
+		video_id = mobj.group(1).split('_')[0].split('?')[0]
 
 		video_extension = 'mp4'
 
@@ -663,9 +663,11 @@ class DailymotionIE(InfoExtractor):
 		else: max_quality = 'ldURL'
 		mobj = re.search(r'"' + max_quality + r'":"(.+?)"', flashvars)
 		if mobj is None:
+			mobj = re.search(r'"video_url":"(.*?)",', flashvars)
+		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
 			return
-		video_url = mobj.group(1).replace('\\/', '/')
+		video_url = urllib.unquote(mobj.group(1)).replace('\\/', '/')
 
 		# TODO: support choosing qualities
 
