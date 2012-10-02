@@ -9,9 +9,9 @@ from youtube_dl.InfoExtractors  import YoutubeIE
 class DownloadTest(unittest.TestCase):
     #calculated with the md5sum utility
     #md5sum (GNU coreutils) 8.19
-    YOUTUBE_MD5 = "ba4092da68c9ded8ef3aaace5ffd1860"
-    YOUTUBE_URL = "http://www.youtube.com/watch?v=u0VbyYcljx8&feature=related"
-    YOUTUBE_FILE = "u0VbyYcljx8.flv"
+    YOUTUBE_MD5 = "8547978241cb87dd6782b10b8e90acc3"
+    YOUTUBE_URL = "http://www.youtube.com/watch?v=BaW_jenozKc"
+    YOUTUBE_FILE = "BaW_jenozKc.flv"
 
     def test_youtube(self):
         #let's download a file from youtube
