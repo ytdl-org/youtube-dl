@@ -4,7 +4,7 @@ import hashlib
 import os
 
 from youtube_dl.FileDownloader import FileDownloader
-from youtube_dl.InfoExtractors  import YoutubeIE, DailymotionIE, MetacafeIE
+from youtube_dl.InfoExtractors  import YoutubeIE, DailymotionIE, MetacafeIE, PhotobucketIE
 
 class DownloadTest(unittest.TestCase):
 	#calculated with md5sum:
@@ -21,6 +21,11 @@ class DownloadTest(unittest.TestCase):
 	METACAFE_MD5 = ""
 	METACAFE_URL = "http://www.metacafe.com/watch/yt-bV9L5Ht9LgY/download_youtube_playlist_with_youtube_dl/"
 	METACAFE_FILE = ""
+
+
+	PHOTOBUCKET_MD5 = ""
+	PHOTOBUCKET_URL = "http://www.metacafe.com/watch/yt-bV9L5Ht9LgY/download_youtube_playlist_with_youtube_dl/"
+	PHOTOBUCKET_FILE = ""
 
 	def test_youtube(self):
 		#let's download a file from youtube
@@ -48,11 +53,24 @@ class DownloadTest(unittest.TestCase):
 		md5_down_file = md5_for_file(DownloadTest.METACAFE_FILE)
 		self.assertEqual(md5_down_file, DownloadTest.METACAFE_MD5)
 
+	def test_photobucket(self):
+		fd = FileDownloader({})
+		fd.add_info_extractor(PhotobucketIE())
+		fd.download([DownloadTest.PHOTOBUCKET_URL])
+		self.assertTrue(os.path.exists(DownloadTest.PHOTOBUCKET_FILE))
+		md5_down_file = md5_for_file(DownloadTest.PHOTOBUCKET_FILE)
+		self.assertEqual(md5_down_file, DownloadTest.PHOTOBUCKET_MD5)
+
+
 	def cleanUp(self):
 		if os.path.exists(DownloadTest.YOUTUBE_FILE):
 			os.remove(DownloadTest.YOUTUBE_FILE)
 		if os.path.exists(DownloadTest.DAILYMOTION_FILE):
 			os.remove(DownloadTest.DAILYMOTION_FILE)
+		if os.path.exists(DownloadTest.METACAFE_FILE):
+			os.remove(DownloadTest.METACAFE_FILE)
+		if os.path.exists(DownloadTest.PHOTOBUCKET_FILE):
+			os.remove(DownloadTest.PHOTOBUCKET_FILE)
 
 def md5_for_file(f, block_size=2**20):
 	md5 = hashlib.md5()
