@@ -6,11 +6,13 @@ import os
 from youtube_dl.FileDownloader import FileDownloader
 from youtube_dl.InfoExtractors  import YoutubeIE, DailymotionIE
 from youtube_dl.InfoExtractors import  MetacafeIE, PhotobucketIE
-from youtube_dl.InfoExtractors import FacebookIE
+from youtube_dl.InfoExtractors import FacebookIE, BlipTVIE
+from youtube_dl.InfoExtractors import VimeoIE, XVideosIE
+
 
 class DownloadTest(unittest.TestCase):
 	#calculated with md5sum:
-	#	md5sum (GNU coreutils) 8.19
+	#md5sum (GNU coreutils) 8.19
 	YOUTUBE_MD5 = "8547978241cb87dd6782b10b8e90acc3"
 	YOUTUBE_URL = "http://www.youtube.com/watch?v=BaW_jenozKc"
 	YOUTUBE_FILE = "BaW_jenozKc.flv"
@@ -34,6 +36,19 @@ class DownloadTest(unittest.TestCase):
 	FACEBOOK_MD5 = ""
 	FACEBOOK_URL = "https://www.facebook.com/video/video.php?v=207446242657384"
 	FACEBOOK_FILE = ""
+
+
+	BLIP_MD5 = ""
+	BLIP_URL = "https://www.facebook.com/video/video.php?v=207446242657384"
+	BLIP_FILE = ""
+
+	VIMEO_MD5 = ""
+	VIMEO_URL = "https://www.facebook.com/video/video.php?v=207446242657384"
+	VIMEO_FILE = ""
+
+	XVIDEO_MD5 = ""
+	XVIDEO_URL = "https://www.facebook.com/video/video.php?v=207446242657384"
+	XVIDEO_FILE = ""
 
 
 	def test_youtube(self):
@@ -79,6 +94,32 @@ class DownloadTest(unittest.TestCase):
 		md5_down_file = md5_for_file(DownloadTest.FACEBOOK_FILE)
 		self.assertEqual(md5_down_file, DownloadTest.FACEBOOK_MD5)
 
+	def test_blip(self):
+		fd = FileDownloader({})
+		fd.add_info_extractor(BlipTVIE())
+		fd.download([DownloadTest.BLIP_URL])
+		self.assertTrue(os.path.exists(DownloadTest.BLIP_FILE))
+		md5_down_file = md5_for_file(DownloadTest.BLIP_FILE)
+		self.assertEqual(md5_down_file, DownloadTest.BLIP_MD5)
+
+
+	def test_vimeo(self):
+		fd = FileDownloader({})
+		fd.add_info_extractor(VimeoIE())
+		fd.download([DownloadTest.VIMEO_URL])
+		self.assertTrue(os.path.exists(DownloadTest.VIMEO_FILE))
+		md5_down_file = md5_for_file(DownloadTest.VIMEO_FILE)
+		self.assertEqual(md5_down_file, DownloadTest.VIMEO_MD5)
+
+
+	def test_xvideo(self):
+		fd = FileDownloader({})
+		fd.add_info_extractor(XVideosIE())
+		fd.download([DownloadTest.XVIDEO_URL])
+		self.assertTrue(os.path.exists(DownloadTest.XVIDEO_FILE))
+		md5_down_file = md5_for_file(DownloadTest.XVIDEO_FILE)
+		self.assertEqual(md5_down_file, DownloadTest.XVIDEO_MD5)
+
 	def cleanUp(self):
 		if os.path.exists(DownloadTest.YOUTUBE_FILE):
 			os.remove(DownloadTest.YOUTUBE_FILE)
@@ -90,6 +131,12 @@ class DownloadTest(unittest.TestCase):
 			os.remove(DownloadTest.PHOTOBUCKET_FILE)
 		if os.path.exists(DownloadTest.FACEBOOK_FILE):
 			os.remove(DownloadTest.FACEBOOK_FILE)
+		if os.path.exists(DownloadTest.BLIP_FILE):
+			os.remove(DownloadTest.BLIP_FILE)
+		if os.path.exists(DownloadTest.VIMEO_FILE):
+			os.remove(DownloadTest.VIMEO_FILE)
+		if os.path.exists(DownloadTest.XVIDEO_FILE):
+			os.remove(DownloadTest.XVIDEO_FILE)
 
 def md5_for_file(f, block_size=2**20):
 	md5 = hashlib.md5()
