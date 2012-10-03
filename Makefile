@@ -50,6 +50,6 @@ test:
 	nosetests2 test/*
 
 clean:
-	$$(rm **/*.pyc)
+	rm **/*.pyc
 
 .PHONY: default compile update update-latest update-readme test clean
