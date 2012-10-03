@@ -4,7 +4,7 @@ import hashlib
 import os
 
 from youtube_dl.FileDownloader import FileDownloader
-from youtube_dl.InfoExtractors  import YoutubeIE, DailymotionIE
+from youtube_dl.InfoExtractors  import YoutubeIE, DailymotionIE, MetacafeIE
 
 class DownloadTest(unittest.TestCase):
 	#calculated with md5sum:
@@ -16,6 +16,11 @@ class DownloadTest(unittest.TestCase):
 	DAILYMOTION_MD5 = ""
 	DAILYMOTION_URL = "http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech"
 	DAILYMOTION_FILE = ""
+
+
+	METACAFE_MD5 = ""
+	METACAFE_URL = "http://www.metacafe.com/watch/yt-bV9L5Ht9LgY/download_youtube_playlist_with_youtube_dl/"
+	METACAFE_FILE = ""
 
 	def test_youtube(self):
 		#let's download a file from youtube
@@ -34,6 +39,14 @@ class DownloadTest(unittest.TestCase):
 		md5_down_file = md5_for_file(DownloadTest.DAILYMOTION_FILE)
 		self.assertEqual(md5_down_file, DownloadTest.DAILYMOTION_MD5)
 
+
+	def test_metacafe(self):
+		fd = FileDownloader({})
+		fd.add_info_extractor(MetacafeIE())
+		fd.download([DownloadTest.METACAFE_URL])
+		self.assertTrue(os.path.exists(DownloadTest.METACAFE_FILE))
+		md5_down_file = md5_for_file(DownloadTest.METACAFE_FILE)
+		self.assertEqual(md5_down_file, DownloadTest.METACAFE_MD5)
 
 	def cleanUp(self):
 		if os.path.exists(DownloadTest.YOUTUBE_FILE):
