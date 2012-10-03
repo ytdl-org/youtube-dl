@@ -4,7 +4,9 @@ import hashlib
 import os
 
 from youtube_dl.FileDownloader import FileDownloader
-from youtube_dl.InfoExtractors  import YoutubeIE, DailymotionIE, MetacafeIE, PhotobucketIE
+from youtube_dl.InfoExtractors  import YoutubeIE, DailymotionIE
+from youtube_dl.InfoExtractors import  MetacafeIE, PhotobucketIE
+from youtube_dl.InfoExtractors import FacebookIE
 
 class DownloadTest(unittest.TestCase):
 	#calculated with md5sum:
@@ -12,6 +14,7 @@ class DownloadTest(unittest.TestCase):
 	YOUTUBE_MD5 = "8547978241cb87dd6782b10b8e90acc3"
 	YOUTUBE_URL = "http://www.youtube.com/watch?v=BaW_jenozKc"
 	YOUTUBE_FILE = "BaW_jenozKc.flv"
+
 
 	DAILYMOTION_MD5 = ""
 	DAILYMOTION_URL = "http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech"
@@ -26,6 +29,12 @@ class DownloadTest(unittest.TestCase):
 	PHOTOBUCKET_MD5 = ""
 	PHOTOBUCKET_URL = "http://www.metacafe.com/watch/yt-bV9L5Ht9LgY/download_youtube_playlist_with_youtube_dl/"
 	PHOTOBUCKET_FILE = ""
+
+
+	FACEBOOK_MD5 = ""
+	FACEBOOK_URL = "https://www.facebook.com/video/video.php?v=207446242657384"
+	FACEBOOK_FILE = ""
+
 
 	def test_youtube(self):
 		#let's download a file from youtube
@@ -62,6 +71,14 @@ class DownloadTest(unittest.TestCase):
 		self.assertEqual(md5_down_file, DownloadTest.PHOTOBUCKET_MD5)
 
 
+	def test_facebook(self):
+		fd = FileDownloader({})
+		fd.add_info_extractor(FacebookIE())
+		fd.download([DownloadTest.FACEBOOK_URL])
+		self.assertTrue(os.path.exists(DownloadTest.FACEBOOK_FILE))
+		md5_down_file = md5_for_file(DownloadTest.FACEBOOK_FILE)
+		self.assertEqual(md5_down_file, DownloadTest.FACEBOOK_MD5)
+
 	def cleanUp(self):
 		if os.path.exists(DownloadTest.YOUTUBE_FILE):
 			os.remove(DownloadTest.YOUTUBE_FILE)
@@ -71,6 +88,8 @@ class DownloadTest(unittest.TestCase):
 			os.remove(DownloadTest.METACAFE_FILE)
 		if os.path.exists(DownloadTest.PHOTOBUCKET_FILE):
 			os.remove(DownloadTest.PHOTOBUCKET_FILE)
+		if os.path.exists(DownloadTest.FACEBOOK_FILE):
+			os.remove(DownloadTest.FACEBOOK_FILE)
 
 def md5_for_file(f, block_size=2**20):
 	md5 = hashlib.md5()
