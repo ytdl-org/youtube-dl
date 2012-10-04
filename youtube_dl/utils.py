@@ -197,6 +197,12 @@ def sanitize_filename(s):
 		if char in u' .\\/|?*<>:"' or ord(char) < 32:
 			return '_'
 		return char
+	
+	if sys.platform == 'win32':
+		s = s.replace(ur'/', u'%')
+		s = re.sub(ur' *[:\|] *', u' - ', s)
+		s = re.sub(ur'[/<>"\?\*]', u'', s)
+
 	return u''.join(map(replace_insane, s)).strip('_')
 
 def orderedSet(iterable):
