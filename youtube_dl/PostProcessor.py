@@ -89,15 +89,25 @@ class FFmpegExtractAudioPP(PostProcessor):
 				return None
 		except (IOError, OSError):
 			return None
-		audio_codec = None
+		codec = None
+		duration = None
 		for line in output.split('\n'):
 			if line.startswith('codec_name='):
-				audio_codec = line.split('=')[1].strip()
-			elif line.strip() == 'codec_type=audio' and audio_codec is not None:
-				return audio_codec
-		return None
+				codec = line.split('=')[1].strip()
+			elif line.startswith('duration='):
+				duration = line.split('=')[1].strip()
+				try:
+					duration = float(duration)
+				except:
+					duration = None
+			elif line.strip() == '[/STREAM]' and codec is not None:
+				break
+		return {
+			'codec': codec,
+			'duration': duration
+		}
 
-	def run_ffmpeg(self, path, out_path, codec, more_opts):
+	def run_ffmpeg(self, path, out_path, codec, more_opts, duration):
 		if not self._exes['ffmpeg'] and not self._exes['avconv']:
 			raise AudioConversionError('ffmpeg or avconv not found. Please install one.')	
 		if codec is None:
@@ -107,16 +117,55 @@ class FFmpegExtractAudioPP(PostProcessor):
 		cmd = ([self._exes['avconv'] or self._exes['ffmpeg'], '-y', '-i', encodeFilename(path), '-vn']
 			   + acodec_opts + more_opts +
 			   ['--', encodeFilename(out_path)])
-		p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		stdout,stderr = p.communicate()
+		start = time.time()
+		# open process redirecting stderr to stdout
+		p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
+		import fcntl
+		import errno
+		import select
+		# entire captured output
+		p_output = ''
+		# size=     765kB time=243.67 bitrate=  25.7kbits/s
+		reo = re.compile("""size=\s*(?P<size>\S+)				# size
+							\stime=(?P<time>\S+)				# time
+							\sbitrate=\s*(?P<bitrate>[\d\.]+)	# bitrate
+							""", re.X)
+		# make stdout non-blocking
+		fcntl.fcntl(p.stdout.fileno(), fcntl.F_SETFL, fcntl.fcntl(p.stdout.fileno(), fcntl.F_GETFL) | os.O_NONBLOCK)
+		while p.poll() == None:
+			# check if there is some output waiting
+			readx = select.select([p.stdout.fileno()], [], [])[0]
+			if readx:
+				# got some output, read it
+				chunk = p.stdout.read()
+				if chunk == '':
+					break
+				m = reo.match(chunk)
+				if m:
+					info = m.groupdict()
+					info['time'] = float(info['time'])
+					# compute current position
+					pos = None
+					if duration is not None:
+						if info['time'] < duration:
+							pos = info['time']
+						else:
+							pos = duration
+					if not self._downloader.params.get('noprogress', False):
+						self._downloader.to_screen(u'\r[' + (self._exes['avconv'] and 'avconv' or 'ffmpeg') + '] %s of %s ETA %s' % (self._downloader.calc_percent(pos, duration), duration, self._downloader.calc_eta(start, time.time(), duration, pos)), skip_eol=True)
+						self._downloader.to_cons_title(u'youtube-dl - %s of %s ETA %s' % (self._downloader.calc_percent(pos, duration), duration, self._downloader.calc_eta(start, time.time(), duration, pos)))
+				time.sleep(.1)
+		if not self._downloader.params.get('noprogress', False):
+			self._downloader.to_screen(u'')
 		if p.returncode != 0:
-			msg = stderr.strip().split('\n')[-1]
+			msg = p_output.strip().split('\n')[-1]
 			raise AudioConversionError(msg)
 
 	def run(self, information):
 		path = information['filepath']
 
-		filecodec = self.get_audio_codec(path)
+		fileinfo = self.get_audio_codec(path)
+		filecodec = fileinfo['codec'] if fileinfo is not None else None
 		if filecodec is None:
 			self._downloader.to_stderr(u'WARNING: unable to obtain file audio codec with ffprobe')
 			return None
@@ -148,7 +197,7 @@ class FFmpegExtractAudioPP(PostProcessor):
 						more_opts += [self._exes['avconv'] and '-b:a' or '-ab', self._preferredquality]
 		else:
 			# We convert the audio (lossy)
-			acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'm4a': 'aac', 'vorbis': 'libvorbis', 'wav': None}[self._preferredcodec]
+			acodec = {'mp3': 'libmp3lame', 'aac': 'libfaac', 'm4a': 'aac', 'vorbis': 'libvorbis', 'wav': None}[self._preferredcodec]
 			extension = self._preferredcodec
 			more_opts = []
 			if self._preferredquality is not None:
@@ -170,7 +219,7 @@ class FFmpegExtractAudioPP(PostProcessor):
 		new_path = prefix + sep + extension
 		self._downloader.to_screen(u'[' + (self._exes['avconv'] and 'avconv' or 'ffmpeg') + '] Destination: ' + new_path)
 		try:
-			self.run_ffmpeg(path, new_path, acodec, more_opts)
+			self.run_ffmpeg(path, new_path, acodec, more_opts, fileinfo['duration'] if fileinfo is not None else None)
 		except:
 			etype,e,tb = sys.exc_info()
 			if isinstance(e, AudioConversionError):

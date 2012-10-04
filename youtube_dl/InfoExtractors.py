@@ -683,11 +683,16 @@ class DailymotionIE(InfoExtractor):
 			return
 		video_uploader = mobj.group(1)
 
+		video_upload_date = u'NA'
+		mobj = re.search(r'<div class="[^"]*uploaded_cont[^"]*" title="[^"]*">([0-9]{2})-([0-9]{2})-([0-9]{4})</div>', webpage)
+		if mobj is not None:
+			video_upload_date = mobj.group(3) + mobj.group(2) + mobj.group(1)
+
 		return [{
 			'id':		video_id.decode('utf-8'),
 			'url':		video_url.decode('utf-8'),
 			'uploader':	video_uploader.decode('utf-8'),
-			'upload_date':	u'NA',
+			'upload_date':	video_upload_date,
 			'title':	video_title,
 			'ext':		video_extension.decode('utf-8'),
 			'format':	u'NA',
