@@ -203,7 +203,12 @@ def sanitize_filename(s):
 		s = re.sub(ur' *[:\|] *', u' - ', s)
 		s = re.sub(ur'[/<>"\?\*]', u'', s)
 
-	return u''.join(map(replace_insane, s)).strip('_')
+	s = u''.join(map(replace_insane, s)).strip('_')
+	
+	if sys.platform == 'win32':
+		s = s.replace(u'_', u' ');
+		
+	return s
 
 def orderedSet(iterable):
 	""" Remove all duplicates from the input iterable """
