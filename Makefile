@@ -50,6 +50,6 @@ test:
 	nosetests2 test/*
 
 clean:
-	rm **/*.pyc
+	find -name "*.pyc" -delete
 
 .PHONY: default compile update update-latest update-readme test clean
