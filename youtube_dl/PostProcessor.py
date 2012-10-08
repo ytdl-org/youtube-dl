@@ -71,13 +71,14 @@ class FFmpegExtractAudioPP(PostProcessor):
 
 	@staticmethod
 	def detect_executables():
-		available = {'avprobe' : False, 'avconv' : False, 'ffmpeg' : False, 'ffprobe' : False}
-		for path in os.environ["PATH"].split(os.pathsep):
-			for program in available.keys():
-				exe_file = os.path.join(path, program)
-				if os.path.isfile(exe_file) and os.access(exe_file, os.X_OK):
-					available[program] = exe_file
-		return available
+		def executable(exe):
+			try:
+				subprocess.check_output([exe, '-version'])
+			except OSError:
+				return False
+			return exe
+		programs = ['avprobe', 'avconv', 'ffmpeg', 'ffprobe']
+		return dict((program, executable(program)) for program in programs)
 
 	def get_audio_codec(self, path):
 		if not self._exes['ffprobe'] and not self._exes['avprobe']: return None
