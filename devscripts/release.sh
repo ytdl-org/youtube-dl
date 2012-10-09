@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/sh
 
 if [ -z "$1" ]; then echo "ERROR: specify version number like this: $0 1994.09.06"; exit 1; fi
 version="$1"
