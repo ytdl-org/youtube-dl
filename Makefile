@@ -1,5 +1,4 @@
 all: youtube-dl README.md youtube-dl.1 youtube-dl.bash-completion LATEST_VERSION
-
 # TODO: re-add youtube-dl.exe, and make sure it's 1. safe and 2. doesn't need sudo
 
 clean:
@@ -24,7 +23,7 @@ youtube-dl: youtube_dl/*.py
 youtube-dl.exe: youtube_dl/*.py
 	bash devscripts/wine-py2exe.sh build_exe.py
 
-README.md:
+README.md: youtube_dl/*.py
 	@options=$$(COLUMNS=80 python -m youtube_dl --help | sed -e '1,/.*General Options.*/ d' -e 's/^\W\{2\}\(\w\)/## \1/') && \
 		header=$$(sed -e '/.*# OPTIONS/,$$ d' README.md) && \
 		footer=$$(sed -e '1,/.*# FAQ/ d' README.md) && \
@@ -44,5 +43,5 @@ youtube-dl.bash-completion: README.md
 		content=`sed "s/opts=\"[^\"]*\"/opts=\"$${options}\"/g" youtube-dl.bash-completion` && \
 		echo "$${content}" > youtube-dl.bash-completion
 
-LATEST_VERSION:
+LATEST_VERSION: youtube_dl/__init__.py
 	python -m youtube_dl --version > LATEST_VERSION
