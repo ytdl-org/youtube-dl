@@ -658,15 +658,21 @@ class DailymotionIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
 			return
 		flashvars = urllib.unquote(mobj.group(1))
-		if 'hqURL' in flashvars: max_quality = 'hqURL'
-		elif 'sdURL' in flashvars: max_quality = 'sdURL'
-		else: max_quality = 'ldURL'
+
+		for key in ['hd1080URL', 'hd720URL', 'hqURL', 'sdURL', 'ldURL', 'video_url']:
+			if key in flashvars:
+				max_quality = key
+				self._downloader.to_screen(u'[dailymotion] Using %s' % key)
+				break
+		else:
+			self._downloader.trouble(u'ERROR: unable to extract video URL')
+			return
+
 		mobj = re.search(r'"' + max_quality + r'":"(.+?)"', flashvars)
 		if mobj is None:
-			mobj = re.search(r'"video_url":"(.*?)",', flashvars)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract media URL')
+			self._downloader.trouble(u'ERROR: unable to extract video URL')
 			return
+
 		video_url = urllib.unquote(mobj.group(1)).replace('\\/', '/')
 
 		# TODO: support choosing qualities
@@ -677,11 +683,12 @@ class DailymotionIE(InfoExtractor):
 			return
 		video_title = unescapeHTML(mobj.group('title').decode('utf-8'))
 
+		video_uploader = u'NA'
 		mobj = re.search(r'(?im)<span class="owner[^\"]+?">[^<]+?<a [^>]+?>([^<]+?)</a></span>', webpage)
 		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
-			return
-		video_uploader = mobj.group(1)
+			self._downloader.trouble(u'WARNING: unable to extract uploader nickname')
+		else:
+			video_uploader = mobj.group(1)
 
 		video_upload_date = u'NA'
 		mobj = re.search(r'<div class="[^"]*uploaded_cont[^"]*" title="[^"]*">([0-9]{2})-([0-9]{2})-([0-9]{4})</div>', webpage)
