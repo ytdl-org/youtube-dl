@@ -355,6 +355,7 @@ def gen_extractors():
 		MTVIE(),
 		YoukuIE(),
 		XNXXIE(),
+		GooglePlusIE(),
 
 		GenericIE()
 	]

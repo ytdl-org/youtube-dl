@@ -3174,3 +3174,127 @@ class XNXXIE(InfoExtractor):
 				'player_url': None}
 
 		return [info]
+
+
+class GooglePlusIE(InfoExtractor):
+	"""Information extractor for plus.google.com."""
+
+	_VALID_URL = r'(?:https://)?plus\.google\.com/(?:\w+/)*?(\d+)/posts/(\w+)'
+	IE_NAME = u'plus.google'
+
+	def __init__(self, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+
+	def report_extract_entry(self, url):
+		"""Report downloading extry"""
+		self._downloader.to_screen(u'[plus.google] Downloading entry: %s' % url.decode('utf-8'))
+
+	def report_date(self, upload_date):
+		"""Report downloading extry"""
+		self._downloader.to_screen(u'[plus.google] Entry date: %s' % upload_date)
+
+	def report_uploader(self, uploader):
+		"""Report downloading extry"""
+		self._downloader.to_screen(u'[plus.google] Uploader: %s' % uploader.decode('utf-8'))
+
+	def report_title(self, video_title):
+		"""Report downloading extry"""
+		self._downloader.to_screen(u'[plus.google] Title: %s' % video_title.decode('utf-8'))
+
+	def report_extract_vid_page(self, video_page):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[plus.google] Extracting video page: %s' % video_page.decode('utf-8'))
+
+	def _real_extract(self, url):
+		# Extract id from URL
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
+			return
+
+		post_url = mobj.group(0)
+		video_id = mobj.group(2)
+
+		video_extension = 'flv'
+
+		# Step 1, Retrieve post webpage to extract further information
+		self.report_extract_entry(post_url)
+		request = urllib2.Request(post_url)
+		try:
+			webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: Unable to retrieve entry webpage: %s' % str(err))
+			return
+
+		# Extract update date
+		upload_date = u'NA'
+		pattern = 'title="Timestamp">(.*?)</a>'
+		mobj = re.search(pattern, webpage)
+		if mobj:
+			upload_date = mobj.group(1)
+			# Convert timestring to a format suitable for filename
+			upload_date = datetime.datetime.strptime(upload_date, "%Y-%m-%d")
+			upload_date = upload_date.strftime('%Y%m%d')
+		self.report_date(upload_date)
+
+		# Extract uploader
+		uploader = u'NA'
+		pattern = r'rel\="author".*?>(.*?)</a>'
+		mobj = re.search(pattern, webpage)
+		if mobj:
+			uploader = mobj.group(1)
+		self.report_uploader(uploader)
+
+		# Extract title
+		# Get the first line for title
+		video_title = u'NA'
+		pattern = r'<meta name\=\"Description\" content\=\"(.*?)[\n<"]'
+		mobj = re.search(pattern, webpage)
+		if mobj:
+			video_title = mobj.group(1)
+		self.report_title(video_title)
+
+		# Step 2, Stimulate clicking the image box to launch video
+		pattern = '"(https\://plus\.google\.com/photos/.*?)",,"image/jpeg","video"\]'
+		mobj = re.search(pattern, webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video page URL')
+
+		video_page = mobj.group(1)
+		request = urllib2.Request(video_page)
+		try:
+			webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: Unable to retrieve video webpage: %s' % str(err))
+			return
+		self.report_extract_vid_page(video_page)
+
+
+		# Extract video links on video page
+		"""Extract video links of all sizes"""
+		pattern = '\d+,\d+,(\d+),"(http\://redirector\.googlevideo\.com.*?)"'
+		mobj = re.findall(pattern, webpage)
+		if len(mobj) == 0:
+			self._downloader.trouble(u'ERROR: unable to extract video links')
+
+		# Sort in resolution
+		links = sorted(mobj)
+
+		# Choose the lowest of the sort, i.e. highest resolution
+		video_url = links[-1]
+		# Only get the url. The resolution part in the tuple has no use anymore
+		video_url = video_url[-1]
+		# Treat escaped \u0026 style hex
+		video_url = unicode(video_url, "unicode_escape")
+
+
+		return [{
+			'id':		video_id.decode('utf-8'),
+			'url':		video_url,
+			'uploader':	uploader.decode('utf-8'),
+			'upload_date':	upload_date.decode('utf-8'),
+			'title':	video_title.decode('utf-8'),
+			'ext':		video_extension.decode('utf-8'),
+			'format':	u'NA',
+			'player_url':	None,
+		}]
