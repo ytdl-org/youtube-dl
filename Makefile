@@ -1,4 +1,4 @@
-update: youtube-dl
+update:
 	python ./generate-download
 
 .PHONY: update
