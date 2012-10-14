@@ -328,6 +328,7 @@ def gen_extractors():
 	"""
 	return [
 		YoutubePlaylistIE(),
+		YoutubeChannelIE(),
 		YoutubeUserIE(),
 		YoutubeSearchIE(),
 		YoutubeIE(),

@@ -1578,6 +1578,56 @@ class YoutubePlaylistIE(InfoExtractor):
 		return
 
 
+class YoutubeChannelIE(InfoExtractor):
+	"""Information Extractor for YouTube channels."""
+
+	_VALID_URL = r"^(?:https?://)?(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com)/channel/([0-9A-Za-z_-]+)(?:/.*)?$"
+	_TEMPLATE_URL = 'http://www.youtube.com/channel/%s/videos?sort=da&flow=list&view=0&page=%s&gl=US&hl=en'
+	_MORE_PAGES_INDICATOR = r'yt-uix-button-content">Next' # TODO
+	IE_NAME = u'youtube:channel'
+
+	def report_download_page(self, channel_id, pagenum):
+		"""Report attempt to download channel page with given number."""
+		self._downloader.to_screen(u'[youtube] Channel %s: Downloading page #%s' % (channel_id, pagenum))
+
+	def _real_extract(self, url):
+		# Extract channel id
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid url: %s' % url)
+			return
+
+		# Download channel pages
+		channel_id = mobj.group(1)
+		video_ids = []
+		pagenum = 1
+
+		while True:
+			self.report_download_page(channel_id, pagenum)
+			url = self._TEMPLATE_URL % (channel_id, pagenum)
+			request = urllib2.Request(url)
+			try:
+				page = urllib2.urlopen(request).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'ERROR: unable to download webpage: %s' % str(err))
+				return
+
+			# Extract video identifiers
+			ids_in_page = []
+			for mobj in re.finditer(r'href="/watch\?v=([0-9A-Za-z_-]+)&', page):
+				if mobj.group(1) not in ids_in_page:
+					ids_in_page.append(mobj.group(1))
+			video_ids.extend(ids_in_page)
+
+			if re.search(self._MORE_PAGES_INDICATOR, page) is None:
+				break
+			pagenum = pagenum + 1
+
+		for id in video_ids:
+			self._downloader.download(['http://www.youtube.com/watch?v=%s' % id])
+		return
+
+
 class YoutubeUserIE(InfoExtractor):
 	"""Information Extractor for YouTube users."""
 
