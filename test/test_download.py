@@ -14,7 +14,7 @@ class DownloadTest(unittest.TestCase):
 	#calculated with md5sum:
 	#md5sum (GNU coreutils) 8.19
 
-	YOUTUBE_MD5 = "ab62e120445e8f68e8c8fddb7bd3ed76"
+	YOUTUBE_SIZE = 1993883
 	YOUTUBE_URL = "http://www.youtube.com/watch?v=BaW_jenozKc"
 	YOUTUBE_FILE = "BaW_jenozKc.mp4"
 
@@ -41,10 +41,8 @@ class DownloadTest(unittest.TestCase):
 			fd = FileDownloader(json.load(f))
 		fd.add_info_extractor(YoutubeIE())
 		fd.download([DownloadTest.YOUTUBE_URL])
-		print(os.path.abspath(DownloadTest.YOUTUBE_FILE))
 		self.assertTrue(os.path.exists(DownloadTest.YOUTUBE_FILE))
-		md5_down_file = md5_for_file(DownloadTest.YOUTUBE_FILE)
-		self.assertEqual(md5_down_file, DownloadTest.YOUTUBE_MD5)
+		self.assertEqual(os.path.getsize(DownloadTest.YOUTUBE_FILE), DownloadTest.YOUTUBE_SIZE)
 
 	def test_dailymotion(self):
 		with open(DownloadTest.PARAMETERS_FILE) as f:
@@ -59,7 +57,6 @@ class DownloadTest(unittest.TestCase):
 		#this emulate a skip,to be 2.6 compatible
 		with open(DownloadTest.PARAMETERS_FILE) as f:
 			fd = FileDownloader(json.load(f))
-			print fd
 		fd.add_info_extractor(MetacafeIE())
 		fd.add_info_extractor(YoutubeIE())
 		fd.download([DownloadTest.METACAFE_URL])
