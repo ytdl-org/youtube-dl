@@ -13,8 +13,8 @@ from youtube_dl.utils import orderedSet
 
 class TestUtil(unittest.TestCase):
 	def test_timeconvert(self):
-		self.assertIsNone(timeconvert(''))
-		self.assertIsNone(timeconvert('bougrg'))
+		self.assertTrue(timeconvert('') is None)
+		self.assertTrue(timeconvert('bougrg') is None)
 
 	def test_sanitize_filename(self):
 		self.assertEqual(sanitize_filename(u'abc'), u'abc')
@@ -23,12 +23,12 @@ class TestUtil(unittest.TestCase):
 		self.assertEqual(sanitize_filename(u'123'), u'123')
 
 		self.assertEqual(u'abc_de', sanitize_filename(u'abc/de'))
-		self.assertIn(u'de', sanitize_filename(u'abc/de'))
-		self.assertNotIn(u'/', sanitize_filename(u'abc/de///'))
+		self.assertTrue(u'de' in sanitize_filename(u'abc/de'))
+		self.assertFalse(u'/' in sanitize_filename(u'abc/de///'))
 
 		self.assertEqual(u'abc_de', sanitize_filename(u'abc\\de'))
 		self.assertEqual(u'abc_de', sanitize_filename(u'abc\\de'))
-		self.assertIn(u'de', sanitize_filename(u'abc\\de'))
+		self.assertTrue(u'de' in  sanitize_filename(u'abc\\de'))
 
 		self.assertEqual(sanitize_filename(u'ä'), u'ä')
 		self.assertEqual(sanitize_filename(u'кириллица'), u'кириллица')

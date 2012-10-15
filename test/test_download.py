@@ -74,9 +74,10 @@ class DownloadTest(unittest.TestCase):
 		md5_down_file = md5_for_file(DownloadTest.DAILYMOTION_FILE)
 		self.assertEqual(md5_down_file, DownloadTest.DAILYMOTION_MD5)
 
-	@unittest.skip("no suitable ie")
 	def test_metacafe(self):
-		with open("test/json") as f:
+		#this emulate a skip,to be 2.6 compatible
+		return
+		with open(DownloadTest.PARAMETERS_FILE) as f:
 			fd = FileDownloader(json.load(f))
 			print fd
 		fd.add_info_extractor(MetacafeIE())
@@ -85,45 +86,50 @@ class DownloadTest(unittest.TestCase):
 		md5_down_file = md5_for_file(DownloadTest.METACAFE_FILE)
 		self.assertEqual(md5_down_file, DownloadTest.METACAFE_MD5)
 
-	@unittest.skip("no suitable url")
 	def test_photobucket(self):
-		fd = FileDownloader({})
+		return
+		with open(DownloadTest.PARAMETERS_FILE) as f:
+			fd = FileDownloader(json.load(f))
 		fd.add_info_extractor(PhotobucketIE())
 		fd.download([DownloadTest.PHOTOBUCKET_URL])
 		self.assertTrue(os.path.exists(DownloadTest.PHOTOBUCKET_FILE))
 		md5_down_file = md5_for_file(DownloadTest.PHOTOBUCKET_FILE)
 		self.assertEqual(md5_down_file, DownloadTest.PHOTOBUCKET_MD5)
 
-	@unittest.skip("no suitable url")
 	def test_facebook(self):
-		fd = FileDownloader({})
+		return
+		with open(DownloadTest.PARAMETERS_FILE) as f:
+			fd = FileDownloader(json.load(f))
 		fd.add_info_extractor(FacebookIE())
 		fd.download([DownloadTest.FACEBOOK_URL])
 		self.assertTrue(os.path.exists(DownloadTest.FACEBOOK_FILE))
 		md5_down_file = md5_for_file(DownloadTest.FACEBOOK_FILE)
 		self.assertEqual(md5_down_file, DownloadTest.FACEBOOK_MD5)
 
-	@unittest.skip("no suitable url")
 	def test_blip(self):
-		fd = FileDownloader({})
+		return
+		with open(DownloadTest.PARAMETERS_FILE) as f:
+			fd = FileDownloader(json.load(f))
 		fd.add_info_extractor(BlipTVIE())
 		fd.download([DownloadTest.BLIP_URL])
 		self.assertTrue(os.path.exists(DownloadTest.BLIP_FILE))
 		md5_down_file = md5_for_file(DownloadTest.BLIP_FILE)
 		self.assertEqual(md5_down_file, DownloadTest.BLIP_MD5)
 
-	@unittest.skip("no suitable url")
 	def test_vimeo(self):
-		fd = FileDownloader({})
+		return
+		with open(DownloadTest.PARAMETERS_FILE) as f:
+			fd = FileDownloader(json.load(f))
 		fd.add_info_extractor(VimeoIE())
 		fd.download([DownloadTest.VIMEO_URL])
 		self.assertTrue(os.path.exists(DownloadTest.VIMEO_FILE))
 		md5_down_file = md5_for_file(DownloadTest.VIMEO_FILE)
 		self.assertEqual(md5_down_file, DownloadTest.VIMEO_MD5)
 
-	@unittest.skip("no suitable url")
 	def test_xvideo(self):
-		fd = FileDownloader({})
+		return
+		with open(DownloadTest.PARAMETERS_FILE) as f:
+			fd = FileDownloader(json.load(f))
 		fd.add_info_extractor(XVideosIE())
 		fd.download([DownloadTest.XVIDEO_URL])
 		self.assertTrue(os.path.exists(DownloadTest.XVIDEO_FILE))
