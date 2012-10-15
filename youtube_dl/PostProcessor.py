@@ -73,7 +73,7 @@ class FFmpegExtractAudioPP(PostProcessor):
 	def detect_executables():
 		def executable(exe):
 			try:
-				subprocess.check_output([exe, '-version'])
+				subprocess.Popen([exe, '-version'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
 			except OSError:
 				return False
 			return exe
