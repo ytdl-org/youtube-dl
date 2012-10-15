@@ -45,3 +45,8 @@ youtube-dl.bash-completion: README.md
 
 LATEST_VERSION: youtube_dl/__init__.py
 	python -m youtube_dl --version > LATEST_VERSION
+
+test:
+	nosetests2 test
+
+.PHONY: default compile update update-latest update-readme test clean
