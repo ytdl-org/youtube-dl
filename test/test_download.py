@@ -20,34 +20,21 @@ class DownloadTest(unittest.TestCase):
 	YOUTUBE_URL = "http://www.youtube.com/watch?v=BaW_jenozKc"
 	YOUTUBE_FILE = "BaW_jenozKc.mp4"
 
-
 	DAILYMOTION_MD5 = "d363a50e9eb4f22ce90d08d15695bb47"
 	DAILYMOTION_URL = "http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech"
 	DAILYMOTION_FILE = "x33vw9.mp4"
 
+	METACAFE_SIZE = 5754305
+	METACAFE_URL = "http://www.metacafe.com/watch/yt-_aUehQsCQtM/the_electric_company_short_i_pbs_kids_go/"
+	METACAFE_FILE = "_aUehQsCQtM.flv"
 
-	METACAFE_MD5 = ""
-	METACAFE_URL = "http://www.metacafe.com/watch/yt-bV9L5Ht9LgY/download_youtube_playlist_with_youtube_dl/"
-	METACAFE_FILE = ""
-
-
-	PHOTOBUCKET_MD5 = ""
-	PHOTOBUCKET_URL = ""
-	PHOTOBUCKET_FILE = ""
-
-
-	FACEBOOK_MD5 = ""
-	FACEBOOK_URL = ""
-	FACEBOOK_FILE = ""
-
-
-	BLIP_MD5 = ""
-	BLIP_URL = ""
-	BLIP_FILE = ""
+	BLIP_MD5 = "93c24d2f4e0782af13b8a7606ea97ba7"
+	BLIP_URL = "http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352"
+	BLIP_FILE = "5779306.m4v"
 
 	VIMEO_MD5 = ""
-	VIMEO_URL = ""
-	VIMEO_FILE = ""
+	VIMEO_URL = "http://vimeo.com/3156959"
+	VIMEO_FILE = "3156959.mp4"
 
 	XVIDEO_MD5 = ""
 	XVIDEO_URL = ""
@@ -76,38 +63,16 @@ class DownloadTest(unittest.TestCase):
 
 	def test_metacafe(self):
 		#this emulate a skip,to be 2.6 compatible
-		return
 		with open(DownloadTest.PARAMETERS_FILE) as f:
 			fd = FileDownloader(json.load(f))
 			print fd
 		fd.add_info_extractor(MetacafeIE())
+		fd.add_info_extractor(YoutubeIE())
 		fd.download([DownloadTest.METACAFE_URL])
 		self.assertTrue(os.path.exists(DownloadTest.METACAFE_FILE))
-		md5_down_file = md5_for_file(DownloadTest.METACAFE_FILE)
-		self.assertEqual(md5_down_file, DownloadTest.METACAFE_MD5)
-
-	def test_photobucket(self):
-		return
-		with open(DownloadTest.PARAMETERS_FILE) as f:
-			fd = FileDownloader(json.load(f))
-		fd.add_info_extractor(PhotobucketIE())
-		fd.download([DownloadTest.PHOTOBUCKET_URL])
-		self.assertTrue(os.path.exists(DownloadTest.PHOTOBUCKET_FILE))
-		md5_down_file = md5_for_file(DownloadTest.PHOTOBUCKET_FILE)
-		self.assertEqual(md5_down_file, DownloadTest.PHOTOBUCKET_MD5)
-
-	def test_facebook(self):
-		return
-		with open(DownloadTest.PARAMETERS_FILE) as f:
-			fd = FileDownloader(json.load(f))
-		fd.add_info_extractor(FacebookIE())
-		fd.download([DownloadTest.FACEBOOK_URL])
-		self.assertTrue(os.path.exists(DownloadTest.FACEBOOK_FILE))
-		md5_down_file = md5_for_file(DownloadTest.FACEBOOK_FILE)
-		self.assertEqual(md5_down_file, DownloadTest.FACEBOOK_MD5)
+		self.assertEqual(os.path.getsize(DownloadTest.METACAFE_FILE), DownloadTest.METACAFE_SIZE)
 
 	def test_blip(self):
-		return
 		with open(DownloadTest.PARAMETERS_FILE) as f:
 			fd = FileDownloader(json.load(f))
 		fd.add_info_extractor(BlipTVIE())
@@ -117,7 +82,6 @@ class DownloadTest(unittest.TestCase):
 		self.assertEqual(md5_down_file, DownloadTest.BLIP_MD5)
 
 	def test_vimeo(self):
-		return
 		with open(DownloadTest.PARAMETERS_FILE) as f:
 			fd = FileDownloader(json.load(f))
 		fd.add_info_extractor(VimeoIE())
@@ -143,10 +107,6 @@ class DownloadTest(unittest.TestCase):
 			os.remove(DownloadTest.DAILYMOTION_FILE)
 		if os.path.exists(DownloadTest.METACAFE_FILE):
 			os.remove(DownloadTest.METACAFE_FILE)
-		if os.path.exists(DownloadTest.PHOTOBUCKET_FILE):
-			os.remove(DownloadTest.PHOTOBUCKET_FILE)
-		if os.path.exists(DownloadTest.FACEBOOK_FILE):
-			os.remove(DownloadTest.FACEBOOK_FILE)
 		if os.path.exists(DownloadTest.BLIP_FILE):
 			os.remove(DownloadTest.BLIP_FILE)
 		if os.path.exists(DownloadTest.VIMEO_FILE):
