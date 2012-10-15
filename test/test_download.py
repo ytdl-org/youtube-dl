@@ -6,9 +6,7 @@ import json
 
 from youtube_dl.FileDownloader import FileDownloader
 from youtube_dl.InfoExtractors  import YoutubeIE, DailymotionIE
-from youtube_dl.InfoExtractors import  MetacafeIE, PhotobucketIE
-from youtube_dl.InfoExtractors import FacebookIE, BlipTVIE
-from youtube_dl.InfoExtractors import VimeoIE, XVideosIE
+from youtube_dl.InfoExtractors import  MetacafeIE, BlipTVIE
 
 
 class DownloadTest(unittest.TestCase):
@@ -31,10 +29,6 @@ class DownloadTest(unittest.TestCase):
 	BLIP_MD5 = "93c24d2f4e0782af13b8a7606ea97ba7"
 	BLIP_URL = "http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352"
 	BLIP_FILE = "5779306.m4v"
-
-	VIMEO_MD5 = ""
-	VIMEO_URL = "http://vimeo.com/3156959"
-	VIMEO_FILE = "3156959.mp4"
 
 	XVIDEO_MD5 = ""
 	XVIDEO_URL = ""
@@ -81,25 +75,6 @@ class DownloadTest(unittest.TestCase):
 		md5_down_file = md5_for_file(DownloadTest.BLIP_FILE)
 		self.assertEqual(md5_down_file, DownloadTest.BLIP_MD5)
 
-	def test_vimeo(self):
-		with open(DownloadTest.PARAMETERS_FILE) as f:
-			fd = FileDownloader(json.load(f))
-		fd.add_info_extractor(VimeoIE())
-		fd.download([DownloadTest.VIMEO_URL])
-		self.assertTrue(os.path.exists(DownloadTest.VIMEO_FILE))
-		md5_down_file = md5_for_file(DownloadTest.VIMEO_FILE)
-		self.assertEqual(md5_down_file, DownloadTest.VIMEO_MD5)
-
-	def test_xvideo(self):
-		return
-		with open(DownloadTest.PARAMETERS_FILE) as f:
-			fd = FileDownloader(json.load(f))
-		fd.add_info_extractor(XVideosIE())
-		fd.download([DownloadTest.XVIDEO_URL])
-		self.assertTrue(os.path.exists(DownloadTest.XVIDEO_FILE))
-		md5_down_file = md5_for_file(DownloadTest.XVIDEO_FILE)
-		self.assertEqual(md5_down_file, DownloadTest.XVIDEO_MD5)
-
 	def tearDown(self):
 		if os.path.exists(DownloadTest.YOUTUBE_FILE):
 			os.remove(DownloadTest.YOUTUBE_FILE)
@@ -109,10 +84,6 @@ class DownloadTest(unittest.TestCase):
 			os.remove(DownloadTest.METACAFE_FILE)
 		if os.path.exists(DownloadTest.BLIP_FILE):
 			os.remove(DownloadTest.BLIP_FILE)
-		if os.path.exists(DownloadTest.VIMEO_FILE):
-			os.remove(DownloadTest.VIMEO_FILE)
-		if os.path.exists(DownloadTest.XVIDEO_FILE):
-			os.remove(DownloadTest.XVIDEO_FILE)
 
 def md5_for_file(filename, block_size=2**20):
     with open(filename) as f:
