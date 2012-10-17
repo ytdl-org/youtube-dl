@@ -1,16 +1,19 @@
-# youtube-dl
+% youtube-dl(1)
 
-## USAGE
-youtube-dl [options] url [url...]
+# NAME
+youtube-dl
 
-## DESCRIPTION
+# SYNOPSIS
+**youtube-dl** [OPTIONS] URL [URL...]
+
+# DESCRIPTION
 **youtube-dl** is a small command-line program to download videos from
 YouTube.com and a few more sites. It requires the Python interpreter, version
 2.x (x being at least 6), and it is not platform specific. It should work in
 your Unix box, in Windows or in Mac OS X. It is released to the public domain,
 which means you can modify it, redistribute it or use it however you like.
 
-## OPTIONS
+# OPTIONS
     -h, --help               print this help text and exit
     --version                print program version and exit
     -U, --update             update this program to latest version
@@ -18,10 +21,11 @@ which means you can modify it, redistribute it or use it however you like.
     -r, --rate-limit LIMIT   download rate limit (e.g. 50k or 44.6m)
     -R, --retries RETRIES    number of retries (default is 10)
     --dump-user-agent        display the current browser identification
+    --user-agent UA          specify a custom user agent
     --list-extractors        List all supported extractors and the URLs they
                              would handle
 
-### Video Selection:
+## Video Selection:
     --playlist-start NUMBER  playlist video to start at (default is 1)
     --playlist-end NUMBER    playlist video to end at (default is last)
     --match-title REGEX      download only matching titles (regex or caseless
@@ -30,7 +34,7 @@ which means you can modify it, redistribute it or use it however you like.
                              caseless sub-string)
     --max-downloads NUMBER   Abort after downloading NUMBER files
 
-### Filesystem Options:
+## Filesystem Options:
     -t, --title              use title in file name
     -l, --literal            use literal title in file name
     -A, --auto-number        number downloaded files starting from 00000
@@ -38,9 +42,10 @@ which means you can modify it, redistribute it or use it however you like.
                              title, %(uploader)s for the uploader name,
                              %(autonumber)s to get an automatically incremented
                              number, %(ext)s for the filename extension,
-                             %(upload_date)s for the upload date (YYYYMMDD), and
-                             %% for a literal percent. Use - to output to
-                             stdout.
+                             %(upload_date)s for the upload date (YYYYMMDD),
+                             %(extractor)s for the provider (youtube, metacafe,
+                             etc), %(id)s for the video id and %% for a literal
+                             percent. Use - to output to stdout.
     -a, --batch-file FILE    file containing URLs to download ('-' for stdin)
     -w, --no-overwrites      do not overwrite files
     -c, --continue           resume partially downloaded files
@@ -53,7 +58,7 @@ which means you can modify it, redistribute it or use it however you like.
     --write-description      write video description to a .description file
     --write-info-json        write video metadata to a .info.json file
 
-### Verbosity / Simulation Options:
+## Verbosity / Simulation Options:
     -q, --quiet              activates quiet mode
     -s, --simulate           do not download the video and do not write anything
                              to disk
@@ -68,7 +73,7 @@ which means you can modify it, redistribute it or use it however you like.
     --console-title          display progress in console titlebar
     -v, --verbose            print various debugging information
 
-### Video Format Options:
+## Video Format Options:
     -f, --format FORMAT      video format code
     --all-formats            download all available video formats
     --prefer-free-formats    prefer free video formats unless a specific one is
@@ -80,22 +85,23 @@ which means you can modify it, redistribute it or use it however you like.
     --srt-lang LANG          language of the closed captions to download
                              (optional) use IETF language tags like 'en'
 
-### Authentication Options:
+## Authentication Options:
     -u, --username USERNAME  account username
     -p, --password PASSWORD  account password
     -n, --netrc              use .netrc authentication data
 
-### Post-processing Options:
+## Post-processing Options:
     --extract-audio          convert video files to audio-only files (requires
                              ffmpeg or avconv and ffprobe or avprobe)
     --audio-format FORMAT    "best", "aac", "vorbis", "mp3", "m4a", or "wav";
                              best by default
-    --audio-quality QUALITY  ffmpeg/avconv audio bitrate specification, 128k by
-                             default
+    --audio-quality QUALITY  ffmpeg/avconv audio quality specification, insert a
+                             value between 0 (better) and 9 (worse) for VBR or a
+                             specific bitrate like 128K (default 5)
     -k, --keep-video         keeps the video file on disk after the post-
                              processing; the video is erased by default
 
-## FAQ
+# FAQ
 
 ### Can you please put the -b option back?
 
@@ -117,13 +123,42 @@ The URLs youtube-dl outputs require the downloader to have the correct cookies. 
 
 youtube has switched to a new video info format in July 2011 which is not supported by old versions of youtube-dl. You can update youtube-dl with `sudo youtube-dl --update`.
 
-## COPYRIGHT
+### ERROR: unable to download video ###
+
+youtube requires an additional signature since September 2012 which is not supported by old versions of youtube-dl. You can update youtube-dl with `sudo youtube-dl --update`.
+
+### SyntaxError: Non-ASCII character ###
+
+The error
+
+    File "youtube-dl", line 2
+    SyntaxError: Non-ASCII character '\x93' ...
+
+means you're using an outdated version of Python. Please update to Python 2.6 or 2.7.
+
+To run youtube-dl under Python 2.5, you'll have to manually check it out like this:
+
+	git clone git://github.com/rg3/youtube-dl.git
+	cd youtube-dl
+	python -m youtube_dl --help
+
+Please note that Python 2.5 is not supported anymore.
+
+### What is this binary file? Where has the code gone?
+
+Since June 2012 (#342) youtube-dl is packed as an executable zipfile, simply unzip it (might need renaming to `youtube-dl.zip` first on some systems) or clone the git repo to see the code. If you modify the code, you can run it by executing the `__main__.py` file. To recompile the executable, run `make compile`.
+
+### The exe throws a *Runtime error from Visual C++*
+
+To run the exe you need to install first the [Microsoft Visual C++ 2008 Redistributable Package](http://www.microsoft.com/en-us/download/details.aspx?id=29).
+
+# COPYRIGHT
 
 youtube-dl is released into the public domain by the copyright holders.
 
 This README file was originally written by Daniel Bolton (<https://github.com/dbbolton>) and is likewise released into the public domain.
 
-## BUGS
+# BUGS
 
 Bugs and suggestions should be reported at: <https://github.com/rg3/youtube-dl/issues>
 

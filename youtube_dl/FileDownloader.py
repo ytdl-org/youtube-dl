@@ -474,6 +474,7 @@ class FileDownloader(object):
 				# Extract information from URL and process it
 				videos = ie.extract(url)
 				for video in videos or []:
+					video['extractor'] = ie.IE_NAME
 					try:
 						self.increment_downloads()
 						self.process_info(video)

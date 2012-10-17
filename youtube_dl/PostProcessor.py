@@ -71,13 +71,14 @@ class FFmpegExtractAudioPP(PostProcessor):
 
 	@staticmethod
 	def detect_executables():
-		available = {'avprobe' : False, 'avconv' : False, 'ffmpeg' : False, 'ffprobe' : False}
-		for path in os.environ["PATH"].split(os.pathsep):
-			for program in available.keys():
-				exe_file = os.path.join(path, program)
-				if os.path.isfile(exe_file) and os.access(exe_file, os.X_OK):
-					available[program] = exe_file
-		return available
+		def executable(exe):
+			try:
+				subprocess.check_output([exe, '-version'])
+			except OSError:
+				return False
+			return exe
+		programs = ['avprobe', 'avconv', 'ffmpeg', 'ffprobe']
+		return dict((program, executable(program)) for program in programs)
 
 	def get_audio_codec(self, path):
 		if not self._exes['ffprobe'] and not self._exes['avprobe']: return None
@@ -142,14 +143,20 @@ class FFmpegExtractAudioPP(PostProcessor):
 				extension = 'mp3'
 				more_opts = []
 				if self._preferredquality is not None:
-					more_opts += [self._exes['avconv'] and '-b:a' or '-ab', self._preferredquality]
+					if int(self._preferredquality) < 10:
+						more_opts += [self._exes['avconv'] and '-q:a' or '-aq', self._preferredquality]
+					else:
+						more_opts += [self._exes['avconv'] and '-b:a' or '-ab', self._preferredquality]
 		else:
 			# We convert the audio (lossy)
 			acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'm4a': 'aac', 'vorbis': 'libvorbis', 'wav': None}[self._preferredcodec]
 			extension = self._preferredcodec
 			more_opts = []
 			if self._preferredquality is not None:
-				more_opts += [self._exes['avconv'] and '-b:a' or '-ab', self._preferredquality]
+				if int(self._preferredquality) < 10:
+					more_opts += [self._exes['avconv'] and '-q:a' or '-aq', self._preferredquality]
+				else:
+					more_opts += [self._exes['avconv'] and '-b:a' or '-ab', self._preferredquality]
 			if self._preferredcodec == 'aac':
 				more_opts += ['-f', 'adts']
 			if self._preferredcodec == 'm4a':

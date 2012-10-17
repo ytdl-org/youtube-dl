@@ -13,6 +13,8 @@ import urllib
 import urllib2
 import email.utils
 import xml.etree.ElementTree
+import random
+import math
 from urlparse import parse_qs
 
 try:
@@ -95,7 +97,25 @@ class InfoExtractor(object):
 class YoutubeIE(InfoExtractor):
 	"""Information extractor for youtube.com."""
 
-	_VALID_URL = r'^((?:https?://)?(?:youtu\.be/|(?:\w+\.)?youtube(?:-nocookie)?\.com/)(?!view_play_list|my_playlists|artist|playlist)(?:(?:(?:v|embed|e)/)|(?:(?:watch(?:_popup)?(?:\.php)?)?(?:\?|#!?)(?:.+&)?v=))?)?([0-9A-Za-z_-]+)(?(1).+)?$'
+	_VALID_URL = r"""^
+	                 (
+	                     (?:https?://)?                                       # http(s):// (optional)
+	                     (?:youtu\.be/|(?:\w+\.)?youtube(?:-nocookie)?\.com/|
+	                     	tube\.majestyc\.net/)                             # the various hostnames, with wildcard subdomains
+	                     (?!view_play_list|my_playlists|artist|playlist)      # ignore playlist URLs
+	                     (?:                                                  # the various things that can precede the ID:
+	                         (?:(?:v|embed|e)/)                               # v/ or embed/ or e/
+	                         |(?:                                             # or the v= param in all its forms
+	                             (?:watch(?:_popup)?(?:\.php)?)?              # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
+	                             (?:\?|\#!?)                                  # the params delimiter ? or # or #!
+	                             (?:.+&)?                                     # any other preceding param (like /?s=tuff&v=xxxx)
+	                             v=
+	                         )
+	                     )?                                                   # optional -> youtube.com/xxxx is OK
+	                 )?                                                       # all until now is optional -> you can pass the naked ID
+	                 ([0-9A-Za-z_-]+)                                         # here is it! the YouTube video ID
+	                 (?(1).+)?                                                # if we found the ID, everything can follow
+	                 $"""
 	_LANG_URL = r'http://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
 	_LOGIN_URL = 'https://www.youtube.com/signup?next=/&gl=US&hl=en'
 	_AGE_URL = 'http://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
@@ -133,6 +153,10 @@ class YoutubeIE(InfoExtractor):
 		'46': '1080x1920',
 	}	
 	IE_NAME = u'youtube'
+
+	def suitable(self, url):
+		"""Receives a URL and returns True if suitable for this IE."""
+		return re.match(self._VALID_URL, url, re.VERBOSE) is not None
 
 	def report_lang(self):
 		"""Report attempt to set language."""
@@ -268,7 +292,7 @@ class YoutubeIE(InfoExtractor):
 			url = 'http://www.youtube.com/' + urllib.unquote(mobj.group(1)).lstrip('/')
 
 		# Extract video id from URL
-		mobj = re.match(self._VALID_URL, url)
+		mobj = re.match(self._VALID_URL, url, re.VERBOSE)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
 			return
@@ -402,7 +426,7 @@ class YoutubeIE(InfoExtractor):
 			url_data_strs = video_info['url_encoded_fmt_stream_map'][0].split(',')
 			url_data = [parse_qs(uds) for uds in url_data_strs]
 			url_data = filter(lambda ud: 'itag' in ud and 'url' in ud, url_data)
-			url_map = dict((ud['itag'][0], ud['url'][0]) for ud in url_data)
+			url_map = dict((ud['itag'][0], ud['url'][0] + '&signature=' + ud['sig'][0]) for ud in url_data)
 
 			format_limit = self._downloader.params.get('format_limit', None)
 			available_formats = self._available_formats_prefer_free if self._downloader.params.get('prefer_free_formats', False) else self._available_formats
@@ -592,7 +616,7 @@ class MetacafeIE(InfoExtractor):
 class DailymotionIE(InfoExtractor):
 	"""Information Extractor for Dailymotion"""
 
-	_VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^_/]+)_([^/]+)'
+	_VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^/]+)'
 	IE_NAME = u'dailymotion'
 
 	def __init__(self, downloader=None):
@@ -613,9 +637,9 @@ class DailymotionIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
 			return
 
-		video_id = mobj.group(1)
+		video_id = mobj.group(1).split('_')[0].split('?')[0]
 
-		video_extension = 'flv'
+		video_extension = 'mp4'
 
 		# Retrieve video webpage to extract further information
 		request = urllib2.Request(url)
@@ -629,20 +653,29 @@ class DailymotionIE(InfoExtractor):
 
 		# Extract URL, uploader and title from webpage
 		self.report_extraction(video_id)
-		mobj = re.search(r'(?i)addVariable\(\"sequence\"\s*,\s*\"([^\"]+?)\"\)', webpage)
+		mobj = re.search(r'\s*var flashvars = (.*)', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract media URL')
 			return
-		sequence = urllib.unquote(mobj.group(1))
-		mobj = re.search(r',\"sdURL\"\:\"([^\"]+?)\",', sequence)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract media URL')
+		flashvars = urllib.unquote(mobj.group(1))
+
+		for key in ['hd1080URL', 'hd720URL', 'hqURL', 'sdURL', 'ldURL', 'video_url']:
+			if key in flashvars:
+				max_quality = key
+				self._downloader.to_screen(u'[dailymotion] Using %s' % key)
+				break
+		else:
+			self._downloader.trouble(u'ERROR: unable to extract video URL')
 			return
-		mediaURL = urllib.unquote(mobj.group(1)).replace('\\', '')
 
-		# if needed add http://www.dailymotion.com/ if relative URL
+		mobj = re.search(r'"' + max_quality + r'":"(.+?)"', flashvars)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video URL')
+			return
 
-		video_url = mediaURL
+		video_url = urllib.unquote(mobj.group(1)).replace('\\/', '/')
+
+		# TODO: support choosing qualities
 
 		mobj = re.search(r'<meta property="og:title" content="(?P<title>[^"]*)" />', webpage)
 		if mobj is None:
@@ -650,17 +683,23 @@ class DailymotionIE(InfoExtractor):
 			return
 		video_title = unescapeHTML(mobj.group('title').decode('utf-8'))
 
+		video_uploader = u'NA'
 		mobj = re.search(r'(?im)<span class="owner[^\"]+?">[^<]+?<a [^>]+?>([^<]+?)</a></span>', webpage)
 		if mobj is None:
-			self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
-			return
-		video_uploader = mobj.group(1)
+			self._downloader.trouble(u'WARNING: unable to extract uploader nickname')
+		else:
+			video_uploader = mobj.group(1)
+
+		video_upload_date = u'NA'
+		mobj = re.search(r'<div class="[^"]*uploaded_cont[^"]*" title="[^"]*">([0-9]{2})-([0-9]{2})-([0-9]{4})</div>', webpage)
+		if mobj is not None:
+			video_upload_date = mobj.group(3) + mobj.group(2) + mobj.group(1)
 
 		return [{
 			'id':		video_id.decode('utf-8'),
 			'url':		video_url.decode('utf-8'),
 			'uploader':	video_uploader.decode('utf-8'),
-			'upload_date':	u'NA',
+			'upload_date':	video_upload_date,
 			'title':	video_title,
 			'ext':		video_extension.decode('utf-8'),
 			'format':	u'NA',
@@ -1469,9 +1508,9 @@ class YahooSearchIE(InfoExtractor):
 class YoutubePlaylistIE(InfoExtractor):
 	"""Information Extractor for YouTube playlists."""
 
-	_VALID_URL = r'(?:https?://)?(?:\w+\.)?youtube\.com/(?:(?:course|view_play_list|my_playlists|artist|playlist)\?.*?(p|a|list)=|user/.*?/user/|p/|user/.*?#[pg]/c/)(?:PL)?([0-9A-Za-z-_]+)(?:/.*?/([0-9A-Za-z_-]+))?.*'
+	_VALID_URL = r'(?:https?://)?(?:\w+\.)?youtube\.com/(?:(?:course|view_play_list|my_playlists|artist|playlist)\?.*?(p|a|list)=|user/.*?/user/|p/|user/.*?#[pg]/c/)(?:PL|EC)?([0-9A-Za-z-_]+)(?:/.*?/([0-9A-Za-z_-]+))?.*'
 	_TEMPLATE_URL = 'http://www.youtube.com/%s?%s=%s&page=%s&gl=US&hl=en'
-	_VIDEO_INDICATOR_TEMPLATE = r'/watch\?v=(.+?)&amp;list=(PL)?%s&'
+	_VIDEO_INDICATOR_TEMPLATE = r'/watch\?v=(.+?)&amp;([^&"]+&amp;)*list=.*?%s'
 	_MORE_PAGES_INDICATOR = r'yt-uix-pager-next'
 	IE_NAME = u'youtube:playlist'
 
@@ -1533,6 +1572,56 @@ class YoutubePlaylistIE(InfoExtractor):
 			video_ids = video_ids[playliststart:]
 		else:
 			video_ids = video_ids[playliststart:playlistend]
+
+		for id in video_ids:
+			self._downloader.download(['http://www.youtube.com/watch?v=%s' % id])
+		return
+
+
+class YoutubeChannelIE(InfoExtractor):
+	"""Information Extractor for YouTube channels."""
+
+	_VALID_URL = r"^(?:https?://)?(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com)/channel/([0-9A-Za-z_-]+)(?:/.*)?$"
+	_TEMPLATE_URL = 'http://www.youtube.com/channel/%s/videos?sort=da&flow=list&view=0&page=%s&gl=US&hl=en'
+	_MORE_PAGES_INDICATOR = r'yt-uix-button-content">Next' # TODO
+	IE_NAME = u'youtube:channel'
+
+	def report_download_page(self, channel_id, pagenum):
+		"""Report attempt to download channel page with given number."""
+		self._downloader.to_screen(u'[youtube] Channel %s: Downloading page #%s' % (channel_id, pagenum))
+
+	def _real_extract(self, url):
+		# Extract channel id
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid url: %s' % url)
+			return
+
+		# Download channel pages
+		channel_id = mobj.group(1)
+		video_ids = []
+		pagenum = 1
+
+		while True:
+			self.report_download_page(channel_id, pagenum)
+			url = self._TEMPLATE_URL % (channel_id, pagenum)
+			request = urllib2.Request(url)
+			try:
+				page = urllib2.urlopen(request).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.trouble(u'ERROR: unable to download webpage: %s' % str(err))
+				return
+
+			# Extract video identifiers
+			ids_in_page = []
+			for mobj in re.finditer(r'href="/watch\?v=([0-9A-Za-z_-]+)&', page):
+				if mobj.group(1) not in ids_in_page:
+					ids_in_page.append(mobj.group(1))
+			video_ids.extend(ids_in_page)
+
+			if re.search(self._MORE_PAGES_INDICATOR, page) is None:
+				break
+			pagenum = pagenum + 1
 
 		for id in video_ids:
 			self._downloader.download(['http://www.youtube.com/watch?v=%s' % id])
@@ -2955,3 +3044,314 @@ class MTVIE(InfoExtractor):
 		}
 
 		return [info]
+
+
+class YoukuIE(InfoExtractor):
+
+	_VALID_URL =  r'(?:http://)?v\.youku\.com/v_show/id_(?P<ID>[A-Za-z0-9]+)\.html'
+	IE_NAME = u'Youku'
+
+	def __init__(self, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+
+	def report_download_webpage(self, file_id):
+		"""Report webpage download."""
+		self._downloader.to_screen(u'[Youku] %s: Downloading webpage' % file_id)
+
+	def report_extraction(self, file_id):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[Youku] %s: Extracting information' % file_id)
+
+	def _gen_sid(self):
+		nowTime = int(time.time() * 1000)
+		random1 = random.randint(1000,1998)
+		random2 = random.randint(1000,9999)
+
+		return "%d%d%d" %(nowTime,random1,random2)
+
+	def _get_file_ID_mix_string(self, seed):
+		mixed = []
+		source = list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/\:._-1234567890")
+		seed = float(seed)
+		for i in range(len(source)):
+			seed  =  (seed * 211 + 30031 ) % 65536
+			index  =  math.floor(seed / 65536 * len(source) )
+			mixed.append(source[int(index)])
+			source.remove(source[int(index)])
+		#return ''.join(mixed)
+		return mixed
+
+	def _get_file_id(self, fileId, seed):
+		mixed = self._get_file_ID_mix_string(seed)
+		ids = fileId.split('*')
+		realId = []
+		for ch in ids:
+			if ch:
+				realId.append(mixed[int(ch)])
+		return ''.join(realId)
+
+	def _real_extract(self, url):
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+			return
+		video_id = mobj.group('ID')
+
+		info_url = 'http://v.youku.com/player/getPlayList/VideoIDS/' + video_id
+
+		request = urllib2.Request(info_url, None, std_headers)
+		try:
+			self.report_download_webpage(video_id)
+			jsondata = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error) as err:
+			self._downloader.trouble(u'ERROR: Unable to retrieve video webpage: %s' % str(err))
+			return
+
+		self.report_extraction(video_id)
+		try:
+			config = json.loads(jsondata)
+
+			video_title =  config['data'][0]['title']
+			seed = config['data'][0]['seed']
+
+			format = self._downloader.params.get('format', None)
+			supported_format = config['data'][0]['streamfileids'].keys()
+
+			if format is None or format == 'best':
+				if 'hd2' in supported_format:
+					format = 'hd2'
+				else:
+					format = 'flv'
+				ext = u'flv'
+			elif format == 'worst':
+				format = 'mp4'
+				ext = u'mp4'
+			else:
+				format = 'flv'
+				ext = u'flv'
+
+
+			fileid = config['data'][0]['streamfileids'][format]
+			seg_number = len(config['data'][0]['segs'][format])
+
+			keys=[]
+			for i in xrange(seg_number):
+				keys.append(config['data'][0]['segs'][format][i]['k'])
+
+			#TODO check error
+			#youku only could be viewed from mainland china
+		except:
+			self._downloader.trouble(u'ERROR: unable to extract info section')
+			return
+
+		files_info=[]
+		sid = self._gen_sid()
+		fileid = self._get_file_id(fileid, seed)
+
+		#column 8,9 of fileid represent the segment number
+		#fileid[7:9] should be changed
+		for index, key in enumerate(keys):
+
+			temp_fileid = '%s%02X%s' % (fileid[0:8], index, fileid[10:])
+			download_url = 'http://f.youku.com/player/getFlvPath/sid/%s_%02X/st/flv/fileid/%s?k=%s' % (sid, index, temp_fileid, key)
+
+			info = {
+				'id': '%s_part%02d' % (video_id, index),
+				'url': download_url,
+				'uploader': None,
+				'title': video_title,
+				'ext': ext,
+				'format': u'NA'
+			}
+			files_info.append(info)
+
+		return files_info
+
+
+class XNXXIE(InfoExtractor):
+	"""Information extractor for xnxx.com"""
+
+	_VALID_URL = r'^http://video\.xnxx\.com/video([0-9]+)/(.*)'
+	IE_NAME = u'xnxx'
+	VIDEO_URL_RE = r'flv_url=(.*?)&amp;'
+	VIDEO_TITLE_RE = r'<title>(.*?)\s+-\s+XNXX.COM'
+	VIDEO_THUMB_RE = r'url_bigthumb=(.*?)&amp;'
+
+	def report_webpage(self, video_id):
+		"""Report information extraction"""
+		self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, video_id))
+
+	def report_extraction(self, video_id):
+		"""Report information extraction"""
+		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+
+	def _real_extract(self, url):
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+			return
+		video_id = mobj.group(1).decode('utf-8')
+
+		self.report_webpage(video_id)
+
+		# Get webpage content
+		try:
+			webpage = urllib2.urlopen(url).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % err)
+			return
+
+		result = re.search(self.VIDEO_URL_RE, webpage)
+		if result is None:
+			self._downloader.trouble(u'ERROR: unable to extract video url')
+			return
+		video_url = urllib.unquote(result.group(1).decode('utf-8'))
+
+		result = re.search(self.VIDEO_TITLE_RE, webpage)
+		if result is None:
+			self._downloader.trouble(u'ERROR: unable to extract video title')
+			return
+		video_title = result.group(1).decode('utf-8')
+
+		result = re.search(self.VIDEO_THUMB_RE, webpage)
+		if result is None:
+			self._downloader.trouble(u'ERROR: unable to extract video thumbnail')
+			return
+		video_thumbnail = result.group(1).decode('utf-8')
+
+		info = {'id': video_id,
+				'url': video_url,
+				'uploader': None,
+				'upload_date': None,
+				'title': video_title,
+				'ext': 'flv',
+				'format': 'flv',
+				'thumbnail': video_thumbnail,
+				'description': None,
+				'player_url': None}
+
+		return [info]
+
+
+class GooglePlusIE(InfoExtractor):
+	"""Information extractor for plus.google.com."""
+
+	_VALID_URL = r'(?:https://)?plus\.google\.com/(?:\w+/)*?(\d+)/posts/(\w+)'
+	IE_NAME = u'plus.google'
+
+	def __init__(self, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+
+	def report_extract_entry(self, url):
+		"""Report downloading extry"""
+		self._downloader.to_screen(u'[plus.google] Downloading entry: %s' % url.decode('utf-8'))
+
+	def report_date(self, upload_date):
+		"""Report downloading extry"""
+		self._downloader.to_screen(u'[plus.google] Entry date: %s' % upload_date)
+
+	def report_uploader(self, uploader):
+		"""Report downloading extry"""
+		self._downloader.to_screen(u'[plus.google] Uploader: %s' % uploader.decode('utf-8'))
+
+	def report_title(self, video_title):
+		"""Report downloading extry"""
+		self._downloader.to_screen(u'[plus.google] Title: %s' % video_title.decode('utf-8'))
+
+	def report_extract_vid_page(self, video_page):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[plus.google] Extracting video page: %s' % video_page.decode('utf-8'))
+
+	def _real_extract(self, url):
+		# Extract id from URL
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
+			return
+
+		post_url = mobj.group(0)
+		video_id = mobj.group(2)
+
+		video_extension = 'flv'
+
+		# Step 1, Retrieve post webpage to extract further information
+		self.report_extract_entry(post_url)
+		request = urllib2.Request(post_url)
+		try:
+			webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: Unable to retrieve entry webpage: %s' % str(err))
+			return
+
+		# Extract update date
+		upload_date = u'NA'
+		pattern = 'title="Timestamp">(.*?)</a>'
+		mobj = re.search(pattern, webpage)
+		if mobj:
+			upload_date = mobj.group(1)
+			# Convert timestring to a format suitable for filename
+			upload_date = datetime.datetime.strptime(upload_date, "%Y-%m-%d")
+			upload_date = upload_date.strftime('%Y%m%d')
+		self.report_date(upload_date)
+
+		# Extract uploader
+		uploader = u'NA'
+		pattern = r'rel\="author".*?>(.*?)</a>'
+		mobj = re.search(pattern, webpage)
+		if mobj:
+			uploader = mobj.group(1)
+		self.report_uploader(uploader)
+
+		# Extract title
+		# Get the first line for title
+		video_title = u'NA'
+		pattern = r'<meta name\=\"Description\" content\=\"(.*?)[\n<"]'
+		mobj = re.search(pattern, webpage)
+		if mobj:
+			video_title = mobj.group(1)
+		self.report_title(video_title)
+
+		# Step 2, Stimulate clicking the image box to launch video
+		pattern = '"(https\://plus\.google\.com/photos/.*?)",,"image/jpeg","video"\]'
+		mobj = re.search(pattern, webpage)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: unable to extract video page URL')
+
+		video_page = mobj.group(1)
+		request = urllib2.Request(video_page)
+		try:
+			webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: Unable to retrieve video webpage: %s' % str(err))
+			return
+		self.report_extract_vid_page(video_page)
+
+
+		# Extract video links on video page
+		"""Extract video links of all sizes"""
+		pattern = '\d+,\d+,(\d+),"(http\://redirector\.googlevideo\.com.*?)"'
+		mobj = re.findall(pattern, webpage)
+		if len(mobj) == 0:
+			self._downloader.trouble(u'ERROR: unable to extract video links')
+
+		# Sort in resolution
+		links = sorted(mobj)
+
+		# Choose the lowest of the sort, i.e. highest resolution
+		video_url = links[-1]
+		# Only get the url. The resolution part in the tuple has no use anymore
+		video_url = video_url[-1]
+		# Treat escaped \u0026 style hex
+		video_url = unicode(video_url, "unicode_escape")
+
+
+		return [{
+			'id':		video_id.decode('utf-8'),
+			'url':		video_url,
+			'uploader':	uploader.decode('utf-8'),
+			'upload_date':	upload_date.decode('utf-8'),
+			'title':	video_title.decode('utf-8'),
+			'ext':		video_extension.decode('utf-8'),
+			'format':	u'NA',
+			'player_url':	None,
+		}]
