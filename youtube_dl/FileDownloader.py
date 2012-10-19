@@ -13,7 +13,7 @@ import urllib2
 
 if os.name == 'nt':
 	import ctypes
-	
+
 from utils import *
 
 
@@ -173,7 +173,6 @@ class FileDownloader(object):
 		if not self.params.get('quiet', False):
 			terminator = [u'\n', u''][skip_eol]
 			output = message + terminator
-
 			if 'b' not in self._screen_file.mode or sys.version_info[0] < 3: # Python 2 lies about the mode of sys.stdout/sys.stderr
 				output = output.encode(preferredencoding(), 'ignore')
 			self._screen_file.write(output)
@@ -357,7 +356,7 @@ class FileDownloader(object):
 				raise MaxDownloadsReached()
 
 		filename = self.prepare_filename(info_dict)
-		
+
 		# Forced printings
 		if self.params.get('forcetitle', False):
 			print info_dict['title'].encode(preferredencoding(), 'xmlcharrefreplace')
@@ -399,10 +398,10 @@ class FileDownloader(object):
 			except (OSError, IOError):
 				self.trouble(u'ERROR: Cannot write description file ' + descfn)
 				return
-				
+
 		if self.params.get('writesubtitles', False) and 'subtitles' in info_dict and info_dict['subtitles']:
 			# subtitles download errors are already managed as troubles in relevant IE
-			# that way it will silently go on when used with unsupporting IE 
+			# that way it will silently go on when used with unsupporting IE
 			try:
 				srtfn = filename.rsplit('.', 1)[0] + u'.srt'
 				self.report_writesubtitles(srtfn)
@@ -448,7 +447,7 @@ class FileDownloader(object):
 				except (ContentTooShortError, ), err:
 					self.trouble(u'ERROR: content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
 					return
-	
+
 			if success:
 				try:
 					self.post_process(filename, info_dict)
