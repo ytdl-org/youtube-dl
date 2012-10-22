@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import with_statement
+
 __authors__  = (
 	'Ricardo Garcia Gonzalez',
 	'Danny Colligan',
