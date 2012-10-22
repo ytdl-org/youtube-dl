@@ -102,6 +102,7 @@ class YoutubeIE(InfoExtractor):
 	                     (?:https?://)?                                       # http(s):// (optional)
 	                     (?:youtu\.be/|(?:\w+\.)?youtube(?:-nocookie)?\.com/|
 	                     	tube\.majestyc\.net/)                             # the various hostnames, with wildcard subdomains
+	                     (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
 	                     (?!view_play_list|my_playlists|artist|playlist)      # ignore playlist URLs
 	                     (?:                                                  # the various things that can precede the ID:
 	                         (?:(?:v|embed|e)/)                               # v/ or embed/ or e/
