@@ -414,6 +414,12 @@ class YoutubeIE(InfoExtractor):
 			except Trouble as trouble:
 				self._downloader.trouble(trouble[0])
 
+		if 'length_seconds' not in video_info:
+			self._downloader.trouble(u'WARNING: unable to extract video duration')
+			video_duration = ''
+		else:
+			video_duration = urllib.unquote_plus(video_info['length_seconds'][0])
+
 		# token
 		video_token = urllib.unquote_plus(video_info['token'][0])
 
@@ -480,7 +486,8 @@ class YoutubeIE(InfoExtractor):
 				'thumbnail':	video_thumbnail.decode('utf-8'),
 				'description':	video_description,
 				'player_url':	player_url,
-				'subtitles':	video_subtitles
+				'subtitles':	video_subtitles,
+				'duration':		video_duration
 			})
 		return results
 
