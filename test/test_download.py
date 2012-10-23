@@ -9,6 +9,7 @@ from youtube_dl.InfoExtractors  import YoutubeIE, DailymotionIE
 from youtube_dl.InfoExtractors import  MetacafeIE, BlipTVIE
 from youtube_dl.InfoExtractors import  XVideosIE, VimeoIE
 from youtube_dl.InfoExtractors import  SoundcloudIE, StanfordOpenClassroomIE
+from youtube_dl.InfoExtractors import  CollegeHumorIE
 
 
 class DownloadTest(unittest.TestCase):
@@ -48,6 +49,10 @@ class DownloadTest(unittest.TestCase):
 	STANDFORD_MD5 = "22c8206291368c4e2c9c1a307f0ea0f4"
 	STANDFORD_URL = "http://openclassroom.stanford.edu/MainFolder/VideoPage.php?course=PracticalUnix&video=intro-environment&speed=100"
 	STANDFORD_FILE = "PracticalUnix_intro-environment.mp4"
+
+	COLLEGEHUMOR_MD5 = ""
+	COLLEGEHUMOR_URL = "http://www.collegehumor.com/video/6830834/mitt-romney-style-gangnam-style-parody"
+	COLLEGEHUMOR_FILE = ""
 
 	def test_youtube(self):
 		#let's download a file from youtube
@@ -122,6 +127,15 @@ class DownloadTest(unittest.TestCase):
 		md5_down_file = md5_for_file(DownloadTest.STANDFORD_FILE)
 		self.assertEqual(md5_down_file, DownloadTest.STANDFORD_MD5)
 
+	def test_collegehumor(self):
+		with open(DownloadTest.PARAMETERS_FILE) as f:
+			fd = FileDownloader(json.load(f))
+		fd.add_info_extractor(CollegeHumorIE())
+		fd.download([DownloadTest.COLLEGEHUMOR_URL])
+		self.assertTrue(os.path.exists(DownloadTest.COLLEGEHUMOR_FILE))
+		md5_down_file = md5_for_file(DownloadTest.COLLEGEHUMOR_FILE)
+		self.assertEqual(md5_down_file, DownloadTest.COLLEGEHUMOR_MD5)
+
 	def tearDown(self):
 		if os.path.exists(DownloadTest.YOUTUBE_FILE):
 			os.remove(DownloadTest.YOUTUBE_FILE)
@@ -139,6 +153,8 @@ class DownloadTest(unittest.TestCase):
 			os.remove(DownloadTest.SOUNDCLOUD_FILE)
 		if os.path.exists(DownloadTest.STANDFORD_FILE):
 			os.remove(DownloadTest.STANDFORD_FILE)
+		if os.path.exists(DownloadTest.COLLEGEHUMOR_FILE):
+			os.remove(DownloadTest.COLLEGEHUMOR_FILE)
 
 def md5_for_file(filename, block_size=2**20):
 	with open(filename) as f:
