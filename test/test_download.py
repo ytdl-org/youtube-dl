@@ -9,7 +9,7 @@ from youtube_dl.InfoExtractors  import YoutubeIE, DailymotionIE
 from youtube_dl.InfoExtractors import  MetacafeIE, BlipTVIE
 from youtube_dl.InfoExtractors import  XVideosIE, VimeoIE
 from youtube_dl.InfoExtractors import  SoundcloudIE, StanfordOpenClassroomIE
-from youtube_dl.InfoExtractors import  CollegeHumorIE
+from youtube_dl.InfoExtractors import  CollegeHumorIE, XNXXIE
 
 
 class DownloadTest(unittest.TestCase):
@@ -53,6 +53,10 @@ class DownloadTest(unittest.TestCase):
 	COLLEGEHUMOR_MD5 = ""
 	COLLEGEHUMOR_URL = "http://www.collegehumor.com/video/6830834/mitt-romney-style-gangnam-style-parody"
 	COLLEGEHUMOR_FILE = ""
+
+	XNXX_MD5 = "5f0469c8d1dfd1bc38c8e6deb5e0a21d"
+	XNXX_URL = "http://video.xnxx.com/video1135332/lida_naked_funny_actress_5_"
+	XNXX_FILE = "1135332.flv"
 
 	def test_youtube(self):
 		#let's download a file from youtube
@@ -136,6 +140,15 @@ class DownloadTest(unittest.TestCase):
 		md5_down_file = md5_for_file(DownloadTest.COLLEGEHUMOR_FILE)
 		self.assertEqual(md5_down_file, DownloadTest.COLLEGEHUMOR_MD5)
 
+	def test_xnxx(self):
+		with open(DownloadTest.PARAMETERS_FILE) as f:
+			fd = FileDownloader(json.load(f))
+		fd.add_info_extractor(XNXXIE())
+		fd.download([DownloadTest.XNXX_URL])
+		self.assertTrue(os.path.exists(DownloadTest.XNXX_FILE))
+		md5_down_file = md5_for_file(DownloadTest.XNXX_FILE)
+		self.assertEqual(md5_down_file, DownloadTest.XNXX_MD5)
+
 	def tearDown(self):
 		if os.path.exists(DownloadTest.YOUTUBE_FILE):
 			os.remove(DownloadTest.YOUTUBE_FILE)
@@ -155,6 +168,8 @@ class DownloadTest(unittest.TestCase):
 			os.remove(DownloadTest.STANDFORD_FILE)
 		if os.path.exists(DownloadTest.COLLEGEHUMOR_FILE):
 			os.remove(DownloadTest.COLLEGEHUMOR_FILE)
+		if os.path.exists(DownloadTest.XNXX_FILE):
+			os.remove(DownloadTest.XNXX_FILE)
 
 def md5_for_file(filename, block_size=2**20):
 	with open(filename) as f:
