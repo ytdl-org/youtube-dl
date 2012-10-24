@@ -41,10 +41,13 @@ class DownloadTest(unittest.TestCase):
 	VIMEO_URL = "http://vimeo.com/14160053"
 	VIMEO_FILE = ""
 
+	VIMEO2_MD5 = ""
+	VIMEO2_URL = "http://player.vimeo.com/video/47019590"
+	VIMEO2_FILE = ""
+
 	SOUNDCLOUD_MD5 = "ce3775768ebb6432fa8495d446a078ed"
 	SOUNDCLOUD_URL = "http://soundcloud.com/ethmusic/lostin-powers-she-so-heavy"
 	SOUNDCLOUD_FILE = "n6FLbx6ZzMiu.mp3"
-
 
 	STANDFORD_MD5 = "22c8206291368c4e2c9c1a307f0ea0f4"
 	STANDFORD_URL = "http://openclassroom.stanford.edu/MainFolder/VideoPage.php?course=PracticalUnix&video=intro-environment&speed=100"
@@ -105,8 +108,8 @@ class DownloadTest(unittest.TestCase):
 		self.assertEqual(md5_down_file, DownloadTest.XVIDEO_MD5)
 
 	def test_vimeo(self):
-        #skipped for the moment produce an error
-        return
+		#skipped for the moment produce an error
+		return
 		with open(DownloadTest.PARAMETERS_FILE) as f:
 			fd = FileDownloader(json.load(f))
 		fd.add_info_extractor(VimeoIE())
@@ -114,6 +117,17 @@ class DownloadTest(unittest.TestCase):
 		self.assertTrue(os.path.exists(DownloadTest.VIMEO_FILE))
 		md5_down_file = md5_for_file(DownloadTest.VIMEO_FILE)
 		self.assertEqual(md5_down_file, DownloadTest.VIMEO_MD5)
+
+	def test_vimeo2(self):
+		#skipped for the moment produce an error
+		return
+		with open(DownloadTest.PARAMETERS_FILE) as f:
+			fd = FileDownloader(json.load(f))
+		fd.add_info_extractor(VimeoIE())
+		fd.download([DownloadTest.VIMEO2_URL])
+		self.assertTrue(os.path.exists(DownloadTest.VIMEO2_FILE))
+		md5_down_file = md5_for_file(DownloadTest.VIMEO2_FILE)
+		self.assertEqual(md5_down_file, DownloadTest.VIMEO2_MD5)
 
 	def test_soundcloud(self):
 		with open(DownloadTest.PARAMETERS_FILE) as f:
