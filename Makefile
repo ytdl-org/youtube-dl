@@ -5,10 +5,17 @@ clean:
 	rm -f youtube-dl youtube-dl.exe youtube-dl.1 LATEST_VERSION
 
 PREFIX=/usr/local
+BINDIR=$(PREFIX)/bin
+MANDIR=$(PREFIX)/man
+SYSCONFDIR=/etc
+
 install: youtube-dl youtube-dl.1 youtube-dl.bash-completion
-	install -m 755 --owner root --group root youtube-dl $(PREFIX)/bin/
-	install -m 644 --owner root --group root youtube-dl.1 $(PREFIX)/man/man1
-	install -m 644 --owner root --group root youtube-dl.bash-completion /etc/bash_completion.d/youtube-dl
+	install -d $(DESTDIR)$(BINDIR)
+	install -m 755 youtube-dl $(DESTDIR)$(BINDIR)
+	install -d $(DESTDIR)$(MANDIR)/man1
+	install -m 644 youtube-dl.1 $(DESTDIR)$(MANDIR)/man1
+	install -d $(DESTDIR)$(SYSCONFDIR)/bash_completion.d
+	install -m 644 youtube-dl.bash-completion $(DESTDIR)$(SYSCONFDIR)/bash_completion.d/youtube-dl
 
 .PHONY: all clean install README.md youtube-dl.bash-completion
 # TODO un-phony README.md and youtube-dl.bash_completion by reading from .in files and generating from them
