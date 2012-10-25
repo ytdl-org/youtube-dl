@@ -10,6 +10,7 @@ from youtube_dl.InfoExtractors import  MetacafeIE, BlipTVIE
 from youtube_dl.InfoExtractors import  XVideosIE, VimeoIE
 from youtube_dl.InfoExtractors import  SoundcloudIE, StanfordOpenClassroomIE
 from youtube_dl.InfoExtractors import  CollegeHumorIE, XNXXIE
+from youtube_dl.InfoExtractors import  YoutubeUserIE
 
 
 class DownloadTest(unittest.TestCase):
@@ -20,6 +21,8 @@ class DownloadTest(unittest.TestCase):
 	YOUTUBE_SIZE = 1993883
 	YOUTUBE_URL = "http://www.youtube.com/watch?v=BaW_jenozKc"
 	YOUTUBE_FILE = "BaW_jenozKc.mp4"
+
+	YOUTUBEUSER_URL = "http://www.youtube.com/user/phihag"
 
 	DAILYMOTION_MD5 = "d363a50e9eb4f22ce90d08d15695bb47"
 	DAILYMOTION_URL = "http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech"
@@ -67,6 +70,15 @@ class DownloadTest(unittest.TestCase):
 			fd = FileDownloader(json.load(f))
 		fd.add_info_extractor(YoutubeIE())
 		fd.download([DownloadTest.YOUTUBE_URL])
+		self.assertTrue(os.path.exists(DownloadTest.YOUTUBE_FILE))
+		self.assertEqual(os.path.getsize(DownloadTest.YOUTUBE_FILE), DownloadTest.YOUTUBE_SIZE)
+
+	def test_youtubeuser(self):
+		with open(DownloadTest.PARAMETERS_FILE) as f:
+			fd = FileDownloader(json.load(f))
+		fd.add_info_extractor(YoutubeUserIE())
+		fd.add_info_extractor(YoutubeIE())
+		fd.download([DownloadTest.YOUTUBEUSER_URL])
 		self.assertTrue(os.path.exists(DownloadTest.YOUTUBE_FILE))
 		self.assertEqual(os.path.getsize(DownloadTest.YOUTUBE_FILE), DownloadTest.YOUTUBE_SIZE)
 
@@ -120,7 +132,6 @@ class DownloadTest(unittest.TestCase):
 
 	def test_vimeo2(self):
 		#skipped for the moment produce an error
-		return
 		with open(DownloadTest.PARAMETERS_FILE) as f:
 			fd = FileDownloader(json.load(f))
 		fd.add_info_extractor(VimeoIE())
