@@ -194,10 +194,20 @@ def timeconvert(timestr):
 def sanitize_filename(s):
 	"""Sanitizes a string so it could be used as part of a filename."""
 	def replace_insane(char):
-		if char in u' .\\/|?*<>:"' or ord(char) < 32:
-			return '_'
+		if char == '?' or ord(char) < 32 or ord(char) == 127:
+			return ''
+		elif char == '"':
+			return '\''
+		elif char == ':':
+			return ' -'
+		elif char in '\\/|*<>':
+			return '-'
 		return char
-	return u''.join(map(replace_insane, s)).strip('_')
+
+	result = u''.join(map(replace_insane, s))
+	while '--' in result:
+		result = result.replace('--', '-')
+	return result.strip('-')
 
 def orderedSet(iterable):
 	""" Remove all duplicates from the input iterable """
