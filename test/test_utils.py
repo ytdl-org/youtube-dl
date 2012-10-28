@@ -22,13 +22,13 @@ class TestUtil(unittest.TestCase):
 
 		self.assertEqual(sanitize_filename(u'123'), u'123')
 
-		self.assertEqual(u'abc_de', sanitize_filename(u'abc/de'))
-		self.assertTrue(u'de' in sanitize_filename(u'abc/de'))
+		self.assertEqual(u'abc-de', sanitize_filename(u'abc/de'))
 		self.assertFalse(u'/' in sanitize_filename(u'abc/de///'))
 
-		self.assertEqual(u'abc_de', sanitize_filename(u'abc\\de'))
-		self.assertEqual(u'abc_de', sanitize_filename(u'abc\\de'))
-		self.assertTrue(u'de' in  sanitize_filename(u'abc\\de'))
+		self.assertEqual(u'abc-de', sanitize_filename(u'abc/<>\\*|de'))
+		self.assertEqual(u'xxx', sanitize_filename(u'xxx/<>\\*|'))
+		self.assertEqual(u'yes no', sanitize_filename(u'yes? no'))
+		self.assertEqual(u'this - that', sanitize_filename(u'this: that'))
 
 		self.assertEqual(sanitize_filename(u'ä'), u'ä')
 		self.assertEqual(sanitize_filename(u'кириллица'), u'кириллица')
