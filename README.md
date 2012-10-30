@@ -92,7 +92,7 @@ which means you can modify it, redistribute it or use it however you like.
     -n, --netrc              use .netrc authentication data
 
 ## Post-processing Options:
-    --extract-audio          convert video files to audio-only files (requires
+    -x, --extract-audio      convert video files to audio-only files (requires
                              ffmpeg or avconv and ffprobe or avprobe)
     --audio-format FORMAT    "best", "aac", "vorbis", "mp3", "m4a", or "wav";
                              best by default

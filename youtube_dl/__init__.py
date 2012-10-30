@@ -298,7 +298,7 @@ def parseOpts():
 			help='write video metadata to a .info.json file', default=False)
 
 
-	postproc.add_option('--extract-audio', action='store_true', dest='extractaudio', default=False,
+	postproc.add_option('-x', '--extract-audio', action='store_true', dest='extractaudio', default=False,
 			help='convert video files to audio-only files (requires ffmpeg or avconv and ffprobe or avprobe)')
 	postproc.add_option('--audio-format', metavar='FORMAT', dest='audioformat', default='best',
 			help='"best", "aac", "vorbis", "mp3", "m4a", or "wav"; best by default')
