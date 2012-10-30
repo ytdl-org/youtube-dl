@@ -36,6 +36,7 @@ which means you can modify it, redistribute it or use it however you like.
 
 ## Filesystem Options:
     -t, --title              use title in file name
+    --id                     use video ID in file name
     -l, --literal            use literal title in file name
     -A, --auto-number        number downloaded files starting from 00000
     -o, --output TEMPLATE    output filename template. Use %(stitle)s to get the

@@ -265,6 +265,8 @@ def parseOpts():
 
 	filesystem.add_option('-t', '--title',
 			action='store_true', dest='usetitle', help='use title in file name', default=False)
+	filesystem.add_option('--id',
+			action='store_true', dest='useid', help='use video ID in file name', default=False)
 	filesystem.add_option('-l', '--literal',
 			action='store_true', dest='useliteral', help='use literal title in file name', default=False)
 	filesystem.add_option('-A', '--auto-number',
@@ -424,10 +426,14 @@ def _real_main():
 		parser.error(u'using .netrc conflicts with giving username/password')
 	if opts.password is not None and opts.username is None:
 		parser.error(u'account username missing')
-	if opts.outtmpl is not None and (opts.useliteral or opts.usetitle or opts.autonumber):
-		parser.error(u'using output template conflicts with using title, literal title or auto number')
+	if opts.outtmpl is not None and (opts.useliteral or opts.usetitle or opts.autonumber or opts.useid):
+		parser.error(u'using output template conflicts with using title, literal title, video ID or auto number')
 	if opts.usetitle and opts.useliteral:
 		parser.error(u'using title conflicts with using literal title')
+	if opts.usetitle and opts.useid:
+		parser.error(u'using title conflicts with using video ID')
+	if opts.useliteral and opts.useid:
+		parser.error(u'using literal title conflicts with using video ID')
 	if opts.username is not None and opts.password is None:
 		opts.password = getpass.getpass(u'Type account password and press return:')
 	if opts.ratelimit is not None:
@@ -485,6 +491,7 @@ def _real_main():
 			or (opts.useliteral and opts.autonumber and u'%(autonumber)s-%(title)s-%(id)s.%(ext)s')
 			or (opts.usetitle and u'%(stitle)s-%(id)s.%(ext)s')
 			or (opts.useliteral and u'%(title)s-%(id)s.%(ext)s')
+			or (opts.useid and u'%(id)s.%(ext)s')
 			or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
 			or u'%(id)s.%(ext)s'),
 		'ignoreerrors': opts.ignoreerrors,
