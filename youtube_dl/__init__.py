@@ -441,11 +441,10 @@ def _real_main():
 		if numeric_limit is None:
 			parser.error(u'invalid rate limit specified')
 		opts.ratelimit = numeric_limit
-	if opts.retries is not None:
-		try:
-			opts.retries = long(opts.retries)
-		except (TypeError, ValueError), err:
-			parser.error(u'invalid retry count specified')
+	try:
+		opts.retries = long(opts.retries)
+	except (TypeError, ValueError), err:
+		parser.error(u'invalid retry count specified')
 	try:
 		opts.playliststart = int(opts.playliststart)
 		if opts.playliststart <= 0:
