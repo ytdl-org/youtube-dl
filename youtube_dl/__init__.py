@@ -188,7 +188,7 @@ def parseOpts():
 	general.add_option('-r', '--rate-limit',
 			dest='ratelimit', metavar='LIMIT', help='download rate limit (e.g. 50k or 44.6m)')
 	general.add_option('-R', '--retries',
-			dest='retries', metavar='RETRIES', help='number of retries (default is %default)', default=10)
+			dest='retries', metavar='RETRIES', help='number of retries (default is %default). specify 0 or inf for infinite retries', default=10)
 	general.add_option('--dump-user-agent',
 			action='store_true', dest='dump_user_agent',
 			help='display the current browser identification', default=False)
@@ -442,6 +442,7 @@ def _real_main():
 			parser.error(u'invalid rate limit specified')
 		opts.ratelimit = numeric_limit
 	try:
+		if opts.retries = "inf": opts.retries = 0
 		opts.retries = long(opts.retries)
 	except (TypeError, ValueError), err:
 		parser.error(u'invalid retry count specified')
