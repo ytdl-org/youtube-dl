@@ -580,7 +580,7 @@ class FileDownloader(object):
 
 		count = 0
 		retries = self.params['retries']
-		while count <= retries:
+		while retries == 0 or count < retries:
 			# Establish connection
 			try:
 				if count == 0 and 'urlhandle' in info_dict:
@@ -624,7 +624,7 @@ class FileDownloader(object):
 			if count <= retries:
 				self.report_retry(count, retries)
 
-		if count > retries:
+		if retries != 0 and count > retries:
 			self.trouble(u'ERROR: giving up after %s retries' % retries)
 			return False
 
