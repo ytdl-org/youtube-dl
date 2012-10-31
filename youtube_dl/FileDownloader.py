@@ -579,7 +579,7 @@ class FileDownloader(object):
 				resume_len = 0
 
 		count = 0
-		retries = self.params.get('retries', 0)
+		retries = self.params['retries']
 		while count <= retries:
 			# Establish connection
 			try:
