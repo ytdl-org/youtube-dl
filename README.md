@@ -19,7 +19,8 @@ which means you can modify it, redistribute it or use it however you like.
     -U, --update             update this program to latest version
     -i, --ignore-errors      continue on download errors
     -r, --rate-limit LIMIT   download rate limit (e.g. 50k or 44.6m)
-    -R, --retries RETRIES    number of retries (default is 10)
+    -R, --retries RETRIES    number of retries (default is 10). Specify 0 or inf
+                             for infinite retries
     --dump-user-agent        display the current browser identification
     --user-agent UA          specify a custom user agent
     --list-extractors        List all supported extractors and the URLs they
