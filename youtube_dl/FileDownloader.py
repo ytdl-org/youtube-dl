@@ -292,7 +292,7 @@ class FileDownloader(object):
 
 	def report_retry(self, count, retries):
 		"""Report retry in case of HTTP error 5xx"""
-		self.to_screen(u'[download] Got server HTTP error. Retrying (attempt %d of %d)...' % (count, retries))
+		self.to_screen(u'[download] Got server HTTP error. Retrying (attempt %s of %s)...' % (count, retries))
 
 	def report_file_already_downloaded(self, file_name):
 		"""Report file has already been fully downloaded."""
@@ -621,8 +621,7 @@ class FileDownloader(object):
 							break
 			# Retry
 			count += 1
-			if count <= retries:
-				self.report_retry(count, retries)
+			self.report_retry(count, retries if retries else "infinite")
 
 		if retries != 0 and count > retries:
 			self.trouble(u'ERROR: giving up after %s retries' % retries)
