@@ -603,7 +603,7 @@ class MetacafeIE(InfoExtractor):
 			return
 		video_title = mobj.group(1).decode('utf-8')
 
-		mobj = re.search(r'(?ms)By:\s*<a .*?>(.+?)<', webpage)
+		mobj = re.search(r'submitter=(.*?);', webpage)
 		if mobj is None:
 			self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
 			return
