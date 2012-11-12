@@ -94,6 +94,8 @@ class InfoExtractor(object):
 		pass
 
 
+
+
 class YoutubeIE(InfoExtractor):
 	"""Information extractor for youtube.com."""
 
@@ -3368,3 +3370,82 @@ class GooglePlusIE(InfoExtractor):
 			'format':	u'NA',
 			'player_url':	None,
 		}]
+
+
+class PornotubeIE(InfoExtractor):
+	"""Information extractor for pornotube.com."""
+
+	_VALID_URL = r'^(?:https?://)?(?:\w+\.)?pornotube\.com(/c/(?P<channel>[0-9]+))?(/m/(?P<videoid>[0-9]+))(/(?P<title>.+))$'
+	IE_NAME = u'pornotube'
+	VIDEO_URL_RE = r'url: "(?P<url>http://video[0-9].pornotube.com/.+\.flv)",'
+	VIDEO_UPLOADED_RE = r'<div class="video_added_by">Added (?P<date>[0-9\/]+) by'
+
+
+	def __init__(self, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+
+	def report_extract_entry(self, url):
+		"""Report downloading extry"""
+		self._downloader.to_screen(u'[pornotube] Downloading entry: %s' % url.decode('utf-8'))
+
+	def report_date(self, upload_date):
+		"""Report finding uploaded date"""
+		self._downloader.to_screen(u'[pornotube] Entry date: %s' % upload_date)
+
+	def report_webpage(self, url):
+		"""Report downloading page"""
+		self._downloader.to_screen(u'[pornotube] Downloaded page: %s' % url)
+
+	def report_title(self, video_title):
+		"""Report downloading extry"""
+		self._downloader.to_screen(u'[pornotube] Title: %s' % video_title.decode('utf-8'))
+
+	def _real_extract(self, url):
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+			return
+
+		video_id = mobj.group('videoid').decode('utf-8')
+		video_title = mobj.group('title').decode('utf-8')
+		self.report_title(video_title);
+
+		# Get webpage content
+		try:
+			webpage = urllib2.urlopen(url).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % err)
+			return
+		self.report_webpage(url)
+
+		# Get the video URL
+		result = re.search(self.VIDEO_URL_RE, webpage)
+		if result is None:
+			self._downloader.trouble(u'ERROR: unable to extract video url')
+			return
+		video_url = urllib.unquote(result.group('url').decode('utf-8'))
+		self.report_extract_entry(video_url)
+
+		#Get the uploaded date
+		result = re.search(self.VIDEO_UPLOADED_RE, webpage)
+		if result is None:
+			self._downloader.trouble(u'ERROR: unable to extract video title')
+			return
+		upload_date = result.group('date').decode('utf-8')
+		self.report_date(upload_date);
+
+
+		info = {'id': video_id,
+				'url': video_url,
+				'uploader': None,
+				'upload_date': upload_date,
+				'title': video_title,
+				'ext': 'flv',
+				'format': 'flv',
+				'thumbnail': None,
+				'description': None,
+				'player_url': None}
+
+		return [info]
+
+
