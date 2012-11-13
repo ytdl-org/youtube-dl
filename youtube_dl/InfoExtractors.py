@@ -3461,6 +3461,7 @@ class YouPornIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract uploader')
 			return
 		video_uploader = result.group('uploader').decode('utf-8').strip()
+		video_uploader = clean_html( video_uploader )
 		self.report_uploader(video_uploader)
 
 		# Get all of the formats available
