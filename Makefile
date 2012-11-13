@@ -2,7 +2,7 @@ all: youtube-dl README.md youtube-dl.1 youtube-dl.bash-completion LATEST_VERSION
 # TODO: re-add youtube-dl.exe, and make sure it's 1. safe and 2. doesn't need sudo
 
 clean:
-	rm -f youtube-dl youtube-dl.exe youtube-dl.1 LATEST_VERSION
+	rm -f youtube-dl youtube-dl.exe youtube-dl.1 LATEST_VERSION youtube_dl/*.pyc
 
 PREFIX=/usr/local
 BINDIR=$(PREFIX)/bin
@@ -17,7 +17,7 @@ install: youtube-dl youtube-dl.1 youtube-dl.bash-completion
 	install -d $(DESTDIR)$(SYSCONFDIR)/bash_completion.d
 	install -m 644 youtube-dl.bash-completion $(DESTDIR)$(SYSCONFDIR)/bash_completion.d/youtube-dl
 
-.PHONY: all clean install README.md youtube-dl.bash-completion
+.PHONY: all clean install youtube-dl.bash-completion
 # TODO un-phony README.md and youtube-dl.bash_completion by reading from .in files and generating from them
 
 youtube-dl: youtube_dl/*.py
@@ -42,10 +42,10 @@ README.md: youtube_dl/*.py
 		echo '# FAQ' >> README.md && \
 		echo "$${footer}" >> README.md
 
-youtube-dl.1: README.md
+youtube-dl.1: 
 	pandoc -s -w man README.md -o youtube-dl.1
 
-youtube-dl.bash-completion: README.md
+youtube-dl.bash-completion: 
 	@options=`egrep -o '(--[a-z-]+) ' README.md | sort -u | xargs echo` && \
 		content=`sed "s/opts=\"[^\"]*\"/opts=\"$${options}\"/g" youtube-dl.bash-completion` && \
 		echo "$${content}" > youtube-dl.bash-completion
