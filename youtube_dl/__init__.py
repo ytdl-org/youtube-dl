@@ -362,7 +362,8 @@ def gen_extractors():
 		XNXXIE(),
 		GooglePlusIE(),
 		PornotubeIE(),
-
+		YouPornIE(),
+		
 		GenericIE()
 	]
 

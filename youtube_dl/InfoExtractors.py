@@ -15,7 +15,7 @@ import email.utils
 import xml.etree.ElementTree
 import random
 import math
-from urlparse import parse_qs
+from urlparse import parse_qs, urlparse
 
 try:
 	import cStringIO as StringIO
@@ -3370,6 +3370,166 @@ class GooglePlusIE(InfoExtractor):
 			'format':	u'NA',
 			'player_url':	None,
 		}]
+
+
+
+class YouPornIE(InfoExtractor):
+	"""Information extractor for youporn.com."""
+
+	_VALID_URL = r'^(?:https?://)?(?:\w+\.)?youporn\.com/watch/(?P<videoid>[0-9]+)/(?P<title>[^/]+)'
+	IE_NAME = u'youporn'
+	VIDEO_TITLE_RE = r'videoTitleArea">(?P<title>.*)</h1>'
+	VIDEO_DATE_RE = r'Date:</b>(?P<date>.*)</li>'
+	VIDEO_UPLOADER_RE = r'Submitted:</b>(?P<uploader>.*)</li>'
+	DOWNLOAD_LIST_RE = r'(?s)<ul class="downloadList">(?P<download_list>.*?)</ul>'
+	LINK_RE = r'(?s)<a href="(?P<url>[^"]+)">'
+
+	def __init__(self, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+
+	def report_id(self, video_id):
+		"""Report finding video ID"""
+		self._downloader.to_screen(u'[youporn] Video ID: %s' % video_id)
+
+	def report_webpage(self, url):
+		"""Report downloading page"""
+		self._downloader.to_screen(u'[youporn] Downloaded page: %s' % url)
+
+	def report_title(self, video_title):
+		"""Report dfinding title"""
+		self._downloader.to_screen(u'[youporn] Title: %s' % video_title)
+	
+	def report_uploader(self, uploader):
+		"""Report dfinding title"""
+		self._downloader.to_screen(u'[youporn] Uploader: %s' % uploader)
+
+	def report_upload_date(self, video_date):
+		"""Report finding date"""
+		self._downloader.to_screen(u'[youporn] Date: %s' % video_date)
+
+	def _print_formats(self, formats):
+		"""Print all available formats"""
+		print 'Available formats:'
+		print u'ext\t\tformat'
+		print u'---------------------------------'
+		for format in formats:
+			print u'%s\t\t%s'  % (format['ext'], format['format'])
+
+	def _specific(self, req_format, formats):
+		for x in formats:
+			if(x["format"]==req_format):
+				return x
+		return None
+
+
+	def _real_extract(self, url):
+		mobj = re.match(self._VALID_URL, url)
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+			return
+
+		video_id = mobj.group('videoid').decode('utf-8')
+		self.report_id(video_id)
+
+		# Get webpage content
+		try:
+			webpage = urllib2.urlopen(url).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % err)
+			return
+		self.report_webpage(url)
+
+		# Get the video URL
+		result = re.search(self.VIDEO_TITLE_RE, webpage)
+		if result is None:
+			self._downloader.trouble(u'ERROR: unable to extract video title')
+			return
+		video_title = result.group('title').decode('utf-8').strip()
+		self.report_title(video_title)
+
+		# Get the video date
+		result = re.search(self.VIDEO_DATE_RE, webpage)
+		if result is None:
+			self._downloader.trouble(u'ERROR: unable to extract video date')
+			return
+		upload_date = result.group('date').decode('utf-8').strip()
+		self.report_upload_date(upload_date)
+
+		# Get the video uploader
+		result = re.search(self.VIDEO_UPLOADER_RE, webpage)
+		if result is None:
+			self._downloader.trouble(u'ERROR: unable to extract uploader')
+			return
+		video_uploader = result.group('uploader').decode('utf-8').strip()
+		self.report_uploader(video_uploader)
+
+		# Get all of the formats available
+		result = re.search(self.DOWNLOAD_LIST_RE, webpage)
+		if result is None:
+			self._downloader.trouble(u'ERROR: unable to extract download list')
+			return
+		download_list_html = result.group('download_list').decode('utf-8').strip()
+
+		# Get all of the links from the page
+		links = re.findall(self.LINK_RE, download_list_html)
+		if(len(links) == 0):
+			self._downloader.trouble(u'ERROR: no known formats available for video')
+			return
+		
+		self._downloader.to_screen(u'[youporn] Links found: %d' % len(links))	
+
+		formats = []
+		for link in links:
+
+			# A link looks like this:
+			# http://cdn1.download.youporn.phncdn.com/201210/31/8004515/480p_370k_8004515/YouPorn%20-%20Nubile%20Films%20The%20Pillow%20Fight.mp4?nvb=20121113051249&nva=20121114051249&ir=1200&sr=1200&hash=014b882080310e95fb6a0
+			# A path looks like this:
+			# /201210/31/8004515/480p_370k_8004515/YouPorn%20-%20Nubile%20Films%20The%20Pillow%20Fight.mp4
+			video_url = unescapeHTML( link.decode('utf-8') )
+			path = urlparse( video_url ).path
+			extension = os.path.splitext( path )[1][1:]
+			format = path.split('/')[4].split('_')[:2]
+			size = format[0]
+			bitrate = format[1]
+			format = "-".join( format )
+			title = u'%s-%s-%s' % (video_title, size, bitrate)
+
+			formats.append({
+				'id': video_id,
+				'url': video_url,
+				'uploader': video_uploader,
+				'upload_date': upload_date,
+				'title': title,
+				'ext': extension,
+				'format': format,
+				'thumbnail': None,
+				'description': None,
+				'player_url': None
+			})
+
+		if self._downloader.params.get('listformats', None):
+			self._print_formats(results)
+			return
+
+		req_format = self._downloader.params.get('format', None)
+		#format_limit = self._downloader.params.get('format_limit', None)
+		self._downloader.to_screen(u'[youporn] Format: %s' % req_format)
+
+
+		if req_format is None or req_format == 'best':
+			return [formats[0]]
+		elif req_format == 'worst':
+			return [formats[-1]]
+		elif req_format in ('-1', 'all'):
+			return formats
+		else:
+			format = self._specific( req_format, formats )
+			if result is None:
+				self._downloader.trouble(u'ERROR: requested format not available')
+				return
+			return [format]
+
+		
 
 
 class PornotubeIE(InfoExtractor):
