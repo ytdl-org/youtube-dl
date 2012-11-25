@@ -37,9 +37,9 @@ which means you can modify it, redistribute it or use it however you like.
 ## Filesystem Options:
     -t, --title              use title in file name
     --id                     use video ID in file name
-    -l, --literal            use literal title in file name
+    -l, --literal            [deprecated] alias of --title
     -A, --auto-number        number downloaded files starting from 00000
-    -o, --output TEMPLATE    output filename template. Use %(stitle)s to get the
+    -o, --output TEMPLATE    output filename template. Use %(title)s to get the
                              title, %(uploader)s for the uploader name,
                              %(autonumber)s to get an automatically incremented
                              number, %(ext)s for the filename extension,

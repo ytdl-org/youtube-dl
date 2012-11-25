@@ -268,12 +268,12 @@ def parseOpts():
 	filesystem.add_option('--id',
 			action='store_true', dest='useid', help='use video ID in file name', default=False)
 	filesystem.add_option('-l', '--literal',
-			action='store_true', dest='useliteral', help='use literal title in file name', default=False)
+			action='store_true', dest='usetitle', help='[deprecated] alias of --title', default=False)
 	filesystem.add_option('-A', '--auto-number',
 			action='store_true', dest='autonumber',
 			help='number downloaded files starting from 00000', default=False)
 	filesystem.add_option('-o', '--output',
-			dest='outtmpl', metavar='TEMPLATE', help='output filename template. Use %(stitle)s to get the title, %(uploader)s for the uploader name, %(autonumber)s to get an automatically incremented number, %(ext)s for the filename extension, %(upload_date)s for the upload date (YYYYMMDD), %(extractor)s for the provider (youtube, metacafe, etc), %(id)s for the video id and %% for a literal percent. Use - to output to stdout.')
+			dest='outtmpl', metavar='TEMPLATE', help='output filename template. Use %(title)s to get the title, %(uploader)s for the uploader name, %(autonumber)s to get an automatically incremented number, %(ext)s for the filename extension, %(upload_date)s for the upload date (YYYYMMDD), %(extractor)s for the provider (youtube, metacafe, etc), %(id)s for the video id and %% for a literal percent. Use - to output to stdout.')
 	filesystem.add_option('-a', '--batch-file',
 			dest='batchfile', metavar='FILE', help='file containing URLs to download (\'-\' for stdin)')
 	filesystem.add_option('-w', '--no-overwrites',
@@ -426,14 +426,10 @@ def _real_main():
 		parser.error(u'using .netrc conflicts with giving username/password')
 	if opts.password is not None and opts.username is None:
 		parser.error(u'account username missing')
-	if opts.outtmpl is not None and (opts.useliteral or opts.usetitle or opts.autonumber or opts.useid):
-		parser.error(u'using output template conflicts with using title, literal title, video ID or auto number')
-	if opts.usetitle and opts.useliteral:
-		parser.error(u'using title conflicts with using literal title')
+	if opts.outtmpl is not None and (opts.usetitle or opts.autonumber or opts.useid):
+		parser.error(u'using output template conflicts with using title, video ID or auto number')
 	if opts.usetitle and opts.useid:
 		parser.error(u'using title conflicts with using video ID')
-	if opts.useliteral and opts.useid:
-		parser.error(u'using literal title conflicts with using video ID')
 	if opts.username is not None and opts.password is None:
 		opts.password = getpass.getpass(u'Type account password and press return:')
 	if opts.ratelimit is not None:
@@ -484,13 +480,10 @@ def _real_main():
 		'format_limit': opts.format_limit,
 		'listformats': opts.listformats,
 		'outtmpl': ((opts.outtmpl is not None and opts.outtmpl.decode(preferredencoding()))
-			or (opts.format == '-1' and opts.usetitle and u'%(stitle)s-%(id)s-%(format)s.%(ext)s')
-			or (opts.format == '-1' and opts.useliteral and u'%(title)s-%(id)s-%(format)s.%(ext)s')
+			or (opts.format == '-1' and opts.usetitle and u'%(title)s-%(id)s-%(format)s.%(ext)s')
 			or (opts.format == '-1' and u'%(id)s-%(format)s.%(ext)s')
-			or (opts.usetitle and opts.autonumber and u'%(autonumber)s-%(stitle)s-%(id)s.%(ext)s')
-			or (opts.useliteral and opts.autonumber and u'%(autonumber)s-%(title)s-%(id)s.%(ext)s')
-			or (opts.usetitle and u'%(stitle)s-%(id)s.%(ext)s')
-			or (opts.useliteral and u'%(title)s-%(id)s.%(ext)s')
+			or (opts.usetitle and opts.autonumber and u'%(autonumber)s-%(title)s-%(id)s.%(ext)s')
+			or (opts.usetitle and u'%(title)s-%(id)s.%(ext)s')
 			or (opts.useid and u'%(id)s.%(ext)s')
 			or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
 			or u'%(id)s.%(ext)s'),
