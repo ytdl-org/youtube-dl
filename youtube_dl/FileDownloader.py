@@ -322,6 +322,7 @@ class FileDownloader(object):
 			template_dict = dict(info_dict)
 			template_dict['epoch'] = unicode(long(time.time()))
 			template_dict['autonumber'] = unicode('%05d' % self._num_downloads)
+			template_dict['title'] = template_dict['stitle'] # Keep both for backwards compatibility
 			filename = self.params['outtmpl'] % template_dict
 			return filename
 		except (ValueError, KeyError), err:
