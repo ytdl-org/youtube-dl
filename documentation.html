@@ -23,6 +23,7 @@
 <li><a href="#d5">Proxy support</a></li>
 <li><a href="#d6">YouTube formats</a></li>
 <li><a href="#d7">Output template</a></li>
+<li><a href="#d8">Configuration</a></li>
 </ul>
 </div>
 
@@ -57,8 +58,11 @@
 <li>Google Video.</li>
 <li>Google Video searches ("gvsearch" keyword).</li>
 <li>Photobucket videos.</li>
+<!--
+Unsupported, see https://github.com/rg3/youtube-dl/issues/300
 <li>Yahoo! video.</li>
 <li>Yahoo! video searches ("ybsearch" keyword).</li>
+-->
 <li>Dailymotion.</li>
 <li>DepositFiles.</li>
 <li>blip.tv.</li>
@@ -94,6 +98,12 @@
 </ul>
 
 <p>As you may have guessed, the default template is <em>%(id)s.%(ext)s</em>. When some command line options are used, it's replaced by other templates like <em>%(stitle)s-%(id)s.%(ext)s</em>. You can specify your own.</p>
+
+<h1 id="d8">Configuration</h1>
+
+<p>
+You can configure youtube-dl by placing default arguments (such as <code>--extract-audio --no-mtime</code> to always extract the audio and not copy the mtime) into <code>/etc/youtube-dl.conf</code> and/or <code>~/.local/config/youtube-dl.conf</code>.
+</p>
 
 <div class="note">
 <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">
