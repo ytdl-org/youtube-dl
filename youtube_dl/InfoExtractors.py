@@ -93,6 +93,66 @@ class InfoExtractor(object):
 		"""Real extraction process. Redefine in subclasses."""
 		pass
 
+	def _login(self):
+		if self._downloader is None:
+			return False
+
+		username = None
+		password = None
+		downloader_params = self._downloader.params
+
+		# Attempt to use provided username and password or .netrc data
+		if downloader_params.get('username', None) and \
+				downloader_params.get('password', None):
+			username = downloader_params['username']
+			password = downloader_params['password']
+		elif downloader_params.get('usenetrc', False):
+			try:
+				info = netrc.netrc().authenticators(self._NETRC_MACHINE)
+				if info is not None:
+					username = info[0]
+					password = info[2]
+				else:
+					raise netrc.NetrcParseError('No authenticators for %s' % self._NETRC_MACHINE)
+			except (IOError, netrc.NetrcParseError), err:
+				self._downloader.to_stderr(u'WARNING: parsing .netrc: %s' % str(err))
+				return False
+
+		# Set language
+		if hasattr(self, "_LANG_URL"):
+			request = urllib2.Request(self._LANG_URL)
+			try:
+				self.report_lang()
+				urllib2.urlopen(request).read()
+			except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				self._downloader.to_stderr(u'WARNING: unable to set language: %s' % str(err))
+				return False
+
+		# No authentication to be performed
+		if username is None:
+			return False
+
+		login_form = self._LOGIN_FORM
+		# Set login credentials
+		for k in login_form:
+			if login_form[k] == "username":
+				login_form[k] = username
+			elif login_form[k] == "password":
+				login_form[k] = password
+
+		request = urllib2.Request(self._LOGIN_URL, urllib.urlencode(login_form))
+		try:
+			self.report_login()
+			login_results = urllib2.urlopen(request).read()
+			if re.search(self._FAILED_LOGIN, login_results) is not None:
+				self._downloader.to_stderr(u'WARNING: unable to log in: bad username or password')
+				return
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.to_stderr(u'WARNING: unable to log in: %s' % str(err))
+			return False
+			
+		return request
+
 
 class YoutubeIE(InfoExtractor):
 	"""Information extractor for youtube.com."""
@@ -119,9 +179,17 @@ class YoutubeIE(InfoExtractor):
 	                 $"""
 	_LANG_URL = r'http://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
 	_LOGIN_URL = 'https://www.youtube.com/signup?next=/&gl=US&hl=en'
+	_FAILED_LOGIN = r'(?i)<form[^>]* name="loginForm"'
 	_AGE_URL = 'http://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
 	_NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
 	_NETRC_MACHINE = 'youtube'
+	_LOGIN_FORM = {
+		'current_form': 'loginForm',
+		'next':		'/',
+		'action_login':	'Log In',
+		'username':	"username",
+		'password':	"password",
+	}
 	# Listed in order of quality
 	_available_formats = ['38', '37', '46', '22', '45', '35', '44', '34', '18', '43', '6', '5', '17', '13']
 	_available_formats_prefer_free = ['38', '46', '37', '45', '22', '44', '35', '43', '34', '18', '6', '5', '17', '13']
@@ -218,59 +286,10 @@ class YoutubeIE(InfoExtractor):
 			print '%s\t:\t%s\t[%s]' %(x, self._video_extensions.get(x, 'flv'), self._video_dimensions.get(x, '???'))
 
 	def _real_initialize(self):
-		if self._downloader is None:
-			return
-
-		username = None
-		password = None
-		downloader_params = self._downloader.params
-
-		# Attempt to use provided username and password or .netrc data
-		if downloader_params.get('username', None) is not None:
-			username = downloader_params['username']
-			password = downloader_params['password']
-		elif downloader_params.get('usenetrc', False):
-			try:
-				info = netrc.netrc().authenticators(self._NETRC_MACHINE)
-				if info is not None:
-					username = info[0]
-					password = info[2]
-				else:
-					raise netrc.NetrcParseError('No authenticators for %s' % self._NETRC_MACHINE)
-			except (IOError, netrc.NetrcParseError), err:
-				self._downloader.to_stderr(u'WARNING: parsing .netrc: %s' % str(err))
-				return
-
-		# Set language
-		request = urllib2.Request(self._LANG_URL)
-		try:
-			self.report_lang()
-			urllib2.urlopen(request).read()
-		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self._downloader.to_stderr(u'WARNING: unable to set language: %s' % str(err))
-			return
-
-		# No authentication to be performed
-		if username is None:
-			return
-
 		# Log in
-		login_form = {
-				'current_form': 'loginForm',
-				'next':		'/',
-				'action_login':	'Log In',
-				'username':	username,
-				'password':	password,
-				}
-		request = urllib2.Request(self._LOGIN_URL, urllib.urlencode(login_form))
-		try:
-			self.report_login()
-			login_results = urllib2.urlopen(request).read()
-			if re.search(r'(?i)<form[^>]* name="loginForm"', login_results) is not None:
-				self._downloader.to_stderr(u'WARNING: unable to log in: bad username or password')
-				return
-		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self._downloader.to_stderr(u'WARNING: unable to log in: %s' % str(err))
+		request = self._login()
+
+		if not request:
 			return
 
 		# Confirm age
@@ -1898,7 +1917,13 @@ class FacebookIE(InfoExtractor):
 
 	_VALID_URL = r'^(?:https?://)?(?:\w+\.)?facebook\.com/(?:video/video|photo)\.php\?(?:.*?)v=(?P<ID>\d+)(?:.*)'
 	_LOGIN_URL = 'https://login.facebook.com/login.php?m&next=http%3A%2F%2Fm.facebook.com%2Fhome.php&'
+	_FAILED_LOGIN = r'<form(.*)name="login"(.*)</form>'
 	_NETRC_MACHINE = 'facebook'
+	_LOGIN_FORM = {
+		'email': "username",
+		'pass': "password",
+		'login': 'Log+In'
+	}
 	_available_formats = ['video', 'highqual', 'lowqual']
 	_video_extensions = {
 		'video': 'mp4',
@@ -1953,48 +1978,8 @@ class FacebookIE(InfoExtractor):
 		return video_info
 
 	def _real_initialize(self):
-		if self._downloader is None:
-			return
-
-		useremail = None
-		password = None
-		downloader_params = self._downloader.params
-
-		# Attempt to use provided username and password or .netrc data
-		if downloader_params.get('username', None) is not None:
-			useremail = downloader_params['username']
-			password = downloader_params['password']
-		elif downloader_params.get('usenetrc', False):
-			try:
-				info = netrc.netrc().authenticators(self._NETRC_MACHINE)
-				if info is not None:
-					useremail = info[0]
-					password = info[2]
-				else:
-					raise netrc.NetrcParseError('No authenticators for %s' % self._NETRC_MACHINE)
-			except (IOError, netrc.NetrcParseError), err:
-				self._downloader.to_stderr(u'WARNING: parsing .netrc: %s' % str(err))
-				return
-
-		if useremail is None:
-			return
-
 		# Log in
-		login_form = {
-			'email': useremail,
-			'pass': password,
-			'login': 'Log+In'
-			}
-		request = urllib2.Request(self._LOGIN_URL, urllib.urlencode(login_form))
-		try:
-			self.report_login()
-			login_results = urllib2.urlopen(request).read()
-			if re.search(r'<form(.*)name="login"(.*)</form>', login_results) is not None:
-				self._downloader.to_stderr(u'WARNING: unable to log in: bad username/password, or exceded login rate limit (~3/min). Check credentials or wait.')
-				return
-		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self._downloader.to_stderr(u'WARNING: unable to log in: %s' % str(err))
-			return
+		self._login()
 
 	def _real_extract(self, url):
 		mobj = re.match(self._VALID_URL, url)
