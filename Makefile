@@ -33,13 +33,13 @@ youtube-dl.exe: youtube_dl/*.py
 README.md: youtube_dl/*.py
 	@options=$$(COLUMNS=80 python -m youtube_dl --help | sed -e '1,/.*General Options.*/ d' -e 's/^\W\{2\}\(\w\)/## \1/') && \
 		header=$$(sed -e '/.*# OPTIONS/,$$ d' README.md) && \
-		footer=$$(sed -e '1,/.*# FAQ/ d' README.md) && \
+		footer=$$(sed -e '1,/.*# CONFIGURATION/ d' README.md) && \
 		echo "$${header}" > README.md && \
 		echo >> README.md && \
 		echo '# OPTIONS' >> README.md && \
 		echo "$${options}" >> README.md&& \
 		echo >> README.md && \
-		echo '# FAQ' >> README.md && \
+		echo '# CONFIGURATION' >> README.md && \
 		echo "$${footer}" >> README.md
 
 youtube-dl.1: README.md

@@ -102,6 +102,10 @@ which means you can modify it, redistribute it or use it however you like.
     -k, --keep-video         keeps the video file on disk after the post-
                              processing; the video is erased by default
 
+# CONFIGURATION
+
+You can configure youtube-dl by placing default arguments (such as `--extract-audio --no-mtime` to always extract the audio and not copy the mtime) into `/etc/youtube-dl.conf` and/or `~/.local/config/youtube-dl.conf`.
+
 # FAQ
 
 ### Can you please put the -b option back?
