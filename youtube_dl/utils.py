@@ -26,6 +26,11 @@ std_headers = {
 	'Accept-Language': 'en-us,en;q=0.5',
 }
 
+try:
+    compat_str = unicode # Python 2
+except NameError:
+    compat_str = str
+
 def preferredencoding():
 	"""Get preferred encoding.
 

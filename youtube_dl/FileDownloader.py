@@ -180,7 +180,8 @@ class FileDownloader(object):
 
 	def to_stderr(self, message):
 		"""Print message to stderr."""
-		print >>sys.stderr, message.encode(preferredencoding())
+		assert type(message) == type(u'')
+		sys.stderr.write((message + u'\n').encode(preferredencoding()))
 
 	def to_cons_title(self, message):
 		"""Set console/terminal window title to message."""
