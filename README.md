@@ -47,6 +47,8 @@ which means you can modify it, redistribute it or use it however you like.
                              %(extractor)s for the provider (youtube, metacafe,
                              etc), %(id)s for the video id and %% for a literal
                              percent. Use - to output to stdout.
+    --restrict-filenames     Avoid some characters such as "&" and spaces in
+                             filenames
     -a, --batch-file FILE    file containing URLs to download ('-' for stdin)
     -w, --no-overwrites      do not overwrite files
     -c, --continue           resume partially downloaded files

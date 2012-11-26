@@ -59,6 +59,8 @@ redistribute it or use it however you like.
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ %(extractor)s\ for\ the\ provider\ (youtube,\ metacafe,
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ etc),\ %(id)s\ for\ the\ video\ id\ and\ %%\ for\ a\ literal
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ percent.\ Use\ -\ to\ output\ to\ stdout.
+--restrict-filenames\ \ \ \ \ Avoid\ some\ characters\ such\ as\ "&"\ and\ spaces\ in
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ filenames
 -a,\ --batch-file\ FILE\ \ \ \ file\ containing\ URLs\ to\ download\ (\[aq]-\[aq]\ for\ stdin)
 -w,\ --no-overwrites\ \ \ \ \ \ do\ not\ overwrite\ files
 -c,\ --continue\ \ \ \ \ \ \ \ \ \ \ resume\ partially\ downloaded\ files
@@ -210,7 +212,7 @@ Please note that Python 2.5 is not supported anymore.
 .PP
 Since June 2012 (#342) youtube-dl is packed as an executable zipfile,
 simply unzip it (might need renaming to \f[C]youtube-dl.zip\f[] first on
-some systems) or clone the git repo to see the code.
+some systems) or clone the git repository, as laid out above.
 If you modify the code, you can run it by executing the
 \f[C]__main__.py\f[] file.
 To recompile the executable, run \f[C]make\ youtube-dl\f[].

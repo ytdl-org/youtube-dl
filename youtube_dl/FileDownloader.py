@@ -44,37 +44,38 @@ class FileDownloader(object):
 
 	Available options:
 
-	username:         Username for authentication purposes.
-	password:         Password for authentication purposes.
-	usenetrc:         Use netrc for authentication instead.
-	quiet:            Do not print messages to stdout.
-	forceurl:         Force printing final URL.
-	forcetitle:       Force printing title.
-	forcethumbnail:   Force printing thumbnail URL.
-	forcedescription: Force printing description.
-	forcefilename:    Force printing final filename.
-	simulate:         Do not download the video files.
-	format:           Video format code.
-	format_limit:     Highest quality format to try.
-	outtmpl:          Template for output names.
-	ignoreerrors:     Do not stop on download errors.
-	ratelimit:        Download speed limit, in bytes/sec.
-	nooverwrites:     Prevent overwriting files.
-	retries:          Number of times to retry for HTTP error 5xx
-	continuedl:       Try to continue downloads if possible.
-	noprogress:       Do not print the progress bar.
-	playliststart:    Playlist item to start at.
-	playlistend:      Playlist item to end at.
-	matchtitle:       Download only matching titles.
-	rejecttitle:      Reject downloads for matching titles.
-	logtostderr:      Log messages to stderr instead of stdout.
-	consoletitle:     Display progress in console window's titlebar.
-	nopart:           Do not use temporary .part files.
-	updatetime:       Use the Last-modified header to set output file timestamps.
-	writedescription: Write the video description to a .description file
-	writeinfojson:    Write the video description to a .info.json file
-	writesubtitles:   Write the video subtitles to a .srt file
-	subtitleslang:    Language of the subtitles to download
+	username:          Username for authentication purposes.
+	password:          Password for authentication purposes.
+	usenetrc:          Use netrc for authentication instead.
+	quiet:             Do not print messages to stdout.
+	forceurl:          Force printing final URL.
+	forcetitle:        Force printing title.
+	forcethumbnail:    Force printing thumbnail URL.
+	forcedescription:  Force printing description.
+	forcefilename:     Force printing final filename.
+	simulate:          Do not download the video files.
+	format:            Video format code.
+	format_limit:      Highest quality format to try.
+	outtmpl:           Template for output names.
+	restrictfilenames: Do not allow "&" and spaces in file names
+	ignoreerrors:      Do not stop on download errors.
+	ratelimit:         Download speed limit, in bytes/sec.
+	nooverwrites:      Prevent overwriting files.
+	retries:           Number of times to retry for HTTP error 5xx
+	continuedl:        Try to continue downloads if possible.
+	noprogress:        Do not print the progress bar.
+	playliststart:     Playlist item to start at.
+	playlistend:       Playlist item to end at.
+	matchtitle:        Download only matching titles.
+	rejecttitle:       Reject downloads for matching titles.
+	logtostderr:       Log messages to stderr instead of stdout.
+	consoletitle:      Display progress in console window's titlebar.
+	nopart:            Do not use temporary .part files.
+	updatetime:        Use the Last-modified header to set output file timestamps.
+	writedescription:  Write the video description to a .description file
+	writeinfojson:     Write the video description to a .info.json file
+	writesubtitles:    Write the video subtitles to a .srt file
+	subtitleslang:     Language of the subtitles to download
 	"""
 
 	params = None
@@ -349,7 +350,7 @@ class FileDownloader(object):
 	def process_info(self, info_dict):
 		"""Process a single dictionary returned by an InfoExtractor."""
 
-		info_dict['stitle'] = sanitize_filename(info_dict['title'])
+		info_dict['stitle'] = sanitize_filename(info_dict['title'], self.params.get('restrictfilenames'))
 
 		reason = self._match_entry(info_dict)
 		if reason is not None:

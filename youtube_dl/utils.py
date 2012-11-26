@@ -194,18 +194,22 @@ def timeconvert(timestr):
 	if timetuple is not None:
 		timestamp = email.utils.mktime_tz(timetuple)
 	return timestamp
-	
-def sanitize_filename(s):
-	"""Sanitizes a string so it could be used as part of a filename."""
+
+def sanitize_filename(s, restricted=False):
+	"""Sanitizes a string so it could be used as part of a filename.
+	If restricted is set, use a stricter subset of allowed characters.
+	"""
 	def replace_insane(char):
 		if char == '?' or ord(char) < 32 or ord(char) == 127:
 			return ''
 		elif char == '"':
-			return '\''
+			return '' if restricted else 'FOO\''
 		elif char == ':':
-			return ' -'
+			return '_-' if restricted else ' -'
 		elif char in '\\/|*<>':
 			return '-'
+		if restricted and (char in '&\'' or char.isspace()):
+			return '_'
 		return char
 
 	result = u''.join(map(replace_insane, s))
