@@ -17,7 +17,10 @@ install: youtube-dl youtube-dl.1 youtube-dl.bash-completion
 	install -d $(DESTDIR)$(SYSCONFDIR)/bash_completion.d
 	install -m 644 youtube-dl.bash-completion $(DESTDIR)$(SYSCONFDIR)/bash_completion.d/youtube-dl
 
-.PHONY: all clean install README.md youtube-dl.bash-completion
+test:
+	nosetests2 --nocapture test
+
+.PHONY: all clean install test README.md youtube-dl.bash-completion
 # TODO un-phony README.md and youtube-dl.bash_completion by reading from .in files and generating from them
 
 youtube-dl: youtube_dl/*.py
@@ -52,8 +55,3 @@ youtube-dl.bash-completion: README.md
 
 LATEST_VERSION: youtube_dl/__init__.py
 	python -m youtube_dl --version > LATEST_VERSION
-
-test:
-	nosetests2 --nocapture test
-
-.PHONY: default compile update update-latest update-readme test clean
