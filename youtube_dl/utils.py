@@ -203,7 +203,7 @@ def sanitize_filename(s, restricted=False):
 		if char == '?' or ord(char) < 32 or ord(char) == 127:
 			return ''
 		elif char == '"':
-			return '' if restricted else 'FOO\''
+			return '' if restricted else '\''
 		elif char == ':':
 			return '_-' if restricted else ' -'
 		elif char in '\\/|*<>':
