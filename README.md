@@ -147,7 +147,7 @@ Please note that Python 2.5 is not supported anymore.
 
 ### What is this binary file? Where has the code gone?
 
-Since June 2012 (#342) youtube-dl is packed as an executable zipfile, simply unzip it (might need renaming to `youtube-dl.zip` first on some systems) or clone the git repo to see the code. If you modify the code, you can run it by executing the `__main__.py` file. To recompile the executable, run `make compile`.
+Since June 2012 (#342) youtube-dl is packed as an executable zipfile, simply unzip it (might need renaming to `youtube-dl.zip` first on some systems) or clone the git repo to see the code. If you modify the code, you can run it by executing the `__main__.py` file. To recompile the executable, run `make youtube-dl`.
 
 ### The exe throws a *Runtime error from Visual C++*
 
