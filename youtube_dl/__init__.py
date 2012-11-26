@@ -48,7 +48,7 @@ from PostProcessor import *
 def updateSelf(downloader, filename):
 	''' Update the program file with the latest version from the repository '''
 	# Note: downloader only used for options
-	
+
 	if not os.access(filename, os.W_OK):
 		sys.exit('ERROR: no write permissions on %s' % filename)
 
@@ -66,7 +66,7 @@ def updateSelf(downloader, filename):
 		directory = os.path.dirname(exe)
 		if not os.access(directory, os.W_OK):
 			sys.exit('ERROR: no write permissions on %s' % directory)
-			
+
 		try:
 			urlh = urllib2.urlopen(UPDATE_URL_EXE)
 			newcontent = urlh.read()
@@ -75,20 +75,18 @@ def updateSelf(downloader, filename):
 				outf.write(newcontent)
 		except (IOError, OSError), err:
 			sys.exit('ERROR: unable to download latest version')
-			
+
 		try:
 			bat = os.path.join(directory, 'youtube-dl-updater.bat')
 			b = open(bat, 'w')
-			
-			print >> b, """
+			b.write("""
 echo Updating youtube-dl...
 ping 127.0.0.1 -n 5 -w 1000 > NUL
 move /Y "%s.new" "%s"
 del "%s"
-			""" %(exe, exe, bat)
-			
+			\n""" %(exe, exe, bat))
 			b.close()
-			
+
 			os.startfile(bat)
 		except (IOError, OSError), err:
 			sys.exit('ERROR: unable to overwrite current version')

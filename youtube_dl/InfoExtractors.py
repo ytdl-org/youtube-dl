@@ -213,9 +213,9 @@ class YoutubeIE(InfoExtractor):
 		return srt
 
 	def _print_formats(self, formats):
-		print 'Available formats:'
+		print('Available formats:')
 		for x in formats:
-			print '%s\t:\t%s\t[%s]' %(x, self._video_extensions.get(x, 'flv'), self._video_dimensions.get(x, '???'))
+			print('%s\t:\t%s\t[%s]' %(x, self._video_extensions.get(x, 'flv'), self._video_dimensions.get(x, '???')))
 
 	def _real_initialize(self):
 		if self._downloader is None:
@@ -2796,15 +2796,15 @@ class MixcloudIE(InfoExtractor):
 		return None
 
 	def _print_formats(self, formats):
-		print 'Available formats:'
+		print('Available formats:')
 		for fmt in formats.keys():
 			for b in formats[fmt]:
 				try:
 					ext = formats[fmt][b][0]
-					print '%s\t%s\t[%s]' % (fmt, b, ext.split('.')[-1])
+					print('%s\t%s\t[%s]' % (fmt, b, ext.split('.')[-1]))
 				except TypeError: # we have no bitrate info
 					ext = formats[fmt][0]
-					print '%s\t%s\t[%s]' % (fmt, '??', ext.split('.')[-1])
+					print('%s\t%s\t[%s]' % (fmt, '??', ext.split('.')[-1]))
 					break
 
 	def _real_extract(self, url):

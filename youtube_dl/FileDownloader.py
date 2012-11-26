@@ -364,17 +364,17 @@ class FileDownloader(object):
 
 		# Forced printings
 		if self.params.get('forcetitle', False):
-			print info_dict['title'].encode(preferredencoding(), 'xmlcharrefreplace')
+			print(info_dict['title'].encode(preferredencoding(), 'xmlcharrefreplace'))
 		if self.params.get('forceurl', False):
-			print info_dict['url'].encode(preferredencoding(), 'xmlcharrefreplace')
+			print(info_dict['url'].encode(preferredencoding(), 'xmlcharrefreplace'))
 		if self.params.get('forcethumbnail', False) and 'thumbnail' in info_dict:
-			print info_dict['thumbnail'].encode(preferredencoding(), 'xmlcharrefreplace')
+			print(info_dict['thumbnail'].encode(preferredencoding(), 'xmlcharrefreplace'))
 		if self.params.get('forcedescription', False) and 'description' in info_dict:
-			print info_dict['description'].encode(preferredencoding(), 'xmlcharrefreplace')
+			print(info_dict['description'].encode(preferredencoding(), 'xmlcharrefreplace'))
 		if self.params.get('forcefilename', False) and filename is not None:
-			print filename.encode(preferredencoding(), 'xmlcharrefreplace')
+			print(filename.encode(preferredencoding(), 'xmlcharrefreplace'))
 		if self.params.get('forceformat', False):
-			print info_dict['format'].encode(preferredencoding(), 'xmlcharrefreplace')
+			print(info_dict['format'].encode(preferredencoding(), 'xmlcharrefreplace'))
 
 		# Do nothing else if in simulate mode
 		if self.params.get('simulate', False):
