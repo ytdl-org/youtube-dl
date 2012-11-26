@@ -1030,7 +1030,7 @@ class VimeoIE(InfoExtractor):
 	"""Information extractor for vimeo.com."""
 
 	# _VALID_URL matches Vimeo URLs
-	_VALID_URL = r'(?:https?://)?(?:(?:www|player).)?vimeo\.com/(?:groups/[^/]+/)?(?:videos?/)?([0-9]+)'
+	_VALID_URL = r'(?:https?://)?(?:(?:www|player).)?vimeo\.com/(?:(?:groups|album)/[^/]+/)?(?:videos?/)?([0-9]+)'
 	IE_NAME = u'vimeo'
 
 	def __init__(self, downloader=None):
