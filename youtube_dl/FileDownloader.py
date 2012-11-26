@@ -139,23 +139,23 @@ class FileDownloader(object):
 		new_min = max(bytes / 2.0, 1.0)
 		new_max = min(max(bytes * 2.0, 1.0), 4194304) # Do not surpass 4 MB
 		if elapsed_time < 0.001:
-			return long(new_max)
+			return int(new_max)
 		rate = bytes / elapsed_time
 		if rate > new_max:
-			return long(new_max)
+			return int(new_max)
 		if rate < new_min:
-			return long(new_min)
-		return long(rate)
+			return int(new_min)
+		return int(rate)
 
 	@staticmethod
 	def parse_bytes(bytestr):
-		"""Parse a string indicating a byte quantity into a long integer."""
+		"""Parse a string indicating a byte quantity into an integer."""
 		matchobj = re.match(r'(?i)^(\d+(?:\.\d+)?)([kMGTPEZY]?)$', bytestr)
 		if matchobj is None:
 			return None
 		number = float(matchobj.group(1))
 		multiplier = 1024.0 ** 'bkmgtpezy'.index(matchobj.group(2).lower())
-		return long(round(number * multiplier))
+		return int(round(number * multiplier))
 
 	def add_info_extractor(self, ie):
 		"""Add an InfoExtractor object to the end of the list."""
