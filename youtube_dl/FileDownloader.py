@@ -108,7 +108,7 @@ class FileDownloader(object):
 		if bytes == 0.0:
 			exponent = 0
 		else:
-			exponent = long(math.log(bytes, 1024.0))
+			exponent = int(math.log(bytes, 1024.0))
 		suffix = 'bkMGTPEZY'[exponent]
 		converted = float(bytes) / float(1024 ** exponent)
 		return '%.2f%s' % (converted, suffix)
@@ -127,7 +127,7 @@ class FileDownloader(object):
 		if current == 0 or dif < 0.001: # One millisecond
 			return '--:--'
 		rate = float(current) / dif
-		eta = long((float(total) - float(current)) / rate)
+		eta = int((float(total) - float(current)) / rate)
 		(eta_mins, eta_secs) = divmod(eta, 60)
 		if eta_mins > 99:
 			return '--:--'
@@ -617,7 +617,7 @@ class FileDownloader(object):
 					else:
 						# Examine the reported length
 						if (content_length is not None and
-								(resume_len - 100 < long(content_length) < resume_len + 100)):
+								(resume_len - 100 < int(content_length) < resume_len + 100)):
 							# The file had already been fully downloaded.
 							# Explanation to the above condition: in issue #175 it was revealed that
 							# YouTube sometimes adds or removes a few bytes from the end of the file,
@@ -644,7 +644,7 @@ class FileDownloader(object):
 
 		data_len = data.info().get('Content-length', None)
 		if data_len is not None:
-			data_len = long(data_len) + resume_len
+			data_len = int(data_len) + resume_len
 		data_len_str = self.format_bytes(data_len)
 		byte_counter = 0 + resume_len
 		block_size = self.params.get('buffersize', 1024)
@@ -694,7 +694,7 @@ class FileDownloader(object):
 		stream.close()
 		self.report_finish()
 		if data_len is not None and byte_counter != data_len:
-			raise ContentTooShortError(byte_counter, long(data_len))
+			raise ContentTooShortError(byte_counter, int(data_len))
 		self.try_rename(tmpfilename, filename)
 
 		# Update file modification time

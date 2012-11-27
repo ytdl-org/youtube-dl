@@ -449,7 +449,7 @@ def _real_main():
 		opts.ratelimit = numeric_limit
 	if opts.retries is not None:
 		try:
-			opts.retries = long(opts.retries)
+			opts.retries = int(opts.retries)
 		except (TypeError, ValueError), err:
 			parser.error(u'invalid retry count specified')
 	if opts.buffersize is not None:

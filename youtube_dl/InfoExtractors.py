@@ -1456,7 +1456,7 @@ class YoutubeSearchIE(InfoExtractor):
 			return
 		else:
 			try:
-				n = long(prefix)
+				n = int(prefix)
 				if n <= 0:
 					self._downloader.trouble(u'ERROR: invalid download number %s for query "%s"' % (n, query))
 					return
@@ -1534,7 +1534,7 @@ class GoogleSearchIE(InfoExtractor):
 			return
 		else:
 			try:
-				n = long(prefix)
+				n = int(prefix)
 				if n <= 0:
 					self._downloader.trouble(u'ERROR: invalid download number %s for query "%s"' % (n, query))
 					return
@@ -1616,7 +1616,7 @@ class YahooSearchIE(InfoExtractor):
 			return
 		else:
 			try:
-				n = long(prefix)
+				n = int(prefix)
 				if n <= 0:
 					self._downloader.trouble(u'ERROR: invalid download number %s for query "%s"' % (n, query))
 					return
