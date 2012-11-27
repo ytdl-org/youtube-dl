@@ -43,13 +43,13 @@ class InfoExtractor(object):
 	uploader:   Nickname of the video uploader.
 	title:      Video title, unescaped.
 	ext:        Video filename extension.
-	player_url: SWF Player URL (may be None).
 
 	The following fields are optional:
 
-	format:         The video format, defaults to ext. Used by --get-format
+	format:         The video format, defaults to ext (used for --get-format)
 	thumbnail:      Full URL to a video thumbnail image.
 	description     One-line video description.
+	player_url:     SWF Player URL (used for rtmpdump).
 
 	Subclasses of this one should re-define the _real_initialize() and
 	_real_extract() methods and define a _VALID_URL regexp.
@@ -620,7 +620,6 @@ class MetacafeIE(InfoExtractor):
 			'upload_date':	u'NA',
 			'title':	video_title,
 			'ext':		video_extension.decode('utf-8'),
-			'player_url':	None,
 		}]
 
 
@@ -718,7 +717,6 @@ class DailymotionIE(InfoExtractor):
 			'upload_date':	video_upload_date,
 			'title':	video_title,
 			'ext':		video_extension.decode('utf-8'),
-			'player_url':	None,
 		}]
 
 
@@ -812,7 +810,6 @@ class GoogleIE(InfoExtractor):
 			'upload_date':	u'NA',
 			'title':	video_title,
 			'ext':		video_extension.decode('utf-8'),
-			'player_url':	None,
 		}]
 
 
@@ -878,7 +875,6 @@ class PhotobucketIE(InfoExtractor):
 			'upload_date':	u'NA',
 			'title':	video_title,
 			'ext':		video_extension.decode('utf-8'),
-			'player_url':	None,
 		}]
 
 
@@ -1022,7 +1018,6 @@ class YahooIE(InfoExtractor):
 			'thumbnail':	video_thumbnail.decode('utf-8'),
 			'description':	video_description,
 			'thumbnail':	video_thumbnail,
-			'player_url':	None,
 		}]
 
 
@@ -1136,7 +1131,6 @@ class VimeoIE(InfoExtractor):
 			'ext':		video_extension,
 			'thumbnail':	video_thumbnail,
 			'description':	video_description,
-			'player_url':	None,
 		}]
 
 
@@ -1282,7 +1276,6 @@ class GenericIE(InfoExtractor):
 			'upload_date':	u'NA',
 			'title':	video_title,
 			'ext':		video_extension.decode('utf-8'),
-			'player_url':	None,
 		}]
 
 
@@ -1887,7 +1880,6 @@ class DepositFilesIE(InfoExtractor):
 			'upload_date':	u'NA',
 			'title':	file_title,
 			'ext':		file_extension.decode('utf-8'),
-			'player_url':	None,
 		}]
 
 
@@ -2093,7 +2085,6 @@ class FacebookIE(InfoExtractor):
 				'format':	(format_param is None and u'NA' or format_param.decode('utf-8')),
 				'thumbnail':	video_thumbnail.decode('utf-8'),
 				'description':	video_description.decode('utf-8'),
-				'player_url':	None,
 			})
 		return results
 
@@ -2241,7 +2232,6 @@ class MyVideoIE(InfoExtractor):
 			'upload_date':  u'NA',
 			'title':	video_title,
 			'ext':		u'flv',
-			'player_url':	None,
 		}]
 
 class ComedyCentralIE(InfoExtractor):
@@ -2634,7 +2624,6 @@ class XVideosIE(InfoExtractor):
 			'ext': 'flv',
 			'thumbnail': video_thumbnail,
 			'description': None,
-			'player_url': None,
 		}
 
 		return [info]
@@ -2728,7 +2717,6 @@ class SoundcloudIE(InfoExtractor):
 			'upload_date':  upload_date,
 			'title':	title,
 			'ext':		u'mp3',
-			'player_url':	None,
 			'description': description.decode('utf-8')
 		}]
 
@@ -2798,7 +2786,6 @@ class InfoQIE(InfoExtractor):
 			'ext': extension, # Extension is always(?) mp4, but seems to be flv
 			'thumbnail': None,
 			'description': video_description,
-			'player_url': None,
 		}
 
 		return [info]
@@ -3289,17 +3276,16 @@ class XNXXIE(InfoExtractor):
 			return
 		video_thumbnail = result.group(1).decode('utf-8')
 
-		info = {'id': video_id,
-				'url': video_url,
-				'uploader': None,
-				'upload_date': None,
-				'title': video_title,
-				'ext': 'flv',
-				'thumbnail': video_thumbnail,
-				'description': None,
-				'player_url': None}
-
-		return [info]
+		return [{
+			'id': video_id,
+			'url': video_url,
+			'uploader': None,
+			'upload_date': None,
+			'title': video_title,
+			'ext': 'flv',
+			'thumbnail': video_thumbnail,
+			'description': None,
+		}]
 
 
 class GooglePlusIE(InfoExtractor):
@@ -3421,5 +3407,4 @@ class GooglePlusIE(InfoExtractor):
 			'upload_date':	upload_date.decode('utf-8'),
 			'title':	video_title.decode('utf-8'),
 			'ext':		video_extension.decode('utf-8'),
-			'player_url':	None,
 		}]
