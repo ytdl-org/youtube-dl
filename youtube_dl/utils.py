@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import gzip
-import HTMLParser
 import locale
 import os
 import re
@@ -40,6 +39,11 @@ try:
 	import html.entities as compat_html_entities
 except NameError: # Python 2
 	import htmlentitydefs as compat_html_entities
+
+try:
+	import html.parser as compat_html_parser
+except NameError: # Python 2
+	import HTMLParser as compat_html_parser
 
 try:
 	compat_str = unicode # Python 2
@@ -99,8 +103,8 @@ def htmlentity_transform(matchobj):
 	# Unknown entity in name, return its literal representation
 	return (u'&%s;' % entity)
 
-HTMLParser.locatestarttagend = re.compile(r"""<[a-zA-Z][-.a-zA-Z0-9:_]*(?:\s+(?:(?<=['"\s])[^\s/>][^\s/=>]*(?:\s*=+\s*(?:'[^']*'|"[^"]*"|(?!['"])[^>\s]*))?\s*)*)?\s*""", re.VERBOSE) # backport bugfix
-class IDParser(HTMLParser.HTMLParser):
+compat_html_parser.locatestarttagend = re.compile(r"""<[a-zA-Z][-.a-zA-Z0-9:_]*(?:\s+(?:(?<=['"\s])[^\s/>][^\s/=>]*(?:\s*=+\s*(?:'[^']*'|"[^"]*"|(?!['"])[^>\s]*))?\s*)*)?\s*""", re.VERBOSE) # backport bugfix
+class IDParser(compat_html_parser.HTMLParser):
 	"""Modified HTMLParser that isolates a tag with the specified id"""
 	def __init__(self, id):
 		self.id = id
@@ -110,11 +114,11 @@ class IDParser(HTMLParser.HTMLParser):
 		self.html = None
 		self.watch_startpos = False
 		self.error_count = 0
-		HTMLParser.HTMLParser.__init__(self)
+		compat_html_parser.HTMLParser.__init__(self)
 
 	def error(self, message):
 		if self.error_count > 10 or self.started:
-			raise HTMLParser.HTMLParseError(message, self.getpos())
+			raise compat_html_parser.HTMLParseError(message, self.getpos())
 		self.rawdata = '\n'.join(self.html.split('\n')[self.getpos()[0]:]) # skip one line
 		self.error_count += 1
 		self.goahead(1)
@@ -170,7 +174,7 @@ def get_element_by_id(id, html):
 	parser = IDParser(id)
 	try:
 		parser.loads(html)
-	except HTMLParser.HTMLParseError:
+	except compat_html_parser.HTMLParseError:
 		pass
 	return parser.get_result()
 
