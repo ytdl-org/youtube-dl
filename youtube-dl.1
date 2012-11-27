@@ -164,10 +164,15 @@ person who uploaded the video.
 in YYYYMMDD format.
 .IP \[bu] 2
 \f[C]title\f[]: The sequence will be replaced by the video title.
-ext\f[C]:\ The\ sequence\ will\ be\ replaced\ by\ the\ appropriate\ extension\ (like\ flv\ or\ mp4).\ epoch\f[]:
-The sequence will be replaced by the Unix epoch when creating the file.
-autonumber`: The sequence will be replaced by a five-digit number that
-will be increased with each download, starting at zero.
+.IP \[bu] 2
+\f[C]ext\f[]: The sequence will be replaced by the appropriate extension
+(like flv or mp4).
+.IP \[bu] 2
+\f[C]epoch\f[]: The sequence will be replaced by the Unix epoch when
+creating the file.
+.IP \[bu] 2
+\f[C]autonumber\f[]: The sequence will be replaced by a five-digit
+number that will be increased with each download, starting at zero.
 .PP
 The current default template is \f[C]%(id)s.%(ext)s\f[], but that will
 be switchted to \f[C]%(title)s-%(id)s.%(ext)s\f[] (which can be

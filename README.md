@@ -117,9 +117,9 @@ The `-o` option allows users to indicate a template for the output file names. T
  - `uploader`: The sequence will be replaced by the nickname of the person who uploaded the video.
  - `upload_date`: The sequence will be replaced by the upload date in YYYYMMDD format.
  - `title`: The sequence will be replaced by the video title.
-ext`: The sequence will be replaced by the appropriate extension (like flv or mp4).
-epoch`: The sequence will be replaced by the Unix epoch when creating the file.
-autonumber`: The sequence will be replaced by a five-digit number that will be increased with each download, starting at zero.
+ - `ext`: The sequence will be replaced by the appropriate extension (like flv or mp4).
+ - `epoch`: The sequence will be replaced by the Unix epoch when creating the file.
+ - `autonumber`: The sequence will be replaced by a five-digit number that will be increased with each download, starting at zero.
 
 The current default template is `%(id)s.%(ext)s`, but that will be switchted to `%(title)s-%(id)s.%(ext)s` (which can be requested with `-t` at the moment).
 
