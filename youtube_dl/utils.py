@@ -47,7 +47,7 @@ except ImportError: # Python 2
 	import httplib as compat_html_client
 
 try:
-	from urllib.parse.parse_qs import parse_qs as compat_parse_qs
+	from urllib.parse import parse_qs as compat_parse_qs
 except ImportError: # Python 2
 	from urlparse import parse_qs as compat_parse_qs
 
