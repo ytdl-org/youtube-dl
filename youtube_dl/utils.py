@@ -42,9 +42,9 @@ except ImportError: # Python 2
 	import HTMLParser as compat_html_parser
 
 try:
-	import http.client as compat_html_client
+	import http.client as compat_http_client
 except ImportError: # Python 2
-	import httplib as compat_html_client
+	import httplib as compat_http_client
 
 try:
 	from urllib.parse import parse_qs as compat_parse_qs
