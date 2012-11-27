@@ -1,8 +1,11 @@
-# -*- coding: utf-8 -*-
-
 # Various small unit tests
 
+import sys
 import unittest
+
+# Allow direct execution
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 #from youtube_dl.utils import htmlentity_transform
 from youtube_dl.utils import timeconvert
@@ -10,6 +13,10 @@ from youtube_dl.utils import sanitize_filename
 from youtube_dl.utils import unescapeHTML
 from youtube_dl.utils import orderedSet
 
+if sys.version < (3,0):
+	_compat_str = lambda b: b.decode('unicode-escape')
+else:
+	_compat_str = lambda s: s
 
 class TestUtil(unittest.TestCase):
 	def test_timeconvert(self):
@@ -17,56 +24,59 @@ class TestUtil(unittest.TestCase):
 		self.assertTrue(timeconvert('bougrg') is None)
 
 	def test_sanitize_filename(self):
-		self.assertEqual(sanitize_filename(u'abc'), u'abc')
-		self.assertEqual(sanitize_filename(u'abc_d-e'), u'abc_d-e')
+		self.assertEqual(sanitize_filename('abc'), 'abc')
+		self.assertEqual(sanitize_filename('abc_d-e'), 'abc_d-e')
 
-		self.assertEqual(sanitize_filename(u'123'), u'123')
+		self.assertEqual(sanitize_filename('123'), '123')
 
-		self.assertEqual(u'abc_de', sanitize_filename(u'abc/de'))
-		self.assertFalse(u'/' in sanitize_filename(u'abc/de///'))
+		self.assertEqual('abc_de', sanitize_filename('abc/de'))
+		self.assertFalse('/' in sanitize_filename('abc/de///'))
 
-		self.assertEqual(u'abc_de', sanitize_filename(u'abc/<>\\*|de'))
-		self.assertEqual(u'xxx', sanitize_filename(u'xxx/<>\\*|'))
-		self.assertEqual(u'yes no', sanitize_filename(u'yes? no'))
-		self.assertEqual(u'this - that', sanitize_filename(u'this: that'))
+		self.assertEqual('abc_de', sanitize_filename('abc/<>\\*|de'))
+		self.assertEqual('xxx', sanitize_filename('xxx/<>\\*|'))
+		self.assertEqual('yes no', sanitize_filename('yes? no'))
+		self.assertEqual('this - that', sanitize_filename('this: that'))
 
-		self.assertEqual(sanitize_filename(u'AT&T'), u'AT&T')
-		self.assertEqual(sanitize_filename(u'ä'), u'ä')
-		self.assertEqual(sanitize_filename(u'кириллица'), u'кириллица')
+		self.assertEqual(sanitize_filename('AT&T'), 'AT&T')
+		aumlaut = _compat_str('\xe4')
+		self.assertEqual(sanitize_filename(aumlaut), aumlaut)
+		tests = _compat_str('\u043a\u0438\u0440\u0438\u043b\u043b\u0438\u0446\u0430')
+		self.assertEqual(sanitize_filename(tests), tests)
 
-		forbidden = u'"\0\\/'
+		forbidden = '"\0\\/'
 		for fc in forbidden:
 			for fbc in forbidden:
 				self.assertTrue(fbc not in sanitize_filename(fc))
 
 	def test_sanitize_filename_restricted(self):
-		self.assertEqual(sanitize_filename(u'abc', restricted=True), u'abc')
-		self.assertEqual(sanitize_filename(u'abc_d-e', restricted=True), u'abc_d-e')
+		self.assertEqual(sanitize_filename('abc', restricted=True), 'abc')
+		self.assertEqual(sanitize_filename('abc_d-e', restricted=True), 'abc_d-e')
 
-		self.assertEqual(sanitize_filename(u'123', restricted=True), u'123')
+		self.assertEqual(sanitize_filename('123', restricted=True), '123')
 
-		self.assertEqual(u'abc_de', sanitize_filename(u'abc/de', restricted=True))
-		self.assertFalse(u'/' in sanitize_filename(u'abc/de///', restricted=True))
+		self.assertEqual('abc_de', sanitize_filename('abc/de', restricted=True))
+		self.assertFalse('/' in sanitize_filename('abc/de///', restricted=True))
 
-		self.assertEqual(u'abc_de', sanitize_filename(u'abc/<>\\*|de', restricted=True))
-		self.assertEqual(u'xxx', sanitize_filename(u'xxx/<>\\*|', restricted=True))
-		self.assertEqual(u'yes_no', sanitize_filename(u'yes? no', restricted=True))
-		self.assertEqual(u'this_-_that', sanitize_filename(u'this: that', restricted=True))
+		self.assertEqual('abc_de', sanitize_filename('abc/<>\\*|de', restricted=True))
+		self.assertEqual('xxx', sanitize_filename('xxx/<>\\*|', restricted=True))
+		self.assertEqual('yes_no', sanitize_filename('yes? no', restricted=True))
+		self.assertEqual('this_-_that', sanitize_filename('this: that', restricted=True))
 
-		self.assertEqual(sanitize_filename(u'aäb中国的c', restricted=True), u'a_b_c')
-		self.assertTrue(sanitize_filename(u'ö', restricted=True) != u'') # No empty filename
+		tests =_compat_str('a\xe4b\u4e2d\u56fd\u7684c')
+		self.assertEqual(sanitize_filename(tests, restricted=True), 'a_b_c')
+		self.assertTrue(sanitize_filename(_compat_str('\xf6'), restricted=True) != '') # No empty filename
 
-		forbidden = u'"\0\\/&!: \'\t\n'
+		forbidden = '"\0\\/&!: \'\t\n'
 		for fc in forbidden:
 			for fbc in forbidden:
 				self.assertTrue(fbc not in sanitize_filename(fc, restricted=True))
 
 		# Handle a common case more neatly
-		self.assertEqual(sanitize_filename(u'大声带 - Song', restricted=True), u'Song')
-		self.assertEqual(sanitize_filename(u'总统: Speech', restricted=True), u'Speech')
+		self.assertEqual(sanitize_filename(_compat_str('\u5927\u58f0\u5e26 - Song'), restricted=True), 'Song')
+		self.assertEqual(sanitize_filename(_compat_str('\u603b\u7edf: Speech'), restricted=True), 'Speech')
 		# .. but make sure the file name is never empty
-		self.assertTrue(sanitize_filename(u'-', restricted=True) != u'')
-		self.assertTrue(sanitize_filename(u':', restricted=True) != u'')
+		self.assertTrue(sanitize_filename('-', restricted=True) != '')
+		self.assertTrue(sanitize_filename(':', restricted=True) != '')
 
 	def test_ordered_set(self):
 		self.assertEqual(orderedSet([1,1,2,3,4,4,5,6,7,3,5]), [1,2,3,4,5,6,7])
@@ -76,4 +86,7 @@ class TestUtil(unittest.TestCase):
 		self.assertEqual(orderedSet([135,1,1,1]), [135,1])
 
 	def test_unescape_html(self):
-		self.assertEqual(unescapeHTML(u"%20;"), u"%20;")
+		self.assertEqual(unescapeHTML(_compat_str('%20;')), _compat_str('%20;'))
+
+if __name__ == '__main__':
+	unittest.main()
