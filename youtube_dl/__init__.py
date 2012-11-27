@@ -274,7 +274,7 @@ def parseOpts():
 			dest='outtmpl', metavar='TEMPLATE', help='output filename template. Use %(title)s to get the title, %(uploader)s for the uploader name, %(autonumber)s to get an automatically incremented number, %(ext)s for the filename extension, %(upload_date)s for the upload date (YYYYMMDD), %(extractor)s for the provider (youtube, metacafe, etc), %(id)s for the video id and %% for a literal percent. Use - to output to stdout.')
 	filesystem.add_option('--restrict-filenames',
 			action='store_true', dest='restrictfilenames',
-			help='Avoid some characters such as "&" and spaces in filenames', default=False)
+			help='Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames', default=False)
 	filesystem.add_option('-a', '--batch-file',
 			dest='batchfile', metavar='FILE', help='file containing URLs to download (\'-\' for stdin)')
 	filesystem.add_option('-w', '--no-overwrites',

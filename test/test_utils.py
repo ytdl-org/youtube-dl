@@ -22,10 +22,10 @@ class TestUtil(unittest.TestCase):
 
 		self.assertEqual(sanitize_filename(u'123'), u'123')
 
-		self.assertEqual(u'abc-de', sanitize_filename(u'abc/de'))
+		self.assertEqual(u'abc_de', sanitize_filename(u'abc/de'))
 		self.assertFalse(u'/' in sanitize_filename(u'abc/de///'))
 
-		self.assertEqual(u'abc-de', sanitize_filename(u'abc/<>\\*|de'))
+		self.assertEqual(u'abc_de', sanitize_filename(u'abc/<>\\*|de'))
 		self.assertEqual(u'xxx', sanitize_filename(u'xxx/<>\\*|'))
 		self.assertEqual(u'yes no', sanitize_filename(u'yes? no'))
 		self.assertEqual(u'this - that', sanitize_filename(u'this: that'))
@@ -45,13 +45,16 @@ class TestUtil(unittest.TestCase):
 
 		self.assertEqual(sanitize_filename(u'123', restricted=True), u'123')
 
-		self.assertEqual(u'abc-de', sanitize_filename(u'abc/de', restricted=True))
+		self.assertEqual(u'abc_de', sanitize_filename(u'abc/de', restricted=True))
 		self.assertFalse(u'/' in sanitize_filename(u'abc/de///', restricted=True))
 
-		self.assertEqual(u'abc-de', sanitize_filename(u'abc/<>\\*|de', restricted=True))
+		self.assertEqual(u'abc_de', sanitize_filename(u'abc/<>\\*|de', restricted=True))
 		self.assertEqual(u'xxx', sanitize_filename(u'xxx/<>\\*|', restricted=True))
 		self.assertEqual(u'yes_no', sanitize_filename(u'yes? no', restricted=True))
 		self.assertEqual(u'this_-_that', sanitize_filename(u'this: that', restricted=True))
+
+		self.assertEqual(sanitize_filename(u'aäb', restricted=True), u'a_b')
+		self.assertTrue(sanitize_filename(u'ö', restricted=True) != u'') # No empty filename
 
 		forbidden = u'"\0\\/&: \'\t\n'
 		for fc in forbidden:

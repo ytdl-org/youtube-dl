@@ -207,15 +207,20 @@ def sanitize_filename(s, restricted=False):
 		elif char == ':':
 			return '_-' if restricted else ' -'
 		elif char in '\\/|*<>':
-			return '-'
+			return '_'
 		if restricted and (char in '&\'' or char.isspace()):
+			return '_'
+		if restricted and ord(char) > 127:
 			return '_'
 		return char
 
 	result = u''.join(map(replace_insane, s))
-	while '--' in result:
-		result = result.replace('--', '-')
-	return result.strip('-')
+	while '__' in result:
+		result = result.replace('__', '_')
+	result = result.strip('_')
+	if not result:
+		result = '_'
+	return result
 
 def orderedSet(iterable):
 	""" Remove all duplicates from the input iterable """
