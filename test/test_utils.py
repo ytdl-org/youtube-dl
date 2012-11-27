@@ -53,7 +53,7 @@ class TestUtil(unittest.TestCase):
 		self.assertEqual(u'yes_no', sanitize_filename(u'yes? no', restricted=True))
 		self.assertEqual(u'this_-_that', sanitize_filename(u'this: that', restricted=True))
 
-		self.assertEqual(sanitize_filename(u'aäb', restricted=True), u'a_b')
+		self.assertEqual(sanitize_filename(u'aäb中国的c', restricted=True), u'a_b_c')
 		self.assertTrue(sanitize_filename(u'ö', restricted=True) != u'') # No empty filename
 
 		forbidden = u'"\0\\/&: \'\t\n'
