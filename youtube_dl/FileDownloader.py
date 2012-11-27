@@ -94,6 +94,9 @@ class FileDownloader(object):
 		self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
 		self.params = params
 
+		if '%(stitle)s' in self.params['outtmpl']:
+			self.to_stderr(u'WARNING: %(stitle)s is deprecated. Use the %(title)s and the --restrict-filenames flag(which also secures %(uploader)s et al) instead.')
+
 	@staticmethod
 	def format_bytes(bytes):
 		if bytes is None:

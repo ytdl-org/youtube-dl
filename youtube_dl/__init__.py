@@ -532,7 +532,7 @@ def _real_main():
 			parser.error(u'you must provide at least one URL')
 		else:
 			sys.exit()
-	
+
 	try:
 		retcode = fd.download(all_urls)
 	except MaxDownloadsReached:
