@@ -327,8 +327,10 @@ class FileDownloader(object):
 		"""Generate the output filename."""
 		try:
 			template_dict = dict(info_dict)
-			template_dict['epoch'] = unicode(int(time.time()))
-			template_dict['autonumber'] = unicode('%05d' % self._num_downloads)
+			template_dict['epoch'] = int(time.time())
+			template_dict['autonumber'] = u'%05d' % self._num_downloads
+
+			template_dict = dict((k, sanitize_filename(compat_str(v), self.params.get('restrictfilenames'))) for k,v in template_dict.items())
 			filename = self.params['outtmpl'] % template_dict
 			return filename
 		except (ValueError, KeyError), err:
@@ -368,7 +370,6 @@ class FileDownloader(object):
 				raise MaxDownloadsReached()
 
 		filename = self.prepare_filename(info_dict)
-		filename = sanitize_filename(filename, self.params.get('restrictfilenames'))
 
 		# Forced printings
 		if self.params.get('forcetitle', False):
