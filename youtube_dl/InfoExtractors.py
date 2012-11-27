@@ -2361,6 +2361,17 @@ class ComedyCentralIE(InfoExtractor):
 			# For now, just pick the highest bitrate
 			format,video_url = turls[-1]
 
+			# Patch to download from alternative CDN, which does not 
+                        # break on current RTMPDump builds
+            
+
+			broken_cdn = "rtmpe://viacomccstrmfs.fplive.net/viacomccstrm/gsp.comedystor/"
+			better_cdn = "rtmpe://cp10740.edgefcs.net/ondemand/mtvnorigin/gsp.comedystor/"
+            
+			if video_url.startswith(broken_cdn):
+                            video_url = video_url.replace(broken_cdn, better_cdn)
+                    
+
 			effTitle = showId + u'-' + epTitle
 			info = {
 				'id': shortMediaId,
@@ -2372,7 +2383,7 @@ class ComedyCentralIE(InfoExtractor):
 				'format': format,
 				'thumbnail': None,
 				'description': officialTitle,
-				'player_url': playerUrl
+				'player_url': None #playerUrl
 			}
 
 			results.append(info)
