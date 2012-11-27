@@ -409,7 +409,7 @@ def _real_main():
 		except IOError:
 			sys.exit(u'ERROR: batch file could not be read')
 	all_urls = batchurls + args
-	all_urls = map(lambda url: url.strip(), all_urls)
+	all_urls = [url.strip() for url in all_urls]
 
 	# General configuration
 	cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
