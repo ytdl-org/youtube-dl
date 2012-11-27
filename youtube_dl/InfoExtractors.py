@@ -2390,7 +2390,7 @@ class ComedyCentralIE(InfoExtractor):
 		            return
 
 			# For now, just pick the highest bitrate
- 			format,video_url = turls[-1]
+			format,video_url = turls[-1]
 
 			# Get the format arg from the arg stream
 			req_format = self._downloader.params.get('format', None)
