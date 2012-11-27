@@ -179,7 +179,7 @@ class FileDownloader(object):
 		if not self.params.get('quiet', False):
 			terminator = [u'\n', u''][skip_eol]
 			output = message + terminator
-			if 'b' not in self._screen_file.mode or sys.version_info[0] < 3: # Python 2 lies about the mode of sys.stdout/sys.stderr
+			if 'b' in getattr(self._screen_file, 'mode', '') or sys.version_info[0] < 3: # Python 2 lies about the mode of sys.stdout/sys.stderr
 				output = output.encode(preferredencoding(), 'ignore')
 			self._screen_file.write(output)
 			self._screen_file.flush()
