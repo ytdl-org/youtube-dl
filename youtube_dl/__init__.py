@@ -29,7 +29,6 @@ UPDATE_URL_VERSION = 'https://raw.github.com/rg3/youtube-dl/master/LATEST_VERSIO
 UPDATE_URL_EXE = 'https://raw.github.com/rg3/youtube-dl/master/youtube-dl.exe'
 
 
-import cookielib
 import getpass
 import optparse
 import os
@@ -38,7 +37,6 @@ import shlex
 import socket
 import subprocess
 import sys
-import urllib2
 import warnings
 
 from utils import *
@@ -55,7 +53,7 @@ def updateSelf(downloader, filename):
 
 	downloader.to_screen(u'Updating to latest version...')
 
-	urlv = urllib2.urlopen(UPDATE_URL_VERSION)
+	urlv = compat_urllib_request.urlopen(UPDATE_URL_VERSION)
 	newversion = urlv.read().strip()
 	if newversion == __version__:
 		downloader.to_screen(u'youtube-dl is up-to-date (' + __version__ + ')')
@@ -69,7 +67,7 @@ def updateSelf(downloader, filename):
 			sys.exit('ERROR: no write permissions on %s' % directory)
 
 		try:
-			urlh = urllib2.urlopen(UPDATE_URL_EXE)
+			urlh = compat_urllib_request.urlopen(UPDATE_URL_EXE)
 			newcontent = urlh.read()
 			urlh.close()
 			with open(exe + '.new', 'wb') as outf:
@@ -94,7 +92,7 @@ del "%s"
 
 	else:
 		try:
-			urlh = urllib2.urlopen(UPDATE_URL)
+			urlh = compat_urllib_request.urlopen(UPDATE_URL)
 			newcontent = urlh.read()
 			urlh.close()
 		except (IOError, OSError) as err:
@@ -380,10 +378,10 @@ def _real_main():
 
 	# Open appropriate CookieJar
 	if opts.cookiefile is None:
-		jar = cookielib.CookieJar()
+		jar = compat_cookiejar.CookieJar()
 	else:
 		try:
-			jar = cookielib.MozillaCookieJar(opts.cookiefile)
+			jar = compat_cookiejar.MozillaCookieJar(opts.cookiefile)
 			if os.path.isfile(opts.cookiefile) and os.access(opts.cookiefile, os.R_OK):
 				jar.load()
 		except (IOError, OSError) as err:
@@ -414,10 +412,10 @@ def _real_main():
 	all_urls = map(lambda url: url.strip(), all_urls)
 
 	# General configuration
-	cookie_processor = urllib2.HTTPCookieProcessor(jar)
-	proxy_handler = urllib2.ProxyHandler()
-	opener = urllib2.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
-	urllib2.install_opener(opener)
+	cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
+	proxy_handler = compat_urllib_request.ProxyHandler()
+	opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
+	compat_urllib_request.install_opener(opener)
 	socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
 
 	extractors = gen_extractors()

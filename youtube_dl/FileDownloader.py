@@ -9,7 +9,6 @@ import socket
 import subprocess
 import sys
 import time
-import urllib2
 
 if os.name == 'nt':
 	import ctypes
@@ -461,7 +460,7 @@ class FileDownloader(object):
 					success = self._do_download(filename, info_dict)
 				except (OSError, IOError) as err:
 					raise UnavailableVideoError
-				except (urllib2.URLError, httplib.HTTPException, socket.error) as err:
+				except (compat_urllib_error.URLError, httplib.HTTPException, socket.error) as err:
 					self.trouble(u'ERROR: unable to download video data: %s' % str(err))
 					return
 				except (ContentTooShortError, ) as err:
@@ -585,8 +584,8 @@ class FileDownloader(object):
 
 		# Do not include the Accept-Encoding header
 		headers = {'Youtubedl-no-compression': 'True'}
-		basic_request = urllib2.Request(url, None, headers)
-		request = urllib2.Request(url, None, headers)
+		basic_request = compat_urllib_request.Request(url, None, headers)
+		request = compat_urllib_request.Request(url, None, headers)
 
 		# Establish possible resume length
 		if os.path.isfile(encodeFilename(tmpfilename)):
@@ -610,9 +609,9 @@ class FileDownloader(object):
 			try:
 				if count == 0 and 'urlhandle' in info_dict:
 					data = info_dict['urlhandle']
-				data = urllib2.urlopen(request)
+				data = compat_urllib_request.urlopen(request)
 				break
-			except (urllib2.HTTPError, ) as err:
+			except (compat_urllib_error.HTTPError, ) as err:
 				if (err.code < 500 or err.code >= 600) and err.code != 416:
 					# Unexpected HTTP error
 					raise
@@ -620,9 +619,9 @@ class FileDownloader(object):
 					# Unable to resume (requested range not satisfiable)
 					try:
 						# Open the connection again without the range header
-						data = urllib2.urlopen(basic_request)
+						data = compat_urllib_request.urlopen(basic_request)
 						content_length = data.info()['Content-Length']
-					except (urllib2.HTTPError, ) as err:
+					except (compat_urllib_error.HTTPError, ) as err:
 						if err.code < 500 or err.code >= 600:
 							raise
 					else:

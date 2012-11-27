@@ -9,7 +9,6 @@ import os
 import re
 import sys
 import zlib
-import urllib2
 import email.utils
 import json
 
@@ -30,6 +29,26 @@ try:
 	compat_str = unicode # Python 2
 except NameError:
 	compat_str = str
+
+try:
+	import urllib.request as compat_urllib_request
+except ImportError: # Python 2
+	import urllib2 as compat_urllib_request
+
+try:
+	import urllib.error as compat_urllib_error
+except ImportError: # Python 2
+	import urllib2 as compat_urllib_error
+
+try:
+	import urllib.parse as compat_urllib_parse
+except ImportError: # Python 2
+	import urllib2 as compat_urllib_parse
+
+try:
+	import http.cookiejar as compat_cookiejar
+except ImportError: # Python 2
+	import cookielib as compat_cookiejar
 
 def preferredencoding():
 	"""Get preferred encoding.
@@ -320,7 +339,7 @@ class Trouble(Exception):
 	FileDownloader.trouble
 	"""
 
-class YoutubeDLHandler(urllib2.HTTPHandler):
+class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
 	"""Handler for HTTP requests and responses.
 
 	This class, when installed with an OpenerDirector, automatically adds
@@ -347,9 +366,9 @@ class YoutubeDLHandler(urllib2.HTTPHandler):
 
 	@staticmethod
 	def addinfourl_wrapper(stream, headers, url, code):
-		if hasattr(urllib2.addinfourl, 'getcode'):
-			return urllib2.addinfourl(stream, headers, url, code)
-		ret = urllib2.addinfourl(stream, headers, url)
+		if hasattr(compat_urllib_request.addinfourl, 'getcode'):
+			return compat_urllib_request.addinfourl(stream, headers, url, code)
+		ret = compat_urllib_request.addinfourl(stream, headers, url)
 		ret.code = code
 		return ret
 
