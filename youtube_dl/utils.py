@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import gzip
-import htmlentitydefs
 import HTMLParser
 import locale
 import os
@@ -16,19 +15,6 @@ try:
 	import cStringIO as StringIO
 except ImportError:
 	import StringIO
-
-std_headers = {
-	'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0',
-	'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
-	'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-	'Accept-Encoding': 'gzip, deflate',
-	'Accept-Language': 'en-us,en;q=0.5',
-}
-
-try:
-	compat_str = unicode # Python 2
-except NameError:
-	compat_str = str
 
 try:
 	import urllib.request as compat_urllib_request
@@ -50,6 +36,29 @@ try:
 except ImportError: # Python 2
 	import cookielib as compat_cookiejar
 
+try:
+	import html.entities as compat_html_entities
+except NameError: # Python 2
+	import htmlentitydefs as compat_html_entities
+
+try:
+	compat_str = unicode # Python 2
+except NameError:
+	compat_str = str
+
+try:
+	compat_chr = unichr # Python 2
+except NameError:
+	compat_chr = chr
+
+
+std_headers = {
+	'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0',
+	'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
+	'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+	'Accept-Encoding': 'gzip, deflate',
+	'Accept-Language': 'en-us,en;q=0.5',
+}
 def preferredencoding():
 	"""Get preferred encoding.
 
@@ -74,8 +83,8 @@ def htmlentity_transform(matchobj):
 	entity = matchobj.group(1)
 
 	# Known non-numeric HTML entity
-	if entity in htmlentitydefs.name2codepoint:
-		return unichr(htmlentitydefs.name2codepoint[entity])
+	if entity in compat_html_entities.name2codepoint:
+		return compat_chr(compat_html_entities.name2codepoint[entity])
 
 	mobj = re.match(u'(?u)#(x?\\d+)', entity)
 	if mobj is not None:
@@ -85,7 +94,7 @@ def htmlentity_transform(matchobj):
 			numstr = u'0%s' % numstr
 		else:
 			base = 10
-		return unichr(int(numstr, base))
+		return compat_chr(int(numstr, base))
 
 	# Unknown entity in name, return its literal representation
 	return (u'&%s;' % entity)
