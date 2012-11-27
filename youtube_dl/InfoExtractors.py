@@ -2365,7 +2365,6 @@ class ComedyCentralIE(InfoExtractor):
                         # break on current RTMPDump builds
             
 
-			print "HELLO, WORLD!", video_url
 			broken_cdn = "rtmpe://viacomccstrmfs.fplive.net/viacomccstrm/gsp.comedystor/"
 			better_cdn = "rtmpe://cp10740.edgefcs.net/ondemand/mtvnorigin/gsp.comedystor/"
             
