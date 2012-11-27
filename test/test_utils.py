@@ -58,7 +58,6 @@ class TestUtil(unittest.TestCase):
 
 		forbidden = u'"\0\\/&: \'\t\n'
 		for fc in forbidden:
-			print('input: ' + fc + ', result: ' + repr(sanitize_filename(fc, restricted=True)))
 			for fbc in forbidden:
 				self.assertTrue(fbc not in sanitize_filename(fc, restricted=True))
 
