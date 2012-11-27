@@ -40,7 +40,7 @@ class InfoExtractor(object):
 
 	id:             Video identifier.
 	url:            Final video URL.
-	uploader:       Nickname of the video uploader.
+	uploader:       Nickname of the video uploader, unescaped.
 	upload_date:    Video upload date (YYYYMMDD).
 	title:          Video title, unescaped.
 	ext:            Video filename extension.
@@ -51,6 +51,8 @@ class InfoExtractor(object):
 	thumbnail:      Full URL to a video thumbnail image.
 	description:    One-line video description.
 	player_url:     SWF Player URL (used for rtmpdump).
+
+	The fields should all be Unicode strings.
 
 	Subclasses of this one should re-define the _real_initialize() and
 	_real_extract() methods and define a _VALID_URL regexp.
@@ -1018,7 +1020,6 @@ class YahooIE(InfoExtractor):
 			'ext':		video_extension.decode('utf-8'),
 			'thumbnail':	video_thumbnail.decode('utf-8'),
 			'description':	video_description,
-			'thumbnail':	video_thumbnail,
 		}]
 
 
@@ -2129,6 +2130,8 @@ class BlipTVIE(InfoExtractor):
 				info = {
 					'id': title,
 					'url': url,
+					'uploader': u'NA',
+					'upload_date': u'NA',
 					'title': title,
 					'ext': ext,
 					'urlhandle': urlh
@@ -2486,7 +2489,7 @@ class EscapistIE(InfoExtractor):
 			'id': videoId,
 			'url': videoUrl,
 			'uploader': showName,
-			'upload_date': None,
+			'upload_date': u'NA',
 			'title': showName,
 			'ext': 'flv',
 			'thumbnail': imgUrl,
@@ -2535,6 +2538,8 @@ class CollegeHumorIE(InfoExtractor):
 		info = {
 			'id': video_id,
 			'internal_id': internal_video_id,
+			'uploader': u'NA',
+			'upload_date': u'NA',
 		}
 
 		self.report_extraction(video_id)
@@ -2619,8 +2624,8 @@ class XVideosIE(InfoExtractor):
 		info = {
 			'id': video_id,
 			'url': video_url,
-			'uploader': None,
-			'upload_date': None,
+			'uploader': u'NA',
+			'upload_date': u'NA',
 			'title': video_title,
 			'ext': 'flv',
 			'thumbnail': video_thumbnail,
@@ -2700,7 +2705,7 @@ class SoundcloudIE(InfoExtractor):
 			description = mobj.group(1)
 
 		# upload date
-		upload_date = None
+		upload_date = u'NA'
 		mobj = re.search("pretty-date'>on ([\w]+ [\d]+, [\d]+ \d+:\d+)</abbr></h2>", webpage)
 		if mobj:
 			try:
@@ -2781,8 +2786,8 @@ class InfoQIE(InfoExtractor):
 		info = {
 			'id': video_id,
 			'url': video_url,
-			'uploader': None,
-			'upload_date': None,
+			'uploader': u'NA',
+			'upload_date': u'NA',
 			'title': video_title,
 			'ext': extension, # Extension is always(?) mp4, but seems to be flv
 			'thumbnail': None,
@@ -2929,6 +2934,8 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			video = mobj.group('video')
 			info = {
 				'id': course + '_' + video,
+				'uploader': u'NA',
+				'upload_date': u'NA',
 			}
 
 			self.report_extraction(info['id'])
@@ -2953,6 +2960,8 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			info = {
 				'id': course,
 				'type': 'playlist',
+				'uploader': u'NA',
+				'upload_date': u'NA',
 			}
 
 			self.report_download_webpage(info['id'])
@@ -2989,6 +2998,8 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			info = {
 				'id': 'Stanford OpenClassroom',
 				'type': 'playlist',
+				'uploader': u'NA',
+				'upload_date': u'NA',
 			}
 
 			self.report_download_webpage(info['id'])
@@ -3097,6 +3108,7 @@ class MTVIE(InfoExtractor):
 			'id': video_id,
 			'url': video_url,
 			'uploader': performer,
+			'upload_date': u'NA',
 			'title': video_title,
 			'ext': ext,
 			'format': format,
@@ -3217,7 +3229,8 @@ class YoukuIE(InfoExtractor):
 			info = {
 				'id': '%s_part%02d' % (video_id, index),
 				'url': download_url,
-				'uploader': None,
+				'uploader': u'NA',
+				'upload_date': u'NA',
 				'title': video_title,
 				'ext': ext,
 			}
@@ -3280,8 +3293,8 @@ class XNXXIE(InfoExtractor):
 		return [{
 			'id': video_id,
 			'url': video_url,
-			'uploader': None,
-			'upload_date': None,
+			'uploader': u'NA',
+			'upload_date': u'NA',
 			'title': video_title,
 			'ext': 'flv',
 			'thumbnail': video_thumbnail,
