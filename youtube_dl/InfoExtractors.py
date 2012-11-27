@@ -2332,10 +2332,19 @@ class ComedyCentralIE(InfoExtractor):
 			epTitle = mobj.group('episode')
 
 		mMovieParams = re.findall('(?:<param name="movie" value="|var url = ")(http://media.mtvnservices.com/([^"]*episode.*?:.*?))"', html)
-		if len(mMovieParams) == 0:
-			self._downloader.trouble(u'ERROR: unable to find Flash URL in webpage ' + url)
-			return
 
+		if len(mMovieParams) == 0:
+			# The Colbert Report embeds the information in a without
+			# a URL prefix; so extract the alternate reference
+			# and then add the URL prefix manually.
+
+			altMovieParams = re.findall('data-mgid="([^"]*episode.*?:.*?)"', html)
+			if len(altMovieParams) == 0:
+				self._downloader.trouble(u'ERROR: unable to find Flash URL in webpage ' + url)
+				return
+			else:
+				mMovieParams = [("http://media.mtvnservices.com/" + altMovieParams[0], altMovieParams[0])]
+		
 		playerUrl_raw = mMovieParams[0][0]
 		self.report_player_url(epTitle)
 		try:
