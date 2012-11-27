@@ -27,9 +27,9 @@ std_headers = {
 }
 
 try:
-	compat_str = unicode # Python 2
+	u = unicode # Python 2
 except NameError:
-	compat_str = str
+	u = str
 
 def preferredencoding():
 	"""Get preferred encoding.
@@ -47,7 +47,7 @@ def preferredencoding():
 
 
 def htmlentity_transform(matchobj):
-	"""Transforms an HTML entity to a Unicode character.
+	"""Transforms an HTML entity to a character.
 
 	This function receives a match object and is intended to be used with
 	the re.sub() function.
@@ -58,7 +58,6 @@ def htmlentity_transform(matchobj):
 	if entity in htmlentitydefs.name2codepoint:
 		return unichr(htmlentitydefs.name2codepoint[entity])
 
-	# Unicode character
 	mobj = re.match(ur'(?u)#(x?\d+)', entity)
 	if mobj is not None:
 		numstr = mobj.group(1)
@@ -67,7 +66,7 @@ def htmlentity_transform(matchobj):
 			numstr = u'0%s' % numstr
 		else:
 			base = 10
-		return unichr(long(numstr, base))
+		return unichr(int(numstr, base))
 
 	# Unknown entity in name, return its literal representation
 	return (u'&%s;' % entity)
@@ -235,7 +234,7 @@ def orderedSet(iterable):
 
 def unescapeHTML(s):
 	"""
-	@param s a string (of type unicode)
+	@param s a string
 	"""
 	assert type(s) == type(u'')
 
@@ -244,7 +243,7 @@ def unescapeHTML(s):
 
 def encodeFilename(s):
 	"""
-	@param s The name of the file (of type unicode)
+	@param s The name of the file
 	"""
 
 	assert type(s) == type(u'')

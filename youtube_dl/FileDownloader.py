@@ -330,7 +330,7 @@ class FileDownloader(object):
 			template_dict['epoch'] = int(time.time())
 			template_dict['autonumber'] = u'%05d' % self._num_downloads
 
-			template_dict = dict((k, sanitize_filename(compat_str(v), self.params.get('restrictfilenames'))) for k,v in template_dict.items())
+			template_dict = dict((k, sanitize_filename(u(v), self.params.get('restrictfilenames'))) for k,v in template_dict.items())
 			filename = self.params['outtmpl'] % template_dict
 			return filename
 		except (ValueError, KeyError), err:
@@ -397,7 +397,7 @@ class FileDownloader(object):
 			if dn != '' and not os.path.exists(dn): # dn is already encoded
 				os.makedirs(dn)
 		except (OSError, IOError), err:
-			self.trouble(u'ERROR: unable to create directory ' + unicode(err))
+			self.trouble(u'ERROR: unable to create directory ' + u(err))
 			return
 
 		if self.params.get('writedescription', False):
