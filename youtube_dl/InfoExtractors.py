@@ -2291,7 +2291,6 @@ class ComedyCentralIE(InfoExtractor):
 			print('%s\t:\t%s\t[%s]' %(x, self._video_extensions.get(x, 'mp4'), self._video_dimensions.get(x, '???')))
 
 
-
 	def _real_extract(self, url):
 		mobj = re.match(self._VALID_URL, url)
 		if mobj is None:
@@ -2386,8 +2385,8 @@ class ComedyCentralIE(InfoExtractor):
 				continue
 			
 			if self._downloader.params.get('listformats', None):
-			    self._print_formats([i[0] for i in turls])
-		            return
+				self._print_formats([i[0] for i in turls])
+				return
 
 			# For now, just pick the highest bitrate
 			format,video_url = turls[-1]
@@ -2397,20 +2396,17 @@ class ComedyCentralIE(InfoExtractor):
 
 			# Select format if we can find one
 			for f,v in turls:
-			    if f == req_format:
-			      format, video_url = f, v
-			      break
+				if f == req_format:
+					format, video_url = f, v
+					break
 
-			# Patch to download from alternative CDN, which does not 
-                        # break on current RTMPDump builds
-            
-
+			# Patch to download from alternative CDN, which does not
+			# break on current RTMPDump builds
 			broken_cdn = "rtmpe://viacomccstrmfs.fplive.net/viacomccstrm/gsp.comedystor/"
 			better_cdn = "rtmpe://cp10740.edgefcs.net/ondemand/mtvnorigin/gsp.comedystor/"
-            
+
 			if video_url.startswith(broken_cdn):
-                            video_url = video_url.replace(broken_cdn, better_cdn)
-                    
+				video_url = video_url.replace(broken_cdn, better_cdn)
 
 			effTitle = showId + u'-' + epTitle
 			info = {
