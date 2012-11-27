@@ -38,17 +38,18 @@ class InfoExtractor(object):
 
 	The dictionaries must include the following fields:
 
-	id:         Video identifier.
-	url:        Final video URL.
-	uploader:   Nickname of the video uploader.
-	title:      Video title, unescaped.
-	ext:        Video filename extension.
+	id:             Video identifier.
+	url:            Final video URL.
+	uploader:       Nickname of the video uploader.
+	upload_date:    Video upload date (YYYYMMDD).
+	title:          Video title, unescaped.
+	ext:            Video filename extension.
 
 	The following fields are optional:
 
 	format:         The video format, defaults to ext (used for --get-format)
 	thumbnail:      Full URL to a video thumbnail image.
-	description     One-line video description.
+	description:    One-line video description.
 	player_url:     SWF Player URL (used for rtmpdump).
 
 	Subclasses of this one should re-define the _real_initialize() and
