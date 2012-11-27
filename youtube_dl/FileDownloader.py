@@ -327,10 +327,13 @@ class FileDownloader(object):
 		"""Generate the output filename."""
 		try:
 			template_dict = dict(info_dict)
+
 			template_dict['epoch'] = int(time.time())
 			template_dict['autonumber'] = u'%05d' % self._num_downloads
 
+			template_dict = dict((key, u'NA' if val is None else val) for key, val in template_dict.items())
 			template_dict = dict((k, sanitize_filename(u(v), self.params.get('restrictfilenames'))) for k,v in template_dict.items())
+
 			filename = self.params['outtmpl'] % template_dict
 			return filename
 		except (ValueError, KeyError), err:
@@ -358,6 +361,9 @@ class FileDownloader(object):
 
 		# Keep for backwards compatibility
 		info_dict['stitle'] = info_dict['title']
+
+		if not 'format' in info_dict:
+			info_dict['format'] = info_dict['ext']
 
 		reason = self._match_entry(info_dict)
 		if reason is not None:
@@ -480,6 +486,11 @@ class FileDownloader(object):
 				# Go to next InfoExtractor if not suitable
 				if not ie.suitable(url):
 					continue
+
+				# Warn if the _WORKING attribute is False
+				if not ie.working():
+					self.trouble(u'WARNING: the program functionality for this site has been marked as broken, '
+						         u'and will probably not work. If you want to go on, use the -i option.')
 
 				# Suitable InfoExtractor found
 				suitable_found = True
