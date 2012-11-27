@@ -1,4 +1,4 @@
-% youtube-dl(1)
+% YOUTUBE-DL(1)
 
 # NAME
 youtube-dl
