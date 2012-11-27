@@ -33,19 +33,23 @@ except ImportError: # Python 2
 
 try:
 	import html.entities as compat_html_entities
-except NameError: # Python 2
+except ImportError: # Python 2
 	import htmlentitydefs as compat_html_entities
 
 try:
 	import html.parser as compat_html_parser
-except NameError: # Python 2
+except ImportError: # Python 2
 	import HTMLParser as compat_html_parser
 
 try:
 	import http.client as compat_html_client
-except NameError: # Python 2
+except ImportError: # Python 2
 	import httplib as compat_html_client
 
+try:
+	from urllib.parse.parse_qs import parse_qs as compat_parse_qs
+except ImportError: # Python 2
+	from urlparse import parse_qs as compat_parse_qs
 
 try:
 	compat_str = unicode # Python 2

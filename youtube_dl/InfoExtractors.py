@@ -11,7 +11,6 @@ import email.utils
 import xml.etree.ElementTree
 import random
 import math
-from urlparse import parse_qs
 
 from utils import *
 
@@ -329,7 +328,7 @@ class YoutubeIE(InfoExtractor):
 			request = compat_urllib_request.Request(video_info_url)
 			try:
 				video_info_webpage = compat_urllib_request.urlopen(request).read()
-				video_info = parse_qs(video_info_webpage)
+				video_info = compat_parse_qs(video_info_webpage)
 				if 'token' in video_info:
 					break
 			except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
@@ -437,7 +436,7 @@ class YoutubeIE(InfoExtractor):
 			video_url_list = [(None, video_info['conn'][0])]
 		elif 'url_encoded_fmt_stream_map' in video_info and len(video_info['url_encoded_fmt_stream_map']) >= 1:
 			url_data_strs = video_info['url_encoded_fmt_stream_map'][0].split(',')
-			url_data = [parse_qs(uds) for uds in url_data_strs]
+			url_data = [compat_parse_qs(uds) for uds in url_data_strs]
 			url_data = filter(lambda ud: 'itag' in ud and 'url' in ud, url_data)
 			url_map = dict((ud['itag'][0], ud['url'][0] + '&signature=' + ud['sig'][0]) for ud in url_data)
 
@@ -594,7 +593,7 @@ class MetacafeIE(InfoExtractor):
 			if mobj is None:
 				self._downloader.trouble(u'ERROR: unable to extract media URL')
 				return
-			vardict = parse_qs(mobj.group(1))
+			vardict = compat_parse_qs(mobj.group(1))
 			if 'mediaData' not in vardict:
 				self._downloader.trouble(u'ERROR: unable to extract media URL')
 				return
