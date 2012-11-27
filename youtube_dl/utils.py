@@ -37,15 +37,13 @@ def preferredencoding():
 	Returns the best encoding scheme for the system, based on
 	locale.getpreferredencoding() and some further tweaks.
 	"""
-	def yield_preferredencoding():
-		try:
-			pref = locale.getpreferredencoding()
-			u'TEST'.encode(pref)
-		except:
-			pref = 'UTF-8'
-		while True:
-			yield pref
-	return yield_preferredencoding().next()
+	try:
+		pref = locale.getpreferredencoding()
+		u'TEST'.encode(pref)
+	except:
+		pref = 'UTF-8'
+
+	return pref
 
 
 def htmlentity_transform(matchobj):
