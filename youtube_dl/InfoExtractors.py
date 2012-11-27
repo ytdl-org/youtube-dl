@@ -308,10 +308,12 @@ class YoutubeIE(InfoExtractor):
 		self.report_video_webpage_download(video_id)
 		request = compat_urllib_request.Request('http://www.youtube.com/watch?v=%s&gl=US&hl=en&has_verified=1' % video_id)
 		try:
-			video_webpage = compat_urllib_request.urlopen(request).read()
+			video_webpage_bytes = compat_urllib_request.urlopen(request).read()
 		except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
 			self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err))
 			return
+
+		video_webpage = video_webpage_bytes.decode('utf-8', 'ignore')
 
 		# Attempt to extract SWF player URL
 		mobj = re.search(r'swfConfig.*?"(http:\\/\\/.*?watch.*?-.*?\.swf)"', video_webpage)
@@ -327,7 +329,8 @@ class YoutubeIE(InfoExtractor):
 					% (video_id, el_type))
 			request = compat_urllib_request.Request(video_info_url)
 			try:
-				video_info_webpage = compat_urllib_request.urlopen(request).read()
+				video_info_webpage_bytes = compat_urllib_request.urlopen(request).read()
+				video_info_webpage = video_info_webpage_bytes.decode('utf-8', 'ignore')
 				video_info = compat_parse_qs(video_info_webpage)
 				if 'token' in video_info:
 					break
@@ -360,7 +363,6 @@ class YoutubeIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract video title')
 			return
 		video_title = compat_urllib_parse.unquote_plus(video_info['title'][0])
-		video_title = video_title.decode('utf-8')
 
 		# thumbnail image
 		if 'thumbnail_url' not in video_info:
@@ -382,10 +384,12 @@ class YoutubeIE(InfoExtractor):
 					pass
 
 		# description
-		video_description = get_element_by_id("eow-description", video_webpage.decode('utf8'))
-		if video_description: video_description = clean_html(video_description)
-		else: video_description = ''
-			
+		video_description = get_element_by_id("eow-description", video_webpage)
+		if video_description:
+			video_description = clean_html(video_description)
+		else:
+			video_description = ''
+
 		# closed captions
 		video_subtitles = None
 		if self._downloader.params.get('writesubtitles', False):
@@ -480,18 +484,18 @@ class YoutubeIE(InfoExtractor):
 			# Extension
 			video_extension = self._video_extensions.get(format_param, 'flv')
 
-			video_format = '{} - {}'.format(format_param.decode('utf-8') if format_param else video_extension.decode('utf-8'),
+			video_format = '{} - {}'.format(format_param if format_param else video_extension,
 				                            self._video_dimensions.get(format_param, '???'))
 
 			results.append({
-				'id':		video_id.decode('utf-8'),
-				'url':		video_real_url.decode('utf-8'),
-				'uploader':	video_uploader.decode('utf-8'),
+				'id':		video_id,
+				'url':		video_real_url,
+				'uploader':	video_uploader,
 				'upload_date':	upload_date,
 				'title':	video_title,
-				'ext':		video_extension.decode('utf-8'),
+				'ext':		video_extension,
 				'format':	video_format,
-				'thumbnail':	video_thumbnail.decode('utf-8'),
+				'thumbnail':	video_thumbnail,
 				'description':	video_description,
 				'player_url':	player_url,
 				'subtitles':	video_subtitles,
