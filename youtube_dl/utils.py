@@ -218,6 +218,9 @@ def sanitize_filename(s, restricted=False):
 	while '__' in result:
 		result = result.replace('__', '_')
 	result = result.strip('_')
+	# Common case of "Foreign band name - English song title"
+	if restricted and result.startswith('-_'):
+		result = result[2:]
 	if not result:
 		result = '_'
 	return result

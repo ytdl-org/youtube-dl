@@ -61,6 +61,13 @@ class TestUtil(unittest.TestCase):
 			for fbc in forbidden:
 				self.assertTrue(fbc not in sanitize_filename(fc, restricted=True))
 
+		# Handle a common case more neatly
+		self.assertEqual(sanitize_filename(u'大声带 - Song', restricted=True), u'Song')
+		self.assertEqual(sanitize_filename(u'总统: Speech', restricted=True), u'Speech')
+		# .. but make sure the file name is never empty
+		self.assertTrue(sanitize_filename(u'-', restricted=True) != u'')
+		self.assertTrue(sanitize_filename(u':', restricted=True) != u'')
+
 	def test_ordered_set(self):
 		self.assertEqual(orderedSet([1,1,2,3,4,4,5,6,7,3,5]), [1,2,3,4,5,6,7])
 		self.assertEqual(orderedSet([]), [])
