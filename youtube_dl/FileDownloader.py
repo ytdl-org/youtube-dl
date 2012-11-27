@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import httplib
 import math
 import os
 import re
@@ -460,7 +459,7 @@ class FileDownloader(object):
 					success = self._do_download(filename, info_dict)
 				except (OSError, IOError) as err:
 					raise UnavailableVideoError
-				except (compat_urllib_error.URLError, httplib.HTTPException, socket.error) as err:
+				except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
 					self.trouble(u'ERROR: unable to download video data: %s' % str(err))
 					return
 				except (ContentTooShortError, ) as err:

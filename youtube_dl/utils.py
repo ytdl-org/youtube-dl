@@ -42,6 +42,12 @@ except NameError: # Python 2
 	import HTMLParser as compat_html_parser
 
 try:
+	import http.client as compat_html_client
+except NameError: # Python 2
+	import httplib as compat_html_client
+
+
+try:
 	compat_str = unicode # Python 2
 except NameError:
 	compat_str = str
