@@ -185,7 +185,10 @@ class FileDownloader(object):
 	def to_stderr(self, message):
 		"""Print message to stderr."""
 		assert type(message) == type(u'')
-		sys.stderr.write((message + u'\n').encode(preferredencoding()))
+		output = message + u'\n'
+		if 'b' in getattr(self._screen_file, 'mode', '') or sys.version_info[0] < 3: # Python 2 lies about the mode of sys.stdout/sys.stderr
+			output = output.encode(preferredencoding())
+		sys.stderr.write(output)
 
 	def to_cons_title(self, message):
 		"""Set console/terminal window title to message."""
