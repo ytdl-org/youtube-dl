@@ -177,7 +177,8 @@ def sanitize_open(filename, open_mode):
 			return (sys.stdout, filename)
 		stream = open(encodeFilename(filename), open_mode)
 		return (stream, filename)
-	except (IOError, OSError), err:
+	except (IOError, OSError):
+		_, err, _ = sys.exc_info()
 		# In case of error, try to remove win32 forbidden chars
 		filename = re.sub(ur'[/<>:"\|\?\*]', u'#', filename)
 
