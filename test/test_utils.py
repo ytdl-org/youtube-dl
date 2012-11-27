@@ -56,7 +56,7 @@ class TestUtil(unittest.TestCase):
 		self.assertEqual(sanitize_filename(u'aäb中国的c', restricted=True), u'a_b_c')
 		self.assertTrue(sanitize_filename(u'ö', restricted=True) != u'') # No empty filename
 
-		forbidden = u'"\0\\/&: \'\t\n'
+		forbidden = u'"\0\\/&!: \'\t\n'
 		for fc in forbidden:
 			for fbc in forbidden:
 				self.assertTrue(fbc not in sanitize_filename(fc, restricted=True))
