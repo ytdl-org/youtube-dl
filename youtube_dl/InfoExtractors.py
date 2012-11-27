@@ -51,6 +51,9 @@ class InfoExtractor(object):
 	thumbnail:      Full URL to a video thumbnail image.
 	description:    One-line video description.
 	player_url:     SWF Player URL (used for rtmpdump).
+	subtitles:      The .srt file contents.
+	urlhandle:		[internal] The urlHandle to be used to download the file,
+	                like returned by urllib2.urlopen
 
 	The fields should all be Unicode strings.
 
