@@ -322,9 +322,8 @@ class FileDownloader(object):
 		"""Generate the output filename."""
 		try:
 			template_dict = dict(info_dict)
-			template_dict['epoch'] = unicode(long(time.time()))
+			template_dict['epoch'] = unicode(int(time.time()))
 			template_dict['autonumber'] = unicode('%05d' % self._num_downloads)
-			template_dict['title'] = template_dict['stitle'] # Keep both for backwards compatibility
 			filename = self.params['outtmpl'] % template_dict
 			return filename
 		except (ValueError, KeyError), err:
@@ -350,7 +349,8 @@ class FileDownloader(object):
 	def process_info(self, info_dict):
 		"""Process a single dictionary returned by an InfoExtractor."""
 
-		info_dict['stitle'] = sanitize_filename(info_dict['title'], self.params.get('restrictfilenames'))
+		# Keep for backwards compatibility
+		info_dict['stitle'] = info_dict['title']
 
 		reason = self._match_entry(info_dict)
 		if reason is not None:
@@ -363,6 +363,7 @@ class FileDownloader(object):
 				raise MaxDownloadsReached()
 
 		filename = self.prepare_filename(info_dict)
+		filename = sanitize_filename(filename, self.params.get('restrictfilenames'))
 
 		# Forced printings
 		if self.params.get('forcetitle', False):
