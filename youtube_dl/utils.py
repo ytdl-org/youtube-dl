@@ -292,6 +292,10 @@ def encodeFilename(s):
 
 	assert type(s) == type(u'')
 
+	# Python 3 has a Unicode API
+	if sys.version_info >= (3, 0):
+		return s
+
 	if sys.platform == 'win32' and sys.getwindowsversion()[0] >= 5:
 		# Pass u'' directly to use Unicode APIs on Windows 2000 and up
 		# (Detecting Windows NT 4 is tricky because 'major >= 4' would
