@@ -247,7 +247,8 @@ class FileDownloader(object):
 			if old_filename == new_filename:
 				return
 			os.rename(encodeFilename(old_filename), encodeFilename(new_filename))
-		except (IOError, OSError), err:
+		except (IOError, OSError):
+			_, err, _ = sys.exc_info()
 			self.trouble(u'ERROR: unable to rename file')
 
 	def try_utime(self, filename, last_modified_hdr):
@@ -305,7 +306,8 @@ class FileDownloader(object):
 		"""Report file has already been fully downloaded."""
 		try:
 			self.to_screen(u'[download] %s has already been downloaded' % file_name)
-		except (UnicodeEncodeError), err:
+		except (UnicodeEncodeError):
+			_, err, _ = sys.exc_info()
 			self.to_screen(u'[download] The file has already been downloaded')
 
 	def report_unable_to_resume(self):
@@ -333,7 +335,8 @@ class FileDownloader(object):
 			template_dict = dict((k, sanitize_filename(u(v), self.params.get('restrictfilenames'))) for k,v in template_dict.items())
 			filename = self.params['outtmpl'] % template_dict
 			return filename
-		except (ValueError, KeyError), err:
+		except (ValueError, KeyError):
+			_, err, _ = sys.exc_info()
 			self.trouble(u'ERROR: invalid system charset or erroneous output template')
 			return None
 
@@ -396,7 +399,8 @@ class FileDownloader(object):
 			dn = os.path.dirname(encodeFilename(filename))
 			if dn != '' and not os.path.exists(dn): # dn is already encoded
 				os.makedirs(dn)
-		except (OSError, IOError), err:
+		except (OSError, IOError):
+			_, err, _ = sys.exc_info()
 			self.trouble(u'ERROR: unable to create directory ' + u(err))
 			return
 
@@ -453,19 +457,23 @@ class FileDownloader(object):
 			else:
 				try:
 					success = self._do_download(filename, info_dict)
-				except (OSError, IOError), err:
+				except (OSError, IOError):
+					_, err, _ = sys.exc_info()
 					raise UnavailableVideoError
-				except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+				except (urllib2.URLError, httplib.HTTPException, socket.error):
+					_, err, _ = sys.exc_info()
 					self.trouble(u'ERROR: unable to download video data: %s' % str(err))
 					return
-				except (ContentTooShortError, ), err:
+				except (ContentTooShortError, ):
+					_, err, _ = sys.exc_info()
 					self.trouble(u'ERROR: content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
 					return
 
 			if success:
 				try:
 					self.post_process(filename, info_dict)
-				except (PostProcessingError), err:
+				except (PostProcessingError):
+					_, err, _ = sys.exc_info()
 					self.trouble(u'ERROR: postprocessing: %s' % str(err))
 					return
 
@@ -601,7 +609,8 @@ class FileDownloader(object):
 					data = info_dict['urlhandle']
 				data = urllib2.urlopen(request)
 				break
-			except (urllib2.HTTPError, ), err:
+			except (urllib2.HTTPError, ):
+				_, err, _ = sys.exc_info()
 				if (err.code < 500 or err.code >= 600) and err.code != 416:
 					# Unexpected HTTP error
 					raise
@@ -611,7 +620,8 @@ class FileDownloader(object):
 						# Open the connection again without the range header
 						data = urllib2.urlopen(basic_request)
 						content_length = data.info()['Content-Length']
-					except (urllib2.HTTPError, ), err:
+					except (urllib2.HTTPError, ):
+						_, err, _ = sys.exc_info()
 						if err.code < 500 or err.code >= 600:
 							raise
 					else:
@@ -665,12 +675,14 @@ class FileDownloader(object):
 					assert stream is not None
 					filename = self.undo_temp_name(tmpfilename)
 					self.report_destination(filename)
-				except (OSError, IOError), err:
+				except (OSError, IOError):
+					_, err, _ = sys.exc_info()
 					self.trouble(u'ERROR: unable to open for writing: %s' % str(err))
 					return False
 			try:
 				stream.write(data_block)
-			except (IOError, OSError), err:
+			except (IOError, OSError):
+				_, err, _ = sys.exc_info()
 				self.trouble(u'\nERROR: unable to write data: %s' % str(err))
 				return False
 			if not self.params.get('noresizebuffer', False):
