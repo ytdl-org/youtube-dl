@@ -481,6 +481,11 @@ class FileDownloader(object):
 				if not ie.suitable(url):
 					continue
 
+				# Warn if the _WORKING attribute is False
+				if not ie.working():
+					self.trouble(u'WARNING: the program functionality for this site has been marked as broken, '
+						         u'and will probably not work. If you want to go on, use the -i option.')
+
 				# Suitable InfoExtractor found
 				suitable_found = True
 

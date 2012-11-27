@@ -63,10 +63,14 @@ class InfoExtractor(object):
 
 	_real_extract() must return a *list* of information dictionaries as
 	described above.
+
+	Finally, the _WORKING attribute should be set to False for broken IEs
+	in order to warn the users and skip the tests.
 	"""
 
 	_ready = False
 	_downloader = None
+	_WORKING = True
 
 	def __init__(self, downloader=None):
 		"""Constructor. Receives an optional downloader."""
@@ -76,6 +80,10 @@ class InfoExtractor(object):
 	def suitable(self, url):
 		"""Receives a URL and returns True if suitable for this IE."""
 		return re.match(self._VALID_URL, url) is not None
+
+	def working(self):
+		"""Getter method for _WORKING."""
+		return self._WORKING
 
 	def initialize(self):
 		"""Initializes an instance (authentication, etc)."""
@@ -1891,6 +1899,7 @@ class DepositFilesIE(InfoExtractor):
 class FacebookIE(InfoExtractor):
 	"""Information Extractor for Facebook"""
 
+	_WORKING = False
 	_VALID_URL = r'^(?:https?://)?(?:\w+\.)?facebook\.com/(?:video/video|photo)\.php\?(?:.*?)v=(?P<ID>\d+)(?:.*)'
 	_LOGIN_URL = 'https://login.facebook.com/login.php?m&next=http%3A%2F%2Fm.facebook.com%2Fhome.php&'
 	_NETRC_MACHINE = 'facebook'
