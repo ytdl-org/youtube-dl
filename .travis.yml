@@ -1,9 +1,13 @@
 language: python
-#specify the python version
 python:
   - "2.6"
   - "2.7"
-#command to install the setup
-install:
-# command to run tests
+  - "3.3"
 script: nosetests test --nocapture
+notifications:
+  email:
+    - filippo.valsorda@gmail.com
+  irc:
+    channels:
+      - "irc.freenode.org#youtube-dl"
+    skip_join: true
