@@ -201,7 +201,7 @@ class FileDownloader(object):
 
 	def fixed_template(self):
 		"""Checks if the output template is fixed."""
-		return (re.search(ur'(?u)%\(.+?\)s', self.params['outtmpl']) is None)
+		return (re.search(u'(?u)%\\(.+?\\)s', self.params['outtmpl']) is None)
 
 	def trouble(self, message=None):
 		"""Determine action to take when a download problem appears.

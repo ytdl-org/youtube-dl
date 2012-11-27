@@ -77,7 +77,7 @@ def htmlentity_transform(matchobj):
 	if entity in htmlentitydefs.name2codepoint:
 		return unichr(htmlentitydefs.name2codepoint[entity])
 
-	mobj = re.match(ur'(?u)#(x?\d+)', entity)
+	mobj = re.match(u'(?u)#(x?\\d+)', entity)
 	if mobj is not None:
 		numstr = mobj.group(1)
 		if numstr.startswith(u'x'):
@@ -198,7 +198,7 @@ def sanitize_open(filename, open_mode):
 		return (stream, filename)
 	except (IOError, OSError) as err:
 		# In case of error, try to remove win32 forbidden chars
-		filename = re.sub(ur'[/<>:"\|\?\*]', u'#', filename)
+		filename = re.sub(u'[/<>:"\\|\\\\?\\*]', u'#', filename)
 
 		# An exception here should be caught in the caller
 		stream = open(encodeFilename(filename), open_mode)
@@ -257,7 +257,7 @@ def unescapeHTML(s):
 	"""
 	assert type(s) == type(u'')
 
-	result = re.sub(ur'(?u)&(.+?);', htmlentity_transform, s)
+	result = re.sub(u'(?u)&(.+?);', htmlentity_transform, s)
 	return result
 
 def encodeFilename(s):
