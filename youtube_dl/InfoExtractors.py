@@ -339,7 +339,7 @@ class YoutubeIE(InfoExtractor):
 				return
 		if 'token' not in video_info:
 			if 'reason' in video_info:
-				self._downloader.trouble(u'ERROR: YouTube said: %s' % video_info['reason'][0].decode('utf-8'))
+				self._downloader.trouble(u'ERROR: YouTube said: %s' % video_info['reason'][0])
 			else:
 				self._downloader.trouble(u'ERROR: "token" parameter not in video info for unknown reason')
 			return

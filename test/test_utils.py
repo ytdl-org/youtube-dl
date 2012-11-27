@@ -13,7 +13,7 @@ from youtube_dl.utils import sanitize_filename
 from youtube_dl.utils import unescapeHTML
 from youtube_dl.utils import orderedSet
 
-if sys.version < (3,0):
+if sys.version_info < (3,0):
 	_compat_str = lambda b: b.decode('unicode-escape')
 else:
 	_compat_str = lambda s: s

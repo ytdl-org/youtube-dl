@@ -61,7 +61,6 @@ try:
 except NameError:
 	compat_chr = chr
 
-
 std_headers = {
 	'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0',
 	'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
@@ -83,6 +82,12 @@ def preferredencoding():
 
 	return pref
 
+if sys.version_info < (3,0):
+	def compat_print(s):
+		print(s.encode(preferredencoding(), 'xmlcharrefreplace'))
+else:
+	def compat_print(s):
+		print(s)
 
 def htmlentity_transform(matchobj):
 	"""Transforms an HTML entity to a character.
