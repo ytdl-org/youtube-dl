@@ -53,12 +53,12 @@ def updateSelf(downloader, filename):
 	if not os.access(filename, os.W_OK):
 		sys.exit('ERROR: no write permissions on %s' % filename)
 
-	downloader.to_screen(u'Updating to latest version...')
+	downloader.to_screen(u('Updating to latest version...'))
 
 	urlv = urllib2.urlopen(UPDATE_URL_VERSION)
 	newversion = urlv.read().strip()
 	if newversion == __version__:
-		downloader.to_screen(u'youtube-dl is up-to-date (' + __version__ + ')')
+		downloader.to_screen(u('youtube-dl is up-to-date (') + __version__ + ')')
 		return
 	urlv.close()
 
@@ -110,7 +110,7 @@ del "%s"
 			_, err, _ = sys.exc_info()
 			sys.exit('ERROR: unable to overwrite current version')
 
-	downloader.to_screen(u'Updated youtube-dl. Restart youtube-dl to use the new version.')
+	downloader.to_screen(u('Updated youtube-dl. Restart youtube-dl to use the new version.'))
 
 def parseOpts():
 	def _readOptions(filename_bytes):
@@ -392,14 +392,14 @@ def _real_main():
 				jar.load()
 		except (IOError, OSError):
 			_, err, _ = sys.exc_info()
-			sys.exit(u'ERROR: unable to open cookie file')
+			sys.exit(u('ERROR: unable to open cookie file'))
 	# Set user agent
 	if opts.user_agent is not None:
 		std_headers['User-Agent'] = opts.user_agent
 
 	# Dump user agent
 	if opts.dump_user_agent:
-		print std_headers['User-Agent']
+		print(std_headers['User-Agent'])
 		sys.exit(0)
 
 	# Batch file verification
@@ -414,7 +414,7 @@ def _real_main():
 			batchurls = [x.strip() for x in batchurls]
 			batchurls = [x for x in batchurls if len(x) > 0 and not re.search(r'^[#/;]', x)]
 		except IOError:
-			sys.exit(u'ERROR: batch file could not be read')
+			sys.exit(u('ERROR: batch file could not be read'))
 	all_urls = batchurls + args
 	all_urls = map(lambda url: url.strip(), all_urls)
 
@@ -433,57 +433,57 @@ def _real_main():
 			matchedUrls = filter(lambda url: ie.suitable(url), all_urls)
 			all_urls = filter(lambda url: url not in matchedUrls, all_urls)
 			for mu in matchedUrls:
-				print(u'  ' + mu)
+				print(u('  ') + mu)
 		sys.exit(0)
 
 	# Conflicting, missing and erroneous options
 	if opts.usenetrc and (opts.username is not None or opts.password is not None):
-		parser.error(u'using .netrc conflicts with giving username/password')
+		parser.error(u('using .netrc conflicts with giving username/password'))
 	if opts.password is not None and opts.username is None:
-		parser.error(u'account username missing')
+		parser.error(u('account username missing'))
 	if opts.outtmpl is not None and (opts.usetitle or opts.autonumber or opts.useid):
-		parser.error(u'using output template conflicts with using title, video ID or auto number')
+		parser.error(u('using output template conflicts with using title, video ID or auto number'))
 	if opts.usetitle and opts.useid:
-		parser.error(u'using title conflicts with using video ID')
+		parser.error(u('using title conflicts with using video ID'))
 	if opts.username is not None and opts.password is None:
-		opts.password = getpass.getpass(u'Type account password and press return:')
+		opts.password = getpass.getpass(u('Type account password and press return:'))
 	if opts.ratelimit is not None:
 		numeric_limit = FileDownloader.parse_bytes(opts.ratelimit)
 		if numeric_limit is None:
-			parser.error(u'invalid rate limit specified')
+			parser.error(u('invalid rate limit specified'))
 		opts.ratelimit = numeric_limit
 	if opts.retries is not None:
 		try:
 			opts.retries = int(opts.retries)
 		except (TypeError, ValueError):
 			_, err, _ = sys.exc_info()
-			parser.error(u'invalid retry count specified')
+			parser.error(u('invalid retry count specified'))
 	if opts.buffersize is not None:
 		numeric_buffersize = FileDownloader.parse_bytes(opts.buffersize)
 		if numeric_buffersize is None:
-			parser.error(u'invalid buffer size specified')
+			parser.error(u('invalid buffer size specified'))
 		opts.buffersize = numeric_buffersize
 	try:
 		opts.playliststart = int(opts.playliststart)
 		if opts.playliststart <= 0:
-			raise ValueError(u'Playlist start must be positive')
+			raise ValueError(u('Playlist start must be positive'))
 	except (TypeError, ValueError):
 		_, err, _ = sys.exc_info()
-		parser.error(u'invalid playlist start number specified')
+		parser.error(u('invalid playlist start number specified'))
 	try:
 		opts.playlistend = int(opts.playlistend)
 		if opts.playlistend != -1 and (opts.playlistend <= 0 or opts.playlistend < opts.playliststart):
-			raise ValueError(u'Playlist end must be greater than playlist start')
+			raise ValueError(u('Playlist end must be greater than playlist start'))
 	except (TypeError, ValueError):
 		_, err, _ = sys.exc_info()
-		parser.error(u'invalid playlist end number specified')
+		parser.error(u('invalid playlist end number specified'))
 	if opts.extractaudio:
 		if opts.audioformat not in ['best', 'aac', 'mp3', 'vorbis', 'm4a', 'wav']:
-			parser.error(u'invalid audio format specified')
+			parser.error(u('invalid audio format specified'))
 	if opts.audioquality:
 		opts.audioquality = opts.audioquality.strip('k').strip('K')
 		if not opts.audioquality.isdigit():
-			parser.error(u'invalid audio quality specified')
+			parser.error(u('invalid audio quality specified'))
 
 	# File downloader
 	fd = FileDownloader({
@@ -503,13 +503,13 @@ def _real_main():
 		'format_limit': opts.format_limit,
 		'listformats': opts.listformats,
 		'outtmpl': ((opts.outtmpl is not None and opts.outtmpl.decode(preferredencoding()))
-			or (opts.format == '-1' and opts.usetitle and u'%(title)s-%(id)s-%(format)s.%(ext)s')
-			or (opts.format == '-1' and u'%(id)s-%(format)s.%(ext)s')
-			or (opts.usetitle and opts.autonumber and u'%(autonumber)s-%(title)s-%(id)s.%(ext)s')
-			or (opts.usetitle and u'%(title)s-%(id)s.%(ext)s')
-			or (opts.useid and u'%(id)s.%(ext)s')
-			or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
-			or u'%(id)s.%(ext)s'),
+			or (opts.format == '-1' and opts.usetitle and u('%(title)s-%(id)s-%(format)s.%(ext)s'))
+			or (opts.format == '-1' and u('%(id)s-%(format)s.%(ext)s'))
+			or (opts.usetitle and opts.autonumber and u('%(autonumber)s-%(title)s-%(id)s.%(ext)s'))
+			or (opts.usetitle and u('%(title)s-%(id)s.%(ext)s'))
+			or (opts.useid and u('%(id)s.%(ext)s'))
+			or (opts.autonumber and u('%(autonumber)s-%(id)s.%(ext)s'))
+			or u('%(id)s.%(ext)s')),
 		'restrictfilenames': opts.restrictfilenames,
 		'ignoreerrors': opts.ignoreerrors,
 		'ratelimit': opts.ratelimit,
@@ -537,7 +537,7 @@ def _real_main():
 		})
 
 	if opts.verbose:
-		fd.to_screen(u'[debug] Proxy map: ' + str(proxy_handler.proxies))
+		fd.to_screen(u('[debug] Proxy map: ') + str(proxy_handler.proxies))
 
 	for extractor in extractors:
 		fd.add_info_extractor(extractor)
@@ -553,14 +553,14 @@ def _real_main():
 	# Maybe do nothing
 	if len(all_urls) < 1:
 		if not opts.update_self:
-			parser.error(u'you must provide at least one URL')
+			parser.error(u('you must provide at least one URL'))
 		else:
 			sys.exit()
 
 	try:
 		retcode = fd.download(all_urls)
 	except MaxDownloadsReached:
-		fd.to_screen(u'--max-download limit reached, aborting.')
+		fd.to_screen(u('--max-download limit reached, aborting.'))
 		retcode = 101
 
 	# Dump cookie jar if requested
@@ -569,7 +569,7 @@ def _real_main():
 			jar.save()
 		except (IOError, OSError):
 			_, err, _ = sys.exc_info()
-			sys.exit(u'ERROR: unable to save cookie jar')
+			sys.exit(u('ERROR: unable to save cookie jar'))
 
 	sys.exit(retcode)
 
@@ -579,6 +579,6 @@ def main():
 	except DownloadError:
 		sys.exit(1)
 	except SameFileError:
-		sys.exit(u'ERROR: fixed output name but more than one file to download')
+		sys.exit(u('ERROR: fixed output name but more than one file to download'))
 	except KeyboardInterrupt:
-		sys.exit(u'\nERROR: Interrupted by user')
+		sys.exit(u('\nERROR: Interrupted by user'))

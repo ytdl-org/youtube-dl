@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import os
 import subprocess
@@ -119,7 +118,7 @@ class FFmpegExtractAudioPP(PostProcessor):
 
 		filecodec = self.get_audio_codec(path)
 		if filecodec is None:
-			self._downloader.to_stderr(u'WARNING: unable to obtain file audio codec with ffprobe')
+			self._downloader.to_stderr(u('WARNING: unable to obtain file audio codec with ffprobe'))
 			return None
 
 		more_opts = []
@@ -167,17 +166,17 @@ class FFmpegExtractAudioPP(PostProcessor):
 				extension = 'wav'
 				more_opts += ['-f', 'wav']
 
-		prefix, sep, ext = path.rpartition(u'.') # not os.path.splitext, since the latter does not work on unicode in all setups
+		prefix, sep, ext = path.rpartition(u('.')) # not os.path.splitext, since the latter does not work on unicode in all setups
 		new_path = prefix + sep + extension
-		self._downloader.to_screen(u'[' + (self._exes['avconv'] and 'avconv' or 'ffmpeg') + '] Destination: ' + new_path)
+		self._downloader.to_screen(u('[') + (self._exes['avconv'] and 'avconv' or 'ffmpeg') + '] Destination: ' + new_path)
 		try:
 			self.run_ffmpeg(path, new_path, acodec, more_opts)
 		except:
 			etype,e,tb = sys.exc_info()
 			if isinstance(e, AudioConversionError):
-				self._downloader.to_stderr(u'ERROR: audio conversion failed: ' + e.message)
+				self._downloader.to_stderr(u('ERROR: audio conversion failed: ') + e.message)
 			else:
-				self._downloader.to_stderr(u'ERROR: error running ' + (self._exes['avconv'] and 'avconv' or 'ffmpeg'))
+				self._downloader.to_stderr(u('ERROR: error running ') + (self._exes['avconv'] and 'avconv' or 'ffmpeg'))
 			return None
 
  		# Try to update the date time for extracted audio file.
@@ -185,13 +184,13 @@ class FFmpegExtractAudioPP(PostProcessor):
 			try:
 				os.utime(encodeFilename(new_path), (time.time(), information['filetime']))
 			except:
-				self._downloader.to_stderr(u'WARNING: Cannot update utime of audio file')
+				self._downloader.to_stderr(u('WARNING: Cannot update utime of audio file'))
 
 		if not self._keepvideo:
 			try:
 				os.remove(encodeFilename(path))
 			except (IOError, OSError):
-				self._downloader.to_stderr(u'WARNING: Unable to remove downloaded video file')
+				self._downloader.to_stderr(u('WARNING: Unable to remove downloaded video file'))
 				return None
 
 		information['filepath'] = new_path

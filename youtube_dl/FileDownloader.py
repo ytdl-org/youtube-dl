@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import httplib
 import math
@@ -97,7 +96,7 @@ class FileDownloader(object):
 		self.params = params
 
 		if '%(stitle)s' in self.params['outtmpl']:
-			self.to_stderr(u'WARNING: %(stitle)s is deprecated. Use the %(title)s and the --restrict-filenames flag(which also secures %(uploader)s et al) instead.')
+			self.to_stderr(u('WARNING: %(stitle)s is deprecated. Use the %(title)s and the --restrict-filenames flag(which also secures %(uploader)s et al) instead.'))
 
 	@staticmethod
 	def format_bytes(bytes):
@@ -175,9 +174,9 @@ class FileDownloader(object):
 
 	def to_screen(self, message, skip_eol=False):
 		"""Print message to stdout if not in quiet mode."""
-		assert type(message) == type(u'')
+		assert type(message) == type(u(''))
 		if not self.params.get('quiet', False):
-			terminator = [u'\n', u''][skip_eol]
+			terminator = [u('\n'), u('')][skip_eol]
 			output = message + terminator
 			if 'b' not in self._screen_file.mode or sys.version_info[0] < 3: # Python 2 lies about the mode of sys.stdout/sys.stderr
 				output = output.encode(preferredencoding(), 'ignore')
@@ -186,8 +185,8 @@ class FileDownloader(object):
 
 	def to_stderr(self, message):
 		"""Print message to stderr."""
-		assert type(message) == type(u'')
-		sys.stderr.write((message + u'\n').encode(preferredencoding()))
+		assert type(message) == type(u(''))
+		sys.stderr.write((message + u('\n')).encode(preferredencoding()))
 
 	def to_cons_title(self, message):
 		"""Set console/terminal window title to message."""
@@ -232,14 +231,14 @@ class FileDownloader(object):
 
 	def temp_name(self, filename):
 		"""Returns a temporary filename for the given filename."""
-		if self.params.get('nopart', False) or filename == u'-' or \
+		if self.params.get('nopart', False) or filename == u('-') or \
 				(os.path.exists(encodeFilename(filename)) and not os.path.isfile(encodeFilename(filename))):
 			return filename
-		return filename + u'.part'
+		return filename + u('.part')
 
 	def undo_temp_name(self, filename):
-		if filename.endswith(u'.part'):
-			return filename[:-len(u'.part')]
+		if filename.endswith(u('.part')):
+			return filename[:-len(u('.part'))]
 		return filename
 
 	def try_rename(self, old_filename, new_filename):
@@ -249,7 +248,7 @@ class FileDownloader(object):
 			os.rename(encodeFilename(old_filename), encodeFilename(new_filename))
 		except (IOError, OSError):
 			_, err, _ = sys.exc_info()
-			self.trouble(u'ERROR: unable to rename file')
+			self.trouble(u('ERROR: unable to rename file'))
 
 	def try_utime(self, filename, last_modified_hdr):
 		"""Try to set the last-modified time of the given file."""
@@ -271,55 +270,55 @@ class FileDownloader(object):
 
 	def report_writedescription(self, descfn):
 		""" Report that the description file is being written """
-		self.to_screen(u'[info] Writing video description to: ' + descfn)
+		self.to_screen(u('[info] Writing video description to: ') + descfn)
 
 	def report_writesubtitles(self, srtfn):
 		""" Report that the subtitles file is being written """
-		self.to_screen(u'[info] Writing video subtitles to: ' + srtfn)
+		self.to_screen(u('[info] Writing video subtitles to: ') + srtfn)
 
 	def report_writeinfojson(self, infofn):
 		""" Report that the metadata file has been written """
-		self.to_screen(u'[info] Video description metadata as JSON to: ' + infofn)
+		self.to_screen(u('[info] Video description metadata as JSON to: ') + infofn)
 
 	def report_destination(self, filename):
 		"""Report destination filename."""
-		self.to_screen(u'[download] Destination: ' + filename)
+		self.to_screen(u('[download] Destination: ') + filename)
 
 	def report_progress(self, percent_str, data_len_str, speed_str, eta_str):
 		"""Report download progress."""
 		if self.params.get('noprogress', False):
 			return
-		self.to_screen(u'\r[download] %s of %s at %s ETA %s' %
+		self.to_screen(u('\r[download] %s of %s at %s ETA %s') %
 				(percent_str, data_len_str, speed_str, eta_str), skip_eol=True)
-		self.to_cons_title(u'youtube-dl - %s of %s at %s ETA %s' %
+		self.to_cons_title(u('youtube-dl - %s of %s at %s ETA %s') %
 				(percent_str.strip(), data_len_str.strip(), speed_str.strip(), eta_str.strip()))
 
 	def report_resuming_byte(self, resume_len):
 		"""Report attempt to resume at given byte."""
-		self.to_screen(u'[download] Resuming download at byte %s' % resume_len)
+		self.to_screen(u('[download] Resuming download at byte %s') % resume_len)
 
 	def report_retry(self, count, retries):
 		"""Report retry in case of HTTP error 5xx"""
-		self.to_screen(u'[download] Got server HTTP error. Retrying (attempt %d of %d)...' % (count, retries))
+		self.to_screen(u('[download] Got server HTTP error. Retrying (attempt %d of %d)...') % (count, retries))
 
 	def report_file_already_downloaded(self, file_name):
 		"""Report file has already been fully downloaded."""
 		try:
-			self.to_screen(u'[download] %s has already been downloaded' % file_name)
+			self.to_screen(u('[download] %s has already been downloaded') % file_name)
 		except (UnicodeEncodeError):
 			_, err, _ = sys.exc_info()
-			self.to_screen(u'[download] The file has already been downloaded')
+			self.to_screen(u('[download] The file has already been downloaded'))
 
 	def report_unable_to_resume(self):
 		"""Report it was impossible to resume download."""
-		self.to_screen(u'[download] Unable to resume')
+		self.to_screen(u('[download] Unable to resume'))
 
 	def report_finish(self):
 		"""Report download finished."""
 		if self.params.get('noprogress', False):
-			self.to_screen(u'[download] Download completed')
+			self.to_screen(u('[download] Download completed'))
 		else:
-			self.to_screen(u'')
+			self.to_screen(u(''))
 
 	def increment_downloads(self):
 		"""Increment the ordinal that assigns a number to each file."""
@@ -330,14 +329,14 @@ class FileDownloader(object):
 		try:
 			template_dict = dict(info_dict)
 			template_dict['epoch'] = int(time.time())
-			template_dict['autonumber'] = u'%05d' % self._num_downloads
+			template_dict['autonumber'] = u('%05d') % self._num_downloads
 
 			template_dict = dict((k, sanitize_filename(u(v), self.params.get('restrictfilenames'))) for k,v in template_dict.items())
 			filename = self.params['outtmpl'] % template_dict
 			return filename
 		except (ValueError, KeyError):
 			_, err, _ = sys.exc_info()
-			self.trouble(u'ERROR: invalid system charset or erroneous output template')
+			self.trouble(u('ERROR: invalid system charset or erroneous output template'))
 			return None
 
 	def _match_entry(self, info_dict):
@@ -348,12 +347,12 @@ class FileDownloader(object):
 		if matchtitle:
 			matchtitle = matchtitle.decode('utf8')
 			if not re.search(matchtitle, title, re.IGNORECASE):
-				return u'[download] "' + title + '" title did not match pattern "' + matchtitle + '"'
+				return u('[download] "') + title + '" title did not match pattern "' + matchtitle + '"'
 		rejecttitle = self.params.get('rejecttitle', False)
 		if rejecttitle:
 			rejecttitle = rejecttitle.decode('utf8')
 			if re.search(rejecttitle, title, re.IGNORECASE):
-				return u'"' + title + '" title matched reject pattern "' + rejecttitle + '"'
+				return u('"') + title + '" title matched reject pattern "' + rejecttitle + '"'
 		return None
 
 	def process_info(self, info_dict):
@@ -364,7 +363,7 @@ class FileDownloader(object):
 
 		reason = self._match_entry(info_dict)
 		if reason is not None:
-			self.to_screen(u'[download] ' + reason)
+			self.to_screen(u('[download] ') + reason)
 			return
 
 		max_downloads = self.params.get('max_downloads')
@@ -401,12 +400,12 @@ class FileDownloader(object):
 				os.makedirs(dn)
 		except (OSError, IOError):
 			_, err, _ = sys.exc_info()
-			self.trouble(u'ERROR: unable to create directory ' + u(err))
+			self.trouble(u('ERROR: unable to create directory ') + u(err))
 			return
 
 		if self.params.get('writedescription', False):
 			try:
-				descfn = filename + u'.description'
+				descfn = filename + u('.description')
 				self.report_writedescription(descfn)
 				descfile = open(encodeFilename(descfn), 'wb')
 				try:
@@ -414,14 +413,14 @@ class FileDownloader(object):
 				finally:
 					descfile.close()
 			except (OSError, IOError):
-				self.trouble(u'ERROR: Cannot write description file ' + descfn)
+				self.trouble(u('ERROR: Cannot write description file ') + descfn)
 				return
 
 		if self.params.get('writesubtitles', False) and 'subtitles' in info_dict and info_dict['subtitles']:
 			# subtitles download errors are already managed as troubles in relevant IE
 			# that way it will silently go on when used with unsupporting IE
 			try:
-				srtfn = filename.rsplit('.', 1)[0] + u'.srt'
+				srtfn = filename.rsplit('.', 1)[0] + u('.srt')
 				self.report_writesubtitles(srtfn)
 				srtfile = open(encodeFilename(srtfn), 'wb')
 				try:
@@ -429,16 +428,16 @@ class FileDownloader(object):
 				finally:
 					srtfile.close()
 			except (OSError, IOError):
-				self.trouble(u'ERROR: Cannot write subtitles file ' + descfn)
+				self.trouble(u('ERROR: Cannot write subtitles file ') + descfn)
 				return
 
 		if self.params.get('writeinfojson', False):
-			infofn = filename + u'.info.json'
+			infofn = filename + u('.info.json')
 			self.report_writeinfojson(infofn)
 			try:
 				json.dump
 			except (NameError,AttributeError):
-				self.trouble(u'ERROR: No JSON encoder found. Update to Python 2.6+, setup a json module, or leave out --write-info-json.')
+				self.trouble(u('ERROR: No JSON encoder found. Update to Python 2.6+, setup a json module, or leave out --write-info-json.'))
 				return
 			try:
 				infof = open(encodeFilename(infofn), 'wb')
@@ -448,7 +447,7 @@ class FileDownloader(object):
 				finally:
 					infof.close()
 			except (OSError, IOError):
-				self.trouble(u'ERROR: Cannot write metadata to JSON file ' + infofn)
+				self.trouble(u('ERROR: Cannot write metadata to JSON file ') + infofn)
 				return
 
 		if not self.params.get('skip_download', False):
@@ -462,11 +461,11 @@ class FileDownloader(object):
 					raise UnavailableVideoError
 				except (urllib2.URLError, httplib.HTTPException, socket.error):
 					_, err, _ = sys.exc_info()
-					self.trouble(u'ERROR: unable to download video data: %s' % str(err))
+					self.trouble(u('ERROR: unable to download video data: %s') % str(err))
 					return
 				except (ContentTooShortError, ):
 					_, err, _ = sys.exc_info()
-					self.trouble(u'ERROR: content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
+					self.trouble(u('ERROR: content too short (expected %s bytes and served %s)') % (err.expected, err.downloaded))
 					return
 
 			if success:
@@ -474,7 +473,7 @@ class FileDownloader(object):
 					self.post_process(filename, info_dict)
 				except (PostProcessingError):
 					_, err, _ = sys.exc_info()
-					self.trouble(u'ERROR: postprocessing: %s' % str(err))
+					self.trouble(u('ERROR: postprocessing: %s') % str(err))
 					return
 
 	def download(self, url_list):
@@ -500,13 +499,13 @@ class FileDownloader(object):
 						self.increment_downloads()
 						self.process_info(video)
 					except UnavailableVideoError:
-						self.trouble(u'\nERROR: unable to download video')
+						self.trouble(u('\nERROR: unable to download video'))
 
 				# Suitable InfoExtractor had been found; go to next URL
 				break
 
 			if not suitable_found:
-				self.trouble(u'ERROR: no suitable InfoExtractor: %s' % url)
+				self.trouble(u('ERROR: no suitable InfoExtractor: %s') % url)
 
 		return self._download_retcode
 
@@ -527,7 +526,7 @@ class FileDownloader(object):
 		try:
 			subprocess.call(['rtmpdump', '-h'], stdout=(file(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
 		except (OSError, IOError):
-			self.trouble(u'ERROR: RTMP download detected but "rtmpdump" could not be run')
+			self.trouble(u('ERROR: RTMP download detected but "rtmpdump" could not be run'))
 			return False
 
 		# Download using rtmpdump. rtmpdump returns exit code 2 when
@@ -541,11 +540,11 @@ class FileDownloader(object):
 				shell_quote = lambda args: ' '.join(map(pipes.quote, args))
 			except ImportError:
 				shell_quote = repr
-			self.to_screen(u'[debug] rtmpdump command line: ' + shell_quote(args))
+			self.to_screen(u('[debug] rtmpdump command line: ') + shell_quote(args))
 		retval = subprocess.call(args)
 		while retval == 2 or retval == 1:
 			prevsize = os.path.getsize(encodeFilename(tmpfilename))
-			self.to_screen(u'\r[rtmpdump] %s bytes' % prevsize, skip_eol=True)
+			self.to_screen(u('\r[rtmpdump] %s bytes') % prevsize, skip_eol=True)
 			time.sleep(5.0) # This seems to be needed
 			retval = subprocess.call(basic_args + ['-e'] + [[], ['-k', '1']][retval == 1])
 			cursize = os.path.getsize(encodeFilename(tmpfilename))
@@ -553,15 +552,15 @@ class FileDownloader(object):
 				break
 			 # Some rtmp streams seem abort after ~ 99.8%. Don't complain for those
 			if prevsize == cursize and retval == 2 and cursize > 1024:
-				self.to_screen(u'\r[rtmpdump] Could not download the whole video. This can happen for some advertisements.')
+				self.to_screen(u('\r[rtmpdump] Could not download the whole video. This can happen for some advertisements.'))
 				retval = 0
 				break
 		if retval == 0:
-			self.to_screen(u'\r[rtmpdump] %s bytes' % os.path.getsize(encodeFilename(tmpfilename)))
+			self.to_screen(u('\r[rtmpdump] %s bytes') % os.path.getsize(encodeFilename(tmpfilename)))
 			self.try_rename(tmpfilename, filename)
 			return True
 		else:
-			self.trouble(u'\nERROR: rtmpdump exited with code %d' % retval)
+			self.trouble(u('\nERROR: rtmpdump exited with code %d') % retval)
 			return False
 
 	def _do_download(self, filename, info_dict):
@@ -649,7 +648,7 @@ class FileDownloader(object):
 				self.report_retry(count, retries)
 
 		if count > retries:
-			self.trouble(u'ERROR: giving up after %s retries' % retries)
+			self.trouble(u('ERROR: giving up after %s retries') % retries)
 			return False
 
 		data_len = data.info().get('Content-length', None)
@@ -677,13 +676,13 @@ class FileDownloader(object):
 					self.report_destination(filename)
 				except (OSError, IOError):
 					_, err, _ = sys.exc_info()
-					self.trouble(u'ERROR: unable to open for writing: %s' % str(err))
+					self.trouble(u('ERROR: unable to open for writing: %s') % str(err))
 					return False
 			try:
 				stream.write(data_block)
 			except (IOError, OSError):
 				_, err, _ = sys.exc_info()
-				self.trouble(u'\nERROR: unable to write data: %s' % str(err))
+				self.trouble(u('\nERROR: unable to write data: %s') % str(err))
 				return False
 			if not self.params.get('noresizebuffer', False):
 				block_size = self.best_block_size(after - before, len(data_block))
@@ -701,7 +700,7 @@ class FileDownloader(object):
 			self.slow_down(start, byte_counter - resume_len)
 
 		if stream is None:
-			self.trouble(u'\nERROR: Did not get any data blocks')
+			self.trouble(u('\nERROR: Did not get any data blocks'))
 			return False
 		stream.close()
 		self.report_finish()
