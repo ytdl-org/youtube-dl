@@ -74,7 +74,8 @@ def updateSelf(downloader, filename):
 			urlh.close()
 			with open(exe + '.new', 'wb') as outf:
 				outf.write(newcontent)
-		except (IOError, OSError), err:
+		except (IOError, OSError):
+			_, err, _ = sys.exc_info()
 			sys.exit('ERROR: unable to download latest version')
 
 		try:
@@ -89,7 +90,8 @@ del "%s"
 			b.close()
 
 			os.startfile(bat)
-		except (IOError, OSError), err:
+		except (IOError, OSError):
+			_, err, _ = sys.exc_info()
 			sys.exit('ERROR: unable to overwrite current version')
 
 	else:
@@ -97,13 +99,15 @@ del "%s"
 			urlh = urllib2.urlopen(UPDATE_URL)
 			newcontent = urlh.read()
 			urlh.close()
-		except (IOError, OSError), err:
+		except (IOError, OSError):
+			_, err, _ = sys.exc_info()
 			sys.exit('ERROR: unable to download latest version')
 
 		try:
 			with open(filename, 'wb') as outf:
 				outf.write(newcontent)
-		except (IOError, OSError), err:
+		except (IOError, OSError):
+			_, err, _ = sys.exc_info()
 			sys.exit('ERROR: unable to overwrite current version')
 
 	downloader.to_screen(u'Updated youtube-dl. Restart youtube-dl to use the new version.')
@@ -386,7 +390,8 @@ def _real_main():
 			jar = cookielib.MozillaCookieJar(opts.cookiefile)
 			if os.path.isfile(opts.cookiefile) and os.access(opts.cookiefile, os.R_OK):
 				jar.load()
-		except (IOError, OSError), err:
+		except (IOError, OSError):
+			_, err, _ = sys.exc_info()
 			sys.exit(u'ERROR: unable to open cookie file')
 	# Set user agent
 	if opts.user_agent is not None:
@@ -450,7 +455,8 @@ def _real_main():
 	if opts.retries is not None:
 		try:
 			opts.retries = int(opts.retries)
-		except (TypeError, ValueError), err:
+		except (TypeError, ValueError):
+			_, err, _ = sys.exc_info()
 			parser.error(u'invalid retry count specified')
 	if opts.buffersize is not None:
 		numeric_buffersize = FileDownloader.parse_bytes(opts.buffersize)
@@ -461,13 +467,15 @@ def _real_main():
 		opts.playliststart = int(opts.playliststart)
 		if opts.playliststart <= 0:
 			raise ValueError(u'Playlist start must be positive')
-	except (TypeError, ValueError), err:
+	except (TypeError, ValueError):
+		_, err, _ = sys.exc_info()
 		parser.error(u'invalid playlist start number specified')
 	try:
 		opts.playlistend = int(opts.playlistend)
 		if opts.playlistend != -1 and (opts.playlistend <= 0 or opts.playlistend < opts.playliststart):
 			raise ValueError(u'Playlist end must be greater than playlist start')
-	except (TypeError, ValueError), err:
+	except (TypeError, ValueError):
+		_, err, _ = sys.exc_info()
 		parser.error(u'invalid playlist end number specified')
 	if opts.extractaudio:
 		if opts.audioformat not in ['best', 'aac', 'mp3', 'vorbis', 'm4a', 'wav']:
@@ -559,7 +567,8 @@ def _real_main():
 	if opts.cookiefile is not None:
 		try:
 			jar.save()
-		except (IOError, OSError), err:
+		except (IOError, OSError):
+			_, err, _ = sys.exc_info()
 			sys.exit(u'ERROR: unable to save cookie jar')
 
 	sys.exit(retcode)
