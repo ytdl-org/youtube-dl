@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-import HTMLParser
 import httplib
 import netrc
 import os
@@ -14,11 +13,6 @@ import xml.etree.ElementTree
 import random
 import math
 from urlparse import parse_qs
-
-try:
-	import cStringIO as StringIO
-except ImportError:
-	import StringIO
 
 from utils import *
 

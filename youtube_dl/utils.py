@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import gzip
+import io
 import locale
 import os
 import re
@@ -9,11 +10,6 @@ import sys
 import zlib
 import email.utils
 import json
-
-try:
-	import cStringIO as StringIO
-except ImportError:
-	import StringIO
 
 try:
 	import urllib.request as compat_urllib_request
@@ -400,12 +396,12 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
 		old_resp = resp
 		# gzip
 		if resp.headers.get('Content-encoding', '') == 'gzip':
-			gz = gzip.GzipFile(fileobj=StringIO.StringIO(resp.read()), mode='r')
+			gz = gzip.GzipFile(fileobj=io.BytesIO(resp.read()), mode='r')
 			resp = self.addinfourl_wrapper(gz, old_resp.headers, old_resp.url, old_resp.code)
 			resp.msg = old_resp.msg
 		# deflate
 		if resp.headers.get('Content-encoding', '') == 'deflate':
-			gz = StringIO.StringIO(self.deflate(resp.read()))
+			gz = io.BytesIO(self.deflate(resp.read()))
 			resp = self.addinfourl_wrapper(gz, old_resp.headers, old_resp.url, old_resp.code)
 			resp.msg = old_resp.msg
 		return resp
