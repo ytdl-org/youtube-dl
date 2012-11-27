@@ -43,7 +43,7 @@ except ImportError: # Python 2
 try:
 	import urllib.parse as compat_urllib_parse
 except ImportError: # Python 2
-	import urllib2 as compat_urllib_parse
+	import urllib as compat_urllib_parse
 
 try:
 	import http.cookiejar as compat_cookiejar
