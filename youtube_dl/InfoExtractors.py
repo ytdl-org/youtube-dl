@@ -29,33 +29,34 @@ class InfoExtractor(object):
 	"""Information Extractor class.
 
 	Information extractors are the classes that, given a URL, extract
-	information from the video (or videos) the URL refers to. This
-	information includes the real video URL, the video title and simplified
-	title, author and others. The information is stored in a dictionary
-	which is then passed to the FileDownloader. The FileDownloader
-	processes this information possibly downloading the video to the file
-	system, among other possible outcomes. The dictionaries must include
-	the following fields:
+	information about the video (or videos) the URL refers to. This
+	information includes the real video URL, the video title, author and
+	others. The information is stored in a dictionary which is then 
+	passed to the FileDownloader. The FileDownloader processes this
+	information possibly downloading the video to the file system, among
+	other possible outcomes.
 
-	id:		Video identifier.
-	url:		Final video URL.
-	uploader:	Nickname of the video uploader.
-	title:		Literal title.
-	ext:		Video filename extension.
-	format:		Video format.
-	player_url:	SWF Player URL (may be None).
+	The dictionaries must include the following fields:
 
-	The following fields are optional. Their primary purpose is to allow
-	youtube-dl to serve as the backend for a video search function, such
-	as the one in youtube2mp3.  They are only used when their respective
-	forced printing functions are called:
+	id:         Video identifier.
+	url:        Final video URL.
+	uploader:   Nickname of the video uploader.
+	title:      Video title, unescaped.
+	ext:        Video filename extension.
+	player_url: SWF Player URL (may be None).
 
-	thumbnail:	Full URL to a video thumbnail image.
-	description:	One-line video description.
+	The following fields are optional:
+
+	format:         The video format, defaults to ext. Used by --get-format
+	thumbnail:      Full URL to a video thumbnail image.
+	description     One-line video description.
 
 	Subclasses of this one should re-define the _real_initialize() and
 	_real_extract() methods and define a _VALID_URL regexp.
 	Probably, they should also be added to the list of extractors.
+
+	_real_extract() must return a *list* of information dictionaries as
+	described above.
 	"""
 
 	_ready = False
@@ -475,6 +476,9 @@ class YoutubeIE(InfoExtractor):
 			# Extension
 			video_extension = self._video_extensions.get(format_param, 'flv')
 
+			video_format = '{} - {}'.format(format_param.decode('utf-8') if format_param else video_extension.decode('utf-8'),
+				                            self._video_dimensions.get(format_param, '???'))
+
 			results.append({
 				'id':		video_id.decode('utf-8'),
 				'url':		video_real_url.decode('utf-8'),
@@ -482,7 +486,7 @@ class YoutubeIE(InfoExtractor):
 				'upload_date':	upload_date,
 				'title':	video_title,
 				'ext':		video_extension.decode('utf-8'),
-				'format':	(format_param is None and u'NA' or format_param.decode('utf-8')),
+				'format':	video_format,
 				'thumbnail':	video_thumbnail.decode('utf-8'),
 				'description':	video_description,
 				'player_url':	player_url,
@@ -616,7 +620,6 @@ class MetacafeIE(InfoExtractor):
 			'upload_date':	u'NA',
 			'title':	video_title,
 			'ext':		video_extension.decode('utf-8'),
-			'format':	u'NA',
 			'player_url':	None,
 		}]
 
@@ -715,7 +718,6 @@ class DailymotionIE(InfoExtractor):
 			'upload_date':	video_upload_date,
 			'title':	video_title,
 			'ext':		video_extension.decode('utf-8'),
-			'format':	u'NA',
 			'player_url':	None,
 		}]
 
@@ -810,7 +812,6 @@ class GoogleIE(InfoExtractor):
 			'upload_date':	u'NA',
 			'title':	video_title,
 			'ext':		video_extension.decode('utf-8'),
-			'format':	u'NA',
 			'player_url':	None,
 		}]
 
@@ -877,7 +878,6 @@ class PhotobucketIE(InfoExtractor):
 			'upload_date':	u'NA',
 			'title':	video_title,
 			'ext':		video_extension.decode('utf-8'),
-			'format':	u'NA',
 			'player_url':	None,
 		}]
 
@@ -1282,7 +1282,6 @@ class GenericIE(InfoExtractor):
 			'upload_date':	u'NA',
 			'title':	video_title,
 			'ext':		video_extension.decode('utf-8'),
-			'format':	u'NA',
 			'player_url':	None,
 		}]
 
@@ -1888,7 +1887,6 @@ class DepositFilesIE(InfoExtractor):
 			'upload_date':	u'NA',
 			'title':	file_title,
 			'ext':		file_extension.decode('utf-8'),
-			'format':	u'NA',
 			'player_url':	None,
 		}]
 
@@ -2243,7 +2241,6 @@ class MyVideoIE(InfoExtractor):
 			'upload_date':  u'NA',
 			'title':	video_title,
 			'ext':		u'flv',
-			'format':	u'NA',
 			'player_url':	None,
 		}]
 
@@ -2501,7 +2498,6 @@ class EscapistIE(InfoExtractor):
 			'upload_date': None,
 			'title': showName,
 			'ext': 'flv',
-			'format': 'flv',
 			'thumbnail': imgUrl,
 			'description': description,
 			'player_url': playerUrl,
@@ -2566,7 +2562,6 @@ class CollegeHumorIE(InfoExtractor):
 			info['url'] = videoNode.findall('./file')[0].text
 			info['thumbnail'] = videoNode.findall('./thumbnail')[0].text
 			info['ext'] = info['url'].rpartition('.')[2]
-			info['format'] = info['ext']
 		except IndexError:
 			self._downloader.trouble(u'\nERROR: Invalid metadata XML file')
 			return
@@ -2637,7 +2632,6 @@ class XVideosIE(InfoExtractor):
 			'upload_date': None,
 			'title': video_title,
 			'ext': 'flv',
-			'format': 'flv',
 			'thumbnail': video_thumbnail,
 			'description': None,
 			'player_url': None,
@@ -2734,7 +2728,6 @@ class SoundcloudIE(InfoExtractor):
 			'upload_date':  upload_date,
 			'title':	title,
 			'ext':		u'mp3',
-			'format':	u'NA',
 			'player_url':	None,
 			'description': description.decode('utf-8')
 		}]
@@ -2802,8 +2795,7 @@ class InfoQIE(InfoExtractor):
 			'uploader': None,
 			'upload_date': None,
 			'title': video_title,
-			'ext': extension,
-			'format': extension, # Extension is always(?) mp4, but seems to be flv
+			'ext': extension, # Extension is always(?) mp4, but seems to be flv
 			'thumbnail': None,
 			'description': video_description,
 			'player_url': None,
@@ -2967,7 +2959,6 @@ class StanfordOpenClassroomIE(InfoExtractor):
 				self._downloader.trouble(u'\nERROR: Invalid metadata XML file')
 				return
 			info['ext'] = info['url'].rpartition('.')[2]
-			info['format'] = info['ext']
 			return [info]
 		elif mobj.group('course'): # A course page
 			course = mobj.group('course')
@@ -3241,7 +3232,6 @@ class YoukuIE(InfoExtractor):
 				'uploader': None,
 				'title': video_title,
 				'ext': ext,
-				'format': u'NA'
 			}
 			files_info.append(info)
 
@@ -3305,7 +3295,6 @@ class XNXXIE(InfoExtractor):
 				'upload_date': None,
 				'title': video_title,
 				'ext': 'flv',
-				'format': 'flv',
 				'thumbnail': video_thumbnail,
 				'description': None,
 				'player_url': None}
@@ -3432,6 +3421,5 @@ class GooglePlusIE(InfoExtractor):
 			'upload_date':	upload_date.decode('utf-8'),
 			'title':	video_title.decode('utf-8'),
 			'ext':		video_extension.decode('utf-8'),
-			'format':	u'NA',
 			'player_url':	None,
 		}]
