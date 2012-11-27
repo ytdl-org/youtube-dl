@@ -327,6 +327,7 @@ class FileDownloader(object):
 			template_dict = dict(info_dict)
 			template_dict['epoch'] = unicode(int(time.time()))
 			template_dict['autonumber'] = unicode('%05d' % self._num_downloads)
+			template_dict = dict((key, u'NA' if val is None else val) for key, val in template_dict.items())
 			filename = self.params['outtmpl'] % template_dict
 			return filename
 		except (ValueError, KeyError), err:

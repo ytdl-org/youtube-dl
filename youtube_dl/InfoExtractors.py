@@ -380,7 +380,7 @@ class YoutubeIE(InfoExtractor):
 			video_thumbnail = urllib.unquote_plus(video_info['thumbnail_url'][0])
 
 		# upload date
-		upload_date = u'NA'
+		upload_date = None
 		mobj = re.search(r'id="eow-date.*?>(.*?)</span>', video_webpage, re.DOTALL)
 		if mobj is not None:
 			upload_date = ' '.join(re.sub(r'[/,-]', r' ', mobj.group(1)).split())
@@ -631,7 +631,7 @@ class MetacafeIE(InfoExtractor):
 			'id':		video_id.decode('utf-8'),
 			'url':		video_url.decode('utf-8'),
 			'uploader':	video_uploader.decode('utf-8'),
-			'upload_date':	u'NA',
+			'upload_date':	None,
 			'title':	video_title,
 			'ext':		video_extension.decode('utf-8'),
 		}]
@@ -707,7 +707,7 @@ class DailymotionIE(InfoExtractor):
 			return
 		video_title = unescapeHTML(mobj.group('title').decode('utf-8'))
 
-		video_uploader = u'NA'
+		video_uploader = None
 		mobj = re.search(r'(?im)<span class="owner[^\"]+?">[^<]+?<a [^>]+?>([^<]+?)</a>', webpage)
 		if mobj is None:
 			# lookin for official user
@@ -719,7 +719,7 @@ class DailymotionIE(InfoExtractor):
 		else:
 			video_uploader = mobj.group(1)
 
-		video_upload_date = u'NA'
+		video_upload_date = None
 		mobj = re.search(r'<div class="[^"]*uploaded_cont[^"]*" title="[^"]*">([0-9]{2})-([0-9]{2})-([0-9]{4})</div>', webpage)
 		if mobj is not None:
 			video_upload_date = mobj.group(3) + mobj.group(2) + mobj.group(1)
@@ -820,8 +820,8 @@ class GoogleIE(InfoExtractor):
 		return [{
 			'id':		video_id.decode('utf-8'),
 			'url':		video_url.decode('utf-8'),
-			'uploader':	u'NA',
-			'upload_date':	u'NA',
+			'uploader':	None,
+			'upload_date':	None,
 			'title':	video_title,
 			'ext':		video_extension.decode('utf-8'),
 		}]
@@ -886,7 +886,7 @@ class PhotobucketIE(InfoExtractor):
 			'id':		video_id.decode('utf-8'),
 			'url':		video_url.decode('utf-8'),
 			'uploader':	video_uploader,
-			'upload_date':	u'NA',
+			'upload_date':	None,
 			'title':	video_title,
 			'ext':		video_extension.decode('utf-8'),
 		}]
@@ -1026,7 +1026,7 @@ class YahooIE(InfoExtractor):
 			'id':		video_id.decode('utf-8'),
 			'url':		video_url,
 			'uploader':	video_uploader,
-			'upload_date':	u'NA',
+			'upload_date':	None,
 			'title':	video_title,
 			'ext':		video_extension.decode('utf-8'),
 			'thumbnail':	video_thumbnail.decode('utf-8'),
@@ -1098,7 +1098,7 @@ class VimeoIE(InfoExtractor):
 		else: video_description = ''
 
 		# Extract upload date
-		video_upload_date = u'NA'
+		video_upload_date = None
 		mobj = re.search(r'<span id="clip-date" style="display:none">[^:]*: (.*?)( \([^\(]*\))?</span>', webpage)
 		if mobj is not None:
 			video_upload_date = mobj.group(1)
@@ -1286,7 +1286,7 @@ class GenericIE(InfoExtractor):
 			'id':		video_id.decode('utf-8'),
 			'url':		video_url.decode('utf-8'),
 			'uploader':	video_uploader,
-			'upload_date':	u'NA',
+			'upload_date':	None,
 			'title':	video_title,
 			'ext':		video_extension.decode('utf-8'),
 		}]
@@ -1889,8 +1889,8 @@ class DepositFilesIE(InfoExtractor):
 		return [{
 			'id':		file_id.decode('utf-8'),
 			'url':		file_url.decode('utf-8'),
-			'uploader':	u'NA',
-			'upload_date':	u'NA',
+			'uploader':	None,
+			'upload_date':	None,
 			'title':	file_title,
 			'ext':		file_extension.decode('utf-8'),
 		}]
@@ -2044,7 +2044,7 @@ class FacebookIE(InfoExtractor):
 			video_thumbnail = video_info['thumbnail']
 
 		# upload date
-		upload_date = u'NA'
+		upload_date = None
 		if 'upload_date' in video_info:
 			upload_time = video_info['upload_date']
 			timetuple = email.utils.parsedate_tz(upload_time)
@@ -2142,8 +2142,8 @@ class BlipTVIE(InfoExtractor):
 				info = {
 					'id': title,
 					'url': url,
-					'uploader': u'NA',
-					'upload_date': u'NA',
+					'uploader': None,
+					'upload_date': None,
 					'title': title,
 					'ext': ext,
 					'urlhandle': urlh
@@ -2244,8 +2244,8 @@ class MyVideoIE(InfoExtractor):
 		return [{
 			'id':		video_id,
 			'url':		video_url,
-			'uploader':	u'NA',
-			'upload_date':  u'NA',
+			'uploader':	None,
+			'upload_date':  None,
 			'title':	video_title,
 			'ext':		u'flv',
 		}]
@@ -2501,7 +2501,7 @@ class EscapistIE(InfoExtractor):
 			'id': videoId,
 			'url': videoUrl,
 			'uploader': showName,
-			'upload_date': u'NA',
+			'upload_date': None,
 			'title': showName,
 			'ext': 'flv',
 			'thumbnail': imgUrl,
@@ -2550,8 +2550,8 @@ class CollegeHumorIE(InfoExtractor):
 		info = {
 			'id': video_id,
 			'internal_id': internal_video_id,
-			'uploader': u'NA',
-			'upload_date': u'NA',
+			'uploader': None,
+			'upload_date': None,
 		}
 
 		self.report_extraction(video_id)
@@ -2636,8 +2636,8 @@ class XVideosIE(InfoExtractor):
 		info = {
 			'id': video_id,
 			'url': video_url,
-			'uploader': u'NA',
-			'upload_date': u'NA',
+			'uploader': None,
+			'upload_date': None,
 			'title': video_title,
 			'ext': 'flv',
 			'thumbnail': video_thumbnail,
@@ -2717,7 +2717,7 @@ class SoundcloudIE(InfoExtractor):
 			description = mobj.group(1)
 
 		# upload date
-		upload_date = u'NA'
+		upload_date = None
 		mobj = re.search("pretty-date'>on ([\w]+ [\d]+, [\d]+ \d+:\d+)</abbr></h2>", webpage)
 		if mobj:
 			try:
@@ -2798,8 +2798,8 @@ class InfoQIE(InfoExtractor):
 		info = {
 			'id': video_id,
 			'url': video_url,
-			'uploader': u'NA',
-			'upload_date': u'NA',
+			'uploader': None,
+			'upload_date': None,
 			'title': video_title,
 			'ext': extension, # Extension is always(?) mp4, but seems to be flv
 			'thumbnail': None,
@@ -2912,7 +2912,7 @@ class MixcloudIE(InfoExtractor):
 			'id': file_id.decode('utf-8'),
 			'url': file_url.decode('utf-8'),
 			'uploader':	uploader.decode('utf-8'),
-			'upload_date': u'NA',
+			'upload_date': None,
 			'title': json_data['name'],
 			'ext': file_url.split('.')[-1].decode('utf-8'),
 			'format': (format_param is None and u'NA' or format_param.decode('utf-8')),
@@ -2946,8 +2946,8 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			video = mobj.group('video')
 			info = {
 				'id': course + '_' + video,
-				'uploader': u'NA',
-				'upload_date': u'NA',
+				'uploader': None,
+				'upload_date': None,
 			}
 
 			self.report_extraction(info['id'])
@@ -2972,8 +2972,8 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			info = {
 				'id': course,
 				'type': 'playlist',
-				'uploader': u'NA',
-				'upload_date': u'NA',
+				'uploader': None,
+				'upload_date': None,
 			}
 
 			self.report_download_webpage(info['id'])
@@ -3010,8 +3010,8 @@ class StanfordOpenClassroomIE(InfoExtractor):
 			info = {
 				'id': 'Stanford OpenClassroom',
 				'type': 'playlist',
-				'uploader': u'NA',
-				'upload_date': u'NA',
+				'uploader': None,
+				'upload_date': None,
 			}
 
 			self.report_download_webpage(info['id'])
@@ -3120,7 +3120,7 @@ class MTVIE(InfoExtractor):
 			'id': video_id,
 			'url': video_url,
 			'uploader': performer,
-			'upload_date': u'NA',
+			'upload_date': None,
 			'title': video_title,
 			'ext': ext,
 			'format': format,
@@ -3241,8 +3241,8 @@ class YoukuIE(InfoExtractor):
 			info = {
 				'id': '%s_part%02d' % (video_id, index),
 				'url': download_url,
-				'uploader': u'NA',
-				'upload_date': u'NA',
+				'uploader': None,
+				'upload_date': None,
 				'title': video_title,
 				'ext': ext,
 			}
@@ -3305,8 +3305,8 @@ class XNXXIE(InfoExtractor):
 		return [{
 			'id': video_id,
 			'url': video_url,
-			'uploader': u'NA',
-			'upload_date': u'NA',
+			'uploader': None,
+			'upload_date': None,
 			'title': video_title,
 			'ext': 'flv',
 			'thumbnail': video_thumbnail,
@@ -3365,7 +3365,7 @@ class GooglePlusIE(InfoExtractor):
 			return
 
 		# Extract update date
-		upload_date = u'NA'
+		upload_date = None
 		pattern = 'title="Timestamp">(.*?)</a>'
 		mobj = re.search(pattern, webpage)
 		if mobj:
@@ -3376,7 +3376,7 @@ class GooglePlusIE(InfoExtractor):
 		self.report_date(upload_date)
 
 		# Extract uploader
-		uploader = u'NA'
+		uploader = None
 		pattern = r'rel\="author".*?>(.*?)</a>'
 		mobj = re.search(pattern, webpage)
 		if mobj:
