@@ -187,6 +187,11 @@ def parseOpts():
 			dest='ratelimit', metavar='LIMIT', help='download rate limit (e.g. 50k or 44.6m)')
 	general.add_option('-R', '--retries',
 			dest='retries', metavar='RETRIES', help='number of retries (default is %default)', default=10)
+	general.add_option('--buffer-size',
+			dest='buffersize', metavar='SIZE', help='size of download buffer (e.g. 1024 or 16k) (default is %default)', default="1024")
+	general.add_option('--no-resize-buffer',
+			action='store_true', dest='noresizebuffer',
+			help='do not automatically adjust the buffer size. By default, the buffer size is automatically resized from an initial value of SIZE.', default=False)
 	general.add_option('--dump-user-agent',
 			action='store_true', dest='dump_user_agent',
 			help='display the current browser identification', default=False)
@@ -443,6 +448,11 @@ def _real_main():
 			opts.retries = long(opts.retries)
 		except (TypeError, ValueError), err:
 			parser.error(u'invalid retry count specified')
+	if opts.buffersize is not None:
+		numeric_buffersize = FileDownloader.parse_bytes(opts.buffersize)
+		if numeric_buffersize is None:
+			parser.error(u'invalid buffer size specified')
+		opts.buffersize = numeric_buffersize
 	try:
 		opts.playliststart = int(opts.playliststart)
 		if opts.playliststart <= 0:
@@ -493,6 +503,8 @@ def _real_main():
 		'ratelimit': opts.ratelimit,
 		'nooverwrites': opts.nooverwrites,
 		'retries': opts.retries,
+		'buffersize': opts.buffersize,
+		'noresizebuffer': opts.noresizebuffer,
 		'continuedl': opts.continue_dl,
 		'noprogress': opts.noprogress,
 		'playliststart': opts.playliststart,
