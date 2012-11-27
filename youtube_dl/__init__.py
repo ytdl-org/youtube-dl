@@ -127,9 +127,12 @@ def parseOpts():
 
 		opts = []
 
-		if option._short_opts: opts.append(option._short_opts[0])
-		if option._long_opts: opts.append(option._long_opts[0])
-		if len(opts) > 1: opts.insert(1, ', ')
+		if option._short_opts:
+			opts.append(option._short_opts[0])
+		if option._long_opts:
+			opts.append(option._long_opts[0])
+		if len(opts) > 1:
+			opts.insert(1, ', ')
 
 		if option.takes_value(): opts.append(' %s' % option.metavar)
 
