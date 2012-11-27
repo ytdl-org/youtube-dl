@@ -18,6 +18,7 @@ __authors__  = (
 	'Ori Avtalion',
 	'shizeeg',
 	'Filippo Valsorda',
+	'Christian Albrecht',
 	)
 
 __license__ = 'Public Domain'
