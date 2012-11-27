@@ -87,6 +87,7 @@ if sys.version_info < (3,0):
 		print(s.encode(preferredencoding(), 'xmlcharrefreplace'))
 else:
 	def compat_print(s):
+		assert type(s) == type(u'')
 		print(s)
 
 def htmlentity_transform(matchobj):
