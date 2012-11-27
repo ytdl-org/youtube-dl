@@ -108,6 +108,28 @@ which means you can modify it, redistribute it or use it however you like.
 
 You can configure youtube-dl by placing default arguments (such as `--extract-audio --no-mtime` to always extract the audio and not copy the mtime) into `/etc/youtube-dl.conf` and/or `~/.local/config/youtube-dl.conf`.
 
+# OUTPUT TEMPLATE
+
+The `-o` option allows users to indicate a template for the output file names. The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "http://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences have the format `%(NAME)s`. To clarify, that is a percent symbol followed by a name in parenthesis, followed by a lowercase S. Allowed names are:
+
+ - `id`: The sequence will be replaced by the video identifier.
+ - `url`: The sequence will be replaced by the video URL.
+ - `uploader`: The sequence will be replaced by the nickname of the person who uploaded the video.
+ - `upload_date`: The sequence will be replaced by the upload date in YYYYMMDD format.
+ - `title`: The sequence will be replaced by the video title.
+ext`: The sequence will be replaced by the appropriate extension (like flv or mp4).
+epoch`: The sequence will be replaced by the Unix epoch when creating the file.
+autonumber`: The sequence will be replaced by a five-digit number that will be increased with each download, starting at zero.
+
+The current default template is `%(id)s.%(ext)s`, but that will be switchted to `%(title)s-%(id)s.%(ext)s` (which can be requested with `-t` at the moment).
+
+In some cases, you don't want special characters such as 中, spaces, or &, such as when transferring the downloaded filename to a Windows system or the filename through an 8bit-unsafe channel. In these cases, add the `--restrict-filenames` flag to get a shorter title:
+
+    $ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc
+    youtube-dl test video ''_ä↭𝕐.mp4    # All kinds of weird characters
+    $ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc --restrict-filenames
+    youtube-dl_test_video_.mp4          # A simple file name
+
 # FAQ
 
 ### Can you please put the -b option back?
