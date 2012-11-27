@@ -27,9 +27,9 @@ std_headers = {
 }
 
 try:
-    compat_str = unicode # Python 2
+	u = unicode # Python 2
 except NameError:
-    compat_str = str
+	u = str
 
 def preferredencoding():
 	"""Get preferred encoding.
@@ -37,19 +37,17 @@ def preferredencoding():
 	Returns the best encoding scheme for the system, based on
 	locale.getpreferredencoding() and some further tweaks.
 	"""
-	def yield_preferredencoding():
-		try:
-			pref = locale.getpreferredencoding()
-			u'TEST'.encode(pref)
-		except:
-			pref = 'UTF-8'
-		while True:
-			yield pref
-	return yield_preferredencoding().next()
+	try:
+		pref = locale.getpreferredencoding()
+		u'TEST'.encode(pref)
+	except:
+		pref = 'UTF-8'
+
+	return pref
 
 
 def htmlentity_transform(matchobj):
-	"""Transforms an HTML entity to a Unicode character.
+	"""Transforms an HTML entity to a character.
 
 	This function receives a match object and is intended to be used with
 	the re.sub() function.
@@ -60,7 +58,6 @@ def htmlentity_transform(matchobj):
 	if entity in htmlentitydefs.name2codepoint:
 		return unichr(htmlentitydefs.name2codepoint[entity])
 
-	# Unicode character
 	mobj = re.match(ur'(?u)#(x?\d+)', entity)
 	if mobj is not None:
 		numstr = mobj.group(1)
@@ -69,7 +66,7 @@ def htmlentity_transform(matchobj):
 			numstr = u'0%s' % numstr
 		else:
 			base = 10
-		return unichr(long(numstr, base))
+		return unichr(int(numstr, base))
 
 	# Unknown entity in name, return its literal representation
 	return (u'&%s;' % entity)
@@ -128,8 +125,10 @@ class IDParser(HTMLParser.HTMLParser):
 	handle_decl = handle_pi = unknown_decl = find_startpos
 
 	def get_result(self):
-		if self.result == None: return None
-		if len(self.result) != 3: return None
+		if self.result is None:
+			return None
+		if len(self.result) != 3:
+			return None
 		lines = self.html.split('\n')
 		lines = lines[self.result[1][0]-1:self.result[2][0]]
 		lines[0] = lines[0][self.result[1][1]:]
@@ -208,7 +207,7 @@ def sanitize_filename(s, restricted=False):
 			return '_-' if restricted else ' -'
 		elif char in '\\/|*<>':
 			return '_'
-		if restricted and (char in '&\'' or char.isspace()):
+		if restricted and (char in '!&\'' or char.isspace()):
 			return '_'
 		if restricted and ord(char) > 127:
 			return '_'
@@ -235,7 +234,7 @@ def orderedSet(iterable):
 
 def unescapeHTML(s):
 	"""
-	@param s a string (of type unicode)
+	@param s a string
 	"""
 	assert type(s) == type(u'')
 
@@ -244,7 +243,7 @@ def unescapeHTML(s):
 
 def encodeFilename(s):
 	"""
-	@param s The name of the file (of type unicode)
+	@param s The name of the file
 	"""
 
 	assert type(s) == type(u'')
@@ -316,7 +315,7 @@ class ContentTooShortError(Exception):
 
 class Trouble(Exception):
 	"""Trouble helper exception
-	
+
 	This is an exception to be handled with
 	FileDownloader.trouble
 	"""

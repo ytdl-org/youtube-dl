@@ -18,10 +18,11 @@ __authors__  = (
 	'Ori Avtalion',
 	'shizeeg',
 	'Filippo Valsorda',
+	'Christian Albrecht',
 	)
 
 __license__ = 'Public Domain'
-__version__ = '2012.11.28'
+__version__ = '2012.11.29'
 
 UPDATE_URL = 'https://raw.github.com/rg3/youtube-dl/master/youtube-dl'
 UPDATE_URL_VERSION = 'https://raw.github.com/rg3/youtube-dl/master/LATEST_VERSION'
@@ -126,9 +127,12 @@ def parseOpts():
 
 		opts = []
 
-		if option._short_opts: opts.append(option._short_opts[0])
-		if option._long_opts: opts.append(option._long_opts[0])
-		if len(opts) > 1: opts.insert(1, ', ')
+		if option._short_opts:
+			opts.append(option._short_opts[0])
+		if option._long_opts:
+			opts.append(option._long_opts[0])
+		if len(opts) > 1:
+			opts.insert(1, ', ')
 
 		if option.takes_value(): opts.append(' %s' % option.metavar)
 
@@ -187,6 +191,11 @@ def parseOpts():
 			dest='ratelimit', metavar='LIMIT', help='download rate limit (e.g. 50k or 44.6m)')
 	general.add_option('-R', '--retries',
 			dest='retries', metavar='RETRIES', help='number of retries (default is %default)', default=10)
+	general.add_option('--buffer-size',
+			dest='buffersize', metavar='SIZE', help='size of download buffer (e.g. 1024 or 16k) (default is %default)', default="1024")
+	general.add_option('--no-resize-buffer',
+			action='store_true', dest='noresizebuffer',
+			help='do not automatically adjust the buffer size. By default, the buffer size is automatically resized from an initial value of SIZE.', default=False)
 	general.add_option('--dump-user-agent',
 			action='store_true', dest='dump_user_agent',
 			help='display the current browser identification', default=False)
@@ -362,7 +371,7 @@ def gen_extractors():
 		YoukuIE(),
 		XNXXIE(),
 		GooglePlusIE(),
-
+		ArteTvIE(),
 		GenericIE()
 	]
 
@@ -440,9 +449,14 @@ def _real_main():
 		opts.ratelimit = numeric_limit
 	if opts.retries is not None:
 		try:
-			opts.retries = long(opts.retries)
+			opts.retries = int(opts.retries)
 		except (TypeError, ValueError), err:
 			parser.error(u'invalid retry count specified')
+	if opts.buffersize is not None:
+		numeric_buffersize = FileDownloader.parse_bytes(opts.buffersize)
+		if numeric_buffersize is None:
+			parser.error(u'invalid buffer size specified')
+		opts.buffersize = numeric_buffersize
 	try:
 		opts.playliststart = int(opts.playliststart)
 		if opts.playliststart <= 0:
@@ -493,6 +507,8 @@ def _real_main():
 		'ratelimit': opts.ratelimit,
 		'nooverwrites': opts.nooverwrites,
 		'retries': opts.retries,
+		'buffersize': opts.buffersize,
+		'noresizebuffer': opts.noresizebuffer,
 		'continuedl': opts.continue_dl,
 		'noprogress': opts.noprogress,
 		'playliststart': opts.playliststart,

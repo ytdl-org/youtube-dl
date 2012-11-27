@@ -62,6 +62,8 @@ class FileDownloader(object):
 	ratelimit:         Download speed limit, in bytes/sec.
 	nooverwrites:      Prevent overwriting files.
 	retries:           Number of times to retry for HTTP error 5xx
+	buffersize:        Size of download buffer in bytes.
+	noresizebuffer:    Do not automatically resize the download buffer.
 	continuedl:        Try to continue downloads if possible.
 	noprogress:        Do not print the progress bar.
 	playliststart:     Playlist item to start at.
@@ -106,7 +108,7 @@ class FileDownloader(object):
 		if bytes == 0.0:
 			exponent = 0
 		else:
-			exponent = long(math.log(bytes, 1024.0))
+			exponent = int(math.log(bytes, 1024.0))
 		suffix = 'bkMGTPEZY'[exponent]
 		converted = float(bytes) / float(1024 ** exponent)
 		return '%.2f%s' % (converted, suffix)
@@ -125,7 +127,7 @@ class FileDownloader(object):
 		if current == 0 or dif < 0.001: # One millisecond
 			return '--:--'
 		rate = float(current) / dif
-		eta = long((float(total) - float(current)) / rate)
+		eta = int((float(total) - float(current)) / rate)
 		(eta_mins, eta_secs) = divmod(eta, 60)
 		if eta_mins > 99:
 			return '--:--'
@@ -177,7 +179,7 @@ class FileDownloader(object):
 		if not self.params.get('quiet', False):
 			terminator = [u'\n', u''][skip_eol]
 			output = message + terminator
-			if 'b' not in self._screen_file.mode or sys.version_info[0] < 3: # Python 2 lies about the mode of sys.stdout/sys.stderr
+			if 'b' in getattr(self._screen_file, 'mode', '') or sys.version_info[0] < 3: # Python 2 lies about the mode of sys.stdout/sys.stderr
 				output = output.encode(preferredencoding(), 'ignore')
 			self._screen_file.write(output)
 			self._screen_file.flush()
@@ -325,9 +327,13 @@ class FileDownloader(object):
 		"""Generate the output filename."""
 		try:
 			template_dict = dict(info_dict)
-			template_dict['epoch'] = unicode(int(time.time()))
-			template_dict['autonumber'] = unicode('%05d' % self._num_downloads)
+
+			template_dict['epoch'] = int(time.time())
+			template_dict['autonumber'] = u'%05d' % self._num_downloads
+
 			template_dict = dict((key, u'NA' if val is None else val) for key, val in template_dict.items())
+			template_dict = dict((k, sanitize_filename(u(v), self.params.get('restrictfilenames'))) for k,v in template_dict.items())
+
 			filename = self.params['outtmpl'] % template_dict
 			return filename
 		except (ValueError, KeyError), err:
@@ -370,7 +376,6 @@ class FileDownloader(object):
 				raise MaxDownloadsReached()
 
 		filename = self.prepare_filename(info_dict)
-		filename = sanitize_filename(filename, self.params.get('restrictfilenames'))
 
 		# Forced printings
 		if self.params.get('forcetitle', False):
@@ -398,7 +403,7 @@ class FileDownloader(object):
 			if dn != '' and not os.path.exists(dn): # dn is already encoded
 				os.makedirs(dn)
 		except (OSError, IOError), err:
-			self.trouble(u'ERROR: unable to create directory ' + unicode(err))
+			self.trouble(u'ERROR: unable to create directory ' + u(err))
 			return
 
 		if self.params.get('writedescription', False):
@@ -623,7 +628,7 @@ class FileDownloader(object):
 					else:
 						# Examine the reported length
 						if (content_length is not None and
-								(resume_len - 100 < long(content_length) < resume_len + 100)):
+								(resume_len - 100 < int(content_length) < resume_len + 100)):
 							# The file had already been fully downloaded.
 							# Explanation to the above condition: in issue #175 it was revealed that
 							# YouTube sometimes adds or removes a few bytes from the end of the file,
@@ -650,10 +655,10 @@ class FileDownloader(object):
 
 		data_len = data.info().get('Content-length', None)
 		if data_len is not None:
-			data_len = long(data_len) + resume_len
+			data_len = int(data_len) + resume_len
 		data_len_str = self.format_bytes(data_len)
 		byte_counter = 0 + resume_len
-		block_size = 1024
+		block_size = self.params.get('buffersize', 1024)
 		start = time.time()
 		while True:
 			# Download and write
@@ -679,7 +684,8 @@ class FileDownloader(object):
 			except (IOError, OSError), err:
 				self.trouble(u'\nERROR: unable to write data: %s' % str(err))
 				return False
-			block_size = self.best_block_size(after - before, len(data_block))
+			if not self.params.get('noresizebuffer', False):
+				block_size = self.best_block_size(after - before, len(data_block))
 
 			# Progress message
 			speed_str = self.calc_speed(start, time.time(), byte_counter - resume_len)
@@ -699,7 +705,7 @@ class FileDownloader(object):
 		stream.close()
 		self.report_finish()
 		if data_len is not None and byte_counter != data_len:
-			raise ContentTooShortError(byte_counter, long(data_len))
+			raise ContentTooShortError(byte_counter, int(data_len))
 		self.try_rename(tmpfilename, filename)
 
 		# Update file modification time
