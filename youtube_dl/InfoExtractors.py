@@ -2851,8 +2851,8 @@ class SoundcloudIE(InfoExtractor):
 		if mobj:
 			try:
 				upload_date = datetime.datetime.strptime(mobj.group(1), '%B %d, %Y %H:%M').strftime('%Y%m%d')
-			except Exception, e:
-				self._downloader.to_stderr(compat_str(e))
+			except Exception as err:
+				self._downloader.to_stderr(compat_str(err))
 
 		# for soundcloud, a request to a cross domain is required for cookies
 		request = compat_urllib_request.Request('http://media.soundcloud.com/crossdomain.xml', std_headers)
