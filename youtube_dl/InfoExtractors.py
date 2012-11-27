@@ -2384,18 +2384,18 @@ class ComedyCentralIE(InfoExtractor):
 			if len(turls) == 0:
 				self._downloader.trouble(u'\nERROR: unable to download ' + mediaId + ': No videos found')
 				continue
-
-			# For now, just pick the highest bitrate
 			
-			print turls
-
 			if self._downloader.params.get('listformats', None):
 			    self._print_formats([i[0] for i in turls])
 		            return
 
+			# For now, just pick the highest bitrate
  			format,video_url = turls[-1]
+
+			# Get the format arg from the arg stream
 			req_format = self._downloader.params.get('format', None)
 
+			# Select format if we can find one
 			for f,v in turls:
 			    if f == req_format:
 			      format, video_url = f, v
