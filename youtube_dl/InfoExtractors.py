@@ -2253,6 +2253,25 @@ class ComedyCentralIE(InfoExtractor):
 	_VALID_URL = r'^(:(?P<shortname>tds|thedailyshow|cr|colbert|colbertnation|colbertreport))|(https?://)?(www\.)?(?P<showname>thedailyshow|colbertnation)\.com/full-episodes/(?P<episode>.*)$'
 	IE_NAME = u'comedycentral'
 
+	_available_formats = ['3500', '2200', '1700', '1200', '750', '400']
+
+	_video_extensions = {
+		'3500': 'mp4',
+		'2200': 'mp4',
+		'1700': 'mp4',
+		'1200': 'mp4',
+		'750': 'mp4',
+		'400': 'mp4',
+	}
+	_video_dimensions = {
+		'3500': '1280x720',
+		'2200': '960x540',
+		'1700': '768x432',
+		'1200': '640x360',
+		'750': '512x288',
+		'400': '384x216',
+	}
+
 	def report_extraction(self, episode_id):
 		self._downloader.to_screen(u'[comedycentral] %s: Extracting information' % episode_id)
 
@@ -2264,6 +2283,14 @@ class ComedyCentralIE(InfoExtractor):
 
 	def report_player_url(self, episode_id):
 		self._downloader.to_screen(u'[comedycentral] %s: Determining player URL' % episode_id)
+
+
+	def _print_formats(self, formats):
+		print('Available formats:')
+		for x in formats:
+			print('%s\t:\t%s\t[%s]' %(x, self._video_extensions.get(x, 'mp4'), self._video_dimensions.get(x, '???')))
+
+
 
 	def _real_extract(self, url):
 		mobj = re.match(self._VALID_URL, url)
@@ -2357,9 +2384,22 @@ class ComedyCentralIE(InfoExtractor):
 			if len(turls) == 0:
 				self._downloader.trouble(u'\nERROR: unable to download ' + mediaId + ': No videos found')
 				continue
+			
+			if self._downloader.params.get('listformats', None):
+			    self._print_formats([i[0] for i in turls])
+		            return
 
 			# For now, just pick the highest bitrate
 			format,video_url = turls[-1]
+
+			# Get the format arg from the arg stream
+			req_format = self._downloader.params.get('format', None)
+
+			# Select format if we can find one
+			for f,v in turls:
+			    if f == req_format:
+			      format, video_url = f, v
+			      break
 
 			# Patch to download from alternative CDN, which does not 
                         # break on current RTMPDump builds
