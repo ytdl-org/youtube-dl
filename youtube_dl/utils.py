@@ -126,8 +126,10 @@ class IDParser(HTMLParser.HTMLParser):
 	handle_decl = handle_pi = unknown_decl = find_startpos
 
 	def get_result(self):
-		if self.result == None: return None
-		if len(self.result) != 3: return None
+		if self.result is None:
+			return None
+		if len(self.result) != 3:
+			return None
 		lines = self.html.split('\n')
 		lines = lines[self.result[1][0]-1:self.result[2][0]]
 		lines[0] = lines[0][self.result[1][1]:]
