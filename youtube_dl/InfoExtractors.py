@@ -1166,7 +1166,7 @@ class ArteTvIE(InfoExtractor):
 			self.report_download_webpage(url)
 			webpage = urllib2.urlopen(request).read()
 		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self._downloader.trouble(u'ERROR: Unable to retrieve video webpage: %s' % str(err))
+			self._downloader.trouble(u'ERROR: Unable to retrieve video webpage: %s' % u(err))
 			return
 		except ValueError, err:
 			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
