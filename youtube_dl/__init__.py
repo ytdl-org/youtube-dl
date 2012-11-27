@@ -367,7 +367,7 @@ def gen_extractors():
 		YoukuIE(),
 		XNXXIE(),
 		GooglePlusIE(),
-
+		ArteTvIE(),
 		GenericIE()
 	]
 

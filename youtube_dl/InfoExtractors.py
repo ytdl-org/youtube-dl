@@ -1140,6 +1140,143 @@ class VimeoIE(InfoExtractor):
 		}]
 
 
+class ArteTvIE(InfoExtractor):
+	"""arte.tv information extractor."""
+
+	_VALID_URL = r'(?:http://)?videos\.arte\.tv/(?:fr|de)/videos/.*'
+	_LIVE_URL = r'index-[0-9]+\.html$'
+
+	IE_NAME = u'arte.tv'
+
+	def __init__(self, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+
+	def report_download_webpage(self, video_id):
+		"""Report webpage download."""
+		self._downloader.to_screen(u'[arte.tv] %s: Downloading webpage' % video_id)
+
+	def report_extraction(self, video_id):
+		"""Report information extraction."""
+		self._downloader.to_screen(u'[arte.tv] %s: Extracting information' % video_id)
+
+	def fetch_webpage(self, url):
+		self._downloader.increment_downloads()
+		request = urllib2.Request(url)
+		try:
+			self.report_download_webpage(url)
+			webpage = urllib2.urlopen(request).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: Unable to retrieve video webpage: %s' % str(err))
+			return
+		except ValueError, err:
+			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
+			return
+		return webpage
+
+	def grep_webpage(self, url, regex, regexFlags, matchTuples):
+		page = self.fetch_webpage(url)
+		mobj = re.search(regex, page, regexFlags)
+		info = {}
+
+		if mobj is None:
+			self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
+			return
+
+		for (i, key, err) in matchTuples:
+			if mobj.group(i) is None:
+				self._downloader.trouble(err)
+				return
+			else:
+				info[key] = mobj.group(i)
+
+		return info
+
+	def extractLiveStream(self, url):
+		video_lang = url.split('/')[-4]
+		info = self.grep_webpage(
+			url,
+			r'src="(.*?/videothek_js.*?\.js)',
+			0,
+			[
+				(1, 'url', u'ERROR: Invalid URL: %s' % url)
+			]
+		)
+		http_host = url.split('/')[2]
+		next_url = 'http://%s%s' % (http_host, urllib.unquote(info.get('url')))
+		info = self.grep_webpage(
+			next_url,
+			r'(s_artestras_scst_geoFRDE_' + video_lang + '.*?)\'.*?' +
+				'(http://.*?\.swf).*?' +
+				'(rtmp://.*?)\'',
+			re.DOTALL,
+			[
+				(1, 'path',   u'ERROR: could not extract video path: %s' % url),
+				(2, 'player', u'ERROR: could not extract video player: %s' % url),
+				(3, 'url',    u'ERROR: could not extract video url: %s' % url)
+			]
+		)
+		video_url = u'%s/%s' % (info.get('url'), info.get('path'))
+
+	def extractPlus7Stream(self, url):
+		video_lang = url.split('/')[-3]
+		info = self.grep_webpage(
+			url,
+			r'param name="movie".*?videorefFileUrl=(http[^\'"&]*)',
+			0,
+			[
+				(1, 'url', u'ERROR: Invalid URL: %s' % url)
+			]
+		)
+		next_url = urllib.unquote(info.get('url'))
+		info = self.grep_webpage(
+			next_url,
+			r'<video lang="%s" ref="(http[^\'"&]*)' % video_lang,
+			0,
+			[
+				(1, 'url', u'ERROR: Could not find <video> tag: %s' % url)
+			]
+		)
+		next_url = urllib.unquote(info.get('url'))
+
+		info = self.grep_webpage(
+			next_url,
+			r'<video id="(.*?)".*?>.*?' +
+				'<name>(.*?)</name>.*?' +
+				'<dateVideo>(.*?)</dateVideo>.*?' +
+				'<url quality="hd">(.*?)</url>',
+			re.DOTALL,
+			[
+				(1, 'id',    u'ERROR: could not extract video id: %s' % url),
+				(2, 'title', u'ERROR: could not extract video title: %s' % url),
+				(3, 'date',  u'ERROR: could not extract video date: %s' % url),
+				(4, 'url',   u'ERROR: could not extract video url: %s' % url)
+			]
+		)
+
+		return {
+			'id':           info.get('id'),
+			'url':          urllib.unquote(info.get('url')),
+			'uploader':     u'arte.tv',
+			'upload_date':  info.get('date'),
+			'title':        info.get('title'),
+			'ext':          u'mp4',
+			'format':       u'NA',
+			'player_url':   None,
+		}
+
+	def _real_extract(self, url):
+		video_id = url.split('/')[-1]
+		self.report_extraction(video_id)
+
+		if re.search(self._LIVE_URL, video_id) is not None:
+			self.extractLiveStream(url)
+			return
+		else:
+			info = self.extractPlus7Stream(url)
+
+		return [info]
+
+
 class GenericIE(InfoExtractor):
 	"""Generic last-resort information extractor."""
 
