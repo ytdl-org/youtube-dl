@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import gzip
 import htmlentitydefs
@@ -39,7 +38,7 @@ def preferredencoding():
 	"""
 	try:
 		pref = locale.getpreferredencoding()
-		u'TEST'.encode(pref)
+		u('TEST').encode(pref)
 	except:
 		pref = 'UTF-8'
 
@@ -61,15 +60,15 @@ def htmlentity_transform(matchobj):
 	mobj = re.match(ur'(?u)#(x?\d+)', entity)
 	if mobj is not None:
 		numstr = mobj.group(1)
-		if numstr.startswith(u'x'):
+		if numstr.startswith(u('x')):
 			base = 16
-			numstr = u'0%s' % numstr
+			numstr = u('0%s') % numstr
 		else:
 			base = 10
 		return unichr(int(numstr, base))
 
 	# Unknown entity in name, return its literal representation
-	return (u'&%s;' % entity)
+	return (u('&%s;') % entity)
 
 HTMLParser.locatestarttagend = re.compile(r"""<[a-zA-Z][-.a-zA-Z0-9:_]*(?:\s+(?:(?<=['"\s])[^\s/>][^\s/=>]*(?:\s*=+\s*(?:'[^']*'|"[^"]*"|(?!['"])[^>\s]*))?\s*)*)?\s*""", re.VERBOSE) # backport bugfix
 class IDParser(HTMLParser.HTMLParser):
@@ -170,16 +169,17 @@ def sanitize_open(filename, open_mode):
 	It returns the tuple (stream, definitive_file_name).
 	"""
 	try:
-		if filename == u'-':
+		if filename == u('-'):
 			if sys.platform == 'win32':
 				import msvcrt
 				msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
 			return (sys.stdout, filename)
 		stream = open(encodeFilename(filename), open_mode)
 		return (stream, filename)
-	except (IOError, OSError), err:
+	except (IOError, OSError):
+		_, err, _ = sys.exc_info()
 		# In case of error, try to remove win32 forbidden chars
-		filename = re.sub(ur'[/<>:"\|\?\*]', u'#', filename)
+		filename = re.sub(ur'[/<>:"\|\?\*]', u('#'), filename)
 
 		# An exception here should be caught in the caller
 		stream = open(encodeFilename(filename), open_mode)
@@ -213,7 +213,7 @@ def sanitize_filename(s, restricted=False):
 			return '_'
 		return char
 
-	result = u''.join(map(replace_insane, s))
+	result = u('').join(map(replace_insane, s))
 	while '__' in result:
 		result = result.replace('__', '_')
 	result = result.strip('_')
@@ -236,7 +236,7 @@ def unescapeHTML(s):
 	"""
 	@param s a string
 	"""
-	assert type(s) == type(u'')
+	assert type(s) == type(u(''))
 
 	result = re.sub(ur'(?u)&(.+?);', htmlentity_transform, s)
 	return result
@@ -246,10 +246,10 @@ def encodeFilename(s):
 	@param s The name of the file
 	"""
 
-	assert type(s) == type(u'')
+	assert type(s) == type(u(''))
 
 	if sys.platform == 'win32' and sys.getwindowsversion()[0] >= 5:
-		# Pass u'' directly to use Unicode APIs on Windows 2000 and up
+		# Pass u('') directly to use Unicode APIs on Windows 2000 and up
 		# (Detecting Windows NT 4 is tricky because 'major >= 4' would
 		# match Windows 9x series as well. Besides, NT 4 is obsolete.)
 		return s
