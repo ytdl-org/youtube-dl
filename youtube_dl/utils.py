@@ -27,9 +27,9 @@ std_headers = {
 }
 
 try:
-    compat_str = unicode # Python 2
+	compat_str = unicode # Python 2
 except NameError:
-    compat_str = str
+	compat_str = str
 
 def preferredencoding():
 	"""Get preferred encoding.
