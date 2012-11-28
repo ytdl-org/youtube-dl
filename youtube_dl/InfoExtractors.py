@@ -486,8 +486,8 @@ class YoutubeIE(InfoExtractor):
             # Extension
             video_extension = self._video_extensions.get(format_param, 'flv')
 
-            video_format = '{} - {}'.format(format_param if format_param else video_extension,
-                                            self._video_dimensions.get(format_param, '???'))
+            video_format = '{0} - {1}'.format(format_param if format_param else video_extension,
+                                              self._video_dimensions.get(format_param, '???'))
 
             results.append({
                 'id':       video_id,
