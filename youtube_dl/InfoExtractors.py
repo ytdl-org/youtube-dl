@@ -2652,9 +2652,9 @@ class CollegeHumorIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?collegehumor\.com/video/(?P<videoid>[0-9]+)/(?P<shorttitle>.*)$'
     IE_NAME = u'collegehumor'
 
-    def report_webpage(self, video_id):
+    def report_manifest(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, video_id))
+        self._downloader.to_screen(u'[%s] %s: Downloading XML manifest' % (self.IE_NAME, video_id))
 
     def report_extraction(self, video_id):
         """Report information extraction."""
@@ -2667,29 +2667,14 @@ class CollegeHumorIE(InfoExtractor):
             return
         video_id = mobj.group('videoid')
 
-        self.report_webpage(video_id)
-        request = compat_urllib_request.Request(url)
-        try:
-            webpage = compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err))
-            return
-
-        m = re.search(r'id="video:(?P<internalvideoid>[0-9]+)"', webpage)
-        if m is None:
-            self._downloader.trouble(u'ERROR: Cannot extract internal video ID')
-            return
-        internal_video_id = m.group('internalvideoid')
-
         info = {
             'id': video_id,
-            'internal_id': internal_video_id,
             'uploader': None,
             'upload_date': None,
         }
 
         self.report_extraction(video_id)
-        xmlUrl = 'http://www.collegehumor.com/moogaloop/video:' + internal_video_id
+        xmlUrl = 'http://www.collegehumor.com/moogaloop/video/' + video_id
         try:
             metaXml = compat_urllib_request.urlopen(xmlUrl).read()
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
@@ -2701,13 +2686,34 @@ class CollegeHumorIE(InfoExtractor):
             videoNode = mdoc.findall('./video')[0]
             info['description'] = videoNode.findall('./description')[0].text
             info['title'] = videoNode.findall('./caption')[0].text
-            info['url'] = videoNode.findall('./file')[0].text
             info['thumbnail'] = videoNode.findall('./thumbnail')[0].text
-            info['ext'] = info['url'].rpartition('.')[2]
+            manifest_url = videoNode.findall('./file')[0].text
         except IndexError:
             self._downloader.trouble(u'\nERROR: Invalid metadata XML file')
             return
 
+        manifest_url += '?hdcore=2.10.3'
+        self.report_manifest(video_id)
+        try:
+            manifestXml = compat_urllib_request.urlopen(manifest_url).read()
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.trouble(u'ERROR: unable to download video info XML: %s' % compat_str(err))
+            return
+
+        adoc = xml.etree.ElementTree.fromstring(manifestXml)
+        try:
+            media_node = adoc.findall('./{http://ns.adobe.com/f4m/1.0}media')[0]
+            node_id = media_node.attrib['url']
+            video_id = adoc.findall('./{http://ns.adobe.com/f4m/1.0}id')[0].text
+        except IndexError as err:
+            self._downloader.trouble(u'\nERROR: Invalid manifest file')
+            return
+
+        url_pr = compat_urllib_parse_urlparse(manifest_url)
+        url = url_pr.scheme + '://' + url_pr.netloc + '/z' + video_id[:-2] + '/' + node_id + 'Seg1-Frag1'
+
+        info['url'] = url
+        info['ext'] = 'f4f'
         return [info]
 
 
