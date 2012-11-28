@@ -170,14 +170,6 @@ The error
 
 means you're using an outdated version of Python. Please update to Python 2.6 or 2.7.
 
-To run youtube-dl under Python 2.5, you'll have to manually check it out like this:
-
-	git clone git://github.com/rg3/youtube-dl.git
-	cd youtube-dl
-	python -m youtube_dl --help
-
-Please note that Python 2.5 is not supported anymore.
-
 ### What is this binary file? Where has the code gone?
 
 Since June 2012 (#342) youtube-dl is packed as an executable zipfile, simply unzip it (might need renaming to `youtube-dl.zip` first on some systems) or clone the git repository, as laid out above. If you modify the code, you can run it by executing the `__main__.py` file. To recompile the executable, run `make youtube-dl`.
