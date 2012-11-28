@@ -24,7 +24,7 @@ test:
 # TODO un-phony README.md and youtube-dl.bash_completion by reading from .in files and generating from them
 
 youtube-dl: youtube_dl/*.py
-	zip --quiet --junk-paths youtube-dl youtube_dl/*.py
+	zip --quiet youtube-dl __main__.py youtube_dl/*.py
 	echo '#!/usr/bin/env python' > youtube-dl
 	cat youtube-dl.zip >> youtube-dl
 	rm youtube-dl.zip
