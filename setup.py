@@ -5,15 +5,22 @@ try:
 except ImportError:
     sys.stderr.write("Cannot import py2exe")
 import os
+import subprocess
 
-"""This will create an exe that needs Microsoft Visual C++ 2008 Redistributable Package"""
+"""The p2exe option will create an exe that needs Microsoft Visual C++ 2008 Redistributable Package.
+    python setup.py py2exe
+   You can also build a zip executable with
+    python setup.py bdist --format=zip
+
+
+"""
 
 # If run without args, build executables
 if len(sys.argv) == 1:
     sys.argv.append("py2exe")
 
 # os.chdir(os.path.dirname(os.path.abspath(sys.argv[0]))) # conflict with wine-py2exe.sh
-sys.path.append('./youtube_dl')
+#sys.path.append('./youtube_dl')
 
 options = {
     "bundle_files": 1,
@@ -29,11 +36,10 @@ console = [{
 }]
 
 init_file = open('./youtube_dl/__init__.py')
-for line in init_file.readlines():
-    if line.startswith('__version__'):
-        version = line[11:].strip(" ='\n")
-        break
-else:
+
+try:
+    version = subprocess.checkoutput(["git", "describe", "--abbrev=0", "--tags"])
+except:
     version = ''
 
 setup(name='youtube-dl',
