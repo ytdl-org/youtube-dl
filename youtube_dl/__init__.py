@@ -352,7 +352,6 @@ def gen_extractors():
 		MyVideoIE(),
 		ComedyCentralIE(),
 		EscapistIE(),
-		CollegeHumorIE(),
 		XVideosIE(),
 		SoundcloudIE(),
 		InfoQIE(),

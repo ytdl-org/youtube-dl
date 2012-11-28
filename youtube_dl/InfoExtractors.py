@@ -152,7 +152,7 @@ class YoutubeIE(InfoExtractor):
 		'44': '480x854',
 		'45': '720x1280',
 		'46': '1080x1920',
-	}	
+	}
 	IE_NAME = u'youtube'
 
 	def suitable(self, url):
@@ -380,7 +380,7 @@ class YoutubeIE(InfoExtractor):
 		video_description = get_element_by_id("eow-description", video_webpage.decode('utf8'))
 		if video_description: video_description = clean_html(video_description)
 		else: video_description = ''
-			
+
 		# closed captions
 		video_subtitles = None
 		if self._downloader.params.get('writesubtitles', False):
@@ -1074,7 +1074,7 @@ class VimeoIE(InfoExtractor):
 		except:
 			self._downloader.trouble(u'ERROR: unable to extract info section')
 			return
-		
+
 		# Extract title
 		video_title = config["video"]["title"]
 
@@ -1161,7 +1161,7 @@ class GenericIE(InfoExtractor):
 	def report_following_redirect(self, new_url):
 		"""Report information extraction."""
 		self._downloader.to_screen(u'[redirect] Following redirect to %s' % new_url)
-		
+
 	def _test_redirect(self, url):
 		"""Check if it is a redirect, like url shorteners, in case restart chain."""
 		class HeadRequest(urllib2.Request):
@@ -1170,38 +1170,38 @@ class GenericIE(InfoExtractor):
 
 		class HEADRedirectHandler(urllib2.HTTPRedirectHandler):
 			"""
-			Subclass the HTTPRedirectHandler to make it use our 
+			Subclass the HTTPRedirectHandler to make it use our
 			HeadRequest also on the redirected URL
 			"""
-			def redirect_request(self, req, fp, code, msg, headers, newurl): 
+			def redirect_request(self, req, fp, code, msg, headers, newurl):
 				if code in (301, 302, 303, 307):
-					newurl = newurl.replace(' ', '%20') 
+					newurl = newurl.replace(' ', '%20')
 					newheaders = dict((k,v) for k,v in req.headers.items()
 									  if k.lower() not in ("content-length", "content-type"))
-					return HeadRequest(newurl, 
+					return HeadRequest(newurl,
 									   headers=newheaders,
-									   origin_req_host=req.get_origin_req_host(), 
-									   unverifiable=True) 
-				else: 
-					raise urllib2.HTTPError(req.get_full_url(), code, msg, headers, fp) 
+									   origin_req_host=req.get_origin_req_host(),
+									   unverifiable=True)
+				else:
+					raise urllib2.HTTPError(req.get_full_url(), code, msg, headers, fp)
 
 		class HTTPMethodFallback(urllib2.BaseHandler):
 			"""
 			Fallback to GET if HEAD is not allowed (405 HTTP error)
 			"""
-			def http_error_405(self, req, fp, code, msg, headers): 
+			def http_error_405(self, req, fp, code, msg, headers):
 				fp.read()
 				fp.close()
 
 				newheaders = dict((k,v) for k,v in req.headers.items()
 								  if k.lower() not in ("content-length", "content-type"))
-				return self.parent.open(urllib2.Request(req.get_full_url(), 
-												 headers=newheaders, 
-												 origin_req_host=req.get_origin_req_host(), 
+				return self.parent.open(urllib2.Request(req.get_full_url(),
+												 headers=newheaders,
+												 origin_req_host=req.get_origin_req_host(),
 												 unverifiable=True))
 
 		# Build our opener
-		opener = urllib2.OpenerDirector() 
+		opener = urllib2.OpenerDirector()
 		for handler in [urllib2.HTTPHandler, urllib2.HTTPDefaultErrorHandler,
 						HTTPMethodFallback, HEADRedirectHandler,
 						urllib2.HTTPErrorProcessor, urllib2.HTTPSHandler]:
@@ -1209,9 +1209,9 @@ class GenericIE(InfoExtractor):
 
 		response = opener.open(HeadRequest(url))
 		new_url = response.geturl()
-		
+
 		if url == new_url: return False
-		
+
 		self.report_following_redirect(new_url)
 		self._downloader.download([new_url])
 		return True
@@ -2195,7 +2195,7 @@ class MyVideoIE(InfoExtractor):
 
 	def __init__(self, downloader=None):
 		InfoExtractor.__init__(self, downloader)
-	
+
 	def report_download_webpage(self, video_id):
 		"""Report webpage download."""
 		self._downloader.to_screen(u'[myvideo] %s: Downloading webpage' % video_id)
@@ -2343,7 +2343,7 @@ class ComedyCentralIE(InfoExtractor):
 				return
 			else:
 				mMovieParams = [("http://media.mtvnservices.com/" + altMovieParams[0], altMovieParams[0])]
-		
+
 		playerUrl_raw = mMovieParams[0][0]
 		self.report_player_url(epTitle)
 		try:
@@ -2392,7 +2392,7 @@ class ComedyCentralIE(InfoExtractor):
 			if len(turls) == 0:
 				self._downloader.trouble(u'\nERROR: unable to download ' + mediaId + ': No videos found')
 				continue
-			
+
 			if self._downloader.params.get('listformats', None):
 				self._print_formats([i[0] for i in turls])
 				return
@@ -2432,7 +2432,7 @@ class ComedyCentralIE(InfoExtractor):
 			}
 
 			results.append(info)
-			
+
 		return results
 
 
@@ -2506,70 +2506,6 @@ class EscapistIE(InfoExtractor):
 			'description': description,
 			'player_url': playerUrl,
 		}
-
-		return [info]
-
-
-class CollegeHumorIE(InfoExtractor):
-	"""Information extractor for collegehumor.com"""
-
-	_VALID_URL = r'^(?:https?://)?(?:www\.)?collegehumor\.com/video/(?P<videoid>[0-9]+)/(?P<shorttitle>.*)$'
-	IE_NAME = u'collegehumor'
-
-	def report_webpage(self, video_id):
-		"""Report information extraction."""
-		self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, video_id))
-
-	def report_extraction(self, video_id):
-		"""Report information extraction."""
-		self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
-
-	def _real_extract(self, url):
-		mobj = re.match(self._VALID_URL, url)
-		if mobj is None:
-			self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
-			return
-		video_id = mobj.group('videoid')
-
-		self.report_webpage(video_id)
-		request = urllib2.Request(url)
-		try:
-			webpage = urllib2.urlopen(request).read()
-		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err))
-			return
-
-		m = re.search(r'id="video:(?P<internalvideoid>[0-9]+)"', webpage)
-		if m is None:
-			self._downloader.trouble(u'ERROR: Cannot extract internal video ID')
-			return
-		internal_video_id = m.group('internalvideoid')
-
-		info = {
-			'id': video_id,
-			'internal_id': internal_video_id,
-		}
-
-		self.report_extraction(video_id)
-		xmlUrl = 'http://www.collegehumor.com/moogaloop/video:' + internal_video_id
-		try:
-			metaXml = urllib2.urlopen(xmlUrl).read()
-		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
-			self._downloader.trouble(u'ERROR: unable to download video info XML: %s' % compat_str(err))
-			return
-
-		mdoc = xml.etree.ElementTree.fromstring(metaXml)
-		try:
-			videoNode = mdoc.findall('./video')[0]
-			info['description'] = videoNode.findall('./description')[0].text
-			info['title'] = videoNode.findall('./caption')[0].text
-			info['url'] = videoNode.findall('./file')[0].text
-			info['thumbnail'] = videoNode.findall('./thumbnail')[0].text
-			info['ext'] = info['url'].rpartition('.')[2]
-			info['format'] = info['ext']
-		except IndexError:
-			self._downloader.trouble(u'\nERROR: Invalid metadata XML file')
-			return
 
 		return [info]
 
@@ -3005,7 +2941,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
 				assert entry['type'] == 'reference'
 				results += self.extract(entry['url'])
 			return results
-			
+
 		else: # Root page
 			info = {
 				'id': 'Stanford OpenClassroom',
@@ -3077,7 +3013,7 @@ class MTVIE(InfoExtractor):
 			self._downloader.trouble(u'ERROR: unable to extract performer')
 			return
 		performer = unescapeHTML(mobj.group(1).decode('iso-8859-1'))
-		video_title = performer + ' - ' + song_name 
+		video_title = performer + ' - ' + song_name
 
 		mobj = re.search(r'<meta name="mtvn_uri" content="([^"]+)"/>', webpage)
 		if mobj is None:
