@@ -2649,6 +2649,7 @@ class EscapistIE(InfoExtractor):
 class CollegeHumorIE(InfoExtractor):
     """Information extractor for collegehumor.com"""
 
+    _WORKING = False
     _VALID_URL = r'^(?:https?://)?(?:www\.)?collegehumor\.com/video/(?P<videoid>[0-9]+)/(?P<shorttitle>.*)$'
     IE_NAME = u'collegehumor'
 
