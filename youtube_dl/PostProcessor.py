@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
+
 import os
 import subprocess
 import sys
 import time
 
-from utils import *
+from .utils import *
 
 
 class PostProcessor(object):

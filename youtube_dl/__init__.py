@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import with_statement
+from __future__ import absolute_import
 
 __authors__  = (
     'Ricardo Garcia Gonzalez',
@@ -39,10 +40,10 @@ import subprocess
 import sys
 import warnings
 
-from utils import *
-from FileDownloader import *
-from InfoExtractors import *
-from PostProcessor import *
+from .utils import *
+from .FileDownloader import *
+from .InfoExtractors import *
+from .PostProcessor import *
 
 def updateSelf(downloader, filename):
     ''' Update the program file with the latest version from the repository '''

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
+
 import datetime
 import netrc
 import os
@@ -12,7 +14,7 @@ import xml.etree.ElementTree
 import random
 import math
 
-from utils import *
+from .utils import *
 
 
 class InfoExtractor(object):
