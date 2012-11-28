@@ -66,6 +66,7 @@ class DownloadTest(unittest.TestCase):
         with open(DownloadTest.PARAMETERS_FILE) as f:
             fd = FileDownloader(json.load(f))
         fd.add_info_extractor(YoutubeIE())
+        if not YoutubeIE._WORKING: return
         fd.download([DownloadTest.YOUTUBE_URL])
         self.assertTrue(os.path.exists(DownloadTest.YOUTUBE_FILE))
         self.assertEqual(os.path.getsize(DownloadTest.YOUTUBE_FILE), DownloadTest.YOUTUBE_SIZE)
@@ -74,6 +75,7 @@ class DownloadTest(unittest.TestCase):
         with open(DownloadTest.PARAMETERS_FILE) as f:
             fd = FileDownloader(json.load(f))
         fd.add_info_extractor(DailymotionIE())
+        if not DailymotionIE._WORKING: return
         fd.download([DownloadTest.DAILYMOTION_URL])
         self.assertTrue(os.path.exists(DownloadTest.DAILYMOTION_FILE))
         md5_down_file = md5_for_file(DownloadTest.DAILYMOTION_FILE)
@@ -84,7 +86,9 @@ class DownloadTest(unittest.TestCase):
         with open(DownloadTest.PARAMETERS_FILE) as f:
             fd = FileDownloader(json.load(f))
         fd.add_info_extractor(MetacafeIE())
+        if not MetacafeIE._WORKING: return
         fd.add_info_extractor(YoutubeIE())
+        if not YoutubeIE._WORKING: return
         fd.download([DownloadTest.METACAFE_URL])
         self.assertTrue(os.path.exists(DownloadTest.METACAFE_FILE))
         self.assertEqual(os.path.getsize(DownloadTest.METACAFE_FILE), DownloadTest.METACAFE_SIZE)
@@ -93,6 +97,7 @@ class DownloadTest(unittest.TestCase):
         with open(DownloadTest.PARAMETERS_FILE) as f:
             fd = FileDownloader(json.load(f))
         fd.add_info_extractor(BlipTVIE())
+        if not BlipTVIE._WORKING: return
         fd.download([DownloadTest.BLIP_URL])
         self.assertTrue(os.path.exists(DownloadTest.BLIP_FILE))
         md5_down_file = md5_for_file(DownloadTest.BLIP_FILE)
@@ -102,6 +107,7 @@ class DownloadTest(unittest.TestCase):
         with open(DownloadTest.PARAMETERS_FILE) as f:
             fd = FileDownloader(json.load(f))
         fd.add_info_extractor(XVideosIE())
+        if not XVideosIE._WORKING: return
         fd.download([DownloadTest.XVIDEO_URL])
         self.assertTrue(os.path.exists(DownloadTest.XVIDEO_FILE))
         md5_down_file = md5_for_file(DownloadTest.XVIDEO_FILE)
@@ -133,6 +139,7 @@ class DownloadTest(unittest.TestCase):
         with open(DownloadTest.PARAMETERS_FILE) as f:
             fd = FileDownloader(json.load(f))
         fd.add_info_extractor(SoundcloudIE())
+        if not SoundcloudIE._WORKING: return
         fd.download([DownloadTest.SOUNDCLOUD_URL])
         self.assertTrue(os.path.exists(DownloadTest.SOUNDCLOUD_FILE))
         md5_down_file = md5_for_file(DownloadTest.SOUNDCLOUD_FILE)
@@ -142,6 +149,7 @@ class DownloadTest(unittest.TestCase):
         with open(DownloadTest.PARAMETERS_FILE) as f:
             fd = FileDownloader(json.load(f))
         fd.add_info_extractor(StanfordOpenClassroomIE())
+        if not StanfordOpenClassroomIE._WORKING: return
         fd.download([DownloadTest.STANDFORD_URL])
         self.assertTrue(os.path.exists(DownloadTest.STANDFORD_FILE))
         md5_down_file = md5_for_file(DownloadTest.STANDFORD_FILE)
@@ -151,6 +159,7 @@ class DownloadTest(unittest.TestCase):
         with open(DownloadTest.PARAMETERS_FILE) as f:
             fd = FileDownloader(json.load(f))
         fd.add_info_extractor(CollegeHumorIE())
+        if not CollegeHumorIE._WORKING: return
         fd.download([DownloadTest.COLLEGEHUMOR_URL])
         self.assertTrue(os.path.exists(DownloadTest.COLLEGEHUMOR_FILE))
         md5_down_file = md5_for_file(DownloadTest.COLLEGEHUMOR_FILE)
@@ -160,6 +169,7 @@ class DownloadTest(unittest.TestCase):
         with open(DownloadTest.PARAMETERS_FILE) as f:
             fd = FileDownloader(json.load(f))
         fd.add_info_extractor(XNXXIE())
+        if not XNXXIE._WORKING: return
         fd.download([DownloadTest.XNXX_URL])
         self.assertTrue(os.path.exists(DownloadTest.XNXX_FILE))
         md5_down_file = md5_for_file(DownloadTest.XNXX_FILE)
