@@ -35,7 +35,7 @@
 <ul>
 <li>Your exact command line, like <code style="white-space: pre;">youtube-dl -t "http://www.youtube.com/watch?v=uHlDtZ6Oc3s&amp;feature=channel_video_title"</code></li>
 <li>The output of <code>youtube-dl --version</code>. If you have made any changes, please provide it. In many cases, simply updating (with <code style="white-space: pre;">youtube-dl --update</code>) fixes the problem.</li>
-<li>The output of <code>python --version</code>. We support Python 2.6+, and some parts are known to <a href="#q-syntax-error-non-ascii">work with Python 2.5 or even 2.4</a>. <a href="https://github.com/rg3/youtube-dl/issues/180">Python 3 support is planned</a>.</li>
+<li>The output of <code>python --version</code>. We support Python 2.6, 2.7, and 3.3+.</li>
 <li>The name and version of your Operating System ("Ubuntu 11.04 x64" or "Windows 7 x64" is usually enough).</li>
 </ul>
 
@@ -80,15 +80,6 @@
 SyntaxError: Non-ASCII character '\x93' ...</code>
 
 means you're using an outdated version of Python. Please update to Python 2.6 or 2.7.</p>
-
-<p>To run youtube-dl under Python 2.5, you'll have to manually check it out and run it like this:
-
-<code style="white-space:pre; display: block; margin: 1em 2em;">git clone git://github.com/rg3/youtube-dl.git
-cd youtube-dl
-python -m youtube-dl --help</code>
-
-Please note that Python 2.5 is not supported anymore.</p>
-
 
 <div class="note">
 <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">
