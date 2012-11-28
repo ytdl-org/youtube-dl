@@ -56,10 +56,6 @@ class DownloadTest(unittest.TestCase):
 	STANDFORD_URL = "http://openclassroom.stanford.edu/MainFolder/VideoPage.php?course=PracticalUnix&video=intro-environment&speed=100"
 	STANDFORD_FILE = "PracticalUnix_intro-environment.mp4"
 
-	COLLEGEHUMOR_MD5 = ""
-	COLLEGEHUMOR_URL = "http://www.collegehumor.com/video/6830834/mitt-romney-style-gangnam-style-parody"
-	COLLEGEHUMOR_FILE = ""
-
 	XNXX_MD5 = "5f0469c8d1dfd1bc38c8e6deb5e0a21d"
 	XNXX_URL = "http://video.xnxx.com/video1135332/lida_naked_funny_actress_5_"
 	XNXX_FILE = "1135332.flv"
@@ -157,15 +153,6 @@ class DownloadTest(unittest.TestCase):
 		self.assertTrue(os.path.exists(DownloadTest.STANDFORD_FILE))
 		md5_down_file = md5_for_file(DownloadTest.STANDFORD_FILE)
 		self.assertEqual(md5_down_file, DownloadTest.STANDFORD_MD5)
-
-	def test_collegehumor(self):
-		with open(DownloadTest.PARAMETERS_FILE) as f:
-			fd = FileDownloader(json.load(f))
-		fd.add_info_extractor(CollegeHumorIE())
-		fd.download([DownloadTest.COLLEGEHUMOR_URL])
-		self.assertTrue(os.path.exists(DownloadTest.COLLEGEHUMOR_FILE))
-		md5_down_file = md5_for_file(DownloadTest.COLLEGEHUMOR_FILE)
-		self.assertEqual(md5_down_file, DownloadTest.COLLEGEHUMOR_MD5)
 
 	def test_xnxx(self):
 		with open(DownloadTest.PARAMETERS_FILE) as f:
