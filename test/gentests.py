@@ -46,6 +46,22 @@ def md5_for_file(filename, block_size=2**20):
             return md5.hexdigest()
 _file_md5 = md5_for_file
 
+
+try:
+    _skip_unless = unittest.skipUnless
+except AttributeError: # Python 2.6
+    def _skip_unless(cond, reason='No reason given'):
+        def resfunc(f):
+            def wfunc(*args, **kwargs):
+                if cond:
+                    return f(*args, **kwargs)
+                else:
+                    print('Skipped test')
+                    return
+            return wfunc
+        return resfunc
+_skip = lambda *args, **kwargs: _skip_unless(False, *args, **kwargs)
+
 class DownloadTest(unittest.TestCase):
     PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
 
@@ -78,17 +94,15 @@ def gentests():
             name = d['name']
             ie = getattr(youtube_dl.InfoExtractors, name + 'IE')
             testf.write('\n')
-            if not ie._WORKING:
-                write('@unittest.skip("IE marked as not _WORKING")')
-            elif not d['file']:
-                write('@unittest.skip("No output file specified")')
+            write('@_skip_unless(youtube_dl.InfoExtractors.' + name + 'IE._WORKING, "IE marked as not _WORKING")')
+            if not d['file']:
+                write('@_skip("No output file specified")')
             elif 'skip' in d:
-                write('@unittest.skip(' + repr(d['skip']) + ')')
+                write('@_skip(' + repr(d['skip']) + ')')
             write('def test_' + name + '(self):')
-            write('    ' + name + 'IE = youtube_dl.InfoExtractors.' + name + 'IE')
             write('    filename = ' + repr(d['file']))
             write('    fd = FileDownloader(self.parameters)')
-            write('    fd.add_info_extractor(' + name + 'IE())')
+            write('    fd.add_info_extractor(youtube_dl.InfoExtractors.' + name + 'IE())')
             for ien in d.get('addIEs', []):
                 write('    fd.add_info_extractor(youtube_dl.InfoExtractors.' + ien + 'IE())')
             write('    fd.download([' + repr(d['url']) + '])')

@@ -32,6 +32,22 @@ def md5_for_file(filename, block_size=2**20):
             return md5.hexdigest()
 _file_md5 = md5_for_file
 
+
+try:
+    _skip_unless = unittest.skipUnless
+except AttributeError: # Python 2.6
+    def _skip_unless(cond, reason='No reason given'):
+        def resfunc(f):
+            def wfunc(*args, **kwargs):
+                if cond:
+                    return f(*args, **kwargs)
+                else:
+                    print('Skipped test')
+                    return
+            return wfunc
+        return resfunc
+_skip = lambda *args, **kwargs: _skip_unless(False, *args, **kwargs)
+
 class DownloadTest(unittest.TestCase):
     PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
 
@@ -42,102 +58,102 @@ class DownloadTest(unittest.TestCase):
         with io.open(self.PARAMETERS_FILE, encoding='utf-8') as pf:
             self.parameters = json.load(pf)
 
+    @_skip_unless(youtube_dl.InfoExtractors.YoutubeIE._WORKING, "IE marked as not _WORKING")
     def test_Youtube(self):
-        YoutubeIE = youtube_dl.InfoExtractors.YoutubeIE
         filename = 'BaW_jenozKc.mp4'
         fd = FileDownloader(self.parameters)
-        fd.add_info_extractor(YoutubeIE())
+        fd.add_info_extractor(youtube_dl.InfoExtractors.YoutubeIE())
         fd.download(['http://www.youtube.com/watch?v=BaW_jenozKc'])
         self.assertTrue(os.path.exists(filename))
         self.assertEqual(os.path.getsize(filename), 1993883)
 
+    @_skip_unless(youtube_dl.InfoExtractors.DailymotionIE._WORKING, "IE marked as not _WORKING")
     def test_Dailymotion(self):
-        DailymotionIE = youtube_dl.InfoExtractors.DailymotionIE
         filename = 'x33vw9.mp4'
         fd = FileDownloader(self.parameters)
-        fd.add_info_extractor(DailymotionIE())
+        fd.add_info_extractor(youtube_dl.InfoExtractors.DailymotionIE())
         fd.download(['http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech'])
         self.assertTrue(os.path.exists(filename))
         md5_for_file = _file_md5(filename)
         self.assertEqual(md5_for_file, 'd363a50e9eb4f22ce90d08d15695bb47')
 
+    @_skip_unless(youtube_dl.InfoExtractors.MetacafeIE._WORKING, "IE marked as not _WORKING")
     def test_Metacafe(self):
-        MetacafeIE = youtube_dl.InfoExtractors.MetacafeIE
         filename = 'aUehQsCQtM.flv'
         fd = FileDownloader(self.parameters)
-        fd.add_info_extractor(MetacafeIE())
+        fd.add_info_extractor(youtube_dl.InfoExtractors.MetacafeIE())
         fd.add_info_extractor(youtube_dl.InfoExtractors.YoutubeIE())
         fd.download(['http://www.metacafe.com/watch/yt-_aUehQsCQtM/the_electric_company_short_i_pbs_kids_go/'])
         self.assertTrue(os.path.exists(filename))
         self.assertEqual(os.path.getsize(filename), 5754305)
 
+    @_skip_unless(youtube_dl.InfoExtractors.BlipTVIE._WORKING, "IE marked as not _WORKING")
     def test_BlipTV(self):
-        BlipTVIE = youtube_dl.InfoExtractors.BlipTVIE
         filename = '5779306.m4v'
         fd = FileDownloader(self.parameters)
-        fd.add_info_extractor(BlipTVIE())
+        fd.add_info_extractor(youtube_dl.InfoExtractors.BlipTVIE())
         fd.download(['http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352'])
         self.assertTrue(os.path.exists(filename))
         md5_for_file = _file_md5(filename)
         self.assertEqual(md5_for_file, '93c24d2f4e0782af13b8a7606ea97ba7')
 
+    @_skip_unless(youtube_dl.InfoExtractors.XVideosIE._WORKING, "IE marked as not _WORKING")
     def test_XVideos(self):
-        XVideosIE = youtube_dl.InfoExtractors.XVideosIE
         filename = '939581.flv'
         fd = FileDownloader(self.parameters)
-        fd.add_info_extractor(XVideosIE())
+        fd.add_info_extractor(youtube_dl.InfoExtractors.XVideosIE())
         fd.download(['http://www.xvideos.com/video939581/funny_porns_by_s_-1'])
         self.assertTrue(os.path.exists(filename))
         md5_for_file = _file_md5(filename)
         self.assertEqual(md5_for_file, '1ab4dedc01f771cb2a65e91caa801aaf')
 
-    @unittest.skip("No output file specified")
+    @_skip_unless(youtube_dl.InfoExtractors.VimeoIE._WORKING, "IE marked as not _WORKING")
+    @_skip("No output file specified")
     def test_Vimeo(self):
-        VimeoIE = youtube_dl.InfoExtractors.VimeoIE
         filename = ''
         fd = FileDownloader(self.parameters)
-        fd.add_info_extractor(VimeoIE())
+        fd.add_info_extractor(youtube_dl.InfoExtractors.VimeoIE())
         fd.download(['http://vimeo.com/14160053'])
         self.assertTrue(os.path.exists(filename))
         md5_for_file = _file_md5(filename)
         self.assertEqual(md5_for_file, '1ab4dedc01f771cb2a65e91caa801aaf')
 
+    @_skip_unless(youtube_dl.InfoExtractors.SoundcloudIE._WORKING, "IE marked as not _WORKING")
     def test_Soundcloud(self):
-        SoundcloudIE = youtube_dl.InfoExtractors.SoundcloudIE
         filename = 'n6FLbx6ZzMiu.mp3'
         fd = FileDownloader(self.parameters)
-        fd.add_info_extractor(SoundcloudIE())
+        fd.add_info_extractor(youtube_dl.InfoExtractors.SoundcloudIE())
         fd.download(['http://soundcloud.com/ethmusic/lostin-powers-she-so-heavy'])
         self.assertTrue(os.path.exists(filename))
         md5_for_file = _file_md5(filename)
         self.assertEqual(md5_for_file, 'ce3775768ebb6432fa8495d446a078ed')
 
+    @_skip_unless(youtube_dl.InfoExtractors.StanfordOpenClassroomIE._WORKING, "IE marked as not _WORKING")
     def test_StanfordOpenClassroom(self):
-        StanfordOpenClassroomIE = youtube_dl.InfoExtractors.StanfordOpenClassroomIE
         filename = 'PracticalUnix_intro-environment.mp4'
         fd = FileDownloader(self.parameters)
-        fd.add_info_extractor(StanfordOpenClassroomIE())
+        fd.add_info_extractor(youtube_dl.InfoExtractors.StanfordOpenClassroomIE())
         fd.download(['http://openclassroom.stanford.edu/MainFolder/VideoPage.php?course=PracticalUnix&video=intro-environment&speed=100'])
         self.assertTrue(os.path.exists(filename))
         md5_for_file = _file_md5(filename)
         self.assertEqual(md5_for_file, '22c8206291368c4e2c9c1a307f0ea0f4')
 
-    @unittest.skip("IE marked as not _WORKING")
+    @_skip_unless(youtube_dl.InfoExtractors.CollegeHumorIE._WORKING, "IE marked as not _WORKING")
+    @_skip("No output file specified")
     def test_CollegeHumor(self):
-        CollegeHumorIE = youtube_dl.InfoExtractors.CollegeHumorIE
         filename = ''
         fd = FileDownloader(self.parameters)
-        fd.add_info_extractor(CollegeHumorIE())
+        fd.add_info_extractor(youtube_dl.InfoExtractors.CollegeHumorIE())
         fd.download(['http://www.collegehumor.com/video/6830834/mitt-romney-style-gangnam-style-parody'])
         self.assertTrue(os.path.exists(filename))
         md5_for_file = _file_md5(filename)
         self.assertEqual(md5_for_file, '')
 
+    @_skip_unless(youtube_dl.InfoExtractors.XNXXIE._WORKING, "IE marked as not _WORKING")
     def test_XNXX(self):
-        XNXXIE = youtube_dl.InfoExtractors.XNXXIE
         filename = '1135332.flv'
         fd = FileDownloader(self.parameters)
-        fd.add_info_extractor(XNXXIE())
+        fd.add_info_extractor(youtube_dl.InfoExtractors.XNXXIE())
         fd.download(['http://video.xnxx.com/video1135332/lida_naked_funny_actress_5_'])
         self.assertTrue(os.path.exists(filename))
         md5_for_file = _file_md5(filename)
