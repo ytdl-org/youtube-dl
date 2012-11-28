@@ -1,6 +1,10 @@
 from distutils.core import setup
-import py2exe
-import sys, os
+import sys
+try:
+    import py2exe
+except ImportError:
+    sys.stderr.write("Cannot import py2exe")
+import os
 
 """This will create an exe that needs Microsoft Visual C++ 2008 Redistributable Package"""
 
@@ -37,7 +41,7 @@ setup(name='youtube-dl',
       description='Small command-line program to download videos from YouTube.com and other video sites',
       url='https://github.com/rg3/youtube-dl',
       packages=['youtube_dl'],
-      
+
       console = console,
       options = {"py2exe": options},
       zipfile = None,
