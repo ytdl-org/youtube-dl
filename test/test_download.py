@@ -29,11 +29,11 @@ class DownloadTest(unittest.TestCase):
     METACAFE_URL = "http://www.metacafe.com/watch/yt-_aUehQsCQtM/the_electric_company_short_i_pbs_kids_go/"
     METACAFE_FILE = "aUehQsCQtM.flv"
 
-    BLIP_MD5 = "93c24d2f4e0782af13b8a7606ea97ba7"
+    BLIP_MD5 = "4962f94441605832eb1008eb820ef47a"
     BLIP_URL = "http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352"
     BLIP_FILE = "5779306.m4v"
 
-    XVIDEO_MD5 = "1ab4dedc01f771cb2a65e91caa801aaf"
+    XVIDEO_MD5 = "aecab2ea59b7996110a7e409f0c55da3"
     XVIDEO_URL = "http://www.xvideos.com/video939581/funny_porns_by_s_-1"
     XVIDEO_FILE = "939581.flv"
 
@@ -45,11 +45,11 @@ class DownloadTest(unittest.TestCase):
     VIMEO2_URL = "http://player.vimeo.com/video/47019590"
     VIMEO2_FILE = ""
 
-    SOUNDCLOUD_MD5 = "ce3775768ebb6432fa8495d446a078ed"
+    SOUNDCLOUD_MD5 = "c1b9b9ea8bfd620b96b2628664576e1c"
     SOUNDCLOUD_URL = "http://soundcloud.com/ethmusic/lostin-powers-she-so-heavy"
     SOUNDCLOUD_FILE = "n6FLbx6ZzMiu.mp3"
 
-    STANDFORD_MD5 = "22c8206291368c4e2c9c1a307f0ea0f4"
+    STANDFORD_MD5 = "8aac7873a07dcfaed66b1559ab128514"
     STANDFORD_URL = "http://openclassroom.stanford.edu/MainFolder/VideoPage.php?course=PracticalUnix&video=intro-environment&speed=100"
     STANDFORD_FILE = "PracticalUnix_intro-environment.mp4"
 
@@ -57,7 +57,7 @@ class DownloadTest(unittest.TestCase):
     COLLEGEHUMOR_URL = "http://www.collegehumor.com/video/6830834/mitt-romney-style-gangnam-style-parody"
     COLLEGEHUMOR_FILE = ""
 
-    XNXX_MD5 = "5f0469c8d1dfd1bc38c8e6deb5e0a21d"
+    XNXX_MD5 = "c5c67df477eb0d9b058200351448ba4c"
     XNXX_URL = "http://video.xnxx.com/video1135332/lida_naked_funny_actress_5_"
     XNXX_FILE = "1135332.flv"
 
@@ -205,4 +205,4 @@ def md5_for_file(filename, block_size=2**20):
             if not data:
                 break
             md5.update(data)
-            return md5.hexdigest()
+        return md5.hexdigest()
