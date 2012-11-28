@@ -486,8 +486,8 @@ class YoutubeIE(InfoExtractor):
             # Extension
             video_extension = self._video_extensions.get(format_param, 'flv')
 
-            video_format = '{} - {}'.format(format_param if format_param else video_extension,
-                                            self._video_dimensions.get(format_param, '???'))
+            video_format = '{0} - {1}'.format(format_param if format_param else video_extension,
+                                              self._video_dimensions.get(format_param, '???'))
 
             results.append({
                 'id':       video_id,
@@ -2649,6 +2649,7 @@ class EscapistIE(InfoExtractor):
 class CollegeHumorIE(InfoExtractor):
     """Information extractor for collegehumor.com"""
 
+    _WORKING = False
     _VALID_URL = r'^(?:https?://)?(?:www\.)?collegehumor\.com/video/(?P<videoid>[0-9]+)/(?P<shorttitle>.*)$'
     IE_NAME = u'collegehumor'
 
