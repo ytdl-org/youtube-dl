@@ -27,7 +27,7 @@ class DownloadTest(unittest.TestCase):
 
     METACAFE_SIZE = 5754305
     METACAFE_URL = "http://www.metacafe.com/watch/yt-_aUehQsCQtM/the_electric_company_short_i_pbs_kids_go/"
-    METACAFE_FILE = "_aUehQsCQtM.flv"
+    METACAFE_FILE = "aUehQsCQtM.flv"
 
     BLIP_MD5 = "93c24d2f4e0782af13b8a7606ea97ba7"
     BLIP_URL = "http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352"
