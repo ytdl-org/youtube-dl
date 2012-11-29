@@ -330,7 +330,7 @@ def sanitize_filename(s, restricted=False):
             return '_-' if restricted else ' -'
         elif char in '\\/|*<>':
             return '_'
-        if restricted and (char in '!&\'' or char.isspace()):
+        if restricted and (char in '!&\'()[]{}$;`^,#' or char.isspace()):
             return '_'
         if restricted and ord(char) > 127:
             return '_'

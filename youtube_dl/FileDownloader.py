@@ -463,7 +463,7 @@ class FileDownloader(object):
                 try:
                     success = self._do_download(filename, info_dict)
                 except (OSError, IOError) as err:
-                    raise UnavailableVideoError
+                    raise UnavailableVideoError()
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                     self.trouble(u'ERROR: unable to download video data: %s' % str(err))
                     return

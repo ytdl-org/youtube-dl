@@ -13,10 +13,11 @@ from youtube_dl.utils import sanitize_filename
 from youtube_dl.utils import unescapeHTML
 from youtube_dl.utils import orderedSet
 
-if sys.version_info < (3,0):
+if sys.version_info < (3, 0):
     _compat_str = lambda b: b.decode('unicode-escape')
 else:
     _compat_str = lambda s: s
+
 
 class TestUtil(unittest.TestCase):
     def test_timeconvert(self):
@@ -62,11 +63,11 @@ class TestUtil(unittest.TestCase):
         self.assertEqual('yes_no', sanitize_filename('yes? no', restricted=True))
         self.assertEqual('this_-_that', sanitize_filename('this: that', restricted=True))
 
-        tests =_compat_str('a\xe4b\u4e2d\u56fd\u7684c')
+        tests = _compat_str('a\xe4b\u4e2d\u56fd\u7684c')
         self.assertEqual(sanitize_filename(tests, restricted=True), 'a_b_c')
-        self.assertTrue(sanitize_filename(_compat_str('\xf6'), restricted=True) != '') # No empty filename
+        self.assertTrue(sanitize_filename(_compat_str('\xf6'), restricted=True) != '')  # No empty filename
 
-        forbidden = '"\0\\/&!: \'\t\n'
+        forbidden = '"\0\\/&!: \'\t\n()[]{}$;`^,#'
         for fc in forbidden:
             for fbc in forbidden:
                 self.assertTrue(fbc not in sanitize_filename(fc, restricted=True))
@@ -79,11 +80,11 @@ class TestUtil(unittest.TestCase):
         self.assertTrue(sanitize_filename(':', restricted=True) != '')
 
     def test_ordered_set(self):
-        self.assertEqual(orderedSet([1,1,2,3,4,4,5,6,7,3,5]), [1,2,3,4,5,6,7])
+        self.assertEqual(orderedSet([1, 1, 2, 3, 4, 4, 5, 6, 7, 3, 5]), [1, 2, 3, 4, 5, 6, 7])
         self.assertEqual(orderedSet([]), [])
         self.assertEqual(orderedSet([1]), [1])
         #keep the list ordered
-        self.assertEqual(orderedSet([135,1,1,1]), [135,1])
+        self.assertEqual(orderedSet([135, 1, 1, 1]), [135, 1])
 
     def test_unescape_html(self):
         self.assertEqual(unescapeHTML(_compat_str('%20;')), _compat_str('%20;'))

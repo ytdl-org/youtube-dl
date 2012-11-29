@@ -1,0 +1,63 @@
+[
+  {
+    "name": "Youtube",
+    "size": 1993883,
+    "url":  "http://www.youtube.com/watch?v=BaW_jenozKc",
+    "file":  "BaW_jenozKc.mp4"
+  },
+  {
+    "name": "Dailymotion",
+    "md5":  "d363a50e9eb4f22ce90d08d15695bb47",
+    "url":  "http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech",
+    "file":  "x33vw9.mp4"
+  },
+  {
+    "name": "Metacafe",
+    "size":  5754305,
+    "addIEs": ["Youtube"],
+    "url":  "http://www.metacafe.com/watch/yt-_aUehQsCQtM/the_electric_company_short_i_pbs_kids_go/",
+    "file":  "aUehQsCQtM.flv"
+  },
+  {
+    "name": "BlipTV",
+    "md5":  "4962f94441605832eb1008eb820ef47a",
+    "url":  "http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352",
+    "file":  "5779306.m4v"
+  },
+  {
+    "name": "XVideos",
+    "md5":  "aecab2ea59b7996110a7e409f0c55da3",
+    "url":  "http://www.xvideos.com/video939581/funny_porns_by_s_-1",
+    "file":  "939581.flv"
+  },
+  {
+    "name": "Vimeo",
+    "md5":  "1ab4dedc01f771cb2a65e91caa801aaf",
+    "url":  "http://vimeo.com/14160053",
+    "file": ""
+  },
+  {
+    "name": "Soundcloud",
+    "md5":  "c1b9b9ea8bfd620b96b2628664576e1c",
+    "url":  "http://soundcloud.com/ethmusic/lostin-powers-she-so-heavy",
+    "file":  "n6FLbx6ZzMiu.mp3"
+  },
+  {
+    "name": "StanfordOpenClassroom",
+    "md5":  "8aac7873a07dcfaed66b1559ab128514",
+    "url":  "http://openclassroom.stanford.edu/MainFolder/VideoPage.php?course=PracticalUnix&video=intro-environment&speed=100",
+    "file":  "PracticalUnix_intro-environment.mp4"
+  },
+  {
+    "name": "CollegeHumor",
+    "md5":  "",
+    "url":  "http://www.collegehumor.com/video/6830834/mitt-romney-style-gangnam-style-parody",
+    "file":  ""
+  },
+  {
+    "name": "XNXX",
+    "md5":  "c5c67df477eb0d9b058200351448ba4c",
+    "url":  "http://video.xnxx.com/video1135332/lida_naked_funny_actress_5_",
+    "file":  "1135332.flv"
+  }
+]
