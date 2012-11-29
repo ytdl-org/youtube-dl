@@ -1,8 +1,8 @@
-all: youtube-dl README.md youtube-dl.1 youtube-dl.bash-completion LATEST_VERSION
+all: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion 
 # TODO: re-add youtube-dl.exe, and make sure it's 1. safe and 2. doesn't need sudo
 
 clean:
-	rm -f youtube-dl youtube-dl.exe youtube-dl.1 LATEST_VERSION
+	rm -rf youtube-dl youtube-dl.exe youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/
 
 PREFIX=/usr/local
 BINDIR=$(PREFIX)/bin
@@ -20,8 +20,7 @@ install: youtube-dl youtube-dl.1 youtube-dl.bash-completion
 test:
 	nosetests2 --nocapture test
 
-.PHONY: all clean install test README.md youtube-dl.bash-completion
-# TODO un-phony README.md and youtube-dl.bash_completion by reading from .in files and generating from them
+.PHONY: all clean install test
 
 youtube-dl: youtube_dl/*.py
 	zip --quiet youtube-dl youtube_dl/*.py
@@ -46,13 +45,13 @@ README.md: youtube_dl/*.py
 		echo '# CONFIGURATION' >> README.md && \
 		echo "$${footer}" >> README.md
 
+README.txt: README.md
+	pandoc -f markdown -t plain README.md -o README.txt
+
 youtube-dl.1: README.md
-	pandoc -s -w man README.md -o youtube-dl.1
+	pandoc -f markdown -t man README.md -o youtube-dl.1
 
-youtube-dl.bash-completion: README.md
+youtube-dl.bash-completion: README.md youtube-dl.bash-completion.in
 	@options=`egrep -o '(--[a-z-]+) ' README.md | sort -u | xargs echo` && \
-		content=`sed "s/opts=\"[^\"]*\"/opts=\"$${options}\"/g" youtube-dl.bash-completion` && \
+		content=`sed "s/opts=\"[^\"]*\"/opts=\"$${options}\"/g" youtube-dl.bash-completion.in` && \
 		echo "$${content}" > youtube-dl.bash-completion
-
-LATEST_VERSION: youtube_dl/__init__.py
-	python -m youtube_dl --version > LATEST_VERSION
