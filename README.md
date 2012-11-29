@@ -194,3 +194,5 @@ Please include:
 * The output of `youtube-dl --version`
 * The output of `python --version`
 * The name and version of your Operating System ("Ubuntu 11.04 x64" or "Windows 7 x64" is usually enough).
+
+For discussions, join us in the irc channel #youtube-dl on freenode.
