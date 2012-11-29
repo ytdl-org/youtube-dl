@@ -34,19 +34,6 @@ import youtube_dl.InfoExtractors
 def _file_md5(fn):
     with open(fn, 'rb') as f:
         return hashlib.md5(f.read()).hexdigest()
-
-def md5_for_file(filename, block_size=2**20):
-    with open(filename) as f:
-        md5 = hashlib.md5()
-        while True:
-            data = f.read(block_size)
-            if not data:
-                break
-            md5.update(data)
-            return md5.hexdigest()
-_file_md5 = md5_for_file
-
-
 try:
     _skip_unless = unittest.skipUnless
 except AttributeError: # Python 2.6

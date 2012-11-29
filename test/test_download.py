@@ -20,19 +20,6 @@ import youtube_dl.InfoExtractors
 def _file_md5(fn):
     with open(fn, 'rb') as f:
         return hashlib.md5(f.read()).hexdigest()
-
-def md5_for_file(filename, block_size=2**20):
-    with open(filename) as f:
-        md5 = hashlib.md5()
-        while True:
-            data = f.read(block_size)
-            if not data:
-                break
-            md5.update(data)
-            return md5.hexdigest()
-_file_md5 = md5_for_file
-
-
 try:
     _skip_unless = unittest.skipUnless
 except AttributeError: # Python 2.6
@@ -96,7 +83,7 @@ class DownloadTest(unittest.TestCase):
         fd.download(['http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352'])
         self.assertTrue(os.path.exists(filename))
         md5_for_file = _file_md5(filename)
-        self.assertEqual(md5_for_file, '93c24d2f4e0782af13b8a7606ea97ba7')
+        self.assertEqual(md5_for_file, '4962f94441605832eb1008eb820ef47a')
 
     @_skip_unless(youtube_dl.InfoExtractors.XVideosIE._WORKING, "IE marked as not _WORKING")
     def test_XVideos(self):
@@ -106,7 +93,7 @@ class DownloadTest(unittest.TestCase):
         fd.download(['http://www.xvideos.com/video939581/funny_porns_by_s_-1'])
         self.assertTrue(os.path.exists(filename))
         md5_for_file = _file_md5(filename)
-        self.assertEqual(md5_for_file, '1ab4dedc01f771cb2a65e91caa801aaf')
+        self.assertEqual(md5_for_file, 'aecab2ea59b7996110a7e409f0c55da3')
 
     @_skip_unless(youtube_dl.InfoExtractors.VimeoIE._WORKING, "IE marked as not _WORKING")
     @_skip("No output file specified")
@@ -127,7 +114,7 @@ class DownloadTest(unittest.TestCase):
         fd.download(['http://soundcloud.com/ethmusic/lostin-powers-she-so-heavy'])
         self.assertTrue(os.path.exists(filename))
         md5_for_file = _file_md5(filename)
-        self.assertEqual(md5_for_file, 'ce3775768ebb6432fa8495d446a078ed')
+        self.assertEqual(md5_for_file, 'c1b9b9ea8bfd620b96b2628664576e1c')
 
     @_skip_unless(youtube_dl.InfoExtractors.StanfordOpenClassroomIE._WORKING, "IE marked as not _WORKING")
     def test_StanfordOpenClassroom(self):
@@ -137,7 +124,7 @@ class DownloadTest(unittest.TestCase):
         fd.download(['http://openclassroom.stanford.edu/MainFolder/VideoPage.php?course=PracticalUnix&video=intro-environment&speed=100'])
         self.assertTrue(os.path.exists(filename))
         md5_for_file = _file_md5(filename)
-        self.assertEqual(md5_for_file, '22c8206291368c4e2c9c1a307f0ea0f4')
+        self.assertEqual(md5_for_file, '8aac7873a07dcfaed66b1559ab128514')
 
     @_skip_unless(youtube_dl.InfoExtractors.CollegeHumorIE._WORKING, "IE marked as not _WORKING")
     @_skip("No output file specified")
@@ -158,7 +145,7 @@ class DownloadTest(unittest.TestCase):
         fd.download(['http://video.xnxx.com/video1135332/lida_naked_funny_actress_5_'])
         self.assertTrue(os.path.exists(filename))
         md5_for_file = _file_md5(filename)
-        self.assertEqual(md5_for_file, '5f0469c8d1dfd1bc38c8e6deb5e0a21d')
+        self.assertEqual(md5_for_file, 'c5c67df477eb0d9b058200351448ba4c')
 
 
     def tearDown(self):
