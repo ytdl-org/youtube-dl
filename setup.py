@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import print_function
 from distutils.core import setup
 import pkg_resources
 import sys
@@ -5,7 +9,7 @@ import sys
 try:
     import py2exe
 except ImportError:
-    print >> sys.stderr, "Cannot import py2exe"
+    print("Cannot import py2exe", file=sys.stderr)
 
 py2exe_options = {
     "bundle_files": 1,
@@ -20,7 +24,7 @@ py2exe_console = [{
     "dest_base": "youtube-dl",
 }]
 
-execfile('youtube_dl/version.py')
+exec(compile(open('youtube_dl/version.py').read(), 'youtube_dl/version.py', 'exec'))
 
 setup(
     name = 'youtube_dl',
@@ -40,4 +44,15 @@ setup(
 
     scripts = ['bin/youtube-dl'],
     zipfile = None,
+
+    classifiers = [
+        "Topic :: Multimedia :: Video",
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "License :: Public Domain",
+        "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.3"
+    ]
 )
