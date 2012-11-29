@@ -2818,16 +2818,17 @@ class SoundcloudIE(InfoExtractor):
             return
 
         # extract uploader (which is in the url)
-        uploader = mobj.group(1).decode('utf-8')
+        uploader = mobj.group(1)
         # extract simple title (uploader + slug of song title)
-        slug_title =  mobj.group(2).decode('utf-8')
+        slug_title =  mobj.group(2)
         simple_title = uploader + u'-' + slug_title
 
         self.report_webpage('%s/%s' % (uploader, slug_title))
 
         request = compat_urllib_request.Request('http://soundcloud.com/%s/%s' % (uploader, slug_title))
         try:
-            webpage = compat_urllib_request.urlopen(request).read()
+            webpage_bytes = compat_urllib_request.urlopen(request).read()
+            webpage = webpage_bytes.decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err))
             return
@@ -2843,7 +2844,7 @@ class SoundcloudIE(InfoExtractor):
         # extract unsimplified title
         mobj = re.search('"title":"(.*?)",', webpage)
         if mobj:
-            title = mobj.group(1).decode('utf-8')
+            title = mobj.group(1)
         else:
             title = simple_title
 
@@ -2870,13 +2871,13 @@ class SoundcloudIE(InfoExtractor):
         request = compat_urllib_request.Request('http://media.soundcloud.com/crossdomain.xml', std_headers)
 
         return [{
-            'id':       video_id.decode('utf-8'),
+            'id':       video_id,
             'url':      mediaURL,
-            'uploader': uploader.decode('utf-8'),
+            'uploader': uploader,
             'upload_date':  upload_date,
             'title':    title,
             'ext':      u'mp3',
-            'description': description.decode('utf-8')
+            'description': description
         }]
 
 
