@@ -52,13 +52,14 @@ try:
 except AttributeError: # Python 2.6
     def _skip_unless(cond, reason='No reason given'):
         def resfunc(f):
-            def wfunc(*args, **kwargs):
+            # Start the function name with test to appease nosetests-2.6
+            def test_wfunc(*args, **kwargs):
                 if cond:
                     return f(*args, **kwargs)
                 else:
                     print('Skipped test')
                     return
-            return wfunc
+            return test_wfunc
         return resfunc
 _skip = lambda *args, **kwargs: _skip_unless(False, *args, **kwargs)
 
