@@ -54,10 +54,16 @@
     "url":  "http://www.collegehumor.com/video/6830834/mitt-romney-style-gangnam-style-parody",
     "file":  ""
   },
-  {
+   {
     "name": "XNXX",
     "md5":  "c5c67df477eb0d9b058200351448ba4c",
     "url":  "http://video.xnxx.com/video1135332/lida_naked_funny_actress_5_",
     "file":  "1135332.flv"
+  },
+  {
+    "name": "Youku",
+    "url": "http://v.youku.com/v_show/id_XNDgyMDQ2NTQw.html",
+    "file": "XNDgyMDQ2NTQw_part00.flv",
+    "md5": "ffe3f2e435663dc2d1eea34faeff5b5b"
   }
 ]

@@ -147,6 +147,16 @@ class DownloadTest(unittest.TestCase):
         md5_for_file = _file_md5(filename)
         self.assertEqual(md5_for_file, 'c5c67df477eb0d9b058200351448ba4c')
 
+    @_skip_unless(youtube_dl.InfoExtractors.YoukuIE._WORKING, "IE marked as not _WORKING")
+    def test_Youku(self):
+        filename = 'XNDgyMDQ2NTQw_part00.flv'
+        fd = FileDownloader(self.parameters)
+        fd.add_info_extractor(youtube_dl.InfoExtractors.YoukuIE())
+        fd.download(['http://v.youku.com/v_show/id_XNDgyMDQ2NTQw.html'])
+        self.assertTrue(os.path.exists(filename))
+        md5_for_file = _file_md5(filename)
+        self.assertEqual(md5_for_file, 'ffe3f2e435663dc2d1eea34faeff5b5b')
+
 
     def tearDown(self):
         if os.path.exists('BaW_jenozKc.mp4'):
@@ -167,6 +177,8 @@ class DownloadTest(unittest.TestCase):
         # No file specified for CollegeHumor
         if os.path.exists('1135332.flv'):
             os.remove('1135332.flv')
+        if os.path.exists('XNDgyMDQ2NTQw_part00.flv'):
+            os.remove('XNDgyMDQ2NTQw_part00.flv')
 
 
 
