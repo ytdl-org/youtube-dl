@@ -334,8 +334,11 @@ class FileDownloader(object):
             template_dict['epoch'] = int(time.time())
             template_dict['autonumber'] = u'%05d' % self._num_downloads
 
-            template_dict = dict((key, u'NA' if val is None else val) for key, val in template_dict.items())
-            template_dict = dict((k, sanitize_filename(compat_str(v), self.params.get('restrictfilenames'))) for k,v in template_dict.items())
+            sanitize = lambda k,v: sanitize_filename(
+                u'NA' if v is None else compat_str(v),
+                restricted=self.params.get('restrictfilenames'),
+                is_id=(k==u'id'))
+            template_dict = dict((k, sanitize(k, v)) for k,v in template_dict.items())
 
             filename = self.params['outtmpl'] % template_dict
             return filename
