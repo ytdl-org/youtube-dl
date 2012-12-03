@@ -67,7 +67,7 @@ class DownloadTest(unittest.TestCase):
 
     @_skip_unless(youtube_dl.InfoExtractors.MetacafeIE._WORKING, "IE marked as not _WORKING")
     def test_Metacafe(self):
-        filename = 'aUehQsCQtM.flv'
+        filename = '_aUehQsCQtM.flv'
         fd = FileDownloader(self.parameters)
         fd.add_info_extractor(youtube_dl.InfoExtractors.MetacafeIE())
         fd.add_info_extractor(youtube_dl.InfoExtractors.YoutubeIE())
@@ -163,8 +163,8 @@ class DownloadTest(unittest.TestCase):
             os.remove('BaW_jenozKc.mp4')
         if os.path.exists('x33vw9.mp4'):
             os.remove('x33vw9.mp4')
-        if os.path.exists('aUehQsCQtM.flv'):
-            os.remove('aUehQsCQtM.flv')
+        if os.path.exists('_aUehQsCQtM.flv'):
+            os.remove('_aUehQsCQtM.flv')
         if os.path.exists('5779306.m4v'):
             os.remove('5779306.m4v')
         if os.path.exists('939581.flv'):
