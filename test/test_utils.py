@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Various small unit tests
 
 import sys
