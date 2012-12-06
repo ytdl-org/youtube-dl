@@ -506,3 +506,6 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
             resp = self.addinfourl_wrapper(gz, old_resp.headers, old_resp.url, old_resp.code)
             resp.msg = old_resp.msg
         return resp
+
+    https_request = http_request
+    https_response = http_response
