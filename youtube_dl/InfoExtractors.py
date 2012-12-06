@@ -2799,6 +2799,7 @@ class SoundcloudIE(InfoExtractor):
 
     _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/([\w\d-]+)'
     IE_NAME = u'soundcloud'
+    _WORKING = False
 
     def __init__(self, downloader=None):
         InfoExtractor.__init__(self, downloader)
