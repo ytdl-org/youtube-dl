@@ -2829,7 +2829,7 @@ class SoundcloudIE(InfoExtractor):
         url = 'https://soundcloud.com/%s/%s' % (uploader, slug_title)
         request = compat_urllib_request.Request(url)
         try:
-            urlo = compat_urllib_request.urlopen(request).read()
+            webpage_bytes = compat_urllib_request.urlopen(request).read()
             webpage = webpage_bytes.decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err))
