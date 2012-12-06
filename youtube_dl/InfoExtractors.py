@@ -2825,9 +2825,10 @@ class SoundcloudIE(InfoExtractor):
 
         self.report_webpage('%s/%s' % (uploader, slug_title))
 
-        request = compat_urllib_request.Request('http://soundcloud.com/%s/%s' % (uploader, slug_title))
+        url = 'https://soundcloud.com/%s/%s' % (uploader, slug_title)
+        request = compat_urllib_request.Request(url)
         try:
-            webpage_bytes = compat_urllib_request.urlopen(request).read()
+            urlo = compat_urllib_request.urlopen(request).read()
             webpage = webpage_bytes.decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err))
@@ -2840,6 +2841,9 @@ class SoundcloudIE(InfoExtractor):
         if mobj:
             video_id = mobj.group(1)
             stream_token = mobj.group(2)
+        else:
+            self._downloader.trouble(u'ERROR: unable to find video ID in Soundcloud file')
+            return
 
         # extract unsimplified title
         mobj = re.search('"title":"(.*?)",', webpage)
