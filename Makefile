@@ -42,3 +42,9 @@ youtube-dl.bash-completion: README.md youtube-dl.bash-completion.in
 	@options=`egrep -o '(--[a-z-]+) ' README.md | sort -u | xargs echo` && \
 		content=`sed "s/opts=\"[^\"]*\"/opts=\"$${options}\"/g" youtube-dl.bash-completion.in` && \
 		echo "$${content}" > youtube-dl.bash-completion
+
+youtube-dl.tar.gz: all
+	tar -czf youtube-dl.tar.gz -s "|^./|./youtube-dl/|" \
+		--exclude="*.pyc" --exclude="*.pyo" --exclude="*~" --exclude="youtube-dl.exe" \
+		--exclude="wine-py2exe/" --exclude="py2exe.log" --exclude="*.kate-swp" \
+		--exclude="build/" --exclude="dist/" --exclude="MANIFEST" --exclude=".git/" .
