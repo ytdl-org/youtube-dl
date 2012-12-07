@@ -108,7 +108,7 @@ class DownloadTest(unittest.TestCase):
 
     @_skip_unless(youtube_dl.InfoExtractors.SoundcloudIE._WORKING, "IE marked as not _WORKING")
     def test_Soundcloud(self):
-        filename = 'n6FLbx6ZzMiu.mp3'
+        filename = '62986583.mp3'
         fd = FileDownloader(self.parameters)
         fd.add_info_extractor(youtube_dl.InfoExtractors.SoundcloudIE())
         fd.download(['http://soundcloud.com/ethmusic/lostin-powers-she-so-heavy'])
@@ -170,8 +170,8 @@ class DownloadTest(unittest.TestCase):
         if os.path.exists('939581.flv'):
             os.remove('939581.flv')
         # No file specified for Vimeo
-        if os.path.exists('n6FLbx6ZzMiu.mp3'):
-            os.remove('n6FLbx6ZzMiu.mp3')
+        if os.path.exists('62986583.mp3'):
+            os.remove('62986583.mp3')
         if os.path.exists('PracticalUnix_intro-environment.mp4'):
             os.remove('PracticalUnix_intro-environment.mp4')
         # No file specified for CollegeHumor
