@@ -2840,7 +2840,7 @@ class SoundcloudIE(InfoExtractor):
         self.report_extraction('%s/%s' % (uploader, slug_title))
 
         streams_url = 'https://api.sndcdn.com/i1/tracks/' + str(video_id) + '/streams?client_id=b45b1aa10f1ac2941910a7f0d10f8e28'
-        request = compat_urllib_request.Request(resolv_url)
+        request = compat_urllib_request.Request(streams_url)
         try:
             stream_json_bytes = compat_urllib_request.urlopen(request).read()
             stream_json = stream_json_bytes.decode('utf-8')
@@ -2849,47 +2849,16 @@ class SoundcloudIE(InfoExtractor):
             return
 
         streams = json.loads(stream_json)
-        print('\n\n\n' + repr(streams))
-        assert "http_mp3_128_url" in streams
-
-        # TODO get title etc. from info
-        # extract unsimplified title
-        mobj = re.search('"title":"(.*?)",', webpage)
-        if mobj:
-            title = mobj.group(1)
-        else:
-            title = simple_title
-
-        # construct media url (with uid/token)
-        mediaURL = "http://media.soundcloud.com/stream/%s?stream_token=%s"
-        mediaURL = mediaURL % (video_id, stream_token)
-
-        # description
-        description = u'No description available'
-        mobj = re.search('track-description-value"><p>(.*?)</p>', webpage)
-        if mobj:
-            description = mobj.group(1)
-
-        # upload date
-        upload_date = None
-        mobj = re.search("pretty-date'>on ([\w]+ [\d]+, [\d]+ \d+:\d+)</abbr></h2>", webpage)
-        if mobj:
-            try:
-                upload_date = datetime.datetime.strptime(mobj.group(1), '%B %d, %Y %H:%M').strftime('%Y%m%d')
-            except Exception as err:
-                self._downloader.to_stderr(compat_str(err))
-
-        # for soundcloud, a request to a cross domain is required for cookies
-        request = compat_urllib_request.Request('http://media.soundcloud.com/crossdomain.xml', std_headers)
+        mediaURL = streams['http_mp3_128_url']
 
         return [{
-            'id':       video_id,
+            'id':       info['id'],
             'url':      mediaURL,
-            'uploader': uploader,
-            'upload_date':  upload_date,
-            'title':    title,
+            'uploader': info['user']['username'],
+            'upload_date':  info['created_at'],
+            'title':    info['title'],
             'ext':      u'mp3',
-            'description': description
+            'description': info['description'],
         }]
 
 
