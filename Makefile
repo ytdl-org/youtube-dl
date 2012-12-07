@@ -30,19 +30,10 @@ youtube-dl: youtube_dl/*.py
 	chmod a+x youtube-dl
 
 README.md: youtube_dl/*.py
-	@options=$$(COLUMNS=80 python -m youtube_dl --help | sed -e '1,/.*General Options.*/ d' -e 's/^\W\{2\}\(\w\)/## \1/') && \
-		header=$$(sed -e '/.*# OPTIONS/,$$ d' README.md) && \
-		footer=$$(sed -e '1,/.*# CONFIGURATION/ d' README.md) && \
-		echo "$${header}" > README.md && \
-		echo >> README.md && \
-		echo '# OPTIONS' >> README.md && \
-		echo "$${options}" >> README.md&& \
-		echo >> README.md && \
-		echo '# CONFIGURATION' >> README.md && \
-		echo "$${footer}" >> README.md
+	COLUMNS=80 python -m youtube_dl --help | python devscripts/make_readme.py
 
 README.txt: README.md
-	pandoc -s -f markdown -t plain README.md -o README.txt
+	pandoc -f markdown -t plain README.md -o README.txt
 
 youtube-dl.1: README.md
 	pandoc -s -f markdown -t man README.md -o youtube-dl.1
