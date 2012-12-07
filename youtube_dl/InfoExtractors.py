@@ -2799,18 +2799,17 @@ class SoundcloudIE(InfoExtractor):
 
     _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/([\w\d-]+)'
     IE_NAME = u'soundcloud'
-    _WORKING = False
 
     def __init__(self, downloader=None):
         InfoExtractor.__init__(self, downloader)
 
-    def report_webpage(self, video_id):
+    def report_resolve(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, video_id))
+        self._downloader.to_screen(u'[%s] %s: Resolving id' % (self.IE_NAME, video_id))
 
     def report_extraction(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+        self._downloader.to_screen(u'[%s] %s: Retrieving stream' % (self.IE_NAME, video_id))
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -2824,28 +2823,36 @@ class SoundcloudIE(InfoExtractor):
         slug_title =  mobj.group(2)
         simple_title = uploader + u'-' + slug_title
 
-        self.report_webpage('%s/%s' % (uploader, slug_title))
+        self.report_resolve('%s/%s' % (uploader, slug_title))
 
-        url = 'https://soundcloud.com/%s/%s' % (uploader, slug_title)
-        request = compat_urllib_request.Request(url)
+        url = 'http://soundcloud.com/%s/%s' % (uploader, slug_title)
+        resolv_url = 'http://api.soundcloud.com/resolve.json?url=' + url + '&client_id=b45b1aa10f1ac2941910a7f0d10f8e28'
+        request = compat_urllib_request.Request(resolv_url)
         try:
-            webpage_bytes = compat_urllib_request.urlopen(request).read()
-            webpage = webpage_bytes.decode('utf-8')
+            info_json_bytes = compat_urllib_request.urlopen(request).read()
+            info_json = info_json_bytes.decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err))
             return
 
+        info = json.loads(info_json)
+        video_id = info['id']
         self.report_extraction('%s/%s' % (uploader, slug_title))
 
-        # extract uid and stream token that soundcloud hands out for access
-        mobj = re.search('"uid":"([\w\d]+?)".*?stream_token=([\w\d]+)', webpage)
-        if mobj:
-            video_id = mobj.group(1)
-            stream_token = mobj.group(2)
-        else:
-            self._downloader.trouble(u'ERROR: unable to find video ID in Soundcloud file')
+        streams_url = 'https://api.sndcdn.com/i1/tracks/' + str(video_id) + '/streams?client_id=b45b1aa10f1ac2941910a7f0d10f8e28'
+        request = compat_urllib_request.Request(resolv_url)
+        try:
+            stream_json_bytes = compat_urllib_request.urlopen(request).read()
+            stream_json = stream_json_bytes.decode('utf-8')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err))
             return
 
+        streams = json.loads(stream_json)
+        print('\n\n\n' + repr(streams))
+        assert "http_mp3_128_url" in streams
+
+        # TODO get title etc. from info
         # extract unsimplified title
         mobj = re.search('"title":"(.*?)",', webpage)
         if mobj:
