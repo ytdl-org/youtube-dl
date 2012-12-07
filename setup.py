@@ -6,11 +6,6 @@ from distutils.core import setup
 import pkg_resources
 import sys
 
-try:
-    import py2exe
-except ImportError:
-    print("Cannot import py2exe", file=sys.stderr)
-
 py2exe_options = {
     "bundle_files": 1,
     "compressed": 1,
@@ -20,30 +15,46 @@ py2exe_options = {
 }
 
 py2exe_console = [{
-    "script":"./youtube_dl/__main__.py",
+    "script": "./youtube_dl/__main__.py",
     "dest_base": "youtube-dl",
 }]
 
+try:
+    import py2exe
+    """This will create an exe that needs Microsoft Visual C++ 2008 Redistributable Package"""
+    py2exe_params = {
+        'console': py2exe_console,
+        'options': { "py2exe": py2exe_options },
+        'zipfile': None
+    }
+except ImportError:
+    if 'py2exe' in sys.argv:
+        print("Cannot import py2exe", file=sys.stderr)
+        exit(1)
+    py2exe_params = {}
+
+# Get the version from youtube_dl/version.py without importing the package
 exec(compile(open('youtube_dl/version.py').read(), 'youtube_dl/version.py', 'exec'))
 
 setup(
     name = 'youtube_dl',
     version = __version__,
-    description = 'Small command-line program to download videos from YouTube.com and other video sites',
+    description = 'YouTube video downloader',
+    long_description = 'Small command-line program to download videos from YouTube.com and other video sites.',
     url = 'https://github.com/rg3/youtube-dl',
     author = 'Ricardo Garcia',
     maintainer = 'Philipp Hagemeister',
     maintainer_email = 'phihag@phihag.de',
     packages = ['youtube_dl'],
 
-    test_suite = 'nose.collector',
-    test_requires = ['nosetest'],
-
-    console = py2exe_console,
-    options = { "py2exe": py2exe_options },
+    # Provokes warning on most systems (why?!)
+    #test_suite = 'nose.collector',
+    #test_requires = ['nosetest'],
 
     scripts = ['bin/youtube-dl'],
-    zipfile = None,
+    data_files = [('etc/bash_completion.d', ['youtube-dl.bash-completion']), # Installing system-wide would require sudo...
+                  ('share/doc/youtube_dl', ['README.txt']),
+                  ('share/man/man1/', ['youtube-dl.1']) ],
 
     classifiers = [
         "Topic :: Multimedia :: Video",
@@ -54,5 +65,7 @@ setup(
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.3"
-    ]
+    ],
+
+    **py2exe_params
 )

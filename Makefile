@@ -1,5 +1,4 @@
 all: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion 
-# TODO: re-add youtube-dl.exe, and make sure it's 1. safe and 2. doesn't need sudo
 
 clean:
 	rm -rf youtube-dl youtube-dl.exe youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/
@@ -30,9 +29,6 @@ youtube-dl: youtube_dl/*.py
 	rm youtube-dl.zip
 	chmod a+x youtube-dl
 
-youtube-dl.exe: youtube_dl/*.py
-	bash devscripts/wine-py2exe.sh build_exe.py
-
 README.md: youtube_dl/*.py
 	@options=$$(COLUMNS=80 python -m youtube_dl --help | sed -e '1,/.*General Options.*/ d' -e 's/^\W\{2\}\(\w\)/## \1/') && \
 		header=$$(sed -e '/.*# OPTIONS/,$$ d' README.md) && \
@@ -46,10 +42,10 @@ README.md: youtube_dl/*.py
 		echo "$${footer}" >> README.md
 
 README.txt: README.md
-	pandoc -f markdown -t plain README.md -o README.txt
+	pandoc -s -f markdown -t plain README.md -o README.txt
 
 youtube-dl.1: README.md
-	pandoc -f markdown -t man README.md -o youtube-dl.1
+	pandoc -s -f markdown -t man README.md -o youtube-dl.1
 
 youtube-dl.bash-completion: README.md youtube-dl.bash-completion.in
 	@options=`egrep -o '(--[a-z-]+) ' README.md | sort -u | xargs echo` && \
