@@ -6,6 +6,14 @@ from distutils.core import setup
 import pkg_resources
 import sys
 
+try:
+    import py2exe
+    """This will create an exe that needs Microsoft Visual C++ 2008 Redistributable Package"""
+except ImportError:
+    if len(sys.argv) >= 2 and sys.argv[1] == 'py2exe':
+        print("Cannot import py2exe", file=sys.stderr)
+        exit(1)
+
 py2exe_options = {
     "bundle_files": 1,
     "compressed": 1,
@@ -13,25 +21,25 @@ py2exe_options = {
     "dist_dir": '.',
     "dll_excludes": ['w9xpopen.exe']
 }
-
 py2exe_console = [{
     "script": "./youtube_dl/__main__.py",
     "dest_base": "youtube-dl",
 }]
+py2exe_params = {
+    'console': py2exe_console,
+    'options': { "py2exe": py2exe_options },
+    'zipfile': None
+}
 
-try:
-    import py2exe
-    """This will create an exe that needs Microsoft Visual C++ 2008 Redistributable Package"""
-    py2exe_params = {
-        'console': py2exe_console,
-        'options': { "py2exe": py2exe_options },
-        'zipfile': None
+if len(sys.argv) >= 2 and sys.argv[1] == 'py2exe':
+    params = py2exe_params
+else:
+    params = {
+        'scripts': ['bin/youtube-dl'],
+        'data_files': [('etc/bash_completion.d', ['youtube-dl.bash-completion']), # Installing system-wide would require sudo...
+                       ('share/doc/youtube_dl', ['README.txt']),
+                       ('share/man/man1/', ['youtube-dl.1'])]
     }
-except ImportError:
-    if 'py2exe' in sys.argv:
-        print("Cannot import py2exe", file=sys.stderr)
-        exit(1)
-    py2exe_params = {}
 
 # Get the version from youtube_dl/version.py without importing the package
 exec(compile(open('youtube_dl/version.py').read(), 'youtube_dl/version.py', 'exec'))
@@ -51,11 +59,6 @@ setup(
     #test_suite = 'nose.collector',
     #test_requires = ['nosetest'],
 
-    scripts = ['bin/youtube-dl'],
-    data_files = [('etc/bash_completion.d', ['youtube-dl.bash-completion']), # Installing system-wide would require sudo...
-                  ('share/doc/youtube_dl', ['README.txt']),
-                  ('share/man/man1/', ['youtube-dl.1']) ],
-
     classifiers = [
         "Topic :: Multimedia :: Video",
         "Development Status :: 5 - Production/Stable",
@@ -67,5 +70,5 @@ setup(
         "Programming Language :: Python :: 3.3"
     ],
 
-    **py2exe_params
+    **params
 )
