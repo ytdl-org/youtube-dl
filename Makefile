@@ -1,4 +1,4 @@
-all: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion 
+all: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion
 
 clean:
 	rm -rf youtube-dl youtube-dl.exe youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/
@@ -38,10 +38,8 @@ README.txt: README.md
 youtube-dl.1: README.md
 	pandoc -s -f markdown -t man README.md -o youtube-dl.1
 
-youtube-dl.bash-completion: README.md youtube-dl.bash-completion.in
-	@options=`egrep -o '(--[a-z-]+) ' README.md | sort -u | xargs echo` && \
-		content=`sed "s/opts=\"[^\"]*\"/opts=\"$${options}\"/g" youtube-dl.bash-completion.in` && \
-		echo "$${content}" > youtube-dl.bash-completion
+youtube-dl.bash-completion: README.md devscripts/bash_completion.template
+	python devscripts/bash_completion.py
 
 youtube-dl.tar.gz: all
 	tar -czf youtube-dl.tar.gz -s "|^./|./youtube-dl/|" \

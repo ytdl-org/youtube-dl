@@ -1,4 +1,9 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+import os
+from os.path import dirname as dirn
+import sys
+
+sys.path.append(dirn(dirn((os.path.abspath(__file__)))))
 import youtube_dl
 
 BASH_COMPLETION_FILE = "youtube-dl.bash_completion"
@@ -14,7 +19,6 @@ def build_completion(opt_parser):
         template = f.read()
     with open(BASH_COMPLETION_FILE, "w") as f:
         #just using the special char
-        print opts_flag
         filled_template = template.replace("{{flags}}", " ".join(opts_flag))
         f.write(filled_template)
 
