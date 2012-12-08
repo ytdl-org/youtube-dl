@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Various small unit tests
 
 import sys
@@ -78,6 +80,11 @@ class TestUtil(unittest.TestCase):
         # .. but make sure the file name is never empty
         self.assertTrue(sanitize_filename('-', restricted=True) != '')
         self.assertTrue(sanitize_filename(':', restricted=True) != '')
+
+    def test_sanitize_ids(self):
+        self.assertEquals(sanitize_filename('_n_cd26wFpw', is_id=True), '_n_cd26wFpw')
+        self.assertEquals(sanitize_filename('_BD_eEpuzXw', is_id=True), '_BD_eEpuzXw')
+        self.assertEquals(sanitize_filename('N0Y__7-UOdI', is_id=True), 'N0Y__7-UOdI')
 
     def test_ordered_set(self):
         self.assertEqual(orderedSet([1, 1, 2, 3, 4, 4, 5, 6, 7, 3, 5]), [1, 2, 3, 4, 5, 6, 7])

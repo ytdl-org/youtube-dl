@@ -317,9 +317,10 @@ def timeconvert(timestr):
         timestamp = email.utils.mktime_tz(timetuple)
     return timestamp
 
-def sanitize_filename(s, restricted=False):
+def sanitize_filename(s, restricted=False, is_id=False):
     """Sanitizes a string so it could be used as part of a filename.
     If restricted is set, use a stricter subset of allowed characters.
+    Set is_id if this is not an arbitrary string, but an ID that should be kept if possible
     """
     def replace_insane(char):
         if char == '?' or ord(char) < 32 or ord(char) == 127:
@@ -337,14 +338,15 @@ def sanitize_filename(s, restricted=False):
         return char
 
     result = u''.join(map(replace_insane, s))
-    while '__' in result:
-        result = result.replace('__', '_')
-    result = result.strip('_')
-    # Common case of "Foreign band name - English song title"
-    if restricted and result.startswith('-_'):
-        result = result[2:]
-    if not result:
-        result = '_'
+    if not is_id:
+        while '__' in result:
+            result = result.replace('__', '_')
+        result = result.strip('_')
+        # Common case of "Foreign band name - English song title"
+        if restricted and result.startswith('-_'):
+            result = result[2:]
+        if not result:
+            result = '_'
     return result
 
 def orderedSet(iterable):
@@ -504,3 +506,6 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
             resp = self.addinfourl_wrapper(gz, old_resp.headers, old_resp.url, old_resp.code)
             resp.msg = old_resp.msg
         return resp
+
+    https_request = http_request
+    https_response = http_response

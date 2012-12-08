@@ -34,31 +34,19 @@ import youtube_dl.InfoExtractors
 def _file_md5(fn):
     with open(fn, 'rb') as f:
         return hashlib.md5(f.read()).hexdigest()
-
-def md5_for_file(filename, block_size=2**20):
-    with open(filename) as f:
-        md5 = hashlib.md5()
-        while True:
-            data = f.read(block_size)
-            if not data:
-                break
-            md5.update(data)
-        return md5.hexdigest()
-_file_md5 = md5_for_file
-
-
 try:
     _skip_unless = unittest.skipUnless
 except AttributeError: # Python 2.6
     def _skip_unless(cond, reason='No reason given'):
         def resfunc(f):
-            def wfunc(*args, **kwargs):
+            # Start the function name with test to appease nosetests-2.6
+            def test_wfunc(*args, **kwargs):
                 if cond:
                     return f(*args, **kwargs)
                 else:
                     print('Skipped test')
                     return
-            return wfunc
+            return test_wfunc
         return resfunc
 _skip = lambda *args, **kwargs: _skip_unless(False, *args, **kwargs)
 

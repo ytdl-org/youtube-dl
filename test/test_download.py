@@ -20,31 +20,19 @@ import youtube_dl.InfoExtractors
 def _file_md5(fn):
     with open(fn, 'rb') as f:
         return hashlib.md5(f.read()).hexdigest()
-
-def md5_for_file(filename, block_size=2**20):
-    with open(filename) as f:
-        md5 = hashlib.md5()
-        while True:
-            data = f.read(block_size)
-            if not data:
-                break
-            md5.update(data)
-        return md5.hexdigest()
-_file_md5 = md5_for_file
-
-
 try:
     _skip_unless = unittest.skipUnless
 except AttributeError: # Python 2.6
     def _skip_unless(cond, reason='No reason given'):
         def resfunc(f):
-            def wfunc(*args, **kwargs):
+            # Start the function name with test to appease nosetests-2.6
+            def test_wfunc(*args, **kwargs):
                 if cond:
                     return f(*args, **kwargs)
                 else:
                     print('Skipped test')
                     return
-            return wfunc
+            return test_wfunc
         return resfunc
 _skip = lambda *args, **kwargs: _skip_unless(False, *args, **kwargs)
 
@@ -79,7 +67,7 @@ class DownloadTest(unittest.TestCase):
 
     @_skip_unless(youtube_dl.InfoExtractors.MetacafeIE._WORKING, "IE marked as not _WORKING")
     def test_Metacafe(self):
-        filename = 'aUehQsCQtM.flv'
+        filename = '_aUehQsCQtM.flv'
         fd = FileDownloader(self.parameters)
         fd.add_info_extractor(youtube_dl.InfoExtractors.MetacafeIE())
         fd.add_info_extractor(youtube_dl.InfoExtractors.YoutubeIE())
@@ -120,7 +108,7 @@ class DownloadTest(unittest.TestCase):
 
     @_skip_unless(youtube_dl.InfoExtractors.SoundcloudIE._WORKING, "IE marked as not _WORKING")
     def test_Soundcloud(self):
-        filename = 'n6FLbx6ZzMiu.mp3'
+        filename = '62986583.mp3'
         fd = FileDownloader(self.parameters)
         fd.add_info_extractor(youtube_dl.InfoExtractors.SoundcloudIE())
         fd.download(['http://soundcloud.com/ethmusic/lostin-powers-she-so-heavy'])
@@ -159,26 +147,38 @@ class DownloadTest(unittest.TestCase):
         md5_for_file = _file_md5(filename)
         self.assertEqual(md5_for_file, 'c5c67df477eb0d9b058200351448ba4c')
 
+    @_skip_unless(youtube_dl.InfoExtractors.YoukuIE._WORKING, "IE marked as not _WORKING")
+    def test_Youku(self):
+        filename = 'XNDgyMDQ2NTQw_part00.flv'
+        fd = FileDownloader(self.parameters)
+        fd.add_info_extractor(youtube_dl.InfoExtractors.YoukuIE())
+        fd.download(['http://v.youku.com/v_show/id_XNDgyMDQ2NTQw.html'])
+        self.assertTrue(os.path.exists(filename))
+        md5_for_file = _file_md5(filename)
+        self.assertEqual(md5_for_file, 'ffe3f2e435663dc2d1eea34faeff5b5b')
+
 
     def tearDown(self):
         if os.path.exists('BaW_jenozKc.mp4'):
             os.remove('BaW_jenozKc.mp4')
         if os.path.exists('x33vw9.mp4'):
             os.remove('x33vw9.mp4')
-        if os.path.exists('aUehQsCQtM.flv'):
-            os.remove('aUehQsCQtM.flv')
+        if os.path.exists('_aUehQsCQtM.flv'):
+            os.remove('_aUehQsCQtM.flv')
         if os.path.exists('5779306.m4v'):
             os.remove('5779306.m4v')
         if os.path.exists('939581.flv'):
             os.remove('939581.flv')
         # No file specified for Vimeo
-        if os.path.exists('n6FLbx6ZzMiu.mp3'):
-            os.remove('n6FLbx6ZzMiu.mp3')
+        if os.path.exists('62986583.mp3'):
+            os.remove('62986583.mp3')
         if os.path.exists('PracticalUnix_intro-environment.mp4'):
             os.remove('PracticalUnix_intro-environment.mp4')
         # No file specified for CollegeHumor
         if os.path.exists('1135332.flv'):
             os.remove('1135332.flv')
+        if os.path.exists('XNDgyMDQ2NTQw_part00.flv'):
+            os.remove('XNDgyMDQ2NTQw_part00.flv')
 
 
 
