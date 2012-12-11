@@ -3,7 +3,7 @@ python:
   - "2.6"
   - "2.7"
 #  - "3.3"
-script: nosetests test --nocapture
+script: nosetests test --verbose
 notifications:
   email:
     - filippo.valsorda@gmail.com
