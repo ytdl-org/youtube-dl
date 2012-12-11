@@ -2262,7 +2262,7 @@ class BlipTVIE(InfoExtractor):
         else:
             cchar = '?'
         json_url = url + cchar + 'skin=json&version=2&no_wrap=1'
-        request = compat_urllib_request.Request(json_url.encode('utf-8'))
+        request = compat_urllib_request.Request(json_url)
         self.report_extraction(mobj.group(1))
         info = None
         try:
@@ -2287,7 +2287,8 @@ class BlipTVIE(InfoExtractor):
             return
         if info is None: # Regular URL
             try:
-                json_code = urlh.read()
+                json_code_bytes = urlh.read()
+                json_code = json_code_bytes.decode('utf-8')
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                 self._downloader.trouble(u'ERROR: unable to read video info webpage: %s' % compat_str(err))
                 return
