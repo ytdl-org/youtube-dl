@@ -104,7 +104,10 @@ def gentests():
                 write('@_skip(' + repr(d['skip']) + ')')
             write('def test_' + name + '(self):')
             write('    filename = ' + repr(d['file']))
-            write('    fd = FileDownloader(self.parameters)')
+            write('    params = self.parameters')
+            for p in d.get('params', {}):
+                write('    params["' + p + '"] = ' + repr(d['params'][p]))
+            write('    fd = FileDownloader(params)')
             write('    fd.add_info_extractor(youtube_dl.InfoExtractors.' + name + 'IE())')
             for ien in d.get('addIEs', []):
                 write('    fd.add_info_extractor(youtube_dl.InfoExtractors.' + ien + 'IE())')
