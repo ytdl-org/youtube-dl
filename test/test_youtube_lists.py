@@ -8,7 +8,7 @@ import socket
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.InfoExtractors import YoutubePlaylistIE
+from youtube_dl.InfoExtractors import YoutubeUserIE,YoutubePlaylistIE
 from youtube_dl.utils import *
 
 # General configuration (from __init__, not very elegant...)
@@ -62,7 +62,7 @@ class TestYoutubeLists(unittest.TestCase):
 
     def test_youtube_user(self):
         DL = FakeDownloader()
-        IE = YoutubePlaylistIE(DL)
+        IE = YoutubeUserIE(DL)
         IE.extract('https://www.youtube.com/user/TheLinuxFoundation')
         self.assertTrue(len(DL.result) >= 320)
 
