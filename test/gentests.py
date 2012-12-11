@@ -113,8 +113,6 @@ def gentests():
                 write('    fd.add_info_extractor(youtube_dl.InfoExtractors.' + ien + 'IE())')
             write('    fd.download([' + repr(d['url']) + '])')
             write('    self.assertTrue(os.path.exists(filename))')
-            if 'size' in d:
-                write('    self.assertEqual(os.path.getsize(filename), ' + repr(d['size']) + ')')
             if 'md5' in d:
                 write('    md5_for_file = _file_md5(filename)')
                 write('    self.assertEqual(md5_for_file, ' + repr(d['md5']) + ')')
