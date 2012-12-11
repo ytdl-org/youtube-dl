@@ -10,6 +10,7 @@ import socket
 import subprocess
 import sys
 import time
+import traceback
 
 if os.name == 'nt':
     import ctypes
@@ -217,6 +218,8 @@ class FileDownloader(object):
         """
         if message is not None:
             self.to_stderr(message)
+        if self.params.get('verbose'):
+            self.to_stderr(u''.join(traceback.format_list(traceback.extract_stack())))
         if not self.params.get('ignoreerrors', False):
             raise DownloadError(message)
         self._download_retcode = 1
