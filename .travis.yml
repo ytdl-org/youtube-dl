@@ -3,10 +3,11 @@ python:
   - "2.6"
   - "2.7"
 #  - "3.3"
-script: nosetests test --verbose
+script: nosetests test --verbose --processes 4
 notifications:
   email:
     - filippo.valsorda@gmail.com
+    - phihag@phihag.de
   irc:
     channels:
       - "irc.freenode.org#youtube-dl"
