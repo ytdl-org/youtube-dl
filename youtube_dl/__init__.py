@@ -203,6 +203,7 @@ def parseOpts():
     general.add_option('--list-extractors',
             action='store_true', dest='list_extractors',
             help='List all supported extractors and the URLs they would handle', default=False)
+    general.add_option('--test', action='store_true', dest='test', default=False, help=optparse.SUPPRESS_HELP)
 
     selection.add_option('--playlist-start',
             dest='playliststart', metavar='NUMBER', help='playlist video to start at (default is %default)', default=1)
@@ -525,6 +526,7 @@ def _real_main():
         'max_downloads': opts.max_downloads,
         'prefer_free_formats': opts.prefer_free_formats,
         'verbose': opts.verbose,
+        'test': opts.test,
         })
 
     if opts.verbose:
