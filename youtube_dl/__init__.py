@@ -23,12 +23,6 @@ __authors__  = (
     )
 
 __license__ = 'Public Domain'
-__version__ = '2012.11.29'
-
-UPDATE_URL = 'https://raw.github.com/rg3/youtube-dl/master/youtube-dl'
-UPDATE_URL_VERSION = 'https://raw.github.com/rg3/youtube-dl/master/LATEST_VERSION'
-UPDATE_URL_EXE = 'https://raw.github.com/rg3/youtube-dl/master/youtube-dl.exe'
-
 
 import getpass
 import optparse
@@ -41,34 +35,46 @@ import sys
 import warnings
 
 from .utils import *
+from .version import __version__
 from .FileDownloader import *
 from .InfoExtractors import *
 from .PostProcessor import *
 
 def updateSelf(downloader, filename):
-    ''' Update the program file with the latest version from the repository '''
-    # Note: downloader only used for options
+    """Update the program file with the latest version from the repository"""
 
-    if not os.access(filename, os.W_OK):
-        sys.exit('ERROR: no write permissions on %s' % filename)
+    # TODO: at least, check https certificates
 
-    downloader.to_screen(u'Updating to latest version...')
+    from zipimport import zipimporter
 
-    urlv = compat_urllib_request.urlopen(UPDATE_URL_VERSION)
-    newversion = urlv.read().strip()
-    if newversion == __version__:
-        downloader.to_screen(u'youtube-dl is up-to-date (' + __version__ + ')')
-        return
-    urlv.close()
+    API_URL = "https://api.github.com/repos/rg3/youtube-dl/downloads"
+    BIN_URL = "https://github.com/downloads/rg3/youtube-dl/youtube-dl"
+    EXE_URL = "https://github.com/downloads/rg3/youtube-dl/youtube-dl.exe"
 
-    if hasattr(sys, "frozen"): #py2exe
+    if hasattr(sys, "frozen"): # PY2EXE
+        if not os.access(filename, os.W_OK):
+            sys.exit('ERROR: no write permissions on %s' % filename)
+
+        downloader.to_screen(u'Updating to latest version...')
+
+        urla = compat_urllib_request.urlopen(API_URL)
+        download = filter(lambda x: x["name"] == "youtube-dl.exe", json.loads(urla.read()))
+        if not download:
+            downloader.to_screen(u'ERROR: can\'t find the current version. Please try again later.')
+            return
+        newversion = download[0]["description"].strip()
+        if newversion == __version__:
+            downloader.to_screen(u'youtube-dl is up-to-date (' + __version__ + ')')
+            return
+        urla.close()
+
         exe = os.path.abspath(filename)
         directory = os.path.dirname(exe)
         if not os.access(directory, os.W_OK):
             sys.exit('ERROR: no write permissions on %s' % directory)
 
         try:
-            urlh = compat_urllib_request.urlopen(UPDATE_URL_EXE)
+            urlh = compat_urllib_request.urlopen(EXE_URL)
             newcontent = urlh.read()
             urlh.close()
             with open(exe + '.new', 'wb') as outf:
@@ -91,9 +97,25 @@ del "%s"
         except (IOError, OSError) as err:
             sys.exit('ERROR: unable to overwrite current version')
 
-    else:
+    elif isinstance(globals().get('__loader__'), zipimporter): # UNIX ZIP
+        if not os.access(filename, os.W_OK):
+            sys.exit('ERROR: no write permissions on %s' % filename)
+
+        downloader.to_screen(u'Updating to latest version...')
+
+        urla = compat_urllib_request.urlopen(API_URL)
+        download = [x for x in json.loads(urla.read().decode('utf8')) if x["name"] == "youtube-dl"]
+        if not download:
+            downloader.to_screen(u'ERROR: can\'t find the current version. Please try again later.')
+            return
+        newversion = download[0]["description"].strip()
+        if newversion == __version__:
+            downloader.to_screen(u'youtube-dl is up-to-date (' + __version__ + ')')
+            return
+        urla.close()
+
         try:
-            urlh = compat_urllib_request.urlopen(UPDATE_URL)
+            urlh = compat_urllib_request.urlopen(BIN_URL)
             newcontent = urlh.read()
             urlh.close()
         except (IOError, OSError) as err:
@@ -104,6 +126,10 @@ del "%s"
                 outf.write(newcontent)
         except (IOError, OSError) as err:
             sys.exit('ERROR: unable to overwrite current version')
+
+    else:
+        downloader.to_screen(u'It looks like you installed youtube-dl with pip or setup.py. Please use that to update.')
+        return
 
     downloader.to_screen(u'Updated youtube-dl. Restart youtube-dl to use the new version.')
 

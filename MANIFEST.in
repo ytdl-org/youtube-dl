@@ -1,0 +1,3 @@
+include README.md
+include test/*.py
+include test/*.json
