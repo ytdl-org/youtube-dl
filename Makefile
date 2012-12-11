@@ -38,7 +38,7 @@ README.txt: README.md
 youtube-dl.1: README.md
 	pandoc -s -f markdown -t man README.md -o youtube-dl.1
 
-youtube-dl.bash-completion: youtube_dl/*.py devscripts/bash-completion.template
+youtube-dl.bash-completion: youtube_dl/*.py devscripts/bash-completion.in
 	python devscripts/bash-completion.py
 
 youtube-dl.tar.gz: all
