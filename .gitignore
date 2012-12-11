@@ -13,3 +13,5 @@ youtube-dl.bash-completion
 youtube-dl
 youtube-dl.exe
 youtube-dl.tar.gz
+.coverage
+cover/

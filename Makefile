@@ -17,7 +17,8 @@ install: youtube-dl youtube-dl.1 youtube-dl.bash-completion
 	install -m 644 youtube-dl.bash-completion $(DESTDIR)$(SYSCONFDIR)/bash_completion.d/youtube-dl
 
 test:
-	nosetests2 --nocapture test
+	#nosetests --with-coverage --cover-package=youtube_dl --cover-html --verbose --processes 4 test
+	nosetests --verbose test
 
 .PHONY: all clean install test
 
