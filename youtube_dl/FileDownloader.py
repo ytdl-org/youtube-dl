@@ -78,6 +78,7 @@ class FileDownloader(object):
     writeinfojson:     Write the video description to a .info.json file
     writesubtitles:    Write the video subtitles to a .srt file
     subtitleslang:     Language of the subtitles to download
+    test:              Download only first bytes to test the downloader.
     """
 
     params = None
@@ -593,6 +594,9 @@ class FileDownloader(object):
         headers = {'Youtubedl-no-compression': 'True'}
         basic_request = compat_urllib_request.Request(url, None, headers)
         request = compat_urllib_request.Request(url, None, headers)
+
+        if self.params.get('test', False):
+            request.add_header('Range','bytes=0-10240')
 
         # Establish possible resume length
         if os.path.isfile(encodeFilename(tmpfilename)):
