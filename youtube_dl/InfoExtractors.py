@@ -1674,7 +1674,7 @@ class YoutubePlaylistIE(InfoExtractor):
     _VALID_URL = r'(?:(?:https?://)?(?:\w+\.)?youtube\.com/(?:(?:course|view_play_list|my_playlists|artist|playlist)\?.*?(p|a|list)=|user/.*?/user/|p/|user/.*?#[pg]/c/)(?:PL|EC)?|PL|EC)([0-9A-Za-z-_]{10,})(?:/.*?/([0-9A-Za-z_-]+))?.*'
     _TEMPLATE_URL = 'http://www.youtube.com/%s?%s=%s&page=%s&gl=US&hl=en'
     _VIDEO_INDICATOR_TEMPLATE = r'/watch\?v=(.+?)&amp;([^&"]+&amp;)*list=.*?%s'
-    _MORE_PAGES_INDICATOR = r'yt-uix-pager-next'
+    _MORE_PAGES_INDICATOR = u"Next \N{RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK}"
     IE_NAME = u'youtube:playlist'
 
     def __init__(self, downloader=None):
@@ -1713,7 +1713,7 @@ class YoutubePlaylistIE(InfoExtractor):
             url = self._TEMPLATE_URL % (playlist_access, playlist_prefix, playlist_id, pagenum)
             request = compat_urllib_request.Request(url)
             try:
-                page = compat_urllib_request.urlopen(request).read()
+                page = compat_urllib_request.urlopen(request).read().decode('utf8')
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                 self._downloader.trouble(u'ERROR: unable to download webpage: %s' % compat_str(err))
                 return
@@ -1725,9 +1725,11 @@ class YoutubePlaylistIE(InfoExtractor):
                     ids_in_page.append(mobj.group(1))
             video_ids.extend(ids_in_page)
 
-            if re.search(self._MORE_PAGES_INDICATOR, page) is None:
+            if self._MORE_PAGES_INDICATOR not in page:
                 break
             pagenum = pagenum + 1
+
+        total = len(video_ids)
 
         playliststart = self._downloader.params.get('playliststart', 1) - 1
         playlistend = self._downloader.params.get('playlistend', -1)
@@ -1735,6 +1737,11 @@ class YoutubePlaylistIE(InfoExtractor):
             video_ids = video_ids[playliststart:]
         else:
             video_ids = video_ids[playliststart:playlistend]
+
+        if len(video_ids) == total:
+            self._downloader.to_screen(u'[youtube] PL %s: Found %i videos' % (playlist_id, total))
+        else:
+            self._downloader.to_screen(u'[youtube] PL %s: Found %i videos, downloading %i' % (playlist_id, total, len(video_ids)))
 
         for id in video_ids:
             self._downloader.download(['http://www.youtube.com/watch?v=%s' % id])
@@ -1746,7 +1753,7 @@ class YoutubeChannelIE(InfoExtractor):
 
     _VALID_URL = r"^(?:https?://)?(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com)/channel/([0-9A-Za-z_-]+)(?:/.*)?$"
     _TEMPLATE_URL = 'http://www.youtube.com/channel/%s/videos?sort=da&flow=list&view=0&page=%s&gl=US&hl=en'
-    _MORE_PAGES_INDICATOR = r'yt-uix-button-content">Next' # TODO
+    _MORE_PAGES_INDICATOR = u"Next \N{RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK}"
     IE_NAME = u'youtube:channel'
 
     def report_download_page(self, channel_id, pagenum):
@@ -1770,7 +1777,7 @@ class YoutubeChannelIE(InfoExtractor):
             url = self._TEMPLATE_URL % (channel_id, pagenum)
             request = compat_urllib_request.Request(url)
             try:
-                page = compat_urllib_request.urlopen(request).read()
+                page = compat_urllib_request.urlopen(request).read().decode('utf8')
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                 self._downloader.trouble(u'ERROR: unable to download webpage: %s' % compat_str(err))
                 return
@@ -1782,9 +1789,11 @@ class YoutubeChannelIE(InfoExtractor):
                     ids_in_page.append(mobj.group(1))
             video_ids.extend(ids_in_page)
 
-            if re.search(self._MORE_PAGES_INDICATOR, page) is None:
+            if self._MORE_PAGES_INDICATOR not in page:
                 break
             pagenum = pagenum + 1
+
+        self._downloader.to_screen(u'[youtube] Channel %s: Found %i videos' % (channel_id, len(video_ids)))
 
         for id in video_ids:
             self._downloader.download(['http://www.youtube.com/watch?v=%s' % id])
