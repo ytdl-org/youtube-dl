@@ -7,7 +7,7 @@ sys.path.append(dirn(dirn((os.path.abspath(__file__)))))
 import youtube_dl
 
 BASH_COMPLETION_FILE = "youtube-dl.bash-completion"
-BASH_COMPLETION_TEMPLATE = "devscripts/bash-completion.template"
+BASH_COMPLETION_TEMPLATE = "devscripts/bash-completion.in"
 
 def build_completion(opt_parser):
     opts_flag = []
