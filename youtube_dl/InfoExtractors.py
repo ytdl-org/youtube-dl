@@ -1072,8 +1072,8 @@ class VimeoIE(InfoExtractor):
         self.report_extraction(video_id)
 
         # Extract the config JSON
-        config = webpage.split(' = {config:')[1].split(',assets:')[0]
         try:
+            config = webpage.split(' = {config:')[1].split(',assets:')[0]
             config = json.loads(config)
         except:
             self._downloader.trouble(u'ERROR: unable to extract info section')

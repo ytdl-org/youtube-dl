@@ -23,13 +23,28 @@ import os
 import json
 import unittest
 import sys
+import socket
 
 # Allow direct execution
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.FileDownloader import FileDownloader
+import youtube_dl.FileDownloader
 import youtube_dl.InfoExtractors
+from youtube_dl.utils import *
+
+# General configuration (from __init__, not very elegant...)
+jar = compat_cookiejar.CookieJar()
+cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
+proxy_handler = compat_urllib_request.ProxyHandler()
+opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
+compat_urllib_request.install_opener(opener)
+socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
+
+class FileDownloader(youtube_dl.FileDownloader):
+    def __init__(self, *args, **kwargs):
+        youtube_dl.FileDownloader.__init__(self, *args, **kwargs)
+        self.to_stderr = self.to_screen
 
 def _file_md5(fn):
     with open(fn, 'rb') as f:
@@ -76,12 +91,12 @@ def gentests():
     with io.open(TEST_FILE, 'w', encoding='utf-8') as testf:
         testf.write(HEADER)
         spaces = ' ' * 4
-        write = lambda l: testf.write(spaces + l + '\n')
+        write = lambda l: testf.write(spaces + l + u'\n')
 
         for d in defs:
             name = d['name']
             ie = getattr(youtube_dl.InfoExtractors, name + 'IE')
-            testf.write('\n')
+            testf.write(u'\n')
             write('@_skip_unless(youtube_dl.InfoExtractors.' + name + 'IE._WORKING, "IE marked as not _WORKING")')
             if not d['file']:
                 write('@_skip("No output file specified")')
@@ -101,7 +116,7 @@ def gentests():
                 write('    md5_for_file = _file_md5(filename)')
                 write('    self.assertEqual(md5_for_file, ' + repr(d['md5']) + ')')
 
-        testf.write('\n\n')
+        testf.write(u'\n\n')
         write('def tearDown(self):')
         for d in defs:
             if d['file']:
@@ -109,7 +124,7 @@ def gentests():
                 write('        os.remove(' + repr(d['file']) + ')')
             else:
                 write('    # No file specified for ' + d['name'])
-        testf.write('\n')
+        testf.write(u'\n')
         testf.write(FOOTER)
 
 if __name__ == '__main__':

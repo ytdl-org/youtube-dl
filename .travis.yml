@@ -8,4 +8,4 @@ notifications:
 #command to install the setup
 install:
 # command to run tests
-script: nosetests test --nocapture
+script: nosetests test --verbose
