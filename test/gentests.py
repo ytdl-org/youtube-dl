@@ -61,6 +61,7 @@ except AttributeError: # Python 2.6
                 else:
                     print('Skipped test')
                     return
+            test_wfunc.__name__ = f.__name__
             return test_wfunc
         return resfunc
 _skip = lambda *args, **kwargs: _skip_unless(False, *args, **kwargs)
