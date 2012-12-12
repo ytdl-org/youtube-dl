@@ -1,2 +1,3 @@
 # Just a placeholder script so that travis doesn't complain
+language: python
 script: true
