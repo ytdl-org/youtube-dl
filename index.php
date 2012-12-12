@@ -12,16 +12,16 @@
 <?php
 $DOWNLOAD_DIR = 'downloads';
 
-$versions = array_filter(function($v) {return $v{0} != '.'}, scandir($DOWNLOAD_DIR));
+$versions = array_filter(function($v) {return $v{0} != '.';}, scandir($DOWNLOAD_DIR));
 sort($versions);
 
 $latest = end($versions);
 
 echo '<div class="latest">';
 echo '<div>Latest (v' . htmlspecialchars($latest) . ') downloads:</div>';
-echo '<a href="' . htmlspecialchars($latest) . '/youtube-dl">youtube-dl</a> ';
-echo '<a href="' . htmlspecialchars($latest) . '/youtube-dl.exe">youtube-dl.exe</a> ';
-echo '<a href="' . htmlspecialchars($latest) . '/youtube-dl-src-' . htmlspecialchars($latest) . '.tar.gz">youtube-dl-src-' . htmlspecialchars($latest) . '.tar.gz</a>';
+echo '<a href="downloads/' . htmlspecialchars($latest) . '/youtube-dl">youtube-dl</a> ';
+echo '<a href="downloads/' . htmlspecialchars($latest) . '/youtube-dl.exe">youtube-dl.exe</a> ';
+echo '<a href="downloads/' . htmlspecialchars($latest) . '/youtube-dl-src-' . htmlspecialchars($latest) . '.tar.gz">youtube-dl-src-' . htmlspecialchars($latest) . '.tar.gz</a>';
 echo '</div>';
 
 echo '<ul>';
