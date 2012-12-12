@@ -136,6 +136,11 @@ tt {
 	border: 2px solid #666600;
 }
 
+#main-homepage {
+    background-color: #848;
+    border: 2px solid #808;
+
+}
 #main-support {
     background-color: #448888;
     border: 2px solid #008888;
