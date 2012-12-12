@@ -2397,7 +2397,19 @@ class MyVideoIE(InfoExtractor):
 class ComedyCentralIE(InfoExtractor):
     """Information extractor for The Daily Show and Colbert Report """
 
-    _VALID_URL = r'^(:(?P<shortname>tds|thedailyshow|cr|colbert|colbertnation|colbertreport))|(https?://)?(www\.)?(?P<showname>thedailyshow|colbertnation)\.com/full-episodes/(?P<episode>.*)$'
+    # urls can be abbreviations like :thedailyshow or :colbert
+    # urls for episodes like: 
+    # or urls for clips like: http://www.thedailyshow.com/watch/mon-december-10-2012/any-given-gun-day
+    #                     or: http://www.colbertnation.com/the-colbert-report-videos/421667/november-29-2012/moon-shattering-news
+    #                     or: http://www.colbertnation.com/the-colbert-report-collections/422008/festival-of-lights/79524    
+    _VALID_URL = r"""^(:(?P<shortname>tds|thedailyshow|cr|colbert|colbertnation|colbertreport)
+                      |(https?://)?(www\.)?
+                          (?P<showname>thedailyshow|colbertnation)\.com/
+                         (full-episodes/(?P<episode>.*)|
+                          (?P<clip>
+                              (the-colbert-report-(videos|collections)/(?P<clipID>[0-9]+)/[^/]*/(?P<cntitle>.*?))
+                              |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*)))))
+                     $"""                        
     IE_NAME = u'comedycentral'
 
     _available_formats = ['3500', '2200', '1700', '1200', '750', '400']
@@ -2419,6 +2431,10 @@ class ComedyCentralIE(InfoExtractor):
         '400': '384x216',
     }
 
+    def suitable(self, url):
+        """Receives a URL and returns True if suitable for this IE."""
+        return re.match(self._VALID_URL, url, re.VERBOSE) is not None
+
     def report_extraction(self, episode_id):
         self._downloader.to_screen(u'[comedycentral] %s: Extracting information' % episode_id)
 
@@ -2439,7 +2455,7 @@ class ComedyCentralIE(InfoExtractor):
 
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
+        mobj = re.match(self._VALID_URL, url, re.VERBOSE)
         if mobj is None:
             self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
             return
@@ -2449,14 +2465,21 @@ class ComedyCentralIE(InfoExtractor):
                 url = u'http://www.thedailyshow.com/full-episodes/'
             else:
                 url = u'http://www.colbertnation.com/full-episodes/'
-            mobj = re.match(self._VALID_URL, url)
+            mobj = re.match(self._VALID_URL, url, re.VERBOSE)
             assert mobj is not None
 
-        dlNewest = not mobj.group('episode')
-        if dlNewest:
-            epTitle = mobj.group('showname')
+        if mobj.group('clip'):
+            if mobj.group('showname') == 'thedailyshow':
+                epTitle = mobj.group('tdstitle')
+            else:
+                epTitle = mobj.group('cntitle')
+            dlNewest = False
         else:
-            epTitle = mobj.group('episode')
+            dlNewest = not mobj.group('episode')
+            if dlNewest:
+                epTitle = mobj.group('showname')
+            else:
+                epTitle = mobj.group('episode')
 
         req = compat_urllib_request.Request(url)
         self.report_extraction(epTitle)
@@ -2468,7 +2491,7 @@ class ComedyCentralIE(InfoExtractor):
             return
         if dlNewest:
             url = htmlHandle.geturl()
-            mobj = re.match(self._VALID_URL, url)
+            mobj = re.match(self._VALID_URL, url, re.VERBOSE)
             if mobj is None:
                 self._downloader.trouble(u'ERROR: Invalid redirected URL: ' + url)
                 return
@@ -2477,14 +2500,14 @@ class ComedyCentralIE(InfoExtractor):
                 return
             epTitle = mobj.group('episode')
 
-        mMovieParams = re.findall('(?:<param name="movie" value="|var url = ")(http://media.mtvnservices.com/([^"]*episode.*?:.*?))"', html)
+        mMovieParams = re.findall('(?:<param name="movie" value="|var url = ")(http://media.mtvnservices.com/([^"]*(?:episode|video).*?:.*?))"', html)
 
         if len(mMovieParams) == 0:
             # The Colbert Report embeds the information in a without
             # a URL prefix; so extract the alternate reference
             # and then add the URL prefix manually.
 
-            altMovieParams = re.findall('data-mgid="([^"]*episode.*?:.*?)"', html)
+            altMovieParams = re.findall('data-mgid="([^"]*(?:episode|video).*?:.*?)"', html)
             if len(altMovieParams) == 0:
                 self._downloader.trouble(u'ERROR: unable to find Flash URL in webpage ' + url)
                 return
