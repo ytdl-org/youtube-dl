@@ -49,14 +49,13 @@ class TestDownload(unittest.TestCase):
         self.tearDown()
 
     def tearDown(self):
-        for fn in [ test.get('file', False) for test in self.defs ]:
+        for test in self.defs:
+            fn = test['file']
             if fn and os.path.exists(fn):
                 os.remove(fn)
 
 
-### Dinamically generate tests
-def generator(test_case):
-
+def make_test_method(test_case):
     def test_template(self):
         ie = getattr(youtube_dl.InfoExtractors, test_case['name'] + 'IE')
         if not ie._WORKING:
@@ -81,14 +80,13 @@ def generator(test_case):
             md5_for_file = _file_md5(test_case['file'])
             self.assertEqual(md5_for_file, test_case['md5'])
 
+    # TODO proper skipping annotations
     return test_template
 
-### And add them to TestDownload
 for test_case in defs:
-    test_method = generator(test_case)
+    test_method = make_test_method(test_case)
     test_method.__name__ = "test_{0}".format(test_case["name"])
     setattr(TestDownload, test_method.__name__, test_method)
-    del test_method
 
 
 if __name__ == '__main__':
