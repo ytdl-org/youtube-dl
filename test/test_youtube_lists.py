@@ -57,7 +57,7 @@ class TestYoutubeLists(unittest.TestCase):
         self.assertEqual(DL.result[-1], ['http://www.youtube.com/watch?v=rYefUsYuEp0'])
 
     def test_youtube_channel(self):
-        """I give up, please find a channel that does paginate and test this like test_youtube_playlist_long"""
+        # I give up, please find a channel that does paginate and test this like test_youtube_playlist_long
         pass # TODO
 
     def test_youtube_user(self):

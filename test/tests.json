@@ -57,6 +57,6 @@
     "url": "http://v.youku.com/v_show/id_XNDgyMDQ2NTQw.html",
     "file": "XNDgyMDQ2NTQw_part00.flv",
     "md5": "ffe3f2e435663dc2d1eea34faeff5b5b",
-    "broken": true
+    "params": { "test": false }
   }
 ]
