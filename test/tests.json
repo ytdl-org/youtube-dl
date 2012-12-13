@@ -58,5 +58,11 @@
     "file": "XNDgyMDQ2NTQw_part00.flv",
     "md5": "ffe3f2e435663dc2d1eea34faeff5b5b",
     "params": { "test": false }
+  },
+  {
+    "name": "NBA",
+    "url": "http://www.nba.com/video/games/nets/2012/12/04/0021200253-okc-bkn-recap.nba/index.html",
+    "file": "0021200253-okc-bkn-recap.nba.mp4",
+    "md5": "c0edcfc37607344e2ff8f13c378c88a4"
   }
 ]

@@ -3590,3 +3590,49 @@ class GooglePlusIE(InfoExtractor):
             'title':    video_title.decode('utf-8'),
             'ext':      video_extension.decode('utf-8'),
         }]
+
+class NBAIE(InfoExtractor):
+    _VALID_URL = r'^(?:https?://)?(?:watch\.|www\.)?nba\.com/(?:nba/)?video(/[^?]*)(\?.*)?$'
+    IE_NAME = u'nba'
+
+    def report_extraction(self, video_id):
+        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+            return
+
+        video_id = mobj.group(1)
+        if video_id.endswith('/index.html'):
+            video_id = video_id[:-len('/index.html')]
+
+        self.report_extraction(video_id)
+        try:
+            urlh = compat_urllib_request.urlopen(url)
+            webpage_bytes = urlh.read()
+            webpage = webpage_bytes.decode('utf-8', 'ignore')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.trouble(u'ERROR: unable to download video info XML: %s' % compat_str(err))
+            return
+
+        video_url = u'http://ht-mobile.cdn.turner.com/nba/big' + video_id + '_nba_1280x720.mp4'
+        def _findProp(rexp, default=None):
+            m = re.search(rexp, webpage)
+            if m:
+                return unescapeHTML(m.group(1))
+            else:
+                return default
+
+        shortened_video_id = video_id.rpartition('/')[2]
+        title = _findProp(r'<meta property="og:title" content="(.*?)"', shortened_video_id).replace('NBA.com: ', '')
+        info = {
+            'id': shortened_video_id,
+            'url': video_url,
+            'ext': 'mp4',
+            'title': title,
+            'uploader_date': _findProp(r'<b>Date:</b> (.*?)</div>'),
+            'description': _findProp(r'<div class="description">(.*?)</h1>'),
+        }
+        return [info]

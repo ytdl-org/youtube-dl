@@ -398,6 +398,7 @@ def gen_extractors():
         XNXXIE(),
         GooglePlusIE(),
         ArteTvIE(),
+        NBAIE(),
         GenericIE()
     ]
 
