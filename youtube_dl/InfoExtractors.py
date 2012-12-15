@@ -666,7 +666,8 @@ class DailymotionIE(InfoExtractor):
         request.add_header('Cookie', 'family_filter=off')
         try:
             self.report_download_webpage(video_id)
-            webpage = compat_urllib_request.urlopen(request).read()
+            webpage_bytes = compat_urllib_request.urlopen(request).read()
+            webpage = webpage_bytes.decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             self._downloader.trouble(u'ERROR: unable retrieve video webpage: %s' % compat_str(err))
             return
@@ -701,7 +702,7 @@ class DailymotionIE(InfoExtractor):
         if mobj is None:
             self._downloader.trouble(u'ERROR: unable to extract title')
             return
-        video_title = unescapeHTML(mobj.group('title').decode('utf-8'))
+        video_title = unescapeHTML(mobj.group('title'))
 
         video_uploader = None
         mobj = re.search(r'(?im)<span class="owner[^\"]+?">[^<]+?<a [^>]+?>([^<]+?)</a>', webpage)
@@ -721,12 +722,12 @@ class DailymotionIE(InfoExtractor):
             video_upload_date = mobj.group(3) + mobj.group(2) + mobj.group(1)
 
         return [{
-            'id':       video_id.decode('utf-8'),
-            'url':      video_url.decode('utf-8'),
-            'uploader': video_uploader.decode('utf-8'),
+            'id':       video_id,
+            'url':      video_url,
+            'uploader': video_uploader,
             'upload_date':  video_upload_date,
             'title':    video_title,
-            'ext':      video_extension.decode('utf-8'),
+            'ext':      video_extension,
         }]
 
 
