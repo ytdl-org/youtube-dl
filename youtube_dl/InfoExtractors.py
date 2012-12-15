@@ -3349,7 +3349,8 @@ class YoukuIE(InfoExtractor):
 
         self.report_extraction(video_id)
         try:
-            config = json.loads(jsondata)
+            jsonstr = jsondata.decode('utf-8')
+            config = json.loads(jsonstr)
 
             video_title =  config['data'][0]['title']
             seed = config['data'][0]['seed']
@@ -3373,7 +3374,7 @@ class YoukuIE(InfoExtractor):
 
             fileid = config['data'][0]['streamfileids'][format]
             keys = [s['k'] for s in config['data'][0]['segs'][format]]
-        except (ValueError, KeyError):
+        except (UnicodeDecodeError, ValueError, KeyError):
             self._downloader.trouble(u'ERROR: unable to extract info section')
             return
 
