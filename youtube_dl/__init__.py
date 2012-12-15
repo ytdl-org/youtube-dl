@@ -506,7 +506,8 @@ def _real_main():
 
     if sys.version_info < (3,):
         # In Python 2, sys.argv is a bytestring (also note http://bugs.python.org/issue2128 for Windows systems)
-        opts.outtmpl = opts.outtmpl.decode(preferredencoding())
+        if opts.outtmpl is not None:
+            opts.outtmpl = opts.outtmpl.decode(preferredencoding())
     outtmpl =((opts.outtmpl is not None and opts.outtmpl)
             or (opts.format == '-1' and opts.usetitle and u'%(title)s-%(id)s-%(format)s.%(ext)s')
             or (opts.format == '-1' and u'%(id)s-%(format)s.%(ext)s')
