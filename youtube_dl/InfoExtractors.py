@@ -2770,13 +2770,14 @@ class XVideosIE(InfoExtractor):
         if mobj is None:
             self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
             return
-        video_id = mobj.group(1).decode('utf-8')
+        video_id = mobj.group(1)
 
         self.report_webpage(video_id)
 
         request = compat_urllib_request.Request(r'http://www.xvideos.com/video' + video_id)
         try:
-            webpage = compat_urllib_request.urlopen(request).read()
+            webpage_bytes = compat_urllib_request.urlopen(request).read()
+            webpage = webpage_bytes.decode('utf-8', 'replace')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err))
             return
@@ -2789,7 +2790,7 @@ class XVideosIE(InfoExtractor):
         if mobj is None:
             self._downloader.trouble(u'ERROR: unable to extract video url')
             return
-        video_url = compat_urllib_parse.unquote(mobj.group(1).decode('utf-8'))
+        video_url = compat_urllib_parse.unquote(mobj.group(1))
 
 
         # Extract title
@@ -2797,7 +2798,7 @@ class XVideosIE(InfoExtractor):
         if mobj is None:
             self._downloader.trouble(u'ERROR: unable to extract video title')
             return
-        video_title = mobj.group(1).decode('utf-8')
+        video_title = mobj.group(1)
 
 
         # Extract video thumbnail
@@ -2805,7 +2806,7 @@ class XVideosIE(InfoExtractor):
         if mobj is None:
             self._downloader.trouble(u'ERROR: unable to extract video thumbnail')
             return
-        video_thumbnail = mobj.group(0).decode('utf-8')
+        video_thumbnail = mobj.group(0)
 
         info = {
             'id': video_id,
