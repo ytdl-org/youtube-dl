@@ -1062,7 +1062,8 @@ class VimeoIE(InfoExtractor):
         request = compat_urllib_request.Request(url, None, std_headers)
         try:
             self.report_download_webpage(video_id)
-            webpage = compat_urllib_request.urlopen(request).read()
+            webpage_bytes = compat_urllib_request.urlopen(request).read()
+            webpage = webpage_bytes.decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             self._downloader.trouble(u'ERROR: Unable to retrieve video webpage: %s' % compat_str(err))
             return
@@ -1090,7 +1091,7 @@ class VimeoIE(InfoExtractor):
         video_thumbnail = config["video"]["thumbnail"]
 
         # Extract video description
-        video_description = get_element_by_id("description", webpage.decode('utf8'))
+        video_description = get_element_by_id("description", webpage)
         if video_description: video_description = clean_html(video_description)
         else: video_description = ''
 
@@ -1408,22 +1409,22 @@ class GenericIE(InfoExtractor):
         if mobj is None:
             self._downloader.trouble(u'ERROR: unable to extract title')
             return
-        video_title = mobj.group(1).decode('utf-8')
+        video_title = mobj.group(1)
 
         # video uploader is domain name
         mobj = re.match(r'(?:https?://)?([^/]*)/.*', url)
         if mobj is None:
             self._downloader.trouble(u'ERROR: unable to extract title')
             return
-        video_uploader = mobj.group(1).decode('utf-8')
+        video_uploader = mobj.group(1)
 
         return [{
-            'id':       video_id.decode('utf-8'),
-            'url':      video_url.decode('utf-8'),
+            'id':       video_id,
+            'url':      video_url,
             'uploader': video_uploader,
             'upload_date':  None,
             'title':    video_title,
-            'ext':      video_extension.decode('utf-8'),
+            'ext':      video_extension,
         }]
 
 
