@@ -3424,13 +3424,14 @@ class XNXXIE(InfoExtractor):
         if mobj is None:
             self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
             return
-        video_id = mobj.group(1).decode('utf-8')
+        video_id = mobj.group(1)
 
         self.report_webpage(video_id)
 
         # Get webpage content
         try:
-            webpage = compat_urllib_request.urlopen(url).read()
+            webpage_bytes = compat_urllib_request.urlopen(url).read()
+            webpage = webpage_bytes.decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % err)
             return
@@ -3439,19 +3440,19 @@ class XNXXIE(InfoExtractor):
         if result is None:
             self._downloader.trouble(u'ERROR: unable to extract video url')
             return
-        video_url = compat_urllib_parse.unquote(result.group(1).decode('utf-8'))
+        video_url = compat_urllib_parse.unquote(result.group(1))
 
         result = re.search(self.VIDEO_TITLE_RE, webpage)
         if result is None:
             self._downloader.trouble(u'ERROR: unable to extract video title')
             return
-        video_title = result.group(1).decode('utf-8')
+        video_title = result.group(1)
 
         result = re.search(self.VIDEO_THUMB_RE, webpage)
         if result is None:
             self._downloader.trouble(u'ERROR: unable to extract video thumbnail')
             return
-        video_thumbnail = result.group(1).decode('utf-8')
+        video_thumbnail = result.group(1)
 
         return [{
             'id': video_id,
