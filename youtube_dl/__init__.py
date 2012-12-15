@@ -504,6 +504,17 @@ def _real_main():
         if not opts.audioquality.isdigit():
             parser.error(u'invalid audio quality specified')
 
+    if sys.version_info < (3,):
+        # In Python 2, sys.argv is a bytestring (also note http://bugs.python.org/issue2128 for Windows systems)
+        opts.outtmpl = opts.outtmpl.decode(preferredencoding())
+    outtmpl =((opts.outtmpl is not None and opts.outtmpl)
+            or (opts.format == '-1' and opts.usetitle and u'%(title)s-%(id)s-%(format)s.%(ext)s')
+            or (opts.format == '-1' and u'%(id)s-%(format)s.%(ext)s')
+            or (opts.usetitle and opts.autonumber and u'%(autonumber)s-%(title)s-%(id)s.%(ext)s')
+            or (opts.usetitle and u'%(title)s-%(id)s.%(ext)s')
+            or (opts.useid and u'%(id)s.%(ext)s')
+            or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
+            or u'%(id)s.%(ext)s')
     # File downloader
     fd = FileDownloader({
         'usenetrc': opts.usenetrc,
@@ -521,14 +532,7 @@ def _real_main():
         'format': opts.format,
         'format_limit': opts.format_limit,
         'listformats': opts.listformats,
-        'outtmpl': ((opts.outtmpl is not None and opts.outtmpl.decode(preferredencoding()))
-            or (opts.format == '-1' and opts.usetitle and u'%(title)s-%(id)s-%(format)s.%(ext)s')
-            or (opts.format == '-1' and u'%(id)s-%(format)s.%(ext)s')
-            or (opts.usetitle and opts.autonumber and u'%(autonumber)s-%(title)s-%(id)s.%(ext)s')
-            or (opts.usetitle and u'%(title)s-%(id)s.%(ext)s')
-            or (opts.useid and u'%(id)s.%(ext)s')
-            or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
-            or u'%(id)s.%(ext)s'),
+        'outtmpl': outtmpl,
         'restrictfilenames': opts.restrictfilenames,
         'ignoreerrors': opts.ignoreerrors,
         'ratelimit': opts.ratelimit,
