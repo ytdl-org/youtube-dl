@@ -3372,15 +3372,8 @@ class YoukuIE(InfoExtractor):
 
 
             fileid = config['data'][0]['streamfileids'][format]
-            seg_number = len(config['data'][0]['segs'][format])
-
-            keys=[]
-            for i in xrange(seg_number):
-                keys.append(config['data'][0]['segs'][format][i]['k'])
-
-            #TODO check error
-            #youku only could be viewed from mainland china
-        except:
+            keys = [s['k'] for s in config['data'][0]['segs'][format]]
+        except (ValueError, KeyError):
             self._downloader.trouble(u'ERROR: unable to extract info section')
             return
 
