@@ -363,7 +363,7 @@ def gen_extractors():
 		GooglePlusIE(),
 		PornotubeIE(),
 		YouPornIE(),
-		
+		YouJizzIE(),
 		GenericIE()
 	]
 

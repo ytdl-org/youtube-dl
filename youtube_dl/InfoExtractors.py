@@ -3439,7 +3439,7 @@ class YouPornIE(InfoExtractor):
 			return
 		self.report_webpage(url)
 
-		# Get the video URL
+		# Get the video title
 		result = re.search(self.VIDEO_TITLE_RE, webpage)
 		if result is None:
 			self._downloader.trouble(u'ERROR: unable to extract video title')
@@ -3609,4 +3609,88 @@ class PornotubeIE(InfoExtractor):
 
 		return [info]
 
+
+
+
+class YouJizzIE(InfoExtractor):
+	"""Information extractor for youjizz.com."""
+
+	_VALID_URL = r'^(?:https?://)?(?:\w+\.)?youjizz\.com/videos/([^.]+).html$'
+	IE_NAME = u'youjizz'
+	VIDEO_TITLE_RE = r'<title>(?P<title>.*)</title>'
+	EMBED_PAGE_RE = r'http://www.youjizz.com/videos/embed/(?P<videoid>[0-9]+)'
+	SOURCE_RE = r'so.addVariable\("file",encodeURIComponent\("(?P<source>[^"]+)"\)\);'
+
+	def __init__(self, downloader=None):
+		InfoExtractor.__init__(self, downloader)
+
+	def report_extract_entry(self, url):
+		"""Report downloading extry"""
+		self._downloader.to_screen(u'[youjizz] Downloading entry: %s' % url.decode('utf-8'))
+
+	def report_webpage(self, url):
+		"""Report downloading page"""
+		self._downloader.to_screen(u'[youjizz] Downloaded page: %s' % url)
+
+	def report_title(self, video_title):
+		"""Report downloading extry"""
+		self._downloader.to_screen(u'[youjizz] Title: %s' % video_title.decode('utf-8'))
+
+	def report_embed_page(self, embed_page):
+		"""Report downloading extry"""
+		self._downloader.to_screen(u'[youjizz] Embed Page: %s' % embed_page.decode('utf-8'))
+
+	def _real_extract(self, url):
+		# Get webpage content
+		try:
+			webpage = urllib2.urlopen(url).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % err)
+			return
+		self.report_webpage(url)
+
+		# Get the video title
+		result = re.search(self.VIDEO_TITLE_RE, webpage)
+		if result is None:
+			self._downloader.trouble(u'ERROR: unable to extract video title')
+			return
+		video_title = result.group('title').decode('utf-8').strip()
+		self.report_title(video_title)
+
+		# Get the embed page
+		result = re.search(self.EMBED_PAGE_RE, webpage)
+		if result is None:
+			self._downloader.trouble(u'ERROR: unable to extract embed page')
+			return
+
+		embed_page_url = result.group(0).decode('utf-8').strip()
+		video_id = result.group('videoid').decode('utf-8')
+		self.report_embed_page(embed_page_url)
+	
+		try:
+			webpage = urllib2.urlopen(embed_page_url).read()
+		except (urllib2.URLError, httplib.HTTPException, socket.error), err:
+			self._downloader.trouble(u'ERROR: unable to download video embed page: %s' % err)
+			return
+		
+		# Get the video URL
+		result = re.search(self.SOURCE_RE, webpage)
+		if result is None:
+			self._downloader.trouble(u'ERROR: unable to extract video url')
+			return
+		video_url = result.group('source').decode('utf-8')
+		self.report_extract_entry(video_url)
+
+		info = {'id': video_id,
+				'url': video_url,
+				'uploader': None,
+				'upload_date': None,
+				'title': video_title,
+				'ext': 'flv',
+				'format': 'flv',
+				'thumbnail': None,
+				'description': None,
+				'player_url': embed_page_url}
+
+		return [info]
 
