@@ -52,6 +52,12 @@ except ImportError: # Python 2
     import httplib as compat_http_client
 
 try:
+    from subprocess import DEVNULL
+    compat_subprocess_get_DEVNULL = lambda: DEVNULL
+except ImportError:
+    compat_subprocess_get_DEVNULL = lambda: open(os.path.devnull, 'w')
+
+try:
     from urllib.parse import parse_qs as compat_parse_qs
 except ImportError: # Python 2
     # HACK: The following is the correct parse_qs implementation from cpython 3's stdlib.

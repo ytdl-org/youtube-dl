@@ -86,14 +86,14 @@ class FFmpegExtractAudioPP(PostProcessor):
         if not self._exes['ffprobe'] and not self._exes['avprobe']: return None
         try:
             cmd = [self._exes['avprobe'] or self._exes['ffprobe'], '-show_streams', '--', encodeFilename(path)]
-            handle = subprocess.Popen(cmd, stderr=file(os.path.devnull, 'w'), stdout=subprocess.PIPE)
+            handle = subprocess.Popen(cmd, stderr=compat_subprocess_get_DEVNULL(), stdout=subprocess.PIPE)
             output = handle.communicate()[0]
             if handle.wait() != 0:
                 return None
         except (IOError, OSError):
             return None
         audio_codec = None
-        for line in output.split('\n'):
+        for line in output.decode('ascii', 'ignore').split('\n'):
             if line.startswith('codec_name='):
                 audio_codec = line.split('=')[1].strip()
             elif line.strip() == 'codec_type=audio' and audio_codec is not None:
