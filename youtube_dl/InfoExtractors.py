@@ -3634,3 +3634,82 @@ class NBAIE(InfoExtractor):
             'description': _findProp(r'<div class="description">(.*?)</h1>'),
         }
         return [info]
+
+class JustinTVIE(InfoExtractor):
+    """Information extractor for justin.tv and twitch.tv"""
+    # TODO: One broadcast may be split into multiple videos. The key
+    # 'broadcast_id' is the same for all parts, and 'broadcast_part'
+    # starts at 1 and increases. Can we treat all parts as one video?
+
+    _VALID_URL = r"""(?x)^(?:http://)?(?:www\.)?(?:twitch|justin)\.tv/
+        ([^/]+)(?:/b/([^/]+))?/?(?:\#.*)?$"""
+    _JUSTIN_PAGE_LIMIT = 100
+    IE_NAME = u'justin.tv'
+
+    def report_extraction(self, file_id):
+        """Report information extraction."""
+        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, file_id))
+
+    def report_download_page(self, channel, offset):
+        """Report attempt to download a single page of videos."""
+        self._downloader.to_screen(u'[%s] %s: Downloading video information from %d to %d' %
+                (self.IE_NAME, channel, offset, offset + self._JUSTIN_PAGE_LIMIT))
+
+    # Return count of items, list of *valid* items
+    def _parse_page(self, url):
+        try:
+            urlh = compat_urllib_request.urlopen(url)
+            webpage_bytes = urlh.read()
+            webpage = webpage_bytes.decode('utf-8', 'ignore')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.trouble(u'ERROR: unable to download video info JSON: %s' % compat_str(err))
+            return
+        
+        response = json.loads(webpage)
+        info = []
+        for clip in response:
+            video_url = clip['video_file_url']
+            if video_url:
+                video_extension = os.path.splitext(video_url)[1][1:]
+                video_date = re.sub('-', '', clip['created_on'][:10])
+                info.append({
+                    'id': clip['id'],
+                    'url': video_url,
+                    'title': clip['title'],
+                    'uploader': clip.get('user_id', clip.get('channel_id')),
+                    'upload_date': video_date,
+                    'ext': video_extension,
+                })
+        return (len(response), info)
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+            return
+        
+        api = 'http://api.justin.tv'
+        video_id = mobj.group(mobj.lastindex)
+        paged = False
+        if mobj.lastindex == 1:
+            paged = True
+            api += '/channel/archives/%s.json'
+        else:
+            api += '/clip/show/%s.json'
+        api = api % (video_id,)
+        
+        self.report_extraction(video_id)
+        
+        info = []
+        offset = 0
+        limit = self._JUSTIN_PAGE_LIMIT
+        while True:
+            if paged:
+                self.report_download_page(video_id, offset)
+            page_url = api + ('?offset=%d&limit=%d' % (offset, limit))
+            page_count, page_info = self._parse_page(page_url)
+            info.extend(page_info)
+            if not paged or page_count != limit:
+                break
+            offset += limit
+        return info
