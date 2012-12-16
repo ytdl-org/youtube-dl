@@ -3637,37 +3637,27 @@ class NBAIE(InfoExtractor):
 
 class JustinTVIE(InfoExtractor):
     """Information extractor for justin.tv and twitch.tv"""
-    
+    # TODO: One broadcast may be split into multiple videos. The key
+    # 'broadcast_id' is the same for all parts, and 'broadcast_part'
+    # starts at 1 and increases. Can we treat all parts as one video?
+
 #    _VALID_URL = r"""^(?:http(?:s?)://)?www\.(?:justin|twitch)\.tv/
 #        ([^/]+)(?:/b/([^/]+))?/?(?:#.*)?$"""
     _VALID_URL = r'^http://www.twitch.tv/(.*)$'
     IE_NAME = u'justin.tv'
+    
+    _max_justin_results = 1000
+    _justin_page_limit = 100
 
     def report_extraction(self, file_id):
         """Report information extraction."""
         self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, file_id))
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
-            return
-        
-        api = 'http://api.justin.tv'
-        video_id = mobj.group(mobj.lastindex)
-        if mobj.lastindex == 1:
-            api += '/channel/archives/%s.json?limit=100'
-        else:
-            api += '/clip/show/%s.json'
-        api = api % (video_id,)
-        
-        self.report_extraction(video_id)
-        # TODO: multiple pages
-        # TODO: One broadcast may be split into multiple videos. The key
-        # 'broadcast_id' is the same for all parts, and 'broadcast_part'
-        # starts at 1 and increases. Can we treat all parts as one video?
+    # Return count of items, list of *valid* items
+    def _parse_page(self, url):
+        print url
         try:
-            urlh = compat_urllib_request.urlopen(api)
+            urlh = compat_urllib_request.urlopen(url)
             webpage_bytes = urlh.read()
             webpage = webpage_bytes.decode('utf-8', 'ignore')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
@@ -3689,4 +3679,35 @@ class JustinTVIE(InfoExtractor):
                     'upload_date': video_date,
                     'ext': video_extension,
                 })
+        print len(response)
+        return (len(response), info)
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+            return
+        
+        api = 'http://api.justin.tv'
+        video_id = mobj.group(mobj.lastindex)
+        paged = False
+        if mobj.lastindex == 1:
+            paged = True
+            api += '/channel/archives/%s.json'
+        else:
+            api += '/clip/show/%s.json'
+        api = api % (video_id,)
+        
+        self.report_extraction(video_id)
+        
+        info = []
+        offset = 0
+        limit = self._justin_page_limit
+        while offset < self._max_justin_results:
+            page_url = api + ('?offset=%d&limit=%d' % (offset, limit))
+            page_count, page_info = self._parse_page(page_url)
+            info.extend(page_info)
+            if not paged or page_count != limit:
+                break
+            offset += limit
         return info
