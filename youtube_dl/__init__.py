@@ -20,6 +20,7 @@ __authors__  = (
     'shizeeg',
     'Filippo Valsorda',
     'Christian Albrecht',
+    'Dave Vasilevsky',
     )
 
 __license__ = 'Public Domain'
