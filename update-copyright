@@ -10,7 +10,7 @@ import os
 import re
 
 year = str(datetime.datetime.now().year)
-for fn in glob.glob('*.html'):
+for fn in glob.glob('*.html*'):
     with io.open(fn, encoding='utf-8') as f:
         content = f.read()
     newc = re.sub(u'(?P<copyright>Copyright © 2006-)(?P<year>[0-9]{4})', u'Copyright © 2006-' + year, content)
