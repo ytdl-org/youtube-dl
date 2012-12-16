@@ -3634,3 +3634,59 @@ class NBAIE(InfoExtractor):
             'description': _findProp(r'<div class="description">(.*?)</h1>'),
         }
         return [info]
+
+class JustinTVIE(InfoExtractor):
+    """Information extractor for justin.tv and twitch.tv"""
+    
+#    _VALID_URL = r"""^(?:http(?:s?)://)?www\.(?:justin|twitch)\.tv/
+#        ([^/]+)(?:/b/([^/]+))?/?(?:#.*)?$"""
+    _VALID_URL = r'^http://www.twitch.tv/(.*)$'
+    IE_NAME = u'justin.tv'
+
+    def report_extraction(self, file_id):
+        """Report information extraction."""
+        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, file_id))
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+            return
+        
+        api = 'http://api.justin.tv'
+        video_id = mobj.group(mobj.lastindex)
+        if mobj.lastindex == 1:
+            api += '/channel/archives/%s.json?limit=100'
+        else:
+            api += '/clip/show/%s.json'
+        api = api % (video_id,)
+        
+        self.report_extraction(video_id)
+        # TODO: multiple pages
+        # TODO: One broadcast may be split into multiple videos. The key
+        # 'broadcast_id' is the same for all parts, and 'broadcast_part'
+        # starts at 1 and increases. Can we treat all parts as one video?
+        try:
+            urlh = compat_urllib_request.urlopen(api)
+            webpage_bytes = urlh.read()
+            webpage = webpage_bytes.decode('utf-8', 'ignore')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.trouble(u'ERROR: unable to download video info JSON: %s' % compat_str(err))
+            return
+        
+        response = json.loads(webpage)
+        info = []
+        for clip in response:
+            video_url = clip['video_file_url']
+            if video_url:
+                video_extension = os.path.splitext(video_url)[1][1:]
+                video_date = re.sub('-', '', clip['created_on'][:10])
+                info.append({
+                    'id': clip['id'],
+                    'url': video_url,
+                    'title': clip['title'],
+                    'uploader': clip['user_id'] or clip['channel_id'],
+                    'upload_date': video_date,
+                    'ext': video_extension,
+                })
+        return info
