@@ -3641,21 +3641,22 @@ class JustinTVIE(InfoExtractor):
     # 'broadcast_id' is the same for all parts, and 'broadcast_part'
     # starts at 1 and increases. Can we treat all parts as one video?
 
-#    _VALID_URL = r"""^(?:http(?:s?)://)?www\.(?:justin|twitch)\.tv/
-#        ([^/]+)(?:/b/([^/]+))?/?(?:#.*)?$"""
-    _VALID_URL = r'^http://www.twitch.tv/(.*)$'
+    _VALID_URL = r"""(?x)^(?:http://)?(?:www\.)?(?:twitch|justin)\.tv/
+        ([^/]+)(?:/b/([^/]+))?/?(?:\#.*)?$"""
+    _JUSTIN_PAGE_LIMIT = 100
     IE_NAME = u'justin.tv'
-    
-    _max_justin_results = 1000
-    _justin_page_limit = 100
 
     def report_extraction(self, file_id):
         """Report information extraction."""
         self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, file_id))
 
+    def report_download_page(self, channel, offset):
+        """Report attempt to download a single page of videos."""
+        self._downloader.to_screen(u'[%s] %s: Downloading video information from %d to %d' %
+                (self.IE_NAME, channel, offset, offset + self._JUSTIN_PAGE_LIMIT))
+
     # Return count of items, list of *valid* items
     def _parse_page(self, url):
-        print url
         try:
             urlh = compat_urllib_request.urlopen(url)
             webpage_bytes = urlh.read()
@@ -3675,11 +3676,10 @@ class JustinTVIE(InfoExtractor):
                     'id': clip['id'],
                     'url': video_url,
                     'title': clip['title'],
-                    'uploader': clip['user_id'] or clip['channel_id'],
+                    'uploader': clip.get('user_id', clip.get('channel_id')),
                     'upload_date': video_date,
                     'ext': video_extension,
                 })
-        print len(response)
         return (len(response), info)
 
     def _real_extract(self, url):
@@ -3702,8 +3702,10 @@ class JustinTVIE(InfoExtractor):
         
         info = []
         offset = 0
-        limit = self._justin_page_limit
-        while offset < self._max_justin_results:
+        limit = self._JUSTIN_PAGE_LIMIT
+        while True:
+            if paged:
+                self.report_download_page(video_id, offset)
             page_url = api + ('?offset=%d&limit=%d' % (offset, limit))
             page_count, page_info = self._parse_page(page_url)
             info.extend(page_info)
