@@ -1,6 +1,6 @@
 update:
-	python ./generate-download
-	python ./update-copyright
+	python3 ./generate-download
+	python3 ./update-copyright
 
 .PHONY: update
 
