@@ -3186,7 +3186,7 @@ class YoukuIE(InfoExtractor):
 class XNXXIE(InfoExtractor):
 	"""Information extractor for xnxx.com"""
 
-	_VALID_URL = r'^http://video\.xnxx\.com/video([0-9]+)/(.*)'
+	_VALID_URL = r'^(?:https?://)?video\.xnxx\.com/video([0-9]+)/(.*)'
 	IE_NAME = u'xnxx'
 	VIDEO_URL_RE = r'flv_url=(.*?)&amp;'
 	VIDEO_TITLE_RE = r'<title>(.*?)\s+-\s+XNXX.COM'
@@ -3509,7 +3509,7 @@ class YouPornIE(InfoExtractor):
 			})
 
 		if self._downloader.params.get('listformats', None):
-			self._print_formats(results)
+			self._print_formats(formats)
 			return
 
 		req_format = self._downloader.params.get('format', None)
