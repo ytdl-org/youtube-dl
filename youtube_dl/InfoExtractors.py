@@ -272,7 +272,7 @@ class YoutubeIE(InfoExtractor):
         request = compat_urllib_request.Request(self._LOGIN_URL, compat_urllib_parse.urlencode(login_form))
         try:
             self.report_login()
-            login_results = compat_urllib_request.urlopen(request).read()
+            login_results = compat_urllib_request.urlopen(request).read().decode('utf-8')
             if re.search(r'(?i)<form[^>]* name="loginForm"', login_results) is not None:
                 self._downloader.to_stderr(u'WARNING: unable to log in: bad username or password')
                 return
@@ -288,7 +288,7 @@ class YoutubeIE(InfoExtractor):
         request = compat_urllib_request.Request(self._AGE_URL, compat_urllib_parse.urlencode(age_form))
         try:
             self.report_age_confirmation()
-            age_results = compat_urllib_request.urlopen(request).read()
+            age_results = compat_urllib_request.urlopen(request).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             self._downloader.trouble(u'ERROR: unable to confirm age: %s' % compat_str(err))
             return
@@ -399,7 +399,7 @@ class YoutubeIE(InfoExtractor):
                 self.report_video_subtitles_download(video_id)
                 request = compat_urllib_request.Request('http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id)
                 try:
-                    srt_list = compat_urllib_request.urlopen(request).read()
+                    srt_list = compat_urllib_request.urlopen(request).read().decode('utf-8')
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                     raise Trouble(u'WARNING: unable to download video subtitles: %s' % compat_str(err))
                 srt_lang_list = re.findall(r'name="([^"]*)"[^>]+lang_code="([\w\-]+)"', srt_list)
@@ -416,14 +416,14 @@ class YoutubeIE(InfoExtractor):
                     raise Trouble(u'WARNING: no closed captions found in the specified language')
                 request = compat_urllib_request.Request('http://www.youtube.com/api/timedtext?lang=%s&name=%s&v=%s' % (srt_lang, srt_lang_list[srt_lang], video_id))
                 try:
-                    srt_xml = compat_urllib_request.urlopen(request).read()
+                    srt_xml = compat_urllib_request.urlopen(request).read().decode('utf-8')
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                     raise Trouble(u'WARNING: unable to download video subtitles: %s' % compat_str(err))
                 if not srt_xml:
                     raise Trouble(u'WARNING: unable to download video subtitles')
-                video_subtitles = self._closed_captions_xml_to_srt(srt_xml.decode('utf-8'))
+                video_subtitles = self._closed_captions_xml_to_srt(srt_xml)
             except Trouble as trouble:
-                self._downloader.trouble(trouble[0])
+                self._downloader.trouble(str(trouble))
 
         if 'length_seconds' not in video_info:
             self._downloader.trouble(u'WARNING: unable to extract video duration')
@@ -1715,7 +1715,7 @@ class YoutubePlaylistIE(InfoExtractor):
             url = self._TEMPLATE_URL % (playlist_access, playlist_prefix, playlist_id, pagenum)
             request = compat_urllib_request.Request(url)
             try:
-                page = compat_urllib_request.urlopen(request).read().decode('utf8')
+                page = compat_urllib_request.urlopen(request).read().decode('utf-8')
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                 self._downloader.trouble(u'ERROR: unable to download webpage: %s' % compat_str(err))
                 return
@@ -1844,7 +1844,7 @@ class YoutubeUserIE(InfoExtractor):
             request = compat_urllib_request.Request(self._GDATA_URL % (username, self._GDATA_PAGE_SIZE, start_index))
 
             try:
-                page = compat_urllib_request.urlopen(request).read()
+                page = compat_urllib_request.urlopen(request).read().decode('utf-8')
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                 self._downloader.trouble(u'ERROR: unable to download webpage: %s' % compat_str(err))
                 return

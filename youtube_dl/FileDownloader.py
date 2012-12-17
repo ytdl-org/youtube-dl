@@ -453,9 +453,9 @@ class FileDownloader(object):
                 self.trouble(u'ERROR: No JSON encoder found. Update to Python 2.6+, setup a json module, or leave out --write-info-json.')
                 return
             try:
-                infof = open(encodeFilename(infofn), 'wb')
+                infof = open(encodeFilename(infofn), 'w')
                 try:
-                    json_info_dict = dict((k,v) for k,v in info_dict.iteritems() if not k in ('urlhandle',))
+                    json_info_dict = dict((k, info_dict[k]) for k in info_dict if not k in ['urlhandle'])
                     json.dump(json_info_dict, infof)
                 finally:
                     infof.close()
