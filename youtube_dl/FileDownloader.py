@@ -4,6 +4,7 @@
 from __future__ import absolute_import
 
 import math
+import io
 import os
 import re
 import socket
@@ -453,12 +454,9 @@ class FileDownloader(object):
                 self.trouble(u'ERROR: No JSON encoder found. Update to Python 2.6+, setup a json module, or leave out --write-info-json.')
                 return
             try:
-                infof = open(encodeFilename(infofn), 'w')
-                try:
-                    json_info_dict = dict((k, info_dict[k]) for k in info_dict if not k in ['urlhandle'])
+                with io.open(encodeFilename(infofn), 'w', 'utf-8') as infof:
+                    json_info_dict = dict((k, v) for k,v in info_dict.items() if not k in ['urlhandle'])
                     json.dump(json_info_dict, infof)
-                finally:
-                    infof.close()
             except (OSError, IOError):
                 self.trouble(u'ERROR: Cannot write metadata to JSON file ' + infofn)
                 return
