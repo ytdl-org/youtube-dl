@@ -70,5 +70,22 @@
     "url": "http://www.twitch.tv/thegamedevhub/b/296128360",
     "file": "296128360.flv",
     "md5": "ecaa8a790c22a40770901460af191c9a"
+  },
+  {
+    "name": "MyVideo",
+    "url": "http://www.myvideo.de/watch/8229274/bowling_fail_or_win",
+    "file": "8229274.flv",
+    "md5": "2d2753e8130479ba2cb7e0a37002053e"
+  },
+  {
+    "name": "Escapist",
+    "url": "http://www.escapistmagazine.com/videos/view/the-escapist-presents/6618-Breaking-Down-Baldurs-Gate",
+    "file": "6618-Breaking-Down-Baldurs-Gate.flv",
+    "md5": "c6793dbda81388f4264c1ba18684a74d"
+  },
+  {
+    "name": "GooglePlus",
+    "url": "https://plus.google.com/u/0/108897254135232129896/posts/ZButuJc6CtH",
+    "file": "ZButuJc6CtH.flv"
   }
 ]
