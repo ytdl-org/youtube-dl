@@ -375,7 +375,6 @@ def gen_extractors():
         YoutubeIE(),
         MetacafeIE(),
         DailymotionIE(),
-        GoogleIE(),
         GoogleSearchIE(),
         PhotobucketIE(),
         YahooIE(),
