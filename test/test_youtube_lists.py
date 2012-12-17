@@ -3,6 +3,7 @@
 import sys
 import unittest
 import socket
+import json
 
 # Allow direct execution
 import os
@@ -10,6 +11,10 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from youtube_dl.InfoExtractors import YoutubeUserIE,YoutubePlaylistIE
 from youtube_dl.utils import *
+
+PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
+with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
+    parameters = json.load(pf)
 
 # General configuration (from __init__, not very elegant...)
 jar = compat_cookiejar.CookieJar()
@@ -22,7 +27,7 @@ socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
 class FakeDownloader(object):
     def __init__(self):
         self.result = []
-        self.params = {}
+        self.params = parameters
     def to_screen(self, s):
         print(s)
     def trouble(self, s):
