@@ -214,10 +214,11 @@ def htmlentity_transform(matchobj):
     return (u'&%s;' % entity)
 
 compat_html_parser.locatestarttagend = re.compile(r"""<[a-zA-Z][-.a-zA-Z0-9:_]*(?:\s+(?:(?<=['"\s])[^\s/>][^\s/=>]*(?:\s*=+\s*(?:'[^']*'|"[^"]*"|(?!['"])[^>\s]*))?\s*)*)?\s*""", re.VERBOSE) # backport bugfix
-class IDParser(compat_html_parser.HTMLParser):
-    """Modified HTMLParser that isolates a tag with the specified id"""
-    def __init__(self, id):
-        self.id = id
+class AttrParser(compat_html_parser.HTMLParser):
+    """Modified HTMLParser that isolates a tag with the specified attribute"""
+    def __init__(self, attribute, value):
+        self.attribute = attribute
+        self.value = value
         self.result = None
         self.started = False
         self.depth = {}
@@ -242,7 +243,7 @@ class IDParser(compat_html_parser.HTMLParser):
         attrs = dict(attrs)
         if self.started:
             self.find_startpos(None)
-        if 'id' in attrs and attrs['id'] == self.id:
+        if self.attribute in attrs and attrs[self.attribute] == self.value:
             self.result = [tag]
             self.started = True
             self.watch_startpos = True
@@ -280,8 +281,12 @@ class IDParser(compat_html_parser.HTMLParser):
         return '\n'.join(lines).strip()
 
 def get_element_by_id(id, html):
-    """Return the content of the tag with the specified id in the passed HTML document"""
-    parser = IDParser(id)
+    """Return the content of the tag with the specified ID in the passed HTML document"""
+    return get_element_by_attribute("id", id, html)
+
+def get_element_by_attribute(attribute, value, html):
+    """Return the content of the tag with the specified attribute in the passed HTML document"""
+    parser = AttrParser(attribute, value)
     try:
         parser.loads(html)
     except compat_html_parser.HTMLParseError:
