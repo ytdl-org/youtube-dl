@@ -999,7 +999,7 @@ class VimeoIE(InfoExtractor):
         video_thumbnail = config["video"]["thumbnail"]
 
         # Extract video description
-        video_description = get_element_by_id("description", webpage)
+        video_description = get_element_by_attribute("itemprop", "description", webpage)
         if video_description: video_description = clean_html(video_description)
         else: video_description = ''
 
