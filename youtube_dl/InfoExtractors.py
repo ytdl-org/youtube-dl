@@ -23,7 +23,7 @@ class InfoExtractor(object):
     Information extractors are the classes that, given a URL, extract
     information about the video (or videos) the URL refers to. This
     information includes the real video URL, the video title, author and
-    others. The information is stored in a dictionary which is then 
+    others. The information is stored in a dictionary which is then
     passed to the FileDownloader. The FileDownloader processes this
     information possibly downloading the video to the file system, among
     other possible outcomes.
@@ -159,7 +159,7 @@ class YoutubeIE(InfoExtractor):
         '44': '480x854',
         '45': '720x1280',
         '46': '1080x1920',
-    }   
+    }
     IE_NAME = u'youtube'
 
     def suitable(self, url):
@@ -988,7 +988,7 @@ class VimeoIE(InfoExtractor):
         except:
             self._downloader.trouble(u'ERROR: unable to extract info section')
             return
-        
+
         # Extract title
         video_title = config["video"]["title"]
 
@@ -999,7 +999,7 @@ class VimeoIE(InfoExtractor):
         video_thumbnail = config["video"]["thumbnail"]
 
         # Extract video description
-        video_description = get_element_by_id("description", webpage)
+        video_description = get_element_by_attribute("itemprop", "description", webpage)
         if video_description: video_description = clean_html(video_description)
         else: video_description = ''
 
@@ -1211,7 +1211,7 @@ class GenericIE(InfoExtractor):
     def report_following_redirect(self, new_url):
         """Report information extraction."""
         self._downloader.to_screen(u'[redirect] Following redirect to %s' % new_url)
-        
+
     def _test_redirect(self, url):
         """Check if it is a redirect, like url shorteners, in case restart chain."""
         class HeadRequest(compat_urllib_request.Request):
@@ -1220,38 +1220,38 @@ class GenericIE(InfoExtractor):
 
         class HEADRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
             """
-            Subclass the HTTPRedirectHandler to make it use our 
+            Subclass the HTTPRedirectHandler to make it use our
             HeadRequest also on the redirected URL
             """
-            def redirect_request(self, req, fp, code, msg, headers, newurl): 
+            def redirect_request(self, req, fp, code, msg, headers, newurl):
                 if code in (301, 302, 303, 307):
-                    newurl = newurl.replace(' ', '%20') 
+                    newurl = newurl.replace(' ', '%20')
                     newheaders = dict((k,v) for k,v in req.headers.items()
                                       if k.lower() not in ("content-length", "content-type"))
-                    return HeadRequest(newurl, 
+                    return HeadRequest(newurl,
                                        headers=newheaders,
-                                       origin_req_host=req.get_origin_req_host(), 
-                                       unverifiable=True) 
-                else: 
-                    raise compat_urllib_error.HTTPError(req.get_full_url(), code, msg, headers, fp) 
+                                       origin_req_host=req.get_origin_req_host(),
+                                       unverifiable=True)
+                else:
+                    raise compat_urllib_error.HTTPError(req.get_full_url(), code, msg, headers, fp)
 
         class HTTPMethodFallback(compat_urllib_request.BaseHandler):
             """
             Fallback to GET if HEAD is not allowed (405 HTTP error)
             """
-            def http_error_405(self, req, fp, code, msg, headers): 
+            def http_error_405(self, req, fp, code, msg, headers):
                 fp.read()
                 fp.close()
 
                 newheaders = dict((k,v) for k,v in req.headers.items()
                                   if k.lower() not in ("content-length", "content-type"))
-                return self.parent.open(compat_urllib_request.Request(req.get_full_url(), 
-                                                 headers=newheaders, 
-                                                 origin_req_host=req.get_origin_req_host(), 
+                return self.parent.open(compat_urllib_request.Request(req.get_full_url(),
+                                                 headers=newheaders,
+                                                 origin_req_host=req.get_origin_req_host(),
                                                  unverifiable=True))
 
         # Build our opener
-        opener = compat_urllib_request.OpenerDirector() 
+        opener = compat_urllib_request.OpenerDirector()
         for handler in [compat_urllib_request.HTTPHandler, compat_urllib_request.HTTPDefaultErrorHandler,
                         HTTPMethodFallback, HEADRedirectHandler,
                         compat_urllib_error.HTTPErrorProcessor, compat_urllib_request.HTTPSHandler]:
@@ -2256,7 +2256,7 @@ class MyVideoIE(InfoExtractor):
 
     def __init__(self, downloader=None):
         InfoExtractor.__init__(self, downloader)
-    
+
     def report_download_webpage(self, video_id):
         """Report webpage download."""
         self._downloader.to_screen(u'[myvideo] %s: Downloading webpage' % video_id)
@@ -2310,10 +2310,10 @@ class ComedyCentralIE(InfoExtractor):
     """Information extractor for The Daily Show and Colbert Report """
 
     # urls can be abbreviations like :thedailyshow or :colbert
-    # urls for episodes like: 
+    # urls for episodes like:
     # or urls for clips like: http://www.thedailyshow.com/watch/mon-december-10-2012/any-given-gun-day
     #                     or: http://www.colbertnation.com/the-colbert-report-videos/421667/november-29-2012/moon-shattering-news
-    #                     or: http://www.colbertnation.com/the-colbert-report-collections/422008/festival-of-lights/79524    
+    #                     or: http://www.colbertnation.com/the-colbert-report-collections/422008/festival-of-lights/79524
     _VALID_URL = r"""^(:(?P<shortname>tds|thedailyshow|cr|colbert|colbertnation|colbertreport)
                       |(https?://)?(www\.)?
                           (?P<showname>thedailyshow|colbertnation)\.com/
@@ -2321,7 +2321,7 @@ class ComedyCentralIE(InfoExtractor):
                           (?P<clip>
                               (the-colbert-report-(videos|collections)/(?P<clipID>[0-9]+)/[^/]*/(?P<cntitle>.*?))
                               |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*)))))
-                     $"""                        
+                     $"""
     IE_NAME = u'comedycentral'
 
     _available_formats = ['3500', '2200', '1700', '1200', '750', '400']
@@ -2425,7 +2425,7 @@ class ComedyCentralIE(InfoExtractor):
                 return
             else:
                 mMovieParams = [("http://media.mtvnservices.com/" + altMovieParams[0], altMovieParams[0])]
-        
+
         playerUrl_raw = mMovieParams[0][0]
         self.report_player_url(epTitle)
         try:
@@ -2474,7 +2474,7 @@ class ComedyCentralIE(InfoExtractor):
             if len(turls) == 0:
                 self._downloader.trouble(u'\nERROR: unable to download ' + mediaId + ': No videos found')
                 continue
-            
+
             if self._downloader.params.get('listformats', None):
                 self._print_formats([i[0] for i in turls])
                 return
@@ -2514,7 +2514,7 @@ class ComedyCentralIE(InfoExtractor):
             }
 
             results.append(info)
-            
+
         return results
 
 
@@ -3078,7 +3078,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
                 assert entry['type'] == 'reference'
                 results += self.extract(entry['url'])
             return results
-            
+
         else: # Root page
             info = {
                 'id': 'Stanford OpenClassroom',
@@ -3152,7 +3152,7 @@ class MTVIE(InfoExtractor):
             self._downloader.trouble(u'ERROR: unable to extract performer')
             return
         performer = unescapeHTML(mobj.group(1).decode('iso-8859-1'))
-        video_title = performer + ' - ' + song_name 
+        video_title = performer + ' - ' + song_name
 
         mobj = re.search(r'<meta name="mtvn_uri" content="([^"]+)"/>', webpage)
         if mobj is None:
@@ -3581,7 +3581,7 @@ class JustinTVIE(InfoExtractor):
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             self._downloader.trouble(u'ERROR: unable to download video info JSON: %s' % compat_str(err))
             return
-        
+
         response = json.loads(webpage)
         info = []
         for clip in response:
@@ -3604,7 +3604,7 @@ class JustinTVIE(InfoExtractor):
         if mobj is None:
             self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
             return
-        
+
         api = 'http://api.justin.tv'
         video_id = mobj.group(mobj.lastindex)
         paged = False
@@ -3614,9 +3614,9 @@ class JustinTVIE(InfoExtractor):
         else:
             api += '/clip/show/%s.json'
         api = api % (video_id,)
-        
+
         self.report_extraction(video_id)
-        
+
         info = []
         offset = 0
         limit = self._JUSTIN_PAGE_LIMIT
