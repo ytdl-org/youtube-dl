@@ -3,6 +3,7 @@
 
 import gzip
 import io
+import json
 import locale
 import os
 import re
@@ -174,6 +175,18 @@ else:
     def compat_print(s):
         assert type(s) == type(u'')
         print(s)
+
+# In Python 2.x, json.dump expects a bytestream.
+# In Python 3.x, it writes to a character stream
+if sys.version_info < (3,0):
+    def write_json_file(obj, fn):
+        with open(fn, 'wb') as f:
+            json.dump(obj, f)
+else:
+    def write_json_file(obj, fn):
+        with open(fn, 'w', encoding='utf-8') as f:
+            json.dump(obj, f)
+
 
 def htmlentity_transform(matchobj):
     """Transforms an HTML entity to a character.

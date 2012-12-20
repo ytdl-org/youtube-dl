@@ -454,9 +454,8 @@ class FileDownloader(object):
                 self.trouble(u'ERROR: No JSON encoder found. Update to Python 2.6+, setup a json module, or leave out --write-info-json.')
                 return
             try:
-                with io.open(encodeFilename(infofn), 'w', 'utf-8') as infof:
-                    json_info_dict = dict((k, v) for k,v in info_dict.items() if not k in ['urlhandle'])
-                    json.dump(json_info_dict, infof)
+                json_info_dict = dict((k, v) for k,v in info_dict.items() if not k in ['urlhandle'])
+                write_json_file(json_info_dict, encodeFilename(infofn))
             except (OSError, IOError):
                 self.trouble(u'ERROR: Cannot write metadata to JSON file ' + infofn)
                 return
