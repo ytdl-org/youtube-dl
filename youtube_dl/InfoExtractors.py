@@ -3630,3 +3630,52 @@ class JustinTVIE(InfoExtractor):
                 break
             offset += limit
         return info
+
+class FunnyOrDieIE(InfoExtractor):
+    _VALID_URL = r'^(?:https?://)?(?:www\.)?funnyordie\.com/videos/(?P<id>[0-9a-f]+)/.*$'
+    IE_NAME = u'FunnyOrDie'
+
+    def report_extraction(self, video_id):
+        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+            return
+
+        video_id = mobj.group('id')
+        self.report_extraction(video_id)
+        try:
+            urlh = compat_urllib_request.urlopen(url)
+            webpage_bytes = urlh.read()
+            webpage = webpage_bytes.decode('utf-8', 'ignore')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.trouble(u'ERROR: unable to download webpage: %s' % compat_str(err))
+            return
+
+        m = re.search(r'<video[^>]*>\s*<source[^>]*>\s*<source src="(?P<url>[^"]+)"', webpage, re.DOTALL)
+        if not m:
+            self._downloader.trouble(u'ERROR: unable to find video information')
+        video_url = unescapeHTML(m.group('url'))
+        print(video_url)
+
+        m = re.search(r"class='player_page_h1'>\s+<a.*?>(?P<title>.*?)</a>", webpage)
+        if not m:
+            self._downloader.trouble(u'Cannot find video title')
+        title = unescapeHTML(m.group('title'))
+
+        m = re.search(r'<meta property="og:description" content="(?P<desc>.*?)"', webpage)
+        if m:
+            desc = unescapeHTML(m.group('desc'))
+        else:
+            desc = None
+
+        info = {
+            'id': video_id,
+            'url': video_url,
+            'ext': 'mp4',
+            'title': title,
+            'description': desc,
+        }
+        return [info]

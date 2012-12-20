@@ -400,6 +400,7 @@ def gen_extractors():
         ArteTvIE(),
         NBAIE(),
         JustinTVIE(),
+        FunnyOrDieIE(),
         GenericIE()
     ]
 
