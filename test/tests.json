@@ -6,6 +6,7 @@
     "info_dict": {
       "title": "youtube-dl test video \"'/\\ä↭𝕐",
       "uploader": "Philipp Hagemeister",
+      "uploader_id": "phihag",
       "upload_date": "20121002",
       "description": "test chars:  \"'/\\ä↭𝕐\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de ."
     }

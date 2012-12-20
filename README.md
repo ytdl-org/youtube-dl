@@ -46,15 +46,16 @@ which means you can modify it, redistribute it or use it however you like.
     -A, --auto-number        number downloaded files starting from 00000
     -o, --output TEMPLATE    output filename template. Use %(title)s to get the
                              title, %(uploader)s for the uploader name,
-                             %(autonumber)s to get an automatically incremented
-                             number, %(ext)s for the filename extension,
-                             %(upload_date)s for the upload date (YYYYMMDD),
-                             %(extractor)s for the provider (youtube, metacafe,
-                             etc), %(id)s for the video id and %% for a literal
-                             percent. Use - to output to stdout. Can also be
-                             used to download to a different directory, for
-                             example with -o '/my/downloads/%(uploader)s/%(title
-                             )s-%(id)s.%(ext)s' .
+                             %(uploader_id)s for the uploader nickname if
+                             different, %(autonumber)s to get an automatically
+                             incremented number, %(ext)s for the filename
+                             extension, %(upload_date)s for the upload date
+                             (YYYYMMDD), %(extractor)s for the provider
+                             (youtube, metacafe, etc), %(id)s for the video id
+                             and %% for a literal percent. Use - to output to
+                             stdout. Can also be used to download to a different
+                             directory, for example with -o '/my/downloads/%(upl
+                             oader)s/%(title)s-%(id)s.%(ext)s' .
     --restrict-filenames     Restrict filenames to only ASCII characters, and
                              avoid "&" and spaces in filenames
     -a, --batch-file FILE    file containing URLs to download ('-' for stdin)

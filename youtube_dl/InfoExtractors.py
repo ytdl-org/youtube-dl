@@ -32,7 +32,7 @@ class InfoExtractor(object):
 
     id:             Video identifier.
     url:            Final video URL.
-    uploader:       Nickname of the video uploader, unescaped.
+    uploader:       Full name of the video uploader, unescaped.
     upload_date:    Video upload date (YYYYMMDD).
     title:          Video title, unescaped.
     ext:            Video filename extension.
@@ -42,6 +42,7 @@ class InfoExtractor(object):
     format:         The video format, defaults to ext (used for --get-format)
     thumbnail:      Full URL to a video thumbnail image.
     description:    One-line video description.
+    uploader_id:    Nickname or id of the video uploader.
     player_url:     SWF Player URL (used for rtmpdump).
     subtitles:      The .srt file contents.
     urlhandle:      [internal] The urlHandle to be used to download the file,
@@ -384,9 +385,17 @@ class YoutubeIE(InfoExtractor):
 
         # uploader
         if 'author' not in video_info:
-            self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
+            self._downloader.trouble(u'ERROR: unable to extract uploader name')
             return
         video_uploader = compat_urllib_parse.unquote_plus(video_info['author'][0])
+
+        # uploader_id
+        video_uploader_id = None
+        mobj = re.search(r'<link itemprop="url" href="http://www.youtube.com/user/([^"]+)">', video_webpage)
+        if mobj is not None:
+            video_uploader_id = mobj.group(1)
+        else:
+            self._downloader.trouble(u'WARNING: unable to extract uploader nickname')
 
         # title
         if 'title' not in video_info:
@@ -495,6 +504,7 @@ class YoutubeIE(InfoExtractor):
                 'id':       video_id,
                 'url':      video_real_url,
                 'uploader': video_uploader,
+                'uploader_id': video_uploader_id,
                 'upload_date':  upload_date,
                 'title':    video_title,
                 'ext':      video_extension,
@@ -994,8 +1004,9 @@ class VimeoIE(InfoExtractor):
         # Extract title
         video_title = config["video"]["title"]
 
-        # Extract uploader
+        # Extract uploader and uploader_id
         video_uploader = config["video"]["owner"]["name"]
+        video_uploader_id = config["video"]["owner"]["url"].split('/')[-1]
 
         # Extract video thumbnail
         video_thumbnail = config["video"]["thumbnail"]
@@ -1047,6 +1058,7 @@ class VimeoIE(InfoExtractor):
             'id':       video_id,
             'url':      video_url,
             'uploader': video_uploader,
+            'uploader_id': video_uploader_id,
             'upload_date':  video_upload_date,
             'title':    video_title,
             'ext':      video_extension,
