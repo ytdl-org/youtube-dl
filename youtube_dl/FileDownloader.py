@@ -433,11 +433,8 @@ class FileDownloader(object):
             try:
                 srtfn = filename.rsplit('.', 1)[0] + u'.srt'
                 self.report_writesubtitles(srtfn)
-                srtfile = open(encodeFilename(srtfn), 'wb')
-                try:
-                    srtfile.write(info_dict['subtitles'].encode('utf-8'))
-                finally:
-                    srtfile.close()
+                with io.open(encodeFilename(srtfn), 'w', encoding='utf-8') as srtfile:
+                    srtfile.write(info_dict['subtitles'])
             except (OSError, IOError):
                 self.trouble(u'ERROR: Cannot write subtitles file ' + descfn)
                 return

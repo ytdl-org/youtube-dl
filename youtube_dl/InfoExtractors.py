@@ -32,7 +32,7 @@ class InfoExtractor(object):
 
     id:             Video identifier.
     url:            Final video URL.
-    uploader:       Nickname of the video uploader, unescaped.
+    uploader:       Full name of the video uploader, unescaped.
     upload_date:    Video upload date (YYYYMMDD).
     title:          Video title, unescaped.
     ext:            Video filename extension.
@@ -42,6 +42,7 @@ class InfoExtractor(object):
     format:         The video format, defaults to ext (used for --get-format)
     thumbnail:      Full URL to a video thumbnail image.
     description:    One-line video description.
+    uploader_id:    Nickname or id of the video uploader.
     player_url:     SWF Player URL (used for rtmpdump).
     subtitles:      The .srt file contents.
     urlhandle:      [internal] The urlHandle to be used to download the file,
@@ -219,6 +220,34 @@ class YoutubeIE(InfoExtractor):
             srt += caption + '\n\n'
         return srt
 
+    def _extract_subtitles(self, video_id):
+        self.report_video_subtitles_download(video_id)
+        request = compat_urllib_request.Request('http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id)
+        try:
+            srt_list = compat_urllib_request.urlopen(request).read().decode('utf-8')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            return (u'WARNING: unable to download video subtitles: %s' % compat_str(err), None)
+        srt_lang_list = re.findall(r'name="([^"]*)"[^>]+lang_code="([\w\-]+)"', srt_list)
+        srt_lang_list = dict((l[1], l[0]) for l in srt_lang_list)
+        if not srt_lang_list:
+            return (u'WARNING: video has no closed captions', None)
+        if self._downloader.params.get('subtitleslang', False):
+            srt_lang = self._downloader.params.get('subtitleslang')
+        elif 'en' in srt_lang_list:
+            srt_lang = 'en'
+        else:
+            srt_lang = list(srt_lang_list.keys())[0]
+        if not srt_lang in srt_lang_list:
+            return (u'WARNING: no closed captions found in the specified language', None)
+        request = compat_urllib_request.Request('http://www.youtube.com/api/timedtext?lang=%s&name=%s&v=%s' % (srt_lang, srt_lang_list[srt_lang], video_id))
+        try:
+            srt_xml = compat_urllib_request.urlopen(request).read().decode('utf-8')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            return (u'WARNING: unable to download video subtitles: %s' % compat_str(err), None)
+        if not srt_xml:
+            return (u'WARNING: unable to download video subtitles', None)
+        return (None, self._closed_captions_xml_to_srt(srt_xml))
+
     def _print_formats(self, formats):
         print('Available formats:')
         for x in formats:
@@ -356,9 +385,17 @@ class YoutubeIE(InfoExtractor):
 
         # uploader
         if 'author' not in video_info:
-            self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
+            self._downloader.trouble(u'ERROR: unable to extract uploader name')
             return
         video_uploader = compat_urllib_parse.unquote_plus(video_info['author'][0])
+
+        # uploader_id
+        video_uploader_id = None
+        mobj = re.search(r'<link itemprop="url" href="http://www.youtube.com/user/([^"]+)">', video_webpage)
+        if mobj is not None:
+            video_uploader_id = mobj.group(1)
+        else:
+            self._downloader.trouble(u'WARNING: unable to extract uploader nickname')
 
         # title
         if 'title' not in video_info:
@@ -395,35 +432,9 @@ class YoutubeIE(InfoExtractor):
         # closed captions
         video_subtitles = None
         if self._downloader.params.get('writesubtitles', False):
-            try:
-                self.report_video_subtitles_download(video_id)
-                request = compat_urllib_request.Request('http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id)
-                try:
-                    srt_list = compat_urllib_request.urlopen(request).read().decode('utf-8')
-                except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                    raise Trouble(u'WARNING: unable to download video subtitles: %s' % compat_str(err))
-                srt_lang_list = re.findall(r'name="([^"]*)"[^>]+lang_code="([\w\-]+)"', srt_list)
-                srt_lang_list = dict((l[1], l[0]) for l in srt_lang_list)
-                if not srt_lang_list:
-                    raise Trouble(u'WARNING: video has no closed captions')
-                if self._downloader.params.get('subtitleslang', False):
-                    srt_lang = self._downloader.params.get('subtitleslang')
-                elif 'en' in srt_lang_list:
-                    srt_lang = 'en'
-                else:
-                    srt_lang = srt_lang_list.keys()[0]
-                if not srt_lang in srt_lang_list:
-                    raise Trouble(u'WARNING: no closed captions found in the specified language')
-                request = compat_urllib_request.Request('http://www.youtube.com/api/timedtext?lang=%s&name=%s&v=%s' % (srt_lang, srt_lang_list[srt_lang], video_id))
-                try:
-                    srt_xml = compat_urllib_request.urlopen(request).read().decode('utf-8')
-                except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                    raise Trouble(u'WARNING: unable to download video subtitles: %s' % compat_str(err))
-                if not srt_xml:
-                    raise Trouble(u'WARNING: unable to download video subtitles')
-                video_subtitles = self._closed_captions_xml_to_srt(srt_xml)
-            except Trouble as trouble:
-                self._downloader.trouble(str(trouble))
+            (srt_error, video_subtitles) = self._extract_subtitles(video_id)
+            if srt_error:
+                self._downloader.trouble(srt_error)
 
         if 'length_seconds' not in video_info:
             self._downloader.trouble(u'WARNING: unable to extract video duration')
@@ -443,7 +454,7 @@ class YoutubeIE(InfoExtractor):
         elif 'url_encoded_fmt_stream_map' in video_info and len(video_info['url_encoded_fmt_stream_map']) >= 1:
             url_data_strs = video_info['url_encoded_fmt_stream_map'][0].split(',')
             url_data = [compat_parse_qs(uds) for uds in url_data_strs]
-            url_data = filter(lambda ud: 'itag' in ud and 'url' in ud, url_data)
+            url_data = [ud for ud in url_data if 'itag' in ud and 'url' in ud]
             url_map = dict((ud['itag'][0], ud['url'][0] + '&signature=' + ud['sig'][0]) for ud in url_data)
 
             format_limit = self._downloader.params.get('format_limit', None)
@@ -493,6 +504,7 @@ class YoutubeIE(InfoExtractor):
                 'id':       video_id,
                 'url':      video_real_url,
                 'uploader': video_uploader,
+                'uploader_id': video_uploader_id,
                 'upload_date':  upload_date,
                 'title':    video_title,
                 'ext':      video_extension,
@@ -992,8 +1004,9 @@ class VimeoIE(InfoExtractor):
         # Extract title
         video_title = config["video"]["title"]
 
-        # Extract uploader
+        # Extract uploader and uploader_id
         video_uploader = config["video"]["owner"]["name"]
+        video_uploader_id = config["video"]["owner"]["url"].split('/')[-1]
 
         # Extract video thumbnail
         video_thumbnail = config["video"]["thumbnail"]
@@ -1005,9 +1018,9 @@ class VimeoIE(InfoExtractor):
 
         # Extract upload date
         video_upload_date = None
-        mobj = re.search(r'<span id="clip-date" style="display:none">[^:]*: (.*?)( \([^\(]*\))?</span>', webpage)
+        mobj = re.search(r'<meta itemprop="dateCreated" content="(\d{4})-(\d{2})-(\d{2})T', webpage)
         if mobj is not None:
-            video_upload_date = mobj.group(1)
+            video_upload_date = mobj.group(1) + mobj.group(2) + mobj.group(3)
 
         # Vimeo specific: extract request signature and timestamp
         sig = config['request']['signature']
@@ -1045,6 +1058,7 @@ class VimeoIE(InfoExtractor):
             'id':       video_id,
             'url':      video_url,
             'uploader': video_uploader,
+            'uploader_id': video_uploader_id,
             'upload_date':  video_upload_date,
             'title':    video_title,
             'ext':      video_extension,
@@ -2113,7 +2127,7 @@ class FacebookIE(InfoExtractor):
         video_description = video_info.get('description', 'No description available.')
 
         url_map = video_info['video_urls']
-        if len(url_map.keys()) > 0:
+        if len(list(url_map.keys())) > 0:
             # Decide which formats to download
             req_format = self._downloader.params.get('format', None)
             format_limit = self._downloader.params.get('format_limit', None)
@@ -2973,7 +2987,7 @@ class MixcloudIE(InfoExtractor):
                 if file_url is not None:
                     break # got it!
         else:
-            if req_format not in formats.keys():
+            if req_format not in list(formats.keys()):
                 self._downloader.trouble(u'ERROR: format is not available')
                 return
 
@@ -3272,7 +3286,7 @@ class YoukuIE(InfoExtractor):
             seed = config['data'][0]['seed']
 
             format = self._downloader.params.get('format', None)
-            supported_format = config['data'][0]['streamfileids'].keys()
+            supported_format = list(config['data'][0]['streamfileids'].keys())
 
             if format is None or format == 'best':
                 if 'hd2' in supported_format:

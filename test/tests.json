@@ -2,7 +2,14 @@
   {
     "name": "Youtube",
     "url":  "http://www.youtube.com/watch?v=BaW_jenozKc",
-    "file":  "BaW_jenozKc.mp4"
+    "file":  "BaW_jenozKc.mp4",
+    "info_dict": {
+      "title": "youtube-dl test video \"'/\\ä↭𝕐",
+      "uploader": "Philipp Hagemeister",
+      "uploader_id": "phihag",
+      "upload_date": "20121002",
+      "description": "test chars:  \"'/\\ä↭𝕐\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de ."
+    }
   },
   {
     "name": "Dailymotion",
@@ -30,9 +37,16 @@
   },
   {
     "name": "Vimeo",
-    "md5":  "60540a4ec7cc378ec84b919c0aed5023",
-    "url":  "http://vimeo.com/14160053",
-    "file": "14160053.mp4"
+    "md5":  "8879b6cc097e987f02484baf890129e5",
+    "url":  "http://vimeo.com/56015672",
+    "file": "56015672.mp4",
+    "info_dict": {
+      "title": "youtube-dl test video - ★ \" ' 幸 / \\ ä ↭ 𝕐",
+      "uploader": "Filippo Valsorda",
+      "uploader_id": "user7108434",
+      "upload_date": "20121220",
+      "description": "This is a test case for youtube-dl.\nFor more information, see github.com/rg3/youtube-dl\nTest chars: ★ \" ' 幸 / \\ ä ↭ 𝕐"
+    }
   },
   {
     "name": "Soundcloud",
@@ -81,7 +95,8 @@
     "name": "Escapist",
     "url": "http://www.escapistmagazine.com/videos/view/the-escapist-presents/6618-Breaking-Down-Baldurs-Gate",
     "file": "6618-Breaking-Down-Baldurs-Gate.flv",
-    "md5": "c6793dbda81388f4264c1ba18684a74d"
+    "md5": "c6793dbda81388f4264c1ba18684a74d",
+    "skip": "Fails with timeout on Travis"
   },
   {
     "name": "GooglePlus",
