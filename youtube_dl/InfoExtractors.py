@@ -1018,9 +1018,9 @@ class VimeoIE(InfoExtractor):
 
         # Extract upload date
         video_upload_date = None
-        mobj = re.search(r'<span id="clip-date" style="display:none">[^:]*: (.*?)( \([^\(]*\))?</span>', webpage)
+        mobj = re.search(r'<meta itemprop="dateCreated" content="(\d{4})-(\d{2})-(\d{2})T', webpage)
         if mobj is not None:
-            video_upload_date = mobj.group(1)
+            video_upload_date = mobj.group(1) + mobj.group(2) + mobj.group(3)
 
         # Vimeo specific: extract request signature and timestamp
         sig = config['request']['signature']

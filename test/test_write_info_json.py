@@ -3,7 +3,6 @@
 
 import json
 import os
-import socket
 import sys
 import unittest
 
@@ -22,7 +21,6 @@ cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
 proxy_handler = compat_urllib_request.ProxyHandler()
 opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
 compat_urllib_request.install_opener(opener)
-socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
 
 class FileDownloader(youtube_dl.FileDownloader):
     def __init__(self, *args, **kwargs):

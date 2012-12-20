@@ -6,8 +6,8 @@ import os
 import json
 import unittest
 import sys
-import socket
 import hashlib
+import socket
 
 # Allow direct execution
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -25,7 +25,6 @@ cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
 proxy_handler = compat_urllib_request.ProxyHandler()
 opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
 compat_urllib_request.install_opener(opener)
-socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
 
 class FileDownloader(youtube_dl.FileDownloader):
     def __init__(self, *args, **kwargs):
@@ -90,12 +89,12 @@ def generator(test_case):
             md5_for_file = _file_md5(test_case['file'])
             self.assertEqual(md5_for_file, test_case['md5'])
         info_dict = fd.processed_info_dicts[0]
-        for (info_element, value) in test_case.get('info_dict', {}).items():
+        for (info_field, value) in test_case.get('info_dict', {}).items():
             if value.startswith('md5:'):
-                md5_info_value = hashlib.md5(info_dict[info_element]).hexdigest()
+                md5_info_value = hashlib.md5(info_dict.get(info_field, '')).hexdigest()
                 self.assertEqual(value[3:], md5_info_value)
             else:
-                self.assertEqual(value, info_dict[info_element])
+                self.assertEqual(value, info_dict.get(info_field))
 
     return test_template
 

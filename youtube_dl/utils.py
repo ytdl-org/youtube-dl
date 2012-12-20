@@ -298,7 +298,8 @@ def clean_html(html):
     """Clean an HTML snippet into a readable string"""
     # Newline vs <br />
     html = html.replace('\n', ' ')
-    html = re.sub('\s*<\s*br\s*/?\s*>\s*', '\n', html)
+    html = re.sub(r'\s*<\s*br\s*/?\s*>\s*', '\n', html)
+    html = re.sub(r'<\s*/\s*p\s*>\s*<\s*p[^>]*>', '\n', html)
     # Strip html tags
     html = re.sub('<.*?>', '', html)
     # Replace html entities
