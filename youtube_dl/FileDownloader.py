@@ -421,11 +421,8 @@ class FileDownloader(object):
             try:
                 descfn = filename + u'.description'
                 self.report_writedescription(descfn)
-                descfile = open(encodeFilename(descfn), 'wb')
-                try:
-                    descfile.write(info_dict['description'].encode('utf-8'))
-                finally:
-                    descfile.close()
+                with io.open(encodeFilename(descfn), 'w', encoding='utf-8') as descfile:
+                    descfile.write(info_dict['description'])
             except (OSError, IOError):
                 self.trouble(u'ERROR: Cannot write description file ' + descfn)
                 return
