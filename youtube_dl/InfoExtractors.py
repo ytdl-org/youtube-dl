@@ -235,7 +235,7 @@ class YoutubeIE(InfoExtractor):
         elif 'en' in srt_lang_list:
             srt_lang = 'en'
         else:
-            srt_lang = srt_lang_list.keys()[0]
+            srt_lang = list(srt_lang_list.keys())[0]
         if not srt_lang in srt_lang_list:
             return (u'WARNING: no closed captions found in the specified language', None)
         request = compat_urllib_request.Request('http://www.youtube.com/api/timedtext?lang=%s&name=%s&v=%s' % (srt_lang, srt_lang_list[srt_lang], video_id))
@@ -445,7 +445,7 @@ class YoutubeIE(InfoExtractor):
         elif 'url_encoded_fmt_stream_map' in video_info and len(video_info['url_encoded_fmt_stream_map']) >= 1:
             url_data_strs = video_info['url_encoded_fmt_stream_map'][0].split(',')
             url_data = [compat_parse_qs(uds) for uds in url_data_strs]
-            url_data = filter(lambda ud: 'itag' in ud and 'url' in ud, url_data)
+            url_data = [ud for ud in url_data if 'itag' in ud and 'url' in ud]
             url_map = dict((ud['itag'][0], ud['url'][0] + '&signature=' + ud['sig'][0]) for ud in url_data)
 
             format_limit = self._downloader.params.get('format_limit', None)
@@ -2115,7 +2115,7 @@ class FacebookIE(InfoExtractor):
         video_description = video_info.get('description', 'No description available.')
 
         url_map = video_info['video_urls']
-        if len(url_map.keys()) > 0:
+        if len(list(url_map.keys())) > 0:
             # Decide which formats to download
             req_format = self._downloader.params.get('format', None)
             format_limit = self._downloader.params.get('format_limit', None)
@@ -2975,7 +2975,7 @@ class MixcloudIE(InfoExtractor):
                 if file_url is not None:
                     break # got it!
         else:
-            if req_format not in formats.keys():
+            if req_format not in list(formats.keys()):
                 self._downloader.trouble(u'ERROR: format is not available')
                 return
 
@@ -3274,7 +3274,7 @@ class YoukuIE(InfoExtractor):
             seed = config['data'][0]['seed']
 
             format = self._downloader.params.get('format', None)
-            supported_format = config['data'][0]['streamfileids'].keys()
+            supported_format = list(config['data'][0]['streamfileids'].keys())
 
             if format is None or format == 'best':
                 if 'hd2' in supported_format:

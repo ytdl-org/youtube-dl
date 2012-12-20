@@ -453,8 +453,8 @@ def _real_main():
     if opts.list_extractors:
         for ie in extractors:
             print(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else ''))
-            matchedUrls = filter(lambda url: ie.suitable(url), all_urls)
-            all_urls = filter(lambda url: url not in matchedUrls, all_urls)
+            matchedUrls = [url for url in all_urls if ie.suitable(url)]
+            all_urls = [url for url in all_urls if url not in matchedUrls]
             for mu in matchedUrls:
                 print(u'  ' + mu)
         sys.exit(0)
