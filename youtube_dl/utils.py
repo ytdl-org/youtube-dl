@@ -465,14 +465,6 @@ class ContentTooShortError(Exception):
         self.downloaded = downloaded
         self.expected = expected
 
-
-class Trouble(Exception):
-    """Trouble helper exception
-
-    This is an exception to be handled with
-    FileDownloader.trouble
-    """
-
 class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     """Handler for HTTP requests and responses.
 
