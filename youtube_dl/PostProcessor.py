@@ -62,13 +62,14 @@ class AudioConversionError(BaseException):
         self.message = message
 
 class FFmpegExtractAudioPP(PostProcessor):
-    def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, keepvideo=False):
+    def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, keepvideo=False, nopostoverwrites=False):
         PostProcessor.__init__(self, downloader)
         if preferredcodec is None:
             preferredcodec = 'best'
         self._preferredcodec = preferredcodec
         self._preferredquality = preferredquality
         self._keepvideo = keepvideo
+        self._nopostoverwrites = nopostoverwrites
         self._exes = self.detect_executables()
 
     @staticmethod
@@ -102,12 +103,16 @@ class FFmpegExtractAudioPP(PostProcessor):
 
     def run_ffmpeg(self, path, out_path, codec, more_opts):
         if not self._exes['ffmpeg'] and not self._exes['avconv']:
-            raise AudioConversionError('ffmpeg or avconv not found. Please install one.')   
+            raise AudioConversionError('ffmpeg or avconv not found. Please install one.')
         if codec is None:
             acodec_opts = []
         else:
             acodec_opts = ['-acodec', codec]
-        cmd = ([self._exes['avconv'] or self._exes['ffmpeg'], '-y', '-i', encodeFilename(path), '-vn']
+        if self._nopostoverwrites:
+            overwrite_opts = '-n'
+        else:
+            overwrite_opts = '-y'
+        cmd = ([self._exes['avconv'] or self._exes['ffmpeg'], overwrite_opts, '-i', encodeFilename(path), '-vn']
                + acodec_opts + more_opts +
                ['--', encodeFilename(out_path)])
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
