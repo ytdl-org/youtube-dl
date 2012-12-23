@@ -108,7 +108,7 @@ class FFmpegExtractAudioPP(PostProcessor):
             acodec_opts = []
         else:
             acodec_opts = ['-acodec', codec]
-        if self._nopostoverwrites:
+        if self._nopostoverwrites and self._exes['ffmpeg']:
             overwrite_opts = '-n'
         else:
             overwrite_opts = '-y'
