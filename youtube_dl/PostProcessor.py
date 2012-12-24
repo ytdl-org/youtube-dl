@@ -108,11 +108,7 @@ class FFmpegExtractAudioPP(PostProcessor):
             acodec_opts = []
         else:
             acodec_opts = ['-acodec', codec]
-        if self._nopostoverwrites and self._exes['ffmpeg']:
-            overwrite_opts = '-n'
-        else:
-            overwrite_opts = '-y'
-        cmd = ([self._exes['avconv'] or self._exes['ffmpeg'], overwrite_opts, '-i', encodeFilename(path), '-vn']
+        cmd = ([self._exes['avconv'] or self._exes['ffmpeg'], '-y', '-i', encodeFilename(path), '-vn']
                + acodec_opts + more_opts +
                ['--', encodeFilename(out_path)])
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -176,9 +172,12 @@ class FFmpegExtractAudioPP(PostProcessor):
 
         prefix, sep, ext = path.rpartition(u'.') # not os.path.splitext, since the latter does not work on unicode in all setups
         new_path = prefix + sep + extension
-        self._downloader.to_screen(u'[' + (self._exes['avconv'] and 'avconv' or 'ffmpeg') + '] Destination: ' + new_path)
         try:
-            self.run_ffmpeg(path, new_path, acodec, more_opts)
+            if self._nopostoverwrites and os.path.exists(encodeFilename(new_path)):
+                self._downloader.to_screen(u'[youtube] Post-process file %s exists, skipping' % new_path)
+            else:
+                self._downloader.to_screen(u'[' + (self._exes['avconv'] and 'avconv' or 'ffmpeg') + '] Destination: ' + new_path)
+                self.run_ffmpeg(path, new_path, acodec, more_opts)
         except:
             etype,e,tb = sys.exc_info()
             if isinstance(e, AudioConversionError):
