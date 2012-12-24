@@ -62,13 +62,14 @@ class AudioConversionError(BaseException):
         self.message = message
 
 class FFmpegExtractAudioPP(PostProcessor):
-    def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, keepvideo=False):
+    def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, keepvideo=False, nopostoverwrites=False):
         PostProcessor.__init__(self, downloader)
         if preferredcodec is None:
             preferredcodec = 'best'
         self._preferredcodec = preferredcodec
         self._preferredquality = preferredquality
         self._keepvideo = keepvideo
+        self._nopostoverwrites = nopostoverwrites
         self._exes = self.detect_executables()
 
     @staticmethod
@@ -102,7 +103,7 @@ class FFmpegExtractAudioPP(PostProcessor):
 
     def run_ffmpeg(self, path, out_path, codec, more_opts):
         if not self._exes['ffmpeg'] and not self._exes['avconv']:
-            raise AudioConversionError('ffmpeg or avconv not found. Please install one.')   
+            raise AudioConversionError('ffmpeg or avconv not found. Please install one.')
         if codec is None:
             acodec_opts = []
         else:
@@ -171,9 +172,12 @@ class FFmpegExtractAudioPP(PostProcessor):
 
         prefix, sep, ext = path.rpartition(u'.') # not os.path.splitext, since the latter does not work on unicode in all setups
         new_path = prefix + sep + extension
-        self._downloader.to_screen(u'[' + (self._exes['avconv'] and 'avconv' or 'ffmpeg') + '] Destination: ' + new_path)
         try:
-            self.run_ffmpeg(path, new_path, acodec, more_opts)
+            if self._nopostoverwrites and os.path.exists(encodeFilename(new_path)):
+                self._downloader.to_screen(u'[youtube] Post-process file %s exists, skipping' % new_path)
+            else:
+                self._downloader.to_screen(u'[' + (self._exes['avconv'] and 'avconv' or 'ffmpeg') + '] Destination: ' + new_path)
+                self.run_ffmpeg(path, new_path, acodec, more_opts)
         except:
             etype,e,tb = sys.exc_info()
             if isinstance(e, AudioConversionError):
