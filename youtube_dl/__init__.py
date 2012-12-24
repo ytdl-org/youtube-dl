@@ -343,6 +343,8 @@ def parseOpts():
             help='ffmpeg/avconv audio quality specification, insert a value between 0 (better) and 9 (worse) for VBR or a specific bitrate like 128K (default 5)')
     postproc.add_option('-k', '--keep-video', action='store_true', dest='keepvideo', default=False,
             help='keeps the video file on disk after the post-processing; the video is erased by default')
+    postproc.add_option('--no-post-overwrites', action='store_true', dest='nopostoverwrites', default=False,
+            help='do not overwrite post-processed files; the post-processed files are overwritten by default')
 
 
     parser.add_option_group(general)
@@ -571,7 +573,7 @@ def _real_main():
 
     # PostProcessors
     if opts.extractaudio:
-        fd.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, keepvideo=opts.keepvideo))
+        fd.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, keepvideo=opts.keepvideo, nopostoverwrites=opts.nopostoverwrites))
 
     # Update version
     if opts.update_self:
