@@ -2127,7 +2127,7 @@ class FacebookIE(InfoExtractor):
         video_description = video_info.get('description', 'No description available.')
 
         url_map = video_info['video_urls']
-        if len(list(url_map.keys())) > 0:
+        if url_map:
             # Decide which formats to download
             req_format = self._downloader.params.get('format', None)
             format_limit = self._downloader.params.get('format_limit', None)
@@ -2987,7 +2987,7 @@ class MixcloudIE(InfoExtractor):
                 if file_url is not None:
                     break # got it!
         else:
-            if req_format not in list(formats.keys()):
+            if req_format not in formats:
                 self._downloader.trouble(u'ERROR: format is not available')
                 return
 

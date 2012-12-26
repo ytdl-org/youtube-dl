@@ -112,6 +112,8 @@ which means you can modify it, redistribute it or use it however you like.
                              specific bitrate like 128K (default 5)
     -k, --keep-video         keeps the video file on disk after the post-
                              processing; the video is erased by default
+    --no-post-overwrites     do not overwrite post-processed files; the post-
+                             processed files are overwritten by default
 
 # CONFIGURATION
 
