@@ -120,7 +120,7 @@ class YoutubeIE(InfoExtractor):
                              |(?:                                             # or the v= param in all its forms
                                  (?:watch(?:_popup)?(?:\.php)?)?              # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
                                  (?:\?|\#!?)                                  # the params delimiter ? or # or #!
-                                 (?:.+&)?                                     # any other preceding param (like /?s=tuff&v=xxxx)
+                                 (?:.*?&)?                                    # any other preceding param (like /?s=tuff&v=xxxx)
                                  v=
                              )
                          )?                                                   # optional -> youtube.com/xxxx is OK
@@ -325,22 +325,25 @@ class YoutubeIE(InfoExtractor):
             self._downloader.trouble(u'ERROR: unable to confirm age: %s' % compat_str(err))
             return
 
-    def _real_extract(self, url):
-        # Extract original video URL from URL with redirection, like age verification, using next_url parameter
-        mobj = re.search(self._NEXT_URL_RE, url)
-        if mobj:
-            url = 'http://www.youtube.com/' + compat_urllib_parse.unquote(mobj.group(1)).lstrip('/')
-
-        # Extract video id from URL
+    def _extract_id(self, url):
         mobj = re.match(self._VALID_URL, url, re.VERBOSE)
         if mobj is None:
             self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
             return
         video_id = mobj.group(2)
+        return video_id
+
+    def _real_extract(self, url):
+        # Extract original video URL from URL with redirection, like age verification, using next_url parameter
+        mobj = re.search(self._NEXT_URL_RE, url)
+        if mobj:
+            url = 'http://www.youtube.com/' + compat_urllib_parse.unquote(mobj.group(1)).lstrip('/')
+        video_id = self._extract_id(url)
 
         # Get video webpage
         self.report_video_webpage_download(video_id)
-        request = compat_urllib_request.Request('http://www.youtube.com/watch?v=%s&gl=US&hl=en&has_verified=1' % video_id)
+        url = 'http://www.youtube.com/watch?v=%s&gl=US&hl=en&has_verified=1' % video_id
+        request = compat_urllib_request.Request(url)
         try:
             video_webpage_bytes = compat_urllib_request.urlopen(request).read()
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
