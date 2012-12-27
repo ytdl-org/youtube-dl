@@ -32,10 +32,10 @@ class InfoExtractor(object):
 
     id:             Video identifier.
     url:            Final video URL.
-    uploader:       Full name of the video uploader, unescaped.
-    upload_date:    Video upload date (YYYYMMDD).
     title:          Video title, unescaped.
     ext:            Video filename extension.
+    uploader:       Full name of the video uploader.
+    upload_date:    Video upload date (YYYYMMDD).
 
     The following fields are optional:
 
@@ -101,6 +101,9 @@ class InfoExtractor(object):
         """Real extraction process. Redefine in subclasses."""
         pass
 
+    @property
+    def IE_NAME(self):
+        return type(self).__name__[:-2]
 
 class YoutubeIE(InfoExtractor):
     """Information extractor for youtube.com."""
@@ -3672,7 +3675,6 @@ class FunnyOrDieIE(InfoExtractor):
         if not m:
             self._downloader.trouble(u'ERROR: unable to find video information')
         video_url = unescapeHTML(m.group('url'))
-        print(video_url)
 
         m = re.search(r"class='player_page_h1'>\s+<a.*?>(?P<title>.*?)</a>", webpage)
         if not m:
@@ -3691,5 +3693,64 @@ class FunnyOrDieIE(InfoExtractor):
             'ext': 'mp4',
             'title': title,
             'description': desc,
+        }
+        return [info]
+
+class TweetReelIE(InfoExtractor):
+    _VALID_URL = r'^(?:https?://)?(?:www\.)?tweetreel\.com/[?](?P<id>[0-9a-z]+)$'
+
+    def report_extraction(self, video_id):
+        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+            return
+
+        video_id = mobj.group('id')
+        self.report_extraction(video_id)
+        try:
+            urlh = compat_urllib_request.urlopen(url)
+            webpage_bytes = urlh.read()
+            webpage = webpage_bytes.decode('utf-8', 'ignore')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.trouble(u'ERROR: unable to download webpage: %s' % compat_str(err))
+            return
+
+        m = re.search(r'<div id="left" status_id="([0-9]+)">', webpage)
+        if not m:
+            self._downloader.trouble(u'ERROR: Cannot find status ID')
+        status_id = m.group(1)
+
+        m = re.search(r'<div class="tweet_text">(.*?)</div>', webpage, flags=re.DOTALL)
+        if not m:
+            self._downloader.trouble(u'WARNING: Cannot find description')
+        desc = unescapeHTML(re.sub('<a.*?</a>', '', m.group(1))).strip()
+
+        m = re.search(r'<div class="tweet_info">.*?from <a target="_blank" href="https?://twitter.com/(?P<uploader_id>.+?)">(?P<uploader>.+?)</a>', webpage, flags=re.DOTALL)
+        if not m:
+            self._downloader.trouble(u'ERROR: Cannot find uploader')
+        uploader = unescapeHTML(m.group('uploader'))
+        uploader_id = unescapeHTML(m.group('uploader_id'))
+
+        m = re.search(r'<span unixtime="([0-9]+)"', webpage)
+        if not m:
+            self._downloader.trouble(u'ERROR: Cannot find upload date')
+        upload_date = datetime.datetime.fromtimestamp(int(m.group(1))).strftime('%Y%m%d')
+
+        title = desc
+        video_url = 'http://files.tweetreel.com/video/' + status_id + '.mov'
+
+        info = {
+            'id': video_id,
+            'url': video_url,
+            'ext': 'mov',
+            'title': title,
+            'description': desc,
+            'uploader': uploader,
+            'uploader_id': uploader_id,
+            'internal_id': status_id,
+            'upload_date': upload_date
         }
         return [info]

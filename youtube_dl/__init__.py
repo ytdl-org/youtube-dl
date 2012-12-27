@@ -403,6 +403,7 @@ def gen_extractors():
         NBAIE(),
         JustinTVIE(),
         FunnyOrDieIE(),
+        TweetReelIE(),
         GenericIE()
     ]
 
