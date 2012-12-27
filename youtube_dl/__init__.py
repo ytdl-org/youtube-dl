@@ -34,9 +34,10 @@ import socket
 import subprocess
 import sys
 import warnings
+import platform
 
 from .utils import *
-from .version import __version__
+from .version import __version__, __version_codename__
 from .FileDownloader import *
 from .InfoExtractors import *
 from .PostProcessor import *
@@ -81,7 +82,7 @@ def update_self(to_screen, verbose, filename):
         return
     signature = versions_info['signature']
     del versions_info['signature']
-    if not rsa_verify(json.dumps(versions_info, sort_keys=True), signature, UPDATES_RSA_KEY):
+    if not rsa_verify(json.dumps(versions_info, sort_keys=True).encode('utf-8'), signature, UPDATES_RSA_KEY):
         to_screen(u'ERROR: the versions file signature is invalid. Aborting.')
         return
 
@@ -602,6 +603,16 @@ def _real_main():
         })
 
     if opts.verbose:
+        fd.to_screen(u'[debug] youtube-dl version %s - %s' %(__version__, __version_codename__))
+        try:
+            sp = subprocess.Popen(['git', 'rev-parse', '--short', 'HEAD'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = sp.communicate()
+            out = out.decode().strip()
+            if re.match('[0-9a-f]+', out):
+                fd.to_screen(u'[debug] Git HEAD: ' + out)
+        except:
+            pass
+        fd.to_screen(u'[debug] Python version %s - %s' %(platform.python_version(), platform.platform()))
         fd.to_screen(u'[debug] Proxy map: ' + str(proxy_handler.proxies))
 
     for extractor in extractors:
