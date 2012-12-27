@@ -1,0 +1,17 @@
+{
+	"latest": "2012.12.27",
+	"versions": {
+		"2012.12.27": {
+			"bin": ["http://youtube-dl.org/downloads/2012.12.27/youtube-dl", "3f44f483068d84df0263ea302297d714c0f9b3e9304f277569e667360317bef5"],
+			"exe": ["http://youtube-dl.org/downloads/2012.12.27/youtube-dl.exe", "c4ba76cd1b14a513a54efe51a7662c718eb50a1e241bdf4ecf2c5d68669a005e"],
+			"tar": ["http://youtube-dl.org/downloads/2012.12.27/youtube-dl-2012.12.27.tar.gz", "892a5418a96dc5017cad09e38c7369159bc709d58aa52b111ab9ece219db88f7"],
+			"notes": ["The default output template will switch to a more human-readable format soon. Use --id for the old behavior."]
+		},
+		"2012.12.11": {
+			"bin": ["http://youtube-dl.org/downloads/2012.12.11/youtube-dl", "e2109ac82b05f910828a12b2de0d8e5d3b29b0ed9e2daeb68badb1fce8c1ec7a"],
+			"exe": ["http://youtube-dl.org/downloads/2012.12.11/youtube-dl.exe", "6496a66b69de89835ed7eda03a3c8947cca70d2bd5bcc46bd259a18c01a015b3"],
+			"tar": ["http://youtube-dl.org/downloads/2012.12.11/youtube-dl-2012.12.11.tar.gz", "b6d259c60fefba76701ea0ea7b34c99169fc2644ce1d89ad10213a70d11ffb0f"]
+		}
+	},
+	"signature": "0fc0578a8b9f17ddfcd62f9696ad71966d5b57f92af3b1c5d4744c799125d52458991ea00d1d2effaf0ad1bc5d185d2f402341d5d44dff7a2884dece682935fe2ecab6c36cfba7d05e89153abcb99bebb996f3a5c29faa2422a111513639c76497e789ed9722fdd982d2c772e4a12c1863cb1d2941a7b1234995c610af453a47"
+}
