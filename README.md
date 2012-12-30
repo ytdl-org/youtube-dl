@@ -196,7 +196,7 @@ Bugs and suggestions should be reported at: <https://github.com/rg3/youtube-dl/i
 
 Please include:
 
-* Your exact command line, like `youtube-dl -t "http://www.youtube.com/watch?v=uHlDtZ6Oc3s&feature=channel_video_title"`. A common mistake is not to escape the `&`. Putting URLs in quotes should solve this problem.
+* Your exact command line, like `youtube-dl -t "http://www.youtube.com/watch?v=uHlDtZ6Oc3s&feature=channel_video_title"`. If possible re-run the command with `--verbose`, it is really helpful. A common mistake is not to escape the `&`. Putting URLs in quotes should solve this problem.
 * The output of `youtube-dl --version`
 * The output of `python --version`
 * The name and version of your Operating System ("Ubuntu 11.04 x64" or "Windows 7 x64" is usually enough).

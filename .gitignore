@@ -16,3 +16,4 @@ youtube-dl.exe
 youtube-dl.tar.gz
 .coverage
 cover/
+updates_key.pem

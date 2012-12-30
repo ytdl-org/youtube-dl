@@ -43,7 +43,7 @@ youtube-dl.bash-completion: youtube_dl/*.py devscripts/bash-completion.in
 	python devscripts/bash-completion.py
 
 youtube-dl.tar.gz: all
-	tar -czf youtube-dl.tar.gz -s "|^./|./youtube-dl/|" \
+	tar -czf youtube-dl.tar.gz -s "|^./|./youtube-dl/|" --exclude="updates_key.pem" \
 		--exclude="*.pyc" --exclude="*.pyo" --exclude="*~" --exclude="youtube-dl.exe" \
 		--exclude="wine-py2exe/" --exclude="py2exe.log" --exclude="*.kate-swp" \
 		--exclude="build/" --exclude="dist/" --exclude="MANIFEST" --exclude=".git/" .

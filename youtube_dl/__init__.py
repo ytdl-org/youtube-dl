@@ -34,105 +34,14 @@ import socket
 import subprocess
 import sys
 import warnings
+import platform
 
 from .utils import *
+from .update import update_self
 from .version import __version__
 from .FileDownloader import *
 from .InfoExtractors import *
 from .PostProcessor import *
-
-def updateSelf(downloader, filename):
-    """Update the program file with the latest version from the repository"""
-
-    # TODO: at least, check https certificates
-
-    from zipimport import zipimporter
-
-    API_URL = "https://api.github.com/repos/rg3/youtube-dl/downloads"
-    BIN_URL = "https://github.com/downloads/rg3/youtube-dl/youtube-dl"
-    EXE_URL = "https://github.com/downloads/rg3/youtube-dl/youtube-dl.exe"
-
-    if hasattr(sys, "frozen"): # PY2EXE
-        if not os.access(filename, os.W_OK):
-            sys.exit('ERROR: no write permissions on %s' % filename)
-
-        downloader.to_screen(u'Updating to latest version...')
-
-        urla = compat_urllib_request.urlopen(API_URL)
-        download = filter(lambda x: x["name"] == "youtube-dl.exe", json.loads(urla.read()))
-        if not download:
-            downloader.to_screen(u'ERROR: can\'t find the current version. Please try again later.')
-            return
-        newversion = download[0]["description"].strip()
-        if newversion == __version__:
-            downloader.to_screen(u'youtube-dl is up-to-date (' + __version__ + ')')
-            return
-        urla.close()
-
-        exe = os.path.abspath(filename)
-        directory = os.path.dirname(exe)
-        if not os.access(directory, os.W_OK):
-            sys.exit('ERROR: no write permissions on %s' % directory)
-
-        try:
-            urlh = compat_urllib_request.urlopen(EXE_URL)
-            newcontent = urlh.read()
-            urlh.close()
-            with open(exe + '.new', 'wb') as outf:
-                outf.write(newcontent)
-        except (IOError, OSError) as err:
-            sys.exit('ERROR: unable to download latest version')
-
-        try:
-            bat = os.path.join(directory, 'youtube-dl-updater.bat')
-            b = open(bat, 'w')
-            b.write("""
-echo Updating youtube-dl...
-ping 127.0.0.1 -n 5 -w 1000 > NUL
-move /Y "%s.new" "%s"
-del "%s"
-            \n""" %(exe, exe, bat))
-            b.close()
-
-            os.startfile(bat)
-        except (IOError, OSError) as err:
-            sys.exit('ERROR: unable to overwrite current version')
-
-    elif isinstance(globals().get('__loader__'), zipimporter): # UNIX ZIP
-        if not os.access(filename, os.W_OK):
-            sys.exit('ERROR: no write permissions on %s' % filename)
-
-        downloader.to_screen(u'Updating to latest version...')
-
-        urla = compat_urllib_request.urlopen(API_URL)
-        download = [x for x in json.loads(urla.read().decode('utf8')) if x["name"] == "youtube-dl"]
-        if not download:
-            downloader.to_screen(u'ERROR: can\'t find the current version. Please try again later.')
-            return
-        newversion = download[0]["description"].strip()
-        if newversion == __version__:
-            downloader.to_screen(u'youtube-dl is up-to-date (' + __version__ + ')')
-            return
-        urla.close()
-
-        try:
-            urlh = compat_urllib_request.urlopen(BIN_URL)
-            newcontent = urlh.read()
-            urlh.close()
-        except (IOError, OSError) as err:
-            sys.exit('ERROR: unable to download latest version')
-
-        try:
-            with open(filename, 'wb') as outf:
-                outf.write(newcontent)
-        except (IOError, OSError) as err:
-            sys.exit('ERROR: unable to overwrite current version')
-
-    else:
-        downloader.to_screen(u'It looks like you installed youtube-dl with pip or setup.py. Please use that to update.')
-        return
-
-    downloader.to_screen(u'Updated youtube-dl. Restart youtube-dl to use the new version.')
 
 def parseOpts():
     def _readOptions(filename_bytes):
@@ -567,6 +476,17 @@ def _real_main():
         })
 
     if opts.verbose:
+        fd.to_screen(u'[debug] youtube-dl version ' + __version__)
+        try:
+            sp = subprocess.Popen(['git', 'rev-parse', '--short', 'HEAD'], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                  cwd=os.path.dirname(os.path.abspath(__file__)))
+            out, err = sp.communicate()
+            out = out.decode().strip()
+            if re.match('[0-9a-f]+', out):
+                fd.to_screen(u'[debug] Git HEAD: ' + out)
+        except:
+            pass
+        fd.to_screen(u'[debug] Python version %s - %s' %(platform.python_version(), platform.platform()))
         fd.to_screen(u'[debug] Proxy map: ' + str(proxy_handler.proxies))
 
     for extractor in extractors:
@@ -578,7 +498,7 @@ def _real_main():
 
     # Update version
     if opts.update_self:
-        updateSelf(fd, sys.argv[0])
+        update_self(fd.to_screen, opts.verbose, sys.argv[0])
 
     # Maybe do nothing
     if len(all_urls) < 1:

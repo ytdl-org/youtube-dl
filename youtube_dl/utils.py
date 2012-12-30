@@ -154,6 +154,7 @@ std_headers = {
     'Accept-Encoding': 'gzip, deflate',
     'Accept-Language': 'en-us,en;q=0.5',
 }
+
 def preferredencoding():
     """Get preferred encoding.
 
@@ -186,7 +187,6 @@ else:
     def write_json_file(obj, fn):
         with open(fn, 'w', encoding='utf-8') as f:
             json.dump(obj, f)
-
 
 def htmlentity_transform(matchobj):
     """Transforms an HTML entity to a character.

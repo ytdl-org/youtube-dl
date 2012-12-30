@@ -1093,7 +1093,6 @@ class ArteTvIE(InfoExtractor):
         self._downloader.to_screen(u'[arte.tv] %s: Extracting information' % video_id)
 
     def fetch_webpage(self, url):
-        self._downloader.increment_downloads()
         request = compat_urllib_request.Request(url)
         try:
             self.report_download_webpage(url)
