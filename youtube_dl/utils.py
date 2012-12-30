@@ -154,6 +154,7 @@ std_headers = {
     'Accept-Encoding': 'gzip, deflate',
     'Accept-Language': 'en-us,en;q=0.5',
 }
+
 def preferredencoding():
     """Get preferred encoding.
 
@@ -187,6 +188,11 @@ else:
         with open(fn, 'w', encoding='utf-8') as f:
             json.dump(obj, f)
 
+# Some library functions return bytestring on 2.X and unicode on 3.X
+def enforce_unicode(s, encoding='utf-8'):
+    if type(s) != type(u''):
+        return s.decode(encoding)
+    return s
 
 def htmlentity_transform(matchobj):
     """Transforms an HTML entity to a character.

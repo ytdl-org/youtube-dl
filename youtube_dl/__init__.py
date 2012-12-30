@@ -37,7 +37,7 @@ import warnings
 import platform
 
 from .utils import *
-from .version import __version__, __version_codename__
+from .version import __version__
 from .FileDownloader import *
 from .InfoExtractors import *
 from .PostProcessor import *
@@ -62,7 +62,7 @@ def update_self(to_screen, verbose, filename):
     try:
         newversion = compat_urllib_request.urlopen(VERSION_URL).read().decode('utf-8').strip()
     except:
-        if verbose: to_screen(traceback.format_exc().decode())
+        if verbose: to_screen(enforce_unicode(traceback.format_exc()))
         to_screen(u'ERROR: can\'t find the current version. Please try again later.')
         return
     if newversion == __version__:
@@ -74,7 +74,7 @@ def update_self(to_screen, verbose, filename):
         versions_info = compat_urllib_request.urlopen(JSON_URL).read().decode('utf-8')
         versions_info = json.loads(versions_info)
     except:
-        if verbose: to_screen(traceback.format_exc().decode())
+        if verbose: to_screen(enforce_unicode(traceback.format_exc()))
         to_screen(u'ERROR: can\'t obtain versions info. Please try again later.')
         return
     if not 'signature' in versions_info:
@@ -110,7 +110,7 @@ def update_self(to_screen, verbose, filename):
             newcontent = urlh.read()
             urlh.close()
         except (IOError, OSError) as err:
-            if verbose: to_screen(traceback.format_exc().decode())
+            if verbose: to_screen(enforce_unicode(traceback.format_exc()))
             to_screen(u'ERROR: unable to download latest version')
             return
 
@@ -123,7 +123,7 @@ def update_self(to_screen, verbose, filename):
             with open(exe + '.new', 'wb') as outf:
                 outf.write(newcontent)
         except (IOError, OSError) as err:
-            if verbose: to_screen(traceback.format_exc().decode())
+            if verbose: to_screen(enforce_unicode(traceback.format_exc()))
             to_screen(u'ERROR: unable to write the new version')
             return
 
@@ -140,7 +140,7 @@ del "%s"
 
             os.startfile(bat)
         except (IOError, OSError) as err:
-            if verbose: to_screen(traceback.format_exc().decode())
+            if verbose: to_screen(enforce_unicode(traceback.format_exc()))
             to_screen(u'ERROR: unable to overwrite current version')
             return
 
@@ -151,7 +151,7 @@ del "%s"
             newcontent = urlh.read()
             urlh.close()
         except (IOError, OSError) as err:
-            if verbose: to_screen(traceback.format_exc().decode())
+            if verbose: to_screen(enforce_unicode(traceback.format_exc()))
             to_screen(u'ERROR: unable to download latest version')
             return
 
@@ -164,7 +164,7 @@ del "%s"
             with open(filename, 'wb') as outf:
                 outf.write(newcontent)
         except (IOError, OSError) as err:
-            if verbose: to_screen(traceback.format_exc().decode())
+            if verbose: to_screen(enforce_unicode(traceback.format_exc()))
             to_screen(u'ERROR: unable to overwrite current version')
             return
 
@@ -603,9 +603,10 @@ def _real_main():
         })
 
     if opts.verbose:
-        fd.to_screen(u'[debug] youtube-dl version %s - %s' %(__version__, __version_codename__))
+        fd.to_screen(u'[debug] youtube-dl version ' + __version__)
         try:
-            sp = subprocess.Popen(['git', 'rev-parse', '--short', 'HEAD'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            sp = subprocess.Popen(['git', 'rev-parse', '--short', 'HEAD'], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                  cwd=os.path.dirname(os.path.abspath(__file__)))
             out, err = sp.communicate()
             out = out.decode().strip()
             if re.match('[0-9a-f]+', out):
