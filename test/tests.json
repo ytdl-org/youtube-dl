@@ -95,8 +95,7 @@
     "name": "Escapist",
     "url": "http://www.escapistmagazine.com/videos/view/the-escapist-presents/6618-Breaking-Down-Baldurs-Gate",
     "file": "6618-Breaking-Down-Baldurs-Gate.flv",
-    "md5": "c6793dbda81388f4264c1ba18684a74d",
-    "skip": "Fails with timeout on Travis"
+    "md5": "c6793dbda81388f4264c1ba18684a74d"
   },
   {
     "name": "GooglePlus",

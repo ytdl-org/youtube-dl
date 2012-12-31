@@ -493,6 +493,10 @@ class FileDownloader(object):
 
                 # Extract information from URL and process it
                 videos = ie.extract(url)
+
+                if len(videos) > 1 and self.fixed_template():
+                    raise SameFileError(self.params['outtmpl'])
+
                 for video in videos or []:
                     video['extractor'] = ie.IE_NAME
                     try:
