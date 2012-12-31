@@ -29,13 +29,15 @@
 
 <h1 id="d1">Getting started</h1>
 
-<p>In Windows, once you have installed the Python interpreter, save the program with the <em>.py</em> extension and put it somewhere in the PATH. Try to follow the <a href="windows.html">guide to install youtube-dl under Windows</a>.</p>
+<p>In Windows save the exe version somewhere (in your PATH if you want to run it simply as <em>youtube-dl</em>) and run it from the command line.</p>
 
 <p>In Unix, download it, give it execution permission and copy it to one of the PATH directories (typically, <em>/usr/local/bin</em>).</p>
 
-<p>After that, you should be able to call it from the command line as <em>youtube-dl</em> or <em>youtube-dl.py</em>. I will use <em>youtube-dl</em> in the following examples. Usage instructions are easy. Use <em>youtube-dl</em> followed by a video URL or identifier. Example: <em>youtube-dl "http://www.youtube.com/watch?v=foobar"</em>. The video will be saved to the file <em>foobar.flv</em> in that example. As YouTube.com videos are usually in Flash Video format, their extension should be <em>flv</em>. In Linux and other unices, video players using a recent version of <em>ffmpeg</em> can play them. That includes VLC, MPlayer, etc. Those two work under Windows and other platforms, but you could also get a specific FLV player of your taste.</p>
+<p>To update, simply call <em>youtube-dl -U</em>, we recommend to do it often.</p>
 
-<p>If you try to run the program and you receive an error message containing the keyword <em>SyntaxError</em> near the end, it means your Python interpreter is too old or from the 3.x branch.</p>
+<p>After that, you should be able to call it from the command line as <em>youtube-dl</em>. I will use <em>youtube-dl</em> in the following examples. Usage instructions are easy. Use <em>youtube-dl</em> followed by a video URL or identifier. Example: <em>youtube-dl "http://www.youtube.com/watch?v=foobar"</em>. The video will be saved to the file <em>foobar.flv</em> in that example. As YouTube.com videos are usually in Flash Video format, their extension should be <em>flv</em>. In Linux and other unices, video players using a recent version of <em>ffmpeg</em> can play them. That includes VLC, MPlayer, etc. Those two work under Windows and other platforms, but you could also get a specific FLV player of your taste.</p>
+
+<p>If you try to run the program and you receive an error message containing the keyword <em>SyntaxError</em> near the end, it means your Python interpreter is too old, remember that youtube-dl need Python version 2.6, 2.7, or 3.3+.</p>
 
 <h1 id="d2">More usage tips</h1>
 
