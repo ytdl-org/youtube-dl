@@ -16,17 +16,34 @@
 
 <p>Remember <em>youtube-dl</em> requires <a href="http://www.python.org/">Python</a> version 2.6, 2.7, or 3.3+ to work.</p>
 
-<h2><a href="@PROGRAM_URL@">@PROGRAM_VERSION@</a></h2>
-
-<p>To install it right away for all users, type:
-<code style="display:block; margin-top: 0.4em; padding: 0.7em; background: #ccc; background: rgba(200, 200, 200, 0.4); white-space: pre;">sudo wget @PROGRAM_URL@ -O /usr/local/bin/youtube-dl
-sudo chmod a+x /usr/local/bin/youtube-dl</code>
-</p>
+<h2><a href="@PROGRAM_URL@">@PROGRAM_VERSION@</a> (<a href="@PROGRAM_URL@.sig">sig</a>)</h2>
 
 <ul>
 <li><strong>MD5</strong>: @PROGRAM_MD5SUM@</li>
 <li><strong>SHA1</strong>: @PROGRAM_SHA1SUM@</li>
 <li><strong>SHA256</strong>: @PROGRAM_SHA256SUM@</li>
+</ul>
+
+<p>
+	<a href="@EXE_URL@">Windows exe</a> (<a href="@EXE_URL@.sig">sig</a> - @EXE_SHA256SUM@)<br>
+	<a href="@TAR_URL@">Full source + docs + binary tarball</a> (<a href="@TAR_URL@.sig">sig</a> - @TAR_SHA256SUM@)
+</p>
+
+<p>To install it right away for all UNIX users (Linux, OS X, etc.), type:
+<code style="display:block; margin-top: 0.4em; padding: 0.7em; background: #ccc; background: rgba(200, 200, 200, 0.4); white-space: pre;">sudo wget @PROGRAM_URL@ -O /usr/local/bin/youtube-dl
+sudo chmod a+x /usr/local/bin/youtube-dl</code>
+</p>
+
+<p>To check the signature, type:
+<code style="display:block; margin-top: 0.4em; padding: 0.7em; background: #ccc; background: rgba(200, 200, 200, 0.4); white-space: pre;">sudo wget @PROGRAM_URL@.sig -O youtube-dl.sig
+gpg --verify youtube-dl.sig /usr/local/bin/youtube-dl
+rm youtube-dl.sig</code>
+</p>
+
+<p>The following GPG keys will be used to sign the binaries and the git tags:</p>
+<ul>
+<li><strong>1024D/FAFB085C</strong> Philipp Hagemeister <code>Key fingerprint = 0600 E1DB 6FB5 3A5D 95D8  FC0D F5EA B582 FAFB 085C</code></li>
+<li><strong>4096R/D977155C</strong> Filippo Valsorda <code>Key fingerprint = 9524 4D9F EE39 0B71 25A3  4708 3CD8 8EE0 D977 155C</code></li>
 </ul>
 
 <div class="note">
