@@ -1,7 +1,7 @@
 all: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion
 
 clean:
-	rm -rf youtube-dl youtube-dl.exe youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/
+	rm -rf youtube-dl youtube-dl.exe youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/
 
 PREFIX=/usr/local
 BINDIR=$(PREFIX)/bin
@@ -43,7 +43,5 @@ youtube-dl.bash-completion: youtube_dl/*.py devscripts/bash-completion.in
 	python devscripts/bash-completion.py
 
 youtube-dl.tar.gz: all
-	tar -czf youtube-dl.tar.gz -s "|^./|./youtube-dl/|" --exclude="updates_key.pem" \
-		--exclude="*.pyc" --exclude="*.pyo" --exclude="*~" --exclude="youtube-dl.exe" \
-		--exclude="wine-py2exe/" --exclude="py2exe.log" --exclude="*.kate-swp" \
-		--exclude="build/" --exclude="dist/" --exclude="MANIFEST" --exclude=".git/" .
+	tar -cvzf youtube-dl.tar.gz -s "|^./|./youtube-dl/|" \
+		--exclude-from=".tarignore" -- .

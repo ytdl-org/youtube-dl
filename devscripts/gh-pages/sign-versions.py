@@ -1,14 +1,12 @@
-#! /usr/bin/env python3
+#!/usr/bin/env python3
 
 import rsa
 import json
 from binascii import hexlify
 
-# TODO path discovery
 versions_info = json.load(open('update/versions.json'))
 if 'signature' in versions_info:
 	del versions_info['signature']
-
 
 print('Enter the PKCS1 private key, followed by a blank line:')
 privkey = ''
