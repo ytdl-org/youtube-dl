@@ -120,5 +120,14 @@
         "upload_date": "20091225",
         "description": "Installing Gentoo Linux on Powerbook G4, it turns out the sleep indicator becomes HDD activity indicator :D"
     }
+  },
+  {
+    "name": "Steam",
+    "url": "http://store.steampowered.com/video/105600/",
+    "file": "81300.flv",
+    "md5": "f870007cee7065d7c76b88f0a45ecc07",
+    "info_dict": {
+        "title": "Terraria 1.1 Trailer"
+    }
   }
 ]
