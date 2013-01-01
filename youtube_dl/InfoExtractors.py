@@ -2286,10 +2286,6 @@ class MyVideoIE(InfoExtractor):
     def __init__(self, downloader=None):
         InfoExtractor.__init__(self, downloader)
 
-    def report_download_webpage(self, video_id):
-        """Report webpage download."""
-        self._downloader.to_screen(u'[myvideo] %s: Downloading webpage' % video_id)
-
     def report_extraction(self, video_id):
         """Report information extraction."""
         self._downloader.to_screen(u'[myvideo] %s: Extracting information' % video_id)
@@ -2303,13 +2299,8 @@ class MyVideoIE(InfoExtractor):
         video_id = mobj.group(1)
 
         # Get video webpage
-        request = compat_urllib_request.Request('http://www.myvideo.de/watch/%s' % video_id)
-        try:
-            self.report_download_webpage(video_id)
-            webpage = compat_urllib_request.urlopen(request).read().decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.trouble(u'ERROR: Unable to retrieve video webpage: %s' % compat_str(err))
-            return
+        webpage_url = 'http://www.myvideo.de/watch/%s' % video_id
+        webpage = self._download_webpage(webpage_url, video_id)
 
         self.report_extraction(video_id)
         mobj = re.search(r'<link rel=\'image_src\' href=\'(http://is[0-9].myvideo\.de/de/movie[0-9]+/[a-f0-9]+)/thumbs/[^.]+\.jpg\' />',
@@ -2700,10 +2691,6 @@ class XVideosIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?xvideos\.com/video([0-9]+)(?:.*)'
     IE_NAME = u'xvideos'
 
-    def report_webpage(self, video_id):
-        """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, video_id))
-
     def report_extraction(self, video_id):
         """Report information extraction."""
         self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
@@ -2715,15 +2702,7 @@ class XVideosIE(InfoExtractor):
             return
         video_id = mobj.group(1)
 
-        self.report_webpage(video_id)
-
-        request = compat_urllib_request.Request(r'http://www.xvideos.com/video' + video_id)
-        try:
-            webpage_bytes = compat_urllib_request.urlopen(request).read()
-            webpage = webpage_bytes.decode('utf-8', 'replace')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err))
-            return
+        webpage = self._download_webpage(url, video_id)
 
         self.report_extraction(video_id)
 
@@ -2822,7 +2801,7 @@ class SoundcloudIE(InfoExtractor):
             stream_json_bytes = compat_urllib_request.urlopen(request).read()
             stream_json = stream_json_bytes.decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err))
+            self._downloader.trouble(u'ERROR: unable to download stream definitions: %s' % compat_str(err))
             return
 
         streams = json.loads(stream_json)
@@ -3146,10 +3125,6 @@ class MTVIE(InfoExtractor):
     _VALID_URL = r'^(?P<proto>https?://)?(?:www\.)?mtv\.com/videos/[^/]+/(?P<videoid>[0-9]+)/[^/]+$'
     IE_NAME = u'mtv'
 
-    def report_webpage(self, video_id):
-        """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, video_id))
-
     def report_extraction(self, video_id):
         """Report information extraction."""
         self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
@@ -3162,14 +3137,8 @@ class MTVIE(InfoExtractor):
         if not mobj.group('proto'):
             url = 'http://' + url
         video_id = mobj.group('videoid')
-        self.report_webpage(video_id)
 
-        request = compat_urllib_request.Request(url)
-        try:
-            webpage = compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err))
-            return
+        webpage = self._download_webpage(url, video_id)
 
         mobj = re.search(r'<meta name="mtv_vt" content="([^"]+)"/>', webpage)
         if mobj is None:
@@ -3534,9 +3503,6 @@ class NBAIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:watch\.|www\.)?nba\.com/(?:nba/)?video(/[^?]*)(\?.*)?$'
     IE_NAME = u'nba'
 
-    def report_extraction(self, video_id):
-        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
@@ -3547,14 +3513,7 @@ class NBAIE(InfoExtractor):
         if video_id.endswith('/index.html'):
             video_id = video_id[:-len('/index.html')]
 
-        self.report_extraction(video_id)
-        try:
-            urlh = compat_urllib_request.urlopen(url)
-            webpage_bytes = urlh.read()
-            webpage = webpage_bytes.decode('utf-8', 'ignore')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.trouble(u'ERROR: unable to download video info XML: %s' % compat_str(err))
-            return
+        webpage = self._download_webpage(url, video_id)
 
         video_url = u'http://ht-mobile.cdn.turner.com/nba/big' + video_id + '_nba_1280x720.mp4'
         def _findProp(rexp, default=None):
@@ -3658,9 +3617,6 @@ class JustinTVIE(InfoExtractor):
 class FunnyOrDieIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?funnyordie\.com/videos/(?P<id>[0-9a-f]+)/.*$'
 
-    def report_extraction(self, video_id):
-        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
@@ -3668,14 +3624,7 @@ class FunnyOrDieIE(InfoExtractor):
             return
 
         video_id = mobj.group('id')
-        self.report_extraction(video_id)
-        try:
-            urlh = compat_urllib_request.urlopen(url)
-            webpage_bytes = urlh.read()
-            webpage = webpage_bytes.decode('utf-8', 'ignore')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.trouble(u'ERROR: unable to download webpage: %s' % compat_str(err))
-            return
+        webpage = self._download_webpage(url, video_id)
 
         m = re.search(r'<video[^>]*>\s*<source[^>]*>\s*<source src="(?P<url>[^"]+)"', webpage, re.DOTALL)
         if not m:
@@ -3705,9 +3654,6 @@ class FunnyOrDieIE(InfoExtractor):
 class TweetReelIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?tweetreel\.com/[?](?P<id>[0-9a-z]+)$'
 
-    def report_extraction(self, video_id):
-        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
@@ -3715,14 +3661,7 @@ class TweetReelIE(InfoExtractor):
             return
 
         video_id = mobj.group('id')
-        self.report_extraction(video_id)
-        try:
-            urlh = compat_urllib_request.urlopen(url)
-            webpage_bytes = urlh.read()
-            webpage = webpage_bytes.decode('utf-8', 'ignore')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.trouble(u'ERROR: unable to download webpage: %s' % compat_str(err))
-            return
+        webpage = self._download_webpage(url, video_id)
 
         m = re.search(r'<div id="left" status_id="([0-9]+)">', webpage)
         if not m:
@@ -3771,35 +3710,23 @@ class SteamIE(InfoExtractor):
     def suitable(self, url):
         """Receives a URL and returns True if suitable for this IE."""
         return re.match(self._VALID_URL, url, re.VERBOSE) is not None
-        
-    def report_download_video_page(self, game_id):
-        self._downloader.to_screen(u'[%s] %s: Downloading video page' % (self.IE_NAME, game_id))
-        
+
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url, re.VERBOSE)
         urlRE = r"'movie_(?P<videoID>\d+)': \{\s*FILENAME: \"(?P<videoURL>[\w:/\.\?=]+)\"(,\s*MOVIE_NAME: \"(?P<videoName>[\w:/\.\?=\+-]+)\")?\s*\},"
         gameID = m.group('gameID')
         videourl = 'http://store.steampowered.com/video/%s/' % gameID
-        try:
-            self.report_download_video_page(gameID)
-            urlh = compat_urllib_request.urlopen(videourl)
-            webpage_bytes = urlh.read()
-            webpage = webpage_bytes.decode('utf-8', 'ignore')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.trouble(u'ERROR: unable to download webpage: %s' % compat_str(err))
-            return
+        webpage = self._download_webpage(videourl, gameID)
         mweb = re.finditer(urlRE, webpage)
         namesRE = r'<span class=\"title\">(?P<videoName>[\w:/\.\?=\+\s-]+)</span>'
         titles = list(re.finditer(namesRE, webpage))
         videos = []
-        i = 0
-        for vid in mweb:
+        for vid,vtitle in zip(mweb,titles):
             video_id = vid.group('videoID')
-            title = titles[i].group('videoName')
-            video_url=vid.group('videoURL')
+            title = vtitle.group('videoName')
+            video_url = vid.group('videoURL')
             if not video_url:
                 self._downloader.trouble(u'ERROR: Cannot find video url for %s' % video_id)
-            i += 1
             info = {
                 'id':video_id,
                 'url':video_url,
