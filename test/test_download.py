@@ -85,6 +85,7 @@ def generator(test_case):
         test_cases = test_case.get('playlist', [test_case])
         for tc in test_cases:
             _try_rm(tc['file'])
+            _try_rm(tc['file'] + '.part')
             _try_rm(tc['file'] + '.info.json')
         try:
             fd.download([test_case['url']])
@@ -107,6 +108,7 @@ def generator(test_case):
         finally:
             for tc in test_cases:
                 _try_rm(tc['file'])
+                _try_rm(tc['file'] + '.part')
                 _try_rm(tc['file'] + '.info.json')
 
     return test_template
