@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import
 
+import base64
 import datetime
 import netrc
 import os
@@ -2824,10 +2825,6 @@ class InfoQIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?infoq\.com/[^/]+/[^/]+$'
     IE_NAME = u'infoq'
 
-    def report_webpage(self, video_id):
-        """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, video_id))
-
     def report_extraction(self, video_id):
         """Report information extraction."""
         self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
@@ -2838,38 +2835,29 @@ class InfoQIE(InfoExtractor):
             self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
             return
 
-        self.report_webpage(url)
-
-        request = compat_urllib_request.Request(url)
-        try:
-            webpage = compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err))
-            return
-
+        webpage = self._download_webpage(url, video_id=url)
         self.report_extraction(url)
-
 
         # Extract video URL
         mobj = re.search(r"jsclassref='([^']*)'", webpage)
         if mobj is None:
             self._downloader.trouble(u'ERROR: unable to extract video url')
             return
-        video_url = 'rtmpe://video.infoq.com/cfx/st/' + compat_urllib_parse.unquote(mobj.group(1).decode('base64'))
-
+        real_id = compat_urllib_parse.unquote(base64.b64decode(mobj.group(1).encode('ascii')).decode('utf-8'))
+        video_url = 'rtmpe://video.infoq.com/cfx/st/' + real_id
 
         # Extract title
         mobj = re.search(r'contentTitle = "(.*?)";', webpage)
         if mobj is None:
             self._downloader.trouble(u'ERROR: unable to extract video title')
             return
-        video_title = mobj.group(1).decode('utf-8')
+        video_title = mobj.group(1)
 
         # Extract description
         video_description = u'No description available.'
         mobj = re.search(r'<meta name="description" content="(.*)"(?:\s*/)?>', webpage)
         if mobj is not None:
-            video_description = mobj.group(1).decode('utf-8')
+            video_description = mobj.group(1)
 
         video_filename = video_url.split('/')[-1]
         video_id, extension = video_filename.split('.')
