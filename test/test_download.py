@@ -60,7 +60,7 @@ class TestDownload(unittest.TestCase):
                     os.remove(fn)
 
 
-### Dinamically generate tests
+### Dynamically generate tests
 def generator(test_case):
 
     def test_template(self):
