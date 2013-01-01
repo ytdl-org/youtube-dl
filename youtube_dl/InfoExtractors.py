@@ -106,12 +106,12 @@ class InfoExtractor(object):
     def IE_NAME(self):
         return type(self).__name__[:-2]
 
-    def _download_webpage(self, url, video_id, note=None, errnote=None):
+    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None):
         if note is None:
             note = u'Downloading video webpage'
         self._downloader.to_screen(u'[%s] %s: %s' % (self.IE_NAME, video_id, note))
         try:
-            urlh = compat_urllib_request.urlopen(url)
+            urlh = compat_urllib_request.urlopen(url_or_request)
             webpage_bytes = urlh.read()
             return webpage_bytes.decode('utf-8', 'replace')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
@@ -675,10 +675,6 @@ class DailymotionIE(InfoExtractor):
     def __init__(self, downloader=None):
         InfoExtractor.__init__(self, downloader)
 
-    def report_download_webpage(self, video_id):
-        """Report webpage download."""
-        self._downloader.to_screen(u'[dailymotion] %s: Downloading webpage' % video_id)
-
     def report_extraction(self, video_id):
         """Report information extraction."""
         self._downloader.to_screen(u'[dailymotion] %s: Extracting information' % video_id)
@@ -697,13 +693,7 @@ class DailymotionIE(InfoExtractor):
         # Retrieve video webpage to extract further information
         request = compat_urllib_request.Request(url)
         request.add_header('Cookie', 'family_filter=off')
-        try:
-            self.report_download_webpage(video_id)
-            webpage_bytes = compat_urllib_request.urlopen(request).read()
-            webpage = webpage_bytes.decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.trouble(u'ERROR: unable retrieve video webpage: %s' % compat_str(err))
-            return
+        webpage = self._download_webpage(request, video_id)
 
         # Extract URL, uploader and title from webpage
         self.report_extraction(video_id)
