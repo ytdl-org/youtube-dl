@@ -313,6 +313,7 @@ def gen_extractors():
         JustinTVIE(),
         FunnyOrDieIE(),
         TweetReelIE(),
+        SteamIE(),
         GenericIE()
     ]
 
