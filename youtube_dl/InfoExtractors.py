@@ -105,6 +105,20 @@ class InfoExtractor(object):
     def IE_NAME(self):
         return type(self).__name__[:-2]
 
+    def _download_webpage(self, url, video_id, note=None, errnote=None):
+        if note is None:
+            note = u'Downloading video webpage'
+        self._downloader.to_screen(u'[%s] %s: %s' % (self.IE_NAME, video_id, note))
+        try:
+            urlh = compat_urllib_request.urlopen(url)
+            webpage_bytes = urlh.read()
+            return webpage_bytes.decode('utf-8', 'replace')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            if errnote is None:
+                errnote = u'Unable to download webpage'
+            raise ExtractorError(u'%s: %s' % (errnote, compat_str(err)))
+
+
 class YoutubeIE(InfoExtractor):
     """Information extractor for youtube.com."""
 
@@ -3803,12 +3817,7 @@ class UstreamIE(InfoExtractor):
         m = re.match(self._VALID_URL, url)
         video_id = m.group('videoID')
         video_url = u'http://tcdn.ustream.tv/video/%s' % video_id
-        try:
-            urlh = compat_urllib_request.urlopen(url)
-            webpage_bytes = urlh.read()
-            webpage = webpage_bytes.decode('utf-8', 'ignore')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'unable to download webpage: %s' % compat_str(err))
+        webpage = self._download_webpage(url, video_id)
         m = re.search(r'data-title="(?P<title>.+)"',webpage)
         title = m.group('title')
         m = re.search(r'<a class="state" data-content-type="channel" data-content-id="(?P<uploader>\d+)"',webpage)
