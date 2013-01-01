@@ -3756,3 +3756,52 @@ class TweetReelIE(InfoExtractor):
             'upload_date': upload_date
         }
         return [info]
+        
+class SteamIE(InfoExtractor):
+    _VALID_URL = r"""http://store.steampowered.com/ 
+                (?P<urltype>video|app)/ #If the page is only for videos or for a game
+                (?P<gameID>\d+)/?
+                (?P<videoID>\d*)(?P<extra>\??) #For urltype == video we sometimes get the videoID
+                """
+    IE_NAME = u'Steam'
+    
+    def suitable(self, url):
+        """Receives a URL and returns True if suitable for this IE."""
+        return re.match(self._VALID_URL, url, re.VERBOSE) is not None
+        
+    def report_download_video_page(self, game_id):
+        self._downloader.to_screen(u'[%s] %s: Downloading video page' % (self.IE_NAME, game_id))
+        
+    def _real_extract(self, url):
+        m = re.match(self._VALID_URL, url, re.VERBOSE)
+        urlRE = r"'movie_(?P<videoID>\d+)': \{\s*FILENAME: \"(?P<videoURL>[\w:/\.\?=]+)\"(,\s*MOVIE_NAME: \"(?P<videoName>[\w:/\.\?=\+-]+)\")?\s*\},"
+        gameID = m.group('gameID')
+        videourl = 'http://store.steampowered.com/video/%s/' % gameID
+        try:
+            self.report_download_video_page(gameID)
+            urlh = compat_urllib_request.urlopen(videourl)
+            webpage_bytes = urlh.read()
+            webpage = webpage_bytes.decode('utf-8', 'ignore')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.trouble(u'ERROR: unable to download webpage: %s' % compat_str(err))
+            return
+        mweb = re.finditer(urlRE, webpage)
+        namesRE = r'<span class=\"title\">(?P<videoName>[\w:/\.\?=\+\s-]+)</span>'
+        titles = list(re.finditer(namesRE, webpage))
+        videos = []
+        i = 0
+        for vid in mweb:
+            video_id = vid.group('videoID')
+            title = titles[i].group('videoName')
+            video_url=vid.group('videoURL')
+            if not video_url:
+                self._downloader.trouble(u'ERROR: Cannot find video url for %s' % video_id)
+            i += 1
+            info = {
+                'id':video_id,
+                'url':video_url,
+                'ext': 'flv',
+                'title': title
+                  }
+            videos.append(info)
+        return videos
