@@ -2821,9 +2821,7 @@ class SoundcloudIE(InfoExtractor):
 
 class InfoQIE(InfoExtractor):
     """Information extractor for infoq.com"""
-
     _VALID_URL = r'^(?:https?://)?(?:www\.)?infoq\.com/[^/]+/[^/]+$'
-    IE_NAME = u'infoq'
 
     def report_extraction(self, video_id):
         """Report information extraction."""
