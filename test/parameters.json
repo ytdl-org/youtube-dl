@@ -35,6 +35,6 @@
     "username": null, 
     "verbose": true, 
     "writedescription": false, 
-    "writeinfojson": false, 
+    "writeinfojson": true, 
     "writesubtitles": false
 }
