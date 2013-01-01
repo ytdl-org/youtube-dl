@@ -74,9 +74,8 @@ def generator(test_case):
             print('Skipping: {0}'.format(test_case['skip']))
             return
 
-        params = dict(self.parameters) # Duplicate it locally
-        for p in test_case.get('params', {}):
-            params[p] = test_case['params'][p]
+        params = self.parameters.copy()
+        params.update(test_case.get('params', {}))
 
         fd = FileDownloader(params)
         fd.add_info_extractor(ie())
