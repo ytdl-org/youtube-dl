@@ -21,6 +21,7 @@ __authors__  = (
     'Filippo Valsorda',
     'Christian Albrecht',
     'Dave Vasilevsky',
+    'Jaime Marquínez Ferrándiz',
     )
 
 __license__ = 'Public Domain'
