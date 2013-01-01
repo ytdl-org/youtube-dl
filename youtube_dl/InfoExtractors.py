@@ -1910,10 +1910,6 @@ class DepositFilesIE(InfoExtractor):
     """Information extractor for depositfiles.com"""
 
     _VALID_URL = r'(?:http://)?(?:\w+\.)?depositfiles\.com/(?:../(?#locale))?files/(.+)'
-    IE_NAME = u'DepositFiles'
-
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
 
     def report_download_webpage(self, file_id):
         """Report webpage download."""
@@ -3222,20 +3218,15 @@ class MTVIE(InfoExtractor):
 
 
 class YoukuIE(InfoExtractor):
-
     _VALID_URL =  r'(?:http://)?v\.youku\.com/v_show/id_(?P<ID>[A-Za-z0-9]+)\.html'
-    IE_NAME = u'Youku'
-
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
 
     def report_download_webpage(self, file_id):
         """Report webpage download."""
-        self._downloader.to_screen(u'[Youku] %s: Downloading webpage' % file_id)
+        self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, file_id))
 
     def report_extraction(self, file_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[Youku] %s: Extracting information' % file_id)
+        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, file_id))
 
     def _gen_sid(self):
         nowTime = int(time.time() * 1000)
@@ -3652,7 +3643,6 @@ class JustinTVIE(InfoExtractor):
 
 class FunnyOrDieIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?funnyordie\.com/videos/(?P<id>[0-9a-f]+)/.*$'
-    IE_NAME = u'FunnyOrDie'
 
     def report_extraction(self, video_id):
         self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
@@ -3763,7 +3753,6 @@ class SteamIE(InfoExtractor):
                 (?P<gameID>\d+)/?
                 (?P<videoID>\d*)(?P<extra>\??) #For urltype == video we sometimes get the videoID
                 """
-    IE_NAME = u'Steam'
 
     def suitable(self, url):
         """Receives a URL and returns True if suitable for this IE."""
