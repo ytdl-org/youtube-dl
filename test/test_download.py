@@ -90,7 +90,8 @@ def generator(test_case):
             fd.download([test_case['url']])
 
             for tc in test_cases:
-                self.assertTrue(os.path.exists(tc['file']))
+                if not test_case.get('params', {}).get('skip_download', False):
+                    self.assertTrue(os.path.exists(tc['file']))
                 self.assertTrue(os.path.exists(tc['file'] + '.info.json'))
                 if 'md5' in tc:
                     md5_for_file = _file_md5(tc['file'])

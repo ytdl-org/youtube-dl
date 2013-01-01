@@ -149,5 +149,16 @@
     "info_dict": {
         "title": "Young Americans for Liberty February 7, 2012 2:28 AM"
     }
+  },
+  {
+    "name": "InfoQ",
+    "url": "http://www.infoq.com/presentations/A-Few-of-My-Favorite-Python-Things",
+    "file": "12-jan-pythonthings.mp4",
+    "info_dict": {
+      "title": "A Few of My Favorite [Python] Things"
+    },
+    "params": {
+      "skip_download": true
+    }
   }
 ]
