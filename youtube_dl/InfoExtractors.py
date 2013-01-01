@@ -3808,8 +3808,7 @@ class UstreamIE(InfoExtractor):
             webpage_bytes = urlh.read()
             webpage = webpage_bytes.decode('utf-8', 'ignore')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.trouble(u'ERROR: unable to download webpage: %s' % compat_str(err))
-            return
+            raise ExtractorError(u'unable to download webpage: %s' % compat_str(err))
         m = re.search(r'data-title="(?P<title>.+)"',webpage)
         title = m.group('title')
         m = re.search(r'<a class="state" data-content-type="channel" data-content-id="(?P<uploader>\d+)"',webpage)

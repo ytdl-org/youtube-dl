@@ -210,7 +210,7 @@ class FileDownloader(object):
         """Checks if the output template is fixed."""
         return (re.search(u'(?u)%\\(.+?\\)s', self.params['outtmpl']) is None)
 
-    def trouble(self, message=None):
+    def trouble(self, message=None, tb=None):
         """Determine action to take when a download problem appears.
 
         Depending on if the downloader has been configured to ignore
@@ -220,7 +220,9 @@ class FileDownloader(object):
         if message is not None:
             self.to_stderr(message)
         if self.params.get('verbose'):
-            self.to_stderr(u''.join(traceback.format_list(traceback.extract_stack())))
+            if tb is None:
+                tb = u''.join(traceback.format_list(traceback.extract_stack()))
+            self.to_stderr(tb)
         if not self.params.get('ignoreerrors', False):
             raise DownloadError(message)
         self._download_retcode = 1
@@ -485,14 +487,24 @@ class FileDownloader(object):
 
                 # Warn if the _WORKING attribute is False
                 if not ie.working():
-                    self.trouble(u'WARNING: the program functionality for this site has been marked as broken, '
-                                 u'and will probably not work. If you want to go on, use the -i option.')
+                    self.to_stderr(u'WARNING: the program functionality for this site has been marked as broken, '
+                                   u'and will probably not work. If you want to go on, use the -i option.')
 
                 # Suitable InfoExtractor found
                 suitable_found = True
 
                 # Extract information from URL and process it
-                videos = ie.extract(url)
+                try:
+                    videos = ie.extract(url)
+                except ExtractorError as de: # An error we somewhat expected
+                    self.trouble(u'ERROR: ' + compat_str(de), compat_str(u''.join(traceback.format_tb(de.traceback))))
+                    break
+                except Exception as e:
+                    if self.params.get('ignoreerrors', False):
+                        self.trouble(u'ERROR: ' + compat_str(e), tb=compat_str(traceback.format_exc()))
+                        break
+                    else:
+                        raise
 
                 if len(videos or []) > 1 and self.fixed_template():
                     raise SameFileError(self.params['outtmpl'])

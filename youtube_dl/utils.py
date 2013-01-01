@@ -410,6 +410,17 @@ def encodeFilename(s):
     else:
         return s.encode(sys.getfilesystemencoding(), 'ignore')
 
+
+class ExtractorError(Exception):
+    """Error during info extraction."""
+    def __init__(self, msg, tb=None):
+        """ tb is the original traceback (so that it can be printed out) """
+        super(ExtractorError, self).__init__(msg)
+        if tb is None:
+            tb = sys.exc_info()[2]
+        self.traceback = tb
+
+
 class DownloadError(Exception):
     """Download Error exception.
 
