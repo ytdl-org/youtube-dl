@@ -3764,7 +3764,7 @@ class SteamIE(InfoExtractor):
                 (?P<videoID>\d*)(?P<extra>\??) #For urltype == video we sometimes get the videoID
                 """
     IE_NAME = u'Steam'
-    
+
     def suitable(self, url):
         """Receives a URL and returns True if suitable for this IE."""
         return re.match(self._VALID_URL, url, re.VERBOSE) is not None
@@ -3833,4 +3833,50 @@ class UstreamIE(InfoExtractor):
                 'uploader': uploader
                   }
         return [info]
-    pass
+
+
+def gen_extractors():
+    """ Return a list of an instance of every supported extractor.
+    The order does matter; the first extractor matched is the one handling the URL.
+    """
+    return [
+        YoutubePlaylistIE(),
+        YoutubeChannelIE(),
+        YoutubeUserIE(),
+        YoutubeSearchIE(),
+        YoutubeIE(),
+        MetacafeIE(),
+        DailymotionIE(),
+        GoogleSearchIE(),
+        PhotobucketIE(),
+        YahooIE(),
+        YahooSearchIE(),
+        DepositFilesIE(),
+        FacebookIE(),
+        BlipTVUserIE(),
+        BlipTVIE(),
+        VimeoIE(),
+        MyVideoIE(),
+        ComedyCentralIE(),
+        EscapistIE(),
+        CollegeHumorIE(),
+        XVideosIE(),
+        SoundcloudIE(),
+        InfoQIE(),
+        MixcloudIE(),
+        StanfordOpenClassroomIE(),
+        MTVIE(),
+        YoukuIE(),
+        XNXXIE(),
+        GooglePlusIE(),
+        ArteTvIE(),
+        NBAIE(),
+        JustinTVIE(),
+        FunnyOrDieIE(),
+        TweetReelIE(),
+        SteamIE(),
+        UstreamIE(),
+        GenericIE()
+    ]
+
+

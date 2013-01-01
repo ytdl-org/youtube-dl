@@ -41,7 +41,7 @@ from .utils import *
 from .update import update_self
 from .version import __version__
 from .FileDownloader import *
-from .InfoExtractors import *
+from .InfoExtractors import gen_extractors
 from .PostProcessor import *
 
 def parseOpts():
@@ -274,50 +274,6 @@ def parseOpts():
     opts, args = parser.parse_args(argv)
 
     return parser, opts, args
-
-def gen_extractors():
-    """ Return a list of an instance of every supported extractor.
-    The order does matter; the first extractor matched is the one handling the URL.
-    """
-    return [
-        YoutubePlaylistIE(),
-        YoutubeChannelIE(),
-        YoutubeUserIE(),
-        YoutubeSearchIE(),
-        YoutubeIE(),
-        MetacafeIE(),
-        DailymotionIE(),
-        GoogleSearchIE(),
-        PhotobucketIE(),
-        YahooIE(),
-        YahooSearchIE(),
-        DepositFilesIE(),
-        FacebookIE(),
-        BlipTVUserIE(),
-        BlipTVIE(),
-        VimeoIE(),
-        MyVideoIE(),
-        ComedyCentralIE(),
-        EscapistIE(),
-        CollegeHumorIE(),
-        XVideosIE(),
-        SoundcloudIE(),
-        InfoQIE(),
-        MixcloudIE(),
-        StanfordOpenClassroomIE(),
-        MTVIE(),
-        YoukuIE(),
-        XNXXIE(),
-        GooglePlusIE(),
-        ArteTvIE(),
-        NBAIE(),
-        JustinTVIE(),
-        FunnyOrDieIE(),
-        TweetReelIE(),
-        SteamIE(),
-        UstreamIE(),
-        GenericIE()
-    ]
 
 def _real_main():
     parser, opts, args = parseOpts()
