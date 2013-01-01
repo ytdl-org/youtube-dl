@@ -54,10 +54,9 @@ class TestDownload(unittest.TestCase):
         self.tearDown()
 
     def tearDown(self):
-        for files in [ test['files'] for test in self.defs ]:
-            for fn, md5 in files:
-                if os.path.exists(fn):
-                    os.remove(fn)
+        for fn in [ test.get('file', False) for test in self.defs ]:
+            if fn and os.path.exists(fn):
+                os.remove(fn)
 
 
 ### Dynamically generate tests
@@ -67,6 +66,9 @@ def generator(test_case):
         ie = getattr(youtube_dl.InfoExtractors, test_case['name'] + 'IE')
         if not ie._WORKING:
             print('Skipping: IE marked as not _WORKING')
+            return
+        if not test_case['file']:
+            print('Skipping: No output file specified')
             return
         if 'skip' in test_case:
             print('Skipping: {0}'.format(test_case['skip']))
@@ -82,11 +84,10 @@ def generator(test_case):
             fd.add_info_extractor(getattr(youtube_dl.InfoExtractors, ien + 'IE')())
         fd.download([test_case['url']])
 
-        for filename, md5 in test_case['files']:
-            self.assertTrue(os.path.exists(filename))
-            if md5:
-                md5_for_file = _file_md5(filename)
-                self.assertEqual(md5_for_file, md5)
+        self.assertTrue(os.path.exists(test_case['file']))
+        if 'md5' in test_case:
+            md5_for_file = _file_md5(test_case['file'])
+            self.assertEqual(md5_for_file, test_case['md5'])
         info_dict = fd.processed_info_dicts[0]
         for (info_field, value) in test_case.get('info_dict', {}).items():
             if value.startswith('md5:'):
