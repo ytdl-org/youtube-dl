@@ -3805,3 +3805,32 @@ class SteamIE(InfoExtractor):
                   }
             videos.append(info)
         return videos
+        
+class UstreamIE(InfoExtractor):
+    _VALID_URL = r'http://www.ustream.tv/recorded/(?P<videoID>\d+)'
+    IE_NAME = u'ustream'
+    
+    def _real_extract(self, url):
+        m = re.match(self._VALID_URL, url)
+        video_id = m.group('videoID')
+        video_url = u'http://tcdn.ustream.tv/video/%s' % video_id
+        try:
+            urlh = compat_urllib_request.urlopen(url)
+            webpage_bytes = urlh.read()
+            webpage = webpage_bytes.decode('utf-8', 'ignore')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.trouble(u'ERROR: unable to download webpage: %s' % compat_str(err))
+            return
+        m = re.search(r'data-title="(?P<title>.+)"',webpage)
+        title = m.group('title')
+        m = re.search(r'<a class="state" data-content-type="channel" data-content-id="(?P<uploader>\d+)"',webpage)
+        uploader = m.group('uploader')
+        info = {
+                'id':video_id,
+                'url':video_url,
+                'ext': 'flv',
+                'title': title,
+                'uploader': uploader
+                  }
+        return [info]
+    pass
