@@ -1,12 +1,16 @@
 #!/bin/sh
 
 # IMPORTANT: the following assumptions are made
-# * you did --set-upstream
+# * the GH repo is on the origin remote
 # * the gh-pages branch is named so locally
 # * the git config user.signingkey is properly set
 
 # You will need
 # pip install coverage nose rsa
+
+# TODO
+# release notes
+# make hash on local files
 
 set -e
 
@@ -34,7 +38,9 @@ git show "$version"
 read -p "Is it good, can I push? (y/n) " -n 1
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then exit 1; fi
 echo
-git push
+MASTER=$(git rev-parse --abbrev-ref HEAD)
+git push origin $MASTER:master
+git push origin "$version"
 
 echo "\n### OK, now it is time to build the binaries..."
 REV=$(git rev-parse HEAD)
@@ -52,7 +58,6 @@ scp -r "update_staging/$version" ytdl@youtube-dl.org:html/downloads/
 rm -r update_staging
 
 echo "\n### Now switching to gh-pages..."
-MASTER=$(git rev-parse --abbrev-ref HEAD)
 git checkout gh-pages
 git checkout "$MASTER" -- devscripts/gh-pages/
 git reset devscripts/gh-pages/
@@ -68,7 +73,8 @@ git show HEAD
 read -p "Is it good, can I push? (y/n) " -n 1
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then exit 1; fi
 echo
-git push
+git push origin gh-pages
 
 echo "\n### DONE!"
+rm -r devscripts
 git checkout $MASTER
