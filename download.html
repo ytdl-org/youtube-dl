@@ -16,23 +16,40 @@
 
 <p>Remember <em>youtube-dl</em> requires <a href="http://www.python.org/">Python</a> version 2.6, 2.7, or 3.3+ to work.</p>
 
-<h2><a href="https://github.com/downloads/rg3/youtube-dl/youtube-dl">2012.12.11</a></h2>
+<h2><a href="http://youtube-dl.org/downloads/2013.01.02/youtube-dl">2013.01.02</a> (<a href="http://youtube-dl.org/downloads/2013.01.02/youtube-dl.sig">sig</a>)</h2>
 
-<p>To install it right away for all users, type:
-<code style="display:block; margin-top: 0.4em; padding: 0.7em; background: #ccc; background: rgba(200, 200, 200, 0.4); white-space: pre;">sudo wget https://github.com/downloads/rg3/youtube-dl/youtube-dl -O /usr/local/bin/youtube-dl
+<ul>
+<li><strong>MD5</strong>: 386bfb99dd037e3032ae1911158b8049</li>
+<li><strong>SHA1</strong>: dd44e44c3f62b065ad7fd0661905e4d82233e5ec</li>
+<li><strong>SHA256</strong>: f5b502f8aaa77675c4884938b1e4871ebca2611813a0c0e74f60c0fbd6dcca6b</li>
+</ul>
+
+<p>
+	<a href="http://youtube-dl.org/downloads/2013.01.02/youtube-dl.exe">Windows exe</a> (<a href="http://youtube-dl.org/downloads/2013.01.02/youtube-dl.exe.sig">sig</a> - 75fa89d2ce297d102ff27675aa9d92545bbc91013f52ec52868c069f4f9f0422)<br>
+	<a href="http://youtube-dl.org/downloads/2013.01.02/youtube-dl-2013.01.02.tar.gz">Full source + docs + binary tarball</a> (<a href="http://youtube-dl.org/downloads/2013.01.02/youtube-dl-2013.01.02.tar.gz.sig">sig</a> - 6a66d022ac8e1c13da284036288a133ec8dba003b7bd3a5179d0c0daca8c8196)
+</p>
+
+<p>To install it right away for all UNIX users (Linux, OS X, etc.), type:
+<code style="display:block; margin-top: 0.4em; padding: 0.7em; background: #ccc; background: rgba(200, 200, 200, 0.4); white-space: pre;">sudo wget http://youtube-dl.org/downloads/2013.01.02/youtube-dl -O /usr/local/bin/youtube-dl
 sudo chmod a+x /usr/local/bin/youtube-dl</code>
 </p>
 
+<p>To check the signature, type:
+<code style="display:block; margin-top: 0.4em; padding: 0.7em; background: #ccc; background: rgba(200, 200, 200, 0.4); white-space: pre;">sudo wget http://youtube-dl.org/downloads/2013.01.02/youtube-dl.sig -O youtube-dl.sig
+gpg --verify youtube-dl.sig /usr/local/bin/youtube-dl
+rm youtube-dl.sig</code>
+</p>
+
+<p>The following GPG keys will be used to sign the binaries and the git tags:</p>
 <ul>
-<li><strong>MD5</strong>: a73e1d6f59e34d1231cf5788b31fa177</li>
-<li><strong>SHA1</strong>: aa45f8e32c637a2342674f32d1ca9e8f70bf695c</li>
-<li><strong>SHA256</strong>: e2109ac82b05f910828a12b2de0d8e5d3b29b0ed9e2daeb68badb1fce8c1ec7a</li>
+<li><strong>1024D/FAFB085C</strong> Philipp Hagemeister <code>Key fingerprint = 0600 E1DB 6FB5 3A5D 95D8  FC0D F5EA B582 FAFB 085C</code></li>
+<li><strong>4096R/D977155C</strong> Filippo Valsorda <code>Key fingerprint = 9524 4D9F EE39 0B71 25A3  4708 3CD8 8EE0 D977 155C</code></li>
 </ul>
 
 <div class="note">
 <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">
 <img alt="Creative Commons License" style="border-width:0"
 src="http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png" /></a><br />
-Copyright © 2006-2012 Ricardo Garcia Gonzalez</div>
+Copyright © 2006-2013 Ricardo Garcia Gonzalez</div>
 </body>
 </html>
