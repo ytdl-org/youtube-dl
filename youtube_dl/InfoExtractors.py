@@ -412,7 +412,7 @@ class YoutubeIE(InfoExtractor):
 
         # uploader_id
         video_uploader_id = None
-        mobj = re.search(r'<link itemprop="url" href="http://www.youtube.com/user/([^"]+)">', video_webpage)
+        mobj = re.search(r'<link itemprop="url" href="http://www.youtube.com/(?:user|channel)/([^"]+)">', video_webpage)
         if mobj is not None:
             video_uploader_id = mobj.group(1)
         else:
