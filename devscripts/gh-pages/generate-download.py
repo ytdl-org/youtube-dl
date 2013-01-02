@@ -4,18 +4,13 @@ import shutil
 import subprocess
 import tempfile
 import urllib.request
+import json
 
-URL = 'https://github.com/downloads/rg3/youtube-dl/youtube-dl'
+versions_info = json.load(open('update/versions.json'))
+version = versions_info['latest']
+URL = versions_info['versions'][version]['bin'][0]
 
-with tempfile.NamedTemporaryFile(suffix='youtube-dl', delete=True) as ytdl_file:
-    with urllib.request.urlopen(URL) as dl:
-        shutil.copyfileobj(dl, ytdl_file)
-
-    ytdl_file.seek(0)
-    data = ytdl_file.read()
-
-    ytdl_file.flush()
-    version = subprocess.check_output(['python3', ytdl_file.name, '--version']).decode('ascii').strip()
+data = urllib.request.urlopen(URL).read()
 
 # Read template page
 with open('download.html.in', 'r', encoding='utf-8') as tmplf:
@@ -29,5 +24,9 @@ template = template.replace('@PROGRAM_URL@', URL)
 template = template.replace('@PROGRAM_MD5SUM@', md5sum)
 template = template.replace('@PROGRAM_SHA1SUM@', sha1sum)
 template = template.replace('@PROGRAM_SHA256SUM@', sha256sum)
+template = template.replace('@EXE_URL@', versions_info['versions'][version]['exe'][0])
+template = template.replace('@EXE_SHA256SUM@', versions_info['versions'][version]['exe'][1])
+template = template.replace('@TAR_URL@', versions_info['versions'][version]['tar'][0])
+template = template.replace('@TAR_SHA256SUM@', versions_info['versions'][version]['tar'][1])
 with open('download.html', 'w', encoding='utf-8') as dlf:
     dlf.write(template)
