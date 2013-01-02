@@ -1,0 +1,14 @@
+2013.01.02  Codename: GIULIA
+
+    * Add support for ComedyCentral clips <nto>
+    * Corrected Vimeo description fetching <Nick Daniels>
+    * Added the --no-post-overwrites argument <Barbu Paul - Gheorghe>
+    * --verbose offers more environment info
+    * New info_dict field: uploader_id
+    * New updates system, with signature checking
+    * New IEs: NBA, JustinTV, FunnyOrDie, TweetReel, Steam, Ustream
+    * Fixed IEs: BlipTv
+    * Fixed for Python 3 IEs: Xvideo, Youku, XNXX, Dailymotion, Vimeo, InfoQ
+    * Simplified IEs and test code
+    * Various (Python 3 and other) fixes
+    * Revamped and expanded tests
