@@ -8,7 +8,7 @@ notifications:
   email:
     - filippo.valsorda@gmail.com
     - phihag@phihag.de
-  irc:
-    channels:
-      - "irc.freenode.org#youtube-dl"
-    skip_join: true
+#  irc:
+#    channels:
+#      - "irc.freenode.org#youtube-dl"
+#    skip_join: true
