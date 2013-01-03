@@ -537,7 +537,7 @@ class FileDownloader(object):
             if info is None:
                 break
 
-    def _download_with_rtmpdump(self, filename, url, player_url):
+    def _download_with_rtmpdump(self, filename, url, player_url, page_url):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
 
@@ -551,7 +551,11 @@ class FileDownloader(object):
         # Download using rtmpdump. rtmpdump returns exit code 2 when
         # the connection was interrumpted and resuming appears to be
         # possible. This is part of rtmpdump's normal usage, AFAIK.
-        basic_args = ['rtmpdump', '-q'] + [[], ['-W', player_url]][player_url is not None] + ['-r', url, '-o', tmpfilename]
+        basic_args = ['rtmpdump', '-q', '-r', url, '-o', tmpfilename]
+        if player_url is not None:
+            basic_args += ['-W', player_url]
+        if page_url is not None:
+            basic_args += ['--pageUrl', page_url]
         args = basic_args + [[], ['-e', '-k', '1']][self.params.get('continuedl', False)]
         if self.params.get('verbose', False):
             try:
@@ -584,7 +588,6 @@ class FileDownloader(object):
 
     def _do_download(self, filename, info_dict):
         url = info_dict['url']
-        player_url = info_dict.get('player_url', None)
 
         # Check file already present
         if self.params.get('continuedl', False) and os.path.isfile(encodeFilename(filename)) and not self.params.get('nopart', False):
@@ -593,7 +596,9 @@ class FileDownloader(object):
 
         # Attempt to download using rtmpdump
         if url.startswith('rtmp'):
-            return self._download_with_rtmpdump(filename, url, player_url)
+            return self._download_with_rtmpdump(filename, url,
+                                                info_dict.get('player_url', None),
+                                                info_dict.get('page_url', None))
 
         tmpfilename = self.temp_name(filename)
         stream = None
