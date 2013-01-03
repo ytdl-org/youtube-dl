@@ -216,12 +216,15 @@ class FileDownloader(object):
         Depending on if the downloader has been configured to ignore
         download errors or not, this method may throw an exception or
         not when errors are found, after printing the message.
+
+        tb, if given, is additional traceback information.
         """
         if message is not None:
             self.to_stderr(message)
         if self.params.get('verbose'):
             if tb is None:
-                tb = u''.join(traceback.format_list(traceback.extract_stack()))
+                tb_data = traceback.format_list(traceback.extract_stack())
+                tb = u''.join(tb_data)
             self.to_stderr(tb)
         if not self.params.get('ignoreerrors', False):
             raise DownloadError(message)
@@ -497,7 +500,7 @@ class FileDownloader(object):
                 try:
                     videos = ie.extract(url)
                 except ExtractorError as de: # An error we somewhat expected
-                    self.trouble(u'ERROR: ' + compat_str(de), compat_str(u''.join(traceback.format_tb(de.traceback))))
+                    self.trouble(u'ERROR: ' + compat_str(de), de.format_traceback())
                     break
                 except Exception as e:
                     if self.params.get('ignoreerrors', False):

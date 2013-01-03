@@ -8,6 +8,7 @@ import locale
 import os
 import re
 import sys
+import traceback
 import zlib
 import email.utils
 import json
@@ -414,11 +415,14 @@ def encodeFilename(s):
 class ExtractorError(Exception):
     """Error during info extraction."""
     def __init__(self, msg, tb=None):
-        """ tb is the original traceback (so that it can be printed out) """
+        """ tb, if given, is the original traceback (so that it can be printed out). """
         super(ExtractorError, self).__init__(msg)
-        if tb is None:
-            tb = sys.exc_info()[2]
         self.traceback = tb
+
+    def format_traceback(self):
+        if self.traceback is None:
+            return None
+        return u''.join(traceback.format_tb(self.traceback))
 
 
 class DownloadError(Exception):
