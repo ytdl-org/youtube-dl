@@ -3694,8 +3694,8 @@ class SteamIE(InfoExtractor):
         videourl = 'http://store.steampowered.com/video/%s/' % gameID
         webpage = self._download_webpage(videourl, gameID)
         mweb = re.finditer(urlRE, webpage)
-        namesRE = r'<span class="title">(?P<videoName>.+)</span>'
-        titles = list(re.finditer(namesRE, webpage))
+        namesRE = r'<span class="title">(?P<videoName>.+?)</span>'
+        titles = re.finditer(namesRE, webpage)
         videos = []
         unescaper = compat_html_parser.HTMLParser()
         for vid,vtitle in zip(mweb,titles):
@@ -3708,7 +3708,7 @@ class SteamIE(InfoExtractor):
                 'id':video_id,
                 'url':video_url,
                 'ext': 'flv',
-                'title': unescaper.unescape(title)
+                'title': unescapeHTML(title)
                   }
             videos.append(info)
         return videos
