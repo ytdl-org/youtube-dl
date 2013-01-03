@@ -3697,7 +3697,6 @@ class SteamIE(InfoExtractor):
         namesRE = r'<span class="title">(?P<videoName>.+?)</span>'
         titles = re.finditer(namesRE, webpage)
         videos = []
-        unescaper = compat_html_parser.HTMLParser()
         for vid,vtitle in zip(mweb,titles):
             video_id = vid.group('videoID')
             title = vtitle.group('videoName')
