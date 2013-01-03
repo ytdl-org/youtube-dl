@@ -50,10 +50,14 @@ wget "http://jeromelaheurte.net:8142/download/rg3/youtube-dl/youtube-dl.exe?rev=
 mkdir -p "update_staging/$version"
 mv youtube-dl youtube-dl.exe "update_staging/$version"
 mv youtube-dl.tar.gz "update_staging/$version/youtube-dl-$version.tar.gz"
+RELEASE_FILES=youtube-dl youtube-dl.exe youtube-dl-$version.tar.gz
+(cd update_staging/$version/ && md5sum $RELEASE_FILES > MD5SUMS)
+(cd update_staging/$version/ && sha1sum $RELEASE_FILES > SHA1SUMS)
+(cd update_staging/$version/ && sha512sum $RELEASE_FILES > SHA512SUMS)
 git checkout HEAD -- youtube-dl youtube-dl.exe
 
 echo "\n### Signing and uploading the new binaries to youtube-dl.org..."
-for f in update_staging/$version/*; do gpg --detach-sig "$f"; done
+for f in $RELEASE_FILES; do gpg --detach-sig "update_staging/$version/$f"; done
 scp -r "update_staging/$version" ytdl@youtube-dl.org:html/downloads/
 rm -r update_staging
 
