@@ -30,7 +30,7 @@ which means you can modify it, redistribute it or use it however you like.
     --list-extractors        List all supported extractors and the URLs they
                              would handle
 
-  Video Selection:
+## Video Selection:
     --playlist-start NUMBER  playlist video to start at (default is 1)
     --playlist-end NUMBER    playlist video to end at (default is last)
     --match-title REGEX      download only matching titles (regex or caseless
@@ -39,7 +39,7 @@ which means you can modify it, redistribute it or use it however you like.
                              caseless sub-string)
     --max-downloads NUMBER   Abort after downloading NUMBER files
 
-  Filesystem Options:
+## Filesystem Options:
     -t, --title              use title in file name
     --id                     use video ID in file name
     -l, --literal            [deprecated] alias of --title
@@ -70,7 +70,7 @@ which means you can modify it, redistribute it or use it however you like.
     --write-description      write video description to a .description file
     --write-info-json        write video metadata to a .info.json file
 
-  Verbosity / Simulation Options:
+## Verbosity / Simulation Options:
     -q, --quiet              activates quiet mode
     -s, --simulate           do not download the video and do not write anything
                              to disk
@@ -85,7 +85,7 @@ which means you can modify it, redistribute it or use it however you like.
     --console-title          display progress in console titlebar
     -v, --verbose            print various debugging information
 
-  Video Format Options:
+## Video Format Options:
     -f, --format FORMAT      video format code
     --all-formats            download all available video formats
     --prefer-free-formats    prefer free video formats unless a specific one is
@@ -97,12 +97,12 @@ which means you can modify it, redistribute it or use it however you like.
     --srt-lang LANG          language of the closed captions to download
                              (optional) use IETF language tags like 'en'
 
-  Authentication Options:
+## Authentication Options:
     -u, --username USERNAME  account username
     -p, --password PASSWORD  account password
     -n, --netrc              use .netrc authentication data
 
-  Post-processing Options:
+## Post-processing Options:
     -x, --extract-audio      convert video files to audio-only files (requires
                              ffmpeg or avconv and ffprobe or avprobe)
     --audio-format FORMAT    "best", "aac", "vorbis", "mp3", "m4a", or "wav";
@@ -172,7 +172,7 @@ youtube requires an additional signature since September 2012 which is not suppo
 The error
 
     File "youtube-dl", line 2
-    SyntaxError: Non-ASCII character '“' ...
+    SyntaxError: Non-ASCII character '\x93' ...
 
 means you're using an outdated version of Python. Please update to Python 2.6 or 2.7.
 
