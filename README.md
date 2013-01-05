@@ -1,4 +1,4 @@
-% youtube-dl(1)
+% YOUTUBE-DL(1)
 
 # NAME
 youtube-dl
@@ -20,6 +20,11 @@ which means you can modify it, redistribute it or use it however you like.
     -i, --ignore-errors      continue on download errors
     -r, --rate-limit LIMIT   download rate limit (e.g. 50k or 44.6m)
     -R, --retries RETRIES    number of retries (default is 10)
+    --buffer-size SIZE       size of download buffer (e.g. 1024 or 16k) (default
+                             is 1024)
+    --no-resize-buffer       do not automatically adjust the buffer size. By
+                             default, the buffer size is automatically resized
+                             from an initial value of SIZE.
     --dump-user-agent        display the current browser identification
     --user-agent UA          specify a custom user agent
     --list-extractors        List all supported extractors and the URLs they
@@ -37,16 +42,22 @@ which means you can modify it, redistribute it or use it however you like.
   Filesystem Options:
     -t, --title              use title in file name
     --id                     use video ID in file name
-    -l, --literal            use literal title in file name
+    -l, --literal            [deprecated] alias of --title
     -A, --auto-number        number downloaded files starting from 00000
-    -o, --output TEMPLATE    output filename template. Use %(stitle)s to get the
+    -o, --output TEMPLATE    output filename template. Use %(title)s to get the
                              title, %(uploader)s for the uploader name,
-                             %(autonumber)s to get an automatically incremented
-                             number, %(ext)s for the filename extension,
-                             %(upload_date)s for the upload date (YYYYMMDD),
-                             %(extractor)s for the provider (youtube, metacafe,
-                             etc), %(id)s for the video id and %% for a literal
-                             percent. Use - to output to stdout.
+                             %(uploader_id)s for the uploader nickname if
+                             different, %(autonumber)s to get an automatically
+                             incremented number, %(ext)s for the filename
+                             extension, %(upload_date)s for the upload date
+                             (YYYYMMDD), %(extractor)s for the provider
+                             (youtube, metacafe, etc), %(id)s for the video id
+                             and %% for a literal percent. Use - to output to
+                             stdout. Can also be used to download to a different
+                             directory, for example with -o '/my/downloads/%(upl
+                             oader)s/%(title)s-%(id)s.%(ext)s' .
+    --restrict-filenames     Restrict filenames to only ASCII characters, and
+                             avoid "&" and spaces in filenames
     -a, --batch-file FILE    file containing URLs to download ('-' for stdin)
     -w, --no-overwrites      do not overwrite files
     -c, --continue           resume partially downloaded files
@@ -101,6 +112,34 @@ which means you can modify it, redistribute it or use it however you like.
                              specific bitrate like 128K (default 5)
     -k, --keep-video         keeps the video file on disk after the post-
                              processing; the video is erased by default
+    --no-post-overwrites     do not overwrite post-processed files; the post-
+                             processed files are overwritten by default
+
+# CONFIGURATION
+
+You can configure youtube-dl by placing default arguments (such as `--extract-audio --no-mtime` to always extract the audio and not copy the mtime) into `/etc/youtube-dl.conf` and/or `~/.local/config/youtube-dl.conf`.
+
+# OUTPUT TEMPLATE
+
+The `-o` option allows users to indicate a template for the output file names. The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "http://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences have the format `%(NAME)s`. To clarify, that is a percent symbol followed by a name in parenthesis, followed by a lowercase S. Allowed names are:
+
+ - `id`: The sequence will be replaced by the video identifier.
+ - `url`: The sequence will be replaced by the video URL.
+ - `uploader`: The sequence will be replaced by the nickname of the person who uploaded the video.
+ - `upload_date`: The sequence will be replaced by the upload date in YYYYMMDD format.
+ - `title`: The sequence will be replaced by the video title.
+ - `ext`: The sequence will be replaced by the appropriate extension (like flv or mp4).
+ - `epoch`: The sequence will be replaced by the Unix epoch when creating the file.
+ - `autonumber`: The sequence will be replaced by a five-digit number that will be increased with each download, starting at zero.
+
+The current default template is `%(id)s.%(ext)s`, but that will be switchted to `%(title)s-%(id)s.%(ext)s` (which can be requested with `-t` at the moment).
+
+In some cases, you don't want special characters such as 中, spaces, or &, such as when transferring the downloaded filename to a Windows system or the filename through an 8bit-unsafe channel. In these cases, add the `--restrict-filenames` flag to get a shorter title:
+
+    $ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc
+    youtube-dl test video ''_ä↭𝕐.mp4    # All kinds of weird characters
+    $ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc --restrict-filenames
+    youtube-dl_test_video_.mp4          # A simple file name
 
 # FAQ
 
@@ -137,17 +176,9 @@ The error
 
 means you're using an outdated version of Python. Please update to Python 2.6 or 2.7.
 
-To run youtube-dl under Python 2.5, you'll have to manually check it out like this:
-
-	git clone git://github.com/rg3/youtube-dl.git
-	cd youtube-dl
-	python -m youtube_dl --help
-
-Please note that Python 2.5 is not supported anymore.
-
 ### What is this binary file? Where has the code gone?
 
-Since June 2012 (#342) youtube-dl is packed as an executable zipfile, simply unzip it (might need renaming to `youtube-dl.zip` first on some systems) or clone the git repo to see the code. If you modify the code, you can run it by executing the `__main__.py` file. To recompile the executable, run `make compile`.
+Since June 2012 (#342) youtube-dl is packed as an executable zipfile, simply unzip it (might need renaming to `youtube-dl.zip` first on some systems) or clone the git repository, as laid out above. If you modify the code, you can run it by executing the `__main__.py` file. To recompile the executable, run `make youtube-dl`.
 
 ### The exe throws a *Runtime error from Visual C++*
 
@@ -166,6 +197,9 @@ Bugs and suggestions should be reported at: <https://github.com/rg3/youtube-dl/i
 Please include:
 
 * Your exact command line, like `youtube-dl -t "http://www.youtube.com/watch?v=uHlDtZ6Oc3s&feature=channel_video_title"`. A common mistake is not to escape the `&`. Putting URLs in quotes should solve this problem.
+* If possible re-run the command with `--verbose`, and include the full output, it is really helpful to us.
 * The output of `youtube-dl --version`
 * The output of `python --version`
 * The name and version of your Operating System ("Ubuntu 11.04 x64" or "Windows 7 x64" is usually enough).
+
+For discussions, join us in the irc channel #youtube-dl on freenode.
