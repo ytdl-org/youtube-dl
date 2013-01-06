@@ -4073,9 +4073,9 @@ def gen_extractors():
         MTVIE(),
         YoukuIE(),
         XNXXIE(),
-        YouJizzIE(),       # jefftimesten
-        PornotubeIE(),     # jefftimesten
-        YouPornIE(),       # jefftimesten
+        YouJizzIE(),
+        PornotubeIE(),
+        YouPornIE(),
         GooglePlusIE(),
         ArteTvIE(),
         NBAIE(),
