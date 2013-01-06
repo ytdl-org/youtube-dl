@@ -70,9 +70,7 @@ devscripts/gh-pages/add-version.py $version
 devscripts/gh-pages/sign-versions.py < updates_key.pem
 devscripts/gh-pages/generate-download.py
 devscripts/gh-pages/update-copyright.py
-rm -r test_coverage
-mv cover test_coverage
-git add *.html *.html.in update test_coverage
+git add *.html *.html.in update
 git commit -m "release $version"
 git show HEAD
 read -p "Is it good, can I push? (y/n) " -n 1
