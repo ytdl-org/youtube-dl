@@ -20,7 +20,9 @@ test:
 	#nosetests --with-coverage --cover-package=youtube_dl --cover-html --verbose --processes 4 test
 	nosetests --verbose test
 
-.PHONY: all clean install test
+tar: youtube-dl.tar.gz
+
+.PHONY: all clean install test tar
 
 youtube-dl: youtube_dl/*.py
 	zip --quiet youtube-dl youtube_dl/*.py
@@ -43,5 +45,22 @@ youtube-dl.bash-completion: youtube_dl/*.py devscripts/bash-completion.in
 	python devscripts/bash-completion.py
 
 youtube-dl.tar.gz: all
-	tar -cvzf youtube-dl.tar.gz -s "|^./|./youtube-dl/|" \
-		--exclude-from=".tarignore" -- .
+	@tar -czf youtube-dl.tar.gz --transform "s|^./|./youtube-dl/|" --owner 0 --group 0 \
+		--exclude-vcs \
+		--exclude '*.DS_Store' \
+		--exclude '*.kate-swp' \
+		--exclude '*.pyc' \
+		--exclude '*.pyo' \
+		--exclude '*~' \
+		--exclude '__pycache' \
+		--exclude 'build' \
+		--exclude 'cover' \
+		--exclude '.coverage' \
+		--exclude 'dist' \
+		--exclude 'MANIFEST' \
+		--exclude 'py2exe.log' \
+		--exclude 'updates_key.pem' \
+		--exclude 'wine-py2exe' \
+		--exclude 'youtube-dl.exe' \
+		--exclude 'youtube-dl.tar.gz' \
+		-- .
