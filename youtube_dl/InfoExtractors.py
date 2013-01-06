@@ -2361,15 +2361,11 @@ class ComedyCentralIE(InfoExtractor):
     def report_extraction(self, episode_id):
         self._downloader.to_screen(u'[comedycentral] %s: Extracting information' % episode_id)
 
-    def report_config_download(self, episode_id):
-        self._downloader.to_screen(u'[comedycentral] %s: Downloading configuration' % episode_id)
+    def report_config_download(self, episode_id, media_id):
+        self._downloader.to_screen(u'[comedycentral] %s: Downloading configuration for %s' % (episode_id, media_id))
 
     def report_index_download(self, episode_id):
         self._downloader.to_screen(u'[comedycentral] %s: Downloading show index' % episode_id)
-
-    def report_player_url(self, episode_id):
-        self._downloader.to_screen(u'[comedycentral] %s: Determining player URL' % episode_id)
-
 
     def _print_formats(self, formats):
         print('Available formats:')
@@ -2437,15 +2433,6 @@ class ComedyCentralIE(InfoExtractor):
             else:
                 mMovieParams = [("http://media.mtvnservices.com/" + altMovieParams[0], altMovieParams[0])]
 
-        playerUrl_raw = mMovieParams[0][0]
-        self.report_player_url(epTitle)
-        try:
-            urlHandle = compat_urllib_request.urlopen(playerUrl_raw)
-            playerUrl = urlHandle.geturl()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.trouble(u'ERROR: unable to find out player URL: ' + compat_str(err))
-            return
-
         uri = mMovieParams[0][1]
         indexUrl = 'http://shadow.comedycentral.com/feeds/video_player/mrss/?' + compat_urllib_parse.urlencode({'uri': uri})
         self.report_index_download(epTitle)
@@ -2469,7 +2456,7 @@ class ComedyCentralIE(InfoExtractor):
             configUrl = ('http://www.comedycentral.com/global/feeds/entertainment/media/mediaGenEntertainment.jhtml?' +
                         compat_urllib_parse.urlencode({'uri': mediaId}))
             configReq = compat_urllib_request.Request(configUrl)
-            self.report_config_download(epTitle)
+            self.report_config_download(epTitle, shortMediaId)
             try:
                 configXml = compat_urllib_request.urlopen(configReq).read()
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
@@ -2491,7 +2478,7 @@ class ComedyCentralIE(InfoExtractor):
                 return
 
             # For now, just pick the highest bitrate
-            format,video_url = turls[-1]
+            format,rtmp_video_url = turls[-1]
 
             # Get the format arg from the arg stream
             req_format = self._downloader.params.get('format', None)
@@ -2499,16 +2486,14 @@ class ComedyCentralIE(InfoExtractor):
             # Select format if we can find one
             for f,v in turls:
                 if f == req_format:
-                    format, video_url = f, v
+                    format, rtmp_video_url = f, v
                     break
 
-            # Patch to download from alternative CDN, which does not
-            # break on current RTMPDump builds
-            broken_cdn = "rtmpe://viacomccstrmfs.fplive.net/viacomccstrm/gsp.comedystor/"
-            better_cdn = "rtmpe://cp10740.edgefcs.net/ondemand/mtvnorigin/gsp.comedystor/"
-
-            if video_url.startswith(broken_cdn):
-                video_url = video_url.replace(broken_cdn, better_cdn)
+            m = re.match(r'^rtmpe?://.*?/(?P<finalid>gsp.comedystor/.*)$', rtmp_video_url)
+            if not m:
+                raise ExtractorError(u'Cannot transform RTMP url')
+            base = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=1+_pxI0=Ripod-h264+_pxL0=undefined+_pxM0=+_pxK=18639+_pxE=mp4/44620/mtvnorigin/'
+            video_url = base + m.group('finalid')
 
             effTitle = showId + u'-' + epTitle
             info = {
@@ -2521,9 +2506,7 @@ class ComedyCentralIE(InfoExtractor):
                 'format': format,
                 'thumbnail': None,
                 'description': officialTitle,
-                'player_url': None #playerUrl
             }
-
             results.append(info)
 
         return results
@@ -2602,7 +2585,6 @@ class EscapistIE(InfoExtractor):
         }
 
         return [info]
-
 
 class CollegeHumorIE(InfoExtractor):
     """Information extractor for collegehumor.com"""
