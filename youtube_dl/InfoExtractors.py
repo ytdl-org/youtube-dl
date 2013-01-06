@@ -2333,7 +2333,6 @@ class ComedyCentralIE(InfoExtractor):
                               (the-colbert-report-(videos|collections)/(?P<clipID>[0-9]+)/[^/]*/(?P<cntitle>.*?))
                               |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*)))))
                      $"""
-    IE_NAME = u'comedycentral'
 
     _available_formats = ['3500', '2200', '1700', '1200', '750', '400']
 
@@ -2446,7 +2445,7 @@ class ComedyCentralIE(InfoExtractor):
 
         idoc = xml.etree.ElementTree.fromstring(indexXml)
         itemEls = idoc.findall('.//item')
-        for itemEl in itemEls:
+        for partNum,itemEl in enumerate(itemEls):
             mediaId = itemEl.findall('./guid')[0].text
             shortMediaId = mediaId.split(':')[-1]
             showId = mediaId.split(':')[-2].replace('.com', '')
@@ -2495,7 +2494,7 @@ class ComedyCentralIE(InfoExtractor):
             base = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=1+_pxI0=Ripod-h264+_pxL0=undefined+_pxM0=+_pxK=18639+_pxE=mp4/44620/mtvnorigin/'
             video_url = base + m.group('finalid')
 
-            effTitle = showId + u'-' + epTitle
+            effTitle = showId + u'-' + epTitle + u' part ' + compat_str(partNum+1)
             info = {
                 'id': shortMediaId,
                 'url': video_url,
