@@ -50,7 +50,7 @@ wget "http://jeromelaheurte.net:8142/download/rg3/youtube-dl/youtube-dl.exe?rev=
 mkdir -p "update_staging/$version"
 mv youtube-dl youtube-dl.exe "update_staging/$version"
 mv youtube-dl.tar.gz "update_staging/$version/youtube-dl-$version.tar.gz"
-RELEASE_FILES=youtube-dl youtube-dl.exe youtube-dl-$version.tar.gz
+RELEASE_FILES="youtube-dl youtube-dl.exe youtube-dl-$version.tar.gz"
 (cd update_staging/$version/ && md5sum $RELEASE_FILES > MD5SUMS)
 (cd update_staging/$version/ && sha1sum $RELEASE_FILES > SHA1SUMS)
 (cd update_staging/$version/ && sha256sum $RELEASE_FILES > SHA2-256SUMS)
