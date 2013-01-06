@@ -2404,6 +2404,7 @@ class ComedyCentralIE(InfoExtractor):
         try:
             htmlHandle = compat_urllib_request.urlopen(req)
             html = htmlHandle.read()
+            webpage = html.decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             self._downloader.trouble(u'ERROR: unable to download webpage: %s' % compat_str(err))
             return
@@ -2418,14 +2419,14 @@ class ComedyCentralIE(InfoExtractor):
                 return
             epTitle = mobj.group('episode')
 
-        mMovieParams = re.findall('(?:<param name="movie" value="|var url = ")(http://media.mtvnservices.com/([^"]*(?:episode|video).*?:.*?))"', html)
+        mMovieParams = re.findall('(?:<param name="movie" value="|var url = ")(http://media.mtvnservices.com/([^"]*(?:episode|video).*?:.*?))"', webpage)
 
         if len(mMovieParams) == 0:
             # The Colbert Report embeds the information in a without
             # a URL prefix; so extract the alternate reference
             # and then add the URL prefix manually.
 
-            altMovieParams = re.findall('data-mgid="([^"]*(?:episode|video).*?:.*?)"', html)
+            altMovieParams = re.findall('data-mgid="([^"]*(?:episode|video).*?:.*?)"', webpage)
             if len(altMovieParams) == 0:
                 self._downloader.trouble(u'ERROR: unable to find Flash URL in webpage ' + url)
                 return
