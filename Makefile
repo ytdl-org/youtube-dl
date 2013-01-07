@@ -45,22 +45,16 @@ youtube-dl.bash-completion: youtube_dl/*.py devscripts/bash-completion.in
 	python devscripts/bash-completion.py
 
 youtube-dl.tar.gz: all
-	@tar -czf youtube-dl.tar.gz --transform "s|^./|./youtube-dl/|" --owner 0 --group 0 \
-		--exclude-vcs \
+	@tar -czf youtube-dl.tar.gz --transform "s|^|youtube-dl/|" --owner 0 --group 0 \
 		--exclude '*.DS_Store' \
 		--exclude '*.kate-swp' \
 		--exclude '*.pyc' \
 		--exclude '*.pyo' \
 		--exclude '*~' \
 		--exclude '__pycache' \
-		--exclude 'build' \
-		--exclude 'cover' \
-		--exclude '.coverage' \
-		--exclude 'dist' \
-		--exclude 'MANIFEST' \
-		--exclude 'py2exe.log' \
-		--exclude 'updates_key.pem' \
-		--exclude 'wine-py2exe' \
-		--exclude 'youtube-dl.exe' \
-		--exclude 'youtube-dl.tar.gz' \
-		-- .
+		--exclude '.git' \
+		-- \
+		bin devscripts test youtube_dl \
+		CHANGELOG LICENSE README.md README.txt \
+		MANIFEST.in youtube-dl.1 youtube-dl.bash-completion setup.py \
+		youtube-dl
