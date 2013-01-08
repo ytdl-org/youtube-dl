@@ -3524,17 +3524,23 @@ class JustinTVIE(InfoExtractor):
             return
 
         response = json.loads(webpage)
+        if type(response) != list:
+            error_text = response.get('error', 'unknown error')
+            self._downloader.trouble(u'ERROR: Justin.tv API: %s' % error_text)
+            return
         info = []
         for clip in response:
             video_url = clip['video_file_url']
             if video_url:
                 video_extension = os.path.splitext(video_url)[1][1:]
-                video_date = re.sub('-', '', clip['created_on'][:10])
+                video_date = re.sub('-', '', clip['start_time'][:10])
+                video_uploader_id = clip.get('user_id', clip.get('channel_id'))
                 info.append({
                     'id': clip['id'],
                     'url': video_url,
                     'title': clip['title'],
-                    'uploader': clip.get('user_id', clip.get('channel_id')),
+                    'uploader': clip.get('channel_name', video_uploader_id),
+                    'uploader_id': video_uploader_id,
                     'upload_date': video_date,
                     'ext': video_extension,
                 })
@@ -3553,7 +3559,7 @@ class JustinTVIE(InfoExtractor):
             paged = True
             api += '/channel/archives/%s.json'
         else:
-            api += '/clip/show/%s.json'
+            api += '/broadcast/by_archive/%s.json'
         api = api % (video_id,)
 
         self.report_extraction(video_id)
