@@ -86,7 +86,7 @@ class FFmpegExtractAudioPP(PostProcessor):
     def get_audio_codec(self, path):
         if not self._exes['ffprobe'] and not self._exes['avprobe']: return None
         try:
-            cmd = [self._exes['avprobe'] or self._exes['ffprobe'], '-show_streams', '--', encodeFilename(path)]
+            cmd = [self._exes['avprobe'] or self._exes['ffprobe'], '-show_streams', encodeFilename(self._ffmpeg_filename_argument(path))]
             handle = subprocess.Popen(cmd, stderr=compat_subprocess_get_DEVNULL(), stdout=subprocess.PIPE)
             output = handle.communicate()[0]
             if handle.wait() != 0:
@@ -110,7 +110,7 @@ class FFmpegExtractAudioPP(PostProcessor):
             acodec_opts = ['-acodec', codec]
         cmd = ([self._exes['avconv'] or self._exes['ffmpeg'], '-y', '-i', encodeFilename(path), '-vn']
                + acodec_opts + more_opts +
-               ['--', encodeFilename(out_path)])
+               [encodeFilename(self._ffmpeg_filename_argument(out_path))])
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout,stderr = p.communicate()
         if p.returncode != 0:
@@ -202,3 +202,10 @@ class FFmpegExtractAudioPP(PostProcessor):
 
         information['filepath'] = new_path
         return information
+
+    def _ffmpeg_filename_argument(self, fn):
+        # ffmpeg broke --, see https://ffmpeg.org/trac/ffmpeg/ticket/2127 for details
+        if fn.startswith(u'-'):
+            return u'./' + fn
+        return fn
+
