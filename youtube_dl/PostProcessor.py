@@ -110,7 +110,7 @@ class FFmpegExtractAudioPP(PostProcessor):
             acodec_opts = ['-acodec', codec]
         cmd = ([self._exes['avconv'] or self._exes['ffmpeg'], '-y', '-i', encodeFilename(path), '-vn']
                + acodec_opts + more_opts +
-               ['--', encodeFilename(out_path)])
+               [encodeFilename(out_path)])
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout,stderr = p.communicate()
         if p.returncode != 0:
