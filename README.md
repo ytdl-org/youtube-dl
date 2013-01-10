@@ -9,8 +9,8 @@ youtube-dl
 # DESCRIPTION
 **youtube-dl** is a small command-line program to download videos from
 YouTube.com and a few more sites. It requires the Python interpreter, version
-2.x (x being at least 6), and it is not platform specific. It should work in
-your Unix box, in Windows or in Mac OS X. It is released to the public domain,
+2.6, 2.7, or 3.3+, and it is not platform specific. It should work on
+your Unix box, on Windows or on Mac OS X. It is released to the public domain,
 which means you can modify it, redistribute it or use it however you like.
 
 # OPTIONS
@@ -105,8 +105,8 @@ which means you can modify it, redistribute it or use it however you like.
 ## Post-processing Options:
     -x, --extract-audio      convert video files to audio-only files (requires
                              ffmpeg or avconv and ffprobe or avprobe)
-    --audio-format FORMAT    "best", "aac", "vorbis", "mp3", "m4a", or "wav";
-                             best by default
+    --audio-format FORMAT    "best", "aac", "vorbis", "mp3", "m4a", "opus", or
+                             "wav"; best by default
     --audio-quality QUALITY  ffmpeg/avconv audio quality specification, insert a
                              value between 0 (better) and 9 (worse) for VBR or a
                              specific bitrate like 128K (default 5)
@@ -117,7 +117,7 @@ which means you can modify it, redistribute it or use it however you like.
 
 # CONFIGURATION
 
-You can configure youtube-dl by placing default arguments (such as `--extract-audio --no-mtime` to always extract the audio and not copy the mtime) into `/etc/youtube-dl.conf` and/or `~/.local/config/youtube-dl.conf`.
+You can configure youtube-dl by placing default arguments (such as `--extract-audio --no-mtime` to always extract the audio and not copy the mtime) into `/etc/youtube-dl.conf` and/or `~/.config/youtube-dl.conf`.
 
 # OUTPUT TEMPLATE
 
