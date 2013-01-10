@@ -132,7 +132,7 @@ class FFmpegExtractAudioPP(PostProcessor):
                 acodec = 'copy'
                 extension = self._preferredcodec
                 more_opts = [self._exes['avconv'] and '-bsf:a' or '-absf', 'aac_adtstoasc']
-            elif filecodec in ['aac', 'mp3', 'vorbis']:
+            elif filecodec in ['aac', 'mp3', 'vorbis', 'opus']:
                 # Lossless if possible
                 acodec = 'copy'
                 extension = filecodec
@@ -152,7 +152,7 @@ class FFmpegExtractAudioPP(PostProcessor):
                         more_opts += [self._exes['avconv'] and '-b:a' or '-ab', self._preferredquality + 'k']
         else:
             # We convert the audio (lossy)
-            acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'm4a': 'aac', 'vorbis': 'libvorbis', 'wav': None}[self._preferredcodec]
+            acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'm4a': 'aac', 'opus': 'opus', 'vorbis': 'libvorbis', 'wav': None}[self._preferredcodec]
             extension = self._preferredcodec
             more_opts = []
             if self._preferredquality is not None:
