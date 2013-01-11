@@ -1,7 +1,7 @@
 all: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion
 
 clean:
-	rm -rf youtube-dl youtube-dl.exe youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/
+	rm -rf youtube-dl youtube-dl.exe youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz
 
 PREFIX=/usr/local
 BINDIR=$(PREFIX)/bin
@@ -44,7 +44,7 @@ youtube-dl.1: README.md
 youtube-dl.bash-completion: youtube_dl/*.py devscripts/bash-completion.in
 	python devscripts/bash-completion.py
 
-youtube-dl.tar.gz: all
+youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion
 	@tar -czf youtube-dl.tar.gz --transform "s|^|youtube-dl/|" --owner 0 --group 0 \
 		--exclude '*.DS_Store' \
 		--exclude '*.kate-swp' \
@@ -56,5 +56,5 @@ youtube-dl.tar.gz: all
 		-- \
 		bin devscripts test youtube_dl \
 		CHANGELOG LICENSE README.md README.txt \
-		MANIFEST.in youtube-dl.1 youtube-dl.bash-completion setup.py \
+		Makefile MANIFEST.in youtube-dl.1 youtube-dl.bash-completion setup.py \
 		youtube-dl
