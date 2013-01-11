@@ -455,6 +455,9 @@ def _real_main():
     if opts.extractaudio:
         fd.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, keepvideo=opts.keepvideo, nopostoverwrites=opts.nopostoverwrites))
 
+    if opts.format:
+        fd.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.format))
+
     # Update version
     if opts.update_self:
         update_self(fd.to_screen, opts.verbose, sys.argv[0])

@@ -57,19 +57,17 @@ class PostProcessor(object):
         """
         return information # by default, do nothing
 
+class FFmpegPostProcessorError(BaseException):
+    def __init__(self, message):
+        self.message = message
+
 class AudioConversionError(BaseException):
     def __init__(self, message):
         self.message = message
 
-class FFmpegExtractAudioPP(PostProcessor):
-    def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, keepvideo=False, nopostoverwrites=False):
+class FFmpegPostProcessor(PostProcessor):
+    def __init__(self,downloader=None):
         PostProcessor.__init__(self, downloader)
-        if preferredcodec is None:
-            preferredcodec = 'best'
-        self._preferredcodec = preferredcodec
-        self._preferredquality = preferredquality
-        self._keepvideo = keepvideo
-        self._nopostoverwrites = nopostoverwrites
         self._exes = self.detect_executables()
 
     @staticmethod
@@ -82,6 +80,34 @@ class FFmpegExtractAudioPP(PostProcessor):
             return exe
         programs = ['avprobe', 'avconv', 'ffmpeg', 'ffprobe']
         return dict((program, executable(program)) for program in programs)
+
+    def run_ffmpeg(self, path, out_path, opts):
+        if not self._exes['ffmpeg'] and not self._exes['avconv']:
+            raise FFmpegPostProcessorError('ffmpeg or avconv not found. Please install one.')
+        cmd = ([self._exes['avconv'] or self._exes['ffmpeg'], '-y', '-i', encodeFilename(path)]
+               + opts +
+               [encodeFilename(self._ffmpeg_filename_argument(out_path))])
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout,stderr = p.communicate()
+        if p.returncode != 0:
+            msg = stderr.strip().split('\n')[-1]
+            raise FFmpegPostProcessorError(msg)
+
+    def _ffmpeg_filename_argument(self, fn):
+        # ffmpeg broke --, see https://ffmpeg.org/trac/ffmpeg/ticket/2127 for details
+        if fn.startswith(u'-'):
+            return u'./' + fn
+        return fn
+
+class FFmpegExtractAudioPP(FFmpegPostProcessor):
+    def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, keepvideo=False, nopostoverwrites=False):
+        FFmpegPostProcessor.__init__(self, downloader)
+        if preferredcodec is None:
+            preferredcodec = 'best'
+        self._preferredcodec = preferredcodec
+        self._preferredquality = preferredquality
+        self._keepvideo = keepvideo
+        self._nopostoverwrites = nopostoverwrites
 
     def get_audio_codec(self, path):
         if not self._exes['ffprobe'] and not self._exes['avprobe']: return None
@@ -108,14 +134,11 @@ class FFmpegExtractAudioPP(PostProcessor):
             acodec_opts = []
         else:
             acodec_opts = ['-acodec', codec]
-        cmd = ([self._exes['avconv'] or self._exes['ffmpeg'], '-y', '-i', encodeFilename(path), '-vn']
-               + acodec_opts + more_opts +
-               [encodeFilename(self._ffmpeg_filename_argument(out_path))])
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout,stderr = p.communicate()
-        if p.returncode != 0:
-            msg = stderr.strip().split('\n')[-1]
-            raise AudioConversionError(msg)
+        opts = ['-vn'] + acodec_opts + more_opts
+        try:
+            FFmpegPostProcessor.run_ffmpeg(self, path, out_path, opts)
+        except FFmpegPostProcessorError as err:
+            raise AudioConversionError(err.message)
 
     def run(self, information):
         path = information['filepath']
@@ -203,9 +226,19 @@ class FFmpegExtractAudioPP(PostProcessor):
         information['filepath'] = new_path
         return information
 
-    def _ffmpeg_filename_argument(self, fn):
-        # ffmpeg broke --, see https://ffmpeg.org/trac/ffmpeg/ticket/2127 for details
-        if fn.startswith(u'-'):
-            return u'./' + fn
-        return fn
+class FFmpegVideoConvertor(FFmpegPostProcessor):
+    def __init__(self, downloader=None,preferedformat=None):
+        FFmpegPostProcessor.__init__(self,downloader)
+        self._preferedformat=preferedformat
 
+    def run(self, information):
+        path = information['filepath']
+        prefix, sep, ext = path.rpartition(u'.')
+        outpath = prefix + sep + self._preferedformat
+        if not self._preferedformat or information['format'] == self._preferedformat:
+            return information
+        self._downloader.to_screen(u'['+'ffmpeg'+'] Converting video from %s to %s, Destination: ' % (information['format'], self._preferedformat) +outpath)
+        self.run_ffmpeg(path, outpath, [])
+        information['filepath'] = outpath
+        information['format'] = self._preferedformat
+        return information
