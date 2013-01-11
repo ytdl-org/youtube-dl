@@ -47,37 +47,39 @@ REV=$(git rev-parse HEAD)
 make youtube-dl youtube-dl.tar.gz
 wget "http://jeromelaheurte.net:8142/download/rg3/youtube-dl/youtube-dl.exe?rev=$REV" -O youtube-dl.exe || \
 	wget "http://jeromelaheurte.net:8142/build/rg3/youtube-dl/youtube-dl.exe?rev=$REV" -O youtube-dl.exe
-mkdir -p "update_staging/$version"
-mv youtube-dl youtube-dl.exe "update_staging/$version"
-mv youtube-dl.tar.gz "update_staging/$version/youtube-dl-$version.tar.gz"
+mkdir -p "build/$version"
+mv youtube-dl youtube-dl.exe "build/$version"
+mv youtube-dl.tar.gz "build/$version/youtube-dl-$version.tar.gz"
 RELEASE_FILES="youtube-dl youtube-dl.exe youtube-dl-$version.tar.gz"
-(cd update_staging/$version/ && md5sum $RELEASE_FILES > MD5SUMS)
-(cd update_staging/$version/ && sha1sum $RELEASE_FILES > SHA1SUMS)
-(cd update_staging/$version/ && sha256sum $RELEASE_FILES > SHA2-256SUMS)
-(cd update_staging/$version/ && sha512sum $RELEASE_FILES > SHA2-512SUMS)
+(cd build/$version/ && md5sum $RELEASE_FILES > MD5SUMS)
+(cd build/$version/ && sha1sum $RELEASE_FILES > SHA1SUMS)
+(cd build/$version/ && sha256sum $RELEASE_FILES > SHA2-256SUMS)
+(cd build/$version/ && sha512sum $RELEASE_FILES > SHA2-512SUMS)
 git checkout HEAD -- youtube-dl youtube-dl.exe
 
 echo "\n### Signing and uploading the new binaries to youtube-dl.org..."
-for f in $RELEASE_FILES; do gpg --detach-sig "update_staging/$version/$f"; done
-scp -r "update_staging/$version" ytdl@youtube-dl.org:html/downloads/
-rm -r update_staging
+for f in $RELEASE_FILES; do gpg --detach-sig "build/$version/$f"; done
+scp -r "build/$version" ytdl@youtube-dl.org:html/downloads/
 
 echo "\n### Now switching to gh-pages..."
-git checkout gh-pages
-git checkout "$MASTER" -- devscripts/gh-pages/
-git reset devscripts/gh-pages/
-devscripts/gh-pages/add-version.py $version
-devscripts/gh-pages/sign-versions.py < updates_key.pem
-devscripts/gh-pages/generate-download.py
-devscripts/gh-pages/update-copyright.py
-git add *.html *.html.in update
-git commit -m "release $version"
-git show HEAD
-read -p "Is it good, can I push? (y/n) " -n 1
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then exit 1; fi
-echo
-git push origin gh-pages
+git clone --branch gh-pages --single-branch . build/gh-pages
+ROOT=$(pwd)
+(
+    set -e
+    cd build/gh-pages
+    ORIGIN_URL=$(git config --get remote.origin.url)
+    "$ROOT/devscripts/gh-pages/add-version.py" $version
+    "$ROOT/devscripts/gh-pages/sign-versions.py" < updates_key.pem
+    "$ROOT/devscripts/gh-pages/generate-download.py"
+    "$ROOT/devscripts/gh-pages/update-copyright.py"
+    git add *.html *.html.in update
+    git commit -m "release $version"
+    git show HEAD
+    read -p "Is it good, can I push? (y/n) " -n 1
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then exit 1; fi
+    echo
+    git push $ORIGIN_URL gh-pages
+)
+rm -r build
 
 echo "\n### DONE!"
-rm -r devscripts
-git checkout $MASTER
