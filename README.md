@@ -29,6 +29,7 @@ which means you can modify it, redistribute it or use it however you like.
     --user-agent UA          specify a custom user agent
     --list-extractors        List all supported extractors and the URLs they
                              would handle
+    --ignore-config          Ignore the configuration files                           
 
 ## Video Selection:
     --playlist-start NUMBER  playlist video to start at (default is 1)
