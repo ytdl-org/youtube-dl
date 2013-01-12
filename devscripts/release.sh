@@ -66,8 +66,8 @@ git clone --branch gh-pages --single-branch . build/gh-pages
 ROOT=$(pwd)
 (
     set -e
-    cd build/gh-pages
     ORIGIN_URL=$(git config --get remote.origin.url)
+    cd build/gh-pages
     "$ROOT/devscripts/gh-pages/add-version.py" $version
     "$ROOT/devscripts/gh-pages/sign-versions.py" < "$ROOT/updates_key.pem"
     "$ROOT/devscripts/gh-pages/generate-download.py"
@@ -78,6 +78,7 @@ ROOT=$(pwd)
     read -p "Is it good, can I push? (y/n) " -n 1
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then exit 1; fi
     echo
+    git push "$ROOT" gh-pages
     git push "$ORIGIN_URL" gh-pages
 )
 rm -r build
