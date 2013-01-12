@@ -81,6 +81,6 @@ ROOT=$(pwd)
     git push "$ROOT" gh-pages
     git push "$ORIGIN_URL" gh-pages
 )
-rm -r build
+rm -rf build
 
 echo "\n### DONE!"
