@@ -25,7 +25,7 @@ make clean
 nosetests --with-coverage --cover-package=youtube_dl --cover-html test || exit 1
 
 echo "\n### Changing version in version.py..."
-sed -i~ "s/__version__ = '.*'/__version__ = '$version'/" youtube_dl/version.py
+sed -i "s/__version__ = '.*'/__version__ = '$version'/" youtube_dl/version.py
 
 echo "\n### Committing CHANGELOG README.md and youtube_dl/version.py..."
 make README.md
