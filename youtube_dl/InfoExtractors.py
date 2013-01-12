@@ -3699,11 +3699,11 @@ class SteamIE(InfoExtractor):
                   }
             videos.append(info)
         return videos
-        
+
 class UstreamIE(InfoExtractor):
-    _VALID_URL = r'http://www.ustream.tv/recorded/(?P<videoID>\d+)'
+    _VALID_URL = r'https?://www\.ustream\.tv/recorded/(?P<videoID>\d+)'
     IE_NAME = u'ustream'
-    
+
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
         video_id = m.group('videoID')
