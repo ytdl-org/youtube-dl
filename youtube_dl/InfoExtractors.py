@@ -3896,9 +3896,6 @@ class YouJizzIE(InfoExtractor):
     """Information extractor for youjizz.com."""
     _VALID_URL = r'^(?:https?://)?(?:\w+\.)?youjizz\.com/videos/(?P<videoid>[^.]+).html$'
 
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
@@ -3911,19 +3908,15 @@ class YouJizzIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         # Get the video title
-        VIDEO_TITLE_RE = r'<title>(?P<title>.*)</title>'
-        result = re.search(VIDEO_TITLE_RE, webpage)
+        result = re.search(r'<title>(?P<title>.*)</title>', webpage)
         if result is None:
-            self._downloader.trouble(u'ERROR: unable to extract video title')
-            return
+            raise ExtractorError(u'ERROR: unable to extract video title')
         video_title = result.group('title').strip()
 
         # Get the embed page
-        EMBED_PAGE_RE = r'http://www.youjizz.com/videos/embed/(?P<videoid>[0-9]+)'
-        result = re.search(EMBED_PAGE_RE, webpage)
+        result = re.search(r'https?://www.youjizz.com/videos/embed/(?P<videoid>[0-9]+)', webpage)
         if result is None:
-            self._downloader.trouble(u'ERROR: unable to extract embed page')
-            return
+            raise ExtractorError(u'ERROR: unable to extract embed page')
 
         embed_page_url = result.group(0).strip()
         video_id = result.group('videoid')
@@ -3931,22 +3924,16 @@ class YouJizzIE(InfoExtractor):
         webpage = self._download_webpage(embed_page_url, video_id)
 
         # Get the video URL
-        SOURCE_RE = r'so.addVariable\("file",encodeURIComponent\("(?P<source>[^"]+)"\)\);'
-        result = re.search(SOURCE_RE, webpage)
+        result = re.search(r'so.addVariable\("file",encodeURIComponent\("(?P<source>[^"]+)"\)\);', webpage)
         if result is None:
-            self._downloader.trouble(u'ERROR: unable to extract video url')
-            return
+            raise ExtractorError(u'ERROR: unable to extract video url')
         video_url = result.group('source')
 
         info = {'id': video_id,
                 'url': video_url,
-                'uploader': None,
-                'upload_date': None,
                 'title': video_title,
                 'ext': 'flv',
                 'format': 'flv',
-                'thumbnail': None,
-                'description': None,
                 'player_url': embed_page_url}
 
         return [info]
