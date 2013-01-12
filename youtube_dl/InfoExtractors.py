@@ -44,6 +44,7 @@ class InfoExtractor(object):
     uploader:       Full name of the video uploader.
     upload_date:    Video upload date (YYYYMMDD).
     uploader_id:    Nickname or id of the video uploader.
+    location:       Physical location of the video.
     player_url:     SWF Player URL (used for rtmpdump).
     subtitles:      The .srt file contents.
     urlhandle:      [internal] The urlHandle to be used to download the file,
