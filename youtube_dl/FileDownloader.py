@@ -81,6 +81,7 @@ class FileDownloader(object):
     writesubtitles:    Write the video subtitles to a .srt file
     subtitleslang:     Language of the subtitles to download
     test:              Download only first bytes to test the downloader.
+    keepvideo:         Keep the video file after post-processing
     """
 
     params = None
@@ -529,13 +530,27 @@ class FileDownloader(object):
         return self._download_retcode
 
     def post_process(self, filename, ie_info):
-        """Run the postprocessing chain on the given file."""
+        """Run all the postprocessors on the given file."""
         info = dict(ie_info)
         info['filepath'] = filename
+        keep_video = None
         for pp in self._pps:
-            info = pp.run(info)
-            if info is None:
-                break
+            try:
+                keep_video_wish,new_info = pp.run(info)
+                if keep_video_wish is not None:
+                    if keep_video_wish:
+                        keep_video = keep_video_wish
+                    elif keep_video is None:
+                        # No clear decision yet, let IE decide
+                        keep_video = keep_video_wish
+            except PostProcessingError as e:
+                self.to_stderr(u'ERROR: ' + e.msg)
+        if not keep_video and not self.params.get('keepvideo', False):
+            try:
+                self.to_stderr(u'Deleting original file %s (pass -k to keep)' % filename)
+                os.remove(encodeFilename(filename))
+            except (IOError, OSError):
+                self.to_stderr(u'WARNING: Unable to remove downloaded video file')
 
     def _download_with_rtmpdump(self, filename, url, player_url, page_url):
         self.report_destination(filename)

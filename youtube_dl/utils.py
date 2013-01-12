@@ -450,7 +450,8 @@ class PostProcessingError(Exception):
     This exception may be raised by PostProcessor's .run() method to
     indicate an error in the postprocessing task.
     """
-    pass
+    def __init__(self, msg):
+        self.msg = msg
 
 class MaxDownloadsReached(Exception):
     """ --max-downloads limit has been reached. """

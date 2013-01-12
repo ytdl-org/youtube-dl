@@ -175,7 +175,6 @@ def parseOpts():
             action='store', dest='subtitleslang', metavar='LANG',
             help='language of the closed captions to download (optional) use IETF language tags like \'en\'')
 
-
     verbosity.add_option('-q', '--quiet',
             action='store_true', dest='quiet', help='activates quiet mode', default=False)
     verbosity.add_option('-s', '--simulate',
@@ -251,6 +250,8 @@ def parseOpts():
             help='"best", "aac", "vorbis", "mp3", "m4a", "opus", or "wav"; best by default')
     postproc.add_option('--audio-quality', metavar='QUALITY', dest='audioquality', default='5',
             help='ffmpeg/avconv audio quality specification, insert a value between 0 (better) and 9 (worse) for VBR or a specific bitrate like 128K (default 5)')
+    postproc.add_option('--recode-video', metavar='FORMAT', dest='recodevideo', default=None,
+            help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm)')
     postproc.add_option('-k', '--keep-video', action='store_true', dest='keepvideo', default=False,
             help='keeps the video file on disk after the post-processing; the video is erased by default')
     postproc.add_option('--no-post-overwrites', action='store_true', dest='nopostoverwrites', default=False,
@@ -380,6 +381,9 @@ def _real_main():
         opts.audioquality = opts.audioquality.strip('k').strip('K')
         if not opts.audioquality.isdigit():
             parser.error(u'invalid audio quality specified')
+    if opts.recodevideo is not None:
+        if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg']:
+            parser.error(u'invalid video recode format specified')
 
     if sys.version_info < (3,):
         # In Python 2, sys.argv is a bytestring (also note http://bugs.python.org/issue2128 for Windows systems)
@@ -436,6 +440,7 @@ def _real_main():
         'prefer_free_formats': opts.prefer_free_formats,
         'verbose': opts.verbose,
         'test': opts.test,
+        'keepvideo': opts.keepvideo,
         })
 
     if opts.verbose:
@@ -457,7 +462,9 @@ def _real_main():
 
     # PostProcessors
     if opts.extractaudio:
-        fd.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, keepvideo=opts.keepvideo, nopostoverwrites=opts.nopostoverwrites))
+        fd.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
+    if opts.recodevideo:
+        fd.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
 
     # Maybe do nothing
     if len(all_urls) < 1:
