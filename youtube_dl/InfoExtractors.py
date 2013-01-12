@@ -106,18 +106,23 @@ class InfoExtractor(object):
     def IE_NAME(self):
         return type(self).__name__[:-2]
 
-    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None):
+    def _request_webpage(self, url_or_request, video_id, note=None, errnote=None):
+        """ Returns the response handle """
         if note is None:
             note = u'Downloading video webpage'
         self._downloader.to_screen(u'[%s] %s: %s' % (self.IE_NAME, video_id, note))
         try:
-            urlh = compat_urllib_request.urlopen(url_or_request)
-            webpage_bytes = urlh.read()
-            return webpage_bytes.decode('utf-8', 'replace')
+            return compat_urllib_request.urlopen(url_or_request)
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             if errnote is None:
                 errnote = u'Unable to download webpage'
             raise ExtractorError(u'%s: %s' % (errnote, compat_str(err)), sys.exc_info()[2])
+
+    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None):
+        """ Returns the data of the page as a string """
+        urlh = self._request_webpage(url_or_request, video_id, note, errnote)
+        webpage_bytes = urlh.read()
+        return webpage_bytes.decode('utf-8', 'replace')
 
 
 class YoutubeIE(InfoExtractor):
