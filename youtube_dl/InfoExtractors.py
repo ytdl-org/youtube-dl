@@ -35,14 +35,14 @@ class InfoExtractor(object):
     url:            Final video URL.
     title:          Video title, unescaped.
     ext:            Video filename extension.
-    uploader:       Full name of the video uploader.
-    upload_date:    Video upload date (YYYYMMDD).
 
     The following fields are optional:
 
     format:         The video format, defaults to ext (used for --get-format)
     thumbnail:      Full URL to a video thumbnail image.
     description:    One-line video description.
+    uploader:       Full name of the video uploader.
+    upload_date:    Video upload date (YYYYMMDD).
     uploader_id:    Nickname or id of the video uploader.
     player_url:     SWF Player URL (used for rtmpdump).
     subtitles:      The .srt file contents.
