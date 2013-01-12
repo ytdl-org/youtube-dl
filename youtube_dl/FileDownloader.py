@@ -620,6 +620,8 @@ class FileDownloader(object):
 
         # Do not include the Accept-Encoding header
         headers = {'Youtubedl-no-compression': 'True'}
+        if 'user_agent' in info_dict:
+            headers['Youtubedl-user-agent'] = info_dict['user_agent']
         basic_request = compat_urllib_request.Request(url, None, headers)
         request = compat_urllib_request.Request(url, None, headers)
 

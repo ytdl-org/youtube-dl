@@ -2209,6 +2209,7 @@ class BlipTVIE(InfoExtractor):
             cchar = '?'
         json_url = url + cchar + 'skin=json&version=2&no_wrap=1'
         request = compat_urllib_request.Request(json_url)
+        request.add_header('User-Agent', 'iTunes/10.6.1')
         self.report_extraction(mobj.group(1))
         info = None
         try:
@@ -2229,8 +2230,7 @@ class BlipTVIE(InfoExtractor):
                     'urlhandle': urlh
                 }
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.trouble(u'ERROR: unable to download video info webpage: %s' % compat_str(err))
-            return
+            raise ExtractorError(u'ERROR: unable to download video info webpage: %s' % compat_str(err))
         if info is None: # Regular URL
             try:
                 json_code_bytes = urlh.read()
@@ -2263,13 +2263,13 @@ class BlipTVIE(InfoExtractor):
                     'format': data['media']['mimeType'],
                     'thumbnail': data['thumbnailUrl'],
                     'description': data['description'],
-                    'player_url': data['embedUrl']
+                    'player_url': data['embedUrl'],
+                    'user_agent': 'iTunes/10.6.1',
                 }
             except (ValueError,KeyError) as err:
                 self._downloader.trouble(u'ERROR: unable to parse video information: %s' % repr(err))
                 return
 
-        std_headers['User-Agent'] = 'iTunes/10.6.1'
         return [info]
 
 

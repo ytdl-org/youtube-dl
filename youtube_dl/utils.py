@@ -524,6 +524,11 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
             if 'Accept-encoding' in req.headers:
                 del req.headers['Accept-encoding']
             del req.headers['Youtubedl-no-compression']
+        if 'Youtubedl-user-agent' in req.headers:
+            if 'User-Agent' in req.headers:
+                del req.headers['User-Agent']
+            req.headers['User-Agent'] = req.headers['Youtubedl-user-agent']
+            del req.headers['Youtubedl-user-agent']
         return req
 
     def http_response(self, req, resp):
