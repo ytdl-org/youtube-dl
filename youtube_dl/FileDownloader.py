@@ -545,7 +545,7 @@ class FileDownloader(object):
                         keep_video = keep_video_wish
             except PostProcessingError as e:
                 self.to_stderr(u'ERROR: ' + e.msg)
-        if not keep_video and not self.params.get('keepvideo', False):
+        if keep_video is False and not self.params.get('keepvideo', False):
             try:
                 self.to_stderr(u'Deleting original file %s (pass -k to keep)' % filename)
                 os.remove(encodeFilename(filename))
