@@ -3731,12 +3731,8 @@ class UstreamIE(InfoExtractor):
 
 class YouPornIE(InfoExtractor):
     """Information extractor for youporn.com."""
-
     _VALID_URL = r'^(?:https?://)?(?:\w+\.)?youporn\.com/watch/(?P<videoid>[0-9]+)/(?P<title>[^/]+)'
    
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
-
     def _print_formats(self, formats):
         """Print all available formats"""
         print(u'Available formats:')
@@ -3759,47 +3755,45 @@ class YouPornIE(InfoExtractor):
 
         video_id = mobj.group('videoid')
 
-        webpage = self._download_webpage(url, video_id)
+        req = compat_urllib_request.Request(url)
+        req.add_header('Cookie', 'age_verified=1')
+        webpage = self._download_webpage(req, video_id)
 
         # Get the video title
-        VIDEO_TITLE_RE = r'videoTitleArea">(?P<title>.*)</h1>'
-        result = re.search(VIDEO_TITLE_RE, webpage)
+        result = re.search(r'videoTitleArea">(?P<title>.*)</h1>', webpage)
         if result is None:
-            self._downloader.trouble(u'ERROR: unable to extract video title')
-            return
+            raise ExtractorError(u'ERROR: unable to extract video title')
         video_title = result.group('title').strip()
 
         # Get the video date
-        VIDEO_DATE_RE = r'Date:</b>(?P<date>.*)</li>'
-        result = re.search(VIDEO_DATE_RE, webpage)
+        result = re.search(r'Date:</b>(?P<date>.*)</li>', webpage)
         if result is None:
-            self._downloader.trouble(u'ERROR: unable to extract video date')
-            return
-        upload_date = result.group('date').strip()
+            self._downloader.to_stderr(u'WARNING: unable to extract video date')
+            upload_date = None
+        else:
+            upload_date = result.group('date').strip()
 
         # Get the video uploader
-        VIDEO_UPLOADER_RE = r'Submitted:</b>(?P<uploader>.*)</li>'
-        result = re.search(VIDEO_UPLOADER_RE, webpage)
+        result = re.search(r'Submitted:</b>(?P<uploader>.*)</li>', webpage)
         if result is None:
-            self._downloader.trouble(u'ERROR: unable to extract uploader')
-            return
-        video_uploader = result.group('uploader').strip()
-        video_uploader = clean_html( video_uploader )
+            self._downloader.to_stderr(u'ERROR: unable to extract uploader')
+            video_uploader = None
+        else:
+            video_uploader = result.group('uploader').strip()
+            video_uploader = clean_html( video_uploader )
 
         # Get all of the formats available
         DOWNLOAD_LIST_RE = r'(?s)<ul class="downloadList">(?P<download_list>.*?)</ul>'
         result = re.search(DOWNLOAD_LIST_RE, webpage)
         if result is None:
-            self._downloader.trouble(u'ERROR: unable to extract download list')
-            return
+            raise ExtractorError(u'Unable to extract download list')
         download_list_html = result.group('download_list').strip()
 
         # Get all of the links from the page
         LINK_RE = r'(?s)<a href="(?P<url>[^"]+)">'
         links = re.findall(LINK_RE, download_list_html)
         if(len(links) == 0):
-            self._downloader.trouble(u'ERROR: no known formats available for video')
-            return
+            raise ExtractorError(u'ERROR: no known formats available for video')
         
         self._downloader.to_screen(u'[youporn] Links found: %d' % len(links))   
 
