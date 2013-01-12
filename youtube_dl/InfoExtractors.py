@@ -3272,7 +3272,7 @@ class YoukuIE(InfoExtractor):
 class XNXXIE(InfoExtractor):
     """Information extractor for xnxx.com"""
 
-    _VALID_URL = r'^http://video\.xnxx\.com/video([0-9]+)/(.*)'
+    _VALID_URL = r'^(?:https?://)?video\.xnxx\.com/video([0-9]+)/(.*)'
     IE_NAME = u'xnxx'
     VIDEO_URL_RE = r'flv_url=(.*?)&amp;'
     VIDEO_TITLE_RE = r'<title>(.*?)\s+-\s+XNXX.COM'
@@ -3723,6 +3723,311 @@ class UstreamIE(InfoExtractor):
         return [info]
 
 
+
+class YouPornIE(InfoExtractor):
+    """Information extractor for youporn.com."""
+
+    _VALID_URL = r'^(?:https?://)?(?:\w+\.)?youporn\.com/watch/(?P<videoid>[0-9]+)/(?P<title>[^/]+)'
+   
+    def __init__(self, downloader=None):
+        InfoExtractor.__init__(self, downloader)
+
+    # def report_id(self, video_id):
+    #     """Report finding video ID"""
+    #     self._downloader.to_screen(u'[youporn] Video ID: %s' % video_id)
+
+    # def report_webpage(self, url):
+    #     """Report downloading page"""
+    #     self._downloader.to_screen(u'[youporn] Downloaded page: %s' % url)
+
+    # def report_title(self, video_title):
+    #     """Report dfinding title"""
+    #     self._downloader.to_screen(u'[youporn] Title: %s' % video_title)
+    
+    # def report_uploader(self, uploader):
+    #     """Report dfinding title"""
+    #     self._downloader.to_screen(u'[youporn] Uploader: %s' % uploader)
+
+    # def report_upload_date(self, video_date):
+    #     """Report finding date"""
+    #     self._downloader.to_screen(u'[youporn] Date: %s' % video_date)
+
+    def _print_formats(self, formats):
+        """Print all available formats"""
+        print('Available formats:')
+        print(u'ext\t\tformat')
+        print(u'---------------------------------')
+        for format in formats:
+            print(u'%s\t\t%s'  % (format['ext'], format['format']))
+
+    def _specific(self, req_format, formats):
+        for x in formats:
+            if(x["format"]==req_format):
+                return x
+        return None
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+            return
+
+        video_id = mobj.group('videoid')
+        #self.report_id(video_id)        
+
+        webpage = self._download_webpage(url, video_id)
+        #self.report_webpage(url)
+
+        # Get the video title
+        VIDEO_TITLE_RE = r'videoTitleArea">(?P<title>.*)</h1>'
+        result = re.search(VIDEO_TITLE_RE, webpage)
+        if result is None:
+            self._downloader.trouble(u'ERROR: unable to extract video title')
+            return
+        video_title = result.group('title').strip()
+        #self.report_title(video_title)
+
+        # Get the video date
+        VIDEO_DATE_RE = r'Date:</b>(?P<date>.*)</li>'
+        result = re.search(VIDEO_DATE_RE, webpage)
+        if result is None:
+            self._downloader.trouble(u'ERROR: unable to extract video date')
+            return
+        upload_date = result.group('date').strip()
+        #self.report_upload_date(upload_date)
+
+        # Get the video uploader
+        VIDEO_UPLOADER_RE = r'Submitted:</b>(?P<uploader>.*)</li>'
+        result = re.search(VIDEO_UPLOADER_RE, webpage)
+        if result is None:
+            self._downloader.trouble(u'ERROR: unable to extract uploader')
+            return
+        video_uploader = result.group('uploader').strip()
+        video_uploader = clean_html( video_uploader )
+        #self.report_uploader(video_uploader)
+
+        # Get all of the formats available
+        DOWNLOAD_LIST_RE = r'(?s)<ul class="downloadList">(?P<download_list>.*?)</ul>'
+        result = re.search(DOWNLOAD_LIST_RE, webpage)
+        if result is None:
+            self._downloader.trouble(u'ERROR: unable to extract download list')
+            return
+        download_list_html = result.group('download_list').strip()
+
+        # Get all of the links from the page
+        LINK_RE = r'(?s)<a href="(?P<url>[^"]+)">'
+        links = re.findall(LINK_RE, download_list_html)
+        if(len(links) == 0):
+            self._downloader.trouble(u'ERROR: no known formats available for video')
+            return
+        
+        self._downloader.to_screen(u'[youporn] Links found: %d' % len(links))   
+
+        formats = []
+        for link in links:
+
+            # A link looks like this:
+            # http://cdn1.download.youporn.phncdn.com/201210/31/8004515/480p_370k_8004515/YouPorn%20-%20Nubile%20Films%20The%20Pillow%20Fight.mp4?nvb=20121113051249&nva=20121114051249&ir=1200&sr=1200&hash=014b882080310e95fb6a0
+            # A path looks like this:
+            # /201210/31/8004515/480p_370k_8004515/YouPorn%20-%20Nubile%20Films%20The%20Pillow%20Fight.mp4
+            video_url = unescapeHTML( link )
+            path = compat_urllib_parse_urlparse( video_url ).path
+            extension = os.path.splitext( path )[1][1:]
+            format = path.split('/')[4].split('_')[:2]
+            size = format[0]
+            bitrate = format[1]
+            format = "-".join( format )
+            title = u'%s-%s-%s' % (video_title, size, bitrate)
+
+            formats.append({
+                'id': video_id,
+                'url': video_url,
+                'uploader': video_uploader,
+                'upload_date': upload_date,
+                'title': title,
+                'ext': extension,
+                'format': format,
+                'thumbnail': None,
+                'description': None,
+                'player_url': None
+            })
+
+        if self._downloader.params.get('listformats', None):
+            self._print_formats(formats)
+            return
+
+        req_format = self._downloader.params.get('format', None)
+        #format_limit = self._downloader.params.get('format_limit', None)
+        self._downloader.to_screen(u'[youporn] Format: %s' % req_format)
+
+
+        if req_format is None or req_format == 'best':
+            return [formats[0]]
+        elif req_format == 'worst':
+            return [formats[-1]]
+        elif req_format in ('-1', 'all'):
+            return formats
+        else:
+            format = self._specific( req_format, formats )
+            if result is None:
+                self._downloader.trouble(u'ERROR: requested format not available')
+                return
+            return [format]
+
+        
+
+class PornotubeIE(InfoExtractor):
+    """Information extractor for pornotube.com."""
+
+    _VALID_URL = r'^(?:https?://)?(?:\w+\.)?pornotube\.com(/c/(?P<channel>[0-9]+))?(/m/(?P<videoid>[0-9]+))(/(?P<title>.+))$'
+
+    # def __init__(self, downloader=None):
+    #     InfoExtractor.__init__(self, downloader)
+
+    # def report_extract_entry(self, url):
+    #     """Report downloading extry"""
+    #     self._downloader.to_screen(u'[pornotube] Downloading entry: %s' % url.decode('utf-8'))
+
+    # def report_date(self, upload_date):
+    #     """Report finding uploaded date"""
+    #     self._downloader.to_screen(u'[pornotube] Entry date: %s' % upload_date)
+
+    # def report_webpage(self, url):
+    #     """Report downloading page"""
+    #     self._downloader.to_screen(u'[pornotube] Downloaded page: %s' % url)
+
+    # def report_title(self, video_title):
+    #     """Report downloading extry"""
+    #     self._downloader.to_screen(u'[pornotube] Title: %s' % video_title.decode('utf-8'))
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+            return
+
+        video_id = mobj.group('videoid')
+        video_title = mobj.group('title')
+        #self.report_title(video_title);
+
+        # Get webpage content
+        webpage = self._download_webpage(url, video_id)
+        #self.report_webpage(url)
+
+        # Get the video URL
+        VIDEO_URL_RE = r'url: "(?P<url>http://video[0-9].pornotube.com/.+\.flv)",'
+        result = re.search(VIDEO_URL_RE, webpage)
+        if result is None:
+            self._downloader.trouble(u'ERROR: unable to extract video url')
+            return
+        video_url = compat_urllib_parse.unquote(result.group('url'))
+        #self.report_extract_entry(video_url)
+
+        #Get the uploaded date
+        VIDEO_UPLOADED_RE = r'<div class="video_added_by">Added (?P<date>[0-9\/]+) by'
+        result = re.search(VIDEO_UPLOADED_RE, webpage)
+        if result is None:
+            self._downloader.trouble(u'ERROR: unable to extract video title')
+            return
+        upload_date = result.group('date')
+        #self.report_date(upload_date);
+
+        info = {'id': video_id,
+                'url': video_url,
+                'uploader': None,
+                'upload_date': upload_date,
+                'title': video_title,
+                'ext': 'flv',
+                'format': 'flv',
+                'thumbnail': None,
+                'description': None,
+                'player_url': None}
+
+        return [info]
+
+
+
+class YouJizzIE(InfoExtractor):
+    """Information extractor for youjizz.com."""
+
+    _VALID_URL = r'^(?:https?://)?(?:\w+\.)?youjizz\.com/videos/(?P<videoid>[^.]+).html$'
+
+    def __init__(self, downloader=None):
+        InfoExtractor.__init__(self, downloader)
+
+    # def report_extract_entry(self, url):
+    #     """Report downloading extry"""
+    #     self._downloader.to_screen(u'[youjizz] Downloading entry: %s' % url.decode('utf-8'))
+
+    # def report_webpage(self, url):
+    #     """Report downloading page"""
+    #     self._downloader.to_screen(u'[youjizz] Downloaded page: %s' % url)
+
+    # def report_title(self, video_title):
+    #     """Report downloading extry"""
+    #     self._downloader.to_screen(u'[youjizz] Title: %s' % video_title.decode('utf-8'))
+
+    # def report_embed_page(self, embed_page):
+    #     """Report downloading extry"""
+    #     self._downloader.to_screen(u'[youjizz] Embed Page: %s' % embed_page.decode('utf-8'))
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+            return
+
+        video_id = mobj.group('videoid')
+
+        # Get webpage content
+        webpage = self._download_webpage(url, video_id)
+        #self.report_webpage(url)
+
+        # Get the video title
+        VIDEO_TITLE_RE = r'<title>(?P<title>.*)</title>'
+        result = re.search(VIDEO_TITLE_RE, webpage)
+        if result is None:
+            self._downloader.trouble(u'ERROR: unable to extract video title')
+            return
+        video_title = result.group('title').strip()
+        #self.report_title(video_title)
+
+        # Get the embed page
+        EMBED_PAGE_RE = r'http://www.youjizz.com/videos/embed/(?P<videoid>[0-9]+)'
+        result = re.search(EMBED_PAGE_RE, webpage)
+        if result is None:
+            self._downloader.trouble(u'ERROR: unable to extract embed page')
+            return
+
+        embed_page_url = result.group(0).strip()
+        video_id = result.group('videoid')
+        #self.report_embed_page(embed_page_url)
+    
+        webpage = self._download_webpage(embed_page_url, video_id)
+
+        # Get the video URL
+        SOURCE_RE = r'so.addVariable\("file",encodeURIComponent\("(?P<source>[^"]+)"\)\);'
+        result = re.search(SOURCE_RE, webpage)
+        if result is None:
+            self._downloader.trouble(u'ERROR: unable to extract video url')
+            return
+        video_url = result.group('source')
+        #self.report_extract_entry(video_url)
+
+        info = {'id': video_id,
+                'url': video_url,
+                'uploader': None,
+                'upload_date': None,
+                'title': video_title,
+                'ext': 'flv',
+                'format': 'flv',
+                'thumbnail': None,
+                'description': None,
+                'player_url': embed_page_url}
+
+        return [info]
+
+
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
     The order does matter; the first extractor matched is the one handling the URL.
@@ -3756,6 +4061,9 @@ def gen_extractors():
         MTVIE(),
         YoukuIE(),
         XNXXIE(),
+        YouJizzIE(),
+        PornotubeIE(),
+        YouPornIE(),
         GooglePlusIE(),
         ArteTvIE(),
         NBAIE(),
