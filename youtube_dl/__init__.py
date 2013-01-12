@@ -141,6 +141,8 @@ def parseOpts():
             action='store_true', dest='list_extractors',
             help='List all supported extractors and the URLs they would handle', default=False)
     general.add_option('--test', action='store_true', dest='test', default=False, help=optparse.SUPPRESS_HELP)
+    general.add_option('--ignore-config', action='store_true',
+            help="Ignore the configuration files", default=False)
 
     selection.add_option('--playlist-start',
             dest='playliststart', metavar='NUMBER', help='playlist video to start at (default is %default)', default=1)
@@ -265,12 +267,18 @@ def parseOpts():
     parser.add_option_group(authentication)
     parser.add_option_group(postproc)
 
-    xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
-    if xdg_config_home:
-        userConf = os.path.join(xdg_config_home, 'youtube-dl.conf')
+    opts, args = parser.parse_args(sys.argv[1:])
+
+    if not opts.ignore_config:
+        xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
+        if xdg_config_home:
+            userConf = os.path.join(xdg_config_home, 'youtube-dl.conf')
+        else:
+            userConf = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
+        argv = _readOptions('/etc/youtube-dl.conf') + _readOptions(userConf) + sys.argv[1:]
     else:
-        userConf = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
-    argv = _readOptions('/etc/youtube-dl.conf') + _readOptions(userConf) + sys.argv[1:]
+        argv = sys.argv[1:]
+
     opts, args = parser.parse_args(argv)
 
     return parser, opts, args
