@@ -280,10 +280,6 @@ def parseOpts():
 def _real_main():
     parser, opts, args = parseOpts()
 
-    # Update version
-    if opts.update_self:
-        update_self(fd.to_screen, opts.verbose, sys.argv[0])
-
     # Open appropriate CookieJar
     if opts.cookiefile is None:
         jar = compat_cookiejar.CookieJar()
@@ -466,6 +462,10 @@ def _real_main():
         fd.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
     if opts.recodevideo:
         fd.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
+
+    # Update version
+    if opts.update_self:
+        update_self(fd.to_screen, opts.verbose, sys.argv[0])
 
     # Maybe do nothing
     if len(all_urls) < 1:
