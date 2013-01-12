@@ -3758,7 +3758,7 @@ class RBMARadioIE(InfoExtractor):
                 'location': data.get('country_of_origin'),
                 'uploader': data.get('host', {}).get('name'),
                 'uploader_id': data.get('host', {}).get('slug'),
-                'thumbnail': data.get('image').get('large_url_2x'),
+                'thumbnail': data.get('image', {}).get('large_url_2x'),
                 'duration': data.get('duration'),
         }
         return [info]
