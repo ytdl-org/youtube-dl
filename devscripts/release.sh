@@ -69,7 +69,7 @@ ROOT=$(pwd)
     cd build/gh-pages
     ORIGIN_URL=$(git config --get remote.origin.url)
     "$ROOT/devscripts/gh-pages/add-version.py" $version
-    "$ROOT/devscripts/gh-pages/sign-versions.py" < updates_key.pem
+    "$ROOT/devscripts/gh-pages/sign-versions.py" < "$ROOT/updates_key.pem"
     "$ROOT/devscripts/gh-pages/generate-download.py"
     "$ROOT/devscripts/gh-pages/update-copyright.py"
     git add *.html *.html.in update
@@ -78,7 +78,7 @@ ROOT=$(pwd)
     read -p "Is it good, can I push? (y/n) " -n 1
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then exit 1; fi
     echo
-    git push $ORIGIN_URL gh-pages
+    git push "$ORIGIN_URL" gh-pages
 )
 rm -r build
 
