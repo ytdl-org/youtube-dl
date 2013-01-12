@@ -82,6 +82,11 @@ def generator(test_case):
         fd.add_info_extractor(ie())
         for ien in test_case.get('add_ie', []):
             fd.add_info_extractor(getattr(youtube_dl.InfoExtractors, ien + 'IE')())
+        finished_hook_called = set()
+        def _hook(status):
+            if status['status'] == 'finished':
+                finished_hook_called.add(status['filename'])
+        fd.add_progress_hook(_hook)
 
         test_cases = test_case.get('playlist', [test_case])
         for tc in test_cases:
@@ -94,6 +99,7 @@ def generator(test_case):
             for tc in test_cases:
                 if not test_case.get('params', {}).get('skip_download', False):
                     self.assertTrue(os.path.exists(tc['file']))
+                    self.assertTrue(tc['file'] in finished_hook_called)
                 self.assertTrue(os.path.exists(tc['file'] + '.info.json'))
                 if 'md5' in tc:
                     md5_for_file = _file_md5(tc['file'])

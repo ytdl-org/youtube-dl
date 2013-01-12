@@ -95,6 +95,7 @@ class FileDownloader(object):
         """Create a FileDownloader object with the given options."""
         self._ies = []
         self._pps = []
+        self._progress_hooks = []
         self._download_retcode = 0
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
@@ -594,8 +595,15 @@ class FileDownloader(object):
                 retval = 0
                 break
         if retval == 0:
-            self.to_screen(u'\r[rtmpdump] %s bytes' % os.path.getsize(encodeFilename(tmpfilename)))
+            fsize = os.path.getsize(encodeFilename(tmpfilename))
+            self.to_screen(u'\r[rtmpdump] %s bytes' % fsize)
             self.try_rename(tmpfilename, filename)
+            self._hook_progress({
+                'downloaded_bytes': fsize,
+                'total_bytes': fsize,
+                'filename': filename,
+                'status': 'finished',
+            })
             return True
         else:
             self.trouble(u'\nERROR: rtmpdump exited with code %d' % retval)
@@ -607,6 +615,10 @@ class FileDownloader(object):
         # Check file already present
         if self.params.get('continuedl', False) and os.path.isfile(encodeFilename(filename)) and not self.params.get('nopart', False):
             self.report_file_already_downloaded(filename)
+            self._hook_progress({
+                'filename': filename,
+                'status': 'finished',
+            })
             return True
 
         # Attempt to download using rtmpdump
@@ -678,6 +690,10 @@ class FileDownloader(object):
                             # the one in the hard drive.
                             self.report_file_already_downloaded(filename)
                             self.try_rename(tmpfilename, filename)
+                            self._hook_progress({
+                                'filename': filename,
+                                'status': 'finished',
+                            })
                             return True
                         else:
                             # The length does not match, we start the download over
@@ -736,6 +752,14 @@ class FileDownloader(object):
                 eta_str = self.calc_eta(start, time.time(), data_len - resume_len, byte_counter - resume_len)
                 self.report_progress(percent_str, data_len_str, speed_str, eta_str)
 
+            self._hook_progress({
+                'downloaded_bytes': byte_counter,
+                'total_bytes': data_len,
+                'tmpfilename': tmpfilename,
+                'filename': filename,
+                'status': 'downloading',
+            })
+
             # Apply rate limit
             self.slow_down(start, byte_counter - resume_len)
 
@@ -752,4 +776,31 @@ class FileDownloader(object):
         if self.params.get('updatetime', True):
             info_dict['filetime'] = self.try_utime(filename, data.info().get('last-modified', None))
 
+        self._hook_progress({
+            'downloaded_bytes': byte_counter,
+            'total_bytes': byte_counter,
+            'filename': filename,
+            'status': 'finished',
+        })
+
         return True
+
+    def _hook_progress(self, status):
+        for ph in self._progress_hooks:
+            ph(status)
+
+    def add_progress_hook(self, ph):
+        """ ph gets called on download progress, with a dictionary with the entries
+        * filename: The final filename
+        * status: One of "downloading" and "finished"
+
+        It can also have some of the following entries:
+
+        * downloaded_bytes: Bytes on disks
+        * total_bytes: Total bytes, None if unknown
+        * tmpfilename: The filename we're currently writing to
+
+        Hooks are guaranteed to be called at least once (with status "finished")
+        if the download is successful.
+        """
+        self._progress_hooks.append(ph)
