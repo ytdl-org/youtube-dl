@@ -212,5 +212,18 @@
         }
       }
     ]
+  },
+  {
+    "name": "RBMARadio",
+    "url": "http://www.rbmaradio.com/shows/ford-lopatin-live-at-primavera-sound-2011",
+    "file": "ford-lopatin-live-at-primavera-sound-2011.mp3",
+    "md5": "6bc6f9bcb18994b4c983bc3bf4384d95",
+    "info_dict": {
+        "title": "Live at Primavera Sound 2011",
+        "description": "Joel Ford and Daniel \u2019Oneohtrix Point Never\u2019 Lopatin fly their midified pop extravaganza to Spain. Live at Primavera Sound 2011.",
+        "uploader": "Ford & Lopatin",
+        "uploader_id": "ford-lopatin",
+        "location": "Spain"
+    }
   }
 ]
