@@ -1,0 +1,229 @@
+[
+  {
+    "name": "Youtube",
+    "url":  "http://www.youtube.com/watch?v=BaW_jenozKc",
+    "file":  "BaW_jenozKc.mp4",
+    "info_dict": {
+      "title": "youtube-dl test video \"'/\\ä↭𝕐",
+      "uploader": "Philipp Hagemeister",
+      "uploader_id": "phihag",
+      "upload_date": "20121002",
+      "description": "test chars:  \"'/\\ä↭𝕐\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de ."
+    }
+  },
+  {
+    "name": "Dailymotion",
+    "md5":  "392c4b85a60a90dc4792da41ce3144eb",
+    "url":  "http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech",
+    "file":  "x33vw9.mp4"
+  },
+  {
+    "name": "Metacafe",
+    "add_ie": ["Youtube"],
+    "url":  "http://metacafe.com/watch/yt-_aUehQsCQtM/the_electric_company_short_i_pbs_kids_go/",
+    "file":  "_aUehQsCQtM.flv"
+  },
+  {
+    "name": "BlipTV",
+    "md5":  "b2d849efcf7ee18917e4b4d9ff37cafe",
+    "url":  "http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352",
+    "file":  "5779306.m4v"
+  },
+  {
+    "name": "XVideos",
+    "md5":  "1d0c835822f0a71a7bf011855db929d0",
+    "url":  "http://www.xvideos.com/video939581/funny_porns_by_s_-1",
+    "file":  "939581.flv"
+  },
+  {
+    "name": "YouPorn",
+    "md5": "c37ddbaaa39058c76a7e86c6813423c1",
+    "url": "http://www.youporn.com/watch/505835/sex-ed-is-it-safe-to-masturbate-daily/",
+    "file": "505835.mp4"
+  },
+  {
+    "name": "Pornotube",
+    "md5": "374dd6dcedd24234453b295209aa69b6",
+    "url": "http://pornotube.com/c/173/m/1689755/Marilyn-Monroe-Bathing",
+    "file": "1689755.flv"
+  },
+  {
+    "name": "YouJizz",
+    "md5": "07e15fa469ba384c7693fd246905547c",
+    "url": "http://www.youjizz.com/videos/zeichentrick-1-2189178.html",
+    "file": "2189178.flv"
+  },
+  {
+    "name": "Vimeo",
+    "md5":  "8879b6cc097e987f02484baf890129e5",
+    "url":  "http://vimeo.com/56015672",
+    "file": "56015672.mp4",
+    "info_dict": {
+      "title": "youtube-dl test video - ★ \" ' 幸 / \\ ä ↭ 𝕐",
+      "uploader": "Filippo Valsorda",
+      "uploader_id": "user7108434",
+      "upload_date": "20121220",
+      "description": "This is a test case for youtube-dl.\nFor more information, see github.com/rg3/youtube-dl\nTest chars: ★ \" ' 幸 / \\ ä ↭ 𝕐"
+    }
+  },
+  {
+    "name": "Soundcloud",
+    "md5":  "ebef0a451b909710ed1d7787dddbf0d7",
+    "url":  "http://soundcloud.com/ethmusic/lostin-powers-she-so-heavy",
+    "file":  "62986583.mp3"
+  },
+  {
+    "name": "StanfordOpenClassroom",
+    "md5":  "544a9468546059d4e80d76265b0443b8",
+    "url":  "http://openclassroom.stanford.edu/MainFolder/VideoPage.php?course=PracticalUnix&video=intro-environment&speed=100",
+    "file":  "PracticalUnix_intro-environment.mp4"
+  },
+  {
+    "name": "XNXX",
+    "md5":  "0831677e2b4761795f68d417e0b7b445",
+    "url":  "http://video.xnxx.com/video1135332/lida_naked_funny_actress_5_",
+    "file":  "1135332.flv"
+  },
+  {
+    "name": "Youku",
+    "url": "http://v.youku.com/v_show/id_XNDgyMDQ2NTQw.html",
+    "file": "XNDgyMDQ2NTQw_part00.flv",
+    "md5": "ffe3f2e435663dc2d1eea34faeff5b5b",
+    "params": { "test": false }
+  },
+  {
+    "name": "NBA",
+    "url": "http://www.nba.com/video/games/nets/2012/12/04/0021200253-okc-bkn-recap.nba/index.html",
+    "file": "0021200253-okc-bkn-recap.nba.mp4",
+    "md5": "c0edcfc37607344e2ff8f13c378c88a4"
+  },
+  {
+    "name": "JustinTV",
+    "url": "http://www.twitch.tv/thegamedevhub/b/296128360",
+    "file": "296128360.flv",
+    "md5": "ecaa8a790c22a40770901460af191c9a"
+  },
+  {
+    "name": "MyVideo",
+    "url": "http://www.myvideo.de/watch/8229274/bowling_fail_or_win",
+    "file": "8229274.flv",
+    "md5": "2d2753e8130479ba2cb7e0a37002053e"
+  },
+  {
+    "name": "Escapist",
+    "url": "http://www.escapistmagazine.com/videos/view/the-escapist-presents/6618-Breaking-Down-Baldurs-Gate",
+    "file": "6618-Breaking-Down-Baldurs-Gate.flv",
+    "md5": "c6793dbda81388f4264c1ba18684a74d",
+    "skip": "Fails with timeout on Travis"
+  },
+  {
+    "name": "GooglePlus",
+    "url": "https://plus.google.com/u/0/108897254135232129896/posts/ZButuJc6CtH",
+    "file": "ZButuJc6CtH.flv"
+  },
+  {
+    "name": "FunnyOrDie",
+    "url": "http://www.funnyordie.com/videos/0732f586d7/heart-shaped-box-literal-video-version",
+    "file": "0732f586d7.mp4",
+    "md5": "f647e9e90064b53b6e046e75d0241fbd"
+  },
+  {
+    "name": "TweetReel",
+    "url": "http://tweetreel.com/?77smq",
+    "file": "77smq.mov",
+    "md5": "56b4d9ca9de467920f3f99a6d91255d6",
+    "info_dict": {
+        "uploader": "itszero",
+        "uploader_id": "itszero",
+        "upload_date": "20091225",
+        "description": "Installing Gentoo Linux on Powerbook G4, it turns out the sleep indicator becomes HDD activity indicator :D"
+    }
+  },
+  {
+    "name": "Steam",
+    "url": "http://store.steampowered.com/video/105600/",
+    "playlist": [
+      {
+        "file": "81300.flv",
+        "md5": "f870007cee7065d7c76b88f0a45ecc07",
+        "info_dict": {
+            "title": "Terraria 1.1 Trailer"
+        }
+      },
+      {
+        "file": "80859.flv",
+        "md5": "61aaf31a5c5c3041afb58fb83cbb5751",
+        "info_dict": {
+          "title": "Terraria Trailer"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Ustream",
+    "url": "http://www.ustream.tv/recorded/20274954",
+    "file": "20274954.flv",
+    "md5": "088f151799e8f572f84eb62f17d73e5c",
+    "info_dict": {
+        "title": "Young Americans for Liberty February 7, 2012 2:28 AM"
+    }
+  },
+  {
+    "name": "InfoQ",
+    "url": "http://www.infoq.com/presentations/A-Few-of-My-Favorite-Python-Things",
+    "file": "12-jan-pythonthings.mp4",
+    "info_dict": {
+      "title": "A Few of My Favorite [Python] Things"
+    },
+    "params": {
+      "skip_download": true
+    }
+  },
+  {
+    "name": "ComedyCentral",
+    "url": "http://www.thedailyshow.com/full-episodes/thu-december-13-2012-kristen-stewart",
+    "playlist": [
+      {
+        "file": "422204.mp4",
+        "md5": "7a7abe068b31ff03e7b8a37596e72380",
+        "info_dict": {
+            "title": "thedailyshow-thu-december-13-2012-kristen-stewart part 1"
+        }
+      },
+      {
+        "file": "422205.mp4",
+        "md5": "30552b7274c94dbb933f64600eadddd2",
+        "info_dict": {
+            "title": "thedailyshow-thu-december-13-2012-kristen-stewart part 2"
+        }
+      },
+      {
+        "file": "422206.mp4",
+        "md5": "1f4c0664b352cb8e8fe85d5da4fbee91",
+        "info_dict": {
+            "title": "thedailyshow-thu-december-13-2012-kristen-stewart part 3"
+        }
+      },
+      {
+        "file": "422207.mp4",
+        "md5": "f61ee8a4e6bd1308438e03badad78554",
+        "info_dict": {
+            "title": "thedailyshow-thu-december-13-2012-kristen-stewart part 4"
+        }
+      }
+    ]
+  },
+  {
+    "name": "RBMARadio",
+    "url": "http://www.rbmaradio.com/shows/ford-lopatin-live-at-primavera-sound-2011",
+    "file": "ford-lopatin-live-at-primavera-sound-2011.mp3",
+    "md5": "6bc6f9bcb18994b4c983bc3bf4384d95",
+    "info_dict": {
+        "title": "Live at Primavera Sound 2011",
+        "description": "Joel Ford and Daniel \u2019Oneohtrix Point Never\u2019 Lopatin fly their midified pop extravaganza to Spain. Live at Primavera Sound 2011.",
+        "uploader": "Ford & Lopatin",
+        "uploader_id": "ford-lopatin",
+        "location": "Spain"
+    }
+  }
+]
