@@ -283,6 +283,7 @@ jar = None
 def _real_main():
     parser, opts, args = parseOpts()
 
+    global jar
     # Open appropriate CookieJar
     if opts.cookiefile is None:
         jar = compat_cookiejar.CookieJar()
