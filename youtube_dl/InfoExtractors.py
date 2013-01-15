@@ -3544,7 +3544,7 @@ class JustinTVIE(InfoExtractor):
                 info.append({
                     'id': clip['id'],
                     'url': video_url,
-                    'title': clip['title'],
+                    'title': clip.get('title', ''),
                     'uploader': clip.get('channel_name', video_uploader_id),
                     'uploader_id': video_uploader_id,
                     'upload_date': video_date,
