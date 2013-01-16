@@ -3541,10 +3541,12 @@ class JustinTVIE(InfoExtractor):
                 video_extension = os.path.splitext(video_url)[1][1:]
                 video_date = re.sub('-', '', clip['start_time'][:10])
                 video_uploader_id = clip.get('user_id', clip.get('channel_id'))
+                video_id = clip['id']
+                video_title = clip.get('title', video_id)
                 info.append({
-                    'id': clip['id'],
+                    'id': video_id,
                     'url': video_url,
-                    'title': clip['title'],
+                    'title': video_title,
                     'uploader': clip.get('channel_name', video_uploader_id),
                     'uploader_id': video_uploader_id,
                     'upload_date': video_date,
