@@ -82,6 +82,8 @@ class FileDownloader(object):
     subtitleslang:     Language of the subtitles to download
     test:              Download only first bytes to test the downloader.
     keepvideo:         Keep the video file after post-processing
+    min_filesize:      Skip files smaller than this size
+    max_filesize:      Skip files larger than this size
     """
 
     params = None
@@ -712,6 +714,15 @@ class FileDownloader(object):
         data_len = data.info().get('Content-length', None)
         if data_len is not None:
             data_len = int(data_len) + resume_len
+            min_data_len = self.params.get("min_filesize", None)
+            max_data_len =  self.params.get("max_filesize", None)
+            if min_data_len is not None and data_len < min_data_len:
+                self.to_screen(u'\r[download] File is smaller than min-filesize (%s bytes < %s bytes). Aborting.' % (data_len, min_data_len))
+                return False
+            if max_data_len is not None and data_len > max_data_len:
+                self.to_screen(u'\r[download] File is larger than max-filesize (%s bytes > %s bytes). Aborting.' % (data_len, max_data_len))
+                return False
+
         data_len_str = self.format_bytes(data_len)
         byte_counter = 0 + resume_len
         block_size = self.params.get('buffersize', 1024)
