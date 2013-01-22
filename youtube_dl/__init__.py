@@ -151,6 +151,10 @@ def parseOpts():
     selection.add_option('--reject-title', dest='rejecttitle', metavar='REGEX',help='skip download for matching titles (regex or caseless sub-string)')
     selection.add_option('--max-downloads', metavar='NUMBER', dest='max_downloads', help='Abort after downloading NUMBER files', default=None)
 
+    selection.add_option('--min-filesize', metavar='SIZE', dest='min_filesize', help="Skip files smaller than this size", default=None)
+    selection.add_option('--max-filesize', metavar='SIZE', dest='max_filesize', help="Skip files larger than this size", default=None)
+
+
     authentication.add_option('-u', '--username',
             dest='username', metavar='USERNAME', help='account username')
     authentication.add_option('-p', '--password',
@@ -349,6 +353,16 @@ def _real_main():
         if numeric_limit is None:
             parser.error(u'invalid rate limit specified')
         opts.ratelimit = numeric_limit
+    if opts.min_filesize is not None:
+        numeric_limit = FileDownloader.parse_bytes(opts.min_filesize)
+        if numeric_limit is None:
+            parser.error(u'invalid min_filesize specified')
+        opts.min_filesize = numeric_limit
+    if opts.max_filesize is not None:
+        numeric_limit = FileDownloader.parse_bytes(opts.max_filesize)
+        if numeric_limit is None:
+            parser.error(u'invalid max_filesize specified')
+        opts.max_filesize = numeric_limit
     if opts.retries is not None:
         try:
             opts.retries = int(opts.retries)
@@ -438,6 +452,8 @@ def _real_main():
         'verbose': opts.verbose,
         'test': opts.test,
         'keepvideo': opts.keepvideo,
+        'min_filesize': opts.min_filesize,
+        'max_filesize': opts.max_filesize
         })
 
     if opts.verbose:
