@@ -409,7 +409,10 @@ def encodeFilename(s):
         # match Windows 9x series as well. Besides, NT 4 is obsolete.)
         return s
     else:
-        return s.encode(sys.getfilesystemencoding(), 'ignore')
+        encoding = sys.getfilesystemencoding()
+        if encoding is None:
+            encoding = 'utf-8'
+        return s.encode(encoding, 'ignore')
 
 
 class ExtractorError(Exception):
