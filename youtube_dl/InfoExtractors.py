@@ -1980,62 +1980,14 @@ class DepositFilesIE(InfoExtractor):
 class FacebookIE(InfoExtractor):
     """Information Extractor for Facebook"""
 
-    _WORKING = False
     _VALID_URL = r'^(?:https?://)?(?:\w+\.)?facebook\.com/(?:video/video|photo)\.php\?(?:.*?)v=(?P<ID>\d+)(?:.*)'
     _LOGIN_URL = 'https://login.facebook.com/login.php?m&next=http%3A%2F%2Fm.facebook.com%2Fhome.php&'
     _NETRC_MACHINE = 'facebook'
-    _available_formats = ['video', 'highqual', 'lowqual']
-    _video_extensions = {
-        'video': 'mp4',
-        'highqual': 'mp4',
-        'lowqual': 'mp4',
-    }
     IE_NAME = u'facebook'
-
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
-
-    def _reporter(self, message):
-        """Add header and report message."""
-        self._downloader.to_screen(u'[facebook] %s' % message)
 
     def report_login(self):
         """Report attempt to log in."""
-        self._reporter(u'Logging in')
-
-    def report_video_webpage_download(self, video_id):
-        """Report attempt to download video webpage."""
-        self._reporter(u'%s: Downloading video webpage' % video_id)
-
-    def report_information_extraction(self, video_id):
-        """Report attempt to extract video information."""
-        self._reporter(u'%s: Extracting video information' % video_id)
-
-    def _parse_page(self, video_webpage):
-        """Extract video information from page"""
-        # General data
-        data = {'title': r'\("video_title", "(.*?)"\)',
-            'description': r'<div class="datawrap">(.*?)</div>',
-            'owner': r'\("video_owner_name", "(.*?)"\)',
-            'thumbnail':  r'\("thumb_url", "(?P<THUMB>.*?)"\)',
-            }
-        video_info = {}
-        for piece in data.keys():
-            mobj = re.search(data[piece], video_webpage)
-            if mobj is not None:
-                video_info[piece] = compat_urllib_parse.unquote_plus(mobj.group(1).decode("unicode_escape"))
-
-        # Video urls
-        video_urls = {}
-        for fmt in self._available_formats:
-            mobj = re.search(r'\("%s_src\", "(.+?)"\)' % fmt, video_webpage)
-            if mobj is not None:
-                # URL is in a Javascript segment inside an escaped Unicode format within
-                # the generally utf-8 page
-                video_urls[fmt] = compat_urllib_parse.unquote_plus(mobj.group(1).decode("unicode_escape"))
-        video_info['video_urls'] = video_urls
-
-        return video_info
+        self._downloader.to_screen(u'[%s] Logging in' % self.IE_NAME)
 
     def _real_initialize(self):
         if self._downloader is None:
@@ -2088,100 +2040,33 @@ class FacebookIE(InfoExtractor):
             return
         video_id = mobj.group('ID')
 
-        # Get video webpage
-        self.report_video_webpage_download(video_id)
-        request = compat_urllib_request.Request('https://www.facebook.com/video/video.php?v=%s' % video_id)
-        try:
-            page = compat_urllib_request.urlopen(request)
-            video_webpage = page.read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err))
-            return
+        url = 'https://www.facebook.com/video/video.php?v=%s' % video_id
+        webpage = self._download_webpage(url, video_id)
 
-        # Start extracting information
-        self.report_information_extraction(video_id)
+        BEFORE = '[["allowFullScreen","true"],["allowScriptAccess","always"],["salign","tl"],["scale","noscale"],["wmode","opaque"]].forEach(function(param) {swf.addParam(param[0], param[1]);});\n'
+        AFTER = '.forEach(function(variable) {swf.addVariable(variable[0], variable[1]);});'
+        m = re.search(re.escape(BEFORE) + '(.*?)' + re.escape(AFTER), webpage)
+        if not m:
+            raise ExtractorError(u'Cannot parse data')
+        data = dict(json.loads(m.group(1)))
+        video_url = compat_urllib_parse.unquote(data['hd_src'])
+        video_duration = int(data['video_duration'])
 
-        # Extract information
-        video_info = self._parse_page(video_webpage)
+        m = re.search('<h2 class="uiHeaderTitle">([^<]+)</h2>', webpage)
+        if not m:
+            raise ExtractorError(u'Cannot find title in webpage')
+        video_title = unescapeHTML(m.group(1))
 
-        # uploader
-        if 'owner' not in video_info:
-            self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
-            return
-        video_uploader = video_info['owner']
+        info = {
+            'id': video_id,
+            'title': video_title,
+            'url': video_url,
+            'ext': 'mp4',
+            'duration': video_duration,
+            'thumbnail': data['thumbnail_src'],
+        }
+        return [info]
 
-        # title
-        if 'title' not in video_info:
-            self._downloader.trouble(u'ERROR: unable to extract video title')
-            return
-        video_title = video_info['title']
-        video_title = video_title.decode('utf-8')
-
-        # thumbnail image
-        if 'thumbnail' not in video_info:
-            self._downloader.trouble(u'WARNING: unable to extract video thumbnail')
-            video_thumbnail = ''
-        else:
-            video_thumbnail = video_info['thumbnail']
-
-        # upload date
-        upload_date = None
-        if 'upload_date' in video_info:
-            upload_time = video_info['upload_date']
-            timetuple = email.utils.parsedate_tz(upload_time)
-            if timetuple is not None:
-                try:
-                    upload_date = time.strftime('%Y%m%d', timetuple[0:9])
-                except:
-                    pass
-
-        # description
-        video_description = video_info.get('description', 'No description available.')
-
-        url_map = video_info['video_urls']
-        if url_map:
-            # Decide which formats to download
-            req_format = self._downloader.params.get('format', None)
-            format_limit = self._downloader.params.get('format_limit', None)
-
-            if format_limit is not None and format_limit in self._available_formats:
-                format_list = self._available_formats[self._available_formats.index(format_limit):]
-            else:
-                format_list = self._available_formats
-            existing_formats = [x for x in format_list if x in url_map]
-            if len(existing_formats) == 0:
-                self._downloader.trouble(u'ERROR: no known formats available for video')
-                return
-            if req_format is None:
-                video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
-            elif req_format == 'worst':
-                video_url_list = [(existing_formats[len(existing_formats)-1], url_map[existing_formats[len(existing_formats)-1]])] # worst quality
-            elif req_format == '-1':
-                video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
-            else:
-                # Specific format
-                if req_format not in url_map:
-                    self._downloader.trouble(u'ERROR: requested format not available')
-                    return
-                video_url_list = [(req_format, url_map[req_format])] # Specific format
-
-        results = []
-        for format_param, video_real_url in video_url_list:
-            # Extension
-            video_extension = self._video_extensions.get(format_param, 'mp4')
-
-            results.append({
-                'id':       video_id.decode('utf-8'),
-                'url':      video_real_url.decode('utf-8'),
-                'uploader': video_uploader.decode('utf-8'),
-                'upload_date':  upload_date,
-                'title':    video_title,
-                'ext':      video_extension.decode('utf-8'),
-                'format':   (format_param is None and u'NA' or format_param.decode('utf-8')),
-                'thumbnail':    video_thumbnail.decode('utf-8'),
-                'description':  video_description.decode('utf-8'),
-            })
-        return results
 
 class BlipTVIE(InfoExtractor):
     """Information extractor for blip.tv"""

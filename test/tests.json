@@ -225,5 +225,15 @@
         "uploader_id": "ford-lopatin",
         "location": "Spain"
     }
+  },
+  {
+    "name": "Facebook",
+    "url": "https://www.facebook.com/photo.php?v=120708114770723",
+    "file": "120708114770723.mp4",
+    "md5": "48975a41ccc4b7a581abd68651c1a5a8",
+    "info_dict": {
+      "title": "PEOPLE ARE AWESOME 2013",
+      "duration": 279
+    }
   }
 ]
