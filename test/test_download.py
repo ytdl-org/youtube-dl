@@ -107,11 +107,7 @@ def generator(test_case):
                 with io.open(tc['file'] + '.info.json', encoding='utf-8') as infof:
                     info_dict = json.load(infof)
                 for (info_field, value) in tc.get('info_dict', {}).items():
-                    if value.startswith('md5:'):
-                        md5_info_value = hashlib.md5(info_dict.get(info_field, '')).hexdigest()
-                        self.assertEqual(value[3:], md5_info_value)
-                    else:
-                        self.assertEqual(value, info_dict.get(info_field))
+                    self.assertEqual(value, info_dict.get(info_field))
         finally:
             for tc in test_cases:
                 _try_rm(tc['file'])
