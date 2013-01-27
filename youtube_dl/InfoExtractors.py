@@ -2869,8 +2869,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         if mobj.group('course') and mobj.group('video'): # A specific video
             course = mobj.group('course')
@@ -2907,12 +2906,9 @@ class StanfordOpenClassroomIE(InfoExtractor):
                 'upload_date': None,
             }
 
-            self.report_download_webpage(info['id'])
-            try:
-                coursepage = compat_urllib_request.urlopen(url).read()
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self._downloader.trouble(u'ERROR: unable to download course info page: ' + compat_str(err))
-                return
+            coursepage = self._download_webpage(url, info['id'],
+                                        note='Downloading course info page',
+                                        errnote='Unable to download course info page')
 
             m = re.search('<h1>([^<]+)</h1>', coursepage)
             if m:
@@ -2936,7 +2932,6 @@ class StanfordOpenClassroomIE(InfoExtractor):
                 assert entry['type'] == 'reference'
                 results += self.extract(entry['url'])
             return results
-
         else: # Root page
             info = {
                 'id': 'Stanford OpenClassroom',
