@@ -244,7 +244,8 @@
         "file": "11885610.m4a",
         "md5": "96ce57f24389fc8734ce47f4c1abcc55",
         "info_dict": {
-          "title": "youtube-dl test track 1 \"'/\\\u00e4\u21ad"
+          "title": "youtube-dl test track 1 \"'/\\\u00e4\u21ad",
+          "uploader": "youtue-dl project<>\"'"
         }
       },
       {
