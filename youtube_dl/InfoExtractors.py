@@ -3861,7 +3861,7 @@ class YouJizzIE(InfoExtractor):
 
 class EightTracksIE(InfoExtractor):
     IE_NAME = '8tracks'
-    _VALID_URL = r'https?://8tracks.com/(?P<user>[^/]+)/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://8tracks.com/(?P<user>[^/]+)/(?P<id>[^/#]+)(?:#.*)?$'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
