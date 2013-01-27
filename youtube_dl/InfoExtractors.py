@@ -3892,8 +3892,9 @@ class EightTracksIE(InfoExtractor):
             info = {
                 'id': track_data['id'],
                 'url': track_data['track_file_stream_url'],
-                'title': track_data['name'],
-                'uploader': track_data['performer'],
+                'title': track_data['performer'] + u' - ' + track_data['name'],
+                'raw_title': track_data['name'],
+                'uploader_id': data['user']['login'],
                 'ext': 'm4a',
             }
             res.append(info)
