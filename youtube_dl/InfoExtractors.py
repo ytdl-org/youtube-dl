@@ -2050,8 +2050,10 @@ class FacebookIE(InfoExtractor):
         if not m:
             raise ExtractorError(u'Cannot parse data')
         data = dict(json.loads(m.group(1)))
-        video_url = compat_urllib_parse.unquote(data['hd_src'])
-        video_duration = int(data['video_duration'])
+        params_raw = compat_urllib_parse.unquote(data['params'])
+        params = json.loads(params_raw)
+        video_url = params['hd_src']
+        video_duration = int(params['video_duration'])
 
         m = re.search('<h2 class="uiHeaderTitle">([^<]+)</h2>', webpage)
         if not m:
@@ -2064,7 +2066,7 @@ class FacebookIE(InfoExtractor):
             'url': video_url,
             'ext': 'mp4',
             'duration': video_duration,
-            'thumbnail': data['thumbnail_src'],
+            'thumbnail': params['thumbnail_src'],
         }
         return [info]
 
