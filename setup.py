@@ -2,9 +2,13 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-from distutils.core import setup
 import pkg_resources
 import sys
+
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
 try:
     import py2exe
