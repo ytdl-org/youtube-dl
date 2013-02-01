@@ -83,4 +83,7 @@ ROOT=$(pwd)
 )
 rm -rf build
 
+echo "Uploading to PyPi ..."
+pip sdist upload
+
 echo "\n### DONE!"
