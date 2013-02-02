@@ -290,10 +290,13 @@ def _real_main():
     else:
         try:
             jar = compat_cookiejar.MozillaCookieJar(opts.cookiefile)
-            if os.path.isfile(opts.cookiefile) and os.access(opts.cookiefile, os.R_OK):
+            if os.access(opts.cookiefile, os.R_OK):
                 jar.load()
         except (IOError, OSError) as err:
-            sys.exit(u'ERROR: unable to open cookie file')
+            if opts.verbose:
+                traceback.print_exc()
+            sys.stderr.write(u'ERROR: unable to open cookie file\n')
+            sys.exit(101)
     # Set user agent
     if opts.user_agent is not None:
         std_headers['User-Agent'] = opts.user_agent
