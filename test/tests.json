@@ -76,7 +76,8 @@
     "name": "StanfordOpenClassroom",
     "md5":  "544a9468546059d4e80d76265b0443b8",
     "url":  "http://openclassroom.stanford.edu/MainFolder/VideoPage.php?course=PracticalUnix&video=intro-environment&speed=100",
-    "file":  "PracticalUnix_intro-environment.mp4"
+    "file":  "PracticalUnix_intro-environment.mp4",
+    "skip": "Currently offline"
   },
   {
     "name": "XNXX",
@@ -113,8 +114,7 @@
     "name": "Escapist",
     "url": "http://www.escapistmagazine.com/videos/view/the-escapist-presents/6618-Breaking-Down-Baldurs-Gate",
     "file": "6618-Breaking-Down-Baldurs-Gate.flv",
-    "md5": "c6793dbda81388f4264c1ba18684a74d",
-    "skip": "Fails with timeout on Travis"
+    "md5": "c6793dbda81388f4264c1ba18684a74d"
   },
   {
     "name": "GooglePlus",
