@@ -150,9 +150,8 @@ def parseOpts():
     selection.add_option('--match-title', dest='matchtitle', metavar='REGEX',help='download only matching titles (regex or caseless sub-string)')
     selection.add_option('--reject-title', dest='rejecttitle', metavar='REGEX',help='skip download for matching titles (regex or caseless sub-string)')
     selection.add_option('--max-downloads', metavar='NUMBER', dest='max_downloads', help='Abort after downloading NUMBER files', default=None)
-
-    selection.add_option('--min-filesize', metavar='SIZE', dest='min_filesize', help="Skip files smaller than this size", default=None)
-    selection.add_option('--max-filesize', metavar='SIZE', dest='max_filesize', help="Skip files larger than this size", default=None)
+    selection.add_option('--min-filesize', metavar='SIZE', dest='min_filesize', help="Do not download any videos smaller than SIZE (e.g. 50k or 44.6m)", default=None)
+    selection.add_option('--max-filesize', metavar='SIZE', dest='max_filesize', help="Do not download any videos larger than SIZE (e.g. 50k or 44.6m)", default=None)
 
 
     authentication.add_option('-u', '--username',
