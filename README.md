@@ -38,8 +38,10 @@ which means you can modify it, redistribute it or use it however you like.
     --reject-title REGEX     skip download for matching titles (regex or
                              caseless sub-string)
     --max-downloads NUMBER   Abort after downloading NUMBER files
-    --min-filesize SIZE      Skip files smaller than this size
-    --max-filesize SIZE      Skip files larger than this size
+    --min-filesize SIZE      Do not download any videos smaller than SIZE (e.g.
+                             50k or 44.6m)
+    --max-filesize SIZE      Do not download any videos larger than SIZE (e.g.
+                             50k or 44.6m)
 
 ## Filesystem Options:
     -t, --title              use title in file name
