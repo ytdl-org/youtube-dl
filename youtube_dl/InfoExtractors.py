@@ -978,7 +978,7 @@ class VimeoIE(InfoExtractor):
     """Information extractor for vimeo.com."""
 
     # _VALID_URL matches Vimeo URLs
-    _VALID_URL = r'(?:https?://)?(?:(?:www|player).)?vimeo\.com/(?:(?:groups|album)/[^/]+/)?(?:videos?/)?([0-9]+)'
+    _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|player)\.)?vimeo\.com/(?:(?:groups|album)/[^/]+/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)'
     IE_NAME = u'vimeo'
 
     def __init__(self, downloader=None):
@@ -999,7 +999,11 @@ class VimeoIE(InfoExtractor):
             self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
             return
 
-        video_id = mobj.group(1)
+        video_id = mobj.group('id')
+        if not mobj.group('proto'):
+            url = 'https://' + url
+        if mobj.group('direct_link'):
+            url = 'https://vimeo.com/' + video_id
 
         # Retrieve video webpage to extract further information
         request = compat_urllib_request.Request(url, None, std_headers)
