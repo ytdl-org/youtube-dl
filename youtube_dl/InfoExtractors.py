@@ -264,13 +264,18 @@ class YoutubeIE(InfoExtractor):
             srt_lang = list(srt_lang_list.keys())[0]
         if not srt_lang in srt_lang_list:
             return (u'WARNING: no closed captions found in the specified language', None)
-        request = compat_urllib_request.Request('http://www.youtube.com/api/timedtext?lang=%s&name=%s&v=%s' % (srt_lang, srt_lang_list[srt_lang], video_id))
+        params = compat_urllib_parse.urlencode({
+            'lang': srt_lang,
+            'name': srt_lang_list[srt_lang].encode('utf-8'),
+            'v': video_id,
+        })
+        url = 'http://www.youtube.com/api/timedtext?' + params
         try:
-            srt_xml = compat_urllib_request.urlopen(request).read().decode('utf-8')
+            srt_xml = compat_urllib_request.urlopen(url).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             return (u'WARNING: unable to download video subtitles: %s' % compat_str(err), None)
         if not srt_xml:
-            return (u'WARNING: unable to download video subtitles', None)
+            return (u'WARNING: Did not fetch video subtitles', None)
         return (None, self._closed_captions_xml_to_srt(srt_xml))
 
     def _print_formats(self, formats):
