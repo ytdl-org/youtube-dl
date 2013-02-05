@@ -17,3 +17,4 @@ youtube-dl.tar.gz
 .coverage
 cover/
 updates_key.pem
+*.egg-info
