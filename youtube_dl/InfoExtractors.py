@@ -151,7 +151,7 @@ class YoutubeIE(InfoExtractor):
                      (?(1).+)?                                                # if we found the ID, everything can follow
                      $"""
     _LANG_URL = r'http://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
-    _LOGIN_URL = 'https://www.youtube.com/signup?next=/&gl=US&hl=en'
+    _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
     _AGE_URL = 'http://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
     _NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
     _NETRC_MACHINE = 'youtube'
@@ -320,19 +320,54 @@ class YoutubeIE(InfoExtractor):
         if username is None:
             return
 
+        request = compat_urllib_request.Request(self._LOGIN_URL)
+        try:
+            login_page = compat_urllib_request.urlopen(request).read().decode('utf-8')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.to_stderr(u'WARNING: unable to fetch login page: %s' % compat_str(err))
+            return
+
+        galx = None
+        dsh = None
+        match = re.search(re.compile(r'<input.+?name="GALX".+?value="(.+?)"', re.DOTALL), login_page)
+        if match:
+          galx = match.group(1)
+
+        match = re.search(re.compile(r'<input.+?name="dsh".+?value="(.+?)"', re.DOTALL), login_page)
+        if match:
+          dsh = match.group(1)
+
         # Log in
-        login_form = {
-                'current_form': 'loginForm',
-                'next':     '/',
-                'action_login': 'Log In',
-                'username': username,
-                'password': password,
-                }
-        request = compat_urllib_request.Request(self._LOGIN_URL, compat_urllib_parse.urlencode(login_form))
+        login_form_strs = {
+                u'continue': u'http://www.youtube.com/signin?action_handle_signin=true&feature=sign_in_button&hl=en_US&nomobiletemp=1',
+                u'Email': username,
+                u'GALX': galx,
+                u'Passwd': password,
+                u'PersistentCookie': u'yes',
+                u'_utf8': u'霱',
+                u'bgresponse': u'js_disabled',
+                u'checkConnection': u'',
+                u'checkedDomains': u'youtube',
+                u'dnConn': u'',
+                u'dsh': dsh,
+                u'pstMsg': u'0',
+                u'rmShown': u'1',
+                u'secTok': u'',
+                u'signIn': u'Sign in',
+                u'timeStmp': u'',
+                u'service': u'youtube',
+                u'uilel': u'3',
+                u'hl': u'en_US',
+        }
+        # Convert to UTF-8 *before* urlencode because Python 2.x's urlencode
+        # chokes on unicode
+        login_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k,v in login_form_strs.items())
+        login_data = compat_urllib_parse.urlencode(login_form).encode('ascii')
+        request = compat_urllib_request.Request(self._LOGIN_URL, login_data)
         try:
             self.report_login()
             login_results = compat_urllib_request.urlopen(request).read().decode('utf-8')
-            if re.search(r'(?i)<form[^>]* name="loginForm"', login_results) is not None:
+            if re.search(r'(?i)<form[^>]* id="gaia_loginform"', login_results) is not None:
                 self._downloader.to_stderr(u'WARNING: unable to log in: bad username or password')
                 return
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
