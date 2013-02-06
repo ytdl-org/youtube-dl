@@ -76,7 +76,8 @@
     "name": "StanfordOpenClassroom",
     "md5":  "544a9468546059d4e80d76265b0443b8",
     "url":  "http://openclassroom.stanford.edu/MainFolder/VideoPage.php?course=PracticalUnix&video=intro-environment&speed=100",
-    "file":  "PracticalUnix_intro-environment.mp4"
+    "file":  "PracticalUnix_intro-environment.mp4",
+    "skip": "Currently offline"
   },
   {
     "name": "XNXX",
@@ -181,37 +182,12 @@
   },
   {
     "name": "ComedyCentral",
-    "url": "http://www.thedailyshow.com/full-episodes/thu-december-13-2012-kristen-stewart",
-    "playlist": [
-      {
-        "file": "422204.mp4",
-        "md5": "7a7abe068b31ff03e7b8a37596e72380",
-        "info_dict": {
-            "title": "thedailyshow-thu-december-13-2012-kristen-stewart part 1"
-        }
-      },
-      {
-        "file": "422205.mp4",
-        "md5": "30552b7274c94dbb933f64600eadddd2",
-        "info_dict": {
-            "title": "thedailyshow-thu-december-13-2012-kristen-stewart part 2"
-        }
-      },
-      {
-        "file": "422206.mp4",
-        "md5": "1f4c0664b352cb8e8fe85d5da4fbee91",
-        "info_dict": {
-            "title": "thedailyshow-thu-december-13-2012-kristen-stewart part 3"
-        }
-      },
-      {
-        "file": "422207.mp4",
-        "md5": "f61ee8a4e6bd1308438e03badad78554",
-        "info_dict": {
-            "title": "thedailyshow-thu-december-13-2012-kristen-stewart part 4"
-        }
-      }
-    ]
+    "url": "http://www.thedailyshow.com/watch/thu-december-13-2012/kristen-stewart",
+    "file": "422212.mp4",
+    "md5": "4e2f5cb088a83cd8cdb7756132f9739d",
+    "info_dict": {
+        "title": "thedailyshow-kristen-stewart part 1"
+    }
   },
   {
     "name": "RBMARadio",
@@ -225,5 +201,80 @@
         "uploader_id": "ford-lopatin",
         "location": "Spain"
     }
+  },
+  {
+    "name": "Facebook",
+    "url": "https://www.facebook.com/photo.php?v=120708114770723",
+    "file": "120708114770723.mp4",
+    "md5": "48975a41ccc4b7a581abd68651c1a5a8",
+    "info_dict": {
+      "title": "PEOPLE ARE AWESOME 2013",
+      "duration": 279
+    }
+  },
+  {
+    "name": "EightTracks",
+    "url": "http://8tracks.com/ytdl/youtube-dl-test-tracks-a",
+    "playlist": [
+      {
+        "file": "11885610.m4a",
+        "md5": "96ce57f24389fc8734ce47f4c1abcc55",
+        "info_dict": {
+          "title": "youtue-dl project<>\"' - youtube-dl test track 1 \"'/\\\u00e4\u21ad",
+          "uploader_id": "ytdl"
+        }
+      },
+      {
+        "file": "11885608.m4a",
+        "md5": "4ab26f05c1f7291ea460a3920be8021f",
+        "info_dict": {
+          "title": "youtube-dl project - youtube-dl test track 2 \"'/\\\u00e4\u21ad",
+          "uploader_id": "ytdl"
+
+        }
+      },
+      {
+        "file": "11885679.m4a",
+        "md5": "d30b5b5f74217410f4689605c35d1fd7",
+        "info_dict": {
+          "title": "youtube-dl project as well - youtube-dl test track 3 \"'/\\\u00e4\u21ad"
+        }
+      },
+      {
+        "file": "11885680.m4a",
+        "md5": "4eb0a669317cd725f6bbd336a29f923a",
+        "info_dict": {
+          "title": "youtube-dl project as well - youtube-dl test track 4 \"'/\\\u00e4\u21ad"
+        }
+      },
+      {
+        "file": "11885682.m4a",
+        "md5": "1893e872e263a2705558d1d319ad19e8",
+        "info_dict": {
+          "title": "PH - youtube-dl test track 5 \"'/\\\u00e4\u21ad"
+        }
+      },
+      {
+        "file": "11885683.m4a",
+        "md5": "b673c46f47a216ab1741ae8836af5899",
+        "info_dict": {
+          "title": "PH - youtube-dl test track 6 \"'/\\\u00e4\u21ad"
+        }
+      },
+      {
+        "file": "11885684.m4a",
+        "md5": "1d74534e95df54986da7f5abf7d842b7",
+        "info_dict": {
+          "title": "phihag - youtube-dl test track 7 \"'/\\\u00e4\u21ad"
+        }
+      },
+      {
+        "file": "11885685.m4a",
+        "md5": "f081f47af8f6ae782ed131d38b9cd1c0",
+        "info_dict": {
+          "title": "phihag - youtube-dl test track 8 \"'/\\\u00e4\u21ad"
+        }
+      }
+    ]
   }
 ]

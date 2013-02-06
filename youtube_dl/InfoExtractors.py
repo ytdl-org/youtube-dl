@@ -5,6 +5,7 @@ from __future__ import absolute_import
 
 import base64
 import datetime
+import itertools
 import netrc
 import os
 import re
@@ -263,13 +264,18 @@ class YoutubeIE(InfoExtractor):
             srt_lang = list(srt_lang_list.keys())[0]
         if not srt_lang in srt_lang_list:
             return (u'WARNING: no closed captions found in the specified language', None)
-        request = compat_urllib_request.Request('http://www.youtube.com/api/timedtext?lang=%s&name=%s&v=%s' % (srt_lang, srt_lang_list[srt_lang], video_id))
+        params = compat_urllib_parse.urlencode({
+            'lang': srt_lang,
+            'name': srt_lang_list[srt_lang].encode('utf-8'),
+            'v': video_id,
+        })
+        url = 'http://www.youtube.com/api/timedtext?' + params
         try:
-            srt_xml = compat_urllib_request.urlopen(request).read().decode('utf-8')
+            srt_xml = compat_urllib_request.urlopen(url).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             return (u'WARNING: unable to download video subtitles: %s' % compat_str(err), None)
         if not srt_xml:
-            return (u'WARNING: unable to download video subtitles', None)
+            return (u'WARNING: Did not fetch video subtitles', None)
         return (None, self._closed_captions_xml_to_srt(srt_xml))
 
     def _print_formats(self, formats):
@@ -972,7 +978,7 @@ class VimeoIE(InfoExtractor):
     """Information extractor for vimeo.com."""
 
     # _VALID_URL matches Vimeo URLs
-    _VALID_URL = r'(?:https?://)?(?:(?:www|player).)?vimeo\.com/(?:(?:groups|album)/[^/]+/)?(?:videos?/)?([0-9]+)'
+    _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|player)\.)?vimeo\.com/(?:(?:groups|album)/[^/]+/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)'
     IE_NAME = u'vimeo'
 
     def __init__(self, downloader=None):
@@ -993,7 +999,11 @@ class VimeoIE(InfoExtractor):
             self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
             return
 
-        video_id = mobj.group(1)
+        video_id = mobj.group('id')
+        if not mobj.group('proto'):
+            url = 'https://' + url
+        if mobj.group('direct_link'):
+            url = 'https://vimeo.com/' + video_id
 
         # Retrieve video webpage to extract further information
         request = compat_urllib_request.Request(url, None, std_headers)
@@ -1980,62 +1990,14 @@ class DepositFilesIE(InfoExtractor):
 class FacebookIE(InfoExtractor):
     """Information Extractor for Facebook"""
 
-    _WORKING = False
     _VALID_URL = r'^(?:https?://)?(?:\w+\.)?facebook\.com/(?:video/video|photo)\.php\?(?:.*?)v=(?P<ID>\d+)(?:.*)'
     _LOGIN_URL = 'https://login.facebook.com/login.php?m&next=http%3A%2F%2Fm.facebook.com%2Fhome.php&'
     _NETRC_MACHINE = 'facebook'
-    _available_formats = ['video', 'highqual', 'lowqual']
-    _video_extensions = {
-        'video': 'mp4',
-        'highqual': 'mp4',
-        'lowqual': 'mp4',
-    }
     IE_NAME = u'facebook'
-
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
-
-    def _reporter(self, message):
-        """Add header and report message."""
-        self._downloader.to_screen(u'[facebook] %s' % message)
 
     def report_login(self):
         """Report attempt to log in."""
-        self._reporter(u'Logging in')
-
-    def report_video_webpage_download(self, video_id):
-        """Report attempt to download video webpage."""
-        self._reporter(u'%s: Downloading video webpage' % video_id)
-
-    def report_information_extraction(self, video_id):
-        """Report attempt to extract video information."""
-        self._reporter(u'%s: Extracting video information' % video_id)
-
-    def _parse_page(self, video_webpage):
-        """Extract video information from page"""
-        # General data
-        data = {'title': r'\("video_title", "(.*?)"\)',
-            'description': r'<div class="datawrap">(.*?)</div>',
-            'owner': r'\("video_owner_name", "(.*?)"\)',
-            'thumbnail':  r'\("thumb_url", "(?P<THUMB>.*?)"\)',
-            }
-        video_info = {}
-        for piece in data.keys():
-            mobj = re.search(data[piece], video_webpage)
-            if mobj is not None:
-                video_info[piece] = compat_urllib_parse.unquote_plus(mobj.group(1).decode("unicode_escape"))
-
-        # Video urls
-        video_urls = {}
-        for fmt in self._available_formats:
-            mobj = re.search(r'\("%s_src\", "(.+?)"\)' % fmt, video_webpage)
-            if mobj is not None:
-                # URL is in a Javascript segment inside an escaped Unicode format within
-                # the generally utf-8 page
-                video_urls[fmt] = compat_urllib_parse.unquote_plus(mobj.group(1).decode("unicode_escape"))
-        video_info['video_urls'] = video_urls
-
-        return video_info
+        self._downloader.to_screen(u'[%s] Logging in' % self.IE_NAME)
 
     def _real_initialize(self):
         if self._downloader is None:
@@ -2088,100 +2050,35 @@ class FacebookIE(InfoExtractor):
             return
         video_id = mobj.group('ID')
 
-        # Get video webpage
-        self.report_video_webpage_download(video_id)
-        request = compat_urllib_request.Request('https://www.facebook.com/video/video.php?v=%s' % video_id)
-        try:
-            page = compat_urllib_request.urlopen(request)
-            video_webpage = page.read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err))
-            return
+        url = 'https://www.facebook.com/video/video.php?v=%s' % video_id
+        webpage = self._download_webpage(url, video_id)
 
-        # Start extracting information
-        self.report_information_extraction(video_id)
+        BEFORE = '[["allowFullScreen","true"],["allowScriptAccess","always"],["salign","tl"],["scale","noscale"],["wmode","opaque"]].forEach(function(param) {swf.addParam(param[0], param[1]);});\n'
+        AFTER = '.forEach(function(variable) {swf.addVariable(variable[0], variable[1]);});'
+        m = re.search(re.escape(BEFORE) + '(.*?)' + re.escape(AFTER), webpage)
+        if not m:
+            raise ExtractorError(u'Cannot parse data')
+        data = dict(json.loads(m.group(1)))
+        params_raw = compat_urllib_parse.unquote(data['params'])
+        params = json.loads(params_raw)
+        video_url = params['hd_src']
+        video_duration = int(params['video_duration'])
 
-        # Extract information
-        video_info = self._parse_page(video_webpage)
+        m = re.search('<h2 class="uiHeaderTitle">([^<]+)</h2>', webpage)
+        if not m:
+            raise ExtractorError(u'Cannot find title in webpage')
+        video_title = unescapeHTML(m.group(1))
 
-        # uploader
-        if 'owner' not in video_info:
-            self._downloader.trouble(u'ERROR: unable to extract uploader nickname')
-            return
-        video_uploader = video_info['owner']
+        info = {
+            'id': video_id,
+            'title': video_title,
+            'url': video_url,
+            'ext': 'mp4',
+            'duration': video_duration,
+            'thumbnail': params['thumbnail_src'],
+        }
+        return [info]
 
-        # title
-        if 'title' not in video_info:
-            self._downloader.trouble(u'ERROR: unable to extract video title')
-            return
-        video_title = video_info['title']
-        video_title = video_title.decode('utf-8')
-
-        # thumbnail image
-        if 'thumbnail' not in video_info:
-            self._downloader.trouble(u'WARNING: unable to extract video thumbnail')
-            video_thumbnail = ''
-        else:
-            video_thumbnail = video_info['thumbnail']
-
-        # upload date
-        upload_date = None
-        if 'upload_date' in video_info:
-            upload_time = video_info['upload_date']
-            timetuple = email.utils.parsedate_tz(upload_time)
-            if timetuple is not None:
-                try:
-                    upload_date = time.strftime('%Y%m%d', timetuple[0:9])
-                except:
-                    pass
-
-        # description
-        video_description = video_info.get('description', 'No description available.')
-
-        url_map = video_info['video_urls']
-        if url_map:
-            # Decide which formats to download
-            req_format = self._downloader.params.get('format', None)
-            format_limit = self._downloader.params.get('format_limit', None)
-
-            if format_limit is not None and format_limit in self._available_formats:
-                format_list = self._available_formats[self._available_formats.index(format_limit):]
-            else:
-                format_list = self._available_formats
-            existing_formats = [x for x in format_list if x in url_map]
-            if len(existing_formats) == 0:
-                self._downloader.trouble(u'ERROR: no known formats available for video')
-                return
-            if req_format is None:
-                video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
-            elif req_format == 'worst':
-                video_url_list = [(existing_formats[len(existing_formats)-1], url_map[existing_formats[len(existing_formats)-1]])] # worst quality
-            elif req_format == '-1':
-                video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
-            else:
-                # Specific format
-                if req_format not in url_map:
-                    self._downloader.trouble(u'ERROR: requested format not available')
-                    return
-                video_url_list = [(req_format, url_map[req_format])] # Specific format
-
-        results = []
-        for format_param, video_real_url in video_url_list:
-            # Extension
-            video_extension = self._video_extensions.get(format_param, 'mp4')
-
-            results.append({
-                'id':       video_id.decode('utf-8'),
-                'url':      video_real_url.decode('utf-8'),
-                'uploader': video_uploader.decode('utf-8'),
-                'upload_date':  upload_date,
-                'title':    video_title,
-                'ext':      video_extension.decode('utf-8'),
-                'format':   (format_param is None and u'NA' or format_param.decode('utf-8')),
-                'thumbnail':    video_thumbnail.decode('utf-8'),
-                'description':  video_description.decode('utf-8'),
-            })
-        return results
 
 class BlipTVIE(InfoExtractor):
     """Information extractor for blip.tv"""
@@ -2983,8 +2880,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         if mobj.group('course') and mobj.group('video'): # A specific video
             course = mobj.group('course')
@@ -3021,12 +2917,9 @@ class StanfordOpenClassroomIE(InfoExtractor):
                 'upload_date': None,
             }
 
-            self.report_download_webpage(info['id'])
-            try:
-                coursepage = compat_urllib_request.urlopen(url).read()
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self._downloader.trouble(u'ERROR: unable to download course info page: ' + compat_str(err))
-                return
+            coursepage = self._download_webpage(url, info['id'],
+                                        note='Downloading course info page',
+                                        errnote='Unable to download course info page')
 
             m = re.search('<h1>([^<]+)</h1>', coursepage)
             if m:
@@ -3050,7 +2943,6 @@ class StanfordOpenClassroomIE(InfoExtractor):
                 assert entry['type'] == 'reference'
                 results += self.extract(entry['url'])
             return results
-
         else: # Root page
             info = {
                 'id': 'Stanford OpenClassroom',
@@ -3927,8 +3819,6 @@ class PornotubeIE(InfoExtractor):
 
         return [info]
 
-
-
 class YouJizzIE(InfoExtractor):
     """Information extractor for youjizz.com."""
     _VALID_URL = r'^(?:https?://)?(?:\w+\.)?youjizz\.com/videos/(?P<videoid>[^.]+).html$'
@@ -3975,6 +3865,49 @@ class YouJizzIE(InfoExtractor):
 
         return [info]
 
+class EightTracksIE(InfoExtractor):
+    IE_NAME = '8tracks'
+    _VALID_URL = r'https?://8tracks.com/(?P<user>[^/]+)/(?P<id>[^/#]+)(?:#.*)?$'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            raise ExtractorError(u'Invalid URL: %s' % url)
+        playlist_id = mobj.group('id')
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        m = re.search(r"new TRAX.Mix\((.*?)\);\n*\s*TRAX.initSearchAutocomplete\('#search'\);", webpage, flags=re.DOTALL)
+        if not m:
+            raise ExtractorError(u'Cannot find trax information')
+        json_like = m.group(1)
+        data = json.loads(json_like)
+
+        session = str(random.randint(0, 1000000000))
+        mix_id = data['id']
+        track_count = data['tracks_count']
+        first_url = 'http://8tracks.com/sets/%s/play?player=sm&mix_id=%s&format=jsonh' % (session, mix_id)
+        next_url = first_url
+        res = []
+        for i in itertools.count():
+            api_json = self._download_webpage(next_url, playlist_id,
+                note=u'Downloading song information %s/%s' % (str(i+1), track_count),
+                errnote=u'Failed to download song information')
+            api_data = json.loads(api_json)
+            track_data = api_data[u'set']['track']
+            info = {
+                'id': track_data['id'],
+                'url': track_data['track_file_stream_url'],
+                'title': track_data['performer'] + u' - ' + track_data['name'],
+                'raw_title': track_data['name'],
+                'uploader_id': data['user']['login'],
+                'ext': 'm4a',
+            }
+            res.append(info)
+            if api_data['set']['at_last_track']:
+                break
+            next_url = 'http://8tracks.com/sets/%s/next?player=sm&mix_id=%s&format=jsonh&track_id=%s' % (session, mix_id, track_data['id'])
+        return res
 
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
@@ -4021,6 +3954,7 @@ def gen_extractors():
         SteamIE(),
         UstreamIE(),
         RBMARadioIE(),
+        EightTracksIE(),
         GenericIE()
     ]
 

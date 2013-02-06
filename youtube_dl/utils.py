@@ -280,6 +280,12 @@ class AttrParser(compat_html_parser.HTMLParser):
             lines[-1] = lines[-1][:self.result[2][1]-self.result[1][1]]
         lines[-1] = lines[-1][:self.result[2][1]]
         return '\n'.join(lines).strip()
+# Hack for https://github.com/rg3/youtube-dl/issues/662
+if sys.version_info < (2, 7, 3):
+    AttrParser.parse_endtag = (lambda self, i:
+        i + len("</scr'+'ipt>")
+        if self.rawdata[i:].startswith("</scr'+'ipt>")
+        else compat_html_parser.HTMLParser.parse_endtag(self, i))
 
 def get_element_by_id(id, html):
     """Return the content of the tag with the specified ID in the passed HTML document"""

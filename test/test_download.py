@@ -98,7 +98,7 @@ def generator(test_case):
 
             for tc in test_cases:
                 if not test_case.get('params', {}).get('skip_download', False):
-                    self.assertTrue(os.path.exists(tc['file']))
+                    self.assertTrue(os.path.exists(tc['file']), msg='Missing file ' + tc['file'])
                     self.assertTrue(tc['file'] in finished_hook_called)
                 self.assertTrue(os.path.exists(tc['file'] + '.info.json'))
                 if 'md5' in tc:
@@ -107,11 +107,7 @@ def generator(test_case):
                 with io.open(tc['file'] + '.info.json', encoding='utf-8') as infof:
                     info_dict = json.load(infof)
                 for (info_field, value) in tc.get('info_dict', {}).items():
-                    if value.startswith('md5:'):
-                        md5_info_value = hashlib.md5(info_dict.get(info_field, '')).hexdigest()
-                        self.assertEqual(value[3:], md5_info_value)
-                    else:
-                        self.assertEqual(value, info_dict.get(info_field))
+                    self.assertEqual(value, info_dict.get(info_field))
         finally:
             for tc in test_cases:
                 _try_rm(tc['file'])

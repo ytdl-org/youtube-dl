@@ -7,6 +7,7 @@ PREFIX=/usr/local
 BINDIR=$(PREFIX)/bin
 MANDIR=$(PREFIX)/man
 SYSCONFDIR=/etc
+PYTHON=/usr/bin/env python
 
 install: youtube-dl youtube-dl.1 youtube-dl.bash-completion
 	install -d $(DESTDIR)$(BINDIR)
@@ -27,7 +28,7 @@ tar: youtube-dl.tar.gz
 youtube-dl: youtube_dl/*.py
 	zip --quiet youtube-dl youtube_dl/*.py
 	zip --quiet --junk-paths youtube-dl youtube_dl/__main__.py
-	echo '#!/usr/bin/env python' > youtube-dl
+	echo '#!$(PYTHON)' > youtube-dl
 	cat youtube-dl.zip >> youtube-dl
 	rm youtube-dl.zip
 	chmod a+x youtube-dl

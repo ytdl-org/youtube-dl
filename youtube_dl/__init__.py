@@ -150,6 +150,9 @@ def parseOpts():
     selection.add_option('--match-title', dest='matchtitle', metavar='REGEX',help='download only matching titles (regex or caseless sub-string)')
     selection.add_option('--reject-title', dest='rejecttitle', metavar='REGEX',help='skip download for matching titles (regex or caseless sub-string)')
     selection.add_option('--max-downloads', metavar='NUMBER', dest='max_downloads', help='Abort after downloading NUMBER files', default=None)
+    selection.add_option('--min-filesize', metavar='SIZE', dest='min_filesize', help="Do not download any videos smaller than SIZE (e.g. 50k or 44.6m)", default=None)
+    selection.add_option('--max-filesize', metavar='SIZE', dest='max_filesize', help="Do not download any videos larger than SIZE (e.g. 50k or 44.6m)", default=None)
+
 
     authentication.add_option('-u', '--username',
             dest='username', metavar='USERNAME', help='account username')
@@ -290,10 +293,13 @@ def _real_main():
     else:
         try:
             jar = compat_cookiejar.MozillaCookieJar(opts.cookiefile)
-            if os.path.isfile(opts.cookiefile) and os.access(opts.cookiefile, os.R_OK):
+            if os.access(opts.cookiefile, os.R_OK):
                 jar.load()
         except (IOError, OSError) as err:
-            sys.exit(u'ERROR: unable to open cookie file')
+            if opts.verbose:
+                traceback.print_exc()
+            sys.stderr.write(u'ERROR: unable to open cookie file\n')
+            sys.exit(101)
     # Set user agent
     if opts.user_agent is not None:
         std_headers['User-Agent'] = opts.user_agent
@@ -353,6 +359,16 @@ def _real_main():
         if numeric_limit is None:
             parser.error(u'invalid rate limit specified')
         opts.ratelimit = numeric_limit
+    if opts.min_filesize is not None:
+        numeric_limit = FileDownloader.parse_bytes(opts.min_filesize)
+        if numeric_limit is None:
+            parser.error(u'invalid min_filesize specified')
+        opts.min_filesize = numeric_limit
+    if opts.max_filesize is not None:
+        numeric_limit = FileDownloader.parse_bytes(opts.max_filesize)
+        if numeric_limit is None:
+            parser.error(u'invalid max_filesize specified')
+        opts.max_filesize = numeric_limit
     if opts.retries is not None:
         try:
             opts.retries = int(opts.retries)
@@ -442,6 +458,8 @@ def _real_main():
         'verbose': opts.verbose,
         'test': opts.test,
         'keepvideo': opts.keepvideo,
+        'min_filesize': opts.min_filesize,
+        'max_filesize': opts.max_filesize
         })
 
     if opts.verbose:
