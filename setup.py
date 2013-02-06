@@ -40,9 +40,6 @@ if len(sys.argv) >= 2 and sys.argv[1] == 'py2exe':
 else:
     params = {
         'scripts': ['bin/youtube-dl'],
-        'data_files': [('etc/bash_completion.d', ['youtube-dl.bash-completion']), # Installing system-wide would require sudo...
-                       ('share/doc/youtube_dl', ['README.txt']),
-                       ('share/man/man1/', ['youtube-dl.1'])]
     }
 
 # Get the version from youtube_dl/version.py without importing the package
