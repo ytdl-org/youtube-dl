@@ -3944,6 +3944,30 @@ class EightTracksIE(InfoExtractor):
             next_url = 'http://8tracks.com/sets/%s/next?player=sm&mix_id=%s&format=jsonh&track_id=%s' % (session, mix_id, track_data['id'])
         return res
 
+class KeekIE(InfoExtractor):
+    _VALID_URL = r'http://(?:www\.)?keek\.com/(?:!|\w+/keeks/)(?P<videoID>\w+)'
+    IE_NAME = u'keek'
+
+    def _real_extract(self, url):
+        m = re.match(self._VALID_URL, url)
+        video_id = m.group('videoID')
+        video_url = u'http://cdn.keek.com/keek/video/%s' % video_id
+        thumbnail = u'http://cdn.keek.com/keek/thumbnail/%s/w100/h75' % video_id
+        webpage = self._download_webpage(url, video_id)
+        m = re.search(r'<meta property="og:title" content="(?P<title>.+)"', webpage)
+        title = m.group('title')
+        m = re.search(r'<div class="bio-names-and-report">[\s\n]+<h4>(?P<uploader>\w+)</h4>', webpage)
+        uploader = m.group('uploader')
+        info = {
+                'id':video_id,
+                'url':video_url,
+                'ext': 'mp4',
+                'title': title,
+                'thumbnail': thumbnail,
+                'uploader': uploader
+                  }
+        return [info]
+
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
     The order does matter; the first extractor matched is the one handling the URL.
@@ -3990,6 +4014,7 @@ def gen_extractors():
         UstreamIE(),
         RBMARadioIE(),
         EightTracksIE(),
+        KeekIE(),
         GenericIE()
     ]
 
