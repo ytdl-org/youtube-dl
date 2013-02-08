@@ -276,5 +276,15 @@
         }
       }
     ]
+  },
+  {
+    "name": "Keek",
+    "url": "http://www.keek.com/ytdl/keeks/NODfbab",
+    "file": "NODfbab.mp4",
+    "md5": "9b0636f8c0f7614afa4ea5e4c6e57e83",
+    "info_dict": {
+      "title": "test chars: \"'/\\ä<>This is a test video for youtube-dl.For more information, contact phihag@phihag.de ."
+    }
+
   }
 ]

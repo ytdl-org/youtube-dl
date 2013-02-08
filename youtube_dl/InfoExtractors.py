@@ -3955,9 +3955,9 @@ class KeekIE(InfoExtractor):
         thumbnail = u'http://cdn.keek.com/keek/thumbnail/%s/w100/h75' % video_id
         webpage = self._download_webpage(url, video_id)
         m = re.search(r'<meta property="og:title" content="(?P<title>.+)"', webpage)
-        title = m.group('title')
+        title = unescapeHTML(m.group('title'))
         m = re.search(r'<div class="bio-names-and-report">[\s\n]+<h4>(?P<uploader>\w+)</h4>', webpage)
-        uploader = m.group('uploader')
+        uploader = unescapeHTML(m.group('uploader'))
         info = {
                 'id':video_id,
                 'url':video_url,
@@ -3965,7 +3965,7 @@ class KeekIE(InfoExtractor):
                 'title': title,
                 'thumbnail': thumbnail,
                 'uploader': uploader
-                  }
+        }
         return [info]
 
 def gen_extractors():
