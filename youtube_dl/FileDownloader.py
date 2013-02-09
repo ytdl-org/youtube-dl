@@ -208,7 +208,7 @@ class FileDownloader(object):
             # already of type unicode()
             ctypes.windll.kernel32.SetConsoleTitleW(ctypes.c_wchar_p(message))
         elif 'TERM' in os.environ:
-            sys.stderr.write('\033]0;%s\007' % message.encode(preferredencoding()))
+            self.to_screen('\033]0;%s\007' % message, skip_eol=True)
 
     def fixed_template(self):
         """Checks if the output template is fixed."""
