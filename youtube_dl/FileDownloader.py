@@ -306,7 +306,7 @@ class FileDownloader(object):
         if self.params.get('noprogress', False):
             return
         if self.params.get('newline', True):
-            self.to_screen(u'\r[download] %s of %s at %s ETA %s' %
+            self.to_screen(u'[download] %s of %s at %s ETA %s' %
                 (percent_str, data_len_str, speed_str, eta_str))
         else: self.to_screen(u'\r[download] %s of %s at %s ETA %s' %
                 (percent_str, data_len_str, speed_str, eta_str), skip_eol=True)
