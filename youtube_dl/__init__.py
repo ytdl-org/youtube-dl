@@ -202,6 +202,8 @@ def parseOpts():
     verbosity.add_option('--get-format',
             action='store_true', dest='getformat',
             help='simulate, quiet but print output format', default=False)
+    verbosity.add_option('--newline',
+            action='store_true', dest='newline', help='Output progress bar as new lines', default=False)
     verbosity.add_option('--no-progress',
             action='store_true', dest='noprogress', help='do not print progress bar', default=False)
     verbosity.add_option('--console-title',
@@ -209,7 +211,6 @@ def parseOpts():
             help='display progress in console titlebar', default=False)
     verbosity.add_option('-v', '--verbose',
             action='store_true', dest='verbose', help='print various debugging information', default=False)
-
 
     filesystem.add_option('-t', '--title',
             action='store_true', dest='usetitle', help='use title in file name', default=False)
