@@ -3967,6 +3967,30 @@ class KeekIE(InfoExtractor):
                 'uploader': uploader
         }
         return [info]
+        
+class TEDIE(InfoExtractor):
+    _VALID_URL=r'http://www.ted.com/talks/(?P<videoName>\w+)'
+    def _real_extract(self, url):
+        m=re.match(self._VALID_URL, url)
+        videoName=m.group('videoName')
+        webpage=self._download_webpage(url, 0, 'Downloading \"%s\" page' % videoName)
+        #If the url includes the language we get the title translated
+        title_RE=r'<h1><span id="altHeadline" >(?P<title>[\s\w:/\.\?=\+-\\\']*)</span></h1>'
+        title=re.search(title_RE, webpage).group('title')
+        info_RE=r'''<script\ type="text/javascript">var\ talkDetails\ =(.*?)
+                        "id":(?P<videoID>[\d]+).*?
+                        "mediaSlug":"(?P<mediaSlug>[\w\d]+?)"'''
+        info_match=re.search(info_RE,webpage,re.VERBOSE)
+        video_id=info_match.group('videoID')
+        mediaSlug=info_match.group('mediaSlug')
+        video_url='http://download.ted.com/talks/%s.mp4' % mediaSlug
+        info = {
+                'id':video_id,
+                'url':video_url,
+                'ext': 'mp4',
+                'title': title
+        }
+        return [info]
 
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
@@ -4015,6 +4039,7 @@ def gen_extractors():
         RBMARadioIE(),
         EightTracksIE(),
         KeekIE(),
+        TEDIE(),
         GenericIE()
     ]
 
