@@ -203,7 +203,7 @@ def parseOpts():
             action='store_true', dest='getformat',
             help='simulate, quiet but print output format', default=False)
     verbosity.add_option('--newline',
-            action='store_true', dest='newline', help='output progress bar as new lines', default=False)
+            action='store_true', dest='progress_with_newline', help='output progress bar as new lines', default=False)
     verbosity.add_option('--no-progress',
             action='store_true', dest='noprogress', help='do not print progress bar', default=False)
     verbosity.add_option('--console-title',
@@ -439,6 +439,7 @@ def _real_main():
         'noresizebuffer': opts.noresizebuffer,
         'continuedl': opts.continue_dl,
         'noprogress': opts.noprogress,
+        'progress_with_newline': opts.progress_with_newline,
         'playliststart': opts.playliststart,
         'playlistend': opts.playlistend,
         'logtostderr': opts.outtmpl == '-',
