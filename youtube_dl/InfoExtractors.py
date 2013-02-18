@@ -2098,6 +2098,10 @@ class FacebookIE(InfoExtractor):
         params_raw = compat_urllib_parse.unquote(data['params'])
         params = json.loads(params_raw)
         video_url = params['hd_src']
+        if not video_url:
+            video_url = params['sd_src']
+        if not video_url:
+            raise ExtractorError(u'Cannot find video URL')
         video_duration = int(params['video_duration'])
 
         m = re.search('<h2 class="uiHeaderTitle">([^<]+)</h2>', webpage)
