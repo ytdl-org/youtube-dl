@@ -3913,7 +3913,7 @@ class EightTracksIE(InfoExtractor):
 
         webpage = self._download_webpage(url, playlist_id)
 
-        m = re.search(r"new TRAX.Mix\((.*?)\);\n*\s*TRAX.initSearchAutocomplete\('#search'\);", webpage, flags=re.DOTALL)
+        m = re.search(r"PAGE.mix = (.*?);\n", webpage, flags=re.DOTALL)
         if not m:
             raise ExtractorError(u'Cannot find trax information')
         json_like = m.group(1)
