@@ -718,6 +718,7 @@ class DailymotionIE(InfoExtractor):
 
     _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^/]+)'
     IE_NAME = u'dailymotion'
+    _WORKING = False
 
     def __init__(self, downloader=None):
         InfoExtractor.__init__(self, downloader)
