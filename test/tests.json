@@ -295,5 +295,14 @@
     "info_dict": {
         "title": "Dan Dennett: The illusion of consciousness"
     }
+  },
+  {
+    "name": "MySpass",
+    "url": "http://www.myspass.de/myspass/shows/tvshows/absolute-mehrheit/Absolute-Mehrheit-vom-17022013-Die-Highlights-Teil-2--/11741/",
+    "file": "11741.mp4",
+    "md5": "0b49f4844a068f8b33f4b7c88405862b",
+    "info_dict": {
+        "title": "Absolute Mehrheit vom 17.02.2013 - Die Highlights, Teil 2"
+    }
   }
 ]
