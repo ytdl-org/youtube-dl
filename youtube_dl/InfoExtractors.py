@@ -3729,13 +3729,13 @@ class YouPornIE(InfoExtractor):
         webpage = self._download_webpage(req, video_id)
 
         # Get the video title
-        result = re.search(r'videoTitleArea">(?P<title>.*)</h1>', webpage)
+        result = re.search(r'<h1.*?>(?P<title>.*)</h1>', webpage)
         if result is None:
-            raise ExtractorError(u'ERROR: unable to extract video title')
+            raise ExtractorError(u'Unable to extract video title')
         video_title = result.group('title').strip()
 
         # Get the video date
-        result = re.search(r'Date:</b>(?P<date>.*)</li>', webpage)
+        result = re.search(r'Date:</label>(?P<date>.*) </li>', webpage)
         if result is None:
             self._downloader.to_stderr(u'WARNING: unable to extract video date')
             upload_date = None
@@ -3743,9 +3743,9 @@ class YouPornIE(InfoExtractor):
             upload_date = result.group('date').strip()
 
         # Get the video uploader
-        result = re.search(r'Submitted:</b>(?P<uploader>.*)</li>', webpage)
+        result = re.search(r'Submitted:</label>(?P<uploader>.*)</li>', webpage)
         if result is None:
-            self._downloader.to_stderr(u'ERROR: unable to extract uploader')
+            self._downloader.to_stderr(u'WARNING: unable to extract uploader')
             video_uploader = None
         else:
             video_uploader = result.group('uploader').strip()
