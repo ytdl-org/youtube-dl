@@ -2233,7 +2233,7 @@ class MyVideoIE(InfoExtractor):
         webpage = self._download_webpage(webpage_url, video_id)
 
         self.report_extraction(video_id)
-        mobj = re.search(r'<link rel=\'image_src\' href=\'(http://is[0-9].myvideo\.de/de/movie[0-9]+/[a-f0-9]+)/thumbs/[^.]+\.jpg\' />',
+        mobj = re.search(r'<link rel=\'image_src\' href=\'(http://is[0-9].myvideo\.de/de/movie[0-9]+/[a-f0-9]+)/thumbs/.*?\.jpg\' />',
                  webpage)
         if mobj is None:
             self._downloader.trouble(u'ERROR: unable to extract media URL')
