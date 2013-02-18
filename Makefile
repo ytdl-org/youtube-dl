@@ -1,7 +1,10 @@
 all: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion
 
 clean:
-	rm -rf youtube-dl youtube-dl.exe youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz
+	rm -rf youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz
+
+cleanall: clean
+	rm -f youtube-dl youtube-dl.exe
 
 PREFIX=/usr/local
 BINDIR=$(PREFIX)/bin
@@ -23,7 +26,9 @@ test:
 
 tar: youtube-dl.tar.gz
 
-.PHONY: all clean install test tar
+.PHONY: all clean install test tar bash-completion pypi-files
+
+pypi-files: youtube-dl.bash-completion README.txt youtube-dl.1
 
 youtube-dl: youtube_dl/*.py
 	zip --quiet youtube-dl youtube_dl/*.py
@@ -44,6 +49,8 @@ youtube-dl.1: README.md
 
 youtube-dl.bash-completion: youtube_dl/*.py devscripts/bash-completion.in
 	python devscripts/bash-completion.py
+
+bash-completion: youtube-dl.bash-completion
 
 youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion
 	@tar -czf youtube-dl.tar.gz --transform "s|^|youtube-dl/|" --owner 0 --group 0 \

@@ -21,7 +21,7 @@ if [ ! -z "`git status --porcelain | grep -v CHANGELOG`" ]; then echo 'ERROR: th
 if [ ! -f "updates_key.pem" ]; then echo 'ERROR: updates_key.pem missing'; exit 1; fi
 
 echo "\n### First of all, testing..."
-make clean
+make cleanall
 nosetests --with-coverage --cover-package=youtube_dl --cover-html test || exit 1
 
 echo "\n### Changing version in version.py..."
@@ -83,7 +83,9 @@ ROOT=$(pwd)
 )
 rm -rf build
 
+make pypi-files
 echo "Uploading to PyPi ..."
 python setup.py sdist upload
+make clean
 
 echo "\n### DONE!"
