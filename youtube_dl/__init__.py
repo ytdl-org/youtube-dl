@@ -23,6 +23,7 @@ __authors__  = (
     'Dave Vasilevsky',
     'Jaime Marquínez Ferrándiz',
     'Jeff Crouse',
+    'Osama Khalid',
     )
 
 __license__ = 'Public Domain'
