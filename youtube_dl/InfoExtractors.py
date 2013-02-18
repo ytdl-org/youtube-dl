@@ -3970,12 +3970,60 @@ class KeekIE(InfoExtractor):
         return [info]
 
 class TEDIE(InfoExtractor):
-    _VALID_URL=r'http://www.ted.com/talks/(?P<videoName>\w+)'
+    _VALID_URL=r'''http://www.ted.com/
+                   (
+                        ((?P<type_playlist>playlists)/(?P<playlist_id>\d+)) # We have a playlist
+                        |
+                        ((?P<type_talk>talks)) # We have a simple talk
+                   )
+                   /(?P<name>\w+) # Here goes the name and then ".html"
+                   '''
+
+    def suitable(self, url):
+        """Receives a URL and returns True if suitable for this IE."""
+        return re.match(self._VALID_URL, url, re.VERBOSE) is not None
+
     def _real_extract(self, url):
-        m=re.match(self._VALID_URL, url)
-        videoName=m.group('videoName')
-        webpage=self._download_webpage(url, 0, 'Downloading \"%s\" page' % videoName)
-        #If the url includes the language we get the title translated
+        m=re.match(self._VALID_URL, url, re.VERBOSE)
+        if m.group('type_talk'):
+            return [self._talk_info(url)]
+        else :
+            playlist_id=m.group('playlist_id')
+            name=m.group('name')
+            self._downloader.to_screen(u'[%s] Getting info of playlist %s: "%s"' % (self.IE_NAME,playlist_id,name))
+            return self._playlist_videos_info(url,name,playlist_id)
+
+    def _talk_video_link(self,mediaSlug):
+        '''Returns the video link for that mediaSlug'''
+        return 'http://download.ted.com/talks/%s.mp4' % mediaSlug
+
+    def _playlist_videos_info(self,url,name,playlist_id=0):
+        '''Returns the videos of the playlist'''
+        video_RE=r'''
+                     <li\ id="talk_(\d+)"([.\s]*?)data-id="(?P<video_id>\d+)"
+                     ([.\s]*?)data-playlist_item_id="(\d+)"
+                     ([.\s]*?)data-mediaslug="(?P<mediaSlug>.+?)"
+                     '''
+        video_name_RE=r'<p\ class="talk-title"><a href="/talks/(.+).html">(?P<fullname>.+?)</a></p>'
+        webpage=self._download_webpage(url, playlist_id, 'Downloading playlist webpage')
+        m_videos=re.finditer(video_RE,webpage,re.VERBOSE)
+        m_names=re.finditer(video_name_RE,webpage)
+        info=[]
+        for m_video, m_name in zip(m_videos,m_names):
+            video_dic={
+                       'id': m_video.group('video_id'),
+                       'url': self._talk_video_link(m_video.group('mediaSlug')),
+                       'ext': 'mp4',
+                       'title': m_name.group('fullname')
+                       }
+            info.append(video_dic)
+        return info
+    def _talk_info(self, url, video_id=0):
+        """Return the video for the talk in the url"""
+        m=re.match(self._VALID_URL, url,re.VERBOSE)
+        videoName=m.group('name')
+        webpage=self._download_webpage(url, video_id, 'Downloading \"%s\" page' % videoName)
+        # If the url includes the language we get the title translated
         title_RE=r'<h1><span id="altHeadline" >(?P<title>[\s\w:/\.\?=\+-\\\']*)</span></h1>'
         title=re.search(title_RE, webpage).group('title')
         info_RE=r'''<script\ type="text/javascript">var\ talkDetails\ =(.*?)
@@ -3984,14 +4032,14 @@ class TEDIE(InfoExtractor):
         info_match=re.search(info_RE,webpage,re.VERBOSE)
         video_id=info_match.group('videoID')
         mediaSlug=info_match.group('mediaSlug')
-        video_url='http://download.ted.com/talks/%s.mp4' % mediaSlug
+        video_url=self._talk_video_link(mediaSlug)
         info = {
-                'id':video_id,
-                'url':video_url,
+                'id': video_id,
+                'url': video_url,
                 'ext': 'mp4',
                 'title': title
-        }
-        return [info]
+                }
+        return info
 
 class MySpassIE(InfoExtractor):
     _VALID_URL = r'http://www.myspass.de/.*'
