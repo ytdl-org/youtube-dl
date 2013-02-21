@@ -1330,7 +1330,7 @@ class GenericIE(InfoExtractor):
         opener = compat_urllib_request.OpenerDirector()
         for handler in [compat_urllib_request.HTTPHandler, compat_urllib_request.HTTPDefaultErrorHandler,
                         HTTPMethodFallback, HEADRedirectHandler,
-                        compat_urllib_error.HTTPErrorProcessor, compat_urllib_request.HTTPSHandler]:
+                        compat_urllib_request.HTTPErrorProcessor, compat_urllib_request.HTTPSHandler]:
             opener.add_handler(handler())
 
         response = opener.open(HeadRequest(url))
