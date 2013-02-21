@@ -1367,6 +1367,9 @@ class GenericIE(InfoExtractor):
             # Broaden the search a little bit
             mobj = re.search(r'[^A-Za-z0-9]?(?:file|source)=(http[^\'"&]*)', webpage)
         if mobj is None:
+            # Broaden the search a little bit: JWPlayer JS loader
+            mobj = re.search(r'[^A-Za-z0-9]?file:\s*["\'](http[^\'"&]*)', webpage)
+        if mobj is None:
             self._downloader.trouble(u'ERROR: Invalid URL: %s' % url)
             return
 
