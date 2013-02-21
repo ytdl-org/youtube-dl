@@ -228,6 +228,7 @@ class YoutubeIE(InfoExtractor):
         """Indicate the download will use the RTMP protocol."""
         self._downloader.to_screen(u'[youtube] RTMP download detected')
 
+
     def _extract_subtitles(self, video_id):
         self.report_video_subtitles_download(video_id)
         request = compat_urllib_request.Request('http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id)
@@ -246,7 +247,7 @@ class YoutubeIE(InfoExtractor):
         else:
             srt_lang = list(srt_lang_list.keys())[0]
         if not srt_lang in srt_lang_list:
-            return (u'WARNING: no closed captions found in the specified language', None)
+            return (u'WARNING: no closed captions found in the specified language "%s"' % srt_lang, None)
         params = compat_urllib_parse.urlencode({
             'lang': srt_lang,
             'name': srt_lang_list[srt_lang].encode('utf-8'),
@@ -483,6 +484,10 @@ class YoutubeIE(InfoExtractor):
 
         # closed captions
         video_subtitles = None
+        if self._downloader.params.get('subtitleslang', False):
+            self._downloader.params['writesubtitles'] = True
+        if self._downloader.params.get('onlysubtitles', False):
+            self._downloader.params['writesubtitles'] = True
         if self._downloader.params.get('writesubtitles', False):
             (srt_error, video_subtitles) = self._extract_subtitles(video_id)
             if srt_error:

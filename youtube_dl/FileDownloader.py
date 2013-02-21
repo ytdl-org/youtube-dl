@@ -79,6 +79,7 @@ class FileDownloader(object):
     writedescription:  Write the video description to a .description file
     writeinfojson:     Write the video description to a .info.json file
     writesubtitles:    Write the video subtitles to a .srt file
+    onlysubtitles:     Downloads only the subtitles of the video
     subtitleslang:     Language of the subtitles to download
     test:              Download only first bytes to test the downloader.
     keepvideo:         Keep the video file after post-processing
@@ -443,9 +444,13 @@ class FileDownloader(object):
             # that way it will silently go on when used with unsupporting IE
             try:
                 srtfn = filename.rsplit('.', 1)[0] + u'.srt'
+                if self.params.get('subtitleslang', False):
+                    srtfn = filename.rsplit('.', 1)[0] + u'.' + self.params['subtitleslang'] + u'.srt'
                 self.report_writesubtitles(srtfn)
                 with io.open(encodeFilename(srtfn), 'w', encoding='utf-8') as srtfile:
                     srtfile.write(info_dict['subtitles'])
+                if self.params.get('onlysubtitles', False):
+                    return 
             except (OSError, IOError):
                 self.trouble(u'ERROR: Cannot write subtitles file ' + descfn)
                 return
