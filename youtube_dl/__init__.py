@@ -412,6 +412,7 @@ def _real_main():
             or (opts.useid and u'%(id)s.%(ext)s')
             or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
             or u'%(id)s.%(ext)s')
+
     # File downloader
     fd = FileDownloader({
         'usenetrc': opts.usenetrc,
@@ -450,8 +451,8 @@ def _real_main():
         'writeinfojson': opts.writeinfojson,
         'writesubtitles': opts.writesubtitles,
         'subtitleslang': opts.subtitleslang,
-        'matchtitle': opts.matchtitle,
-        'rejecttitle': opts.rejecttitle,
+        'matchtitle': decodeOption(opts.matchtitle),
+        'rejecttitle': decodeOption(opts.rejecttitle),
         'max_downloads': opts.max_downloads,
         'prefer_free_formats': opts.prefer_free_formats,
         'verbose': opts.verbose,

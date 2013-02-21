@@ -370,12 +370,10 @@ class FileDownloader(object):
         title = info_dict['title']
         matchtitle = self.params.get('matchtitle', False)
         if matchtitle:
-            matchtitle = matchtitle.decode('utf8')
             if not re.search(matchtitle, title, re.IGNORECASE):
                 return u'[download] "' + title + '" title did not match pattern "' + matchtitle + '"'
         rejecttitle = self.params.get('rejecttitle', False)
         if rejecttitle:
-            rejecttitle = rejecttitle.decode('utf8')
             if re.search(rejecttitle, title, re.IGNORECASE):
                 return u'"' + title + '" title matched reject pattern "' + rejecttitle + '"'
         return None
