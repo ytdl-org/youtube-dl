@@ -228,23 +228,6 @@ class YoutubeIE(InfoExtractor):
         """Indicate the download will use the RTMP protocol."""
         self._downloader.to_screen(u'[youtube] RTMP download detected')
 
-    def _closed_captions_xml_to_srt(self, xml_string):
-        srt = ''
-        texts = re.findall(r'<text start="([\d\.]+)"( dur="([\d\.]+)")?>([^<]+)</text>', xml_string, re.MULTILINE)
-        # TODO parse xml instead of regex
-        for n, (start, dur_tag, dur, caption) in enumerate(texts):
-            if not dur: dur = '4'
-            start = float(start)
-            end = start + float(dur)
-            start = "%02i:%02i:%02i,%03i" %(start/(60*60), start/60%60, start%60, start%1*1000)
-            end = "%02i:%02i:%02i,%03i" %(end/(60*60), end/60%60, end%60, end%1*1000)
-            caption = unescapeHTML(caption)
-            caption = unescapeHTML(caption) # double cycle, intentional
-            srt += str(n+1) + '\n'
-            srt += start + ' --> ' + end + '\n'
-            srt += caption + '\n\n'
-        return srt
-
     def _extract_subtitles(self, video_id):
         self.report_video_subtitles_download(video_id)
         request = compat_urllib_request.Request('http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id)
@@ -268,15 +251,16 @@ class YoutubeIE(InfoExtractor):
             'lang': srt_lang,
             'name': srt_lang_list[srt_lang].encode('utf-8'),
             'v': video_id,
+            'fmt': 'srt',
         })
         url = 'http://www.youtube.com/api/timedtext?' + params
         try:
-            srt_xml = compat_urllib_request.urlopen(url).read().decode('utf-8')
+            srt = compat_urllib_request.urlopen(url).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             return (u'WARNING: unable to download video subtitles: %s' % compat_str(err), None)
-        if not srt_xml:
+        if not srt:
             return (u'WARNING: Did not fetch video subtitles', None)
-        return (None, self._closed_captions_xml_to_srt(srt_xml))
+        return (None, srt)
 
     def _print_formats(self, formats):
         print('Available formats:')

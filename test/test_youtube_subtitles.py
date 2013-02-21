@@ -43,7 +43,7 @@ class TestYoutubeSubtitles(unittest.TestCase):
         DL.params['writesubtitles'] = True
         IE = YoutubeIE(DL)
         info_dict = IE.extract('QRS8MkLhQmM')
-        self.assertEqual(md5(info_dict[0]['subtitles']), 'c3228550d59116f3c29fba370b55d033')
+        self.assertEqual(md5(info_dict[0]['subtitles']), '4cd9278a35ba2305f47354ee13472260')
 
     def test_youtube_subtitles_it(self):
         DL = FakeDownloader()
@@ -51,7 +51,7 @@ class TestYoutubeSubtitles(unittest.TestCase):
         DL.params['subtitleslang'] = 'it'
         IE = YoutubeIE(DL)
         info_dict = IE.extract('QRS8MkLhQmM')
-        self.assertEqual(md5(info_dict[0]['subtitles']), '132a88a0daf8e1520f393eb58f1f646a')
+        self.assertEqual(md5(info_dict[0]['subtitles']), '164a51f16f260476a05b50fe4c2f161d')
 
 if __name__ == '__main__':
     unittest.main()
