@@ -39,5 +39,6 @@
     "writeinfojson": true, 
     "writesubtitles": false,
     "onlysubtitles": false,
-    "allsubtitles": false
+    "allsubtitles": false,
+    "listssubtitles": false
 }
