@@ -77,10 +77,8 @@ def update_self(to_screen, verbose, filename):
 
     to_screen(u'Updating to version ' + versions_info['latest'] + '...')
     version = versions_info['versions'][versions_info['latest']]
-    if version.get('notes'):
-        to_screen(u'PLEASE NOTE:')
-        for note in version['notes']:
-            to_screen(note)
+
+    print_notes(version_info['versions'])
 
     if not os.access(filename, os.W_OK):
         to_screen(u'ERROR: no write permissions on %s' % filename)
@@ -158,3 +156,13 @@ del "%s"
             return
 
     to_screen(u'Updated youtube-dl. Restart youtube-dl to use the new version.')
+
+def print_notes(versions, fromVersion=__version__):
+    notes = []
+    for v,vdata in sorted(versions.items()):
+        if v > fromVersion:
+            notes.extend(vdata.get('notes', []))
+    if notes:
+        to_screen(u'PLEASE NOTE:')
+        for note in notes:
+            to_screen(note)
