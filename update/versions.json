@@ -1,7 +1,21 @@
 {
-    "latest": "2013.02.19", 
-    "signature": "6099e2a9fbeaf3b5421629bb4c01232196fd864c286de1bda772b1aced8001532f5bfd5a5c886d99245cb149b957424ba92efaffdf00dc3afeaf30cd7951d9e8bc8562643c0419439745a0d52d6c9289a29634cbd3f827a903d81593e14c3e39a15e9aa4bb20b57cda017c5079f0dadc09922ce57b76df0f5a268ae9e33a068b", 
+    "latest": "2012.02.22", 
+    "signature": "720f66b2023f9a2b5e2a0eda6bdaa238ac4289fa3371eaf69a495de0081f5c2a799482f6fd79ab967fcd644f1cdaf853b61b78631e3fe2c8dd2bc30b1a6737f18505220adffce2d6e4212c2fffae5523cff8414e741ef27c82dd9ae769507ca363d74ca0b20ce92616115c15e6d65077c7ebb8647b093ca5a0c47db5c991d142", 
     "versions": {
+        "2012.02.22": {
+            "bin": [
+                "http://youtube-dl.org/downloads/2012.02.22/youtube-dl", 
+                "3a1d4065b84ae1f1b86d384de145c9d6c0adcaa5e11210c20024bfa63b7cfba7"
+            ], 
+            "exe": [
+                "http://youtube-dl.org/downloads/2012.02.22/youtube-dl.exe", 
+                "f99f9b1f55a91353dfb3a643342256d6b28150a81613b10a5c4f55e1a193b03b"
+            ], 
+            "tar": [
+                "http://youtube-dl.org/downloads/2012.02.22/youtube-dl-2012.02.22.tar.gz", 
+                "a61d978aca6552aa5c3ea0de0e3c3671ff62cc8474059181aafd36c025baba42"
+            ]
+        }, 
         "2013.01.02": {
             "bin": [
                 "http://youtube-dl.org/downloads/2013.01.02/youtube-dl", 
@@ -151,12 +165,12 @@
                 "http://youtube-dl.org/downloads/2013.02.19/youtube-dl.exe", 
                 "b363c026411fe0beb837489fbcdf67cad46cde0330470f8456174dcc463f4c00"
             ], 
+            "notes": [
+                "We will change the default filename template in one of the next releases. If you want the old behavior (\"9bZkp7q19f0.mp4\" instead of \"PSY - Gangnam Style.mp4\"), pass in the --id switch."
+            ], 
             "tar": [
                 "http://youtube-dl.org/downloads/2013.02.19/youtube-dl-2013.02.19.tar.gz", 
                 "d95505e9856d944655b1e2a8dd515fd43ff4d7e18cd07bd4016cb186feec62bb"
-            ],
-            "notes": [
-                "We will change the default filename template in one of the next releases. If you want the old behavior (\"9bZkp7q19f0.mp4\" instead of \"PSY - Gangnam Style.mp4\"), pass in the --id switch."
             ]
         }
     }
