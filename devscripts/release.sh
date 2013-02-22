@@ -22,7 +22,7 @@ if [ ! -f "updates_key.pem" ]; then echo 'ERROR: updates_key.pem missing'; exit 
 
 /bin/echo -e "\n### First of all, testing..."
 make cleanall
-nosetests --with-coverage --cover-package=youtube_dl --cover-html test || exit 1
+nosetests --with-coverage --cover-package=youtube_dl --cover-html test --stop || exit 1
 
 /bin/echo -e "\n### Changing version in version.py..."
 sed -i "s/__version__ = '.*'/__version__ = '$version'/" youtube_dl/version.py
