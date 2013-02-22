@@ -36,5 +36,7 @@
     "verbose": true, 
     "writedescription": false, 
     "writeinfojson": true, 
-    "writesubtitles": false
+    "writesubtitles": false,
+    "onlysubtitles": false,
+    "allsubtitles": false
 }
