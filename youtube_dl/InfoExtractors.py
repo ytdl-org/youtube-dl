@@ -2144,6 +2144,21 @@ class BlipTVIE(InfoExtractor):
             self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
             return
 
+        if '/play/' in url:
+            request = compat_urllib_request.Request(url)
+            response = compat_urllib_request.urlopen(request)
+            redirecturl = response.geturl()
+            hashindex = redirecturl.find('#')
+            if hashindex!=-1:
+                hash = redirecturl[hashindex+1:]
+                params = compat_parse_qs(hash)
+                files = params['file']
+                for file in files:
+                    match = re.search('/(\d+)',file)
+                    if match:
+                        file_id = match.group(1)
+                        url = 'http://blip.tv/file/'+file_id
+
         if '?' in url:
             cchar = '&'
         else:
