@@ -154,6 +154,9 @@
             "tar": [
                 "http://youtube-dl.org/downloads/2013.02.19/youtube-dl-2013.02.19.tar.gz", 
                 "d95505e9856d944655b1e2a8dd515fd43ff4d7e18cd07bd4016cb186feec62bb"
+            ],
+            "notes": [
+                "We will change the default filename template in one of the next releases. If you want the old behavior (\"9bZkp7q19f0.mp4\" instead of \"PSY - Gangnam Style.mp4\"), pass in the --id switch."
             ]
         }
     }
