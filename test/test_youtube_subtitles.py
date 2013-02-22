@@ -38,27 +38,48 @@ class FakeDownloader(object):
 md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
 
 class TestYoutubeSubtitles(unittest.TestCase):
+    def setUp(self):
+        DL = FakeDownloader()
+        DL.params['allsubtitles'] = False
+        DL.params['writesubtitles'] = False
+        
+    def test_youtube_no_subtitles(self):
+        DL = FakeDownloader()
+        DL.params['writesubtitles'] = False
+        IE = YoutubeIE(DL)
+        info_dict = IE.extract('QRS8MkLhQmM')
+        subtitles = info_dict[0]['subtitles']
+        self.assertEqual(subtitles, None)
     def test_youtube_subtitles(self):
         DL = FakeDownloader()
         DL.params['writesubtitles'] = True
         IE = YoutubeIE(DL)
         info_dict = IE.extract('QRS8MkLhQmM')
-        self.assertEqual(md5(info_dict[0]['subtitles']), '4cd9278a35ba2305f47354ee13472260')
-
+        sub = info_dict[0]['subtitles'][0]
+        self.assertEqual(md5(sub[2]), '4cd9278a35ba2305f47354ee13472260')
     def test_youtube_subtitles_it(self):
         DL = FakeDownloader()
         DL.params['writesubtitles'] = True
         DL.params['subtitleslang'] = 'it'
         IE = YoutubeIE(DL)
         info_dict = IE.extract('QRS8MkLhQmM')
-        self.assertEqual(md5(info_dict[0]['subtitles']), '164a51f16f260476a05b50fe4c2f161d')
-
+        sub = info_dict[0]['subtitles'][0]
+        self.assertEqual(md5(sub[2]), '164a51f16f260476a05b50fe4c2f161d')
     def test_youtube_onlysubtitles(self):
         DL = FakeDownloader()
+        DL.params['writesubtitles'] = True
         DL.params['onlysubtitles'] = True
         IE = YoutubeIE(DL)
         info_dict = IE.extract('QRS8MkLhQmM')
-        self.assertEqual(md5(info_dict[0]['subtitles']), '4cd9278a35ba2305f47354ee13472260')
+        sub = info_dict[0]['subtitles'][0]
+        self.assertEqual(md5(sub[2]), '4cd9278a35ba2305f47354ee13472260')
+    def test_youtube_allsubtitles(self):
+        DL = FakeDownloader()
+        DL.params['allsubtitles'] = True
+        IE = YoutubeIE(DL)
+        info_dict = IE.extract('QRS8MkLhQmM')
+        subtitles = info_dict[0]['subtitles']
+        self.assertEqual(len(subtitles), 12)
 
 if __name__ == '__main__':
     unittest.main()
