@@ -47,7 +47,7 @@ class InfoExtractor(object):
     uploader_id:    Nickname or id of the video uploader.
     location:       Physical location of the video.
     player_url:     SWF Player URL (used for rtmpdump).
-    subtitles:      The .srt file contents.
+    subtitles:      The subtitle file contents.
     urlhandle:      [internal] The urlHandle to be used to download the file,
                     like returned by urllib.request.urlopen
 
@@ -235,56 +235,56 @@ class YoutubeIE(InfoExtractor):
     def _get_available_subtitles(self, video_id):
         request = compat_urllib_request.Request('http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id)
         try:
-            srt_list = compat_urllib_request.urlopen(request).read().decode('utf-8')
+            sub_list = compat_urllib_request.urlopen(request).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             return (u'WARNING: unable to download video subtitles: %s' % compat_str(err), None)
-        srt_lang_list = re.findall(r'name="([^"]*)"[^>]+lang_code="([\w\-]+)"', srt_list)
-        srt_lang_list = dict((l[1], l[0]) for l in srt_lang_list)
-        if not srt_lang_list:
+        sub_lang_list = re.findall(r'name="([^"]*)"[^>]+lang_code="([\w\-]+)"', sub_list)
+        sub_lang_list = dict((l[1], l[0]) for l in sub_lang_list)
+        if not sub_lang_list:
             return (u'WARNING: video has no closed captions', None)
-        return srt_lang_list
+        return sub_lang_list
 
-    def _request_subtitle(self, str_lang, str_name, video_id, format = 'srt'):
-        self.report_video_subtitles_request(video_id, str_lang)
+    def _request_subtitle(self, sub_lang, sub_name, video_id, format = 'srt'):
+        self.report_video_subtitles_request(video_id, sub_lang)
         params = compat_urllib_parse.urlencode({
-            'lang': str_lang,
-            'name': str_name,
+            'lang': sub_lang,
+            'name': sub_name,
             'v': video_id,
             'fmt': format,
         })
         url = 'http://www.youtube.com/api/timedtext?' + params
         try:
-            srt = compat_urllib_request.urlopen(url).read().decode('utf-8')
+            sub = compat_urllib_request.urlopen(url).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             return (u'WARNING: unable to download video subtitles: %s' % compat_str(err), None)
-        if not srt:
+        if not sub:
             return (u'WARNING: Did not fetch video subtitles', None)
-        return (None, str_lang, srt)
+        return (None, sub_lang, sub)
 
     def _extract_subtitle(self, video_id):
         self.report_video_subtitles_download(video_id)
-        srt_lang_list = self._get_available_subtitles(video_id)
+        sub_lang_list = self._get_available_subtitles(video_id)
 
         if self._downloader.params.get('subtitleslang', False):
-            srt_lang = self._downloader.params.get('subtitleslang')
-        elif 'en' in srt_lang_list:
-            srt_lang = 'en'
+            sub_lang = self._downloader.params.get('subtitleslang')
+        elif 'en' in sub_lang_list:
+            sub_lang = 'en'
         else:
-            srt_lang = list(srt_lang_list.keys())[0]
-        if not srt_lang in srt_lang_list:
-            return (u'WARNING: no closed captions found in the specified language "%s"' % srt_lang, None)
+            sub_lang = list(sub_lang_list.keys())[0]
+        if not sub_lang in sub_lang_list:
+            return (u'WARNING: no closed captions found in the specified language "%s"' % sub_lang, None)
 
-        sub = self._request_subtitle(srt_lang, srt_lang_list[srt_lang].encode('utf-8'), video_id)
-        return [sub]
+        subtitle = self._request_subtitle(sub_lang, sub_lang_list[sub_lang].encode('utf-8'), video_id)
+        return [subtitle]
 
     def _extract_all_subtitles(self, video_id):
         self.report_video_subtitles_download(video_id)
-        srt_lang_list = self._get_available_subtitles(video_id)
-        subs = []
-        for srt_lang in srt_lang_list:
-            sub = self._request_subtitle(srt_lang, srt_lang_list[srt_lang].encode('utf-8'), video_id)
-            subs.append(sub)
-        return subs
+        sub_lang_list = self._get_available_subtitles(video_id)
+        subtitles = []
+        for sub_lang in sub_lang_list:
+            subtitle = self._request_subtitle(sub_lang, sub_lang_list[sub_lang].encode('utf-8'), video_id)
+            subtitles.append(subtitle)
+        return subtitles
 
     def _print_formats(self, formats):
         print('Available formats:')
@@ -511,16 +511,16 @@ class YoutubeIE(InfoExtractor):
         if self._downloader.params.get('writesubtitles', False):
             video_subtitles = self._extract_subtitle(video_id)
             if video_subtitles:
-                (srt_error, srt_lang, srt) = video_subtitles[0]
-                if srt_error:
-                    self._downloader.trouble(srt_error)
+                (sub_error, sub_lang, sub) = video_subtitles[0]
+                if sub_error:
+                    self._downloader.trouble(sub_error)
 
         if self._downloader.params.get('allsubtitles', False):
             video_subtitles = self._extract_all_subtitles(video_id)
             for video_subtitle in video_subtitles:
-                (srt_error, srt_lang, srt) = video_subtitle
-                if srt_error:
-                    self._downloader.trouble(srt_error)
+                (sub_error, sub_lang, sub) = video_subtitle
+                if sub_error:
+                    self._downloader.trouble(sub_error)
 
         if 'length_seconds' not in video_info:
             self._downloader.trouble(u'WARNING: unable to extract video duration')

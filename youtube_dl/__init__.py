@@ -173,18 +173,18 @@ def parseOpts():
             action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
     video_format.add_option('-F', '--list-formats',
             action='store_true', dest='listformats', help='list all available formats (currently youtube only)')
-    video_format.add_option('--write-srt',
+    video_format.add_option('--write-sub',
             action='store_true', dest='writesubtitles',
-            help='write video closed captions to a .srt file (currently youtube only)', default=False)
-    video_format.add_option('--only-srt',
+            help='write subtitle file (currently youtube only)', default=False)
+    video_format.add_option('--only-sub',
             action='store_true', dest='onlysubtitles',
-            help='downloads only the subtitles of the video (currently youtube only)', default=False)
-    video_format.add_option('--all-srt',
+            help='downloads only the subtitles (no video)', default=False)
+    video_format.add_option('--all-subs',
             action='store_true', dest='allsubtitles',
             help='downloads all the available subtitles of the video (currently youtube only)', default=False)
-    video_format.add_option('--srt-lang',
+    video_format.add_option('--sub-lang',
             action='store', dest='subtitleslang', metavar='LANG',
-            help='language of the closed captions to download (optional) use IETF language tags like \'en\'')
+            help='language of the subtitles to download (optional) use IETF language tags like \'en\'')
 
     verbosity.add_option('-q', '--quiet',
             action='store_true', dest='quiet', help='activates quiet mode', default=False)
