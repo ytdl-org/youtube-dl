@@ -81,6 +81,7 @@ class FileDownloader(object):
     writesubtitles:    Write the video subtitles to a file
     onlysubtitles:     Downloads only the subtitles of the video
     allsubtitles:      Downloads all the subtitles of the video
+    listsubtitles:     Lists all available subtitles for the video
     subtitlesformat:   Subtitle format [sbv/srt] (default=srt)
     subtitleslang:     Language of the subtitles to download
     test:              Download only first bytes to test the downloader.

@@ -182,6 +182,9 @@ def parseOpts():
     video_format.add_option('--all-subs',
             action='store_true', dest='allsubtitles',
             help='downloads all the available subtitles of the video (currently youtube only)', default=False)
+    video_format.add_option('--list-subs',
+            action='store_true', dest='listsubtitles',
+            help='lists all available subtitles for the video (currently youtube only)', default=False)
     video_format.add_option('--sub-format',
             action='store', dest='subtitlesformat', metavar='LANG',
             help='subtitle format [srt/sbv] (default=srt) (currently youtube only)', default='srt')
@@ -461,6 +464,7 @@ def _real_main():
         'writesubtitles': opts.writesubtitles,
         'onlysubtitles': opts.onlysubtitles,
         'allsubtitles': opts.allsubtitles,
+        'listsubtitles': opts.listsubtitles,
         'subtitlesformat': opts.subtitlesformat,
         'subtitleslang': opts.subtitleslang,
         'matchtitle': decodeOption(opts.matchtitle),
