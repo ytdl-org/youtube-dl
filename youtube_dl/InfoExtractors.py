@@ -244,7 +244,7 @@ class YoutubeIE(InfoExtractor):
             return (u'WARNING: video has no closed captions', None)
         return sub_lang_list
 
-    def _request_subtitle(self, sub_lang, sub_name, video_id, format = 'srt'):
+    def _request_subtitle(self, sub_lang, sub_name, video_id, format):
         self.report_video_subtitles_request(video_id, sub_lang)
         params = compat_urllib_parse.urlencode({
             'lang': sub_lang,
@@ -264,7 +264,7 @@ class YoutubeIE(InfoExtractor):
     def _extract_subtitle(self, video_id):
         self.report_video_subtitles_download(video_id)
         sub_lang_list = self._get_available_subtitles(video_id)
-
+        sub_format = self._downloader.params.get('subtitlesformat')
         if self._downloader.params.get('subtitleslang', False):
             sub_lang = self._downloader.params.get('subtitleslang')
         elif 'en' in sub_lang_list:
@@ -274,15 +274,16 @@ class YoutubeIE(InfoExtractor):
         if not sub_lang in sub_lang_list:
             return (u'WARNING: no closed captions found in the specified language "%s"' % sub_lang, None)
 
-        subtitle = self._request_subtitle(sub_lang, sub_lang_list[sub_lang].encode('utf-8'), video_id)
+        subtitle = self._request_subtitle(sub_lang, sub_lang_list[sub_lang].encode('utf-8'), video_id, sub_format)
         return [subtitle]
 
     def _extract_all_subtitles(self, video_id):
         self.report_video_subtitles_download(video_id)
         sub_lang_list = self._get_available_subtitles(video_id)
+        sub_format = self._downloader.params.get('subtitlesformat')
         subtitles = []
         for sub_lang in sub_lang_list:
-            subtitle = self._request_subtitle(sub_lang, sub_lang_list[sub_lang].encode('utf-8'), video_id)
+            subtitle = self._request_subtitle(sub_lang, sub_lang_list[sub_lang].encode('utf-8'), video_id, sub_format)
             subtitles.append(subtitle)
         return subtitles
 
@@ -505,7 +506,7 @@ class YoutubeIE(InfoExtractor):
         else:
             video_description = ''
 
-        # closed captions
+        # subtitles
         video_subtitles = None
 
         if self._downloader.params.get('writesubtitles', False):

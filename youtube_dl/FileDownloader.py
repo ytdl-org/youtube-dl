@@ -78,9 +78,10 @@ class FileDownloader(object):
     updatetime:        Use the Last-modified header to set output file timestamps.
     writedescription:  Write the video description to a .description file
     writeinfojson:     Write the video description to a .info.json file
-    writesubtitles:    Write the video subtitles to a file (default=srt)
+    writesubtitles:    Write the video subtitles to a file
     onlysubtitles:     Downloads only the subtitles of the video
     allsubtitles:      Downloads all the subtitles of the video
+    subtitlesformat:   Subtitle format [sbv/srt] (default=srt)
     subtitleslang:     Language of the subtitles to download
     test:              Download only first bytes to test the downloader.
     keepvideo:         Keep the video file after post-processing
@@ -445,8 +446,9 @@ class FileDownloader(object):
             # that way it will silently go on when used with unsupporting IE
             subtitle = info_dict['subtitles'][0]
             (sub_error, sub_lang, sub) = subtitle
+            sub_format = self.params.get('subtitlesformat')
             try:
-                sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.srt'
+                sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
                 self.report_writesubtitles(sub_filename)
                 with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
                     subfile.write(sub)
@@ -458,10 +460,11 @@ class FileDownloader(object):
 
         if self.params.get('allsubtitles', False) and 'subtitles' in info_dict and info_dict['subtitles']:
             subtitles = info_dict['subtitles']
+            sub_format = self.params.get('subtitlesformat')
             for subtitle in subtitles:
                 (sub_error, sub_lang, sub) = subtitle
                 try:
-                    sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.srt'
+                    sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
                     self.report_writesubtitles(sub_filename)
                     with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
                             subfile.write(sub)
