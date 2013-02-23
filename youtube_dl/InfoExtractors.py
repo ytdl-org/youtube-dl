@@ -3627,18 +3627,22 @@ class SteamIE(InfoExtractor):
         mweb = re.finditer(urlRE, webpage)
         namesRE = r'<span class="title">(?P<videoName>.+?)</span>'
         titles = re.finditer(namesRE, webpage)
+        thumbsRE = r'<img class="movie_thumb" src="(?P<thumbnail>.+?)">'
+        thumbs = re.finditer(thumbsRE, webpage)
         videos = []
-        for vid,vtitle in zip(mweb,titles):
+        for vid,vtitle,thumb in zip(mweb,titles,thumbs):
             video_id = vid.group('videoID')
             title = vtitle.group('videoName')
             video_url = vid.group('videoURL')
+            video_thumb = thumb.group('thumbnail')
             if not video_url:
                 self._downloader.trouble(u'ERROR: Cannot find video url for %s' % video_id)
             info = {
                 'id':video_id,
                 'url':video_url,
                 'ext': 'flv',
-                'title': unescapeHTML(title)
+                'title': unescapeHTML(title),
+                'thumbnail': video_thumb
                   }
             videos.append(info)
         return videos
