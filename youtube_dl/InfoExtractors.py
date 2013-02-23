@@ -1472,7 +1472,7 @@ class YoutubeSearchIE(InfoExtractor):
             result_url = self._API_URL % (compat_urllib_parse.quote_plus(query), (50*pagenum)+1)
             request = compat_urllib_request.Request(result_url)
             try:
-                data = compat_urllib_request.urlopen(request).read()
+                data = compat_urllib_request.urlopen(request).read().decode('utf-8')
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                 self._downloader.trouble(u'ERROR: unable to download API page: %s' % compat_str(err))
                 return
