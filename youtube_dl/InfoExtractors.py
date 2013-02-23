@@ -247,7 +247,7 @@ class YoutubeIE(InfoExtractor):
         sub_lang_list = re.findall(r'name="([^"]*)"[^>]+lang_code="([\w\-]+)"', sub_list)
         sub_lang_list = dict((l[1], l[0]) for l in sub_lang_list)
         if not sub_lang_list:
-            return (u'WARNING: video doesn\'t have download', None)
+            return (u'WARNING: video doesn\'t have subtitles', None)
         return sub_lang_list
 
     def _list_available_subtitles(self, video_id):
