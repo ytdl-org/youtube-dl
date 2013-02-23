@@ -4015,31 +4015,30 @@ class TEDIE(InfoExtractor):
                      ([.\s]*?)data-playlist_item_id="(\d+)"
                      ([.\s]*?)data-mediaslug="(?P<mediaSlug>.+?)"
                      '''
-        video_name_RE=r'<p\ class="talk-title"><a href="/talks/(.+).html">(?P<fullname>.+?)</a></p>'
+        video_name_RE=r'<p\ class="talk-title"><a href="(?P<talk_url>/talks/(.+).html)">(?P<fullname>.+?)</a></p>'
         webpage=self._download_webpage(url, playlist_id, 'Downloading playlist webpage')
         m_videos=re.finditer(video_RE,webpage,re.VERBOSE)
         m_names=re.finditer(video_name_RE,webpage)
         info=[]
         for m_video, m_name in zip(m_videos,m_names):
-            video_dic={
-                       'id': m_video.group('video_id'),
-                       'url': self._talk_video_link(m_video.group('mediaSlug')),
-                       'ext': 'mp4',
-                       'title': m_name.group('fullname')
-                       }
-            info.append(video_dic)
+            video_id=m_video.group('video_id')
+            talk_url='http://www.ted.com%s' % m_name.group('talk_url')
+            info.append(self._talk_info(talk_url,video_id))
         return info
+
     def _talk_info(self, url, video_id=0):
         """Return the video for the talk in the url"""
         m=re.match(self._VALID_URL, url,re.VERBOSE)
         videoName=m.group('name')
         webpage=self._download_webpage(url, video_id, 'Downloading \"%s\" page' % videoName)
         # If the url includes the language we get the title translated
-        title_RE=r'<h1><span id="altHeadline" >(?P<title>[\s\w:/\.\?=\+-\\\']*)</span></h1>'
+        title_RE=r'<h1><span id="altHeadline" >(?P<title>.*)</span></h1>'
         title=re.search(title_RE, webpage).group('title')
         info_RE=r'''<script\ type="text/javascript">var\ talkDetails\ =(.*?)
                         "id":(?P<videoID>[\d]+).*?
                         "mediaSlug":"(?P<mediaSlug>[\w\d]+?)"'''
+        thumb_RE=r'</span>[\s.]*</div>[\s.]*<img src="(?P<thumbnail>.*?)"'
+        thumb_match=re.search(thumb_RE,webpage)
         info_match=re.search(info_RE,webpage,re.VERBOSE)
         video_id=info_match.group('videoID')
         mediaSlug=info_match.group('mediaSlug')
@@ -4048,7 +4047,8 @@ class TEDIE(InfoExtractor):
                 'id': video_id,
                 'url': video_url,
                 'ext': 'mp4',
-                'title': title
+                'title': title,
+                'thumbnail': thumb_match.group('thumbnail')
                 }
         return info
 
