@@ -1921,9 +1921,8 @@ class BlipTVUserIE(InfoExtractor):
 
         while True:
             self.report_download_page(username, pagenum)
-
-            request = compat_urllib_request.Request( page_base + "&page=" + str(pagenum) )
-
+            url = page_base + "&page=" + str(pagenum)
+            request = compat_urllib_request.Request( url )
             try:
                 page = compat_urllib_request.urlopen(request).read().decode('utf-8')
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
