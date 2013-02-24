@@ -78,7 +78,7 @@ def update_self(to_screen, verbose, filename):
     to_screen(u'Updating to version ' + versions_info['latest'] + '...')
     version = versions_info['versions'][versions_info['latest']]
 
-    print_notes(version_info['versions'])
+    print_notes(versions_info['versions'])
 
     if not os.access(filename, os.W_OK):
         to_screen(u'ERROR: no write permissions on %s' % filename)
