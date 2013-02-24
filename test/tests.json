@@ -293,7 +293,8 @@
     "file": "102.mp4",
     "md5": "7bc087e71d16f18f9b8ab9fa62a8a031",
     "info_dict": {
-        "title": "Dan Dennett: The illusion of consciousness"
+        "title": "Dan Dennett: The illusion of consciousness",
+        "thumbnail": "http://images.ted.com/images/ted/488_389x292.jpg"
     }
   },
   {
