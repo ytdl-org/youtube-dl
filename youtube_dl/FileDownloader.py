@@ -552,7 +552,7 @@ class FileDownloader(object):
                 self.to_stderr(u'ERROR: ' + e.msg)
         if keep_video is False and not self.params.get('keepvideo', False):
             try:
-                self.to_stderr(u'Deleting original file %s (pass -k to keep)' % filename)
+                self.to_screen(u'Deleting original file %s (pass -k to keep)' % filename)
                 os.remove(encodeFilename(filename))
             except (IOError, OSError):
                 self.to_stderr(u'WARNING: Unable to remove downloaded video file')
