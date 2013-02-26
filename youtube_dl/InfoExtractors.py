@@ -74,13 +74,15 @@ class InfoExtractor(object):
         self._ready = False
         self.set_downloader(downloader)
 
-    def suitable(self, url):
+    @classmethod
+    def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
-        return re.match(self._VALID_URL, url) is not None
+        return re.match(cls._VALID_URL, url) is not None
 
-    def working(self):
+    @classmethod
+    def working(cls):
         """Getter method for _WORKING."""
-        return self._WORKING
+        return cls._WORKING
 
     def initialize(self):
         """Initializes an instance (authentication, etc)."""
@@ -137,7 +139,6 @@ class YoutubeIE(InfoExtractor):
                          (?:youtu\.be/|(?:\w+\.)?youtube(?:-nocookie)?\.com/|
                             tube\.majestyc\.net/)                             # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
-                         (?!view_play_list|my_playlists|artist|playlist)      # ignore playlist URLs
                          (?:                                                  # the various things that can precede the ID:
                              (?:(?:v|embed|e)/)                               # v/ or embed/ or e/
                              |(?:                                             # or the v= param in all its forms
@@ -189,9 +190,11 @@ class YoutubeIE(InfoExtractor):
     }
     IE_NAME = u'youtube'
 
-    def suitable(self, url):
+    @classmethod
+    def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
-        return re.match(self._VALID_URL, url, re.VERBOSE) is not None
+        if YoutubePlaylistIE.suitable(url): return False
+        return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
     def report_lang(self):
         """Report attempt to set language."""
@@ -1668,17 +1671,17 @@ class YoutubePlaylistIE(InfoExtractor):
                         (?:\w+\.)?
                         youtube\.com/
                         (?:
-                           (?:course|view_play_list|my_playlists|artist|playlist)
-                           \? .*? (p|a|list)=
+                           (?:course|view_play_list|my_playlists|artist|playlist|watch)
+                           \? (?:.*?&)*? (?:p|a|list)=
                         |  user/.*?/user/
                         |  p/
                         |  user/.*?#[pg]/c/
                         )
-                        (?:PL|EC)?
-                     |PL|EC)
-                     ([0-9A-Za-z-_]{10,})
-                     (?:/.*?/([0-9A-Za-z_-]+))?
-                     .*"""
+                        ((?:PL|EC|UU)?[0-9A-Za-z-_]{10,})
+                        .*
+                     |
+                        ((?:PL|EC|UU)[0-9A-Za-z-_]{10,})
+                     )"""
     _TEMPLATE_URL = 'https://gdata.youtube.com/feeds/api/playlists/%s?max-results=%i&start-index=%i&v=2&alt=json'
     _MAX_RESULTS = 50
     IE_NAME = u'youtube:playlist'
@@ -1686,9 +1689,10 @@ class YoutubePlaylistIE(InfoExtractor):
     def __init__(self, downloader=None):
         InfoExtractor.__init__(self, downloader)
 
-    def suitable(self, url):
+    @classmethod
+    def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
-        return re.match(self._VALID_URL, url, re.VERBOSE) is not None
+        return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
     def report_download_page(self, playlist_id, pagenum):
         """Report attempt to download playlist page with given number."""
@@ -1701,13 +1705,8 @@ class YoutubePlaylistIE(InfoExtractor):
             self._downloader.trouble(u'ERROR: invalid url: %s' % url)
             return
 
-        # Single video case
-        if mobj.group(3) is not None:
-            self._downloader.download([mobj.group(3)])
-            return
-
         # Download playlist videos from API
-        playlist_id = mobj.group(2)
+        playlist_id = mobj.group(1) or mobj.group(2)
         page_num = 1
         videos = []
 
@@ -1727,7 +1726,12 @@ class YoutubePlaylistIE(InfoExtractor):
                 self._downloader.trouble(u'ERROR: Invalid JSON in API response: ' + compat_str(err))
                 return
 
-            videos += [(entry['yt$position']['$t'], entry['content']['src']) for entry in response['feed']['entry']]
+            if not 'feed' in response or not 'entry' in response['feed']:
+                self._downloader.trouble(u'ERROR: Got a malformed response from YouTube API')
+                return
+            videos += [ (entry['yt$position']['$t'], entry['content']['src'])
+                        for entry in response['feed']['entry']
+                        if 'content' in entry ]
 
             if len(response['feed']['entry']) < self._MAX_RESULTS:
                 break
@@ -2313,9 +2317,10 @@ class ComedyCentralIE(InfoExtractor):
         '400': '384x216',
     }
 
-    def suitable(self, url):
+    @classmethod
+    def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
-        return re.match(self._VALID_URL, url, re.VERBOSE) is not None
+        return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
     def report_extraction(self, episode_id):
         self._downloader.to_screen(u'[comedycentral] %s: Extracting information' % episode_id)
@@ -3628,9 +3633,10 @@ class SteamIE(InfoExtractor):
                 (?P<videoID>\d*)(?P<extra>\??) #For urltype == video we sometimes get the videoID
                 """
 
-    def suitable(self, url):
+    @classmethod
+    def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
-        return re.match(self._VALID_URL, url, re.VERBOSE) is not None
+        return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url, re.VERBOSE)
@@ -4004,9 +4010,10 @@ class TEDIE(InfoExtractor):
                    /(?P<name>\w+) # Here goes the name and then ".html"
                    '''
 
-    def suitable(self, url):
+    @classmethod
+    def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
-        return re.match(self._VALID_URL, url, re.VERBOSE) is not None
+        return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
     def _real_extract(self, url):
         m=re.match(self._VALID_URL, url, re.VERBOSE)

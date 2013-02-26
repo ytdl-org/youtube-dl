@@ -41,6 +41,18 @@ class TestYoutubeLists(unittest.TestCase):
         self.assertEqual(map(lambda x: YoutubeIE()._extract_id(x[0]), DL.result),
             [ 'bV9L5Ht9LgY', 'FXxLjLQi3Fg', 'tU3Bgo5qJZE' ])
 
+        #661
+        DL = FakeDownloader()
+        IE = YoutubePlaylistIE(DL)
+        IE.extract('PLMCmkNmxw6Z9eduM7BZjSEh7HiU543Ig0')
+        self.assertTrue(len(DL.result) > 20)
+
+        #673
+        DL = FakeDownloader()
+        IE = YoutubePlaylistIE(DL)
+        IE.extract('PLBB231211A4F62143')
+        self.assertTrue(len(DL.result) > 40)
+
     def test_youtube_playlist_long(self):
         DL = FakeDownloader()
         IE = YoutubePlaylistIE(DL)
@@ -48,6 +60,7 @@ class TestYoutubeLists(unittest.TestCase):
         self.assertTrue(len(DL.result) >= 799)
 
     def test_youtube_playlist_with_deleted(self):
+        #651
         DL = FakeDownloader()
         IE = YoutubePlaylistIE(DL)
         IE.extract('https://www.youtube.com/playlist?list=PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC')
