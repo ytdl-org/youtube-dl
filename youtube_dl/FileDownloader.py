@@ -648,7 +648,10 @@ class FileDownloader(object):
         basic_args += ['--min-split-size', '1M']
         basic_args += ['--max-connection-per-server', '4']
         basic_args += ['--user-agent', std_headers['User-Agent']]
-        basic_args += ['--load-cookies=' + tmp_jar_name ]
+
+        if tmp_jar_name:
+            basic_args += ['--load-cookies=' + tmp_jar_name ]
+
         basic_args += ['-o', filename, url]
 
         retval = subprocess.call(basic_args)
