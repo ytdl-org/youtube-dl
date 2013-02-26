@@ -38,16 +38,16 @@ class TestYoutubeLists(unittest.TestCase):
         dl = FakeDownloader()
         ie = YoutubePlaylistIE(dl)
         ie.extract('https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re')
-        self.assertEqual(map(lambda x: YoutubeIE()._extract_id(x[0]), dl.result),
-            [ 'bV9L5Ht9LgY', 'FXxLjLQi3Fg', 'tU3Bgo5qJZE' ])
+        ytie_results = [YoutubeIE()._extract_id(r[0]) for r in dl.result]
+        self.assertEqual(ytie_results, [ 'bV9L5Ht9LgY', 'FXxLjLQi3Fg', 'tU3Bgo5qJZE'])
 
-        #661
+    def test_issue_661(self):
         dl = FakeDownloader()
         ie = YoutubePlaylistIE(dl)
         ie.extract('PLMCmkNmxw6Z9eduM7BZjSEh7HiU543Ig0')
         self.assertTrue(len(dl.result) > 20)
 
-        #673
+    def test_issue_673(self):
         dl = FakeDownloader()
         ie = YoutubePlaylistIE(dl)
         ie.extract('PLBB231211A4F62143')
@@ -64,8 +64,9 @@ class TestYoutubeLists(unittest.TestCase):
         dl = FakeDownloader()
         ie = YoutubePlaylistIE(dl)
         ie.extract('https://www.youtube.com/playlist?list=PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC')
-        self.assertFalse('pElCt5oNDuI' in map(lambda x: YoutubeIE()._extract_id(x[0]), dl.result))
-        self.assertFalse('KdPEApIVdWM' in map(lambda x: YoutubeIE()._extract_id(x[0]), dl.result))
+        ytie_results = [YoutubeIE()._extract_id(r[0]) for r in dl.result]
+        self.assertFalse('pElCt5oNDuI' in ytie_results)
+        self.assertFalse('KdPEApIVdWM' in ytie_results)
 
     def test_youtube_course(self):
         dl = FakeDownloader()
