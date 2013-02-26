@@ -1478,6 +1478,10 @@ class YoutubeSearchIE(InfoExtractor):
                 return
             api_response = json.loads(data)['data']
 
+            if not 'items' in api_response:
+                self._downloader.trouble(u'[youtube] No video results')
+                return
+
             new_ids = list(video['id'] for video in api_response['items'])
             video_ids += new_ids
 
