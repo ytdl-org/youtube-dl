@@ -1741,8 +1741,7 @@ class YoutubePlaylistIE(InfoExtractor):
                 break
             page_num += 1
 
-        videos = map(operator.itemgetter(1), sorted(videos))
-
+        videos = [v[1] for v in sorted(videos)]
         total = len(videos)
 
         playliststart = self._downloader.params.get('playliststart', 1) - 1
