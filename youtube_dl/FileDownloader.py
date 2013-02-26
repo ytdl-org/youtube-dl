@@ -657,7 +657,8 @@ class FileDownloader(object):
         retval = subprocess.call(basic_args)
 
         # The cookie jar is not necessary anymore
-        os.unlink(tmp_jar_name)
+        if tmp_jar_name:
+            os.unlink(tmp_jar_name)
 
 
         if retval == 0:
