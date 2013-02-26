@@ -377,6 +377,44 @@ class FileDownloader(object):
             if re.search(rejecttitle, title, re.IGNORECASE):
                 return u'"' + title + '" title matched reject pattern "' + rejecttitle + '"'
         return None
+        
+    def extract_info(self, url):
+        '''
+        Returns a list with a dictionary for each video we find.
+         '''
+        suitable_found = False
+        for ie in self._ies:
+            # Go to next InfoExtractor if not suitable
+            if not ie.suitable(url):
+                continue
+
+            # Warn if the _WORKING attribute is False
+            if not ie.working():
+                self.to_stderr(u'WARNING: the program functionality for this site has been marked as broken, '
+                               u'and will probably not work. If you want to go on, use the -i option.')
+
+            # Suitable InfoExtractor found
+            suitable_found = True
+
+            # Extract information from URL and process it
+            try:
+                videos = ie.extract(url)
+                for video in videos or []:
+                    if not 'extractor' in video:
+                        #The extractor has already been set somewher else
+                        video['extractor'] = ie.IE_NAME
+                return videos
+            except ExtractorError as de: # An error we somewhat expected
+                self.trouble(u'ERROR: ' + compat_str(de), de.format_traceback())
+                break
+            except Exception as e:
+                if self.params.get('ignoreerrors', False):
+                    self.trouble(u'ERROR: ' + compat_str(e), tb=compat_str(traceback.format_exc()))
+                    break
+                else:
+                    raise
+        if not suitable_found:
+                self.trouble(u'ERROR: no suitable InfoExtractor: %s' % url)
 
     def process_info(self, info_dict):
         """Process a single dictionary returned by an InfoExtractor."""
@@ -488,49 +526,14 @@ class FileDownloader(object):
             raise SameFileError(self.params['outtmpl'])
 
         for url in url_list:
-            suitable_found = False
-            for ie in self._ies:
-                # Go to next InfoExtractor if not suitable
-                if not ie.suitable(url):
-                    continue
+            videos = self.extract_info(url)
 
-                # Warn if the _WORKING attribute is False
-                if not ie.working():
-                    self.to_stderr(u'WARNING: the program functionality for this site has been marked as broken, '
-                                   u'and will probably not work. If you want to go on, use the -i option.')
-
-                # Suitable InfoExtractor found
-                suitable_found = True
-
-                # Extract information from URL and process it
+            for video in videos or []:
                 try:
-                    videos = ie.extract(url)
-                except ExtractorError as de: # An error we somewhat expected
-                    self.trouble(u'ERROR: ' + compat_str(de), de.format_traceback())
-                    break
-                except Exception as e:
-                    if self.params.get('ignoreerrors', False):
-                        self.trouble(u'ERROR: ' + compat_str(e), tb=compat_str(traceback.format_exc()))
-                        break
-                    else:
-                        raise
-
-                if len(videos or []) > 1 and self.fixed_template():
-                    raise SameFileError(self.params['outtmpl'])
-
-                for video in videos or []:
-                    video['extractor'] = ie.IE_NAME
-                    try:
-                        self.increment_downloads()
-                        self.process_info(video)
-                    except UnavailableVideoError:
-                        self.trouble(u'\nERROR: unable to download video')
-
-                # Suitable InfoExtractor had been found; go to next URL
-                break
-
-            if not suitable_found:
-                self.trouble(u'ERROR: no suitable InfoExtractor: %s' % url)
+                    self.increment_downloads()
+                    self.process_info(video)
+                except UnavailableVideoError:
+                    self.trouble(u'\nERROR: unable to download video')
 
         return self._download_retcode
 
