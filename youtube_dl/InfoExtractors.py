@@ -15,6 +15,7 @@ import email.utils
 import xml.etree.ElementTree
 import random
 import math
+import operator
 
 from .utils import *
 
@@ -73,13 +74,15 @@ class InfoExtractor(object):
         self._ready = False
         self.set_downloader(downloader)
 
-    def suitable(self, url):
+    @classmethod
+    def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
-        return re.match(self._VALID_URL, url) is not None
+        return re.match(cls._VALID_URL, url) is not None
 
-    def working(self):
+    @classmethod
+    def working(cls):
         """Getter method for _WORKING."""
-        return self._WORKING
+        return cls._WORKING
 
     def initialize(self):
         """Initializes an instance (authentication, etc)."""
@@ -136,7 +139,6 @@ class YoutubeIE(InfoExtractor):
                          (?:youtu\.be/|(?:\w+\.)?youtube(?:-nocookie)?\.com/|
                             tube\.majestyc\.net/)                             # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
-                         (?!view_play_list|my_playlists|artist|playlist)      # ignore playlist URLs
                          (?:                                                  # the various things that can precede the ID:
                              (?:(?:v|embed|e)/)                               # v/ or embed/ or e/
                              |(?:                                             # or the v= param in all its forms
@@ -188,9 +190,11 @@ class YoutubeIE(InfoExtractor):
     }
     IE_NAME = u'youtube'
 
-    def suitable(self, url):
+    @classmethod
+    def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
-        return re.match(self._VALID_URL, url, re.VERBOSE) is not None
+        if YoutubePlaylistIE.suitable(url): return False
+        return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
     def report_lang(self):
         """Report attempt to set language."""
@@ -1666,14 +1670,33 @@ class YahooSearchIE(InfoExtractor):
 class YoutubePlaylistIE(InfoExtractor):
     """Information Extractor for YouTube playlists."""
 
-    _VALID_URL = r'(?:(?:https?://)?(?:\w+\.)?youtube\.com/(?:(?:course|view_play_list|my_playlists|artist|playlist)\?.*?(p|a|list)=|user/.*?/user/|p/|user/.*?#[pg]/c/)(?:PL|EC)?|PL|EC)([0-9A-Za-z-_]{10,})(?:/.*?/([0-9A-Za-z_-]+))?.*'
-    _TEMPLATE_URL = 'http://www.youtube.com/%s?%s=%s&page=%s&gl=US&hl=en'
-    _VIDEO_INDICATOR_TEMPLATE = r'/watch\?v=(.+?)&amp;([^&"]+&amp;)*list=.*?%s'
-    _MORE_PAGES_INDICATOR = u"Next \N{RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK}"
+    _VALID_URL = r"""(?:
+                        (?:https?://)?
+                        (?:\w+\.)?
+                        youtube\.com/
+                        (?:
+                           (?:course|view_play_list|my_playlists|artist|playlist|watch)
+                           \? (?:.*?&)*? (?:p|a|list)=
+                        |  user/.*?/user/
+                        |  p/
+                        |  user/.*?#[pg]/c/
+                        )
+                        ((?:PL|EC|UU)?[0-9A-Za-z-_]{10,})
+                        .*
+                     |
+                        ((?:PL|EC|UU)[0-9A-Za-z-_]{10,})
+                     )"""
+    _TEMPLATE_URL = 'https://gdata.youtube.com/feeds/api/playlists/%s?max-results=%i&start-index=%i&v=2&alt=json'
+    _MAX_RESULTS = 50
     IE_NAME = u'youtube:playlist'
 
     def __init__(self, downloader=None):
         InfoExtractor.__init__(self, downloader)
+
+    @classmethod
+    def suitable(cls, url):
+        """Receives a URL and returns True if suitable for this IE."""
+        return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
     def report_download_page(self, playlist_id, pagenum):
         """Report attempt to download playlist page with given number."""
@@ -1681,65 +1704,61 @@ class YoutubePlaylistIE(InfoExtractor):
 
     def _real_extract(self, url):
         # Extract playlist id
-        mobj = re.match(self._VALID_URL, url)
+        mobj = re.match(self._VALID_URL, url, re.VERBOSE)
         if mobj is None:
             self._downloader.trouble(u'ERROR: invalid url: %s' % url)
             return
 
-        # Single video case
-        if mobj.group(3) is not None:
-            self._downloader.download([mobj.group(3)])
-            return
-
-        # Download playlist pages
-        # prefix is 'p' as default for playlists but there are other types that need extra care
-        playlist_prefix = mobj.group(1)
-        if playlist_prefix == 'a':
-            playlist_access = 'artist'
-        else:
-            playlist_prefix = 'p'
-            playlist_access = 'view_play_list'
-        playlist_id = mobj.group(2)
-        video_ids = []
-        pagenum = 1
+        # Download playlist videos from API
+        playlist_id = mobj.group(1) or mobj.group(2)
+        page_num = 1
+        videos = []
 
         while True:
-            self.report_download_page(playlist_id, pagenum)
-            url = self._TEMPLATE_URL % (playlist_access, playlist_prefix, playlist_id, pagenum)
-            request = compat_urllib_request.Request(url)
+            self.report_download_page(playlist_id, page_num)
+
+            url = self._TEMPLATE_URL % (playlist_id, self._MAX_RESULTS, self._MAX_RESULTS * (page_num - 1) + 1)
             try:
-                page = compat_urllib_request.urlopen(request).read().decode('utf-8')
+                page = compat_urllib_request.urlopen(url).read().decode('utf8')
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                 self._downloader.trouble(u'ERROR: unable to download webpage: %s' % compat_str(err))
                 return
 
-            # Extract video identifiers
-            ids_in_page = []
-            for mobj in re.finditer(self._VIDEO_INDICATOR_TEMPLATE % playlist_id, page):
-                if mobj.group(1) not in ids_in_page:
-                    ids_in_page.append(mobj.group(1))
-            video_ids.extend(ids_in_page)
+            try:
+                response = json.loads(page)
+            except ValueError as err:
+                self._downloader.trouble(u'ERROR: Invalid JSON in API response: ' + compat_str(err))
+                return
 
-            if self._MORE_PAGES_INDICATOR not in page:
+            if not 'feed' in response or not 'entry' in response['feed']:
+                self._downloader.trouble(u'ERROR: Got a malformed response from YouTube API')
+                return
+            videos += [ (entry['yt$position']['$t'], entry['content']['src'])
+                        for entry in response['feed']['entry']
+                        if 'content' in entry ]
+
+            if len(response['feed']['entry']) < self._MAX_RESULTS:
                 break
-            pagenum = pagenum + 1
+            page_num += 1
 
-        total = len(video_ids)
+        videos = map(operator.itemgetter(1), sorted(videos))
+
+        total = len(videos)
 
         playliststart = self._downloader.params.get('playliststart', 1) - 1
         playlistend = self._downloader.params.get('playlistend', -1)
         if playlistend == -1:
-            video_ids = video_ids[playliststart:]
+            videos = videos[playliststart:]
         else:
-            video_ids = video_ids[playliststart:playlistend]
+            videos = videos[playliststart:playlistend]
 
-        if len(video_ids) == total:
+        if len(videos) == total:
             self._downloader.to_screen(u'[youtube] PL %s: Found %i videos' % (playlist_id, total))
         else:
-            self._downloader.to_screen(u'[youtube] PL %s: Found %i videos, downloading %i' % (playlist_id, total, len(video_ids)))
+            self._downloader.to_screen(u'[youtube] PL %s: Found %i videos, downloading %i' % (playlist_id, total, len(videos)))
 
-        for id in video_ids:
-            self._downloader.download(['http://www.youtube.com/watch?v=%s' % id])
+        for video in videos:
+            self._downloader.download([video])
         return
 
 
@@ -2302,9 +2321,10 @@ class ComedyCentralIE(InfoExtractor):
         '400': '384x216',
     }
 
-    def suitable(self, url):
+    @classmethod
+    def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
-        return re.match(self._VALID_URL, url, re.VERBOSE) is not None
+        return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
     def report_extraction(self, episode_id):
         self._downloader.to_screen(u'[comedycentral] %s: Extracting information' % episode_id)
@@ -3609,17 +3629,18 @@ class TweetReelIE(InfoExtractor):
             'upload_date': upload_date
         }
         return [info]
-        
+
 class SteamIE(InfoExtractor):
-    _VALID_URL = r"""http://store.steampowered.com/ 
+    _VALID_URL = r"""http://store.steampowered.com/
                 (?P<urltype>video|app)/ #If the page is only for videos or for a game
                 (?P<gameID>\d+)/?
                 (?P<videoID>\d*)(?P<extra>\??) #For urltype == video we sometimes get the videoID
                 """
 
-    def suitable(self, url):
+    @classmethod
+    def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
-        return re.match(self._VALID_URL, url, re.VERBOSE) is not None
+        return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url, re.VERBOSE)
@@ -3711,7 +3732,7 @@ class RBMARadioIE(InfoExtractor):
 class YouPornIE(InfoExtractor):
     """Information extractor for youporn.com."""
     _VALID_URL = r'^(?:https?://)?(?:\w+\.)?youporn\.com/watch/(?P<videoid>[0-9]+)/(?P<title>[^/]+)'
-   
+
     def _print_formats(self, formats):
         """Print all available formats"""
         print(u'Available formats:')
@@ -3773,8 +3794,8 @@ class YouPornIE(InfoExtractor):
         links = re.findall(LINK_RE, download_list_html)
         if(len(links) == 0):
             raise ExtractorError(u'ERROR: no known formats available for video')
-        
-        self._downloader.to_screen(u'[youporn] Links found: %d' % len(links))   
+
+        self._downloader.to_screen(u'[youporn] Links found: %d' % len(links))
 
         formats = []
         for link in links:
@@ -3825,7 +3846,7 @@ class YouPornIE(InfoExtractor):
                 return
             return [format]
 
-        
+
 
 class PornotubeIE(InfoExtractor):
     """Information extractor for pornotube.com."""
@@ -3897,7 +3918,7 @@ class YouJizzIE(InfoExtractor):
 
         embed_page_url = result.group(0).strip()
         video_id = result.group('videoid')
-    
+
         webpage = self._download_webpage(embed_page_url, video_id)
 
         # Get the video URL
@@ -3993,9 +4014,10 @@ class TEDIE(InfoExtractor):
                    /(?P<name>\w+) # Here goes the name and then ".html"
                    '''
 
-    def suitable(self, url):
+    @classmethod
+    def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
-        return re.match(self._VALID_URL, url, re.VERBOSE) is not None
+        return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
     def _real_extract(self, url):
         m=re.match(self._VALID_URL, url, re.VERBOSE)
@@ -4057,7 +4079,7 @@ class TEDIE(InfoExtractor):
 
 class MySpassIE(InfoExtractor):
     _VALID_URL = r'http://www.myspass.de/.*'
-    
+
     def _real_extract(self, url):
         META_DATA_URL_TEMPLATE = 'http://www.myspass.de/myspass/includes/apps/video/getvideometadataxml.php?id=%s'
 
@@ -4067,12 +4089,12 @@ class MySpassIE(InfoExtractor):
         url_parent_path, video_id = os.path.split(url_path)
         if not video_id:
             _, video_id = os.path.split(url_parent_path)
-        
+
         # get metadata
         metadata_url = META_DATA_URL_TEMPLATE % video_id
         metadata_text = self._download_webpage(metadata_url, video_id)
         metadata = xml.etree.ElementTree.fromstring(metadata_text.encode('utf-8'))
-        
+
         # extract values from metadata
         url_flv_el = metadata.find('url_flv')
         if url_flv_el is None:
