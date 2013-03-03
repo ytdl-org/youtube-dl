@@ -3591,55 +3591,6 @@ class FunnyOrDieIE(InfoExtractor):
         }
         return [info]
 
-class TweetReelIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?tweetreel\.com/[?](?P<id>[0-9a-z]+)$'
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
-            return
-
-        video_id = mobj.group('id')
-        webpage = self._download_webpage(url, video_id)
-
-        m = re.search(r'<div id="left" status_id="([0-9]+)">', webpage)
-        if not m:
-            self._downloader.trouble(u'ERROR: Cannot find status ID')
-        status_id = m.group(1)
-
-        m = re.search(r'<div class="tweet_text">(.*?)</div>', webpage, flags=re.DOTALL)
-        if not m:
-            self._downloader.trouble(u'WARNING: Cannot find description')
-        desc = unescapeHTML(re.sub('<a.*?</a>', '', m.group(1))).strip()
-
-        m = re.search(r'<div class="tweet_info">.*?from <a target="_blank" href="https?://twitter.com/(?P<uploader_id>.+?)">(?P<uploader>.+?)</a>', webpage, flags=re.DOTALL)
-        if not m:
-            self._downloader.trouble(u'ERROR: Cannot find uploader')
-        uploader = unescapeHTML(m.group('uploader'))
-        uploader_id = unescapeHTML(m.group('uploader_id'))
-
-        m = re.search(r'<span unixtime="([0-9]+)"', webpage)
-        if not m:
-            self._downloader.trouble(u'ERROR: Cannot find upload date')
-        upload_date = datetime.datetime.fromtimestamp(int(m.group(1))).strftime('%Y%m%d')
-
-        title = desc
-        video_url = 'http://files.tweetreel.com/video/' + status_id + '.mov'
-
-        info = {
-            'id': video_id,
-            'url': video_url,
-            'ext': 'mov',
-            'title': title,
-            'description': desc,
-            'uploader': uploader,
-            'uploader_id': uploader_id,
-            'internal_id': status_id,
-            'upload_date': upload_date
-        }
-        return [info]
-
 class SteamIE(InfoExtractor):
     _VALID_URL = r"""http://store.steampowered.com/
                 (?P<urltype>video|app)/ #If the page is only for videos or for a game
@@ -4184,7 +4135,6 @@ def gen_extractors():
         NBAIE(),
         JustinTVIE(),
         FunnyOrDieIE(),
-        TweetReelIE(),
         SteamIE(),
         UstreamIE(),
         RBMARadioIE(),

@@ -129,18 +129,6 @@
     "md5": "f647e9e90064b53b6e046e75d0241fbd"
   },
   {
-    "name": "TweetReel",
-    "url": "http://tweetreel.com/?77smq",
-    "file": "77smq.mov",
-    "md5": "56b4d9ca9de467920f3f99a6d91255d6",
-    "info_dict": {
-        "uploader": "itszero",
-        "uploader_id": "itszero",
-        "upload_date": "20091225",
-        "description": "Installing Gentoo Linux on Powerbook G4, it turns out the sleep indicator becomes HDD activity indicator :D"
-    }
-  },
-  {
     "name": "Steam",
     "url": "http://store.steampowered.com/video/105600/",
     "playlist": [
