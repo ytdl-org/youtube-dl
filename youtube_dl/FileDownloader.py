@@ -575,7 +575,7 @@ class FileDownloader(object):
 
         # Check for rtmpdump first
         try:
-            subprocess.call(['rtmpdump', '-h'], stdout=(file(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
+            subprocess.call(['rtmpdump', '-h'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
         except (OSError, IOError):
             self.trouble(u'ERROR: RTMP download detected but "rtmpdump" could not be run')
             return False
