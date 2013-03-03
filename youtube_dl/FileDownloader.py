@@ -305,7 +305,11 @@ class FileDownloader(object):
         """Report download progress."""
         if self.params.get('noprogress', False):
             return
-        self.to_screen(u'\r[download] %s of %s at %s ETA %s' %
+        if self.params.get('progress_with_newline', False):
+            self.to_screen(u'[download] %s of %s at %s ETA %s' %
+                (percent_str, data_len_str, speed_str, eta_str))
+        else:
+            self.to_screen(u'\r[download] %s of %s at %s ETA %s' %
                 (percent_str, data_len_str, speed_str, eta_str), skip_eol=True)
         self.to_cons_title(u'youtube-dl - %s of %s at %s ETA %s' %
                 (percent_str.strip(), data_len_str.strip(), speed_str.strip(), eta_str.strip()))
@@ -366,12 +370,10 @@ class FileDownloader(object):
         title = info_dict['title']
         matchtitle = self.params.get('matchtitle', False)
         if matchtitle:
-            matchtitle = matchtitle.decode('utf8')
             if not re.search(matchtitle, title, re.IGNORECASE):
                 return u'[download] "' + title + '" title did not match pattern "' + matchtitle + '"'
         rejecttitle = self.params.get('rejecttitle', False)
         if rejecttitle:
-            rejecttitle = rejecttitle.decode('utf8')
             if re.search(rejecttitle, title, re.IGNORECASE):
                 return u'"' + title + '" title matched reject pattern "' + rejecttitle + '"'
         return None
@@ -550,7 +552,7 @@ class FileDownloader(object):
                 self.to_stderr(u'ERROR: ' + e.msg)
         if keep_video is False and not self.params.get('keepvideo', False):
             try:
-                self.to_stderr(u'Deleting original file %s (pass -k to keep)' % filename)
+                self.to_screen(u'Deleting original file %s (pass -k to keep)' % filename)
                 os.remove(encodeFilename(filename))
             except (IOError, OSError):
                 self.to_stderr(u'WARNING: Unable to remove downloaded video file')

@@ -8,7 +8,7 @@ import json
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.InfoExtractors import YoutubeUserIE,YoutubePlaylistIE
+from youtube_dl.InfoExtractors import YoutubeUserIE, YoutubePlaylistIE, YoutubeIE
 from youtube_dl.utils import *
 
 PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
@@ -35,39 +35,57 @@ class FakeDownloader(object):
 
 class TestYoutubeLists(unittest.TestCase):
     def test_youtube_playlist(self):
-        DL = FakeDownloader()
-        IE = YoutubePlaylistIE(DL)
-        IE.extract('https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re')
-        self.assertEqual(DL.result, [
-            ['http://www.youtube.com/watch?v=bV9L5Ht9LgY'],
-            ['http://www.youtube.com/watch?v=FXxLjLQi3Fg'],
-            ['http://www.youtube.com/watch?v=tU3Bgo5qJZE']
-        ])
+        dl = FakeDownloader()
+        ie = YoutubePlaylistIE(dl)
+        ie.extract('https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re')
+        ytie_results = [YoutubeIE()._extract_id(r[0]) for r in dl.result]
+        self.assertEqual(ytie_results, [ 'bV9L5Ht9LgY', 'FXxLjLQi3Fg', 'tU3Bgo5qJZE'])
+
+    def test_issue_661(self):
+        dl = FakeDownloader()
+        ie = YoutubePlaylistIE(dl)
+        ie.extract('PLMCmkNmxw6Z9eduM7BZjSEh7HiU543Ig0')
+        self.assertTrue(len(dl.result) > 20)
+
+    def test_issue_673(self):
+        dl = FakeDownloader()
+        ie = YoutubePlaylistIE(dl)
+        ie.extract('PLBB231211A4F62143')
+        self.assertTrue(len(dl.result) > 40)
 
     def test_youtube_playlist_long(self):
-        DL = FakeDownloader()
-        IE = YoutubePlaylistIE(DL)
-        IE.extract('https://www.youtube.com/playlist?list=UUBABnxM4Ar9ten8Mdjj1j0Q')
-        self.assertTrue(len(DL.result) >= 799)
+        dl = FakeDownloader()
+        ie = YoutubePlaylistIE(dl)
+        ie.extract('https://www.youtube.com/playlist?list=UUBABnxM4Ar9ten8Mdjj1j0Q')
+        self.assertTrue(len(dl.result) >= 799)
+
+    def test_youtube_playlist_with_deleted(self):
+        #651
+        dl = FakeDownloader()
+        ie = YoutubePlaylistIE(dl)
+        ie.extract('https://www.youtube.com/playlist?list=PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC')
+        ytie_results = [YoutubeIE()._extract_id(r[0]) for r in dl.result]
+        self.assertFalse('pElCt5oNDuI' in ytie_results)
+        self.assertFalse('KdPEApIVdWM' in ytie_results)
 
     def test_youtube_course(self):
-        DL = FakeDownloader()
-        IE = YoutubePlaylistIE(DL)
+        dl = FakeDownloader()
+        ie = YoutubePlaylistIE(dl)
         # TODO find a > 100 (paginating?) videos course
-        IE.extract('https://www.youtube.com/course?list=ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8')
-        self.assertEqual(DL.result[0], ['http://www.youtube.com/watch?v=j9WZyLZCBzs'])
-        self.assertEqual(len(DL.result), 25)
-        self.assertEqual(DL.result[-1], ['http://www.youtube.com/watch?v=rYefUsYuEp0'])
+        ie.extract('https://www.youtube.com/course?list=ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8')
+        self.assertEqual(YoutubeIE()._extract_id(dl.result[0][0]), 'j9WZyLZCBzs')
+        self.assertEqual(len(dl.result), 25)
+        self.assertEqual(YoutubeIE()._extract_id(dl.result[-1][0]), 'rYefUsYuEp0')
 
     def test_youtube_channel(self):
         # I give up, please find a channel that does paginate and test this like test_youtube_playlist_long
         pass # TODO
 
     def test_youtube_user(self):
-        DL = FakeDownloader()
-        IE = YoutubeUserIE(DL)
-        IE.extract('https://www.youtube.com/user/TheLinuxFoundation')
-        self.assertTrue(len(DL.result) >= 320)
+        dl = FakeDownloader()
+        ie = YoutubeUserIE(dl)
+        ie.extract('https://www.youtube.com/user/TheLinuxFoundation')
+        self.assertTrue(len(dl.result) >= 320)
 
 if __name__ == '__main__':
     unittest.main()

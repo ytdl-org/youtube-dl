@@ -20,19 +20,19 @@ if [ ! -z "`git tag | grep "$version"`" ]; then echo 'ERROR: version already pre
 if [ ! -z "`git status --porcelain | grep -v CHANGELOG`" ]; then echo 'ERROR: the working directory is not clean; commit or stash changes'; exit 1; fi
 if [ ! -f "updates_key.pem" ]; then echo 'ERROR: updates_key.pem missing'; exit 1; fi
 
-echo "\n### First of all, testing..."
-make clean
-nosetests --with-coverage --cover-package=youtube_dl --cover-html test || exit 1
+/bin/echo -e "\n### First of all, testing..."
+make cleanall
+nosetests --with-coverage --cover-package=youtube_dl --cover-html test --stop || exit 1
 
-echo "\n### Changing version in version.py..."
+/bin/echo -e "\n### Changing version in version.py..."
 sed -i "s/__version__ = '.*'/__version__ = '$version'/" youtube_dl/version.py
 
-echo "\n### Committing CHANGELOG README.md and youtube_dl/version.py..."
+/bin/echo -e "\n### Committing CHANGELOG README.md and youtube_dl/version.py..."
 make README.md
 git add CHANGELOG README.md youtube_dl/version.py
 git commit -m "release $version"
 
-echo "\n### Now tagging, signing and pushing..."
+/bin/echo -e "\n### Now tagging, signing and pushing..."
 git tag -s -m "Release $version" "$version"
 git show "$version"
 read -p "Is it good, can I push? (y/n) " -n 1
@@ -42,7 +42,7 @@ MASTER=$(git rev-parse --abbrev-ref HEAD)
 git push origin $MASTER:master
 git push origin "$version"
 
-echo "\n### OK, now it is time to build the binaries..."
+/bin/echo -e "\n### OK, now it is time to build the binaries..."
 REV=$(git rev-parse HEAD)
 make youtube-dl youtube-dl.tar.gz
 wget "http://jeromelaheurte.net:8142/download/rg3/youtube-dl/youtube-dl.exe?rev=$REV" -O youtube-dl.exe || \
@@ -57,11 +57,11 @@ RELEASE_FILES="youtube-dl youtube-dl.exe youtube-dl-$version.tar.gz"
 (cd build/$version/ && sha512sum $RELEASE_FILES > SHA2-512SUMS)
 git checkout HEAD -- youtube-dl youtube-dl.exe
 
-echo "\n### Signing and uploading the new binaries to youtube-dl.org..."
+/bin/echo -e "\n### Signing and uploading the new binaries to youtube-dl.org..."
 for f in $RELEASE_FILES; do gpg --detach-sig "build/$version/$f"; done
 scp -r "build/$version" ytdl@youtube-dl.org:html/downloads/
 
-echo "\n### Now switching to gh-pages..."
+/bin/echo -e "\n### Now switching to gh-pages..."
 git clone --branch gh-pages --single-branch . build/gh-pages
 ROOT=$(pwd)
 (
@@ -83,7 +83,9 @@ ROOT=$(pwd)
 )
 rm -rf build
 
+make pypi-files
 echo "Uploading to PyPi ..."
 python setup.py sdist upload
+make clean
 
-echo "\n### DONE!"
+/bin/echo -e "\n### DONE!"

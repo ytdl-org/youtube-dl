@@ -420,6 +420,14 @@ def encodeFilename(s):
             encoding = 'utf-8'
         return s.encode(encoding, 'ignore')
 
+def decodeOption(optval):
+    if optval is None:
+        return optval
+    if isinstance(optval, bytes):
+        optval = optval.decode(preferredencoding())
+
+    assert isinstance(optval, compat_str)
+    return optval
 
 class ExtractorError(Exception):
     """Error during info extraction."""

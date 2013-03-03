@@ -286,5 +286,24 @@
       "title": "test chars: \"'/\\ä<>This is a test video for youtube-dl.For more information, contact phihag@phihag.de ."
     }
 
+  },
+  {
+    "name": "TED",
+    "url": "http://www.ted.com/talks/dan_dennett_on_our_consciousness.html",
+    "file": "102.mp4",
+    "md5": "7bc087e71d16f18f9b8ab9fa62a8a031",
+    "info_dict": {
+        "title": "Dan Dennett: The illusion of consciousness",
+        "thumbnail": "http://images.ted.com/images/ted/488_389x292.jpg"
+    }
+  },
+  {
+    "name": "MySpass",
+    "url": "http://www.myspass.de/myspass/shows/tvshows/absolute-mehrheit/Absolute-Mehrheit-vom-17022013-Die-Highlights-Teil-2--/11741/",
+    "file": "11741.mp4",
+    "md5": "0b49f4844a068f8b33f4b7c88405862b",
+    "info_dict": {
+        "title": "Absolute Mehrheit vom 17.02.2013 - Die Highlights, Teil 2"
+    }
   }
 ]

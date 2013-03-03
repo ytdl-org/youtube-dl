@@ -202,6 +202,8 @@ def parseOpts():
     verbosity.add_option('--get-format',
             action='store_true', dest='getformat',
             help='simulate, quiet but print output format', default=False)
+    verbosity.add_option('--newline',
+            action='store_true', dest='progress_with_newline', help='output progress bar as new lines', default=False)
     verbosity.add_option('--no-progress',
             action='store_true', dest='noprogress', help='do not print progress bar', default=False)
     verbosity.add_option('--console-title',
@@ -209,7 +211,6 @@ def parseOpts():
             help='display progress in console titlebar', default=False)
     verbosity.add_option('-v', '--verbose',
             action='store_true', dest='verbose', help='print various debugging information', default=False)
-
 
     filesystem.add_option('-t', '--title',
             action='store_true', dest='usetitle', help='use title in file name', default=False)
@@ -415,6 +416,7 @@ def _real_main():
             or (opts.useid and u'%(id)s.%(ext)s')
             or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
             or u'%(id)s.%(ext)s')
+
     # File downloader
     fd = FileDownloader({
         'usenetrc': opts.usenetrc,
@@ -442,6 +444,7 @@ def _real_main():
         'noresizebuffer': opts.noresizebuffer,
         'continuedl': opts.continue_dl,
         'noprogress': opts.noprogress,
+        'progress_with_newline': opts.progress_with_newline,
         'playliststart': opts.playliststart,
         'playlistend': opts.playlistend,
         'logtostderr': opts.outtmpl == '-',
@@ -452,8 +455,8 @@ def _real_main():
         'writeinfojson': opts.writeinfojson,
         'writesubtitles': opts.writesubtitles,
         'subtitleslang': opts.subtitleslang,
-        'matchtitle': opts.matchtitle,
-        'rejecttitle': opts.rejecttitle,
+        'matchtitle': decodeOption(opts.matchtitle),
+        'rejecttitle': decodeOption(opts.rejecttitle),
         'max_downloads': opts.max_downloads,
         'prefer_free_formats': opts.prefer_free_formats,
         'verbose': opts.verbose,
