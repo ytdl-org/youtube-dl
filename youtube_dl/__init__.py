@@ -126,7 +126,7 @@ def parseOpts():
     general.add_option('-i', '--ignore-errors',
             action='store_true', dest='ignoreerrors', help='continue on download errors', default=False)
     general.add_option('-r', '--rate-limit',
-            dest='ratelimit', metavar='LIMIT', help='download rate limit (e.g. 50k or 44.6m)')
+            dest='ratelimit', metavar='LIMIT', help='maximum download rate (e.g. 50k or 44.6m)')
     general.add_option('-R', '--retries',
             dest='retries', metavar='RETRIES', help='number of retries (default is %default)', default=10)
     general.add_option('--buffer-size',
