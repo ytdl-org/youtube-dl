@@ -246,6 +246,18 @@ class FileDownloader(object):
         warning_message=u'%s %s' % (_msg_header,message)
         self.to_stderr(warning_message)
 
+    def report_error(self, message, tb=None):
+        '''
+        Do the same as trouble, but prefixes the message with 'ERROR:', colored
+        in red if stderr is a tty file.
+        '''
+        if sys.stderr.isatty():
+            _msg_header = u'\033[0;31mERROR:\033[0m'
+        else:
+            _msg_header = u'ERROR:'
+        error_message = u'%s %s' % (_msg_header, message)
+        self.trouble(error_message, tb)
+
     def slow_down(self, start_time, byte_counter):
         """Sleep if the download speed is over the rate limit."""
         rate_limit = self.params.get('ratelimit', None)
