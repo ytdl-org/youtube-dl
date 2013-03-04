@@ -308,7 +308,7 @@ class YoutubeIE(InfoExtractor):
                 else:
                     raise netrc.NetrcParseError('No authenticators for %s' % self._NETRC_MACHINE)
             except (IOError, netrc.NetrcParseError) as err:
-                self._downloader.to_stderr(u'WARNING: parsing .netrc: %s' % compat_str(err))
+                self._downloader.report_warning(u'parsing .netrc: %s' % compat_str(err))
                 return
 
         # Set language
@@ -317,7 +317,7 @@ class YoutubeIE(InfoExtractor):
             self.report_lang()
             compat_urllib_request.urlopen(request).read()
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.to_stderr(u'WARNING: unable to set language: %s' % compat_str(err))
+            self._downloader.report_warning(u'unable to set language: %s' % compat_str(err))
             return
 
         # No authentication to be performed
@@ -328,7 +328,7 @@ class YoutubeIE(InfoExtractor):
         try:
             login_page = compat_urllib_request.urlopen(request).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.to_stderr(u'WARNING: unable to fetch login page: %s' % compat_str(err))
+            self._downloader.report_warning(u'unable to fetch login page: %s' % compat_str(err))
             return
 
         galx = None
@@ -372,10 +372,10 @@ class YoutubeIE(InfoExtractor):
             self.report_login()
             login_results = compat_urllib_request.urlopen(request).read().decode('utf-8')
             if re.search(r'(?i)<form[^>]* id="gaia_loginform"', login_results) is not None:
-                self._downloader.to_stderr(u'WARNING: unable to log in: bad username or password')
+                self._downloader.report_warning(u'unable to log in: bad username or password')
                 return
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.to_stderr(u'WARNING: unable to log in: %s' % compat_str(err))
+            self._downloader.report_warning(u'unable to log in: %s' % compat_str(err))
             return
 
         # Confirm age
@@ -1456,7 +1456,7 @@ class YoutubeSearchIE(InfoExtractor):
                     self._downloader.trouble(u'ERROR: invalid download number %s for query "%s"' % (n, query))
                     return
                 elif n > self._max_youtube_results:
-                    self._downloader.to_stderr(u'WARNING: ytsearch returns max %i results (you requested %i)' % (self._max_youtube_results, n))
+                    self._downloader.report_warning(u'ytsearch returns max %i results (you requested %i)' % (self._max_youtube_results, n))
                     n = self._max_youtube_results
                 self._download_n_results(query, n)
                 return
@@ -1538,7 +1538,7 @@ class GoogleSearchIE(InfoExtractor):
                     self._downloader.trouble(u'ERROR: invalid download number %s for query "%s"' % (n, query))
                     return
                 elif n > self._max_google_results:
-                    self._downloader.to_stderr(u'WARNING: gvsearch returns max %i results (you requested %i)' % (self._max_google_results, n))
+                    self._downloader.report_warning(u'gvsearch returns max %i results (you requested %i)' % (self._max_google_results, n))
                     n = self._max_google_results
                 self._download_n_results(query, n)
                 return
@@ -1622,7 +1622,7 @@ class YahooSearchIE(InfoExtractor):
                     self._downloader.trouble(u'ERROR: invalid download number %s for query "%s"' % (n, query))
                     return
                 elif n > self._max_yahoo_results:
-                    self._downloader.to_stderr(u'WARNING: yvsearch returns max %i results (you requested %i)' % (self._max_yahoo_results, n))
+                    self._downloader.report_warning(u'yvsearch returns max %i results (you requested %i)' % (self._max_yahoo_results, n))
                     n = self._max_yahoo_results
                 self._download_n_results(query, n)
                 return
@@ -2080,7 +2080,7 @@ class FacebookIE(InfoExtractor):
                 else:
                     raise netrc.NetrcParseError('No authenticators for %s' % self._NETRC_MACHINE)
             except (IOError, netrc.NetrcParseError) as err:
-                self._downloader.to_stderr(u'WARNING: parsing .netrc: %s' % compat_str(err))
+                self._downloader.report_warning(u'parsing .netrc: %s' % compat_str(err))
                 return
 
         if useremail is None:
@@ -2097,10 +2097,10 @@ class FacebookIE(InfoExtractor):
             self.report_login()
             login_results = compat_urllib_request.urlopen(request).read()
             if re.search(r'<form(.*)name="login"(.*)</form>', login_results) is not None:
-                self._downloader.to_stderr(u'WARNING: unable to log in: bad username/password, or exceded login rate limit (~3/min). Check credentials or wait.')
+                self._downloader.report_warning(u'unable to log in: bad username/password, or exceded login rate limit (~3/min). Check credentials or wait.')
                 return
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.to_stderr(u'WARNING: unable to log in: %s' % compat_str(err))
+            self._downloader.report_warning(u'unable to log in: %s' % compat_str(err))
             return
 
     def _real_extract(self, url):
@@ -2164,6 +2164,17 @@ class BlipTVIE(InfoExtractor):
         if mobj is None:
             self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
             return
+
+        urlp = compat_urllib_parse_urlparse(url)
+        if urlp.path.startswith('/play/'):
+            request = compat_urllib_request.Request(url)
+            response = compat_urllib_request.urlopen(request)
+            redirecturl = response.geturl()
+            rurlp = compat_urllib_parse_urlparse(redirecturl)
+            file_id = compat_parse_qs(rurlp.fragment)['file'][0].rpartition('/')[2]
+            url = 'http://blip.tv/a/a-' + file_id
+            return self._real_extract(url)
+
 
         if '?' in url:
             cchar = '&'
@@ -3580,55 +3591,6 @@ class FunnyOrDieIE(InfoExtractor):
         }
         return [info]
 
-class TweetReelIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?tweetreel\.com/[?](?P<id>[0-9a-z]+)$'
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
-            return
-
-        video_id = mobj.group('id')
-        webpage = self._download_webpage(url, video_id)
-
-        m = re.search(r'<div id="left" status_id="([0-9]+)">', webpage)
-        if not m:
-            self._downloader.trouble(u'ERROR: Cannot find status ID')
-        status_id = m.group(1)
-
-        m = re.search(r'<div class="tweet_text">(.*?)</div>', webpage, flags=re.DOTALL)
-        if not m:
-            self._downloader.trouble(u'WARNING: Cannot find description')
-        desc = unescapeHTML(re.sub('<a.*?</a>', '', m.group(1))).strip()
-
-        m = re.search(r'<div class="tweet_info">.*?from <a target="_blank" href="https?://twitter.com/(?P<uploader_id>.+?)">(?P<uploader>.+?)</a>', webpage, flags=re.DOTALL)
-        if not m:
-            self._downloader.trouble(u'ERROR: Cannot find uploader')
-        uploader = unescapeHTML(m.group('uploader'))
-        uploader_id = unescapeHTML(m.group('uploader_id'))
-
-        m = re.search(r'<span unixtime="([0-9]+)"', webpage)
-        if not m:
-            self._downloader.trouble(u'ERROR: Cannot find upload date')
-        upload_date = datetime.datetime.fromtimestamp(int(m.group(1))).strftime('%Y%m%d')
-
-        title = desc
-        video_url = 'http://files.tweetreel.com/video/' + status_id + '.mov'
-
-        info = {
-            'id': video_id,
-            'url': video_url,
-            'ext': 'mov',
-            'title': title,
-            'description': desc,
-            'uploader': uploader,
-            'uploader_id': uploader_id,
-            'internal_id': status_id,
-            'upload_date': upload_date
-        }
-        return [info]
-
 class SteamIE(InfoExtractor):
     _VALID_URL = r"""http://store.steampowered.com/
                 (?P<urltype>video|app)/ #If the page is only for videos or for a game
@@ -3767,7 +3729,7 @@ class YouPornIE(InfoExtractor):
         # Get the video date
         result = re.search(r'Date:</label>(?P<date>.*) </li>', webpage)
         if result is None:
-            self._downloader.to_stderr(u'WARNING: unable to extract video date')
+            self._downloader.report_warning(u'unable to extract video date')
             upload_date = None
         else:
             upload_date = result.group('date').strip()
@@ -3775,7 +3737,7 @@ class YouPornIE(InfoExtractor):
         # Get the video uploader
         result = re.search(r'Submitted:</label>(?P<uploader>.*)</li>', webpage)
         if result is None:
-            self._downloader.to_stderr(u'WARNING: unable to extract uploader')
+            self._downloader.report_warning(u'unable to extract uploader')
             video_uploader = None
         else:
             video_uploader = result.group('uploader').strip()
@@ -4173,7 +4135,6 @@ def gen_extractors():
         NBAIE(),
         JustinTVIE(),
         FunnyOrDieIE(),
-        TweetReelIE(),
         SteamIE(),
         UstreamIE(),
         RBMARadioIE(),

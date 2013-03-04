@@ -41,12 +41,6 @@ class TestYoutubeLists(unittest.TestCase):
         ytie_results = [YoutubeIE()._extract_id(r[0]) for r in dl.result]
         self.assertEqual(ytie_results, [ 'bV9L5Ht9LgY', 'FXxLjLQi3Fg', 'tU3Bgo5qJZE'])
 
-    def test_issue_661(self):
-        dl = FakeDownloader()
-        ie = YoutubePlaylistIE(dl)
-        ie.extract('PLMCmkNmxw6Z9eduM7BZjSEh7HiU543Ig0')
-        self.assertTrue(len(dl.result) > 20)
-
     def test_issue_673(self):
         dl = FakeDownloader()
         ie = YoutubePlaylistIE(dl)
