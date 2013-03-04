@@ -415,6 +415,14 @@ class FileDownloader(object):
                     raise
         if not suitable_found:
                 self.trouble(u'ERROR: no suitable InfoExtractor: %s' % url)
+    def extract_info_iterable(self, urls):
+        '''
+            Return the videos founded for the urls
+        '''
+        results = []
+        for url in urls:
+            results.extend(self.extract_info(url))
+        return results
 
     def process_info(self, info_dict):
         """Process a single dictionary returned by an InfoExtractor."""
