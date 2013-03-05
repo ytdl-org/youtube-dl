@@ -128,6 +128,24 @@ class InfoExtractor(object):
         urlh = self._request_webpage(url_or_request, video_id, note, errnote)
         webpage_bytes = urlh.read()
         return webpage_bytes.decode('utf-8', 'replace')
+        
+    #Methods for following #608
+    #They set the correct value of the '_type' key
+    def video_result(self, video_info):
+        """Returns a video"""
+        video_info['_type'] = 'video'
+        return video_info
+    def url_result(self, url, ie=None):
+        """Returns a url that points to a page that should be processed"""
+        #TODO: ie should be the class used for getting the info
+        video_info = {'_type': 'url',
+                      'url': url}
+        return video_info
+    def playlist_result(self, entries):
+        """Returns a playlist"""
+        video_info = {'_type': 'playlist',
+                      'entries': entries}
+        return video_info
 
 
 class YoutubeIE(InfoExtractor):
@@ -1756,7 +1774,8 @@ class YoutubePlaylistIE(InfoExtractor):
         else:
             self._downloader.to_screen(u'[youtube] PL %s: Found %i videos, downloading %i' % (playlist_id, total, len(videos)))
 
-        return self._downloader.extract_info_iterable(videos)
+        url_results = [self.url_result(url) for url in videos]
+        return [self.playlist_result(url_results)]
 
 
 class YoutubeChannelIE(InfoExtractor):
@@ -1807,7 +1826,8 @@ class YoutubeChannelIE(InfoExtractor):
         self._downloader.to_screen(u'[youtube] Channel %s: Found %i videos' % (channel_id, len(video_ids)))
 
         urls = ['http://www.youtube.com/watch?v=%s' % id for id in video_ids]
-        return self._downloader.extract_info_iterable(urls)
+        url_entries = [self.url_result(url) for url in urls]
+        return [self.playlist_result(url_entries)]
 
 
 class YoutubeUserIE(InfoExtractor):
@@ -1890,7 +1910,8 @@ class YoutubeUserIE(InfoExtractor):
                 (username, all_ids_count, len(video_ids)))
 
         urls = ['http://www.youtube.com/watch?v=%s' % video_id for video_id in video_ids]
-        return self._downloader.extract_info_iterable(urls)
+        url_results = [self.url_result(url) for url in urls]
+        return [self.playlist_result(url_results)]
 
 
 class BlipTVUserIE(InfoExtractor):
@@ -1981,7 +2002,8 @@ class BlipTVUserIE(InfoExtractor):
                 (self.IE_NAME, username, all_ids_count, len(video_ids)))
 
         urls = [u'http://blip.tv/%s' % video_id for video_id in video_ids]
-        return self._downloader.extract_info_iterable(urls)
+        url_entries = [self.url_result(url) for url in urls]
+        return [self.playlist_result(url_entries)]
 
 
 class DepositFilesIE(InfoExtractor):
