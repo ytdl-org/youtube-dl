@@ -1806,9 +1806,8 @@ class YoutubeChannelIE(InfoExtractor):
 
         self._downloader.to_screen(u'[youtube] Channel %s: Found %i videos' % (channel_id, len(video_ids)))
 
-        for id in video_ids:
-            self._downloader.download(['http://www.youtube.com/watch?v=%s' % id])
-        return
+        urls = ['http://www.youtube.com/watch?v=%s' % id for id in video_ids]
+        return self._downloader.extract_info_iterable(urls)
 
 
 class YoutubeUserIE(InfoExtractor):
@@ -1981,8 +1980,8 @@ class BlipTVUserIE(InfoExtractor):
         self._downloader.to_screen(u"[%s] user %s: Collected %d video ids (downloading %d of them)" %
                 (self.IE_NAME, username, all_ids_count, len(video_ids)))
 
-        for video_id in video_ids:
-            self._downloader.download([u'http://blip.tv/'+video_id])
+        urls = [u'http://blip.tv/%s' % video_id for video_id in video_ids]
+        return self._downloader.extract_info_iterable(urls)
 
 
 class DepositFilesIE(InfoExtractor):
