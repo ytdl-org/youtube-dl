@@ -1756,9 +1756,7 @@ class YoutubePlaylistIE(InfoExtractor):
         else:
             self._downloader.to_screen(u'[youtube] PL %s: Found %i videos, downloading %i' % (playlist_id, total, len(videos)))
 
-        for video in videos:
-            self._downloader.download([video])
-        return
+        return self._downloader.extract_info_iterable(videos)
 
 
 class YoutubeChannelIE(InfoExtractor):
@@ -1892,8 +1890,8 @@ class YoutubeUserIE(InfoExtractor):
         self._downloader.to_screen(u"[youtube] user %s: Collected %d video ids (downloading %d of them)" %
                 (username, all_ids_count, len(video_ids)))
 
-        for video_id in video_ids:
-            self._downloader.download(['http://www.youtube.com/watch?v=%s' % video_id])
+        urls = ['http://www.youtube.com/watch?v=%s' % video_id for video_id in video_ids]
+        return self._downloader.extract_info_iterable(urls)
 
 
 class BlipTVUserIE(InfoExtractor):

@@ -10,6 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from youtube_dl.InfoExtractors import YoutubeUserIE, YoutubePlaylistIE, YoutubeIE
 from youtube_dl.utils import *
+from youtube_dl.FileDownloader import FileDownloader
 
 PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
 with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
@@ -22,7 +23,7 @@ proxy_handler = compat_urllib_request.ProxyHandler()
 opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
 compat_urllib_request.install_opener(opener)
 
-class FakeDownloader(object):
+class FakeDownloader(FileDownloader):
     def __init__(self):
         self.result = []
         self.params = parameters
@@ -30,15 +31,16 @@ class FakeDownloader(object):
         print(s)
     def trouble(self, s):
         raise Exception(s)
-    def download(self, x):
-        self.result.append(x)
+    def extract_info(self, url):
+        self.result.append(url)
+        return url
 
 class TestYoutubeLists(unittest.TestCase):
     def test_youtube_playlist(self):
         dl = FakeDownloader()
         ie = YoutubePlaylistIE(dl)
         ie.extract('https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re')
-        ytie_results = [YoutubeIE()._extract_id(r[0]) for r in dl.result]
+        ytie_results = [YoutubeIE()._extract_id(url) for url in dl.result]
         self.assertEqual(ytie_results, [ 'bV9L5Ht9LgY', 'FXxLjLQi3Fg', 'tU3Bgo5qJZE'])
 
     def test_issue_673(self):
@@ -58,7 +60,7 @@ class TestYoutubeLists(unittest.TestCase):
         dl = FakeDownloader()
         ie = YoutubePlaylistIE(dl)
         ie.extract('https://www.youtube.com/playlist?list=PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC')
-        ytie_results = [YoutubeIE()._extract_id(r[0]) for r in dl.result]
+        ytie_results = [YoutubeIE()._extract_id(url) for url in dl.result]
         self.assertFalse('pElCt5oNDuI' in ytie_results)
         self.assertFalse('KdPEApIVdWM' in ytie_results)
 
@@ -67,9 +69,9 @@ class TestYoutubeLists(unittest.TestCase):
         ie = YoutubePlaylistIE(dl)
         # TODO find a > 100 (paginating?) videos course
         ie.extract('https://www.youtube.com/course?list=ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8')
-        self.assertEqual(YoutubeIE()._extract_id(dl.result[0][0]), 'j9WZyLZCBzs')
+        self.assertEqual(YoutubeIE()._extract_id(dl.result[0]), 'j9WZyLZCBzs')
         self.assertEqual(len(dl.result), 25)
-        self.assertEqual(YoutubeIE()._extract_id(dl.result[-1][0]), 'rYefUsYuEp0')
+        self.assertEqual(YoutubeIE()._extract_id(dl.result[-1]), 'rYefUsYuEp0')
 
     def test_youtube_channel(self):
         # I give up, please find a channel that does paginate and test this like test_youtube_playlist_long
