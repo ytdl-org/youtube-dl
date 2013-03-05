@@ -410,12 +410,9 @@ class FileDownloader(object):
 
             # Extract information from URL and process it
             try:
-                videos = ie.extract(url)
-                for video in videos or []:
-                    if not 'extractor' in video:
-                        #The extractor has already been set somewher else
-                        video['extractor'] = ie.IE_NAME
-                return videos
+                ie_results = ie.extract(url)
+                results = self.process_ie_results(ie_results, ie)
+                return results
             except ExtractorError as de: # An error we somewhat expected
                 self.trouble(u'ERROR: ' + compat_str(de), de.format_traceback())
                 break
@@ -434,6 +431,29 @@ class FileDownloader(object):
         results = []
         for url in urls:
             results.extend(self.extract_info(url))
+        return results
+        
+    def process_ie_results(self, ie_results, ie):
+        """
+        Take the results of the ie and return a list of videos.
+        For url elements it will seartch the suitable ie and get the videos
+        For playlist elements it will process each of the elements of the 'entries' key
+        """
+        results = [] 
+        for result in ie_results or []:
+            result_type = result.get('_type', 'video') #If not given we suppose it's a video, support the dafault old system
+            if result_type == 'video':
+                if not 'extractor' in result:
+                    #The extractor has already been set somewhere else
+                    result['extractor'] = ie.IE_NAME
+                results.append(result)
+            elif result_type == 'url':
+                #We get the videos pointed by the url
+                results.extend(self.extract_info(result['url']))
+            elif result_type == 'playlist':
+                #We process each entry in the playlist
+                entries_result = self.process_ie_results(result['entries'], ie)
+                results.extend(entries_result)
         return results
 
     def process_info(self, info_dict):
