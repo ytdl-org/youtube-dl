@@ -1311,7 +1311,7 @@ class GenericIE(InfoExtractor):
         self._downloader.to_screen(u'[redirect] Following redirect to %s' % new_url)
 
     def _test_redirect(self, url):
-        """Check if it is a redirect, like url shorteners, in case restart chain."""
+        """Check if it is a redirect, like url shorteners, in case return the new url."""
         class HeadRequest(compat_urllib_request.Request):
             def get_method(self):
                 return "HEAD"
@@ -1362,11 +1362,11 @@ class GenericIE(InfoExtractor):
             return False
 
         self.report_following_redirect(new_url)
-        self._downloader.download([new_url])
-        return True
+        return new_url
 
     def _real_extract(self, url):
-        if self._test_redirect(url): return
+        new_url = self._test_redirect(url)
+        if new_url: return [self.url_result(new_url)]
 
         video_id = url.split('/')[-1]
         request = compat_urllib_request.Request(url)
