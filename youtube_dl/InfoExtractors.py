@@ -467,7 +467,7 @@ class YoutubeIE(InfoExtractor):
         if mobj is not None:
             video_uploader_id = mobj.group(1)
         else:
-            self._downloader.trouble(u'WARNING: unable to extract uploader nickname')
+            self._downloader.report_warning(u'unable to extract uploader nickname')
 
         # title
         if 'title' not in video_info:
@@ -477,7 +477,7 @@ class YoutubeIE(InfoExtractor):
 
         # thumbnail image
         if 'thumbnail_url' not in video_info:
-            self._downloader.trouble(u'WARNING: unable to extract video thumbnail')
+            self._downloader.report_warning(u'unable to extract video thumbnail')
             video_thumbnail = ''
         else:   # don't panic if we can't find it
             video_thumbnail = compat_urllib_parse.unquote_plus(video_info['thumbnail_url'][0])
@@ -509,7 +509,7 @@ class YoutubeIE(InfoExtractor):
                 self._downloader.trouble(srt_error)
 
         if 'length_seconds' not in video_info:
-            self._downloader.trouble(u'WARNING: unable to extract video duration')
+            self._downloader.report_warning(u'unable to extract video duration')
             video_duration = ''
         else:
             video_duration = compat_urllib_parse.unquote_plus(video_info['length_seconds'][0])
@@ -785,7 +785,7 @@ class DailymotionIE(InfoExtractor):
             # lookin for official user
             mobj_official = re.search(r'<span rel="author"[^>]+?>([^<]+?)</span>', webpage)
             if mobj_official is None:
-                self._downloader.trouble(u'WARNING: unable to extract uploader nickname')
+                self._downloader.report_warning(u'unable to extract uploader nickname')
             else:
                 video_uploader = mobj_official.group(1)
         else:
@@ -2449,7 +2449,7 @@ class ComedyCentralIE(InfoExtractor):
                 turls.append(finfo)
 
             if len(turls) == 0:
-                self._downloader.trouble(u'\nERROR: unable to download ' + mediaId + ': No videos found')
+                self._downloader.report_error(u'unable to download ' + mediaId + ': No videos found')
                 continue
 
             if self._downloader.params.get('listformats', None):
@@ -2609,7 +2609,7 @@ class CollegeHumorIE(InfoExtractor):
             info['thumbnail'] = videoNode.findall('./thumbnail')[0].text
             manifest_url = videoNode.findall('./file')[0].text
         except IndexError:
-            self._downloader.trouble(u'\nERROR: Invalid metadata XML file')
+            self._downloader.report_error(u'Invalid metadata XML file')
             return
 
         manifest_url += '?hdcore=2.10.3'
@@ -2626,7 +2626,7 @@ class CollegeHumorIE(InfoExtractor):
             node_id = media_node.attrib['url']
             video_id = adoc.findall('./{http://ns.adobe.com/f4m/1.0}id')[0].text
         except IndexError as err:
-            self._downloader.trouble(u'\nERROR: Invalid manifest file')
+            self._downloader.report_error(u'Invalid manifest file')
             return
 
         url_pr = compat_urllib_parse_urlparse(manifest_url)
@@ -2980,7 +2980,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
                 info['title'] = mdoc.findall('./title')[0].text
                 info['url'] = baseUrl + mdoc.findall('./videoFile')[0].text
             except IndexError:
-                self._downloader.trouble(u'\nERROR: Invalid metadata XML file')
+                self._downloader.report_error(u'Invalid metadata XML file')
                 return
             info['ext'] = info['url'].rpartition('.')[2]
             return [info]
