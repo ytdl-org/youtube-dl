@@ -2557,7 +2557,7 @@ class EscapistIE(InfoExtractor):
             'uploader': showName,
             'upload_date': None,
             'title': showName,
-            'ext': 'mp4',
+            'ext': 'flv',
             'thumbnail': imgUrl,
             'description': description,
             'player_url': playerUrl,
@@ -3654,6 +3654,66 @@ class UstreamIE(InfoExtractor):
                   }
         return [info]
 
+class WorldStarHipHopIE(InfoExtractor):
+    _VALID_URL = r"""(http://(?:www|m).worldstar(?:candy|hiphop)\.com.*)"""
+    IE_NAME = u'WorldStarHipHop'
+
+    def _real_extract(self, url):
+        results = []
+
+        _src_url = r"""(http://hw-videos.*(?:mp4|flv))"""
+
+        webpage_src = compat_urllib_request.urlopen(str(url)).read()
+
+        mobj = re.search(_src_url, webpage_src)
+
+        if mobj is not None:
+            video_url = mobj.group()
+            if 'mp4' in video_url:
+                ext = '.mp4'
+            else:
+                ext = '.flv'
+        else:
+            video_url = None
+            ext = None
+
+        _title = r"""<title>(.*)</title>"""
+
+        mobj = re.search(_title, webpage_src)
+        
+        if mobj is not None:
+            title = mobj.group(1)
+            title = title.replace("&#039;", "")
+            title = title.replace("&#39;", "")
+            title = title.replace('Video: ', '')
+            title = title.replace('&quot;', '"')
+            title = title.replace('&amp;', 'n')
+        else:
+            title = None
+
+        _thumbnail = r"""rel="image_src" href="(.*)" />"""
+
+        mobj = re.search(_thumbnail, webpage_src)
+
+        # Getting thumbnail and if not thumbnail sets correct title for WSHH candy video.
+        if mobj is not None:
+            thumbnail = mobj.group(1)
+        else:
+            _title = r"""candytitles.*>(.*)</span>"""
+            mobj = re.search(_title, webpage_src)
+            if mobj is not None:
+                title = mobj.group(1)
+            thumbnail = None
+
+        results.append({
+            'url' : video_url,
+            'title' : title,
+            'thumbnail' : thumbnail,
+            'ext' : ext
+            })
+
+        return results
+
 class RBMARadioIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?rbmaradio\.com/shows/(?P<videoID>[^/]+)$'
 
@@ -4133,6 +4193,7 @@ def gen_extractors():
         GooglePlusIE(),
         ArteTvIE(),
         NBAIE(),
+        WorldStarHipHopIE(),
         JustinTVIE(),
         FunnyOrDieIE(),
         SteamIE(),
