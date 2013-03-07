@@ -3659,20 +3659,19 @@ class WorldStarHipHopIE(InfoExtractor):
     IE_NAME = u'WorldStarHipHop'
 
     def _real_extract(self, url):
-        results = []
-
         _src_url = r"""(http://hw-videos.*(?:mp4|flv))"""
 
         webpage_src = compat_urllib_request.urlopen(str(url)).read()
+        webpage_src = webpage_src.decode('utf-8')
 
         mobj = re.search(_src_url, webpage_src)
 
         if mobj is not None:
             video_url = mobj.group()
             if 'mp4' in video_url:
-                ext = '.mp4'
+                ext = 'mp4'
             else:
-                ext = '.flv'
+                ext = 'flv'
         else:
             video_url = None
             ext = None
@@ -3683,16 +3682,12 @@ class WorldStarHipHopIE(InfoExtractor):
         
         if mobj is not None:
             title = mobj.group(1)
-            title = title.replace("&#039;", "")
-            title = title.replace("&#39;", "")
-            title = title.replace('Video: ', '')
-            title = title.replace('&quot;', '"')
-            title = title.replace('&amp;', 'n')
         else:
-            title = None
+            title = 'World Start Hip Hop - %s' % time.ctime()
 
         _thumbnail = r"""rel="image_src" href="(.*)" />"""
 
+        print title
         mobj = re.search(_thumbnail, webpage_src)
 
         # Getting thumbnail and if not thumbnail sets correct title for WSHH candy video.
@@ -3705,13 +3700,12 @@ class WorldStarHipHopIE(InfoExtractor):
                 title = mobj.group(1)
             thumbnail = None
 
-        results.append({
-            'url' : video_url,
-            'title' : title,
-            'thumbnail' : thumbnail,
-            'ext' : ext
-            })
-
+        results = [{
+                    'url' : video_url,
+                    'title' : title,
+                    'thumbnail' : thumbnail,
+                    'ext' : ext,
+                    }]
         return results
 
 class RBMARadioIE(InfoExtractor):
