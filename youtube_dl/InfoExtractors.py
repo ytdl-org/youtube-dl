@@ -2557,7 +2557,7 @@ class EscapistIE(InfoExtractor):
             'uploader': showName,
             'upload_date': None,
             'title': showName,
-            'ext': 'flv',
+            'ext': 'mp4',
             'thumbnail': imgUrl,
             'description': description,
             'player_url': playerUrl,
