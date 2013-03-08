@@ -522,6 +522,9 @@ class FileDownloader(object):
                 except ExtractorError as de: # An error we somewhat expected
                     self.trouble(u'ERROR: ' + compat_str(de), de.format_traceback())
                     break
+                except MaxDownloadsReached:
+                    # self.to_screen(u'[info] Maximum number of downloaded files reached.')
+                    raise
                 except Exception as e:
                     if self.params.get('ignoreerrors', False):
                         self.trouble(u'ERROR: ' + compat_str(e), tb=compat_str(traceback.format_exc()))
