@@ -3655,7 +3655,7 @@ class UstreamIE(InfoExtractor):
         return [info]
 
 class WorldStarHipHopIE(InfoExtractor):
-    _VALID_URL = r"""(http://(?:www|m).worldstar(?:candy|hiphop)\.com.*)"""
+    _VALID_URL = r'http://(?:www|m)\.worldstar(?:candy|hiphop)\.com/videos/video\.php\?v=(?P<id>.*)'
     IE_NAME = u'WorldStarHipHop'
 
     def _real_extract(self, url):
@@ -3686,8 +3686,6 @@ class WorldStarHipHopIE(InfoExtractor):
             title = 'World Start Hip Hop - %s' % time.ctime()
 
         _thumbnail = r"""rel="image_src" href="(.*)" />"""
-
-        print title
         mobj = re.search(_thumbnail, webpage_src)
 
         # Getting thumbnail and if not thumbnail sets correct title for WSHH candy video.
@@ -3700,7 +3698,11 @@ class WorldStarHipHopIE(InfoExtractor):
                 title = mobj.group(1)
             thumbnail = None
 
+        m = re.match(self._VALID_URL, url)
+        video_id = m.group('id')
+        
         results = [{
+                    'id': video_id,
                     'url' : video_url,
                     'title' : title,
                     'thumbnail' : thumbnail,
