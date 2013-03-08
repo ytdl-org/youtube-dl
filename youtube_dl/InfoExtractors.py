@@ -1756,8 +1756,10 @@ class YoutubePlaylistIE(InfoExtractor):
         else:
             self._downloader.to_screen(u'[youtube] PL %s: Found %i videos, downloading %i' % (playlist_id, total, len(videos)))
 
+        seq_index = playliststart + 1
         for video in videos:
-            self._downloader.download([video])
+            self._downloader.download([video], seq_index=seq_index)
+            seq_index += 1
         return
 
 
