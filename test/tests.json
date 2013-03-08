@@ -293,5 +293,11 @@
     "info_dict": {
         "title": "Absolute Mehrheit vom 17.02.2013 - Die Highlights, Teil 2"
     }
+  },
+  {
+    "name": "Generic",
+    "url": "http://www.hodiho.fr/2013/02/regis-plante-sa-jeep.html",
+    "file": "13601338388002.mp4",
+    "md5": "85b90ccc9d73b4acd9138d3af4c27f89"
   }
 ]

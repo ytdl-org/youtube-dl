@@ -1281,7 +1281,8 @@ class GenericIE(InfoExtractor):
 
     def report_download_webpage(self, video_id):
         """Report webpage download."""
-        self._downloader.to_screen(u'WARNING: Falling back on generic information extractor.')
+        if not self._downloader.params.get('test', False):
+            self._downloader.to_screen(u'WARNING: Falling back on generic information extractor.')
         self._downloader.to_screen(u'[generic] %s: Downloading webpage' % video_id)
 
     def report_extraction(self, video_id):
@@ -1351,13 +1352,8 @@ class GenericIE(InfoExtractor):
         if self._test_redirect(url): return
 
         video_id = url.split('/')[-1]
-        request = compat_urllib_request.Request(url)
         try:
-            self.report_download_webpage(video_id)
-            webpage = compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.trouble(u'ERROR: Unable to retrieve video webpage: %s' % compat_str(err))
-            return
+            webpage = self._download_webpage(url, video_id)
         except ValueError as err:
             # since this is the last-resort InfoExtractor, if
             # this error is thrown, it'll be thrown here
