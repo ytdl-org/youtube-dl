@@ -372,8 +372,11 @@ class FileDownloader(object):
 
             filename = self.params['outtmpl'] % template_dict
             return filename
-        except (ValueError, KeyError) as err:
-            self.trouble(u'ERROR: invalid system charset or erroneous output template')
+        except KeyError as err:
+            self.trouble(u'ERROR: Erroneous output template')
+            return None
+        except ValueError as err:
+            self.trouble(u'ERROR: Insufficient system charset ' + repr(preferredencoding()))
             return None
 
     def _match_entry(self, info_dict):
