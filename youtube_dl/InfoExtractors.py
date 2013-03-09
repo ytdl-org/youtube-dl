@@ -3650,6 +3650,62 @@ class UstreamIE(InfoExtractor):
                   }
         return [info]
 
+class WorldStarHipHopIE(InfoExtractor):
+    _VALID_URL = r'http://(?:www|m)\.worldstar(?:candy|hiphop)\.com/videos/video\.php\?v=(?P<id>.*)'
+    IE_NAME = u'WorldStarHipHop'
+
+    def _real_extract(self, url):
+        _src_url = r"""(http://hw-videos.*(?:mp4|flv))"""
+
+        webpage_src = compat_urllib_request.urlopen(url).read()
+        webpage_src = webpage_src.decode('utf-8')
+
+        mobj = re.search(_src_url, webpage_src)
+
+        m = re.match(self._VALID_URL, url)
+        video_id = m.group('id')
+
+        if mobj is not None:
+            video_url = mobj.group()
+            if 'mp4' in video_url:
+                ext = 'mp4'
+            else:
+                ext = 'flv'
+        else:
+            self._downloader.trouble(u'ERROR: Cannot find video url for %s' % video_id)
+            return
+
+        _title = r"""<title>(.*)</title>"""
+
+        mobj = re.search(_title, webpage_src)
+        
+        if mobj is not None:
+            title = mobj.group(1)
+        else:
+            title = 'World Start Hip Hop - %s' % time.ctime()
+
+        _thumbnail = r"""rel="image_src" href="(.*)" />"""
+        mobj = re.search(_thumbnail, webpage_src)
+
+        # Getting thumbnail and if not thumbnail sets correct title for WSHH candy video.
+        if mobj is not None:
+            thumbnail = mobj.group(1)
+        else:
+            _title = r"""candytitles.*>(.*)</span>"""
+            mobj = re.search(_title, webpage_src)
+            if mobj is not None:
+                title = mobj.group(1)
+            thumbnail = None
+        
+        results = [{
+                    'id': video_id,
+                    'url' : video_url,
+                    'title' : title,
+                    'thumbnail' : thumbnail,
+                    'ext' : ext,
+                    }]
+        return results
+
 class RBMARadioIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?rbmaradio\.com/shows/(?P<videoID>[^/]+)$'
 
@@ -4129,6 +4185,7 @@ def gen_extractors():
         GooglePlusIE(),
         ArteTvIE(),
         NBAIE(),
+        WorldStarHipHopIE(),
         JustinTVIE(),
         FunnyOrDieIE(),
         SteamIE(),
