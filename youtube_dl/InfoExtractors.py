@@ -3666,6 +3666,9 @@ class WorldStarHipHopIE(InfoExtractor):
 
         mobj = re.search(_src_url, webpage_src)
 
+        m = re.match(self._VALID_URL, url)
+        video_id = m.group('id')
+
         if mobj is not None:
             video_url = mobj.group()
             if 'mp4' in video_url:
@@ -3673,8 +3676,8 @@ class WorldStarHipHopIE(InfoExtractor):
             else:
                 ext = 'flv'
         else:
-            video_url = None
-            ext = None
+            self._downloader.trouble(u'ERROR: Cannot find video url for %s' % video_id)
+            return
 
         _title = r"""<title>(.*)</title>"""
 
@@ -3697,9 +3700,6 @@ class WorldStarHipHopIE(InfoExtractor):
             if mobj is not None:
                 title = mobj.group(1)
             thumbnail = None
-
-        m = re.match(self._VALID_URL, url)
-        video_id = m.group('id')
         
         results = [{
                     'id': video_id,
