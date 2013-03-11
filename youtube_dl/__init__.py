@@ -274,11 +274,19 @@ def parseOpts():
 
     xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
     if xdg_config_home:
-        userConf = os.path.join(xdg_config_home, 'youtube-dl.conf')
+        userConfFile = os.path.join(xdg_config_home, 'youtube-dl.conf')
     else:
-        userConf = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
-    argv = _readOptions('/etc/youtube-dl.conf') + _readOptions(userConf) + sys.argv[1:]
+        userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
+    systemConf = _readOptions('/etc/youtube-dl.conf')
+    userConf = _readOptions(userConfFile)
+    commandLineConf = sys.argv[1:]
+    argv = systemConf + userConf + commandLineConf
     opts, args = parser.parse_args(argv)
+
+    if opts.verbose:
+        print(u'[debug] System config: ' + repr(systemConf))
+        print(u'[debug] User config: ' + repr(userConf))
+        print(u'[debug] Command-line args: ' + repr(commandLineConf))
 
     return parser, opts, args
 
