@@ -104,7 +104,7 @@ class FileDownloader(object):
         self.params = params
 
         if '%(stitle)s' in self.params['outtmpl']:
-            self.to_stderr(u'WARNING: %(stitle)s is deprecated. Use the %(title)s and the --restrict-filenames flag(which also secures %(uploader)s et al) instead.')
+            self.report_warning(u'%(stitle)s is deprecated. Use the %(title)s and the --restrict-filenames flag(which also secures %(uploader)s et al) instead.')
 
     @staticmethod
     def format_bytes(bytes):
@@ -234,6 +234,18 @@ class FileDownloader(object):
             raise DownloadError(message)
         self._download_retcode = 1
 
+    def report_warning(self, message):
+        '''
+        Print the message to stderr, it will be prefixed with 'WARNING:'
+        If stderr is a tty file the 'WARNING:' will be colored
+        '''
+        if sys.stderr.isatty():
+            _msg_header=u'\033[0;33mWARNING:\033[0m'
+        else:
+            _msg_header=u'WARNING:'
+        warning_message=u'%s %s' % (_msg_header,message)
+        self.to_stderr(warning_message)
+
     def slow_down(self, start_time, byte_counter):
         """Sleep if the download speed is over the rate limit."""
         rate_limit = self.params.get('ratelimit', None)
@@ -360,8 +372,11 @@ class FileDownloader(object):
 
             filename = self.params['outtmpl'] % template_dict
             return filename
-        except (ValueError, KeyError) as err:
-            self.trouble(u'ERROR: invalid system charset or erroneous output template')
+        except KeyError as err:
+            self.trouble(u'ERROR: Erroneous output template')
+            return None
+        except ValueError as err:
+            self.trouble(u'ERROR: Insufficient system charset ' + repr(preferredencoding()))
             return None
 
     def _match_entry(self, info_dict):
@@ -496,8 +511,8 @@ class FileDownloader(object):
 
                 # Warn if the _WORKING attribute is False
                 if not ie.working():
-                    self.to_stderr(u'WARNING: the program functionality for this site has been marked as broken, '
-                                   u'and will probably not work. If you want to go on, use the -i option.')
+                    self.report_warning(u'the program functionality for this site has been marked as broken, '
+                                        u'and will probably not work. If you want to go on, use the -i option.')
 
                 # Suitable InfoExtractor found
                 suitable_found = True
@@ -555,7 +570,7 @@ class FileDownloader(object):
                 self.to_screen(u'Deleting original file %s (pass -k to keep)' % filename)
                 os.remove(encodeFilename(filename))
             except (IOError, OSError):
-                self.to_stderr(u'WARNING: Unable to remove downloaded video file')
+                self.report_warning(u'Unable to remove downloaded video file')
 
     def _download_with_rtmpdump(self, filename, url, player_url, page_url):
         self.report_destination(filename)
@@ -563,7 +578,7 @@ class FileDownloader(object):
 
         # Check for rtmpdump first
         try:
-            subprocess.call(['rtmpdump', '-h'], stdout=(file(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
+            subprocess.call(['rtmpdump', '-h'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
         except (OSError, IOError):
             self.trouble(u'ERROR: RTMP download detected but "rtmpdump" could not be run')
             return False
