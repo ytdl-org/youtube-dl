@@ -299,5 +299,14 @@
     "url": "http://www.hodiho.fr/2013/02/regis-plante-sa-jeep.html",
     "file": "13601338388002.mp4",
     "md5": "85b90ccc9d73b4acd9138d3af4c27f89"
+  },
+  {
+    "name": "Spiegel",
+    "url": "http://www.spiegel.de/video/vulkan-tungurahua-in-ecuador-ist-wieder-aktiv-video-1259285.html",
+    "file": "1259285.mp4",
+    "md5": "2c2754212136f35fb4b19767d242f66e",
+    "info_dict": {
+        "title": "Vulkanausbruch in Ecuador: Der \"Feuerschlund\" ist wieder aktiv"
+    }
   }
 ]

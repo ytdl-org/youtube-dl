@@ -126,8 +126,14 @@ class InfoExtractor(object):
     def _download_webpage(self, url_or_request, video_id, note=None, errnote=None):
         """ Returns the data of the page as a string """
         urlh = self._request_webpage(url_or_request, video_id, note, errnote)
+        content_type = urlh.headers.get('Content-Type', '')
+        m = re.match(r'[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+\s*;\s*charset=(.+)', content_type)
+        if m:
+            encoding = m.group(1)
+        else:
+            encoding = 'utf-8'
         webpage_bytes = urlh.read()
-        return webpage_bytes.decode('utf-8', 'replace')
+        return webpage_bytes.decode(encoding, 'replace')
 
 
 class YoutubeIE(InfoExtractor):
@@ -4090,6 +4096,40 @@ class MySpassIE(InfoExtractor):
         }
         return [info]
 
+class SpiegelIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?spiegel\.de/video/[^/]*-(?P<videoID>[0-9]+)(?:\.html)?$'
+
+    def _real_extract(self, url):
+        m = re.match(self._VALID_URL, url)
+        video_id = m.group('videoID')
+
+        webpage = self._download_webpage(url, video_id)
+        m = re.search(r'<div class="spVideoTitle">(.*?)</div>', webpage)
+        if not m:
+            raise ExtractorError(u'Cannot find title')
+        video_title = unescapeHTML(m.group(1))
+
+        xml_url = u'http://video2.spiegel.de/flash/' + video_id + u'.xml'
+        xml_code = self._download_webpage(xml_url, video_id,
+                    note=u'Downloading XML', errnote=u'Failed to download XML')
+
+        idoc = xml.etree.ElementTree.fromstring(xml_code)
+        last_type = idoc[-1]
+        filename = last_type.findall('./filename')[0].text
+        duration = float(last_type.findall('./duration')[0].text)
+
+        video_url = 'http://video2.spiegel.de/flash/' + filename
+        video_ext = filename.rpartition('.')[2]
+        info = {
+            'id': video_id,
+            'url': video_url,
+            'ext': video_ext,
+            'title': video_title,
+            'duration': duration,
+        }
+        return [info]
+
+
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
     The order does matter; the first extractor matched is the one handling the URL.
@@ -4138,6 +4178,7 @@ def gen_extractors():
         KeekIE(),
         TEDIE(),
         MySpassIE(),
+        SpiegelIE(),
         GenericIE()
     ]
 
