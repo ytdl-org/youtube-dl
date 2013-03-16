@@ -4097,7 +4097,7 @@ class MySpassIE(InfoExtractor):
         return [info]
 
 class SpiegelIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?spiegel\.de/video/[^/]*-(?P<videoID>[0-9]+)(?:\.html)?$'
+    _VALID_URL = r'https?://(?:www\.)?spiegel\.de/video/[^/]*-(?P<videoID>[0-9]+)(?:\.html)?(?:#.*)$'
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
