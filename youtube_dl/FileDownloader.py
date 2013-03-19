@@ -78,7 +78,11 @@ class FileDownloader(object):
     updatetime:        Use the Last-modified header to set output file timestamps.
     writedescription:  Write the video description to a .description file
     writeinfojson:     Write the video description to a .info.json file
-    writesubtitles:    Write the video subtitles to a .srt file
+    writesubtitles:    Write the video subtitles to a file
+    onlysubtitles:     Downloads only the subtitles of the video
+    allsubtitles:      Downloads all the subtitles of the video
+    listsubtitles:     Lists all available subtitles for the video
+    subtitlesformat:   Subtitle format [sbv/srt] (default=srt)
     subtitleslang:     Language of the subtitles to download
     test:              Download only first bytes to test the downloader.
     keepvideo:         Keep the video file after post-processing
@@ -301,9 +305,9 @@ class FileDownloader(object):
         """ Report that the description file is being written """
         self.to_screen(u'[info] Writing video description to: ' + descfn)
 
-    def report_writesubtitles(self, srtfn):
+    def report_writesubtitles(self, sub_filename):
         """ Report that the subtitles file is being written """
-        self.to_screen(u'[info] Writing video subtitles to: ' + srtfn)
+        self.to_screen(u'[info] Writing video subtitles to: ' + sub_filename)
 
     def report_writeinfojson(self, infofn):
         """ Report that the metadata file has been written """
@@ -456,14 +460,35 @@ class FileDownloader(object):
         if self.params.get('writesubtitles', False) and 'subtitles' in info_dict and info_dict['subtitles']:
             # subtitles download errors are already managed as troubles in relevant IE
             # that way it will silently go on when used with unsupporting IE
+            subtitle = info_dict['subtitles'][0]
+            (sub_error, sub_lang, sub) = subtitle
+            sub_format = self.params.get('subtitlesformat')
             try:
-                srtfn = filename.rsplit('.', 1)[0] + u'.srt'
-                self.report_writesubtitles(srtfn)
-                with io.open(encodeFilename(srtfn), 'w', encoding='utf-8') as srtfile:
-                    srtfile.write(info_dict['subtitles'])
+                sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
+                self.report_writesubtitles(sub_filename)
+                with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
+                    subfile.write(sub)
             except (OSError, IOError):
                 self.trouble(u'ERROR: Cannot write subtitles file ' + descfn)
                 return
+            if self.params.get('onlysubtitles', False):
+                return 
+
+        if self.params.get('allsubtitles', False) and 'subtitles' in info_dict and info_dict['subtitles']:
+            subtitles = info_dict['subtitles']
+            sub_format = self.params.get('subtitlesformat')
+            for subtitle in subtitles:
+                (sub_error, sub_lang, sub) = subtitle
+                try:
+                    sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
+                    self.report_writesubtitles(sub_filename)
+                    with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
+                            subfile.write(sub)
+                except (OSError, IOError):
+                    self.trouble(u'ERROR: Cannot write subtitles file ' + descfn)
+                    return
+            if self.params.get('onlysubtitles', False):
+                return 
 
         if self.params.get('writeinfojson', False):
             infofn = filename + u'.info.json'

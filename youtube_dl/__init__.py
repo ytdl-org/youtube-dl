@@ -173,12 +173,24 @@ def parseOpts():
             action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
     video_format.add_option('-F', '--list-formats',
             action='store_true', dest='listformats', help='list all available formats (currently youtube only)')
-    video_format.add_option('--write-srt',
+    video_format.add_option('--write-sub',
             action='store_true', dest='writesubtitles',
-            help='write video closed captions to a .srt file (currently youtube only)', default=False)
-    video_format.add_option('--srt-lang',
+            help='write subtitle file (currently youtube only)', default=False)
+    video_format.add_option('--only-sub',
+            action='store_true', dest='onlysubtitles',
+            help='downloads only the subtitles (no video)', default=False)
+    video_format.add_option('--all-subs',
+            action='store_true', dest='allsubtitles',
+            help='downloads all the available subtitles of the video (currently youtube only)', default=False)
+    video_format.add_option('--list-subs',
+            action='store_true', dest='listsubtitles',
+            help='lists all available subtitles for the video (currently youtube only)', default=False)
+    video_format.add_option('--sub-format',
+            action='store', dest='subtitlesformat', metavar='LANG',
+            help='subtitle format [srt/sbv] (default=srt) (currently youtube only)', default='srt')
+    video_format.add_option('--sub-lang',
             action='store', dest='subtitleslang', metavar='LANG',
-            help='language of the closed captions to download (optional) use IETF language tags like \'en\'')
+            help='language of the subtitles to download (optional) use IETF language tags like \'en\'')
 
     verbosity.add_option('-q', '--quiet',
             action='store_true', dest='quiet', help='activates quiet mode', default=False)
@@ -458,6 +470,10 @@ def _real_main():
         'writedescription': opts.writedescription,
         'writeinfojson': opts.writeinfojson,
         'writesubtitles': opts.writesubtitles,
+        'onlysubtitles': opts.onlysubtitles,
+        'allsubtitles': opts.allsubtitles,
+        'listsubtitles': opts.listsubtitles,
+        'subtitlesformat': opts.subtitlesformat,
         'subtitleslang': opts.subtitleslang,
         'matchtitle': decodeOption(opts.matchtitle),
         'rejecttitle': decodeOption(opts.rejecttitle),
