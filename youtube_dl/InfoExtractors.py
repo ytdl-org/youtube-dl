@@ -3986,11 +3986,11 @@ class KeekIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         m = re.search(r'<meta property="og:title" content="(?P<title>.+)"', webpage)
         title = unescapeHTML(m.group('title'))
-        m = re.search(r'<div class="bio-names-and-report">[\s\n]+<h4>(?P<uploader>\w+)</h4>', webpage)
-        uploader = unescapeHTML(m.group('uploader'))
+        m = re.search(r'<div class="user-name-and-bio">[\S\s]+?<h2>(?P<uploader>.+?)</h2>', webpage)
+        uploader = clean_html(m.group('uploader'))
         info = {
-                'id':video_id,
-                'url':video_url,
+                'id': video_id,
+                'url': video_url,
                 'ext': 'mp4',
                 'title': title,
                 'thumbnail': thumbnail,
