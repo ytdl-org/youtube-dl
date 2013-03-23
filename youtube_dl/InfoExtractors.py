@@ -4051,7 +4051,7 @@ class TEDIE(InfoExtractor):
         videoName=m.group('name')
         webpage=self._download_webpage(url, video_id, 'Downloading \"%s\" page' % videoName)
         # If the url includes the language we get the title translated
-        title_RE=r'<h1><span id="altHeadline" >(?P<title>.*)</span></h1>'
+        title_RE=r'<h1( lang="(.*?)")?>(\s*?)<span id="altHeadline" >(?P<title>.*?)</span>(\s*?)</h1>'
         title=re.search(title_RE, webpage).group('title')
         info_RE=r'''<script\ type="text/javascript">var\ talkDetails\ =(.*?)
                         "id":(?P<videoID>[\d]+).*?
