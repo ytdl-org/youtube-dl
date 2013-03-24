@@ -2802,6 +2802,87 @@ class SoundcloudIE(InfoExtractor):
             'description': info['description'],
         }]
 
+class SoundcloudSetIE(InfoExtractor):
+    """Information extractor for soundcloud.com sets
+       To access the media, the uid of the song and a stream token
+       must be extracted from the page source and the script must make
+       a request to media.soundcloud.com/crossdomain.xml. Then
+       the media can be grabbed by requesting from an url composed
+       of the stream token and uid
+     """
+
+    _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/sets/([\w\d-]+)'
+    IE_NAME = u'soundcloud'
+
+    def __init__(self, downloader=None):
+        InfoExtractor.__init__(self, downloader)
+
+    def report_resolve(self, video_id):
+        """Report information extraction."""
+        self._downloader.to_screen(u'[%s] %s: Resolving id' % (self.IE_NAME, video_id))
+
+    def report_extraction(self, video_id):
+        """Report information extraction."""
+        self._downloader.to_screen(u'[%s] %s: Retrieving stream' % (self.IE_NAME, video_id))
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+            return
+
+        # extract uploader (which is in the url)
+        uploader = mobj.group(1)
+        # extract simple title (uploader + slug of song title)
+        slug_title =  mobj.group(2)
+        simple_title = uploader + u'-' + slug_title
+
+        self.report_resolve('%s/sets/%s' % (uploader, slug_title))
+
+        url = 'http://soundcloud.com/%s/sets/%s' % (uploader, slug_title)
+        resolv_url = 'http://api.soundcloud.com/resolve.json?url=' + url + '&client_id=b45b1aa10f1ac2941910a7f0d10f8e28'
+        request = compat_urllib_request.Request(resolv_url)
+        try:
+            info_json_bytes = compat_urllib_request.urlopen(request).read()
+            info_json = info_json_bytes.decode('utf-8')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err))
+            return
+
+        videos = []
+        info = json.loads(info_json)
+        if 'errors' in info:
+            for err in info['errors']:
+                self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err['error_message']))
+            return
+
+        for track in info['tracks']:
+            video_id = track['id']
+            self.report_extraction('%s/sets/%s' % (uploader, slug_title))
+
+            streams_url = 'https://api.sndcdn.com/i1/tracks/' + str(video_id) + '/streams?client_id=b45b1aa10f1ac2941910a7f0d10f8e28'
+            request = compat_urllib_request.Request(streams_url)
+            try:
+                stream_json_bytes = compat_urllib_request.urlopen(request).read()
+                stream_json = stream_json_bytes.decode('utf-8')
+            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+                self._downloader.trouble(u'ERROR: unable to download stream definitions: %s' % compat_str(err))
+                return
+
+            streams = json.loads(stream_json)
+            mediaURL = streams['http_mp3_128_url']
+
+            videos.append({
+                'id':       video_id,
+                'url':      mediaURL,
+                'uploader': track['user']['username'],
+                'upload_date':  track['created_at'],
+                'title':    track['title'],
+                'ext':      u'mp3',
+                'description': track['description'],
+            })
+        return videos
+
 
 class InfoQIE(InfoExtractor):
     """Information extractor for infoq.com"""
@@ -4187,6 +4268,7 @@ def gen_extractors():
         EscapistIE(),
         CollegeHumorIE(),
         XVideosIE(),
+        SoundcloudSetIE(),
         SoundcloudIE(),
         InfoQIE(),
         MixcloudIE(),
