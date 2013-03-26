@@ -4160,6 +4160,46 @@ class SpiegelIE(InfoExtractor):
         }
         return [info]
 
+class liveleakIE(InfoExtractor):
+
+    _VALID_URL = r'^(?:http?://)?(?:\w+\.)?liveleak\.com/view\?(?:.*?)i=(?P<video_id>\d+)(?:.*)'
+    IE_NAME = u'liveleak'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+            return
+
+        video_id = mobj.group(1)
+        if video_id.endswith('/index.html'):
+            video_id = video_id[:-len('/index.html')]
+
+        webpage = self._download_webpage(url, video_id)
+
+        video_url = u'http://edge.liveleak.com/80281E/u/u/ll2_player_files/mp55/player.swf?config=http://www.liveleak.com/player?a=config%26item_token=' + video_id
+        m = re.search(r'<meta property="og:title" content="(?P<title>.*?)"', webpage)
+        if not m:
+            self._downloader.trouble(u'Cannot find video title')
+        title = unescapeHTML(m.group('title'))
+
+        m = re.search(r'<meta property="og:description" content="(?P<desc>.*?)"', webpage)
+        if m:
+            desc = unescapeHTML(m.group('desc'))
+        else:
+            desc = None
+
+
+        info = {
+            'id':  video_id,
+            'url': video_url,
+            'ext': 'mp4',
+            'title': title,
+            'description': desc
+        }
+
+        return [info]
+
 
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
@@ -4210,7 +4250,6 @@ def gen_extractors():
         TEDIE(),
         MySpassIE(),
         SpiegelIE(),
+        liveleakIE(),
         GenericIE()
     ]
-
-
