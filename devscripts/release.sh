@@ -69,6 +69,7 @@ ROOT=$(pwd)
     ORIGIN_URL=$(git config --get remote.origin.url)
     cd build/gh-pages
     "$ROOT/devscripts/gh-pages/add-version.py" $version
+    "$ROOT/devscripts/gh-pages/update-feed.py" $version
     "$ROOT/devscripts/gh-pages/sign-versions.py" < "$ROOT/updates_key.pem"
     "$ROOT/devscripts/gh-pages/generate-download.py"
     "$ROOT/devscripts/gh-pages/update-copyright.py"
