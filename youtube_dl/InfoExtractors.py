@@ -4162,7 +4162,7 @@ class SpiegelIE(InfoExtractor):
 
 class liveleakIE(InfoExtractor):
 
-    _VALID_URL = r'http?://(?:www\.)?liveleak\.com/view/?i=(?P<videoid>[^.]+).html$'
+    _VALID_URL = r'^(?:http?://)?(?:\w+\.)?liveleak\.com/view\?(?:.*?)i=(?P<video_id>\d+)(?:.*)'
     IE_NAME = u'liveleak'
 
     def _real_extract(self, url):
