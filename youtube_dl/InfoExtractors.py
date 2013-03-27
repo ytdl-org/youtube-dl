@@ -4250,6 +4250,6 @@ def gen_extractors():
         TEDIE(),
         MySpassIE(),
         SpiegelIE(),
-        GenericIE(),
-        liveleakIE()
+        liveleakIE(),
+        GenericIE()
     ]
