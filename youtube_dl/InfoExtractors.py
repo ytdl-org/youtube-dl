@@ -147,10 +147,14 @@ class InfoExtractor(object):
         video_info = {'_type': 'url',
                       'url': url}
         return video_info
-    def playlist_result(self, entries):
+    def playlist_result(self, entries, playlist_id=None, playlist_title=None):
         """Returns a playlist"""
         video_info = {'_type': 'playlist',
                       'entries': entries}
+        if playlist_id:
+            video_info['id'] = playlist_id
+        if playlist_title:
+            video_info['title'] = playlist_title
         return video_info
 
 
@@ -1808,7 +1812,7 @@ class YoutubePlaylistIE(InfoExtractor):
             self._downloader.to_screen(u'[youtube] PL %s: Found %i videos, downloading %i' % (playlist_id, total, len(videos)))
 
         url_results = [self.url_result(url) for url in videos]
-        return [self.playlist_result(url_results)]
+        return [self.playlist_result(url_results, playlist_id)]
 
 
 class YoutubeChannelIE(InfoExtractor):
@@ -1860,7 +1864,7 @@ class YoutubeChannelIE(InfoExtractor):
 
         urls = ['http://www.youtube.com/watch?v=%s' % id for id in video_ids]
         url_entries = [self.url_result(url) for url in urls]
-        return [self.playlist_result(url_entries)]
+        return [self.playlist_result(url_entries, channel_id)]
 
 
 class YoutubeUserIE(InfoExtractor):
@@ -1944,7 +1948,7 @@ class YoutubeUserIE(InfoExtractor):
 
         urls = ['http://www.youtube.com/watch?v=%s' % video_id for video_id in video_ids]
         url_results = [self.url_result(url) for url in urls]
-        return [self.playlist_result(url_results)]
+        return [self.playlist_result(url_results, playlist_title = username)]
 
 
 class BlipTVUserIE(InfoExtractor):
@@ -2036,7 +2040,7 @@ class BlipTVUserIE(InfoExtractor):
 
         urls = [u'http://blip.tv/%s' % video_id for video_id in video_ids]
         url_entries = [self.url_result(url) for url in urls]
-        return [self.playlist_result(url_entries)]
+        return [self.playlist_result(url_entries, playlist_title = username)]
 
 
 class DepositFilesIE(InfoExtractor):
