@@ -329,7 +329,7 @@ def sanitize_open(filename, open_mode):
             if sys.platform == 'win32':
                 import msvcrt
                 msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
-            return (sys.stdout, filename)
+            return (sys.stdout.buffer, filename)
         stream = open(encodeFilename(filename), open_mode)
         return (stream, filename)
     except (IOError, OSError) as err:
