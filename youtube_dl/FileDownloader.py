@@ -250,6 +250,18 @@ class FileDownloader(object):
         warning_message=u'%s %s' % (_msg_header,message)
         self.to_stderr(warning_message)
 
+    def report_error(self, message, tb=None):
+        '''
+        Do the same as trouble, but prefixes the message with 'ERROR:', colored
+        in red if stderr is a tty file.
+        '''
+        if sys.stderr.isatty():
+            _msg_header = u'\033[0;31mERROR:\033[0m'
+        else:
+            _msg_header = u'ERROR:'
+        error_message = u'%s %s' % (_msg_header, message)
+        self.trouble(error_message, tb)
+
     def slow_down(self, start_time, byte_counter):
         """Sleep if the download speed is over the rate limit."""
         rate_limit = self.params.get('ratelimit', None)
@@ -281,7 +293,7 @@ class FileDownloader(object):
                 return
             os.rename(encodeFilename(old_filename), encodeFilename(new_filename))
         except (IOError, OSError) as err:
-            self.trouble(u'ERROR: unable to rename file')
+            self.report_error(u'unable to rename file')
 
     def try_utime(self, filename, last_modified_hdr):
         """Try to set the last-modified time of the given file."""
@@ -444,7 +456,7 @@ class FileDownloader(object):
             if dn != '' and not os.path.exists(dn): # dn is already encoded
                 os.makedirs(dn)
         except (OSError, IOError) as err:
-            self.trouble(u'ERROR: unable to create directory ' + compat_str(err))
+            self.report_error(u'unable to create directory ' + compat_str(err))
             return
 
         if self.params.get('writedescription', False):
@@ -454,7 +466,7 @@ class FileDownloader(object):
                 with io.open(encodeFilename(descfn), 'w', encoding='utf-8') as descfile:
                     descfile.write(info_dict['description'])
             except (OSError, IOError):
-                self.trouble(u'ERROR: Cannot write description file ' + descfn)
+                self.report_error(u'Cannot write description file ' + descfn)
                 return
 
         if self.params.get('writesubtitles', False) and 'subtitles' in info_dict and info_dict['subtitles']:
@@ -469,7 +481,7 @@ class FileDownloader(object):
                 with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
                     subfile.write(sub)
             except (OSError, IOError):
-                self.trouble(u'ERROR: Cannot write subtitles file ' + descfn)
+                self.report_error(u'Cannot write subtitles file ' + descfn)
                 return
             if self.params.get('onlysubtitles', False):
                 return 
@@ -497,7 +509,7 @@ class FileDownloader(object):
                 json_info_dict = dict((k, v) for k,v in info_dict.items() if not k in ['urlhandle'])
                 write_json_file(json_info_dict, encodeFilename(infofn))
             except (OSError, IOError):
-                self.trouble(u'ERROR: Cannot write metadata to JSON file ' + infofn)
+                self.report_error(u'Cannot write metadata to JSON file ' + infofn)
                 return
 
         if not self.params.get('skip_download', False):
@@ -509,17 +521,17 @@ class FileDownloader(object):
                 except (OSError, IOError) as err:
                     raise UnavailableVideoError()
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                    self.trouble(u'ERROR: unable to download video data: %s' % str(err))
+                    self.report_error(u'unable to download video data: %s' % str(err))
                     return
                 except (ContentTooShortError, ) as err:
-                    self.trouble(u'ERROR: content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
+                    self.report_error(u'content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
                     return
 
             if success:
                 try:
                     self.post_process(filename, info_dict)
                 except (PostProcessingError) as err:
-                    self.trouble(u'ERROR: postprocessing: %s' % str(err))
+                    self.report_error(u'postprocessing: %s' % str(err))
                     return
 
     def download(self, url_list):
@@ -553,7 +565,7 @@ class FileDownloader(object):
                     raise
                 except Exception as e:
                     if self.params.get('ignoreerrors', False):
-                        self.trouble(u'ERROR: ' + compat_str(e), tb=compat_str(traceback.format_exc()))
+                        self.report_error(u'' + compat_str(e), tb=compat_str(traceback.format_exc()))
                         break
                     else:
                         raise
@@ -567,13 +579,14 @@ class FileDownloader(object):
                         self.increment_downloads()
                         self.process_info(video)
                     except UnavailableVideoError:
-                        self.trouble(u'\nERROR: unable to download video')
+                        self.to_stderr(u"\n")
+                        self.report_error(u'unable to download video')
 
                 # Suitable InfoExtractor had been found; go to next URL
                 break
 
             if not suitable_found:
-                self.trouble(u'ERROR: no suitable InfoExtractor: %s' % url)
+                self.report_error(u'no suitable InfoExtractor: %s' % url)
 
         return self._download_retcode
 
@@ -608,7 +621,7 @@ class FileDownloader(object):
         try:
             subprocess.call(['rtmpdump', '-h'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
         except (OSError, IOError):
-            self.trouble(u'ERROR: RTMP download detected but "rtmpdump" could not be run')
+            self.report_error(u'RTMP download detected but "rtmpdump" could not be run')
             return False
 
         # Download using rtmpdump. rtmpdump returns exit code 2 when
@@ -653,7 +666,8 @@ class FileDownloader(object):
             })
             return True
         else:
-            self.trouble(u'\nERROR: rtmpdump exited with code %d' % retval)
+            self.to_stderr(u"\n")
+            self.report_error(u'rtmpdump exited with code %d' % retval)
             return False
 
     def _do_download(self, filename, info_dict):
@@ -753,7 +767,7 @@ class FileDownloader(object):
                 self.report_retry(count, retries)
 
         if count > retries:
-            self.trouble(u'ERROR: giving up after %s retries' % retries)
+            self.report_error(u'giving up after %s retries' % retries)
             return False
 
         data_len = data.info().get('Content-length', None)
@@ -789,12 +803,13 @@ class FileDownloader(object):
                     filename = self.undo_temp_name(tmpfilename)
                     self.report_destination(filename)
                 except (OSError, IOError) as err:
-                    self.trouble(u'ERROR: unable to open for writing: %s' % str(err))
+                    self.report_error(u'unable to open for writing: %s' % str(err))
                     return False
             try:
                 stream.write(data_block)
             except (IOError, OSError) as err:
-                self.trouble(u'\nERROR: unable to write data: %s' % str(err))
+                self.to_stderr(u"\n")
+                self.report_error(u'unable to write data: %s' % str(err))
                 return False
             if not self.params.get('noresizebuffer', False):
                 block_size = self.best_block_size(after - before, len(data_block))
@@ -820,7 +835,8 @@ class FileDownloader(object):
             self.slow_down(start, byte_counter - resume_len)
 
         if stream is None:
-            self.trouble(u'\nERROR: Did not get any data blocks')
+            self.to_stderr(u"\n")
+            self.report_error(u'Did not get any data blocks')
             return False
         stream.close()
         self.report_finish()
