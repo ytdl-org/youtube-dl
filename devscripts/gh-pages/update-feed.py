@@ -1,83 +1,57 @@
 #!/usr/bin/env python3
 
-import sys
-
-import xml.etree.ElementTree as ET
-import xml.dom.minidom as minidom
-
 import datetime
 
-if len(sys.argv) <= 1:
-	print('Specify the version number as parameter')
-	sys.exit()
-version = sys.argv[1]
+import textwrap
 
-out_file = "atom.atom"
-in_file = out_file
+import json
+
+atom_template=textwrap.dedent("""\
+								<?xml version='1.0' encoding='utf-8'?>
+									<atom:feed xmlns:atom="http://www.w3.org/2005/Atom">
+									<atom:subtitle>Updates feed.</atom:subtitle>
+									<atom:id>youtube-dl-updates-feed</atom:id>
+									<atom:updated>@TIMESTAMP@</atom:updated>
+									@ENTRIES@
+								</atom:feed>""")
+
+entry_template=textwrap.dedent("""
+								<atom:entry>
+									<atom:id>youtube-dl-@VERSION@</atom:id>
+									<atom:title>New version @VERSION@</atom:title>
+									<atom:link href="http://rg3.github.com/youtube-dl" />
+									<atom:content type="xhtml">
+										<div xmlns="http://www.w3.org/1999/xhtml">
+											Downloads available at <a href="http://youtube-dl.org/downloads/@VERSION@/">http://youtube-dl.org/downloads/@VERSION@/</a>
+										</div>
+									</atom:content>
+									<atom:author>
+										<atom:name>The youtube-dl maintainers</atom:name>
+									</atom:author>
+									<atom:updated>@TIMESTAMP@</atom:updated>
+								</atom:entry>
+								""")
 
 now = datetime.datetime.now()
 now_iso = now.isoformat()
 
-atom_url = "http://www.w3.org/2005/Atom"
+atom_template = atom_template.replace('@TIMESTAMP@',now_iso)
 
-#Some utilities functions
-def atom_tag(tag):
-	#Return a tag in the atom namespace
-	return "{{{}}}{}".format(atom_url,tag)
-	
-def atom_SubElement(parent,tag):
-	return ET.SubElement(parent,atom_tag(tag))
-	
-class YDLUpdateAtomEntry(object):
-	def __init__(self,parent,title,id ,link, downloads_link):
-		self.entry = entry = atom_SubElement(parent, "entry")
-		#We set the values:
-		atom_id = atom_SubElement(entry, "id")
-		atom_id.text = id
-		atom_title = atom_SubElement(entry, "title")
-		atom_title.text = title
-		atom_link = atom_SubElement(entry, "link")
-		atom_link.set("href", link)
-		atom_content = atom_SubElement(entry, "content")
-		atom_content.set("type", "xhtml")
-		#Here we go:
-		div = ET.SubElement(atom_content,"div")
-		div.set("xmlns", "http://www.w3.org/1999/xhtml")
-		div.text = "Downloads available at "
-		a = ET.SubElement(div, "a")
-		a.set("href", downloads_link)
-		a.text = downloads_link
-		
-		#Author info
-		atom_author = atom_SubElement(entry, "author")
-		author_name = atom_SubElement(atom_author, "name")
-		author_name.text = "The youtube-dl maintainers"
-		#If someone wants to put an email adress:
-		#author_email = atom_SubElement(atom_author, "email")
-		#author_email.text = the_email
-		
-		atom_updated = atom_SubElement(entry,"updated")
-		up = parent.find(atom_tag("updated"))
-		atom_updated.text = up.text = now_iso
-	
-	@classmethod
-	def entry(cls,parent, version):
-		update_id = "youtube-dl-{}".format(version)
-		update_title = "New version {}".format(version)
-		downloads_link = "http://youtube-dl.org/downloads/{}/".format(version)
-		#There's probably no better link
-		link = "http://rg3.github.com/youtube-dl"
-		return cls(parent, update_title, update_id, link, downloads_link)
-		
+entries=[]
 
-atom = ET.parse(in_file)
+versions_info = json.load(open('update/versions.json'))
+versions = list(versions_info['versions'].keys())
+versions.sort()
 
-root = atom.getroot()
+for v in versions:
+	entry = entry_template.replace('@TIMESTAMP@',v.replace('.','-'))
+	entry = entry.replace('@VERSION@',v)
+	entries.append(entry)
 
-#Otherwise when saving all tags will be prefixed with a 'ns0:'
-ET.register_namespace("atom",atom_url)
+entries_str = textwrap.indent(''.join(entries), '\t')
+atom_template = atom_template.replace('@ENTRIES@', entries_str)
 
-update_entry = YDLUpdateAtomEntry.entry(root, version)
+with open('update/atom.atom','w',encoding='utf-8') as atom_file:
+	atom_file.write(atom_template)
 
-#Find some way of pretty printing
-atom.write(out_file,encoding="utf-8",xml_declaration=True)
+
