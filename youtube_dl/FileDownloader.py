@@ -460,12 +460,21 @@ class FileDownloader(object):
             elif result_type == 'playlist':
                 #We process each entry in the playlist
                 entries_result = self.process_ie_results(result['entries'], ie)
-                results.extend(entries_result)
+                result['entries'] = entries_result
+                results.extend([result])
         return results
 
     def process_info(self, info_dict):
         """Process a single dictionary returned by an InfoExtractor."""
 
+        if info_dict.get('_type','video') == 'playlist':
+            playlist = info_dict.get('title', None) or info_dict.get('id', None)
+            self.to_screen(u'[download] Downloading playlist: %s'  % playlist)
+            for video in info_dict['entries']:
+                video['playlist'] = playlist
+                self.process_info(video)
+            return
+        
         # Keep for backwards compatibility
         info_dict['stitle'] = info_dict['title']
 
