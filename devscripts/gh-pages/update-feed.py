@@ -51,7 +51,7 @@ for v in versions:
 entries_str = textwrap.indent(''.join(entries), '\t')
 atom_template = atom_template.replace('@ENTRIES@', entries_str)
 
-with open('update/atom.atom','w',encoding='utf-8') as atom_file:
+with open('update/releases.atom','w',encoding='utf-8') as atom_file:
 	atom_file.write(atom_template)
 
 
