@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
-	<atom:feed xmlns:atom="http://www.w3.org/2005/Atom">
-	<atom:subtitle>Updates feed.</atom:subtitle>
+<atom:feed xmlns:atom="http://www.w3.org/2005/Atom">
+	<atom:title>youtube-dl releases</atom:title>
 	<atom:id>youtube-dl-updates-feed</atom:id>
-	<atom:updated>2013-03-29T21:29:40.712649</atom:updated>
+	<atom:updated>2013-03-29T21:42:13.665836</atom:updated>
 	
 	<atom:entry>
 		<atom:id>youtube-dl-2012.02.22</atom:id>
