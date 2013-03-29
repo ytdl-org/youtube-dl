@@ -231,11 +231,21 @@ class FileDownloader(object):
             self.to_stderr(message)
         if self.params.get('verbose'):
             if tb is None:
-                tb_data = traceback.format_list(traceback.extract_stack())
-                tb = u''.join(tb_data)
+                if sys.exc_info()[0]:  # if .trouble has been called from an except block
+                    tb = u''
+                    if hasattr(sys.exc_info()[1], 'exc_info') and sys.exc_info()[1].exc_info[0]:
+                        tb += u''.join(traceback.format_exception(*sys.exc_info()[1].exc_info))
+                    tb += compat_str(traceback.format_exc())
+                else:
+                    tb_data = traceback.format_list(traceback.extract_stack())
+                    tb = u''.join(tb_data)
             self.to_stderr(tb)
         if not self.params.get('ignoreerrors', False):
-            raise DownloadError(message)
+            if sys.exc_info()[0] and hasattr(sys.exc_info()[1], 'exc_info') and sys.exc_info()[1].exc_info[0]:
+                exc_info = sys.exc_info()[1].exc_info
+            else:
+                exc_info = sys.exc_info()
+            raise DownloadError(message, exc_info)
         self._download_retcode = 1
 
     def report_warning(self, message):
