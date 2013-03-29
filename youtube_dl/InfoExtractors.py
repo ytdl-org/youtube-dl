@@ -2305,7 +2305,7 @@ class MyVideoIE(InfoExtractor):
         webpage = self._download_webpage(webpage_url, video_id)
 
         self.report_extraction(video_id)
-        mobj = re.search(r'<link rel=\'image_src\' href=\'(http://is[0-9].myvideo\.de/de/movie[0-9]+/[a-f0-9]+)/thumbs/.*?\.jpg\' />',
+        mobj = re.search(r'<link rel=\'image_src\' href=\'(http://is[0-9].myvideo\.de/de/movie[0-9]+/[a-f0-9]+)/thumbs/.*?\.jpg\'',
                  webpage)
         if mobj is None:
             self._downloader.report_error(u'unable to extract media URL')
@@ -3604,10 +3604,10 @@ class FunnyOrDieIE(InfoExtractor):
             self._downloader.report_error(u'unable to find video information')
         video_url = unescapeHTML(m.group('url'))
 
-        m = re.search(r"class='player_page_h1'>\s+<a.*?>(?P<title>.*?)</a>", webpage)
+        m = re.search(r"<h1 class='player_page_h1'.*?>(?P<title>.*?)</h1>", webpage, flags=re.DOTALL)
         if not m:
             self._downloader.trouble(u'Cannot find video title')
-        title = unescapeHTML(m.group('title'))
+        title = clean_html(m.group('title'))
 
         m = re.search(r'<meta property="og:description" content="(?P<desc>.*?)"', webpage)
         if m:
@@ -4051,7 +4051,7 @@ class TEDIE(InfoExtractor):
         videoName=m.group('name')
         webpage=self._download_webpage(url, video_id, 'Downloading \"%s\" page' % videoName)
         # If the url includes the language we get the title translated
-        title_RE=r'<h1><span id="altHeadline" >(?P<title>.*)</span></h1>'
+        title_RE=r'<span id="altHeadline" >(?P<title>.*)</span>'
         title=re.search(title_RE, webpage).group('title')
         info_RE=r'''<script\ type="text/javascript">var\ talkDetails\ =(.*?)
                         "id":(?P<videoID>[\d]+).*?

@@ -311,7 +311,7 @@ def clean_html(html):
     html = re.sub('<.*?>', '', html)
     # Replace html entities
     html = unescapeHTML(html)
-    return html
+    return html.strip()
 
 
 def sanitize_open(filename, open_mode):
