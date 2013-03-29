@@ -18,7 +18,7 @@ which means you can modify it, redistribute it or use it however you like.
     --version                print program version and exit
     -U, --update             update this program to latest version
     -i, --ignore-errors      continue on download errors
-    -r, --rate-limit LIMIT   download rate limit (e.g. 50k or 44.6m)
+    -r, --rate-limit LIMIT   maximum download rate (e.g. 50k or 44.6m)
     -R, --retries RETRIES    number of retries (default is 10)
     --buffer-size SIZE       size of download buffer (e.g. 1024 or 16k) (default
                              is 1024)
@@ -97,10 +97,16 @@ which means you can modify it, redistribute it or use it however you like.
                              requested
     --max-quality FORMAT     highest quality format to download
     -F, --list-formats       list all available formats (currently youtube only)
-    --write-srt              write video closed captions to a .srt file
+    --write-sub              write subtitle file (currently youtube only)
+    --only-sub               downloads only the subtitles (no video)
+    --all-subs               downloads all the available subtitles of the video
                              (currently youtube only)
-    --srt-lang LANG          language of the closed captions to download
-                             (optional) use IETF language tags like 'en'
+    --list-subs              lists all available subtitles for the video
+                             (currently youtube only)
+    --sub-format LANG        subtitle format [srt/sbv] (default=srt) (currently
+                             youtube only)
+    --sub-lang LANG          language of the subtitles to download (optional)
+                             use IETF language tags like 'en'
 
 ## Authentication Options:
     -u, --username USERNAME  account username
