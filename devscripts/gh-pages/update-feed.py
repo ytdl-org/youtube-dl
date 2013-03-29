@@ -8,8 +8,8 @@ import json
 
 atom_template=textwrap.dedent("""\
 								<?xml version='1.0' encoding='utf-8'?>
-									<atom:feed xmlns:atom="http://www.w3.org/2005/Atom">
-									<atom:subtitle>Updates feed.</atom:subtitle>
+								<atom:feed xmlns:atom="http://www.w3.org/2005/Atom">
+									<atom:title>youtube-dl releases</atom:title>
 									<atom:id>youtube-dl-updates-feed</atom:id>
 									<atom:updated>@TIMESTAMP@</atom:updated>
 									@ENTRIES@
