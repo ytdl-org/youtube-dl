@@ -265,6 +265,10 @@ class YoutubeIE(InfoExtractor):
         self.report_video_subtitles_available(video_id, sub_lang_list)
 
     def _request_subtitle(self, sub_lang, sub_name, video_id, format):
+        """
+        Return tuple:
+        (error_message, sub_lang, sub)
+        """
         self.report_video_subtitles_request(video_id, sub_lang, format)
         params = compat_urllib_parse.urlencode({
             'lang': sub_lang,
@@ -276,9 +280,9 @@ class YoutubeIE(InfoExtractor):
         try:
             sub = compat_urllib_request.urlopen(url).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            return (u'WARNING: unable to download video subtitles: %s' % compat_str(err), None)
+            return (u'WARNING: unable to download video subtitles: %s' % compat_str(err), None, None)
         if not sub:
-            return (u'WARNING: Did not fetch video subtitles', None)
+            return (u'WARNING: Did not fetch video subtitles', None, None)
         return (None, sub_lang, sub)
 
     def _extract_subtitle(self, video_id):
