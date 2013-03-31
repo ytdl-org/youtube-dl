@@ -1710,9 +1710,7 @@ class YoutubePlaylistIE(InfoExtractor):
                         (?:
                            (?:course|view_play_list|my_playlists|artist|playlist|watch)
                            \? (?:.*?&)*? (?:p|a|list)=
-                        |  user/.*?/user/
                         |  p/
-                        |  user/.*?#[pg]/c/
                         )
                         ((?:PL|EC|UU)?[0-9A-Za-z-_]{10,})
                         .*
@@ -3796,7 +3794,7 @@ class WorldStarHipHopIE(InfoExtractor):
         _title = r"""<title>(.*)</title>"""
 
         mobj = re.search(_title, webpage_src)
-        
+
         if mobj is not None:
             title = mobj.group(1)
         else:
@@ -3814,7 +3812,7 @@ class WorldStarHipHopIE(InfoExtractor):
             if mobj is not None:
                 title = mobj.group(1)
             thumbnail = None
-        
+
         results = [{
                     'id': video_id,
                     'url' : video_url,
