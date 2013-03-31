@@ -485,14 +485,17 @@ class FileDownloader(object):
             subtitle = info_dict['subtitles'][0]
             (sub_error, sub_lang, sub) = subtitle
             sub_format = self.params.get('subtitlesformat')
-            try:
-                sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
-                self.report_writesubtitles(sub_filename)
-                with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
-                    subfile.write(sub)
-            except (OSError, IOError):
-                self.report_error(u'Cannot write subtitles file ' + descfn)
-                return
+            if sub_error:
+                self.report_warning("Some error while getting the subtitles")
+            else:
+                try:
+                    sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
+                    self.report_writesubtitles(sub_filename)
+                    with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
+                        subfile.write(sub)
+                except (OSError, IOError):
+                    self.report_error(u'Cannot write subtitles file ' + descfn)
+                    return
             if self.params.get('onlysubtitles', False):
                 return 
 
@@ -501,14 +504,17 @@ class FileDownloader(object):
             sub_format = self.params.get('subtitlesformat')
             for subtitle in subtitles:
                 (sub_error, sub_lang, sub) = subtitle
-                try:
-                    sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
-                    self.report_writesubtitles(sub_filename)
-                    with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
-                            subfile.write(sub)
-                except (OSError, IOError):
-                    self.trouble(u'ERROR: Cannot write subtitles file ' + descfn)
-                    return
+                if sub_error:
+                    self.report_warning("Some error while getting the subtitles")
+                else:
+                    try:
+                        sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
+                        self.report_writesubtitles(sub_filename)
+                        with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
+                                subfile.write(sub)
+                    except (OSError, IOError):
+                        self.trouble(u'ERROR: Cannot write subtitles file ' + descfn)
+                        return
             if self.params.get('onlysubtitles', False):
                 return 
 
