@@ -102,7 +102,7 @@ def generator(test_case):
                     if retry == RETRIES: raise
 
                     # Check if the exception is not a network related one
-                    if not err.exc_info[0] in (ZeroDivisionError, compat_urllib_error.URLError, socket.timeout):
+                    if not err.exc_info[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError):
                         raise
 
                     print('Retrying: {0} failed tries\n\n##########\n\n'.format(retry))
