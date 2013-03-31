@@ -253,11 +253,11 @@ class YoutubeIE(InfoExtractor):
         try:
             sub_list = compat_urllib_request.urlopen(request).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            return (u'WARNING: unable to download video subtitles: %s' % compat_str(err), None)
+            return (u'unable to download video subtitles: %s' % compat_str(err), None)
         sub_lang_list = re.findall(r'name="([^"]*)"[^>]+lang_code="([\w\-]+)"', sub_list)
         sub_lang_list = dict((l[1], l[0]) for l in sub_lang_list)
         if not sub_lang_list:
-            return (u'WARNING: video doesn\'t have subtitles', None)
+            return (u'video doesn\'t have subtitles', None)
         return sub_lang_list
 
     def _list_available_subtitles(self, video_id):
@@ -280,9 +280,9 @@ class YoutubeIE(InfoExtractor):
         try:
             sub = compat_urllib_request.urlopen(url).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            return (u'WARNING: unable to download video subtitles: %s' % compat_str(err), None, None)
+            return (u'unable to download video subtitles: %s' % compat_str(err), None, None)
         if not sub:
-            return (u'WARNING: Did not fetch video subtitles', None, None)
+            return (u'Did not fetch video subtitles', None, None)
         return (None, sub_lang, sub)
 
     def _extract_subtitle(self, video_id):
@@ -301,7 +301,7 @@ class YoutubeIE(InfoExtractor):
         else:
             sub_lang = list(sub_lang_list.keys())[0]
         if not sub_lang in sub_lang_list:
-            return [(u'WARNING: no closed captions found in the specified language "%s"' % sub_lang, None, None)]
+            return [(u'no closed captions found in the specified language "%s"' % sub_lang, None, None)]
 
         subtitle = self._request_subtitle(sub_lang, sub_lang_list[sub_lang].encode('utf-8'), video_id, sub_format)
         return [subtitle]
@@ -542,14 +542,14 @@ class YoutubeIE(InfoExtractor):
             if video_subtitles:
                 (sub_error, sub_lang, sub) = video_subtitles[0]
                 if sub_error:
-                    self._downloader.trouble(sub_error)
+                    self._downloader.report_error(sub_error)
 
         if self._downloader.params.get('allsubtitles', False):
             video_subtitles = self._extract_all_subtitles(video_id)
             for video_subtitle in video_subtitles:
                 (sub_error, sub_lang, sub) = video_subtitle
                 if sub_error:
-                    self._downloader.trouble(sub_error)
+                    self._downloader.report_error(sub_error)
 
         if self._downloader.params.get('listsubtitles', False):
             sub_lang_list = self._list_available_subtitles(video_id)
