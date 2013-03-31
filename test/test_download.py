@@ -81,9 +81,8 @@ def generator(test_case):
         params.update(test_case.get('params', {}))
 
         fd = FileDownloader(params)
-        fd.add_info_extractor(ie())
-        for ien in test_case.get('add_ie', []):
-            fd.add_info_extractor(getattr(youtube_dl.InfoExtractors, ien + 'IE')())
+        for ie in youtube_dl.InfoExtractors.gen_extractors():
+            fd.add_info_extractor(ie)
         finished_hook_called = set()
         def _hook(status):
             if status['status'] == 'finished':
