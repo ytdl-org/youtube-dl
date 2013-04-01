@@ -419,7 +419,7 @@ class FileDownloader(object):
                 return u'"' + title + '" title matched reject pattern "' + rejecttitle + '"'
         return None
 
-    def process_info(self, info_dict):
+    def process_info(self, info_dict, seq_index=0):
         """Process a single dictionary returned by an InfoExtractor."""
 
         # Keep for backwards compatibility
@@ -427,6 +427,8 @@ class FileDownloader(object):
 
         if not 'format' in info_dict:
             info_dict['format'] = info_dict['ext']
+
+        info_dict['seq_index'] = compat_str(seq_index)
 
         reason = self._match_entry(info_dict)
         if reason is not None:
@@ -550,7 +552,7 @@ class FileDownloader(object):
                     self.report_error(u'postprocessing: %s' % str(err))
                     return
 
-    def download(self, url_list):
+    def download(self, url_list, seq_index=0):
         """Download a given list of URLs."""
         if len(url_list) > 1 and self.fixed_template():
             raise SameFileError(self.params['outtmpl'])
@@ -593,7 +595,7 @@ class FileDownloader(object):
                     video['extractor'] = ie.IE_NAME
                     try:
                         self.increment_downloads()
-                        self.process_info(video)
+                        self.process_info(video, seq_index=seq_index)
                     except UnavailableVideoError:
                         self.to_stderr(u"\n")
                         self.report_error(u'unable to download video')
