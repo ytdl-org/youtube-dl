@@ -235,6 +235,9 @@ def parseOpts():
             help='number downloaded files starting from 00000', default=False)
     filesystem.add_option('-o', '--output',
             dest='outtmpl', metavar='TEMPLATE', help='output filename template. Use %(title)s to get the title, %(uploader)s for the uploader name, %(uploader_id)s for the uploader nickname if different, %(autonumber)s to get an automatically incremented number, %(ext)s for the filename extension, %(upload_date)s for the upload date (YYYYMMDD), %(extractor)s for the provider (youtube, metacafe, etc), %(id)s for the video id and %% for a literal percent. Use - to output to stdout. Can also be used to download to a different directory, for example with -o \'/my/downloads/%(uploader)s/%(title)s-%(id)s.%(ext)s\' .')
+    filesystem.add_option('--autonumber-size',
+            dest='autonumber_size', metavar='NUMBER',
+            help='Specifies the number of digits in %(autonumber)s when it is present in output filename template or --autonumber option is given')
     filesystem.add_option('--restrict-filenames',
             action='store_true', dest='restrictfilenames',
             help='Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames', default=False)
@@ -299,6 +302,8 @@ def parseOpts():
         print(u'[debug] System config: ' + repr(systemConf))
         print(u'[debug] User config: ' + repr(userConf))
         print(u'[debug] Command-line args: ' + repr(commandLineConf))
+        print(u'[debug] opts: ' + repr(opts))
+        print(u'[debug] args: ' + repr(args))
 
     return parser, opts, args
 
@@ -451,6 +456,7 @@ def _real_main():
         'format_limit': opts.format_limit,
         'listformats': opts.listformats,
         'outtmpl': outtmpl,
+        'autonumber_size': opts.autonumber_size,
         'restrictfilenames': opts.restrictfilenames,
         'ignoreerrors': opts.ignoreerrors,
         'ratelimit': opts.ratelimit,

@@ -388,7 +388,9 @@ class FileDownloader(object):
             template_dict = dict(info_dict)
 
             template_dict['epoch'] = int(time.time())
-            template_dict['autonumber'] = u'%05d' % self._num_downloads
+            autonumber_size = self.params.get('autonumber_size', 5)
+            autonumber_templ = u'%0' + str(autonumber_size) + u'd'
+            template_dict['autonumber'] = autonumber_templ % self._num_downloads
 
             sanitize = lambda k,v: sanitize_filename(
                 u'NA' if v is None else compat_str(v),
