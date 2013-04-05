@@ -20,6 +20,8 @@ from youtube_dl.utils import *
 DEF_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tests.json')
 PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
 
+RETRIES = 3
+
 # General configuration (from __init__, not very elegant...)
 jar = compat_cookiejar.CookieJar()
 cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
@@ -79,9 +81,8 @@ def generator(test_case):
         params.update(test_case.get('params', {}))
 
         fd = FileDownloader(params)
-        fd.add_info_extractor(ie())
-        for ien in test_case.get('add_ie', []):
-            fd.add_info_extractor(getattr(youtube_dl.InfoExtractors, ien + 'IE')())
+        for ie in youtube_dl.InfoExtractors.gen_extractors():
+            fd.add_info_extractor(ie)
         finished_hook_called = set()
         def _hook(status):
             if status['status'] == 'finished':
@@ -94,7 +95,19 @@ def generator(test_case):
             _try_rm(tc['file'] + '.part')
             _try_rm(tc['file'] + '.info.json')
         try:
-            fd.download([test_case['url']])
+            for retry in range(1, RETRIES + 1):
+                try:
+                    fd.download([test_case['url']])
+                except (DownloadError, ExtractorError) as err:
+                    if retry == RETRIES: raise
+
+                    # Check if the exception is not a network related one
+                    if not err.exc_info[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError):
+                        raise
+
+                    print('Retrying: {0} failed tries\n\n##########\n\n'.format(retry))
+                else:
+                    break
 
             for tc in test_cases:
                 if not test_case.get('params', {}).get('skip_download', False):

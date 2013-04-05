@@ -308,5 +308,25 @@
     "info_dict": {
         "title": "Vulkanausbruch in Ecuador: Der \"Feuerschlund\" ist wieder aktiv"
     }
+  },
+  {
+    "name": "LiveLeak",
+    "md5":  "0813c2430bea7a46bf13acf3406992f4",
+    "url":  "http://www.liveleak.com/view?i=757_1364311680",
+    "file":  "757_1364311680.mp4",
+    "info_dict": {
+        "title": "Most unlucky car accident",
+        "description": "extremely bad day for this guy..!",
+        "uploader": "ljfriel2"
+    }
+  },
+  {
+    "name": "WorldStarHipHop",
+    "url": "http://www.worldstarhiphop.com/videos/video.php?v=wshh6a7q1ny0G34ZwuIO",
+    "file": "wshh6a7q1ny0G34ZwuIO.mp4",
+    "md5": "9d04de741161603bf7071bbf4e883186",
+    "info_dict": {
+        "title": "Video: KO Of The Week: MMA Fighter Gets Knocked Out By Swift Head Kick! "
+    }
   }
 ]

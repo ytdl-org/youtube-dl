@@ -311,7 +311,7 @@ def clean_html(html):
     html = re.sub('<.*?>', '', html)
     # Replace html entities
     html = unescapeHTML(html)
-    return html
+    return html.strip()
 
 
 def sanitize_open(filename, open_mode):
@@ -329,7 +329,7 @@ def sanitize_open(filename, open_mode):
             if sys.platform == 'win32':
                 import msvcrt
                 msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
-            return (sys.stdout, filename)
+            return (sys.stdout.buffer if hasattr(sys.stdout, 'buffer') else sys.stdout, filename)
         stream = open(encodeFilename(filename), open_mode)
         return (stream, filename)
     except (IOError, OSError) as err:
@@ -435,6 +435,7 @@ class ExtractorError(Exception):
         """ tb, if given, is the original traceback (so that it can be printed out). """
         super(ExtractorError, self).__init__(msg)
         self.traceback = tb
+        self.exc_info = sys.exc_info()  # preserve original exception
 
     def format_traceback(self):
         if self.traceback is None:
@@ -449,7 +450,10 @@ class DownloadError(Exception):
     configured to continue on errors. They will contain the appropriate
     error message.
     """
-    pass
+    def __init__(self, msg, exc_info=None):
+        """ exc_info, if given, is the original exception that caused the trouble (as returned by sys.exc_info()). """
+        super(DownloadError, self).__init__(msg)
+        self.exc_info = exc_info
 
 
 class SameFileError(Exception):
