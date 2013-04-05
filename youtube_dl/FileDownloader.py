@@ -492,8 +492,10 @@ class FileDownloader(object):
         if info_dict.get('_type','video') == 'playlist':
             playlist = info_dict.get('title', None) or info_dict.get('id', None)
             self.to_screen(u'[download] Downloading playlist: %s'  % playlist)
-            for video in info_dict['entries']:
+            n_videos = len(info_dict['entries'])
+            for i,video in enumerate(info_dict['entries'],1):
                 video['playlist'] = playlist
+                self.to_screen(u'[download] Downloading video #%s of %s' %(i, n_videos))
                 self.process_info(video)
             return
         
