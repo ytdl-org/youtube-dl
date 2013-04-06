@@ -19,7 +19,7 @@ entry_template=textwrap.dedent("""
 								<atom:entry>
 									<atom:id>youtube-dl-@VERSION@</atom:id>
 									<atom:title>New version @VERSION@</atom:title>
-									<atom:link href="http://rg3.github.com/youtube-dl" />
+									<atom:link href="http://rg3.github.io/youtube-dl" />
 									<atom:content type="xhtml">
 										<div xmlns="http://www.w3.org/1999/xhtml">
 											Downloads available at <a href="http://youtube-dl.org/downloads/@VERSION@/">http://youtube-dl.org/downloads/@VERSION@/</a>
