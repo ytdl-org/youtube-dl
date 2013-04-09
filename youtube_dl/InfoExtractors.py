@@ -723,8 +723,7 @@ class MetacafeIE(InfoExtractor):
         # Check if video comes from YouTube
         mobj2 = re.match(r'^yt-(.*)$', video_id)
         if mobj2 is not None:
-            self._downloader.download(['http://www.youtube.com/watch?v=%s' % mobj2.group(1)])
-            return
+            return [self.url_result('http://www.youtube.com/watch?v=%s' % mobj2.group(1))]
 
         # Retrieve video webpage to extract further information
         request = compat_urllib_request.Request('http://www.metacafe.com/watch/%s/' % video_id)
