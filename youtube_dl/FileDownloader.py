@@ -419,9 +419,10 @@ class FileDownloader(object):
                 return u'"' + title + '" title matched reject pattern "' + rejecttitle + '"'
         return None
         
-    def extract_info(self, url):
+    def extract_info(self, url, download = True):
         '''
         Returns a list with a dictionary for each video we find.
+        If 'download', also downloads the videos.
          '''
         suitable_found = False
         for ie in self._ies:
@@ -440,7 +441,12 @@ class FileDownloader(object):
             # Extract information from URL and process it
             try:
                 ie_results = ie.extract(url)
-                results = self.process_ie_results(ie_results, ie)
+                results = []
+                for ie_result in ie_results:
+                    if not 'extractor' in ie_result:
+                        #The extractor has already been set somewhere else
+                        ie_result['extractor'] = ie.IE_NAME
+                    results.append(self.process_ie_result(ie_result, download))
                 return results
             except ExtractorError as de: # An error we somewhat expected
                 self.trouble(u'ERROR: ' + compat_str(de), de.format_traceback())
@@ -453,51 +459,51 @@ class FileDownloader(object):
                     raise
         if not suitable_found:
                 self.trouble(u'ERROR: no suitable InfoExtractor: %s' % url)
-    def extract_info_iterable(self, urls):
-        '''
-            Return the videos founded for the urls
-        '''
-        results = []
-        for url in urls:
-            results.extend(self.extract_info(url))
-        return results
         
-    def process_ie_results(self, ie_results, ie):
+    def process_ie_result(self, ie_result, download = True):
         """
-        Take the results of the ie and return a list of videos.
-        For url elements it will seartch the suitable ie and get the videos
+        Take the result of the ie and return a list of videos.
+        For url elements it will search the suitable ie and get the videos
         For playlist elements it will process each of the elements of the 'entries' key
+        
+        It will also download the videos if 'download'.
         """
-        results = [] 
-        for result in ie_results or []:
-            result_type = result.get('_type', 'video') #If not given we suppose it's a video, support the dafault old system
-            if result_type == 'video':
-                if not 'extractor' in result:
-                    #The extractor has already been set somewhere else
-                    result['extractor'] = ie.IE_NAME
-                results.append(result)
-            elif result_type == 'url':
-                #We get the videos pointed by the url
-                results.extend(self.extract_info(result['url']))
-            elif result_type == 'playlist':
-                #We process each entry in the playlist
-                entries_result = self.process_ie_results(result['entries'], ie)
-                result['entries'] = entries_result
-                results.extend([result])
-        return results
+        result_type = ie_result.get('_type', 'video') #If not given we suppose it's a video, support the dafault old system
+        if result_type == 'video':
+            if 'playlist' not in ie_result:
+                #It isn't part of a playlist
+                ie_result['playlist'] = None
+            if download:
+                #Do the download:
+                self.process_info(ie_result)
+            return ie_result
+        elif result_type == 'url':
+            #We get the video pointed by the url
+            result = self.extract_info(ie_result['url'], download)[0]
+            return result
+        elif result_type == 'playlist':
+            #We process each entry in the playlist
+            playlist = ie_result.get('title', None) or ie_result.get('id', None)
+            self.to_screen(u'[download] Downloading playlist: %s'  % playlist)
+            n_videos = len(ie_result['entries'])
+            playlist_results = []
+            for i,entry in enumerate(ie_result['entries'],1):
+                self.to_screen(u'[download] Downloading video #%s of %s' %(i, n_videos))
+                entry_result = self.process_ie_result(entry, False)
+                entry_result['playlist'] = playlist
+                #We must do the download here to correctly set the 'playlist' key
+                if download:
+                    self.process_info(entry_result)
+                playlist_results.append(entry_result)
+            result = ie_result.copy()
+            result['entries'] = playlist_results
+            return result
 
     def process_info(self, info_dict):
         """Process a single dictionary returned by an InfoExtractor."""
 
-        if info_dict.get('_type','video') == 'playlist':
-            playlist = info_dict.get('title', None) or info_dict.get('id', None)
-            self.to_screen(u'[download] Downloading playlist: %s'  % playlist)
-            n_videos = len(info_dict['entries'])
-            for i,video in enumerate(info_dict['entries'],1):
-                video['playlist'] = playlist
-                self.to_screen(u'[download] Downloading video #%s of %s' %(i, n_videos))
-                self.process_info(video)
-            return
+        #We increment the download the download count here to match the previous behaviour.
+        self.increment_downloads()
         
         # Keep for backwards compatibility
         info_dict['stitle'] = info_dict['title']
@@ -633,17 +639,14 @@ class FileDownloader(object):
             raise SameFileError(self.params['outtmpl'])
 
         for url in url_list:
-            videos = self.extract_info(url)
-
-            for video in videos or []:
-                try:
-                    self.increment_downloads()
-                    self.process_info(video)
-                except UnavailableVideoError:
-                    self.trouble(u'\nERROR: unable to download video')
-                except MaxDownloadsReached:
-                    self.to_screen(u'[info] Maximum number of downloaded files reached.')
-                    raise
+            try:
+                #It also downloads the videos
+                videos = self.extract_info(url)
+            except UnavailableVideoError:
+                self.trouble(u'\nERROR: unable to download video')
+            except MaxDownloadsReached:
+                self.to_screen(u'[info] Maximum number of downloaded files reached.')
+                raise
 
         return self._download_retcode
 
