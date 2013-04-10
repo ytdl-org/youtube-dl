@@ -134,6 +134,28 @@ class InfoExtractor(object):
             encoding = 'utf-8'
         webpage_bytes = urlh.read()
         return webpage_bytes.decode(encoding, 'replace')
+        
+    #Methods for following #608
+    #They set the correct value of the '_type' key
+    def video_result(self, video_info):
+        """Returns a video"""
+        video_info['_type'] = 'video'
+        return video_info
+    def url_result(self, url, ie=None):
+        """Returns a url that points to a page that should be processed"""
+        #TODO: ie should be the class used for getting the info
+        video_info = {'_type': 'url',
+                      'url': url}
+        return video_info
+    def playlist_result(self, entries, playlist_id=None, playlist_title=None):
+        """Returns a playlist"""
+        video_info = {'_type': 'playlist',
+                      'entries': entries}
+        if playlist_id:
+            video_info['id'] = playlist_id
+        if playlist_title:
+            video_info['title'] = playlist_title
+        return video_info
 
 
 class YoutubeIE(InfoExtractor):
@@ -701,8 +723,7 @@ class MetacafeIE(InfoExtractor):
         # Check if video comes from YouTube
         mobj2 = re.match(r'^yt-(.*)$', video_id)
         if mobj2 is not None:
-            self._downloader.download(['http://www.youtube.com/watch?v=%s' % mobj2.group(1)])
-            return
+            return [self.url_result('http://www.youtube.com/watch?v=%s' % mobj2.group(1))]
 
         # Retrieve video webpage to extract further information
         request = compat_urllib_request.Request('http://www.metacafe.com/watch/%s/' % video_id)
@@ -1343,7 +1364,7 @@ class GenericIE(InfoExtractor):
         self._downloader.to_screen(u'[redirect] Following redirect to %s' % new_url)
 
     def _test_redirect(self, url):
-        """Check if it is a redirect, like url shorteners, in case restart chain."""
+        """Check if it is a redirect, like url shorteners, in case return the new url."""
         class HeadRequest(compat_urllib_request.Request):
             def get_method(self):
                 return "HEAD"
@@ -1394,11 +1415,11 @@ class GenericIE(InfoExtractor):
             return False
 
         self.report_following_redirect(new_url)
-        self._downloader.download([new_url])
-        return True
+        return new_url
 
     def _real_extract(self, url):
-        if self._test_redirect(url): return
+        new_url = self._test_redirect(url)
+        if new_url: return [self.url_result(new_url)]
 
         video_id = url.split('/')[-1]
         try:
@@ -1785,23 +1806,9 @@ class YoutubePlaylistIE(InfoExtractor):
             page_num += 1
 
         videos = [v[1] for v in sorted(videos)]
-        total = len(videos)
 
-        playliststart = self._downloader.params.get('playliststart', 1) - 1
-        playlistend = self._downloader.params.get('playlistend', -1)
-        if playlistend == -1:
-            videos = videos[playliststart:]
-        else:
-            videos = videos[playliststart:playlistend]
-
-        if len(videos) == total:
-            self._downloader.to_screen(u'[youtube] PL %s: Found %i videos' % (playlist_id, total))
-        else:
-            self._downloader.to_screen(u'[youtube] PL %s: Found %i videos, downloading %i' % (playlist_id, total, len(videos)))
-
-        for video in videos:
-            self._downloader.download([video])
-        return
+        url_results = [self.url_result(url) for url in videos]
+        return [self.playlist_result(url_results, playlist_id)]
 
 
 class YoutubeChannelIE(InfoExtractor):
@@ -1851,9 +1858,9 @@ class YoutubeChannelIE(InfoExtractor):
 
         self._downloader.to_screen(u'[youtube] Channel %s: Found %i videos' % (channel_id, len(video_ids)))
 
-        for id in video_ids:
-            self._downloader.download(['http://www.youtube.com/watch?v=%s' % id])
-        return
+        urls = ['http://www.youtube.com/watch?v=%s' % id for id in video_ids]
+        url_entries = [self.url_result(url) for url in urls]
+        return [self.playlist_result(url_entries, channel_id)]
 
 
 class YoutubeUserIE(InfoExtractor):
@@ -1923,20 +1930,9 @@ class YoutubeUserIE(InfoExtractor):
 
             pagenum += 1
 
-        all_ids_count = len(video_ids)
-        playliststart = self._downloader.params.get('playliststart', 1) - 1
-        playlistend = self._downloader.params.get('playlistend', -1)
-
-        if playlistend == -1:
-            video_ids = video_ids[playliststart:]
-        else:
-            video_ids = video_ids[playliststart:playlistend]
-
-        self._downloader.to_screen(u"[youtube] user %s: Collected %d video ids (downloading %d of them)" %
-                (username, all_ids_count, len(video_ids)))
-
-        for video_id in video_ids:
-            self._downloader.download(['http://www.youtube.com/watch?v=%s' % video_id])
+        urls = ['http://www.youtube.com/watch?v=%s' % video_id for video_id in video_ids]
+        url_results = [self.url_result(url) for url in urls]
+        return [self.playlist_result(url_results, playlist_title = username)]
 
 
 class BlipTVUserIE(InfoExtractor):
@@ -2014,20 +2010,12 @@ class BlipTVUserIE(InfoExtractor):
 
             pagenum += 1
 
-        all_ids_count = len(video_ids)
-        playliststart = self._downloader.params.get('playliststart', 1) - 1
-        playlistend = self._downloader.params.get('playlistend', -1)
-
-        if playlistend == -1:
-            video_ids = video_ids[playliststart:]
-        else:
-            video_ids = video_ids[playliststart:playlistend]
-
         self._downloader.to_screen(u"[%s] user %s: Collected %d video ids (downloading %d of them)" %
                 (self.IE_NAME, username, all_ids_count, len(video_ids)))
 
-        for video_id in video_ids:
-            self._downloader.download([u'http://blip.tv/'+video_id])
+        urls = [u'http://blip.tv/%s' % video_id for video_id in video_ids]
+        url_entries = [self.url_result(url) for url in urls]
+        return [self.playlist_result(url_entries, playlist_title = username)]
 
 
 class DepositFilesIE(InfoExtractor):

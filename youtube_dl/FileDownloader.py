@@ -418,10 +418,108 @@ class FileDownloader(object):
             if re.search(rejecttitle, title, re.IGNORECASE):
                 return u'"' + title + '" title matched reject pattern "' + rejecttitle + '"'
         return None
+        
+    def extract_info(self, url, download = True):
+        '''
+        Returns a list with a dictionary for each video we find.
+        If 'download', also downloads the videos.
+         '''
+        suitable_found = False
+        for ie in self._ies:
+            # Go to next InfoExtractor if not suitable
+            if not ie.suitable(url):
+                continue
+
+            # Warn if the _WORKING attribute is False
+            if not ie.working():
+                self.to_stderr(u'WARNING: the program functionality for this site has been marked as broken, '
+                               u'and will probably not work. If you want to go on, use the -i option.')
+
+            # Suitable InfoExtractor found
+            suitable_found = True
+
+            # Extract information from URL and process it
+            try:
+                ie_results = ie.extract(url)
+                results = []
+                for ie_result in ie_results:
+                    if not 'extractor' in ie_result:
+                        #The extractor has already been set somewhere else
+                        ie_result['extractor'] = ie.IE_NAME
+                    results.append(self.process_ie_result(ie_result, download))
+                return results
+            except ExtractorError as de: # An error we somewhat expected
+                self.trouble(u'ERROR: ' + compat_str(de), de.format_traceback())
+                break
+            except Exception as e:
+                if self.params.get('ignoreerrors', False):
+                    self.trouble(u'ERROR: ' + compat_str(e), tb=compat_str(traceback.format_exc()))
+                    break
+                else:
+                    raise
+        if not suitable_found:
+                self.trouble(u'ERROR: no suitable InfoExtractor: %s' % url)
+        
+    def process_ie_result(self, ie_result, download = True):
+        """
+        Take the result of the ie and return a list of videos.
+        For url elements it will search the suitable ie and get the videos
+        For playlist elements it will process each of the elements of the 'entries' key
+        
+        It will also download the videos if 'download'.
+        """
+        result_type = ie_result.get('_type', 'video') #If not given we suppose it's a video, support the dafault old system
+        if result_type == 'video':
+            if 'playlist' not in ie_result:
+                #It isn't part of a playlist
+                ie_result['playlist'] = None
+            if download:
+                #Do the download:
+                self.process_info(ie_result)
+            return ie_result
+        elif result_type == 'url':
+            #We get the video pointed by the url
+            result = self.extract_info(ie_result['url'], download)[0]
+            return result
+        elif result_type == 'playlist':
+            #We process each entry in the playlist
+            playlist = ie_result.get('title', None) or ie_result.get('id', None)
+            self.to_screen(u'[download] Downloading playlist: %s'  % playlist)
+
+            playlist_results = []
+
+            n_all_entries = len(ie_result['entries'])
+            playliststart = self.params.get('playliststart', 1) - 1
+            playlistend = self.params.get('playlistend', -1)
+
+            if playlistend == -1:
+                entries = ie_result['entries'][playliststart:]
+            else:
+                entries = ie_result['entries'][playliststart:playlistend]
+
+            n_entries = len(entries)
+
+            self.to_screen(u"[%s] playlist '%s': Collected %d video ids (downloading %d of them)" %
+                (ie_result['extractor'], playlist, n_all_entries, n_entries))
+
+            for i,entry in enumerate(entries,1):
+                self.to_screen(u'[download] Downloading video #%s of %s' %(i, n_entries))
+                entry_result = self.process_ie_result(entry, False)
+                entry_result['playlist'] = playlist
+                #We must do the download here to correctly set the 'playlist' key
+                if download:
+                    self.process_info(entry_result)
+                playlist_results.append(entry_result)
+            result = ie_result.copy()
+            result['entries'] = playlist_results
+            return result
 
     def process_info(self, info_dict):
         """Process a single dictionary returned by an InfoExtractor."""
 
+        #We increment the download the download count here to match the previous behaviour.
+        self.increment_downloads()
+        
         # Keep for backwards compatibility
         info_dict['stitle'] = info_dict['title']
 
@@ -556,53 +654,14 @@ class FileDownloader(object):
             raise SameFileError(self.params['outtmpl'])
 
         for url in url_list:
-            suitable_found = False
-            for ie in self._ies:
-                # Go to next InfoExtractor if not suitable
-                if not ie.suitable(url):
-                    continue
-
-                # Warn if the _WORKING attribute is False
-                if not ie.working():
-                    self.report_warning(u'the program functionality for this site has been marked as broken, '
-                                        u'and will probably not work. If you want to go on, use the -i option.')
-
-                # Suitable InfoExtractor found
-                suitable_found = True
-
-                # Extract information from URL and process it
-                try:
-                    videos = ie.extract(url)
-                except ExtractorError as de: # An error we somewhat expected
-                    self.trouble(u'ERROR: ' + compat_str(de), de.format_traceback())
-                    break
-                except MaxDownloadsReached:
-                    self.to_screen(u'[info] Maximum number of downloaded files reached.')
-                    raise
-                except Exception as e:
-                    if self.params.get('ignoreerrors', False):
-                        self.report_error(u'' + compat_str(e), tb=compat_str(traceback.format_exc()))
-                        break
-                    else:
-                        raise
-
-                if len(videos or []) > 1 and self.fixed_template():
-                    raise SameFileError(self.params['outtmpl'])
-
-                for video in videos or []:
-                    video['extractor'] = ie.IE_NAME
-                    try:
-                        self.increment_downloads()
-                        self.process_info(video)
-                    except UnavailableVideoError:
-                        self.to_stderr(u"\n")
-                        self.report_error(u'unable to download video')
-
-                # Suitable InfoExtractor had been found; go to next URL
-                break
-
-            if not suitable_found:
-                self.report_error(u'no suitable InfoExtractor: %s' % url)
+            try:
+                #It also downloads the videos
+                videos = self.extract_info(url)
+            except UnavailableVideoError:
+                self.trouble(u'\nERROR: unable to download video')
+            except MaxDownloadsReached:
+                self.to_screen(u'[info] Maximum number of downloaded files reached.')
+                raise
 
         return self._download_retcode
 
