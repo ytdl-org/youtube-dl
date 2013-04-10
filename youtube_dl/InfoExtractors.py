@@ -1806,19 +1806,6 @@ class YoutubePlaylistIE(InfoExtractor):
             page_num += 1
 
         videos = [v[1] for v in sorted(videos)]
-        total = len(videos)
-
-        playliststart = self._downloader.params.get('playliststart', 1) - 1
-        playlistend = self._downloader.params.get('playlistend', -1)
-        if playlistend == -1:
-            videos = videos[playliststart:]
-        else:
-            videos = videos[playliststart:playlistend]
-
-        if len(videos) == total:
-            self._downloader.to_screen(u'[youtube] PL %s: Found %i videos' % (playlist_id, total))
-        else:
-            self._downloader.to_screen(u'[youtube] PL %s: Found %i videos, downloading %i' % (playlist_id, total, len(videos)))
 
         url_results = [self.url_result(url) for url in videos]
         return [self.playlist_result(url_results, playlist_id)]
@@ -1943,18 +1930,6 @@ class YoutubeUserIE(InfoExtractor):
 
             pagenum += 1
 
-        all_ids_count = len(video_ids)
-        playliststart = self._downloader.params.get('playliststart', 1) - 1
-        playlistend = self._downloader.params.get('playlistend', -1)
-
-        if playlistend == -1:
-            video_ids = video_ids[playliststart:]
-        else:
-            video_ids = video_ids[playliststart:playlistend]
-
-        self._downloader.to_screen(u"[youtube] user %s: Collected %d video ids (downloading %d of them)" %
-                (username, all_ids_count, len(video_ids)))
-
         urls = ['http://www.youtube.com/watch?v=%s' % video_id for video_id in video_ids]
         url_results = [self.url_result(url) for url in urls]
         return [self.playlist_result(url_results, playlist_title = username)]
@@ -2034,15 +2009,6 @@ class BlipTVUserIE(InfoExtractor):
                 break
 
             pagenum += 1
-
-        all_ids_count = len(video_ids)
-        playliststart = self._downloader.params.get('playliststart', 1) - 1
-        playlistend = self._downloader.params.get('playlistend', -1)
-
-        if playlistend == -1:
-            video_ids = video_ids[playliststart:]
-        else:
-            video_ids = video_ids[playliststart:playlistend]
 
         self._downloader.to_screen(u"[%s] user %s: Collected %d video ids (downloading %d of them)" %
                 (self.IE_NAME, username, all_ids_count, len(video_ids)))

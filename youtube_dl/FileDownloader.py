@@ -485,10 +485,25 @@ class FileDownloader(object):
             #We process each entry in the playlist
             playlist = ie_result.get('title', None) or ie_result.get('id', None)
             self.to_screen(u'[download] Downloading playlist: %s'  % playlist)
-            n_videos = len(ie_result['entries'])
+
             playlist_results = []
-            for i,entry in enumerate(ie_result['entries'],1):
-                self.to_screen(u'[download] Downloading video #%s of %s' %(i, n_videos))
+
+            n_all_entries = len(ie_result['entries'])
+            playliststart = self.params.get('playliststart', 1) - 1
+            playlistend = self.params.get('playlistend', -1)
+
+            if playlistend == -1:
+                entries = ie_result['entries'][playliststart:]
+            else:
+                entries = ie_result['entries'][playliststart:playlistend]
+
+            n_entries = len(entries)
+
+            self.to_screen(u"[%s] playlist '%s': Collected %d video ids (downloading %d of them)" %
+                (ie_result['extractor'], playlist, n_all_entries, n_entries))
+
+            for i,entry in enumerate(entries,1):
+                self.to_screen(u'[download] Downloading video #%s of %s' %(i, n_entries))
                 entry_result = self.process_ie_result(entry, False)
                 entry_result['playlist'] = playlist
                 #We must do the download here to correctly set the 'playlist' key
