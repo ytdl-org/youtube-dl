@@ -115,7 +115,8 @@ class InfoExtractor(object):
         """ Returns the response handle """
         if note is None:
             note = u'Downloading video webpage'
-        self._downloader.to_screen(u'[%s] %s: %s' % (self.IE_NAME, video_id, note))
+        if note is not False:
+            self._downloader.to_screen(u'[%s] %s: %s' % (self.IE_NAME, video_id, note))
         try:
             return compat_urllib_request.urlopen(url_or_request)
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
@@ -463,18 +464,14 @@ class YoutubeIE(InfoExtractor):
         # Get video info
         self.report_video_info_webpage_download(video_id)
         for el_type in ['&el=embedded', '&el=detailpage', '&el=vevo', '']:
-            video_info_url = ('http://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
+            video_info_url = ('https://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
                     % (video_id, el_type))
-            request = compat_urllib_request.Request(video_info_url)
-            try:
-                video_info_webpage_bytes = compat_urllib_request.urlopen(request).read()
-                video_info_webpage = video_info_webpage_bytes.decode('utf-8', 'ignore')
-                video_info = compat_parse_qs(video_info_webpage)
-                if 'token' in video_info:
-                    break
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self._downloader.report_error(u'unable to download video info webpage: %s' % compat_str(err))
-                return
+            video_info_webpage = self._download_webpage(video_info_url, video_id,
+                                    note=False,
+                                    errnote='unable to download video info webpage')
+            video_info = compat_parse_qs(video_info_webpage)
+            if 'token' in video_info:
+                break
         if 'token' not in video_info:
             if 'reason' in video_info:
                 self._downloader.report_error(u'YouTube said: %s' % video_info['reason'][0])
