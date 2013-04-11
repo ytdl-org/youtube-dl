@@ -224,6 +224,9 @@ def parseOpts():
             help='display progress in console titlebar', default=False)
     verbosity.add_option('-v', '--verbose',
             action='store_true', dest='verbose', help='print various debugging information', default=False)
+    verbosity.add_option('--dump-intermediate-pages',
+            action='store_true', dest='dump_intermediate_pages', default=False,
+            help='print downloaded pages to debug problems(very verbose)')
 
     filesystem.add_option('-t', '--title',
             action='store_true', dest='usetitle', help='use title in file name', default=False)
@@ -485,6 +488,7 @@ def _real_main():
         'max_downloads': opts.max_downloads,
         'prefer_free_formats': opts.prefer_free_formats,
         'verbose': opts.verbose,
+        'dump_intermediate_pages': opts.dump_intermediate_pages,
         'test': opts.test,
         'keepvideo': opts.keepvideo,
         'min_filesize': opts.min_filesize,

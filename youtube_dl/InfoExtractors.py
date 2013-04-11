@@ -134,6 +134,14 @@ class InfoExtractor(object):
         else:
             encoding = 'utf-8'
         webpage_bytes = urlh.read()
+        if self._downloader.params.get('dump_intermediate_pages', False):
+            try:
+                url = url_or_request.get_full_url()
+            except AttributeError:
+                url = url_or_request
+            self._downloader.to_screen(u'Dumping request to ' + url)
+            dump = base64.b64encode(webpage_bytes).decode('ascii')
+            self._downloader.to_screen(dump)
         return webpage_bytes.decode(encoding, 'replace')
 
 
