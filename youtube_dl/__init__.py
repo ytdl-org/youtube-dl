@@ -24,6 +24,7 @@ __authors__  = (
     'Jaime Marquínez Ferrándiz',
     'Jeff Crouse',
     'Osama Khalid',
+    'Michael Walter',
     )
 
 __license__ = 'Public Domain'
