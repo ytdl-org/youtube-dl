@@ -4357,15 +4357,19 @@ class LiveLeakIE(InfoExtractor):
         return [info]
 
 class ARDIE(InfoExtractor):
-    IE_NAME = 'ard'
-    _VALID_URL = r'^(?:http?://)?mediathek\.daserste\.de/(?:.*/)(?P<video_id>[^/\?]+)(?:\?.*)?'
-    _TITLE = r'<h1 class="boxTopHeadline">(?P<title>.*)</h1>'
+    _VALID_URL = r'^(?:https?://)?(?:(?:www\.)?ardmediathek\.de|mediathek\.daserste\.de)/(?:.*/)(?P<video_id>[^/\?]+)(?:\?.*)?'
+    _TITLE = r'<h1(?: class="boxTopHeadline")?>(?P<title>.*)</h1>'
     _MEDIA_STREAM = r'mediaCollection\.addMediaStream\((?P<media_type>\d+), (?P<quality>\d+), "(?P<rtmp_url>[^"]*)", "(?P<video_url>[^"]*)", "[^"]*"\)'
 
     def _real_extract(self, url):
         # determine video id from url
         m = re.match(self._VALID_URL, url)
-        video_id = m.group('video_id')
+
+        numid = re.search(r'documentId=([0-9]+)', url)
+        if numid:
+            video_id = numid.group(1)
+        else:
+            video_id = m.group('video_id')
 
         # determine title and media streams from webpage
         html = self._download_webpage(url, video_id)
@@ -4377,8 +4381,8 @@ class ARDIE(InfoExtractor):
             return
 
         # choose default media type and highest quality for now
-        stream = max([s for s in streams if int(s["media_type"]) == 0], key=lambda s: int(s["quality"]))
-        #stream = streams[-1]
+        stream = max([s for s in streams if int(s["media_type"]) == 0],
+                     key=lambda s: int(s["quality"]))
 
         # there's two possibilities: RTMP stream or HTTP download
         info = {'id': video_id, 'title': title, 'ext': 'mp4'}
