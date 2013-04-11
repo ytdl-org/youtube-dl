@@ -388,7 +388,9 @@ class FileDownloader(object):
             template_dict = dict(info_dict)
 
             template_dict['epoch'] = int(time.time())
-            autonumber_size = self.params.get('autonumber_size', 5)
+            autonumber_size = self.params.get('autonumber_size')
+            if autonumber_size is None:
+                autonumber_size = 5
             autonumber_templ = u'%0' + str(autonumber_size) + u'd'
             template_dict['autonumber'] = autonumber_templ % self._num_downloads
 
