@@ -58,6 +58,7 @@ with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
 
 
 class TestDownload(unittest.TestCase):
+    maxDiff = None
     def setUp(self):
         self.parameters = parameters
         self.defs = defs
