@@ -303,6 +303,8 @@ def parseOpts():
         print(u'[debug] System config: ' + repr(systemConf))
         print(u'[debug] User config: ' + repr(userConf))
         print(u'[debug] Command-line args: ' + repr(commandLineConf))
+        print(u'[debug] opts: ' + repr(opts))
+        print(u'[debug] args: ' + repr(args))
 
     return parser, opts, args
 
