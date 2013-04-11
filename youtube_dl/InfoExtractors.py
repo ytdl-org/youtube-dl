@@ -1130,7 +1130,7 @@ class VimeoIE(InfoExtractor):
         # Extract video description
         video_description = get_element_by_attribute("itemprop", "description", webpage)
         if video_description: video_description = clean_html(video_description)
-        else: video_description = ''
+        else: video_description = u''
 
         # Extract upload date
         video_upload_date = None
