@@ -335,7 +335,8 @@
     "md5": "6ca8824255460c787376353f9e20bbd8",
     "info_dict": {
         "title": "11.04.2013 09:23 Uhr - Tagesschau in 100 Sekunden"
-    }
+    },
+    "skip": "Requires rtmpdump"
   }
 
 ]
