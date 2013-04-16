@@ -140,3 +140,12 @@ tt {
     background-color: #448888;
     border: 2px solid #008888;
 }
+
+code.commands {
+    display:block;
+    margin-top: 0.4em;
+    padding: 0.7em;
+    background: #ccc;
+    background: rgba(200, 200, 200, 0.4);
+    white-space: pre;
+}
