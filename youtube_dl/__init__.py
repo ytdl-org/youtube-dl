@@ -47,7 +47,7 @@ from .FileDownloader import *
 from .InfoExtractors import gen_extractors
 from .PostProcessor import *
 
-def parseOpts():
+def parseOpts(arguments):
     def _readOptions(filename_bytes):
         try:
             optionf = open(filename_bytes)
@@ -298,8 +298,8 @@ def parseOpts():
         userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
     systemConf = _readOptions('/etc/youtube-dl.conf')
     userConf = _readOptions(userConfFile)
-    commandLineConf = sys.argv[1:]
-    argv = systemConf + userConf + commandLineConf
+    commandLineConf = sys.argv[1:] 
+    argv = systemConf + userConf + commandLineConf if not arguments else arguments
     opts, args = parser.parse_args(argv)
 
     if opts.verbose:
@@ -309,8 +309,8 @@ def parseOpts():
 
     return parser, opts, args
 
-def _real_main():
-    parser, opts, args = parseOpts()
+def _real_main(argv=None):
+    parser, opts, args = parseOpts(argv)
 
     # Open appropriate CookieJar
     if opts.cookiefile is None:
@@ -544,9 +544,9 @@ def _real_main():
 
     sys.exit(retcode)
 
-def main():
+def main(argv=None):
     try:
-        _real_main()
+        _real_main(argv)
     except DownloadError:
         sys.exit(1)
     except SameFileError:
