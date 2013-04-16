@@ -389,6 +389,8 @@ class FileDownloader(object):
 
             template_dict['epoch'] = int(time.time())
             template_dict['autonumber'] = u'%05d' % self._num_downloads
+            if template_dict['playlist_index'] is not None:
+                template_dict['playlist_index'] = u'%05d' % template_dict['playlist_index']
 
             sanitize = lambda k,v: sanitize_filename(
                 u'NA' if v is None else compat_str(v),
@@ -473,6 +475,7 @@ class FileDownloader(object):
             if 'playlist' not in ie_result:
                 #It isn't part of a playlist
                 ie_result['playlist'] = None
+                ie_result['playlist_index'] = None
             if download:
                 #Do the download:
                 self.process_info(ie_result)
@@ -506,6 +509,7 @@ class FileDownloader(object):
                 self.to_screen(u'[download] Downloading video #%s of %s' %(i, n_entries))
                 entry_result = self.process_ie_result(entry, False)
                 entry_result['playlist'] = playlist
+                entry_result['playlist_index'] = i + playliststart
                 #We must do the download here to correctly set the 'playlist' key
                 if download:
                     self.process_info(entry_result)
