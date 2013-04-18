@@ -426,6 +426,10 @@ class FileDownloader(object):
     def process_info(self, info_dict):
         """Process a single dictionary returned by an InfoExtractor."""
 
+        info_dict['fulltitle'] = info_dict['title']
+        if len(info_dict['title']) > 200:
+            info_dict['title'] = info_dict['title'][:197] + u'...'
+
         # Keep for backwards compatibility
         info_dict['stitle'] = info_dict['title']
 
