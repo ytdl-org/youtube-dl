@@ -3704,7 +3704,9 @@ class FunnyOrDieIE(InfoExtractor):
 
         m = re.search(r"<h1 class='player_page_h1'.*?>(?P<title>.*?)</h1>", webpage, flags=re.DOTALL)
         if not m:
-            self._downloader.trouble(u'Cannot find video title')
+            m = re.search(r'<title>(?P<title>[^<]+?)</title>', webpage)
+            if not m:
+                self._downloader.trouble(u'Cannot find video title')
         title = clean_html(m.group('title'))
 
         m = re.search(r'<meta property="og:description" content="(?P<desc>.*?)"', webpage)
