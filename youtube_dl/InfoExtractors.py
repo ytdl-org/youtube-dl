@@ -1778,9 +1778,13 @@ class YoutubePlaylistIE(InfoExtractor):
                 self._downloader.report_error(u'Invalid JSON in API response: ' + compat_str(err))
                 return
 
-            if not 'feed' in response or not 'entry' in response['feed']:
+            if 'feed' not in response:
                 self._downloader.report_error(u'Got a malformed response from YouTube API')
                 return
+            if 'entry' not in response['feed']:
+                # Number of videos is a multiple of self._MAX_RESULTS
+                break
+
             videos += [ (entry['yt$position']['$t'], entry['content']['src'])
                         for entry in response['feed']['entry']
                         if 'content' in entry ]
