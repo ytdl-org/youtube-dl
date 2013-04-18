@@ -2161,7 +2161,7 @@ class FacebookIE(InfoExtractor):
         url = 'https://www.facebook.com/video/video.php?v=%s' % video_id
         webpage = self._download_webpage(url, video_id)
 
-        BEFORE = '[["allowFullScreen","true"],["allowScriptAccess","always"],["salign","tl"],["scale","noscale"],["wmode","opaque"]].forEach(function(param) {swf.addParam(param[0], param[1]);});\n'
+        BEFORE = '{swf.addParam(param[0], param[1]);});\n'
         AFTER = '.forEach(function(variable) {swf.addVariable(variable[0], variable[1]);});'
         m = re.search(re.escape(BEFORE) + '(.*?)' + re.escape(AFTER), webpage)
         if not m:
@@ -2169,12 +2169,14 @@ class FacebookIE(InfoExtractor):
         data = dict(json.loads(m.group(1)))
         params_raw = compat_urllib_parse.unquote(data['params'])
         params = json.loads(params_raw)
-        video_url = params['hd_src']
+        video_data = params['video_data'][0]
+        video_url = video_data.get('hd_src')
         if not video_url:
-            video_url = params['sd_src']
+            video_url = video_data['sd_src']
         if not video_url:
             raise ExtractorError(u'Cannot find video URL')
-        video_duration = int(params['video_duration'])
+        video_duration = int(video_data['video_duration'])
+        thumbnail = video_data['thumbnail_src']
 
         m = re.search('<h2 class="uiHeaderTitle">([^<]+)</h2>', webpage)
         if not m:
@@ -2187,7 +2189,7 @@ class FacebookIE(InfoExtractor):
             'url': video_url,
             'ext': 'mp4',
             'duration': video_duration,
-            'thumbnail': params['thumbnail_src'],
+            'thumbnail': thumbnail,
         }
         return [info]
 
