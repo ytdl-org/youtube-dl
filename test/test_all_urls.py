@@ -7,7 +7,7 @@ import unittest
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.InfoExtractors import YoutubeIE, YoutubePlaylistIE
+from youtube_dl.InfoExtractors import YoutubeIE, YoutubePlaylistIE, YoutubeChannelIE
 
 class TestAllURLsMatching(unittest.TestCase):
     def test_youtube_playlist_matching(self):
@@ -23,6 +23,11 @@ class TestAllURLsMatching(unittest.TestCase):
     def test_youtube_matching(self):
         self.assertTrue(YoutubeIE.suitable(u'PLtS2H6bU1M'))
         self.assertFalse(YoutubeIE.suitable(u'https://www.youtube.com/watch?v=AV6J6_AeFEQ&playnext=1&list=PL4023E734DA416012')) #668
+
+    def test_youtube_channel_matching(self):
+        self.assertTrue(YoutubeChannelIE.suitable('https://www.youtube.com/channel/HCtnHdj3df7iM'))
+        self.assertTrue(YoutubeChannelIE.suitable('https://www.youtube.com/channel/HCtnHdj3df7iM?feature=gb_ch_rec'))
+        self.assertTrue(YoutubeChannelIE.suitable('https://www.youtube.com/channel/HCtnHdj3df7iM/videos'))
 
     def test_youtube_extract(self):
         self.assertEqual(YoutubeIE()._extract_id('http://www.youtube.com/watch?&v=BaW_jenozKc'), 'BaW_jenozKc')

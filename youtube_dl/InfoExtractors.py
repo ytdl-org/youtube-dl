@@ -1823,14 +1823,22 @@ class YoutubePlaylistIE(InfoExtractor):
 class YoutubeChannelIE(InfoExtractor):
     """Information Extractor for YouTube channels."""
 
-    _VALID_URL = r"^(?:https?://)?(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com)/channel/([0-9A-Za-z_-]+)(?:/.*)?$"
+    _VALID_URL = r"^(?:https?://)?(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com)/channel/([0-9A-Za-z_-]+)"
     _TEMPLATE_URL = 'http://www.youtube.com/channel/%s/videos?sort=da&flow=list&view=0&page=%s&gl=US&hl=en'
-    _MORE_PAGES_INDICATOR = u"Next \N{RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK}"
+    _MORE_PAGES_INDICATOR = 'yt-uix-load-more'
+    _MORE_PAGES_URL = 'http://www.youtube.com/channel_ajax?action_load_more_videos=1&flow=list&paging=%s&view=0&sort=da&channel_id=%s'
     IE_NAME = u'youtube:channel'
 
     def report_download_page(self, channel_id, pagenum):
         """Report attempt to download channel page with given number."""
         self._downloader.to_screen(u'[youtube] Channel %s: Downloading page #%s' % (channel_id, pagenum))
+
+    def extract_videos_from_page(self, page):
+        ids_in_page = []
+        for mobj in re.finditer(r'href="/watch\?v=([0-9A-Za-z_-]+)&?', page):
+            if mobj.group(1) not in ids_in_page:
+                ids_in_page.append(mobj.group(1))
+        return ids_in_page
 
     def _real_extract(self, url):
         # Extract channel id
@@ -1839,31 +1847,45 @@ class YoutubeChannelIE(InfoExtractor):
             self._downloader.report_error(u'invalid url: %s' % url)
             return
 
-        # Download channel pages
+        # Download channel page
         channel_id = mobj.group(1)
         video_ids = []
         pagenum = 1
 
-        while True:
-            self.report_download_page(channel_id, pagenum)
-            url = self._TEMPLATE_URL % (channel_id, pagenum)
-            request = compat_urllib_request.Request(url)
-            try:
-                page = compat_urllib_request.urlopen(request).read().decode('utf8')
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self._downloader.report_error(u'unable to download webpage: %s' % compat_str(err))
-                return
+        self.report_download_page(channel_id, pagenum)
+        url = self._TEMPLATE_URL % (channel_id, pagenum)
+        request = compat_urllib_request.Request(url)
+        try:
+            page = compat_urllib_request.urlopen(request).read().decode('utf8')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.report_error(u'unable to download webpage: %s' % compat_str(err))
+            return
 
-            # Extract video identifiers
-            ids_in_page = []
-            for mobj in re.finditer(r'href="/watch\?v=([0-9A-Za-z_-]+)&', page):
-                if mobj.group(1) not in ids_in_page:
-                    ids_in_page.append(mobj.group(1))
-            video_ids.extend(ids_in_page)
+        # Extract video identifiers
+        ids_in_page = self.extract_videos_from_page(page)
+        video_ids.extend(ids_in_page)
 
-            if self._MORE_PAGES_INDICATOR not in page:
-                break
-            pagenum = pagenum + 1
+        # Download any subsequent channel pages using the json-based channel_ajax query
+        if self._MORE_PAGES_INDICATOR in page:
+            while True:
+                pagenum = pagenum + 1
+
+                self.report_download_page(channel_id, pagenum)
+                url = self._MORE_PAGES_URL % (pagenum, channel_id)
+                request = compat_urllib_request.Request(url)
+                try:
+                    page = compat_urllib_request.urlopen(request).read().decode('utf8')
+                except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+                    self._downloader.report_error(u'unable to download webpage: %s' % compat_str(err))
+                    return
+
+                page = json.loads(page)
+
+                ids_in_page = self.extract_videos_from_page(page['content_html'])
+                video_ids.extend(ids_in_page)
+
+                if self._MORE_PAGES_INDICATOR  not in page['load_more_widget_html']:
+                    break
 
         self._downloader.to_screen(u'[youtube] Channel %s: Found %i videos' % (channel_id, len(video_ids)))
 
