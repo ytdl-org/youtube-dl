@@ -150,6 +150,8 @@ The `-o` option allows users to indicate a template for the output file names. T
  - `ext`: The sequence will be replaced by the appropriate extension (like flv or mp4).
  - `epoch`: The sequence will be replaced by the Unix epoch when creating the file.
  - `autonumber`: The sequence will be replaced by a five-digit number that will be increased with each download, starting at zero.
+ - `playlist`: The name or the id of the playlist that contains the video.
+ - `playlist_index`: The index of the video in the playlist, a five-digit number.
 
 The current default template is `%(id)s.%(ext)s`, but that will be switchted to `%(title)s-%(id)s.%(ext)s` (which can be requested with `-t` at the moment).
 
