@@ -121,7 +121,7 @@ class FileDownloader(object):
             exponent = 0
         else:
             exponent = int(math.log(bytes, 1024.0))
-        suffix = 'bkMGTPEZY'[exponent]
+        suffix = ['B','KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB'][exponent]
         converted = float(bytes) / float(1024 ** exponent)
         return '%.2f%s' % (converted, suffix)
 
