@@ -732,12 +732,7 @@ class MetacafeIE(InfoExtractor):
 
         # Retrieve video webpage to extract further information
         request = compat_urllib_request.Request('http://www.metacafe.com/watch/%s/' % video_id)
-        try:
-            self.report_download_webpage(video_id)
-            webpage = compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable retrieve video webpage: %s' % compat_str(err))
-            return
+        webpage = self._download_webpage(request, video_id)
 
         # Extract URL, uploader and title from webpage
         self.report_extraction(video_id)
