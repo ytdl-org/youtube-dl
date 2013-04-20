@@ -1801,6 +1801,8 @@ class YoutubePlaylistIE(InfoExtractor):
                 # Number of videos is a multiple of self._MAX_RESULTS
                 break
 
+            playlist_title = response['feed']['title']['$t']
+
             videos += [ (entry['yt$position']['$t'], entry['content']['src'])
                         for entry in response['feed']['entry']
                         if 'content' in entry ]
@@ -1812,7 +1814,7 @@ class YoutubePlaylistIE(InfoExtractor):
         videos = [v[1] for v in sorted(videos)]
 
         url_results = [self.url_result(url, 'Youtube') for url in videos]
-        return [self.playlist_result(url_results, playlist_id)]
+        return [self.playlist_result(url_results, playlist_id, playlist_title)]
 
 
 class YoutubeChannelIE(InfoExtractor):
