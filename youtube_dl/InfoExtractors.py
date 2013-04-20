@@ -148,6 +148,10 @@ class InfoExtractor(object):
         """Print msg to screen, prefixing it with '[ie_name]'"""
         self._downloader.to_screen(u'[%s] %s' % (self.IE_NAME, msg))
 
+    def report_extraction(self, id_or_name):
+        """Report information extraction."""
+        self.to_screen(u'%s: Extracting information' % id_or_name)
+
     #Methods for following #608
     #They set the correct value of the '_type' key
     def video_result(self, video_info):
@@ -694,10 +698,6 @@ class MetacafeIE(InfoExtractor):
         """Report webpage download."""
         self.to_screen(u'%s: Downloading webpage' % video_id)
 
-    def report_extraction(self, video_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Extracting information' % video_id)
-
     def _real_initialize(self):
         # Retrieve disclaimer
         request = compat_urllib_request.Request(self._DISCLAIMER)
@@ -801,10 +801,6 @@ class DailymotionIE(InfoExtractor):
     def __init__(self, downloader=None):
         InfoExtractor.__init__(self, downloader)
 
-    def report_extraction(self, video_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Extracting information' % video_id)
-
     def _real_extract(self, url):
         # Extract id and simplified title from URL
         mobj = re.match(self._VALID_URL, url)
@@ -893,10 +889,6 @@ class PhotobucketIE(InfoExtractor):
         """Report webpage download."""
         self.to_screen(u'%s: Downloading webpage' % video_id)
 
-    def report_extraction(self, video_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Extracting information' % video_id)
-
     def _real_extract(self, url):
         # Extract id from URL
         mobj = re.match(self._VALID_URL, url)
@@ -961,10 +953,6 @@ class YahooIE(InfoExtractor):
     def report_download_webpage(self, video_id):
         """Report webpage download."""
         self.to_screen(u'%s: Downloading webpage' % video_id)
-
-    def report_extraction(self, video_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Extracting information' % video_id)
 
     def _real_extract(self, url, new_video=True):
         # Extract ID from URL
@@ -1102,10 +1090,6 @@ class VimeoIE(InfoExtractor):
         """Report webpage download."""
         self.to_screen(u'%s: Downloading webpage' % video_id)
 
-    def report_extraction(self, video_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Extracting information' % video_id)
-
     def _real_extract(self, url, new_video=True):
         # Extract ID from URL
         mobj = re.match(self._VALID_URL, url)
@@ -1222,10 +1206,6 @@ class ArteTvIE(InfoExtractor):
     def report_download_webpage(self, video_id):
         """Report webpage download."""
         self.to_screen(u'%s: Downloading webpage' % video_id)
-
-    def report_extraction(self, video_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Extracting information' % video_id)
 
     def fetch_webpage(self, url):
         request = compat_urllib_request.Request(url)
@@ -1358,10 +1338,6 @@ class GenericIE(InfoExtractor):
         if not self._downloader.params.get('test', False):
             self._downloader.report_warning(u'Falling back on generic information extractor.')
         self.to_screen(u'%s: Downloading webpage' % video_id)
-
-    def report_extraction(self, video_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Extracting information' % video_id)
 
     def report_following_redirect(self, new_url):
         """Report information extraction."""
@@ -2051,10 +2027,6 @@ class DepositFilesIE(InfoExtractor):
         """Report webpage download."""
         self.to_screen(u'%s: Downloading webpage' % file_id)
 
-    def report_extraction(self, file_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Extracting information' % file_id)
-
     def _real_extract(self, url):
         file_id = url.split('/')[-1]
         # Rebuild url in english locale
@@ -2208,10 +2180,6 @@ class BlipTVIE(InfoExtractor):
     _URL_EXT = r'^.*\.([a-z0-9]+)$'
     IE_NAME = u'blip.tv'
 
-    def report_extraction(self, file_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Extracting information' % file_id)
-
     def report_direct_download(self, title):
         """Report information extraction."""
         self.to_screen(u'%s: Direct download detected' % title)
@@ -2312,10 +2280,6 @@ class MyVideoIE(InfoExtractor):
     def __init__(self, downloader=None):
         InfoExtractor.__init__(self, downloader)
 
-    def report_extraction(self, video_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Extracting information' % video_id)
-
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
@@ -2392,9 +2356,6 @@ class ComedyCentralIE(InfoExtractor):
     def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
         return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
-
-    def report_extraction(self, episode_id):
-        self.to_screen(u'%s: Extracting information' % episode_id)
 
     def report_config_download(self, episode_id, media_id):
         self.to_screen(u'%s: Downloading configuration for %s' % (episode_id, media_id))
@@ -2554,9 +2515,6 @@ class EscapistIE(InfoExtractor):
     _VALID_URL = r'^(https?://)?(www\.)?escapistmagazine\.com/videos/view/(?P<showname>[^/]+)/(?P<episode>[^/?]+)[/?]?.*$'
     IE_NAME = u'escapist'
 
-    def report_extraction(self, showName):
-        self.to_screen(u'%s: Extracting information' % showName)
-
     def report_config_download(self, showName):
         self.to_screen(u'%s: Downloading configuration' % showName)
 
@@ -2633,10 +2591,6 @@ class CollegeHumorIE(InfoExtractor):
         """Report information extraction."""
         self.to_screen(u'%s: Downloading XML manifest' % video_id)
 
-    def report_extraction(self, video_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Extracting information' % video_id)
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
@@ -2699,10 +2653,6 @@ class XVideosIE(InfoExtractor):
 
     _VALID_URL = r'^(?:https?://)?(?:www\.)?xvideos\.com/video([0-9]+)(?:.*)'
     IE_NAME = u'xvideos'
-
-    def report_extraction(self, video_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Extracting information' % video_id)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -2771,10 +2721,6 @@ class SoundcloudIE(InfoExtractor):
     def report_resolve(self, video_id):
         """Report information extraction."""
         self.to_screen(u'%s: Resolving id' % video_id)
-
-    def report_extraction(self, video_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Retrieving stream' % video_id)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -2845,10 +2791,6 @@ class SoundcloudSetIE(InfoExtractor):
         """Report information extraction."""
         self.to_screen(u'%s: Resolving id' % video_id)
 
-    def report_extraction(self, video_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Retrieving stream' % video_id)
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
@@ -2912,10 +2854,6 @@ class InfoQIE(InfoExtractor):
     """Information extractor for infoq.com"""
     _VALID_URL = r'^(?:https?://)?(?:www\.)?infoq\.com/[^/]+/[^/]+$'
 
-    def report_extraction(self, video_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Extracting information' % video_id)
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
@@ -2975,10 +2913,6 @@ class MixcloudIE(InfoExtractor):
     def report_download_json(self, file_id):
         """Report JSON download."""
         self.to_screen(u'Downloading json')
-
-    def report_extraction(self, file_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Extracting information' % file_id)
 
     def get_urls(self, jsonData, fmt, bitrate='best'):
         """Get urls from 'audio_formats' section in json"""
@@ -3087,10 +3021,6 @@ class StanfordOpenClassroomIE(InfoExtractor):
         """Report information extraction."""
         self.to_screen(u'%s: Downloading webpage' % objid)
 
-    def report_extraction(self, video_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Extracting information' % video_id)
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
@@ -3195,10 +3125,6 @@ class MTVIE(InfoExtractor):
     _VALID_URL = r'^(?P<proto>https?://)?(?:www\.)?mtv\.com/videos/[^/]+/(?P<videoid>[0-9]+)/[^/]+$'
     IE_NAME = u'mtv'
 
-    def report_extraction(self, video_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Extracting information' % video_id)
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
@@ -3276,10 +3202,6 @@ class YoukuIE(InfoExtractor):
     def report_download_webpage(self, file_id):
         """Report webpage download."""
         self.to_screen(u'%s: Downloading webpage' % file_id)
-
-    def report_extraction(self, file_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Extracting information' % file_id)
 
     def _gen_sid(self):
         nowTime = int(time.time() * 1000)
@@ -3393,10 +3315,6 @@ class XNXXIE(InfoExtractor):
     def report_webpage(self, video_id):
         """Report information extraction"""
         self.to_screen(u'%s: Downloading webpage' % video_id)
-
-    def report_extraction(self, video_id):
-        """Report information extraction"""
-        self.to_screen(u'%s: Extracting information' % video_id)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -3615,10 +3533,6 @@ class JustinTVIE(InfoExtractor):
         ([^/]+)(?:/b/([^/]+))?/?(?:\#.*)?$"""
     _JUSTIN_PAGE_LIMIT = 100
     IE_NAME = u'justin.tv'
-
-    def report_extraction(self, file_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Extracting information' % file_id)
 
     def report_download_page(self, channel, offset):
         """Report attempt to download a single page of videos."""
