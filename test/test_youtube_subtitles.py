@@ -80,7 +80,7 @@ class TestYoutubeSubtitles(unittest.TestCase):
         IE = YoutubeIE(DL)
         info_dict = IE.extract('QRS8MkLhQmM')
         subtitles = info_dict[0]['subtitles']
-        self.assertEqual(len(subtitles), 12)
+        self.assertEqual(len(subtitles), 13)
     def test_youtube_subtitles_format(self):
         DL = FakeDownloader()
         DL.params['writesubtitles'] = True
