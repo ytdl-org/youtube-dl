@@ -116,7 +116,7 @@ class InfoExtractor(object):
         if note is None:
             note = u'Downloading video webpage'
         if note is not False:
-            self._downloader.to_screen(u'[%s] %s: %s' % (self.IE_NAME, video_id, note))
+            self.to_screen(u'%s: %s' % (video_id, note))
         try:
             return compat_urllib_request.urlopen(url_or_request)
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
@@ -139,11 +139,15 @@ class InfoExtractor(object):
                 url = url_or_request.get_full_url()
             except AttributeError:
                 url = url_or_request
-            self._downloader.to_screen(u'Dumping request to ' + url)
+            self.to_screen(u'Dumping request to ' + url)
             dump = base64.b64encode(webpage_bytes).decode('ascii')
             self._downloader.to_screen(dump)
         return webpage_bytes.decode(encoding, 'replace')
-        
+
+    def to_screen(self, msg):
+        """Print msg to screen, prefixing it with '[ie_name]'"""
+        self._downloader.to_screen(u'[%s] %s' % (self.IE_NAME, msg))
+
     #Methods for following #608
     #They set the correct value of the '_type' key
     def video_result(self, video_info):
@@ -236,48 +240,48 @@ class YoutubeIE(InfoExtractor):
 
     def report_lang(self):
         """Report attempt to set language."""
-        self._downloader.to_screen(u'[youtube] Setting language')
+        self.to_screen(u'Setting language')
 
     def report_login(self):
         """Report attempt to log in."""
-        self._downloader.to_screen(u'[youtube] Logging in')
+        self.to_screen(u'Logging in')
 
     def report_age_confirmation(self):
         """Report attempt to confirm age."""
-        self._downloader.to_screen(u'[youtube] Confirming age')
+        self.to_screen(u'Confirming age')
 
     def report_video_webpage_download(self, video_id):
         """Report attempt to download video webpage."""
-        self._downloader.to_screen(u'[youtube] %s: Downloading video webpage' % video_id)
+        self.to_screen(u'%s: Downloading video webpage' % video_id)
 
     def report_video_info_webpage_download(self, video_id):
         """Report attempt to download video info webpage."""
-        self._downloader.to_screen(u'[youtube] %s: Downloading video info webpage' % video_id)
+        self.to_screen(u'%s: Downloading video info webpage' % video_id)
 
     def report_video_subtitles_download(self, video_id):
         """Report attempt to download video info webpage."""
-        self._downloader.to_screen(u'[youtube] %s: Checking available subtitles' % video_id)
+        self.to_screen(u'%s: Checking available subtitles' % video_id)
 
     def report_video_subtitles_request(self, video_id, sub_lang, format):
         """Report attempt to download video info webpage."""
-        self._downloader.to_screen(u'[youtube] %s: Downloading video subtitles for %s.%s' % (video_id, sub_lang, format))
+        self.to_screen(u'%s: Downloading video subtitles for %s.%s' % (video_id, sub_lang, format))
 
     def report_video_subtitles_available(self, video_id, sub_lang_list):
         """Report available subtitles."""
         sub_lang = ",".join(list(sub_lang_list.keys()))
-        self._downloader.to_screen(u'[youtube] %s: Available subtitles for video: %s' % (video_id, sub_lang))
+        self.to_screen(u'%s: Available subtitles for video: %s' % (video_id, sub_lang))
 
     def report_information_extraction(self, video_id):
         """Report attempt to extract video information."""
-        self._downloader.to_screen(u'[youtube] %s: Extracting video information' % video_id)
+        self.to_screen(u'%s: Extracting video information' % video_id)
 
     def report_unavailable_format(self, video_id, format):
         """Report extracted video URL."""
-        self._downloader.to_screen(u'[youtube] %s: Format %s not available' % (video_id, format))
+        self.to_screen(u'%s: Format %s not available' % (video_id, format))
 
     def report_rtmp_download(self):
         """Indicate the download will use the RTMP protocol."""
-        self._downloader.to_screen(u'[youtube] RTMP download detected')
+        self.to_screen(u'RTMP download detected')
 
     def _get_available_subtitles(self, video_id):
         self.report_video_subtitles_download(video_id)
@@ -680,19 +684,19 @@ class MetacafeIE(InfoExtractor):
 
     def report_disclaimer(self):
         """Report disclaimer retrieval."""
-        self._downloader.to_screen(u'[metacafe] Retrieving disclaimer')
+        self.to_screen(u'Retrieving disclaimer')
 
     def report_age_confirmation(self):
         """Report attempt to confirm age."""
-        self._downloader.to_screen(u'[metacafe] Confirming age')
+        self.to_screen(u'Confirming age')
 
     def report_download_webpage(self, video_id):
         """Report webpage download."""
-        self._downloader.to_screen(u'[metacafe] %s: Downloading webpage' % video_id)
+        self.to_screen(u'%s: Downloading webpage' % video_id)
 
     def report_extraction(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[metacafe] %s: Extracting information' % video_id)
+        self.to_screen(u'%s: Extracting information' % video_id)
 
     def _real_initialize(self):
         # Retrieve disclaimer
@@ -799,7 +803,7 @@ class DailymotionIE(InfoExtractor):
 
     def report_extraction(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[dailymotion] %s: Extracting information' % video_id)
+        self.to_screen(u'%s: Extracting information' % video_id)
 
     def _real_extract(self, url):
         # Extract id and simplified title from URL
@@ -828,7 +832,7 @@ class DailymotionIE(InfoExtractor):
         for key in ['hd1080URL', 'hd720URL', 'hqURL', 'sdURL', 'ldURL', 'video_url']:
             if key in flashvars:
                 max_quality = key
-                self._downloader.to_screen(u'[dailymotion] Using %s' % key)
+                self.to_screen(u'Using %s' % key)
                 break
         else:
             self._downloader.report_error(u'unable to extract video URL')
@@ -887,11 +891,11 @@ class PhotobucketIE(InfoExtractor):
 
     def report_download_webpage(self, video_id):
         """Report webpage download."""
-        self._downloader.to_screen(u'[photobucket] %s: Downloading webpage' % video_id)
+        self.to_screen(u'%s: Downloading webpage' % video_id)
 
     def report_extraction(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[photobucket] %s: Extracting information' % video_id)
+        self.to_screen(u'%s: Extracting information' % video_id)
 
     def _real_extract(self, url):
         # Extract id from URL
@@ -956,11 +960,11 @@ class YahooIE(InfoExtractor):
 
     def report_download_webpage(self, video_id):
         """Report webpage download."""
-        self._downloader.to_screen(u'[video.yahoo] %s: Downloading webpage' % video_id)
+        self.to_screen(u'%s: Downloading webpage' % video_id)
 
     def report_extraction(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[video.yahoo] %s: Extracting information' % video_id)
+        self.to_screen(u'%s: Extracting information' % video_id)
 
     def _real_extract(self, url, new_video=True):
         # Extract ID from URL
@@ -1096,11 +1100,11 @@ class VimeoIE(InfoExtractor):
 
     def report_download_webpage(self, video_id):
         """Report webpage download."""
-        self._downloader.to_screen(u'[vimeo] %s: Downloading webpage' % video_id)
+        self.to_screen(u'%s: Downloading webpage' % video_id)
 
     def report_extraction(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[vimeo] %s: Extracting information' % video_id)
+        self.to_screen(u'%s: Extracting information' % video_id)
 
     def _real_extract(self, url, new_video=True):
         # Extract ID from URL
@@ -1182,7 +1186,7 @@ class VimeoIE(InfoExtractor):
                 video_quality = files[quality][0][2]
                 video_codec = files[quality][0][0]
                 video_extension = files[quality][0][1]
-                self._downloader.to_screen(u'[vimeo] %s: Downloading %s file at %s quality' % (video_id, video_codec.upper(), video_quality))
+                self.to_screen(u'%s: Downloading %s file at %s quality' % (video_id, video_codec.upper(), video_quality))
                 break
         else:
             self._downloader.report_error(u'no known codec found')
@@ -1217,11 +1221,11 @@ class ArteTvIE(InfoExtractor):
 
     def report_download_webpage(self, video_id):
         """Report webpage download."""
-        self._downloader.to_screen(u'[arte.tv] %s: Downloading webpage' % video_id)
+        self.to_screen(u'%s: Downloading webpage' % video_id)
 
     def report_extraction(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[arte.tv] %s: Extracting information' % video_id)
+        self.to_screen(u'%s: Extracting information' % video_id)
 
     def fetch_webpage(self, url):
         request = compat_urllib_request.Request(url)
@@ -1352,12 +1356,12 @@ class GenericIE(InfoExtractor):
     def report_download_webpage(self, video_id):
         """Report webpage download."""
         if not self._downloader.params.get('test', False):
-            self._downloader.to_screen(u'WARNING: Falling back on generic information extractor.')
-        self._downloader.to_screen(u'[generic] %s: Downloading webpage' % video_id)
+            self._downloader.report_warning(u'Falling back on generic information extractor.')
+        self.to_screen(u'%s: Downloading webpage' % video_id)
 
     def report_extraction(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[generic] %s: Extracting information' % video_id)
+        self.to_screen(u'%s: Extracting information' % video_id)
 
     def report_following_redirect(self, new_url):
         """Report information extraction."""
@@ -1575,7 +1579,7 @@ class GoogleSearchIE(InfoExtractor):
     def report_download_page(self, query, pagenum):
         """Report attempt to download playlist page with given number."""
         query = query.decode(preferredencoding())
-        self._downloader.to_screen(u'[video.google] query "%s": Downloading page %s' % (query, pagenum))
+        self.to_screen(u'query "%s": Downloading page %s' % (query, pagenum))
 
     def _real_extract(self, query):
         mobj = re.match(self._VALID_URL, query)
@@ -1659,7 +1663,7 @@ class YahooSearchIE(InfoExtractor):
     def report_download_page(self, query, pagenum):
         """Report attempt to download playlist page with given number."""
         query = query.decode(preferredencoding())
-        self._downloader.to_screen(u'[video.yahoo] query "%s": Downloading page %s' % (query, pagenum))
+        self.to_screen(u'query "%s": Downloading page %s' % (query, pagenum))
 
     def _real_extract(self, query):
         mobj = re.match(self._VALID_URL, query)
@@ -1970,8 +1974,8 @@ class BlipTVUserIE(InfoExtractor):
 
     def report_download_page(self, username, pagenum):
         """Report attempt to download user page."""
-        self._downloader.to_screen(u'[%s] user %s: Downloading video ids from page %d' %
-                (self.IE_NAME, username, pagenum))
+        self.to_screen(u'user %s: Downloading video ids from page %d' %
+                (username, pagenum))
 
     def _real_extract(self, url):
         # Extract username
@@ -2045,11 +2049,11 @@ class DepositFilesIE(InfoExtractor):
 
     def report_download_webpage(self, file_id):
         """Report webpage download."""
-        self._downloader.to_screen(u'[DepositFiles] %s: Downloading webpage' % file_id)
+        self.to_screen(u'%s: Downloading webpage' % file_id)
 
     def report_extraction(self, file_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[DepositFiles] %s: Extracting information' % file_id)
+        self.to_screen(u'%s: Extracting information' % file_id)
 
     def _real_extract(self, url):
         file_id = url.split('/')[-1]
@@ -2108,7 +2112,7 @@ class FacebookIE(InfoExtractor):
 
     def report_login(self):
         """Report attempt to log in."""
-        self._downloader.to_screen(u'[%s] Logging in' % self.IE_NAME)
+        self.to_screen(u'Logging in')
 
     def _real_initialize(self):
         if self._downloader is None:
@@ -2206,11 +2210,11 @@ class BlipTVIE(InfoExtractor):
 
     def report_extraction(self, file_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, file_id))
+        self.to_screen(u'%s: Extracting information' % file_id)
 
     def report_direct_download(self, title):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Direct download detected' % (self.IE_NAME, title))
+        self.to_screen(u'%s: Direct download detected' % title)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -2310,7 +2314,7 @@ class MyVideoIE(InfoExtractor):
 
     def report_extraction(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[myvideo] %s: Extracting information' % video_id)
+        self.to_screen(u'%s: Extracting information' % video_id)
 
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)
@@ -2390,13 +2394,13 @@ class ComedyCentralIE(InfoExtractor):
         return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
     def report_extraction(self, episode_id):
-        self._downloader.to_screen(u'[comedycentral] %s: Extracting information' % episode_id)
+        self.to_screen(u'%s: Extracting information' % episode_id)
 
     def report_config_download(self, episode_id, media_id):
-        self._downloader.to_screen(u'[comedycentral] %s: Downloading configuration for %s' % (episode_id, media_id))
+        self.to_screen(u'%s: Downloading configuration for %s' % (episode_id, media_id))
 
     def report_index_download(self, episode_id):
-        self._downloader.to_screen(u'[comedycentral] %s: Downloading show index' % episode_id)
+        self.to_screen(u'%s: Downloading show index' % episode_id)
 
     def _print_formats(self, formats):
         print('Available formats:')
@@ -2551,10 +2555,10 @@ class EscapistIE(InfoExtractor):
     IE_NAME = u'escapist'
 
     def report_extraction(self, showName):
-        self._downloader.to_screen(u'[escapist] %s: Extracting information' % showName)
+        self.to_screen(u'%s: Extracting information' % showName)
 
     def report_config_download(self, showName):
-        self._downloader.to_screen(u'[escapist] %s: Downloading configuration' % showName)
+        self.to_screen(u'%s: Downloading configuration' % showName)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -2627,11 +2631,11 @@ class CollegeHumorIE(InfoExtractor):
 
     def report_manifest(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Downloading XML manifest' % (self.IE_NAME, video_id))
+        self.to_screen(u'%s: Downloading XML manifest' % video_id)
 
     def report_extraction(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+        self.to_screen(u'%s: Extracting information' % video_id)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -2698,7 +2702,7 @@ class XVideosIE(InfoExtractor):
 
     def report_extraction(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+        self.to_screen(u'%s: Extracting information' % video_id)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -2766,11 +2770,11 @@ class SoundcloudIE(InfoExtractor):
 
     def report_resolve(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Resolving id' % (self.IE_NAME, video_id))
+        self.to_screen(u'%s: Resolving id' % video_id)
 
     def report_extraction(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Retrieving stream' % (self.IE_NAME, video_id))
+        self.to_screen(u'%s: Retrieving stream' % video_id)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -2839,11 +2843,11 @@ class SoundcloudSetIE(InfoExtractor):
 
     def report_resolve(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Resolving id' % (self.IE_NAME, video_id))
+        self.to_screen(u'%s: Resolving id' % video_id)
 
     def report_extraction(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Retrieving stream' % (self.IE_NAME, video_id))
+        self.to_screen(u'%s: Retrieving stream' % video_id)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -2910,7 +2914,7 @@ class InfoQIE(InfoExtractor):
 
     def report_extraction(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+        self.to_screen(u'%s: Extracting information' % video_id)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -2970,11 +2974,11 @@ class MixcloudIE(InfoExtractor):
 
     def report_download_json(self, file_id):
         """Report JSON download."""
-        self._downloader.to_screen(u'[%s] Downloading json' % self.IE_NAME)
+        self.to_screen(u'Downloading json')
 
     def report_extraction(self, file_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, file_id))
+        self.to_screen(u'%s: Extracting information' % file_id)
 
     def get_urls(self, jsonData, fmt, bitrate='best'):
         """Get urls from 'audio_formats' section in json"""
@@ -3081,11 +3085,11 @@ class StanfordOpenClassroomIE(InfoExtractor):
 
     def report_download_webpage(self, objid):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, objid))
+        self.to_screen(u'%s: Downloading webpage' % objid)
 
     def report_extraction(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+        self.to_screen(u'%s: Extracting information' % video_id)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -3193,7 +3197,7 @@ class MTVIE(InfoExtractor):
 
     def report_extraction(self, video_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+        self.to_screen(u'%s: Extracting information' % video_id)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -3271,11 +3275,11 @@ class YoukuIE(InfoExtractor):
 
     def report_download_webpage(self, file_id):
         """Report webpage download."""
-        self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, file_id))
+        self.to_screen(u'%s: Downloading webpage' % file_id)
 
     def report_extraction(self, file_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, file_id))
+        self.to_screen(u'%s: Extracting information' % file_id)
 
     def _gen_sid(self):
         nowTime = int(time.time() * 1000)
@@ -3388,11 +3392,11 @@ class XNXXIE(InfoExtractor):
 
     def report_webpage(self, video_id):
         """Report information extraction"""
-        self._downloader.to_screen(u'[%s] %s: Downloading webpage' % (self.IE_NAME, video_id))
+        self.to_screen(u'%s: Downloading webpage' % video_id)
 
     def report_extraction(self, video_id):
         """Report information extraction"""
-        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, video_id))
+        self.to_screen(u'%s: Extracting information' % video_id)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -3452,23 +3456,23 @@ class GooglePlusIE(InfoExtractor):
 
     def report_extract_entry(self, url):
         """Report downloading extry"""
-        self._downloader.to_screen(u'[plus.google] Downloading entry: %s' % url)
+        self.to_screen(u'Downloading entry: %s' % url)
 
     def report_date(self, upload_date):
         """Report downloading extry"""
-        self._downloader.to_screen(u'[plus.google] Entry date: %s' % upload_date)
+        self.to_screen(u'Entry date: %s' % upload_date)
 
     def report_uploader(self, uploader):
         """Report downloading extry"""
-        self._downloader.to_screen(u'[plus.google] Uploader: %s' % uploader)
+        self.to_screen(u'Uploader: %s' % uploader)
 
     def report_title(self, video_title):
         """Report downloading extry"""
-        self._downloader.to_screen(u'[plus.google] Title: %s' % video_title)
+        self.to_screen(u'Title: %s' % video_title)
 
     def report_extract_vid_page(self, video_page):
         """Report information extraction."""
-        self._downloader.to_screen(u'[plus.google] Extracting video page: %s' % video_page)
+        self.to_screen(u'Extracting video page: %s' % video_page)
 
     def _real_extract(self, url):
         # Extract id from URL
@@ -3614,12 +3618,12 @@ class JustinTVIE(InfoExtractor):
 
     def report_extraction(self, file_id):
         """Report information extraction."""
-        self._downloader.to_screen(u'[%s] %s: Extracting information' % (self.IE_NAME, file_id))
+        self.to_screen(u'%s: Extracting information' % file_id)
 
     def report_download_page(self, channel, offset):
         """Report attempt to download a single page of videos."""
-        self._downloader.to_screen(u'[%s] %s: Downloading video information from %d to %d' %
-                (self.IE_NAME, channel, offset, offset + self._JUSTIN_PAGE_LIMIT))
+        self.to_screen(u'%s: Downloading video information from %d to %d' %
+                (channel, offset, offset + self._JUSTIN_PAGE_LIMIT))
 
     # Return count of items, list of *valid* items
     def _parse_page(self, url):
@@ -3948,7 +3952,7 @@ class YouPornIE(InfoExtractor):
         if(len(links) == 0):
             raise ExtractorError(u'ERROR: no known formats available for video')
 
-        self._downloader.to_screen(u'[youporn] Links found: %d' % len(links))
+        self.to_screen(u'Links found: %d' % len(links))
 
         formats = []
         for link in links:
@@ -3984,7 +3988,7 @@ class YouPornIE(InfoExtractor):
             return
 
         req_format = self._downloader.params.get('format', None)
-        self._downloader.to_screen(u'[youporn] Format: %s' % req_format)
+        self.to_screen(u'Format: %s' % req_format)
 
         if req_format is None or req_format == 'best':
             return [formats[0]]
@@ -4179,7 +4183,7 @@ class TEDIE(InfoExtractor):
         else :
             playlist_id=m.group('playlist_id')
             name=m.group('name')
-            self._downloader.to_screen(u'[%s] Getting info of playlist %s: "%s"' % (self.IE_NAME,playlist_id,name))
+            self.to_screen(u'Getting info of playlist %s: "%s"' % (playlist_id,name))
             return [self._playlist_videos_info(url,name,playlist_id)]
 
     def _talk_video_link(self,mediaSlug):
@@ -4404,7 +4408,7 @@ class ARDIE(InfoExtractor):
         # there's two possibilities: RTMP stream or HTTP download
         info = {'id': video_id, 'title': title, 'ext': 'mp4'}
         if stream['rtmp_url']:
-            self._downloader.to_screen(u'[%s] RTMP download detected' % self.IE_NAME)
+            self.to_screen(u'RTMP download detected')
             assert stream['video_url'].startswith('mp4:')
             info["url"] = stream["rtmp_url"]
             info["play_path"] = stream['video_url']
