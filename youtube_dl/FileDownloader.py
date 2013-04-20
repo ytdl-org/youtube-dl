@@ -17,6 +17,7 @@ if os.name == 'nt':
     import ctypes
 
 from .utils import *
+from .InfoExtractors import get_info_extractor
 
 
 class FileDownloader(object):
@@ -425,13 +426,23 @@ class FileDownloader(object):
                 return u'"' + title + '" title matched reject pattern "' + rejecttitle + '"'
         return None
         
-    def extract_info(self, url, download = True):
+    def extract_info(self, url, download = True, ie_name = None):
         '''
         Returns a list with a dictionary for each video we find.
         If 'download', also downloads the videos.
          '''
         suitable_found = False
-        for ie in self._ies:
+        
+        #We copy the original list
+        ies = list(self._ies)
+
+        if ie_name is not None:
+            #We put in the first place the given info extractor
+            first_ie = get_info_extractor(ie_name)()
+            first_ie.set_downloader(self)
+            ies.insert(0, first_ie)
+
+        for ie in ies:
             # Go to next InfoExtractor if not suitable
             if not ie.suitable(url):
                 continue
@@ -486,7 +497,7 @@ class FileDownloader(object):
             return ie_result
         elif result_type == 'url':
             #We get the video pointed by the url
-            result = self.extract_info(ie_result['url'], download)[0]
+            result = self.extract_info(ie_result['url'], download, ie_name = ie_result['ie_key'])[0]
             return result
         elif result_type == 'playlist':
             #We process each entry in the playlist

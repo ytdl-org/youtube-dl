@@ -154,7 +154,8 @@ class InfoExtractor(object):
         """Returns a url that points to a page that should be processed"""
         #TODO: ie should be the class used for getting the info
         video_info = {'_type': 'url',
-                      'url': url}
+                      'url': url,
+                      'ie_key': ie}
         return video_info
     def playlist_result(self, entries, playlist_id=None, playlist_title=None):
         """Returns a playlist"""
@@ -728,7 +729,7 @@ class MetacafeIE(InfoExtractor):
         # Check if video comes from YouTube
         mobj2 = re.match(r'^yt-(.*)$', video_id)
         if mobj2 is not None:
-            return [self.url_result('http://www.youtube.com/watch?v=%s' % mobj2.group(1))]
+            return [self.url_result('http://www.youtube.com/watch?v=%s' % mobj2.group(1), 'Youtube')]
 
         # Retrieve video webpage to extract further information
         webpage = self._download_webpage('http://www.metacafe.com/watch/%s/' % video_id, video_id)
@@ -1810,7 +1811,7 @@ class YoutubePlaylistIE(InfoExtractor):
 
         videos = [v[1] for v in sorted(videos)]
 
-        url_results = [self.url_result(url) for url in videos]
+        url_results = [self.url_result(url, 'Youtube') for url in videos]
         return [self.playlist_result(url_results, playlist_id)]
 
 
@@ -1884,7 +1885,7 @@ class YoutubeChannelIE(InfoExtractor):
         self._downloader.to_screen(u'[youtube] Channel %s: Found %i videos' % (channel_id, len(video_ids)))
 
         urls = ['http://www.youtube.com/watch?v=%s' % id for id in video_ids]
-        url_entries = [self.url_result(url) for url in urls]
+        url_entries = [self.url_result(url, 'Youtube') for url in urls]
         return [self.playlist_result(url_entries, channel_id)]
 
 
@@ -1956,7 +1957,7 @@ class YoutubeUserIE(InfoExtractor):
             pagenum += 1
 
         urls = ['http://www.youtube.com/watch?v=%s' % video_id for video_id in video_ids]
-        url_results = [self.url_result(url) for url in urls]
+        url_results = [self.url_result(url, 'Youtube') for url in urls]
         return [self.playlist_result(url_results, playlist_title = username)]
 
 
@@ -2035,11 +2036,8 @@ class BlipTVUserIE(InfoExtractor):
 
             pagenum += 1
 
-        self._downloader.to_screen(u"[%s] user %s: Collected %d video ids (downloading %d of them)" %
-                (self.IE_NAME, username, all_ids_count, len(video_ids)))
-
         urls = [u'http://blip.tv/%s' % video_id for video_id in video_ids]
-        url_entries = [self.url_result(url) for url in urls]
+        url_entries = [self.url_result(url, 'BlipTV') for url in urls]
         return [self.playlist_result(url_entries, playlist_title = username)]
 
 
