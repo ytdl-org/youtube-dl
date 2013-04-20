@@ -1510,11 +1510,9 @@ class YoutubeSearchIE(InfoExtractor):
         prefix = prefix[8:]
         query = query.encode('utf-8')
         if prefix == '':
-            self._download_n_results(query, 1)
-            return
+            return self._get_n_results(query, 1)
         elif prefix == 'all':
-            self._download_n_results(query, self._max_youtube_results)
-            return
+            self._get_n_results(query, self._max_youtube_results)
         else:
             try:
                 n = int(prefix)
@@ -1524,14 +1522,12 @@ class YoutubeSearchIE(InfoExtractor):
                 elif n > self._max_youtube_results:
                     self._downloader.report_warning(u'ytsearch returns max %i results (you requested %i)' % (self._max_youtube_results, n))
                     n = self._max_youtube_results
-                self._download_n_results(query, n)
-                return
+                return self._get_n_results(query, n)
             except ValueError: # parsing prefix as integer fails
-                self._download_n_results(query, 1)
-                return
+                return self._get_n_results(query, 1)
 
-    def _download_n_results(self, query, n):
-        """Downloads a specified number of results for a query"""
+    def _get_n_results(self, query, n):
+        """Get a specified number of results for a query"""
 
         video_ids = []
         pagenum = 0
@@ -1560,9 +1556,8 @@ class YoutubeSearchIE(InfoExtractor):
 
         if len(video_ids) > n:
             video_ids = video_ids[:n]
-        for id in video_ids:
-            self._downloader.download(['http://www.youtube.com/watch?v=%s' % id])
-        return
+        videos = [self.url_result('http://www.youtube.com/watch?v=%s' % id, 'Youtube') for id in video_ids]
+        return videos
 
 
 class GoogleSearchIE(InfoExtractor):
