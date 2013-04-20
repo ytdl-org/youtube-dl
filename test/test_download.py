@@ -67,7 +67,7 @@ class TestDownload(unittest.TestCase):
 def generator(test_case):
 
     def test_template(self):
-        ie = getattr(youtube_dl.InfoExtractors, test_case['name'] + 'IE')
+        ie = youtube_dl.InfoExtractors.get_info_extractor(test_case['name'])#getattr(youtube_dl.InfoExtractors, test_case['name'] + 'IE')
         if not ie._WORKING:
             print('Skipping: IE marked as not _WORKING')
             return
