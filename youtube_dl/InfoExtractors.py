@@ -4183,7 +4183,7 @@ class TEDIE(InfoExtractor):
             playlist_id=m.group('playlist_id')
             name=m.group('name')
             self._downloader.to_screen(u'[%s] Getting info of playlist %s: "%s"' % (self.IE_NAME,playlist_id,name))
-            return self._playlist_videos_info(url,name,playlist_id)
+            return [self._playlist_videos_info(url,name,playlist_id)]
 
     def _talk_video_link(self,mediaSlug):
         '''Returns the video link for that mediaSlug'''
@@ -4200,12 +4200,17 @@ class TEDIE(InfoExtractor):
         webpage=self._download_webpage(url, playlist_id, 'Downloading playlist webpage')
         m_videos=re.finditer(video_RE,webpage,re.VERBOSE)
         m_names=re.finditer(video_name_RE,webpage)
-        info=[]
+
+        playlist_RE = r'div class="headline">(\s*?)<h1>(\s*?)<span>(?P<playlist_title>.*?)</span>'
+        m_playlist = re.search(playlist_RE, webpage)
+        playlist_title = m_playlist.group('playlist_title')
+
+        playlist_entries = []
         for m_video, m_name in zip(m_videos,m_names):
             video_id=m_video.group('video_id')
             talk_url='http://www.ted.com%s' % m_name.group('talk_url')
-            info.append(self._talk_info(talk_url,video_id))
-        return info
+            playlist_entries.append(self.url_result(talk_url, 'TED'))
+        return self.playlist_result(playlist_entries, playlist_id = playlist_id, playlist_title = playlist_title)
 
     def _talk_info(self, url, video_id=0):
         """Return the video for the talk in the url"""
