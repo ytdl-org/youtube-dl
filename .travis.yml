@@ -8,6 +8,7 @@ notifications:
   email:
     - filippo.valsorda@gmail.com
     - phihag@phihag.de
+    - jaime.marquinez.ferrandiz+travis@gmail.com
 #  irc:
 #    channels:
 #      - "irc.freenode.org#youtube-dl"
