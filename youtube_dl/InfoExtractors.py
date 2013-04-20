@@ -731,8 +731,7 @@ class MetacafeIE(InfoExtractor):
             return [self.url_result('http://www.youtube.com/watch?v=%s' % mobj2.group(1))]
 
         # Retrieve video webpage to extract further information
-        request = compat_urllib_request.Request('http://www.metacafe.com/watch/%s/' % video_id)
-        webpage = self._download_webpage(request, video_id)
+        webpage = self._download_webpage('http://www.metacafe.com/watch/%s/' % video_id, video_id)
 
         # Extract URL, uploader and title from webpage
         self.report_extraction(video_id)
@@ -757,13 +756,13 @@ class MetacafeIE(InfoExtractor):
             if 'mediaData' not in vardict:
                 self._downloader.report_error(u'unable to extract media URL')
                 return
-            mobj = re.search(r'"mediaURL":"(http.*?)","key":"(.*?)"', vardict['mediaData'][0])
+            mobj = re.search(r'"mediaURL":"(?P<mediaURL>http.*?)",(.*?)"key":"(?P<key>.*?)"', vardict['mediaData'][0])
             if mobj is None:
                 self._downloader.report_error(u'unable to extract media URL')
                 return
-            mediaURL = mobj.group(1).replace('\\/', '/')
+            mediaURL = mobj.group('mediaURL').replace('\\/', '/')
             video_extension = mediaURL[-3:]
-            video_url = '%s?__gda__=%s' % (mediaURL, mobj.group(2))
+            video_url = '%s?__gda__=%s' % (mediaURL, mobj.group('key'))
 
         mobj = re.search(r'(?im)<title>(.*) - Video</title>', webpage)
         if mobj is None:
