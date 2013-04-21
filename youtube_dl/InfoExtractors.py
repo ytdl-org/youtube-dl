@@ -3655,11 +3655,13 @@ class SteamIE(InfoExtractor):
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url, re.VERBOSE)
-        urlRE = r"'movie_(?P<videoID>\d+)': \{\s*FILENAME: \"(?P<videoURL>[\w:/\.\?=]+)\"(,\s*MOVIE_NAME: \"(?P<videoName>[\w:/\.\?=\+-]+)\")?\s*\},"
         gameID = m.group('gameID')
         videourl = 'http://store.steampowered.com/agecheck/video/%s/?snr=1_agecheck_agecheck__age-gate&ageDay=1&ageMonth=January&ageYear=1970' % gameID
         self.report_age_confirmation()
         webpage = self._download_webpage(videourl, gameID)
+        game_title = re.search(r'<h2 class="pageheader">(?P<game_title>.*?)</h2>', webpage).group('game_title')
+        
+        urlRE = r"'movie_(?P<videoID>\d+)': \{\s*FILENAME: \"(?P<videoURL>[\w:/\.\?=]+)\"(,\s*MOVIE_NAME: \"(?P<videoName>[\w:/\.\?=\+-]+)\")?\s*\},"
         mweb = re.finditer(urlRE, webpage)
         namesRE = r'<span class="title">(?P<videoName>.+?)</span>'
         titles = re.finditer(namesRE, webpage)
@@ -3681,7 +3683,7 @@ class SteamIE(InfoExtractor):
                 'thumbnail': video_thumb
                   }
             videos.append(info)
-        return videos
+        return [self.playlist_result(videos, gameID, game_title)]
 
 class UstreamIE(InfoExtractor):
     _VALID_URL = r'https?://www\.ustream\.tv/recorded/(?P<videoID>\d+)'
