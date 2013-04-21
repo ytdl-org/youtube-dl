@@ -152,6 +152,10 @@ class InfoExtractor(object):
         """Report information extraction."""
         self.to_screen(u'%s: Extracting information' % id_or_name)
 
+    def report_age_confirmation(self):
+        """Report attempt to confirm age."""
+        self.to_screen(u'Confirming age')
+
     #Methods for following #608
     #They set the correct value of the '_type' key
     def video_result(self, video_info):
@@ -249,10 +253,6 @@ class YoutubeIE(InfoExtractor):
     def report_login(self):
         """Report attempt to log in."""
         self.to_screen(u'Logging in')
-
-    def report_age_confirmation(self):
-        """Report attempt to confirm age."""
-        self.to_screen(u'Confirming age')
 
     def report_video_webpage_download(self, video_id):
         """Report attempt to download video webpage."""
@@ -689,10 +689,6 @@ class MetacafeIE(InfoExtractor):
     def report_disclaimer(self):
         """Report disclaimer retrieval."""
         self.to_screen(u'Retrieving disclaimer')
-
-    def report_age_confirmation(self):
-        """Report attempt to confirm age."""
-        self.to_screen(u'Confirming age')
 
     def report_download_webpage(self, video_id):
         """Report webpage download."""
@@ -3661,7 +3657,8 @@ class SteamIE(InfoExtractor):
         m = re.match(self._VALID_URL, url, re.VERBOSE)
         urlRE = r"'movie_(?P<videoID>\d+)': \{\s*FILENAME: \"(?P<videoURL>[\w:/\.\?=]+)\"(,\s*MOVIE_NAME: \"(?P<videoName>[\w:/\.\?=\+-]+)\")?\s*\},"
         gameID = m.group('gameID')
-        videourl = 'http://store.steampowered.com/video/%s/' % gameID
+        videourl = 'http://store.steampowered.com/agecheck/video/%s/?snr=1_agecheck_agecheck__age-gate&ageDay=1&ageMonth=January&ageYear=1970' % gameID
+        self.report_age_confirmation()
         webpage = self._download_webpage(videourl, gameID)
         mweb = re.finditer(urlRE, webpage)
         namesRE = r'<span class="title">(?P<videoName>.+?)</span>'
