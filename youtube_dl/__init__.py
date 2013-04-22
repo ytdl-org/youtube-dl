@@ -315,11 +315,10 @@ def parseOpts(overrideArguments=None):
         commandLineConf = sys.argv[1:] 
         argv = systemConf + userConf + commandLineConf
         opts, args = parser.parse_args(argv)
-
-    if opts.verbose:
-        print(u'[debug] System config: ' + repr(systemConf))
-        print(u'[debug] User config: ' + repr(userConf))
-        print(u'[debug] Command-line args: ' + repr(commandLineConf))
+        if opts.verbose:
+            print(u'[debug] System config: ' + repr(systemConf))
+            print(u'[debug] User config: ' + repr(userConf))
+            print(u'[debug] Command-line args: ' + repr(commandLineConf))
 
     return parser, opts, args
 
