@@ -56,10 +56,12 @@ which means you can modify it, redistribute it or use it however you like.
                                extension, %(upload_date)s for the upload date
                                (YYYYMMDD), %(extractor)s for the provider
                                (youtube, metacafe, etc), %(id)s for the video id
-                               and %% for a literal percent. Use - to output to
-                               stdout. Can also be used to download to a
-                               different directory, for example with -o '/my/dow
-                               nloads/%(uploader)s/%(title)s-%(id)s.%(ext)s' .
+                               , %(playlist)s for the playlist the video is in,
+                               %(playlist_index)s for the position in the
+                               playlist and %% for a literal percent. Use - to
+                               output to stdout. Can also be used to download to
+                               a different directory, for example with -o '/my/d
+                               ownloads/%(uploader)s/%(title)s-%(id)s.%(ext)s' .
     --autonumber-size NUMBER   Specifies the number of digits in %(autonumber)s
                                when it is present in output filename template or
                                --autonumber option is given
