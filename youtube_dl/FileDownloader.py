@@ -458,6 +458,8 @@ class FileDownloader(object):
             # Extract information from URL and process it
             try:
                 ie_results = ie.extract(url)
+                if ie_results is None: # Finished already (backwards compatibility; listformats and friends should be moved here)
+                    break
                 results = []
                 for ie_result in ie_results:
                     if not 'extractor' in ie_result:

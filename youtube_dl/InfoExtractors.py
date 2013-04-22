@@ -622,8 +622,7 @@ class YoutubeIE(InfoExtractor):
                 format_list = available_formats
             existing_formats = [x for x in format_list if x in url_map]
             if len(existing_formats) == 0:
-                self._downloader.report_error(u'no known formats available for video')
-                return
+                raise ExtractorError(u'no known formats available for video')
             if self._downloader.params.get('listformats', None):
                 self._print_formats(existing_formats)
                 return
@@ -643,11 +642,9 @@ class YoutubeIE(InfoExtractor):
                         video_url_list = [(rf, url_map[rf])]
                         break
                 if video_url_list is None:
-                    self._downloader.report_error(u'requested format not available')
-                    return
+                    raise ExtractorError(u'requested format not available')
         else:
-            self._downloader.report_error(u'no conn or url_encoded_fmt_stream_map information found in video info')
-            return
+            raise ExtractorError(u'no conn or url_encoded_fmt_stream_map information found in video info')
 
         results = []
         for format_param, video_real_url in video_url_list:
