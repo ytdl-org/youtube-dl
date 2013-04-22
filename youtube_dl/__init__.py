@@ -238,7 +238,16 @@ def parseOpts():
             action='store_true', dest='autonumber',
             help='number downloaded files starting from 00000', default=False)
     filesystem.add_option('-o', '--output',
-            dest='outtmpl', metavar='TEMPLATE', help='output filename template. Use %(title)s to get the title, %(uploader)s for the uploader name, %(uploader_id)s for the uploader nickname if different, %(autonumber)s to get an automatically incremented number, %(ext)s for the filename extension, %(upload_date)s for the upload date (YYYYMMDD), %(extractor)s for the provider (youtube, metacafe, etc), %(id)s for the video id and %% for a literal percent. Use - to output to stdout. Can also be used to download to a different directory, for example with -o \'/my/downloads/%(uploader)s/%(title)s-%(id)s.%(ext)s\' .')
+            dest='outtmpl', metavar='TEMPLATE',
+            help=('output filename template. Use %(title)s to get the title, '
+                  '%(uploader)s for the uploader name, %(uploader_id)s for the uploader nickname if different, '
+                  '%(autonumber)s to get an automatically incremented number, '
+                  '%(ext)s for the filename extension, %(upload_date)s for the upload date (YYYYMMDD), '
+                  '%(extractor)s for the provider (youtube, metacafe, etc), '
+                  '%(id)s for the video id , %(playlist)s for the playlist the video is in, '
+                  '%(playlist_index)s for the position in the playlist and %% for a literal percent. '
+                  'Use - to output to stdout. Can also be used to download to a different directory, '
+                  'for example with -o \'/my/downloads/%(uploader)s/%(title)s-%(id)s.%(ext)s\' .'))
     filesystem.add_option('--autonumber-size',
             dest='autonumber_size', metavar='NUMBER',
             help='Specifies the number of digits in %(autonumber)s when it is present in output filename template or --autonumber option is given')
