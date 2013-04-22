@@ -299,7 +299,7 @@ def parseOpts(arguments):
     systemConf = _readOptions('/etc/youtube-dl.conf')
     userConf = _readOptions(userConfFile)
     commandLineConf = sys.argv[1:] 
-    argv = systemConf + userConf + commandLineConf if not arguments else arguments
+    argv = (systemConf + userConf + commandLineConf) if not arguments else arguments
     opts, args = parser.parse_args(argv)
 
     if opts.verbose:
