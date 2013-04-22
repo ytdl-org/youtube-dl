@@ -47,7 +47,7 @@ from .FileDownloader import *
 from .InfoExtractors import gen_extractors
 from .PostProcessor import *
 
-def parseOpts(arguments):
+def parseOpts(overrideArguments=None):
     def _readOptions(filename_bytes):
         try:
             optionf = open(filename_bytes)
@@ -300,16 +300,21 @@ def parseOpts(arguments):
     parser.add_option_group(authentication)
     parser.add_option_group(postproc)
 
-    xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
-    if xdg_config_home:
-        userConfFile = os.path.join(xdg_config_home, 'youtube-dl.conf')
+    if overrideArguments is not None:
+        opts, args = parser.parse_args(overrideArguments)
+        if opts.verbose:
+            print(u'[debug] Override config: ' + repr(overrideArguments))
     else:
-        userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
-    systemConf = _readOptions('/etc/youtube-dl.conf')
-    userConf = _readOptions(userConfFile)
-    commandLineConf = sys.argv[1:] 
-    argv = (systemConf + userConf + commandLineConf) if not arguments else arguments
-    opts, args = parser.parse_args(argv)
+        xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
+        if xdg_config_home:
+            userConfFile = os.path.join(xdg_config_home, 'youtube-dl.conf')
+        else:
+            userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
+        systemConf = _readOptions('/etc/youtube-dl.conf')
+        userConf = _readOptions(userConfFile)
+        commandLineConf = sys.argv[1:] 
+        argv = systemConf + userConf + commandLineConf
+        opts, args = parser.parse_args(argv)
 
     if opts.verbose:
         print(u'[debug] System config: ' + repr(systemConf))
