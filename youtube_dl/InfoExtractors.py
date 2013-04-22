@@ -4327,6 +4327,40 @@ class ARDIE(InfoExtractor):
             info["url"] = stream["video_url"]
         return [info]
 
+class TumblrIE(InfoExtractor):
+    _VALID_URL = r'http://(?P<blog_name>.*?).tumblr.com/((post)|(video))/(?P<id>\d*)/(.*?)'
+
+    def _real_extract(self, url):
+        m_url = re.match(self._VALID_URL, url)
+        video_id = m_url.group('id')
+        blog = m_url.group('blog_name')
+
+        url = 'http://%s.tumblr.com/post/%s/' % (blog, video_id)
+        webpage = self._download_webpage(url, video_id)
+
+        re_video = r'src=\\x22(?P<video_url>http://%s.tumblr.com/video_file/%s/(.*?))\\x22 type=\\x22video/(?P<ext>.*?)\\x22' % (blog, video_id)
+        video = re.search(re_video, webpage)
+        if video is None:
+            self.to_screen("No video founded")
+            return []
+        video_url = video.group('video_url')
+        ext = video.group('ext')
+
+        re_thumb = r'posters(.*?)\[\\x22(?P<thumb>.*?)\\x22'  # We pick the first poster
+        thumb = re.search(re_thumb, webpage).group('thumb').replace('\\', '')
+
+        # The only place where you can get a title, it's not complete,
+        # but searching in other places doesn't work for all videos
+        re_title = r'<title>(.*?) - (?P<title>.*?)</title>'
+        title = unescapeHTML(re.search(re_title, webpage).group('title'))
+
+        return [{'id': video_id,
+                 'url': video_url,
+                 'title': title,
+                 'thumbnail': thumb,
+                 'ext': ext
+                 }]
+
 
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
@@ -4381,6 +4415,7 @@ def gen_extractors():
         SpiegelIE(),
         LiveLeakIE(),
         ARDIE(),
+        TumblrIE(),
         GenericIE()
     ]
 
