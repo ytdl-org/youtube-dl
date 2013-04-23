@@ -1224,7 +1224,7 @@ class ArteTvIE(InfoExtractor):
 
         for (i, key, err) in matchTuples:
             if mobj.group(i) is None:
-                self._downloader.trouble(err)
+                self._downloader.report_error(err)
                 return
             else:
                 info[key] = mobj.group(i)
@@ -1238,7 +1238,7 @@ class ArteTvIE(InfoExtractor):
             r'src="(.*?/videothek_js.*?\.js)',
             0,
             [
-                (1, 'url', u'ERROR: Invalid URL: %s' % url)
+                (1, 'url', u'Invalid URL: %s' % url)
             ]
         )
         http_host = url.split('/')[2]
@@ -1250,9 +1250,9 @@ class ArteTvIE(InfoExtractor):
                 '(rtmp://.*?)\'',
             re.DOTALL,
             [
-                (1, 'path',   u'ERROR: could not extract video path: %s' % url),
-                (2, 'player', u'ERROR: could not extract video player: %s' % url),
-                (3, 'url',    u'ERROR: could not extract video url: %s' % url)
+                (1, 'path',   u'could not extract video path: %s' % url),
+                (2, 'player', u'could not extract video player: %s' % url),
+                (3, 'url',    u'could not extract video url: %s' % url)
             ]
         )
         video_url = u'%s/%s' % (info.get('url'), info.get('path'))
@@ -1264,7 +1264,7 @@ class ArteTvIE(InfoExtractor):
             r'param name="movie".*?videorefFileUrl=(http[^\'"&]*)',
             0,
             [
-                (1, 'url', u'ERROR: Invalid URL: %s' % url)
+                (1, 'url', u'Invalid URL: %s' % url)
             ]
         )
         next_url = compat_urllib_parse.unquote(info.get('url'))
@@ -1273,7 +1273,7 @@ class ArteTvIE(InfoExtractor):
             r'<video lang="%s" ref="(http[^\'"&]*)' % video_lang,
             0,
             [
-                (1, 'url', u'ERROR: Could not find <video> tag: %s' % url)
+                (1, 'url', u'Could not find <video> tag: %s' % url)
             ]
         )
         next_url = compat_urllib_parse.unquote(info.get('url'))
@@ -1286,10 +1286,10 @@ class ArteTvIE(InfoExtractor):
                 '<url quality="hd">(.*?)</url>',
             re.DOTALL,
             [
-                (1, 'id',    u'ERROR: could not extract video id: %s' % url),
-                (2, 'title', u'ERROR: could not extract video title: %s' % url),
-                (3, 'date',  u'ERROR: could not extract video date: %s' % url),
-                (4, 'url',   u'ERROR: could not extract video url: %s' % url)
+                (1, 'id',    u'could not extract video id: %s' % url),
+                (2, 'title', u'could not extract video title: %s' % url),
+                (3, 'date',  u'could not extract video date: %s' % url),
+                (4, 'url',   u'could not extract video url: %s' % url)
             ]
         )
 
@@ -1518,7 +1518,7 @@ class YoutubeSearchIE(InfoExtractor):
             api_response = json.loads(data)['data']
 
             if not 'items' in api_response:
-                self._downloader.trouble(u'[youtube] No video results')
+                self._downloader.report_error(u'[youtube] No video results')
                 return
 
             new_ids = list(video['id'] for video in api_response['items'])
@@ -2787,7 +2787,7 @@ class SoundcloudSetIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+            self._downloader.report_error(u'invalid URL: %s' % url)
             return
 
         # extract uploader (which is in the url)
@@ -2805,14 +2805,14 @@ class SoundcloudSetIE(InfoExtractor):
             info_json_bytes = compat_urllib_request.urlopen(request).read()
             info_json = info_json_bytes.decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err))
+            self._downloader.report_error(u'unable to download video webpage: %s' % compat_str(err))
             return
 
         videos = []
         info = json.loads(info_json)
         if 'errors' in info:
             for err in info['errors']:
-                self._downloader.trouble(u'ERROR: unable to download video webpage: %s' % compat_str(err['error_message']))
+                self._downloader.report_error(u'unable to download video webpage: %s' % compat_str(err['error_message']))
             return
 
         for track in info['tracks']:
@@ -2825,7 +2825,7 @@ class SoundcloudSetIE(InfoExtractor):
                 stream_json_bytes = compat_urllib_request.urlopen(request).read()
                 stream_json = stream_json_bytes.decode('utf-8')
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self._downloader.trouble(u'ERROR: unable to download stream definitions: %s' % compat_str(err))
+                self._downloader.report_error(u'unable to download stream definitions: %s' % compat_str(err))
                 return
 
             streams = json.loads(stream_json)
@@ -3173,7 +3173,7 @@ class MTVIE(InfoExtractor):
             format = ext + '-' + rendition.attrib['width'] + 'x' + rendition.attrib['height'] + '_' + rendition.attrib['bitrate']
             video_url = rendition.find('./src').text
         except KeyError:
-            self._downloader.trouble('Invalid rendition field.')
+            self._downloader.report_error('Invalid rendition field.')
             return
 
         info = {
@@ -3620,7 +3620,7 @@ class FunnyOrDieIE(InfoExtractor):
         if not m:
             m = re.search(r'<title>(?P<title>[^<]+?)</title>', webpage)
             if not m:
-                self._downloader.trouble(u'Cannot find video title')
+                self._downloader.report_error(u'Cannot find video title')
         title = clean_html(m.group('title'))
 
         m = re.search(r'<meta property="og:description" content="(?P<desc>.*?)"', webpage)
@@ -3726,7 +3726,7 @@ class WorldStarHipHopIE(InfoExtractor):
             else:
                 ext = 'flv'
         else:
-            self._downloader.trouble(u'ERROR: Cannot find video url for %s' % video_id)
+            self._downloader.report_error(u'Cannot find video url for %s' % video_id)
             return
 
         _title = r"""<title>(.*)</title>"""
@@ -4246,7 +4246,7 @@ class LiveLeakIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.trouble(u'ERROR: invalid URL: %s' % url)
+            self._downloader.report_error(u'invalid URL: %s' % url)
             return
 
         video_id = mobj.group('video_id')
@@ -4261,7 +4261,7 @@ class LiveLeakIE(InfoExtractor):
 
         m = re.search(r'<meta property="og:title" content="(?P<title>.*?)"', webpage)
         if not m:
-            self._downloader.trouble(u'Cannot find video title')
+            self._downloader.report_error(u'Cannot find video title')
         title = unescapeHTML(m.group('title')).replace('LiveLeak.com -', '').strip()
 
         m = re.search(r'<meta property="og:description" content="(?P<desc>.*?)"', webpage)

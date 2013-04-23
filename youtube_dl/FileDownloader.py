@@ -406,10 +406,10 @@ class FileDownloader(object):
             filename = self.params['outtmpl'] % template_dict
             return filename
         except KeyError as err:
-            self.trouble(u'ERROR: Erroneous output template')
+            self.report_error(u'Erroneous output template')
             return None
         except ValueError as err:
-            self.trouble(u'ERROR: Insufficient system charset ' + repr(preferredencoding()))
+            self.report_error(u'Insufficient system charset ' + repr(preferredencoding()))
             return None
 
     def _match_entry(self, info_dict):
@@ -468,16 +468,16 @@ class FileDownloader(object):
                     results.append(self.process_ie_result(ie_result, download))
                 return results
             except ExtractorError as de: # An error we somewhat expected
-                self.trouble(u'ERROR: ' + compat_str(de), de.format_traceback())
+                self.report_error(compat_str(de), de.format_traceback())
                 break
             except Exception as e:
                 if self.params.get('ignoreerrors', False):
-                    self.trouble(u'ERROR: ' + compat_str(e), tb=compat_str(traceback.format_exc()))
+                    self.report_error(compat_str(e), tb=compat_str(traceback.format_exc()))
                     break
                 else:
                     raise
         if not suitable_found:
-                self.trouble(u'ERROR: no suitable InfoExtractor: %s' % url)
+                self.report_error(u'no suitable InfoExtractor: %s' % url)
         
     def process_ie_result(self, ie_result, download = True):
         """
@@ -636,7 +636,7 @@ class FileDownloader(object):
                         with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
                                 subfile.write(sub)
                     except (OSError, IOError):
-                        self.trouble(u'ERROR: Cannot write subtitles file ' + descfn)
+                        self.report_error(u'Cannot write subtitles file ' + descfn)
                         return
             if self.params.get('onlysubtitles', False):
                 return 
@@ -683,7 +683,7 @@ class FileDownloader(object):
                 #It also downloads the videos
                 videos = self.extract_info(url)
             except UnavailableVideoError:
-                self.trouble(u'\nERROR: unable to download video')
+                self.report_error(u'unable to download video')
             except MaxDownloadsReached:
                 self.to_screen(u'[info] Maximum number of downloaded files reached.')
                 raise
