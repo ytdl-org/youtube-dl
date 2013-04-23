@@ -570,7 +570,11 @@ class YoutubeIE(InfoExtractor):
         if video_description:
             video_description = clean_html(video_description)
         else:
-            video_description = u''
+            fd_mobj = re.search(r'<meta name="description" content="([^"]+)"', video_webpage)
+            if fd_mobj:
+                video_description = unescapeHTML(fd_mobj.group(1))
+            else:
+                video_description = u''
 
         # subtitles
         video_subtitles = None
