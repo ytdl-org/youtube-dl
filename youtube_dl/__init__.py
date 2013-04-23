@@ -165,7 +165,8 @@ def parseOpts(overrideArguments=None):
 
 
     video_format.add_option('-f', '--format',
-            action='store', dest='format', metavar='FORMAT', help='video format code')
+            action='store', dest='format', metavar='FORMAT',
+            help='video format code, specifiy the order of preference using slashes: "-f 22/17/18"')
     video_format.add_option('--all-formats',
             action='store_const', dest='format', help='download all available video formats', const='all')
     video_format.add_option('--prefer-free-formats',
