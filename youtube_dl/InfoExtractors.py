@@ -570,7 +570,7 @@ class YoutubeIE(InfoExtractor):
         if video_description:
             video_description = clean_html(video_description)
         else:
-            video_description = ''
+            video_description = u''
 
         # subtitles
         video_subtitles = None
