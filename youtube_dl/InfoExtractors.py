@@ -152,6 +152,10 @@ class InfoExtractor(object):
         """Report information extraction."""
         self.to_screen(u'%s: Extracting information' % id_or_name)
 
+    def report_download_webpage(self, video_id):
+        """Report webpage download."""
+        self.to_screen(u'%s: Downloading webpage' % video_id)
+
     def report_age_confirmation(self):
         """Report attempt to confirm age."""
         self.to_screen(u'Confirming age')
@@ -691,10 +695,6 @@ class MetacafeIE(InfoExtractor):
         """Report disclaimer retrieval."""
         self.to_screen(u'Retrieving disclaimer')
 
-    def report_download_webpage(self, video_id):
-        """Report webpage download."""
-        self.to_screen(u'%s: Downloading webpage' % video_id)
-
     def _real_initialize(self):
         # Retrieve disclaimer
         request = compat_urllib_request.Request(self._DISCLAIMER)
@@ -882,10 +882,6 @@ class PhotobucketIE(InfoExtractor):
     def __init__(self, downloader=None):
         InfoExtractor.__init__(self, downloader)
 
-    def report_download_webpage(self, video_id):
-        """Report webpage download."""
-        self.to_screen(u'%s: Downloading webpage' % video_id)
-
     def _real_extract(self, url):
         # Extract id from URL
         mobj = re.match(self._VALID_URL, url)
@@ -946,10 +942,6 @@ class YahooIE(InfoExtractor):
 
     def __init__(self, downloader=None):
         InfoExtractor.__init__(self, downloader)
-
-    def report_download_webpage(self, video_id):
-        """Report webpage download."""
-        self.to_screen(u'%s: Downloading webpage' % video_id)
 
     def _real_extract(self, url, new_video=True):
         # Extract ID from URL
@@ -1083,10 +1075,6 @@ class VimeoIE(InfoExtractor):
     def __init__(self, downloader=None):
         InfoExtractor.__init__(self, downloader)
 
-    def report_download_webpage(self, video_id):
-        """Report webpage download."""
-        self.to_screen(u'%s: Downloading webpage' % video_id)
-
     def _real_extract(self, url, new_video=True):
         # Extract ID from URL
         mobj = re.match(self._VALID_URL, url)
@@ -1199,10 +1187,6 @@ class ArteTvIE(InfoExtractor):
 
     def __init__(self, downloader=None):
         InfoExtractor.__init__(self, downloader)
-
-    def report_download_webpage(self, video_id):
-        """Report webpage download."""
-        self.to_screen(u'%s: Downloading webpage' % video_id)
 
     def fetch_webpage(self, url):
         request = compat_urllib_request.Request(url)
@@ -2019,10 +2003,6 @@ class DepositFilesIE(InfoExtractor):
     """Information extractor for depositfiles.com"""
 
     _VALID_URL = r'(?:http://)?(?:\w+\.)?depositfiles\.com/(?:../(?#locale))?files/(.+)'
-
-    def report_download_webpage(self, file_id):
-        """Report webpage download."""
-        self.to_screen(u'%s: Downloading webpage' % file_id)
 
     def _real_extract(self, url):
         file_id = url.split('/')[-1]
@@ -3014,10 +2994,6 @@ class StanfordOpenClassroomIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?openclassroom.stanford.edu(?P<path>/?|(/MainFolder/(?:HomePage|CoursePage|VideoPage)\.php([?]course=(?P<course>[^&]+)(&video=(?P<video>[^&]+))?(&.*)?)?))$'
     IE_NAME = u'stanfordoc'
 
-    def report_download_webpage(self, objid):
-        """Report information extraction."""
-        self.to_screen(u'%s: Downloading webpage' % objid)
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
@@ -3196,10 +3172,6 @@ class MTVIE(InfoExtractor):
 class YoukuIE(InfoExtractor):
     _VALID_URL =  r'(?:http://)?v\.youku\.com/v_show/id_(?P<ID>[A-Za-z0-9]+)\.html'
 
-    def report_download_webpage(self, file_id):
-        """Report webpage download."""
-        self.to_screen(u'%s: Downloading webpage' % file_id)
-
     def _gen_sid(self):
         nowTime = int(time.time() * 1000)
         random1 = random.randint(1000,1998)
@@ -3309,10 +3281,6 @@ class XNXXIE(InfoExtractor):
     VIDEO_TITLE_RE = r'<title>(.*?)\s+-\s+XNXX.COM'
     VIDEO_THUMB_RE = r'url_bigthumb=(.*?)&amp;'
 
-    def report_webpage(self, video_id):
-        """Report information extraction"""
-        self.to_screen(u'%s: Downloading webpage' % video_id)
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
@@ -3320,7 +3288,7 @@ class XNXXIE(InfoExtractor):
             return
         video_id = mobj.group(1)
 
-        self.report_webpage(video_id)
+        self.report_download_webpage(video_id)
 
         # Get webpage content
         try:
