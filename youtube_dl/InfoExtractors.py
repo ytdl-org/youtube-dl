@@ -688,9 +688,6 @@ class MetacafeIE(InfoExtractor):
     _FILTER_POST = 'http://www.metacafe.com/f/index.php?inputType=filter&controllerGroup=user'
     IE_NAME = u'metacafe'
 
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
-
     def report_disclaimer(self):
         """Report disclaimer retrieval."""
         self.to_screen(u'Retrieving disclaimer')
@@ -795,9 +792,6 @@ class DailymotionIE(InfoExtractor):
     IE_NAME = u'dailymotion'
     _WORKING = False
 
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
-
     def _real_extract(self, url):
         # Extract id and simplified title from URL
         mobj = re.match(self._VALID_URL, url)
@@ -879,9 +873,6 @@ class PhotobucketIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:[a-z0-9]+\.)?photobucket\.com/.*[\?\&]current=(.*\.flv)'
     IE_NAME = u'photobucket'
 
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
-
     def _real_extract(self, url):
         # Extract id from URL
         mobj = re.match(self._VALID_URL, url)
@@ -939,9 +930,6 @@ class YahooIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:[a-z]+\.)?video\.yahoo\.com/(?:watch|network)/([0-9]+)(?:/|\?v=)([0-9]+)(?:[#\?].*)?'
     _VPAGE_URL = r'(?:http://)?video\.yahoo\.com/watch/([0-9]+)/([0-9]+)(?:[#\?].*)?'
     IE_NAME = u'video.yahoo'
-
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
 
     def _real_extract(self, url, new_video=True):
         # Extract ID from URL
@@ -1072,9 +1060,6 @@ class VimeoIE(InfoExtractor):
     _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|player)\.)?vimeo\.com/(?:(?:groups|album)/[^/]+/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)'
     IE_NAME = u'vimeo'
 
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
-
     def _real_extract(self, url, new_video=True):
         # Extract ID from URL
         mobj = re.match(self._VALID_URL, url)
@@ -1184,9 +1169,6 @@ class ArteTvIE(InfoExtractor):
     _LIVE_URL = r'index-[0-9]+\.html$'
 
     IE_NAME = u'arte.tv'
-
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
 
     def fetch_webpage(self, url):
         request = compat_urllib_request.Request(url)
@@ -1310,9 +1292,6 @@ class GenericIE(InfoExtractor):
 
     _VALID_URL = r'.*'
     IE_NAME = u'generic'
-
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
 
     def report_download_webpage(self, video_id):
         """Report webpage download."""
@@ -1453,9 +1432,6 @@ class YoutubeSearchIE(InfoExtractor):
     _max_youtube_results = 1000
     IE_NAME = u'youtube:search'
 
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
-
     def report_download_page(self, query, pagenum):
         """Report attempt to download search page with given number."""
         query = query.decode(preferredencoding())
@@ -1529,9 +1505,6 @@ class GoogleSearchIE(InfoExtractor):
     _MORE_PAGES_INDICATOR = r'class="pn" id="pnnext"'
     _max_google_results = 1000
     IE_NAME = u'video.google:search'
-
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
 
     def report_download_page(self, query, pagenum):
         """Report attempt to download playlist page with given number."""
@@ -1613,9 +1586,6 @@ class YahooSearchIE(InfoExtractor):
     _MORE_PAGES_INDICATOR = r'\s*Next'
     _max_yahoo_results = 1000
     IE_NAME = u'video.yahoo:search'
-
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
 
     def report_download_page(self, query, pagenum):
         """Report attempt to download playlist page with given number."""
@@ -1709,9 +1679,6 @@ class YoutubePlaylistIE(InfoExtractor):
     _TEMPLATE_URL = 'https://gdata.youtube.com/feeds/api/playlists/%s?max-results=%i&start-index=%i&v=2&alt=json'
     _MAX_RESULTS = 50
     IE_NAME = u'youtube:playlist'
-
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
 
     @classmethod
     def suitable(cls, url):
@@ -1857,9 +1824,6 @@ class YoutubeUserIE(InfoExtractor):
     _VIDEO_INDICATOR = r'/watch\?v=(.+?)[\<&]'
     IE_NAME = u'youtube:user'
 
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
-
     def report_download_page(self, username, start_index):
         """Report attempt to download user page."""
         self._downloader.to_screen(u'[youtube] user %s: Downloading video ids from %d to %d' %
@@ -1925,9 +1889,6 @@ class BlipTVUserIE(InfoExtractor):
     _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?blip\.tv/)|bliptvuser:)([^/]+)/*$'
     _PAGE_SIZE = 12
     IE_NAME = u'blip.tv:user'
-
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
 
     def report_download_page(self, username, pagenum):
         """Report attempt to download user page."""
@@ -2253,9 +2214,6 @@ class MyVideoIE(InfoExtractor):
 
     _VALID_URL = r'(?:http://)?(?:www\.)?myvideo\.de/watch/([0-9]+)/([^?/]+).*'
     IE_NAME = u'myvideo'
-
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
 
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)
@@ -2692,9 +2650,6 @@ class SoundcloudIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/([\w\d-]+)'
     IE_NAME = u'soundcloud'
 
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
-
     def report_resolve(self, video_id):
         """Report information extraction."""
         self.to_screen(u'%s: Resolving id' % video_id)
@@ -2760,9 +2715,6 @@ class SoundcloudSetIE(InfoExtractor):
 
     _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/sets/([\w\d-]+)'
     IE_NAME = u'soundcloud'
-
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
 
     def report_resolve(self, video_id):
         """Report information extraction."""
@@ -2883,9 +2835,6 @@ class MixcloudIE(InfoExtractor):
     _WORKING = False # New API, but it seems good http://www.mixcloud.com/developers/documentation/
     _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/([\w\d-]+)/([\w\d-]+)'
     IE_NAME = u'mixcloud'
-
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
 
     def report_download_json(self, file_id):
         """Report JSON download."""
@@ -3333,9 +3282,6 @@ class GooglePlusIE(InfoExtractor):
 
     _VALID_URL = r'(?:https://)?plus\.google\.com/(?:[^/]+/)*?posts/(\w+)'
     IE_NAME = u'plus.google'
-
-    def __init__(self, downloader=None):
-        InfoExtractor.__init__(self, downloader)
 
     def report_extract_entry(self, url):
         """Report downloading extry"""
