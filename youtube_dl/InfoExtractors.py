@@ -2861,7 +2861,7 @@ class InfoQIE(InfoExtractor):
         self.report_extraction(url)
 
         # Extract video URL
-        mobj = re.search(r"jsclassref='([^']*)'", webpage)
+        mobj = re.search(r"jsclassref ?= ?'([^']*)'", webpage)
         if mobj is None:
             self._downloader.report_error(u'unable to extract video url')
             return
