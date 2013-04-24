@@ -114,8 +114,8 @@ class InfoExtractor(object):
     def _request_webpage(self, url_or_request, video_id, note=None, errnote=None):
         """ Returns the response handle """
         if note is None:
-            note = u'Downloading video webpage'
-        if note is not False:
+            self.report_download_webpage(video_id)
+        elif note is not False:
             self.to_screen(u'%s: %s' % (video_id, note))
         try:
             return compat_urllib_request.urlopen(url_or_request)
@@ -1318,7 +1318,7 @@ class GenericIE(InfoExtractor):
         """Report webpage download."""
         if not self._downloader.params.get('test', False):
             self._downloader.report_warning(u'Falling back on generic information extractor.')
-        self.to_screen(u'%s: Downloading webpage' % video_id)
+        super(GenericIE, self).report_download_webpage(video_id)
 
     def report_following_redirect(self, new_url):
         """Report information extraction."""
