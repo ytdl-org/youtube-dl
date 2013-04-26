@@ -27,6 +27,8 @@ which means you can modify it, redistribute it or use it however you like.
                                from an initial value of SIZE.
     --dump-user-agent          display the current browser identification
     --user-agent UA            specify a custom user agent
+    --referer REF              specify a custom referer, use if the video access
+                               is restricted to one domain
     --list-extractors          List all supported extractors and the URLs they
                                would handle
 

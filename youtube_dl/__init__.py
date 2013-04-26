@@ -140,6 +140,9 @@ def parseOpts(overrideArguments=None):
             help='display the current browser identification', default=False)
     general.add_option('--user-agent',
             dest='user_agent', help='specify a custom user agent', metavar='UA')
+    general.add_option('--referer',
+            dest='referer', help='specify a custom referer, use if the video access is restricted to one domain',
+            metavar='REF', default=None)
     general.add_option('--list-extractors',
             action='store_true', dest='list_extractors',
             help='List all supported extractors and the URLs they would handle', default=False)
@@ -342,6 +345,10 @@ def _real_main(argv=None):
     # Set user agent
     if opts.user_agent is not None:
         std_headers['User-Agent'] = opts.user_agent
+    
+    # Set referer
+    if opts.referer is not None:
+        std_headers['Referer'] = opts.referer
 
     # Dump user agent
     if opts.dump_user_agent:

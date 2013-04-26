@@ -1093,7 +1093,10 @@ class VimeoIE(InfoExtractor):
             config = webpage.split(' = {config:')[1].split(',assets:')[0]
             config = json.loads(config)
         except:
-            self._downloader.report_error(u'unable to extract info section')
+            if re.search('The creator of this video has not given you permission to embed it on this domain.', webpage):
+                self._downloader.report_error(u'The author has restricted the access to this video, try with the "--referer" option')
+            else:
+                self._downloader.report_error(u'unable to extract info section')
             return
 
         # Extract title
