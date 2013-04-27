@@ -2717,7 +2717,7 @@ class SoundcloudSetIE(InfoExtractor):
      """
 
     _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/sets/([\w\d-]+)'
-    IE_NAME = u'soundcloud'
+    IE_NAME = u'soundcloud:set'
 
     def report_resolve(self, video_id):
         """Report information extraction."""
