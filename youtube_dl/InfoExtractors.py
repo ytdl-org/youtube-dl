@@ -785,7 +785,6 @@ class DailymotionIE(InfoExtractor):
 
     _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^/]+)'
     IE_NAME = u'dailymotion'
-    _WORKING = False
 
     def _real_extract(self, url):
         # Extract id and simplified title from URL
