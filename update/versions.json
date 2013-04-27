@@ -283,7 +283,8 @@
             "tar": [
                 "http://youtube-dl.org/downloads/2013.04.22/youtube-dl-2013.04.22.tar.gz", 
                 "51456555c8b8f116bf738e60fdf2eb3cf75e441e3150195ab3a0182eab4c29d3"
-            ]
+            ],
+            "notes": ["Starting with youtube-dl 2013.4.28, --title is the default. Pass in --id to get the old behavior."]
         }
     }
 }
