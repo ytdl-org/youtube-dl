@@ -157,6 +157,9 @@ def parseOpts(overrideArguments=None):
     selection.add_option('--max-downloads', metavar='NUMBER', dest='max_downloads', help='Abort after downloading NUMBER files', default=None)
     selection.add_option('--min-filesize', metavar='SIZE', dest='min_filesize', help="Do not download any videos smaller than SIZE (e.g. 50k or 44.6m)", default=None)
     selection.add_option('--max-filesize', metavar='SIZE', dest='max_filesize', help="Do not download any videos larger than SIZE (e.g. 50k or 44.6m)", default=None)
+    selection.add_option('--date', metavar='DATE', dest='date', help='download only videos uploaded in this date', default=None)
+    selection.add_option('--datebefore', metavar='DATE', dest='datebefore', help='download only videos uploaded before this date', default=None)
+    selection.add_option('--dateafter', metavar='DATE', dest='dateafter', help='download only videos uploaded after this date', default=None)
 
 
     authentication.add_option('-u', '--username',
@@ -447,6 +450,10 @@ def _real_main(argv=None):
     if opts.recodevideo is not None:
         if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg']:
             parser.error(u'invalid video recode format specified')
+    if opts.date is not None:
+        date = DateRange.day(opts.date)
+    else:
+        date = DateRange(opts.dateafter, opts.datebefore)
 
     if sys.version_info < (3,):
         # In Python 2, sys.argv is a bytestring (also note http://bugs.python.org/issue2128 for Windows systems)
@@ -513,7 +520,8 @@ def _real_main(argv=None):
         'test': opts.test,
         'keepvideo': opts.keepvideo,
         'min_filesize': opts.min_filesize,
-        'max_filesize': opts.max_filesize
+        'max_filesize': opts.max_filesize,
+        'daterange': date
         })
 
     if opts.verbose:

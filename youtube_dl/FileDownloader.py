@@ -89,6 +89,7 @@ class FileDownloader(object):
     keepvideo:         Keep the video file after post-processing
     min_filesize:      Skip files smaller than this size
     max_filesize:      Skip files larger than this size
+    daterange:         A DateRange object, download only if the upload_date is in the range.
     """
 
     params = None
@@ -424,6 +425,11 @@ class FileDownloader(object):
         if rejecttitle:
             if re.search(rejecttitle, title, re.IGNORECASE):
                 return u'"' + title + '" title matched reject pattern "' + rejecttitle + '"'
+        date = info_dict.get('upload_date', None)
+        if date is not None:
+            dateRange = self.params.get('daterange', DateRange())
+            if date not in dateRange:
+                return u'[download] %s upload date is not in range %s' % (date_from_str(date).isoformat(), dateRange)
         return None
         
     def extract_info(self, url, download = True, ie_name = None):

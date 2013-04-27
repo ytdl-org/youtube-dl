@@ -12,6 +12,7 @@ import traceback
 import zlib
 import email.utils
 import json
+import datetime
 
 try:
     import urllib.request as compat_urllib_request
@@ -568,3 +569,32 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
 
     https_request = http_request
     https_response = http_response
+    
+def date_from_str(date_str):
+    """Return a datetime object from a string in the format YYYYMMDD"""
+    return datetime.datetime.strptime(date_str, "%Y%m%d").date()
+    
+class DateRange(object):
+    """Represents a time interval between two dates"""
+    def __init__(self, start=None, end=None):
+        """start and end must be strings in the format accepted by date"""
+        if start is not None:
+            self.start = date_from_str(start)
+        else:
+            self.start = datetime.datetime.min.date()
+        if end is not None:
+            self.end = date_from_str(end)
+        else:
+            self.end = datetime.datetime.max.date()
+        if self.start >= self.end:
+            raise ValueError('Date range: "%s" , the start date must be before the end date' % self)
+    @classmethod
+    def day(cls, day):
+        """Returns a range that only contains the given day"""
+        return cls(day,day)
+    def __contains__(self, date):
+        """Check if the date is in the range"""
+        date = date_from_str(date)
+        return self.start <= date and date <= self.end
+    def __str__(self):
+        return '%s - %s' % ( self.start.isoformat(), self.end.isoformat())
