@@ -15,6 +15,7 @@ from youtube_dl.utils import sanitize_filename
 from youtube_dl.utils import unescapeHTML
 from youtube_dl.utils import orderedSet
 from youtube_dl.utils import DateRange
+from youtube_dl.utils import unified_strdate
 
 if sys.version_info < (3, 0):
     _compat_str = lambda b: b.decode('unicode-escape')
@@ -104,6 +105,12 @@ class TestUtil(unittest.TestCase):
         self.assertTrue("19690721" in _ac)
         _firstmilenium = DateRange(end="10000101")
         self.assertTrue("07110427" in _firstmilenium)
+        
+    def test_unified_dates(self):
+        self.assertEqual(unified_strdate('December 21, 2010'), '20101221')
+        self.assertEqual(unified_strdate('8/7/2009'), '20090708')
+        self.assertEqual(unified_strdate('Dec 14, 2012'), '20121214')
+        self.assertEqual(unified_strdate('2012/10/11 01:56:38 +0000'), '20121011')
 
 if __name__ == '__main__':
     unittest.main()

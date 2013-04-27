@@ -569,7 +569,22 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
 
     https_request = http_request
     https_response = http_response
-    
+
+def unified_strdate(date_str):
+    """Return a string with the date in the format YYYYMMDD"""
+    upload_date = None
+    #Replace commas
+    date_str = date_str.replace(',',' ')
+    # %z (UTC offset) is only supported in python>=3.2
+    date_str = re.sub(r' (\+|-)[\d]*$', '', date_str)
+    format_expressions = ['%d %B %Y', '%B %d %Y', '%b %d %Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d %H:%M:%S']
+    for expression in format_expressions:
+        try:
+            upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')
+        except:
+            pass
+    return upload_date
+
 def date_from_str(date_str):
     """Return a datetime object from a string in the format YYYYMMDD"""
     return datetime.datetime.strptime(date_str, "%Y%m%d").date()
