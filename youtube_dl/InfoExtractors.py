@@ -1723,11 +1723,10 @@ class YoutubePlaylistIE(InfoExtractor):
             if 'feed' not in response:
                 self._downloader.report_error(u'Got a malformed response from YouTube API')
                 return
+            playlist_title = response['feed']['title']['$t']
             if 'entry' not in response['feed']:
                 # Number of videos is a multiple of self._MAX_RESULTS
                 break
-
-            playlist_title = response['feed']['title']['$t']
 
             videos += [ (entry['yt$position']['$t'], entry['content']['src'])
                         for entry in response['feed']['entry']

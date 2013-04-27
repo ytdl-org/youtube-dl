@@ -71,6 +71,13 @@ class TestYoutubeLists(unittest.TestCase):
         ytie_results = [YoutubeIE()._extract_id(url['url']) for url in result['entries']]
         self.assertFalse('pElCt5oNDuI' in ytie_results)
         self.assertFalse('KdPEApIVdWM' in ytie_results)
+        
+    def test_youtube_playlist_empty(self):
+        dl = FakeDownloader()
+        ie = YoutubePlaylistIE(dl)
+        result = ie.extract('https://www.youtube.com/playlist?list=PLtPgu7CB4gbZDA7i_euNxn75ISqxwZPYx')[0]
+        self.assertIsPlaylist(result)
+        self.assertEqual(len(result['entries']), 0)
 
     def test_youtube_course(self):
         dl = FakeDownloader()
