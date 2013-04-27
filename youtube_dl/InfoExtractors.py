@@ -3560,6 +3560,7 @@ class FunnyOrDieIE(InfoExtractor):
 
 class SteamIE(InfoExtractor):
     _VALID_URL = r"""http://store.steampowered.com/
+                (agecheck/)?
                 (?P<urltype>video|app)/ #If the page is only for videos or for a game
                 (?P<gameID>\d+)/?
                 (?P<videoID>\d*)(?P<extra>\??) #For urltype == video we sometimes get the videoID
