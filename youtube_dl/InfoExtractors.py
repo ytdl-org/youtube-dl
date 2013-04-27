@@ -562,12 +562,7 @@ class YoutubeIE(InfoExtractor):
         mobj = re.search(r'id="eow-date.*?>(.*?)</span>', video_webpage, re.DOTALL)
         if mobj is not None:
             upload_date = ' '.join(re.sub(r'[/,-]', r' ', mobj.group(1)).split())
-            format_expressions = ['%d %B %Y', '%B %d %Y', '%b %d %Y']
-            for expression in format_expressions:
-                try:
-                    upload_date = datetime.datetime.strptime(upload_date, expression).strftime('%Y%m%d')
-                except:
-                    pass
+            upload_date = unified_strdate(upload_date)
 
         # description
         video_description = get_element_by_id("eow-description", video_webpage)
@@ -1723,11 +1718,10 @@ class YoutubePlaylistIE(InfoExtractor):
             if 'feed' not in response:
                 self._downloader.report_error(u'Got a malformed response from YouTube API')
                 return
+            playlist_title = response['feed']['title']['$t']
             if 'entry' not in response['feed']:
                 # Number of videos is a multiple of self._MAX_RESULTS
                 break
-
-            playlist_title = response['feed']['title']['$t']
 
             videos += [ (entry['yt$position']['$t'], entry['content']['src'])
                         for entry in response['feed']['entry']
@@ -2386,7 +2380,7 @@ class ComedyCentralIE(InfoExtractor):
             shortMediaId = mediaId.split(':')[-1]
             showId = mediaId.split(':')[-2].replace('.com', '')
             officialTitle = itemEl.findall('./title')[0].text
-            officialDate = itemEl.findall('./pubDate')[0].text
+            officialDate = unified_strdate(itemEl.findall('./pubDate')[0].text)
 
             configUrl = ('http://www.comedycentral.com/global/feeds/entertainment/media/mediaGenEntertainment.jhtml?' +
                         compat_urllib_parse.urlencode({'uri': mediaId}))
@@ -2696,12 +2690,13 @@ class SoundcloudIE(InfoExtractor):
 
         streams = json.loads(stream_json)
         mediaURL = streams['http_mp3_128_url']
+        upload_date = unified_strdate(info['created_at'])
 
         return [{
             'id':       info['id'],
             'url':      mediaURL,
             'uploader': info['user']['username'],
-            'upload_date':  info['created_at'],
+            'upload_date': upload_date,
             'title':    info['title'],
             'ext':      u'mp3',
             'description': info['description'],
@@ -3561,6 +3556,7 @@ class FunnyOrDieIE(InfoExtractor):
 
 class SteamIE(InfoExtractor):
     _VALID_URL = r"""http://store.steampowered.com/
+                (agecheck/)?
                 (?P<urltype>video|app)/ #If the page is only for videos or for a game
                 (?P<gameID>\d+)/?
                 (?P<videoID>\d*)(?P<extra>\??) #For urltype == video we sometimes get the videoID
@@ -3759,7 +3755,7 @@ class YouPornIE(InfoExtractor):
             self._downloader.report_warning(u'unable to extract video date')
             upload_date = None
         else:
-            upload_date = result.group('date').strip()
+            upload_date = unified_strdate(result.group('date').strip())
 
         # Get the video uploader
         result = re.search(r'Submitted:</label>(?P<uploader>.*)</li>', webpage)
@@ -3866,7 +3862,7 @@ class PornotubeIE(InfoExtractor):
         if result is None:
             self._downloader.report_error(u'unable to extract video title')
             return
-        upload_date = result.group('date')
+        upload_date = unified_strdate(result.group('date'))
 
         info = {'id': video_id,
                 'url': video_url,
