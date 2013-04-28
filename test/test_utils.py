@@ -105,7 +105,7 @@ class TestUtil(unittest.TestCase):
         self.assertTrue("19690721" in _ac)
         _firstmilenium = DateRange(end="10000101")
         self.assertTrue("07110427" in _firstmilenium)
-        
+
     def test_unified_dates(self):
         self.assertEqual(unified_strdate('December 21, 2010'), '20101221')
         self.assertEqual(unified_strdate('8/7/2009'), '20090708')

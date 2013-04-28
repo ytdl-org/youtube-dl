@@ -586,7 +586,29 @@ def unified_strdate(date_str):
     return upload_date
 
 def date_from_str(date_str):
-    """Return a datetime object from a string in the format YYYYMMDD"""
+    """
+    Return a datetime object from a string in the format YYYYMMDD or
+    (now|today)[+-][0-9](day|week|month|year)(s)?"""
+    today = datetime.date.today()
+    if date_str == 'now'or date_str == 'today':
+        return today
+    match = re.match('(now|today)(?P<sign>[+-])(?P<time>\d+)(?P<unit>day|week|month|year)(s)?', date_str)
+    if match is not None:
+        sign = match.group('sign')
+        time = int(match.group('time'))
+        if sign == '-':
+            time = -time
+        unit = match.group('unit')
+        #A bad aproximation?
+        if unit == 'month':
+            unit = 'day'
+            time *= 30
+        elif unit == 'year':
+            unit = 'day'
+            time *= 365
+        unit += 's'
+        delta = datetime.timedelta(**{unit: time})
+        return today + delta
     return datetime.datetime.strptime(date_str, "%Y%m%d").date()
     
 class DateRange(object):
@@ -601,7 +623,7 @@ class DateRange(object):
             self.end = date_from_str(end)
         else:
             self.end = datetime.datetime.max.date()
-        if self.start >= self.end:
+        if self.start > self.end:
             raise ValueError('Date range: "%s" , the start date must be before the end date' % self)
     @classmethod
     def day(cls, day):
@@ -609,7 +631,8 @@ class DateRange(object):
         return cls(day,day)
     def __contains__(self, date):
         """Check if the date is in the range"""
-        date = date_from_str(date)
-        return self.start <= date and date <= self.end
+        if not isinstance(date, datetime.date):
+            date = date_from_str(date)
+        return self.start <= date <= self.end
     def __str__(self):
         return '%s - %s' % ( self.start.isoformat(), self.end.isoformat())
