@@ -49,8 +49,8 @@ which means you can modify it, redistribute it or use it however you like.
     --dateafter DATE           download only videos uploaded after this date
 
 ## Filesystem Options:
-    -t, --title                use title in file name
-    --id                       use video ID in file name
+    -t, --title                use title in file name (default)
+    --id                       use only video ID in file name
     -l, --literal              [deprecated] alias of --title
     -A, --auto-number          number downloaded files starting from 00000
     -o, --output TEMPLATE      output filename template. Use %(title)s to get
