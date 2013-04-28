@@ -280,7 +280,7 @@
                 "http://youtube-dl.org/downloads/2013.04.22/youtube-dl.exe", 
                 "434c20531f513fddfb969268df9a912d4dbc3ee5978dc91031d43696258c327c"
             ], 
-            "notes": [
+            "notes_disabled_see_46a127eecbd3aac52b063ff11813cc7994160e27": [
                 "Starting with youtube-dl 2013.4.28, --title is the default. Pass in --id to get the old behavior."
             ], 
             "tar": [
