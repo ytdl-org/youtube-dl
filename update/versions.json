@@ -1,6 +1,6 @@
 {
-    "latest": "2013.04.22", 
-    "signature": "36e5f5ab5b78987174bf75180aee9c33111b7b759791c4eb789473511f6b97823e9045e6ec16508f90bf057f74ef7601c2fe062ada24b182203ac5513d318e6ca0773dbdaffa0abf0fc80983f32b358fb3744fdeb9dcbb9b259a1adb1e75bf06412cdf87630c2eaf4469a0697d52a350ba828a8b3ecd7171ad179a0e5a64cd08", 
+    "latest": "2013.04.27", 
+    "signature": "010427dd8d0a478cb730730b09f01aa5b4c2597c8dcd33af2906fe1a6bfa4b393e2d173d798ffb594598fcfe39b7e3d6bb4d8900a44c8d3bcf76d3f338eaad441195427dfdbf80778344b8a9b110ff0b8eb2072a542ff2c543b8a723490dbee1738147972225359bd698741af02bcb162660b3af3ea3fa9c6ed121a0c8c73c82", 
     "versions": {
         "2012.02.22": {
             "bin": [
@@ -280,11 +280,27 @@
                 "http://youtube-dl.org/downloads/2013.04.22/youtube-dl.exe", 
                 "434c20531f513fddfb969268df9a912d4dbc3ee5978dc91031d43696258c327c"
             ], 
+            "notes": [
+                "Starting with youtube-dl 2013.4.28, --title is the default. Pass in --id to get the old behavior."
+            ], 
             "tar": [
                 "http://youtube-dl.org/downloads/2013.04.22/youtube-dl-2013.04.22.tar.gz", 
                 "51456555c8b8f116bf738e60fdf2eb3cf75e441e3150195ab3a0182eab4c29d3"
-            ],
-            "notes": ["Starting with youtube-dl 2013.4.28, --title is the default. Pass in --id to get the old behavior."]
+            ]
+        }, 
+        "2013.04.27": {
+            "bin": [
+                "http://youtube-dl.org/downloads/2013.04.27/youtube-dl", 
+                "de8dfd2194a3c0d9a5cc5bdf2b6afcdec0070d76ac7507774ea4d30ea568177d"
+            ], 
+            "exe": [
+                "http://youtube-dl.org/downloads/2013.04.27/youtube-dl.exe", 
+                "6e51da3256378c855d6fc7c16b53529b7a203e0a31235e3fca488bb61af01454"
+            ], 
+            "tar": [
+                "http://youtube-dl.org/downloads/2013.04.27/youtube-dl-2013.04.27.tar.gz", 
+                "4f925fe414cb6fbfbd20557f768355c0c4d3de2d51136b424be98bf61dbb36b3"
+            ]
         }
     }
 }
