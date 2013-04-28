@@ -376,7 +376,11 @@ def _real_main(argv=None):
 
     # General configuration
     cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
-    proxy_handler = compat_urllib_request.ProxyHandler()
+    proxies = compat_urllib_request.getproxies()
+    # Set HTTPS proxy to HTTP one if given (https://github.com/rg3/youtube-dl/issues/805)
+    if 'http' in proxies and 'https' not in proxies:
+        proxies['https'] = proxies['http']
+    proxy_handler = compat_urllib_request.ProxyHandler(proxies)
     opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
     compat_urllib_request.install_opener(opener)
     socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
