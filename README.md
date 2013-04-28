@@ -44,6 +44,9 @@ which means you can modify it, redistribute it or use it however you like.
                                (e.g. 50k or 44.6m)
     --max-filesize SIZE        Do not download any videos larger than SIZE (e.g.
                                50k or 44.6m)
+    --date DATE                download only videos uploaded in this date
+    --datebefore DATE          download only videos uploaded before this date
+    --dateafter DATE           download only videos uploaded after this date
 
 ## Filesystem Options:
     -t, --title                use title in file name
