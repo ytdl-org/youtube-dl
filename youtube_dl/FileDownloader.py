@@ -455,7 +455,7 @@ class FileDownloader(object):
 
             # Warn if the _WORKING attribute is False
             if not ie.working():
-                self.to_stderr(u'WARNING: the program functionality for this site has been marked as broken, '
+                self.report_warning(u'the program functionality for this site has been marked as broken, '
                                u'and will probably not work. If you want to go on, use the -i option.')
 
             # Suitable InfoExtractor found
