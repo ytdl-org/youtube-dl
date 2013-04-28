@@ -167,6 +167,19 @@ In some cases, you don't want special characters such as 中, spaces, or &, such
     $ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc --restrict-filenames
     youtube-dl_test_video_.mp4          # A simple file name
 
+# VIDEO SELECTION
+
+Videos can be filtered by their upload date using the options `--date`, `--datebefore` or `--dateafter`, they accept dates in two formats:
+
+ - Absolute dates: Dates in the format `YYYYMMDD`.
+ - Relative dates: Dates in the format `(now|today)[+-][0-9](day|week|month|year)(s)?`
+ 
+Examples:
+
+	$ youtube-dl --dateafter now-6months #will only download the videos uploaded in the last 6 months
+	$ youtube-dl --date 19700101 #will only download the videos uploaded in January 1, 1970
+	$ youtube-dl --dateafter 20000101 --datebefore 20100101 #will only download the videos uploaded between 2000 and 2010
+
 # FAQ
 
 ### Can you please put the -b option back?
