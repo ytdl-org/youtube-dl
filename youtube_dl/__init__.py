@@ -236,9 +236,9 @@ def parseOpts(overrideArguments=None):
             help='print downloaded pages to debug problems(very verbose)')
 
     filesystem.add_option('-t', '--title',
-            action='store_true', dest='usetitle', help='use title in file name', default=False)
+            action='store_true', dest='usetitle', help='use title in file name (default)', default=False)
     filesystem.add_option('--id',
-            action='store_true', dest='useid', help='use video ID in file name', default=False)
+            action='store_true', dest='useid', help='use only video ID in file name', default=False)
     filesystem.add_option('-l', '--literal',
             action='store_true', dest='usetitle', help='[deprecated] alias of --title', default=False)
     filesystem.add_option('-A', '--auto-number',
@@ -470,7 +470,7 @@ def _real_main(argv=None):
             or (opts.usetitle and u'%(title)s-%(id)s.%(ext)s')
             or (opts.useid and u'%(id)s.%(ext)s')
             or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
-            or u'%(id)s.%(ext)s')
+            or u'%(title)s-%(id)s.%(ext)s')
 
     # File downloader
     fd = FileDownloader({
