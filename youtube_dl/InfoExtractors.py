@@ -2768,7 +2768,7 @@ class SoundcloudSetIE(InfoExtractor):
                 'id':       video_id,
                 'url':      mediaURL,
                 'uploader': track['user']['username'],
-                'upload_date':  track['created_at'],
+                'upload_date':  unified_strdate(track['created_at']),
                 'title':    track['title'],
                 'ext':      u'mp3',
                 'description': track['description'],
