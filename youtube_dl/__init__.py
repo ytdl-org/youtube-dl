@@ -146,6 +146,7 @@ def parseOpts(overrideArguments=None):
     general.add_option('--list-extractors',
             action='store_true', dest='list_extractors',
             help='List all supported extractors and the URLs they would handle', default=False)
+    general.add_option('--proxy', dest='proxy', default=None, help='Use the specified HTTP/HTTPS proxy')
     general.add_option('--test', action='store_true', dest='test', default=False, help=optparse.SUPPRESS_HELP)
 
     selection.add_option('--playlist-start',
@@ -376,10 +377,13 @@ def _real_main(argv=None):
 
     # General configuration
     cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
-    proxies = compat_urllib_request.getproxies()
-    # Set HTTPS proxy to HTTP one if given (https://github.com/rg3/youtube-dl/issues/805)
-    if 'http' in proxies and 'https' not in proxies:
-        proxies['https'] = proxies['http']
+    if opts.proxy:
+        proxies = {'http': opts.proxy, 'https': opts.proxy}
+    else:
+        proxies = compat_urllib_request.getproxies()
+        # Set HTTPS proxy to HTTP one if given (https://github.com/rg3/youtube-dl/issues/805)
+        if 'http' in proxies and 'https' not in proxies:
+            proxies['https'] = proxies['http']
     proxy_handler = compat_urllib_request.ProxyHandler(proxies)
     opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
     compat_urllib_request.install_opener(opener)
