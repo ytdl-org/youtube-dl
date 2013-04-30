@@ -30,7 +30,7 @@ class FakeDownloader(object):
         self.params = parameters
     def to_screen(self, s):
         print(s)
-    def trouble(self, s):
+    def trouble(self, s, tb=None):
         raise Exception(s)
     def download(self, x):
         self.result.append(x)

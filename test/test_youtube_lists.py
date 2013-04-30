@@ -29,7 +29,7 @@ class FakeDownloader(FileDownloader):
         self.params = parameters
     def to_screen(self, s):
         print(s)
-    def trouble(self, s):
+    def trouble(self, s, tb=None):
         raise Exception(s)
     def extract_info(self, url):
         self.result.append(url)
