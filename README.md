@@ -31,6 +31,7 @@ which means you can modify it, redistribute it or use it however you like.
                                is restricted to one domain
     --list-extractors          List all supported extractors and the URLs they
                                would handle
+    --proxy None               Use the specified HTTP/HTTPS proxy
 
 ## Video Selection:
     --playlist-start NUMBER    playlist video to start at (default is 1)
