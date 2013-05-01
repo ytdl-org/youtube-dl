@@ -7,6 +7,7 @@ import math
 import io
 import os
 import re
+import shutil
 import socket
 import subprocess
 import sys
@@ -79,6 +80,7 @@ class FileDownloader(object):
     updatetime:        Use the Last-modified header to set output file timestamps.
     writedescription:  Write the video description to a .description file
     writeinfojson:     Write the video description to a .info.json file
+    writethumbnail:    Write the thumbnail image to a file
     writesubtitles:    Write the video subtitles to a file
     onlysubtitles:     Downloads only the subtitles of the video
     allsubtitles:      Downloads all the subtitles of the video
@@ -657,6 +659,20 @@ class FileDownloader(object):
             except (OSError, IOError):
                 self.report_error(u'Cannot write metadata to JSON file ' + infofn)
                 return
+
+        if self.params.get('writethumbnail', False):
+            if 'thumbnail' in info_dict:
+                thumb_format = info_dict['thumbnail'].rpartition(u'/')[2].rpartition(u'.')[2]
+                if not thumb_format:
+                    thumb_format = 'jpg'
+                thumb_filename = filename.rpartition('.')[0] + u'.' + thumb_format
+                self.to_screen(u'[%s] %s: Downloading thumbnail ...' %
+                               (info_dict['extractor'], info_dict['id']))
+                uf = compat_urllib_request.urlopen(info_dict['thumbnail'])
+                with open(thumb_filename, 'wb') as thumbf:
+                    shutil.copyfileobj(uf, thumbf)
+                self.to_screen(u'[%s] %s: Writing thumbnail to: %s' %
+                               (info_dict['extractor'], info_dict['id'], thumb_filename))
 
         if not self.params.get('skip_download', False):
             if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(filename)):

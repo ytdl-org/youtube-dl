@@ -284,6 +284,9 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option('--write-info-json',
             action='store_true', dest='writeinfojson',
             help='write video metadata to a .info.json file', default=False)
+    filesystem.add_option('--write-thumbnail',
+            action='store_true', dest='writethumbnail',
+            help='write thumbnail image to disk', default=False)
 
 
     postproc.add_option('-x', '--extract-audio', action='store_true', dest='extractaudio', default=False,
@@ -513,6 +516,7 @@ def _real_main(argv=None):
         'updatetime': opts.updatetime,
         'writedescription': opts.writedescription,
         'writeinfojson': opts.writeinfojson,
+        'writethumbnail': opts.writethumbnail,
         'writesubtitles': opts.writesubtitles,
         'onlysubtitles': opts.onlysubtitles,
         'allsubtitles': opts.allsubtitles,
@@ -529,7 +533,7 @@ def _real_main(argv=None):
         'keepvideo': opts.keepvideo,
         'min_filesize': opts.min_filesize,
         'max_filesize': opts.max_filesize,
-        'daterange': date
+        'daterange': date,
         })
 
     if opts.verbose:
