@@ -84,6 +84,7 @@ which means you can modify it, redistribute it or use it however you like.
                                file modification time
     --write-description        write video description to a .description file
     --write-info-json          write video metadata to a .info.json file
+    --write-thumbnail          write thumbnail image to disk
 
 ## Verbosity / Simulation Options:
     -q, --quiet                activates quiet mode
