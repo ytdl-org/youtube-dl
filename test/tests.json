@@ -394,6 +394,15 @@
         }
       }
     ]
+  },
+  {
+    "name":"Bandcamp",
+    "url":"http://youtube-dl.bandcamp.com/track/youtube-dl-test-song",
+    "file":"1812978515.mp3",
+    "md5":"cdeb30cdae1921719a3cbcab696ef53c",
+    "info_dict": {
+      "title":"youtube-dl test song \"'/\\ä↭"
+    }
   }
 
 ]
