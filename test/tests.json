@@ -346,6 +346,54 @@
     "info_dict": {
         "title": "A sample video from LeeAnn. (If you need an idea..."
     }
+  },
+  {
+    "name": "SoundcloudSet",
+    "url":"https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep",
+    "playlist":[
+      {
+        "file":"30510138.mp3",
+        "md5":"f9136bf103901728f29e419d2c70f55d",
+        "info_dict": {
+          "title":"D-D-Dance"
+        }
+      },
+      {
+        "file":"47127625.mp3",
+        "md5":"09b6758a018470570f8fd423c9453dd8",
+        "info_dict": {
+          "title":"The Royal Concept - Gimme Twice"
+        }
+      },
+      {
+        "file":"47127627.mp3",
+        "md5":"154abd4e418cea19c3b901f1e1306d9c",
+        "info_dict": {
+          "title":"Goldrushed"
+        }
+      },
+      {
+        "file":"47127629.mp3",
+        "md5":"2f5471edc79ad3f33a683153e96a79c1",
+        "info_dict": {
+          "title":"In the End"
+        }
+      },
+      {
+        "file":"47127631.mp3",
+        "md5":"f9ba87aa940af7213f98949254f1c6e2",
+        "info_dict": {
+          "title":"Knocked Up"
+        }
+      },
+      {
+        "file":"75206121.mp3",
+        "md5":"f9d1fe9406717e302980c30de4af9353",
+        "info_dict": {
+          "title":"World On Fire"
+        }
+      }
+    ]
   }
 
 ]
