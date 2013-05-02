@@ -3625,7 +3625,7 @@ class WorldStarHipHopIE(InfoExtractor):
     IE_NAME = u'WorldStarHipHop'
 
     def _real_extract(self, url):
-        _src_url = r"""(http://hw-videos.*(?:mp4|flv))"""
+        _src_url = r"""(http://(hw-videos|hw-post1).*(?:mp4|flv))"""
 
         webpage_src = compat_urllib_request.urlopen(url).read()
         webpage_src = webpage_src.decode('utf-8')
