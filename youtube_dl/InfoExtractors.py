@@ -4267,8 +4267,8 @@ class TumblrIE(InfoExtractor):
 
         # The only place where you can get a title, it's not complete,
         # but searching in other places doesn't work for all videos
-        re_title = r'<title>(.*?) - (?P<title>.*?)</title>'
-        title = unescapeHTML(re.search(re_title, webpage).group('title'))
+        re_title = r'<title>(?P<title>.*?)</title>'
+        title = unescapeHTML(re.search(re_title, webpage, re.DOTALL).group('title'))
 
         return [{'id': video_id,
                  'url': video_url,
