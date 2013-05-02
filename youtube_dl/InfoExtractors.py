@@ -3512,7 +3512,7 @@ class WorldStarHipHopIE(InfoExtractor):
         if mobj is not None:
             title = mobj.group(1)
         else:
-            title = 'World Start Hip Hop - %s' % time.ctime()
+            title = 'World Star Hip Hop - %s' % time.ctime()
 
         _thumbnail = r"""rel="image_src" href="(.*)" />"""
         mobj = re.search(_thumbnail, webpage_src)
