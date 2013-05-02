@@ -3487,7 +3487,7 @@ class WorldStarHipHopIE(InfoExtractor):
     IE_NAME = u'WorldStarHipHop'
 
     def _real_extract(self, url):
-        _src_url = r"""(http://(hw-videos|hw-post)[0-9]*.*(?:mp4|flv))"""
+        _src_url = r'so\.addVariable\("file","(.*?)"\)'
 
         m = re.match(self._VALID_URL, url)
         video_id = m.group('id')
@@ -3497,7 +3497,7 @@ class WorldStarHipHopIE(InfoExtractor):
         mobj = re.search(_src_url, webpage_src)
 
         if mobj is not None:
-            video_url = mobj.group()
+            video_url = mobj.group(1)
             if 'mp4' in video_url:
                 ext = 'mp4'
             else:
