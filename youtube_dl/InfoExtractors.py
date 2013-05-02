@@ -3854,6 +3854,7 @@ class TEDIE(InfoExtractor):
                         |
                         ((?P<type_talk>talks)) # We have a simple talk
                    )
+                   (/lang/(.*?))? # The url may contain the language
                    /(?P<name>\w+) # Here goes the name and then ".html"
                    '''
 
