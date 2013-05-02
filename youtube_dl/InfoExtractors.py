@@ -1069,13 +1069,7 @@ class VimeoIE(InfoExtractor):
 
         # Retrieve video webpage to extract further information
         request = compat_urllib_request.Request(url, None, std_headers)
-        try:
-            self.report_download_webpage(video_id)
-            webpage_bytes = compat_urllib_request.urlopen(request).read()
-            webpage = webpage_bytes.decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'Unable to retrieve video webpage: %s' % compat_str(err))
-            return
+        webpage = self._download_webpage(request, video_id)
 
         # Now we begin extracting as much information as we can from what we
         # retrieved. First we extract the information common to all extractors,
@@ -1682,10 +1676,6 @@ class YoutubePlaylistIE(InfoExtractor):
         """Receives a URL and returns True if suitable for this IE."""
         return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
-    def report_download_page(self, playlist_id, pagenum):
-        """Report attempt to download playlist page with given number."""
-        self._downloader.to_screen(u'[youtube] PL %s: Downloading page #%s' % (playlist_id, pagenum))
-
     def _real_extract(self, url):
         # Extract playlist id
         mobj = re.match(self._VALID_URL, url, re.VERBOSE)
@@ -1699,14 +1689,8 @@ class YoutubePlaylistIE(InfoExtractor):
         videos = []
 
         while True:
-            self.report_download_page(playlist_id, page_num)
-
             url = self._TEMPLATE_URL % (playlist_id, self._MAX_RESULTS, self._MAX_RESULTS * (page_num - 1) + 1)
-            try:
-                page = compat_urllib_request.urlopen(url).read().decode('utf8')
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self._downloader.report_error(u'unable to download webpage: %s' % compat_str(err))
-                return
+            page = self._download_webpage(url, playlist_id, u'Downloading page #%s' % page_num)
 
             try:
                 response = json.loads(page)
@@ -1745,10 +1729,6 @@ class YoutubeChannelIE(InfoExtractor):
     _MORE_PAGES_URL = 'http://www.youtube.com/channel_ajax?action_load_more_videos=1&flow=list&paging=%s&view=0&sort=da&channel_id=%s'
     IE_NAME = u'youtube:channel'
 
-    def report_download_page(self, channel_id, pagenum):
-        """Report attempt to download channel page with given number."""
-        self._downloader.to_screen(u'[youtube] Channel %s: Downloading page #%s' % (channel_id, pagenum))
-
     def extract_videos_from_page(self, page):
         ids_in_page = []
         for mobj in re.finditer(r'href="/watch\?v=([0-9A-Za-z_-]+)&?', page):
@@ -1768,14 +1748,9 @@ class YoutubeChannelIE(InfoExtractor):
         video_ids = []
         pagenum = 1
 
-        self.report_download_page(channel_id, pagenum)
         url = self._TEMPLATE_URL % (channel_id, pagenum)
-        request = compat_urllib_request.Request(url)
-        try:
-            page = compat_urllib_request.urlopen(request).read().decode('utf8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable to download webpage: %s' % compat_str(err))
-            return
+        page = self._download_webpage(url, channel_id,
+                                      u'Downloading page #%s' % pagenum)
 
         # Extract video identifiers
         ids_in_page = self.extract_videos_from_page(page)
@@ -1786,14 +1761,9 @@ class YoutubeChannelIE(InfoExtractor):
             while True:
                 pagenum = pagenum + 1
 
-                self.report_download_page(channel_id, pagenum)
                 url = self._MORE_PAGES_URL % (pagenum, channel_id)
-                request = compat_urllib_request.Request(url)
-                try:
-                    page = compat_urllib_request.urlopen(request).read().decode('utf8')
-                except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                    self._downloader.report_error(u'unable to download webpage: %s' % compat_str(err))
-                    return
+                page = self._download_webpage(url, channel_id,
+                                              u'Downloading page #%s' % pagenum)
 
                 page = json.loads(page)
 
@@ -1820,11 +1790,6 @@ class YoutubeUserIE(InfoExtractor):
     _VIDEO_INDICATOR = r'/watch\?v=(.+?)[\<&]'
     IE_NAME = u'youtube:user'
 
-    def report_download_page(self, username, start_index):
-        """Report attempt to download user page."""
-        self._downloader.to_screen(u'[youtube] user %s: Downloading video ids from %d to %d' %
-                (username, start_index, start_index + self._GDATA_PAGE_SIZE))
-
     def _real_extract(self, url):
         # Extract username
         mobj = re.match(self._VALID_URL, url)
@@ -1844,15 +1809,10 @@ class YoutubeUserIE(InfoExtractor):
 
         while True:
             start_index = pagenum * self._GDATA_PAGE_SIZE + 1
-            self.report_download_page(username, start_index)
 
-            request = compat_urllib_request.Request(self._GDATA_URL % (username, self._GDATA_PAGE_SIZE, start_index))
-
-            try:
-                page = compat_urllib_request.urlopen(request).read().decode('utf-8')
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self._downloader.report_error(u'unable to download webpage: %s' % compat_str(err))
-                return
+            gdata_url = self._GDATA_URL % (username, self._GDATA_PAGE_SIZE, start_index)
+            page = self._download_webpage(gdata_url, username,
+                                          u'Downloading video ids from %d to %d' % (start_index, start_index + self._GDATA_PAGE_SIZE))
 
             # Extract video identifiers
             ids_in_page = []
@@ -1886,11 +1846,6 @@ class BlipTVUserIE(InfoExtractor):
     _PAGE_SIZE = 12
     IE_NAME = u'blip.tv:user'
 
-    def report_download_page(self, username, pagenum):
-        """Report attempt to download user page."""
-        self.to_screen(u'user %s: Downloading video ids from page %d' %
-                (username, pagenum))
-
     def _real_extract(self, url):
         # Extract username
         mobj = re.match(self._VALID_URL, url)
@@ -1902,15 +1857,9 @@ class BlipTVUserIE(InfoExtractor):
 
         page_base = 'http://m.blip.tv/pr/show_get_full_episode_list?users_id=%s&lite=0&esi=1'
 
-        request = compat_urllib_request.Request(url)
-
-        try:
-            page = compat_urllib_request.urlopen(request).read().decode('utf-8')
-            mobj = re.search(r'data-users-id="([^"]+)"', page)
-            page_base = page_base % mobj.group(1)
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable to download webpage: %s' % compat_str(err))
-            return
+        page = self._download_webpage(url, username, u'Downloading user page')
+        mobj = re.search(r'data-users-id="([^"]+)"', page)
+        page_base = page_base % mobj.group(1)
 
 
         # Download video ids using BlipTV Ajax calls. Result size per
@@ -1922,14 +1871,9 @@ class BlipTVUserIE(InfoExtractor):
         pagenum = 1
 
         while True:
-            self.report_download_page(username, pagenum)
             url = page_base + "&page=" + str(pagenum)
-            request = compat_urllib_request.Request( url )
-            try:
-                page = compat_urllib_request.urlopen(request).read().decode('utf-8')
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self._downloader.report_error(u'unable to download webpage: %s' % str(err))
-                return
+            page = self._download_webpage(url, username,
+                                          u'Downloading video ids from page %d' % pagenum)
 
             # Extract video identifiers
             ids_in_page = []
@@ -2288,12 +2232,6 @@ class ComedyCentralIE(InfoExtractor):
         """Receives a URL and returns True if suitable for this IE."""
         return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
-    def report_config_download(self, episode_id, media_id):
-        self.to_screen(u'%s: Downloading configuration for %s' % (episode_id, media_id))
-
-    def report_index_download(self, episode_id):
-        self.to_screen(u'%s: Downloading show index' % episode_id)
-
     def _print_formats(self, formats):
         print('Available formats:')
         for x in formats:
@@ -2327,15 +2265,8 @@ class ComedyCentralIE(InfoExtractor):
             else:
                 epTitle = mobj.group('episode')
 
-        req = compat_urllib_request.Request(url)
         self.report_extraction(epTitle)
-        try:
-            htmlHandle = compat_urllib_request.urlopen(req)
-            html = htmlHandle.read()
-            webpage = html.decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable to download webpage: %s' % compat_str(err))
-            return
+        webpage = self._download_webpage(url, epTitle)
         if dlNewest:
             url = htmlHandle.geturl()
             mobj = re.match(self._VALID_URL, url, re.VERBOSE)
@@ -2363,12 +2294,9 @@ class ComedyCentralIE(InfoExtractor):
 
         uri = mMovieParams[0][1]
         indexUrl = 'http://shadow.comedycentral.com/feeds/video_player/mrss/?' + compat_urllib_parse.urlencode({'uri': uri})
-        self.report_index_download(epTitle)
-        try:
-            indexXml = compat_urllib_request.urlopen(indexUrl).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable to download episode index: ' + compat_str(err))
-            return
+        indexXml = self._download_webpage(indexUrl, epTitle,
+                                          u'Downloading show index',
+                                          u'unable to download episode index')
 
         results = []
 
@@ -2383,13 +2311,8 @@ class ComedyCentralIE(InfoExtractor):
 
             configUrl = ('http://www.comedycentral.com/global/feeds/entertainment/media/mediaGenEntertainment.jhtml?' +
                         compat_urllib_parse.urlencode({'uri': mediaId}))
-            configReq = compat_urllib_request.Request(configUrl)
-            self.report_config_download(epTitle, shortMediaId)
-            try:
-                configXml = compat_urllib_request.urlopen(configReq).read()
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self._downloader.report_error(u'unable to download webpage: %s' % compat_str(err))
-                return
+            configXml = self._download_webpage(configUrl, epTitle,
+                                               u'Downloading configuration for %s' % shortMediaId)
 
             cdoc = xml.etree.ElementTree.fromstring(configXml)
             turls = []
@@ -2446,9 +2369,6 @@ class EscapistIE(InfoExtractor):
     _VALID_URL = r'^(https?://)?(www\.)?escapistmagazine\.com/videos/view/(?P<showname>[^/]+)/(?P<episode>[^/?]+)[/?]?.*$'
     IE_NAME = u'escapist'
 
-    def report_config_download(self, showName):
-        self.to_screen(u'%s: Downloading configuration' % showName)
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
@@ -2458,14 +2378,7 @@ class EscapistIE(InfoExtractor):
         videoId = mobj.group('episode')
 
         self.report_extraction(showName)
-        try:
-            webPage = compat_urllib_request.urlopen(url)
-            webPageBytes = webPage.read()
-            m = re.match(r'text/html; charset="?([^"]+)"?', webPage.headers['Content-Type'])
-            webPage = webPageBytes.decode(m.group(1) if m else 'utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable to download webpage: ' + compat_str(err))
-            return
+        webPage = self._download_webpage(url, showName)
 
         descMatch = re.search('<meta name="description" content="([^"]*)"', webPage)
         description = unescapeHTML(descMatch.group(1))
@@ -2476,14 +2389,9 @@ class EscapistIE(InfoExtractor):
         configUrlMatch = re.search('config=(.*)$', playerUrl)
         configUrl = compat_urllib_parse.unquote(configUrlMatch.group(1))
 
-        self.report_config_download(showName)
-        try:
-            configJSON = compat_urllib_request.urlopen(configUrl)
-            m = re.match(r'text/html; charset="?([^"]+)"?', configJSON.headers['Content-Type'])
-            configJSON = configJSON.read().decode(m.group(1) if m else 'utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable to download configuration: ' + compat_str(err))
-            return
+        configJSON = self._download_webpage(configUrl, showName,
+                                            u'Downloading configuration',
+                                            u'unable to download configuration')
 
         # Technically, it's JavaScript, not JSON
         configJSON = configJSON.replace("'", '"')
@@ -2661,31 +2569,22 @@ class SoundcloudIE(InfoExtractor):
         # extract simple title (uploader + slug of song title)
         slug_title =  mobj.group(2)
         simple_title = uploader + u'-' + slug_title
+        full_title = '%s/%s' % (uploader, slug_title)
 
-        self.report_resolve('%s/%s' % (uploader, slug_title))
+        self.report_resolve(full_title)
 
         url = 'http://soundcloud.com/%s/%s' % (uploader, slug_title)
         resolv_url = 'http://api.soundcloud.com/resolve.json?url=' + url + '&client_id=b45b1aa10f1ac2941910a7f0d10f8e28'
-        request = compat_urllib_request.Request(resolv_url)
-        try:
-            info_json_bytes = compat_urllib_request.urlopen(request).read()
-            info_json = info_json_bytes.decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable to download video webpage: %s' % compat_str(err))
-            return
+        info_json = self._download_webpage(resolv_url, full_title, u'Downloading info JSON')
 
         info = json.loads(info_json)
         video_id = info['id']
-        self.report_extraction('%s/%s' % (uploader, slug_title))
+        self.report_extraction(full_title)
 
         streams_url = 'https://api.sndcdn.com/i1/tracks/' + str(video_id) + '/streams?client_id=b45b1aa10f1ac2941910a7f0d10f8e28'
-        request = compat_urllib_request.Request(streams_url)
-        try:
-            stream_json_bytes = compat_urllib_request.urlopen(request).read()
-            stream_json = stream_json_bytes.decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable to download stream definitions: %s' % compat_str(err))
-            return
+        stream_json = self._download_webpage(streams_url, full_title,
+                                             u'Downloading stream definitions',
+                                             u'unable to download stream definitions')
 
         streams = json.loads(stream_json)
         mediaURL = streams['http_mp3_128_url']
@@ -2728,18 +2627,13 @@ class SoundcloudSetIE(InfoExtractor):
         # extract simple title (uploader + slug of song title)
         slug_title =  mobj.group(2)
         simple_title = uploader + u'-' + slug_title
+        full_title = '%s/sets/%s' % (uploader, slug_title)
 
-        self.report_resolve('%s/sets/%s' % (uploader, slug_title))
+        self.report_resolve(full_title)
 
         url = 'http://soundcloud.com/%s/sets/%s' % (uploader, slug_title)
         resolv_url = 'http://api.soundcloud.com/resolve.json?url=' + url + '&client_id=b45b1aa10f1ac2941910a7f0d10f8e28'
-        request = compat_urllib_request.Request(resolv_url)
-        try:
-            info_json_bytes = compat_urllib_request.urlopen(request).read()
-            info_json = info_json_bytes.decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable to download video webpage: %s' % compat_str(err))
-            return
+        info_json = self._download_webpage(resolv_url, full_title)
 
         videos = []
         info = json.loads(info_json)
@@ -2748,19 +2642,14 @@ class SoundcloudSetIE(InfoExtractor):
                 self._downloader.report_error(u'unable to download video webpage: %s' % compat_str(err['error_message']))
             return
 
+        self.report_extraction(full_title)
         for track in info['tracks']:
             video_id = track['id']
-            self.report_extraction('%s/sets/%s' % (uploader, slug_title))
 
             streams_url = 'https://api.sndcdn.com/i1/tracks/' + str(video_id) + '/streams?client_id=b45b1aa10f1ac2941910a7f0d10f8e28'
-            request = compat_urllib_request.Request(streams_url)
-            try:
-                stream_json_bytes = compat_urllib_request.urlopen(request).read()
-                stream_json = stream_json_bytes.decode('utf-8')
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self._downloader.report_error(u'unable to download stream definitions: %s' % compat_str(err))
-                return
+            stream_json = self._download_webpage(streams_url, video_id, u'Downloading track info JSON')
 
+            self.report_extraction(video_id)
             streams = json.loads(stream_json)
             mediaURL = streams['http_mp3_128_url']
 
@@ -3155,18 +3044,11 @@ class YoukuIE(InfoExtractor):
 
         info_url = 'http://v.youku.com/player/getPlayList/VideoIDS/' + video_id
 
-        request = compat_urllib_request.Request(info_url, None, std_headers)
-        try:
-            self.report_download_webpage(video_id)
-            jsondata = compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'Unable to retrieve video webpage: %s' % compat_str(err))
-            return
+        jsondata = self._download_webpage(info_url, video_id)
 
         self.report_extraction(video_id)
         try:
-            jsonstr = jsondata.decode('utf-8')
-            config = json.loads(jsonstr)
+            config = json.loads(jsondata)
 
             video_title =  config['data'][0]['title']
             seed = config['data'][0]['seed']
@@ -3234,15 +3116,8 @@ class XNXXIE(InfoExtractor):
             return
         video_id = mobj.group(1)
 
-        self.report_download_webpage(video_id)
-
         # Get webpage content
-        try:
-            webpage_bytes = compat_urllib_request.urlopen(url).read()
-            webpage = webpage_bytes.decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable to download video webpage: %s' % err)
-            return
+        webpage = self._download_webpage(url, video_id)
 
         result = re.search(self.VIDEO_URL_RE, webpage)
         if result is None:
@@ -3314,12 +3189,7 @@ class GooglePlusIE(InfoExtractor):
 
         # Step 1, Retrieve post webpage to extract further information
         self.report_extract_entry(post_url)
-        request = compat_urllib_request.Request(post_url)
-        try:
-            webpage = compat_urllib_request.urlopen(request).read().decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'Unable to retrieve entry webpage: %s' % compat_str(err))
-            return
+        webpage = self._download_webpage(post_url, video_id, u'Downloading entry webpage')
 
         # Extract update date
         upload_date = None
@@ -3356,12 +3226,7 @@ class GooglePlusIE(InfoExtractor):
             self._downloader.report_error(u'unable to extract video page URL')
 
         video_page = mobj.group(1)
-        request = compat_urllib_request.Request(video_page)
-        try:
-            webpage = compat_urllib_request.urlopen(request).read().decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'Unable to retrieve video webpage: %s' % compat_str(err))
-            return
+        webpage = self._download_webpage(video_page, video_id, u'Downloading video page')
         self.report_extract_vid_page(video_page)
 
 
@@ -3448,14 +3313,10 @@ class JustinTVIE(InfoExtractor):
                 (channel, offset, offset + self._JUSTIN_PAGE_LIMIT))
 
     # Return count of items, list of *valid* items
-    def _parse_page(self, url):
-        try:
-            urlh = compat_urllib_request.urlopen(url)
-            webpage_bytes = urlh.read()
-            webpage = webpage_bytes.decode('utf-8', 'ignore')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable to download video info JSON: %s' % compat_str(err))
-            return
+    def _parse_page(self, url, video_id):
+        webpage = self._download_webpage(url, video_id,
+                                         u'Downloading video info JSON',
+                                         u'unable to download video info JSON')
 
         response = json.loads(webpage)
         if type(response) != list:
@@ -3507,7 +3368,7 @@ class JustinTVIE(InfoExtractor):
             if paged:
                 self.report_download_page(video_id, offset)
             page_url = api + ('?offset=%d&limit=%d' % (offset, limit))
-            page_count, page_info = self._parse_page(page_url)
+            page_count, page_info = self._parse_page(page_url, video_id)
             info.extend(page_info)
             if not paged or page_count != limit:
                 break
@@ -3554,7 +3415,7 @@ class FunnyOrDieIE(InfoExtractor):
         return [info]
 
 class SteamIE(InfoExtractor):
-    _VALID_URL = r"""http://store.steampowered.com/
+    _VALID_URL = r"""http://store\.steampowered\.com/
                 (agecheck/)?
                 (?P<urltype>video|app)/ #If the page is only for videos or for a game
                 (?P<gameID>\d+)/?
@@ -3627,13 +3488,12 @@ class WorldStarHipHopIE(InfoExtractor):
     def _real_extract(self, url):
         _src_url = r'so\.addVariable\("file","(.*?)"\)'
 
-        webpage_src = compat_urllib_request.urlopen(url).read()
-        webpage_src = webpage_src.decode('utf-8')
-
-        mobj = re.search(_src_url, webpage_src)
-
         m = re.match(self._VALID_URL, url)
         video_id = m.group('id')
+
+        webpage_src = self._download_webpage(url, video_id) 
+
+        mobj = re.search(_src_url, webpage_src)
 
         if mobj is not None:
             video_url = mobj.group(1)
@@ -3988,12 +3848,13 @@ class KeekIE(InfoExtractor):
         return [info]
 
 class TEDIE(InfoExtractor):
-    _VALID_URL=r'''http://www.ted.com/
+    _VALID_URL=r'''http://www\.ted\.com/
                    (
                         ((?P<type_playlist>playlists)/(?P<playlist_id>\d+)) # We have a playlist
                         |
                         ((?P<type_talk>talks)) # We have a simple talk
                    )
+                   (/lang/(.*?))? # The url may contain the language
                    /(?P<name>\w+) # Here goes the name and then ".html"
                    '''
 
@@ -4244,7 +4105,7 @@ class ARDIE(InfoExtractor):
         return [info]
 
 class TumblrIE(InfoExtractor):
-    _VALID_URL = r'http://(?P<blog_name>.*?).tumblr.com/((post)|(video))/(?P<id>\d*)/(.*?)'
+    _VALID_URL = r'http://(?P<blog_name>.*?)\.tumblr\.com/((post)|(video))/(?P<id>\d*)/(.*?)'
 
     def _real_extract(self, url):
         m_url = re.match(self._VALID_URL, url)
@@ -4254,7 +4115,7 @@ class TumblrIE(InfoExtractor):
         url = 'http://%s.tumblr.com/post/%s/' % (blog, video_id)
         webpage = self._download_webpage(url, video_id)
 
-        re_video = r'src=\\x22(?P<video_url>http://%s.tumblr.com/video_file/%s/(.*?))\\x22 type=\\x22video/(?P<ext>.*?)\\x22' % (blog, video_id)
+        re_video = r'src=\\x22(?P<video_url>http://%s\.tumblr\.com/video_file/%s/(.*?))\\x22 type=\\x22video/(?P<ext>.*?)\\x22' % (blog, video_id)
         video = re.search(re_video, webpage)
         if video is None:
             self.to_screen("No video founded")
@@ -4267,8 +4128,8 @@ class TumblrIE(InfoExtractor):
 
         # The only place where you can get a title, it's not complete,
         # but searching in other places doesn't work for all videos
-        re_title = r'<title>(.*?) - (?P<title>.*?)</title>'
-        title = unescapeHTML(re.search(re_title, webpage).group('title'))
+        re_title = r'<title>(?P<title>.*?)</title>'
+        title = unescapeHTML(re.search(re_title, webpage, re.DOTALL).group('title'))
 
         return [{'id': video_id,
                  'url': video_url,
@@ -4278,7 +4139,7 @@ class TumblrIE(InfoExtractor):
                  }]
 
 class BandcampIE(InfoExtractor):
-    _VALID_URL = r'http://.*?.bandcamp.com/track/(?P<title>.*)'
+    _VALID_URL = r'http://.*?\.bandcamp\.com/track/(?P<title>.*)'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -4303,7 +4164,7 @@ class BandcampIE(InfoExtractor):
         mp3_info = info[u'downloads'][u'mp3-320']
         # If we try to use this url it says the link has expired
         initial_url = mp3_info[u'url']
-        re_url = r'(?P<server>http://(.*?).bandcamp.com)/download/track\?enc=mp3-320&fsig=(?P<fsig>.*?)&id=(?P<id>.*?)&ts=(?P<ts>.*)$'
+        re_url = r'(?P<server>http://(.*?)\.bandcamp\.com)/download/track\?enc=mp3-320&fsig=(?P<fsig>.*?)&id=(?P<id>.*?)&ts=(?P<ts>.*)$'
         m_url = re.match(re_url, initial_url)
         #We build the url we will use to get the final track url
         # This url is build in Bandcamp in the script download_bunde_*.js

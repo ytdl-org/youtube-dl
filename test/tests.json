@@ -112,7 +112,7 @@
   {
     "name": "Escapist",
     "url": "http://www.escapistmagazine.com/videos/view/the-escapist-presents/6618-Breaking-Down-Baldurs-Gate",
-    "file": "6618-Breaking-Down-Baldurs-Gate.flv",
+    "file": "6618-Breaking-Down-Baldurs-Gate.mp4",
     "md5": "c6793dbda81388f4264c1ba18684a74d",
     "skip": "Fails with timeout on Travis"
   },
@@ -344,7 +344,7 @@
     "file": "17258355236.mp4",
     "md5": "7c6a514d691b034ccf8567999e9e88a3",
     "info_dict": {
-        "title": "A sample video from LeeAnn. (If you need an idea..."
+        "title": "Calling all Pris! - A sample video from LeeAnn. (If you need an idea..."
     }
   },
   {
