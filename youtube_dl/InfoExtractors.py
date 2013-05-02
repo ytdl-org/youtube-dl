@@ -3554,7 +3554,7 @@ class FunnyOrDieIE(InfoExtractor):
         return [info]
 
 class SteamIE(InfoExtractor):
-    _VALID_URL = r"""http://store.steampowered.com/
+    _VALID_URL = r"""http://store\.steampowered\.com/
                 (agecheck/)?
                 (?P<urltype>video|app)/ #If the page is only for videos or for a game
                 (?P<gameID>\d+)/?
@@ -3988,7 +3988,7 @@ class KeekIE(InfoExtractor):
         return [info]
 
 class TEDIE(InfoExtractor):
-    _VALID_URL=r'''http://www.ted.com/
+    _VALID_URL=r'''http://www\.ted\.com/
                    (
                         ((?P<type_playlist>playlists)/(?P<playlist_id>\d+)) # We have a playlist
                         |
@@ -4244,7 +4244,7 @@ class ARDIE(InfoExtractor):
         return [info]
 
 class TumblrIE(InfoExtractor):
-    _VALID_URL = r'http://(?P<blog_name>.*?).tumblr.com/((post)|(video))/(?P<id>\d*)/(.*?)'
+    _VALID_URL = r'http://(?P<blog_name>.*?)\.tumblr\.com/((post)|(video))/(?P<id>\d*)/(.*?)'
 
     def _real_extract(self, url):
         m_url = re.match(self._VALID_URL, url)
@@ -4254,7 +4254,7 @@ class TumblrIE(InfoExtractor):
         url = 'http://%s.tumblr.com/post/%s/' % (blog, video_id)
         webpage = self._download_webpage(url, video_id)
 
-        re_video = r'src=\\x22(?P<video_url>http://%s.tumblr.com/video_file/%s/(.*?))\\x22 type=\\x22video/(?P<ext>.*?)\\x22' % (blog, video_id)
+        re_video = r'src=\\x22(?P<video_url>http://%s\.tumblr\.com/video_file/%s/(.*?))\\x22 type=\\x22video/(?P<ext>.*?)\\x22' % (blog, video_id)
         video = re.search(re_video, webpage)
         if video is None:
             self.to_screen("No video founded")
@@ -4278,7 +4278,7 @@ class TumblrIE(InfoExtractor):
                  }]
 
 class BandcampIE(InfoExtractor):
-    _VALID_URL = r'http://.*?.bandcamp.com/track/(?P<title>.*)'
+    _VALID_URL = r'http://.*?\.bandcamp\.com/track/(?P<title>.*)'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -4303,7 +4303,7 @@ class BandcampIE(InfoExtractor):
         mp3_info = info[u'downloads'][u'mp3-320']
         # If we try to use this url it says the link has expired
         initial_url = mp3_info[u'url']
-        re_url = r'(?P<server>http://(.*?).bandcamp.com)/download/track\?enc=mp3-320&fsig=(?P<fsig>.*?)&id=(?P<id>.*?)&ts=(?P<ts>.*)$'
+        re_url = r'(?P<server>http://(.*?)\.bandcamp\.com)/download/track\?enc=mp3-320&fsig=(?P<fsig>.*?)&id=(?P<id>.*?)&ts=(?P<ts>.*)$'
         m_url = re.match(re_url, initial_url)
         #We build the url we will use to get the final track url
         # This url is build in Bandcamp in the script download_bunde_*.js
