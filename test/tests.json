@@ -403,6 +403,11 @@
     "info_dict": {
       "title":"youtube-dl test song \"'/\\ä↭"
     }
+  },
+  {
+    "name": "Redtube",
+    "url": "http://www.redtube.com/279577",
+    "file": "Public invasion-279577.mp4",
+    "md5": "432d85211d178e06a62d049c4ca1c3e4"
   }
-
 ]
