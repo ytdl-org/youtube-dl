@@ -779,6 +779,39 @@ class MetacafeIE(InfoExtractor):
             'ext':      video_extension.decode('utf-8'),
         }]
 
+class RedtubeIE(InfoExtractor):
+    """Information Extractor for redtube"""
+    _VALID_URL = r'(?:http://)?(?:www\.)?redtube\.com/([^/]+)'
+    IE_NAME = u'redtube'
+
+    def _real_extract(self,url):
+        mobj = re.match(self._VALID_URL, url)
+        self.to_screen(u'Using redtubeIE')
+        if mobj is None:
+            self._downloader.report_error(u'invalid URL: %s' % url)
+            return
+        video_id = mobj.group(1).split('/')
+        video_extension = 'mp4'        
+        webpage = compat_urllib_request.urlopen(url).read()
+        self.report_extraction(video_id)
+        mobj = re.search(r'<source src="'+'(.+)'+'" type="video/mp4">',webpage)
+        if mobj is not None:
+            video_url = mobj.group(1)
+        else:
+            self._downloader.report_error(u'unable to extract media URL')
+            return
+        mobj = re.search('<h1 class="videoTitle slidePanelMovable">'+r'(.+)'+r'</h1>',webpage)
+        if mobj is not None:
+            video_title = mobj.group(1)
+        else:
+            video_title = 'Redtube - %s' % time.ctime()
+
+        return [{
+            'id':       video_id,
+            'url':      video_url,
+            'ext':      video_extension,
+            'title':    video_title,
+        }]
 
 class DailymotionIE(InfoExtractor):
     """Information Extractor for Dailymotion"""
@@ -4235,6 +4268,7 @@ def gen_extractors():
         KeekIE(),
         TEDIE(),
         MySpassIE(),
+        RedtubeIE(),
         SpiegelIE(),
         LiveLeakIE(),
         ARDIE(),
