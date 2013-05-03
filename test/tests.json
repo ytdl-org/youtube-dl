@@ -403,6 +403,14 @@
     "info_dict": {
       "title":"youtube-dl test song \"'/\\ä↭"
     }
+  },
+  {
+    "name": "Redtube",
+    "url": "http://www.redtube.com/66418",
+    "file": "66418.mp4",
+    "md5": "7b8c22b5e7098a3e1c09709df1126d2d",
+    "info_dict":{
+      "title":"Sucked on a toilet"
+    }
   }
-
 ]
