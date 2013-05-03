@@ -25,6 +25,7 @@ __authors__  = (
     'Jeff Crouse',
     'Osama Khalid',
     'Michael Walter',
+    'M. Yasoob Ullah Khalid',
     )
 
 __license__ = 'Public Domain'
