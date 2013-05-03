@@ -388,7 +388,8 @@ def _real_main(argv=None):
         if 'http' in proxies and 'https' not in proxies:
             proxies['https'] = proxies['http']
     proxy_handler = compat_urllib_request.ProxyHandler(proxies)
-    opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
+    https_handler = compat_urllib_request.HTTPSHandler()
+    opener = compat_urllib_request.build_opener(https_handler, proxy_handler, cookie_processor, YoutubeDLHandler())
     compat_urllib_request.install_opener(opener)
     socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
 

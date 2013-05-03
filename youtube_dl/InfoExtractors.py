@@ -4183,31 +4183,29 @@ class BandcampIE(InfoExtractor):
 
         return [track_info]
 
-class RedtubeIE(InfoExtractor):
+class RedTubeIE(InfoExtractor):
     """Information Extractor for redtube"""
     _VALID_URL = r'(?:http://)?(?:www\.)?redtube\.com/(?P<id>[0-9]+)'
-    IE_NAME = u'redtube'
 
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
+
         video_id = mobj.group('id')
         video_extension = 'mp4'        
         webpage = self._download_webpage(url, video_id)
         self.report_extraction(video_id)
         mobj = re.search(r'<source src="'+'(.+)'+'" type="video/mp4">',webpage)
-        if mobj is not None:
-            video_url = mobj.group(1)
-        else:
-            self._downloader.report_error(u'unable to extract media URL')
-            return
-        mobj = re.search('<h1 class="videoTitle slidePanelMovable">'+r'(.+)'+r'</h1>',webpage)
-        if mobj is not None:
-            video_title = mobj.group(1)
-        else:
-            video_title = 'Redtube - %s' % time.ctime()
+
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract media URL')
+
+        video_url = mobj.group(1)
+        mobj = re.search('<h1 class="videoTitle slidePanelMovable">(.+)</h1>',webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract title')
+        video_title = mobj.group(1)
 
         return [{
             'id':       video_id,
@@ -4272,7 +4270,7 @@ def gen_extractors():
         ARDIE(),
         TumblrIE(),
         BandcampIE(),
-        RedtubeIE(),
+        RedTubeIE(),
         GenericIE()
     ]
 
