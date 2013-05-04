@@ -3368,10 +3368,6 @@ class JustinTVIE(InfoExtractor):
             if not m:
                 raise ExtractorError(u'Cannot find archive of a chapter')
             archive_id = m.group(1)
-            m = re.search(r"<h2 class='js-title'>([^<]*)</h2>", webpage)
-            if not m:
-                raise ExtractorError(u'Cannot find chapter title')
-            video_title = m.group(1)
 
             api = api_base + '/broadcast/by_chapter/%s.xml' % chapter_id
             chapter_info_xml = self._download_webpage(api, chapter_id,
@@ -3387,6 +3383,12 @@ class JustinTVIE(InfoExtractor):
             video_url = a.find('./video_file_url').text
             video_ext = video_url.rpartition('.')[2] or u'flv'
 
+            chapter_api_url = u'https://api.twitch.tv/kraken/videos/c' + chapter_id
+            chapter_info_json = self._download_webpage(chapter_api_url, video_id,
+                                   note='Downloading chapter metadata',
+                                   errnote='Download of chapter metadata failed')
+            chapter_info = json.loads(chapter_info_json)
+
             # TODO determine start (and probably fix up file)
             #  youtube-dl -v http://www.twitch.tv/firmbelief/c/1757457
             #video_url += u'?start=' + a.find('./start_timestamp').text
@@ -3396,7 +3398,9 @@ class JustinTVIE(InfoExtractor):
                 'id': u'c' + chapter_id,
                 'url': video_url,
                 'ext': video_ext,
-                'title': video_title,
+                'title': chapter_info['title'],
+                'thumbnail': chapter_info['preview'],
+                'description': chapter_info['description'],
             }
             return [info]
         else:
