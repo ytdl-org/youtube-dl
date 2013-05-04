@@ -211,7 +211,7 @@ class YoutubeIE(InfoExtractor):
                      ([0-9A-Za-z_-]+)                                         # here is it! the YouTube video ID
                      (?(1).+)?                                                # if we found the ID, everything can follow
                      $"""
-    _LANG_URL = r'http://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
+    _LANG_URL = r'https://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
     _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
     _AGE_URL = 'http://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
     _NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
@@ -427,7 +427,7 @@ class YoutubeIE(InfoExtractor):
 
         # Log in
         login_form_strs = {
-                u'continue': u'http://www.youtube.com/signin?action_handle_signin=true&feature=sign_in_button&hl=en_US&nomobiletemp=1',
+                u'continue': u'https://www.youtube.com/signin?action_handle_signin=true&feature=sign_in_button&hl=en_US&nomobiletemp=1',
                 u'Email': username,
                 u'GALX': galx,
                 u'Passwd': password,
@@ -487,12 +487,12 @@ class YoutubeIE(InfoExtractor):
         # Extract original video URL from URL with redirection, like age verification, using next_url parameter
         mobj = re.search(self._NEXT_URL_RE, url)
         if mobj:
-            url = 'http://www.youtube.com/' + compat_urllib_parse.unquote(mobj.group(1)).lstrip('/')
+            url = 'https://www.youtube.com/' + compat_urllib_parse.unquote(mobj.group(1)).lstrip('/')
         video_id = self._extract_id(url)
 
         # Get video webpage
         self.report_video_webpage_download(video_id)
-        url = 'http://www.youtube.com/watch?v=%s&gl=US&hl=en&has_verified=1' % video_id
+        url = 'https://www.youtube.com/watch?v=%s&gl=US&hl=en&has_verified=1' % video_id
         request = compat_urllib_request.Request(url)
         try:
             video_webpage_bytes = compat_urllib_request.urlopen(request).read()
