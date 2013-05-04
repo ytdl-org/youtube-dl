@@ -3304,7 +3304,13 @@ class JustinTVIE(InfoExtractor):
     # starts at 1 and increases. Can we treat all parts as one video?
 
     _VALID_URL = r"""(?x)^(?:http://)?(?:www\.)?(?:twitch|justin)\.tv/
-        ([^/]+)(?:/b/([^/]+))?/?(?:\#.*)?$"""
+        (?:
+            (?P<channelid>[^/]+)|
+            (?:(?:[^/]+)/b/(?P<videoid>[^/]+))|
+            (?:(?:[^/]+)/c/(?P<chapterid>[^/]+))
+        )
+        /?(?:\#.*)?$
+        """
     _JUSTIN_PAGE_LIMIT = 100
     IE_NAME = u'justin.tv'
 
@@ -3346,18 +3352,43 @@ class JustinTVIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'invalid URL: %s' % url)
 
-        api = 'http://api.justin.tv'
-        video_id = mobj.group(mobj.lastindex)
+        api_base = 'http://api.justin.tv'
         paged = False
-        if mobj.lastindex == 1:
+        if mobj.group('channelid'):
             paged = True
-            api += '/channel/archives/%s.json'
+            video_id = mobj.group('channelid')
+            api = api_base + '/channel/archives/%s.json' % video_id
+        elif mobj.group('chapterid'):
+            chapter_id = mobj.group('chapterid')
+            #  youtube-dl -v http://www.twitch.tv/firmbelief/c/1757457
+
+            webpage = self._download_webpage(url, chapter_id)
+            m = re.search(r'PP\.archive_id = "([0-9]+)";', webpage)
+            if not m:
+                raise ExtractorError('Cannot find archive of a chapter')
+            archive_id = m.group(1)
+
+            api = api_base + '/broadcast/by_chapter/%s.json' % chapter_id
+            chapter_info_json = self._download_webpage(api, chapter_id,
+                                             note='Downloading chapter information',
+                                             errnote='Chapter information download failed')
+            chapter_info = json.loads(chapter_info_json)
+            video_info = filter(lambda ci: str(ci['id']) == archive_id, chapter_info)
+
+            video_url = 'TODO:SERVER_NAME' + '/archives/' + vi['file_name'] + '?start=TODO:startid'
+
+            # Result: http://store36.media36.justin.tv/archives/2012-12-2/live_user_firmbelief_1354484906.flv?start=51670615
+            # (this may not be playable, may need to craft some additional headers)
+            # TODO: title ("GOD", from webpage?)
+            # TODO: ext (from vi['file_name'])
+            # print(json.dumps(video_info, indent=2))
+            # return
+            raise NotImplementedError('twitch.tv chapters are not yet supported, sorry (See https://github.com/rg3/youtube-dl/issues/810 )')
         else:
-            api += '/broadcast/by_archive/%s.json'
-        api = api % (video_id,)
+            video_id = mobj.group('videoid')
+            api = api_base + '/broadcast/by_archive/%s.json' % video_id
 
         self.report_extraction(video_id)
 
