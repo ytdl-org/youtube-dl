@@ -3384,10 +3384,11 @@ class JustinTVIE(InfoExtractor):
             video_ext = video_url.rpartition('.')[2] or u'flv'
 
             chapter_api_url = u'https://api.twitch.tv/kraken/videos/c' + chapter_id
-            chapter_info_json = self._download_webpage(chapter_api_url, video_id,
+            chapter_info_json = self._download_webpage(chapter_api_url, u'c' + chapter_id,
                                    note='Downloading chapter metadata',
                                    errnote='Download of chapter metadata failed')
             chapter_info = json.loads(chapter_info_json)
+
 
             # TODO determine start (and probably fix up file)
             #  youtube-dl -v http://www.twitch.tv/firmbelief/c/1757457
@@ -3401,6 +3402,8 @@ class JustinTVIE(InfoExtractor):
                 'title': chapter_info['title'],
                 'thumbnail': chapter_info['preview'],
                 'description': chapter_info['description'],
+                'uploader': chapter_info['channel']['display_name'],
+                'uploader_id': chapter_info['channel']['name'],
             }
             return [info]
         else:
