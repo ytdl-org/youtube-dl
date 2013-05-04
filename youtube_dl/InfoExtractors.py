@@ -3362,30 +3362,43 @@ class JustinTVIE(InfoExtractor):
             api = api_base + '/channel/archives/%s.json' % video_id
         elif mobj.group('chapterid'):
             chapter_id = mobj.group('chapterid')
-            #  youtube-dl -v http://www.twitch.tv/firmbelief/c/1757457
 
             webpage = self._download_webpage(url, chapter_id)
             m = re.search(r'PP\.archive_id = "([0-9]+)";', webpage)
             if not m:
-                raise ExtractorError('Cannot find archive of a chapter')
+                raise ExtractorError(u'Cannot find archive of a chapter')
             archive_id = m.group(1)
+            m = re.search(r"<h2 class='js-title'>([^<]*)</h2>", webpage)
+            if not m:
+                raise ExtractorError(u'Cannot find chapter title')
+            video_title = m.group(1)
 
-            api = api_base + '/broadcast/by_chapter/%s.json' % chapter_id
-            chapter_info_json = self._download_webpage(api, chapter_id,
-                                             note='Downloading chapter information',
-                                             errnote='Chapter information download failed')
-            chapter_info = json.loads(chapter_info_json)
-            video_info = filter(lambda ci: str(ci['id']) == archive_id, chapter_info)
+            api = api_base + '/broadcast/by_chapter/%s.xml' % chapter_id
+            chapter_info_xml = self._download_webpage(api, chapter_id,
+                                             note=u'Downloading chapter information',
+                                             errnote=u'Chapter information download failed')
+            doc = xml.etree.ElementTree.fromstring(chapter_info_xml)
+            for a in doc.findall('.//archive'):
+                if archive_id == a.find('./id').text:
+                    break
+            else:
+                raise ExtractorError(u'Could not find chapter in chapter information')
 
-            video_url = 'TODO:SERVER_NAME' + '/archives/' + vi['file_name'] + '?start=TODO:startid'
+            video_url = a.find('./video_file_url').text
+            video_ext = video_url.rpartition('.')[2] or u'flv'
 
-            # Result: http://store36.media36.justin.tv/archives/2012-12-2/live_user_firmbelief_1354484906.flv?start=51670615
-            # (this may not be playable, may need to craft some additional headers)
-            # TODO: title ("GOD", from webpage?)
-            # TODO: ext (from vi['file_name'])
-            # print(json.dumps(video_info, indent=2))
-            # return
-            raise NotImplementedError('twitch.tv chapters are not yet supported, sorry (See https://github.com/rg3/youtube-dl/issues/810 )')
+            # TODO determine start (and probably fix up file)
+            #  youtube-dl -v http://www.twitch.tv/firmbelief/c/1757457
+            #video_url += u'?start=' + a.find('./start_timestamp').text
+            self._downloader.report_warning(u'Chapter detected, but we do not know how to calculate start position. Downloading the whole file ... (See https://github.com/rg3/youtube-dl/issues/810 )')
+
+            info = {
+                'id': u'c' + chapter_id,
+                'url': video_url,
+                'ext': video_ext,
+                'title': video_title,
+            }
+            return [info]
         else:
             video_id = mobj.group('videoid')
             api = api_base + '/broadcast/by_archive/%s.json' % video_id
