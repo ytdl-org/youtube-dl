@@ -149,6 +149,7 @@ def parseOpts(overrideArguments=None):
             action='store_true', dest='list_extractors',
             help='List all supported extractors and the URLs they would handle', default=False)
     general.add_option('--proxy', dest='proxy', default=None, help='Use the specified HTTP/HTTPS proxy', metavar='URL')
+    general.add_option('--no-check-certificate', action='store_true', dest='no_check_certificate', default=False, help='Suppress HTTPS certificate validation.')
     general.add_option('--test', action='store_true', dest='test', default=False, help=optparse.SUPPRESS_HELP)
 
     selection.add_option('--playlist-start',
@@ -395,7 +396,7 @@ def _real_main(argv=None):
         if 'http' in proxies and 'https' not in proxies:
             proxies['https'] = proxies['http']
     proxy_handler = compat_urllib_request.ProxyHandler(proxies)
-    https_handler = compat_urllib_request.HTTPSHandler()
+    https_handler = make_HTTPS_handler(opts)
     opener = compat_urllib_request.build_opener(https_handler, proxy_handler, cookie_processor, YoutubeDLHandler())
     compat_urllib_request.install_opener(opener)
     socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)

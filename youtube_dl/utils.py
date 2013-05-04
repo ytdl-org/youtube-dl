@@ -438,6 +438,20 @@ def formatSeconds(secs):
     else:
         return '%d' % secs
 
+def make_HTTPS_handler(opts):
+    if sys.version_info < (3,2):
+        # Python's 2.x handler is very simplistic
+        return compat_urllib_request.HTTPSHandler()
+    else:
+        import ssl
+        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        context.set_default_verify_paths()
+        
+        context.verify_mode = (ssl.CERT_NONE
+                               if opts.no_check_certificate
+                               else ssl.CERT_REQUIRED)
+        return compat_urllib_request.HTTPSHandler(context=context)
+
 class ExtractorError(Exception):
     """Error during info extraction."""
     def __init__(self, msg, tb=None):
