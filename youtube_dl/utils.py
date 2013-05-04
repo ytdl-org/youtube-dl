@@ -430,6 +430,14 @@ def decodeOption(optval):
     assert isinstance(optval, compat_str)
     return optval
 
+def formatSeconds(secs):
+    if secs > 3600:
+        return '%d:%02d:%02d' % (secs // 3600, (secs % 3600) // 60, secs % 60)
+    elif secs > 60:
+        return '%d:%02d' % (secs // 60, secs % 60)
+    else:
+        return '%d' % secs
+
 class ExtractorError(Exception):
     """Error during info extraction."""
     def __init__(self, msg, tb=None):

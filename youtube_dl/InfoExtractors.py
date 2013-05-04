@@ -3389,11 +3389,15 @@ class JustinTVIE(InfoExtractor):
                                    errnote='Download of chapter metadata failed')
             chapter_info = json.loads(chapter_info_json)
 
+            bracket_start = int(doc.find('.//bracket_start').text)
+            bracket_end = int(doc.find('.//bracket_end').text)
 
             # TODO determine start (and probably fix up file)
             #  youtube-dl -v http://www.twitch.tv/firmbelief/c/1757457
-            #video_url += u'?start=' + a.find('./start_timestamp').text
-            self._downloader.report_warning(u'Chapter detected, but we do not know how to calculate start position. Downloading the whole file ... (See https://github.com/rg3/youtube-dl/issues/810 )')
+            #video_url += u'?start=' + TODO:start_timestamp
+            # bracket_start is 13290, but we want 51670615
+            self._downloader.report_warning(u'Chapter detected, but we can just download the whole file. '
+                                            u'Chapter starts at %s and ends at %s' % (formatSeconds(bracket_start), formatSeconds(bracket_end)))
 
             info = {
                 'id': u'c' + chapter_id,
