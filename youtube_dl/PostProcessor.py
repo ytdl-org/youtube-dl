@@ -188,6 +188,11 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
         prefix, sep, ext = path.rpartition(u'.') # not os.path.splitext, since the latter does not work on unicode in all setups
         new_path = prefix + sep + extension
+
+        # If we download foo.mp3 and convert it to... foo.mp3, then don't delete foo.mp3, silly.
+        if new_path == path:
+            self._nopostoverwrites = True
+
         try:
             if self._nopostoverwrites and os.path.exists(encodeFilename(new_path)):
                 self._downloader.to_screen(u'[youtube] Post-process file %s exists, skipping' % new_path)
@@ -210,7 +215,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                 self._downloader.to_stderr(u'WARNING: Cannot update utime of audio file')
 
         information['filepath'] = new_path
-        return False,information
+        return self._nopostoverwrites,information
 
 class FFmpegVideoConvertor(FFmpegPostProcessor):
     def __init__(self, downloader=None,preferedformat=None):
