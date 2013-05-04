@@ -124,8 +124,8 @@ class InfoExtractor(object):
                 errnote = u'Unable to download webpage'
             raise ExtractorError(u'%s: %s' % (errnote, compat_str(err)), sys.exc_info()[2])
 
-    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None):
-        """ Returns the data of the page as a string """
+    def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None):
+        """ Returns a tuple (page content as string, URL handle) """
         urlh = self._request_webpage(url_or_request, video_id, note, errnote)
         content_type = urlh.headers.get('Content-Type', '')
         m = re.match(r'[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+\s*;\s*charset=(.+)', content_type)
@@ -142,7 +142,12 @@ class InfoExtractor(object):
             self.to_screen(u'Dumping request to ' + url)
             dump = base64.b64encode(webpage_bytes).decode('ascii')
             self._downloader.to_screen(dump)
-        return webpage_bytes.decode(encoding, 'replace')
+        content = webpage_bytes.decode(encoding, 'replace')
+        return (content, urlh)
+
+    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None):
+        """ Returns the data of the page as a string """
+        return self._download_webpage_handle(url_or_request, video_id, note, errnote)[0]
 
     def to_screen(self, msg):
         """Print msg to screen, prefixing it with '[ie_name]'"""
@@ -2265,16 +2270,14 @@ class ComedyCentralIE(InfoExtractor):
                 epTitle = mobj.group('episode')
 
         self.report_extraction(epTitle)
-        webpage = self._download_webpage(url, epTitle)
+        webpage,htmlHandle = self._download_webpage_handle(url, epTitle)
         if dlNewest:
             url = htmlHandle.geturl()
             mobj = re.match(self._VALID_URL, url, re.VERBOSE)
             if mobj is None:
-                self._downloader.report_error(u'Invalid redirected URL: ' + url)
-                return
+                raise ExtractorError(u'Invalid redirected URL: ' + url)
             if mobj.group('episode') == '':
-                self._downloader.report_error(u'Redirected URL is still not specific: ' + url)
-                return
+                raise ExtractorError(u'Redirected URL is still not specific: ' + url)
             epTitle = mobj.group('episode')
 
         mMovieParams = re.findall('(?:<param name="movie" value="|var url = ")(http://media.mtvnservices.com/([^"]*(?:episode|video).*?:.*?))"', webpage)
@@ -2286,8 +2289,7 @@ class ComedyCentralIE(InfoExtractor):
 
             altMovieParams = re.findall('data-mgid="([^"]*(?:episode|video).*?:.*?)"', webpage)
             if len(altMovieParams) == 0:
-                self._downloader.report_error(u'unable to find Flash URL in webpage ' + url)
-                return
+                raise ExtractorError(u'unable to find Flash URL in webpage ' + url)
             else:
                 mMovieParams = [("http://media.mtvnservices.com/" + altMovieParams[0], altMovieParams[0])]
 
