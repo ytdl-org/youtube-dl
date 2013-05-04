@@ -3322,8 +3322,7 @@ class JustinTVIE(InfoExtractor):
         response = json.loads(webpage)
         if type(response) != list:
             error_text = response.get('error', 'unknown error')
-            self._downloader.report_error(u'Justin.tv API: %s' % error_text)
-            return
+            raise ExtractorError(u'Justin.tv API: %s' % error_text)
         info = []
         for clip in response:
             video_url = clip['video_file_url']
@@ -3382,8 +3381,7 @@ class FunnyOrDieIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'invalid URL: %s' % url)
 
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
