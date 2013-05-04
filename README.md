@@ -32,6 +32,7 @@ which means you can modify it, redistribute it or use it however you like.
     --list-extractors          List all supported extractors and the URLs they
                                would handle
     --proxy URL                Use the specified HTTP/HTTPS proxy
+    --no-check-certificate     Suppress HTTPS certificate validation.
 
 ## Video Selection:
     --playlist-start NUMBER    playlist video to start at (default is 1)
