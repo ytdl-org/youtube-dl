@@ -3483,7 +3483,7 @@ class UstreamIE(InfoExtractor):
         return [info]
 
 class WorldStarHipHopIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www|m)\.worldstar(?:candy|hiphop)\.com/videos/video\.php\?v=(?P<id>.*)'
+    _VALID_URL = r'https?://(?:www|m)\.worldstar(?:candy|hiphop)\.com/videos/video\.php\?v=(?P<id>.*)'
     IE_NAME = u'WorldStarHipHop'
 
     def _real_extract(self, url):
@@ -3503,21 +3503,15 @@ class WorldStarHipHopIE(InfoExtractor):
             else:
                 ext = 'flv'
         else:
-            self._downloader.report_error(u'Cannot find video url for %s' % video_id)
-            return
+            raise ExtractorError(u'Cannot find video url for %s' % video_id)
 
-        _title = r"""<title>(.*)</title>"""
+        mobj = re.search(r"<title>(.*)</title>", webpage_src)
 
-        mobj = re.search(_title, webpage_src)
+        if mobj is None:
+            raise ExtractorError(u'Cannot determine title')
+        title = mobj.group(1)
 
-        if mobj is not None:
-            title = mobj.group(1)
-        else:
-            title = 'World Start Hip Hop - %s' % time.ctime()
-
-        _thumbnail = r"""rel="image_src" href="(.*)" />"""
-        mobj = re.search(_thumbnail, webpage_src)
-
+        mobj = re.search(r'rel="image_src" href="(.*)" />', webpage_src)
         # Getting thumbnail and if not thumbnail sets correct title for WSHH candy video.
         if mobj is not None:
             thumbnail = mobj.group(1)
