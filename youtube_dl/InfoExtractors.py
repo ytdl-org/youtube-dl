@@ -4245,7 +4245,7 @@ def gen_extractors():
         TumblrIE(),
         BandcampIE(),
         RedTubeIE(),
-        InaIE,
+        InaIE(),
         GenericIE()
     ]
 
