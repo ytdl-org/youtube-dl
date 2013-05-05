@@ -1494,82 +1494,53 @@ class YoutubeSearchIE(InfoExtractor):
 
 class GoogleSearchIE(InfoExtractor):
     """Information Extractor for Google Video search queries."""
-    _VALID_URL = r'gvsearch(\d+|all)?:[\s\S]+'
-    _TEMPLATE_URL = 'http://video.google.com/videosearch?q=%s+site:video.google.com&start=%s&hl=en'
-    _VIDEO_INDICATOR = r'<a href="http://video\.google\.com/videoplay\?docid=([^"\&]+)'
+    _VALID_URL = r'gvsearch(?P<prefix>|\d+|all):(?P<query>[\s\S]+)'
     _MORE_PAGES_INDICATOR = r'class="pn" id="pnnext"'
     _max_google_results = 1000
     IE_NAME = u'video.google:search'
 
-    def report_download_page(self, query, pagenum):
-        """Report attempt to download playlist page with given number."""
-        query = query.decode(preferredencoding())
-        self.to_screen(u'query "%s": Downloading page %s' % (query, pagenum))
-
     def _real_extract(self, query):
         mobj = re.match(self._VALID_URL, query)
-        if mobj is None:
-            self._downloader.report_error(u'invalid search query "%s"' % query)
-            return
 
-        prefix, query = query.split(':')
-        prefix = prefix[8:]
-        query = query.encode('utf-8')
+        prefix = mobj.group('prefix')
+        query = mobj.group('query')
         if prefix == '':
-            self._download_n_results(query, 1)
-            return
+            return self._download_n_results(query, 1)
         elif prefix == 'all':
-            self._download_n_results(query, self._max_google_results)
-            return
+            return self._download_n_results(query, self._max_google_results)
         else:
-            try:
-                n = int(prefix)
-                if n <= 0:
-                    self._downloader.report_error(u'invalid download number %s for query "%s"' % (n, query))
-                    return
-                elif n > self._max_google_results:
-                    self._downloader.report_warning(u'gvsearch returns max %i results (you requested %i)' % (self._max_google_results, n))
-                    n = self._max_google_results
-                self._download_n_results(query, n)
-                return
-            except ValueError: # parsing prefix as integer fails
-                self._download_n_results(query, 1)
-                return
+            n = int(prefix)
+            if n <= 0:
+                raise ExtractorError(u'invalid download number %s for query "%s"' % (n, query))
+            elif n > self._max_google_results:
+                self._downloader.report_warning(u'gvsearch returns max %i results (you requested %i)' % (self._max_google_results, n))
+                n = self._max_google_results
+            return self._download_n_results(query, n)
 
     def _download_n_results(self, query, n):
         """Downloads a specified number of results for a query"""
 
-        video_ids = []
-        pagenum = 0
+        res = {
+            '_type': 'playlist',
+            'id': query,
+            'entries': []
+        }
 
-        while True:
-            self.report_download_page(query, pagenum)
-            result_url = self._TEMPLATE_URL % (compat_urllib_parse.quote_plus(query), pagenum*10)
-            request = compat_urllib_request.Request(result_url)
-            try:
-                page = compat_urllib_request.urlopen(request).read()
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self._downloader.report_error(u'unable to download webpage: %s' % compat_str(err))
-                return
+        for pagenum in itertools.count(1):
+            result_url = u'http://video.google.com/videosearch?q=%s&start=%s&hl=en' % (compat_urllib_parse.quote_plus(query), pagenum*10)
+            webpage = self._download_webpage(result_url, u'gvsearch:' + query,
+                                             note='Downloading result page ' + str(pagenum))
 
             # Extract video identifiers
-            for mobj in re.finditer(self._VIDEO_INDICATOR, page):
-                video_id = mobj.group(1)
-                if video_id not in video_ids:
-                    video_ids.append(video_id)
-                    if len(video_ids) == n:
-                        # Specified n videos reached
-                        for id in video_ids:
-                            self._downloader.download(['http://video.google.com/videoplay?docid=%s' % id])
-                        return
+            for mobj in re.finditer(r'<h3 class="r"><a href="([^"]+)"', webpage):
+                e = {
+                    '_type': 'url',
+                    'url': mobj.group(1)
+                }
+                res['entries'].append(e)
 
-            if re.search(self._MORE_PAGES_INDICATOR, page) is None:
-                for id in video_ids:
-                    self._downloader.download(['http://video.google.com/videoplay?docid=%s' % id])
-                return
-
-            pagenum = pagenum + 1
-
+            if (pagenum * 10 > n) or not re.search(self._MORE_PAGES_INDICATOR, webpage):
+                return res
 
 class YahooSearchIE(InfoExtractor):
     """Information Extractor for Yahoo! Video search queries."""
