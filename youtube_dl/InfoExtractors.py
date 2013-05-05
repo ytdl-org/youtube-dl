@@ -848,7 +848,10 @@ class DailymotionIE(InfoExtractor):
 class PhotobucketIE(InfoExtractor):
     """Information extractor for photobucket.com."""
 
-    _VALID_URL = r'(?:http://)?(?:[a-z0-9]+\.)?photobucket\.com/.*[\?\&]current=(.*\.flv)'
+    # TODO: the original _VALID_URL was:
+    # r'(?:http://)?(?:[a-z0-9]+\.)?photobucket\.com/.*[\?\&]current=(.*\.flv)'
+    # Check if it's necessary to keep the old extracion process
+    _VALID_URL = r'(?:http://)?(?:[a-z0-9]+\.)?photobucket\.com/.*(([\?\&]current=)|_)(?P<id>.*)\.(?P<ext>(flv)|(mp4))'
     IE_NAME = u'photobucket'
 
     def _real_extract(self, url):
@@ -857,20 +860,30 @@ class PhotobucketIE(InfoExtractor):
         if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
 
-        video_id = mobj.group(1)
+        video_id = mobj.group('id')
 
-        video_extension = 'flv'
+        video_extension = mobj.group('ext')
 
         # Retrieve video webpage to extract further information
-        request = compat_urllib_request.Request(url)
-        try:
-            self.report_download_webpage(video_id)
-            webpage = compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'Unable to retrieve video webpage: %s' % compat_str(err))
+        webpage = self._download_webpage(url, video_id)
 
         # Extract URL, uploader, and title from webpage
         self.report_extraction(video_id)
+        # We try first by looking the javascript code:
+        mobj = re.search(r'Pb\.Data\.Shared\.put\(Pb\.Data\.Shared\.MEDIA, (?P<json>.*?)\);', webpage)
+        if mobj is not None:
+            info = json.loads(mobj.group('json'))
+            return [{
+                'id':       video_id,
+                'url':      info[u'downloadUrl'],
+                'uploader': info[u'username'],
+                'upload_date':  datetime.date.fromtimestamp(info[u'creationDate']).strftime('%Y%m%d'),
+                'title':    info[u'title'],
+                'ext':      video_extension,
+                'thumbnail': info[u'thumbUrl'],
+            }]
+
+        # We try looking in other parts of the webpage
         mobj = re.search(r'<link rel="video_src" href=".*\?file=([^"]+)" />', webpage)
         if mobj is None:
             raise ExtractorError(u'Unable to extract media URL')
