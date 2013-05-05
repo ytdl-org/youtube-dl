@@ -472,14 +472,12 @@ class YoutubeIE(InfoExtractor):
             self.report_age_confirmation()
             age_results = compat_urllib_request.urlopen(request).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable to confirm age: %s' % compat_str(err))
-            return
+            raise ExtractorError(u'Unable to confirm age: %s' % compat_str(err))
 
     def _extract_id(self, url):
         mobj = re.match(self._VALID_URL, url, re.VERBOSE)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
         video_id = mobj.group(2)
         return video_id
 
@@ -497,8 +495,7 @@ class YoutubeIE(InfoExtractor):
         try:
             video_webpage_bytes = compat_urllib_request.urlopen(request).read()
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable to download video webpage: %s' % compat_str(err))
-            return
+            raise ExtractorError(u'Unable to download video webpage: %s' % compat_str(err))
 
         video_webpage = video_webpage_bytes.decode('utf-8', 'ignore')
 
@@ -522,23 +519,20 @@ class YoutubeIE(InfoExtractor):
                 break
         if 'token' not in video_info:
             if 'reason' in video_info:
-                self._downloader.report_error(u'YouTube said: %s' % video_info['reason'][0])
+                raise ExtractorError(u'YouTube said: %s' % video_info['reason'][0])
             else:
-                self._downloader.report_error(u'"token" parameter not in video info for unknown reason')
-            return
+                raise ExtractorError(u'"token" parameter not in video info for unknown reason')
 
         # Check for "rental" videos
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
-            self._downloader.report_error(u'"rental" videos not supported')
-            return
+            raise ExtractorError(u'"rental" videos not supported')
 
         # Start extracting information
         self.report_information_extraction(video_id)
 
         # uploader
         if 'author' not in video_info:
-            self._downloader.report_error(u'unable to extract uploader name')
-            return
+            raise ExtractorError(u'Unable to extract uploader name')
         video_uploader = compat_urllib_parse.unquote_plus(video_info['author'][0])
 
         # uploader_id
@@ -551,8 +545,7 @@ class YoutubeIE(InfoExtractor):
 
         # title
         if 'title' not in video_info:
-            self._downloader.report_error(u'unable to extract video title')
-            return
+            raise ExtractorError(u'Unable to extract video title')
         video_title = compat_urllib_parse.unquote_plus(video_info['title'][0])
 
         # thumbnail image
@@ -699,8 +692,7 @@ class MetacafeIE(InfoExtractor):
             self.report_disclaimer()
             disclaimer = compat_urllib_request.urlopen(request).read()
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable to retrieve disclaimer: %s' % compat_str(err))
-            return
+            raise ExtractorError(u'Unable to retrieve disclaimer: %s' % compat_str(err))
 
         # Confirm age
         disclaimer_form = {
@@ -712,15 +704,13 @@ class MetacafeIE(InfoExtractor):
             self.report_age_confirmation()
             disclaimer = compat_urllib_request.urlopen(request).read()
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable to confirm age: %s' % compat_str(err))
-            return
+            raise ExtractorError(u'Unable to confirm age: %s' % compat_str(err))
 
     def _real_extract(self, url):
         # Extract id and simplified title from URL
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         video_id = mobj.group(1)
 
@@ -749,30 +739,25 @@ class MetacafeIE(InfoExtractor):
         else:
             mobj = re.search(r' name="flashvars" value="(.*?)"', webpage)
             if mobj is None:
-                self._downloader.report_error(u'unable to extract media URL')
-                return
+                raise ExtractorError(u'Unable to extract media URL')
             vardict = compat_parse_qs(mobj.group(1))
             if 'mediaData' not in vardict:
-                self._downloader.report_error(u'unable to extract media URL')
-                return
+                raise ExtractorError(u'Unable to extract media URL')
             mobj = re.search(r'"mediaURL":"(?P<mediaURL>http.*?)",(.*?)"key":"(?P<key>.*?)"', vardict['mediaData'][0])
             if mobj is None:
-                self._downloader.report_error(u'unable to extract media URL')
-                return
+                raise ExtractorError(u'Unable to extract media URL')
             mediaURL = mobj.group('mediaURL').replace('\\/', '/')
             video_extension = mediaURL[-3:]
             video_url = '%s?__gda__=%s' % (mediaURL, mobj.group('key'))
 
         mobj = re.search(r'(?im)<title>(.*) - Video</title>', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract title')
-            return
+            raise ExtractorError(u'Unable to extract title')
         video_title = mobj.group(1).decode('utf-8')
 
         mobj = re.search(r'submitter=(.*?);', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract uploader nickname')
-            return
+            raise ExtractorError(u'Unable to extract uploader nickname')
         video_uploader = mobj.group(1)
 
         return [{
@@ -794,8 +779,7 @@ class DailymotionIE(InfoExtractor):
         # Extract id and simplified title from URL
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         video_id = mobj.group(1).split('_')[0].split('?')[0]
 
@@ -810,8 +794,7 @@ class DailymotionIE(InfoExtractor):
         self.report_extraction(video_id)
         mobj = re.search(r'\s*var flashvars = (.*)', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract media URL')
-            return
+            raise ExtractorError(u'Unable to extract media URL')
         flashvars = compat_urllib_parse.unquote(mobj.group(1))
 
         for key in ['hd1080URL', 'hd720URL', 'hqURL', 'sdURL', 'ldURL', 'video_url']:
@@ -820,13 +803,11 @@ class DailymotionIE(InfoExtractor):
                 self.to_screen(u'Using %s' % key)
                 break
         else:
-            self._downloader.report_error(u'unable to extract video URL')
-            return
+            raise ExtractorError(u'Unable to extract video URL')
 
         mobj = re.search(r'"' + max_quality + r'":"(.+?)"', flashvars)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract video URL')
-            return
+            raise ExtractorError(u'Unable to extract video URL')
 
         video_url = compat_urllib_parse.unquote(mobj.group(1)).replace('\\/', '/')
 
@@ -834,8 +815,7 @@ class DailymotionIE(InfoExtractor):
 
         mobj = re.search(r'<meta property="og:title" content="(?P<title>[^"]*)" />', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract title')
-            return
+            raise ExtractorError(u'Unable to extract title')
         video_title = unescapeHTML(mobj.group('title'))
 
         video_uploader = None
@@ -868,43 +848,52 @@ class DailymotionIE(InfoExtractor):
 class PhotobucketIE(InfoExtractor):
     """Information extractor for photobucket.com."""
 
-    _VALID_URL = r'(?:http://)?(?:[a-z0-9]+\.)?photobucket\.com/.*[\?\&]current=(.*\.flv)'
+    # TODO: the original _VALID_URL was:
+    # r'(?:http://)?(?:[a-z0-9]+\.)?photobucket\.com/.*[\?\&]current=(.*\.flv)'
+    # Check if it's necessary to keep the old extracion process
+    _VALID_URL = r'(?:http://)?(?:[a-z0-9]+\.)?photobucket\.com/.*(([\?\&]current=)|_)(?P<id>.*)\.(?P<ext>(flv)|(mp4))'
     IE_NAME = u'photobucket'
 
     def _real_extract(self, url):
         # Extract id from URL
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'Invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
-        video_id = mobj.group(1)
+        video_id = mobj.group('id')
 
-        video_extension = 'flv'
+        video_extension = mobj.group('ext')
 
         # Retrieve video webpage to extract further information
-        request = compat_urllib_request.Request(url)
-        try:
-            self.report_download_webpage(video_id)
-            webpage = compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'Unable to retrieve video webpage: %s' % compat_str(err))
-            return
+        webpage = self._download_webpage(url, video_id)
 
         # Extract URL, uploader, and title from webpage
         self.report_extraction(video_id)
+        # We try first by looking the javascript code:
+        mobj = re.search(r'Pb\.Data\.Shared\.put\(Pb\.Data\.Shared\.MEDIA, (?P<json>.*?)\);', webpage)
+        if mobj is not None:
+            info = json.loads(mobj.group('json'))
+            return [{
+                'id':       video_id,
+                'url':      info[u'downloadUrl'],
+                'uploader': info[u'username'],
+                'upload_date':  datetime.date.fromtimestamp(info[u'creationDate']).strftime('%Y%m%d'),
+                'title':    info[u'title'],
+                'ext':      video_extension,
+                'thumbnail': info[u'thumbUrl'],
+            }]
+
+        # We try looking in other parts of the webpage
         mobj = re.search(r'<link rel="video_src" href=".*\?file=([^"]+)" />', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract media URL')
-            return
+            raise ExtractorError(u'Unable to extract media URL')
         mediaURL = compat_urllib_parse.unquote(mobj.group(1))
 
         video_url = mediaURL
 
         mobj = re.search(r'<title>(.*) video by (.*) - Photobucket</title>', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract title')
-            return
+            raise ExtractorError(u'Unable to extract title')
         video_title = mobj.group(1).decode('utf-8')
 
         video_uploader = mobj.group(2).decode('utf-8')
@@ -933,8 +922,7 @@ class YahooIE(InfoExtractor):
         # Extract ID from URL
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'Invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         video_id = mobj.group(2)
         video_extension = 'flv'
@@ -946,19 +934,16 @@ class YahooIE(InfoExtractor):
             try:
                 webpage = compat_urllib_request.urlopen(request).read()
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self._downloader.report_error(u'Unable to retrieve video webpage: %s' % compat_str(err))
-                return
+                raise ExtractorError(u'Unable to retrieve video webpage: %s' % compat_str(err))
 
             mobj = re.search(r'\("id", "([0-9]+)"\);', webpage)
             if mobj is None:
-                self._downloader.report_error(u'Unable to extract id field')
-                return
+                raise ExtractorError(u'Unable to extract id field')
             yahoo_id = mobj.group(1)
 
             mobj = re.search(r'\("vid", "([0-9]+)"\);', webpage)
             if mobj is None:
-                self._downloader.report_error(u'Unable to extract vid field')
-                return
+                raise ExtractorError(u'Unable to extract vid field')
             yahoo_vid = mobj.group(1)
 
             url = 'http://video.yahoo.com/watch/%s/%s' % (yahoo_vid, yahoo_id)
@@ -970,35 +955,30 @@ class YahooIE(InfoExtractor):
             self.report_download_webpage(video_id)
             webpage = compat_urllib_request.urlopen(request).read()
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'Unable to retrieve video webpage: %s' % compat_str(err))
-            return
+            raise ExtractorError(u'Unable to retrieve video webpage: %s' % compat_str(err))
 
         # Extract uploader and title from webpage
         self.report_extraction(video_id)
         mobj = re.search(r'<meta name="title" content="(.*)" />', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract video title')
-            return
+            raise ExtractorError(u'Unable to extract video title')
         video_title = mobj.group(1).decode('utf-8')
 
         mobj = re.search(r'<h2 class="ti-5"><a href="http://video\.yahoo\.com/(people|profile)/[0-9]+" beacon=".*">(.*)</a></h2>', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract video uploader')
-            return
+            raise ExtractorError(u'Unable to extract video uploader')
         video_uploader = mobj.group(1).decode('utf-8')
 
         # Extract video thumbnail
         mobj = re.search(r'<link rel="image_src" href="(.*)" />', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract video thumbnail')
-            return
+            raise ExtractorError(u'Unable to extract video thumbnail')
         video_thumbnail = mobj.group(1).decode('utf-8')
 
         # Extract video description
         mobj = re.search(r'<meta name="description" content="(.*)" />', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract video description')
-            return
+            raise ExtractorError(u'Unable to extract video description')
         video_description = mobj.group(1).decode('utf-8')
         if not video_description:
             video_description = 'No description available.'
@@ -1006,14 +986,12 @@ class YahooIE(InfoExtractor):
         # Extract video height and width
         mobj = re.search(r'<meta name="video_height" content="([0-9]+)" />', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract video height')
-            return
+            raise ExtractorError(u'Unable to extract video height')
         yv_video_height = mobj.group(1)
 
         mobj = re.search(r'<meta name="video_width" content="([0-9]+)" />', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract video width')
-            return
+            raise ExtractorError(u'Unable to extract video width')
         yv_video_width = mobj.group(1)
 
         # Retrieve video playlist to extract media URL
@@ -1028,14 +1006,12 @@ class YahooIE(InfoExtractor):
             self.report_download_webpage(video_id)
             webpage = compat_urllib_request.urlopen(request).read()
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'Unable to retrieve video webpage: %s' % compat_str(err))
-            return
+            raise ExtractorError(u'Unable to retrieve video webpage: %s' % compat_str(err))
 
         # Extract media URL from playlist XML
         mobj = re.search(r'<STREAM APP="(http://.*)" FULLPATH="/?(/.*\.flv\?[^"]*)"', webpage)
         if mobj is None:
-            self._downloader.report_error(u'Unable to extract media URL')
-            return
+            raise ExtractorError(u'Unable to extract media URL')
         video_url = compat_urllib_parse.unquote(mobj.group(1) + mobj.group(2)).decode('utf-8')
         video_url = unescapeHTML(video_url)
 
@@ -1062,8 +1038,7 @@ class VimeoIE(InfoExtractor):
         # Extract ID from URL
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'Invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         video_id = mobj.group('id')
         if not mobj.group('proto'):
@@ -1086,10 +1061,9 @@ class VimeoIE(InfoExtractor):
             config = json.loads(config)
         except:
             if re.search('The creator of this video has not given you permission to embed it on this domain.', webpage):
-                self._downloader.report_error(u'The author has restricted the access to this video, try with the "--referer" option')
+                raise ExtractorError(u'The author has restricted the access to this video, try with the "--referer" option')
             else:
-                self._downloader.report_error(u'unable to extract info section')
-            return
+                raise ExtractorError(u'Unable to extract info section')
 
         # Extract title
         video_title = config["video"]["title"]
@@ -1138,8 +1112,7 @@ class VimeoIE(InfoExtractor):
                 self.to_screen(u'%s: Downloading %s file at %s quality' % (video_id, video_codec.upper(), video_quality))
                 break
         else:
-            self._downloader.report_error(u'no known codec found')
-            return
+            raise ExtractorError(u'No known codec found')
 
         video_url = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=%s&type=moogaloop_local&embed_location=" \
                     %(video_id, sig, timestamp, video_quality, video_codec.upper())
@@ -1171,11 +1144,9 @@ class ArteTvIE(InfoExtractor):
             self.report_download_webpage(url)
             webpage = compat_urllib_request.urlopen(request).read()
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'Unable to retrieve video webpage: %s' % compat_str(err))
-            return
+            raise ExtractorError(u'Unable to retrieve video webpage: %s' % compat_str(err))
         except ValueError as err:
-            self._downloader.report_error(u'Invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
         return webpage
 
     def grep_webpage(self, url, regex, regexFlags, matchTuples):
@@ -1184,13 +1155,11 @@ class ArteTvIE(InfoExtractor):
         info = {}
 
         if mobj is None:
-            self._downloader.report_error(u'Invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         for (i, key, err) in matchTuples:
             if mobj.group(i) is None:
-                self._downloader.report_error(err)
-                return
+                raise ExtractorError(err)
             else:
                 info[key] = mobj.group(i)
 
@@ -1262,7 +1231,7 @@ class ArteTvIE(InfoExtractor):
             'id':           info.get('id'),
             'url':          compat_urllib_parse.unquote(info.get('url')),
             'uploader':     u'arte.tv',
-            'upload_date':  info.get('date'),
+            'upload_date':  unified_strdate(info.get('date')),
             'title':        info.get('title').decode('utf-8'),
             'ext':          u'mp4',
             'format':       u'NA',
@@ -1362,8 +1331,7 @@ class GenericIE(InfoExtractor):
         except ValueError as err:
             # since this is the last-resort InfoExtractor, if
             # this error is thrown, it'll be thrown here
-            self._downloader.report_error(u'Invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         self.report_extraction(video_id)
         # Start with something easy: JW Player in SWFObject
@@ -1375,14 +1343,12 @@ class GenericIE(InfoExtractor):
             # Broaden the search a little bit: JWPlayer JS loader
             mobj = re.search(r'[^A-Za-z0-9]?file:\s*["\'](http[^\'"&]*)', webpage)
         if mobj is None:
-            self._downloader.report_error(u'Invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         # It's possible that one of the regexes
         # matched, but returned an empty group:
         if mobj.group(1) is None:
-            self._downloader.report_error(u'Invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         video_url = compat_urllib_parse.unquote(mobj.group(1))
         video_id = os.path.basename(video_url)
@@ -1399,15 +1365,13 @@ class GenericIE(InfoExtractor):
         # and so on and so forth; it's just not practical
         mobj = re.search(r'<title>(.*)</title>', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract title')
-            return
+            raise ExtractorError(u'Unable to extract title')
         video_title = mobj.group(1)
 
         # video uploader is domain name
         mobj = re.match(r'(?:https?://)?([^/]*)/.*', url)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract title')
-            return
+            raise ExtractorError(u'Unable to extract title')
         video_uploader = mobj.group(1)
 
         return [{
@@ -1435,8 +1399,7 @@ class YoutubeSearchIE(InfoExtractor):
     def _real_extract(self, query):
         mobj = re.match(self._VALID_URL, query)
         if mobj is None:
-            self._downloader.report_error(u'invalid search query "%s"' % query)
-            return
+            raise ExtractorError(u'Invalid search query "%s"' % query)
 
         prefix, query = query.split(':')
         prefix = prefix[8:]
@@ -1449,8 +1412,7 @@ class YoutubeSearchIE(InfoExtractor):
             try:
                 n = int(prefix)
                 if n <= 0:
-                    self._downloader.report_error(u'invalid download number %s for query "%s"' % (n, query))
-                    return
+                    raise ExtractorError(u'Invalid download number %s for query "%s"' % (n, query))
                 elif n > self._max_youtube_results:
                     self._downloader.report_warning(u'ytsearch returns max %i results (you requested %i)' % (self._max_youtube_results, n))
                     n = self._max_youtube_results
@@ -1472,13 +1434,11 @@ class YoutubeSearchIE(InfoExtractor):
             try:
                 data = compat_urllib_request.urlopen(request).read().decode('utf-8')
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self._downloader.report_error(u'unable to download API page: %s' % compat_str(err))
-                return
+                raise ExtractorError(u'Unable to download API page: %s' % compat_str(err))
             api_response = json.loads(data)['data']
 
             if not 'items' in api_response:
-                self._downloader.report_error(u'[youtube] No video results')
-                return
+                raise ExtractorError(u'[youtube] No video results')
 
             new_ids = list(video['id'] for video in api_response['items'])
             video_ids += new_ids
@@ -1531,7 +1491,6 @@ class GoogleSearchIE(InfoExtractor):
             webpage = self._download_webpage(result_url, u'gvsearch:' + query,
                                              note='Downloading result page ' + str(pagenum))
 
-            # Extract video identifiers
             for mobj in re.finditer(r'<h3 class="r"><a href="([^"]+)"', webpage):
                 e = {
                     '_type': 'url',
@@ -1561,8 +1520,7 @@ class YahooSearchIE(InfoExtractor):
     def _real_extract(self, query):
         mobj = re.match(self._VALID_URL, query)
         if mobj is None:
-            self._downloader.report_error(u'invalid search query "%s"' % query)
-            return
+            raise ExtractorError(u'Invalid search query "%s"' % query)
 
         prefix, query = query.split(':')
         prefix = prefix[8:]
@@ -1577,8 +1535,7 @@ class YahooSearchIE(InfoExtractor):
             try:
                 n = int(prefix)
                 if n <= 0:
-                    self._downloader.report_error(u'invalid download number %s for query "%s"' % (n, query))
-                    return
+                    raise ExtractorError(u'Invalid download number %s for query "%s"' % (n, query))
                 elif n > self._max_yahoo_results:
                     self._downloader.report_warning(u'yvsearch returns max %i results (you requested %i)' % (self._max_yahoo_results, n))
                     n = self._max_yahoo_results
@@ -1602,8 +1559,7 @@ class YahooSearchIE(InfoExtractor):
             try:
                 page = compat_urllib_request.urlopen(request).read()
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self._downloader.report_error(u'unable to download webpage: %s' % compat_str(err))
-                return
+                raise ExtractorError(u'Unable to download webpage: %s' % compat_str(err))
 
             # Extract video identifiers
             for mobj in re.finditer(self._VIDEO_INDICATOR, page):
@@ -1655,8 +1611,7 @@ class YoutubePlaylistIE(InfoExtractor):
         # Extract playlist id
         mobj = re.match(self._VALID_URL, url, re.VERBOSE)
         if mobj is None:
-            self._downloader.report_error(u'invalid url: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         # Download playlist videos from API
         playlist_id = mobj.group(1) or mobj.group(2)
@@ -1670,12 +1625,10 @@ class YoutubePlaylistIE(InfoExtractor):
             try:
                 response = json.loads(page)
             except ValueError as err:
-                self._downloader.report_error(u'Invalid JSON in API response: ' + compat_str(err))
-                return
+                raise ExtractorError(u'Invalid JSON in API response: ' + compat_str(err))
 
             if 'feed' not in response:
-                self._downloader.report_error(u'Got a malformed response from YouTube API')
-                return
+                raise ExtractorError(u'Got a malformed response from YouTube API')
             playlist_title = response['feed']['title']['$t']
             if 'entry' not in response['feed']:
                 # Number of videos is a multiple of self._MAX_RESULTS
@@ -1715,8 +1668,7 @@ class YoutubeChannelIE(InfoExtractor):
         # Extract channel id
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid url: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         # Download channel page
         channel_id = mobj.group(1)
@@ -1769,8 +1721,7 @@ class YoutubeUserIE(InfoExtractor):
         # Extract username
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid url: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         username = mobj.group(1)
 
@@ -1825,8 +1776,7 @@ class BlipTVUserIE(InfoExtractor):
         # Extract username
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid url: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         username = mobj.group(1)
 
@@ -1892,8 +1842,7 @@ class DepositFilesIE(InfoExtractor):
             self.report_download_webpage(file_id)
             webpage = compat_urllib_request.urlopen(request).read()
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'Unable to retrieve file webpage: %s' % compat_str(err))
-            return
+            raise ExtractorError(u'Unable to retrieve file webpage: %s' % compat_str(err))
 
         # Search for the real file URL
         mobj = re.search(r'<form action="(http://fileshare.+?)"', webpage)
@@ -1902,10 +1851,9 @@ class DepositFilesIE(InfoExtractor):
             mobj = re.search(r'<strong>(Attention.*?)</strong>', webpage, re.DOTALL)
             if (mobj is not None) and (mobj.group(1) is not None):
                 restriction_message = re.sub('\s+', ' ', mobj.group(1)).strip()
-                self._downloader.report_error(u'%s' % restriction_message)
+                raise ExtractorError(u'%s' % restriction_message)
             else:
-                self._downloader.report_error(u'unable to extract download URL from: %s' % url)
-            return
+                raise ExtractorError(u'Unable to extract download URL from: %s' % url)
 
         file_url = mobj.group(1)
         file_extension = os.path.splitext(file_url)[1][1:]
@@ -1913,8 +1861,7 @@ class DepositFilesIE(InfoExtractor):
         # Search for file title
         mobj = re.search(r'<b title="(.*?)">', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract title')
-            return
+            raise ExtractorError(u'Unable to extract title')
         file_title = mobj.group(1).decode('utf-8')
 
         return [{
@@ -1986,8 +1933,7 @@ class FacebookIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
         video_id = mobj.group('ID')
 
         url = 'https://www.facebook.com/video/video.php?v=%s' % video_id
@@ -2040,8 +1986,7 @@ class BlipTVIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         urlp = compat_urllib_parse_urlparse(url)
         if urlp.path.startswith('/play/'):
@@ -2087,8 +2032,7 @@ class BlipTVIE(InfoExtractor):
                 json_code_bytes = urlh.read()
                 json_code = json_code_bytes.decode('utf-8')
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self._downloader.report_error(u'unable to read video info webpage: %s' % compat_str(err))
-                return
+                raise ExtractorError(u'Unable to read video info webpage: %s' % compat_str(err))
 
             try:
                 json_data = json.loads(json_code)
@@ -2118,8 +2062,7 @@ class BlipTVIE(InfoExtractor):
                     'user_agent': 'iTunes/10.6.1',
                 }
             except (ValueError,KeyError) as err:
-                self._downloader.report_error(u'unable to parse video information: %s' % repr(err))
-                return
+                raise ExtractorError(u'Unable to parse video information: %s' % repr(err))
 
         return [info]
 
@@ -2133,8 +2076,7 @@ class MyVideoIE(InfoExtractor):
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._download.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         video_id = mobj.group(1)
 
@@ -2146,14 +2088,12 @@ class MyVideoIE(InfoExtractor):
         mobj = re.search(r'<link rel=\'image_src\' href=\'(http://is[0-9].myvideo\.de/de/movie[0-9]+/[a-f0-9]+)/thumbs/.*?\.jpg\'',
                  webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract media URL')
-            return
+            raise ExtractorError(u'Unable to extract media URL')
         video_url = mobj.group(1) + ('/%s.flv' % video_id)
 
         mobj = re.search('<title>([^<]+)</title>', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract title')
-            return
+            raise ExtractorError(u'Unable to extract title')
 
         video_title = mobj.group(1)
 
@@ -2216,8 +2156,7 @@ class ComedyCentralIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url, re.VERBOSE)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         if mobj.group('shortname'):
             if mobj.group('shortname') in ('tds', 'thedailyshow'):
@@ -2344,8 +2283,7 @@ class EscapistIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
         showName = mobj.group('showname')
         videoId = mobj.group('episode')
 
@@ -2371,8 +2309,7 @@ class EscapistIE(InfoExtractor):
         try:
             config = json.loads(configJSON)
         except (ValueError,) as err:
-            self._downloader.report_error(u'Invalid JSON in configuration file: ' + compat_str(err))
-            return
+            raise ExtractorError(u'Invalid JSON in configuration file: ' + compat_str(err))
 
         playlist = config['playlist']
         videoUrl = playlist[1]['url']
@@ -2405,8 +2342,7 @@ class CollegeHumorIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
         video_id = mobj.group('videoid')
 
         info = {
@@ -2420,8 +2356,7 @@ class CollegeHumorIE(InfoExtractor):
         try:
             metaXml = compat_urllib_request.urlopen(xmlUrl).read()
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable to download video info XML: %s' % compat_str(err))
-            return
+            raise ExtractorError(u'Unable to download video info XML: %s' % compat_str(err))
 
         mdoc = xml.etree.ElementTree.fromstring(metaXml)
         try:
@@ -2431,16 +2366,14 @@ class CollegeHumorIE(InfoExtractor):
             info['thumbnail'] = videoNode.findall('./thumbnail')[0].text
             manifest_url = videoNode.findall('./file')[0].text
         except IndexError:
-            self._downloader.report_error(u'Invalid metadata XML file')
-            return
+            raise ExtractorError(u'Invalid metadata XML file')
 
         manifest_url += '?hdcore=2.10.3'
         self.report_manifest(video_id)
         try:
             manifestXml = compat_urllib_request.urlopen(manifest_url).read()
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable to download video info XML: %s' % compat_str(err))
-            return
+            raise ExtractorError(u'Unable to download video info XML: %s' % compat_str(err))
 
         adoc = xml.etree.ElementTree.fromstring(manifestXml)
         try:
@@ -2448,8 +2381,7 @@ class CollegeHumorIE(InfoExtractor):
             node_id = media_node.attrib['url']
             video_id = adoc.findall('./{http://ns.adobe.com/f4m/1.0}id')[0].text
         except IndexError as err:
-            self._downloader.report_error(u'Invalid manifest file')
-            return
+            raise ExtractorError(u'Invalid manifest file')
 
         url_pr = compat_urllib_parse_urlparse(manifest_url)
         url = url_pr.scheme + '://' + url_pr.netloc + '/z' + video_id[:-2] + '/' + node_id + 'Seg1-Frag1'
@@ -2468,8 +2400,7 @@ class XVideosIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
         video_id = mobj.group(1)
 
         webpage = self._download_webpage(url, video_id)
@@ -2480,24 +2411,21 @@ class XVideosIE(InfoExtractor):
         # Extract video URL
         mobj = re.search(r'flv_url=(.+?)&', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract video url')
-            return
+            raise ExtractorError(u'Unable to extract video url')
         video_url = compat_urllib_parse.unquote(mobj.group(1))
 
 
         # Extract title
         mobj = re.search(r'<title>(.*?)\s+-\s+XVID', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract video title')
-            return
+            raise ExtractorError(u'Unable to extract video title')
         video_title = mobj.group(1)
 
 
         # Extract video thumbnail
         mobj = re.search(r'http://(?:img.*?\.)xvideos.com/videos/thumbs/[a-fA-F0-9]+/[a-fA-F0-9]+/[a-fA-F0-9]+/[a-fA-F0-9]+/([a-fA-F0-9.]+jpg)', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract video thumbnail')
-            return
+            raise ExtractorError(u'Unable to extract video thumbnail')
         video_thumbnail = mobj.group(0)
 
         info = {
@@ -2533,8 +2461,7 @@ class SoundcloudIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         # extract uploader (which is in the url)
         uploader = mobj.group(1)
@@ -2591,8 +2518,7 @@ class SoundcloudSetIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         # extract uploader (which is in the url)
         uploader = mobj.group(1)
@@ -2644,8 +2570,7 @@ class InfoQIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         webpage = self._download_webpage(url, video_id=url)
         self.report_extraction(url)
@@ -2653,16 +2578,14 @@ class InfoQIE(InfoExtractor):
         # Extract video URL
         mobj = re.search(r"jsclassref ?= ?'([^']*)'", webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract video url')
-            return
+            raise ExtractorError(u'Unable to extract video url')
         real_id = compat_urllib_parse.unquote(base64.b64decode(mobj.group(1).encode('ascii')).decode('utf-8'))
         video_url = 'rtmpe://video.infoq.com/cfx/st/' + real_id
 
         # Extract title
         mobj = re.search(r'contentTitle = "(.*?)";', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract video title')
-            return
+            raise ExtractorError(u'Unable to extract video title')
         video_title = mobj.group(1)
 
         # Extract description
@@ -2737,8 +2660,7 @@ class MixcloudIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
         # extract uploader & filename from url
         uploader = mobj.group(1).decode('utf-8')
         file_id = uploader + "-" + mobj.group(2).decode('utf-8')
@@ -2751,8 +2673,7 @@ class MixcloudIE(InfoExtractor):
             self.report_download_json(file_url)
             jsonData = compat_urllib_request.urlopen(request).read()
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'Unable to retrieve file: %s' % compat_str(err))
-            return
+            raise ExtractorError(u'Unable to retrieve file: %s' % compat_str(err))
 
         # parse JSON
         json_data = json.loads(jsonData)
@@ -2775,8 +2696,7 @@ class MixcloudIE(InfoExtractor):
                     break # got it!
         else:
             if req_format not in formats:
-                self._downloader.report_error(u'format is not available')
-                return
+                raise ExtractorError(u'Format is not available')
 
             url_list = self.get_urls(formats, req_format)
             file_url = self.check_urls(url_list)
@@ -2821,15 +2741,13 @@ class StanfordOpenClassroomIE(InfoExtractor):
             try:
                 metaXml = compat_urllib_request.urlopen(xmlUrl).read()
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self._downloader.report_error(u'unable to download video info XML: %s' % compat_str(err))
-                return
+                raise ExtractorError(u'Unable to download video info XML: %s' % compat_str(err))
             mdoc = xml.etree.ElementTree.fromstring(metaXml)
             try:
                 info['title'] = mdoc.findall('./title')[0].text
                 info['url'] = baseUrl + mdoc.findall('./videoFile')[0].text
             except IndexError:
-                self._downloader.report_error(u'Invalid metadata XML file')
-                return
+                raise ExtractorError(u'Invalid metadata XML file')
             info['ext'] = info['url'].rpartition('.')[2]
             return [info]
         elif mobj.group('course'): # A course page
@@ -2880,8 +2798,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
             try:
                 rootpage = compat_urllib_request.urlopen(rootURL).read()
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self._downloader.report_error(u'unable to download course info page: ' + compat_str(err))
-                return
+                raise ExtractorError(u'Unable to download course info page: ' + compat_str(err))
 
             info['title'] = info['id']
 
@@ -2908,8 +2825,7 @@ class MTVIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
         if not mobj.group('proto'):
             url = 'http://' + url
         video_id = mobj.group('videoid')
@@ -2918,26 +2834,22 @@ class MTVIE(InfoExtractor):
 
         mobj = re.search(r'<meta name="mtv_vt" content="([^"]+)"/>', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract song name')
-            return
+            raise ExtractorError(u'Unable to extract song name')
         song_name = unescapeHTML(mobj.group(1).decode('iso-8859-1'))
         mobj = re.search(r'<meta name="mtv_an" content="([^"]+)"/>', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract performer')
-            return
+            raise ExtractorError(u'Unable to extract performer')
         performer = unescapeHTML(mobj.group(1).decode('iso-8859-1'))
         video_title = performer + ' - ' + song_name
 
         mobj = re.search(r'<meta name="mtvn_uri" content="([^"]+)"/>', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to mtvn_uri')
-            return
+            raise ExtractorError(u'Unable to mtvn_uri')
         mtvn_uri = mobj.group(1)
 
         mobj = re.search(r'MTVN.Player.defaultPlaylistId = ([0-9]+);', webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract content id')
-            return
+            raise ExtractorError(u'Unable to extract content id')
         content_id = mobj.group(1)
 
         videogen_url = 'http://www.mtv.com/player/includes/mediaGen.jhtml?uri=' + mtvn_uri + '&id=' + content_id + '&vid=' + video_id + '&ref=www.mtvn.com&viewUri=' + mtvn_uri
@@ -2946,8 +2858,7 @@ class MTVIE(InfoExtractor):
         try:
             metadataXml = compat_urllib_request.urlopen(request).read()
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_error(u'unable to download video metadata: %s' % compat_str(err))
-            return
+            raise ExtractorError(u'Unable to download video metadata: %s' % compat_str(err))
 
         mdoc = xml.etree.ElementTree.fromstring(metadataXml)
         renditions = mdoc.findall('.//rendition')
@@ -2960,8 +2871,7 @@ class MTVIE(InfoExtractor):
             format = ext + '-' + rendition.attrib['width'] + 'x' + rendition.attrib['height'] + '_' + rendition.attrib['bitrate']
             video_url = rendition.find('./src').text
         except KeyError:
-            self._downloader.report_error('Invalid rendition field.')
-            return
+            raise ExtractorError('Invalid rendition field.')
 
         info = {
             'id': video_id,
@@ -3010,8 +2920,7 @@ class YoukuIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
         video_id = mobj.group('ID')
 
         info_url = 'http://v.youku.com/player/getPlayList/VideoIDS/' + video_id
@@ -3045,8 +2954,7 @@ class YoukuIE(InfoExtractor):
             fileid = config['data'][0]['streamfileids'][format]
             keys = [s['k'] for s in config['data'][0]['segs'][format]]
         except (UnicodeDecodeError, ValueError, KeyError):
-            self._downloader.report_error(u'unable to extract info section')
-            return
+            raise ExtractorError(u'Unable to extract info section')
 
         files_info=[]
         sid = self._gen_sid()
@@ -3084,8 +2992,7 @@ class XNXXIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
         video_id = mobj.group(1)
 
         # Get webpage content
@@ -3093,20 +3000,17 @@ class XNXXIE(InfoExtractor):
 
         result = re.search(self.VIDEO_URL_RE, webpage)
         if result is None:
-            self._downloader.report_error(u'unable to extract video url')
-            return
+            raise ExtractorError(u'Unable to extract video url')
         video_url = compat_urllib_parse.unquote(result.group(1))
 
         result = re.search(self.VIDEO_TITLE_RE, webpage)
         if result is None:
-            self._downloader.report_error(u'unable to extract video title')
-            return
+            raise ExtractorError(u'Unable to extract video title')
         video_title = result.group(1)
 
         result = re.search(self.VIDEO_THUMB_RE, webpage)
         if result is None:
-            self._downloader.report_error(u'unable to extract video thumbnail')
-            return
+            raise ExtractorError(u'Unable to extract video thumbnail')
         video_thumbnail = result.group(1)
 
         return [{
@@ -3151,8 +3055,7 @@ class GooglePlusIE(InfoExtractor):
         # Extract id from URL
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'Invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         post_url = mobj.group(0)
         video_id = mobj.group(1)
@@ -3195,7 +3098,7 @@ class GooglePlusIE(InfoExtractor):
         pattern = '"(https\://plus\.google\.com/photos/.*?)",,"image/jpeg","video"\]'
         mobj = re.search(pattern, webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract video page URL')
+            raise ExtractorError(u'Unable to extract video page URL')
 
         video_page = mobj.group(1)
         webpage = self._download_webpage(video_page, video_id, u'Downloading video page')
@@ -3207,7 +3110,7 @@ class GooglePlusIE(InfoExtractor):
         pattern = '\d+,\d+,(\d+),"(http\://redirector\.googlevideo\.com.*?)"'
         mobj = re.findall(pattern, webpage)
         if len(mobj) == 0:
-            self._downloader.report_error(u'unable to extract video links')
+            raise ExtractorError(u'Unable to extract video links')
 
         # Sort in resolution
         links = sorted(mobj)
@@ -3239,8 +3142,7 @@ class NBAIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         video_id = mobj.group(1)
         if video_id.endswith('/index.html'):
@@ -3414,14 +3316,14 @@ class FunnyOrDieIE(InfoExtractor):
 
         m = re.search(r'<video[^>]*>\s*<source[^>]*>\s*<source src="(?P<url>[^"]+)"', webpage, re.DOTALL)
         if not m:
-            self._downloader.report_error(u'unable to find video information')
+            raise ExtractorError(u'Unable to find video information')
         video_url = unescapeHTML(m.group('url'))
 
         m = re.search(r"<h1 class='player_page_h1'.*?>(?P<title>.*?)</h1>", webpage, flags=re.DOTALL)
         if not m:
             m = re.search(r'<title>(?P<title>[^<]+?)</title>', webpage)
             if not m:
-                self._downloader.report_error(u'Cannot find video title')
+                raise ExtractorError(u'Cannot find video title')
         title = clean_html(m.group('title'))
 
         m = re.search(r'<meta property="og:description" content="(?P<desc>.*?)"', webpage)
@@ -3473,7 +3375,7 @@ class SteamIE(InfoExtractor):
             video_url = vid.group('videoURL')
             video_thumb = thumb.group('thumbnail')
             if not video_url:
-                self._downloader.report_error(u'Cannot find video url for %s' % video_id)
+                raise ExtractorError(u'Cannot find video url for %s' % video_id)
             info = {
                 'id':video_id,
                 'url':video_url,
@@ -3612,8 +3514,7 @@ class YouPornIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         video_id = mobj.group('videoid')
 
@@ -3704,8 +3605,7 @@ class YouPornIE(InfoExtractor):
         else:
             format = self._specific( req_format, formats )
             if result is None:
-                self._downloader.report_error(u'requested format not available')
-                return
+                raise ExtractorError(u'Requested format not available')
             return [format]
 
 
@@ -3717,8 +3617,7 @@ class PornotubeIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         video_id = mobj.group('videoid')
         video_title = mobj.group('title')
@@ -3730,16 +3629,14 @@ class PornotubeIE(InfoExtractor):
         VIDEO_URL_RE = r'url: "(?P<url>http://video[0-9].pornotube.com/.+\.flv)",'
         result = re.search(VIDEO_URL_RE, webpage)
         if result is None:
-            self._downloader.report_error(u'unable to extract video url')
-            return
+            raise ExtractorError(u'Unable to extract video url')
         video_url = compat_urllib_parse.unquote(result.group('url'))
 
         #Get the uploaded date
         VIDEO_UPLOADED_RE = r'<div class="video_added_by">Added (?P<date>[0-9\/]+) by'
         result = re.search(VIDEO_UPLOADED_RE, webpage)
         if result is None:
-            self._downloader.report_error(u'unable to extract video title')
-            return
+            raise ExtractorError(u'Unable to extract video title')
         upload_date = unified_strdate(result.group('date'))
 
         info = {'id': video_id,
@@ -3759,8 +3656,7 @@ class YouJizzIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         video_id = mobj.group('videoid')
 
@@ -3966,14 +3862,12 @@ class MySpassIE(InfoExtractor):
         # extract values from metadata
         url_flv_el = metadata.find('url_flv')
         if url_flv_el is None:
-            self._downloader.report_error(u'unable to extract download url')
-            return
+            raise ExtractorError(u'Unable to extract download url')
         video_url = url_flv_el.text
         extension = os.path.splitext(video_url)[1][1:]
         title_el = metadata.find('title')
         if title_el is None:
-            self._downloader.report_error(u'unable to extract title')
-            return
+            raise ExtractorError(u'Unable to extract title')
         title = title_el.text
         format_id_el = metadata.find('format_id')
         if format_id_el is None:
@@ -4042,8 +3936,7 @@ class LiveLeakIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            self._downloader.report_error(u'invalid URL: %s' % url)
-            return
+            raise ExtractorError(u'Invalid URL: %s' % url)
 
         video_id = mobj.group('video_id')
 
@@ -4051,13 +3944,12 @@ class LiveLeakIE(InfoExtractor):
 
         m = re.search(r'file: "(.*?)",', webpage)
         if not m:
-            self._downloader.report_error(u'unable to find video url')
-            return
+            raise ExtractorError(u'Unable to find video url')
         video_url = m.group(1)
 
         m = re.search(r'<meta property="og:title" content="(?P<title>.*?)"', webpage)
         if not m:
-            self._downloader.report_error(u'Cannot find video title')
+            raise ExtractorError(u'Cannot find video title')
         title = unescapeHTML(m.group('title')).replace('LiveLeak.com -', '').strip()
 
         m = re.search(r'<meta property="og:description" content="(?P<desc>.*?)"', webpage)
@@ -4104,8 +3996,7 @@ class ARDIE(InfoExtractor):
         streams = [m.groupdict() for m in re.finditer(self._MEDIA_STREAM, html)]
         if not streams:
             assert '"fsk"' in html
-            self._downloader.report_error(u'this video is only available after 8:00 pm')
-            return
+            raise ExtractorError(u'This video is only available after 8:00 pm')
 
         # choose default media type and highest quality for now
         stream = max([s for s in streams if int(s["media_type"]) == 0],
@@ -4167,8 +4058,8 @@ class BandcampIE(InfoExtractor):
         # We get the link to the free download page
         m_download = re.search(r'freeDownloadPage: "(.*?)"', webpage)
         if m_download is None:
-            self._downloader.report_error('No free songs founded')
-            return
+            raise ExtractorError(u'No free songs founded')
+
         download_link = m_download.group(1)
         id = re.search(r'var TralbumData = {(.*?)id: (?P<id>\d*?)$', 
                        webpage, re.MULTILINE|re.DOTALL).group('id')
