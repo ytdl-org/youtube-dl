@@ -435,47 +435,40 @@ class FileDownloader(object):
                 return u'[download] %s upload date is not in range %s' % (date_from_str(date).isoformat(), dateRange)
         return None
         
-    def extract_info(self, url, download = True, ie_name = None):
+    def extract_info(self, url, download=True, ie_key=None):
         '''
         Returns a list with a dictionary for each video we find.
         If 'download', also downloads the videos.
          '''
-        suitable_found = False
         
-        #We copy the original list
-        ies = list(self._ies)
-
-        if ie_name is not None:
-            #We put in the first place the given info extractor
-            first_ie = get_info_extractor(ie_name)()
-            first_ie.set_downloader(self)
-            ies.insert(0, first_ie)
+        if ie_key:
+            ie = get_info_extractor(ie_key)()
+            ie.set_downloader(self)
+            ies = [ie]
+        else:
+            ies = self._ies
 
         for ie in ies:
-            # Go to next InfoExtractor if not suitable
             if not ie.suitable(url):
                 continue
 
-            # Warn if the _WORKING attribute is False
             if not ie.working():
-                self.report_warning(u'the program functionality for this site has been marked as broken, '
-                               u'and will probably not work. If you want to go on, use the -i option.')
+                self.report_warning(u'The program functionality for this site has been marked as broken, '
+                                    u'and will probably not work.')
 
-            # Suitable InfoExtractor found
-            suitable_found = True
-
-            # Extract information from URL and process it
             try:
-                ie_results = ie.extract(url)
-                if ie_results is None: # Finished already (backwards compatibility; listformats and friends should be moved here)
+                ie_result = ie.extract(url)
+                if ie_result is None: # Finished already (backwards compatibility; listformats and friends should be moved here)
                     break
-                results = []
-                for ie_result in ie_results:
-                    if not 'extractor' in ie_result:
-                        #The extractor has already been set somewhere else
-                        ie_result['extractor'] = ie.IE_NAME
-                    results.append(self.process_ie_result(ie_result, download))
-                return results
+                if isinstance(ie_result, list):
+                    # Backwards compatibility: old IE result format
+                    ie_result = {
+                        '_type': 'compat_list',
+                        'entries': ie_result,
+                    }
+                if 'extractor' not in ie_result:
+                    ie_result['extractor'] = ie.IE_NAME
+                return self.process_ie_result(ie_result, download=download)
             except ExtractorError as de: # An error we somewhat expected
                 self.report_error(compat_str(de), de.format_traceback())
                 break
@@ -485,33 +478,31 @@ class FileDownloader(object):
                     break
                 else:
                     raise
-        if not suitable_found:
-                self.report_error(u'no suitable InfoExtractor: %s' % url)
+        else:
+            self.report_error(u'no suitable InfoExtractor: %s' % url)
         
-    def process_ie_result(self, ie_result, download = True):
+    def process_ie_result(self, ie_result, download=True):
         """
-        Take the result of the ie and return a list of videos.
-        For url elements it will search the suitable ie and get the videos
-        For playlist elements it will process each of the elements of the 'entries' key
-        
+        Take the result of the ie(may be modified) and resolve all unresolved
+        references (URLs, playlist items).
+
         It will also download the videos if 'download'.
+        Returns the resolved ie_result.
         """
-        result_type = ie_result.get('_type', 'video') #If not given we suppose it's a video, support the dafault old system
+
+        result_type = ie_result.get('_type', 'video') # If not given we suppose it's a video, support the default old system
         if result_type == 'video':
             if 'playlist' not in ie_result:
-                #It isn't part of a playlist
+                # It isn't part of a playlist
                 ie_result['playlist'] = None
                 ie_result['playlist_index'] = None
             if download:
-                #Do the download:
                 self.process_info(ie_result)
             return ie_result
         elif result_type == 'url':
-            #We get the video pointed by the url
-            result = self.extract_info(ie_result['url'], download, ie_name = ie_result['ie_key'])[0]
-            return result
+            return self.extract_info(ie_result['url'], download, ie_key=ie_result.get('ie_key'))
         elif result_type == 'playlist':
-            #We process each entry in the playlist
+            # We process each entry in the playlist
             playlist = ie_result.get('title', None) or ie_result.get('id', None)
             self.to_screen(u'[download] Downloading playlist: %s'  % playlist)
 
@@ -533,23 +524,31 @@ class FileDownloader(object):
 
             for i,entry in enumerate(entries,1):
                 self.to_screen(u'[download] Downloading video #%s of %s' %(i, n_entries))
-                entry_result = self.process_ie_result(entry, False)
-                entry_result['playlist'] = playlist
-                entry_result['playlist_index'] = i + playliststart
-                #We must do the download here to correctly set the 'playlist' key
-                if download:
-                    self.process_info(entry_result)
+                entry['playlist'] = playlist
+                entry['playlist_index'] = i + playliststart
+                entry_result = self.process_ie_result(entry, download=download)
                 playlist_results.append(entry_result)
-            result = ie_result.copy()
-            result['entries'] = playlist_results
-            return result
+            ie_result['entries'] = playlist_results
+            return ie_result
+        elif result_type == 'compat_list':
+            def _fixup(r):
+                r.setdefault('extractor', ie_result['extractor'])
+                return r
+            ie_result['entries'] = [
+                self.process_ie_result(_fixup(r), download=download)
+                for r in ie_result['entries']
+            ]
+            return ie_result
+        else:
+            raise Exception('Invalid result type: %s' % result_type)
 
     def process_info(self, info_dict):
-        """Process a single dictionary returned by an InfoExtractor."""
+        """Process a single resolved IE result."""
 
+        assert info_dict.get('_type', 'video') == 'video'
         #We increment the download the download count here to match the previous behaviour.
         self.increment_downloads()
-        
+
         info_dict['fulltitle'] = info_dict['title']
         if len(info_dict['title']) > 200:
             info_dict['title'] = info_dict['title'][:197] + u'...'
