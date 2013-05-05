@@ -3125,7 +3125,7 @@ class GooglePlusIE(InfoExtractor):
         pattern = '"(https\://plus\.google\.com/photos/.*?)",,"image/jpeg","video"\]'
         mobj = re.search(pattern, webpage)
         if mobj is None:
-            self._downloader.report_error(u'unable to extract video page URL')
+            raise ExtractorError(u'Unable to extract video page URL')
 
         video_page = mobj.group(1)
         webpage = self._download_webpage(video_page, video_id, u'Downloading video page')
@@ -3137,7 +3137,7 @@ class GooglePlusIE(InfoExtractor):
         pattern = '\d+,\d+,(\d+),"(http\://redirector\.googlevideo\.com.*?)"'
         mobj = re.findall(pattern, webpage)
         if len(mobj) == 0:
-            self._downloader.report_error(u'unable to extract video links')
+            raise ExtractorError(u'Unable to extract video links')
 
         # Sort in resolution
         links = sorted(mobj)
@@ -3343,14 +3343,14 @@ class FunnyOrDieIE(InfoExtractor):
 
         m = re.search(r'<video[^>]*>\s*<source[^>]*>\s*<source src="(?P<url>[^"]+)"', webpage, re.DOTALL)
         if not m:
-            self._downloader.report_error(u'unable to find video information')
+            raise ExtractorError(u'Unable to find video information')
         video_url = unescapeHTML(m.group('url'))
 
         m = re.search(r"<h1 class='player_page_h1'.*?>(?P<title>.*?)</h1>", webpage, flags=re.DOTALL)
         if not m:
             m = re.search(r'<title>(?P<title>[^<]+?)</title>', webpage)
             if not m:
-                self._downloader.report_error(u'Cannot find video title')
+                raise ExtractorError(u'Cannot find video title')
         title = clean_html(m.group('title'))
 
         m = re.search(r'<meta property="og:description" content="(?P<desc>.*?)"', webpage)
@@ -3402,7 +3402,7 @@ class SteamIE(InfoExtractor):
             video_url = vid.group('videoURL')
             video_thumb = thumb.group('thumbnail')
             if not video_url:
-                self._downloader.report_error(u'Cannot find video url for %s' % video_id)
+                raise ExtractorError(u'Cannot find video url for %s' % video_id)
             info = {
                 'id':video_id,
                 'url':video_url,
@@ -3976,7 +3976,7 @@ class LiveLeakIE(InfoExtractor):
 
         m = re.search(r'<meta property="og:title" content="(?P<title>.*?)"', webpage)
         if not m:
-            self._downloader.report_error(u'Cannot find video title')
+            raise ExtractorError(u'Cannot find video title')
         title = unescapeHTML(m.group('title')).replace('LiveLeak.com -', '').strip()
 
         m = re.search(r'<meta property="og:description" content="(?P<desc>.*?)"', webpage)
