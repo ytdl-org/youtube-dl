@@ -4128,32 +4128,24 @@ class RedTubeIE(InfoExtractor):
 class InaIE(InfoExtractor):
     """Information Extractor for Ina.fr"""
     _VALID_URL = r'(?:http://)?(?:www.)?ina\.fr/video/(?P<id>I[0-9]+)/.*'
-    IE_NAME = u'Ina'
+
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
-        video_id = mobj.group('id')
-        self.to_screen(u'video id : %s' % video_id)
-        mrss_url='http://player.ina.fr/notices/%s.mrss'%video_id
-        self.to_screen(u'mrss url : %s' % mrss_url)
-        video_extension = 'mp4'        
-        webpage = self._download_webpage(mrss_url,video_id)
-        self.report_extraction(video_id)
-        reg1=r'<media:player url="(?P<mp4url>http://mp4.ina.fr/[^"]+\.mp4)'
-        mobj = re.search(reg1,webpage)
 
+        video_id = mobj.group('id')
+        mrss_url='http://player.ina.fr/notices/%s.mrss' % video_id
+        video_extension = 'mp4'
+        webpage = self._download_webpage(mrss_url, video_id)
+
+        mobj = re.search(r'<media:player url="(?P<mp4url>http://mp4.ina.fr/[^"]+\.mp4)', webpage)
         if mobj is None:
             raise ExtractorError(u'Unable to extract media URL')
-
         video_url = mobj.group(1)
-        reg2=r'<title><!\[CDATA\[(?P<titre>.*?)]]></title>'
-        mobj = re.search(reg2,webpage)
+
+        mobj = re.search(r'<title><!\[CDATA\[(?P<titre>.*?)]]></title>', webpage)
         if mobj is None:
             raise ExtractorError(u'Unable to extract title')
         video_title = mobj.group(1)
-        
-        self.to_screen(u'Titre de la video : %s' % video_title)
 
         return [{
             'id':       video_id,
@@ -4218,7 +4210,7 @@ def gen_extractors():
         TumblrIE(),
         BandcampIE(),
         RedTubeIE(),
-        InaIE,
+        InaIE(),
         GenericIE()
     ]
 
