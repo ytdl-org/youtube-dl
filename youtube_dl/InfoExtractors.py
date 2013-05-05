@@ -1218,7 +1218,7 @@ class ArteTvIE(InfoExtractor):
             'id':           info.get('id'),
             'url':          compat_urllib_parse.unquote(info.get('url')),
             'uploader':     u'arte.tv',
-            'upload_date':  info.get('date'),
+            'upload_date':  unified_strdate(info.get('date')),
             'title':        info.get('title').decode('utf-8'),
             'ext':          u'mp4',
             'format':       u'NA',
