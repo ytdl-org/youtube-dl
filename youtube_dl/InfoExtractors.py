@@ -1465,9 +1465,9 @@ class GoogleSearchIE(InfoExtractor):
         prefix = mobj.group('prefix')
         query = mobj.group('query')
         if prefix == '':
-            return self._download_n_results(query, 1)
+            return self._get_n_results(query, 1)
         elif prefix == 'all':
-            return self._download_n_results(query, self._max_google_results)
+            return self._get_n_results(query, self._max_google_results)
         else:
             n = int(prefix)
             if n <= 0:
@@ -1475,10 +1475,10 @@ class GoogleSearchIE(InfoExtractor):
             elif n > self._max_google_results:
                 self._downloader.report_warning(u'gvsearch returns max %i results (you requested %i)' % (self._max_google_results, n))
                 n = self._max_google_results
-            return self._download_n_results(query, n)
+            return self._get_n_results(query, n)
 
-    def _download_n_results(self, query, n):
-        """Downloads a specified number of results for a query"""
+    def _get_n_results(self, query, n):
+        """Get a specified number of results for a query"""
 
         res = {
             '_type': 'playlist',
