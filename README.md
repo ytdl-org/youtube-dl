@@ -94,6 +94,7 @@ which means you can modify it, redistribute it or use it however you like.
     --skip-download            do not download the video
     -g, --get-url              simulate, quiet but print URL
     -e, --get-title            simulate, quiet but print title
+    --get-id                   simulate, quiet but print id
     --get-thumbnail            simulate, quiet but print thumbnail URL
     --get-description          simulate, quiet but print video description
     --get-filename             simulate, quiet but print output filename
