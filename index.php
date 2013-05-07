@@ -24,7 +24,7 @@ echo '<a href="downloads/' . htmlspecialchars($latest) . '/youtube-dl.exe">youtu
 echo '<a href="downloads/' . htmlspecialchars($latest) . '/youtube-dl-' . htmlspecialchars($latest) . '.tar.gz">youtube-dl-' . htmlspecialchars($latest) . '.tar.gz</a>';
 echo '</div>';
 
-echo '<ul>';
+echo '<ul class="all-versions">';
 foreach ($versions as $version) {
     echo '<li><a href="downloads/' . htmlspecialchars($version) . '">' . htmlspecialchars($version) . '</a></li>';
 }
