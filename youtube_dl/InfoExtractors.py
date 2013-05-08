@@ -610,10 +610,13 @@ class YoutubeIE(InfoExtractor):
             self.report_rtmp_download()
             video_url_list = [(None, video_info['conn'][0])]
         elif 'url_encoded_fmt_stream_map' in video_info and len(video_info['url_encoded_fmt_stream_map']) >= 1:
-            url_data_strs = video_info['url_encoded_fmt_stream_map'][0].split(',')
-            url_data = [compat_parse_qs(uds) for uds in url_data_strs]
-            url_data = [ud for ud in url_data if 'itag' in ud and 'url' in ud]
-            url_map = dict((ud['itag'][0], ud['url'][0] + '&signature=' + ud['sig'][0]) for ud in url_data)
+            url_map = {}
+            for url_data_str in video_info['url_encoded_fmt_stream_map'][0].split(','):
+                url_data = compat_parse_qs(url_data_str)
+                if 'itag' in url_data and 'url' in url_data:
+                    url = url_data['url'][0] + '&signature=' + url_data['sig'][0]
+                    if not 'ratebypass' in url: url += '&ratebypass=yes'
+                    url_map[url_data['itag'][0]] = url
 
             format_limit = self._downloader.params.get('format_limit', None)
             available_formats = self._available_formats_prefer_free if self._downloader.params.get('prefer_free_formats', False) else self._available_formats
