@@ -216,6 +216,8 @@ def parseOpts(overrideArguments=None):
             action='store_true', dest='geturl', help='simulate, quiet but print URL', default=False)
     verbosity.add_option('-e', '--get-title',
             action='store_true', dest='gettitle', help='simulate, quiet but print title', default=False)
+    verbosity.add_option('--get-id',
+            action='store_true', dest='getid', help='simulate, quiet but print id', default=False)
     verbosity.add_option('--get-thumbnail',
             action='store_true', dest='getthumbnail',
             help='simulate, quiet but print thumbnail URL', default=False)
@@ -495,15 +497,16 @@ def _real_main(argv=None):
         'usenetrc': opts.usenetrc,
         'username': opts.username,
         'password': opts.password,
-        'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat),
+        'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat),
         'forceurl': opts.geturl,
         'forcetitle': opts.gettitle,
+        'forceid': opts.getid,
         'forcethumbnail': opts.getthumbnail,
         'forcedescription': opts.getdescription,
         'forcefilename': opts.getfilename,
         'forceformat': opts.getformat,
         'simulate': opts.simulate,
-        'skip_download': (opts.skip_download or opts.simulate or opts.geturl or opts.gettitle or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat),
+        'skip_download': (opts.skip_download or opts.simulate or opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat),
         'format': opts.format,
         'format_limit': opts.format_limit,
         'listformats': opts.listformats,

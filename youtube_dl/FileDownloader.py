@@ -54,6 +54,7 @@ class FileDownloader(object):
     quiet:             Do not print messages to stdout.
     forceurl:          Force printing final URL.
     forcetitle:        Force printing title.
+    forceid:           Force printing ID.
     forcethumbnail:    Force printing thumbnail URL.
     forcedescription:  Force printing description.
     forcefilename:     Force printing final filename.
@@ -574,6 +575,8 @@ class FileDownloader(object):
         # Forced printings
         if self.params.get('forcetitle', False):
             compat_print(info_dict['title'])
+        if self.params.get('forceid', False):
+            compat_print(info_dict['id'])
         if self.params.get('forceurl', False):
             compat_print(info_dict['url'])
         if self.params.get('forcethumbnail', False) and 'thumbnail' in info_dict:
