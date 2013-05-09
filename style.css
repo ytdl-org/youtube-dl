@@ -73,6 +73,7 @@ hr {
 	margin-top: 10ex;
 	text-align: center;
 	font-size: x-small;
+	clear: both;
 }
 h1 {
 	font-size: x-large;
@@ -144,4 +145,8 @@ tt {
 #main-support {
     background-color: #448888;
     border: 2px solid #008888;
+}
+
+.all-versions {
+	float: left;
 }
