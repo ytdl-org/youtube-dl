@@ -12,6 +12,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from youtube_dl.InfoExtractors import YoutubeIE
 from youtube_dl.utils import *
+from youtube_dl import FileDownloader
 
 PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
 with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
@@ -24,7 +25,7 @@ proxy_handler = compat_urllib_request.ProxyHandler()
 opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
 compat_urllib_request.install_opener(opener)
 
-class FakeDownloader(object):
+class FakeDownloader(FileDownloader):
     def __init__(self):
         self.result = []
         self.params = parameters
