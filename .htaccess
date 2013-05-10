@@ -1,0 +1,2 @@
+RewriteEngine On
+RewriteRule ^ip/?$ ip.php
