@@ -24,7 +24,7 @@ proxy_handler = compat_urllib_request.ProxyHandler()
 opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
 compat_urllib_request.install_opener(opener)
 
-class FakeDownloader(object):
+class FakeDownloader(FileDownloader):
     def __init__(self):
         self.result = []
         self.params = parameters
