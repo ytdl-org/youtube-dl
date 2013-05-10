@@ -401,7 +401,8 @@
     "md5":"cdeb30cdae1921719a3cbcab696ef53c",
     "info_dict": {
       "title":"youtube-dl test song \"'/\\ä↭"
-    }
+    },
+    "skip": "There is a limit of 200 free downloads / month for the test song"
   },
   {
     "name": "RedTube",
