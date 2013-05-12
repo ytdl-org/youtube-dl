@@ -1401,7 +1401,7 @@ class YoutubeSearchIE(InfoExtractor):
         if len(video_ids) > n:
             video_ids = video_ids[:n]
         videos = [self.url_result('http://www.youtube.com/watch?v=%s' % id, 'Youtube') for id in video_ids]
-        return videos
+        return self.playlist_result(videos, query)
 
 
 class GoogleSearchIE(InfoExtractor):
