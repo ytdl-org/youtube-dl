@@ -1440,7 +1440,6 @@ class GoogleSearchIE(InfoExtractor):
 
         for pagenum in itertools.count(1):
             result_url = u'http://www.google.com/search?tbm=vid&q=%s&start=%s&hl=en' % (compat_urllib_parse.quote_plus(query), pagenum*10)
-            print(result_url)
             webpage = self._download_webpage(result_url, u'gvsearch:' + query,
                                              note='Downloading result page ' + str(pagenum))
 
