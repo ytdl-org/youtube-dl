@@ -85,8 +85,9 @@ class FFmpegPostProcessor(PostProcessor):
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout,stderr = p.communicate()
         if p.returncode != 0:
+            stderr = stderr.decode('utf-8', 'replace')
             msg = stderr.strip().split('\n')[-1]
-            raise FFmpegPostProcessorError(msg.decode('utf-8', 'replace'))
+            raise FFmpegPostProcessorError(msg)
 
     def _ffmpeg_filename_argument(self, fn):
         # ffmpeg broke --, see https://ffmpeg.org/trac/ffmpeg/ticket/2127 for details
