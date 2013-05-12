@@ -1407,7 +1407,7 @@ class YoutubeSearchIE(InfoExtractor):
 class GoogleSearchIE(InfoExtractor):
     """Information Extractor for Google Video search queries."""
     _VALID_URL = r'gvsearch(?P<prefix>|\d+|all):(?P<query>[\s\S]+)'
-    _MORE_PAGES_INDICATOR = r'class="pn" id="pnnext"'
+    _MORE_PAGES_INDICATOR = r'id="pnnext" class="pn"'
     _max_google_results = 1000
     IE_NAME = u'video.google:search'
 
@@ -1439,7 +1439,8 @@ class GoogleSearchIE(InfoExtractor):
         }
 
         for pagenum in itertools.count(1):
-            result_url = u'http://video.google.com/videosearch?q=%s&start=%s&hl=en' % (compat_urllib_parse.quote_plus(query), pagenum*10)
+            result_url = u'http://www.google.com/search?tbm=vid&q=%s&start=%s&hl=en' % (compat_urllib_parse.quote_plus(query), pagenum*10)
+            print(result_url)
             webpage = self._download_webpage(result_url, u'gvsearch:' + query,
                                              note='Downloading result page ' + str(pagenum))
 
