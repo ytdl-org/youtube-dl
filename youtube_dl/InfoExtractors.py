@@ -912,123 +912,51 @@ class PhotobucketIE(InfoExtractor):
 
 
 class YahooIE(InfoExtractor):
-    """Information extractor for video.yahoo.com."""
+    """Information extractor for screen.yahoo.com."""
+    _VALID_URL = r'http://screen\.yahoo\.com/.*?-(?P<id>\d*?)\.html'
 
-    _WORKING = False
-    # _VALID_URL matches all Yahoo! Video URLs
-    # _VPAGE_URL matches only the extractable '/watch/' URLs
-    _VALID_URL = r'(?:http://)?(?:[a-z]+\.)?video\.yahoo\.com/(?:watch|network)/([0-9]+)(?:/|\?v=)([0-9]+)(?:[#\?].*)?'
-    _VPAGE_URL = r'(?:http://)?video\.yahoo\.com/watch/([0-9]+)/([0-9]+)(?:[#\?].*)?'
-    IE_NAME = u'video.yahoo'
-
-    def _real_extract(self, url, new_video=True):
-        # Extract ID from URL
+    def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
+        video_id = mobj.group('id')
 
-        video_id = mobj.group(2)
-        video_extension = 'flv'
-
-        # Rewrite valid but non-extractable URLs as
-        # extractable English language /watch/ URLs
-        if re.match(self._VPAGE_URL, url) is None:
-            request = compat_urllib_request.Request(url)
-            try:
-                webpage = compat_urllib_request.urlopen(request).read()
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                raise ExtractorError(u'Unable to retrieve video webpage: %s' % compat_str(err))
-
-            mobj = re.search(r'\("id", "([0-9]+)"\);', webpage)
-            if mobj is None:
-                raise ExtractorError(u'Unable to extract id field')
-            yahoo_id = mobj.group(1)
-
-            mobj = re.search(r'\("vid", "([0-9]+)"\);', webpage)
-            if mobj is None:
-                raise ExtractorError(u'Unable to extract vid field')
-            yahoo_vid = mobj.group(1)
-
-            url = 'http://video.yahoo.com/watch/%s/%s' % (yahoo_vid, yahoo_id)
-            return self._real_extract(url, new_video=False)
-
-        # Retrieve video webpage to extract further information
-        request = compat_urllib_request.Request(url)
-        try:
-            self.report_download_webpage(video_id)
-            webpage = compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'Unable to retrieve video webpage: %s' % compat_str(err))
-
-        # Extract uploader and title from webpage
+        # TODO: Check which url parameters are required
+        info_url = 'http://cosmos.bcst.yahoo.com/rest/v2/pops;lmsoverride=1;outputformat=mrss;cb=974419660;id=%s;rd=news.yahoo.com;datacontext=mdb;lg=KCa2IihxG3qE60vQ7HtyUy' % video_id
+        webpage = self._download_webpage(info_url, video_id, "Downloading info webpage")
+        info_re = r'''<title><!\[CDATA\[(?P<title>.*?)\]\]></title>.*
+                    <description><!\[CDATA\[(?P<description>.*?)\]\]></description>.*
+                    <media:pubStart><!\[CDATA\[(?P<date>.*?)\ .*\]\]></media:pubStart>.*
+                    <media:content\ medium="image"\ url="(?P<thumb>.*?)"\ name="LARGETHUMB"
+                    '''
         self.report_extraction(video_id)
-        mobj = re.search(r'<meta name="title" content="(.*)" />', webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract video title')
-        video_title = mobj.group(1).decode('utf-8')
+        m_info = re.search(info_re, webpage, re.VERBOSE|re.DOTALL)
+        if m_info is None:
+            raise ExtractorError(u'Unable to extract video info')
+        video_title = m_info.group('title')
+        video_description = m_info.group('description')
+        video_thumb = m_info.group('thumb')
+        video_date = m_info.group('date')
+        video_date = datetime.datetime.strptime(video_date, '%m/%d/%Y').strftime('%Y%m%d')
 
-        mobj = re.search(r'<h2 class="ti-5"><a href="http://video\.yahoo\.com/(people|profile)/[0-9]+" beacon=".*">(.*)</a></h2>', webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract video uploader')
-        video_uploader = mobj.group(1).decode('utf-8')
+        # TODO: Find a way to get mp4 videos
+        rest_url = 'http://cosmos.bcst.yahoo.com/rest/v2/pops;element=stream;outputformat=mrss;id=%s;lmsoverride=1;bw=375;dynamicstream=1;cb=83521105;tech=flv,mp4;rd=news.yahoo.com;datacontext=mdb;lg=KCa2IihxG3qE60vQ7HtyUy' % video_id
+        webpage = self._download_webpage(rest_url, video_id, 'Downloading video url webpage')
+        m_rest = re.search(r'<media:content url="(?P<url>.*?)" path="(?P<path>.*?)"', webpage)
+        if m_rest is None:
+            raise ExtractorError(u'Unable to extract video url')
 
-        # Extract video thumbnail
-        mobj = re.search(r'<link rel="image_src" href="(.*)" />', webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract video thumbnail')
-        video_thumbnail = mobj.group(1).decode('utf-8')
-
-        # Extract video description
-        mobj = re.search(r'<meta name="description" content="(.*)" />', webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract video description')
-        video_description = mobj.group(1).decode('utf-8')
-        if not video_description:
-            video_description = 'No description available.'
-
-        # Extract video height and width
-        mobj = re.search(r'<meta name="video_height" content="([0-9]+)" />', webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract video height')
-        yv_video_height = mobj.group(1)
-
-        mobj = re.search(r'<meta name="video_width" content="([0-9]+)" />', webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract video width')
-        yv_video_width = mobj.group(1)
-
-        # Retrieve video playlist to extract media URL
-        # I'm not completely sure what all these options are, but we
-        # seem to need most of them, otherwise the server sends a 401.
-        yv_lg = 'R0xx6idZnW2zlrKP8xxAIR'  # not sure what this represents
-        yv_bitrate = '700'  # according to Wikipedia this is hard-coded
-        request = compat_urllib_request.Request('http://cosmos.bcst.yahoo.com/up/yep/process/getPlaylistFOP.php?node_id=' + video_id +
-                '&tech=flash&mode=playlist&lg=' + yv_lg + '&bitrate=' + yv_bitrate + '&vidH=' + yv_video_height +
-                '&vidW=' + yv_video_width + '&swf=as3&rd=video.yahoo.com&tk=null&adsupported=v1,v2,&eventid=1301797')
-        try:
-            self.report_download_webpage(video_id)
-            webpage = compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'Unable to retrieve video webpage: %s' % compat_str(err))
-
-        # Extract media URL from playlist XML
-        mobj = re.search(r'<STREAM APP="(http://.*)" FULLPATH="/?(/.*\.flv\?[^"]*)"', webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract media URL')
-        video_url = compat_urllib_parse.unquote(mobj.group(1) + mobj.group(2)).decode('utf-8')
-        video_url = unescapeHTML(video_url)
-
-        return [{
-            'id':       video_id.decode('utf-8'),
-            'url':      video_url,
-            'uploader': video_uploader,
-            'upload_date':  None,
-            'title':    video_title,
-            'ext':      video_extension.decode('utf-8'),
-            'thumbnail':    video_thumbnail.decode('utf-8'),
-            'description':  video_description,
-        }]
-
+        info_dict = {
+                     'id': video_id,
+                     'url':m_rest.group('url'),
+                     'play_path': m_rest.group('path'),
+                     'title':video_title,
+                     'description': video_description,
+                     'thumbnail': video_thumb,
+                     'upload_date': video_date,
+                     'ext': 'flv',
+                     }
+        return info_dict
 
 class VimeoIE(InfoExtractor):
     """Information extractor for vimeo.com."""
