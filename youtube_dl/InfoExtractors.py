@@ -1456,18 +1456,10 @@ class GoogleSearchIE(InfoExtractor):
 class YahooSearchIE(InfoExtractor):
     """Information Extractor for Yahoo! Video search queries."""
 
-    _WORKING = False
     _VALID_URL = r'yvsearch(\d+|all)?:[\s\S]+'
-    _TEMPLATE_URL = 'http://video.yahoo.com/search/?p=%s&o=%s'
-    _VIDEO_INDICATOR = r'href="http://video\.yahoo\.com/watch/([0-9]+/[0-9]+)"'
-    _MORE_PAGES_INDICATOR = r'\s*Next'
-    _max_yahoo_results = 1000
-    IE_NAME = u'video.yahoo:search'
 
-    def report_download_page(self, query, pagenum):
-        """Report attempt to download playlist page with given number."""
-        query = query.decode(preferredencoding())
-        self.to_screen(u'query "%s": Downloading page %s' % (query, pagenum))
+    _max_yahoo_results = 1000
+    IE_NAME = u'screen.yahoo:search'
 
     def _real_extract(self, query):
         mobj = re.match(self._VALID_URL, query)
@@ -1478,11 +1470,9 @@ class YahooSearchIE(InfoExtractor):
         prefix = prefix[8:]
         query = query.encode('utf-8')
         if prefix == '':
-            self._download_n_results(query, 1)
-            return
+            return self._get_n_results(query, 1)
         elif prefix == 'all':
-            self._download_n_results(query, self._max_yahoo_results)
-            return
+            return self._get_n_results(query, self._max_yahoo_results)
         else:
             try:
                 n = int(prefix)
@@ -1491,46 +1481,36 @@ class YahooSearchIE(InfoExtractor):
                 elif n > self._max_yahoo_results:
                     self._downloader.report_warning(u'yvsearch returns max %i results (you requested %i)' % (self._max_yahoo_results, n))
                     n = self._max_yahoo_results
-                self._download_n_results(query, n)
-                return
+                return self._get_n_results(query, n)
             except ValueError: # parsing prefix as integer fails
-                self._download_n_results(query, 1)
-                return
+                return self._get_n_results(query, 1)
 
-    def _download_n_results(self, query, n):
-        """Downloads a specified number of results for a query"""
+    def _get_n_results(self, query, n):
+        """Get a specified number of results for a query"""
 
-        video_ids = []
-        already_seen = set()
-        pagenum = 1
+        res = {
+            '_type': 'playlist',
+            'id': query,
+            'entries': []
+        }
+        for pagenum in itertools.count(0): 
+            result_url = u'http://video.search.yahoo.com/search/?p=%s&fr=screen&o=js&gs=0&b=%d' % (compat_urllib_parse.quote_plus(query), pagenum * 30)
+            webpage = self._download_webpage(result_url, query,
+                                             note='Downloading results page '+str(pagenum+1))
+            info = json.loads(webpage)
+            m = info[u'm']
+            results = info[u'results']
 
-        while True:
-            self.report_download_page(query, pagenum)
-            result_url = self._TEMPLATE_URL % (compat_urllib_parse.quote_plus(query), pagenum)
-            request = compat_urllib_request.Request(result_url)
-            try:
-                page = compat_urllib_request.urlopen(request).read()
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                raise ExtractorError(u'Unable to download webpage: %s' % compat_str(err))
+            for (i, r) in enumerate(results):
+                if (pagenum * 30) +i >= n:
+                    break
+                mobj = re.search(r'(?P<url>screen\.yahoo\.com/.*?-\d*?\.html)"', r)
+                e = self.url_result('http://' + mobj.group('url'), 'Yahoo')
+                res['entries'].append(e)
+            if (pagenum * 30 +i >= n) or (m[u'last'] >= (m[u'total'] -1 )):
+                break
 
-            # Extract video identifiers
-            for mobj in re.finditer(self._VIDEO_INDICATOR, page):
-                video_id = mobj.group(1)
-                if video_id not in already_seen:
-                    video_ids.append(video_id)
-                    already_seen.add(video_id)
-                    if len(video_ids) == n:
-                        # Specified n videos reached
-                        for id in video_ids:
-                            self._downloader.download(['http://video.yahoo.com/watch/%s' % id])
-                        return
-
-            if re.search(self._MORE_PAGES_INDICATOR, page) is None:
-                for id in video_ids:
-                    self._downloader.download(['http://video.yahoo.com/watch/%s' % id])
-                return
-
-            pagenum = pagenum + 1
+        return res
 
 
 class YoutubePlaylistIE(InfoExtractor):
