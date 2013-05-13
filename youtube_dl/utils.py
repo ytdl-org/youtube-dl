@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import errno
 import gzip
 import io
 import json
@@ -334,12 +335,20 @@ def sanitize_open(filename, open_mode):
         stream = open(encodeFilename(filename), open_mode)
         return (stream, filename)
     except (IOError, OSError) as err:
-        # In case of error, try to remove win32 forbidden chars
-        filename = re.sub(u'[/<>:"\\|\\\\?\\*]', u'#', filename)
+        if err.errno in (errno.EACCES,):
+            raise
 
-        # An exception here should be caught in the caller
-        stream = open(encodeFilename(filename), open_mode)
-        return (stream, filename)
+        # In case of error, try to remove win32 forbidden chars
+        alt_filename = os.path.join(
+                        re.sub(u'[/<>:"\\|\\\\?\\*]', u'#', path_part)
+                        for path_part in os.path.split(filename)
+                       )
+        if alt_filename == filename:
+            raise
+        else:
+            # An exception here should be caught in the caller
+            stream = open(encodeFilename(filename), open_mode)
+            return (stream, alt_filename)
 
 
 def timeconvert(timestr):
