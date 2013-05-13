@@ -83,7 +83,6 @@ class FileDownloader(object):
     writeinfojson:     Write the video description to a .info.json file
     writethumbnail:    Write the thumbnail image to a file
     writesubtitles:    Write the video subtitles to a file
-    onlysubtitles:     Downloads only the subtitles of the video
     allsubtitles:      Downloads all the subtitles of the video
     listsubtitles:     Lists all available subtitles for the video
     subtitlesformat:   Subtitle format [sbv/srt] (default=srt)
@@ -93,6 +92,7 @@ class FileDownloader(object):
     min_filesize:      Skip files smaller than this size
     max_filesize:      Skip files larger than this size
     daterange:         A DateRange object, download only if the upload_date is in the range.
+    skip_download:     Skip the actual download of the video file
     """
 
     params = None
@@ -597,7 +597,7 @@ class FileDownloader(object):
 
         try:
             dn = os.path.dirname(encodeFilename(filename))
-            if dn != '' and not os.path.exists(dn): # dn is already encoded
+            if dn != '' and not os.path.exists(dn):
                 os.makedirs(dn)
         except (OSError, IOError) as err:
             self.report_error(u'unable to create directory ' + compat_str(err))
@@ -630,8 +630,6 @@ class FileDownloader(object):
                 except (OSError, IOError):
                     self.report_error(u'Cannot write subtitles file ' + descfn)
                     return
-            if self.params.get('onlysubtitles', False):
-                return 
 
         if self.params.get('allsubtitles', False) and 'subtitles' in info_dict and info_dict['subtitles']:
             subtitles = info_dict['subtitles']
@@ -649,8 +647,6 @@ class FileDownloader(object):
                     except (OSError, IOError):
                         self.report_error(u'Cannot write subtitles file ' + descfn)
                         return
-            if self.params.get('onlysubtitles', False):
-                return 
 
         if self.params.get('writeinfojson', False):
             infofn = filename + u'.info.json'
