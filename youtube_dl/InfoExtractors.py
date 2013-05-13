@@ -188,6 +188,45 @@ class InfoExtractor(object):
             video_info['title'] = playlist_title
         return video_info
 
+class SearchInfoExtractor(InfoExtractor):
+    """
+    Base class for search queries extractors
+    They accept urls in the format _SEARCH_KEY(|all|[0-9]):{query}
+    """
+    _max_results = 0 # The maximum number of results the extractor can get
+
+    @classmethod
+    def _VALID_URL(cls):
+        return r'%s(?P<prefix>|\d+|all):(?P<query>[\s\S]+)' % cls._SEARCH_KEY
+
+    @classmethod
+    def suitable(cls, url):
+        return re.match(cls._VALID_URL() , url) is not None
+
+    def _real_extract(self, query):
+        mobj = re.match(self._VALID_URL(), query)
+        if mobj is None:
+            raise ExtractorError(u'Invalid search query "%s"' % query)
+
+        prefix = mobj.group('prefix')
+        query = mobj.group('query')
+        if prefix == '':
+            return self._get_n_results(query, 1)
+        elif prefix == 'all':
+            return self._get_n_results(query, self._max_results)
+        else:
+            n = int(prefix)
+            if n <= 0:
+                raise ExtractorError(u'invalid download number %s for query "%s"' % (n, query))
+            elif n > self._max_results:
+                self._downloader.report_warning(u'%s returns max %i results (you requested %i)' % (self._SEARCH_KEY, self._max_results, n))
+                n = self._max_results
+            return self._get_n_results(query, n)
+
+    def _get_n_results(self, query, n):
+        """Get a specified number of results for a query"""
+        raise NotImplementedError("This method must be implemented by sublclasses")
+
 
 class YoutubeIE(InfoExtractor):
     """Information extractor for youtube.com."""
@@ -1336,41 +1375,17 @@ class GenericIE(InfoExtractor):
         }]
 
 
-class YoutubeSearchIE(InfoExtractor):
+class YoutubeSearchIE(SearchInfoExtractor):
     """Information Extractor for YouTube search queries."""
-    _VALID_URL = r'ytsearch(\d+|all)?:[\s\S]+'
     _API_URL = 'https://gdata.youtube.com/feeds/api/videos?q=%s&start-index=%i&max-results=50&v=2&alt=jsonc'
-    _max_youtube_results = 1000
+    _max_results = 1000
     IE_NAME = u'youtube:search'
+    _SEARCH_KEY = 'ytsearch'
 
     def report_download_page(self, query, pagenum):
         """Report attempt to download search page with given number."""
         query = query.decode(preferredencoding())
         self._downloader.to_screen(u'[youtube] query "%s": Downloading page %s' % (query, pagenum))
-
-    def _real_extract(self, query):
-        mobj = re.match(self._VALID_URL, query)
-        if mobj is None:
-            raise ExtractorError(u'Invalid search query "%s"' % query)
-
-        prefix, query = query.split(':')
-        prefix = prefix[8:]
-        query = query.encode('utf-8')
-        if prefix == '':
-            return self._get_n_results(query, 1)
-        elif prefix == 'all':
-            self._get_n_results(query, self._max_youtube_results)
-        else:
-            try:
-                n = int(prefix)
-                if n <= 0:
-                    raise ExtractorError(u'Invalid download number %s for query "%s"' % (n, query))
-                elif n > self._max_youtube_results:
-                    self._downloader.report_warning(u'ytsearch returns max %i results (you requested %i)' % (self._max_youtube_results, n))
-                    n = self._max_youtube_results
-                return self._get_n_results(query, n)
-            except ValueError: # parsing prefix as integer fails
-                return self._get_n_results(query, 1)
 
     def _get_n_results(self, query, n):
         """Get a specified number of results for a query"""
@@ -1404,30 +1419,12 @@ class YoutubeSearchIE(InfoExtractor):
         return self.playlist_result(videos, query)
 
 
-class GoogleSearchIE(InfoExtractor):
+class GoogleSearchIE(SearchInfoExtractor):
     """Information Extractor for Google Video search queries."""
-    _VALID_URL = r'gvsearch(?P<prefix>|\d+|all):(?P<query>[\s\S]+)'
     _MORE_PAGES_INDICATOR = r'id="pnnext" class="pn"'
-    _max_google_results = 1000
+    _max_results = 1000
     IE_NAME = u'video.google:search'
-
-    def _real_extract(self, query):
-        mobj = re.match(self._VALID_URL, query)
-
-        prefix = mobj.group('prefix')
-        query = mobj.group('query')
-        if prefix == '':
-            return self._get_n_results(query, 1)
-        elif prefix == 'all':
-            return self._get_n_results(query, self._max_google_results)
-        else:
-            n = int(prefix)
-            if n <= 0:
-                raise ExtractorError(u'invalid download number %s for query "%s"' % (n, query))
-            elif n > self._max_google_results:
-                self._downloader.report_warning(u'gvsearch returns max %i results (you requested %i)' % (self._max_google_results, n))
-                n = self._max_google_results
-            return self._get_n_results(query, n)
+    _SEARCH_KEY = 'gvsearch'
 
     def _get_n_results(self, query, n):
         """Get a specified number of results for a query"""
@@ -1453,37 +1450,12 @@ class GoogleSearchIE(InfoExtractor):
             if (pagenum * 10 > n) or not re.search(self._MORE_PAGES_INDICATOR, webpage):
                 return res
 
-class YahooSearchIE(InfoExtractor):
+class YahooSearchIE(SearchInfoExtractor):
     """Information Extractor for Yahoo! Video search queries."""
 
-    _VALID_URL = r'yvsearch(\d+|all)?:[\s\S]+'
-
-    _max_yahoo_results = 1000
+    _max_results = 1000
     IE_NAME = u'screen.yahoo:search'
-
-    def _real_extract(self, query):
-        mobj = re.match(self._VALID_URL, query)
-        if mobj is None:
-            raise ExtractorError(u'Invalid search query "%s"' % query)
-
-        prefix, query = query.split(':')
-        prefix = prefix[8:]
-        query = query.encode('utf-8')
-        if prefix == '':
-            return self._get_n_results(query, 1)
-        elif prefix == 'all':
-            return self._get_n_results(query, self._max_yahoo_results)
-        else:
-            try:
-                n = int(prefix)
-                if n <= 0:
-                    raise ExtractorError(u'Invalid download number %s for query "%s"' % (n, query))
-                elif n > self._max_yahoo_results:
-                    self._downloader.report_warning(u'yvsearch returns max %i results (you requested %i)' % (self._max_yahoo_results, n))
-                    n = self._max_yahoo_results
-                return self._get_n_results(query, n)
-            except ValueError: # parsing prefix as integer fails
-                return self._get_n_results(query, 1)
+    _SEARCH_KEY = 'yvsearch'
 
     def _get_n_results(self, query, n):
         """Get a specified number of results for a query"""
