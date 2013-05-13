@@ -116,7 +116,7 @@ which means you can modify it, redistribute it or use it however you like.
     -F, --list-formats         list all available formats (currently youtube
                                only)
     --write-sub                write subtitle file (currently youtube only)
-    --only-sub                 downloads only the subtitles (no video)
+    --only-sub                 [deprecated] alias of --skip-download
     --all-subs                 downloads all the available subtitles of the
                                video (currently youtube only)
     --list-subs                lists all available subtitles for the video
