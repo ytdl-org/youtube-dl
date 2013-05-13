@@ -1304,6 +1304,8 @@ class GenericIE(InfoExtractor):
             opener.add_handler(handler())
 
         response = opener.open(HeadRequest(url))
+        if response is None:
+            raise ExtractorError(u'Invalid URL protocol')
         new_url = response.geturl()
 
         if url == new_url:
