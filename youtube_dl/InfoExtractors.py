@@ -190,21 +190,21 @@ class InfoExtractor(object):
 
 class SearchInfoExtractor(InfoExtractor):
     """
-    Base class for search queries extractors
+    Base class for paged search queries extractors.
     They accept urls in the format _SEARCH_KEY(|all|[0-9]):{query}
+    Instances should define _SEARCH_KEY and _MAX_RESULTS.
     """
-    _max_results = 0 # The maximum number of results the extractor can get
 
     @classmethod
-    def _VALID_URL(cls):
-        return r'%s(?P<prefix>|\d+|all):(?P<query>[\s\S]+)' % cls._SEARCH_KEY
+    def _make_valid_url(cls):
+        return r'%s(?P<prefix>|[1-9][0-9]*|all):(?P<query>[\s\S]+)' % cls._SEARCH_KEY
 
     @classmethod
     def suitable(cls, url):
-        return re.match(cls._VALID_URL() , url) is not None
+        return re.match(cls._make_valid_url(), url) is not None
 
     def _real_extract(self, query):
-        mobj = re.match(self._VALID_URL(), query)
+        mobj = re.match(self._make_valid_url(), query)
         if mobj is None:
             raise ExtractorError(u'Invalid search query "%s"' % query)
 
@@ -213,14 +213,14 @@ class SearchInfoExtractor(InfoExtractor):
         if prefix == '':
             return self._get_n_results(query, 1)
         elif prefix == 'all':
-            return self._get_n_results(query, self._max_results)
+            return self._get_n_results(query, self._MAX_RESULTS)
         else:
             n = int(prefix)
             if n <= 0:
                 raise ExtractorError(u'invalid download number %s for query "%s"' % (n, query))
-            elif n > self._max_results:
-                self._downloader.report_warning(u'%s returns max %i results (you requested %i)' % (self._SEARCH_KEY, self._max_results, n))
-                n = self._max_results
+            elif n > self._MAX_RESULTS:
+                self._downloader.report_warning(u'%s returns max %i results (you requested %i)' % (self._SEARCH_KEY, self._MAX_RESULTS, n))
+                n = self._MAX_RESULTS
             return self._get_n_results(query, n)
 
     def _get_n_results(self, query, n):
@@ -1378,7 +1378,7 @@ class GenericIE(InfoExtractor):
 class YoutubeSearchIE(SearchInfoExtractor):
     """Information Extractor for YouTube search queries."""
     _API_URL = 'https://gdata.youtube.com/feeds/api/videos?q=%s&start-index=%i&max-results=50&v=2&alt=jsonc'
-    _max_results = 1000
+    _MAX_RESULTS = 1000
     IE_NAME = u'youtube:search'
     _SEARCH_KEY = 'ytsearch'
 
@@ -1422,7 +1422,7 @@ class YoutubeSearchIE(SearchInfoExtractor):
 class GoogleSearchIE(SearchInfoExtractor):
     """Information Extractor for Google Video search queries."""
     _MORE_PAGES_INDICATOR = r'id="pnnext" class="pn"'
-    _max_results = 1000
+    _MAX_RESULTS = 1000
     IE_NAME = u'video.google:search'
     _SEARCH_KEY = 'gvsearch'
 
@@ -1453,7 +1453,7 @@ class GoogleSearchIE(SearchInfoExtractor):
 class YahooSearchIE(SearchInfoExtractor):
     """Information Extractor for Yahoo! Video search queries."""
 
-    _max_results = 1000
+    _MAX_RESULTS = 1000
     IE_NAME = u'screen.yahoo:search'
     _SEARCH_KEY = 'yvsearch'
 
