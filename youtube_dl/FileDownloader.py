@@ -436,10 +436,11 @@ class FileDownloader(object):
                 return u'[download] %s upload date is not in range %s' % (date_from_str(date).isoformat(), dateRange)
         return None
         
-    def extract_info(self, url, download=True, ie_key=None):
+    def extract_info(self, url, download=True, ie_key=None, extra_info={}):
         '''
         Returns a list with a dictionary for each video we find.
         If 'download', also downloads the videos.
+        extra_info is a dict containing the extra values to add to each result
          '''
         
         if ie_key:
@@ -463,10 +464,14 @@ class FileDownloader(object):
                     break
                 if isinstance(ie_result, list):
                     # Backwards compatibility: old IE result format
+                    for result in ie_result:
+                        result.update(extra_info)
                     ie_result = {
                         '_type': 'compat_list',
                         'entries': ie_result,
                     }
+                else:
+                    ie_result.update(extra_info)
                 if 'extractor' not in ie_result:
                     ie_result['extractor'] = ie.IE_NAME
                 return self.process_ie_result(ie_result, download=download)
@@ -482,7 +487,7 @@ class FileDownloader(object):
         else:
             self.report_error(u'no suitable InfoExtractor: %s' % url)
         
-    def process_ie_result(self, ie_result, download=True):
+    def process_ie_result(self, ie_result, download=True, extra_info={}):
         """
         Take the result of the ie(may be modified) and resolve all unresolved
         references (URLs, playlist items).
@@ -501,7 +506,12 @@ class FileDownloader(object):
                 self.process_info(ie_result)
             return ie_result
         elif result_type == 'url':
-            return self.extract_info(ie_result['url'], download, ie_key=ie_result.get('ie_key'))
+            # We have to add extra_info to the results because it may be
+            # contained in a playlist
+            return self.extract_info(ie_result['url'],
+                                     download,
+                                     ie_key=ie_result.get('ie_key'),
+                                     extra_info=extra_info)
         elif result_type == 'playlist':
             # We process each entry in the playlist
             playlist = ie_result.get('title', None) or ie_result.get('id', None)
@@ -525,9 +535,13 @@ class FileDownloader(object):
 
             for i,entry in enumerate(entries,1):
                 self.to_screen(u'[download] Downloading video #%s of %s' %(i, n_entries))
-                entry['playlist'] = playlist
-                entry['playlist_index'] = i + playliststart
-                entry_result = self.process_ie_result(entry, download=download)
+                extra = {
+                         'playlist': playlist, 
+                         'playlist_index': i + playliststart,
+                         }
+                entry_result = self.process_ie_result(entry,
+                                                      download=download,
+                                                      extra_info=extra)
                 playlist_results.append(entry_result)
             ie_result['entries'] = playlist_results
             return ie_result
