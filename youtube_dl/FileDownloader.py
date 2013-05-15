@@ -748,7 +748,7 @@ class FileDownloader(object):
             except (IOError, OSError):
                 self.report_warning(u'Unable to remove downloaded video file')
 
-    def _download_with_rtmpdump(self, filename, url, player_url, page_url, play_path):
+    def _download_with_rtmpdump(self, filename, url, player_url, page_url, play_path, tc_url):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
 
@@ -769,6 +769,8 @@ class FileDownloader(object):
             basic_args += ['--pageUrl', page_url]
         if play_path is not None:
             basic_args += ['-y', play_path]
+        if tc_url is not None:
+            basic_args += ['--tcUrl', url]
         args = basic_args + [[], ['-e', '-k', '1']][self.params.get('continuedl', False)]
         if self.params.get('verbose', False):
             try:
@@ -824,7 +826,8 @@ class FileDownloader(object):
             return self._download_with_rtmpdump(filename, url,
                                                 info_dict.get('player_url', None),
                                                 info_dict.get('page_url', None),
-                                                info_dict.get('play_path', None))
+                                                info_dict.get('play_path', None),
+                                                info_dict.get('tc_url', None))
 
         tmpfilename = self.temp_name(filename)
         stream = None
