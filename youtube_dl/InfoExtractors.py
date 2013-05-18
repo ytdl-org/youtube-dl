@@ -4041,7 +4041,7 @@ class RedTubeIE(InfoExtractor):
         
 class InaIE(InfoExtractor):
     """Information Extractor for Ina.fr"""
-    _VALID_URL = r'(?:http://)?(?:www.)?ina\.fr/video/(?P<id>I[0-9]+)/.*'
+    _VALID_URL = r'(?:http://)?(?:www\.)?ina\.fr/video/(?P<id>I[0-9]+)/.*'
 
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)
@@ -4066,6 +4066,42 @@ class InaIE(InfoExtractor):
             'url':      video_url,
             'ext':      video_extension,
             'title':    video_title,
+        }]
+
+class HowcastIE(InfoExtractor):
+    """Information Extractor for Ina.fr"""
+    _VALID_URL = r'(?:https?://)?(?:www\.)?howcast\.com/videos/(?P<id>[\d]+)'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+
+        video_id = mobj.group('id')
+        webpage_url = 'http://www.howcast.com/videos/' + video_id
+        webpage = self._download_webpage(webpage_url, video_id)
+
+        mobj = re.search(r'\'file\': "(http://mobile-media\.howcast\.com/\d+\.mp4)"', webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract video URL')
+        video_url = mobj.group(1)
+
+        mobj = re.search(r'<meta content=(?:"([^"]+)"|\'([^\']+)\') property=\'og:title\'', webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract title')
+        video_title = mobj.group(1) or mobj.group(2)
+
+        mobj = re.search(r'<meta content=(?:"([^"]+)"|\'([^\']+)\') name=\'description\'', webpage)
+        if mobj is None:
+            self._downloader.report_warning(u'unable to extract description')
+            video_description = None
+        else:
+            video_description = mobj.group(1) or mobj.group(2)
+
+        return [{
+            'id':       video_id,
+            'url':      video_url,
+            'ext':      'mp4',
+            'title':    video_title,
+            'description': video_description,
         }]
 
 def gen_extractors():
@@ -4125,6 +4161,7 @@ def gen_extractors():
         BandcampIE(),
         RedTubeIE(),
         InaIE(),
+        HowcastIE(),
         GenericIE()
     ]
 

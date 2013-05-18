@@ -441,5 +441,15 @@
         "title": "Obama Celebrates Iraq Victory"
     },
     "skip": "Requires rtmpdump"
+  },
+  {
+    "name": "Howcast",
+    "url": "http://www.howcast.com/videos/390161-How-to-Tie-a-Square-Knot-Properly",
+    "file": "390161.mp4",
+    "md5": "1d7ba54e2c9d7dc6935ef39e00529138",
+    "info_dict":{
+      "title":"How to Tie a Square Knot Properly",
+      "description":"The square knot, also known as the reef knot, is one of the oldest, most basic knots to tie, and can be used in many different ways. Here's the proper way to tie a square knot."
+    }
   }
 ]
