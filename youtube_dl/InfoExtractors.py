@@ -3301,18 +3301,26 @@ class UstreamIE(InfoExtractor):
         video_id = m.group('videoID')
         video_url = u'http://tcdn.ustream.tv/video/%s' % video_id
         webpage = self._download_webpage(url, video_id)
-        m = re.search(r'data-title="(?P<title>.+)"',webpage)
-        title = m.group('title')
-        m = re.search(r'<a class="state" data-content-type="channel" data-content-id="(?P<uploader>\d+)"',webpage)
-        uploader = m.group('uploader')
+        self.report_extraction(video_id)
+        try:
+            m = re.search(r'data-title="(?P<title>.+)"',webpage)
+            title = m.group('title')
+            m = re.search(r'data-content-type="channel".*?>(?P<uploader>.*?)</a>',
+                          webpage, re.DOTALL)
+            uploader = unescapeHTML(m.group('uploader').strip())
+            m = re.search(r'<link rel="image_src" href="(?P<thumb>.*?)"', webpage)
+            thumb = m.group('thumb')
+        except AttributeError:
+            raise ExtractorError(u'Unable to extract info')
         info = {
                 'id':video_id,
                 'url':video_url,
                 'ext': 'flv',
                 'title': title,
-                'uploader': uploader
+                'uploader': uploader,
+                'thumbnail': thumb,
                   }
-        return [info]
+        return info
 
 class WorldStarHipHopIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www|m)\.worldstar(?:candy|hiphop)\.com/videos/video\.php\?v=(?P<id>.*)'
