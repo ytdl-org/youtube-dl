@@ -451,5 +451,14 @@
       "title":"How to Tie a Square Knot Properly",
       "description":"The square knot, also known as the reef knot, is one of the oldest, most basic knots to tie, and can be used in many different ways. Here's the proper way to tie a square knot."
     }
+  },
+  {
+    "name": "Vine",
+    "url": "https://vine.co/v/b9KOOWX7HUx",
+    "file": "b9KOOWX7HUx.mp4",
+    "md5": "2f36fed6235b16da96ce9b4dc890940d",
+    "info_dict":{
+      "title":"Chicken."
+    }
   }
 ]

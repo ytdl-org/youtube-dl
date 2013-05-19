@@ -4069,8 +4069,8 @@ class InaIE(InfoExtractor):
         }]
 
 class HowcastIE(InfoExtractor):
-    """Information Extractor for Ina.fr"""
-    _VALID_URL = r'(?:https?://)?(?:www\.)?howcast\.com/videos/(?P<id>[\d]+)'
+    """Information Extractor for Howcast.com"""
+    _VALID_URL = r'(?:https?://)?(?:www\.)?howcast\.com/videos/(?P<id>\d+)'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -4102,6 +4102,35 @@ class HowcastIE(InfoExtractor):
             'ext':      'mp4',
             'title':    video_title,
             'description': video_description,
+        }]
+
+class VineIE(InfoExtractor):
+    """Information Extractor for Vine.co"""
+    _VALID_URL = r'(?:https?://)?(?:www\.)?vine\.co/v/(?P<id>\w+)'
+
+    def _real_extract(self, url):
+
+        mobj = re.match(self._VALID_URL, url)
+
+        video_id = mobj.group('id')
+        webpage_url = 'https://vine.co/v/' + video_id
+        webpage = self._download_webpage(webpage_url, video_id)
+
+        mobj = re.search(r'<meta property="twitter:player:stream" content="([^"]+)"', webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract video URL')
+        video_url = mobj.group(1)
+
+        mobj = re.search(r'<meta property="og:title" content="([^"]+)"', webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract title')
+        video_title = mobj.group(1)
+
+        return [{
+            'id':       video_id,
+            'url':      video_url,
+            'ext':      'mp4',
+            'title':    video_title,
         }]
 
 def gen_extractors():
@@ -4162,6 +4191,7 @@ def gen_extractors():
         RedTubeIE(),
         InaIE(),
         HowcastIE(),
+        VineIE(),
         GenericIE()
     ]
 
