@@ -763,6 +763,7 @@ class FileDownloader(object):
         # the connection was interrumpted and resuming appears to be
         # possible. This is part of rtmpdump's normal usage, AFAIK.
         basic_args = ['rtmpdump', '-q', '-r', url, '-o', tmpfilename]
+        if self.params.get('verbose', False): basic_args[1] = '-v'
         if player_url is not None:
             basic_args += ['-W', player_url]
         if page_url is not None:
