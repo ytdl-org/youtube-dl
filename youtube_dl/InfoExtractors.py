@@ -4079,6 +4079,8 @@ class HowcastIE(InfoExtractor):
         webpage_url = 'http://www.howcast.com/videos/' + video_id
         webpage = self._download_webpage(webpage_url, video_id)
 
+        self.report_extraction(video_id)
+
         mobj = re.search(r'\'file\': "(http://mobile-media\.howcast\.com/\d+\.mp4)"', webpage)
         if mobj is None:
             raise ExtractorError(u'Unable to extract video URL')
@@ -4096,12 +4098,18 @@ class HowcastIE(InfoExtractor):
         else:
             video_description = mobj.group(1) or mobj.group(2)
 
+        mobj = re.search(r'<meta content=\'(.+?)\' property=\'og:image\'', webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract thumbnail')
+        thumbnail = mobj.group(1)
+
         return [{
             'id':       video_id,
             'url':      video_url,
             'ext':      'mp4',
             'title':    video_title,
             'description': video_description,
+            'thumbnail': thumbnail,
         }]
 
 class VineIE(InfoExtractor):
