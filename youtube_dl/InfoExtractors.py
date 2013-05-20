@@ -16,6 +16,9 @@ import xml.etree.ElementTree
 import random
 import math
 import operator
+import hashlib
+import binascii
+import urllib
 
 from .utils import *
 
@@ -1979,37 +1982,160 @@ class MyVideoIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:www\.)?myvideo\.de/watch/([0-9]+)/([^?/]+).*'
     IE_NAME = u'myvideo'
 
+#     Original Code from: https://github.com/dersphere/plugin.video.myvideo_de.git
+#     Copyright (C) 2013 Tristan Fischer (sphere@dersphere.de) - GPLv3
+    def __rc4crypt(self,data, key):
+        x = 0
+        box = list(range(256))
+        for i in list(range(256)):
+            x = (x + box[i] + ord(key[i % len(key)])) % 256
+            box[i], box[x] = box[x], box[i]
+        x = 0
+        y = 0
+        out = []
+        for char in data:
+            x = (x + 1) % 256
+            y = (y + box[x]) % 256
+            box[x], box[y] = box[y], box[x]
+#            out.append(chr(ord(char) ^ box[(box[x] + box[y]) % 256]))
+            out.append(chr(char ^ box[(box[x] + box[y]) % 256]))
+        return ''.join(out)
+
+    def __md5(self,s):
+        return hashlib.md5(s).hexdigest()
+
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
+            raise ExtractorError(u'invalid URL: %s' % url)
 
         video_id = mobj.group(1)
+
+        GK = (
+          b'WXpnME1EZGhNRGhpTTJNM01XVmhOREU0WldNNVpHTTJOakpt'
+          b'TW1FMU5tVTBNR05pWkRaa05XRXhNVFJoWVRVd1ptSXhaVEV3'
+          b'TnpsbA0KTVRkbU1tSTRNdz09'
+        )
 
         # Get video webpage
         webpage_url = 'http://www.myvideo.de/watch/%s' % video_id
         webpage = self._download_webpage(webpage_url, video_id)
 
+        mobj = re.search('source src=\'(.+?)[.]([^.]+)\'', webpage)
+        if mobj is not None:
+            self.report_extraction(video_id)
+            video_url = mobj.group(1) + '.flv'
+
+            mobj = re.search('<title>([^<]+)</title>', webpage)
+            if mobj is None:
+                raise ExtractorError(u'Unable to extract title')
+            video_title = mobj.group(1)
+
+            mobj = re.search('[.](.+?)$', video_url)
+            if mobj is None:
+                raise ExtractorError(u'Unable to extract extention')
+            video_ext = mobj.group(1)
+
+            return [{
+                'id':       video_id,
+                'url':      video_url,
+                'uploader': None,
+                'upload_date':  None,
+                'title':    video_title,
+                'ext':      u'flv',
+            }]
+
+        # try encxml
+        params = {}
+        encxml = ''
+        sec = re.search('var flashvars={(.+?)}', webpage).group(1)
+        for (a, b) in re.findall('(.+?):\'(.+?)\',?', sec):
+            if not a == '_encxml':
+                params[a] = b
+            else:
+                encxml = compat_urllib_parse.unquote(b)
+        if not params.get('domain'):
+            params['domain'] = 'www.myvideo.de'
+        xmldata_url = '%s?%s' % (encxml, compat_urllib_parse.urlencode(params))
+        if 'flash_playertype=MTV' in xmldata_url:
+            self._downloader.report_warning(u'avoiding MTV player')
+            xmldata_url = (
+                'http://www.myvideo.de/dynamic/get_player_video_xml.php'
+                '?flash_playertype=D&ID=%s&_countlimit=4&autorun=yes'
+            ) % video_id
+
+        # get enc data
+        enc_data = self._download_webpage(xmldata_url, video_id).split('=')[1]
+        enc_data_b = binascii.unhexlify(enc_data)
+        sk = self.__md5( 
+            base64.b64decode(base64.b64decode(GK)) + 
+            self.__md5( 
+                str(video_id).encode('utf-8') 
+            ).encode('utf-8') 
+        )
+        dec_data = self.__rc4crypt(enc_data_b, sk)
+
+        # extracting infos
         self.report_extraction(video_id)
-        mobj = re.search(r'<link rel=\'image_src\' href=\'(http://is[0-9].myvideo\.de/de/movie[0-9]+/[a-f0-9]+)/thumbs/.*?\.jpg\'',
-                 webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract media URL')
-        video_url = mobj.group(1) + ('/%s.flv' % video_id)
 
-        mobj = re.search('<title>([^<]+)</title>', webpage)
+        mobj = re.search('connectionurl=\'(.*?)\'', dec_data)
         if mobj is None:
-            raise ExtractorError(u'Unable to extract title')
+            raise ExtractorError(u'unable to extract rtmpurl')
+        video_rtmpurl = compat_urllib_parse.unquote(mobj.group(1))
+        if 'myvideo2flash' in video_rtmpurl:
+            self._downloader.report_warning(u'forcing RTMPT ...')
+            video_rtmpurl = video_rtmpurl.replace('rtmpe://', 'rtmpt://')
 
+        # extract non rtmp videos
+        if (video_rtmpurl is None) or (video_rtmpurl == ''):
+            mobj = re.search('path=\'(http.*?)\' source=\'(.*?)\'', dec_data)
+            if mobj is None:
+                raise ExtractorError(u'unable to extract url')
+            video_rtmpurl = compat_urllib_parse.unquote(mobj.group(1)) + compat_urllib_parse.unquote(mobj.group(2))
+
+        mobj = re.search('source=\'(.*?)\'', dec_data)
+        if mobj is None:
+            raise ExtractorError(u'unable to extract swfobj')
+        video_file     = compat_urllib_parse.unquote(mobj.group(1))
+
+#        mobj = re.search('path=\'(.*?)\'', dec_data)
+#        if mobj is None:
+#            raise ExtractorError(u'unable to extract filepath')
+#        video_filepath = mobj.group(1)
+
+        if not video_file.endswith('f4m'):
+            ppath, prefix = video_file.split('.')
+            video_playpath = '%s:%s' % (prefix, ppath)
+            video_hls_playlist = ''
+        else:
+            video_playpath = ''
+            video_hls_playlist = (
+                video_filepath + video_file
+            ).replace('.f4m', '.m3u8')
+
+        mobj = re.search('swfobject.embedSWF\(\'(.+?)\'', webpage)
+        if mobj is None:
+            raise ExtractorError(u'unable to extract swfobj')
+        video_swfobj = compat_urllib_parse.unquote(mobj.group(1))
+
+        mobj = re.search("<h1(?: class='globalHd')?>(.*?)</h1>", webpage)
+        if mobj is None:
+            raise ExtractorError(u'unable to extract title')
         video_title = mobj.group(1)
 
         return [{
-            'id':       video_id,
-            'url':      video_url,
-            'uploader': None,
-            'upload_date':  None,
-            'title':    video_title,
-            'ext':      u'flv',
+            'id':                 video_id,
+            'url':                video_rtmpurl,
+            'tc_url':             video_rtmpurl,
+            'uploader':           None,
+            'upload_date':        None,
+            'title':              video_title,
+            'ext':                u'flv',
+            'play_path':          video_playpath,
+            'video_file':         video_file,
+#            'file_path':          video_filepath,
+            'video_hls_playlist': video_hls_playlist,
+            'player_url':         video_swfobj,
         }]
 
 class ComedyCentralIE(InfoExtractor):
