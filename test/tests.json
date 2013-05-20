@@ -461,5 +461,16 @@
       "title": "Chicken.",
       "uploader": "Jack Dorsey"
     }
+  },
+  {
+    "name": "Flickr",
+    "url": "http://www.flickr.com/photos/forestwander-nature-pictures/5645318632/in/photostream/",
+    "file": "5645318632.mp4",
+    "md5": "6fdc01adbc89d72fc9c4f15b4a4ba87b",
+    "info_dict":{
+      "title": "Dark Hollow Waterfalls",
+      "uploader_id": "forestwander-nature-pictures",
+      "description": "Waterfalls in the Springtime at Dark Hollow Waterfalls. These are located just off of Skyline Drive in Virginia. They are only about 6/10 of a mile hike but it is a pretty steep hill and a good climb back up."
+    }
   }
 ]
