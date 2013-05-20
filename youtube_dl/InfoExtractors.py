@@ -1982,27 +1982,27 @@ class MyVideoIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:www\.)?myvideo\.de/watch/([0-9]+)/([^?/]+).*'
     IE_NAME = u'myvideo'
 
-#     Original Code from: https://github.com/dersphere/plugin.video.myvideo_de.git
-#     Copyright (C) 2013 Tristan Fischer (sphere@dersphere.de) - GPLv3
+    # Original Code from: https://github.com/dersphere/plugin.video.myvideo_de.git
+    # Released into the Public Domain by Tristan Fischer on 2013-05-19
+    # https://github.com/rg3/youtube-dl/pull/842
     def __rc4crypt(self,data, key):
         x = 0
         box = list(range(256))
         for i in list(range(256)):
-            x = (x + box[i] + ord(key[i % len(key)])) % 256
+            x = (x + box[i] + compat_ord(key[i % len(key)])) % 256
             box[i], box[x] = box[x], box[i]
         x = 0
         y = 0
-        out = []
+        out = ''
         for char in data:
             x = (x + 1) % 256
             y = (y + box[x]) % 256
             box[x], box[y] = box[y], box[x]
-#            out.append(chr(ord(char) ^ box[(box[x] + box[y]) % 256]))
-            out.append(chr(char ^ box[(box[x] + box[y]) % 256]))
-        return ''.join(out)
+            out += chr(compat_ord(char) ^ box[(box[x] + box[y]) % 256])
+        return out
 
     def __md5(self,s):
-        return hashlib.md5(s).hexdigest()
+        return hashlib.md5(s).hexdigest().encode()
 
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)
@@ -2046,9 +2046,13 @@ class MyVideoIE(InfoExtractor):
             }]
 
         # try encxml
+        mobj = re.search('var flashvars={(.+?)}', webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract video')
+
         params = {}
         encxml = ''
-        sec = re.search('var flashvars={(.+?)}', webpage).group(1)
+        sec = mobj.group(1)
         for (a, b) in re.findall('(.+?):\'(.+?)\',?', sec):
             if not a == '_encxml':
                 params[a] = b
@@ -2067,11 +2071,11 @@ class MyVideoIE(InfoExtractor):
         # get enc data
         enc_data = self._download_webpage(xmldata_url, video_id).split('=')[1]
         enc_data_b = binascii.unhexlify(enc_data)
-        sk = self.__md5( 
-            base64.b64decode(base64.b64decode(GK)) + 
-            self.__md5( 
-                str(video_id).encode('utf-8') 
-            ).encode('utf-8') 
+        sk = self.__md5(
+            base64.b64decode(base64.b64decode(GK)) +
+            self.__md5(
+                str(video_id).encode('utf-8')
+            )
         )
         dec_data = self.__rc4crypt(enc_data_b, sk)
 
@@ -2097,11 +2101,6 @@ class MyVideoIE(InfoExtractor):
         if mobj is None:
             raise ExtractorError(u'unable to extract swfobj')
         video_file     = compat_urllib_parse.unquote(mobj.group(1))
-
-#        mobj = re.search('path=\'(.*?)\'', dec_data)
-#        if mobj is None:
-#            raise ExtractorError(u'unable to extract filepath')
-#        video_filepath = mobj.group(1)
 
         if not video_file.endswith('f4m'):
             ppath, prefix = video_file.split('.')
@@ -2133,7 +2132,6 @@ class MyVideoIE(InfoExtractor):
             'ext':                u'flv',
             'play_path':          video_playpath,
             'video_file':         video_file,
-#            'file_path':          video_filepath,
             'video_hls_playlist': video_hls_playlist,
             'player_url':         video_swfobj,
         }]
