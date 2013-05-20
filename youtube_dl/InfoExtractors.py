@@ -4116,21 +4116,35 @@ class VineIE(InfoExtractor):
         webpage_url = 'https://vine.co/v/' + video_id
         webpage = self._download_webpage(webpage_url, video_id)
 
-        mobj = re.search(r'<meta property="twitter:player:stream" content="([^"]+)"', webpage)
+        self.report_extraction(video_id)
+
+        mobj = re.search(r'<meta property="twitter:player:stream" content="(.+?)"', webpage)
         if mobj is None:
             raise ExtractorError(u'Unable to extract video URL')
         video_url = mobj.group(1)
 
-        mobj = re.search(r'<meta property="og:title" content="([^"]+)"', webpage)
+        mobj = re.search(r'<meta property="og:title" content="(.+?)"', webpage)
         if mobj is None:
             raise ExtractorError(u'Unable to extract title')
         video_title = mobj.group(1)
 
+        mobj = re.search(r'<meta property="og:image" content="(.+?)(\?.*?)?"', webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract thumbnail')
+        thumbnail = mobj.group(1)
+
+        mobj = re.search(r'<div class="user">.*?<h2>(.+?)</h2>', webpage, re.DOTALL)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract uploader')
+        uploader = mobj.group(1)
+
         return [{
-            'id':       video_id,
-            'url':      video_url,
-            'ext':      'mp4',
-            'title':    video_title,
+            'id':        video_id,
+            'url':       video_url,
+            'ext':       'mp4',
+            'title':     video_title,
+            'thumbnail': thumbnail,
+            'uploader':  uploader,
         }]
 
 def gen_extractors():

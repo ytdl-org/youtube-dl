@@ -458,7 +458,8 @@
     "file": "b9KOOWX7HUx.mp4",
     "md5": "2f36fed6235b16da96ce9b4dc890940d",
     "info_dict":{
-      "title":"Chicken."
+      "title": "Chicken.",
+      "uploader": "Jack Dorsey"
     }
   }
 ]
