@@ -4341,6 +4341,51 @@ class FlickrIE(InfoExtractor):
             'uploader_id': video_uploader_id,
         }]
 
+class TeamcocoIE(InfoExtractor):
+    _VALID_URL = r'http://teamcoco\.com/video/(?P<url_title>.*)'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            raise ExtractorError(u'Invalid URL: %s' % url)
+        url_title = mobj.group('url_title')
+        webpage = self._download_webpage(url, url_title)
+
+        mobj = re.search(r'<article class="video" data-id="(\d+?)"', webpage)
+        video_id = mobj.group(1)
+
+        self.report_extraction(video_id)
+
+        mobj = re.search(r'<meta property="og:title" content="(.+?)"', webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract title')
+        video_title = mobj.group(1)
+
+        mobj = re.search(r'<meta property="og:image" content="(.+?)"', webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract thumbnail')
+        thumbnail = mobj.group(1)
+
+        mobj = re.search(r'<meta property="og:description" content="(.*?)"', webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract description')
+        description = mobj.group(1)
+
+        data_url = 'http://teamcoco.com/cvp/2.0/%s.xml' % video_id
+        data = self._download_webpage(data_url, video_id, 'Downloading data webpage')
+        mobj = re.search(r'<file type="high".*?>(.*?)</file>', data)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract video url')
+        video_url = mobj.group(1)
+
+        return [{
+            'id':          video_id,
+            'url':         video_url,
+            'ext':         'mp4',
+            'title':       video_title,
+            'thumbnail':   thumbnail,
+            'description': description,
+        }]
 
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
@@ -4402,6 +4447,7 @@ def gen_extractors():
         HowcastIE(),
         VineIE(),
         FlickrIE(),
+        TeamcocoIE(),
         GenericIE()
     ]
 

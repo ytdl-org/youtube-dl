@@ -472,5 +472,15 @@
       "uploader_id": "forestwander-nature-pictures",
       "description": "Waterfalls in the Springtime at Dark Hollow Waterfalls. These are located just off of Skyline Drive in Virginia. They are only about 6/10 of a mile hike but it is a pretty steep hill and a good climb back up."
     }
+  },
+  {
+    "name": "Teamcoco",
+    "url": "http://teamcoco.com/video/louis-ck-interview-george-w-bush",
+    "file": "19705.mp4",
+    "md5": "27b6f7527da5acf534b15f21b032656e",
+    "info_dict":{
+      "title": "Louis C.K. Interview Pt. 1 11/3/11",
+      "description": "Louis C.K. got starstruck by George W. Bush, so what? Part one."
+    }
   }
 ]
