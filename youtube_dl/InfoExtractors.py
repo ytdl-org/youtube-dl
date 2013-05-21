@@ -4066,7 +4066,7 @@ class TumblrIE(InfoExtractor):
         re_video = r'src=\\x22(?P<video_url>http://%s\.tumblr\.com/video_file/%s/(.*?))\\x22 type=\\x22video/(?P<ext>.*?)\\x22' % (blog, video_id)
         video = re.search(re_video, webpage)
         if video is None:
-            self.to_screen("No video founded")
+            self.to_screen("No video found")
             return []
         video_url = video.group('video_url')
         ext = video.group('ext')
@@ -4281,7 +4281,7 @@ class VineIE(InfoExtractor):
 
 class FlickrIE(InfoExtractor):
     """Information Extractor for Flickr videos"""
-    _VALID_URL = r'(?:https?://)?(?:www\.)?flickr\.com/photos/(?P<uploader_id>[\w\-]+)/(?P<id>\d+).*'
+    _VALID_URL = r'(?:https?://)?(?:www\.)?flickr\.com/photos/(?P<uploader_id>[\w\-_@]+)/(?P<id>\d+).*'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -4291,15 +4291,13 @@ class FlickrIE(InfoExtractor):
         webpage_url = 'http://www.flickr.com/photos/' + video_uploader_id + '/' + video_id
         webpage = self._download_webpage(webpage_url, video_id)
 
-        self.report_extraction(video_id)
-        
         mobj = re.search(r"photo_secret: '(\w+)'", webpage)
         if mobj is None:
             raise ExtractorError(u'Unable to extract video secret')
         secret = mobj.group(1)
 
         first_url = 'https://secure.flickr.com/apps/video/video_mtl_xml.gne?v=x&photo_id=' + video_id + '&secret=' + secret + '&bitrate=700&target=_self'
-        first_xml = self._download_webpage(first_url, video_id)
+        first_xml = self._download_webpage(first_url, video_id, 'Downloading first data webpage')
 
         mobj = re.search(r'<Item id="id">(\d+-\d+)</Item>', first_xml)
         if mobj is None:
@@ -4307,7 +4305,9 @@ class FlickrIE(InfoExtractor):
         node_id = mobj.group(1)
 
         second_url = 'https://secure.flickr.com/video_playlist.gne?node_id=' + node_id + '&tech=flash&mode=playlist&bitrate=700&secret=' + secret + '&rd=video.yahoo.com&noad=1'
-        second_xml = self._download_webpage(second_url, video_id)
+        second_xml = self._download_webpage(second_url, video_id, 'Downloading second data webpage')
+
+        self.report_extraction(video_id)
 
         mobj = re.search(r'<STREAM APP="(.+?)" FULLPATH="(.+?)"', second_xml)
         if mobj is None:
@@ -4332,12 +4332,12 @@ class FlickrIE(InfoExtractor):
         thumbnail = mobj.group(1) or mobj.group(2)
 
         return [{
-            'id':       video_id,
-            'url':      video_url,
-            'ext':      'mp4',
-            'title':    video_title,
+            'id':          video_id,
+            'url':         video_url,
+            'ext':         'mp4',
+            'title':       video_title,
             'description': video_description,
-            'thumbnail': thumbnail,
+            'thumbnail':   thumbnail,
             'uploader_id': video_uploader_id,
         }]
 
