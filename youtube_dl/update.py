@@ -37,7 +37,7 @@ def rsa_verify(message, signature, key):
 def update_self(to_screen, verbose, filename):
     """Update the program file with the latest version from the repository"""
 
-    UPDATE_URL = "http://rg3.github.com/youtube-dl/update/"
+    UPDATE_URL = "http://rg3.github.io/youtube-dl/update/"
     VERSION_URL = UPDATE_URL + 'LATEST_VERSION'
     JSON_URL = UPDATE_URL + 'versions.json'
     UPDATES_RSA_KEY = (0x9d60ee4d8f805312fdb15a62f87b95bd66177b91df176765d13514a0f1754bcd2057295c5b6f1d35daa6742c3ffc9a82d3e118861c207995a8031e151d863c9927e304576bc80692bc8e094896fcf11b66f3e29e04e3a71e9a11558558acea1840aec37fc396fb6b65dc81a1c4144e03bd1c011de62e3f1357b327d08426fe93, 65537)
@@ -78,7 +78,7 @@ def update_self(to_screen, verbose, filename):
     to_screen(u'Updating to version ' + versions_info['latest'] + '...')
     version = versions_info['versions'][versions_info['latest']]
 
-    print_notes(versions_info['versions'])
+    print_notes(to_screen, versions_info['versions'])
 
     if not os.access(filename, os.W_OK):
         to_screen(u'ERROR: no write permissions on %s' % filename)
@@ -157,11 +157,15 @@ del "%s"
 
     to_screen(u'Updated youtube-dl. Restart youtube-dl to use the new version.')
 
-def print_notes(versions, fromVersion=__version__):
+def get_notes(versions, fromVersion):
     notes = []
     for v,vdata in sorted(versions.items()):
         if v > fromVersion:
             notes.extend(vdata.get('notes', []))
+    return notes
+
+def print_notes(to_screen, versions, fromVersion=__version__):
+    notes = get_notes(versions, fromVersion)
     if notes:
         to_screen(u'PLEASE NOTE:')
         for note in notes:

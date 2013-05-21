@@ -7,6 +7,7 @@ import math
 import io
 import os
 import re
+import shutil
 import socket
 import subprocess
 import sys
@@ -17,6 +18,7 @@ if os.name == 'nt':
     import ctypes
 
 from .utils import *
+from .InfoExtractors import get_info_extractor
 
 
 class FileDownloader(object):
@@ -52,6 +54,7 @@ class FileDownloader(object):
     quiet:             Do not print messages to stdout.
     forceurl:          Force printing final URL.
     forcetitle:        Force printing title.
+    forceid:           Force printing ID.
     forcethumbnail:    Force printing thumbnail URL.
     forcedescription:  Force printing description.
     forcefilename:     Force printing final filename.
@@ -78,12 +81,18 @@ class FileDownloader(object):
     updatetime:        Use the Last-modified header to set output file timestamps.
     writedescription:  Write the video description to a .description file
     writeinfojson:     Write the video description to a .info.json file
-    writesubtitles:    Write the video subtitles to a .srt file
+    writethumbnail:    Write the thumbnail image to a file
+    writesubtitles:    Write the video subtitles to a file
+    allsubtitles:      Downloads all the subtitles of the video
+    listsubtitles:     Lists all available subtitles for the video
+    subtitlesformat:   Subtitle format [sbv/srt] (default=srt)
     subtitleslang:     Language of the subtitles to download
     test:              Download only first bytes to test the downloader.
     keepvideo:         Keep the video file after post-processing
     min_filesize:      Skip files smaller than this size
     max_filesize:      Skip files larger than this size
+    daterange:         A DateRange object, download only if the upload_date is in the range.
+    skip_download:     Skip the actual download of the video file
     """
 
     params = None
@@ -116,7 +125,7 @@ class FileDownloader(object):
             exponent = 0
         else:
             exponent = int(math.log(bytes, 1024.0))
-        suffix = 'bkMGTPEZY'[exponent]
+        suffix = ['B','KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB'][exponent]
         converted = float(bytes) / float(1024 ** exponent)
         return '%.2f%s' % (converted, suffix)
 
@@ -227,11 +236,21 @@ class FileDownloader(object):
             self.to_stderr(message)
         if self.params.get('verbose'):
             if tb is None:
-                tb_data = traceback.format_list(traceback.extract_stack())
-                tb = u''.join(tb_data)
+                if sys.exc_info()[0]:  # if .trouble has been called from an except block
+                    tb = u''
+                    if hasattr(sys.exc_info()[1], 'exc_info') and sys.exc_info()[1].exc_info[0]:
+                        tb += u''.join(traceback.format_exception(*sys.exc_info()[1].exc_info))
+                    tb += compat_str(traceback.format_exc())
+                else:
+                    tb_data = traceback.format_list(traceback.extract_stack())
+                    tb = u''.join(tb_data)
             self.to_stderr(tb)
         if not self.params.get('ignoreerrors', False):
-            raise DownloadError(message)
+            if sys.exc_info()[0] and hasattr(sys.exc_info()[1], 'exc_info') and sys.exc_info()[1].exc_info[0]:
+                exc_info = sys.exc_info()[1].exc_info
+            else:
+                exc_info = sys.exc_info()
+            raise DownloadError(message, exc_info)
         self._download_retcode = 1
 
     def report_warning(self, message):
@@ -239,12 +258,24 @@ class FileDownloader(object):
         Print the message to stderr, it will be prefixed with 'WARNING:'
         If stderr is a tty file the 'WARNING:' will be colored
         '''
-        if sys.stderr.isatty():
+        if sys.stderr.isatty() and os.name != 'nt':
             _msg_header=u'\033[0;33mWARNING:\033[0m'
         else:
             _msg_header=u'WARNING:'
         warning_message=u'%s %s' % (_msg_header,message)
         self.to_stderr(warning_message)
+
+    def report_error(self, message, tb=None):
+        '''
+        Do the same as trouble, but prefixes the message with 'ERROR:', colored
+        in red if stderr is a tty file.
+        '''
+        if sys.stderr.isatty() and os.name != 'nt':
+            _msg_header = u'\033[0;31mERROR:\033[0m'
+        else:
+            _msg_header = u'ERROR:'
+        error_message = u'%s %s' % (_msg_header, message)
+        self.trouble(error_message, tb)
 
     def slow_down(self, start_time, byte_counter):
         """Sleep if the download speed is over the rate limit."""
@@ -277,7 +308,7 @@ class FileDownloader(object):
                 return
             os.rename(encodeFilename(old_filename), encodeFilename(new_filename))
         except (IOError, OSError) as err:
-            self.trouble(u'ERROR: unable to rename file')
+            self.report_error(u'unable to rename file')
 
     def try_utime(self, filename, last_modified_hdr):
         """Try to set the last-modified time of the given file."""
@@ -301,9 +332,9 @@ class FileDownloader(object):
         """ Report that the description file is being written """
         self.to_screen(u'[info] Writing video description to: ' + descfn)
 
-    def report_writesubtitles(self, srtfn):
+    def report_writesubtitles(self, sub_filename):
         """ Report that the subtitles file is being written """
-        self.to_screen(u'[info] Writing video subtitles to: ' + srtfn)
+        self.to_screen(u'[info] Writing video subtitles to: ' + sub_filename)
 
     def report_writeinfojson(self, infofn):
         """ Report that the metadata file has been written """
@@ -317,12 +348,13 @@ class FileDownloader(object):
         """Report download progress."""
         if self.params.get('noprogress', False):
             return
+        clear_line = (u'\x1b[K' if sys.stderr.isatty() and os.name != 'nt' else u'')
         if self.params.get('progress_with_newline', False):
             self.to_screen(u'[download] %s of %s at %s ETA %s' %
                 (percent_str, data_len_str, speed_str, eta_str))
         else:
-            self.to_screen(u'\r[download] %s of %s at %s ETA %s' %
-                (percent_str, data_len_str, speed_str, eta_str), skip_eol=True)
+            self.to_screen(u'\r%s[download] %s of %s at %s ETA %s' %
+                (clear_line, percent_str, data_len_str, speed_str, eta_str), skip_eol=True)
         self.to_cons_title(u'youtube-dl - %s of %s at %s ETA %s' %
                 (percent_str.strip(), data_len_str.strip(), speed_str.strip(), eta_str.strip()))
 
@@ -362,7 +394,13 @@ class FileDownloader(object):
             template_dict = dict(info_dict)
 
             template_dict['epoch'] = int(time.time())
-            template_dict['autonumber'] = u'%05d' % self._num_downloads
+            autonumber_size = self.params.get('autonumber_size')
+            if autonumber_size is None:
+                autonumber_size = 5
+            autonumber_templ = u'%0' + str(autonumber_size) + u'd'
+            template_dict['autonumber'] = autonumber_templ % self._num_downloads
+            if template_dict['playlist_index'] is not None:
+                template_dict['playlist_index'] = u'%05d' % template_dict['playlist_index']
 
             sanitize = lambda k,v: sanitize_filename(
                 u'NA' if v is None else compat_str(v),
@@ -373,10 +411,10 @@ class FileDownloader(object):
             filename = self.params['outtmpl'] % template_dict
             return filename
         except KeyError as err:
-            self.trouble(u'ERROR: Erroneous output template')
+            self.report_error(u'Erroneous output template')
             return None
         except ValueError as err:
-            self.trouble(u'ERROR: Insufficient system charset ' + repr(preferredencoding()))
+            self.report_error(u'Insufficient system charset ' + repr(preferredencoding()))
             return None
 
     def _match_entry(self, info_dict):
@@ -391,10 +429,144 @@ class FileDownloader(object):
         if rejecttitle:
             if re.search(rejecttitle, title, re.IGNORECASE):
                 return u'"' + title + '" title matched reject pattern "' + rejecttitle + '"'
+        date = info_dict.get('upload_date', None)
+        if date is not None:
+            dateRange = self.params.get('daterange', DateRange())
+            if date not in dateRange:
+                return u'[download] %s upload date is not in range %s' % (date_from_str(date).isoformat(), dateRange)
         return None
+        
+    def extract_info(self, url, download=True, ie_key=None, extra_info={}):
+        '''
+        Returns a list with a dictionary for each video we find.
+        If 'download', also downloads the videos.
+        extra_info is a dict containing the extra values to add to each result
+         '''
+        
+        if ie_key:
+            ie = get_info_extractor(ie_key)()
+            ie.set_downloader(self)
+            ies = [ie]
+        else:
+            ies = self._ies
+
+        for ie in ies:
+            if not ie.suitable(url):
+                continue
+
+            if not ie.working():
+                self.report_warning(u'The program functionality for this site has been marked as broken, '
+                                    u'and will probably not work.')
+
+            try:
+                ie_result = ie.extract(url)
+                if ie_result is None: # Finished already (backwards compatibility; listformats and friends should be moved here)
+                    break
+                if isinstance(ie_result, list):
+                    # Backwards compatibility: old IE result format
+                    for result in ie_result:
+                        result.update(extra_info)
+                    ie_result = {
+                        '_type': 'compat_list',
+                        'entries': ie_result,
+                    }
+                else:
+                    ie_result.update(extra_info)
+                if 'extractor' not in ie_result:
+                    ie_result['extractor'] = ie.IE_NAME
+                return self.process_ie_result(ie_result, download=download)
+            except ExtractorError as de: # An error we somewhat expected
+                self.report_error(compat_str(de), de.format_traceback())
+                break
+            except Exception as e:
+                if self.params.get('ignoreerrors', False):
+                    self.report_error(compat_str(e), tb=compat_str(traceback.format_exc()))
+                    break
+                else:
+                    raise
+        else:
+            self.report_error(u'no suitable InfoExtractor: %s' % url)
+        
+    def process_ie_result(self, ie_result, download=True, extra_info={}):
+        """
+        Take the result of the ie(may be modified) and resolve all unresolved
+        references (URLs, playlist items).
+
+        It will also download the videos if 'download'.
+        Returns the resolved ie_result.
+        """
+
+        result_type = ie_result.get('_type', 'video') # If not given we suppose it's a video, support the default old system
+        if result_type == 'video':
+            if 'playlist' not in ie_result:
+                # It isn't part of a playlist
+                ie_result['playlist'] = None
+                ie_result['playlist_index'] = None
+            if download:
+                self.process_info(ie_result)
+            return ie_result
+        elif result_type == 'url':
+            # We have to add extra_info to the results because it may be
+            # contained in a playlist
+            return self.extract_info(ie_result['url'],
+                                     download,
+                                     ie_key=ie_result.get('ie_key'),
+                                     extra_info=extra_info)
+        elif result_type == 'playlist':
+            # We process each entry in the playlist
+            playlist = ie_result.get('title', None) or ie_result.get('id', None)
+            self.to_screen(u'[download] Downloading playlist: %s'  % playlist)
+
+            playlist_results = []
+
+            n_all_entries = len(ie_result['entries'])
+            playliststart = self.params.get('playliststart', 1) - 1
+            playlistend = self.params.get('playlistend', -1)
+
+            if playlistend == -1:
+                entries = ie_result['entries'][playliststart:]
+            else:
+                entries = ie_result['entries'][playliststart:playlistend]
+
+            n_entries = len(entries)
+
+            self.to_screen(u"[%s] playlist '%s': Collected %d video ids (downloading %d of them)" %
+                (ie_result['extractor'], playlist, n_all_entries, n_entries))
+
+            for i,entry in enumerate(entries,1):
+                self.to_screen(u'[download] Downloading video #%s of %s' %(i, n_entries))
+                extra = {
+                         'playlist': playlist, 
+                         'playlist_index': i + playliststart,
+                         }
+                entry_result = self.process_ie_result(entry,
+                                                      download=download,
+                                                      extra_info=extra)
+                playlist_results.append(entry_result)
+            ie_result['entries'] = playlist_results
+            return ie_result
+        elif result_type == 'compat_list':
+            def _fixup(r):
+                r.setdefault('extractor', ie_result['extractor'])
+                return r
+            ie_result['entries'] = [
+                self.process_ie_result(_fixup(r), download=download)
+                for r in ie_result['entries']
+            ]
+            return ie_result
+        else:
+            raise Exception('Invalid result type: %s' % result_type)
 
     def process_info(self, info_dict):
-        """Process a single dictionary returned by an InfoExtractor."""
+        """Process a single resolved IE result."""
+
+        assert info_dict.get('_type', 'video') == 'video'
+        #We increment the download the download count here to match the previous behaviour.
+        self.increment_downloads()
+
+        info_dict['fulltitle'] = info_dict['title']
+        if len(info_dict['title']) > 200:
+            info_dict['title'] = info_dict['title'][:197] + u'...'
 
         # Keep for backwards compatibility
         info_dict['stitle'] = info_dict['title']
@@ -417,6 +589,8 @@ class FileDownloader(object):
         # Forced printings
         if self.params.get('forcetitle', False):
             compat_print(info_dict['title'])
+        if self.params.get('forceid', False):
+            compat_print(info_dict['id'])
         if self.params.get('forceurl', False):
             compat_print(info_dict['url'])
         if self.params.get('forcethumbnail', False) and 'thumbnail' in info_dict:
@@ -437,10 +611,10 @@ class FileDownloader(object):
 
         try:
             dn = os.path.dirname(encodeFilename(filename))
-            if dn != '' and not os.path.exists(dn): # dn is already encoded
+            if dn != '' and not os.path.exists(dn):
                 os.makedirs(dn)
         except (OSError, IOError) as err:
-            self.trouble(u'ERROR: unable to create directory ' + compat_str(err))
+            self.report_error(u'unable to create directory ' + compat_str(err))
             return
 
         if self.params.get('writedescription', False):
@@ -450,20 +624,43 @@ class FileDownloader(object):
                 with io.open(encodeFilename(descfn), 'w', encoding='utf-8') as descfile:
                     descfile.write(info_dict['description'])
             except (OSError, IOError):
-                self.trouble(u'ERROR: Cannot write description file ' + descfn)
+                self.report_error(u'Cannot write description file ' + descfn)
                 return
 
         if self.params.get('writesubtitles', False) and 'subtitles' in info_dict and info_dict['subtitles']:
             # subtitles download errors are already managed as troubles in relevant IE
             # that way it will silently go on when used with unsupporting IE
-            try:
-                srtfn = filename.rsplit('.', 1)[0] + u'.srt'
-                self.report_writesubtitles(srtfn)
-                with io.open(encodeFilename(srtfn), 'w', encoding='utf-8') as srtfile:
-                    srtfile.write(info_dict['subtitles'])
-            except (OSError, IOError):
-                self.trouble(u'ERROR: Cannot write subtitles file ' + descfn)
-                return
+            subtitle = info_dict['subtitles'][0]
+            (sub_error, sub_lang, sub) = subtitle
+            sub_format = self.params.get('subtitlesformat')
+            if sub_error:
+                self.report_warning("Some error while getting the subtitles")
+            else:
+                try:
+                    sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
+                    self.report_writesubtitles(sub_filename)
+                    with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
+                        subfile.write(sub)
+                except (OSError, IOError):
+                    self.report_error(u'Cannot write subtitles file ' + descfn)
+                    return
+
+        if self.params.get('allsubtitles', False) and 'subtitles' in info_dict and info_dict['subtitles']:
+            subtitles = info_dict['subtitles']
+            sub_format = self.params.get('subtitlesformat')
+            for subtitle in subtitles:
+                (sub_error, sub_lang, sub) = subtitle
+                if sub_error:
+                    self.report_warning("Some error while getting the subtitles")
+                else:
+                    try:
+                        sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
+                        self.report_writesubtitles(sub_filename)
+                        with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
+                                subfile.write(sub)
+                    except (OSError, IOError):
+                        self.report_error(u'Cannot write subtitles file ' + descfn)
+                        return
 
         if self.params.get('writeinfojson', False):
             infofn = filename + u'.info.json'
@@ -472,8 +669,22 @@ class FileDownloader(object):
                 json_info_dict = dict((k, v) for k,v in info_dict.items() if not k in ['urlhandle'])
                 write_json_file(json_info_dict, encodeFilename(infofn))
             except (OSError, IOError):
-                self.trouble(u'ERROR: Cannot write metadata to JSON file ' + infofn)
+                self.report_error(u'Cannot write metadata to JSON file ' + infofn)
                 return
+
+        if self.params.get('writethumbnail', False):
+            if 'thumbnail' in info_dict:
+                thumb_format = info_dict['thumbnail'].rpartition(u'/')[2].rpartition(u'.')[2]
+                if not thumb_format:
+                    thumb_format = 'jpg'
+                thumb_filename = filename.rpartition('.')[0] + u'.' + thumb_format
+                self.to_screen(u'[%s] %s: Downloading thumbnail ...' %
+                               (info_dict['extractor'], info_dict['id']))
+                uf = compat_urllib_request.urlopen(info_dict['thumbnail'])
+                with open(thumb_filename, 'wb') as thumbf:
+                    shutil.copyfileobj(uf, thumbf)
+                self.to_screen(u'[%s] %s: Writing thumbnail to: %s' %
+                               (info_dict['extractor'], info_dict['id'], thumb_filename))
 
         if not self.params.get('skip_download', False):
             if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(filename)):
@@ -484,17 +695,17 @@ class FileDownloader(object):
                 except (OSError, IOError) as err:
                     raise UnavailableVideoError()
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                    self.trouble(u'ERROR: unable to download video data: %s' % str(err))
+                    self.report_error(u'unable to download video data: %s' % str(err))
                     return
                 except (ContentTooShortError, ) as err:
-                    self.trouble(u'ERROR: content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
+                    self.report_error(u'content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
                     return
 
             if success:
                 try:
                     self.post_process(filename, info_dict)
                 except (PostProcessingError) as err:
-                    self.trouble(u'ERROR: postprocessing: %s' % str(err))
+                    self.report_error(u'postprocessing: %s' % str(err))
                     return
 
     def download(self, url_list):
@@ -503,49 +714,14 @@ class FileDownloader(object):
             raise SameFileError(self.params['outtmpl'])
 
         for url in url_list:
-            suitable_found = False
-            for ie in self._ies:
-                # Go to next InfoExtractor if not suitable
-                if not ie.suitable(url):
-                    continue
-
-                # Warn if the _WORKING attribute is False
-                if not ie.working():
-                    self.report_warning(u'the program functionality for this site has been marked as broken, '
-                                        u'and will probably not work. If you want to go on, use the -i option.')
-
-                # Suitable InfoExtractor found
-                suitable_found = True
-
-                # Extract information from URL and process it
-                try:
-                    videos = ie.extract(url)
-                except ExtractorError as de: # An error we somewhat expected
-                    self.trouble(u'ERROR: ' + compat_str(de), de.format_traceback())
-                    break
-                except Exception as e:
-                    if self.params.get('ignoreerrors', False):
-                        self.trouble(u'ERROR: ' + compat_str(e), tb=compat_str(traceback.format_exc()))
-                        break
-                    else:
-                        raise
-
-                if len(videos or []) > 1 and self.fixed_template():
-                    raise SameFileError(self.params['outtmpl'])
-
-                for video in videos or []:
-                    video['extractor'] = ie.IE_NAME
-                    try:
-                        self.increment_downloads()
-                        self.process_info(video)
-                    except UnavailableVideoError:
-                        self.trouble(u'\nERROR: unable to download video')
-
-                # Suitable InfoExtractor had been found; go to next URL
-                break
-
-            if not suitable_found:
-                self.trouble(u'ERROR: no suitable InfoExtractor: %s' % url)
+            try:
+                #It also downloads the videos
+                videos = self.extract_info(url)
+            except UnavailableVideoError:
+                self.report_error(u'unable to download video')
+            except MaxDownloadsReached:
+                self.to_screen(u'[info] Maximum number of downloaded files reached.')
+                raise
 
         return self._download_retcode
 
@@ -572,7 +748,7 @@ class FileDownloader(object):
             except (IOError, OSError):
                 self.report_warning(u'Unable to remove downloaded video file')
 
-    def _download_with_rtmpdump(self, filename, url, player_url, page_url):
+    def _download_with_rtmpdump(self, filename, url, player_url, page_url, play_path, tc_url):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
 
@@ -580,17 +756,22 @@ class FileDownloader(object):
         try:
             subprocess.call(['rtmpdump', '-h'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
         except (OSError, IOError):
-            self.trouble(u'ERROR: RTMP download detected but "rtmpdump" could not be run')
+            self.report_error(u'RTMP download detected but "rtmpdump" could not be run')
             return False
 
         # Download using rtmpdump. rtmpdump returns exit code 2 when
         # the connection was interrumpted and resuming appears to be
         # possible. This is part of rtmpdump's normal usage, AFAIK.
         basic_args = ['rtmpdump', '-q', '-r', url, '-o', tmpfilename]
+        if self.params.get('verbose', False): basic_args[1] = '-v'
         if player_url is not None:
             basic_args += ['-W', player_url]
         if page_url is not None:
             basic_args += ['--pageUrl', page_url]
+        if play_path is not None:
+            basic_args += ['-y', play_path]
+        if tc_url is not None:
+            basic_args += ['--tcUrl', url]
         args = basic_args + [[], ['-e', '-k', '1']][self.params.get('continuedl', False)]
         if self.params.get('verbose', False):
             try:
@@ -625,7 +806,8 @@ class FileDownloader(object):
             })
             return True
         else:
-            self.trouble(u'\nERROR: rtmpdump exited with code %d' % retval)
+            self.to_stderr(u"\n")
+            self.report_error(u'rtmpdump exited with code %d' % retval)
             return False
 
     # Keep a copy of the main cookiejar to pass to external downloaders
@@ -701,7 +883,9 @@ class FileDownloader(object):
         if url.startswith('rtmp'):
             return self._download_with_rtmpdump(filename, url,
                                                 info_dict.get('player_url', None),
-                                                info_dict.get('page_url', None))
+                                                info_dict.get('page_url', None),
+                                                info_dict.get('play_path', None),
+                                                info_dict.get('tc_url', None))
 
         tmpfilename = self.temp_name(filename)
         stream = None
@@ -784,7 +968,7 @@ class FileDownloader(object):
                 self.report_retry(count, retries)
 
         if count > retries:
-            self.trouble(u'ERROR: giving up after %s retries' % retries)
+            self.report_error(u'giving up after %s retries' % retries)
             return False
 
         data_len = data.info().get('Content-length', None)
@@ -820,12 +1004,13 @@ class FileDownloader(object):
                     filename = self.undo_temp_name(tmpfilename)
                     self.report_destination(filename)
                 except (OSError, IOError) as err:
-                    self.trouble(u'ERROR: unable to open for writing: %s' % str(err))
+                    self.report_error(u'unable to open for writing: %s' % str(err))
                     return False
             try:
                 stream.write(data_block)
             except (IOError, OSError) as err:
-                self.trouble(u'\nERROR: unable to write data: %s' % str(err))
+                self.to_stderr(u"\n")
+                self.report_error(u'unable to write data: %s' % str(err))
                 return False
             if not self.params.get('noresizebuffer', False):
                 block_size = self.best_block_size(after - before, len(data_block))
@@ -851,7 +1036,8 @@ class FileDownloader(object):
             self.slow_down(start, byte_counter - resume_len)
 
         if stream is None:
-            self.trouble(u'\nERROR: Did not get any data blocks')
+            self.to_stderr(u"\n")
+            self.report_error(u'Did not get any data blocks')
             return False
         stream.close()
         self.report_finish()

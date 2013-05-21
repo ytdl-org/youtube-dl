@@ -76,8 +76,7 @@
     "name": "StanfordOpenClassroom",
     "md5":  "544a9468546059d4e80d76265b0443b8",
     "url":  "http://openclassroom.stanford.edu/MainFolder/VideoPage.php?course=PracticalUnix&video=intro-environment&speed=100",
-    "file":  "PracticalUnix_intro-environment.mp4",
-    "skip": "Currently offline"
+    "file":  "PracticalUnix_intro-environment.mp4"
   },
   {
     "name": "XNXX",
@@ -113,9 +112,8 @@
   {
     "name": "Escapist",
     "url": "http://www.escapistmagazine.com/videos/view/the-escapist-presents/6618-Breaking-Down-Baldurs-Gate",
-    "file": "6618-Breaking-Down-Baldurs-Gate.flv",
-    "md5": "c6793dbda81388f4264c1ba18684a74d",
-    "skip": "Fails with timeout on Travis"
+    "file": "6618-Breaking-Down-Baldurs-Gate.mp4",
+    "md5": "c6793dbda81388f4264c1ba18684a74d"
   },
   {
     "name": "GooglePlus",
@@ -154,7 +152,8 @@
     "file": "20274954.flv",
     "md5": "088f151799e8f572f84eb62f17d73e5c",
     "info_dict": {
-        "title": "Young Americans for Liberty February 7, 2012 2:28 AM"
+        "title": "Young Americans for Liberty February 7, 2012 2:28 AM",
+        "uploader": "Young Americans for Liberty"
     }
   },
   {
@@ -299,5 +298,189 @@
     "url": "http://www.hodiho.fr/2013/02/regis-plante-sa-jeep.html",
     "file": "13601338388002.mp4",
     "md5": "85b90ccc9d73b4acd9138d3af4c27f89"
+  },
+  {
+    "name": "Spiegel",
+    "url": "http://www.spiegel.de/video/vulkan-tungurahua-in-ecuador-ist-wieder-aktiv-video-1259285.html",
+    "file": "1259285.mp4",
+    "md5": "2c2754212136f35fb4b19767d242f66e",
+    "info_dict": {
+        "title": "Vulkanausbruch in Ecuador: Der \"Feuerschlund\" ist wieder aktiv"
+    }
+  },
+  {
+    "name": "LiveLeak",
+    "md5":  "0813c2430bea7a46bf13acf3406992f4",
+    "url":  "http://www.liveleak.com/view?i=757_1364311680",
+    "file":  "757_1364311680.mp4",
+    "info_dict": {
+        "title": "Most unlucky car accident",
+        "description": "extremely bad day for this guy..!",
+        "uploader": "ljfriel2"
+    }
+  },
+  {
+    "name": "WorldStarHipHop",
+    "url": "http://www.worldstarhiphop.com/videos/video.php?v=wshh6a7q1ny0G34ZwuIO",
+    "file": "wshh6a7q1ny0G34ZwuIO.mp4",
+    "md5": "9d04de741161603bf7071bbf4e883186",
+    "info_dict": {
+        "title": "Video: KO Of The Week: MMA Fighter Gets Knocked Out By Swift Head Kick! "
+    }
+  },
+  {
+    "name": "ARD",
+    "url": "http://www.ardmediathek.de/das-erste/tagesschau-in-100-sek?documentId=14077640",
+    "file": "14077640.mp4",
+    "md5": "6ca8824255460c787376353f9e20bbd8",
+    "info_dict": {
+        "title": "11.04.2013 09:23 Uhr - Tagesschau in 100 Sekunden"
+    },
+    "skip": "Requires rtmpdump"
+  },
+  {
+    "name": "Tumblr",
+    "url": "http://birthdayproject2012.tumblr.com/post/17258355236/a-sample-video-from-leeann-if-you-need-an-idea",
+    "file": "17258355236.mp4",
+    "md5": "7c6a514d691b034ccf8567999e9e88a3",
+    "info_dict": {
+        "title": "Calling all Pris! - A sample video from LeeAnn. (If you need an idea..."
+    }
+  },
+  {
+    "name": "SoundcloudSet",
+    "url":"https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep",
+    "playlist":[
+      {
+        "file":"30510138.mp3",
+        "md5":"f9136bf103901728f29e419d2c70f55d",
+        "info_dict": {
+          "title":"D-D-Dance"
+        }
+      },
+      {
+        "file":"47127625.mp3",
+        "md5":"09b6758a018470570f8fd423c9453dd8",
+        "info_dict": {
+          "title":"The Royal Concept - Gimme Twice"
+        }
+      },
+      {
+        "file":"47127627.mp3",
+        "md5":"154abd4e418cea19c3b901f1e1306d9c",
+        "info_dict": {
+          "title":"Goldrushed"
+        }
+      },
+      {
+        "file":"47127629.mp3",
+        "md5":"2f5471edc79ad3f33a683153e96a79c1",
+        "info_dict": {
+          "title":"In the End"
+        }
+      },
+      {
+        "file":"47127631.mp3",
+        "md5":"f9ba87aa940af7213f98949254f1c6e2",
+        "info_dict": {
+          "title":"Knocked Up"
+        }
+      },
+      {
+        "file":"75206121.mp3",
+        "md5":"f9d1fe9406717e302980c30de4af9353",
+        "info_dict": {
+          "title":"World On Fire"
+        }
+      }
+    ]
+  },
+  {
+    "name":"Bandcamp",
+    "url":"http://youtube-dl.bandcamp.com/track/youtube-dl-test-song",
+    "file":"1812978515.mp3",
+    "md5":"cdeb30cdae1921719a3cbcab696ef53c",
+    "info_dict": {
+      "title":"youtube-dl test song \"'/\\ä↭"
+    },
+    "skip": "There is a limit of 200 free downloads / month for the test song"
+  },
+  {
+    "name": "RedTube",
+    "url": "http://www.redtube.com/66418",
+    "file": "66418.mp4",
+    "md5": "7b8c22b5e7098a3e1c09709df1126d2d",
+    "info_dict":{
+      "title":"Sucked on a toilet"
+    }
+  },
+  {
+    "name": "Photobucket",
+    "url": "http://media.photobucket.com/user/rachaneronas/media/TiredofLinkBuildingTryBacklinkMyDomaincom_zpsc0c3b9fa.mp4.html?filters[term]=search&filters[primary]=videos&filters[secondary]=images&sort=1&o=0",
+    "file": "zpsc0c3b9fa.mp4",
+    "md5": "7dabfb92b0a31f6c16cebc0f8e60ff99",
+    "info_dict":{
+      "title":"Tired of Link Building? Try BacklinkMyDomain.com!"
+    }
+  },
+  {
+    "name": "Ina",
+    "url": "www.ina.fr/video/I12055569/francois-hollande-je-crois-que-c-est-clair-video.html",
+    "file": "I12055569.mp4",
+    "md5": "a667021bf2b41f8dc6049479d9bb38a3",
+    "info_dict":{
+      "title":"François Hollande \"Je crois que c'est clair\""
+    }
+  },
+  {
+    "name": "Yahoo",
+    "url": "http://screen.yahoo.com/obama-celebrates-iraq-victory-27592561.html",
+    "file": "27592561.flv",
+    "md5": "c6179bed843512823fd284fa2e7f012d",
+    "info_dict": {
+        "title": "Obama Celebrates Iraq Victory"
+    },
+    "skip": "Requires rtmpdump"
+  },
+  {
+    "name": "Howcast",
+    "url": "http://www.howcast.com/videos/390161-How-to-Tie-a-Square-Knot-Properly",
+    "file": "390161.mp4",
+    "md5": "1d7ba54e2c9d7dc6935ef39e00529138",
+    "info_dict":{
+      "title":"How to Tie a Square Knot Properly",
+      "description":"The square knot, also known as the reef knot, is one of the oldest, most basic knots to tie, and can be used in many different ways. Here's the proper way to tie a square knot."
+    }
+  },
+  {
+    "name": "Vine",
+    "url": "https://vine.co/v/b9KOOWX7HUx",
+    "file": "b9KOOWX7HUx.mp4",
+    "md5": "2f36fed6235b16da96ce9b4dc890940d",
+    "info_dict":{
+      "title": "Chicken.",
+      "uploader": "Jack Dorsey"
+    }
+  },
+  {
+    "name": "Flickr",
+    "url": "http://www.flickr.com/photos/forestwander-nature-pictures/5645318632/in/photostream/",
+    "file": "5645318632.mp4",
+    "md5": "6fdc01adbc89d72fc9c4f15b4a4ba87b",
+    "info_dict":{
+      "title": "Dark Hollow Waterfalls",
+      "uploader_id": "forestwander-nature-pictures",
+      "description": "Waterfalls in the Springtime at Dark Hollow Waterfalls. These are located just off of Skyline Drive in Virginia. They are only about 6/10 of a mile hike but it is a pretty steep hill and a good climb back up."
+    }
+  },
+  {
+    "name": "Teamcoco",
+    "url": "http://teamcoco.com/video/louis-ck-interview-george-w-bush",
+    "file": "19705.mp4",
+    "md5": "27b6f7527da5acf534b15f21b032656e",
+    "info_dict":{
+      "title": "Louis C.K. Interview Pt. 1 11/3/11",
+      "description": "Louis C.K. got starstruck by George W. Bush, so what? Part one."
+    }
   }
 ]
