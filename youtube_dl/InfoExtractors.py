@@ -4205,7 +4205,7 @@ class HowcastIE(InfoExtractor):
 
         self.report_extraction(video_id)
 
-        mobj = re.search(r'\'file\': "(http://mobile-media\.howcast\.com/\d+\.mp4)"', webpage)
+        mobj = re.search(r'\'?file\'?: "(http://mobile-media\.howcast\.com/[0-9]+\.mp4)"', webpage)
         if mobj is None:
             raise ExtractorError(u'Unable to extract video URL')
         video_url = mobj.group(1)
