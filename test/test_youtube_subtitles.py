@@ -28,7 +28,9 @@ compat_urllib_request.install_opener(opener)
 class FakeDownloader(FileDownloader):
     def __init__(self):
         self.result = []
-        self.params = parameters
+        # Different instances of the downloader can't share the same dictionary
+        # some test set the "sublang" parameter, which would break the md5 checks.
+        self.params = dict(parameters)
     def to_screen(self, s):
         print(s)
     def trouble(self, s, tb=None):
@@ -96,6 +98,14 @@ class TestYoutubeSubtitles(unittest.TestCase):
         IE = YoutubeIE(DL)
         info_dict = IE.extract('QRS8MkLhQmM')
         self.assertEqual(info_dict, None)
+    def test_youtube_automatic_captions(self):
+        DL = FakeDownloader()
+        DL.params['writesubtitles'] = True
+        DL.params['subtitleslang'] = 'it'
+        IE = YoutubeIE(DL)
+        info_dict = IE.extract('8YoUxe5ncPo')
+        sub = info_dict[0]['subtitles'][0]
+        self.assertTrue(sub[2] is not None)
 
 if __name__ == '__main__':
     unittest.main()
