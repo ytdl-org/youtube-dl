@@ -1884,7 +1884,7 @@ class FacebookIE(InfoExtractor):
 class BlipTVIE(InfoExtractor):
     """Information extractor for blip.tv"""
 
-    _VALID_URL = r'^(?:https?://)?(?:\w+\.)?blip\.tv(/.+)$'
+    _VALID_URL = r'^(?:https?://)?(?:\w+\.)?blip\.tv/((.+/)|(play/)|(api\.swf#))(.+)$'
     _URL_EXT = r'^.*\.([a-z0-9]+)$'
     IE_NAME = u'blip.tv'
 
@@ -1897,6 +1897,10 @@ class BlipTVIE(InfoExtractor):
         if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
 
+        # See https://github.com/rg3/youtube-dl/issues/857
+        api_mobj = re.match(r'http://a\.blip\.tv/api\.swf#(?P<video_id>[\d\w]+)', url)
+        if api_mobj is not None:
+            url = 'http://blip.tv/play/g_%s' % api_mobj.group('video_id')
         urlp = compat_urllib_parse_urlparse(url)
         if urlp.path.startswith('/play/'):
             request = compat_urllib_request.Request(url)
@@ -4405,8 +4409,8 @@ def gen_extractors():
         YahooSearchIE(),
         DepositFilesIE(),
         FacebookIE(),
-        BlipTVUserIE(),
         BlipTVIE(),
+        BlipTVUserIE(),
         VimeoIE(),
         MyVideoIE(),
         ComedyCentralIE(),
