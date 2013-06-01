@@ -376,6 +376,34 @@ class YoutubeIE(InfoExtractor):
             return (u'Did not fetch video subtitles', None, None)
         return (None, sub_lang, sub)
 
+    def _request_automatic_caption(self, video_id, webpage):
+        """We need the webpage for getting the captions url, pass it as an
+           argument to speed up the process."""
+        sub_lang = self._downloader.params.get('subtitleslang')
+        sub_format = self._downloader.params.get('subtitlesformat')
+        self.to_screen(u'%s: Looking for automatic captions' % video_id)
+        mobj = re.search(r';ytplayer.config = ({.*?});', webpage)
+        err_msg = u'Couldn\'t find automatic captions for "%s"' % sub_lang
+        if mobj is None:
+            return [(err_msg, None, None)]
+        player_config = json.loads(mobj.group(1))
+        try:
+            args = player_config[u'args']
+            caption_url = args[u'ttsurl']
+            timestamp = args[u'timestamp']
+            params = compat_urllib_parse.urlencode({
+                'lang': 'en',
+                'tlang': sub_lang,
+                'fmt': sub_format,
+                'ts': timestamp,
+                'kind': 'asr',
+            })
+            subtitles_url = caption_url + '&' + params
+            sub = self._download_webpage(subtitles_url, video_id, u'Downloading automatic captions')
+            return [(None, sub_lang, sub)]
+        except KeyError:
+            return [(err_msg, None, None)]
+
     def _extract_subtitle(self, video_id):
         """
         Return a list with a tuple:
@@ -623,7 +651,14 @@ class YoutubeIE(InfoExtractor):
             if video_subtitles:
                 (sub_error, sub_lang, sub) = video_subtitles[0]
                 if sub_error:
-                    self._downloader.report_error(sub_error)
+                    # We try with the automatic captions
+                    video_subtitles = self._request_automatic_caption(video_id, video_webpage)
+                    (sub_error_auto, sub_lang, sub) = video_subtitles[0]
+                    if sub is not None:
+                        pass
+                    else:
+                        # We report the original error
+                        self._downloader.report_error(sub_error)
 
         if self._downloader.params.get('allsubtitles', False):
             video_subtitles = self._extract_all_subtitles(video_id)
