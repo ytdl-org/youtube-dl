@@ -1099,7 +1099,7 @@ class VimeoIE(InfoExtractor):
 
         # Extract uploader and uploader_id
         video_uploader = config["video"]["owner"]["name"]
-        video_uploader_id = config["video"]["owner"]["url"].split('/')[-1]
+        video_uploader_id = config["video"]["owner"]["url"].split('/')[-1] if config["video"]["owner"]["url"] else None
 
         # Extract video thumbnail
         video_thumbnail = config["video"]["thumbnail"]
