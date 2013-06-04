@@ -4425,6 +4425,63 @@ class TeamcocoIE(InfoExtractor):
             'thumbnail':   thumbnail,
             'description': description,
         }]
+        
+class XHamsterIE(InfoExtractor):
+    """Information Extractor for xHamster"""
+    _VALID_URL = r'(?:http://)?(?:www.)?xhamster\.com/movies/(?P<id>[0-9]+)/.*\.html'
+
+    def _real_extract(self,url):
+        mobj = re.match(self._VALID_URL, url)
+
+        video_id = mobj.group('id')
+        mrss_url='http://xhamster.com/movies/%s/.html' % video_id
+        webpage = self._download_webpage(mrss_url, video_id)
+        mobj = re.search(r'\'srv\': \'(?P<server>[^\']*)\',\s*\'file\': \'(?P<file>[^\']+)\',', webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract media URL')
+        if len(mobj.group('server')) == 0:
+            video_url = compat_urllib_parse.unquote(mobj.group('file'))
+        else:
+            video_url = mobj.group('server')+'/key='+mobj.group('file')
+        video_extension = video_url.split('.')[-1]
+
+        mobj = re.search(r'<title>(?P<title>.+?) - xHamster\.com</title>', webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract title')
+        video_title = unescapeHTML(mobj.group('title'))
+
+        mobj = re.search(r'<span>Description: </span>(?P<description>[^<]+)', webpage)
+        if mobj is None:
+            video_description = u''
+        else:
+            video_description = unescapeHTML(mobj.group('description'))
+
+        mobj = re.search(r'hint=\'(?P<upload_date_Y>[0-9]{4})-(?P<upload_date_m>[0-9]{2})-(?P<upload_date_d>[0-9]{2}) [0-9]{2}:[0-9]{2}:[0-9]{2} [A-Z]{3,4}\'', webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract upload date')
+        video_upload_date = mobj.group('upload_date_Y')+mobj.group('upload_date_m')+mobj.group('upload_date_d')
+
+        mobj = re.search(r'<a href=\'/user/[^>]+>(?P<uploader_id>[^>]+)', webpage)
+        if mobj is None:
+            video_uploader_id = u'anonymous'
+        else:
+            video_uploader_id = mobj.group('uploader_id')
+
+        mobj = re.search(r'\'image\':\'(?P<thumbnail>[^\']+)\'', webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract thumbnail URL')
+        video_thumbnail = mobj.group('thumbnail')
+
+        return [{
+            'id':       video_id,
+            'url':      video_url,
+            'ext':      video_extension,
+            'title':    video_title,
+            'description': video_description,
+            'upload_date': video_upload_date,
+            'uploader_id': video_uploader_id,
+            'thumbnail': video_thumbnail
+        }]
 
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
@@ -4487,6 +4544,7 @@ def gen_extractors():
         VineIE(),
         FlickrIE(),
         TeamcocoIE(),
+        XHamsterIE(),
         GenericIE()
     ]
 
