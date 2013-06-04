@@ -7,7 +7,7 @@ import unittest
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.InfoExtractors import YoutubeIE, YoutubePlaylistIE, YoutubeChannelIE
+from youtube_dl.InfoExtractors import YoutubeIE, YoutubePlaylistIE, YoutubeChannelIE, JustinTVIE
 
 class TestAllURLsMatching(unittest.TestCase):
     def test_youtube_playlist_matching(self):
@@ -28,6 +28,22 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertTrue(YoutubeChannelIE.suitable('https://www.youtube.com/channel/HCtnHdj3df7iM'))
         self.assertTrue(YoutubeChannelIE.suitable('https://www.youtube.com/channel/HCtnHdj3df7iM?feature=gb_ch_rec'))
         self.assertTrue(YoutubeChannelIE.suitable('https://www.youtube.com/channel/HCtnHdj3df7iM/videos'))
+
+    def test_justin_tv_channelid_matching(self):
+        self.assertTrue(JustinTVIE.suitable(u"justin.tv/vanillatv"))
+        self.assertTrue(JustinTVIE.suitable(u"twitch.tv/vanillatv"))
+        self.assertTrue(JustinTVIE.suitable(u"www.justin.tv/vanillatv"))
+        self.assertTrue(JustinTVIE.suitable(u"www.twitch.tv/vanillatv"))
+        self.assertTrue(JustinTVIE.suitable(u"http://www.justin.tv/vanillatv"))
+        self.assertTrue(JustinTVIE.suitable(u"http://www.twitch.tv/vanillatv"))
+        self.assertTrue(JustinTVIE.suitable(u"http://www.justin.tv/vanillatv/"))
+        self.assertTrue(JustinTVIE.suitable(u"http://www.twitch.tv/vanillatv/"))
+
+    def test_justintv_videoid_matching(self):
+        self.assertTrue(JustinTVIE.suitable(u"http://www.twitch.tv/vanillatv/b/328087483"))
+
+    def test_justin_tv_chapterid_matching(self):
+        self.assertTrue(JustinTVIE.suitable(u"http://www.twitch.tv/tsm_theoddone/c/2349361"))
 
     def test_youtube_extract(self):
         self.assertEqual(YoutubeIE()._extract_id('http://www.youtube.com/watch?&v=BaW_jenozKc'), 'BaW_jenozKc')
