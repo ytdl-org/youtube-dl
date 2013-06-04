@@ -3980,7 +3980,7 @@ class SpiegelIE(InfoExtractor):
         video_id = m.group('videoID')
 
         webpage = self._download_webpage(url, video_id)
-        m = re.search(r'<div class="spVideoTitle">(.*?)</div>', webpage)
+        m = re.search(r'<div class="module-title">(.*?)</div>', webpage)
         if not m:
             raise ExtractorError(u'Cannot find title')
         video_title = unescapeHTML(m.group(1))
