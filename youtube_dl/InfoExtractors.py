@@ -1060,7 +1060,7 @@ class VimeoIE(InfoExtractor):
     """Information extractor for vimeo.com."""
 
     # _VALID_URL matches Vimeo URLs
-    _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|player)\.)?vimeo\.com/(?:(?:groups|album)/[^/]+/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)'
+    _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|player)\.)?vimeo(?P<pro>pro)?\.com/(?:(?:(?:groups|album)/[^/]+)|(?:.*?)/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)'
     IE_NAME = u'vimeo'
 
     def _real_extract(self, url, new_video=True):
@@ -1072,7 +1072,7 @@ class VimeoIE(InfoExtractor):
         video_id = mobj.group('id')
         if not mobj.group('proto'):
             url = 'https://' + url
-        if mobj.group('direct_link'):
+        if mobj.group('direct_link') or mobj.group('pro'):
             url = 'https://vimeo.com/' + video_id
 
         # Retrieve video webpage to extract further information
