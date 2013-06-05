@@ -19,7 +19,6 @@ import operator
 import hashlib
 import binascii
 import urllib
-import urllib2
 
 from .utils import *
 
