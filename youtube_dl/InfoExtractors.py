@@ -4512,7 +4512,7 @@ class HypemIE(InfoExtractor):
           track_list = json.loads(html_tracks)
           tracks = track_list[u'tracks']
         except ValueError:
-          print "Hypemachine contained invalid JSON."
+          self.to_screen("Hypemachine contained invalid JSON.")
           tracks =  track_list
 
         for track in tracks:
@@ -4520,9 +4520,6 @@ class HypemIE(InfoExtractor):
             id = track[u"id"]
             artist = track[u"artist"]
             title = track[u"song"]
-            type = track[u"type"]
-            if type is False:
-                continue
         serve_url = "http://hypem.com/serve/source/%s/%s"%(str(id), str(key))
         self.report_extraction(id)
         request = compat_urllib_request.Request(serve_url, "" , {'Content-Type': 'application/json'})
