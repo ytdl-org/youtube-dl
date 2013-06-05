@@ -28,4 +28,4 @@ def gen_extractors():
 
 def get_info_extractor(IE_name):
     """Returns the info extractor class with the given ie_name"""
-    return IE_dict[IE_name]
+    return IE_dict[IE_name + 'IE']
