@@ -4483,6 +4483,59 @@ class XHamsterIE(InfoExtractor):
             'thumbnail': video_thumbnail
         }]
 
+class HypemIE(InfoExtractor):
+    """Information Extractor for hypem"""
+    _VALID_URL = r'(?:http://)?(?:www\.)?hypem\.com/track/([^/]+)/([^/]+)'
+
+    def _real_extract(self,url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            raise ExtractorError(u'Invalid URL: %s' % url)
+        data = {'ax':1 ,
+                  'ts': time.time()
+              }
+        id = mobj.group(1)
+        data_encoded = compat_urllib_parse.urlencode(data)
+        complete_url = url + "?"+data_encoded
+        request = compat_urllib_request.Request(complete_url)
+        response,urlh = self._download_webpage_handle(request, id, u'Downloading webpage with the url')
+        cookie = urlh.headers.get('Set-Cookie', '')
+        track_list = []
+        list_data = re.search(r'<script type="application/json" id="displayList-data">\n    (.*)    </script>',response)
+        html_tracks = list_data.group(1)
+        if html_tracks is None:
+            tracks = track_list
+        try:
+            track_list = json.loads(html_tracks)
+            tracks = track_list[u'tracks']
+        except ValueError:
+            self.to_screen("Hypemachine contained invalid JSON.")
+            tracks =  track_list
+
+        for track in tracks:
+            key = track[u"key"]
+            id = track[u"id"]
+            artist = track[u"artist"]
+            title = track[u"song"]
+        serve_url = "http://hypem.com/serve/source/%s/%s"%(str(id), str(key))
+        self.report_extraction(id)
+        request = compat_urllib_request.Request(serve_url, "" , {'Content-Type': 'application/json'})
+        request.add_header('cookie', cookie)
+        response = compat_urllib_request.urlopen(request)
+        song_data_json = response.read()
+        response.close()
+        (song_data_json, response) = self._download_webpage_handle(request, id, u'Downloading webpage with the url')
+        song_data = json.loads(song_data_json)
+        final_url = song_data[u"url"]
+        return [{
+            'id':       id,
+            'url':      final_url,
+            'ext':      "mp3",
+            'title':    title,
+            'artist':   artist,
+        }]
+
+
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
     The order does matter; the first extractor matched is the one handling the URL.
@@ -4545,6 +4598,7 @@ def gen_extractors():
         FlickrIE(),
         TeamcocoIE(),
         XHamsterIE(),
+        HypemIE(),
         GenericIE()
     ]
 
