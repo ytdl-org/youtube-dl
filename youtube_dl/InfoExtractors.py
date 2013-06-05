@@ -4494,7 +4494,7 @@ class HypemIE(InfoExtractor):
         data = {'ax':1 ,
                   'ts': time.time()
               }
-        data_encoded = compat_urllib_parse(data)
+        data_encoded = compat_urllib_parse.urlencode(data)
         complete_url = url + "?"+data_encoded
         request = compat_urllib_request.Request(complete_url)
         response = compat_urllib_request.urlopen(request)
