@@ -4500,11 +4500,13 @@ class HypemIE(InfoExtractor):
         response = compat_urllib_request.urlopen(request)
         #save our cookie
         cookie = response.headers.get('Set-Cookie')
+        encoding = response.headers.get('Content-Type')
+        encoding = (encoding.split(';')[1]).split('=')[1]
         #grab the HTML
-        html = response.read()
+        html = response.read().decode(encoding)
         response.close()
         track_list = []
-        list_data = re.search(b'<script type="application/json" id="displayList-data">\n    (.*)    </script>',html)
+        list_data = re.search(r'<script type="application/json" id="displayList-data">\n    (.*)    </script>',html)
         html_tracks = list_data.group(1)
         if html_tracks is None:
           tracks = track_list
