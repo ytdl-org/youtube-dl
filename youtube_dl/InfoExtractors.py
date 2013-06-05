@@ -4504,7 +4504,7 @@ class HypemIE(InfoExtractor):
         html = response.read()
         response.close()
         track_list = []
-        list_data = re.search(r'<script type="application/json" id="displayList-data">\n    (.*)    </script>',html)
+        list_data = re.search(b'<script type="application/json" id="displayList-data">\n    (.*)    </script>',html)
         html_tracks = list_data.group(1)
         if html_tracks is None:
           tracks = track_list
