@@ -4,6 +4,7 @@
 from __future__ import print_function
 import pkg_resources
 import sys
+from glob import glob
 
 try:
     from setuptools import setup
@@ -23,7 +24,9 @@ py2exe_options = {
     "compressed": 1,
     "optimize": 2,
     "dist_dir": '.',
-    "dll_excludes": ['w9xpopen.exe']
+    "dll_excludes": ['w9xpopen.exe'],
+    "includes": [ m.replace('\\', '.').replace('/', '.')[:-3]
+        for m in glob('youtube_dl/InfoExtractors/*.py') ]
 }
 py2exe_console = [{
     "script": "./youtube_dl/__main__.py",
@@ -57,7 +60,7 @@ setup(
     author = 'Ricardo Garcia',
     maintainer = 'Philipp Hagemeister',
     maintainer_email = 'phihag@phihag.de',
-    packages = ['youtube_dl'],
+    packages = ['youtube_dl', 'youtube_dl.InfoExtractors'],
 
     # Provokes warning on most systems (why?!)
     #test_suite = 'nose.collector',

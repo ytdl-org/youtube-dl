@@ -10,9 +10,11 @@ import hashlib
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.InfoExtractors import YoutubeIE
 from youtube_dl.utils import *
 from youtube_dl import FileDownloader
+from youtube_dl.InfoExtractors import get_info_extractor
+
+YoutubeIE = get_info_extractor('Youtube')
 
 PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
 with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:

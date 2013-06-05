@@ -48,7 +48,7 @@ class TestInfoJSON(unittest.TestCase):
         self.tearDown()
 
     def test_info_json(self):
-        ie = youtube_dl.InfoExtractors.YoutubeIE()
+        ie = youtube_dl.InfoExtractors.get_info_extractor('Youtube')()
         fd = FileDownloader(params)
         fd.add_info_extractor(ie)
         fd.download([TEST_ID])

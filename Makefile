@@ -40,15 +40,15 @@ tar: youtube-dl.tar.gz
 
 pypi-files: youtube-dl.bash-completion README.txt youtube-dl.1
 
-youtube-dl: youtube_dl/*.py
-	zip --quiet youtube-dl youtube_dl/*.py
+youtube-dl: youtube_dl/*.py youtube_dl/InfoExtractors/*.py
+	zip --quiet youtube-dl youtube_dl/*.py youtube_dl/InfoExtractors/*.py
 	zip --quiet --junk-paths youtube-dl youtube_dl/__main__.py
 	echo '#!$(PYTHON)' > youtube-dl
 	cat youtube-dl.zip >> youtube-dl
 	rm youtube-dl.zip
 	chmod a+x youtube-dl
 
-README.md: youtube_dl/*.py
+README.md: youtube_dl/*.py youtube_dl/InfoExtractors/*.py
 	COLUMNS=80 python -m youtube_dl --help | python devscripts/make_readme.py
 
 README.txt: README.md
@@ -57,7 +57,7 @@ README.txt: README.md
 youtube-dl.1: README.md
 	pandoc -s -f markdown -t man README.md -o youtube-dl.1
 
-youtube-dl.bash-completion: youtube_dl/*.py devscripts/bash-completion.in
+youtube-dl.bash-completion: youtube_dl/*.py youtube_dl/InfoExtractors/*.py devscripts/bash-completion.in
 	python devscripts/bash-completion.py
 
 bash-completion: youtube-dl.bash-completion
