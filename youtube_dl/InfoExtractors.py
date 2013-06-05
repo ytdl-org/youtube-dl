@@ -4509,13 +4509,13 @@ class HypemIE(InfoExtractor):
         list_data = re.search(r'<script type="application/json" id="displayList-data">\n    (.*)    </script>',html)
         html_tracks = list_data.group(1)
         if html_tracks is None:
-          tracks = track_list
+            tracks = track_list
         try:
-          track_list = json.loads(html_tracks)
-          tracks = track_list[u'tracks']
+            track_list = json.loads(html_tracks)
+            tracks = track_list[u'tracks']
         except ValueError:
-          self.to_screen("Hypemachine contained invalid JSON.")
-          tracks =  track_list
+            self.to_screen("Hypemachine contained invalid JSON.")
+            tracks =  track_list
 
         for track in tracks:
             key = track[u"key"]
@@ -4529,6 +4529,7 @@ class HypemIE(InfoExtractor):
         response = compat_urllib_request.urlopen(request)
         song_data_json = response.read()
         response.close()
+        (song_data_json, response) = self._download_webpage_handle(request, id, u'Downloading webpage with the url')
         song_data = json.loads(song_data_json)
         final_url = song_data[u"url"]
         return [{
