@@ -14,7 +14,8 @@ IEs = [
 IE_list = []
 IE_dict = {}
 for module, IE_names in IEs:
-    _mod = __import__('youtube_dl.InfoExtractors.' + module, globals(), IE_names)
+    _mod = __import__('youtube_dl.InfoExtractors.' + module,
+        globals(), fromlist=IE_names)
     for IE_name in IE_names:
         IE = getattr(_mod, IE_name)
         IE_list.append(IE)
