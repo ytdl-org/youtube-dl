@@ -12,11 +12,13 @@ IEs = [
 
 
 IE_list = []
+IE_dict = {}
 for module, IE_names in IEs:
-    _mod = __import__('youtube_dl.InfoExtractors.' + module,
-        globals(), locals(), IE_names)
+    _mod = __import__('youtube_dl.InfoExtractors.' + module, globals(), IE_names)
     for IE_name in IE_names:
-        IE_list.append(getattr(_mod, IE_name))
+        IE = getattr(_mod, IE_name)
+        IE_list.append(IE)
+        IE_dict[IE_name] = IE
 
 
 def gen_extractors():
@@ -25,4 +27,4 @@ def gen_extractors():
 
 def get_info_extractor(IE_name):
     """Returns the info extractor class with the given ie_name"""
-    return next(IE for IE in IE_list if IE.__name__ == IE_name + 'IE')
+    return IE_dict[IE_name]
