@@ -19,6 +19,7 @@ import operator
 import hashlib
 import binascii
 import urllib
+import urllib2
 
 from .utils import *
 
@@ -4487,22 +4488,17 @@ class HypemIE(InfoExtractor):
     """Information Extractor for hypem"""
     _VALID_URL = r'(?:http://)?(?:www\.)?hypem\.com/track/([^/]+)/([^/]+)'
 
-    def removeDisallowedFilenameChars(filename):
-        validFilenameChars = "-_.() %s%s" % (string.ascii_letters, string.digits)
-        cleanedFilename = unicodedata.normalize('NFKD', filename).encode('ASCII', 'ignore')
-        return ''.join(c for c in cleanedFilename if c in validFilenameChars)
-
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
         data = {'ax':1 ,
-                  'ts': time()
+                  'ts': time.time()
               }
         data_encoded = urllib.urlencode(data)
         complete_url = url + "?"+data_encoded
-        request = urllib2.Request(complete_url)
-        response = urllib2.urlopen(request)
+        request = compat_urllib_request.Request(complete_url)
+        response = compat_urllib_request.urlopen(request)
         #save our cookie
         cookie = response.headers.get('Set-Cookie')
         #grab the HTML
@@ -4523,15 +4519,16 @@ class HypemIE(InfoExtractor):
         for track in tracks:
             key = track[u"key"]
             id = track[u"id"]
-            artist = removeDisallowedFilenameChars(track[u"artist"])
-            title = removeDisallowedFilenameChars(track[u"song"])
+            artist = track[u"artist"]
+            title = track[u"song"]
             type = track[u"type"]
-        if type is False:
-            continue
-        serve_url = "http://hypem.com/serve/source/{}/{}".format(id, key)
-        request = urllib2.Request(serve_url, "" , {'Content-Type': 'application/json'})
+            if type is False:
+                continue
+        serve_url = "http://hypem.com/serve/source/%s/%s"%(str(id), str(key))
+        self.report_extraction(id)
+        request = compat_urllib_request.Request(serve_url, "" , {'Content-Type': 'application/json'})
         request.add_header('cookie', cookie)
-        response = urllib2.urlopen(request)
+        response = compat_urllib_request.urlopen(request)
         song_data_json = response.read()
         response.close()
         song_data = json.loads(song_data_json)
@@ -4543,6 +4540,7 @@ class HypemIE(InfoExtractor):
             'title':    title,
             'artist':   artist,
         }]
+
 
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
