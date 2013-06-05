@@ -4551,7 +4551,6 @@ def gen_extractors():
     return [
         YoutubePlaylistIE(),
         YoutubeChannelIE(),
-        HypemIE(),
         YoutubeUserIE(),
         YoutubeSearchIE(),
         YoutubeIE(),
@@ -4607,6 +4606,7 @@ def gen_extractors():
         FlickrIE(),
         TeamcocoIE(),
         XHamsterIE(),
+        HypemIE(),
         GenericIE()
     ]
 
