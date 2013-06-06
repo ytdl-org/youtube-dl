@@ -191,19 +191,37 @@ class InfoExtractor(object):
             video_info['title'] = playlist_title
         return video_info
 
-    def _search_regex(self, pattern, text, name, fatal=True, flags=0):
-        """Extract a field from some text based on regex"""
-        mobj = re.search(pattern, text, flags)
-        if mobj is None and fatal:
-            raise ExtractorError(u'Unable to extract %s; '
-                u'please report this issue on GitHub.' % name)
-        elif mobj is None:
-            self._downloader.report_warning(u'unable to extract %s; '
-                u'please report this issue on GitHub.' % name)
-            return None
+    def _search_regex(self, pattern, string, name, default=None, fatal=True, flags=0):
+        """
+        Perform a regex search on the given string, using a single or a list of
+        patterns returning the first matching group.
+        In case of failure return a default value or raise a WARNING or a
+        ExtractorError, depending on fatal, specifying the field name.
+        """
+        if isinstance(pattern, (str, compat_str, compiled_regex_type)):
+            mobj = re.search(pattern, string, flags)
         else:
-            # return the first matched group
+            for p in pattern:
+                mobj = re.search(p, string, flags)
+                if mobj: break
+
+        if sys.stderr.isatty() and os.name != 'nt':
+            _name = u'\033[0;34m%s\033[0m' % name
+        else:
+            _name = name
+
+        if mobj:
+            # return the first matching group
             return next(g for g in mobj.groups() if g is not None)
+        elif default is not None:
+            return default
+        elif fatal:
+            raise ExtractorError(u'Unable to extract %s; '
+                u'please report this issue on GitHub.' % _name)
+        else:
+            self._downloader.report_warning(u'unable to extract %s; '
+                u'please report this issue on GitHub.' % _name)
+            return None
 
 class SearchInfoExtractor(InfoExtractor):
     """
@@ -2820,12 +2838,8 @@ class StanfordOpenClassroomIE(InfoExtractor):
                                         note='Downloading course info page',
                                         errnote='Unable to download course info page')
 
-            # TODO: implement default_value in search_regex
-            m = re.search('<h1>([^<]+)</h1>', coursepage)
-            if m:
-                info['title'] = unescapeHTML(m.group(1))
-            else:
-                info['title'] = info['id']
+            info['title'] = self._search_regex('<h1>([^<]+)</h1>', coursepage, 'title', default=info['id'])
+            info['title'] = unescapeHTML(info['title'])
 
             info['description'] = self._search_regex('<description>([^<]+)</description>',
                 coursepage, u'description', fatal=False)
@@ -3108,12 +3122,8 @@ class GooglePlusIE(InfoExtractor):
 
         # Extract title
         # Get the first line for title
-        # TODO: implement default_value in search_regex
-        video_title = u'NA'
-        pattern = r'<meta name\=\"Description\" content\=\"(.*?)[\n<"]'
-        mobj = re.search(pattern, webpage)
-        if mobj:
-            video_title = mobj.group(1)
+        video_title = self._search_regex(r'<meta name\=\"Description\" content\=\"(.*?)[\n<"]',
+            webpage, 'title', default=u'NA')
 
         # Step 2, Stimulate clicking the image box to launch video
         video_page = self._search_regex('"(https\://plus\.google\.com/photos/.*?)",,"image/jpeg","video"\]',
@@ -3167,23 +3177,21 @@ class NBAIE(InfoExtractor):
 
         video_url = u'http://ht-mobile.cdn.turner.com/nba/big' + video_id + '_nba_1280x720.mp4'
 
-        # TODO: implement default_value in search_regex
-        def _findProp(rexp, default=None):
-            m = re.search(rexp, webpage)
-            if m:
-                return unescapeHTML(m.group(1))
-            else:
-                return default
-
         shortened_video_id = video_id.rpartition('/')[2]
-        title = _findProp(r'<meta property="og:title" content="(.*?)"', shortened_video_id).replace('NBA.com: ', '')
+        title = self._search_regex(r'<meta property="og:title" content="(.*?)"',
+            webpage, 'title', default=shortened_video_id).replace('NBA.com: ', '')
+
+        uploader_date = self._search_regex(r'<b>Date:</b> (.*?)</div>', webpage, 'upload_date', fatal=False)
+
+        description = self._search_regex(r'<div class="description">(.*?)</h1>', webpage, 'description', fatal=False)
+
         info = {
             'id': shortened_video_id,
             'url': video_url,
             'ext': 'mp4',
             'title': title,
-            'uploader_date': _findProp(r'<b>Date:</b> (.*?)</div>'),
-            'description': _findProp(r'<div class="description">(.*?)</h1>'),
+            'uploader_date': uploader_date,
+            'description': description,
         }
         return [info]
 
@@ -3335,13 +3343,9 @@ class FunnyOrDieIE(InfoExtractor):
             webpage, u'video URL', flags=re.DOTALL)
         video_url = unescapeHTML(video_url)
 
-        # TODO: implement fallbacks in regex_search
-        m = re.search(r"<h1 class='player_page_h1'.*?>(?P<title>.*?)</h1>", webpage, flags=re.DOTALL)
-        if not m:
-            m = re.search(r'<title>(?P<title>[^<]+?)</title>', webpage)
-            if not m:
-                raise ExtractorError(u'Cannot find video title')
-        title = clean_html(m.group('title'))
+        title = self._search_regex((r"<h1 class='player_page_h1'.*?>(?P<title>.*?)</h1>",
+            r'<title>(?P<title>[^<]+?)</title>'), webpage, 'title', flags=re.DOTALL)
+        title = clean_html(title)
 
         video_description = self._search_regex(r'<meta property="og:description" content="(?P<desc>.*?)"',
             webpage, u'description', flags=re.DOTALL)

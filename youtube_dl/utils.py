@@ -154,6 +154,9 @@ def compat_ord(c):
     if type(c) is int: return c
     else: return ord(c)
 
+# This is not clearly defined otherwise
+compiled_regex_type = type(re.compile(''))
+
 std_headers = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0',
     'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
