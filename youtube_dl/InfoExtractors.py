@@ -3183,7 +3183,7 @@ class NBAIE(InfoExtractor):
 
         uploader_date = self._search_regex(r'<b>Date:</b> (.*?)</div>', webpage, 'upload_date', fatal=False)
 
-        description = self._search_regex(r'<div class="description">(.*?)</h1>', webpage, 'description', fatal=False)
+        description = self._search_regex(r'<meta name="description" (?:content|value)="(.*?)" />', webpage, 'description', fatal=False)
 
         info = {
             'id': shortened_video_id,
