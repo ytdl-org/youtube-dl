@@ -4494,19 +4494,14 @@ class HypemIE(InfoExtractor):
         data = {'ax':1 ,
                   'ts': time.time()
               }
+        id = mobj.group(1)
         data_encoded = compat_urllib_parse.urlencode(data)
         complete_url = url + "?"+data_encoded
         request = compat_urllib_request.Request(complete_url)
-        response = compat_urllib_request.urlopen(request)
-        #save our cookie
-        cookie = response.headers.get('Set-Cookie')
-        encoding = response.headers.get('Content-Type')
-        encoding = (encoding.split(';')[1]).split('=')[1]
-        #grab the HTML
-        html = response.read().decode(encoding)
-        response.close()
+        response,urlh = self._download_webpage_handle(request, id, u'Downloading webpage with the url')
+        cookie = urlh.headers.get('Set-Cookie', '')
         track_list = []
-        list_data = re.search(r'<script type="application/json" id="displayList-data">\n    (.*)    </script>',html)
+        list_data = re.search(r'<script type="application/json" id="displayList-data">\n    (.*)    </script>',response)
         html_tracks = list_data.group(1)
         if html_tracks is None:
             tracks = track_list
