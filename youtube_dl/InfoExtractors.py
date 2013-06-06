@@ -4487,48 +4487,47 @@ class HypemIE(InfoExtractor):
     """Information Extractor for hypem"""
     _VALID_URL = r'(?:http://)?(?:www\.)?hypem\.com/track/([^/]+)/([^/]+)'
 
-    def _real_extract(self,url):
+    def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
-        data = {'ax':1 ,
-                  'ts': time.time()
-              }
-        id = mobj.group(1)
+        track_id = mobj.group(1)
+
+        data = { 'ax': 1, 'ts': time.time() }
         data_encoded = compat_urllib_parse.urlencode(data)
-        complete_url = url + "?"+data_encoded
+        complete_url = url + "?" + data_encoded
         request = compat_urllib_request.Request(complete_url)
-        response,urlh = self._download_webpage_handle(request, id, u'Downloading webpage with the url')
+        response, urlh = self._download_webpage_handle(request, track_id, u'Downloading webpage with the url')
         cookie = urlh.headers.get('Set-Cookie', '')
-        track_list = []
-        list_data = re.search(r'<script type="application/json" id="displayList-data">\n    (.*)    </script>',response)
-        html_tracks = list_data.group(1)
-        if html_tracks is None:
-            tracks = track_list
+
+        self.report_extraction(track_id)
+        mobj = re.search(r'<script type="application/json" id="displayList-data">(.*?)</script>', response, flags=re.MULTILINE|re.DOTALL)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extrack tracks')
+        html_tracks = mobj.group(1).strip()
         try:
             track_list = json.loads(html_tracks)
-            tracks = track_list[u'tracks']
+            track = track_list[u'tracks'][0]
         except ValueError:
-            self.to_screen("Hypemachine contained invalid JSON.")
-            tracks =  track_list
+            raise ExtractorError(u'Hypemachine contained invalid JSON.')
 
-        for track in tracks:
-            key = track[u"key"]
-            id = track[u"id"]
-            artist = track[u"artist"]
-            title = track[u"song"]
-        serve_url = "http://hypem.com/serve/source/%s/%s"%(str(id), str(key))
-        self.report_extraction(id)
+        key = track[u"key"]
+        track_id = track[u"id"]
+        artist = track[u"artist"]
+        title = track[u"song"]
+
+        serve_url = "http://hypem.com/serve/source/%s/%s" % (compat_str(track_id), compat_str(key))
         request = compat_urllib_request.Request(serve_url, "" , {'Content-Type': 'application/json'})
         request.add_header('cookie', cookie)
-        response = compat_urllib_request.urlopen(request)
-        song_data_json = response.read()
-        response.close()
-        (song_data_json, response) = self._download_webpage_handle(request, id, u'Downloading webpage with the url')
-        song_data = json.loads(song_data_json)
+        song_data_json = self._download_webpage(request, track_id, u'Downloading metadata')
+        try:
+            song_data = json.loads(song_data_json)
+        except ValueError:
+            raise ExtractorError(u'Hypemachine contained invalid JSON.')
         final_url = song_data[u"url"]
+
         return [{
-            'id':       id,
+            'id':       track_id,
             'url':      final_url,
             'ext':      "mp3",
             'title':    title,
