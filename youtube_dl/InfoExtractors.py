@@ -3347,7 +3347,7 @@ class FunnyOrDieIE(InfoExtractor):
         title = clean_html(title)
 
         video_description = self._search_regex(r'<meta property="og:description" content="(?P<desc>.*?)"',
-            webpage, u'description', flags=re.DOTALL)
+            webpage, u'description', fatal=False, flags=re.DOTALL)
         if video_description: video_description = unescapeHTML(video_description)
 
         info = {
@@ -4301,7 +4301,7 @@ class TeamcocoIE(InfoExtractor):
             'thumbnail':   thumbnail,
             'description': video_description,
         }]
-        
+
 class XHamsterIE(InfoExtractor):
     """Information Extractor for xHamster"""
     _VALID_URL = r'(?:http://)?(?:www.)?xhamster\.com/movies/(?P<id>[0-9]+)/.*\.html'
@@ -4310,8 +4310,9 @@ class XHamsterIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
 
         video_id = mobj.group('id')
-        mrss_url='http://xhamster.com/movies/%s/.html' % video_id
+        mrss_url = 'http://xhamster.com/movies/%s/.html' % video_id
         webpage = self._download_webpage(mrss_url, video_id)
+
         mobj = re.search(r'\'srv\': \'(?P<server>[^\']*)\',\s*\'file\': \'(?P<file>[^\']+)\',', webpage)
         if mobj is None:
             raise ExtractorError(u'Unable to extract media URL')
@@ -4321,32 +4322,26 @@ class XHamsterIE(InfoExtractor):
             video_url = mobj.group('server')+'/key='+mobj.group('file')
         video_extension = video_url.split('.')[-1]
 
-        mobj = re.search(r'<title>(?P<title>.+?) - xHamster\.com</title>', webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract title')
-        video_title = unescapeHTML(mobj.group('title'))
+        video_title = self._search_regex(r'<title>(?P<title>.+?) - xHamster\.com</title>',
+            webpage, u'title')
+        video_title = unescapeHTML(video_title)
 
-        mobj = re.search(r'<span>Description: </span>(?P<description>[^<]+)', webpage)
-        if mobj is None:
-            video_description = u''
-        else:
-            video_description = unescapeHTML(mobj.group('description'))
+        video_description = self._search_regex(r'<span>Description: </span>(?P<description>[^<]+)',
+            webpage, u'description', fatal=False)
+        if video_description: video_description = unescapeHTML(video_description)
 
         mobj = re.search(r'hint=\'(?P<upload_date_Y>[0-9]{4})-(?P<upload_date_m>[0-9]{2})-(?P<upload_date_d>[0-9]{2}) [0-9]{2}:[0-9]{2}:[0-9]{2} [A-Z]{3,4}\'', webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract upload date')
-        video_upload_date = mobj.group('upload_date_Y')+mobj.group('upload_date_m')+mobj.group('upload_date_d')
-
-        mobj = re.search(r'<a href=\'/user/[^>]+>(?P<uploader_id>[^>]+)', webpage)
-        if mobj is None:
-            video_uploader_id = u'anonymous'
+        if mobj:
+            video_upload_date = mobj.group('upload_date_Y')+mobj.group('upload_date_m')+mobj.group('upload_date_d')
         else:
-            video_uploader_id = mobj.group('uploader_id')
+            video_upload_date = None
+            self._downloader.report_warning(u'Unable to extract upload date')
 
-        mobj = re.search(r'\'image\':\'(?P<thumbnail>[^\']+)\'', webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract thumbnail URL')
-        video_thumbnail = mobj.group('thumbnail')
+        video_uploader_id = self._search_regex(r'<a href=\'/user/[^>]+>(?P<uploader_id>[^>]+)',
+            webpage, u'uploader id', default=u'anonymous')
+
+        video_thumbnail = self._search_regex(r'\'image\':\'(?P<thumbnail>[^\']+)\'',
+            webpage, u'thumbnail', fatal=False)
 
         return [{
             'id':       video_id,
@@ -4377,10 +4372,9 @@ class HypemIE(InfoExtractor):
         cookie = urlh.headers.get('Set-Cookie', '')
 
         self.report_extraction(track_id)
-        mobj = re.search(r'<script type="application/json" id="displayList-data">(.*?)</script>', response, flags=re.MULTILINE|re.DOTALL)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extrack tracks')
-        html_tracks = mobj.group(1).strip()
+
+        html_tracks = self._search_regex(r'<script type="application/json" id="displayList-data">(.*?)</script>',
+            response, u'tracks', flags=re.MULTILINE|re.DOTALL).strip()
         try:
             track_list = json.loads(html_tracks)
             track = track_list[u'tracks'][0]
