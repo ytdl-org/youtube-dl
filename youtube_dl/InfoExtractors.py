@@ -3161,7 +3161,7 @@ class GooglePlusIE(InfoExtractor):
         }]
 
 class NBAIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:watch\.|www\.)?nba\.com/(?:nba/)?video(/[^?]*)(\?.*)?$'
+    _VALID_URL = r'^(?:https?://)?(?:watch\.|www\.)?nba\.com/(?:nba/)?video(/[^?]*?)(?:/index\.html)?(?:\?.*)?$'
     IE_NAME = u'nba'
 
     def _real_extract(self, url):
@@ -3170,8 +3170,6 @@ class NBAIE(InfoExtractor):
             raise ExtractorError(u'Invalid URL: %s' % url)
 
         video_id = mobj.group(1)
-        if video_id.endswith('/index.html'):
-            video_id = video_id[:-len('/index.html')]
 
         webpage = self._download_webpage(url, video_id)
 
@@ -3181,7 +3179,8 @@ class NBAIE(InfoExtractor):
         title = self._search_regex(r'<meta property="og:title" content="(.*?)"',
             webpage, 'title', default=shortened_video_id).replace('NBA.com: ', '')
 
-        uploader_date = self._search_regex(r'<b>Date:</b> (.*?)</div>', webpage, 'upload_date', fatal=False)
+        # It isn't there in the HTML it returns to us
+        # uploader_date = self._search_regex(r'<b>Date:</b> (.*?)</div>', webpage, 'upload_date', fatal=False)
 
         description = self._search_regex(r'<meta name="description" (?:content|value)="(.*?)" />', webpage, 'description', fatal=False)
 
@@ -3190,7 +3189,7 @@ class NBAIE(InfoExtractor):
             'url': video_url,
             'ext': 'mp4',
             'title': title,
-            'uploader_date': uploader_date,
+            # 'uploader_date': uploader_date,
             'description': description,
         }
         return [info]
@@ -3541,19 +3540,22 @@ class YouPornIE(InfoExtractor):
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
 
-        # Get the video title
-        video_title = self._search_regex(r'<h1.*?>(?P<title>.*)</h1>',
-            webpage, u'title').strip()
+        # Get JSON parameters
+        json_params = self._search_regex(r'var currentVideo = new Video\((.*)\);', webpage, u'JSON parameters')
+        try:
+            params = json.loads(json_params)
+        except:
+            raise ExtractorError(u'Invalid JSON')
 
-        # Get the video date
-        upload_date = self._search_regex(r'Date:</label>(?P<date>.*) </li>',
-            webpage, u'upload date', fatal=False)
-        if upload_date: upload_date = unified_strdate(upload_date.strip())
-
-        # Get the video uploader
-        video_uploader = self._search_regex(r'Submitted:</label>(?P<uploader>.*)</li>',
-            webpage, u'uploader', fatal=False)
-        if video_uploader: video_uploader = clean_html(video_uploader.strip())
+        self.report_extraction(video_id)
+        try:
+            video_title = params['title']
+            upload_date = unified_strdate(params['release_date_f'])
+            video_description = params['description']
+            video_uploader = params['submitted_by']
+            thumbnail = params['thumbnails'][0]['image']
+        except KeyError:
+            raise ExtractorError('Missing JSON parameter: ' + sys.exc_info()[1])
 
         # Get all of the formats available
         DOWNLOAD_LIST_RE = r'(?s)<ul class="downloadList">(?P<download_list>.*?)</ul>'
@@ -3592,9 +3594,8 @@ class YouPornIE(InfoExtractor):
                 'title': title,
                 'ext': extension,
                 'format': format,
-                'thumbnail': None,
-                'description': None,
-                'player_url': None
+                'thumbnail': thumbnail,
+                'description': video_description
             })
 
         if self._downloader.params.get('listformats', None):

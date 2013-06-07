@@ -40,18 +40,12 @@ def _try_rm(filename):
 
 class FileDownloader(youtube_dl.FileDownloader):
     def __init__(self, *args, **kwargs):
-        self._to_stderr = self.to_stderr
         self.to_stderr = self.to_screen
         self.processed_info_dicts = []
         return youtube_dl.FileDownloader.__init__(self, *args, **kwargs)
     def report_warning(self, message):
-        # let warnings pass to output
-        if sys.stderr.isatty() and os.name != 'nt':
-            _msg_header=u'\033[0;33mWARNING:\033[0m'
-        else:
-            _msg_header=u'WARNING:'
-        warning_message=u'%s %s' % (_msg_header,message)
-        self._to_stderr(warning_message)
+        # Don't accept warnings during tests
+        raise ExtractorError(message)
     def process_info(self, info_dict):
         self.processed_info_dicts.append(info_dict)
         return youtube_dl.FileDownloader.process_info(self, info_dict)
