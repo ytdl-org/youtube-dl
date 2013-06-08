@@ -216,8 +216,7 @@ class InfoExtractor(object):
         elif default is not None:
             return default
         elif fatal:
-            raise ExtractorError(u'Unable to extract %s; '
-                u'please report this issue on GitHub.' % _name)
+            raise ExtractorError(u'Unable to extract %s' % _name)
         else:
             self._downloader.report_warning(u'unable to extract %s; '
                 u'please report this issue on GitHub.' % _name)

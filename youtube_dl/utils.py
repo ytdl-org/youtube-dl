@@ -472,6 +472,7 @@ class ExtractorError(Exception):
     """Error during info extraction."""
     def __init__(self, msg, tb=None):
         """ tb, if given, is the original traceback (so that it can be printed out). """
+        msg = msg + u'; please report this issue on GitHub.'
         super(ExtractorError, self).__init__(msg)
         self.traceback = tb
         self.exc_info = sys.exc_info()  # preserve original exception
