@@ -539,6 +539,11 @@ class FileDownloader(object):
                          'playlist': playlist, 
                          'playlist_index': i + playliststart,
                          }
+                if not 'extractor' in entry:
+                    # We set the extractor, if it's an url it will be set then to
+                    # the new extractor, but if it's already a video we must make
+                    # sure it's present: see issue #877
+                    entry['extractor'] = ie_result['extractor']
                 entry_result = self.process_ie_result(entry,
                                                       download=download,
                                                       extra_info=extra)
