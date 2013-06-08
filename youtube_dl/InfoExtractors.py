@@ -4534,6 +4534,39 @@ class HypemIE(InfoExtractor):
             'artist':   artist,
         }]
 
+class Vbox7IE(InfoExtractor):
+    """Information Extractor for Vbox7"""
+    _VALID_URL = r'(?:http://)?(?:www\.)?vbox7\.com/play:([^/]+)'
+
+    def _real_extract(self,url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            raise ExtractorError(u'Invalid URL: %s' % url)
+        video_id = mobj.group(1)
+
+        redirect_page, urlh = self._download_webpage_handle(url, video_id)
+        redirect_url = urlh.geturl() + re.search(r'window\.location = \'(.*)\';', redirect_page).group(1)
+        webpage = self._download_webpage(redirect_url, video_id, u'Downloading redirect page')
+
+        title = re.search(r'<title>(.*)</title>', webpage)
+        title = (title.group(1)).split('/')[0].strip()
+
+        ext = "flv"
+        info_url = "http://vbox7.com/play/magare.do"
+        data = compat_urllib_parse.urlencode({'as3':'1','vid':video_id})
+        info_request = compat_urllib_request.Request(info_url, data)
+        info_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        info_response = self._download_webpage(info_request, video_id, u'Downloading info webpage')
+        if info_response is None:
+            raise ExtractorError(u'Unable to extract the media url')
+        final_url = (info_response.split('&')[0]).split('=')[1]
+
+        return [{
+            'id':       video_id,
+            'url':      final_url,
+            'ext':      ext,
+            'title':    title,
+        }]
 
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
@@ -4598,6 +4631,7 @@ def gen_extractors():
         TeamcocoIE(),
         XHamsterIE(),
         HypemIE(),
+        Vbox7IE(),
         GenericIE()
     ]
 
