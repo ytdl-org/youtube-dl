@@ -500,5 +500,14 @@
     "info_dict":{
       "title":"TAME"
     }
+  },
+  {
+    "name": "Vbox7",
+    "url": "http://vbox7.com/play:249bb972c2",
+    "file": "249bb972c2.flv",
+    "md5": "9c70d6d956f888bdc08c124acc120cfe",
+    "info_dict":{
+      "title":"Смях! Чудо - чист за секунди - Скрита камера"
+    }
   }
 ]
