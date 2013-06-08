@@ -810,6 +810,37 @@ class FileDownloader(object):
             self.report_error(u'rtmpdump exited with code %d' % retval)
             return False
 
+    def _download_with_mplayer(self, filename, url):
+        self.report_destination(filename)
+        tmpfilename = self.temp_name(filename)
+
+        args = ['mplayer', '-really-quiet', '-vo', 'null', '-vc', 'dummy', '-dumpstream', '-dumpfile', tmpfilename, url]
+        # Check for mplayer first
+        try:
+            subprocess.call(['mplayer', '-h'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
+        except (OSError, IOError):
+            self.report_error(u'MMS or RTSP download detected but "%s" could not be run' % args[0] )
+            return False
+
+        # Download using mplayer. 
+        retval = subprocess.call(args)
+        if retval == 0:
+            fsize = os.path.getsize(encodeFilename(tmpfilename))
+            self.to_screen(u'\r[%s] %s bytes' % (args[0], fsize))
+            self.try_rename(tmpfilename, filename)
+            self._hook_progress({
+                'downloaded_bytes': fsize,
+                'total_bytes': fsize,
+                'filename': filename,
+                'status': 'finished',
+            })
+            return True
+        else:
+            self.to_stderr(u"\n")
+            self.report_error(u'mplayer exited with code %d' % retval)
+            return False
+
+
     def _do_download(self, filename, info_dict):
         url = info_dict['url']
 
@@ -829,6 +860,10 @@ class FileDownloader(object):
                                                 info_dict.get('page_url', None),
                                                 info_dict.get('play_path', None),
                                                 info_dict.get('tc_url', None))
+
+        # Attempt to download using mplayer
+        if url.startswith('mms') or url.startswith('rtsp'):
+            return self._download_with_mplayer(filename, url)
 
         tmpfilename = self.temp_name(filename)
         stream = None
