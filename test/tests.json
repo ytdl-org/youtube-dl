@@ -29,7 +29,7 @@
     "info_dict": {
       "upload_date": "20090102",
       "title": "The Electric Company | \"Short I\" | PBS KIDS GO!",
-      "description": "crc32:5ef3bc57",
+      "description": "md5:2439a8ef6d5a70e380c22f5ad323e5a8",
       "uploader": "PBS",
       "uploader_id": "PBS"
     }
@@ -41,7 +41,7 @@
     "file":  "5779306.m4v",
     "info_dict": {
       "upload_date": "20111205",
-      "description": "crc32:fa658d49",
+      "description": "md5:9bc31f227219cde65e47eeec8d2dc596",
       "uploader": "Comic Book Resources - CBR TV",
       "title": "CBR EXCLUSIVE: \"Gotham City Imposters\" Bats VS Jokerz Short 3"
     }
