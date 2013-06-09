@@ -12,7 +12,7 @@ import sys
 import traceback
 import zlib
 import email.utils
-import json
+import socket
 import datetime
 
 try:
@@ -472,8 +472,11 @@ class ExtractorError(Exception):
     """Error during info extraction."""
     def __init__(self, msg, tb=None):
         """ tb, if given, is the original traceback (so that it can be printed out). """
-        msg = msg + u'; please report this issue on GitHub.'
+
+        if not sys.exc_info()[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError):
+            msg = msg + u'; please report this issue on GitHub.'
         super(ExtractorError, self).__init__(msg)
+
         self.traceback = tb
         self.exc_info = sys.exc_info()  # preserve original exception
 
