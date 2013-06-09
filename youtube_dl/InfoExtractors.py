@@ -2377,8 +2377,8 @@ class EscapistIE(InfoExtractor):
         showName = mobj.group('showname')
         videoId = mobj.group('episode')
 
-        self.report_extraction(showName)
-        webpage = self._download_webpage(url, showName)
+        self.report_extraction(videoId)
+        webpage = self._download_webpage(url, videoId)
 
         videoDesc = self._html_search_regex('<meta name="description" content="([^"]*)"',
             webpage, u'description', fatal=False)
@@ -2389,10 +2389,13 @@ class EscapistIE(InfoExtractor):
         playerUrl = self._html_search_regex('<meta property="og:video" content="([^"]*)"',
             webpage, u'player url')
 
+        title = self._html_search_regex('<meta name="title" content="([^"]*)"',
+            webpage, u'player url').split(' : ')[-1]
+
         configUrl = self._search_regex('config=(.*)$', playerUrl, u'config url')
         configUrl = compat_urllib_parse.unquote(configUrl)
 
-        configJSON = self._download_webpage(configUrl, showName,
+        configJSON = self._download_webpage(configUrl, videoId,
                                             u'Downloading configuration',
                                             u'unable to download configuration')
 
@@ -2412,7 +2415,7 @@ class EscapistIE(InfoExtractor):
             'url': videoUrl,
             'uploader': showName,
             'upload_date': None,
-            'title': showName,
+            'title': title,
             'ext': 'mp4',
             'thumbnail': imgUrl,
             'description': videoDesc,
@@ -3581,14 +3584,14 @@ class YouPornIE(InfoExtractor):
             size = format[0]
             bitrate = format[1]
             format = "-".join( format )
-            title = u'%s-%s-%s' % (video_title, size, bitrate)
+            # title = u'%s-%s-%s' % (video_title, size, bitrate)
 
             formats.append({
                 'id': video_id,
                 'url': video_url,
                 'uploader': video_uploader,
                 'upload_date': upload_date,
-                'title': title,
+                'title': video_title,
                 'ext': extension,
                 'format': format,
                 'thumbnail': thumbnail,
@@ -4328,7 +4331,7 @@ class XHamsterIE(InfoExtractor):
             video_upload_date = None
             self._downloader.report_warning(u'Unable to extract upload date')
 
-        video_uploader_id = self._html_search_regex(r'<a href=\'/user/[^>]+>(?P<uploader_id>[^>]+)',
+        video_uploader_id = self._html_search_regex(r'<a href=\'/user/[^>]+>(?P<uploader_id>[^<]+)',
             webpage, u'uploader id', default=u'anonymous')
 
         video_thumbnail = self._search_regex(r'\'image\':\'(?P<thumbnail>[^\']+)\'',

@@ -7,8 +7,8 @@ import os
 import json
 import unittest
 import sys
-import hashlib
 import socket
+import binascii
 
 # Allow direct execution
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -37,6 +37,9 @@ def _try_rm(filename):
     except OSError as ose:
         if ose.errno != errno.ENOENT:
             raise
+
+def crc32(value):
+    return '%08x' % (binascii.crc32(value.encode('utf8')) & 0xffffffff)
 
 class FileDownloader(youtube_dl.FileDownloader):
     def __init__(self, *args, **kwargs):
@@ -124,7 +127,21 @@ def generator(test_case):
                 with io.open(tc['file'] + '.info.json', encoding='utf-8') as infof:
                     info_dict = json.load(infof)
                 for (info_field, value) in tc.get('info_dict', {}).items():
-                    self.assertEqual(value, info_dict.get(info_field))
+                    if isinstance(value, compat_str) and value.startswith('crc32:'):
+                        self.assertEqual(value, 'crc32:' + crc32(info_dict.get(info_field)))
+                    else:
+                        self.assertEqual(value, info_dict.get(info_field))
+
+                # If checkable fields are missing from the test case, print the info_dict
+                test_info_dict = dict((key, value if not isinstance(value, compat_str) or len(value) < 250 else 'crc32:' + crc32(value))
+                    for key, value in info_dict.items()
+                    if value and key in ('title', 'description', 'uploader', 'upload_date', 'uploader_id', 'location'))
+                if not all(key in tc.get('info_dict', {}).keys() for key in test_info_dict.keys()):
+                    sys.stderr.write(u'\n"info_dict": ' + json.dumps(test_info_dict, ensure_ascii=False, indent=2) + u'\n')
+
+                # Check for the presence of mandatory fields
+                for key in ('id', 'url', 'title', 'ext'):
+                    self.assertTrue(key in info_dict.keys() and info_dict[key])
         finally:
             for tc in test_cases:
                 _try_rm(tc['file'])
