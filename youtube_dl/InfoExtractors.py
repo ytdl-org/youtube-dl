@@ -222,6 +222,16 @@ class InfoExtractor(object):
                 u'please report this issue on GitHub.' % _name)
             return None
 
+    def _html_search_regex(self, pattern, string, name, default=None, fatal=True, flags=0):
+        """
+        Like _search_regex, but strips HTML tags and unescapes entities.
+        """
+        res = self._search_regex(pattern, string, name, default, fatal, flags)
+        if res:
+            return clean_html(res).strip()
+        else:
+            return res
+
 class SearchInfoExtractor(InfoExtractor):
     """
     Base class for paged search queries extractors.
@@ -1923,9 +1933,8 @@ class FacebookIE(InfoExtractor):
         video_duration = int(video_data['video_duration'])
         thumbnail = video_data['thumbnail_src']
 
-        video_title = self._search_regex('<h2 class="uiHeaderTitle">([^<]+)</h2>',
+        video_title = self._html_search_regex('<h2 class="uiHeaderTitle">([^<]+)</h2>',
             webpage, u'title')
-        video_title = unescapeHTML(video_title)
 
         info = {
             'id': video_id,
@@ -2087,7 +2096,7 @@ class MyVideoIE(InfoExtractor):
             self.report_extraction(video_id)
             video_url = mobj.group(1) + '.flv'
 
-            video_title = self._search_regex('<title>([^<]+)</title>',
+            video_title = self._html_search_regex('<title>([^<]+)</title>',
                 webpage, u'title')
 
             video_ext = self._search_regex('[.](.+?)$', video_url, u'extension')
@@ -2169,7 +2178,7 @@ class MyVideoIE(InfoExtractor):
         video_swfobj = self._search_regex('swfobject.embedSWF\(\'(.+?)\'', webpage, u'swfobj')
         video_swfobj = compat_urllib_parse.unquote(video_swfobj)
 
-        video_title = self._search_regex("<h1(?: class='globalHd')?>(.*?)</h1>",
+        video_title = self._html_search_regex("<h1(?: class='globalHd')?>(.*?)</h1>",
             webpage, u'title')
 
         return [{
@@ -2371,17 +2380,14 @@ class EscapistIE(InfoExtractor):
         self.report_extraction(showName)
         webpage = self._download_webpage(url, showName)
 
-        videoDesc = self._search_regex('<meta name="description" content="([^"]*)"',
+        videoDesc = self._html_search_regex('<meta name="description" content="([^"]*)"',
             webpage, u'description', fatal=False)
-        if videoDesc: videoDesc = unescapeHTML(videoDesc)
 
-        imgUrl = self._search_regex('<meta property="og:image" content="([^"]*)"',
+        imgUrl = self._html_search_regex('<meta property="og:image" content="([^"]*)"',
             webpage, u'thumbnail', fatal=False)
-        if imgUrl: imgUrl = unescapeHTML(imgUrl)
 
-        playerUrl = self._search_regex('<meta property="og:video" content="([^"]*)"',
+        playerUrl = self._html_search_regex('<meta property="og:video" content="([^"]*)"',
             webpage, u'player url')
-        playerUrl = unescapeHTML(playerUrl)
 
         configUrl = self._search_regex('config=(.*)$', playerUrl, u'config url')
         configUrl = compat_urllib_parse.unquote(configUrl)
@@ -2499,7 +2505,7 @@ class XVideosIE(InfoExtractor):
             webpage, u'video URL'))
 
         # Extract title
-        video_title = self._search_regex(r'<title>(.*?)\s+-\s+XVID',
+        video_title = self._html_search_regex(r'<title>(.*?)\s+-\s+XVID',
             webpage, u'title')
 
         # Extract video thumbnail
@@ -2665,7 +2671,7 @@ class InfoQIE(InfoExtractor):
             webpage, u'title')
 
         # Extract description
-        video_description = self._search_regex(r'<meta name="description" content="(.*)"(?:\s*/)?>',
+        video_description = self._html_search_regex(r'<meta name="description" content="(.*)"(?:\s*/)?>',
             webpage, u'description', fatal=False)
 
         video_filename = video_url.split('/')[-1]
@@ -2837,12 +2843,10 @@ class StanfordOpenClassroomIE(InfoExtractor):
                                         note='Downloading course info page',
                                         errnote='Unable to download course info page')
 
-            info['title'] = self._search_regex('<h1>([^<]+)</h1>', coursepage, 'title', default=info['id'])
-            info['title'] = unescapeHTML(info['title'])
+            info['title'] = self._html_search_regex('<h1>([^<]+)</h1>', coursepage, 'title', default=info['id'])
 
-            info['description'] = self._search_regex('<description>([^<]+)</description>',
+            info['description'] = self._html_search_regex('<description>([^<]+)</description>',
                 coursepage, u'description', fatal=False)
-            if info['description']: info['description'] = unescapeHTML(info['description'])
 
             links = orderedSet(re.findall('<a href="(VideoPage.php\?[^"]+)">', coursepage))
             info['list'] = [
@@ -2903,15 +2907,13 @@ class MTVIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        song_name = self._search_regex(r'<meta name="mtv_vt" content="([^"]+)"/>',
+        song_name = self._html_search_regex(r'<meta name="mtv_vt" content="([^"]+)"/>',
             webpage, u'song name', fatal=False)
-        if song_name: song_name = unescapeHTML(song_name)
 
-        video_title = self._search_regex(r'<meta name="mtv_an" content="([^"]+)"/>',
+        video_title = self._html_search_regex(r'<meta name="mtv_an" content="([^"]+)"/>',
             webpage, u'title')
-        video_title = unescapeHTML(video_title)
 
-        mtvn_uri = self._search_regex(r'<meta name="mtvn_uri" content="([^"]+)"/>',
+        mtvn_uri = self._html_search_regex(r'<meta name="mtvn_uri" content="([^"]+)"/>',
             webpage, u'mtvn_uri', fatal=False)
 
         content_id = self._search_regex(r'MTVN.Player.defaultPlaylistId = ([0-9]+);',
@@ -3067,7 +3069,7 @@ class XNXXIE(InfoExtractor):
             webpage, u'video URL')
         video_url = compat_urllib_parse.unquote(video_url)
 
-        video_title = self._search_regex(self.VIDEO_TITLE_RE,
+        video_title = self._html_search_regex(self.VIDEO_TITLE_RE,
             webpage, u'title')
 
         video_thumbnail = self._search_regex(self.VIDEO_THUMB_RE,
@@ -3108,7 +3110,7 @@ class GooglePlusIE(InfoExtractor):
         self.report_extraction(video_id)
 
         # Extract update date
-        upload_date = self._search_regex('title="Timestamp">(.*?)</a>',
+        upload_date = self._html_search_regex('title="Timestamp">(.*?)</a>',
             webpage, u'upload date', fatal=False)
         if upload_date:
             # Convert timestring to a format suitable for filename
@@ -3116,12 +3118,12 @@ class GooglePlusIE(InfoExtractor):
             upload_date = upload_date.strftime('%Y%m%d')
 
         # Extract uploader
-        uploader = self._search_regex(r'rel\="author".*?>(.*?)</a>',
+        uploader = self._html_search_regex(r'rel\="author".*?>(.*?)</a>',
             webpage, u'uploader', fatal=False)
 
         # Extract title
         # Get the first line for title
-        video_title = self._search_regex(r'<meta name\=\"Description\" content\=\"(.*?)[\n<"]',
+        video_title = self._html_search_regex(r'<meta name\=\"Description\" content\=\"(.*?)[\n<"]',
             webpage, 'title', default=u'NA')
 
         # Step 2, Stimulate clicking the image box to launch video
@@ -3175,13 +3177,13 @@ class NBAIE(InfoExtractor):
         video_url = u'http://ht-mobile.cdn.turner.com/nba/big' + video_id + '_nba_1280x720.mp4'
 
         shortened_video_id = video_id.rpartition('/')[2]
-        title = self._search_regex(r'<meta property="og:title" content="(.*?)"',
+        title = self._html_search_regex(r'<meta property="og:title" content="(.*?)"',
             webpage, 'title', default=shortened_video_id).replace('NBA.com: ', '')
 
         # It isn't there in the HTML it returns to us
-        # uploader_date = self._search_regex(r'<b>Date:</b> (.*?)</div>', webpage, 'upload_date', fatal=False)
+        # uploader_date = self._html_search_regex(r'<b>Date:</b> (.*?)</div>', webpage, 'upload_date', fatal=False)
 
-        description = self._search_regex(r'<meta name="description" (?:content|value)="(.*?)" />', webpage, 'description', fatal=False)
+        description = self._html_search_regex(r'<meta name="description" (?:content|value)="(.*?)" />', webpage, 'description', fatal=False)
 
         info = {
             'id': shortened_video_id,
@@ -3337,17 +3339,14 @@ class FunnyOrDieIE(InfoExtractor):
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
 
-        video_url = self._search_regex(r'<video[^>]*>\s*<source[^>]*>\s*<source src="(?P<url>[^"]+)"',
+        video_url = self._html_search_regex(r'<video[^>]*>\s*<source[^>]*>\s*<source src="(?P<url>[^"]+)"',
             webpage, u'video URL', flags=re.DOTALL)
-        video_url = unescapeHTML(video_url)
 
-        title = self._search_regex((r"<h1 class='player_page_h1'.*?>(?P<title>.*?)</h1>",
+        title = self._html_search_regex((r"<h1 class='player_page_h1'.*?>(?P<title>.*?)</h1>",
             r'<title>(?P<title>[^<]+?)</title>'), webpage, 'title', flags=re.DOTALL)
-        title = clean_html(title)
 
-        video_description = self._search_regex(r'<meta property="og:description" content="(?P<desc>.*?)"',
+        video_description = self._html_search_regex(r'<meta property="og:description" content="(?P<desc>.*?)"',
             webpage, u'description', fatal=False, flags=re.DOTALL)
-        if video_description: video_description = unescapeHTML(video_description)
 
         info = {
             'id': video_id,
@@ -3416,14 +3415,13 @@ class UstreamIE(InfoExtractor):
 
         self.report_extraction(video_id)
 
-        video_title = self._search_regex(r'data-title="(?P<title>.+)"',
+        video_title = self._html_search_regex(r'data-title="(?P<title>.+)"',
             webpage, u'title')
 
-        uploader = self._search_regex(r'data-content-type="channel".*?>(?P<uploader>.*?)</a>',
+        uploader = self._html_search_regex(r'data-content-type="channel".*?>(?P<uploader>.*?)</a>',
             webpage, u'uploader', fatal=False, flags=re.DOTALL)
-        if uploader: uploader = unescapeHTML(uploader.strip())
 
-        thumbnail = self._search_regex(r'<link rel="image_src" href="(?P<thumb>.*?)"',
+        thumbnail = self._html_search_regex(r'<link rel="image_src" href="(?P<thumb>.*?)"',
             webpage, u'thumbnail', fatal=False)
 
         info = {
@@ -3454,11 +3452,11 @@ class WorldStarHipHopIE(InfoExtractor):
         else:
             ext = 'flv'
 
-        video_title = self._search_regex(r"<title>(.*)</title>",
+        video_title = self._html_search_regex(r"<title>(.*)</title>",
             webpage_src, u'title')
 
         # Getting thumbnail and if not thumbnail sets correct title for WSHH candy video.
-        thumbnail = self._search_regex(r'rel="image_src" href="(.*)" />',
+        thumbnail = self._html_search_regex(r'rel="image_src" href="(.*)" />',
             webpage_src, u'thumbnail', fatal=False)
 
         if not thumbnail:
@@ -3640,7 +3638,7 @@ class PornotubeIE(InfoExtractor):
 
         #Get the uploaded date
         VIDEO_UPLOADED_RE = r'<div class="video_added_by">Added (?P<date>[0-9\/]+) by'
-        upload_date = self._search_regex(VIDEO_UPLOADED_RE, webpage, u'upload date', fatal=False)
+        upload_date = self._html_search_regex(VIDEO_UPLOADED_RE, webpage, u'upload date', fatal=False)
         if upload_date: upload_date = unified_strdate(upload_date)
 
         info = {'id': video_id,
@@ -3668,7 +3666,7 @@ class YouJizzIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         # Get the video title
-        video_title = self._search_regex(r'<title>(?P<title>.*)</title>',
+        video_title = self._html_search_regex(r'<title>(?P<title>.*)</title>',
             webpage, u'title').strip()
 
         # Get the embed page
@@ -3747,13 +3745,11 @@ class KeekIE(InfoExtractor):
         thumbnail = u'http://cdn.keek.com/keek/thumbnail/%s/w100/h75' % video_id
         webpage = self._download_webpage(url, video_id)
 
-        video_title = self._search_regex(r'<meta property="og:title" content="(?P<title>.*?)"',
+        video_title = self._html_search_regex(r'<meta property="og:title" content="(?P<title>.*?)"',
             webpage, u'title')
-        video_title = unescapeHTML(video_title)
 
-        uploader = self._search_regex(r'<div class="user-name-and-bio">[\S\s]+?<h2>(?P<uploader>.+?)</h2>',
+        uploader = self._html_search_regex(r'<div class="user-name-and-bio">[\S\s]+?<h2>(?P<uploader>.+?)</h2>',
             webpage, u'uploader', fatal=False)
-        if uploader: uploader = clean_html(uploader)
 
         info = {
                 'id': video_id,
@@ -3907,9 +3903,8 @@ class SpiegelIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        video_title = self._search_regex(r'<div class="module-title">(.*?)</div>',
+        video_title = self._html_search_regex(r'<div class="module-title">(.*?)</div>',
             webpage, u'title')
-        video_title = unescapeHTML(video_title)
 
         xml_url = u'http://video2.spiegel.de/flash/' + video_id + u'.xml'
         xml_code = self._download_webpage(xml_url, video_id,
@@ -3948,15 +3943,13 @@ class LiveLeakIE(InfoExtractor):
         video_url = self._search_regex(r'file: "(.*?)",',
             webpage, u'video URL')
 
-        video_title = self._search_regex(r'<meta property="og:title" content="(?P<title>.*?)"',
-            webpage, u'title')
-        video_title = unescapeHTML(video_title).replace('LiveLeak.com -', '').strip()
+        video_title = self._html_search_regex(r'<meta property="og:title" content="(?P<title>.*?)"',
+            webpage, u'title').replace('LiveLeak.com -', '').strip()
 
-        video_description = self._search_regex(r'<meta property="og:description" content="(?P<desc>.*?)"',
+        video_description = self._html_search_regex(r'<meta property="og:description" content="(?P<desc>.*?)"',
             webpage, u'description', fatal=False)
-        if video_description: video_description = unescapeHTML(video_description)
 
-        video_uploader = self._search_regex(r'By:.*?(\w+)</a>',
+        video_uploader = self._html_search_regex(r'By:.*?(\w+)</a>',
             webpage, u'uploader', fatal=False)
 
         info = {
@@ -4033,9 +4026,8 @@ class TumblrIE(InfoExtractor):
 
         # The only place where you can get a title, it's not complete,
         # but searching in other places doesn't work for all videos
-        video_title = self._search_regex(r'<title>(?P<title>.*?)</title>',
+        video_title = self._html_search_regex(r'<title>(?P<title>.*?)</title>',
             webpage, u'title', flags=re.DOTALL)
-        video_title = unescapeHTML(video_title)
 
         return [{'id': video_id,
                  'url': video_url,
@@ -4105,10 +4097,10 @@ class RedTubeIE(InfoExtractor):
 
         self.report_extraction(video_id)
 
-        video_url = self._search_regex(r'<source src="(.+?)" type="video/mp4">',
+        video_url = self._html_search_regex(r'<source src="(.+?)" type="video/mp4">',
             webpage, u'video URL')
 
-        video_title = self._search_regex('<h1 class="videoTitle slidePanelMovable">(.+?)</h1>',
+        video_title = self._html_search_regex('<h1 class="videoTitle slidePanelMovable">(.+?)</h1>',
             webpage, u'title')
 
         return [{
@@ -4132,7 +4124,7 @@ class InaIE(InfoExtractor):
 
         self.report_extraction(video_id)
 
-        video_url = self._search_regex(r'<media:player url="(?P<mp4url>http://mp4.ina.fr/[^"]+\.mp4)',
+        video_url = self._html_search_regex(r'<media:player url="(?P<mp4url>http://mp4.ina.fr/[^"]+\.mp4)',
             webpage, u'video URL')
 
         video_title = self._search_regex(r'<title><!\[CDATA\[(?P<titre>.*?)]]></title>',
@@ -4161,13 +4153,13 @@ class HowcastIE(InfoExtractor):
         video_url = self._search_regex(r'\'?file\'?: "(http://mobile-media\.howcast\.com/[0-9]+\.mp4)',
             webpage, u'video URL')
 
-        video_title = self._search_regex(r'<meta content=(?:"([^"]+)"|\'([^\']+)\') property=\'og:title\'',
+        video_title = self._html_search_regex(r'<meta content=(?:"([^"]+)"|\'([^\']+)\') property=\'og:title\'',
             webpage, u'title')
 
-        video_description = self._search_regex(r'<meta content=(?:"([^"]+)"|\'([^\']+)\') name=\'description\'',
+        video_description = self._html_search_regex(r'<meta content=(?:"([^"]+)"|\'([^\']+)\') name=\'description\'',
             webpage, u'description', fatal=False)
 
-        thumbnail = self._search_regex(r'<meta content=\'(.+?)\' property=\'og:image\'',
+        thumbnail = self._html_search_regex(r'<meta content=\'(.+?)\' property=\'og:image\'',
             webpage, u'thumbnail', fatal=False)
 
         return [{
@@ -4192,16 +4184,16 @@ class VineIE(InfoExtractor):
 
         self.report_extraction(video_id)
 
-        video_url = self._search_regex(r'<meta property="twitter:player:stream" content="(.+?)"',
+        video_url = self._html_search_regex(r'<meta property="twitter:player:stream" content="(.+?)"',
             webpage, u'video URL')
 
-        video_title = self._search_regex(r'<meta property="og:title" content="(.+?)"',
+        video_title = self._html_search_regex(r'<meta property="og:title" content="(.+?)"',
             webpage, u'title')
 
-        thumbnail = self._search_regex(r'<meta property="og:image" content="(.+?)(\?.*?)?"',
+        thumbnail = self._html_search_regex(r'<meta property="og:image" content="(.+?)(\?.*?)?"',
             webpage, u'thumbnail', fatal=False)
 
-        uploader = self._search_regex(r'<div class="user">.*?<h2>(.+?)</h2>',
+        uploader = self._html_search_regex(r'<div class="user">.*?<h2>(.+?)</h2>',
             webpage, u'uploader', fatal=False, flags=re.DOTALL)
 
         return [{
@@ -4230,7 +4222,7 @@ class FlickrIE(InfoExtractor):
         first_url = 'https://secure.flickr.com/apps/video/video_mtl_xml.gne?v=x&photo_id=' + video_id + '&secret=' + secret + '&bitrate=700&target=_self'
         first_xml = self._download_webpage(first_url, video_id, 'Downloading first data webpage')
 
-        node_id = self._search_regex(r'<Item id="id">(\d+-\d+)</Item>',
+        node_id = self._html_search_regex(r'<Item id="id">(\d+-\d+)</Item>',
             first_xml, u'node_id')
 
         second_url = 'https://secure.flickr.com/video_playlist.gne?node_id=' + node_id + '&tech=flash&mode=playlist&bitrate=700&secret=' + secret + '&rd=video.yahoo.com&noad=1'
@@ -4243,13 +4235,13 @@ class FlickrIE(InfoExtractor):
             raise ExtractorError(u'Unable to extract video url')
         video_url = mobj.group(1) + unescapeHTML(mobj.group(2))
 
-        video_title = self._search_regex(r'<meta property="og:title" content=(?:"([^"]+)"|\'([^\']+)\')',
+        video_title = self._html_search_regex(r'<meta property="og:title" content=(?:"([^"]+)"|\'([^\']+)\')',
             webpage, u'video title')
 
-        video_description = self._search_regex(r'<meta property="og:description" content=(?:"([^"]+)"|\'([^\']+)\')',
+        video_description = self._html_search_regex(r'<meta property="og:description" content=(?:"([^"]+)"|\'([^\']+)\')',
             webpage, u'description', fatal=False)
 
-        thumbnail = self._search_regex(r'<meta property="og:image" content=(?:"([^"]+)"|\'([^\']+)\')',
+        thumbnail = self._html_search_regex(r'<meta property="og:image" content=(?:"([^"]+)"|\'([^\']+)\')',
             webpage, u'thumbnail', fatal=False)
 
         return [{
@@ -4272,24 +4264,24 @@ class TeamcocoIE(InfoExtractor):
         url_title = mobj.group('url_title')
         webpage = self._download_webpage(url, url_title)
 
-        video_id = self._search_regex(r'<article class="video" data-id="(\d+?)"',
+        video_id = self._html_search_regex(r'<article class="video" data-id="(\d+?)"',
             webpage, u'video id')
 
         self.report_extraction(video_id)
 
-        video_title = self._search_regex(r'<meta property="og:title" content="(.+?)"',
+        video_title = self._html_search_regex(r'<meta property="og:title" content="(.+?)"',
             webpage, u'title')
 
-        thumbnail = self._search_regex(r'<meta property="og:image" content="(.+?)"',
+        thumbnail = self._html_search_regex(r'<meta property="og:image" content="(.+?)"',
             webpage, u'thumbnail', fatal=False)
 
-        video_description = self._search_regex(r'<meta property="og:description" content="(.*?)"',
+        video_description = self._html_search_regex(r'<meta property="og:description" content="(.*?)"',
             webpage, u'description', fatal=False)
 
         data_url = 'http://teamcoco.com/cvp/2.0/%s.xml' % video_id
         data = self._download_webpage(data_url, video_id, 'Downloading data webpage')
 
-        video_url = self._search_regex(r'<file type="high".*?>(.*?)</file>',
+        video_url = self._html_search_regex(r'<file type="high".*?>(.*?)</file>',
             data, u'video URL')
 
         return [{
@@ -4321,12 +4313,11 @@ class XHamsterIE(InfoExtractor):
             video_url = mobj.group('server')+'/key='+mobj.group('file')
         video_extension = video_url.split('.')[-1]
 
-        video_title = self._search_regex(r'<title>(?P<title>.+?) - xHamster\.com</title>',
+        video_title = self._html_search_regex(r'<title>(?P<title>.+?) - xHamster\.com</title>',
             webpage, u'title')
-        video_title = unescapeHTML(video_title)
 
         # Can't see the description anywhere in the UI
-        # video_description = self._search_regex(r'<span>Description: </span>(?P<description>[^<]+)',
+        # video_description = self._html_search_regex(r'<span>Description: </span>(?P<description>[^<]+)',
         #     webpage, u'description', fatal=False)
         # if video_description: video_description = unescapeHTML(video_description)
 
@@ -4337,7 +4328,7 @@ class XHamsterIE(InfoExtractor):
             video_upload_date = None
             self._downloader.report_warning(u'Unable to extract upload date')
 
-        video_uploader_id = self._search_regex(r'<a href=\'/user/[^>]+>(?P<uploader_id>[^>]+)',
+        video_uploader_id = self._html_search_regex(r'<a href=\'/user/[^>]+>(?P<uploader_id>[^>]+)',
             webpage, u'uploader id', default=u'anonymous')
 
         video_thumbnail = self._search_regex(r'\'image\':\'(?P<thumbnail>[^\']+)\'',
@@ -4373,7 +4364,7 @@ class HypemIE(InfoExtractor):
 
         self.report_extraction(track_id)
 
-        html_tracks = self._search_regex(r'<script type="application/json" id="displayList-data">(.*?)</script>',
+        html_tracks = self._html_search_regex(r'<script type="application/json" id="displayList-data">(.*?)</script>',
             response, u'tracks', flags=re.MULTILINE|re.DOTALL).strip()
         try:
             track_list = json.loads(html_tracks)
