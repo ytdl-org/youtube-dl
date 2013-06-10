@@ -517,7 +517,8 @@
     "md5": "32342396fc85bd19d872b69c9bf6a558",
     "info_dict":{
       "title":"12"
-    }
+    },
+    "skip": "Requires rtmpdump"
   }
 ]
 

@@ -4633,15 +4633,13 @@ class MyspaceIE(InfoExtractor):
     
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
         track_id = mobj.group('id')
-        data = 'type=song&id=%s&at=1'%(track_id)
+        data = compat_urllib_parse.urlencode({'type':'song','id':track_id,'at':'1'})
         info_url = "http://www.myspace.com/Modules/PageEditor/Handlers/music/queue.ashx"
         headers = {
         'Hash':'MIGcBgkrBgEEAYI3WAOggY4wgYsGCisGAQQBgjdYAwGgfTB7AgMCAAECAmYDAgIAwAQIYLI97pYniaIEEEZ7OzdEz%2bIWLU44SUNWb30EUFjzQCE6jLLj9dgPm5be2u4N4ljriq5Up6l3RTd81ynC8UyNrmT8KElNy5%2bz8uxPHY3FdSDSgkJUuW3iF4SdT53bMvA8fAP2iOBxBMhGjy9d',
          }
-        request = compat_urllib_request.Request(info_url, data , headers)
+        request = compat_urllib_request.Request(info_url,data, headers)
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         song_data_json = self._download_webpage(request, track_id, u'Downloading song information')
         try:
@@ -4651,12 +4649,11 @@ class MyspaceIE(InfoExtractor):
         url = "rtmpte://fms.ec-music.myspacecdn.com/"
         title = song_data['songTitle']
         artist = song_data['artistName']
-        player_url = "http://lads.myspacecdn.com/music/sdkwrapper/SDKWrapper.2.2.16.swf?ili=false&pguid=bd1ab4fde7b84b7089e5ed714007719e&pertid64=-6868838582826384204&cip=115.167.69.194&sip=172.16.0.2&hash=MIGmBgkrBgEEAYI3WAOggZgwgZUGCisGAQQBgjdYAwGggYYwgYMCAwIAAQICZgMCAgDABAg30iVjjk7mowQQADI7jEQRqtXEHalqOxdJbwRYHt7ZytsvewZpywM16%252fvP58Ii0sDljgh97xfuXDzKDYiI%252fjPiID7lEVopr2XgVMyOVbgdqfEotNmXWlPL6ORFvJ8fjk4hPQEBKkudN9zd0WHsFN190OHl8A%253d%253d&pertid=b4c4229bb3fbaca00000000000000000&ptype=30&hostenv=www.&uid=-1&pcc=en-US&cc=en-US"
+        player_url = "http://lads.myspacecdn.com/music/sdkwrapper/SDKWrapper.2.2.16.swf"
         page_url = "http://www.myspace.com"
         play_path = "mp4:"+ song_data['streamURL'].split(".com/")[1]
         thumbnail_url = song_data["songImageURL"]
         ext = "flv"
-        flashVer = "LNX 11,2,202,235"
         return[{
             'id'         :    track_id,
             'title'      :    title,
@@ -4664,7 +4661,6 @@ class MyspaceIE(InfoExtractor):
             'thumbnail'  :    thumbnail_url,
             'artist'     :    artist,
             'player_url' :    player_url,
-            'flashVer'   :    flashVer,
             'ext'        :    ext,
             'page_url'   :    page_url,
             'play_path'  :    play_path,
