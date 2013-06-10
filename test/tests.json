@@ -434,11 +434,11 @@
   },
   {
     "name": "Yahoo",
-    "url": "http://screen.yahoo.com/obama-celebrates-iraq-victory-27592561.html",
-    "file": "27592561.flv",
-    "md5": "c6179bed843512823fd284fa2e7f012d",
+    "url": "http://screen.yahoo.com/julian-smith-travis-legg-watch-214727115.html",
+    "file": "214727115.flv",
+    "md5": "2e717f169c1be93d84d3794a00d4a325",
     "info_dict": {
-        "title": "Obama Celebrates Iraq Victory"
+        "title": "Julian Smith & Travis Legg Watch Julian Smith"
     },
     "skip": "Requires rtmpdump"
   },
