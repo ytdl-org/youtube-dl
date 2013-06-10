@@ -4636,7 +4636,7 @@ class MyspaceIE(InfoExtractor):
         if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
         track_id = mobj.group('id')
-        data = 'type=song&id={}&at=1'.format(track_id)
+        data = 'type=song&id=%s&at=1'%(track_id)
         info_url = "http://www.myspace.com/Modules/PageEditor/Handlers/music/queue.ashx"
         headers = {
         'Hash':'MIGcBgkrBgEEAYI3WAOggY4wgYsGCisGAQQBgjdYAwGgfTB7AgMCAAECAmYDAgIAwAQIYLI97pYniaIEEEZ7OzdEz%2bIWLU44SUNWb30EUFjzQCE6jLLj9dgPm5be2u4N4ljriq5Up6l3RTd81ynC8UyNrmT8KElNy5%2bz8uxPHY3FdSDSgkJUuW3iF4SdT53bMvA8fAP2iOBxBMhGjy9d',
