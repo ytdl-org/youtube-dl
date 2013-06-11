@@ -4629,7 +4629,7 @@ class Vbox7IE(InfoExtractor):
 
 class MyspaceIE(InfoExtractor):
     """Information Extractor for Myspace"""
-    _VALID_URL = r'(?:http://)?(?:www\.)?myspace\.com/([^/]+)/music/songs/([^/]+)-(?P<id>[0-9]+)'
+    _VALID_URL = r'(?:http://)?(?:www\.)?myspace\.com/([^/]+)/music/songs/([^/]+)-(?P<id>[0-8]+)'
     
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)

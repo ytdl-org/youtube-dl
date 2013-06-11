@@ -4,7 +4,6 @@
 import errno
 import gzip
 import io
-import json
 import locale
 import os
 import re
