@@ -1424,7 +1424,6 @@ class YoutubeSearchIE(SearchInfoExtractor):
 
     def report_download_page(self, query, pagenum):
         """Report attempt to download search page with given number."""
-        query = query.decode(preferredencoding())
         self._downloader.to_screen(u'[youtube] query "%s": Downloading page %s' % (query, pagenum))
 
     def _get_n_results(self, query, n):
