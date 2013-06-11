@@ -509,5 +509,16 @@
     "info_dict":{
       "title":"Смях! Чудо - чист за секунди - Скрита камера"
     }
+  },
+  {
+    "name": "Myspace",
+    "url": "http://www.myspace.com/dfgdageargrrqtgqe/music/songs/before-i-let-u-go-28570483",
+    "file": "28570483.flv",
+    "md5": "32342396fc85bd19d872b69c9bf6a558",
+    "info_dict":{
+      "title":"12"
+    },
+    "skip": "Requires rtmpdump"
   }
 ]
+
