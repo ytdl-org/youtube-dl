@@ -1374,6 +1374,9 @@ class GenericIE(InfoExtractor):
             # Broaden the search a little bit: JWPlayer JS loader
             mobj = re.search(r'[^A-Za-z0-9]?file:\s*["\'](http[^\'"&]*)', webpage)
         if mobj is None:
+            # Try to find twitter cards info
+            mobj = re.search(r'<meta (?:property|name)="twitter:player:stream" (?:content|value)="(.+?)"', webpage)
+        if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
 
         # It's possible that one of the regexes
