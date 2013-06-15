@@ -53,8 +53,7 @@ class TestYoutubeLists(unittest.TestCase):
         dl = FakeDownloader()
         ie = YoutubePlaylistIE(dl)
         result = ie.extract('PLBB231211A4F62143')[0]
-        self.assertEqual(result['title'], 'Team Fortress 2')
-        self.assertTrue(len(result['entries']) > 40)
+        self.assertTrue(len(result['entries']) > 25)
 
     def test_youtube_playlist_long(self):
         dl = FakeDownloader()
