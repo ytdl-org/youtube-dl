@@ -1063,6 +1063,25 @@ class VimeoIE(InfoExtractor):
     _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|player)\.)?vimeo(?P<pro>pro)?\.com/(?:(?:(?:groups|album)/[^/]+)|(?:.*?)/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)'
     IE_NAME = u'vimeo'
 
+    def _verify_video_password(self, url, video_id, webpage):
+        password = self._downloader.params.get('password', None)
+        if password is None:
+            raise ExtractorError(u'This video is protected by a password, use the --password option')
+        token = re.search(r'xsrft: \'(.*?)\'', webpage).group(1)
+        data = compat_urllib_parse.urlencode({'password': password,
+                                              'token': token})
+        # I didn't manage to use the password with https
+        if url.startswith('https'):
+            pass_url = url.replace('https','http')
+        else:
+            pass_url = url
+        password_request = compat_urllib_request.Request(pass_url+'/password', data)
+        password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        password_request.add_header('Cookie', 'xsrft=%s' % token)
+        pass_web = self._download_webpage(password_request, video_id,
+                                          u'Verifying the password',
+                                          u'Wrong password')
+
     def _real_extract(self, url, new_video=True):
         # Extract ID from URL
         mobj = re.match(self._VALID_URL, url)
@@ -1091,6 +1110,10 @@ class VimeoIE(InfoExtractor):
         except:
             if re.search('The creator of this video has not given you permission to embed it on this domain.', webpage):
                 raise ExtractorError(u'The author has restricted the access to this video, try with the "--referer" option')
+
+            if re.search('If so please provide the correct password.', webpage):
+                self._verify_video_password(url, video_id, webpage)
+                return self._real_extract(url)
             else:
                 raise ExtractorError(u'Unable to extract info section')
 

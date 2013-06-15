@@ -423,7 +423,7 @@ def _real_main(argv=None):
     if opts.usenetrc and (opts.username is not None or opts.password is not None):
         parser.error(u'using .netrc conflicts with giving username/password')
     if opts.password is not None and opts.username is None:
-        parser.error(u'account username missing')
+        print(u'WARNING: account username missing')
     if opts.outtmpl is not None and (opts.usetitle or opts.autonumber or opts.useid):
         parser.error(u'using output template conflicts with using title, video ID or auto number')
     if opts.usetitle and opts.useid:
