@@ -396,8 +396,11 @@ def _real_main(argv=None):
 
     # General configuration
     cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
-    if opts.proxy:
-        proxies = {'http': opts.proxy, 'https': opts.proxy}
+    if opts.proxy is not None:
+        if opts.proxy == '':
+            proxies = {}
+        else:
+            proxies = {'http': opts.proxy, 'https': opts.proxy}
     else:
         proxies = compat_urllib_request.getproxies()
         # Set HTTPS proxy to HTTP one if given (https://github.com/rg3/youtube-dl/issues/805)

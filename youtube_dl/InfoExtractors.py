@@ -376,6 +376,34 @@ class YoutubeIE(InfoExtractor):
             return (u'Did not fetch video subtitles', None, None)
         return (None, sub_lang, sub)
 
+    def _request_automatic_caption(self, video_id, webpage):
+        """We need the webpage for getting the captions url, pass it as an
+           argument to speed up the process."""
+        sub_lang = self._downloader.params.get('subtitleslang')
+        sub_format = self._downloader.params.get('subtitlesformat')
+        self.to_screen(u'%s: Looking for automatic captions' % video_id)
+        mobj = re.search(r';ytplayer.config = ({.*?});', webpage)
+        err_msg = u'Couldn\'t find automatic captions for "%s"' % sub_lang
+        if mobj is None:
+            return [(err_msg, None, None)]
+        player_config = json.loads(mobj.group(1))
+        try:
+            args = player_config[u'args']
+            caption_url = args[u'ttsurl']
+            timestamp = args[u'timestamp']
+            params = compat_urllib_parse.urlencode({
+                'lang': 'en',
+                'tlang': sub_lang,
+                'fmt': sub_format,
+                'ts': timestamp,
+                'kind': 'asr',
+            })
+            subtitles_url = caption_url + '&' + params
+            sub = self._download_webpage(subtitles_url, video_id, u'Downloading automatic captions')
+            return [(None, sub_lang, sub)]
+        except KeyError:
+            return [(err_msg, None, None)]
+
     def _extract_subtitle(self, video_id):
         """
         Return a list with a tuple:
@@ -623,7 +651,14 @@ class YoutubeIE(InfoExtractor):
             if video_subtitles:
                 (sub_error, sub_lang, sub) = video_subtitles[0]
                 if sub_error:
-                    self._downloader.report_error(sub_error)
+                    # We try with the automatic captions
+                    video_subtitles = self._request_automatic_caption(video_id, video_webpage)
+                    (sub_error_auto, sub_lang, sub) = video_subtitles[0]
+                    if sub is not None:
+                        pass
+                    else:
+                        # We report the original error
+                        self._downloader.report_error(sub_error)
 
         if self._downloader.params.get('allsubtitles', False):
             video_subtitles = self._extract_all_subtitles(video_id)
@@ -1025,7 +1060,7 @@ class VimeoIE(InfoExtractor):
     """Information extractor for vimeo.com."""
 
     # _VALID_URL matches Vimeo URLs
-    _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|player)\.)?vimeo\.com/(?:(?:groups|album)/[^/]+/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)'
+    _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|player)\.)?vimeo(?P<pro>pro)?\.com/(?:(?:(?:groups|album)/[^/]+)|(?:.*?)/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)'
     IE_NAME = u'vimeo'
 
     def _real_extract(self, url, new_video=True):
@@ -1037,7 +1072,7 @@ class VimeoIE(InfoExtractor):
         video_id = mobj.group('id')
         if not mobj.group('proto'):
             url = 'https://' + url
-        if mobj.group('direct_link'):
+        if mobj.group('direct_link') or mobj.group('pro'):
             url = 'https://vimeo.com/' + video_id
 
         # Retrieve video webpage to extract further information
@@ -1064,7 +1099,7 @@ class VimeoIE(InfoExtractor):
 
         # Extract uploader and uploader_id
         video_uploader = config["video"]["owner"]["name"]
-        video_uploader_id = config["video"]["owner"]["url"].split('/')[-1]
+        video_uploader_id = config["video"]["owner"]["url"].split('/')[-1] if config["video"]["owner"]["url"] else None
 
         # Extract video thumbnail
         video_thumbnail = config["video"]["thumbnail"]
@@ -1339,6 +1374,9 @@ class GenericIE(InfoExtractor):
             # Broaden the search a little bit: JWPlayer JS loader
             mobj = re.search(r'[^A-Za-z0-9]?file:\s*["\'](http[^\'"&]*)', webpage)
         if mobj is None:
+            # Try to find twitter cards info
+            mobj = re.search(r'<meta (?:property|name)="twitter:player:stream" (?:content|value)="(.+?)"', webpage)
+        if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
 
         # It's possible that one of the regexes
@@ -1389,7 +1427,6 @@ class YoutubeSearchIE(SearchInfoExtractor):
 
     def report_download_page(self, query, pagenum):
         """Report attempt to download search page with given number."""
-        query = query.decode(preferredencoding())
         self._downloader.to_screen(u'[youtube] query "%s": Downloading page %s' % (query, pagenum))
 
     def _get_n_results(self, query, n):
@@ -1884,7 +1921,7 @@ class FacebookIE(InfoExtractor):
 class BlipTVIE(InfoExtractor):
     """Information extractor for blip.tv"""
 
-    _VALID_URL = r'^(?:https?://)?(?:\w+\.)?blip\.tv(/.+)$'
+    _VALID_URL = r'^(?:https?://)?(?:\w+\.)?blip\.tv/((.+/)|(play/)|(api\.swf#))(.+)$'
     _URL_EXT = r'^.*\.([a-z0-9]+)$'
     IE_NAME = u'blip.tv'
 
@@ -1897,6 +1934,10 @@ class BlipTVIE(InfoExtractor):
         if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
 
+        # See https://github.com/rg3/youtube-dl/issues/857
+        api_mobj = re.match(r'http://a\.blip\.tv/api\.swf#(?P<video_id>[\d\w]+)', url)
+        if api_mobj is not None:
+            url = 'http://blip.tv/play/g_%s' % api_mobj.group('video_id')
         urlp = compat_urllib_parse_urlparse(url)
         if urlp.path.startswith('/play/'):
             request = compat_urllib_request.Request(url)
@@ -3941,7 +3982,7 @@ class SpiegelIE(InfoExtractor):
         video_id = m.group('videoID')
 
         webpage = self._download_webpage(url, video_id)
-        m = re.search(r'<div class="spVideoTitle">(.*?)</div>', webpage)
+        m = re.search(r'<div class="module-title">(.*?)</div>', webpage)
         if not m:
             raise ExtractorError(u'Cannot find title')
         video_title = unescapeHTML(m.group(1))
@@ -4052,6 +4093,64 @@ class ARDIE(InfoExtractor):
             info["url"] = stream["video_url"]
         return [info]
 
+class ZDFIE(InfoExtractor):
+    _VALID_URL = r'^http://www\.zdf\.de\/ZDFmediathek\/(.*beitrag\/video\/)(?P<video_id>[^/\?]+)(?:\?.*)?'
+    _TITLE = r'<h1(?: class="beitragHeadline")?>(?P<title>.*)</h1>'
+    _MEDIA_STREAM = r'<a href="(?P<video_url>.+(?P<media_type>.streaming).+/zdf/(?P<quality>[^\/]+)/[^"]*)".+class="play".+>'
+    _MMS_STREAM = r'href="(?P<video_url>mms://[^"]*)"'
+    _RTSP_STREAM = r'(?P<video_url>rtsp://[^"]*.mp4)'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            raise ExtractorError(u'Invalid URL: %s' % url)
+        video_id = mobj.group('video_id')
+
+        html = self._download_webpage(url, video_id)
+        streams = [m.groupdict() for m in re.finditer(self._MEDIA_STREAM, html)]
+        if streams is None:
+            raise ExtractorError(u'No media url found.')
+
+        # s['media_type'] == 'wstreaming' -> use 'Windows Media Player' and mms url
+        # s['media_type'] == 'hstreaming' -> use 'Quicktime' and rtsp url
+        # choose first/default media type and highest quality for now
+        for s in streams:        #find 300 - dsl1000mbit
+            if s['quality'] == '300' and s['media_type'] == 'wstreaming':
+                stream_=s
+                break
+        for s in streams:        #find veryhigh - dsl2000mbit
+            if s['quality'] == 'veryhigh' and s['media_type'] == 'wstreaming': # 'hstreaming' - rtsp is not working
+                stream_=s
+                break
+        if stream_ is None:
+            raise ExtractorError(u'No stream found.')
+
+        media_link = self._download_webpage(stream_['video_url'], video_id,'Get stream URL')
+
+        self.report_extraction(video_id)
+        mobj = re.search(self._TITLE, html)
+        if mobj is None:
+            raise ExtractorError(u'Cannot extract title')
+        title = unescapeHTML(mobj.group('title'))
+
+        mobj = re.search(self._MMS_STREAM, media_link)
+        if mobj is None:
+            mobj = re.search(self._RTSP_STREAM, media_link)
+            if mobj is None:
+                raise ExtractorError(u'Cannot extract mms:// or rtsp:// URL')
+        mms_url = mobj.group('video_url')
+
+        mobj = re.search('(.*)[.](?P<ext>[^.]+)', mms_url)
+        if mobj is None:
+            raise ExtractorError(u'Cannot extract extention')
+        ext = mobj.group('ext')
+
+        return [{'id': video_id,
+                 'url': mms_url,
+                 'title': title,
+                 'ext': ext
+                 }]
+
 class TumblrIE(InfoExtractor):
     _VALID_URL = r'http://(?P<blog_name>.*?)\.tumblr\.com/((post)|(video))/(?P<id>\d*)/(.*?)'
 
@@ -4066,7 +4165,7 @@ class TumblrIE(InfoExtractor):
         re_video = r'src=\\x22(?P<video_url>http://%s\.tumblr\.com/video_file/%s/(.*?))\\x22 type=\\x22video/(?P<ext>.*?)\\x22' % (blog, video_id)
         video = re.search(re_video, webpage)
         if video is None:
-            self.to_screen("No video founded")
+            self.to_screen("No video found")
             return []
         video_url = video.group('video_url')
         ext = video.group('ext')
@@ -4205,7 +4304,7 @@ class HowcastIE(InfoExtractor):
 
         self.report_extraction(video_id)
 
-        mobj = re.search(r'\'file\': "(http://mobile-media\.howcast\.com/\d+\.mp4)"', webpage)
+        mobj = re.search(r'\'?file\'?: "(http://mobile-media\.howcast\.com/[0-9]+\.mp4)"', webpage)
         if mobj is None:
             raise ExtractorError(u'Unable to extract video URL')
         video_url = mobj.group(1)
@@ -4281,7 +4380,7 @@ class VineIE(InfoExtractor):
 
 class FlickrIE(InfoExtractor):
     """Information Extractor for Flickr videos"""
-    _VALID_URL = r'(?:https?://)?(?:www\.)?flickr\.com/photos/(?P<uploader_id>[\w\-]+)/(?P<id>\d+).*'
+    _VALID_URL = r'(?:https?://)?(?:www\.)?flickr\.com/photos/(?P<uploader_id>[\w\-_@]+)/(?P<id>\d+).*'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -4291,15 +4390,13 @@ class FlickrIE(InfoExtractor):
         webpage_url = 'http://www.flickr.com/photos/' + video_uploader_id + '/' + video_id
         webpage = self._download_webpage(webpage_url, video_id)
 
-        self.report_extraction(video_id)
-        
         mobj = re.search(r"photo_secret: '(\w+)'", webpage)
         if mobj is None:
             raise ExtractorError(u'Unable to extract video secret')
         secret = mobj.group(1)
 
         first_url = 'https://secure.flickr.com/apps/video/video_mtl_xml.gne?v=x&photo_id=' + video_id + '&secret=' + secret + '&bitrate=700&target=_self'
-        first_xml = self._download_webpage(first_url, video_id)
+        first_xml = self._download_webpage(first_url, video_id, 'Downloading first data webpage')
 
         mobj = re.search(r'<Item id="id">(\d+-\d+)</Item>', first_xml)
         if mobj is None:
@@ -4307,7 +4404,9 @@ class FlickrIE(InfoExtractor):
         node_id = mobj.group(1)
 
         second_url = 'https://secure.flickr.com/video_playlist.gne?node_id=' + node_id + '&tech=flash&mode=playlist&bitrate=700&secret=' + secret + '&rd=video.yahoo.com&noad=1'
-        second_xml = self._download_webpage(second_url, video_id)
+        second_xml = self._download_webpage(second_url, video_id, 'Downloading second data webpage')
+
+        self.report_extraction(video_id)
 
         mobj = re.search(r'<STREAM APP="(.+?)" FULLPATH="(.+?)"', second_xml)
         if mobj is None:
@@ -4332,12 +4431,12 @@ class FlickrIE(InfoExtractor):
         thumbnail = mobj.group(1) or mobj.group(2)
 
         return [{
-            'id':       video_id,
-            'url':      video_url,
-            'ext':      'mp4',
-            'title':    video_title,
+            'id':          video_id,
+            'url':         video_url,
+            'ext':         'mp4',
+            'title':       video_title,
             'description': video_description,
-            'thumbnail': thumbnail,
+            'thumbnail':   thumbnail,
             'uploader_id': video_uploader_id,
         }]
 
@@ -4386,6 +4485,149 @@ class TeamcocoIE(InfoExtractor):
             'thumbnail':   thumbnail,
             'description': description,
         }]
+        
+class XHamsterIE(InfoExtractor):
+    """Information Extractor for xHamster"""
+    _VALID_URL = r'(?:http://)?(?:www.)?xhamster\.com/movies/(?P<id>[0-9]+)/.*\.html'
+
+    def _real_extract(self,url):
+        mobj = re.match(self._VALID_URL, url)
+
+        video_id = mobj.group('id')
+        mrss_url='http://xhamster.com/movies/%s/.html' % video_id
+        webpage = self._download_webpage(mrss_url, video_id)
+        mobj = re.search(r'\'srv\': \'(?P<server>[^\']*)\',\s*\'file\': \'(?P<file>[^\']+)\',', webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract media URL')
+        if len(mobj.group('server')) == 0:
+            video_url = compat_urllib_parse.unquote(mobj.group('file'))
+        else:
+            video_url = mobj.group('server')+'/key='+mobj.group('file')
+        video_extension = video_url.split('.')[-1]
+
+        mobj = re.search(r'<title>(?P<title>.+?) - xHamster\.com</title>', webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract title')
+        video_title = unescapeHTML(mobj.group('title'))
+
+        mobj = re.search(r'<span>Description: </span>(?P<description>[^<]+)', webpage)
+        if mobj is None:
+            video_description = u''
+        else:
+            video_description = unescapeHTML(mobj.group('description'))
+
+        mobj = re.search(r'hint=\'(?P<upload_date_Y>[0-9]{4})-(?P<upload_date_m>[0-9]{2})-(?P<upload_date_d>[0-9]{2}) [0-9]{2}:[0-9]{2}:[0-9]{2} [A-Z]{3,4}\'', webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract upload date')
+        video_upload_date = mobj.group('upload_date_Y')+mobj.group('upload_date_m')+mobj.group('upload_date_d')
+
+        mobj = re.search(r'<a href=\'/user/[^>]+>(?P<uploader_id>[^>]+)', webpage)
+        if mobj is None:
+            video_uploader_id = u'anonymous'
+        else:
+            video_uploader_id = mobj.group('uploader_id')
+
+        mobj = re.search(r'\'image\':\'(?P<thumbnail>[^\']+)\'', webpage)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extract thumbnail URL')
+        video_thumbnail = mobj.group('thumbnail')
+
+        return [{
+            'id':       video_id,
+            'url':      video_url,
+            'ext':      video_extension,
+            'title':    video_title,
+            'description': video_description,
+            'upload_date': video_upload_date,
+            'uploader_id': video_uploader_id,
+            'thumbnail': video_thumbnail
+        }]
+
+class HypemIE(InfoExtractor):
+    """Information Extractor for hypem"""
+    _VALID_URL = r'(?:http://)?(?:www\.)?hypem\.com/track/([^/]+)/([^/]+)'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            raise ExtractorError(u'Invalid URL: %s' % url)
+        track_id = mobj.group(1)
+
+        data = { 'ax': 1, 'ts': time.time() }
+        data_encoded = compat_urllib_parse.urlencode(data)
+        complete_url = url + "?" + data_encoded
+        request = compat_urllib_request.Request(complete_url)
+        response, urlh = self._download_webpage_handle(request, track_id, u'Downloading webpage with the url')
+        cookie = urlh.headers.get('Set-Cookie', '')
+
+        self.report_extraction(track_id)
+        mobj = re.search(r'<script type="application/json" id="displayList-data">(.*?)</script>', response, flags=re.MULTILINE|re.DOTALL)
+        if mobj is None:
+            raise ExtractorError(u'Unable to extrack tracks')
+        html_tracks = mobj.group(1).strip()
+        try:
+            track_list = json.loads(html_tracks)
+            track = track_list[u'tracks'][0]
+        except ValueError:
+            raise ExtractorError(u'Hypemachine contained invalid JSON.')
+
+        key = track[u"key"]
+        track_id = track[u"id"]
+        artist = track[u"artist"]
+        title = track[u"song"]
+
+        serve_url = "http://hypem.com/serve/source/%s/%s" % (compat_str(track_id), compat_str(key))
+        request = compat_urllib_request.Request(serve_url, "" , {'Content-Type': 'application/json'})
+        request.add_header('cookie', cookie)
+        song_data_json = self._download_webpage(request, track_id, u'Downloading metadata')
+        try:
+            song_data = json.loads(song_data_json)
+        except ValueError:
+            raise ExtractorError(u'Hypemachine contained invalid JSON.')
+        final_url = song_data[u"url"]
+
+        return [{
+            'id':       track_id,
+            'url':      final_url,
+            'ext':      "mp3",
+            'title':    title,
+            'artist':   artist,
+        }]
+
+class Vbox7IE(InfoExtractor):
+    """Information Extractor for Vbox7"""
+    _VALID_URL = r'(?:http://)?(?:www\.)?vbox7\.com/play:([^/]+)'
+
+    def _real_extract(self,url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            raise ExtractorError(u'Invalid URL: %s' % url)
+        video_id = mobj.group(1)
+
+        redirect_page, urlh = self._download_webpage_handle(url, video_id)
+        redirect_url = urlh.geturl() + re.search(r'window\.location = \'(.*)\';', redirect_page).group(1)
+        webpage = self._download_webpage(redirect_url, video_id, u'Downloading redirect page')
+
+        title = re.search(r'<title>(.*)</title>', webpage)
+        title = (title.group(1)).split('/')[0].strip()
+
+        ext = "flv"
+        info_url = "http://vbox7.com/play/magare.do"
+        data = compat_urllib_parse.urlencode({'as3':'1','vid':video_id})
+        info_request = compat_urllib_request.Request(info_url, data)
+        info_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        info_response = self._download_webpage(info_request, video_id, u'Downloading info webpage')
+        if info_response is None:
+            raise ExtractorError(u'Unable to extract the media url')
+        (final_url, thumbnail_url) = map(lambda x: x.split('=')[1], info_response.split('&'))
+
+        return [{
+            'id':        video_id,
+            'url':       final_url,
+            'ext':       ext,
+            'title':     title,
+            'thumbnail': thumbnail_url,
+        }]
 
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
@@ -4405,8 +4647,8 @@ def gen_extractors():
         YahooSearchIE(),
         DepositFilesIE(),
         FacebookIE(),
-        BlipTVUserIE(),
         BlipTVIE(),
+        BlipTVUserIE(),
         VimeoIE(),
         MyVideoIE(),
         ComedyCentralIE(),
@@ -4440,6 +4682,7 @@ def gen_extractors():
         SpiegelIE(),
         LiveLeakIE(),
         ARDIE(),
+        ZDFIE(),
         TumblrIE(),
         BandcampIE(),
         RedTubeIE(),
@@ -4448,6 +4691,9 @@ def gen_extractors():
         VineIE(),
         FlickrIE(),
         TeamcocoIE(),
+        XHamsterIE(),
+        HypemIE(),
+        Vbox7IE(),
         GenericIE()
     ]
 

@@ -539,6 +539,11 @@ class FileDownloader(object):
                          'playlist': playlist, 
                          'playlist_index': i + playliststart,
                          }
+                if not 'extractor' in entry:
+                    # We set the extractor, if it's an url it will be set then to
+                    # the new extractor, but if it's already a video we must make
+                    # sure it's present: see issue #877
+                    entry['extractor'] = ie_result['extractor']
                 entry_result = self.process_ie_result(entry,
                                                       download=download,
                                                       extra_info=extra)
@@ -758,21 +763,21 @@ class FileDownloader(object):
         except (OSError, IOError):
             self.report_error(u'RTMP download detected but "rtmpdump" could not be run')
             return False
+        verbosity_option = '--verbose' if self.params.get('verbose', False) else '--quiet'
 
         # Download using rtmpdump. rtmpdump returns exit code 2 when
         # the connection was interrumpted and resuming appears to be
         # possible. This is part of rtmpdump's normal usage, AFAIK.
-        basic_args = ['rtmpdump', '-q', '-r', url, '-o', tmpfilename]
-        if self.params.get('verbose', False): basic_args[1] = '-v'
+        basic_args = ['rtmpdump', verbosity_option, '-r', url, '-o', tmpfilename]
         if player_url is not None:
-            basic_args += ['-W', player_url]
+            basic_args += ['--swfVfy', player_url]
         if page_url is not None:
             basic_args += ['--pageUrl', page_url]
         if play_path is not None:
-            basic_args += ['-y', play_path]
+            basic_args += ['--playpath', play_path]
         if tc_url is not None:
             basic_args += ['--tcUrl', url]
-        args = basic_args + [[], ['-e', '-k', '1']][self.params.get('continuedl', False)]
+        args = basic_args + [[], ['--resume', '--skip', '1']][self.params.get('continuedl', False)]
         if self.params.get('verbose', False):
             try:
                 import pipes
@@ -867,6 +872,37 @@ class FileDownloader(object):
             self.trouble(u'\nERROR: aria2c exited with code %d' % retval)
             return False
 
+    def _download_with_mplayer(self, filename, url):
+        self.report_destination(filename)
+        tmpfilename = self.temp_name(filename)
+
+        args = ['mplayer', '-really-quiet', '-vo', 'null', '-vc', 'dummy', '-dumpstream', '-dumpfile', tmpfilename, url]
+        # Check for mplayer first
+        try:
+            subprocess.call(['mplayer', '-h'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
+        except (OSError, IOError):
+            self.report_error(u'MMS or RTSP download detected but "%s" could not be run' % args[0] )
+            return False
+
+        # Download using mplayer. 
+        retval = subprocess.call(args)
+        if retval == 0:
+            fsize = os.path.getsize(encodeFilename(tmpfilename))
+            self.to_screen(u'\r[%s] %s bytes' % (args[0], fsize))
+            self.try_rename(tmpfilename, filename)
+            self._hook_progress({
+                'downloaded_bytes': fsize,
+                'total_bytes': fsize,
+                'filename': filename,
+                'status': 'finished',
+            })
+            return True
+        else:
+            self.to_stderr(u"\n")
+            self.report_error(u'mplayer exited with code %d' % retval)
+            return False
+
+
     def _do_download(self, filename, info_dict):
         url = info_dict['url']
 
@@ -886,6 +922,10 @@ class FileDownloader(object):
                                                 info_dict.get('page_url', None),
                                                 info_dict.get('play_path', None),
                                                 info_dict.get('tc_url', None))
+
+        # Attempt to download using mplayer
+        if url.startswith('mms') or url.startswith('rtsp'):
+            return self._download_with_mplayer(filename, url)
 
         tmpfilename = self.temp_name(filename)
         stream = None
