@@ -509,5 +509,15 @@
     "info_dict":{
       "title":"Смях! Чудо - чист за секунди - Скрита камера"
     }
+  },
+  {
+    "name": "Gametrailers",
+    "url": "http://www.gametrailers.com/videos/zbvr8i/mirror-s-edge-2-e3-2013--debut-trailer",
+    "file": "zbvr8i.flv",
+    "md5": "c3edbc995ab4081976e16779bd96a878",
+    "info_dict": {
+        "title": "E3 2013: Debut Trailer"
+    },
+    "skip": "Requires rtmpdump"
   }
 ]
