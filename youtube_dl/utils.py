@@ -12,7 +12,7 @@ import sys
 import traceback
 import zlib
 import email.utils
-import json
+import socket
 import datetime
 
 try:
@@ -153,6 +153,9 @@ except NameError:
 def compat_ord(c):
     if type(c) is int: return c
     else: return ord(c)
+
+# This is not clearly defined otherwise
+compiled_regex_type = type(re.compile(''))
 
 std_headers = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0',
@@ -469,7 +472,11 @@ class ExtractorError(Exception):
     """Error during info extraction."""
     def __init__(self, msg, tb=None):
         """ tb, if given, is the original traceback (so that it can be printed out). """
+
+        if not sys.exc_info()[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError):
+            msg = msg + u'; please report this issue on GitHub.'
         super(ExtractorError, self).__init__(msg)
+
         self.traceback = tb
         self.exc_info = sys.exc_info()  # preserve original exception
 
