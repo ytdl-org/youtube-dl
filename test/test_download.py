@@ -7,8 +7,8 @@ import os
 import json
 import unittest
 import sys
-import hashlib
 import socket
+import binascii
 
 # Allow direct execution
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -38,11 +38,16 @@ def _try_rm(filename):
         if ose.errno != errno.ENOENT:
             raise
 
+md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
+
 class FileDownloader(youtube_dl.FileDownloader):
     def __init__(self, *args, **kwargs):
         self.to_stderr = self.to_screen
         self.processed_info_dicts = []
         return youtube_dl.FileDownloader.__init__(self, *args, **kwargs)
+    def report_warning(self, message):
+        # Don't accept warnings during tests
+        raise ExtractorError(message)
     def process_info(self, info_dict):
         self.processed_info_dicts.append(info_dict)
         return youtube_dl.FileDownloader.process_info(self, info_dict)
@@ -121,7 +126,21 @@ def generator(test_case):
                 with io.open(tc['file'] + '.info.json', encoding='utf-8') as infof:
                     info_dict = json.load(infof)
                 for (info_field, value) in tc.get('info_dict', {}).items():
-                    self.assertEqual(value, info_dict.get(info_field))
+                    if isinstance(value, compat_str) and value.startswith('md5:'):
+                        self.assertEqual(value, 'md5:' + md5(info_dict.get(info_field)))
+                    else:
+                        self.assertEqual(value, info_dict.get(info_field))
+
+                # If checkable fields are missing from the test case, print the info_dict
+                test_info_dict = dict((key, value if not isinstance(value, compat_str) or len(value) < 250 else 'md5:' + md5(value))
+                    for key, value in info_dict.items()
+                    if value and key in ('title', 'description', 'uploader', 'upload_date', 'uploader_id', 'location'))
+                if not all(key in tc.get('info_dict', {}).keys() for key in test_info_dict.keys()):
+                    sys.stderr.write(u'\n"info_dict": ' + json.dumps(test_info_dict, ensure_ascii=False, indent=2) + u'\n')
+
+                # Check for the presence of mandatory fields
+                for key in ('id', 'url', 'title', 'ext'):
+                    self.assertTrue(key in info_dict.keys() and info_dict[key])
         finally:
             for tc in test_cases:
                 _try_rm(tc['file'])
