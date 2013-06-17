@@ -4465,11 +4465,12 @@ class Vbox7IE(InfoExtractor):
         video_id = mobj.group(1)
 
         redirect_page, urlh = self._download_webpage_handle(url, video_id)
-        redirect_url = urlh.geturl() + re.search(r'window\.location = \'(.*)\';', redirect_page).group(1)
+        new_location = self._search_regex(r'window\.location = \'(.*)\';', redirect_page, u'redirect location')
+        redirect_url = urlh.geturl() + new_location
         webpage = self._download_webpage(redirect_url, video_id, u'Downloading redirect page')
 
-        title = re.search(r'<title>(.*)</title>', webpage)
-        title = (title.group(1)).split('/')[0].strip()
+        title = self._html_search_regex(r'<title>(.*)</title>',
+            webpage, u'title').split('/')[0].strip()
 
         ext = "flv"
         info_url = "http://vbox7.com/play/magare.do"
@@ -4503,10 +4504,7 @@ class GametrailersIE(InfoExtractor):
             mgid_re = r'data-video="(?P<mgid>mgid:.*?)"'
         else:
             mgid_re = r'data-contentId=\'(?P<mgid>mgid:.*?)\''
-        m_mgid = re.search(mgid_re, webpage)
-        if m_mgid is None:
-            raise ExtractorError(u'Unable to extract mgid')
-        mgid = m_mgid.group(1)
+        mgid = self._search_regex(mgid_re, webpage, u'mgid')
         data = compat_urllib_parse.urlencode({'uri': mgid, 'acceptMethods': 'fms'})
 
         info_page = self._download_webpage('http://www.gametrailers.com/feeds/mrss?' + data,
@@ -4528,11 +4526,11 @@ class GametrailersIE(InfoExtractor):
         video_description = m_info.group('description')
         video_thumb = m_info.group('thumb')
 
-        m_urls = re.finditer(r'<src>(?P<url>.*)</src>', links_webpage)
-        if m_urls is None:
+        m_urls = list(re.finditer(r'<src>(?P<url>.*)</src>', links_webpage))
+        if m_urls is None or len(m_urls) == 0:
             raise ExtractError(u'Unable to extrat video url')
         # They are sorted from worst to best quality
-        video_url = list(m_urls)[-1].group('url')
+        video_url = m_urls[-1].group('url')
 
         return {'url':         video_url,
                 'id':          video_id,
