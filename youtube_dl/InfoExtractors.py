@@ -1430,16 +1430,12 @@ class GenericIE(InfoExtractor):
         #   Site Name | Video Title
         #   Video Title - Tagline | Site Name
         # and so on and so forth; it's just not practical
-        mobj = re.search(r'<title>(.*)</title>', webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract title')
-        video_title = mobj.group(1)
+        video_title = self._html_search_regex(r'<title>(.*)</title>',
+            webpage, u'video title')
 
         # video uploader is domain name
-        mobj = re.match(r'(?:https?://)?([^/]*)/.*', url)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract title')
-        video_uploader = mobj.group(1)
+        video_uploader = self._search_regex(r'(?:https?://)?([^/]*)/.*',
+            url, u'video uploader')
 
         return [{
             'id':       video_id,
