@@ -1576,7 +1576,7 @@ class YoutubePlaylistIE(InfoExtractor):
                      |
                         ((?:PL|EC|UU)[0-9A-Za-z-_]{10,})
                      )"""
-    _TEMPLATE_URL = 'https://gdata.youtube.com/feeds/api/playlists/%s?max-results=%i&start-index=%i&v=2&alt=json'
+    _TEMPLATE_URL = 'https://gdata.youtube.com/feeds/api/playlists/%s?max-results=%i&start-index=%i&v=2&alt=json&safeSearch=none'
     _MAX_RESULTS = 50
     IE_NAME = u'youtube:playlist'
 
