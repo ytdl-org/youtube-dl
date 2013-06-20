@@ -3792,10 +3792,6 @@ class TEDIE(InfoExtractor):
             self.to_screen(u'Getting info of playlist %s: "%s"' % (playlist_id,name))
             return [self._playlist_videos_info(url,name,playlist_id)]
 
-    def _talk_video_link(self,mediaSlug):
-        '''Returns the video link for that mediaSlug'''
-        return 'http://download.ted.com/talks/%s.mp4' % mediaSlug
-
     def _playlist_videos_info(self,url,name,playlist_id=0):
         '''Returns the videos of the playlist'''
         video_RE=r'''
@@ -3808,9 +3804,8 @@ class TEDIE(InfoExtractor):
         m_videos=re.finditer(video_RE,webpage,re.VERBOSE)
         m_names=re.finditer(video_name_RE,webpage)
 
-        playlist_RE = r'div class="headline">(\s*?)<h1>(\s*?)<span>(?P<playlist_title>.*?)</span>'
-        m_playlist = re.search(playlist_RE, webpage)
-        playlist_title = m_playlist.group('playlist_title')
+        playlist_title = self._html_search_regex(r'div class="headline">\s*?<h1>\s*?<span>(.*?)</span>',
+                                                 webpage, 'playlist title')
 
         playlist_entries = []
         for m_video, m_name in zip(m_videos,m_names):
@@ -3821,27 +3816,28 @@ class TEDIE(InfoExtractor):
 
     def _talk_info(self, url, video_id=0):
         """Return the video for the talk in the url"""
-        m=re.match(self._VALID_URL, url,re.VERBOSE)
-        videoName=m.group('name')
-        webpage=self._download_webpage(url, video_id, 'Downloading \"%s\" page' % videoName)
+        m = re.match(self._VALID_URL, url,re.VERBOSE)
+        video_name = m.group('name')
+        webpage = self._download_webpage(url, video_id, 'Downloading \"%s\" page' % video_name)
+        self.report_extraction(video_name)
         # If the url includes the language we get the title translated
-        title_RE=r'<span id="altHeadline" >(?P<title>.*)</span>'
-        title=re.search(title_RE, webpage).group('title')
-        info_RE=r'''<script\ type="text/javascript">var\ talkDetails\ =(.*?)
-                        "id":(?P<videoID>[\d]+).*?
-                        "mediaSlug":"(?P<mediaSlug>[\w\d]+?)"'''
-        thumb_RE=r'</span>[\s.]*</div>[\s.]*<img src="(?P<thumbnail>.*?)"'
-        thumb_match=re.search(thumb_RE,webpage)
-        info_match=re.search(info_RE,webpage,re.VERBOSE)
-        video_id=info_match.group('videoID')
-        mediaSlug=info_match.group('mediaSlug')
-        video_url=self._talk_video_link(mediaSlug)
+        title = self._html_search_regex(r'<span id="altHeadline" >(?P<title>.*)</span>',
+                                        webpage, 'title')
+        json_data = self._search_regex(r'<script.*?>var talkDetails = ({.*?})</script>',
+                                    webpage, 'json data')
+        info = json.loads(json_data)
+        desc = self._html_search_regex(r'<div class="talk-intro">.*?<p.*?>(.*?)</p>',
+                                       webpage, 'description', flags = re.DOTALL)
+        
+        thumbnail = self._search_regex(r'</span>[\s.]*</div>[\s.]*<img src="(.*?)"',
+                                       webpage, 'thumbnail')
         info = {
-                'id': video_id,
-                'url': video_url,
+                'id': info['id'],
+                'url': info['htmlStreams'][-1]['file'],
                 'ext': 'mp4',
                 'title': title,
-                'thumbnail': thumb_match.group('thumbnail')
+                'thumbnail': thumbnail,
+                'description': desc,
                 }
         return info
 
