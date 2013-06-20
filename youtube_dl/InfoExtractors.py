@@ -3128,7 +3128,7 @@ class GooglePlusIE(InfoExtractor):
             webpage, 'title', default=u'NA')
 
         # Step 2, Stimulate clicking the image box to launch video
-        video_page = self._search_regex('href="(https\://plus\.google\.com/photos/.*?)"',
+        video_page = self._search_regex('"(https\://plus\.google\.com/photos/.*?)",,"image/jpeg","video"\]',
             webpage, u'video page URL')
         webpage = self._download_webpage(video_page, video_id, u'Downloading video page')
 
