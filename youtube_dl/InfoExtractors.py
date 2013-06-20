@@ -3488,8 +3488,8 @@ class RBMARadioIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        json_data = self._search_regex(r'<script>window.gon = {.*?};gon\.show=(.+?);</script>',
-            webpage, u'json data')
+        json_data = self._search_regex(r'window\.gon.*?gon\.show=(.+?);$',
+            webpage, u'json data', flags=re.MULTILINE)
 
         try:
             data = json.loads(json_data)
