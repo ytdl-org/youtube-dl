@@ -940,16 +940,10 @@ class DailymotionIE(InfoExtractor):
         video_title = unescapeHTML(mobj.group('title'))
 
         video_uploader = None
-        mobj = re.search(r'(?im)<span class="owner[^\"]+?">[^<]+?<a [^>]+?>([^<]+?)</a>', webpage)
-        if mobj is None:
-            # lookin for official user
-            mobj_official = re.search(r'<span rel="author"[^>]+?>([^<]+?)</span>', webpage)
-            if mobj_official is None:
-                self._downloader.report_warning(u'unable to extract uploader nickname')
-            else:
-                video_uploader = mobj_official.group(1)
-        else:
-            video_uploader = mobj.group(1)
+        video_uploader = self._search_regex([r'(?im)<span class="owner[^\"]+?">[^<]+?<a [^>]+?>([^<]+?)</a>',
+                                             # Looking for official user
+                                             r'<(?:span|a) .*?rel="author".*?>([^<]+?)</'],
+                                            webpage, 'video uploader')
 
         video_upload_date = None
         mobj = re.search(r'<div class="[^"]*uploaded_cont[^"]*" title="[^"]*">([0-9]{2})-([0-9]{2})-([0-9]{4})</div>', webpage)
