@@ -3365,6 +3365,8 @@ class SteamIE(InfoExtractor):
                 (?P<gameID>\d+)/?
                 (?P<videoID>\d*)(?P<extra>\??) #For urltype == video we sometimes get the videoID
                 """
+    _VIDEO_PAGE_TEMPLATE = 'http://store.steampowered.com/video/%s/'
+    _AGECHECK_TEMPLATE = 'http://store.steampowered.com/agecheck/video/%s/?snr=1_agecheck_agecheck__age-gate&ageDay=1&ageMonth=January&ageYear=1970'
 
     @classmethod
     def suitable(cls, url):
@@ -3374,11 +3376,19 @@ class SteamIE(InfoExtractor):
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url, re.VERBOSE)
         gameID = m.group('gameID')
-        videourl = 'http://store.steampowered.com/agecheck/video/%s/?snr=1_agecheck_agecheck__age-gate&ageDay=1&ageMonth=January&ageYear=1970' % gameID
-        self.report_age_confirmation()
+
+        videourl = self._VIDEO_PAGE_TEMPLATE % gameID
         webpage = self._download_webpage(videourl, gameID)
-        game_title = re.search(r'<h2 class="pageheader">(?P<game_title>.*?)</h2>', webpage).group('game_title')
-        
+
+        if re.search('<h2>Please enter your birth date to continue:</h2>', webpage) is not None:
+            videourl = self._AGECHECK_TEMPLATE % gameID
+            self.report_age_confirmation()
+            webpage = self._download_webpage(videourl, gameID)
+
+        self.report_extraction(gameID)
+        game_title = self._html_search_regex(r'<h2 class="pageheader">(.*?)</h2>',
+                                             webpage, 'game title')
+
         urlRE = r"'movie_(?P<videoID>\d+)': \{\s*FILENAME: \"(?P<videoURL>[\w:/\.\?=]+)\"(,\s*MOVIE_NAME: \"(?P<videoName>[\w:/\.\?=\+-]+)\")?\s*\},"
         mweb = re.finditer(urlRE, webpage)
         namesRE = r'<span class="title">(?P<videoName>.+?)</span>'
