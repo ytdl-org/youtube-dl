@@ -732,8 +732,11 @@ class YoutubeIE(InfoExtractor):
             for url_data_str in video_info['url_encoded_fmt_stream_map'][0].split(','):
                 url_data = compat_parse_qs(url_data_str)
                 if 'itag' in url_data and 'url' in url_data:
-                    url = url_data['url'][0] + '&signature=' + url_data['sig'][0]
-                    if not 'ratebypass' in url: url += '&ratebypass=yes'
+                    url = url_data['url'][0]
+                    if 'sig' in url_data:
+                        url += '&signature=' + url_data['sig'][0]
+                    if 'ratebypass' not in url:
+                        url += '&ratebypass=yes'
                     url_map[url_data['itag'][0]] = url
 
             format_limit = self._downloader.params.get('format_limit', None)
