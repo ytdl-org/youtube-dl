@@ -724,6 +724,16 @@ class YoutubeIE(InfoExtractor):
         # Decide which formats to download
         req_format = self._downloader.params.get('format', None)
 
+        try:
+            mobj = re.search(r';ytplayer.config = ({.*?});', video_webpage)
+            info = json.loads(mobj.group(1))
+            if 'dashmpd' in info['args']:
+                # Vevo videos with encrypted signatures
+                self.to_screen(u'Vevo video detected.')
+                video_info['url_encoded_fmt_stream_map'] = [info['args']['url_encoded_fmt_stream_map']]
+        except ValueError:
+            pass
+
         if 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
             self.report_rtmp_download()
             video_url_list = [(None, video_info['conn'][0])]
@@ -735,6 +745,16 @@ class YoutubeIE(InfoExtractor):
                     url = url_data['url'][0]
                     if 'sig' in url_data:
                         url += '&signature=' + url_data['sig'][0]
+                    if 's' in url_data:
+                        def k(s):
+                            """Decrypt the key the two subkeys must have a length of 43"""
+                            (a,b) = s.split('.')
+                            b = ''.join([b[:8],a[0],b[9:18],b[-4],b[19:39], b[18]])[0:40]
+                            a = a[-40:]
+                            s_dec = '.'.join((a,b))[::-1]
+                            return s_dec
+                        key = k(url_data['s'][0])
+                        url += '&signature=' + key
                     if 'ratebypass' not in url:
                         url += '&ratebypass=yes'
                     url_map[url_data['itag'][0]] = url
