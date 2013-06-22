@@ -15,43 +15,76 @@
     "name": "Dailymotion",
     "md5":  "392c4b85a60a90dc4792da41ce3144eb",
     "url":  "http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech",
-    "file":  "x33vw9.mp4"
+    "file":  "x33vw9.mp4",
+    "info_dict": {
+      "uploader": "Alex and Van .",
+      "title": "Tutoriel de Youtubeur\"DL DES VIDEO DE YOUTUBE\""
+    }
   },
   {
     "name": "Metacafe",
     "add_ie": ["Youtube"],
     "url":  "http://metacafe.com/watch/yt-_aUehQsCQtM/the_electric_company_short_i_pbs_kids_go/",
-    "file":  "_aUehQsCQtM.flv"
+    "file":  "_aUehQsCQtM.flv",
+    "info_dict": {
+      "upload_date": "20090102",
+      "title": "The Electric Company | \"Short I\" | PBS KIDS GO!",
+      "description": "md5:2439a8ef6d5a70e380c22f5ad323e5a8",
+      "uploader": "PBS",
+      "uploader_id": "PBS"
+    }
   },
   {
     "name": "BlipTV",
     "md5":  "b2d849efcf7ee18917e4b4d9ff37cafe",
     "url":  "http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352",
-    "file":  "5779306.m4v"
+    "file":  "5779306.m4v",
+    "info_dict": {
+      "upload_date": "20111205",
+      "description": "md5:9bc31f227219cde65e47eeec8d2dc596",
+      "uploader": "Comic Book Resources - CBR TV",
+      "title": "CBR EXCLUSIVE: \"Gotham City Imposters\" Bats VS Jokerz Short 3"
+    }
   },
   {
     "name": "XVideos",
     "md5":  "1d0c835822f0a71a7bf011855db929d0",
     "url":  "http://www.xvideos.com/video939581/funny_porns_by_s_-1",
-    "file":  "939581.flv"
+    "file":  "939581.flv",
+    "info_dict": {
+      "title": "Funny Porns By >>>>S<<<<<< -1"
+    }
   },
   {
     "name": "YouPorn",
     "md5": "c37ddbaaa39058c76a7e86c6813423c1",
     "url": "http://www.youporn.com/watch/505835/sex-ed-is-it-safe-to-masturbate-daily/",
-    "file": "505835.mp4"
+    "file": "505835.mp4",
+    "info_dict": {
+      "upload_date": "20101221",
+      "description": "Love & Sex Answers: http://bit.ly/DanAndJenn -- Is It Unhealthy To Masturbate Daily?",
+      "uploader": "Ask Dan And Jennifer",
+      "title": "Sex Ed: Is It Safe To Masturbate Daily?"
+    }
   },
   {
     "name": "Pornotube",
     "md5": "374dd6dcedd24234453b295209aa69b6",
     "url": "http://pornotube.com/c/173/m/1689755/Marilyn-Monroe-Bathing",
-    "file": "1689755.flv"
+    "file": "1689755.flv",
+    "info_dict": {
+      "upload_date": "20090708",
+      "title": "Marilyn-Monroe-Bathing"
+    }
   },
   {
     "name": "YouJizz",
     "md5": "07e15fa469ba384c7693fd246905547c",
     "url": "http://www.youjizz.com/videos/zeichentrick-1-2189178.html",
-    "file": "2189178.flv"
+    "file": "2189178.flv",
+    "info_dict": {
+      "title": "Zeichentrick 1"
+    }
   },
   {
     "name": "Vimeo",
@@ -70,61 +103,103 @@
     "name": "Soundcloud",
     "md5":  "ebef0a451b909710ed1d7787dddbf0d7",
     "url":  "http://soundcloud.com/ethmusic/lostin-powers-she-so-heavy",
-    "file":  "62986583.mp3"
+    "file":  "62986583.mp3",
+    "info_dict": {
+      "upload_date": "20121011",
+      "description": "No Downloads untill we record the finished version this weekend, i was too pumped n i had to post it , earl is prolly gonna b hella p.o'd",
+      "uploader": "E.T. ExTerrestrial Music",
+      "title": "Lostin Powers - She so Heavy (SneakPreview) Adrian Ackers Blueprint 1"
+    }
   },
   {
     "name": "StanfordOpenClassroom",
     "md5":  "544a9468546059d4e80d76265b0443b8",
     "url":  "http://openclassroom.stanford.edu/MainFolder/VideoPage.php?course=PracticalUnix&video=intro-environment&speed=100",
-    "file":  "PracticalUnix_intro-environment.mp4"
+    "file":  "PracticalUnix_intro-environment.mp4",
+    "info_dict": {
+      "title": "Intro Environment"
+    }
   },
   {
     "name": "XNXX",
     "md5":  "0831677e2b4761795f68d417e0b7b445",
     "url":  "http://video.xnxx.com/video1135332/lida_naked_funny_actress_5_",
-    "file":  "1135332.flv"
+    "file":  "1135332.flv",
+    "info_dict": {
+      "title": "lida » Naked Funny Actress  (5)"
+    }
   },
   {
     "name": "Youku",
     "url": "http://v.youku.com/v_show/id_XNDgyMDQ2NTQw.html",
     "file": "XNDgyMDQ2NTQw_part00.flv",
     "md5": "ffe3f2e435663dc2d1eea34faeff5b5b",
-    "params": { "test": false }
+    "params": { "test": false },
+    "info_dict": {
+      "title": "youtube-dl test video \"'/\\ä↭𝕐"
+    }
   },
   {
     "name": "NBA",
     "url": "http://www.nba.com/video/games/nets/2012/12/04/0021200253-okc-bkn-recap.nba/index.html",
     "file": "0021200253-okc-bkn-recap.nba.mp4",
-    "md5": "c0edcfc37607344e2ff8f13c378c88a4"
+    "md5": "c0edcfc37607344e2ff8f13c378c88a4",
+    "info_dict": {
+      "description": "Kevin Durant scores 32 points and dishes out six assists as the Thunder beat the Nets in Brooklyn.",
+      "title": "Thunder vs. Nets"
+    }
   },
   {
     "name": "JustinTV",
     "url": "http://www.twitch.tv/thegamedevhub/b/296128360",
     "file": "296128360.flv",
-    "md5": "ecaa8a790c22a40770901460af191c9a"
+    "md5": "ecaa8a790c22a40770901460af191c9a",
+    "info_dict": {
+      "upload_date": "20110927",
+      "uploader_id": 25114803,
+      "uploader": "thegamedevhub",
+      "title": "Beginner Series - Scripting With Python Pt.1"
+    }
   },
   {
     "name": "MyVideo",
     "url": "http://www.myvideo.de/watch/8229274/bowling_fail_or_win",
     "file": "8229274.flv",
-    "md5": "2d2753e8130479ba2cb7e0a37002053e"
+    "md5": "2d2753e8130479ba2cb7e0a37002053e",
+    "info_dict": {
+      "title": "bowling-fail-or-win"
+    }
   },
   {
     "name": "Escapist",
     "url": "http://www.escapistmagazine.com/videos/view/the-escapist-presents/6618-Breaking-Down-Baldurs-Gate",
     "file": "6618-Breaking-Down-Baldurs-Gate.mp4",
-    "md5": "c6793dbda81388f4264c1ba18684a74d"
+    "md5": "c6793dbda81388f4264c1ba18684a74d",
+    "info_dict": {
+      "description": "Baldur's Gate: Original, Modded or Enhanced Edition? I'll break down what you can expect from the new Baldur's Gate: Enhanced Edition.",
+      "uploader": "the-escapist-presents",
+      "title": "Breaking Down Baldur's Gate"
+    }
   },
   {
     "name": "GooglePlus",
     "url": "https://plus.google.com/u/0/108897254135232129896/posts/ZButuJc6CtH",
-    "file": "ZButuJc6CtH.flv"
+    "file": "ZButuJc6CtH.flv",
+    "info_dict": {
+      "upload_date": "20120613",
+      "uploader": "井上ヨシマサ",
+      "title": "嘆きの天使 降臨"
+    }
   },
   {
     "name": "FunnyOrDie",
     "url": "http://www.funnyordie.com/videos/0732f586d7/heart-shaped-box-literal-video-version",
     "file": "0732f586d7.mp4",
-    "md5": "f647e9e90064b53b6e046e75d0241fbd"
+    "md5": "f647e9e90064b53b6e046e75d0241fbd",
+    "info_dict": {
+      "description": "Lyrics changed to match the video. Spoken cameo by Obscurus Lupa (from ThatGuyWithTheGlasses.com). Based on a concept by Dustin McLean (DustFilms.com). Performed, edited, and written by David A. Scott.",
+      "title": "Heart-Shaped Box: Literal Video Version"
+    }
   },
   {
     "name": "Steam",
@@ -161,6 +236,7 @@
     "url": "http://www.infoq.com/presentations/A-Few-of-My-Favorite-Python-Things",
     "file": "12-jan-pythonthings.mp4",
     "info_dict": {
+      "description": "Mike Pirnat presents some tips and tricks, standard libraries and third party packages that make programming in Python a richer experience.",
       "title": "A Few of My Favorite [Python] Things"
     },
     "params": {
@@ -173,7 +249,10 @@
     "file": "422212.mp4",
     "md5": "4e2f5cb088a83cd8cdb7756132f9739d",
     "info_dict": {
-        "title": "thedailyshow-kristen-stewart part 1"
+      "upload_date": "20121214",
+      "description": "Kristen Stewart",
+      "uploader": "thedailyshow",
+      "title": "thedailyshow-kristen-stewart part 1"
     }
   },
   {
@@ -224,42 +303,48 @@
         "file": "11885679.m4a",
         "md5": "d30b5b5f74217410f4689605c35d1fd7",
         "info_dict": {
-          "title": "youtube-dl project as well - youtube-dl test track 3 \"'/\\\u00e4\u21ad"
+          "title": "youtube-dl project as well - youtube-dl test track 3 \"'/\\\u00e4\u21ad",
+          "uploader_id": "ytdl"
         }
       },
       {
         "file": "11885680.m4a",
         "md5": "4eb0a669317cd725f6bbd336a29f923a",
         "info_dict": {
-          "title": "youtube-dl project as well - youtube-dl test track 4 \"'/\\\u00e4\u21ad"
+          "title": "youtube-dl project as well - youtube-dl test track 4 \"'/\\\u00e4\u21ad",
+          "uploader_id": "ytdl"
         }
       },
       {
         "file": "11885682.m4a",
         "md5": "1893e872e263a2705558d1d319ad19e8",
         "info_dict": {
-          "title": "PH - youtube-dl test track 5 \"'/\\\u00e4\u21ad"
+          "title": "PH - youtube-dl test track 5 \"'/\\\u00e4\u21ad",
+          "uploader_id": "ytdl"
         }
       },
       {
         "file": "11885683.m4a",
         "md5": "b673c46f47a216ab1741ae8836af5899",
         "info_dict": {
-          "title": "PH - youtube-dl test track 6 \"'/\\\u00e4\u21ad"
+          "title": "PH - youtube-dl test track 6 \"'/\\\u00e4\u21ad",
+          "uploader_id": "ytdl"
         }
       },
       {
         "file": "11885684.m4a",
         "md5": "1d74534e95df54986da7f5abf7d842b7",
         "info_dict": {
-          "title": "phihag - youtube-dl test track 7 \"'/\\\u00e4\u21ad"
+          "title": "phihag - youtube-dl test track 7 \"'/\\\u00e4\u21ad",
+          "uploader_id": "ytdl"
         }
       },
       {
         "file": "11885685.m4a",
         "md5": "f081f47af8f6ae782ed131d38b9cd1c0",
         "info_dict": {
-          "title": "phihag - youtube-dl test track 8 \"'/\\\u00e4\u21ad"
+          "title": "phihag - youtube-dl test track 8 \"'/\\\u00e4\u21ad",
+          "uploader_id": "ytdl"
         }
       }
     ]
@@ -270,18 +355,18 @@
     "file": "NODfbab.mp4",
     "md5": "9b0636f8c0f7614afa4ea5e4c6e57e83",
     "info_dict": {
+      "uploader": "ytdl",
       "title": "test chars: \"'/\\ä<>This is a test video for youtube-dl.For more information, contact phihag@phihag.de ."
     }
-
   },
   {
     "name": "TED",
     "url": "http://www.ted.com/talks/dan_dennett_on_our_consciousness.html",
     "file": "102.mp4",
-    "md5": "7bc087e71d16f18f9b8ab9fa62a8a031",
+    "md5": "8cd9dfa41ee000ce658fd48fb5d89a61",
     "info_dict": {
         "title": "Dan Dennett: The illusion of consciousness",
-        "thumbnail": "http://images.ted.com/images/ted/488_389x292.jpg"
+        "description": "md5:c6fa72e6eedbd938c9caf6b2702f5922"
     }
   },
   {
@@ -290,14 +375,19 @@
     "file": "11741.mp4",
     "md5": "0b49f4844a068f8b33f4b7c88405862b",
     "info_dict": {
-        "title": "Absolute Mehrheit vom 17.02.2013 - Die Highlights, Teil 2"
+      "description": "Wer kann in die Fußstapfen von Wolfgang Kubicki treten und die Mehrheit der Zuschauer hinter sich versammeln? Wird vielleicht sogar die Absolute Mehrheit geknackt und der Jackpot von 200.000 Euro mit nach Hause genommen?",
+      "title": "Absolute Mehrheit vom 17.02.2013 - Die Highlights, Teil 2"
     }
   },
   {
     "name": "Generic",
     "url": "http://www.hodiho.fr/2013/02/regis-plante-sa-jeep.html",
     "file": "13601338388002.mp4",
-    "md5": "85b90ccc9d73b4acd9138d3af4c27f89"
+    "md5": "85b90ccc9d73b4acd9138d3af4c27f89",
+    "info_dict": {
+      "uploader": "www.hodiho.fr",
+      "title": "Régis plante sa Jeep"
+    }
   },
   {
     "name": "Spiegel",
@@ -325,7 +415,7 @@
     "file": "wshh6a7q1ny0G34ZwuIO.mp4",
     "md5": "9d04de741161603bf7071bbf4e883186",
     "info_dict": {
-        "title": "Video: KO Of The Week: MMA Fighter Gets Knocked Out By Swift Head Kick! "
+        "title": "Video: KO Of The Week: MMA Fighter Gets Knocked Out By Swift Head Kick!"
     }
   },
   {
@@ -340,11 +430,11 @@
   },
   {
     "name": "Tumblr",
-    "url": "http://birthdayproject2012.tumblr.com/post/17258355236/a-sample-video-from-leeann-if-you-need-an-idea",
-    "file": "17258355236.mp4",
-    "md5": "7c6a514d691b034ccf8567999e9e88a3",
+    "url": "http://resigno.tumblr.com/post/53364321212/e-de-extrema-importancia-que-esse-video-seja",
+    "file": "53364321212.mp4",
+    "md5": "0716d3dd51baf68a28b40fdf1251494e",
     "info_dict": {
-        "title": "Calling all Pris! - A sample video from LeeAnn. (If you need an idea..."
+        "title": "Rafael Lemos | Tumblr"
     }
   },
   {
@@ -355,42 +445,59 @@
         "file":"30510138.mp3",
         "md5":"f9136bf103901728f29e419d2c70f55d",
         "info_dict": {
-          "title":"D-D-Dance"
+          "upload_date": "20111213",
+          "description": "The Royal Concept from Stockholm\r\nFilip / Povel / David / Magnus\r\nwww.royalconceptband.com",
+          "uploader": "The Royal Concept",
+          "title": "D-D-Dance"
         }
       },
       {
         "file":"47127625.mp3",
         "md5":"09b6758a018470570f8fd423c9453dd8",
         "info_dict": {
-          "title":"The Royal Concept - Gimme Twice"
+          "upload_date": "20120521",
+          "description": "The Royal Concept from Stockholm\r\nFilip / Povel / David / Magnus\r\nwww.royalconceptband.com",
+          "uploader": "The Royal Concept",
+          "title": "The Royal Concept - Gimme Twice"
         }
       },
       {
         "file":"47127627.mp3",
         "md5":"154abd4e418cea19c3b901f1e1306d9c",
         "info_dict": {
-          "title":"Goldrushed"
+          "upload_date": "20120521",
+          "uploader": "The Royal Concept",
+          "title": "Goldrushed"
         }
       },
       {
         "file":"47127629.mp3",
         "md5":"2f5471edc79ad3f33a683153e96a79c1",
         "info_dict": {
-          "title":"In the End"
+          "upload_date": "20120521",
+          "description": "The Royal Concept from Stockholm\r\nFilip / Povel / David / Magnus\r\nwww.royalconceptband.com",
+          "uploader": "The Royal Concept",
+          "title": "In the End"
         }
       },
       {
         "file":"47127631.mp3",
         "md5":"f9ba87aa940af7213f98949254f1c6e2",
         "info_dict": {
-          "title":"Knocked Up"
+          "upload_date": "20120521",
+          "description": "The Royal Concept from Stockholm\r\nFilip / David / Povel / Magnus\r\nwww.theroyalconceptband.com",
+          "uploader": "The Royal Concept",
+          "title": "Knocked Up"
         }
       },
       {
         "file":"75206121.mp3",
         "md5":"f9d1fe9406717e302980c30de4af9353",
         "info_dict": {
-          "title":"World On Fire"
+          "upload_date": "20130116",
+          "description": "The unreleased track World on Fire premiered on the CW's hit show Arrow (8pm/7pm central).  \r\nAs a gift to our fans we would like to offer you a free download of the track!  ",
+          "uploader": "The Royal Concept",
+          "title": "World On Fire"
         }
       }
     ]
@@ -419,8 +526,10 @@
     "url": "http://media.photobucket.com/user/rachaneronas/media/TiredofLinkBuildingTryBacklinkMyDomaincom_zpsc0c3b9fa.mp4.html?filters[term]=search&filters[primary]=videos&filters[secondary]=images&sort=1&o=0",
     "file": "zpsc0c3b9fa.mp4",
     "md5": "7dabfb92b0a31f6c16cebc0f8e60ff99",
-    "info_dict":{
-      "title":"Tired of Link Building? Try BacklinkMyDomain.com!"
+    "info_dict": {
+      "upload_date": "20130504",
+      "uploader": "rachaneronas",
+      "title": "Tired of Link Building? Try BacklinkMyDomain.com!"
     }
   },
   {
@@ -488,8 +597,10 @@
     "url": "http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html",
     "file": "1509445.flv",
     "md5": "9f48e0e8d58e3076bb236ff412ab62fa",
-    "info_dict":{
-      "title":"FemaleAgent Shy beauty takes the bait"
+    "info_dict": {
+      "upload_date": "20121014",
+      "uploader_id": "Ruseful2011",
+      "title": "FemaleAgent Shy beauty takes the bait"
     }
   },
   {
@@ -498,7 +609,7 @@
     "file": "1v6ga.mp3",
     "md5": "b9cc91b5af8995e9f0c1cee04c575828",
     "info_dict":{
-      "title":"TAME"
+      "title":"Tame"
     }
   },
   {
@@ -509,5 +620,15 @@
     "info_dict":{
       "title":"Смях! Чудо - чист за секунди - Скрита камера"
     }
+  },
+  {
+    "name": "Gametrailers",
+    "url": "http://www.gametrailers.com/videos/zbvr8i/mirror-s-edge-2-e3-2013--debut-trailer",
+    "file": "zbvr8i.flv",
+    "md5": "c3edbc995ab4081976e16779bd96a878",
+    "info_dict": {
+        "title": "E3 2013: Debut Trailer"
+    },
+    "skip": "Requires rtmpdump"
   }
 ]
