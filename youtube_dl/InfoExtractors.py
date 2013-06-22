@@ -1609,9 +1609,10 @@ class YoutubePlaylistIE(InfoExtractor):
                 # Number of videos is a multiple of self._MAX_RESULTS
                 break
 
-            videos += [ (entry['yt$position']['$t'], entry['content']['src'])
-                        for entry in response['feed']['entry']
-                        if 'content' in entry ]
+            for entry in response['feed']['entry']:
+                index = entry['yt$position']['$t']
+                if 'media$group' in entry and 'media$player' in entry['media$group']:
+                    videos.append((index, entry['media$group']['media$player']['url']))
 
             if len(response['feed']['entry']) < self._MAX_RESULTS:
                 break
