@@ -379,6 +379,17 @@ class YoutubeIE(InfoExtractor):
         """Indicate the download will use the RTMP protocol."""
         self.to_screen(u'RTMP download detected')
 
+    @staticmethod
+    def _decrypt_signature(s):
+        """Decrypt the key the two subkeys must have a length of 43"""
+        (a,b) = s.split('.')
+        if len(a) != 43 or len(b) != 43:
+            raise ExtractorError(u'Unable to decrypt signature, subkeys lengths not valid')
+        b = ''.join([b[:8],a[0],b[9:18],b[-4],b[19:39], b[18]])[0:40]
+        a = a[-40:]
+        s_dec = '.'.join((a,b))[::-1]
+        return s_dec
+
     def _get_available_subtitles(self, video_id):
         self.report_video_subtitles_download(video_id)
         request = compat_urllib_request.Request('http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id)
@@ -747,15 +758,8 @@ class YoutubeIE(InfoExtractor):
                     if 'sig' in url_data:
                         url += '&signature=' + url_data['sig'][0]
                     if 's' in url_data:
-                        def k(s):
-                            """Decrypt the key the two subkeys must have a length of 43"""
-                            (a,b) = s.split('.')
-                            b = ''.join([b[:8],a[0],b[9:18],b[-4],b[19:39], b[18]])[0:40]
-                            a = a[-40:]
-                            s_dec = '.'.join((a,b))[::-1]
-                            return s_dec
-                        key = k(url_data['s'][0])
-                        url += '&signature=' + key
+                        signature = self._decrypt_signature(url_data['s'][0])
+                        url += '&signature=' + signature
                     if 'ratebypass' not in url:
                         url += '&ratebypass=yes'
                     url_map[url_data['itag'][0]] = url
