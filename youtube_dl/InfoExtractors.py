@@ -420,7 +420,7 @@ class YoutubeIE(InfoExtractor):
     def _request_automatic_caption(self, video_id, webpage):
         """We need the webpage for getting the captions url, pass it as an
            argument to speed up the process."""
-        sub_lang = self._downloader.params.get('subtitleslang')
+        sub_lang = self._downloader.params.get('subtitleslang') or 'en'
         sub_format = self._downloader.params.get('subtitlesformat')
         self.to_screen(u'%s: Looking for automatic captions' % video_id)
         mobj = re.search(r';ytplayer.config = ({.*?});', webpage)
