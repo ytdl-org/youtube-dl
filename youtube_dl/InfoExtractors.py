@@ -699,14 +699,14 @@ class YoutubeIE(InfoExtractor):
                         pass
                     else:
                         # We report the original error
-                        self._downloader.report_error(sub_error)
+                        self._downloader.report_warning(sub_error)
 
         if self._downloader.params.get('allsubtitles', False):
             video_subtitles = self._extract_all_subtitles(video_id)
             for video_subtitle in video_subtitles:
                 (sub_error, sub_lang, sub) = video_subtitle
                 if sub_error:
-                    self._downloader.report_error(sub_error)
+                    self._downloader.report_warning(sub_error)
 
         if self._downloader.params.get('listsubtitles', False):
             sub_lang_list = self._list_available_subtitles(video_id)
