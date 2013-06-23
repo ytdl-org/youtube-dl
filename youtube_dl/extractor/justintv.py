@@ -34,11 +34,11 @@ class JustinTVIE(InfoExtractor):
 
     # Return count of items, list of *valid* items
     def _parse_page(self, url, video_id):
-        webpage = self._download_webpage(url, video_id,
-                                         u'Downloading video info JSON',
-                                         u'unable to download video info JSON')
+        info_json = self._download_webpage(url, video_id,
+                                           u'Downloading video info JSON',
+                                           u'unable to download video info JSON')
 
-        response = json.loads(webpage)
+        response = json.loads(info_json)
         if type(response) != list:
             error_text = response.get('error', 'unknown error')
             raise ExtractorError(u'Justin.tv API: %s' % error_text)
