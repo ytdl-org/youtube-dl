@@ -27,6 +27,7 @@ from .extractor.dailymotion import DailymotionIE
 from .extractor.depositfiles import DepositFilesIE
 from .extractor.escapist import EscapistIE
 from .extractor.facebook import FacebookIE
+from .extractor.funnyordie import FunnyOrDieIE
 from .extractor.gametrailers import GametrailersIE
 from .extractor.generic import GenericIE
 from .extractor.googleplus import GooglePlusIE
@@ -197,34 +198,6 @@ class JustinTVIE(InfoExtractor):
             offset += limit
         return info
 
-class FunnyOrDieIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?funnyordie\.com/videos/(?P<id>[0-9a-f]+)/.*$'
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError(u'invalid URL: %s' % url)
-
-        video_id = mobj.group('id')
-        webpage = self._download_webpage(url, video_id)
-
-        video_url = self._html_search_regex(r'<video[^>]*>\s*<source[^>]*>\s*<source src="(?P<url>[^"]+)"',
-            webpage, u'video URL', flags=re.DOTALL)
-
-        title = self._html_search_regex((r"<h1 class='player_page_h1'.*?>(?P<title>.*?)</h1>",
-            r'<title>(?P<title>[^<]+?)</title>'), webpage, 'title', flags=re.DOTALL)
-
-        video_description = self._html_search_regex(r'<meta property="og:description" content="(?P<desc>.*?)"',
-            webpage, u'description', fatal=False, flags=re.DOTALL)
-
-        info = {
-            'id': video_id,
-            'url': video_url,
-            'ext': 'mp4',
-            'title': title,
-            'description': video_description,
-        }
-        return [info]
 
 
 class UstreamIE(InfoExtractor):
