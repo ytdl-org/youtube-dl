@@ -41,6 +41,7 @@ from .extractor.myvideo import MyVideoIE
 from .extractor.nba import NBAIE
 from .extractor.statigram import StatigramIE
 from .extractor.photobucket import PhotobucketIE
+from .extractor.pornotube import PornotubeIE
 from .extractor.rbmaradio import RBMARadioIE
 from .extractor.soundcloud import SoundcloudIE, SoundcloudSetIE
 from .extractor.stanfordoc import StanfordOpenClassroomIE
@@ -79,40 +80,6 @@ from .extractor.zdf import ZDFIE
 
 
 
-class PornotubeIE(InfoExtractor):
-    """Information extractor for pornotube.com."""
-    _VALID_URL = r'^(?:https?://)?(?:\w+\.)?pornotube\.com(/c/(?P<channel>[0-9]+))?(/m/(?P<videoid>[0-9]+))(/(?P<title>.+))$'
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
-
-        video_id = mobj.group('videoid')
-        video_title = mobj.group('title')
-
-        # Get webpage content
-        webpage = self._download_webpage(url, video_id)
-
-        # Get the video URL
-        VIDEO_URL_RE = r'url: "(?P<url>http://video[0-9].pornotube.com/.+\.flv)",'
-        video_url = self._search_regex(VIDEO_URL_RE, webpage, u'video url')
-        video_url = compat_urllib_parse.unquote(video_url)
-
-        #Get the uploaded date
-        VIDEO_UPLOADED_RE = r'<div class="video_added_by">Added (?P<date>[0-9\/]+) by'
-        upload_date = self._html_search_regex(VIDEO_UPLOADED_RE, webpage, u'upload date', fatal=False)
-        if upload_date: upload_date = unified_strdate(upload_date)
-
-        info = {'id': video_id,
-                'url': video_url,
-                'uploader': None,
-                'upload_date': upload_date,
-                'title': video_title,
-                'ext': 'flv',
-                'format': 'flv'}
-
-        return [info]
 
 class YouJizzIE(InfoExtractor):
     """Information extractor for youjizz.com."""
