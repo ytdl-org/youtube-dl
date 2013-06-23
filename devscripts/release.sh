@@ -15,7 +15,7 @@
 set -e
 
 skip_test=false
-if [ "$2" == '--skip-test' ]; then
+if [ "$2" = '--skip-test' ]; then
     skip_test=true
 fi
 if [ -z "$1" ]; then echo "ERROR: specify version number like this: $0 1994.09.06"; exit 1; fi
