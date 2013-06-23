@@ -129,7 +129,7 @@ def generator(test_case):
                     if isinstance(value, compat_str) and value.startswith('md5:'):
                         self.assertEqual(value, 'md5:' + md5(info_dict.get(info_field)))
                     else:
-                        self.assertEqual(value, info_dict.get(info_field))
+                        self.assertEqual(value, info_dict.get(info_field), u'invalid value for field ' + info_field)
 
                 # If checkable fields are missing from the test case, print the info_dict
                 test_info_dict = dict((key, value if not isinstance(value, compat_str) or len(value) < 250 else 'md5:' + md5(value))
