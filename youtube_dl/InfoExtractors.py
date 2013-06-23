@@ -23,6 +23,7 @@ from .extractor.arte import ArteTvIE
 from .extractor.bliptv import BlipTVIE, BlipTVUserIE
 from .extractor.comedycentral import ComedyCentralIE
 from .extractor.dailymotion import DailymotionIE
+from .extractor.facebook import FacebookIE
 from .extractor.gametrailers import GametrailersIE
 from .extractor.generic import GenericIE
 from .extractor.googleplus import GooglePlusIE
