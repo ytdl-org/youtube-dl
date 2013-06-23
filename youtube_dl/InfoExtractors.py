@@ -25,6 +25,7 @@ from .extractor.comedycentral import ComedyCentralIE
 from .extractor.dailymotion import DailymotionIE
 from .extractor.gametrailers import GametrailersIE
 from .extractor.generic import GenericIE
+from .extractor.google import GoogleSearchIE
 from .extractor.metacafe import MetacafeIE
 from .extractor.myvideo import MyVideoIE
 from .extractor.statigram import StatigramIE
