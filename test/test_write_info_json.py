@@ -10,7 +10,7 @@ import unittest
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import youtube_dl.FileDownloader
-import youtube_dl.InfoExtractors
+import youtube_dl.extractor
 from youtube_dl.utils import *
 
 PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
@@ -48,7 +48,7 @@ class TestInfoJSON(unittest.TestCase):
         self.tearDown()
 
     def test_info_json(self):
-        ie = youtube_dl.InfoExtractors.YoutubeIE()
+        ie = youtube_dl.extractor.YoutubeIE()
         fd = FileDownloader(params)
         fd.add_info_extractor(ie)
         fd.download([TEST_ID])

@@ -45,7 +45,7 @@ from .utils import *
 from .update import update_self
 from .version import __version__
 from .FileDownloader import *
-from .InfoExtractors import gen_extractors
+from .extractor import gen_extractors
 from .PostProcessor import *
 
 def parseOpts(overrideArguments=None):

@@ -8,7 +8,7 @@ import json
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.InfoExtractors import YoutubeUserIE, YoutubePlaylistIE, YoutubeIE, YoutubeChannelIE
+from youtube_dl.extractor import YoutubeUserIE, YoutubePlaylistIE, YoutubeIE, YoutubeChannelIE
 from youtube_dl.utils import *
 from youtube_dl.FileDownloader import FileDownloader
 

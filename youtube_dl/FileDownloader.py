@@ -13,7 +13,7 @@ if os.name == 'nt':
     import ctypes
 
 from .utils import *
-from .InfoExtractors import get_info_extractor
+from .extractor import get_info_extractor
 
 
 class FileDownloader(object):

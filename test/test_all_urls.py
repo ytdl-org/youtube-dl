@@ -7,7 +7,7 @@ import unittest
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.InfoExtractors import YoutubeIE, YoutubePlaylistIE, YoutubeChannelIE, JustinTVIE
+from youtube_dl.extractor import YoutubeIE, YoutubePlaylistIE, YoutubeChannelIE, JustinTVIE
 
 class TestAllURLsMatching(unittest.TestCase):
     def test_youtube_playlist_matching(self):

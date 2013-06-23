@@ -10,7 +10,7 @@ import hashlib
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.InfoExtractors import YoutubeIE
+from youtube_dl.extractor import YoutubeIE
 from youtube_dl.utils import *
 from youtube_dl import FileDownloader
 
