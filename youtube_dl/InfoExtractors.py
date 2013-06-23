@@ -1,21 +1,4 @@
-import base64
-import datetime
-import itertools
-import netrc
-import os
-import re
-import socket
-import time
-import email.utils
-import xml.etree.ElementTree
-import random
-import math
-import operator
-import hashlib
-import binascii
-import urllib
 
-from .utils import *
 from .extractor.common import InfoExtractor, SearchInfoExtractor
 
 from .extractor.ard import ARDIE
@@ -74,50 +57,6 @@ from .extractor.youku import YoukuIE
 from .extractor.youporn import YouPornIE
 from .extractor.youtube import YoutubeIE, YoutubePlaylistIE, YoutubeSearchIE, YoutubeUserIE, YoutubeChannelIE
 from .extractor.zdf import ZDFIE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
