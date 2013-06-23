@@ -21,9 +21,10 @@ import binascii
 import urllib
 
 from .utils import *
-
-
 from .extractor.common import InfoExtractor, SearchInfoExtractor
+
+from .extractor.ard import ARDIE
+from .extractor.arte import ArteTvIE
 from .extractor.dailymotion import DailymotionIE
 from .extractor.metacafe import MetacafeIE
 from .extractor.statigram import StatigramIE
@@ -31,6 +32,7 @@ from .extractor.photobucket import PhotobucketIE
 from .extractor.vimeo import VimeoIE
 from .extractor.yahoo import YahooIE
 from .extractor.youtube import YoutubeIE, YoutubePlaylistIE, YoutubeUserIE, YoutubeChannelIE
+from .extractor.zdf import ZDFIE
 
 
 
@@ -40,125 +42,6 @@ from .extractor.youtube import YoutubeIE, YoutubePlaylistIE, YoutubeUserIE, Yout
 
 
 
-class ArteTvIE(InfoExtractor):
-    """arte.tv information extractor."""
-
-    _VALID_URL = r'(?:http://)?videos\.arte\.tv/(?:fr|de)/videos/.*'
-    _LIVE_URL = r'index-[0-9]+\.html$'
-
-    IE_NAME = u'arte.tv'
-
-    def fetch_webpage(self, url):
-        request = compat_urllib_request.Request(url)
-        try:
-            self.report_download_webpage(url)
-            webpage = compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'Unable to retrieve video webpage: %s' % compat_str(err))
-        except ValueError as err:
-            raise ExtractorError(u'Invalid URL: %s' % url)
-        return webpage
-
-    def grep_webpage(self, url, regex, regexFlags, matchTuples):
-        page = self.fetch_webpage(url)
-        mobj = re.search(regex, page, regexFlags)
-        info = {}
-
-        if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
-
-        for (i, key, err) in matchTuples:
-            if mobj.group(i) is None:
-                raise ExtractorError(err)
-            else:
-                info[key] = mobj.group(i)
-
-        return info
-
-    def extractLiveStream(self, url):
-        video_lang = url.split('/')[-4]
-        info = self.grep_webpage(
-            url,
-            r'src="(.*?/videothek_js.*?\.js)',
-            0,
-            [
-                (1, 'url', u'Invalid URL: %s' % url)
-            ]
-        )
-        http_host = url.split('/')[2]
-        next_url = 'http://%s%s' % (http_host, compat_urllib_parse.unquote(info.get('url')))
-        info = self.grep_webpage(
-            next_url,
-            r'(s_artestras_scst_geoFRDE_' + video_lang + '.*?)\'.*?' +
-                '(http://.*?\.swf).*?' +
-                '(rtmp://.*?)\'',
-            re.DOTALL,
-            [
-                (1, 'path',   u'could not extract video path: %s' % url),
-                (2, 'player', u'could not extract video player: %s' % url),
-                (3, 'url',    u'could not extract video url: %s' % url)
-            ]
-        )
-        video_url = u'%s/%s' % (info.get('url'), info.get('path'))
-
-    def extractPlus7Stream(self, url):
-        video_lang = url.split('/')[-3]
-        info = self.grep_webpage(
-            url,
-            r'param name="movie".*?videorefFileUrl=(http[^\'"&]*)',
-            0,
-            [
-                (1, 'url', u'Invalid URL: %s' % url)
-            ]
-        )
-        next_url = compat_urllib_parse.unquote(info.get('url'))
-        info = self.grep_webpage(
-            next_url,
-            r'<video lang="%s" ref="(http[^\'"&]*)' % video_lang,
-            0,
-            [
-                (1, 'url', u'Could not find <video> tag: %s' % url)
-            ]
-        )
-        next_url = compat_urllib_parse.unquote(info.get('url'))
-
-        info = self.grep_webpage(
-            next_url,
-            r'<video id="(.*?)".*?>.*?' +
-                '<name>(.*?)</name>.*?' +
-                '<dateVideo>(.*?)</dateVideo>.*?' +
-                '<url quality="hd">(.*?)</url>',
-            re.DOTALL,
-            [
-                (1, 'id',    u'could not extract video id: %s' % url),
-                (2, 'title', u'could not extract video title: %s' % url),
-                (3, 'date',  u'could not extract video date: %s' % url),
-                (4, 'url',   u'could not extract video url: %s' % url)
-            ]
-        )
-
-        return {
-            'id':           info.get('id'),
-            'url':          compat_urllib_parse.unquote(info.get('url')),
-            'uploader':     u'arte.tv',
-            'upload_date':  unified_strdate(info.get('date')),
-            'title':        info.get('title').decode('utf-8'),
-            'ext':          u'mp4',
-            'format':       u'NA',
-            'player_url':   None,
-        }
-
-    def _real_extract(self, url):
-        video_id = url.split('/')[-1]
-        self.report_extraction(video_id)
-
-        if re.search(self._LIVE_URL, video_id) is not None:
-            self.extractLiveStream(url)
-            return
-        else:
-            info = self.extractPlus7Stream(url)
-
-        return [info]
 
 
 class GenericIE(InfoExtractor):
@@ -2638,102 +2521,7 @@ class LiveLeakIE(InfoExtractor):
 
         return [info]
 
-class ARDIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:(?:www\.)?ardmediathek\.de|mediathek\.daserste\.de)/(?:.*/)(?P<video_id>[^/\?]+)(?:\?.*)?'
-    _TITLE = r'<h1(?: class="boxTopHeadline")?>(?P<title>.*)</h1>'
-    _MEDIA_STREAM = r'mediaCollection\.addMediaStream\((?P<media_type>\d+), (?P<quality>\d+), "(?P<rtmp_url>[^"]*)", "(?P<video_url>[^"]*)", "[^"]*"\)'
 
-    def _real_extract(self, url):
-        # determine video id from url
-        m = re.match(self._VALID_URL, url)
-
-        numid = re.search(r'documentId=([0-9]+)', url)
-        if numid:
-            video_id = numid.group(1)
-        else:
-            video_id = m.group('video_id')
-
-        # determine title and media streams from webpage
-        html = self._download_webpage(url, video_id)
-        title = re.search(self._TITLE, html).group('title')
-        streams = [m.groupdict() for m in re.finditer(self._MEDIA_STREAM, html)]
-        if not streams:
-            assert '"fsk"' in html
-            raise ExtractorError(u'This video is only available after 8:00 pm')
-
-        # choose default media type and highest quality for now
-        stream = max([s for s in streams if int(s["media_type"]) == 0],
-                     key=lambda s: int(s["quality"]))
-
-        # there's two possibilities: RTMP stream or HTTP download
-        info = {'id': video_id, 'title': title, 'ext': 'mp4'}
-        if stream['rtmp_url']:
-            self.to_screen(u'RTMP download detected')
-            assert stream['video_url'].startswith('mp4:')
-            info["url"] = stream["rtmp_url"]
-            info["play_path"] = stream['video_url']
-        else:
-            assert stream["video_url"].endswith('.mp4')
-            info["url"] = stream["video_url"]
-        return [info]
-
-class ZDFIE(InfoExtractor):
-    _VALID_URL = r'^http://www\.zdf\.de\/ZDFmediathek\/(.*beitrag\/video\/)(?P<video_id>[^/\?]+)(?:\?.*)?'
-    _TITLE = r'<h1(?: class="beitragHeadline")?>(?P<title>.*)</h1>'
-    _MEDIA_STREAM = r'<a href="(?P<video_url>.+(?P<media_type>.streaming).+/zdf/(?P<quality>[^\/]+)/[^"]*)".+class="play".+>'
-    _MMS_STREAM = r'href="(?P<video_url>mms://[^"]*)"'
-    _RTSP_STREAM = r'(?P<video_url>rtsp://[^"]*.mp4)'
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
-        video_id = mobj.group('video_id')
-
-        html = self._download_webpage(url, video_id)
-        streams = [m.groupdict() for m in re.finditer(self._MEDIA_STREAM, html)]
-        if streams is None:
-            raise ExtractorError(u'No media url found.')
-
-        # s['media_type'] == 'wstreaming' -> use 'Windows Media Player' and mms url
-        # s['media_type'] == 'hstreaming' -> use 'Quicktime' and rtsp url
-        # choose first/default media type and highest quality for now
-        for s in streams:        #find 300 - dsl1000mbit
-            if s['quality'] == '300' and s['media_type'] == 'wstreaming':
-                stream_=s
-                break
-        for s in streams:        #find veryhigh - dsl2000mbit
-            if s['quality'] == 'veryhigh' and s['media_type'] == 'wstreaming': # 'hstreaming' - rtsp is not working
-                stream_=s
-                break
-        if stream_ is None:
-            raise ExtractorError(u'No stream found.')
-
-        media_link = self._download_webpage(stream_['video_url'], video_id,'Get stream URL')
-
-        self.report_extraction(video_id)
-        mobj = re.search(self._TITLE, html)
-        if mobj is None:
-            raise ExtractorError(u'Cannot extract title')
-        title = unescapeHTML(mobj.group('title'))
-
-        mobj = re.search(self._MMS_STREAM, media_link)
-        if mobj is None:
-            mobj = re.search(self._RTSP_STREAM, media_link)
-            if mobj is None:
-                raise ExtractorError(u'Cannot extract mms:// or rtsp:// URL')
-        mms_url = mobj.group('video_url')
-
-        mobj = re.search('(.*)[.](?P<ext>[^.]+)', mms_url)
-        if mobj is None:
-            raise ExtractorError(u'Cannot extract extention')
-        ext = mobj.group('ext')
-
-        return [{'id': video_id,
-                 'url': mms_url,
-                 'title': title,
-                 'ext': ext
-                 }]
 
 class TumblrIE(InfoExtractor):
     _VALID_URL = r'http://(?P<blog_name>.*?)\.tumblr\.com/((post)|(video))/(?P<id>\d*)/(.*?)'
