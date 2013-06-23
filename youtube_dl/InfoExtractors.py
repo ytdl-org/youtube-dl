@@ -4565,7 +4565,6 @@ class StatigrIE(InfoExtractor):
         thumbnail_url = re.search(r'<meta property="og:image" content="(.+?)" />',webpage).group(1)
         title = (re.search(r'<title>(.+?)</title>',webpage).group(1)).strip("| Statigram")
         uploader = re.search(r'@(.+) \(Videos\)',title).group(1)
-        print uploader
         ext = "mp4"
         return [{
             'id':        video_id,
