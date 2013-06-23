@@ -67,10 +67,7 @@ from .extractor.zdf import ZDFIE
 
 
 class EscapistIE(InfoExtractor):
-    """Information extractor for The Escapist """
-
     _VALID_URL = r'^(https?://)?(www\.)?escapistmagazine\.com/videos/view/(?P<showname>[^/]+)/(?P<episode>[^/?]+)[/?]?.*$'
-    IE_NAME = u'escapist'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
