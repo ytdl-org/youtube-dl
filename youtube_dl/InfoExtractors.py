@@ -27,7 +27,7 @@ from .extractor.metacafe import MetacafeIE
 from .extractor.statigram import StatigramIE
 from .extractor.photobucket import PhotobucketIE
 from .extractor.vimeo import VimeoIE
-from .extractor.yahoo import YahooIE
+from .extractor.yahoo import YahooIE, YahooSearchIE
 from .extractor.youtube import YoutubeIE, YoutubePlaylistIE, YoutubeSearchIE, YoutubeUserIE, YoutubeChannelIE
 from .extractor.zdf import ZDFIE
 
@@ -45,39 +45,6 @@ from .extractor.zdf import ZDFIE
 
 
 
-class YahooSearchIE(SearchInfoExtractor):
-    """Information Extractor for Yahoo! Video search queries."""
-
-    _MAX_RESULTS = 1000
-    IE_NAME = u'screen.yahoo:search'
-    _SEARCH_KEY = 'yvsearch'
-
-    def _get_n_results(self, query, n):
-        """Get a specified number of results for a query"""
-
-        res = {
-            '_type': 'playlist',
-            'id': query,
-            'entries': []
-        }
-        for pagenum in itertools.count(0): 
-            result_url = u'http://video.search.yahoo.com/search/?p=%s&fr=screen&o=js&gs=0&b=%d' % (compat_urllib_parse.quote_plus(query), pagenum * 30)
-            webpage = self._download_webpage(result_url, query,
-                                             note='Downloading results page '+str(pagenum+1))
-            info = json.loads(webpage)
-            m = info[u'm']
-            results = info[u'results']
-
-            for (i, r) in enumerate(results):
-                if (pagenum * 30) +i >= n:
-                    break
-                mobj = re.search(r'(?P<url>screen\.yahoo\.com/.*?-\d*?\.html)"', r)
-                e = self.url_result('http://' + mobj.group('url'), 'Yahoo')
-                res['entries'].append(e)
-            if (pagenum * 30 +i >= n) or (m[u'last'] >= (m[u'total'] -1 )):
-                break
-
-        return res
 
 
 class BlipTVUserIE(InfoExtractor):
