@@ -3,6 +3,7 @@ from .ard import ARDIE
 from .arte import ArteTvIE
 from .bandcamp import BandcampIE
 from .bliptv import BlipTVIE, BlipTVUserIE
+from .breakcom import BreakIE
 from .comedycentral import ComedyCentralIE
 from .collegehumor import CollegeHumorIE
 from .dailymotion import DailymotionIE
@@ -123,6 +124,7 @@ def gen_extractors():
         Vbox7IE(),
         GametrailersIE(),
         StatigramIE(),
+        BreakIE(),
         GenericIE()
     ]
 

@@ -640,5 +640,14 @@
         "uploader_id": "videoseconds",
         "title": "Instagram photo by @videoseconds (Videos)"
     }
+  },
+  {
+    "name": "Break",
+    "url": "http://www.break.com/video/when-girls-act-like-guys-2468056",
+    "file": "2468056.mp4",
+    "md5": "a3513fb1547fba4fb6cfac1bffc6c46b",
+    "info_dict": {
+        "title": "When Girls Act Like D-Bags"
+    }
   }
 ]
