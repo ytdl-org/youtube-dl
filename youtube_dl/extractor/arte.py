@@ -48,31 +48,32 @@ class ArteTvIE(InfoExtractor):
 
         return info
 
-    def extractLiveStream(self, url):
-        video_lang = url.split('/')[-4]
-        info = self.grep_webpage(
-            url,
-            r'src="(.*?/videothek_js.*?\.js)',
-            0,
-            [
-                (1, 'url', u'Invalid URL: %s' % url)
-            ]
-        )
-        http_host = url.split('/')[2]
-        next_url = 'http://%s%s' % (http_host, compat_urllib_parse.unquote(info.get('url')))
-        info = self.grep_webpage(
-            next_url,
-            r'(s_artestras_scst_geoFRDE_' + video_lang + '.*?)\'.*?' +
-                '(http://.*?\.swf).*?' +
-                '(rtmp://.*?)\'',
-            re.DOTALL,
-            [
-                (1, 'path',   u'could not extract video path: %s' % url),
-                (2, 'player', u'could not extract video player: %s' % url),
-                (3, 'url',    u'could not extract video url: %s' % url)
-            ]
-        )
-        video_url = u'%s/%s' % (info.get('url'), info.get('path'))
+    # TODO implement Live Stream
+    # def extractLiveStream(self, url):
+    #     video_lang = url.split('/')[-4]
+    #     info = self.grep_webpage(
+    #         url,
+    #         r'src="(.*?/videothek_js.*?\.js)',
+    #         0,
+    #         [
+    #             (1, 'url', u'Invalid URL: %s' % url)
+    #         ]
+    #     )
+    #     http_host = url.split('/')[2]
+    #     next_url = 'http://%s%s' % (http_host, compat_urllib_parse.unquote(info.get('url')))
+    #     info = self.grep_webpage(
+    #         next_url,
+    #         r'(s_artestras_scst_geoFRDE_' + video_lang + '.*?)\'.*?' +
+    #             '(http://.*?\.swf).*?' +
+    #             '(rtmp://.*?)\'',
+    #         re.DOTALL,
+    #         [
+    #             (1, 'path',   u'could not extract video path: %s' % url),
+    #             (2, 'player', u'could not extract video player: %s' % url),
+    #             (3, 'url',    u'could not extract video url: %s' % url)
+    #         ]
+    #     )
+    #     video_url = u'%s/%s' % (info.get('url'), info.get('path'))
 
     def extractPlus7Stream(self, url):
         video_lang = url.split('/')[-3]
@@ -126,8 +127,9 @@ class ArteTvIE(InfoExtractor):
         self.report_extraction(video_id)
 
         if re.search(self._LIVE_URL, video_id) is not None:
-            self.extractLiveStream(url)
-            return
+            raise ExtractorError(u'Arte live streams are not yet supported, sorry')
+            # self.extractLiveStream(url)
+            # return
         else:
             info = self.extractPlus7Stream(url)
 
