@@ -15,6 +15,7 @@ from ..utils import (
 
 class MTVIE(InfoExtractor):
     _VALID_URL = r'^(?P<proto>https?://)?(?:www\.)?mtv\.com/videos/[^/]+/(?P<videoid>[0-9]+)/[^/]+$'
+    _WORKING = False
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -26,8 +27,8 @@ class MTVIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        song_name = self._html_search_regex(r'<meta name="mtv_vt" content="([^"]+)"/>',
-            webpage, u'song name', fatal=False)
+        #song_name = self._html_search_regex(r'<meta name="mtv_vt" content="([^"]+)"/>',
+        #    webpage, u'song name', fatal=False)
 
         video_title = self._html_search_regex(r'<meta name="mtv_an" content="([^"]+)"/>',
             webpage, u'title')
@@ -47,7 +48,6 @@ class MTVIE(InfoExtractor):
             raise ExtractorError(u'Unable to download video metadata: %s' % compat_str(err))
 
         mdoc = xml.etree.ElementTree.fromstring(metadataXml)
-        print(metadataXml)
         renditions = mdoc.findall('.//rendition')
 
         # For now, always pick the highest quality.
@@ -63,7 +63,6 @@ class MTVIE(InfoExtractor):
         info = {
             'id': video_id,
             'url': video_url,
-            'uploader': performer,
             'upload_date': None,
             'title': video_title,
             'ext': ext,
