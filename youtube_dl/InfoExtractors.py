@@ -757,7 +757,7 @@ class YoutubeIE(InfoExtractor):
                     url = url_data['url'][0]
                     if 'sig' in url_data:
                         url += '&signature=' + url_data['sig'][0]
-                    if 's' in url_data:
+                    elif 's' in url_data:
                         signature = self._decrypt_signature(url_data['s'][0])
                         url += '&signature=' + signature
                     if 'ratebypass' not in url:
