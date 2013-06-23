@@ -57,7 +57,7 @@ setup(
     author = 'Ricardo Garcia',
     maintainer = 'Philipp Hagemeister',
     maintainer_email = 'phihag@phihag.de',
-    packages = ['youtube_dl'],
+    packages = ['youtube_dl', 'youtube_dl.extractor'],
 
     # Provokes warning on most systems (why?!)
     #test_suite = 'nose.collector',
