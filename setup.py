@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+
+from glob import glob
 import pkg_resources
 import sys
 
@@ -23,7 +25,9 @@ py2exe_options = {
     "compressed": 1,
     "optimize": 2,
     "dist_dir": '.',
-    "dll_excludes": ['w9xpopen.exe']
+    "dll_excludes": ['w9xpopen.exe'],
+    "includes": [m.replace('\\', '.').replace('/', '.')[:-3]
+                 for m in glob('youtube_dl/*/*.py')]
 }
 py2exe_console = [{
     "script": "./youtube_dl/__main__.py",
