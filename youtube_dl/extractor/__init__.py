@@ -1,59 +1,60 @@
-from .extractor.ard import ARDIE
-from .extractor.arte import ArteTvIE
-from .extractor.bandcamp import BandcampIE
-from .extractor.bliptv import BlipTVIE, BlipTVUserIE
-from .extractor.comedycentral import ComedyCentralIE
-from .extractor.collegehumor import CollegeHumorIE
-from .extractor.dailymotion import DailymotionIE
-from .extractor.depositfiles import DepositFilesIE
-from .extractor.eighttracks import EightTracksIE
-from .extractor.escapist import EscapistIE
-from .extractor.facebook import FacebookIE
-from .extractor.flickr import FlickrIE
-from .extractor.funnyordie import FunnyOrDieIE
-from .extractor.gametrailers import GametrailersIE
-from .extractor.generic import GenericIE
-from .extractor.googleplus import GooglePlusIE
-from .extractor.googlesearch import GoogleSearchIE
-from .extractor.howcast import HowcastIE
-from .extractor.hypem import HypemIE
-from .extractor.ina import InaIE
-from .extractor.infoq import InfoQIE
-from .extractor.justintv import JustinTVIE
-from .extractor.keek import KeekIE
-from .extractor.liveleak import LiveLeakIE
-from .extractor.metacafe import MetacafeIE
-from .extractor.mixcloud import MixcloudIE
-from .extractor.mtv import MTVIE
-from .extractor.myspass import MySpassIE
-from .extractor.myvideo import MyVideoIE
-from .extractor.nba import NBAIE
-from .extractor.statigram import StatigramIE
-from .extractor.photobucket import PhotobucketIE
-from .extractor.pornotube import PornotubeIE
-from .extractor.rbmaradio import RBMARadioIE
-from .extractor.redtube import RedTubeIE
-from .extractor.soundcloud import SoundcloudIE, SoundcloudSetIE
-from .extractor.spiegel import SpiegelIE
-from .extractor.stanfordoc import StanfordOpenClassroomIE
-from .extractor.steam import SteamIE
-from .extractor.teamcoco import TeamcocoIE
-from .extractor.ted import TEDIE
-from .extractor.tumblr import TumblrIE
-from .extractor.ustream import UstreamIE
-from .extractor.vbox7 import Vbox7IE
-from .extractor.vimeo import VimeoIE
-from .extractor.vine import VineIE
-from .extractor.worldstarhiphop import WorldStarHipHopIE
-from .extractor.xnxx import XNXXIE
-from .extractor.xhamster import XHamsterIE
-from .extractor.xvideos import XVideosIE
-from .extractor.yahoo import YahooIE, YahooSearchIE
-from .extractor.youjizz import YouJizzIE
-from .extractor.youku import YoukuIE
-from .extractor.youporn import YouPornIE
-from .extractor.youtube import YoutubeIE, YoutubePlaylistIE, YoutubeSearchIE, YoutubeUserIE, YoutubeChannelIE
-from .extractor.zdf import ZDFIE
+
+from .ard import ARDIE
+from .arte import ArteTvIE
+from .bandcamp import BandcampIE
+from .bliptv import BlipTVIE, BlipTVUserIE
+from .comedycentral import ComedyCentralIE
+from .collegehumor import CollegeHumorIE
+from .dailymotion import DailymotionIE
+from .depositfiles import DepositFilesIE
+from .eighttracks import EightTracksIE
+from .escapist import EscapistIE
+from .facebook import FacebookIE
+from .flickr import FlickrIE
+from .funnyordie import FunnyOrDieIE
+from .gametrailers import GametrailersIE
+from .generic import GenericIE
+from .googleplus import GooglePlusIE
+from .googlesearch import GoogleSearchIE
+from .howcast import HowcastIE
+from .hypem import HypemIE
+from .ina import InaIE
+from .infoq import InfoQIE
+from .justintv import JustinTVIE
+from .keek import KeekIE
+from .liveleak import LiveLeakIE
+from .metacafe import MetacafeIE
+from .mixcloud import MixcloudIE
+from .mtv import MTVIE
+from .myspass import MySpassIE
+from .myvideo import MyVideoIE
+from .nba import NBAIE
+from .statigram import StatigramIE
+from .photobucket import PhotobucketIE
+from .pornotube import PornotubeIE
+from .rbmaradio import RBMARadioIE
+from .redtube import RedTubeIE
+from .soundcloud import SoundcloudIE, SoundcloudSetIE
+from .spiegel import SpiegelIE
+from .stanfordoc import StanfordOpenClassroomIE
+from .steam import SteamIE
+from .teamcoco import TeamcocoIE
+from .ted import TEDIE
+from .tumblr import TumblrIE
+from .ustream import UstreamIE
+from .vbox7 import Vbox7IE
+from .vimeo import VimeoIE
+from .vine import VineIE
+from .worldstarhiphop import WorldStarHipHopIE
+from .xnxx import XNXXIE
+from .xhamster import XHamsterIE
+from .xvideos import XVideosIE
+from .yahoo import YahooIE, YahooSearchIE
+from .youjizz import YouJizzIE
+from .youku import YoukuIE
+from .youporn import YouPornIE
+from .youtube import YoutubeIE, YoutubePlaylistIE, YoutubeSearchIE, YoutubeUserIE, YoutubeChannelIE
+from .zdf import ZDFIE
 
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
