@@ -5,7 +5,7 @@ import netrc
 import re
 import socket
 
-from .common import InfoExtractor
+from .common import InfoExtractor, SearchInfoExtractor
 from ..utils import (
     compat_http_client,
     compat_parse_qs,
@@ -751,3 +751,45 @@ class YoutubeUserIE(InfoExtractor):
         urls = ['http://www.youtube.com/watch?v=%s' % video_id for video_id in video_ids]
         url_results = [self.url_result(url, 'Youtube') for url in urls]
         return [self.playlist_result(url_results, playlist_title = username)]
+
+class YoutubeSearchIE(SearchInfoExtractor):
+    """Information Extractor for YouTube search queries."""
+    _API_URL = 'https://gdata.youtube.com/feeds/api/videos?q=%s&start-index=%i&max-results=50&v=2&alt=jsonc'
+    _MAX_RESULTS = 1000
+    IE_NAME = u'youtube:search'
+    _SEARCH_KEY = 'ytsearch'
+
+    def report_download_page(self, query, pagenum):
+        """Report attempt to download search page with given number."""
+        self._downloader.to_screen(u'[youtube] query "%s": Downloading page %s' % (query, pagenum))
+
+    def _get_n_results(self, query, n):
+        """Get a specified number of results for a query"""
+
+        video_ids = []
+        pagenum = 0
+        limit = n
+
+        while (50 * pagenum) < limit:
+            self.report_download_page(query, pagenum+1)
+            result_url = self._API_URL % (compat_urllib_parse.quote_plus(query), (50*pagenum)+1)
+            request = compat_urllib_request.Request(result_url)
+            try:
+                data = compat_urllib_request.urlopen(request).read().decode('utf-8')
+            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+                raise ExtractorError(u'Unable to download API page: %s' % compat_str(err))
+            api_response = json.loads(data)['data']
+
+            if not 'items' in api_response:
+                raise ExtractorError(u'[youtube] No video results')
+
+            new_ids = list(video['id'] for video in api_response['items'])
+            video_ids += new_ids
+
+            limit = min(n, api_response['totalItems'])
+            pagenum += 1
+
+        if len(video_ids) > n:
+            video_ids = video_ids[:n]
+        videos = [self.url_result('http://www.youtube.com/watch?v=%s' % id, 'Youtube') for id in video_ids]
+        return self.playlist_result(videos, query)
