@@ -1,0 +1,82 @@
+import datetime
+import re
+
+from .common import InfoExtractor
+from ..utils import (
+    ExtractorError,
+)
+
+
+class GooglePlusIE(InfoExtractor):
+    """Information extractor for plus.google.com."""
+
+    _VALID_URL = r'(?:https://)?plus\.google\.com/(?:[^/]+/)*?posts/(\w+)'
+    IE_NAME = u'plus.google'
+
+    def _real_extract(self, url):
+        # Extract id from URL
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            raise ExtractorError(u'Invalid URL: %s' % url)
+
+        post_url = mobj.group(0)
+        video_id = mobj.group(1)
+
+        video_extension = 'flv'
+
+        # Step 1, Retrieve post webpage to extract further information
+        webpage = self._download_webpage(post_url, video_id, u'Downloading entry webpage')
+
+        self.report_extraction(video_id)
+
+        # Extract update date
+        upload_date = self._html_search_regex('title="Timestamp">(.*?)</a>',
+            webpage, u'upload date', fatal=False)
+        if upload_date:
+            # Convert timestring to a format suitable for filename
+            upload_date = datetime.datetime.strptime(upload_date, "%Y-%m-%d")
+            upload_date = upload_date.strftime('%Y%m%d')
+
+        # Extract uploader
+        uploader = self._html_search_regex(r'rel\="author".*?>(.*?)</a>',
+            webpage, u'uploader', fatal=False)
+
+        # Extract title
+        # Get the first line for title
+        video_title = self._html_search_regex(r'<meta name\=\"Description\" content\=\"(.*?)[\n<"]',
+            webpage, 'title', default=u'NA')
+
+        # Step 2, Stimulate clicking the image box to launch video
+        video_page = self._search_regex('"(https\://plus\.google\.com/photos/.*?)",,"image/jpeg","video"\]',
+            webpage, u'video page URL')
+        webpage = self._download_webpage(video_page, video_id, u'Downloading video page')
+
+        # Extract video links on video page
+        """Extract video links of all sizes"""
+        pattern = '\d+,\d+,(\d+),"(http\://redirector\.googlevideo\.com.*?)"'
+        mobj = re.findall(pattern, webpage)
+        if len(mobj) == 0:
+            raise ExtractorError(u'Unable to extract video links')
+
+        # Sort in resolution
+        links = sorted(mobj)
+
+        # Choose the lowest of the sort, i.e. highest resolution
+        video_url = links[-1]
+        # Only get the url. The resolution part in the tuple has no use anymore
+        video_url = video_url[-1]
+        # Treat escaped \u0026 style hex
+        try:
+            video_url = video_url.decode("unicode_escape")
+        except AttributeError: # Python 3
+            video_url = bytes(video_url, 'ascii').decode('unicode-escape')
+
+
+        return [{
+            'id':       video_id,
+            'url':      video_url,
+            'uploader': uploader,
+            'upload_date':  upload_date,
+            'title':    video_title,
+            'ext':      video_extension,
+        }]
