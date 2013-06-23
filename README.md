@@ -121,7 +121,7 @@ which means you can modify it, redistribute it or use it however you like.
                                video (currently youtube only)
     --list-subs                lists all available subtitles for the video
                                (currently youtube only)
-    --sub-format LANG          subtitle format [srt/sbv] (default=srt)
+    --sub-format FORMAT        subtitle format [srt/sbv] (default=srt)
                                (currently youtube only)
     --sub-lang LANG            language of the subtitles to download (optional)
                                use IETF language tags like 'en'
