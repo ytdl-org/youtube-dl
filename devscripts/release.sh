@@ -14,6 +14,10 @@
 
 set -e
 
+skip_test=false
+if [ "$2" == '--skip-test' ]; then
+    skip_test=true
+fi
 if [ -z "$1" ]; then echo "ERROR: specify version number like this: $0 1994.09.06"; exit 1; fi
 version="$1"
 if [ ! -z "`git tag | grep "$version"`" ]; then echo 'ERROR: version already present'; exit 1; fi
@@ -22,7 +26,11 @@ if [ ! -f "updates_key.pem" ]; then echo 'ERROR: updates_key.pem missing'; exit 
 
 /bin/echo -e "\n### First of all, testing..."
 make cleanall
-nosetests --verbose --with-coverage --cover-package=youtube_dl --cover-html test --stop || exit 1
+if $skip_tests; then
+    echo 'SKIPPING TESTS'
+else
+    nosetests --verbose --with-coverage --cover-package=youtube_dl --cover-html test --stop || exit 1
+fi
 
 /bin/echo -e "\n### Changing version in version.py..."
 sed -i "s/__version__ = '.*'/__version__ = '$version'/" youtube_dl/version.py
