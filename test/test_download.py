@@ -14,7 +14,7 @@ import binascii
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import youtube_dl.FileDownloader
-import youtube_dl.extractors
+import youtube_dl.extractor
 from youtube_dl.utils import *
 
 DEF_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tests.json')
@@ -72,7 +72,7 @@ class TestDownload(unittest.TestCase):
 def generator(test_case):
 
     def test_template(self):
-        ie = youtube_dl.extractors.get_info_extractor(test_case['name'])
+        ie = youtube_dl.extractor.get_info_extractor(test_case['name'])
         if not ie._WORKING:
             print('Skipping: IE marked as not _WORKING')
             return
@@ -87,7 +87,7 @@ def generator(test_case):
         params.update(test_case.get('params', {}))
 
         fd = FileDownloader(params)
-        for ie in youtube_dl.extractors.gen_extractors():
+        for ie in youtube_dl.extractor.gen_extractors():
             fd.add_info_extractor(ie)
         finished_hook_called = set()
         def _hook(status):
