@@ -4593,8 +4593,8 @@ class StatigramIE(InfoExtractor):
             r'<title>(.+?)</title>',
             webpage, u'title')
         title = html_title.rpartition(u' | Statigram')[0]
-        uploader = self._html_search_regex(
-            r'@(.+) \(Videos\)', title, u'uploader name', fatal=False)
+        uploader_id = self._html_search_regex(
+            r'@([^ ]+)', title, u'uploader name', fatal=False)
         ext = 'mp4'
 
         return [{
@@ -4603,7 +4603,7 @@ class StatigramIE(InfoExtractor):
             'ext':       ext,
             'title':     title,
             'thumbnail': thumbnail_url,
-            'uploader' : uploader
+            'uploader_id' : uploader_id
         }]
 
 def gen_extractors():
