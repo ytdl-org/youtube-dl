@@ -1,9 +1,6 @@
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-)
 
 
 class RedTubeIE(InfoExtractor):
@@ -11,8 +8,6 @@ class RedTubeIE(InfoExtractor):
 
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
 
         video_id = mobj.group('id')
         video_extension = 'mp4'        
