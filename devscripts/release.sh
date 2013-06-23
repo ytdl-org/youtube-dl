@@ -14,11 +14,12 @@
 
 set -e
 
-skip_test=false
+skip_tests=false
 if [ "$1" = '--skip-test' ]; then
-    skip_test=true
+    skip_tests=true
     shift
 fi
+
 if [ -z "$1" ]; then echo "ERROR: specify version number like this: $0 1994.09.06"; exit 1; fi
 version="$1"
 if [ ! -z "`git tag | grep "$version"`" ]; then echo 'ERROR: version already present'; exit 1; fi
@@ -27,7 +28,7 @@ if [ ! -f "updates_key.pem" ]; then echo 'ERROR: updates_key.pem missing'; exit 
 
 /bin/echo -e "\n### First of all, testing..."
 make cleanall
-if $skip_tests; then
+if $skip_tests ; then
     echo 'SKIPPING TESTS'
 else
     nosetests --verbose --with-coverage --cover-package=youtube_dl --cover-html test --stop || exit 1
