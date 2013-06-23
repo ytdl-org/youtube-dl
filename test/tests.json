@@ -637,7 +637,7 @@
     "file": "484091715184808010_284179915.mp4",
     "md5": "deda4ff333abe2e118740321e992605b",
     "info_dict": {
-        "uploader": "videoseconds",
+        "uploader_id": "videoseconds",
         "title": "Instagram photo by @videoseconds (Videos)"
     }
   }
