@@ -343,7 +343,7 @@ class YoutubeIE(InfoExtractor):
         request = compat_urllib_request.Request(self._AGE_URL, compat_urllib_parse.urlencode(age_form))
         try:
             self.report_age_confirmation()
-            age_results = compat_urllib_request.urlopen(request).read().decode('utf-8')
+            compat_urllib_request.urlopen(request).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             raise ExtractorError(u'Unable to confirm age: %s' % compat_str(err))
 
@@ -471,7 +471,7 @@ class YoutubeIE(InfoExtractor):
                     self._downloader.report_warning(sub_error)
 
         if self._downloader.params.get('listsubtitles', False):
-            sub_lang_list = self._list_available_subtitles(video_id)
+            self._list_available_subtitles(video_id)
             return
 
         if 'length_seconds' not in video_info:
@@ -479,9 +479,6 @@ class YoutubeIE(InfoExtractor):
             video_duration = ''
         else:
             video_duration = compat_urllib_parse.unquote_plus(video_info['length_seconds'][0])
-
-        # token
-        video_token = compat_urllib_parse.unquote_plus(video_info['token'][0])
 
         # Decide which formats to download
         req_format = self._downloader.params.get('format', None)
