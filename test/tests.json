@@ -630,5 +630,15 @@
         "title": "E3 2013: Debut Trailer"
     },
     "skip": "Requires rtmpdump"
+  },
+  {
+    "name": "Statigr",
+    "url": "http://statigr.am/p/484091715184808010_284179915",
+    "file": "484091715184808010_284179915.mp4",
+    "md5": "deda4ff333abe2e118740321e992605b",
+    "info_dict": {
+        "uploader": "videoseconds",
+        "title": "Instagram photo by @videoseconds (Videos)"
+    }
   }
 ]

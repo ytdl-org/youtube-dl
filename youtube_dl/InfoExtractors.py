@@ -4552,6 +4552,29 @@ class GametrailersIE(InfoExtractor):
                 'description': video_description,
                 }
 
+class StatigrIE(InfoExtractor):
+    _VALID_URL = r'(?:http://)?(?:www\.)?statigr\.am/p/([^/]+)'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            raise ExtractorError(u'Invalid URL: %s' % url)
+        video_id = mobj.group(1)
+        webpage = self._download_webpage(url, video_id)
+        video_url = re.search(r'<meta property="og:video:secure_url" content="(.+?)">',webpage).group(1)
+        thumbnail_url = re.search(r'<meta property="og:image" content="(.+?)" />',webpage).group(1)
+        title = (re.search(r'<title>(.+?)</title>',webpage).group(1)).strip("| Statigram")
+        uploader = re.search(r'@(.+) \(Videos\)',title).group(1)
+        ext = "mp4"
+        return [{
+            'id':        video_id,
+            'url':       video_url,
+            'ext':       ext,
+            'title':     title,
+            'thumbnail': thumbnail_url,
+            'uploader' : uploader
+        }]
+
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
     The order does matter; the first extractor matched is the one handling the URL.
@@ -4618,6 +4641,7 @@ def gen_extractors():
         HypemIE(),
         Vbox7IE(),
         GametrailersIE(),
+        StatigrIE(),
         GenericIE()
     ]
 
