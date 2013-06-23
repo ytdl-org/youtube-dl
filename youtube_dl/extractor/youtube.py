@@ -58,7 +58,7 @@ class YoutubeIE(InfoExtractor):
         '18': 'mp4',
         '22': 'mp4',
         '37': 'mp4',
-        '38': 'video', # You actually don't know if this will be MOV, AVI or whatever
+        '38': 'mp4',
         '43': 'webm',
         '44': 'webm',
         '45': 'webm',
