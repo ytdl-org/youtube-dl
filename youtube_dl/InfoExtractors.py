@@ -379,6 +379,17 @@ class YoutubeIE(InfoExtractor):
         """Indicate the download will use the RTMP protocol."""
         self.to_screen(u'RTMP download detected')
 
+    @staticmethod
+    def _decrypt_signature(s):
+        """Decrypt the key the two subkeys must have a length of 43"""
+        (a,b) = s.split('.')
+        if len(a) != 43 or len(b) != 43:
+            raise ExtractorError(u'Unable to decrypt signature, subkeys lengths not valid')
+        b = ''.join([b[:8],a[0],b[9:18],b[-4],b[19:39], b[18]])[0:40]
+        a = a[-40:]
+        s_dec = '.'.join((a,b))[::-1]
+        return s_dec
+
     def _get_available_subtitles(self, video_id):
         self.report_video_subtitles_download(video_id)
         request = compat_urllib_request.Request('http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id)
@@ -724,6 +735,17 @@ class YoutubeIE(InfoExtractor):
         # Decide which formats to download
         req_format = self._downloader.params.get('format', None)
 
+        try:
+            mobj = re.search(r';ytplayer.config = ({.*?});', video_webpage)
+            info = json.loads(mobj.group(1))
+            args = info['args']
+            if args.get('ptk','') == 'vevo' or 'dashmpd':
+                # Vevo videos with encrypted signatures
+                self.to_screen(u'Vevo video detected.')
+                video_info['url_encoded_fmt_stream_map'] = [args['url_encoded_fmt_stream_map']]
+        except ValueError:
+            pass
+
         if 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
             self.report_rtmp_download()
             video_url_list = [(None, video_info['conn'][0])]
@@ -735,6 +757,9 @@ class YoutubeIE(InfoExtractor):
                     url = url_data['url'][0]
                     if 'sig' in url_data:
                         url += '&signature=' + url_data['sig'][0]
+                    if 's' in url_data:
+                        signature = self._decrypt_signature(url_data['s'][0])
+                        url += '&signature=' + signature
                     if 'ratebypass' not in url:
                         url += '&ratebypass=yes'
                     url_map[url_data['itag'][0]] = url
