@@ -57,6 +57,7 @@ from .extractor.tumblr import TumblrIE
 from .extractor.ustream import UstreamIE
 from .extractor.vbox7 import Vbox7IE
 from .extractor.vimeo import VimeoIE
+from .extractor.vine import VineIE
 from .extractor.worldstarhiphop import WorldStarHipHopIE
 from .extractor.xnxx import XNXXIE
 from .extractor.xvideos import XVideosIE
@@ -190,39 +191,6 @@ class HowcastIE(InfoExtractor):
             'thumbnail': thumbnail,
         }]
 
-class VineIE(InfoExtractor):
-    """Information Extractor for Vine.co"""
-    _VALID_URL = r'(?:https?://)?(?:www\.)?vine\.co/v/(?P<id>\w+)'
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-
-        video_id = mobj.group('id')
-        webpage_url = 'https://vine.co/v/' + video_id
-        webpage = self._download_webpage(webpage_url, video_id)
-
-        self.report_extraction(video_id)
-
-        video_url = self._html_search_regex(r'<meta property="twitter:player:stream" content="(.+?)"',
-            webpage, u'video URL')
-
-        video_title = self._html_search_regex(r'<meta property="og:title" content="(.+?)"',
-            webpage, u'title')
-
-        thumbnail = self._html_search_regex(r'<meta property="og:image" content="(.+?)(\?.*?)?"',
-            webpage, u'thumbnail', fatal=False)
-
-        uploader = self._html_search_regex(r'<div class="user">.*?<h2>(.+?)</h2>',
-            webpage, u'uploader', fatal=False, flags=re.DOTALL)
-
-        return [{
-            'id':        video_id,
-            'url':       video_url,
-            'ext':       'mp4',
-            'title':     video_title,
-            'thumbnail': thumbnail,
-            'uploader':  uploader,
-        }]
 
 class FlickrIE(InfoExtractor):
     """Information Extractor for Flickr videos"""
