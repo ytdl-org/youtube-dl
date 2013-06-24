@@ -486,9 +486,11 @@ class YoutubeIE(InfoExtractor):
             mobj = re.search(r';ytplayer.config = ({.*?});', video_webpage)
             info = json.loads(mobj.group(1))
             args = info['args']
-            if args.get('ptk','') == 'vevo' or 'dashmpd' in args:
-                # Vevo videos with encrypted signatures
-                self.to_screen(u'%s: Vevo video detected.' % video_id)
+            # Easy way to know if the 's' value is in url_encoded_fmt_stream_map
+            # this signatures are encrypted
+            m_s = re.search(r'[&,]s=', args['url_encoded_fmt_stream_map'])
+            if m_s is not None:
+                self.to_screen(u'%s: Encrypted signatures detected.' % video_id)
                 video_info['url_encoded_fmt_stream_map'] = [args['url_encoded_fmt_stream_map']]
         except ValueError:
             pass
