@@ -44,6 +44,7 @@ from .ted import TEDIE
 from .tumblr import TumblrIE
 from .ustream import UstreamIE
 from .vbox7 import Vbox7IE
+from .vevo import VevoIE
 from .vimeo import VimeoIE
 from .vine import VineIE
 from .worldstarhiphop import WorldStarHipHopIE
@@ -125,6 +126,7 @@ def gen_extractors():
         GametrailersIE(),
         StatigramIE(),
         BreakIE(),
+        VevoIE(),
         GenericIE()
     ]
 

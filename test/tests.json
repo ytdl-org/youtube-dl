@@ -649,5 +649,16 @@
     "info_dict": {
         "title": "When Girls Act Like D-Bags"
     }
+  },
+  {
+    "name": "Vevo",
+    "url": "http://www.vevo.com/watch/hurts/somebody-to-die-for/GB1101300280",
+    "file": "GB1101300280.mp4",
+    "md5": "06bea460acb744eab74a9d7dcb4bfd61",
+    "info_dict": {
+        "title": "Somebody To Die For",
+        "upload_date": "20130624",
+        "uploader": "Hurts"
+    }
   }
 ]
