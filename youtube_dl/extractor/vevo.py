@@ -8,7 +8,11 @@ from ..utils import (
 )
 
 class VevoIE(InfoExtractor):
-    _VALID_URL = r'http://www.vevo.com/watch/.*?/.*?/(?P<id>.*)$'
+    """
+    Accecps urls from vevo.com or in the format 'vevo:{id}'
+    (currently used by MTVIE)
+    """
+    _VALID_URL = r'((http://www.vevo.com/watch/.*?/.*?/)|(vevo:))(?P<id>.*)$'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

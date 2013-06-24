@@ -27,6 +27,14 @@ class MTVIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
+        # Some videos come from Vevo.com
+        m_vevo = re.search(r'isVevoVideo = true;.*?vevoVideoId = "(.*?)";',
+                           webpage, re.DOTALL)
+        if m_vevo:
+            vevo_id = m_vevo.group(1);
+            self.to_screen(u'Vevo video detected: %s' % vevo_id)
+            return self.url_result('vevo:%s' % vevo_id, ie='Vevo')
+
         #song_name = self._html_search_regex(r'<meta name="mtv_vt" content="([^"]+)"/>',
         #    webpage, u'song name', fatal=False)
 
