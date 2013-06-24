@@ -319,7 +319,7 @@ def parseOpts(overrideArguments=None):
     if overrideArguments is not None:
         opts, args = parser.parse_args(overrideArguments)
         if opts.verbose:
-            print(u'[debug] Override config: ' + repr(overrideArguments))
+            sys.stderr.write(u'[debug] Override config: ' + repr(overrideArguments) + '\n')
     else:
         xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
         if xdg_config_home:
@@ -332,9 +332,9 @@ def parseOpts(overrideArguments=None):
         argv = systemConf + userConf + commandLineConf
         opts, args = parser.parse_args(argv)
         if opts.verbose:
-            print(u'[debug] System config: ' + repr(systemConf))
-            print(u'[debug] User config: ' + repr(userConf))
-            print(u'[debug] Command-line args: ' + repr(commandLineConf))
+            sys.stderr.write(u'[debug] System config: ' + repr(systemConf) + '\n')
+            sys.stderr.write(u'[debug] User config: ' + repr(userConf) + '\n')
+            sys.stderr.write(u'[debug] Command-line args: ' + repr(commandLineConf) + '\n')
 
     return parser, opts, args
 
@@ -369,7 +369,7 @@ def _real_main(argv=None):
 
     # Dump user agent
     if opts.dump_user_agent:
-        print(std_headers['User-Agent'])
+        compat_print(std_headers['User-Agent'])
         sys.exit(0)
 
     # Batch file verification
@@ -410,18 +410,18 @@ def _real_main(argv=None):
 
     if opts.list_extractors:
         for ie in extractors:
-            print(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else ''))
+            compat_print(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else ''))
             matchedUrls = [url for url in all_urls if ie.suitable(url)]
             all_urls = [url for url in all_urls if url not in matchedUrls]
             for mu in matchedUrls:
-                print(u'  ' + mu)
+                compat_print(u'  ' + mu)
         sys.exit(0)
 
     # Conflicting, missing and erroneous options
     if opts.usenetrc and (opts.username is not None or opts.password is not None):
         parser.error(u'using .netrc conflicts with giving username/password')
     if opts.password is not None and opts.username is None:
-        print(u'WARNING: account username missing')
+        sys.stderr.write(u'WARNING: account username missing\n')
     if opts.outtmpl is not None and (opts.usetitle or opts.autonumber or opts.useid):
         parser.error(u'using output template conflicts with using title, video ID or auto number')
     if opts.usetitle and opts.useid:
