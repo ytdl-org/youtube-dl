@@ -9,7 +9,7 @@ import unittest
 # Allow direct execution
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import youtube_dl.FileDownloader
+import youtube_dl.YoutubeDL
 import youtube_dl.extractor
 from youtube_dl.utils import *
 
@@ -22,9 +22,9 @@ proxy_handler = compat_urllib_request.ProxyHandler()
 opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
 compat_urllib_request.install_opener(opener)
 
-class FileDownloader(youtube_dl.FileDownloader):
+class YoutubeDL(youtube_dl.YoutubeDL):
     def __init__(self, *args, **kwargs):
-        youtube_dl.FileDownloader.__init__(self, *args, **kwargs)
+        super(YoutubeDL, self).__init__(*args, **kwargs)
         self.to_stderr = self.to_screen
 
 with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
@@ -49,9 +49,9 @@ class TestInfoJSON(unittest.TestCase):
 
     def test_info_json(self):
         ie = youtube_dl.extractor.YoutubeIE()
-        fd = FileDownloader(params)
-        fd.add_info_extractor(ie)
-        fd.download([TEST_ID])
+        ydl = YoutubeDL(params)
+        ydl.add_info_extractor(ie)
+        ydl.download([TEST_ID])
         self.assertTrue(os.path.exists(INFO_JSON_FILE))
         with io.open(INFO_JSON_FILE, 'r', encoding='utf-8') as jsonf:
             jd = json.load(jsonf)

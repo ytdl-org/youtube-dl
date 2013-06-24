@@ -46,6 +46,7 @@ from .update import update_self
 from .version import __version__
 from .FileDownloader import *
 from .extractor import gen_extractors
+from .YoutubeDL import YoutubeDL
 from .PostProcessor import *
 
 def parseOpts(overrideArguments=None):
@@ -492,8 +493,8 @@ def _real_main(argv=None):
             or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
             or u'%(title)s-%(id)s.%(ext)s')
 
-    # File downloader
-    fd = FileDownloader({
+    # YoutubeDL
+    ydl = YoutubeDL({
         'usenetrc': opts.usenetrc,
         'username': opts.username,
         'password': opts.password,
@@ -550,31 +551,31 @@ def _real_main(argv=None):
         })
 
     if opts.verbose:
-        fd.to_screen(u'[debug] youtube-dl version ' + __version__)
+        ydl.to_screen(u'[debug] youtube-dl version ' + __version__)
         try:
             sp = subprocess.Popen(['git', 'rev-parse', '--short', 'HEAD'], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                   cwd=os.path.dirname(os.path.abspath(__file__)))
             out, err = sp.communicate()
             out = out.decode().strip()
             if re.match('[0-9a-f]+', out):
-                fd.to_screen(u'[debug] Git HEAD: ' + out)
+                ydl.to_screen(u'[debug] Git HEAD: ' + out)
         except:
             pass
-        fd.to_screen(u'[debug] Python version %s - %s' %(platform.python_version(), platform.platform()))
-        fd.to_screen(u'[debug] Proxy map: ' + str(proxy_handler.proxies))
+        ydl.to_screen(u'[debug] Python version %s - %s' %(platform.python_version(), platform.platform()))
+        ydl.to_screen(u'[debug] Proxy map: ' + str(proxy_handler.proxies))
 
     for extractor in extractors:
-        fd.add_info_extractor(extractor)
+        ydl.add_info_extractor(extractor)
 
     # PostProcessors
     if opts.extractaudio:
-        fd.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
+        ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
     if opts.recodevideo:
-        fd.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
+        ydl.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
 
     # Update version
     if opts.update_self:
-        update_self(fd.to_screen, opts.verbose, sys.argv[0])
+        update_self(ydl.to_screen, opts.verbose, sys.argv[0])
 
     # Maybe do nothing
     if len(all_urls) < 1:
@@ -584,9 +585,9 @@ def _real_main(argv=None):
             sys.exit()
 
     try:
-        retcode = fd.download(all_urls)
+        retcode = ydl.download(all_urls)
     except MaxDownloadsReached:
-        fd.to_screen(u'--max-download limit reached, aborting.')
+        ydl.to_screen(u'--max-download limit reached, aborting.')
         retcode = 101
 
     # Dump cookie jar if requested

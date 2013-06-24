@@ -13,7 +13,7 @@ import binascii
 # Allow direct execution
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import youtube_dl.FileDownloader
+import youtube_dl.YoutubeDL
 import youtube_dl.extractor
 from youtube_dl.utils import *
 
@@ -40,17 +40,17 @@ def _try_rm(filename):
 
 md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
 
-class FileDownloader(youtube_dl.FileDownloader):
+class YoutubeDL(youtube_dl.YoutubeDL):
     def __init__(self, *args, **kwargs):
         self.to_stderr = self.to_screen
         self.processed_info_dicts = []
-        return youtube_dl.FileDownloader.__init__(self, *args, **kwargs)
+        super(YoutubeDL, self).__init__(*args, **kwargs)
     def report_warning(self, message):
         # Don't accept warnings during tests
         raise ExtractorError(message)
     def process_info(self, info_dict):
         self.processed_info_dicts.append(info_dict)
-        return youtube_dl.FileDownloader.process_info(self, info_dict)
+        return super(YoutubeDL, self).process_info(info_dict)
 
 def _file_md5(fn):
     with open(fn, 'rb') as f:
@@ -86,14 +86,14 @@ def generator(test_case):
         params = self.parameters.copy()
         params.update(test_case.get('params', {}))
 
-        fd = FileDownloader(params)
+        ydl = YoutubeDL(params)
         for ie in youtube_dl.extractor.gen_extractors():
-            fd.add_info_extractor(ie)
+            ydl.add_info_extractor(ie)
         finished_hook_called = set()
         def _hook(status):
             if status['status'] == 'finished':
                 finished_hook_called.add(status['filename'])
-        fd.add_progress_hook(_hook)
+        ydl.fd.add_progress_hook(_hook)
 
         test_cases = test_case.get('playlist', [test_case])
         for tc in test_cases:
@@ -103,7 +103,7 @@ def generator(test_case):
         try:
             for retry in range(1, RETRIES + 1):
                 try:
-                    fd.download([test_case['url']])
+                    ydl.download([test_case['url']])
                 except (DownloadError, ExtractorError) as err:
                     if retry == RETRIES: raise
 
