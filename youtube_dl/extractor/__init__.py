@@ -22,6 +22,7 @@ from .hypem import HypemIE
 from .ina import InaIE
 from .infoq import InfoQIE
 from .justintv import JustinTVIE
+from .jukebox import JukeboxIE
 from .keek import KeekIE
 from .liveleak import LiveLeakIE
 from .metacafe import MetacafeIE
@@ -125,6 +126,7 @@ def gen_extractors():
         GametrailersIE(),
         StatigramIE(),
         BreakIE(),
+        JukeboxIE(),
         GenericIE()
     ]
 
