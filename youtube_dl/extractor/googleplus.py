@@ -46,14 +46,18 @@ class GooglePlusIE(InfoExtractor):
         video_title = self._html_search_regex(r'<meta name\=\"Description\" content\=\"(.*?)[\n<"]',
             webpage, 'title', default=u'NA')
 
-        # Step 2, Stimulate clicking the image box to launch video
-        video_page = self._search_regex('"(https\://plus\.google\.com/photos/.*?)",,"image/jpeg","video"\]',
+        # Step 2, Simulate clicking the image box to launch video
+        DOMAIN = 'https://plus.google.com'
+        video_page = self._search_regex(r'<a href="((?:%s)?/photos/.*?)"' % re.escape(DOMAIN),
             webpage, u'video page URL')
+        if not video_page.startswith(DOMAIN):
+            video_page = DOMAIN + video_page
+
         webpage = self._download_webpage(video_page, video_id, u'Downloading video page')
 
         # Extract video links on video page
         """Extract video links of all sizes"""
-        pattern = '\d+,\d+,(\d+),"(http\://redirector\.googlevideo\.com.*?)"'
+        pattern = r'\d+,\d+,(\d+),"(http\://redirector\.googlevideo\.com.*?)"'
         mobj = re.findall(pattern, webpage)
         if len(mobj) == 0:
             raise ExtractorError(u'Unable to extract video links')
