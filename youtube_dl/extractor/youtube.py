@@ -484,6 +484,8 @@ class YoutubeIE(InfoExtractor):
 
         try:
             mobj = re.search(r';ytplayer.config = ({.*?});', video_webpage)
+            if not mobj:
+                raise ValueError('Could not find vevo ID')
             info = json.loads(mobj.group(1))
             args = info['args']
             # Easy way to know if the 's' value is in url_encoded_fmt_stream_map
