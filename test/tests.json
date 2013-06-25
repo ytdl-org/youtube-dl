@@ -12,6 +12,32 @@
     }
   },
   {
+    "name": "Youtube",
+    "url":  "http://www.youtube.com/watch?v=1ltcDfZMA3U",
+    "file":  "1ltcDfZMA3U.flv",
+    "note": "Test VEVO video (#897)",
+    "info_dict": {
+      "upload_date": "20070518",
+      "title": "Maps - It Will Find You",
+      "description": "Music video by Maps performing It Will Find You.",
+      "uploader": "MuteUSA",
+      "uploader_id": "MuteUSA"
+    }
+  },
+  {
+    "name": "Youtube",
+    "url":  "http://www.youtube.com/watch?v=UxxajLWwzqY",
+    "file":  "UxxajLWwzqY.mp4",
+    "note": "Test generic use_cipher_signature video (#897)",
+    "info_dict": {
+      "upload_date": "20120506",
+      "title": "Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]",
+      "description": "md5:b085c9804f5ab69f4adea963a2dceb3c",
+      "uploader": "IconaPop",
+      "uploader_id": "IconaPop"
+    }
+  },
+  {
     "name": "Dailymotion",
     "md5":  "392c4b85a60a90dc4792da41ce3144eb",
     "url":  "http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech",

@@ -153,9 +153,11 @@ def generator(test_case):
     return test_template
 
 ### And add them to TestDownload
-for test_case in defs:
+for n, test_case in enumerate(defs):
     test_method = generator(test_case)
     test_method.__name__ = "test_{0}".format(test_case["name"])
+    if getattr(TestDownload, test_method.__name__, False):
+        test_method.__name__ = "test_{0}_{1}".format(test_case["name"], n)
     setattr(TestDownload, test_method.__name__, test_method)
     del test_method
 
