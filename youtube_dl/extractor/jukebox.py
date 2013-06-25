@@ -8,11 +8,10 @@ from ..utils import (
 )
 
 class JukeboxIE(InfoExtractor):
-    _VALID_URL = r'^http://www\.jukebox\.es\/.+[,](?P<video_id>[a-z0-9]+).html'
+    _VALID_URL = r'^http://www\.jukebox?\..+?\/.+[,](?P<video_id>[a-z0-9\-]+).html'
     _IFRAME = r'<iframe .*src="(?P<iframe>[^"]*)".*>'
     _VIDEO_URL = r'"config":{"file":"(?P<video_url>http:[^"]+[.](?P<video_ext>[^.?]+)[?]mdtk=[0-9]+)"'
     _TITLE = r'<h1 class="inline">(?P<title>[^<]+)</h1>.*<span id="infos_article_artist">(?P<artist>[^<]+)</span>'
-    _NOT_AVAILABLE = r'<span>Este video no está disponible por el momento [!]</span>'
     _IS_YOUTUBE = r'config":{"file":"(?P<youtube_url>http:[\\][/][\\][/]www[.]youtube[.]com[\\][/]watch[?]v=[^"]+)"'
 
     def _real_extract(self, url):
@@ -27,7 +26,7 @@ class JukeboxIE(InfoExtractor):
         iframe_url = unescapeHTML(mobj.group('iframe'))
 
         iframe_html = self._download_webpage(iframe_url, video_id, 'Downloading iframe')
-        mobj = re.search(self._NOT_AVAILABLE, iframe_html)
+        mobj = re.search(r'class="jkb_waiting"', iframe_html)
         if mobj is not None:
             raise ExtractorError(u'Video is not available(in your country?)!')
 
