@@ -25,6 +25,7 @@ __authors__  = (
     'M. Yasoob Ullah Khalid',
     'Julien Fraichard',
     'Johny Mo Swag',
+    'Axel Noack',
     )
 
 __license__ = 'Public Domain'
