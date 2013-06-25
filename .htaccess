@@ -1,2 +1,4 @@
 RewriteEngine On
 RewriteRule ^ip/?$ ip.php
+
+RewriteRule ^bugs?/? http://github.com/rg3/youtube-dl/issues [R=302,L]
