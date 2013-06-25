@@ -16,6 +16,10 @@ class WorldStarHipHopIE(InfoExtractor):
         video_url = self._search_regex(r'so\.addVariable\("file","(.*?)"\)',
             webpage_src, u'video URL')
 
+        if 'youtube' in video_url:
+            self.to_screen(u'Youtube video detected:')
+            return self.url_result(video_url, ie='Youtube')
+
         if 'mp4' in video_url:
             ext = 'mp4'
         else:
