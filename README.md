@@ -130,6 +130,7 @@ which means you can modify it, redistribute it or use it however you like.
     -u, --username USERNAME    account username
     -p, --password PASSWORD    account password
     -n, --netrc                use .netrc authentication data
+    --video-password PASSWORD  video password (vimeo only)
 
 ## Post-processing Options:
     -x, --extract-audio        convert video files to audio-only files (requires
