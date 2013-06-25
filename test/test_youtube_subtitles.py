@@ -100,7 +100,7 @@ class TestYoutubeSubtitles(unittest.TestCase):
         self.assertEqual(info_dict, None)
     def test_youtube_automatic_captions(self):
         DL = FakeYDL()
-        DL.params['writesubtitles'] = True
+        DL.params['writeautomaticsub'] = True
         DL.params['subtitleslang'] = 'it'
         IE = YoutubeIE(DL)
         info_dict = IE.extract('8YoUxe5ncPo')

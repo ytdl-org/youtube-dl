@@ -191,6 +191,9 @@ def parseOpts(overrideArguments=None):
     video_format.add_option('--write-sub', '--write-srt',
             action='store_true', dest='writesubtitles',
             help='write subtitle file (currently youtube only)', default=False)
+    video_format.add_option('--write-auto-sub', '--write-automatic-sub',
+            action='store_true', dest='writeautomaticsub',
+            help='write automatic subtitle file (currently youtube only)', default=False)
     video_format.add_option('--only-sub',
             action='store_true', dest='skip_download',
             help='[deprecated] alias of --skip-download', default=False)
@@ -537,6 +540,7 @@ def _real_main(argv=None):
         'writeinfojson': opts.writeinfojson,
         'writethumbnail': opts.writethumbnail,
         'writesubtitles': opts.writesubtitles,
+        'writeautomaticsub': opts.writeautomaticsub,
         'allsubtitles': opts.allsubtitles,
         'listsubtitles': opts.listsubtitles,
         'subtitlesformat': opts.subtitlesformat,

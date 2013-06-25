@@ -72,6 +72,7 @@ class YoutubeDL(object):
     writeinfojson:     Write the video description to a .info.json file
     writethumbnail:    Write the thumbnail image to a file
     writesubtitles:    Write the video subtitles to a file
+    writeautomaticsub: Write the automatic subtitles to a file
     allsubtitles:      Downloads all the subtitles of the video
     listsubtitles:     Lists all available subtitles for the video
     subtitlesformat:   Subtitle format [sbv/srt] (default=srt)
@@ -474,7 +475,7 @@ class YoutubeDL(object):
                 self.report_error(u'Cannot write description file ' + descfn)
                 return
 
-        if self.params.get('writesubtitles', False) and 'subtitles' in info_dict and info_dict['subtitles']:
+        if (self.params.get('writesubtitles', False) or self.params.get('writeautomaticsub')) and 'subtitles' in info_dict and info_dict['subtitles']:
             # subtitles download errors are already managed as troubles in relevant IE
             # that way it will silently go on when used with unsupporting IE
             subtitle = info_dict['subtitles'][0]

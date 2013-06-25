@@ -454,14 +454,13 @@ class YoutubeIE(InfoExtractor):
             if video_subtitles:
                 (sub_error, sub_lang, sub) = video_subtitles[0]
                 if sub_error:
-                    # We try with the automatic captions
-                    video_subtitles = self._request_automatic_caption(video_id, video_webpage)
-                    (sub_error_auto, sub_lang, sub) = video_subtitles[0]
-                    if sub is not None:
-                        pass
-                    else:
-                        # We report the original error
-                        self._downloader.report_warning(sub_error)
+                    self._downloader.report_warning(sub_error)
+        
+        if self._downloader.params.get('writeautomaticsub', False):
+            video_subtitles = self._request_automatic_caption(video_id, video_webpage)
+            (sub_error, sub_lang, sub) = video_subtitles[0]
+            if sub_error:
+                self._downloader.report_warning(sub_error)
 
         if self._downloader.params.get('allsubtitles', False):
             video_subtitles = self._extract_all_subtitles(video_id)
