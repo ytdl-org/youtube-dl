@@ -1,3 +1,4 @@
+# coding: utf-8
 import re
 
 from .common import InfoExtractor
@@ -13,12 +14,9 @@ class JukeboxIE(InfoExtractor):
     _TITLE = r'<h1 class="inline">(?P<title>[^<]+)</h1>.*<span id="infos_article_artist">(?P<artist>[^<]+)</span>'
     _NOT_AVAILABLE = r'<span>Este video no está disponible por el momento [!]</span>'
     _IS_YOUTUBE = r'config":{"file":"(?P<youtube_url>http:[\\][/][\\][/]www[.]youtube[.]com[\\][/]watch[?]v=[^"]+)"'
-    IE_NAME = u'jukebox'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
         video_id = mobj.group('video_id')
 
         html = self._download_webpage(url, video_id)
