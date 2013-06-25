@@ -211,7 +211,7 @@ class InfoExtractor(object):
             raise ExtractorError(u'Unable to extract %s' % _name)
         else:
             self._downloader.report_warning(u'unable to extract %s; '
-                u'please report this issue on GitHub.' % _name)
+                u'please report this issue on http://yt-dl.org/bug' % _name)
             return None
 
     def _html_search_regex(self, pattern, string, name, default=None, fatal=True, flags=0):

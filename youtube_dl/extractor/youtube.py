@@ -129,12 +129,13 @@ class YoutubeIE(InfoExtractor):
         """Indicate the download will use the RTMP protocol."""
         self.to_screen(u'RTMP download detected')
 
-    @staticmethod
-    def _decrypt_signature(s):
+    def _decrypt_signature(self, s):
         """Decrypt the key the two subkeys must have a length of 43"""
         (a,b) = s.split('.')
         if len(a) != 43 or len(b) != 43:
-            raise ExtractorError(u'Unable to decrypt signature, subkeys lengths not valid')
+            raise ExtractorError(u'Unable to decrypt signature, subkeys lengths %d.%d not supported; retrying might work' % (len(a), len(b)))
+        if self._downloader.params.get('verbose'):
+            self.to_screen('encrypted signature length %d.%d' % (len(a), len(b)))
         b = ''.join([b[:8],a[0],b[9:18],b[-4],b[19:39], b[18]])[0:40]
         a = a[-40:]
         s_dec = '.'.join((a,b))[::-1]
