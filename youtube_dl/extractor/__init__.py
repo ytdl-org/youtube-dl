@@ -4,8 +4,8 @@ from .arte import ArteTvIE
 from .bandcamp import BandcampIE
 from .bliptv import BlipTVIE, BlipTVUserIE
 from .breakcom import BreakIE
-from .comedycentral import ComedyCentralIE
 from .collegehumor import CollegeHumorIE
+from .comedycentral import ComedyCentralIE
 from .dailymotion import DailymotionIE
 from .depositfiles import DepositFilesIE
 from .eighttracks import EightTracksIE
@@ -21,8 +21,8 @@ from .howcast import HowcastIE
 from .hypem import HypemIE
 from .ina import InaIE
 from .infoq import InfoQIE
-from .justintv import JustinTVIE
 from .jukebox import JukeboxIE
+from .justintv import JustinTVIE
 from .keek import KeekIE
 from .liveleak import LiveLeakIE
 from .metacafe import MetacafeIE
@@ -31,7 +31,6 @@ from .mtv import MTVIE
 from .myspass import MySpassIE
 from .myvideo import MyVideoIE
 from .nba import NBAIE
-from .statigram import StatigramIE
 from .photobucket import PhotobucketIE
 from .pornotube import PornotubeIE
 from .rbmaradio import RBMARadioIE
@@ -39,9 +38,11 @@ from .redtube import RedTubeIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE
 from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
+from .statigram import StatigramIE
 from .steam import SteamIE
 from .teamcoco import TeamcocoIE
 from .ted import TEDIE
+from .tudou import TudouIE
 from .tumblr import TumblrIE
 from .ustream import UstreamIE
 from .vbox7 import Vbox7IE
@@ -49,8 +50,8 @@ from .vevo import VevoIE
 from .vimeo import VimeoIE
 from .vine import VineIE
 from .worldstarhiphop import WorldStarHipHopIE
-from .xnxx import XNXXIE
 from .xhamster import XHamsterIE
+from .xnxx import XNXXIE
 from .xvideos import XVideosIE
 from .yahoo import YahooIE, YahooSearchIE
 from .youjizz import YouJizzIE
@@ -58,7 +59,7 @@ from .youku import YoukuIE
 from .youporn import YouPornIE
 from .youtube import YoutubeIE, YoutubePlaylistIE, YoutubeSearchIE, YoutubeUserIE, YoutubeChannelIE
 from .zdf import ZDFIE
-from .tudou import TudouIE
+
 
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
