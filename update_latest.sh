@@ -8,6 +8,8 @@ if [ -z "$version" ]; then
 	exit 1
 fi
 
+cd "$(dirname $(readlink -f $0))"
+
 ln -sf ../downloads/$version latest/directory
 for f in $(ls "downloads/$version/"); do \
     ln -sf "../downloads/$version/$f" latest/$(echo $f | sed -e "s@-$version@@")
