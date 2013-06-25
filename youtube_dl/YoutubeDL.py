@@ -46,6 +46,7 @@ class YoutubeDL(object):
 
     username:          Username for authentication purposes.
     password:          Password for authentication purposes.
+    videopassword:     Password for acces a video.
     usenetrc:          Use netrc for authentication instead.
     verbose:           Print additional info to stdout.
     quiet:             Do not print messages to stdout.

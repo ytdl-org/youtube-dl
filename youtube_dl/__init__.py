@@ -173,6 +173,8 @@ def parseOpts(overrideArguments=None):
             dest='password', metavar='PASSWORD', help='account password')
     authentication.add_option('-n', '--netrc',
             action='store_true', dest='usenetrc', help='use .netrc authentication data', default=False)
+    authentication.add_option('--video-password',
+            dest='videopassword', metavar='PASSWORD', help='video password (vimeo only)')
 
 
     video_format.add_option('-f', '--format',
@@ -422,7 +424,7 @@ def _real_main(argv=None):
     if opts.usenetrc and (opts.username is not None or opts.password is not None):
         parser.error(u'using .netrc conflicts with giving username/password')
     if opts.password is not None and opts.username is None:
-        sys.stderr.write(u'WARNING: account username missing\n')
+        parser.error(u' account username missing\n')
     if opts.outtmpl is not None and (opts.usetitle or opts.autonumber or opts.useid):
         parser.error(u'using output template conflicts with using title, video ID or auto number')
     if opts.usetitle and opts.useid:
@@ -499,6 +501,7 @@ def _real_main(argv=None):
         'usenetrc': opts.usenetrc,
         'username': opts.username,
         'password': opts.password,
+        'videopassword': opts.videopassword,
         'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat),
         'forceurl': opts.geturl,
         'forcetitle': opts.gettitle,
