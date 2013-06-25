@@ -71,6 +71,7 @@ git checkout HEAD -- youtube-dl youtube-dl.exe
 for f in $RELEASE_FILES; do gpg --detach-sig "build/$version/$f"; done
 scp -r "build/$version" ytdl@yt-dl.org:html/tmp/
 ssh ytdl@yt-dl.org "mv html/tmp/$version html/downloads/"
+ssh ytdl@yt-dl.org "cd html/ && sh update_latest.sh $version"
 
 /bin/echo -e "\n### Now switching to gh-pages..."
 git clone --branch gh-pages --single-branch . build/gh-pages
