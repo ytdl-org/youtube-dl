@@ -58,6 +58,7 @@ from .youku import YoukuIE
 from .youporn import YouPornIE
 from .youtube import YoutubeIE, YoutubePlaylistIE, YoutubeSearchIE, YoutubeUserIE, YoutubeChannelIE
 from .zdf import ZDFIE
+from .tudou import TudouIE
 
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
@@ -129,6 +130,7 @@ def gen_extractors():
         BreakIE(),
         VevoIE(),
         JukeboxIE(),
+        TudouIE(),
         GenericIE()
     ]
 
