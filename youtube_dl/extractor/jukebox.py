@@ -41,8 +41,8 @@ class JukeboxIE(InfoExtractor):
             if mobj is None:
                 raise ExtractorError(u'Cannot extract video url')
             youtube_url = unescapeHTML(mobj.group('youtube_url')).replace('\/','/')
-            #TODO: call YoutubeIE !?
-            raise ExtractorError(u'found YT video. Please run youtube-dl again and use the following link: '+youtube_url+' ')
+            self.to_screen(u'Youtube video detected')
+            return self.url_result(youtube_url,ie='Youtube')
         video_url = unescapeHTML(mobj.group('video_url')).replace('\/','/')
         video_ext = unescapeHTML(mobj.group('video_ext'))
 
