@@ -273,8 +273,8 @@ class YoutubeIE(InfoExtractor):
         except KeyError:
             self._downloader.report_warning(err_msg)
             return {}
-
-    def _extract_subtitle(self, video_id):
+    
+    def _extract_subtitles(self, video_id):
         """
         Return a dictionary: {language: subtitles} or {} if the subtitles
         couldn't be found
@@ -283,30 +283,17 @@ class YoutubeIE(InfoExtractor):
         sub_format = self._downloader.params.get('subtitlesformat')
         if  not sub_lang_list: #There was some error, it didn't get the available subtitles
             return {}
-        if self._downloader.params.get('subtitleslang', False):
-            sub_lang = self._downloader.params.get('subtitleslang')
-        elif 'en' in sub_lang_list:
-            sub_lang = 'en'
-        else:
-            sub_lang = list(sub_lang_list.keys())[0]
-        if not sub_lang in sub_lang_list:
-            self._downloader.report_warning(u'no closed captions found in the specified language "%s"' % sub_lang)
-            return {}
-
-        subtitle = self._request_subtitle(sub_lang, sub_lang_list[sub_lang].encode('utf-8'), video_id, sub_format)
-        if subtitle:
-            self.to_screen('sub %s' % subtitle[:20])
-            return {sub_lang: subtitle}
-        else:
-            return {}
-
-    def _extract_all_subtitles(self, video_id):
-        """
-        Return a dicitonary: {language: subtitles} or {} if the subtitles
-        couldn't be found
-        """
-        sub_lang_list = self._get_available_subtitles(video_id)
-        sub_format = self._downloader.params.get('subtitlesformat')
+        if self._downloader.params.get('writesubtitles', False):
+            if self._downloader.params.get('subtitleslang', False):
+                sub_lang = self._downloader.params.get('subtitleslang')
+            elif 'en' in sub_lang_list:
+                sub_lang = 'en'
+            else:
+                sub_lang = list(sub_lang_list.keys())[0]
+            if not sub_lang in sub_lang_list:
+                self._downloader.report_warning(u'no closed captions found in the specified language "%s"' % sub_lang)
+                return {}
+            sub_lang_list = {sub_lang: sub_lang_list[sub_lang]}
         subtitles = {}
         for sub_lang in sub_lang_list:
             subtitle = self._request_subtitle(sub_lang, sub_lang_list[sub_lang].encode('utf-8'), video_id, sub_format)
@@ -534,13 +521,10 @@ class YoutubeIE(InfoExtractor):
         # subtitles
         video_subtitles = None
 
-        if self._downloader.params.get('writesubtitles', False):
-            video_subtitles = self._extract_subtitle(video_id)
+        if self._downloader.params.get('writesubtitles', False) or self._downloader.params.get('allsubtitles', False):
+            video_subtitles = self._extract_subtitles(video_id)
         elif self._downloader.params.get('writeautomaticsub', False):
             video_subtitles = self._request_automatic_caption(video_id, video_webpage)
-
-        if self._downloader.params.get('allsubtitles', False):
-            video_subtitles = self._extract_all_subtitles(video_id)
 
         if self._downloader.params.get('listsubtitles', False):
             self._list_available_subtitles(video_id)
