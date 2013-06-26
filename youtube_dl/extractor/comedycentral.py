@@ -172,7 +172,7 @@ class ComedyCentralIE(InfoExtractor):
                 'ext': 'mp4',
                 'format': format,
                 'thumbnail': None,
-                'description': officialTitle,
+                'description': compat_str(officialTitle),
             }
             results.append(info)
 
