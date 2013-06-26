@@ -75,7 +75,7 @@ class YoutubeDL(object):
     writeautomaticsub: Write the automatic subtitles to a file
     allsubtitles:      Downloads all the subtitles of the video
     listsubtitles:     Lists all available subtitles for the video
-    subtitlesformat:   Subtitle format [sbv/srt] (default=srt)
+    subtitlesformat:   Subtitle format [srt/sbv/vtt] (default=srt)
     subtitleslang:     Language of the subtitles to download
     keepvideo:         Keep the video file after post-processing
     daterange:         A DateRange object, download only if the upload_date is in the range.
