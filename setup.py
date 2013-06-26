@@ -27,13 +27,15 @@ py2exe_options = {
     "dist_dir": '.',
     "dll_excludes": ['w9xpopen.exe'],
 }
+
 py2exe_console = [{
     "script": "./youtube_dl/__main__.py",
     "dest_base": "youtube-dl",
 }]
+
 py2exe_params = {
     'console': py2exe_console,
-    'options': { "py2exe": py2exe_options },
+    'options': {"py2exe": py2exe_options},
     'zipfile': None
 }
 
@@ -42,13 +44,16 @@ if len(sys.argv) >= 2 and sys.argv[1] == 'py2exe':
 else:
     params = {
         'scripts': ['bin/youtube-dl'],
-        'data_files': [('etc/bash_completion.d', ['youtube-dl.bash-completion']), # Installing system-wide would require sudo...
-                       ('share/doc/youtube_dl', ['README.txt']),
-                       ('share/man/man1/', ['youtube-dl.1'])]
+        'data_files': [  # Installing system-wide would require sudo...
+            ('etc/bash_completion.d', ['youtube-dl.bash-completion']),
+            ('share/doc/youtube_dl', ['README.txt']),
+            ('share/man/man1/', ['youtube-dl.1'])
+        ]
     }
 
 # Get the version from youtube_dl/version.py without importing the package
-exec(compile(open('youtube_dl/version.py').read(), 'youtube_dl/version.py', 'exec'))
+exec(compile(open('youtube_dl/version.py').read(),
+             'youtube_dl/version.py', 'exec'))
 
 setup(
     name = 'youtube_dl',
