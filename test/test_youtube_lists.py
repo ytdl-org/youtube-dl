@@ -8,9 +8,9 @@ import json
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.InfoExtractors import YoutubeUserIE, YoutubePlaylistIE, YoutubeIE, YoutubeChannelIE
+from youtube_dl.extractor import YoutubeUserIE, YoutubePlaylistIE, YoutubeIE, YoutubeChannelIE
 from youtube_dl.utils import *
-from youtube_dl.FileDownloader import FileDownloader
+from youtube_dl import YoutubeDL
 
 PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
 with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
@@ -23,7 +23,7 @@ proxy_handler = compat_urllib_request.ProxyHandler()
 opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
 compat_urllib_request.install_opener(opener)
 
-class FakeDownloader(FileDownloader):
+class FakeYDL(YoutubeDL):
     def __init__(self):
         self.result = []
         self.params = parameters
@@ -41,7 +41,7 @@ class TestYoutubeLists(unittest.TestCase):
         self.assertEqual(info['_type'], 'playlist')
 
     def test_youtube_playlist(self):
-        dl = FakeDownloader()
+        dl = FakeYDL()
         ie = YoutubePlaylistIE(dl)
         result = ie.extract('https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re')[0]
         self.assertIsPlaylist(result)
@@ -50,13 +50,13 @@ class TestYoutubeLists(unittest.TestCase):
         self.assertEqual(ytie_results, [ 'bV9L5Ht9LgY', 'FXxLjLQi3Fg', 'tU3Bgo5qJZE'])
 
     def test_issue_673(self):
-        dl = FakeDownloader()
+        dl = FakeYDL()
         ie = YoutubePlaylistIE(dl)
         result = ie.extract('PLBB231211A4F62143')[0]
         self.assertTrue(len(result['entries']) > 25)
 
     def test_youtube_playlist_long(self):
-        dl = FakeDownloader()
+        dl = FakeYDL()
         ie = YoutubePlaylistIE(dl)
         result = ie.extract('https://www.youtube.com/playlist?list=UUBABnxM4Ar9ten8Mdjj1j0Q')[0]
         self.assertIsPlaylist(result)
@@ -64,7 +64,7 @@ class TestYoutubeLists(unittest.TestCase):
 
     def test_youtube_playlist_with_deleted(self):
         #651
-        dl = FakeDownloader()
+        dl = FakeYDL()
         ie = YoutubePlaylistIE(dl)
         result = ie.extract('https://www.youtube.com/playlist?list=PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC')[0]
         ytie_results = [YoutubeIE()._extract_id(url['url']) for url in result['entries']]
@@ -72,14 +72,14 @@ class TestYoutubeLists(unittest.TestCase):
         self.assertFalse('KdPEApIVdWM' in ytie_results)
         
     def test_youtube_playlist_empty(self):
-        dl = FakeDownloader()
+        dl = FakeYDL()
         ie = YoutubePlaylistIE(dl)
         result = ie.extract('https://www.youtube.com/playlist?list=PLtPgu7CB4gbZDA7i_euNxn75ISqxwZPYx')[0]
         self.assertIsPlaylist(result)
         self.assertEqual(len(result['entries']), 0)
 
     def test_youtube_course(self):
-        dl = FakeDownloader()
+        dl = FakeYDL()
         ie = YoutubePlaylistIE(dl)
         # TODO find a > 100 (paginating?) videos course
         result = ie.extract('https://www.youtube.com/course?list=ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8')[0]
@@ -89,7 +89,7 @@ class TestYoutubeLists(unittest.TestCase):
         self.assertEqual(YoutubeIE()._extract_id(entries[-1]['url']), 'rYefUsYuEp0')
 
     def test_youtube_channel(self):
-        dl = FakeDownloader()
+        dl = FakeYDL()
         ie = YoutubeChannelIE(dl)
         #test paginated channel
         result = ie.extract('https://www.youtube.com/channel/UCKfVa3S1e4PHvxWcwyMMg8w')[0]
@@ -99,13 +99,13 @@ class TestYoutubeLists(unittest.TestCase):
         self.assertTrue(len(result['entries']) >= 18)
 
     def test_youtube_user(self):
-        dl = FakeDownloader()
+        dl = FakeYDL()
         ie = YoutubeUserIE(dl)
         result = ie.extract('https://www.youtube.com/user/TheLinuxFoundation')[0]
         self.assertTrue(len(result['entries']) >= 320)
 
     def test_youtube_safe_search(self):
-        dl = FakeDownloader()
+        dl = FakeYDL()
         ie = YoutubePlaylistIE(dl)
         result = ie.extract('PLtPgu7CB4gbY9oDN3drwC3cMbJggS7dKl')[0]
         self.assertEqual(len(result['entries']), 2)

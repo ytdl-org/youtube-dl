@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+
 import pkg_resources
 import sys
 
@@ -23,7 +24,7 @@ py2exe_options = {
     "compressed": 1,
     "optimize": 2,
     "dist_dir": '.',
-    "dll_excludes": ['w9xpopen.exe']
+    "dll_excludes": ['w9xpopen.exe'],
 }
 py2exe_console = [{
     "script": "./youtube_dl/__main__.py",
@@ -57,7 +58,7 @@ setup(
     author = 'Ricardo Garcia',
     maintainer = 'Philipp Hagemeister',
     maintainer_email = 'phihag@phihag.de',
-    packages = ['youtube_dl'],
+    packages = ['youtube_dl', 'youtube_dl.extractor'],
 
     # Provokes warning on most systems (why?!)
     #test_suite = 'nose.collector',

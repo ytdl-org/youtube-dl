@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import with_statement
-from __future__ import absolute_import
-
 __authors__  = (
     'Ricardo Garcia Gonzalez',
     'Danny Colligan',
@@ -28,6 +25,7 @@ __authors__  = (
     'M. Yasoob Ullah Khalid',
     'Julien Fraichard',
     'Johny Mo Swag',
+    'Axel Noack',
     )
 
 __license__ = 'Public Domain'
@@ -48,7 +46,8 @@ from .utils import *
 from .update import update_self
 from .version import __version__
 from .FileDownloader import *
-from .InfoExtractors import gen_extractors
+from .extractor import gen_extractors
+from .YoutubeDL import YoutubeDL
 from .PostProcessor import *
 
 def parseOpts(overrideArguments=None):
@@ -174,6 +173,8 @@ def parseOpts(overrideArguments=None):
             dest='password', metavar='PASSWORD', help='account password')
     authentication.add_option('-n', '--netrc',
             action='store_true', dest='usenetrc', help='use .netrc authentication data', default=False)
+    authentication.add_option('--video-password',
+            dest='videopassword', metavar='PASSWORD', help='video password (vimeo only)')
 
 
     video_format.add_option('-f', '--format',
@@ -190,6 +191,9 @@ def parseOpts(overrideArguments=None):
     video_format.add_option('--write-sub', '--write-srt',
             action='store_true', dest='writesubtitles',
             help='write subtitle file (currently youtube only)', default=False)
+    video_format.add_option('--write-auto-sub', '--write-automatic-sub',
+            action='store_true', dest='writeautomaticsub',
+            help='write automatic subtitle file (currently youtube only)', default=False)
     video_format.add_option('--only-sub',
             action='store_true', dest='skip_download',
             help='[deprecated] alias of --skip-download', default=False)
@@ -200,7 +204,7 @@ def parseOpts(overrideArguments=None):
             action='store_true', dest='listsubtitles',
             help='lists all available subtitles for the video (currently youtube only)', default=False)
     video_format.add_option('--sub-format',
-            action='store', dest='subtitlesformat', metavar='LANG',
+            action='store', dest='subtitlesformat', metavar='FORMAT',
             help='subtitle format [srt/sbv] (default=srt) (currently youtube only)', default='srt')
     video_format.add_option('--sub-lang', '--srt-lang',
             action='store', dest='subtitleslang', metavar='LANG',
@@ -321,7 +325,7 @@ def parseOpts(overrideArguments=None):
     if overrideArguments is not None:
         opts, args = parser.parse_args(overrideArguments)
         if opts.verbose:
-            print(u'[debug] Override config: ' + repr(overrideArguments))
+            sys.stderr.write(u'[debug] Override config: ' + repr(overrideArguments) + '\n')
     else:
         xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
         if xdg_config_home:
@@ -334,9 +338,9 @@ def parseOpts(overrideArguments=None):
         argv = systemConf + userConf + commandLineConf
         opts, args = parser.parse_args(argv)
         if opts.verbose:
-            print(u'[debug] System config: ' + repr(systemConf))
-            print(u'[debug] User config: ' + repr(userConf))
-            print(u'[debug] Command-line args: ' + repr(commandLineConf))
+            sys.stderr.write(u'[debug] System config: ' + repr(systemConf) + '\n')
+            sys.stderr.write(u'[debug] User config: ' + repr(userConf) + '\n')
+            sys.stderr.write(u'[debug] Command-line args: ' + repr(commandLineConf) + '\n')
 
     return parser, opts, args
 
@@ -375,7 +379,7 @@ def _real_main(argv=None):
 
     # Dump user agent
     if opts.dump_user_agent:
-        print(std_headers['User-Agent'])
+        compat_print(std_headers['User-Agent'])
         sys.exit(0)
 
     # Batch file verification
@@ -416,18 +420,18 @@ def _real_main(argv=None):
 
     if opts.list_extractors:
         for ie in extractors:
-            print(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else ''))
+            compat_print(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else ''))
             matchedUrls = [url for url in all_urls if ie.suitable(url)]
             all_urls = [url for url in all_urls if url not in matchedUrls]
             for mu in matchedUrls:
-                print(u'  ' + mu)
+                compat_print(u'  ' + mu)
         sys.exit(0)
 
     # Conflicting, missing and erroneous options
     if opts.usenetrc and (opts.username is not None or opts.password is not None):
         parser.error(u'using .netrc conflicts with giving username/password')
     if opts.password is not None and opts.username is None:
-        parser.error(u'account username missing')
+        parser.error(u' account username missing\n')
     if opts.outtmpl is not None and (opts.usetitle or opts.autonumber or opts.useid):
         parser.error(u'using output template conflicts with using title, video ID or auto number')
     if opts.usetitle and opts.useid:
@@ -499,11 +503,12 @@ def _real_main(argv=None):
             or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
             or u'%(title)s-%(id)s.%(ext)s')
 
-    # File downloader
-    fd = FileDownloader({
+    # YoutubeDL
+    ydl = YoutubeDL({
         'usenetrc': opts.usenetrc,
         'username': opts.username,
         'password': opts.password,
+        'videopassword': opts.videopassword,
         'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat),
         'forceurl': opts.geturl,
         'forcetitle': opts.gettitle,
@@ -539,6 +544,7 @@ def _real_main(argv=None):
         'writeinfojson': opts.writeinfojson,
         'writethumbnail': opts.writethumbnail,
         'writesubtitles': opts.writesubtitles,
+        'writeautomaticsub': opts.writeautomaticsub,
         'allsubtitles': opts.allsubtitles,
         'listsubtitles': opts.listsubtitles,
         'subtitlesformat': opts.subtitlesformat,
@@ -557,31 +563,31 @@ def _real_main(argv=None):
         })
 
     if opts.verbose:
-        fd.to_screen(u'[debug] youtube-dl version ' + __version__)
+        ydl.to_screen(u'[debug] youtube-dl version ' + __version__)
         try:
             sp = subprocess.Popen(['git', 'rev-parse', '--short', 'HEAD'], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                   cwd=os.path.dirname(os.path.abspath(__file__)))
             out, err = sp.communicate()
             out = out.decode().strip()
             if re.match('[0-9a-f]+', out):
-                fd.to_screen(u'[debug] Git HEAD: ' + out)
+                ydl.to_screen(u'[debug] Git HEAD: ' + out)
         except:
             pass
-        fd.to_screen(u'[debug] Python version %s - %s' %(platform.python_version(), platform.platform()))
-        fd.to_screen(u'[debug] Proxy map: ' + str(proxy_handler.proxies))
+        ydl.to_screen(u'[debug] Python version %s - %s' %(platform.python_version(), platform.platform()))
+        ydl.to_screen(u'[debug] Proxy map: ' + str(proxy_handler.proxies))
 
     for extractor in extractors:
-        fd.add_info_extractor(extractor)
+        ydl.add_info_extractor(extractor)
 
     # PostProcessors
     if opts.extractaudio:
-        fd.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
+        ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
     if opts.recodevideo:
-        fd.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
+        ydl.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
 
     # Update version
     if opts.update_self:
-        update_self(fd.to_screen, opts.verbose, sys.argv[0])
+        update_self(ydl.to_screen, opts.verbose, sys.argv[0])
 
     # Maybe do nothing
     if len(all_urls) < 1:
@@ -591,9 +597,9 @@ def _real_main(argv=None):
             sys.exit()
 
     try:
-        retcode = fd.download(all_urls)
+        retcode = ydl.download(all_urls)
     except MaxDownloadsReached:
-        fd.to_screen(u'--max-download limit reached, aborting.')
+        ydl.to_screen(u'--max-download limit reached, aborting.')
         retcode = 101
 
     # Dump cookie jar if requested

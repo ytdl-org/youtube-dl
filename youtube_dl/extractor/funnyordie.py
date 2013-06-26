@@ -1,0 +1,31 @@
+import re
+
+from .common import InfoExtractor
+
+
+class FunnyOrDieIE(InfoExtractor):
+    _VALID_URL = r'^(?:https?://)?(?:www\.)?funnyordie\.com/videos/(?P<id>[0-9a-f]+)/.*$'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+
+        video_id = mobj.group('id')
+        webpage = self._download_webpage(url, video_id)
+
+        video_url = self._html_search_regex(r'<video[^>]*>\s*<source[^>]*>\s*<source src="(?P<url>[^"]+)"',
+            webpage, u'video URL', flags=re.DOTALL)
+
+        title = self._html_search_regex((r"<h1 class='player_page_h1'.*?>(?P<title>.*?)</h1>",
+            r'<title>(?P<title>[^<]+?)</title>'), webpage, 'title', flags=re.DOTALL)
+
+        video_description = self._html_search_regex(r'<meta property="og:description" content="(?P<desc>.*?)"',
+            webpage, u'description', fatal=False, flags=re.DOTALL)
+
+        info = {
+            'id': video_id,
+            'url': video_url,
+            'ext': 'mp4',
+            'title': title,
+            'description': video_description,
+        }
+        return [info]

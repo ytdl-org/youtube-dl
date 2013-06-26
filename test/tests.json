@@ -12,6 +12,32 @@
     }
   },
   {
+    "name": "Youtube",
+    "url":  "http://www.youtube.com/watch?v=1ltcDfZMA3U",
+    "file":  "1ltcDfZMA3U.flv",
+    "note": "Test VEVO video (#897)",
+    "info_dict": {
+      "upload_date": "20070518",
+      "title": "Maps - It Will Find You",
+      "description": "Music video by Maps performing It Will Find You.",
+      "uploader": "MuteUSA",
+      "uploader_id": "MuteUSA"
+    }
+  },
+  {
+    "name": "Youtube",
+    "url":  "http://www.youtube.com/watch?v=UxxajLWwzqY",
+    "file":  "UxxajLWwzqY.mp4",
+    "note": "Test generic use_cipher_signature video (#897)",
+    "info_dict": {
+      "upload_date": "20120506",
+      "title": "Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]",
+      "description": "md5:b085c9804f5ab69f4adea963a2dceb3c",
+      "uploader": "IconaPop",
+      "uploader_id": "IconaPop"
+    }
+  },
+  {
     "name": "Dailymotion",
     "md5":  "392c4b85a60a90dc4792da41ce3144eb",
     "url":  "http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech",
@@ -630,5 +656,44 @@
         "title": "E3 2013: Debut Trailer"
     },
     "skip": "Requires rtmpdump"
+  },
+  {
+    "name": "Statigram",
+    "url": "http://statigr.am/p/484091715184808010_284179915",
+    "file": "484091715184808010_284179915.mp4",
+    "md5": "deda4ff333abe2e118740321e992605b",
+    "info_dict": {
+        "uploader_id": "videoseconds",
+        "title": "Instagram photo by @videoseconds (Videos)"
+    }
+  },
+  {
+    "name": "Break",
+    "url": "http://www.break.com/video/when-girls-act-like-guys-2468056",
+    "file": "2468056.mp4",
+    "md5": "a3513fb1547fba4fb6cfac1bffc6c46b",
+    "info_dict": {
+        "title": "When Girls Act Like D-Bags"
+    }
+  },
+  {
+    "name": "Vevo",
+    "url": "http://www.vevo.com/watch/hurts/somebody-to-die-for/GB1101300280",
+    "file": "GB1101300280.mp4",
+    "md5": "06bea460acb744eab74a9d7dcb4bfd61",
+    "info_dict": {
+        "title": "Somebody To Die For",
+        "upload_date": "20130624",
+        "uploader": "Hurts"
+    }
+  },
+  {
+    "name": "Tudou",
+    "url": "http://www.tudou.com/listplay/zzdE77v6Mmo/2xN2duXMxmw.html",
+    "file": "159447792.f4v",
+    "md5": "ad7c358a01541e926a1e413612c6b10a",
+    "info_dict": {
+        "title": "卡马乔国足开大脚长传冲吊集锦"
+    }
   }
 ]

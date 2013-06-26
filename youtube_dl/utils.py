@@ -474,7 +474,7 @@ class ExtractorError(Exception):
         """ tb, if given, is the original traceback (so that it can be printed out). """
 
         if not sys.exc_info()[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError):
-            msg = msg + u'; please report this issue on GitHub.'
+            msg = msg + u'; please report this issue on http://yt-dl.org/bug'
         super(ExtractorError, self).__init__(msg)
 
         self.traceback = tb

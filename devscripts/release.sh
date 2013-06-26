@@ -14,6 +14,12 @@
 
 set -e
 
+skip_tests=false
+if [ "$1" = '--skip-test' ]; then
+    skip_tests=true
+    shift
+fi
+
 if [ -z "$1" ]; then echo "ERROR: specify version number like this: $0 1994.09.06"; exit 1; fi
 version="$1"
 if [ ! -z "`git tag | grep "$version"`" ]; then echo 'ERROR: version already present'; exit 1; fi
@@ -22,7 +28,11 @@ if [ ! -f "updates_key.pem" ]; then echo 'ERROR: updates_key.pem missing'; exit 
 
 /bin/echo -e "\n### First of all, testing..."
 make cleanall
-nosetests --verbose --with-coverage --cover-package=youtube_dl --cover-html test --stop || exit 1
+if $skip_tests ; then
+    echo 'SKIPPING TESTS'
+else
+    nosetests --verbose --with-coverage --cover-package=youtube_dl --cover-html test --stop || exit 1
+fi
 
 /bin/echo -e "\n### Changing version in version.py..."
 sed -i "s/__version__ = '.*'/__version__ = '$version'/" youtube_dl/version.py
@@ -59,7 +69,9 @@ git checkout HEAD -- youtube-dl youtube-dl.exe
 
 /bin/echo -e "\n### Signing and uploading the new binaries to youtube-dl.org..."
 for f in $RELEASE_FILES; do gpg --detach-sig "build/$version/$f"; done
-scp -r "build/$version" ytdl@youtube-dl.org:html/downloads/
+scp -r "build/$version" ytdl@yt-dl.org:html/tmp/
+ssh ytdl@yt-dl.org "mv html/tmp/$version html/downloads/"
+ssh ytdl@yt-dl.org "sh html/update_latest.sh $version"
 
 /bin/echo -e "\n### Now switching to gh-pages..."
 git clone --branch gh-pages --single-branch . build/gh-pages

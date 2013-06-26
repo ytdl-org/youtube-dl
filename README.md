@@ -1,7 +1,7 @@
 % YOUTUBE-DL(1)
 
 # NAME
-youtube-dl
+youtube-dl - download videos from youtube.com or other video platforms
 
 # SYNOPSIS
 **youtube-dl** [OPTIONS] URL [URL...]
@@ -121,7 +121,7 @@ which means you can modify it, redistribute it or use it however you like.
                                video (currently youtube only)
     --list-subs                lists all available subtitles for the video
                                (currently youtube only)
-    --sub-format LANG          subtitle format [srt/sbv] (default=srt)
+    --sub-format FORMAT        subtitle format [srt/sbv] (default=srt)
                                (currently youtube only)
     --sub-lang LANG            language of the subtitles to download (optional)
                                use IETF language tags like 'en'
@@ -130,6 +130,7 @@ which means you can modify it, redistribute it or use it however you like.
     -u, --username USERNAME    account username
     -p, --password PASSWORD    account password
     -n, --netrc                use .netrc authentication data
+    --video-password PASSWORD  video password (vimeo only)
 
 ## Post-processing Options:
     -x, --extract-audio        convert video files to audio-only files (requires
