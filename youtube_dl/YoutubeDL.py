@@ -492,19 +492,16 @@ class YoutubeDL(object):
             # that way it will silently go on when used with unsupporting IE
             subtitles = info_dict['subtitles']
             sub_format = self.params.get('subtitlesformat')
-            for subtitle in subtitles:
-                (sub_error, sub_lang, sub) = subtitle
-                if sub_error:
-                    self.report_warning("Some error while getting the subtitles")
-                else:
-                    try:
-                        sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
-                        self.report_writesubtitles(sub_filename)
-                        with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
-                                subfile.write(sub)
-                    except (OSError, IOError):
-                        self.report_error(u'Cannot write subtitles file ' + descfn)
-                        return
+            for sub_lang in subtitles.keys():
+                sub = subtitles[sub_lang]
+                try:
+                    sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
+                    self.report_writesubtitles(sub_filename)
+                    with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
+                            subfile.write(sub)
+                except (OSError, IOError):
+                    self.report_error(u'Cannot write subtitles file ' + descfn)
+                    return
 
         if self.params.get('writeinfojson', False):
             infofn = filename + u'.info.json'
