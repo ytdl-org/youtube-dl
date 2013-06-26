@@ -10,11 +10,11 @@ class WimpIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group(1)
         webpage = self._download_webpage(url, video_id)
-        title = re.search('\<meta name\="description" content="(.+?)" \/\>',webpage).group(1)
-        thumbnail_url = re.search('\<meta property\=\"og\:image" content\=\"(.+?)\" />',webpage).group(1)
-        googleString = re.search("googleCode = '(.*?)'", webpage)
-        googleString = base64.b64decode(googleString.group(1))
-        final_url = re.search('","(.*?)"', googleString).group(1)
+        title = self._search_regex('\<meta name\="description" content="(.+?)" \/\>',webpage, 'video title')
+        thumbnail_url = self._search_regex('\<meta property\=\"og\:image" content\=\"(.+?)\" />',webpage,'video thumbnail')
+        googleString = self._search_regex("googleCode = '(.*?)'", webpage,'file url')
+        googleString = base64.b64decode(googleString)
+        final_url = self._search_regex('","(.*?)"', googleString,'final video url')
         ext = final_url.split('.')[-1]
         return [{
             'id':        video_id,
@@ -23,3 +23,4 @@ class WimpIE(InfoExtractor):
             'title':     title,
             'thumbnail': thumbnail_url,
         }]
+
