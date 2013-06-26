@@ -13,8 +13,8 @@ class WimpIE(InfoExtractor):
         title = self._search_regex('\<meta name\="description" content="(.+?)" \/\>',webpage, 'video title')
         thumbnail_url = self._search_regex('\<meta property\=\"og\:image" content\=\"(.+?)\" />',webpage,'video thumbnail')
         googleString = self._search_regex("googleCode = '(.*?)'", webpage,'file url')
-        googleString = base64.b64decode(googleString)
-        final_url = self._search_regex(b'","(.*?)"', googleString,'final video url')
+        googleString = base64.b64decode(googleString).decode('ascii')
+        final_url = self._search_regex('","(.*?)"', googleString,'final video url')
         ext = final_url.split('.')[-1]
         return [{
             'id':        video_id,
