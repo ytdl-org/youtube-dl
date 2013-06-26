@@ -116,12 +116,13 @@ which means you can modify it, redistribute it or use it however you like.
     -F, --list-formats         list all available formats (currently youtube
                                only)
     --write-sub                write subtitle file (currently youtube only)
+    --write-auto-sub           write automatic subtitle file (currently youtube only)
     --only-sub                 [deprecated] alias of --skip-download
     --all-subs                 downloads all the available subtitles of the
                                video (currently youtube only)
     --list-subs                lists all available subtitles for the video
                                (currently youtube only)
-    --sub-format FORMAT        subtitle format [srt/sbv] (default=srt)
+    --sub-format FORMAT        subtitle format [srt/sbv/vtt] (default=srt)
                                (currently youtube only)
     --sub-lang LANG            language of the subtitles to download (optional)
                                use IETF language tags like 'en'
