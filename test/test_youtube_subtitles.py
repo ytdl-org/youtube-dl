@@ -84,7 +84,7 @@ class TestYoutubeSubtitles(unittest.TestCase):
         info_dict = IE.extract('QRS8MkLhQmM')
         subtitles = info_dict[0]['subtitles']
         self.assertEqual(len(subtitles), 13)
-    def test_youtube_subtitles_format(self):
+    def test_youtube_subtitles_sbv_format(self):
         DL = FakeYDL()
         DL.params['writesubtitles'] = True
         DL.params['subtitlesformat'] = 'sbv'
@@ -92,6 +92,14 @@ class TestYoutubeSubtitles(unittest.TestCase):
         info_dict = IE.extract('QRS8MkLhQmM')
         sub = info_dict[0]['subtitles'][0]
         self.assertEqual(md5(sub[2]), '13aeaa0c245a8bed9a451cb643e3ad8b')
+    def test_youtube_subtitles_vtt_format(self):
+        DL = FakeYDL()
+        DL.params['writesubtitles'] = True
+        DL.params['subtitlesformat'] = 'vtt'
+        IE = YoutubeIE(DL)
+        info_dict = IE.extract('QRS8MkLhQmM')
+        sub = info_dict[0]['subtitles'][0]
+        self.assertEqual(md5(sub[2]), '356cdc577fde0c6783b9b822e7206ff7')
     def test_youtube_list_subtitles(self):
         DL = FakeYDL()
         DL.params['listsubtitles'] = True

@@ -205,7 +205,7 @@ def parseOpts(overrideArguments=None):
             help='lists all available subtitles for the video (currently youtube only)', default=False)
     video_format.add_option('--sub-format',
             action='store', dest='subtitlesformat', metavar='FORMAT',
-            help='subtitle format [srt/sbv] (default=srt) (currently youtube only)', default='srt')
+            help='subtitle format [srt/sbv/vtt] (default=srt) (currently youtube only)', default='srt')
     video_format.add_option('--sub-lang', '--srt-lang',
             action='store', dest='subtitleslang', metavar='LANG',
             help='language of the subtitles to download (optional) use IETF language tags like \'en\'')
