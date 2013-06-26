@@ -14,7 +14,7 @@ class WimpIE(InfoExtractor):
         thumbnail_url = self._search_regex('\<meta property\=\"og\:image" content\=\"(.+?)\" />',webpage,'video thumbnail')
         googleString = self._search_regex("googleCode = '(.*?)'", webpage,'file url')
         googleString = base64.b64decode(googleString)
-        final_url = self._search_regex('","(.*?)"', googleString,'final video url')
+        final_url = self._search_regex(b'","(.*?)"', googleString,'final video url')
         ext = final_url.split('.')[-1]
         return [{
             'id':        video_id,
