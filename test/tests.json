@@ -695,5 +695,15 @@
     "info_dict": {
         "title": "卡马乔国足开大脚长传冲吊集锦"
     }
+  },
+  {
+    "name": "CSpan",
+    "url": "http://www.c-spanvideo.org/program/HolderonV",
+    "file": "315139.flv",
+    "md5": "74a623266956f69e4df0068ab6c80fe4",
+    "info_dict": {
+        "title": "Attorney General Eric Holder on Voting Rights Act Decision"
+    },
+    "skip": "Requires rtmpdump"
   }
 ]

@@ -6,6 +6,7 @@ from .bliptv import BlipTVIE, BlipTVUserIE
 from .breakcom import BreakIE
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE
+from .cspan import CSpanIE
 from .dailymotion import DailymotionIE
 from .depositfiles import DepositFilesIE
 from .eighttracks import EightTracksIE
@@ -132,6 +133,7 @@ def gen_extractors():
         VevoIE(),
         JukeboxIE(),
         TudouIE(),
+        CSpanIE(),
         GenericIE()
     ]
 
