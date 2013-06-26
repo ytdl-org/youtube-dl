@@ -50,6 +50,7 @@ from .vbox7 import Vbox7IE
 from .vevo import VevoIE
 from .vimeo import VimeoIE
 from .vine import VineIE
+from .wimp import WimpIE
 from .worldstarhiphop import WorldStarHipHopIE
 from .xhamster import XHamsterIE
 from .xnxx import XNXXIE
@@ -134,6 +135,7 @@ def gen_extractors():
         JukeboxIE(),
         TudouIE(),
         CSpanIE(),
+        WimpIE(),
         GenericIE()
     ]
 

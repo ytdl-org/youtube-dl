@@ -705,5 +705,14 @@
         "title": "Attorney General Eric Holder on Voting Rights Act Decision"
     },
     "skip": "Requires rtmpdump"
+  },
+  {
+    "name": "Wimp",
+    "url": "http://www.wimp.com/deerfence/",
+    "file": "deerfence.flv",
+    "md5": "8b215e2e0168c6081a1cf84b2846a2b5",
+    "info_dict": {
+        "title": "Watch Till End: Herd of deer jump over a fence."
+    }
   }
 ]
