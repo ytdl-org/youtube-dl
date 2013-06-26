@@ -12,8 +12,9 @@ except ImportError:
     from distutils.core import setup
 
 try:
+    # This will create an exe that needs Microsoft Visual C++ 2008
+    # Redistributable Package
     import py2exe
-    """This will create an exe that needs Microsoft Visual C++ 2008 Redistributable Package"""
 except ImportError:
     if len(sys.argv) >= 2 and sys.argv[1] == 'py2exe':
         print("Cannot import py2exe", file=sys.stderr)
