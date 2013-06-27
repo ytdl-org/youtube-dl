@@ -168,7 +168,7 @@ for n, test_case in enumerate(defs):
     tname = 'test_' + str(test_case['name'])
     i = 1
     while hasattr(TestDownload, tname):
-        tname = 'test_'  + test_case['name'] + '_' + str(i)
+        tname = 'test_'  + str(test_case['name']) + '_' + str(i)
         i += 1
     test_method.__name__ = tname
     setattr(TestDownload, test_method.__name__, test_method)
