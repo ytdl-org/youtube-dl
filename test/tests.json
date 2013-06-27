@@ -105,16 +105,6 @@
     }
   },
   {
-    "name": "Youku",
-    "url": "http://v.youku.com/v_show/id_XNDgyMDQ2NTQw.html",
-    "file": "XNDgyMDQ2NTQw_part00.flv",
-    "md5": "ffe3f2e435663dc2d1eea34faeff5b5b",
-    "params": { "test": false },
-    "info_dict": {
-      "title": "youtube-dl test video \"'/\\ä↭𝕐"
-    }
-  },
-  {
     "name": "NBA",
     "url": "http://www.nba.com/video/games/nets/2012/12/04/0021200253-okc-bkn-recap.nba/index.html",
     "file": "0021200253-okc-bkn-recap.nba.mp4",
