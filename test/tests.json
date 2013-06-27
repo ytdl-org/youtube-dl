@@ -10,19 +10,6 @@
     }
   },
   {
-    "name": "Metacafe",
-    "add_ie": ["Youtube"],
-    "url":  "http://metacafe.com/watch/yt-_aUehQsCQtM/the_electric_company_short_i_pbs_kids_go/",
-    "file":  "_aUehQsCQtM.flv",
-    "info_dict": {
-      "upload_date": "20090102",
-      "title": "The Electric Company | \"Short I\" | PBS KIDS GO!",
-      "description": "md5:2439a8ef6d5a70e380c22f5ad323e5a8",
-      "uploader": "PBS",
-      "uploader_id": "PBS"
-    }
-  },
-  {
     "name": "BlipTV",
     "md5":  "b2d849efcf7ee18917e4b4d9ff37cafe",
     "url":  "http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352",
