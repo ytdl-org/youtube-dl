@@ -130,7 +130,7 @@ class YoutubeIE(InfoExtractor):
         self.to_screen(u'RTMP download detected')
 
     def _decrypt_signature(self, s):
-        """Decrypt the key the two subkeys must have a length of 43"""
+        """Decrypt the key"""
 
         if len(s) == 88:
             return s[48] + s[81:67:-1] + s[82] + s[66:62:-1] + s[85] + s[61:48:-1] + s[67] + s[47:12:-1] + s[3] + s[11:3:-1] + s[2] + s[12]
@@ -148,7 +148,7 @@ class YoutubeIE(InfoExtractor):
             return s[36] + s[79:67:-1] + s[81] + s[66:40:-1] + s[33] + s[39:36:-1] + s[40] + s[35] + s[0] + s[67] + s[32:0:-1] + s[34]
 
         else:
-            raise ExtractorError(u'Unable to decrypt signature, subkeys length %d not supported; retrying might work' % (len(s)))
+            raise ExtractorError(u'Unable to decrypt signature, key length %d not supported; retrying might work' % (len(s)))
 
     def _get_available_subtitles(self, video_id):
         self.report_video_subtitles_download(video_id)
