@@ -77,6 +77,71 @@ class SoundcloudSetIE(InfoExtractor):
 
     _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/sets/([\w\d-]+)'
     IE_NAME = u'soundcloud:set'
+    _TEST = {
+        u"name": u"SoundcloudSet",
+        u"url":"https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep",
+        u"playlist": [
+            {
+                u"file":"30510138.mp3",
+                u"md5":"f9136bf103901728f29e419d2c70f55d",
+                u"info_dict": {
+                    u"upload_date": u"20111213",
+                    u"description": u"The Royal Concept from Stockholm\r\nFilip / Povel / David / Magnus\r\nwww.royalconceptband.com",
+                    u"uploader": u"The Royal Concept",
+                    u"title": u"D-D-Dance"
+                }
+            },
+            {
+                u"file":"47127625.mp3",
+                u"md5":"09b6758a018470570f8fd423c9453dd8",
+                u"info_dict": {
+                    u"upload_date": u"20120521",
+                    u"description": u"The Royal Concept from Stockholm\r\nFilip / Povel / David / Magnus\r\nwww.royalconceptband.com",
+                    u"uploader": u"The Royal Concept",
+                    u"title": u"The Royal Concept - Gimme Twice"
+                }
+            },
+            {
+                u"file":"47127627.mp3",
+                u"md5":"154abd4e418cea19c3b901f1e1306d9c",
+                u"info_dict": {
+                    u"upload_date": u"20120521",
+                    u"uploader": u"The Royal Concept",
+                    u"title": u"Goldrushed"
+                }
+            },
+            {
+                u"file":"47127629.mp3",
+                u"md5":"2f5471edc79ad3f33a683153e96a79c1",
+                u"info_dict": {
+                    u"upload_date": u"20120521",
+                    u"description": u"The Royal Concept from Stockholm\r\nFilip / Povel / David / Magnus\r\nwww.royalconceptband.com",
+                    u"uploader": u"The Royal Concept",
+                    u"title": u"In the End"
+                }
+            },
+            {
+                u"file":"47127631.mp3",
+                u"md5":"f9ba87aa940af7213f98949254f1c6e2",
+                u"info_dict": {
+                    u"upload_date": u"20120521",
+                    u"description": u"The Royal Concept from Stockholm\r\nFilip / David / Povel / Magnus\r\nwww.theroyalconceptband.com",
+                    u"uploader": u"The Royal Concept",
+                    u"title": u"Knocked Up"
+                }
+            },
+            {
+                u"file":"75206121.mp3",
+                u"md5":"f9d1fe9406717e302980c30de4af9353",
+                u"info_dict": {
+                    u"upload_date": u"20130116",
+                    u"description": u"The unreleased track World on Fire premiered on the CW's hit show Arrow (8pm/7pm central).  \r\nAs a gift to our fans we would like to offer you a free download of the track!  ",
+                    u"uploader": u"The Royal Concept",
+                    u"title": u"World On Fire"
+                }
+            }
+        ]
+    }
 
     def report_resolve(self, video_id):
         """Report information extraction."""
