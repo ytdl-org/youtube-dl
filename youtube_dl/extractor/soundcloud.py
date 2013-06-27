@@ -19,7 +19,7 @@ class SoundcloudIE(InfoExtractor):
        of the stream token and uid
      """
 
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/([\w\d-]+)'
+    _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/([\w\d-]+)(?:[?].*)?$'
     IE_NAME = u'soundcloud'
     _TEST = {
         u'url': u'http://soundcloud.com/ethmusic/lostin-powers-she-so-heavy',
@@ -86,7 +86,7 @@ class SoundcloudSetIE(InfoExtractor):
        of the stream token and uid
      """
 
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/sets/([\w\d-]+)'
+    _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/sets/([\w\d-]+)(?:[?].*)?$'
     IE_NAME = u'soundcloud:set'
     _TEST = {
         u"url":"https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep",
