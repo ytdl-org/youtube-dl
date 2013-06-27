@@ -22,6 +22,15 @@ class FacebookIE(InfoExtractor):
     _LOGIN_URL = 'https://login.facebook.com/login.php?m&next=http%3A%2F%2Fm.facebook.com%2Fhome.php&'
     _NETRC_MACHINE = 'facebook'
     IE_NAME = u'facebook'
+    _TEST = {
+        u'url': u'https://www.facebook.com/photo.php?v=120708114770723',
+        u'file': u'120708114770723.mp4',
+        u'md5': u'48975a41ccc4b7a581abd68651c1a5a8',
+        u'info_dict': {
+            u"duration": 279, 
+            u"title": u"PEOPLE ARE AWESOME 2013"
+        }
+    }
 
     def report_login(self):
         """Report attempt to log in."""

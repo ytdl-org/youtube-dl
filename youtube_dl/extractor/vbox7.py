@@ -12,6 +12,14 @@ from ..utils import (
 class Vbox7IE(InfoExtractor):
     """Information Extractor for Vbox7"""
     _VALID_URL = r'(?:http://)?(?:www\.)?vbox7\.com/play:([^/]+)'
+    _TEST = {
+        u'url': u'http://vbox7.com/play:249bb972c2',
+        u'file': u'249bb972c2.flv',
+        u'md5': u'9c70d6d956f888bdc08c124acc120cfe',
+        u'info_dict': {
+            u"title": u"\u0421\u043c\u044f\u0445! \u0427\u0443\u0434\u043e - \u0447\u0438\u0441\u0442 \u0437\u0430 \u0441\u0435\u043a\u0443\u043d\u0434\u0438 - \u0421\u043a\u0440\u0438\u0442\u0430 \u043a\u0430\u043c\u0435\u0440\u0430"
+        }
+    }
 
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)

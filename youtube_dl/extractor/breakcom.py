@@ -5,6 +5,14 @@ from .common import InfoExtractor
 
 class BreakIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:www\.)?break\.com/video/([^/]+)'
+    _TEST = {
+        u'url': u'http://www.break.com/video/when-girls-act-like-guys-2468056',
+        u'file': u'2468056.mp4',
+        u'md5': u'a3513fb1547fba4fb6cfac1bffc6c46b',
+        u'info_dict': {
+            u"title": u"When Girls Act Like D-Bags"
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

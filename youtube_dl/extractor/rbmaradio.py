@@ -11,6 +11,18 @@ from ..utils import (
 
 class RBMARadioIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?rbmaradio\.com/shows/(?P<videoID>[^/]+)$'
+    _TEST = {
+        u'url': u'http://www.rbmaradio.com/shows/ford-lopatin-live-at-primavera-sound-2011',
+        u'file': u'ford-lopatin-live-at-primavera-sound-2011.mp3',
+        u'md5': u'6bc6f9bcb18994b4c983bc3bf4384d95',
+        u'info_dict': {
+            u"uploader_id": u"ford-lopatin", 
+            u"location": u"Spain", 
+            u"description": u"Joel Ford and Daniel \u2019Oneohtrix Point Never\u2019 Lopatin fly their midified pop extravaganza to Spain. Live at Primavera Sound 2011.", 
+            u"uploader": u"Ford & Lopatin", 
+            u"title": u"Live at Primavera Sound 2011"
+        }
+    }
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)

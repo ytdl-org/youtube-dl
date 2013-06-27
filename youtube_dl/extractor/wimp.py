@@ -6,6 +6,14 @@ from .common import InfoExtractor
 
 class WimpIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:www\.)?wimp\.com/([^/]+)/'
+    _TEST = {
+        u'url': u'http://www.wimp.com/deerfence/',
+        u'file': u'deerfence.flv',
+        u'md5': u'8b215e2e0168c6081a1cf84b2846a2b5',
+        u'info_dict': {
+            u"title": u"Watch Till End: Herd of deer jump over a fence."
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

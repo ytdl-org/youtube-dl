@@ -11,6 +11,16 @@ from ..utils import (
 class XHamsterIE(InfoExtractor):
     """Information Extractor for xHamster"""
     _VALID_URL = r'(?:http://)?(?:www.)?xhamster\.com/movies/(?P<id>[0-9]+)/.*\.html'
+    _TEST = {
+        u'url': u'http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html',
+        u'file': u'1509445.flv',
+        u'md5': u'9f48e0e8d58e3076bb236ff412ab62fa',
+        u'info_dict': {
+            u"upload_date": u"20121014", 
+            u"uploader_id": u"Ruseful2011", 
+            u"title": u"FemaleAgent Shy beauty takes the bait"
+        }
+    }
 
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)

@@ -10,6 +10,15 @@ from ..utils import (
 
 class PornotubeIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:\w+\.)?pornotube\.com(/c/(?P<channel>[0-9]+))?(/m/(?P<videoid>[0-9]+))(/(?P<title>.+))$'
+    _TEST = {
+        u'url': u'http://pornotube.com/c/173/m/1689755/Marilyn-Monroe-Bathing',
+        u'file': u'1689755.flv',
+        u'md5': u'374dd6dcedd24234453b295209aa69b6',
+        u'info_dict': {
+            u"upload_date": u"20090708", 
+            u"title": u"Marilyn-Monroe-Bathing"
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

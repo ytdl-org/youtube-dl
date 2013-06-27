@@ -5,6 +5,14 @@ from .common import InfoExtractor
 
 class TudouIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:www\.)?tudou\.com/(?:listplay|programs)/(?:view|(.+?))/(?:([^/]+)|([^/]+)\.html)'
+    _TEST = {
+        u'url': u'http://www.tudou.com/listplay/zzdE77v6Mmo/2xN2duXMxmw.html',
+        u'file': u'159447792.f4v',
+        u'md5': u'ad7c358a01541e926a1e413612c6b10a',
+        u'info_dict': {
+            u"title": u"\u5361\u9a6c\u4e54\u56fd\u8db3\u5f00\u5927\u811a\u957f\u4f20\u51b2\u540a\u96c6\u9526"
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

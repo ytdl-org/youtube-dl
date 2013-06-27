@@ -21,6 +21,17 @@ class SoundcloudIE(InfoExtractor):
 
     _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/([\w\d-]+)'
     IE_NAME = u'soundcloud'
+    _TEST = {
+        u'url': u'http://soundcloud.com/ethmusic/lostin-powers-she-so-heavy',
+        u'file': u'62986583.mp3',
+        u'md5': u'ebef0a451b909710ed1d7787dddbf0d7',
+        u'info_dict': {
+            u"upload_date": u"20121011", 
+            u"description": u"No Downloads untill we record the finished version this weekend, i was too pumped n i had to post it , earl is prolly gonna b hella p.o'd", 
+            u"uploader": u"E.T. ExTerrestrial Music", 
+            u"title": u"Lostin Powers - She so Heavy (SneakPreview) Adrian Ackers Blueprint 1"
+        }
+    }
 
     def report_resolve(self, video_id):
         """Report information extraction."""

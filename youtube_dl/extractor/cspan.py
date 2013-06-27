@@ -7,6 +7,15 @@ from ..utils import (
 
 class CSpanIE(InfoExtractor):
     _VALID_URL = r'http://www.c-spanvideo.org/program/(.*)'
+    _TEST = {
+        u'url': u'http://www.c-spanvideo.org/program/HolderonV',
+        u'file': u'315139.flv',
+        u'md5': u'74a623266956f69e4df0068ab6c80fe4',
+        u'info_dict': {
+            u"title": u"Attorney General Eric Holder on Voting Rights Act Decision"
+        },
+        u'skip': u'Requires rtmpdump'
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

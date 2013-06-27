@@ -15,6 +15,15 @@ class GenericIE(InfoExtractor):
 
     _VALID_URL = r'.*'
     IE_NAME = u'generic'
+    _TEST = {
+        u'url': u'http://www.hodiho.fr/2013/02/regis-plante-sa-jeep.html',
+        u'file': u'13601338388002.mp4',
+        u'md5': u'85b90ccc9d73b4acd9138d3af4c27f89',
+        u'info_dict': {
+            u"uploader": u"www.hodiho.fr", 
+            u"title": u"R\u00e9gis plante sa Jeep"
+        }
+    }
 
     def report_download_webpage(self, video_id):
         """Report webpage download."""

@@ -8,6 +8,15 @@ from ..utils import (
 
 class NBAIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:watch\.|www\.)?nba\.com/(?:nba/)?video(/[^?]*?)(?:/index\.html)?(?:\?.*)?$'
+    _TEST = {
+        u'url': u'http://www.nba.com/video/games/nets/2012/12/04/0021200253-okc-bkn-recap.nba/index.html',
+        u'file': u'0021200253-okc-bkn-recap.nba.mp4',
+        u'md5': u'c0edcfc37607344e2ff8f13c378c88a4',
+        u'info_dict': {
+            u"description": u"Kevin Durant scores 32 points and dishes out six assists as the Thunder beat the Nets in Brooklyn.", 
+            u"title": u"Thunder vs. Nets"
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

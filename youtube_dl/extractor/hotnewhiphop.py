@@ -6,6 +6,14 @@ from .common import InfoExtractor
 
 class HotNewHipHopIE(InfoExtractor):
     _VALID_URL = r'http://www\.hotnewhiphop.com/.*\.(?P<id>.*)\.html'
+    _TEST = {
+        u'url': u"http://www.hotnewhiphop.com/freddie-gibbs-lay-it-down-song.1435540.html'",
+        u'file': u'1435540.mp3',
+        u'md5': u'2c2cd2f76ef11a9b3b581e8b232f3d96',
+        u'info_dict': {
+            u"title": u"Freddie Gibbs Songs - Lay It Down"
+        }
+    }
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)

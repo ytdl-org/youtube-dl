@@ -4,6 +4,15 @@ from .common import InfoExtractor
 
 class StatigramIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:www\.)?statigr\.am/p/([^/]+)'
+    _TEST = {
+        u'url': u'http://statigr.am/p/484091715184808010_284179915',
+        u'file': u'484091715184808010_284179915.mp4',
+        u'md5': u'deda4ff333abe2e118740321e992605b',
+        u'info_dict': {
+            u"uploader_id": u"videoseconds", 
+            u"title": u"Instagram photo by @videoseconds (Videos)"
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

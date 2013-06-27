@@ -10,6 +10,16 @@ from ..utils import (
 class FlickrIE(InfoExtractor):
     """Information Extractor for Flickr videos"""
     _VALID_URL = r'(?:https?://)?(?:www\.)?flickr\.com/photos/(?P<uploader_id>[\w\-_@]+)/(?P<id>\d+).*'
+    _TEST = {
+        u'url': u'http://www.flickr.com/photos/forestwander-nature-pictures/5645318632/in/photostream/',
+        u'file': u'5645318632.mp4',
+        u'md5': u'6fdc01adbc89d72fc9c4f15b4a4ba87b',
+        u'info_dict': {
+            u"description": u"Waterfalls in the Springtime at Dark Hollow Waterfalls. These are located just off of Skyline Drive in Virginia. They are only about 6/10 of a mile hike but it is a pretty steep hill and a good climb back up.", 
+            u"uploader_id": u"forestwander-nature-pictures", 
+            u"title": u"Dark Hollow Waterfalls"
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

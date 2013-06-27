@@ -8,6 +8,14 @@ from ..utils import (
 
 class YouJizzIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:\w+\.)?youjizz\.com/videos/(?P<videoid>[^.]+).html$'
+    _TEST = {
+        u'url': u'http://www.youjizz.com/videos/zeichentrick-1-2189178.html',
+        u'file': u'2189178.flv',
+        u'md5': u'07e15fa469ba384c7693fd246905547c',
+        u'info_dict': {
+            u"title": u"Zeichentrick 1"
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

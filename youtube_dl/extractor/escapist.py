@@ -12,6 +12,16 @@ from ..utils import (
 
 class EscapistIE(InfoExtractor):
     _VALID_URL = r'^(https?://)?(www\.)?escapistmagazine\.com/videos/view/(?P<showname>[^/]+)/(?P<episode>[^/?]+)[/?]?.*$'
+    _TEST = {
+        u'url': u'http://www.escapistmagazine.com/videos/view/the-escapist-presents/6618-Breaking-Down-Baldurs-Gate',
+        u'file': u'6618-Breaking-Down-Baldurs-Gate.mp4',
+        u'md5': u'c6793dbda81388f4264c1ba18684a74d',
+        u'info_dict': {
+            u"description": u"Baldur's Gate: Original, Modded or Enhanced Edition? I'll break down what you can expect from the new Baldur's Gate: Enhanced Edition.", 
+            u"uploader": u"the-escapist-presents", 
+            u"title": u"Breaking Down Baldur's Gate"
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

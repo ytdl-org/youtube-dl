@@ -26,6 +26,17 @@ class JustinTVIE(InfoExtractor):
         """
     _JUSTIN_PAGE_LIMIT = 100
     IE_NAME = u'justin.tv'
+    _TEST = {
+        u'url': u'http://www.twitch.tv/thegamedevhub/b/296128360',
+        u'file': u'296128360.flv',
+        u'md5': u'ecaa8a790c22a40770901460af191c9a',
+        u'info_dict': {
+            u"upload_date": u"20110927", 
+            u"uploader_id": 25114803, 
+            u"uploader": u"thegamedevhub", 
+            u"title": u"Beginner Series - Scripting With Python Pt.1"
+        }
+    }
 
     def report_download_page(self, channel, offset):
         """Report attempt to download a single page of videos."""

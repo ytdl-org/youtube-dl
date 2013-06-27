@@ -12,6 +12,16 @@ class VevoIE(InfoExtractor):
     (currently used by MTVIE)
     """
     _VALID_URL = r'((http://www.vevo.com/watch/.*?/.*?/)|(vevo:))(?P<id>.*)$'
+    _TEST = {
+        u'url': u'http://www.vevo.com/watch/hurts/somebody-to-die-for/GB1101300280',
+        u'file': u'GB1101300280.mp4',
+        u'md5': u'06bea460acb744eab74a9d7dcb4bfd61',
+        u'info_dict': {
+            u"upload_date": u"20130624", 
+            u"uploader": u"Hurts", 
+            u"title": u"Somebody To Die For"
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
