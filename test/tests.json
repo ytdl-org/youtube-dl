@@ -177,18 +177,6 @@
     }
   },
   {
-    "name": "InfoQ",
-    "url": "http://www.infoq.com/presentations/A-Few-of-My-Favorite-Python-Things",
-    "file": "12-jan-pythonthings.mp4",
-    "info_dict": {
-      "description": "Mike Pirnat presents some tips and tricks, standard libraries and third party packages that make programming in Python a richer experience.",
-      "title": "A Few of My Favorite [Python] Things"
-    },
-    "params": {
-      "skip_download": true
-    }
-  },
-  {
     "name": "ComedyCentral",
     "url": "http://www.thedailyshow.com/watch/thu-december-13-2012/kristen-stewart",
     "file": "422212.mp4",
