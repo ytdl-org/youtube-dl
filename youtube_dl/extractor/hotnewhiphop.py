@@ -5,8 +5,7 @@ from .common import InfoExtractor
 
 
 class HotNewHipHopIE(InfoExtractor):
-    _VALID_URL = r'(http://www\.hotnewhiphop.com/.*\.(?P<id>.*)\.html)'
-    IE_NAME = u'HotNewHipHop'
+    _VALID_URL = r'http://www\.hotnewhiphop.com/.*\.(?P<id>.*)\.html'
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
@@ -22,12 +21,11 @@ class HotNewHipHopIE(InfoExtractor):
                 u'video URL')
             return self.url_result(video_url, ie='Youtube')
 
-        video_url = base64.b64decode(video_url_base64)
+        video_url = base64.b64decode(video_url_base64).decode('utf-8')
 
         video_title = self._html_search_regex(r"<title>(.*)</title>",
             webpage_src, u'title')
         
-        #"og:image" content=
         # Getting thumbnail and if not thumbnail sets correct title for WSHH candy video.
         thumbnail = self._html_search_regex(r'"og:image" content="(.*)"',
             webpage_src, u'thumbnail', fatal=False)
