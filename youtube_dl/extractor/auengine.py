@@ -7,7 +7,7 @@ from ..utils import (
     compat_urllib_parse_urlparse,
 )
 
-class AuengineIE(InfoExtractor):
+class AUEngineIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:www\.)?auengine\.com/embed.php\?.*?file=([^&]+).*?'
 
     def _real_extract(self, url):
