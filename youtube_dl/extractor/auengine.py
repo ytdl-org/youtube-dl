@@ -1,9 +1,11 @@
 import os.path
 import re
-import urllib
-import urlparse
 
 from .common import InfoExtractor
+from ..utils import (
+    compat_urllib_parse,
+    compat_urllib_parse_urlparse,
+)
 
 class AuengineIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:www\.)?auengine\.com/embed.php\?.*?file=([^&]+).*?'
@@ -16,9 +18,9 @@ class AuengineIE(InfoExtractor):
                 webpage, u'title')
         title = title.strip()
         links = re.findall(r'[^A-Za-z0-9]?(?:file|url):\s*["\'](http[^\'"&]*)', webpage)
-        links = [urllib.unquote(l) for l in links]
+        links = [compat_urllib_parse.unquote(l) for l in links]
         for link in links:
-            root, pathext = os.path.splitext(urlparse.urlparse(link).path)
+            root, pathext = os.path.splitext(compat_urllib_parse_urlparse(link).path)
             if pathext == '.png':
                 thumbnail = link
             elif pathext == '.mp4':
