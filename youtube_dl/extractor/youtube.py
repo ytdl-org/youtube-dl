@@ -139,7 +139,7 @@ class YoutubeIE(InfoExtractor):
         elif len(s) == 87:
             return s[62] + s[82:62:-1] + s[83] + s[61:52:-1] + s[0] + s[51:2:-1]
         elif len(s) == 86:
-            return s[2:17] + s[0] + s[18:41] + s[79] + s[42:79] + s[82] + s[80:82] + s[41]
+            return s[2:63] + s[82] + s[64:82] + s[63]
         elif len(s) == 85:
             return s[76] + s[82:76:-1] + s[83] + s[75:60:-1] + s[0] + s[59:50:-1] + s[1] + s[49:2:-1]
         elif len(s) == 84:
