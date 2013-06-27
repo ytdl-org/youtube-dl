@@ -20,7 +20,7 @@ class InfoQIE(InfoExtractor):
             u"title": u"A Few of My Favorite [Python] Things"
         },
         u"params": {
-            u"skip_download": true
+            u"skip_download": True
         }
     }
 
