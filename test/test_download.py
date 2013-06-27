@@ -58,6 +58,13 @@ def _file_md5(fn):
 
 with io.open(DEF_FILE, encoding='utf-8') as deff:
     defs = json.load(deff)
+for ie in youtube_dl.extractor.gen_extractors():
+    t = getattr(ie, '_TEST', None)
+    if t:
+        t['name'] = type(ie).__name__[:-len('IE')]
+        defs.append(t)
+
+
 with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
     parameters = json.load(pf)
 

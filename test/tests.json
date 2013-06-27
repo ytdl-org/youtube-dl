@@ -436,15 +436,6 @@
     }
   },
   {
-    "name": "WorldStarHipHop",
-    "url": "http://www.worldstarhiphop.com/videos/video.php?v=wshh6a7q1ny0G34ZwuIO",
-    "file": "wshh6a7q1ny0G34ZwuIO.mp4",
-    "md5": "9d04de741161603bf7071bbf4e883186",
-    "info_dict": {
-        "title": "Video: KO Of The Week: MMA Fighter Gets Knocked Out By Swift Head Kick!"
-    }
-  },
-  {
     "name": "ARD",
     "url": "http://www.ardmediathek.de/das-erste/tagesschau-in-100-sek?documentId=14077640",
     "file": "14077640.mp4",
