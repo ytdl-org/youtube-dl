@@ -135,7 +135,7 @@ class GenericIE(InfoExtractor):
         #   Video Title - Tagline | Site Name
         # and so on and so forth; it's just not practical
         video_title = self._html_search_regex(r'<title>(.*)</title>',
-            webpage, u'video title')
+            webpage, u'video title', default=u'video')
 
         # video uploader is domain name
         video_uploader = self._search_regex(r'(?:https?://)?([^/]*)/.*',
