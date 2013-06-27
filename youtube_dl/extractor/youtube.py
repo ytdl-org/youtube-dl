@@ -131,8 +131,6 @@ class YoutubeIE(InfoExtractor):
 
     def _decrypt_signature(self, s):
         """Decrypt the key the two subkeys must have a length of 43"""
-        if self._downloader.params.get('verbose'):
-            self.to_screen('encrypted signature length %d' % (len(s)))
 
         if len(s) == 88:
             return s[48] + s[81:67:-1] + s[82] + s[66:62:-1] + s[85] + s[61:48:-1] + s[67] + s[47:12:-1] + s[3] + s[11:3:-1] + s[2] + s[12]
@@ -520,6 +518,12 @@ class YoutubeIE(InfoExtractor):
                     if 'sig' in url_data:
                         url += '&signature=' + url_data['sig'][0]
                     elif 's' in url_data:
+                        if self._downloader.params.get('verbose'):
+                            s = url_data['s'][0]
+                            player = self._search_regex(r'html5player-(.+?)\.js', video_webpage,
+                                'html5 player', fatal=False)
+                            self.to_screen('encrypted signature length %d (%d.%d), itag %s, html5 player %s' %
+                                (len(s), len(s.split('.')[0]), len(s.split('.')[1]), url_data['itag'][0], player))
                         signature = self._decrypt_signature(url_data['s'][0])
                         url += '&signature=' + signature
                     if 'ratebypass' not in url:
