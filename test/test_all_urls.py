@@ -7,7 +7,8 @@ import unittest
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.extractor import YoutubeIE, YoutubePlaylistIE, YoutubeChannelIE, JustinTVIE
+from youtube_dl.extractor import YoutubeIE, YoutubePlaylistIE, YoutubeChannelIE, JustinTVIE, gen_extractors
+from helper import get_testcases
 
 class TestAllURLsMatching(unittest.TestCase):
     def test_youtube_playlist_matching(self):
@@ -49,6 +50,17 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertEqual(YoutubeIE()._extract_id('http://www.youtube.com/watch?&v=BaW_jenozKc'), 'BaW_jenozKc')
         self.assertEqual(YoutubeIE()._extract_id('https://www.youtube.com/watch?&v=BaW_jenozKc'), 'BaW_jenozKc')
         self.assertEqual(YoutubeIE()._extract_id('https://www.youtube.com/watch?feature=player_embedded&v=BaW_jenozKc'), 'BaW_jenozKc')
+
+    def test_no_duplicates(self):
+        ies = gen_extractors()
+        for tc in get_testcases():
+            url = tc['url']
+            for ie in ies:
+                if type(ie).__name__ in ['GenericIE', tc['name'] + 'IE']:
+                    self.assertTrue(ie.suitable(url), '%s should match URL %r' % (type(ie).__name__, url))
+                else:
+                    self.assertFalse(ie.suitable(url), '%s should not match URL %r' % (type(ie).__name__, url))
+
 
 if __name__ == '__main__':
     unittest.main()
