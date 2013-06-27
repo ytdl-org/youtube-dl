@@ -26,7 +26,8 @@ __authors__  = (
     'Julien Fraichard',
     'Johny Mo Swag',
     'Axel Noack',
-    )
+    'Albert Kim',
+)
 
 __license__ = 'Public Domain'
 
