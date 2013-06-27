@@ -168,7 +168,7 @@ class YoutubeIE(InfoExtractor):
         self.to_screen(u'RTMP download detected')
 
     def _decrypt_signature(self, s):
-        """Decrypt the key"""
+        """Turn the encrypted s field into a working signature"""
 
         if len(s) == 88:
             return s[48] + s[81:67:-1] + s[82] + s[66:62:-1] + s[85] + s[61:48:-1] + s[67] + s[47:12:-1] + s[3] + s[11:3:-1] + s[2] + s[12]
