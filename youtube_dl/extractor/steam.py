@@ -17,7 +17,6 @@ class SteamIE(InfoExtractor):
     _VIDEO_PAGE_TEMPLATE = 'http://store.steampowered.com/video/%s/'
     _AGECHECK_TEMPLATE = 'http://store.steampowered.com/agecheck/video/%s/?snr=1_agecheck_agecheck__age-gate&ageDay=1&ageMonth=January&ageYear=1970'
     _TEST = {
-        u"name": u"Steam",
         u"url": u"http://store.steampowered.com/video/105600/",
         u"playlist": [
             {

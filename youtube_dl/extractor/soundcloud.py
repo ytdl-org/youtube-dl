@@ -78,7 +78,6 @@ class SoundcloudSetIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/sets/([\w\d-]+)'
     IE_NAME = u'soundcloud:set'
     _TEST = {
-        u"name": u"SoundcloudSet",
         u"url":"https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep",
         u"playlist": [
             {

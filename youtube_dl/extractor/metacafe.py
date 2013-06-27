@@ -21,7 +21,6 @@ class MetacafeIE(InfoExtractor):
     _FILTER_POST = 'http://www.metacafe.com/f/index.php?inputType=filter&controllerGroup=user'
     IE_NAME = u'metacafe'
     _TEST = {
-        u"name": u"Metacafe",
         u"add_ie": ["Youtube"],
         u"url":  u"http://metacafe.com/watch/yt-_aUehQsCQtM/the_electric_company_short_i_pbs_kids_go/",
         u"file":  u"_aUehQsCQtM.flv",
