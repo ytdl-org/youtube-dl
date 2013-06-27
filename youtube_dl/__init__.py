@@ -573,8 +573,7 @@ def _real_main(argv=None):
         ydl.to_screen(u'[debug] Python version %s - %s' %(platform.python_version(), platform.platform()))
         ydl.to_screen(u'[debug] Proxy map: ' + str(proxy_handler.proxies))
 
-    for extractor in extractors:
-        ydl.add_info_extractor(extractor)
+    ydl.add_default_info_extractors()
 
     # PostProcessors
     if opts.extractaudio:

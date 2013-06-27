@@ -14,7 +14,6 @@ import binascii
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import youtube_dl.YoutubeDL
-import youtube_dl.extractor
 from youtube_dl.utils import *
 
 PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
@@ -87,8 +86,7 @@ def generator(test_case):
         params.update(test_case.get('params', {}))
 
         ydl = YoutubeDL(params)
-        for ie in youtube_dl.extractor.gen_extractors():
-            ydl.add_info_extractor(ie)
+        ydl.add_default_info_extractors()
         finished_hook_called = set()
         def _hook(status):
             if status['status'] == 'finished':
