@@ -83,40 +83,40 @@ class YoutubeIE(InfoExtractor):
     IE_NAME = u'youtube'
     _TESTS = [
         {
-            "url":  "http://www.youtube.com/watch?v=BaW_jenozKc",
-            "file":  "BaW_jenozKc.mp4",
-            "info_dict": {
-              "title": "youtube-dl test video \"'/\\ä↭𝕐",
-              "uploader": "Philipp Hagemeister",
-              "uploader_id": "phihag",
-              "upload_date": "20121002",
-              "description": "test chars:  \"'/\\ä↭𝕐\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de ."
+            u"url":  u"http://www.youtube.com/watch?v=BaW_jenozKc",
+            u"file":  u"BaW_jenozKc.mp4",
+            u"info_dict": {
+                u"title": u"youtube-dl test video \"'/\\ä↭𝕐",
+                u"uploader": u"Philipp Hagemeister",
+                u"uploader_id": u"phihag",
+                u"upload_date": u"20121002",
+                u"description": u"test chars:  \"'/\\ä↭𝕐\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de ."
             }
-          },
-          {
-            "url":  "http://www.youtube.com/watch?v=1ltcDfZMA3U",
-            "file":  "1ltcDfZMA3U.flv",
-            "note": "Test VEVO video (#897)",
-            "info_dict": {
-              "upload_date": "20070518",
-              "title": "Maps - It Will Find You",
-              "description": "Music video by Maps performing It Will Find You.",
-              "uploader": "MuteUSA",
-              "uploader_id": "MuteUSA"
+        },
+        {
+            u"url":  u"http://www.youtube.com/watch?v=1ltcDfZMA3U",
+            u"file":  u"1ltcDfZMA3U.flv",
+            u"note": u"Test VEVO video (#897)",
+            u"info_dict": {
+                u"upload_date": u"20070518",
+                u"title": u"Maps - It Will Find You",
+                u"description": u"Music video by Maps performing It Will Find You.",
+                u"uploader": u"MuteUSA",
+                u"uploader_id": u"MuteUSA"
             }
-          },
-          {
-            "url":  "http://www.youtube.com/watch?v=UxxajLWwzqY",
-            "file":  "UxxajLWwzqY.mp4",
-            "note": "Test generic use_cipher_signature video (#897)",
-            "info_dict": {
-              "upload_date": "20120506",
-              "title": "Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]",
-              "description": "md5:b085c9804f5ab69f4adea963a2dceb3c",
-              "uploader": "IconaPop",
-              "uploader_id": "IconaPop"
+        },
+        {
+            u"url":  u"http://www.youtube.com/watch?v=UxxajLWwzqY",
+            u"file":  u"UxxajLWwzqY.mp4",
+            u"note": u"Test generic use_cipher_signature video (#897)",
+            u"info_dict": {
+                u"upload_date": u"20120506",
+                u"title": u"Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]",
+                u"description": u"md5:b085c9804f5ab69f4adea963a2dceb3c",
+                u"uploader": u"IconaPop",
+                u"uploader_id": u"IconaPop"
             }
-          }
+        }
     ]
 
 
