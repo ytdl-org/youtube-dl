@@ -18,6 +18,7 @@ from .gametrailers import GametrailersIE
 from .generic import GenericIE
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
+from .hotnewhiphop import HotNewHipHopIE
 from .howcast import HowcastIE
 from .hypem import HypemIE
 from .ina import InaIE
@@ -136,6 +137,7 @@ def gen_extractors():
         TudouIE(),
         CSpanIE(),
         WimpIE(),
+        HotNewHipHopIE(),
         GenericIE()
     ]
 
