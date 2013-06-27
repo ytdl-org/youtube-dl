@@ -2,6 +2,7 @@ import io
 import json
 import os.path
 
+import youtube_dl.extractor
 from youtube_dl import YoutubeDL, YoutubeDLHandler
 from youtube_dl.utils import (
     compat_cookiejar,
@@ -31,3 +32,13 @@ class FakeYDL(YoutubeDL):
         raise Exception(s)
     def download(self, x):
         self.result.append(x)
+
+def get_testcases():
+    for ie in youtube_dl.extractor.gen_extractors():
+        t = getattr(ie, '_TEST', None)
+        if t:
+            t['name'] = type(ie).__name__[:-len('IE')]
+            yield t
+        for t in getattr(ie, '_TESTS', []):
+            t['name'] = type(ie).__name__[:-len('IE')]
+            yield t

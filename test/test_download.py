@@ -17,7 +17,6 @@ import youtube_dl.YoutubeDL
 import youtube_dl.extractor
 from youtube_dl.utils import *
 
-DEF_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tests.json')
 PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
 
 RETRIES = 3
@@ -56,17 +55,8 @@ def _file_md5(fn):
     with open(fn, 'rb') as f:
         return hashlib.md5(f.read()).hexdigest()
 
-with io.open(DEF_FILE, encoding='utf-8') as deff:
-    defs = json.load(deff)
-for ie in youtube_dl.extractor.gen_extractors():
-    t = getattr(ie, '_TEST', None)
-    if t:
-        t['name'] = type(ie).__name__[:-len('IE')]
-        defs.append(t)
-    for t in getattr(ie, '_TESTS', []):
-        t['name'] = type(ie).__name__[:-len('IE')]
-        defs.append(t)
-
+from helper import get_testcases
+defs = get_testcases()
 
 with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
     parameters = json.load(pf)
