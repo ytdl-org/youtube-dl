@@ -14,8 +14,6 @@ class HotNewHipHopIE(InfoExtractor):
 
         webpage_src = self._download_webpage(url, video_id)
 
-        print video_id
-
         video_url_base64 = self._search_regex(r'data-path="(.*?)"',
             webpage_src, u'video URL')
 
