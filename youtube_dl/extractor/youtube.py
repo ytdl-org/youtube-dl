@@ -81,6 +81,44 @@ class YoutubeIE(InfoExtractor):
         '46': '1080x1920',
     }
     IE_NAME = u'youtube'
+    _TESTS = [
+        {
+            "url":  "http://www.youtube.com/watch?v=BaW_jenozKc",
+            "file":  "BaW_jenozKc.mp4",
+            "info_dict": {
+              "title": "youtube-dl test video \"'/\\ä↭𝕐",
+              "uploader": "Philipp Hagemeister",
+              "uploader_id": "phihag",
+              "upload_date": "20121002",
+              "description": "test chars:  \"'/\\ä↭𝕐\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de ."
+            }
+          },
+          {
+            "url":  "http://www.youtube.com/watch?v=1ltcDfZMA3U",
+            "file":  "1ltcDfZMA3U.flv",
+            "note": "Test VEVO video (#897)",
+            "info_dict": {
+              "upload_date": "20070518",
+              "title": "Maps - It Will Find You",
+              "description": "Music video by Maps performing It Will Find You.",
+              "uploader": "MuteUSA",
+              "uploader_id": "MuteUSA"
+            }
+          },
+          {
+            "url":  "http://www.youtube.com/watch?v=UxxajLWwzqY",
+            "file":  "UxxajLWwzqY.mp4",
+            "note": "Test generic use_cipher_signature video (#897)",
+            "info_dict": {
+              "upload_date": "20120506",
+              "title": "Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]",
+              "description": "md5:b085c9804f5ab69f4adea963a2dceb3c",
+              "uploader": "IconaPop",
+              "uploader_id": "IconaPop"
+            }
+          }
+    ]
+
 
     @classmethod
     def suitable(cls, url):

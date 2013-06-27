@@ -63,6 +63,9 @@ for ie in youtube_dl.extractor.gen_extractors():
     if t:
         t['name'] = type(ie).__name__[:-len('IE')]
         defs.append(t)
+    for t in getattr(ie, '_TESTS', []):
+        t['name'] = type(ie).__name__[:-len('IE')]
+        defs.append(t)
 
 
 with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
@@ -162,9 +165,12 @@ def generator(test_case):
 ### And add them to TestDownload
 for n, test_case in enumerate(defs):
     test_method = generator(test_case)
-    test_method.__name__ = "test_{0}".format(test_case["name"])
-    if getattr(TestDownload, test_method.__name__, False):
-        test_method.__name__ = "test_{0}_{1}".format(test_case["name"], n)
+    tname = 'test_' + str(test_case['name'])
+    i = 1
+    while hasattr(TestDownload, tname):
+        tname = 'test_'  + test_case['name'] + '_' + str(i)
+        i += 1
+    test_method.__name__ = tname
     setattr(TestDownload, test_method.__name__, test_method)
     del test_method
 
