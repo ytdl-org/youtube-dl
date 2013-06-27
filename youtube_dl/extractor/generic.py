@@ -102,7 +102,7 @@ class GenericIE(InfoExtractor):
             mobj = re.search(r'[^A-Za-z0-9]?(?:file|source)=(http[^\'"&]*)', webpage)
         if mobj is None:
             # Broaden the search a little bit: JWPlayer JS loader
-            mobj = re.search(r'[^A-Za-z0-9]?file:\s*["\'](http[^\'"&]*)', webpage)
+            mobj = re.search(r'[^A-Za-z0-9]?file["\']?:\s*["\'](http[^\'"&]*)', webpage)
         if mobj is None:
             # Try to find twitter cards info
             mobj = re.search(r'<meta (?:property|name)="twitter:player:stream" (?:content|value)="(.+?)"', webpage)
@@ -135,7 +135,7 @@ class GenericIE(InfoExtractor):
         #   Video Title - Tagline | Site Name
         # and so on and so forth; it's just not practical
         video_title = self._html_search_regex(r'<title>(.*)</title>',
-            webpage, u'video title')
+            webpage, u'video title', default=u'video')
 
         # video uploader is domain name
         video_uploader = self._search_regex(r'(?:https?://)?([^/]*)/.*',
