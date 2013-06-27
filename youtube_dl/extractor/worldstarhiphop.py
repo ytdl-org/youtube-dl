@@ -5,7 +5,15 @@ from .common import InfoExtractor
 
 class WorldStarHipHopIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www|m)\.worldstar(?:candy|hiphop)\.com/videos/video\.php\?v=(?P<id>.*)'
-    IE_NAME = u'WorldStarHipHop'
+    _TEST = {
+        "url": "http://www.worldstarhiphop.com/videos/video.php?v=wshh6a7q1ny0G34ZwuIO",
+        "file": "wshh6a7q1ny0G34ZwuIO.mp4",
+        "md5": "9d04de741161603bf7071bbf4e883186",
+        "info_dict": {
+            "title": "Video: KO Of The Week: MMA Fighter Gets Knocked Out By Swift Head Kick!"
+        }
+    }
+
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
