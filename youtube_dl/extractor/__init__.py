@@ -1,6 +1,7 @@
 
 from .ard import ARDIE
 from .arte import ArteTvIE
+from .auengine import AuengineIE
 from .bandcamp import BandcampIE
 from .bliptv import BlipTVIE, BlipTVUserIE
 from .breakcom import BreakIE
@@ -136,6 +137,7 @@ def gen_extractors():
         TudouIE(),
         CSpanIE(),
         WimpIE(),
+        AuengineIE(),
         GenericIE()
     ]
 
