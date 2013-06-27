@@ -177,26 +177,6 @@
     }
   },
   {
-    "name": "Steam",
-    "url": "http://store.steampowered.com/video/105600/",
-    "playlist": [
-      {
-        "file": "81300.flv",
-        "md5": "f870007cee7065d7c76b88f0a45ecc07",
-        "info_dict": {
-            "title": "Terraria 1.1 Trailer"
-        }
-      },
-      {
-        "file": "80859.flv",
-        "md5": "61aaf31a5c5c3041afb58fb83cbb5751",
-        "info_dict": {
-          "title": "Terraria Trailer"
-        }
-      }
-    ]
-  },
-  {
     "name": "Ustream",
     "url": "http://www.ustream.tv/recorded/20274954",
     "file": "20274954.flv",
