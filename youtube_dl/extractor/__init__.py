@@ -39,6 +39,7 @@ from .photobucket import PhotobucketIE
 from .pornotube import PornotubeIE
 from .rbmaradio import RBMARadioIE
 from .redtube import RedTubeIE
+from .ringtv import RingTvIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE
 from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
@@ -142,6 +143,7 @@ def gen_extractors():
         HotNewHipHopIE(),
         AUEngineIE(),
         GameSpotIE(),
+        RingTvIE(),
         GenericIE()
     ]
 
