@@ -72,14 +72,16 @@ def generator(test_case):
 
     def test_template(self):
         ie = youtube_dl.extractor.get_info_extractor(test_case['name'])
+        def print_skipping(reason):
+            print('Skipping %s: %s' % (test_case['name'], reason))
         if not ie._WORKING:
-            print('Skipping: IE marked as not _WORKING')
+            print_skipping('IE marked as not _WORKING')
             return
         if 'playlist' not in test_case and not test_case['file']:
-            print('Skipping: No output file specified')
+            print_skipping('No output file specified')
             return
         if 'skip' in test_case:
-            print('Skipping: {0}'.format(test_case['skip']))
+            print_skipping(test_case['skip'])
             return
 
         params = self.parameters.copy()
