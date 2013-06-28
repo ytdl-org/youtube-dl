@@ -676,5 +676,16 @@
     "info_dict": {
         "title": "Freddie Gibbs Songs - Lay It Down"
     }
+  },
+  {
+    "name": "GameSpot",
+    "url": "http://www.gamespot.com/arma-iii/videos/arma-iii-community-guide-sitrep-i-6410818/",
+    "file": "6410818.mp4",
+    "md5": "5569d64ca98db01f0177c934fe8c1e9b",
+    "info_dict": {
+        "title": "Arma III - Community Guide: SITREP I ",
+        "upload_date": "20130627", 
+        "description": "Check out this video where some of the basics of Arma III is explained."
+    }
   }
 ]
