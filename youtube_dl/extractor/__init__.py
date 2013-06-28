@@ -39,6 +39,7 @@ from .photobucket import PhotobucketIE
 from .pornotube import PornotubeIE
 from .rbmaradio import RBMARadioIE
 from .redtube import RedTubeIE
+from .ringtv import RingTVIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE
 from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
@@ -64,6 +65,7 @@ from .youku import YoukuIE
 from .youporn import YouPornIE
 from .youtube import YoutubeIE, YoutubePlaylistIE, YoutubeSearchIE, YoutubeUserIE, YoutubeChannelIE
 from .zdf import ZDFIE
+
 
 _ALL_CLASSES = [
     klass
