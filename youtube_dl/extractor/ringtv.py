@@ -13,7 +13,7 @@ class RingTvIE(InfoExtractor):
         title = self._search_regex(r'<title>(.+?)</title>',
         		webpage, 'video title').replace(' | RingTV','')
         description = self._search_regex(r'<div class="blurb">(.+?)</div>',
-        		webpage, 'Description')
+        		webpage, 'Description').replace('\\','')
         final_url = "http://ringtv.craveonline.springboardplatform.com/storage/ringtv.craveonline.com/conversion/%s.mp4" %(str(video_id))
         thumbnail_url = "http://ringtv.craveonline.springboardplatform.com/storage/ringtv.craveonline.com/snapshots/%s.jpg" %(str(video_id))
         ext = final_url.split('.')[-1]

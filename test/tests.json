@@ -687,5 +687,15 @@
         "upload_date": "20130627", 
         "description": "Check out this video where some of the basics of Arma III is explained."
     }
+  },
+  {
+    "name": "RingTv",
+    "url": "http://ringtv.craveonline.com/videos/video/746619-canelo-alvarez-talks-about-mayweather-showdown",
+    "file": "746619.mp4",
+    "md5": "7c46b4057d22de32e0a539f017e64ad3",
+    "info_dict": {
+        "title": "Canelo Alvarez talks about Mayweather showdown",
+        "description": "Saul \"Canelo\" Alvarez spoke to the media about his Sept. 14 showdown with Floyd Mayweather after their kick-off presser in NYC. Canelo is motivated and confident that he will have the speed and gameplan to beat the pound-for-pound king."
+    }
   }
 ]
