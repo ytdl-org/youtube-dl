@@ -15,6 +15,7 @@ from .escapist import EscapistIE
 from .facebook import FacebookIE
 from .flickr import FlickrIE
 from .funnyordie import FunnyOrDieIE
+from .gamespot import GameSpotIE
 from .gametrailers import GametrailersIE
 from .generic import GenericIE
 from .googleplus import GooglePlusIE
