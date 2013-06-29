@@ -47,6 +47,7 @@ from .statigram import StatigramIE
 from .steam import SteamIE
 from .teamcoco import TeamcocoIE
 from .ted import TEDIE
+from .traileraddict import TrailerAddictIE
 from .tudou import TudouIE
 from .tumblr import TumblrIE
 from .ustream import UstreamIE
