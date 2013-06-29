@@ -54,7 +54,7 @@ from .vbox7 import Vbox7IE
 from .vevo import VevoIE
 from .vimeo import VimeoIE
 from .vine import VineIE
-from .wat import WatIE
+from .wat import WatIE, TF1IE
 from .wimp import WimpIE
 from .worldstarhiphop import WorldStarHipHopIE
 from .xhamster import XHamsterIE
