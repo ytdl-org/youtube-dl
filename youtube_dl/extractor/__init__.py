@@ -47,6 +47,7 @@ from .statigram import StatigramIE
 from .steam import SteamIE
 from .teamcoco import TeamcocoIE
 from .ted import TEDIE
+from .tf1 import TF1IE
 from .tudou import TudouIE
 from .tumblr import TumblrIE
 from .ustream import UstreamIE
@@ -54,7 +55,7 @@ from .vbox7 import Vbox7IE
 from .vevo import VevoIE
 from .vimeo import VimeoIE
 from .vine import VineIE
-from .wat import WatIE, TF1IE
+from .wat import WatIE
 from .wimp import WimpIE
 from .worldstarhiphop import WorldStarHipHopIE
 from .xhamster import XHamsterIE
