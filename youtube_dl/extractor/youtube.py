@@ -270,7 +270,9 @@ class YoutubeIE(InfoExtractor):
             subtitles_url = caption_url + '&' + params
             sub = self._download_webpage(subtitles_url, video_id, u'Downloading automatic captions')
             return {sub_lang: sub}
-        except KeyError:
+        # An extractor error can be raise by the download process if there are
+        # no automatic captions but there are subtitles
+        except (KeyError, ExtractorError):
             self._downloader.report_warning(err_msg)
             return {}
     
