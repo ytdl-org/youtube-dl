@@ -50,6 +50,7 @@ from .ted import TEDIE
 from .tf1 import TF1IE
 from .tudou import TudouIE
 from .tumblr import TumblrIE
+from .tutv import TutvIE
 from .ustream import UstreamIE
 from .vbox7 import Vbox7IE
 from .vevo import VevoIE
