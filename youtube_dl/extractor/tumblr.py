@@ -9,11 +9,11 @@ from ..utils import (
 class TumblrIE(InfoExtractor):
     _VALID_URL = r'http://(?P<blog_name>.*?)\.tumblr\.com/((post)|(video))/(?P<id>\d*)/(.*?)'
     _TEST = {
-        u'url': u'http://resigno.tumblr.com/post/53364321212/e-de-extrema-importancia-que-esse-video-seja',
-        u'file': u'53364321212.mp4',
-        u'md5': u'0716d3dd51baf68a28b40fdf1251494e',
+        u'url': u'http://tatianamaslanydaily.tumblr.com/post/54196191430/orphan-black-dvd-extra-behind-the-scenes',
+        u'file': u'54196191430.mp4',
+        u'md5': u'479bb068e5b16462f5176a6828829767',
         u'info_dict': {
-            u"title": u"Rafael Lemos"
+            u"title": u"tatiana maslany news"
         }
     }
 
