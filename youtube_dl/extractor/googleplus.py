@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import datetime
 import re
 
@@ -12,6 +14,15 @@ class GooglePlusIE(InfoExtractor):
 
     _VALID_URL = r'(?:https://)?plus\.google\.com/(?:[^/]+/)*?posts/(\w+)'
     IE_NAME = u'plus.google'
+    _TEST = {
+        u"url": u"https://plus.google.com/u/0/108897254135232129896/posts/ZButuJc6CtH",
+        u"file": u"ZButuJc6CtH.flv",
+        u"info_dict": {
+            u"upload_date": u"20120613",
+            u"uploader": u"井上ヨシマサ",
+            u"title": u"嘆きの天使 降臨"
+        }
+    }
 
     def _real_extract(self, url):
         # Extract id from URL

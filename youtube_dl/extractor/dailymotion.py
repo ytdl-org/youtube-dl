@@ -14,6 +14,15 @@ class DailymotionIE(InfoExtractor):
 
     _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^/]+)'
     IE_NAME = u'dailymotion'
+    _TEST = {
+        u'url': u'http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech',
+        u'file': u'x33vw9.mp4',
+        u'md5': u'392c4b85a60a90dc4792da41ce3144eb',
+        u'info_dict': {
+            u"uploader": u"Alex and Van .", 
+            u"title": u"Tutoriel de Youtubeur\"DL DES VIDEO DE YOUTUBE\""
+        }
+    }
 
     def _real_extract(self, url):
         # Extract id and simplified title from URL

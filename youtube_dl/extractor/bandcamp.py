@@ -9,6 +9,15 @@ from ..utils import (
 
 class BandcampIE(InfoExtractor):
     _VALID_URL = r'http://.*?\.bandcamp\.com/track/(?P<title>.*)'
+    _TEST = {
+        u'url': u'http://youtube-dl.bandcamp.com/track/youtube-dl-test-song',
+        u'file': u'1812978515.mp3',
+        u'md5': u'cdeb30cdae1921719a3cbcab696ef53c',
+        u'info_dict': {
+            u"title": u"youtube-dl test song \"'/\\\u00e4\u21ad"
+        },
+        u'skip': u'There is a limit of 200 free downloads / month for the test song'
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

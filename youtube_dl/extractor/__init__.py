@@ -1,11 +1,13 @@
 
 from .ard import ARDIE
 from .arte import ArteTvIE
+from .auengine import AUEngineIE
 from .bandcamp import BandcampIE
 from .bliptv import BlipTVIE, BlipTVUserIE
 from .breakcom import BreakIE
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE
+from .cspan import CSpanIE
 from .dailymotion import DailymotionIE
 from .depositfiles import DepositFilesIE
 from .eighttracks import EightTracksIE
@@ -13,10 +15,12 @@ from .escapist import EscapistIE
 from .facebook import FacebookIE
 from .flickr import FlickrIE
 from .funnyordie import FunnyOrDieIE
+from .gamespot import GameSpotIE
 from .gametrailers import GametrailersIE
 from .generic import GenericIE
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
+from .hotnewhiphop import HotNewHipHopIE
 from .howcast import HowcastIE
 from .hypem import HypemIE
 from .ina import InaIE
@@ -35,6 +39,7 @@ from .photobucket import PhotobucketIE
 from .pornotube import PornotubeIE
 from .rbmaradio import RBMARadioIE
 from .redtube import RedTubeIE
+from .ringtv import RingTVIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE
 from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
@@ -42,13 +47,17 @@ from .statigram import StatigramIE
 from .steam import SteamIE
 from .teamcoco import TeamcocoIE
 from .ted import TEDIE
+from .tf1 import TF1IE
 from .tudou import TudouIE
 from .tumblr import TumblrIE
+from .tutv import TutvIE
 from .ustream import UstreamIE
 from .vbox7 import Vbox7IE
 from .vevo import VevoIE
 from .vimeo import VimeoIE
 from .vine import VineIE
+from .wat import WatIE
+from .wimp import WimpIE
 from .worldstarhiphop import WorldStarHipHopIE
 from .xhamster import XHamsterIE
 from .xnxx import XNXXIE
@@ -61,79 +70,18 @@ from .youtube import YoutubeIE, YoutubePlaylistIE, YoutubeSearchIE, YoutubeUserI
 from .zdf import ZDFIE
 
 
+_ALL_CLASSES = [
+    klass
+    for name, klass in globals().items()
+    if name.endswith('IE') and name != 'GenericIE'
+]
+_ALL_CLASSES.append(GenericIE)
+
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
     The order does matter; the first extractor matched is the one handling the URL.
     """
-    return [
-        YoutubePlaylistIE(),
-        YoutubeChannelIE(),
-        YoutubeUserIE(),
-        YoutubeSearchIE(),
-        YoutubeIE(),
-        MetacafeIE(),
-        DailymotionIE(),
-        GoogleSearchIE(),
-        PhotobucketIE(),
-        YahooIE(),
-        YahooSearchIE(),
-        DepositFilesIE(),
-        FacebookIE(),
-        BlipTVIE(),
-        BlipTVUserIE(),
-        VimeoIE(),
-        MyVideoIE(),
-        ComedyCentralIE(),
-        EscapistIE(),
-        CollegeHumorIE(),
-        XVideosIE(),
-        SoundcloudSetIE(),
-        SoundcloudIE(),
-        InfoQIE(),
-        MixcloudIE(),
-        StanfordOpenClassroomIE(),
-        MTVIE(),
-        YoukuIE(),
-        XNXXIE(),
-        YouJizzIE(),
-        PornotubeIE(),
-        YouPornIE(),
-        GooglePlusIE(),
-        ArteTvIE(),
-        NBAIE(),
-        WorldStarHipHopIE(),
-        JustinTVIE(),
-        FunnyOrDieIE(),
-        SteamIE(),
-        UstreamIE(),
-        RBMARadioIE(),
-        EightTracksIE(),
-        KeekIE(),
-        TEDIE(),
-        MySpassIE(),
-        SpiegelIE(),
-        LiveLeakIE(),
-        ARDIE(),
-        ZDFIE(),
-        TumblrIE(),
-        BandcampIE(),
-        RedTubeIE(),
-        InaIE(),
-        HowcastIE(),
-        VineIE(),
-        FlickrIE(),
-        TeamcocoIE(),
-        XHamsterIE(),
-        HypemIE(),
-        Vbox7IE(),
-        GametrailersIE(),
-        StatigramIE(),
-        BreakIE(),
-        VevoIE(),
-        JukeboxIE(),
-        TudouIE(),
-        GenericIE()
-    ]
+    return [klass() for klass in _ALL_CLASSES]
 
 def get_info_extractor(ie_name):
     """Returns the info extractor class with the given ie_name"""

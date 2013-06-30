@@ -10,6 +10,16 @@ class LiveLeakIE(InfoExtractor):
 
     _VALID_URL = r'^(?:http?://)?(?:\w+\.)?liveleak\.com/view\?(?:.*?)i=(?P<video_id>[\w_]+)(?:.*)'
     IE_NAME = u'liveleak'
+    _TEST = {
+        u'url': u'http://www.liveleak.com/view?i=757_1364311680',
+        u'file': u'757_1364311680.mp4',
+        u'md5': u'0813c2430bea7a46bf13acf3406992f4',
+        u'info_dict': {
+            u"description": u"extremely bad day for this guy..!", 
+            u"uploader": u"ljfriel2", 
+            u"title": u"Most unlucky car accident"
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

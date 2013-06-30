@@ -6,6 +6,15 @@ from .common import InfoExtractor
 class KeekIE(InfoExtractor):
     _VALID_URL = r'http://(?:www\.)?keek\.com/(?:!|\w+/keeks/)(?P<videoID>\w+)'
     IE_NAME = u'keek'
+    _TEST = {
+        u'url': u'http://www.keek.com/ytdl/keeks/NODfbab',
+        u'file': u'NODfbab.mp4',
+        u'md5': u'9b0636f8c0f7614afa4ea5e4c6e57e83',
+        u'info_dict': {
+            u"uploader": u"ytdl", 
+            u"title": u"test chars: \"'/\\\u00e4<>This is a test video for youtube-dl.For more information, contact phihag@phihag.de ."
+        }
+    }
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)

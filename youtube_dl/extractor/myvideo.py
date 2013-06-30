@@ -18,6 +18,14 @@ class MyVideoIE(InfoExtractor):
 
     _VALID_URL = r'(?:http://)?(?:www\.)?myvideo\.de/watch/([0-9]+)/([^?/]+).*'
     IE_NAME = u'myvideo'
+    _TEST = {
+        u'url': u'http://www.myvideo.de/watch/8229274/bowling_fail_or_win',
+        u'file': u'8229274.flv',
+        u'md5': u'2d2753e8130479ba2cb7e0a37002053e',
+        u'info_dict': {
+            u"title": u"bowling-fail-or-win"
+        }
+    }
 
     # Original Code from: https://github.com/dersphere/plugin.video.myvideo_de.git
     # Released into the Public Domain by Tristan Fischer on 2013-05-19

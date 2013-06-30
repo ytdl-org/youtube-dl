@@ -14,10 +14,8 @@ import binascii
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import youtube_dl.YoutubeDL
-import youtube_dl.extractor
 from youtube_dl.utils import *
 
-DEF_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tests.json')
 PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
 
 RETRIES = 3
@@ -56,8 +54,9 @@ def _file_md5(fn):
     with open(fn, 'rb') as f:
         return hashlib.md5(f.read()).hexdigest()
 
-with io.open(DEF_FILE, encoding='utf-8') as deff:
-    defs = json.load(deff)
+from helper import get_testcases
+defs = get_testcases()
+
 with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
     parameters = json.load(pf)
 
@@ -73,22 +72,23 @@ def generator(test_case):
 
     def test_template(self):
         ie = youtube_dl.extractor.get_info_extractor(test_case['name'])
+        def print_skipping(reason):
+            print('Skipping %s: %s' % (test_case['name'], reason))
         if not ie._WORKING:
-            print('Skipping: IE marked as not _WORKING')
+            print_skipping('IE marked as not _WORKING')
             return
         if 'playlist' not in test_case and not test_case['file']:
-            print('Skipping: No output file specified')
+            print_skipping('No output file specified')
             return
         if 'skip' in test_case:
-            print('Skipping: {0}'.format(test_case['skip']))
+            print_skipping(test_case['skip'])
             return
 
         params = self.parameters.copy()
         params.update(test_case.get('params', {}))
 
         ydl = YoutubeDL(params)
-        for ie in youtube_dl.extractor.gen_extractors():
-            ydl.add_info_extractor(ie)
+        ydl.add_default_info_extractors()
         finished_hook_called = set()
         def _hook(status):
             if status['status'] == 'finished':
@@ -155,9 +155,12 @@ def generator(test_case):
 ### And add them to TestDownload
 for n, test_case in enumerate(defs):
     test_method = generator(test_case)
-    test_method.__name__ = "test_{0}".format(test_case["name"])
-    if getattr(TestDownload, test_method.__name__, False):
-        test_method.__name__ = "test_{0}_{1}".format(test_case["name"], n)
+    tname = 'test_' + str(test_case['name'])
+    i = 1
+    while hasattr(TestDownload, tname):
+        tname = 'test_'  + str(test_case['name']) + '_' + str(i)
+        i += 1
+    test_method.__name__ = tname
     setattr(TestDownload, test_method.__name__, test_method)
     del test_method
 

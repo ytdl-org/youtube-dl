@@ -16,6 +16,26 @@ class SteamIE(InfoExtractor):
                 """
     _VIDEO_PAGE_TEMPLATE = 'http://store.steampowered.com/video/%s/'
     _AGECHECK_TEMPLATE = 'http://store.steampowered.com/agecheck/video/%s/?snr=1_agecheck_agecheck__age-gate&ageDay=1&ageMonth=January&ageYear=1970'
+    _TEST = {
+        u"url": u"http://store.steampowered.com/video/105600/",
+        u"playlist": [
+            {
+                u"file": u"81300.flv",
+                u"md5": u"f870007cee7065d7c76b88f0a45ecc07",
+                u"info_dict": {
+                        u"title": u"Terraria 1.1 Trailer"
+                }
+            },
+            {
+                u"file": u"80859.flv",
+                u"md5": u"61aaf31a5c5c3041afb58fb83cbb5751",
+                u"info_dict": {
+                    u"title": u"Terraria Trailer"
+                }
+            }
+        ]
+    }
+
 
     @classmethod
     def suitable(cls, url):

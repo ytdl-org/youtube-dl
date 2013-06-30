@@ -14,6 +14,15 @@ class TEDIE(InfoExtractor):
                    (/lang/(.*?))? # The url may contain the language
                    /(?P<name>\w+) # Here goes the name and then ".html"
                    '''
+    _TEST = {
+        u'url': u'http://www.ted.com/talks/dan_dennett_on_our_consciousness.html',
+        u'file': u'102.mp4',
+        u'md5': u'2d76ee1576672e0bd8f187513267adf6',
+        u'info_dict': {
+            u"description": u"md5:c6fa72e6eedbd938c9caf6b2702f5922", 
+            u"title": u"Dan Dennett: The illusion of consciousness"
+        }
+    }
 
     @classmethod
     def suitable(cls, url):

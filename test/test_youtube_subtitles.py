@@ -12,31 +12,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from youtube_dl.extractor import YoutubeIE
 from youtube_dl.utils import *
-from youtube_dl import YoutubeDL
-
-PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
-with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
-    parameters = json.load(pf)
-
-# General configuration (from __init__, not very elegant...)
-jar = compat_cookiejar.CookieJar()
-cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
-proxy_handler = compat_urllib_request.ProxyHandler()
-opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
-compat_urllib_request.install_opener(opener)
-
-class FakeYDL(YoutubeDL):
-    def __init__(self):
-        self.result = []
-        # Different instances of the downloader can't share the same dictionary
-        # some test set the "sublang" parameter, which would break the md5 checks.
-        self.params = dict(parameters)
-    def to_screen(self, s):
-        print(s)
-    def trouble(self, s, tb=None):
-        raise Exception(s)
-    def download(self, x):
-        self.result.append(x)
+from helper import FakeYDL
 
 md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
 
@@ -84,7 +60,7 @@ class TestYoutubeSubtitles(unittest.TestCase):
         info_dict = IE.extract('QRS8MkLhQmM')
         subtitles = info_dict[0]['subtitles']
         self.assertEqual(len(subtitles), 13)
-    def test_youtube_subtitles_format(self):
+    def test_youtube_subtitles_sbv_format(self):
         DL = FakeYDL()
         DL.params['writesubtitles'] = True
         DL.params['subtitlesformat'] = 'sbv'
@@ -92,6 +68,14 @@ class TestYoutubeSubtitles(unittest.TestCase):
         info_dict = IE.extract('QRS8MkLhQmM')
         sub = info_dict[0]['subtitles'][0]
         self.assertEqual(md5(sub[2]), '13aeaa0c245a8bed9a451cb643e3ad8b')
+    def test_youtube_subtitles_vtt_format(self):
+        DL = FakeYDL()
+        DL.params['writesubtitles'] = True
+        DL.params['subtitlesformat'] = 'vtt'
+        IE = YoutubeIE(DL)
+        info_dict = IE.extract('QRS8MkLhQmM')
+        sub = info_dict[0]['subtitles'][0]
+        self.assertEqual(md5(sub[2]), '356cdc577fde0c6783b9b822e7206ff7')
     def test_youtube_list_subtitles(self):
         DL = FakeYDL()
         DL.params['listsubtitles'] = True

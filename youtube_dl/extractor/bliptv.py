@@ -24,6 +24,17 @@ class BlipTVIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:\w+\.)?blip\.tv/((.+/)|(play/)|(api\.swf#))(.+)$'
     _URL_EXT = r'^.*\.([a-z0-9]+)$'
     IE_NAME = u'blip.tv'
+    _TEST = {
+        u'url': u'http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352',
+        u'file': u'5779306.m4v',
+        u'md5': u'b2d849efcf7ee18917e4b4d9ff37cafe',
+        u'info_dict': {
+            u"upload_date": u"20111205", 
+            u"description": u"md5:9bc31f227219cde65e47eeec8d2dc596", 
+            u"uploader": u"Comic Book Resources - CBR TV", 
+            u"title": u"CBR EXCLUSIVE: \"Gotham City Imposters\" Bats VS Jokerz Short 3"
+        }
+    }
 
     def report_direct_download(self, title):
         """Report information extraction."""

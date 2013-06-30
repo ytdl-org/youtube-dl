@@ -13,7 +13,7 @@ import time
 import traceback
 
 from .utils import *
-from .extractor import get_info_extractor
+from .extractor import get_info_extractor, gen_extractors
 from .FileDownloader import FileDownloader
 
 
@@ -75,7 +75,7 @@ class YoutubeDL(object):
     writeautomaticsub: Write the automatic subtitles to a file
     allsubtitles:      Downloads all the subtitles of the video
     listsubtitles:     Lists all available subtitles for the video
-    subtitlesformat:   Subtitle format [sbv/srt] (default=srt)
+    subtitlesformat:   Subtitle format [srt/sbv/vtt] (default=srt)
     subtitleslang:     Language of the subtitles to download
     keepvideo:         Keep the video file after post-processing
     daterange:         A DateRange object, download only if the upload_date is in the range.
@@ -112,6 +112,13 @@ class YoutubeDL(object):
         """Add an InfoExtractor object to the end of the list."""
         self._ies.append(ie)
         ie.set_downloader(self)
+
+    def add_default_info_extractors(self):
+        """
+        Add the InfoExtractors returned by gen_extractors to the end of the list
+        """
+        for ie in gen_extractors():
+            self.add_info_extractor(ie)
 
     def add_post_processor(self, pp):
         """Add a PostProcessor object to the end of the chain."""

@@ -8,6 +8,14 @@ from ..utils import (
 
 class XVideosIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?xvideos\.com/video([0-9]+)(?:.*)'
+    _TEST = {
+        u'url': u'http://www.xvideos.com/video939581/funny_porns_by_s_-1',
+        u'file': u'939581.flv',
+        u'md5': u'1d0c835822f0a71a7bf011855db929d0',
+        u'info_dict': {
+            u"title": u"Funny Porns By >>>>S<<<<<< -1"
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

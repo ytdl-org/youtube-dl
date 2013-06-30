@@ -15,6 +15,14 @@ from ..utils import (
 class HypemIE(InfoExtractor):
     """Information Extractor for hypem"""
     _VALID_URL = r'(?:http://)?(?:www\.)?hypem\.com/track/([^/]+)/([^/]+)'
+    _TEST = {
+        u'url': u'http://hypem.com/track/1v6ga/BODYWORK+-+TAME',
+        u'file': u'1v6ga.mp3',
+        u'md5': u'b9cc91b5af8995e9f0c1cee04c575828',
+        u'info_dict': {
+            u"title": u"Tame"
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

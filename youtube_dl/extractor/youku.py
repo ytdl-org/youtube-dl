@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import json
 import math
 import random
@@ -12,6 +14,16 @@ from ..utils import (
 
 class YoukuIE(InfoExtractor):
     _VALID_URL =  r'(?:http://)?v\.youku\.com/v_show/id_(?P<ID>[A-Za-z0-9]+)\.html'
+    _TEST =   {
+        u"url": u"http://v.youku.com/v_show/id_XNDgyMDQ2NTQw.html",
+        u"file": u"XNDgyMDQ2NTQw_part00.flv",
+        u"md5": u"ffe3f2e435663dc2d1eea34faeff5b5b",
+        u"params": { u"test": False },
+        u"info_dict": {
+            u"title": u"youtube-dl test video \"'/\\ä↭𝕐"
+        }
+    }
+
 
     def _gen_sid(self):
         nowTime = int(time.time() * 1000)

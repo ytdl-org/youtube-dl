@@ -44,6 +44,7 @@ class InfoExtractor(object):
     location:       Physical location of the video.
     player_url:     SWF Player URL (used for rtmpdump).
     subtitles:      The subtitle file contents.
+    view_count:     How many users have watched the video on the platform.
     urlhandle:      [internal] The urlHandle to be used to download the file,
                     like returned by urllib.request.urlopen
 

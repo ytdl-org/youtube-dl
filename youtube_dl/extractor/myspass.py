@@ -11,6 +11,15 @@ from ..utils import (
 
 class MySpassIE(InfoExtractor):
     _VALID_URL = r'http://www.myspass.de/.*'
+    _TEST = {
+        u'url': u'http://www.myspass.de/myspass/shows/tvshows/absolute-mehrheit/Absolute-Mehrheit-vom-17022013-Die-Highlights-Teil-2--/11741/',
+        u'file': u'11741.mp4',
+        u'md5': u'0b49f4844a068f8b33f4b7c88405862b',
+        u'info_dict': {
+            u"description": u"Wer kann in die Fu\u00dfstapfen von Wolfgang Kubicki treten und die Mehrheit der Zuschauer hinter sich versammeln? Wird vielleicht sogar die Absolute Mehrheit geknackt und der Jackpot von 200.000 Euro mit nach Hause genommen?", 
+            u"title": u"Absolute Mehrheit vom 17.02.2013 - Die Highlights, Teil 2"
+        }
+    }
 
     def _real_extract(self, url):
         META_DATA_URL_TEMPLATE = 'http://www.myspass.de/myspass/includes/apps/video/getvideometadataxml.php?id=%s'

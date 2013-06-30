@@ -5,6 +5,14 @@ from .common import InfoExtractor
 
 class RedTubeIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:www\.)?redtube\.com/(?P<id>[0-9]+)'
+    _TEST = {
+        u'url': u'http://www.redtube.com/66418',
+        u'file': u'66418.mp4',
+        u'md5': u'7b8c22b5e7098a3e1c09709df1126d2d',
+        u'info_dict': {
+            u"title": u"Sucked on a toilet"
+        }
+    }
 
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)

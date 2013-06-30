@@ -10,30 +10,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from youtube_dl.extractor import YoutubeUserIE, YoutubePlaylistIE, YoutubeIE, YoutubeChannelIE
 from youtube_dl.utils import *
-from youtube_dl import YoutubeDL
 
-PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
-with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
-    parameters = json.load(pf)
-
-# General configuration (from __init__, not very elegant...)
-jar = compat_cookiejar.CookieJar()
-cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
-proxy_handler = compat_urllib_request.ProxyHandler()
-opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
-compat_urllib_request.install_opener(opener)
-
-class FakeYDL(YoutubeDL):
-    def __init__(self):
-        self.result = []
-        self.params = parameters
-    def to_screen(self, s):
-        print(s)
-    def trouble(self, s, tb=None):
-        raise Exception(s)
-    def extract_info(self, url):
-        self.result.append(url)
-        return url
+from helper import FakeYDL
 
 class TestYoutubeLists(unittest.TestCase):
     def assertIsPlaylist(self,info):

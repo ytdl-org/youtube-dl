@@ -137,7 +137,7 @@ class FileDownloader(object):
         self.ydl.report_warning(*args, **kargs)
 
     def report_error(self, *args, **kargs):
-        self.ydl.error(*args, **kargs)
+        self.ydl.report_error(*args, **kargs)
 
     def slow_down(self, start_time, byte_counter):
         """Sleep if the download speed is over the rate limit."""

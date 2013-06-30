@@ -20,6 +20,19 @@ class MetacafeIE(InfoExtractor):
     _DISCLAIMER = 'http://www.metacafe.com/family_filter/'
     _FILTER_POST = 'http://www.metacafe.com/f/index.php?inputType=filter&controllerGroup=user'
     IE_NAME = u'metacafe'
+    _TEST = {
+        u"add_ie": ["Youtube"],
+        u"url":  u"http://metacafe.com/watch/yt-_aUehQsCQtM/the_electric_company_short_i_pbs_kids_go/",
+        u"file":  u"_aUehQsCQtM.flv",
+        u"info_dict": {
+            u"upload_date": u"20090102",
+            u"title": u"The Electric Company | \"Short I\" | PBS KIDS GO!",
+            u"description": u"md5:2439a8ef6d5a70e380c22f5ad323e5a8",
+            u"uploader": u"PBS",
+            u"uploader_id": u"PBS"
+        }
+    }
+
 
     def report_disclaimer(self):
         """Report disclaimer retrieval."""

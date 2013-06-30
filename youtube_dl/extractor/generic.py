@@ -15,6 +15,15 @@ class GenericIE(InfoExtractor):
 
     _VALID_URL = r'.*'
     IE_NAME = u'generic'
+    _TEST = {
+        u'url': u'http://www.hodiho.fr/2013/02/regis-plante-sa-jeep.html',
+        u'file': u'13601338388002.mp4',
+        u'md5': u'85b90ccc9d73b4acd9138d3af4c27f89',
+        u'info_dict': {
+            u"uploader": u"www.hodiho.fr", 
+            u"title": u"R\u00e9gis plante sa Jeep"
+        }
+    }
 
     def report_download_webpage(self, video_id):
         """Report webpage download."""
@@ -102,7 +111,7 @@ class GenericIE(InfoExtractor):
             mobj = re.search(r'[^A-Za-z0-9]?(?:file|source)=(http[^\'"&]*)', webpage)
         if mobj is None:
             # Broaden the search a little bit: JWPlayer JS loader
-            mobj = re.search(r'[^A-Za-z0-9]?file:\s*["\'](http[^\'"&]*)', webpage)
+            mobj = re.search(r'[^A-Za-z0-9]?file["\']?:\s*["\'](http[^\'"&]*)', webpage)
         if mobj is None:
             # Try to find twitter cards info
             mobj = re.search(r'<meta (?:property|name)="twitter:player:stream" (?:content|value)="(.+?)"', webpage)
@@ -135,7 +144,7 @@ class GenericIE(InfoExtractor):
         #   Video Title - Tagline | Site Name
         # and so on and so forth; it's just not practical
         video_title = self._html_search_regex(r'<title>(.*)</title>',
-            webpage, u'video title')
+            webpage, u'video title', default=u'video')
 
         # video uploader is domain name
         video_uploader = self._search_regex(r'(?:https?://)?([^/]*)/.*',

@@ -9,6 +9,15 @@ from ..utils import (
 
 class GametrailersIE(InfoExtractor):
     _VALID_URL = r'http://www.gametrailers.com/(?P<type>videos|reviews|full-episodes)/(?P<id>.*?)/(?P<title>.*)'
+    _TEST = {
+        u'url': u'http://www.gametrailers.com/videos/zbvr8i/mirror-s-edge-2-e3-2013--debut-trailer',
+        u'file': u'zbvr8i.flv',
+        u'md5': u'c3edbc995ab4081976e16779bd96a878',
+        u'info_dict': {
+            u"title": u"E3 2013: Debut Trailer"
+        },
+        u'skip': u'Requires rtmpdump'
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

@@ -8,6 +8,15 @@ from ..utils import (
 
 class TeamcocoIE(InfoExtractor):
     _VALID_URL = r'http://teamcoco\.com/video/(?P<url_title>.*)'
+    _TEST = {
+        u'url': u'http://teamcoco.com/video/louis-ck-interview-george-w-bush',
+        u'file': u'19705.mp4',
+        u'md5': u'27b6f7527da5acf534b15f21b032656e',
+        u'info_dict': {
+            u"description": u"Louis C.K. got starstruck by George W. Bush, so what? Part one.", 
+            u"title": u"Louis C.K. Interview Pt. 1 11/3/11"
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

@@ -27,6 +27,17 @@ class ComedyCentralIE(InfoExtractor):
                               (the-colbert-report-(videos|collections)/(?P<clipID>[0-9]+)/[^/]*/(?P<cntitle>.*?))
                               |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*)))))
                      $"""
+    _TEST = {
+        u'url': u'http://www.thedailyshow.com/watch/thu-december-13-2012/kristen-stewart',
+        u'file': u'422212.mp4',
+        u'md5': u'4e2f5cb088a83cd8cdb7756132f9739d',
+        u'info_dict': {
+            u"upload_date": u"20121214", 
+            u"description": u"Kristen Stewart", 
+            u"uploader": u"thedailyshow", 
+            u"title": u"thedailyshow-kristen-stewart part 1"
+        }
+    }
 
     _available_formats = ['3500', '2200', '1700', '1200', '750', '400']
 
@@ -172,7 +183,7 @@ class ComedyCentralIE(InfoExtractor):
                 'ext': 'mp4',
                 'format': format,
                 'thumbnail': None,
-                'description': officialTitle,
+                'description': compat_str(officialTitle),
             }
             results.append(info)
 

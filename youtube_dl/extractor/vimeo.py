@@ -16,8 +16,20 @@ class VimeoIE(InfoExtractor):
     """Information extractor for vimeo.com."""
 
     # _VALID_URL matches Vimeo URLs
-    _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|player)\.)?vimeo(?P<pro>pro)?\.com/(?:(?:(?:groups|album)/[^/]+)|(?:.*?)/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)'
+    _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|player)\.)?vimeo(?P<pro>pro)?\.com/(?:(?:(?:groups|album)/[^/]+)|(?:.*?)/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)(?:[?].*)?$'
     IE_NAME = u'vimeo'
+    _TEST = {
+        u'url': u'http://vimeo.com/56015672',
+        u'file': u'56015672.mp4',
+        u'md5': u'8879b6cc097e987f02484baf890129e5',
+        u'info_dict': {
+            u"upload_date": u"20121220", 
+            u"description": u"This is a test case for youtube-dl.\nFor more information, see github.com/rg3/youtube-dl\nTest chars: \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550", 
+            u"uploader_id": u"user7108434", 
+            u"uploader": u"Filippo Valsorda", 
+            u"title": u"youtube-dl test video - \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550"
+        }
+    }
 
     def _verify_video_password(self, url, video_id, webpage):
         password = self._downloader.params.get('videopassword', None)

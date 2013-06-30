@@ -16,6 +16,17 @@ from ..utils import (
 
 class YouPornIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:\w+\.)?youporn\.com/watch/(?P<videoid>[0-9]+)/(?P<title>[^/]+)'
+    _TEST = {
+        u'url': u'http://www.youporn.com/watch/505835/sex-ed-is-it-safe-to-masturbate-daily/',
+        u'file': u'505835.mp4',
+        u'md5': u'c37ddbaaa39058c76a7e86c6813423c1',
+        u'info_dict': {
+            u"upload_date": u"20101221", 
+            u"description": u"Love & Sex Answers: http://bit.ly/DanAndJenn -- Is It Unhealthy To Masturbate Daily?", 
+            u"uploader": u"Ask Dan And Jennifer", 
+            u"title": u"Sex Ed: Is It Safe To Masturbate Daily?"
+        }
+    }
 
     def _print_formats(self, formats):
         """Print all available formats"""

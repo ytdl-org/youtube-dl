@@ -6,6 +6,15 @@ from .common import InfoExtractor
 class UstreamIE(InfoExtractor):
     _VALID_URL = r'https?://www\.ustream\.tv/recorded/(?P<videoID>\d+)'
     IE_NAME = u'ustream'
+    _TEST = {
+        u'url': u'http://www.ustream.tv/recorded/20274954',
+        u'file': u'20274954.flv',
+        u'md5': u'088f151799e8f572f84eb62f17d73e5c',
+        u'info_dict': {
+            u"uploader": u"Young Americans for Liberty", 
+            u"title": u"Young Americans for Liberty February 7, 2012 2:28 AM"
+        }
+    }
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)

@@ -6,6 +6,14 @@ from .common import InfoExtractor
 
 class SpiegelIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?spiegel\.de/video/[^/]*-(?P<videoID>[0-9]+)(?:\.html)?(?:#.*)?$'
+    _TEST = {
+        u'url': u'http://www.spiegel.de/video/vulkan-tungurahua-in-ecuador-ist-wieder-aktiv-video-1259285.html',
+        u'file': u'1259285.mp4',
+        u'md5': u'2c2754212136f35fb4b19767d242f66e',
+        u'info_dict': {
+            u"title": u"Vulkanausbruch in Ecuador: Der \"Feuerschlund\" ist wieder aktiv"
+        }
+    }
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)

@@ -9,6 +9,15 @@ class ARDIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:(?:www\.)?ardmediathek\.de|mediathek\.daserste\.de)/(?:.*/)(?P<video_id>[^/\?]+)(?:\?.*)?'
     _TITLE = r'<h1(?: class="boxTopHeadline")?>(?P<title>.*)</h1>'
     _MEDIA_STREAM = r'mediaCollection\.addMediaStream\((?P<media_type>\d+), (?P<quality>\d+), "(?P<rtmp_url>[^"]*)", "(?P<video_url>[^"]*)", "[^"]*"\)'
+    _TEST = {
+        u'url': u'http://www.ardmediathek.de/das-erste/tagesschau-in-100-sek?documentId=14077640',
+        u'file': u'14077640.mp4',
+        u'md5': u'6ca8824255460c787376353f9e20bbd8',
+        u'info_dict': {
+            u"title": u"11.04.2013 09:23 Uhr - Tagesschau in 100 Sekunden"
+        },
+        u'skip': u'Requires rtmpdump'
+    }
 
     def _real_extract(self, url):
         # determine video id from url

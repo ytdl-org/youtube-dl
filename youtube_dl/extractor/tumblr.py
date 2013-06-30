@@ -8,6 +8,14 @@ from ..utils import (
 
 class TumblrIE(InfoExtractor):
     _VALID_URL = r'http://(?P<blog_name>.*?)\.tumblr\.com/((post)|(video))/(?P<id>\d*)/(.*?)'
+    _TEST = {
+        u'url': u'http://resigno.tumblr.com/post/53364321212/e-de-extrema-importancia-que-esse-video-seja',
+        u'file': u'53364321212.mp4',
+        u'md5': u'0716d3dd51baf68a28b40fdf1251494e',
+        u'info_dict': {
+            u"title": u"Rafael Lemos"
+        }
+    }
 
     def _real_extract(self, url):
         m_url = re.match(self._VALID_URL, url)
@@ -30,7 +38,7 @@ class TumblrIE(InfoExtractor):
 
         # The only place where you can get a title, it's not complete,
         # but searching in other places doesn't work for all videos
-        video_title = self._html_search_regex(r'<title>(?P<title>.*?)</title>',
+        video_title = self._html_search_regex(r'<title>(?P<title>.*?)(?: \| Tumblr)?</title>',
             webpage, u'title', flags=re.DOTALL)
 
         return [{'id': video_id,

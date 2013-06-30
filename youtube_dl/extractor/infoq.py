@@ -11,6 +11,18 @@ from ..utils import (
 
 class InfoQIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?infoq\.com/[^/]+/[^/]+$'
+    _TEST = {
+        u"name": u"InfoQ",
+        u"url": u"http://www.infoq.com/presentations/A-Few-of-My-Favorite-Python-Things",
+        u"file": u"12-jan-pythonthings.mp4",
+        u"info_dict": {
+            u"description": u"Mike Pirnat presents some tips and tricks, standard libraries and third party packages that make programming in Python a richer experience.",
+            u"title": u"A Few of My Favorite [Python] Things"
+        },
+        u"params": {
+            u"skip_download": True
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

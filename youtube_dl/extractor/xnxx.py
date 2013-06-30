@@ -13,6 +13,14 @@ class XNXXIE(InfoExtractor):
     VIDEO_URL_RE = r'flv_url=(.*?)&amp;'
     VIDEO_TITLE_RE = r'<title>(.*?)\s+-\s+XNXX.COM'
     VIDEO_THUMB_RE = r'url_bigthumb=(.*?)&amp;'
+    _TEST = {
+        u'url': u'http://video.xnxx.com/video1135332/lida_naked_funny_actress_5_',
+        u'file': u'1135332.flv',
+        u'md5': u'0831677e2b4761795f68d417e0b7b445',
+        u'info_dict': {
+            u"title": u"lida \u00bb Naked Funny Actress  (5)"
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

@@ -116,12 +116,14 @@ which means you can modify it, redistribute it or use it however you like.
     -F, --list-formats         list all available formats (currently youtube
                                only)
     --write-sub                write subtitle file (currently youtube only)
+    --write-auto-sub           write automatic subtitle file (currently youtube
+                               only)
     --only-sub                 [deprecated] alias of --skip-download
     --all-subs                 downloads all the available subtitles of the
                                video (currently youtube only)
     --list-subs                lists all available subtitles for the video
                                (currently youtube only)
-    --sub-format FORMAT        subtitle format [srt/sbv] (default=srt)
+    --sub-format FORMAT        subtitle format [srt/sbv/vtt] (default=srt)
                                (currently youtube only)
     --sub-lang LANG            language of the subtitles to download (optional)
                                use IETF language tags like 'en'
@@ -166,7 +168,7 @@ The `-o` option allows users to indicate a template for the output file names. T
  - `playlist`: The name or the id of the playlist that contains the video.
  - `playlist_index`: The index of the video in the playlist, a five-digit number.
 
-The current default template is `%(id)s.%(ext)s`, but that will be switchted to `%(title)s-%(id)s.%(ext)s` (which can be requested with `-t` at the moment).
+The current default template is `%(title)s-%(id)s.%(ext)s`.
 
 In some cases, you don't want special characters such as 中, spaces, or &, such as when transferring the downloaded filename to a Windows system or the filename through an 8bit-unsafe channel. In these cases, add the `--restrict-filenames` flag to get a shorter title:
 

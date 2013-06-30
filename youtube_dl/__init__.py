@@ -26,7 +26,8 @@ __authors__  = (
     'Julien Fraichard',
     'Johny Mo Swag',
     'Axel Noack',
-    )
+    'Albert Kim',
+)
 
 __license__ = 'Public Domain'
 
@@ -205,7 +206,7 @@ def parseOpts(overrideArguments=None):
             help='lists all available subtitles for the video (currently youtube only)', default=False)
     video_format.add_option('--sub-format',
             action='store', dest='subtitlesformat', metavar='FORMAT',
-            help='subtitle format [srt/sbv] (default=srt) (currently youtube only)', default='srt')
+            help='subtitle format [srt/sbv/vtt] (default=srt) (currently youtube only)', default='srt')
     video_format.add_option('--sub-lang', '--srt-lang',
             action='store', dest='subtitleslang', metavar='LANG',
             help='language of the subtitles to download (optional) use IETF language tags like \'en\'')
@@ -576,8 +577,7 @@ def _real_main(argv=None):
         ydl.to_screen(u'[debug] Python version %s - %s' %(platform.python_version(), platform.platform()))
         ydl.to_screen(u'[debug] Proxy map: ' + str(proxy_handler.proxies))
 
-    for extractor in extractors:
-        ydl.add_info_extractor(extractor)
+    ydl.add_default_info_extractors()
 
     # PostProcessors
     if opts.extractaudio:
