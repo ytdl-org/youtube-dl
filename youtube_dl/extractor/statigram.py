@@ -10,7 +10,7 @@ class StatigramIE(InfoExtractor):
         u'md5': u'deda4ff333abe2e118740321e992605b',
         u'info_dict': {
             u"uploader_id": u"videoseconds", 
-            u"title": u"Instagram photo by @videoseconds (Video)"
+            u"title": u"Instagram photo by @videoseconds"
         }
     }
 
@@ -27,7 +27,7 @@ class StatigramIE(InfoExtractor):
         html_title = self._html_search_regex(
             r'<title>(.+?)</title>',
             webpage, u'title')
-        title = html_title.rpartition(u' | Statigram')[0]
+        title = re.sub(r'(?: *\(Videos?\))? \| Statigram$', '', html_title)
         uploader_id = self._html_search_regex(
             r'@([^ ]+)', title, u'uploader name', fatal=False)
         ext = 'mp4'
