@@ -10,7 +10,7 @@ class StatigramIE(InfoExtractor):
         u'md5': u'deda4ff333abe2e118740321e992605b',
         u'info_dict': {
             u"uploader_id": u"videoseconds", 
-            u"title": u"Instagram photo by @videoseconds (Videos)"
+            u"title": u"Instagram photo by @videoseconds (Video)"
         }
     }
 
