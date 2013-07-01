@@ -48,6 +48,7 @@ from .steam import SteamIE
 from .teamcoco import TeamcocoIE
 from .ted import TEDIE
 from .tf1 import TF1IE
+from .traileraddict import TrailerAddictIE
 from .tudou import TudouIE
 from .tumblr import TumblrIE
 from .tutv import TutvIE
