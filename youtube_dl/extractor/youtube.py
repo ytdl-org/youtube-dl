@@ -34,7 +34,7 @@ class YoutubeIE(InfoExtractor):
                          (?:                                                  # the various things that can precede the ID:
                              (?:(?:v|embed|e)/)                               # v/ or embed/ or e/
                              |(?:                                             # or the v= param in all its forms
-                                 (?:watch(?:_popup)?(?:\.php)?)?              # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
+                                 (?:watch|movie(?:_popup)?(?:\.php)?)?              # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
                                  (?:\?|\#!?)                                  # the params delimiter ? or # or #!
                                  (?:.*?&)?                                    # any other preceding param (like /?s=tuff&v=xxxx)
                                  v=
@@ -586,7 +586,7 @@ class YoutubeIE(InfoExtractor):
             if req_format is None or req_format == 'best':
                 video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
             elif req_format == 'worst':
-                video_url_list = [(existing_formats[len(existing_formats)-1], url_map[existing_formats[len(existing_formats)-1]])] # worst quality
+                video_url_list = [(existing_formats[-1], url_map[existing_formats[-1]])] # worst quality
             elif req_format in ('-1', 'all'):
                 video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
             else:
@@ -853,3 +853,17 @@ class YoutubeSearchIE(SearchInfoExtractor):
             video_ids = video_ids[:n]
         videos = [self.url_result('http://www.youtube.com/watch?v=%s' % id, 'Youtube') for id in video_ids]
         return self.playlist_result(videos, query)
+
+
+class YoutubeShowIE(InfoExtractor):
+    _VALID_URL = r'https?://www\.youtube\.com/show/(.*)'
+    IE_NAME = u'youtube:show'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        show_name = mobj.group(1)
+        webpage = self._download_webpage(url, show_name, u'Downloading show webpage')
+        # There's one playlist for each season of the show
+        m_seasons = list(re.finditer(r'href="(/playlist\?list=.*?)"', webpage))
+        self.to_screen(u'%s: Found %s seasons' % (show_name, len(m_seasons)))
+        return [self.url_result('https://www.youtube.com' + season.group(1), 'YoutubePlaylist') for season in m_seasons]

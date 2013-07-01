@@ -67,7 +67,7 @@ from .yahoo import YahooIE, YahooSearchIE
 from .youjizz import YouJizzIE
 from .youku import YoukuIE
 from .youporn import YouPornIE
-from .youtube import YoutubeIE, YoutubePlaylistIE, YoutubeSearchIE, YoutubeUserIE, YoutubeChannelIE
+from .youtube import YoutubeIE, YoutubePlaylistIE, YoutubeSearchIE, YoutubeUserIE, YoutubeChannelIE, YoutubeShowIE
 from .zdf import ZDFIE
 
 
