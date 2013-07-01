@@ -420,7 +420,7 @@ def _real_main(argv=None):
     extractors = gen_extractors()
 
     if opts.list_extractors:
-        for ie in extractors:
+        for ie in sorted(extractors, key=lambda ie: ie.IE_NAME.lower()):
             compat_print(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else ''))
             matchedUrls = [url for url in all_urls if ie.suitable(url)]
             all_urls = [url for url in all_urls if url not in matchedUrls]
