@@ -586,7 +586,7 @@ class YoutubeIE(InfoExtractor):
             if req_format is None or req_format == 'best':
                 video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
             elif req_format == 'worst':
-                video_url_list = [(existing_formats[len(existing_formats)-1], url_map[existing_formats[len(existing_formats)-1]])] # worst quality
+                video_url_list = [(existing_formats[-1], url_map[existing_formats[-1]])] # worst quality
             elif req_format in ('-1', 'all'):
                 video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
             else:
