@@ -143,7 +143,7 @@ def parseOpts(overrideArguments=None):
     general.add_option('--list-extractors',
             action='store_true', dest='list_extractors',
             help='List all supported extractors and the URLs they would handle', default=False)
-    general.add_option('--list-extractor-descriptions',
+    general.add_option('--extractor-descriptions',
             action='store_true', dest='list_extractor_descriptions',
             help='Output descriptions of all supported extractors', default=False)
     general.add_option('--proxy', dest='proxy', default=None, help='Use the specified HTTP/HTTPS proxy', metavar='URL')
