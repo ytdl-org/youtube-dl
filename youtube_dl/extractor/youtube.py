@@ -402,6 +402,9 @@ class YoutubeIE(InfoExtractor):
         return video_id
 
     def _real_extract(self, url):
+        if re.match(r'(?:https?://)?[^/]+/watch\?feature=[a-z_]+$', url):
+            self._downloader.report_warning(u'Did you forget to quote the URL? Remember that & is a meta-character in most shells, so you want to put the URL in quotes, like  youtube-dl \'http://www.youtube.com/watch?feature=foo&v=BaW_jenozKc\' (or simply  youtube-dl BaW_jenozKc  ).')
+
         # Extract original video URL from URL with redirection, like age verification, using next_url parameter
         mobj = re.search(self._NEXT_URL_RE, url)
         if mobj:
