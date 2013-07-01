@@ -12,8 +12,7 @@ from ..utils import (
 
 
 class ComedyCentralIE(InfoExtractor):
-    """Information extractor for The Daily Show and Colbert Report """
-
+    IE_DESC = u'The Daily Show / Colbert Report'
     # urls can be abbreviations like :thedailyshow or :colbert
     # urls for episodes like:
     # or urls for clips like: http://www.thedailyshow.com/watch/mon-december-10-2012/any-given-gun-day

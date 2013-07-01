@@ -8,7 +8,7 @@ from ..utils import (
 
 
 class GoogleSearchIE(SearchInfoExtractor):
-    """Information Extractor for Google Video search queries."""
+    IE_DESC = u'Google Video search'
     _MORE_PAGES_INDICATOR = r'id="pnnext" class="pn"'
     _MAX_RESULTS = 1000
     IE_NAME = u'video.google:search'

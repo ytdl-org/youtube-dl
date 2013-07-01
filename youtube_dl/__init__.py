@@ -35,6 +35,7 @@ import codecs
 import getpass
 import optparse
 import os
+import random
 import re
 import shlex
 import socket
@@ -142,6 +143,9 @@ def parseOpts(overrideArguments=None):
     general.add_option('--list-extractors',
             action='store_true', dest='list_extractors',
             help='List all supported extractors and the URLs they would handle', default=False)
+    general.add_option('--list-extractor-descriptions',
+            action='store_true', dest='list_extractor_descriptions',
+            help='Output descriptions of all supported extractors', default=False)
     general.add_option('--proxy', dest='proxy', default=None, help='Use the specified HTTP/HTTPS proxy', metavar='URL')
     general.add_option('--no-check-certificate', action='store_true', dest='no_check_certificate', default=False, help='Suppress HTTPS certificate validation.')
 
@@ -427,6 +431,18 @@ def _real_main(argv=None):
             for mu in matchedUrls:
                 compat_print(u'  ' + mu)
         sys.exit(0)
+    if opts.list_extractor_descriptions:
+        for ie in sorted(extractors, key=lambda ie: ie.IE_NAME.lower()):
+            if not ie._WORKING:
+                continue
+            desc = getattr(ie, 'IE_DESC', ie.IE_NAME)
+            if hasattr(ie, 'SEARCH_KEY'):
+                _SEARCHES = (u'cute kittens', u'slithering pythons', u'falling cat', u'angry poodle', u'purple fish', u'running tortoise')
+                _COUNTS = (u'', u'5', u'10', u'all')
+                desc += u' (Example: "%s%s:%s" )' % (ie.SEARCH_KEY, random.choice(_COUNTS), random.choice(_SEARCHES))
+            compat_print(desc)
+        sys.exit(0)
+
 
     # Conflicting, missing and erroneous options
     if opts.usenetrc and (opts.username is not None or opts.password is not None):

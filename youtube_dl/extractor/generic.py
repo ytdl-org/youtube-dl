@@ -11,8 +11,7 @@ from ..utils import (
 )
 
 class GenericIE(InfoExtractor):
-    """Generic last-resort information extractor."""
-
+    IE_DESC = u'Generic downloader that works on some sites'
     _VALID_URL = r'.*'
     IE_NAME = u'generic'
     _TEST = {
