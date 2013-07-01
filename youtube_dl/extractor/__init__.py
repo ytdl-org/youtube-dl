@@ -25,6 +25,7 @@ from .howcast import HowcastIE
 from .hypem import HypemIE
 from .ina import InaIE
 from .infoq import InfoQIE
+from .instagram import InstagramIE
 from .jukebox import JukeboxIE
 from .justintv import JustinTVIE
 from .keek import KeekIE
