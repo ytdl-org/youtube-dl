@@ -591,7 +591,7 @@ def _real_main(argv=None):
             if re.match('[0-9a-f]+', out):
                 ydl.to_screen(u'[debug] Git HEAD: ' + out)
         except:
-            pass
+            sys.exc_clear()
         ydl.to_screen(u'[debug] Python version %s - %s' %(platform.python_version(), platform.platform()))
         ydl.to_screen(u'[debug] Proxy map: ' + str(proxy_handler.proxies))
 
