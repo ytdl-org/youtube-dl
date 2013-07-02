@@ -18,19 +18,13 @@ which means you can modify it, redistribute it or use it however you like.
     --version                  print program version and exit
     -U, --update               update this program to latest version
     -i, --ignore-errors        continue on download errors
-    -r, --rate-limit LIMIT     maximum download rate (e.g. 50k or 44.6m)
-    -R, --retries RETRIES      number of retries (default is 10)
-    --buffer-size SIZE         size of download buffer (e.g. 1024 or 16k)
-                               (default is 1024)
-    --no-resize-buffer         do not automatically adjust the buffer size. By
-                               default, the buffer size is automatically resized
-                               from an initial value of SIZE.
     --dump-user-agent          display the current browser identification
     --user-agent UA            specify a custom user agent
     --referer REF              specify a custom referer, use if the video access
                                is restricted to one domain
     --list-extractors          List all supported extractors and the URLs they
                                would handle
+    --extractor-descriptions   Output descriptions of all supported extractors
     --proxy URL                Use the specified HTTP/HTTPS proxy
     --no-check-certificate     Suppress HTTPS certificate validation.
 
@@ -49,6 +43,15 @@ which means you can modify it, redistribute it or use it however you like.
     --date DATE                download only videos uploaded in this date
     --datebefore DATE          download only videos uploaded before this date
     --dateafter DATE           download only videos uploaded after this date
+
+## Download Options:
+    -r, --rate-limit LIMIT     maximum download rate (e.g. 50k or 44.6m)
+    -R, --retries RETRIES      number of retries (default is 10)
+    --buffer-size SIZE         size of download buffer (e.g. 1024 or 16k)
+                               (default is 1024)
+    --no-resize-buffer         do not automatically adjust the buffer size. By
+                               default, the buffer size is automatically resized
+                               from an initial value of SIZE.
 
 ## Filesystem Options:
     -t, --title                use title in file name (default)
