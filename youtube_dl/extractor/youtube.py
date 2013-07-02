@@ -23,8 +23,7 @@ from ..utils import (
 
 
 class YoutubeIE(InfoExtractor):
-    """Information extractor for youtube.com."""
-
+    IE_DESC = u'YouTube.com'
     _VALID_URL = r"""^
                      (
                          (?:https?://)?                                       # http(s):// (optional)
@@ -34,7 +33,7 @@ class YoutubeIE(InfoExtractor):
                          (?:                                                  # the various things that can precede the ID:
                              (?:(?:v|embed|e)/)                               # v/ or embed/ or e/
                              |(?:                                             # or the v= param in all its forms
-                                 (?:watch(?:_popup)?(?:\.php)?)?              # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
+                                 (?:watch|movie(?:_popup)?(?:\.php)?)?              # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
                                  (?:\?|\#!?)                                  # the params delimiter ? or # or #!
                                  (?:.*?&)?                                    # any other preceding param (like /?s=tuff&v=xxxx)
                                  v=
@@ -402,6 +401,9 @@ class YoutubeIE(InfoExtractor):
         return video_id
 
     def _real_extract(self, url):
+        if re.match(r'(?:https?://)?[^/]+/watch\?feature=[a-z_]+$', url):
+            self._downloader.report_warning(u'Did you forget to quote the URL? Remember that & is a meta-character in most shells, so you want to put the URL in quotes, like  youtube-dl \'http://www.youtube.com/watch?feature=foo&v=BaW_jenozKc\' (or simply  youtube-dl BaW_jenozKc  ).')
+
         # Extract original video URL from URL with redirection, like age verification, using next_url parameter
         mobj = re.search(self._NEXT_URL_RE, url)
         if mobj:
@@ -583,7 +585,7 @@ class YoutubeIE(InfoExtractor):
             if req_format is None or req_format == 'best':
                 video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
             elif req_format == 'worst':
-                video_url_list = [(existing_formats[len(existing_formats)-1], url_map[existing_formats[len(existing_formats)-1]])] # worst quality
+                video_url_list = [(existing_formats[-1], url_map[existing_formats[-1]])] # worst quality
             elif req_format in ('-1', 'all'):
                 video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
             else:
@@ -626,8 +628,7 @@ class YoutubeIE(InfoExtractor):
         return results
 
 class YoutubePlaylistIE(InfoExtractor):
-    """Information Extractor for YouTube playlists."""
-
+    IE_DESC = u'YouTube.com playlists'
     _VALID_URL = r"""(?:
                         (?:https?://)?
                         (?:\w+\.)?
@@ -694,8 +695,7 @@ class YoutubePlaylistIE(InfoExtractor):
 
 
 class YoutubeChannelIE(InfoExtractor):
-    """Information Extractor for YouTube channels."""
-
+    IE_DESC = u'YouTube.com channels'
     _VALID_URL = r"^(?:https?://)?(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com)/channel/([0-9A-Za-z_-]+)"
     _TEMPLATE_URL = 'http://www.youtube.com/channel/%s/videos?sort=da&flow=list&view=0&page=%s&gl=US&hl=en'
     _MORE_PAGES_INDICATOR = 'yt-uix-load-more'
@@ -753,8 +753,7 @@ class YoutubeChannelIE(InfoExtractor):
 
 
 class YoutubeUserIE(InfoExtractor):
-    """Information Extractor for YouTube users."""
-
+    IE_DESC = u'YouTube.com user videos (URL or "ytuser" keyword)'
     _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?youtube\.com/user/)|ytuser:)([A-Za-z0-9_-]+)'
     _TEMPLATE_URL = 'http://gdata.youtube.com/feeds/api/users/%s'
     _GDATA_PAGE_SIZE = 50
@@ -810,7 +809,7 @@ class YoutubeUserIE(InfoExtractor):
         return [self.playlist_result(url_results, playlist_title = username)]
 
 class YoutubeSearchIE(SearchInfoExtractor):
-    """Information Extractor for YouTube search queries."""
+    IE_DESC = u'YouTube.com searches'
     _API_URL = 'https://gdata.youtube.com/feeds/api/videos?q=%s&start-index=%i&max-results=50&v=2&alt=jsonc'
     _MAX_RESULTS = 1000
     IE_NAME = u'youtube:search'
@@ -850,3 +849,18 @@ class YoutubeSearchIE(SearchInfoExtractor):
             video_ids = video_ids[:n]
         videos = [self.url_result('http://www.youtube.com/watch?v=%s' % id, 'Youtube') for id in video_ids]
         return self.playlist_result(videos, query)
+
+
+class YoutubeShowIE(InfoExtractor):
+    IE_DESC = u'YouTube.com (multi-season) shows'
+    _VALID_URL = r'https?://www\.youtube\.com/show/(.*)'
+    IE_NAME = u'youtube:show'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        show_name = mobj.group(1)
+        webpage = self._download_webpage(url, show_name, u'Downloading show webpage')
+        # There's one playlist for each season of the show
+        m_seasons = list(re.finditer(r'href="(/playlist\?list=.*?)"', webpage))
+        self.to_screen(u'%s: Found %s seasons' % (show_name, len(m_seasons)))
+        return [self.url_result('https://www.youtube.com' + season.group(1), 'YoutubePlaylist') for season in m_seasons]

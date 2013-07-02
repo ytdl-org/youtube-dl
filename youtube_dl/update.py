@@ -44,7 +44,7 @@ def update_self(to_screen, verbose, filename):
 
 
     if not isinstance(globals().get('__loader__'), zipimporter) and not hasattr(sys, "frozen"):
-        to_screen(u'It looks like you installed youtube-dl with pip, setup.py or a tarball. Please use that to update.')
+        to_screen(u'It looks like you installed youtube-dl with a package manager, pip, setup.py or a tarball. Please use that to update.')
         return
 
     # Check if there is a new version

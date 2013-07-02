@@ -35,6 +35,7 @@ import codecs
 import getpass
 import optparse
 import os
+import random
 import re
 import shlex
 import socket
@@ -118,6 +119,7 @@ def parseOpts(overrideArguments=None):
     selection      = optparse.OptionGroup(parser, 'Video Selection')
     authentication = optparse.OptionGroup(parser, 'Authentication Options')
     video_format   = optparse.OptionGroup(parser, 'Video Format Options')
+    downloader     = optparse.OptionGroup(parser, 'Download Options')
     postproc       = optparse.OptionGroup(parser, 'Post-processing Options')
     filesystem     = optparse.OptionGroup(parser, 'Filesystem Options')
     verbosity      = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
@@ -130,15 +132,6 @@ def parseOpts(overrideArguments=None):
             action='store_true', dest='update_self', help='update this program to latest version')
     general.add_option('-i', '--ignore-errors',
             action='store_true', dest='ignoreerrors', help='continue on download errors', default=False)
-    general.add_option('-r', '--rate-limit',
-            dest='ratelimit', metavar='LIMIT', help='maximum download rate (e.g. 50k or 44.6m)')
-    general.add_option('-R', '--retries',
-            dest='retries', metavar='RETRIES', help='number of retries (default is %default)', default=10)
-    general.add_option('--buffer-size',
-            dest='buffersize', metavar='SIZE', help='size of download buffer (e.g. 1024 or 16k) (default is %default)', default="1024")
-    general.add_option('--no-resize-buffer',
-            action='store_true', dest='noresizebuffer',
-            help='do not automatically adjust the buffer size. By default, the buffer size is automatically resized from an initial value of SIZE.', default=False)
     general.add_option('--dump-user-agent',
             action='store_true', dest='dump_user_agent',
             help='display the current browser identification', default=False)
@@ -150,9 +143,12 @@ def parseOpts(overrideArguments=None):
     general.add_option('--list-extractors',
             action='store_true', dest='list_extractors',
             help='List all supported extractors and the URLs they would handle', default=False)
+    general.add_option('--extractor-descriptions',
+            action='store_true', dest='list_extractor_descriptions',
+            help='Output descriptions of all supported extractors', default=False)
     general.add_option('--proxy', dest='proxy', default=None, help='Use the specified HTTP/HTTPS proxy', metavar='URL')
     general.add_option('--no-check-certificate', action='store_true', dest='no_check_certificate', default=False, help='Suppress HTTPS certificate validation.')
-    general.add_option('--test', action='store_true', dest='test', default=False, help=optparse.SUPPRESS_HELP)
+
 
     selection.add_option('--playlist-start',
             dest='playliststart', metavar='NUMBER', help='playlist video to start at (default is %default)', default=1)
@@ -210,6 +206,17 @@ def parseOpts(overrideArguments=None):
     video_format.add_option('--sub-lang', '--srt-lang',
             action='store', dest='subtitleslang', metavar='LANG',
             help='language of the subtitles to download (optional) use IETF language tags like \'en\'')
+
+    downloader.add_option('-r', '--rate-limit',
+            dest='ratelimit', metavar='LIMIT', help='maximum download rate (e.g. 50k or 44.6m)')
+    downloader.add_option('-R', '--retries',
+            dest='retries', metavar='RETRIES', help='number of retries (default is %default)', default=10)
+    downloader.add_option('--buffer-size',
+            dest='buffersize', metavar='SIZE', help='size of download buffer (e.g. 1024 or 16k) (default is %default)', default="1024")
+    downloader.add_option('--no-resize-buffer',
+            action='store_true', dest='noresizebuffer',
+            help='do not automatically adjust the buffer size. By default, the buffer size is automatically resized from an initial value of SIZE.', default=False)
+    downloader.add_option('--test', action='store_true', dest='test', default=False, help=optparse.SUPPRESS_HELP)
 
     verbosity.add_option('-q', '--quiet',
             action='store_true', dest='quiet', help='activates quiet mode', default=False)
@@ -317,6 +324,7 @@ def parseOpts(overrideArguments=None):
 
     parser.add_option_group(general)
     parser.add_option_group(selection)
+    parser.add_option_group(downloader)
     parser.add_option_group(filesystem)
     parser.add_option_group(verbosity)
     parser.add_option_group(video_format)
@@ -420,13 +428,25 @@ def _real_main(argv=None):
     extractors = gen_extractors()
 
     if opts.list_extractors:
-        for ie in extractors:
+        for ie in sorted(extractors, key=lambda ie: ie.IE_NAME.lower()):
             compat_print(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else ''))
             matchedUrls = [url for url in all_urls if ie.suitable(url)]
             all_urls = [url for url in all_urls if url not in matchedUrls]
             for mu in matchedUrls:
                 compat_print(u'  ' + mu)
         sys.exit(0)
+    if opts.list_extractor_descriptions:
+        for ie in sorted(extractors, key=lambda ie: ie.IE_NAME.lower()):
+            if not ie._WORKING:
+                continue
+            desc = getattr(ie, 'IE_DESC', ie.IE_NAME)
+            if hasattr(ie, 'SEARCH_KEY'):
+                _SEARCHES = (u'cute kittens', u'slithering pythons', u'falling cat', u'angry poodle', u'purple fish', u'running tortoise')
+                _COUNTS = (u'', u'5', u'10', u'all')
+                desc += u' (Example: "%s%s:%s" )' % (ie.SEARCH_KEY, random.choice(_COUNTS), random.choice(_SEARCHES))
+            compat_print(desc)
+        sys.exit(0)
+
 
     # Conflicting, missing and erroneous options
     if opts.usenetrc and (opts.username is not None or opts.password is not None):

@@ -10,8 +10,7 @@ from ..utils import (
 
 
 class GooglePlusIE(InfoExtractor):
-    """Information extractor for plus.google.com."""
-
+    IE_DESC = u'Google Plus'
     _VALID_URL = r'(?:https://)?plus\.google\.com/(?:[^/]+/)*?posts/(\w+)'
     IE_NAME = u'plus.google'
     _TEST = {

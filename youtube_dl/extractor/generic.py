@@ -11,8 +11,7 @@ from ..utils import (
 )
 
 class GenericIE(InfoExtractor):
-    """Generic last-resort information extractor."""
-
+    IE_DESC = u'Generic downloader that works on some sites'
     _VALID_URL = r'.*'
     IE_NAME = u'generic'
     _TEST = {
@@ -144,7 +143,7 @@ class GenericIE(InfoExtractor):
         #   Video Title - Tagline | Site Name
         # and so on and so forth; it's just not practical
         video_title = self._html_search_regex(r'<title>(.*)</title>',
-            webpage, u'video title', default=u'video')
+            webpage, u'video title', default=u'video', flags=re.DOTALL)
 
         # video uploader is domain name
         video_uploader = self._search_regex(r'(?:https?://)?([^/]*)/.*',

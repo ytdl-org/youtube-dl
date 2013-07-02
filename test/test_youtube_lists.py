@@ -8,7 +8,7 @@ import json
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.extractor import YoutubeUserIE, YoutubePlaylistIE, YoutubeIE, YoutubeChannelIE
+from youtube_dl.extractor import YoutubeUserIE, YoutubePlaylistIE, YoutubeIE, YoutubeChannelIE, YoutubeShowIE
 from youtube_dl.utils import *
 
 from helper import FakeYDL
@@ -87,6 +87,12 @@ class TestYoutubeLists(unittest.TestCase):
         ie = YoutubePlaylistIE(dl)
         result = ie.extract('PLtPgu7CB4gbY9oDN3drwC3cMbJggS7dKl')[0]
         self.assertEqual(len(result['entries']), 2)
+
+    def test_youtube_show(self):
+        dl = FakeYDL()
+        ie = YoutubeShowIE(dl)
+        result = ie.extract('http://www.youtube.com/show/airdisasters')
+        self.assertTrue(len(result) >= 4)
 
 if __name__ == '__main__':
     unittest.main()

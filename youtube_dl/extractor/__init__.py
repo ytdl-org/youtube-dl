@@ -25,6 +25,7 @@ from .howcast import HowcastIE
 from .hypem import HypemIE
 from .ina import InaIE
 from .infoq import InfoQIE
+from .instagram import InstagramIE
 from .jukebox import JukeboxIE
 from .justintv import JustinTVIE
 from .keek import KeekIE
@@ -48,6 +49,7 @@ from .steam import SteamIE
 from .teamcoco import TeamcocoIE
 from .ted import TEDIE
 from .tf1 import TF1IE
+from .traileraddict import TrailerAddictIE
 from .tudou import TudouIE
 from .tumblr import TumblrIE
 from .tutv import TutvIE
@@ -66,7 +68,7 @@ from .yahoo import YahooIE, YahooSearchIE
 from .youjizz import YouJizzIE
 from .youku import YoukuIE
 from .youporn import YouPornIE
-from .youtube import YoutubeIE, YoutubePlaylistIE, YoutubeSearchIE, YoutubeUserIE, YoutubeChannelIE
+from .youtube import YoutubeIE, YoutubePlaylistIE, YoutubeSearchIE, YoutubeUserIE, YoutubeChannelIE, YoutubeShowIE
 from .zdf import ZDFIE
 
 
