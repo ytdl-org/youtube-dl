@@ -151,26 +151,39 @@ which means you can modify it, redistribute it or use it however you like.
 
 # CONFIGURATION
 
-You can configure youtube-dl by placing default arguments (such as `--extract-audio --no-mtime` to always extract the audio and not copy the mtime) into `/etc/youtube-dl.conf` and/or `~/.config/youtube-dl.conf`.
+You can configure youtube-dl by placing default arguments (such as
+`--extract-audio --no-mtime` to always extract the audio and not copy the
+mtime) into `/etc/youtube-dl.conf` and/or `~/.config/youtube-dl.conf`.
 
 # OUTPUT TEMPLATE
 
-The `-o` option allows users to indicate a template for the output file names. The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "http://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences have the format `%(NAME)s`. To clarify, that is a percent symbol followed by a name in parenthesis, followed by a lowercase S. Allowed names are:
+The `-o` option allows users to indicate a template for the output file
+names. The basic usage is not to set any template arguments when downloading
+a single file, like in `youtube-dl -o funny_video.flv "http://some/video"`.
+However, it may contain special sequences that will be replaced when
+downloading each video. The special sequences have the format `%(NAME)s`.
+To clarify, that is a percent symbol followed by a name in parenthesis,
+followed by a lowercase S. Allowed names are:
 
  - `id`: The sequence will be replaced by the video identifier.
  - `url`: The sequence will be replaced by the video URL.
- - `uploader`: The sequence will be replaced by the nickname of the person who uploaded the video.
+ - `uploader`: The sequence will be replaced by the nickname of the person
+    who uploaded the video.
  - `upload_date`: The sequence will be replaced by the upload date in YYYYMMDD format.
  - `title`: The sequence will be replaced by the video title.
  - `ext`: The sequence will be replaced by the appropriate extension (like flv or mp4).
  - `epoch`: The sequence will be replaced by the Unix epoch when creating the file.
- - `autonumber`: The sequence will be replaced by a five-digit number that will be increased with each download, starting at zero.
+ - `autonumber`: The sequence will be replaced by a five-digit number that
+    will be increased with each download, starting at zero.
  - `playlist`: The name or the id of the playlist that contains the video.
  - `playlist_index`: The index of the video in the playlist, a five-digit number.
 
 The current default template is `%(title)s-%(id)s.%(ext)s`.
 
-In some cases, you don't want special characters such as 中, spaces, or &, such as when transferring the downloaded filename to a Windows system or the filename through an 8bit-unsafe channel. In these cases, add the `--restrict-filenames` flag to get a shorter title:
+In some cases, you don't want special characters such as 中, spaces, or &,
+such as when transferring the downloaded filename to a Windows system or the
+filename through an 8bit-unsafe channel. In these cases, add the
+`--restrict-filenames` flag to get a shorter title:
 
     $ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc
     youtube-dl test video ''_ä↭𝕐.mp4    # All kinds of weird characters
@@ -179,7 +192,8 @@ In some cases, you don't want special characters such as 中, spaces, or &, such
 
 # VIDEO SELECTION
 
-Videos can be filtered by their upload date using the options `--date`, `--datebefore` or `--dateafter`, they accept dates in two formats:
+Videos can be filtered by their upload date using the options `--date`,
+`--datebefore` or `--dateafter`, they accept dates in two formats:
 
  - Absolute dates: Dates in the format `YYYYMMDD`.
  - Relative dates: Dates in the format `(now|today)[+-][0-9](day|week|month|year)(s)?`
@@ -194,27 +208,41 @@ Examples:
 
 ### Can you please put the -b option back?
 
-Most people asking this question are not aware that youtube-dl now defaults to downloading the highest available quality as reported by YouTube, which will be 1080p or 720p in some cases, so you no longer need the -b option. For some specific videos, maybe YouTube does not report them to be available in a specific high quality format you''re interested in. In that case, simply request it with the -f option and youtube-dl will try to download it.
+Most people asking this question are not aware that youtube-dl now defaults
+to downloading the highest available quality as reported by YouTube, which
+will be 1080p or 720p in some cases, so you no longer need the `-b` option.
+For some specific videos, maybe YouTube does not report them to be available
+in a specific high quality format you're interested in. In that case, simply
+request it with the `-f` option and youtube-dl will try to download it.
 
 ### I get HTTP error 402 when trying to download a video. What's this?
 
-Apparently YouTube requires you to pass a CAPTCHA test if you download too much. We''re [considering to provide a way to let you solve the CAPTCHA](https://github.com/rg3/youtube-dl/issues/154), but at the moment, your best course of action is pointing a webbrowser to the youtube URL, solving the CAPTCHA, and restart youtube-dl.
+Apparently YouTube requires you to pass a CAPTCHA test if you download too much. We're [considering to provide a way to let you solve the CAPTCHA](https://github.com/rg3/youtube-dl/issues/154), but at the moment, your best course of action is pointing a webbrowser to the youtube URL, solving the CAPTCHA, and restart youtube-dl.
 
 ### I have downloaded a video but how can I play it?
 
-Once the video is fully downloaded, use any video player, such as [vlc](http://www.videolan.org) or [mplayer](http://www.mplayerhq.hu/).
+Once the video is fully downloaded, use any video player, such as
+[vlc](http://www.videolan.org) or [mplayer](http://www.mplayerhq.hu/).
 
 ### The links provided by youtube-dl -g are not working anymore
 
-The URLs youtube-dl outputs require the downloader to have the correct cookies. Use the `--cookies` option to write the required cookies into a file, and advise your downloader to read cookies from that file. Some sites also require a common user agent to be used, use `--dump-user-agent` to see the one in use by youtube-dl.
+The URLs youtube-dl outputs require the downloader to have the correct
+cookies. Use the `--cookies` option to write the required cookies into a
+file, and advise your downloader to read cookies from that file. Some sites
+also require a common user agent to be used, use `--dump-user-agent` to see
+the one in use by youtube-dl.
 
 ### ERROR: no fmt_url_map or conn information found in video info
 
-youtube has switched to a new video info format in July 2011 which is not supported by old versions of youtube-dl. You can update youtube-dl with `sudo youtube-dl --update`.
+youtube has switched to a new video info format in July 2011 which is not
+supported by old versions of `youtube-dl`. You can update `youtube-dl` with
+`sudo youtube-dl --update`.
 
 ### ERROR: unable to download video ###
 
-youtube requires an additional signature since September 2012 which is not supported by old versions of youtube-dl. You can update youtube-dl with `sudo youtube-dl --update`.
+youtube requires an additional signature since September 2012 which is not
+supported by old versions of `youtube-dl`. You can update `youtube-dl` with
+`sudo youtube-dl --update`.
 
 ### SyntaxError: Non-ASCII character ###
 
@@ -223,11 +251,16 @@ The error
     File "youtube-dl", line 2
     SyntaxError: Non-ASCII character '\x93' ...
 
-means you're using an outdated version of Python. Please update to Python 2.6 or 2.7.
+means you're using an outdated version of Python. Please update to Python
+2.6 or 2.7.
 
 ### What is this binary file? Where has the code gone?
 
-Since June 2012 (#342) youtube-dl is packed as an executable zipfile, simply unzip it (might need renaming to `youtube-dl.zip` first on some systems) or clone the git repository, as laid out above. If you modify the code, you can run it by executing the `__main__.py` file. To recompile the executable, run `make youtube-dl`.
+Since June 2012 (#342) `youtube-dl` is packed as an executable zip file.
+Simply unzip it (might need renaming to `youtube-dl.zip` first on some
+systems) or clone the git repository, as laid out above. If you modify the
+code, you can run it by executing the `__main__.py` file. To recompile the
+executable, run `make youtube-dl`.
 
 ### The exe throws a *Runtime error from Visual C++*
 
@@ -235,9 +268,11 @@ To run the exe you need to install first the [Microsoft Visual C++ 2008 Redistri
 
 # COPYRIGHT
 
-youtube-dl is released into the public domain by the copyright holders.
+`youtube-dl` is released into the public domain by the copyright holders.
 
-This README file was originally written by Daniel Bolton (<https://github.com/dbbolton>) and is likewise released into the public domain.
+This README file was originally written by Daniel Bolton
+(<https://github.com/dbbolton>) and is likewise released into the public
+domain.
 
 # BUGS
 
@@ -245,10 +280,15 @@ Bugs and suggestions should be reported at: <https://github.com/rg3/youtube-dl/i
 
 Please include:
 
-* Your exact command line, like `youtube-dl -t "http://www.youtube.com/watch?v=uHlDtZ6Oc3s&feature=channel_video_title"`. A common mistake is not to escape the `&`. Putting URLs in quotes should solve this problem.
-* If possible re-run the command with `--verbose`, and include the full output, it is really helpful to us.
+* Your exact command line, like `youtube-dl -t
+  "http://www.youtube.com/watch?v=uHlDtZ6Oc3s&feature=channel_video_title"`. A
+  common mistake is not to escape the `&`. Putting URLs in quotes should
+  solve this problem.
+* If possible re-run the command with `--verbose`, and include the full
+  output, it is really helpful to us.
 * The output of `youtube-dl --version`
 * The output of `python --version`
-* The name and version of your Operating System ("Ubuntu 11.04 x64" or "Windows 7 x64" is usually enough).
+* The name and version of your Operating System ("Ubuntu 11.04 x64" or
+  "Windows 7 x64" is usually enough).
 
 For discussions, join us in the irc channel #youtube-dl on freenode.
