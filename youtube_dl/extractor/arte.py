@@ -1,5 +1,6 @@
 import re
 import json
+import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -17,7 +18,7 @@ class ArteTvIE(InfoExtractor):
     The videos expire in 7 days, so we can't add tests.
     """
     _EMISSION_URL = r'(?:http://)?www\.arte.tv/guide/(?P<lang>fr|de)/(?:(?:sendungen|emissions)/)?(?P<id>.*?)/(?P<name>.*?)(\?.*)?'
-    _VIDEOS_URL = r'(?:http://)?videos.arte.tv/(?:fr|de)/.*-(?P<id>.*?).html'
+    _VIDEOS_URL = r'(?:http://)?videos.arte.tv/(?P<lang>fr|de)/.*-(?P<id>.*?).html'
     _LIVE_URL = r'index-[0-9]+\.html$'
 
     IE_NAME = u'arte.tv'
@@ -66,7 +67,8 @@ class ArteTvIE(InfoExtractor):
         mobj = re.match(self._VIDEOS_URL, url)
         if mobj is not None:
             id = mobj.group('id')
-            return self._extract_video(url, id)
+            lang = mobj.group('lang')
+            return self._extract_video(url, id, lang)
 
         if re.search(self._LIVE_URL, video_id) is not None:
             raise ExtractorError(u'Arte live streams are not yet supported, sorry')
@@ -113,13 +115,15 @@ class ArteTvIE(InfoExtractor):
 
         return info_dict
 
-    def _extract_video(self, url, video_id):
+    def _extract_video(self, url, video_id, lang):
         """Extract from videos.arte.tv"""
-        config_xml_url = url.replace('/videos/', '/do_delegate/videos/')
-        config_xml_url = config_xml_url.replace('.html', ',view,asPlayerXml.xml')
-        config_xml = self._download_webpage(config_xml_url, video_id)
-        config_xml_url = self._html_search_regex(r'<video lang=".*?" ref="(.*?)"', config_xml, 'config xml url')
-        config_xml = self._download_webpage(config_xml_url, video_id)
+        ref_xml_url = url.replace('/videos/', '/do_delegate/videos/')
+        ref_xml_url = ref_xml_url.replace('.html', ',view,asPlayerXml.xml')
+        ref_xml = self._download_webpage(ref_xml_url, video_id, note=u'Downloading metadata')
+        ref_xml_doc = xml.etree.ElementTree.fromstring(ref_xml)
+        config_node = ref_xml_doc.find('.//video[@lang="%s"]' % lang)
+        config_xml_url = config_node.attrib['ref']
+        config_xml = self._download_webpage(config_xml_url, video_id, note=u'Downloading configuration')
 
         video_urls = list(re.finditer(r'<url quality="(?P<quality>.*?)">(?P<url>.*?)</url>', config_xml))
         def _key(m):
