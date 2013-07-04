@@ -8,6 +8,14 @@ from ..utils import (
 )
 
 class AUEngineIE(InfoExtractor):
+    _TEST = {
+        u'url': u'http://auengine.com/embed.php?file=lfvlytY6&w=650&h=370',
+        u'file': u'lfvlytY6.mp4',
+        u'md5': u'48972bdbcf1a3a2f5533e62425b41d4f',
+        u'info_dict': {
+            u"title": u"[Commie]The Legend of the Legendary Heroes - 03 - Replication Eye (Alpha Stigma)[F9410F5A]"
+        }
+    }
     _VALID_URL = r'(?:http://)?(?:www\.)?auengine\.com/embed.php\?.*?file=([^&]+).*?'
 
     def _real_extract(self, url):

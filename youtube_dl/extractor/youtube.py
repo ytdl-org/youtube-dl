@@ -441,7 +441,7 @@ class YoutubeIE(InfoExtractor):
                 break
         if 'token' not in video_info:
             if 'reason' in video_info:
-                raise ExtractorError(u'YouTube said: %s' % video_info['reason'][0])
+                raise ExtractorError(u'YouTube said: %s' % video_info['reason'][0], expected=True)
             else:
                 raise ExtractorError(u'"token" parameter not in video info for unknown reason')
 

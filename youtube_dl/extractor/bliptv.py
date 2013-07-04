@@ -27,7 +27,7 @@ class BlipTVIE(InfoExtractor):
     _TEST = {
         u'url': u'http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352',
         u'file': u'5779306.m4v',
-        u'md5': u'b2d849efcf7ee18917e4b4d9ff37cafe',
+        u'md5': u'80baf1ec5c3d2019037c1c707d676b9f',
         u'info_dict': {
             u"upload_date": u"20111205", 
             u"description": u"md5:9bc31f227219cde65e47eeec8d2dc596", 
@@ -103,7 +103,12 @@ class BlipTVIE(InfoExtractor):
                     data = json_data
 
                 upload_date = datetime.datetime.strptime(data['datestamp'], '%m-%d-%y %H:%M%p').strftime('%Y%m%d')
-                video_url = data['media']['url']
+                if 'additionalMedia' in data:
+                    formats = sorted(data['additionalMedia'], key=lambda f: int(f['media_height']))
+                    best_format = formats[-1]
+                    video_url = best_format['url']
+                else:
+                    video_url = data['media']['url']
                 umobj = re.match(self._URL_EXT, video_url)
                 if umobj is None:
                     raise ValueError('Can not determine filename extension')

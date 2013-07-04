@@ -16,7 +16,7 @@ class ArteTvIE(InfoExtractor):
     www.arte.tv/guide, the extraction process is different for each one.
     The videos expire in 7 days, so we can't add tests.
     """
-    _EMISSION_URL = r'(?:http://)?www\.arte.tv/guide/(?:fr|de)/(?:(?:sendungen|emissions)/)?(?P<id>.*?)/(?P<name>.*?)(\?.*)?'
+    _EMISSION_URL = r'(?:http://)?www\.arte.tv/guide/(?P<lang>fr|de)/(?:(?:sendungen|emissions)/)?(?P<id>.*?)/(?P<name>.*?)(\?.*)?'
     _VIDEOS_URL = r'(?:http://)?videos.arte.tv/(?:fr|de)/.*-(?P<id>.*?).html'
     _LIVE_URL = r'index-[0-9]+\.html$'
 
@@ -57,10 +57,11 @@ class ArteTvIE(InfoExtractor):
         mobj = re.match(self._EMISSION_URL, url)
         if mobj is not None:
             name = mobj.group('name')
+            lang = mobj.group('lang')
             # This is not a real id, it can be for example AJT for the news
             # http://www.arte.tv/guide/fr/emissions/AJT/arte-journal
             video_id = mobj.group('id')
-            return self._extract_emission(url, video_id)
+            return self._extract_emission(url, video_id, lang)
 
         mobj = re.match(self._VIDEOS_URL, url)
         if mobj is not None:
@@ -72,10 +73,9 @@ class ArteTvIE(InfoExtractor):
             # self.extractLiveStream(url)
             # return
 
-    def _extract_emission(self, url, video_id):
+    def _extract_emission(self, url, video_id, lang):
         """Extract from www.arte.tv/guide"""
-        webpage = self._download_webpage(url, video_id)
-        json_url = self._html_search_regex(r'arte_vp_url="(.*?)"', webpage, 'json url')
+        json_url = 'http://org-www.arte.tv/papi/tvguide/videos/stream/player/F/%s_PLUS7-F/ALL/ALL.json' % video_id
 
         json_info = self._download_webpage(json_url, video_id, 'Downloading info json')
         self.report_extraction(video_id)
@@ -91,6 +91,16 @@ class ArteTvIE(InfoExtractor):
                      }
 
         formats = player_info['VSR'].values()
+        def _match_lang(f):
+            # Return true if that format is in the language of the url
+            if lang == 'fr':
+                l = 'F'
+            elif lang == 'de':
+                l = 'A'
+            regexes = [r'VO?%s' % l, r'V%s-ST.' % l]
+            return any(re.match(r, f['versionCode']) for r in regexes)
+        # Some formats may not be in the same language as the url
+        formats = filter(_match_lang, formats)
         # We order the formats by quality
         formats = sorted(formats, key=lambda f: int(f['height']))
         # Pick the best quality

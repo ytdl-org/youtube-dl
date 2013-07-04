@@ -586,14 +586,16 @@ def _real_main(argv=None):
     if opts.verbose:
         ydl.to_screen(u'[debug] youtube-dl version ' + __version__)
         try:
-            sp = subprocess.Popen(['git', 'rev-parse', '--short', 'HEAD'], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                  cwd=os.path.dirname(os.path.abspath(__file__)))
+            sp = subprocess.Popen(
+                ['git', 'rev-parse', '--short', 'HEAD'],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                cwd=os.path.dirname(os.path.abspath(__file__)))
             out, err = sp.communicate()
             out = out.decode().strip()
             if re.match('[0-9a-f]+', out):
                 ydl.to_screen(u'[debug] Git HEAD: ' + out)
         except:
-            pass
+            sys.exc_clear()
         ydl.to_screen(u'[debug] Python version %s - %s' %(platform.python_version(), platform.platform()))
         ydl.to_screen(u'[debug] Proxy map: ' + str(proxy_handler.proxies))
 
