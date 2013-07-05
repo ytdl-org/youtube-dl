@@ -1,5 +1,4 @@
 import json
-import operator
 import re
 
 from .common import InfoExtractor
@@ -131,8 +130,9 @@ class VimeoIE(InfoExtractor):
                     'quality': quality,
                     'id': format_id,
                 })
-        formats = reduce(operator.add,
-                         [files[q] for q in ('hd', 'sd', 'other')])
+        formats = []
+        for key in ('hd', 'sd', 'other'):
+            formats += files[key]
         if len(formats) == 0:
             raise ExtractorError(u'No known codec found')
 
