@@ -6,7 +6,6 @@ from ..utils import (
     compat_urllib_request,
 
     ExtractorError,
-    unescapeHTML,
 )
 
 class DailymotionIE(InfoExtractor):
@@ -40,13 +39,9 @@ class DailymotionIE(InfoExtractor):
         # Extract URL, uploader and title from webpage
         self.report_extraction(video_id)
 
+        video_title = self._html_search_regex(r'<meta property="og:title" content="(.*?)" />',
+                                              webpage, 'title')
 
-        mobj = re.search(r'<meta property="og:title" content="(?P<title>[^"]*)" />', webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract title')
-        video_title = unescapeHTML(mobj.group('title'))
-
-        video_uploader = None
         video_uploader = self._search_regex([r'(?im)<span class="owner[^\"]+?">[^<]+?<a [^>]+?>([^<]+?)</a>',
                                              # Looking for official user
                                              r'<(?:span|a) .*?rel="author".*?>([^<]+?)</'],
