@@ -78,4 +78,5 @@ class DailymotionIE(InfoExtractor):
             'upload_date':  video_upload_date,
             'title':    video_title,
             'ext':      video_extension,
+            'thumbnail': info['thumbnail_url']
         }]
