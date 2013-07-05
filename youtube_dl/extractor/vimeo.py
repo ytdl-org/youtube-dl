@@ -1,4 +1,5 @@
 import json
+import operator
 import re
 
 from .common import InfoExtractor
@@ -49,6 +50,12 @@ class VimeoIE(InfoExtractor):
         self._download_webpage(password_request, video_id,
                                u'Verifying the password',
                                u'Wrong password')
+
+    def _print_formats(self, formats):
+        print('Available formats:')
+        width = max([len(f['id']) for f in formats])
+        for f in formats:
+            print('%-*s\t:\t%s' % (width, f['id'], f['ext']))
 
     def _real_extract(self, url, new_video=True):
         # Extract ID from URL
@@ -112,39 +119,62 @@ class VimeoIE(InfoExtractor):
 
         # Vimeo specific: extract video codec and quality information
         # First consider quality, then codecs, then take everything
-        # TODO bind to format param
         codecs = [('h264', 'mp4'), ('vp8', 'flv'), ('vp6', 'flv')]
         files = { 'hd': [], 'sd': [], 'other': []}
         for codec_name, codec_extension in codecs:
-            if codec_name in config["video"]["files"]:
-                if 'hd' in config["video"]["files"][codec_name]:
-                    files['hd'].append((codec_name, codec_extension, 'hd'))
-                elif 'sd' in config["video"]["files"][codec_name]:
-                    files['sd'].append((codec_name, codec_extension, 'sd'))
-                else:
-                    files['other'].append((codec_name, codec_extension, config["video"]["files"][codec_name][0]))
-
-        for quality in ('hd', 'sd', 'other'):
-            if len(files[quality]) > 0:
-                video_quality = files[quality][0][2]
-                video_codec = files[quality][0][0]
-                video_extension = files[quality][0][1]
-                self.to_screen(u'%s: Downloading %s file at %s quality' % (video_id, video_codec.upper(), video_quality))
-                break
-        else:
+            for quality in config["video"]["files"].get(codec_name, []):
+                format_id = '-'.join((codec_name, quality)).lower()
+                key = quality if quality in files else 'other'
+                files[key].append({
+                    'codec': codec_name,
+                    'ext': codec_extension,
+                    'quality': quality,
+                    'id': format_id,
+                })
+        formats = reduce(operator.add,
+                         [files[q] for q in ('hd', 'sd', 'other')])
+        if len(formats) == 0:
             raise ExtractorError(u'No known codec found')
 
-        video_url = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=%s&type=moogaloop_local&embed_location=" \
-                    %(video_id, sig, timestamp, video_quality, video_codec.upper())
+        if self._downloader.params.get('listformats', None):
+            self._print_formats(formats)
+            return
 
-        return [{
-            'id':       video_id,
-            'url':      video_url,
-            'uploader': video_uploader,
-            'uploader_id': video_uploader_id,
-            'upload_date':  video_upload_date,
-            'title':    video_title,
-            'ext':      video_extension,
-            'thumbnail':    video_thumbnail,
-            'description':  video_description,
-        }]
+        # Decide which formats to download
+        req_format = self._downloader.params.get('format', None)
+        if req_format is None or req_format == 'best':
+            req_format_list = [formats[0]]  # Best quality
+        elif req_format == 'worst':
+            req_format_list = [formats[-1]]  # worst quality (maybe?)
+        elif req_format in ('-1', 'all'):
+            req_format_list = formats  # All formats
+        else:
+            # Specific formats. We pick the first in a slash-delimeted sequence.
+            # For example, if '1/2/3/4' is requested and '2' and '4' are available, we pick '2'.
+            req_formats = req_format.lower().split('/')
+            format_map = dict([(c['id'], c) for c in formats])
+            req_format_list = None
+            for rf in req_formats:
+                if rf in format_map:
+                    req_format_list = [format_map[rf]]
+                    break
+            if req_format_list is None:
+                raise ExtractorError(u'requested format not available')
+
+        results = []
+        for format in req_format_list:
+            video_url = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=%s&type=moogaloop_local&embed_location=" \
+                        %(video_id, sig, timestamp, format['quality'], format['codec'].upper())
+            results.append({
+                'id':       video_id,
+                'url':      video_url,
+                'uploader': video_uploader,
+                'uploader_id': video_uploader_id,
+                'upload_date':  video_upload_date,
+                'title':    video_title,
+                'ext':      format['ext'],
+                'format':   format['id'],
+                'thumbnail':    video_thumbnail,
+                'description':  video_description,
+            })
+        return results
