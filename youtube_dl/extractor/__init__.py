@@ -5,6 +5,7 @@ from .auengine import AUEngineIE
 from .bandcamp import BandcampIE
 from .bliptv import BlipTVIE, BlipTVUserIE
 from .breakcom import BreakIE
+from .brightcove import BrightcoveIE
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE
 from .cspan import CSpanIE
