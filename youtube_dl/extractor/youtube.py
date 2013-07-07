@@ -870,14 +870,14 @@ class YoutubeShowIE(InfoExtractor):
 
 class YoutubeSubscriptionsIE(YoutubeIE):
     """It's a subclass of YoutubeIE because we need to login"""
-    IE_DESC = u'YouTube.com subscriptions feed, "ytsubscriptions" keyword(requires authentication)'
-    _VALID_URL = r'https?://www\.youtube\.com/feed/subscriptions|ytsubscriptions'
+    IE_DESC = u'YouTube.com subscriptions feed, "ytsubs" keyword(requires authentication)'
+    _VALID_URL = r'https?://www\.youtube\.com/feed/subscriptions|:ytsubs(?:criptions)?'
     IE_NAME = u'youtube:subscriptions'
     _FEED_TEMPLATE = 'http://www.youtube.com/feed_ajax?action_load_system_feed=1&feed_name=subscriptions&paging=%s'
     _PAGING_STEP = 30
 
+    # Overwrite YoutubeIE properties we don't want
     _TESTS = []
-
     @classmethod
     def suitable(cls, url):
         return re.match(cls._VALID_URL, url) is not None
