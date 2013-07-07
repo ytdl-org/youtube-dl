@@ -11,6 +11,7 @@ from .comedycentral import ComedyCentralIE
 from .cspan import CSpanIE
 from .dailymotion import DailymotionIE
 from .depositfiles import DepositFilesIE
+from .dreisat import DreiSatIE
 from .eighttracks import EightTracksIE
 from .escapist import EscapistIE
 from .facebook import FacebookIE

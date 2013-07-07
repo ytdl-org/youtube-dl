@@ -36,6 +36,8 @@ class InfoExtractor(object):
     The following fields are optional:
 
     format:         The video format, defaults to ext (used for --get-format)
+    thumbnails:     A list of dictionaries (with the entries "resolution" and
+                    "url") for the varying thumbnails
     thumbnail:      Full URL to a video thumbnail image.
     description:    One-line video description.
     uploader:       Full name of the video uploader.

@@ -623,13 +623,20 @@ def unified_strdate(date_str):
     date_str = date_str.replace(',',' ')
     # %z (UTC offset) is only supported in python>=3.2
     date_str = re.sub(r' (\+|-)[\d]*$', '', date_str)
-    format_expressions = ['%d %B %Y', '%B %d %Y', '%b %d %Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d %H:%M:%S']
+    format_expressions = ['%d %B %Y', '%B %d %Y', '%b %d %Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d %H:%M:%S', '%d.%m.%Y %H:%M']
     for expression in format_expressions:
         try:
             upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')
         except:
             pass
     return upload_date
+
+def determine_ext(url):
+    guess = url.partition(u'?')[0].rpartition(u'.')[2]
+    if re.match(r'^[A-Za-z0-9]+$', guess):
+        return guess
+    else:
+        return u'unknown_video'
 
 def date_from_str(date_str):
     """
