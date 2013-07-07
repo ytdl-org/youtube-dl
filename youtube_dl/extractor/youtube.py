@@ -4,6 +4,7 @@ import json
 import netrc
 import re
 import socket
+import itertools
 
 from .common import InfoExtractor, SearchInfoExtractor
 from ..utils import (
@@ -19,6 +20,7 @@ from ..utils import (
     ExtractorError,
     unescapeHTML,
     unified_strdate,
+    orderedSet,
 )
 
 
@@ -122,7 +124,7 @@ class YoutubeIE(InfoExtractor):
     @classmethod
     def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
-        if YoutubePlaylistIE.suitable(url): return False
+        if YoutubePlaylistIE.suitable(url) or YoutubeSubscriptionsIE.suitable(url): return False
         return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
     def report_lang(self):
@@ -864,3 +866,34 @@ class YoutubeShowIE(InfoExtractor):
         m_seasons = list(re.finditer(r'href="(/playlist\?list=.*?)"', webpage))
         self.to_screen(u'%s: Found %s seasons' % (show_name, len(m_seasons)))
         return [self.url_result('https://www.youtube.com' + season.group(1), 'YoutubePlaylist') for season in m_seasons]
+
+
+class YoutubeSubscriptionsIE(YoutubeIE):
+    """It's a subclass of YoutubeIE because we need to login"""
+    IE_DESC = u'YouTube.com subscriptions feed, "ytsubscriptions" keyword(requires authentication)'
+    _VALID_URL = r'https?://www\.youtube\.com/feed/subscriptions|ytsubscriptions'
+    IE_NAME = u'youtube:subscriptions'
+    _FEED_TEMPLATE = 'http://www.youtube.com/feed_ajax?action_load_system_feed=1&feed_name=subscriptions&paging=%s'
+    _PAGING_STEP = 30
+
+    _TESTS = []
+
+    @classmethod
+    def suitable(cls, url):
+        return re.match(cls._VALID_URL, url) is not None
+
+    def _real_extract(self, url):
+        feed_entries = []
+        # The step argument is available only in 2.7 or higher
+        for i in itertools.count(0):
+            paging = i*self._PAGING_STEP
+            info = self._download_webpage(self._FEED_TEMPLATE % paging, 'feed',
+                                          u'Downloading page %s' % i)
+            info = json.loads(info)
+            feed_html = info['feed_html']
+            m_ids = re.finditer(r'"/watch\?v=(.*?)"', feed_html)
+            ids = orderedSet(m.group(1) for m in m_ids)
+            feed_entries.extend(self.url_result(id, 'Youtube') for id in ids)
+            if info['paging'] is None:
+                break
+        return self.playlist_result(feed_entries, playlist_title='Youtube Subscriptions')
