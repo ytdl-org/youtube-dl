@@ -473,7 +473,12 @@ class YoutubeIE(InfoExtractor):
         video_title = compat_urllib_parse.unquote_plus(video_info['title'][0])
 
         # thumbnail image
-        if 'thumbnail_url' not in video_info:
+        # We try first to get a high quality image:
+        m_thumb = re.search(r'<span itemprop="thumbnail".*?href="(.*?)">',
+                            video_webpage, re.DOTALL)
+        if m_thumb is not None:
+            video_thumbnail = m_thumb.group(1)
+        elif 'thumbnail_url' not in video_info:
             self._downloader.report_warning(u'unable to extract video thumbnail')
             video_thumbnail = ''
         else:   # don't panic if we can't find it
