@@ -3,6 +3,7 @@ import os
 import re
 import socket
 import sys
+import netrc
 
 from ..utils import (
     compat_http_client,
@@ -163,6 +164,10 @@ class InfoExtractor(object):
         """Report attempt to confirm age."""
         self.to_screen(u'Confirming age')
 
+    def report_login(self):
+        """Report attempt to log in."""
+        self.to_screen(u'Logging in')
+
     #Methods for following #608
     #They set the correct value of the '_type' key
     def video_result(self, video_info):
@@ -226,6 +231,36 @@ class InfoExtractor(object):
             return clean_html(res).strip()
         else:
             return res
+
+    def _get_login_info(self):
+        """
+        Get the the login info as (username, password)
+        It will look in the netrc file using the _NETRC_MACHINE value
+        If there's no info available, return (None, None)
+        """
+        if self._downloader is None:
+            return (None, None)
+
+        username = None
+        password = None
+        downloader_params = self._downloader.params
+
+        # Attempt to use provided username and password or .netrc data
+        if downloader_params.get('username', None) is not None:
+            username = downloader_params['username']
+            password = downloader_params['password']
+        elif downloader_params.get('usenetrc', False):
+            try:
+                info = netrc.netrc().authenticators(self._NETRC_MACHINE)
+                if info is not None:
+                    username = info[0]
+                    password = info[2]
+                else:
+                    raise netrc.NetrcParseError('No authenticators for %s' % self._NETRC_MACHINE)
+            except (IOError, netrc.NetrcParseError) as err:
+                self._downloader.report_warning(u'parsing .netrc: %s' % compat_str(err))
+        
+        return (username, password)
 
 class SearchInfoExtractor(InfoExtractor):
     """
