@@ -77,12 +77,8 @@ class ArteTvIE(InfoExtractor):
 
     def _extract_emission(self, url, video_id, lang):
         """Extract from www.arte.tv/guide"""
-        if video_id.replace('-','').isdigit():
-            json_url = 'http://org-www.arte.tv/papi/tvguide/videos/stream/player/F/%s_PLUS7-F/ALL/ALL.json' % video_id
-        else:
-            # We don't know the real id of the video, we have to search in the webpage
-            webpage = self._download_webpage(url, video_id)
-            json_url = self._html_search_regex(r'arte_vp_url="(.*?)"', webpage, 'json url')
+        webpage = self._download_webpage(url, video_id)
+        json_url = self._html_search_regex(r'arte_vp_url="(.*?)"', webpage, 'json url')
 
         json_info = self._download_webpage(json_url, video_id, 'Downloading info json')
         self.report_extraction(video_id)
