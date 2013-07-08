@@ -1,4 +1,3 @@
-
 from .archiveorg import ArchiveOrgIE
 from .ard import ARDIE
 from .arte import ArteTvIE
@@ -12,6 +11,7 @@ from .comedycentral import ComedyCentralIE
 from .cspan import CSpanIE
 from .dailymotion import DailymotionIE
 from .depositfiles import DepositFilesIE
+from .dotsub import DotsubIE
 from .dreisat import DreiSatIE
 from .eighttracks import EightTracksIE
 from .escapist import EscapistIE
