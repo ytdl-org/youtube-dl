@@ -131,10 +131,6 @@ class YoutubeIE(InfoExtractor):
         """Report attempt to set language."""
         self.to_screen(u'Setting language')
 
-    def report_login(self):
-        """Report attempt to log in."""
-        self.to_screen(u'Logging in')
-
     def report_video_webpage_download(self, video_id):
         """Report attempt to download video webpage."""
         self.to_screen(u'%s: Downloading video webpage' % video_id)
@@ -296,26 +292,6 @@ class YoutubeIE(InfoExtractor):
         if self._downloader is None:
             return
 
-        username = None
-        password = None
-        downloader_params = self._downloader.params
-
-        # Attempt to use provided username and password or .netrc data
-        if downloader_params.get('username', None) is not None:
-            username = downloader_params['username']
-            password = downloader_params['password']
-        elif downloader_params.get('usenetrc', False):
-            try:
-                info = netrc.netrc().authenticators(self._NETRC_MACHINE)
-                if info is not None:
-                    username = info[0]
-                    password = info[2]
-                else:
-                    raise netrc.NetrcParseError('No authenticators for %s' % self._NETRC_MACHINE)
-            except (IOError, netrc.NetrcParseError) as err:
-                self._downloader.report_warning(u'parsing .netrc: %s' % compat_str(err))
-                return
-
         # Set language
         request = compat_urllib_request.Request(self._LANG_URL)
         try:
@@ -324,6 +300,8 @@ class YoutubeIE(InfoExtractor):
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             self._downloader.report_warning(u'unable to set language: %s' % compat_str(err))
             return
+
+        (username, password) = self._get_login_info()
 
         # No authentication to be performed
         if username is None:
