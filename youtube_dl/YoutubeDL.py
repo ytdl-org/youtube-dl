@@ -97,6 +97,7 @@ class YoutubeDL(object):
     def __init__(self, params):
         """Create a FileDownloader object with the given options."""
         self._ies = []
+        self._ies_instances = {}
         self._pps = []
         self._progress_hooks = []
         self._download_retcode = 0
@@ -111,7 +112,20 @@ class YoutubeDL(object):
     def add_info_extractor(self, ie):
         """Add an InfoExtractor object to the end of the list."""
         self._ies.append(ie)
+        self._ies_instances[ie.ie_key()] = ie
         ie.set_downloader(self)
+
+    def get_info_extractor(self, ie_key):
+        """
+        Get an instance of an IE with name ie_key, it will try to get one from
+        the _ies list, if there's no instance it will create a new one and add
+        it to the extractor list.
+        """
+        ie = self._ies_instances.get(ie_key)
+        if ie is None:
+            ie = get_info_extractor(ie_key)()
+            self.add_info_extractor(ie)
+        return ie
 
     def add_default_info_extractors(self):
         """
@@ -294,9 +308,7 @@ class YoutubeDL(object):
          '''
         
         if ie_key:
-            ie = get_info_extractor(ie_key)()
-            ie.set_downloader(self)
-            ies = [ie]
+            ies = [self.get_info_extractor(ie_key)]
         else:
             ies = self._ies
 

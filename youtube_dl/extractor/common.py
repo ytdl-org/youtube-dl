@@ -106,6 +106,11 @@ class InfoExtractor(object):
         """Real extraction process. Redefine in subclasses."""
         pass
 
+    @classmethod
+    def ie_key(cls):
+        """A string for getting the InfoExtractor with get_info_extractor"""
+        return cls.__name__[:-2]
+
     @property
     def IE_NAME(self):
         return type(self).__name__[:-2]
