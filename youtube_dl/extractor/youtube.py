@@ -697,7 +697,7 @@ class YoutubePlaylistIE(InfoExtractor):
 
         videos = [v[1] for v in sorted(videos)]
 
-        url_results = [self.url_result(url, 'Youtube') for url in videos]
+        url_results = [self.url_result(vurl, 'Youtube') for vurl in videos]
         return [self.playlist_result(url_results, playlist_id, playlist_title)]
 
 
@@ -755,7 +755,7 @@ class YoutubeChannelIE(InfoExtractor):
         self._downloader.to_screen(u'[youtube] Channel %s: Found %i videos' % (channel_id, len(video_ids)))
 
         urls = ['http://www.youtube.com/watch?v=%s' % id for id in video_ids]
-        url_entries = [self.url_result(url, 'Youtube') for url in urls]
+        url_entries = [self.url_result(eurl, 'Youtube') for eurl in urls]
         return [self.playlist_result(url_entries, channel_id)]
 
 
@@ -812,7 +812,7 @@ class YoutubeUserIE(InfoExtractor):
             pagenum += 1
 
         urls = ['http://www.youtube.com/watch?v=%s' % video_id for video_id in video_ids]
-        url_results = [self.url_result(url, 'Youtube') for url in urls]
+        url_results = [self.url_result(rurl, 'Youtube') for rurl in urls]
         return [self.playlist_result(url_results, playlist_title = username)]
 
 class YoutubeSearchIE(SearchInfoExtractor):
