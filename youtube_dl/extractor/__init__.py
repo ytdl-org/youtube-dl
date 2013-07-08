@@ -58,6 +58,7 @@ from .tumblr import TumblrIE
 from .tutv import TutvIE
 from .ustream import UstreamIE
 from .vbox7 import Vbox7IE
+from .veoh import VeohIE
 from .vevo import VevoIE
 from .vimeo import VimeoIE
 from .vine import VineIE
