@@ -4,9 +4,6 @@ import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
-    # This is used by the not implemented extractLiveStream method
-    compat_urllib_parse,
-
     ExtractorError,
     unified_strdate,
 )
@@ -28,6 +25,7 @@ class ArteTvIE(InfoExtractor):
         return any(re.match(regex, url) for regex in (cls._EMISSION_URL, cls._VIDEOS_URL))
 
     # TODO implement Live Stream
+    # from ..utils import compat_urllib_parse
     # def extractLiveStream(self, url):
     #     video_lang = url.split('/')[-4]
     #     info = self.grep_webpage(
@@ -57,7 +55,6 @@ class ArteTvIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._EMISSION_URL, url)
         if mobj is not None:
-            name = mobj.group('name')
             lang = mobj.group('lang')
             # This is not a real id, it can be for example AJT for the news
             # http://www.arte.tv/guide/fr/emissions/AJT/arte-journal
