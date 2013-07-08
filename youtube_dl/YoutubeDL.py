@@ -469,6 +469,10 @@ class YoutubeDL(object):
             self.list_formats(info_dict)
             return
 
+        format_limit = self.params.get('format_limit', None)
+        if format_limit:
+            formats = [f for f in formats if f['format_id'] <= format_limit]
+
         req_format = self.params.get('format', 'best')
         formats_to_download = []
         if req_format == 'best' or req_format is None:
