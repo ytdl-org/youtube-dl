@@ -865,6 +865,12 @@ class YoutubeSubscriptionsIE(YoutubeIE):
     def suitable(cls, url):
         return re.match(cls._VALID_URL, url) is not None
 
+    def _real_initialize(self):
+        (username, password) = self._get_login_info()
+        if username is None:
+            raise ExtractorError(u'No login info available, needed for downloading the Youtube subscriptions.', expected=True)
+        super(YoutubeSubscriptionsIE, self)._real_initialize()
+
     def _real_extract(self, url):
         feed_entries = []
         # The step argument is available only in 2.7 or higher
