@@ -231,3 +231,22 @@ class FFmpegVideoConvertor(FFmpegPostProcessor):
         information['format'] = self._preferedformat
         information['ext'] = self._preferedformat
         return False,information
+
+
+class FlvFileMerge(PostProcessor):
+    def __init__(self):
+        self.input_files = []
+    def run(self, information):
+        self.input_files.append(information.get('filepath').encode('utf8'))
+        file_format =  information.get('format')
+        if information.get('last') and (file_format == "flv" or file_format == "f4v"):
+            try:
+                merge_title = information.get('title').encode('utf8') + "-MERGED.flv"
+            except:
+                merge_title = "merged.flv"
+            import flvconcat
+            self._downloader.to_screen(u'Start to merge files')
+            ret = flvconcat.concat_flv(self.input_files, merge_title)
+        return True, information
+
+
