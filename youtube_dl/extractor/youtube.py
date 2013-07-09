@@ -117,7 +117,19 @@ class YoutubeIE(InfoExtractor):
                 u"uploader": u"IconaPop",
                 u"uploader_id": u"IconaPop"
             }
-        }
+        },
+        {
+            u"url":  u"https://www.youtube.com/watch?v=07FYdnEawAQ",
+            u"file":  u"07FYdnEawAQ.mp4",
+            u"note": u"Test VEVO video with age protection (#956)",
+            u"info_dict": {
+                u"upload_date": u"20130703",
+                u"title": u"Justin Timberlake - Tunnel Vision (Explicit)",
+                u"description": u"md5:64249768eec3bc4276236606ea996373",
+                u"uploader": u"justintimberlakeVEVO",
+                u"uploader_id": u"justintimberlakeVEVO"
+            }
+        },
     ]
 
 
@@ -410,15 +422,35 @@ class YoutubeIE(InfoExtractor):
 
         # Get video info
         self.report_video_info_webpage_download(video_id)
-        for el_type in ['&el=embedded', '&el=detailpage', '&el=vevo', '']:
-            video_info_url = ('https://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
-                    % (video_id, el_type))
+        if re.search(r'player-age-gate-content">', video_webpage) is not None:
+            self.report_age_confirmation()
+            age_gate = True
+            # We simulate the access to the video from www.youtube.com/v/{video_id}
+            # this can be viewed without login into Youtube
+            data = compat_urllib_parse.urlencode({'video_id': video_id,
+                                                  'el': 'embedded',
+                                                  'gl': 'US',
+                                                  'hl': 'en',
+                                                  'eurl': 'https://youtube.googleapis.com/v/' + video_id,
+                                                  'asv': 3,
+                                                  'sts':'1588',
+                                                  })
+            video_info_url = 'https://www.youtube.com/get_video_info?' + data
             video_info_webpage = self._download_webpage(video_info_url, video_id,
                                     note=False,
                                     errnote='unable to download video info webpage')
             video_info = compat_parse_qs(video_info_webpage)
-            if 'token' in video_info:
-                break
+        else:
+            age_gate = False
+            for el_type in ['&el=embedded', '&el=detailpage', '&el=vevo', '']:
+                video_info_url = ('https://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
+                        % (video_id, el_type))
+                video_info_webpage = self._download_webpage(video_info_url, video_id,
+                                        note=False,
+                                        errnote='unable to download video info webpage')
+                video_info = compat_parse_qs(video_info_webpage)
+                if 'token' in video_info:
+                    break
         if 'token' not in video_info:
             if 'reason' in video_info:
                 raise ExtractorError(u'YouTube said: %s' % video_info['reason'][0], expected=True)
@@ -545,9 +577,15 @@ class YoutubeIE(InfoExtractor):
                     elif 's' in url_data:
                         if self._downloader.params.get('verbose'):
                             s = url_data['s'][0]
-                            player = self._search_regex(r'html5player-(.+?)\.js', video_webpage,
-                                'html5 player', fatal=False)
-                            self.to_screen('encrypted signature length %d (%d.%d), itag %s, html5 player %s' %
+                            if age_gate:
+                                player_version = self._search_regex(r'ad3-(.+?)\.swf',
+                                    video_info['ad3_module'][0], 'flash player',
+                                    fatal=False)
+                                player = 'flash player %s' % player_version
+                            else:
+                                player = u'html5 player %s' % self._search_regex(r'html5player-(.+?)\.js', video_webpage,
+                                    'html5 player', fatal=False)
+                            self.to_screen('encrypted signature length %d (%d.%d), itag %s, %s' %
                                 (len(s), len(s.split('.')[0]), len(s.split('.')[1]), url_data['itag'][0], player))
                         signature = self._decrypt_signature(url_data['s'][0])
                         url += '&signature=' + signature
