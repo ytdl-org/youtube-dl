@@ -35,7 +35,7 @@ class VeohIE(InfoExtractor):
         info = self._search_regex(r'videoDetailsJSON = \'({.*?})\';', webpage, 'info')
         info = json.loads(info)
         video_url =  info.get('fullPreviewHashHighPath') or info.get('fullPreviewHashLowPath')
-        self.to_screen(video_url)
+
         return {'id': info['videoId'], 
                 'title': info['title'],
                 'ext': determine_ext(video_url),
