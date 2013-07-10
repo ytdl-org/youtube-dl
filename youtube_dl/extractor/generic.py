@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 import os
 import re
 
@@ -9,20 +11,34 @@ from ..utils import (
 
     ExtractorError,
 )
+from .brightcove import BrightcoveIE
 
 class GenericIE(InfoExtractor):
     IE_DESC = u'Generic downloader that works on some sites'
     _VALID_URL = r'.*'
     IE_NAME = u'generic'
-    _TEST = {
-        u'url': u'http://www.hodiho.fr/2013/02/regis-plante-sa-jeep.html',
-        u'file': u'13601338388002.mp4',
-        u'md5': u'85b90ccc9d73b4acd9138d3af4c27f89',
-        u'info_dict': {
-            u"uploader": u"www.hodiho.fr", 
-            u"title": u"R\u00e9gis plante sa Jeep"
-        }
-    }
+    _TESTS = [
+        {
+            u'url': u'http://www.hodiho.fr/2013/02/regis-plante-sa-jeep.html',
+            u'file': u'13601338388002.mp4',
+            u'md5': u'85b90ccc9d73b4acd9138d3af4c27f89',
+            u'info_dict': {
+                u"uploader": u"www.hodiho.fr", 
+                u"title": u"R\u00e9gis plante sa Jeep"
+            }
+        },
+        {
+            u'url': u'http://www.8tv.cat/8aldia/videos/xavier-sala-i-martin-aquesta-tarda-a-8-al-dia/',
+            u'file': u'2371591881001.mp4',
+            u'md5': u'9e80619e0a94663f0bdc849b4566af19',
+            u'note': u'Test Brightcove downloads and detection in GenericIE',
+            u'info_dict': {
+                u'title': u'Xavier Sala i Martín: “Un banc que no presta és un banc zombi que no serveix per a res”',
+                u'uploader': u'8TV',
+                u'description': u'md5:a950cc4285c43e44d763d036710cd9cd',
+            }
+        },
+    ]
 
     def report_download_webpage(self, video_id):
         """Report webpage download."""
@@ -103,6 +119,13 @@ class GenericIE(InfoExtractor):
             raise ExtractorError(u'Invalid URL: %s' % url)
 
         self.report_extraction(video_id)
+        # Look for BrigthCove:
+        m_brightcove = re.search(r'<object.+?class="BrightcoveExperience".+?</object>', webpage, re.DOTALL)
+        if m_brightcove is not None:
+            self.to_screen(u'Brightcove video detected.')
+            bc_url = BrightcoveIE._build_brighcove_url(m_brightcove.group())
+            return self.url_result(bc_url, 'Brightcove')
+
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
         if mobj is None:
