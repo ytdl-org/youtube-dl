@@ -567,6 +567,8 @@ class YoutubeIE(InfoExtractor):
             self.report_rtmp_download()
             video_url_list = [(None, video_info['conn'][0])]
         elif 'url_encoded_fmt_stream_map' in video_info and len(video_info['url_encoded_fmt_stream_map']) >= 1:
+            if 'rtmpe%3Dyes' in video_info['url_encoded_fmt_stream_map'][0]:
+                raise ExtractorError('rtmpe downloads are not supported, see https://github.com/rg3/youtube-dl/issues/343 for more information.', expected=True)
             url_map = {}
             for url_data_str in video_info['url_encoded_fmt_stream_map'][0].split(','):
                 url_data = compat_parse_qs(url_data_str)
