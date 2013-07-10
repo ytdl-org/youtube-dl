@@ -45,7 +45,7 @@ class TestYoutubeSig(unittest.TestCase):
 
     def test_83(self):
         wrong = "qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!#$%^&*()_+={[};?/>.<"
-        right = "D.>/?;}[{=+_)(*&^%$#!MNBVCXeAS<FGHJKLPOIUYTREWZ0987654321mnbvcxzasdfghjklpoiuytrQ"
+        right = "qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!#$%^&*()_+={[};?/>"
         self.assertEqual(sig(wrong), right)
 
     def test_82(self):
