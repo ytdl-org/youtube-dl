@@ -348,6 +348,7 @@ class YoutubeDL(object):
 
         result_type = ie_result.get('_type', 'video') # If not given we suppose it's a video, support the default old system
         if result_type == 'video':
+            ie_result.update(extra_info)
             if 'playlist' not in ie_result:
                 # It isn't part of a playlist
                 ie_result['playlist'] = None
