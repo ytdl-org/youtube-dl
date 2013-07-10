@@ -22,7 +22,7 @@ class BrightcoveIE(InfoExtractor):
         <object class="BrightcoveExperience">{params}</object>
         """
         object_doc = xml.etree.ElementTree.fromstring(object_str)
-        assert object_doc.attrib['class'] == u'BrightcoveExperience'
+        assert u'BrightcoveExperience' in object_doc.attrib['class']
         params = {'flashID': object_doc.attrib['id'],
                   'playerID': object_doc.find('./param[@name="playerID"]').attrib['value'],
                   }
