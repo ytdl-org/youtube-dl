@@ -26,6 +26,9 @@ tests = [
     # 82
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKHGFDSAZXCVBNM!@#$%^&*(-+={[};?/>.<",
      "Q>/?;}[{=+-(*<^%$#@!MNBVCXZASDFGHKLPOIUY8REWT0q&7654321mnbvcxzasdfghjklpoiuytrew9"),
+    # 81
+    ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKHGFDSAZXCVBNM!@#$%^&*(-+={[};?/>.",
+     "urty8ioplkjhgfdsazxcvbqm1234567e90QWERTYUIOPLKHGFDSnZXCVBNM!@#$%^&*(-+={[};?/>."),
 ]
 
 def find_matching(wrong, right):
