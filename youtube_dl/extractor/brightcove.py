@@ -5,6 +5,7 @@ import xml.etree.ElementTree
 from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
+    find_xpath_attr,
 )
 
 class BrightcoveIE(InfoExtractor):
