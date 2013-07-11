@@ -1,10 +1,15 @@
 import re
-from ..utils import compat_urllib_parse
+
+from ..utils import (
+    compat_urllib_parse,
+    determine_ext
+)
 from .common import InfoExtractor
 
 
-class EhowIE(InfoExtractor):
-    _VALID_URL = r'(?:http://)?(?:www\.)?ehow\.com/([^/]+)'
+class EHowIE(InfoExtractor):
+    IE_NAME = u'eHow'
+    _VALID_URL = r'(?:https?://)?(?:www\.)?ehow\.com/[^/_?]*_(?P<id>[0-9]+)'
     _TEST = {
         u'url': u'http://www.ehow.com/video_12245069_hardwood-flooring-basics.html',
         u'file': u'12245069.flv',
@@ -18,9 +23,9 @@ class EhowIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group(1).split("_")[1]
+        video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
-        video_url = self._search_regex(r'[^A-Za-z0-9]?(?:file|source)=(http[^\'"&]*)',
+        video_url = self._search_regex(r'(?:file|source)=(http[^\'"&]*)',
             webpage, u'video URL')
         final_url = compat_urllib_parse.unquote(video_url)        
         thumbnail_url = self._search_regex(r'<meta property="og:image" content="(.+?)" />',
@@ -28,11 +33,13 @@ class EhowIE(InfoExtractor):
         uploader = self._search_regex(r'<meta name="uploader" content="(.+?)" />',
             webpage, u'uploader')
         title = self._search_regex(r'<meta property="og:title" content="(.+?)" />',
-            webpage, u'Video title').replace(' | eHow','')
+            webpage, u'Video title').replace(' | eHow', '')
         description = self._search_regex(r'<meta property="og:description" content="(.+?)" />',
             webpage, u'video description')
-        ext = final_url.split('.')[-1]
-        return [{
+        ext = determine_ext(final_url)
+
+        return {
+            '_type':       'video',
             'id':          video_id,
             'url':         final_url,
             'ext':         ext,
@@ -40,5 +47,5 @@ class EhowIE(InfoExtractor):
             'thumbnail':   thumbnail_url,
             'description': description,
             'uploader':    uploader,
-        }]
+        }
 

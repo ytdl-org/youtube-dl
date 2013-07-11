@@ -13,7 +13,7 @@ from .dailymotion import DailymotionIE
 from .depositfiles import DepositFilesIE
 from .dotsub import DotsubIE
 from .dreisat import DreiSatIE
-from .ehow import EhowIE
+from .ehow import EHowIE
 from .eighttracks import EightTracksIE
 from .escapist import EscapistIE
 from .facebook import FacebookIE
