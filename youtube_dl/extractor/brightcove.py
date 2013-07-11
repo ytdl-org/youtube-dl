@@ -24,13 +24,13 @@ class BrightcoveIE(InfoExtractor):
         object_doc = xml.etree.ElementTree.fromstring(object_str)
         assert u'BrightcoveExperience' in object_doc.attrib['class']
         params = {'flashID': object_doc.attrib['id'],
-                  'playerID': object_doc.find('./param[@name="playerID"]').attrib['value'],
+                  'playerID': find_xpath_attr(object_doc, './param', 'name', 'playerID').attrib['value'],
                   }
-        playerKey = object_doc.find('./param[@name="playerKey"]')
+        playerKey = find_xpath_attr(object_doc, './param', 'name', 'playerKey')
         # Not all pages define this value
         if playerKey is not None:
             params['playerKey'] = playerKey.attrib['value']
-        videoPlayer = object_doc.find('./param[@name="@videoPlayer"]')
+        videoPlayer = find_xpath_attr(object_doc, './param', 'name', '@videoPlayer')
         if videoPlayer is not None:
             params['@videoPlayer'] = videoPlayer.attrib['value']
         data = compat_urllib_parse.urlencode(params)
