@@ -48,6 +48,7 @@ class ArchiveOrgIE(InfoExtractor):
         formats.sort(key=lambda fdata: fdata['file_size'])
 
         info = {
+            '_type': 'video',
             'id': video_id,
             'title': title,
             'formats': formats,
@@ -63,4 +64,4 @@ class ArchiveOrgIE(InfoExtractor):
         info['url'] = formats[-1]['url']
         info['ext'] = determine_ext(formats[-1]['url'])
 
-        return self.video_result(info)
+        return info

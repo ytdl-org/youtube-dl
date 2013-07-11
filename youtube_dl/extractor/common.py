@@ -169,11 +169,6 @@ class InfoExtractor(object):
         self.to_screen(u'Logging in')
 
     #Methods for following #608
-    #They set the correct value of the '_type' key
-    def video_result(self, video_info):
-        """Returns a video"""
-        video_info['_type'] = 'video'
-        return video_info
     def url_result(self, url, ie=None):
         """Returns a url that points to a page that should be processed"""
         #TODO: ie should be the class used for getting the info

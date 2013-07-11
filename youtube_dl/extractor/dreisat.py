@@ -67,6 +67,7 @@ class DreiSatIE(InfoExtractor):
         formats.sort(key=_sortkey)
 
         info = {
+            '_type': 'video',
             'id': video_id,
             'title': video_title,
             'formats': formats,
@@ -81,4 +82,4 @@ class DreiSatIE(InfoExtractor):
         info['url'] = formats[-1]['url']
         info['ext'] = determine_ext(formats[-1]['url'])
 
-        return self.video_result(info)
+        return info
