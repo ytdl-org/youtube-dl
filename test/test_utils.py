@@ -4,6 +4,7 @@
 
 import sys
 import unittest
+import xml.etree.ElementTree
 
 # Allow direct execution
 import os
@@ -16,6 +17,7 @@ from youtube_dl.utils import unescapeHTML
 from youtube_dl.utils import orderedSet
 from youtube_dl.utils import DateRange
 from youtube_dl.utils import unified_strdate
+from youtube_dl.utils import find_xpath_attr
 
 if sys.version_info < (3, 0):
     _compat_str = lambda b: b.decode('unicode-escape')
@@ -111,6 +113,19 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unified_strdate('8/7/2009'), '20090708')
         self.assertEqual(unified_strdate('Dec 14, 2012'), '20121214')
         self.assertEqual(unified_strdate('2012/10/11 01:56:38 +0000'), '20121011')
+
+    def test_find_xpath_attr(self):
+        testxml = u'''<root>
+            <node/>
+            <node x="a"/>
+            <node x="a" y="c" />
+            <node x="b" y="d" />
+        </root>'''
+        doc = xml.etree.ElementTree.fromstring(testxml)
+
+        self.assertEqual(find_xpath_attr(doc, './/fourohfour', 'n', 'v'), None)
+        self.assertEqual(find_xpath_attr(doc, './/node', 'x', 'a'), doc[1])
+        self.assertEqual(find_xpath_attr(doc, './/node', 'y', 'c'), doc[2])
 
 if __name__ == '__main__':
     unittest.main()

@@ -198,6 +198,20 @@ else:
         with open(fn, 'w', encoding='utf-8') as f:
             json.dump(obj, f)
 
+if sys.version_info >= (2,7):
+    def find_xpath_attr(node, xpath, key, val):
+        """ Find the xpath xpath[@key=val] """
+        assert re.match(r'^[a-z]+$', key)
+        assert re.match(r'^[a-z]*$', val)
+        expr = xpath + u"[@%s='%s']" % (key, val)
+        return node.find(expr)
+else:
+    def find_xpath_attr(node, xpath, key, val):
+        for f in node.findall(xpath):
+            if f.attrib.get(key) == val:
+                return f
+        return None
+
 def htmlentity_transform(matchobj):
     """Transforms an HTML entity to a character.
 
