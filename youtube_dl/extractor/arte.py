@@ -5,6 +5,7 @@ import xml.etree.ElementTree
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
+    find_xpath_attr,
     unified_strdate,
 )
 
@@ -119,7 +120,7 @@ class ArteTvIE(InfoExtractor):
         ref_xml_url = ref_xml_url.replace('.html', ',view,asPlayerXml.xml')
         ref_xml = self._download_webpage(ref_xml_url, video_id, note=u'Downloading metadata')
         ref_xml_doc = xml.etree.ElementTree.fromstring(ref_xml)
-        config_node = ref_xml_doc.find('.//video[@lang="%s"]' % lang)
+        config_node = find_xpath_attr(ref_xml_doc, './/video', 'lang', lang)
         config_xml_url = config_node.attrib['ref']
         config_xml = self._download_webpage(config_xml_url, video_id, note=u'Downloading configuration')
 
