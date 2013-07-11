@@ -6,11 +6,13 @@ from .common import InfoExtractor
 class EhowIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:www\.)?ehow\.com/([^/]+)'
     _TEST = {
-        u'url': u'http://www.break.com/video/when-girls-act-like-guys-2468056',
-        u'file': u'2468056.mp4',
-        u'md5': u'a3513fb1547fba4fb6cfac1bffc6c46b',
+        u'url': u'http://www.ehow.com/video_12245069_hardwood-flooring-basics.html',
+        u'file': u'12245069.flv',
+        u'md5': u'9809b4e3f115ae2088440bcb4efbf371',
         u'info_dict': {
-            u"title": u"When Girls Act Like D-Bags"
+            u"title": u"Hardwood Flooring Basics",
+            u"description": u"Hardwood flooring may be time consuming, but its ultimately a pretty straightforward concept. Learn about hardwood flooring basics with help from a hardware flooring business owner in this free video...",
+   			u"uploader": u"Erick Nathan"
         }
     }
 
