@@ -30,8 +30,7 @@ class NBAIE(InfoExtractor):
         video_url = u'http://ht-mobile.cdn.turner.com/nba/big' + video_id + '_nba_1280x720.mp4'
 
         shortened_video_id = video_id.rpartition('/')[2]
-        title = self._html_search_regex(r'<meta property="og:title" content="(.*?)"',
-            webpage, 'title', default=shortened_video_id).replace('NBA.com: ', '')
+        title = self._og_search_title(webpage, default=shortened_video_id).replace('NBA.com: ', '')
 
         # It isn't there in the HTML it returns to us
         # uploader_date = self._html_search_regex(r'<b>Date:</b> (.*?)</div>', webpage, 'upload_date', fatal=False)

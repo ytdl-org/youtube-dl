@@ -36,11 +36,7 @@ class EscapistIE(InfoExtractor):
         videoDesc = self._html_search_regex('<meta name="description" content="([^"]*)"',
             webpage, u'description', fatal=False)
 
-        imgUrl = self._html_search_regex('<meta property="og:image" content="([^"]*)"',
-            webpage, u'thumbnail', fatal=False)
-
-        playerUrl = self._html_search_regex('<meta property="og:video" content="([^"]*)"',
-            webpage, u'player url')
+        playerUrl = self._og_search_video_url(webpage, name='player url')
 
         title = self._html_search_regex('<meta name="title" content="([^"]*)"',
             webpage, u'player url').split(' : ')[-1]
@@ -70,7 +66,7 @@ class EscapistIE(InfoExtractor):
             'upload_date': None,
             'title': title,
             'ext': 'mp4',
-            'thumbnail': imgUrl,
+            'thumbnail': self._og_search_thumbnail(webpage),
             'description': videoDesc,
             'player_url': playerUrl,
         }

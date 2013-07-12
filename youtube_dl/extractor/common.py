@@ -257,6 +257,30 @@ class InfoExtractor(object):
         
         return (username, password)
 
+    # Helper functions for extracting OpenGraph info
+    @staticmethod
+    def _og_regex(property):
+        return r'<meta.+?property=[\'"]og:%s[\'"].+?content=(?:"(.+?)"|\'(.+?)\')' % property
+
+    def _og_search_property(self, property, html, name=None, **kargs):
+        if name is None:
+            name = 'OpenGraph %s' % property
+        return self._html_search_regex(self._og_regex(property), html, name, **kargs)
+
+    def _og_search_thumbnail(self, html, **kargs):
+        return self._og_search_property('image', html, 'thumbnail url', fatal=False, **kargs)
+
+    def _og_search_description(self, html, **kargs):
+        return self._og_search_property('description', html, fatal=False, **kargs)
+
+    def _og_search_title(self, html, **kargs):
+        return self._og_search_property('title', html, **kargs)
+
+    def _og_search_video_url(self, html, name='video url', **kargs):
+        return self._html_search_regex([self._og_regex('video:secure_url'),
+                                        self._og_regex('video')],
+                                       html, name, **kargs)
+
 class SearchInfoExtractor(InfoExtractor):
     """
     Base class for paged search queries extractors.

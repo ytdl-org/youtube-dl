@@ -24,11 +24,8 @@ class TrailerAddictIE(InfoExtractor):
                 webpage, 'video title').replace(' - Trailer Addict','')
         view_count = self._search_regex(r'Views: (.+?)<br />',
                 webpage, 'Views Count')
-        description = self._search_regex(r'<meta property="og:description" content="(.+?)" />',
-                webpage, 'video description')
-        video_id = self._search_regex(r'<meta property="og:video" content="(.+?)" />',
-                webpage, 'Video id').split('=')[1]
-        
+        video_id = self._og_search_property('video', webpage, 'Video id').split('=')[1]
+
         info_url = "http://www.traileraddict.com/fvar.php?tid=%s" %(str(video_id))
         info_webpage = self._download_webpage(info_url, video_id , "Downloading the info webpage")
         
@@ -44,6 +41,6 @@ class TrailerAddictIE(InfoExtractor):
             'ext'         : ext,
             'title'       : title,
             'thumbnail'   : thumbnail_url,
-            'description' : description,
+            'description' : self._og_search_description(webpage),
             'view_count'  : view_count,
         }]

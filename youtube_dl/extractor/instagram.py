@@ -18,12 +18,6 @@ class InstagramIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group(1)
         webpage = self._download_webpage(url, video_id)
-        video_url = self._html_search_regex(
-            r'<meta property="og:video" content="(.+?)"',
-            webpage, u'video URL')
-        thumbnail_url = self._html_search_regex(
-            r'<meta property="og:image" content="(.+?)" />',
-            webpage, u'thumbnail URL', fatal=False)
         html_title = self._html_search_regex(
             r'<title>(.+?)</title>',
             webpage, u'title', flags=re.DOTALL)
@@ -34,9 +28,9 @@ class InstagramIE(InfoExtractor):
 
         return [{
             'id':        video_id,
-            'url':       video_url,
+            'url':       self._og_search_video_url(webpage),
             'ext':       ext,
             'title':     title,
-            'thumbnail': thumbnail_url,
+            'thumbnail': self._og_search_thumbnail(webpage),
             'uploader_id' : uploader_id
         }]
