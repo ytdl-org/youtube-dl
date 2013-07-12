@@ -778,7 +778,7 @@ class YoutubeDL(object):
                     if not parts:
                         success = self.fd._do_download(filename, info_dict)
                     elif len(parts) == 1:
-                        info_dict['url'] = parts[0]
+                        info_dict.update(parts[0])
                         success = self.fd._do_download(filename, info_dict)
                     else:
                         # We check if the final video has already been downloaded
@@ -789,9 +789,9 @@ class YoutubeDL(object):
                             parts_success = []
                             parts_files = []
                             self.to_screen(u'[info] Downloading %s parts' % len(parts))
-                            for (i, part_url) in enumerate(parts):
+                            for (i, part) in enumerate(parts):
                                 part_info = dict(info_dict)
-                                part_info['url'] = part_url
+                                part_info.update(part)
                                 part_filename = u'%s.%s' % (filename, i)
                                 parts_files.append(part_filename)
                                 parts_success.append(self.fd._do_download(part_filename, part_info))

@@ -67,15 +67,11 @@ class TudouIE(InfoExtractor):
             part_id = part['k']
             final_url = self._url_for_id(part_id, quality)
             ext = (final_url.split('?')[0]).split('.')[-1]
-            parts.append(final_url)
+            parts.append({'url': final_url})
 
-        info_dict = {'id': video_id,
-                     'ext': ext,
-                     'title': title,
-                     'thumbnail': thumbnail_url,
-                     }
-        if len_segs == 1:
-            info_dict['url'] = parts[0]
-        else:
-            info_dict['parts'] = parts
-        return info_dict
+        return {'id': video_id,
+                'ext': ext,
+                'title': title,
+                'thumbnail': thumbnail_url,
+                'parts': parts,
+                }
