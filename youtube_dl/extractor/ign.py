@@ -6,9 +6,20 @@ from ..utils import (
     determine_ext,
 )
 
+
 class IGNIE(InfoExtractor):
-    _VALID_URL = r'http://www.ign.com/videos/.+/(?P<name>.+)'
+    """
+    Extractor for some of the IGN sites, like www.ign.com, es.ign.com de.ign.com.
+    Some videos of it.ign.com are also supported
+    """
+
+    _VALID_URL = r'https?://.+?\.ign\.com/(?:videos|show_videos)(/.+)?/(?P<name_or_id>.+)'
     IE_NAME = u'ign.com'
+
+    _CONFIG_URL_TEMPLATE = 'http://www.ign.com/videos/configs/id/%s.config'
+    _DESCRIPTION_RE = [r'<span class="page-object-description">(.+?)</span>',
+                       r'id="my_show_video">.*?<p>(.*?)</p>',
+                       ]
 
     _TEST = {
         u'url': u'http://www.ign.com/videos/2013/06/05/the-last-of-us-review',
@@ -20,16 +31,29 @@ class IGNIE(InfoExtractor):
         }
     }
 
+    def _find_video_id(self, webpage):
+        res_id = [r'data-video-id="(.+?)"',
+                  r'<object id="vid_(.+?)"',
+                  r'<meta name="og:image" content=".*/(.+?)-(.+?)/.+.jpg"',
+                  ]
+        return self._search_regex(res_id, webpage, 'video id')
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        name = mobj.group('name')
-        config_url = url + '.config'
-        webpage = self._download_webpage(url, name)
-        config = json.loads(self._download_webpage(config_url, name, u'Downloading video info'))
+        name_or_id = mobj.group('name_or_id')
+        webpage = self._download_webpage(url, name_or_id)
+        video_id = self._find_video_id(webpage)
+        result = self._get_video_info(video_id)
+        description = self._html_search_regex(self._DESCRIPTION_RE,
+                                              webpage, 'video description',
+                                              flags=re.DOTALL)
+        result['description'] = description
+        return result
 
-        self.report_extraction(name)
-        description = self._html_search_regex(r'<span class="page-object-description">(.+?)</span>',
-                                              webpage, 'video description', flags=re.DOTALL)
+    def _get_video_info(self, video_id):
+        config_url = self._CONFIG_URL_TEMPLATE % video_id
+        config = json.loads(self._download_webpage(config_url, video_id,
+                            u'Downloading video info'))
         media = config['playlist']['media']
         video_url = media['url']
 
@@ -37,9 +61,31 @@ class IGNIE(InfoExtractor):
                 'url': video_url,
                 'ext': determine_ext(video_url),
                 'title': media['metadata']['title'],
-                'description': description,
-                'thumbnail': media['poster'][0]['url'].replace('{size}', 'small'),
+                'thumbnail': media['poster'][0]['url'].replace('{size}', 'grande'),
                 }
-        
 
 
+class OneUPIE(IGNIE):
+    """Extractor for 1up.com, it uses the ign videos system."""
+
+    _VALID_URL = r'https?://gamevideos.1up.com/video/id/(?P<name_or_id>.+)'
+    IE_NAME = '1up.com'
+
+    _DESCRIPTION_RE = r'<div id="vid_summary">(.+?)</div>'
+
+    _TEST = {
+        u'url': u'http://gamevideos.1up.com/video/id/34976',
+        u'file': u'34976.mp4',
+        u'md5': u'68a54ce4ebc772e4b71e3123d413163d',
+        u'info_dict': {
+            u'title': u'Sniper Elite V2 - Trailer',
+            u'description': u'md5:5d289b722f5a6d940ca3136e9dae89cf',
+        }
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        id = mobj.group('name_or_id')
+        result = super(OneUPIE, self)._real_extract(url)
+        result['id'] = id
+        return result

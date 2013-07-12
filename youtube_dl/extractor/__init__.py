@@ -27,7 +27,7 @@ from .googlesearch import GoogleSearchIE
 from .hotnewhiphop import HotNewHipHopIE
 from .howcast import HowcastIE
 from .hypem import HypemIE
-from .ign import IGNIE
+from .ign import IGNIE, OneUPIE
 from .ina import InaIE
 from .infoq import InfoQIE
 from .instagram import InstagramIE
