@@ -120,7 +120,7 @@ class GenericIE(InfoExtractor):
 
         self.report_extraction(video_id)
         # Look for BrigthCove:
-        m_brightcove = re.search(r'<object.+?class=".*?BrightcoveExperience.*?".+?</object>', webpage, re.DOTALL)
+        m_brightcove = re.search(r'<object.+?class=([\'"]).*?BrightcoveExperience.*?\1.+?</object>', webpage, re.DOTALL)
         if m_brightcove is not None:
             self.to_screen(u'Brightcove video detected.')
             bc_url = BrightcoveIE._build_brighcove_url(m_brightcove.group())
