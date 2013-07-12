@@ -530,9 +530,7 @@ class YoutubeDL(object):
 
         if self.params.get('writethumbnail', False):
             if 'thumbnail' in info_dict:
-                thumb_format = info_dict['thumbnail'].rpartition(u'/')[2].rpartition(u'.')[2]
-                if not thumb_format:
-                    thumb_format = 'jpg'
+                thumb_format = determine_ext(info_dict['thumbnail'], u'jpg')
                 thumb_filename = filename.rpartition('.')[0] + u'.' + thumb_format
                 self.to_screen(u'[%s] %s: Downloading thumbnail ...' %
                                (info_dict['extractor'], info_dict['id']))

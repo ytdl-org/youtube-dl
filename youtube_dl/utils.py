@@ -650,12 +650,12 @@ def unified_strdate(date_str):
             pass
     return upload_date
 
-def determine_ext(url):
+def determine_ext(url, default_ext=u'unknown_video'):
     guess = url.partition(u'?')[0].rpartition(u'.')[2]
     if re.match(r'^[A-Za-z0-9]+$', guess):
         return guess
     else:
-        return u'unknown_video'
+        return default_ext
 
 def date_from_str(date_str):
     """
