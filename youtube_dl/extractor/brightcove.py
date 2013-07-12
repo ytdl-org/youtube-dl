@@ -6,6 +6,7 @@ from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
     find_xpath_attr,
+    compat_urlparse,
 )
 
 class BrightcoveIE(InfoExtractor):
@@ -39,15 +40,15 @@ class BrightcoveIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        query = mobj.group('query')
+        query_str = mobj.group('query')
+        query = compat_urlparse.parse_qs(query_str)
 
-        m_video_id = re.search(r'videoPlayer=(\d+)', query)
-        if m_video_id is not None:
-            video_id = m_video_id.group(1)
-            return self._get_video_info(video_id, query)
+        videoPlayer = query.get('@videoPlayer')
+        if videoPlayer:
+            return self._get_video_info(videoPlayer[0], query_str)
         else:
-            player_key = self._search_regex(r'playerKey=(.+?)(&|$)', query, 'playlist_id')
-            return self._get_playlist_info(player_key)
+            player_key = query['playerKey']
+            return self._get_playlist_info(player_key[0])
 
     def _get_video_info(self, video_id, query):
         request_url = self._FEDERATED_URL_TEMPLATE % query

@@ -36,6 +36,11 @@ except ImportError: # Python 2
     from urlparse import urlparse as compat_urllib_parse_urlparse
 
 try:
+    import urllib.parse as compat_urlparse
+except ImportError: # Python 2
+    import urlparse as compat_urlparse
+
+try:
     import http.cookiejar as compat_cookiejar
 except ImportError: # Python 2
     import cookielib as compat_cookiejar
