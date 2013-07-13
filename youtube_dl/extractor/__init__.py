@@ -6,6 +6,7 @@ from .bandcamp import BandcampIE
 from .bliptv import BlipTVIE, BlipTVUserIE
 from .breakcom import BreakIE
 from .brightcove import BrightcoveIE
+from .canalplus import CanalplusIE
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE
 from .criterion import CriterionIE
