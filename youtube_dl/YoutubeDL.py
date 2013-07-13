@@ -466,9 +466,16 @@ class YoutubeDL(object):
         # We check that all the formats have the format and format_id fields
         for (i, format) in enumerate(formats):
             if format.get('format') is None:
-                format['format'] = compat_str(i)
+                if format.get('height') is not None:
+                    if format.get('width') is not None:
+                        format_desc = u'%sx%s' % (format['width'], format['height'])
+                    else:
+                        format_desc = u'%sp' % format['height']
+                else:
+                    format_desc = compat_str(i)
+                format['format'] = format_desc
             if format.get('format_id') is None:
-                format['format_id'] = compat_str(i)
+                format['format_id'] = '???'
 
         if self.params.get('listformats', None):
             self.list_formats(info_dict)
