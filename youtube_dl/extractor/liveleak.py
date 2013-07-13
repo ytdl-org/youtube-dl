@@ -33,11 +33,9 @@ class LiveLeakIE(InfoExtractor):
         video_url = self._search_regex(r'file: "(.*?)",',
             webpage, u'video URL')
 
-        video_title = self._html_search_regex(r'<meta property="og:title" content="(?P<title>.*?)"',
-            webpage, u'title').replace('LiveLeak.com -', '').strip()
+        video_title = self._og_search_title(webpage).replace('LiveLeak.com -', '').strip()
 
-        video_description = self._html_search_regex(r'<meta property="og:description" content="(?P<desc>.*?)"',
-            webpage, u'description', fatal=False)
+        video_description = self._og_search_description(webpage)
 
         video_uploader = self._html_search_regex(r'By:.*?(\w+)</a>',
             webpage, u'uploader', fatal=False)

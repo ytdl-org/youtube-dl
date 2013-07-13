@@ -22,8 +22,6 @@ class TutvIE(InfoExtractor):
         video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id)
-        title = self._html_search_regex(
-            r'<meta property="og:title" content="(.*?)">', webpage, u'title')
         internal_id = self._search_regex(r'codVideo=([0-9]+)', webpage, u'internal video ID')
 
         data_url = u'http://tu.tv/flvurl.php?codVideo=' + str(internal_id)
@@ -36,6 +34,6 @@ class TutvIE(InfoExtractor):
             'id': internal_id,
             'url': video_url,
             'ext': ext,
-            'title': title,
+            'title': self._og_search_title(webpage),
         }
         return [info]

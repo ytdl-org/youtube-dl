@@ -24,8 +24,7 @@ class KeekIE(InfoExtractor):
         thumbnail = u'http://cdn.keek.com/keek/thumbnail/%s/w100/h75' % video_id
         webpage = self._download_webpage(url, video_id)
 
-        video_title = self._html_search_regex(r'<meta property="og:title" content="(?P<title>.*?)"',
-            webpage, u'title')
+        video_title = self._og_search_title(webpage)
 
         uploader = self._html_search_regex(r'<div class="user-name-and-bio">[\S\s]+?<h2>(?P<uploader>.+?)</h2>',
             webpage, u'uploader', fatal=False)

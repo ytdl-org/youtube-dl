@@ -27,12 +27,6 @@ class VineIE(InfoExtractor):
         video_url = self._html_search_regex(r'<meta property="twitter:player:stream" content="(.+?)"',
             webpage, u'video URL')
 
-        video_title = self._html_search_regex(r'<meta property="og:title" content="(.+?)"',
-            webpage, u'title')
-
-        thumbnail = self._html_search_regex(r'<meta property="og:image" content="(.+?)(\?.*?)?"',
-            webpage, u'thumbnail', fatal=False)
-
         uploader = self._html_search_regex(r'<div class="user">.*?<h2>(.+?)</h2>',
             webpage, u'uploader', fatal=False, flags=re.DOTALL)
 
@@ -40,7 +34,7 @@ class VineIE(InfoExtractor):
             'id':        video_id,
             'url':       video_url,
             'ext':       'mp4',
-            'title':     video_title,
-            'thumbnail': thumbnail,
+            'title':     self._og_search_title(webpage),
+            'thumbnail': self._og_search_thumbnail(webpage),
             'uploader':  uploader,
         }]

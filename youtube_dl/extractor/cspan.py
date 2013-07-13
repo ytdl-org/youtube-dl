@@ -34,8 +34,6 @@ class CSpanIE(InfoExtractor):
         description = self._html_search_regex(r'<meta (?:property="og:|name=")description" content="(.*?)"',
                                               webpage, 'description',
                                               flags=re.MULTILINE|re.DOTALL)
-        thumbnail = self._html_search_regex(r'<meta property="og:image" content="(.*?)"',
-                                            webpage, 'thumbnail')
 
         url = self._search_regex(r'<string name="URL">(.*?)</string>',
                                  video_info, 'video url')
@@ -49,5 +47,5 @@ class CSpanIE(InfoExtractor):
                 'url': url,
                 'play_path': path,
                 'description': description,
-                'thumbnail': thumbnail,
+                'thumbnail': self._og_search_thumbnail(webpage),
                 }

@@ -39,9 +39,6 @@ class DailymotionIE(InfoExtractor):
         # Extract URL, uploader and title from webpage
         self.report_extraction(video_id)
 
-        video_title = self._html_search_regex(r'<meta property="og:title" content="(.*?)" />',
-                                              webpage, 'title')
-
         video_uploader = self._search_regex([r'(?im)<span class="owner[^\"]+?">[^<]+?<a [^>]+?>([^<]+?)</a>',
                                              # Looking for official user
                                              r'<(?:span|a) .*?rel="author".*?>([^<]+?)</'],
@@ -76,7 +73,7 @@ class DailymotionIE(InfoExtractor):
             'url':      video_url,
             'uploader': video_uploader,
             'upload_date':  video_upload_date,
-            'title':    video_title,
+            'title':    self._og_search_title(webpage),
             'ext':      video_extension,
             'thumbnail': info['thumbnail_url']
         }]

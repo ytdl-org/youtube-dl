@@ -28,14 +28,9 @@ class EHowIE(InfoExtractor):
         video_url = self._search_regex(r'(?:file|source)=(http[^\'"&]*)',
             webpage, u'video URL')
         final_url = compat_urllib_parse.unquote(video_url)        
-        thumbnail_url = self._search_regex(r'<meta property="og:image" content="(.+?)" />',
-            webpage, u'thumbnail URL')
         uploader = self._search_regex(r'<meta name="uploader" content="(.+?)" />',
             webpage, u'uploader')
-        title = self._search_regex(r'<meta property="og:title" content="(.+?)" />',
-            webpage, u'Video title').replace(' | eHow', '')
-        description = self._search_regex(r'<meta property="og:description" content="(.+?)" />',
-            webpage, u'video description')
+        title = self._og_search_title(webpage).replace(' | eHow', '')
         ext = determine_ext(final_url)
 
         return {
@@ -44,8 +39,8 @@ class EHowIE(InfoExtractor):
             'url':         final_url,
             'ext':         ext,
             'title':       title,
-            'thumbnail':   thumbnail_url,
-            'description': description,
+            'thumbnail':   self._og_search_thumbnail(webpage),
+            'description': self._og_search_description(webpage),
             'uploader':    uploader,
         }
 
