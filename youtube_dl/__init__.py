@@ -208,7 +208,7 @@ def parseOpts(overrideArguments=None):
             help='language of the subtitles to download (optional) use IETF language tags like \'en\'')
 
     downloader.add_option('-r', '--rate-limit',
-            dest='ratelimit', metavar='LIMIT', help='maximum download rate (e.g. 50k or 44.6m)')
+            dest='ratelimit', metavar='LIMIT', help='maximum download rate in bytes per second (e.g. 50k or 44.6m)')
     downloader.add_option('-R', '--retries',
             dest='retries', metavar='RETRIES', help='number of retries (default is %default)', default=10)
     downloader.add_option('--buffer-size',
