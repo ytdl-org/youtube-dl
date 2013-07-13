@@ -5,7 +5,7 @@ from .common import InfoExtractor
 class InstagramIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?instagram.com/p/(.*?)/'
     _TEST = {
-        u'url': u'http://instagram.com/p/aye83DjauH/#',
+        u'url': u'http://instagram.com/p/aye83DjauH/?foo=bar#abc',
         u'file': u'aye83DjauH.mp4',
         u'md5': u'0d2da106a9d2631273e192b372806516',
         u'info_dict': {
@@ -22,7 +22,7 @@ class InstagramIE(InfoExtractor):
             r'<title>(.+?)</title>',
             webpage, u'title', flags=re.DOTALL)
         title = re.sub(u'(?: *\(Videos?\))? \u2022 Instagram$', '', html_title).strip()
-        uploader_id = self._html_search_regex(r'content="(.*?)\'s video on Instagram',
+        uploader_id = self._html_search_regex(r'<div class="media-user" id="media_user"><h2><a href="[^"]*">([^<]*)</a></h2>',
             webpage, u'uploader name', fatal=False)
         ext = 'mp4'
 
