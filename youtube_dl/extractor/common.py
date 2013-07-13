@@ -265,7 +265,7 @@ class InfoExtractor(object):
     def _og_search_property(self, property, html, name=None, **kargs):
         if name is None:
             name = 'OpenGraph %s' % property
-        return self._html_search_regex(self._og_regex(property), html, name, **kargs)
+        return self._html_search_regex(self._og_regex(property), html, name, flags=re.DOTALL, **kargs)
 
     def _og_search_thumbnail(self, html, **kargs):
         return self._og_search_property('image', html, 'thumbnail url', fatal=False, **kargs)

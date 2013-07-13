@@ -32,6 +32,6 @@ class FunnyOrDieIE(InfoExtractor):
             'url': video_url,
             'ext': 'mp4',
             'title': title,
-            'description': self._og_search_description(webpage, flags=re.DOTALL),
+            'description': self._og_search_description(webpage),
         }
         return [info]
