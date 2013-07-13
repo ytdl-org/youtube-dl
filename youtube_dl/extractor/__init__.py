@@ -8,6 +8,7 @@ from .breakcom import BreakIE
 from .brightcove import BrightcoveIE
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE
+from .criterion import CriterionIE
 from .cspan import CSpanIE
 from .dailymotion import DailymotionIE
 from .depositfiles import DepositFilesIE
