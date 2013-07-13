@@ -259,16 +259,16 @@ class InfoExtractor(object):
 
     # Helper functions for extracting OpenGraph info
     @staticmethod
-    def _og_regex(property):
-        return r'<meta.+?property=[\'"]og:%s[\'"].+?content=(?:"(.+?)"|\'(.+?)\')' % property
+    def _og_regex(prop):
+        return r'<meta.+?property=[\'"]og:%s[\'"].+?content=(?:"(.+?)"|\'(.+?)\')' % re.escape(prop)
 
-    def _og_search_property(self, property, html, name=None, **kargs):
+    def _og_search_property(self, prop, html, name=None, **kargs):
         if name is None:
-            name = 'OpenGraph %s' % property
-        return self._html_search_regex(self._og_regex(property), html, name, flags=re.DOTALL, **kargs)
+            name = 'OpenGraph %s' % prop
+        return self._html_search_regex(self._og_regex(prop), html, name, flags=re.DOTALL, **kargs)
 
     def _og_search_thumbnail(self, html, **kargs):
-        return self._og_search_property('image', html, 'thumbnail url', fatal=False, **kargs)
+        return self._og_search_property('image', html, u'thumbnail url', fatal=False, **kargs)
 
     def _og_search_description(self, html, **kargs):
         return self._og_search_property('description', html, fatal=False, **kargs)
