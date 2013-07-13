@@ -37,6 +37,7 @@ from .jukebox import JukeboxIE
 from .justintv import JustinTVIE
 from .keek import KeekIE
 from .liveleak import LiveLeakIE
+from .livestream import LivestreamIE
 from .metacafe import MetacafeIE
 from .mixcloud import MixcloudIE
 from .mtv import MTVIE
