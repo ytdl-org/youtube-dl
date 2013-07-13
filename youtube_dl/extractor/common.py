@@ -125,6 +125,11 @@ class InfoExtractor(object):
 
     def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None):
         """ Returns a tuple (page content as string, URL handle) """
+
+        # Strip hashes from the URL (#1038)
+        if isinstance(url_or_request, (compat_str, str)):
+            url_or_request = url_or_request.partition('#')[0]
+
         urlh = self._request_webpage(url_or_request, video_id, note, errnote)
         content_type = urlh.headers.get('Content-Type', '')
         m = re.match(r'[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+\s*;\s*charset=(.+)', content_type)
