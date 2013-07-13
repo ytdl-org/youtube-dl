@@ -22,8 +22,9 @@ class InstagramIE(InfoExtractor):
             r'<title>(.+?)</title>',
             webpage, u'title', flags=re.DOTALL)
         title = re.sub(u'(?: *\(Videos?\))? \u2022 Instagram$', '', html_title).strip()
-        uploader_id = self._html_search_regex(r'<div class="media-user" id="media_user"><h2><a href="[^"]*">([^<]*)</a></h2>',
-            webpage, u'uploader name', fatal=False)
+        uploader_id = self._html_search_regex(
+            r'<div class="media-user" id="media_user">.*?<h2><a href="[^"]*">([^<]*)</a></h2>',
+            webpage, u'uploader id', fatal=False, flags=re.DOTALL)
         ext = 'mp4'
 
         return [{
