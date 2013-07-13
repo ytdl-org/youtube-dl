@@ -47,21 +47,12 @@ class FlickrIE(InfoExtractor):
             raise ExtractorError(u'Unable to extract video url')
         video_url = mobj.group(1) + unescapeHTML(mobj.group(2))
 
-        video_title = self._html_search_regex(r'<meta property="og:title" content=(?:"([^"]+)"|\'([^\']+)\')',
-            webpage, u'video title')
-
-        video_description = self._html_search_regex(r'<meta property="og:description" content=(?:"([^"]+)"|\'([^\']+)\')',
-            webpage, u'description', fatal=False)
-
-        thumbnail = self._html_search_regex(r'<meta property="og:image" content=(?:"([^"]+)"|\'([^\']+)\')',
-            webpage, u'thumbnail', fatal=False)
-
         return [{
             'id':          video_id,
             'url':         video_url,
             'ext':         'mp4',
-            'title':       video_title,
-            'description': video_description,
-            'thumbnail':   thumbnail,
+            'title':       self._og_search_title(webpage),
+            'description': self._og_search_description(webpage),
+            'thumbnail':   self._og_search_thumbnail(webpage),
             'uploader_id': video_uploader_id,
         }]

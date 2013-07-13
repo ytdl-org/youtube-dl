@@ -33,16 +33,12 @@ class HotNewHipHopIE(InfoExtractor):
 
         video_title = self._html_search_regex(r"<title>(.*)</title>",
             webpage_src, u'title')
-        
-        # Getting thumbnail and if not thumbnail sets correct title for WSHH candy video.
-        thumbnail = self._html_search_regex(r'"og:image" content="(.*)"',
-            webpage_src, u'thumbnail', fatal=False)
 
         results = [{
                     'id': video_id,
                     'url' : video_url,
                     'title' : video_title,
-                    'thumbnail' : thumbnail,
+                    'thumbnail' : self._og_search_thumbnail(webpage_src),
                     'ext' : 'mp3',
                     }]
         return results
