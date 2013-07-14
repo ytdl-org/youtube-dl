@@ -472,10 +472,10 @@ class YoutubeDL(object):
                     else:
                         format_desc = u'%sp' % format['height']
                 else:
-                    format_desc = compat_str(i)
+                    format_desc = '???'
                 format['format'] = format_desc
             if format.get('format_id') is None:
-                format['format_id'] = '???'
+                format['format_id'] = compat_str(i)
 
         if self.params.get('listformats', None):
             self.list_formats(info_dict)
