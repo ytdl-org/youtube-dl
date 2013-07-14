@@ -484,6 +484,15 @@ class YoutubeDL(object):
         format_limit = self.params.get('format_limit', None)
         if format_limit:
             formats = [f for f in formats if f['format_id'] <= format_limit]
+        if self.params.get('prefer_free_formats'):
+            def _free_formats_key(f):
+                try:
+                    ext_ord = [u'flv', u'mp4', u'webm'].index(f['ext'])
+                except ValueError:
+                    ext_ord = -1
+                # We only compare the extension if they have the same height and width
+                return (f.get('height'), f.get('width'), ext_ord)
+            formats = sorted(formats, key=_free_formats_key)
 
         req_format = self.params.get('format', 'best')
         formats_to_download = []
