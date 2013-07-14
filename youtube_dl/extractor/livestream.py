@@ -2,7 +2,7 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import compat_urllib_parse_urlparse, compat_urlparse,
+from ..utils import compat_urllib_parse_urlparse, compat_urlparse
 
 
 class LivestreamIE(InfoExtractor):
