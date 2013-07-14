@@ -49,7 +49,10 @@ class MTVIE(InfoExtractor):
         if not m:
             raise ExtractorError(u'Cannot transform RTMP url')
         base = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=1+_pxI0=Ripod-h264+_pxL0=undefined+_pxM0=+_pxK=18639+_pxE=mp4/44620/mtvnorigin/'
-        return base + m.group('finalid') 
+        return base + m.group('finalid')
+
+    def _get_thumbnail_url(self, uri, itemdoc):
+        return 'http://mtv.mtvnimages.com/uri/' + uri
 
     def _extract_video_url(self, metadataXml):
         if '/error_country_block.swf' in metadataXml:
@@ -87,7 +90,7 @@ class MTVIE(InfoExtractor):
             description = None
         video_info.update({'title': itemdoc.find('title').text,
                            'id': video_id,
-                           'thumbnail': 'http://mtv.mtvnimages.com/uri/' + uri,
+                           'thumbnail': self._get_thumbnail_url(uri, itemdoc),
                            'description': description,
                            })
         return video_info

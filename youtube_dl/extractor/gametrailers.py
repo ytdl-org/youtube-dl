@@ -1,63 +1,36 @@
 import re
-import xml.etree.ElementTree
 
-from .common import InfoExtractor
-from ..utils import (
-    compat_urllib_parse,
+from .mtv import MTVIE, _media_xml_tag
 
-    ExtractorError,
-)
-
-class GametrailersIE(InfoExtractor):
+class GametrailersIE(MTVIE):
+    """
+    Gametrailers use the same videos system as MTVIE, it just changes the feed
+    url, where the uri is and the method to get the thumbnails.
+    """
     _VALID_URL = r'http://www.gametrailers.com/(?P<type>videos|reviews|full-episodes)/(?P<id>.*?)/(?P<title>.*)'
     _TEST = {
         u'url': u'http://www.gametrailers.com/videos/zbvr8i/mirror-s-edge-2-e3-2013--debut-trailer',
-        u'file': u'70e9a5d7-cf25-4a10-9104-6f3e7342ae0d.flv',
-        u'md5': u'c3edbc995ab4081976e16779bd96a878',
+        u'file': u'70e9a5d7-cf25-4a10-9104-6f3e7342ae0d.mp4',
+        u'md5': u'4c8e67681a0ea7ec241e8c09b3ea8cf7',
         u'info_dict': {
-            u"title": u"E3 2013: Debut Trailer"
+            u'title': u'E3 2013: Debut Trailer',
+            u'description': u'Faith is back!  Check out the World Premiere trailer for Mirror\'s Edge 2 straight from the EA Press Conference at E3 2013!',
         },
-        u'skip': u'Requires rtmpdump'
     }
+    # Overwrite MTVIE properties we don't want
+    _TESTS = []
+
+    _FEED_URL = 'http://www.gametrailers.com/feeds/mrss'
+
+    def _get_thumbnail_url(self, uri, itemdoc):
+        search_path = '%s/%s' % (_media_xml_tag('group'), _media_xml_tag('thumbnail'))
+        return itemdoc.find(search_path).attrib['url']
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
         mgid = self._search_regex([r'data-video="(?P<mgid>mgid:.*?)"',
                                    r'data-contentId=\'(?P<mgid>mgid:.*?)\''],
                                   webpage, u'mgid')
-
-        data = compat_urllib_parse.urlencode({'uri': mgid, 'acceptMethods': 'fms'})
-        info_page = self._download_webpage('http://www.gametrailers.com/feeds/mrss?' + data,
-                                           video_id, u'Downloading video info')
-        doc = xml.etree.ElementTree.fromstring(info_page.encode('utf-8'))
-        default_thumb = doc.find('./channel/image/url').text
-
-        media_namespace = {'media': 'http://search.yahoo.com/mrss/'}
-        parts = [{
-            'title': video_doc.find('title').text,
-            'ext': 'flv',
-            'id': video_doc.find('guid').text.rpartition(':')[2],
-            # Videos are actually flv not mp4
-            'url': self._get_video_url(video_doc.find('media:group/media:content', media_namespace).attrib['url'], video_id),
-            # The thumbnail may not be defined, it would be ''
-            'thumbnail': video_doc.find('media:group/media:thumbnail', media_namespace).attrib['url'] or default_thumb,
-            'description': video_doc.find('description').text,
-        } for video_doc in doc.findall('./channel/item')]
-        return parts
-
-    def _get_video_url(self, mediagen_url, video_id):
-        if 'acceptMethods' not in mediagen_url:
-            mediagen_url += '&acceptMethods=fms'
-        links_webpage = self._download_webpage(mediagen_url,
-                                               video_id, u'Downloading video urls info')
-        doc = xml.etree.ElementTree.fromstring(links_webpage)
-        urls = list(doc.iter('src'))
-        if len(urls) == 0:
-            raise ExtractorError(u'Unable to extract video url')
-        # They are sorted from worst to best quality
-        return urls[-1].text
-
+        return self._get_videos_info(mgid)
