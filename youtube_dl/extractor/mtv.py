@@ -7,6 +7,8 @@ from ..utils import (
     ExtractorError,
 )
 
+def _media_xml_tag(tag):
+    return '{http://search.yahoo.com/mrss/}%s' % tag
 
 class MTVIE(InfoExtractor):
     _VALID_URL = r'^https?://(?:www\.)?mtv\.com/videos/.+?/(?P<videoid>[0-9]+)/[^/]+$'
@@ -71,8 +73,7 @@ class MTVIE(InfoExtractor):
         uri = itemdoc.find('guid').text
         video_id = self._id_from_uri(uri)
         self.report_extraction(video_id)
-        media_namespace = {'media': 'http://search.yahoo.com/mrss/'}
-        mediagen_url = itemdoc.find('media:group/media:content', media_namespace).attrib['url']
+        mediagen_url = itemdoc.find('%s/%s' % (_media_xml_tag('group'), _media_xml_tag('content'))).attrib['url']
         if 'acceptMethods' not in mediagen_url:
             mediagen_url += '&acceptMethods=fms'
         mediagen_page = self._download_webpage(mediagen_url, video_id,
