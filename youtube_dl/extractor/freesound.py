@@ -5,6 +5,15 @@ from .common import InfoExtractor
 
 class FreeSoundIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:www\.)?freesound\.org/people/([^/]+)/sounds/([^/]+)'
+    _TEST = {
+        u'url': u'http://www.freesound.org/people/miklovan/sounds/194503/',
+        u'file': u'194503.mp3',
+        u'md5': u'12280ceb42c81f19a515c745eae07650',
+        u'info_dict': {
+            u"title": u"gulls in the city.wav by miklovan",
+            u"uploader" : u"miklovan"
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
