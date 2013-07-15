@@ -20,7 +20,7 @@ from .eighttracks import EightTracksIE
 from .escapist import EscapistIE
 from .facebook import FacebookIE
 from .flickr import FlickrIE
-from .freesound import FreeSoundIE
+from .freesound import FreesoundIE
 from .funnyordie import FunnyOrDieIE
 from .gamespot import GameSpotIE
 from .gametrailers import GametrailersIE
