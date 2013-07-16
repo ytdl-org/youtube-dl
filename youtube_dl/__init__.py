@@ -591,7 +591,10 @@ def _real_main(argv=None):
             if re.match('[0-9a-f]+', out):
                 sys.stderr.write(u'[debug] Git HEAD: ' + out + u'\n')
         except:
-            sys.exc_clear()
+            try:
+                sys.exc_clear()
+            except:
+                pass
         sys.stderr.write(u'[debug] Python version %s - %s' %(platform.python_version(), platform.platform()) + u'\n')
         sys.stderr.write(u'[debug] Proxy map: ' + str(proxy_handler.proxies) + u'\n')
 
