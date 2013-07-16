@@ -9,6 +9,7 @@ from .brightcove import BrightcoveIE
 from .canalplus import CanalplusIE
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE
+from .condenast import CondeNastIE
 from .criterion import CriterionIE
 from .cspan import CSpanIE
 from .dailymotion import DailymotionIE
