@@ -118,11 +118,7 @@ class MetacafeIE(InfoExtractor):
                 video_url = '%s?__gda__=%s' % (mediaURL, mobj.group('key'))
                 video_ext = determine_ext(video_url)
 
-        mobj = re.search(r'(?im)<title>(.*) - Video</title>', webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract title')
-        video_title = mobj.group(1).decode('utf-8')
-
+        video_title = self._html_search_regex(r'(?im)<title>(.*) - Video</title>', webpage, u'title')
         video_uploader = self._html_search_regex(r'submitter=(.*?);|<p class="By">\s*By\s*<a[^>]*>(.*?)</a>', webpage, u'uploader nickname', fatal=False)
 
         return [{
