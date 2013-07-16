@@ -580,7 +580,7 @@ def _real_main(argv=None):
         })
 
     if opts.verbose:
-        ydl.to_screen(u'[debug] youtube-dl version ' + __version__)
+        sys.stderr.write(u'[debug] youtube-dl version ' + __version__ + u'\n')
         try:
             sp = subprocess.Popen(
                 ['git', 'rev-parse', '--short', 'HEAD'],
@@ -589,11 +589,11 @@ def _real_main(argv=None):
             out, err = sp.communicate()
             out = out.decode().strip()
             if re.match('[0-9a-f]+', out):
-                ydl.to_screen(u'[debug] Git HEAD: ' + out)
+                sys.stderr.write(u'[debug] Git HEAD: ' + out + u'\n')
         except:
             sys.exc_clear()
-        ydl.to_screen(u'[debug] Python version %s - %s' %(platform.python_version(), platform.platform()))
-        ydl.to_screen(u'[debug] Proxy map: ' + str(proxy_handler.proxies))
+        sys.stderr.write(u'[debug] Python version %s - %s' %(platform.python_version(), platform.platform()) + u'\n')
+        sys.stderr.write(u'[debug] Proxy map: ' + str(proxy_handler.proxies) + u'\n')
 
     ydl.add_default_info_extractors()
 
