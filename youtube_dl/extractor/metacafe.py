@@ -38,6 +38,7 @@ class MetacafeIE(InfoExtractor):
         u"info_dict": {
             u"title": u"The Andromeda Strain (1971): Stop the Bomb Part 3",
             u"uploader": u"AnyClip",
+            u"description": u"md5:38c711dd98f5bb87acf973d573442e67"
         }
     }]
 
@@ -119,6 +120,7 @@ class MetacafeIE(InfoExtractor):
                 video_ext = determine_ext(video_url)
 
         video_title = self._html_search_regex(r'(?im)<title>(.*) - Video</title>', webpage, u'title')
+        description = self._og_search_description(webpage)
         video_uploader = self._html_search_regex(
                 r'submitter=(.*?);|googletag\.pubads\(\)\.setTargeting\("channel","([^"]+)"\);',
                 webpage, u'uploader nickname', fatal=False)
@@ -126,6 +128,7 @@ class MetacafeIE(InfoExtractor):
         return [{
             'id':       video_id,
             'url':      video_url,
+            'description': description,
             'uploader': video_uploader,
             'upload_date':  None,
             'title':    video_title,
