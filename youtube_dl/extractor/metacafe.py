@@ -37,7 +37,7 @@ class MetacafeIE(InfoExtractor):
         u"file": u"an-dVVXnuY7Jh77J.mp4",
         u"info_dict": {
             u"title": u"The Andromeda Strain (1971): Stop the Bomb Part 3",
-            u"uploader": u"AnyClip",
+            u"uploader": u"anyclip",
             u"description": u"md5:38c711dd98f5bb87acf973d573442e67"
         }
     }]
