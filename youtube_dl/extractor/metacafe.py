@@ -125,7 +125,8 @@ class MetacafeIE(InfoExtractor):
                 r'submitter=(.*?);|googletag\.pubads\(\)\.setTargeting\("channel","([^"]+)"\);',
                 webpage, u'uploader nickname', fatal=False)
 
-        return [{
+        return {
+            '_type':    'video',
             'id':       video_id,
             'url':      video_url,
             'description': description,
@@ -133,4 +134,4 @@ class MetacafeIE(InfoExtractor):
             'upload_date':  None,
             'title':    video_title,
             'ext':      video_ext,
-        }]
+        }
