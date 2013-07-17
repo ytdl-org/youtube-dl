@@ -12,6 +12,7 @@ class ThisAVIE(InfoExtractor):
     _TEST = {
         u"url": u"http://www.thisav.com/video/47734/%98%26sup1%3B%83%9E%83%82---just-fit.html",
         u"file": u"47734.flv",
+        u"md5": u"0480f1ef3932d901f0e0e719f188f19b",
         u"info_dict": {
             u"title": u"高樹マリア - Just fit",
             u"uploader": u"dj7970",
