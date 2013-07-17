@@ -591,8 +591,9 @@ class YoutubeIE(InfoExtractor):
                             else:
                                 player = u'html5 player %s' % self._search_regex(r'html5player-(.+?)\.js', video_webpage,
                                     'html5 player', fatal=False)
-                            self.to_screen('encrypted signature length %d (%d.%d), itag %s, %s' %
-                                (len(s), len(s.split('.')[0]), len(s.split('.')[1]), url_data['itag'][0], player))
+                            parts_sizes = u'.'.join(compat_str(len(part)) for part in s.split('.'))
+                            self.to_screen(u'encrypted signature length %d (%s), itag %s, %s' %
+                                (len(s), parts_sizes, url_data['itag'][0], player))
                         signature = self._decrypt_signature(url_data['s'][0])
                         url += '&signature=' + signature
                     if 'ratebypass' not in url:
