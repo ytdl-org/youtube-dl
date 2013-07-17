@@ -58,5 +58,10 @@ class TestYoutubeSig(unittest.TestCase):
         right = "urty8ioplkjhgfdsazxcvbqm1234567e90QWERTYUIOPLKHGFDSnZXCVBNM!@#$%^&*(-+={[};?/>."
         self.assertEqual(sig(wrong), right)
 
+    def test_92(self):
+        wrong = "F9F9B6E6FD47029957AB911A964CC20D95A181A5D37A2DBEFD67D403DB0E8BE4F4910053E4E8A79.0B70B.0B80B8"
+        right = "69B6E6FD47029957AB911A9F4CC20D95A181A5D3.A2DBEFD67D403DB0E8BE4F4910053E4E8A7980B7"
+        self.assertEqual(sig(wrong), right)
+
 if __name__ == '__main__':
     unittest.main()
