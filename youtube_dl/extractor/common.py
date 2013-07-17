@@ -14,6 +14,7 @@ from ..utils import (
     clean_html,
     compiled_regex_type,
     ExtractorError,
+    unescapeHTML,
 )
 
 class InfoExtractor(object):
@@ -270,7 +271,8 @@ class InfoExtractor(object):
     def _og_search_property(self, prop, html, name=None, **kargs):
         if name is None:
             name = 'OpenGraph %s' % prop
-        return self._html_search_regex(self._og_regex(prop), html, name, flags=re.DOTALL, **kargs)
+        escaped = self._search_regex(self._og_regex(prop), html, name, flags=re.DOTALL, **kargs)
+        return unescapeHTML(escaped)
 
     def _og_search_thumbnail(self, html, **kargs):
         return self._og_search_property('image', html, u'thumbnail url', fatal=False, **kargs)
