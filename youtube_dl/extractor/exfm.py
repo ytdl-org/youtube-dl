@@ -8,6 +8,16 @@ from .common import InfoExtractor
 class ExfmIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:www\.)?ex\.fm/song/([^/]+)'
     _SOUNDCLOUD_URL_ = r'(?:http://)?(?:www\.)?api\.soundcloud.com/tracks/([^/]+)/stream'
+    _TEST = {
+        u'url': u'http://ex.fm/song/1bgtzg',
+        u'file': u'1bgtzg.mp3',
+        u'md5': u'8a7967a3fef10e59a1d6f86240fd41cf',
+        u'info_dict': {
+            u"title": u"We Can't Stop",
+            u"uploader": u"Miley Cyrus",
+            u'thumbnail': u'http://i1.sndcdn.com/artworks-000049666230-w9i7ef-t500x500.jpg?9d68d37'
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
