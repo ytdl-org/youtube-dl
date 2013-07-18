@@ -19,6 +19,7 @@ from .dreisat import DreiSatIE
 from .ehow import EHowIE
 from .eighttracks import EightTracksIE
 from .escapist import EscapistIE
+from .exfm import ExfmIE
 from .facebook import FacebookIE
 from .flickr import FlickrIE
 from .freesound import FreesoundIE
