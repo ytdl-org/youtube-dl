@@ -129,7 +129,7 @@ def parseOpts(overrideArguments=None):
     general.add_option('-v', '--version',
             action='version', help='print program version and exit')
     general.add_option('-U', '--update',
-            action='store_true', dest='update_self', help='update this program to latest version')
+            action='store_true', dest='update_self', help='update this program to latest version. Make sure that you have sufficient permissions (run with sudo if needed)')
     general.add_option('-i', '--ignore-errors',
             action='store_true', dest='ignoreerrors', help='continue on download errors', default=False)
     general.add_option('--dump-user-agent',
