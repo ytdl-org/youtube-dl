@@ -179,7 +179,11 @@ class YoutubeIE(InfoExtractor):
     def _decrypt_signature(self, s):
         """Turn the encrypted s field into a working signature"""
 
-        if len(s) == 88:
+        if len(s) == 92:
+            return s[25] + s[3:25] + s[0] + s[26:42] + s[79] + s[43:79] + s[91] + s[80:83]
+        elif len(s) == 90:
+            return s[25] + s[3:25] + s[2] + s[26:40] + s[77] + s[41:77] + s[89] + s[78:81]
+        elif len(s) == 88:
             return s[48] + s[81:67:-1] + s[82] + s[66:62:-1] + s[85] + s[61:48:-1] + s[67] + s[47:12:-1] + s[3] + s[11:3:-1] + s[2] + s[12]
         elif len(s) == 87:
             return s[62] + s[82:62:-1] + s[83] + s[61:52:-1] + s[0] + s[51:2:-1]
@@ -195,8 +199,6 @@ class YoutubeIE(InfoExtractor):
             return s[36] + s[79:67:-1] + s[81] + s[66:40:-1] + s[33] + s[39:36:-1] + s[40] + s[35] + s[0] + s[67] + s[32:0:-1] + s[34]
         elif len(s) == 81:
             return s[6] + s[3:6] + s[33] + s[7:24] + s[0] + s[25:33] + s[2] + s[34:53] + s[24] + s[54:81]
-        elif len(s) == 92:
-            return s[25] + s[3:25] + s[0] + s[26:42] + s[79] + s[43:79] + s[91] + s[80:83];
 
         else:
             raise ExtractorError(u'Unable to decrypt signature, key length %d not supported; retrying might work' % (len(s)))
