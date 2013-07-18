@@ -1,6 +1,4 @@
 import re
-import json
-import time
 
 from .common import InfoExtractor
 
