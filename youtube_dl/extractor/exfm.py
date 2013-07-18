@@ -21,9 +21,9 @@ class ExfmIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group(1)
-        info_url = "http://ex.fm/api/v3/song/%s" %(video_id)
-        webpage = self._download_webpage(info_url, video_id)
+        song_id = mobj.group(1)
+        info_url = "http://ex.fm/api/v3/song/%s" %(song_id)
+        webpage = self._download_webpage(info_url, song_id)
         info = json.loads(webpage)
         song_url = re.match(self._SOUNDCLOUD_URL_,info['song']['url'])
         if song_url is not None:
@@ -31,7 +31,7 @@ class ExfmIE(InfoExtractor):
         else:
         	song_url = info['song']['url']
         return [{
-            'id':          video_id,
+            'id':          song_id,
             'url':         song_url,
             'ext':         'mp3',
             'title':       info['song']['title'],
