@@ -73,6 +73,7 @@ from .vimeo import VimeoIE
 from .vine import VineIE
 from .c56 import C56IE
 from .wat import WatIE
+from .weibo import WeiboIE
 from .wimp import WimpIE
 from .worldstarhiphop import WorldStarHipHopIE
 from .xhamster import XHamsterIE
