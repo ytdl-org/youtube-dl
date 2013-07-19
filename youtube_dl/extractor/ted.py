@@ -67,7 +67,7 @@ class TEDIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id, 'Downloading \"%s\" page' % video_name)
         self.report_extraction(video_name)
         # If the url includes the language we get the title translated
-        title = self._html_search_regex(r'<span id="altHeadline" >(?P<title>.*)</span>',
+        title = self._html_search_regex(r'<span .*?id="altHeadline".+?>(?P<title>.*)</span>',
                                         webpage, 'title')
         json_data = self._search_regex(r'<script.*?>var talkDetails = ({.*?})</script>',
                                     webpage, 'json data')
