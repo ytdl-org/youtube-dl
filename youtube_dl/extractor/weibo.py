@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import re
+import json
 
 from .common import InfoExtractor
 
@@ -30,8 +31,18 @@ class WeiboIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url, flags=re.VERBOSE)
         video_id = mobj.group('id')
-        webpage = self._download_webpage(url, video_id)
-        player_url = self._search_regex(r'var defaultPlayer="(.+?)"', webpage,
-                                        u'player url')
+        info_url = 'http://video.weibo.com/?s=v&a=play_list&format=json&mix_video_id=t_%s' % video_id
+        info_page = self._download_webpage(info_url, video_id)
+        info = json.loads(info_page)
+
+        videos_urls = map(lambda v: v['play_page_url'], info['result']['data'])
+        #Prefer sina video since they have thumbnails
+        videos_urls = sorted(videos_urls, key=lambda u: u'video.sina.com' in u)
+        player_url = videos_urls[-1]
+        m_sina = re.match(r'https?://video.sina.com.cn/v/b/(\d+)-\d+.html', player_url)
+        if m_sina is not None:
+            self.to_screen('Sina video detected')
+            sina_id = m_sina.group(1)
+            player_url = 'http://you.video.sina.com.cn/swf/quotePlayer.swf?vid=%s' % sina_id
         return self.url_result(player_url)
 
