@@ -153,8 +153,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                      $"""
     _NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
     # Listed in order of quality
-    _available_formats = ['38', '37', '46', '22', '45', '35', '44', '34', '18', '43', '6', '5', '17', '13']
-    _available_formats_prefer_free = ['38', '46', '37', '45', '22', '44', '35', '43', '34', '18', '6', '5', '17', '13']
+    _available_formats = ['38', '37', '46', '22', '45', '35', '44', '34', '18', '43', '6', '5', '17', '13',
+                          '95', '94', '93', '92', '132', '151',
+                          ]
+    _available_formats_prefer_free = ['38', '46', '37', '45', '22', '44', '35', '43', '34', '18', '6', '5', '17', '13',
+                                      '95', '94', '93', '92', '132', '151',
+                                      ]
     _video_extensions = {
         '13': '3gp',
         '17': 'mp4',
@@ -166,6 +170,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '44': 'webm',
         '45': 'webm',
         '46': 'webm',
+
+        # videos that use m3u8
+        '92': 'mp4',
+        '93': 'mp4',
+        '94': 'mp4',
+        '95': 'mp4',
+        '96': 'mp4',
+        '132': 'mp4',
+        '151': 'mp4',
     }
     _video_dimensions = {
         '5': '240x400',
@@ -182,6 +195,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '44': '480x854',
         '45': '720x1280',
         '46': '1080x1920',
+        '92': '240p',
+        '93': '360p',
+        '94': '480p',
+        '95': '720p',
+        '96': '1080p',
+        '132': '240p',
+        '151': '72p',
     }
     IE_NAME = u'youtube'
     _TESTS = [
@@ -231,6 +251,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 u"uploader": u"justintimberlakeVEVO",
                 u"uploader_id": u"justintimberlakeVEVO"
             }
+        },
+        {
+            u'url': u'https://www.youtube.com/watch?v=TGi3HqYrWHE',
+            u'file': u'TGi3HqYrWHE.mp4',
+            u'note': u'm3u8 video',
+            u'info_dict': {
+                u'title': u'Triathlon - Men - London 2012 Olympic Games',
+                u'description': u'- Men -  TR02 - Triathlon - 07 August 2012 - London 2012 Olympic Games',
+                u'uploader': u'olympic',
+                u'upload_date': u'20120807',
+                u'uploader_id': u'olympic',
+            },
+            u'params': {
+                u'skip_download': True,
+            },
         },
     ]
 
@@ -423,6 +458,57 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         video_id = mobj.group(2)
         return video_id
 
+    def _get_video_url_list(self, url_map):
+        """
+        Transform a dictionary in the format {itag:url} to a list of (itag, url)
+        with the requested formats.
+        """
+        req_format = self._downloader.params.get('format', None)
+        format_limit = self._downloader.params.get('format_limit', None)
+        available_formats = self._available_formats_prefer_free if self._downloader.params.get('prefer_free_formats', False) else self._available_formats
+        if format_limit is not None and format_limit in available_formats:
+            format_list = available_formats[available_formats.index(format_limit):]
+        else:
+            format_list = available_formats
+        existing_formats = [x for x in format_list if x in url_map]
+        if len(existing_formats) == 0:
+            raise ExtractorError(u'no known formats available for video')
+        if self._downloader.params.get('listformats', None):
+            self._print_formats(existing_formats)
+            return
+        if req_format is None or req_format == 'best':
+            video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
+        elif req_format == 'worst':
+            video_url_list = [(existing_formats[-1], url_map[existing_formats[-1]])] # worst quality
+        elif req_format in ('-1', 'all'):
+            video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
+        else:
+            # Specific formats. We pick the first in a slash-delimeted sequence.
+            # For example, if '1/2/3/4' is requested and '2' and '4' are available, we pick '2'.
+            req_formats = req_format.split('/')
+            video_url_list = None
+            for rf in req_formats:
+                if rf in url_map:
+                    video_url_list = [(rf, url_map[rf])]
+                    break
+            if video_url_list is None:
+                raise ExtractorError(u'requested format not available')
+        return video_url_list
+
+    def _extract_from_m3u8(self, manifest_url, video_id):
+        url_map = {}
+        def _get_urls(_manifest):
+            lines = _manifest.split('\n')
+            urls = filter(lambda l: l and not l.startswith('#'),
+                            lines)
+            return urls
+        manifest = self._download_webpage(manifest_url, video_id, u'Downloading formats manifest')
+        formats_urls = _get_urls(manifest)
+        for format_url in formats_urls:
+            itag = self._search_regex(r'itag/(\d+?)/', format_url, 'itag')
+            url_map[itag] = format_url
+        return url_map
+
     def _real_extract(self, url):
         if re.match(r'(?:https?://)?[^/]+/watch\?feature=[a-z_]+$', url):
             self._downloader.report_warning(u'Did you forget to quote the URL? Remember that & is a meta-character in most shells, so you want to put the URL in quotes, like  youtube-dl \'http://www.youtube.com/watch?feature=foo&v=BaW_jenozKc\' (or simply  youtube-dl BaW_jenozKc  ).')
@@ -577,7 +663,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             video_duration = compat_urllib_parse.unquote_plus(video_info['length_seconds'][0])
 
         # Decide which formats to download
-        req_format = self._downloader.params.get('format', None)
 
         try:
             mobj = re.search(r';ytplayer.config = ({.*?});', video_webpage)
@@ -630,36 +715,16 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     if 'ratebypass' not in url:
                         url += '&ratebypass=yes'
                     url_map[url_data['itag'][0]] = url
-
-            format_limit = self._downloader.params.get('format_limit', None)
-            available_formats = self._available_formats_prefer_free if self._downloader.params.get('prefer_free_formats', False) else self._available_formats
-            if format_limit is not None and format_limit in available_formats:
-                format_list = available_formats[available_formats.index(format_limit):]
-            else:
-                format_list = available_formats
-            existing_formats = [x for x in format_list if x in url_map]
-            if len(existing_formats) == 0:
-                raise ExtractorError(u'no known formats available for video')
-            if self._downloader.params.get('listformats', None):
-                self._print_formats(existing_formats)
+            video_url_list = self._get_video_url_list(url_map)
+            if not video_url_list:
                 return
-            if req_format is None or req_format == 'best':
-                video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
-            elif req_format == 'worst':
-                video_url_list = [(existing_formats[-1], url_map[existing_formats[-1]])] # worst quality
-            elif req_format in ('-1', 'all'):
-                video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
-            else:
-                # Specific formats. We pick the first in a slash-delimeted sequence.
-                # For example, if '1/2/3/4' is requested and '2' and '4' are available, we pick '2'.
-                req_formats = req_format.split('/')
-                video_url_list = None
-                for rf in req_formats:
-                    if rf in url_map:
-                        video_url_list = [(rf, url_map[rf])]
-                        break
-                if video_url_list is None:
-                    raise ExtractorError(u'requested format not available')
+        elif video_info.get('hlsvp'):
+            manifest_url = video_info['hlsvp'][0]
+            url_map = self._extract_from_m3u8(manifest_url, video_id)
+            video_url_list = self._get_video_url_list(url_map)
+            if not video_url_list:
+                return
+
         else:
             raise ExtractorError(u'no conn or url_encoded_fmt_stream_map information found in video info')
 
