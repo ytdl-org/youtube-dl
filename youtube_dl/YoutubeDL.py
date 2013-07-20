@@ -497,7 +497,7 @@ class YoutubeDL(object):
                 if sub is None:
                     continue
                 try:
-                    sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
+                    sub_filename = subtitles_filename(filename, sub_lang, sub_format)
                     self.report_writesubtitles(sub_filename)
                     with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
                             subfile.write(sub)
