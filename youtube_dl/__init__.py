@@ -100,6 +100,16 @@ def parseOpts(overrideArguments=None):
             pass
         return None
 
+    def _hide_login_info(opts):
+        opts = list(opts)
+        for private_opt in ['-p', '--password', '-u', '--username']:
+            try:
+                i = opts.index(private_opt)
+                opts[i+1] = '<PRIVATE>'
+            except ValueError:
+                pass
+        return opts
+
     max_width = 80
     max_help_position = 80
 
@@ -358,9 +368,9 @@ def parseOpts(overrideArguments=None):
         argv = systemConf + userConf + commandLineConf
         opts, args = parser.parse_args(argv)
         if opts.verbose:
-            sys.stderr.write(u'[debug] System config: ' + repr(systemConf) + '\n')
-            sys.stderr.write(u'[debug] User config: ' + repr(userConf) + '\n')
-            sys.stderr.write(u'[debug] Command-line args: ' + repr(commandLineConf) + '\n')
+            sys.stderr.write(u'[debug] System config: ' + repr(_hide_login_info(systemConf)) + '\n')
+            sys.stderr.write(u'[debug] User config: ' + repr(_hide_login_info(userConf)) + '\n')
+            sys.stderr.write(u'[debug] Command-line args: ' + repr(_hide_login_info(commandLineConf)) + '\n')
 
     return parser, opts, args
 
