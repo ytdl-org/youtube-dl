@@ -494,6 +494,8 @@ class YoutubeDL(object):
             sub_format = self.params.get('subtitlesformat')
             for sub_lang in subtitles.keys():
                 sub = subtitles[sub_lang]
+                if sub is None:
+                    continue
                 try:
                     sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
                     self.report_writesubtitles(sub_filename)
