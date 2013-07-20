@@ -5,6 +5,8 @@ from .common import InfoExtractor
 
 
 class ExfmIE(InfoExtractor):
+    IE_NAME = u'exfm'
+    IE_DESC = u'ex.fm'
     _VALID_URL = r'(?:http://)?(?:www\.)?ex\.fm/song/([^/]+)'
     _SOUNDCLOUD_URL_ = r'(?:http://)?(?:www\.)?api\.soundcloud.com/tracks/([^/]+)/stream'
     _TEST = {
