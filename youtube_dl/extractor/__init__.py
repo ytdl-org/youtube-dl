@@ -92,6 +92,7 @@ from .youtube import (
     YoutubeChannelIE,
     YoutubeShowIE,
     YoutubeSubscriptionsIE,
+    YoutubeRecommendedIE,
 )
 from .zdf import ZDFIE
 

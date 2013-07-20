@@ -898,12 +898,12 @@ class YoutubeShowIE(InfoExtractor):
         return [self.url_result('https://www.youtube.com' + season.group(1), 'YoutubePlaylist') for season in m_seasons]
 
 
-class YoutubeSubscriptionsIE(YoutubeIE):
-    """It's a subclass of YoutubeIE because we need to login"""
-    IE_DESC = u'YouTube.com subscriptions feed, "ytsubs" keyword(requires authentication)'
-    _VALID_URL = r'https?://www\.youtube\.com/feed/subscriptions|:ytsubs(?:criptions)?'
-    IE_NAME = u'youtube:subscriptions'
-    _FEED_TEMPLATE = 'http://www.youtube.com/feed_ajax?action_load_system_feed=1&feed_name=subscriptions&paging=%s'
+class YoutubeFeedsInfoExtractor(YoutubeIE):
+    """
+    Base class for extractors that fetch info from
+    http://www.youtube.com/feed_ajax
+    Subclasses must define the _FEED_NAME and _PLAYLIST_TITLE properties.
+    """
     _PAGING_STEP = 30
 
     # Overwrite YoutubeIE properties we don't want
@@ -912,18 +912,27 @@ class YoutubeSubscriptionsIE(YoutubeIE):
     def suitable(cls, url):
         return re.match(cls._VALID_URL, url) is not None
 
+    @property
+    def _FEED_TEMPLATE(self):
+        return 'http://www.youtube.com/feed_ajax?action_load_system_feed=1&feed_name=%s&paging=%%s' % self._FEED_NAME
+
+    @property
+    def IE_NAME(self):
+        return u'youtube:%s' % self._FEED_NAME
+
     def _real_initialize(self):
         (username, password) = self._get_login_info()
         if username is None:
             raise ExtractorError(u'No login info available, needed for downloading the Youtube subscriptions.', expected=True)
-        super(YoutubeSubscriptionsIE, self)._real_initialize()
+        super(YoutubeFeedsInfoExtractor, self)._real_initialize()
 
     def _real_extract(self, url):
         feed_entries = []
         # The step argument is available only in 2.7 or higher
         for i in itertools.count(0):
             paging = i*self._PAGING_STEP
-            info = self._download_webpage(self._FEED_TEMPLATE % paging, 'feed',
+            info = self._download_webpage(self._FEED_TEMPLATE % paging,
+                                          u'%s feed' % self._FEED_NAME,
                                           u'Downloading page %s' % i)
             info = json.loads(info)
             feed_html = info['feed_html']
@@ -932,4 +941,16 @@ class YoutubeSubscriptionsIE(YoutubeIE):
             feed_entries.extend(self.url_result(id, 'Youtube') for id in ids)
             if info['paging'] is None:
                 break
-        return self.playlist_result(feed_entries, playlist_title='Youtube Subscriptions')
+        return self.playlist_result(feed_entries, playlist_title=self._PLAYLIST_TITLE)
+
+class YoutubeSubscriptionsIE(YoutubeFeedsInfoExtractor):
+    IE_DESC = u'YouTube.com subscriptions feed, "ytsubs" keyword(requires authentication)'
+    _VALID_URL = r'https?://www\.youtube\.com/feed/subscriptions|:ytsubs(?:criptions)?'
+    _FEED_NAME = 'subscriptions'
+    _PLAYLIST_TITLE = u'Youtube Subscriptions'
+
+class YoutubeRecommendedIE(YoutubeFeedsInfoExtractor):
+    IE_DESC = u'YouTube.com recommended videos, "ytrec" keyword (requires authentication)'
+    _VALID_URL = r'https?://www\.youtube\.com/feed/recommended|:ytrec(?:ommended)?'
+    _FEED_NAME = 'recommended'
+    _PLAYLIST_TITLE = u'Youtube Recommended videos'
