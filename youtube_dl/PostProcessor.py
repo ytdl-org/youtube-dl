@@ -512,16 +512,25 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         return True, info
 
 
-class FFmpegJoinVideos(FFmpegPostProcessor):
-    def join(self, final_video, videos):
-        files_file = u'%s.videos' % final_video
+class FFmpegJoinVideosPP(FFmpegPostProcessor):
+    def run(self, information):
+        filename = information['filepath']
+        parts = information.get('parts')
+        if parts is None or len(parts) == 1:
+            return (True, information)
+        parts_files = [u'%s.%s' % (filename, i) for (i, _) in enumerate(parts)]
+        files_file = u'%s.videos' % filename
         with io.open(encodeFilename(files_file), 'w', encoding='utf-8') as f:
-                    for video in videos:
+                    for video in parts_files:
                         f.write(u'file \'%s\'\n' % video)
-        self._downloader.to_screen(u'[ffmpeg] Joining video parts, destination: %s' % final_video)
+        self._downloader.to_screen(u'[ffmpeg] Joining video parts, destination: %s' % filename)
         try:
-            self.run_ffmpeg(files_file, final_video, ['-c', 'copy'], ['-f', 'concat'])
+            self.run_ffmpeg(files_file, filename, ['-c', 'copy'], ['-f', 'concat'])
         except FFmpegPostProcessorError:
             return False
         os.remove(encodeFilename(files_file))
-        return True
+        # We have to manually remove the parts if requested
+        if not self._downloader.params.get('keepvideo', False):
+            for part_file in parts_files:
+                os.remove(encodeFilename(part_file))
+        return (True, information)

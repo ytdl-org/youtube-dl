@@ -52,7 +52,6 @@ from .utils import (
 from .extractor import get_info_extractor, gen_extractors
 from .FileDownloader import FileDownloader
 from .version import __version__
-from .PostProcessor import FFmpegJoinVideos
 
 
 class YoutubeDL(object):
@@ -787,25 +786,13 @@ class YoutubeDL(object):
                             success = True
                         else:
                             parts_success = []
-                            parts_files = []
                             self.to_screen(u'[info] Downloading %s parts' % len(parts))
                             for (i, part) in enumerate(parts):
                                 part_info = dict(info_dict)
                                 part_info.update(part)
                                 part_filename = u'%s.%s' % (filename, i)
-                                parts_files.append(part_filename)
                                 parts_success.append(self.fd._do_download(part_filename, part_info))
                             success = all(parts_success)
-                            if success:
-                                video_joiner = FFmpegJoinVideos(self)
-                                join_success = video_joiner.join(filename, parts_files)
-                                if not join_success:
-                                    self.report_error(u'Could not join the video parts')
-                                else:
-                                    self.to_screen(u'[info] Removing video parts')
-                                    for part_file in parts_files:
-                                        os.remove(encodeFilename(part_file))
-                                success = join_success
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                     self.report_error(u'unable to download video data: %s' % str(err))
                     return
