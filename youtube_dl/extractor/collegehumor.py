@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class CollegeHumorIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?collegehumor\.com/video/(?P<videoid>[0-9]+)/(?P<shorttitle>.*)$'
+    _VALID_URL = r'^(?:https?://)?(?:www\.)?collegehumor\.com/(video|embed)/(?P<videoid>[0-9]+)/(?P<shorttitle>.*)$'
 
     _TEST = {
         u'url': u'http://www.collegehumor.com/video/6902724/comic-con-cosplay-catastrophe',
@@ -43,6 +43,9 @@ class CollegeHumorIE(InfoExtractor):
         mdoc = xml.etree.ElementTree.fromstring(metaXml)
         try:
             videoNode = mdoc.findall('./video')[0]
+            youtubeIdNode = videoNode.find('./youtubeID')
+            if youtubeIdNode is not None:
+                return self.url_result(youtubeIdNode.text, 'Youtube')
             info['description'] = videoNode.findall('./description')[0].text
             info['title'] = videoNode.findall('./caption')[0].text
             info['thumbnail'] = videoNode.findall('./thumbnail')[0].text
