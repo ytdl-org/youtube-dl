@@ -10,6 +10,7 @@ class TF1IE(InfoExtractor):
     TF1 uses the wat.tv player, currently it can only download videos with the
     html5 player enabled, it cannot download HD videos.
     """
+    _WORKING = False
     _VALID_URL = r'http://videos.tf1.fr/.*-(.*?).html'
     _TEST = {
         u'url': u'http://videos.tf1.fr/auto-moto/citroen-grand-c4-picasso-2013-presentation-officielle-8062060.html',
