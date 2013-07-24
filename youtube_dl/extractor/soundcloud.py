@@ -33,9 +33,34 @@ class SoundcloudIE(InfoExtractor):
         }
     }
 
+    _CLIENT_ID = 'b45b1aa10f1ac2941910a7f0d10f8e28'
+
     def report_resolve(self, video_id):
         """Report information extraction."""
         self.to_screen(u'%s: Resolving id' % video_id)
+
+    @classmethod
+    def _resolv_url(cls, url):
+        return 'http://api.soundcloud.com/resolve.json?url=' + url + '&client_id=' + cls._CLIENT_ID
+
+    def _extract_info_dict(self, info, full_title=None):
+        video_id = info['id']
+        name = full_title or video_id
+        self.report_extraction(name)
+
+        thumbnail = info['artwork_url']
+        if thumbnail is not None:
+            thumbnail = thumbnail.replace('-large', '-t500x500')
+        return {
+            'id':       info['id'],
+            'url':      info['stream_url'] + '?client_id=' + self._CLIENT_ID,
+            'uploader': info['user']['username'],
+            'upload_date': unified_strdate(info['created_at']),
+            'title':    info['title'],
+            'ext':      u'mp3',
+            'description': info['description'],
+            'thumbnail': thumbnail,
+        }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -51,41 +76,13 @@ class SoundcloudIE(InfoExtractor):
         self.report_resolve(full_title)
 
         url = 'http://soundcloud.com/%s/%s' % (uploader, slug_title)
-        resolv_url = 'http://api.soundcloud.com/resolve.json?url=' + url + '&client_id=b45b1aa10f1ac2941910a7f0d10f8e28'
+        resolv_url = self._resolv_url(url)
         info_json = self._download_webpage(resolv_url, full_title, u'Downloading info JSON')
 
         info = json.loads(info_json)
-        video_id = info['id']
-        self.report_extraction(full_title)
+        return self._extract_info_dict(info, full_title)
 
-        streams_url = 'https://api.sndcdn.com/i1/tracks/' + str(video_id) + '/streams?client_id=b45b1aa10f1ac2941910a7f0d10f8e28'
-        stream_json = self._download_webpage(streams_url, full_title,
-                                             u'Downloading stream definitions',
-                                             u'unable to download stream definitions')
-
-        streams = json.loads(stream_json)
-        mediaURL = streams['http_mp3_128_url']
-        upload_date = unified_strdate(info['created_at'])
-
-        return [{
-            'id':       info['id'],
-            'url':      mediaURL,
-            'uploader': info['user']['username'],
-            'upload_date': upload_date,
-            'title':    info['title'],
-            'ext':      u'mp3',
-            'description': info['description'],
-        }]
-
-class SoundcloudSetIE(InfoExtractor):
-    """Information extractor for soundcloud.com sets
-       To access the media, the uid of the song and a stream token
-       must be extracted from the page source and the script must make
-       a request to media.soundcloud.com/crossdomain.xml. Then
-       the media can be grabbed by requesting from an url composed
-       of the stream token and uid
-     """
-
+class SoundcloudSetIE(SoundcloudIE):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/sets/([\w\d-]+)(?:[?].*)?$'
     IE_NAME = u'soundcloud:set'
     _TEST = {
@@ -153,10 +150,6 @@ class SoundcloudSetIE(InfoExtractor):
         ]
     }
 
-    def report_resolve(self, video_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Resolving id' % video_id)
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
@@ -171,7 +164,7 @@ class SoundcloudSetIE(InfoExtractor):
         self.report_resolve(full_title)
 
         url = 'http://soundcloud.com/%s/sets/%s' % (uploader, slug_title)
-        resolv_url = 'http://api.soundcloud.com/resolve.json?url=' + url + '&client_id=b45b1aa10f1ac2941910a7f0d10f8e28'
+        resolv_url = self._resolv_url(url)
         info_json = self._download_webpage(resolv_url, full_title)
 
         videos = []
@@ -182,23 +175,8 @@ class SoundcloudSetIE(InfoExtractor):
             return
 
         self.report_extraction(full_title)
-        for track in info['tracks']:
-            video_id = track['id']
-
-            streams_url = 'https://api.sndcdn.com/i1/tracks/' + str(video_id) + '/streams?client_id=b45b1aa10f1ac2941910a7f0d10f8e28'
-            stream_json = self._download_webpage(streams_url, video_id, u'Downloading track info JSON')
-
-            self.report_extraction(video_id)
-            streams = json.loads(stream_json)
-            mediaURL = streams['http_mp3_128_url']
-
-            videos.append({
-                'id':       video_id,
-                'url':      mediaURL,
-                'uploader': track['user']['username'],
-                'upload_date':  unified_strdate(track['created_at']),
-                'title':    track['title'],
-                'ext':      u'mp3',
-                'description': track['description'],
-            })
-        return videos
+        return {'_type': 'playlist',
+                'entries': [self._extract_info_dict(track) for track in info['tracks']],
+                'id': info['id'],
+                'title': info['title'],
+                }
