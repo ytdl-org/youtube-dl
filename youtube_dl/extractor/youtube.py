@@ -696,7 +696,11 @@ class YoutubePlaylistIE(InfoExtractor):
         videos = []
 
         while True:
-            url = self._TEMPLATE_URL % (playlist_id, self._MAX_RESULTS, self._MAX_RESULTS * (page_num - 1) + 1)
+            start_index = self._MAX_RESULTS * (page_num - 1) + 1
+            if start_index >= 1000:
+                self._downloader.report_warning(u'Max number of results reached')
+                break
+            url = self._TEMPLATE_URL % (playlist_id, self._MAX_RESULTS, start_index)
             page = self._download_webpage(url, playlist_id, u'Downloading page #%s' % page_num)
 
             try:
@@ -715,9 +719,6 @@ class YoutubePlaylistIE(InfoExtractor):
                 index = entry['yt$position']['$t']
                 if 'media$group' in entry and 'media$player' in entry['media$group']:
                     videos.append((index, entry['media$group']['media$player']['url']))
-
-            if len(response['feed']['entry']) < self._MAX_RESULTS:
-                break
             page_num += 1
 
         videos = [v[1] for v in sorted(videos)]
