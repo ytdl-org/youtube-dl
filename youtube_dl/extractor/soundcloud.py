@@ -19,7 +19,11 @@ class SoundcloudIE(InfoExtractor):
        of the stream token and uid
      """
 
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/([\w\d-]+)/?(?:[?].*)?$'
+    _VALID_URL = r'''^(?:https?://)?
+                    (?:(?:(?:www\.)?soundcloud\.com/([\w\d-]+)/([\w\d-]+)/?(?:[?].*)?$)
+                       |(?:api\.soundcloud\.com/tracks/(?P<track_id>\d+))
+                    )
+                    '''
     IE_NAME = u'soundcloud'
     _TEST = {
         u'url': u'http://soundcloud.com/ethmusic/lostin-powers-she-so-heavy',
@@ -34,6 +38,10 @@ class SoundcloudIE(InfoExtractor):
     }
 
     _CLIENT_ID = 'b45b1aa10f1ac2941910a7f0d10f8e28'
+
+    @classmethod
+    def suitable(cls, url):
+        return re.match(cls._VALID_URL, url, flags=re.VERBOSE) is not None
 
     def report_resolve(self, video_id):
         """Report information extraction."""
@@ -63,21 +71,26 @@ class SoundcloudIE(InfoExtractor):
         }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
+        mobj = re.match(self._VALID_URL, url, flags=re.VERBOSE)
         if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
 
-        # extract uploader (which is in the url)
-        uploader = mobj.group(1)
-        # extract simple title (uploader + slug of song title)
-        slug_title =  mobj.group(2)
-        full_title = '%s/%s' % (uploader, slug_title)
-
-        self.report_resolve(full_title)
-
-        url = 'http://soundcloud.com/%s/%s' % (uploader, slug_title)
-        resolv_url = self._resolv_url(url)
-        info_json = self._download_webpage(resolv_url, full_title, u'Downloading info JSON')
+        track_id = mobj.group('track_id')
+        if track_id is not None:
+            info_json_url = 'http://api.soundcloud.com/tracks/' + track_id + '.json?client_id=' + self._CLIENT_ID
+            full_title = track_id
+        else:
+            # extract uploader (which is in the url)
+            uploader = mobj.group(1)
+            # extract simple title (uploader + slug of song title)
+            slug_title =  mobj.group(2)
+            full_title = '%s/%s' % (uploader, slug_title)
+    
+            self.report_resolve(full_title)
+    
+            url = 'http://soundcloud.com/%s/%s' % (uploader, slug_title)
+            info_json_url = self._resolv_url(url)
+        info_json = self._download_webpage(info_json_url, full_title, u'Downloading info JSON')
 
         info = json.loads(info_json)
         return self._extract_info_dict(info, full_title)
