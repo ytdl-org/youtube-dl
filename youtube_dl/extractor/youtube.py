@@ -705,10 +705,9 @@ class YoutubePlaylistIE(InfoExtractor):
 
         # Download playlist videos from API
         playlist_id = mobj.group(1) or mobj.group(2)
-        page_num = 1
         videos = []
 
-        while True:
+        for page_num in itertools.count(1):
             start_index = self._MAX_RESULTS * (page_num - 1) + 1
             if start_index >= 1000:
                 self._downloader.report_warning(u'Max number of results reached')
@@ -732,7 +731,6 @@ class YoutubePlaylistIE(InfoExtractor):
                 index = entry['yt$position']['$t']
                 if 'media$group' in entry and 'media$player' in entry['media$group']:
                     videos.append((index, entry['media$group']['media$player']['url']))
-            page_num += 1
 
         videos = [v[1] for v in sorted(videos)]
 
@@ -776,9 +774,7 @@ class YoutubeChannelIE(InfoExtractor):
 
         # Download any subsequent channel pages using the json-based channel_ajax query
         if self._MORE_PAGES_INDICATOR in page:
-            while True:
-                pagenum = pagenum + 1
-
+            for pagenum in itertools.count(1):
                 url = self._MORE_PAGES_URL % (pagenum, channel_id)
                 page = self._download_webpage(url, channel_id,
                                               u'Downloading page #%s' % pagenum)
@@ -821,9 +817,8 @@ class YoutubeUserIE(InfoExtractor):
         # all of them.
 
         video_ids = []
-        pagenum = 0
 
-        while True:
+        for pagenum in itertools.count(0):
             start_index = pagenum * self._GDATA_PAGE_SIZE + 1
 
             gdata_url = self._GDATA_URL % (username, self._GDATA_PAGE_SIZE, start_index)
@@ -847,8 +842,6 @@ class YoutubeUserIE(InfoExtractor):
 
             if len(ids_in_page) < self._GDATA_PAGE_SIZE:
                 break
-
-            pagenum += 1
 
         urls = ['http://www.youtube.com/watch?v=%s' % video_id for video_id in video_ids]
         url_results = [self.url_result(rurl, 'Youtube') for rurl in urls]
