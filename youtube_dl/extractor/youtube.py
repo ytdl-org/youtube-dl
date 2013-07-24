@@ -23,8 +23,114 @@ from ..utils import (
     orderedSet,
 )
 
+class YoutubeBaseInfoExtractor(InfoExtractor):
+    """Provide base functions for Youtube extractors"""
+    _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
+    _LANG_URL = r'https://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
+    _AGE_URL = 'http://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
+    _NETRC_MACHINE = 'youtube'
+    # If True it will raise an error if no login info is provided
+    _LOGIN_REQUIRED = False
 
-class YoutubeIE(InfoExtractor):
+    def report_lang(self):
+        """Report attempt to set language."""
+        self.to_screen(u'Setting language')
+
+    def _set_language(self):
+        request = compat_urllib_request.Request(self._LANG_URL)
+        try:
+            self.report_lang()
+            compat_urllib_request.urlopen(request).read()
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.report_warning(u'unable to set language: %s' % compat_str(err))
+            return False
+        return True
+
+    def _login(self):
+        (username, password) = self._get_login_info()
+        # No authentication to be performed
+        if username is None:
+            if self._LOGIN_REQUIRED:
+                raise ExtractorError(u'No login info available, needed for using %s.' % self.IE_NAME, expected=True)
+            return False
+
+        request = compat_urllib_request.Request(self._LOGIN_URL)
+        try:
+            login_page = compat_urllib_request.urlopen(request).read().decode('utf-8')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.report_warning(u'unable to fetch login page: %s' % compat_str(err))
+            return False
+
+        galx = None
+        dsh = None
+        match = re.search(re.compile(r'<input.+?name="GALX".+?value="(.+?)"', re.DOTALL), login_page)
+        if match:
+          galx = match.group(1)
+        match = re.search(re.compile(r'<input.+?name="dsh".+?value="(.+?)"', re.DOTALL), login_page)
+        if match:
+          dsh = match.group(1)
+
+        # Log in
+        login_form_strs = {
+                u'continue': u'https://www.youtube.com/signin?action_handle_signin=true&feature=sign_in_button&hl=en_US&nomobiletemp=1',
+                u'Email': username,
+                u'GALX': galx,
+                u'Passwd': password,
+                u'PersistentCookie': u'yes',
+                u'_utf8': u'霱',
+                u'bgresponse': u'js_disabled',
+                u'checkConnection': u'',
+                u'checkedDomains': u'youtube',
+                u'dnConn': u'',
+                u'dsh': dsh,
+                u'pstMsg': u'0',
+                u'rmShown': u'1',
+                u'secTok': u'',
+                u'signIn': u'Sign in',
+                u'timeStmp': u'',
+                u'service': u'youtube',
+                u'uilel': u'3',
+                u'hl': u'en_US',
+        }
+        # Convert to UTF-8 *before* urlencode because Python 2.x's urlencode
+        # chokes on unicode
+        login_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k,v in login_form_strs.items())
+        login_data = compat_urllib_parse.urlencode(login_form).encode('ascii')
+        request = compat_urllib_request.Request(self._LOGIN_URL, login_data)
+        try:
+            self.report_login()
+            login_results = compat_urllib_request.urlopen(request).read().decode('utf-8')
+            if re.search(r'(?i)<form[^>]* id="gaia_loginform"', login_results) is not None:
+                self._downloader.report_warning(u'unable to log in: bad username or password')
+                return False
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.report_warning(u'unable to log in: %s' % compat_str(err))
+            return False
+        return True
+
+    def _confirm_age(self):
+        age_form = {
+                'next_url':     '/',
+                'action_confirm':   'Confirm',
+                }
+        request = compat_urllib_request.Request(self._AGE_URL, compat_urllib_parse.urlencode(age_form))
+        try:
+            self.report_age_confirmation()
+            compat_urllib_request.urlopen(request).read().decode('utf-8')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            raise ExtractorError(u'Unable to confirm age: %s' % compat_str(err))
+        return True
+
+    def _real_initialize(self):
+        if self._downloader is None:
+            return
+        if not self._set_language():
+            return
+        if not self._login():
+            return
+        self._confirm_age()
+
+class YoutubeIE(YoutubeBaseInfoExtractor):
     IE_DESC = u'YouTube.com'
     _VALID_URL = r"""^
                      (
@@ -45,11 +151,7 @@ class YoutubeIE(InfoExtractor):
                      ([0-9A-Za-z_-]+)                                         # here is it! the YouTube video ID
                      (?(1).+)?                                                # if we found the ID, everything can follow
                      $"""
-    _LANG_URL = r'https://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
-    _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
-    _AGE_URL = 'http://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
     _NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
-    _NETRC_MACHINE = 'youtube'
     # Listed in order of quality
     _available_formats = ['38', '37', '46', '22', '45', '35', '44', '34', '18', '43', '6', '5', '17', '13']
     _available_formats_prefer_free = ['38', '46', '37', '45', '22', '44', '35', '43', '34', '18', '6', '5', '17', '13']
@@ -138,10 +240,6 @@ class YoutubeIE(InfoExtractor):
         """Receives a URL and returns True if suitable for this IE."""
         if YoutubePlaylistIE.suitable(url) or YoutubeSubscriptionsIE.suitable(url): return False
         return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
-
-    def report_lang(self):
-        """Report attempt to set language."""
-        self.to_screen(u'Setting language')
 
     def report_video_webpage_download(self, video_id):
         """Report attempt to download video webpage."""
@@ -305,91 +403,6 @@ class YoutubeIE(InfoExtractor):
         print('Available formats:')
         for x in formats:
             print('%s\t:\t%s\t[%s]' %(x, self._video_extensions.get(x, 'flv'), self._video_dimensions.get(x, '???')))
-
-    def _real_initialize(self):
-        if self._downloader is None:
-            return
-
-        # Set language
-        request = compat_urllib_request.Request(self._LANG_URL)
-        try:
-            self.report_lang()
-            compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_warning(u'unable to set language: %s' % compat_str(err))
-            return
-
-        (username, password) = self._get_login_info()
-
-        # No authentication to be performed
-        if username is None:
-            return
-
-        request = compat_urllib_request.Request(self._LOGIN_URL)
-        try:
-            login_page = compat_urllib_request.urlopen(request).read().decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_warning(u'unable to fetch login page: %s' % compat_str(err))
-            return
-
-        galx = None
-        dsh = None
-        match = re.search(re.compile(r'<input.+?name="GALX".+?value="(.+?)"', re.DOTALL), login_page)
-        if match:
-          galx = match.group(1)
-
-        match = re.search(re.compile(r'<input.+?name="dsh".+?value="(.+?)"', re.DOTALL), login_page)
-        if match:
-          dsh = match.group(1)
-
-        # Log in
-        login_form_strs = {
-                u'continue': u'https://www.youtube.com/signin?action_handle_signin=true&feature=sign_in_button&hl=en_US&nomobiletemp=1',
-                u'Email': username,
-                u'GALX': galx,
-                u'Passwd': password,
-                u'PersistentCookie': u'yes',
-                u'_utf8': u'霱',
-                u'bgresponse': u'js_disabled',
-                u'checkConnection': u'',
-                u'checkedDomains': u'youtube',
-                u'dnConn': u'',
-                u'dsh': dsh,
-                u'pstMsg': u'0',
-                u'rmShown': u'1',
-                u'secTok': u'',
-                u'signIn': u'Sign in',
-                u'timeStmp': u'',
-                u'service': u'youtube',
-                u'uilel': u'3',
-                u'hl': u'en_US',
-        }
-        # Convert to UTF-8 *before* urlencode because Python 2.x's urlencode
-        # chokes on unicode
-        login_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k,v in login_form_strs.items())
-        login_data = compat_urllib_parse.urlencode(login_form).encode('ascii')
-        request = compat_urllib_request.Request(self._LOGIN_URL, login_data)
-        try:
-            self.report_login()
-            login_results = compat_urllib_request.urlopen(request).read().decode('utf-8')
-            if re.search(r'(?i)<form[^>]* id="gaia_loginform"', login_results) is not None:
-                self._downloader.report_warning(u'unable to log in: bad username or password')
-                return
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_warning(u'unable to log in: %s' % compat_str(err))
-            return
-
-        # Confirm age
-        age_form = {
-                'next_url':     '/',
-                'action_confirm':   'Confirm',
-                }
-        request = compat_urllib_request.Request(self._AGE_URL, compat_urllib_parse.urlencode(age_form))
-        try:
-            self.report_age_confirmation()
-            compat_urllib_request.urlopen(request).read().decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'Unable to confirm age: %s' % compat_str(err))
 
     def _extract_id(self, url):
         mobj = re.match(self._VALID_URL, url, re.VERBOSE)
@@ -899,19 +912,14 @@ class YoutubeShowIE(InfoExtractor):
         return [self.url_result('https://www.youtube.com' + season.group(1), 'YoutubePlaylist') for season in m_seasons]
 
 
-class YoutubeFeedsInfoExtractor(YoutubeIE):
+class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
     """
     Base class for extractors that fetch info from
     http://www.youtube.com/feed_ajax
     Subclasses must define the _FEED_NAME and _PLAYLIST_TITLE properties.
     """
+    _LOGIN_REQUIRED = True
     _PAGING_STEP = 30
-
-    # Overwrite YoutubeIE properties we don't want
-    _TESTS = []
-    @classmethod
-    def suitable(cls, url):
-        return re.match(cls._VALID_URL, url) is not None
 
     @property
     def _FEED_TEMPLATE(self):
@@ -922,10 +930,7 @@ class YoutubeFeedsInfoExtractor(YoutubeIE):
         return u'youtube:%s' % self._FEED_NAME
 
     def _real_initialize(self):
-        (username, password) = self._get_login_info()
-        if username is None:
-            raise ExtractorError(u'No login info available, needed for downloading the Youtube subscriptions.', expected=True)
-        super(YoutubeFeedsInfoExtractor, self)._real_initialize()
+        self._login()
 
     def _real_extract(self, url):
         feed_entries = []
