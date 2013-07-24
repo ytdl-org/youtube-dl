@@ -4,7 +4,7 @@ from .common import InfoExtractor
 
 
 class TrailerAddictIE(InfoExtractor):
-    _VALID_URL = r'(?:http://)?(?:www\.)?traileraddict\.com/trailer/([^/]+)/(?:[^/]*trailer[^/]*)'
+    _VALID_URL = r'(?:http://)?(?:www\.)?traileraddict\.com/(?:trailer|clip)/(?P<movie>.+?)/(?P<trailer_name>.+)'
     _TEST = {
         u'url': u'http://www.traileraddict.com/trailer/prince-avalanche/trailer',
         u'file': u'76184.mp4',
@@ -17,8 +17,8 @@ class TrailerAddictIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group(1)
-        webpage = self._download_webpage(url, video_id)
+        name = mobj.group('movie') + '/' + mobj.group('trailer_name')
+        webpage = self._download_webpage(url, name)
         
         title = self._search_regex(r'<title>(.+?)</title>',
                 webpage, 'video title').replace(' - Trailer Addict','')
