@@ -920,10 +920,15 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
     """
     _LOGIN_REQUIRED = True
     _PAGING_STEP = 30
+    # use action_load_personal_feed instead of action_load_system_feed
+    _PERSONAL_FEED = False
 
     @property
     def _FEED_TEMPLATE(self):
-        return 'http://www.youtube.com/feed_ajax?action_load_system_feed=1&feed_name=%s&paging=%%s' % self._FEED_NAME
+        action = 'action_load_system_feed'
+        if self._PERSONAL_FEED:
+            action = 'action_load_personal_feed'
+        return 'http://www.youtube.com/feed_ajax?%s=1&feed_name=%s&paging=%%s' % (action, self._FEED_NAME)
 
     @property
     def IE_NAME(self):
@@ -942,7 +947,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
                                           u'Downloading page %s' % i)
             info = json.loads(info)
             feed_html = info['feed_html']
-            m_ids = re.finditer(r'"/watch\?v=(.*?)"', feed_html)
+            m_ids = re.finditer(r'"/watch\?v=(.*?)["&]', feed_html)
             ids = orderedSet(m.group(1) for m in m_ids)
             feed_entries.extend(self.url_result(id, 'Youtube') for id in ids)
             if info['paging'] is None:
@@ -961,6 +966,13 @@ class YoutubeRecommendedIE(YoutubeFeedsInfoExtractor):
     _FEED_NAME = 'recommended'
     _PLAYLIST_TITLE = u'Youtube Recommended videos'
 
+class YoutubeWatchLaterIE(YoutubeFeedsInfoExtractor):
+    IE_DESC = u'Youtube watch later list, "ytwatchlater" keyword (requires authentication)'
+    _VALID_URL = r'https?://www\.youtube\.com/feed/watch_later|:ytwatchlater'
+    _FEED_NAME = 'watch_later'
+    _PLAYLIST_TITLE = u'Youtube Watch Later'
+    _PAGING_STEP = 100
+    _PERSONAL_FEED = True
 
 class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
     IE_NAME = u'youtube:favorites'
