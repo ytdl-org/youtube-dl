@@ -683,10 +683,10 @@ class YoutubePlaylistIE(InfoExtractor):
                            \? (?:.*?&)*? (?:p|a|list)=
                         |  p/
                         )
-                        ((?:PL|EC|UU)?[0-9A-Za-z-_]{10,})
+                        ((?:PL|EC|UU|FL)?[0-9A-Za-z-_]{10,})
                         .*
                      |
-                        ((?:PL|EC|UU)[0-9A-Za-z-_]{10,})
+                        ((?:PL|EC|UU|FL)[0-9A-Za-z-_]{10,})
                      )"""
     _TEMPLATE_URL = 'https://gdata.youtube.com/feeds/api/playlists/%s?max-results=%i&start-index=%i&v=2&alt=json&safeSearch=none'
     _MAX_RESULTS = 50
@@ -960,3 +960,15 @@ class YoutubeRecommendedIE(YoutubeFeedsInfoExtractor):
     _VALID_URL = r'https?://www\.youtube\.com/feed/recommended|:ytrec(?:ommended)?'
     _FEED_NAME = 'recommended'
     _PLAYLIST_TITLE = u'Youtube Recommended videos'
+
+
+class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
+    IE_NAME = u'youtube:favorites'
+    IE_DESC = u'YouTube.com favourite videos, "ytfav" keyword (requires authentication)'
+    _VALID_URL = r'https?://www\.youtube\.com/my_favorites|:ytfav(?:o?rites)?'
+    _LOGIN_REQUIRED = True
+
+    def _real_extract(self, url):
+        webpage = self._download_webpage('https://www.youtube.com/my_favorites', 'Youtube Favourites videos')
+        playlist_id = self._search_regex(r'list=(.+?)["&]', webpage, u'favourites playlist id')
+        return self.url_result(playlist_id, 'YoutubePlaylist')
