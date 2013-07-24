@@ -4,7 +4,7 @@ from .common import InfoExtractor
 
 
 class TrailerAddictIE(InfoExtractor):
-    _VALID_URL = r'(?:http://)?(?:www\.)?traileraddict\.com/trailer/([^/]+)/(?:trailer|feature-trailer)'
+    _VALID_URL = r'(?:http://)?(?:www\.)?traileraddict\.com/trailer/([^/]+)/(?:[^/]*trailer[^/]*)'
     _TEST = {
         u'url': u'http://www.traileraddict.com/trailer/prince-avalanche/trailer',
         u'file': u'76184.mp4',
