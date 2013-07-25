@@ -4,10 +4,10 @@ from .common import InfoExtractor
 
 
 class KeekIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?keek\.com/(?:!|\w+/keeks/)(?P<videoID>\w+)'
+    _VALID_URL = r'https?://(?:www\.)?keek\.com/(?:!|\w+/keeks/)(?P<videoID>\w+)'
     IE_NAME = u'keek'
     _TEST = {
-        u'url': u'http://www.keek.com/ytdl/keeks/NODfbab',
+        u'url': u'https?://www.keek.com/ytdl/keeks/NODfbab',
         u'file': u'NODfbab.mp4',
         u'md5': u'9b0636f8c0f7614afa4ea5e4c6e57e83',
         u'info_dict': {
