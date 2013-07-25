@@ -33,7 +33,7 @@ class TeamcocoIE(InfoExtractor):
         data_url = 'http://teamcoco.com/cvp/2.0/%s.xml' % video_id
         data = self._download_webpage(data_url, video_id, 'Downloading data webpage')
 
-        video_url = self._html_search_regex(r'<file type="high".*?>(.*?)</file>',
+        video_url = self._html_search_regex(r'<file [^>]*type="high".*?>(.*?)</file>',
             data, u'video URL')
 
         return [{
