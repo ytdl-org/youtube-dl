@@ -113,4 +113,8 @@ class YoukuIE(InfoExtractor):
             }
             files_info.append(info)
 
+        #add an indicator to tell the last video
+        if len(files_info) > 1:
+            files_info[-1]['last'] = True
+
         return files_info

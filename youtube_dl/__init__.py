@@ -320,6 +320,8 @@ def parseOpts(overrideArguments=None):
             help='keeps the video file on disk after the post-processing; the video is erased by default')
     postproc.add_option('--no-post-overwrites', action='store_true', dest='nopostoverwrites', default=False,
             help='do not overwrite post-processed files; the post-processed files are overwritten by default')
+    postproc.add_option('-m', '--merge-video', action='store_true', dest='mergevideo', default=False,
+            help='video files in some sites(such as www.youku.com) are split, use this option to merge files')
 
 
     parser.add_option_group(general)
@@ -343,7 +345,7 @@ def parseOpts(overrideArguments=None):
             userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
         systemConf = _readOptions('/etc/youtube-dl.conf')
         userConf = _readOptions(userConfFile)
-        commandLineConf = sys.argv[1:] 
+        commandLineConf = sys.argv[1:]
         argv = systemConf + userConf + commandLineConf
         opts, args = parser.parse_args(argv)
         if opts.verbose:
@@ -377,7 +379,7 @@ def _real_main(argv=None):
     # Set user agent
     if opts.user_agent is not None:
         std_headers['User-Agent'] = opts.user_agent
-    
+
     # Set referer
     if opts.referer is not None:
         std_headers['Referer'] = opts.referer
@@ -605,6 +607,8 @@ def _real_main(argv=None):
         ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
     if opts.recodevideo:
         ydl.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
+    if opts.mergevideo:
+        ydl.add_post_processor(FlvFileMerge())
 
     # Update version
     if opts.update_self:
