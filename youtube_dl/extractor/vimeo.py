@@ -17,6 +17,7 @@ class VimeoIE(InfoExtractor):
 
     # _VALID_URL matches Vimeo URLs
     _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|player)\.)?vimeo(?P<pro>pro)?\.com/(?:(?:(?:groups|album)/[^/]+)|(?:.*?)/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)(?:[?].*)?$'
+    _NETRC_MACHINE = 'vimeo'
     IE_NAME = u'vimeo'
     _TEST = {
         u'url': u'http://vimeo.com/56015672',
@@ -30,6 +31,25 @@ class VimeoIE(InfoExtractor):
             u"title": u"youtube-dl test video - \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550"
         }
     }
+
+    def _login(self):
+        (username, password) = self._get_login_info()
+        if username is None:
+            return
+        self.report_login()
+        login_url = 'https://vimeo.com/log_in'
+        webpage = self._download_webpage(login_url, None, False)
+        token = re.search(r'xsrft: \'(.*?)\'', webpage).group(1)
+        data = compat_urllib_parse.urlencode({'email': username,
+                                              'password': password,
+                                              'action': 'login',
+                                              'service': 'vimeo',
+                                              'token': token,
+                                              })
+        login_request = compat_urllib_request.Request(login_url, data)
+        login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        login_request.add_header('Cookie', 'xsrft=%s' % token)
+        self._download_webpage(login_request, None, False, u'Wrong login info')
 
     def _verify_video_password(self, url, video_id, webpage):
         password = self._downloader.params.get('videopassword', None)
@@ -49,6 +69,9 @@ class VimeoIE(InfoExtractor):
         self._download_webpage(password_request, video_id,
                                u'Verifying the password',
                                u'Wrong password')
+
+    def _real_initialize(self):
+        self._login()
 
     def _real_extract(self, url, new_video=True):
         # Extract ID from URL

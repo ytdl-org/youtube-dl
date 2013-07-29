@@ -32,7 +32,7 @@ class ARDIE(InfoExtractor):
         # determine title and media streams from webpage
         html = self._download_webpage(url, video_id)
         title = re.search(self._TITLE, html).group('title')
-        streams = [m.groupdict() for m in re.finditer(self._MEDIA_STREAM, html)]
+        streams = [mo.groupdict() for mo in re.finditer(self._MEDIA_STREAM, html)]
         if not streams:
             assert '"fsk"' in html
             raise ExtractorError(u'This video is only available after 8:00 pm')

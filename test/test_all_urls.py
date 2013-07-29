@@ -61,6 +61,17 @@ class TestAllURLsMatching(unittest.TestCase):
                 else:
                     self.assertFalse(ie.suitable(url), '%s should not match URL %r' % (type(ie).__name__, url))
 
+    def test_keywords(self):
+        ies = gen_extractors()
+        matching_ies = lambda url: [ie.IE_NAME for ie in ies
+                                    if ie.suitable(url) and ie.IE_NAME != 'generic']
+        self.assertEqual(matching_ies(':ytsubs'), ['youtube:subscriptions'])
+        self.assertEqual(matching_ies(':ytsubscriptions'), ['youtube:subscriptions'])
+        self.assertEqual(matching_ies(':thedailyshow'), ['ComedyCentral'])
+        self.assertEqual(matching_ies(':tds'), ['ComedyCentral'])
+        self.assertEqual(matching_ies(':colbertreport'), ['ComedyCentral'])
+        self.assertEqual(matching_ies(':cr'), ['ComedyCentral'])
+
 
 if __name__ == '__main__':
     unittest.main()

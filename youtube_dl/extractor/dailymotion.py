@@ -1,12 +1,11 @@
 import re
+import json
 
 from .common import InfoExtractor
 from ..utils import (
     compat_urllib_request,
-    compat_urllib_parse,
 
     ExtractorError,
-    unescapeHTML,
 )
 
 class DailymotionIE(InfoExtractor):
@@ -39,33 +38,7 @@ class DailymotionIE(InfoExtractor):
 
         # Extract URL, uploader and title from webpage
         self.report_extraction(video_id)
-        mobj = re.search(r'\s*var flashvars = (.*)', webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract media URL')
-        flashvars = compat_urllib_parse.unquote(mobj.group(1))
 
-        for key in ['hd1080URL', 'hd720URL', 'hqURL', 'sdURL', 'ldURL', 'video_url']:
-            if key in flashvars:
-                max_quality = key
-                self.to_screen(u'Using %s' % key)
-                break
-        else:
-            raise ExtractorError(u'Unable to extract video URL')
-
-        mobj = re.search(r'"' + max_quality + r'":"(.+?)"', flashvars)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract video URL')
-
-        video_url = compat_urllib_parse.unquote(mobj.group(1)).replace('\\/', '/')
-
-        # TODO: support choosing qualities
-
-        mobj = re.search(r'<meta property="og:title" content="(?P<title>[^"]*)" />', webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract title')
-        video_title = unescapeHTML(mobj.group('title'))
-
-        video_uploader = None
         video_uploader = self._search_regex([r'(?im)<span class="owner[^\"]+?">[^<]+?<a [^>]+?>([^<]+?)</a>',
                                              # Looking for official user
                                              r'<(?:span|a) .*?rel="author".*?>([^<]+?)</'],
@@ -76,11 +49,31 @@ class DailymotionIE(InfoExtractor):
         if mobj is not None:
             video_upload_date = mobj.group(3) + mobj.group(2) + mobj.group(1)
 
+        embed_url = 'http://www.dailymotion.com/embed/video/%s' % video_id
+        embed_page = self._download_webpage(embed_url, video_id,
+                                            u'Downloading embed page')
+        info = self._search_regex(r'var info = ({.*?}),', embed_page, 'video info')
+        info = json.loads(info)
+
+        # TODO: support choosing qualities
+
+        for key in ['stream_h264_hd1080_url','stream_h264_hd_url',
+                    'stream_h264_hq_url','stream_h264_url',
+                    'stream_h264_ld_url']:
+            if info.get(key):#key in info and info[key]:
+                max_quality = key
+                self.to_screen(u'Using %s' % key)
+                break
+        else:
+            raise ExtractorError(u'Unable to extract video URL')
+        video_url = info[max_quality]
+
         return [{
             'id':       video_id,
             'url':      video_url,
             'uploader': video_uploader,
             'upload_date':  video_upload_date,
-            'title':    video_title,
+            'title':    self._og_search_title(webpage),
             'ext':      video_extension,
+            'thumbnail': info['thumbnail_url']
         }]

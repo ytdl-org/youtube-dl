@@ -3,6 +3,7 @@ import os
 import re
 import socket
 import sys
+import netrc
 
 from ..utils import (
     compat_http_client,
@@ -13,6 +14,7 @@ from ..utils import (
     clean_html,
     compiled_regex_type,
     ExtractorError,
+    unescapeHTML,
 )
 
 class InfoExtractor(object):
@@ -36,6 +38,8 @@ class InfoExtractor(object):
     The following fields are optional:
 
     format:         The video format, defaults to ext (used for --get-format)
+    thumbnails:     A list of dictionaries (with the entries "resolution" and
+                    "url") for the varying thumbnails
     thumbnail:      Full URL to a video thumbnail image.
     description:    One-line video description.
     uploader:       Full name of the video uploader.
@@ -122,6 +126,11 @@ class InfoExtractor(object):
 
     def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None):
         """ Returns a tuple (page content as string, URL handle) """
+
+        # Strip hashes from the URL (#1038)
+        if isinstance(url_or_request, (compat_str, str)):
+            url_or_request = url_or_request.partition('#')[0]
+
         urlh = self._request_webpage(url_or_request, video_id, note, errnote)
         content_type = urlh.headers.get('Content-Type', '')
         m = re.match(r'[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+\s*;\s*charset=(.+)', content_type)
@@ -161,12 +170,11 @@ class InfoExtractor(object):
         """Report attempt to confirm age."""
         self.to_screen(u'Confirming age')
 
+    def report_login(self):
+        """Report attempt to log in."""
+        self.to_screen(u'Logging in')
+
     #Methods for following #608
-    #They set the correct value of the '_type' key
-    def video_result(self, video_info):
-        """Returns a video"""
-        video_info['_type'] = 'video'
-        return video_info
     def url_result(self, url, ie=None):
         """Returns a url that points to a page that should be processed"""
         #TODO: ie should be the class used for getting the info
@@ -224,6 +232,61 @@ class InfoExtractor(object):
             return clean_html(res).strip()
         else:
             return res
+
+    def _get_login_info(self):
+        """
+        Get the the login info as (username, password)
+        It will look in the netrc file using the _NETRC_MACHINE value
+        If there's no info available, return (None, None)
+        """
+        if self._downloader is None:
+            return (None, None)
+
+        username = None
+        password = None
+        downloader_params = self._downloader.params
+
+        # Attempt to use provided username and password or .netrc data
+        if downloader_params.get('username', None) is not None:
+            username = downloader_params['username']
+            password = downloader_params['password']
+        elif downloader_params.get('usenetrc', False):
+            try:
+                info = netrc.netrc().authenticators(self._NETRC_MACHINE)
+                if info is not None:
+                    username = info[0]
+                    password = info[2]
+                else:
+                    raise netrc.NetrcParseError('No authenticators for %s' % self._NETRC_MACHINE)
+            except (IOError, netrc.NetrcParseError) as err:
+                self._downloader.report_warning(u'parsing .netrc: %s' % compat_str(err))
+        
+        return (username, password)
+
+    # Helper functions for extracting OpenGraph info
+    @staticmethod
+    def _og_regex(prop):
+        return r'<meta.+?property=[\'"]og:%s[\'"].+?content=(?:"(.+?)"|\'(.+?)\')' % re.escape(prop)
+
+    def _og_search_property(self, prop, html, name=None, **kargs):
+        if name is None:
+            name = 'OpenGraph %s' % prop
+        escaped = self._search_regex(self._og_regex(prop), html, name, flags=re.DOTALL, **kargs)
+        return unescapeHTML(escaped)
+
+    def _og_search_thumbnail(self, html, **kargs):
+        return self._og_search_property('image', html, u'thumbnail url', fatal=False, **kargs)
+
+    def _og_search_description(self, html, **kargs):
+        return self._og_search_property('description', html, fatal=False, **kargs)
+
+    def _og_search_title(self, html, **kargs):
+        return self._og_search_property('title', html, **kargs)
+
+    def _og_search_video_url(self, html, name='video url', **kargs):
+        return self._html_search_regex([self._og_regex('video:secure_url'),
+                                        self._og_regex('video')],
+                                       html, name, **kargs)
 
 class SearchInfoExtractor(InfoExtractor):
     """

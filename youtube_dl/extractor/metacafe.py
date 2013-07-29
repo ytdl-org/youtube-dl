@@ -9,7 +9,7 @@ from ..utils import (
     compat_urllib_parse,
     compat_urllib_request,
     compat_str,
-
+    determine_ext,
     ExtractorError,
 )
 
@@ -20,7 +20,7 @@ class MetacafeIE(InfoExtractor):
     _DISCLAIMER = 'http://www.metacafe.com/family_filter/'
     _FILTER_POST = 'http://www.metacafe.com/f/index.php?inputType=filter&controllerGroup=user'
     IE_NAME = u'metacafe'
-    _TEST = {
+    _TESTS = [{
         u"add_ie": ["Youtube"],
         u"url":  u"http://metacafe.com/watch/yt-_aUehQsCQtM/the_electric_company_short_i_pbs_kids_go/",
         u"file":  u"_aUehQsCQtM.flv",
@@ -31,7 +31,16 @@ class MetacafeIE(InfoExtractor):
             u"uploader": u"PBS",
             u"uploader_id": u"PBS"
         }
-    }
+    },
+    {
+        u"url": u"http://www.metacafe.com/watch/an-dVVXnuY7Jh77J/the_andromeda_strain_1971_stop_the_bomb_part_3/",
+        u"file": u"an-dVVXnuY7Jh77J.mp4",
+        u"info_dict": {
+            u"title": u"The Andromeda Strain (1971): Stop the Bomb Part 3",
+            u"uploader": u"anyclip",
+            u"description": u"md5:38c711dd98f5bb87acf973d573442e67"
+        }
+    }]
 
 
     def report_disclaimer(self):
@@ -73,14 +82,16 @@ class MetacafeIE(InfoExtractor):
             return [self.url_result('http://www.youtube.com/watch?v=%s' % mobj2.group(1), 'Youtube')]
 
         # Retrieve video webpage to extract further information
-        webpage = self._download_webpage('http://www.metacafe.com/watch/%s/' % video_id, video_id)
+        req = compat_urllib_request.Request('http://www.metacafe.com/watch/%s/' % video_id)
+        req.headers['Cookie'] = 'flashVersion=0;'
+        webpage = self._download_webpage(req, video_id)
 
         # Extract URL, uploader and title from webpage
         self.report_extraction(video_id)
         mobj = re.search(r'(?m)&mediaURL=([^&]+)', webpage)
         if mobj is not None:
             mediaURL = compat_urllib_parse.unquote(mobj.group(1))
-            video_extension = mediaURL[-3:]
+            video_ext = mediaURL[-3:]
 
             # Extract gdaKey if available
             mobj = re.search(r'(?m)&gdaKey=(.*?)&', webpage)
@@ -90,34 +101,37 @@ class MetacafeIE(InfoExtractor):
                 gdaKey = mobj.group(1)
                 video_url = '%s?__gda__=%s' % (mediaURL, gdaKey)
         else:
-            mobj = re.search(r' name="flashvars" value="(.*?)"', webpage)
-            if mobj is None:
-                raise ExtractorError(u'Unable to extract media URL')
-            vardict = compat_parse_qs(mobj.group(1))
-            if 'mediaData' not in vardict:
-                raise ExtractorError(u'Unable to extract media URL')
-            mobj = re.search(r'"mediaURL":"(?P<mediaURL>http.*?)",(.*?)"key":"(?P<key>.*?)"', vardict['mediaData'][0])
-            if mobj is None:
-                raise ExtractorError(u'Unable to extract media URL')
-            mediaURL = mobj.group('mediaURL').replace('\\/', '/')
-            video_extension = mediaURL[-3:]
-            video_url = '%s?__gda__=%s' % (mediaURL, mobj.group('key'))
+            mobj = re.search(r'<video src="([^"]+)"', webpage)
+            if mobj:
+                video_url = mobj.group(1)
+                video_ext = 'mp4'
+            else:
+                mobj = re.search(r' name="flashvars" value="(.*?)"', webpage)
+                if mobj is None:
+                    raise ExtractorError(u'Unable to extract media URL')
+                vardict = compat_parse_qs(mobj.group(1))
+                if 'mediaData' not in vardict:
+                    raise ExtractorError(u'Unable to extract media URL')
+                mobj = re.search(r'"mediaURL":"(?P<mediaURL>http.*?)",(.*?)"key":"(?P<key>.*?)"', vardict['mediaData'][0])
+                if mobj is None:
+                    raise ExtractorError(u'Unable to extract media URL')
+                mediaURL = mobj.group('mediaURL').replace('\\/', '/')
+                video_url = '%s?__gda__=%s' % (mediaURL, mobj.group('key'))
+                video_ext = determine_ext(video_url)
 
-        mobj = re.search(r'(?im)<title>(.*) - Video</title>', webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract title')
-        video_title = mobj.group(1).decode('utf-8')
+        video_title = self._html_search_regex(r'(?im)<title>(.*) - Video</title>', webpage, u'title')
+        description = self._og_search_description(webpage)
+        video_uploader = self._html_search_regex(
+                r'submitter=(.*?);|googletag\.pubads\(\)\.setTargeting\("channel","([^"]+)"\);',
+                webpage, u'uploader nickname', fatal=False)
 
-        mobj = re.search(r'submitter=(.*?);', webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract uploader nickname')
-        video_uploader = mobj.group(1)
-
-        return [{
-            'id':       video_id.decode('utf-8'),
-            'url':      video_url.decode('utf-8'),
-            'uploader': video_uploader.decode('utf-8'),
+        return {
+            '_type':    'video',
+            'id':       video_id,
+            'url':      video_url,
+            'description': description,
+            'uploader': video_uploader,
             'upload_date':  None,
             'title':    video_title,
-            'ext':      video_extension.decode('utf-8'),
-        }]
+            'ext':      video_ext,
+        }

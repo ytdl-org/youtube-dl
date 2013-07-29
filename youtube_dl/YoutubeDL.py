@@ -348,6 +348,7 @@ class YoutubeDL(object):
 
         result_type = ie_result.get('_type', 'video') # If not given we suppose it's a video, support the default old system
         if result_type == 'video':
+            ie_result.update(extra_info)
             if 'playlist' not in ie_result:
                 # It isn't part of a playlist
                 ie_result['playlist'] = None
@@ -528,10 +529,8 @@ class YoutubeDL(object):
                 return
 
         if self.params.get('writethumbnail', False):
-            if 'thumbnail' in info_dict:
-                thumb_format = info_dict['thumbnail'].rpartition(u'/')[2].rpartition(u'.')[2]
-                if not thumb_format:
-                    thumb_format = 'jpg'
+            if info_dict.get('thumbnail') is not None:
+                thumb_format = determine_ext(info_dict['thumbnail'], u'jpg')
                 thumb_filename = filename.rpartition('.')[0] + u'.' + thumb_format
                 self.to_screen(u'[%s] %s: Downloading thumbnail ...' %
                                (info_dict['extractor'], info_dict['id']))

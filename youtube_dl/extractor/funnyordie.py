@@ -27,14 +27,11 @@ class FunnyOrDieIE(InfoExtractor):
         title = self._html_search_regex((r"<h1 class='player_page_h1'.*?>(?P<title>.*?)</h1>",
             r'<title>(?P<title>[^<]+?)</title>'), webpage, 'title', flags=re.DOTALL)
 
-        video_description = self._html_search_regex(r'<meta property="og:description" content="(?P<desc>.*?)"',
-            webpage, u'description', fatal=False, flags=re.DOTALL)
-
         info = {
             'id': video_id,
             'url': video_url,
             'ext': 'mp4',
             'title': title,
-            'description': video_description,
+            'description': self._og_search_description(webpage),
         }
         return [info]

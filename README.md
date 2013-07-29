@@ -16,7 +16,9 @@ which means you can modify it, redistribute it or use it however you like.
 # OPTIONS
     -h, --help                 print this help text and exit
     --version                  print program version and exit
-    -U, --update               update this program to latest version
+    -U, --update               update this program to latest version. Make sure
+                               that you have sufficient permissions (run with
+                               sudo if needed)
     -i, --ignore-errors        continue on download errors
     --dump-user-agent          display the current browser identification
     --user-agent UA            specify a custom user agent

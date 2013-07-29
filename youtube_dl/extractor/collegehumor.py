@@ -1,26 +1,26 @@
 import re
-import socket
 import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_http_client,
-    compat_str,
-    compat_urllib_error,
     compat_urllib_parse_urlparse,
-    compat_urllib_request,
 
     ExtractorError,
 )
 
 
 class CollegeHumorIE(InfoExtractor):
-    _WORKING = False
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?collegehumor\.com/video/(?P<videoid>[0-9]+)/(?P<shorttitle>.*)$'
+    _VALID_URL = r'^(?:https?://)?(?:www\.)?collegehumor\.com/(video|embed|e)/(?P<videoid>[0-9]+)/(?P<shorttitle>.*)$'
 
-    def report_manifest(self, video_id):
-        """Report information extraction."""
-        self.to_screen(u'%s: Downloading XML manifest' % video_id)
+    _TEST = {
+        u'url': u'http://www.collegehumor.com/video/6902724/comic-con-cosplay-catastrophe',
+        u'file': u'6902724.mp4',
+        u'md5': u'1264c12ad95dca142a9f0bf7968105a0',
+        u'info_dict': {
+            u'title': u'Comic-Con Cosplay Catastrophe',
+            u'description': u'Fans get creative this year at San Diego.  Too creative.  And yes, that\'s really Joss Whedon.',
+        },
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -36,14 +36,16 @@ class CollegeHumorIE(InfoExtractor):
 
         self.report_extraction(video_id)
         xmlUrl = 'http://www.collegehumor.com/moogaloop/video/' + video_id
-        try:
-            metaXml = compat_urllib_request.urlopen(xmlUrl).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'Unable to download video info XML: %s' % compat_str(err))
+        metaXml = self._download_webpage(xmlUrl, video_id,
+                                         u'Downloading info XML',
+                                         u'Unable to download video info XML')
 
         mdoc = xml.etree.ElementTree.fromstring(metaXml)
         try:
             videoNode = mdoc.findall('./video')[0]
+            youtubeIdNode = videoNode.find('./youtubeID')
+            if youtubeIdNode is not None:
+                return self.url_result(youtubeIdNode.text, 'Youtube')
             info['description'] = videoNode.findall('./description')[0].text
             info['title'] = videoNode.findall('./caption')[0].text
             info['thumbnail'] = videoNode.findall('./thumbnail')[0].text
@@ -52,11 +54,9 @@ class CollegeHumorIE(InfoExtractor):
             raise ExtractorError(u'Invalid metadata XML file')
 
         manifest_url += '?hdcore=2.10.3'
-        self.report_manifest(video_id)
-        try:
-            manifestXml = compat_urllib_request.urlopen(manifest_url).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'Unable to download video info XML: %s' % compat_str(err))
+        manifestXml = self._download_webpage(manifest_url, video_id,
+                                             u'Downloading XML manifest',
+                                             u'Unable to download video info XML')
 
         adoc = xml.etree.ElementTree.fromstring(manifestXml)
         try:
@@ -66,9 +66,8 @@ class CollegeHumorIE(InfoExtractor):
         except IndexError as err:
             raise ExtractorError(u'Invalid manifest file')
 
-        url_pr = compat_urllib_parse_urlparse(manifest_url)
-        url = url_pr.scheme + '://' + url_pr.netloc + '/z' + video_id[:-2] + '/' + node_id + 'Seg1-Frag1'
+        url_pr = compat_urllib_parse_urlparse(info['thumbnail'])
 
-        info['url'] = url
-        info['ext'] = 'f4f'
+        info['url'] = url_pr.scheme + '://' + url_pr.netloc + video_id[:-2].replace('.csmil','').replace(',','')
+        info['ext'] = 'mp4'
         return [info]

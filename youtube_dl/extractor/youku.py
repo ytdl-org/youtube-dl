@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class YoukuIE(InfoExtractor):
-    _VALID_URL =  r'(?:http://)?v\.youku\.com/v_show/id_(?P<ID>[A-Za-z0-9]+)\.html'
+    _VALID_URL =  r'(?:http://)?(v|player)\.youku\.com/(v_show/id_|player\.php/sid/)(?P<ID>[A-Za-z0-9]+)(\.html|/v.swf)'
     _TEST =   {
         u"url": u"http://v.youku.com/v_show/id_XNDgyMDQ2NTQw.html",
         u"file": u"XNDgyMDQ2NTQw_part00.flv",

@@ -40,8 +40,20 @@ class YouJizzIE(InfoExtractor):
         webpage = self._download_webpage(embed_page_url, video_id)
 
         # Get the video URL
-        video_url = self._search_regex(r'so.addVariable\("file",encodeURIComponent\("(?P<source>[^"]+)"\)\);',
-            webpage, u'video URL')
+        m_playlist = re.search(r'so.addVariable\("playlist", ?"(?P<playlist>.+?)"\);', webpage)
+        if m_playlist is not None:
+            playlist_url = m_playlist.group('playlist')
+            playlist_page = self._download_webpage(playlist_url, video_id,
+                                                   u'Downloading playlist page')
+            m_levels = list(re.finditer(r'<level bitrate="(\d+?)" file="(.*?)"', playlist_page))
+            if len(m_levels) == 0:
+                raise ExtractorError(u'Unable to extract video url')
+            videos = [(int(m.group(1)), m.group(2)) for m in m_levels]
+            (_, video_url) = sorted(videos)[0]
+            video_url = video_url.replace('%252F', '%2F')
+        else:
+            video_url = self._search_regex(r'so.addVariable\("file",encodeURIComponent\("(?P<source>[^"]+)"\)\);',
+                                           webpage, u'video URL')
 
         info = {'id': video_id,
                 'url': video_url,

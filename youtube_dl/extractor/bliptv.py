@@ -189,5 +189,5 @@ class BlipTVUserIE(InfoExtractor):
             pagenum += 1
 
         urls = [u'http://blip.tv/%s' % video_id for video_id in video_ids]
-        url_entries = [self.url_result(url, 'BlipTV') for url in urls]
+        url_entries = [self.url_result(vurl, 'BlipTV') for vurl in urls]
         return [self.playlist_result(url_entries, playlist_title = username)]

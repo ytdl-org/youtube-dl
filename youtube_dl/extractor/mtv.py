@@ -1,28 +1,110 @@
 import re
-import socket
 import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_http_client,
-    compat_str,
-    compat_urllib_error,
-    compat_urllib_request,
-
+    compat_urllib_parse,
     ExtractorError,
 )
 
+def _media_xml_tag(tag):
+    return '{http://search.yahoo.com/mrss/}%s' % tag
 
 class MTVIE(InfoExtractor):
-    _VALID_URL = r'^(?P<proto>https?://)?(?:www\.)?mtv\.com/videos/[^/]+/(?P<videoid>[0-9]+)/[^/]+$'
-    _WORKING = False
+    _VALID_URL = r'^https?://(?:www\.)?mtv\.com/videos/.+?/(?P<videoid>[0-9]+)/[^/]+$'
+
+    _FEED_URL = 'http://www.mtv.com/player/embed/AS3/rss/'
+
+    _TESTS = [
+        {
+            u'url': u'http://www.mtv.com/videos/misc/853555/ours-vh1-storytellers.jhtml',
+            u'file': u'853555.mp4',
+            u'md5': u'850f3f143316b1e71fa56a4edfd6e0f8',
+            u'info_dict': {
+                u'title': u'Taylor Swift - "Ours (VH1 Storytellers)"',
+                u'description': u'Album: Taylor Swift performs "Ours" for VH1 Storytellers at Harvey Mudd College.',
+            },
+        },
+        {
+            u'url': u'http://www.mtv.com/videos/taylor-swift/916187/everything-has-changed-ft-ed-sheeran.jhtml',
+            u'file': u'USCJY1331283.mp4',
+            u'md5': u'73b4e7fcadd88929292fe52c3ced8caf',
+            u'info_dict': {
+                u'title': u'Everything Has Changed',
+                u'upload_date': u'20130606',
+                u'uploader': u'Taylor Swift',
+            },
+            u'skip': u'VEVO is only available in some countries',
+        },
+    ]
+
+    @staticmethod
+    def _id_from_uri(uri):
+        return uri.split(':')[-1]
+
+    # This was originally implemented for ComedyCentral, but it also works here
+    @staticmethod
+    def _transform_rtmp_url(rtmp_video_url):
+        m = re.match(r'^rtmpe?://.*?/(?P<finalid>gsp\..+?/.*)$', rtmp_video_url)
+        if not m:
+            raise ExtractorError(u'Cannot transform RTMP url')
+        base = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=1+_pxI0=Ripod-h264+_pxL0=undefined+_pxM0=+_pxK=18639+_pxE=mp4/44620/mtvnorigin/'
+        return base + m.group('finalid')
+
+    def _get_thumbnail_url(self, uri, itemdoc):
+        return 'http://mtv.mtvnimages.com/uri/' + uri
+
+    def _extract_video_url(self, metadataXml):
+        if '/error_country_block.swf' in metadataXml:
+            raise ExtractorError(u'This video is not available from your country.', expected=True)
+        mdoc = xml.etree.ElementTree.fromstring(metadataXml.encode('utf-8'))
+        renditions = mdoc.findall('.//rendition')
+
+        # For now, always pick the highest quality.
+        rendition = renditions[-1]
+
+        try:
+            _,_,ext = rendition.attrib['type'].partition('/')
+            format = ext + '-' + rendition.attrib['width'] + 'x' + rendition.attrib['height'] + '_' + rendition.attrib['bitrate']
+            rtmp_video_url = rendition.find('./src').text
+        except KeyError:
+            raise ExtractorError('Invalid rendition field.')
+        video_url = self._transform_rtmp_url(rtmp_video_url)
+        return {'ext': ext, 'url': video_url, 'format': format}
+
+    def _get_video_info(self, itemdoc):
+        uri = itemdoc.find('guid').text
+        video_id = self._id_from_uri(uri)
+        self.report_extraction(video_id)
+        mediagen_url = itemdoc.find('%s/%s' % (_media_xml_tag('group'), _media_xml_tag('content'))).attrib['url']
+        if 'acceptMethods' not in mediagen_url:
+            mediagen_url += '&acceptMethods=fms'
+        mediagen_page = self._download_webpage(mediagen_url, video_id,
+                                               u'Downloading video urls')
+        video_info = self._extract_video_url(mediagen_page)
+
+        description_node = itemdoc.find('description')
+        if description_node is not None:
+            description = description_node.text
+        else:
+            description = None
+        video_info.update({'title': itemdoc.find('title').text,
+                           'id': video_id,
+                           'thumbnail': self._get_thumbnail_url(uri, itemdoc),
+                           'description': description,
+                           })
+        return video_info
+
+    def _get_videos_info(self, uri):
+        video_id = self._id_from_uri(uri)
+        data = compat_urllib_parse.urlencode({'uri': uri})
+        infoXml = self._download_webpage(self._FEED_URL +'?' + data, video_id,
+                                         u'Downloading info')
+        idoc = xml.etree.ElementTree.fromstring(infoXml.encode('utf-8'))
+        return [self._get_video_info(item) for item in idoc.findall('.//item')]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
-        if not mobj.group('proto'):
-            url = 'http://' + url
         video_id = mobj.group('videoid')
 
         webpage = self._download_webpage(url, video_id)
@@ -35,46 +117,5 @@ class MTVIE(InfoExtractor):
             self.to_screen(u'Vevo video detected: %s' % vevo_id)
             return self.url_result('vevo:%s' % vevo_id, ie='Vevo')
 
-        #song_name = self._html_search_regex(r'<meta name="mtv_vt" content="([^"]+)"/>',
-        #    webpage, u'song name', fatal=False)
-
-        video_title = self._html_search_regex(r'<meta name="mtv_an" content="([^"]+)"/>',
-            webpage, u'title')
-
-        mtvn_uri = self._html_search_regex(r'<meta name="mtvn_uri" content="([^"]+)"/>',
-            webpage, u'mtvn_uri', fatal=False)
-
-        content_id = self._search_regex(r'MTVN.Player.defaultPlaylistId = ([0-9]+);',
-            webpage, u'content id', fatal=False)
-
-        videogen_url = 'http://www.mtv.com/player/includes/mediaGen.jhtml?uri=' + mtvn_uri + '&id=' + content_id + '&vid=' + video_id + '&ref=www.mtvn.com&viewUri=' + mtvn_uri
-        self.report_extraction(video_id)
-        request = compat_urllib_request.Request(videogen_url)
-        try:
-            metadataXml = compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'Unable to download video metadata: %s' % compat_str(err))
-
-        mdoc = xml.etree.ElementTree.fromstring(metadataXml)
-        renditions = mdoc.findall('.//rendition')
-
-        # For now, always pick the highest quality.
-        rendition = renditions[-1]
-
-        try:
-            _,_,ext = rendition.attrib['type'].partition('/')
-            format = ext + '-' + rendition.attrib['width'] + 'x' + rendition.attrib['height'] + '_' + rendition.attrib['bitrate']
-            video_url = rendition.find('./src').text
-        except KeyError:
-            raise ExtractorError('Invalid rendition field.')
-
-        info = {
-            'id': video_id,
-            'url': video_url,
-            'upload_date': None,
-            'title': video_title,
-            'ext': ext,
-            'format': format,
-        }
-
-        return [info]
+        uri = self._html_search_regex(r'/uri/(.*?)\?', webpage, u'uri')
+        return self._get_videos_info(uri)

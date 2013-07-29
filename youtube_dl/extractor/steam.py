@@ -23,14 +23,16 @@ class SteamIE(InfoExtractor):
                 u"file": u"81300.flv",
                 u"md5": u"f870007cee7065d7c76b88f0a45ecc07",
                 u"info_dict": {
-                        u"title": u"Terraria 1.1 Trailer"
+                        u"title": u"Terraria 1.1 Trailer",
+                        u'playlist_index': 1,
                 }
             },
             {
                 u"file": u"80859.flv",
                 u"md5": u"61aaf31a5c5c3041afb58fb83cbb5751",
                 u"info_dict": {
-                    u"title": u"Terraria Trailer"
+                    u"title": u"Terraria Trailer",
+                    u'playlist_index': 2,
                 }
             }
         ]
