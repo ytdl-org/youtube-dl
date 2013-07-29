@@ -43,6 +43,7 @@ from .utils import (
     SameFileError,
     sanitize_filename,
     subtitles_filename,
+    build_part_filename,
     takewhile_inclusive,
     UnavailableVideoError,
     write_json_file,
@@ -790,7 +791,7 @@ class YoutubeDL(object):
                             for (i, part) in enumerate(parts):
                                 part_info = dict(info_dict)
                                 part_info.update(part)
-                                part_filename = u'%s.%s' % (filename, i)
+                                part_filename = build_part_filename(filename, i)
                                 parts_success.append(self.fd._do_download(part_filename, part_info))
                             success = all(parts_success)
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:

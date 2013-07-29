@@ -11,6 +11,7 @@ from .utils import (
     PostProcessingError,
     shell_quote,
     subtitles_filename,
+    build_part_filename,
 )
 
 
@@ -518,7 +519,7 @@ class FFmpegJoinVideosPP(FFmpegPostProcessor):
         parts = information.get('parts')
         if parts is None or len(parts) == 1:
             return (True, information)
-        parts_files = [u'%s.%s' % (filename, i) for (i, _) in enumerate(parts)]
+        parts_files = [build_part_filename(filename, i) for (i, _) in enumerate(parts)]
         files_file = u'%s.videos' % filename
         with io.open(encodeFilename(files_file), 'w', encoding='utf-8') as f:
                     for video in parts_files:
@@ -527,7 +528,7 @@ class FFmpegJoinVideosPP(FFmpegPostProcessor):
         try:
             self.run_ffmpeg(files_file, filename, ['-c', 'copy'], ['-f', 'concat'])
         except FFmpegPostProcessorError:
-            return False
+            return False, information
         os.remove(encodeFilename(files_file))
         # We have to manually remove the parts if requested
         if not self._downloader.params.get('keepvideo', False):
