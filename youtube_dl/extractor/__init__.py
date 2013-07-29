@@ -71,7 +71,7 @@ from .ustream import UstreamIE
 from .vbox7 import Vbox7IE
 from .veoh import VeohIE
 from .vevo import VevoIE
-from .vimeo import VimeoIE
+from .vimeo import VimeoIE, VimeoChannelIE
 from .vine import VineIE
 from .c56 import C56IE
 from .wat import WatIE
