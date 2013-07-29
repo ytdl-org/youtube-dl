@@ -12,7 +12,7 @@ from .comedycentral import ComedyCentralIE
 from .condenast import CondeNastIE
 from .criterion import CriterionIE
 from .cspan import CSpanIE
-from .dailymotion import DailymotionIE
+from .dailymotion import DailymotionIE, DailymotionPlaylistIE
 from .depositfiles import DepositFilesIE
 from .dotsub import DotsubIE
 from .dreisat import DreiSatIE
