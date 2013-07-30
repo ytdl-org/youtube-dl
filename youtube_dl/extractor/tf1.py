@@ -15,7 +15,8 @@ class TF1IE(InfoExtractor):
         u'info_dict': {
             u'title': u'Citroën Grand C4 Picasso 2013 : présentation officielle',
             u'description': u'Vidéo officielle du nouveau Citroën Grand C4 Picasso, lancé à l\'automne 2013.',
-        }
+        },
+        u'skip': u'Sometimes wat serves the whole file with the --test option',
     }
 
     def _real_extract(self, url):

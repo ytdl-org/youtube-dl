@@ -17,12 +17,12 @@ class WatIE(InfoExtractor):
     _TEST = {
         u'url': u'http://www.wat.tv/video/world-war-philadelphia-vost-6bv55_2fjr7_.html',
         u'file': u'10631273.mp4',
-        # Sometimes wat serves the whole file with the --test option
         u'md5': u'd8b2231e1e333acd12aad94b80937e19',
         u'info_dict': {
             u'title': u'World War Z - Philadelphia VOST',
             u'description': u'La menace est partout. Que se passe-t-il à Philadelphia ?\r\nWORLD WAR Z, avec Brad Pitt, au cinéma le 3 juillet.\r\nhttp://www.worldwarz.fr',
-        }
+        },
+        u'skip': u'Sometimes wat serves the whole file with the --test option',
     }
     
     def download_video_info(self, real_id):
