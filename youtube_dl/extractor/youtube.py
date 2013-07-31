@@ -286,7 +286,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         elif len(s) == 87:
             return s[4:23] + s[86] + s[24:85]
         elif len(s) == 86:
-            return s[2:63] + s[82] + s[64:82] + s[63]
+            return s[83:85] + s[26] + s[79:46:-1] + s[85] + s[45:36:-1] + s[30] + s[35:30:-1] + s[46] + s[29:26:-1] + s[82] + s[25:1:-1]
         elif len(s) == 85:
             return s[2:8] + s[0] + s[9:21] + s[65] + s[22:65] + s[84] + s[66:82] + s[21]
         elif len(s) == 84:
@@ -302,6 +302,16 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         else:
             raise ExtractorError(u'Unable to decrypt signature, key length %d not supported; retrying might work' % (len(s)))
+
+    def _decrypt_signature_age_gate(self, s):
+        # The videos with age protection use another player, so the algorithms
+        # can be different.
+        if len(s) == 86:
+            return s[2:63] + s[82] + s[64:82] + s[63]
+        else:
+            # Fallback to the other algortihms
+            self._decrypt_signature(s)
+
 
     def _get_available_subtitles(self, video_id):
         self.report_video_subtitles_download(video_id)
@@ -611,7 +621,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             parts_sizes = u'.'.join(compat_str(len(part)) for part in s.split('.'))
                             self.to_screen(u'encrypted signature length %d (%s), itag %s, %s' %
                                 (len(s), parts_sizes, url_data['itag'][0], player))
-                        signature = self._decrypt_signature(url_data['s'][0])
+                        encrypted_sig = url_data['s'][0]
+                        if age_gate:
+                            signature = self._decrypt_signature_age_gate(encrypted_sig)
+                        else:
+                            signature = self._decrypt_signature(encrypted_sig)
                         url += '&signature=' + signature
                     if 'ratebypass' not in url:
                         url += '&ratebypass=yes'

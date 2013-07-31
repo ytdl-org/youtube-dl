@@ -10,7 +10,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from youtube_dl.extractor.youtube import YoutubeIE
 from helper import FakeYDL
 
-sig = YoutubeIE(FakeYDL())._decrypt_signature
+ie = YoutubeIE(FakeYDL())
+sig = ie._decrypt_signature
+sig_age_gate = ie._decrypt_signature_age_gate
 
 class TestYoutubeSig(unittest.TestCase):
     def test_92(self):
@@ -35,7 +37,7 @@ class TestYoutubeSig(unittest.TestCase):
 
     def test_86(self):
         wrong = "qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[|};?/>.<"
-        right = "ertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!/#$%^&*()_-+={[|};?@"
+        right = ">.1}|[{=+-_)(*&^%$#@!MNBVCXZASDFGHJK<POIUYTREW509876L432/mnbvcxzasdfghjklpoiuytre"
         self.assertEqual(sig(wrong), right)
 
     def test_85(self):
@@ -67,6 +69,11 @@ class TestYoutubeSig(unittest.TestCase):
         wrong = "qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKHGFDSAZXCVBNM!@#$%^&*(-+={[};?/"
         right = "Z?;}[{=+-(*&^%$#@!MNBVCXRASDFGHKLPOIUYT/EWQ0q87659321mnbvcxzasdfghjkl4oiuytrewp"
         self.assertEqual(sig(wrong), right)
+    
+    def test_86_age_gate(self):
+        wrong = "qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[|};?/>.<"
+        right = "ertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!/#$%^&*()_-+={[|};?@"
+        self.assertEqual(sig_age_gate(wrong), right)
 
 if __name__ == '__main__':
     unittest.main()
