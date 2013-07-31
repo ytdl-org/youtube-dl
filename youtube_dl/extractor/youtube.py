@@ -310,7 +310,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             return s[2:63] + s[82] + s[64:82] + s[63]
         else:
             # Fallback to the other algortihms
-            self._decrypt_signature(s)
+            return self._decrypt_signature(s)
 
 
     def _get_available_subtitles(self, video_id):
