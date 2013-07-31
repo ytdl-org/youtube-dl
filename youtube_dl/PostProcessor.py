@@ -208,7 +208,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             try:
                 os.utime(encodeFilename(new_path), (time.time(), information['filetime']))
             except:
-                self._downloader.to_stderr(u'WARNING: Cannot update utime of audio file')
+                self._downloader.report_warning(u'Cannot update utime of audio file')
 
         information['filepath'] = new_path
         return self._nopostoverwrites,information
