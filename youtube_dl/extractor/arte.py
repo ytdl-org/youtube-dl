@@ -98,7 +98,7 @@ class ArteTvIE(InfoExtractor):
                 l = 'F'
             elif lang == 'de':
                 l = 'A'
-            regexes = [r'VO?%s' % l, r'V%s-ST.' % l]
+            regexes = [r'VO?%s' % l, r'VO?.-ST%s' % l]
             return any(re.match(r, f['versionCode']) for r in regexes)
         # Some formats may not be in the same language as the url
         formats = filter(_match_lang, formats)
