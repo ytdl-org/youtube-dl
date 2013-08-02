@@ -221,6 +221,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '132': '240p',
         '151': '72p',
     }
+    _3d_itags = ['85', '84', '102', '83', '101', '82', '100']
     IE_NAME = u'youtube'
     _TESTS = [
         {
@@ -467,7 +468,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     def _print_formats(self, formats):
         print('Available formats:')
         for x in formats:
-            print('%s\t:\t%s\t[%s]' %(x, self._video_extensions.get(x, 'flv'), self._video_dimensions.get(x, '???')))
+            print('%s\t:\t%s\t[%s]%s' %(x, self._video_extensions.get(x, 'flv'),
+                                        self._video_dimensions.get(x, '???'),
+                                        ' (3D)' if x in self._3d_itags else ''))
 
     def _extract_id(self, url):
         mobj = re.match(self._VALID_URL, url, re.VERBOSE)
@@ -751,8 +754,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             # Extension
             video_extension = self._video_extensions.get(format_param, 'flv')
 
-            video_format = '{0} - {1}'.format(format_param if format_param else video_extension,
-                                              self._video_dimensions.get(format_param, '???'))
+            video_format = '{0} - {1}{2}'.format(format_param if format_param else video_extension,
+                                              self._video_dimensions.get(format_param, '???'),
+                                              ' (3D)' if format_param in self._3d_itags else '')
 
             results.append({
                 'id':       video_id,
