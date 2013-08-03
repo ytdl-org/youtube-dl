@@ -17,13 +17,14 @@ class ArteTvIE(InfoExtractor):
     """
     _EMISSION_URL = r'(?:http://)?www\.arte.tv/guide/(?P<lang>fr|de)/(?:(?:sendungen|emissions)/)?(?P<id>.*?)/(?P<name>.*?)(\?.*)?'
     _VIDEOS_URL = r'(?:http://)?videos.arte.tv/(?P<lang>fr|de)/.*-(?P<id>.*?).html'
+    _LIVEWEB_URL = r'(?:http://)?liveweb.arte.tv/(?P<lang>fr|de)/(?P<subpage>.+?)/(?P<name>.+)'
     _LIVE_URL = r'index-[0-9]+\.html$'
 
     IE_NAME = u'arte.tv'
 
     @classmethod
     def suitable(cls, url):
-        return any(re.match(regex, url) for regex in (cls._EMISSION_URL, cls._VIDEOS_URL))
+        return any(re.match(regex, url) for regex in (cls._EMISSION_URL, cls._VIDEOS_URL, cls._LIVEWEB_URL))
 
     # TODO implement Live Stream
     # from ..utils import compat_urllib_parse
@@ -67,6 +68,12 @@ class ArteTvIE(InfoExtractor):
             id = mobj.group('id')
             lang = mobj.group('lang')
             return self._extract_video(url, id, lang)
+
+        mobj = re.match(self._LIVEWEB_URL, url)
+        if mobj is not None:
+            name = mobj.group('name')
+            lang = mobj.group('lang')
+            return self._extract_liveweb(url, name, lang)
 
         if re.search(self._LIVE_URL, video_id) is not None:
             raise ExtractorError(u'Arte live streams are not yet supported, sorry')
@@ -145,4 +152,23 @@ class ArteTvIE(InfoExtractor):
                 'thumbnail': thumbnail,
                 'url': video_url,
                 'ext': 'flv',
+                }
+
+    def _extract_liveweb(self, url, name, lang):
+        """Extract form http://liveweb.arte.tv/"""
+        webpage = self._download_webpage(url, name)
+        video_id = self._search_regex(r'eventId=(\d+?)("|&)', webpage, u'event id')
+        config_xml = self._download_webpage('http://download.liveweb.arte.tv/o21/liveweb/events/event-%s.xml' % video_id,
+                                            video_id, u'Downloading information')
+        config_doc = xml.etree.ElementTree.fromstring(config_xml.encode('utf-8'))
+        event_doc = config_doc.find('event')
+        url_node = event_doc.find('video').find('urlHd')
+        if url_node is None:
+            url_node = video_doc.find('urlSd')
+
+        return {'id': video_id,
+                'title': event_doc.find('name%s' % lang.capitalize()).text,
+                'url': url_node.text.replace('MP4', 'mp4'),
+                'ext': 'flv',
+                'thumbnail': self._og_search_thumbnail(webpage),
                 }
