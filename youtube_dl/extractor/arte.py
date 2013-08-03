@@ -85,7 +85,7 @@ class ArteTvIE(InfoExtractor):
 
         info_dict = {'id': player_info['VID'],
                      'title': player_info['VTI'],
-                     'description': player_info['VDE'],
+                     'description': player_info.get('VDE'),
                      'upload_date': unified_strdate(player_info['VDA'].split(' ')[0]),
                      'thumbnail': player_info['programImage'],
                      'ext': 'flv',
@@ -104,6 +104,8 @@ class ArteTvIE(InfoExtractor):
         formats = filter(_match_lang, formats)
         # We order the formats by quality
         formats = sorted(formats, key=lambda f: int(f['height']))
+        # Prefer videos without subtitles in the same language
+        formats = sorted(formats, key=lambda f: re.match(r'VO(F|A)-STM\1', f['versionCode']) is None)
         # Pick the best quality
         format_info = formats[-1]
         if format_info['mediaType'] == u'rtmp':
