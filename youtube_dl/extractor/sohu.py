@@ -7,7 +7,7 @@ import logging
 import urllib2
 
 from .common import InfoExtractor
-from ..utils import compat_urllib_request
+from ..utils import compat_urllib_request, clean_html
 
 
 class SohuIE(InfoExtractor):
@@ -22,16 +22,6 @@ class SohuIE(InfoExtractor):
         },
     }
 
-    def _clearn_html(self, string):
-        tags = re.findall(r'<.+?>', string)
-        for t in tags:
-            string = string.replace(t, ' ')
-        for i in range(2):
-            spaces = re.findall(r'\s+', string)
-            for s in spaces:
-                string = string.replace(s, ' ')
-        string = string.strip()
-        return string
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -40,7 +30,7 @@ class SohuIE(InfoExtractor):
         pattern = r'<h1 id="video-title">\n*?(.+?)\n*?</h1>'
         compiled = re.compile(pattern, re.DOTALL)
         title = self._search_regex(compiled, webpage, u'video title').strip('\t\n')
-        title = self._clearn_html(title)
+        title = clean_html(title)
         pattern = re.compile(r'var vid="(\d+)"')
         result = re.search(pattern, webpage)
         if not result:
@@ -93,5 +83,8 @@ class SohuIE(InfoExtractor):
             }
             files_info.append(info)
             time.sleep(1)
-
+        if num_of_parts == 1:
+            info =  files_info[0]
+            info['id'] = video_id
+            return info
         return files_info
