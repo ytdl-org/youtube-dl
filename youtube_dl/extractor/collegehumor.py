@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class CollegeHumorIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?collegehumor\.com/(video|embed|e)/(?P<videoid>[0-9]+)/(?P<shorttitle>.*)$'
+    _VALID_URL = r'^(?:https?://)?(?:www\.)?collegehumor\.com/(video|embed|e)/(?P<videoid>[0-9]+)/?(?P<shorttitle>.*)$'
 
     _TEST = {
         u'url': u'http://www.collegehumor.com/video/6902724/comic-con-cosplay-catastrophe',
