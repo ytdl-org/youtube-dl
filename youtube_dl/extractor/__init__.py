@@ -45,6 +45,7 @@ from .livestream import LivestreamIE
 from .metacafe import MetacafeIE
 from .mixcloud import MixcloudIE
 from .mtv import MTVIE
+from .muzu import MuzuTVIE
 from .myspass import MySpassIE
 from .myvideo import MyVideoIE
 from .nba import NBAIE
