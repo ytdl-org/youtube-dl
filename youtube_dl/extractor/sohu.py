@@ -27,10 +27,10 @@ class SohuIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
-        pattern = r'<h1 id="video-title">\n*?(.+?)\n*?</h1>'
+        pattern = r'<title>(.+?)</title>'
         compiled = re.compile(pattern, re.DOTALL)
-        title = self._search_regex(compiled, webpage, u'video title').strip('\t\n')
-        title = clean_html(title)
+        title = self._search_regex(compiled, webpage, u'video title')
+        title = clean_html(title).split('-')[0].strip()
         pattern = re.compile(r'var vid="(\d+)"')
         result = re.search(pattern, webpage)
         if not result:
@@ -41,7 +41,8 @@ class SohuIE(InfoExtractor):
         base_url_1 = 'http://hot.vrs.sohu.com/vrs_flash.action?vid='
         url_1 = base_url_1 + vid
         logging.info('json url: %s' % url_1)
-        json_1 = json.loads(urllib2.urlopen(url_1).read())
+        webpage = self._download_webpage(url_1, vid)
+        json_1 = json.loads(webpage)
         # get the highest definition video vid and json infomation.
         vids = []
         qualities = ('oriVid', 'superVid', 'highVid', 'norVid')
