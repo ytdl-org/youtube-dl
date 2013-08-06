@@ -31,6 +31,7 @@ class SohuIE(InfoExtractor):
         compiled = re.compile(pattern, re.DOTALL)
         title = self._search_regex(compiled, webpage, u'video title')
         title = clean_html(title).split('-')[0].strip()
+        self.to_screen('Title: %s' % title)
         pattern = re.compile(r'var vid="(\d+)"')
         result = re.search(pattern, webpage)
         if not result:
@@ -70,6 +71,7 @@ class SohuIE(InfoExtractor):
         base_url_3 = 'http://allot/?prot=prot&file=clipsURL[i]&new=su[i]'
         files_info = []
         for i in range(num_of_parts):
+            self.to_screen('Geting json infomation of part %s/%s' % (i + 1, num_of_parts))
             middle_url = 'http://%s/?prot=%s&file=%s&new=%s' % (allot, prot, clipsURL[i], su[i])
             logging.info('middle url part %d: %s' % (i, middle_url))
             middle_info = urllib2.urlopen(middle_url).read().split('|')
