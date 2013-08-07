@@ -492,7 +492,8 @@ class YoutubeDL(object):
             # that way it will silently go on when used with unsupporting IE
             subtitles = info_dict['subtitles']
             sub_format = self.params.get('subtitlesformat')
-            for sub_lang in subtitles.keys():
+            
+            for sub_lang in subtitles:
                 sub = subtitles[sub_lang]
                 if sub is None:
                     continue
