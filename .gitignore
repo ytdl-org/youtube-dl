@@ -9,6 +9,7 @@ build/
 dist/
 MANIFEST
 README.txt
+README.md
 youtube-dl.1
 youtube-dl.bash-completion
 youtube-dl
@@ -18,3 +19,9 @@ youtube-dl.tar.gz
 cover/
 updates_key.pem
 *.egg-info
+*.srt
+*.sbv
+*.vtt
+*.flv
+*.mp4
+*.part
