@@ -493,7 +493,7 @@ class YoutubeDL(object):
             subtitles = info_dict['subtitles']
             sub_format = self.params.get('subtitlesformat')
             
-            for sub_lang in subtitles:
+            for sub_lang in subtitles.keys():
                 sub = subtitles[sub_lang]
                 if sub is None:
                     continue
