@@ -1,14 +1,49 @@
 import re
 import json
+import itertools
+import socket
 
 from .common import InfoExtractor
+from .subtitles import SubtitlesIE
+
 from ..utils import (
+    compat_http_client,
+    compat_urllib_error,
     compat_urllib_request,
+    compat_str,
+    get_element_by_attribute,
+    get_element_by_id,
 
     ExtractorError,
 )
 
-class DailymotionIE(InfoExtractor):
+
+class DailyMotionSubtitlesIE(SubtitlesIE):
+
+    def _get_available_subtitles(self, video_id):
+        request = compat_urllib_request.Request('https://api.dailymotion.com/video/%s/subtitles?fields=id,language,url' % video_id)
+        try:
+            sub_list = compat_urllib_request.urlopen(request).read().decode('utf-8')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.report_warning(u'unable to download video subtitles: %s' % compat_str(err))
+            return {}
+        info = json.loads(sub_list)
+        if (info['total'] > 0):
+            sub_lang_list = dict((l['language'], l['url']) for l in info['list'])
+            return sub_lang_list
+        self._downloader.report_warning(u'video doesn\'t have subtitles')
+        return {}
+
+    def _get_subtitle_url(self, sub_lang, sub_name, video_id, format):
+        sub_lang_list = self._get_available_subtitles(video_id)
+        return sub_lang_list[sub_lang]
+
+    def _request_automatic_caption(self, video_id, webpage):
+        self._downloader.report_warning(u'Automatic Captions not supported by dailymotion')
+        return {}
+
+
+class DailymotionIE(DailyMotionSubtitlesIE): #,InfoExtractor):
     """Information Extractor for Dailymotion"""
 
     _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^/]+)'
@@ -18,7 +53,7 @@ class DailymotionIE(InfoExtractor):
         u'file': u'x33vw9.mp4',
         u'md5': u'392c4b85a60a90dc4792da41ce3144eb',
         u'info_dict': {
-            u"uploader": u"Alex and Van .", 
+            u"uploader": u"Alex and Van .",
             u"title": u"Tutoriel de Youtubeur\"DL DES VIDEO DE YOUTUBE\""
         }
     }
@@ -57,16 +92,35 @@ class DailymotionIE(InfoExtractor):
 
         # TODO: support choosing qualities
 
-        for key in ['stream_h264_hd1080_url','stream_h264_hd_url',
-                    'stream_h264_hq_url','stream_h264_url',
+        for key in ['stream_h264_hd1080_url', 'stream_h264_hd_url',
+                    'stream_h264_hq_url', 'stream_h264_url',
                     'stream_h264_ld_url']:
-            if info.get(key):#key in info and info[key]:
+            if info.get(key):  # key in info and info[key]:
                 max_quality = key
-                self.to_screen(u'Using %s' % key)
+                self.to_screen(u'%s: Using %s' % (video_id, key))
                 break
         else:
             raise ExtractorError(u'Unable to extract video URL')
         video_url = info[max_quality]
+
+        # subtitles
+        video_subtitles = None
+        video_webpage = None
+
+        if self._downloader.params.get('writesubtitles', False) or self._downloader.params.get('allsubtitles', False):
+            video_subtitles = self._extract_subtitles(video_id)
+        elif self._downloader.params.get('writeautomaticsub', False):
+            video_subtitles = self._request_automatic_caption(video_id, video_webpage)
+
+        if self._downloader.params.get('listsubtitles', False):
+            self._list_available_subtitles(video_id)
+            return
+
+        if 'length_seconds' not in info:
+            self._downloader.report_warning(u'unable to extract video duration')
+            video_duration = ''
+        else:
+            video_duration = compat_urllib_parse.unquote_plus(video_info['length_seconds'][0])
 
         return [{
             'id':       video_id,
@@ -75,5 +129,6 @@ class DailymotionIE(InfoExtractor):
             'upload_date':  video_upload_date,
             'title':    self._og_search_title(webpage),
             'ext':      video_extension,
+            'subtitles':    video_subtitles,
             'thumbnail': info['thumbnail_url']
         }]

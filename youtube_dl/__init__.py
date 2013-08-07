@@ -187,22 +187,22 @@ def parseOpts(overrideArguments=None):
             action='store_true', dest='listformats', help='list all available formats (currently youtube only)')
     video_format.add_option('--write-sub', '--write-srt',
             action='store_true', dest='writesubtitles',
-            help='write subtitle file (currently youtube only)', default=False)
+            help='write subtitle file', default=False)
     video_format.add_option('--write-auto-sub', '--write-automatic-sub',
             action='store_true', dest='writeautomaticsub',
-            help='write automatic subtitle file (currently youtube only)', default=False)
+            help='write automatic subtitle file (youtube only)', default=False)
     video_format.add_option('--only-sub',
             action='store_true', dest='skip_download',
             help='[deprecated] alias of --skip-download', default=False)
     video_format.add_option('--all-subs',
             action='store_true', dest='allsubtitles',
-            help='downloads all the available subtitles of the video (currently youtube only)', default=False)
+            help='downloads all the available subtitles of the video', default=False)
     video_format.add_option('--list-subs',
             action='store_true', dest='listsubtitles',
-            help='lists all available subtitles for the video (currently youtube only)', default=False)
+            help='lists all available subtitles for the video', default=False)
     video_format.add_option('--sub-format',
             action='store', dest='subtitlesformat', metavar='FORMAT',
-            help='subtitle format [srt/sbv/vtt] (default=srt) (currently youtube only)', default='srt')
+            help='subtitle format (default=srt) ([sbv/vtt] youtube only)', default='srt')
     video_format.add_option('--sub-lang', '--srt-lang',
             action='store', dest='subtitleslang', metavar='LANG',
             help='language of the subtitles to download (optional) use IETF language tags like \'en\'')
