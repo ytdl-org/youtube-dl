@@ -36,7 +36,7 @@ class XHamsterIE(InfoExtractor):
             video_url = compat_urllib_parse.unquote(mobj.group('file'))
         else:
             video_url = mobj.group('server')+'/key='+mobj.group('file')
-        video_extension = video_url.split('.')[-1]
+        video_extension = video_url.split('.')[-1].split('?')[0]
 
         video_title = self._html_search_regex(r'<title>(?P<title>.+?) - xHamster\.com</title>',
             webpage, u'title')
