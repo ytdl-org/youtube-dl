@@ -221,18 +221,15 @@ class YoutubeDL(object):
 
     def report_writesubtitles(self, sub_filename):
         """ Report that the subtitles file is being written """
-        self.to_screen(u'[info] Writing video subtitles to: ' + sub_filename)
+        self.to_screen(u'[info] Writing subtitle: ' + sub_filename)
+
+    def report_existingsubtitles(self, sub_filename):
+        """ Report that the subtitles file has been already written """
+        self.to_screen(u'[info] Skipping existing subtitle: ' + sub_filename)
 
     def report_writeinfojson(self, infofn):
         """ Report that the metadata file has been written """
         self.to_screen(u'[info] Video description metadata as JSON to: ' + infofn)
-
-    def report_file_already_downloaded(self, file_name):
-        """Report file has already been fully downloaded."""
-        try:
-            self.to_screen(u'[download] %s has already been downloaded' % file_name)
-        except (UnicodeEncodeError) as err:
-            self.to_screen(u'[download] The file has already been downloaded')
 
     def increment_downloads(self):
         """Increment the ordinal that assigns a number to each file."""
@@ -492,13 +489,16 @@ class YoutubeDL(object):
             # that way it will silently go on when used with unsupporting IE
             subtitles = info_dict['subtitles']
             sub_format = self.params.get('subtitlesformat')
-            
+
             for sub_lang in subtitles.keys():
                 sub = subtitles[sub_lang]
                 if sub is None:
                     continue
                 try:
                     sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
+                    if os.path.isfile(encodeFilename(sub_filename)):
+                        self.report_existingsubtitles(sub_filename)
+                        continue
                     self.report_writesubtitles(sub_filename)
                     with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
                             subfile.write(sub)
