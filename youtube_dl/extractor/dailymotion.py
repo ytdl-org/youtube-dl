@@ -1,6 +1,5 @@
 import re
 import json
-import itertools
 import socket
 
 from .common import InfoExtractor
@@ -34,16 +33,12 @@ class DailyMotionSubtitlesIE(SubtitlesIE):
         self._downloader.report_warning(u'video doesn\'t have subtitles')
         return {}
 
-    def _get_subtitle_url(self, sub_lang, sub_name, video_id, format):
-        sub_lang_list = self._get_available_subtitles(video_id)
-        return sub_lang_list[sub_lang]
-
     def _request_automatic_caption(self, video_id, webpage):
-        self._downloader.report_warning(u'Automatic Captions not supported by dailymotion')
+        self._downloader.report_warning(u'Automatic Captions not supported by this server')
         return {}
 
 
-class DailymotionIE(DailyMotionSubtitlesIE): #,InfoExtractor):
+class DailymotionIE(DailyMotionSubtitlesIE):
     """Information Extractor for Dailymotion"""
 
     _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^/]+)'
@@ -115,12 +110,6 @@ class DailymotionIE(DailyMotionSubtitlesIE): #,InfoExtractor):
         if self._downloader.params.get('listsubtitles', False):
             self._list_available_subtitles(video_id)
             return
-
-        if 'length_seconds' not in info:
-            self._downloader.report_warning(u'unable to extract video duration')
-            video_duration = ''
-        else:
-            video_duration = compat_urllib_parse.unquote_plus(video_info['length_seconds'][0])
 
         return [{
             'id':       video_id,

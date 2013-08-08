@@ -15,7 +15,8 @@ class SubtitlesIE(InfoExtractor):
     def report_video_subtitles_available(self, video_id, sub_lang_list):
         """Report available subtitles."""
         sub_lang = ",".join(list(sub_lang_list.keys()))
-        self.to_screen(u'%s: Available subtitles for video: %s' % (video_id, sub_lang))
+        self.to_screen(u'%s: Available subtitles for video: %s' %
+                       (video_id, sub_lang))
 
     def _list_available_subtitles(self, video_id):
         sub_lang_list = self._get_available_subtitles(video_id)
@@ -27,9 +28,9 @@ class SubtitlesIE(InfoExtractor):
         couldn't be found
         """
         sub_lang_list = self._get_available_subtitles(video_id)
-        sub_format = self._downloader.params.get('subtitlesformat')
-        if  not sub_lang_list: #There was some error, it didn't get the available subtitles
+        if not sub_lang_list:  # error, it didn't get the available subtitles
             return {}
+
         if self._downloader.params.get('writesubtitles', False):
             if self._downloader.params.get('subtitleslang', False):
                 sub_lang = self._downloader.params.get('subtitleslang')
@@ -41,18 +42,15 @@ class SubtitlesIE(InfoExtractor):
                 self._downloader.report_warning(u'no closed captions found in the specified language "%s"' % sub_lang)
                 return {}
             sub_lang_list = {sub_lang: sub_lang_list[sub_lang]}
+
         subtitles = {}
-        for sub_lang in sub_lang_list:
-            subtitle = self._request_subtitle(sub_lang, sub_lang_list[sub_lang].encode('utf-8'), video_id, sub_format)
+        for sub_lang, url in sub_lang_list.iteritems():
+            subtitle = self._request_subtitle_url(sub_lang, url)
             if subtitle:
                 subtitles[sub_lang] = subtitle
         return subtitles
 
-    def _request_subtitle(self, sub_lang, sub_name, video_id, format):
-        """ Return the subtitle as a string or None if they are not found """
-        # return (u'Did not fetch video subtitles for %s' % sub_lang, None, None)
-        self.to_screen(u'%s: Downloading video subtitles for %s.%s' % (video_id, sub_lang, format))
-        url = self._get_subtitle_url(sub_lang, sub_name, video_id, format)
+    def _request_subtitle_url(self, sub_lang, url):
         try:
             sub = compat_urllib_request.urlopen(url).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
@@ -64,13 +62,8 @@ class SubtitlesIE(InfoExtractor):
         return sub
 
     def _get_available_subtitles(self, video_id):
-        """Get available subtitles. Redefine in subclasses."""
-        """returns {(lang, url)} """
-        # return {}
-        pass
-
-    def _get_subtitle_url(self, sub_lang, sub_name, video_id, format):
-        """returns the url for the given subtitle. Redefine in subclasses."""
+        """returns the list of available subtitles like this {lang: url} """
+        """or {} if not available. Must be redefined by the subclasses."""
         pass
 
     def _request_automatic_caption(self, video_id, webpage):
