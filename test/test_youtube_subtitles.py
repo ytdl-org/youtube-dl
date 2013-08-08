@@ -27,7 +27,7 @@ class TestYoutubeSubtitles(unittest.TestCase):
     def getSubtitles(self):
         info_dict = self.getInfoDict()
         return info_dict[0]['subtitles']        
-    def test_youtube_no_subtitles(self):
+    def test_youtube_no_writesubtitles(self):
         self.DL.params['writesubtitles'] = False
         subtitles = self.getSubtitles()
         self.assertEqual(subtitles, None)
@@ -35,7 +35,7 @@ class TestYoutubeSubtitles(unittest.TestCase):
         self.DL.params['writesubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(md5(subtitles['en']), '4cd9278a35ba2305f47354ee13472260')
-    def test_youtube_subtitles_it(self):
+    def test_youtube_subtitles_lang(self):
         self.DL.params['writesubtitles'] = True
         self.DL.params['subtitleslang'] = 'it'
         subtitles = self.getSubtitles()
@@ -64,6 +64,12 @@ class TestYoutubeSubtitles(unittest.TestCase):
         self.DL.params['subtitleslang'] = 'it'
         subtitles = self.getSubtitles()
         self.assertTrue(subtitles['it'] is not None)
+    def test_youtube_nosubtitles(self):
+        self.url = 'sAjKT8FhjI8'
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(len(subtitles), 0)
+
 
 if __name__ == '__main__':
     unittest.main()

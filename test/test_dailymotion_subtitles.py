@@ -27,14 +27,14 @@ class TestDailymotionSubtitles(unittest.TestCase):
     def getSubtitles(self):
         info_dict = self.getInfoDict()
         return info_dict[0]['subtitles']
-    def test_no_subtitles(self):
+    def test_no_writesubtitles(self):
         subtitles = self.getSubtitles()
         self.assertEqual(subtitles, None)
     def test_subtitles(self):
         self.DL.params['writesubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(md5(subtitles['en']), '976553874490cba125086bbfea3ff76f')
-    def test_subtitles_fr(self):
+    def test_subtitles_lang(self):
         self.DL.params['writesubtitles'] = True
         self.DL.params['subtitleslang'] = 'fr'
         subtitles = self.getSubtitles()
@@ -52,6 +52,11 @@ class TestDailymotionSubtitles(unittest.TestCase):
         self.DL.params['subtitleslang'] = 'en'
         subtitles = self.getSubtitles()
         self.assertTrue(len(subtitles.keys()) == 0)
+    def test_nosubtitles(self):
+        self.url = 'http://www.dailymotion.com/video/x12u166_le-zapping-tele-star-du-08-aout-2013_tv'
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(len(subtitles), 0)
 
 if __name__ == '__main__':
     unittest.main()
