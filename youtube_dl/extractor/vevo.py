@@ -35,12 +35,12 @@ class VevoIE(InfoExtractor):
 
         self.report_extraction(video_id)
         video_info = json.loads(info_json)
-        m_urls = list(re.finditer(r'<video src="(?P<ext>.*?):(?P<url>.*?)"', links_webpage))
+        m_urls = list(re.finditer(r'<video src="(?P<ext>.*?):/?(?P<url>.*?)"', links_webpage))
         if m_urls is None or len(m_urls) == 0:
             raise ExtractorError(u'Unable to extract video url')
         # They are sorted from worst to best quality
         m_url = m_urls[-1]
-        video_url = base_url + m_url.group('url')
+        video_url = base_url + '/' + m_url.group('url')
         ext = m_url.group('ext')
 
         return {'url': video_url,

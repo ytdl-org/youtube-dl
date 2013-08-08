@@ -12,17 +12,17 @@ from ..utils import (
 
 
 class WatIE(InfoExtractor):
-    _WORKING = False
     _VALID_URL=r'http://www.wat.tv/.*-(?P<shortID>.*?)_.*?.html'
     IE_NAME = 'wat.tv'
     _TEST = {
         u'url': u'http://www.wat.tv/video/world-war-philadelphia-vost-6bv55_2fjr7_.html',
         u'file': u'10631273.mp4',
-        u'md5': u'0a4fe7870f31eaeabb5e25fd8da8414a',
+        u'md5': u'd8b2231e1e333acd12aad94b80937e19',
         u'info_dict': {
             u'title': u'World War Z - Philadelphia VOST',
             u'description': u'La menace est partout. Que se passe-t-il à Philadelphia ?\r\nWORLD WAR Z, avec Brad Pitt, au cinéma le 3 juillet.\r\nhttp://www.worldwarz.fr',
-        }
+        },
+        u'skip': u'Sometimes wat serves the whole file with the --test option',
     }
     
     def download_video_info(self, real_id):
@@ -59,20 +59,8 @@ class WatIE(InfoExtractor):
 
         # Otherwise we can continue and extract just one part, we have to use
         # the short id for getting the video url
-        player_data = compat_urllib_parse.urlencode({'shortVideoId': short_id,
-                                                     'html5': '1'})
-        player_info = self._download_webpage('http://www.wat.tv/player?' + player_data,
-                                             real_id, u'Downloading player info')
-        player = json.loads(player_info)['player']
-        html5_player = self._html_search_regex(r'iframe src="(.*?)"', player,
-                                               'html5 player')
-        player_webpage = self._download_webpage(html5_player, real_id,
-                                                u'Downloading player webpage')
-
-        video_url = self._search_regex(r'urlhtml5 : "(.*?)"', player_webpage,
-                                       'video url')
         info = {'id': real_id,
-                'url': video_url,
+                'url': 'http://wat.tv/get/android5/%s.mp4' % real_id,
                 'ext': 'mp4',
                 'title': first_chapter['title'],
                 'thumbnail': first_chapter['preview'],

@@ -21,6 +21,13 @@ class WorldStarHipHopIE(InfoExtractor):
 
         webpage_src = self._download_webpage(url, video_id)
 
+        m_vevo_id = re.search(r'videoId=(.*?)&amp?',
+            webpage_src)
+        
+        if m_vevo_id is not None:
+            self.to_screen(u'Vevo video detected:')
+            return self.url_result('vevo:%s' % m_vevo_id.group(1), ie='Vevo')
+
         video_url = self._search_regex(r'so\.addVariable\("file","(.*?)"\)',
             webpage_src, u'video URL')
 

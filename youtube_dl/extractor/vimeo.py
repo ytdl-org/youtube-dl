@@ -1,5 +1,6 @@
 import json
 import re
+import itertools
 
 from .common import InfoExtractor
 from ..utils import (
@@ -171,3 +172,31 @@ class VimeoIE(InfoExtractor):
             'thumbnail':    video_thumbnail,
             'description':  video_description,
         }]
+
+
+class VimeoChannelIE(InfoExtractor):
+    IE_NAME = u'vimeo:channel'
+    _VALID_URL = r'(?:https?://)?vimeo.\com/channels/(?P<id>[^/]+)'
+    _MORE_PAGES_INDICATOR = r'<a.+?rel="next"'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        channel_id =  mobj.group('id')
+        video_ids = []
+
+        for pagenum in itertools.count(1):
+            webpage = self._download_webpage('http://vimeo.com/channels/%s/videos/page:%d' % (channel_id, pagenum),
+                                             channel_id, u'Downloading page %s' % pagenum)
+            video_ids.extend(re.findall(r'id="clip_(\d+?)"', webpage))
+            if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
+                break
+
+        entries = [self.url_result('http://vimeo.com/%s' % video_id, 'Vimeo')
+                   for video_id in video_ids]
+        channel_title = self._html_search_regex(r'<a href="/channels/%s">(.*?)</a>' % channel_id,
+                                                webpage, u'channel title')
+        return {'_type': 'playlist',
+                'id': channel_id,
+                'title': channel_title,
+                'entries': entries,
+                }

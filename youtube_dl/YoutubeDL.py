@@ -594,7 +594,7 @@ class YoutubeDL(object):
                         # No clear decision yet, let IE decide
                         keep_video = keep_video_wish
             except PostProcessingError as e:
-                self.to_stderr(u'ERROR: ' + e.msg)
+                self.report_error(e.msg)
         if keep_video is False and not self.params.get('keepvideo', False):
             try:
                 self.to_screen(u'Deleting original file %s (pass -k to keep)' % filename)

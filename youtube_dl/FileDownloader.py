@@ -386,6 +386,35 @@ class FileDownloader(object):
             self.report_error(u'mplayer exited with code %d' % retval)
             return False
 
+    def _download_m3u8_with_ffmpeg(self, filename, url):
+        self.report_destination(filename)
+        tmpfilename = self.temp_name(filename)
+
+        args = ['ffmpeg', '-y', '-i', url, '-f', 'mp4', tmpfilename]
+        # Check for ffmpeg first
+        try:
+            subprocess.call(['ffmpeg', '-h'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
+        except (OSError, IOError):
+            self.report_error(u'm3u8 download detected but "%s" could not be run' % args[0] )
+            return False
+
+        retval = subprocess.call(args)
+        if retval == 0:
+            fsize = os.path.getsize(encodeFilename(tmpfilename))
+            self.to_screen(u'\r[%s] %s bytes' % (args[0], fsize))
+            self.try_rename(tmpfilename, filename)
+            self._hook_progress({
+                'downloaded_bytes': fsize,
+                'total_bytes': fsize,
+                'filename': filename,
+                'status': 'finished',
+            })
+            return True
+        else:
+            self.to_stderr(u"\n")
+            self.report_error(u'ffmpeg exited with code %d' % retval)
+            return False
+
 
     def _do_download(self, filename, info_dict):
         url = info_dict['url']
@@ -410,6 +439,10 @@ class FileDownloader(object):
         # Attempt to download using mplayer
         if url.startswith('mms') or url.startswith('rtsp'):
             return self._download_with_mplayer(filename, url)
+
+        # m3u8 manifest are downloaded with ffmpeg
+        if determine_ext(url) == u'm3u8':
+            return self._download_m3u8_with_ffmpeg(filename, url)
 
         tmpfilename = self.temp_name(filename)
         stream = None

@@ -402,6 +402,8 @@ def _real_main(argv=None):
             batchurls = batchfd.readlines()
             batchurls = [x.strip() for x in batchurls]
             batchurls = [x for x in batchurls if len(x) > 0 and not re.search(r'^[#/;]', x)]
+            if opts.verbose:
+                sys.stderr.write(u'[debug] Batch file urls: ' + repr(batchurls) + u'\n')
         except IOError:
             sys.exit(u'ERROR: batch file could not be read')
     all_urls = batchurls + args

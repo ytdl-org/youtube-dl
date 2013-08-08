@@ -153,8 +153,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                      $"""
     _NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
     # Listed in order of quality
-    _available_formats = ['38', '37', '46', '22', '45', '35', '44', '34', '18', '43', '6', '5', '17', '13']
-    _available_formats_prefer_free = ['38', '46', '37', '45', '22', '44', '35', '43', '34', '18', '6', '5', '17', '13']
+    _available_formats = ['38', '37', '46', '22', '45', '35', '44', '34', '18', '43', '6', '5', '17', '13',
+                          '95', '94', '93', '92', '132', '151',
+                          '85', '84', '102', '83', '101', '82', '100',
+                          ]
+    _available_formats_prefer_free = ['38', '46', '37', '45', '22', '44', '35', '43', '34', '18', '6', '5', '17', '13',
+                                      '95', '94', '93', '92', '132', '151',
+                                      '85', '102', '84', '101', '83', '100', '82',
+                                      ]
     _video_extensions = {
         '13': '3gp',
         '17': 'mp4',
@@ -166,6 +172,24 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '44': 'webm',
         '45': 'webm',
         '46': 'webm',
+
+        # 3d videos
+        '82': 'mp4',
+        '83': 'mp4',
+        '84': 'mp4',
+        '85': 'mp4',
+        '100': 'webm',
+        '101': 'webm',
+        '102': 'webm',
+        
+        # videos that use m3u8
+        '92': 'mp4',
+        '93': 'mp4',
+        '94': 'mp4',
+        '95': 'mp4',
+        '96': 'mp4',
+        '132': 'mp4',
+        '151': 'mp4',
     }
     _video_dimensions = {
         '5': '240x400',
@@ -182,7 +206,22 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '44': '480x854',
         '45': '720x1280',
         '46': '1080x1920',
+        '82': '360p',
+        '83': '480p',
+        '84': '720p',
+        '85': '1080p',
+        '92': '240p',
+        '93': '360p',
+        '94': '480p',
+        '95': '720p',
+        '96': '1080p',
+        '100': '360p',
+        '101': '480p',
+        '102': '720p',        
+        '132': '240p',
+        '151': '72p',
     }
+    _3d_itags = ['85', '84', '102', '83', '101', '82', '100']
     IE_NAME = u'youtube'
     _TESTS = [
         {
@@ -231,6 +270,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 u"uploader": u"justintimberlakeVEVO",
                 u"uploader_id": u"justintimberlakeVEVO"
             }
+        },
+        {
+            u'url': u'https://www.youtube.com/watch?v=TGi3HqYrWHE',
+            u'file': u'TGi3HqYrWHE.mp4',
+            u'note': u'm3u8 video',
+            u'info_dict': {
+                u'title': u'Triathlon - Men - London 2012 Olympic Games',
+                u'description': u'- Men -  TR02 - Triathlon - 07 August 2012 - London 2012 Olympic Games',
+                u'uploader': u'olympic',
+                u'upload_date': u'20120807',
+                u'uploader_id': u'olympic',
+            },
+            u'params': {
+                u'skip_download': True,
+            },
         },
     ]
 
@@ -284,15 +338,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         elif len(s) == 88:
             return s[48] + s[81:67:-1] + s[82] + s[66:62:-1] + s[85] + s[61:48:-1] + s[67] + s[47:12:-1] + s[3] + s[11:3:-1] + s[2] + s[12]
         elif len(s) == 87:
-            return s[4:23] + s[86] + s[24:85]
+            return s[83:53:-1] + s[3] + s[52:40:-1] + s[86] + s[39:10:-1] + s[0] + s[9:3:-1] + s[53]
         elif len(s) == 86:
-            return s[2:63] + s[82] + s[64:82] + s[63]
+            return s[83:85] + s[26] + s[79:46:-1] + s[85] + s[45:36:-1] + s[30] + s[35:30:-1] + s[46] + s[29:26:-1] + s[82] + s[25:1:-1]
         elif len(s) == 85:
             return s[2:8] + s[0] + s[9:21] + s[65] + s[22:65] + s[84] + s[66:82] + s[21]
         elif len(s) == 84:
-            return s[83:36:-1] + s[2] + s[35:26:-1] + s[3] + s[25:3:-1] + s[26]
+            return s[83:27:-1] + s[0] + s[26:5:-1] + s[2:0:-1] + s[27]
         elif len(s) == 83:
-            return s[6] + s[3:6] + s[33] + s[7:24] + s[0] + s[25:33] + s[53] + s[34:53] + s[24] + s[54:]
+            return s[:15] + s[80] + s[16:80] + s[15]
         elif len(s) == 82:
             return s[36] + s[79:67:-1] + s[81] + s[66:40:-1] + s[33] + s[39:36:-1] + s[40] + s[35] + s[0] + s[67] + s[32:0:-1] + s[34]
         elif len(s) == 81:
@@ -302,6 +356,16 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         else:
             raise ExtractorError(u'Unable to decrypt signature, key length %d not supported; retrying might work' % (len(s)))
+
+    def _decrypt_signature_age_gate(self, s):
+        # The videos with age protection use another player, so the algorithms
+        # can be different.
+        if len(s) == 86:
+            return s[2:63] + s[82] + s[64:82] + s[63]
+        else:
+            # Fallback to the other algortihms
+            return self._decrypt_signature(s)
+
 
     def _get_available_subtitles(self, video_id):
         self.report_video_subtitles_download(video_id)
@@ -404,7 +468,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     def _print_formats(self, formats):
         print('Available formats:')
         for x in formats:
-            print('%s\t:\t%s\t[%s]' %(x, self._video_extensions.get(x, 'flv'), self._video_dimensions.get(x, '???')))
+            print('%s\t:\t%s\t[%s]%s' %(x, self._video_extensions.get(x, 'flv'),
+                                        self._video_dimensions.get(x, '???'),
+                                        ' (3D)' if x in self._3d_itags else ''))
 
     def _extract_id(self, url):
         mobj = re.match(self._VALID_URL, url, re.VERBOSE)
@@ -412,6 +478,57 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             raise ExtractorError(u'Invalid URL: %s' % url)
         video_id = mobj.group(2)
         return video_id
+
+    def _get_video_url_list(self, url_map):
+        """
+        Transform a dictionary in the format {itag:url} to a list of (itag, url)
+        with the requested formats.
+        """
+        req_format = self._downloader.params.get('format', None)
+        format_limit = self._downloader.params.get('format_limit', None)
+        available_formats = self._available_formats_prefer_free if self._downloader.params.get('prefer_free_formats', False) else self._available_formats
+        if format_limit is not None and format_limit in available_formats:
+            format_list = available_formats[available_formats.index(format_limit):]
+        else:
+            format_list = available_formats
+        existing_formats = [x for x in format_list if x in url_map]
+        if len(existing_formats) == 0:
+            raise ExtractorError(u'no known formats available for video')
+        if self._downloader.params.get('listformats', None):
+            self._print_formats(existing_formats)
+            return
+        if req_format is None or req_format == 'best':
+            video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
+        elif req_format == 'worst':
+            video_url_list = [(existing_formats[-1], url_map[existing_formats[-1]])] # worst quality
+        elif req_format in ('-1', 'all'):
+            video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
+        else:
+            # Specific formats. We pick the first in a slash-delimeted sequence.
+            # For example, if '1/2/3/4' is requested and '2' and '4' are available, we pick '2'.
+            req_formats = req_format.split('/')
+            video_url_list = None
+            for rf in req_formats:
+                if rf in url_map:
+                    video_url_list = [(rf, url_map[rf])]
+                    break
+            if video_url_list is None:
+                raise ExtractorError(u'requested format not available')
+        return video_url_list
+
+    def _extract_from_m3u8(self, manifest_url, video_id):
+        url_map = {}
+        def _get_urls(_manifest):
+            lines = _manifest.split('\n')
+            urls = filter(lambda l: l and not l.startswith('#'),
+                            lines)
+            return urls
+        manifest = self._download_webpage(manifest_url, video_id, u'Downloading formats manifest')
+        formats_urls = _get_urls(manifest)
+        for format_url in formats_urls:
+            itag = self._search_regex(r'itag/(\d+?)/', format_url, 'itag')
+            url_map[itag] = format_url
+        return url_map
 
     def _real_extract(self, url):
         if re.match(r'(?:https?://)?[^/]+/watch\?feature=[a-z_]+$', url):
@@ -567,7 +684,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             video_duration = compat_urllib_parse.unquote_plus(video_info['length_seconds'][0])
 
         # Decide which formats to download
-        req_format = self._downloader.params.get('format', None)
 
         try:
             mobj = re.search(r';ytplayer.config = ({.*?});', video_webpage)
@@ -602,8 +718,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             s = url_data['s'][0]
                             if age_gate:
                                 player_version = self._search_regex(r'ad3-(.+?)\.swf',
-                                    video_info['ad3_module'][0], 'flash player',
-                                    fatal=False)
+                                    video_info['ad3_module'][0] if 'ad3_module' in video_info else 'NOT FOUND',
+                                    'flash player', fatal=False)
                                 player = 'flash player %s' % player_version
                             else:
                                 player = u'html5 player %s' % self._search_regex(r'html5player-(.+?)\.js', video_webpage,
@@ -611,41 +727,25 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             parts_sizes = u'.'.join(compat_str(len(part)) for part in s.split('.'))
                             self.to_screen(u'encrypted signature length %d (%s), itag %s, %s' %
                                 (len(s), parts_sizes, url_data['itag'][0], player))
-                        signature = self._decrypt_signature(url_data['s'][0])
+                        encrypted_sig = url_data['s'][0]
+                        if age_gate:
+                            signature = self._decrypt_signature_age_gate(encrypted_sig)
+                        else:
+                            signature = self._decrypt_signature(encrypted_sig)
                         url += '&signature=' + signature
                     if 'ratebypass' not in url:
                         url += '&ratebypass=yes'
                     url_map[url_data['itag'][0]] = url
-
-            format_limit = self._downloader.params.get('format_limit', None)
-            available_formats = self._available_formats_prefer_free if self._downloader.params.get('prefer_free_formats', False) else self._available_formats
-            if format_limit is not None and format_limit in available_formats:
-                format_list = available_formats[available_formats.index(format_limit):]
-            else:
-                format_list = available_formats
-            existing_formats = [x for x in format_list if x in url_map]
-            if len(existing_formats) == 0:
-                raise ExtractorError(u'no known formats available for video')
-            if self._downloader.params.get('listformats', None):
-                self._print_formats(existing_formats)
+            video_url_list = self._get_video_url_list(url_map)
+            if not video_url_list:
                 return
-            if req_format is None or req_format == 'best':
-                video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
-            elif req_format == 'worst':
-                video_url_list = [(existing_formats[-1], url_map[existing_formats[-1]])] # worst quality
-            elif req_format in ('-1', 'all'):
-                video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
-            else:
-                # Specific formats. We pick the first in a slash-delimeted sequence.
-                # For example, if '1/2/3/4' is requested and '2' and '4' are available, we pick '2'.
-                req_formats = req_format.split('/')
-                video_url_list = None
-                for rf in req_formats:
-                    if rf in url_map:
-                        video_url_list = [(rf, url_map[rf])]
-                        break
-                if video_url_list is None:
-                    raise ExtractorError(u'requested format not available')
+        elif video_info.get('hlsvp'):
+            manifest_url = video_info['hlsvp'][0]
+            url_map = self._extract_from_m3u8(manifest_url, video_id)
+            video_url_list = self._get_video_url_list(url_map)
+            if not video_url_list:
+                return
+
         else:
             raise ExtractorError(u'no conn or url_encoded_fmt_stream_map information found in video info')
 
@@ -654,8 +754,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             # Extension
             video_extension = self._video_extensions.get(format_param, 'flv')
 
-            video_format = '{0} - {1}'.format(format_param if format_param else video_extension,
-                                              self._video_dimensions.get(format_param, '???'))
+            video_format = '{0} - {1}{2}'.format(format_param if format_param else video_extension,
+                                              self._video_dimensions.get(format_param, '???'),
+                                              ' (3D)' if format_param in self._3d_itags else '')
 
             results.append({
                 'id':       video_id,

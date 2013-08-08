@@ -12,7 +12,7 @@ from .comedycentral import ComedyCentralIE
 from .condenast import CondeNastIE
 from .criterion import CriterionIE
 from .cspan import CSpanIE
-from .dailymotion import DailymotionIE
+from .dailymotion import DailymotionIE, DailymotionPlaylistIE
 from .depositfiles import DepositFilesIE
 from .dotsub import DotsubIE
 from .dreisat import DreiSatIE
@@ -38,15 +38,18 @@ from .infoq import InfoQIE
 from .instagram import InstagramIE
 from .jukebox import JukeboxIE
 from .justintv import JustinTVIE
+from .kankan import KankanIE
 from .keek import KeekIE
 from .liveleak import LiveLeakIE
 from .livestream import LivestreamIE
 from .metacafe import MetacafeIE
 from .mixcloud import MixcloudIE
 from .mtv import MTVIE
+from .muzu import MuzuTVIE
 from .myspass import MySpassIE
 from .myvideo import MyVideoIE
 from .nba import NBAIE
+from .ooyala import OoyalaIE
 from .photobucket import PhotobucketIE
 from .pornotube import PornotubeIE
 from .rbmaradio import RBMARadioIE
@@ -71,7 +74,8 @@ from .ustream import UstreamIE
 from .vbox7 import Vbox7IE
 from .veoh import VeohIE
 from .vevo import VevoIE
-from .vimeo import VimeoIE
+from .videofyme import VideofyMeIE
+from .vimeo import VimeoIE, VimeoChannelIE
 from .vine import VineIE
 from .c56 import C56IE
 from .wat import WatIE
