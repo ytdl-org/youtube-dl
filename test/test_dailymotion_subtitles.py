@@ -46,14 +46,6 @@ class TestDailymotionSubtitles(unittest.TestCase):
         info_dict = IE.extract(TEST_URL)
         sub = info_dict[0]['subtitles']['fr']
         self.assertEqual(md5(sub), '594564ec7d588942e384e920e5341792')
-    def test_onlysubtitles(self):
-        DL = FakeYDL()
-        DL.params['writesubtitles'] = True
-        DL.params['onlysubtitles'] = True
-        IE = DailymotionIE(DL)
-        info_dict = IE.extract(TEST_URL)
-        sub = info_dict[0]['subtitles']['en']
-        self.assertEqual(md5(sub), '976553874490cba125086bbfea3ff76f')
     def test_allsubtitles(self):
         DL = FakeYDL()
         DL.params['allsubtitles'] = True

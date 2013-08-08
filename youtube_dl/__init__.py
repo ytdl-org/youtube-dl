@@ -193,9 +193,6 @@ def parseOpts(overrideArguments=None):
     subtitles.add_option('--write-auto-sub', '--write-automatic-sub',
             action='store_true', dest='writeautomaticsub',
             help='write automatic subtitle file (youtube only)', default=False)
-    subtitles.add_option('--only-sub',
-            action='store_true', dest='skip_download',
-            help='[deprecated] alias of --skip-download', default=False)
     subtitles.add_option('--all-subs',
             action='store_true', dest='allsubtitles',
             help='downloads all the available subtitles of the video', default=False)
