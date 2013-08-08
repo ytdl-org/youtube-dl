@@ -547,7 +547,7 @@ class YoutubeDL(object):
                 try:
                     success = self.fd._do_download(filename, info_dict)
                 except (OSError, IOError) as err:
-                    raise UnavailableVideoError()
+                    raise UnavailableVideoError(err)
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                     self.report_error(u'unable to download video data: %s' % str(err))
                     return
