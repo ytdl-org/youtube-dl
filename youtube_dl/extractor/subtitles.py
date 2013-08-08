@@ -12,21 +12,15 @@ from ..utils import (
 
 class SubtitlesIE(InfoExtractor):
 
-    def report_video_subtitles_available(self, video_id, sub_lang_list):
-        """Report available subtitles."""
+    def _list_available_subtitles(self, video_id):
+        """ outputs the available subtitles for the video """
+        sub_lang_list = self._get_available_subtitles(video_id)
         sub_lang = ",".join(list(sub_lang_list.keys()))
         self.to_screen(u'%s: Available subtitles for video: %s' %
                        (video_id, sub_lang))
 
-    def _list_available_subtitles(self, video_id):
-        sub_lang_list = self._get_available_subtitles(video_id)
-        self.report_video_subtitles_available(video_id, sub_lang_list)
-
     def _extract_subtitles(self, video_id):
-        """
-        Return a dictionary: {language: subtitles} or {} if the subtitles
-        couldn't be found
-        """
+        """ returns {sub_lang: sub} or {} if subtitles not found """
         sub_lang_list = self._get_available_subtitles(video_id)
         if not sub_lang_list:  # error, it didn't get the available subtitles
             return {}
@@ -51,6 +45,7 @@ class SubtitlesIE(InfoExtractor):
         return subtitles
 
     def _request_subtitle_url(self, sub_lang, url):
+        """ makes the http request for the subtitle """
         try:
             sub = compat_urllib_request.urlopen(url).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
@@ -62,12 +57,19 @@ class SubtitlesIE(InfoExtractor):
         return sub
 
     def _get_available_subtitles(self, video_id):
-        """returns the list of available subtitles like this {lang: url} """
-        """or {} if not available. Must be redefined by the subclasses."""
+        """ returns {sub_lang: url} or {} if not available """
+        """ Must be redefined by the subclasses """
         pass
 
     def _request_automatic_caption(self, video_id, webpage):
-        """Request automatic caption. Redefine in subclasses."""
-        """returns a tuple of ... """
-        # return [(err_msg, None, None)]
+        """ returns {sub_lang: sub} or {} if not available """
+        """ Must be redefined by the subclasses """
         pass
+
+
+class NoAutoSubtitlesIE(SubtitlesIE):
+    """ A subtitle class for the servers that don't support auto-captions"""
+
+    def _request_automatic_caption(self, video_id, webpage):
+        self._downloader.report_warning(u'Automatic Captions not supported by this server')
+        return {}

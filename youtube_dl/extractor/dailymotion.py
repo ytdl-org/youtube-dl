@@ -3,7 +3,7 @@ import json
 import socket
 
 from .common import InfoExtractor
-from .subtitles import SubtitlesIE
+from .subtitles import NoAutoSubtitlesIE
 
 from ..utils import (
     compat_http_client,
@@ -17,7 +17,7 @@ from ..utils import (
 )
 
 
-class DailyMotionSubtitlesIE(SubtitlesIE):
+class DailyMotionSubtitlesIE(NoAutoSubtitlesIE):
 
     def _get_available_subtitles(self, video_id):
         request = compat_urllib_request.Request('https://api.dailymotion.com/video/%s/subtitles?fields=id,language,url' % video_id)
@@ -32,11 +32,6 @@ class DailyMotionSubtitlesIE(SubtitlesIE):
             return sub_lang_list
         self._downloader.report_warning(u'video doesn\'t have subtitles')
         return {}
-
-    def _request_automatic_caption(self, video_id, webpage):
-        self._downloader.report_warning(u'Automatic Captions not supported by this server')
-        return {}
-
 
 class DailymotionIE(DailyMotionSubtitlesIE):
     """Information Extractor for Dailymotion"""
