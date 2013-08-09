@@ -313,8 +313,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def report_video_subtitles_available(self, video_id, sub_lang_list):
         """Report available subtitles."""
-        sub_lang = ",".join(list(sub_lang_list.keys()))
-        self.to_screen(u'%s: Available subtitles for video: %s' % (video_id, sub_lang))
+        if isinstance(sub_lang_list, dict):
+            sub_lang = ",".join(list(sub_lang_list.keys()))
+            self.to_screen(u'%s: Available subtitles for video: %s' % (video_id, sub_lang))
+        else:
+            self.to_screen(u'%s: No available subtitle' % (video_id))
 
     def report_information_extraction(self, video_id):
         """Report attempt to extract video information."""
