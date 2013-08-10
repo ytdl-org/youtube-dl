@@ -597,7 +597,7 @@ def _real_main(argv=None):
                 sys.exc_clear()
             except:
                 pass
-        sys.stderr.write(u'[debug] Python version %s - %s' %(platform.python_version(), platform.platform()) + u'\n')
+        sys.stderr.write(u'[debug] Python version %s - %s\n' %(platform.python_version(), decodeOption(platform.platform())))
         sys.stderr.write(u'[debug] Proxy map: ' + str(proxy_handler.proxies) + u'\n')
 
     ydl.add_default_info_extractors()
