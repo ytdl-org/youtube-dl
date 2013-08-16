@@ -1,11 +1,6 @@
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-)
-from bs4 import BeautifulSoup
-
 
 class AddAnimeIE(InfoExtractor):
 
@@ -17,7 +12,6 @@ class AddAnimeIE(InfoExtractor):
         u'md5': u'0813c2430bea7a46bf13acf3406992f4',
         u'info_dict': {
             u"description": u"One Piece 606", 
-            u"uploader": u"mugiwaraQ8", 
             u"title": u"One Piece 606"
         }
     }
@@ -31,24 +25,27 @@ class AddAnimeIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        video_url = self._search_regex(r'var normal_video_file = "(.*?)",',
-            webpage, u'video URL')
+
+	def find_between( webpage, first, last ):
+  	    try:
+        	start = webpage.index( first ) + len( first )
+        	end = webpage.index( last, start )
+        	return webpage[start:end]
+    	    except ValueError:
+       		return ""
+
+	video_url = find_between( webpage, "var normal_video_file = '", "';" )
 
         video_title = self._og_search_title(webpage)
 
         video_description = self._og_search_description(webpage)
-        
-        soup = BeautifulSoup(webpage)
-        
-        video_uploader= soup.find("meta", {"author":""})['content']
 
         info = {
             'id':  video_id,
             'url': video_url,
             'ext': 'flv',
             'title': video_title,
-            'description': video_description,
-            'uploader': video_uploader
+            'description': video_description
         }
 
         return [info]
