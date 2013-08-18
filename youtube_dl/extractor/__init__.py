@@ -56,6 +56,7 @@ from .rbmaradio import RBMARadioIE
 from .redtube import RedTubeIE
 from .ringtv import RingTVIE
 from .roxwel import RoxwelIE
+from .rtlnow import RTLnowIE
 from .sina import SinaIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE
 from .spiegel import SpiegelIE
