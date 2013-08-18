@@ -264,7 +264,7 @@ class YoutubeDL(object):
             self.report_error(u'Erroneous output template')
             return None
         except ValueError as err:
-            self.report_error(u'Insufficient system charset ' + repr(preferredencoding()))
+            self.report_error(u'Error in output template: ' + str(err) + u' (encoding: ' + repr(preferredencoding()) + ')')
             return None
 
     def _match_entry(self, info_dict):
@@ -547,7 +547,7 @@ class YoutubeDL(object):
                 try:
                     success = self.fd._do_download(filename, info_dict)
                 except (OSError, IOError) as err:
-                    raise UnavailableVideoError()
+                    raise UnavailableVideoError(err)
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                     self.report_error(u'unable to download video data: %s' % str(err))
                     return

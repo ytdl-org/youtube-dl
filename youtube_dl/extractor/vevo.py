@@ -8,7 +8,7 @@ from ..utils import (
 
 class VevoIE(InfoExtractor):
     """
-    Accecps urls from vevo.com or in the format 'vevo:{id}'
+    Accepts urls from vevo.com or in the format 'vevo:{id}'
     (currently used by MTVIE)
     """
     _VALID_URL = r'((http://www.vevo.com/watch/.*?/.*?/)|(vevo:))(?P<id>.*)$'
@@ -19,7 +19,7 @@ class VevoIE(InfoExtractor):
         u'info_dict': {
             u"upload_date": u"20130624", 
             u"uploader": u"Hurts", 
-            u"title": u"Somebody To Die For"
+            u"title": u"Somebody to Die For"
         }
     }
 
