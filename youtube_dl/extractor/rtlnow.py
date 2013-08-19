@@ -5,8 +5,8 @@ from .common import InfoExtractor
 from ..utils import ExtractorError
 
 class RTLnowIE(InfoExtractor):
-    """Information Extractor for RTL(2)now"""
-    _VALID_URL = r'(?:http://)?(?P<url>(?P<base_url>rtl(?:(?P<is_rtl2>2)|-)now\.rtl(?(is_rtl2)2|)\.de/)[a-zA-Z0-9-]+/[a-zA-Z0-9-]+\.php\?(?:container_id|film_id)=(?P<video_id>[0-9]+)&player=1(?:&season=[0-9]+)?(?:&.*)?)'
+    """Information Extractor for RTLnow, RTL2now and VOXnow"""
+    _VALID_URL = r'(?:http://)?(?P<url>(?P<base_url>rtl(?:(?P<is_rtl2>2)|-)now\.rtl(?(is_rtl2)2|)\.de/|(?:www\.)?voxnow\.de/)[a-zA-Z0-9-]+/[a-zA-Z0-9-]+\.php\?(?:container_id|film_id)=(?P<video_id>[0-9]+)&player=1(?:&season=[0-9]+)?(?:&.*)?)'
     _TESTS = [{
         u'url': u'http://rtl-now.rtl.de/ahornallee/folge-1.php?film_id=90419&player=1&season=1',
         u'file': u'90419.flv',
@@ -31,7 +31,19 @@ class RTLnowIE(InfoExtractor):
         u'params': {
             u'skip_download': True,
         },
-    },]
+    },
+    {
+        u'url': u'www.voxnow.de/voxtours/suedafrika-reporter-ii.php?film_id=13883&player=1&season=17',
+        u'file': u'13883.flv',
+        u'info_dict': {
+            u'upload_date': u'20090627', 
+            u'title': u'Voxtours - Südafrika-Reporter II',
+            u'description': u'Südafrika-Reporter II',
+        },
+        u'params': {
+            u'skip_download': True,
+        },
+    }]
 
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)
