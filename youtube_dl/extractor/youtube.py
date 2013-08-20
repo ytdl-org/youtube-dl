@@ -155,11 +155,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     # Listed in order of quality
     _available_formats = ['38', '37', '46', '22', '45', '35', '44', '34', '18', '43', '6', '5', '17', '13',
                           '95', '94', '93', '92', '132', '151',
-                          '85', '84', '102', '83', '101', '82', '100',
+                          '85', '84', '102', '83', '101', '82', '100',        # 3D
+                          '138', '137', '136', '135', '134', '133', '160',    # Dash video mp4
+                          '141', '140', '139',                                # Dash auido mp4
+                          '248', '247', '246', '245', '244', '243', '242',    # Dash video webm
+                          '172', '171',                                       # Dash audio webm
                           ]
     _available_formats_prefer_free = ['38', '46', '37', '45', '22', '44', '35', '43', '34', '18', '6', '5', '17', '13',
                                       '95', '94', '93', '92', '132', '151',
                                       '85', '102', '84', '101', '83', '100', '82',
+                                      '248', '247', '246', '245', '244', '243', '242',    # Dash video webm
+                                      '172', '171',                                       # Dash audio webm
+                                      '138', '137', '136', '135', '134', '133', '160',    # Dash video mp4
+                                      '141', '140', '139',                                # Dash auido mp4
                                       ]
     _video_extensions = {
         '13': '3gp',
@@ -181,7 +189,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '100': 'webm',
         '101': 'webm',
         '102': 'webm',
-        
+
         # videos that use m3u8
         '92': 'mp4',
         '93': 'mp4',
@@ -190,6 +198,29 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '96': 'mp4',
         '132': 'mp4',
         '151': 'mp4',
+
+        # Dash mp4
+        '133': 'mp4',
+        '134': 'mp4',
+        '135': 'mp4',
+        '136': 'mp4',
+        '137': 'mp4',
+        '138': 'mp4',
+        '139': 'mp4',
+        '140': 'mp4',
+        '141': 'mp4',
+        '160': 'mp4',
+
+        # Dash webm
+        '171': 'webm',
+        '172': 'webm',
+        '242': 'webm',
+        '243': 'webm',
+        '244': 'webm',
+        '245': 'webm',
+        '246': 'webm',
+        '247': 'webm',
+        '248': 'webm',
     }
     _video_dimensions = {
         '5': '240x400',
@@ -217,11 +248,58 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '96': '1080p',
         '100': '360p',
         '101': '480p',
-        '102': '720p',        
+        '102': '720p',
         '132': '240p',
         '151': '72p',
+        '133': '240p',
+        '134': '360p',
+        '135': '480p',
+        '136': '720p',
+        '137': '1080p',
+        '138': '>1080p',
+        '139': '48k',
+        '140': '128k',
+        '141': '256k',
+        '160': '192p',
+        '171': '128k',
+        '172': '256k',
+        '242': '240p',
+        '243': '360p',
+        '244': '480p',
+        '245': '480p',
+        '246': '480p',
+        '247': '720p',
+        '248': '1080p',
     }
-    _3d_itags = ['85', '84', '102', '83', '101', '82', '100']
+    _special_itags = {
+        '82': '3D',
+        '83': '3D',
+        '84': '3D',
+        '85': '3D',
+        '100': '3D',
+        '101': '3D',
+        '102': '3D',
+        '133': 'DASH Video',
+        '134': 'DASH Video',
+        '135': 'DASH Video',
+        '136': 'DASH Video',
+        '137': 'DASH Video',
+        '138': 'DASH Video',
+        '139': 'DASH Audio',
+        '140': 'DASH Audio',
+        '141': 'DASH Audio',
+        '160': 'DASH Video',
+        '171': 'DASH Audio',
+        '172': 'DASH Audio',
+        '242': 'DASH Video',
+        '243': 'DASH Video',
+        '244': 'DASH Video',
+        '245': 'DASH Video',
+        '246': 'DASH Video',
+        '247': 'DASH Video',
+        '248': 'DASH Video',
+    }
+
     IE_NAME = u'youtube'
     _TESTS = [
         {
@@ -472,7 +550,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         for x in formats:
             print('%s\t:\t%s\t[%s]%s' %(x, self._video_extensions.get(x, 'flv'),
                                         self._video_dimensions.get(x, '???'),
-                                        ' (3D)' if x in self._3d_itags else ''))
+                                        ' ('+self._special_itags[x]+')' if x in self._special_itags else ''))
 
     def _extract_id(self, url):
         mobj = re.match(self._VALID_URL, url, re.VERBOSE)
@@ -699,6 +777,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if m_s is not None:
                 self.to_screen(u'%s: Encrypted signatures detected.' % video_id)
                 video_info['url_encoded_fmt_stream_map'] = [args['url_encoded_fmt_stream_map']]
+            m_s = re.search(r'[&,]s=', args['adaptive_fmts'])
+            if m_s is not None:
+                video_info['url_encoded_fmt_stream_map'][0] += ','+args['adaptive_fmts']
+            else:
+                video_info['url_encoded_fmt_stream_map'][0] += ','+video_info['adaptive_fmts'][0]
+
         except ValueError:
             pass
 
@@ -758,7 +842,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
             video_format = '{0} - {1}{2}'.format(format_param if format_param else video_extension,
                                               self._video_dimensions.get(format_param, '???'),
-                                              ' (3D)' if format_param in self._3d_itags else '')
+                                              ' ('+self._special_itags[format_param]+')' if format_param in self._special_itags else '')
 
             results.append({
                 'id':       video_id,
