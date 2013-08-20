@@ -91,13 +91,14 @@ class FFmpegPostProcessor(PostProcessor):
         return fn
 
 class FFmpegExtractAudioPP(FFmpegPostProcessor):
-    def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, nopostoverwrites=False):
+    def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, preferredchannels=None, nopostoverwrites=False):
         FFmpegPostProcessor.__init__(self, downloader)
         if preferredcodec is None:
             preferredcodec = 'best'
         self._preferredcodec = preferredcodec
         self._preferredquality = preferredquality
         self._nopostoverwrites = nopostoverwrites
+        self._preferredchannels = preferredchannels
 
     def get_audio_codec(self, path):
         if not self._exes['ffprobe'] and not self._exes['avprobe']:
@@ -163,6 +164,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                         more_opts += [self._exes['avconv'] and '-q:a' or '-aq', self._preferredquality]
                     else:
                         more_opts += [self._exes['avconv'] and '-b:a' or '-ab', self._preferredquality + 'k']
+                if self._preferredchannels is not None:
+                    more_opts += ['-ac', self._preferredchannels]
         else:
             # We convert the audio (lossy)
             acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'm4a': 'aac', 'opus': 'opus', 'vorbis': 'libvorbis', 'wav': None}[self._preferredcodec]
@@ -171,8 +174,10 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             if self._preferredquality is not None:
                 if int(self._preferredquality) < 10:
                     more_opts += [self._exes['avconv'] and '-q:a' or '-aq', self._preferredquality]
-                else:
+                elif int(self._preferredquality) < 8000:
                     more_opts += [self._exes['avconv'] and '-b:a' or '-ab', self._preferredquality + 'k']
+                else:
+                    more_opts += [self._exes['avconv'] and '-ar', self._preferredquality]
             if self._preferredcodec == 'aac':
                 more_opts += ['-f', 'adts']
             if self._preferredcodec == 'm4a':
@@ -182,7 +187,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             if self._preferredcodec == 'wav':
                 extension = 'wav'
                 more_opts += ['-f', 'wav']
-
+            if self._preferredchannels is not None:
+                more_opts += ['-ac', self._preferredchannels]
         prefix, sep, ext = path.rpartition(u'.') # not os.path.splitext, since the latter does not work on unicode in all setups
         new_path = prefix + sep + extension
 
