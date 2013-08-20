@@ -141,7 +141,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                          (?:                                                  # the various things that can precede the ID:
                              (?:(?:v|embed|e)/)                               # v/ or embed/ or e/
                              |(?:                                             # or the v= param in all its forms
-                                 (?:watch|movie(?:_popup)?(?:\.php)?)?              # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
+                                 (?:(?:watch|movie)(?:_popup)?(?:\.php)?)?    # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
                                  (?:\?|\#!?)                                  # the params delimiter ? or # or #!
                                  (?:.*?&)?                                    # any other preceding param (like /?s=tuff&v=xxxx)
                                  v=
@@ -221,6 +221,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '132': '240p',
         '151': '72p',
     }
+    _3d_itags = ['85', '84', '102', '83', '101', '82', '100']
     IE_NAME = u'youtube'
     _TESTS = [
         {
@@ -334,18 +335,20 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             return s[25] + s[3:25] + s[0] + s[26:42] + s[79] + s[43:79] + s[91] + s[80:83]
         elif len(s) == 90:
             return s[25] + s[3:25] + s[2] + s[26:40] + s[77] + s[41:77] + s[89] + s[78:81]
+        elif len(s) == 89:
+            return s[84:78:-1] + s[87] + s[77:60:-1] + s[0] + s[59:3:-1]
         elif len(s) == 88:
             return s[48] + s[81:67:-1] + s[82] + s[66:62:-1] + s[85] + s[61:48:-1] + s[67] + s[47:12:-1] + s[3] + s[11:3:-1] + s[2] + s[12]
         elif len(s) == 87:
-            return s[4:23] + s[86] + s[24:85]
+            return s[6:27] + s[4] + s[28:39] + s[27] + s[40:59] + s[2] + s[60:]
         elif len(s) == 86:
-            return s[83:85] + s[26] + s[79:46:-1] + s[85] + s[45:36:-1] + s[30] + s[35:30:-1] + s[46] + s[29:26:-1] + s[82] + s[25:1:-1]
+            return s[5:20] + s[2] + s[21:]
         elif len(s) == 85:
-            return s[2:8] + s[0] + s[9:21] + s[65] + s[22:65] + s[84] + s[66:82] + s[21]
+            return s[83:34:-1] + s[0] + s[33:27:-1] + s[3] + s[26:19:-1] + s[34] + s[18:3:-1] + s[27]
         elif len(s) == 84:
-            return s[83:36:-1] + s[2] + s[35:26:-1] + s[3] + s[25:3:-1] + s[26]
+            return s[83:27:-1] + s[0] + s[26:5:-1] + s[2:0:-1] + s[27]
         elif len(s) == 83:
-            return s[6] + s[3:6] + s[33] + s[7:24] + s[0] + s[25:33] + s[53] + s[34:53] + s[24] + s[54:]
+            return s[81:64:-1] + s[82] + s[63:52:-1] + s[45] + s[51:45:-1] + s[1] + s[44:1:-1] + s[0]
         elif len(s) == 82:
             return s[36] + s[79:67:-1] + s[81] + s[66:40:-1] + s[33] + s[39:36:-1] + s[40] + s[35] + s[0] + s[67] + s[32:0:-1] + s[34]
         elif len(s) == 81:
@@ -467,7 +470,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     def _print_formats(self, formats):
         print('Available formats:')
         for x in formats:
-            print('%s\t:\t%s\t[%s]' %(x, self._video_extensions.get(x, 'flv'), self._video_dimensions.get(x, '???')))
+            print('%s\t:\t%s\t[%s]%s' %(x, self._video_extensions.get(x, 'flv'),
+                                        self._video_dimensions.get(x, '???'),
+                                        ' (3D)' if x in self._3d_itags else ''))
 
     def _extract_id(self, url):
         mobj = re.match(self._VALID_URL, url, re.VERBOSE)
@@ -715,8 +720,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             s = url_data['s'][0]
                             if age_gate:
                                 player_version = self._search_regex(r'ad3-(.+?)\.swf',
-                                    video_info['ad3_module'][0], 'flash player',
-                                    fatal=False)
+                                    video_info['ad3_module'][0] if 'ad3_module' in video_info else 'NOT FOUND',
+                                    'flash player', fatal=False)
                                 player = 'flash player %s' % player_version
                             else:
                                 player = u'html5 player %s' % self._search_regex(r'html5player-(.+?)\.js', video_webpage,
@@ -751,8 +756,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             # Extension
             video_extension = self._video_extensions.get(format_param, 'flv')
 
-            video_format = '{0} - {1}'.format(format_param if format_param else video_extension,
-                                              self._video_dimensions.get(format_param, '???'))
+            video_format = '{0} - {1}{2}'.format(format_param if format_param else video_extension,
+                                              self._video_dimensions.get(format_param, '???'),
+                                              ' (3D)' if format_param in self._3d_itags else '')
 
             results.append({
                 'id':       video_id,
