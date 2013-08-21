@@ -778,7 +778,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 self.to_screen(u'%s: Encrypted signatures detected.' % video_id)
                 video_info['url_encoded_fmt_stream_map'] = [args['url_encoded_fmt_stream_map']]
             m_s = re.search(r'[&,]s=', args.get('adaptive_fmts', u''))
-            if m_s is not None and 'adaptive_fmts' in args:
+            if 'url_encoded_fmt_stream_map' not in video_info or not video_info['url_encoded_fmt_stream_map']:
+                video_info['url_encoded_fmt_stream_map'] = ['']
+            if m_s is not None:
                 video_info['url_encoded_fmt_stream_map'][0] += ','+args['adaptive_fmts']
             elif 'adaptive_fmts' in video_info:
                 video_info['url_encoded_fmt_stream_map'][0] += ','+video_info['adaptive_fmts'][0]
