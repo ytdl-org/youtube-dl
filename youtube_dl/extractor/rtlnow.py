@@ -2,7 +2,10 @@
 import re
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
+from ..utils import (
+    clean_html,
+    ExtractorError,
+)
 
 class RTLnowIE(InfoExtractor):
     """Information Extractor for RTLnow, RTL2now and VOXnow"""
@@ -18,6 +21,7 @@ class RTLnowIE(InfoExtractor):
         u'params': {
             u'skip_download': True,
         },
+        u'skip': u'Only works from Germany',
     },
     {
         u'url': u'http://rtl2now.rtl2.de/aerger-im-revier/episode-15-teil-1.php?film_id=69756&player=1&season=2&index=5',
@@ -31,6 +35,7 @@ class RTLnowIE(InfoExtractor):
         u'params': {
             u'skip_download': True,
         },
+        u'skip': u'Only works from Germany',
     },
     {
         u'url': u'www.voxnow.de/voxtours/suedafrika-reporter-ii.php?film_id=13883&player=1&season=17',
@@ -53,6 +58,14 @@ class RTLnowIE(InfoExtractor):
         video_id = mobj.group(u'video_id')
 
         webpage = self._download_webpage(webpage_url, video_id)
+
+        note_m = re.search(r'''(?sx)
+            <div[ ]style="margin-left:[ ]20px;[ ]font-size:[ ]13px;">(.*?)
+            <div[ ]id="playerteaser">''', webpage)
+        if note_m:
+            msg = clean_html(note_m.group(1))
+            raise ExtractorError(msg)
+
         video_title = self._html_search_regex(r'<title>(?P<title>[^<]+)</title>',
             webpage, u'title')
         playerdata_url = self._html_search_regex(r'\'playerdata\': \'(?P<playerdata_url>[^\']+)\'',
