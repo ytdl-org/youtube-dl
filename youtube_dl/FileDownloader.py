@@ -79,9 +79,13 @@ class FileDownloader(object):
         rate = float(current) / dif
         eta = int((float(total) - float(current)) / rate)
         (eta_mins, eta_secs) = divmod(eta, 60)
-        if eta_mins > 99:
-            return '--:--'
-        return '%02d:%02d' % (eta_mins, eta_secs)
+        (eta_hours, eta_mins) = divmod(eta_mins, 60)
+        if eta_hours > 99:
+            return '--:--:--'
+        if eta_hours == 0:
+            return '%02d:%02d' % (eta_mins, eta_secs)
+        else:
+            return '%02d:%02d:%02d' % (eta_hours, eta_mins, eta_secs)
 
     @staticmethod
     def calc_speed(start, now, bytes):

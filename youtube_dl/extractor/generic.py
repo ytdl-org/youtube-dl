@@ -107,8 +107,13 @@ class GenericIE(InfoExtractor):
         return new_url
 
     def _real_extract(self, url):
-        new_url = self._test_redirect(url)
-        if new_url: return [self.url_result(new_url)]
+        try:
+            new_url = self._test_redirect(url)
+            if new_url:
+                return [self.url_result(new_url)]
+        except compat_urllib_error.HTTPError:
+            # This may be a stupid server that doesn't like HEAD, our UA, or so
+            pass
 
         video_id = url.split('/')[-1]
         try:
@@ -144,6 +149,9 @@ class GenericIE(InfoExtractor):
             # We only look in og:video if the MIME type is a video, don't try if it's a Flash player:
             if m_video_type is not None:
                 mobj = re.search(r'<meta.*?property="og:video".*?content="(.*?)"', webpage)
+        if mobj is None:
+            # HTML5 video
+            mobj = re.search(r'<video[^<]*>.*?<source .*?src="([^"]+)"', webpage, flags=re.DOTALL)
         if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
 
