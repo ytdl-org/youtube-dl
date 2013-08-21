@@ -150,6 +150,9 @@ class GenericIE(InfoExtractor):
             if m_video_type is not None:
                 mobj = re.search(r'<meta.*?property="og:video".*?content="(.*?)"', webpage)
         if mobj is None:
+            # HTML5 video
+            mobj = re.search(r'<video[^<]*>.*?<source .*?src="([^"]+)"', webpage, flags=re.DOTALL)
+        if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
 
         # It's possible that one of the regexes
