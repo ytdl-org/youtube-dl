@@ -333,7 +333,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 u"upload_date": u"20120506",
                 u"title": u"Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]",
                 u"description": u"md5:b085c9804f5ab69f4adea963a2dceb3c",
-                u"uploader": u"IconaPop",
+                u"uploader": u"Icona Pop",
                 u"uploader_id": u"IconaPop"
             }
         },
