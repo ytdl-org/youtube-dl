@@ -58,6 +58,7 @@ from .ringtv import RingTVIE
 from .roxwel import RoxwelIE
 from .rtlnow import RTLnowIE
 from .sina import SinaIE
+from .sohu import SohuIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE
 from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
