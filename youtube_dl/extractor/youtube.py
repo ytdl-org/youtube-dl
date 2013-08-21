@@ -375,12 +375,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         try:
             sub_list = compat_urllib_request.urlopen(request).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            return (u'unable to download video subtitles: %s' % compat_str(err), None)
+            return {'error': u'unable to download video subtitles: %s' % compat_str(err)}
         sub_lang_list = re.findall(r'name="([^"]*)"[^>]+lang_code="([\w\-]+)"', sub_list)
-        sub_lang_list = dict((l[1], l[0]) for l in sub_lang_list)
-        if not sub_lang_list:
-            return (u'video doesn\'t have subtitles', None)
-        return sub_lang_list
+        if len(sub_lang_list) == 0:
+            return {'error': u'video doesn\'t have subtitles'}
+        return dict((l[1], l[0]) for l in sub_lang_list)
 
     def _list_available_subtitles(self, video_id):
         sub_lang_list = self._get_available_subtitles(video_id)
@@ -442,8 +441,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         """
         sub_lang_list = self._get_available_subtitles(video_id)
         sub_format = self._downloader.params.get('subtitlesformat')
-        if  isinstance(sub_lang_list,tuple): #There was some error, it didn't get the available subtitles
-            return [(sub_lang_list[0], None, None)]
+        if 'error' in sub_lang_list: #There was some error, it didn't get the available subtitles
+            return [(sub_lang_list['error'], None, None)]
         if self._downloader.params.get('subtitleslang', False):
             sub_lang = self._downloader.params.get('subtitleslang')
         elif 'en' in sub_lang_list:
@@ -459,8 +458,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     def _extract_all_subtitles(self, video_id):
         sub_lang_list = self._get_available_subtitles(video_id)
         sub_format = self._downloader.params.get('subtitlesformat')
-        if  isinstance(sub_lang_list,tuple): #There was some error, it didn't get the available subtitles
-            return [(sub_lang_list[0], None, None)]
+        if 'error' in sub_lang_list: #There was some error, it didn't get the available subtitles
+            return [(sub_lang_list['error'], None, None)]
         subtitles = []
         for sub_lang in sub_lang_list:
             subtitle = self._request_subtitle(sub_lang, sub_lang_list[sub_lang].encode('utf-8'), video_id, sub_format)
