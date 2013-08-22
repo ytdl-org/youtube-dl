@@ -75,6 +75,7 @@ from .tudou import TudouIE
 from .tumblr import TumblrIE
 from .tutv import TutvIE
 from .ustream import UstreamIE
+from .utv import UTVIE
 from .vbox7 import Vbox7IE
 from .veoh import VeohIE
 from .vevo import VevoIE
