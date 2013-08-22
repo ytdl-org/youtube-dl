@@ -31,7 +31,6 @@ class JeuxVideoIE(InfoExtractor):
 
         xml_config = self._download_webpage(xml_link, title,
                                                   'Downloading XML config')
-
         config = xml.etree.ElementTree.fromstring(xml_config.encode('utf-8'))
         info = re.search(r'<format\.json>(.*?)</format\.json>',
                          xml_config, re.MULTILINE|re.DOTALL).group(1)
