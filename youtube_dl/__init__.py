@@ -27,6 +27,7 @@ __authors__  = (
     'Johny Mo Swag',
     'Axel Noack',
     'Albert Kim',
+    'Pierre Rudloff',
 )
 
 __license__ = 'Public Domain'
