@@ -36,6 +36,7 @@ from .ign import IGNIE, OneUPIE
 from .ina import InaIE
 from .infoq import InfoQIE
 from .instagram import InstagramIE
+from .jeuxvideo import JeuxVideoIE
 from .jukebox import JukeboxIE
 from .justintv import JustinTVIE
 from .kankan import KankanIE
@@ -50,6 +51,7 @@ from .myspass import MySpassIE
 from .myvideo import MyVideoIE
 from .nba import NBAIE
 from .ooyala import OoyalaIE
+from .pbs import PBSIE
 from .photobucket import PhotobucketIE
 from .pornotube import PornotubeIE
 from .rbmaradio import RBMARadioIE
@@ -58,6 +60,7 @@ from .ringtv import RingTVIE
 from .roxwel import RoxwelIE
 from .rtlnow import RTLnowIE
 from .sina import SinaIE
+from .slashdot import SlashdotIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE
 from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
@@ -72,6 +75,7 @@ from .tudou import TudouIE
 from .tumblr import TumblrIE
 from .tutv import TutvIE
 from .ustream import UstreamIE
+from .unistra import UnistraIE
 from .vbox7 import Vbox7IE
 from .veoh import VeohIE
 from .vevo import VevoIE

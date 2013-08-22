@@ -11,24 +11,27 @@ tests = [
     # 90
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[]}|:;?/>.<'`",
      "mrtyuioplkjhgfdsazxcvbne1234567890QWER[YUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={`]}|"),
+    # 89 
+    ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[]}|:;?/>.<'",
+     "/?;:|}<[{=+-_)(*&^%$#@!MqBVCXZASDFGHJKLPOIUYTREWQ0987654321mnbvcxzasdfghjklpoiuyt"),
     # 88
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[]}|:;?/>.<",
      "J:|}][{=+-_)(*&;%$#@>MNBVCXZASDFGH^KLPOIUYTREWQ0987654321mnbvcxzasdfghrklpoiuytej"),
-    # 87 - vflART1Nf 2013/07/24
+    # 87
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$^&*()_-+={[]}|:;?/>.<",
-     "tyuioplkjhgfdsazxcv<nm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$^&*()_-+={[]}|:;?/>"),
-    # 86 - vflm_D8eE 2013/07/31
+     "uioplkjhgfdsazxcvbnm1t34567890QWE2TYUIOPLKJHGFDSAZXCVeNM!@#$^&*()_-+={[]}|:;?/>.<"),
+    # 86
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[|};?/>.<",
-     ">.1}|[{=+-_)(*&^%$#@!MNBVCXZASDFGHJK<POIUYTREW509876L432/mnbvcxzasdfghjklpoiuytre"),
-    # 85 - vflSAFCP9 2013/07/19
+     "yuioplkjhgfdsazecvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[|};?/>.<"),
+    # 85
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[};?/>.<",
-     "ertyuiqplkjhgfdsazx$vbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#<%^&*()_-+={[};?/c"),
+     ".>/?;}[{=+-_)(*&^%$#@!MNBVCXZASDFGHJKLPOIUYTREWQ0q876543r1mnbvcx9asdfghjklpoiuyt2"),
     # 84
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[};?>.<",
-     "<.>?;}[{=+-_)(*&^%$#@!MNBVCXZASDFGHJKLPOIUYTREWe098765432rmnbvcxzasdfghjklpoiuyt1"),
-    # 83 - vflTWC9KW 2013/08/01
+     "<.>?;}[{=+-_)(*&^%$#@!MNBVCXZASDFGHJKLPOIUYTREWQ09876543q1mnbvcxzasdfghjklpoiuew2"),
+    # 83
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!#$%^&*()_+={[};?/>.<",
-     "qwertyuioplkjhg>dsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!#$%^&*()_+={[};?/f"),
+     ".>/?;}[{=+_)(*&^%<#!MNBVCXZASPFGHJKLwOIUYTREWQ0987654321mnbvcxzasdfghjklpoiuytreq"),
     # 82
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKHGFDSAZXCVBNM!@#$%^&*(-+={[};?/>.<",
      "Q>/?;}[{=+-(*<^%$#@!MNBVCXZASDFGHKLPOIUY8REWT0q&7654321mnbvcxzasdfghjklpoiuytrew9"),
