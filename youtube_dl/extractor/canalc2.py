@@ -1,7 +1,6 @@
 # coding: utf-8
 """Extractor for canalc2.tv"""
 import re
-import lxml.html
 
 from .common import InfoExtractor
 
@@ -25,10 +24,9 @@ class Canalc2IE(InfoExtractor):
             webpage).group(1)
         
         video_url = 'http://vod-flash.u-strasbg.fr:8080/' + file_name
-        
-        html   = lxml.html.fromstring(webpage)
-        
-        title = html.cssselect('.evenement8')[0].text_content()
+
+        title = self._html_search_regex(r'class="evenement8">(.*?)</a>',
+            webpage, u'title')
         
         return {'id': video_id,
                 'ext' : 'mp4',
