@@ -9,7 +9,6 @@ build/
 dist/
 MANIFEST
 README.txt
-README.md
 youtube-dl.1
 youtube-dl.bash-completion
 youtube-dl

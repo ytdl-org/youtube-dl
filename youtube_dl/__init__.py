@@ -27,6 +27,7 @@ __authors__  = (
     'Johny Mo Swag',
     'Axel Noack',
     'Albert Kim',
+    'Pierre Rudloff',
 )
 
 __license__ = 'Public Domain'
@@ -343,7 +344,7 @@ def parseOpts(overrideArguments=None):
             userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
         systemConf = _readOptions('/etc/youtube-dl.conf')
         userConf = _readOptions(userConfFile)
-        commandLineConf = sys.argv[1:] 
+        commandLineConf = sys.argv[1:]
         argv = systemConf + userConf + commandLineConf
         opts, args = parser.parse_args(argv)
         if opts.verbose:
@@ -377,7 +378,7 @@ def _real_main(argv=None):
     # Set user agent
     if opts.user_agent is not None:
         std_headers['User-Agent'] = opts.user_agent
-    
+
     # Set referer
     if opts.referer is not None:
         std_headers['Referer'] = opts.referer
@@ -398,6 +399,8 @@ def _real_main(argv=None):
             batchurls = batchfd.readlines()
             batchurls = [x.strip() for x in batchurls]
             batchurls = [x for x in batchurls if len(x) > 0 and not re.search(r'^[#/;]', x)]
+            if opts.verbose:
+                sys.stderr.write(u'[debug] Batch file urls: ' + repr(batchurls) + u'\n')
         except IOError:
             sys.exit(u'ERROR: batch file could not be read')
     all_urls = batchurls + args

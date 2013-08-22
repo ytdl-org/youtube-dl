@@ -207,7 +207,7 @@ if sys.version_info >= (2,7):
     def find_xpath_attr(node, xpath, key, val):
         """ Find the xpath xpath[@key=val] """
         assert re.match(r'^[a-zA-Z]+$', key)
-        assert re.match(r'^[a-zA-Z@]*$', val)
+        assert re.match(r'^[a-zA-Z@\s]*$', val)
         expr = xpath + u"[@%s='%s']" % (key, val)
         return node.find(expr)
 else:
@@ -497,7 +497,7 @@ class ExtractorError(Exception):
         if sys.exc_info()[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError):
             expected = True
         if not expected:
-            msg = msg + u'; please report this issue on https://yt-dl.org/bug . Be sure to call youtube-dl with the --verbose flag and include its complete output.'
+            msg = msg + u'; please report this issue on https://yt-dl.org/bug . Be sure to call youtube-dl with the --verbose flag and include its complete output. Make sure you are using the latest version; type  youtube-dl -U  to update.'
         super(ExtractorError, self).__init__(msg)
 
         self.traceback = tb

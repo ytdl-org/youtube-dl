@@ -50,6 +50,7 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertEqual(YoutubeIE()._extract_id('http://www.youtube.com/watch?&v=BaW_jenozKc'), 'BaW_jenozKc')
         self.assertEqual(YoutubeIE()._extract_id('https://www.youtube.com/watch?&v=BaW_jenozKc'), 'BaW_jenozKc')
         self.assertEqual(YoutubeIE()._extract_id('https://www.youtube.com/watch?feature=player_embedded&v=BaW_jenozKc'), 'BaW_jenozKc')
+        self.assertEqual(YoutubeIE()._extract_id('https://www.youtube.com/watch_popup?v=BaW_jenozKc'), 'BaW_jenozKc')
 
     def test_no_duplicates(self):
         ies = gen_extractors()

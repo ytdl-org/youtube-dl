@@ -100,7 +100,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         self._nopostoverwrites = nopostoverwrites
 
     def get_audio_codec(self, path):
-        if not self._exes['ffprobe'] and not self._exes['avprobe']: return None
+        if not self._exes['ffprobe'] and not self._exes['avprobe']:
+            raise PostProcessingError(u'ffprobe or avprobe not found. Please install one.')
         try:
             cmd = [self._exes['avprobe'] or self._exes['ffprobe'], '-show_streams', encodeFilename(self._ffmpeg_filename_argument(path))]
             handle = subprocess.Popen(cmd, stderr=compat_subprocess_get_DEVNULL(), stdout=subprocess.PIPE)
@@ -208,7 +209,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             try:
                 os.utime(encodeFilename(new_path), (time.time(), information['filetime']))
             except:
-                self._downloader.to_stderr(u'WARNING: Cannot update utime of audio file')
+                self._downloader.report_warning(u'Cannot update utime of audio file')
 
         information['filepath'] = new_path
         return self._nopostoverwrites,information

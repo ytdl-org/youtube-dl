@@ -2,11 +2,13 @@ import binascii
 import base64
 import hashlib
 import re
+import json
 
 from .common import InfoExtractor
 from ..utils import (
     compat_ord,
     compat_urllib_parse,
+    compat_urllib_request,
 
     ExtractorError,
 )
@@ -16,7 +18,7 @@ from ..utils import (
 class MyVideoIE(InfoExtractor):
     """Information Extractor for myvideo.de."""
 
-    _VALID_URL = r'(?:http://)?(?:www\.)?myvideo\.de/watch/([0-9]+)/([^?/]+).*'
+    _VALID_URL = r'(?:http://)?(?:www\.)?myvideo\.de/(?:[^/]+/)?watch/([0-9]+)/([^?/]+).*'
     IE_NAME = u'myvideo'
     _TEST = {
         u'url': u'http://www.myvideo.de/watch/8229274/bowling_fail_or_win',
@@ -84,6 +86,20 @@ class MyVideoIE(InfoExtractor):
                 'title':    video_title,
                 'ext':      video_ext,
             }]
+
+        mobj = re.search(r'data-video-service="/service/data/video/%s/config' % video_id, webpage)
+        if mobj is not None:
+            request = compat_urllib_request.Request('http://www.myvideo.de/service/data/video/%s/config' % video_id, '')
+            response = self._download_webpage(request, video_id,
+                                              u'Downloading video info')
+            info = json.loads(base64.b64decode(response).decode('utf-8'))
+            return {'id': video_id,
+                    'title': info['title'],
+                    'url': info['streaming_url'].replace('rtmpe', 'rtmpt'),
+                    'play_path': info['filename'],
+                    'ext': 'flv',
+                    'thumbnail': info['thumbnail'][0]['url'],
+                    }
 
         # try encxml
         mobj = re.search('var flashvars={(.+?)}', webpage)

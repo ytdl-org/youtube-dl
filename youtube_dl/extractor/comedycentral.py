@@ -24,7 +24,9 @@ class ComedyCentralIE(InfoExtractor):
                          (full-episodes/(?P<episode>.*)|
                           (?P<clip>
                               (the-colbert-report-(videos|collections)/(?P<clipID>[0-9]+)/[^/]*/(?P<cntitle>.*?))
-                              |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*)))))
+                              |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*)))|
+                          (?P<interview>
+                              extended-interviews/(?P<interID>[0-9]+)/playlist_tds_extended_(?P<interview_title>.*?)/.*?)))
                      $"""
     _TEST = {
         u'url': u'http://www.thedailyshow.com/watch/thu-december-13-2012/kristen-stewart',
@@ -86,6 +88,9 @@ class ComedyCentralIE(InfoExtractor):
                 epTitle = mobj.group('tdstitle')
             else:
                 epTitle = mobj.group('cntitle')
+            dlNewest = False
+        elif mobj.group('interview'):
+            epTitle = mobj.group('interview_title')
             dlNewest = False
         else:
             dlNewest = not mobj.group('episode')

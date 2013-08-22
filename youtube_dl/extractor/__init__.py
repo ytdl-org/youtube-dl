@@ -12,7 +12,7 @@ from .comedycentral import ComedyCentralIE
 from .condenast import CondeNastIE
 from .criterion import CriterionIE
 from .cspan import CSpanIE
-from .dailymotion import DailymotionIE
+from .dailymotion import DailymotionIE, DailymotionPlaylistIE
 from .depositfiles import DepositFilesIE
 from .dotsub import DotsubIE
 from .dreisat import DreiSatIE
@@ -36,23 +36,31 @@ from .ign import IGNIE, OneUPIE
 from .ina import InaIE
 from .infoq import InfoQIE
 from .instagram import InstagramIE
+from .jeuxvideo import JeuxVideoIE
 from .jukebox import JukeboxIE
 from .justintv import JustinTVIE
+from .kankan import KankanIE
 from .keek import KeekIE
 from .liveleak import LiveLeakIE
 from .livestream import LivestreamIE
 from .metacafe import MetacafeIE
 from .mixcloud import MixcloudIE
 from .mtv import MTVIE
+from .muzu import MuzuTVIE
 from .myspass import MySpassIE
 from .myvideo import MyVideoIE
 from .nba import NBAIE
+from .ooyala import OoyalaIE
+from .pbs import PBSIE
 from .photobucket import PhotobucketIE
 from .pornotube import PornotubeIE
 from .rbmaradio import RBMARadioIE
 from .redtube import RedTubeIE
 from .ringtv import RingTVIE
+from .roxwel import RoxwelIE
+from .rtlnow import RTLnowIE
 from .sina import SinaIE
+from .slashdot import SlashdotIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE
 from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
@@ -67,10 +75,12 @@ from .tudou import TudouIE
 from .tumblr import TumblrIE
 from .tutv import TutvIE
 from .ustream import UstreamIE
+from .unistra import UnistraIE
 from .vbox7 import Vbox7IE
 from .veoh import VeohIE
 from .vevo import VevoIE
-from .vimeo import VimeoIE
+from .videofyme import VideofyMeIE
+from .vimeo import VimeoIE, VimeoChannelIE
 from .vine import VineIE
 from .c56 import C56IE
 from .wat import WatIE
@@ -92,6 +102,9 @@ from .youtube import (
     YoutubeChannelIE,
     YoutubeShowIE,
     YoutubeSubscriptionsIE,
+    YoutubeRecommendedIE,
+    YoutubeWatchLaterIE,
+    YoutubeFavouritesIE,
 )
 from .zdf import ZDFIE
 

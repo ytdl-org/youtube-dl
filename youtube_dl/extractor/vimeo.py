@@ -1,5 +1,6 @@
 import json
 import re
+import itertools
 
 from .common import InfoExtractor
 from ..utils import (
@@ -19,18 +20,31 @@ class VimeoIE(InfoExtractor):
     _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|player)\.)?vimeo(?P<pro>pro)?\.com/(?:(?:(?:groups|album)/[^/]+)|(?:.*?)/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)(?:[?].*)?$'
     _NETRC_MACHINE = 'vimeo'
     IE_NAME = u'vimeo'
-    _TEST = {
-        u'url': u'http://vimeo.com/56015672',
-        u'file': u'56015672.mp4',
-        u'md5': u'8879b6cc097e987f02484baf890129e5',
-        u'info_dict': {
-            u"upload_date": u"20121220", 
-            u"description": u"This is a test case for youtube-dl.\nFor more information, see github.com/rg3/youtube-dl\nTest chars: \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550", 
-            u"uploader_id": u"user7108434", 
-            u"uploader": u"Filippo Valsorda", 
-            u"title": u"youtube-dl test video - \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550"
-        }
-    }
+    _TESTS = [
+        {
+            u'url': u'http://vimeo.com/56015672',
+            u'file': u'56015672.mp4',
+            u'md5': u'8879b6cc097e987f02484baf890129e5',
+            u'info_dict': {
+                u"upload_date": u"20121220", 
+                u"description": u"This is a test case for youtube-dl.\nFor more information, see github.com/rg3/youtube-dl\nTest chars: \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550", 
+                u"uploader_id": u"user7108434", 
+                u"uploader": u"Filippo Valsorda", 
+                u"title": u"youtube-dl test video - \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
+            },
+        },
+        {
+            u'url': u'http://vimeopro.com/openstreetmapus/state-of-the-map-us-2013/video/68093876',
+            u'file': u'68093876.mp4',
+            u'md5': u'3b5ca6aa22b60dfeeadf50b72e44ed82',
+            u'note': u'Vimeo Pro video (#1197)',
+            u'info_dict': {
+                u'uploader_id': u'openstreetmapus', 
+                u'uploader': u'OpenStreetMap US', 
+                u'title': u'Andy Allan - Putting the Carto into OpenStreetMap Cartography',
+            },
+        },
+    ]
 
     def _login(self):
         (username, password) = self._get_login_info()
@@ -82,7 +96,9 @@ class VimeoIE(InfoExtractor):
         video_id = mobj.group('id')
         if not mobj.group('proto'):
             url = 'https://' + url
-        if mobj.group('direct_link') or mobj.group('pro'):
+        elif mobj.group('pro'):
+            url = 'http://player.vimeo.com/video/' + video_id
+        elif mobj.group('direct_link'):
             url = 'https://vimeo.com/' + video_id
 
         # Retrieve video webpage to extract further information
@@ -171,3 +187,31 @@ class VimeoIE(InfoExtractor):
             'thumbnail':    video_thumbnail,
             'description':  video_description,
         }]
+
+
+class VimeoChannelIE(InfoExtractor):
+    IE_NAME = u'vimeo:channel'
+    _VALID_URL = r'(?:https?://)?vimeo.\com/channels/(?P<id>[^/]+)'
+    _MORE_PAGES_INDICATOR = r'<a.+?rel="next"'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        channel_id =  mobj.group('id')
+        video_ids = []
+
+        for pagenum in itertools.count(1):
+            webpage = self._download_webpage('http://vimeo.com/channels/%s/videos/page:%d' % (channel_id, pagenum),
+                                             channel_id, u'Downloading page %s' % pagenum)
+            video_ids.extend(re.findall(r'id="clip_(\d+?)"', webpage))
+            if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
+                break
+
+        entries = [self.url_result('http://vimeo.com/%s' % video_id, 'Vimeo')
+                   for video_id in video_ids]
+        channel_title = self._html_search_regex(r'<a href="/channels/%s">(.*?)</a>' % channel_id,
+                                                webpage, u'channel title')
+        return {'_type': 'playlist',
+                'id': channel_id,
+                'title': channel_title,
+                'entries': entries,
+                }
