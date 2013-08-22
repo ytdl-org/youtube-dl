@@ -77,7 +77,17 @@ class FFmpegPostProcessor(PostProcessor):
         cmd = ([self._exes['avconv'] or self._exes['ffmpeg'], '-y', '-i', encodeFilename(path)]
                + opts +
                [encodeFilename(self._ffmpeg_filename_argument(out_path))])
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        # Dirty fix for executing two piped commands
+        if '|' in cmd:
+            pipe_position = cmd.index('|')
+            first_cmd = cmd[:pipe_position]
+            second_cmd = cmd[(pipe_position + 1):]
+            p1 = subprocess.Popen(first_cmd, stdout=subprocess.PIPE)
+            p = subprocess.Popen(second_cmd, stdin=p1.stdout, stdout=subprocess.PIPE)
+        else:
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
         stdout,stderr = p.communicate()
         if p.returncode != 0:
             stderr = stderr.decode('utf-8', 'replace')
@@ -125,7 +135,13 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             acodec_opts = []
         else:
             acodec_opts = ['-acodec', codec]
-        opts = ['-vn'] + acodec_opts + more_opts
+
+        # Dirty fix for opus format
+        if codec == 'opus':
+            opts = ['-f', 'wav', '-', '|', 'opusenc', '-']
+        else:
+            opts = ['-vn'] + acodec_opts + more_opts
+
         try:
             FFmpegPostProcessor.run_ffmpeg(self, path, out_path, opts)
         except FFmpegPostProcessorError as err:
@@ -182,6 +198,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             if self._preferredcodec == 'wav':
                 extension = 'wav'
                 more_opts += ['-f', 'wav']
+            if self._preferredcodec == 'opus':
+                more_opts += []
 
         prefix, sep, ext = path.rpartition(u'.') # not os.path.splitext, since the latter does not work on unicode in all setups
         new_path = prefix + sep + extension
