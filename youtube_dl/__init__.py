@@ -314,14 +314,15 @@ def parseOpts(overrideArguments=None):
     postproc.add_option('--audio-format', metavar='FORMAT', dest='audioformat', default='best',
             help='"best", "aac", "vorbis", "mp3", "m4a", "opus", or "wav"; best by default')
     postproc.add_option('--audio-quality', metavar='QUALITY', dest='audioquality', default='5',
-            help='ffmpeg/avconv audio quality specification, insert a value between 0 (better) and 9 (worse) for VBR or a specific bitrate like 128K (default 5)')
+            help='ffmpeg/avconv audio quality specification, insert a value between 0 (better) and 9 (worse) for VBR, a specific bitrate like 128K (default 5), or a sample rate like 16000')
     postproc.add_option('--recode-video', metavar='FORMAT', dest='recodevideo', default=None,
             help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm)')
     postproc.add_option('-k', '--keep-video', action='store_true', dest='keepvideo', default=False,
             help='keeps the video file on disk after the post-processing; the video is erased by default')
     postproc.add_option('--no-post-overwrites', action='store_true', dest='nopostoverwrites', default=False,
             help='do not overwrite post-processed files; the post-processed files are overwritten by default')
-
+    postproc.add_option('--audio-channels', metavar='CHANNELS', dest='audiochannels', default='2',
+            help='choose between 1 or 2 channels')
 
     parser.add_option_group(general)
     parser.add_option_group(selection)
@@ -605,7 +606,7 @@ def _real_main(argv=None):
 
     # PostProcessors
     if opts.extractaudio:
-        ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
+        ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, preferredchannels=opts.audiochannels, nopostoverwrites=opts.nopostoverwrites))
     if opts.recodevideo:
         ydl.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
 
