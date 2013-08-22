@@ -4,6 +4,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     compat_str,
+    compat_urlparse,
 
     ExtractorError,
     unified_strdate,
@@ -22,6 +23,7 @@ class SoundcloudIE(InfoExtractor):
     _VALID_URL = r'''^(?:https?://)?
                     (?:(?:(?:www\.)?soundcloud\.com/([\w\d-]+)/([\w\d-]+)/?(?:[?].*)?$)
                        |(?:api\.soundcloud\.com/tracks/(?P<track_id>\d+))
+                       |(?P<widget>w.soundcloud.com/player/?.*?url=.*)
                     )
                     '''
     IE_NAME = u'soundcloud'
@@ -79,6 +81,9 @@ class SoundcloudIE(InfoExtractor):
         if track_id is not None:
             info_json_url = 'http://api.soundcloud.com/tracks/' + track_id + '.json?client_id=' + self._CLIENT_ID
             full_title = track_id
+        elif mobj.group('widget'):
+            query = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+            return self.url_result(query['url'][0], ie='Soundcloud')
         else:
             # extract uploader (which is in the url)
             uploader = mobj.group(1)

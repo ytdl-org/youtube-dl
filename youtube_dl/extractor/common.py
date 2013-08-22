@@ -77,7 +77,13 @@ class InfoExtractor(object):
     @classmethod
     def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
-        return re.match(cls._VALID_URL, url) is not None
+
+        # This does not use has/getattr intentionally - we want to know whether
+        # we have cached the regexp for *this* class, whereas getattr would also
+        # match the superclass
+        if '_VALID_URL_RE' not in cls.__dict__:
+            cls._VALID_URL_RE = re.compile(cls._VALID_URL)
+        return cls._VALID_URL_RE.match(url) is not None
 
     @classmethod
     def working(cls):

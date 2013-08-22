@@ -51,13 +51,16 @@ from .myspass import MySpassIE
 from .myvideo import MyVideoIE
 from .nba import NBAIE
 from .ooyala import OoyalaIE
+from .pbs import PBSIE
 from .photobucket import PhotobucketIE
 from .pornotube import PornotubeIE
 from .rbmaradio import RBMARadioIE
 from .redtube import RedTubeIE
 from .ringtv import RingTVIE
 from .roxwel import RoxwelIE
+from .rtlnow import RTLnowIE
 from .sina import SinaIE
+from .slashdot import SlashdotIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE
 from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE

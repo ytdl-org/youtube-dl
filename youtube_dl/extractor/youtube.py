@@ -141,7 +141,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                          (?:                                                  # the various things that can precede the ID:
                              (?:(?:v|embed|e)/)                               # v/ or embed/ or e/
                              |(?:                                             # or the v= param in all its forms
-                                 (?:watch|movie(?:_popup)?(?:\.php)?)?              # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
+                                 (?:(?:watch|movie)(?:_popup)?(?:\.php)?)?    # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
                                  (?:\?|\#!?)                                  # the params delimiter ? or # or #!
                                  (?:.*?&)?                                    # any other preceding param (like /?s=tuff&v=xxxx)
                                  v=
@@ -255,7 +255,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 u"upload_date": u"20120506",
                 u"title": u"Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]",
                 u"description": u"md5:b085c9804f5ab69f4adea963a2dceb3c",
-                u"uploader": u"IconaPop",
+                u"uploader": u"Icona Pop",
                 u"uploader_id": u"IconaPop"
             }
         },
