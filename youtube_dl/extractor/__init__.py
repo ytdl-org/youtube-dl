@@ -36,6 +36,7 @@ from .ign import IGNIE, OneUPIE
 from .ina import InaIE
 from .infoq import InfoQIE
 from .instagram import InstagramIE
+from .jeuxvideo import JeuxVideoIE
 from .jukebox import JukeboxIE
 from .justintv import JustinTVIE
 from .kankan import KankanIE
