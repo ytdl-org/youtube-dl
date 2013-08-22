@@ -50,6 +50,7 @@ from .myspass import MySpassIE
 from .myvideo import MyVideoIE
 from .nba import NBAIE
 from .ooyala import OoyalaIE
+from .pbs import PBSIE
 from .photobucket import PhotobucketIE
 from .pornotube import PornotubeIE
 from .rbmaradio import RBMARadioIE
