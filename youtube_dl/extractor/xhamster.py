@@ -3,7 +3,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
-
+    unescapeHTML,
     ExtractorError,
 )
 
@@ -41,10 +41,12 @@ class XHamsterIE(InfoExtractor):
         video_title = self._html_search_regex(r'<title>(?P<title>.+?) - xHamster\.com</title>',
             webpage, u'title')
 
-        # Can't see the description anywhere in the UI
-        # video_description = self._html_search_regex(r'<span>Description: </span>(?P<description>[^<]+)',
-        #     webpage, u'description', fatal=False)
-        # if video_description: video_description = unescapeHTML(video_description)
+        # Only a few videos have an description
+        mobj = re.search('<span>Description: </span>(?P<description>[^<]+)', webpage)
+        if mobj:
+            video_description = unescapeHTML(mobj.group('description'))
+        else:
+            video_description = None
 
         mobj = re.search(r'hint=\'(?P<upload_date_Y>[0-9]{4})-(?P<upload_date_m>[0-9]{2})-(?P<upload_date_d>[0-9]{2}) [0-9]{2}:[0-9]{2}:[0-9]{2} [A-Z]{3,4}\'', webpage)
         if mobj:
@@ -64,7 +66,7 @@ class XHamsterIE(InfoExtractor):
             'url':      video_url,
             'ext':      video_extension,
             'title':    video_title,
-            # 'description': video_description,
+            'description': video_description,
             'upload_date': video_upload_date,
             'uploader_id': video_uploader_id,
             'thumbnail': video_thumbnail
