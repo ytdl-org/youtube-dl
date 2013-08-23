@@ -458,11 +458,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         try:
             sub_list = compat_urllib_request.urlopen(request).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            return (u'unable to download video subtitles: %s' % compat_str(err), None)
+            self._downloader.report_warning(u'unable to download video subtitles: %s' % compat_str(err))
+            return {}
         sub_lang_list = re.findall(r'name="([^"]*)"[^>]+lang_code="([\w\-]+)"', sub_list)
         sub_lang_list = dict((l[1], l[0]) for l in sub_lang_list)
         if not sub_lang_list:
-            return (u'video doesn\'t have subtitles', None)
+            self._downloader.report_warning(u'video doesn\'t have subtitles')
+            return {}
         return sub_lang_list
 
     def _list_available_subtitles(self, video_id):
@@ -471,8 +473,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _request_subtitle(self, sub_lang, sub_name, video_id, format):
         """
-        Return tuple:
-        (error_message, sub_lang, sub)
+        Return the subtitle as a string or None if they are not found
         """
         self.report_video_subtitles_request(video_id, sub_lang, format)
         params = compat_urllib_parse.urlencode({
@@ -485,10 +486,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         try:
             sub = compat_urllib_request.urlopen(url).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            return (u'unable to download video subtitles: %s' % compat_str(err), None, None)
+            self._downloader.report_warning(u'unable to download video subtitles for %s: %s' % (sub_lang, compat_str(err)))
+            return
         if not sub:
-            return (u'Did not fetch video subtitles', None, None)
-        return (None, sub_lang, sub)
+            self._downloader.report_warning(u'Did not fetch video subtitles')
+            return
+        return sub
 
     def _request_automatic_caption(self, video_id, webpage):
         """We need the webpage for getting the captions url, pass it as an
@@ -499,7 +502,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         mobj = re.search(r';ytplayer.config = ({.*?});', webpage)
         err_msg = u'Couldn\'t find automatic captions for "%s"' % sub_lang
         if mobj is None:
-            return [(err_msg, None, None)]
+            self._downloader.report_warning(err_msg)
+            return {}
         player_config = json.loads(mobj.group(1))
         try:
             args = player_config[u'args']
@@ -514,40 +518,38 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             })
             subtitles_url = caption_url + '&' + params
             sub = self._download_webpage(subtitles_url, video_id, u'Downloading automatic captions')
-            return [(None, sub_lang, sub)]
-        except KeyError:
-            return [(err_msg, None, None)]
-
-    def _extract_subtitle(self, video_id):
+            return {sub_lang: sub}
+        # An extractor error can be raise by the download process if there are
+        # no automatic captions but there are subtitles
+        except (KeyError, ExtractorError):
+            self._downloader.report_warning(err_msg)
+            return {}
+    
+    def _extract_subtitles(self, video_id):
         """
-        Return a list with a tuple:
-        [(error_message, sub_lang, sub)]
+        Return a dictionary: {language: subtitles} or {} if the subtitles
+        couldn't be found
         """
         sub_lang_list = self._get_available_subtitles(video_id)
         sub_format = self._downloader.params.get('subtitlesformat')
-        if  isinstance(sub_lang_list,tuple): #There was some error, it didn't get the available subtitles
-            return [(sub_lang_list[0], None, None)]
-        if self._downloader.params.get('subtitleslang', False):
-            sub_lang = self._downloader.params.get('subtitleslang')
-        elif 'en' in sub_lang_list:
-            sub_lang = 'en'
-        else:
-            sub_lang = list(sub_lang_list.keys())[0]
-        if not sub_lang in sub_lang_list:
-            return [(u'no closed captions found in the specified language "%s"' % sub_lang, None, None)]
-
-        subtitle = self._request_subtitle(sub_lang, sub_lang_list[sub_lang].encode('utf-8'), video_id, sub_format)
-        return [subtitle]
-
-    def _extract_all_subtitles(self, video_id):
-        sub_lang_list = self._get_available_subtitles(video_id)
-        sub_format = self._downloader.params.get('subtitlesformat')
-        if  isinstance(sub_lang_list,tuple): #There was some error, it didn't get the available subtitles
-            return [(sub_lang_list[0], None, None)]
-        subtitles = []
+        if  not sub_lang_list: #There was some error, it didn't get the available subtitles
+            return {}
+        if self._downloader.params.get('writesubtitles', False):
+            if self._downloader.params.get('subtitleslang', False):
+                sub_lang = self._downloader.params.get('subtitleslang')
+            elif 'en' in sub_lang_list:
+                sub_lang = 'en'
+            else:
+                sub_lang = list(sub_lang_list.keys())[0]
+            if not sub_lang in sub_lang_list:
+                self._downloader.report_warning(u'no closed captions found in the specified language "%s"' % sub_lang)
+                return {}
+            sub_lang_list = {sub_lang: sub_lang_list[sub_lang]}
+        subtitles = {}
         for sub_lang in sub_lang_list:
             subtitle = self._request_subtitle(sub_lang, sub_lang_list[sub_lang].encode('utf-8'), video_id, sub_format)
-            subtitles.append(subtitle)
+            if subtitle:
+                subtitles[sub_lang] = subtitle
         return subtitles
 
     def _print_formats(self, formats):
@@ -738,25 +740,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # subtitles
         video_subtitles = None
 
-        if self._downloader.params.get('writesubtitles', False):
-            video_subtitles = self._extract_subtitle(video_id)
-            if video_subtitles:
-                (sub_error, sub_lang, sub) = video_subtitles[0]
-                if sub_error:
-                    self._downloader.report_warning(sub_error)
-        
-        if self._downloader.params.get('writeautomaticsub', False):
+        if self._downloader.params.get('writesubtitles', False) or self._downloader.params.get('allsubtitles', False):
+            video_subtitles = self._extract_subtitles(video_id)
+        elif self._downloader.params.get('writeautomaticsub', False):
             video_subtitles = self._request_automatic_caption(video_id, video_webpage)
-            (sub_error, sub_lang, sub) = video_subtitles[0]
-            if sub_error:
-                self._downloader.report_warning(sub_error)
-
-        if self._downloader.params.get('allsubtitles', False):
-            video_subtitles = self._extract_all_subtitles(video_id)
-            for video_subtitle in video_subtitles:
-                (sub_error, sub_lang, sub) = video_subtitle
-                if sub_error:
-                    self._downloader.report_warning(sub_error)
 
         if self._downloader.params.get('listsubtitles', False):
             self._list_available_subtitles(video_id)
