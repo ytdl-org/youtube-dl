@@ -458,6 +458,7 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
         opts.extend(['-f', 'mp4'])
 
         temp_filename = filename + u'.temp'
+        self._downloader.to_screen(u'[ffmpeg] Embedding subtitles in \'%s\'' % filename)
         self.run_ffmpeg_multiple_files(input_files, temp_filename, opts)
         os.remove(encodeFilename(filename))
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
