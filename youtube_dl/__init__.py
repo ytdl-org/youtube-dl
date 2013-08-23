@@ -83,6 +83,9 @@ def parseOpts(overrideArguments=None):
 
         return "".join(opts)
 
+    def _comma_separated_values_options_callback(option, opt_str, value, parser):
+        setattr(parser.values, option.dest, value.split(','))
+
     def _find_term_columns():
         columns = os.environ.get('COLUMNS', None)
         if columns:
@@ -206,9 +209,10 @@ def parseOpts(overrideArguments=None):
     subtitles.add_option('--sub-format',
             action='store', dest='subtitlesformat', metavar='FORMAT',
             help='subtitle format (default=srt) ([sbv/vtt] youtube only)', default='srt')
-    subtitles.add_option('--sub-lang', '--srt-lang',
-            action='store', dest='subtitleslang', metavar='LANG',
-            help='language of the subtitles to download (optional) use IETF language tags like \'en\'')
+    subtitles.add_option('--sub-lang', '--sub-langs', '--srt-lang',
+            action='callback', dest='subtitleslang', metavar='LANGS', type='str',
+            default=[], callback=_comma_separated_values_options_callback,
+            help='languages of the subtitles to download (optional) separated by commas, use IETF language tags like \'en,pt\'')
 
     downloader.add_option('-r', '--rate-limit',
             dest='ratelimit', metavar='LIMIT', help='maximum download rate (e.g. 50k or 44.6m)')
@@ -323,6 +327,8 @@ def parseOpts(overrideArguments=None):
             help='keeps the video file on disk after the post-processing; the video is erased by default')
     postproc.add_option('--no-post-overwrites', action='store_true', dest='nopostoverwrites', default=False,
             help='do not overwrite post-processed files; the post-processed files are overwritten by default')
+    postproc.add_option('--embed-subs', action='store_true', dest='embedsubtitles', default=False,
+            help='embed subtitles in the video (only for mp4 videos)')
 
 
     parser.add_option_group(general)
@@ -571,7 +577,7 @@ def _real_main(argv=None):
         'allsubtitles': opts.allsubtitles,
         'listsubtitles': opts.listsubtitles,
         'subtitlesformat': opts.subtitlesformat,
-        'subtitleslang': opts.subtitleslang,
+        'subtitleslangs': opts.subtitleslang,
         'matchtitle': decodeOption(opts.matchtitle),
         'rejecttitle': decodeOption(opts.rejecttitle),
         'max_downloads': opts.max_downloads,
@@ -611,6 +617,8 @@ def _real_main(argv=None):
         ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
     if opts.recodevideo:
         ydl.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
+    if opts.embedsubtitles:
+        ydl.add_post_processor(FFmpegEmbedSubtitlePP(subtitlesformat=opts.subtitlesformat))
 
     # Update version
     if opts.update_self:
