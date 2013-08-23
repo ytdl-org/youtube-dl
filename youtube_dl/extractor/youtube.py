@@ -534,7 +534,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         sub_format = self._downloader.params.get('subtitlesformat')
         if  not sub_lang_list: #There was some error, it didn't get the available subtitles
             return {}
-        if self._downloader.params.get('writesubtitles', False):
+        if self._downloader.params.get('allsubtitles', False):
+            pass
+        else:
             if self._downloader.params.get('subtitleslang', False):
                 sub_lang = self._downloader.params.get('subtitleslang')
             elif 'en' in sub_lang_list:
