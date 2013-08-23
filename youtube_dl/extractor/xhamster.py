@@ -4,6 +4,7 @@ from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
     unescapeHTML,
+    determine_ext,
     ExtractorError,
 )
 
@@ -36,7 +37,6 @@ class XHamsterIE(InfoExtractor):
             video_url = compat_urllib_parse.unquote(mobj.group('file'))
         else:
             video_url = mobj.group('server')+'/key='+mobj.group('file')
-        video_extension = video_url.split('.')[-1].split('?')[0]
 
         video_title = self._html_search_regex(r'<title>(?P<title>.+?) - xHamster\.com</title>',
             webpage, u'title')
@@ -64,7 +64,7 @@ class XHamsterIE(InfoExtractor):
         return [{
             'id':       video_id,
             'url':      video_url,
-            'ext':      video_extension,
+            'ext':      determine_ext(video_url),
             'title':    video_title,
             'description': video_description,
             'upload_date': video_upload_date,
