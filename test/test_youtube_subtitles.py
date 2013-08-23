@@ -40,7 +40,7 @@ class TestYoutubeSubtitles(unittest.TestCase):
     def test_youtube_subtitles_it(self):
         DL = FakeYDL()
         DL.params['writesubtitles'] = True
-        DL.params['subtitleslang'] = 'it'
+        DL.params['subtitleslangs'] = ['it']
         IE = YoutubeIE(DL)
         info_dict = IE.extract('QRS8MkLhQmM')
         sub = info_dict[0]['subtitles']['it']
@@ -85,11 +85,20 @@ class TestYoutubeSubtitles(unittest.TestCase):
     def test_youtube_automatic_captions(self):
         DL = FakeYDL()
         DL.params['writeautomaticsub'] = True
-        DL.params['subtitleslang'] = 'it'
+        DL.params['subtitleslangs'] = ['it']
         IE = YoutubeIE(DL)
         info_dict = IE.extract('8YoUxe5ncPo')
         sub = info_dict[0]['subtitles']['it']
         self.assertTrue(sub is not None)
+    def test_youtube_multiple_langs(self):
+        DL = FakeYDL()
+        DL.params['writesubtitles'] = True
+        langs = ['it', 'fr', 'de']
+        DL.params['subtitleslangs'] = langs
+        IE = YoutubeIE(DL)
+        subtitles = IE.extract('QRS8MkLhQmM')[0]['subtitles']
+        for lang in langs:
+            self.assertTrue(subtitles.get(lang) is not None, u'Subtitles for \'%s\' not extracted' % lang)
 
 if __name__ == '__main__':
     unittest.main()

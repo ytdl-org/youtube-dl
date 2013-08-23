@@ -496,7 +496,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     def _request_automatic_caption(self, video_id, webpage):
         """We need the webpage for getting the captions url, pass it as an
            argument to speed up the process."""
-        sub_lang = self._downloader.params.get('subtitleslang') or 'en'
+        sub_lang = (self._downloader.params.get('subtitleslangs') or ['en'])[0]
         sub_format = self._downloader.params.get('subtitlesformat')
         self.to_screen(u'%s: Looking for automatic captions' % video_id)
         mobj = re.search(r';ytplayer.config = ({.*?});', webpage)
@@ -530,23 +530,26 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         Return a dictionary: {language: subtitles} or {} if the subtitles
         couldn't be found
         """
-        sub_lang_list = self._get_available_subtitles(video_id)
+        available_subs_list = self._get_available_subtitles(video_id)
         sub_format = self._downloader.params.get('subtitlesformat')
-        if  not sub_lang_list: #There was some error, it didn't get the available subtitles
+        if  not available_subs_list: #There was some error, it didn't get the available subtitles
             return {}
         if self._downloader.params.get('allsubtitles', False):
-            pass
+            sub_lang_list = available_subs_list
         else:
-            if self._downloader.params.get('subtitleslang', False):
-                sub_lang = self._downloader.params.get('subtitleslang')
-            elif 'en' in sub_lang_list:
-                sub_lang = 'en'
+            if self._downloader.params.get('subtitleslangs', False):
+                reqested_langs = self._downloader.params.get('subtitleslangs')
+            elif 'en' in available_subs_list:
+                reqested_langs = ['en']
             else:
-                sub_lang = list(sub_lang_list.keys())[0]
-            if not sub_lang in sub_lang_list:
-                self._downloader.report_warning(u'no closed captions found in the specified language "%s"' % sub_lang)
-                return {}
-            sub_lang_list = {sub_lang: sub_lang_list[sub_lang]}
+                reqested_langs = [list(available_subs_list.keys())[0]]
+
+            sub_lang_list = {}
+            for sub_lang in reqested_langs:
+                if not sub_lang in available_subs_list:
+                    self._downloader.report_warning(u'no closed captions found in the specified language "%s"' % sub_lang)
+                    continue
+                sub_lang_list[sub_lang] = available_subs_list[sub_lang]
         subtitles = {}
         for sub_lang in sub_lang_list:
             subtitle = self._request_subtitle(sub_lang, sub_lang_list[sub_lang].encode('utf-8'), video_id, sub_format)
