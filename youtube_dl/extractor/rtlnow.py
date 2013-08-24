@@ -5,8 +5,8 @@ from .common import InfoExtractor
 from ..utils import ExtractorError
 
 class RTLnowIE(InfoExtractor):
-    """Information Extractor for RTLnow, RTL2now and VOXnow"""
-    _VALID_URL = r'(?:http://)?(?P<url>(?P<base_url>rtl(?:(?P<is_rtl2>2)|-)now\.rtl(?(is_rtl2)2|)\.de/|(?:www\.)?voxnow\.de/)[a-zA-Z0-9-]+/[a-zA-Z0-9-]+\.php\?(?:container_id|film_id)=(?P<video_id>[0-9]+)&player=1(?:&season=[0-9]+)?(?:&.*)?)'
+    """Information Extractor for RTL NOW, RTL2 NOW, SUPER RTL NOW and VOX NOW"""
+    _VALID_URL = r'(?:http://)?(?P<url>(?P<base_url>rtl-now\.rtl\.de/|rtl2now\.rtl2\.de/|(?:www\.)?voxnow\.de/|(?:www\.)?superrtlnow\.de/)[a-zA-Z0-9-]+/[a-zA-Z0-9-]+\.php\?(?:container_id|film_id)=(?P<video_id>[0-9]+)&player=1(?:&season=[0-9]+)?(?:&.*)?)'
     _TESTS = [{
         u'url': u'http://rtl-now.rtl.de/ahornallee/folge-1.php?film_id=90419&player=1&season=1',
         u'file': u'90419.flv',
@@ -39,6 +39,19 @@ class RTLnowIE(InfoExtractor):
             u'upload_date': u'20090627', 
             u'title': u'Voxtours - Südafrika-Reporter II',
             u'description': u'Südafrika-Reporter II',
+        },
+        u'params': {
+            u'skip_download': True,
+        },
+    },
+    {
+        u'url': u'http://superrtlnow.de/medicopter-117/angst.php?film_id=99205&player=1',
+        u'file': u'99205.flv',
+        u'info_dict': {
+            u'upload_date': u'20080928', 
+            u'title': u'Medicopter 117 - Angst!',
+            u'description': u'Angst!',
+            u'thumbnail': u'http://autoimg.static-fra.de/superrtlnow/287529/1500x1500/image2.jpg'
         },
         u'params': {
             u'skip_download': True,
