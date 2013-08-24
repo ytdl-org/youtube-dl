@@ -11,30 +11,36 @@ tests = [
     # 90
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[]}|:;?/>.<'`",
      "mrtyuioplkjhgfdsazxcvbne1234567890QWER[YUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={`]}|"),
+    # 89 
+    ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[]}|:;?/>.<'",
+     "/?;:|}<[{=+-_)(*&^%$#@!MqBVCXZASDFGHJKLPOIUYTREWQ0987654321mnbvcxzasdfghjklpoiuyt"),
     # 88
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[]}|:;?/>.<",
      "J:|}][{=+-_)(*&;%$#@>MNBVCXZASDFGH^KLPOIUYTREWQ0987654321mnbvcxzasdfghrklpoiuytej"),
-    # 87 - vflART1Nf 2013/07/24
+    # 87
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$^&*()_-+={[]}|:;?/>.<",
-     "tyuioplkjhgfdsazxcv<nm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$^&*()_-+={[]}|:;?/>"),
-    # 86 - vflm_D8eE 2013/07/31
+     "uioplkjhgfdsazxcvbnm1t34567890QWE2TYUIOPLKJHGFDSAZXCVeNM!@#$^&*()_-+={[]}|:;?/>.<"),
+    # 86 - vflh9ybst 2013/08/23
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[|};?/>.<",
-     ">.1}|[{=+-_)(*&^%$#@!MNBVCXZASDFGHJK<POIUYTREW509876L432/mnbvcxzasdfghjklpoiuytre"),
-    # 85 - vflSAFCP9 2013/07/19
+     "yuioplkjhgfdsazxcvbnm1234567890QWERrYUIOPLKqHGFDSAZXCVBNM!@#$%^&*()_-+={[|};?/>.<"),
+    # 85
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[};?/>.<",
-     "ertyuiqplkjhgfdsazx$vbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#<%^&*()_-+={[};?/c"),
-    # 84
+     ".>/?;}[{=+-_)(*&^%$#@!MNBVCXZASDFGHJKLPOIUYTREWQ0q876543r1mnbvcx9asdfghjklpoiuyt2"),
+    # 84 - vflh9ybst 2013/08/23 (sporadic)
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[};?>.<",
-     "<.>?;}[{=+-_)(*&^%$#@!MNBVCXZASDFGHJKLPOIUYTREWe098765432rmnbvcxzasdfghjklpoiuyt1"),
-    # 83 - vflTWC9KW 2013/08/01
+     "yuioplkjhgfdsazxcvbnm1234567890QWERrYUIOPLKqHGFDSAZXCVBNM!@#$%^&*()_-+={[};?>.<"),
+    # 83
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!#$%^&*()_+={[};?/>.<",
-     "qwertyuioplkjhg>dsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!#$%^&*()_+={[};?/f"),
-    # 82
+     ".>/?;}[{=+_)(*&^%<#!MNBVCXZASPFGHJKLwOIUYTREWQ0987654321mnbvcxzasdfghjklpoiuytreq"),
+    # 82 - vflZK4ZYR 2013/08/23
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKHGFDSAZXCVBNM!@#$%^&*(-+={[};?/>.<",
-     "Q>/?;}[{=+-(*<^%$#@!MNBVCXZASDFGHKLPOIUY8REWT0q&7654321mnbvcxzasdfghjklpoiuytrew9"),
+     "wertyuioplkjhgfdsaqxcvbnm1234567890QWERTYUIOPLKHGFDSAZXCVBNM!@#$%^&z(-+={[};?/>.<"),
     # 81 - vflLC8JvQ 2013/07/25
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKHGFDSAZXCVBNM!@#$%^&*(-+={[};?/>.",
      "C>/?;}[{=+-(*&^%$#@!MNBVYXZASDFGHKLPOIU.TREWQ0q87659321mnbvcxzasdfghjkl4oiuytrewp"),
+    # 80 - vflZK4ZYR 2013/08/23 (sporadic)
+    ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKHGFDSAZXCVBNM!@#$%^&*(-+={[};?/>",
+     "wertyuioplkjhgfdsaqxcvbnm1234567890QWERTYUIOPLKHGFDSAZXCVBNM!@#$%^&z(-+={[};?/>"),
     # 79 - vflLC8JvQ 2013/07/25 (sporadic)
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKHGFDSAZXCVBNM!@#$%^&*(-+={[};?/",
      "Z?;}[{=+-(*&^%$#@!MNBVCXRASDFGHKLPOIUYT/EWQ0q87659321mnbvcxzasdfghjkl4oiuytrewp"),

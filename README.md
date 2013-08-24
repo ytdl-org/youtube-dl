@@ -120,18 +120,20 @@ which means you can modify it, redistribute it or use it however you like.
     --max-quality FORMAT       highest quality format to download
     -F, --list-formats         list all available formats (currently youtube
                                only)
+
+## Subtitle Options:
     --write-sub                write subtitle file (currently youtube only)
     --write-auto-sub           write automatic subtitle file (currently youtube
                                only)
     --only-sub                 [deprecated] alias of --skip-download
     --all-subs                 downloads all the available subtitles of the
-                               video (currently youtube only)
+                               video
     --list-subs                lists all available subtitles for the video
-                               (currently youtube only)
-    --sub-format FORMAT        subtitle format [srt/sbv/vtt] (default=srt)
-                               (currently youtube only)
-    --sub-lang LANG            language of the subtitles to download (optional)
-                               use IETF language tags like 'en'
+    --sub-format FORMAT        subtitle format (default=srt) ([sbv/vtt] youtube
+                               only)
+    --sub-lang LANGS           languages of the subtitles to download (optional)
+                               separated by commas, use IETF language tags like
+                               'en,pt'
 
 ## Authentication Options:
     -u, --username USERNAME    account username
@@ -153,6 +155,8 @@ which means you can modify it, redistribute it or use it however you like.
                                processing; the video is erased by default
     --no-post-overwrites       do not overwrite post-processed files; the post-
                                processed files are overwritten by default
+    --embed-subs               embed subtitles in the video (only for mp4
+                               videos)
 
 # CONFIGURATION
 

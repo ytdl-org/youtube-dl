@@ -7,11 +7,13 @@ from .common import InfoExtractor
 from ..utils import (
     compat_urllib_error,
     compat_urllib_parse,
+    compat_urllib_parse_urlparse,
     compat_urllib_request,
 
     ExtractorError,
 )
 from .brightcove import BrightcoveIE
+
 
 class GenericIE(InfoExtractor):
     IE_DESC = u'Generic downloader that works on some sites'
@@ -23,7 +25,7 @@ class GenericIE(InfoExtractor):
             u'file': u'13601338388002.mp4',
             u'md5': u'85b90ccc9d73b4acd9138d3af4c27f89',
             u'info_dict': {
-                u"uploader": u"www.hodiho.fr", 
+                u"uploader": u"www.hodiho.fr",
                 u"title": u"R\u00e9gis plante sa Jeep"
             }
         },
@@ -161,6 +163,10 @@ class GenericIE(InfoExtractor):
             raise ExtractorError(u'Invalid URL: %s' % url)
 
         video_url = compat_urllib_parse.unquote(mobj.group(1))
+        if video_url.startswith('//'):
+            video_url = compat_urllib_parse_urlparse(url).scheme + ':' + video_url
+        if '://' not in video_url:
+            video_url = url + ('' if url.endswith('/') else '/') + video_url
         video_id = os.path.basename(video_url)
 
         # here's a fun little line of code for you:

@@ -83,6 +83,9 @@ def parseOpts(overrideArguments=None):
 
         return "".join(opts)
 
+    def _comma_separated_values_options_callback(option, opt_str, value, parser):
+        setattr(parser.values, option.dest, value.split(','))
+
     def _find_term_columns():
         columns = os.environ.get('COLUMNS', None)
         if columns:
@@ -120,6 +123,7 @@ def parseOpts(overrideArguments=None):
     selection      = optparse.OptionGroup(parser, 'Video Selection')
     authentication = optparse.OptionGroup(parser, 'Authentication Options')
     video_format   = optparse.OptionGroup(parser, 'Video Format Options')
+    subtitles      = optparse.OptionGroup(parser, 'Subtitle Options')
     downloader     = optparse.OptionGroup(parser, 'Download Options')
     postproc       = optparse.OptionGroup(parser, 'Post-processing Options')
     filesystem     = optparse.OptionGroup(parser, 'Filesystem Options')
@@ -186,27 +190,29 @@ def parseOpts(overrideArguments=None):
             action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
     video_format.add_option('-F', '--list-formats',
             action='store_true', dest='listformats', help='list all available formats (currently youtube only)')
-    video_format.add_option('--write-sub', '--write-srt',
+
+    subtitles.add_option('--write-sub', '--write-srt',
             action='store_true', dest='writesubtitles',
             help='write subtitle file (currently youtube only)', default=False)
-    video_format.add_option('--write-auto-sub', '--write-automatic-sub',
+    subtitles.add_option('--write-auto-sub', '--write-automatic-sub',
             action='store_true', dest='writeautomaticsub',
             help='write automatic subtitle file (currently youtube only)', default=False)
-    video_format.add_option('--only-sub',
+    subtitles.add_option('--only-sub',
             action='store_true', dest='skip_download',
             help='[deprecated] alias of --skip-download', default=False)
-    video_format.add_option('--all-subs',
+    subtitles.add_option('--all-subs',
             action='store_true', dest='allsubtitles',
-            help='downloads all the available subtitles of the video (currently youtube only)', default=False)
-    video_format.add_option('--list-subs',
+            help='downloads all the available subtitles of the video', default=False)
+    subtitles.add_option('--list-subs',
             action='store_true', dest='listsubtitles',
-            help='lists all available subtitles for the video (currently youtube only)', default=False)
-    video_format.add_option('--sub-format',
+            help='lists all available subtitles for the video', default=False)
+    subtitles.add_option('--sub-format',
             action='store', dest='subtitlesformat', metavar='FORMAT',
-            help='subtitle format [srt/sbv/vtt] (default=srt) (currently youtube only)', default='srt')
-    video_format.add_option('--sub-lang', '--srt-lang',
-            action='store', dest='subtitleslang', metavar='LANG',
-            help='language of the subtitles to download (optional) use IETF language tags like \'en\'')
+            help='subtitle format (default=srt) ([sbv/vtt] youtube only)', default='srt')
+    subtitles.add_option('--sub-lang', '--sub-langs', '--srt-lang',
+            action='callback', dest='subtitleslang', metavar='LANGS', type='str',
+            default=[], callback=_comma_separated_values_options_callback,
+            help='languages of the subtitles to download (optional) separated by commas, use IETF language tags like \'en,pt\'')
 
     downloader.add_option('-r', '--rate-limit',
             dest='ratelimit', metavar='LIMIT', help='maximum download rate (e.g. 50k or 44.6m)')
@@ -321,6 +327,8 @@ def parseOpts(overrideArguments=None):
             help='keeps the video file on disk after the post-processing; the video is erased by default')
     postproc.add_option('--no-post-overwrites', action='store_true', dest='nopostoverwrites', default=False,
             help='do not overwrite post-processed files; the post-processed files are overwritten by default')
+    postproc.add_option('--embed-subs', action='store_true', dest='embedsubtitles', default=False,
+            help='embed subtitles in the video (only for mp4 videos)')
 
 
     parser.add_option_group(general)
@@ -329,6 +337,7 @@ def parseOpts(overrideArguments=None):
     parser.add_option_group(filesystem)
     parser.add_option_group(verbosity)
     parser.add_option_group(video_format)
+    parser.add_option_group(subtitles)
     parser.add_option_group(authentication)
     parser.add_option_group(postproc)
 
@@ -344,7 +353,7 @@ def parseOpts(overrideArguments=None):
             userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
         systemConf = _readOptions('/etc/youtube-dl.conf')
         userConf = _readOptions(userConfFile)
-        commandLineConf = sys.argv[1:] 
+        commandLineConf = sys.argv[1:]
         argv = systemConf + userConf + commandLineConf
         opts, args = parser.parse_args(argv)
         if opts.verbose:
@@ -378,7 +387,7 @@ def _real_main(argv=None):
     # Set user agent
     if opts.user_agent is not None:
         std_headers['User-Agent'] = opts.user_agent
-    
+
     # Set referer
     if opts.referer is not None:
         std_headers['Referer'] = opts.referer
@@ -568,7 +577,7 @@ def _real_main(argv=None):
         'allsubtitles': opts.allsubtitles,
         'listsubtitles': opts.listsubtitles,
         'subtitlesformat': opts.subtitlesformat,
-        'subtitleslang': opts.subtitleslang,
+        'subtitleslangs': opts.subtitleslang,
         'matchtitle': decodeOption(opts.matchtitle),
         'rejecttitle': decodeOption(opts.rejecttitle),
         'max_downloads': opts.max_downloads,
@@ -608,6 +617,8 @@ def _real_main(argv=None):
         ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
     if opts.recodevideo:
         ydl.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
+    if opts.embedsubtitles:
+        ydl.add_post_processor(FFmpegEmbedSubtitlePP(subtitlesformat=opts.subtitlesformat))
 
     # Update version
     if opts.update_self:

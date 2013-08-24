@@ -22,7 +22,7 @@ entry_template=textwrap.dedent("""
 									<atom:link href="http://rg3.github.io/youtube-dl" />
 									<atom:content type="xhtml">
 										<div xmlns="http://www.w3.org/1999/xhtml">
-											Downloads available at <a href="http://youtube-dl.org/downloads/@VERSION@/">http://youtube-dl.org/downloads/@VERSION@/</a>
+											Downloads available at <a href="https://yt-dl.org/downloads/@VERSION@/">https://yt-dl.org/downloads/@VERSION@/</a>
 										</div>
 									</atom:content>
 									<atom:author>
@@ -53,5 +53,4 @@ atom_template = atom_template.replace('@ENTRIES@', entries_str)
 
 with open('update/releases.atom','w',encoding='utf-8') as atom_file:
 	atom_file.write(atom_template)
-
 
