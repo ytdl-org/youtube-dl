@@ -54,8 +54,7 @@ class SoundcloudIE(InfoExtractor):
         return 'http://api.soundcloud.com/resolve.json?url=' + url + '&client_id=' + cls._CLIENT_ID
 
     def _extract_info_dict(self, info, full_title=None):
-        video_id = info['id']
-        name = full_title or video_id
+        name = full_title or info['id']
         self.report_extraction(name)
 
         thumbnail = info['artwork_url']
@@ -185,7 +184,6 @@ class SoundcloudSetIE(SoundcloudIE):
         resolv_url = self._resolv_url(url)
         info_json = self._download_webpage(resolv_url, full_title)
 
-        videos = []
         info = json.loads(info_json)
         if 'errors' in info:
             for err in info['errors']:
