@@ -29,6 +29,7 @@ from .gametrailers import GametrailersIE
 from .generic import GenericIE
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
+from .hark import HarkIE
 from .hotnewhiphop import HotNewHipHopIE
 from .howcast import HowcastIE
 from .hypem import HypemIE
@@ -57,6 +58,7 @@ from .pornotube import PornotubeIE
 from .rbmaradio import RBMARadioIE
 from .redtube import RedTubeIE
 from .ringtv import RingTVIE
+from .ro220 import Ro220IE
 from .roxwel import RoxwelIE
 from .rtlnow import RTLnowIE
 from .sina import SinaIE
@@ -116,11 +118,13 @@ _ALL_CLASSES = [
 ]
 _ALL_CLASSES.append(GenericIE)
 
+
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
     The order does matter; the first extractor matched is the one handling the URL.
     """
     return [klass() for klass in _ALL_CLASSES]
+
 
 def get_info_extractor(ie_name):
     """Returns the info extractor class with the given ie_name"""
