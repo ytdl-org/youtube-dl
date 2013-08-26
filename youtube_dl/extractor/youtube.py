@@ -24,6 +24,112 @@ from ..utils import (
     orderedSet,
 )
 
+class YoutubeBaseInfoExtractor(InfoExtractor):
+    """Provide base functions for Youtube extractors"""
+    _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
+    _LANG_URL = r'https://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
+    _AGE_URL = 'http://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
+    _NETRC_MACHINE = 'youtube'
+    # If True it will raise an error if no login info is provided
+    _LOGIN_REQUIRED = False
+
+    def report_lang(self):
+        """Report attempt to set language."""
+        self.to_screen(u'Setting language')
+
+    def _set_language(self):
+        request = compat_urllib_request.Request(self._LANG_URL)
+        try:
+            self.report_lang()
+            compat_urllib_request.urlopen(request).read()
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.report_warning(u'unable to set language: %s' % compat_str(err))
+            return False
+        return True
+
+    def _login(self):
+        (username, password) = self._get_login_info()
+        # No authentication to be performed
+        if username is None:
+            if self._LOGIN_REQUIRED:
+                raise ExtractorError(u'No login info available, needed for using %s.' % self.IE_NAME, expected=True)
+            return False
+
+        request = compat_urllib_request.Request(self._LOGIN_URL)
+        try:
+            login_page = compat_urllib_request.urlopen(request).read().decode('utf-8')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.report_warning(u'unable to fetch login page: %s' % compat_str(err))
+            return False
+
+        galx = None
+        dsh = None
+        match = re.search(re.compile(r'<input.+?name="GALX".+?value="(.+?)"', re.DOTALL), login_page)
+        if match:
+          galx = match.group(1)
+        match = re.search(re.compile(r'<input.+?name="dsh".+?value="(.+?)"', re.DOTALL), login_page)
+        if match:
+          dsh = match.group(1)
+
+        # Log in
+        login_form_strs = {
+                u'continue': u'https://www.youtube.com/signin?action_handle_signin=true&feature=sign_in_button&hl=en_US&nomobiletemp=1',
+                u'Email': username,
+                u'GALX': galx,
+                u'Passwd': password,
+                u'PersistentCookie': u'yes',
+                u'_utf8': u'霱',
+                u'bgresponse': u'js_disabled',
+                u'checkConnection': u'',
+                u'checkedDomains': u'youtube',
+                u'dnConn': u'',
+                u'dsh': dsh,
+                u'pstMsg': u'0',
+                u'rmShown': u'1',
+                u'secTok': u'',
+                u'signIn': u'Sign in',
+                u'timeStmp': u'',
+                u'service': u'youtube',
+                u'uilel': u'3',
+                u'hl': u'en_US',
+        }
+        # Convert to UTF-8 *before* urlencode because Python 2.x's urlencode
+        # chokes on unicode
+        login_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k,v in login_form_strs.items())
+        login_data = compat_urllib_parse.urlencode(login_form).encode('ascii')
+        request = compat_urllib_request.Request(self._LOGIN_URL, login_data)
+        try:
+            self.report_login()
+            login_results = compat_urllib_request.urlopen(request).read().decode('utf-8')
+            if re.search(r'(?i)<form[^>]* id="gaia_loginform"', login_results) is not None:
+                self._downloader.report_warning(u'unable to log in: bad username or password')
+                return False
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.report_warning(u'unable to log in: %s' % compat_str(err))
+            return False
+        return True
+
+    def _confirm_age(self):
+        age_form = {
+                'next_url':     '/',
+                'action_confirm':   'Confirm',
+                }
+        request = compat_urllib_request.Request(self._AGE_URL, compat_urllib_parse.urlencode(age_form))
+        try:
+            self.report_age_confirmation()
+            compat_urllib_request.urlopen(request).read().decode('utf-8')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            raise ExtractorError(u'Unable to confirm age: %s' % compat_str(err))
+        return True
+
+    def _real_initialize(self):
+        if self._downloader is None:
+            return
+        if not self._set_language():
+            return
+        if not self._login():
+            return
+        self._confirm_age()
 
 class YoutubeSubtitlesIE(SubtitlesIE):
 
@@ -83,8 +189,7 @@ class YoutubeSubtitlesIE(SubtitlesIE):
             self._downloader.report_warning(err_msg)
             return {}
 
-
-class YoutubeIE(YoutubeSubtitlesIE):
+class YoutubeIE(YoutubeSubtitlesIE, YoutubeBaseInfoExtractor):
     IE_DESC = u'YouTube.com'
     _VALID_URL = r"""^
                      (
@@ -95,7 +200,7 @@ class YoutubeIE(YoutubeSubtitlesIE):
                          (?:                                                  # the various things that can precede the ID:
                              (?:(?:v|embed|e)/)                               # v/ or embed/ or e/
                              |(?:                                             # or the v= param in all its forms
-                                 (?:watch|movie(?:_popup)?(?:\.php)?)?              # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
+                                 (?:(?:watch|movie)(?:_popup)?(?:\.php)?)?    # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
                                  (?:\?|\#!?)                                  # the params delimiter ? or # or #!
                                  (?:.*?&)?                                    # any other preceding param (like /?s=tuff&v=xxxx)
                                  v=
@@ -375,6 +480,8 @@ class YoutubeIE(YoutubeSubtitlesIE):
             return s[1:19] + s[0] + s[20:68] + s[19] + s[69:82]
         elif len(s) == 81:
             return s[56] + s[79:56:-1] + s[41] + s[55:41:-1] + s[80] + s[40:34:-1] + s[0] + s[33:29:-1] + s[34] + s[28:9:-1] + s[29] + s[8:0:-1] + s[9]
+        elif len(s) == 80:
+            return s[1:19] + s[0] + s[20:68] + s[19] + s[69:80]
         elif len(s) == 79:
             return s[54] + s[77:54:-1] + s[39] + s[53:39:-1] + s[78] + s[38:34:-1] + s[0] + s[33:29:-1] + s[34] + s[28:9:-1] + s[29] + s[8:0:-1] + s[9]
 
@@ -389,105 +496,6 @@ class YoutubeIE(YoutubeSubtitlesIE):
         else:
             # Fallback to the other algortihms
             return self._decrypt_signature(s)
-
-
-    def _get_available_subtitles(self, video_id):
-        self.report_video_subtitles_download(video_id)
-        request = compat_urllib_request.Request('http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id)
-        try:
-            sub_list = compat_urllib_request.urlopen(request).read().decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            return (u'unable to download video subtitles: %s' % compat_str(err), None)
-        sub_lang_list = re.findall(r'name="([^"]*)"[^>]+lang_code="([\w\-]+)"', sub_list)
-        sub_lang_list = dict((l[1], l[0]) for l in sub_lang_list)
-        if not sub_lang_list:
-            return (u'video doesn\'t have subtitles', None)
-        return sub_lang_list
-
-    def _list_available_subtitles(self, video_id):
-        sub_lang_list = self._get_available_subtitles(video_id)
-        self.report_video_subtitles_available(video_id, sub_lang_list)
-
-    def _request_subtitle(self, sub_lang, sub_name, video_id, format):
-        """
-        Return tuple:
-        (error_message, sub_lang, sub)
-        """
-        self.report_video_subtitles_request(video_id, sub_lang, format)
-        params = compat_urllib_parse.urlencode({
-            'lang': sub_lang,
-            'name': sub_name,
-            'v': video_id,
-            'fmt': format,
-        })
-        url = 'http://www.youtube.com/api/timedtext?' + params
-        try:
-            sub = compat_urllib_request.urlopen(url).read().decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            return (u'unable to download video subtitles: %s' % compat_str(err), None, None)
-        if not sub:
-            return (u'Did not fetch video subtitles', None, None)
-        return (None, sub_lang, sub)
-
-    def _request_automatic_caption(self, video_id, webpage):
-        """We need the webpage for getting the captions url, pass it as an
-           argument to speed up the process."""
-        sub_lang = self._downloader.params.get('subtitleslang') or 'en'
-        sub_format = self._downloader.params.get('subtitlesformat')
-        self.to_screen(u'%s: Looking for automatic captions' % video_id)
-        mobj = re.search(r';ytplayer.config = ({.*?});', webpage)
-        err_msg = u'Couldn\'t find automatic captions for "%s"' % sub_lang
-        if mobj is None:
-            return [(err_msg, None, None)]
-        player_config = json.loads(mobj.group(1))
-        try:
-            args = player_config[u'args']
-            caption_url = args[u'ttsurl']
-            timestamp = args[u'timestamp']
-            params = compat_urllib_parse.urlencode({
-                'lang': 'en',
-                'tlang': sub_lang,
-                'fmt': sub_format,
-                'ts': timestamp,
-                'kind': 'asr',
-            })
-            subtitles_url = caption_url + '&' + params
-            sub = self._download_webpage(subtitles_url, video_id, u'Downloading automatic captions')
-            return [(None, sub_lang, sub)]
-        except KeyError:
-            return [(err_msg, None, None)]
-
-    def _extract_subtitle(self, video_id):
-        """
-        Return a list with a tuple:
-        [(error_message, sub_lang, sub)]
-        """
-        sub_lang_list = self._get_available_subtitles(video_id)
-        sub_format = self._downloader.params.get('subtitlesformat')
-        if  isinstance(sub_lang_list,tuple): #There was some error, it didn't get the available subtitles
-            return [(sub_lang_list[0], None, None)]
-        if self._downloader.params.get('subtitleslang', False):
-            sub_lang = self._downloader.params.get('subtitleslang')
-        elif 'en' in sub_lang_list:
-            sub_lang = 'en'
-        else:
-            sub_lang = list(sub_lang_list.keys())[0]
-        if not sub_lang in sub_lang_list:
-            return [(u'no closed captions found in the specified language "%s"' % sub_lang, None, None)]
-
-        subtitle = self._request_subtitle(sub_lang, sub_lang_list[sub_lang].encode('utf-8'), video_id, sub_format)
-        return [subtitle]
-
-    def _extract_all_subtitles(self, video_id):
-        sub_lang_list = self._get_available_subtitles(video_id)
-        sub_format = self._downloader.params.get('subtitlesformat')
-        if  isinstance(sub_lang_list,tuple): #There was some error, it didn't get the available subtitles
-            return [(sub_lang_list[0], None, None)]
-        subtitles = []
-        for sub_lang in sub_lang_list:
-            subtitle = self._request_subtitle(sub_lang, sub_lang_list[sub_lang].encode('utf-8'), video_id, sub_format)
-            subtitles.append(subtitle)
-        return subtitles
 
     def _print_formats(self, formats):
         print('Available formats:')

@@ -1,5 +1,6 @@
 import re
 import json
+import itertools
 import socket
 
 from .common import InfoExtractor
@@ -33,7 +34,7 @@ class DailyMotionSubtitlesIE(NoAutoSubtitlesIE):
         self._downloader.report_warning(u'video doesn\'t have subtitles')
         return {}
 
-class DailymotionIE(DailyMotionSubtitlesIE):
+class DailymotionIE(DailyMotionSubtitlesIE, InfoExtractor):
     """Information Extractor for Dailymotion"""
 
     _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^/]+)'
@@ -43,7 +44,7 @@ class DailymotionIE(DailyMotionSubtitlesIE):
         u'file': u'x33vw9.mp4',
         u'md5': u'392c4b85a60a90dc4792da41ce3144eb',
         u'info_dict': {
-            u"uploader": u"Alex and Van .",
+            u"uploader": u"Alex and Van .", 
             u"title": u"Tutoriel de Youtubeur\"DL DES VIDEO DE YOUTUBE\""
         }
     }
@@ -85,9 +86,9 @@ class DailymotionIE(DailyMotionSubtitlesIE):
         for key in ['stream_h264_hd1080_url','stream_h264_hd_url',
                     'stream_h264_hq_url','stream_h264_url',
                     'stream_h264_ld_url']:
-            if info.get(key):  # key in info and info[key]:
+            if info.get(key):#key in info and info[key]:
                 max_quality = key
-                self.to_screen(u'%s: Using %s' % (video_id, key))
+                self.to_screen(u'Using %s' % key)
                 break
         else:
             raise ExtractorError(u'Unable to extract video URL')

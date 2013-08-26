@@ -320,6 +320,8 @@ def parseOpts(overrideArguments=None):
             help='keeps the video file on disk after the post-processing; the video is erased by default')
     postproc.add_option('--no-post-overwrites', action='store_true', dest='nopostoverwrites', default=False,
             help='do not overwrite post-processed files; the post-processed files are overwritten by default')
+    postproc.add_option('--embed-subs', action='store_true', dest='embedsubtitles', default=False,
+            help='embed subtitles in the video (only for mp4 videos)')
 
 
     parser.add_option_group(general)
@@ -608,6 +610,8 @@ def _real_main(argv=None):
         ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
     if opts.recodevideo:
         ydl.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
+    if opts.embedsubtitles:
+        ydl.add_post_processor(FFmpegEmbedSubtitlePP(subtitlesformat=opts.subtitlesformat))
 
     # Update version
     if opts.update_self:

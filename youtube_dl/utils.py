@@ -657,6 +657,9 @@ def determine_ext(url, default_ext=u'unknown_video'):
     else:
         return default_ext
 
+def subtitles_filename(filename, sub_lang, sub_format):
+    return filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
+
 def date_from_str(date_str):
     """
     Return a datetime object from a string in the format YYYYMMDD or
