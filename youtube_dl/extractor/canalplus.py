@@ -5,7 +5,7 @@ from .common import InfoExtractor
 from ..utils import unified_strdate
 
 class CanalplusIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.canalplus\.fr/.*?\?vid=(?P<id>\d+)'
+    _VALID_URL = r'https?://(www\.canalplus\.fr/.*?\?vid=|player\.canalplus\.fr/#/)(?P<id>\d+)'
     _VIDEO_INFO_TEMPLATE = 'http://service.canal-plus.com/video/rest/getVideosLiees/cplus/%s'
     IE_NAME = u'canalplus.fr'
 
