@@ -476,7 +476,7 @@ def formatSeconds(secs):
 def make_HTTPS_handler(opts):
     if sys.version_info < (3,2):
         # Python's 2.x handler is very simplistic
-        return YoutubeDLHandlerHTTPS()
+        return compat_urllib_request.HTTPSHandler()
     else:
         import ssl
         context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
@@ -485,7 +485,7 @@ def make_HTTPS_handler(opts):
         context.verify_mode = (ssl.CERT_NONE
                                if opts.no_check_certificate
                                else ssl.CERT_REQUIRED)
-        return YoutubeDLHandlerHTTPS(context=context)
+        return compat_urllib_request.HTTPSHandler(context=context)
 
 class ExtractorError(Exception):
     """Error during info extraction."""
@@ -569,8 +569,7 @@ class ContentTooShortError(Exception):
         self.downloaded = downloaded
         self.expected = expected
 
-
-class YoutubeDLHandler_Template:  # Old-style class, like HTTPHandler
+class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     """Handler for HTTP requests and responses.
 
     This class, when installed with an OpenerDirector, automatically adds
@@ -603,8 +602,8 @@ class YoutubeDLHandler_Template:  # Old-style class, like HTTPHandler
         ret.code = code
         return ret
 
-    def _http_request(self, req):
-        for h, v in std_headers.items():
+    def http_request(self, req):
+        for h,v in std_headers.items():
             if h in req.headers:
                 del req.headers[h]
             req.add_header(h, v)
@@ -619,7 +618,7 @@ class YoutubeDLHandler_Template:  # Old-style class, like HTTPHandler
             del req.headers['Youtubedl-user-agent']
         return req
 
-    def _http_response(self, req, resp):
+    def http_response(self, req, resp):
         old_resp = resp
         # gzip
         if resp.headers.get('Content-encoding', '') == 'gzip':
@@ -633,16 +632,8 @@ class YoutubeDLHandler_Template:  # Old-style class, like HTTPHandler
             resp.msg = old_resp.msg
         return resp
 
-
-class YoutubeDLHandler(YoutubeDLHandler_Template, compat_urllib_request.HTTPHandler):
-    http_request = YoutubeDLHandler_Template._http_request
-    http_response = YoutubeDLHandler_Template._http_response
-
-
-class YoutubeDLHandlerHTTPS(YoutubeDLHandler_Template, compat_urllib_request.HTTPSHandler):
-    https_request = YoutubeDLHandler_Template._http_request
-    https_response = YoutubeDLHandler_Template._http_response
-
+    https_request = http_request
+    https_response = http_response
 
 def unified_strdate(date_str):
     """Return a string with the date in the format YYYYMMDD"""
