@@ -2,7 +2,7 @@
 <atom:feed xmlns:atom="http://www.w3.org/2005/Atom">
 	<atom:title>youtube-dl releases</atom:title>
 	<atom:id>youtube-dl-updates-feed</atom:id>
-	<atom:updated>2013-08-23T23:42:35.130278</atom:updated>
+	<atom:updated>2013-08-27T02:36:41.041626</atom:updated>
 	
 	<atom:entry>
 		<atom:id>youtube-dl-2012.02.22</atom:id>
@@ -10,7 +10,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2012.02.22/">http://youtube-dl.org/downloads/2012.02.22/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2012.02.22/">https://yt-dl.org/downloads/2012.02.22/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -25,7 +25,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.01.02/">http://youtube-dl.org/downloads/2013.01.02/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.01.02/">https://yt-dl.org/downloads/2013.01.02/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -40,7 +40,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.01.06/">http://youtube-dl.org/downloads/2013.01.06/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.01.06/">https://yt-dl.org/downloads/2013.01.06/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -55,7 +55,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.01.08/">http://youtube-dl.org/downloads/2013.01.08/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.01.08/">https://yt-dl.org/downloads/2013.01.08/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -70,7 +70,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.01.11/">http://youtube-dl.org/downloads/2013.01.11/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.01.11/">https://yt-dl.org/downloads/2013.01.11/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -85,7 +85,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.01.12/">http://youtube-dl.org/downloads/2013.01.12/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.01.12/">https://yt-dl.org/downloads/2013.01.12/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -100,7 +100,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.01.13/">http://youtube-dl.org/downloads/2013.01.13/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.01.13/">https://yt-dl.org/downloads/2013.01.13/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -115,7 +115,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.01.28/">http://youtube-dl.org/downloads/2013.01.28/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.01.28/">https://yt-dl.org/downloads/2013.01.28/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -130,7 +130,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.02.01/">http://youtube-dl.org/downloads/2013.02.01/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.02.01/">https://yt-dl.org/downloads/2013.02.01/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -145,7 +145,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.02.02/">http://youtube-dl.org/downloads/2013.02.02/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.02.02/">https://yt-dl.org/downloads/2013.02.02/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -160,7 +160,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.02.18/">http://youtube-dl.org/downloads/2013.02.18/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.02.18/">https://yt-dl.org/downloads/2013.02.18/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -175,7 +175,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.02.19/">http://youtube-dl.org/downloads/2013.02.19/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.02.19/">https://yt-dl.org/downloads/2013.02.19/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -190,7 +190,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.02.22/">http://youtube-dl.org/downloads/2013.02.22/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.02.22/">https://yt-dl.org/downloads/2013.02.22/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -205,7 +205,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.02.25/">http://youtube-dl.org/downloads/2013.02.25/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.02.25/">https://yt-dl.org/downloads/2013.02.25/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -220,7 +220,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.03.29/">http://youtube-dl.org/downloads/2013.03.29/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.03.29/">https://yt-dl.org/downloads/2013.03.29/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -235,7 +235,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.04.03/">http://youtube-dl.org/downloads/2013.04.03/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.04.03/">https://yt-dl.org/downloads/2013.04.03/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -250,7 +250,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.04.11/">http://youtube-dl.org/downloads/2013.04.11/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.04.11/">https://yt-dl.org/downloads/2013.04.11/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -265,7 +265,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.04.18/">http://youtube-dl.org/downloads/2013.04.18/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.04.18/">https://yt-dl.org/downloads/2013.04.18/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -280,7 +280,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.04.21/">http://youtube-dl.org/downloads/2013.04.21/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.04.21/">https://yt-dl.org/downloads/2013.04.21/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -295,7 +295,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.04.22/">http://youtube-dl.org/downloads/2013.04.22/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.04.22/">https://yt-dl.org/downloads/2013.04.22/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -310,7 +310,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.04.27/">http://youtube-dl.org/downloads/2013.04.27/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.04.27/">https://yt-dl.org/downloads/2013.04.27/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -325,7 +325,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.04.28/">http://youtube-dl.org/downloads/2013.04.28/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.04.28/">https://yt-dl.org/downloads/2013.04.28/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -340,7 +340,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.04.30/">http://youtube-dl.org/downloads/2013.04.30/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.04.30/">https://yt-dl.org/downloads/2013.04.30/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -355,7 +355,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.04.31/">http://youtube-dl.org/downloads/2013.04.31/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.04.31/">https://yt-dl.org/downloads/2013.04.31/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -370,7 +370,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.05.01/">http://youtube-dl.org/downloads/2013.05.01/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.05.01/">https://yt-dl.org/downloads/2013.05.01/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -385,7 +385,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.05.04/">http://youtube-dl.org/downloads/2013.05.04/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.05.04/">https://yt-dl.org/downloads/2013.05.04/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -400,7 +400,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.05.05/">http://youtube-dl.org/downloads/2013.05.05/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.05.05/">https://yt-dl.org/downloads/2013.05.05/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -415,7 +415,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.05.07/">http://youtube-dl.org/downloads/2013.05.07/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.05.07/">https://yt-dl.org/downloads/2013.05.07/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -430,7 +430,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.05.10/">http://youtube-dl.org/downloads/2013.05.10/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.05.10/">https://yt-dl.org/downloads/2013.05.10/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -445,7 +445,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.05.14/">http://youtube-dl.org/downloads/2013.05.14/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.05.14/">https://yt-dl.org/downloads/2013.05.14/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -460,7 +460,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.05.23/">http://youtube-dl.org/downloads/2013.05.23/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.05.23/">https://yt-dl.org/downloads/2013.05.23/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -475,7 +475,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.06.21/">http://youtube-dl.org/downloads/2013.06.21/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.06.21/">https://yt-dl.org/downloads/2013.06.21/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -490,7 +490,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.06.23/">http://youtube-dl.org/downloads/2013.06.23/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.06.23/">https://yt-dl.org/downloads/2013.06.23/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -505,7 +505,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.06.25/">http://youtube-dl.org/downloads/2013.06.25/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.06.25/">https://yt-dl.org/downloads/2013.06.25/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -520,7 +520,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.06.26/">http://youtube-dl.org/downloads/2013.06.26/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.06.26/">https://yt-dl.org/downloads/2013.06.26/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -535,7 +535,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.06.27/">http://youtube-dl.org/downloads/2013.06.27/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.06.27/">https://yt-dl.org/downloads/2013.06.27/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -550,7 +550,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.06.28/">http://youtube-dl.org/downloads/2013.06.28/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.06.28/">https://yt-dl.org/downloads/2013.06.28/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -565,7 +565,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.06.29/">http://youtube-dl.org/downloads/2013.06.29/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.06.29/">https://yt-dl.org/downloads/2013.06.29/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -580,7 +580,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.06.30/">http://youtube-dl.org/downloads/2013.06.30/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.06.30/">https://yt-dl.org/downloads/2013.06.30/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -595,7 +595,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.06.31/">http://youtube-dl.org/downloads/2013.06.31/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.06.31/">https://yt-dl.org/downloads/2013.06.31/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -610,7 +610,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.06.32/">http://youtube-dl.org/downloads/2013.06.32/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.06.32/">https://yt-dl.org/downloads/2013.06.32/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -625,7 +625,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.06.33/">http://youtube-dl.org/downloads/2013.06.33/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.06.33/">https://yt-dl.org/downloads/2013.06.33/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -640,7 +640,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.06.34/">http://youtube-dl.org/downloads/2013.06.34/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.06.34/">https://yt-dl.org/downloads/2013.06.34/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -655,7 +655,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.06.34.1/">http://youtube-dl.org/downloads/2013.06.34.1/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.06.34.1/">https://yt-dl.org/downloads/2013.06.34.1/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -670,7 +670,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.06.34.2/">http://youtube-dl.org/downloads/2013.06.34.2/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.06.34.2/">https://yt-dl.org/downloads/2013.06.34.2/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -685,7 +685,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.06.34.3/">http://youtube-dl.org/downloads/2013.06.34.3/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.06.34.3/">https://yt-dl.org/downloads/2013.06.34.3/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -700,7 +700,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.06.34.4/">http://youtube-dl.org/downloads/2013.06.34.4/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.06.34.4/">https://yt-dl.org/downloads/2013.06.34.4/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -715,7 +715,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.02/">http://youtube-dl.org/downloads/2013.07.02/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.02/">https://yt-dl.org/downloads/2013.07.02/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -730,7 +730,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.04/">http://youtube-dl.org/downloads/2013.07.04/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.04/">https://yt-dl.org/downloads/2013.07.04/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -745,7 +745,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.05/">http://youtube-dl.org/downloads/2013.07.05/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.05/">https://yt-dl.org/downloads/2013.07.05/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -760,7 +760,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.07.01/">http://youtube-dl.org/downloads/2013.07.07.01/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.07.01/">https://yt-dl.org/downloads/2013.07.07.01/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -775,7 +775,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.08/">http://youtube-dl.org/downloads/2013.07.08/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.08/">https://yt-dl.org/downloads/2013.07.08/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -790,7 +790,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.08.1/">http://youtube-dl.org/downloads/2013.07.08.1/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.08.1/">https://yt-dl.org/downloads/2013.07.08.1/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -805,7 +805,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.10/">http://youtube-dl.org/downloads/2013.07.10/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.10/">https://yt-dl.org/downloads/2013.07.10/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -820,7 +820,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.11/">http://youtube-dl.org/downloads/2013.07.11/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.11/">https://yt-dl.org/downloads/2013.07.11/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -835,7 +835,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.12/">http://youtube-dl.org/downloads/2013.07.12/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.12/">https://yt-dl.org/downloads/2013.07.12/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -850,7 +850,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.17/">http://youtube-dl.org/downloads/2013.07.17/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.17/">https://yt-dl.org/downloads/2013.07.17/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -865,7 +865,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.17.1/">http://youtube-dl.org/downloads/2013.07.17.1/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.17.1/">https://yt-dl.org/downloads/2013.07.17.1/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -880,7 +880,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.18/">http://youtube-dl.org/downloads/2013.07.18/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.18/">https://yt-dl.org/downloads/2013.07.18/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -895,7 +895,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.19/">http://youtube-dl.org/downloads/2013.07.19/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.19/">https://yt-dl.org/downloads/2013.07.19/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -910,7 +910,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.23/">http://youtube-dl.org/downloads/2013.07.23/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.23/">https://yt-dl.org/downloads/2013.07.23/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -925,7 +925,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.23.1/">http://youtube-dl.org/downloads/2013.07.23.1/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.23.1/">https://yt-dl.org/downloads/2013.07.23.1/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -940,7 +940,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.24.2/">http://youtube-dl.org/downloads/2013.07.24.2/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.24.2/">https://yt-dl.org/downloads/2013.07.24.2/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -955,7 +955,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.25/">http://youtube-dl.org/downloads/2013.07.25/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.25/">https://yt-dl.org/downloads/2013.07.25/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -970,7 +970,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.25.1/">http://youtube-dl.org/downloads/2013.07.25.1/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.25.1/">https://yt-dl.org/downloads/2013.07.25.1/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -985,7 +985,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.25.2/">http://youtube-dl.org/downloads/2013.07.25.2/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.25.2/">https://yt-dl.org/downloads/2013.07.25.2/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -1000,7 +1000,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.07.31/">http://youtube-dl.org/downloads/2013.07.31/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.07.31/">https://yt-dl.org/downloads/2013.07.31/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -1015,7 +1015,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.08.02/">http://youtube-dl.org/downloads/2013.08.02/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.08.02/">https://yt-dl.org/downloads/2013.08.02/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -1030,7 +1030,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.08.08/">http://youtube-dl.org/downloads/2013.08.08/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.08.08/">https://yt-dl.org/downloads/2013.08.08/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -1045,7 +1045,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.08.08.1/">http://youtube-dl.org/downloads/2013.08.08.1/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.08.08.1/">https://yt-dl.org/downloads/2013.08.08.1/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -1060,7 +1060,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.08.09/">http://youtube-dl.org/downloads/2013.08.09/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.08.09/">https://yt-dl.org/downloads/2013.08.09/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -1075,7 +1075,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.08.14/">http://youtube-dl.org/downloads/2013.08.14/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.08.14/">https://yt-dl.org/downloads/2013.08.14/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -1090,7 +1090,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.08.15/">http://youtube-dl.org/downloads/2013.08.15/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.08.15/">https://yt-dl.org/downloads/2013.08.15/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -1105,7 +1105,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.08.17/">http://youtube-dl.org/downloads/2013.08.17/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.08.17/">https://yt-dl.org/downloads/2013.08.17/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -1120,7 +1120,7 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.08.22/">http://youtube-dl.org/downloads/2013.08.22/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.08.22/">https://yt-dl.org/downloads/2013.08.22/</a>
 			</div>
 		</atom:content>
 		<atom:author>
@@ -1135,13 +1135,28 @@
 		<atom:link href="http://rg3.github.io/youtube-dl" />
 		<atom:content type="xhtml">
 			<div xmlns="http://www.w3.org/1999/xhtml">
-				Downloads available at <a href="http://youtube-dl.org/downloads/2013.08.23/">http://youtube-dl.org/downloads/2013.08.23/</a>
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.08.23/">https://yt-dl.org/downloads/2013.08.23/</a>
 			</div>
 		</atom:content>
 		<atom:author>
 			<atom:name>The youtube-dl maintainers</atom:name>
 		</atom:author>
 		<atom:updated>2013-08-23</atom:updated>
+	</atom:entry>
+
+	<atom:entry>
+		<atom:id>youtube-dl-2013.08.27</atom:id>
+		<atom:title>New version 2013.08.27</atom:title>
+		<atom:link href="http://rg3.github.io/youtube-dl" />
+		<atom:content type="xhtml">
+			<div xmlns="http://www.w3.org/1999/xhtml">
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.08.27/">https://yt-dl.org/downloads/2013.08.27/</a>
+			</div>
+		</atom:content>
+		<atom:author>
+			<atom:name>The youtube-dl maintainers</atom:name>
+		</atom:author>
+		<atom:updated>2013-08-27</atom:updated>
 	</atom:entry>
 
 </atom:feed>
