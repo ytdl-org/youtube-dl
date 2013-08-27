@@ -6,7 +6,9 @@ from .bandcamp import BandcampIE
 from .bliptv import BlipTVIE, BlipTVUserIE
 from .breakcom import BreakIE
 from .brightcove import BrightcoveIE
+from .c56 import C56IE
 from .canalplus import CanalplusIE
+from .canalc2 import Canalc2IE
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE
 from .condenast import CondeNastIE
@@ -29,6 +31,7 @@ from .gametrailers import GametrailersIE
 from .generic import GenericIE
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
+from .hark import HarkIE
 from .hotnewhiphop import HotNewHipHopIE
 from .howcast import HowcastIE
 from .hypem import HypemIE
@@ -72,18 +75,18 @@ from .ted import TEDIE
 from .tf1 import TF1IE
 from .thisav import ThisAVIE
 from .traileraddict import TrailerAddictIE
+from .trilulilu import TriluliluIE
 from .tudou import TudouIE
 from .tumblr import TumblrIE
 from .tutv import TutvIE
-from .ustream import UstreamIE
 from .unistra import UnistraIE
+from .ustream import UstreamIE
 from .vbox7 import Vbox7IE
 from .veoh import VeohIE
 from .vevo import VevoIE
 from .videofyme import VideofyMeIE
 from .vimeo import VimeoIE, VimeoChannelIE
 from .vine import VineIE
-from .c56 import C56IE
 from .wat import WatIE
 from .weibo import WeiboIE
 from .wimp import WimpIE

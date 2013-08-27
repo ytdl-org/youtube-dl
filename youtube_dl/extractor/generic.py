@@ -126,7 +126,7 @@ class GenericIE(InfoExtractor):
             raise ExtractorError(u'Invalid URL: %s' % url)
 
         self.report_extraction(video_id)
-        # Look for BrigthCove:
+        # Look for BrightCove:
         m_brightcove = re.search(r'<object.+?class=([\'"]).*?BrightcoveExperience.*?\1.+?</object>', webpage, re.DOTALL)
         if m_brightcove is not None:
             self.to_screen(u'Brightcove video detected.')
