@@ -8,6 +8,7 @@ from .breakcom import BreakIE
 from .brightcove import BrightcoveIE
 from .c56 import C56IE
 from .canalplus import CanalplusIE
+from .canalc2 import Canalc2IE
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE
 from .condenast import CondeNastIE
