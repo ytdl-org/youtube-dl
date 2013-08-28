@@ -166,7 +166,12 @@ class GenericIE(InfoExtractor):
         if video_url.startswith('//'):
             video_url = compat_urllib_parse_urlparse(url).scheme + ':' + video_url
         if '://' not in video_url:
-            video_url = url + ('' if url.endswith('/') else '/') + video_url
+            up = compat_urllib_parse_urlparse(url)
+            if video_url.startswith('/'):
+                video_url = up.scheme + '://' + up.netloc + video_url
+            else:  # relative path
+                video_url = (up.scheme + '://' + up.netloc +
+                             up.path.rpartition('/')[0] + '/' + video_url)
         video_id = os.path.basename(video_url)
 
         # here's a fun little line of code for you:

@@ -628,8 +628,23 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
         old_resp = resp
         # gzip
         if resp.headers.get('Content-encoding', '') == 'gzip':
-            gz = gzip.GzipFile(fileobj=io.BytesIO(resp.read()), mode='r')
-            resp = self.addinfourl_wrapper(gz, old_resp.headers, old_resp.url, old_resp.code)
+            content = resp.read()
+            gz = gzip.GzipFile(fileobj=io.BytesIO(content), mode='rb')
+            try:
+                uncompressed = io.BytesIO(gz.read())
+            except IOError as original_ioerror:
+                # There may be junk add the end of the file
+                # See http://stackoverflow.com/q/4928560/35070 for details
+                for i in range(1, 1024):
+                    try:
+                        gz = gzip.GzipFile(fileobj=io.BytesIO(content[:-i]), mode='rb')
+                        uncompressed = io.BytesIO(gz.read())
+                    except IOError:
+                        continue
+                    break
+                else:
+                    raise original_ioerror
+            resp = self.addinfourl_wrapper(uncompressed, old_resp.headers, old_resp.url, old_resp.code)
             resp.msg = old_resp.msg
         # deflate
         if resp.headers.get('Content-encoding', '') == 'deflate':
