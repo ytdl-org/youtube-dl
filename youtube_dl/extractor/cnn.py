@@ -33,7 +33,6 @@ class CNNIE(InfoExtractor):
         path = mobj.group('path')
         page_title = mobj.group('title')
         info_url = u'http://cnn.com/video/data/3.0/%s/index.xml' % path
-        print(info_url)
         info_xml = self._download_webpage(info_url, page_title)
         info = xml.etree.ElementTree.fromstring(info_xml.encode('utf-8'))
 
