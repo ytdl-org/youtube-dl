@@ -18,7 +18,7 @@ def aes_ctr_decrypt(data, key, counter):
     @returns {int[]}           decrypted data
     """
     expanded_key = key_expansion(key)
-    block_count = int(ceil(float(len(data)) // BLOCK_SIZE_BYTES))
+    block_count = int(ceil(float(len(data)) / BLOCK_SIZE_BYTES))
     
     decrypted_data=[]
     for i in range(block_count):
