@@ -50,6 +50,7 @@ from .keek import KeekIE
 from .liveleak import LiveLeakIE
 from .livestream import LivestreamIE
 from .metacafe import MetacafeIE
+from .mit import TechTVMITIE, MITIE
 from .mixcloud import MixcloudIE
 from .mtv import MTVIE
 from .muzu import MuzuTVIE
