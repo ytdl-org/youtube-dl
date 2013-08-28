@@ -430,6 +430,10 @@ def _real_main(argv=None):
     proxy_handler = compat_urllib_request.ProxyHandler(proxies)
     https_handler = make_HTTPS_handler(opts)
     opener = compat_urllib_request.build_opener(https_handler, proxy_handler, cookie_processor, YoutubeDLHandler())
+    # Delete the default user-agent header, which would otherwise apply in
+    # cases where our custom HTTP handler doesn't come into play
+    # (See https://github.com/rg3/youtube-dl/issues/1309 for details)
+    opener.addheaders =[]
     compat_urllib_request.install_opener(opener)
     socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
 

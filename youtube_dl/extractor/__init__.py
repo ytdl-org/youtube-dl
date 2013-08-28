@@ -1,3 +1,5 @@
+from .appletrailers import AppleTrailersIE
+from .addanime import AddAnimeIE
 from .archiveorg import ArchiveOrgIE
 from .ard import ARDIE
 from .arte import ArteTvIE
@@ -9,6 +11,7 @@ from .brightcove import BrightcoveIE
 from .c56 import C56IE
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
+from .cnn import CNNIE
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE
 from .condenast import CondeNastIE
@@ -53,6 +56,7 @@ from .muzu import MuzuTVIE
 from .myspass import MySpassIE
 from .myvideo import MyVideoIE
 from .nba import NBAIE
+from .nbc import NBCNewsIE
 from .ooyala import OoyalaIE
 from .pbs import PBSIE
 from .photobucket import PhotobucketIE

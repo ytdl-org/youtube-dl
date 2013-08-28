@@ -64,6 +64,17 @@ class FileDownloader(object):
         return '%.2f%s' % (converted, suffix)
 
     @staticmethod
+    def format_seconds(seconds):
+        (mins, secs) = divmod(seconds, 60)
+        (hours, eta_mins) = divmod(mins, 60)
+        if hours > 99:
+            return '--:--:--'
+        if hours == 0:
+            return '%02d:%02d' % (mins, secs)
+        else:
+            return '%02d:%02d:%02d' % (hours, mins, secs)
+
+    @staticmethod
     def calc_percent(byte_counter, data_len):
         if data_len is None:
             return '---.-%'
@@ -78,14 +89,7 @@ class FileDownloader(object):
             return '--:--'
         rate = float(current) / dif
         eta = int((float(total) - float(current)) / rate)
-        (eta_mins, eta_secs) = divmod(eta, 60)
-        (eta_hours, eta_mins) = divmod(eta_mins, 60)
-        if eta_hours > 99:
-            return '--:--:--'
-        if eta_hours == 0:
-            return '%02d:%02d' % (eta_mins, eta_secs)
-        else:
-            return '%02d:%02d:%02d' % (eta_hours, eta_mins, eta_secs)
+        return FileDownloader.format_seconds(eta)
 
     @staticmethod
     def calc_speed(start, now, bytes):
@@ -234,12 +238,14 @@ class FileDownloader(object):
         """Report it was impossible to resume download."""
         self.to_screen(u'[download] Unable to resume')
 
-    def report_finish(self):
+    def report_finish(self, data_len_str, tot_time):
         """Report download finished."""
         if self.params.get('noprogress', False):
             self.to_screen(u'[download] Download completed')
         else:
-            self.to_screen(u'')
+            clear_line = (u'\x1b[K' if sys.stderr.isatty() and os.name != 'nt' else u'')
+            self.to_screen(u'\r%s[download] 100%% of %s in %s' %
+                (clear_line, data_len_str, self.format_seconds(tot_time)))
 
     def _download_with_rtmpdump(self, filename, url, player_url, page_url, play_path, tc_url):
         self.report_destination(filename)
@@ -542,7 +548,7 @@ class FileDownloader(object):
             self.report_error(u'Did not get any data blocks')
             return False
         stream.close()
-        self.report_finish()
+        self.report_finish(data_len_str, (time.time() - start))
         if data_len is not None and byte_counter != data_len:
             raise ContentTooShortError(byte_counter, int(data_len))
         self.try_rename(tmpfilename, filename)

@@ -129,7 +129,7 @@ class InfoExtractor(object):
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             if errnote is None:
                 errnote = u'Unable to download webpage'
-            raise ExtractorError(u'%s: %s' % (errnote, compat_str(err)), sys.exc_info()[2])
+            raise ExtractorError(u'%s: %s' % (errnote, compat_str(err)), sys.exc_info()[2], cause=err)
 
     def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None):
         """ Returns a tuple (page content as string, URL handle) """
