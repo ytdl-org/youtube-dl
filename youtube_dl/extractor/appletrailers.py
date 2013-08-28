@@ -91,7 +91,7 @@ class AppleTrailersIE(InfoExtractor):
                 duration = 60 * int(m.group('minutes')) + int(m.group('seconds'))
 
             formats = []
-            for formats_el in li.findall('.//li/a'):
+            for formats_el in li.findall('.//a'):
                 if formats_el.attrib['class'] != 'OverlayPanel':
                     continue
                 target = formats_el.attrib['target']

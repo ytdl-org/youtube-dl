@@ -61,6 +61,11 @@ except ImportError: # Python 2
     import httplib as compat_http_client
 
 try:
+    from http.error import HTTPError as compat_HTTPError
+except ImportError:  # Python 2
+    from urllib2 import HTTPError as compat_HTTPError
+
+try:
     from subprocess import DEVNULL
     compat_subprocess_get_DEVNULL = lambda: DEVNULL
 except ImportError:
@@ -489,7 +494,7 @@ def make_HTTPS_handler(opts):
 
 class ExtractorError(Exception):
     """Error during info extraction."""
-    def __init__(self, msg, tb=None, expected=False):
+    def __init__(self, msg, tb=None, expected=False, cause=None):
         """ tb, if given, is the original traceback (so that it can be printed out).
         If expected is set, this is a normal error message and most likely not a bug in youtube-dl.
         """
@@ -502,6 +507,7 @@ class ExtractorError(Exception):
 
         self.traceback = tb
         self.exc_info = sys.exc_info()  # preserve original exception
+        self.cause = cause
 
     def format_traceback(self):
         if self.traceback is None:

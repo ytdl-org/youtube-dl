@@ -1,4 +1,5 @@
 from .appletrailers import AppleTrailersIE
+from .addanime import AddAnimeIE
 from .archiveorg import ArchiveOrgIE
 from .ard import ARDIE
 from .arte import ArteTvIE
