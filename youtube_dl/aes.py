@@ -3,6 +3,8 @@ __all__ = ['aes_encrypt', 'key_expansion', 'aes_ctr_decrypt', 'aes_decrypt_text'
 import base64
 from math import ceil
 
+from .utils import bytes_to_intlist
+
 BLOCK_SIZE_BYTES = 16
 
 def aes_ctr_decrypt(data, key, counter):
@@ -16,7 +18,7 @@ def aes_ctr_decrypt(data, key, counter):
     @returns {int[]}           decrypted data
     """
     expanded_key = key_expansion(key)
-    block_count = int(ceil(float(len(data)) / BLOCK_SIZE_BYTES))
+    block_count = int(ceil(float(len(data)) // BLOCK_SIZE_BYTES))
     
     decrypted_data=[]
     for i in range(block_count):
@@ -40,7 +42,7 @@ def key_expansion(data):
     data = data[:] # copy
     rcon_iteration = 1
     key_size_bytes = len(data)
-    expanded_key_size_bytes = (key_size_bytes/4 + 7) * BLOCK_SIZE_BYTES
+    expanded_key_size_bytes = (key_size_bytes // 4 + 7) * BLOCK_SIZE_BYTES
     
     while len(data) < expanded_key_size_bytes:
         temp = data[-4:]
@@ -72,7 +74,7 @@ def aes_encrypt(data, expanded_key):
     @param {int[]} expanded_key  176/208/240-Byte expanded key 
     @returns {int[]}             16-Byte cipher
     """
-    rounds = len(expanded_key) / BLOCK_SIZE_BYTES - 1
+    rounds = len(expanded_key) // BLOCK_SIZE_BYTES - 1
     
     data = xor(data, expanded_key[:BLOCK_SIZE_BYTES])
     for i in range(1, rounds+1):
@@ -99,11 +101,11 @@ def aes_decrypt_text(data, password, key_size_bytes):
     """
     NONCE_LENGTH_BYTES = 8
     
-    data = map(lambda c: ord(c), base64.b64decode(data))
-    password = map(lambda c: ord(c), password.encode('utf-8'))
+    data = bytes_to_intlist(base64.b64decode(data))
+    password = bytes_to_intlist(password.encode('utf-8'))
     
     key = password[:key_size_bytes] + [0]*(key_size_bytes - len(password))
-    key = aes_encrypt(key[:BLOCK_SIZE_BYTES], key_expansion(key)) * (key_size_bytes / BLOCK_SIZE_BYTES)
+    key = aes_encrypt(key[:BLOCK_SIZE_BYTES], key_expansion(key)) * (key_size_bytes // BLOCK_SIZE_BYTES)
     
     nonce = data[:NONCE_LENGTH_BYTES]
     cipher = data[NONCE_LENGTH_BYTES:]
@@ -143,7 +145,7 @@ MIX_COLUMN_MATRIX = ((2,3,1,1),
                      (3,1,1,2))
 
 def sub_bytes(data):
-    return map(lambda x: SBOX[x], data)
+    return [SBOX[x] for x in data]
 
 def rotate(data):
     return data[1:] + [data[0]]
@@ -156,7 +158,7 @@ def key_schedule_core(data, rcon_iteration):
     return data
 
 def xor(data1, data2):
-    return map(lambda (x,y): x^y, zip(data1, data2))
+    return [x^y for x, y in zip(data1, data2)]
 
 def mix_column(data):
     data_mixed = []
