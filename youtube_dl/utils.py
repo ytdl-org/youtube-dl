@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import datetime
+import email.utils
 import errno
 import gzip
 import io
 import json
 import locale
 import os
+import platform
 import re
+import socket
 import sys
 import traceback
 import zlib
-import email.utils
-import socket
-import datetime
 
 try:
     import urllib.request as compat_urllib_request
@@ -732,3 +733,13 @@ class DateRange(object):
         return self.start <= date <= self.end
     def __str__(self):
         return '%s - %s' % ( self.start.isoformat(), self.end.isoformat())
+
+
+def platform_name():
+    """ Returns the platform name as a compat_str """
+    res = platform.platform()
+    if isinstance(res, bytes):
+        res = res.decode(preferredencoding())
+
+    assert isinstance(res, compat_str)
+    return res
