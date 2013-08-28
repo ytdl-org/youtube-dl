@@ -12,14 +12,16 @@ from ..utils import (
     unescapeHTML,
     unified_strdate,
 )
-
+from ..aes import (
+    aes_decrypt_text
+)
 
 class YouPornIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:\w+\.)?youporn\.com/watch/(?P<videoid>[0-9]+)/(?P<title>[^/]+)'
     _TEST = {
         u'url': u'http://www.youporn.com/watch/505835/sex-ed-is-it-safe-to-masturbate-daily/',
         u'file': u'505835.mp4',
-        u'md5': u'c37ddbaaa39058c76a7e86c6813423c1',
+        u'md5': u'71ec5fcfddacf80f495efa8b6a8d9a89',
         u'info_dict': {
             u"upload_date": u"20101221", 
             u"description": u"Love & Sex Answers: http://bit.ly/DanAndJenn -- Is It Unhealthy To Masturbate Daily?", 
@@ -75,6 +77,14 @@ class YouPornIE(InfoExtractor):
         # Get all of the links from the page
         LINK_RE = r'(?s)<a href="(?P<url>[^"]+)">'
         links = re.findall(LINK_RE, download_list_html)
+        
+        # Get link of hd video
+        encrypted_video_url = self._html_search_regex(r'var encryptedURL = \'(?P<encrypted_video_url>[a-zA-Z0-9+/]+={0,2})\';',
+            webpage, u'encrypted_video_url')
+        video_url = unicode( aes_decrypt_text(encrypted_video_url, video_title, 32), 'utf-8')
+        if video_url.split('/')[6].split('_')[0] == u'720p': # only add if 720p to avoid duplicates
+            links = [video_url] + links
+        
         if(len(links) == 0):
             raise ExtractorError(u'ERROR: no known formats available for video')
 
