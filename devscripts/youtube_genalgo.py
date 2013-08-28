@@ -14,9 +14,9 @@ tests = [
     # 89 
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[]}|:;?/>.<'",
      "/?;:|}<[{=+-_)(*&^%$#@!MqBVCXZASDFGHJKLPOIUYTREWQ0987654321mnbvcxzasdfghjklpoiuyt"),
-    # 88
+    # 88 - vflapUV9V 2013/08/28
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[]}|:;?/>.<",
-     "J:|}][{=+-_)(*&;%$#@>MNBVCXZASDFGH^KLPOIUYTREWQ0987654321mnbvcxzasdfghrklpoiuytej"),
+     "ioplkjhgfdsazxcvbnm12<4567890QWERTYUIOZLKJHGFDSAeXCVBNM!@#$%^&*()_-+={[]}|:;?/>.3"),
     # 87
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$^&*()_-+={[]}|:;?/>.<",
      "uioplkjhgfdsazxcvbnm1t34567890QWE2TYUIOPLKJHGFDSAZXCVeNM!@#$^&*()_-+={[]}|:;?/>.<"),
