@@ -743,3 +743,21 @@ def platform_name():
 
     assert isinstance(res, compat_str)
     return res
+
+
+def bytes_to_intlist(bs):
+    if not bs:
+        return []
+    if isinstance(bs[0], int):  # Python 3
+        return list(bs)
+    else:
+        return [ord(c) for c in bs]
+
+
+def intlist_to_bytes(xs):
+    if not xs:
+        return b''
+    if isinstance(chr(0), bytes):  # Python 2
+        return ''.join([chr(x) for x in xs])
+    else:
+        return bytes(xs)
