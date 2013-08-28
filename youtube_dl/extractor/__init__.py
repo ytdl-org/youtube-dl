@@ -70,6 +70,7 @@ from .roxwel import RoxwelIE
 from .rtlnow import RTLnowIE
 from .sina import SinaIE
 from .slashdot import SlashdotIE
+from .sohu import SohuIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE
 from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
