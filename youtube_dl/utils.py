@@ -708,3 +708,13 @@ class DateRange(object):
         return self.start <= date <= self.end
     def __str__(self):
         return '%s - %s' % ( self.start.isoformat(), self.end.isoformat())
+
+
+def bytes_to_intlist(bs):
+    if not bs:
+        return []
+    if isinstance(bs[0], int):  # Python 3
+        return list(bs)
+    else:
+        return [ord(c) for c in bs]
+

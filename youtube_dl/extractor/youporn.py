@@ -5,6 +5,7 @@ import sys
 
 from .common import InfoExtractor
 from ..utils import (
+    compat_str,
     compat_urllib_parse_urlparse,
     compat_urllib_request,
 
@@ -79,13 +80,16 @@ class YouPornIE(InfoExtractor):
         links = re.findall(LINK_RE, download_list_html)
         
         # Get link of hd video
-        encrypted_video_url = self._html_search_regex(r'var encryptedURL = \'(?P<encrypted_video_url>[a-zA-Z0-9+/]+={0,2})\';',
+        encrypted_video_url = self._html_search_regex(
+            r'var encrypted(?:Quality[0-9]+)?URL = \'(?P<encrypted_video_url>[a-zA-Z0-9+/]+={0,2})\';',
             webpage, u'encrypted_video_url')
-        video_url = unicode( aes_decrypt_text(encrypted_video_url, video_title, 32), 'utf-8')
+        video_url = aes_decrypt_text(encrypted_video_url, video_title, 32)
+        print(video_url)
+        assert isinstance(video_url, compat_str)
         if video_url.split('/')[6].split('_')[0] == u'720p': # only add if 720p to avoid duplicates
             links = [video_url] + links
         
-        if(len(links) == 0):
+        if not links:
             raise ExtractorError(u'ERROR: no known formats available for video')
 
         self.to_screen(u'Links found: %d' % len(links))
@@ -122,7 +126,7 @@ class YouPornIE(InfoExtractor):
             self._print_formats(formats)
             return
 
-        req_format = self._downloader.params.get('format', None)
+        req_format = self._downloader.params.get('format', 'best')
         self.to_screen(u'Format: %s' % req_format)
 
         if req_format is None or req_format == 'best':
