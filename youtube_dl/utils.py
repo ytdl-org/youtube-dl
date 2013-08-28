@@ -61,7 +61,7 @@ except ImportError: # Python 2
     import httplib as compat_http_client
 
 try:
-    from http.error import HTTPError as compat_HTTPError
+    from urllib.error import HTTPError as compat_HTTPError
 except ImportError:  # Python 2
     from urllib2 import HTTPError as compat_HTTPError
 
