@@ -1,13 +1,10 @@
 # encoding: utf-8
 
-import re
 import json
-import time
-import logging
-import urllib2
+import re
 
 from .common import InfoExtractor
-from ..utils import compat_urllib_request, clean_html
+from ..utils import ExtractorError
 
 
 class SohuIE(InfoExtractor):
@@ -15,79 +12,79 @@ class SohuIE(InfoExtractor):
 
     _TEST = {
         u'url': u'http://tv.sohu.com/20130724/n382479172.shtml#super',
-        u'file': u'382479172.flv',
-        u'md5': u'cc84eed6b6fbf0f2f9a8d3cb9da1939b',
+        u'file': u'382479172.mp4',
+        u'md5': u'bde8d9a6ffd82c63a1eefaef4eeefec7',
         u'info_dict': {
-            u'title': u'The Illest - Far East Movement Riff Raff',
+            u'title': u'MV：Far East Movement《The Illest》',
         },
     }
 
-
     def _real_extract(self, url):
+
+        def _fetch_data(vid_id):
+            base_data_url = u'http://hot.vrs.sohu.com/vrs_flash.action?vid='
+            data_url = base_data_url + str(vid_id)
+            data_json = self._download_webpage(
+                data_url, video_id,
+                note=u'Downloading JSON data for ' + str(vid_id))
+            return json.loads(data_json)
+
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        webpage = self._download_webpage(url, video_id)
-        pattern = r'<title>(.+?)</title>'
-        compiled = re.compile(pattern, re.DOTALL)
-        title = self._search_regex(compiled, webpage, u'video title')
-        title = clean_html(title).split('-')[0].strip()
-        self.to_screen('Title: %s' % title)
-        pattern = re.compile(r'var vid="(\d+)"')
-        result = re.search(pattern, webpage)
-        if not result:
-            logging.info('[Sohu] could not get vid')
-            return None
-        vid = result.group(1)
-        logging.info('vid: %s' % vid)
-        base_url_1 = 'http://hot.vrs.sohu.com/vrs_flash.action?vid='
-        url_1 = base_url_1 + vid
-        logging.info('json url: %s' % url_1)
-        webpage = self._download_webpage(url_1, vid)
-        json_1 = json.loads(webpage)
-        # get the highest definition video vid and json infomation.
-        vids = []
-        qualities = ('oriVid', 'superVid', 'highVid', 'norVid')
-        for vid_name in qualities:
-            vids.append(json_1['data'][vid_name])
-        clearest_vid = 0
-        for i, v in enumerate(vids):
-            if v != 0:
-                clearest_vid = v
-                logging.info('quality definition: %s' % qualities[i][:-3])
-                break
-        if not clearest_vid:
-            logging.warning('could not find valid clearest_vid')
-            return None
-        if vid != clearest_vid:
-            url_1 = '%s%d' % (base_url_1, clearest_vid)
-            logging.info('highest definition json url: %s' % url_1)
-            json_1 = json.loads(urllib2.urlopen(url_1).read())
-        allot = json_1['allot']
-        prot = json_1['prot']
-        clipsURL = json_1['data']['clipsURL']
-        su = json_1['data']['su']
-        num_of_parts = json_1['data']['totalBlocks']
-        logging.info('Total parts: %d' % num_of_parts)
-        base_url_3 = 'http://allot/?prot=prot&file=clipsURL[i]&new=su[i]'
-        files_info = []
-        for i in range(num_of_parts):
-            self.to_screen('Geting json infomation of part %s/%s' % (i + 1, num_of_parts))
-            middle_url = 'http://%s/?prot=%s&file=%s&new=%s' % (allot, prot, clipsURL[i], su[i])
-            logging.info('middle url part %d: %s' % (i, middle_url))
-            middle_info = urllib2.urlopen(middle_url).read().split('|')
-            middle_part_1 = middle_info[0]
-            download_url = '%s%s?key=%s' % (middle_info[0], su[i], middle_info[3])
 
-            info = {
+        webpage = self._download_webpage(url, video_id)
+        raw_title = self._html_search_regex(r'(?s)<title>(.+?)</title>',
+                                            webpage, u'video title')
+        title = raw_title.partition('-')[0].strip()
+
+        vid = self._html_search_regex(r'var vid="(\d+)"', webpage,
+                                      u'video path')
+        data = _fetch_data(vid)
+
+        QUALITIES = ('ori', 'super', 'high', 'nor')
+        vid_ids = [data['data'][q + 'Vid']
+                   for q in QUALITIES
+                   if data['data'][q + 'Vid'] != 0]
+        if not vid_ids:
+            raise ExtractorError(u'No formats available for this video')
+
+        # For now, we just pick the highest available quality
+        vid_id = vid_ids[-1]
+
+        format_data = data if vid == vid_id else _fetch_data(vid_id)
+        part_count = format_data['data']['totalBlocks']
+        allot = format_data['allot']
+        prot = format_data['prot']
+        clipsURL = format_data['data']['clipsURL']
+        su = format_data['data']['su']
+
+        playlist = []
+        for i in range(part_count):
+            part_url = ('http://%s/?prot=%s&file=%s&new=%s' %
+                        (allot, prot, clipsURL[i], su[i]))
+            part_str = self._download_webpage(
+                part_url, video_id,
+                note=u'Downloading part %d of %d' % (i+1, part_count))
+
+            part_info = part_str.split('|')
+            video_url = '%s%s?key=%s' % (part_info[0], su[i], part_info[3])
+
+            video_info = {
                 'id': '%s_part%02d' % (video_id, i + 1),
                 'title': title,
-                'url': download_url,
+                'url': video_url,
                 'ext': 'mp4',
             }
-            files_info.append(info)
-            time.sleep(1)
-        if num_of_parts == 1:
-            info =  files_info[0]
+            playlist.append(video_info)
+
+        if len(playlist) == 1:
+            info = playlist[0]
             info['id'] = video_id
-            return info
-        return files_info
+        else:
+            info = {
+                '_type': 'playlist',
+                'entries': playlist,
+                'id': video_id,
+            }
+
+        return info

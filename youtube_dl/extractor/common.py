@@ -145,12 +145,17 @@ class InfoExtractor(object):
 
         urlh = self._request_webpage(url_or_request, video_id, note, errnote)
         content_type = urlh.headers.get('Content-Type', '')
+        webpage_bytes = urlh.read()
         m = re.match(r'[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+\s*;\s*charset=(.+)', content_type)
         if m:
             encoding = m.group(1)
         else:
-            encoding = 'utf-8'
-        webpage_bytes = urlh.read()
+            m = re.search(br'<meta[^>]+charset="?([^"]+)[ /">]',
+                          webpage_bytes[:1024])
+            if m:
+                encoding = m.group(1).decode('ascii')
+            else:
+                encoding = 'utf-8'
         if self._downloader.params.get('dump_intermediate_pages', False):
             try:
                 url = url_or_request.get_full_url()
