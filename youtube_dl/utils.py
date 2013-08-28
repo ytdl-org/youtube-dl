@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import datetime
+import email.utils
 import errno
 import gzip
 import io
 import json
 import locale
 import os
+import platform
 import re
+import socket
 import sys
 import traceback
 import zlib
-import email.utils
-import socket
-import datetime
 
 try:
     import urllib.request as compat_urllib_request
@@ -59,6 +60,11 @@ try:
     import http.client as compat_http_client
 except ImportError: # Python 2
     import httplib as compat_http_client
+
+try:
+    from urllib.error import HTTPError as compat_HTTPError
+except ImportError:  # Python 2
+    from urllib2 import HTTPError as compat_HTTPError
 
 try:
     from subprocess import DEVNULL
@@ -476,7 +482,7 @@ def formatSeconds(secs):
 def make_HTTPS_handler(opts):
     if sys.version_info < (3,2):
         # Python's 2.x handler is very simplistic
-        return YoutubeDLHandlerHTTPS()
+        return compat_urllib_request.HTTPSHandler()
     else:
         import ssl
         context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
@@ -485,11 +491,11 @@ def make_HTTPS_handler(opts):
         context.verify_mode = (ssl.CERT_NONE
                                if opts.no_check_certificate
                                else ssl.CERT_REQUIRED)
-        return YoutubeDLHandlerHTTPS(context=context)
+        return compat_urllib_request.HTTPSHandler(context=context)
 
 class ExtractorError(Exception):
     """Error during info extraction."""
-    def __init__(self, msg, tb=None, expected=False):
+    def __init__(self, msg, tb=None, expected=False, cause=None):
         """ tb, if given, is the original traceback (so that it can be printed out).
         If expected is set, this is a normal error message and most likely not a bug in youtube-dl.
         """
@@ -502,6 +508,7 @@ class ExtractorError(Exception):
 
         self.traceback = tb
         self.exc_info = sys.exc_info()  # preserve original exception
+        self.cause = cause
 
     def format_traceback(self):
         if self.traceback is None:
@@ -569,8 +576,7 @@ class ContentTooShortError(Exception):
         self.downloaded = downloaded
         self.expected = expected
 
-
-class YoutubeDLHandler_Template:  # Old-style class, like HTTPHandler
+class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     """Handler for HTTP requests and responses.
 
     This class, when installed with an OpenerDirector, automatically adds
@@ -603,8 +609,8 @@ class YoutubeDLHandler_Template:  # Old-style class, like HTTPHandler
         ret.code = code
         return ret
 
-    def _http_request(self, req):
-        for h, v in std_headers.items():
+    def http_request(self, req):
+        for h,v in std_headers.items():
             if h in req.headers:
                 del req.headers[h]
             req.add_header(h, v)
@@ -619,12 +625,27 @@ class YoutubeDLHandler_Template:  # Old-style class, like HTTPHandler
             del req.headers['Youtubedl-user-agent']
         return req
 
-    def _http_response(self, req, resp):
+    def http_response(self, req, resp):
         old_resp = resp
         # gzip
         if resp.headers.get('Content-encoding', '') == 'gzip':
-            gz = gzip.GzipFile(fileobj=io.BytesIO(resp.read()), mode='r')
-            resp = self.addinfourl_wrapper(gz, old_resp.headers, old_resp.url, old_resp.code)
+            content = resp.read()
+            gz = gzip.GzipFile(fileobj=io.BytesIO(content), mode='rb')
+            try:
+                uncompressed = io.BytesIO(gz.read())
+            except IOError as original_ioerror:
+                # There may be junk add the end of the file
+                # See http://stackoverflow.com/q/4928560/35070 for details
+                for i in range(1, 1024):
+                    try:
+                        gz = gzip.GzipFile(fileobj=io.BytesIO(content[:-i]), mode='rb')
+                        uncompressed = io.BytesIO(gz.read())
+                    except IOError:
+                        continue
+                    break
+                else:
+                    raise original_ioerror
+            resp = self.addinfourl_wrapper(uncompressed, old_resp.headers, old_resp.url, old_resp.code)
             resp.msg = old_resp.msg
         # deflate
         if resp.headers.get('Content-encoding', '') == 'deflate':
@@ -633,16 +654,8 @@ class YoutubeDLHandler_Template:  # Old-style class, like HTTPHandler
             resp.msg = old_resp.msg
         return resp
 
-
-class YoutubeDLHandler(YoutubeDLHandler_Template, compat_urllib_request.HTTPHandler):
-    http_request = YoutubeDLHandler_Template._http_request
-    http_response = YoutubeDLHandler_Template._http_response
-
-
-class YoutubeDLHandlerHTTPS(YoutubeDLHandler_Template, compat_urllib_request.HTTPSHandler):
-    https_request = YoutubeDLHandler_Template._http_request
-    https_response = YoutubeDLHandler_Template._http_response
-
+    https_request = http_request
+    https_response = http_response
 
 def unified_strdate(date_str):
     """Return a string with the date in the format YYYYMMDD"""
@@ -720,3 +733,31 @@ class DateRange(object):
         return self.start <= date <= self.end
     def __str__(self):
         return '%s - %s' % ( self.start.isoformat(), self.end.isoformat())
+
+
+def platform_name():
+    """ Returns the platform name as a compat_str """
+    res = platform.platform()
+    if isinstance(res, bytes):
+        res = res.decode(preferredencoding())
+
+    assert isinstance(res, compat_str)
+    return res
+
+
+def bytes_to_intlist(bs):
+    if not bs:
+        return []
+    if isinstance(bs[0], int):  # Python 3
+        return list(bs)
+    else:
+        return [ord(c) for c in bs]
+
+
+def intlist_to_bytes(xs):
+    if not xs:
+        return b''
+    if isinstance(chr(0), bytes):  # Python 2
+        return ''.join([chr(x) for x in xs])
+    else:
+        return bytes(xs)

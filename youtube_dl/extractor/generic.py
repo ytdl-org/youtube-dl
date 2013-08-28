@@ -7,8 +7,8 @@ from .common import InfoExtractor
 from ..utils import (
     compat_urllib_error,
     compat_urllib_parse,
-    compat_urllib_parse_urlparse,
     compat_urllib_request,
+    compat_urlparse,
 
     ExtractorError,
 )
@@ -163,10 +163,7 @@ class GenericIE(InfoExtractor):
             raise ExtractorError(u'Invalid URL: %s' % url)
 
         video_url = compat_urllib_parse.unquote(mobj.group(1))
-        if video_url.startswith('//'):
-            video_url = compat_urllib_parse_urlparse(url).scheme + ':' + video_url
-        if '://' not in video_url:
-            video_url = url + ('' if url.endswith('/') else '/') + video_url
+        video_url = compat_urlparse.urljoin(url, video_url)
         video_id = os.path.basename(video_url)
 
         # here's a fun little line of code for you:

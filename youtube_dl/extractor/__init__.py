@@ -1,3 +1,5 @@
+from .appletrailers import AppleTrailersIE
+from .addanime import AddAnimeIE
 from .archiveorg import ArchiveOrgIE
 from .ard import ARDIE
 from .arte import ArteTvIE
@@ -6,7 +8,10 @@ from .bandcamp import BandcampIE
 from .bliptv import BlipTVIE, BlipTVUserIE
 from .breakcom import BreakIE
 from .brightcove import BrightcoveIE
+from .c56 import C56IE
 from .canalplus import CanalplusIE
+from .canalc2 import Canalc2IE
+from .cnn import CNNIE
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE
 from .condenast import CondeNastIE
@@ -45,12 +50,14 @@ from .keek import KeekIE
 from .liveleak import LiveLeakIE
 from .livestream import LivestreamIE
 from .metacafe import MetacafeIE
+from .mit import TechTVMITIE, MITIE
 from .mixcloud import MixcloudIE
 from .mtv import MTVIE
 from .muzu import MuzuTVIE
 from .myspass import MySpassIE
 from .myvideo import MyVideoIE
 from .nba import NBAIE
+from .nbc import NBCNewsIE
 from .ooyala import OoyalaIE
 from .pbs import PBSIE
 from .photobucket import PhotobucketIE
@@ -63,6 +70,7 @@ from .roxwel import RoxwelIE
 from .rtlnow import RTLnowIE
 from .sina import SinaIE
 from .slashdot import SlashdotIE
+from .sohu import SohuIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE
 from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
@@ -73,18 +81,18 @@ from .ted import TEDIE
 from .tf1 import TF1IE
 from .thisav import ThisAVIE
 from .traileraddict import TrailerAddictIE
+from .trilulilu import TriluliluIE
 from .tudou import TudouIE
 from .tumblr import TumblrIE
 from .tutv import TutvIE
-from .ustream import UstreamIE
 from .unistra import UnistraIE
+from .ustream import UstreamIE
 from .vbox7 import Vbox7IE
 from .veoh import VeohIE
 from .vevo import VevoIE
 from .videofyme import VideofyMeIE
 from .vimeo import VimeoIE, VimeoChannelIE
 from .vine import VineIE
-from .c56 import C56IE
 from .wat import WatIE
 from .weibo import WeiboIE
 from .wimp import WimpIE

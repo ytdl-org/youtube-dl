@@ -45,6 +45,7 @@ import sys
 import warnings
 import platform
 
+
 from .utils import *
 from .update import update_self
 from .version import __version__
@@ -98,6 +99,16 @@ def parseOpts(overrideArguments=None):
         except:
             pass
         return None
+
+    def _hide_login_info(opts):
+        opts = list(opts)
+        for private_opt in ['-p', '--password', '-u', '--username']:
+            try:
+                i = opts.index(private_opt)
+                opts[i+1] = '<PRIVATE>'
+            except ValueError:
+                pass
+        return opts
 
     max_width = 80
     max_help_position = 80
@@ -357,9 +368,9 @@ def parseOpts(overrideArguments=None):
         argv = systemConf + userConf + commandLineConf
         opts, args = parser.parse_args(argv)
         if opts.verbose:
-            sys.stderr.write(u'[debug] System config: ' + repr(systemConf) + '\n')
-            sys.stderr.write(u'[debug] User config: ' + repr(userConf) + '\n')
-            sys.stderr.write(u'[debug] Command-line args: ' + repr(commandLineConf) + '\n')
+            sys.stderr.write(u'[debug] System config: ' + repr(_hide_login_info(systemConf)) + '\n')
+            sys.stderr.write(u'[debug] User config: ' + repr(_hide_login_info(userConf)) + '\n')
+            sys.stderr.write(u'[debug] Command-line args: ' + repr(_hide_login_info(commandLineConf)) + '\n')
 
     return parser, opts, args
 
@@ -430,6 +441,10 @@ def _real_main(argv=None):
     proxy_handler = compat_urllib_request.ProxyHandler(proxies)
     https_handler = make_HTTPS_handler(opts)
     opener = compat_urllib_request.build_opener(https_handler, proxy_handler, cookie_processor, YoutubeDLHandler())
+    # Delete the default user-agent header, which would otherwise apply in
+    # cases where our custom HTTP handler doesn't come into play
+    # (See https://github.com/rg3/youtube-dl/issues/1309 for details)
+    opener.addheaders =[]
     compat_urllib_request.install_opener(opener)
     socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
 
@@ -607,7 +622,7 @@ def _real_main(argv=None):
                 sys.exc_clear()
             except:
                 pass
-        sys.stderr.write(u'[debug] Python version %s - %s' %(platform.python_version(), platform.platform()) + u'\n')
+        sys.stderr.write(u'[debug] Python version %s - %s' %(platform.python_version(), platform_name()) + u'\n')
         sys.stderr.write(u'[debug] Proxy map: ' + str(proxy_handler.proxies) + u'\n')
 
     ydl.add_default_info_extractors()

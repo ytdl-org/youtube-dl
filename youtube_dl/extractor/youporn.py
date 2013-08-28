@@ -12,14 +12,16 @@ from ..utils import (
     unescapeHTML,
     unified_strdate,
 )
-
+from ..aes import (
+    aes_decrypt_text
+)
 
 class YouPornIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:\w+\.)?youporn\.com/watch/(?P<videoid>[0-9]+)/(?P<title>[^/]+)'
     _TEST = {
         u'url': u'http://www.youporn.com/watch/505835/sex-ed-is-it-safe-to-masturbate-daily/',
         u'file': u'505835.mp4',
-        u'md5': u'c37ddbaaa39058c76a7e86c6813423c1',
+        u'md5': u'71ec5fcfddacf80f495efa8b6a8d9a89',
         u'info_dict': {
             u"upload_date": u"20101221", 
             u"description": u"Love & Sex Answers: http://bit.ly/DanAndJenn -- Is It Unhealthy To Masturbate Daily?", 
@@ -75,7 +77,15 @@ class YouPornIE(InfoExtractor):
         # Get all of the links from the page
         LINK_RE = r'(?s)<a href="(?P<url>[^"]+)">'
         links = re.findall(LINK_RE, download_list_html)
-        if(len(links) == 0):
+        
+        # Get link of hd video if available
+        mobj = re.search(r'var encryptedQuality720URL = \'(?P<encrypted_video_url>[a-zA-Z0-9+/]+={0,2})\';', webpage)
+        if mobj != None:
+            encrypted_video_url = mobj.group(u'encrypted_video_url')
+            video_url = aes_decrypt_text(encrypted_video_url, video_title, 32).decode('utf-8')
+            links = [video_url] + links
+        
+        if not links:
             raise ExtractorError(u'ERROR: no known formats available for video')
 
         self.to_screen(u'Links found: %d' % len(links))
@@ -112,7 +122,7 @@ class YouPornIE(InfoExtractor):
             self._print_formats(formats)
             return
 
-        req_format = self._downloader.params.get('format', None)
+        req_format = self._downloader.params.get('format', 'best')
         self.to_screen(u'Format: %s' % req_format)
 
         if req_format is None or req_format == 'best':
