@@ -25,23 +25,21 @@ class TechTVMITIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        webpage = self._download_webpage(
+        raw_page = self._download_webpage(
             'http://techtv.mit.edu/videos/%s' % video_id, video_id)
-        embed_page = self._download_webpage(
-            'http://techtv.mit.edu/embeds/%s/' % video_id, video_id,
-            note=u'Downloading embed page')
+        clean_page = re.compile(u'<!--.*?-->', re.S).sub(u'', raw_page)
 
         base_url = self._search_regex(r'ipadUrl: \'(.+?cloudfront.net/)',
-            embed_page, u'base url')
-        formats_json = self._search_regex(r'bitrates: (\[.+?\])', embed_page,
+            raw_page, u'base url')
+        formats_json = self._search_regex(r'bitrates: (\[.+?\])', raw_page,
             u'video formats')
         formats = json.loads(formats_json)
         formats = sorted(formats, key=lambda f: f['bitrate'])
 
-        title = get_element_by_id('edit-title', webpage)
-        description = clean_html(get_element_by_id('edit-description', webpage))
+        title = get_element_by_id('edit-title', clean_page)
+        description = clean_html(get_element_by_id('edit-description', clean_page))
         thumbnail = self._search_regex(r'playlist:.*?url: \'(.+?)\'',
-            embed_page, u'thumbnail', flags=re.DOTALL)
+            raw_page, u'thumbnail', flags=re.DOTALL)
 
         return {'id': video_id,
                 'title': title,
