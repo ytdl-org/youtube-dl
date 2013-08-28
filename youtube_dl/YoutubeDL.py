@@ -448,7 +448,10 @@ class YoutubeDL(object):
         if self.params.get('forceid', False):
             compat_print(info_dict['id'])
         if self.params.get('forceurl', False):
-            compat_print(info_dict['url'])
+            if info_dict['play_path']:
+                compat_print(info_dict['url'] + info_dict['play_path'])
+            else:
+                compat_print(info_dict['url'])
         if self.params.get('forcethumbnail', False) and 'thumbnail' in info_dict:
             compat_print(info_dict['thumbnail'])
         if self.params.get('forcedescription', False) and 'description' in info_dict:
