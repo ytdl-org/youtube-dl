@@ -1,4 +1,3 @@
-import ast
 import re
 
 from .common import InfoExtractor
