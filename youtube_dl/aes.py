@@ -3,7 +3,7 @@ __all__ = ['aes_encrypt', 'key_expansion', 'aes_ctr_decrypt', 'aes_decrypt_text'
 import base64
 from math import ceil
 
-from .utils import bytes_to_intlist
+from .utils import bytes_to_intlist, intlist_to_bytes
 
 BLOCK_SIZE_BYTES = 16
 
@@ -118,7 +118,7 @@ def aes_decrypt_text(data, password, key_size_bytes):
             return temp
     
     decrypted_data = aes_ctr_decrypt(cipher, key, Counter())
-    plaintext = ''.join(map(lambda x: chr(x), decrypted_data))
+    plaintext = intlist_to_bytes(decrypted_data)
     
     return plaintext
 
