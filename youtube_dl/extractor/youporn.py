@@ -5,7 +5,6 @@ import sys
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_str,
     compat_urllib_parse_urlparse,
     compat_urllib_request,
 
@@ -79,14 +78,11 @@ class YouPornIE(InfoExtractor):
         LINK_RE = r'(?s)<a href="(?P<url>[^"]+)">'
         links = re.findall(LINK_RE, download_list_html)
         
-        # Get link of hd video
-        encrypted_video_url = self._html_search_regex(
-            r'var encrypted(?:Quality[0-9]+)?URL = \'(?P<encrypted_video_url>[a-zA-Z0-9+/]+={0,2})\';',
-            webpage, u'encrypted_video_url')
-        video_url = aes_decrypt_text(encrypted_video_url, video_title, 32)
-        print(video_url)
-        assert isinstance(video_url, compat_str)
-        if video_url.split('/')[6].split('_')[0] == u'720p': # only add if 720p to avoid duplicates
+        # Get link of hd video if available
+        mobj = re.search(r'var encryptedQuality720URL = \'(?P<encrypted_video_url>[a-zA-Z0-9+/]+={0,2})\';', webpage)
+        if mobj != None:
+            encrypted_video_url = mobj.group(u'encrypted_video_url')
+            video_url = aes_decrypt_text(encrypted_video_url, video_title, 32).decode('utf-8')
             links = [video_url] + links
         
         if not links:
