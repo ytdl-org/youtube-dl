@@ -72,7 +72,7 @@ class IGNIE(InfoExtractor):
 class OneUPIE(IGNIE):
     """Extractor for 1up.com, it uses the ign videos system."""
 
-    _VALID_URL = r'https?://gamevideos.1up.com/video/id/(?P<name_or_id>.+)'
+    _VALID_URL = r'https?://gamevideos.1up.com/(?P<type>video)/id/(?P<name_or_id>.+)'
     IE_NAME = '1up.com'
 
     _DESCRIPTION_RE = r'<div id="vid_summary">(.+?)</div>'
