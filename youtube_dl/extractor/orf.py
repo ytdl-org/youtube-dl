@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import re
 import xml.etree.ElementTree
 import json
