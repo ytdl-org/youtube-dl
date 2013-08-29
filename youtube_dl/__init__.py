@@ -45,6 +45,11 @@ import sys
 import warnings
 import platform
 
+try:
+    import xattr
+    xattr_available = True
+except ImportError:
+    xattr_available = False
 
 from .utils import *
 from .update import update_self
@@ -324,6 +329,10 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option('--write-thumbnail',
             action='store_true', dest='writethumbnail',
             help='write thumbnail image to disk', default=False)
+    filesystem.add_option('-X','--xattr-filesize',
+            action='store_true', dest='setxattrfilesize',
+            help='set ytdl.filesize file xattr with expected filesize',
+            default=False)
 
 
     postproc.add_option('-x', '--extract-audio', action='store_true', dest='extractaudio', default=False,
@@ -533,6 +542,9 @@ def _real_main(argv=None):
         date = DateRange.day(opts.date)
     else:
         date = DateRange(opts.dateafter, opts.datebefore)
+    if opts.setxattrfilesize:
+        if not xattr_available:
+            parser.error(u'setting filesize xattr requested but python xattr is not available')
 
     if sys.version_info < (3,):
         # In Python 2, sys.argv is a bytestring (also note http://bugs.python.org/issue2128 for Windows systems)
@@ -604,6 +616,7 @@ def _real_main(argv=None):
         'min_filesize': opts.min_filesize,
         'max_filesize': opts.max_filesize,
         'daterange': date,
+        'setxattrfilesize': opts.setxattrfilesize,
         })
 
     if opts.verbose:
