@@ -14,7 +14,7 @@ class VideofyMeIE(InfoExtractor):
     _TEST = {
         u'url': u'http://www.videofy.me/thisisvideofyme/1100701',
         u'file':  u'1100701.mp4',
-        u'md5': u'2046dd5758541d630bfa93e741e2fd79',
+        u'md5': u'c77d700bdc16ae2e9f3c26019bd96143',
         u'info_dict': {
             u'title': u'This is VideofyMe',
             u'description': None,
@@ -32,9 +32,8 @@ class VideofyMeIE(InfoExtractor):
         config = xml.etree.ElementTree.fromstring(config_xml.encode('utf-8'))
         video = config.find('video')
         sources = video.find('sources')
-        url_node = find_xpath_attr(sources, 'source', 'id', 'HQ on')
-        if url_node is None:
-            url_node = find_xpath_attr(sources, 'source', 'id', 'HQ off')
+        url_node = next(node for node in [find_xpath_attr(sources, 'source', 'id', 'HQ %s' % key) 
+            for key in ['on', 'av', 'off']] if node is not None)
         video_url = url_node.find('url').text
 
         return {'id': video_id,

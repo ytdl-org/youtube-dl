@@ -76,7 +76,7 @@ class YoutubeDL(object):
     allsubtitles:      Downloads all the subtitles of the video
     listsubtitles:     Lists all available subtitles for the video
     subtitlesformat:   Subtitle format [srt/sbv/vtt] (default=srt)
-    subtitleslang:     Language of the subtitles to download
+    subtitleslangs:    List of languages of the subtitles to download
     keepvideo:         Keep the video file after post-processing
     daterange:         A DateRange object, download only if the upload_date is in the range.
     skip_download:     Skip the actual download of the video file
@@ -97,6 +97,7 @@ class YoutubeDL(object):
     def __init__(self, params):
         """Create a FileDownloader object with the given options."""
         self._ies = []
+        self._ies_instances = {}
         self._pps = []
         self._progress_hooks = []
         self._download_retcode = 0
@@ -111,7 +112,20 @@ class YoutubeDL(object):
     def add_info_extractor(self, ie):
         """Add an InfoExtractor object to the end of the list."""
         self._ies.append(ie)
+        self._ies_instances[ie.ie_key()] = ie
         ie.set_downloader(self)
+
+    def get_info_extractor(self, ie_key):
+        """
+        Get an instance of an IE with name ie_key, it will try to get one from
+        the _ies list, if there's no instance it will create a new one and add
+        it to the extractor list.
+        """
+        ie = self._ies_instances.get(ie_key)
+        if ie is None:
+            ie = get_info_extractor(ie_key)()
+            self.add_info_extractor(ie)
+        return ie
 
     def add_default_info_extractors(self):
         """
@@ -294,9 +308,7 @@ class YoutubeDL(object):
          '''
         
         if ie_key:
-            ie = get_info_extractor(ie_key)()
-            ie.set_downloader(self)
-            ies = [ie]
+            ies = [self.get_info_extractor(ie_key)]
         else:
             ies = self._ies
 
@@ -448,7 +460,8 @@ class YoutubeDL(object):
         if self.params.get('forceid', False):
             compat_print(info_dict['id'])
         if self.params.get('forceurl', False):
-            compat_print(info_dict['url'])
+            # For RTMP URLs, also include the playpath
+            compat_print(info_dict['url'] + info_dict.get('play_path', u''))
         if self.params.get('forcethumbnail', False) and 'thumbnail' in info_dict:
             compat_print(info_dict['thumbnail'])
         if self.params.get('forcedescription', False) and 'description' in info_dict:
@@ -483,40 +496,27 @@ class YoutubeDL(object):
                 self.report_error(u'Cannot write description file ' + descfn)
                 return
 
-        if (self.params.get('writesubtitles', False) or self.params.get('writeautomaticsub')) and 'subtitles' in info_dict and info_dict['subtitles']:
+        subtitles_are_requested = any([self.params.get('writesubtitles', False),
+                                       self.params.get('writeautomaticsub'),
+                                       self.params.get('allsubtitles', False)])
+
+        if  subtitles_are_requested and 'subtitles' in info_dict and info_dict['subtitles']:
             # subtitles download errors are already managed as troubles in relevant IE
             # that way it will silently go on when used with unsupporting IE
-            subtitle = info_dict['subtitles'][0]
-            (sub_error, sub_lang, sub) = subtitle
+            subtitles = info_dict['subtitles']
             sub_format = self.params.get('subtitlesformat')
-            if sub_error:
-                self.report_warning("Some error while getting the subtitles")
-            else:
+            for sub_lang in subtitles.keys():
+                sub = subtitles[sub_lang]
+                if sub is None:
+                    continue
                 try:
-                    sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
+                    sub_filename = subtitles_filename(filename, sub_lang, sub_format)
                     self.report_writesubtitles(sub_filename)
                     with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
-                        subfile.write(sub)
+                            subfile.write(sub)
                 except (OSError, IOError):
                     self.report_error(u'Cannot write subtitles file ' + descfn)
                     return
-
-        if self.params.get('allsubtitles', False) and 'subtitles' in info_dict and info_dict['subtitles']:
-            subtitles = info_dict['subtitles']
-            sub_format = self.params.get('subtitlesformat')
-            for subtitle in subtitles:
-                (sub_error, sub_lang, sub) = subtitle
-                if sub_error:
-                    self.report_warning("Some error while getting the subtitles")
-                else:
-                    try:
-                        sub_filename = filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
-                        self.report_writesubtitles(sub_filename)
-                        with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
-                                subfile.write(sub)
-                    except (OSError, IOError):
-                        self.report_error(u'Cannot write subtitles file ' + descfn)
-                        return
 
         if self.params.get('writeinfojson', False):
             infofn = filename + u'.info.json'

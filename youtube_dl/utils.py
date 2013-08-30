@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import datetime
+import email.utils
 import errno
 import gzip
 import io
 import json
 import locale
 import os
+import platform
 import re
+import socket
 import sys
 import traceback
 import zlib
-import email.utils
-import socket
-import datetime
 
 try:
     import urllib.request as compat_urllib_request
@@ -59,6 +60,11 @@ try:
     import http.client as compat_http_client
 except ImportError: # Python 2
     import httplib as compat_http_client
+
+try:
+    from urllib.error import HTTPError as compat_HTTPError
+except ImportError:  # Python 2
+    from urllib2 import HTTPError as compat_HTTPError
 
 try:
     from subprocess import DEVNULL
@@ -207,7 +213,7 @@ if sys.version_info >= (2,7):
     def find_xpath_attr(node, xpath, key, val):
         """ Find the xpath xpath[@key=val] """
         assert re.match(r'^[a-zA-Z]+$', key)
-        assert re.match(r'^[a-zA-Z@\s]*$', val)
+        assert re.match(r'^[a-zA-Z0-9@\s]*$', val)
         expr = xpath + u"[@%s='%s']" % (key, val)
         return node.find(expr)
 else:
@@ -489,7 +495,7 @@ def make_HTTPS_handler(opts):
 
 class ExtractorError(Exception):
     """Error during info extraction."""
-    def __init__(self, msg, tb=None, expected=False):
+    def __init__(self, msg, tb=None, expected=False, cause=None):
         """ tb, if given, is the original traceback (so that it can be printed out).
         If expected is set, this is a normal error message and most likely not a bug in youtube-dl.
         """
@@ -502,6 +508,7 @@ class ExtractorError(Exception):
 
         self.traceback = tb
         self.exc_info = sys.exc_info()  # preserve original exception
+        self.cause = cause
 
     def format_traceback(self):
         if self.traceback is None:
@@ -622,8 +629,23 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
         old_resp = resp
         # gzip
         if resp.headers.get('Content-encoding', '') == 'gzip':
-            gz = gzip.GzipFile(fileobj=io.BytesIO(resp.read()), mode='r')
-            resp = self.addinfourl_wrapper(gz, old_resp.headers, old_resp.url, old_resp.code)
+            content = resp.read()
+            gz = gzip.GzipFile(fileobj=io.BytesIO(content), mode='rb')
+            try:
+                uncompressed = io.BytesIO(gz.read())
+            except IOError as original_ioerror:
+                # There may be junk add the end of the file
+                # See http://stackoverflow.com/q/4928560/35070 for details
+                for i in range(1, 1024):
+                    try:
+                        gz = gzip.GzipFile(fileobj=io.BytesIO(content[:-i]), mode='rb')
+                        uncompressed = io.BytesIO(gz.read())
+                    except IOError:
+                        continue
+                    break
+                else:
+                    raise original_ioerror
+            resp = self.addinfourl_wrapper(uncompressed, old_resp.headers, old_resp.url, old_resp.code)
             resp.msg = old_resp.msg
         # deflate
         if resp.headers.get('Content-encoding', '') == 'deflate':
@@ -656,6 +678,9 @@ def determine_ext(url, default_ext=u'unknown_video'):
         return guess
     else:
         return default_ext
+
+def subtitles_filename(filename, sub_lang, sub_format):
+    return filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
 
 def date_from_str(date_str):
     """
@@ -708,3 +733,31 @@ class DateRange(object):
         return self.start <= date <= self.end
     def __str__(self):
         return '%s - %s' % ( self.start.isoformat(), self.end.isoformat())
+
+
+def platform_name():
+    """ Returns the platform name as a compat_str """
+    res = platform.platform()
+    if isinstance(res, bytes):
+        res = res.decode(preferredencoding())
+
+    assert isinstance(res, compat_str)
+    return res
+
+
+def bytes_to_intlist(bs):
+    if not bs:
+        return []
+    if isinstance(bs[0], int):  # Python 3
+        return list(bs)
+    else:
+        return [ord(c) for c in bs]
+
+
+def intlist_to_bytes(xs):
+    if not xs:
+        return b''
+    if isinstance(chr(0), bytes):  # Python 2
+        return ''.join([chr(x) for x in xs])
+    else:
+        return bytes(xs)

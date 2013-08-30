@@ -141,7 +141,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                          (?:                                                  # the various things that can precede the ID:
                              (?:(?:v|embed|e)/)                               # v/ or embed/ or e/
                              |(?:                                             # or the v= param in all its forms
-                                 (?:watch|movie(?:_popup)?(?:\.php)?)?              # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
+                                 (?:(?:watch|movie)(?:_popup)?(?:\.php)?)?    # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
                                  (?:\?|\#!?)                                  # the params delimiter ? or # or #!
                                  (?:.*?&)?                                    # any other preceding param (like /?s=tuff&v=xxxx)
                                  v=
@@ -155,11 +155,22 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     # Listed in order of quality
     _available_formats = ['38', '37', '46', '22', '45', '35', '44', '34', '18', '43', '6', '5', '17', '13',
                           '95', '94', '93', '92', '132', '151',
+                          # 3D
                           '85', '84', '102', '83', '101', '82', '100',
+                          # Dash video
+                          '138', '137', '248', '136', '247', '135', '246',
+                          '245', '244', '134', '243', '133', '242', '160',
+                          # Dash audio
+                          '141', '172', '140', '171', '139',
                           ]
     _available_formats_prefer_free = ['38', '46', '37', '45', '22', '44', '35', '43', '34', '18', '6', '5', '17', '13',
                                       '95', '94', '93', '92', '132', '151',
                                       '85', '102', '84', '101', '83', '100', '82',
+                                      # Dash video
+                                      '138', '248', '137', '247', '136', '246', '245',
+                                      '244', '135', '243', '134', '242', '133', '160',
+                                      # Dash audio
+                                      '172', '141', '171', '140', '139',
                                       ]
     _video_extensions = {
         '13': '3gp',
@@ -181,7 +192,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '100': 'webm',
         '101': 'webm',
         '102': 'webm',
-        
+
         # videos that use m3u8
         '92': 'mp4',
         '93': 'mp4',
@@ -190,6 +201,29 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '96': 'mp4',
         '132': 'mp4',
         '151': 'mp4',
+
+        # Dash mp4
+        '133': 'mp4',
+        '134': 'mp4',
+        '135': 'mp4',
+        '136': 'mp4',
+        '137': 'mp4',
+        '138': 'mp4',
+        '139': 'mp4',
+        '140': 'mp4',
+        '141': 'mp4',
+        '160': 'mp4',
+
+        # Dash webm
+        '171': 'webm',
+        '172': 'webm',
+        '242': 'webm',
+        '243': 'webm',
+        '244': 'webm',
+        '245': 'webm',
+        '246': 'webm',
+        '247': 'webm',
+        '248': 'webm',
     }
     _video_dimensions = {
         '5': '240x400',
@@ -217,11 +251,58 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '96': '1080p',
         '100': '360p',
         '101': '480p',
-        '102': '720p',        
+        '102': '720p',
         '132': '240p',
         '151': '72p',
+        '133': '240p',
+        '134': '360p',
+        '135': '480p',
+        '136': '720p',
+        '137': '1080p',
+        '138': '>1080p',
+        '139': '48k',
+        '140': '128k',
+        '141': '256k',
+        '160': '192p',
+        '171': '128k',
+        '172': '256k',
+        '242': '240p',
+        '243': '360p',
+        '244': '480p',
+        '245': '480p',
+        '246': '480p',
+        '247': '720p',
+        '248': '1080p',
     }
-    _3d_itags = ['85', '84', '102', '83', '101', '82', '100']
+    _special_itags = {
+        '82': '3D',
+        '83': '3D',
+        '84': '3D',
+        '85': '3D',
+        '100': '3D',
+        '101': '3D',
+        '102': '3D',
+        '133': 'DASH Video',
+        '134': 'DASH Video',
+        '135': 'DASH Video',
+        '136': 'DASH Video',
+        '137': 'DASH Video',
+        '138': 'DASH Video',
+        '139': 'DASH Audio',
+        '140': 'DASH Audio',
+        '141': 'DASH Audio',
+        '160': 'DASH Video',
+        '171': 'DASH Audio',
+        '172': 'DASH Audio',
+        '242': 'DASH Video',
+        '243': 'DASH Video',
+        '244': 'DASH Video',
+        '245': 'DASH Video',
+        '246': 'DASH Video',
+        '247': 'DASH Video',
+        '248': 'DASH Video',
+    }
+
     IE_NAME = u'youtube'
     _TESTS = [
         {
@@ -254,8 +335,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             u"info_dict": {
                 u"upload_date": u"20120506",
                 u"title": u"Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]",
-                u"description": u"md5:b085c9804f5ab69f4adea963a2dceb3c",
-                u"uploader": u"IconaPop",
+                u"description": u"md5:3e2666e0a55044490499ea45fe9037b7",
+                u"uploader": u"Icona Pop",
                 u"uploader_id": u"IconaPop"
             }
         },
@@ -338,21 +419,23 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         elif len(s) == 89:
             return s[84:78:-1] + s[87] + s[77:60:-1] + s[0] + s[59:3:-1]
         elif len(s) == 88:
-            return s[48] + s[81:67:-1] + s[82] + s[66:62:-1] + s[85] + s[61:48:-1] + s[67] + s[47:12:-1] + s[3] + s[11:3:-1] + s[2] + s[12]
+            return s[7:28] + s[87] + s[29:45] + s[55] + s[46:55] + s[2] + s[56:87] + s[28]
         elif len(s) == 87:
             return s[6:27] + s[4] + s[28:39] + s[27] + s[40:59] + s[2] + s[60:]
         elif len(s) == 86:
-            return s[5:20] + s[2] + s[21:]
+            return s[83:36:-1] + s[0] + s[35:2:-1]
         elif len(s) == 85:
             return s[83:34:-1] + s[0] + s[33:27:-1] + s[3] + s[26:19:-1] + s[34] + s[18:3:-1] + s[27]
         elif len(s) == 84:
-            return s[83:27:-1] + s[0] + s[26:5:-1] + s[2:0:-1] + s[27]
+            return s[81:36:-1] + s[0] + s[35:2:-1]
         elif len(s) == 83:
             return s[81:64:-1] + s[82] + s[63:52:-1] + s[45] + s[51:45:-1] + s[1] + s[44:1:-1] + s[0]
         elif len(s) == 82:
-            return s[36] + s[79:67:-1] + s[81] + s[66:40:-1] + s[33] + s[39:36:-1] + s[40] + s[35] + s[0] + s[67] + s[32:0:-1] + s[34]
+            return s[1:19] + s[0] + s[20:68] + s[19] + s[69:82]
         elif len(s) == 81:
             return s[56] + s[79:56:-1] + s[41] + s[55:41:-1] + s[80] + s[40:34:-1] + s[0] + s[33:29:-1] + s[34] + s[28:9:-1] + s[29] + s[8:0:-1] + s[9]
+        elif len(s) == 80:
+            return s[1:19] + s[0] + s[20:68] + s[19] + s[69:80]
         elif len(s) == 79:
             return s[54] + s[77:54:-1] + s[39] + s[53:39:-1] + s[78] + s[38:34:-1] + s[0] + s[33:29:-1] + s[34] + s[28:9:-1] + s[29] + s[8:0:-1] + s[9]
 
@@ -375,11 +458,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         try:
             sub_list = compat_urllib_request.urlopen(request).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            return (u'unable to download video subtitles: %s' % compat_str(err), None)
+            self._downloader.report_warning(u'unable to download video subtitles: %s' % compat_str(err))
+            return {}
         sub_lang_list = re.findall(r'name="([^"]*)"[^>]+lang_code="([\w\-]+)"', sub_list)
         sub_lang_list = dict((l[1], l[0]) for l in sub_lang_list)
         if not sub_lang_list:
-            return (u'video doesn\'t have subtitles', None)
+            self._downloader.report_warning(u'video doesn\'t have subtitles')
+            return {}
         return sub_lang_list
 
     def _list_available_subtitles(self, video_id):
@@ -388,8 +473,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _request_subtitle(self, sub_lang, sub_name, video_id, format):
         """
-        Return tuple:
-        (error_message, sub_lang, sub)
+        Return the subtitle as a string or None if they are not found
         """
         self.report_video_subtitles_request(video_id, sub_lang, format)
         params = compat_urllib_parse.urlencode({
@@ -402,21 +486,24 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         try:
             sub = compat_urllib_request.urlopen(url).read().decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            return (u'unable to download video subtitles: %s' % compat_str(err), None, None)
+            self._downloader.report_warning(u'unable to download video subtitles for %s: %s' % (sub_lang, compat_str(err)))
+            return
         if not sub:
-            return (u'Did not fetch video subtitles', None, None)
-        return (None, sub_lang, sub)
+            self._downloader.report_warning(u'Did not fetch video subtitles')
+            return
+        return sub
 
     def _request_automatic_caption(self, video_id, webpage):
         """We need the webpage for getting the captions url, pass it as an
            argument to speed up the process."""
-        sub_lang = self._downloader.params.get('subtitleslang') or 'en'
+        sub_lang = (self._downloader.params.get('subtitleslangs') or ['en'])[0]
         sub_format = self._downloader.params.get('subtitlesformat')
         self.to_screen(u'%s: Looking for automatic captions' % video_id)
         mobj = re.search(r';ytplayer.config = ({.*?});', webpage)
         err_msg = u'Couldn\'t find automatic captions for "%s"' % sub_lang
         if mobj is None:
-            return [(err_msg, None, None)]
+            self._downloader.report_warning(err_msg)
+            return {}
         player_config = json.loads(mobj.group(1))
         try:
             args = player_config[u'args']
@@ -431,40 +518,43 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             })
             subtitles_url = caption_url + '&' + params
             sub = self._download_webpage(subtitles_url, video_id, u'Downloading automatic captions')
-            return [(None, sub_lang, sub)]
-        except KeyError:
-            return [(err_msg, None, None)]
-
-    def _extract_subtitle(self, video_id):
+            return {sub_lang: sub}
+        # An extractor error can be raise by the download process if there are
+        # no automatic captions but there are subtitles
+        except (KeyError, ExtractorError):
+            self._downloader.report_warning(err_msg)
+            return {}
+    
+    def _extract_subtitles(self, video_id):
         """
-        Return a list with a tuple:
-        [(error_message, sub_lang, sub)]
+        Return a dictionary: {language: subtitles} or {} if the subtitles
+        couldn't be found
         """
-        sub_lang_list = self._get_available_subtitles(video_id)
+        available_subs_list = self._get_available_subtitles(video_id)
         sub_format = self._downloader.params.get('subtitlesformat')
-        if  isinstance(sub_lang_list,tuple): #There was some error, it didn't get the available subtitles
-            return [(sub_lang_list[0], None, None)]
-        if self._downloader.params.get('subtitleslang', False):
-            sub_lang = self._downloader.params.get('subtitleslang')
-        elif 'en' in sub_lang_list:
-            sub_lang = 'en'
+        if  not available_subs_list: #There was some error, it didn't get the available subtitles
+            return {}
+        if self._downloader.params.get('allsubtitles', False):
+            sub_lang_list = available_subs_list
         else:
-            sub_lang = list(sub_lang_list.keys())[0]
-        if not sub_lang in sub_lang_list:
-            return [(u'no closed captions found in the specified language "%s"' % sub_lang, None, None)]
+            if self._downloader.params.get('subtitleslangs', False):
+                reqested_langs = self._downloader.params.get('subtitleslangs')
+            elif 'en' in available_subs_list:
+                reqested_langs = ['en']
+            else:
+                reqested_langs = [list(available_subs_list.keys())[0]]
 
-        subtitle = self._request_subtitle(sub_lang, sub_lang_list[sub_lang].encode('utf-8'), video_id, sub_format)
-        return [subtitle]
-
-    def _extract_all_subtitles(self, video_id):
-        sub_lang_list = self._get_available_subtitles(video_id)
-        sub_format = self._downloader.params.get('subtitlesformat')
-        if  isinstance(sub_lang_list,tuple): #There was some error, it didn't get the available subtitles
-            return [(sub_lang_list[0], None, None)]
-        subtitles = []
+            sub_lang_list = {}
+            for sub_lang in reqested_langs:
+                if not sub_lang in available_subs_list:
+                    self._downloader.report_warning(u'no closed captions found in the specified language "%s"' % sub_lang)
+                    continue
+                sub_lang_list[sub_lang] = available_subs_list[sub_lang]
+        subtitles = {}
         for sub_lang in sub_lang_list:
             subtitle = self._request_subtitle(sub_lang, sub_lang_list[sub_lang].encode('utf-8'), video_id, sub_format)
-            subtitles.append(subtitle)
+            if subtitle:
+                subtitles[sub_lang] = subtitle
         return subtitles
 
     def _print_formats(self, formats):
@@ -472,7 +562,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         for x in formats:
             print('%s\t:\t%s\t[%s]%s' %(x, self._video_extensions.get(x, 'flv'),
                                         self._video_dimensions.get(x, '???'),
-                                        ' (3D)' if x in self._3d_itags else ''))
+                                        ' ('+self._special_itags[x]+')' if x in self._special_itags else ''))
 
     def _extract_id(self, url):
         mobj = re.match(self._VALID_URL, url, re.VERBOSE)
@@ -655,25 +745,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # subtitles
         video_subtitles = None
 
-        if self._downloader.params.get('writesubtitles', False):
-            video_subtitles = self._extract_subtitle(video_id)
-            if video_subtitles:
-                (sub_error, sub_lang, sub) = video_subtitles[0]
-                if sub_error:
-                    self._downloader.report_warning(sub_error)
-        
-        if self._downloader.params.get('writeautomaticsub', False):
+        if self._downloader.params.get('writesubtitles', False) or self._downloader.params.get('allsubtitles', False):
+            video_subtitles = self._extract_subtitles(video_id)
+        elif self._downloader.params.get('writeautomaticsub', False):
             video_subtitles = self._request_automatic_caption(video_id, video_webpage)
-            (sub_error, sub_lang, sub) = video_subtitles[0]
-            if sub_error:
-                self._downloader.report_warning(sub_error)
-
-        if self._downloader.params.get('allsubtitles', False):
-            video_subtitles = self._extract_all_subtitles(video_id)
-            for video_subtitle in video_subtitles:
-                (sub_error, sub_lang, sub) = video_subtitle
-                if sub_error:
-                    self._downloader.report_warning(sub_error)
 
         if self._downloader.params.get('listsubtitles', False):
             self._list_available_subtitles(video_id)
@@ -699,6 +774,17 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if m_s is not None:
                 self.to_screen(u'%s: Encrypted signatures detected.' % video_id)
                 video_info['url_encoded_fmt_stream_map'] = [args['url_encoded_fmt_stream_map']]
+            m_s = re.search(r'[&,]s=', args.get('adaptive_fmts', u''))
+            if m_s is not None:
+                if 'url_encoded_fmt_stream_map' in video_info:
+                    video_info['url_encoded_fmt_stream_map'][0] += ',' + args['adaptive_fmts']
+                else:
+                    video_info['url_encoded_fmt_stream_map'] = [args['adaptive_fmts']]
+            elif 'adaptive_fmts' in video_info:
+                if 'url_encoded_fmt_stream_map' in video_info:
+                    video_info['url_encoded_fmt_stream_map'][0] += ',' + video_info['adaptive_fmts'][0]
+                else:
+                    video_info['url_encoded_fmt_stream_map'] = video_info['adaptive_fmts']
         except ValueError:
             pass
 
@@ -758,7 +844,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
             video_format = '{0} - {1}{2}'.format(format_param if format_param else video_extension,
                                               self._video_dimensions.get(format_param, '???'),
-                                              ' (3D)' if format_param in self._3d_itags else '')
+                                              ' ('+self._special_itags[format_param]+')' if format_param in self._special_itags else '')
 
             results.append({
                 'id':       video_id,

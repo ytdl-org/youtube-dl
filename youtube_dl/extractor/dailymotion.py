@@ -21,7 +21,7 @@ class DailymotionIE(InfoExtractor):
         u'file': u'x33vw9.mp4',
         u'md5': u'392c4b85a60a90dc4792da41ce3144eb',
         u'info_dict': {
-            u"uploader": u"Alex and Van .", 
+            u"uploader": u"Amphora Alex and Van .", 
             u"title": u"Tutoriel de Youtubeur\"DL DES VIDEO DE YOUTUBE\""
         }
     }

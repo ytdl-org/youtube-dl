@@ -8,10 +8,12 @@ from ..utils import (
     compat_urllib_error,
     compat_urllib_parse,
     compat_urllib_request,
+    compat_urlparse,
 
     ExtractorError,
 )
 from .brightcove import BrightcoveIE
+
 
 class GenericIE(InfoExtractor):
     IE_DESC = u'Generic downloader that works on some sites'
@@ -23,7 +25,7 @@ class GenericIE(InfoExtractor):
             u'file': u'13601338388002.mp4',
             u'md5': u'85b90ccc9d73b4acd9138d3af4c27f89',
             u'info_dict': {
-                u"uploader": u"www.hodiho.fr", 
+                u"uploader": u"www.hodiho.fr",
                 u"title": u"R\u00e9gis plante sa Jeep"
             }
         },
@@ -107,8 +109,13 @@ class GenericIE(InfoExtractor):
         return new_url
 
     def _real_extract(self, url):
-        new_url = self._test_redirect(url)
-        if new_url: return [self.url_result(new_url)]
+        try:
+            new_url = self._test_redirect(url)
+            if new_url:
+                return [self.url_result(new_url)]
+        except compat_urllib_error.HTTPError:
+            # This may be a stupid server that doesn't like HEAD, our UA, or so
+            pass
 
         video_id = url.split('/')[-1]
         try:
@@ -119,7 +126,7 @@ class GenericIE(InfoExtractor):
             raise ExtractorError(u'Invalid URL: %s' % url)
 
         self.report_extraction(video_id)
-        # Look for BrigthCove:
+        # Look for BrightCove:
         m_brightcove = re.search(r'<object.+?class=([\'"]).*?BrightcoveExperience.*?\1.+?</object>', webpage, re.DOTALL)
         if m_brightcove is not None:
             self.to_screen(u'Brightcove video detected.')
@@ -145,6 +152,9 @@ class GenericIE(InfoExtractor):
             if m_video_type is not None:
                 mobj = re.search(r'<meta.*?property="og:video".*?content="(.*?)"', webpage)
         if mobj is None:
+            # HTML5 video
+            mobj = re.search(r'<video[^<]*>.*?<source .*?src="([^"]+)"', webpage, flags=re.DOTALL)
+        if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
 
         # It's possible that one of the regexes
@@ -153,6 +163,7 @@ class GenericIE(InfoExtractor):
             raise ExtractorError(u'Invalid URL: %s' % url)
 
         video_url = compat_urllib_parse.unquote(mobj.group(1))
+        video_url = compat_urlparse.urljoin(url, video_url)
         video_id = os.path.basename(video_url)
 
         # here's a fun little line of code for you:

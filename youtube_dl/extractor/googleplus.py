@@ -57,8 +57,8 @@ class GooglePlusIE(InfoExtractor):
             webpage, 'title', default=u'NA')
 
         # Step 2, Simulate clicking the image box to launch video
-        DOMAIN = 'https://plus.google.com'
-        video_page = self._search_regex(r'<a href="((?:%s)?/photos/.*?)"' % re.escape(DOMAIN),
+        DOMAIN = 'https://plus.google.com/'
+        video_page = self._search_regex(r'<a href="((?:%s)?photos/.*?)"' % re.escape(DOMAIN),
             webpage, u'video page URL')
         if not video_page.startswith(DOMAIN):
             video_page = DOMAIN + video_page

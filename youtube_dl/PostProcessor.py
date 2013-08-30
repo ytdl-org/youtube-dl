@@ -71,18 +71,26 @@ class FFmpegPostProcessor(PostProcessor):
         programs = ['avprobe', 'avconv', 'ffmpeg', 'ffprobe']
         return dict((program, executable(program)) for program in programs)
 
-    def run_ffmpeg(self, path, out_path, opts):
+    def run_ffmpeg_multiple_files(self, input_paths, out_path, opts):
         if not self._exes['ffmpeg'] and not self._exes['avconv']:
             raise FFmpegPostProcessorError(u'ffmpeg or avconv not found. Please install one.')
-        cmd = ([self._exes['avconv'] or self._exes['ffmpeg'], '-y', '-i', encodeFilename(path)]
+
+        files_cmd = []
+        for path in input_paths:
+            files_cmd.extend(['-i', encodeFilename(path)])
+        cmd = ([self._exes['avconv'] or self._exes['ffmpeg'], '-y'] + files_cmd
                + opts +
                [encodeFilename(self._ffmpeg_filename_argument(out_path))])
+
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout,stderr = p.communicate()
         if p.returncode != 0:
             stderr = stderr.decode('utf-8', 'replace')
             msg = stderr.strip().split('\n')[-1]
             raise FFmpegPostProcessorError(msg)
+
+    def run_ffmpeg(self, path, out_path, opts):
+        self.run_ffmpeg_multiple_files([path], out_path, opts)
 
     def _ffmpeg_filename_argument(self, fn):
         # ffmpeg broke --, see https://ffmpeg.org/trac/ffmpeg/ticket/2127 for details
@@ -129,7 +137,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         try:
             FFmpegPostProcessor.run_ffmpeg(self, path, out_path, opts)
         except FFmpegPostProcessorError as err:
-            raise AudioConversionError(err.message)
+            raise AudioConversionError(err.msg)
 
     def run(self, information):
         path = information['filepath']
@@ -199,7 +207,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         except:
             etype,e,tb = sys.exc_info()
             if isinstance(e, AudioConversionError):
-                msg = u'audio conversion failed: ' + e.message
+                msg = u'audio conversion failed: ' + e.msg
             else:
                 msg = u'error running ' + (self._exes['avconv'] and 'avconv' or 'ffmpeg')
             raise PostProcessingError(msg)
@@ -232,3 +240,227 @@ class FFmpegVideoConvertor(FFmpegPostProcessor):
         information['format'] = self._preferedformat
         information['ext'] = self._preferedformat
         return False,information
+
+
+class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
+    # See http://www.loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt
+    _lang_map = {
+        'aa': 'aar',
+        'ab': 'abk',
+        'ae': 'ave',
+        'af': 'afr',
+        'ak': 'aka',
+        'am': 'amh',
+        'an': 'arg',
+        'ar': 'ara',
+        'as': 'asm',
+        'av': 'ava',
+        'ay': 'aym',
+        'az': 'aze',
+        'ba': 'bak',
+        'be': 'bel',
+        'bg': 'bul',
+        'bh': 'bih',
+        'bi': 'bis',
+        'bm': 'bam',
+        'bn': 'ben',
+        'bo': 'bod',
+        'br': 'bre',
+        'bs': 'bos',
+        'ca': 'cat',
+        'ce': 'che',
+        'ch': 'cha',
+        'co': 'cos',
+        'cr': 'cre',
+        'cs': 'ces',
+        'cu': 'chu',
+        'cv': 'chv',
+        'cy': 'cym',
+        'da': 'dan',
+        'de': 'deu',
+        'dv': 'div',
+        'dz': 'dzo',
+        'ee': 'ewe',
+        'el': 'ell',
+        'en': 'eng',
+        'eo': 'epo',
+        'es': 'spa',
+        'et': 'est',
+        'eu': 'eus',
+        'fa': 'fas',
+        'ff': 'ful',
+        'fi': 'fin',
+        'fj': 'fij',
+        'fo': 'fao',
+        'fr': 'fra',
+        'fy': 'fry',
+        'ga': 'gle',
+        'gd': 'gla',
+        'gl': 'glg',
+        'gn': 'grn',
+        'gu': 'guj',
+        'gv': 'glv',
+        'ha': 'hau',
+        'he': 'heb',
+        'hi': 'hin',
+        'ho': 'hmo',
+        'hr': 'hrv',
+        'ht': 'hat',
+        'hu': 'hun',
+        'hy': 'hye',
+        'hz': 'her',
+        'ia': 'ina',
+        'id': 'ind',
+        'ie': 'ile',
+        'ig': 'ibo',
+        'ii': 'iii',
+        'ik': 'ipk',
+        'io': 'ido',
+        'is': 'isl',
+        'it': 'ita',
+        'iu': 'iku',
+        'ja': 'jpn',
+        'jv': 'jav',
+        'ka': 'kat',
+        'kg': 'kon',
+        'ki': 'kik',
+        'kj': 'kua',
+        'kk': 'kaz',
+        'kl': 'kal',
+        'km': 'khm',
+        'kn': 'kan',
+        'ko': 'kor',
+        'kr': 'kau',
+        'ks': 'kas',
+        'ku': 'kur',
+        'kv': 'kom',
+        'kw': 'cor',
+        'ky': 'kir',
+        'la': 'lat',
+        'lb': 'ltz',
+        'lg': 'lug',
+        'li': 'lim',
+        'ln': 'lin',
+        'lo': 'lao',
+        'lt': 'lit',
+        'lu': 'lub',
+        'lv': 'lav',
+        'mg': 'mlg',
+        'mh': 'mah',
+        'mi': 'mri',
+        'mk': 'mkd',
+        'ml': 'mal',
+        'mn': 'mon',
+        'mr': 'mar',
+        'ms': 'msa',
+        'mt': 'mlt',
+        'my': 'mya',
+        'na': 'nau',
+        'nb': 'nob',
+        'nd': 'nde',
+        'ne': 'nep',
+        'ng': 'ndo',
+        'nl': 'nld',
+        'nn': 'nno',
+        'no': 'nor',
+        'nr': 'nbl',
+        'nv': 'nav',
+        'ny': 'nya',
+        'oc': 'oci',
+        'oj': 'oji',
+        'om': 'orm',
+        'or': 'ori',
+        'os': 'oss',
+        'pa': 'pan',
+        'pi': 'pli',
+        'pl': 'pol',
+        'ps': 'pus',
+        'pt': 'por',
+        'qu': 'que',
+        'rm': 'roh',
+        'rn': 'run',
+        'ro': 'ron',
+        'ru': 'rus',
+        'rw': 'kin',
+        'sa': 'san',
+        'sc': 'srd',
+        'sd': 'snd',
+        'se': 'sme',
+        'sg': 'sag',
+        'si': 'sin',
+        'sk': 'slk',
+        'sl': 'slv',
+        'sm': 'smo',
+        'sn': 'sna',
+        'so': 'som',
+        'sq': 'sqi',
+        'sr': 'srp',
+        'ss': 'ssw',
+        'st': 'sot',
+        'su': 'sun',
+        'sv': 'swe',
+        'sw': 'swa',
+        'ta': 'tam',
+        'te': 'tel',
+        'tg': 'tgk',
+        'th': 'tha',
+        'ti': 'tir',
+        'tk': 'tuk',
+        'tl': 'tgl',
+        'tn': 'tsn',
+        'to': 'ton',
+        'tr': 'tur',
+        'ts': 'tso',
+        'tt': 'tat',
+        'tw': 'twi',
+        'ty': 'tah',
+        'ug': 'uig',
+        'uk': 'ukr',
+        'ur': 'urd',
+        'uz': 'uzb',
+        've': 'ven',
+        'vi': 'vie',
+        'vo': 'vol',
+        'wa': 'wln',
+        'wo': 'wol',
+        'xh': 'xho',
+        'yi': 'yid',
+        'yo': 'yor',
+        'za': 'zha',
+        'zh': 'zho',
+        'zu': 'zul',
+    }
+
+    def __init__(self, downloader=None, subtitlesformat='srt'):
+        super(FFmpegEmbedSubtitlePP, self).__init__(downloader)
+        self._subformat = subtitlesformat
+
+    @classmethod
+    def _conver_lang_code(cls, code):
+        """Convert language code from ISO 639-1 to ISO 639-2/T"""
+        return cls._lang_map.get(code[:2])
+
+    def run(self, information):
+        if information['ext'] != u'mp4':
+            self._downloader.to_screen(u'[ffmpeg] Subtitles can only be embedded in mp4 files')
+            return True, information
+        sub_langs = [key for key in information['subtitles']]
+
+        filename = information['filepath']
+        input_files = [filename] + [subtitles_filename(filename, lang, self._subformat) for lang in sub_langs]
+
+        opts = ['-map', '0:0', '-map', '0:1', '-c:v', 'copy', '-c:a', 'copy']
+        for (i, lang) in enumerate(sub_langs):
+            opts.extend(['-map', '%d:0' % (i+1), '-c:s:%d' % i, 'mov_text'])
+            lang_code = self._conver_lang_code(lang)
+            if lang_code is not None:
+                opts.extend(['-metadata:s:s:%d' % i, 'language=%s' % lang_code])
+        opts.extend(['-f', 'mp4'])
+
+        temp_filename = filename + u'.temp'
+        self._downloader.to_screen(u'[ffmpeg] Embedding subtitles in \'%s\'' % filename)
+        self.run_ffmpeg_multiple_files(input_files, temp_filename, opts)
+        os.remove(encodeFilename(filename))
+        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+
+        return True, information
