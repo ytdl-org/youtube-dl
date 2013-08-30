@@ -1161,7 +1161,7 @@ class YoutubeWatchLaterIE(YoutubeFeedsInfoExtractor):
 class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
     IE_NAME = u'youtube:favorites'
     IE_DESC = u'YouTube.com favourite videos, "ytfav" keyword (requires authentication)'
-    _VALID_URL = r'https?://www\.youtube\.com/my_favorites|:ytfav(?:o?rites)?'
+    _VALID_URL = r'https?://www\.youtube\.com/my_favorites|:ytfav(?:ou?rites)?'
     _LOGIN_REQUIRED = True
 
     def _real_extract(self, url):
