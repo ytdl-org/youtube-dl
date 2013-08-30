@@ -4,8 +4,12 @@ __youtube-dl()
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     opts="{{flags}}"
+    keywords=":ytfavorites :ytrecommended :ytsubscriptions :ytwatchlater"
 
-    if [[ ${cur} == * ]] ; then
+    if [[ ${cur} =~ : ]]; then
+        COMPREPLY=( $(compgen -W "${keywords}" -- ${cur}) )
+        return 0
+    elif [[ ${cur} == * ]] ; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
         return 0
     fi

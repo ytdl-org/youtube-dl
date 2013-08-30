@@ -3,9 +3,6 @@ import re
 import xml.etree.ElementTree
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-)
 
 
 class TriluliluIE(InfoExtractor):

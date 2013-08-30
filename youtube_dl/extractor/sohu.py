@@ -1,0 +1,90 @@
+# encoding: utf-8
+
+import json
+import re
+
+from .common import InfoExtractor
+from ..utils import ExtractorError
+
+
+class SohuIE(InfoExtractor):
+    _VALID_URL = r'https?://tv\.sohu\.com/\d+?/n(?P<id>\d+)\.shtml.*?'
+
+    _TEST = {
+        u'url': u'http://tv.sohu.com/20130724/n382479172.shtml#super',
+        u'file': u'382479172.mp4',
+        u'md5': u'bde8d9a6ffd82c63a1eefaef4eeefec7',
+        u'info_dict': {
+            u'title': u'MV：Far East Movement《The Illest》',
+        },
+    }
+
+    def _real_extract(self, url):
+
+        def _fetch_data(vid_id):
+            base_data_url = u'http://hot.vrs.sohu.com/vrs_flash.action?vid='
+            data_url = base_data_url + str(vid_id)
+            data_json = self._download_webpage(
+                data_url, video_id,
+                note=u'Downloading JSON data for ' + str(vid_id))
+            return json.loads(data_json)
+
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+
+        webpage = self._download_webpage(url, video_id)
+        raw_title = self._html_search_regex(r'(?s)<title>(.+?)</title>',
+                                            webpage, u'video title')
+        title = raw_title.partition('-')[0].strip()
+
+        vid = self._html_search_regex(r'var vid="(\d+)"', webpage,
+                                      u'video path')
+        data = _fetch_data(vid)
+
+        QUALITIES = ('ori', 'super', 'high', 'nor')
+        vid_ids = [data['data'][q + 'Vid']
+                   for q in QUALITIES
+                   if data['data'][q + 'Vid'] != 0]
+        if not vid_ids:
+            raise ExtractorError(u'No formats available for this video')
+
+        # For now, we just pick the highest available quality
+        vid_id = vid_ids[-1]
+
+        format_data = data if vid == vid_id else _fetch_data(vid_id)
+        part_count = format_data['data']['totalBlocks']
+        allot = format_data['allot']
+        prot = format_data['prot']
+        clipsURL = format_data['data']['clipsURL']
+        su = format_data['data']['su']
+
+        playlist = []
+        for i in range(part_count):
+            part_url = ('http://%s/?prot=%s&file=%s&new=%s' %
+                        (allot, prot, clipsURL[i], su[i]))
+            part_str = self._download_webpage(
+                part_url, video_id,
+                note=u'Downloading part %d of %d' % (i+1, part_count))
+
+            part_info = part_str.split('|')
+            video_url = '%s%s?key=%s' % (part_info[0], su[i], part_info[3])
+
+            video_info = {
+                'id': '%s_part%02d' % (video_id, i + 1),
+                'title': title,
+                'url': video_url,
+                'ext': 'mp4',
+            }
+            playlist.append(video_info)
+
+        if len(playlist) == 1:
+            info = playlist[0]
+            info['id'] = video_id
+        else:
+            info = {
+                '_type': 'playlist',
+                'entries': playlist,
+                'id': video_id,
+            }
+
+        return info

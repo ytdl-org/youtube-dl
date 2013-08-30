@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import datetime
+import email.utils
 import errno
 import gzip
 import io
 import json
 import locale
 import os
+import platform
 import re
+import socket
 import sys
 import traceback
 import zlib
-import email.utils
-import socket
-import datetime
 
 try:
     import urllib.request as compat_urllib_request
@@ -212,7 +213,7 @@ if sys.version_info >= (2,7):
     def find_xpath_attr(node, xpath, key, val):
         """ Find the xpath xpath[@key=val] """
         assert re.match(r'^[a-zA-Z]+$', key)
-        assert re.match(r'^[a-zA-Z@\s]*$', val)
+        assert re.match(r'^[a-zA-Z0-9@\s]*$', val)
         expr = xpath + u"[@%s='%s']" % (key, val)
         return node.find(expr)
 else:
@@ -732,3 +733,31 @@ class DateRange(object):
         return self.start <= date <= self.end
     def __str__(self):
         return '%s - %s' % ( self.start.isoformat(), self.end.isoformat())
+
+
+def platform_name():
+    """ Returns the platform name as a compat_str """
+    res = platform.platform()
+    if isinstance(res, bytes):
+        res = res.decode(preferredencoding())
+
+    assert isinstance(res, compat_str)
+    return res
+
+
+def bytes_to_intlist(bs):
+    if not bs:
+        return []
+    if isinstance(bs[0], int):  # Python 3
+        return list(bs)
+    else:
+        return [ord(c) for c in bs]
+
+
+def intlist_to_bytes(xs):
+    if not xs:
+        return b''
+    if isinstance(chr(0), bytes):  # Python 2
+        return ''.join([chr(x) for x in xs])
+    else:
+        return bytes(xs)

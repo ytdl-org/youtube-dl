@@ -335,7 +335,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             u"info_dict": {
                 u"upload_date": u"20120506",
                 u"title": u"Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]",
-                u"description": u"md5:b085c9804f5ab69f4adea963a2dceb3c",
+                u"description": u"md5:3e2666e0a55044490499ea45fe9037b7",
                 u"uploader": u"Icona Pop",
                 u"uploader_id": u"IconaPop"
             }
@@ -423,11 +423,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         elif len(s) == 87:
             return s[6:27] + s[4] + s[28:39] + s[27] + s[40:59] + s[2] + s[60:]
         elif len(s) == 86:
-            return s[5:40] + s[3] + s[41:48] + s[0] + s[49:86]
+            return s[81:73:-1] + s[84] + s[72:58:-1] + s[0] + s[57:35:-1] + s[85] + s[34:0:-1]
         elif len(s) == 85:
             return s[83:34:-1] + s[0] + s[33:27:-1] + s[3] + s[26:19:-1] + s[34] + s[18:3:-1] + s[27]
         elif len(s) == 84:
-            return s[5:40] + s[3] + s[41:48] + s[0] + s[49:84]
+            return s[81:36:-1] + s[0] + s[35:2:-1]
         elif len(s) == 83:
             return s[81:64:-1] + s[82] + s[63:52:-1] + s[45] + s[51:45:-1] + s[1] + s[44:1:-1] + s[0]
         elif len(s) == 82:
@@ -1161,7 +1161,7 @@ class YoutubeWatchLaterIE(YoutubeFeedsInfoExtractor):
 class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
     IE_NAME = u'youtube:favorites'
     IE_DESC = u'YouTube.com favourite videos, "ytfav" keyword (requires authentication)'
-    _VALID_URL = r'https?://www\.youtube\.com/my_favorites|:ytfav(?:o?rites)?'
+    _VALID_URL = r'https?://www\.youtube\.com/my_favorites|:ytfav(?:ou?rites)?'
     _LOGIN_REQUIRED = True
 
     def _real_extract(self, url):

@@ -50,6 +50,7 @@ from .keek import KeekIE
 from .liveleak import LiveLeakIE
 from .livestream import LivestreamIE
 from .metacafe import MetacafeIE
+from .mit import TechTVMITIE, MITIE
 from .mixcloud import MixcloudIE
 from .mtv import MTVIE
 from .muzu import MuzuTVIE
@@ -58,6 +59,7 @@ from .myvideo import MyVideoIE
 from .nba import NBAIE
 from .nbc import NBCNewsIE
 from .ooyala import OoyalaIE
+from .orf import ORFIE
 from .pbs import PBSIE
 from .photobucket import PhotobucketIE
 from .pornotube import PornotubeIE
@@ -69,6 +71,7 @@ from .roxwel import RoxwelIE
 from .rtlnow import RTLnowIE
 from .sina import SinaIE
 from .slashdot import SlashdotIE
+from .sohu import SohuIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE
 from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
