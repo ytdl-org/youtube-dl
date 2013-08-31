@@ -85,6 +85,7 @@ ROOT=$(pwd)
     "$ROOT/devscripts/gh-pages/sign-versions.py" < "$ROOT/updates_key.pem"
     "$ROOT/devscripts/gh-pages/generate-download.py"
     "$ROOT/devscripts/gh-pages/update-copyright.py"
+    "$ROOT/devscripts/gh-pages/update-sites.py"
     git add *.html *.html.in update
     git commit -m "release $version"
     git show HEAD
