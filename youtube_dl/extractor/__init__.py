@@ -59,6 +59,7 @@ from .myvideo import MyVideoIE
 from .nba import NBAIE
 from .nbc import NBCNewsIE
 from .ooyala import OoyalaIE
+from .orf import ORFIE
 from .pbs import PBSIE
 from .photobucket import PhotobucketIE
 from .pornotube import PornotubeIE

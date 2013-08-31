@@ -150,7 +150,7 @@ class InfoExtractor(object):
         if m:
             encoding = m.group(1)
         else:
-            m = re.search(br'<meta[^>]+charset="?([^"]+)[ /">]',
+            m = re.search(br'<meta[^>]+charset=[\'"]?([^\'")]+)[ /\'">]',
                           webpage_bytes[:1024])
             if m:
                 encoding = m.group(1).decode('ascii')

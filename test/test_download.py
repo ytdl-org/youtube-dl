@@ -127,12 +127,11 @@ def generator(test_case):
                     info_dict = json.load(infof)
                 for (info_field, expected) in tc.get('info_dict', {}).items():
                     if isinstance(expected, compat_str) and expected.startswith('md5:'):
-                        self.assertEqual(expected, 'md5:' + md5(info_dict.get(info_field)))
+                        got = 'md5:' + md5(info_dict.get(info_field))
                     else:
                         got = info_dict.get(info_field)
-                        self.assertEqual(
-                            expected, got,
-                            u'invalid value for field %s, expected %r, got %r' % (info_field, expected, got))
+                    self.assertEqual(expected, got,
+                        u'invalid value for field %s, expected %r, got %r' % (info_field, expected, got))
 
                 # If checkable fields are missing from the test case, print the info_dict
                 test_info_dict = dict((key, value if not isinstance(value, compat_str) or len(value) < 250 else 'md5:' + md5(value))
