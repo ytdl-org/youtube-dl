@@ -153,8 +153,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                      $"""
     _NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
     # Listed in order of quality
-    _available_formats = ['38', '37', '46', '22', '45', '35', '44', '34', '18', '43', '6', '5', '17', '13',
-                          '95', '94', '93', '92', '132', '151',
+    _available_formats = ['38', '37', '46', '22', '45', '35', '44', '34', '18', '43', '6', '5', '36', '17', '13',
+                          # AHLS
+                          '96', '95', '94', '93', '92', '132', '151',
                           # 3D
                           '85', '84', '102', '83', '101', '82', '100',
                           # Dash video
@@ -163,8 +164,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                           # Dash audio
                           '141', '172', '140', '171', '139',
                           ]
-    _available_formats_prefer_free = ['38', '46', '37', '45', '22', '44', '35', '43', '34', '18', '6', '5', '17', '13',
-                                      '95', '94', '93', '92', '132', '151',
+    _available_formats_prefer_free = ['38', '46', '37', '45', '22', '44', '35', '43', '34', '18', '6', '5', '36', '17', '13',
+                                      # AHLS
+                                      '96', '95', '94', '93', '92', '132', '151',
+                                      # 3D
                                       '85', '102', '84', '101', '83', '100', '82',
                                       # Dash video
                                       '138', '248', '137', '247', '136', '246', '245',
@@ -172,11 +175,18 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                       # Dash audio
                                       '172', '141', '171', '140', '139',
                                       ]
+    _video_formats_map = {
+        'flv': ['35', '34', '6', '5'],
+        '3gp': ['36', '17', '13'],
+        'mp4': ['38', '37', '22', '18'],
+        'webm': ['46', '45', '44', '43'],
+    }
     _video_extensions = {
         '13': '3gp',
-        '17': 'mp4',
+        '17': '3gp',
         '18': 'mp4',
         '22': 'mp4',
+        '36': '3gp',
         '37': 'mp4',
         '38': 'mp4',
         '43': 'webm',
@@ -193,7 +203,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '101': 'webm',
         '102': 'webm',
 
-        # videos that use m3u8
+        # AHLS
         '92': 'mp4',
         '93': 'mp4',
         '94': 'mp4',
@@ -234,6 +244,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '22': '720x1280',
         '34': '360x640',
         '35': '480x854',
+        '36': '240x320',
         '37': '1080x1920',
         '38': '3072x4096',
         '43': '360x640',
@@ -597,12 +608,24 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
         else:
             # Specific formats. We pick the first in a slash-delimeted sequence.
-            # For example, if '1/2/3/4' is requested and '2' and '4' are available, we pick '2'.
+            # Format can be specified as itag or 'mp4' or 'flv' etc. We pick the highest quality
+            # available in the specified format. For example,
+            # if '1/2/3/4' is requested and '2' and '4' are available, we pick '2'.
+            # if '1/mp4/3/4' is requested and '1' and '5' (is a mp4) are available, we pick '1'.
+            # if '1/mp4/3/4' is requested and '4' and '5' (is a mp4) are available, we pick '5'.
             req_formats = req_format.split('/')
             video_url_list = None
             for rf in req_formats:
                 if rf in url_map:
                     video_url_list = [(rf, url_map[rf])]
+                    break
+                if rf in self._video_formats_map:
+                    for srf in self._video_formats_map[rf]:
+                        if srf in url_map:
+                            video_url_list = [(srf, url_map[srf])]
+                            break
+                    else:
+                        continue
                     break
             if video_url_list is None:
                 raise ExtractorError(u'requested format not available')
