@@ -423,7 +423,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         elif len(s) == 87:
             return s[6:27] + s[4] + s[28:39] + s[27] + s[40:59] + s[2] + s[60:]
         elif len(s) == 86:
-            return s[83:36:-1] + s[0] + s[35:2:-1]
+            return s[81:73:-1] + s[84] + s[72:58:-1] + s[0] + s[57:35:-1] + s[85] + s[34:0:-1]
         elif len(s) == 85:
             return s[83:34:-1] + s[0] + s[33:27:-1] + s[3] + s[26:19:-1] + s[34] + s[18:3:-1] + s[27]
         elif len(s) == 84:
@@ -1161,7 +1161,7 @@ class YoutubeWatchLaterIE(YoutubeFeedsInfoExtractor):
 class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
     IE_NAME = u'youtube:favorites'
     IE_DESC = u'YouTube.com favourite videos, "ytfav" keyword (requires authentication)'
-    _VALID_URL = r'https?://www\.youtube\.com/my_favorites|:ytfav(?:o?rites)?'
+    _VALID_URL = r'https?://www\.youtube\.com/my_favorites|:ytfav(?:ou?rites)?'
     _LOGIN_REQUIRED = True
 
     def _real_extract(self, url):
