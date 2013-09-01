@@ -1019,7 +1019,7 @@ class YoutubeUserIE(InfoExtractor):
             # Extract video identifiers
             ids_in_page = []
 
-            for mobj in re.finditer(self._VIDEO_INDICATOR, page):
+            for mobj in re.finditer('<link.*' + self._VIDEO_INDICATOR + '.*/>', page):
                 if mobj.group(1) not in ids_in_page:
                     ids_in_page.append(mobj.group(1))
 
