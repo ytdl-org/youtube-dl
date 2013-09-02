@@ -89,6 +89,7 @@ from .tutv import TutvIE
 from .unistra import UnistraIE
 from .ustream import UstreamIE
 from .vbox7 import Vbox7IE
+from .veehd import VeeHDIE
 from .veoh import VeohIE
 from .vevo import VevoIE
 from .videofyme import VideofyMeIE

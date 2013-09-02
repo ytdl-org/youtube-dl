@@ -122,7 +122,7 @@ class MetacafeIE(InfoExtractor):
         video_title = self._html_search_regex(r'(?im)<title>(.*) - Video</title>', webpage, u'title')
         description = self._og_search_description(webpage)
         video_uploader = self._html_search_regex(
-                r'submitter=(.*?);|googletag\.pubads\(\)\.setTargeting\("channel","([^"]+)"\);',
+                r'submitter=(.*?);|googletag\.pubads\(\)\.setTargeting\("(?:channel|submiter)","([^"]+)"\);',
                 webpage, u'uploader nickname', fatal=False)
 
         return {
