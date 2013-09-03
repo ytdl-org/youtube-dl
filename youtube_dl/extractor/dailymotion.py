@@ -55,7 +55,8 @@ class DailymotionIE(InfoExtractor):
         embed_url = 'http://www.dailymotion.com/embed/video/%s' % video_id
         embed_page = self._download_webpage(embed_url, video_id,
                                             u'Downloading embed page')
-        info = self._search_regex(r'var info = ({.*?}),', embed_page, 'video info')
+        info = self._search_regex(r'var info = ({.*?}),$', embed_page,
+            'video info', flags=re.MULTILINE)
         info = json.loads(info)
 
         # TODO: support choosing qualities
