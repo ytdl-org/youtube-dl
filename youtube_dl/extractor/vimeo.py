@@ -148,9 +148,17 @@ class VimeoIE(InfoExtractor):
             _, video_thumbnail = sorted((int(width), t_url) for (width, t_url) in config["video"]["thumbs"].items())[-1]
 
         # Extract video description
-        video_description = get_element_by_attribute("itemprop", "description", webpage)
-        if video_description: video_description = clean_html(video_description)
-        else: video_description = u''
+        video_description = None
+        try:
+            video_description = get_element_by_attribute("itemprop", "description", webpage)
+            if video_description: video_description = clean_html(video_description)
+        except AssertionError as err:
+            # On some pages like (http://player.vimeo.com/video/54469442) the
+            # html tags are not closed, python 2.6 cannot handle it
+            if err.args[0] == 'we should not get here!':
+                pass
+            else:
+                raise
 
         # Extract upload date
         video_upload_date = None
