@@ -44,6 +44,16 @@ class VimeoIE(InfoExtractor):
                 u'title': u'Andy Allan - Putting the Carto into OpenStreetMap Cartography',
             },
         },
+        {
+            u'url': u'http://player.vimeo.com/video/54469442',
+            u'file': u'54469442.mp4',
+            u'md5': u'619b811a4417aa4abe78dc653becf511',
+            u'note': u'Videos that embed the url in the player page',
+            u'info_dict': {
+                u'title': u'Kathy Sierra: Building the minimum Badass User, Business of Software',
+                u'uploader': u'The BLN & Business of Software',
+            },
+        },
     ]
 
     def _login(self):
@@ -112,7 +122,8 @@ class VimeoIE(InfoExtractor):
 
         # Extract the config JSON
         try:
-            config = webpage.split(' = {config:')[1].split(',assets:')[0]
+            config = self._search_regex([r' = {config:({.+?}),assets:', r'c=({.+?);'],
+                webpage, u'info section', flags=re.DOTALL)
             config = json.loads(config)
         except:
             if re.search('The creator of this video has not given you permission to embed it on this domain.', webpage):
@@ -132,7 +143,9 @@ class VimeoIE(InfoExtractor):
         video_uploader_id = config["video"]["owner"]["url"].split('/')[-1] if config["video"]["owner"]["url"] else None
 
         # Extract video thumbnail
-        video_thumbnail = config["video"]["thumbnail"]
+        video_thumbnail = config["video"].get("thumbnail")
+        if video_thumbnail is None:
+            _, video_thumbnail = sorted((int(width), t_url) for (width, t_url) in config["video"]["thumbs"].items())[-1]
 
         # Extract video description
         video_description = get_element_by_attribute("itemprop", "description", webpage)
@@ -154,14 +167,15 @@ class VimeoIE(InfoExtractor):
         # TODO bind to format param
         codecs = [('h264', 'mp4'), ('vp8', 'flv'), ('vp6', 'flv')]
         files = { 'hd': [], 'sd': [], 'other': []}
+        config_files = config["video"].get("files") or config["request"].get("files")
         for codec_name, codec_extension in codecs:
-            if codec_name in config["video"]["files"]:
-                if 'hd' in config["video"]["files"][codec_name]:
+            if codec_name in config_files:
+                if 'hd' in config_files[codec_name]:
                     files['hd'].append((codec_name, codec_extension, 'hd'))
-                elif 'sd' in config["video"]["files"][codec_name]:
+                elif 'sd' in config_files[codec_name]:
                     files['sd'].append((codec_name, codec_extension, 'sd'))
                 else:
-                    files['other'].append((codec_name, codec_extension, config["video"]["files"][codec_name][0]))
+                    files['other'].append((codec_name, codec_extension, config_files[codec_name][0]))
 
         for quality in ('hd', 'sd', 'other'):
             if len(files[quality]) > 0:
@@ -173,8 +187,12 @@ class VimeoIE(InfoExtractor):
         else:
             raise ExtractorError(u'No known codec found')
 
-        video_url = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=%s&type=moogaloop_local&embed_location=" \
-                    %(video_id, sig, timestamp, video_quality, video_codec.upper())
+        video_url = None
+        if isinstance(config_files[video_codec], dict):
+            video_url = config_files[video_codec][video_quality].get("url")
+        if video_url is None:
+            video_url = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=%s&type=moogaloop_local&embed_location=" \
+                        %(video_id, sig, timestamp, video_quality, video_codec.upper())
 
         return [{
             'id':       video_id,
