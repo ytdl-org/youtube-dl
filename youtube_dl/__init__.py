@@ -28,6 +28,7 @@ __authors__  = (
     'Axel Noack',
     'Albert Kim',
     'Pierre Rudloff',
+    'Huarong Huo',
 )
 
 __license__ = 'Public Domain'
