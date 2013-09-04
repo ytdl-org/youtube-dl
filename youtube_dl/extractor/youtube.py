@@ -154,7 +154,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     _NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
     # Listed in order of quality
     _available_formats = ['38', '37', '46', '22', '45', '35', '44', '34', '18', '43', '6', '5', '36', '17', '13',
-                          # AHLS
+                          # Apple HTTP Live Streaming
                           '96', '95', '94', '93', '92', '132', '151',
                           # 3D
                           '85', '84', '102', '83', '101', '82', '100',
@@ -165,7 +165,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                           '141', '172', '140', '171', '139',
                           ]
     _available_formats_prefer_free = ['38', '46', '37', '45', '22', '44', '35', '43', '34', '18', '6', '5', '36', '17', '13',
-                                      # AHLS
+                                      # Apple HTTP Live Streaming
                                       '96', '95', '94', '93', '92', '132', '151',
                                       # 3D
                                       '85', '102', '84', '101', '83', '100', '82',
@@ -203,7 +203,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '101': 'webm',
         '102': 'webm',
 
-        # AHLS
+        # Apple HTTP Live Streaming
         '92': 'mp4',
         '93': 'mp4',
         '94': 'mp4',
