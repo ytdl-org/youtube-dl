@@ -113,7 +113,8 @@ which means you can modify it, redistribute it or use it however you like.
 
 ## Video Format Options:
     -f, --format FORMAT        video format code, specifiy the order of
-                               preference using slashes: "-f 22/17/18"
+                               preference using slashes: "-f 22/17/18". "-f mp4"
+                               and "-f flv" are also supported
     --all-formats              download all available video formats
     --prefer-free-formats      prefer free video formats unless a specific one
                                is requested
