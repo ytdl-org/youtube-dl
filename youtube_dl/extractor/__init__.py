@@ -21,6 +21,7 @@ from .dailymotion import DailymotionIE, DailymotionPlaylistIE
 from .depositfiles import DepositFilesIE
 from .dotsub import DotsubIE
 from .dreisat import DreiSatIE
+from .defense import DefenseGouvFrIE
 from .ehow import EHowIE
 from .eighttracks import EightTracksIE
 from .escapist import EscapistIE
