@@ -943,8 +943,11 @@ class YoutubePlaylistIE(InfoExtractor):
 
             for entry in response['feed']['entry']:
                 index = entry['yt$position']['$t']
-                if 'media$group' in entry and 'media$player' in entry['media$group']:
-                    videos.append((index, entry['media$group']['media$player']['url']))
+                if 'media$group' in entry and 'yt$videoid' in entry['media$group']:
+                    videos.append((
+                        index,
+                        'https://www.youtube.com/watch?v=' + entry['media$group']['yt$videoid']['$t']
+                    ))
 
         videos = [v[1] for v in sorted(videos)]
 
