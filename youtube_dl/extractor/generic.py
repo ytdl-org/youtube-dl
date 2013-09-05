@@ -153,7 +153,7 @@ class GenericIE(InfoExtractor):
                 mobj = re.search(r'<meta.*?property="og:video".*?content="(.*?)"', webpage)
         if mobj is None:
             # HTML5 video
-            mobj = re.search(r'<video[^<]*>.*?<source .*?src="([^"]+)"', webpage, flags=re.DOTALL)
+            mobj = re.search(r'<video[^<]*(?:>.*?<source.*?)? src="([^"]+)"', webpage, flags=re.DOTALL)
         if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
 
@@ -162,9 +162,9 @@ class GenericIE(InfoExtractor):
         if mobj.group(1) is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
 
-        video_url = compat_urllib_parse.unquote(mobj.group(1))
+        video_url = mobj.group(1)
         video_url = compat_urlparse.urljoin(url, video_url)
-        video_id = os.path.basename(video_url)
+        video_id = compat_urllib_parse.unquote(os.path.basename(video_url))
 
         # here's a fun little line of code for you:
         video_extension = os.path.splitext(video_id)[1][1:]
