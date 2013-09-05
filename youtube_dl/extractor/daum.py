@@ -18,6 +18,7 @@ class DaumIE(InfoExtractor):
         u'file': u'52554690.mp4',
         u'info_dict': {
             u'title': u'DOTA 2GETHER 시즌2 6회 - 2부',
+            u'description': u'DOTA 2GETHER 시즌2 6회 - 2부',
             u'upload_date': u'20130831',
             u'duration': 3868,
         },
@@ -26,7 +27,8 @@ class DaumIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group(1)
-        webpage = self._download_webpage(url, video_id)
+        canonical_url = 'http://tvpot.daum.net/v/%s' % video_id
+        webpage = self._download_webpage(canonical_url, video_id)
         full_id = self._search_regex(r'<link rel="video_src" href=".+?vid=(.+?)"',
             webpage, u'full id')
         query = compat_urllib_parse.urlencode({'vid': full_id})
@@ -63,6 +65,7 @@ class DaumIE(InfoExtractor):
             'title': info.find('TITLE').text,
             'formats': formats,
             'thumbnail': self._og_search_thumbnail(webpage),
+            'description': info.find('CONTENTS').text,
             'duration': int(info.find('DURATION').text),
             'upload_date': info.find('REGDTTM').text[:8],
         }
