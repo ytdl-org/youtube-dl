@@ -135,7 +135,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     _VALID_URL = r"""^
                      (
                          (?:https?://)?                                       # http(s):// (optional)
-                         (?:youtu\.be/|(?:\w+\.)?youtube(?:-nocookie)?\.com/|
+                         (?:(?:(?:(?:\w+\.)?youtube(?:-nocookie)?\.com/|
                             tube\.majestyc\.net/)                             # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
                          (?:                                                  # the various things that can precede the ID:
@@ -146,7 +146,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                  (?:.*?&)?                                    # any other preceding param (like /?s=tuff&v=xxxx)
                                  v=
                              )
-                         )?                                                   # optional -> youtube.com/xxxx is OK
+                         ))
+                         |youtu\.be/                                          # just youtu.be/xxxx
+                         )
                      )?                                                       # all until now is optional -> you can pass the naked ID
                      ([0-9A-Za-z_-]+)                                         # here is it! the YouTube video ID
                      (?(1).+)?                                                # if we found the ID, everything can follow
@@ -1013,12 +1015,16 @@ class YoutubeChannelIE(InfoExtractor):
 
 class YoutubeUserIE(InfoExtractor):
     IE_DESC = u'YouTube.com user videos (URL or "ytuser" keyword)'
-    _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?youtube\.com/user/)|ytuser:)([A-Za-z0-9_-]+)'
+    _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?youtube\.com/(?:user/)?)|ytuser:)([A-Za-z0-9_-]+)'
     _TEMPLATE_URL = 'http://gdata.youtube.com/feeds/api/users/%s'
     _GDATA_PAGE_SIZE = 50
     _GDATA_URL = 'http://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d'
     _VIDEO_INDICATOR = r'/watch\?v=(.+?)[\<&]'
     IE_NAME = u'youtube:user'
+
+    def suitable(cls, url):
+        if YoutubeIE.suitable(url): return False
+        else: return super(YoutubeUserIE, cls).suitable(url)
 
     def _real_extract(self, url):
         # Extract username

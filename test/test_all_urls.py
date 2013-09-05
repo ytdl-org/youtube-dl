@@ -11,6 +11,15 @@ from youtube_dl.extractor import YoutubeIE, YoutubePlaylistIE, YoutubeChannelIE,
 from helper import get_testcases
 
 class TestAllURLsMatching(unittest.TestCase):
+    def setUp(self):
+        self.ies = gen_extractors()
+
+    def matching_ies(self, url):
+        return [ie.IE_NAME for ie in self.ies if ie.suitable(url) and ie.IE_NAME != 'generic']
+
+    def assertMatch(self, url, ie_list):
+        self.assertEqual(self.matching_ies(url), ie_list)
+
     def test_youtube_playlist_matching(self):
         self.assertTrue(YoutubePlaylistIE.suitable(u'ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8'))
         self.assertTrue(YoutubePlaylistIE.suitable(u'UUBABnxM4Ar9ten8Mdjj1j0Q')) #585
@@ -24,11 +33,16 @@ class TestAllURLsMatching(unittest.TestCase):
     def test_youtube_matching(self):
         self.assertTrue(YoutubeIE.suitable(u'PLtS2H6bU1M'))
         self.assertFalse(YoutubeIE.suitable(u'https://www.youtube.com/watch?v=AV6J6_AeFEQ&playnext=1&list=PL4023E734DA416012')) #668
+        self.assertMatch('http://youtu.be/BaW_jenozKc', ['youtube'])
+        self.assertMatch('http://www.youtube.com/v/BaW_jenozKc', ['youtube'])
 
     def test_youtube_channel_matching(self):
         self.assertTrue(YoutubeChannelIE.suitable('https://www.youtube.com/channel/HCtnHdj3df7iM'))
         self.assertTrue(YoutubeChannelIE.suitable('https://www.youtube.com/channel/HCtnHdj3df7iM?feature=gb_ch_rec'))
         self.assertTrue(YoutubeChannelIE.suitable('https://www.youtube.com/channel/HCtnHdj3df7iM/videos'))
+
+    def test_youtube_user_matching(self):
+        self.assertMatch('www.youtube.com/NASAgovVideo/videos', ['youtube:user'])
 
     def test_justin_tv_channelid_matching(self):
         self.assertTrue(JustinTVIE.suitable(u"justin.tv/vanillatv"))
@@ -63,15 +77,12 @@ class TestAllURLsMatching(unittest.TestCase):
                     self.assertFalse(ie.suitable(url), '%s should not match URL %r' % (type(ie).__name__, url))
 
     def test_keywords(self):
-        ies = gen_extractors()
-        matching_ies = lambda url: [ie.IE_NAME for ie in ies
-                                    if ie.suitable(url) and ie.IE_NAME != 'generic']
-        self.assertEqual(matching_ies(':ytsubs'), ['youtube:subscriptions'])
-        self.assertEqual(matching_ies(':ytsubscriptions'), ['youtube:subscriptions'])
-        self.assertEqual(matching_ies(':thedailyshow'), ['ComedyCentral'])
-        self.assertEqual(matching_ies(':tds'), ['ComedyCentral'])
-        self.assertEqual(matching_ies(':colbertreport'), ['ComedyCentral'])
-        self.assertEqual(matching_ies(':cr'), ['ComedyCentral'])
+        self.assertMatch(':ytsubs', ['youtube:subscriptions'])
+        self.assertMatch(':ytsubscriptions', ['youtube:subscriptions'])
+        self.assertMatch(':thedailyshow', ['ComedyCentral'])
+        self.assertMatch(':tds', ['ComedyCentral'])
+        self.assertMatch(':colbertreport', ['ComedyCentral'])
+        self.assertMatch(':cr', ['ComedyCentral'])
 
 
 if __name__ == '__main__':
