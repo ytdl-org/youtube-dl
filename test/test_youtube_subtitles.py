@@ -37,7 +37,7 @@ class TestYoutubeSubtitles(unittest.TestCase):
         self.assertEqual(md5(subtitles['en']), '4cd9278a35ba2305f47354ee13472260')
     def test_youtube_subtitles_lang(self):
         self.DL.params['writesubtitles'] = True
-        self.DL.params['subtitleslang'] = 'it'
+        self.DL.params['subtitleslangs'] = ['it']
         subtitles = self.getSubtitles()
         self.assertEqual(md5(subtitles['it']), '164a51f16f260476a05b50fe4c2f161d')
     def test_youtube_allsubtitles(self):
@@ -61,7 +61,7 @@ class TestYoutubeSubtitles(unittest.TestCase):
     def test_youtube_automatic_captions(self):
         self.url = '8YoUxe5ncPo'
         self.DL.params['writeautomaticsub'] = True
-        self.DL.params['subtitleslang'] = 'it'
+        self.DL.params['subtitleslangs'] = ['it']
         subtitles = self.getSubtitles()
         self.assertTrue(subtitles['it'] is not None)
     def test_youtube_nosubtitles(self):
@@ -69,7 +69,14 @@ class TestYoutubeSubtitles(unittest.TestCase):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(len(subtitles), 0)
-
+    def test_youtube_multiple_langs(self):
+        self.url = 'QRS8MkLhQmM'
+        self.DL.params['writesubtitles'] = True
+        langs = ['it', 'fr', 'de']
+        self.DL.params['subtitleslangs'] = langs
+        subtitles = self.getSubtitles()
+        for lang in langs:
+            self.assertTrue(subtitles.get(lang) is not None, u'Subtitles for \'%s\' not extracted' % lang)
 
 if __name__ == '__main__':
     unittest.main()

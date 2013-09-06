@@ -36,20 +36,20 @@ class TestDailymotionSubtitles(unittest.TestCase):
         self.assertEqual(md5(subtitles['en']), '976553874490cba125086bbfea3ff76f')
     def test_subtitles_lang(self):
         self.DL.params['writesubtitles'] = True
-        self.DL.params['subtitleslang'] = 'fr'
+        self.DL.params['subtitleslangs'] = ['fr']
         subtitles = self.getSubtitles()
         self.assertEqual(md5(subtitles['fr']), '594564ec7d588942e384e920e5341792')
     def test_allsubtitles(self):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(len(subtitles.keys()), 5)
-    def test_list_subtitles(self): #ojo
+    def test_list_subtitles(self):
         self.DL.params['listsubtitles'] = True
         info_dict = self.getInfoDict()
         self.assertEqual(info_dict, None)
     def test_automatic_captions(self):
         self.DL.params['writeautomaticsub'] = True
-        self.DL.params['subtitleslang'] = 'en'
+        self.DL.params['subtitleslang'] = ['en']
         subtitles = self.getSubtitles()
         self.assertTrue(len(subtitles.keys()) == 0)
     def test_nosubtitles(self):
@@ -57,6 +57,13 @@ class TestDailymotionSubtitles(unittest.TestCase):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(len(subtitles), 0)
+    def test_multiple_langs(self):
+        self.DL.params['writesubtitles'] = True
+        langs = ['es', 'fr', 'de']
+        self.DL.params['subtitleslangs'] = langs
+        subtitles = self.getSubtitles()
+        for lang in langs:
+            self.assertTrue(subtitles.get(lang) is not None, u'Subtitles for \'%s\' not extracted' % lang)
 
 if __name__ == '__main__':
     unittest.main()

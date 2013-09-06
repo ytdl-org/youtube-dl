@@ -21,24 +21,29 @@ class SubtitlesIE(InfoExtractor):
 
     def _extract_subtitles(self, video_id):
         """ returns {sub_lang: sub} or {} if subtitles not found """
-        sub_lang_list = self._get_available_subtitles(video_id)
-        if not sub_lang_list:  # error, it didn't get the available subtitles
+        available_subs_list = self._get_available_subtitles(video_id)
+        if not available_subs_list:  # error, it didn't get the available subtitles
             return {}
+        if self._downloader.params.get('allsubtitles', False):
+            sub_lang_list = available_subs_list
+        else:
+            if self._downloader.params.get('writesubtitles', False):
+                if self._downloader.params.get('subtitleslangs', False):
+                    requested_langs = self._downloader.params.get('subtitleslangs')
+                elif 'en' in available_subs_list:
+                    requested_langs = ['en']
+                else:
+                    requested_langs = [list(available_subs_list.keys())[0]]
 
-        if self._downloader.params.get('writesubtitles', False):
-            if self._downloader.params.get('subtitleslang', False):
-                sub_lang = self._downloader.params.get('subtitleslang')
-            elif 'en' in sub_lang_list:
-                sub_lang = 'en'
-            else:
-                sub_lang = list(sub_lang_list.keys())[0]
-            if not sub_lang in sub_lang_list:
-                self._downloader.report_warning(u'no closed captions found in the specified language "%s"' % sub_lang)
-                return {}
-            sub_lang_list = {sub_lang: sub_lang_list[sub_lang]}
+                sub_lang_list = {}
+                for sub_lang in requested_langs:
+                    if not sub_lang in available_subs_list:
+                        self._downloader.report_warning(u'no closed captions found in the specified language "%s"' % sub_lang)
+                        continue
+                    sub_lang_list[sub_lang] = available_subs_list[sub_lang]
 
         subtitles = {}
-        for sub_lang, url in sub_lang_list.iteritems():
+        for sub_lang, url in sub_lang_list.items():
             subtitle = self._request_subtitle_url(sub_lang, url)
             if subtitle:
                 subtitles[sub_lang] = subtitle
