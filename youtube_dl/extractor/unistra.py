@@ -11,7 +11,7 @@ class UnistraIE(InfoExtractor):
         u'md5': u'736f605cfdc96724d55bb543ab3ced24',
         u'info_dict': {
             u'title': u'M!ss Yella',
-            u'description': u'md5:75e8439a3e2981cd5d4b6db232e8fdfc',
+            u'description': u'md5:104892c71bd48e55d70b902736b81bbf',
         },
     }
 

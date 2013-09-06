@@ -67,7 +67,7 @@ RELEASE_FILES="youtube-dl youtube-dl.exe youtube-dl-$version.tar.gz"
 (cd build/$version/ && sha512sum $RELEASE_FILES > SHA2-512SUMS)
 git checkout HEAD -- youtube-dl youtube-dl.exe
 
-/bin/echo -e "\n### Signing and uploading the new binaries to youtube-dl.org..."
+/bin/echo -e "\n### Signing and uploading the new binaries to yt-dl.org ..."
 for f in $RELEASE_FILES; do gpg --detach-sig "build/$version/$f"; done
 scp -r "build/$version" ytdl@yt-dl.org:html/tmp/
 ssh ytdl@yt-dl.org "mv html/tmp/$version html/downloads/"
@@ -85,6 +85,7 @@ ROOT=$(pwd)
     "$ROOT/devscripts/gh-pages/sign-versions.py" < "$ROOT/updates_key.pem"
     "$ROOT/devscripts/gh-pages/generate-download.py"
     "$ROOT/devscripts/gh-pages/update-copyright.py"
+    "$ROOT/devscripts/gh-pages/update-sites.py"
     git add *.html *.html.in update
     git commit -m "release $version"
     git show HEAD

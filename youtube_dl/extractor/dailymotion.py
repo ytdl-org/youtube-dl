@@ -37,14 +37,14 @@ class DailyMotionSubtitlesIE(NoAutoSubtitlesIE):
 class DailymotionIE(DailyMotionSubtitlesIE, InfoExtractor):
     """Information Extractor for Dailymotion"""
 
-    _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^/]+)'
+    _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/(?:embed/)?video/([^/]+)'
     IE_NAME = u'dailymotion'
     _TEST = {
         u'url': u'http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech',
         u'file': u'x33vw9.mp4',
         u'md5': u'392c4b85a60a90dc4792da41ce3144eb',
         u'info_dict': {
-            u"uploader": u"Alex and Van .", 
+            u"uploader": u"Amphora Alex and Van .", 
             u"title": u"Tutoriel de Youtubeur\"DL DES VIDEO DE YOUTUBE\""
         }
     }
@@ -56,6 +56,7 @@ class DailymotionIE(DailyMotionSubtitlesIE, InfoExtractor):
         video_id = mobj.group(1).split('_')[0].split('?')[0]
 
         video_extension = 'mp4'
+        url = 'http://www.dailymotion.com/video/%s' % video_id
 
         # Retrieve video webpage to extract further information
         request = compat_urllib_request.Request(url)
@@ -78,7 +79,8 @@ class DailymotionIE(DailyMotionSubtitlesIE, InfoExtractor):
         embed_url = 'http://www.dailymotion.com/embed/video/%s' % video_id
         embed_page = self._download_webpage(embed_url, video_id,
                                             u'Downloading embed page')
-        info = self._search_regex(r'var info = ({.*?}),', embed_page, 'video info')
+        info = self._search_regex(r'var info = ({.*?}),$', embed_page,
+            'video info', flags=re.MULTILINE)
         info = json.loads(info)
 
         # TODO: support choosing qualities

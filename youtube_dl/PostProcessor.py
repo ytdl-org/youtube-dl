@@ -137,7 +137,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         try:
             FFmpegPostProcessor.run_ffmpeg(self, path, out_path, opts)
         except FFmpegPostProcessorError as err:
-            raise AudioConversionError(err.message)
+            raise AudioConversionError(err.msg)
 
     def run(self, information):
         path = information['filepath']
@@ -207,7 +207,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         except:
             etype,e,tb = sys.exc_info()
             if isinstance(e, AudioConversionError):
-                msg = u'audio conversion failed: ' + e.message
+                msg = u'audio conversion failed: ' + e.msg
             else:
                 msg = u'error running ' + (self._exes['avconv'] and 'avconv' or 'ffmpeg')
             raise PostProcessingError(msg)
@@ -458,6 +458,7 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
         opts.extend(['-f', 'mp4'])
 
         temp_filename = filename + u'.temp'
+        self._downloader.to_screen(u'[ffmpeg] Embedding subtitles in \'%s\'' % filename)
         self.run_ffmpeg_multiple_files(input_files, temp_filename, opts)
         os.remove(encodeFilename(filename))
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))

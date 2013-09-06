@@ -13,7 +13,7 @@ class IGNIE(InfoExtractor):
     Some videos of it.ign.com are also supported
     """
 
-    _VALID_URL = r'https?://.+?\.ign\.com/(?:videos|show_videos)(/.+)?/(?P<name_or_id>.+)'
+    _VALID_URL = r'https?://.+?\.ign\.com/(?P<type>videos|show_videos|articles)(/.+)?/(?P<name_or_id>.+)'
     IE_NAME = u'ign.com'
 
     _CONFIG_URL_TEMPLATE = 'http://www.ign.com/videos/configs/id/%s.config'
@@ -41,7 +41,11 @@ class IGNIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         name_or_id = mobj.group('name_or_id')
+        page_type = mobj.group('type')
         webpage = self._download_webpage(url, name_or_id)
+        if page_type == 'articles':
+            video_url = self._search_regex(r'var videoUrl = "(.+?)"', webpage, u'video url')
+            return self.url_result(video_url, ie='IGN')
         video_id = self._find_video_id(webpage)
         result = self._get_video_info(video_id)
         description = self._html_search_regex(self._DESCRIPTION_RE,
@@ -68,7 +72,7 @@ class IGNIE(InfoExtractor):
 class OneUPIE(IGNIE):
     """Extractor for 1up.com, it uses the ign videos system."""
 
-    _VALID_URL = r'https?://gamevideos.1up.com/video/id/(?P<name_or_id>.+)'
+    _VALID_URL = r'https?://gamevideos.1up.com/(?P<type>video)/id/(?P<name_or_id>.+)'
     IE_NAME = '1up.com'
 
     _DESCRIPTION_RE = r'<div id="vid_summary">(.+?)</div>'

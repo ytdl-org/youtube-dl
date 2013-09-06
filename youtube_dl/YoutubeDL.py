@@ -76,7 +76,7 @@ class YoutubeDL(object):
     allsubtitles:      Downloads all the subtitles of the video
     listsubtitles:     Lists all available subtitles for the video
     subtitlesformat:   Subtitle format [srt/sbv/vtt] (default=srt)
-    subtitleslangs:     Language of the subtitles to download
+    subtitleslangs:    List of languages of the subtitles to download
     keepvideo:         Keep the video file after post-processing
     daterange:         A DateRange object, download only if the upload_date is in the range.
     skip_download:     Skip the actual download of the video file
@@ -97,6 +97,7 @@ class YoutubeDL(object):
     def __init__(self, params):
         """Create a FileDownloader object with the given options."""
         self._ies = []
+        self._ies_instances = {}
         self._pps = []
         self._progress_hooks = []
         self._download_retcode = 0
@@ -111,7 +112,20 @@ class YoutubeDL(object):
     def add_info_extractor(self, ie):
         """Add an InfoExtractor object to the end of the list."""
         self._ies.append(ie)
+        self._ies_instances[ie.ie_key()] = ie
         ie.set_downloader(self)
+
+    def get_info_extractor(self, ie_key):
+        """
+        Get an instance of an IE with name ie_key, it will try to get one from
+        the _ies list, if there's no instance it will create a new one and add
+        it to the extractor list.
+        """
+        ie = self._ies_instances.get(ie_key)
+        if ie is None:
+            ie = get_info_extractor(ie_key)()
+            self.add_info_extractor(ie)
+        return ie
 
     def add_default_info_extractors(self):
         """
@@ -294,9 +308,7 @@ class YoutubeDL(object):
          '''
         
         if ie_key:
-            ie = get_info_extractor(ie_key)()
-            ie.set_downloader(self)
-            ies = [ie]
+            ies = [self.get_info_extractor(ie_key)]
         else:
             ies = self._ies
 
@@ -448,7 +460,8 @@ class YoutubeDL(object):
         if self.params.get('forceid', False):
             compat_print(info_dict['id'])
         if self.params.get('forceurl', False):
-            compat_print(info_dict['url'])
+            # For RTMP URLs, also include the playpath
+            compat_print(info_dict['url'] + info_dict.get('play_path', u''))
         if self.params.get('forcethumbnail', False) and 'thumbnail' in info_dict:
             compat_print(info_dict['thumbnail'])
         if self.params.get('forcedescription', False) and 'description' in info_dict:

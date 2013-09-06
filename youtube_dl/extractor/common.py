@@ -114,6 +114,11 @@ class InfoExtractor(object):
         """Real extraction process. Redefine in subclasses."""
         pass
 
+    @classmethod
+    def ie_key(cls):
+        """A string for getting the InfoExtractor with get_info_extractor"""
+        return cls.__name__[:-2]
+
     @property
     def IE_NAME(self):
         return type(self).__name__[:-2]
@@ -129,7 +134,7 @@ class InfoExtractor(object):
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             if errnote is None:
                 errnote = u'Unable to download webpage'
-            raise ExtractorError(u'%s: %s' % (errnote, compat_str(err)), sys.exc_info()[2])
+            raise ExtractorError(u'%s: %s' % (errnote, compat_str(err)), sys.exc_info()[2], cause=err)
 
     def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None):
         """ Returns a tuple (page content as string, URL handle) """
@@ -140,12 +145,17 @@ class InfoExtractor(object):
 
         urlh = self._request_webpage(url_or_request, video_id, note, errnote)
         content_type = urlh.headers.get('Content-Type', '')
+        webpage_bytes = urlh.read()
         m = re.match(r'[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+\s*;\s*charset=(.+)', content_type)
         if m:
             encoding = m.group(1)
         else:
-            encoding = 'utf-8'
-        webpage_bytes = urlh.read()
+            m = re.search(br'<meta[^>]+charset=[\'"]?([^\'")]+)[ /\'">]',
+                          webpage_bytes[:1024])
+            if m:
+                encoding = m.group(1).decode('ascii')
+            else:
+                encoding = 'utf-8'
         if self._downloader.params.get('dump_intermediate_pages', False):
             try:
                 url = url_or_request.get_full_url()

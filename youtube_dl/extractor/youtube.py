@@ -194,7 +194,7 @@ class YoutubeIE(YoutubeSubtitlesIE, YoutubeBaseInfoExtractor):
     _VALID_URL = r"""^
                      (
                          (?:https?://)?                                       # http(s):// (optional)
-                         (?:youtu\.be/|(?:\w+\.)?youtube(?:-nocookie)?\.com/|
+                         (?:(?:(?:(?:\w+\.)?youtube(?:-nocookie)?\.com/|
                             tube\.majestyc\.net/)                             # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
                          (?:                                                  # the various things that can precede the ID:
@@ -205,15 +205,18 @@ class YoutubeIE(YoutubeSubtitlesIE, YoutubeBaseInfoExtractor):
                                  (?:.*?&)?                                    # any other preceding param (like /?s=tuff&v=xxxx)
                                  v=
                              )
-                         )?                                                   # optional -> youtube.com/xxxx is OK
+                         ))
+                         |youtu\.be/                                          # just youtu.be/xxxx
+                         )
                      )?                                                       # all until now is optional -> you can pass the naked ID
                      ([0-9A-Za-z_-]+)                                         # here is it! the YouTube video ID
                      (?(1).+)?                                                # if we found the ID, everything can follow
                      $"""
     _NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
     # Listed in order of quality
-    _available_formats = ['38', '37', '46', '22', '45', '35', '44', '34', '18', '43', '6', '5', '17', '13',
-                          '95', '94', '93', '92', '132', '151',
+    _available_formats = ['38', '37', '46', '22', '45', '35', '44', '34', '18', '43', '6', '5', '36', '17', '13',
+                          # Apple HTTP Live Streaming
+                          '96', '95', '94', '93', '92', '132', '151',
                           # 3D
                           '85', '84', '102', '83', '101', '82', '100',
                           # Dash video
@@ -222,8 +225,10 @@ class YoutubeIE(YoutubeSubtitlesIE, YoutubeBaseInfoExtractor):
                           # Dash audio
                           '141', '172', '140', '171', '139',
                           ]
-    _available_formats_prefer_free = ['38', '46', '37', '45', '22', '44', '35', '43', '34', '18', '6', '5', '17', '13',
-                                      '95', '94', '93', '92', '132', '151',
+    _available_formats_prefer_free = ['38', '46', '37', '45', '22', '44', '35', '43', '34', '18', '6', '5', '36', '17', '13',
+                                      # Apple HTTP Live Streaming
+                                      '96', '95', '94', '93', '92', '132', '151',
+                                      # 3D
                                       '85', '102', '84', '101', '83', '100', '82',
                                       # Dash video
                                       '138', '248', '137', '247', '136', '246', '245',
@@ -231,11 +236,18 @@ class YoutubeIE(YoutubeSubtitlesIE, YoutubeBaseInfoExtractor):
                                       # Dash audio
                                       '172', '141', '171', '140', '139',
                                       ]
+    _video_formats_map = {
+        'flv': ['35', '34', '6', '5'],
+        '3gp': ['36', '17', '13'],
+        'mp4': ['38', '37', '22', '18'],
+        'webm': ['46', '45', '44', '43'],
+    }
     _video_extensions = {
         '13': '3gp',
-        '17': 'mp4',
+        '17': '3gp',
         '18': 'mp4',
         '22': 'mp4',
+        '36': '3gp',
         '37': 'mp4',
         '38': 'mp4',
         '43': 'webm',
@@ -252,7 +264,7 @@ class YoutubeIE(YoutubeSubtitlesIE, YoutubeBaseInfoExtractor):
         '101': 'webm',
         '102': 'webm',
 
-        # videos that use m3u8
+        # Apple HTTP Live Streaming
         '92': 'mp4',
         '93': 'mp4',
         '94': 'mp4',
@@ -293,6 +305,7 @@ class YoutubeIE(YoutubeSubtitlesIE, YoutubeBaseInfoExtractor):
         '22': '720x1280',
         '34': '360x640',
         '35': '480x854',
+        '36': '240x320',
         '37': '1080x1920',
         '38': '3072x4096',
         '43': '360x640',
@@ -394,7 +407,7 @@ class YoutubeIE(YoutubeSubtitlesIE, YoutubeBaseInfoExtractor):
             u"info_dict": {
                 u"upload_date": u"20120506",
                 u"title": u"Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]",
-                u"description": u"md5:b085c9804f5ab69f4adea963a2dceb3c",
+                u"description": u"md5:3e2666e0a55044490499ea45fe9037b7",
                 u"uploader": u"Icona Pop",
                 u"uploader_id": u"IconaPop"
             }
@@ -432,7 +445,7 @@ class YoutubeIE(YoutubeSubtitlesIE, YoutubeBaseInfoExtractor):
     @classmethod
     def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
-        if YoutubePlaylistIE.suitable(url) or YoutubeSubscriptionsIE.suitable(url): return False
+        if YoutubePlaylistIE.suitable(url): return False
         return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
     def report_video_webpage_download(self, video_id):
@@ -465,15 +478,15 @@ class YoutubeIE(YoutubeSubtitlesIE, YoutubeBaseInfoExtractor):
         elif len(s) == 89:
             return s[84:78:-1] + s[87] + s[77:60:-1] + s[0] + s[59:3:-1]
         elif len(s) == 88:
-            return s[48] + s[81:67:-1] + s[82] + s[66:62:-1] + s[85] + s[61:48:-1] + s[67] + s[47:12:-1] + s[3] + s[11:3:-1] + s[2] + s[12]
+            return s[7:28] + s[87] + s[29:45] + s[55] + s[46:55] + s[2] + s[56:87] + s[28]
         elif len(s) == 87:
             return s[6:27] + s[4] + s[28:39] + s[27] + s[40:59] + s[2] + s[60:]
         elif len(s) == 86:
-            return s[5:20] + s[2] + s[21:]
+            return s[5:34] + s[0] + s[35:38] + s[3] + s[39:45] + s[38] + s[46:53] + s[73] + s[54:73] + s[85] + s[74:85] + s[53]
         elif len(s) == 85:
             return s[83:34:-1] + s[0] + s[33:27:-1] + s[3] + s[26:19:-1] + s[34] + s[18:3:-1] + s[27]
         elif len(s) == 84:
-            return s[83:27:-1] + s[0] + s[26:5:-1] + s[2:0:-1] + s[27]
+            return s[81:36:-1] + s[0] + s[35:2:-1]
         elif len(s) == 83:
             return s[81:64:-1] + s[82] + s[63:52:-1] + s[45] + s[51:45:-1] + s[1] + s[44:1:-1] + s[0]
         elif len(s) == 82:
@@ -537,12 +550,24 @@ class YoutubeIE(YoutubeSubtitlesIE, YoutubeBaseInfoExtractor):
             video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
         else:
             # Specific formats. We pick the first in a slash-delimeted sequence.
-            # For example, if '1/2/3/4' is requested and '2' and '4' are available, we pick '2'.
+            # Format can be specified as itag or 'mp4' or 'flv' etc. We pick the highest quality
+            # available in the specified format. For example,
+            # if '1/2/3/4' is requested and '2' and '4' are available, we pick '2'.
+            # if '1/mp4/3/4' is requested and '1' and '5' (is a mp4) are available, we pick '1'.
+            # if '1/mp4/3/4' is requested and '4' and '5' (is a mp4) are available, we pick '5'.
             req_formats = req_format.split('/')
             video_url_list = None
             for rf in req_formats:
                 if rf in url_map:
                     video_url_list = [(rf, url_map[rf])]
+                    break
+                if rf in self._video_formats_map:
+                    for srf in self._video_formats_map[rf]:
+                        if srf in url_map:
+                            video_url_list = [(srf, url_map[srf])]
+                            break
+                    else:
+                        continue
                     break
             if video_url_list is None:
                 raise ExtractorError(u'requested format not available')
@@ -558,7 +583,7 @@ class YoutubeIE(YoutubeSubtitlesIE, YoutubeBaseInfoExtractor):
         manifest = self._download_webpage(manifest_url, video_id, u'Downloading formats manifest')
         formats_urls = _get_urls(manifest)
         for format_url in formats_urls:
-            itag = self._search_regex(r'itag/(\d+?)/', format_url, 'itag')
+            itag = self._search_regex(r'itag%3D(\d+?)/', format_url, 'itag')
             url_map[itag] = format_url
         return url_map
 
@@ -860,8 +885,11 @@ class YoutubePlaylistIE(InfoExtractor):
 
             for entry in response['feed']['entry']:
                 index = entry['yt$position']['$t']
-                if 'media$group' in entry and 'media$player' in entry['media$group']:
-                    videos.append((index, entry['media$group']['media$player']['url']))
+                if 'media$group' in entry and 'yt$videoid' in entry['media$group']:
+                    videos.append((
+                        index,
+                        'https://www.youtube.com/watch?v=' + entry['media$group']['yt$videoid']['$t']
+                    ))
 
         videos = [v[1] for v in sorted(videos)]
 
@@ -927,12 +955,19 @@ class YoutubeChannelIE(InfoExtractor):
 
 class YoutubeUserIE(InfoExtractor):
     IE_DESC = u'YouTube.com user videos (URL or "ytuser" keyword)'
-    _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?youtube\.com/user/)|ytuser:)([A-Za-z0-9_-]+)'
+    _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?youtube\.com/(?:user/)?)|ytuser:)(?!feed/)([A-Za-z0-9_-]+)'
     _TEMPLATE_URL = 'http://gdata.youtube.com/feeds/api/users/%s'
     _GDATA_PAGE_SIZE = 50
-    _GDATA_URL = 'http://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d'
-    _VIDEO_INDICATOR = r'/watch\?v=(.+?)[\<&]'
+    _GDATA_URL = 'http://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d&alt=json'
     IE_NAME = u'youtube:user'
+
+    @classmethod
+    def suitable(cls, url):
+        # Don't return True if the url can be extracted with other youtube
+        # extractor, the regex would is too permissive and it would match.
+        other_ies = iter(klass for (name, klass) in globals().items() if name.endswith('IE') and klass is not cls)
+        if any(ie.suitable(url) for ie in other_ies): return False
+        else: return super(YoutubeUserIE, cls).suitable(url)
 
     def _real_extract(self, url):
         # Extract username
@@ -956,13 +991,15 @@ class YoutubeUserIE(InfoExtractor):
             page = self._download_webpage(gdata_url, username,
                                           u'Downloading video ids from %d to %d' % (start_index, start_index + self._GDATA_PAGE_SIZE))
 
+            try:
+                response = json.loads(page)
+            except ValueError as err:
+                raise ExtractorError(u'Invalid JSON in API response: ' + compat_str(err))
+
             # Extract video identifiers
             ids_in_page = []
-
-            for mobj in re.finditer(self._VIDEO_INDICATOR, page):
-                if mobj.group(1) not in ids_in_page:
-                    ids_in_page.append(mobj.group(1))
-
+            for entry in response['feed']['entry']:
+                ids_in_page.append(entry['id']['$t'].split('/')[-1])
             video_ids.extend(ids_in_page)
 
             # A little optimization - if current page is not
@@ -1101,7 +1138,7 @@ class YoutubeWatchLaterIE(YoutubeFeedsInfoExtractor):
 class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
     IE_NAME = u'youtube:favorites'
     IE_DESC = u'YouTube.com favourite videos, "ytfav" keyword (requires authentication)'
-    _VALID_URL = r'https?://www\.youtube\.com/my_favorites|:ytfav(?:o?rites)?'
+    _VALID_URL = r'https?://www\.youtube\.com/my_favorites|:ytfav(?:ou?rites)?'
     _LOGIN_REQUIRED = True
 
     def _real_extract(self, url):
