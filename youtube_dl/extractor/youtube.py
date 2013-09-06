@@ -386,7 +386,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     @classmethod
     def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
-        if YoutubePlaylistIE.suitable(url) or YoutubeSubscriptionsIE.suitable(url): return False
+        if YoutubePlaylistIE.suitable(url): return False
         return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
     def report_video_webpage_download(self, video_id):
@@ -1021,8 +1021,12 @@ class YoutubeUserIE(InfoExtractor):
     _GDATA_URL = 'http://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d&alt=json'
     IE_NAME = u'youtube:user'
 
+    @classmethod
     def suitable(cls, url):
-        if YoutubeIE.suitable(url) or YoutubeFavouritesIE.suitable(url): return False
+        # Don't return True if the url can be extracted with other youtube
+        # extractor, the regex would is too permissive and it would match.
+        other_ies = iter(klass for (name, klass) in globals().items() if name.endswith('IE') and klass is not cls)
+        if any(ie.suitable(url) for ie in other_ies): return False
         else: return super(YoutubeUserIE, cls).suitable(url)
 
     def _real_extract(self, url):
