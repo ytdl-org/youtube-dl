@@ -20,9 +20,9 @@ tests = [
     # 87
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$^&*()_-+={[]}|:;?/>.<",
      "uioplkjhgfdsazxcvbnm1t34567890QWE2TYUIOPLKJHGFDSAZXCVeNM!@#$^&*()_-+={[]}|:;?/>.<"),
-    # 86 - vflHOr_nV 2013/08/30
+    # 86 - vfluy6kdb 2013/09/06
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[|};?/>.<",
-     "?;}|[{=+._)(*&^%$#@!MNBqCXZASDFGHJKLPOIUYTREWQ<987654321mnbvcxzasdfghjklpoiuytrew"),
+     "yuioplkjhgfdsazxcvbnm12345678q0QWrRTYUIOELKJHGFD-AZXCVBNM!@#$%^&*()_<+={[|};?/>.S"),
     # 85
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[};?/>.<",
      ".>/?;}[{=+-_)(*&^%$#@!MNBVCXZASDFGHJKLPOIUYTREWQ0q876543r1mnbvcx9asdfghjklpoiuyt2"),
