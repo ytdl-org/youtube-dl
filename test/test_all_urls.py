@@ -44,6 +44,12 @@ class TestAllURLsMatching(unittest.TestCase):
     def test_youtube_user_matching(self):
         self.assertMatch('www.youtube.com/NASAgovVideo/videos', ['youtube:user'])
 
+    def test_youtube_feeds(self):
+        self.assertMatch('https://www.youtube.com/feed/watch_later', ['youtube:watch_later'])
+        self.assertMatch('https://www.youtube.com/feed/subscriptions', ['youtube:subscriptions'])
+        self.assertMatch('https://www.youtube.com/feed/recommended', ['youtube:recommended'])
+        self.assertMatch('https://www.youtube.com/my_favorites', ['youtube:favorites'])
+
     def test_justin_tv_channelid_matching(self):
         self.assertTrue(JustinTVIE.suitable(u"justin.tv/vanillatv"))
         self.assertTrue(JustinTVIE.suitable(u"twitch.tv/vanillatv"))
