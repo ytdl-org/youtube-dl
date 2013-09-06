@@ -1018,8 +1018,7 @@ class YoutubeUserIE(InfoExtractor):
     _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?youtube\.com/(?:user/)?)|ytuser:)([A-Za-z0-9_-]+)'
     _TEMPLATE_URL = 'http://gdata.youtube.com/feeds/api/users/%s'
     _GDATA_PAGE_SIZE = 50
-    _GDATA_URL = 'http://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d'
-    _VIDEO_INDICATOR = r'/watch\?v=(.+?)[\<&]'
+    _GDATA_URL = 'http://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d&alt=json'
     IE_NAME = u'youtube:user'
 
     def suitable(cls, url):
@@ -1048,13 +1047,15 @@ class YoutubeUserIE(InfoExtractor):
             page = self._download_webpage(gdata_url, username,
                                           u'Downloading video ids from %d to %d' % (start_index, start_index + self._GDATA_PAGE_SIZE))
 
+            try:
+                response = json.loads(page)
+            except ValueError as err:
+                raise ExtractorError(u'Invalid JSON in API response: ' + compat_str(err))
+
             # Extract video identifiers
             ids_in_page = []
-
-            for mobj in re.finditer(self._VIDEO_INDICATOR, page):
-                if mobj.group(1) not in ids_in_page:
-                    ids_in_page.append(mobj.group(1))
-
+            for entry in response['feed']['entry']:
+                ids_in_page.append(entry['id']['$t'].split('/')[-1])
             video_ids.extend(ids_in_page)
 
             # A little optimization - if current page is not
