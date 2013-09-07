@@ -109,6 +109,11 @@ class GenericIE(InfoExtractor):
         return new_url
 
     def _real_extract(self, url):
+        parsed_url = compat_urlparse.urlparse(url)
+        if not parsed_url.scheme:
+            self._downloader.report_warning('The url doesn\'t specify the protocol, trying with http')
+            return self.url_result('http://' + url)
+
         try:
             new_url = self._test_redirect(url)
             if new_url:

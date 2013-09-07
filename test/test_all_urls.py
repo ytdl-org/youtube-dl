@@ -21,14 +21,15 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertEqual(self.matching_ies(url), ie_list)
 
     def test_youtube_playlist_matching(self):
-        self.assertTrue(YoutubePlaylistIE.suitable(u'ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8'))
-        self.assertTrue(YoutubePlaylistIE.suitable(u'UUBABnxM4Ar9ten8Mdjj1j0Q')) #585
-        self.assertTrue(YoutubePlaylistIE.suitable(u'PL63F0C78739B09958'))
-        self.assertTrue(YoutubePlaylistIE.suitable(u'https://www.youtube.com/playlist?list=UUBABnxM4Ar9ten8Mdjj1j0Q'))
-        self.assertTrue(YoutubePlaylistIE.suitable(u'https://www.youtube.com/course?list=ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8'))
-        self.assertTrue(YoutubePlaylistIE.suitable(u'https://www.youtube.com/playlist?list=PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC'))
-        self.assertTrue(YoutubePlaylistIE.suitable(u'https://www.youtube.com/watch?v=AV6J6_AeFEQ&playnext=1&list=PL4023E734DA416012')) #668
-        self.assertFalse(YoutubePlaylistIE.suitable(u'PLtS2H6bU1M'))
+        assertPlaylist = lambda url: self.assertMatch(url, ['youtube:playlist'])
+        assertPlaylist(u'ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8')
+        assertPlaylist(u'UUBABnxM4Ar9ten8Mdjj1j0Q') #585
+        assertPlaylist(u'PL63F0C78739B09958')
+        assertPlaylist(u'https://www.youtube.com/playlist?list=UUBABnxM4Ar9ten8Mdjj1j0Q')
+        assertPlaylist(u'https://www.youtube.com/course?list=ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8')
+        assertPlaylist(u'https://www.youtube.com/playlist?list=PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC')
+        assertPlaylist(u'https://www.youtube.com/watch?v=AV6J6_AeFEQ&playnext=1&list=PL4023E734DA416012') #668
+        self.assertFalse('youtube:playlist' in self.matching_ies(u'PLtS2H6bU1M'))
 
     def test_youtube_matching(self):
         self.assertTrue(YoutubeIE.suitable(u'PLtS2H6bU1M'))
@@ -37,12 +38,22 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch('http://www.youtube.com/v/BaW_jenozKc', ['youtube'])
 
     def test_youtube_channel_matching(self):
-        self.assertTrue(YoutubeChannelIE.suitable('https://www.youtube.com/channel/HCtnHdj3df7iM'))
-        self.assertTrue(YoutubeChannelIE.suitable('https://www.youtube.com/channel/HCtnHdj3df7iM?feature=gb_ch_rec'))
-        self.assertTrue(YoutubeChannelIE.suitable('https://www.youtube.com/channel/HCtnHdj3df7iM/videos'))
+        assertChannel = lambda url: self.assertMatch(url, ['youtube:channel'])
+        assertChannel('https://www.youtube.com/channel/HCtnHdj3df7iM')
+        assertChannel('https://www.youtube.com/channel/HCtnHdj3df7iM?feature=gb_ch_rec')
+        assertChannel('https://www.youtube.com/channel/HCtnHdj3df7iM/videos')
 
     def test_youtube_user_matching(self):
         self.assertMatch('www.youtube.com/NASAgovVideo/videos', ['youtube:user'])
+
+    def test_youtube_feeds(self):
+        self.assertMatch('https://www.youtube.com/feed/watch_later', ['youtube:watch_later'])
+        self.assertMatch('https://www.youtube.com/feed/subscriptions', ['youtube:subscriptions'])
+        self.assertMatch('https://www.youtube.com/feed/recommended', ['youtube:recommended'])
+        self.assertMatch('https://www.youtube.com/my_favorites', ['youtube:favorites'])
+
+    def test_youtube_show_matching(self):
+        self.assertMatch('http://www.youtube.com/show/airdisasters', ['youtube:show'])
 
     def test_justin_tv_channelid_matching(self):
         self.assertTrue(JustinTVIE.suitable(u"justin.tv/vanillatv"))

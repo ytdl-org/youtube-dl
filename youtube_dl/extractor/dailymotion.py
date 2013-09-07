@@ -14,7 +14,7 @@ from ..utils import (
 class DailymotionIE(InfoExtractor):
     """Information Extractor for Dailymotion"""
 
-    _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/video/([^/]+)'
+    _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/(?:embed/)?video/([^/]+)'
     IE_NAME = u'dailymotion'
     _TEST = {
         u'url': u'http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech',
@@ -33,6 +33,7 @@ class DailymotionIE(InfoExtractor):
         video_id = mobj.group(1).split('_')[0].split('?')[0]
 
         video_extension = 'mp4'
+        url = 'http://www.dailymotion.com/video/%s' % video_id
 
         # Retrieve video webpage to extract further information
         request = compat_urllib_request.Request(url)
