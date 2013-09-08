@@ -643,7 +643,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         manifest = self._download_webpage(manifest_url, video_id, u'Downloading formats manifest')
         formats_urls = _get_urls(manifest)
         for format_url in formats_urls:
-            itag = self._search_regex(r'itag%3D(\d+?)/', format_url, 'itag')
+            itag = self._search_regex(r'itag/(\d+?)/', format_url, 'itag')
             url_map[itag] = format_url
         return url_map
 
