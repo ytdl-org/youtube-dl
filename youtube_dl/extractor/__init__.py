@@ -29,6 +29,7 @@ from .escapist import EscapistIE
 from .exfm import ExfmIE
 from .facebook import FacebookIE
 from .flickr import FlickrIE
+from .francetv import PluzzIE
 from .freesound import FreesoundIE
 from .funnyordie import FunnyOrDieIE
 from .gamespot import GameSpotIE
