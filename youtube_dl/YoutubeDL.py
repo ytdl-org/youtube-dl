@@ -147,6 +147,8 @@ class YoutubeDL(object):
             output = message + terminator
             if 'b' in getattr(self._screen_file, 'mode', '') or sys.version_info[0] < 3: # Python 2 lies about the mode of sys.stdout/sys.stderr
                 output = output.encode(preferredencoding(), 'ignore')
+            if sys.version_info >= (3, 0):
+                output = output.encode('ascii','ignore').decode()
             self._screen_file.write(output)
             self._screen_file.flush()
 
@@ -156,6 +158,8 @@ class YoutubeDL(object):
         output = message + u'\n'
         if 'b' in getattr(self._screen_file, 'mode', '') or sys.version_info[0] < 3: # Python 2 lies about the mode of sys.stdout/sys.stderr
             output = output.encode(preferredencoding())
+        if sys.version_info >= (3, 0):
+            output = output.encode('ascii','ignore').decode()
         sys.stderr.write(output)
 
     def fixed_template(self):
