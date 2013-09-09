@@ -66,7 +66,7 @@ class FileDownloader(object):
     @staticmethod
     def format_seconds(seconds):
         (mins, secs) = divmod(seconds, 60)
-        (hours, eta_mins) = divmod(mins, 60)
+        (hours, mins) = divmod(mins, 60)
         if hours > 99:
             return '--:--:--'
         if hours == 0:
