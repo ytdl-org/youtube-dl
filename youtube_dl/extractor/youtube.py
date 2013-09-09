@@ -150,7 +150,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                          |youtu\.be/                                          # just youtu.be/xxxx
                          )
                      )?                                                       # all until now is optional -> you can pass the naked ID
-                     ([0-9A-Za-z_-]+)                                         # here is it! the YouTube video ID
+                     ([0-9A-Za-z_-]{11})                                      # here is it! the YouTube video ID
                      (?(1).+)?                                                # if we found the ID, everything can follow
                      $"""
     _NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
