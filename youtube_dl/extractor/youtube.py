@@ -724,7 +724,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         video_subtitles = self.extract_subtitles(video_id, video_webpage)
 
         if self._downloader.params.get('listsubtitles', False):
-            self._list_available_subtitles(video_id)
+            self._list_available_subtitles(video_id, video_webpage)
             return
 
         if 'length_seconds' not in video_info:

@@ -8,12 +8,16 @@ from ..utils import (
 
 class SubtitlesInfoExtractor(InfoExtractor):
 
-    def _list_available_subtitles(self, video_id):
+    def _list_available_subtitles(self, video_id, webpage=None):
         """ outputs the available subtitles for the video """
         sub_lang_list = self._get_available_subtitles(video_id)
+        auto_captions_list = self._get_available_automatic_caption(video_id, webpage)
         sub_lang = ",".join(list(sub_lang_list.keys()))
         self.to_screen(u'%s: Available subtitles for video: %s' %
                        (video_id, sub_lang))
+        auto_lang = ",".join(auto_captions_list.keys())
+        self.to_screen(u'%s: Available automatic captions for video: %s' %
+                       (video_id, auto_lang))
 
     def extract_subtitles(self, video_id, video_webpage=None):
         """ returns {sub_lang: sub} or {} if subtitles not found """
