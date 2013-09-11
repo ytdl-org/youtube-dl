@@ -5,6 +5,7 @@ import netrc
 import re
 import socket
 import itertools
+import xml.etree.ElementTree
 
 from .common import InfoExtractor, SearchInfoExtractor
 from .subtitles import SubtitlesInfoExtractor
@@ -478,14 +479,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             return {}
         return sub_lang_list
 
-    def _request_automatic_caption(self, video_id, webpage):
+    def _get_available_automatic_caption(self, video_id, webpage):
         """We need the webpage for getting the captions url, pass it as an
            argument to speed up the process."""
-        sub_lang = (self._downloader.params.get('subtitleslangs') or ['en'])[0]
         sub_format = self._downloader.params.get('subtitlesformat')
         self.to_screen(u'%s: Looking for automatic captions' % video_id)
         mobj = re.search(r';ytplayer.config = ({.*?});', webpage)
-        err_msg = u'Couldn\'t find automatic captions for "%s"' % sub_lang
+        err_msg = u'Couldn\'t find automatic captions for %s' % video_id
         if mobj is None:
             self._downloader.report_warning(err_msg)
             return {}
@@ -494,16 +494,29 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             args = player_config[u'args']
             caption_url = args[u'ttsurl']
             timestamp = args[u'timestamp']
-            params = compat_urllib_parse.urlencode({
-                'lang': 'en',
-                'tlang': sub_lang,
-                'fmt': sub_format,
-                'ts': timestamp,
-                'kind': 'asr',
+            # We get the available subtitles
+            list_params = compat_urllib_parse.urlencode({
+                'type': 'list',
+                'tlangs': 1,
+                'asrs': 1,
             })
-            subtitles_url = caption_url + '&' + params
-            sub = self._download_webpage(subtitles_url, video_id, u'Downloading automatic captions')
-            return {sub_lang: sub}
+            list_url = caption_url + '&' + list_params
+            list_page = self._download_webpage(list_url, video_id)
+            caption_list = xml.etree.ElementTree.fromstring(list_page.encode('utf-8'))
+            original_lang = caption_list.find('track').attrib['lang_code']
+
+            sub_lang_list = {}
+            for lang_node in caption_list.findall('target'):
+                sub_lang = lang_node.attrib['lang_code']
+                params = compat_urllib_parse.urlencode({
+                    'lang': original_lang,
+                    'tlang': sub_lang,
+                    'fmt': sub_format,
+                    'ts': timestamp,
+                    'kind': 'asr',
+                })
+                sub_lang_list[sub_lang] = caption_url + '&' + params
+            return sub_lang_list
         # An extractor error can be raise by the download process if there are
         # no automatic captions but there are subtitles
         except (KeyError, ExtractorError):
