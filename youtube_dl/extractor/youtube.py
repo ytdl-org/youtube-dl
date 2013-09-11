@@ -24,7 +24,7 @@ from ..utils import (
     orderedSet,
 )
 
-class YoutubeBaseInfoExtractor(InfoExtractor):
+class YoutubeBaseInfoExtractor(SubtitlesIE):
     """Provide base functions for Youtube extractors"""
     _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
     _LANG_URL = r'https://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
@@ -131,8 +131,6 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             return
         self._confirm_age()
 
-class YoutubeSubtitlesIE(SubtitlesIE):
-
     def _get_available_subtitles(self, video_id):
         request = compat_urllib_request.Request('http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id)
         try:
@@ -189,7 +187,7 @@ class YoutubeSubtitlesIE(SubtitlesIE):
             self._downloader.report_warning(err_msg)
             return {}
 
-class YoutubeIE(YoutubeSubtitlesIE, YoutubeBaseInfoExtractor):
+class YoutubeIE(YoutubeBaseInfoExtractor):
     IE_DESC = u'YouTube.com'
     _VALID_URL = r"""^
                      (

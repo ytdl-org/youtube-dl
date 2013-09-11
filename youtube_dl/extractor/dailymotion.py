@@ -18,23 +18,7 @@ from ..utils import (
 )
 
 
-class DailyMotionSubtitlesIE(NoAutoSubtitlesIE):
-
-    def _get_available_subtitles(self, video_id):
-        request = compat_urllib_request.Request('https://api.dailymotion.com/video/%s/subtitles?fields=id,language,url' % video_id)
-        try:
-            sub_list = compat_urllib_request.urlopen(request).read().decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_warning(u'unable to download video subtitles: %s' % compat_str(err))
-            return {}
-        info = json.loads(sub_list)
-        if (info['total'] > 0):
-            sub_lang_list = dict((l['language'], l['url']) for l in info['list'])
-            return sub_lang_list
-        self._downloader.report_warning(u'video doesn\'t have subtitles')
-        return {}
-
-class DailymotionIE(DailyMotionSubtitlesIE, InfoExtractor):
+class DailymotionIE(NoAutoSubtitlesIE):
     """Information Extractor for Dailymotion"""
 
     _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/(?:embed/)?video/([^/]+)'
@@ -119,6 +103,20 @@ class DailymotionIE(DailyMotionSubtitlesIE, InfoExtractor):
             'subtitles':    video_subtitles,
             'thumbnail': info['thumbnail_url']
         }]
+
+    def _get_available_subtitles(self, video_id):
+        request = compat_urllib_request.Request('https://api.dailymotion.com/video/%s/subtitles?fields=id,language,url' % video_id)
+        try:
+            sub_list = compat_urllib_request.urlopen(request).read().decode('utf-8')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.report_warning(u'unable to download video subtitles: %s' % compat_str(err))
+            return {}
+        info = json.loads(sub_list)
+        if (info['total'] > 0):
+            sub_lang_list = dict((l['language'], l['url']) for l in info['list'])
+            return sub_lang_list
+        self._downloader.report_warning(u'video doesn\'t have subtitles')
+        return {}
 
 
 class DailymotionPlaylistIE(InfoExtractor):
