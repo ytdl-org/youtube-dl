@@ -29,6 +29,7 @@ __authors__  = (
     'Albert Kim',
     'Pierre Rudloff',
     'Huarong Huo',
+    'Ismael Mejía',
 )
 
 __license__ = 'Public Domain'
