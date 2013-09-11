@@ -4,7 +4,7 @@ import itertools
 import socket
 
 from .common import InfoExtractor
-from .subtitles import NoAutoSubtitlesInfoExtractor
+from .subtitles import SubtitlesInfoExtractor
 
 from ..utils import (
     compat_http_client,
@@ -18,7 +18,7 @@ from ..utils import (
 )
 
 
-class DailymotionIE(NoAutoSubtitlesInfoExtractor):
+class DailymotionIE(SubtitlesInfoExtractor):
     """Information Extractor for Dailymotion"""
 
     _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/(?:embed/)?video/([^/]+)'
@@ -81,14 +81,7 @@ class DailymotionIE(NoAutoSubtitlesInfoExtractor):
         video_url = info[max_quality]
 
         # subtitles
-        video_subtitles = None
-        video_webpage = None
-
-        if self._downloader.params.get('writesubtitles', False) or self._downloader.params.get('allsubtitles', False):
-            video_subtitles = self._extract_subtitles(video_id)
-        elif self._downloader.params.get('writeautomaticsub', False):
-            video_subtitles = self._request_automatic_caption(video_id, video_webpage)
-
+        video_subtitles = self.extract_subtitles(video_id)
         if self._downloader.params.get('listsubtitles', False):
             self._list_available_subtitles(video_id)
             return

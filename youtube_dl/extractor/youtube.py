@@ -707,12 +707,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 video_description = u''
 
         # subtitles
-        video_subtitles = None
-
-        if self._downloader.params.get('writesubtitles', False) or self._downloader.params.get('allsubtitles', False):
-            video_subtitles = self._extract_subtitles(video_id)
-        elif self._downloader.params.get('writeautomaticsub', False):
-            video_subtitles = self._request_automatic_caption(video_id, video_webpage)
+        video_subtitles = self.extract_subtitles(video_id, video_webpage)
 
         if self._downloader.params.get('listsubtitles', False):
             self._list_available_subtitles(video_id)

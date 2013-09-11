@@ -62,19 +62,31 @@ class SubtitlesInfoExtractor(InfoExtractor):
         return sub
 
     def _get_available_subtitles(self, video_id):
-        """ returns {sub_lang: url} or {} if not available """
-        """ Must be redefined by the subclasses """
+        """
+        returns {sub_lang: url} or {} if not available
+        Must be redefined by the subclasses
+        """
         pass
 
     def _request_automatic_caption(self, video_id, webpage):
-        """ returns {sub_lang: sub} or {} if not available """
-        """ Must be redefined by the subclasses """
-        pass
-
-
-class NoAutoSubtitlesInfoExtractor(SubtitlesInfoExtractor):
-    """ A subtitle class for the servers that don't support auto-captions"""
-
-    def _request_automatic_caption(self, video_id, webpage):
+        """
+        returns {sub_lang: sub} or {} if not available
+        Must be redefined by the subclasses that support automatic captions,
+        otherwise it will return {}
+        """
         self._downloader.report_warning(u'Automatic Captions not supported by this server')
         return {}
+
+    def extract_subtitles(self, video_id, video_webpage=None):
+        """
+        Extract the subtitles and/or the automatic captions if requested.
+        Returns None or a dictionary in the format {sub_lang: sub}
+        """
+        video_subtitles = None
+        if self._downloader.params.get('writesubtitles', False) or self._downloader.params.get('allsubtitles', False):
+            video_subtitles = self._extract_subtitles(video_id)
+        elif self._downloader.params.get('writeautomaticsub', False):
+            video_subtitles = self._request_automatic_caption(video_id, video_webpage)
+        return video_subtitles
+
+
