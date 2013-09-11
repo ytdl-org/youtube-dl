@@ -4,7 +4,7 @@ from .common import InfoExtractor
 
 
 class KickStarterIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.kickstarter\.com/projects/(?P<id>.*)/.*\?'
+    _VALID_URL = r'https?://www\.kickstarter\.com/projects/(?P<id>.*)/.*\??'
     _TEST = {
         "url": "https://www.kickstarter.com/projects/1404461844/intersection-the-story-of-josh-grant?ref=home_location",
         "file": "1404461844.mp4",
