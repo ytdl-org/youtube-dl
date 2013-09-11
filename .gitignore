@@ -18,3 +18,9 @@ youtube-dl.tar.gz
 cover/
 updates_key.pem
 *.egg-info
+*.srt
+*.sbv
+*.vtt
+*.flv
+*.mp4
+*.part

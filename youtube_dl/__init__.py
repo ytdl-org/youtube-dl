@@ -205,13 +205,10 @@ def parseOpts(overrideArguments=None):
 
     subtitles.add_option('--write-sub', '--write-srt',
             action='store_true', dest='writesubtitles',
-            help='write subtitle file (currently youtube only)', default=False)
+            help='write subtitle file', default=False)
     subtitles.add_option('--write-auto-sub', '--write-automatic-sub',
             action='store_true', dest='writeautomaticsub',
-            help='write automatic subtitle file (currently youtube only)', default=False)
-    subtitles.add_option('--only-sub',
-            action='store_true', dest='skip_download',
-            help='[deprecated] alias of --skip-download', default=False)
+            help='write automatic subtitle file (youtube only)', default=False)
     subtitles.add_option('--all-subs',
             action='store_true', dest='allsubtitles',
             help='downloads all the available subtitles of the video', default=False)
@@ -222,7 +219,7 @@ def parseOpts(overrideArguments=None):
             action='store', dest='subtitlesformat', metavar='FORMAT',
             help='subtitle format (default=srt) ([sbv/vtt] youtube only)', default='srt')
     subtitles.add_option('--sub-lang', '--sub-langs', '--srt-lang',
-            action='callback', dest='subtitleslang', metavar='LANGS', type='str',
+            action='callback', dest='subtitleslangs', metavar='LANGS', type='str',
             default=[], callback=_comma_separated_values_options_callback,
             help='languages of the subtitles to download (optional) separated by commas, use IETF language tags like \'en,pt\'')
 
@@ -593,7 +590,7 @@ def _real_main(argv=None):
         'allsubtitles': opts.allsubtitles,
         'listsubtitles': opts.listsubtitles,
         'subtitlesformat': opts.subtitlesformat,
-        'subtitleslangs': opts.subtitleslang,
+        'subtitleslangs': opts.subtitleslangs,
         'matchtitle': decodeOption(opts.matchtitle),
         'rejecttitle': decodeOption(opts.rejecttitle),
         'max_downloads': opts.max_downloads,
