@@ -454,10 +454,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             return self._decrypt_signature(s)
 
     def _get_available_subtitles(self, video_id):
-        request = compat_urllib_request.Request('http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id)
         try:
-            sub_list = compat_urllib_request.urlopen(request).read().decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            sub_list = self._download_webpage(
+                'http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id,
+                video_id, note=False)
+        except ExtractorError as err:
             self._downloader.report_warning(u'unable to download video subtitles: %s' % compat_str(err))
             return {}
         lang_list = re.findall(r'name="([^"]*)"[^>]+lang_code="([\w\-]+)"', sub_list)

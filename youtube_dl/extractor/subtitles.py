@@ -1,12 +1,8 @@
-import socket
-
 from .common import InfoExtractor
 
 from ..utils import (
-    compat_http_client,
-    compat_urllib_error,
-    compat_urllib_request,
     compat_str,
+    ExtractorError,
 )
 
 
@@ -52,8 +48,8 @@ class SubtitlesInfoExtractor(InfoExtractor):
     def _request_subtitle_url(self, sub_lang, url):
         """ makes the http request for the subtitle """
         try:
-            sub = compat_urllib_request.urlopen(url).read().decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            sub = self._download_webpage(url, None, note=False)
+        except ExtractorError as err:
             self._downloader.report_warning(u'unable to download video subtitles for %s: %s' % (sub_lang, compat_str(err)))
             return
         if not sub:
@@ -88,5 +84,3 @@ class SubtitlesInfoExtractor(InfoExtractor):
         elif self._downloader.params.get('writeautomaticsub', False):
             video_subtitles = self._request_automatic_caption(video_id, video_webpage)
         return video_subtitles
-
-
