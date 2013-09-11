@@ -72,10 +72,13 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertTrue(JustinTVIE.suitable(u"http://www.twitch.tv/tsm_theoddone/c/2349361"))
 
     def test_youtube_extract(self):
-        self.assertEqual(YoutubeIE()._extract_id('http://www.youtube.com/watch?&v=BaW_jenozKc'), 'BaW_jenozKc')
-        self.assertEqual(YoutubeIE()._extract_id('https://www.youtube.com/watch?&v=BaW_jenozKc'), 'BaW_jenozKc')
-        self.assertEqual(YoutubeIE()._extract_id('https://www.youtube.com/watch?feature=player_embedded&v=BaW_jenozKc'), 'BaW_jenozKc')
-        self.assertEqual(YoutubeIE()._extract_id('https://www.youtube.com/watch_popup?v=BaW_jenozKc'), 'BaW_jenozKc')
+        assertExtractId = lambda url, id: self.assertEqual(YoutubeIE()._extract_id(url), id)
+        assertExtractId('http://www.youtube.com/watch?&v=BaW_jenozKc', 'BaW_jenozKc')
+        assertExtractId('https://www.youtube.com/watch?&v=BaW_jenozKc', 'BaW_jenozKc')
+        assertExtractId('https://www.youtube.com/watch?feature=player_embedded&v=BaW_jenozKc', 'BaW_jenozKc')
+        assertExtractId('https://www.youtube.com/watch_popup?v=BaW_jenozKc', 'BaW_jenozKc')
+        assertExtractId('http://www.youtube.com/watch?v=BaW_jenozKcsharePLED17F32AD9753930', 'BaW_jenozKc')
+        assertExtractId('BaW_jenozKc', 'BaW_jenozKc')
 
     def test_no_duplicates(self):
         ies = gen_extractors()

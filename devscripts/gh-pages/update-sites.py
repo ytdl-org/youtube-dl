@@ -14,7 +14,7 @@ def main():
         template = tmplf.read()
 
     ie_htmls = []
-    for ie in sorted(youtube_dl.gen_extractors(), key=lambda i: i.IE_NAME):
+    for ie in sorted(youtube_dl.gen_extractors(), key=lambda i: i.IE_NAME.lower()):
         ie_html = '<b>{}</b>'.format(ie.IE_NAME)
         try:
             ie_html += ': {}'.format(ie.IE_DESC)

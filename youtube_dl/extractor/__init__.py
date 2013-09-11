@@ -29,6 +29,10 @@ from .escapist import EscapistIE
 from .exfm import ExfmIE
 from .facebook import FacebookIE
 from .flickr import FlickrIE
+from .francetv import (
+    PluzzIE,
+    FranceTvInfoIE,
+)
 from .freesound import FreesoundIE
 from .funnyordie import FunnyOrDieIE
 from .gamespot import GameSpotIE
@@ -75,6 +79,7 @@ from .roxwel import RoxwelIE
 from .rtlnow import RTLnowIE
 from .sina import SinaIE
 from .slashdot import SlashdotIE
+from .slideshare import SlideshareIE
 from .sohu import SohuIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE
 from .spiegel import SpiegelIE

@@ -209,7 +209,7 @@ class YoutubeIE(YoutubeSubtitlesIE, YoutubeBaseInfoExtractor):
                          |youtu\.be/                                          # just youtu.be/xxxx
                          )
                      )?                                                       # all until now is optional -> you can pass the naked ID
-                     ([0-9A-Za-z_-]+)                                         # here is it! the YouTube video ID
+                     ([0-9A-Za-z_-]{11})                                      # here is it! the YouTube video ID
                      (?(1).+)?                                                # if we found the ID, everything can follow
                      $"""
     _NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
@@ -484,7 +484,7 @@ class YoutubeIE(YoutubeSubtitlesIE, YoutubeBaseInfoExtractor):
         elif len(s) == 86:
             return s[5:34] + s[0] + s[35:38] + s[3] + s[39:45] + s[38] + s[46:53] + s[73] + s[54:73] + s[85] + s[74:85] + s[53]
         elif len(s) == 85:
-            return s[83:34:-1] + s[0] + s[33:27:-1] + s[3] + s[26:19:-1] + s[34] + s[18:3:-1] + s[27]
+            return s[40] + s[82:43:-1] + s[22] + s[42:40:-1] + s[83] + s[39:22:-1] + s[0] + s[21:2:-1]
         elif len(s) == 84:
             return s[81:36:-1] + s[0] + s[35:2:-1]
         elif len(s) == 83:
@@ -583,7 +583,7 @@ class YoutubeIE(YoutubeSubtitlesIE, YoutubeBaseInfoExtractor):
         manifest = self._download_webpage(manifest_url, video_id, u'Downloading formats manifest')
         formats_urls = _get_urls(manifest)
         for format_url in formats_urls:
-            itag = self._search_regex(r'itag%3D(\d+?)/', format_url, 'itag')
+            itag = self._search_regex(r'itag/(\d+?)/', format_url, 'itag')
             url_map[itag] = format_url
         return url_map
 

@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class Canalc2IE(InfoExtractor):
-    _IE_NAME = 'canalc2.tv'
+    IE_NAME = 'canalc2.tv'
     _VALID_URL = r'http://.*?\.canalc2\.tv/video\.asp\?idVideo=(\d+)&voir=oui'
 
     _TEST = {

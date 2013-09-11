@@ -3,7 +3,8 @@
 import json
 import sys
 import hashlib
-import urllib.request
+import os.path
+
 
 if len(sys.argv) <= 1:
     print('Specify the version number as parameter')
@@ -25,6 +26,7 @@ filenames = {
     'tar': 'youtube-dl-%s.tar.gz' % version}
 build_dir = os.path.join('..', '..', 'build', version)
 for key, filename in filenames.items():
+    url = 'https://yt-dl.org/downloads/%s/%s' % (version, filename)
     fn = os.path.join(build_dir, filename)
     with open(fn, 'rb') as f:
         data = f.read()
