@@ -18,85 +18,63 @@ md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
 
 class TestYoutubeSubtitles(unittest.TestCase):
     def setUp(self):
-        DL = FakeYDL()
-        DL.params['allsubtitles'] = False
-        DL.params['writesubtitles'] = False
-        DL.params['subtitlesformat'] = 'srt'
-        DL.params['listsubtitles'] = False
-    def test_youtube_no_subtitles(self):
-        DL = FakeYDL()
-        DL.params['writesubtitles'] = False
-        IE = YoutubeIE(DL)
-        info_dict = IE.extract('QRS8MkLhQmM')
-        subtitles = info_dict[0]['subtitles']
+        self.DL = FakeYDL()
+        self.url = 'QRS8MkLhQmM'
+    def getInfoDict(self):
+        IE = YoutubeIE(self.DL)
+        info_dict = IE.extract(self.url)
+        return info_dict
+    def getSubtitles(self):
+        info_dict = self.getInfoDict()
+        return info_dict[0]['subtitles']        
+    def test_youtube_no_writesubtitles(self):
+        self.DL.params['writesubtitles'] = False
+        subtitles = self.getSubtitles()
         self.assertEqual(subtitles, None)
     def test_youtube_subtitles(self):
-        DL = FakeYDL()
-        DL.params['writesubtitles'] = True
-        IE = YoutubeIE(DL)
-        info_dict = IE.extract('QRS8MkLhQmM')
-        sub = info_dict[0]['subtitles']['en']
-        self.assertEqual(md5(sub), '4cd9278a35ba2305f47354ee13472260')
-    def test_youtube_subtitles_it(self):
-        DL = FakeYDL()
-        DL.params['writesubtitles'] = True
-        DL.params['subtitleslangs'] = ['it']
-        IE = YoutubeIE(DL)
-        info_dict = IE.extract('QRS8MkLhQmM')
-        sub = info_dict[0]['subtitles']['it']
-        self.assertEqual(md5(sub), '164a51f16f260476a05b50fe4c2f161d')
-    def test_youtube_onlysubtitles(self):
-        DL = FakeYDL()
-        DL.params['writesubtitles'] = True
-        DL.params['onlysubtitles'] = True
-        IE = YoutubeIE(DL)
-        info_dict = IE.extract('QRS8MkLhQmM')
-        sub = info_dict[0]['subtitles']['en']
-        self.assertEqual(md5(sub), '4cd9278a35ba2305f47354ee13472260')
+        self.DL.params['writesubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(md5(subtitles['en']), '4cd9278a35ba2305f47354ee13472260')
+    def test_youtube_subtitles_lang(self):
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['subtitleslangs'] = ['it']
+        subtitles = self.getSubtitles()
+        self.assertEqual(md5(subtitles['it']), '164a51f16f260476a05b50fe4c2f161d')
     def test_youtube_allsubtitles(self):
-        DL = FakeYDL()
-        DL.params['allsubtitles'] = True
-        IE = YoutubeIE(DL)
-        info_dict = IE.extract('QRS8MkLhQmM')
-        subtitles = info_dict[0]['subtitles']
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
         self.assertEqual(len(subtitles.keys()), 13)
     def test_youtube_subtitles_sbv_format(self):
-        DL = FakeYDL()
-        DL.params['writesubtitles'] = True
-        DL.params['subtitlesformat'] = 'sbv'
-        IE = YoutubeIE(DL)
-        info_dict = IE.extract('QRS8MkLhQmM')
-        sub = info_dict[0]['subtitles']['en']
-        self.assertEqual(md5(sub), '13aeaa0c245a8bed9a451cb643e3ad8b')
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['subtitlesformat'] = 'sbv'
+        subtitles = self.getSubtitles()
+        self.assertEqual(md5(subtitles['en']), '13aeaa0c245a8bed9a451cb643e3ad8b')
     def test_youtube_subtitles_vtt_format(self):
-        DL = FakeYDL()
-        DL.params['writesubtitles'] = True
-        DL.params['subtitlesformat'] = 'vtt'
-        IE = YoutubeIE(DL)
-        info_dict = IE.extract('QRS8MkLhQmM')
-        sub = info_dict[0]['subtitles']['en']
-        self.assertEqual(md5(sub), '356cdc577fde0c6783b9b822e7206ff7')
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['subtitlesformat'] = 'vtt'
+        subtitles = self.getSubtitles()
+        self.assertEqual(md5(subtitles['en']), '356cdc577fde0c6783b9b822e7206ff7')
     def test_youtube_list_subtitles(self):
-        DL = FakeYDL()
-        DL.params['listsubtitles'] = True
-        IE = YoutubeIE(DL)
-        info_dict = IE.extract('QRS8MkLhQmM')
+        self.DL.params['listsubtitles'] = True
+        info_dict = self.getInfoDict()
         self.assertEqual(info_dict, None)
     def test_youtube_automatic_captions(self):
-        DL = FakeYDL()
-        DL.params['writeautomaticsub'] = True
-        DL.params['subtitleslangs'] = ['it']
-        IE = YoutubeIE(DL)
-        info_dict = IE.extract('8YoUxe5ncPo')
-        sub = info_dict[0]['subtitles']['it']
-        self.assertTrue(sub is not None)
+        self.url = '8YoUxe5ncPo'
+        self.DL.params['writeautomaticsub'] = True
+        self.DL.params['subtitleslangs'] = ['it']
+        subtitles = self.getSubtitles()
+        self.assertTrue(subtitles['it'] is not None)
+    def test_youtube_nosubtitles(self):
+        self.url = 'sAjKT8FhjI8'
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(len(subtitles), 0)
     def test_youtube_multiple_langs(self):
-        DL = FakeYDL()
-        DL.params['writesubtitles'] = True
+        self.url = 'QRS8MkLhQmM'
+        self.DL.params['writesubtitles'] = True
         langs = ['it', 'fr', 'de']
-        DL.params['subtitleslangs'] = langs
-        IE = YoutubeIE(DL)
-        subtitles = IE.extract('QRS8MkLhQmM')[0]['subtitles']
+        self.DL.params['subtitleslangs'] = langs
+        subtitles = self.getSubtitles()
         for lang in langs:
             self.assertTrue(subtitles.get(lang) is not None, u'Subtitles for \'%s\' not extracted' % lang)
 
