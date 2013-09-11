@@ -24,7 +24,7 @@ from ..utils import (
     orderedSet,
 )
 
-class YoutubeBaseInfoExtractor(SubtitlesIE):
+class YoutubeBaseInfoExtractor(InfoExtractor):
     """Provide base functions for Youtube extractors"""
     _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
     _LANG_URL = r'https://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
@@ -131,63 +131,8 @@ class YoutubeBaseInfoExtractor(SubtitlesIE):
             return
         self._confirm_age()
 
-    def _get_available_subtitles(self, video_id):
-        request = compat_urllib_request.Request('http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id)
-        try:
-            sub_list = compat_urllib_request.urlopen(request).read().decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_warning(u'unable to download video subtitles: %s' % compat_str(err))
-            return {}
-        lang_list = re.findall(r'name="([^"]*)"[^>]+lang_code="([\w\-]+)"', sub_list)
 
-        sub_lang_list = {}
-        for l in lang_list:
-            lang = l[1]
-            params = compat_urllib_parse.urlencode({
-                'lang': lang,
-                'v': video_id,
-                'fmt': self._downloader.params.get('subtitlesformat'),
-            })
-            url = u'http://www.youtube.com/api/timedtext?' + params
-            sub_lang_list[lang] = url
-        if not sub_lang_list:
-            self._downloader.report_warning(u'video doesn\'t have subtitles')
-            return {}
-        return sub_lang_list
-
-    def _request_automatic_caption(self, video_id, webpage):
-        """We need the webpage for getting the captions url, pass it as an
-           argument to speed up the process."""
-        sub_lang = (self._downloader.params.get('subtitleslangs') or ['en'])[0]
-        sub_format = self._downloader.params.get('subtitlesformat')
-        self.to_screen(u'%s: Looking for automatic captions' % video_id)
-        mobj = re.search(r';ytplayer.config = ({.*?});', webpage)
-        err_msg = u'Couldn\'t find automatic captions for "%s"' % sub_lang
-        if mobj is None:
-            self._downloader.report_warning(err_msg)
-            return {}
-        player_config = json.loads(mobj.group(1))
-        try:
-            args = player_config[u'args']
-            caption_url = args[u'ttsurl']
-            timestamp = args[u'timestamp']
-            params = compat_urllib_parse.urlencode({
-                'lang': 'en',
-                'tlang': sub_lang,
-                'fmt': sub_format,
-                'ts': timestamp,
-                'kind': 'asr',
-            })
-            subtitles_url = caption_url + '&' + params
-            sub = self._download_webpage(subtitles_url, video_id, u'Downloading automatic captions')
-            return {sub_lang: sub}
-        # An extractor error can be raise by the download process if there are
-        # no automatic captions but there are subtitles
-        except (KeyError, ExtractorError):
-            self._downloader.report_warning(err_msg)
-            return {}
-
-class YoutubeIE(YoutubeBaseInfoExtractor):
+class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     IE_DESC = u'YouTube.com'
     _VALID_URL = r"""^
                      (
@@ -507,6 +452,62 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         else:
             # Fallback to the other algortihms
             return self._decrypt_signature(s)
+
+    def _get_available_subtitles(self, video_id):
+        request = compat_urllib_request.Request('http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id)
+        try:
+            sub_list = compat_urllib_request.urlopen(request).read().decode('utf-8')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.report_warning(u'unable to download video subtitles: %s' % compat_str(err))
+            return {}
+        lang_list = re.findall(r'name="([^"]*)"[^>]+lang_code="([\w\-]+)"', sub_list)
+
+        sub_lang_list = {}
+        for l in lang_list:
+            lang = l[1]
+            params = compat_urllib_parse.urlencode({
+                'lang': lang,
+                'v': video_id,
+                'fmt': self._downloader.params.get('subtitlesformat'),
+            })
+            url = u'http://www.youtube.com/api/timedtext?' + params
+            sub_lang_list[lang] = url
+        if not sub_lang_list:
+            self._downloader.report_warning(u'video doesn\'t have subtitles')
+            return {}
+        return sub_lang_list
+
+    def _request_automatic_caption(self, video_id, webpage):
+        """We need the webpage for getting the captions url, pass it as an
+           argument to speed up the process."""
+        sub_lang = (self._downloader.params.get('subtitleslangs') or ['en'])[0]
+        sub_format = self._downloader.params.get('subtitlesformat')
+        self.to_screen(u'%s: Looking for automatic captions' % video_id)
+        mobj = re.search(r';ytplayer.config = ({.*?});', webpage)
+        err_msg = u'Couldn\'t find automatic captions for "%s"' % sub_lang
+        if mobj is None:
+            self._downloader.report_warning(err_msg)
+            return {}
+        player_config = json.loads(mobj.group(1))
+        try:
+            args = player_config[u'args']
+            caption_url = args[u'ttsurl']
+            timestamp = args[u'timestamp']
+            params = compat_urllib_parse.urlencode({
+                'lang': 'en',
+                'tlang': sub_lang,
+                'fmt': sub_format,
+                'ts': timestamp,
+                'kind': 'asr',
+            })
+            subtitles_url = caption_url + '&' + params
+            sub = self._download_webpage(subtitles_url, video_id, u'Downloading automatic captions')
+            return {sub_lang: sub}
+        # An extractor error can be raise by the download process if there are
+        # no automatic captions but there are subtitles
+        except (KeyError, ExtractorError):
+            self._downloader.report_warning(err_msg)
+            return {}
 
     def _print_formats(self, formats):
         print('Available formats:')
