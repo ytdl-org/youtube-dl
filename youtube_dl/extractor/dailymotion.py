@@ -4,7 +4,7 @@ import itertools
 import socket
 
 from .common import InfoExtractor
-from .subtitles import NoAutoSubtitlesIE
+from .subtitles import NoAutoSubtitlesInfoExtractor
 
 from ..utils import (
     compat_http_client,
@@ -18,7 +18,7 @@ from ..utils import (
 )
 
 
-class DailymotionIE(NoAutoSubtitlesIE):
+class DailymotionIE(NoAutoSubtitlesInfoExtractor):
     """Information Extractor for Dailymotion"""
 
     _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/(?:embed/)?video/([^/]+)'

@@ -10,7 +10,7 @@ from ..utils import (
 )
 
 
-class SubtitlesIE(InfoExtractor):
+class SubtitlesInfoExtractor(InfoExtractor):
 
     def _list_available_subtitles(self, video_id):
         """ outputs the available subtitles for the video """
@@ -72,7 +72,7 @@ class SubtitlesIE(InfoExtractor):
         pass
 
 
-class NoAutoSubtitlesIE(SubtitlesIE):
+class NoAutoSubtitlesInfoExtractor(SubtitlesInfoExtractor):
     """ A subtitle class for the servers that don't support auto-captions"""
 
     def _request_automatic_caption(self, video_id, webpage):

@@ -7,7 +7,7 @@ import socket
 import itertools
 
 from .common import InfoExtractor, SearchInfoExtractor
-from .subtitles import SubtitlesIE
+from .subtitles import SubtitlesInfoExtractor
 from ..utils import (
     compat_http_client,
     compat_parse_qs,
