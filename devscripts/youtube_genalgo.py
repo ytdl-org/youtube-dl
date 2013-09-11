@@ -23,9 +23,9 @@ tests = [
     # 86 - vfluy6kdb 2013/09/06
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[|};?/>.<",
      "yuioplkjhgfdsazxcvbnm12345678q0QWrRTYUIOELKJHGFD-AZXCVBNM!@#$%^&*()_<+={[|};?/>.S"),
-    # 85
+    # 85 - vflkuzxcs 2013/09/11
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[};?/>.<",
-     ".>/?;}[{=+-_)(*&^%$#@!MNBVCXZASDFGHJKLPOIUYTREWQ0q876543r1mnbvcx9asdfghjklpoiuyt2"),
+     "T>/?;}[{=+-_)(*&^%$#@!MNBVCXZASDFGHJKLPOvUY.REWQ0987654321mnbqcxzasdfghjklpoiuytr"),
     # 84 - vflg0g8PQ 2013/08/29 (sporadic)
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[};?>.<",
      ">?;}[{=+-_)(*&^%$#@!MNBVCXZASDFGHJKLPOIUYTREWq0987654321mnbvcxzasdfghjklpoiuytr"),
