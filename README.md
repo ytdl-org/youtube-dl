@@ -123,10 +123,8 @@ which means you can modify it, redistribute it or use it however you like.
                                only)
 
 ## Subtitle Options:
-    --write-sub                write subtitle file (currently youtube only)
-    --write-auto-sub           write automatic subtitle file (currently youtube
-                               only)
-    --only-sub                 [deprecated] alias of --skip-download
+    --write-sub                write subtitle file
+    --write-auto-sub           write automatic subtitle file (youtube only)
     --all-subs                 downloads all the available subtitles of the
                                video
     --list-subs                lists all available subtitles for the video
