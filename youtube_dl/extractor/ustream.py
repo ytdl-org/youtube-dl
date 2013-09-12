@@ -1,4 +1,7 @@
+from HTMLParser import HTMLParser
+import json
 import re
+from urlparse import urljoin
 
 from .common import InfoExtractor
 
@@ -43,3 +46,70 @@ class UstreamIE(InfoExtractor):
                 'thumbnail': thumbnail,
                }
         return info
+
+# More robust than regular expressions
+
+class ChannelParser(HTMLParser):
+    """
+    <meta name="ustream:channel_id" content="1234">
+    """
+    channel_id = None
+
+    def handle_starttag(self, tag, attrs):
+        if tag != 'meta':
+            return
+        values = dict(attrs)
+        if values.get('name') != 'ustream:channel_id':
+            return
+        value = values.get('content', '')
+        if value.isdigit():
+            self.channel_id = value
+
+class SocialstreamParser(HTMLParser):
+    """
+    <li class="content123 video" data-content-id="123" data-length="1452"
+        data-href="/recorded/123" data-og-url="/recorded/123">
+    """
+    def __init__(self):
+        HTMLParser.__init__(self)
+        self.content_ids = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag != 'li':
+            return
+        for (attr, value) in attrs:
+            if attr == 'data-content-id' and value.isdigit():
+                self.content_ids.append(value)
+
+class UstreamChannelIE(InfoExtractor):
+    _VALID_URL = r'https?://www\.ustream\.tv/channel/(?P<slug>.+)'
+    IE_NAME = u'ustream:channel'
+
+    def _real_extract(self, url):
+        m = re.match(self._VALID_URL, url)
+        slug = m.group('slug')
+        # Slugs can be non-ascii, but youtube-dl can't handle non-ascii command lines,
+        # so if we got this far it's probably percent encoded and we needn't worry.
+
+        p = ChannelParser()
+        p.feed(self._download_webpage(url, slug))
+        p.close()
+        channel_id = p.channel_id
+
+        p = SocialstreamParser()
+        BASE = 'http://www.ustream.tv'
+        next_url = '/ajax/socialstream/videos/%s/1.json' % channel_id
+        while next_url:
+            reply = json.loads(self._download_webpage(urljoin(BASE, next_url), channel_id))
+            p.feed(reply['data'])
+            next_url = reply['nextUrl']
+        p.close()
+        video_ids = p.content_ids
+
+        # From YoutubeChannelIE
+
+        self._downloader.to_screen(u'[ustream] Channel %s: Found %i videos' % (channel_id, len(video_ids)))
+
+        urls = ['http://www.ustream.tv/recorded/' + vid for vid in video_ids]
+        url_entries = [self.url_result(eurl, 'Ustream') for eurl in urls]
+        return [self.playlist_result(url_entries, channel_id)]
