@@ -32,9 +32,9 @@ tests = [
     # 83
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!#$%^&*()_+={[};?/>.<",
      ".>/?;}[{=+_)(*&^%<#!MNBVCXZASPFGHJKLwOIUYTREWQ0987654321mnbvcxzasdfghjklpoiuytreq"),
-    # 82 - vflZK4ZYR 2013/08/23
+    # 82 - vflGNjMhJ 2013/09/12
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKHGFDSAZXCVBNM!@#$%^&*(-+={[};?/>.<",
-     "wertyuioplkjhgfdsaqxcvbnm1234567890QWERTYUIOPLKHGFDSAZXCVBNM!@#$%^&z(-+={[};?/>.<"),
+     ".>/?;}[<=+-(*&^%$#@!MNBVCXeASDFGHKLPOqUYTREWQ0987654321mnbvcxzasdfghjklpoiuytrIwZ"),
     # 81 - vflLC8JvQ 2013/07/25
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKHGFDSAZXCVBNM!@#$%^&*(-+={[};?/>.",
      "C>/?;}[{=+-(*&^%$#@!MNBVYXZASDFGHKLPOIU.TREWQ0q87659321mnbvcxzasdfghjkl4oiuytrewp"),
