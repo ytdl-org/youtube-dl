@@ -7,6 +7,11 @@ from ..utils import (
 
 
 class SubtitlesInfoExtractor(InfoExtractor):
+    @property
+    def _have_to_download_any_subtitles(self):
+        return any([self._downloader.params.get('writesubtitles', False),
+                    self._downloader.params.get('writeautomaticsub'),
+                    self._downloader.params.get('allsubtitles', False)])
 
     def _list_available_subtitles(self, video_id, webpage=None):
         """ outputs the available subtitles for the video """
@@ -20,13 +25,17 @@ class SubtitlesInfoExtractor(InfoExtractor):
                        (video_id, auto_lang))
 
     def extract_subtitles(self, video_id, video_webpage=None):
-        """ returns {sub_lang: sub} or {} if subtitles not found """
-        if self._downloader.params.get('writesubtitles', False) or self._downloader.params.get('allsubtitles', False):
-            available_subs_list = self._get_available_subtitles(video_id)
-        elif self._downloader.params.get('writeautomaticsub', False):
-            available_subs_list = self._get_available_automatic_caption(video_id, video_webpage)
-        else:
+        """
+        returns {sub_lang: sub} ,{} if subtitles not found or None if the
+        subtitles aren't requested.
+        """
+        if not self._have_to_download_any_subtitles:
             return None
+        available_subs_list = {}
+        if self._downloader.params.get('writeautomaticsub', False):
+            available_subs_list.update(self._get_available_automatic_caption(video_id, video_webpage))
+        if self._downloader.params.get('writesubtitles', False) or self._downloader.params.get('allsubtitles', False):
+            available_subs_list.update(self._get_available_subtitles(video_id))
 
         if not available_subs_list:  # error, it didn't get the available subtitles
             return {}
