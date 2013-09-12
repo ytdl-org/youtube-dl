@@ -1,3 +1,4 @@
+# encoding: utf-8
 import re
 import xml.etree.ElementTree
 
@@ -5,24 +6,29 @@ from .common import InfoExtractor
 from ..utils import unified_strdate
 
 class CanalplusIE(InfoExtractor):
-    _VALID_URL = r'https?://(www\.canalplus\.fr/.*?\?vid=|player\.canalplus\.fr/#/)(?P<id>\d+)'
+    _VALID_URL = r'https?://(www\.canalplus\.fr/.*?/(?P<path>.*)|player\.canalplus\.fr/#/(?P<id>\d+))'
     _VIDEO_INFO_TEMPLATE = 'http://service.canal-plus.com/video/rest/getVideosLiees/cplus/%s'
     IE_NAME = u'canalplus.fr'
 
     _TEST = {
-        u'url': u'http://www.canalplus.fr/c-divertissement/pid3351-c-le-petit-journal.html?vid=889861',
-        u'file': u'889861.flv',
-        u'md5': u'590a888158b5f0d6832f84001fbf3e99',
+        u'url': u'http://www.canalplus.fr/c-infos-documentaires/pid1830-c-zapping.html?vid=922470',
+        u'file': u'922470.flv',
         u'info_dict': {
-            u'title': u'Le Petit Journal 20/06/13 - La guerre des drone',
-            u'upload_date': u'20130620',
+            u'title': u'Zapping - 26/08/13',
+            u'description': u'Le meilleur de toutes les chaînes, tous les jours.\nEmission du 26 août 2013',
+            u'upload_date': u'20130826',
         },
-        u'skip': u'Requires rtmpdump'
+        u'params': {
+            u'skip_download': True,
+        },
     }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
+        if video_id is None:
+            webpage = self._download_webpage(url, mobj.group('path'))
+            video_id = self._search_regex(r'videoId = "(\d+)";', webpage, u'video id')
         info_url = self._VIDEO_INFO_TEMPLATE % video_id
         info_page = self._download_webpage(info_url,video_id, 
                                            u'Downloading video info')
@@ -43,4 +49,6 @@ class CanalplusIE(InfoExtractor):
                 'ext': 'flv',
                 'upload_date': unified_strdate(infos.find('PUBLICATION/DATE').text),
                 'thumbnail': media.find('IMAGES/GRAND').text,
+                'description': infos.find('DESCRIPTION').text,
+                'view_count': int(infos.find('NB_VUES').text),
                 }
