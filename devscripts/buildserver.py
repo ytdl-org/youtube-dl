@@ -1,64 +1,109 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
-from SocketServer import ThreadingMixIn
-import getopt, threading, sys, urlparse, _winreg, os, subprocess, shutil, tempfile
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from socketserver import ThreadingMixIn
+import argparse
+import ctypes
+import sys
+import threading
+import os.path
 
 
 class BuildHTTPServer(ThreadingMixIn, HTTPServer):
     allow_reuse_address = True
 
 
-def usage():
-    print 'Usage: %s [options]'
-    print 'Options:'
-    print
-    print '  -h, --help               Display this help'
-    print '  -i, --install            Launch at session startup'
-    print '  -u, --uninstall          Do not launch at session startup'
-    print '  -b, --bind <host[:port]> Bind to host:port (default localhost:8142)'
-    sys.exit(0)
+advapi32 = ctypes.windll.advapi32
+
+SC_MANAGER_ALL_ACCESS = 0xf003f
+SC_MANAGER_CREATE_SERVICE = 0x02
+SERVICE_WIN32_OWN_PROCESS = 0x10
+SERVICE_AUTO_START = 0x2
+SERVICE_ERROR_NORMAL = 0x1
+DELETE = 0x00010000
+
+
+def win_OpenSCManager():
+    res = advapi32.OpenSCManagerA(None, None, SC_MANAGER_ALL_ACCESS)
+    if not res:
+        raise Exception('Opening service manager failed - '
+                        'are you running this as administrator?')
+    return res
+
+
+def win_install_service(service_name, cmdline):
+    manager = win_OpenSCManager()
+    try:
+        h = advapi32.CreateServiceA(
+            manager, service_name, None,
+            SC_MANAGER_CREATE_SERVICE, SERVICE_WIN32_OWN_PROCESS,
+            SERVICE_AUTO_START, SERVICE_ERROR_NORMAL,
+            cmdline, None, None, None, None, None)
+        if not h:
+            raise OSError('Service creation failed: %s' % ctypes.FormatError())
+
+        advapi32.CloseServiceHandle(h)
+    finally:
+        advapi32.CloseServiceHandle(manager)
+
+
+def win_uninstall_service(service_name):
+    manager = win_OpenSCManager()
+    try:
+        h = advapi32.OpenServiceA(manager, service_name, DELETE)
+        if not h:
+            raise OSError('Could not find service %s: %s' % (
+                service_name, ctypes.FormatError()))
+
+        try:
+            if not advapi32.DeleteService(h):
+                raise OSError('Deletion failed: %s' % ctypes.FormatError())
+        finally:
+            advapi32.CloseServiceHandle(h)
+    finally:
+        advapi32.CloseServiceHandle(manager)
+
+
+def install_service(bind):
+    fn = os.path.normpath(__file__)
+    cmdline = '"%s" "%s" -s -b "%s"' % (sys.executable, fn, bind)
+    win_install_service('youtubedl_builder', cmdline)
+
+
+def uninstall_service():
+    win_uninstall_service('youtubedl_builder')
 
 
 def main(argv):
-    opts, args = getopt.getopt(argv, 'hb:iu', ['help', 'bind=', 'install', 'uninstall'])
-    host = 'localhost'
-    port = 8142
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--install',
+                        action='store_const', dest='action', const='install',
+                        help='Launch at Windows startup')
+    parser.add_argument('-u', '--uninstall',
+                        action='store_const', dest='action', const='uninstall',
+                        help='Remove Windows service')
+    parser.add_argument('-s', '--service',
+                        action='store_const', dest='action', const='servce',
+                        help='Run as a Windows service')
+    parser.add_argument('-b', '--bind', metavar='<host:port>',
+                        action='store', default='localhost:8142',
+                        help='Bind to host:port (default %default)')
+    options = parser.parse_args()
 
-    for opt, val in opts:
-        if opt in ['-h', '--help']:
-            usage()
-        elif opt in ['-b', '--bind']:
-            try:
-                host, port = val.split(':')
-            except ValueError:
-                host = val
-            else:
-                port = int(port)
-        elif opt in ['-i', '--install']:
-            key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Run', 0, _winreg.KEY_WRITE)
-            try:
-                _winreg.SetValueEx(key, 'Youtube-dl builder', 0, _winreg.REG_SZ,
-                                   '"%s" "%s" -b %s:%d' % (sys.executable, os.path.normpath(os.path.abspath(sys.argv[0])),
-                                                           host, port))
-            finally:
-                _winreg.CloseKey(key)
-            print 'Installed.'
-            sys.exit(0)
-        elif opt in ['-u', '--uninstall']:
-            key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Run', 0, _winreg.KEY_WRITE)
-            try:
-                _winreg.DeleteValue(key, 'Youtube-dl builder')
-            finally:
-                _winreg.CloseKey(key)
-            print 'Uninstalled.'
-            sys.exit(0)
+    if options.action == 'install':
+        return install_service(options.bind)
 
-    print 'Listening on %s:%d' % (host, port)
+    if options.action == 'uninstall':
+        return uninstall_service()
+
+    host, port_str = options.bind.split(':')
+    port = int(port_str)
+
+    print('Listening on %s:%d' % (host, port))
     srv = BuildHTTPServer((host, port), BuildHTTPRequestHandler)
     thr = threading.Thread(target=srv.serve_forever)
     thr.start()
-    raw_input('Hit <ENTER> to stop...\n')
+    input('Press ENTER to shut down')
     srv.shutdown()
     thr.join()
 
@@ -69,7 +114,7 @@ def rmtree(path):
         if os.path.isdir(fname):
             rmtree(fname)
         else:
-            os.chmod(fname, 0666)
+            os.chmod(fname, 0o666)
             os.remove(fname)
     os.rmdir(path)
 
@@ -187,7 +232,7 @@ class CleanupTempDir(object):
         try:
             rmtree(self.basePath)
         except Exception as e:
-            print 'WARNING deleting "%s": %s' % (self.basePath, e)
+            print('WARNING deleting "%s": %s' % (self.basePath, e))
 
         super(CleanupTempDir, self).build()
 
