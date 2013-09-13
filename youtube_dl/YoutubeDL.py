@@ -492,6 +492,8 @@ class YoutubeDL(object):
                 self.report_writedescription(descfn)
                 with io.open(encodeFilename(descfn), 'w', encoding='utf-8') as descfile:
                     descfile.write(info_dict['description'])
+            except (KeyError, TypeError):
+                self.report_warning(u'Cannot extract description.')
             except (OSError, IOError):
                 self.report_error(u'Cannot write description file ' + descfn)
                 return
