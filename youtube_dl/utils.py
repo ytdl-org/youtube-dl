@@ -249,7 +249,17 @@ def htmlentity_transform(matchobj):
     return (u'&%s;' % entity)
 
 compat_html_parser.locatestarttagend = re.compile(r"""<[a-zA-Z][-.a-zA-Z0-9:_]*(?:\s+(?:(?<=['"\s])[^\s/>][^\s/=>]*(?:\s*=+\s*(?:'[^']*'|"[^"]*"|(?!['"])[^>\s]*))?\s*)*)?\s*""", re.VERBOSE) # backport bugfix
-class AttrParser(compat_html_parser.HTMLParser):
+class BaseHTMLParser(compat_html_parser.HTMLParser):
+    def __init(self):
+        compat_html_parser.HTMLParser.__init__(self)
+        self.html = None
+
+    def loads(self, html):
+        self.html = html
+        self.feed(html)
+        self.close()
+
+class AttrParser(BaseHTMLParser):
     """Modified HTMLParser that isolates a tag with the specified attribute"""
     def __init__(self, attribute, value):
         self.attribute = attribute
@@ -257,10 +267,9 @@ class AttrParser(compat_html_parser.HTMLParser):
         self.result = None
         self.started = False
         self.depth = {}
-        self.html = None
         self.watch_startpos = False
         self.error_count = 0
-        compat_html_parser.HTMLParser.__init__(self)
+        BaseHTMLParser.__init__(self)
 
     def error(self, message):
         if self.error_count > 10 or self.started:
@@ -268,11 +277,6 @@ class AttrParser(compat_html_parser.HTMLParser):
         self.rawdata = '\n'.join(self.html.split('\n')[self.getpos()[0]:]) # skip one line
         self.error_count += 1
         self.goahead(1)
-
-    def loads(self, html):
-        self.html = html
-        self.feed(html)
-        self.close()
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
@@ -328,6 +332,38 @@ def get_element_by_id(id, html):
 def get_element_by_attribute(attribute, value, html):
     """Return the content of the tag with the specified attribute in the passed HTML document"""
     parser = AttrParser(attribute, value)
+    try:
+        parser.loads(html)
+    except compat_html_parser.HTMLParseError:
+        pass
+    return parser.get_result()
+
+class MetaParser(BaseHTMLParser):
+    """
+    Modified HTMLParser that isolates a meta tag with the specified name 
+    attribute.
+    """
+    def __init__(self, name):
+        BaseHTMLParser.__init__(self)
+        self.name = name
+        self.content = None
+        self.result = None
+
+    def handle_starttag(self, tag, attrs):
+        if tag != 'meta':
+            return
+        attrs = dict(attrs)
+        if attrs.get('name') == self.name:
+            self.result = attrs.get('content')
+
+    def get_result(self):
+        return self.result
+
+def get_meta_content(name, html):
+    """
+    Return the content attribute from the meta tag with the given name attribute.
+    """
+    parser = MetaParser(name)
     try:
         parser.loads(html)
     except compat_html_parser.HTMLParseError:
