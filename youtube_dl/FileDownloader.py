@@ -11,6 +11,10 @@ if os.name == 'nt':
 
 from .utils import *
 
+try:
+    import xattr
+except ImportError:
+    pass
 
 class FileDownloader(object):
     """File Downloader class.
@@ -39,6 +43,7 @@ class FileDownloader(object):
     test:              Download only first bytes to test the downloader.
     min_filesize:      Skip files smaller than this size
     max_filesize:      Skip files larger than this size
+    setxattrfilesize:  Set ytdl.filesize user xattribute with expected size.
     """
 
     params = None
@@ -509,11 +514,16 @@ class FileDownloader(object):
                 try:
                     (stream, tmpfilename) = sanitize_open(tmpfilename, open_mode)
                     assert stream is not None
-                    filename = self.undo_temp_name(tmpfilename)
-                    self.report_destination(filename)
                 except (OSError, IOError) as err:
                     self.report_error(u'unable to open for writing: %s' % str(err))
                     return False
+                if self.params.get('setxattrfilesize', False) and data_len is not None:
+                    try:
+                        xattr.setxattr(tmpfilename, 'user.ytdl.filesize', str(data_len))
+                    except(OSError, IOError) as err:
+                        self.report_error(u'unable to set filesize xattr: %s' % str(err))
+                filename = self.undo_temp_name(tmpfilename)
+                self.report_destination(filename)
             try:
                 stream.write(data_block)
             except (IOError, OSError) as err:
