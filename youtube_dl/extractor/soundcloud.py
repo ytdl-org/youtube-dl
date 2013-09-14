@@ -1,10 +1,12 @@
 import json
 import re
+import itertools
 
 from .common import InfoExtractor
 from ..utils import (
     compat_str,
     compat_urlparse,
+    compat_urllib_parse,
 
     ExtractorError,
     unified_strdate,
@@ -53,10 +55,11 @@ class SoundcloudIE(InfoExtractor):
     def _resolv_url(cls, url):
         return 'http://api.soundcloud.com/resolve.json?url=' + url + '&client_id=' + cls._CLIENT_ID
 
-    def _extract_info_dict(self, info, full_title=None):
+    def _extract_info_dict(self, info, full_title=None, quiet=False):
         video_id = info['id']
         name = full_title or video_id
-        self.report_extraction(name)
+        if quiet == False:
+            self.report_extraction(name)
 
         thumbnail = info['artwork_url']
         if thumbnail is not None:
@@ -198,3 +201,41 @@ class SoundcloudSetIE(SoundcloudIE):
                 'id': info['id'],
                 'title': info['title'],
                 }
+
+
+class SoundcloudUserIE(SoundcloudIE):
+    _VALID_URL = r'https?://(www\.)?soundcloud.com/(?P<user>[^/]+)(/?(tracks/)?)?(\?.*)?$'
+    IE_NAME = u'soundcloud:user'
+
+    # it's in tests/test_playlists.py
+    _TEST = None
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        uploader = mobj.group('user')
+
+        url = 'http://soundcloud.com/%s/' % uploader
+        resolv_url = self._resolv_url(url)
+        user_json = self._download_webpage(resolv_url, uploader,
+            u'Downloading user info')
+        user = json.loads(user_json)
+
+        tracks = []
+        for i in itertools.count():
+            data = compat_urllib_parse.urlencode({'offset': i*50,
+                                                  'client_id': self._CLIENT_ID,
+                                                  })
+            tracks_url = 'http://api.soundcloud.com/users/%s/tracks.json?' % user['id'] + data
+            response = self._download_webpage(tracks_url, uploader, 
+                u'Downloading tracks page %s' % (i+1))
+            new_tracks = json.loads(response)
+            tracks.extend(self._extract_info_dict(track, quiet=True) for track in new_tracks)
+            if len(new_tracks) < 50:
+                break
+
+        return {
+            '_type': 'playlist',
+            'id': compat_str(user['id']),
+            'title': user['username'],
+            'entries': tracks,
+        }
