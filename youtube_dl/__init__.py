@@ -533,6 +533,11 @@ def _real_main(argv=None):
     else:
         date = DateRange(opts.dateafter, opts.datebefore)
 
+    # --all-sub automatically sets --write-sub if --write-auto-sub is not given
+    # this was the old behaviour if only --all-sub was given.
+    if opts.allsubtitles and (opts.writeautomaticsub == False):
+        opts.writesubtitles = True
+
     if sys.version_info < (3,):
         # In Python 2, sys.argv is a bytestring (also note http://bugs.python.org/issue2128 for Windows systems)
         if opts.outtmpl is not None:
