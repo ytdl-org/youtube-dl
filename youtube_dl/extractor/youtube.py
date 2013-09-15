@@ -139,7 +139,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                      (
                          (?:https?://)?                                       # http(s):// (optional)
                          (?:(?:(?:(?:\w+\.)?youtube(?:-nocookie)?\.com/|
-                            tube\.majestyc\.net/)                             # the various hostnames, with wildcard subdomains
+                            tube\.majestyc\.net/|
+                            youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
                          (?:                                                  # the various things that can precede the ID:
                              (?:(?:v|embed|e)/)                               # v/ or embed/ or e/

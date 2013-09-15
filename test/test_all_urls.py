@@ -36,6 +36,7 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertFalse(YoutubeIE.suitable(u'https://www.youtube.com/watch?v=AV6J6_AeFEQ&playnext=1&list=PL4023E734DA416012')) #668
         self.assertMatch('http://youtu.be/BaW_jenozKc', ['youtube'])
         self.assertMatch('http://www.youtube.com/v/BaW_jenozKc', ['youtube'])
+        self.assertMatch('https://youtube.googleapis.com/v/BaW_jenozKc', ['youtube'])
 
     def test_youtube_channel_matching(self):
         assertChannel = lambda url: self.assertMatch(url, ['youtube:channel'])
