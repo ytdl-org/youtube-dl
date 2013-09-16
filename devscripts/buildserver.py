@@ -4,8 +4,10 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
 import argparse
 import ctypes
+import functools
 import sys
 import threading
+import traceback
 import os.path
 
 
@@ -21,10 +23,40 @@ SERVICE_WIN32_OWN_PROCESS = 0x10
 SERVICE_AUTO_START = 0x2
 SERVICE_ERROR_NORMAL = 0x1
 DELETE = 0x00010000
+SERVICE_STATUS_START_PENDING = 0x00000002
+SERVICE_STATUS_RUNNING = 0x00000004
+SERVICE_ACCEPT_STOP = 0x1
+
+SVCNAME = 'youtubedl_builder'
+
+LPTSTR = ctypes.c_wchar_p
+START_CALLBACK = ctypes.WINFUNCTYPE(None, ctypes.c_int, ctypes.POINTER(LPTSTR))
+
+
+class SERVICE_TABLE_ENTRY(ctypes.Structure):
+    _fields_ = [
+        ('lpServiceName', LPTSTR),
+        ('lpServiceProc', START_CALLBACK)
+    ]
+
+
+HandlerEx = ctypes.WINFUNCTYPE(
+    ctypes.c_int,     # return
+    ctypes.c_int,     # dwControl
+    ctypes.c_int,     # dwEventType
+    ctypes.c_void_p,  # lpEventData,
+    ctypes.c_void_p,  # lpContext,
+)
+
+
+def _ctypes_array(c_type, py_array):
+    ar = (c_type * len(py_array))()
+    ar[:] = py_array
+    return ar
 
 
 def win_OpenSCManager():
-    res = advapi32.OpenSCManagerA(None, None, SC_MANAGER_ALL_ACCESS)
+    res = advapi32.OpenSCManagerW(None, None, SC_MANAGER_ALL_ACCESS)
     if not res:
         raise Exception('Opening service manager failed - '
                         'are you running this as administrator?')
@@ -34,7 +66,7 @@ def win_OpenSCManager():
 def win_install_service(service_name, cmdline):
     manager = win_OpenSCManager()
     try:
-        h = advapi32.CreateServiceA(
+        h = advapi32.CreateServiceW(
             manager, service_name, None,
             SC_MANAGER_CREATE_SERVICE, SERVICE_WIN32_OWN_PROCESS,
             SERVICE_AUTO_START, SERVICE_ERROR_NORMAL,
@@ -50,7 +82,7 @@ def win_install_service(service_name, cmdline):
 def win_uninstall_service(service_name):
     manager = win_OpenSCManager()
     try:
-        h = advapi32.OpenServiceA(manager, service_name, DELETE)
+        h = advapi32.OpenServiceW(manager, service_name, DELETE)
         if not h:
             raise OSError('Could not find service %s: %s' % (
                 service_name, ctypes.FormatError()))
@@ -64,17 +96,90 @@ def win_uninstall_service(service_name):
         advapi32.CloseServiceHandle(manager)
 
 
-def install_service(bind):
-    fn = os.path.normpath(__file__)
-    cmdline = '"%s" "%s" -s -b "%s"' % (sys.executable, fn, bind)
-    win_install_service('youtubedl_builder', cmdline)
+def win_service_report_event(service_name, msg, is_error=True):
+    with open('C:/sshkeys/log', 'a', encoding='utf-8') as f:
+        f.write(msg + '\n')
+
+    event_log = advapi32.RegisterEventSourceW(None, service_name)
+    if not event_log:
+        raise OSError('Could not report event: %s' % ctypes.FormatError())
+
+    try:
+        type_id = 0x0001 if is_error else 0x0004
+        event_id = 0xc0000000 if is_error else 0x40000000
+        lines = _ctypes_array(LPTSTR, [msg])
+
+        if not advapi32.ReportEventW(
+                event_log, type_id, 0, event_id, None, len(lines), 0,
+                lines, None):
+            raise OSError('Event reporting failed: %s' % ctypes.FormatError())
+    finally:
+        advapi32.DeregisterEventSource(event_log)
 
 
-def uninstall_service():
-    win_uninstall_service('youtubedl_builder')
+def win_service_handler(stop_event, *args):
+    try:
+        raise ValueError('Handler called with args ' + repr(args))
+        TODO
+    except Exception as e:
+        tb = traceback.format_exc()
+        msg = str(e) + '\n' + tb
+        win_service_report_event(service_name, msg, is_error=True)
+        raise
 
 
-def main(argv):
+def win_service_set_status(handle, status_code):
+    svcStatus = SERVICE_STATUS()
+    svcStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS
+    svcStatus.dwCurrentState = status_code
+    svcStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP
+
+    svcStatus.dwServiceSpecificExitCode = 0
+
+    if not advapi32.SetServiceStatus(handle, ctypes.byref(svcStatus)):
+        raise OSError('SetServiceStatus failed: %r' % ctypes.FormatError())
+
+
+def win_service_main(service_name, real_main, argc, argv_raw):
+    try:
+        #args = [argv_raw[i].value for i in range(argc)]
+        stop_event = threading.Event()
+        handler = HandlerEx(functools.partial(stop_event, win_service_handler))
+        h = advapi32.RegisterServiceCtrlHandlerExW(service_name, handler, None)
+        if not h:
+            raise OSError('Handler registration failed: %s' %
+                          ctypes.FormatError())
+
+        TODO
+    except Exception as e:
+        tb = traceback.format_exc()
+        msg = str(e) + '\n' + tb
+        win_service_report_event(service_name, msg, is_error=True)
+        raise
+
+
+def win_service_start(service_name, real_main):
+    try:
+        cb = START_CALLBACK(
+            functools.partial(win_service_main, service_name, real_main))
+        dispatch_table = _ctypes_array(SERVICE_TABLE_ENTRY, [
+            SERVICE_TABLE_ENTRY(
+                service_name,
+                cb
+            ),
+            SERVICE_TABLE_ENTRY(None, ctypes.cast(None, START_CALLBACK))
+        ])
+
+        if not advapi32.StartServiceCtrlDispatcherW(dispatch_table):
+            raise OSError('ctypes start failed: %s' % ctypes.FormatError())
+    except Exception as e:
+        tb = traceback.format_exc()
+        msg = str(e) + '\n' + tb
+        win_service_report_event(service_name, msg, is_error=True)
+        raise
+
+
+def main(args=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--install',
                         action='store_const', dest='action', const='install',
@@ -83,18 +188,26 @@ def main(argv):
                         action='store_const', dest='action', const='uninstall',
                         help='Remove Windows service')
     parser.add_argument('-s', '--service',
-                        action='store_const', dest='action', const='servce',
+                        action='store_const', dest='action', const='service',
                         help='Run as a Windows service')
     parser.add_argument('-b', '--bind', metavar='<host:port>',
                         action='store', default='localhost:8142',
                         help='Bind to host:port (default %default)')
-    options = parser.parse_args()
+    options = parser.parse_args(args=args)
 
     if options.action == 'install':
-        return install_service(options.bind)
+        fn = os.path.abspath(__file__).replace('v:', '\\\\vboxsrv\\vbox')
+        cmdline = '%s %s -s -b %s' % (sys.executable, fn, options.bind)
+        win_install_service(SVCNAME, cmdline)
+        return
 
     if options.action == 'uninstall':
-        return uninstall_service()
+        win_uninstall_service(SVCNAME)
+        return
+
+    if options.action == 'service':
+        win_service_start(SVCNAME, main)
+        return
 
     host, port_str = options.bind.split(':')
     port = int(port_str)
@@ -289,4 +402,4 @@ class BuildHTTPRequestHandler(BaseHTTPRequestHandler):
 #==============================================================================
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()
