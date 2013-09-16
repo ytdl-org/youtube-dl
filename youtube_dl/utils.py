@@ -790,6 +790,18 @@ def platform_name():
     return res
 
 
+def write_string(s, out=None):
+    if out is None:
+        out = sys.stderr
+    assert type(s) == type(u'')
+
+    if ('b' in getattr(out, 'mode', '') or
+            sys.version_info[0] < 3):  # Python 2 lies about mode of sys.stderr
+        s = s.encode(preferredencoding(), 'ignore')
+    out.write(s)
+    out.flush()
+
+
 def bytes_to_intlist(bs):
     if not bs:
         return []

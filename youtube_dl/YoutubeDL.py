@@ -142,14 +142,10 @@ class YoutubeDL(object):
 
     def to_screen(self, message, skip_eol=False):
         """Print message to stdout if not in quiet mode."""
-        assert type(message) == type(u'')
         if not self.params.get('quiet', False):
             terminator = [u'\n', u''][skip_eol]
             output = message + terminator
-            if 'b' in getattr(self._screen_file, 'mode', '') or sys.version_info[0] < 3: # Python 2 lies about the mode of sys.stdout/sys.stderr
-                output = output.encode(preferredencoding(), 'ignore')
-            self._screen_file.write(output)
-            self._screen_file.flush()
+            write_string(output, self._screen_file)
 
     def to_stderr(self, message):
         """Print message to stderr."""
