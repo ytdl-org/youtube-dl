@@ -22,7 +22,7 @@ class OoyalaIE(InfoExtractor):
         return {'id': info['embedCode'],
                 'ext': 'mp4',
                 'title': unescapeHTML(info['title']),
-                'url': info['url'],
+                'url': info.get('ipad_url') or info['url'],
                 'description': unescapeHTML(more_info['description']),
                 'thumbnail': more_info['promo'],
                 }
