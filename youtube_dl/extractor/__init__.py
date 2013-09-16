@@ -6,6 +6,7 @@ from .arte import ArteTvIE
 from .auengine import AUEngineIE
 from .bandcamp import BandcampIE
 from .bliptv import BlipTVIE, BlipTVUserIE
+from .bloomberg import BloombergIE
 from .breakcom import BreakIE
 from .brightcove import BrightcoveIE
 from .c56 import C56IE
