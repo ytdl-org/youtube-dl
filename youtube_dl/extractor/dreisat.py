@@ -54,6 +54,7 @@ class DreiSatIE(InfoExtractor):
             'width': int(fe.find('./width').text),
             'height': int(fe.find('./height').text),
             'url': fe.find('./url').text,
+            'ext': determine_ext(fe.find('./url').text),
             'filesize': int(fe.find('./filesize').text),
             'video_bitrate': int(fe.find('./videoBitrate').text),
             '3sat_qualityname': fe.find('./quality').text,
@@ -79,7 +80,6 @@ class DreiSatIE(InfoExtractor):
         }
 
         # TODO: Remove when #980 has been merged
-        info['url'] = formats[-1]['url']
-        info['ext'] = determine_ext(formats[-1]['url'])
+        info.update(formats[-1])
 
         return info

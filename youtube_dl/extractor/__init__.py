@@ -52,6 +52,7 @@ from .jeuxvideo import JeuxVideoIE
 from .jukebox import JukeboxIE
 from .justintv import JustinTVIE
 from .kankan import KankanIE
+from .kickstarter import KickStarterIE
 from .keek import KeekIE
 from .liveleak import LiveLeakIE
 from .livestream import LivestreamIE
@@ -81,7 +82,8 @@ from .sina import SinaIE
 from .slashdot import SlashdotIE
 from .slideshare import SlideshareIE
 from .sohu import SohuIE
-from .soundcloud import SoundcloudIE, SoundcloudSetIE
+from .soundcloud import SoundcloudIE, SoundcloudSetIE, SoundcloudUserIE
+from .southparkstudios import SouthParkStudiosIE
 from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
 from .statigram import StatigramIE
@@ -96,7 +98,7 @@ from .tudou import TudouIE
 from .tumblr import TumblrIE
 from .tutv import TutvIE
 from .unistra import UnistraIE
-from .ustream import UstreamIE
+from .ustream import UstreamIE, UstreamChannelIE
 from .vbox7 import Vbox7IE
 from .veehd import VeeHDIE
 from .veoh import VeohIE

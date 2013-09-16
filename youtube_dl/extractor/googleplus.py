@@ -40,7 +40,8 @@ class GooglePlusIE(InfoExtractor):
         self.report_extraction(video_id)
 
         # Extract update date
-        upload_date = self._html_search_regex('title="Timestamp">(.*?)</a>',
+        upload_date = self._html_search_regex(
+            ['title="Timestamp">(.*?)</a>', r'<a.+?class="g-M.+?>(.+?)</a>'],
             webpage, u'upload date', fatal=False)
         if upload_date:
             # Convert timestring to a format suitable for filename

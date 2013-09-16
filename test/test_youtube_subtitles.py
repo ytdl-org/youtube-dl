@@ -41,6 +41,7 @@ class TestYoutubeSubtitles(unittest.TestCase):
         subtitles = self.getSubtitles()
         self.assertEqual(md5(subtitles['it']), '164a51f16f260476a05b50fe4c2f161d')
     def test_youtube_allsubtitles(self):
+        self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(len(subtitles.keys()), 13)
@@ -66,6 +67,7 @@ class TestYoutubeSubtitles(unittest.TestCase):
         self.assertTrue(subtitles['it'] is not None)
     def test_youtube_nosubtitles(self):
         self.url = 'sAjKT8FhjI8'
+        self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(len(subtitles), 0)

@@ -74,6 +74,7 @@ class YoutubeDL(object):
     writesubtitles:    Write the video subtitles to a file
     writeautomaticsub: Write the automatic subtitles to a file
     allsubtitles:      Downloads all the subtitles of the video
+                       (requires writesubtitles or writeautomaticsub)
     listsubtitles:     Lists all available subtitles for the video
     subtitlesformat:   Subtitle format [srt/sbv/vtt] (default=srt)
     subtitleslangs:    List of languages of the subtitles to download
@@ -492,13 +493,14 @@ class YoutubeDL(object):
                 self.report_writedescription(descfn)
                 with io.open(encodeFilename(descfn), 'w', encoding='utf-8') as descfile:
                     descfile.write(info_dict['description'])
+            except (KeyError, TypeError):
+                self.report_warning(u'There\'s no description to write.')
             except (OSError, IOError):
                 self.report_error(u'Cannot write description file ' + descfn)
                 return
 
         subtitles_are_requested = any([self.params.get('writesubtitles', False),
-                                       self.params.get('writeautomaticsub'),
-                                       self.params.get('allsubtitles', False)])
+                                       self.params.get('writeautomaticsub')])
 
         if  subtitles_are_requested and 'subtitles' in info_dict and info_dict['subtitles']:
             # subtitles download errors are already managed as troubles in relevant IE

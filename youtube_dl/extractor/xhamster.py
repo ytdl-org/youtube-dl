@@ -27,7 +27,7 @@ class XHamsterIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
 
         video_id = mobj.group('id')
-        mrss_url = 'http://xhamster.com/movies/%s/.html' % video_id
+        mrss_url = 'http://xhamster.com/movies/%s/.html?hd' % video_id
         webpage = self._download_webpage(mrss_url, video_id)
 
         mobj = re.search(r'\'srv\': \'(?P<server>[^\']*)\',\s*\'file\': \'(?P<file>[^\']+)\',', webpage)
