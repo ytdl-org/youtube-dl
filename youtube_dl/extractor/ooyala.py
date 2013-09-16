@@ -18,6 +18,10 @@ class OoyalaIE(InfoExtractor):
         },
     }
 
+    @staticmethod
+    def _url_for_embed_code(embed_code):
+        return 'http://player.ooyala.com/player.js?embedCode=%s' % embed_code
+
     def _extract_result(self, info, more_info):
         return {'id': info['embedCode'],
                 'ext': 'mp4',

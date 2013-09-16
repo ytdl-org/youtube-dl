@@ -104,6 +104,7 @@ from .vbox7 import Vbox7IE
 from .veehd import VeeHDIE
 from .veoh import VeohIE
 from .vevo import VevoIE
+from .vice import ViceIE
 from .videofyme import VideofyMeIE
 from .vimeo import VimeoIE, VimeoChannelIE
 from .vine import VineIE
