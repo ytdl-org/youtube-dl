@@ -485,6 +485,7 @@ def encodeFilename(s):
 
     # Python 3 has a Unicode API
     if sys.version_info >= (3, 0):
+        s = s.encode('ascii','ignore').decode()
         return s
 
     if sys.platform == 'win32' and sys.getwindowsversion()[0] >= 5:
