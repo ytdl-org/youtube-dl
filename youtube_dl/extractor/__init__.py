@@ -6,6 +6,7 @@ from .arte import ArteTvIE
 from .auengine import AUEngineIE
 from .bandcamp import BandcampIE
 from .bliptv import BlipTVIE, BlipTVUserIE
+from .bloomberg import BloombergIE
 from .breakcom import BreakIE
 from .brightcove import BrightcoveIE
 from .c56 import C56IE
@@ -82,7 +83,8 @@ from .sina import SinaIE
 from .slashdot import SlashdotIE
 from .slideshare import SlideshareIE
 from .sohu import SohuIE
-from .soundcloud import SoundcloudIE, SoundcloudSetIE
+from .soundcloud import SoundcloudIE, SoundcloudSetIE, SoundcloudUserIE
+from .southparkstudios import SouthParkStudiosIE
 from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
 from .statigram import StatigramIE
@@ -102,6 +104,7 @@ from .vbox7 import Vbox7IE
 from .veehd import VeeHDIE
 from .veoh import VeohIE
 from .vevo import VevoIE
+from .vice import ViceIE
 from .videofyme import VideofyMeIE
 from .vimeo import VimeoIE, VimeoChannelIE
 from .vine import VineIE

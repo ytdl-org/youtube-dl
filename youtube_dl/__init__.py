@@ -354,7 +354,7 @@ def parseOpts(overrideArguments=None):
     if overrideArguments is not None:
         opts, args = parser.parse_args(overrideArguments)
         if opts.verbose:
-            sys.stderr.write(u'[debug] Override config: ' + repr(overrideArguments) + '\n')
+            write_string(u'[debug] Override config: ' + repr(overrideArguments) + '\n')
     else:
         xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
         if xdg_config_home:
@@ -367,9 +367,9 @@ def parseOpts(overrideArguments=None):
         argv = systemConf + userConf + commandLineConf
         opts, args = parser.parse_args(argv)
         if opts.verbose:
-            sys.stderr.write(u'[debug] System config: ' + repr(_hide_login_info(systemConf)) + '\n')
-            sys.stderr.write(u'[debug] User config: ' + repr(_hide_login_info(userConf)) + '\n')
-            sys.stderr.write(u'[debug] Command-line args: ' + repr(_hide_login_info(commandLineConf)) + '\n')
+            write_string(u'[debug] System config: ' + repr(_hide_login_info(systemConf)) + '\n')
+            write_string(u'[debug] User config: ' + repr(_hide_login_info(userConf)) + '\n')
+            write_string(u'[debug] Command-line args: ' + repr(_hide_login_info(commandLineConf)) + '\n')
 
     return parser, opts, args
 
@@ -392,7 +392,7 @@ def _real_main(argv=None):
         except (IOError, OSError) as err:
             if opts.verbose:
                 traceback.print_exc()
-            sys.stderr.write(u'ERROR: unable to open cookie file\n')
+            write_string(u'ERROR: unable to open cookie file\n')
             sys.exit(101)
     # Set user agent
     if opts.user_agent is not None:
@@ -419,7 +419,7 @@ def _real_main(argv=None):
             batchurls = [x.strip() for x in batchurls]
             batchurls = [x for x in batchurls if len(x) > 0 and not re.search(r'^[#/;]', x)]
             if opts.verbose:
-                sys.stderr.write(u'[debug] Batch file urls: ' + repr(batchurls) + u'\n')
+                write_string(u'[debug] Batch file urls: ' + repr(batchurls) + u'\n')
         except IOError:
             sys.exit(u'ERROR: batch file could not be read')
     all_urls = batchurls + args
@@ -533,6 +533,11 @@ def _real_main(argv=None):
     else:
         date = DateRange(opts.dateafter, opts.datebefore)
 
+    # --all-sub automatically sets --write-sub if --write-auto-sub is not given
+    # this was the old behaviour if only --all-sub was given.
+    if opts.allsubtitles and (opts.writeautomaticsub == False):
+        opts.writesubtitles = True
+
     if sys.version_info < (3,):
         # In Python 2, sys.argv is a bytestring (also note http://bugs.python.org/issue2128 for Windows systems)
         if opts.outtmpl is not None:
@@ -606,7 +611,7 @@ def _real_main(argv=None):
         })
 
     if opts.verbose:
-        sys.stderr.write(u'[debug] youtube-dl version ' + __version__ + u'\n')
+        write_string(u'[debug] youtube-dl version ' + __version__ + u'\n')
         try:
             sp = subprocess.Popen(
                 ['git', 'rev-parse', '--short', 'HEAD'],
@@ -615,14 +620,14 @@ def _real_main(argv=None):
             out, err = sp.communicate()
             out = out.decode().strip()
             if re.match('[0-9a-f]+', out):
-                sys.stderr.write(u'[debug] Git HEAD: ' + out + u'\n')
+                write_string(u'[debug] Git HEAD: ' + out + u'\n')
         except:
             try:
                 sys.exc_clear()
             except:
                 pass
-        sys.stderr.write(u'[debug] Python version %s - %s' %(platform.python_version(), platform_name()) + u'\n')
-        sys.stderr.write(u'[debug] Proxy map: ' + str(proxy_handler.proxies) + u'\n')
+        write_string(u'[debug] Python version %s - %s' %(platform.python_version(), platform_name()) + u'\n')
+        write_string(u'[debug] Proxy map: ' + str(proxy_handler.proxies) + u'\n')
 
     ydl.add_default_info_extractors()
 

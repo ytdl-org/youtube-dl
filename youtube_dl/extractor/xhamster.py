@@ -11,7 +11,7 @@ from ..utils import (
 
 class XHamsterIE(InfoExtractor):
     """Information Extractor for xHamster"""
-    _VALID_URL = r'(?:http://)?(?P<url>(?:www\.)?xhamster\.com/movies/(?P<id>[0-9]+)/.*\.html(?:\?.*)?)'
+    _VALID_URL = r'(?:http://)?(?:www.)?xhamster\.com/movies/(?P<id>[0-9]+)/.*\.html'
     _TEST = {
         u'url': u'http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html',
         u'file': u'1509445.flv',
@@ -27,7 +27,7 @@ class XHamsterIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
 
         video_id = mobj.group('id')
-        mrss_url = 'http://' +  mobj.group('url')
+        mrss_url = 'http://xhamster.com/movies/%s/.html?hd' % video_id
         webpage = self._download_webpage(mrss_url, video_id)
 
         mobj = re.search(r'\'srv\': \'(?P<server>[^\']*)\',\s*\'file\': \'(?P<file>[^\']+)\',', webpage)

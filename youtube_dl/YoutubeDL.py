@@ -74,6 +74,7 @@ class YoutubeDL(object):
     writesubtitles:    Write the video subtitles to a file
     writeautomaticsub: Write the automatic subtitles to a file
     allsubtitles:      Downloads all the subtitles of the video
+                       (requires writesubtitles or writeautomaticsub)
     listsubtitles:     Lists all available subtitles for the video
     subtitlesformat:   Subtitle format [srt/sbv/vtt] (default=srt)
     subtitleslangs:    List of languages of the subtitles to download
@@ -141,14 +142,10 @@ class YoutubeDL(object):
 
     def to_screen(self, message, skip_eol=False):
         """Print message to stdout if not in quiet mode."""
-        assert type(message) == type(u'')
         if not self.params.get('quiet', False):
             terminator = [u'\n', u''][skip_eol]
             output = message + terminator
-            if 'b' in getattr(self._screen_file, 'mode', '') or sys.version_info[0] < 3: # Python 2 lies about the mode of sys.stdout/sys.stderr
-                output = output.encode(preferredencoding(), 'ignore')
-            self._screen_file.write(output)
-            self._screen_file.flush()
+            write_string(output, self._screen_file)
 
     def to_stderr(self, message):
         """Print message to stderr."""
@@ -499,8 +496,7 @@ class YoutubeDL(object):
                 return
 
         subtitles_are_requested = any([self.params.get('writesubtitles', False),
-                                       self.params.get('writeautomaticsub'),
-                                       self.params.get('allsubtitles', False)])
+                                       self.params.get('writeautomaticsub')])
 
         if  subtitles_are_requested and 'subtitles' in info_dict and info_dict['subtitles']:
             # subtitles download errors are already managed as troubles in relevant IE
