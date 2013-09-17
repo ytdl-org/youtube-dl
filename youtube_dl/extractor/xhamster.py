@@ -11,8 +11,8 @@ from ..utils import (
 
 class XHamsterIE(InfoExtractor):
     """Information Extractor for xHamster"""
-    _VALID_URL = r'(?:http://)?(?:www.)?xhamster\.com/movies/(?P<id>[0-9]+)/.*\.html'
-    _TEST = {
+    _VALID_URL = r'(?:http://)?(?:www\.)?xhamster\.com/movies/(?P<id>[0-9]+)/(?P<seo>.+?)\.html(?:\?.*)?'
+    _TESTS = [{
         u'url': u'http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html',
         u'file': u'1509445.flv',
         u'md5': u'9f48e0e8d58e3076bb236ff412ab62fa',
@@ -21,13 +21,24 @@ class XHamsterIE(InfoExtractor):
             u"uploader_id": u"Ruseful2011", 
             u"title": u"FemaleAgent Shy beauty takes the bait"
         }
-    }
+    },
+    {
+        u'url': u'http://xhamster.com/movies/2221348/britney_spears_sexy_booty.html?hd',
+        u'file': u'2221348.flv',
+        u'md5': u'e767b9475de189320f691f49c679c4c7',
+        u'info_dict': {
+            u"upload_date": u"20130914", 
+            u"uploader_id": u"jojo747400", 
+            u"title": u"Britney Spears  Sexy Booty"
+        }
+    }]
 
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)
 
         video_id = mobj.group('id')
-        mrss_url = 'http://xhamster.com/movies/%s/.html?hd' % video_id
+        seo = mobj.group('seo')
+        mrss_url = 'http://xhamster.com/movies/%s/%s.html?hd' % (video_id, seo)
         webpage = self._download_webpage(mrss_url, video_id)
 
         mobj = re.search(r'\'srv\': \'(?P<server>[^\']*)\',\s*\'file\': \'(?P<file>[^\']+)\',', webpage)
