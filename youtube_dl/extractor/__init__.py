@@ -109,6 +109,7 @@ from .videofyme import VideofyMeIE
 from .vimeo import VimeoIE, VimeoChannelIE
 from .vine import VineIE
 from .wat import WatIE
+from .websurg import WeBSurgIE
 from .weibo import WeiboIE
 from .wimp import WimpIE
 from .worldstarhiphop import WorldStarHipHopIE
