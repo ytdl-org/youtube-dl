@@ -34,17 +34,7 @@ class PluzzIE(FranceTVBaseInfoExtractor):
     IE_NAME = u'pluzz.francetv.fr'
     _VALID_URL = r'https?://pluzz\.francetv\.fr/videos/(.*?)\.html'
 
-    _TEST = {
-        u'url': u'http://pluzz.francetv.fr/videos/allo_rufo_saison5_,88439064.html',
-        u'file': u'88439064.mp4',
-        u'info_dict': {
-            u'title': u'Allô Rufo',
-            u'description': u'md5:d909f1ebdf963814b65772aea250400e',
-        },
-        u'params': {
-            u'skip_download': True,
-        },
-    }
+    # Can't use tests, videos expire in 7 days
 
     def _real_extract(self, url):
         title = re.match(self._VALID_URL, url).group(1)
