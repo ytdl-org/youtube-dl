@@ -429,7 +429,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         elif len(s) == 86:
             return s[5:34] + s[0] + s[35:38] + s[3] + s[39:45] + s[38] + s[46:53] + s[73] + s[54:73] + s[85] + s[74:85] + s[53]
         elif len(s) == 85:
-            return s[40] + s[82:43:-1] + s[22] + s[42:40:-1] + s[83] + s[39:22:-1] + s[0] + s[21:2:-1]
+            return s[3:11] + s[0] + s[12:55] + s[84] + s[56:84]
         elif len(s) == 84:
             return s[81:36:-1] + s[0] + s[35:2:-1]
         elif len(s) == 83:
