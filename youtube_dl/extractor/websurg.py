@@ -23,7 +23,7 @@ class WeBSurgIE(InfoExtractor):
     
     _LOGIN_URL = 'http://www.websurg.com/inc/login/login_div.ajax.php?login=1'
 
-    def _real_extract(self, url):
+    def _real_initialize(self):
 
         login_form = {
             'username': self._downloader.params['username'],
@@ -35,14 +35,13 @@ class WeBSurgIE(InfoExtractor):
             self._LOGIN_URL, compat_urllib_parse.urlencode(login_form))
         request.add_header(
             'Content-Type', 'application/x-www-form-urlencoded;charset=utf-8')
-        login_results = compat_urllib_request.urlopen(request).info()
+        compat_urllib_request.urlopen(request).info()
         
-        sessid = re.match(r'PHPSESSID=(.*);',
-            login_results['Set-Cookie']).group(1)
-        request = compat_urllib_request.Request(
-            url, compat_urllib_parse.urlencode(login_form),
-            {'Cookie': 'PHPSESSID=' + sessid + ';'})
-        webpage = compat_urllib_request.urlopen(request).read()
+    def _real_extract(self, url):
+
+        request = compat_urllib_request.Request(url)
+        webpage = unicode(
+            compat_urllib_request.urlopen(request).read(), 'utf-8')
         
         video_id = re.match(self._VALID_URL, url).group(1)
         
@@ -52,16 +51,10 @@ class WeBSurgIE(InfoExtractor):
             self._downloader.report_warning(
                 u'Unable to log in: bad username/password')
             return
-            
         return {'id': video_id,
-                'title' : re.search(
-                    r'property="og:title" content="(.*?)" />'
-                    , webpage).group(1),
-                'description': re.search(
-                    r'name="description" content="(.*?)" />', webpage).group(1),
+                'title': self._og_search_title(webpage),
+                'description': self._og_search_description(webpage),
                 'ext' : 'mp4',
                 'url' : url_info.group(1) + '/' + url_info.group(2),
-                'thumbnail': re.search(
-                    r'property="og:image" content="(.*?)" />', webpage
-                ).group(1)
+                'thumbnail': self._og_search_thumbnail(webpage)
                 }
