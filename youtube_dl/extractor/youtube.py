@@ -783,10 +783,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                         if self._downloader.params.get('verbose'):
                             s = url_data['s'][0]
                             if age_gate:
-                                player_version = self._search_regex(r'ad3-(.+?)\.swf',
-                                    video_info['ad3_module'][0] if 'ad3_module' in video_info else 'NOT FOUND',
-                                    'flash player', fatal=False)
-                                player = 'flash player %s' % player_version
+                                player = 'flash player'
                             else:
                                 player = u'html5 player %s' % self._search_regex(r'html5player-(.+?)\.js', video_webpage,
                                     'html5 player', fatal=False)
