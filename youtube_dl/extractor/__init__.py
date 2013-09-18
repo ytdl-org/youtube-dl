@@ -29,6 +29,10 @@ from .eighttracks import EightTracksIE
 from .escapist import EscapistIE
 from .exfm import ExfmIE
 from .facebook import FacebookIE
+from .fktv import (
+    FKTVIE,
+    FKTVPosteckeIE,
+)
 from .flickr import FlickrIE
 from .francetv import (
     PluzzIE,
