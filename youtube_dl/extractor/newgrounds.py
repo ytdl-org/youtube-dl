@@ -8,7 +8,7 @@ class NewgroundsIE(InfoExtractor):
     _VALID_URL = r'(?:https?://)?(?:www\.)?newgrounds\.com/audio/listen/(?P<id>\d+)'
     _TEST = {
         u'url': u'http://www.newgrounds.com/audio/listen/549479',
-        u'file': u'549479_B7---BusMode.mp3',
+        u'file': u'549479.mp3',
         u'md5': u'2924d938f60415cd7afbe7ae9042a99e',
         u'info_dict': {
             u"title": u"B7 - BusMode",
