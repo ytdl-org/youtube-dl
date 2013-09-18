@@ -1005,6 +1005,9 @@ class YoutubeUserIE(InfoExtractor):
                 response = json.loads(page)
             except ValueError as err:
                 raise ExtractorError(u'Invalid JSON in API response: ' + compat_str(err))
+            if 'entry' not in response['feed']:
+                # Number of videos is a multiple of self._MAX_RESULTS
+                break
 
             # Extract video identifiers
             ids_in_page = []
