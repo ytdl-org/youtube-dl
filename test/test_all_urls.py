@@ -28,15 +28,15 @@ class TestAllURLsMatching(unittest.TestCase):
         assertPlaylist(u'https://www.youtube.com/playlist?list=UUBABnxM4Ar9ten8Mdjj1j0Q')
         assertPlaylist(u'https://www.youtube.com/course?list=ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8')
         assertPlaylist(u'https://www.youtube.com/playlist?list=PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC')
-        assertPlaylist(u'https://www.youtube.com/watch?v=AV6J6_AeFEQ&playnext=1&list=PL4023E734DA416012') #668
+        self.assertFalse(YoutubePlaylistIE.suitable('https://www.youtube.com/watch?v=AV6J6_AeFEQ&playnext=1&list=PL4023E734DA416012'))
         self.assertFalse('youtube:playlist' in self.matching_ies(u'PLtS2H6bU1M'))
 
     def test_youtube_matching(self):
         self.assertTrue(YoutubeIE.suitable(u'PLtS2H6bU1M'))
-        self.assertFalse(YoutubeIE.suitable(u'https://www.youtube.com/watch?v=AV6J6_AeFEQ&playnext=1&list=PL4023E734DA416012')) #668
         self.assertMatch('http://youtu.be/BaW_jenozKc', ['youtube'])
         self.assertMatch('http://www.youtube.com/v/BaW_jenozKc', ['youtube'])
         self.assertMatch('https://youtube.googleapis.com/v/BaW_jenozKc', ['youtube'])
+        self.assertMatch('https://www.youtube.com/watch?v=AV6J6_AeFEQ&playnext=1&list=PL4023E734DA416012',  ['youtube'])
 
     def test_youtube_channel_matching(self):
         assertChannel = lambda url: self.assertMatch(url, ['youtube:channel'])
