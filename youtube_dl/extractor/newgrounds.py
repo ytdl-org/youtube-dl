@@ -9,7 +9,7 @@ class NewgroundsIE(InfoExtractor):
     _TEST = {
         u'url': u'http://www.newgrounds.com/audio/listen/549479',
         u'file': u'549479.mp3',
-        u'md5': u'2924d938f60415cd7afbe7ae9042a99e',
+        u'md5': u'fe6033d297591288fa1c1f780386f07a',
         u'info_dict': {
             u"title": u"B7 - BusMode",
             u"uploader" : u"Burn7",
