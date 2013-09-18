@@ -30,6 +30,7 @@ __authors__  = (
     'Pierre Rudloff',
     'Huarong Huo',
     'Ismael Mejía',
+    'Steffan \'Ruirize\' James',
 )
 
 __license__ = 'Public Domain'
