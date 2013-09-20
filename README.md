@@ -19,7 +19,8 @@ which means you can modify it, redistribute it or use it however you like.
     -U, --update               update this program to latest version. Make sure
                                that you have sufficient permissions (run with
                                sudo if needed)
-    -i, --ignore-errors        continue on download errors
+    -i, --ignore-errors        continue on download errors, for example to to
+                               skip unavailable videos in a playlist
     --dump-user-agent          display the current browser identification
     --user-agent UA            specify a custom user agent
     --referer REF              specify a custom referer, use if the video access
