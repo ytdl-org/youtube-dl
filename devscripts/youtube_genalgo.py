@@ -1,10 +1,14 @@
 #!/usr/bin/env python
+# encoding: utf-8
 
 # Generate youtube signature algorithm from test cases
 
 import sys
 
 tests = [
+    # 93 - vfl79wBKW 2013/07/20
+    (u"qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[]}|:;?/>.<'`~\"€",
+     u".>/?;:|}][{=+-_)(*&^%$#@!MNBVCXZASDFGHJKLPOIUYTREWQ098765'321mnbvcxzasdfghjklpoiu"),
     # 92 - vflQw-fB4 2013/07/17
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[]}|:;?/>.<'`~\"",
      "mrtyuioplkjhgfdsazxcvbnq1234567890QWERTY}IOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[]\"|:;"),
