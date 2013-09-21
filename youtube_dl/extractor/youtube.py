@@ -641,7 +641,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             return res
 
         # minor_version + major_version
-        _ = read_bytes(4)
+        _ = read_bytes(2 + 2)
 
         # Constant pool
         int_count = u30()
@@ -994,9 +994,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         self._downloader.report_warning(
             u'Warning: Falling back to static signature algorithm')
-        return self._static_decrypt_signature(s)
+        return self._static_decrypt_signature(
+            s, video_id, player_url, age_gate)
 
-    def _static_decrypt_signature(self, s):
+    def _static_decrypt_signature(self, s, video_id, player_url, age_gate):
         if age_gate:
             # The videos with age protection use another player, so the
             # algorithms can be different.
