@@ -4,8 +4,10 @@ import collections
 import itertools
 import io
 import json
-import netrc
+import operator
+import os.path
 import re
+import shutil
 import socket
 import string
 import struct
@@ -422,13 +424,28 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         """Indicate the download will use the RTMP protocol."""
         self.to_screen(u'RTMP download detected')
 
-    def _extract_signature_function(self, video_id, player_url):
-        id_m = re.match(r'.*-(?P<id>[a-zA-Z0-9]+)\.(?P<ext>[a-z]+)$',
+    def _extract_signature_function(self, video_id, player_url, slen):
+        id_m = re.match(r'.*-(?P<id>[a-zA-Z0-9_-]+)\.(?P<ext>[a-z]+)$',
                         player_url)
         player_type = id_m.group('ext')
         player_id = id_m.group('id')
 
-        # TODO read from filesystem cache
+        # Read from filesystem cache
+        func_id = '%s_%s_%d' % (player_type, player_id, slen)
+        assert os.path.basename(func_id) == func_id
+        cache_dir = self.downloader.params.get('cachedir',
+                                               u'~/.youtube-dl/cache')
+
+        if cache_dir is not False:
+            cache_fn = os.path.join(os.path.expanduser(cache_dir),
+                                    u'youtube-sigfuncs',
+                                    func_id + '.json')
+            try:
+                with io.open(cache_fn, '', encoding='utf-8') as cachef:
+                    cache_spec = json.load(cachef)
+                return lambda s: u''.join(s[i] for i in cache_spec)
+            except OSError:
+                pass  # No cache available
 
         if player_type == 'js':
             code = self._download_webpage(
@@ -436,7 +453,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 note=u'Downloading %s player %s' % (player_type, player_id),
                 errnote=u'Download of %s failed' % player_url)
             res = self._parse_sig_js(code)
-        elif player_tpye == 'swf':
+        elif player_type == 'swf':
             urlh = self._request_webpage(
                 player_url, video_id,
                 note=u'Downloading %s player %s' % (player_type, player_id),
@@ -446,7 +463,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         else:
             assert False, 'Invalid player type %r' % player_type
 
-        # TODO write cache
+        if cache_dir is not False:
+            cache_res = res(map(compat_chr, range(slen)))
+            cache_spec = [ord(c) for c in cache_res]
+            shutil.makedirs(os.path.dirname(cache_fn))
+            write_json_file(cache_spec, cache_fn)
 
         return res
 
@@ -983,7 +1004,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             try:
                 if player_url not in self._player_cache:
                     func = self._extract_signature_function(
-                        video_id, player_url
+                        video_id, player_url, len(s)
                     )
                     self._player_cache[player_url] = func
                 return self._player_cache[player_url](s)
