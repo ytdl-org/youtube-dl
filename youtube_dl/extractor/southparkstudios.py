@@ -5,7 +5,7 @@ from .mtv import MTVIE, _media_xml_tag
 
 class SouthParkStudiosIE(MTVIE):
     IE_NAME = u'southparkstudios.com'
-    _VALID_URL = r'https?://www\.southparkstudios\.com/clips/(?P<id>\d+)'
+    _VALID_URL = r'https?://www\.southparkstudios\.com/(clips|full-episodes)/(?P<id>.+?)(\?|#|$)'
 
     _FEED_URL = 'http://www.southparkstudios.com/feeds/video-player/mrss'
 
@@ -23,7 +23,11 @@ class SouthParkStudiosIE(MTVIE):
 
     def _get_thumbnail_url(self, uri, itemdoc):
         search_path = '%s/%s' % (_media_xml_tag('group'), _media_xml_tag('thumbnail'))
-        return itemdoc.find(search_path).attrib['url']
+        thumb_node = itemdoc.find(search_path)
+        if thumb_node is None:
+            return None
+        else:
+            return thumb_node.attrib['url']
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
