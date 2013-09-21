@@ -857,7 +857,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             m = methods[func_name]
 
             def resfunc(args):
-                print('Entering function %s(%r)' % (func_name, args))
                 registers = ['(this)'] + list(args) + [None] * m.local_count
                 stack = []
                 coder = io.BytesIO(m.code)

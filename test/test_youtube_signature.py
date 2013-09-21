@@ -30,7 +30,7 @@ _TESTS = [
         u'https://s.ytimg.com/yts/swfbin/watch_as3-vflg5GhxU.swf',
         u'swf',
         82,
-        u'23456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!?#$%&\'()*+,-./:;<=>"'
+        u':/.-,+*)=\'&%$#"!ZYX0VUTSRQPONMLKJIHGFEDCBAzyxw>utsrqponmlkjihgfedcba987654321'
     ),
 ]
 
