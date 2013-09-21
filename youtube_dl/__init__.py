@@ -672,16 +672,16 @@ def _real_main(argv=None):
         ydl.to_screen(u'--max-download limit reached, aborting.')
         retcode = 101
 
+    if opts.lastrun:
+        with open(opts.lastrun, "w") as conf:
+            conf.write(dateh.today().strftime("%Y%m%d"))
+
     # Dump cookie jar if requested
     if opts.cookiefile is not None:
         try:
             jar.save()
         except (IOError, OSError) as err:
             sys.exit(u'ERROR: unable to save cookie jar')
-
-    if opts.lastrun and retcode is 0:
-        with open(opts.lastrun, "w") as conf:
-            conf.write(dateh.today().strftime("%Y%m%d"))
 
     sys.exit(retcode)
 
