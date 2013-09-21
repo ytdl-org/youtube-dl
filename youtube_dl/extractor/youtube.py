@@ -590,99 +590,83 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                         for tag_code, tag in extract_tags(content)
                         if tag_code == 82)
         p = code_tag.index(b'\0', 4) + 1
+        code_reader = io.BytesIO(code_tag[p:])
 
         # Parse ABC (AVM2 ByteCode)
-        def read_int(data=None, pos=None):
-            if hasattr(data, 'read'):
-                assert pos is None
-
-                res = 0
-                shift = 0
-                for _ in range(5):
-                    buf = data.read(1)
-                    assert len(buf) == 1
-                    b = struct.unpack('<B', buf)[0]
-                    res = res | ((b & 0x7f) << shift)
-                    if b & 0x80 == 0:
-                        break
-                    shift += 7
-                return res
-
-            if data is None:
-                data = code_tag
-            if pos is None:
-                pos = p
+        def read_int(reader=None):
+            if reader is None:
+                reader = code_reader
             res = 0
             shift = 0
             for _ in range(5):
-                b = struct.unpack('<B', data[pos:pos+1])[0]
-                pos += 1
+                buf = reader.read(1)
+                assert len(buf) == 1
+                b = struct.unpack('<B', buf)[0]
                 res = res | ((b & 0x7f) << shift)
                 if b & 0x80 == 0:
                     break
                 shift += 7
-            return (res, pos)
-        assert read_int(b'\x00', 0) == (0, 1)
-        assert read_int(b'\x10', 0) == (16, 1)
-        assert read_int(b'\x34', 0) == (0x34, 1)
-        assert read_int(b'\xb4\x12', 0) == (0x12 * 0x80 + 0x34, 2)
-        assert read_int(b'\xff\xff\xff\x00', 0) == (0x1fffff, 4)
+            return res
 
-        def u30(*args, **kwargs):
-            res = read_int(*args, **kwargs)
-            if isinstance(res, tuple):
-                assert res[0] & 0xf0000000 == 0
-            else:
-                assert res & 0xf0000000 == 0
+        def u30(reader=None):
+            res = read_int(reader)
+            assert res & 0xf0000000 == 0
             return res
         u32 = read_int
 
-        def s32(data=None, pos=None):
-            v, pos = read_int(data, pos)
+        def s32(reader=None):
+            v = read_int(reader)
             if v & 0x80000000 != 0:
                 v = - ((v ^ 0xffffffff) + 1)
-            return (v, pos)
-        assert s32(b'\xff\xff\xff\xff\x0f', 0) == (-1, 5)
+            return v
 
-        def string():
-            slen, p = u30()
-            return (code_tag[p:p+slen].decode('utf-8'), p + slen)
+        def string(reader=None):
+            if reader is None:
+                reader = code_reader
+            slen = u30(reader)
+            resb = reader.read(slen)
+            assert len(resb) == slen
+            return resb.decode('utf-8')
 
-        def read_byte(data=None, pos=None):
-            if data is None:
-                data = code_tag
-            if pos is None:
-                pos = p
-            res = struct.unpack('<B', data[pos:pos+1])[0]
-            return (res, pos + 1)
+        def read_bytes(count, reader=None):
+            if reader is None:
+                reader = code_reader
+            resb = reader.read(count)
+            assert len(resb) == count
+            return resb
+
+        def read_byte(reader=None):
+            resb = read_bytes(1, reader=reader)
+            res = struct.unpack('<B', resb)[0]
+            return res
 
         # minor_version + major_version
-        p += 2 + 2
+        _ = read_bytes(4)
 
         # Constant pool
-        int_count, p = u30()
+        int_count = u30()
         for _c in range(1, int_count):
-            _, p = s32()
-        uint_count, p = u30()
+            _ = s32()
+        uint_count = u30()
         for _c in range(1, uint_count):
-            _, p = u32()
-        double_count, p = u30()
-        p += (double_count-1) * 8
-        string_count, p = u30()
+            _ = u32()
+        double_count = u30()
+        _ = read_bytes((double_count-1) * 8)
+        string_count = u30()
         constant_strings = [u'']
         for _c in range(1, string_count):
-            s, p = string()
+            s = string()
             constant_strings.append(s)
-        namespace_count, p = u30()
+        namespace_count = u30()
         for _c in range(1, namespace_count):
-            p += 1        # kind
-            _, p = u30()  # name
-        ns_set_count, p = u30()
+            _ = read_bytes(1)  # kind
+            _ = u30()  # name
+        ns_set_count = u30()
         for _c in range(1, ns_set_count):
-            count, p = u30()
+            count = u30()
             for _c2 in range(count):
-                _, p = u30()
-        multiname_count, p = u30()
+                _ = u30()
+        multiname_count = u30()
         MULTINAME_SIZES = {
             0x07: 2,  # QName
             0x0d: 2,  # QNameA
@@ -697,108 +681,106 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         }
         multinames = [u'']
         for _c in range(1, multiname_count):
-            kind, p = u30()
+            kind = u30()
             assert kind in MULTINAME_SIZES, u'Invalid multiname kind %r' % kind
             if kind == 0x07:
-                namespace_idx, p = u30()
-                name_idx, p = u30()
+                namespace_idx = u30()
+                name_idx = u30()
                 multinames.append(constant_strings[name_idx])
             else:
                 multinames.append('[MULTINAME kind: %d]' % kind)
                 for _c2 in range(MULTINAME_SIZES[kind]):
-                    _, p = u30()
+                    _ = u30()
 
         # Methods
-        method_count, p = u30()
+        method_count = u30()
         MethodInfo = collections.namedtuple(
             'MethodInfo',
             ['NEED_ARGUMENTS', 'NEED_REST'])
         method_infos = []
         for method_id in range(method_count):
-            param_count, p = u30()
-            _, p = u30()  # return type
+            param_count = u30()
+            _ = u30()  # return type
             for _ in range(param_count):
-                _, p = u30()  # param type
-            _, p = u30()  # name index (always 0 for youtube)
-            flags, p = read_byte()
+                _ = u30()  # param type
+            _ = u30()  # name index (always 0 for youtube)
+            flags = read_byte()
             if flags & 0x08 != 0:
                 # Options present
-                option_count, p = u30()
+                option_count = u30()
                 for c in range(option_count):
-                    _, p = u30()  # val
-                    p += 1        # kind
+                    _ = u30()  # val
+                    _ = read_bytes(1)  # kind
             if flags & 0x80 != 0:
                 # Param names present
                 for _ in range(param_count):
-                    _, p = u30()  # param name
+                    _ = u30()  # param name
             mi = MethodInfo(flags & 0x01 != 0, flags & 0x04 != 0)
             method_infos.append(mi)
 
         # Metadata
-        metadata_count, p = u30()
+        metadata_count = u30()
         for _c in range(metadata_count):
-            _, p = u30()  # name
-            item_count, p = u30()
+            _ = u30()  # name
+            item_count = u30()
             for _c2 in range(item_count):
-                _, p = u30()  # key
-                _, p = u30()  # value
+                _ = u30()  # key
+                _ = u30()  # value
 
-        def parse_traits_info(pos=None):
-            if pos is None:
-                pos = p
-            trait_name_idx, pos = u30(pos=pos)
-            kind_full, pos = read_byte(pos=pos)
+        def parse_traits_info():
+            trait_name_idx = u30()
+            kind_full = read_byte()
             kind = kind_full & 0x0f
             attrs = kind_full >> 4
             methods = {}
             if kind in [0x00, 0x06]:  # Slot or Const
-                _, pos = u30(pos=pos)  # Slot id
-                type_name_idx, pos = u30(pos=pos)
-                vindex, pos = u30(pos=pos)
+                _ = u30()  # Slot id
+                type_name_idx = u30()
+                vindex = u30()
                 if vindex != 0:
-                    _, pos = read_byte(pos=pos)  # vkind
+                    _ = read_byte()  # vkind
             elif kind in [0x01, 0x02, 0x03]:  # Method / Getter / Setter
-                _, pos = u30(pos=pos)  # disp_id
-                method_idx, pos = u30(pos=pos)
+                _ = u30()  # disp_id
+                method_idx = u30()
                 methods[multinames[trait_name_idx]] = method_idx
             elif kind == 0x04:  # Class
-                _, pos = u30(pos=pos)  # slot_id
-                _, pos = u30(pos=pos)  # classi
+                _ = u30()  # slot_id
+                _ = u30()  # classi
             elif kind == 0x05:  # Function
-                _, pos = u30(pos=pos)  # slot_id
-                function_idx, pos = u30(pos=pos)
+                _ = u30()  # slot_id
+                function_idx = u30()
                 methods[function_idx] = multinames[trait_name_idx]
             else:
                 raise ExtractorError(u'Unsupported trait kind %d' % kind)
 
             if attrs & 0x4 != 0:  # Metadata present
-                metadata_count, pos = u30(pos=pos)
+                metadata_count = u30()
                 for _c3 in range(metadata_count):
-                    _, pos = u30(pos=pos)
+                    _ = u30()
 
-            return (methods, pos)
+            return methods
 
         # Classes
         TARGET_CLASSNAME = u'SignatureDecipher'
         searched_idx = multinames.index(TARGET_CLASSNAME)
         searched_class_id = None
-        class_count, p = u30()
+        class_count = u30()
         for class_id in range(class_count):
-            name_idx, p = u30()
+            name_idx = u30()
             if name_idx == searched_idx:
                 # We found the class we're looking for!
                 searched_class_id = class_id
-            _, p = u30()  # super_name idx
-            flags, p = read_byte()
+            _ = u30()  # super_name idx
+            flags = read_byte()
             if flags & 0x08 != 0:  # Protected namespace is present
-                protected_ns_idx, p = u30()
-            intrf_count, p = u30()
+                protected_ns_idx = u30()
+            intrf_count = u30()
             for _c2 in range(intrf_count):
-                _, p = u30()
-            _, p = u30()  # iinit
-            trait_count, p = u30()
+                _ = u30()
+            _ = u30()  # iinit
+            trait_count = u30()
             for _c2 in range(trait_count):
-                _, p = parse_traits_info()
+                _ = parse_traits_info()
 
         if searched_class_id is None:
             raise ExtractorError(u'Target class %r not found' %
@@ -807,10 +789,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         method_names = {}
         method_idxs = {}
         for class_id in range(class_count):
-            _, p = u30()  # cinit
-            trait_count, p = u30()
+            _ = u30()  # cinit
+            trait_count = u30()
             for _c2 in range(trait_count):
-                trait_methods, p = parse_traits_info()
+                trait_methods = parse_traits_info()
                 if class_id == searched_class_id:
                     method_names.update(trait_methods.items())
                     method_idxs.update(dict(
@@ -818,40 +800,40 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                         for name, idx in trait_methods.items()))
 
         # Scripts
-        script_count, p = u30()
+        script_count = u30()
         for _c in range(script_count):
-            _, p = u30()  # init
-            trait_count, p = u30()
+            _ = u30()  # init
+            trait_count = u30()
             for _c2 in range(trait_count):
-                _, p = parse_traits_info()
+                _ = parse_traits_info()
 
         # Method bodies
-        method_body_count, p = u30()
+        method_body_count = u30()
         Method = collections.namedtuple('Method', ['code', 'local_count'])
         methods = {}
         for _c in range(method_body_count):
-            method_idx, p = u30()
-            max_stack, p = u30()
-            local_count, p = u30()
-            init_scope_depth, p = u30()
-            max_scope_depth, p = u30()
-            code_length, p = u30()
+            method_idx = u30()
+            max_stack = u30()
+            local_count = u30()
+            init_scope_depth = u30()
+            max_scope_depth = u30()
+            code_length = u30()
+            code = read_bytes(code_length)
             if method_idx in method_idxs:
-                m = Method(code_tag[p:p+code_length], local_count)
+                m = Method(code, local_count)
                 methods[method_idxs[method_idx]] = m
-            p += code_length
-            exception_count, p = u30()
+            exception_count = u30()
             for _c2 in range(exception_count):
-                _, p = u30()  # from
-                _, p = u30()  # to
-                _, p = u30()  # target
-                _, p = u30()  # exc_type
-                _, p = u30()  # var_name
-            trait_count, p = u30()
+                _ = u30()  # from
+                _ = u30()  # to
+                _ = u30()  # target
+                _ = u30()  # exc_type
+                _ = u30()  # var_name
+            trait_count = u30()
             for _c2 in range(trait_count):
-                _, p = parse_traits_info()
+                _ = parse_traits_info()
 
-        assert p == len(code_tag)
+        assert p + code_reader.tell() == len(code_tag)
         assert len(methods) == len(method_idxs)
 
         method_pyfunctions = {}
