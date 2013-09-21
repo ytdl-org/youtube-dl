@@ -15,6 +15,7 @@ from youtube_dl.extractor import (
     VimeoChannelIE,
     UstreamChannelIE,
     SoundcloudUserIE,
+    LivestreamIE,
 )
 from youtube_dl.utils import *
 
@@ -32,6 +33,7 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['title'], u'SPORT')
         self.assertTrue(len(result['entries']) > 20)
+
     def test_dailymotion_user(self):
         dl = FakeYDL()
         ie = DailymotionUserIE(dl)
@@ -63,6 +65,14 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], u'9615865')
         self.assertTrue(len(result['entries']) >= 12)
+
+    def test_livestream_event(self):
+        dl = FakeYDL()
+        ie = LivestreamIE(dl)
+        result = ie.extract('http://new.livestream.com/tedx/cityenglish')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['title'], u'TEDCity2.0 (English)')
+        self.assertTrue(len(result['entries']) >= 4)
 
 if __name__ == '__main__':
     unittest.main()
