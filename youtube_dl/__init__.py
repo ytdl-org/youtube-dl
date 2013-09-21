@@ -551,6 +551,10 @@ def _real_main(argv=None):
             or (opts.useid and u'%(id)s.%(ext)s')
             or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
             or u'%(title)s-%(id)s.%(ext)s')
+    if '%(ext)s' not in outtmpl and opts.extractaudio:
+        parser.error(u'Cannot download a video and extract audio into the same'
+                     u' file! Use "%%(ext)s" instead of %r' %
+                     determine_ext(outtmpl, u''))
 
     # YoutubeDL
     ydl = YoutubeDL({
