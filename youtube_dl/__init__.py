@@ -56,6 +56,7 @@ from .FileDownloader import *
 from .extractor import gen_extractors
 from .YoutubeDL import YoutubeDL
 from .PostProcessor import *
+from datetime import date as dateh
 
 def parseOpts(overrideArguments=None):
     def _readOptions(filename_bytes):
@@ -536,10 +537,10 @@ def _real_main(argv=None):
         if opts.lastrun:
             if not os.path.exists(opts.lastrun):
                 with open(opts.lastrun, "w") as conf:
-                    conf.write(date_from_str("now"))
+                    conf.write(dateh.today().strftime("%Y%m%d"))
 
             with open(opts.lastrun, "r") as conf:
-                date = DateRange(conf.read(), opts.datebefore)
+                date = DateRange(conf.readline().strip(), opts.datebefore)
         else:
             date = DateRange(opts.dateafter, opts.datebefore)
 
@@ -680,7 +681,7 @@ def _real_main(argv=None):
 
     if opts.lastrun and retcode is 0:
         with open(opts.lastrun, "w") as conf:
-            conf.write(date_from_str("now"))
+            conf.write(dateh.today().strftime("%Y%m%d"))
 
     sys.exit(retcode)
 
