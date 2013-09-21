@@ -63,6 +63,9 @@ class DailymotionIE(SubtitlesInfoExtractor):
         info = self._search_regex(r'var info = ({.*?}),$', embed_page,
             'video info', flags=re.MULTILINE)
         info = json.loads(info)
+        if info.get('error') is not None:
+            msg = 'Couldn\'t get video, Dailymotion says: %s' % info['error']['title']
+            raise ExtractorError(msg, expected=True)
 
         # TODO: support choosing qualities
 
