@@ -863,13 +863,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 coder = io.BytesIO(m.code)
                 while True:
                     opcode = struct.unpack('!B', coder.read(1))[0]
-                    if opcode == 208:  # getlocal_0
-                        stack.append(registers[0])
-                    elif opcode == 209:  # getlocal_1
-                        stack.append(registers[1])
-                    elif opcode == 210:  # getlocal_2
-                        stack.append(registers[2])
-                    elif opcode == 36:  # pushbyte
+                    if opcode == 36:  # pushbyte
                         v = struct.unpack('!B', coder.read(1))[0]
                         stack.append(v)
                     elif opcode == 44:  # pushstring
@@ -895,11 +889,40 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                             else:
                                 res = obj.split(args[0])
                             stack.append(res)
+                        elif mname == u'slice':
+                            assert len(args) == 1
+                            assert isinstance(args[0], int)
+                            assert isinstance(obj, list)
+                            res = obj[args[0]:]
+                            stack.append(res)
+                        elif mname == u'join':
+                            assert len(args) == 1
+                            assert isinstance(args[0], compat_str)
+                            assert isinstance(obj, list)
+                            res = args[0].join(obj)
+                            stack.append(res)
                         elif mname in method_pyfunctions:
                             stack.append(method_pyfunctions[mname](args))
                         else:
                             raise NotImplementedError(
                                 u'Unsupported property %r on %r'
+                                % (mname, obj))
+                    elif opcode == 72:  # returnvalue
+                        res = stack.pop()
+                        return res
+                    elif opcode == 79:  # callpropvoid
+                        index = u30(coder)
+                        mname = multinames[index]
+                        arg_count = u30(coder)
+                        args = list(reversed(
+                            [stack.pop() for _ in range(arg_count)]))
+                        obj = stack.pop()
+                        if mname == u'reverse':
+                            assert isinstance(obj, list)
+                            obj.reverse()
+                        else:
+                            raise NotImplementedError(
+                                u'Unsupported (void) property %r on %r'
                                 % (mname, obj))
                     elif opcode == 93:  # findpropstrict
                         index = u30(coder)
@@ -943,6 +966,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                         value1 = stack.pop()
                         res = value1 % value2
                         stack.append(res)
+                    elif opcode == 208:  # getlocal_0
+                        stack.append(registers[0])
+                    elif opcode == 209:  # getlocal_1
+                        stack.append(registers[1])
+                    elif opcode == 210:  # getlocal_2
+                        stack.append(registers[2])
+                    elif opcode == 211:  # getlocal_3
+                        stack.append(registers[3])
                     elif opcode == 214:  # setlocal_2
                         registers[2] = stack.pop()
                     elif opcode == 215:  # setlocal_3
