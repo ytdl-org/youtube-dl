@@ -400,7 +400,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
     def __init__(self, *args, **kwargs):
         super(YoutubeIE, self).__init__(*args, **kwargs)
-        self._jsplayer_cache = {}
+        self._player_cache = {}
 
     def report_video_webpage_download(self, video_id):
         """Report attempt to download video webpage."""
@@ -423,25 +423,32 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         self.to_screen(u'RTMP download detected')
 
     def _extract_signature_function(self, video_id, player_url):
-        id_m = re.match(r'.*-(?P<id>[^.]+)\.(?P<ext>[^.]+)$', player_url)
+        id_m = re.match(r'.*-(?P<id>[a-zA-Z0-9]+)\.(?P<ext>[a-z]+)$',
+                        player_url)
         player_type = id_m.group('ext')
         player_id = id_m.group('id')
+
+        # TODO read from filesystem cache
 
         if player_type == 'js':
             code = self._download_webpage(
                 player_url, video_id,
-                note=u'Downloading %s player %s' % (player_type, jsplayer_id),
+                note=u'Downloading %s player %s' % (player_type, player_id),
                 errnote=u'Download of %s failed' % player_url)
-            return self._parse_sig_js(code)
+            res = self._parse_sig_js(code)
         elif player_tpye == 'swf':
             urlh = self._request_webpage(
                 player_url, video_id,
-                note=u'Downloading %s player %s' % (player_type, jsplayer_id),
+                note=u'Downloading %s player %s' % (player_type, player_id),
                 errnote=u'Download of %s failed' % player_url)
             code = urlh.read()
-            return self._parse_sig_swf(code)
+            res = self._parse_sig_swf(code)
         else:
             assert False, 'Invalid player type %r' % player_type
+
+        # TODO write cache
+
+        return res
 
     def _parse_sig_js(self, jscode):
         funcname = self._search_regex(
@@ -987,22 +994,27 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         initial_function = extract_function(u'decipher')
         return lambda s: initial_function([s])
 
-    def _decrypt_signature(self, s, video_id, jsplayer_url, age_gate=False):
+    def _decrypt_signature(self, s, video_id, player_url, age_gate=False):
         """Turn the encrypted s field into a working signature"""
 
-        if jsplayer_url is not None:
+        if player_url is not None:
             try:
-                if jsplayer_url not in self._jsplayer_cache:
-                    self._jsplayer_cache[jsplayer_url] = self._extract_signature_function(
-                        video_id, jsplayer_url
+                if player_url not in self._player_cache:
+                    func = self._extract_signature_function(
+                        video_id, player_url
                     )
-                return self._jsplayer_cache[jsplayer_url]([s])
+                    self._player_cache[player_url] = func
+                return self._player_cache[player_url](s)
             except Exception as e:
                 tb = traceback.format_exc()
-                self._downloader.report_warning(u'Automatic signature extraction failed: ' + tb)
+                self._downloader.report_warning(
+                    u'Automatic signature extraction failed: ' + tb)
 
-        self._downloader.report_warning(u'Warning: Falling back to static signature algorithm')
+        self._downloader.report_warning(
+            u'Warning: Falling back to static signature algorithm')
+        return self._static_decrypt_signature(s)
 
+    def _static_decrypt_signature(self, s):
         if age_gate:
             # The videos with age protection use another player, so the
             # algorithms can be different.
@@ -1376,12 +1388,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                         encrypted_sig = url_data['s'][0]
                         if self._downloader.params.get('verbose'):
                             if age_gate:
-                                player_version = self._search_regex(r'-(.+)\.swf$',
-                                    player_url if player_url else 'NOT FOUND',
+                                player_version = self._search_regex(
+                                    r'-(.+)\.swf$',
+                                    player_url if player_url else None,
                                     'flash player', fatal=False)
                                 player_desc = 'flash player %s' % player_version
                             else:
-                                player_version = self._search_regex(r'html5player-(.+?)\.js', video_webpage,
+                                player_version = self._search_regex(
+                                    r'html5player-(.+?)\.js', video_webpage,
                                     'html5 player', fatal=False)
                                 player_desc = u'html5 player %s' % player_version
 
@@ -1389,15 +1403,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                             self.to_screen(u'encrypted signature length %d (%s), itag %s, %s' %
                                 (len(encrypted_sig), parts_sizes, url_data['itag'][0], player_desc))
 
-                        if age_gate:
-                            jsplayer_url = None
-                        else:
+                        if not age_gate:
                             jsplayer_url_json = self._search_regex(
                                 r'"assets":.+?"js":\s*("[^"]+")',
                                 video_webpage, u'JS player URL')
-                            jsplayer_url = json.loads(jsplayer_url_json)
+                            player_url = json.loads(jsplayer_url_json)
 
-                        signature = self._decrypt_signature(encrypted_sig, video_id, jsplayer_url, age_gate)
+                        signature = self._decrypt_signature(
+                            encrypted_sig, video_id, player_url, age_gate)
                         url += '&signature=' + signature
                     if 'ratebypass' not in url:
                         url += '&ratebypass=yes'
