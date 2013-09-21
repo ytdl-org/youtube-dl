@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# encoding: utf-8
 
 import sys
 import unittest
@@ -8,7 +9,13 @@ import json
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.extractor import DailymotionPlaylistIE, VimeoChannelIE, UstreamChannelIE, SoundcloudUserIE
+from youtube_dl.extractor import (
+    DailymotionPlaylistIE,
+    DailymotionUserIE,
+    VimeoChannelIE,
+    UstreamChannelIE,
+    SoundcloudUserIE,
+)
 from youtube_dl.utils import *
 
 from helper import FakeYDL
@@ -25,6 +32,13 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['title'], u'SPORT')
         self.assertTrue(len(result['entries']) > 20)
+    def test_dailymotion_user(self):
+        dl = FakeYDL()
+        ie = DailymotionUserIE(dl)
+        result = ie.extract('http://www.dailymotion.com/user/generation-quoi/')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['title'], u'Génération Quoi')
+        self.assertTrue(len(result['entries']) >= 26)
 
     def test_vimeo_channel(self):
         dl = FakeYDL()

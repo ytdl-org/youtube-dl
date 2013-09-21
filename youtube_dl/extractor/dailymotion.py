@@ -114,28 +114,54 @@ class DailymotionIE(SubtitlesInfoExtractor):
 
 
 class DailymotionPlaylistIE(InfoExtractor):
+    IE_NAME = u'dailymotion:playlist'
     _VALID_URL = r'(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/playlist/(?P<id>.+?)/'
     _MORE_PAGES_INDICATOR = r'<div class="next">.*?<a.*?href="/playlist/.+?".*?>.*?</a>.*?</div>'
+    _PAGE_TEMPLATE = 'https://www.dailymotion.com/playlist/%s/%s'
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        playlist_id =  mobj.group('id')
+    def _extract_entries(self, id):
         video_ids = []
-
         for pagenum in itertools.count(1):
-            webpage = self._download_webpage('https://www.dailymotion.com/playlist/%s/%s' % (playlist_id, pagenum),
-                                             playlist_id, u'Downloading page %s' % pagenum)
+            webpage = self._download_webpage(self._PAGE_TEMPLATE % (id, pagenum),
+                                             id, u'Downloading page %s' % pagenum)
 
             playlist_el = get_element_by_attribute(u'class', u'video_list', webpage)
             video_ids.extend(re.findall(r'data-id="(.+?)" data-ext-id', playlist_el))
 
             if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
                 break
-
-        entries = [self.url_result('http://www.dailymotion.com/video/%s' % video_id, 'Dailymotion')
+        return [self.url_result('http://www.dailymotion.com/video/%s' % video_id, 'Dailymotion')
                    for video_id in video_ids]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        playlist_id = mobj.group('id')
+        webpage = self._download_webpage(url, playlist_id)
+
         return {'_type': 'playlist',
                 'id': playlist_id,
                 'title': get_element_by_id(u'playlist_name', webpage),
-                'entries': entries,
+                'entries': self._extract_entries(playlist_id),
                 }
+
+
+class DailymotionUserIE(DailymotionPlaylistIE):
+    IE_NAME = u'dailymotion:user'
+    _VALID_URL = r'(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/user/(?P<user>[^/]+)'
+    _MORE_PAGES_INDICATOR = r'<div class="next">.*?<a.*?href="/user/.+?".*?>.*?</a>.*?</div>'
+    _PAGE_TEMPLATE = 'http://www.dailymotion.com/user/%s/%s'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        user = mobj.group('user')
+        webpage = self._download_webpage(url, user)
+        full_user = self._html_search_regex(
+            r'<a class="label" href="/%s".*?>(.*?)</' % re.escape(user),
+            webpage, u'user', flags=re.DOTALL)
+
+        return {
+            '_type': 'playlist',
+            'id': user,
+            'title': full_user,
+            'entries': self._extract_entries(user),
+        }

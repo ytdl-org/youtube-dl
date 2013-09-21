@@ -18,7 +18,11 @@ from .comedycentral import ComedyCentralIE
 from .condenast import CondeNastIE
 from .criterion import CriterionIE
 from .cspan import CSpanIE
-from .dailymotion import DailymotionIE, DailymotionPlaylistIE
+from .dailymotion import (
+    DailymotionIE,
+    DailymotionPlaylistIE,
+    DailymotionUserIE,
+)
 from .daum import DaumIE
 from .depositfiles import DepositFilesIE
 from .dotsub import DotsubIE
