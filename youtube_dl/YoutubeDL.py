@@ -104,6 +104,17 @@ class YoutubeDL(object):
         self._download_retcode = 0
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
+
+        if (sys.version_info >= (3,) and sys.platform != 'win32' and
+                sys.getfilesystemencoding() in ['ascii', 'ANSI_X3.4-1968']
+                and not params['restrictfilenames']):
+            # On Python 3, the Unicode filesystem API will throw errors (#1474)
+            self.report_warning(
+                u'Assuming --restrict-filenames isnce file system encoding '
+                u'cannot encode all charactes. '
+                u'Set the LC_ALL environment variable to fix this.')
+            params['restrictfilenames'] = True
+
         self.params = params
         self.fd = FileDownloader(self, self.params)
 
