@@ -534,6 +534,10 @@ def _real_main(argv=None):
         date = DateRange.day(opts.date)
     else:
         if opts.lastrun:
+            if not os.path.exists(opts.lastrun):
+                with open(opts.lastrun, "w") as conf:
+                    conf.write(date_from_str("now"))
+
             with open(opts.lastrun, "r") as conf:
                 date = DateRange(conf.read(), opts.datebefore)
         else:
