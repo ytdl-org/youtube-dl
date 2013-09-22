@@ -1437,10 +1437,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                         encrypted_sig = url_data['s'][0]
                         if self._downloader.params.get('verbose'):
                             if age_gate:
-                                player_version = self._search_regex(
-                                    r'-(.+)\.swf$',
-                                    player_url if player_url else None,
-                                    'flash player', fatal=False)
+                                if player_url is None:
+                                    player_version = 'unknown'
+                                else:
+                                    player_version = self._search_regex(
+                                        r'-(.+)\.swf$', player_url,
+                                        u'flash player', fatal=False)
                                 player_desc = 'flash player %s' % player_version
                             else:
                                 player_version = self._search_regex(
