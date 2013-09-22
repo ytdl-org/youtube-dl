@@ -468,7 +468,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         if cache_enabled:
             try:
-                cache_res = res(map(compat_chr, range(slen)))
+                test_string = u''.join(map(compat_chr, range(slen)))
+                cache_res = res(test_string)
                 cache_spec = [ord(c) for c in cache_res]
                 try:
                     os.makedirs(os.path.dirname(cache_fn))
@@ -512,7 +513,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             else:
                 yield _genslice(start, i, step)
 
-        cache_res = func(map(compat_chr, range(slen)))
+        test_string = u''.join(map(compat_chr, range(slen)))
+        cache_res = func(test_string)
         cache_spec = [ord(c) for c in cache_res]
         expr_code = u' + '.join(gen_sig_code(cache_spec))
         code = u'if len(s) == %d:\n    return %s\n' % (slen, expr_code)
