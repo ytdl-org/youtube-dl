@@ -438,7 +438,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         cache_dir = self._downloader.params.get('cachedir',
                                                 u'~/.youtube-dl/cache')
 
-        if cache_dir != u'NONE':
+        cache_enabled = cache_dir != u'NONE'
+        if cache_enabled:
             cache_fn = os.path.join(os.path.expanduser(cache_dir),
                                     u'youtube-sigfuncs',
                                     func_id + '.json')
@@ -465,7 +466,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         else:
             assert False, 'Invalid player type %r' % player_type
 
-        if cache_dir is not False:
+        if cache_enabled:
             try:
                 cache_res = res(map(compat_chr, range(slen)))
                 cache_spec = [ord(c) for c in cache_res]
@@ -515,7 +516,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         cache_spec = [ord(c) for c in cache_res]
         expr_code = u' + '.join(gen_sig_code(cache_spec))
         code = u'if len(s) == %d:\n    return %s\n' % (slen, expr_code)
-        self.to_screen(u'Extracted signature:\n' + code)
+        self.to_screen(u'Extracted signature function:\n' + code)
 
     def _parse_sig_js(self, jscode):
         funcname = self._search_regex(
