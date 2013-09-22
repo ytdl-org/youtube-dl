@@ -398,6 +398,7 @@ class FileDownloader(object):
             self._hook_progress({
                 'filename': filename,
                 'status': 'finished',
+                'total_bytes': os.path.getsize(encodeFilename(filename)),
             })
             return True
 
