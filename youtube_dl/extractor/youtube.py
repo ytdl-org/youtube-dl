@@ -1,13 +1,13 @@
 # coding: utf-8
 
 import collections
+import errno
 import itertools
 import io
 import json
 import operator
 import os.path
 import re
-import shutil
 import socket
 import string
 import struct
@@ -17,6 +17,7 @@ import zlib
 from .common import InfoExtractor, SearchInfoExtractor
 from .subtitles import SubtitlesInfoExtractor
 from ..utils import (
+    compat_chr,
     compat_http_client,
     compat_parse_qs,
     compat_urllib_error,
@@ -30,6 +31,7 @@ from ..utils import (
     unescapeHTML,
     unified_strdate,
     orderedSet,
+    write_json_file,
 )
 
 class YoutubeBaseInfoExtractor(InfoExtractor):
@@ -433,18 +435,18 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         # Read from filesystem cache
         func_id = '%s_%s_%d' % (player_type, player_id, slen)
         assert os.path.basename(func_id) == func_id
-        cache_dir = self.downloader.params.get('cachedir',
-                                               u'~/.youtube-dl/cache')
+        cache_dir = self._downloader.params.get('cachedir',
+                                                u'~/.youtube-dl/cache')
 
-        if cache_dir is not False:
+        if cache_dir != u'NONE':
             cache_fn = os.path.join(os.path.expanduser(cache_dir),
                                     u'youtube-sigfuncs',
                                     func_id + '.json')
             try:
-                with io.open(cache_fn, '', encoding='utf-8') as cachef:
+                with io.open(cache_fn, 'r', encoding='utf-8') as cachef:
                     cache_spec = json.load(cachef)
                 return lambda s: u''.join(s[i] for i in cache_spec)
-            except OSError:
+            except IOError:
                 pass  # No cache available
 
         if player_type == 'js':
@@ -464,12 +466,54 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             assert False, 'Invalid player type %r' % player_type
 
         if cache_dir is not False:
-            cache_res = res(map(compat_chr, range(slen)))
-            cache_spec = [ord(c) for c in cache_res]
-            shutil.makedirs(os.path.dirname(cache_fn))
-            write_json_file(cache_spec, cache_fn)
+            try:
+                cache_res = res(map(compat_chr, range(slen)))
+                cache_spec = [ord(c) for c in cache_res]
+                try:
+                    os.makedirs(os.path.dirname(cache_fn))
+                except OSError as ose:
+                    if ose.errno != errno.EEXIST:
+                        raise
+                write_json_file(cache_spec, cache_fn)
+            except Exception as e:
+                tb = traceback.format_exc()
+                self._downloader.report_warning(
+                    u'Writing cache to %r failed: %s' % (cache_fn, tb))
 
         return res
+
+    def _print_sig_code(self, func, slen):
+        def gen_sig_code(idxs):
+            def _genslice(start, end, step):
+                starts = u'' if start == 0 else str(start)
+                ends = u':%d' % (end+step)
+                steps = u'' if step == 1 else (':%d' % step)
+                return u's[%s%s%s]' % (starts, ends, steps)
+
+            step = None
+            for i, prev in zip(idxs[1:], idxs[:-1]):
+                if step is not None:
+                    if i - prev == step:
+                        continue
+                    yield _genslice(start, prev, step)
+                    step = None
+                    continue
+                if i - prev in [-1, 1]:
+                    step = i - prev
+                    start = prev
+                    continue
+                else:
+                    yield u's[%d]' % prev
+            if step is None:
+                yield u's[%d]' % i
+            else:
+                yield _genslice(start, i, step)
+
+        cache_res = func(map(compat_chr, range(slen)))
+        cache_spec = [ord(c) for c in cache_res]
+        expr_code = u' + '.join(gen_sig_code(cache_spec))
+        code = u'if len(s) == %d:\n    return %s\n' % (slen, expr_code)
+        self.to_screen(u'Extracted signature:\n' + code)
 
     def _parse_sig_js(self, jscode):
         funcname = self._search_regex(
@@ -1007,7 +1051,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                         video_id, player_url, len(s)
                     )
                     self._player_cache[player_url] = func
-                return self._player_cache[player_url](s)
+                func = self._player_cache[player_url]
+                if self._downloader.params.get('youtube_print_sig_code'):
+                    self._print_sig_code(func, len(s))
+                return func(s)
             except Exception as e:
                 tb = traceback.format_exc()
                 self._downloader.report_warning(

@@ -167,6 +167,7 @@ def parseOpts(overrideArguments=None):
             help='Output descriptions of all supported extractors', default=False)
     general.add_option('--proxy', dest='proxy', default=None, help='Use the specified HTTP/HTTPS proxy', metavar='URL')
     general.add_option('--no-check-certificate', action='store_true', dest='no_check_certificate', default=False, help='Suppress HTTPS certificate validation.')
+    general.add_option('--cache-dir', dest='cachedir', default=u'~/.youtube-dl/cache', help='Location in the filesystem where youtube-dl can store downloaded information permanently. NONE to disable filesystem caching, %default by default')
 
 
     selection.add_option('--playlist-start',
@@ -272,6 +273,10 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option('--dump-intermediate-pages',
             action='store_true', dest='dump_intermediate_pages', default=False,
             help='print downloaded pages to debug problems(very verbose)')
+    verbosity.add_option('--youtube-print-sig-code',
+            action='store_true', dest='youtube_print_sig_code', default=False,
+            help=optparse.SUPPRESS_HELP)
+
 
     filesystem.add_option('-t', '--title',
             action='store_true', dest='usetitle', help='use title in file name (default)', default=False)
@@ -613,6 +618,7 @@ def _real_main(argv=None):
         'min_filesize': opts.min_filesize,
         'max_filesize': opts.max_filesize,
         'daterange': date,
+        'youtube_print_sig_code': opts.youtube_print_sig_code
         })
 
     if opts.verbose:

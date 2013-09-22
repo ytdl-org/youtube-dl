@@ -40,7 +40,7 @@ class FileDownloader(object):
     min_filesize:      Skip files smaller than this size
     max_filesize:      Skip files larger than this size
     cachedir:          Location of the cache files in the filesystem.
-                       False to disable filesystem cache.
+                       "NONE" to disable filesystem cache.
     """
 
     params = None
