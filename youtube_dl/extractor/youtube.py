@@ -1109,15 +1109,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         else:
             raise ExtractorError(u'Unable to decrypt signature, key length %d not supported; retrying might work' % (len(s)))
 
-    def _decrypt_signature_age_gate(self, s):
-        # The videos with age protection use another player, so the algorithms
-        # can be different.
-        if len(s) == 86:
-            return s[2:63] + s[82] + s[64:82] + s[63]
-        else:
-            # Fallback to the other algortihms
-            return self._decrypt_signature(s)
-
     def _get_available_subtitles(self, video_id):
         try:
             sub_list = self._download_webpage(
