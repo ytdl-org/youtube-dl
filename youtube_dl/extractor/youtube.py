@@ -1063,8 +1063,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 self._downloader.report_warning(
                     u'Automatic signature extraction failed: ' + tb)
 
-        self._downloader.report_warning(
-            u'Warning: Falling back to static signature algorithm')
+            self._downloader.report_warning(
+                u'Warning: Falling back to static signature algorithm')
         return self._static_decrypt_signature(
             s, video_id, player_url, age_gate)
 
