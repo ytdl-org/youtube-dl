@@ -43,7 +43,7 @@ class TestSignature(unittest.TestCase):
             os.mkdir(self.TESTDATA_DIR)
 
 
-def make_testfunc(url, stype, sig_length, expected_sig):
+def make_tfunc(url, stype, sig_length, expected_sig):
     basename = url.rpartition('/')[2]
     m = re.match(r'.*-([a-zA-Z0-9_-]+)\.[a-z]+$', basename)
     assert m, '%r should follow URL format' % basename
@@ -73,7 +73,7 @@ def make_testfunc(url, stype, sig_length, expected_sig):
     setattr(TestSignature, test_func.__name__, test_func)
 
 for test_spec in _TESTS:
-    make_testfunc(*test_spec)
+    make_tfunc(*test_spec)
 
 
 if __name__ == '__main__':
