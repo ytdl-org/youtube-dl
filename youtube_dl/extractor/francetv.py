@@ -65,3 +65,25 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
         webpage = self._download_webpage(url, page_title)
         video_id = self._search_regex(r'id-video=(\d+?)"', webpage, u'video id')
         return self._extract_video(video_id)
+
+
+class France2IE(FranceTVBaseInfoExtractor):
+    IE_NAME = u'france2.fr'
+    _VALID_URL = r'https?://www\.france2\.fr/emissions/.*?/videos/(?P<id>\d+)'
+
+    _TEST = {
+        u'url': u'http://www.france2.fr/emissions/13h15-le-samedi-le-dimanche/videos/75540104',
+        u'file': u'75540104.mp4',
+        u'info_dict': {
+            u'title': u'13h15, le samedi...',
+            u'description': u'md5:2e5b58ba7a2d3692b35c792be081a03d',
+        },
+        u'params': {
+            u'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        return self._extract_video(video_id)

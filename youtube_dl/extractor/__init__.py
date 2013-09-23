@@ -42,6 +42,7 @@ from .flickr import FlickrIE
 from .francetv import (
     PluzzIE,
     FranceTvInfoIE,
+    France2IE,
 )
 from .freesound import FreesoundIE
 from .funnyordie import FunnyOrDieIE
