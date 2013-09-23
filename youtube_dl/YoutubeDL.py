@@ -51,7 +51,7 @@ from .utils import (
     YoutubeDLHandler,
 )
 from .extractor import get_info_extractor, gen_extractors
-from .FileDownloader import FileDownloader
+from .downloader import get_suitable_downloader
 from .version import __version__
 
 
@@ -847,10 +847,10 @@ class YoutubeDL(object):
                 success = True
             else:
                 try:
-                    fd = FileDownloader(self, self.params)
+                    fd = get_suitable_downloader(info_dict)(self, self.params)
                     for ph in self._fd_progress_hooks:
                         fd.add_progress_hook(ph)
-                    success = fd._do_download(filename, info_dict)
+                    success = fd.download(filename, info_dict)
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                     self.report_error(u'unable to download video data: %s' % str(err))
                     return
