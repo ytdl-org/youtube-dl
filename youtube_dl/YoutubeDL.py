@@ -155,7 +155,7 @@ class YoutubeDL(object):
         self._ies = []
         self._ies_instances = {}
         self._pps = []
-        self._progress_hooks = []
+        self._fd_progress_hooks = []
         self._download_retcode = 0
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
@@ -193,8 +193,6 @@ class YoutubeDL(object):
                 u'Set the LC_ALL environment variable to fix this.')
             self.params['restrictfilenames'] = True
 
-        self.fd = FileDownloader(self, self.params)
-
         if '%(stitle)s' in self.params.get('outtmpl', ''):
             self.report_warning(u'%(stitle)s is deprecated. Use the %(title)s and the --restrict-filenames flag(which also secures %(uploader)s et al) instead.')
 
@@ -229,6 +227,10 @@ class YoutubeDL(object):
         """Add a PostProcessor object to the end of the chain."""
         self._pps.append(pp)
         pp.set_downloader(self)
+
+    def add_downloader_progress_hook(self, ph):
+        """Add the progress hook to the file downloader"""
+        self._fd_progress_hooks.append(ph)
 
     def _bidi_workaround(self, message):
         if not hasattr(self, '_fribidi_channel'):
@@ -845,7 +847,10 @@ class YoutubeDL(object):
                 success = True
             else:
                 try:
-                    success = self.fd._do_download(filename, info_dict)
+                    fd = FileDownloader(self, self.params)
+                    for ph in self._fd_progress_hooks:
+                        fd.add_progress_hook(ph)
+                    success = fd._do_download(filename, info_dict)
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                     self.report_error(u'unable to download video data: %s' % str(err))
                     return
