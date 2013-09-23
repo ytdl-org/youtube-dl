@@ -77,26 +77,43 @@ class FileDownloader(object):
     @staticmethod
     def calc_percent(byte_counter, data_len):
         if data_len is None:
+            return None
+        return float(byte_counter) / float(data_len) * 100.0
+
+    @staticmethod
+    def format_percent(percent):
+        if percent is None:
             return '---.-%'
-        return '%6s' % ('%3.1f%%' % (float(byte_counter) / float(data_len) * 100.0))
+        return '%6s' % ('%3.1f%%' % percent)
 
     @staticmethod
     def calc_eta(start, now, total, current):
         if total is None:
-            return '--:--'
+            return None
         dif = now - start
         if current == 0 or dif < 0.001: # One millisecond
-            return '--:--'
+            return None
         rate = float(current) / dif
-        eta = int((float(total) - float(current)) / rate)
+        return int((float(total) - float(current)) / rate)
+
+    @staticmethod
+    def format_eta(eta):
+        if eta is None:
+            return '--:--'
         return FileDownloader.format_seconds(eta)
 
     @staticmethod
     def calc_speed(start, now, bytes):
         dif = now - start
         if bytes == 0 or dif < 0.001: # One millisecond
+            return None
+        return float(bytes) / dif
+
+    @staticmethod
+    def format_speed(speed):
+        if speed is None:
             return '%10s' % '---b/s'
-        return '%10s' % ('%s/s' % FileDownloader.format_bytes(float(bytes) / dif))
+        return '%10s' % ('%s/s' % FileDownloader.format_bytes(speed))
 
     @staticmethod
     def best_block_size(elapsed_time, bytes):
@@ -205,11 +222,14 @@ class FileDownloader(object):
         """Report destination filename."""
         self.to_screen(u'[download] Destination: ' + filename)
 
-    def report_progress(self, percent_str, data_len_str, speed_str, eta_str):
+    def report_progress(self, percent, data_len_str, speed, eta):
         """Report download progress."""
         if self.params.get('noprogress', False):
             return
         clear_line = (u'\x1b[K' if sys.stderr.isatty() and os.name != 'nt' else u'')
+        eta_str = self.format_eta(eta)
+        percent_str = self.format_percent(percent)
+        speed_str = self.format_speed(speed)
         if self.params.get('progress_with_newline', False):
             self.to_screen(u'[download] %s of %s at %s ETA %s' %
                 (percent_str, data_len_str, speed_str, eta_str))
@@ -378,6 +398,7 @@ class FileDownloader(object):
             self._hook_progress({
                 'filename': filename,
                 'status': 'finished',
+                'total_bytes': os.path.getsize(encodeFilename(filename)),
             })
             return True
 
@@ -524,13 +545,14 @@ class FileDownloader(object):
                 block_size = self.best_block_size(after - before, len(data_block))
 
             # Progress message
-            speed_str = self.calc_speed(start, time.time(), byte_counter - resume_len)
+            speed = self.calc_speed(start, time.time(), byte_counter - resume_len)
             if data_len is None:
                 self.report_progress('Unknown %', data_len_str, speed_str, 'Unknown ETA')
+                eta = None
             else:
-                percent_str = self.calc_percent(byte_counter, data_len)
-                eta_str = self.calc_eta(start, time.time(), data_len - resume_len, byte_counter - resume_len)
-                self.report_progress(percent_str, data_len_str, speed_str, eta_str)
+                percent = self.calc_percent(byte_counter, data_len)
+                eta = self.calc_eta(start, time.time(), data_len - resume_len, byte_counter - resume_len)
+                self.report_progress(percent, data_len_str, speed, eta)
 
             self._hook_progress({
                 'downloaded_bytes': byte_counter,
@@ -538,6 +560,8 @@ class FileDownloader(object):
                 'tmpfilename': tmpfilename,
                 'filename': filename,
                 'status': 'downloading',
+                'eta': eta,
+                'speed': speed,
             })
 
             # Apply rate limit
@@ -580,6 +604,8 @@ class FileDownloader(object):
         * downloaded_bytes: Bytes on disks
         * total_bytes: Total bytes, None if unknown
         * tmpfilename: The filename we're currently writing to
+        * eta: The estimated time in seconds, None if unknown
+        * speed: The download speed in bytes/second, None if unknown
 
         Hooks are guaranteed to be called at least once (with status "finished")
         if the download is successful.
