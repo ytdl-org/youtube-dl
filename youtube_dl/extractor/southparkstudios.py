@@ -14,7 +14,7 @@ class SouthParkStudiosIE(MTVIE):
         u'file': u'a7bff6c2-ed00-11e0-aca6-0026b9414f30.mp4',
         u'info_dict': {
             u'title': u'Bat Daded',
-            u'description': u'Randy finally gets the chance to fight Bat Dad and gets the boys disqualified from the season championships.',
+            u'description': u'Randy disqualifies South Park by getting into a fight with Bat Dad.',
         },
     }
 
@@ -33,6 +33,6 @@ class SouthParkStudiosIE(MTVIE):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
-        mgid = self._search_regex(r'data-mgid="(mgid:.*?)"',
+        mgid = self._search_regex(r'swfobject.embedSWF\(".*?(mgid:.*?)"',
                                   webpage, u'mgid')
         return self._get_videos_info(mgid)
