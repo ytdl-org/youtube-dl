@@ -488,8 +488,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         def gen_sig_code(idxs):
             def _genslice(start, end, step):
                 starts = u'' if start == 0 else str(start)
-                ends = u':%d' % (end+step)
-                steps = u'' if step == 1 else (':%d' % step)
+                ends = (u':%d' % (end+step)) if end + step >= 0 else u':'
+                steps = u'' if step == 1 else (u':%d' % step)
                 return u's[%s%s%s]' % (starts, ends, steps)
 
             step = None
