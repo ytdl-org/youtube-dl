@@ -618,7 +618,7 @@ def _real_main(argv=None):
         'min_filesize': opts.min_filesize,
         'max_filesize': opts.max_filesize,
         'daterange': date,
-        'cachedir': opts.cachedir,
+        'cachedir': opts.cachedir if opts.cachedir != 'NONE' else None,
         'youtube_print_sig_code': opts.youtube_print_sig_code,
         })
 

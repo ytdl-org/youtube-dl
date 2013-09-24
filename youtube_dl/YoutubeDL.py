@@ -82,7 +82,7 @@ class YoutubeDL(object):
     daterange:         A DateRange object, download only if the upload_date is in the range.
     skip_download:     Skip the actual download of the video file
     cachedir:          Location of the cache files in the filesystem.
-                       "NONE" to disable filesystem cache.
+                       None to disable filesystem cache.
     
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:

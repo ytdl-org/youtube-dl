@@ -438,7 +438,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         cache_dir = self._downloader.params.get('cachedir',
                                                 u'~/.youtube-dl/cache')
 
-        cache_enabled = cache_dir != u'NONE'
+        cache_enabled = cache_dir is not None
         if cache_enabled:
             cache_fn = os.path.join(os.path.expanduser(cache_dir),
                                     u'youtube-sigfuncs',
