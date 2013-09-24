@@ -56,6 +56,7 @@ from .FileDownloader import *
 from .extractor import gen_extractors
 from .YoutubeDL import YoutubeDL
 from .PostProcessor import *
+from datetime import date as dateh
 
 def parseOpts(overrideArguments=None):
     def _readOptions(filename_bytes):
@@ -187,6 +188,7 @@ def parseOpts(overrideArguments=None):
     selection.add_option('--date', metavar='DATE', dest='date', help='download only videos uploaded in this date', default=None)
     selection.add_option('--datebefore', metavar='DATE', dest='datebefore', help='download only videos uploaded before this date', default=None)
     selection.add_option('--dateafter', metavar='DATE', dest='dateafter', help='download only videos uploaded after this date', default=None)
+    selection.add_option('--lastrun', metavar='FILE', dest='lastrun', help='reads and update the file with last completed run. It sets --dateafter to this value.', default=None)
 
 
     authentication.add_option('-u', '--username',
@@ -542,7 +544,16 @@ def _real_main(argv=None):
     if opts.date is not None:
         date = DateRange.day(opts.date)
     else:
-        date = DateRange(opts.dateafter, opts.datebefore)
+        if opts.lastrun:
+            if not os.path.exists(opts.lastrun):
+                with open(opts.lastrun, "w") as conf:
+                    conf.write(dateh.today().strftime("%Y%m%d"))
+
+            with open(opts.lastrun, "r") as conf:
+                date = DateRange(conf.readline().strip(), opts.datebefore)
+        else:
+            date = DateRange(opts.dateafter, opts.datebefore)
+
 
     # --all-sub automatically sets --write-sub if --write-auto-sub is not given
     # this was the old behaviour if only --all-sub was given.
@@ -672,6 +683,10 @@ def _real_main(argv=None):
     except MaxDownloadsReached:
         ydl.to_screen(u'--max-download limit reached, aborting.')
         retcode = 101
+
+    if opts.lastrun:
+        with open(opts.lastrun, "w") as conf:
+            conf.write(dateh.today().strftime("%Y%m%d"))
 
     # Dump cookie jar if requested
     if opts.cookiefile is not None:

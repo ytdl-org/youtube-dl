@@ -50,6 +50,8 @@ which means you can modify it, redistribute it or use it however you like.
     --date DATE                download only videos uploaded in this date
     --datebefore DATE          download only videos uploaded before this date
     --dateafter DATE           download only videos uploaded after this date
+    --lastrun FILE             reads and update the FILE with last completed run.
+                               It sets --dateafter to the DATE from the FILE.
 
 ## Download Options:
     -r, --rate-limit LIMIT     maximum download rate (e.g. 50k or 44.6m)
