@@ -565,7 +565,7 @@ def _real_main(argv=None):
         parser.error(u'Cannot download a video and extract audio into the same'
                      u' file! Use "%%(ext)s" instead of %r' %
                      determine_ext(outtmpl, u''))
-    raise ValueError(repr(opts.cachedir))
+
     # YoutubeDL
     ydl = YoutubeDL({
         'usenetrc': opts.usenetrc,
