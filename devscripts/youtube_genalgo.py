@@ -27,15 +27,15 @@ tests = [
     # 87
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$^&*()_-+={[]}|:;?/>.<",
      "uioplkjhgfdsazxcvbnm1t34567890QWE2TYUIOPLKJHGFDSAZXCVeNM!@#$^&*()_-+={[]}|:;?/>.<"),
-    # 86 - vfluy6kdb 2013/09/06
+    # 86 - vflHql6Pr 2013/09/24
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[|};?/>.<",
-     "yuioplkjhgfdsazxcvbnm12345678q0QWrRTYUIOELKJHGFD-AZXCVBNM!@#$%^&*()_<+={[|};?/>.S"),
+     ";}|[{=+-d)(*&^%$#@!MNBVCXZASDFGHJKLPOIUYT_EWQ0987654321mnbvcxzas/fghjklpoiuytrewq"),
     # 85 - vflkuzxcs 2013/09/11
     ('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[',
      '3456789a0cdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRS[UVWXYZ!"#$%&\'()*+,-./:;<=>?@'),
-    # 84 - vflg0g8PQ 2013/08/29 (sporadic)
+    # 84 - vflHql6Pr 2013/09/24 (sporadic)
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!@#$%^&*()_-+={[};?>.<",
-     ">?;}[{=+-_)(*&^%$#@!MNBVCXZASDFGHJKLPOIUYTREWq0987654321mnbvcxzasdfghjklpoiuytr"),
+     "}[{=+-_)g*&^%$#@!MNBVCXZASDFGHJKLPOIUYTRE(Q0987654321mnbvcxzasdf?hjklpoiuytrewq"),
     # 83
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!#$%^&*()_+={[};?/>.<",
      ".>/?;}[{=+_)(*&^%<#!MNBVCXZASPFGHJKLwOIUYTREWQ0987654321mnbvcxzasdfghjklpoiuytreq"),
