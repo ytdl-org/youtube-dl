@@ -67,6 +67,12 @@ except ImportError:  # Python 2
     from urllib2 import HTTPError as compat_HTTPError
 
 try:
+    from urllib.request import urlretrieve as compat_urlretrieve
+except ImportError:  # Python 2
+    from urllib import urlretrieve as compat_urlretrieve
+
+
+try:
     from subprocess import DEVNULL
     compat_subprocess_get_DEVNULL = lambda: DEVNULL
 except ImportError:
