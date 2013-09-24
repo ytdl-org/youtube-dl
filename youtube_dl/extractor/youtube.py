@@ -1,15 +1,23 @@
 # coding: utf-8
 
+import collections
+import errno
+import io
+import itertools
 import json
-import netrc
+import os.path
 import re
 import socket
-import itertools
+import string
+import struct
+import traceback
 import xml.etree.ElementTree
+import zlib
 
 from .common import InfoExtractor, SearchInfoExtractor
 from .subtitles import SubtitlesInfoExtractor
 from ..utils import (
+    compat_chr,
     compat_http_client,
     compat_parse_qs,
     compat_urllib_error,
@@ -23,6 +31,7 @@ from ..utils import (
     unescapeHTML,
     unified_strdate,
     orderedSet,
+    write_json_file,
 )
 
 class YoutubeBaseInfoExtractor(InfoExtractor):
@@ -393,6 +402,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         if YoutubePlaylistIE.suitable(url): return False
         return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
+    def __init__(self, *args, **kwargs):
+        super(YoutubeIE, self).__init__(*args, **kwargs)
+        self._player_cache = {}
+
     def report_video_webpage_download(self, video_id):
         """Report attempt to download video webpage."""
         self.to_screen(u'%s: Downloading video webpage' % video_id)
@@ -413,8 +426,656 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         """Indicate the download will use the RTMP protocol."""
         self.to_screen(u'RTMP download detected')
 
-    def _decrypt_signature(self, s):
+    def _extract_signature_function(self, video_id, player_url, slen):
+        id_m = re.match(r'.*-(?P<id>[a-zA-Z0-9_-]+)\.(?P<ext>[a-z]+)$',
+                        player_url)
+        player_type = id_m.group('ext')
+        player_id = id_m.group('id')
+
+        # Read from filesystem cache
+        func_id = '%s_%s_%d' % (player_type, player_id, slen)
+        assert os.path.basename(func_id) == func_id
+        cache_dir = self._downloader.params.get('cachedir',
+                                                u'~/.youtube-dl/cache')
+
+        cache_enabled = cache_dir is not None
+        if cache_enabled:
+            cache_fn = os.path.join(os.path.expanduser(cache_dir),
+                                    u'youtube-sigfuncs',
+                                    func_id + '.json')
+            try:
+                with io.open(cache_fn, 'r', encoding='utf-8') as cachef:
+                    cache_spec = json.load(cachef)
+                return lambda s: u''.join(s[i] for i in cache_spec)
+            except IOError:
+                pass  # No cache available
+
+        if player_type == 'js':
+            code = self._download_webpage(
+                player_url, video_id,
+                note=u'Downloading %s player %s' % (player_type, player_id),
+                errnote=u'Download of %s failed' % player_url)
+            res = self._parse_sig_js(code)
+        elif player_type == 'swf':
+            urlh = self._request_webpage(
+                player_url, video_id,
+                note=u'Downloading %s player %s' % (player_type, player_id),
+                errnote=u'Download of %s failed' % player_url)
+            code = urlh.read()
+            res = self._parse_sig_swf(code)
+        else:
+            assert False, 'Invalid player type %r' % player_type
+
+        if cache_enabled:
+            try:
+                test_string = u''.join(map(compat_chr, range(slen)))
+                cache_res = res(test_string)
+                cache_spec = [ord(c) for c in cache_res]
+                try:
+                    os.makedirs(os.path.dirname(cache_fn))
+                except OSError as ose:
+                    if ose.errno != errno.EEXIST:
+                        raise
+                write_json_file(cache_spec, cache_fn)
+            except Exception:
+                tb = traceback.format_exc()
+                self._downloader.report_warning(
+                    u'Writing cache to %r failed: %s' % (cache_fn, tb))
+
+        return res
+
+    def _print_sig_code(self, func, slen):
+        def gen_sig_code(idxs):
+            def _genslice(start, end, step):
+                starts = u'' if start == 0 else str(start)
+                ends = u':%d' % (end+step)
+                steps = u'' if step == 1 else (':%d' % step)
+                return u's[%s%s%s]' % (starts, ends, steps)
+
+            step = None
+            start = '(Never used)'  # Quelch pyflakes warnings - start will be
+                                    # set as soon as step is set
+            for i, prev in zip(idxs[1:], idxs[:-1]):
+                if step is not None:
+                    if i - prev == step:
+                        continue
+                    yield _genslice(start, prev, step)
+                    step = None
+                    continue
+                if i - prev in [-1, 1]:
+                    step = i - prev
+                    start = prev
+                    continue
+                else:
+                    yield u's[%d]' % prev
+            if step is None:
+                yield u's[%d]' % i
+            else:
+                yield _genslice(start, i, step)
+
+        test_string = u''.join(map(compat_chr, range(slen)))
+        cache_res = func(test_string)
+        cache_spec = [ord(c) for c in cache_res]
+        expr_code = u' + '.join(gen_sig_code(cache_spec))
+        code = u'if len(s) == %d:\n    return %s\n' % (slen, expr_code)
+        self.to_screen(u'Extracted signature function:\n' + code)
+
+    def _parse_sig_js(self, jscode):
+        funcname = self._search_regex(
+            r'signature=([a-zA-Z]+)', jscode,
+            u'Initial JS player signature function name')
+
+        functions = {}
+
+        def argidx(varname):
+            return string.lowercase.index(varname)
+
+        def interpret_statement(stmt, local_vars, allow_recursion=20):
+            if allow_recursion < 0:
+                raise ExtractorError(u'Recursion limit reached')
+
+            if stmt.startswith(u'var '):
+                stmt = stmt[len(u'var '):]
+            ass_m = re.match(r'^(?P<out>[a-z]+)(?:\[(?P<index>[^\]]+)\])?' +
+                             r'=(?P<expr>.*)$', stmt)
+            if ass_m:
+                if ass_m.groupdict().get('index'):
+                    def assign(val):
+                        lvar = local_vars[ass_m.group('out')]
+                        idx = interpret_expression(ass_m.group('index'),
+                                                   local_vars, allow_recursion)
+                        assert isinstance(idx, int)
+                        lvar[idx] = val
+                        return val
+                    expr = ass_m.group('expr')
+                else:
+                    def assign(val):
+                        local_vars[ass_m.group('out')] = val
+                        return val
+                    expr = ass_m.group('expr')
+            elif stmt.startswith(u'return '):
+                assign = lambda v: v
+                expr = stmt[len(u'return '):]
+            else:
+                raise ExtractorError(
+                    u'Cannot determine left side of statement in %r' % stmt)
+
+            v = interpret_expression(expr, local_vars, allow_recursion)
+            return assign(v)
+
+        def interpret_expression(expr, local_vars, allow_recursion):
+            if expr.isdigit():
+                return int(expr)
+
+            if expr.isalpha():
+                return local_vars[expr]
+
+            m = re.match(r'^(?P<in>[a-z]+)\.(?P<member>.*)$', expr)
+            if m:
+                member = m.group('member')
+                val = local_vars[m.group('in')]
+                if member == 'split("")':
+                    return list(val)
+                if member == 'join("")':
+                    return u''.join(val)
+                if member == 'length':
+                    return len(val)
+                if member == 'reverse()':
+                    return val[::-1]
+                slice_m = re.match(r'slice\((?P<idx>.*)\)', member)
+                if slice_m:
+                    idx = interpret_expression(
+                        slice_m.group('idx'), local_vars, allow_recursion-1)
+                    return val[idx:]
+
+            m = re.match(
+                r'^(?P<in>[a-z]+)\[(?P<idx>.+)\]$', expr)
+            if m:
+                val = local_vars[m.group('in')]
+                idx = interpret_expression(m.group('idx'), local_vars,
+                                           allow_recursion-1)
+                return val[idx]
+
+            m = re.match(r'^(?P<a>.+?)(?P<op>[%])(?P<b>.+?)$', expr)
+            if m:
+                a = interpret_expression(m.group('a'),
+                                         local_vars, allow_recursion)
+                b = interpret_expression(m.group('b'),
+                                         local_vars, allow_recursion)
+                return a % b
+
+            m = re.match(
+                r'^(?P<func>[a-zA-Z]+)\((?P<args>[a-z0-9,]+)\)$', expr)
+            if m:
+                fname = m.group('func')
+                if fname not in functions:
+                    functions[fname] = extract_function(fname)
+                argvals = [int(v) if v.isdigit() else local_vars[v]
+                           for v in m.group('args').split(',')]
+                return functions[fname](argvals)
+            raise ExtractorError(u'Unsupported JS expression %r' % expr)
+
+        def extract_function(funcname):
+            func_m = re.search(
+                r'function ' + re.escape(funcname) +
+                r'\((?P<args>[a-z,]+)\){(?P<code>[^}]+)}',
+                jscode)
+            argnames = func_m.group('args').split(',')
+
+            def resf(args):
+                local_vars = dict(zip(argnames, args))
+                for stmt in func_m.group('code').split(';'):
+                    res = interpret_statement(stmt, local_vars)
+                return res
+            return resf
+
+        initial_function = extract_function(funcname)
+        return lambda s: initial_function([s])
+
+    def _parse_sig_swf(self, file_contents):
+        if file_contents[1:3] != b'WS':
+            raise ExtractorError(
+                u'Not an SWF file; header is %r' % file_contents[:3])
+        if file_contents[:1] == b'C':
+            content = zlib.decompress(file_contents[8:])
+        else:
+            raise NotImplementedError(u'Unsupported compression format %r' %
+                                      file_contents[:1])
+
+        def extract_tags(content):
+            pos = 0
+            while pos < len(content):
+                header16 = struct.unpack('<H', content[pos:pos+2])[0]
+                pos += 2
+                tag_code = header16 >> 6
+                tag_len = header16 & 0x3f
+                if tag_len == 0x3f:
+                    tag_len = struct.unpack('<I', content[pos:pos+4])[0]
+                    pos += 4
+                assert pos+tag_len <= len(content)
+                yield (tag_code, content[pos:pos+tag_len])
+                pos += tag_len
+
+        code_tag = next(tag
+                        for tag_code, tag in extract_tags(content)
+                        if tag_code == 82)
+        p = code_tag.index(b'\0', 4) + 1
+        code_reader = io.BytesIO(code_tag[p:])
+
+        # Parse ABC (AVM2 ByteCode)
+        def read_int(reader=None):
+            if reader is None:
+                reader = code_reader
+            res = 0
+            shift = 0
+            for _ in range(5):
+                buf = reader.read(1)
+                assert len(buf) == 1
+                b = struct.unpack('<B', buf)[0]
+                res = res | ((b & 0x7f) << shift)
+                if b & 0x80 == 0:
+                    break
+                shift += 7
+            return res
+
+        def u30(reader=None):
+            res = read_int(reader)
+            assert res & 0xf0000000 == 0
+            return res
+        u32 = read_int
+
+        def s32(reader=None):
+            v = read_int(reader)
+            if v & 0x80000000 != 0:
+                v = - ((v ^ 0xffffffff) + 1)
+            return v
+
+        def read_string(reader=None):
+            if reader is None:
+                reader = code_reader
+            slen = u30(reader)
+            resb = reader.read(slen)
+            assert len(resb) == slen
+            return resb.decode('utf-8')
+
+        def read_bytes(count, reader=None):
+            if reader is None:
+                reader = code_reader
+            resb = reader.read(count)
+            assert len(resb) == count
+            return resb
+
+        def read_byte(reader=None):
+            resb = read_bytes(1, reader=reader)
+            res = struct.unpack('<B', resb)[0]
+            return res
+
+        # minor_version + major_version
+        read_bytes(2 + 2)
+
+        # Constant pool
+        int_count = u30()
+        for _c in range(1, int_count):
+            s32()
+        uint_count = u30()
+        for _c in range(1, uint_count):
+            u32()
+        double_count = u30()
+        read_bytes((double_count-1) * 8)
+        string_count = u30()
+        constant_strings = [u'']
+        for _c in range(1, string_count):
+            s = read_string()
+            constant_strings.append(s)
+        namespace_count = u30()
+        for _c in range(1, namespace_count):
+            read_bytes(1)  # kind
+            u30()  # name
+        ns_set_count = u30()
+        for _c in range(1, ns_set_count):
+            count = u30()
+            for _c2 in range(count):
+                u30()
+        multiname_count = u30()
+        MULTINAME_SIZES = {
+            0x07: 2,  # QName
+            0x0d: 2,  # QNameA
+            0x0f: 1,  # RTQName
+            0x10: 1,  # RTQNameA
+            0x11: 0,  # RTQNameL
+            0x12: 0,  # RTQNameLA
+            0x09: 2,  # Multiname
+            0x0e: 2,  # MultinameA
+            0x1b: 1,  # MultinameL
+            0x1c: 1,  # MultinameLA
+        }
+        multinames = [u'']
+        for _c in range(1, multiname_count):
+            kind = u30()
+            assert kind in MULTINAME_SIZES, u'Invalid multiname kind %r' % kind
+            if kind == 0x07:
+                u30()  # namespace_idx
+                name_idx = u30()
+                multinames.append(constant_strings[name_idx])
+            else:
+                multinames.append('[MULTINAME kind: %d]' % kind)
+                for _c2 in range(MULTINAME_SIZES[kind]):
+                    u30()
+
+        # Methods
+        method_count = u30()
+        MethodInfo = collections.namedtuple(
+            'MethodInfo',
+            ['NEED_ARGUMENTS', 'NEED_REST'])
+        method_infos = []
+        for method_id in range(method_count):
+            param_count = u30()
+            u30()  # return type
+            for _ in range(param_count):
+                u30()  # param type
+            u30()  # name index (always 0 for youtube)
+            flags = read_byte()
+            if flags & 0x08 != 0:
+                # Options present
+                option_count = u30()
+                for c in range(option_count):
+                    u30()  # val
+                    read_bytes(1)  # kind
+            if flags & 0x80 != 0:
+                # Param names present
+                for _ in range(param_count):
+                    u30()  # param name
+            mi = MethodInfo(flags & 0x01 != 0, flags & 0x04 != 0)
+            method_infos.append(mi)
+
+        # Metadata
+        metadata_count = u30()
+        for _c in range(metadata_count):
+            u30()  # name
+            item_count = u30()
+            for _c2 in range(item_count):
+                u30()  # key
+                u30()  # value
+
+        def parse_traits_info():
+            trait_name_idx = u30()
+            kind_full = read_byte()
+            kind = kind_full & 0x0f
+            attrs = kind_full >> 4
+            methods = {}
+            if kind in [0x00, 0x06]:  # Slot or Const
+                u30()  # Slot id
+                u30()  # type_name_idx
+                vindex = u30()
+                if vindex != 0:
+                    read_byte()  # vkind
+            elif kind in [0x01, 0x02, 0x03]:  # Method / Getter / Setter
+                u30()  # disp_id
+                method_idx = u30()
+                methods[multinames[trait_name_idx]] = method_idx
+            elif kind == 0x04:  # Class
+                u30()  # slot_id
+                u30()  # classi
+            elif kind == 0x05:  # Function
+                u30()  # slot_id
+                function_idx = u30()
+                methods[function_idx] = multinames[trait_name_idx]
+            else:
+                raise ExtractorError(u'Unsupported trait kind %d' % kind)
+
+            if attrs & 0x4 != 0:  # Metadata present
+                metadata_count = u30()
+                for _c3 in range(metadata_count):
+                    u30()  # metadata index
+
+            return methods
+
+        # Classes
+        TARGET_CLASSNAME = u'SignatureDecipher'
+        searched_idx = multinames.index(TARGET_CLASSNAME)
+        searched_class_id = None
+        class_count = u30()
+        for class_id in range(class_count):
+            name_idx = u30()
+            if name_idx == searched_idx:
+                # We found the class we're looking for!
+                searched_class_id = class_id
+            u30()  # super_name idx
+            flags = read_byte()
+            if flags & 0x08 != 0:  # Protected namespace is present
+                u30()  # protected_ns_idx
+            intrf_count = u30()
+            for _c2 in range(intrf_count):
+                u30()
+            u30()  # iinit
+            trait_count = u30()
+            for _c2 in range(trait_count):
+                parse_traits_info()
+
+        if searched_class_id is None:
+            raise ExtractorError(u'Target class %r not found' %
+                                 TARGET_CLASSNAME)
+
+        method_names = {}
+        method_idxs = {}
+        for class_id in range(class_count):
+            u30()  # cinit
+            trait_count = u30()
+            for _c2 in range(trait_count):
+                trait_methods = parse_traits_info()
+                if class_id == searched_class_id:
+                    method_names.update(trait_methods.items())
+                    method_idxs.update(dict(
+                        (idx, name)
+                        for name, idx in trait_methods.items()))
+
+        # Scripts
+        script_count = u30()
+        for _c in range(script_count):
+            u30()  # init
+            trait_count = u30()
+            for _c2 in range(trait_count):
+                parse_traits_info()
+
+        # Method bodies
+        method_body_count = u30()
+        Method = collections.namedtuple('Method', ['code', 'local_count'])
+        methods = {}
+        for _c in range(method_body_count):
+            method_idx = u30()
+            u30()  # max_stack
+            local_count = u30()
+            u30()  # init_scope_depth
+            u30()  # max_scope_depth
+            code_length = u30()
+            code = read_bytes(code_length)
+            if method_idx in method_idxs:
+                m = Method(code, local_count)
+                methods[method_idxs[method_idx]] = m
+            exception_count = u30()
+            for _c2 in range(exception_count):
+                u30()  # from
+                u30()  # to
+                u30()  # target
+                u30()  # exc_type
+                u30()  # var_name
+            trait_count = u30()
+            for _c2 in range(trait_count):
+                parse_traits_info()
+
+        assert p + code_reader.tell() == len(code_tag)
+        assert len(methods) == len(method_idxs)
+
+        method_pyfunctions = {}
+
+        def extract_function(func_name):
+            if func_name in method_pyfunctions:
+                return method_pyfunctions[func_name]
+            if func_name not in methods:
+                raise ExtractorError(u'Cannot find function %r' % func_name)
+            m = methods[func_name]
+
+            def resfunc(args):
+                registers = ['(this)'] + list(args) + [None] * m.local_count
+                stack = []
+                coder = io.BytesIO(m.code)
+                while True:
+                    opcode = struct.unpack('!B', coder.read(1))[0]
+                    if opcode == 36:  # pushbyte
+                        v = struct.unpack('!B', coder.read(1))[0]
+                        stack.append(v)
+                    elif opcode == 44:  # pushstring
+                        idx = u30(coder)
+                        stack.append(constant_strings[idx])
+                    elif opcode == 48:  # pushscope
+                        # We don't implement the scope register, so we'll just
+                        # ignore the popped value
+                        stack.pop()
+                    elif opcode == 70:  # callproperty
+                        index = u30(coder)
+                        mname = multinames[index]
+                        arg_count = u30(coder)
+                        args = list(reversed(
+                            [stack.pop() for _ in range(arg_count)]))
+                        obj = stack.pop()
+                        if mname == u'split':
+                            assert len(args) == 1
+                            assert isinstance(args[0], compat_str)
+                            assert isinstance(obj, compat_str)
+                            if args[0] == u'':
+                                res = list(obj)
+                            else:
+                                res = obj.split(args[0])
+                            stack.append(res)
+                        elif mname == u'slice':
+                            assert len(args) == 1
+                            assert isinstance(args[0], int)
+                            assert isinstance(obj, list)
+                            res = obj[args[0]:]
+                            stack.append(res)
+                        elif mname == u'join':
+                            assert len(args) == 1
+                            assert isinstance(args[0], compat_str)
+                            assert isinstance(obj, list)
+                            res = args[0].join(obj)
+                            stack.append(res)
+                        elif mname in method_pyfunctions:
+                            stack.append(method_pyfunctions[mname](args))
+                        else:
+                            raise NotImplementedError(
+                                u'Unsupported property %r on %r'
+                                % (mname, obj))
+                    elif opcode == 72:  # returnvalue
+                        res = stack.pop()
+                        return res
+                    elif opcode == 79:  # callpropvoid
+                        index = u30(coder)
+                        mname = multinames[index]
+                        arg_count = u30(coder)
+                        args = list(reversed(
+                            [stack.pop() for _ in range(arg_count)]))
+                        obj = stack.pop()
+                        if mname == u'reverse':
+                            assert isinstance(obj, list)
+                            obj.reverse()
+                        else:
+                            raise NotImplementedError(
+                                u'Unsupported (void) property %r on %r'
+                                % (mname, obj))
+                    elif opcode == 93:  # findpropstrict
+                        index = u30(coder)
+                        mname = multinames[index]
+                        res = extract_function(mname)
+                        stack.append(res)
+                    elif opcode == 97:  # setproperty
+                        index = u30(coder)
+                        value = stack.pop()
+                        idx = stack.pop()
+                        obj = stack.pop()
+                        assert isinstance(obj, list)
+                        assert isinstance(idx, int)
+                        obj[idx] = value
+                    elif opcode == 98:  # getlocal
+                        index = u30(coder)
+                        stack.append(registers[index])
+                    elif opcode == 99:  # setlocal
+                        index = u30(coder)
+                        value = stack.pop()
+                        registers[index] = value
+                    elif opcode == 102:  # getproperty
+                        index = u30(coder)
+                        pname = multinames[index]
+                        if pname == u'length':
+                            obj = stack.pop()
+                            assert isinstance(obj, list)
+                            stack.append(len(obj))
+                        else:  # Assume attribute access
+                            idx = stack.pop()
+                            assert isinstance(idx, int)
+                            obj = stack.pop()
+                            assert isinstance(obj, list)
+                            stack.append(obj[idx])
+                    elif opcode == 128:  # coerce
+                        u30(coder)
+                    elif opcode == 133:  # coerce_s
+                        assert isinstance(stack[-1], (type(None), compat_str))
+                    elif opcode == 164:  # modulo
+                        value2 = stack.pop()
+                        value1 = stack.pop()
+                        res = value1 % value2
+                        stack.append(res)
+                    elif opcode == 208:  # getlocal_0
+                        stack.append(registers[0])
+                    elif opcode == 209:  # getlocal_1
+                        stack.append(registers[1])
+                    elif opcode == 210:  # getlocal_2
+                        stack.append(registers[2])
+                    elif opcode == 211:  # getlocal_3
+                        stack.append(registers[3])
+                    elif opcode == 214:  # setlocal_2
+                        registers[2] = stack.pop()
+                    elif opcode == 215:  # setlocal_3
+                        registers[3] = stack.pop()
+                    else:
+                        raise NotImplementedError(
+                            u'Unsupported opcode %d' % opcode)
+
+            method_pyfunctions[func_name] = resfunc
+            return resfunc
+
+        initial_function = extract_function(u'decipher')
+        return lambda s: initial_function([s])
+
+    def _decrypt_signature(self, s, video_id, player_url, age_gate=False):
         """Turn the encrypted s field into a working signature"""
+
+        if player_url is not None:
+            try:
+                if player_url not in self._player_cache:
+                    func = self._extract_signature_function(
+                        video_id, player_url, len(s)
+                    )
+                    self._player_cache[player_url] = func
+                func = self._player_cache[player_url]
+                if self._downloader.params.get('youtube_print_sig_code'):
+                    self._print_sig_code(func, len(s))
+                return func(s)
+            except Exception:
+                tb = traceback.format_exc()
+                self._downloader.report_warning(
+                    u'Automatic signature extraction failed: ' + tb)
+
+            self._downloader.report_warning(
+                u'Warning: Falling back to static signature algorithm')
+        return self._static_decrypt_signature(
+            s, video_id, player_url, age_gate)
+
+    def _static_decrypt_signature(self, s, video_id, player_url, age_gate):
+        if age_gate:
+            # The videos with age protection use another player, so the
+            # algorithms can be different.
+            if len(s) == 86:
+                return s[2:63] + s[82] + s[64:82] + s[63]
 
         if len(s) == 93:
             return s[86:29:-1] + s[88] + s[28:5:-1]
@@ -449,15 +1110,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         else:
             raise ExtractorError(u'Unable to decrypt signature, key length %d not supported; retrying might work' % (len(s)))
-
-    def _decrypt_signature_age_gate(self, s):
-        # The videos with age protection use another player, so the algorithms
-        # can be different.
-        if len(s) == 86:
-            return s[2:63] + s[82] + s[64:82] + s[63]
-        else:
-            # Fallback to the other algortihms
-            return self._decrypt_signature(s)
 
     def _get_available_subtitles(self, video_id):
         try:
@@ -631,7 +1283,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         video_webpage = video_webpage_bytes.decode('utf-8', 'ignore')
 
         # Attempt to extract SWF player URL
-        mobj = re.search(r'swfConfig.*?"(http:\\/\\/.*?watch.*?-.*?\.swf)"', video_webpage)
+        mobj = re.search(r'swfConfig.*?"(https?:\\/\\/.*?watch.*?-.*?\.swf)"', video_webpage)
         if mobj is not None:
             player_url = re.sub(r'\\(.)', r'\1', mobj.group(1))
         else:
@@ -784,21 +1436,34 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                     if 'sig' in url_data:
                         url += '&signature=' + url_data['sig'][0]
                     elif 's' in url_data:
-                        if self._downloader.params.get('verbose'):
-                            s = url_data['s'][0]
-                            if age_gate:
-                                player = 'flash player'
-                            else:
-                                player = u'html5 player %s' % self._search_regex(r'html5player-(.+?)\.js', video_webpage,
-                                    'html5 player', fatal=False)
-                            parts_sizes = u'.'.join(compat_str(len(part)) for part in s.split('.'))
-                            self.to_screen(u'encrypted signature length %d (%s), itag %s, %s' %
-                                (len(s), parts_sizes, url_data['itag'][0], player))
                         encrypted_sig = url_data['s'][0]
-                        if age_gate:
-                            signature = self._decrypt_signature_age_gate(encrypted_sig)
-                        else:
-                            signature = self._decrypt_signature(encrypted_sig)
+                        if self._downloader.params.get('verbose'):
+                            if age_gate:
+                                if player_url is None:
+                                    player_version = 'unknown'
+                                else:
+                                    player_version = self._search_regex(
+                                        r'-(.+)\.swf$', player_url,
+                                        u'flash player', fatal=False)
+                                player_desc = 'flash player %s' % player_version
+                            else:
+                                player_version = self._search_regex(
+                                    r'html5player-(.+?)\.js', video_webpage,
+                                    'html5 player', fatal=False)
+                                player_desc = u'html5 player %s' % player_version
+
+                            parts_sizes = u'.'.join(compat_str(len(part)) for part in encrypted_sig.split('.'))
+                            self.to_screen(u'encrypted signature length %d (%s), itag %s, %s' %
+                                (len(encrypted_sig), parts_sizes, url_data['itag'][0], player_desc))
+
+                        if not age_gate:
+                            jsplayer_url_json = self._search_regex(
+                                r'"assets":.+?"js":\s*("[^"]+")',
+                                video_webpage, u'JS player URL')
+                            player_url = json.loads(jsplayer_url_json)
+
+                        signature = self._decrypt_signature(
+                            encrypted_sig, video_id, player_url, age_gate)
                         url += '&signature=' + signature
                     if 'ratebypass' not in url:
                         url += '&ratebypass=yes'
