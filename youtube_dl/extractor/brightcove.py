@@ -20,7 +20,8 @@ class BrightcoveIE(InfoExtractor):
 
     _TESTS = [
         {
-            u'url': u'http://www.8tv.cat/8aldia/videos/xavier-sala-i-martin-aquesta-tarda-a-8-al-dia/',
+            # From http://www.8tv.cat/8aldia/videos/xavier-sala-i-martin-aquesta-tarda-a-8-al-dia/
+            u'url': u'http://c.brightcove.com/services/viewer/htmlFederated?playerID=1654948606001&flashID=myExperience&%40videoPlayer=2371591881001',
             u'file': u'2371591881001.mp4',
             u'md5': u'9e80619e0a94663f0bdc849b4566af19',
             u'note': u'Test Brightcove downloads and detection in GenericIE',
@@ -31,7 +32,8 @@ class BrightcoveIE(InfoExtractor):
             }
         },
         {
-            u'url': u'http://medianetwork.oracle.com/video/player/1785452137001',
+            # From http://medianetwork.oracle.com/video/player/1785452137001
+            u'url': u'http://c.brightcove.com/services/viewer/htmlFederated?playerID=1217746023001&flashID=myPlayer&%40videoPlayer=1785452137001',
             u'file': u'1785452137001.flv',
             u'info_dict': {
                 u'title': u'JVMLS 2012: Arrays 2.0 - Opportunities and Challenges',
