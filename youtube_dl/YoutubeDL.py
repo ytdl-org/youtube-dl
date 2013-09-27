@@ -545,11 +545,15 @@ class YoutubeDL(object):
                 thumb_filename = filename.rpartition('.')[0] + u'.' + thumb_format
                 self.to_screen(u'[%s] %s: Downloading thumbnail ...' %
                                (info_dict['extractor'], info_dict['id']))
-                uf = compat_urllib_request.urlopen(info_dict['thumbnail'])
-                with open(thumb_filename, 'wb') as thumbf:
-                    shutil.copyfileobj(uf, thumbf)
-                self.to_screen(u'[%s] %s: Writing thumbnail to: %s' %
-                               (info_dict['extractor'], info_dict['id'], thumb_filename))
+                try:
+                    uf = compat_urllib_request.urlopen(info_dict['thumbnail'])
+                    with open(thumb_filename, 'wb') as thumbf:
+                        shutil.copyfileobj(uf, thumbf)
+                    self.to_screen(u'[%s] %s: Writing thumbnail to: %s' %
+                        (info_dict['extractor'], info_dict['id'], thumb_filename))
+                except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+                    self.report_warning(u'Unable to download thumbnail "%s": %s' %
+                        (info_dict['thumbnail'], compat_str(err)))
 
         if not self.params.get('skip_download', False):
             if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(filename)):
