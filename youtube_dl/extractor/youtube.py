@@ -1067,6 +1067,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
             self._downloader.report_warning(
                 u'Warning: Falling back to static signature algorithm')
+
         return self._static_decrypt_signature(
             s, video_id, player_url, age_gate)
 
@@ -1098,7 +1099,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         elif len(s) == 84:
             return s[78:70:-1] + s[14] + s[69:37:-1] + s[70] + s[36:14:-1] + s[80] + s[:14][::-1]
         elif len(s) == 83:
-            return s[81:64:-1] + s[82] + s[63:52:-1] + s[45] + s[51:45:-1] + s[1] + s[44:1:-1] + s[0]
+            return s[80:63:-1] + s[0] + s[62:0:-1] + s[63]
         elif len(s) == 82:
             return s[80:73:-1] + s[81] + s[72:54:-1] + s[2] + s[53:43:-1] + s[0] + s[42:2:-1] + s[43] + s[1] + s[54]
         elif len(s) == 81:
