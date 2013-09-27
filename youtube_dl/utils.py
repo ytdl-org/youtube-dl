@@ -200,14 +200,21 @@ else:
 
 # In Python 2.x, json.dump expects a bytestream.
 # In Python 3.x, it writes to a character stream
-if sys.version_info < (3,0):
+# if user passed '-' as outputname, redirect output to stdout
+if sys.version_info < (3, 0):
     def write_json_file(obj, fn):
-        with open(fn, 'wb') as f:
-            json.dump(obj, f)
+        if fn.rstrip('.info.json') == u'-':
+            json.dump(obj, sys.stdout)
+        else:
+            with open(fn, 'wb') as f:
+                json.dump(obj, f)
 else:
     def write_json_file(obj, fn):
-        with open(fn, 'w', encoding='utf-8') as f:
-            json.dump(obj, f)
+        if fn.rstrip('.info.json') == u'-':
+            json.dump(obj, sys.stdout)
+        else:
+            with open(fn, 'w', encoding='utf-8') as f:
+                json.dump(obj, f)
 
 if sys.version_info >= (2,7):
     def find_xpath_attr(node, xpath, key, val):

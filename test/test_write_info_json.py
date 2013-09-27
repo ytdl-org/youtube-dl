@@ -67,6 +67,26 @@ class TestInfoJSON(unittest.TestCase):
             descr = descf.read()
         self.assertEqual(descr, EXPECTED_DESCRIPTION)
 
+    def test_info_json_with_stdout_as_output_returns_good_json(self):
+        from unittest.mock import patch
+        from io import StringIO
+        params['writedescription'] = False
+        params['quiet'] = True
+        params['outtmpl'] = '-'
+        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
+            ie = youtube_dl.extractor.YoutubeIE()
+            ydl = YoutubeDL(params)
+            ydl.add_info_extractor(ie)
+            ydl.download([TEST_ID])
+            output = mock_stdout.getvalue()
+            jd = json.loads(output)
+        self.assertEqual(jd['upload_date'], u'20121002')
+        self.assertEqual(jd['description'], EXPECTED_DESCRIPTION)
+        self.assertEqual(jd['id'], TEST_ID)
+        self.assertEqual(jd['extractor'], 'youtube')
+        self.assertEqual(jd['title'], u'''youtube-dl test video "'/\ä↭𝕐''')
+        self.assertEqual(jd['uploader'], 'Philipp Hagemeister')
+
     def tearDown(self):
         if os.path.exists(INFO_JSON_FILE):
             os.remove(INFO_JSON_FILE)
