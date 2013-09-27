@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-
 import pkg_resources
 from .abc import ABCIE
 from .academicearth import AcademicEarthCourseIE
@@ -541,6 +540,7 @@ from .zingmp3 import (
     ZingMp3SongIE,
     ZingMp3AlbumIE,
 )
+from ..utils import pkg_resources_iter_entry_points
 
 
 _ALL_CLASSES = [
@@ -555,23 +555,25 @@ def gen_extractors():
     """ Return a list of an instance of every supported extractor.
     The order does matter; the first extractor matched is the one handling the URL.
     """
+    extractors = [klass() for klass in _ALL_CLASSES]
 
     # our extractors have priority over external extractors, but
-    # the GenericIE must be inserted later
-    extractors = [klass() for klass in _ALL_CLASSES[:-1]]
+    # the GenericIE must be the last one in the list, so we'll reappend it
+    # later
+    generic_ie = extractors.pop()
 
-    # load external extractors registered throguh the setuptools
-    # entry-point `youtube_dl.extractor.gen_extractors`
+    # load external extractors registered through the entry point
+    # `youtube_dl.extractors`
     group = 'youtube_dl.extractors'
 
-    for entrypoint in pkg_resources.iter_entry_points(group=group):
+    for entrypoint in pkg_resources_iter_entry_points(group=group):
         # grab the callable that is the actual plugin
         plugin = entrypoint.load()
 
         # install the plugin
         extractors.append(plugin())
 
-    extractors.append(GenericIE())
+    extractors.append(generic_ie)
 
     return extractors
 

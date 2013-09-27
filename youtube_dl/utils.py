@@ -1543,3 +1543,13 @@ def ytdl_is_updateable():
 def args_to_str(args):
     # Get a short string representation for a subprocess command
     return ' '.join(shlex_quote(a) for a in args)
+
+
+# Support for platforms where pkg_resources is not available
+try:
+    import pkg_resources
+    def pkg_resources_iter_entry_points(*args, **kwargs):
+        return pkg_resources.iter_entry_points(*args, **kwargs)
+except ImportError:
+    def pkg_resources_iter_entry_points(*args, **kwargs):
+        return []
