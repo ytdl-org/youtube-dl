@@ -573,6 +573,7 @@ class YoutubeDL(object):
             if success:
                 try:
                     self.post_process(filename, info_dict)
+                    self.set_xattrs(filename, info_dict)
                 except (PostProcessingError) as err:
                     self.report_error(u'postprocessing: %s' % str(err))
                     return
@@ -593,6 +594,52 @@ class YoutubeDL(object):
                 raise
 
         return self._download_retcode
+
+    def set_xattrs(self, filename, info_dict):
+        """ Set extended attributes on downloaded file (if the xattr module is installed). """
+        #
+        # More info about extended attributes for media:
+        #   http://freedesktop.org/wiki/CommonExtendedAttributes/
+        #   http://www.freedesktop.org/wiki/PhreedomDraft/
+        #   http://dublincore.org/documents/usageguide/elements.shtml
+        #
+        # TODO:
+        #  * capture youtube keywords and put them in 'user.dublincore.subject' (comma-separated)
+        #  * figure out which xattrs can be used for 'duration', 'thumbnail', 'resolution'
+        #
+        try:
+            write_xattr
+        except NameError: # This box can't set xattrs
+            return False
+
+        try:
+            self.to_screen('[download] Writing metadata to the file\'s xattrs')
+
+            xattr_mapping = {
+                'user.xdg.referrer.url':       'referrer',
+                # 'user.xdg.comment':            'description',
+                'user.dublincore.title':       'title',
+                'user.dublincore.date':        'upload_date',
+                'user.dublincore.description': 'description',
+                'user.dublincore.contributor': 'uploader',
+                'user.dublincore.format':      'format',
+            }
+
+            for xattrname, infoname in xattr_mapping.items():
+
+                value = info_dict.get(infoname)
+
+                if value:
+                    if infoname == "upload_date":
+                        value = hyphenate_date(value)
+
+                    write_xattr(filename, xattrname, value)
+
+            return True
+
+        except OSError:
+            # The filesystem doesn't support extended attributes
+            return False
 
     def post_process(self, filename, ie_info):
         """Run all the postprocessors on the given file."""

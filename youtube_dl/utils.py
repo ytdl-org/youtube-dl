@@ -758,7 +758,16 @@ def date_from_str(date_str):
         delta = datetime.timedelta(**{unit: time})
         return today + delta
     return datetime.datetime.strptime(date_str, "%Y%m%d").date()
-    
+
+def hyphenate_date(date_str):
+    """
+    Convert a date in 'YYYYMMDD' format to 'YYYY-MM-DD' format"""
+    match = re.match(r'^(\d\d\d\d)(\d\d)(\d\d)$', date_str)
+    if match is not None:
+        return '-'.join(match.groups())
+    else:
+        return date_str
+
 class DateRange(object):
     """Represents a time interval between two dates"""
     def __init__(self, start=None, end=None):
@@ -824,3 +833,37 @@ def intlist_to_bytes(xs):
         return ''.join([chr(x) for x in xs])
     else:
         return bytes(xs)
+
+try:
+    import xattr
+    def write_xattr(path, key, value):
+        return xattr.set(path, key, value)
+except ImportError:
+    if os.name == 'posix':
+        def which(bin):
+            for dir in os.environ["PATH"].split(":"):
+                path = os.path.join(dir, bin)
+                if os.path.exists(path):
+                    return path
+
+        if which("setfattr"): # wrap the 'setfattr' commandline tool
+            import subprocess
+            def write_xattr(path, key, value):
+                cmd = ["setfattr", "-n", key, "-v", value, path]
+                try:
+                    output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+                except subprocess.CalledProcessError as e:
+                    import errno
+                    potential_errors = {
+                        # setfattr: /tmp/blah: Operation not supported
+                        "Operation not supported": errno.EOPNOTSUPP,
+                        # setfattr: ~/blah: No such file or directory
+                        "No such file or directory": errno.ENOENT
+                    }
+                    errorstr = e.output.strip().decode()
+                    for potential_errorstr, potential_errno in potential_errors.items():
+                        if errorstr.endswith(potential_errorstr):
+                            e = OSError(potential_errno, potential_errorstr)
+                            e.__cause__ = None
+                            raise e
+                    raise # Reraise unhandled error
