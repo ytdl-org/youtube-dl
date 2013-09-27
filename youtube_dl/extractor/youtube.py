@@ -1360,7 +1360,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             video_thumbnail = m_thumb.group(1)
         elif 'thumbnail_url' not in video_info:
             self._downloader.report_warning(u'unable to extract video thumbnail')
-            video_thumbnail = ''
+            video_thumbnail = None
         else:   # don't panic if we can't find it
             video_thumbnail = compat_urllib_parse.unquote_plus(video_info['thumbnail_url'][0])
 
