@@ -92,7 +92,7 @@ class RTLnowIE(InfoExtractor):
             msg = clean_html(note_m.group(1))
             raise ExtractorError(msg)
 
-        video_title = self._html_search_regex(r'<title>(?P<title>[^<]+)</title>',
+        video_title = self._html_search_regex(r'<title>(?P<title>[^<]+?)( \| [^<]*)?</title>',
             webpage, u'title')
         playerdata_url = self._html_search_regex(r'\'playerdata\': \'(?P<playerdata_url>[^\']+)\'',
             webpage, u'playerdata_url')
