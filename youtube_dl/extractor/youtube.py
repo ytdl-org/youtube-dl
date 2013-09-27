@@ -361,7 +361,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             u"info_dict": {
                 u"upload_date": u"20120506",
                 u"title": u"Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]",
-                u"description": u"md5:bdac09887d209a4ed54b8f76b2bdaa8b",
+                u"description": u"md5:5b292926389560516e384ac437c0ec07",
                 u"uploader": u"Icona Pop",
                 u"uploader_id": u"IconaPop"
             }
