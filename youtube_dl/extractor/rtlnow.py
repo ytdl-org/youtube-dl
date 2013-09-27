@@ -8,8 +8,8 @@ from ..utils import (
 )
 
 class RTLnowIE(InfoExtractor):
-    """Information Extractor for RTL NOW, RTL2 NOW, SUPER RTL NOW and VOX NOW"""
-    _VALID_URL = r'(?:http://)?(?P<url>(?P<base_url>rtl-now\.rtl\.de/|rtl2now\.rtl2\.de/|(?:www\.)?voxnow\.de/|(?:www\.)?superrtlnow\.de/)[a-zA-Z0-9-]+/[a-zA-Z0-9-]+\.php\?(?:container_id|film_id)=(?P<video_id>[0-9]+)&player=1(?:&season=[0-9]+)?(?:&.*)?)'
+    """Information Extractor for RTL NOW, RTL2 NOW, RTL NITRO, SUPER RTL NOW and VOX NOW"""
+    _VALID_URL = r'(?:http://)?(?P<url>(?P<base_url>rtl-now\.rtl\.de/|rtl2now\.rtl2\.de/|(?:www\.)?voxnow\.de/|(?:www\.)?rtlnitronow\.de/|(?:www\.)?superrtlnow\.de/)[a-zA-Z0-9-]+/[a-zA-Z0-9-]+\.php\?(?:container_id|film_id)=(?P<video_id>[0-9]+)&player=1(?:&season=[0-9]+)?(?:&.*)?)'
     _TESTS = [{
         u'url': u'http://rtl-now.rtl.de/ahornallee/folge-1.php?film_id=90419&player=1&season=1',
         u'file': u'90419.flv',
@@ -57,6 +57,19 @@ class RTLnowIE(InfoExtractor):
             u'title': u'Medicopter 117 - Angst!',
             u'description': u'Angst!',
             u'thumbnail': u'http://autoimg.static-fra.de/superrtlnow/287529/1500x1500/image2.jpg'
+        },
+        u'params': {
+            u'skip_download': True,
+        },
+    },
+    {
+        u'url': u'http://www.rtlnitronow.de/recht-ordnung/fahrradpolizei-koeln-fischereiaufsicht-ruegen.php?film_id=124311&player=1&season=1',
+        u'file': u'124311.flv',
+        u'info_dict': {
+            u'upload_date': u'20130830', 
+            u'title': u'Recht & Ordnung - Fahrradpolizei Köln & Fischereiaufsicht Rügen',
+            u'description': u'Fahrradpolizei Köln & Fischereiaufsicht Rügen',
+            u'thumbnail': u'http://autoimg.static-fra.de/nitronow/338273/1500x1500/image2.jpg'
         },
         u'params': {
             u'skip_download': True,
