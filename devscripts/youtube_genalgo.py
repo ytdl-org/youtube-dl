@@ -38,7 +38,7 @@ tests = [
      "}[{=+-_)g*&^%$#@!MNBVCXZASDFGHJKLPOIUYTRE(Q0987654321mnbvcxzasdf?hjklpoiuytrewq"),
     # 83
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKJHGFDSAZXCVBNM!#$%^&*()_+={[};?/>.<",
-     ".>/?;}[{=+_)(*&^%<#!MNBVCXZASPFGHJKLwOIUYTREWQ0987654321mnbvcxzasdfghjklpoiuytreq"),
+     ">/?;}[{=+_)(*&^%$q!MNBVCXZASDFGHJKLPOIUYTREWQ0987654321mnbvcxzasdfghjklpoiuytrew#"),
     # 82 - vflGNjMhJ 2013/09/12
     ("qwertyuioplkjhgfdsazxcvbnm1234567890QWERTYUIOPLKHGFDSAZXCVBNM!@#$%^&*(-+={[};?/>.<",
      ".>/?;}[<=+-(*&^%$#@!MNBVCXeASDFGHKLPOqUYTREWQ0987654321mnbvcxzasdfghjklpoiuytrIwZ"),
