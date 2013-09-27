@@ -40,6 +40,8 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     _LANG_URL = r'https://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
     _AGE_URL = 'http://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
     _NETRC_MACHINE = 'youtube'
+    _REFERRER_URL = 'https://www.youtube.com/watch?v=%s'
+
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = False
 
@@ -1477,19 +1479,20 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                                               ' ('+self._special_itags[format_param]+')' if format_param in self._special_itags else '')
 
             results.append({
-                'id':       video_id,
-                'url':      video_real_url,
-                'uploader': video_uploader,
+                'id':          video_id,
+                'url':         video_real_url,
+                'referrer':    self._REFERRER_URL % video_id,
+                'uploader':    video_uploader,
                 'uploader_id': video_uploader_id,
-                'upload_date':  upload_date,
-                'title':    video_title,
-                'ext':      video_extension,
-                'format':   video_format,
-                'thumbnail':    video_thumbnail,
-                'description':  video_description,
-                'player_url':   player_url,
-                'subtitles':    video_subtitles,
-                'duration':     video_duration
+                'upload_date': upload_date,
+                'title':       video_title,
+                'ext':         video_extension,
+                'format':      video_format,
+                'thumbnail':   video_thumbnail,
+                'description': video_description,
+                'player_url':  player_url,
+                'subtitles':   video_subtitles,
+                'duration':    video_duration
             })
         return results
 

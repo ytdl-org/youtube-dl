@@ -572,8 +572,8 @@ class YoutubeDL(object):
 
             if success:
                 try:
-                    self.set_xattrs(filename, info_dict)
                     self.post_process(filename, info_dict)
+                    self.set_xattrs(filename, info_dict)
                 except (PostProcessingError) as err:
                     self.report_error(u'postprocessing: %s' % str(err))
                     return
@@ -604,7 +604,7 @@ class YoutubeDL(object):
             return datestring
 
     def set_xattrs(self, filename, info_dict):
-        """ Set extended attributes on downloaded files (if the xattr module is installed). """
+        """ Set extended attributes on downloaded file (if the xattr module is installed). """
         #
         # More info about extended attributes for media:
         #   http://freedesktop.org/wiki/CommonExtendedAttributes/
@@ -620,18 +620,25 @@ class YoutubeDL(object):
 
             self.to_screen('[download] Writing metadata to file')
 
-            xattrs = {
-                'user.xdg.referrer.url':       'https://www.youtube.com/watch?v='+info_dict['id'],
-                # 'user.xdg.comment':            info_dict['description'],
-                'user.dublincore.title':       info_dict['fulltitle'],
-                'user.dublincore.date':        self.hyphenate_date(info_dict['upload_date']),
-                'user.dublincore.description': info_dict['description'],
-                'user.dublincore.contributor': info_dict['uploader'],
-                'user.dublincore.format':      info_dict['format'],
+            xattr_mapping = {
+                'user.xdg.referrer.url':       'referrer',
+                # 'user.xdg.comment':            'description',
+                'user.dublincore.title':       'fulltitle',
+                'user.dublincore.date':        'upload_date',
+                'user.dublincore.description': 'description',
+                'user.dublincore.contributor': 'uploader',
+                'user.dublincore.format':      'format',
             }
 
-            for key, value in xattrs.items():
-                xattr.set(filename, key, value)
+            for xattrname, infoname in xattr_mapping.items():
+
+                value = info_dict.get(infoname)
+
+                if value:
+                    if infoname == "upload_date":
+                        value = self.hyphenate_date(value)
+
+                    xattr.set(filename, xattrname, value)
 
             return True
 
@@ -639,7 +646,7 @@ class YoutubeDL(object):
             # The filesystem doesn't support extended attributes
             return False
         except ImportError:
-            # The 'xattr' module wasn't installed, so fail.
+            # The 'xattr' module wasn't installed.
             return False
 
     def post_process(self, filename, ie_info):
