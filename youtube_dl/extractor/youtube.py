@@ -361,7 +361,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             u"info_dict": {
                 u"upload_date": u"20120506",
                 u"title": u"Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]",
-                u"description": u"md5:bdac09887d209a4ed54b8f76b2bdaa8b",
+                u"description": u"md5:5b292926389560516e384ac437c0ec07",
                 u"uploader": u"Icona Pop",
                 u"uploader_id": u"IconaPop"
             }
@@ -377,21 +377,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 u"uploader": u"justintimberlakeVEVO",
                 u"uploader_id": u"justintimberlakeVEVO"
             }
-        },
-        {
-            u'url': u'https://www.youtube.com/watch?v=TGi3HqYrWHE',
-            u'file': u'TGi3HqYrWHE.mp4',
-            u'note': u'm3u8 video',
-            u'info_dict': {
-                u'title': u'Triathlon - Men - London 2012 Olympic Games',
-                u'description': u'- Men -  TR02 - Triathlon - 07 August 2012 - London 2012 Olympic Games',
-                u'uploader': u'olympic',
-                u'upload_date': u'20120807',
-                u'uploader_id': u'olympic',
-            },
-            u'params': {
-                u'skip_download': True,
-            },
         },
     ]
 
@@ -1360,7 +1345,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             video_thumbnail = m_thumb.group(1)
         elif 'thumbnail_url' not in video_info:
             self._downloader.report_warning(u'unable to extract video thumbnail')
-            video_thumbnail = ''
+            video_thumbnail = None
         else:   # don't panic if we can't find it
             video_thumbnail = compat_urllib_parse.unquote_plus(video_info['thumbnail_url'][0])
 
@@ -1480,7 +1465,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 return
 
         else:
-            raise ExtractorError(u'no conn or url_encoded_fmt_stream_map information found in video info')
+            raise ExtractorError(u'no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
 
         results = []
         for format_param, video_real_url in video_url_list:
