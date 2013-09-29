@@ -14,8 +14,15 @@ from ..utils import (
     ExtractorError,
 )
 
+class DailymotionBaseInfoExtractor(InfoExtractor):
+    @staticmethod
+    def _build_request(url):
+        """Build a request with the family filter disabled"""
+        request = compat_urllib_request.Request(url)
+        request.add_header('Cookie', 'family_filter=off')
+        return request
 
-class DailymotionIE(SubtitlesInfoExtractor):
+class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
     """Information Extractor for Dailymotion"""
 
     _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/(?:embed/)?video/([^/]+)'
@@ -40,8 +47,7 @@ class DailymotionIE(SubtitlesInfoExtractor):
         url = 'http://www.dailymotion.com/video/%s' % video_id
 
         # Retrieve video webpage to extract further information
-        request = compat_urllib_request.Request(url)
-        request.add_header('Cookie', 'family_filter=off')
+        request = self._build_request(url)
         webpage = self._download_webpage(request, video_id)
 
         # Extract URL, uploader and title from webpage
@@ -113,7 +119,7 @@ class DailymotionIE(SubtitlesInfoExtractor):
         return {}
 
 
-class DailymotionPlaylistIE(InfoExtractor):
+class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
     IE_NAME = u'dailymotion:playlist'
     _VALID_URL = r'(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/playlist/(?P<id>.+?)/'
     _MORE_PAGES_INDICATOR = r'<div class="next">.*?<a.*?href="/playlist/.+?".*?>.*?</a>.*?</div>'
@@ -122,7 +128,8 @@ class DailymotionPlaylistIE(InfoExtractor):
     def _extract_entries(self, id):
         video_ids = []
         for pagenum in itertools.count(1):
-            webpage = self._download_webpage(self._PAGE_TEMPLATE % (id, pagenum),
+            request = self._build_request(self._PAGE_TEMPLATE % (id, pagenum))
+            webpage = self._download_webpage(request,
                                              id, u'Downloading page %s' % pagenum)
 
             playlist_el = get_element_by_attribute(u'class', u'video_list', webpage)
