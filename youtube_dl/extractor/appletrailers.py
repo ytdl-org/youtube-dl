@@ -95,7 +95,7 @@ class AppleTrailersIE(InfoExtractor):
                 duration = 60 * int(m.group('minutes')) + int(m.group('seconds'))
 
             first_url = trailer_info['url']
-            trailer_id = first_url.split('/')[-1].rpartition('_')[0]
+            trailer_id = first_url.split('/')[-1].rpartition('_')[0].lower()
             settings_json_url = compat_urlparse.urljoin(url, 'includes/settings/%s.json' % trailer_id)
             settings_json = self._download_webpage(settings_json_url, trailer_id, u'Downloading settings json')
             settings = json.loads(settings_json)
