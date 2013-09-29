@@ -1,6 +1,8 @@
+import io
 import json
 import traceback
 import hashlib
+import subprocess
 import sys
 from zipimport import zipimporter
 
@@ -75,8 +77,9 @@ def update_self(to_screen, verbose):
         to_screen(u'ERROR: the versions file signature is invalid. Aborting.')
         return
 
-    to_screen(u'Updating to version ' + versions_info['latest'] + '...')
-    version = versions_info['versions'][versions_info['latest']]
+    version_id = versions_info['latest']
+    to_screen(u'Updating to version ' + version_id + '...')
+    version = versions_info['versions'][version_id]
 
     print_notes(to_screen, versions_info['versions'])
 
@@ -122,16 +125,18 @@ def update_self(to_screen, verbose):
 
         try:
             bat = os.path.join(directory, 'youtube-dl-updater.bat')
-            b = open(bat, 'w')
-            b.write("""
-echo Updating youtube-dl...
+            with io.open(bat, 'w') as batfile:
+                batfile.write(u"""
+@echo off
+echo Waiting for file handle to be closed ...
 ping 127.0.0.1 -n 5 -w 1000 > NUL
-move /Y "%s.new" "%s"
-del "%s"
-            \n""" %(exe, exe, bat))
-            b.close()
+move /Y "%s.new" "%s" > NUL
+echo Updated youtube-dl to version %s.
+start /b "" cmd /c del "%%~f0"&exit /b"
+                \n""" % (exe, exe, version_id))
 
-            os.startfile(bat)
+            subprocess.Popen([bat])  # Continues to run in the background
+            return  # Do not show premature success messages
         except (IOError, OSError) as err:
             if verbose: to_screen(compat_str(traceback.format_exc()))
             to_screen(u'ERROR: unable to overwrite current version')
