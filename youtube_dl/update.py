@@ -1,6 +1,7 @@
 import json
 import traceback
 import hashlib
+import subprocess
 from zipimport import zipimporter
 
 from .utils import *
@@ -125,7 +126,7 @@ del "%s"
             \n""" %(exe, exe, bat))
             b.close()
 
-            os.startfile(bat)
+            subprocess.Popen(bat, shell=True)
         except (IOError, OSError) as err:
             if verbose: to_screen(compat_str(traceback.format_exc()))
             to_screen(u'ERROR: unable to overwrite current version')
