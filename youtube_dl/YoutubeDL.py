@@ -83,6 +83,7 @@ class YoutubeDL(object):
     skip_download:     Skip the actual download of the video file
     cachedir:          Location of the cache files in the filesystem.
                        None to disable filesystem cache.
+    noplaylist:        Download single video instead of a playlist if in doubt.
     
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:
