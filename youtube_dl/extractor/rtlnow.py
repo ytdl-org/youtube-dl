@@ -63,13 +63,13 @@ class RTLnowIE(InfoExtractor):
         },
     },
     {
-        u'url': u'http://www.rtlnitronow.de/recht-ordnung/fahrradpolizei-koeln-fischereiaufsicht-ruegen.php?film_id=124311&player=1&season=1',
-        u'file': u'124311.flv',
+        u'url': u'http://www.rtlnitronow.de/recht-ordnung/lebensmittelkontrolle-erlangenordnungsamt-berlin.php?film_id=127367&player=1&season=1',
+        u'file': u'127367.flv',
         u'info_dict': {
-            u'upload_date': u'20130830', 
-            u'title': u'Recht & Ordnung - Fahrradpolizei Köln & Fischereiaufsicht Rügen',
-            u'description': u'Fahrradpolizei Köln & Fischereiaufsicht Rügen',
-            u'thumbnail': u'http://autoimg.static-fra.de/nitronow/338273/1500x1500/image2.jpg'
+            u'upload_date': u'20130926', 
+            u'title': u'Recht & Ordnung - Lebensmittelkontrolle Erlangen/Ordnungsamt...',
+            u'description': u'Lebensmittelkontrolle Erlangen/Ordnungsamt Berlin',
+            u'thumbnail': u'http://autoimg.static-fra.de/nitronow/344787/1500x1500/image2.jpg',
         },
         u'params': {
             u'skip_download': True,

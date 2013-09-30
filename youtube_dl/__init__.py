@@ -658,7 +658,7 @@ def _real_main(argv=None):
 
     # Update version
     if opts.update_self:
-        update_self(ydl.to_screen, opts.verbose, sys.argv[0])
+        update_self(ydl.to_screen, opts.verbose)
 
     # Maybe do nothing
     if len(all_urls) < 1:
