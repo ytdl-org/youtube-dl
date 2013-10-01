@@ -384,8 +384,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
     @classmethod
     def suitable(cls, url):
-        """Receives a URL and returns True if suitable for this IE."""
-        if YoutubePlaylistIE.suitable(url): return False
         return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
     def __init__(self, *args, **kwargs):
@@ -1503,7 +1501,7 @@ class YoutubePlaylistIE(InfoExtractor):
                         (?:\w+\.)?
                         youtube\.com/
                         (?:
-                           (?:course|view_play_list|my_playlists|artist|playlist|watch)
+                           (?:course|view_play_list|my_playlists|artist|playlist)
                            \? (?:.*?&)*? (?:p|a|list)=
                         |  p/
                         )
