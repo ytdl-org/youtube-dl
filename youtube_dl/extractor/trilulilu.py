@@ -52,6 +52,7 @@ class TriluliluIE(InfoExtractor):
             {
                 'format': fnode.text,
                 'url': video_url_template % fnode.text,
+                'ext': fnode.text.partition('-')[0]
             }
 
             for fnode in format_doc.findall('./formats/format')
@@ -67,7 +68,6 @@ class TriluliluIE(InfoExtractor):
         }
 
         # TODO: Remove when #980 has been merged
-        info['url'] = formats[-1]['url']
-        info['ext'] = formats[-1]['format'].partition('-')[0]
+        info.update(formats[-1])
 
         return info

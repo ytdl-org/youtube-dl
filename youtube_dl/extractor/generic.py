@@ -29,17 +29,6 @@ class GenericIE(InfoExtractor):
                 u"title": u"R\u00e9gis plante sa Jeep"
             }
         },
-        {
-            u'url': u'http://www.8tv.cat/8aldia/videos/xavier-sala-i-martin-aquesta-tarda-a-8-al-dia/',
-            u'file': u'2371591881001.mp4',
-            u'md5': u'9e80619e0a94663f0bdc849b4566af19',
-            u'note': u'Test Brightcove downloads and detection in GenericIE',
-            u'info_dict': {
-                u'title': u'Xavier Sala i Martín: “Un banc que no presta és un banc zombi que no serveix per a res”',
-                u'uploader': u'8TV',
-                u'description': u'md5:a950cc4285c43e44d763d036710cd9cd',
-            }
-        },
     ]
 
     def report_download_webpage(self, video_id):

@@ -106,8 +106,8 @@ class FacebookIE(InfoExtractor):
         video_duration = int(video_data['video_duration'])
         thumbnail = video_data['thumbnail_src']
 
-        video_title = self._html_search_regex('<h2 class="uiHeaderTitle">([^<]+)</h2>',
-            webpage, u'title')
+        video_title = self._html_search_regex(
+            r'<h2 class="uiHeaderTitle">([^<]*)</h2>', webpage, u'title')
 
         info = {
             'id': video_id,

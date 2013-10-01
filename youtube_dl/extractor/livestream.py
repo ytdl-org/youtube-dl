@@ -2,7 +2,12 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import compat_urllib_parse_urlparse, compat_urlparse
+from ..utils import (
+    compat_urllib_parse_urlparse,
+    compat_urlparse,
+    get_meta_content,
+    ExtractorError,
+)
 
 
 class LivestreamIE(InfoExtractor):
@@ -35,8 +40,11 @@ class LivestreamIE(InfoExtractor):
 
         if video_id is None:
             # This is an event page:
-            api_url = self._search_regex(r'event_design_eventId: \'(.+?)\'',
-                                         webpage, 'api url')
+            player = get_meta_content('twitter:player', webpage)
+            if player is None:
+                raise ExtractorError('Couldn\'t extract event api url')
+            api_url = player.replace('/player', '')
+            api_url = re.sub(r'^(https?://)(new\.)', r'\1api.\2', api_url)
             info = json.loads(self._download_webpage(api_url, event_name,
                                                      u'Downloading event info'))
             videos = [self._extract_video_info(video_data['data'])

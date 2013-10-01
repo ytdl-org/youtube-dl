@@ -1,6 +1,7 @@
 # encoding: utf-8
 import re
 import xml.etree.ElementTree
+import json
 
 from .common import InfoExtractor
 from ..utils import (
@@ -34,17 +35,7 @@ class PluzzIE(FranceTVBaseInfoExtractor):
     IE_NAME = u'pluzz.francetv.fr'
     _VALID_URL = r'https?://pluzz\.francetv\.fr/videos/(.*?)\.html'
 
-    _TEST = {
-        u'url': u'http://pluzz.francetv.fr/videos/allo_rufo_saison5_,88439064.html',
-        u'file': u'88439064.mp4',
-        u'info_dict': {
-            u'title': u'Allô Rufo',
-            u'description': u'md5:d909f1ebdf963814b65772aea250400e',
-        },
-        u'params': {
-            u'skip_download': True,
-        },
-    }
+    # Can't use tests, videos expire in 7 days
 
     def _real_extract(self, url):
         title = re.match(self._VALID_URL, url).group(1)
@@ -75,3 +66,52 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
         webpage = self._download_webpage(url, page_title)
         video_id = self._search_regex(r'id-video=(\d+?)"', webpage, u'video id')
         return self._extract_video(video_id)
+
+
+class France2IE(FranceTVBaseInfoExtractor):
+    IE_NAME = u'france2.fr'
+    _VALID_URL = r'https?://www\.france2\.fr/emissions/.*?/videos/(?P<id>\d+)'
+
+    _TEST = {
+        u'url': u'http://www.france2.fr/emissions/13h15-le-samedi-le-dimanche/videos/75540104',
+        u'file': u'75540104.mp4',
+        u'info_dict': {
+            u'title': u'13h15, le samedi...',
+            u'description': u'md5:2e5b58ba7a2d3692b35c792be081a03d',
+        },
+        u'params': {
+            u'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        return self._extract_video(video_id)
+
+
+class GenerationQuoiIE(InfoExtractor):
+    IE_NAME = u'http://generation-quoi.france2.fr'
+    _VALID_URL = r'https?://generation-quoi\.france2\.fr/portrait/(?P<name>.*)(\?|$)'
+
+    _TEST = {
+        u'url': u'http://generation-quoi.france2.fr/portrait/garde-a-vous',
+        u'file': u'k7FJX8VBcvvLmX4wA5Q.mp4',
+        u'info_dict': {
+            u'title': u'Génération Quoi - Garde à Vous',
+            u'uploader': u'Génération Quoi',
+        },
+        u'params': {
+            # It uses Dailymotion
+            u'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        name = mobj.group('name')
+        info_url = compat_urlparse.urljoin(url, '/medias/video/%s.json' % name)
+        info_json = self._download_webpage(info_url, name)
+        info = json.loads(info_json)
+        return self.url_result('http://www.dailymotion.com/video/%s' % info['id'],
+            ie='Dailymotion')

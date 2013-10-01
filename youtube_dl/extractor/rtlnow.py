@@ -8,8 +8,8 @@ from ..utils import (
 )
 
 class RTLnowIE(InfoExtractor):
-    """Information Extractor for RTL NOW, RTL2 NOW, SUPER RTL NOW and VOX NOW"""
-    _VALID_URL = r'(?:http://)?(?P<url>(?P<base_url>rtl-now\.rtl\.de/|rtl2now\.rtl2\.de/|(?:www\.)?voxnow\.de/|(?:www\.)?superrtlnow\.de/)[a-zA-Z0-9-]+/[a-zA-Z0-9-]+\.php\?(?:container_id|film_id)=(?P<video_id>[0-9]+)&player=1(?:&season=[0-9]+)?(?:&.*)?)'
+    """Information Extractor for RTL NOW, RTL2 NOW, RTL NITRO, SUPER RTL NOW and VOX NOW"""
+    _VALID_URL = r'(?:http://)?(?P<url>(?P<base_url>rtl-now\.rtl\.de/|rtl2now\.rtl2\.de/|(?:www\.)?voxnow\.de/|(?:www\.)?rtlnitronow\.de/|(?:www\.)?superrtlnow\.de/)[a-zA-Z0-9-]+/[a-zA-Z0-9-]+\.php\?(?:container_id|film_id)=(?P<video_id>[0-9]+)&player=1(?:&season=[0-9]+)?(?:&.*)?)'
     _TESTS = [{
         u'url': u'http://rtl-now.rtl.de/ahornallee/folge-1.php?film_id=90419&player=1&season=1',
         u'file': u'90419.flv',
@@ -61,6 +61,19 @@ class RTLnowIE(InfoExtractor):
         u'params': {
             u'skip_download': True,
         },
+    },
+    {
+        u'url': u'http://www.rtlnitronow.de/recht-ordnung/lebensmittelkontrolle-erlangenordnungsamt-berlin.php?film_id=127367&player=1&season=1',
+        u'file': u'127367.flv',
+        u'info_dict': {
+            u'upload_date': u'20130926', 
+            u'title': u'Recht & Ordnung - Lebensmittelkontrolle Erlangen/Ordnungsamt...',
+            u'description': u'Lebensmittelkontrolle Erlangen/Ordnungsamt Berlin',
+            u'thumbnail': u'http://autoimg.static-fra.de/nitronow/344787/1500x1500/image2.jpg',
+        },
+        u'params': {
+            u'skip_download': True,
+        },
     }]
 
     def _real_extract(self,url):
@@ -79,7 +92,7 @@ class RTLnowIE(InfoExtractor):
             msg = clean_html(note_m.group(1))
             raise ExtractorError(msg)
 
-        video_title = self._html_search_regex(r'<title>(?P<title>[^<]+)</title>',
+        video_title = self._html_search_regex(r'<title>(?P<title>[^<]+?)( \| [^<]*)?</title>',
             webpage, u'title')
         playerdata_url = self._html_search_regex(r'\'playerdata\': \'(?P<playerdata_url>[^\']+)\'',
             webpage, u'playerdata_url')

@@ -18,11 +18,15 @@ class OoyalaIE(InfoExtractor):
         },
     }
 
+    @staticmethod
+    def _url_for_embed_code(embed_code):
+        return 'http://player.ooyala.com/player.js?embedCode=%s' % embed_code
+
     def _extract_result(self, info, more_info):
         return {'id': info['embedCode'],
                 'ext': 'mp4',
                 'title': unescapeHTML(info['title']),
-                'url': info['url'],
+                'url': info.get('ipad_url') or info['url'],
                 'description': unescapeHTML(more_info['description']),
                 'thumbnail': more_info['promo'],
                 }
@@ -35,7 +39,9 @@ class OoyalaIE(InfoExtractor):
         mobile_url = self._search_regex(r'mobile_player_url="(.+?)&device="',
                                         player, u'mobile player url')
         mobile_player = self._download_webpage(mobile_url, embedCode)
-        videos_info = self._search_regex(r'eval\("\((\[{.*?stream_redirect.*?}\])\)"\);', mobile_player, u'info').replace('\\"','"')
+        videos_info = self._search_regex(
+            r'var streams=window.oo_testEnv\?\[\]:eval\("\((\[{.*?}\])\)"\);',
+            mobile_player, u'info').replace('\\"','"')
         videos_more_info = self._search_regex(r'eval\("\(({.*?\\"promo\\".*?})\)"', mobile_player, u'more info').replace('\\"','"')
         videos_info = json.loads(videos_info)
         videos_more_info =json.loads(videos_more_info)

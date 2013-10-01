@@ -21,7 +21,8 @@ class FunnyOrDieIE(InfoExtractor):
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
 
-        video_url = self._search_regex(r'type="video/mp4" src="(.*?)"',
+        video_url = self._search_regex(
+            [r'type="video/mp4" src="(.*?)"', r'src="([^>]*?)" type=\'video/mp4\''],
             webpage, u'video URL', flags=re.DOTALL)
 
         info = {

@@ -67,6 +67,12 @@ except ImportError:  # Python 2
     from urllib2 import HTTPError as compat_HTTPError
 
 try:
+    from urllib.request import urlretrieve as compat_urlretrieve
+except ImportError:  # Python 2
+    from urllib import urlretrieve as compat_urlretrieve
+
+
+try:
     from subprocess import DEVNULL
     compat_subprocess_get_DEVNULL = lambda: DEVNULL
 except ImportError:
@@ -700,7 +706,16 @@ def unified_strdate(date_str):
     date_str = date_str.replace(',',' ')
     # %z (UTC offset) is only supported in python>=3.2
     date_str = re.sub(r' (\+|-)[\d]*$', '', date_str)
-    format_expressions = ['%d %B %Y', '%B %d %Y', '%b %d %Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d %H:%M:%S', '%d.%m.%Y %H:%M']
+    format_expressions = [
+        '%d %B %Y',
+        '%B %d %Y',
+        '%b %d %Y',
+        '%Y-%m-%d',
+        '%d/%m/%Y',
+        '%Y/%m/%d %H:%M:%S',
+        '%d.%m.%Y %H:%M',
+        '%Y-%m-%dT%H:%M:%SZ',
+    ]
     for expression in format_expressions:
         try:
             upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')
@@ -779,6 +794,18 @@ def platform_name():
 
     assert isinstance(res, compat_str)
     return res
+
+
+def write_string(s, out=None):
+    if out is None:
+        out = sys.stderr
+    assert type(s) == type(u'')
+
+    if ('b' in getattr(out, 'mode', '') or
+            sys.version_info[0] < 3):  # Python 2 lies about mode of sys.stderr
+        s = s.encode(preferredencoding(), 'ignore')
+    out.write(s)
+    out.flush()
 
 
 def bytes_to_intlist(bs):

@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 import re
 import json
 import xml.etree.ElementTree
@@ -7,15 +9,39 @@ from ..utils import (
     compat_urllib_parse,
     find_xpath_attr,
     compat_urlparse,
+
+    ExtractorError,
 )
 
 class BrightcoveIE(InfoExtractor):
     _VALID_URL = r'https?://.*brightcove\.com/(services|viewer).*\?(?P<query>.*)'
     _FEDERATED_URL_TEMPLATE = 'http://c.brightcove.com/services/viewer/htmlFederated?%s'
     _PLAYLIST_URL_TEMPLATE = 'http://c.brightcove.com/services/json/experience/runtime/?command=get_programming_for_experience&playerKey=%s'
-    
-    # There is a test for Brigtcove in GenericIE, that way we test both the download
-    # and the detection of videos, and we don't have to find an URL that is always valid
+
+    _TESTS = [
+        {
+            # From http://www.8tv.cat/8aldia/videos/xavier-sala-i-martin-aquesta-tarda-a-8-al-dia/
+            u'url': u'http://c.brightcove.com/services/viewer/htmlFederated?playerID=1654948606001&flashID=myExperience&%40videoPlayer=2371591881001',
+            u'file': u'2371591881001.mp4',
+            u'md5': u'9e80619e0a94663f0bdc849b4566af19',
+            u'note': u'Test Brightcove downloads and detection in GenericIE',
+            u'info_dict': {
+                u'title': u'Xavier Sala i Martín: “Un banc que no presta és un banc zombi que no serveix per a res”',
+                u'uploader': u'8TV',
+                u'description': u'md5:a950cc4285c43e44d763d036710cd9cd',
+            }
+        },
+        {
+            # From http://medianetwork.oracle.com/video/player/1785452137001
+            u'url': u'http://c.brightcove.com/services/viewer/htmlFederated?playerID=1217746023001&flashID=myPlayer&%40videoPlayer=1785452137001',
+            u'file': u'1785452137001.flv',
+            u'info_dict': {
+                u'title': u'JVMLS 2012: Arrays 2.0 - Opportunities and Challenges',
+                u'description': u'John Rose speaks at the JVM Language Summit, August 1, 2012.',
+                u'uploader': u'Oracle',
+            },
+        },
+    ]
 
     @classmethod
     def _build_brighcove_url(cls, object_str):
@@ -72,15 +98,27 @@ class BrightcoveIE(InfoExtractor):
                                     playlist_title=playlist_info['mediaCollectionDTO']['displayName'])
 
     def _extract_video_info(self, video_info):
-        renditions = video_info['renditions']
-        renditions = sorted(renditions, key=lambda r: r['size'])
-        best_format = renditions[-1]
+        info = {
+            'id': video_info['id'],
+            'title': video_info['displayName'],
+            'description': video_info.get('shortDescription'),
+            'thumbnail': video_info.get('videoStillURL') or video_info.get('thumbnailURL'),
+            'uploader': video_info.get('publisherName'),
+        }
 
-        return {'id': video_info['id'],
-                'title': video_info['displayName'],
-                'url': best_format['defaultURL'], 
+        renditions = video_info.get('renditions')
+        if renditions:
+            renditions = sorted(renditions, key=lambda r: r['size'])
+            best_format = renditions[-1]
+            info.update({
+                'url': best_format['defaultURL'],
                 'ext': 'mp4',
-                'description': video_info.get('shortDescription'),
-                'thumbnail': video_info.get('videoStillURL') or video_info.get('thumbnailURL'),
-                'uploader': video_info.get('publisherName'),
-                }
+            })
+        elif video_info.get('FLVFullLengthURL') is not None:
+            info.update({
+                'url': video_info['FLVFullLengthURL'],
+                'ext': 'flv',
+            })
+        else:
+            raise ExtractorError(u'Unable to extract video url for %s' % info['id'])
+        return info
