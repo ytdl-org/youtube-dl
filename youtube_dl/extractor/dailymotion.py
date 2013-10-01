@@ -27,15 +27,31 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
 
     _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/(?:embed/)?video/([^/]+)'
     IE_NAME = u'dailymotion'
-    _TEST = {
-        u'url': u'http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech',
-        u'file': u'x33vw9.mp4',
-        u'md5': u'392c4b85a60a90dc4792da41ce3144eb',
-        u'info_dict': {
-            u"uploader": u"Amphora Alex and Van .", 
-            u"title": u"Tutoriel de Youtubeur\"DL DES VIDEO DE YOUTUBE\""
-        }
-    }
+    _TESTS = [
+        {
+            u'url': u'http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech',
+            u'file': u'x33vw9.mp4',
+            u'md5': u'392c4b85a60a90dc4792da41ce3144eb',
+            u'info_dict': {
+                u"uploader": u"Amphora Alex and Van .", 
+                u"title": u"Tutoriel de Youtubeur\"DL DES VIDEO DE YOUTUBE\""
+            }
+        },
+        # Vevo video
+        {
+            u'url': u'http://www.dailymotion.com/video/x149uew_katy-perry-roar-official_musi',
+            u'file': u'USUV71301934.mp4',
+            u'info_dict': {
+                u'title': u'Roar (Official)',
+                u'uploader': u'Katy Perry',
+                u'upload_date': u'20130905',
+            },
+            u'params': {
+                u'skip_download': True,
+            },
+            u'skip': u'VEVO is only available in some countries',
+        },
+    ]
 
     def _real_extract(self, url):
         # Extract id and simplified title from URL
@@ -52,6 +68,15 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
 
         # Extract URL, uploader and title from webpage
         self.report_extraction(video_id)
+
+        # It may just embed a vevo video:
+        m_vevo = re.search(
+            r'<link rel="video_src" href="[^"]*?vevo.com[^"]*?videoId=(?P<id>[\w]*)',
+            webpage)
+        if m_vevo is not None:
+            vevo_id = m_vevo.group('id')
+            self.to_screen(u'Vevo video detected: %s' % vevo_id)
+            return self.url_result(u'vevo:%s' % vevo_id, ie='Vevo')
 
         video_uploader = self._search_regex([r'(?im)<span class="owner[^\"]+?">[^<]+?<a [^>]+?>([^<]+?)</a>',
                                              # Looking for official user
