@@ -13,7 +13,6 @@ import struct
 import traceback
 import xml.etree.ElementTree
 import zlib
-import urlparse
 
 from .common import InfoExtractor, SearchInfoExtractor
 from .subtitles import SubtitlesInfoExtractor
@@ -24,6 +23,7 @@ from ..utils import (
     compat_urllib_error,
     compat_urllib_parse,
     compat_urllib_request,
+    compat_urlparse,
     compat_str,
 
     clean_html,
@@ -1527,7 +1527,7 @@ class YoutubePlaylistIE(InfoExtractor):
         playlist_id = mobj.group(1) or mobj.group(2)
 
         # Check if it's a video-specific URL
-        query_dict = urlparse.parse_qs(urlparse.urlparse(url).query)
+        query_dict = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
         if 'v' in query_dict:
             video_id = query_dict['v'][0]
             if self._downloader.params.get('noplaylist'):
