@@ -23,6 +23,7 @@ from ..utils import (
     compat_urllib_error,
     compat_urllib_parse,
     compat_urllib_request,
+    compat_urlparse,
     compat_str,
 
     clean_html,
@@ -1525,9 +1526,19 @@ class YoutubePlaylistIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url, re.VERBOSE)
         if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
+        playlist_id = mobj.group(1) or mobj.group(2)
+
+        # Check if it's a video-specific URL
+        query_dict = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+        if 'v' in query_dict:
+            video_id = query_dict['v'][0]
+            if self._downloader.params.get('noplaylist'):
+                self.to_screen(u'Downloading just video %s because of --no-playlist' % video_id)
+                return self.url_result('https://www.youtube.com/watch?v=' + video_id, 'Youtube')
+            else:
+                self.to_screen(u'Downloading playlist PL%s - add --no-playlist to just download video %s' % (playlist_id, video_id))
 
         # Download playlist videos from API
-        playlist_id = mobj.group(1) or mobj.group(2)
         videos = []
 
         for page_num in itertools.count(1):

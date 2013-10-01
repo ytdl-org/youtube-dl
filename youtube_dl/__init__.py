@@ -187,6 +187,7 @@ def parseOpts(overrideArguments=None):
     selection.add_option('--date', metavar='DATE', dest='date', help='download only videos uploaded in this date', default=None)
     selection.add_option('--datebefore', metavar='DATE', dest='datebefore', help='download only videos uploaded before this date', default=None)
     selection.add_option('--dateafter', metavar='DATE', dest='dateafter', help='download only videos uploaded after this date', default=None)
+    selection.add_option('--no-playlist', action='store_true', dest='noplaylist', help='download only the currently playing video', default=False)
 
 
     authentication.add_option('-u', '--username',
@@ -599,6 +600,7 @@ def _real_main(argv=None):
         'progress_with_newline': opts.progress_with_newline,
         'playliststart': opts.playliststart,
         'playlistend': opts.playlistend,
+        'noplaylist': opts.noplaylist,
         'logtostderr': opts.outtmpl == '-',
         'consoletitle': opts.consoletitle,
         'nopart': opts.nopart,
