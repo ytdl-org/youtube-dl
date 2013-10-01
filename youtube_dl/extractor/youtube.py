@@ -1390,7 +1390,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             args = info['args']
             # Easy way to know if the 's' value is in url_encoded_fmt_stream_map
             # this signatures are encrypted
-            if 'url_encoded_fmt_stream_map':
+            if 'url_encoded_fmt_stream_map' not in args:
                 raise ValueError(u'No stream_map present')  # caught below
             m_s = re.search(r'[&,]s=', args['url_encoded_fmt_stream_map'])
             if m_s is not None:
