@@ -1335,7 +1335,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         # title
         if 'title' not in video_info:
-            raise ExtractorError(u'Unable to extract video title')
+            video_info['title'] = " "
+            print "Warning: Title was not found"
+            # raise ExtractorError(u'Unable to extract video title')
         video_title = compat_urllib_parse.unquote_plus(video_info['title'][0])
 
         # thumbnail image
