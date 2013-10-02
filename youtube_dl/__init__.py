@@ -113,12 +113,6 @@ def parseOpts(overrideArguments=None):
                 pass
         return opts
 
-    xdg_cache_home = os.environ.get('XDG_CACHE_HOME')
-    if xdg_cache_home:
-        userCacheDir = os.path.join(xdg_cache_home, 'youtube-dl')
-    else:
-        userCacheDir = os.path.join(os.path.expanduser('~'), '.cache', 'youtube-dl')
-
     max_width = 80
     max_help_position = 80
 
@@ -174,7 +168,7 @@ def parseOpts(overrideArguments=None):
     general.add_option('--proxy', dest='proxy', default=None, help='Use the specified HTTP/HTTPS proxy', metavar='URL')
     general.add_option('--no-check-certificate', action='store_true', dest='no_check_certificate', default=False, help='Suppress HTTPS certificate validation.')
     general.add_option(
-        '--cache-dir', dest='cachedir', default=userCacheDir,
+        '--cache-dir', dest='cachedir', default=get_cachedir(),
         help='Location in the filesystem where youtube-dl can store downloaded information permanently. %default by default')
     general.add_option(
         '--no-cache-dir', action='store_const', const=None, dest='cachedir',
