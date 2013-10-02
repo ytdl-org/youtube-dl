@@ -1334,9 +1334,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             self._downloader.report_warning(u'unable to extract uploader nickname')
 
         # title
-        if 'title' not in video_info:
-            raise ExtractorError(u'Unable to extract video title')
-        video_title = compat_urllib_parse.unquote_plus(video_info['title'][0])
+        if 'title' in video_info:
+            video_title = compat_urllib_parse.unquote_plus(video_info['title'][0])
+        else:
+            self._downloader.report_warning(u'Unable to extract video title')
+            video_title = u'_'
 
         # thumbnail image
         # We try first to get a high quality image:
