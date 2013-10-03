@@ -31,8 +31,9 @@ which means you can modify it, redistribute it or use it however you like.
     --proxy URL                Use the specified HTTP/HTTPS proxy
     --no-check-certificate     Suppress HTTPS certificate validation.
     --cache-dir None           Location in the filesystem where youtube-dl can
-                               store downloaded information permanently.
-                               ~/.youtube-dl/cache by default
+                               store downloaded information permanently. By
+                               default $XDG_CACHE_HOME/youtube-dl or ~/.cache
+                               /youtube-dl .
     --no-cache-dir             Disable filesystem caching
 
 ## Video Selection:
