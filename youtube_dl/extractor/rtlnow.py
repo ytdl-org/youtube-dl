@@ -8,8 +8,8 @@ from ..utils import (
 )
 
 class RTLnowIE(InfoExtractor):
-    """Information Extractor for RTL NOW, RTL2 NOW, RTL NITRO, SUPER RTL NOW and VOX NOW"""
-    _VALID_URL = r'(?:http://)?(?P<url>(?P<base_url>rtl-now\.rtl\.de/|rtl2now\.rtl2\.de/|(?:www\.)?voxnow\.de/|(?:www\.)?rtlnitronow\.de/|(?:www\.)?superrtlnow\.de/)[a-zA-Z0-9-]+/[a-zA-Z0-9-]+\.php\?(?:container_id|film_id)=(?P<video_id>[0-9]+)&player=1(?:&season=[0-9]+)?(?:&.*)?)'
+    """Information Extractor for RTL NOW, RTL2 NOW, RTL NITRO, SUPER RTL NOW, VOX NOW and n-tv NOW"""
+    _VALID_URL = r'(?:http://)?(?P<url>(?P<base_url>rtl-now\.rtl\.de/|rtl2now\.rtl2\.de/|(?:www\.)?voxnow\.de/|(?:www\.)?rtlnitronow\.de/|(?:www\.)?superrtlnow\.de/|(?:www\.)?n-tvnow\.de/)[a-zA-Z0-9-]+/[a-zA-Z0-9-]+\.php\?(?:container_id|film_id)=(?P<video_id>[0-9]+)&player=1(?:&season=[0-9]+)?(?:&.*)?)'
     _TESTS = [{
         u'url': u'http://rtl-now.rtl.de/ahornallee/folge-1.php?film_id=90419&player=1&season=1',
         u'file': u'90419.flv',
@@ -70,6 +70,18 @@ class RTLnowIE(InfoExtractor):
             u'title': u'Recht & Ordnung - Lebensmittelkontrolle Erlangen/Ordnungsamt...',
             u'description': u'Lebensmittelkontrolle Erlangen/Ordnungsamt Berlin',
             u'thumbnail': u'http://autoimg.static-fra.de/nitronow/344787/1500x1500/image2.jpg',
+        },
+        u'params': {
+            u'skip_download': True,
+        },
+    },
+    {
+        u'url': u'http://www.n-tvnow.de/top-gear/episode-1-2013-01-01-00-00-00.php?film_id=124903&player=1&season=10',
+        u'file': u'124903.flv',
+        u'info_dict': {
+            u'upload_date': u'20130101', 
+            u'title': u'Top Gear vom 01.01.2013',
+            u'description': u'Episode 1',
         },
         u'params': {
             u'skip_download': True,
