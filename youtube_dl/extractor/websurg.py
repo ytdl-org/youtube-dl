@@ -36,8 +36,7 @@ class WeBSurgIE(InfoExtractor):
         request.add_header(
             'Content-Type', 'application/x-www-form-urlencoded;charset=utf-8')
         compat_urllib_request.urlopen(request).info()
-        request = compat_urllib_request.Request(self._LOGIN_URL)
-        webpage = compat_urllib_request.urlopen(request).read()
+        webpage = self._download_webpage(self._LOGIN_URL, '', 'Logging in')
         
         if webpage != 'OK':
             self._downloader.report_error(
