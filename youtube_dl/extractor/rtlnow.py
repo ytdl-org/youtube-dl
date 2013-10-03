@@ -98,14 +98,17 @@ class RTLnowIE(InfoExtractor):
             webpage, u'playerdata_url')
 
         playerdata = self._download_webpage(playerdata_url, video_id)
-        mobj = re.search(r'<title><!\[CDATA\[(?P<description>.+?)\s+- (?:Sendung )?vom (?P<upload_date_d>[0-9]{2})\.(?P<upload_date_m>[0-9]{2})\.(?:(?P<upload_date_Y>[0-9]{4})|(?P<upload_date_y>[0-9]{2})) [0-9]{2}:[0-9]{2} Uhr\]\]></title>', playerdata)
+        mobj = re.search(r'<title><!\[CDATA\[(?P<description>.+?)(?:\s+- (?:Sendung )?vom (?P<upload_date_d>[0-9]{2})\.(?P<upload_date_m>[0-9]{2})\.(?:(?P<upload_date_Y>[0-9]{4})|(?P<upload_date_y>[0-9]{2})) [0-9]{2}:[0-9]{2} Uhr)?\]\]></title>', playerdata)
         if mobj:
             video_description = mobj.group(u'description')
             if mobj.group('upload_date_Y'):
                 video_upload_date = mobj.group('upload_date_Y')
-            else:
+            elif mobj.group('upload_date_y'):
                 video_upload_date = u'20' + mobj.group('upload_date_y')
-            video_upload_date += mobj.group('upload_date_m')+mobj.group('upload_date_d')
+            else:
+                video_upload_date = None
+            if video_upload_date:
+                video_upload_date += mobj.group('upload_date_m')+mobj.group('upload_date_d')
         else:
             video_description = None
             video_upload_date = None
