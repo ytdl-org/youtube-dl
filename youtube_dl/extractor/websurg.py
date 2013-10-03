@@ -36,21 +36,21 @@ class WeBSurgIE(InfoExtractor):
         request.add_header(
             'Content-Type', 'application/x-www-form-urlencoded;charset=utf-8')
         compat_urllib_request.urlopen(request).info()
+        request = compat_urllib_request.Request(self._LOGIN_URL)
+        webpage = compat_urllib_request.urlopen(request).read()
+        
+        if webpage != 'OK':
+            self._downloader.report_error(
+                u'Unable to log in: bad username/password')
         
     def _real_extract(self, url):
-
-        request = compat_urllib_request.Request(url)
-        webpage = unicode(
-            compat_urllib_request.urlopen(request).read(), 'utf-8')
-        
         video_id = re.match(self._VALID_URL, url).group(1)
+        
+        request = compat_urllib_request.Request(url)
+        webpage = self._download_webpage(url, video_id)
         
         url_info = re.search(r'streamer="(.*?)" src="(.*?)"', webpage)
         
-        if url_info is None:
-            self._downloader.report_warning(
-                u'Unable to log in: bad username/password')
-            return
         return {'id': video_id,
                 'title': self._og_search_title(webpage),
                 'description': self._og_search_description(webpage),
