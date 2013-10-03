@@ -46,7 +46,6 @@ class WeBSurgIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = re.match(self._VALID_URL, url).group(1)
         
-        request = compat_urllib_request.Request(url)
         webpage = self._download_webpage(url, video_id)
         
         url_info = re.search(r'streamer="(.*?)" src="(.*?)"', webpage)
