@@ -35,6 +35,8 @@ class InfoExtractor(object):
     title:          Video title, unescaped.
     ext:            Video filename extension.
 
+    Instead of url and ext, formats can also specified.
+
     The following fields are optional:
 
     format:         The video format, defaults to ext (used for --get-format)
