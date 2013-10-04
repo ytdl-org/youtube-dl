@@ -86,7 +86,9 @@ class RTLnowIE(InfoExtractor):
         u'params': {
             u'skip_download': True,
         },
+        u'skip': u'Only works from Germany',
     }]
+
 
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)
