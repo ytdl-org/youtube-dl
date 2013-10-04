@@ -17,7 +17,7 @@ class YahooIE(InfoExtractor):
     _TESTS = [
         {
             u'url': u'http://screen.yahoo.com/julian-smith-travis-legg-watch-214727115.html',
-            u'file': u'214727115.mp4',
+            u'file': u'214727115.flv',
             u'info_dict': {
                 u'title': u'Julian Smith & Travis Legg Watch Julian Smith',
                 u'description': u'Julian and Travis watch Julian Smith',
