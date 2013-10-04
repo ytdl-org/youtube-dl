@@ -31,7 +31,7 @@ class YahooIE(InfoExtractor):
             u'url': u'http://screen.yahoo.com/wired/codefellas-s1-ep12-cougar-lies-103000935.html',
             u'file': u'103000935.flv',
             u'info_dict': {
-                u'title': u'The Cougar Lies with Spanish Moss',
+                u'title': u'Codefellas - The Cougar Lies with Spanish Moss',
                 u'description': u'Agent Topple\'s mustache does its dirty work, and Nicole brokers a deal for peace. But why is the NSA collecting millions of Instagram brunch photos? And if your waffles have nothing to hide, what are they so worried about?',
             },
             u'params': {
