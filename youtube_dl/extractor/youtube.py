@@ -1037,12 +1037,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         if player_url is not None:
             try:
-                if player_url not in self._player_cache:
+                player_id = (player_url, len(s))
+                if player_id not in self._player_cache:
                     func = self._extract_signature_function(
                         video_id, player_url, len(s)
                     )
-                    self._player_cache[player_url] = func
-                func = self._player_cache[player_url]
+                    self._player_cache[player_id] = func
+                func = self._player_cache[player_id]
                 if self._downloader.params.get('youtube_print_sig_code'):
                     self._print_sig_code(func, len(s))
                 return func(s)
