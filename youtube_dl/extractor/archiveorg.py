@@ -46,6 +46,8 @@ class ArchiveOrgIE(InfoExtractor):
             for fn,fdata in data['files'].items()
             if 'Video' in fdata['format']]
         formats.sort(key=lambda fdata: fdata['file_size'])
+        for f in formats:
+            f['ext'] = determine_ext(f['url'])
 
         info = {
             '_type': 'video',
@@ -61,7 +63,6 @@ class ArchiveOrgIE(InfoExtractor):
             info['thumbnail'] = thumbnail
 
         # TODO: Remove when #980 has been merged
-        info['url'] = formats[-1]['url']
-        info['ext'] = determine_ext(formats[-1]['url'])
+        info.update(formats[-1])
 
         return info

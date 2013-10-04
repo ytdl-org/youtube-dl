@@ -11,13 +11,16 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 #from youtube_dl.utils import htmlentity_transform
-from youtube_dl.utils import timeconvert
-from youtube_dl.utils import sanitize_filename
-from youtube_dl.utils import unescapeHTML
-from youtube_dl.utils import orderedSet
-from youtube_dl.utils import DateRange
-from youtube_dl.utils import unified_strdate
-from youtube_dl.utils import find_xpath_attr
+from youtube_dl.utils import (
+    timeconvert,
+    sanitize_filename,
+    unescapeHTML,
+    orderedSet,
+    DateRange,
+    unified_strdate,
+    find_xpath_attr,
+    get_meta_content,
+)
 
 if sys.version_info < (3, 0):
     _compat_str = lambda b: b.decode('unicode-escape')
@@ -126,6 +129,17 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(find_xpath_attr(doc, './/fourohfour', 'n', 'v'), None)
         self.assertEqual(find_xpath_attr(doc, './/node', 'x', 'a'), doc[1])
         self.assertEqual(find_xpath_attr(doc, './/node', 'y', 'c'), doc[2])
+
+    def test_meta_parser(self):
+        testhtml = u'''
+        <head>
+            <meta name="description" content="foo &amp; bar">
+            <meta content='Plato' name='author'/>
+        </head>
+        '''
+        get_meta = lambda name: get_meta_content(name, testhtml)
+        self.assertEqual(get_meta('description'), u'foo & bar')
+        self.assertEqual(get_meta('author'), 'Plato')
 
 if __name__ == '__main__':
     unittest.main()

@@ -35,6 +35,8 @@ class InfoExtractor(object):
     title:          Video title, unescaped.
     ext:            Video filename extension.
 
+    Instead of url and ext, formats can also specified.
+
     The following fields are optional:
 
     format:         The video format, defaults to ext (used for --get-format)
@@ -52,8 +54,19 @@ class InfoExtractor(object):
     view_count:     How many users have watched the video on the platform.
     urlhandle:      [internal] The urlHandle to be used to download the file,
                     like returned by urllib.request.urlopen
+    formats:        A list of dictionaries for each format available, it must
+                    be ordered from worst to best quality. Potential fields:
+                    * url       Mandatory. The URL of the video file
+                    * ext       Will be calculated from url if missing
+                    * format    A human-readable description of the format
+                                ("mp4 container with h264/opus").
+                                Calculated from width and height if missing.
+                    * format_id A short description of the format
+                                ("mp4_h264_opus" or "19")
+                    * width     Width of the video, if known
+                    * height    Height of the video, if known
 
-    The fields should all be Unicode strings.
+    Unless mentioned otherwise, the fields should be Unicode strings.
 
     Subclasses of this one should re-define the _real_initialize() and
     _real_extract() methods and define a _VALID_URL regexp.

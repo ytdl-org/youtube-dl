@@ -74,12 +74,16 @@ class YoutubeDL(object):
     writesubtitles:    Write the video subtitles to a file
     writeautomaticsub: Write the automatic subtitles to a file
     allsubtitles:      Downloads all the subtitles of the video
+                       (requires writesubtitles or writeautomaticsub)
     listsubtitles:     Lists all available subtitles for the video
     subtitlesformat:   Subtitle format [srt/sbv/vtt] (default=srt)
     subtitleslangs:    List of languages of the subtitles to download
     keepvideo:         Keep the video file after post-processing
     daterange:         A DateRange object, download only if the upload_date is in the range.
     skip_download:     Skip the actual download of the video file
+    cachedir:          Location of the cache files in the filesystem.
+                       None to disable filesystem cache.
+    noplaylist:        Download single video instead of a playlist if in doubt.
     
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:
@@ -103,6 +107,17 @@ class YoutubeDL(object):
         self._download_retcode = 0
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
+
+        if (sys.version_info >= (3,) and sys.platform != 'win32' and
+                sys.getfilesystemencoding() in ['ascii', 'ANSI_X3.4-1968']
+                and not params['restrictfilenames']):
+            # On Python 3, the Unicode filesystem API will throw errors (#1474)
+            self.report_warning(
+                u'Assuming --restrict-filenames isnce file system encoding '
+                u'cannot encode all charactes. '
+                u'Set the LC_ALL environment variable to fix this.')
+            params['restrictfilenames'] = True
+
         self.params = params
         self.fd = FileDownloader(self, self.params)
 
@@ -141,14 +156,10 @@ class YoutubeDL(object):
 
     def to_screen(self, message, skip_eol=False):
         """Print message to stdout if not in quiet mode."""
-        assert type(message) == type(u'')
         if not self.params.get('quiet', False):
             terminator = [u'\n', u''][skip_eol]
             output = message + terminator
-            if 'b' in getattr(self._screen_file, 'mode', '') or sys.version_info[0] < 3: # Python 2 lies about the mode of sys.stdout/sys.stderr
-                output = output.encode(preferredencoding(), 'ignore')
-            self._screen_file.write(output)
-            self._screen_file.flush()
+            write_string(output, self._screen_file)
 
     def to_stderr(self, message):
         """Print message to stderr."""
@@ -492,13 +503,14 @@ class YoutubeDL(object):
                 self.report_writedescription(descfn)
                 with io.open(encodeFilename(descfn), 'w', encoding='utf-8') as descfile:
                     descfile.write(info_dict['description'])
+            except (KeyError, TypeError):
+                self.report_warning(u'There\'s no description to write.')
             except (OSError, IOError):
                 self.report_error(u'Cannot write description file ' + descfn)
                 return
 
         subtitles_are_requested = any([self.params.get('writesubtitles', False),
-                                       self.params.get('writeautomaticsub'),
-                                       self.params.get('allsubtitles', False)])
+                                       self.params.get('writeautomaticsub')])
 
         if  subtitles_are_requested and 'subtitles' in info_dict and info_dict['subtitles']:
             # subtitles download errors are already managed as troubles in relevant IE
@@ -534,11 +546,15 @@ class YoutubeDL(object):
                 thumb_filename = filename.rpartition('.')[0] + u'.' + thumb_format
                 self.to_screen(u'[%s] %s: Downloading thumbnail ...' %
                                (info_dict['extractor'], info_dict['id']))
-                uf = compat_urllib_request.urlopen(info_dict['thumbnail'])
-                with open(thumb_filename, 'wb') as thumbf:
-                    shutil.copyfileobj(uf, thumbf)
-                self.to_screen(u'[%s] %s: Writing thumbnail to: %s' %
-                               (info_dict['extractor'], info_dict['id'], thumb_filename))
+                try:
+                    uf = compat_urllib_request.urlopen(info_dict['thumbnail'])
+                    with open(thumb_filename, 'wb') as thumbf:
+                        shutil.copyfileobj(uf, thumbf)
+                    self.to_screen(u'[%s] %s: Writing thumbnail to: %s' %
+                        (info_dict['extractor'], info_dict['id'], thumb_filename))
+                except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+                    self.report_warning(u'Unable to download thumbnail "%s": %s' %
+                        (info_dict['thumbnail'], compat_str(err)))
 
         if not self.params.get('skip_download', False):
             if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(filename)):
@@ -546,11 +562,11 @@ class YoutubeDL(object):
             else:
                 try:
                     success = self.fd._do_download(filename, info_dict)
-                except (OSError, IOError) as err:
-                    raise UnavailableVideoError(err)
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                     self.report_error(u'unable to download video data: %s' % str(err))
                     return
+                except (OSError, IOError) as err:
+                    raise UnavailableVideoError(err)
                 except (ContentTooShortError, ) as err:
                     self.report_error(u'content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
                     return

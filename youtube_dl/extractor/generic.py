@@ -29,17 +29,6 @@ class GenericIE(InfoExtractor):
                 u"title": u"R\u00e9gis plante sa Jeep"
             }
         },
-        {
-            u'url': u'http://www.8tv.cat/8aldia/videos/xavier-sala-i-martin-aquesta-tarda-a-8-al-dia/',
-            u'file': u'2371591881001.mp4',
-            u'md5': u'9e80619e0a94663f0bdc849b4566af19',
-            u'note': u'Test Brightcove downloads and detection in GenericIE',
-            u'info_dict': {
-                u'title': u'Xavier Sala i Martín: “Un banc que no presta és un banc zombi que no serveix per a res”',
-                u'uploader': u'8TV',
-                u'description': u'md5:a950cc4285c43e44d763d036710cd9cd',
-            }
-        },
     ]
 
     def report_download_webpage(self, video_id):
@@ -109,6 +98,11 @@ class GenericIE(InfoExtractor):
         return new_url
 
     def _real_extract(self, url):
+        parsed_url = compat_urlparse.urlparse(url)
+        if not parsed_url.scheme:
+            self._downloader.report_warning('The url doesn\'t specify the protocol, trying with http')
+            return self.url_result('http://' + url)
+
         try:
             new_url = self._test_redirect(url)
             if new_url:
@@ -153,7 +147,7 @@ class GenericIE(InfoExtractor):
                 mobj = re.search(r'<meta.*?property="og:video".*?content="(.*?)"', webpage)
         if mobj is None:
             # HTML5 video
-            mobj = re.search(r'<video[^<]*>.*?<source .*?src="([^"]+)"', webpage, flags=re.DOTALL)
+            mobj = re.search(r'<video[^<]*(?:>.*?<source.*?)? src="([^"]+)"', webpage, flags=re.DOTALL)
         if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
 
@@ -162,9 +156,9 @@ class GenericIE(InfoExtractor):
         if mobj.group(1) is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
 
-        video_url = compat_urllib_parse.unquote(mobj.group(1))
+        video_url = mobj.group(1)
         video_url = compat_urlparse.urljoin(url, video_url)
-        video_id = os.path.basename(video_url)
+        video_id = compat_urllib_parse.unquote(os.path.basename(video_url))
 
         # here's a fun little line of code for you:
         video_extension = os.path.splitext(video_id)[1][1:]

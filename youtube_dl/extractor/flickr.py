@@ -9,7 +9,7 @@ from ..utils import (
 
 class FlickrIE(InfoExtractor):
     """Information Extractor for Flickr videos"""
-    _VALID_URL = r'(?:https?://)?(?:www\.)?flickr\.com/photos/(?P<uploader_id>[\w\-_@]+)/(?P<id>\d+).*'
+    _VALID_URL = r'(?:https?://)?(?:www\.|secure\.)?flickr\.com/photos/(?P<uploader_id>[\w\-_@]+)/(?P<id>\d+).*'
     _TEST = {
         u'url': u'http://www.flickr.com/photos/forestwander-nature-pictures/5645318632/in/photostream/',
         u'file': u'5645318632.mp4',

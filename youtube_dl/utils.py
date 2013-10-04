@@ -67,6 +67,12 @@ except ImportError:  # Python 2
     from urllib2 import HTTPError as compat_HTTPError
 
 try:
+    from urllib.request import urlretrieve as compat_urlretrieve
+except ImportError:  # Python 2
+    from urllib import urlretrieve as compat_urlretrieve
+
+
+try:
     from subprocess import DEVNULL
     compat_subprocess_get_DEVNULL = lambda: DEVNULL
 except ImportError:
@@ -249,7 +255,17 @@ def htmlentity_transform(matchobj):
     return (u'&%s;' % entity)
 
 compat_html_parser.locatestarttagend = re.compile(r"""<[a-zA-Z][-.a-zA-Z0-9:_]*(?:\s+(?:(?<=['"\s])[^\s/>][^\s/=>]*(?:\s*=+\s*(?:'[^']*'|"[^"]*"|(?!['"])[^>\s]*))?\s*)*)?\s*""", re.VERBOSE) # backport bugfix
-class AttrParser(compat_html_parser.HTMLParser):
+class BaseHTMLParser(compat_html_parser.HTMLParser):
+    def __init(self):
+        compat_html_parser.HTMLParser.__init__(self)
+        self.html = None
+
+    def loads(self, html):
+        self.html = html
+        self.feed(html)
+        self.close()
+
+class AttrParser(BaseHTMLParser):
     """Modified HTMLParser that isolates a tag with the specified attribute"""
     def __init__(self, attribute, value):
         self.attribute = attribute
@@ -257,10 +273,9 @@ class AttrParser(compat_html_parser.HTMLParser):
         self.result = None
         self.started = False
         self.depth = {}
-        self.html = None
         self.watch_startpos = False
         self.error_count = 0
-        compat_html_parser.HTMLParser.__init__(self)
+        BaseHTMLParser.__init__(self)
 
     def error(self, message):
         if self.error_count > 10 or self.started:
@@ -268,11 +283,6 @@ class AttrParser(compat_html_parser.HTMLParser):
         self.rawdata = '\n'.join(self.html.split('\n')[self.getpos()[0]:]) # skip one line
         self.error_count += 1
         self.goahead(1)
-
-    def loads(self, html):
-        self.html = html
-        self.feed(html)
-        self.close()
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
@@ -328,6 +338,38 @@ def get_element_by_id(id, html):
 def get_element_by_attribute(attribute, value, html):
     """Return the content of the tag with the specified attribute in the passed HTML document"""
     parser = AttrParser(attribute, value)
+    try:
+        parser.loads(html)
+    except compat_html_parser.HTMLParseError:
+        pass
+    return parser.get_result()
+
+class MetaParser(BaseHTMLParser):
+    """
+    Modified HTMLParser that isolates a meta tag with the specified name 
+    attribute.
+    """
+    def __init__(self, name):
+        BaseHTMLParser.__init__(self)
+        self.name = name
+        self.content = None
+        self.result = None
+
+    def handle_starttag(self, tag, attrs):
+        if tag != 'meta':
+            return
+        attrs = dict(attrs)
+        if attrs.get('name') == self.name:
+            self.result = attrs.get('content')
+
+    def get_result(self):
+        return self.result
+
+def get_meta_content(name, html):
+    """
+    Return the content attribute from the meta tag with the given name attribute.
+    """
+    parser = MetaParser(name)
     try:
         parser.loads(html)
     except compat_html_parser.HTMLParseError:
@@ -664,7 +706,16 @@ def unified_strdate(date_str):
     date_str = date_str.replace(',',' ')
     # %z (UTC offset) is only supported in python>=3.2
     date_str = re.sub(r' (\+|-)[\d]*$', '', date_str)
-    format_expressions = ['%d %B %Y', '%B %d %Y', '%b %d %Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d %H:%M:%S', '%d.%m.%Y %H:%M']
+    format_expressions = [
+        '%d %B %Y',
+        '%B %d %Y',
+        '%b %d %Y',
+        '%Y-%m-%d',
+        '%d/%m/%Y',
+        '%Y/%m/%d %H:%M:%S',
+        '%d.%m.%Y %H:%M',
+        '%Y-%m-%dT%H:%M:%SZ',
+    ]
     for expression in format_expressions:
         try:
             upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')
@@ -745,6 +796,18 @@ def platform_name():
     return res
 
 
+def write_string(s, out=None):
+    if out is None:
+        out = sys.stderr
+    assert type(s) == type(u'')
+
+    if ('b' in getattr(out, 'mode', '') or
+            sys.version_info[0] < 3):  # Python 2 lies about mode of sys.stderr
+        s = s.encode(preferredencoding(), 'ignore')
+    out.write(s)
+    out.flush()
+
+
 def bytes_to_intlist(bs):
     if not bs:
         return []
@@ -761,3 +824,9 @@ def intlist_to_bytes(xs):
         return ''.join([chr(x) for x in xs])
     else:
         return bytes(xs)
+
+
+def get_cachedir(params={}):
+    cache_root = os.environ.get('XDG_CACHE_HOME',
+                                os.path.expanduser('~/.cache'))
+    return params.get('cachedir', os.path.join(cache_root, 'youtube-dl'))

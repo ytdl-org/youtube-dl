@@ -13,7 +13,7 @@ class IGNIE(InfoExtractor):
     Some videos of it.ign.com are also supported
     """
 
-    _VALID_URL = r'https?://.+?\.ign\.com/(?P<type>videos|show_videos|articles)(/.+)?/(?P<name_or_id>.+)'
+    _VALID_URL = r'https?://.+?\.ign\.com/(?P<type>videos|show_videos|articles|(?:[^/]*/feature))(/.+)?/(?P<name_or_id>.+)'
     IE_NAME = u'ign.com'
 
     _CONFIG_URL_TEMPLATE = 'http://www.ign.com/videos/configs/id/%s.config'
@@ -21,15 +21,39 @@ class IGNIE(InfoExtractor):
                        r'id="my_show_video">.*?<p>(.*?)</p>',
                        ]
 
-    _TEST = {
-        u'url': u'http://www.ign.com/videos/2013/06/05/the-last-of-us-review',
-        u'file': u'8f862beef863986b2785559b9e1aa599.mp4',
-        u'md5': u'eac8bdc1890980122c3b66f14bdd02e9',
-        u'info_dict': {
-            u'title': u'The Last of Us Review',
-            u'description': u'md5:c8946d4260a4d43a00d5ae8ed998870c',
-        }
-    }
+    _TESTS = [
+        {
+            u'url': u'http://www.ign.com/videos/2013/06/05/the-last-of-us-review',
+            u'file': u'8f862beef863986b2785559b9e1aa599.mp4',
+            u'md5': u'eac8bdc1890980122c3b66f14bdd02e9',
+            u'info_dict': {
+                u'title': u'The Last of Us Review',
+                u'description': u'md5:c8946d4260a4d43a00d5ae8ed998870c',
+            }
+        },
+        {
+            u'url': u'http://me.ign.com/en/feature/15775/100-little-things-in-gta-5-that-will-blow-your-mind',
+            u'playlist': [
+                {
+                    u'file': u'5ebbd138523268b93c9141af17bec937.mp4',
+                    u'info_dict': {
+                        u'title': u'GTA 5 Video Review',
+                        u'description': u'Rockstar drops the mic on this generation of games. Watch our review of the masterly Grand Theft Auto V.',
+                    },
+                },
+                {
+                    u'file': u'638672ee848ae4ff108df2a296418ee2.mp4',
+                    u'info_dict': {
+                        u'title': u'GTA 5\'s Twisted Beauty in Super Slow Motion',
+                        u'description': u'The twisted beauty of GTA 5 in stunning slow motion.',
+                    },
+                },
+            ],
+            u'params': {
+                u'skip_download': True,
+            },
+        },
+    ]
 
     def _find_video_id(self, webpage):
         res_id = [r'data-video-id="(.+?)"',
@@ -46,6 +70,13 @@ class IGNIE(InfoExtractor):
         if page_type == 'articles':
             video_url = self._search_regex(r'var videoUrl = "(.+?)"', webpage, u'video url')
             return self.url_result(video_url, ie='IGN')
+        elif page_type != 'video':
+            multiple_urls = re.findall(
+                '<param name="flashvars" value="[^"]*?url=(https?://www\.ign\.com/videos/.*?)["&]',
+                webpage)
+            if multiple_urls:
+                return [self.url_result(u, ie='IGN') for u in multiple_urls]
+
         video_id = self._find_video_id(webpage)
         result = self._get_video_info(video_id)
         description = self._html_search_regex(self._DESCRIPTION_RE,
@@ -86,6 +117,9 @@ class OneUPIE(IGNIE):
             u'description': u'md5:5d289b722f5a6d940ca3136e9dae89cf',
         }
     }
+
+    # Override IGN tests
+    _TESTS = []
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

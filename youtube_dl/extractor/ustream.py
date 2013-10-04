@@ -1,6 +1,11 @@
+import json
 import re
 
 from .common import InfoExtractor
+from ..utils import (
+    compat_urlparse,
+    get_meta_content,
+)
 
 
 class UstreamIE(InfoExtractor):
@@ -43,3 +48,25 @@ class UstreamIE(InfoExtractor):
                 'thumbnail': thumbnail,
                }
         return info
+
+class UstreamChannelIE(InfoExtractor):
+    _VALID_URL = r'https?://www\.ustream\.tv/channel/(?P<slug>.+)'
+    IE_NAME = u'ustream:channel'
+
+    def _real_extract(self, url):
+        m = re.match(self._VALID_URL, url)
+        slug = m.group('slug')
+        webpage = self._download_webpage(url, slug)
+        channel_id = get_meta_content('ustream:channel_id', webpage)
+
+        BASE = 'http://www.ustream.tv'
+        next_url = '/ajax/socialstream/videos/%s/1.json' % channel_id
+        video_ids = []
+        while next_url:
+            reply = json.loads(self._download_webpage(compat_urlparse.urljoin(BASE, next_url), channel_id))
+            video_ids.extend(re.findall(r'data-content-id="(\d.*)"', reply['data']))
+            next_url = reply['nextUrl']
+
+        urls = ['http://www.ustream.tv/recorded/' + vid for vid in video_ids]
+        url_entries = [self.url_result(eurl, 'Ustream') for eurl in urls]
+        return self.playlist_result(url_entries, channel_id)

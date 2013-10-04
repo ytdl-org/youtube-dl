@@ -28,6 +28,9 @@ __authors__  = (
     'Axel Noack',
     'Albert Kim',
     'Pierre Rudloff',
+    'Huarong Huo',
+    'Ismael Mejía',
+    'Steffan \'Ruirize\' James',
 )
 
 __license__ = 'Public Domain'
@@ -147,7 +150,7 @@ def parseOpts(overrideArguments=None):
     general.add_option('-U', '--update',
             action='store_true', dest='update_self', help='update this program to latest version. Make sure that you have sufficient permissions (run with sudo if needed)')
     general.add_option('-i', '--ignore-errors',
-            action='store_true', dest='ignoreerrors', help='continue on download errors', default=False)
+            action='store_true', dest='ignoreerrors', help='continue on download errors, for example to to skip unavailable videos in a playlist', default=False)
     general.add_option('--dump-user-agent',
             action='store_true', dest='dump_user_agent',
             help='display the current browser identification', default=False)
@@ -164,6 +167,12 @@ def parseOpts(overrideArguments=None):
             help='Output descriptions of all supported extractors', default=False)
     general.add_option('--proxy', dest='proxy', default=None, help='Use the specified HTTP/HTTPS proxy', metavar='URL')
     general.add_option('--no-check-certificate', action='store_true', dest='no_check_certificate', default=False, help='Suppress HTTPS certificate validation.')
+    general.add_option(
+        '--cache-dir', dest='cachedir', default=get_cachedir(),
+        help='Location in the filesystem where youtube-dl can store downloaded information permanently. By default $XDG_CACHE_HOME/youtube-dl or ~/.cache/youtube-dl .')
+    general.add_option(
+        '--no-cache-dir', action='store_const', const=None, dest='cachedir',
+        help='Disable filesystem caching')
 
 
     selection.add_option('--playlist-start',
@@ -178,6 +187,7 @@ def parseOpts(overrideArguments=None):
     selection.add_option('--date', metavar='DATE', dest='date', help='download only videos uploaded in this date', default=None)
     selection.add_option('--datebefore', metavar='DATE', dest='datebefore', help='download only videos uploaded before this date', default=None)
     selection.add_option('--dateafter', metavar='DATE', dest='dateafter', help='download only videos uploaded after this date', default=None)
+    selection.add_option('--no-playlist', action='store_true', dest='noplaylist', help='download only the currently playing video', default=False)
 
 
     authentication.add_option('-u', '--username',
@@ -192,7 +202,7 @@ def parseOpts(overrideArguments=None):
 
     video_format.add_option('-f', '--format',
             action='store', dest='format', metavar='FORMAT',
-            help='video format code, specifiy the order of preference using slashes: "-f 22/17/18"')
+            help='video format code, specifiy the order of preference using slashes: "-f 22/17/18". "-f mp4" and "-f flv" are also supported')
     video_format.add_option('--all-formats',
             action='store_const', dest='format', help='download all available video formats', const='all')
     video_format.add_option('--prefer-free-formats',
@@ -204,13 +214,10 @@ def parseOpts(overrideArguments=None):
 
     subtitles.add_option('--write-sub', '--write-srt',
             action='store_true', dest='writesubtitles',
-            help='write subtitle file (currently youtube only)', default=False)
+            help='write subtitle file', default=False)
     subtitles.add_option('--write-auto-sub', '--write-automatic-sub',
             action='store_true', dest='writeautomaticsub',
-            help='write automatic subtitle file (currently youtube only)', default=False)
-    subtitles.add_option('--only-sub',
-            action='store_true', dest='skip_download',
-            help='[deprecated] alias of --skip-download', default=False)
+            help='write automatic subtitle file (youtube only)', default=False)
     subtitles.add_option('--all-subs',
             action='store_true', dest='allsubtitles',
             help='downloads all the available subtitles of the video', default=False)
@@ -221,7 +228,7 @@ def parseOpts(overrideArguments=None):
             action='store', dest='subtitlesformat', metavar='FORMAT',
             help='subtitle format (default=srt) ([sbv/vtt] youtube only)', default='srt')
     subtitles.add_option('--sub-lang', '--sub-langs', '--srt-lang',
-            action='callback', dest='subtitleslang', metavar='LANGS', type='str',
+            action='callback', dest='subtitleslangs', metavar='LANGS', type='str',
             default=[], callback=_comma_separated_values_options_callback,
             help='languages of the subtitles to download (optional) separated by commas, use IETF language tags like \'en,pt\'')
 
@@ -272,6 +279,10 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option('--dump-intermediate-pages',
             action='store_true', dest='dump_intermediate_pages', default=False,
             help='print downloaded pages to debug problems(very verbose)')
+    verbosity.add_option('--youtube-print-sig-code',
+            action='store_true', dest='youtube_print_sig_code', default=False,
+            help=optparse.SUPPRESS_HELP)
+
 
     filesystem.add_option('-t', '--title',
             action='store_true', dest='usetitle', help='use title in file name (default)', default=False)
@@ -355,22 +366,26 @@ def parseOpts(overrideArguments=None):
     if overrideArguments is not None:
         opts, args = parser.parse_args(overrideArguments)
         if opts.verbose:
-            sys.stderr.write(u'[debug] Override config: ' + repr(overrideArguments) + '\n')
+            write_string(u'[debug] Override config: ' + repr(overrideArguments) + '\n')
     else:
         xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
         if xdg_config_home:
-            userConfFile = os.path.join(xdg_config_home, 'youtube-dl.conf')
+            userConfFile = os.path.join(xdg_config_home, 'youtube-dl', 'config')
+            if not os.path.isfile(userConfFile):
+                userConfFile = os.path.join(xdg_config_home, 'youtube-dl.conf')
         else:
-            userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
+            userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl', 'config')
+            if not os.path.isfile(userConfFile):
+                userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
         systemConf = _readOptions('/etc/youtube-dl.conf')
         userConf = _readOptions(userConfFile)
         commandLineConf = sys.argv[1:]
         argv = systemConf + userConf + commandLineConf
         opts, args = parser.parse_args(argv)
         if opts.verbose:
-            sys.stderr.write(u'[debug] System config: ' + repr(_hide_login_info(systemConf)) + '\n')
-            sys.stderr.write(u'[debug] User config: ' + repr(_hide_login_info(userConf)) + '\n')
-            sys.stderr.write(u'[debug] Command-line args: ' + repr(_hide_login_info(commandLineConf)) + '\n')
+            write_string(u'[debug] System config: ' + repr(_hide_login_info(systemConf)) + '\n')
+            write_string(u'[debug] User config: ' + repr(_hide_login_info(userConf)) + '\n')
+            write_string(u'[debug] Command-line args: ' + repr(_hide_login_info(commandLineConf)) + '\n')
 
     return parser, opts, args
 
@@ -397,7 +412,7 @@ def _real_main(argv=None):
         except (IOError, OSError) as err:
             if opts.verbose:
                 traceback.print_exc()
-            sys.stderr.write(u'ERROR: unable to open cookie file\n')
+            write_string(u'ERROR: unable to open cookie file\n')
             sys.exit(101)
     # Set user agent
     if opts.user_agent is not None:
@@ -424,7 +439,7 @@ def _real_main(argv=None):
             batchurls = [x.strip() for x in batchurls]
             batchurls = [x for x in batchurls if len(x) > 0 and not re.search(r'^[#/;]', x)]
             if opts.verbose:
-                sys.stderr.write(u'[debug] Batch file urls: ' + repr(batchurls) + u'\n')
+                write_string(u'[debug] Batch file urls: ' + repr(batchurls) + u'\n')
         except IOError:
             sys.exit(u'ERROR: batch file could not be read')
     all_urls = batchurls + args
@@ -538,6 +553,11 @@ def _real_main(argv=None):
     else:
         date = DateRange(opts.dateafter, opts.datebefore)
 
+    # --all-sub automatically sets --write-sub if --write-auto-sub is not given
+    # this was the old behaviour if only --all-sub was given.
+    if opts.allsubtitles and (opts.writeautomaticsub == False):
+        opts.writesubtitles = True
+
     if sys.version_info < (3,):
         # In Python 2, sys.argv is a bytestring (also note http://bugs.python.org/issue2128 for Windows systems)
         if opts.outtmpl is not None:
@@ -550,6 +570,10 @@ def _real_main(argv=None):
             or (opts.useid and u'%(id)s.%(ext)s')
             or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
             or u'%(title)s-%(id)s.%(ext)s')
+    if '%(ext)s' not in outtmpl and opts.extractaudio:
+        parser.error(u'Cannot download a video and extract audio into the same'
+                     u' file! Use "%%(ext)s" instead of %r' %
+                     determine_ext(outtmpl, u''))
 
     # YoutubeDL
     ydl = YoutubeDL({
@@ -584,6 +608,7 @@ def _real_main(argv=None):
         'progress_with_newline': opts.progress_with_newline,
         'playliststart': opts.playliststart,
         'playlistend': opts.playlistend,
+        'noplaylist': opts.noplaylist,
         'logtostderr': opts.outtmpl == '-',
         'consoletitle': opts.consoletitle,
         'nopart': opts.nopart,
@@ -596,7 +621,7 @@ def _real_main(argv=None):
         'allsubtitles': opts.allsubtitles,
         'listsubtitles': opts.listsubtitles,
         'subtitlesformat': opts.subtitlesformat,
-        'subtitleslangs': opts.subtitleslang,
+        'subtitleslangs': opts.subtitleslangs,
         'matchtitle': decodeOption(opts.matchtitle),
         'rejecttitle': decodeOption(opts.rejecttitle),
         'max_downloads': opts.max_downloads,
@@ -608,10 +633,12 @@ def _real_main(argv=None):
         'min_filesize': opts.min_filesize,
         'max_filesize': opts.max_filesize,
         'daterange': date,
+        'cachedir': opts.cachedir,
+        'youtube_print_sig_code': opts.youtube_print_sig_code,
         })
 
     if opts.verbose:
-        sys.stderr.write(u'[debug] youtube-dl version ' + __version__ + u'\n')
+        write_string(u'[debug] youtube-dl version ' + __version__ + u'\n')
         try:
             sp = subprocess.Popen(
                 ['git', 'rev-parse', '--short', 'HEAD'],
@@ -620,14 +647,14 @@ def _real_main(argv=None):
             out, err = sp.communicate()
             out = out.decode().strip()
             if re.match('[0-9a-f]+', out):
-                sys.stderr.write(u'[debug] Git HEAD: ' + out + u'\n')
+                write_string(u'[debug] Git HEAD: ' + out + u'\n')
         except:
             try:
                 sys.exc_clear()
             except:
                 pass
-        sys.stderr.write(u'[debug] Python version %s - %s' %(platform.python_version(), platform_name()) + u'\n')
-        sys.stderr.write(u'[debug] Proxy map: ' + str(proxy_handler.proxies) + u'\n')
+        write_string(u'[debug] Python version %s - %s' %(platform.python_version(), platform_name()) + u'\n')
+        write_string(u'[debug] Proxy map: ' + str(proxy_handler.proxies) + u'\n')
 
     ydl.add_default_info_extractors()
 
@@ -641,7 +668,7 @@ def _real_main(argv=None):
 
     # Update version
     if opts.update_self:
-        update_self(ydl.to_screen, opts.verbose, sys.argv[0])
+        update_self(ydl.to_screen, opts.verbose)
 
     # Maybe do nothing
     if len(all_urls) < 1:

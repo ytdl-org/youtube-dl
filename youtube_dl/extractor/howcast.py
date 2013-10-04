@@ -19,8 +19,7 @@ class HowcastIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
 
         video_id = mobj.group('id')
-        webpage_url = 'http://www.howcast.com/videos/' + video_id
-        webpage = self._download_webpage(webpage_url, video_id)
+        webpage = self._download_webpage(url, video_id)
 
         self.report_extraction(video_id)
 

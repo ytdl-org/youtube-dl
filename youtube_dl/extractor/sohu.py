@@ -8,7 +8,7 @@ from ..utils import ExtractorError
 
 
 class SohuIE(InfoExtractor):
-    _VALID_URL = r'https?://tv\.sohu\.com/\d+?/n(?P<id>\d+)\.shtml.*?'
+    _VALID_URL = r'https?://(?P<mytv>my\.)?tv\.sohu\.com/.+?/(?(mytv)|n)(?P<id>\d+)\.shtml.*?'
 
     _TEST = {
         u'url': u'http://tv.sohu.com/20130724/n382479172.shtml#super',
@@ -21,8 +21,11 @@ class SohuIE(InfoExtractor):
 
     def _real_extract(self, url):
 
-        def _fetch_data(vid_id):
-            base_data_url = u'http://hot.vrs.sohu.com/vrs_flash.action?vid='
+        def _fetch_data(vid_id, mytv=False):
+            if mytv:
+                base_data_url = 'http://my.tv.sohu.com/play/videonew.do?vid='
+            else:
+                base_data_url = u'http://hot.vrs.sohu.com/vrs_flash.action?vid='
             data_url = base_data_url + str(vid_id)
             data_json = self._download_webpage(
                 data_url, video_id,
@@ -31,15 +34,16 @@ class SohuIE(InfoExtractor):
 
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
+        mytv = mobj.group('mytv') is not None
 
         webpage = self._download_webpage(url, video_id)
         raw_title = self._html_search_regex(r'(?s)<title>(.+?)</title>',
                                             webpage, u'video title')
         title = raw_title.partition('-')[0].strip()
 
-        vid = self._html_search_regex(r'var vid="(\d+)"', webpage,
+        vid = self._html_search_regex(r'var vid ?= ?["\'](\d+)["\']', webpage,
                                       u'video path')
-        data = _fetch_data(vid)
+        data = _fetch_data(vid, mytv)
 
         QUALITIES = ('ori', 'super', 'high', 'nor')
         vid_ids = [data['data'][q + 'Vid']
@@ -51,7 +55,7 @@ class SohuIE(InfoExtractor):
         # For now, we just pick the highest available quality
         vid_id = vid_ids[-1]
 
-        format_data = data if vid == vid_id else _fetch_data(vid_id)
+        format_data = data if vid == vid_id else _fetch_data(vid_id, mytv)
         part_count = format_data['data']['totalBlocks']
         allot = format_data['allot']
         prot = format_data['prot']

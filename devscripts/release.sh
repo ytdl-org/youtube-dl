@@ -55,8 +55,8 @@ git push origin "$version"
 /bin/echo -e "\n### OK, now it is time to build the binaries..."
 REV=$(git rev-parse HEAD)
 make youtube-dl youtube-dl.tar.gz
-wget "http://jeromelaheurte.net:8142/download/rg3/youtube-dl/youtube-dl.exe?rev=$REV" -O youtube-dl.exe || \
-	wget "http://jeromelaheurte.net:8142/build/rg3/youtube-dl/youtube-dl.exe?rev=$REV" -O youtube-dl.exe
+read -p "VM running? (y/n) " -n 1
+wget "http://localhost:8142/build/rg3/youtube-dl/youtube-dl.exe?rev=$REV" -O youtube-dl.exe
 mkdir -p "build/$version"
 mv youtube-dl youtube-dl.exe "build/$version"
 mv youtube-dl.tar.gz "build/$version/youtube-dl-$version.tar.gz"
@@ -85,6 +85,7 @@ ROOT=$(pwd)
     "$ROOT/devscripts/gh-pages/sign-versions.py" < "$ROOT/updates_key.pem"
     "$ROOT/devscripts/gh-pages/generate-download.py"
     "$ROOT/devscripts/gh-pages/update-copyright.py"
+    "$ROOT/devscripts/gh-pages/update-sites.py"
     git add *.html *.html.in update
     git commit -m "release $version"
     git show HEAD

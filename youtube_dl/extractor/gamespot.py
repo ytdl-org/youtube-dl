@@ -14,7 +14,7 @@ class GameSpotIE(InfoExtractor):
         u"file": u"6410818.mp4",
         u"md5": u"b2a30deaa8654fcccd43713a6b6a4825",
         u"info_dict": {
-            u"title": u"Arma III - Community Guide: SITREP I",
+            u"title": u"Arma 3 - Community Guide: SITREP I",
             u"upload_date": u"20130627", 
         }
     }

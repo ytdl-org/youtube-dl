@@ -6,6 +6,7 @@ from .arte import ArteTvIE
 from .auengine import AUEngineIE
 from .bandcamp import BandcampIE
 from .bliptv import BlipTVIE, BlipTVUserIE
+from .bloomberg import BloombergIE
 from .breakcom import BreakIE
 from .brightcove import BrightcoveIE
 from .c56 import C56IE
@@ -17,16 +18,33 @@ from .comedycentral import ComedyCentralIE
 from .condenast import CondeNastIE
 from .criterion import CriterionIE
 from .cspan import CSpanIE
-from .dailymotion import DailymotionIE, DailymotionPlaylistIE
+from .dailymotion import (
+    DailymotionIE,
+    DailymotionPlaylistIE,
+    DailymotionUserIE,
+)
+from .daum import DaumIE
 from .depositfiles import DepositFilesIE
 from .dotsub import DotsubIE
 from .dreisat import DreiSatIE
+from .defense import DefenseGouvFrIE
+from .ebaumsworld import EbaumsWorldIE
 from .ehow import EHowIE
 from .eighttracks import EightTracksIE
 from .escapist import EscapistIE
 from .exfm import ExfmIE
 from .facebook import FacebookIE
+from .fktv import (
+    FKTVIE,
+    FKTVPosteckeIE,
+)
 from .flickr import FlickrIE
+from .francetv import (
+    PluzzIE,
+    FranceTvInfoIE,
+    France2IE,
+    GenerationQuoiIE
+)
 from .freesound import FreesoundIE
 from .funnyordie import FunnyOrDieIE
 from .gamespot import GameSpotIE
@@ -46,18 +64,22 @@ from .jeuxvideo import JeuxVideoIE
 from .jukebox import JukeboxIE
 from .justintv import JustinTVIE
 from .kankan import KankanIE
+from .kickstarter import KickStarterIE
 from .keek import KeekIE
 from .liveleak import LiveLeakIE
 from .livestream import LivestreamIE
 from .metacafe import MetacafeIE
+from .metacritic import MetacriticIE
 from .mit import TechTVMITIE, MITIE
 from .mixcloud import MixcloudIE
 from .mtv import MTVIE
 from .muzu import MuzuTVIE
 from .myspass import MySpassIE
 from .myvideo import MyVideoIE
+from .naver import NaverIE
 from .nba import NBAIE
 from .nbc import NBCNewsIE
+from .newgrounds import NewgroundsIE
 from .ooyala import OoyalaIE
 from .orf import ORFIE
 from .pbs import PBSIE
@@ -71,8 +93,10 @@ from .roxwel import RoxwelIE
 from .rtlnow import RTLnowIE
 from .sina import SinaIE
 from .slashdot import SlashdotIE
+from .slideshare import SlideshareIE
 from .sohu import SohuIE
-from .soundcloud import SoundcloudIE, SoundcloudSetIE
+from .soundcloud import SoundcloudIE, SoundcloudSetIE, SoundcloudUserIE
+from .southparkstudios import SouthParkStudiosIE
 from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
 from .statigram import StatigramIE
@@ -87,10 +111,12 @@ from .tudou import TudouIE
 from .tumblr import TumblrIE
 from .tutv import TutvIE
 from .unistra import UnistraIE
-from .ustream import UstreamIE
+from .ustream import UstreamIE, UstreamChannelIE
 from .vbox7 import Vbox7IE
+from .veehd import VeeHDIE
 from .veoh import VeohIE
 from .vevo import VevoIE
+from .vice import ViceIE
 from .videofyme import VideofyMeIE
 from .vimeo import VimeoIE, VimeoChannelIE
 from .vine import VineIE

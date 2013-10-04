@@ -19,7 +19,8 @@ which means you can modify it, redistribute it or use it however you like.
     -U, --update               update this program to latest version. Make sure
                                that you have sufficient permissions (run with
                                sudo if needed)
-    -i, --ignore-errors        continue on download errors
+    -i, --ignore-errors        continue on download errors, for example to to
+                               skip unavailable videos in a playlist
     --dump-user-agent          display the current browser identification
     --user-agent UA            specify a custom user agent
     --referer REF              specify a custom referer, use if the video access
@@ -29,6 +30,11 @@ which means you can modify it, redistribute it or use it however you like.
     --extractor-descriptions   Output descriptions of all supported extractors
     --proxy URL                Use the specified HTTP/HTTPS proxy
     --no-check-certificate     Suppress HTTPS certificate validation.
+    --cache-dir None           Location in the filesystem where youtube-dl can
+                               store downloaded information permanently. By
+                               default $XDG_CACHE_HOME/youtube-dl or ~/.cache
+                               /youtube-dl .
+    --no-cache-dir             Disable filesystem caching
 
 ## Video Selection:
     --playlist-start NUMBER    playlist video to start at (default is 1)
@@ -45,6 +51,7 @@ which means you can modify it, redistribute it or use it however you like.
     --date DATE                download only videos uploaded in this date
     --datebefore DATE          download only videos uploaded before this date
     --dateafter DATE           download only videos uploaded after this date
+    --no-playlist              download only the currently playing video
 
 ## Download Options:
     -r, --rate-limit LIMIT     maximum download rate (e.g. 50k or 44.6m)
@@ -113,7 +120,8 @@ which means you can modify it, redistribute it or use it however you like.
 
 ## Video Format Options:
     -f, --format FORMAT        video format code, specifiy the order of
-                               preference using slashes: "-f 22/17/18"
+                               preference using slashes: "-f 22/17/18". "-f mp4"
+                               and "-f flv" are also supported
     --all-formats              download all available video formats
     --prefer-free-formats      prefer free video formats unless a specific one
                                is requested
@@ -122,10 +130,8 @@ which means you can modify it, redistribute it or use it however you like.
                                only)
 
 ## Subtitle Options:
-    --write-sub                write subtitle file (currently youtube only)
-    --write-auto-sub           write automatic subtitle file (currently youtube
-                               only)
-    --only-sub                 [deprecated] alias of --skip-download
+    --write-sub                write subtitle file
+    --write-auto-sub           write automatic subtitle file (youtube only)
     --all-subs                 downloads all the available subtitles of the
                                video
     --list-subs                lists all available subtitles for the video

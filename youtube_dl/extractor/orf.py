@@ -14,19 +14,6 @@ from ..utils import (
 class ORFIE(InfoExtractor):
     _VALID_URL = r'https?://tvthek.orf.at/(programs/.+?/episodes|topics/.+?)/(?P<id>\d+)'
 
-    _TEST = {
-        u'url': u'http://tvthek.orf.at/programs/1171769-Wetter-ZIB/episodes/6557323-Wetter',
-        u'file': u'6566957.flv',
-        u'info_dict': {
-            u'title': u'Wetter',
-            u'description': u'Christa Kummer, Marcus Wadsak und Kollegen  präsentieren abwechselnd ihre täglichen Wetterprognosen für Österreich.\r \r Mehr Wetter unter wetter.ORF.at',
-        },
-        u'params': {
-            # It uses rtmp
-            u'skip_download': True,
-        }
-    }
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         playlist_id = mobj.group('id')
