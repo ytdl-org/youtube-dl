@@ -12,7 +12,7 @@ class JeuxVideoIE(InfoExtractor):
     _TEST = {
         u'url': u'http://www.jeuxvideo.com/reportages-videos-jeux/0004/00046170/tearaway-playstation-vita-gc-2013-tearaway-nous-presente-ses-papiers-d-identite-00115182.htm',
         u'file': u'5182.mp4',
-        u'md5': u'e0fdb0cd3ce98713ef9c1e1e025779d0',
+        u'md5': u'046e491afb32a8aaac1f44dd4ddd54ee',
         u'info_dict': {
             u'title': u'GC 2013 : Tearaway nous présente ses papiers d\'identité',
             u'description': u'Lorsque les développeurs de LittleBigPlanet proposent un nouveau titre, on ne peut que s\'attendre à un résultat original et fort attrayant.\n',
