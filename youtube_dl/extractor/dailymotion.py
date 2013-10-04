@@ -10,6 +10,7 @@ from ..utils import (
     compat_str,
     get_element_by_attribute,
     get_element_by_id,
+    orderedSet,
 
     ExtractorError,
 )
@@ -158,12 +159,12 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
                                              id, u'Downloading page %s' % pagenum)
 
             playlist_el = get_element_by_attribute(u'class', u'video_list', webpage)
-            video_ids.extend(re.findall(r'data-id="(.+?)" data-ext-id', playlist_el))
+            video_ids.extend(re.findall(r'data-id="(.+?)"', playlist_el))
 
             if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
                 break
         return [self.url_result('http://www.dailymotion.com/video/%s' % video_id, 'Dailymotion')
-                   for video_id in video_ids]
+                   for video_id in orderedSet(video_ids)]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
