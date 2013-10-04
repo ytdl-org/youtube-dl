@@ -54,23 +54,26 @@ class MTVIE(InfoExtractor):
     def _get_thumbnail_url(self, uri, itemdoc):
         return 'http://mtv.mtvnimages.com/uri/' + uri
 
-    def _extract_video_url(self, metadataXml):
+    def _extract_video_formats(self, metadataXml):
         if '/error_country_block.swf' in metadataXml:
             raise ExtractorError(u'This video is not available from your country.', expected=True)
         mdoc = xml.etree.ElementTree.fromstring(metadataXml.encode('utf-8'))
         renditions = mdoc.findall('.//rendition')
 
-        # For now, always pick the highest quality.
-        rendition = renditions[-1]
-
-        try:
-            _,_,ext = rendition.attrib['type'].partition('/')
-            format = ext + '-' + rendition.attrib['width'] + 'x' + rendition.attrib['height'] + '_' + rendition.attrib['bitrate']
-            rtmp_video_url = rendition.find('./src').text
-        except KeyError:
-            raise ExtractorError('Invalid rendition field.')
-        video_url = self._transform_rtmp_url(rtmp_video_url)
-        return {'ext': ext, 'url': video_url, 'format': format}
+        formats = []
+        for rendition in mdoc.findall('.//rendition'):
+            try:
+                _, _, ext = rendition.attrib['type'].partition('/')
+                rtmp_video_url = rendition.find('./src').text
+                formats.append({'ext': ext,
+                                'url': self._transform_rtmp_url(rtmp_video_url),
+                                'format_id': rendition.get('bitrate'),
+                                'width': int(rendition.get('width')),
+                                'height': int(rendition.get('height')),
+                                })
+            except (KeyError, TypeError):
+                raise ExtractorError('Invalid rendition field.')
+        return formats
 
     def _get_video_info(self, itemdoc):
         uri = itemdoc.find('guid').text
@@ -81,19 +84,25 @@ class MTVIE(InfoExtractor):
             mediagen_url += '&acceptMethods=fms'
         mediagen_page = self._download_webpage(mediagen_url, video_id,
                                                u'Downloading video urls')
-        video_info = self._extract_video_url(mediagen_page)
 
         description_node = itemdoc.find('description')
         if description_node is not None:
             description = description_node.text
         else:
             description = None
-        video_info.update({'title': itemdoc.find('title').text,
-                           'id': video_id,
-                           'thumbnail': self._get_thumbnail_url(uri, itemdoc),
-                           'description': description,
-                           })
-        return video_info
+
+        info = {
+            'title': itemdoc.find('title').text,
+            'formats': self._extract_video_formats(mediagen_page),
+            'id': video_id,
+            'thumbnail': self._get_thumbnail_url(uri, itemdoc),
+            'description': description,
+        }
+
+        # TODO: Remove when #980 has been merged
+        info.update(info['formats'][-1])
+
+        return info
 
     def _get_videos_info(self, uri):
         video_id = self._id_from_uri(uri)
