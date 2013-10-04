@@ -22,6 +22,10 @@ class YahooIE(InfoExtractor):
                 u'title': u'Julian Smith & Travis Legg Watch Julian Smith',
                 u'description': u'Julian and Travis watch Julian Smith',
             },
+            u'params': {
+                # Requires rtmpdump
+                u'skip_download': True,
+            },
         },
         {
             u'url': u'http://screen.yahoo.com/wired/codefellas-s1-ep12-cougar-lies-103000935.html',
