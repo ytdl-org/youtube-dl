@@ -103,7 +103,7 @@ class France2IE(FranceTVBaseInfoExtractor):
 
 
 class GenerationQuoiIE(InfoExtractor):
-    IE_NAME = u'http://generation-quoi.france2.fr'
+    IE_NAME = u'france2.fr:generation-quoi'
     _VALID_URL = r'https?://generation-quoi\.france2\.fr/portrait/(?P<name>.*)(\?|$)'
 
     _TEST = {
