@@ -2,8 +2,6 @@
 
 import sys
 import unittest
-import json
-import io
 import hashlib
 
 # Allow direct execution
@@ -56,6 +54,7 @@ class TestYoutubeSubtitles(unittest.TestCase):
         subtitles = self.getSubtitles()
         self.assertEqual(md5(subtitles['en']), '356cdc577fde0c6783b9b822e7206ff7')
     def test_youtube_list_subtitles(self):
+        self.DL.expect_warning(u'Video doesn\'t have automatic captions')
         self.DL.params['listsubtitles'] = True
         info_dict = self.getInfoDict()
         self.assertEqual(info_dict, None)
@@ -66,6 +65,7 @@ class TestYoutubeSubtitles(unittest.TestCase):
         subtitles = self.getSubtitles()
         self.assertTrue(subtitles['it'] is not None)
     def test_youtube_nosubtitles(self):
+        self.DL.expect_warning(u'video doesn\'t have subtitles')
         self.url = 'sAjKT8FhjI8'
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True

@@ -2,8 +2,6 @@
 
 import sys
 import unittest
-import json
-import io
 import hashlib
 
 # Allow direct execution
@@ -45,15 +43,18 @@ class TestDailymotionSubtitles(unittest.TestCase):
         subtitles = self.getSubtitles()
         self.assertEqual(len(subtitles.keys()), 5)
     def test_list_subtitles(self):
+        self.DL.expect_warning(u'Automatic Captions not supported by this server')
         self.DL.params['listsubtitles'] = True
         info_dict = self.getInfoDict()
         self.assertEqual(info_dict, None)
     def test_automatic_captions(self):
+        self.DL.expect_warning(u'Automatic Captions not supported by this server')
         self.DL.params['writeautomaticsub'] = True
         self.DL.params['subtitleslang'] = ['en']
         subtitles = self.getSubtitles()
         self.assertTrue(len(subtitles.keys()) == 0)
     def test_nosubtitles(self):
+        self.DL.expect_warning(u'video doesn\'t have subtitles')
         self.url = 'http://www.dailymotion.com/video/x12u166_le-zapping-tele-star-du-08-aout-2013_tv'
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
