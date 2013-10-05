@@ -14,7 +14,7 @@ class CinemassacreIE(InfoExtractor):
         u'info_dict': {
             u'upload_date': u'20121110', 
             u'title': u'“Angry Video Game Nerd: The Movie” – Trailer',
-            #u'description': u'“Angry Video Game Nerd: The Movie” is...', # Description is too long
+            u'description': u'md5:fb87405fcb42a331742a0dce2708560b',
         },
         u'params': {
             u'skip_download': True,
