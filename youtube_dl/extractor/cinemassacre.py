@@ -20,6 +20,17 @@ class CinemassacreIE(InfoExtractor):
         u'params': {
             u'skip_download': True,
         },
+    },
+    {
+        u'url': u'http://cinemassacre.com/2013/10/02/the-mummys-hand-1940',
+        u'file': u'521be8ef82b16.mp4',
+        u'info_dict': {
+            u'upload_date': u'20131002', 
+            u'title': u'The Mummy’s Hand (1940)',
+        },
+        u'params': {
+            u'skip_download': True,
+        },
     }]
 
     def _real_extract(self,url):
@@ -28,19 +39,24 @@ class CinemassacreIE(InfoExtractor):
         webpage_url = u'http://' + mobj.group('url')
         webpage = self._download_webpage(webpage_url, None) # Don't know video id yet
         video_date = mobj.group('date_Y') + mobj.group('date_m') + mobj.group('date_d')
-        video_id = self._html_search_regex(r'src="http://player\.screenwavemedia\.com/play/embed\.php\?id=(?P<video_id>.+?)"',
-            webpage, u'video_id')
-        video_title = self._html_search_regex(r'<h1 class="entry-title">(?P<title>.+?)</h1>[^<]*</div>',
+        mobj = re.search(r'src="(?P<embed_url>http://player\.screenwavemedia\.com/play/(?:embed|player)\.php\?id=(?:Cinemassacre-)?(?P<video_id>.+?))"', webpage)
+        if not mobj:
+            raise ExtractorError(u'Can\'t extract embed url and video id')
+        playerdata_url = mobj.group(u'embed_url')
+        video_id = mobj.group(u'video_id')
+
+        video_title = self._html_search_regex(r'<title>(?P<title>.+?)\|',
             webpage, u'title')
         video_description = self._html_search_regex(r'<div class="entry-content">(?P<description>.+?)</div>',
             webpage, u'description', flags=re.DOTALL, fatal=False)
+        if len(video_description) == 0:
+            video_description = None
         
-        playerdata_url = u'http://player.screenwavemedia.com/play/player.php?id=' + video_id
         playerdata = self._download_webpage(playerdata_url, video_id)
-        base_url = self._html_search_regex(r'\'streamer\': \'(?P<base_url>rtmp://[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})/vod\'',
+        base_url = self._html_search_regex(r'\'streamer\': \'(?P<base_url>rtmp://[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})/(?:vod|Cinemassacre)\'',
             playerdata, u'base_url')
         base_url += '/Cinemassacre/'
-         # The file names in playerdata are wrong for some videos???
+         # Important: The file names in playerdata are not used by the player and even wrong for some videos
         sd_file = 'Cinemassacre-%s_high.mp4' % video_id
         hd_file = 'Cinemassacre-%s.mp4' % video_id
         video_thumbnail = 'http://image.screenwavemedia.com/Cinemassacre/Cinemassacre-%s_thumb_640x360.jpg' % video_id
