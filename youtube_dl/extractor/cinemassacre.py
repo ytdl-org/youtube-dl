@@ -7,7 +7,6 @@ from ..utils import (
 )
 
 class CinemassacreIE(InfoExtractor):
-    """Information Extractor for Cinemassacre"""
     _VALID_URL = r'(?:http://)?(?:www\.)?(?P<url>cinemassacre\.com/(?P<date_Y>[0-9]{4})/(?P<date_m>[0-9]{2})/(?P<date_d>[0-9]{2})/.+?)(?:[/?].*)?'
     _TESTS = [{
         u'url': u'http://cinemassacre.com/2012/11/10/avgn-the-movie-trailer/',
