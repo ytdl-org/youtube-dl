@@ -34,12 +34,6 @@ class FakeYDL(YoutubeDL):
         raise Exception(s)
     def download(self, x):
         self.result.append(x)
-    # def expect_warning(self, regex):
-    #     # Silence an expected warning matching a regex
-    #     def report_warning(self, message):
-    #         if re.match(regex, message): return
-    #         super(FakeYDL, self).report_warning(regex)
-    #     self.report_warning = types.MethodType(report_warning, self)
     def expect_warning(self, regex):
         # Silence an expected warning matching a regex
         old_report_warning = self.report_warning
