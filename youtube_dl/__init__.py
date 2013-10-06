@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 Usage:
-  youtube-dl [--help] [--version] [--update] [--ignore-errors]
-             [--dump-user-agent] [--user-agent UA] [--referer REF]
-             [--list-extractors] [--extractor-descriptions] [--proxy URL]
+  youtube-dl (--help | --version)
+  youtube-dl URL ... [--update] [--ignore-errors] [--dump-user-agent]
+             [--user-agent UA] [--referer REF] [--list-extractors]
+             [--extractor-descriptions] [--proxy URL]
              [--no-check-certificate] [--cache-dir] [--no-cache-dir]
              [--playlist-start NUMBER] [--playlist-end NUMBER]
              [--match-title REGEX] [--reject-title REGEX]
@@ -12,7 +13,7 @@ Usage:
              [--max-filesize SIZE] [--date DATE] [--datebefore DATE]
              [--dateafter DATE] [--no-playlist] [--rate-limit LIMIT]
              [--retries RETRIES] [--buffer-size SIZE] [--no-resize-buffer]
-             [[--title --literal | --id] --auto-number | --output TEMPLATE]
+             [--title] [--id] [--auto-number] [--output TEMPLATE]
              [--autonumber-size NUMBER] [--restrict-filenames]
              [--batch-file FILE] [--no-overwrites] [--continue | --no-continue]
              [--cookies FILE] [--no-part] [--no-mtime] [--write-description]
@@ -20,25 +21,24 @@ Usage:
              [--skip-download] [--get-url] [--get-title] [--get-id]
              [--get-thumbnail] [--get-description] [--get-filename]
              [--get-format] [--newline] [--no-progress] [--console-title]
-             [--verbose] [--dump-intermediate-pages] [--format FORMAT]
-             [--all-formats] [--prefer-free-formats] [--max-quality FORMAT]
+             [--verbose] [--dump-intermediate-pages] [--format FORMAT ]
+             [--all-formats] [--prefer-free-formats] [--max-quality FORMAT ]
              [--list-formats] [--write-sub] [--write-auto-sub] [--all-subs]
-             [--list-subs] [--sub-format FORMAT] [--sub-langs LANGS ...]
+             [--list-subs] [--sub-format FORMAT] [--sub-langs LANGS]
              [--username USERNAME --password PASSWORD | --netrc]
              [--video-password PASSWORD] [--extract-audio]
              [--audio-format FORMAT] [--audio-quality QUALITY]
              [--recode-video FORMAT] [--keep-video] [--no-post-overwrites]
              [--embed-subs]
-             URL [url ...]
 
 Options:
   General Options:
-    -h, --help                 print this help text and exit
+    -h --help                  print this help text and exit
     --version                  print program version and exit
-    -U, --update               update this program to latest version. Make sure
+    -U --update                update this program to latest version. Make sure
                                that you have sufficient permissions (run with
                                sudo if needed)
-    -i, --ignore-errors        continue on download errors, for example to to
+    -i --ignore-errors         continue on download errors, for example to to
                                skip unavailable videos in a playlist
     --dump-user-agent          display the current browser identification
     --user-agent UA            specify a custom user agent
@@ -49,7 +49,7 @@ Options:
     --extractor-descriptions   Output descriptions of all supported extractors
     --proxy URL                Use the specified HTTP/HTTPS proxy
     --no-check-certificate     Suppress HTTPS certificate validation.
-    --cache-dir None           Location in the filesystem where youtube-dl can
+    --cache-dir                Location in the filesystem where youtube-dl can
                                store downloaded information permanently. By
                                default $XDG_CACHE_HOME/youtube-dl or ~/.cache
                                /youtube-dl .
@@ -74,8 +74,8 @@ Options:
     --no-playlist              download only the currently playing video
 
   Download Options:
-    -r, --rate-limit LIMIT     maximum download rate (e.g. 50k or 44.6m)
-    -R, --retries RETRIES      number of retries [default: 10]
+    -r --rate-limit LIMIT      maximum download rate (e.g. 50k or 44.6m)
+    -R --retries RETRIES       number of retries [default: 10]
     --buffer-size SIZE         size of download buffer (e.g. 1024 or 16k)
                                [default: 1024]
     --no-resize-buffer         do not automatically adjust the buffer size. By
@@ -83,11 +83,10 @@ Options:
                                from an initial value of SIZE.
 
   Filesystem Options:
-    -t, --title                use title in file name (default)
+    -t --title                 use title in file name (default)
     --id                       use only video ID in file name
-    -l, --literal              [deprecated] alias of --title
-    -A, --auto-number          number downloaded files starting from 00000
-    -o, --output TEMPLATE      output filename template. Use %(title)s to get
+    -A --auto-number           number downloaded files starting from 00000
+    -o --output TEMPLATE       output filename template. Use %(title)s to get
                                the title, %(uploader)s for the uploader name,
                                %(uploader_id)s for the uploader nickname if
                                different, %(autonumber)s to get an automatically
@@ -106,9 +105,9 @@ Options:
                                --autonumber option is given
     --restrict-filenames       Restrict filenames to only ASCII characters, and
                                avoid "&" and spaces in filenames
-    -a, --batch-file FILE      file containing URLs to download ('-' for stdin)
-    -w, --no-overwrites        do not overwrite files
-    -c, --continue             resume partially downloaded files
+    -a --batch-file FILE       file containing URLs to download ('-' for stdin)
+    -w --no-overwrites         do not overwrite files
+    -c --continue              resume partially downloaded files
     --no-continue              do not resume partially downloaded files (restart
                                from beginning)
     --cookies FILE             file to read cookies from and dump cookie jar in
@@ -120,12 +119,12 @@ Options:
     --write-thumbnail          write thumbnail image to disk
 
   Verbosity / Simulation Options:
-    -q, --quiet                activates quiet mode
-    -s, --simulate             do not download the video and do not write
+    -q --quiet                 activates quiet mode
+    -s --simulate              do not download the video and do not write
                                anything to disk
     --skip-download            do not download the video
-    -g, --get-url              simulate, quiet but print URL
-    -e, --get-title            simulate, quiet but print title
+    -g  --get-url              simulate, quiet but print URL
+    -e --get-title             simulate, quiet but print title
     --get-id                   simulate, quiet but print id
     --get-thumbnail            simulate, quiet but print thumbnail URL
     --get-description          simulate, quiet but print video description
@@ -134,19 +133,19 @@ Options:
     --newline                  output progress bar as new lines
     --no-progress              do not print progress bar
     --console-title            display progress in console titlebar
-    -v, --verbose              print various debugging information
+    -v --verbose               print various debugging information
     --dump-intermediate-pages  print downloaded pages to debug problems(very
                                verbose)
 
   Video Format Options:
-    -f, --format FORMAT        video format code, specifiy the order of
+    -f --format FORMAT         video format code, specifiy the order of
                                preference using slashes: "-f 22/17/18". "-f mp4"
                                and "-f flv" are also supported
     --all-formats              download all available video formats
     --prefer-free-formats      prefer free video formats unless a specific one
                                is requested
     --max-quality FORMAT       highest quality format to download
-    -F, --list-formats         list all available formats (currently youtube
+    -F --list-formats          list all available formats (currently youtube
                                only)
 
   Subtitle Options:
@@ -162,13 +161,13 @@ Options:
                                'en,pt'
 
   Authentication Options:
-    -u, --username USERNAME    account username
-    -p, --password PASSWORD    account password
-    -n, --netrc                use .netrc authentication data
+    -u --username USERNAME     account username
+    -p --password PASSWORD     account password
+    -n --netrc                 use .netrc authentication data
     --video-password PASSWORD  video password (vimeo only)
 
   Post-processing Options:
-    -x, --extract-audio        convert video files to audio-only files (requires
+    -x --extract-audio         convert video files to audio-only files (requires
                                ffmpeg or avconv and ffprobe or avprobe)
     --audio-format FORMAT      "best", "aac", "vorbis", "mp3", "m4a", "opus", or
                                "wav"; [default: best]
@@ -177,7 +176,7 @@ Options:
                                or a specific bitrate like 128K [default: 5]
     --recode-video FORMAT      Encode the video to another format if necessary
                                (currently supported: mp4|flv|ogg|webm)
-    -k, --keep-video           keeps the video file on disk after the post-
+    -k --keep-video            keeps the video file on disk after the post-
                                processing; the video is erased by default
     --no-post-overwrites       do not overwrite post-processed files; the post-
                                processed files are overwritten by default
@@ -244,333 +243,14 @@ from .PostProcessor import *
 class OptionsError(Exception):
     pass
 
-def parseOpts(overrideArguments=None):
-    def _readOptions(filename_bytes):
-        try:
-            optionf = open(filename_bytes)
-        except IOError:
-            return [] # silently skip if file is not present
-        try:
-            res = []
-            for l in optionf:
-                res += shlex.split(l, comments=True)
-        finally:
-            optionf.close()
-        return res
-
-    def _format_option_string(option):
-        ''' ('-o', '--option') -> -o, --format METAVAR'''
-
-        opts = []
-
-        if option._short_opts:
-            opts.append(option._short_opts[0])
-        if option._long_opts:
-            opts.append(option._long_opts[0])
-        if len(opts) > 1:
-            opts.insert(1, ', ')
-
-        if option.takes_value(): opts.append(' %s' % option.metavar)
-
-        return "".join(opts)
-
-    def _comma_separated_values_options_callback(option, opt_str, value, parser):
-        setattr(parser.values, option.dest, value.split(','))
-
-    def _find_term_columns():
-        columns = os.environ.get('COLUMNS', None)
-        if columns:
-            return int(columns)
-
-        try:
-            sp = subprocess.Popen(['stty', 'size'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            out,err = sp.communicate()
-            return int(out.split()[1])
-        except:
-            pass
-        return None
-
-    def _hide_login_info(opts):
-        opts = list(opts)
-        for private_opt in ['-p', '--password', '-u', '--username']:
-            try:
-                i = opts.index(private_opt)
-                opts[i+1] = '<PRIVATE>'
-            except ValueError:
-                pass
-        return opts
-
-    max_width = 80
-    max_help_position = 80
-
-    # No need to wrap help messages if we're on a wide console
-    columns = _find_term_columns()
-    if columns: max_width = columns
-
-    fmt = optparse.IndentedHelpFormatter(width=max_width, max_help_position=max_help_position)
-    fmt.format_option_strings = _format_option_string
-
-    kw = {
-        'version'   : __version__,
-        'formatter' : fmt,
-        'usage' : '%prog [options] url [url...]',
-        'conflict_handler' : 'resolve',
-    }
-
-    parser = optparse.OptionParser(**kw)
-
-    # option groups
-    general        = optparse.OptionGroup(parser, 'General Options')
-    selection      = optparse.OptionGroup(parser, 'Video Selection')
-    authentication = optparse.OptionGroup(parser, 'Authentication Options')
-    video_format   = optparse.OptionGroup(parser, 'Video Format Options')
-    subtitles      = optparse.OptionGroup(parser, 'Subtitle Options')
-    downloader     = optparse.OptionGroup(parser, 'Download Options')
-    postproc       = optparse.OptionGroup(parser, 'Post-processing Options')
-    filesystem     = optparse.OptionGroup(parser, 'Filesystem Options')
-    verbosity      = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
-
-    #general.add_option('-h', '--help',
-    #        action='help', help='print this help text and exit')
-    #general.add_option('-v', '--version',
-    #        action='version', help='print program version and exit')
-    #general.add_option('-U', '--update',
-    #        action='store_true', dest='update_self', help='update this program to latest version. Make sure that you have sufficient permissions (run with sudo if needed)')
-    #general.add_option('-i', '--ignore-errors',
-    #        action='store_true', dest='ignoreerrors', help='continue on download errors', default=False)
-    #general.add_option('--dump-user-agent',
-    #        action='store_true', dest='dump_user_agent',
-    #        help='display the current browser identification', default=False)
-    #general.add_option('--user-agent',
-    #        dest='user_agent', help='specify a custom user agent', metavar='UA')
-    #general.add_option('--referer',
-    #        dest='referer', help='specify a custom referer, use if the video access is restricted to one domain',
-    #        metavar='REF', default=None)
-    #general.add_option('--list-extractors',
-    #        action='store_true', dest='list_extractors',
-    #        help='List all supported extractors and the URLs they would handle', default=False)
-    #general.add_option('--extractor-descriptions',
-    #        action='store_true', dest='list_extractor_descriptions',
-    #        help='Output descriptions of all supported extractors', default=False)
-    #general.add_option('--proxy', dest='proxy', default=None, help='Use the specified HTTP/HTTPS proxy', metavar='URL')
-    #general.add_option('--no-check-certificate', action='store_true', dest='no_check_certificate', default=False, help='Suppress HTTPS certificate validation.')
-
-
-    #selection.add_option('--playlist-start',
-    #        dest='playliststart', metavar='NUMBER', help='playlist video to start at (default is %default)', default=1)
-    #selection.add_option('--playlist-end',
-    #        dest='playlistend', metavar='NUMBER', help='playlist video to end at (default is last)', default=-1)
-    #selection.add_option('--match-title', dest='matchtitle', metavar='REGEX',help='download only matching titles (regex or caseless sub-string)')
-    #selection.add_option('--reject-title', dest='rejecttitle', metavar='REGEX',help='skip download for matching titles (regex or caseless sub-string)')
-    #selection.add_option('--max-downloads', metavar='NUMBER', dest='max_downloads', help='Abort after downloading NUMBER files', default=None)
-    #selection.add_option('--min-filesize', metavar='SIZE', dest='min_filesize', help="Do not download any videos smaller than SIZE (e.g. 50k or 44.6m)", default=None)
-    #selection.add_option('--max-filesize', metavar='SIZE', dest='max_filesize', help="Do not download any videos larger than SIZE (e.g. 50k or 44.6m)", default=None)
-    #selection.add_option('--date', metavar='DATE', dest='date', help='download only videos uploaded in this date', default=None)
-    #selection.add_option('--datebefore', metavar='DATE', dest='datebefore', help='download only videos uploaded before this date', default=None)
-    #selection.add_option('--dateafter', metavar='DATE', dest='dateafter', help='download only videos uploaded after this date', default=None)
-
-
-    #authentication.add_option('-u', '--username',
-    #        dest='username', metavar='USERNAME', help='account username')
-    #authentication.add_option('-p', '--password',
-    #        dest='password', metavar='PASSWORD', help='account password')
-    #authentication.add_option('-n', '--netrc',
-    #        action='store_true', dest='usenetrc', help='use .netrc authentication data', default=False)
-    #authentication.add_option('--video-password',
-    #        dest='videopassword', metavar='PASSWORD', help='video password (vimeo only)')
-
-
-    #video_format.add_option('-f', '--format',
-    #        action='store', dest='format', metavar='FORMAT',
-    #        help='video format code, specifiy the order of preference using slashes: "-f 22/17/18". "-f mp4" and "-f flv" are also supported')
-    #video_format.add_option('--all-formats',
-    #        action='store_const', dest='format', help='download all available video formats', const='all')
-    #video_format.add_option('--prefer-free-formats',
-    #        action='store_true', dest='prefer_free_formats', default=False, help='prefer free video formats unless a specific one is requested')
-    #video_format.add_option('--max-quality',
-    #        action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
-    #video_format.add_option('-F', '--list-formats',
-    #        action='store_true', dest='listformats', help='list all available formats (currently youtube only)')
-
-    #subtitles.add_option('--write-sub', '--write-srt',
-    #        action='store_true', dest='writesubtitles',
-    #        help='write subtitle file', default=False)
-    #subtitles.add_option('--write-auto-sub', '--write-automatic-sub',
-    #        action='store_true', dest='writeautomaticsub',
-    #        help='write automatic subtitle file (youtube only)', default=False)
-    #subtitles.add_option('--all-subs',
-    #        action='store_true', dest='allsubtitles',
-    #        help='downloads all the available subtitles of the video', default=False)
-    #subtitles.add_option('--list-subs',
-    #        action='store_true', dest='listsubtitles',
-    #        help='lists all available subtitles for the video', default=False)
-    #subtitles.add_option('--sub-format',
-    #        action='store', dest='subtitlesformat', metavar='FORMAT',
-    #        help='subtitle format (default=srt) ([sbv/vtt] youtube only)', default='srt')
-    #subtitles.add_option('--sub-lang', '--sub-langs', '--srt-lang',
-    #        action='callback', dest='subtitleslangs', metavar='LANGS', type='str',
-    #        default=[], callback=_comma_separated_values_options_callback,
-    #        help='languages of the subtitles to download (optional) separated by commas, use IETF language tags like \'en,pt\'')
-
-    #downloader.add_option('-r', '--rate-limit',
-    #        dest='ratelimit', metavar='LIMIT', help='maximum download rate (e.g. 50k or 44.6m)')
-    #downloader.add_option('-R', '--retries',
-    #        dest='retries', metavar='RETRIES', help='number of retries (default is %default)', default=10)
-    #downloader.add_option('--buffer-size',
-    #        dest='buffersize', metavar='SIZE', help='size of download buffer (e.g. 1024 or 16k) (default is %default)', default="1024")
-    #downloader.add_option('--no-resize-buffer',
-    #        action='store_true', dest='noresizebuffer',
-    #        help='do not automatically adjust the buffer size. By default, the buffer size is automatically resized from an initial value of SIZE.', default=False)
-    #downloader.add_option('--test', action='store_true', dest='test', default=False, help=optparse.SUPPRESS_HELP)
-
-    #verbosity.add_option('-q', '--quiet',
-    #        action='store_true', dest='quiet', help='activates quiet mode', default=False)
-    #verbosity.add_option('-s', '--simulate',
-    #        action='store_true', dest='simulate', help='do not download the video and do not write anything to disk', default=False)
-    #verbosity.add_option('--skip-download',
-    #        action='store_true', dest='skip_download', help='do not download the video', default=False)
-    #verbosity.add_option('-g', '--get-url',
-    #        action='store_true', dest='geturl', help='simulate, quiet but print URL', default=False)
-    #verbosity.add_option('-e', '--get-title',
-    #        action='store_true', dest='gettitle', help='simulate, quiet but print title', default=False)
-    #verbosity.add_option('--get-id',
-    #        action='store_true', dest='getid', help='simulate, quiet but print id', default=False)
-    #verbosity.add_option('--get-thumbnail',
-    #        action='store_true', dest='getthumbnail',
-    #        help='simulate, quiet but print thumbnail URL', default=False)
-    #verbosity.add_option('--get-description',
-    #        action='store_true', dest='getdescription',
-    #        help='simulate, quiet but print video description', default=False)
-    #verbosity.add_option('--get-filename',
-    #        action='store_true', dest='getfilename',
-    #        help='simulate, quiet but print output filename', default=False)
-    #verbosity.add_option('--get-format',
-    #        action='store_true', dest='getformat',
-    #        help='simulate, quiet but print output format', default=False)
-    #verbosity.add_option('--newline',
-    #        action='store_true', dest='progress_with_newline', help='output progress bar as new lines', default=False)
-    #verbosity.add_option('--no-progress',
-    #        action='store_true', dest='noprogress', help='do not print progress bar', default=False)
-    #verbosity.add_option('--console-title',
-    #        action='store_true', dest='consoletitle',
-    #        help='display progress in console titlebar', default=False)
-    #verbosity.add_option('-v', '--verbose',
-    #        action='store_true', dest='verbose', help='print various debugging information', default=False)
-    #verbosity.add_option('--dump-intermediate-pages',
-    #        action='store_true', dest='dump_intermediate_pages', default=False,
-    #        help='print downloaded pages to debug problems(very verbose)')
-
-    #filesystem.add_option('-t', '--title',
-    #        action='store_true', dest='usetitle', help='use title in file name (default)', default=False)
-    #filesystem.add_option('--id',
-    #        action='store_true', dest='useid', help='use only video ID in file name', default=False)
-    #filesystem.add_option('-l', '--literal',
-    #        action='store_true', dest='usetitle', help='[deprecated] alias of --title', default=False)
-    #filesystem.add_option('-A', '--auto-number',
-    #        action='store_true', dest='autonumber',
-    #        help='number downloaded files starting from 00000', default=False)
-    #filesystem.add_option('-o', '--output',
-    #        dest='outtmpl', metavar='TEMPLATE',
-    #        help=('output filename template. Use %(title)s to get the title, '
-    #              '%(uploader)s for the uploader name, %(uploader_id)s for the uploader nickname if different, '
-    #              '%(autonumber)s to get an automatically incremented number, '
-    #              '%(ext)s for the filename extension, %(upload_date)s for the upload date (YYYYMMDD), '
-    #              '%(extractor)s for the provider (youtube, metacafe, etc), '
-    #              '%(id)s for the video id , %(playlist)s for the playlist the video is in, '
-    #              '%(playlist_index)s for the position in the playlist and %% for a literal percent. '
-    #              'Use - to output to stdout. Can also be used to download to a different directory, '
-    #              'for example with -o \'/my/downloads/%(uploader)s/%(title)s-%(id)s.%(ext)s\' .'))
-    #filesystem.add_option('--autonumber-size',
-    #        dest='autonumber_size', metavar='NUMBER',
-    #        help='Specifies the number of digits in %(autonumber)s when it is present in output filename template or --autonumber option is given')
-    #filesystem.add_option('--restrict-filenames',
-    #        action='store_true', dest='restrictfilenames',
-    #        help='Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames', default=False)
-    #filesystem.add_option('-a', '--batch-file',
-    #        dest='batchfile', metavar='FILE', help='file containing URLs to download (\'-\' for stdin)')
-    #filesystem.add_option('-w', '--no-overwrites',
-    #        action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
-    #filesystem.add_option('-c', '--continue',
-    #        action='store_true', dest='continue_dl', help='resume partially downloaded files', default=True)
-    #filesystem.add_option('--no-continue',
-    #        action='store_false', dest='continue_dl',
-    #        help='do not resume partially downloaded files (restart from beginning)')
-    #filesystem.add_option('--cookies',
-    #        dest='cookiefile', metavar='FILE', help='file to read cookies from and dump cookie jar in')
-    #filesystem.add_option('--no-part',
-    #        action='store_true', dest='nopart', help='do not use .part files', default=False)
-    #filesystem.add_option('--no-mtime',
-    #        action='store_false', dest='updatetime',
-    #        help='do not use the Last-modified header to set the file modification time', default=True)
-    #filesystem.add_option('--write-description',
-    #        action='store_true', dest='writedescription',
-    #        help='write video description to a .description file', default=False)
-    #filesystem.add_option('--write-info-json',
-    #        action='store_true', dest='writeinfojson',
-    #        help='write video metadata to a .info.json file', default=False)
-    #filesystem.add_option('--write-thumbnail',
-    #        action='store_true', dest='writethumbnail',
-    #        help='write thumbnail image to disk', default=False)
-
-
-    #postproc.add_option('-x', '--extract-audio', action='store_true', dest='extractaudio', default=False,
-    #        help='convert video files to audio-only files (requires ffmpeg or avconv and ffprobe or avprobe)')
-    #postproc.add_option('--audio-format', metavar='FORMAT', dest='audioformat', default='best',
-    #        help='"best", "aac", "vorbis", "mp3", "m4a", "opus", or "wav"; best by default')
-    #postproc.add_option('--audio-quality', metavar='QUALITY', dest='audioquality', default='5',
-    #        help='ffmpeg/avconv audio quality specification, insert a value between 0 (better) and 9 (worse) for VBR or a specific bitrate like 128K (default 5)')
-    #postproc.add_option('--recode-video', metavar='FORMAT', dest='recodevideo', default=None,
-    #        help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm)')
-    #postproc.add_option('-k', '--keep-video', action='store_true', dest='keepvideo', default=False,
-    #        help='keeps the video file on disk after the post-processing; the video is erased by default')
-    #postproc.add_option('--no-post-overwrites', action='store_true', dest='nopostoverwrites', default=False,
-    #        help='do not overwrite post-processed files; the post-processed files are overwritten by default')
-    postproc.add_option('--embed-subs', action='store_true', dest='embedsubtitles', default=False,
-            help='embed subtitles in the video (only for mp4 videos)')
-
-
-    parser.add_option_group(general)
-    parser.add_option_group(selection)
-    parser.add_option_group(downloader)
-    parser.add_option_group(filesystem)
-    parser.add_option_group(verbosity)
-    parser.add_option_group(video_format)
-    parser.add_option_group(subtitles)
-    parser.add_option_group(authentication)
-    parser.add_option_group(postproc)
-
-    if overrideArguments is not None:
-        opts, args = parser.parse_args(overrideArguments)
-        if opts['--verbose']:
-            sys.stderr.write(u'[debug] Override config: ' + repr(overrideArguments) + '\n')
-    else:
-        xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
-        if xdg_config_home:
-            userConfFile = os.path.join(xdg_config_home, 'youtube-dl.conf')
-        else:
-            userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
-        systemConf = _readOptions('/etc/youtube-dl.conf')
-        userConf = _readOptions(userConfFile)
-        commandLineConf = sys.argv[1:]
-        argv = systemConf + userConf + commandLineConf
-        opts, args = parser.parse_args(argv)
-        if opts['--verbose']:
-            sys.stderr.write(u'[debug] System config: ' + repr(_hide_login_info(systemConf)) + '\n')
-            sys.stderr.write(u'[debug] User config: ' + repr(_hide_login_info(userConf)) + '\n')
-            sys.stderr.write(u'[debug] Command-line args: ' + repr(_hide_login_info(commandLineConf)) + '\n')
-
-    return parser, opts, args
-
 def _real_main(argv=None):
     # Compatibility fixes for Windows
     if sys.platform == 'win32':
         # https://github.com/rg3/youtube-dl/issues/820
         codecs.register(lambda name: codecs.lookup('utf-8') if name == 'cp65001' else None)
 
-    opts = docopt(__doc__, version='0.0.1')
-    #Support both --title and deprecated --literal
-    if not opts['--title']:
-        opts['--title'] = opts['--literal']
+    opts = docopt(__doc__, version=__version__)
+    raw_input(opts)
     #--all-formats will supersede --format
     if opts['--all-formats']:
         opts['--format'] = 'all'
@@ -582,8 +262,6 @@ def _real_main(argv=None):
         opts['--continue'] = True
     #Invert boolean value of opts['--no-mtime']
     opts['--no-mtime'] = not opts['--no-mtime']
-
-    #parser, opts, args = parseOpts(argv)
 
     # Open appropriate CookieJar
     if not opts['--cookies']:
@@ -626,7 +304,8 @@ def _real_main(argv=None):
                 sys.stderr.write(u'[debug] Batch file urls: ' + repr(batchurls) + u'\n')
         except IOError:
             sys.exit(u'ERROR: batch file could not be read')
-    all_urls = batchurls + args
+    all_urls = batchurls + opts['URL']
+    print(all_urls)
     all_urls = [url.strip() for url in all_urls]
 
     # General configuration
@@ -675,18 +354,14 @@ def _real_main(argv=None):
 
 
     # Conflicting, missing and erroneous options
-    #if opts['--netrc'] and (opts['--username'] or opts['--password']):
-    #    parser.error(u'using .netrc conflicts with giving username/password')
     if opts['--password'] and not opts['--username']:
         raise OptionsError(u' account username missing\n')
     if opts['--username'] and not opts['--password']:
         opts['--password'] = getpass.getpass(u'Type account password and press return:')
-
-    #if opts['--output'] is not None and (opts['--title'] or opts['--auto-number'] or opts['--id']):
-    #    raise OptionsError(u'using output template conflicts with using title, video ID or auto number')
-    #if optsopts['--title'] and opts.useid:
-    #    parser.error(u'using title conflicts with using video ID')
-
+    if opts['--output'] and (opts['--title'] or opts['--auto-number'] or opts['--id']):
+        raise OptionsError(u'using output template conflicts with using title, video ID or auto number')
+    if opts['--title'] and opts['--id']:
+        raise OptionsError(u'using title conflicts with using video ID')
     if opts['--rate-limit']:
         numeric_limit = FileDownloader.parse_bytes(opts['--rate-limit'])
         if numeric_limit is None:
