@@ -314,7 +314,7 @@ class YoutubeDL(object):
             if date not in dateRange:
                 return u'[download] %s upload date is not in range %s' % (date_from_str(date).isoformat(), dateRange)
         if self.in_download_archive(info_dict):
-            return (u'%(title)s) has already been recorded in archive'
+            return (u'%(title)s has already been recorded in archive'
                     % info_dict)
         return None
         
