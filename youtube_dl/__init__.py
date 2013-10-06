@@ -1,5 +1,189 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+Usage:
+  youtube-dl [--help] [--version] [--update] [--ignore-errors]
+             [--dump-user-agent] [--user-agent UA] [--referer REF]
+             [--list-extractors] [--extractor-descriptions] [--proxy URL]
+             [--no-check-certificate] [--cache-dir] [--no-cache-dir]
+             [--playlist-start NUMBER] [--playlist-end NUMBER]
+             [--match-title REGEX] [--reject-title REGEX]
+             [--max-downloads NUMBER] [--min-filesize SIZE]
+             [--max-filesize SIZE] [--date DATE] [--datebefore DATE]
+             [--dateafter DATE] [--no-playlist] [--rate-limit LIMIT]
+             [--retries RETRIES] [--buffer-size SIZE] [--no-resize-buffer]
+             [--title] [--id] [--literal] [--auto-number] [--output TEMPLATE]
+             [--autonumber-size NUMBER] [--restrict-filenames]
+             [--batch-file FILE] [--no-overwrites] [--continue] [--no-continue]
+             [--cookies FILE] [--no-part] [--no-mtime] [--write-description]
+             [--write-info-json] [--write-thumbnail] [--quiet] [--simulate]
+             [--skip-download] [--get-url] [--get-title] [--get-id]
+             [--get-thumbnail] [--get-description] [--get-filename]
+             [--get-format] [--newline] [--no-progress] [--console-title]
+             [--verbose] [--dump-intermediate-pages] [--format FORMAT]
+             [--all-formats] [--prefer-free-formats] [--max-quality FORMAT]
+             [--list-formats] [--write-sub] [--write-auto-sub] [--all-subs]
+             [--list-subs] [--sub-format FORMAT] [--sub-lang LANGS]
+             [--username USERNAME] [--password PASSWORD] [--netrc]
+             [--video-password PASSWORD] [--extract-audio]
+             [--audio-format FORMAT] [--audio-quality QUALITY]
+             [--recode-video FORMAT] [--keep-video] [--no-post-overwrites]
+             [--embed-subs]
+             URL [url...]
+
+Options:
+  General Options:
+    -h, --help                 print this help text and exit
+    --version                  print program version and exit
+    -U, --update               update this program to latest version. Make sure
+                               that you have sufficient permissions (run with
+                               sudo if needed)
+    -i, --ignore-errors        continue on download errors, for example to to
+                               skip unavailable videos in a playlist
+    --dump-user-agent          display the current browser identification
+    --user-agent UA            specify a custom user agent
+    --referer REF              specify a custom referer, use if the video access
+                               is restricted to one domain
+    --list-extractors          List all supported extractors and the URLs they
+                               would handle
+    --extractor-descriptions   Output descriptions of all supported extractors
+    --proxy URL                Use the specified HTTP/HTTPS proxy
+    --no-check-certificate     Suppress HTTPS certificate validation.
+    --cache-dir None           Location in the filesystem where youtube-dl can
+                               store downloaded information permanently. By
+                               default $XDG_CACHE_HOME/youtube-dl or ~/.cache
+                               /youtube-dl .
+    --no-cache-dir             Disable filesystem caching
+
+  Video Selection:
+    --playlist-start NUMBER    playlist video to start at [default: 1]
+    --playlist-end NUMBER      playlist video to end at (default is last)
+    --match-title REGEX        download only matching titles (regex or caseless
+                               sub-string)
+    --reject-title REGEX       skip download for matching titles (regex or
+                               caseless sub-string)
+    --max-downloads NUMBER     Abort after downloading NUMBER files
+    --min-filesize SIZE        Do not download any videos smaller than SIZE
+                               (e.g. 50k or 44.6m)
+    --max-filesize SIZE        Do not download any videos larger than SIZE (e.g.
+                               50k or 44.6m)
+    --date DATE                download only videos uploaded in this date
+    --datebefore DATE          download only videos uploaded before this date
+    --dateafter DATE           download only videos uploaded after this date
+    --no-playlist              download only the currently playing video
+
+  Download Options:
+    -r, --rate-limit LIMIT     maximum download rate (e.g. 50k or 44.6m)
+    -R, --retries RETRIES      number of retries [default: 10]
+    --buffer-size SIZE         size of download buffer (e.g. 1024 or 16k)
+                               (default is 1024)
+    --no-resize-buffer         do not automatically adjust the buffer size. By
+                               default, the buffer size is automatically resized
+                               from an initial value of SIZE.
+
+  Filesystem Options:
+    -t, --title                use title in file name (default)
+    --id                       use only video ID in file name
+    -l, --literal              [deprecated] alias of --title
+    -A, --auto-number          number downloaded files starting from 00000
+    -o, --output TEMPLATE      output filename template. Use %(title)s to get
+                               the title, %(uploader)s for the uploader name,
+                               %(uploader_id)s for the uploader nickname if
+                               different, %(autonumber)s to get an automatically
+                               incremented number, %(ext)s for the filename
+                               extension, %(upload_date)s for the upload date
+                               (YYYYMMDD), %(extractor)s for the provider
+                               (youtube, metacafe, etc), %(id)s for the video id
+                               , %(playlist)s for the playlist the video is in,
+                               %(playlist_index)s for the position in the
+                               playlist and %% for a literal percent. Use - to
+                               output to stdout. Can also be used to download to
+                               a different directory, for example with -o '/my/d
+                               ownloads/%(uploader)s/%(title)s-%(id)s.%(ext)s' .
+    --autonumber-size NUMBER   Specifies the number of digits in %(autonumber)s
+                               when it is present in output filename template or
+                               --autonumber option is given
+    --restrict-filenames       Restrict filenames to only ASCII characters, and
+                               avoid "&" and spaces in filenames
+    -a, --batch-file FILE      file containing URLs to download ('-' for stdin)
+    -w, --no-overwrites        do not overwrite files
+    -c, --continue             resume partially downloaded files
+    --no-continue              do not resume partially downloaded files (restart
+                               from beginning)
+    --cookies FILE             file to read cookies from and dump cookie jar in
+    --no-part                  do not use .part files
+    --no-mtime                 do not use the Last-modified header to set the
+                               file modification time
+    --write-description        write video description to a .description file
+    --write-info-json          write video metadata to a .info.json file
+    --write-thumbnail          write thumbnail image to disk
+
+  Verbosity / Simulation Options:
+    -q, --quiet                activates quiet mode
+    -s, --simulate             do not download the video and do not write
+                               anything to disk
+    --skip-download            do not download the video
+    -g, --get-url              simulate, quiet but print URL
+    -e, --get-title            simulate, quiet but print title
+    --get-id                   simulate, quiet but print id
+    --get-thumbnail            simulate, quiet but print thumbnail URL
+    --get-description          simulate, quiet but print video description
+    --get-filename             simulate, quiet but print output filename
+    --get-format               simulate, quiet but print output format
+    --newline                  output progress bar as new lines
+    --no-progress              do not print progress bar
+    --console-title            display progress in console titlebar
+    -v, --verbose              print various debugging information
+    --dump-intermediate-pages  print downloaded pages to debug problems(very
+                               verbose)
+
+  Video Format Options:
+    -f, --format FORMAT        video format code, specifiy the order of
+                               preference using slashes: "-f 22/17/18". "-f mp4"
+                               and "-f flv" are also supported
+    --all-formats              download all available video formats
+    --prefer-free-formats      prefer free video formats unless a specific one
+                               is requested
+    --max-quality FORMAT       highest quality format to download
+    -F, --list-formats         list all available formats (currently youtube
+                               only)
+
+  Subtitle Options:
+    --write-sub                write subtitle file
+    --write-auto-sub           write automatic subtitle file (youtube only)
+    --all-subs                 downloads all the available subtitles of the
+                               video
+    --list-subs                lists all available subtitles for the video
+    --sub-format FORMAT        subtitle format (default=srt) ([sbv/vtt] youtube
+                               only)
+    --sub-lang LANGS           languages of the subtitles to download (optional)
+                               separated by commas, use IETF language tags like
+                               'en,pt'
+
+  Authentication Options:
+    -u, --username USERNAME    account username
+    -p, --password PASSWORD    account password
+    -n, --netrc                use .netrc authentication data
+    --video-password PASSWORD  video password (vimeo only)
+
+  Post-processing Options:
+    -x, --extract-audio        convert video files to audio-only files (requires
+                               ffmpeg or avconv and ffprobe or avprobe)
+    --audio-format FORMAT      "best", "aac", "vorbis", "mp3", "m4a", "opus", or
+                               "wav"; [default: best]
+    --audio-quality QUALITY    ffmpeg/avconv audio quality specification, insert
+                               a value between 0 (better) and 9 (worse) for VBR
+                               or a specific bitrate like 128K [default: 5]
+    --recode-video FORMAT      Encode the video to another format if necessary
+                               (currently supported: mp4|flv|ogg|webm)
+    -k, --keep-video           keeps the video file on disk after the post-
+                               processing; the video is erased by default
+    --no-post-overwrites       do not overwrite post-processed files; the post-
+                               processed files are overwritten by default
+    --embed-subs               embed subtitles in the video (only for mp4
+                               videos)
+"""
+
 
 __authors__  = (
     'Ricardo Garcia Gonzalez',
@@ -30,13 +214,14 @@ __authors__  = (
     'Pierre Rudloff',
     'Huarong Huo',
     'Ismael Mejía',
+    'Pablo Barton'
 )
 
 __license__ = 'Public Domain'
 
 import codecs
 import getpass
-import optparse
+#import optparse
 import os
 import random
 import re
@@ -47,7 +232,7 @@ import sys
 import warnings
 import platform
 
-
+from .docopt import docopt
 from .utils import *
 from .update import update_self
 from .version import __version__
@@ -379,7 +564,8 @@ def _real_main(argv=None):
         # https://github.com/rg3/youtube-dl/issues/820
         codecs.register(lambda name: codecs.lookup('utf-8') if name == 'cp65001' else None)
 
-    parser, opts, args = parseOpts(argv)
+    opts = docopt(__doc__, version='0.0.1')
+    #parser, opts, args = parseOpts(argv)
 
     # Open appropriate CookieJar
     if opts.cookiefile is None:
