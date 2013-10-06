@@ -30,9 +30,14 @@ class RedTubeIE(InfoExtractor):
             r'<h1 class="videoTitle slidePanelMovable">(.+?)</h1>',
             webpage, u'title')
 
+        # No self-labeling, but they describe themselves as
+        # "Home of Videos Porno"
+        age_limit = 18
+
         return {
-            'id':       video_id,
-            'url':      video_url,
-            'ext':      video_extension,
-            'title':    video_title,
+            'id':        video_id,
+            'url':       video_url,
+            'ext':       video_extension,
+            'title':     video_title,
+            'age_limit': age_limit,
         }
