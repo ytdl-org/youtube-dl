@@ -343,12 +343,12 @@ def parseOpts(overrideArguments=None):
     #general.add_option('--referer',
     #        dest='referer', help='specify a custom referer, use if the video access is restricted to one domain',
             metavar='REF', default=None)
-    general.add_option('--list-extractors',
-            action='store_true', dest='list_extractors',
-            help='List all supported extractors and the URLs they would handle', default=False)
-    general.add_option('--extractor-descriptions',
-            action='store_true', dest='list_extractor_descriptions',
-            help='Output descriptions of all supported extractors', default=False)
+    #general.add_option('--list-extractors',
+    #        action='store_true', dest='list_extractors',
+    #        help='List all supported extractors and the URLs they would handle', default=False)
+    #general.add_option('--extractor-descriptions',
+    #        action='store_true', dest='list_extractor_descriptions',
+    #        help='Output descriptions of all supported extractors', default=False)
     #general.add_option('--proxy', dest='proxy', default=None, help='Use the specified HTTP/HTTPS proxy', metavar='URL')
     #general.add_option('--no-check-certificate', action='store_true', dest='no_check_certificate', default=False, help='Suppress HTTPS certificate validation.')
 
@@ -635,7 +635,7 @@ def _real_main(argv=None):
 
     extractors = gen_extractors()
 
-    if opts.list_extractors:
+    if opts['--list-extractors']:
         for ie in sorted(extractors, key=lambda ie: ie.IE_NAME.lower()):
             compat_print(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else ''))
             matchedUrls = [url for url in all_urls if ie.suitable(url)]
@@ -643,7 +643,7 @@ def _real_main(argv=None):
             for mu in matchedUrls:
                 compat_print(u'  ' + mu)
         sys.exit(0)
-    if opts.list_extractor_descriptions:
+    if opts['--extractor-descriptions']:
         for ie in sorted(extractors, key=lambda ie: ie.IE_NAME.lower()):
             if not ie._WORKING:
                 continue
