@@ -214,7 +214,7 @@ __authors__  = (
     'Pierre Rudloff',
     'Huarong Huo',
     'Ismael Mejía',
-    'Pablo Barton'
+    'Paul Barton'
 )
 
 __license__ = 'Public Domain'
