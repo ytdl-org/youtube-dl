@@ -16,6 +16,8 @@ from .utils import *
 from .extractor import get_info_extractor, gen_extractors
 from .FileDownloader import FileDownloader
 
+#TODO: Check for parameters that eval None identity, docopt defaults to False
+
 
 class YoutubeDL(object):
     """YoutubeDL class.
@@ -80,7 +82,7 @@ class YoutubeDL(object):
     keepvideo:         Keep the video file after post-processing
     daterange:         A DateRange object, download only if the upload_date is in the range.
     skip_download:     Skip the actual download of the video file
-    
+
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:
     nopart, updatetime, buffersize, ratelimit, min_filesize, max_filesize, test,
@@ -299,14 +301,14 @@ class YoutubeDL(object):
             if date not in dateRange:
                 return u'[download] %s upload date is not in range %s' % (date_from_str(date).isoformat(), dateRange)
         return None
-        
+
     def extract_info(self, url, download=True, ie_key=None, extra_info={}):
         '''
         Returns a list with a dictionary for each video we find.
         If 'download', also downloads the videos.
         extra_info is a dict containing the extra values to add to each result
          '''
-        
+
         if ie_key:
             ies = [self.get_info_extractor(ie_key)]
         else:
@@ -348,7 +350,7 @@ class YoutubeDL(object):
                     raise
         else:
             self.report_error(u'no suitable InfoExtractor: %s' % url)
-        
+
     def process_ie_result(self, ie_result, download=True, extra_info={}):
         """
         Take the result of the ie(may be modified) and resolve all unresolved
@@ -399,7 +401,7 @@ class YoutubeDL(object):
             for i,entry in enumerate(entries,1):
                 self.to_screen(u'[download] Downloading video #%s of %s' %(i, n_entries))
                 extra = {
-                         'playlist': playlist, 
+                         'playlist': playlist,
                          'playlist_index': i + playliststart,
                          }
                 if not 'extractor' in entry:
