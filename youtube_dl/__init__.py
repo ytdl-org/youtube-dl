@@ -384,10 +384,10 @@ def parseOpts(overrideArguments=None):
     #        action='store_const', dest='format', help='download all available video formats', const='all')
     #video_format.add_option('--prefer-free-formats',
     #        action='store_true', dest='prefer_free_formats', default=False, help='prefer free video formats unless a specific one is requested')
-    video_format.add_option('--max-quality',
-            action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
-    video_format.add_option('-F', '--list-formats',
-            action='store_true', dest='listformats', help='list all available formats (currently youtube only)')
+    #video_format.add_option('--max-quality',
+    #        action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
+    #video_format.add_option('-F', '--list-formats',
+    #        action='store_true', dest='listformats', help='list all available formats (currently youtube only)')
 
     subtitles.add_option('--write-sub', '--write-srt',
             action='store_true', dest='writesubtitles',
@@ -758,8 +758,8 @@ def _real_main(argv=None):
         'simulate': opts['--simulate'],
         'skip_download': (opts['--skip-download'] or opts['--simulate'] or opts['--get-url'] or opts['--get-title'] or opts['--get-id'] or opts['--get-thumbnail'] or opts['--get-description'] or opts['--get-filename'] or opts['--get-format']),
         'format': opts['--format'],
-        'format_limit': opts.format_limit,
-        'listformats': opts.listformats,
+        'format_limit': opts['--max-quality'],
+        'listformats': opts['--list-formats'],
         'outtmpl': outtmpl,
         'autonumber_size': opts.autonumber_size,
         'restrictfilenames': opts.restrictfilenames,
