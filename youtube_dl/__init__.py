@@ -191,6 +191,9 @@ def parseOpts(overrideArguments=None):
     selection.add_option('--age-limit', metavar='YEARS', dest='age_limit',
                          help='download only videos suitable for the given age',
                          default=None, type=int)
+    selection.add_option('--download-archive', metavar='FILE',
+                         dest='download_archive',
+                         help='Download only videos not present in the archive file. Record all downloaded videos in it.')
 
 
     authentication.add_option('-u', '--username',
@@ -635,6 +638,7 @@ def _real_main(argv=None):
         'cachedir': opts.cachedir,
         'youtube_print_sig_code': opts.youtube_print_sig_code,
         'age_limit': opts.age_limit,
+        'download_archive': opts.download_archive,
         })
 
     if opts.verbose:
