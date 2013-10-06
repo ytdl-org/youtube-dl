@@ -487,9 +487,9 @@ def make_HTTPS_handler(opts):
         import ssl
         context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
         context.set_default_verify_paths()
-        
+
         context.verify_mode = (ssl.CERT_NONE
-                               if opts.no_check_certificate
+                               if opts['--no-check-certificate']
                                else ssl.CERT_REQUIRED)
         return compat_urllib_request.HTTPSHandler(context=context)
 
@@ -707,7 +707,7 @@ def date_from_str(date_str):
         delta = datetime.timedelta(**{unit: time})
         return today + delta
     return datetime.datetime.strptime(date_str, "%Y%m%d").date()
-    
+
 class DateRange(object):
     """Represents a time interval between two dates"""
     def __init__(self, start=None, end=None):
