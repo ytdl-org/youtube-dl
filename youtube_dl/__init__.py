@@ -408,8 +408,8 @@ def parseOpts(overrideArguments=None):
             default=[], callback=_comma_separated_values_options_callback,
             help='languages of the subtitles to download (optional) separated by commas, use IETF language tags like \'en,pt\'')
 
-    downloader.add_option('-r', '--rate-limit',
-            dest='ratelimit', metavar='LIMIT', help='maximum download rate (e.g. 50k or 44.6m)')
+    #downloader.add_option('-r', '--rate-limit',
+    #        dest='ratelimit', metavar='LIMIT', help='maximum download rate (e.g. 50k or 44.6m)')
     downloader.add_option('-R', '--retries',
             dest='retries', metavar='RETRIES', help='number of retries (default is %default)', default=10)
     downloader.add_option('--buffer-size',
@@ -672,16 +672,16 @@ def _real_main(argv=None):
     #if optsopts['--title'] and opts.useid:
     #    parser.error(u'using title conflicts with using video ID')
 
-    if opts.ratelimit is not None:
-        numeric_limit = FileDownloader.parse_bytes(opts.ratelimit)
+    if opts['--rate-limit']:
+        numeric_limit = FileDownloader.parse_bytes(opts['--rate-limit'])
         if numeric_limit is None:
             parser.error(u'invalid rate limit specified')
-        opts.ratelimit = numeric_limit
-    if opts.min_filesize is not None:
-        numeric_limit = FileDownloader.parse_bytes(opts.min_filesize)
+        opts['--rate-limit'] = numeric_limit
+    if opts['--min-filesize']:
+        numeric_limit = FileDownloader.parse_bytes(opts['--min-filesize'])
         if numeric_limit is None:
             parser.error(u'invalid min_filesize specified')
-        opts.min_filesize = numeric_limit
+        opts['--min-filesize'] = numeric_limit
     if opts.max_filesize is not None:
         numeric_limit = FileDownloader.parse_bytes(opts.max_filesize)
         if numeric_limit is None:
@@ -760,7 +760,7 @@ def _real_main(argv=None):
         'autonumber_size': opts.autonumber_size,
         'restrictfilenames': opts.restrictfilenames,
         'ignoreerrors': opts.ignoreerrors,
-        'ratelimit': opts.ratelimit,
+        'ratelimit': opts['--rate-limit'],
         'nooverwrites': opts.nooverwrites,
         'retries': opts.retries,
         'buffersize': opts.buffersize,
@@ -791,7 +791,7 @@ def _real_main(argv=None):
         'dump_intermediate_pages': opts['--dump-intermediate-pages'],
         'test': opts.test,
         'keepvideo': opts.keepvideo,
-        'min_filesize': opts.min_filesize,
+        'min_filesize': opts['--min-filesize'],
         'max_filesize': opts.max_filesize,
         'daterange': date,
         })
