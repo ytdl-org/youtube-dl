@@ -24,7 +24,7 @@ Usage:
              [--all-formats] [--prefer-free-formats] [--max-quality FORMAT]
              [--list-formats] [--write-sub] [--write-auto-sub] [--all-subs]
              [--list-subs] [--sub-format FORMAT] [--sub-lang LANGS]
-             [--username USERNAME] [--password PASSWORD] [--netrc]
+             [--username USERNAME --password PASSWORD | --netrc]
              [--video-password PASSWORD] [--extract-audio]
              [--audio-format FORMAT] [--audio-quality QUALITY]
              [--recode-video FORMAT] [--keep-video] [--no-post-overwrites]
@@ -184,7 +184,6 @@ Options:
                                videos)
 """
 
-
 __authors__  = (
     'Ricardo Garcia Gonzalez',
     'Danny Colligan',
@@ -342,7 +341,7 @@ def parseOpts(overrideArguments=None):
     #        dest='user_agent', help='specify a custom user agent', metavar='UA')
     #general.add_option('--referer',
     #        dest='referer', help='specify a custom referer, use if the video access is restricted to one domain',
-            metavar='REF', default=None)
+    #        metavar='REF', default=None)
     #general.add_option('--list-extractors',
     #        action='store_true', dest='list_extractors',
     #        help='List all supported extractors and the URLs they would handle', default=False)
@@ -657,16 +656,16 @@ def _real_main(argv=None):
 
 
     # Conflicting, missing and erroneous options
-    if opts.usenetrc and (opts.username is not None or opts.password is not None):
+    if opts['--netrc'] and (opts['--username'] or opts['--password']):
         parser.error(u'using .netrc conflicts with giving username/password')
-    if opts.password is not None and opts.username is None:
+    if opts['--password'] and not opts['--username']:
         parser.error(u' account username missing\n')
     if opts.outtmpl is not None and (opts.usetitle or opts.autonumber or opts.useid):
         parser.error(u'using output template conflicts with using title, video ID or auto number')
     if opts.usetitle and opts.useid:
         parser.error(u'using title conflicts with using video ID')
-    if opts.username is not None and opts.password is None:
-        opts.password = getpass.getpass(u'Type account password and press return:')
+    if opts['--username'] and not opts['--password']:
+        opts['--password'] = getpass.getpass(u'Type account password and press return:')
     if opts.ratelimit is not None:
         numeric_limit = FileDownloader.parse_bytes(opts.ratelimit)
         if numeric_limit is None:
@@ -734,9 +733,9 @@ def _real_main(argv=None):
 
     # YoutubeDL
     ydl = YoutubeDL({
-        'usenetrc': opts.usenetrc,
-        'username': opts.username,
-        'password': opts.password,
+        'usenetrc': opts['--netrc'],
+        'username': opts['--username'],
+        'password': opts['--password'],
         'videopassword': opts.videopassword,
         'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat),
         'forceurl': opts.geturl,
