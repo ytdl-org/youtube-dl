@@ -38,6 +38,7 @@ class PornotubeIE(InfoExtractor):
         VIDEO_UPLOADED_RE = r'<div class="video_added_by">Added (?P<date>[0-9\/]+) by'
         upload_date = self._html_search_regex(VIDEO_UPLOADED_RE, webpage, u'upload date', fatal=False)
         if upload_date: upload_date = unified_strdate(upload_date)
+        age_limit = self._rta_search(webpage)
 
         info = {'id': video_id,
                 'url': video_url,
@@ -45,6 +46,7 @@ class PornotubeIE(InfoExtractor):
                 'upload_date': upload_date,
                 'title': video_title,
                 'ext': 'flv',
-                'format': 'flv'}
+                'format': 'flv',
+                'age_restriction': age_limit}
 
         return [info]
