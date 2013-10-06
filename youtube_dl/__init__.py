@@ -188,6 +188,9 @@ def parseOpts(overrideArguments=None):
     selection.add_option('--datebefore', metavar='DATE', dest='datebefore', help='download only videos uploaded before this date', default=None)
     selection.add_option('--dateafter', metavar='DATE', dest='dateafter', help='download only videos uploaded after this date', default=None)
     selection.add_option('--no-playlist', action='store_true', dest='noplaylist', help='download only the currently playing video', default=False)
+    selection.add_option('--age-limit', metavar='YEARS', dest='age_limit',
+                         help='download only videos suitable for the given age',
+                         default=None, type=int)
 
 
     authentication.add_option('-u', '--username',
@@ -631,6 +634,7 @@ def _real_main(argv=None):
         'daterange': date,
         'cachedir': opts.cachedir,
         'youtube_print_sig_code': opts.youtube_print_sig_code,
+        'age_limit': opts.age_limit,
         })
 
     if opts.verbose:
