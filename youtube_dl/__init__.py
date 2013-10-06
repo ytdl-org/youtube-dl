@@ -496,9 +496,9 @@ def parseOpts(overrideArguments=None):
     #        dest='cookiefile', metavar='FILE', help='file to read cookies from and dump cookie jar in')
     #filesystem.add_option('--no-part',
     #        action='store_true', dest='nopart', help='do not use .part files', default=False)
-    filesystem.add_option('--no-mtime',
-            action='store_false', dest='updatetime',
-            help='do not use the Last-modified header to set the file modification time', default=True)
+    #filesystem.add_option('--no-mtime',
+    #        action='store_false', dest='updatetime',
+    #        help='do not use the Last-modified header to set the file modification time', default=True)
     filesystem.add_option('--write-description',
             action='store_true', dest='writedescription',
             help='write video description to a .description file', default=False)
@@ -577,6 +577,8 @@ def _real_main(argv=None):
         opts['--continue'] = False
     else:
         opts['--continue'] = True
+    #Invert boolean value of opts['--no-mtime']
+    opts['--no-mtime'] = not opts['--no-mtime']
 
     #parser, opts, args = parseOpts(argv)
 
@@ -783,7 +785,7 @@ def _real_main(argv=None):
         'logtostderr': opts['--output'] == '-',
         'consoletitle': opts['--console-title'],
         'nopart': opts['--no-part'],
-        'updatetime': opts.updatetime,
+        'updatetime': opts['--no-mtime'],
         'writedescription': opts.writedescription,
         'writeinfojson': opts.writeinfojson,
         'writethumbnail': opts.writethumbnail,
