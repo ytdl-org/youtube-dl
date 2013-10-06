@@ -1,3 +1,4 @@
+import errno
 import io
 import json
 import os.path
@@ -22,18 +23,33 @@ PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "para
 with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
     parameters = json.load(pf)
 
+
+def try_rm(filename):
+    """ Remove a file if it exists """
+    try:
+        os.remove(filename)
+    except OSError as ose:
+        if ose.errno != errno.ENOENT:
+            raise
+
+
 class FakeYDL(YoutubeDL):
     def __init__(self):
-        self.result = []
         # Different instances of the downloader can't share the same dictionary
         # some test set the "sublang" parameter, which would break the md5 checks.
-        self.params = dict(parameters)
-    def to_screen(self, s):
+        params = dict(parameters)
+        super(FakeYDL, self).__init__(params)
+        self.result = []
+        
+    def to_screen(self, s, skip_eol=None):
         print(s)
+
     def trouble(self, s, tb=None):
         raise Exception(s)
+
     def download(self, x):
         self.result.append(x)
+
     def expect_warning(self, regex):
         # Silence an expected warning matching a regex
         old_report_warning = self.report_warning
