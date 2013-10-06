@@ -656,8 +656,8 @@ def _real_main(argv=None):
 
 
     # Conflicting, missing and erroneous options
-    if opts['--netrc'] and (opts['--username'] or opts['--password']):
-        parser.error(u'using .netrc conflicts with giving username/password')
+    #if opts['--netrc'] and (opts['--username'] or opts['--password']):
+    #    parser.error(u'using .netrc conflicts with giving username/password')
     if opts['--password'] and not opts['--username']:
         parser.error(u' account username missing\n')
     if opts.outtmpl is not None and (opts.usetitle or opts.autonumber or opts.useid):
