@@ -327,17 +327,17 @@ def parseOpts(overrideArguments=None):
     filesystem     = optparse.OptionGroup(parser, 'Filesystem Options')
     verbosity      = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
 
-    general.add_option('-h', '--help',
-            action='help', help='print this help text and exit')
-    general.add_option('-v', '--version',
-            action='version', help='print program version and exit')
-    general.add_option('-U', '--update',
-            action='store_true', dest='update_self', help='update this program to latest version. Make sure that you have sufficient permissions (run with sudo if needed)')
-    general.add_option('-i', '--ignore-errors',
-            action='store_true', dest='ignoreerrors', help='continue on download errors', default=False)
-    general.add_option('--dump-user-agent',
-            action='store_true', dest='dump_user_agent',
-            help='display the current browser identification', default=False)
+    #general.add_option('-h', '--help',
+    #        action='help', help='print this help text and exit')
+    #general.add_option('-v', '--version',
+    #        action='version', help='print program version and exit')
+    #general.add_option('-U', '--update',
+    #        action='store_true', dest='update_self', help='update this program to latest version. Make sure that you have sufficient permissions (run with sudo if needed)')
+    #general.add_option('-i', '--ignore-errors',
+    #        action='store_true', dest='ignoreerrors', help='continue on download errors', default=False)
+    #general.add_option('--dump-user-agent',
+    #        action='store_true', dest='dump_user_agent',
+    #        help='display the current browser identification', default=False)
     #general.add_option('--user-agent',
     #        dest='user_agent', help='specify a custom user agent', metavar='UA')
     #general.add_option('--referer',
@@ -593,7 +593,7 @@ def _real_main(argv=None):
         std_headers['Referer'] = opts['--referer']
 
     # Dump user agent
-    if opts.dump_user_agent:
+    if opts['--dump-user-agent']:
         compat_print(std_headers['User-Agent'])
         sys.exit(0)
 
@@ -760,7 +760,7 @@ def _real_main(argv=None):
         'outtmpl': outtmpl,
         'autonumber_size': opts.autonumber_size,
         'restrictfilenames': opts.restrictfilenames,
-        'ignoreerrors': opts.ignoreerrors,
+        'ignoreerrors': opts['--ignore-errors'],
         'ratelimit': opts['--rate-limit'],
         'nooverwrites': opts.nooverwrites,
         'retries': opts.retries,
@@ -827,12 +827,12 @@ def _real_main(argv=None):
         ydl.add_post_processor(FFmpegEmbedSubtitlePP(subtitlesformat=opts.subtitlesformat))
 
     # Update version
-    if opts.update_self:
+    if opts['--update']:
         update_self(ydl.to_screen, opts['--verbose'], sys.argv[0])
 
     # Maybe do nothing
     if len(all_urls) < 1:
-        if not opts.update_self:
+        if not opts['--update']:
             parser.error(u'you must provide at least one URL')
         else:
             sys.exit()
