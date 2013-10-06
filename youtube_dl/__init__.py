@@ -366,12 +366,12 @@ def parseOpts(overrideArguments=None):
     selection.add_option('--dateafter', metavar='DATE', dest='dateafter', help='download only videos uploaded after this date', default=None)
 
 
-    authentication.add_option('-u', '--username',
-            dest='username', metavar='USERNAME', help='account username')
-    authentication.add_option('-p', '--password',
-            dest='password', metavar='PASSWORD', help='account password')
-    authentication.add_option('-n', '--netrc',
-            action='store_true', dest='usenetrc', help='use .netrc authentication data', default=False)
+    #authentication.add_option('-u', '--username',
+    #        dest='username', metavar='USERNAME', help='account username')
+    #authentication.add_option('-p', '--password',
+    #        dest='password', metavar='PASSWORD', help='account password')
+    #authentication.add_option('-n', '--netrc',
+    #        action='store_true', dest='usenetrc', help='use .netrc authentication data', default=False)
     authentication.add_option('--video-password',
             dest='videopassword', metavar='PASSWORD', help='video password (vimeo only)')
 
@@ -742,7 +742,7 @@ def _real_main(argv=None):
         'usenetrc': opts['--netrc'],
         'username': opts['--username'],
         'password': opts['--password'],
-        'videopassword': opts.videopassword,
+        'videopassword': opts['--video-password'],
         'quiet': (opts['--quiet'] or opts['--get-url'] or opts['--get-title'] or opts['--get-id'] or opts['--get-thumbnail'] or opts['--get-description'] or opts['--get-filename'] or opts['--get-format']),
         'forceurl': opts['--get-url'],
         'forcetitle': opts['--get-title'],
