@@ -510,14 +510,14 @@ def parseOpts(overrideArguments=None):
     #        help='write thumbnail image to disk', default=False)
 
 
-    postproc.add_option('-x', '--extract-audio', action='store_true', dest='extractaudio', default=False,
-            help='convert video files to audio-only files (requires ffmpeg or avconv and ffprobe or avprobe)')
-    postproc.add_option('--audio-format', metavar='FORMAT', dest='audioformat', default='best',
-            help='"best", "aac", "vorbis", "mp3", "m4a", "opus", or "wav"; best by default')
-    postproc.add_option('--audio-quality', metavar='QUALITY', dest='audioquality', default='5',
-            help='ffmpeg/avconv audio quality specification, insert a value between 0 (better) and 9 (worse) for VBR or a specific bitrate like 128K (default 5)')
-    postproc.add_option('--recode-video', metavar='FORMAT', dest='recodevideo', default=None,
-            help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm)')
+    #postproc.add_option('-x', '--extract-audio', action='store_true', dest='extractaudio', default=False,
+    #        help='convert video files to audio-only files (requires ffmpeg or avconv and ffprobe or avprobe)')
+    #postproc.add_option('--audio-format', metavar='FORMAT', dest='audioformat', default='best',
+    #        help='"best", "aac", "vorbis", "mp3", "m4a", "opus", or "wav"; best by default')
+    #postproc.add_option('--audio-quality', metavar='QUALITY', dest='audioquality', default='5',
+    #        help='ffmpeg/avconv audio quality specification, insert a value between 0 (better) and 9 (worse) for VBR or a specific bitrate like 128K (default 5)')
+    #postproc.add_option('--recode-video', metavar='FORMAT', dest='recodevideo', default=None,
+    #        help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm)')
     postproc.add_option('-k', '--keep-video', action='store_true', dest='keepvideo', default=False,
             help='keeps the video file on disk after the post-processing; the video is erased by default')
     postproc.add_option('--no-post-overwrites', action='store_true', dest='nopostoverwrites', default=False,
@@ -721,15 +721,15 @@ def _real_main(argv=None):
             raise ValueError(u'Playlist end must be greater than playlist start')
     except (TypeError, ValueError) as err:
         parser.error(u'invalid playlist end number specified')
-    if opts.extractaudio:
-        if opts.audioformat not in ['best', 'aac', 'mp3', 'm4a', 'opus', 'vorbis', 'wav']:
+    if opts['--extract-audio']:
+        if opts['--audio-format'] not in ['best', 'aac', 'mp3', 'm4a', 'opus', 'vorbis', 'wav']:
             parser.error(u'invalid audio format specified')
-    if opts.audioquality:
-        opts.audioquality = opts.audioquality.strip('k').strip('K')
-        if not opts.audioquality.isdigit():
+    if opts['--audio-quality']:
+        opts['--audio-quality'] = opts['--audio-quality'].strip('k').strip('K')
+        if not opts['--audio-quality'].isdigit():
             parser.error(u'invalid audio quality specified')
-    if opts.recodevideo is not None:
-        if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg']:
+    if opts['--recode-video']:
+        if opts['--recode-video'] not in ['mp4', 'flv', 'webm', 'ogg']:
             parser.error(u'invalid video recode format specified')
     if opts['--date']:
         date = DateRange.day(opts['--date'])
@@ -830,10 +830,10 @@ def _real_main(argv=None):
     ydl.add_default_info_extractors()
 
     # PostProcessors
-    if opts.extractaudio:
-        ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
-    if opts.recodevideo:
-        ydl.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
+    if opts['--extract-audio']:
+        ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts['--audio-format'], preferredquality=opts['--audio-quality'], nopostoverwrites=opts.nopostoverwrites))
+    if opts['--recode-video']:
+        ydl.add_post_processor(FFmpegVideoConvertor(preferedformat=opts['--recode-video']))
     if opts.embedsubtitles:
         ydl.add_post_processor(FFmpegEmbedSubtitlePP(subtitlesformat=opts['--sub-format']))
 
