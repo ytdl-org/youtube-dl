@@ -678,62 +678,62 @@ def _real_main(argv=None):
     #if opts['--netrc'] and (opts['--username'] or opts['--password']):
     #    parser.error(u'using .netrc conflicts with giving username/password')
     if opts['--password'] and not opts['--username']:
-        parser.error(u' account username missing\n')
+        raise OptionsError(u' account username missing\n')
     if opts['--username'] and not opts['--password']:
         opts['--password'] = getpass.getpass(u'Type account password and press return:')
 
     #if opts['--output'] is not None and (opts['--title'] or opts['--auto-number'] or opts['--id']):
-    #    parser.error(u'using output template conflicts with using title, video ID or auto number')
+    #    raise OptionsError(u'using output template conflicts with using title, video ID or auto number')
     #if optsopts['--title'] and opts.useid:
     #    parser.error(u'using title conflicts with using video ID')
 
     if opts['--rate-limit']:
         numeric_limit = FileDownloader.parse_bytes(opts['--rate-limit'])
         if numeric_limit is None:
-            parser.error(u'invalid rate limit specified')
+            raise OptionsError(u'invalid rate limit specified')
         opts['--rate-limit'] = numeric_limit
     if opts['--min-filesize']:
         numeric_limit = FileDownloader.parse_bytes(opts['--min-filesize'])
         if numeric_limit is None:
-            parser.error(u'invalid min_filesize specified')
+            raise OptionsError(u'invalid min_filesize specified')
         opts['--min-filesize'] = numeric_limit
     if opts['--max-filesize']:
         numeric_limit = FileDownloader.parse_bytes(opts['--max-filesize'])
         if numeric_limit is None:
-            parser.error(u'invalid max_filesize specified')
+            raise OptionsError(u'invalid max_filesize specified')
         opts['--max-filesize'] = numeric_limit
     if opts['--retries'] is not None:  # This should always be true, it has a default
         try:
             opts['--retries'] = int(opts['--retries'])
         except (TypeError, ValueError) as err:
-            parser.error(u'invalid retry count specified')
+            raise OptionsError(u'invalid retry count specified')
     if opts['--buffer-size'] is not None:  # This should always be true, it has a default
         numeric_buffersize = FileDownloader.parse_bytes(opts['--buffer-size'])
         if numeric_buffersize is None:
-            parser.error(u'invalid buffer size specified')
+            raise OptionsError(u'invalid buffer size specified')
         opts['--buffer-size'] = numeric_buffersize
     try:
         opts['--playlist-start'] = int(opts['--playlist-start'])
         if opts['--playlist-start'] <= 0:
             raise ValueError(u'Playlist start must be positive')
     except (TypeError, ValueError) as err:
-        parser.error(u'invalid playlist start number specified')
+        raise OptionsError(u'invalid playlist start number specified')
     try:
         opts['--playlist-end'] = int(opts['--playlist-end'])
         if opts['--playlist-end'] != -1 and (opts['--playlist-end'] <= 0 or opts['--playlist-end'] < opts['--playlist-start']):
             raise ValueError(u'Playlist end must be greater than playlist start')
     except (TypeError, ValueError) as err:
-        parser.error(u'invalid playlist end number specified')
+        raise OptionsError(u'invalid playlist end number specified')
     if opts['--extract-audio']:
         if opts['--audio-format'] not in ['best', 'aac', 'mp3', 'm4a', 'opus', 'vorbis', 'wav']:
-            parser.error(u'invalid audio format specified')
+            raise OptionsError(u'invalid audio format specified')
     if opts['--audio-quality']:
         opts['--audio-quality'] = opts['--audio-quality'].strip('k').strip('K')
         if not opts['--audio-quality'].isdigit():
-            parser.error(u'invalid audio quality specified')
+            raise OptionsError(u'invalid audio quality specified')
     if opts['--recode-video']:
         if opts['--recode-video'] not in ['mp4', 'flv', 'webm', 'ogg']:
-            parser.error(u'invalid video recode format specified')
+            raise OptionsError(u'invalid video recode format specified')
     if opts['--date']:
         date = DateRange.day(opts['--date'])
     else:
@@ -847,7 +847,7 @@ def _real_main(argv=None):
     # Maybe do nothing
     if len(all_urls) < 1:
         if not opts['--update']:
-            parser.error(u'you must provide at least one URL')
+            raise OptionsError(u'you must provide at least one URL')
         else:
             sys.exit()
 
