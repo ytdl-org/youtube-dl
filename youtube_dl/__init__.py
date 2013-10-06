@@ -499,15 +499,15 @@ def parseOpts(overrideArguments=None):
     #filesystem.add_option('--no-mtime',
     #        action='store_false', dest='updatetime',
     #        help='do not use the Last-modified header to set the file modification time', default=True)
-    filesystem.add_option('--write-description',
-            action='store_true', dest='writedescription',
-            help='write video description to a .description file', default=False)
-    filesystem.add_option('--write-info-json',
-            action='store_true', dest='writeinfojson',
-            help='write video metadata to a .info.json file', default=False)
-    filesystem.add_option('--write-thumbnail',
-            action='store_true', dest='writethumbnail',
-            help='write thumbnail image to disk', default=False)
+    #filesystem.add_option('--write-description',
+    #        action='store_true', dest='writedescription',
+    #        help='write video description to a .description file', default=False)
+    #filesystem.add_option('--write-info-json',
+    #        action='store_true', dest='writeinfojson',
+    #        help='write video metadata to a .info.json file', default=False)
+    #filesystem.add_option('--write-thumbnail',
+    #        action='store_true', dest='writethumbnail',
+    #        help='write thumbnail image to disk', default=False)
 
 
     postproc.add_option('-x', '--extract-audio', action='store_true', dest='extractaudio', default=False,
@@ -786,9 +786,9 @@ def _real_main(argv=None):
         'consoletitle': opts['--console-title'],
         'nopart': opts['--no-part'],
         'updatetime': opts['--no-mtime'],
-        'writedescription': opts.writedescription,
-        'writeinfojson': opts.writeinfojson,
-        'writethumbnail': opts.writethumbnail,
+        'writedescription': opts['--write-description'],
+        'writeinfojson': opts['--write-info-json'],
+        'writethumbnail': opts['--write-thumbnail'],
         'writesubtitles': opts['--write-sub'],
         'writeautomaticsub': opts['--write-auto-sub'],
         'allsubtitles': opts['--all-subs'],
