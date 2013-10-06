@@ -117,6 +117,7 @@ from .veehd import VeeHDIE
 from .veoh import VeohIE
 from .vevo import VevoIE
 from .vice import ViceIE
+from .viddler import ViddlerIE
 from .videofyme import VideofyMeIE
 from .vimeo import VimeoIE, VimeoChannelIE
 from .vine import VineIE
