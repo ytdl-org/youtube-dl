@@ -23,7 +23,7 @@ Usage:
              [--verbose] [--dump-intermediate-pages] [--format FORMAT]
              [--all-formats] [--prefer-free-formats] [--max-quality FORMAT]
              [--list-formats] [--write-sub] [--write-auto-sub] [--all-subs]
-             [--list-subs] [--sub-format FORMAT] [--sub-lang LANGS ...]
+             [--list-subs] [--sub-format FORMAT] [--sub-langs LANGS ...]
              [--username USERNAME --password PASSWORD | --netrc]
              [--video-password PASSWORD] [--extract-audio]
              [--audio-format FORMAT] [--audio-quality QUALITY]
@@ -77,7 +77,7 @@ Options:
     -r, --rate-limit LIMIT     maximum download rate (e.g. 50k or 44.6m)
     -R, --retries RETRIES      number of retries [default: 10]
     --buffer-size SIZE         size of download buffer (e.g. 1024 or 16k)
-                               (default is 1024)
+                               [default: 1024]
     --no-resize-buffer         do not automatically adjust the buffer size. By
                                default, the buffer size is automatically resized
                                from an initial value of SIZE.
@@ -157,7 +157,7 @@ Options:
     --list-subs                lists all available subtitles for the video
     --sub-format FORMAT        subtitle format ([sbv/vtt] youtube only)
                                [default: srt]
-    --sub-lang LANGS ...       languages of the subtitles to download (optional,
+    --sub-langs LANGS ...      languages of the subtitles to download (optional,
                                multiple arguments) use IETF language tags like
                                'en,pt'
 
@@ -411,14 +411,14 @@ def parseOpts(overrideArguments=None):
 
     #downloader.add_option('-r', '--rate-limit',
     #        dest='ratelimit', metavar='LIMIT', help='maximum download rate (e.g. 50k or 44.6m)')
-    downloader.add_option('-R', '--retries',
-            dest='retries', metavar='RETRIES', help='number of retries (default is %default)', default=10)
-    downloader.add_option('--buffer-size',
-            dest='buffersize', metavar='SIZE', help='size of download buffer (e.g. 1024 or 16k) (default is %default)', default="1024")
-    downloader.add_option('--no-resize-buffer',
-            action='store_true', dest='noresizebuffer',
-            help='do not automatically adjust the buffer size. By default, the buffer size is automatically resized from an initial value of SIZE.', default=False)
-    downloader.add_option('--test', action='store_true', dest='test', default=False, help=optparse.SUPPRESS_HELP)
+    #downloader.add_option('-R', '--retries',
+    #        dest='retries', metavar='RETRIES', help='number of retries (default is %default)', default=10)
+    #downloader.add_option('--buffer-size',
+    #        dest='buffersize', metavar='SIZE', help='size of download buffer (e.g. 1024 or 16k) (default is %default)', default="1024")
+    #downloader.add_option('--no-resize-buffer',
+    #        action='store_true', dest='noresizebuffer',
+    #        help='do not automatically adjust the buffer size. By default, the buffer size is automatically resized from an initial value of SIZE.', default=False)
+    #downloader.add_option('--test', action='store_true', dest='test', default=False, help=optparse.SUPPRESS_HELP)
 
     #verbosity.add_option('-q', '--quiet',
     #        action='store_true', dest='quiet', help='activates quiet mode', default=False)
@@ -691,16 +691,16 @@ def _real_main(argv=None):
         if numeric_limit is None:
             parser.error(u'invalid max_filesize specified')
         opts['--max-filesize'] = numeric_limit
-    if opts.retries is not None:
+    if opts['--retries'] is not None:  # This should always be true, it has a default
         try:
-            opts.retries = int(opts.retries)
+            opts['--retries'] = int(opts['--retries'])
         except (TypeError, ValueError) as err:
             parser.error(u'invalid retry count specified')
-    if opts.buffersize is not None:
-        numeric_buffersize = FileDownloader.parse_bytes(opts.buffersize)
+    if opts['--buffer-size'] is not None:  # This should always be true, it has a default
+        numeric_buffersize = FileDownloader.parse_bytes(opts['--buffer-size'])
         if numeric_buffersize is None:
             parser.error(u'invalid buffer size specified')
-        opts.buffersize = numeric_buffersize
+        opts['--buffer-size'] = numeric_buffersize
     try:
         opts['--playlist-start'] = int(opts['--playlist-start'])
         if opts['--playlist-start'] <= 0:
@@ -766,9 +766,9 @@ def _real_main(argv=None):
         'ignoreerrors': opts['--ignore-errors'],
         'ratelimit': opts['--rate-limit'],
         'nooverwrites': opts.nooverwrites,
-        'retries': opts.retries,
-        'buffersize': opts.buffersize,
-        'noresizebuffer': opts.noresizebuffer,
+        'retries': opts['--retries'],
+        'buffersize': opts['--buffer-size'],
+        'noresizebuffer': opts['--no-resize-buffer'],
         'continuedl': opts.continue_dl,
         'noprogress': opts['--no-progress'],
         'progress_with_newline': opts['--newline'],
@@ -786,14 +786,14 @@ def _real_main(argv=None):
         'allsubtitles': opts['--all-subs'],
         'listsubtitles': opts['--list-subs'],
         'subtitlesformat': opts['--sub-format'],
-        'subtitleslangs': opts['--sub-lang'],
+        'subtitleslangs': opts['--sub-langs'],
         'matchtitle': decodeOption(opts['--match-title']),
         'rejecttitle': decodeOption(opts['--reject-title']),
         'max_downloads': opts['--max-downloads'],
         'prefer_free_formats': opts['--prefer-free-formats'],
         'verbose': opts['--verbose'],
         'dump_intermediate_pages': opts['--dump-intermediate-pages'],
-        'test': opts.test,
+        'test': opts['--test'],
         'keepvideo': opts.keepvideo,
         'min_filesize': opts['--min-filesize'],
         'max_filesize': opts['--max-filesize'],
