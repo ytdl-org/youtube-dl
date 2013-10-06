@@ -54,6 +54,7 @@ class InfoExtractor(object):
     view_count:     How many users have watched the video on the platform.
     urlhandle:      [internal] The urlHandle to be used to download the file,
                     like returned by urllib.request.urlopen
+    age_limit:      Age restriction for the video, as an integer (years)
     formats:        A list of dictionaries for each format available, it must
                     be ordered from worst to best quality. Potential fields:
                     * url       Mandatory. The URL of the video file
@@ -317,6 +318,15 @@ class InfoExtractor(object):
         return self._html_search_regex([self._og_regex('video:secure_url'),
                                         self._og_regex('video')],
                                        html, name, **kargs)
+
+    def _rta_search(self, html):
+        # See http://www.rtalabel.org/index.php?content=howtofaq#single
+        if re.search(r'(?ix)<meta\s+name="rating"\s+'
+                     r'     content="RTA-5042-1996-1400-1577-RTA"',
+                     html):
+            return 18
+        return 0
+
 
 class SearchInfoExtractor(InfoExtractor):
     """
