@@ -188,6 +188,9 @@ def parseOpts(overrideArguments=None):
     selection.add_option('--datebefore', metavar='DATE', dest='datebefore', help='download only videos uploaded before this date', default=None)
     selection.add_option('--dateafter', metavar='DATE', dest='dateafter', help='download only videos uploaded after this date', default=None)
     selection.add_option('--no-playlist', action='store_true', dest='noplaylist', help='download only the currently playing video', default=False)
+    selection.add_option('--download-archive', metavar='FILE',
+                         dest='download_archive',
+                         help='Download only videos not present in the archive file. Record all downloaded videos in it.')
 
 
     authentication.add_option('-u', '--username',
@@ -631,6 +634,7 @@ def _real_main(argv=None):
         'daterange': date,
         'cachedir': opts.cachedir,
         'youtube_print_sig_code': opts.youtube_print_sig_code,
+        'download_archive': opts.download_archive,
         })
 
     if opts.verbose:

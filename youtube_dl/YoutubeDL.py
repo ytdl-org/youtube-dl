@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import
 
+import errno
 import io
 import os
 import re
@@ -84,6 +85,9 @@ class YoutubeDL(object):
     cachedir:          Location of the cache files in the filesystem.
                        None to disable filesystem cache.
     noplaylist:        Download single video instead of a playlist if in doubt.
+    downloadarchive:   File name of a file where all downloads are recorded.
+                       Videos already present in the file are not downloaded
+                       again.
     
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:
@@ -309,6 +313,9 @@ class YoutubeDL(object):
             dateRange = self.params.get('daterange', DateRange())
             if date not in dateRange:
                 return u'[download] %s upload date is not in range %s' % (date_from_str(date).isoformat(), dateRange)
+        if self.in_download_archive(info_dict):
+            return (u'%(title)s) has already been recorded in archive'
+                    % info_dict)
         return None
         
     def extract_info(self, url, download=True, ie_key=None, extra_info={}):
@@ -578,6 +585,8 @@ class YoutubeDL(object):
                     self.report_error(u'postprocessing: %s' % str(err))
                     return
 
+        self.record_download_archive(info_dict)
+
     def download(self, url_list):
         """Download a given list of URLs."""
         if len(url_list) > 1 and self.fixed_template():
@@ -617,3 +626,26 @@ class YoutubeDL(object):
                 os.remove(encodeFilename(filename))
             except (IOError, OSError):
                 self.report_warning(u'Unable to remove downloaded video file')
+
+    def in_download_archive(self, info_dict):
+        fn = self.params.get('download_archive')
+        if fn is None:
+            return False
+        vid_id = info_dict['extractor'] + u' ' + info_dict['id']
+        try:
+            with locked_file(fn, 'r', encoding='utf-8') as archive_file:
+                for line in archive_file:
+                    if line.strip() == vid_id:
+                        return True
+        except IOError as ioe:
+            if ioe.errno != errno.ENOENT:
+                raise
+        return False
+
+    def record_download_archive(self, info_dict):
+        fn = self.params.get('download_archive')
+        if fn is None:
+            return
+        vid_id = info_dict['extractor'] + u' ' + info_dict['id']
+        with locked_file(fn, 'a', encoding='utf-8') as archive_file:
+            archive_file.write(vid_id + u'\n')
