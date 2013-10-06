@@ -47,6 +47,6 @@ class PornotubeIE(InfoExtractor):
                 'title': video_title,
                 'ext': 'flv',
                 'format': 'flv',
-                'age_restriction': age_limit}
+                'age_limit': age_limit}
 
         return [info]

@@ -1496,7 +1496,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'player_url':   player_url,
                 'subtitles':    video_subtitles,
                 'duration':     video_duration,
-                'age_restriction': 18 if age_gate else 0,
+                'age_limit':    18 if age_gate else 0,
             })
         return results
 

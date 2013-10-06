@@ -313,7 +313,7 @@ class YoutubeDL(object):
                 return u'[download] %s upload date is not in range %s' % (date_from_str(date).isoformat(), dateRange)
         age_limit = self.params.get('age_limit')
         if age_limit is not None:
-            if age_limit < info_dict.get('age_restriction', 0):
+            if age_limit < info_dict.get('age_limit', 0):
                 return u'Skipping "' + title + '" because it is age restricted'
         return None
         

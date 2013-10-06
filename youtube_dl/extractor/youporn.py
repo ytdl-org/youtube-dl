@@ -117,7 +117,7 @@ class YouPornIE(InfoExtractor):
                 'format': format,
                 'thumbnail': thumbnail,
                 'description': video_description,
-                'age_restriction': age_limit,
+                'age_limit': age_limit,
             })
 
         if self._downloader.params.get('listformats', None):
