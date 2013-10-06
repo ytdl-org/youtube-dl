@@ -338,10 +338,10 @@ def parseOpts(overrideArguments=None):
     general.add_option('--dump-user-agent',
             action='store_true', dest='dump_user_agent',
             help='display the current browser identification', default=False)
-    general.add_option('--user-agent',
-            dest='user_agent', help='specify a custom user agent', metavar='UA')
-    general.add_option('--referer',
-            dest='referer', help='specify a custom referer, use if the video access is restricted to one domain',
+    #general.add_option('--user-agent',
+    #        dest='user_agent', help='specify a custom user agent', metavar='UA')
+    #general.add_option('--referer',
+    #        dest='referer', help='specify a custom referer, use if the video access is restricted to one domain',
             metavar='REF', default=None)
     general.add_option('--list-extractors',
             action='store_true', dest='list_extractors',
@@ -581,12 +581,12 @@ def _real_main(argv=None):
             sys.stderr.write(u'ERROR: unable to open cookie file\n')
             sys.exit(101)
     # Set user agent
-    if opts.user_agent is not None:
-        std_headers['User-Agent'] = opts.user_agent
+    if opts['--user-agent']:
+        std_headers['User-Agent'] = opts['--user-agent']
 
     # Set referer
-    if opts.referer is not None:
-        std_headers['Referer'] = opts.referer
+    if opts['--referer']:
+        std_headers['Referer'] = opts['--referer']
 
     # Dump user agent
     if opts.dump_user_agent:
