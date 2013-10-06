@@ -14,7 +14,7 @@ Usage:
              [--retries RETRIES] [--buffer-size SIZE] [--no-resize-buffer]
              [[--title --literal | --id] --auto-number | --output TEMPLATE]
              [--autonumber-size NUMBER] [--restrict-filenames]
-             [--batch-file FILE] [--no-overwrites] [--continue] [--no-continue]
+             [--batch-file FILE] [--no-overwrites] [--continue | --no-continue]
              [--cookies FILE] [--no-part] [--no-mtime] [--write-description]
              [--write-info-json] [--write-thumbnail] [--quiet] [--simulate]
              [--skip-download] [--get-url] [--get-title] [--get-id]
@@ -477,25 +477,25 @@ def parseOpts(overrideArguments=None):
     #              '%(playlist_index)s for the position in the playlist and %% for a literal percent. '
     #              'Use - to output to stdout. Can also be used to download to a different directory, '
     #              'for example with -o \'/my/downloads/%(uploader)s/%(title)s-%(id)s.%(ext)s\' .'))
-    filesystem.add_option('--autonumber-size',
-            dest='autonumber_size', metavar='NUMBER',
-            help='Specifies the number of digits in %(autonumber)s when it is present in output filename template or --autonumber option is given')
-    filesystem.add_option('--restrict-filenames',
-            action='store_true', dest='restrictfilenames',
-            help='Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames', default=False)
+    #filesystem.add_option('--autonumber-size',
+    #        dest='autonumber_size', metavar='NUMBER',
+    #        help='Specifies the number of digits in %(autonumber)s when it is present in output filename template or --autonumber option is given')
+    #filesystem.add_option('--restrict-filenames',
+    #        action='store_true', dest='restrictfilenames',
+    #        help='Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames', default=False)
     #filesystem.add_option('-a', '--batch-file',
     #        dest='batchfile', metavar='FILE', help='file containing URLs to download (\'-\' for stdin)')
-    filesystem.add_option('-w', '--no-overwrites',
-            action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
-    filesystem.add_option('-c', '--continue',
-            action='store_true', dest='continue_dl', help='resume partially downloaded files', default=True)
-    filesystem.add_option('--no-continue',
-            action='store_false', dest='continue_dl',
-            help='do not resume partially downloaded files (restart from beginning)')
+    #filesystem.add_option('-w', '--no-overwrites',
+    #        action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
+    #filesystem.add_option('-c', '--continue',
+    #        action='store_true', dest='continue_dl', help='resume partially downloaded files', default=True)
+    #filesystem.add_option('--no-continue',
+    #        action='store_false', dest='continue_dl',
+    #        help='do not resume partially downloaded files (restart from beginning)')
     #filesystem.add_option('--cookies',
     #        dest='cookiefile', metavar='FILE', help='file to read cookies from and dump cookie jar in')
-    filesystem.add_option('--no-part',
-            action='store_true', dest='nopart', help='do not use .part files', default=False)
+    #filesystem.add_option('--no-part',
+    #        action='store_true', dest='nopart', help='do not use .part files', default=False)
     filesystem.add_option('--no-mtime',
             action='store_false', dest='updatetime',
             help='do not use the Last-modified header to set the file modification time', default=True)
@@ -571,6 +571,12 @@ def _real_main(argv=None):
     #--all-formats will supersede --format
     if opts['--all-formats']:
         opts['--format'] = 'all'
+    #--continue and --no-continue are mutually exclusive and control the
+    #partial downloading of files
+    if opts['--no-continue']:
+        opts['--continue'] = False
+    else:
+        opts['--continue'] = True
 
     #parser, opts, args = parseOpts(argv)
 
@@ -761,22 +767,22 @@ def _real_main(argv=None):
         'format_limit': opts['--max-quality'],
         'listformats': opts['--list-formats'],
         'outtmpl': outtmpl,
-        'autonumber_size': opts.autonumber_size,
-        'restrictfilenames': opts.restrictfilenames,
+        'autonumber_size': opts['--autonumber-size'],
+        'restrictfilenames': opts['--restrict-filenames'],
         'ignoreerrors': opts['--ignore-errors'],
         'ratelimit': opts['--rate-limit'],
-        'nooverwrites': opts.nooverwrites,
+        'nooverwrites': opts['--no-overwrites'],
         'retries': opts['--retries'],
         'buffersize': opts['--buffer-size'],
         'noresizebuffer': opts['--no-resize-buffer'],
-        'continuedl': opts.continue_dl,
+        'continuedl': opts['--continue'],
         'noprogress': opts['--no-progress'],
         'progress_with_newline': opts['--newline'],
         'playliststart': opts['--playlist-start'],
         'playlistend': opts['--playlist-end'],
         'logtostderr': opts['--output'] == '-',
         'consoletitle': opts['--console-title'],
-        'nopart': opts.nopart,
+        'nopart': opts['--no-part'],
         'updatetime': opts.updatetime,
         'writedescription': opts.writedescription,
         'writeinfojson': opts.writeinfojson,
