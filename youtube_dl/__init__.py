@@ -377,13 +377,13 @@ def parseOpts(overrideArguments=None):
     #        dest='videopassword', metavar='PASSWORD', help='video password (vimeo only)')
 
 
-    video_format.add_option('-f', '--format',
-            action='store', dest='format', metavar='FORMAT',
-            help='video format code, specifiy the order of preference using slashes: "-f 22/17/18". "-f mp4" and "-f flv" are also supported')
-    video_format.add_option('--all-formats',
-            action='store_const', dest='format', help='download all available video formats', const='all')
-    video_format.add_option('--prefer-free-formats',
-            action='store_true', dest='prefer_free_formats', default=False, help='prefer free video formats unless a specific one is requested')
+    #video_format.add_option('-f', '--format',
+    #        action='store', dest='format', metavar='FORMAT',
+    #        help='video format code, specifiy the order of preference using slashes: "-f 22/17/18". "-f mp4" and "-f flv" are also supported')
+    #video_format.add_option('--all-formats',
+    #        action='store_const', dest='format', help='download all available video formats', const='all')
+    #video_format.add_option('--prefer-free-formats',
+    #        action='store_true', dest='prefer_free_formats', default=False, help='prefer free video formats unless a specific one is requested')
     video_format.add_option('--max-quality',
             action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
     video_format.add_option('-F', '--list-formats',
@@ -568,6 +568,9 @@ def _real_main(argv=None):
     #Support both --title and deprecated --literal
     if not opts['--title']:
         opts['--title'] = opts['--literal']
+    #--all-formats will supersede --format
+    if opts['--all-formats']:
+        opts['--format'] = 'all'
 
     #parser, opts, args = parseOpts(argv)
 
@@ -730,8 +733,8 @@ def _real_main(argv=None):
         if opts['--output']:
             opts['--output'] = opts['--output'].decode(preferredencoding())
     outtmpl =((opts['--output'] is not None and opts['--output'])
-            or (opts.format == '-1' and opts['--title'] and u'%(title)s-%(id)s-%(format)s.%(ext)s')
-            or (opts.format == '-1' and u'%(id)s-%(format)s.%(ext)s')
+            or (opts['--format'] == '-1' and opts['--title'] and u'%(title)s-%(id)s-%(format)s.%(ext)s')  # Why would --format ever be -1 ?
+            or (opts['--format'] == '-1' and u'%(id)s-%(format)s.%(ext)s')  # Why would --format ever be -1 ?
             or (opts['--title'] and opts['--auto-number'] and u'%(autonumber)s-%(title)s-%(id)s.%(ext)s')
             or (opts['--title'] and u'%(title)s-%(id)s.%(ext)s')
             or (opts['--id'] and u'%(id)s.%(ext)s')
@@ -754,7 +757,7 @@ def _real_main(argv=None):
         'forceformat': opts['--get-format'],
         'simulate': opts['--simulate'],
         'skip_download': (opts['--skip-download'] or opts['--simulate'] or opts['--get-url'] or opts['--get-title'] or opts['--get-id'] or opts['--get-thumbnail'] or opts['--get-description'] or opts['--get-filename'] or opts['--get-format']),
-        'format': opts.format,
+        'format': opts['--format'],
         'format_limit': opts.format_limit,
         'listformats': opts.listformats,
         'outtmpl': outtmpl,
@@ -787,7 +790,7 @@ def _real_main(argv=None):
         'matchtitle': decodeOption(opts['--match-title']),
         'rejecttitle': decodeOption(opts['--reject-title']),
         'max_downloads': opts['--max-downloads'],
-        'prefer_free_formats': opts.prefer_free_formats,
+        'prefer_free_formats': opts['--prefer-free-formats'],
         'verbose': opts['--verbose'],
         'dump_intermediate_pages': opts['--dump-intermediate-pages'],
         'test': opts.test,
