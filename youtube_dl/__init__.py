@@ -23,13 +23,13 @@ Usage:
              [--verbose] [--dump-intermediate-pages] [--format FORMAT]
              [--all-formats] [--prefer-free-formats] [--max-quality FORMAT]
              [--list-formats] [--write-sub] [--write-auto-sub] [--all-subs]
-             [--list-subs] [--sub-format FORMAT] [--sub-lang LANGS]
+             [--list-subs] [--sub-format FORMAT] [--sub-lang LANGS ...]
              [--username USERNAME --password PASSWORD | --netrc]
              [--video-password PASSWORD] [--extract-audio]
              [--audio-format FORMAT] [--audio-quality QUALITY]
              [--recode-video FORMAT] [--keep-video] [--no-post-overwrites]
              [--embed-subs]
-             URL [url...]
+             URL [url ...]
 
 Options:
   General Options:
@@ -155,10 +155,10 @@ Options:
     --all-subs                 downloads all the available subtitles of the
                                video
     --list-subs                lists all available subtitles for the video
-    --sub-format FORMAT        subtitle format (default=srt) ([sbv/vtt] youtube
-                               only)
-    --sub-lang LANGS           languages of the subtitles to download (optional)
-                               separated by commas, use IETF language tags like
+    --sub-format FORMAT        subtitle format ([sbv/vtt] youtube only)
+                               [default: srt]
+    --sub-lang LANGS ...       languages of the subtitles to download (optional,
+                               multiple arguments) use IETF language tags like
                                'en,pt'
 
   Authentication Options:
@@ -185,7 +185,7 @@ Options:
                                videos)
 """
 
-__authors__  = (
+__authors__ = (
     'Ricardo Garcia Gonzalez',
     'Danny Colligan',
     'Benjamin Johnson',
@@ -389,25 +389,25 @@ def parseOpts(overrideArguments=None):
     #video_format.add_option('-F', '--list-formats',
     #        action='store_true', dest='listformats', help='list all available formats (currently youtube only)')
 
-    subtitles.add_option('--write-sub', '--write-srt',
-            action='store_true', dest='writesubtitles',
-            help='write subtitle file', default=False)
-    subtitles.add_option('--write-auto-sub', '--write-automatic-sub',
-            action='store_true', dest='writeautomaticsub',
-            help='write automatic subtitle file (youtube only)', default=False)
-    subtitles.add_option('--all-subs',
-            action='store_true', dest='allsubtitles',
-            help='downloads all the available subtitles of the video', default=False)
-    subtitles.add_option('--list-subs',
-            action='store_true', dest='listsubtitles',
-            help='lists all available subtitles for the video', default=False)
-    subtitles.add_option('--sub-format',
-            action='store', dest='subtitlesformat', metavar='FORMAT',
-            help='subtitle format (default=srt) ([sbv/vtt] youtube only)', default='srt')
-    subtitles.add_option('--sub-lang', '--sub-langs', '--srt-lang',
-            action='callback', dest='subtitleslangs', metavar='LANGS', type='str',
-            default=[], callback=_comma_separated_values_options_callback,
-            help='languages of the subtitles to download (optional) separated by commas, use IETF language tags like \'en,pt\'')
+    #subtitles.add_option('--write-sub', '--write-srt',
+    #        action='store_true', dest='writesubtitles',
+    #        help='write subtitle file', default=False)
+    #subtitles.add_option('--write-auto-sub', '--write-automatic-sub',
+    #        action='store_true', dest='writeautomaticsub',
+    #        help='write automatic subtitle file (youtube only)', default=False)
+    #subtitles.add_option('--all-subs',
+    #        action='store_true', dest='allsubtitles',
+    #        help='downloads all the available subtitles of the video', default=False)
+    #subtitles.add_option('--list-subs',
+    #        action='store_true', dest='listsubtitles',
+    #        help='lists all available subtitles for the video', default=False)
+    #subtitles.add_option('--sub-format',
+    #        action='store', dest='subtitlesformat', metavar='FORMAT',
+    #        help='subtitle format (default=srt) ([sbv/vtt] youtube only)', default='srt')
+    #subtitles.add_option('--sub-lang', '--sub-langs', '--srt-lang',
+    #        action='callback', dest='subtitleslangs', metavar='LANGS', type='str',
+    #        default=[], callback=_comma_separated_values_options_callback,
+    #        help='languages of the subtitles to download (optional) separated by commas, use IETF language tags like \'en,pt\'')
 
     #downloader.add_option('-r', '--rate-limit',
     #        dest='ratelimit', metavar='LIMIT', help='maximum download rate (e.g. 50k or 44.6m)')
@@ -781,12 +781,12 @@ def _real_main(argv=None):
         'writedescription': opts.writedescription,
         'writeinfojson': opts.writeinfojson,
         'writethumbnail': opts.writethumbnail,
-        'writesubtitles': opts.writesubtitles,
-        'writeautomaticsub': opts.writeautomaticsub,
-        'allsubtitles': opts.allsubtitles,
-        'listsubtitles': opts.listsubtitles,
-        'subtitlesformat': opts.subtitlesformat,
-        'subtitleslangs': opts.subtitleslangs,
+        'writesubtitles': opts['--write-sub'],
+        'writeautomaticsub': opts['--write-auto-sub'],
+        'allsubtitles': opts['--all-subs'],
+        'listsubtitles': opts['--list-subs'],
+        'subtitlesformat': opts['--sub-format'],
+        'subtitleslangs': opts['--sub-lang'],
         'matchtitle': decodeOption(opts['--match-title']),
         'rejecttitle': decodeOption(opts['--reject-title']),
         'max_downloads': opts['--max-downloads'],
@@ -827,7 +827,7 @@ def _real_main(argv=None):
     if opts.recodevideo:
         ydl.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
     if opts.embedsubtitles:
-        ydl.add_post_processor(FFmpegEmbedSubtitlePP(subtitlesformat=opts.subtitlesformat))
+        ydl.add_post_processor(FFmpegEmbedSubtitlePP(subtitlesformat=opts['--sub-format']))
 
     # Update version
     if opts['--update']:
