@@ -518,10 +518,10 @@ def parseOpts(overrideArguments=None):
     #        help='ffmpeg/avconv audio quality specification, insert a value between 0 (better) and 9 (worse) for VBR or a specific bitrate like 128K (default 5)')
     #postproc.add_option('--recode-video', metavar='FORMAT', dest='recodevideo', default=None,
     #        help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm)')
-    postproc.add_option('-k', '--keep-video', action='store_true', dest='keepvideo', default=False,
-            help='keeps the video file on disk after the post-processing; the video is erased by default')
-    postproc.add_option('--no-post-overwrites', action='store_true', dest='nopostoverwrites', default=False,
-            help='do not overwrite post-processed files; the post-processed files are overwritten by default')
+    #postproc.add_option('-k', '--keep-video', action='store_true', dest='keepvideo', default=False,
+    #        help='keeps the video file on disk after the post-processing; the video is erased by default')
+    #postproc.add_option('--no-post-overwrites', action='store_true', dest='nopostoverwrites', default=False,
+    #        help='do not overwrite post-processed files; the post-processed files are overwritten by default')
     postproc.add_option('--embed-subs', action='store_true', dest='embedsubtitles', default=False,
             help='embed subtitles in the video (only for mp4 videos)')
 
@@ -802,7 +802,7 @@ def _real_main(argv=None):
         'verbose': opts['--verbose'],
         'dump_intermediate_pages': opts['--dump-intermediate-pages'],
         'test': opts['--test'],
-        'keepvideo': opts.keepvideo,
+        'keepvideo': opts['--keep-video'],
         'min_filesize': opts['--min-filesize'],
         'max_filesize': opts['--max-filesize'],
         'daterange': date,
@@ -831,10 +831,10 @@ def _real_main(argv=None):
 
     # PostProcessors
     if opts['--extract-audio']:
-        ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts['--audio-format'], preferredquality=opts['--audio-quality'], nopostoverwrites=opts.nopostoverwrites))
+        ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts['--audio-format'], preferredquality=opts['--audio-quality'], nopostoverwrites=opts['--no-post-overwrites']))
     if opts['--recode-video']:
         ydl.add_post_processor(FFmpegVideoConvertor(preferedformat=opts['--recode-video']))
-    if opts.embedsubtitles:
+    if opts['--embed-subs']:
         ydl.add_post_processor(FFmpegEmbedSubtitlePP(subtitlesformat=opts['--sub-format']))
 
     # Update version
