@@ -12,7 +12,7 @@ Usage:
              [--max-filesize SIZE] [--date DATE] [--datebefore DATE]
              [--dateafter DATE] [--no-playlist] [--rate-limit LIMIT]
              [--retries RETRIES] [--buffer-size SIZE] [--no-resize-buffer]
-             [--title] [--id] [--literal] [--auto-number] [--output TEMPLATE]
+             [[--title --literal | --id] --auto-number | --output TEMPLATE]
              [--autonumber-size NUMBER] [--restrict-filenames]
              [--batch-file FILE] [--no-overwrites] [--continue] [--no-continue]
              [--cookies FILE] [--no-part] [--no-mtime] [--write-description]
@@ -456,26 +456,26 @@ def parseOpts(overrideArguments=None):
             action='store_true', dest='dump_intermediate_pages', default=False,
             help='print downloaded pages to debug problems(very verbose)')
 
-    filesystem.add_option('-t', '--title',
-            action='store_true', dest='usetitle', help='use title in file name (default)', default=False)
-    filesystem.add_option('--id',
-            action='store_true', dest='useid', help='use only video ID in file name', default=False)
-    filesystem.add_option('-l', '--literal',
-            action='store_true', dest='usetitle', help='[deprecated] alias of --title', default=False)
-    filesystem.add_option('-A', '--auto-number',
-            action='store_true', dest='autonumber',
-            help='number downloaded files starting from 00000', default=False)
-    filesystem.add_option('-o', '--output',
-            dest='outtmpl', metavar='TEMPLATE',
-            help=('output filename template. Use %(title)s to get the title, '
-                  '%(uploader)s for the uploader name, %(uploader_id)s for the uploader nickname if different, '
-                  '%(autonumber)s to get an automatically incremented number, '
-                  '%(ext)s for the filename extension, %(upload_date)s for the upload date (YYYYMMDD), '
-                  '%(extractor)s for the provider (youtube, metacafe, etc), '
-                  '%(id)s for the video id , %(playlist)s for the playlist the video is in, '
-                  '%(playlist_index)s for the position in the playlist and %% for a literal percent. '
-                  'Use - to output to stdout. Can also be used to download to a different directory, '
-                  'for example with -o \'/my/downloads/%(uploader)s/%(title)s-%(id)s.%(ext)s\' .'))
+    #filesystem.add_option('-t', '--title',
+    #        action='store_true', dest='usetitle', help='use title in file name (default)', default=False)
+    #filesystem.add_option('--id',
+    #        action='store_true', dest='useid', help='use only video ID in file name', default=False)
+    #filesystem.add_option('-l', '--literal',
+    #        action='store_true', dest='usetitle', help='[deprecated] alias of --title', default=False)
+    #filesystem.add_option('-A', '--auto-number',
+    #        action='store_true', dest='autonumber',
+    #        help='number downloaded files starting from 00000', default=False)
+    #filesystem.add_option('-o', '--output',
+    #        dest='outtmpl', metavar='TEMPLATE',
+    #        help=('output filename template. Use %(title)s to get the title, '
+    #              '%(uploader)s for the uploader name, %(uploader_id)s for the uploader nickname if different, '
+    #              '%(autonumber)s to get an automatically incremented number, '
+    #              '%(ext)s for the filename extension, %(upload_date)s for the upload date (YYYYMMDD), '
+    #              '%(extractor)s for the provider (youtube, metacafe, etc), '
+    #              '%(id)s for the video id , %(playlist)s for the playlist the video is in, '
+    #              '%(playlist_index)s for the position in the playlist and %% for a literal percent. '
+    #              'Use - to output to stdout. Can also be used to download to a different directory, '
+    #              'for example with -o \'/my/downloads/%(uploader)s/%(title)s-%(id)s.%(ext)s\' .'))
     filesystem.add_option('--autonumber-size',
             dest='autonumber_size', metavar='NUMBER',
             help='Specifies the number of digits in %(autonumber)s when it is present in output filename template or --autonumber option is given')
@@ -564,6 +564,10 @@ def _real_main(argv=None):
         codecs.register(lambda name: codecs.lookup('utf-8') if name == 'cp65001' else None)
 
     opts = docopt(__doc__, version='0.0.1')
+    #Support both --title and deprecated --literal
+    if not opts['--title']:
+        opts['--title'] = opts['--literal']
+
     #parser, opts, args = parseOpts(argv)
 
     # Open appropriate CookieJar
@@ -660,12 +664,14 @@ def _real_main(argv=None):
     #    parser.error(u'using .netrc conflicts with giving username/password')
     if opts['--password'] and not opts['--username']:
         parser.error(u' account username missing\n')
-    if opts.outtmpl is not None and (opts.usetitle or opts.autonumber or opts.useid):
-        parser.error(u'using output template conflicts with using title, video ID or auto number')
-    if opts.usetitle and opts.useid:
-        parser.error(u'using title conflicts with using video ID')
     if opts['--username'] and not opts['--password']:
         opts['--password'] = getpass.getpass(u'Type account password and press return:')
+
+    #if opts['--output'] is not None and (opts['--title'] or opts['--auto-number'] or opts['--id']):
+    #    parser.error(u'using output template conflicts with using title, video ID or auto number')
+    #if optsopts['--title'] and opts.useid:
+    #    parser.error(u'using title conflicts with using video ID')
+
     if opts.ratelimit is not None:
         numeric_limit = FileDownloader.parse_bytes(opts.ratelimit)
         if numeric_limit is None:
@@ -720,15 +726,15 @@ def _real_main(argv=None):
 
     if sys.version_info < (3,):
         # In Python 2, sys.argv is a bytestring (also note http://bugs.python.org/issue2128 for Windows systems)
-        if opts.outtmpl is not None:
-            opts.outtmpl = opts.outtmpl.decode(preferredencoding())
-    outtmpl =((opts.outtmpl is not None and opts.outtmpl)
-            or (opts.format == '-1' and opts.usetitle and u'%(title)s-%(id)s-%(format)s.%(ext)s')
+        if opts['--output']:
+            opts['--output'] = opts['--output'].decode(preferredencoding())
+    outtmpl =((opts['--output'] is not None and opts['--output'])
+            or (opts.format == '-1' and opts['--title'] and u'%(title)s-%(id)s-%(format)s.%(ext)s')
             or (opts.format == '-1' and u'%(id)s-%(format)s.%(ext)s')
-            or (opts.usetitle and opts.autonumber and u'%(autonumber)s-%(title)s-%(id)s.%(ext)s')
-            or (opts.usetitle and u'%(title)s-%(id)s.%(ext)s')
-            or (opts.useid and u'%(id)s.%(ext)s')
-            or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
+            or (opts['--title'] and opts['--auto-number'] and u'%(autonumber)s-%(title)s-%(id)s.%(ext)s')
+            or (opts['--title'] and u'%(title)s-%(id)s.%(ext)s')
+            or (opts['--id'] and u'%(id)s.%(ext)s')
+            or (opts['--auto-number'] and u'%(autonumber)s-%(id)s.%(ext)s')
             or u'%(title)s-%(id)s.%(ext)s')
 
     # YoutubeDL
@@ -764,7 +770,7 @@ def _real_main(argv=None):
         'progress_with_newline': opts.progress_with_newline,
         'playliststart': opts.playliststart,
         'playlistend': opts.playlistend,
-        'logtostderr': opts.outtmpl == '-',
+        'logtostderr': opts['--output'] == '-',
         'consoletitle': opts.consoletitle,
         'nopart': opts.nopart,
         'updatetime': opts.updatetime,
