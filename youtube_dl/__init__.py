@@ -492,8 +492,8 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option('--no-continue',
             action='store_false', dest='continue_dl',
             help='do not resume partially downloaded files (restart from beginning)')
-    filesystem.add_option('--cookies',
-            dest='cookiefile', metavar='FILE', help='file to read cookies from and dump cookie jar in')
+    #filesystem.add_option('--cookies',
+    #        dest='cookiefile', metavar='FILE', help='file to read cookies from and dump cookie jar in')
     filesystem.add_option('--no-part',
             action='store_true', dest='nopart', help='do not use .part files', default=False)
     filesystem.add_option('--no-mtime',
@@ -568,12 +568,12 @@ def _real_main(argv=None):
     #parser, opts, args = parseOpts(argv)
 
     # Open appropriate CookieJar
-    if opts.cookiefile is None:
+    if not opts['--cookies']:
         jar = compat_cookiejar.CookieJar()
     else:
         try:
-            jar = compat_cookiejar.MozillaCookieJar(opts.cookiefile)
-            if os.access(opts.cookiefile, os.R_OK):
+            jar = compat_cookiejar.MozillaCookieJar(opts['--cookies'])
+            if os.access(opts['--cookies'], os.R_OK):
                 jar.load()
         except (IOError, OSError) as err:
             if opts.verbose:
@@ -838,7 +838,7 @@ def _real_main(argv=None):
         retcode = 101
 
     # Dump cookie jar if requested
-    if opts.cookiefile is not None:
+    if opts['--cookies']:
         try:
             jar.save()
         except (IOError, OSError) as err:
