@@ -349,7 +349,7 @@ def parseOpts(overrideArguments=None):
     general.add_option('--extractor-descriptions',
             action='store_true', dest='list_extractor_descriptions',
             help='Output descriptions of all supported extractors', default=False)
-    general.add_option('--proxy', dest='proxy', default=None, help='Use the specified HTTP/HTTPS proxy', metavar='URL')
+    #general.add_option('--proxy', dest='proxy', default=None, help='Use the specified HTTP/HTTPS proxy', metavar='URL')
     general.add_option('--no-check-certificate', action='store_true', dest='no_check_certificate', default=False, help='Suppress HTTPS certificate validation.')
 
 
@@ -483,8 +483,8 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option('--restrict-filenames',
             action='store_true', dest='restrictfilenames',
             help='Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames', default=False)
-    filesystem.add_option('-a', '--batch-file',
-            dest='batchfile', metavar='FILE', help='file containing URLs to download (\'-\' for stdin)')
+    #filesystem.add_option('-a', '--batch-file',
+    #        dest='batchfile', metavar='FILE', help='file containing URLs to download (\'-\' for stdin)')
     filesystem.add_option('-w', '--no-overwrites',
             action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
     filesystem.add_option('-c', '--continue',
@@ -595,12 +595,12 @@ def _real_main(argv=None):
 
     # Batch file verification
     batchurls = []
-    if opts.batchfile is not None:
+    if opts['--batch-file']:
         try:
-            if opts.batchfile == '-':
+            if opts['--batch-file'] == '-':
                 batchfd = sys.stdin
             else:
-                batchfd = open(opts.batchfile, 'r')
+                batchfd = open(opts['--batch-file'], 'r')
             batchurls = batchfd.readlines()
             batchurls = [x.strip() for x in batchurls]
             batchurls = [x for x in batchurls if len(x) > 0 and not re.search(r'^[#/;]', x)]
@@ -613,11 +613,11 @@ def _real_main(argv=None):
 
     # General configuration
     cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
-    if opts.proxy is not None:
-        if opts.proxy == '':
+    if opts['--proxy']:
+        if opts['--proxy'] == '':  # Will this ever happen?
             proxies = {}
         else:
-            proxies = {'http': opts.proxy, 'https': opts.proxy}
+            proxies = {'http': opts['--proxy'], 'https': opts['--proxy']}
     else:
         proxies = compat_urllib_request.getproxies()
         # Set HTTPS proxy to HTTP one if given (https://github.com/rg3/youtube-dl/issues/805)
