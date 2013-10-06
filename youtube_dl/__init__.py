@@ -241,6 +241,9 @@ from .extractor import gen_extractors
 from .YoutubeDL import YoutubeDL
 from .PostProcessor import *
 
+class OptionsError(Exception):
+    pass
+
 def parseOpts(overrideArguments=None):
     def _readOptions(filename_bytes):
         try:
