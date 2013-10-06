@@ -419,42 +419,42 @@ def parseOpts(overrideArguments=None):
             help='do not automatically adjust the buffer size. By default, the buffer size is automatically resized from an initial value of SIZE.', default=False)
     downloader.add_option('--test', action='store_true', dest='test', default=False, help=optparse.SUPPRESS_HELP)
 
-    verbosity.add_option('-q', '--quiet',
-            action='store_true', dest='quiet', help='activates quiet mode', default=False)
-    verbosity.add_option('-s', '--simulate',
-            action='store_true', dest='simulate', help='do not download the video and do not write anything to disk', default=False)
-    verbosity.add_option('--skip-download',
-            action='store_true', dest='skip_download', help='do not download the video', default=False)
-    verbosity.add_option('-g', '--get-url',
-            action='store_true', dest='geturl', help='simulate, quiet but print URL', default=False)
-    verbosity.add_option('-e', '--get-title',
-            action='store_true', dest='gettitle', help='simulate, quiet but print title', default=False)
-    verbosity.add_option('--get-id',
-            action='store_true', dest='getid', help='simulate, quiet but print id', default=False)
-    verbosity.add_option('--get-thumbnail',
-            action='store_true', dest='getthumbnail',
-            help='simulate, quiet but print thumbnail URL', default=False)
-    verbosity.add_option('--get-description',
-            action='store_true', dest='getdescription',
-            help='simulate, quiet but print video description', default=False)
-    verbosity.add_option('--get-filename',
-            action='store_true', dest='getfilename',
-            help='simulate, quiet but print output filename', default=False)
-    verbosity.add_option('--get-format',
-            action='store_true', dest='getformat',
-            help='simulate, quiet but print output format', default=False)
-    verbosity.add_option('--newline',
-            action='store_true', dest='progress_with_newline', help='output progress bar as new lines', default=False)
-    verbosity.add_option('--no-progress',
-            action='store_true', dest='noprogress', help='do not print progress bar', default=False)
-    verbosity.add_option('--console-title',
-            action='store_true', dest='consoletitle',
-            help='display progress in console titlebar', default=False)
-    verbosity.add_option('-v', '--verbose',
-            action='store_true', dest='verbose', help='print various debugging information', default=False)
-    verbosity.add_option('--dump-intermediate-pages',
-            action='store_true', dest='dump_intermediate_pages', default=False,
-            help='print downloaded pages to debug problems(very verbose)')
+    #verbosity.add_option('-q', '--quiet',
+    #        action='store_true', dest='quiet', help='activates quiet mode', default=False)
+    #verbosity.add_option('-s', '--simulate',
+    #        action='store_true', dest='simulate', help='do not download the video and do not write anything to disk', default=False)
+    #verbosity.add_option('--skip-download',
+    #        action='store_true', dest='skip_download', help='do not download the video', default=False)
+    #verbosity.add_option('-g', '--get-url',
+    #        action='store_true', dest='geturl', help='simulate, quiet but print URL', default=False)
+    #verbosity.add_option('-e', '--get-title',
+    #        action='store_true', dest='gettitle', help='simulate, quiet but print title', default=False)
+    #verbosity.add_option('--get-id',
+    #        action='store_true', dest='getid', help='simulate, quiet but print id', default=False)
+    #verbosity.add_option('--get-thumbnail',
+    #        action='store_true', dest='getthumbnail',
+    #        help='simulate, quiet but print thumbnail URL', default=False)
+    #verbosity.add_option('--get-description',
+    #        action='store_true', dest='getdescription',
+    #        help='simulate, quiet but print video description', default=False)
+    #verbosity.add_option('--get-filename',
+    #        action='store_true', dest='getfilename',
+    #        help='simulate, quiet but print output filename', default=False)
+    #verbosity.add_option('--get-format',
+    #        action='store_true', dest='getformat',
+    #        help='simulate, quiet but print output format', default=False)
+    #verbosity.add_option('--newline',
+    #        action='store_true', dest='progress_with_newline', help='output progress bar as new lines', default=False)
+    #verbosity.add_option('--no-progress',
+    #        action='store_true', dest='noprogress', help='do not print progress bar', default=False)
+    #verbosity.add_option('--console-title',
+    #        action='store_true', dest='consoletitle',
+    #        help='display progress in console titlebar', default=False)
+    #verbosity.add_option('-v', '--verbose',
+    #        action='store_true', dest='verbose', help='print various debugging information', default=False)
+    #verbosity.add_option('--dump-intermediate-pages',
+    #        action='store_true', dest='dump_intermediate_pages', default=False,
+    #        help='print downloaded pages to debug problems(very verbose)')
 
     #filesystem.add_option('-t', '--title',
     #        action='store_true', dest='usetitle', help='use title in file name (default)', default=False)
@@ -537,7 +537,7 @@ def parseOpts(overrideArguments=None):
 
     if overrideArguments is not None:
         opts, args = parser.parse_args(overrideArguments)
-        if opts.verbose:
+        if opts['--verbose']:
             sys.stderr.write(u'[debug] Override config: ' + repr(overrideArguments) + '\n')
     else:
         xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
@@ -550,7 +550,7 @@ def parseOpts(overrideArguments=None):
         commandLineConf = sys.argv[1:]
         argv = systemConf + userConf + commandLineConf
         opts, args = parser.parse_args(argv)
-        if opts.verbose:
+        if opts['--verbose']:
             sys.stderr.write(u'[debug] System config: ' + repr(_hide_login_info(systemConf)) + '\n')
             sys.stderr.write(u'[debug] User config: ' + repr(_hide_login_info(userConf)) + '\n')
             sys.stderr.write(u'[debug] Command-line args: ' + repr(_hide_login_info(commandLineConf)) + '\n')
@@ -579,7 +579,7 @@ def _real_main(argv=None):
             if os.access(opts['--cookies'], os.R_OK):
                 jar.load()
         except (IOError, OSError) as err:
-            if opts.verbose:
+            if opts['--verbose']:
                 traceback.print_exc()
             sys.stderr.write(u'ERROR: unable to open cookie file\n')
             sys.exit(101)
@@ -607,7 +607,7 @@ def _real_main(argv=None):
             batchurls = batchfd.readlines()
             batchurls = [x.strip() for x in batchurls]
             batchurls = [x for x in batchurls if len(x) > 0 and not re.search(r'^[#/;]', x)]
-            if opts.verbose:
+            if opts['--verbose']:
                 sys.stderr.write(u'[debug] Batch file urls: ' + repr(batchurls) + u'\n')
         except IOError:
             sys.exit(u'ERROR: batch file could not be read')
@@ -743,16 +743,16 @@ def _real_main(argv=None):
         'username': opts['--username'],
         'password': opts['--password'],
         'videopassword': opts.videopassword,
-        'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat),
-        'forceurl': opts.geturl,
-        'forcetitle': opts.gettitle,
-        'forceid': opts.getid,
-        'forcethumbnail': opts.getthumbnail,
-        'forcedescription': opts.getdescription,
-        'forcefilename': opts.getfilename,
-        'forceformat': opts.getformat,
-        'simulate': opts.simulate,
-        'skip_download': (opts.skip_download or opts.simulate or opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat),
+        'quiet': (opts['--quiet'] or opts['--get-url'] or opts['--get-title'] or opts['--get-id'] or opts['--get-thumbnail'] or opts['--get-description'] or opts['--get-filename'] or opts['--get-format']),
+        'forceurl': opts['--get-url'],
+        'forcetitle': opts['--get-title'],
+        'forceid': opts['--get-id'],
+        'forcethumbnail': opts['--get-thumbnail'],
+        'forcedescription': opts['--get-description'],
+        'forcefilename': opts['--get-filename'],
+        'forceformat': opts['--get-format'],
+        'simulate': opts['--simulate'],
+        'skip_download': (opts['--skip-download'] or opts['--simulate'] or opts['--get-url'] or opts['--get-title'] or opts['--get-id'] or opts['--get-thumbnail'] or opts['--get-description'] or opts['--get-filename'] or opts['--get-format']),
         'format': opts.format,
         'format_limit': opts.format_limit,
         'listformats': opts.listformats,
@@ -766,12 +766,12 @@ def _real_main(argv=None):
         'buffersize': opts.buffersize,
         'noresizebuffer': opts.noresizebuffer,
         'continuedl': opts.continue_dl,
-        'noprogress': opts.noprogress,
-        'progress_with_newline': opts.progress_with_newline,
+        'noprogress': opts['--no-progress'],
+        'progress_with_newline': opts['--newline'],
         'playliststart': opts.playliststart,
         'playlistend': opts.playlistend,
         'logtostderr': opts['--output'] == '-',
-        'consoletitle': opts.consoletitle,
+        'consoletitle': opts['--console-title'],
         'nopart': opts.nopart,
         'updatetime': opts.updatetime,
         'writedescription': opts.writedescription,
@@ -787,8 +787,8 @@ def _real_main(argv=None):
         'rejecttitle': decodeOption(opts.rejecttitle),
         'max_downloads': opts.max_downloads,
         'prefer_free_formats': opts.prefer_free_formats,
-        'verbose': opts.verbose,
-        'dump_intermediate_pages': opts.dump_intermediate_pages,
+        'verbose': opts['--verbose'],
+        'dump_intermediate_pages': opts['--dump-intermediate-pages'],
         'test': opts.test,
         'keepvideo': opts.keepvideo,
         'min_filesize': opts.min_filesize,
@@ -796,7 +796,7 @@ def _real_main(argv=None):
         'daterange': date,
         })
 
-    if opts.verbose:
+    if opts['--verbose']:
         sys.stderr.write(u'[debug] youtube-dl version ' + __version__ + u'\n')
         try:
             sp = subprocess.Popen(
@@ -827,7 +827,7 @@ def _real_main(argv=None):
 
     # Update version
     if opts.update_self:
-        update_self(ydl.to_screen, opts.verbose, sys.argv[0])
+        update_self(ydl.to_screen, opts['--verbose'], sys.argv[0])
 
     # Maybe do nothing
     if len(all_urls) < 1:
