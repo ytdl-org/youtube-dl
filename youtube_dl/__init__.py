@@ -57,7 +57,8 @@ Options:
 
   Video Selection:
     --playlist-start NUMBER    playlist video to start at [default: 1]
-    --playlist-end NUMBER      playlist video to end at (default is last)
+    --playlist-end NUMBER      playlist video to end at (defaults to last)
+                               [default: -1]
     --match-title REGEX        download only matching titles (regex or caseless
                                sub-string)
     --reject-title REGEX       skip download for matching titles (regex or
@@ -352,18 +353,18 @@ def parseOpts(overrideArguments=None):
     #general.add_option('--no-check-certificate', action='store_true', dest='no_check_certificate', default=False, help='Suppress HTTPS certificate validation.')
 
 
-    selection.add_option('--playlist-start',
-            dest='playliststart', metavar='NUMBER', help='playlist video to start at (default is %default)', default=1)
-    selection.add_option('--playlist-end',
-            dest='playlistend', metavar='NUMBER', help='playlist video to end at (default is last)', default=-1)
-    selection.add_option('--match-title', dest='matchtitle', metavar='REGEX',help='download only matching titles (regex or caseless sub-string)')
-    selection.add_option('--reject-title', dest='rejecttitle', metavar='REGEX',help='skip download for matching titles (regex or caseless sub-string)')
-    selection.add_option('--max-downloads', metavar='NUMBER', dest='max_downloads', help='Abort after downloading NUMBER files', default=None)
-    selection.add_option('--min-filesize', metavar='SIZE', dest='min_filesize', help="Do not download any videos smaller than SIZE (e.g. 50k or 44.6m)", default=None)
-    selection.add_option('--max-filesize', metavar='SIZE', dest='max_filesize', help="Do not download any videos larger than SIZE (e.g. 50k or 44.6m)", default=None)
-    selection.add_option('--date', metavar='DATE', dest='date', help='download only videos uploaded in this date', default=None)
-    selection.add_option('--datebefore', metavar='DATE', dest='datebefore', help='download only videos uploaded before this date', default=None)
-    selection.add_option('--dateafter', metavar='DATE', dest='dateafter', help='download only videos uploaded after this date', default=None)
+    #selection.add_option('--playlist-start',
+    #        dest='playliststart', metavar='NUMBER', help='playlist video to start at (default is %default)', default=1)
+    #selection.add_option('--playlist-end',
+    #        dest='playlistend', metavar='NUMBER', help='playlist video to end at (default is last)', default=-1)
+    #selection.add_option('--match-title', dest='matchtitle', metavar='REGEX',help='download only matching titles (regex or caseless sub-string)')
+    #selection.add_option('--reject-title', dest='rejecttitle', metavar='REGEX',help='skip download for matching titles (regex or caseless sub-string)')
+    #selection.add_option('--max-downloads', metavar='NUMBER', dest='max_downloads', help='Abort after downloading NUMBER files', default=None)
+    #selection.add_option('--min-filesize', metavar='SIZE', dest='min_filesize', help="Do not download any videos smaller than SIZE (e.g. 50k or 44.6m)", default=None)
+    #selection.add_option('--max-filesize', metavar='SIZE', dest='max_filesize', help="Do not download any videos larger than SIZE (e.g. 50k or 44.6m)", default=None)
+    #selection.add_option('--date', metavar='DATE', dest='date', help='download only videos uploaded in this date', default=None)
+    #selection.add_option('--datebefore', metavar='DATE', dest='datebefore', help='download only videos uploaded before this date', default=None)
+    #selection.add_option('--dateafter', metavar='DATE', dest='dateafter', help='download only videos uploaded after this date', default=None)
 
 
     #authentication.add_option('-u', '--username',
@@ -372,8 +373,8 @@ def parseOpts(overrideArguments=None):
     #        dest='password', metavar='PASSWORD', help='account password')
     #authentication.add_option('-n', '--netrc',
     #        action='store_true', dest='usenetrc', help='use .netrc authentication data', default=False)
-    authentication.add_option('--video-password',
-            dest='videopassword', metavar='PASSWORD', help='video password (vimeo only)')
+    #authentication.add_option('--video-password',
+    #        dest='videopassword', metavar='PASSWORD', help='video password (vimeo only)')
 
 
     video_format.add_option('-f', '--format',
@@ -682,11 +683,11 @@ def _real_main(argv=None):
         if numeric_limit is None:
             parser.error(u'invalid min_filesize specified')
         opts['--min-filesize'] = numeric_limit
-    if opts.max_filesize is not None:
-        numeric_limit = FileDownloader.parse_bytes(opts.max_filesize)
+    if opts['--max-filesize']:
+        numeric_limit = FileDownloader.parse_bytes(opts['--max-filesize'])
         if numeric_limit is None:
             parser.error(u'invalid max_filesize specified')
-        opts.max_filesize = numeric_limit
+        opts['--max-filesize'] = numeric_limit
     if opts.retries is not None:
         try:
             opts.retries = int(opts.retries)
@@ -698,14 +699,14 @@ def _real_main(argv=None):
             parser.error(u'invalid buffer size specified')
         opts.buffersize = numeric_buffersize
     try:
-        opts.playliststart = int(opts.playliststart)
-        if opts.playliststart <= 0:
+        opts['--playlist-start'] = int(opts['--playlist-start'])
+        if opts['--playlist-start'] <= 0:
             raise ValueError(u'Playlist start must be positive')
     except (TypeError, ValueError) as err:
         parser.error(u'invalid playlist start number specified')
     try:
-        opts.playlistend = int(opts.playlistend)
-        if opts.playlistend != -1 and (opts.playlistend <= 0 or opts.playlistend < opts.playliststart):
+        opts['--playlist-end'] = int(opts['--playlist-end'])
+        if opts['--playlist-end'] != -1 and (opts['--playlist-end'] <= 0 or opts['--playlist-end'] < opts['--playlist-start']):
             raise ValueError(u'Playlist end must be greater than playlist start')
     except (TypeError, ValueError) as err:
         parser.error(u'invalid playlist end number specified')
@@ -719,10 +720,10 @@ def _real_main(argv=None):
     if opts.recodevideo is not None:
         if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg']:
             parser.error(u'invalid video recode format specified')
-    if opts.date is not None:
-        date = DateRange.day(opts.date)
+    if opts['--date']:
+        date = DateRange.day(opts['--date'])
     else:
-        date = DateRange(opts.dateafter, opts.datebefore)
+        date = DateRange(opts['--dateafter'], opts['--datebefore'])
 
     if sys.version_info < (3,):
         # In Python 2, sys.argv is a bytestring (also note http://bugs.python.org/issue2128 for Windows systems)
@@ -768,8 +769,8 @@ def _real_main(argv=None):
         'continuedl': opts.continue_dl,
         'noprogress': opts['--no-progress'],
         'progress_with_newline': opts['--newline'],
-        'playliststart': opts.playliststart,
-        'playlistend': opts.playlistend,
+        'playliststart': opts['--playlist-start'],
+        'playlistend': opts['--playlist-end'],
         'logtostderr': opts['--output'] == '-',
         'consoletitle': opts['--console-title'],
         'nopart': opts.nopart,
@@ -783,16 +784,16 @@ def _real_main(argv=None):
         'listsubtitles': opts.listsubtitles,
         'subtitlesformat': opts.subtitlesformat,
         'subtitleslangs': opts.subtitleslangs,
-        'matchtitle': decodeOption(opts.matchtitle),
-        'rejecttitle': decodeOption(opts.rejecttitle),
-        'max_downloads': opts.max_downloads,
+        'matchtitle': decodeOption(opts['--match-title']),
+        'rejecttitle': decodeOption(opts['--reject-title']),
+        'max_downloads': opts['--max-downloads'],
         'prefer_free_formats': opts.prefer_free_formats,
         'verbose': opts['--verbose'],
         'dump_intermediate_pages': opts['--dump-intermediate-pages'],
         'test': opts.test,
         'keepvideo': opts.keepvideo,
         'min_filesize': opts['--min-filesize'],
-        'max_filesize': opts.max_filesize,
+        'max_filesize': opts['--max-filesize'],
         'daterange': date,
         })
 
