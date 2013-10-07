@@ -16,8 +16,6 @@ from .utils import *
 from .extractor import get_info_extractor, gen_extractors
 from .FileDownloader import FileDownloader
 
-#TODO: Check for parameters that eval None identity, docopt defaults to False
-
 
 class YoutubeDL(object):
     """YoutubeDL class.
