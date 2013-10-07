@@ -97,7 +97,7 @@ Options:
     -s --simulate              do not download the video and do not write
                                anything to disk
     --skip-download            do not download the video
-    -g --get-url              simulate, quiet but print URL
+    -g --get-url               simulate, quiet but print URL
     -e --get-title             simulate, quiet but print title
     --get-id                   simulate, quiet but print id
     --get-thumbnail            simulate, quiet but print thumbnail URL
