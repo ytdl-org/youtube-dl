@@ -224,7 +224,6 @@ def _real_main():
         codecs.register(lambda name: codecs.lookup('utf-8') if name == 'cp65001' else None)
 
     opts = docopt(__doc__, version=__version__)
-    print(opts)
     #--all-formats will supersede --format
     if opts['--all-formats']:
         opts['--format'] = 'all'
