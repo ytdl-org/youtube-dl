@@ -448,7 +448,7 @@ def _real_main(argv=None):
     all_urls = batchurls + args
     all_urls = [url.strip() for url in all_urls]
 
-    _setup_opener(jar=jar, opts=opts)
+    opener = _setup_opener(jar=jar, opts=opts)
 
     extractors = gen_extractors()
 
@@ -641,7 +641,12 @@ def _real_main(argv=None):
             except:
                 pass
         write_string(u'[debug] Python version %s - %s' %(platform.python_version(), platform_name()) + u'\n')
-        write_string(u'[debug] Proxy map: ' + str(proxy_handler.proxies) + u'\n')
+
+        proxy_map = {}
+        for handler in opener.handlers:
+            if hasattr(handler, 'proxies'):
+                proxy_map.update(handler.proxies)
+        write_string(u'[debug] Proxy map: ' + compat_str(proxy_map) + u'\n')
 
     ydl.add_default_info_extractors()
 
