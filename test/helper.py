@@ -12,12 +12,7 @@ from youtube_dl.utils import (
     compat_urllib_request,
 )
 
-# General configuration (from __init__, not very elegant...)
-jar = compat_cookiejar.CookieJar()
-cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
-proxy_handler = compat_urllib_request.ProxyHandler()
-opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
-compat_urllib_request.install_opener(opener)
+youtube_dl._setup_opener(timeout=10)
 
 PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
 with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:

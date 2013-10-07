@@ -19,14 +19,6 @@ PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "para
 
 RETRIES = 3
 
-# General configuration (from __init__, not very elegant...)
-jar = compat_cookiejar.CookieJar()
-cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
-proxy_handler = compat_urllib_request.ProxyHandler()
-opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
-compat_urllib_request.install_opener(opener)
-socket.setdefaulttimeout(10)
-
 md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
 
 class YoutubeDL(youtube_dl.YoutubeDL):
@@ -45,6 +37,7 @@ def _file_md5(fn):
     with open(fn, 'rb') as f:
         return hashlib.md5(f.read()).hexdigest()
 
+import helper  # Set up remaining global configuration
 from helper import get_testcases, try_rm
 defs = get_testcases()
 
