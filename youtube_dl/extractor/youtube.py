@@ -1250,9 +1250,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         return url_map
 
     def _real_extract(self, url):
-        if re.match(r'(?:https?://)?[^/]+/watch\?feature=[a-z_]+$', url):
-            self._downloader.report_warning(u'Did you forget to quote the URL? Remember that & is a meta-character in most shells, so you want to put the URL in quotes, like  youtube-dl \'http://www.youtube.com/watch?feature=foo&v=BaW_jenozKc\' (or simply  youtube-dl BaW_jenozKc  ).')
-
         # Extract original video URL from URL with redirection, like age verification, using next_url parameter
         mobj = re.search(self._NEXT_URL_RE, url)
         if mobj:
@@ -1637,7 +1634,7 @@ class YoutubeChannelIE(InfoExtractor):
 
 class YoutubeUserIE(InfoExtractor):
     IE_DESC = u'YouTube.com user videos (URL or "ytuser" keyword)'
-    _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?youtube\.com/(?:user/)?)|ytuser:)(?!feed/)([A-Za-z0-9_-]+)'
+    _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?youtube\.com/(?:user/)?(?!watch(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)([A-Za-z0-9_-]+)'
     _TEMPLATE_URL = 'http://gdata.youtube.com/feeds/api/users/%s'
     _GDATA_PAGE_SIZE = 50
     _GDATA_URL = 'http://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d&alt=json'
@@ -1830,3 +1827,18 @@ class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
         webpage = self._download_webpage('https://www.youtube.com/my_favorites', 'Youtube Favourites videos')
         playlist_id = self._search_regex(r'list=(.+?)["&]', webpage, u'favourites playlist id')
         return self.url_result(playlist_id, 'YoutubePlaylist')
+
+
+class YoutubeTruncatedURLIE(InfoExtractor):
+    IE_NAME = 'youtube:truncated_url'
+    IE_DESC = False  # Do not list
+    _VALID_URL = r'(?:https?://)?[^/]+/watch\?feature=[a-z_]+$'
+
+    def _real_extract(self, url):
+        raise ExtractorError(
+            u'Did you forget to quote the URL? Remember that & is a meta '
+            u'character in most shells, so you want to put the URL in quotes, '
+            u'like  youtube-dl '
+            u'\'http://www.youtube.com/watch?feature=foo&v=BaW_jenozKc\''
+            u' (or simply  youtube-dl BaW_jenozKc  ).',
+            expected=True)

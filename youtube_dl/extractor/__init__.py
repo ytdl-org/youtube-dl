@@ -141,6 +141,7 @@ from .youtube import (
     YoutubeShowIE,
     YoutubeSubscriptionsIE,
     YoutubeRecommendedIE,
+    YoutubeTruncatedURLIE,
     YoutubeWatchLaterIE,
     YoutubeFavouritesIE,
 )

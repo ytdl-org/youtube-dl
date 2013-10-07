@@ -484,6 +484,8 @@ def _real_main(argv=None):
             if not ie._WORKING:
                 continue
             desc = getattr(ie, 'IE_DESC', ie.IE_NAME)
+            if desc is False:
+                continue
             if hasattr(ie, 'SEARCH_KEY'):
                 _SEARCHES = (u'cute kittens', u'slithering pythons', u'falling cat', u'angry poodle', u'purple fish', u'running tortoise')
                 _COUNTS = (u'', u'5', u'10', u'all')
