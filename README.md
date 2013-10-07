@@ -52,6 +52,9 @@ which means you can modify it, redistribute it or use it however you like.
     --datebefore DATE          download only videos uploaded before this date
     --dateafter DATE           download only videos uploaded after this date
     --no-playlist              download only the currently playing video
+    --age-limit YEARS          download only videos suitable for the given age
+    --download-archive FILE    Download only videos not present in the archive
+                               file. Record all downloaded videos in it.
 
 ## Download Options:
     -r, --rate-limit LIMIT     maximum download rate (e.g. 50k or 44.6m)
