@@ -3,33 +3,7 @@
 """
 Usage:
   youtube-dl (--help | --version)
-  youtube-dl URL ... [--update] [--ignore-errors] [--dump-user-agent]
-             [--user-agent=UA] [--referer REF] [--list-extractors]
-             [--extractor-descriptions] [--proxy=URL]
-             [--no-check-certificate] [--cache-dir] [--no-cache-dir]
-             [--playlist-start=NUMBER] [--playlist-end=NUMBER]
-             [--match-title=REGEX] [--reject-title=REGEX]
-             [--max-downloads=NUMBER] [--min-filesize=SIZE]
-             [--max-filesize=SIZE] [--date=DATE] [--datebefore=DATE]
-             [--dateafter=DATE] [--no-playlist] [--rate-limit=LIMIT]
-             [--retries=RETRIES] [--buffer-size=SIZE] [--no-resize-buffer]
-             [--title] [--id] [--auto-number] [--output=TEMPLATE]
-             [--autonumber-size=NUMBER] [--restrict-filenames]
-             [--batch-file=FILE] [--no-overwrites] [--continue | --no-continue]
-             [--cookies=FILE] [--no-part] [--no-mtime] [--write-description]
-             [--write-info-json] [--write-thumbnail] [--quiet] [--simulate]
-             [--skip-download] [--get-url] [--get-title] [--get-id]
-             [--get-thumbnail] [--get-description] [--get-filename]
-             [--get-format] [--newline] [--no-progress] [--console-title]
-             [--verbose] [--dump-intermediate-pages] [--format=FORMAT ]
-             [--all-formats] [--prefer-free-formats] [--max-quality=FORMAT ]
-             [--list-formats] [--write-sub] [--write-auto-sub] [--all-subs]
-             [--list-subs] [--sub-format=FORMAT] [--sub-langs=LANGS...]
-             [--username=USERNAME --password=PASSWORD | --netrc]
-             [--video-password=PASSWORD] [--extract-audio]
-             [--audio-format=FORMAT] [--audio-quality=QUALITY]
-             [--recode-video=FORMAT] [--keep-video] [--no-post-overwrites]
-             [--embed-subs]
+  youtube-dl URL ... [options]
 
 Options:
   General Options:
@@ -55,7 +29,7 @@ Options:
                                /youtube-dl .
     --no-cache-dir             Disable filesystem caching
 
-  Video Selection:
+  Video Selection Options:
     --playlist-start=NUMBER    playlist video to start at [default: 1]
     --playlist-end=NUMBER      playlist video to end at (defaults to last)
                                [default: -1]
@@ -123,7 +97,7 @@ Options:
     -s --simulate              do not download the video and do not write
                                anything to disk
     --skip-download            do not download the video
-    -g  --get-url              simulate, quiet but print URL
+    -g --get-url              simulate, quiet but print URL
     -e --get-title             simulate, quiet but print title
     --get-id                   simulate, quiet but print id
     --get-thumbnail            simulate, quiet but print thumbnail URL
@@ -136,6 +110,7 @@ Options:
     -v --verbose               print various debugging information
     --dump-intermediate-pages  print downloaded pages to debug problems(very
                                verbose)
+    --test                     Download only first bytes to test the downloader
 
   Video Format Options:
     -f --format=FORMAT         video format code, specifiy the order of
@@ -353,6 +328,8 @@ def _real_main():
 
 
     # Conflicting, missing and erroneous options
+    if opts['--netrc'] and (opts['--username'] or opts['--password']):
+        raise OptionsError(u'using .netrc conflicts with giving username/password')
     if opts['--password'] and not opts['--username']:
         raise OptionsError(u' account username missing\n')
     if opts['--username'] and not opts['--password']:
