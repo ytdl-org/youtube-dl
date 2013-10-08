@@ -117,7 +117,7 @@ class GenericIE(InfoExtractor):
         except ValueError:
             # since this is the last-resort InfoExtractor, if
             # this error is thrown, it'll be thrown here
-            raise ExtractorError(u'Invalid URL: %s' % url)
+            raise ExtractorError(u'Failed to download URL: %s' % url)
 
         self.report_extraction(video_id)
         # Look for BrightCove:
@@ -149,12 +149,12 @@ class GenericIE(InfoExtractor):
             # HTML5 video
             mobj = re.search(r'<video[^<]*(?:>.*?<source.*?)? src="([^"]+)"', webpage, flags=re.DOTALL)
         if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
+            raise ExtractorError(u'Unsupported URL: %s' % url)
 
         # It's possible that one of the regexes
         # matched, but returned an empty group:
         if mobj.group(1) is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
+            raise ExtractorError(u'Did not find a valid video URL at %s' % url)
 
         video_url = mobj.group(1)
         video_url = compat_urlparse.urljoin(url, video_url)

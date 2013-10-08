@@ -41,7 +41,8 @@ class GooglePlusIE(InfoExtractor):
 
         # Extract update date
         upload_date = self._html_search_regex(
-            ['title="Timestamp">(.*?)</a>', r'<a.+?class="g-M.+?>(.+?)</a>'],
+            r'''(?x)<a.+?class="o-T-s\s[^"]+"\s+style="display:\s*none"\s*>
+                    ([0-9]{4}-[0-9]{2}-[0-9]{2})</a>''',
             webpage, u'upload date', fatal=False)
         if upload_date:
             # Convert timestring to a format suitable for filename

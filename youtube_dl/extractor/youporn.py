@@ -51,6 +51,7 @@ class YouPornIE(InfoExtractor):
         req = compat_urllib_request.Request(url)
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
+        age_limit = self._rta_search(webpage)
 
         # Get JSON parameters
         json_params = self._search_regex(r'var currentVideo = new Video\((.*)\);', webpage, u'JSON parameters')
@@ -115,7 +116,8 @@ class YouPornIE(InfoExtractor):
                 'ext': extension,
                 'format': format,
                 'thumbnail': thumbnail,
-                'description': video_description
+                'description': video_description,
+                'age_limit': age_limit,
             })
 
         if self._downloader.params.get('listformats', None):

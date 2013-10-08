@@ -175,7 +175,7 @@ def compat_ord(c):
 compiled_regex_type = type(re.compile(''))
 
 std_headers = {
-    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0',
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0 (Chrome)',
     'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Encoding': 'gzip, deflate',
@@ -830,3 +830,99 @@ def get_cachedir(params={}):
     cache_root = os.environ.get('XDG_CACHE_HOME',
                                 os.path.expanduser('~/.cache'))
     return params.get('cachedir', os.path.join(cache_root, 'youtube-dl'))
+
+
+# Cross-platform file locking
+if sys.platform == 'win32':
+    import ctypes.wintypes
+    import msvcrt
+
+    class OVERLAPPED(ctypes.Structure):
+        _fields_ = [
+            ('Internal', ctypes.wintypes.LPVOID),
+            ('InternalHigh', ctypes.wintypes.LPVOID),
+            ('Offset', ctypes.wintypes.DWORD),
+            ('OffsetHigh', ctypes.wintypes.DWORD),
+            ('hEvent', ctypes.wintypes.HANDLE),
+        ]
+
+    kernel32 = ctypes.windll.kernel32
+    LockFileEx = kernel32.LockFileEx
+    LockFileEx.argtypes = [
+        ctypes.wintypes.HANDLE,     # hFile
+        ctypes.wintypes.DWORD,      # dwFlags
+        ctypes.wintypes.DWORD,      # dwReserved
+        ctypes.wintypes.DWORD,      # nNumberOfBytesToLockLow
+        ctypes.wintypes.DWORD,      # nNumberOfBytesToLockHigh
+        ctypes.POINTER(OVERLAPPED)  # Overlapped
+    ]
+    LockFileEx.restype = ctypes.wintypes.BOOL
+    UnlockFileEx = kernel32.UnlockFileEx
+    UnlockFileEx.argtypes = [
+        ctypes.wintypes.HANDLE,     # hFile
+        ctypes.wintypes.DWORD,      # dwReserved
+        ctypes.wintypes.DWORD,      # nNumberOfBytesToLockLow
+        ctypes.wintypes.DWORD,      # nNumberOfBytesToLockHigh
+        ctypes.POINTER(OVERLAPPED)  # Overlapped
+    ]
+    UnlockFileEx.restype = ctypes.wintypes.BOOL
+    whole_low = 0xffffffff
+    whole_high = 0x7fffffff
+
+    def _lock_file(f, exclusive):
+        overlapped = OVERLAPPED()
+        overlapped.Offset = 0
+        overlapped.OffsetHigh = 0
+        overlapped.hEvent = 0
+        f._lock_file_overlapped_p = ctypes.pointer(overlapped)
+        handle = msvcrt.get_osfhandle(f.fileno())
+        if not LockFileEx(handle, 0x2 if exclusive else 0x0, 0,
+                          whole_low, whole_high, f._lock_file_overlapped_p):
+            raise OSError('Locking file failed: %r' % ctypes.FormatError())
+
+    def _unlock_file(f):
+        assert f._lock_file_overlapped_p
+        handle = msvcrt.get_osfhandle(f.fileno())
+        if not UnlockFileEx(handle, 0,
+                            whole_low, whole_high, f._lock_file_overlapped_p):
+            raise OSError('Unlocking file failed: %r' % ctypes.FormatError())
+
+else:
+    import fcntl
+
+    def _lock_file(f, exclusive):
+        fcntl.lockf(f, fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
+
+    def _unlock_file(f):
+        fcntl.lockf(f, fcntl.LOCK_UN)
+
+
+class locked_file(object):
+    def __init__(self, filename, mode, encoding=None):
+        assert mode in ['r', 'a', 'w']
+        self.f = io.open(filename, mode, encoding=encoding)
+        self.mode = mode
+
+    def __enter__(self):
+        exclusive = self.mode != 'r'
+        try:
+            _lock_file(self.f, exclusive)
+        except IOError:
+            self.f.close()
+            raise
+        return self
+
+    def __exit__(self, etype, value, traceback):
+        try:
+            _unlock_file(self.f)
+        finally:
+            self.f.close()
+
+    def __iter__(self):
+        return iter(self.f)
+
+    def write(self, *args):
+        return self.f.write(*args)
+
+    def read(self, *args):
+        return self.f.read(*args)

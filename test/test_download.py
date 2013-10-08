@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import errno
 import hashlib
 import io
 import os
@@ -20,22 +19,6 @@ PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "para
 
 RETRIES = 3
 
-# General configuration (from __init__, not very elegant...)
-jar = compat_cookiejar.CookieJar()
-cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
-proxy_handler = compat_urllib_request.ProxyHandler()
-opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
-compat_urllib_request.install_opener(opener)
-socket.setdefaulttimeout(10)
-
-def _try_rm(filename):
-    """ Remove a file if it exists """
-    try:
-        os.remove(filename)
-    except OSError as ose:
-        if ose.errno != errno.ENOENT:
-            raise
-
 md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
 
 class YoutubeDL(youtube_dl.YoutubeDL):
@@ -54,7 +37,8 @@ def _file_md5(fn):
     with open(fn, 'rb') as f:
         return hashlib.md5(f.read()).hexdigest()
 
-from helper import get_testcases
+import helper  # Set up remaining global configuration
+from helper import get_testcases, try_rm
 defs = get_testcases()
 
 with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
@@ -97,9 +81,9 @@ def generator(test_case):
 
         test_cases = test_case.get('playlist', [test_case])
         for tc in test_cases:
-            _try_rm(tc['file'])
-            _try_rm(tc['file'] + '.part')
-            _try_rm(tc['file'] + '.info.json')
+            try_rm(tc['file'])
+            try_rm(tc['file'] + '.part')
+            try_rm(tc['file'] + '.info.json')
         try:
             for retry in range(1, RETRIES + 1):
                 try:
@@ -145,9 +129,9 @@ def generator(test_case):
                     self.assertTrue(key in info_dict.keys() and info_dict[key])
         finally:
             for tc in test_cases:
-                _try_rm(tc['file'])
-                _try_rm(tc['file'] + '.part')
-                _try_rm(tc['file'] + '.info.json')
+                try_rm(tc['file'])
+                try_rm(tc['file'] + '.part')
+                try_rm(tc['file'] + '.info.json')
 
     return test_template
 

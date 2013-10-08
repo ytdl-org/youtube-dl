@@ -36,6 +36,7 @@ __authors__  = (
 __license__ = 'Public Domain'
 
 import codecs
+import collections
 import getpass
 import optparse
 import os
@@ -188,6 +189,12 @@ def parseOpts(overrideArguments=None):
     selection.add_option('--datebefore', metavar='DATE', dest='datebefore', help='download only videos uploaded before this date', default=None)
     selection.add_option('--dateafter', metavar='DATE', dest='dateafter', help='download only videos uploaded after this date', default=None)
     selection.add_option('--no-playlist', action='store_true', dest='noplaylist', help='download only the currently playing video', default=False)
+    selection.add_option('--age-limit', metavar='YEARS', dest='age_limit',
+                         help='download only videos suitable for the given age',
+                         default=None, type=int)
+    selection.add_option('--download-archive', metavar='FILE',
+                         dest='download_archive',
+                         help='Download only videos not present in the archive file. Record all downloaded videos in it.')
 
 
     authentication.add_option('-u', '--username',
@@ -445,27 +452,7 @@ def _real_main(argv=None):
     all_urls = batchurls + args
     all_urls = [url.strip() for url in all_urls]
 
-    # General configuration
-    cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
-    if opts.proxy is not None:
-        if opts.proxy == '':
-            proxies = {}
-        else:
-            proxies = {'http': opts.proxy, 'https': opts.proxy}
-    else:
-        proxies = compat_urllib_request.getproxies()
-        # Set HTTPS proxy to HTTP one if given (https://github.com/rg3/youtube-dl/issues/805)
-        if 'http' in proxies and 'https' not in proxies:
-            proxies['https'] = proxies['http']
-    proxy_handler = compat_urllib_request.ProxyHandler(proxies)
-    https_handler = make_HTTPS_handler(opts)
-    opener = compat_urllib_request.build_opener(https_handler, proxy_handler, cookie_processor, YoutubeDLHandler())
-    # Delete the default user-agent header, which would otherwise apply in
-    # cases where our custom HTTP handler doesn't come into play
-    # (See https://github.com/rg3/youtube-dl/issues/1309 for details)
-    opener.addheaders =[]
-    compat_urllib_request.install_opener(opener)
-    socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
+    opener = _setup_opener(jar=jar, opts=opts)
 
     extractors = gen_extractors()
 
@@ -482,6 +469,8 @@ def _real_main(argv=None):
             if not ie._WORKING:
                 continue
             desc = getattr(ie, 'IE_DESC', ie.IE_NAME)
+            if desc is False:
+                continue
             if hasattr(ie, 'SEARCH_KEY'):
                 _SEARCHES = (u'cute kittens', u'slithering pythons', u'falling cat', u'angry poodle', u'purple fish', u'running tortoise')
                 _COUNTS = (u'', u'5', u'10', u'all')
@@ -635,6 +624,8 @@ def _real_main(argv=None):
         'daterange': date,
         'cachedir': opts.cachedir,
         'youtube_print_sig_code': opts.youtube_print_sig_code,
+        'age_limit': opts.age_limit,
+        'download_archive': opts.download_archive,
         })
 
     if opts.verbose:
@@ -654,7 +645,12 @@ def _real_main(argv=None):
             except:
                 pass
         write_string(u'[debug] Python version %s - %s' %(platform.python_version(), platform_name()) + u'\n')
-        write_string(u'[debug] Proxy map: ' + str(proxy_handler.proxies) + u'\n')
+
+        proxy_map = {}
+        for handler in opener.handlers:
+            if hasattr(handler, 'proxies'):
+                proxy_map.update(handler.proxies)
+        write_string(u'[debug] Proxy map: ' + compat_str(proxy_map) + u'\n')
 
     ydl.add_default_info_extractors()
 
@@ -691,6 +687,37 @@ def _real_main(argv=None):
             sys.exit(u'ERROR: unable to save cookie jar')
 
     sys.exit(retcode)
+
+
+def _setup_opener(jar=None, opts=None, timeout=300):
+    if opts is None:
+        FakeOptions = collections.namedtuple(
+            'FakeOptions', ['proxy', 'no_check_certificate'])
+        opts = FakeOptions(proxy=None, no_check_certificate=False)
+
+    cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
+    if opts.proxy is not None:
+        if opts.proxy == '':
+            proxies = {}
+        else:
+            proxies = {'http': opts.proxy, 'https': opts.proxy}
+    else:
+        proxies = compat_urllib_request.getproxies()
+        # Set HTTPS proxy to HTTP one if given (https://github.com/rg3/youtube-dl/issues/805)
+        if 'http' in proxies and 'https' not in proxies:
+            proxies['https'] = proxies['http']
+    proxy_handler = compat_urllib_request.ProxyHandler(proxies)
+    https_handler = make_HTTPS_handler(opts)
+    opener = compat_urllib_request.build_opener(
+        https_handler, proxy_handler, cookie_processor, YoutubeDLHandler())
+    # Delete the default user-agent header, which would otherwise apply in
+    # cases where our custom HTTP handler doesn't come into play
+    # (See https://github.com/rg3/youtube-dl/issues/1309 for details)
+    opener.addheaders = []
+    compat_urllib_request.install_opener(opener)
+    socket.setdefaulttimeout(timeout)
+    return opener
+
 
 def main(argv=None):
     try:
