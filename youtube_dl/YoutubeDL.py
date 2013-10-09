@@ -119,7 +119,7 @@ class YoutubeDL(object):
                 and not params['restrictfilenames']):
             # On Python 3, the Unicode filesystem API will throw errors (#1474)
             self.report_warning(
-                u'Assuming --restrict-filenames isnce file system encoding '
+                u'Assuming --restrict-filenames since file system encoding '
                 u'cannot encode all charactes. '
                 u'Set the LC_ALL environment variable to fix this.')
             params['restrictfilenames'] = True
