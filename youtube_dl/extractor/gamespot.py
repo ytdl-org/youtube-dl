@@ -8,6 +8,7 @@ from ..utils import (
 )
 
 class GameSpotIE(InfoExtractor):
+    _WORKING = False
     _VALID_URL = r'(?:http://)?(?:www\.)?gamespot\.com/.*-(?P<page_id>\d+)/?'
     _TEST = {
         u"url": u"http://www.gamespot.com/arma-iii/videos/arma-iii-community-guide-sitrep-i-6410818/",
