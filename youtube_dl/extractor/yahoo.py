@@ -50,6 +50,21 @@ class YahooIE(InfoExtractor):
             webpage, u'items', flags=re.MULTILINE)
         items = json.loads(items_json)
         info = items['mediaItems']['query']['results']['mediaObj'][0]
+        # The 'meta' field is not always in the video webpage, we request it
+        # from another page
+        long_id = info['id']
+        query = ('SELECT * FROM yahoo.media.video.streams WHERE id="%s"'
+                 ' AND plrs="86Gj0vCaSzV_Iuf6hNylf2"' % long_id)
+        data = compat_urllib_parse.urlencode({
+            'q': query,
+            'env': 'prod',
+            'format': 'json',
+        })
+        query_result_json = self._download_webpage(
+            'http://video.query.yahoo.com/v1/public/yql?' + data,
+            video_id, u'Downloading video info')
+        query_result = json.loads(query_result_json)
+        info = query_result['query']['results']['mediaObj'][0]
         meta = info['meta']
 
         formats = []
