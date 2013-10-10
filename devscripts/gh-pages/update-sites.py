@@ -16,10 +16,11 @@ def main():
     ie_htmls = []
     for ie in sorted(youtube_dl.gen_extractors(), key=lambda i: i.IE_NAME.lower()):
         ie_html = '<b>{}</b>'.format(ie.IE_NAME)
-        try:
+        ie_desc = getattr(ie, 'IE_DESC', None)
+        if ie_desc is False:
+            continue
+        elif ie_desc is not None:
             ie_html += ': {}'.format(ie.IE_DESC)
-        except AttributeError:
-            pass
         if ie.working() == False:
             ie_html += ' (Currently broken)'
         ie_htmls.append('<li>{}</li>'.format(ie_html))
