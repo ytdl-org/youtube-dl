@@ -34,6 +34,7 @@ from .eighttracks import EightTracksIE
 from .escapist import EscapistIE
 from .exfm import ExfmIE
 from .facebook import FacebookIE
+from .faz import FazIE
 from .fktv import (
     FKTVIE,
     FKTVPosteckeIE,
