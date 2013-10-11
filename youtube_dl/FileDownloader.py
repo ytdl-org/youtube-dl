@@ -291,6 +291,8 @@ class FileDownloader(object):
             basic_args += ['--playpath', play_path]
         if tc_url is not None:
             basic_args += ['--tcUrl', url]
+        if self.params.get('test', False):
+            basic_args += ['--stop', '1']
         args = basic_args + [[], ['--resume', '--skip', '1']][self.params.get('continuedl', False)]
         if self.params.get('verbose', False):
             try:
