@@ -6,33 +6,36 @@ from ..utils import (
     ExtractorError,
 )
 
+
 class CinemassacreIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:www\.)?(?P<url>cinemassacre\.com/(?P<date_Y>[0-9]{4})/(?P<date_m>[0-9]{2})/(?P<date_d>[0-9]{2})/.+?)(?:[/?].*)?'
     _TESTS = [{
         u'url': u'http://cinemassacre.com/2012/11/10/avgn-the-movie-trailer/',
-        u'file': u'19911.mp4',
+        u'file': u'19911.flv',
         u'info_dict': {
-            u'upload_date': u'20121110', 
+            u'upload_date': u'20121110',
             u'title': u'“Angry Video Game Nerd: The Movie” – Trailer',
             u'description': u'md5:fb87405fcb42a331742a0dce2708560b',
         },
         u'params': {
+            # rtmp download
             u'skip_download': True,
         },
     },
     {
         u'url': u'http://cinemassacre.com/2013/10/02/the-mummys-hand-1940',
-        u'file': u'521be8ef82b16.mp4',
+        u'file': u'521be8ef82b16.flv',
         u'info_dict': {
-            u'upload_date': u'20131002', 
+            u'upload_date': u'20131002',
             u'title': u'The Mummy’s Hand (1940)',
         },
         u'params': {
+            # rtmp download
             u'skip_download': True,
         },
     }]
 
-    def _real_extract(self,url):
+    def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
 
         webpage_url = u'http://' + mobj.group('url')
@@ -50,66 +53,39 @@ class CinemassacreIE(InfoExtractor):
             webpage, u'description', flags=re.DOTALL, fatal=False)
         if len(video_description) == 0:
             video_description = None
-        
+
         playerdata = self._download_webpage(playerdata_url, video_id)
-        base_url = self._html_search_regex(r'\'streamer\': \'(?P<base_url>rtmp://[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})/(?:vod|Cinemassacre)\'',
+        base_url = self._html_search_regex(r'\'streamer\': \'(?P<base_url>rtmp://.*?)/(?:vod|Cinemassacre)\'',
             playerdata, u'base_url')
         base_url += '/Cinemassacre/'
-         # Important: The file names in playerdata are not used by the player and even wrong for some videos
+        # Important: The file names in playerdata are not used by the player and even wrong for some videos
         sd_file = 'Cinemassacre-%s_high.mp4' % video_id
         hd_file = 'Cinemassacre-%s.mp4' % video_id
         video_thumbnail = 'http://image.screenwavemedia.com/Cinemassacre/Cinemassacre-%s_thumb_640x360.jpg' % video_id
-        
-        formats = [{
-            'id':          video_id,
-            'url':         base_url + hd_file,
-            'format':      'hd',
-            'ext':         'mp4',
-            'title':       video_title,
+
+        formats = [
+            {
+                'url': base_url + sd_file,
+                'ext': 'flv',
+                'format': 'sd',
+                'format_id': 'sd',
+            },
+            {
+                'url': base_url + hd_file,
+                'ext': 'flv',
+                'format': 'hd',
+                'format_id': 'hd',
+            },
+        ]
+
+        info = {
+            'id': video_id,
+            'title': video_title,
+            'formats': formats,
             'description': video_description,
             'upload_date': video_date,
-            'thumbnail':   video_thumbnail,
-        },
-        {
-            'id':          video_id,
-            'url':         base_url + sd_file,
-            'ext':         'mp4',
-            'format':      'sd',
-            'title':       video_title,
-            'description': video_description,
-            'upload_date': video_date,
-            'thumbnail':   video_thumbnail,
-        }]
-        
-        if self._downloader.params.get('listformats', None):
-            self._print_formats(formats)
-            return
-
-        req_format = self._downloader.params.get('format', 'best')
-        self.to_screen(u'Format: %s' % req_format)
-
-        if req_format is None or req_format == 'best':
-            return [formats[0]]
-        elif req_format == 'worst':
-            return [formats[-1]]
-        elif req_format in ('-1', 'all'):
-            return formats
-        else:
-            format = self._specific( req_format, formats )
-            if format is None:
-                raise ExtractorError(u'Requested format not available')
-            return [format]
-
-    def _print_formats(self, formats):
-        """Print all available formats"""
-        print(u'Available formats:')
-        print(u'ext\t\tformat')
-        print(u'---------------------------------')
-        for format in formats:
-            print(u'%s\t\t%s'  % (format['ext'], format['format']))
-
-    def _specific(self, req_format, formats):
-        for x in formats:
-            if x["format"] == req_format:
-                return x
-        return None
+            'thumbnail': video_thumbnail,
+        }
+        # TODO: Remove when #980 has been merged
+        info.update(formats[-1])
+        return info
