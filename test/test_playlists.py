@@ -16,6 +16,7 @@ from youtube_dl.extractor import (
     UstreamChannelIE,
     SoundcloudUserIE,
     LivestreamIE,
+    NHLVideocenterIE,
 )
 from youtube_dl.utils import *
 
@@ -73,6 +74,15 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['title'], u'TEDCity2.0 (English)')
         self.assertTrue(len(result['entries']) >= 4)
+
+    def test_nhl_videocenter(self):
+        dl = FakeYDL()
+        ie = NHLVideocenterIE(dl)
+        result = ie.extract('http://video.canucks.nhl.com/videocenter/console?catid=999')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], u'999')
+        self.assertEqual(result['title'], u'Highlights')
+        self.assertEqual(len(result['entries']), 12)
 
 if __name__ == '__main__':
     unittest.main()
