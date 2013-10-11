@@ -109,17 +109,27 @@ class ArteTvIE(InfoExtractor):
             return any(re.match(r, f['versionCode']) for r in regexes)
         # Some formats may not be in the same language as the url
         formats = filter(_match_lang, formats)
+        # Some formats use the m3u8 protocol
+        formats = filter(lambda f: f['videoFormat'] != 'M3U8', formats)
         # We order the formats by quality
         formats = sorted(formats, key=lambda f: int(f['height']))
         # Prefer videos without subtitles in the same language
         formats = sorted(formats, key=lambda f: re.match(r'VO(F|A)-STM\1', f['versionCode']) is None)
         # Pick the best quality
-        format_info = formats[-1]
-        if format_info['mediaType'] == u'rtmp':
-            info_dict['url'] = format_info['streamer']
-            info_dict['play_path'] = 'mp4:' + format_info['url']
-        else:
-            info_dict['url'] = format_info['url']
+        def _format(format_info):
+            info = {'ext': 'flv',
+                    'width': format_info.get('width'),
+                    'height': format_info.get('height'),
+                    }
+            if format_info['mediaType'] == u'rtmp':
+                info['url'] = format_info['streamer']
+                info['play_path'] = 'mp4:' + format_info['url']
+            else:
+                info_dict['url'] = format_info['url']
+            return info
+        info_dict['formats'] = [_format(f) for f in formats]
+        # TODO: Remove when #980 has been merged 
+        info_dict.update(info_dict['formats'][-1])
 
         return info_dict
 
