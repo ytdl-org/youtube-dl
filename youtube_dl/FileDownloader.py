@@ -270,6 +270,7 @@ class FileDownloader(object):
     def _download_with_rtmpdump(self, filename, url, player_url, page_url, play_path, tc_url):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
+        test = self.params.get('test', False)
 
         # Check for rtmpdump first
         try:
@@ -291,7 +292,7 @@ class FileDownloader(object):
             basic_args += ['--playpath', play_path]
         if tc_url is not None:
             basic_args += ['--tcUrl', url]
-        if self.params.get('test', False):
+        if test:
             basic_args += ['--stop', '1']
         args = basic_args + [[], ['--resume', '--skip', '1']][self.params.get('continuedl', False)]
         if self.params.get('verbose', False):
@@ -302,7 +303,7 @@ class FileDownloader(object):
                 shell_quote = repr
             self.to_screen(u'[debug] rtmpdump command line: ' + shell_quote(args))
         retval = subprocess.call(args)
-        while retval == 2 or retval == 1:
+        while (retval == 2 or retval == 1) and not test:
             prevsize = os.path.getsize(encodeFilename(tmpfilename))
             self.to_screen(u'\r[rtmpdump] %s bytes' % prevsize, skip_eol=True)
             time.sleep(5.0) # This seems to be needed
@@ -315,7 +316,7 @@ class FileDownloader(object):
                 self.to_screen(u'\r[rtmpdump] Could not download the whole video. This can happen for some advertisements.')
                 retval = 0
                 break
-        if retval == 0:
+        if retval == 0 or (test and retval == 2):
             fsize = os.path.getsize(encodeFilename(tmpfilename))
             self.to_screen(u'\r[rtmpdump] %s bytes' % fsize)
             self.try_rename(tmpfilename, filename)
