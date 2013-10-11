@@ -2,6 +2,7 @@ import os
 import subprocess
 import sys
 import time
+import datetime
 
 from .utils import *
 
@@ -467,3 +468,35 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
         return True, information
+
+
+class FFmpegMetadataPP(FFmpegPostProcessor):
+    def run(self, info):
+        metadata = {}
+        if info.get('title') is not None:
+            metadata['title'] = info['title']
+        if info.get('upload_date') is not None:
+            metadata['date'] = info['upload_date']
+        if info.get('uploader') is not None:
+            metadata['artist'] = info['uploader']
+        elif info.get('uploader_id') is not None:
+            metadata['artist'] = info['uploader_id']
+
+        if not metadata:
+            self._downloader.to_screen(u'[ffmpeg] There isn\'t any metadata to add')
+            return True, info
+
+        filename = info['filepath']
+        ext = os.path.splitext(filename)[1][1:]
+        temp_filename = filename + u'.temp'
+
+        options = ['-c', 'copy']
+        for (name, value) in metadata.items():
+            options.extend(['-metadata', '%s="%s"' % (name, value)])
+        options.extend(['-f', ext])
+
+        self._downloader.to_screen(u'[ffmpeg] Adding metadata to \'%s\'' % filename)
+        self.run_ffmpeg(filename, temp_filename, options)
+        os.remove(encodeFilename(filename))
+        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+        return True, info

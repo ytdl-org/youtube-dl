@@ -358,6 +358,8 @@ def parseOpts(overrideArguments=None):
             help='do not overwrite post-processed files; the post-processed files are overwritten by default')
     postproc.add_option('--embed-subs', action='store_true', dest='embedsubtitles', default=False,
             help='embed subtitles in the video (only for mp4 videos)')
+    postproc.add_option('--add-metadata', action='store_true', dest='addmetadata', default=False,
+            help='add metadata to the files')
 
 
     parser.add_option_group(general)
@@ -651,6 +653,9 @@ def _real_main(argv=None):
     ydl.add_default_info_extractors()
 
     # PostProcessors
+    # Add the metadata pp first, the other pps will copy it
+    if opts.addmetadata:
+        ydl.add_post_processor(FFmpegMetadataPP())
     if opts.extractaudio:
         ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
     if opts.recodevideo:
