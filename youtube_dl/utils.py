@@ -230,6 +230,19 @@ else:
                 return f
         return None
 
+# On python2.6 the xml.etree.ElementTree.Element methods don't support
+# the namespace parameter
+def xpath_with_ns(path, ns_map):
+    components = [c.split(':') for c in path.split('/')]
+    replaced = []
+    for c in components:
+        if len(c) == 1:
+            replaced.append(c[0])
+        else:
+            ns, tag = c
+            replaced.append('{%s}%s' % (ns_map[ns], tag))
+    return '/'.join(replaced)
+
 def htmlentity_transform(matchobj):
     """Transforms an HTML entity to a character.
 

@@ -20,6 +20,7 @@ from youtube_dl.utils import (
     unified_strdate,
     find_xpath_attr,
     get_meta_content,
+    xpath_with_ns,
 )
 
 if sys.version_info < (3, 0):
@@ -140,6 +141,19 @@ class TestUtil(unittest.TestCase):
         get_meta = lambda name: get_meta_content(name, testhtml)
         self.assertEqual(get_meta('description'), u'foo & bar')
         self.assertEqual(get_meta('author'), 'Plato')
+
+    def test_xpath_with_ns(self):
+        testxml = u'''<root xmlns:media="http://example.com/">
+            <media:song>
+                <media:author>The Author</media:author>
+                <url>http://server.com/download.mp3</url>
+            </media:song>
+        </root>'''
+        doc = xml.etree.ElementTree.fromstring(testxml)
+        find = lambda p: doc.find(xpath_with_ns(p, {'media': 'http://example.com/'}))
+        self.assertTrue(find('media:song') is not None)
+        self.assertEqual(find('media:song/media:author').text, u'The Author')
+        self.assertEqual(find('media:song/url').text, u'http://server.com/download.mp3')
 
 if __name__ == '__main__':
     unittest.main()
