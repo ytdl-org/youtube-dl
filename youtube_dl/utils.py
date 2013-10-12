@@ -9,6 +9,7 @@ import io
 import json
 import locale
 import os
+import pipes
 import platform
 import re
 import socket
@@ -927,3 +928,7 @@ class locked_file(object):
 
     def read(self, *args):
         return self.f.read(*args)
+
+
+def shell_quote(args):
+    return ' '.join(map(pipes.quote, args))
