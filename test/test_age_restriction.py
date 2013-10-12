@@ -8,7 +8,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from youtube_dl import YoutubeDL
-from helper import try_rm
+from .helper import try_rm
 
 
 def _download_restricted(url, filename, age):

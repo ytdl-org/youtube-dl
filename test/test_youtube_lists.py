@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from youtube_dl.extractor import YoutubeUserIE, YoutubePlaylistIE, YoutubeIE, YoutubeChannelIE, YoutubeShowIE
 from youtube_dl.utils import *
 
-from helper import FakeYDL
+from .helper import FakeYDL
 
 class TestYoutubeLists(unittest.TestCase):
     def assertIsPlaylist(self,info):

@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from youtube_dl.extractor import YoutubeIE
 from youtube_dl.utils import *
-from helper import FakeYDL
+from .helper import FakeYDL
 
 md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
 

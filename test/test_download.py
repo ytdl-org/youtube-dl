@@ -37,8 +37,8 @@ def _file_md5(fn):
     with open(fn, 'rb') as f:
         return hashlib.md5(f.read()).hexdigest()
 
-import helper  # Set up remaining global configuration
-from helper import get_testcases, try_rm
+import test.helper as helper  # Set up remaining global configuration
+from .helper import get_testcases, try_rm
 defs = get_testcases()
 
 with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:

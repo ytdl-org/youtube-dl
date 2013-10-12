@@ -20,7 +20,7 @@ from youtube_dl.extractor import (
 )
 from youtube_dl.utils import *
 
-from helper import FakeYDL
+from .helper import FakeYDL
 
 class TestPlaylists(unittest.TestCase):
     def assertIsPlaylist(self, info):

@@ -8,7 +8,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from youtube_dl.extractor import YoutubeIE, YoutubePlaylistIE, YoutubeChannelIE, JustinTVIE, gen_extractors
-from helper import get_testcases
+from .helper import get_testcases
 
 class TestAllURLsMatching(unittest.TestCase):
     def setUp(self):
