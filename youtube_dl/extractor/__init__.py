@@ -123,6 +123,7 @@ from .veoh import VeohIE
 from .vevo import VevoIE
 from .vice import ViceIE
 from .viddler import ViddlerIE
+from .videodetective import VideoDetectiveIE
 from .videofyme import VideofyMeIE
 from .vimeo import VimeoIE, VimeoChannelIE
 from .vine import VineIE
