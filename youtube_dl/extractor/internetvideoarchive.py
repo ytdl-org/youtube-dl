@@ -4,6 +4,7 @@ import xml.etree.ElementTree
 from .common import InfoExtractor
 from ..utils import (
     compat_urlparse,
+    compat_urllib_parse,
     xpath_with_ns,
     determine_ext,
 )
@@ -26,6 +27,16 @@ class InternetVideoArchiveIE(InfoExtractor):
     def _build_url(query):
         return 'http://video.internetvideoarchive.net/flash/players/flashconfiguration.aspx?' + query
 
+    @staticmethod
+    def _clean_query(query):
+        NEEDED_ARGS = ['publishedid', 'customerid']
+        query_dic = compat_urlparse.parse_qs(query)
+        cleaned_dic = dict((k,v[0]) for (k,v) in query_dic.items() if k in NEEDED_ARGS)
+        # Other player ids return m3u8 urls
+        cleaned_dic['playerid'] = '247'
+        cleaned_dic['videokbrate'] = '100000'
+        return compat_urllib_parse.urlencode(cleaned_dic)
+
     def _real_extract(self, url):
         query = compat_urlparse.urlparse(url).query
         query_dic = compat_urlparse.parse_qs(query)
@@ -37,6 +48,11 @@ class InternetVideoArchiveIE(InfoExtractor):
         flashconfiguration = xml.etree.ElementTree.fromstring(flashconfiguration_xml.encode('utf-8'))
         file_url = flashconfiguration.find('file').text
         file_url = file_url.replace('/playlist.aspx', '/mrssplaylist.aspx')
+        # Replace some of the parameters in the query to get the best quality
+        # and http links (no m3u8 manifests)
+        file_url = re.sub(r'(?<=\?)(.+)$',
+            lambda m: self._clean_query(m.group()),
+            file_url)
         info_xml = self._download_webpage(file_url, video_id,
             u'Downloading video info')
         info = xml.etree.ElementTree.fromstring(info_xml.encode('utf-8'))
