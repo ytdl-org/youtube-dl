@@ -180,7 +180,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             extension = self._preferredcodec
             more_opts = []
             if self._preferredquality is not None:
-                if int(self._preferredquality) < 10:
+                # The opus codec doesn't support the -aq option
+                if int(self._preferredquality) < 10 and extension != 'opus':
                     more_opts += [self._exes['avconv'] and '-q:a' or '-aq', self._preferredquality]
                 else:
                     more_opts += [self._exes['avconv'] and '-b:a' or '-ab', self._preferredquality + 'k']
