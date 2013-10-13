@@ -2,7 +2,11 @@ from .appletrailers import AppleTrailersIE
 from .addanime import AddAnimeIE
 from .archiveorg import ArchiveOrgIE
 from .ard import ARDIE
-from .arte import ArteTvIE
+from .arte import (
+    ArteTvIE,
+    ArteTVPlus7IE,
+    ArteTVCreativeIE,
+)
 from .auengine import AUEngineIE
 from .bandcamp import BandcampIE
 from .bliptv import BlipTVIE, BlipTVUserIE

@@ -7,15 +7,14 @@ from ..utils import (
     ExtractorError,
     find_xpath_attr,
     unified_strdate,
+    determine_ext,
 )
 
+# There are different sources of video in arte.tv, the extraction process 
+# is different for each one. The videos usually expire in 7 days, so we can't
+# add tests.
+
 class ArteTvIE(InfoExtractor):
-    """
-    There are two sources of video in arte.tv: videos.arte.tv and
-    www.arte.tv/guide, the extraction process is different for each one.
-    The videos expire in 7 days, so we can't add tests.
-    """
-    _EMISSION_URL = r'(?:http://)?www\.arte.tv/guide/(?P<lang>fr|de)/(?:(?:sendungen|emissions)/)?(?P<id>.*?)/(?P<name>.*?)(\?.*)?'
     _VIDEOS_URL = r'(?:http://)?videos.arte.tv/(?P<lang>fr|de)/.*-(?P<id>.*?).html'
     _LIVEWEB_URL = r'(?:http://)?liveweb.arte.tv/(?P<lang>fr|de)/(?P<subpage>.+?)/(?P<name>.+)'
     _LIVE_URL = r'index-[0-9]+\.html$'
@@ -24,7 +23,7 @@ class ArteTvIE(InfoExtractor):
 
     @classmethod
     def suitable(cls, url):
-        return any(re.match(regex, url) for regex in (cls._EMISSION_URL, cls._VIDEOS_URL, cls._LIVEWEB_URL))
+        return any(re.match(regex, url) for regex in (cls._VIDEOS_URL, cls._LIVEWEB_URL))
 
     # TODO implement Live Stream
     # from ..utils import compat_urllib_parse
@@ -55,14 +54,6 @@ class ArteTvIE(InfoExtractor):
     #     video_url = u'%s/%s' % (info.get('url'), info.get('path'))
 
     def _real_extract(self, url):
-        mobj = re.match(self._EMISSION_URL, url)
-        if mobj is not None:
-            lang = mobj.group('lang')
-            # This is not a real id, it can be for example AJT for the news
-            # http://www.arte.tv/guide/fr/emissions/AJT/arte-journal
-            video_id = mobj.group('id')
-            return self._extract_emission(url, video_id, lang)
-
         mobj = re.match(self._VIDEOS_URL, url)
         if mobj is not None:
             id = mobj.group('id')
@@ -79,59 +70,6 @@ class ArteTvIE(InfoExtractor):
             raise ExtractorError(u'Arte live streams are not yet supported, sorry')
             # self.extractLiveStream(url)
             # return
-
-    def _extract_emission(self, url, video_id, lang):
-        """Extract from www.arte.tv/guide"""
-        webpage = self._download_webpage(url, video_id)
-        json_url = self._html_search_regex(r'arte_vp_url="(.*?)"', webpage, 'json url')
-
-        json_info = self._download_webpage(json_url, video_id, 'Downloading info json')
-        self.report_extraction(video_id)
-        info = json.loads(json_info)
-        player_info = info['videoJsonPlayer']
-
-        info_dict = {'id': player_info['VID'],
-                     'title': player_info['VTI'],
-                     'description': player_info.get('VDE'),
-                     'upload_date': unified_strdate(player_info['VDA'].split(' ')[0]),
-                     'thumbnail': player_info['programImage'],
-                     'ext': 'flv',
-                     }
-
-        formats = player_info['VSR'].values()
-        def _match_lang(f):
-            # Return true if that format is in the language of the url
-            if lang == 'fr':
-                l = 'F'
-            elif lang == 'de':
-                l = 'A'
-            regexes = [r'VO?%s' % l, r'VO?.-ST%s' % l]
-            return any(re.match(r, f['versionCode']) for r in regexes)
-        # Some formats may not be in the same language as the url
-        formats = filter(_match_lang, formats)
-        # Some formats use the m3u8 protocol
-        formats = filter(lambda f: f['videoFormat'] != 'M3U8', formats)
-        # We order the formats by quality
-        formats = sorted(formats, key=lambda f: int(f['height']))
-        # Prefer videos without subtitles in the same language
-        formats = sorted(formats, key=lambda f: re.match(r'VO(F|A)-STM\1', f['versionCode']) is None)
-        # Pick the best quality
-        def _format(format_info):
-            info = {'ext': 'flv',
-                    'width': format_info.get('width'),
-                    'height': format_info.get('height'),
-                    }
-            if format_info['mediaType'] == u'rtmp':
-                info['url'] = format_info['streamer']
-                info['play_path'] = 'mp4:' + format_info['url']
-            else:
-                info_dict['url'] = format_info['url']
-            return info
-        info_dict['formats'] = [_format(f) for f in formats]
-        # TODO: Remove when #980 has been merged 
-        info_dict.update(info_dict['formats'][-1])
-
-        return info_dict
 
     def _extract_video(self, url, video_id, lang):
         """Extract from videos.arte.tv"""
@@ -182,3 +120,85 @@ class ArteTvIE(InfoExtractor):
                 'ext': 'flv',
                 'thumbnail': self._og_search_thumbnail(webpage),
                 }
+
+
+class ArteTVPlus7IE(InfoExtractor):
+    IE_NAME = u'arte.tv:+7'
+    _VALID_URL = r'https?://www\.arte.tv/guide/(?P<lang>fr|de)/(?:(?:sendungen|emissions)/)?(?P<id>.*?)/(?P<name>.*?)(\?.*)?'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        lang = mobj.group('lang')
+        # This is not a real id, it can be for example AJT for the news
+        # http://www.arte.tv/guide/fr/emissions/AJT/arte-journal
+        video_id = mobj.group('id')
+
+        webpage = self._download_webpage(url, video_id)
+        json_url = self._html_search_regex(r'arte_vp_url="(.*?)"', webpage, 'json url')
+
+        json_info = self._download_webpage(json_url, video_id, 'Downloading info json')
+        self.report_extraction(video_id)
+        info = json.loads(json_info)
+        player_info = info['videoJsonPlayer']
+
+        info_dict = {
+            'id': player_info['VID'],
+            'title': player_info['VTI'],
+            'description': player_info.get('VDE'),
+            'upload_date': unified_strdate(player_info.get('VDA', '').split(' ')[0]),
+            'thumbnail': player_info.get('programImage') or player_info.get('VTU', {}).get('IUR'),
+        }
+
+        formats = player_info['VSR'].values()
+        def _match_lang(f):
+            if f.get('versionCode') is None:
+                return True
+            # Return true if that format is in the language of the url
+            if lang == 'fr':
+                l = 'F'
+            elif lang == 'de':
+                l = 'A'
+            regexes = [r'VO?%s' % l, r'VO?.-ST%s' % l]
+            return any(re.match(r, f['versionCode']) for r in regexes)
+        # Some formats may not be in the same language as the url
+        formats = filter(_match_lang, formats)
+        # Some formats use the m3u8 protocol
+        formats = filter(lambda f: f.get('videoFormat') != 'M3U8', formats)
+        # We order the formats by quality
+        formats = sorted(formats, key=lambda f: int(f.get('height',-1)))
+        # Prefer videos without subtitles in the same language
+        formats = sorted(formats, key=lambda f: re.match(r'VO(F|A)-STM\1', f.get('versionCode', '')) is None)
+        # Pick the best quality
+        def _format(format_info):
+            info = {
+                'width': format_info.get('width'),
+                'height': format_info.get('height'),
+            }
+            if format_info['mediaType'] == u'rtmp':
+                info['url'] = format_info['streamer']
+                info['play_path'] = 'mp4:' + format_info['url']
+                info['ext'] = 'flv'
+            else:
+                info['url'] = format_info['url']
+                info['ext'] = determine_ext(info['url'])
+            return info
+        info_dict['formats'] = [_format(f) for f in formats]
+        # TODO: Remove when #980 has been merged 
+        info_dict.update(info_dict['formats'][-1])
+
+        return info_dict
+
+
+# It also uses the arte_vp_url url from the webpage to extract the information
+class ArteTVCreativeIE(ArteTVPlus7IE):
+    IE_NAME = u'arte.tv:creative'
+    _VALID_URL = r'https?://creative\.arte\.tv/(?P<lang>fr|de)/magazine?/(?P<id>.+)'
+
+    _TEST = {
+        u'url': u'http://creative.arte.tv/de/magazin/agentur-amateur-corporate-design',
+        u'file': u'050489-002.mp4',
+        u'info_dict': {
+            u'title': u'Agentur Amateur #2 - Corporate Design',
+        },
+    }
+
