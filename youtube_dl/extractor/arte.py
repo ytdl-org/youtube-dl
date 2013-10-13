@@ -1,3 +1,4 @@
+# encoding: utf-8
 import re
 import json
 import xml.etree.ElementTree
@@ -8,6 +9,7 @@ from ..utils import (
     find_xpath_attr,
     unified_strdate,
     determine_ext,
+    get_element_by_id,
 )
 
 # There are different sources of video in arte.tv, the extraction process 
@@ -126,14 +128,21 @@ class ArteTVPlus7IE(InfoExtractor):
     IE_NAME = u'arte.tv:+7'
     _VALID_URL = r'https?://www\.arte.tv/guide/(?P<lang>fr|de)/(?:(?:sendungen|emissions)/)?(?P<id>.*?)/(?P<name>.*?)(\?.*)?'
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
+    @classmethod
+    def _extract_url_info(cls, url):
+        mobj = re.match(cls._VALID_URL, url)
         lang = mobj.group('lang')
         # This is not a real id, it can be for example AJT for the news
         # http://www.arte.tv/guide/fr/emissions/AJT/arte-journal
         video_id = mobj.group('id')
+        return video_id, lang
 
+    def _real_extract(self, url):
+        video_id, lang = self._extract_url_info(url)
         webpage = self._download_webpage(url, video_id)
+        return self._extract_from_webpage(webpage, video_id, lang)
+
+    def _extract_from_webpage(self, webpage, video_id, lang):
         json_url = self._html_search_regex(r'arte_vp_url="(.*?)"', webpage, 'json url')
 
         json_info = self._download_webpage(json_url, video_id, 'Downloading info json')
@@ -202,3 +211,21 @@ class ArteTVCreativeIE(ArteTVPlus7IE):
         },
     }
 
+
+class ArteTVFutureIE(ArteTVPlus7IE):
+    IE_NAME = u'arte.tv:future'
+    _VALID_URL = r'https?://future\.arte\.tv/(?P<lang>fr|de)/(thema|sujet)/.*?#article-anchor-(?P<id>\d+)'
+
+    _TEST = {
+        u'url': u'http://future.arte.tv/fr/sujet/info-sciences#article-anchor-7081',
+        u'file': u'050940-003.mp4',
+        u'info_dict': {
+            u'title': u'Les champignons au secours de la planète',
+        },
+    }
+
+    def _real_extract(self, url):
+        anchor_id, lang = self._extract_url_info(url)
+        webpage = self._download_webpage(url, anchor_id)
+        row = get_element_by_id(anchor_id, webpage)
+        return self._extract_from_webpage(row, anchor_id, lang)

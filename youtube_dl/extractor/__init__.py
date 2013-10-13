@@ -6,6 +6,7 @@ from .arte import (
     ArteTvIE,
     ArteTVPlus7IE,
     ArteTVCreativeIE,
+    ArteTVFutureIE,
 )
 from .auengine import AUEngineIE
 from .bandcamp import BandcampIE
