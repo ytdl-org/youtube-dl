@@ -320,7 +320,7 @@ def parseOpts(overrideArguments=None):
             help='keeps the video file on disk after the post-processing; the video is erased by default')
     postproc.add_option('--no-post-overwrites', action='store_true', dest='nopostoverwrites', default=False,
             help='do not overwrite post-processed files; the post-processed files are overwritten by default')
-    postproc.add_option('--audio-channels', metavar='CHANNELS', dest='audiochannels', default='2',
+    postproc.add_option('--audio-channels', metavar='CHANNELS', dest='audiochannels', default=None,
             help='choose between 1 or 2 channels')
 
     parser.add_option_group(general)
