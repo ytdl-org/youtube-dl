@@ -339,6 +339,9 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option('--write-info-json',
             action='store_true', dest='writeinfojson',
             help='write video metadata to a .info.json file', default=False)
+    filesystem.add_option('--write-annotations',
+            action='store_true', dest='writeannotations',
+            help='write video annotations to a .annotation file', default=False)
     filesystem.add_option('--write-thumbnail',
             action='store_true', dest='writethumbnail',
             help='write thumbnail image to disk', default=False)
@@ -601,6 +604,7 @@ def _real_main(argv=None):
         'nopart': opts.nopart,
         'updatetime': opts.updatetime,
         'writedescription': opts.writedescription,
+        'writeannotations': opts.writeannotations,
         'writeinfojson': opts.writeinfojson,
         'writethumbnail': opts.writethumbnail,
         'writesubtitles': opts.writesubtitles,
