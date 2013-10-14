@@ -1,56 +1,59 @@
 import re
-import xml.etree.ElementTree
+import json
 
 from .common import InfoExtractor
 from ..utils import (
-    unified_strdate,
     compat_urllib_parse,
+    compat_urlparse,
+    unescapeHTML,
+    get_meta_content,
 )
 
+
 class GameSpotIE(InfoExtractor):
-    _WORKING = False
     _VALID_URL = r'(?:http://)?(?:www\.)?gamespot\.com/.*-(?P<page_id>\d+)/?'
     _TEST = {
         u"url": u"http://www.gamespot.com/arma-iii/videos/arma-iii-community-guide-sitrep-i-6410818/",
-        u"file": u"6410818.mp4",
+        u"file": u"gs-2300-6410818.mp4",
         u"md5": u"b2a30deaa8654fcccd43713a6b6a4825",
         u"info_dict": {
             u"title": u"Arma 3 - Community Guide: SITREP I",
-            u"upload_date": u"20130627", 
+            u'description': u'Check out this video where some of the basics of Arma 3 is explained.',
         }
     }
 
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        page_id = mobj.group('page_id')
+        page_id = video_id = mobj.group('page_id')
         webpage = self._download_webpage(url, page_id)
-        video_id = self._html_search_regex([r'"og:video" content=".*?\?id=(\d+)"',
-                                            r'http://www\.gamespot\.com/videoembed/(\d+)'],
-                                           webpage, 'video id')
-        data = compat_urllib_parse.urlencode({'id': video_id, 'newplayer': '1'})
-        info_url = 'http://www.gamespot.com/pages/video_player/xml.php?' + data
-        info_xml = self._download_webpage(info_url, video_id)
-        doc = xml.etree.ElementTree.fromstring(info_xml)
-        clip_el = doc.find('./playList/clip')
+        data_video_json = self._search_regex(r'data-video=\'(.*?)\'', webpage, u'data video')
+        data_video = json.loads(unescapeHTML(data_video_json))
 
-        http_urls = [{'url': node.find('filePath').text,
-                      'rate': int(node.find('rate').text)}
-            for node in clip_el.find('./httpURI')]
-        best_quality = sorted(http_urls, key=lambda f: f['rate'])[-1]
-        video_url = best_quality['url']
-        title = clip_el.find('./title').text
-        ext = video_url.rpartition('.')[2]
-        thumbnail_url = clip_el.find('./screenGrabURI').text
-        view_count = int(clip_el.find('./views').text)
-        upload_date = unified_strdate(clip_el.find('./postDate').text)
+        # Transform the manifest url to a link to the mp4 files
+        # they are used in mobile devices.
+        f4m_url = data_video['videoStreams']['f4m_stream']
+        f4m_path = compat_urlparse.urlparse(f4m_url).path
+        QUALITIES_RE = r'((,\d+)+,?)'
+        qualities = self._search_regex(QUALITIES_RE, f4m_path, u'qualities').strip(',').split(',')
+        http_path = f4m_path[1:].split('/', 1)[1]
+        http_template = re.sub(QUALITIES_RE, r'%s', http_path)
+        http_template = http_template.replace('.csmil/manifest.f4m', '')
+        http_template = compat_urlparse.urljoin('http://video.gamespotcdn.com/', http_template)
+        formats = []
+        for q in qualities:
+            formats.append({
+                'url': http_template % q,
+                'ext': 'mp4',
+                'format_id': q,
+            })
 
-        return [{
-            'id'          : video_id,
-            'url'         : video_url,
-            'ext'         : ext,
-            'title'       : title,
-            'thumbnail'   : thumbnail_url,
-            'upload_date' : upload_date,
-            'view_count'  : view_count,
-        }]
+        info = {
+            'id': data_video['guid'],
+            'title': compat_urllib_parse.unquote(data_video['title']),
+            'formats': formats,
+            'description': get_meta_content('description', webpage),
+            'thumbnail': self._og_search_thumbnail(webpage),
+        }
+        # TODO: Remove when #980 has been merged
+        info.update(formats[-1])
+        return info
