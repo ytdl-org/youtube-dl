@@ -31,6 +31,7 @@ __authors__  = (
     'Huarong Huo',
     'Ismael Mejía',
     'Steffan \'Ruirize\' James',
+    'Andras Elso',
 )
 
 __license__ = 'Public Domain'
