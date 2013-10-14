@@ -131,6 +131,7 @@ from .vice import ViceIE
 from .viddler import ViddlerIE
 from .videodetective import VideoDetectiveIE
 from .videofyme import VideofyMeIE
+from .videopremium import VideoPremiumIE
 from .vimeo import VimeoIE, VimeoChannelIE
 from .vine import VineIE
 from .wat import WatIE
