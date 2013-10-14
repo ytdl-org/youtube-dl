@@ -1250,6 +1250,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             url_map[itag] = format_url
         return url_map
 
+    def _extract_annotations(self, video_id):
+        url = 'https://www.youtube.com/annotations_invideo?features=1&legacy=1&video_id=%s' % video_id
+        return self._download_webpage(url, video_id, note=u'Searching for annotations.', errnote=u'Unable to download video annotations.')
+
     def _real_extract(self, url):
         # Extract original video URL from URL with redirection, like age verification, using next_url parameter
         mobj = re.search(self._NEXT_URL_RE, url)
@@ -1382,6 +1386,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         else:
             video_duration = compat_urllib_parse.unquote_plus(video_info['length_seconds'][0])
 
+        # annotations
+        video_annotations = None
+        if self._downloader.params.get('writeannotations', False):
+                video_annotations = self._extract_annotations(video_id)
+
         # Decide which formats to download
 
         try:
@@ -1495,6 +1504,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'subtitles':    video_subtitles,
                 'duration':     video_duration,
                 'age_limit':    18 if age_gate else 0,
+                'annotations':  video_annotations
             })
         return results
 

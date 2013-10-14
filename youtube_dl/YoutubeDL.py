@@ -71,6 +71,7 @@ class YoutubeDL(object):
     logtostderr:       Log messages to stderr instead of stdout.
     writedescription:  Write the video description to a .description file
     writeinfojson:     Write the video description to a .info.json file
+    writeannotations:  Write the video annotations to a .annotations.xml file
     writethumbnail:    Write the thumbnail image to a file
     writesubtitles:    Write the video subtitles to a file
     writeautomaticsub: Write the automatic subtitles to a file
@@ -257,6 +258,10 @@ class YoutubeDL(object):
     def report_writeinfojson(self, infofn):
         """ Report that the metadata file has been written """
         self.to_screen(u'[info] Video description metadata as JSON to: ' + infofn)
+
+    def report_writeannotations(self, annofn):
+        """ Report that the annotations file has been written. """
+        self.to_screen(u'[info] Writing video annotations to: ' + annofn)
 
     def report_file_already_downloaded(self, file_name):
         """Report file has already been fully downloaded."""
@@ -521,6 +526,18 @@ class YoutubeDL(object):
             except (OSError, IOError):
                 self.report_error(u'Cannot write description file ' + descfn)
                 return
+
+        if self.params.get('writeannotations', False):
+            try:
+               annofn = filename + u'.annotations.xml'
+               self.report_writeannotations(annofn)
+               with io.open(encodeFilename(annofn), 'w', encoding='utf-8') as annofile:
+                   annofile.write(info_dict['annotations'])
+            except (KeyError, TypeError):
+                self.report_warning(u'There are no annotations to write.')
+            except (OSError, IOError):
+                 self.report_error(u'Cannot write annotations file: ' + annofn)
+                 return
 
         subtitles_are_requested = any([self.params.get('writesubtitles', False),
                                        self.params.get('writeautomaticsub')])
