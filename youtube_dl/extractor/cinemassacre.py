@@ -12,27 +12,21 @@ class CinemassacreIE(InfoExtractor):
     _TESTS = [{
         u'url': u'http://cinemassacre.com/2012/11/10/avgn-the-movie-trailer/',
         u'file': u'19911.flv',
+        u'md5': u'f9bb7ede54d1229c9846e197b4737e06',
         u'info_dict': {
             u'upload_date': u'20121110',
             u'title': u'“Angry Video Game Nerd: The Movie” – Trailer',
             u'description': u'md5:fb87405fcb42a331742a0dce2708560b',
-        },
-        u'params': {
-            # rtmp download
-            u'skip_download': True,
-        },
+        }
     },
     {
         u'url': u'http://cinemassacre.com/2013/10/02/the-mummys-hand-1940',
         u'file': u'521be8ef82b16.flv',
+        u'md5': u'9509ee44dcaa7c1068604817c19a9e50',
         u'info_dict': {
             u'upload_date': u'20131002',
             u'title': u'The Mummy’s Hand (1940)',
-        },
-        u'params': {
-            # rtmp download
-            u'skip_download': True,
-        },
+        }
     }]
 
     def _real_extract(self, url):

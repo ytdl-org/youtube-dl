@@ -9,12 +9,10 @@ class VideoPremiumIE(InfoExtractor):
     _TEST = {
         u'url': u'http://videopremium.tv/4w7oadjsf156',
         u'file': u'4w7oadjsf156.f4v',
+        u'md5': u'e51e4a266aab7531c6ac06f4ffee3b0d',
         u'info_dict': {
             u"title": u"youtube-dl_test_video____a_________-BaW_jenozKc.mp4.mp4"
-        },
-        u'params': {
-            u'skip_download': True,
-        },
+        }
     }
 
     def _real_extract(self, url):
