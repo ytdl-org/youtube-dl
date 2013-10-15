@@ -25,7 +25,7 @@ class SztvHuIE(InfoExtractor):
         video_file = self._search_regex(
             r'file: "...:(.*?)",', webpage, 'video file')
         title = self._html_search_regex(
-            r'<meta name="title" content="([^"]*) - [^-]*"',
+            r'<meta name="title" content="([^"]*?) - [^-]*? - [^-]*?"',
             webpage, 'video title')
         description = self._html_search_regex(
             r'<meta name="description" content="([^"]*)"/>',
