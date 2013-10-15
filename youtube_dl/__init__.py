@@ -267,11 +267,11 @@ def parseOpts(overrideArguments=None):
             help='languages of the subtitles to download (optional) separated by commas, use IETF language tags like \'en,pt\'')
 
     downloader.add_option('-r', '--rate-limit',
-            dest='ratelimit', metavar='LIMIT', help='maximum download rate in bytes per second (e.g. 50k or 44.6m)')
+            dest='ratelimit', metavar='LIMIT', help='maximum download rate in bytes per second (e.g. 50K or 4.2M)')
     downloader.add_option('-R', '--retries',
             dest='retries', metavar='RETRIES', help='number of retries (default is %default)', default=10)
     downloader.add_option('--buffer-size',
-            dest='buffersize', metavar='SIZE', help='size of download buffer (e.g. 1024 or 16k) (default is %default)', default="1024")
+            dest='buffersize', metavar='SIZE', help='size of download buffer (e.g. 1024 or 16K) (default is %default)', default="1024")
     downloader.add_option('--no-resize-buffer',
             action='store_true', dest='noresizebuffer',
             help='do not automatically adjust the buffer size. By default, the buffer size is automatically resized from an initial value of SIZE.', default=False)
