@@ -1,25 +1,30 @@
 #!/usr/bin/env python
 
+# Allow direct execution
+import os
+import sys
+import unittest
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from test.helper import get_params, get_testcases, global_setup, try_rm, md5
+global_setup()
+
+
 import hashlib
 import io
-import os
 import json
-import unittest
-import sys
 import socket
-import binascii
-
-# Allow direct execution
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import youtube_dl.YoutubeDL
-from youtube_dl.utils import *
-
-PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
+from youtube_dl.utils import (
+    compat_str,
+    compat_urllib_error,
+    DownloadError,
+    ExtractorError,
+    UnavailableVideoError,
+)
 
 RETRIES = 3
-
-md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
 
 class YoutubeDL(youtube_dl.YoutubeDL):
     def __init__(self, *args, **kwargs):
@@ -37,18 +42,12 @@ def _file_md5(fn):
     with open(fn, 'rb') as f:
         return hashlib.md5(f.read()).hexdigest()
 
-import test.helper as helper  # Set up remaining global configuration
-from .helper import get_testcases, try_rm
 defs = get_testcases()
-
-with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
-    parameters = json.load(pf)
 
 
 class TestDownload(unittest.TestCase):
     maxDiff = None
     def setUp(self):
-        self.parameters = parameters
         self.defs = defs
 
 ### Dynamically generate tests
@@ -68,8 +67,7 @@ def generator(test_case):
             print_skipping(test_case['skip'])
             return
 
-        params = self.parameters.copy()
-        params.update(test_case.get('params', {}))
+        params = get_params(test_case.get('params', {}))
 
         ydl = YoutubeDL(params)
         ydl.add_default_info_extractors()

@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
-# Various small unit tests
-
-import sys
-import unittest
-import xml.etree.ElementTree
-
 # Allow direct execution
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import sys
+import unittest
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+# Various small unit tests
+import xml.etree.ElementTree
 
 #from youtube_dl.utils import htmlentity_transform
 from youtube_dl.utils import (

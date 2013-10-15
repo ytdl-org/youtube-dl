@@ -1,39 +1,38 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import xml.etree.ElementTree
+# Allow direct execution
 import os
 import sys
 import unittest
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Allow direct execution
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from test.helper import get_params, global_setup, try_rm
+global_setup()
+
+
+import io
+
+import xml.etree.ElementTree
 
 import youtube_dl.YoutubeDL
 import youtube_dl.extractor
-from youtube_dl.utils import *
-from .helper import try_rm
+from youtube_dl.utils import True
 
-PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
-
-# General configuration (from __init__, not very elegant...)
-jar = compat_cookiejar.CookieJar()
-cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
-proxy_handler = compat_urllib_request.ProxyHandler()
-opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
-compat_urllib_request.install_opener(opener)
 
 class YoutubeDL(youtube_dl.YoutubeDL):
     def __init__(self, *args, **kwargs):
         super(YoutubeDL, self).__init__(*args, **kwargs)
         self.to_stderr = self.to_screen
 
-with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
-    params = json.load(pf)
-params['writeannotations'] = True
-params['skip_download'] = True
-params['writeinfojson'] = False
-params['format'] = 'flv'
+params = get_params({
+    'writeannotations': True,
+    'skip_download': True,
+    'writeinfojson': False,
+    'format': 'flv',
+})
+
+
 
 TEST_ID = 'gr51aVj-mLg'
 ANNOTATIONS_FILE = TEST_ID + '.flv.annotations.xml'

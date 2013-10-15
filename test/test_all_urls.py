@@ -1,14 +1,20 @@
 #!/usr/bin/env python
 
-import sys
-import unittest
-
 # Allow direct execution
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import sys
+import unittest
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.extractor import YoutubeIE, YoutubePlaylistIE, YoutubeChannelIE, JustinTVIE, gen_extractors
-from .helper import get_testcases
+
+from test.helper import get_testcases
+
+from youtube_dl.extractor import (
+    gen_extractors,
+    JustinTVIE,
+    YoutubeIE,
+)
+
 
 class TestAllURLsMatching(unittest.TestCase):
     def setUp(self):

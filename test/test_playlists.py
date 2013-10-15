@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-import sys
-import unittest
-import json
 
 # Allow direct execution
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import sys
+import unittest
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from test.helper import FakeYDL, global_setup
+global_setup()
+
 
 from youtube_dl.extractor import (
     DailymotionPlaylistIE,
@@ -18,9 +21,7 @@ from youtube_dl.extractor import (
     LivestreamIE,
     NHLVideocenterIE,
 )
-from youtube_dl.utils import *
 
-from .helper import FakeYDL
 
 class TestPlaylists(unittest.TestCase):
     def assertIsPlaylist(self, info):

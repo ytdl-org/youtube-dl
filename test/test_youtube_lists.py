@@ -1,20 +1,26 @@
 #!/usr/bin/env python
 
-import sys
-import unittest
-import json
-
 # Allow direct execution
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import sys
+import unittest
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.extractor import YoutubeUserIE, YoutubePlaylistIE, YoutubeIE, YoutubeChannelIE, YoutubeShowIE
-from youtube_dl.utils import *
+from test.helper import FakeYDL, global_setup
+global_setup()
 
-from .helper import FakeYDL
+
+from youtube_dl.extractor import (
+    YoutubeUserIE,
+    YoutubePlaylistIE,
+    YoutubeIE,
+    YoutubeChannelIE,
+    YoutubeShowIE,
+)
+
 
 class TestYoutubeLists(unittest.TestCase):
-    def assertIsPlaylist(self,info):
+    def assertIsPlaylist(self, info):
         """Make sure the info has '_type' set to 'playlist'"""
         self.assertEqual(info['_type'], 'playlist')
 

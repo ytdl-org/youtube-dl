@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 
-import sys
-import unittest
-
 # Allow direct execution
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import sys
+import unittest
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from test.helper import global_setup, try_rm
+global_setup()
+
 
 from youtube_dl import YoutubeDL
-from .helper import try_rm
 
 
 def _download_restricted(url, filename, age):
