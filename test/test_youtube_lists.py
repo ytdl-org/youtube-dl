@@ -106,7 +106,7 @@ class TestYoutubeLists(unittest.TestCase):
         dl = FakeYDL()
         ie = YoutubeShowIE(dl)
         result = ie.extract('http://www.youtube.com/show/airdisasters')
-        self.assertTrue(len(result) >= 4)
+        self.assertTrue(len(result) >= 3)
 
 if __name__ == '__main__':
     unittest.main()
