@@ -945,3 +945,20 @@ class locked_file(object):
 
 def shell_quote(args):
     return ' '.join(map(pipes.quote, args))
+
+
+def smuggle_url(url, data):
+    """ Pass additional data in a URL for internal use. """
+
+    sdata = compat_urllib_parse.urlencode(
+        {u'__youtubedl_smuggle': json.dumps(data)})
+    return url + u'#' + sdata
+
+
+def unsmuggle_url(smug_url):
+    if not '#__youtubedl_smuggle' in smug_url:
+        return smug_url, None
+    url, _, sdata = smug_url.rpartition(u'#')
+    jsond = compat_parse_qs(sdata)[u'__youtubedl_smuggle'][0]
+    data = json.loads(jsond)
+    return url, data
