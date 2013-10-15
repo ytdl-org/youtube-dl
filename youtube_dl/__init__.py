@@ -47,17 +47,43 @@ import shlex
 import socket
 import subprocess
 import sys
-import warnings
+import traceback
 import platform
 
 
-from .utils import *
+from .utils import (
+    compat_cookiejar,
+    compat_print,
+    compat_str,
+    compat_urllib_request,
+    DateRange,
+    decodeOption,
+    determine_ext,
+    DownloadError,
+    get_cachedir,
+    make_HTTPS_handler,
+    MaxDownloadsReached,
+    platform_name,
+    preferredencoding,
+    SameFileError,
+    std_headers,
+    write_string,
+    YoutubeDLHandler,
+)
 from .update import update_self
 from .version import __version__
-from .FileDownloader import *
+from .FileDownloader import (
+    FileDownloader,
+)
 from .extractor import gen_extractors
 from .YoutubeDL import YoutubeDL
-from .PostProcessor import *
+from .PostProcessor import (
+    FFmpegMetadataPP,
+    FFmpegVideoConvertor,
+    FFmpegExtractAudioPP,
+    FFmpegEmbedSubtitlePP,
+)
+
 
 def parseOpts(overrideArguments=None):
     def _readOptions(filename_bytes):
@@ -689,7 +715,7 @@ def _real_main(argv=None):
     if opts.cookiefile is not None:
         try:
             jar.save()
-        except (IOError, OSError) as err:
+        except (IOError, OSError):
             sys.exit(u'ERROR: unable to save cookie jar')
 
     sys.exit(retcode)

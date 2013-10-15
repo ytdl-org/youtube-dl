@@ -2,9 +2,15 @@ import os
 import subprocess
 import sys
 import time
-import datetime
 
-from .utils import *
+
+from .utils import (
+    compat_subprocess_get_DEVNULL,
+    encodeFilename,
+    PostProcessingError,
+    shell_quote,
+    subtitles_filename,
+)
 
 
 class PostProcessor(object):
