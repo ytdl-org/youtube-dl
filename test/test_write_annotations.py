@@ -17,7 +17,6 @@ import xml.etree.ElementTree
 
 import youtube_dl.YoutubeDL
 import youtube_dl.extractor
-from youtube_dl.utils import True
 
 
 class YoutubeDL(youtube_dl.YoutubeDL):

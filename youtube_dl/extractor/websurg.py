@@ -18,7 +18,8 @@ class WeBSurgIE(InfoExtractor):
         u'file': u'vd01en4012.mp4',
         u'params': {
             u'skip_download': True,
-        }
+        },
+        u'skip': u'Requires login information',
     }
     
     _LOGIN_URL = 'http://www.websurg.com/inc/login/login_div.ajax.php?login=1'
