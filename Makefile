@@ -71,6 +71,7 @@ youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-
 		--exclude '*~' \
 		--exclude '__pycache' \
 		--exclude '.git' \
+        --exclude 'testdata' \
 		-- \
 		bin devscripts test youtube_dl \
 		CHANGELOG LICENSE README.md README.txt \
