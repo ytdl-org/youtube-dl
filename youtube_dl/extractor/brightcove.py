@@ -98,7 +98,10 @@ class BrightcoveIE(InfoExtractor):
         playlist_info = self._download_webpage(self._PLAYLIST_URL_TEMPLATE % player_key,
                                                player_key, u'Downloading playlist information')
 
-        playlist_info = json.loads(playlist_info)['videoList']
+        json_data = json.loads(playlist_info)
+        if 'videoList' not in json_data:
+            raise ExtractorError(u'Empty playlist')
+        playlist_info = json_data['videoList']
         videos = [self._extract_video_info(video_info) for video_info in playlist_info['mediaCollectionDTO']['videoDTOs']]
 
         return self.playlist_result(videos, playlist_id=playlist_info['id'],
