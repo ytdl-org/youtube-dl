@@ -53,6 +53,8 @@ class BrightcoveIE(InfoExtractor):
         # Fix up some stupid HTML, see https://github.com/rg3/youtube-dl/issues/1553
         object_str = re.sub(r'(<param name="[^"]+" value="[^"]+")>',
                             lambda m: m.group(1) + '/>', object_str)
+        # Fix up some stupid XML, see https://github.com/rg3/youtube-dl/issues/1608
+        object_str = object_str.replace(u'<--', u'<!--')
 
         object_doc = xml.etree.ElementTree.fromstring(object_str)
         assert u'BrightcoveExperience' in object_doc.attrib['class']
