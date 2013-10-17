@@ -390,13 +390,7 @@ class YoutubeDL(object):
         result_type = ie_result.get('_type', 'video') # If not given we suppose it's a video, support the default old system
         if result_type == 'video':
             ie_result.update(extra_info)
-            if 'playlist' not in ie_result:
-                # It isn't part of a playlist
-                ie_result['playlist'] = None
-                ie_result['playlist_index'] = None
-            if download:
-                self.process_info(ie_result)
-            return ie_result
+            return self.process_video_result(ie_result)
         elif result_type == 'url':
             # We have to add extra_info to the results because it may be
             # contained in a playlist
@@ -453,6 +447,89 @@ class YoutubeDL(object):
             return ie_result
         else:
             raise Exception('Invalid result type: %s' % result_type)
+
+    def process_video_result(self, info_dict, download=True):
+        assert info_dict.get('_type', 'video') == 'video'
+
+        if 'playlist' not in info_dict:
+            # It isn't part of a playlist
+            info_dict['playlist'] = None
+            info_dict['playlist_index'] = None
+
+        # This extractors handle format selection themselves
+        if info_dict['extractor'] in [u'youtube', u'Youku', u'YouPorn', u'mixcloud']:
+            self.process_info(info_dict)
+            return info_dict
+
+        # We now pick which formats have to be downloaded
+        if info_dict.get('formats') is None:
+            # There's only one format available
+            formats = [info_dict]
+        else:
+            formats = info_dict['formats']
+
+        # We check that all the formats have the format and format_id fields
+        for (i, format) in enumerate(formats):
+            if format.get('format') is None:
+                if format.get('height') is not None:
+                    if format.get('width') is not None:
+                        format_desc = u'%sx%s' % (format['width'], format['height'])
+                    else:
+                        format_desc = u'%sp' % format['height']
+                else:
+                    format_desc = '???'
+                format['format'] = format_desc
+            if format.get('format_id') is None:
+                format['format_id'] = compat_str(i)
+
+        if self.params.get('listformats', None):
+            self.list_formats(info_dict)
+            return
+
+        format_limit = self.params.get('format_limit', None)
+        if format_limit:
+            formats = [f for f in formats if f['format_id'] <= format_limit]
+        if self.params.get('prefer_free_formats'):
+            def _free_formats_key(f):
+                try:
+                    ext_ord = [u'flv', u'mp4', u'webm'].index(f['ext'])
+                except ValueError:
+                    ext_ord = -1
+                # We only compare the extension if they have the same height and width
+                return (f.get('height'), f.get('width'), ext_ord)
+            formats = sorted(formats, key=_free_formats_key)
+
+        req_format = self.params.get('format', 'best')
+        formats_to_download = []
+        if req_format == 'best' or req_format is None:
+            formats_to_download = [formats[-1]]
+        elif req_format == 'worst':
+            formats_to_download = [formats[0]]
+        # The -1 is for supporting YoutubeIE
+        elif req_format in ('-1', 'all'):
+            formats_to_download = formats
+        else:
+            # We can accept formats requestd in the format: 34/10/5, we pick
+            # the first that is availble, starting from left
+            req_formats = req_format.split('/')
+            for rf in req_formats:
+                matches = filter(lambda f:f['format_id'] == rf ,formats)
+                if matches:
+                    formats_to_download = [matches[0]]
+                    break
+        if not formats_to_download:
+            raise ExtractorError(u'requested format not available')
+
+        if download:
+            if len(formats_to_download) > 1:
+                self.to_screen(u'[info] %s: downloading video in %s formats' % (info_dict['id'], len(formats_to_download)))
+            for format in formats_to_download:
+                new_info = dict(info_dict)
+                new_info.update(format)
+                self.process_info(new_info)
+        # We update the info dict with the best quality format (backwards compatibility)
+        info_dict.update(formats_to_download[-1])
+        return info_dict
 
     def process_info(self, info_dict):
         """Process a single resolved IE result."""
@@ -672,3 +749,17 @@ class YoutubeDL(object):
         vid_id = info_dict['extractor'] + u' ' + info_dict['id']
         with locked_file(fn, 'a', encoding='utf-8') as archive_file:
             archive_file.write(vid_id + u'\n')
+
+    def list_formats(self, info_dict):
+        formats_s = []
+        for format in info_dict.get('formats', [info_dict]):
+            formats_s.append("%s\t:\t%s\t[%s]" % (format['format_id'],
+                                                format['ext'],
+                                                format.get('format', '???'),
+                                                )
+                            )
+        if len(formats_s) != 1:
+            formats_s[0]  += ' (worst)'
+            formats_s[-1] += ' (best)'
+        formats_s = "\n".join(formats_s)
+        self.to_screen(u"[info] Available formats for %s:\nformat code\textension\n%s" % (info_dict['id'], formats_s)) 
