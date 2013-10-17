@@ -10,12 +10,16 @@ from test.helper import FakeYDL
 
 
 class YDL(FakeYDL):
-    def __init__(self):
-        super(YDL, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(YDL, self).__init__(*args, **kwargs)
         self.downloaded_info_dicts = []
+        self.msgs = []
 
     def process_info(self, info_dict):
         self.downloaded_info_dicts.append(info_dict)
+
+    def to_screen(self, msg):
+        self.msgs.append(msg)
 
 
 class TestFormatSelection(unittest.TestCase):
@@ -55,6 +59,41 @@ class TestFormatSelection(unittest.TestCase):
         ydl.process_ie_result(info_dict)
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded[u'ext'], u'flv')
+
+    def test_format_limit(self):
+        formats = [
+            {u'format_id': u'meh'},
+            {u'format_id': u'good'},
+            {u'format_id': u'great'},
+            {u'format_id': u'excellent'},
+        ]
+        info_dict = {
+            u'formats': formats, u'extractor': u'test', 'id': 'testvid'}
+
+        ydl = YDL()
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded[u'format_id'], u'excellent')
+
+        ydl = YDL({'format_limit': 'good'})
+        assert ydl.params['format_limit'] == 'good'
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded[u'format_id'], u'good')
+
+        ydl = YDL({'format_limit': 'great', 'format': 'all'})
+        ydl.process_ie_result(info_dict)
+        self.assertEqual(ydl.downloaded_info_dicts[0][u'format_id'], u'meh')
+        self.assertEqual(ydl.downloaded_info_dicts[1][u'format_id'], u'good')
+        self.assertEqual(ydl.downloaded_info_dicts[2][u'format_id'], u'great')
+        self.assertTrue('3' in ydl.msgs[0])
+
+        ydl = YDL()
+        ydl.params['format_limit'] = 'excellent'
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded[u'format_id'], u'excellent')
+
 
 if __name__ == '__main__':
     unittest.main()

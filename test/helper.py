@@ -34,10 +34,10 @@ def try_rm(filename):
 
 
 class FakeYDL(YoutubeDL):
-    def __init__(self):
+    def __init__(self, override=None):
         # Different instances of the downloader can't share the same dictionary
         # some test set the "sublang" parameter, which would break the md5 checks.
-        params = get_params()
+        params = get_params(override=override)
         super(FakeYDL, self).__init__(params)
         self.result = []
         

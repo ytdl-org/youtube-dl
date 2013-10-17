@@ -488,7 +488,9 @@ class YoutubeDL(object):
 
         format_limit = self.params.get('format_limit', None)
         if format_limit:
-            formats = [f for f in formats if f['format_id'] <= format_limit]
+            formats = list(takewhile_inclusive(
+                lambda f: f['format_id'] != format_limit, formats
+            ))
         if self.params.get('prefer_free_formats'):
             def _free_formats_key(f):
                 try:
