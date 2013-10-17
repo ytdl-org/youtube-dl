@@ -512,7 +512,7 @@ class YoutubeDL(object):
             formats_to_download = formats
         else:
             # We can accept formats requestd in the format: 34/10/5, we pick
-            # the first that is availble, starting from left
+            # the first that is available, starting from left
             req_formats = req_format.split('/')
             for rf in req_formats:
                 matches = filter(lambda f:f['format_id'] == rf ,formats)
