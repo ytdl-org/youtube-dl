@@ -57,9 +57,10 @@ which means you can modify it, redistribute it or use it however you like.
                                file. Record all downloaded videos in it.
 
 ## Download Options:
-    -r, --rate-limit LIMIT     maximum download rate (e.g. 50k or 44.6m)
+    -r, --rate-limit LIMIT     maximum download rate in bytes per second (e.g.
+                               50K or 4.2M)
     -R, --retries RETRIES      number of retries (default is 10)
-    --buffer-size SIZE         size of download buffer (e.g. 1024 or 16k)
+    --buffer-size SIZE         size of download buffer (e.g. 1024 or 16K)
                                (default is 1024)
     --no-resize-buffer         do not automatically adjust the buffer size. By
                                default, the buffer size is automatically resized
@@ -100,6 +101,7 @@ which means you can modify it, redistribute it or use it however you like.
                                file modification time
     --write-description        write video description to a .description file
     --write-info-json          write video metadata to a .info.json file
+    --write-annotations        write video annotations to a .annotation file
     --write-thumbnail          write thumbnail image to disk
 
 ## Verbosity / Simulation Options:
@@ -166,6 +168,7 @@ which means you can modify it, redistribute it or use it however you like.
                                processed files are overwritten by default
     --embed-subs               embed subtitles in the video (only for mp4
                                videos)
+    --add-metadata             add metadata to the files
 
 # CONFIGURATION
 

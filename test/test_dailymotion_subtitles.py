@@ -1,18 +1,16 @@
 #!/usr/bin/env python
 
-import sys
-import unittest
-import hashlib
-
 # Allow direct execution
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import sys
+import unittest
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from test.helper import FakeYDL, global_setup, md5
+global_setup()
+
 
 from youtube_dl.extractor import DailymotionIE
-from youtube_dl.utils import *
-from helper import FakeYDL
-
-md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
 
 class TestDailymotionSubtitles(unittest.TestCase):
     def setUp(self):

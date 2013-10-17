@@ -2,7 +2,12 @@ from .appletrailers import AppleTrailersIE
 from .addanime import AddAnimeIE
 from .archiveorg import ArchiveOrgIE
 from .ard import ARDIE
-from .arte import ArteTvIE
+from .arte import (
+    ArteTvIE,
+    ArteTVPlus7IE,
+    ArteTVCreativeIE,
+    ArteTVFutureIE,
+)
 from .auengine import AUEngineIE
 from .bandcamp import BandcampIE
 from .bliptv import BlipTVIE, BlipTVUserIE
@@ -12,6 +17,7 @@ from .brightcove import BrightcoveIE
 from .c56 import C56IE
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
+from .cinemassacre import CinemassacreIE
 from .cnn import CNNIE
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE
@@ -34,6 +40,7 @@ from .eighttracks import EightTracksIE
 from .escapist import EscapistIE
 from .exfm import ExfmIE
 from .facebook import FacebookIE
+from .faz import FazIE
 from .fktv import (
     FKTVIE,
     FKTVPosteckeIE,
@@ -60,6 +67,7 @@ from .ign import IGNIE, OneUPIE
 from .ina import InaIE
 from .infoq import InfoQIE
 from .instagram import InstagramIE
+from .internetvideoarchive import InternetVideoArchiveIE
 from .jeuxvideo import JeuxVideoIE
 from .jukebox import JukeboxIE
 from .justintv import JustinTVIE
@@ -80,6 +88,8 @@ from .naver import NaverIE
 from .nba import NBAIE
 from .nbc import NBCNewsIE
 from .newgrounds import NewgroundsIE
+from .nhl import NHLIE, NHLVideocenterIE
+from .nowvideo import NowVideoIE
 from .ooyala import OoyalaIE
 from .orf import ORFIE
 from .pbs import PBSIE
@@ -89,8 +99,10 @@ from .rbmaradio import RBMARadioIE
 from .redtube import RedTubeIE
 from .ringtv import RingTVIE
 from .ro220 import Ro220IE
+from .rottentomatoes import RottenTomatoesIE
 from .roxwel import RoxwelIE
 from .rtlnow import RTLnowIE
+from .rutube import RutubeIE
 from .sina import SinaIE
 from .slashdot import SlashdotIE
 from .slideshare import SlideshareIE
@@ -101,7 +113,9 @@ from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
 from .statigram import StatigramIE
 from .steam import SteamIE
+from .sztvhu import SztvHuIE
 from .teamcoco import TeamcocoIE
+from .techtalks import TechTalksIE
 from .ted import TEDIE
 from .tf1 import TF1IE
 from .thisav import ThisAVIE
@@ -118,10 +132,13 @@ from .veoh import VeohIE
 from .vevo import VevoIE
 from .vice import ViceIE
 from .viddler import ViddlerIE
+from .videodetective import VideoDetectiveIE
 from .videofyme import VideofyMeIE
+from .videopremium import VideoPremiumIE
 from .vimeo import VimeoIE, VimeoChannelIE
 from .vine import VineIE
 from .wat import WatIE
+from .websurg import WeBSurgIE
 from .weibo import WeiboIE
 from .wimp import WimpIE
 from .worldstarhiphop import WorldStarHipHopIE

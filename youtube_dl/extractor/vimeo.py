@@ -11,6 +11,7 @@ from ..utils import (
     get_element_by_attribute,
     ExtractorError,
     std_headers,
+    unsmuggle_url,
 )
 
 class VimeoIE(InfoExtractor):
@@ -53,7 +54,7 @@ class VimeoIE(InfoExtractor):
                 u'title': u'Kathy Sierra: Building the minimum Badass User, Business of Software',
                 u'uploader': u'The BLN & Business of Software',
             },
-        },
+        }
     ]
 
     def _login(self):
@@ -98,6 +99,12 @@ class VimeoIE(InfoExtractor):
         self._login()
 
     def _real_extract(self, url, new_video=True):
+        url, data = unsmuggle_url(url)
+        headers = std_headers
+        if data is not None:
+            headers = headers.copy()
+            headers.update(data)
+
         # Extract ID from URL
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
@@ -112,7 +119,7 @@ class VimeoIE(InfoExtractor):
             url = 'https://vimeo.com/' + video_id
 
         # Retrieve video webpage to extract further information
-        request = compat_urllib_request.Request(url, None, std_headers)
+        request = compat_urllib_request.Request(url, None, headers)
         webpage = self._download_webpage(request, video_id)
 
         # Now we begin extracting as much information as we can from what we

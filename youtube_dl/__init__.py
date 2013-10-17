@@ -31,6 +31,7 @@ __authors__  = (
     'Huarong Huo',
     'Ismael Mejía',
     'Steffan \'Ruirize\' James',
+    'Andras Elso',
 )
 
 __license__ = 'Public Domain'
@@ -46,17 +47,43 @@ import shlex
 import socket
 import subprocess
 import sys
-import warnings
+import traceback
 import platform
 
 
-from .utils import *
+from .utils import (
+    compat_cookiejar,
+    compat_print,
+    compat_str,
+    compat_urllib_request,
+    DateRange,
+    decodeOption,
+    determine_ext,
+    DownloadError,
+    get_cachedir,
+    make_HTTPS_handler,
+    MaxDownloadsReached,
+    platform_name,
+    preferredencoding,
+    SameFileError,
+    std_headers,
+    write_string,
+    YoutubeDLHandler,
+)
 from .update import update_self
 from .version import __version__
-from .FileDownloader import *
+from .FileDownloader import (
+    FileDownloader,
+)
 from .extractor import gen_extractors
 from .YoutubeDL import YoutubeDL
-from .PostProcessor import *
+from .PostProcessor import (
+    FFmpegMetadataPP,
+    FFmpegVideoConvertor,
+    FFmpegExtractAudioPP,
+    FFmpegEmbedSubtitlePP,
+)
+
 
 def parseOpts(overrideArguments=None):
     def _readOptions(filename_bytes):
@@ -240,11 +267,11 @@ def parseOpts(overrideArguments=None):
             help='languages of the subtitles to download (optional) separated by commas, use IETF language tags like \'en,pt\'')
 
     downloader.add_option('-r', '--rate-limit',
-            dest='ratelimit', metavar='LIMIT', help='maximum download rate (e.g. 50k or 44.6m)')
+            dest='ratelimit', metavar='LIMIT', help='maximum download rate in bytes per second (e.g. 50K or 4.2M)')
     downloader.add_option('-R', '--retries',
             dest='retries', metavar='RETRIES', help='number of retries (default is %default)', default=10)
     downloader.add_option('--buffer-size',
-            dest='buffersize', metavar='SIZE', help='size of download buffer (e.g. 1024 or 16k) (default is %default)', default="1024")
+            dest='buffersize', metavar='SIZE', help='size of download buffer (e.g. 1024 or 16K) (default is %default)', default="1024")
     downloader.add_option('--no-resize-buffer',
             action='store_true', dest='noresizebuffer',
             help='do not automatically adjust the buffer size. By default, the buffer size is automatically resized from an initial value of SIZE.', default=False)
@@ -339,6 +366,9 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option('--write-info-json',
             action='store_true', dest='writeinfojson',
             help='write video metadata to a .info.json file', default=False)
+    filesystem.add_option('--write-annotations',
+            action='store_true', dest='writeannotations',
+            help='write video annotations to a .annotation file', default=False)
     filesystem.add_option('--write-thumbnail',
             action='store_true', dest='writethumbnail',
             help='write thumbnail image to disk', default=False)
@@ -358,6 +388,8 @@ def parseOpts(overrideArguments=None):
             help='do not overwrite post-processed files; the post-processed files are overwritten by default')
     postproc.add_option('--embed-subs', action='store_true', dest='embedsubtitles', default=False,
             help='embed subtitles in the video (only for mp4 videos)')
+    postproc.add_option('--add-metadata', action='store_true', dest='addmetadata', default=False,
+            help='add metadata to the files')
 
 
     parser.add_option_group(general)
@@ -603,6 +635,7 @@ def _real_main(argv=None):
         'nopart': opts.nopart,
         'updatetime': opts.updatetime,
         'writedescription': opts.writedescription,
+        'writeannotations': opts.writeannotations,
         'writeinfojson': opts.writeinfojson,
         'writethumbnail': opts.writethumbnail,
         'writesubtitles': opts.writesubtitles,
@@ -655,6 +688,9 @@ def _real_main(argv=None):
     ydl.add_default_info_extractors()
 
     # PostProcessors
+    # Add the metadata pp first, the other pps will copy it
+    if opts.addmetadata:
+        ydl.add_post_processor(FFmpegMetadataPP())
     if opts.extractaudio:
         ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
     if opts.recodevideo:
@@ -683,7 +719,7 @@ def _real_main(argv=None):
     if opts.cookiefile is not None:
         try:
             jar.save()
-        except (IOError, OSError) as err:
+        except (IOError, OSError):
             sys.exit(u'ERROR: unable to save cookie jar')
 
     sys.exit(retcode)

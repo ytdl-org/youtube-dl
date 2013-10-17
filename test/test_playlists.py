@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-import sys
-import unittest
-import json
 
 # Allow direct execution
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import sys
+import unittest
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from test.helper import FakeYDL, global_setup
+global_setup()
+
 
 from youtube_dl.extractor import (
     DailymotionPlaylistIE,
@@ -16,10 +19,9 @@ from youtube_dl.extractor import (
     UstreamChannelIE,
     SoundcloudUserIE,
     LivestreamIE,
+    NHLVideocenterIE,
 )
-from youtube_dl.utils import *
 
-from helper import FakeYDL
 
 class TestPlaylists(unittest.TestCase):
     def assertIsPlaylist(self, info):
@@ -73,6 +75,15 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['title'], u'TEDCity2.0 (English)')
         self.assertTrue(len(result['entries']) >= 4)
+
+    def test_nhl_videocenter(self):
+        dl = FakeYDL()
+        ie = NHLVideocenterIE(dl)
+        result = ie.extract('http://video.canucks.nhl.com/videocenter/console?catid=999')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], u'999')
+        self.assertEqual(result['title'], u'Highlights')
+        self.assertEqual(len(result['entries']), 12)
 
 if __name__ == '__main__':
     unittest.main()

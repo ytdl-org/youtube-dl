@@ -9,6 +9,7 @@ import io
 import json
 import locale
 import os
+import pipes
 import platform
 import re
 import socket
@@ -228,6 +229,19 @@ else:
             if f.attrib.get(key) == val:
                 return f
         return None
+
+# On python2.6 the xml.etree.ElementTree.Element methods don't support
+# the namespace parameter
+def xpath_with_ns(path, ns_map):
+    components = [c.split(':') for c in path.split('/')]
+    replaced = []
+    for c in components:
+        if len(c) == 1:
+            replaced.append(c[0])
+        else:
+            ns, tag = c
+            replaced.append('{%s}%s' % (ns_map[ns], tag))
+    return '/'.join(replaced)
 
 def htmlentity_transform(matchobj):
     """Transforms an HTML entity to a character.
@@ -715,6 +729,7 @@ def unified_strdate(date_str):
         '%Y/%m/%d %H:%M:%S',
         '%d.%m.%Y %H:%M',
         '%Y-%m-%dT%H:%M:%SZ',
+        '%Y-%m-%dT%H:%M:%S',
     ]
     for expression in format_expressions:
         try:
@@ -926,3 +941,24 @@ class locked_file(object):
 
     def read(self, *args):
         return self.f.read(*args)
+
+
+def shell_quote(args):
+    return ' '.join(map(pipes.quote, args))
+
+
+def smuggle_url(url, data):
+    """ Pass additional data in a URL for internal use. """
+
+    sdata = compat_urllib_parse.urlencode(
+        {u'__youtubedl_smuggle': json.dumps(data)})
+    return url + u'#' + sdata
+
+
+def unsmuggle_url(smug_url):
+    if not '#__youtubedl_smuggle' in smug_url:
+        return smug_url, None
+    url, _, sdata = smug_url.rpartition(u'#')
+    jsond = compat_parse_qs(sdata)[u'__youtubedl_smuggle'][0]
+    data = json.loads(jsond)
+    return url, data

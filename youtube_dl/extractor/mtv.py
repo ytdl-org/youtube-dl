@@ -87,7 +87,7 @@ class MTVIE(InfoExtractor):
 
         description_node = itemdoc.find('description')
         if description_node is not None:
-            description = description_node.text
+            description = description_node.text.strip()
         else:
             description = None
 

@@ -1116,6 +1116,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'lang': lang,
                 'v': video_id,
                 'fmt': self._downloader.params.get('subtitlesformat'),
+                'name': l[0],
             })
             url = u'http://www.youtube.com/api/timedtext?' + params
             sub_lang_list[lang] = url
@@ -1149,7 +1150,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             list_page = self._download_webpage(list_url, video_id)
             caption_list = xml.etree.ElementTree.fromstring(list_page.encode('utf-8'))
             original_lang_node = caption_list.find('track')
-            if original_lang_node.attrib.get('kind') != 'asr' :
+            if not original_lang_node or original_lang_node.attrib.get('kind') != 'asr' :
                 self._downloader.report_warning(u'Video doesn\'t have automatic captions')
                 return {}
             original_lang = original_lang_node.attrib['lang_code']
@@ -1248,6 +1249,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             itag = self._search_regex(r'itag/(\d+?)/', format_url, 'itag')
             url_map[itag] = format_url
         return url_map
+
+    def _extract_annotations(self, video_id):
+        url = 'https://www.youtube.com/annotations_invideo?features=1&legacy=1&video_id=%s' % video_id
+        return self._download_webpage(url, video_id, note=u'Searching for annotations.', errnote=u'Unable to download video annotations.')
 
     def _real_extract(self, url):
         # Extract original video URL from URL with redirection, like age verification, using next_url parameter
@@ -1381,6 +1386,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         else:
             video_duration = compat_urllib_parse.unquote_plus(video_info['length_seconds'][0])
 
+        # annotations
+        video_annotations = None
+        if self._downloader.params.get('writeannotations', False):
+                video_annotations = self._extract_annotations(video_id)
+
         # Decide which formats to download
 
         try:
@@ -1494,6 +1504,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'subtitles':    video_subtitles,
                 'duration':     video_duration,
                 'age_limit':    18 if age_gate else 0,
+                'annotations':  video_annotations
             })
         return results
 
@@ -1634,7 +1645,7 @@ class YoutubeChannelIE(InfoExtractor):
 
 class YoutubeUserIE(InfoExtractor):
     IE_DESC = u'YouTube.com user videos (URL or "ytuser" keyword)'
-    _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?youtube\.com/(?:user/)?(?!watch(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)([A-Za-z0-9_-]+)'
+    _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?youtube\.com/(?:user/)?(?!(?:attribution_link|watch)(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)([A-Za-z0-9_-]+)'
     _TEMPLATE_URL = 'http://gdata.youtube.com/feeds/api/users/%s'
     _GDATA_PAGE_SIZE = 50
     _GDATA_URL = 'http://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d&alt=json'
