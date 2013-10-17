@@ -115,6 +115,7 @@ from .statigram import StatigramIE
 from .steam import SteamIE
 from .sztvhu import SztvHuIE
 from .teamcoco import TeamcocoIE
+from .techtalks import TechTalksIE
 from .ted import TEDIE
 from .tf1 import TF1IE
 from .thisav import ThisAVIE
