@@ -8,6 +8,7 @@ import sys
 
 try:
     from setuptools import setup
+    setuptools_available = True
 except ImportError:
     from distutils.core import setup
 
@@ -43,13 +44,16 @@ if len(sys.argv) >= 2 and sys.argv[1] == 'py2exe':
     params = py2exe_params
 else:
     params = {
-        'scripts': ['bin/youtube-dl'],
         'data_files': [  # Installing system-wide would require sudo...
             ('etc/bash_completion.d', ['youtube-dl.bash-completion']),
             ('share/doc/youtube_dl', ['README.txt']),
             ('share/man/man1/', ['youtube-dl.1'])
         ]
     }
+    if setuptools_available:
+        params['entry_points'] = {'console_scripts': ['youtube-dl = youtube_dl:main']}
+    else:
+        params['scripts'] = ['bin/youtube-dl']
 
 # Get the version from youtube_dl/version.py without importing the package
 exec(compile(open('youtube_dl/version.py').read(),
