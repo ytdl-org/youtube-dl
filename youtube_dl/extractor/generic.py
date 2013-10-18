@@ -142,11 +142,18 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded Vimeo player
         mobj = re.search(
-            r'<iframe\s+src="(https?://player.vimeo.com/video/.*?)"', webpage)
+            r'<iframe[^>]+?src="(https?://player.vimeo.com/video/.+?)"', webpage)
         if mobj:
             player_url = unescapeHTML(mobj.group(1))
             surl = smuggle_url(player_url, {'Referer': url})
             return self.url_result(surl, 'Vimeo')
+
+        # Look for embedded YouTube player
+        mobj = re.search(
+            r'<iframe[^>]+?src="(https?://(?:www\.)?youtube.com/embed/.+?)"', webpage)
+        if mobj:
+            surl = unescapeHTML(mobj.group(1))
+            return self.url_result(surl, 'Youtube')
 
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)

@@ -196,7 +196,7 @@ def parseOpts(overrideArguments=None):
     general.add_option('--proxy', dest='proxy', default=None, help='Use the specified HTTP/HTTPS proxy', metavar='URL')
     general.add_option('--no-check-certificate', action='store_true', dest='no_check_certificate', default=False, help='Suppress HTTPS certificate validation.')
     general.add_option(
-        '--cache-dir', dest='cachedir', default=get_cachedir(),
+        '--cache-dir', dest='cachedir', default=get_cachedir(), metavar='DIR',
         help='Location in the filesystem where youtube-dl can store downloaded information permanently. By default $XDG_CACHE_HOME/youtube-dl or ~/.cache/youtube-dl .')
     general.add_option(
         '--no-cache-dir', action='store_const', const=None, dest='cachedir',
@@ -235,7 +235,7 @@ def parseOpts(overrideArguments=None):
 
 
     video_format.add_option('-f', '--format',
-            action='store', dest='format', metavar='FORMAT',
+            action='store', dest='format', metavar='FORMAT', default='best',
             help='video format code, specifiy the order of preference using slashes: "-f 22/17/18". "-f mp4" and "-f flv" are also supported')
     video_format.add_option('--all-formats',
             action='store_const', dest='format', help='download all available video formats', const='all')

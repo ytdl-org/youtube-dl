@@ -365,7 +365,7 @@ class SearchInfoExtractor(InfoExtractor):
 
     def _get_n_results(self, query, n):
         """Get a specified number of results for a query"""
-        raise NotImplementedError("This method must be implemented by sublclasses")
+        raise NotImplementedError("This method must be implemented by subclasses")
 
     @property
     def SEARCH_KEY(self):
