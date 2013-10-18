@@ -48,7 +48,8 @@ class TudouIE(InfoExtractor):
                 'ie_key': 'Youku'
             }
 
-        title = self._search_regex(r",kw:['\"](.+?)[\"']", webpage, u'title')
+        title = self._search_regex(
+            r",kw:\s*['\"](.+?)[\"']", webpage, u'title')
         thumbnail_url = self._search_regex(
             r",pic:\s*[\"'](.+?)[\"']", webpage, u'thumbnail URL', fatal=False)
 
