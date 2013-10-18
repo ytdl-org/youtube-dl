@@ -179,6 +179,9 @@ def parseOpts(overrideArguments=None):
             action='store_true', dest='update_self', help='update this program to latest version. Make sure that you have sufficient permissions (run with sudo if needed)')
     general.add_option('-i', '--ignore-errors',
             action='store_true', dest='ignoreerrors', help='continue on download errors, for example to to skip unavailable videos in a playlist', default=False)
+    general.add_option('--abort-on-error',
+            action='store_false', dest='ignoreerrors',
+            help='Abort downloading of further videos (in the playlist or the command line) if an error occurs')
     general.add_option('--dump-user-agent',
             action='store_true', dest='dump_user_agent',
             help='display the current browser identification', default=False)
