@@ -1,4 +1,4 @@
-__youtube-dl()
+__youtube_dl()
 {
     local cur prev opts
     COMPREPLY=()
@@ -15,4 +15,4 @@ __youtube-dl()
     fi
 }
 
-complete -F __youtube-dl youtube-dl
+complete -F __youtube_dl youtube-dl

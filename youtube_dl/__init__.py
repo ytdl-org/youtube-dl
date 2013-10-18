@@ -179,6 +179,9 @@ def parseOpts(overrideArguments=None):
             action='store_true', dest='update_self', help='update this program to latest version. Make sure that you have sufficient permissions (run with sudo if needed)')
     general.add_option('-i', '--ignore-errors',
             action='store_true', dest='ignoreerrors', help='continue on download errors, for example to to skip unavailable videos in a playlist', default=False)
+    general.add_option('--abort-on-error',
+            action='store_false', dest='ignoreerrors',
+            help='Abort downloading of further videos (in the playlist or the command line) if an error occurs')
     general.add_option('--dump-user-agent',
             action='store_true', dest='dump_user_agent',
             help='display the current browser identification', default=False)
@@ -332,7 +335,9 @@ def parseOpts(overrideArguments=None):
             help=('output filename template. Use %(title)s to get the title, '
                   '%(uploader)s for the uploader name, %(uploader_id)s for the uploader nickname if different, '
                   '%(autonumber)s to get an automatically incremented number, '
-                  '%(ext)s for the filename extension, %(upload_date)s for the upload date (YYYYMMDD), '
+                  '%(ext)s for the filename extension, '
+                  '%(format)s for the format description (like "22 - 1280x720" or "HD")'
+                  '%(upload_date)s for the upload date (YYYYMMDD), '
                   '%(extractor)s for the provider (youtube, metacafe, etc), '
                   '%(id)s for the video id , %(playlist)s for the playlist the video is in, '
                   '%(playlist_index)s for the position in the playlist and %% for a literal percent. '
