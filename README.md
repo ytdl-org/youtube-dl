@@ -21,6 +21,8 @@ which means you can modify it, redistribute it or use it however you like.
                                sudo if needed)
     -i, --ignore-errors        continue on download errors, for example to to
                                skip unavailable videos in a playlist
+    --abort-on-error           Abort downloading of further videos (in the
+                               playlist or the command line) if an error occurs
     --dump-user-agent          display the current browser identification
     --user-agent UA            specify a custom user agent
     --referer REF              specify a custom referer, use if the video access
@@ -30,7 +32,7 @@ which means you can modify it, redistribute it or use it however you like.
     --extractor-descriptions   Output descriptions of all supported extractors
     --proxy URL                Use the specified HTTP/HTTPS proxy
     --no-check-certificate     Suppress HTTPS certificate validation.
-    --cache-dir None           Location in the filesystem where youtube-dl can
+    --cache-dir DIR            Location in the filesystem where youtube-dl can
                                store downloaded information permanently. By
                                default $XDG_CACHE_HOME/youtube-dl or ~/.cache
                                /youtube-dl .
@@ -76,15 +78,17 @@ which means you can modify it, redistribute it or use it however you like.
                                %(uploader_id)s for the uploader nickname if
                                different, %(autonumber)s to get an automatically
                                incremented number, %(ext)s for the filename
-                               extension, %(upload_date)s for the upload date
-                               (YYYYMMDD), %(extractor)s for the provider
-                               (youtube, metacafe, etc), %(id)s for the video id
-                               , %(playlist)s for the playlist the video is in,
-                               %(playlist_index)s for the position in the
-                               playlist and %% for a literal percent. Use - to
-                               output to stdout. Can also be used to download to
-                               a different directory, for example with -o '/my/d
-                               ownloads/%(uploader)s/%(title)s-%(id)s.%(ext)s' .
+                               extension, %(format)s for the format description
+                               (like "22 - 1280x720" or "HD")%(upload_date)s for
+                               the upload date (YYYYMMDD), %(extractor)s for the
+                               provider (youtube, metacafe, etc), %(id)s for the
+                               video id , %(playlist)s for the playlist the
+                               video is in, %(playlist_index)s for the position
+                               in the playlist and %% for a literal percent. Use
+                               - to output to stdout. Can also be used to
+                               download to a different directory, for example
+                               with -o '/my/downloads/%(uploader)s/%(title)s-%(i
+                               d)s.%(ext)s' .
     --autonumber-size NUMBER   Specifies the number of digits in %(autonumber)s
                                when it is present in output filename template or
                                --autonumber option is given
