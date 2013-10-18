@@ -18,7 +18,8 @@ class XNXXIE(InfoExtractor):
         u'file': u'1135332.flv',
         u'md5': u'0831677e2b4761795f68d417e0b7b445',
         u'info_dict': {
-            u"title": u"lida \u00bb Naked Funny Actress  (5)"
+            u"title": u"lida \u00bb Naked Funny Actress  (5)",
+            u"age_limit": 18,
         }
     }
 
@@ -50,4 +51,5 @@ class XNXXIE(InfoExtractor):
             'ext': 'flv',
             'thumbnail': video_thumbnail,
             'description': None,
+            'age_limit': 18,
         }]
