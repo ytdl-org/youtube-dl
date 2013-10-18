@@ -1485,7 +1485,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             # Extension
             video_extension = self._video_extensions.get(format_param, 'flv')
 
-            video_format = '{0} - {1}{2}'.format(format_param if format_param else video_extension,
+            numeric_video_format = '{0}'.format(format_param if format_param else video_extension)
+
+            video_format = '{0} - {1}{2}'.format(numeric_video_format,
                                               self._video_dimensions.get(format_param, '???'),
                                               ' ('+self._special_itags[format_param]+')' if format_param in self._special_itags else '')
 
@@ -1498,6 +1500,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'title':    video_title,
                 'ext':      video_extension,
                 'format':   video_format,
+                'format_num':   numeric_video_format,
                 'thumbnail':    video_thumbnail,
                 'description':  video_description,
                 'player_url':   player_url,
