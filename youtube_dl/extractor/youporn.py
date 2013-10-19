@@ -26,7 +26,8 @@ class YouPornIE(InfoExtractor):
             u"upload_date": u"20101221", 
             u"description": u"Love & Sex Answers: http://bit.ly/DanAndJenn -- Is It Unhealthy To Masturbate Daily?", 
             u"uploader": u"Ask Dan And Jennifer", 
-            u"title": u"Sex Ed: Is It Safe To Masturbate Daily?"
+            u"title": u"Sex Ed: Is It Safe To Masturbate Daily?",
+            u"age_limit": 18,
         }
     }
 

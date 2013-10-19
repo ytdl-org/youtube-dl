@@ -13,7 +13,8 @@ class XVideosIE(InfoExtractor):
         u'file': u'939581.flv',
         u'md5': u'1d0c835822f0a71a7bf011855db929d0',
         u'info_dict': {
-            u"title": u"Funny Porns By >>>>S<<<<<< -1"
+            u"title": u"Funny Porns By >>>>S<<<<<< -1",
+            u"age_limit": 18,
         }
     }
 
@@ -46,6 +47,7 @@ class XVideosIE(InfoExtractor):
             'ext': 'flv',
             'thumbnail': video_thumbnail,
             'description': None,
+            'age_limit': 18,
         }
 
         return [info]
