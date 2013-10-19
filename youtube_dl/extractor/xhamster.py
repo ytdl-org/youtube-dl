@@ -19,7 +19,8 @@ class XHamsterIE(InfoExtractor):
         u'info_dict': {
             u"upload_date": u"20121014", 
             u"uploader_id": u"Ruseful2011", 
-            u"title": u"FemaleAgent Shy beauty takes the bait"
+            u"title": u"FemaleAgent Shy beauty takes the bait",
+            u"age_limit": 18,
         }
     },
     {
@@ -27,9 +28,10 @@ class XHamsterIE(InfoExtractor):
         u'file': u'2221348.flv',
         u'md5': u'e767b9475de189320f691f49c679c4c7',
         u'info_dict': {
-            u"upload_date": u"20130914", 
-            u"uploader_id": u"jojo747400", 
-            u"title": u"Britney Spears  Sexy Booty"
+            u"upload_date": u"20130914",
+            u"uploader_id": u"jojo747400",
+            u"title": u"Britney Spears  Sexy Booty",
+            u"age_limit": 18,
         }
     }]
 
@@ -72,6 +74,8 @@ class XHamsterIE(InfoExtractor):
         video_thumbnail = self._search_regex(r'\'image\':\'(?P<thumbnail>[^\']+)\'',
             webpage, u'thumbnail', fatal=False)
 
+        age_limit = self._rta_search(webpage)
+
         return [{
             'id':       video_id,
             'url':      video_url,
@@ -80,5 +84,6 @@ class XHamsterIE(InfoExtractor):
             'description': video_description,
             'upload_date': video_upload_date,
             'uploader_id': video_uploader_id,
-            'thumbnail': video_thumbnail
+            'thumbnail': video_thumbnail,
+            'age_limit': age_limit,
         }]

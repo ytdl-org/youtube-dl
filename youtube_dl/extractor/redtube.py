@@ -10,7 +10,8 @@ class RedTubeIE(InfoExtractor):
         u'file': u'66418.mp4',
         u'md5': u'7b8c22b5e7098a3e1c09709df1126d2d',
         u'info_dict': {
-            u"title": u"Sucked on a toilet"
+            u"title": u"Sucked on a toilet",
+            u"age_limit": 18,
         }
     }
 

@@ -63,6 +63,7 @@ setup(
     ' YouTube.com and other video sites.',
     url='https://github.com/rg3/youtube-dl',
     author='Ricardo Garcia',
+    author_email='ytdl@yt-dl.org',
     maintainer='Philipp Hagemeister',
     maintainer_email='phihag@phihag.de',
     packages=['youtube_dl', 'youtube_dl.extractor'],
