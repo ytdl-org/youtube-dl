@@ -59,7 +59,7 @@ class CinemassacreIE(InfoExtractor):
         playerdata = self._download_webpage(playerdata_url, video_id)
         url = self._html_search_regex(r'\'streamer\': \'(?P<url>[^\']+)\'', playerdata, u'url')
         player_url = self._html_search_regex(r'\'flashplayer\': \'(?P<player_url>[^\']+)\'', playerdata, u'player_url')
-        if playerdata.find('hd: { file:'):
+        if playerdata.find('hd: { file:') != -1:
             page_url = 'http://cinemassacre.com'
         else:
             page_url = re.split(r'(?<=[^/])/([^/]|$)', player_url)[0]
@@ -73,6 +73,7 @@ class CinemassacreIE(InfoExtractor):
                 'player_url': player_url,
                 'page_url': page_url,
                 'play_path': 'mp4:' + sd_file,
+                'tc_url': url,
                 'ext': 'flv',
                 'format': 'sd',
                 'format_id': 'sd',
@@ -82,6 +83,7 @@ class CinemassacreIE(InfoExtractor):
                 'player_url': player_url,
                 'page_url': page_url,
                 'play_path': 'mp4:' + hd_file,
+                'tc_url': url,
                 'ext': 'flv',
                 'format': 'hd',
                 'format_id': 'hd',
