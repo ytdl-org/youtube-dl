@@ -19,7 +19,8 @@ class XHamsterIE(InfoExtractor):
         u'info_dict': {
             u"upload_date": u"20121014", 
             u"uploader_id": u"Ruseful2011", 
-            u"title": u"FemaleAgent Shy beauty takes the bait"
+            u"title": u"FemaleAgent Shy beauty takes the bait",
+            u"age_limit": 18,
         }
     },
     {
@@ -29,7 +30,8 @@ class XHamsterIE(InfoExtractor):
         u'info_dict': {
             u"upload_date": u"20130914", 
             u"uploader_id": u"jojo747400", 
-            u"title": u"Britney Spears  Sexy Booty"
+            u"title": u"Britney Spears  Sexy Booty",
+            u"age_limit": 18,
         }
     }]
 
@@ -80,5 +82,6 @@ class XHamsterIE(InfoExtractor):
             'description': video_description,
             'upload_date': video_upload_date,
             'uploader_id': video_uploader_id,
-            'thumbnail': video_thumbnail
+            'thumbnail': video_thumbnail,
+            'age_limit': 18,
         }]
