@@ -59,10 +59,12 @@ class CinemassacreIE(InfoExtractor):
         playerdata = self._download_webpage(playerdata_url, video_id)
         url = self._html_search_regex(r'\'streamer\': \'(?P<url>[^\']+)\'', playerdata, u'url')
         player_url = self._html_search_regex(r'\'flashplayer\': \'(?P<player_url>[^\']+)\'', playerdata, u'player_url')
-        page_url = re.split(r'(?<=[^/])/([^/]|$)', player_url)[0]
-
+        if playerdata.find('hd: { file:'):
+            page_url = 'http://cinemassacre.com'
+        else:
+            page_url = re.split(r'(?<=[^/])/([^/]|$)', player_url)[0]
         sd_file = self._html_search_regex(r'\'file\': \'(?P<sd_file>[^\']+)\'', playerdata, u'sd_file')
-        hd_file = self._html_search_regex(r'\'?file\'?: "(?P<hd_file>[^"]+)"', playerdata, u'hd_file')
+        hd_file = self._html_search_regex(r'"?hd"?: { \'?file\'?: "(?P<hd_file>[^"]+)"', playerdata, u'hd_file')
         video_thumbnail = self._html_search_regex(r'\'image\': \'(?P<thumbnail>[^\']+)\'', playerdata, u'thumbnail', fatal=False)
 
         formats = [
