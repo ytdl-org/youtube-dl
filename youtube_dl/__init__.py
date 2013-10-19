@@ -198,6 +198,7 @@ def parseOpts(overrideArguments=None):
             help='Output descriptions of all supported extractors', default=False)
     general.add_option('--proxy', dest='proxy', default=None, help='Use the specified HTTP/HTTPS proxy', metavar='URL')
     general.add_option('--no-check-certificate', action='store_true', dest='no_check_certificate', default=False, help='Suppress HTTPS certificate validation.')
+    general.add_option('--no-generic', action='store_true', dest='no_generic', default=False, help='Do not attempt to fall back on the generic information extractor.')
     general.add_option(
         '--cache-dir', dest='cachedir', default=get_cachedir(), metavar='DIR',
         help='Location in the filesystem where youtube-dl can store downloaded information permanently. By default $XDG_CACHE_HOME/youtube-dl or ~/.cache/youtube-dl .')

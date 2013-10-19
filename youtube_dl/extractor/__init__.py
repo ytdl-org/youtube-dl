@@ -1,3 +1,4 @@
+import sys
 from .appletrailers import AppleTrailersIE
 from .addanime import AddAnimeIE
 from .archiveorg import ArchiveOrgIE
@@ -170,7 +171,9 @@ _ALL_CLASSES = [
     for name, klass in globals().items()
     if name.endswith('IE') and name != 'GenericIE'
 ]
-_ALL_CLASSES.append(GenericIE)
+
+if '--no-generic' not in sys.argv:
+    _ALL_CLASSES.append(GenericIE)
 
 
 def gen_extractors():
