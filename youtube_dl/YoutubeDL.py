@@ -454,7 +454,12 @@ class YoutubeDL(object):
         elif format_spec == 'worst':
             return available_formats[0]
         else:
-            matches = list(filter(lambda f:f['format_id'] == format_spec ,available_formats))
+            extensions = [u'mp4', u'flv', u'webm', u'3gp']
+            if format_spec in extensions:
+                filter_f = lambda f: f['ext'] == format_spec
+            else:
+                filter_f = lambda f: f['format_id'] == format_spec
+            matches = list(filter(filter_f ,available_formats))
             if matches:
                 return matches[-1]
         return None
