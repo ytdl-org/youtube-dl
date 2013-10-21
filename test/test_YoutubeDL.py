@@ -96,9 +96,10 @@ class TestFormatSelection(unittest.TestCase):
 
     def test_format_selection(self):
         formats = [
-            {u'format_id': u'35'},
-            {u'format_id': u'47'},
-            {u'format_id': u'2'},
+            {u'format_id': u'35', u'ext': u'mp4'},
+            {u'format_id': u'45', u'ext': u'webm'},
+            {u'format_id': u'47', u'ext': u'webm'},
+            {u'format_id': u'2', u'ext': u'flv'},
         ]
         info_dict = {u'formats': formats, u'extractor': u'test'}
 
@@ -116,6 +117,16 @@ class TestFormatSelection(unittest.TestCase):
         ydl.process_ie_result(info_dict)
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], u'2')
+
+        ydl = YDL({'format': u'webm/mp4'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], u'47')
+
+        ydl = YDL({'format': u'3gp/40/mp4'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], u'35')
 
 
 if __name__ == '__main__':
