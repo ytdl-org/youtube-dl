@@ -94,6 +94,29 @@ class TestFormatSelection(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded[u'format_id'], u'excellent')
 
+    def test_format_selection(self):
+        formats = [
+            {u'format_id': u'35'},
+            {u'format_id': u'47'},
+            {u'format_id': u'2'},
+        ]
+        info_dict = {u'formats': formats, u'extractor': u'test'}
+
+        ydl = YDL({'format': u'20/47'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], u'47')
+
+        ydl = YDL({'format': u'20/71/worst'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], u'35')
+
+        ydl = YDL()
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], u'2')
+
 
 if __name__ == '__main__':
     unittest.main()

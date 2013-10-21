@@ -448,6 +448,17 @@ class YoutubeDL(object):
         else:
             raise Exception('Invalid result type: %s' % result_type)
 
+    def select_format(self, format_spec, available_formats):
+        if format_spec == 'best' or format_spec is None:
+            return available_formats[-1]
+        elif format_spec == 'worst':
+            return available_formats[0]
+        else:
+            matches = list(filter(lambda f:f['format_id'] == format_spec ,available_formats))
+            if matches:
+                return matches[-1]
+        return None
+
     def process_video_result(self, info_dict, download=True):
         assert info_dict.get('_type', 'video') == 'video'
 
@@ -502,22 +513,20 @@ class YoutubeDL(object):
             formats = sorted(formats, key=_free_formats_key)
 
         req_format = self.params.get('format', 'best')
+        if req_format is None:
+            req_format = 'best'
         formats_to_download = []
-        if req_format == 'best' or req_format is None:
-            formats_to_download = [formats[-1]]
-        elif req_format == 'worst':
-            formats_to_download = [formats[0]]
         # The -1 is for supporting YoutubeIE
-        elif req_format in ('-1', 'all'):
+        if req_format in ('-1', 'all'):
             formats_to_download = formats
         else:
-            # We can accept formats requestd in the format: 34/10/5, we pick
+            # We can accept formats requestd in the format: 34/5/best, we pick
             # the first that is available, starting from left
             req_formats = req_format.split('/')
             for rf in req_formats:
-                matches = filter(lambda f:f['format_id'] == rf ,formats)
-                if matches:
-                    formats_to_download = [matches[0]]
+                selected_format = self.select_format(rf, formats)
+                if selected_format is not None:
+                    formats_to_download = [selected_format]
                     break
         if not formats_to_download:
             raise ExtractorError(u'requested format not available')
