@@ -174,12 +174,27 @@ class ArteTVPlus7IE(InfoExtractor):
         # Some formats use the m3u8 protocol
         formats = filter(lambda f: f.get('videoFormat') != 'M3U8', formats)
         # We order the formats by quality
-        formats = sorted(formats, key=lambda f: int(f.get('height',-1)))
+        formats = list(formats) # in python3 filter returns an iterator
+        if re.match(r'[A-Z]Q', formats[0]['quality']) is not None:
+            sort_key = lambda f: ['HQ', 'MQ', 'EQ', 'SQ'].index(f['quality'])
+        else:
+            sort_key = lambda f: int(f.get('height',-1))
+        formats = sorted(formats, key=sort_key)
         # Prefer videos without subtitles in the same language
         formats = sorted(formats, key=lambda f: re.match(r'VO(F|A)-STM\1', f.get('versionCode', '')) is None)
         # Pick the best quality
         def _format(format_info):
+            quality = format_info['quality']
+            m_quality = re.match(r'\w*? - (\d*)p', quality)
+            if m_quality is not None:
+                quality = m_quality.group(1)
+            if format_info.get('versionCode') is not None:
+                format_id = u'%s-%s' % (quality, format_info['versionCode'])
+            else:
+                format_id = quality
             info = {
+                'format_id': format_id,
+                'format_note': format_info.get('versionLibelle'),
                 'width': format_info.get('width'),
                 'height': format_info.get('height'),
             }
@@ -192,8 +207,6 @@ class ArteTVPlus7IE(InfoExtractor):
                 info['ext'] = determine_ext(info['url'])
             return info
         info_dict['formats'] = [_format(f) for f in formats]
-        # TODO: Remove when #980 has been merged 
-        info_dict.update(info_dict['formats'][-1])
 
         return info_dict
 
