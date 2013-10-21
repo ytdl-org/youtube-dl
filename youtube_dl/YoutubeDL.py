@@ -234,19 +234,6 @@ class YoutubeDL(object):
         error_message = u'%s %s' % (_msg_header, message)
         self.trouble(error_message, tb)
 
-    def slow_down(self, start_time, byte_counter):
-        """Sleep if the download speed is over the rate limit."""
-        rate_limit = self.params.get('ratelimit', None)
-        if rate_limit is None or byte_counter == 0:
-            return
-        now = time.time()
-        elapsed = now - start_time
-        if elapsed <= 0.0:
-            return
-        speed = float(byte_counter) / elapsed
-        if speed > rate_limit:
-            time.sleep((byte_counter - rate_limit * (now - start_time)) / rate_limit)
-
     def report_writedescription(self, descfn):
         """ Report that the description file is being written """
         self.to_screen(u'[info] Writing video description to: ' + descfn)
