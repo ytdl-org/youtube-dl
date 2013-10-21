@@ -19,7 +19,7 @@ class InternetVideoArchiveIE(InfoExtractor):
         u'info_dict': {
             u'title': u'SKYFALL',
             u'description': u'In SKYFALL, Bond\'s loyalty to M is tested as her past comes back to haunt her. As MI6 comes under attack, 007 must track down and destroy the threat, no matter how personal the cost.',
-            u'duration': 156,
+            u'duration': 153,
         },
     }
 
@@ -74,7 +74,7 @@ class InternetVideoArchiveIE(InfoExtractor):
             })
         formats = sorted(formats, key=lambda f: f['bitrate'])
 
-        info = {
+        return {
             'id': video_id,
             'title': item.find('title').text,
             'formats': formats,
@@ -82,6 +82,3 @@ class InternetVideoArchiveIE(InfoExtractor):
             'description': item.find('description').text,
             'duration': int(attr['duration']),
         }
-        # TODO: Remove when #980 has been merged
-        info.update(formats[-1])
-        return info
