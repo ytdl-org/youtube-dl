@@ -473,17 +473,14 @@ class YoutubeDL(object):
 
         # We check that all the formats have the format and format_id fields
         for (i, format) in enumerate(formats):
-            if format.get('format') is None:
-                if format.get('height') is not None:
-                    if format.get('width') is not None:
-                        format_desc = u'%sx%s' % (format['width'], format['height'])
-                    else:
-                        format_desc = u'%sp' % format['height']
-                else:
-                    format_desc = '???'
-                format['format'] = format_desc
             if format.get('format_id') is None:
                 format['format_id'] = compat_str(i)
+            if format.get('format') is None:
+                format['format'] = u'{id} - {res}{note}'.format(
+                    id=format['format_id'],
+                    res=self.format_resolution(format),
+                    note = u' ({})'.format(format['format_note']) if format.get('format_note') is not None else '',
+                )
 
         if self.params.get('listformats', None):
             self.list_formats(info_dict)
@@ -753,16 +750,31 @@ class YoutubeDL(object):
         with locked_file(fn, 'a', encoding='utf-8') as archive_file:
             archive_file.write(vid_id + u'\n')
 
+    @staticmethod
+    def format_resolution(format):
+        if format.get('height') is not None:
+            if format.get('width') is not None:
+                res = u'%sx%s' % (format['width'], format['height'])
+            else:
+                res = u'%sp' % format['height']
+        else:
+            res =  '???'
+        return res
+
     def list_formats(self, info_dict):
         formats_s = []
         for format in info_dict.get('formats', [info_dict]):
-            formats_s.append("%s\t:\t%s\t[%s]" % (format['format_id'],
-                                                format['ext'],
-                                                format.get('format', '???'),
-                                                )
-                            )
+            formats_s.append(u'%-15s: %-5s     %-15s[%s]' % (
+                format['format_id'],
+                format['ext'],
+                format.get('format_note') or '-',
+                self.format_resolution(format),
+                )
+            )
         if len(formats_s) != 1:
             formats_s[0]  += ' (worst)'
             formats_s[-1] += ' (best)'
         formats_s = "\n".join(formats_s)
-        self.to_screen(u"[info] Available formats for %s:\nformat code\textension\n%s" % (info_dict['id'], formats_s)) 
+        self.to_screen(u'[info] Available formats for %s:\n'
+            u'format code    extension   note           resolution\n%s' % (
+                info_dict['id'], formats_s))
