@@ -179,46 +179,45 @@ class VimeoIE(InfoExtractor):
 
         # Vimeo specific: extract video codec and quality information
         # First consider quality, then codecs, then take everything
-        # TODO bind to format param
-        codecs = [('h264', 'mp4'), ('vp8', 'flv'), ('vp6', 'flv')]
+        codecs = [('vp6', 'flv'), ('vp8', 'flv'), ('h264', 'mp4')]
         files = { 'hd': [], 'sd': [], 'other': []}
         config_files = config["video"].get("files") or config["request"].get("files")
         for codec_name, codec_extension in codecs:
-            if codec_name in config_files:
-                if 'hd' in config_files[codec_name]:
-                    files['hd'].append((codec_name, codec_extension, 'hd'))
-                elif 'sd' in config_files[codec_name]:
-                    files['sd'].append((codec_name, codec_extension, 'sd'))
+            for quality in config_files.get(codec_name, []):
+                format_id = '-'.join((codec_name, quality)).lower()
+                key = quality if quality in files else 'other'
+                video_url = None
+                if isinstance(config_files[codec_name], dict):
+                    file_info = config_files[codec_name][quality]
+                    video_url = file_info.get('url')
                 else:
-                    files['other'].append((codec_name, codec_extension, config_files[codec_name][0]))
+                    file_info = {}
+                if video_url is None:
+                    video_url = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=%s&type=moogaloop_local&embed_location=" \
+                        %(video_id, sig, timestamp, quality, codec_name.upper())
 
-        for quality in ('hd', 'sd', 'other'):
-            if len(files[quality]) > 0:
-                video_quality = files[quality][0][2]
-                video_codec = files[quality][0][0]
-                video_extension = files[quality][0][1]
-                self.to_screen(u'%s: Downloading %s file at %s quality' % (video_id, video_codec.upper(), video_quality))
-                break
-        else:
+                files[key].append({
+                    'ext': codec_extension,
+                    'url': video_url,
+                    'format_id': format_id,
+                    'width': file_info.get('width'),
+                    'height': file_info.get('height'),
+                })
+        formats = []
+        for key in ('other', 'sd', 'hd'):
+            formats += files[key]
+        if len(formats) == 0:
             raise ExtractorError(u'No known codec found')
-
-        video_url = None
-        if isinstance(config_files[video_codec], dict):
-            video_url = config_files[video_codec][video_quality].get("url")
-        if video_url is None:
-            video_url = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=%s&type=moogaloop_local&embed_location=" \
-                        %(video_id, sig, timestamp, video_quality, video_codec.upper())
 
         return [{
             'id':       video_id,
-            'url':      video_url,
             'uploader': video_uploader,
             'uploader_id': video_uploader_id,
             'upload_date':  video_upload_date,
             'title':    video_title,
-            'ext':      video_extension,
             'thumbnail':    video_thumbnail,
             'description':  video_description,
+            'formats': formats,
         }]
 
 

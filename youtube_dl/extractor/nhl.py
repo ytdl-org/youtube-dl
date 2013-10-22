@@ -90,8 +90,8 @@ class NHLVideocenterIE(NHLBaseInfoExtractor):
              r'{statusIndex:0,index:0,.*?id:(.*?),'],
             webpage, u'category id')
         playlist_title = self._html_search_regex(
-            r'\?catid=%s">(.*?)</a>' % cat_id,
-            webpage, u'playlist title', flags=re.DOTALL)
+            r'tab0"[^>]*?>(.*?)</td>',
+            webpage, u'playlist title', flags=re.DOTALL).lower().capitalize()
 
         data = compat_urllib_parse.urlencode({
             'cid': cat_id,

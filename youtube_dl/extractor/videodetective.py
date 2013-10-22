@@ -16,7 +16,7 @@ class VideoDetectiveIE(InfoExtractor):
         u'info_dict': {
             u'title': u'KICK-ASS 2',
             u'description': u'md5:65ba37ad619165afac7d432eaded6013',
-            u'duration': 138,
+            u'duration': 135,
         },
     }
 

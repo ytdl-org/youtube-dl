@@ -1150,7 +1150,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             list_page = self._download_webpage(list_url, video_id)
             caption_list = xml.etree.ElementTree.fromstring(list_page.encode('utf-8'))
             original_lang_node = caption_list.find('track')
-            if not original_lang_node or original_lang_node.attrib.get('kind') != 'asr' :
+            if original_lang_node is None or original_lang_node.attrib.get('kind') != 'asr' :
                 self._downloader.report_warning(u'Video doesn\'t have automatic captions')
                 return {}
             original_lang = original_lang_node.attrib['lang_code']
