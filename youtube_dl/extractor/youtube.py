@@ -236,10 +236,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         '136': 'mp4',
         '137': 'mp4',
         '138': 'mp4',
-        '139': 'mp4',
-        '140': 'mp4',
-        '141': 'mp4',
         '160': 'mp4',
+
+        # Dash mp4 audio
+        '139': 'm4a',
+        '140': 'm4a',
+        '141': 'm4a',
 
         # Dash webm
         '171': 'webm',
