@@ -1,3 +1,4 @@
+# encoding: utf-8
 import json
 import re
 import itertools
@@ -55,7 +56,22 @@ class VimeoIE(InfoExtractor):
                 u'title': u'Kathy Sierra: Building the minimum Badass User, Business of Software',
                 u'uploader': u'The BLN & Business of Software',
             },
-        }
+        },
+        {
+            u'url': u'http://vimeo.com/68375962',
+            u'file': u'68375962.mp4',
+            u'md5': u'aaf896bdb7ddd6476df50007a0ac0ae7',
+            u'note': u'Video protected with password',
+            u'info_dict': {
+                u'title': u'youtube-dl password protected test video',
+                u'upload_date': u'20130614',
+                u'uploader_id': u'user18948128',
+                u'uploader': u'Jaime Marquínez Ferrándiz',
+            },
+            u'params': {
+                u'videopassword': u'youtube-dl',
+            },
+        },
     ]
 
     def _login(self):
@@ -130,20 +146,21 @@ class VimeoIE(InfoExtractor):
 
         # Extract the config JSON
         try:
-            config_url = self._html_search_regex(
-                r' data-config-url="(.+?)"', webpage, u'config URL')
-            config_json = self._download_webpage(config_url, video_id)
-            config = json.loads(config_json)
-        except RegexNotFoundError:
-            # For pro videos or player.vimeo.com urls
-            config = self._search_regex([r' = {config:({.+?}),assets:', r'c=({.+?);'],
-                webpage, u'info section', flags=re.DOTALL)
-            config = json.loads(config)
+            try:
+                config_url = self._html_search_regex(
+                    r' data-config-url="(.+?)"', webpage, u'config URL')
+                config_json = self._download_webpage(config_url, video_id)
+                config = json.loads(config_json)
+            except RegexNotFoundError:
+                # For pro videos or player.vimeo.com urls
+                config = self._search_regex([r' = {config:({.+?}),assets:', r'c=({.+?);'],
+                    webpage, u'info section', flags=re.DOTALL)
+                config = json.loads(config)
         except Exception as e:
             if re.search('The creator of this video has not given you permission to embed it on this domain.', webpage):
                 raise ExtractorError(u'The author has restricted the access to this video, try with the "--referer" option')
 
-            if re.search('If so please provide the correct password.', webpage):
+            if re.search('<form[^>]+?id="pw_form"', webpage) is not None:
                 self._verify_video_password(url, video_id, webpage)
                 return self._real_extract(url)
             else:
