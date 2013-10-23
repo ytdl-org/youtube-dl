@@ -12,6 +12,7 @@ class CinemassacreIE(InfoExtractor):
     _TESTS = [{
         u'url': u'http://cinemassacre.com/2012/11/10/avgn-the-movie-trailer/',
         u'file': u'19911.flv',
+        u'md5': u'f9bb7ede54d1229c9846e197b4737e06',
         u'info_dict': {
             u'upload_date': u'20121110',
             u'title': u'“Angry Video Game Nerd: The Movie” – Trailer',
@@ -25,6 +26,7 @@ class CinemassacreIE(InfoExtractor):
     {
         u'url': u'http://cinemassacre.com/2013/10/02/the-mummys-hand-1940',
         u'file': u'521be8ef82b16.flv',
+        u'md5': u'91b248e1e2473d5bff55d6010518111f',
         u'info_dict': {
             u'upload_date': u'20131002',
             u'title': u'The Mummy’s Hand (1940)',
@@ -55,23 +57,33 @@ class CinemassacreIE(InfoExtractor):
             video_description = None
 
         playerdata = self._download_webpage(playerdata_url, video_id)
-        base_url = self._html_search_regex(r'\'streamer\': \'(?P<base_url>rtmp://.*?)/(?:vod|Cinemassacre)\'',
-            playerdata, u'base_url')
-        base_url += '/Cinemassacre/'
-        # Important: The file names in playerdata are not used by the player and even wrong for some videos
-        sd_file = 'Cinemassacre-%s_high.mp4' % video_id
-        hd_file = 'Cinemassacre-%s.mp4' % video_id
-        video_thumbnail = 'http://image.screenwavemedia.com/Cinemassacre/Cinemassacre-%s_thumb_640x360.jpg' % video_id
+        url = self._html_search_regex(r'\'streamer\': \'(?P<url>[^\']+)\'', playerdata, u'url')
+        player_url = self._html_search_regex(r'\'flashplayer\': \'(?P<player_url>[^\']+)\'', playerdata, u'player_url')
+        if playerdata.find('hd: { file:') != -1:
+            page_url = 'http://cinemassacre.com'
+        else:
+            page_url = re.split(r'(?<=[^/])/([^/]|$)', player_url)[0]
+        sd_file = self._html_search_regex(r'\'file\': \'(?P<sd_file>[^\']+)\'', playerdata, u'sd_file')
+        hd_file = self._html_search_regex(r'"?hd"?: { \'?file\'?: "(?P<hd_file>[^"]+)"', playerdata, u'hd_file')
+        video_thumbnail = self._html_search_regex(r'\'image\': \'(?P<thumbnail>[^\']+)\'', playerdata, u'thumbnail', fatal=False)
 
         formats = [
             {
-                'url': base_url + sd_file,
+                'url': url,
+                'player_url': player_url,
+                'page_url': page_url,
+                'play_path': 'mp4:' + sd_file,
+                'tc_url': url,
                 'ext': 'flv',
                 'format': 'sd',
                 'format_id': 'sd',
             },
             {
-                'url': base_url + hd_file,
+                'url': url,
+                'player_url': player_url,
+                'page_url': page_url,
+                'play_path': 'mp4:' + hd_file,
+                'tc_url': url,
                 'ext': 'flv',
                 'format': 'hd',
                 'format_id': 'hd',
