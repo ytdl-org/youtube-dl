@@ -12,7 +12,6 @@ class CinemassacreIE(InfoExtractor):
     _TESTS = [{
         u'url': u'http://cinemassacre.com/2012/11/10/avgn-the-movie-trailer/',
         u'file': u'19911.flv',
-        u'md5': u'f9bb7ede54d1229c9846e197b4737e06',
         u'info_dict': {
             u'upload_date': u'20121110',
             u'title': u'“Angry Video Game Nerd: The Movie” – Trailer',
@@ -26,7 +25,6 @@ class CinemassacreIE(InfoExtractor):
     {
         u'url': u'http://cinemassacre.com/2013/10/02/the-mummys-hand-1940',
         u'file': u'521be8ef82b16.flv',
-        u'md5': u'91b248e1e2473d5bff55d6010518111f',
         u'info_dict': {
             u'upload_date': u'20131002',
             u'title': u'The Mummy’s Hand (1940)',
@@ -58,8 +56,6 @@ class CinemassacreIE(InfoExtractor):
 
         playerdata = self._download_webpage(playerdata_url, video_id)
         url = self._html_search_regex(r'\'streamer\': \'(?P<url>[^\']+)\'', playerdata, u'url')
-        player_url = self._html_search_regex(r'\'flashplayer\': \'(?P<player_url>[^\']+)\'', playerdata, u'player_url')
-        page_url = re.split(r'(?<=[^/])/([^/]|$)', player_url)[0]
 
         sd_file = self._html_search_regex(r'\'file\': \'(?P<sd_file>[^\']+)\'', playerdata, u'sd_file')
         hd_file = self._html_search_regex(r'\'?file\'?: "(?P<hd_file>[^"]+)"', playerdata, u'hd_file')
@@ -68,8 +64,6 @@ class CinemassacreIE(InfoExtractor):
         formats = [
             {
                 'url': url,
-                'player_url': player_url,
-                'page_url': page_url,
                 'play_path': 'mp4:' + sd_file,
                 'ext': 'flv',
                 'format': 'sd',
@@ -77,8 +71,6 @@ class CinemassacreIE(InfoExtractor):
             },
             {
                 'url': url,
-                'player_url': player_url,
-                'page_url': page_url,
                 'play_path': 'mp4:' + hd_file,
                 'ext': 'flv',
                 'format': 'hd',
@@ -86,7 +78,7 @@ class CinemassacreIE(InfoExtractor):
             },
         ]
 
-        info = {
+        return {
             'id': video_id,
             'title': video_title,
             'formats': formats,
@@ -94,6 +86,3 @@ class CinemassacreIE(InfoExtractor):
             'upload_date': video_date,
             'thumbnail': video_thumbnail,
         }
-        # TODO: Remove when #980 has been merged
-        info.update(formats[-1])
-        return info
