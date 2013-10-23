@@ -220,7 +220,7 @@ class ArteTVCreativeIE(ArteTVPlus7IE):
         u'url': u'http://creative.arte.tv/de/magazin/agentur-amateur-corporate-design',
         u'file': u'050489-002.mp4',
         u'info_dict': {
-            u'title': u'Agentur Amateur #2 - Corporate Design',
+            u'title': u'Agentur Amateur / Agence Amateur #2 : Corporate Design',
         },
     }
 
