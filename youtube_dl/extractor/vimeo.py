@@ -25,7 +25,7 @@ class VimeoIE(InfoExtractor):
         {
             u'url': u'http://vimeo.com/56015672',
             u'file': u'56015672.mp4',
-            u'md5': u'8879b6cc097e987f02484baf890129e5',
+            u'md5': u'ae7a1d8b183758a0506b0622f37dfa14',
             u'info_dict': {
                 u"upload_date": u"20121220", 
                 u"description": u"This is a test case for youtube-dl.\nFor more information, see github.com/rg3/youtube-dl\nTest chars: \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550", 
@@ -129,10 +129,11 @@ class VimeoIE(InfoExtractor):
 
         # Extract the config JSON
         try:
-            config = self._search_regex([r' = {config:({.+?}),assets:', r'c=({.+?);'],
-                webpage, u'info section', flags=re.DOTALL)
-            config = json.loads(config)
-        except:
+            config_url = self._html_search_regex(
+                r' data-config-url="(.+?)"', webpage, u'config URL')
+            config_json = self._download_webpage(config_url, video_id)
+            config = json.loads(config_json)
+        except Exception as e:
             if re.search('The creator of this video has not given you permission to embed it on this domain.', webpage):
                 raise ExtractorError(u'The author has restricted the access to this video, try with the "--referer" option')
 
@@ -140,7 +141,8 @@ class VimeoIE(InfoExtractor):
                 self._verify_video_password(url, video_id, webpage)
                 return self._real_extract(url)
             else:
-                raise ExtractorError(u'Unable to extract info section')
+                raise ExtractorError(u'Unable to extract info section',
+                                     cause=e)
 
         # Extract title
         video_title = config["video"]["title"]
