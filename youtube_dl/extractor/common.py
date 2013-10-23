@@ -14,6 +14,7 @@ from ..utils import (
     clean_html,
     compiled_regex_type,
     ExtractorError,
+    RegexNotFoundError,
     unescapeHTML,
 )
 
@@ -231,7 +232,7 @@ class InfoExtractor(object):
         Perform a regex search on the given string, using a single or a list of
         patterns returning the first matching group.
         In case of failure return a default value or raise a WARNING or a
-        ExtractorError, depending on fatal, specifying the field name.
+        RegexNotFoundError, depending on fatal, specifying the field name.
         """
         if isinstance(pattern, (str, compat_str, compiled_regex_type)):
             mobj = re.search(pattern, string, flags)
@@ -251,7 +252,7 @@ class InfoExtractor(object):
         elif default is not None:
             return default
         elif fatal:
-            raise ExtractorError(u'Unable to extract %s' % _name)
+            raise RegexNotFoundError(u'Unable to extract %s' % _name)
         else:
             self._downloader.report_warning(u'unable to extract %s; '
                 u'please report this issue on http://yt-dl.org/bug' % _name)

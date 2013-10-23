@@ -572,6 +572,11 @@ class ExtractorError(Exception):
         return u''.join(traceback.format_tb(self.traceback))
 
 
+class RegexNotFoundError(ExtractorError):
+    """Error when a regex didn't match"""
+    pass
+
+
 class DownloadError(Exception):
     """Download Error exception.
 

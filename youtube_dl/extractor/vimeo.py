@@ -10,6 +10,7 @@ from ..utils import (
     clean_html,
     get_element_by_attribute,
     ExtractorError,
+    RegexNotFoundError,
     std_headers,
     unsmuggle_url,
 )
@@ -133,6 +134,11 @@ class VimeoIE(InfoExtractor):
                 r' data-config-url="(.+?)"', webpage, u'config URL')
             config_json = self._download_webpage(config_url, video_id)
             config = json.loads(config_json)
+        except RegexNotFoundError:
+            # For pro videos or player.vimeo.com urls
+            config = self._search_regex([r' = {config:({.+?}),assets:', r'c=({.+?);'],
+                webpage, u'info section', flags=re.DOTALL)
+            config = json.loads(config)
         except Exception as e:
             if re.search('The creator of this video has not given you permission to embed it on this domain.', webpage):
                 raise ExtractorError(u'The author has restricted the access to this video, try with the "--referer" option')
