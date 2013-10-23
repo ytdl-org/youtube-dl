@@ -28,6 +28,15 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
 
     _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/(?:embed/)?video/([^/]+)'
     IE_NAME = u'dailymotion'
+
+    _FORMATS = [
+        (u'stream_h264_ld_url', u'ld'),
+        (u'stream_h264_url', u'standard'),
+        (u'stream_h264_hq_url', u'hq'),
+        (u'stream_h264_hd_url', u'hd'),
+        (u'stream_h264_hd1080_url', u'hd180'),
+    ]
+
     _TESTS = [
         {
             u'url': u'http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech',
@@ -60,7 +69,6 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
 
         video_id = mobj.group(1).split('_')[0].split('?')[0]
 
-        video_extension = 'mp4'
         url = 'http://www.dailymotion.com/video/%s' % video_id
 
         # Retrieve video webpage to extract further information
@@ -99,18 +107,24 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             msg = 'Couldn\'t get video, Dailymotion says: %s' % info['error']['title']
             raise ExtractorError(msg, expected=True)
 
-        # TODO: support choosing qualities
-
-        for key in ['stream_h264_hd1080_url','stream_h264_hd_url',
-                    'stream_h264_hq_url','stream_h264_url',
-                    'stream_h264_ld_url']:
-            if info.get(key):#key in info and info[key]:
-                max_quality = key
-                self.to_screen(u'Using %s' % key)
-                break
-        else:
+        formats = []
+        for (key, format_id) in self._FORMATS:
+            video_url = info.get(key)
+            if video_url is not None:
+                m_size = re.search(r'H264-(\d+)x(\d+)', video_url)
+                if m_size is not None:
+                    width, height = m_size.group(1), m_size.group(2)
+                else:
+                    width, height = None, None
+                formats.append({
+                    'url': video_url,
+                    'ext': 'mp4',
+                    'format_id': format_id,
+                    'width': width,
+                    'height': height,
+                })
+        if not formats:
             raise ExtractorError(u'Unable to extract video URL')
-        video_url = info[max_quality]
 
         # subtitles
         video_subtitles = self.extract_subtitles(video_id)
@@ -120,11 +134,10 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
 
         return [{
             'id':       video_id,
-            'url':      video_url,
+            'formats': formats,
             'uploader': video_uploader,
             'upload_date':  video_upload_date,
             'title':    self._og_search_title(webpage),
-            'ext':      video_extension,
             'subtitles':    video_subtitles,
             'thumbnail': info['thumbnail_url']
         }]
