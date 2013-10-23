@@ -133,7 +133,7 @@ def parseOpts(overrideArguments=None):
 
     def _hide_login_info(opts):
         opts = list(opts)
-        for private_opt in ['-p', '--password', '-u', '--username']:
+        for private_opt in ['-p', '--password', '-u', '--username', '--video-password']:
             try:
                 i = opts.index(private_opt)
                 opts[i+1] = '<PRIVATE>'
