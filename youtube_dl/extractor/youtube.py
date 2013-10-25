@@ -1480,13 +1480,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             raise ExtractorError(u'no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
 
         results = []
-        for format_param, video_real_url in video_url_list:
+        for itag, video_real_url in video_url_list:
             # Extension
-            video_extension = self._video_extensions.get(format_param, 'flv')
+            video_extension = self._video_extensions.get(itag, 'flv')
 
-            video_format = '{0} - {1}{2}'.format(format_param if format_param else video_extension,
-                                              self._video_dimensions.get(format_param, '???'),
-                                              ' ('+self._special_itags[format_param]+')' if format_param in self._special_itags else '')
+            video_format = '{0} - {1}{2}'.format(itag if itag else video_extension,
+                                              self._video_dimensions.get(itag, '???'),
+                                              ' ('+self._special_itags[itag]+')' if itag in self._special_itags else '')
 
             results.append({
                 'id':       video_id,
@@ -1497,6 +1497,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'title':    video_title,
                 'ext':      video_extension,
                 'format':   video_format,
+                'format_id': itag,
                 'thumbnail':    video_thumbnail,
                 'description':  video_description,
                 'player_url':   player_url,
