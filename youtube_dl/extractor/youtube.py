@@ -1405,32 +1405,29 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             # this signatures are encrypted
             if 'url_encoded_fmt_stream_map' not in args:
                 raise ValueError(u'No stream_map present')  # caught below
-            m_s = re.search(r'[&,]s=', args['url_encoded_fmt_stream_map'])
+            re_signature = re.compile(r'[&,]s=')
+            m_s = re_signature.search(args['url_encoded_fmt_stream_map'])
             if m_s is not None:
                 self.to_screen(u'%s: Encrypted signatures detected.' % video_id)
                 video_info['url_encoded_fmt_stream_map'] = [args['url_encoded_fmt_stream_map']]
-            m_s = re.search(r'[&,]s=', args.get('adaptive_fmts', u''))
+            m_s = re_signature.search(args.get('adaptive_fmts', u''))
             if m_s is not None:
-                if 'url_encoded_fmt_stream_map' in video_info:
-                    video_info['url_encoded_fmt_stream_map'][0] += ',' + args['adaptive_fmts']
+                if 'adaptive_fmts' in video_info:
+                    video_info['adaptive_fmts'][0] += ',' + args['adaptive_fmts']
                 else:
-                    video_info['url_encoded_fmt_stream_map'] = [args['adaptive_fmts']]
-            elif 'adaptive_fmts' in video_info:
-                if 'url_encoded_fmt_stream_map' in video_info:
-                    video_info['url_encoded_fmt_stream_map'][0] += ',' + video_info['adaptive_fmts'][0]
-                else:
-                    video_info['url_encoded_fmt_stream_map'] = video_info['adaptive_fmts']
+                    video_info['adaptive_fmts'] = [args['adaptive_fmts']]
         except ValueError:
             pass
 
         if 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
             self.report_rtmp_download()
             video_url_list = [(None, video_info['conn'][0])]
-        elif 'url_encoded_fmt_stream_map' in video_info and len(video_info['url_encoded_fmt_stream_map']) >= 1:
-            if 'rtmpe%3Dyes' in video_info['url_encoded_fmt_stream_map'][0]:
+        elif len(video_info.get('url_encoded_fmt_stream_map', [])) >= 1 or len(video_info.get('adaptive_fmts', [])) >= 1:
+            encoded_url_map = video_info.get('url_encoded_fmt_stream_map', [''])[0] + ',' + video_info.get('adaptive_fmts',[''])[0]
+            if 'rtmpe%3Dyes' in encoded_url_map:
                 raise ExtractorError('rtmpe downloads are not supported, see https://github.com/rg3/youtube-dl/issues/343 for more information.', expected=True)
             url_map = {}
-            for url_data_str in video_info['url_encoded_fmt_stream_map'][0].split(','):
+            for url_data_str in encoded_url_map.split(','):
                 url_data = compat_parse_qs(url_data_str)
                 if 'itag' in url_data and 'url' in url_data:
                     url = url_data['url'][0]
