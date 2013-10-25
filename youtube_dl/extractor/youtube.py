@@ -348,7 +348,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         },
         {
             u"url":  u"http://www.youtube.com/watch?v=1ltcDfZMA3U",
-            u"file":  u"1ltcDfZMA3U.flv",
+            u"file":  u"1ltcDfZMA3U.mp4",
             u"note": u"Test VEVO video (#897)",
             u"info_dict": {
                 u"upload_date": u"20070518",

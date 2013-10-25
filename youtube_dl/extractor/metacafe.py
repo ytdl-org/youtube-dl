@@ -23,7 +23,7 @@ class MetacafeIE(InfoExtractor):
     _TESTS = [{
         u"add_ie": ["Youtube"],
         u"url":  u"http://metacafe.com/watch/yt-_aUehQsCQtM/the_electric_company_short_i_pbs_kids_go/",
-        u"file":  u"_aUehQsCQtM.flv",
+        u"file":  u"_aUehQsCQtM.mp4",
         u"info_dict": {
             u"upload_date": u"20090102",
             u"title": u"The Electric Company | \"Short I\" | PBS KIDS GO!",
