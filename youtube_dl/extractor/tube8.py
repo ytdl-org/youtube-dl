@@ -36,7 +36,7 @@ class Tube8IE(InfoExtractor):
 
         video_title = self._html_search_regex(r'videotitle	="([^"]+)', webpage, u'title')
         video_description = self._html_search_regex(r'>Description:</strong>(.+?)<', webpage, u'description', fatal=False)
-        video_uploader = self._html_search_regex(r'>Submitted by:</strong>(?:\w|<[^>]*>)*(.+?)<', webpage, u'uploader', fatal=False)
+        video_uploader = self._html_search_regex(r'>Submitted by:</strong>(?:\s|<[^>]*>)*(.+?)<', webpage, u'uploader', fatal=False)
         thumbnail = self._html_search_regex(r'"image_url":"([^"]+)', webpage, u'thumbnail', fatal=False)
         if thumbnail:
             thumbnail = thumbnail.replace('\\/', '/')
