@@ -462,7 +462,7 @@ class YoutubeDL(object):
             info_dict['playlist_index'] = None
 
         # This extractors handle format selection themselves
-        if info_dict['extractor'] in [u'youtube', u'Youku', u'YouPorn', u'mixcloud']:
+        if info_dict['extractor'] in [u'youtube', u'Youku', u'mixcloud']:
             if download:
                 self.process_info(info_dict)
             return info_dict
