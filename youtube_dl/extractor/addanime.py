@@ -17,8 +17,8 @@ class AddAnimeIE(InfoExtractor):
     IE_NAME = u'AddAnime'
     _TEST = {
         u'url': u'http://www.add-anime.net/watch_video.php?v=24MR3YO5SAS9',
-        u'file': u'24MR3YO5SAS9.flv',
-        u'md5': u'1036a0e0cd307b95bd8a8c3a5c8cfaf1',
+        u'file': u'24MR3YO5SAS9.mp4',
+        u'md5': u'3f8e232ad52163c87fa23897e736cb2c',
         u'info_dict': {
             u"description": u"One Piece 606",
             u"title": u"One Piece 606"
@@ -60,8 +60,12 @@ class AddAnimeIE(InfoExtractor):
                 note=u'Confirming after redirect')
             webpage = self._download_webpage(url, video_id)
 
-        video_url = self._search_regex(r"var normal_video_file = '(.*?)';",
+        video_url = self._search_regex(r"var hq_video_file = '(.*?)';",
                                        webpage, u'video file URL')
+        if not video_url:  # if there's no hq_video_file, get normal_video_file
+            video_url = self._search_regex(r"var normal_video_file = '(.*?)';",
+                                           webpage, u'video file URL')
+        video_extension = video_url[-3:]  # mp4 or flv ?
         video_title = self._og_search_title(webpage)
         video_description = self._og_search_description(webpage)
 
@@ -69,7 +73,7 @@ class AddAnimeIE(InfoExtractor):
             '_type': 'video',
             'id':  video_id,
             'url': video_url,
-            'ext': 'flv',
+            'ext': video_extension,
             'title': video_title,
             'description': video_description
         }
