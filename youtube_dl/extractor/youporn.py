@@ -17,7 +17,7 @@ from ..aes import (
 )
 
 class YouPornIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:\w+\.)?youporn\.com/watch/(?P<videoid>[0-9]+)/(?P<title>[^/]+)'
+    _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>youporn\.com/watch/(?P<videoid>[0-9]+)/(?P<title>[^/]+))'
     _TEST = {
         u'url': u'http://www.youporn.com/watch/505835/sex-ed-is-it-safe-to-masturbate-daily/',
         u'file': u'505835.mp4',
@@ -34,6 +34,7 @@ class YouPornIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('videoid')
+        url = 'http://www.' + mobj.group('url')
 
         req = compat_urllib_request.Request(url)
         req.add_header('Cookie', 'age_verified=1')
