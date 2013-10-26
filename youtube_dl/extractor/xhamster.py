@@ -36,20 +36,24 @@ class XHamsterIE(InfoExtractor):
     }]
 
     def _real_extract(self,url):
+        def extract_video_url(webpage):
+            mobj = re.search(r'\'srv\': \'(?P<server>[^\']*)\',\s*\'file\': \'(?P<file>[^\']+)\',', webpage)
+            if mobj is None:
+                raise ExtractorError(u'Unable to extract media URL')
+            if len(mobj.group('server')) == 0:
+                return compat_urllib_parse.unquote(mobj.group('file'))
+            else:
+                return mobj.group('server')+'/key='+mobj.group('file')
+
+        def is_hd(webpage):
+            return webpage.find('<div class=\'icon iconHD\'>') != -1
+
         mobj = re.match(self._VALID_URL, url)
 
         video_id = mobj.group('id')
         seo = mobj.group('seo')
-        mrss_url = 'http://xhamster.com/movies/%s/%s.html?hd' % (video_id, seo)
+        mrss_url = 'http://xhamster.com/movies/%s/%s.html' % (video_id, seo)
         webpage = self._download_webpage(mrss_url, video_id)
-
-        mobj = re.search(r'\'srv\': \'(?P<server>[^\']*)\',\s*\'file\': \'(?P<file>[^\']+)\',', webpage)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract media URL')
-        if len(mobj.group('server')) == 0:
-            video_url = compat_urllib_parse.unquote(mobj.group('file'))
-        else:
-            video_url = mobj.group('server')+'/key='+mobj.group('file')
 
         video_title = self._html_search_regex(r'<title>(?P<title>.+?) - xHamster\.com</title>',
             webpage, u'title')
@@ -76,14 +80,32 @@ class XHamsterIE(InfoExtractor):
 
         age_limit = self._rta_search(webpage)
 
-        return [{
-            'id':       video_id,
-            'url':      video_url,
-            'ext':      determine_ext(video_url),
-            'title':    video_title,
+        video_url = extract_video_url(webpage)
+        hd = is_hd(webpage)
+        formats = [{
+            'url': video_url,
+            'ext': determine_ext(video_url),
+            'format': 'hd' if hd else 'sd',
+            'format_id': 'hd' if hd else 'sd',
+        }]
+        if not hd:
+            webpage = self._download_webpage(mrss_url+'?hd', video_id)
+            if is_hd(webpage):
+                video_url = extract_video_url(webpage)
+                formats.append({
+                    'url': video_url,
+                    'ext': determine_ext(video_url),
+                    'format': 'hd',
+                    'format_id': 'hd',
+                })
+
+        return {
+            'id': video_id,
+            'title': video_title,
+            'formats': formats,
             'description': video_description,
             'upload_date': video_upload_date,
             'uploader_id': video_uploader_id,
             'thumbnail': video_thumbnail,
             'age_limit': age_limit,
-        }]
+        }
