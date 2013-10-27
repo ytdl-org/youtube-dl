@@ -63,13 +63,12 @@ class RTLnowIE(InfoExtractor):
         },
     },
     {
-        u'url': u'http://www.rtlnitronow.de/recht-ordnung/lebensmittelkontrolle-erlangenordnungsamt-berlin.php?film_id=127367&player=1&season=1',
-        u'file': u'127367.flv',
+        u'url': u'http://www.rtlnitronow.de/recht-ordnung/stadtpolizei-frankfurt-gerichtsvollzieher-leipzig.php?film_id=129679&player=1&season=1',
+        u'file': u'129679.flv',
         u'info_dict': {
-            u'upload_date': u'20130926', 
-            u'title': u'Recht & Ordnung - Lebensmittelkontrolle Erlangen/Ordnungsamt...',
-            u'description': u'Lebensmittelkontrolle Erlangen/Ordnungsamt Berlin',
-            u'thumbnail': u'http://autoimg.static-fra.de/nitronow/344787/1500x1500/image2.jpg',
+            u'upload_date': u'20131016', 
+            u'title': u'Recht & Ordnung - Stadtpolizei Frankfurt/ Gerichtsvollzieher...',
+            u'description': u'Stadtpolizei Frankfurt/ Gerichtsvollzieher Leipzig',
         },
         u'params': {
             u'skip_download': True,
