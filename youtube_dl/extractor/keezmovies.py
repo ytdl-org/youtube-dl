@@ -36,7 +36,7 @@ class KeezMoviesIE(InfoExtractor):
         mobj = re.search(r'href="([^"]+)"></iframe>', webpage)
         if mobj:
             embedded_url = mobj.group(1)
-            return self.playlist_result([self.url_result(embedded_url)], playlist_id=video_id)
+            return self.url_result(embedded_url)
 
         video_title = self._html_search_regex(r'<h1 [^>]*>([^<]+)', webpage, u'title')
         video_url = compat_urllib_parse.unquote(self._html_search_regex(r'video_url=(.+?)&amp;', webpage, u'video_url'))
