@@ -100,7 +100,12 @@ class FacebookIE(InfoExtractor):
         AFTER = '.forEach(function(variable) {swf.addVariable(variable[0], variable[1]);});'
         m = re.search(re.escape(BEFORE) + '(.*?)' + re.escape(AFTER), webpage)
         if not m:
-            raise ExtractorError(u'Cannot parse data')
+            m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
+            if m_msg is not None:
+                err_msg = u'The video is not available, Facebook said: "%s"' % m_msg.group(1)
+            else:
+                err_msg = u'Cannot parse data'
+            raise ExtractorError(err_msg)
         data = dict(json.loads(m.group(1)))
         params_raw = compat_urllib_parse.unquote(data['params'])
         params = json.loads(params_raw)
