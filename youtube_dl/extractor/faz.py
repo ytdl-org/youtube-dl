@@ -5,8 +5,6 @@ import xml.etree.ElementTree
 from .common import InfoExtractor
 from ..utils import (
     determine_ext,
-    clean_html,
-    get_element_by_attribute,
 )
 
 
@@ -47,12 +45,12 @@ class FazIE(InfoExtractor):
                 'format_id': code.lower(),
             })
 
-        descr_html = get_element_by_attribute('class', 'Content Copy', webpage)
+        descr = self._html_search_regex(r'<p class="Content Copy">(.*?)</p>', webpage, u'description')
         info = {
             'id': video_id,
             'title': self._og_search_title(webpage),
             'formats': formats,
-            'description': clean_html(descr_html),
+            'description': descr,
             'thumbnail': config.find('STILL/STILL_BIG').text,
         }
         # TODO: Remove when #980 has been merged
