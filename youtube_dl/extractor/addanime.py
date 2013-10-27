@@ -8,7 +8,6 @@ from ..utils import (
     compat_urllib_parse_urlparse,
 
     ExtractorError,
-    RegexNotFoundError,
 )
 
 
@@ -61,12 +60,8 @@ class AddAnimeIE(InfoExtractor):
                 note=u'Confirming after redirect')
             webpage = self._download_webpage(url, video_id)
 
-        try:
-            video_url = self._search_regex(r"var hq_video_file = '(.*?)';",
-                                           webpage, u'video file URL')
-        except RegexNotFoundError:
-            video_url = self._search_regex(r"var normal_video_file = '(.*?)';",
-                                           webpage, u'video file URL')
+        video_url = self._search_regex(r"var (?:hq|normal)_video_file = '(.*?)';",
+                                       webpage, u'video file URL')
         
         video_extension = video_url[-3:]  # mp4 or flv ?
         video_title = self._og_search_title(webpage)
