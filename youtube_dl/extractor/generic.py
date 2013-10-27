@@ -25,7 +25,7 @@ class GenericIE(InfoExtractor):
         {
             u'url': u'http://www.hodiho.fr/2013/02/regis-plante-sa-jeep.html',
             u'file': u'13601338388002.mp4',
-            u'md5': u'85b90ccc9d73b4acd9138d3af4c27f89',
+            u'md5': u'6e15c93721d7ec9e9ca3fdbf07982cfd',
             u'info_dict': {
                 u"uploader": u"www.hodiho.fr",
                 u"title": u"R\u00e9gis plante sa Jeep"
