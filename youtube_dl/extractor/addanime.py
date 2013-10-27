@@ -19,7 +19,7 @@ class AddAnimeIE(InfoExtractor):
     _TEST = {
         u'url': u'http://www.add-anime.net/watch_video.php?v=24MR3YO5SAS9',
         u'file': u'24MR3YO5SAS9.mp4',
-        u'md5': u'3f8e232ad52163c87fa23897e736cb2c',
+        u'md5': u'72954ea10bc979ab5e2eb288b21425a0',
         u'info_dict': {
             u"description": u"One Piece 606",
             u"title": u"One Piece 606"
