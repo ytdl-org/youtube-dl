@@ -102,10 +102,11 @@ class FacebookIE(InfoExtractor):
         if not m:
             m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
             if m_msg is not None:
-                err_msg = u'The video is not available, Facebook said: "%s"' % m_msg.group(1)
+                raise ExtractorError(
+                    u'The video is not available, Facebook said: "%s"' % m_msg.group(1),
+                    expected=True)
             else:
-                err_msg = u'Cannot parse data'
-            raise ExtractorError(err_msg)
+                raise ExtractorError(u'Cannot parse data')
         data = dict(json.loads(m.group(1)))
         params_raw = compat_urllib_parse.unquote(data['params'])
         params = json.loads(params_raw)
