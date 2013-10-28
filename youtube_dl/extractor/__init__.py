@@ -94,6 +94,7 @@ from .ooyala import OoyalaIE
 from .orf import ORFIE
 from .pbs import PBSIE
 from .photobucket import PhotobucketIE
+from .pornhub import PornHubIE
 from .pornotube import PornotubeIE
 from .rbmaradio import RBMARadioIE
 from .redtube import RedTubeIE
