@@ -26,7 +26,7 @@ class InstagramIE(InfoExtractor):
 
         return [{
             'id':        video_id,
-            'url':       self._og_search_video_url(webpage),
+            'url':       self._og_search_video_url(webpage, secure=False),
             'ext':       'mp4',
             'title':     u'Video by %s' % uploader_id,
             'thumbnail': self._og_search_thumbnail(webpage),
