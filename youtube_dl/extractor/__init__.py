@@ -121,6 +121,7 @@ from .tf1 import TF1IE
 from .thisav import ThisAVIE
 from .traileraddict import TrailerAddictIE
 from .trilulilu import TriluliluIE
+from .tube8 import Tube8IE
 from .tudou import TudouIE
 from .tumblr import TumblrIE
 from .tutv import TutvIE
