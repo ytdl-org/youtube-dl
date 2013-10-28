@@ -79,16 +79,17 @@ which means you can modify it, redistribute it or use it however you like.
                                different, %(autonumber)s to get an automatically
                                incremented number, %(ext)s for the filename
                                extension, %(format)s for the format description
-                               (like "22 - 1280x720" or "HD")%(upload_date)s for
-                               the upload date (YYYYMMDD), %(extractor)s for the
-                               provider (youtube, metacafe, etc), %(id)s for the
-                               video id , %(playlist)s for the playlist the
-                               video is in, %(playlist_index)s for the position
-                               in the playlist and %% for a literal percent. Use
-                               - to output to stdout. Can also be used to
-                               download to a different directory, for example
-                               with -o '/my/downloads/%(uploader)s/%(title)s-%(i
-                               d)s.%(ext)s' .
+                               (like "22 - 1280x720" or "HD"),%(format_id)s for
+                               the unique id of the format (like Youtube's
+                               itags: "137"),%(upload_date)s for the upload date
+                               (YYYYMMDD), %(extractor)s for the provider
+                               (youtube, metacafe, etc), %(id)s for the video id
+                               , %(playlist)s for the playlist the video is in,
+                               %(playlist_index)s for the position in the
+                               playlist and %% for a literal percent. Use - to
+                               output to stdout. Can also be used to download to
+                               a different directory, for example with -o '/my/d
+                               ownloads/%(uploader)s/%(title)s-%(id)s.%(ext)s' .
     --autonumber-size NUMBER   Specifies the number of digits in %(autonumber)s
                                when it is present in output filename template or
                                --autonumber option is given
@@ -126,6 +127,8 @@ which means you can modify it, redistribute it or use it however you like.
     -v, --verbose              print various debugging information
     --dump-intermediate-pages  print downloaded pages to debug problems(very
                                verbose)
+    --write-pages              Write downloaded pages to files in the current
+                               directory
 
 ## Video Format Options:
     -f, --format FORMAT        video format code, specifiy the order of
