@@ -330,10 +330,10 @@ class InfoExtractor(object):
     def _og_search_title(self, html, **kargs):
         return self._og_search_property('title', html, **kargs)
 
-    def _og_search_video_url(self, html, name='video url', **kargs):
-        return self._html_search_regex([self._og_regex('video:secure_url'),
-                                        self._og_regex('video')],
-                                       html, name, **kargs)
+    def _og_search_video_url(self, html, name='video url', secure=True, **kargs):
+        regexes = [self._og_regex('video')]
+        if secure: regexes.insert(0, self._og_regex('video:secure_url'))
+        return self._html_search_regex(regexes, html, name, **kargs)
 
     def _rta_search(self, html):
         # See http://www.rtalabel.org/index.php?content=howtofaq#single

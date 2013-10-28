@@ -72,6 +72,7 @@ from .jeuxvideo import JeuxVideoIE
 from .jukebox import JukeboxIE
 from .justintv import JustinTVIE
 from .kankan import KankanIE
+from .keezmovies import KeezMoviesIE
 from .kickstarter import KickStarterIE
 from .keek import KeekIE
 from .liveleak import LiveLeakIE
@@ -94,6 +95,7 @@ from .ooyala import OoyalaIE
 from .orf import ORFIE
 from .pbs import PBSIE
 from .photobucket import PhotobucketIE
+from .pornhub import PornHubIE
 from .pornotube import PornotubeIE
 from .rbmaradio import RBMARadioIE
 from .redtube import RedTubeIE
@@ -109,6 +111,7 @@ from .slideshare import SlideshareIE
 from .sohu import SohuIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE, SoundcloudUserIE
 from .southparkstudios import SouthParkStudiosIE
+from .spankwire import SpankwireIE
 from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
 from .statigram import StatigramIE
@@ -121,6 +124,7 @@ from .tf1 import TF1IE
 from .thisav import ThisAVIE
 from .traileraddict import TrailerAddictIE
 from .trilulilu import TriluliluIE
+from .tube8 import Tube8IE
 from .tudou import TudouIE
 from .tumblr import TumblrIE
 from .tutv import TutvIE
