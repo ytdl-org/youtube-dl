@@ -31,7 +31,8 @@ class AddAnimeIE(InfoExtractor):
             video_id = mobj.group('video_id')
             webpage = self._download_webpage(url, video_id)
         except ExtractorError as ee:
-            if not isinstance(ee.cause, compat_HTTPError):
+            if not isinstance(ee.cause, compat_HTTPError) or \
+               ee.cause.code != 503:
                 raise
 
             redir_webpage = ee.cause.read().decode('utf-8')
@@ -60,18 +61,27 @@ class AddAnimeIE(InfoExtractor):
                 note=u'Confirming after redirect')
             webpage = self._download_webpage(url, video_id)
 
-        video_url = self._search_regex(r"var (?:hq|normal)_video_file = '(.*?)';",
-                                       webpage, u'video file URL')
-        
-        video_extension = video_url[-3:]  # mp4 or flv ?
+        formats = []
+        for format_id in ('normal', 'hq'):
+            rex = r"var %s_video_file = '(.*?)';" % re.escape(format_id)
+            video_url = self._search_regex(rex, webpage, u'video file URLx',
+                                           fatal=False)
+            if not video_url:
+                continue
+            formats.append({
+                'format_id': format_id,
+                'url': video_url,
+                'ext': video_url[-3:],
+            })
+        if not formats:
+            raise ExtractorError(u'Cannot find any video format!')
         video_title = self._og_search_title(webpage)
         video_description = self._og_search_description(webpage)
 
         return {
             '_type': 'video',
             'id':  video_id,
-            'url': video_url,
-            'ext': video_extension,
+            'formats': formats,
             'title': video_title,
             'description': video_description
         }
