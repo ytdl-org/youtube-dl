@@ -11,6 +11,7 @@ try:
     setuptools_available = True
 except ImportError:
     from distutils.core import setup
+    setuptools_available = False
 
 try:
     # This will create an exe that needs Microsoft Visual C++ 2008
