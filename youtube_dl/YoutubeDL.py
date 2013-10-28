@@ -575,9 +575,9 @@ class YoutubeDL(object):
         if self.params.get('forceurl', False):
             # For RTMP URLs, also include the playpath
             compat_print(info_dict['url'] + info_dict.get('play_path', u''))
-        if self.params.get('forcethumbnail', False) and 'thumbnail' in info_dict:
+        if self.params.get('forcethumbnail', False) and info_dict.get('thumbnail') is not None:
             compat_print(info_dict['thumbnail'])
-        if self.params.get('forcedescription', False) and 'description' in info_dict:
+        if self.params.get('forcedescription', False) and info_dict.get('description') is not None:
             compat_print(info_dict['description'])
         if self.params.get('forcefilename', False) and filename is not None:
             compat_print(filename)
