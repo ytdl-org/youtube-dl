@@ -111,6 +111,7 @@ from .slideshare import SlideshareIE
 from .sohu import SohuIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE, SoundcloudUserIE
 from .southparkstudios import SouthParkStudiosIE
+from .spankwire import SpankwireIE
 from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
 from .statigram import StatigramIE
