@@ -83,6 +83,7 @@ from .mit import TechTVMITIE, MITIE
 from .mixcloud import MixcloudIE
 from .mtv import MTVIE
 from .muzu import MuzuTVIE
+from .myspace import MySpaceIE
 from .myspass import MySpassIE
 from .myvideo import MyVideoIE
 from .naver import NaverIE
