@@ -272,7 +272,7 @@ class YoutubeDL(object):
                 autonumber_size = 5
             autonumber_templ = u'%0' + str(autonumber_size) + u'd'
             template_dict['autonumber'] = autonumber_templ % self._num_downloads
-            if template_dict['playlist_index'] is not None:
+            if template_dict.get('playlist_index') is not None:
                 template_dict['playlist_index'] = u'%05d' % template_dict['playlist_index']
 
             sanitize = lambda k, v: sanitize_filename(

@@ -60,9 +60,12 @@ def generator(test_case):
         if not ie._WORKING:
             print_skipping('IE marked as not _WORKING')
             return
-        if 'playlist' not in test_case and not test_case['file']:
-            print_skipping('No output file specified')
-            return
+        if 'playlist' not in test_case:
+            info_dict = test_case.get('info_dict', {})
+            if not test_case.get('file') and not (info_dict.get('id') and info_dict.get('ext')):
+                print_skipping('The output file cannot be know, the "file" '
+                    'key is missing or the info_dict is incomplete')
+                return
         if 'skip' in test_case:
             print_skipping(test_case['skip'])
             return
@@ -77,11 +80,17 @@ def generator(test_case):
                 finished_hook_called.add(status['filename'])
         ydl.fd.add_progress_hook(_hook)
 
+        def get_tc_filename(tc):
+            return tc.get('file') or ydl.prepare_filename(tc.get('info_dict', {}))
+
         test_cases = test_case.get('playlist', [test_case])
-        for tc in test_cases:
-            try_rm(tc['file'])
-            try_rm(tc['file'] + '.part')
-            try_rm(tc['file'] + '.info.json')
+        def try_rm_tcs_files():
+            for tc in test_cases:
+                tc_filename = get_tc_filename(tc)
+                try_rm(tc_filename)
+                try_rm(tc_filename + '.part')
+                try_rm(tc_filename + '.info.json')
+        try_rm_tcs_files()
         try:
             for retry in range(1, RETRIES + 1):
                 try:
@@ -98,14 +107,15 @@ def generator(test_case):
                     break
 
             for tc in test_cases:
+                tc_filename = get_tc_filename(tc)
                 if not test_case.get('params', {}).get('skip_download', False):
-                    self.assertTrue(os.path.exists(tc['file']), msg='Missing file ' + tc['file'])
-                    self.assertTrue(tc['file'] in finished_hook_called)
-                self.assertTrue(os.path.exists(tc['file'] + '.info.json'))
+                    self.assertTrue(os.path.exists(tc_filename), msg='Missing file ' + tc_filename)
+                    self.assertTrue(tc_filename in finished_hook_called)
+                self.assertTrue(os.path.exists(tc_filename + '.info.json'))
                 if 'md5' in tc:
-                    md5_for_file = _file_md5(tc['file'])
+                    md5_for_file = _file_md5(tc_filename)
                     self.assertEqual(md5_for_file, tc['md5'])
-                with io.open(tc['file'] + '.info.json', encoding='utf-8') as infof:
+                with io.open(tc_filename + '.info.json', encoding='utf-8') as infof:
                     info_dict = json.load(infof)
                 for (info_field, expected) in tc.get('info_dict', {}).items():
                     if isinstance(expected, compat_str) and expected.startswith('md5:'):
@@ -126,10 +136,7 @@ def generator(test_case):
                 for key in ('id', 'url', 'title', 'ext'):
                     self.assertTrue(key in info_dict.keys() and info_dict[key])
         finally:
-            for tc in test_cases:
-                try_rm(tc['file'])
-                try_rm(tc['file'] + '.part')
-                try_rm(tc['file'] + '.info.json')
+            try_rm_tcs_files()
 
     return test_template
 
