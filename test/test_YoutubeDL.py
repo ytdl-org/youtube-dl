@@ -62,10 +62,10 @@ class TestFormatSelection(unittest.TestCase):
 
     def test_format_limit(self):
         formats = [
-            {u'format_id': u'meh'},
-            {u'format_id': u'good'},
-            {u'format_id': u'great'},
-            {u'format_id': u'excellent'},
+            {u'format_id': u'meh', u'url': u'http://example.com/meh'},
+            {u'format_id': u'good', u'url': u'http://example.com/good'},
+            {u'format_id': u'great', u'url': u'http://example.com/great'},
+            {u'format_id': u'excellent', u'url': u'http://example.com/exc'},
         ]
         info_dict = {
             u'formats': formats, u'extractor': u'test', 'id': 'testvid'}
