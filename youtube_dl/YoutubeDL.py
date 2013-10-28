@@ -757,23 +757,23 @@ class YoutubeDL(object):
             archive_file.write(vid_id + u'\n')
 
     @staticmethod
-    def format_resolution(format):
+    def format_resolution(format, default='unknown'):
         if format.get('height') is not None:
             if format.get('width') is not None:
                 res = u'%sx%s' % (format['width'], format['height'])
             else:
                 res = u'%sp' % format['height']
         else:
-            res = '???'
+            res = default
         return res
 
     def list_formats(self, info_dict):
         formats_s = []
         for format in info_dict.get('formats', [info_dict]):
-            formats_s.append(u'%-15s: %-5s     %-15s[%s]' % (
+            formats_s.append(u'%-15s%-7s     %-15s%s' % (
                 format['format_id'],
                 format['ext'],
-                format.get('format_note') or '-',
+                format.get('format_note', ''),
                 self.format_resolution(format),
                 )
             )
