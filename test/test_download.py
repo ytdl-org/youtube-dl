@@ -6,7 +6,14 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import get_params, get_testcases, global_setup, try_rm, md5
+from test.helper import (
+    get_params,
+    get_testcases,
+    global_setup,
+    try_rm,
+    md5,
+    report_warning
+)
 global_setup()
 
 
@@ -92,17 +99,22 @@ def generator(test_case):
                 try_rm(tc_filename + '.info.json')
         try_rm_tcs_files()
         try:
-            for retry in range(1, RETRIES + 1):
+            try_num = 1
+            while True:
                 try:
                     ydl.download([test_case['url']])
                 except (DownloadError, ExtractorError) as err:
-                    if retry == RETRIES: raise
-
                     # Check if the exception is not a network related one
                     if not err.exc_info[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError):
                         raise
 
-                    print('Retrying: {0} failed tries\n\n##########\n\n'.format(retry))
+                    if try_num == RETRIES:
+                        report_warning(u'Failed due to network errors, skipping...')
+                        return
+
+                    print('Retrying: {0} failed tries\n\n##########\n\n'.format(try_num))
+
+                    try_num += 1
                 else:
                     break
 
