@@ -524,7 +524,8 @@ class YoutubeDL(object):
                     formats_to_download = [selected_format]
                     break
         if not formats_to_download:
-            raise ExtractorError(u'requested format not available')
+            raise ExtractorError(u'requested format not available',
+                                 expected=True)
 
         if download:
             if len(formats_to_download) > 1:
