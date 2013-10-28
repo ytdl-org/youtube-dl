@@ -22,6 +22,7 @@ class Tube8IE(InfoExtractor):
             u"description": u"hot teen Kasia grinding", 
             u"uploader": u"unknown", 
             u"title": u"Kasia music video",
+            u"age_limit": 18,
         }
     }
 
@@ -60,4 +61,5 @@ class Tube8IE(InfoExtractor):
             'ext': extension,
             'format': format,
             'format_id': format,
+            'age_limit': 18,
         }

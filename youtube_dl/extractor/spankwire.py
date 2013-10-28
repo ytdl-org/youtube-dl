@@ -22,6 +22,7 @@ class SpankwireIE(InfoExtractor):
             u"uploader": u"oreusz", 
             u"title": u"Buckcherry`s X Rated Music Video Crazy Bitch",
             u"description": u"Crazy Bitch X rated music video.",
+            u"age_limit": 18,
         }
     }
 
@@ -60,6 +61,8 @@ class SpankwireIE(InfoExtractor):
             })
         formats.sort(key=lambda format: list(map(lambda s: s.zfill(6), format['format'].split('-'))))
 
+        age_limit = self._rta_search(webpage)
+
         return {
             'id': video_id,
             'uploader': video_uploader,
@@ -67,4 +70,5 @@ class SpankwireIE(InfoExtractor):
             'thumbnail': thumbnail,
             'description': description,
             'formats': formats,
+            'age_limit': age_limit,
         }

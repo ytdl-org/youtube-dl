@@ -21,6 +21,7 @@ class PornHubIE(InfoExtractor):
         u'info_dict': {
             u"uploader": u"BABES-COM", 
             u"title": u"Seductive Indian beauty strips down and fingers her pink pussy",
+            u"age_limit": 18
         }
     }
 
@@ -64,4 +65,5 @@ class PornHubIE(InfoExtractor):
             'title': video_title,
             'thumbnail': thumbnail,
             'formats': formats,
+            'age_limit': 18,
         }

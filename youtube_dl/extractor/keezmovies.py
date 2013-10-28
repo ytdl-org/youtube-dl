@@ -6,7 +6,6 @@ from ..utils import (
     compat_urllib_parse_urlparse,
     compat_urllib_request,
     compat_urllib_parse,
-    unescapeHTML,
 )
 from ..aes import (
     aes_decrypt_text
@@ -20,6 +19,7 @@ class KeezMoviesIE(InfoExtractor):
         u'md5': u'6e297b7e789329923fcf83abb67c9289',
         u'info_dict': {
             u"title": u"Petite Asian Lady Mai Playing In Bathtub",
+            u"age_limit": 18,
         }
     }
 
@@ -48,6 +48,8 @@ class KeezMoviesIE(InfoExtractor):
         format = path.split('/')[4].split('_')[:2]
         format = "-".join( format )
 
+        age_limit = self._rta_search(webpage)
+
         return {
             'id': video_id,
             'title': video_title,
@@ -55,4 +57,5 @@ class KeezMoviesIE(InfoExtractor):
             'ext': extension,
             'format': format,
             'format_id': format,
+            'age_limit': age_limit,
         }
