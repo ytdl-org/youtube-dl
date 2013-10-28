@@ -316,6 +316,9 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option('--dump-intermediate-pages',
             action='store_true', dest='dump_intermediate_pages', default=False,
             help='print downloaded pages to debug problems(very verbose)')
+    verbosity.add_option('--write-pages',
+            action='store_true', dest='write_pages', default=False,
+            help='Write downloaded pages to files in the current directory')
     verbosity.add_option('--youtube-print-sig-code',
             action='store_true', dest='youtube_print_sig_code', default=False,
             help=optparse.SUPPRESS_HELP)
@@ -652,6 +655,7 @@ def _real_main(argv=None):
         'prefer_free_formats': opts.prefer_free_formats,
         'verbose': opts.verbose,
         'dump_intermediate_pages': opts.dump_intermediate_pages,
+        'write_pages': opts.write_pages,
         'test': opts.test,
         'keepvideo': opts.keepvideo,
         'min_filesize': opts.min_filesize,

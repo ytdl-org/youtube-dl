@@ -15,6 +15,7 @@ from ..utils import (
     compiled_regex_type,
     ExtractorError,
     RegexNotFoundError,
+    sanitize_filename,
     unescapeHTML,
 )
 
@@ -182,6 +183,17 @@ class InfoExtractor(object):
             self.to_screen(u'Dumping request to ' + url)
             dump = base64.b64encode(webpage_bytes).decode('ascii')
             self._downloader.to_screen(dump)
+        if self._downloader.params.get('write_pages', False):
+            try:
+                url = url_or_request.get_full_url()
+            except AttributeError:
+                url = url_or_request
+            raw_filename = ('%s_%s.dump' % (video_id, url))
+            filename = sanitize_filename(raw_filename, restricted=True)
+            self.to_screen(u'Saving request to ' + filename)
+            with open(filename, 'wb') as outf:
+                outf.write(webpage_bytes)
+
         content = webpage_bytes.decode(encoding, 'replace')
         return (content, urlh)
 
