@@ -71,7 +71,6 @@ class AddAnimeIE(InfoExtractor):
             formats.append({
                 'format_id': format_id,
                 'url': video_url,
-                'ext': video_url[-3:],
             })
         if not formats:
             raise ExtractorError(u'Cannot find any video format!')
