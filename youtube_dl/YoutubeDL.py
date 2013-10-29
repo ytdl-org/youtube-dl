@@ -759,6 +759,8 @@ class YoutubeDL(object):
 
     @staticmethod
     def format_resolution(format, default='unknown'):
+        if format.get('_resolution') is not None:
+            return format['_resolution']
         if format.get('height') is not None:
             if format.get('width') is not None:
                 res = u'%sx%s' % (format['width'], format['height'])
@@ -769,19 +771,22 @@ class YoutubeDL(object):
         return res
 
     def list_formats(self, info_dict):
-        formats_s = []
-        for format in info_dict.get('formats', [info_dict]):
-            formats_s.append(u'%-15s%-7s     %-15s%s' % (
+        def line(format):
+            return (u'%-15s%-10s%-12s%s' % (
                 format['format_id'],
                 format['ext'],
-                format.get('format_note', ''),
                 self.format_resolution(format),
+                format.get('format_note', ''),
                 )
             )
+
+        formats_s = list(map(line, info_dict.get('formats', [info_dict])))
         if len(formats_s) != 1:
-            formats_s[0] += ' (worst)'
-            formats_s[-1] += ' (best)'
-        formats_s = "\n".join(formats_s)
-        self.to_screen(u'[info] Available formats for %s:\n'
-            u'format code    extension   note           resolution\n%s' % (
-                info_dict['id'], formats_s))
+            formats_s[0] += (' ' if formats_s[0] else '') + '(worst)'
+            formats_s[-1] += (' ' if formats_s[-1] else '') + '(best)'
+
+        header_line = line({
+            'format_id': u'format code', 'ext': u'extension',
+            '_resolution': u'resolution', 'format_note': u'note'})
+        self.to_screen(u'[info] Available formats for %s:\n%s\n%s' %
+                       (info_dict['id'], header_line, u"\n".join(formats_s)))
