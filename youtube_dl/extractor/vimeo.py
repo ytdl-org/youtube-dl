@@ -27,7 +27,7 @@ class VimeoIE(InfoExtractor):
         {
             u'url': u'http://vimeo.com/56015672#at=0',
             u'file': u'56015672.mp4',
-            u'md5': u'ae7a1d8b183758a0506b0622f37dfa14',
+            u'md5': u'8879b6cc097e987f02484baf890129e5',
             u'info_dict': {
                 u"upload_date": u"20121220", 
                 u"description": u"This is a test case for youtube-dl.\nFor more information, see github.com/rg3/youtube-dl\nTest chars: \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550", 
