@@ -58,9 +58,9 @@ class VevoIE(InfoExtractor):
                 'width': int(attr['frameWidth']),
             })
 
-        date_epoch = int(self._search_regex(
-            r'/Date\((\d+)\)/', video_info['launchDate'], u'launch date'))/1000
-        upload_date = datetime.datetime.fromtimestamp(date_epoch)
+        timestamp_ms = int(self._search_regex(
+            r'/Date\((\d+)\)/', video_info['launchDate'], u'launch date'))
+        upload_date = datetime.datetime.fromtimestamp(timestamp_ms // 1000)
         info = {
             'id': video_id,
             'title': video_info['title'],
