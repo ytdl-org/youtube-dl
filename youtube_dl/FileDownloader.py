@@ -268,6 +268,61 @@ class FileDownloader(object):
                 (clear_line, data_len_str, self.format_seconds(tot_time)))
 
     def _download_with_rtmpdump(self, filename, url, player_url, page_url, play_path, tc_url):
+        def run_rtmpdump(args):
+            start = time.time()
+            resume_percent = None
+            resume_downloaded_data_len = None
+            proc = subprocess.Popen(args, stderr=subprocess.PIPE)
+            cursor_in_new_line = True
+            proc_stderr_closed = False
+            while not proc_stderr_closed:
+                # read line from stderr
+                line = u''
+                while True:
+                    char = proc.stderr.read(1)
+                    if not char:
+                        proc_stderr_closed = True
+                        break
+                    if char in [b'\r', b'\n']:
+                        break
+                    line += char.decode('ascii', 'replace')
+                if not line:
+                    # proc_stderr_closed is True
+                    continue
+                mobj = re.search(r'([0-9]+\.[0-9]{3}) kB / [0-9]+\.[0-9]{2} sec \(([0-9]{1,2}\.[0-9])%\)', line)
+                if mobj:
+                    downloaded_data_len = int(float(mobj.group(1))*1024)
+                    percent = float(mobj.group(2))
+                    if not resume_percent:
+                        resume_percent = percent
+                        resume_downloaded_data_len = downloaded_data_len
+                    eta = self.calc_eta(start, time.time(), 100-resume_percent, percent-resume_percent)
+                    speed = self.calc_speed(start, time.time(), downloaded_data_len-resume_downloaded_data_len)
+                    data_len = None
+                    if percent > 0:
+                        data_len = int(downloaded_data_len * 100 / percent)
+                    data_len_str = u'~'+self.format_bytes(data_len)
+                    self.report_progress(percent, data_len_str, speed, eta)
+                    cursor_in_new_line = False
+                    self._hook_progress({
+                        'downloaded_bytes': downloaded_data_len,
+                        'total_bytes': data_len,
+                        'tmpfilename': tmpfilename,
+                        'filename': filename,
+                        'status': 'downloading',
+                        'eta': eta,
+                        'speed': speed,
+                    })
+                elif self.params.get('verbose', False):
+                    if not cursor_in_new_line:
+                        self.to_screen(u'')
+                    cursor_in_new_line = True
+                    self.to_screen(u'[rtmpdump] '+line)
+            proc.wait()
+            if not cursor_in_new_line:
+                self.to_screen(u'')
+            return proc.returncode
+
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
         test = self.params.get('test', False)
@@ -278,12 +333,11 @@ class FileDownloader(object):
         except (OSError, IOError):
             self.report_error(u'RTMP download detected but "rtmpdump" could not be run')
             return False
-        verbosity_option = '--verbose' if self.params.get('verbose', False) else '--quiet'
 
         # Download using rtmpdump. rtmpdump returns exit code 2 when
         # the connection was interrumpted and resuming appears to be
         # possible. This is part of rtmpdump's normal usage, AFAIK.
-        basic_args = ['rtmpdump', verbosity_option, '-r', url, '-o', tmpfilename]
+        basic_args = ['rtmpdump', '--verbose', '-r', url, '-o', tmpfilename]
         if player_url is not None:
             basic_args += ['--swfVfy', player_url]
         if page_url is not None:
@@ -302,23 +356,25 @@ class FileDownloader(object):
             except ImportError:
                 shell_quote = repr
             self.to_screen(u'[debug] rtmpdump command line: ' + shell_quote(args))
-        retval = subprocess.call(args)
+
+        retval = run_rtmpdump(args)
+
         while (retval == 2 or retval == 1) and not test:
             prevsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen(u'\r[rtmpdump] %s bytes' % prevsize, skip_eol=True)
+            self.to_screen(u'[rtmpdump] %s bytes' % prevsize)
             time.sleep(5.0) # This seems to be needed
-            retval = subprocess.call(basic_args + ['-e'] + [[], ['-k', '1']][retval == 1])
+            retval = run_rtmpdump(basic_args + ['-e'] + [[], ['-k', '1']][retval == 1])
             cursize = os.path.getsize(encodeFilename(tmpfilename))
             if prevsize == cursize and retval == 1:
                 break
              # Some rtmp streams seem abort after ~ 99.8%. Don't complain for those
             if prevsize == cursize and retval == 2 and cursize > 1024:
-                self.to_screen(u'\r[rtmpdump] Could not download the whole video. This can happen for some advertisements.')
+                self.to_screen(u'[rtmpdump] Could not download the whole video. This can happen for some advertisements.')
                 retval = 0
                 break
         if retval == 0 or (test and retval == 2):
             fsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen(u'\r[rtmpdump] %s bytes' % fsize)
+            self.to_screen(u'[rtmpdump] %s bytes' % fsize)
             self.try_rename(tmpfilename, filename)
             self._hook_progress({
                 'downloaded_bytes': fsize,
