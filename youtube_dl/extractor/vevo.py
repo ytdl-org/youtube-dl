@@ -50,10 +50,11 @@ class VevoIE(InfoExtractor):
         # Already sorted from worst to best quality
         for rend in renditions.findall('rendition'):
             attr = rend.attrib
-            f_url = attr['url']
+            format_note = '%(videoCodec)s@%(videoBitrate)4sK, %(audioCodec)s@%(audioBitrate)3sK' % attr
             formats.append({
-                'url': f_url,
-                'ext': determine_ext(f_url),
+                'url': attr['url'],
+                'format_id': attr['name'],
+                'format_note': format_note,
                 'height': int(attr['frameheight']),
                 'width': int(attr['frameWidth']),
             })
@@ -70,8 +71,5 @@ class VevoIE(InfoExtractor):
             'uploader': video_info['mainArtists'][0]['artistName'],
             'duration': video_info['duration'],
         }
-
-        # TODO: Remove when #980 has been merged
-        info.update(formats[-1])
 
         return info
