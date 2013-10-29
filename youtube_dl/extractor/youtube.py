@@ -74,14 +74,8 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             self._downloader.report_warning(u'unable to fetch login page: %s' % compat_str(err))
             return False
 
-        galx = None
-        dsh = None
-        match = re.search(re.compile(r'<input.+?name="GALX".+?value="(.+?)"', re.DOTALL), login_page)
-        if match:
-          galx = match.group(1)
-        match = re.search(re.compile(r'<input.+?name="dsh".+?value="(.+?)"', re.DOTALL), login_page)
-        if match:
-          dsh = match.group(1)
+        galx = self._search_regex(r'(?s)<input.+?name="GALX".+?value="(.+?)"',
+                                  login_page, u'Login GALX parameter')
 
         # Log in
         login_form_strs = {
@@ -95,7 +89,6 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 u'checkConnection': u'',
                 u'checkedDomains': u'youtube',
                 u'dnConn': u'',
-                u'dsh': dsh,
                 u'pstMsg': u'0',
                 u'rmShown': u'1',
                 u'secTok': u'',
