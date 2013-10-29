@@ -158,7 +158,9 @@ class ArteTVPlus7IE(InfoExtractor):
             'thumbnail': player_info.get('programImage') or player_info.get('VTU', {}).get('IUR'),
         }
 
-        formats = player_info['VSR'].values()
+        all_formats = player_info['VSR'].values()
+        # Some formats use the m3u8 protocol
+        all_formats = list(filter(lambda f: f.get('videoFormat') != 'M3U8', all_formats))
         def _match_lang(f):
             if f.get('versionCode') is None:
                 return True
@@ -170,11 +172,16 @@ class ArteTVPlus7IE(InfoExtractor):
             regexes = [r'VO?%s' % l, r'VO?.-ST%s' % l]
             return any(re.match(r, f['versionCode']) for r in regexes)
         # Some formats may not be in the same language as the url
-        formats = filter(_match_lang, formats)
-        # Some formats use the m3u8 protocol
-        formats = filter(lambda f: f.get('videoFormat') != 'M3U8', formats)
-        # We order the formats by quality
+        formats = filter(_match_lang, all_formats)
         formats = list(formats) # in python3 filter returns an iterator
+        if not formats:
+            # Some videos are only available in the 'Originalversion'
+            # they aren't tagged as being in French or German
+            if all(f['versionCode'] == 'VO' for f in all_formats):
+                formats = all_formats
+            else:
+                raise ExtractorError(u'The formats list is empty')
+        # We order the formats by quality
         if re.match(r'[A-Z]Q', formats[0]['quality']) is not None:
             sort_key = lambda f: ['HQ', 'MQ', 'EQ', 'SQ'].index(f['quality'])
         else:
