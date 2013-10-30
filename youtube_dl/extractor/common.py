@@ -63,7 +63,7 @@ class InfoExtractor(object):
                     * ext       Will be calculated from url if missing
                     * format    A human-readable description of the format
                                 ("mp4 container with h264/opus").
-                                Calculated from the format_id, width, height 
+                                Calculated from the format_id, width, height.
                                 and format_note fields if missing.
                     * format_id A short description of the format
                                 ("mp4_h264_opus" or "19")
