@@ -482,7 +482,7 @@ class YoutubeDL(object):
                 format['format'] = u'{id} - {res}{note}'.format(
                     id=format['format_id'],
                     res=self.format_resolution(format),
-                    note=u' ({})'.format(format['format_note']) if format.get('format_note') is not None else '',
+                    note=u' ({0})'.format(format['format_note']) if format.get('format_note') is not None else '',
                 )
             # Automatically determine file extension if missing
             if 'ext' not in format:
