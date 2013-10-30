@@ -21,6 +21,7 @@ class DailymotionBaseInfoExtractor(InfoExtractor):
         """Build a request with the family filter disabled"""
         request = compat_urllib_request.Request(url)
         request.add_header('Cookie', 'family_filter=off')
+        request.add_header('Cookie', 'ff=off')
         return request
 
 class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
@@ -61,6 +62,18 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             },
             u'skip': u'VEVO is only available in some countries',
         },
+        # age-restricted video
+        {
+            u'url': u'http://www.dailymotion.com/video/xyh2zz_leanna-decker-cyber-girl-of-the-year-desires-nude-playboy-plus_redband',
+            u'file': u'xyh2zz.mp4',
+            u'md5': u'0d667a7b9cebecc3c89ee93099c4159d',
+            u'info_dict': {
+                u'title': 'Leanna Decker - Cyber Girl Of The Year Desires Nude [Playboy Plus]',
+                u'uploader': 'HotWaves1012',
+                u'age_limit': 18,
+            }
+
+        }
     ]
 
     def _real_extract(self, url):
@@ -90,7 +103,8 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
         video_uploader = self._search_regex([r'(?im)<span class="owner[^\"]+?">[^<]+?<a [^>]+?>([^<]+?)</a>',
                                              # Looking for official user
                                              r'<(?:span|a) .*?rel="author".*?>([^<]+?)</'],
-                                            webpage, 'video uploader')
+                                            webpage, 'video uploader', fatal=False)
+        age_limit = self._rta_search(webpage)
 
         video_upload_date = None
         mobj = re.search(r'<div class="[^"]*uploaded_cont[^"]*" title="[^"]*">([0-9]{2})-([0-9]{2})-([0-9]{4})</div>', webpage)
@@ -132,15 +146,16 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             self._list_available_subtitles(video_id)
             return
 
-        return [{
+        return {
             'id':       video_id,
             'formats': formats,
             'uploader': video_uploader,
             'upload_date':  video_upload_date,
             'title':    self._og_search_title(webpage),
             'subtitles':    video_subtitles,
-            'thumbnail': info['thumbnail_url']
-        }]
+            'thumbnail': info['thumbnail_url'],
+            'age_limit': age_limit,
+        }
 
     def _get_available_subtitles(self, video_id):
         try:
