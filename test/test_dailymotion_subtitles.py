@@ -22,7 +22,7 @@ class TestDailymotionSubtitles(unittest.TestCase):
         return info_dict
     def getSubtitles(self):
         info_dict = self.getInfoDict()
-        return info_dict[0]['subtitles']
+        return info_dict['subtitles']
     def test_no_writesubtitles(self):
         subtitles = self.getSubtitles()
         self.assertEqual(subtitles, None)
