@@ -9,7 +9,7 @@ from .arte import (
     ArteTVFutureIE,
 )
 from .auengine import AUEngineIE
-from .bambuser import BambuserIE
+from .bambuser import BambuserIE, BambuserChannelIE
 from .bandcamp import BandcampIE
 from .bliptv import BlipTVIE, BlipTVUserIE
 from .bloomberg import BloombergIE
