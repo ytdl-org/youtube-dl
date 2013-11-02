@@ -37,6 +37,11 @@ def rsa_verify(message, signature, key):
     if signature != sha256(message).digest(): return False
     return True
 
+def cmp_versions(a, b):
+    ap = list(map(lambda x: int(x), a.split(u'.')))
+    bp = list(map(lambda x: int(x), b.split(u'.')))
+    return (ap > bp) - (ap < bp)
+
 def update_self(to_screen, verbose):
     """Update the program file with the latest version from the repository"""
 
@@ -78,6 +83,9 @@ def update_self(to_screen, verbose):
         return
 
     version_id = versions_info['latest']
+    if cmp_versions(version_id, __version__) <= 0:
+        to_screen(u'youtube-dl is up-to-date (' + __version__ + ')')
+        return
     to_screen(u'Updating to version ' + version_id + '...')
     version = versions_info['versions'][version_id]
 
