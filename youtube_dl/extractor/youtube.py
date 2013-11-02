@@ -340,18 +340,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             }
         },
         {
-            u"url":  u"http://www.youtube.com/watch?v=1ltcDfZMA3U",
-            u"file":  u"1ltcDfZMA3U.mp4",
-            u"note": u"Test VEVO video (#897)",
-            u"info_dict": {
-                u"upload_date": u"20070518",
-                u"title": u"Maps - It Will Find You",
-                u"description": u"Music video by Maps performing It Will Find You.",
-                u"uploader": u"MuteUSA",
-                u"uploader_id": u"MuteUSA"
-            }
-        },
-        {
             u"url":  u"http://www.youtube.com/watch?v=UxxajLWwzqY",
             u"file":  u"UxxajLWwzqY.mp4",
             u"note": u"Test generic use_cipher_signature video (#897)",
