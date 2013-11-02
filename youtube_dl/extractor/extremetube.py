@@ -31,14 +31,12 @@ class ExtremeTubeIE(InfoExtractor):
         webpage = self._download_webpage(req, video_id)
 
         video_title = self._html_search_regex(r'<h1 [^>]*?title="([^"]+)"[^>]*>\1<', webpage, u'title')
-        uploader = self._html_search_regex(r'>Posted by:(?=<)(\s|<[^>]*>)*(.+?)\|', webpage, u'uploader', fatal=False)
+        uploader = self._html_search_regex(r'>Posted by:(?=<)(?:\s|<[^>]*>)*(.+?)\|', webpage, u'uploader', fatal=False)
         video_url = compat_urllib_parse.unquote(self._html_search_regex(r'video_url=(.+?)&amp;', webpage, u'video_url'))
         path = compat_urllib_parse_urlparse( video_url ).path
         extension = os.path.splitext( path )[1][1:]
         format = path.split('/')[5].split('_')[:2]
         format = "-".join( format )
-
-        age_limit = self._rta_search(webpage)
 
         return {
             'id': video_id,
@@ -48,5 +46,5 @@ class ExtremeTubeIE(InfoExtractor):
             'ext': extension,
             'format': format,
             'format_id': format,
-            'age_limit': age_limit,
+            'age_limit': 18,
         }
