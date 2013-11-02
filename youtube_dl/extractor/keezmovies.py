@@ -12,7 +12,7 @@ from ..aes import (
 )
 
 class KeezMoviesIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>keezmovies\.com/video/.+?(?P<videoid>[0-9]+))'
+    _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>keezmovies\.com/video/.+?(?P<videoid>[0-9]+))(?:[/?&]|$)'
     _TEST = {
         u'url': u'http://www.keezmovies.com/video/petite-asian-lady-mai-playing-in-bathtub-1214711',
         u'file': u'1214711.mp4',
