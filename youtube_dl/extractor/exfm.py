@@ -21,6 +21,7 @@ class ExfmIE(InfoExtractor):
                 u'description': u'Test House \"Love Is Not Enough\" (Extended Mix) DeadJournalist Exclusive',
             },
             u'note': u'Soundcloud song',
+            u'skip': u'The site is down too often',
         },
         {
             u'url': u'http://ex.fm/song/wddt8',
@@ -30,6 +31,7 @@ class ExfmIE(InfoExtractor):
                 u'title': u'Safe and Sound',
                 u'uploader': u'Capital Cities',
             },
+            u'skip': u'The site is down too often',
         },
     ]
 
