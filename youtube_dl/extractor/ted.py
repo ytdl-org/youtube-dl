@@ -1,10 +1,9 @@
 import json
 import re
 
-from .common import InfoExtractor
+from .subtitles import SubtitlesInfoExtractor
 
-
-class TEDIE(InfoExtractor):
+class TEDIE(SubtitlesInfoExtractor):
     _VALID_URL=r'''http://www\.ted\.com/
                    (
                         ((?P<type_playlist>playlists)/(?P<playlist_id>\d+)) # We have a playlist
@@ -82,11 +81,21 @@ class TEDIE(InfoExtractor):
             'url': stream['file'],
             'format': stream['id']
             } for stream in info['htmlStreams']]
+
+        video_id = info['id']
+
+        # subtitles
+        video_subtitles = self.extract_subtitles(video_id, webpage)
+        if self._downloader.params.get('listsubtitles', False):
+            self._list_available_subtitles(video_id, webpage)
+            return
+
         info = {
-            'id': info['id'],
+            'id': video_id,
             'title': title,
             'thumbnail': thumbnail,
             'description': desc,
+            'subtitles': video_subtitles,
             'formats': formats,
         }
 
@@ -94,3 +103,14 @@ class TEDIE(InfoExtractor):
         info.update(info['formats'][-1])
 
         return info
+
+    def _get_available_subtitles(self, video_id, webpage):
+        options = self._search_regex(r'(?:<select name="subtitles_language_select" id="subtitles_language_select">)(.*?)(?:</select>)', webpage, 'subtitles_language_select', flags=re.DOTALL)
+        languages = re.findall(r'(?:<option value=")(\S+)"', options)
+        if languages:
+            sub_lang_list = {}
+            for l in languages:
+                url = 'http://www.ted.com/talks/subtitles/id/%s/lang/%s/format/srt' % (video_id, l)
+                sub_lang_list[l] = url
+            return sub_lang_list
+        return {}
