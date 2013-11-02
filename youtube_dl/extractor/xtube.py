@@ -16,6 +16,7 @@ class XTubeIE(InfoExtractor):
         u'md5': u'092fbdd3cbe292c920ef6fc6a8a9cdab',
         u'info_dict': {
             u"title": u"strange erotica",
+            u"description": u"surreal gay themed erotica...almost an ET kind of thing",
             u"uploader": u"greenshowers",
             u"age_limit": 18,
         }
