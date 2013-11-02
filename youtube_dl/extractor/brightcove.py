@@ -23,7 +23,7 @@ class BrightcoveIE(InfoExtractor):
             # From http://www.8tv.cat/8aldia/videos/xavier-sala-i-martin-aquesta-tarda-a-8-al-dia/
             u'url': u'http://c.brightcove.com/services/viewer/htmlFederated?playerID=1654948606001&flashID=myExperience&%40videoPlayer=2371591881001',
             u'file': u'2371591881001.mp4',
-            u'md5': u'9e80619e0a94663f0bdc849b4566af19',
+            u'md5': u'8eccab865181d29ec2958f32a6a754f5',
             u'note': u'Test Brightcove downloads and detection in GenericIE',
             u'info_dict': {
                 u'title': u'Xavier Sala i Martín: “Un banc que no presta és un banc zombi que no serveix per a res”',
@@ -122,12 +122,10 @@ class BrightcoveIE(InfoExtractor):
             best_format = renditions[-1]
             info.update({
                 'url': best_format['defaultURL'],
-                'ext': 'mp4',
             })
         elif video_info.get('FLVFullLengthURL') is not None:
             info.update({
                 'url': video_info['FLVFullLengthURL'],
-                'ext': 'flv',
             })
         else:
             raise ExtractorError(u'Unable to extract video url for %s' % info['id'])
