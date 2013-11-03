@@ -40,6 +40,7 @@ from .ehow import EHowIE
 from .eighttracks import EightTracksIE
 from .escapist import EscapistIE
 from .exfm import ExfmIE
+from .extremetube import ExtremeTubeIE
 from .facebook import FacebookIE
 from .faz import FazIE
 from .fktv import (
