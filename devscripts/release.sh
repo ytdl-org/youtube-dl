@@ -74,6 +74,9 @@ scp -r "build/$version" ytdl@yt-dl.org:html/tmp/
 ssh ytdl@yt-dl.org "mv html/tmp/$version html/downloads/"
 ssh ytdl@yt-dl.org "sh html/update_latest.sh $version"
 
+echo -e "\n### Generating changelog"
+pandoc CHANGELOG.md -t json | ./devscripts/extract-changes.py ${version} | pandoc -f json -o build/$version/CHANGELOG.md
+
 /bin/echo -e "\n### Now switching to gh-pages..."
 git clone --branch gh-pages --single-branch . build/gh-pages
 ROOT=$(pwd)
