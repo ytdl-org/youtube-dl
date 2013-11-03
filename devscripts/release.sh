@@ -34,8 +34,9 @@ else
     nosetests --verbose --with-coverage --cover-package=youtube_dl --cover-html test --stop || exit 1
 fi
 
-/bin/echo -e "\n### Changing version in version.py..."
+/bin/echo -e "\n### Changing version in version.py and CHANGELOG..."
 sed -i "s/__version__ = '.*'/__version__ = '$version'/" youtube_dl/version.py
+sed -i "s/@DEV@/$version/" CHANGELOG.md
 
 /bin/echo -e "\n### Committing CHANGELOG.md README.md and youtube_dl/version.py..."
 make README.md

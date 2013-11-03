@@ -1,3 +1,4 @@
+<!-- The section for the version in developement must be titled '@DEV@' -->
 # 2013.01.02  Codename: GIULIA
 
 * Add support for ComedyCentral clips <nto>
