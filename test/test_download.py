@@ -149,7 +149,7 @@ def generator(test_case):
                 for key in ('id', 'url', 'title', 'ext'):
                     self.assertTrue(key in info_dict.keys() and info_dict[key])
                 # Check for mandatory fields that are automatically set by YoutubeDL
-                for key in ['webpage_url', 'extractor']:
+                for key in ['webpage_url', 'extractor', 'extractor_key']:
                     self.assertTrue(info_dict.get(key), u'Missing field: %s' % key)
         finally:
             try_rm_tcs_files()

@@ -357,7 +357,8 @@ class YoutubeDL(object):
                 self.add_extra_info(ie_result,
                     {
                         'extractor': ie.IE_NAME,
-                        'webpage_url': url
+                        'webpage_url': url,
+                        'extractor_key': ie.ie_key(),
                     })
                 return self.process_ie_result(ie_result, download, extra_info)
             except ExtractorError as de: # An error we somewhat expected
@@ -421,6 +422,7 @@ class YoutubeDL(object):
                     'playlist_index': i + playliststart,
                     'extractor': ie_result['extractor'],
                     'webpage_url': ie_result['webpage_url'],
+                    'extractor_key': ie_result['extractor_key'],
                 }
                 entry_result = self.process_ie_result(entry,
                                                       download=download,
@@ -434,6 +436,7 @@ class YoutubeDL(object):
                     {
                         'extractor': ie_result['extractor'],
                         'webpage_url': ie_result['webpage_url'],
+                        'extractor_key': ie_result['extractor_key'],
                     })
                 return r
             ie_result['entries'] = [
