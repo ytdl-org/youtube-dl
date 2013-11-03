@@ -203,7 +203,7 @@ class VimeoIE(InfoExtractor):
         # Vimeo specific: extract video codec and quality information
         # First consider quality, then codecs, then take everything
         codecs = [('vp6', 'flv'), ('vp8', 'flv'), ('h264', 'mp4')]
-        files = { 'hd': [], 'sd': [], 'other': []}
+        files = {'hd': [], 'sd': [], 'other': []}
         config_files = config["video"].get("files") or config["request"].get("files")
         for codec_name, codec_extension in codecs:
             for quality in config_files.get(codec_name, []):

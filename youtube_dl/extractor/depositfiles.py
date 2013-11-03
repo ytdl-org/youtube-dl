@@ -25,7 +25,7 @@ class DepositFilesIE(InfoExtractor):
         url = 'http://depositfiles.com/en/files/' + file_id
 
         # Retrieve file webpage with 'Free download' button pressed
-        free_download_indication = { 'gateway_result' : '1' }
+        free_download_indication = {'gateway_result' : '1'}
         request = compat_urllib_request.Request(url, compat_urllib_parse.urlencode(free_download_indication))
         try:
             self.report_download_webpage(file_id)

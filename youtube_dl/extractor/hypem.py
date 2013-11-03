@@ -30,7 +30,7 @@ class HypemIE(InfoExtractor):
             raise ExtractorError(u'Invalid URL: %s' % url)
         track_id = mobj.group(1)
 
-        data = { 'ax': 1, 'ts': time.time() }
+        data = {'ax': 1, 'ts': time.time()}
         data_encoded = compat_urllib_parse.urlencode(data)
         complete_url = url + "?" + data_encoded
         request = compat_urllib_request.Request(complete_url)
