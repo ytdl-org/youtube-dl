@@ -23,7 +23,7 @@ fi
 if [ -z "$1" ]; then echo "ERROR: specify version number like this: $0 1994.09.06"; exit 1; fi
 version="$1"
 if [ ! -z "`git tag | grep "$version"`" ]; then echo 'ERROR: version already present'; exit 1; fi
-if [ ! -z "`git status --porcelain | grep -v CHANGELOG`" ]; then echo 'ERROR: the working directory is not clean; commit or stash changes'; exit 1; fi
+if [ ! -z "`git status --porcelain | grep -v CHANGELOG.md`" ]; then echo 'ERROR: the working directory is not clean; commit or stash changes'; exit 1; fi
 if [ ! -f "updates_key.pem" ]; then echo 'ERROR: updates_key.pem missing'; exit 1; fi
 
 /bin/echo -e "\n### First of all, testing..."
@@ -37,9 +37,9 @@ fi
 /bin/echo -e "\n### Changing version in version.py..."
 sed -i "s/__version__ = '.*'/__version__ = '$version'/" youtube_dl/version.py
 
-/bin/echo -e "\n### Committing CHANGELOG README.md and youtube_dl/version.py..."
+/bin/echo -e "\n### Committing CHANGELOG.md README.md and youtube_dl/version.py..."
 make README.md
-git add CHANGELOG README.md youtube_dl/version.py
+git add CHANGELOG.md README.md youtube_dl/version.py
 git commit -m "release $version"
 
 /bin/echo -e "\n### Now tagging, signing and pushing..."
