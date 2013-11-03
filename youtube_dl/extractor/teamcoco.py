@@ -3,6 +3,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
+    RegexNotFoundError,
 )
 
 
@@ -11,7 +12,7 @@ class TeamcocoIE(InfoExtractor):
     _TEST = {
         u'url': u'http://teamcoco.com/video/louis-ck-interview-george-w-bush',
         u'file': u'19705.mp4',
-        u'md5': u'27b6f7527da5acf534b15f21b032656e',
+        u'md5': u'cde9ba0fa3506f5f017ce11ead928f9a',
         u'info_dict': {
             u"description": u"Louis C.K. got starstruck by George W. Bush, so what? Part one.", 
             u"title": u"Louis C.K. Interview Pt. 1 11/3/11"
@@ -33,8 +34,21 @@ class TeamcocoIE(InfoExtractor):
         data_url = 'http://teamcoco.com/cvp/2.0/%s.xml' % video_id
         data = self._download_webpage(data_url, video_id, 'Downloading data webpage')
 
-        video_url = self._html_search_regex(r'<file [^>]*type="high".*?>(.*?)</file>',
-            data, u'video URL')
+
+        qualities = [ '1080p', '720p', '1000k', '480p', '500k' ]
+        best_quality_idx = len(qualities)+1  # First regex match may not be optimal
+        for idx, quality in enumerate(qualities):
+            regex = r'<file [^>]*type="(?:high|standard)".*?>(.*%s.*)</file>' % quality
+            try:
+                url = self._html_search_regex(regex, data, u'video URL')
+                if idx < best_quality_idx:
+                    video_url = url
+                    best_quality_idx = idx
+            except RegexNotFoundError:
+                # Just catch fatal exc. Don't want the fatal=False warning
+                continue
+        if not video_url:
+            raise RegexNotFoundError(u'Unable to extract video URL')
 
         return [{
             'id':          video_id,
