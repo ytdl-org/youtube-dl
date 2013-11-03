@@ -3,7 +3,14 @@ import subprocess
 import sys
 import time
 
-from .utils import *
+
+from .utils import (
+    compat_subprocess_get_DEVNULL,
+    encodeFilename,
+    PostProcessingError,
+    shell_quote,
+    subtitles_filename,
+)
 
 
 class PostProcessor(object):
@@ -82,6 +89,8 @@ class FFmpegPostProcessor(PostProcessor):
                + opts +
                [encodeFilename(self._ffmpeg_filename_argument(out_path))])
 
+        if self._downloader.params.get('verbose', False):
+            self._downloader.to_screen(u'[debug] ffmpeg command line: %s' % shell_quote(cmd))
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout,stderr = p.communicate()
         if p.returncode != 0:
@@ -177,7 +186,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             extension = self._preferredcodec
             more_opts = []
             if self._preferredquality is not None:
-                if int(self._preferredquality) < 10:
+                # The opus codec doesn't support the -aq option
+                if int(self._preferredquality) < 10 and extension != 'opus':
                     more_opts += [self._exes['avconv'] and '-q:a' or '-aq', self._preferredquality]
                 else:
                     more_opts += [self._exes['avconv'] and '-b:a' or '-ab', self._preferredquality + 'k']
@@ -467,3 +477,35 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
         return True, information
+
+
+class FFmpegMetadataPP(FFmpegPostProcessor):
+    def run(self, info):
+        metadata = {}
+        if info.get('title') is not None:
+            metadata['title'] = info['title']
+        if info.get('upload_date') is not None:
+            metadata['date'] = info['upload_date']
+        if info.get('uploader') is not None:
+            metadata['artist'] = info['uploader']
+        elif info.get('uploader_id') is not None:
+            metadata['artist'] = info['uploader_id']
+
+        if not metadata:
+            self._downloader.to_screen(u'[ffmpeg] There isn\'t any metadata to add')
+            return True, info
+
+        filename = info['filepath']
+        ext = os.path.splitext(filename)[1][1:]
+        temp_filename = filename + u'.temp'
+
+        options = ['-c', 'copy']
+        for (name, value) in metadata.items():
+            options.extend(['-metadata', '%s="%s"' % (name, value)])
+        options.extend(['-f', ext])
+
+        self._downloader.to_screen(u'[ffmpeg] Adding metadata to \'%s\'' % filename)
+        self.run_ffmpeg(filename, temp_filename, options)
+        os.remove(encodeFilename(filename))
+        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+        return True, info

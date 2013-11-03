@@ -1,14 +1,15 @@
 #!/usr/bin/env python
-
-# Various small unit tests
-
-import sys
-import unittest
-import xml.etree.ElementTree
+# coding: utf-8
 
 # Allow direct execution
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import sys
+import unittest
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+# Various small unit tests
+import xml.etree.ElementTree
 
 #from youtube_dl.utils import htmlentity_transform
 from youtube_dl.utils import (
@@ -20,6 +21,9 @@ from youtube_dl.utils import (
     unified_strdate,
     find_xpath_attr,
     get_meta_content,
+    xpath_with_ns,
+    smuggle_url,
+    unsmuggle_url,
 )
 
 if sys.version_info < (3, 0):
@@ -140,6 +144,32 @@ class TestUtil(unittest.TestCase):
         get_meta = lambda name: get_meta_content(name, testhtml)
         self.assertEqual(get_meta('description'), u'foo & bar')
         self.assertEqual(get_meta('author'), 'Plato')
+
+    def test_xpath_with_ns(self):
+        testxml = u'''<root xmlns:media="http://example.com/">
+            <media:song>
+                <media:author>The Author</media:author>
+                <url>http://server.com/download.mp3</url>
+            </media:song>
+        </root>'''
+        doc = xml.etree.ElementTree.fromstring(testxml)
+        find = lambda p: doc.find(xpath_with_ns(p, {'media': 'http://example.com/'}))
+        self.assertTrue(find('media:song') is not None)
+        self.assertEqual(find('media:song/media:author').text, u'The Author')
+        self.assertEqual(find('media:song/url').text, u'http://server.com/download.mp3')
+
+    def test_smuggle_url(self):
+        data = {u"ö": u"ö", u"abc": [3]}
+        url = 'https://foo.bar/baz?x=y#a'
+        smug_url = smuggle_url(url, data)
+        unsmug_url, unsmug_data = unsmuggle_url(smug_url)
+        self.assertEqual(url, unsmug_url)
+        self.assertEqual(data, unsmug_data)
+
+        res_url, res_data = unsmuggle_url(url)
+        self.assertEqual(res_url, url)
+        self.assertEqual(res_data, None)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -13,13 +13,13 @@ PYTHON=/usr/bin/env python
 
 # set SYSCONFDIR to /etc if PREFIX=/usr or PREFIX=/usr/local
 ifeq ($(PREFIX),/usr)
-    SYSCONFDIR=/etc
+	SYSCONFDIR=/etc
 else
-    ifeq ($(PREFIX),/usr/local)
-        SYSCONFDIR=/etc
-    else
-        SYSCONFDIR=$(PREFIX)/etc
-    endif
+	ifeq ($(PREFIX),/usr/local)
+		SYSCONFDIR=/etc
+	else
+		SYSCONFDIR=$(PREFIX)/etc
+	endif
 endif
 
 install: youtube-dl youtube-dl.1 youtube-dl.bash-completion
@@ -71,6 +71,7 @@ youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-
 		--exclude '*~' \
 		--exclude '__pycache' \
 		--exclude '.git' \
+		--exclude 'testdata' \
 		-- \
 		bin devscripts test youtube_dl \
 		CHANGELOG LICENSE README.md README.txt \

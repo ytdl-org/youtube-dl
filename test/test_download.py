@@ -1,42 +1,38 @@
 #!/usr/bin/env python
 
-import errno
+# Allow direct execution
+import os
+import sys
+import unittest
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from test.helper import (
+    get_params,
+    get_testcases,
+    global_setup,
+    try_rm,
+    md5,
+    report_warning
+)
+global_setup()
+
+
 import hashlib
 import io
-import os
 import json
-import unittest
-import sys
 import socket
-import binascii
-
-# Allow direct execution
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import youtube_dl.YoutubeDL
-from youtube_dl.utils import *
-
-PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters.json")
+from youtube_dl.utils import (
+    compat_str,
+    compat_urllib_error,
+    compat_HTTPError,
+    DownloadError,
+    ExtractorError,
+    UnavailableVideoError,
+)
 
 RETRIES = 3
-
-# General configuration (from __init__, not very elegant...)
-jar = compat_cookiejar.CookieJar()
-cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
-proxy_handler = compat_urllib_request.ProxyHandler()
-opener = compat_urllib_request.build_opener(proxy_handler, cookie_processor, YoutubeDLHandler())
-compat_urllib_request.install_opener(opener)
-socket.setdefaulttimeout(10)
-
-def _try_rm(filename):
-    """ Remove a file if it exists """
-    try:
-        os.remove(filename)
-    except OSError as ose:
-        if ose.errno != errno.ENOENT:
-            raise
-
-md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
 
 class YoutubeDL(youtube_dl.YoutubeDL):
     def __init__(self, *args, **kwargs):
@@ -54,17 +50,12 @@ def _file_md5(fn):
     with open(fn, 'rb') as f:
         return hashlib.md5(f.read()).hexdigest()
 
-from helper import get_testcases
 defs = get_testcases()
-
-with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
-    parameters = json.load(pf)
 
 
 class TestDownload(unittest.TestCase):
     maxDiff = None
     def setUp(self):
-        self.parameters = parameters
         self.defs = defs
 
 ### Dynamically generate tests
@@ -77,15 +68,17 @@ def generator(test_case):
         if not ie._WORKING:
             print_skipping('IE marked as not _WORKING')
             return
-        if 'playlist' not in test_case and not test_case['file']:
-            print_skipping('No output file specified')
-            return
+        if 'playlist' not in test_case:
+            info_dict = test_case.get('info_dict', {})
+            if not test_case.get('file') and not (info_dict.get('id') and info_dict.get('ext')):
+                print_skipping('The output file cannot be know, the "file" '
+                    'key is missing or the info_dict is incomplete')
+                return
         if 'skip' in test_case:
             print_skipping(test_case['skip'])
             return
 
-        params = self.parameters.copy()
-        params.update(test_case.get('params', {}))
+        params = get_params(test_case.get('params', {}))
 
         ydl = YoutubeDL(params)
         ydl.add_default_info_extractors()
@@ -95,35 +88,47 @@ def generator(test_case):
                 finished_hook_called.add(status['filename'])
         ydl.fd.add_progress_hook(_hook)
 
+        def get_tc_filename(tc):
+            return tc.get('file') or ydl.prepare_filename(tc.get('info_dict', {}))
+
         test_cases = test_case.get('playlist', [test_case])
-        for tc in test_cases:
-            _try_rm(tc['file'])
-            _try_rm(tc['file'] + '.part')
-            _try_rm(tc['file'] + '.info.json')
+        def try_rm_tcs_files():
+            for tc in test_cases:
+                tc_filename = get_tc_filename(tc)
+                try_rm(tc_filename)
+                try_rm(tc_filename + '.part')
+                try_rm(tc_filename + '.info.json')
+        try_rm_tcs_files()
         try:
-            for retry in range(1, RETRIES + 1):
+            try_num = 1
+            while True:
                 try:
                     ydl.download([test_case['url']])
                 except (DownloadError, ExtractorError) as err:
-                    if retry == RETRIES: raise
-
                     # Check if the exception is not a network related one
-                    if not err.exc_info[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError):
+                    if not err.exc_info[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError) or (err.exc_info[0] == compat_HTTPError and err.exc_info[1].code == 503):
                         raise
 
-                    print('Retrying: {0} failed tries\n\n##########\n\n'.format(retry))
+                    if try_num == RETRIES:
+                        report_warning(u'Failed due to network errors, skipping...')
+                        return
+
+                    print('Retrying: {0} failed tries\n\n##########\n\n'.format(try_num))
+
+                    try_num += 1
                 else:
                     break
 
             for tc in test_cases:
+                tc_filename = get_tc_filename(tc)
                 if not test_case.get('params', {}).get('skip_download', False):
-                    self.assertTrue(os.path.exists(tc['file']), msg='Missing file ' + tc['file'])
-                    self.assertTrue(tc['file'] in finished_hook_called)
-                self.assertTrue(os.path.exists(tc['file'] + '.info.json'))
+                    self.assertTrue(os.path.exists(tc_filename), msg='Missing file ' + tc_filename)
+                    self.assertTrue(tc_filename in finished_hook_called)
+                self.assertTrue(os.path.exists(tc_filename + '.info.json'))
                 if 'md5' in tc:
-                    md5_for_file = _file_md5(tc['file'])
+                    md5_for_file = _file_md5(tc_filename)
                     self.assertEqual(md5_for_file, tc['md5'])
-                with io.open(tc['file'] + '.info.json', encoding='utf-8') as infof:
+                with io.open(tc_filename + '.info.json', encoding='utf-8') as infof:
                     info_dict = json.load(infof)
                 for (info_field, expected) in tc.get('info_dict', {}).items():
                     if isinstance(expected, compat_str) and expected.startswith('md5:'):
@@ -143,11 +148,11 @@ def generator(test_case):
                 # Check for the presence of mandatory fields
                 for key in ('id', 'url', 'title', 'ext'):
                     self.assertTrue(key in info_dict.keys() and info_dict[key])
+                # Check for mandatory fields that are automatically set by YoutubeDL
+                for key in ['webpage_url', 'extractor', 'extractor_key']:
+                    self.assertTrue(info_dict.get(key), u'Missing field: %s' % key)
         finally:
-            for tc in test_cases:
-                _try_rm(tc['file'])
-                _try_rm(tc['file'] + '.part')
-                _try_rm(tc['file'] + '.info.json')
+            try_rm_tcs_files()
 
     return test_template
 

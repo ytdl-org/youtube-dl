@@ -31,11 +31,13 @@ __authors__  = (
     'Huarong Huo',
     'Ismael Mejía',
     'Steffan \'Ruirize\' James',
+    'Andras Elso',
 )
 
 __license__ = 'Public Domain'
 
 import codecs
+import collections
 import getpass
 import optparse
 import os
@@ -45,17 +47,43 @@ import shlex
 import socket
 import subprocess
 import sys
-import warnings
+import traceback
 import platform
 
 
-from .utils import *
+from .utils import (
+    compat_cookiejar,
+    compat_print,
+    compat_str,
+    compat_urllib_request,
+    DateRange,
+    decodeOption,
+    determine_ext,
+    DownloadError,
+    get_cachedir,
+    make_HTTPS_handler,
+    MaxDownloadsReached,
+    platform_name,
+    preferredencoding,
+    SameFileError,
+    std_headers,
+    write_string,
+    YoutubeDLHandler,
+)
 from .update import update_self
 from .version import __version__
-from .FileDownloader import *
+from .FileDownloader import (
+    FileDownloader,
+)
 from .extractor import gen_extractors
 from .YoutubeDL import YoutubeDL
-from .PostProcessor import *
+from .PostProcessor import (
+    FFmpegMetadataPP,
+    FFmpegVideoConvertor,
+    FFmpegExtractAudioPP,
+    FFmpegEmbedSubtitlePP,
+)
+
 
 def parseOpts(overrideArguments=None):
     def _readOptions(filename_bytes):
@@ -105,7 +133,7 @@ def parseOpts(overrideArguments=None):
 
     def _hide_login_info(opts):
         opts = list(opts)
-        for private_opt in ['-p', '--password', '-u', '--username']:
+        for private_opt in ['-p', '--password', '-u', '--username', '--video-password']:
             try:
                 i = opts.index(private_opt)
                 opts[i+1] = '<PRIVATE>'
@@ -151,6 +179,9 @@ def parseOpts(overrideArguments=None):
             action='store_true', dest='update_self', help='update this program to latest version. Make sure that you have sufficient permissions (run with sudo if needed)')
     general.add_option('-i', '--ignore-errors',
             action='store_true', dest='ignoreerrors', help='continue on download errors, for example to to skip unavailable videos in a playlist', default=False)
+    general.add_option('--abort-on-error',
+            action='store_false', dest='ignoreerrors',
+            help='Abort downloading of further videos (in the playlist or the command line) if an error occurs')
     general.add_option('--dump-user-agent',
             action='store_true', dest='dump_user_agent',
             help='display the current browser identification', default=False)
@@ -168,8 +199,8 @@ def parseOpts(overrideArguments=None):
     general.add_option('--proxy', dest='proxy', default=None, help='Use the specified HTTP/HTTPS proxy', metavar='URL')
     general.add_option('--no-check-certificate', action='store_true', dest='no_check_certificate', default=False, help='Suppress HTTPS certificate validation.')
     general.add_option(
-        '--cache-dir', dest='cachedir', default=u'~/.youtube-dl/cache',
-        help='Location in the filesystem where youtube-dl can store downloaded information permanently. %default by default')
+        '--cache-dir', dest='cachedir', default=get_cachedir(), metavar='DIR',
+        help='Location in the filesystem where youtube-dl can store downloaded information permanently. By default $XDG_CACHE_HOME/youtube-dl or ~/.cache/youtube-dl .')
     general.add_option(
         '--no-cache-dir', action='store_const', const=None, dest='cachedir',
         help='Disable filesystem caching')
@@ -187,6 +218,13 @@ def parseOpts(overrideArguments=None):
     selection.add_option('--date', metavar='DATE', dest='date', help='download only videos uploaded in this date', default=None)
     selection.add_option('--datebefore', metavar='DATE', dest='datebefore', help='download only videos uploaded before this date', default=None)
     selection.add_option('--dateafter', metavar='DATE', dest='dateafter', help='download only videos uploaded after this date', default=None)
+    selection.add_option('--no-playlist', action='store_true', dest='noplaylist', help='download only the currently playing video', default=False)
+    selection.add_option('--age-limit', metavar='YEARS', dest='age_limit',
+                         help='download only videos suitable for the given age',
+                         default=None, type=int)
+    selection.add_option('--download-archive', metavar='FILE',
+                         dest='download_archive',
+                         help='Download only videos not present in the archive file. Record all downloaded videos in it.')
 
 
     authentication.add_option('-u', '--username',
@@ -200,7 +238,7 @@ def parseOpts(overrideArguments=None):
 
 
     video_format.add_option('-f', '--format',
-            action='store', dest='format', metavar='FORMAT',
+            action='store', dest='format', metavar='FORMAT', default='best',
             help='video format code, specifiy the order of preference using slashes: "-f 22/17/18". "-f mp4" and "-f flv" are also supported')
     video_format.add_option('--all-formats',
             action='store_const', dest='format', help='download all available video formats', const='all')
@@ -232,11 +270,11 @@ def parseOpts(overrideArguments=None):
             help='languages of the subtitles to download (optional) separated by commas, use IETF language tags like \'en,pt\'')
 
     downloader.add_option('-r', '--rate-limit',
-            dest='ratelimit', metavar='LIMIT', help='maximum download rate (e.g. 50k or 44.6m)')
+            dest='ratelimit', metavar='LIMIT', help='maximum download rate in bytes per second (e.g. 50K or 4.2M)')
     downloader.add_option('-R', '--retries',
             dest='retries', metavar='RETRIES', help='number of retries (default is %default)', default=10)
     downloader.add_option('--buffer-size',
-            dest='buffersize', metavar='SIZE', help='size of download buffer (e.g. 1024 or 16k) (default is %default)', default="1024")
+            dest='buffersize', metavar='SIZE', help='size of download buffer (e.g. 1024 or 16K) (default is %default)', default="1024")
     downloader.add_option('--no-resize-buffer',
             action='store_true', dest='noresizebuffer',
             help='do not automatically adjust the buffer size. By default, the buffer size is automatically resized from an initial value of SIZE.', default=False)
@@ -278,6 +316,9 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option('--dump-intermediate-pages',
             action='store_true', dest='dump_intermediate_pages', default=False,
             help='print downloaded pages to debug problems(very verbose)')
+    verbosity.add_option('--write-pages',
+            action='store_true', dest='write_pages', default=False,
+            help='Write downloaded pages to files in the current directory')
     verbosity.add_option('--youtube-print-sig-code',
             action='store_true', dest='youtube_print_sig_code', default=False,
             help=optparse.SUPPRESS_HELP)
@@ -297,7 +338,10 @@ def parseOpts(overrideArguments=None):
             help=('output filename template. Use %(title)s to get the title, '
                   '%(uploader)s for the uploader name, %(uploader_id)s for the uploader nickname if different, '
                   '%(autonumber)s to get an automatically incremented number, '
-                  '%(ext)s for the filename extension, %(upload_date)s for the upload date (YYYYMMDD), '
+                  '%(ext)s for the filename extension, '
+                  '%(format)s for the format description (like "22 - 1280x720" or "HD"),'
+                  '%(format_id)s for the unique id of the format (like Youtube\'s itags: "137"),'
+                  '%(upload_date)s for the upload date (YYYYMMDD), '
                   '%(extractor)s for the provider (youtube, metacafe, etc), '
                   '%(id)s for the video id , %(playlist)s for the playlist the video is in, '
                   '%(playlist_index)s for the position in the playlist and %% for a literal percent. '
@@ -331,6 +375,9 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option('--write-info-json',
             action='store_true', dest='writeinfojson',
             help='write video metadata to a .info.json file', default=False)
+    filesystem.add_option('--write-annotations',
+            action='store_true', dest='writeannotations',
+            help='write video annotations to a .annotation file', default=False)
     filesystem.add_option('--write-thumbnail',
             action='store_true', dest='writethumbnail',
             help='write thumbnail image to disk', default=False)
@@ -350,6 +397,8 @@ def parseOpts(overrideArguments=None):
             help='do not overwrite post-processed files; the post-processed files are overwritten by default')
     postproc.add_option('--embed-subs', action='store_true', dest='embedsubtitles', default=False,
             help='embed subtitles in the video (only for mp4 videos)')
+    postproc.add_option('--add-metadata', action='store_true', dest='addmetadata', default=False,
+            help='add metadata to the files')
 
 
     parser.add_option_group(general)
@@ -369,9 +418,13 @@ def parseOpts(overrideArguments=None):
     else:
         xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
         if xdg_config_home:
-            userConfFile = os.path.join(xdg_config_home, 'youtube-dl.conf')
+            userConfFile = os.path.join(xdg_config_home, 'youtube-dl', 'config')
+            if not os.path.isfile(userConfFile):
+                userConfFile = os.path.join(xdg_config_home, 'youtube-dl.conf')
         else:
-            userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
+            userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl', 'config')
+            if not os.path.isfile(userConfFile):
+                userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
         systemConf = _readOptions('/etc/youtube-dl.conf')
         userConf = _readOptions(userConfFile)
         commandLineConf = sys.argv[1:]
@@ -436,27 +489,7 @@ def _real_main(argv=None):
     all_urls = batchurls + args
     all_urls = [url.strip() for url in all_urls]
 
-    # General configuration
-    cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
-    if opts.proxy is not None:
-        if opts.proxy == '':
-            proxies = {}
-        else:
-            proxies = {'http': opts.proxy, 'https': opts.proxy}
-    else:
-        proxies = compat_urllib_request.getproxies()
-        # Set HTTPS proxy to HTTP one if given (https://github.com/rg3/youtube-dl/issues/805)
-        if 'http' in proxies and 'https' not in proxies:
-            proxies['https'] = proxies['http']
-    proxy_handler = compat_urllib_request.ProxyHandler(proxies)
-    https_handler = make_HTTPS_handler(opts)
-    opener = compat_urllib_request.build_opener(https_handler, proxy_handler, cookie_processor, YoutubeDLHandler())
-    # Delete the default user-agent header, which would otherwise apply in
-    # cases where our custom HTTP handler doesn't come into play
-    # (See https://github.com/rg3/youtube-dl/issues/1309 for details)
-    opener.addheaders =[]
-    compat_urllib_request.install_opener(opener)
-    socket.setdefaulttimeout(300) # 5 minutes should be enough (famous last words)
+    opener = _setup_opener(jar=jar, opts=opts)
 
     extractors = gen_extractors()
 
@@ -473,6 +506,8 @@ def _real_main(argv=None):
             if not ie._WORKING:
                 continue
             desc = getattr(ie, 'IE_DESC', ie.IE_NAME)
+            if desc is False:
+                continue
             if hasattr(ie, 'SEARCH_KEY'):
                 _SEARCHES = (u'cute kittens', u'slithering pythons', u'falling cat', u'angry poodle', u'purple fish', u'running tortoise')
                 _COUNTS = (u'', u'5', u'10', u'all')
@@ -599,11 +634,13 @@ def _real_main(argv=None):
         'progress_with_newline': opts.progress_with_newline,
         'playliststart': opts.playliststart,
         'playlistend': opts.playlistend,
+        'noplaylist': opts.noplaylist,
         'logtostderr': opts.outtmpl == '-',
         'consoletitle': opts.consoletitle,
         'nopart': opts.nopart,
         'updatetime': opts.updatetime,
         'writedescription': opts.writedescription,
+        'writeannotations': opts.writeannotations,
         'writeinfojson': opts.writeinfojson,
         'writethumbnail': opts.writethumbnail,
         'writesubtitles': opts.writesubtitles,
@@ -618,6 +655,7 @@ def _real_main(argv=None):
         'prefer_free_formats': opts.prefer_free_formats,
         'verbose': opts.verbose,
         'dump_intermediate_pages': opts.dump_intermediate_pages,
+        'write_pages': opts.write_pages,
         'test': opts.test,
         'keepvideo': opts.keepvideo,
         'min_filesize': opts.min_filesize,
@@ -625,6 +663,8 @@ def _real_main(argv=None):
         'daterange': date,
         'cachedir': opts.cachedir,
         'youtube_print_sig_code': opts.youtube_print_sig_code,
+        'age_limit': opts.age_limit,
+        'download_archive': opts.download_archive,
         })
 
     if opts.verbose:
@@ -644,11 +684,19 @@ def _real_main(argv=None):
             except:
                 pass
         write_string(u'[debug] Python version %s - %s' %(platform.python_version(), platform_name()) + u'\n')
-        write_string(u'[debug] Proxy map: ' + str(proxy_handler.proxies) + u'\n')
+
+        proxy_map = {}
+        for handler in opener.handlers:
+            if hasattr(handler, 'proxies'):
+                proxy_map.update(handler.proxies)
+        write_string(u'[debug] Proxy map: ' + compat_str(proxy_map) + u'\n')
 
     ydl.add_default_info_extractors()
 
     # PostProcessors
+    # Add the metadata pp first, the other pps will copy it
+    if opts.addmetadata:
+        ydl.add_post_processor(FFmpegMetadataPP())
     if opts.extractaudio:
         ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
     if opts.recodevideo:
@@ -658,7 +706,7 @@ def _real_main(argv=None):
 
     # Update version
     if opts.update_self:
-        update_self(ydl.to_screen, opts.verbose, sys.argv[0])
+        update_self(ydl.to_screen, opts.verbose)
 
     # Maybe do nothing
     if len(all_urls) < 1:
@@ -677,10 +725,41 @@ def _real_main(argv=None):
     if opts.cookiefile is not None:
         try:
             jar.save()
-        except (IOError, OSError) as err:
+        except (IOError, OSError):
             sys.exit(u'ERROR: unable to save cookie jar')
 
     sys.exit(retcode)
+
+
+def _setup_opener(jar=None, opts=None, timeout=300):
+    if opts is None:
+        FakeOptions = collections.namedtuple(
+            'FakeOptions', ['proxy', 'no_check_certificate'])
+        opts = FakeOptions(proxy=None, no_check_certificate=False)
+
+    cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
+    if opts.proxy is not None:
+        if opts.proxy == '':
+            proxies = {}
+        else:
+            proxies = {'http': opts.proxy, 'https': opts.proxy}
+    else:
+        proxies = compat_urllib_request.getproxies()
+        # Set HTTPS proxy to HTTP one if given (https://github.com/rg3/youtube-dl/issues/805)
+        if 'http' in proxies and 'https' not in proxies:
+            proxies['https'] = proxies['http']
+    proxy_handler = compat_urllib_request.ProxyHandler(proxies)
+    https_handler = make_HTTPS_handler(opts)
+    opener = compat_urllib_request.build_opener(
+        https_handler, proxy_handler, cookie_processor, YoutubeDLHandler())
+    # Delete the default user-agent header, which would otherwise apply in
+    # cases where our custom HTTP handler doesn't come into play
+    # (See https://github.com/rg3/youtube-dl/issues/1309 for details)
+    opener.addheaders = []
+    compat_urllib_request.install_opener(opener)
+    socket.setdefaulttimeout(timeout)
+    return opener
+
 
 def main(argv=None):
     try:

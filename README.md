@@ -21,6 +21,8 @@ which means you can modify it, redistribute it or use it however you like.
                                sudo if needed)
     -i, --ignore-errors        continue on download errors, for example to to
                                skip unavailable videos in a playlist
+    --abort-on-error           Abort downloading of further videos (in the
+                               playlist or the command line) if an error occurs
     --dump-user-agent          display the current browser identification
     --user-agent UA            specify a custom user agent
     --referer REF              specify a custom referer, use if the video access
@@ -30,9 +32,10 @@ which means you can modify it, redistribute it or use it however you like.
     --extractor-descriptions   Output descriptions of all supported extractors
     --proxy URL                Use the specified HTTP/HTTPS proxy
     --no-check-certificate     Suppress HTTPS certificate validation.
-    --cache-dir None           Location in the filesystem where youtube-dl can
-                               store downloaded information permanently.
-                               ~/.youtube-dl/cache by default
+    --cache-dir DIR            Location in the filesystem where youtube-dl can
+                               store downloaded information permanently. By
+                               default $XDG_CACHE_HOME/youtube-dl or ~/.cache
+                               /youtube-dl .
     --no-cache-dir             Disable filesystem caching
 
 ## Video Selection:
@@ -50,11 +53,16 @@ which means you can modify it, redistribute it or use it however you like.
     --date DATE                download only videos uploaded in this date
     --datebefore DATE          download only videos uploaded before this date
     --dateafter DATE           download only videos uploaded after this date
+    --no-playlist              download only the currently playing video
+    --age-limit YEARS          download only videos suitable for the given age
+    --download-archive FILE    Download only videos not present in the archive
+                               file. Record all downloaded videos in it.
 
 ## Download Options:
-    -r, --rate-limit LIMIT     maximum download rate (e.g. 50k or 44.6m)
+    -r, --rate-limit LIMIT     maximum download rate in bytes per second (e.g.
+                               50K or 4.2M)
     -R, --retries RETRIES      number of retries (default is 10)
-    --buffer-size SIZE         size of download buffer (e.g. 1024 or 16k)
+    --buffer-size SIZE         size of download buffer (e.g. 1024 or 16K)
                                (default is 1024)
     --no-resize-buffer         do not automatically adjust the buffer size. By
                                default, the buffer size is automatically resized
@@ -70,7 +78,10 @@ which means you can modify it, redistribute it or use it however you like.
                                %(uploader_id)s for the uploader nickname if
                                different, %(autonumber)s to get an automatically
                                incremented number, %(ext)s for the filename
-                               extension, %(upload_date)s for the upload date
+                               extension, %(format)s for the format description
+                               (like "22 - 1280x720" or "HD"),%(format_id)s for
+                               the unique id of the format (like Youtube's
+                               itags: "137"),%(upload_date)s for the upload date
                                (YYYYMMDD), %(extractor)s for the provider
                                (youtube, metacafe, etc), %(id)s for the video id
                                , %(playlist)s for the playlist the video is in,
@@ -95,6 +106,7 @@ which means you can modify it, redistribute it or use it however you like.
                                file modification time
     --write-description        write video description to a .description file
     --write-info-json          write video metadata to a .info.json file
+    --write-annotations        write video annotations to a .annotation file
     --write-thumbnail          write thumbnail image to disk
 
 ## Verbosity / Simulation Options:
@@ -115,6 +127,8 @@ which means you can modify it, redistribute it or use it however you like.
     -v, --verbose              print various debugging information
     --dump-intermediate-pages  print downloaded pages to debug problems(very
                                verbose)
+    --write-pages              Write downloaded pages to files in the current
+                               directory
 
 ## Video Format Options:
     -f, --format FORMAT        video format code, specifiy the order of
@@ -161,6 +175,7 @@ which means you can modify it, redistribute it or use it however you like.
                                processed files are overwritten by default
     --embed-subs               embed subtitles in the video (only for mp4
                                videos)
+    --add-metadata             add metadata to the files
 
 # CONFIGURATION
 

@@ -11,6 +11,8 @@ from ..utils import (
     compat_urlparse,
 
     ExtractorError,
+    smuggle_url,
+    unescapeHTML,
 )
 from .brightcove import BrightcoveIE
 
@@ -23,11 +25,32 @@ class GenericIE(InfoExtractor):
         {
             u'url': u'http://www.hodiho.fr/2013/02/regis-plante-sa-jeep.html',
             u'file': u'13601338388002.mp4',
-            u'md5': u'85b90ccc9d73b4acd9138d3af4c27f89',
+            u'md5': u'6e15c93721d7ec9e9ca3fdbf07982cfd',
             u'info_dict': {
                 u"uploader": u"www.hodiho.fr",
                 u"title": u"R\u00e9gis plante sa Jeep"
             }
+        },
+        # embedded vimeo video
+        {
+            u'url': u'http://skillsmatter.com/podcast/home/move-semanticsperfect-forwarding-and-rvalue-references',
+            u'file': u'22444065.mp4',
+            u'md5': u'2903896e23df39722c33f015af0666e2',
+            u'info_dict': {
+                u'title': u'ACCU 2011: Move Semantics,Perfect Forwarding, and Rvalue references- Scott Meyers- 13/04/2011',
+                u"uploader_id": u"skillsmatter",
+                u"uploader": u"Skills Matter",
+            }
+        },
+        # bandcamp page with custom domain
+        {
+            u'url': u'http://bronyrock.com/track/the-pony-mash',
+            u'file': u'3235767654.mp3',
+            u'info_dict': {
+                u'title': u'The Pony Mash',
+                u'uploader': u'M_Pallante',
+            },
+            u'skip': u'There is a limit of 200 free downloads / month for the test song',
         },
     ]
 
@@ -117,15 +140,36 @@ class GenericIE(InfoExtractor):
         except ValueError:
             # since this is the last-resort InfoExtractor, if
             # this error is thrown, it'll be thrown here
-            raise ExtractorError(u'Invalid URL: %s' % url)
+            raise ExtractorError(u'Failed to download URL: %s' % url)
 
         self.report_extraction(video_id)
         # Look for BrightCove:
-        m_brightcove = re.search(r'<object.+?class=([\'"]).*?BrightcoveExperience.*?\1.+?</object>', webpage, re.DOTALL)
+        m_brightcove = re.search(r'<object[^>]+?class=([\'"])[^>]*?BrightcoveExperience.*?\1.+?</object>', webpage, re.DOTALL)
         if m_brightcove is not None:
             self.to_screen(u'Brightcove video detected.')
             bc_url = BrightcoveIE._build_brighcove_url(m_brightcove.group())
             return self.url_result(bc_url, 'Brightcove')
+
+        # Look for embedded Vimeo player
+        mobj = re.search(
+            r'<iframe[^>]+?src="(https?://player.vimeo.com/video/.+?)"', webpage)
+        if mobj:
+            player_url = unescapeHTML(mobj.group(1))
+            surl = smuggle_url(player_url, {'Referer': url})
+            return self.url_result(surl, 'Vimeo')
+
+        # Look for embedded YouTube player
+        mobj = re.search(
+            r'<iframe[^>]+?src="(https?://(?:www\.)?youtube.com/embed/.+?)"', webpage)
+        if mobj:
+            surl = unescapeHTML(mobj.group(1))
+            return self.url_result(surl, 'Youtube')
+
+        # Look for Bandcamp pages with custom domain
+        mobj = re.search(r'<meta property="og:url"[^>]*?content="(.*?bandcamp\.com.*?)"', webpage)
+        if mobj is not None:
+            burl = unescapeHTML(mobj.group(1))
+            return self.url_result(burl, 'Bandcamp')
 
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
@@ -149,12 +193,12 @@ class GenericIE(InfoExtractor):
             # HTML5 video
             mobj = re.search(r'<video[^<]*(?:>.*?<source.*?)? src="([^"]+)"', webpage, flags=re.DOTALL)
         if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
+            raise ExtractorError(u'Unsupported URL: %s' % url)
 
         # It's possible that one of the regexes
         # matched, but returned an empty group:
         if mobj.group(1) is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
+            raise ExtractorError(u'Did not find a valid video URL at %s' % url)
 
         video_url = mobj.group(1)
         video_url = compat_urlparse.urljoin(url, video_url)

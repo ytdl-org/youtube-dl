@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 
+# Allow direct execution
+import os
+import sys
+import unittest
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from test.helper import global_setup
+global_setup()
+
+
 import io
 import re
 import string
-import sys
-import unittest
-
-# Allow direct execution
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from youtube_dl.extractor import YoutubeIE
 from youtube_dl.utils import compat_str, compat_urlretrieve

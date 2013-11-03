@@ -115,7 +115,7 @@ class BlipTVIE(InfoExtractor):
                 ext = umobj.group(1)
 
                 info = {
-                    'id': data['item_id'],
+                    'id': compat_str(data['item_id']),
                     'url': video_url,
                     'uploader': data['display_name'],
                     'upload_date': upload_date,

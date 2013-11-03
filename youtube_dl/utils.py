@@ -9,6 +9,7 @@ import io
 import json
 import locale
 import os
+import pipes
 import platform
 import re
 import socket
@@ -175,7 +176,7 @@ def compat_ord(c):
 compiled_regex_type = type(re.compile(''))
 
 std_headers = {
-    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0',
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0 (Chrome)',
     'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Encoding': 'gzip, deflate',
@@ -228,6 +229,19 @@ else:
             if f.attrib.get(key) == val:
                 return f
         return None
+
+# On python2.6 the xml.etree.ElementTree.Element methods don't support
+# the namespace parameter
+def xpath_with_ns(path, ns_map):
+    components = [c.split(':') for c in path.split('/')]
+    replaced = []
+    for c in components:
+        if len(c) == 1:
+            replaced.append(c[0])
+        else:
+            ns, tag = c
+            replaced.append('{%s}%s' % (ns_map[ns], tag))
+    return '/'.join(replaced)
 
 def htmlentity_transform(matchobj):
     """Transforms an HTML entity to a character.
@@ -558,6 +572,11 @@ class ExtractorError(Exception):
         return u''.join(traceback.format_tb(self.traceback))
 
 
+class RegexNotFoundError(ExtractorError):
+    """Error when a regex didn't match"""
+    pass
+
+
 class DownloadError(Exception):
     """Download Error exception.
 
@@ -715,6 +734,7 @@ def unified_strdate(date_str):
         '%Y/%m/%d %H:%M:%S',
         '%d.%m.%Y %H:%M',
         '%Y-%m-%dT%H:%M:%SZ',
+        '%Y-%m-%dT%H:%M:%S',
     ]
     for expression in format_expressions:
         try:
@@ -758,7 +778,7 @@ def date_from_str(date_str):
         delta = datetime.timedelta(**{unit: time})
         return today + delta
     return datetime.datetime.strptime(date_str, "%Y%m%d").date()
-
+    
 def hyphenate_date(date_str):
     """
     Convert a date in 'YYYYMMDD' format to 'YYYY-MM-DD' format"""
@@ -833,6 +853,139 @@ def intlist_to_bytes(xs):
         return ''.join([chr(x) for x in xs])
     else:
         return bytes(xs)
+
+
+def get_cachedir(params={}):
+    cache_root = os.environ.get('XDG_CACHE_HOME',
+                                os.path.expanduser('~/.cache'))
+    return params.get('cachedir', os.path.join(cache_root, 'youtube-dl'))
+
+
+# Cross-platform file locking
+if sys.platform == 'win32':
+    import ctypes.wintypes
+    import msvcrt
+
+    class OVERLAPPED(ctypes.Structure):
+        _fields_ = [
+            ('Internal', ctypes.wintypes.LPVOID),
+            ('InternalHigh', ctypes.wintypes.LPVOID),
+            ('Offset', ctypes.wintypes.DWORD),
+            ('OffsetHigh', ctypes.wintypes.DWORD),
+            ('hEvent', ctypes.wintypes.HANDLE),
+        ]
+
+    kernel32 = ctypes.windll.kernel32
+    LockFileEx = kernel32.LockFileEx
+    LockFileEx.argtypes = [
+        ctypes.wintypes.HANDLE,     # hFile
+        ctypes.wintypes.DWORD,      # dwFlags
+        ctypes.wintypes.DWORD,      # dwReserved
+        ctypes.wintypes.DWORD,      # nNumberOfBytesToLockLow
+        ctypes.wintypes.DWORD,      # nNumberOfBytesToLockHigh
+        ctypes.POINTER(OVERLAPPED)  # Overlapped
+    ]
+    LockFileEx.restype = ctypes.wintypes.BOOL
+    UnlockFileEx = kernel32.UnlockFileEx
+    UnlockFileEx.argtypes = [
+        ctypes.wintypes.HANDLE,     # hFile
+        ctypes.wintypes.DWORD,      # dwReserved
+        ctypes.wintypes.DWORD,      # nNumberOfBytesToLockLow
+        ctypes.wintypes.DWORD,      # nNumberOfBytesToLockHigh
+        ctypes.POINTER(OVERLAPPED)  # Overlapped
+    ]
+    UnlockFileEx.restype = ctypes.wintypes.BOOL
+    whole_low = 0xffffffff
+    whole_high = 0x7fffffff
+
+    def _lock_file(f, exclusive):
+        overlapped = OVERLAPPED()
+        overlapped.Offset = 0
+        overlapped.OffsetHigh = 0
+        overlapped.hEvent = 0
+        f._lock_file_overlapped_p = ctypes.pointer(overlapped)
+        handle = msvcrt.get_osfhandle(f.fileno())
+        if not LockFileEx(handle, 0x2 if exclusive else 0x0, 0,
+                          whole_low, whole_high, f._lock_file_overlapped_p):
+            raise OSError('Locking file failed: %r' % ctypes.FormatError())
+
+    def _unlock_file(f):
+        assert f._lock_file_overlapped_p
+        handle = msvcrt.get_osfhandle(f.fileno())
+        if not UnlockFileEx(handle, 0,
+                            whole_low, whole_high, f._lock_file_overlapped_p):
+            raise OSError('Unlocking file failed: %r' % ctypes.FormatError())
+
+else:
+    import fcntl
+
+    def _lock_file(f, exclusive):
+        fcntl.lockf(f, fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
+
+    def _unlock_file(f):
+        fcntl.lockf(f, fcntl.LOCK_UN)
+
+
+class locked_file(object):
+    def __init__(self, filename, mode, encoding=None):
+        assert mode in ['r', 'a', 'w']
+        self.f = io.open(filename, mode, encoding=encoding)
+        self.mode = mode
+
+    def __enter__(self):
+        exclusive = self.mode != 'r'
+        try:
+            _lock_file(self.f, exclusive)
+        except IOError:
+            self.f.close()
+            raise
+        return self
+
+    def __exit__(self, etype, value, traceback):
+        try:
+            _unlock_file(self.f)
+        finally:
+            self.f.close()
+
+    def __iter__(self):
+        return iter(self.f)
+
+    def write(self, *args):
+        return self.f.write(*args)
+
+    def read(self, *args):
+        return self.f.read(*args)
+
+
+def shell_quote(args):
+    return ' '.join(map(pipes.quote, args))
+
+
+def takewhile_inclusive(pred, seq):
+    """ Like itertools.takewhile, but include the latest evaluated element
+        (the first element so that Not pred(e)) """
+    for e in seq:
+        yield e
+        if not pred(e):
+            return
+
+
+def smuggle_url(url, data):
+    """ Pass additional data in a URL for internal use. """
+
+    sdata = compat_urllib_parse.urlencode(
+        {u'__youtubedl_smuggle': json.dumps(data)})
+    return url + u'#' + sdata
+
+
+def unsmuggle_url(smug_url):
+    if not '#__youtubedl_smuggle' in smug_url:
+        return smug_url, None
+    url, _, sdata = smug_url.rpartition(u'#')
+    jsond = compat_parse_qs(sdata)[u'__youtubedl_smuggle'][0]
+    data = json.loads(jsond)
+    return url, data
+
 
 try:
     import xattr

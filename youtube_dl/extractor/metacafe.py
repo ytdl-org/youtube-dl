@@ -20,10 +20,12 @@ class MetacafeIE(InfoExtractor):
     _DISCLAIMER = 'http://www.metacafe.com/family_filter/'
     _FILTER_POST = 'http://www.metacafe.com/f/index.php?inputType=filter&controllerGroup=user'
     IE_NAME = u'metacafe'
-    _TESTS = [{
+    _TESTS = [
+    # Youtube video
+    {
         u"add_ie": ["Youtube"],
         u"url":  u"http://metacafe.com/watch/yt-_aUehQsCQtM/the_electric_company_short_i_pbs_kids_go/",
-        u"file":  u"_aUehQsCQtM.flv",
+        u"file":  u"_aUehQsCQtM.mp4",
         u"info_dict": {
             u"upload_date": u"20090102",
             u"title": u"The Electric Company | \"Short I\" | PBS KIDS GO!",
@@ -32,15 +34,42 @@ class MetacafeIE(InfoExtractor):
             u"uploader_id": u"PBS"
         }
     },
+    # Normal metacafe video
+    {
+        u'url': u'http://www.metacafe.com/watch/11121940/news_stuff_you_wont_do_with_your_playstation_4/',
+        u'md5': u'6e0bca200eaad2552e6915ed6fd4d9ad',
+        u'info_dict': {
+            u'id': u'11121940',
+            u'ext': u'mp4',
+            u'title': u'News: Stuff You Won\'t Do with Your PlayStation 4',
+            u'uploader': u'ign',
+            u'description': u'Sony released a massive FAQ on the PlayStation Blog detailing the PS4\'s capabilities and limitations.',
+        },
+    },
+    # AnyClip video
     {
         u"url": u"http://www.metacafe.com/watch/an-dVVXnuY7Jh77J/the_andromeda_strain_1971_stop_the_bomb_part_3/",
         u"file": u"an-dVVXnuY7Jh77J.mp4",
         u"info_dict": {
             u"title": u"The Andromeda Strain (1971): Stop the Bomb Part 3",
             u"uploader": u"anyclip",
-            u"description": u"md5:38c711dd98f5bb87acf973d573442e67"
-        }
-    }]
+            u"description": u"md5:38c711dd98f5bb87acf973d573442e67",
+        },
+    },
+    # age-restricted video
+    {
+        u'url': u'http://www.metacafe.com/watch/5186653/bbc_internal_christmas_tape_79_uncensored_outtakes_etc/',
+        u'md5': u'98dde7c1a35d02178e8ab7560fe8bd09',
+        u'info_dict': {
+            u'id': u'5186653',
+            u'ext': u'mp4',
+            u'title': u'BBC INTERNAL Christmas Tape \'79 - UNCENSORED Outtakes, Etc.',
+            u'uploader': u'Dwayne Pipe',
+            u'description': u'md5:950bf4c581e2c059911fa3ffbe377e4b',
+            u'age_limit': 18,
+        },
+    },
+    ]
 
 
     def report_disclaimer(self):
@@ -62,6 +91,7 @@ class MetacafeIE(InfoExtractor):
             'submit': "Continue - I'm over 18",
             }
         request = compat_urllib_request.Request(self._FILTER_POST, compat_urllib_parse.urlencode(disclaimer_form))
+        request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         try:
             self.report_age_confirmation()
             compat_urllib_request.urlopen(request).read()
@@ -83,7 +113,12 @@ class MetacafeIE(InfoExtractor):
 
         # Retrieve video webpage to extract further information
         req = compat_urllib_request.Request('http://www.metacafe.com/watch/%s/' % video_id)
-        req.headers['Cookie'] = 'flashVersion=0;'
+
+        # AnyClip videos require the flashversion cookie so that we get the link
+        # to the mp4 file
+        mobj_an = re.match(r'^an-(.*?)$', video_id)
+        if mobj_an:
+            req.headers['Cookie'] = 'flashVersion=0;'
         webpage = self._download_webpage(req, video_id)
 
         # Extract URL, uploader and title from webpage
@@ -125,6 +160,11 @@ class MetacafeIE(InfoExtractor):
                 r'submitter=(.*?);|googletag\.pubads\(\)\.setTargeting\("(?:channel|submiter)","([^"]+)"\);',
                 webpage, u'uploader nickname', fatal=False)
 
+        if re.search(r'"contentRating":"restricted"', webpage) is not None:
+            age_limit = 18
+        else:
+            age_limit = 0
+
         return {
             '_type':    'video',
             'id':       video_id,
@@ -134,4 +174,5 @@ class MetacafeIE(InfoExtractor):
             'upload_date':  None,
             'title':    video_title,
             'ext':      video_ext,
+            'age_limit': age_limit,
         }

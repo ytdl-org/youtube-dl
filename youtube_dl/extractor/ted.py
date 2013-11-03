@@ -77,12 +77,20 @@ class TEDIE(InfoExtractor):
         
         thumbnail = self._search_regex(r'</span>[\s.]*</div>[\s.]*<img src="(.*?)"',
                                        webpage, 'thumbnail')
+        formats = [{
+            'ext': 'mp4',
+            'url': stream['file'],
+            'format': stream['id']
+            } for stream in info['htmlStreams']]
         info = {
-                'id': info['id'],
-                'url': info['htmlStreams'][-1]['file'],
-                'ext': 'mp4',
-                'title': title,
-                'thumbnail': thumbnail,
-                'description': desc,
-                }
+            'id': info['id'],
+            'title': title,
+            'thumbnail': thumbnail,
+            'description': desc,
+            'formats': formats,
+        }
+
+        # TODO: Remove when #980 has been merged
+        info.update(info['formats'][-1])
+
         return info

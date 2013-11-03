@@ -1,20 +1,26 @@
 #!/usr/bin/env python
 
-import sys
-import unittest
-import json
-
 # Allow direct execution
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import sys
+import unittest
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.extractor import YoutubeUserIE, YoutubePlaylistIE, YoutubeIE, YoutubeChannelIE, YoutubeShowIE
-from youtube_dl.utils import *
+from test.helper import FakeYDL, global_setup
+global_setup()
 
-from helper import FakeYDL
+
+from youtube_dl.extractor import (
+    YoutubeUserIE,
+    YoutubePlaylistIE,
+    YoutubeIE,
+    YoutubeChannelIE,
+    YoutubeShowIE,
+)
+
 
 class TestYoutubeLists(unittest.TestCase):
-    def assertIsPlaylist(self,info):
+    def assertIsPlaylist(self, info):
         """Make sure the info has '_type' set to 'playlist'"""
         self.assertEqual(info['_type'], 'playlist')
 
@@ -26,6 +32,14 @@ class TestYoutubeLists(unittest.TestCase):
         self.assertEqual(result['title'], 'ytdl test PL')
         ytie_results = [YoutubeIE()._extract_id(url['url']) for url in result['entries']]
         self.assertEqual(ytie_results, [ 'bV9L5Ht9LgY', 'FXxLjLQi3Fg', 'tU3Bgo5qJZE'])
+
+    def test_youtube_playlist_noplaylist(self):
+        dl = FakeYDL()
+        dl.params['noplaylist'] = True
+        ie = YoutubePlaylistIE(dl)
+        result = ie.extract('https://www.youtube.com/watch?v=FXxLjLQi3Fg&list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re')
+        self.assertEqual(result['_type'], 'url')
+        self.assertEqual(YoutubeIE()._extract_id(result['url']), 'FXxLjLQi3Fg')
 
     def test_issue_673(self):
         dl = FakeYDL()
@@ -92,7 +106,7 @@ class TestYoutubeLists(unittest.TestCase):
         dl = FakeYDL()
         ie = YoutubeShowIE(dl)
         result = ie.extract('http://www.youtube.com/show/airdisasters')
-        self.assertTrue(len(result) >= 4)
+        self.assertTrue(len(result) >= 3)
 
 if __name__ == '__main__':
     unittest.main()

@@ -25,3 +25,4 @@ updates_key.pem
 *.mp4
 *.part
 test/testdata
+.tox

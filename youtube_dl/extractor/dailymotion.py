@@ -10,25 +10,71 @@ from ..utils import (
     compat_str,
     get_element_by_attribute,
     get_element_by_id,
+    orderedSet,
 
     ExtractorError,
 )
 
+class DailymotionBaseInfoExtractor(InfoExtractor):
+    @staticmethod
+    def _build_request(url):
+        """Build a request with the family filter disabled"""
+        request = compat_urllib_request.Request(url)
+        request.add_header('Cookie', 'family_filter=off')
+        request.add_header('Cookie', 'ff=off')
+        return request
 
-class DailymotionIE(SubtitlesInfoExtractor):
+class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
     """Information Extractor for Dailymotion"""
 
     _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/(?:embed/)?video/([^/]+)'
     IE_NAME = u'dailymotion'
-    _TEST = {
-        u'url': u'http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech',
-        u'file': u'x33vw9.mp4',
-        u'md5': u'392c4b85a60a90dc4792da41ce3144eb',
-        u'info_dict': {
-            u"uploader": u"Amphora Alex and Van .", 
-            u"title": u"Tutoriel de Youtubeur\"DL DES VIDEO DE YOUTUBE\""
+
+    _FORMATS = [
+        (u'stream_h264_ld_url', u'ld'),
+        (u'stream_h264_url', u'standard'),
+        (u'stream_h264_hq_url', u'hq'),
+        (u'stream_h264_hd_url', u'hd'),
+        (u'stream_h264_hd1080_url', u'hd180'),
+    ]
+
+    _TESTS = [
+        {
+            u'url': u'http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech',
+            u'file': u'x33vw9.mp4',
+            u'md5': u'392c4b85a60a90dc4792da41ce3144eb',
+            u'info_dict': {
+                u"uploader": u"Amphora Alex and Van .", 
+                u"title": u"Tutoriel de Youtubeur\"DL DES VIDEO DE YOUTUBE\""
+            }
+        },
+        # Vevo video
+        {
+            u'url': u'http://www.dailymotion.com/video/x149uew_katy-perry-roar-official_musi',
+            u'file': u'USUV71301934.mp4',
+            u'info_dict': {
+                u'title': u'Roar (Official)',
+                u'uploader': u'Katy Perry',
+                u'upload_date': u'20130905',
+            },
+            u'params': {
+                u'skip_download': True,
+            },
+            u'skip': u'VEVO is only available in some countries',
+        },
+        # age-restricted video
+        {
+            u'url': u'http://www.dailymotion.com/video/xyh2zz_leanna-decker-cyber-girl-of-the-year-desires-nude-playboy-plus_redband',
+            u'file': u'xyh2zz.mp4',
+            u'md5': u'0d667a7b9cebecc3c89ee93099c4159d',
+            u'info_dict': {
+                u'title': 'Leanna Decker - Cyber Girl Of The Year Desires Nude [Playboy Plus]',
+                u'uploader': 'HotWaves1012',
+                u'age_limit': 18,
+            }
+
         }
-    }
+    ]
 
     def _real_extract(self, url):
         # Extract id and simplified title from URL
@@ -36,21 +82,29 @@ class DailymotionIE(SubtitlesInfoExtractor):
 
         video_id = mobj.group(1).split('_')[0].split('?')[0]
 
-        video_extension = 'mp4'
         url = 'http://www.dailymotion.com/video/%s' % video_id
 
         # Retrieve video webpage to extract further information
-        request = compat_urllib_request.Request(url)
-        request.add_header('Cookie', 'family_filter=off')
+        request = self._build_request(url)
         webpage = self._download_webpage(request, video_id)
 
         # Extract URL, uploader and title from webpage
         self.report_extraction(video_id)
 
+        # It may just embed a vevo video:
+        m_vevo = re.search(
+            r'<link rel="video_src" href="[^"]*?vevo.com[^"]*?videoId=(?P<id>[\w]*)',
+            webpage)
+        if m_vevo is not None:
+            vevo_id = m_vevo.group('id')
+            self.to_screen(u'Vevo video detected: %s' % vevo_id)
+            return self.url_result(u'vevo:%s' % vevo_id, ie='Vevo')
+
         video_uploader = self._search_regex([r'(?im)<span class="owner[^\"]+?">[^<]+?<a [^>]+?>([^<]+?)</a>',
                                              # Looking for official user
                                              r'<(?:span|a) .*?rel="author".*?>([^<]+?)</'],
-                                            webpage, 'video uploader')
+                                            webpage, 'video uploader', fatal=False)
+        age_limit = self._rta_search(webpage)
 
         video_upload_date = None
         mobj = re.search(r'<div class="[^"]*uploaded_cont[^"]*" title="[^"]*">([0-9]{2})-([0-9]{2})-([0-9]{4})</div>', webpage)
@@ -67,18 +121,24 @@ class DailymotionIE(SubtitlesInfoExtractor):
             msg = 'Couldn\'t get video, Dailymotion says: %s' % info['error']['title']
             raise ExtractorError(msg, expected=True)
 
-        # TODO: support choosing qualities
-
-        for key in ['stream_h264_hd1080_url','stream_h264_hd_url',
-                    'stream_h264_hq_url','stream_h264_url',
-                    'stream_h264_ld_url']:
-            if info.get(key):#key in info and info[key]:
-                max_quality = key
-                self.to_screen(u'Using %s' % key)
-                break
-        else:
+        formats = []
+        for (key, format_id) in self._FORMATS:
+            video_url = info.get(key)
+            if video_url is not None:
+                m_size = re.search(r'H264-(\d+)x(\d+)', video_url)
+                if m_size is not None:
+                    width, height = m_size.group(1), m_size.group(2)
+                else:
+                    width, height = None, None
+                formats.append({
+                    'url': video_url,
+                    'ext': 'mp4',
+                    'format_id': format_id,
+                    'width': width,
+                    'height': height,
+                })
+        if not formats:
             raise ExtractorError(u'Unable to extract video URL')
-        video_url = info[max_quality]
 
         # subtitles
         video_subtitles = self.extract_subtitles(video_id)
@@ -86,16 +146,16 @@ class DailymotionIE(SubtitlesInfoExtractor):
             self._list_available_subtitles(video_id)
             return
 
-        return [{
+        return {
             'id':       video_id,
-            'url':      video_url,
+            'formats': formats,
             'uploader': video_uploader,
             'upload_date':  video_upload_date,
             'title':    self._og_search_title(webpage),
-            'ext':      video_extension,
             'subtitles':    video_subtitles,
-            'thumbnail': info['thumbnail_url']
-        }]
+            'thumbnail': info['thumbnail_url'],
+            'age_limit': age_limit,
+        }
 
     def _get_available_subtitles(self, video_id):
         try:
@@ -113,7 +173,7 @@ class DailymotionIE(SubtitlesInfoExtractor):
         return {}
 
 
-class DailymotionPlaylistIE(InfoExtractor):
+class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
     IE_NAME = u'dailymotion:playlist'
     _VALID_URL = r'(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/playlist/(?P<id>.+?)/'
     _MORE_PAGES_INDICATOR = r'<div class="next">.*?<a.*?href="/playlist/.+?".*?>.*?</a>.*?</div>'
@@ -122,16 +182,17 @@ class DailymotionPlaylistIE(InfoExtractor):
     def _extract_entries(self, id):
         video_ids = []
         for pagenum in itertools.count(1):
-            webpage = self._download_webpage(self._PAGE_TEMPLATE % (id, pagenum),
+            request = self._build_request(self._PAGE_TEMPLATE % (id, pagenum))
+            webpage = self._download_webpage(request,
                                              id, u'Downloading page %s' % pagenum)
 
             playlist_el = get_element_by_attribute(u'class', u'video_list', webpage)
-            video_ids.extend(re.findall(r'data-id="(.+?)" data-ext-id', playlist_el))
+            video_ids.extend(re.findall(r'data-id="(.+?)"', playlist_el))
 
             if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
                 break
         return [self.url_result('http://www.dailymotion.com/video/%s' % video_id, 'Dailymotion')
-                   for video_id in video_ids]
+                   for video_id in orderedSet(video_ids)]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

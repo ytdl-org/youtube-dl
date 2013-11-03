@@ -51,12 +51,12 @@ class ComedyCentralIE(InfoExtractor):
         '400': 'mp4',
     }
     _video_dimensions = {
-        '3500': '1280x720',
-        '2200': '960x540',
-        '1700': '768x432',
-        '1200': '640x360',
-        '750': '512x288',
-        '400': '384x216',
+        '3500': (1280, 720),
+        '2200': (960, 540),
+        '1700': (768, 432),
+        '1200': (640, 360),
+        '750': (512, 288),
+        '400': (384, 216),
     }
 
     @classmethod
@@ -64,11 +64,13 @@ class ComedyCentralIE(InfoExtractor):
         """Receives a URL and returns True if suitable for this IE."""
         return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
-    def _print_formats(self, formats):
-        print('Available formats:')
-        for x in formats:
-            print('%s\t:\t%s\t[%s]' %(x, self._video_extensions.get(x, 'mp4'), self._video_dimensions.get(x, '???')))
-
+    @staticmethod
+    def _transform_rtmp_url(rtmp_video_url):
+        m = re.match(r'^rtmpe?://.*?/(?P<finalid>gsp.comedystor/.*)$', rtmp_video_url)
+        if not m:
+            raise ExtractorError(u'Cannot transform RTMP url')
+        base = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=1+_pxI0=Ripod-h264+_pxL0=undefined+_pxM0=+_pxK=18639+_pxE=mp4/44620/mtvnorigin/'
+        return base + m.group('finalid')
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url, re.VERBOSE)
@@ -155,40 +157,31 @@ class ComedyCentralIE(InfoExtractor):
                 self._downloader.report_error(u'unable to download ' + mediaId + ': No videos found')
                 continue
 
-            if self._downloader.params.get('listformats', None):
-                self._print_formats([i[0] for i in turls])
-                return
-
-            # For now, just pick the highest bitrate
-            format,rtmp_video_url = turls[-1]
-
-            # Get the format arg from the arg stream
-            req_format = self._downloader.params.get('format', None)
-
-            # Select format if we can find one
-            for f,v in turls:
-                if f == req_format:
-                    format, rtmp_video_url = f, v
-                    break
-
-            m = re.match(r'^rtmpe?://.*?/(?P<finalid>gsp.comedystor/.*)$', rtmp_video_url)
-            if not m:
-                raise ExtractorError(u'Cannot transform RTMP url')
-            base = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=1+_pxI0=Ripod-h264+_pxL0=undefined+_pxM0=+_pxK=18639+_pxE=mp4/44620/mtvnorigin/'
-            video_url = base + m.group('finalid')
+            formats = []
+            for format, rtmp_video_url in turls:
+                w, h = self._video_dimensions.get(format, (None, None))
+                formats.append({
+                    'url': self._transform_rtmp_url(rtmp_video_url),
+                    'ext': self._video_extensions.get(format, 'mp4'),
+                    'format_id': format,
+                    'height': h,
+                    'width': w,
+                })
 
             effTitle = showId + u'-' + epTitle + u' part ' + compat_str(partNum+1)
             info = {
                 'id': shortMediaId,
-                'url': video_url,
+                'formats': formats,
                 'uploader': showId,
                 'upload_date': officialDate,
                 'title': effTitle,
-                'ext': 'mp4',
-                'format': format,
                 'thumbnail': None,
                 'description': compat_str(officialTitle),
             }
+
+            # TODO: Remove when #980 has been merged
+            info.update(info['formats'][-1])
+
             results.append(info)
 
         return results

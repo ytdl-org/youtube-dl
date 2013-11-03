@@ -88,10 +88,6 @@ ROOT=$(pwd)
     "$ROOT/devscripts/gh-pages/update-sites.py"
     git add *.html *.html.in update
     git commit -m "release $version"
-    git show HEAD
-    read -p "Is it good, can I push? (y/n) " -n 1
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then exit 1; fi
-    echo
     git push "$ROOT" gh-pages
     git push "$ORIGIN_URL" gh-pages
 )

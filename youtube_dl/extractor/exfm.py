@@ -11,16 +11,17 @@ class ExfmIE(InfoExtractor):
     _SOUNDCLOUD_URL = r'(?:http://)?(?:www\.)?api\.soundcloud.com/tracks/([^/]+)/stream'
     _TESTS = [
         {
-            u'url': u'http://ex.fm/song/1bgtzg',
-            u'file': u'95223130.mp3',
-            u'md5': u'8a7967a3fef10e59a1d6f86240fd41cf',
+            u'url': u'http://ex.fm/song/eh359',
+            u'file': u'44216187.mp3',
+            u'md5': u'e45513df5631e6d760970b14cc0c11e7',
             u'info_dict': {
-                u"title": u"We Can't Stop - Miley Cyrus",
-                u"uploader": u"Miley Cyrus",
-                u'upload_date': u'20130603',
-                u'description': u'Download "We Can\'t Stop" \r\niTunes: http://smarturl.it/WeCantStop?IQid=SC\r\nAmazon: http://smarturl.it/WeCantStopAMZ?IQid=SC',
+                u"title": u"Test House \"Love Is Not Enough\" (Extended Mix) DeadJournalist Exclusive",
+                u"uploader": u"deadjournalist",
+                u'upload_date': u'20120424',
+                u'description': u'Test House \"Love Is Not Enough\" (Extended Mix) DeadJournalist Exclusive',
             },
             u'note': u'Soundcloud song',
+            u'skip': u'The site is down too often',
         },
         {
             u'url': u'http://ex.fm/song/wddt8',
@@ -30,6 +31,7 @@ class ExfmIE(InfoExtractor):
                 u'title': u'Safe and Sound',
                 u'uploader': u'Capital Cities',
             },
+            u'skip': u'The site is down too often',
         },
     ]
 

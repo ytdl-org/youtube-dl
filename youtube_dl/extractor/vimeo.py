@@ -1,3 +1,4 @@
+# encoding: utf-8
 import json
 import re
 import itertools
@@ -10,20 +11,21 @@ from ..utils import (
     clean_html,
     get_element_by_attribute,
     ExtractorError,
+    RegexNotFoundError,
     std_headers,
+    unsmuggle_url,
 )
 
 class VimeoIE(InfoExtractor):
     """Information extractor for vimeo.com."""
 
     # _VALID_URL matches Vimeo URLs
-    _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|player)\.)?vimeo(?P<pro>pro)?\.com/(?:(?:(?:groups|album)/[^/]+)|(?:.*?)/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)(?:[?].*)?$'
+    _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|(?P<player>player))\.)?vimeo(?P<pro>pro)?\.com/(?:(?:(?:groups|album)/[^/]+)|(?:.*?)/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)/?(?:[?].*)?(?:#.*)?$'
     _NETRC_MACHINE = 'vimeo'
-    _REFERRER_URL = 'https://vimeo.com/%s'
     IE_NAME = u'vimeo'
     _TESTS = [
         {
-            u'url': u'http://vimeo.com/56015672',
+            u'url': u'http://vimeo.com/56015672#at=0',
             u'file': u'56015672.mp4',
             u'md5': u'8879b6cc097e987f02484baf890129e5',
             u'info_dict': {
@@ -53,6 +55,21 @@ class VimeoIE(InfoExtractor):
             u'info_dict': {
                 u'title': u'Kathy Sierra: Building the minimum Badass User, Business of Software',
                 u'uploader': u'The BLN & Business of Software',
+            },
+        },
+        {
+            u'url': u'http://vimeo.com/68375962',
+            u'file': u'68375962.mp4',
+            u'md5': u'aaf896bdb7ddd6476df50007a0ac0ae7',
+            u'note': u'Video protected with password',
+            u'info_dict': {
+                u'title': u'youtube-dl password protected test video',
+                u'upload_date': u'20130614',
+                u'uploader_id': u'user18948128',
+                u'uploader': u'Jaime Marquínez Ferrándiz',
+            },
+            u'params': {
+                u'videopassword': u'youtube-dl',
             },
         },
     ]
@@ -99,21 +116,25 @@ class VimeoIE(InfoExtractor):
         self._login()
 
     def _real_extract(self, url, new_video=True):
+        url, data = unsmuggle_url(url)
+        headers = std_headers
+        if data is not None:
+            headers = headers.copy()
+            headers.update(data)
+
         # Extract ID from URL
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
 
         video_id = mobj.group('id')
-        if not mobj.group('proto'):
-            url = 'https://' + url
-        elif mobj.group('pro'):
+        if mobj.group('pro') or mobj.group('player'):
             url = 'http://player.vimeo.com/video/' + video_id
-        elif mobj.group('direct_link'):
+        else:
             url = 'https://vimeo.com/' + video_id
 
         # Retrieve video webpage to extract further information
-        request = compat_urllib_request.Request(url, None, std_headers)
+        request = compat_urllib_request.Request(url, None, headers)
         webpage = self._download_webpage(request, video_id)
 
         # Now we begin extracting as much information as we can from what we
@@ -123,18 +144,26 @@ class VimeoIE(InfoExtractor):
 
         # Extract the config JSON
         try:
-            config = self._search_regex([r' = {config:({.+?}),assets:', r'c=({.+?);'],
-                webpage, u'info section', flags=re.DOTALL)
-            config = json.loads(config)
-        except:
+            try:
+                config_url = self._html_search_regex(
+                    r' data-config-url="(.+?)"', webpage, u'config URL')
+                config_json = self._download_webpage(config_url, video_id)
+                config = json.loads(config_json)
+            except RegexNotFoundError:
+                # For pro videos or player.vimeo.com urls
+                config = self._search_regex([r' = {config:({.+?}),assets:', r'c=({.+?);'],
+                    webpage, u'info section', flags=re.DOTALL)
+                config = json.loads(config)
+        except Exception as e:
             if re.search('The creator of this video has not given you permission to embed it on this domain.', webpage):
                 raise ExtractorError(u'The author has restricted the access to this video, try with the "--referer" option')
 
-            if re.search('If so please provide the correct password.', webpage):
+            if re.search('<form[^>]+?id="pw_form"', webpage) is not None:
                 self._verify_video_password(url, video_id, webpage)
                 return self._real_extract(url)
             else:
-                raise ExtractorError(u'Unable to extract info section')
+                raise ExtractorError(u'Unable to extract info section',
+                                     cause=e)
 
         # Extract title
         video_title = config["video"]["title"]
@@ -173,48 +202,47 @@ class VimeoIE(InfoExtractor):
 
         # Vimeo specific: extract video codec and quality information
         # First consider quality, then codecs, then take everything
-        # TODO bind to format param
-        codecs = [('h264', 'mp4'), ('vp8', 'flv'), ('vp6', 'flv')]
-        files = { 'hd': [], 'sd': [], 'other': []}
+        codecs = [('vp6', 'flv'), ('vp8', 'flv'), ('h264', 'mp4')]
+        files = {'hd': [], 'sd': [], 'other': []}
         config_files = config["video"].get("files") or config["request"].get("files")
         for codec_name, codec_extension in codecs:
-            if codec_name in config_files:
-                if 'hd' in config_files[codec_name]:
-                    files['hd'].append((codec_name, codec_extension, 'hd'))
-                elif 'sd' in config_files[codec_name]:
-                    files['sd'].append((codec_name, codec_extension, 'sd'))
+            for quality in config_files.get(codec_name, []):
+                format_id = '-'.join((codec_name, quality)).lower()
+                key = quality if quality in files else 'other'
+                video_url = None
+                if isinstance(config_files[codec_name], dict):
+                    file_info = config_files[codec_name][quality]
+                    video_url = file_info.get('url')
                 else:
-                    files['other'].append((codec_name, codec_extension, config_files[codec_name][0]))
+                    file_info = {}
+                if video_url is None:
+                    video_url = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=%s&type=moogaloop_local&embed_location=" \
+                        %(video_id, sig, timestamp, quality, codec_name.upper())
 
-        for quality in ('hd', 'sd', 'other'):
-            if len(files[quality]) > 0:
-                video_quality = files[quality][0][2]
-                video_codec = files[quality][0][0]
-                video_extension = files[quality][0][1]
-                self.to_screen(u'%s: Downloading %s file at %s quality' % (video_id, video_codec.upper(), video_quality))
-                break
-        else:
+                files[key].append({
+                    'ext': codec_extension,
+                    'url': video_url,
+                    'format_id': format_id,
+                    'width': file_info.get('width'),
+                    'height': file_info.get('height'),
+                })
+        formats = []
+        for key in ('other', 'sd', 'hd'):
+            formats += files[key]
+        if len(formats) == 0:
             raise ExtractorError(u'No known codec found')
 
-        video_url = None
-        if isinstance(config_files[video_codec], dict):
-            video_url = config_files[video_codec][video_quality].get("url")
-        if video_url is None:
-            video_url = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=%s&type=moogaloop_local&embed_location=" \
-                        %(video_id, sig, timestamp, video_quality, video_codec.upper())
-
-        return [{
-            'id':          video_id,
-            'url':         video_url,
-            'referrer':    self._REFERRER_URL % video_id,
-            'uploader':    video_uploader,
+        return {
+            'id':       video_id,
+            'uploader': video_uploader,
             'uploader_id': video_uploader_id,
-            'upload_date': video_upload_date,
-            'title':       video_title,
-            'ext':         video_extension,
-            'thumbnail':   video_thumbnail,
-            'description': video_description,
-        }]
+            'upload_date':  video_upload_date,
+            'title':    video_title,
+            'thumbnail':    video_thumbnail,
+            'description':  video_description,
+            'formats': formats,
+            'webpage_url': url,
+        }
 
 
 class VimeoChannelIE(InfoExtractor):

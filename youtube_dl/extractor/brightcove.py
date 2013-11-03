@@ -23,7 +23,7 @@ class BrightcoveIE(InfoExtractor):
             # From http://www.8tv.cat/8aldia/videos/xavier-sala-i-martin-aquesta-tarda-a-8-al-dia/
             u'url': u'http://c.brightcove.com/services/viewer/htmlFederated?playerID=1654948606001&flashID=myExperience&%40videoPlayer=2371591881001',
             u'file': u'2371591881001.mp4',
-            u'md5': u'9e80619e0a94663f0bdc849b4566af19',
+            u'md5': u'8eccab865181d29ec2958f32a6a754f5',
             u'note': u'Test Brightcove downloads and detection in GenericIE',
             u'info_dict': {
                 u'title': u'Xavier Sala i Martín: “Un banc que no presta és un banc zombi que no serveix per a res”',
@@ -49,6 +49,13 @@ class BrightcoveIE(InfoExtractor):
         Build a Brightcove url from a xml string containing
         <object class="BrightcoveExperience">{params}</object>
         """
+
+        # Fix up some stupid HTML, see https://github.com/rg3/youtube-dl/issues/1553
+        object_str = re.sub(r'(<param name="[^"]+" value="[^"]+")>',
+                            lambda m: m.group(1) + '/>', object_str)
+        # Fix up some stupid XML, see https://github.com/rg3/youtube-dl/issues/1608
+        object_str = object_str.replace(u'<--', u'<!--')
+
         object_doc = xml.etree.ElementTree.fromstring(object_str)
         assert u'BrightcoveExperience' in object_doc.attrib['class']
         params = {'flashID': object_doc.attrib['id'],
@@ -91,7 +98,10 @@ class BrightcoveIE(InfoExtractor):
         playlist_info = self._download_webpage(self._PLAYLIST_URL_TEMPLATE % player_key,
                                                player_key, u'Downloading playlist information')
 
-        playlist_info = json.loads(playlist_info)['videoList']
+        json_data = json.loads(playlist_info)
+        if 'videoList' not in json_data:
+            raise ExtractorError(u'Empty playlist')
+        playlist_info = json_data['videoList']
         videos = [self._extract_video_info(video_info) for video_info in playlist_info['mediaCollectionDTO']['videoDTOs']]
 
         return self.playlist_result(videos, playlist_id=playlist_info['id'],
@@ -112,12 +122,10 @@ class BrightcoveIE(InfoExtractor):
             best_format = renditions[-1]
             info.update({
                 'url': best_format['defaultURL'],
-                'ext': 'mp4',
             })
         elif video_info.get('FLVFullLengthURL') is not None:
             info.update({
                 'url': video_info['FLVFullLengthURL'],
-                'ext': 'flv',
             })
         else:
             raise ExtractorError(u'Unable to extract video url for %s' % info['id'])

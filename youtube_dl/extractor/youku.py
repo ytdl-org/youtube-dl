@@ -13,12 +13,12 @@ from ..utils import (
 
 
 class YoukuIE(InfoExtractor):
-    _VALID_URL =  r'(?:http://)?(v|player)\.youku\.com/(v_show/id_|player\.php/sid/)(?P<ID>[A-Za-z0-9]+)(\.html|/v.swf)'
+    _VALID_URL =  r'(?:(?:http://)?(?:v|player)\.youku\.com/(?:v_show/id_|player\.php/sid/)|youku:)(?P<ID>[A-Za-z0-9]+)(?:\.html|/v\.swf|)'
     _TEST =   {
         u"url": u"http://v.youku.com/v_show/id_XNDgyMDQ2NTQw.html",
         u"file": u"XNDgyMDQ2NTQw_part00.flv",
         u"md5": u"ffe3f2e435663dc2d1eea34faeff5b5b",
-        u"params": { u"test": False },
+        u"params": {u"test": False},
         u"info_dict": {
             u"title": u"youtube-dl test video \"'/\\ä↭𝕐"
         }
@@ -37,8 +37,8 @@ class YoukuIE(InfoExtractor):
         source = list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/\:._-1234567890")
         seed = float(seed)
         for i in range(len(source)):
-            seed  =  (seed * 211 + 30031 ) % 65536
-            index  =  math.floor(seed / 65536 * len(source) )
+            seed  =  (seed * 211 + 30031) % 65536
+            index  =  math.floor(seed / 65536 * len(source))
             mixed.append(source[int(index)])
             source.remove(source[int(index)])
         #return ''.join(mixed)

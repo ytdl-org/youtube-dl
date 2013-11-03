@@ -14,6 +14,8 @@ from ..utils import (
     clean_html,
     compiled_regex_type,
     ExtractorError,
+    RegexNotFoundError,
+    sanitize_filename,
     unescapeHTML,
 )
 
@@ -35,6 +37,8 @@ class InfoExtractor(object):
     title:          Video title, unescaped.
     ext:            Video filename extension.
 
+    Instead of url and ext, formats can also specified.
+
     The following fields are optional:
 
     format:         The video format, defaults to ext (used for --get-format)
@@ -52,8 +56,26 @@ class InfoExtractor(object):
     view_count:     How many users have watched the video on the platform.
     urlhandle:      [internal] The urlHandle to be used to download the file,
                     like returned by urllib.request.urlopen
+    age_limit:      Age restriction for the video, as an integer (years)
+    formats:        A list of dictionaries for each format available, it must
+                    be ordered from worst to best quality. Potential fields:
+                    * url       Mandatory. The URL of the video file
+                    * ext       Will be calculated from url if missing
+                    * format    A human-readable description of the format
+                                ("mp4 container with h264/opus").
+                                Calculated from the format_id, width, height.
+                                and format_note fields if missing.
+                    * format_id A short description of the format
+                                ("mp4_h264_opus" or "19")
+                    * format_note Additional info about the format
+                                ("3D" or "DASH video")
+                    * width     Width of the video, if known
+                    * height    Height of the video, if known
+    webpage_url:    The url to the video webpage, if given to youtube-dl it
+                    should allow to get the same result again. (It will be set
+                    by YoutubeDL if it's missing)
 
-    The fields should all be Unicode strings.
+    Unless mentioned otherwise, the fields should be Unicode strings.
 
     Subclasses of this one should re-define the _real_initialize() and
     _real_extract() methods and define a _VALID_URL regexp.
@@ -164,6 +186,17 @@ class InfoExtractor(object):
             self.to_screen(u'Dumping request to ' + url)
             dump = base64.b64encode(webpage_bytes).decode('ascii')
             self._downloader.to_screen(dump)
+        if self._downloader.params.get('write_pages', False):
+            try:
+                url = url_or_request.get_full_url()
+            except AttributeError:
+                url = url_or_request
+            raw_filename = ('%s_%s.dump' % (video_id, url))
+            filename = sanitize_filename(raw_filename, restricted=True)
+            self.to_screen(u'Saving request to ' + filename)
+            with open(filename, 'wb') as outf:
+                outf.write(webpage_bytes)
+
         content = webpage_bytes.decode(encoding, 'replace')
         return (content, urlh)
 
@@ -214,7 +247,7 @@ class InfoExtractor(object):
         Perform a regex search on the given string, using a single or a list of
         patterns returning the first matching group.
         In case of failure return a default value or raise a WARNING or a
-        ExtractorError, depending on fatal, specifying the field name.
+        RegexNotFoundError, depending on fatal, specifying the field name.
         """
         if isinstance(pattern, (str, compat_str, compiled_regex_type)):
             mobj = re.search(pattern, string, flags)
@@ -234,7 +267,7 @@ class InfoExtractor(object):
         elif default is not None:
             return default
         elif fatal:
-            raise ExtractorError(u'Unable to extract %s' % _name)
+            raise RegexNotFoundError(u'Unable to extract %s' % _name)
         else:
             self._downloader.report_warning(u'unable to extract %s; '
                 u'please report this issue on http://yt-dl.org/bug' % _name)
@@ -300,10 +333,19 @@ class InfoExtractor(object):
     def _og_search_title(self, html, **kargs):
         return self._og_search_property('title', html, **kargs)
 
-    def _og_search_video_url(self, html, name='video url', **kargs):
-        return self._html_search_regex([self._og_regex('video:secure_url'),
-                                        self._og_regex('video')],
-                                       html, name, **kargs)
+    def _og_search_video_url(self, html, name='video url', secure=True, **kargs):
+        regexes = [self._og_regex('video')]
+        if secure: regexes.insert(0, self._og_regex('video:secure_url'))
+        return self._html_search_regex(regexes, html, name, **kargs)
+
+    def _rta_search(self, html):
+        # See http://www.rtalabel.org/index.php?content=howtofaq#single
+        if re.search(r'(?ix)<meta\s+name="rating"\s+'
+                     r'     content="RTA-5042-1996-1400-1577-RTA"',
+                     html):
+            return 18
+        return 0
+
 
 class SearchInfoExtractor(InfoExtractor):
     """
@@ -342,7 +384,7 @@ class SearchInfoExtractor(InfoExtractor):
 
     def _get_n_results(self, query, n):
         """Get a specified number of results for a query"""
-        raise NotImplementedError("This method must be implemented by sublclasses")
+        raise NotImplementedError("This method must be implemented by subclasses")
 
     @property
     def SEARCH_KEY(self):
