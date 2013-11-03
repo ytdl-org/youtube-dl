@@ -1735,6 +1735,7 @@ class YoutubeSearchIE(SearchInfoExtractor):
 class YoutubeSearchDateIE(YoutubeSearchIE):
     _API_URL = 'https://gdata.youtube.com/feeds/api/videos?q=%s&start-index=%i&max-results=50&v=2&alt=jsonc&orderby=published'
     _SEARCH_KEY = 'ytsearchdate'
+    IE_DESC = u'YouTube.com searches, newest videos first'
 
 class YoutubeShowIE(InfoExtractor):
     IE_DESC = u'YouTube.com (multi-season) shows'
