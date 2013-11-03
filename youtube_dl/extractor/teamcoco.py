@@ -1,9 +1,9 @@
 import re
+import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    RegexNotFoundError,
 )
 
 
@@ -32,29 +32,40 @@ class TeamcocoIE(InfoExtractor):
         self.report_extraction(video_id)
 
         data_url = 'http://teamcoco.com/cvp/2.0/%s.xml' % video_id
-        data = self._download_webpage(data_url, video_id, 'Downloading data webpage')
+        data_xml = self._download_webpage(data_url, video_id, 'Downloading data webpage')
+        data = xml.etree.ElementTree.fromstring(data_xml.encode('utf-8'))
 
 
-        qualities = [ '1080p', '720p', '1000k', '480p', '500k' ]
-        best_quality_idx = len(qualities)+1  # First regex match may not be optimal
-        for idx, quality in enumerate(qualities):
-            regex = r'<file [^>]*type="(?:high|standard)".*?>(.*%s.*)</file>' % quality
+        qualities = ['500k', '480p', '1000k', '720p', '1080p']
+        formats = []
+        for file in data.findall('files/file'):
+            if file.attrib.get('playmode') == 'all':
+                # it just duplicates one of the entries
+                break
+            file_url = file.text
+            m_format = re.search(r'(\d+(k|p))\.mp4', file_url)
+            if m_format is not None:
+                format_id = m_format.group(1)
+            else:
+                format_id = file.attrib['bitrate']
+            formats.append({
+                'url': file_url,
+                'ext': 'mp4',
+                'format_id': format_id,
+            })
+        def sort_key(f):
             try:
-                url = self._html_search_regex(regex, data, u'video URL')
-                if idx < best_quality_idx:
-                    video_url = url
-                    best_quality_idx = idx
-            except RegexNotFoundError:
-                # Just catch fatal exc. Don't want the fatal=False warning
-                continue
-        if not video_url:
+                return qualities.index(f['format_id'])
+            except ValueError:
+                return -1
+        formats.sort(key=sort_key)
+        if not formats:
             raise RegexNotFoundError(u'Unable to extract video URL')
 
-        return [{
+        return {
             'id':          video_id,
-            'url':         video_url,
-            'ext':         'mp4',
+            'formats': formats,
             'title':       self._og_search_title(webpage),
             'thumbnail':   self._og_search_thumbnail(webpage),
             'description': self._og_search_description(webpage),
-        }]
+        }
