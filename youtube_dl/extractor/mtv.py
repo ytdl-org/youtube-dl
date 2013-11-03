@@ -26,6 +26,7 @@ class MTVIE(InfoExtractor):
             },
         },
         {
+            u'add_ie': ['Vevo'],
             u'url': u'http://www.mtv.com/videos/taylor-swift/916187/everything-has-changed-ft-ed-sheeran.jhtml',
             u'file': u'USCJY1331283.mp4',
             u'md5': u'73b4e7fcadd88929292fe52c3ced8caf',

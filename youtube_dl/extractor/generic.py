@@ -33,6 +33,7 @@ class GenericIE(InfoExtractor):
         },
         # embedded vimeo video
         {
+            u'add_ie': ['Vimeo'],
             u'url': u'http://skillsmatter.com/podcast/home/move-semanticsperfect-forwarding-and-rvalue-references',
             u'file': u'22444065.mp4',
             u'md5': u'2903896e23df39722c33f015af0666e2',
@@ -44,6 +45,7 @@ class GenericIE(InfoExtractor):
         },
         # bandcamp page with custom domain
         {
+            u'add_ie': ['Bandcamp'],
             u'url': u'http://bronyrock.com/track/the-pony-mash',
             u'file': u'3235767654.mp3',
             u'info_dict': {
