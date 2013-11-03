@@ -318,6 +318,12 @@ class YoutubeDL(object):
                     % info_dict)
         return None
 
+    @staticmethod
+    def add_extra_info(info_dict, extra_info):
+        '''Set the keys from extra_info in info dict if they are missing'''
+        for key, value in extra_info.items():
+            info_dict.setdefault(key, value)
+
     def extract_info(self, url, download=True, ie_key=None, extra_info={}):
         '''
         Returns a list with a dictionary for each video we find.
@@ -344,17 +350,13 @@ class YoutubeDL(object):
                     break
                 if isinstance(ie_result, list):
                     # Backwards compatibility: old IE result format
-                    for result in ie_result:
-                        result.update(extra_info)
                     ie_result = {
                         '_type': 'compat_list',
                         'entries': ie_result,
                     }
-                else:
-                    ie_result.update(extra_info)
                 if 'extractor' not in ie_result:
                     ie_result['extractor'] = ie.IE_NAME
-                return self.process_ie_result(ie_result, download=download)
+                return self.process_ie_result(ie_result, download, extra_info)
             except ExtractorError as de: # An error we somewhat expected
                 self.report_error(compat_str(de), de.format_traceback())
                 break
@@ -378,7 +380,7 @@ class YoutubeDL(object):
 
         result_type = ie_result.get('_type', 'video') # If not given we suppose it's a video, support the default old system
         if result_type == 'video':
-            ie_result.update(extra_info)
+            self.add_extra_info(ie_result, extra_info)
             return self.process_video_result(ie_result)
         elif result_type == 'url':
             # We have to add extra_info to the results because it may be
@@ -388,6 +390,7 @@ class YoutubeDL(object):
                                      ie_key=ie_result.get('ie_key'),
                                      extra_info=extra_info)
         elif result_type == 'playlist':
+            self.add_extra_info(ie_result, extra_info)
             # We process each entry in the playlist
             playlist = ie_result.get('title', None) or ie_result.get('id', None)
             self.to_screen(u'[download] Downloading playlist: %s' % playlist)
@@ -413,12 +416,8 @@ class YoutubeDL(object):
                 extra = {
                     'playlist': playlist,
                     'playlist_index': i + playliststart,
+                    'extractor': ie_result['extractor'],
                 }
-                if not 'extractor' in entry:
-                    # We set the extractor, if it's an url it will be set then to
-                    # the new extractor, but if it's already a video we must make
-                    # sure it's present: see issue #877
-                    entry['extractor'] = ie_result['extractor']
                 entry_result = self.process_ie_result(entry,
                                                       download=download,
                                                       extra_info=extra)
@@ -427,10 +426,11 @@ class YoutubeDL(object):
             return ie_result
         elif result_type == 'compat_list':
             def _fixup(r):
-                r.setdefault('extractor', ie_result['extractor'])
+                self.add_extra_info(r,
+                    {'extractor': ie_result['extractor']})
                 return r
             ie_result['entries'] = [
-                self.process_ie_result(_fixup(r), download=download)
+                self.process_ie_result(_fixup(r), download, extra_info)
                 for r in ie_result['entries']
             ]
             return ie_result
