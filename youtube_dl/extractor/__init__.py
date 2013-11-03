@@ -163,6 +163,7 @@ from .youtube import (
     YoutubeIE,
     YoutubePlaylistIE,
     YoutubeSearchIE,
+    YoutubeSearchDateIE,
     YoutubeUserIE,
     YoutubeChannelIE,
     YoutubeShowIE,
