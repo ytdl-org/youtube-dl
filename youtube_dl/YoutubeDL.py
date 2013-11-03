@@ -354,8 +354,11 @@ class YoutubeDL(object):
                         '_type': 'compat_list',
                         'entries': ie_result,
                     }
-                if 'extractor' not in ie_result:
-                    ie_result['extractor'] = ie.IE_NAME
+                self.add_extra_info(ie_result,
+                    {
+                        'extractor': ie.IE_NAME,
+                        'webpage_url': url
+                    })
                 return self.process_ie_result(ie_result, download, extra_info)
             except ExtractorError as de: # An error we somewhat expected
                 self.report_error(compat_str(de), de.format_traceback())
@@ -417,6 +420,7 @@ class YoutubeDL(object):
                     'playlist': playlist,
                     'playlist_index': i + playliststart,
                     'extractor': ie_result['extractor'],
+                    'webpage_url': ie_result['webpage_url'],
                 }
                 entry_result = self.process_ie_result(entry,
                                                       download=download,
@@ -427,7 +431,10 @@ class YoutubeDL(object):
         elif result_type == 'compat_list':
             def _fixup(r):
                 self.add_extra_info(r,
-                    {'extractor': ie_result['extractor']})
+                    {
+                        'extractor': ie_result['extractor'],
+                        'webpage_url': ie_result['webpage_url'],
+                    })
                 return r
             ie_result['entries'] = [
                 self.process_ie_result(_fixup(r), download, extra_info)

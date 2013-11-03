@@ -71,6 +71,9 @@ class InfoExtractor(object):
                                 ("3D" or "DASH video")
                     * width     Width of the video, if known
                     * height    Height of the video, if known
+    webpage_url:    The url to the video webpage, if given to youtube-dl it
+                    should allow to get the same result again. (It will be set
+                    by YoutubeDL if it's missing)
 
     Unless mentioned otherwise, the fields should be Unicode strings.
 

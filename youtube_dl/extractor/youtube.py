@@ -1485,7 +1485,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'subtitles':    video_subtitles,
                 'duration':     video_duration,
                 'age_limit':    18 if age_gate else 0,
-                'annotations':  video_annotations
+                'annotations':  video_annotations,
+                'webpage_url': 'https://www.youtube.com/watch?v=%s' % video_id,
             })
         return results
 
