@@ -23,6 +23,7 @@ from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE
 from .condenast import CondeNastIE
 from .criterion import CriterionIE
+from .crunchyroll import CrunchyrollIE
 from .cspan import CSpanIE
 from .dailymotion import (
     DailymotionIE,
