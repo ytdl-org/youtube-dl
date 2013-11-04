@@ -6,7 +6,7 @@ from .common import InfoExtractor
 
 class Canalc2IE(InfoExtractor):
     IE_NAME = 'canalc2.tv'
-    _VALID_URL = r'http://.*?\.canalc2\.tv/video\.asp\?idVideo=(\d+)&voir=oui'
+    _VALID_URL = r'http://.*?\.canalc2\.tv/video\.asp\?.*?idVideo=(?P<id>\d+)'
 
     _TEST = {
         u'url': u'http://www.canalc2.tv/video.asp?idVideo=12163&voir=oui',
@@ -18,7 +18,9 @@ class Canalc2IE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        video_id = re.match(self._VALID_URL, url).group(1)
+        video_id = re.match(self._VALID_URL, url).group('id')
+        # We need to set the voir field for getting the file name
+        url = 'http://www.canalc2.tv/video.asp?idVideo=%s&voir=oui' % video_id
         webpage = self._download_webpage(url, video_id)
         file_name = self._search_regex(
             r"so\.addVariable\('file','(.*?)'\);",
