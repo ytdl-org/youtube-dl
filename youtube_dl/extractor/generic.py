@@ -160,9 +160,9 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded YouTube player
         mobj = re.search(
-            r'<iframe[^>]+?src="(https?://(?:www\.)?youtube.com/embed/.+?)"', webpage)
+            r'<iframe[^>]+?src=(["\'])(?P<url>https?://(?:www\.)?youtube.com/embed/.+?)\1', webpage)
         if mobj:
-            surl = unescapeHTML(mobj.group(1))
+            surl = unescapeHTML(mobj.group(u'url'))
             return self.url_result(surl, 'Youtube')
 
         # Look for Bandcamp pages with custom domain
