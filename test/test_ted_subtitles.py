@@ -51,6 +51,12 @@ class TestTedSubtitles(unittest.TestCase):
         self.DL.params['subtitleslang'] = ['en']
         subtitles = self.getSubtitles()
         self.assertTrue(len(subtitles.keys()) == 0)
+    # def test_nosubtitles(self):
+    #     self.DL.expect_warning(u'video doesn\'t have subtitles')
+    #     self.url = 'http://www.ted.com/talks/rodrigo_canales_the_deadly_genius_of_drug_cartels.html'
+    #     self.DL.params['writesubtitles'] = True
+    #     self.DL.params['allsubtitles'] = True
+    #     subtitles = self.getSubtitles()
     def test_multiple_langs(self):
         self.DL.params['writesubtitles'] = True
         langs = ['es', 'fr', 'de']

@@ -3,6 +3,11 @@ import re
 
 from .subtitles import SubtitlesInfoExtractor
 
+from ..utils import (
+    compat_str,
+    RegexNotFoundError,
+)
+
 class TEDIE(SubtitlesInfoExtractor):
     _VALID_URL=r'''http://www\.ted\.com/
                    (
@@ -105,12 +110,15 @@ class TEDIE(SubtitlesInfoExtractor):
         return info
 
     def _get_available_subtitles(self, video_id, webpage):
-        options = self._search_regex(r'(?:<select name="subtitles_language_select" id="subtitles_language_select">)(.*?)(?:</select>)', webpage, 'subtitles_language_select', flags=re.DOTALL)
-        languages = re.findall(r'(?:<option value=")(\S+)"', options)
-        if languages:
-            sub_lang_list = {}
-            for l in languages:
-                url = 'http://www.ted.com/talks/subtitles/id/%s/lang/%s/format/srt' % (video_id, l)
-                sub_lang_list[l] = url
-            return sub_lang_list
+        try:
+            options = self._search_regex(r'(?:<select name="subtitles_language_select" id="subtitles_language_select">)(.*?)(?:</select>)', webpage, 'subtitles_language_select', flags=re.DOTALL)
+            languages = re.findall(r'(?:<option value=")(\S+)"', options)
+            if languages:
+                sub_lang_list = {}
+                for l in languages:
+                    url = 'http://www.ted.com/talks/subtitles/id/%s/lang/%s/format/srt' % (video_id, l)
+                    sub_lang_list[l] = url
+                return sub_lang_list
+        except RegexNotFoundError as err:
+            self._downloader.report_warning(u'video doesn\'t have subtitles')
         return {}
