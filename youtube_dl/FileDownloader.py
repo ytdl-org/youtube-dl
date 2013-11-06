@@ -557,7 +557,7 @@ class FileDownloader(object):
             # Progress message
             speed = self.calc_speed(start, time.time(), byte_counter - resume_len)
             if data_len is None:
-                self.report_progress('Unknown %', data_len_str, speed_str, 'Unknown ETA')
+                self.report_progress('Unknown %', data_len_str, speed, 'Unknown ETA')
                 eta = None
             else:
                 percent = self.calc_percent(byte_counter, data_len)
