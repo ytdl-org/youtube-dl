@@ -42,6 +42,17 @@ class BrightcoveIE(InfoExtractor):
                 u'uploader': u'Oracle',
             },
         },
+        {
+            # From http://mashable.com/2013/10/26/thermoelectric-bracelet-lets-you-control-your-body-temperature/
+            u'url': u'http://c.brightcove.com/services/viewer/federated_f9?&playerID=1265504713001&publisherID=AQ%7E%7E%2CAAABBzUwv1E%7E%2CxP-xFHVUstiMFlNYfvF4G9yFnNaqCw_9&videoID=2750934548001',
+            u'info_dict': {
+                u'id': u'2750934548001',
+                u'ext': u'mp4',
+                u'title': u'This Bracelet Acts as a Personal Thermostat',
+                u'description': u'md5:547b78c64f4112766ccf4e151c20b6a0',
+                u'uploader': u'Mashable',
+            },
+        },
     ]
 
     @classmethod
@@ -86,6 +97,8 @@ class BrightcoveIE(InfoExtractor):
             return None
 
     def _real_extract(self, url):
+        # Change the 'videoId' or 'videoID' field to '@videoPlayer'
+        url = re.sub(r'(?<=[?&])videoI(d|D)', '%40videoPlayer', url)
         mobj = re.match(self._VALID_URL, url)
         query_str = mobj.group('query')
         query = compat_urlparse.parse_qs(query_str)
