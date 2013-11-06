@@ -4,12 +4,19 @@ import re
 import subprocess
 import sys
 import time
-import traceback
 
 if os.name == 'nt':
     import ctypes
 
-from .utils import *
+from .utils import (
+    compat_urllib_error,
+    compat_urllib_request,
+    ContentTooShortError,
+    determine_ext,
+    encodeFilename,
+    sanitize_open,
+    timeconvert,
+)
 
 
 class FileDownloader(object):
@@ -194,7 +201,7 @@ class FileDownloader(object):
             if old_filename == new_filename:
                 return
             os.rename(encodeFilename(old_filename), encodeFilename(new_filename))
-        except (IOError, OSError) as err:
+        except (IOError, OSError):
             self.report_error(u'unable to rename file')
 
     def try_utime(self, filename, last_modified_hdr):
@@ -251,7 +258,7 @@ class FileDownloader(object):
         """Report file has already been fully downloaded."""
         try:
             self.to_screen(u'[download] %s has already been downloaded' % file_name)
-        except (UnicodeEncodeError) as err:
+        except UnicodeEncodeError:
             self.to_screen(u'[download] The file has already been downloaded')
 
     def report_unable_to_resume(self):
