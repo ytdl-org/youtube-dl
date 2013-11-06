@@ -30,10 +30,11 @@ class KankanIE(InfoExtractor):
                                                  video_id, u'Downloading video url info')
         ip = self._search_regex(r'ip:"(.+?)"', video_info_page, u'video url ip')
         path = self._search_regex(r'path:"(.+?)"', video_info_page, u'video url path')
-        video_url = 'http://%s%s' % (ip, path)
+        video_url = 'http://%s%s?key=fb2dcb4b14401eae04986d42011ae4d4&key1=1383767293' % (ip, path)
 
         return {'id': video_id,
                 'title': title,
                 'url': video_url,
                 'ext': determine_ext(video_url),
+                'user_agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.101 Safari/537.36'
                 }
