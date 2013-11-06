@@ -146,10 +146,11 @@ class BrightcoveIE(InfoExtractor):
         renditions = video_info.get('renditions')
         if renditions:
             renditions = sorted(renditions, key=lambda r: r['size'])
-            best_format = renditions[-1]
-            info.update({
-                'url': best_format['defaultURL'],
-            })
+            info['formats'] = [{
+                'url': rend['defaultURL'],
+                'height': rend.get('frameHeight'),
+                'width': rend.get('frameWidth'),
+            } for rend in renditions]
         elif video_info.get('FLVFullLengthURL') is not None:
             info.update({
                 'url': video_info['FLVFullLengthURL'],
