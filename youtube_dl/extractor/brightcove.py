@@ -97,8 +97,10 @@ class BrightcoveIE(InfoExtractor):
             return None
 
     def _real_extract(self, url):
-        # Change the 'videoId' or 'videoID' field to '@videoPlayer'
-        url = re.sub(r'(?<=[?&])videoI(d|D)', '%40videoPlayer', url)
+        # Change the 'videoId' and others field to '@videoPlayer'
+        url = re.sub(r'(?<=[?&])(videoI(d|D)|bctid)', '%40videoPlayer', url)
+        # Change bckey (used by bcove.me urls) to playerKey
+        url = re.sub(r'(?<=[?&])bckey', 'playerKey', url)
         mobj = re.match(self._VALID_URL, url)
         query_str = mobj.group('query')
         query = compat_urlparse.parse_qs(query_str)
