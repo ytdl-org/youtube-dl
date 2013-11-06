@@ -9,6 +9,7 @@ from ..utils import (
     compat_urllib_parse,
     find_xpath_attr,
     compat_urlparse,
+    compat_str,
 
     ExtractorError,
 )
@@ -71,6 +72,19 @@ class BrightcoveIE(InfoExtractor):
         data = compat_urllib_parse.urlencode(params)
         return cls._FEDERATED_URL_TEMPLATE % data
 
+    @classmethod
+    def _extract_brightcove_url(cls, webpage):
+        """Try to extract the brightcove url from the wepbage, returns None
+        if it can't be found
+        """
+        m_brightcove = re.search(
+            r'<object[^>]+?class=([\'"])[^>]*?BrightcoveExperience.*?\1.+?</object>',
+            webpage, re.DOTALL)
+        if m_brightcove is not None:
+            return cls._build_brighcove_url(m_brightcove.group())
+        else:
+            return None
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         query_str = mobj.group('query')
@@ -109,7 +123,7 @@ class BrightcoveIE(InfoExtractor):
 
     def _extract_video_info(self, video_info):
         info = {
-            'id': video_info['id'],
+            'id': compat_str(video_info['id']),
             'title': video_info['displayName'],
             'description': video_info.get('shortDescription'),
             'thumbnail': video_info.get('videoStillURL') or video_info.get('thumbnailURL'),

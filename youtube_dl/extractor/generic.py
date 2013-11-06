@@ -54,6 +54,21 @@ class GenericIE(InfoExtractor):
             },
             u'skip': u'There is a limit of 200 free downloads / month for the test song',
         },
+        # embedded brightcove video
+        {
+            u'add_ie': ['Brightcove'],
+            u'url': u'http://www.scientificamerican.com/article.cfm?id=soap-bubble-physics',
+            u'info_dict': {
+                u'id': u'2365799484001',
+                u'ext': u'mp4',
+                u'title': u'Bubble Simulation',
+                u'description': u'A visualization from a new computer model of foam behavior.',
+                u'uploader': u'Scientific American',
+            },
+            u'params': {
+                u'skip_download': True,
+            },
+        },
     ]
 
     def report_download_webpage(self, video_id):
@@ -146,10 +161,9 @@ class GenericIE(InfoExtractor):
 
         self.report_extraction(video_id)
         # Look for BrightCove:
-        m_brightcove = re.search(r'<object[^>]+?class=([\'"])[^>]*?BrightcoveExperience.*?\1.+?</object>', webpage, re.DOTALL)
-        if m_brightcove is not None:
+        bc_url = BrightcoveIE._extract_brightcove_url(webpage)
+        if bc_url is not None:
             self.to_screen(u'Brightcove video detected.')
-            bc_url = BrightcoveIE._build_brighcove_url(m_brightcove.group())
             return self.url_result(bc_url, 'Brightcove')
 
         # Look for embedded Vimeo player
