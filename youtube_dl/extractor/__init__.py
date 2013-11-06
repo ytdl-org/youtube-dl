@@ -38,6 +38,7 @@ from .defense import DefenseGouvFrIE
 from .ebaumsworld import EbaumsWorldIE
 from .ehow import EHowIE
 from .eighttracks import EightTracksIE
+from .eitb import EitbIE
 from .escapist import EscapistIE
 from .exfm import ExfmIE
 from .extremetube import ExtremeTubeIE
