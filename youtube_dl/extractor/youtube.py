@@ -1572,7 +1572,6 @@ class YoutubePlaylistIE(InfoExtractor):
 class YoutubeChannelIE(InfoExtractor):
     IE_DESC = u'YouTube.com channels'
     _VALID_URL = r"^(?:https?://)?(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com)/channel/([0-9A-Za-z_-]+)"
-    _TEMPLATE_URL = 'http://www.youtube.com/channel/%s/videos?sort=da&flow=list&view=0&page=%s&gl=US&hl=en'
     _MORE_PAGES_INDICATOR = 'yt-uix-load-more'
     _MORE_PAGES_URL = 'http://www.youtube.com/c4_browse_ajax?action_load_more_videos=1&flow=list&paging=%s&view=0&sort=da&channel_id=%s'
     IE_NAME = u'youtube:channel'
@@ -1593,30 +1592,20 @@ class YoutubeChannelIE(InfoExtractor):
         # Download channel page
         channel_id = mobj.group(1)
         video_ids = []
-        pagenum = 1
 
-        url = self._TEMPLATE_URL % (channel_id, pagenum)
-        page = self._download_webpage(url, channel_id,
-                                      u'Downloading page #%s' % pagenum)
+        # Download all channel pages using the json-based channel_ajax query
+        for pagenum in itertools.count(1):
+            url = self._MORE_PAGES_URL % (pagenum, channel_id)
+            page = self._download_webpage(url, channel_id,
+                                          u'Downloading page #%s' % pagenum)
 
-        # Extract video identifiers
-        ids_in_page = self.extract_videos_from_page(page)
-        video_ids.extend(ids_in_page)
+            page = json.loads(page)
 
-        # Download any subsequent channel pages using the json-based channel_ajax query
-        if self._MORE_PAGES_INDICATOR in page:
-            for pagenum in itertools.count(1):
-                url = self._MORE_PAGES_URL % (pagenum, channel_id)
-                page = self._download_webpage(url, channel_id,
-                                              u'Downloading page #%s' % pagenum)
+            ids_in_page = self.extract_videos_from_page(page['content_html'])
+            video_ids.extend(ids_in_page)
 
-                page = json.loads(page)
-
-                ids_in_page = self.extract_videos_from_page(page['content_html'])
-                video_ids.extend(ids_in_page)
-
-                if self._MORE_PAGES_INDICATOR  not in page['load_more_widget_html']:
-                    break
+            if self._MORE_PAGES_INDICATOR not in page['load_more_widget_html']:
+                break
 
         self._downloader.to_screen(u'[youtube] Channel %s: Found %i videos' % (channel_id, len(video_ids)))
 
