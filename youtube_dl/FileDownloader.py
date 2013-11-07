@@ -234,8 +234,14 @@ class FileDownloader(object):
         if self.params.get('noprogress', False):
             return
         clear_line = (u'\x1b[K' if sys.stderr.isatty() and os.name != 'nt' else u'')
-        eta_str = self.format_eta(eta)
-        percent_str = self.format_percent(percent)
+        if eta is not None:
+            eta_str = self.format_eta(eta)
+        else:
+            eta_str = 'Unknown ETA'
+        if percent is not None:
+            percent_str = self.format_percent(percent)
+        else:
+            percent_str = 'Unknown %'
         speed_str = self.format_speed(speed)
         if self.params.get('progress_with_newline', False):
             self.to_screen(u'[download] %s of %s at %s ETA %s' %
@@ -557,12 +563,11 @@ class FileDownloader(object):
             # Progress message
             speed = self.calc_speed(start, time.time(), byte_counter - resume_len)
             if data_len is None:
-                self.report_progress('Unknown %', data_len_str, speed, 'Unknown ETA')
-                eta = None
+                eta = percent = None
             else:
                 percent = self.calc_percent(byte_counter, data_len)
                 eta = self.calc_eta(start, time.time(), data_len - resume_len, byte_counter - resume_len)
-                self.report_progress(percent, data_len_str, speed, eta)
+            self.report_progress(percent, data_len_str, speed, eta)
 
             self._hook_progress({
                 'downloaded_bytes': byte_counter,
