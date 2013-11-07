@@ -10,9 +10,11 @@ from ..utils import (
     find_xpath_attr,
     compat_urlparse,
     compat_str,
+    compat_urllib_request,
 
     ExtractorError,
 )
+
 
 class BrightcoveIE(InfoExtractor):
     _VALID_URL = r'https?://.*brightcove\.com/(services|viewer).*\?(?P<query>.*)'
@@ -80,6 +82,9 @@ class BrightcoveIE(InfoExtractor):
         videoPlayer = find_xpath_attr(object_doc, './param', 'name', '@videoPlayer')
         if videoPlayer is not None:
             params['@videoPlayer'] = videoPlayer.attrib['value']
+        linkBase = find_xpath_attr(object_doc, './param', 'name', 'linkBaseURL')
+        if linkBase is not None:
+            params['linkBaseURL'] = linkBase.attrib['value']
         data = compat_urllib_parse.urlencode(params)
         return cls._FEDERATED_URL_TEMPLATE % data
 
@@ -107,14 +112,18 @@ class BrightcoveIE(InfoExtractor):
 
         videoPlayer = query.get('@videoPlayer')
         if videoPlayer:
-            return self._get_video_info(videoPlayer[0], query_str)
+            return self._get_video_info(videoPlayer[0], query_str, query)
         else:
             player_key = query['playerKey']
             return self._get_playlist_info(player_key[0])
 
-    def _get_video_info(self, video_id, query):
-        request_url = self._FEDERATED_URL_TEMPLATE % query
-        webpage = self._download_webpage(request_url, video_id)
+    def _get_video_info(self, video_id, query_str, query):
+        request_url = self._FEDERATED_URL_TEMPLATE % query_str
+        req = compat_urllib_request.Request(request_url)
+        linkBase = query.get('linkBaseURL')
+        if linkBase is not None:
+            req.add_header('Referer', linkBase[0])
+        webpage = self._download_webpage(req, video_id)
 
         self.report_extraction(video_id)
         info = self._search_regex(r'var experienceJSON = ({.*?});', webpage, 'json')

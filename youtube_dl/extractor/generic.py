@@ -55,15 +55,17 @@ class GenericIE(InfoExtractor):
             u'skip': u'There is a limit of 200 free downloads / month for the test song',
         },
         # embedded brightcove video
+        # it also tests brightcove videos that need to set the 'Referer' in the
+        # http requests
         {
             u'add_ie': ['Brightcove'],
-            u'url': u'http://www.scientificamerican.com/article.cfm?id=soap-bubble-physics',
+            u'url': u'http://www.bfmtv.com/video/bfmbusiness/cours-bourse/cours-bourse-l-analyse-technique-154522/',
             u'info_dict': {
-                u'id': u'2365799484001',
+                u'id': u'2765128793001',
                 u'ext': u'mp4',
-                u'title': u'Bubble Simulation',
-                u'description': u'A visualization from a new computer model of foam behavior.',
-                u'uploader': u'Scientific American',
+                u'title': u'Le cours de bourse : l’analyse technique',
+                u'description': u'md5:7e9ad046e968cb2d1114004aba466fd9',
+                u'uploader': u'BFM BUSINESS',
             },
             u'params': {
                 u'skip_download': True,
