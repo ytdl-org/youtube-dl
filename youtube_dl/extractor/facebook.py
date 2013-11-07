@@ -19,7 +19,8 @@ class FacebookIE(InfoExtractor):
     """Information Extractor for Facebook"""
 
     _VALID_URL = r'^(?:https?://)?(?:\w+\.)?facebook\.com/(?:video/video|photo)\.php\?(?:.*?)v=(?P<ID>\d+)(?:.*)'
-    _LOGIN_URL = 'https://login.facebook.com/login.php?m&next=http%3A%2F%2Fm.facebook.com%2Fhome.php&'
+    _LOGIN_URL = 'https://www.facebook.com/login.php?next=http%3A%2F%2Ffacebook.com%2Fhome.php&login_attempt=1'
+    _CHECKPOINT_URL = 'https://www.facebook.com/checkpoint/?next=http%3A%2F%2Ffacebook.com%2Fhome.php&_fb_noscript=1'
     _NETRC_MACHINE = 'facebook'
     IE_NAME = u'facebook'
     _TEST = {
@@ -36,49 +37,55 @@ class FacebookIE(InfoExtractor):
         """Report attempt to log in."""
         self.to_screen(u'Logging in')
 
-    def _real_initialize(self):
-        if self._downloader is None:
-            return
-
-        useremail = None
-        password = None
-        downloader_params = self._downloader.params
-
-        # Attempt to use provided username and password or .netrc data
-        if downloader_params.get('username', None) is not None:
-            useremail = downloader_params['username']
-            password = downloader_params['password']
-        elif downloader_params.get('usenetrc', False):
-            try:
-                info = netrc.netrc().authenticators(self._NETRC_MACHINE)
-                if info is not None:
-                    useremail = info[0]
-                    password = info[2]
-                else:
-                    raise netrc.NetrcParseError('No authenticators for %s' % self._NETRC_MACHINE)
-            except (IOError, netrc.NetrcParseError) as err:
-                self._downloader.report_warning(u'parsing .netrc: %s' % compat_str(err))
-                return
-
+    def _login(self):
+        (useremail, password) = self._get_login_info()
         if useremail is None:
             return
 
-        # Log in
+        login_page_req = compat_urllib_request.Request(self._LOGIN_URL)
+        login_page_req.add_header('Cookie', 'locale=en_US')
+        self.report_login()
+        login_page = self._download_webpage(login_page_req, None, note=False,
+            errnote=u'Unable to download login page')
+        lsd = self._search_regex(r'"lsd":"(\w*?)"', login_page, u'lsd')
+        lgnrnd = self._search_regex(r'name="lgnrnd" value="([^"]*?)"', login_page, u'lgnrnd')
+
         login_form = {
             'email': useremail,
             'pass': password,
-            'login': 'Log+In'
+            'lsd': lsd,
+            'lgnrnd': lgnrnd,
+            'next': 'http://facebook.com/home.php',
+            'default_persistent': '0',
+            'legacy_return': '1',
+            'timezone': '-60',
+            'trynum': '1',
             }
         request = compat_urllib_request.Request(self._LOGIN_URL, compat_urllib_parse.urlencode(login_form))
+        request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         try:
-            self.report_login()
             login_results = compat_urllib_request.urlopen(request).read()
             if re.search(r'<form(.*)name="login"(.*)</form>', login_results) is not None:
                 self._downloader.report_warning(u'unable to log in: bad username/password, or exceded login rate limit (~3/min). Check credentials or wait.')
                 return
+
+            check_form = {
+                'fb_dtsg': self._search_regex(r'"fb_dtsg":"(.*?)"', login_results, u'fb_dtsg'),
+                'nh': self._search_regex(r'name="nh" value="(\w*?)"', login_results, u'nh'),
+                'name_action_selected': 'dont_save',
+                'submit[Continue]': self._search_regex(r'<input value="(.*?)" name="submit\[Continue\]"', login_results, u'continue'),
+            }
+            check_req = compat_urllib_request.Request(self._CHECKPOINT_URL, compat_urllib_parse.urlencode(check_form))
+            check_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
+            check_response = compat_urllib_request.urlopen(check_req).read()
+            if re.search(r'id="checkpointSubmitButton"', check_response) is not None:
+                self._downloader.report_warning(u'Unable to confirm login, you have to login in your brower and authorize the login.')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             self._downloader.report_warning(u'unable to log in: %s' % compat_str(err))
             return
+
+    def _real_initialize(self):
+        self._login()
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -93,7 +100,13 @@ class FacebookIE(InfoExtractor):
         AFTER = '.forEach(function(variable) {swf.addVariable(variable[0], variable[1]);});'
         m = re.search(re.escape(BEFORE) + '(.*?)' + re.escape(AFTER), webpage)
         if not m:
-            raise ExtractorError(u'Cannot parse data')
+            m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
+            if m_msg is not None:
+                raise ExtractorError(
+                    u'The video is not available, Facebook said: "%s"' % m_msg.group(1),
+                    expected=True)
+            else:
+                raise ExtractorError(u'Cannot parse data')
         data = dict(json.loads(m.group(1)))
         params_raw = compat_urllib_parse.unquote(data['params'])
         params = json.loads(params_raw)

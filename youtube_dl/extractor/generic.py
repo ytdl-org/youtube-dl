@@ -25,7 +25,7 @@ class GenericIE(InfoExtractor):
         {
             u'url': u'http://www.hodiho.fr/2013/02/regis-plante-sa-jeep.html',
             u'file': u'13601338388002.mp4',
-            u'md5': u'85b90ccc9d73b4acd9138d3af4c27f89',
+            u'md5': u'6e15c93721d7ec9e9ca3fdbf07982cfd',
             u'info_dict': {
                 u"uploader": u"www.hodiho.fr",
                 u"title": u"R\u00e9gis plante sa Jeep"
@@ -41,7 +41,17 @@ class GenericIE(InfoExtractor):
                 u"uploader_id": u"skillsmatter",
                 u"uploader": u"Skills Matter",
             }
-        }
+        },
+        # bandcamp page with custom domain
+        {
+            u'url': u'http://bronyrock.com/track/the-pony-mash',
+            u'file': u'3235767654.mp3',
+            u'info_dict': {
+                u'title': u'The Pony Mash',
+                u'uploader': u'M_Pallante',
+            },
+            u'skip': u'There is a limit of 200 free downloads / month for the test song',
+        },
     ]
 
     def report_download_webpage(self, video_id):
@@ -154,6 +164,12 @@ class GenericIE(InfoExtractor):
         if mobj:
             surl = unescapeHTML(mobj.group(1))
             return self.url_result(surl, 'Youtube')
+
+        # Look for Bandcamp pages with custom domain
+        mobj = re.search(r'<meta property="og:url"[^>]*?content="(.*?bandcamp\.com.*?)"', webpage)
+        if mobj is not None:
+            burl = unescapeHTML(mobj.group(1))
+            return self.url_result(burl, 'Bandcamp')
 
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)

@@ -55,30 +55,30 @@ class CinemassacreIE(InfoExtractor):
             video_description = None
 
         playerdata = self._download_webpage(playerdata_url, video_id)
-        base_url = self._html_search_regex(r'\'streamer\': \'(?P<base_url>rtmp://.*?)/(?:vod|Cinemassacre)\'',
-            playerdata, u'base_url')
-        base_url += '/Cinemassacre/'
-        # Important: The file names in playerdata are not used by the player and even wrong for some videos
-        sd_file = 'Cinemassacre-%s_high.mp4' % video_id
-        hd_file = 'Cinemassacre-%s.mp4' % video_id
-        video_thumbnail = 'http://image.screenwavemedia.com/Cinemassacre/Cinemassacre-%s_thumb_640x360.jpg' % video_id
+        url = self._html_search_regex(r'\'streamer\': \'(?P<url>[^\']+)\'', playerdata, u'url')
+
+        sd_file = self._html_search_regex(r'\'file\': \'(?P<sd_file>[^\']+)\'', playerdata, u'sd_file')
+        hd_file = self._html_search_regex(r'\'?file\'?: "(?P<hd_file>[^"]+)"', playerdata, u'hd_file')
+        video_thumbnail = self._html_search_regex(r'\'image\': \'(?P<thumbnail>[^\']+)\'', playerdata, u'thumbnail', fatal=False)
 
         formats = [
             {
-                'url': base_url + sd_file,
+                'url': url,
+                'play_path': 'mp4:' + sd_file,
                 'ext': 'flv',
                 'format': 'sd',
                 'format_id': 'sd',
             },
             {
-                'url': base_url + hd_file,
+                'url': url,
+                'play_path': 'mp4:' + hd_file,
                 'ext': 'flv',
                 'format': 'hd',
                 'format_id': 'hd',
             },
         ]
 
-        info = {
+        return {
             'id': video_id,
             'title': video_title,
             'formats': formats,
@@ -86,6 +86,3 @@ class CinemassacreIE(InfoExtractor):
             'upload_date': video_date,
             'thumbnail': video_thumbnail,
         }
-        # TODO: Remove when #980 has been merged
-        info.update(formats[-1])
-        return info

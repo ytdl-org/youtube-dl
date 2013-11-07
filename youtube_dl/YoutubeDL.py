@@ -272,7 +272,7 @@ class YoutubeDL(object):
                 autonumber_size = 5
             autonumber_templ = u'%0' + str(autonumber_size) + u'd'
             template_dict['autonumber'] = autonumber_templ % self._num_downloads
-            if template_dict['playlist_index'] is not None:
+            if template_dict.get('playlist_index') is not None:
                 template_dict['playlist_index'] = u'%05d' % template_dict['playlist_index']
 
             sanitize = lambda k, v: sanitize_filename(
@@ -462,7 +462,7 @@ class YoutubeDL(object):
             info_dict['playlist_index'] = None
 
         # This extractors handle format selection themselves
-        if info_dict['extractor'] in [u'youtube', u'Youku', u'YouPorn', u'mixcloud']:
+        if info_dict['extractor'] in [u'youtube', u'Youku']:
             if download:
                 self.process_info(info_dict)
             return info_dict
@@ -482,8 +482,11 @@ class YoutubeDL(object):
                 format['format'] = u'{id} - {res}{note}'.format(
                     id=format['format_id'],
                     res=self.format_resolution(format),
-                    note=u' ({})'.format(format['format_note']) if format.get('format_note') is not None else '',
+                    note=u' ({0})'.format(format['format_note']) if format.get('format_note') is not None else '',
                 )
+            # Automatically determine file extension if missing
+            if 'ext' not in format:
+                format['ext'] = determine_ext(format['url'])
 
         if self.params.get('listformats', None):
             self.list_formats(info_dict)
@@ -521,7 +524,8 @@ class YoutubeDL(object):
                     formats_to_download = [selected_format]
                     break
         if not formats_to_download:
-            raise ExtractorError(u'requested format not available')
+            raise ExtractorError(u'requested format not available',
+                                 expected=True)
 
         if download:
             if len(formats_to_download) > 1:
@@ -571,9 +575,9 @@ class YoutubeDL(object):
         if self.params.get('forceurl', False):
             # For RTMP URLs, also include the playpath
             compat_print(info_dict['url'] + info_dict.get('play_path', u''))
-        if self.params.get('forcethumbnail', False) and 'thumbnail' in info_dict:
+        if self.params.get('forcethumbnail', False) and info_dict.get('thumbnail') is not None:
             compat_print(info_dict['thumbnail'])
-        if self.params.get('forcedescription', False) and 'description' in info_dict:
+        if self.params.get('forcedescription', False) and info_dict.get('description') is not None:
             compat_print(info_dict['description'])
         if self.params.get('forcefilename', False) and filename is not None:
             compat_print(filename)
@@ -754,30 +758,36 @@ class YoutubeDL(object):
             archive_file.write(vid_id + u'\n')
 
     @staticmethod
-    def format_resolution(format):
+    def format_resolution(format, default='unknown'):
+        if format.get('_resolution') is not None:
+            return format['_resolution']
         if format.get('height') is not None:
             if format.get('width') is not None:
                 res = u'%sx%s' % (format['width'], format['height'])
             else:
                 res = u'%sp' % format['height']
         else:
-            res = '???'
+            res = default
         return res
 
     def list_formats(self, info_dict):
-        formats_s = []
-        for format in info_dict.get('formats', [info_dict]):
-            formats_s.append(u'%-15s: %-5s     %-15s[%s]' % (
+        def line(format):
+            return (u'%-15s%-10s%-12s%s' % (
                 format['format_id'],
                 format['ext'],
-                format.get('format_note') or '-',
                 self.format_resolution(format),
+                format.get('format_note', ''),
                 )
             )
-        if len(formats_s) != 1:
-            formats_s[0] += ' (worst)'
-            formats_s[-1] += ' (best)'
-        formats_s = "\n".join(formats_s)
-        self.to_screen(u'[info] Available formats for %s:\n'
-            u'format code    extension   note           resolution\n%s' % (
-                info_dict['id'], formats_s))
+
+        formats = info_dict.get('formats', [info_dict])
+        formats_s = list(map(line, formats))
+        if len(formats) > 1:
+            formats_s[0] += (' ' if formats[0].get('format_note') else '') + '(worst)'
+            formats_s[-1] += (' ' if formats[-1].get('format_note') else '') + '(best)'
+
+        header_line = line({
+            'format_id': u'format code', 'ext': u'extension',
+            '_resolution': u'resolution', 'format_note': u'note'})
+        self.to_screen(u'[info] Available formats for %s:\n%s\n%s' %
+                       (info_dict['id'], header_line, u"\n".join(formats_s)))

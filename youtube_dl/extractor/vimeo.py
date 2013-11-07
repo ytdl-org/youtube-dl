@@ -1,3 +1,4 @@
+# encoding: utf-8
 import json
 import re
 import itertools
@@ -10,6 +11,7 @@ from ..utils import (
     clean_html,
     get_element_by_attribute,
     ExtractorError,
+    RegexNotFoundError,
     std_headers,
     unsmuggle_url,
 )
@@ -18,12 +20,12 @@ class VimeoIE(InfoExtractor):
     """Information extractor for vimeo.com."""
 
     # _VALID_URL matches Vimeo URLs
-    _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|player)\.)?vimeo(?P<pro>pro)?\.com/(?:(?:(?:groups|album)/[^/]+)|(?:.*?)/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)/?(?:[?].*)?$'
+    _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|player)\.)?vimeo(?P<pro>pro)?\.com/(?:(?:(?:groups|album)/[^/]+)|(?:.*?)/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)/?(?:[?].*)?(?:#.*)?$'
     _NETRC_MACHINE = 'vimeo'
     IE_NAME = u'vimeo'
     _TESTS = [
         {
-            u'url': u'http://vimeo.com/56015672',
+            u'url': u'http://vimeo.com/56015672#at=0',
             u'file': u'56015672.mp4',
             u'md5': u'8879b6cc097e987f02484baf890129e5',
             u'info_dict': {
@@ -54,7 +56,22 @@ class VimeoIE(InfoExtractor):
                 u'title': u'Kathy Sierra: Building the minimum Badass User, Business of Software',
                 u'uploader': u'The BLN & Business of Software',
             },
-        }
+        },
+        {
+            u'url': u'http://vimeo.com/68375962',
+            u'file': u'68375962.mp4',
+            u'md5': u'aaf896bdb7ddd6476df50007a0ac0ae7',
+            u'note': u'Video protected with password',
+            u'info_dict': {
+                u'title': u'youtube-dl password protected test video',
+                u'upload_date': u'20130614',
+                u'uploader_id': u'user18948128',
+                u'uploader': u'Jaime Marquínez Ferrándiz',
+            },
+            u'params': {
+                u'videopassword': u'youtube-dl',
+            },
+        },
     ]
 
     def _login(self):
@@ -129,18 +146,26 @@ class VimeoIE(InfoExtractor):
 
         # Extract the config JSON
         try:
-            config = self._search_regex([r' = {config:({.+?}),assets:', r'c=({.+?);'],
-                webpage, u'info section', flags=re.DOTALL)
-            config = json.loads(config)
-        except:
+            try:
+                config_url = self._html_search_regex(
+                    r' data-config-url="(.+?)"', webpage, u'config URL')
+                config_json = self._download_webpage(config_url, video_id)
+                config = json.loads(config_json)
+            except RegexNotFoundError:
+                # For pro videos or player.vimeo.com urls
+                config = self._search_regex([r' = {config:({.+?}),assets:', r'c=({.+?);'],
+                    webpage, u'info section', flags=re.DOTALL)
+                config = json.loads(config)
+        except Exception as e:
             if re.search('The creator of this video has not given you permission to embed it on this domain.', webpage):
                 raise ExtractorError(u'The author has restricted the access to this video, try with the "--referer" option')
 
-            if re.search('If so please provide the correct password.', webpage):
+            if re.search('<form[^>]+?id="pw_form"', webpage) is not None:
                 self._verify_video_password(url, video_id, webpage)
                 return self._real_extract(url)
             else:
-                raise ExtractorError(u'Unable to extract info section')
+                raise ExtractorError(u'Unable to extract info section',
+                                     cause=e)
 
         # Extract title
         video_title = config["video"]["title"]

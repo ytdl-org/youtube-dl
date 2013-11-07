@@ -13,7 +13,8 @@ class YouJizzIE(InfoExtractor):
         u'file': u'2189178.flv',
         u'md5': u'07e15fa469ba384c7693fd246905547c',
         u'info_dict': {
-            u"title": u"Zeichentrick 1"
+            u"title": u"Zeichentrick 1",
+            u"age_limit": 18,
         }
     }
 
@@ -24,6 +25,8 @@ class YouJizzIE(InfoExtractor):
 
         # Get webpage content
         webpage = self._download_webpage(url, video_id)
+
+        age_limit = self._rta_search(webpage)
 
         # Get the video title
         video_title = self._html_search_regex(r'<title>(?P<title>.*)</title>',
@@ -60,6 +63,7 @@ class YouJizzIE(InfoExtractor):
                 'title': video_title,
                 'ext': 'flv',
                 'format': 'flv',
-                'player_url': embed_page_url}
+                'player_url': embed_page_url,
+                'age_limit': age_limit}
 
         return [info]

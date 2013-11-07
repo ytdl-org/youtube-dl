@@ -101,7 +101,7 @@ class EightTracksIE(InfoExtractor):
         first_url = 'http://8tracks.com/sets/%s/play?player=sm&mix_id=%s&format=jsonh' % (session, mix_id)
         next_url = first_url
         res = []
-        for i in itertools.count():
+        for i in range(track_count):
             api_json = self._download_webpage(next_url, playlist_id,
                 note=u'Downloading song information %s/%s' % (str(i+1), track_count),
                 errnote=u'Failed to download song information')
@@ -116,7 +116,5 @@ class EightTracksIE(InfoExtractor):
                 'ext': 'm4a',
             }
             res.append(info)
-            if api_data['set']['at_last_track']:
-                break
             next_url = 'http://8tracks.com/sets/%s/next?player=sm&mix_id=%s&format=jsonh&track_id=%s' % (session, mix_id, track_data['id'])
         return res
