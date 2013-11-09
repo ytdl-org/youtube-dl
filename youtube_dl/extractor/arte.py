@@ -182,15 +182,22 @@ class ArteTVPlus7IE(InfoExtractor):
                 formats = all_formats
             else:
                 raise ExtractorError(u'The formats list is empty')
-        # We order the formats by quality
+
         if re.match(r'[A-Z]Q', formats[0]['quality']) is not None:
-            sort_key = lambda f: ['HQ', 'MQ', 'EQ', 'SQ'].index(f['quality'])
+            def sort_key(f):
+                return ['HQ', 'MQ', 'EQ', 'SQ'].index(f['quality'])
         else:
-            sort_key = lambda f: int(f.get('height',-1))
+            def sort_key(f):
+                return (
+                    # Sort first by quality
+                    int(f.get('height',-1)),
+                    int(f.get('bitrate',-1)),
+                    # The original version with subtitles has lower relevance
+                    re.match(r'VO-ST(F|A)', f.get('versionCode', '')) is None,
+                    # The version with sourds/mal subtitles has also lower relevance
+                    re.match(r'VO?(F|A)-STM\1', f.get('versionCode', '')) is None,
+                )
         formats = sorted(formats, key=sort_key)
-        # Prefer videos without subtitles in the same language
-        formats = sorted(formats, key=lambda f: re.match(r'VO(F|A)-STM\1', f.get('versionCode', '')) is None)
-        # Pick the best quality
         def _format(format_info):
             quality = ''
             height = format_info.get('height')
