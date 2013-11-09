@@ -379,7 +379,8 @@ class FileDownloader(object):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
 
-        args = ['ffmpeg', '-y', '-i', url, '-f', 'mp4', tmpfilename]
+        args = ['ffmpeg', '-y', '-i', url, '-f', 'mp4', '-c', 'copy',
+            '-absf', 'aac_adtstoasc', tmpfilename]
         # Check for ffmpeg first
         try:
             subprocess.call(['ffmpeg', '-h'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
