@@ -29,17 +29,34 @@ class SoundcloudIE(InfoExtractor):
                     )
                     '''
     IE_NAME = u'soundcloud'
-    _TEST = {
-        u'url': u'http://soundcloud.com/ethmusic/lostin-powers-she-so-heavy',
-        u'file': u'62986583.mp3',
-        u'md5': u'ebef0a451b909710ed1d7787dddbf0d7',
-        u'info_dict': {
-            u"upload_date": u"20121011", 
-            u"description": u"No Downloads untill we record the finished version this weekend, i was too pumped n i had to post it , earl is prolly gonna b hella p.o'd", 
-            u"uploader": u"E.T. ExTerrestrial Music", 
-            u"title": u"Lostin Powers - She so Heavy (SneakPreview) Adrian Ackers Blueprint 1"
-        }
-    }
+    _TESTS = [
+        {
+            u'url': u'http://soundcloud.com/ethmusic/lostin-powers-she-so-heavy',
+            u'file': u'62986583.mp3',
+            u'md5': u'ebef0a451b909710ed1d7787dddbf0d7',
+            u'info_dict': {
+                u"upload_date": u"20121011", 
+                u"description": u"No Downloads untill we record the finished version this weekend, i was too pumped n i had to post it , earl is prolly gonna b hella p.o'd", 
+                u"uploader": u"E.T. ExTerrestrial Music", 
+                u"title": u"Lostin Powers - She so Heavy (SneakPreview) Adrian Ackers Blueprint 1"
+            }
+        },
+        # not streamable song
+        {
+            u'url': u'https://soundcloud.com/the-concept-band/goldrushed-mastered?in=the-concept-band/sets/the-royal-concept-ep',
+            u'info_dict': {
+                u'id': u'47127627',
+                u'ext': u'mp3',
+                u'title': u'Goldrushed',
+                u'uploader': u'The Royal Concept',
+                u'upload_date': u'20120521',
+            },
+            u'params': {
+                # rtmp
+                u'skip_download': True,
+            },
+        },
+    ]
 
     _CLIENT_ID = 'b45b1aa10f1ac2941910a7f0d10f8e28'
 
@@ -56,16 +73,16 @@ class SoundcloudIE(InfoExtractor):
         return 'http://api.soundcloud.com/resolve.json?url=' + url + '&client_id=' + cls._CLIENT_ID
 
     def _extract_info_dict(self, info, full_title=None, quiet=False):
-        video_id = info['id']
-        name = full_title or video_id
+        track_id = compat_str(info['id'])
+        name = full_title or track_id
         if quiet == False:
             self.report_extraction(name)
 
         thumbnail = info['artwork_url']
         if thumbnail is not None:
             thumbnail = thumbnail.replace('-large', '-t500x500')
-        return {
-            'id':       info['id'],
+        result = {
+            'id':       track_id,
             'url':      info['stream_url'] + '?client_id=' + self._CLIENT_ID,
             'uploader': info['user']['username'],
             'upload_date': unified_strdate(info['created_at']),
@@ -74,6 +91,21 @@ class SoundcloudIE(InfoExtractor):
             'description': info['description'],
             'thumbnail': thumbnail,
         }
+        if info.get('downloadable', False):
+            result['url'] = 'https://api.soundcloud.com/tracks/{0}/download?client_id={1}'.format(track_id, self._CLIENT_ID)
+        if not info.get('streamable', False):
+            # We have to get the rtmp url
+            stream_json = self._download_webpage(
+                'http://api.soundcloud.com/i1/tracks/{0}/streams?client_id={1}'.format(track_id, self._CLIENT_ID),
+                track_id, u'Downloading track url')
+            rtmp_url = json.loads(stream_json)['rtmp_mp3_128_url']
+            # The url doesn't have an rtmp app, we have to extract the playpath
+            url, path = rtmp_url.split('mp3:', 1)
+            result.update({
+                'url': url,
+                'play_path': 'mp3:' + path,
+            })
+        return result
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url, flags=re.VERBOSE)
@@ -106,70 +138,8 @@ class SoundcloudIE(InfoExtractor):
 class SoundcloudSetIE(SoundcloudIE):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/sets/([\w\d-]+)(?:[?].*)?$'
     IE_NAME = u'soundcloud:set'
-    _TEST = {
-        u"url":"https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep",
-        u"playlist": [
-            {
-                u"file":"30510138.mp3",
-                u"md5":"f9136bf103901728f29e419d2c70f55d",
-                u"info_dict": {
-                    u"upload_date": u"20111213",
-                    u"description": u"The Royal Concept from Stockholm\r\nFilip / Povel / David / Magnus\r\nwww.royalconceptband.com",
-                    u"uploader": u"The Royal Concept",
-                    u"title": u"D-D-Dance"
-                }
-            },
-            {
-                u"file":"47127625.mp3",
-                u"md5":"09b6758a018470570f8fd423c9453dd8",
-                u"info_dict": {
-                    u"upload_date": u"20120521",
-                    u"description": u"The Royal Concept from Stockholm\r\nFilip / Povel / David / Magnus\r\nwww.royalconceptband.com",
-                    u"uploader": u"The Royal Concept",
-                    u"title": u"The Royal Concept - Gimme Twice"
-                }
-            },
-            {
-                u"file":"47127627.mp3",
-                u"md5":"154abd4e418cea19c3b901f1e1306d9c",
-                u"info_dict": {
-                    u"upload_date": u"20120521",
-                    u"uploader": u"The Royal Concept",
-                    u"title": u"Goldrushed"
-                }
-            },
-            {
-                u"file":"47127629.mp3",
-                u"md5":"2f5471edc79ad3f33a683153e96a79c1",
-                u"info_dict": {
-                    u"upload_date": u"20120521",
-                    u"description": u"The Royal Concept from Stockholm\r\nFilip / Povel / David / Magnus\r\nwww.royalconceptband.com",
-                    u"uploader": u"The Royal Concept",
-                    u"title": u"In the End"
-                }
-            },
-            {
-                u"file":"47127631.mp3",
-                u"md5":"f9ba87aa940af7213f98949254f1c6e2",
-                u"info_dict": {
-                    u"upload_date": u"20120521",
-                    u"description": u"The Royal Concept from Stockholm\r\nFilip / David / Povel / Magnus\r\nwww.theroyalconceptband.com",
-                    u"uploader": u"The Royal Concept",
-                    u"title": u"Knocked Up"
-                }
-            },
-            {
-                u"file":"75206121.mp3",
-                u"md5":"f9d1fe9406717e302980c30de4af9353",
-                u"info_dict": {
-                    u"upload_date": u"20130116",
-                    u"description": u"The unreleased track World on Fire premiered on the CW's hit show Arrow (8pm/7pm central).  \r\nAs a gift to our fans we would like to offer you a free download of the track!  ",
-                    u"uploader": u"The Royal Concept",
-                    u"title": u"World On Fire"
-                }
-            }
-        ]
-    }
+    # it's in tests/test_playlists.py
+    _TESTS = []
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -208,7 +178,7 @@ class SoundcloudUserIE(SoundcloudIE):
     IE_NAME = u'soundcloud:user'
 
     # it's in tests/test_playlists.py
-    _TEST = None
+    _TESTS = []
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
