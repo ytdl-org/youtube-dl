@@ -782,7 +782,7 @@ class YoutubeDL(object):
 
     def list_formats(self, info_dict):
         def line(format):
-            return (u'%-15s%-10s%-12s%s' % (
+            return (u'%-20s%-10s%-12s%s' % (
                 format['format_id'],
                 format['ext'],
                 self.format_resolution(format),
