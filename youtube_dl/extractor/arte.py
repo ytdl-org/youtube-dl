@@ -10,6 +10,7 @@ from ..utils import (
     unified_strdate,
     determine_ext,
     get_element_by_id,
+    compat_str,
 )
 
 # There are different sources of video in arte.tv, the extraction process 
@@ -191,10 +192,13 @@ class ArteTVPlus7IE(InfoExtractor):
         formats = sorted(formats, key=lambda f: re.match(r'VO(F|A)-STM\1', f.get('versionCode', '')) is None)
         # Pick the best quality
         def _format(format_info):
-            quality = format_info['quality']
-            m_quality = re.match(r'\w*? - (\d*)p', quality)
-            if m_quality is not None:
-                quality = m_quality.group(1)
+            quality = ''
+            height = format_info.get('height')
+            if height is not None:
+                quality = compat_str(height)
+            bitrate = format_info.get('bitrate')
+            if bitrate is not None:
+                quality += '-%d' % bitrate
             if format_info.get('versionCode') is not None:
                 format_id = u'%s-%s' % (quality, format_info['versionCode'])
             else:
@@ -203,7 +207,7 @@ class ArteTVPlus7IE(InfoExtractor):
                 'format_id': format_id,
                 'format_note': format_info.get('versionLibelle'),
                 'width': format_info.get('width'),
-                'height': format_info.get('height'),
+                'height': height,
             }
             if format_info['mediaType'] == u'rtmp':
                 info['url'] = format_info['streamer']
