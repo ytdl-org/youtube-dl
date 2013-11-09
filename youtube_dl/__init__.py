@@ -349,7 +349,7 @@ def parseOpts(overrideArguments=None):
                   'for example with -o \'/my/downloads/%(uploader)s/%(title)s-%(id)s.%(ext)s\' .'))
     filesystem.add_option('--autonumber-size',
             dest='autonumber_size', metavar='NUMBER',
-            help='Specifies the number of digits in %(autonumber)s when it is present in output filename template or --autonumber option is given')
+            help='Specifies the number of digits in %(autonumber)s when it is present in output filename template or --auto-number option is given')
     filesystem.add_option('--restrict-filenames',
             action='store_true', dest='restrictfilenames',
             help='Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames', default=False)
