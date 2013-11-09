@@ -33,5 +33,5 @@ class EitbIE(InfoExtractor):
             raise ExtractorError(u'Could not extract the Brightcove url')
         # The BrightcoveExperience object doesn't contain the video id, we set
         # it manually
-        bc_url += '&%40videoPlayer={}'.format(chapter_id)
+        bc_url += '&%40videoPlayer={0}'.format(chapter_id)
         return self.url_result(bc_url, BrightcoveIE.ie_key())
