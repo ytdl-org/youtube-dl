@@ -65,6 +65,7 @@ class CinemassacreIE(InfoExtractor):
             {
                 'url': url,
                 'play_path': 'mp4:' + sd_file,
+                'live': True, # workaround
                 'ext': 'flv',
                 'format': 'sd',
                 'format_id': 'sd',
@@ -72,6 +73,7 @@ class CinemassacreIE(InfoExtractor):
             {
                 'url': url,
                 'play_path': 'mp4:' + hd_file,
+                'live': True, # workaround
                 'ext': 'flv',
                 'format': 'hd',
                 'format_id': 'hd',
