@@ -428,7 +428,7 @@ class FileDownloader(object):
                                                 info_dict.get('page_url', None),
                                                 info_dict.get('play_path', None),
                                                 info_dict.get('tc_url', None),
-                                                info_dict.get('live', False))
+                                                info_dict.get('rtmp_live', False))
 
         # Attempt to download using mplayer
         if url.startswith('mms') or url.startswith('rtsp'):
