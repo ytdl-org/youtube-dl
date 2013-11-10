@@ -280,7 +280,7 @@ class FileDownloader(object):
             self.to_screen(u'\r%s[download] 100%% of %s in %s' %
                 (clear_line, data_len_str, self.format_seconds(tot_time)))
 
-    def _download_with_rtmpdump(self, filename, url, player_url, page_url, play_path, tc_url):
+    def _download_with_rtmpdump(self, filename, url, player_url, page_url, play_path, tc_url, live):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
         test = self.params.get('test', False)
@@ -307,6 +307,8 @@ class FileDownloader(object):
             basic_args += ['--tcUrl', url]
         if test:
             basic_args += ['--stop', '1']
+        if live:
+            basic_args += ['--live']
         args = basic_args + [[], ['--resume', '--skip', '1']][self.params.get('continuedl', False)]
         if self.params.get('verbose', False):
             try:
@@ -425,7 +427,8 @@ class FileDownloader(object):
                                                 info_dict.get('player_url', None),
                                                 info_dict.get('page_url', None),
                                                 info_dict.get('play_path', None),
-                                                info_dict.get('tc_url', None))
+                                                info_dict.get('tc_url', None),
+                                                info_dict.get('live', False))
 
         # Attempt to download using mplayer
         if url.startswith('mms') or url.startswith('rtsp'):
