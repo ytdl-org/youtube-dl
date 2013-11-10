@@ -10,9 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from youtube_dl.extractor import TEDIE
 from youtube_dl.utils import *
-from helper import FakeYDL
-
-md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
+from test.helper import FakeYDL, md5
 
 class TestTedSubtitles(unittest.TestCase):
     def setUp(self):
@@ -24,7 +22,7 @@ class TestTedSubtitles(unittest.TestCase):
         return info_dict
     def getSubtitles(self):
         info_dict = self.getInfoDict()
-        return info_dict[0]['subtitles']
+        return info_dict['subtitles']
     def test_no_writesubtitles(self):
         subtitles = self.getSubtitles()
         self.assertEqual(subtitles, None)
@@ -45,7 +43,7 @@ class TestTedSubtitles(unittest.TestCase):
     def test_list_subtitles(self):
         self.DL.params['listsubtitles'] = True
         info_dict = self.getInfoDict()
-        self.assertEqual(info_dict, [None])
+        self.assertEqual(info_dict, None)
     def test_automatic_captions(self):
         self.DL.params['writeautomaticsub'] = True
         self.DL.params['subtitleslang'] = ['en']

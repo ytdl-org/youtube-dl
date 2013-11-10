@@ -36,7 +36,7 @@ class TEDIE(SubtitlesInfoExtractor):
     def _real_extract(self, url):
         m=re.match(self._VALID_URL, url, re.VERBOSE)
         if m.group('type_talk'):
-            return [self._talk_info(url)]
+            return self._talk_info(url)
         else :
             playlist_id=m.group('playlist_id')
             name=m.group('name')
