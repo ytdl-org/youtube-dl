@@ -381,16 +381,20 @@ class FileDownloader(object):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
 
-        args = ['ffmpeg', '-y', '-i', url, '-f', 'mp4', '-c', 'copy',
-            '-absf', 'aac_adtstoasc', tmpfilename]
-        # Check for ffmpeg first
-        try:
-            subprocess.call(['ffmpeg', '-h'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
-        except (OSError, IOError):
-            self.report_error(u'm3u8 download detected but "%s" could not be run' % args[0] )
-            return False
+        args = ['-y', '-i', url, '-f', 'mp4', '-c', 'copy',
+            '-bsf:a', 'aac_adtstoasc', tmpfilename]
 
-        retval = subprocess.call(args)
+        for program in ['avconv', 'ffmpeg']:
+            try:
+                subprocess.call([program, '-version'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
+                break
+            except (OSError, IOError):
+                pass
+        else:
+            self.report_error(u'm3u8 download detected but ffmpeg or avconv could not be found')
+        cmd = [program] + args
+
+        retval = subprocess.call(cmd)
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))
             self.to_screen(u'\r[%s] %s bytes' % (args[0], fsize))
