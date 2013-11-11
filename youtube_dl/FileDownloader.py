@@ -544,12 +544,7 @@ class FileDownloader(object):
             # Download and write
             before = time.time()
             data_block = data.read(block_size)
-            # Dynamic output video binary to stdout
-            if self.params.get('dynamic', False) and self.params.get('quiet', False):
-                try:
-                    sys.stdout.write(data_block)
-                except ImportError: # Python 3
-                    sys.stdout.buffer.write(data_block)
+            
             after = time.time()
             if len(data_block) == 0:
                 break
