@@ -279,7 +279,9 @@ def parseOpts(overrideArguments=None):
             action='store_true', dest='noresizebuffer',
             help='do not automatically adjust the buffer size. By default, the buffer size is automatically resized from an initial value of SIZE.', default=False)
     downloader.add_option('--test', action='store_true', dest='test', default=False, help=optparse.SUPPRESS_HELP)
-
+    
+    verbosity.add_option('-d', '--dynamic',
+            action='store_true', dest='dynamic', help='Dynamic ouput video binary to stdout', default=False)
     verbosity.add_option('-q', '--quiet',
             action='store_true', dest='quiet', help='activates quiet mode', default=False)
     verbosity.add_option('-s', '--simulate',
@@ -607,6 +609,7 @@ def _real_main(argv=None):
         'username': opts.username,
         'password': opts.password,
         'videopassword': opts.videopassword,
+        'dynamic': opts.dynamic,
         'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat),
         'forceurl': opts.geturl,
         'forcetitle': opts.gettitle,
