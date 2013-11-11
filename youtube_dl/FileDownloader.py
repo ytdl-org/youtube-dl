@@ -550,7 +550,6 @@ class FileDownloader(object):
                     sys.stdout.write(data_block)
                 except ImportError: # Python 3
                     sys.stdout.buffer.write(data_block)
-            
             after = time.time()
             if len(data_block) == 0:
                 break
