@@ -322,9 +322,9 @@ class InfoExtractor(object):
         if name is None:
             name = 'OpenGraph %s' % prop
         escaped = self._search_regex(self._og_regex(prop), html, name, flags=re.DOTALL, **kargs)
-        if not escaped is None:
-            return unescapeHTML(escaped)
-        return None
+        if escaped is None:
+            return None
+        return unescapeHTML(escaped)
 
     def _og_search_thumbnail(self, html, **kargs):
         return self._og_search_property('image', html, u'thumbnail url', fatal=False, **kargs)
