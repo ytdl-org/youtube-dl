@@ -71,6 +71,9 @@ class InfoExtractor(object):
                                 ("3D" or "DASH video")
                     * width     Width of the video, if known
                     * height    Height of the video, if known
+    webpage_url:    The url to the video webpage, if given to youtube-dl it
+                    should allow to get the same result again. (It will be set
+                    by YoutubeDL if it's missing)
 
     Unless mentioned otherwise, the fields should be Unicode strings.
 
@@ -319,7 +322,9 @@ class InfoExtractor(object):
         if name is None:
             name = 'OpenGraph %s' % prop
         escaped = self._search_regex(self._og_regex(prop), html, name, flags=re.DOTALL, **kargs)
-        return unescapeHTML(escaped)
+        if not escaped is None:
+            return unescapeHTML(escaped)
+        return None
 
     def _og_search_thumbnail(self, html, **kargs):
         return self._og_search_property('image', html, u'thumbnail url', fatal=False, **kargs)

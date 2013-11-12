@@ -31,6 +31,7 @@ from youtube_dl.utils import (
     ExtractorError,
     UnavailableVideoError,
 )
+from youtube_dl.extractor import get_info_extractor
 
 RETRIES = 3
 
@@ -63,9 +64,10 @@ def generator(test_case):
 
     def test_template(self):
         ie = youtube_dl.extractor.get_info_extractor(test_case['name'])
+        other_ies = [get_info_extractor(ie_key) for ie_key in test_case.get('add_ie', [])]
         def print_skipping(reason):
             print('Skipping %s: %s' % (test_case['name'], reason))
-        if not ie._WORKING:
+        if not ie.working():
             print_skipping('IE marked as not _WORKING')
             return
         if 'playlist' not in test_case:
@@ -77,6 +79,10 @@ def generator(test_case):
         if 'skip' in test_case:
             print_skipping(test_case['skip'])
             return
+        for other_ie in other_ies:
+            if not other_ie.working():
+                print_skipping(u'test depends on %sIE, marked as not WORKING' % other_ie.ie_key())
+                return
 
         params = get_params(test_case.get('params', {}))
 
@@ -148,6 +154,9 @@ def generator(test_case):
                 # Check for the presence of mandatory fields
                 for key in ('id', 'url', 'title', 'ext'):
                     self.assertTrue(key in info_dict.keys() and info_dict[key])
+                # Check for mandatory fields that are automatically set by YoutubeDL
+                for key in ['webpage_url', 'extractor', 'extractor_key']:
+                    self.assertTrue(info_dict.get(key), u'Missing field: %s' % key)
         finally:
             try_rm_tcs_files()
 

@@ -128,6 +128,18 @@ class TestFormatSelection(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], u'35')
 
+    def test_add_extra_info(self):
+        test_dict = {
+            'extractor': 'Foo',
+        }
+        extra_info = {
+            'extractor': 'Bar',
+            'playlist': 'funny videos',
+        }
+        YDL.add_extra_info(test_dict, extra_info)
+        self.assertEqual(test_dict['extractor'], 'Foo')
+        self.assertEqual(test_dict['playlist'], 'funny videos')
+
 
 if __name__ == '__main__':
     unittest.main()

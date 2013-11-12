@@ -49,10 +49,10 @@ class SpankwireIE(InfoExtractor):
 
         formats = []
         for video_url in video_urls:
-            path = compat_urllib_parse_urlparse( video_url ).path
-            extension = os.path.splitext( path )[1][1:]
+            path = compat_urllib_parse_urlparse(video_url).path
+            extension = os.path.splitext(path)[1][1:]
             format = path.split('/')[4].split('_')[:2]
-            format = "-".join( format )
+            format = "-".join(format)
             formats.append({
                 'url': video_url,
                 'ext': extension,

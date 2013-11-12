@@ -4,12 +4,19 @@ import re
 import subprocess
 import sys
 import time
-import traceback
 
 if os.name == 'nt':
     import ctypes
 
-from .utils import *
+from .utils import (
+    compat_urllib_error,
+    compat_urllib_request,
+    ContentTooShortError,
+    determine_ext,
+    encodeFilename,
+    sanitize_open,
+    timeconvert,
+)
 
 
 class FileDownloader(object):
@@ -194,7 +201,7 @@ class FileDownloader(object):
             if old_filename == new_filename:
                 return
             os.rename(encodeFilename(old_filename), encodeFilename(new_filename))
-        except (IOError, OSError) as err:
+        except (IOError, OSError):
             self.report_error(u'unable to rename file')
 
     def try_utime(self, filename, last_modified_hdr):
@@ -227,8 +234,14 @@ class FileDownloader(object):
         if self.params.get('noprogress', False):
             return
         clear_line = (u'\x1b[K' if sys.stderr.isatty() and os.name != 'nt' else u'')
-        eta_str = self.format_eta(eta)
-        percent_str = self.format_percent(percent)
+        if eta is not None:
+            eta_str = self.format_eta(eta)
+        else:
+            eta_str = 'Unknown ETA'
+        if percent is not None:
+            percent_str = self.format_percent(percent)
+        else:
+            percent_str = 'Unknown %'
         speed_str = self.format_speed(speed)
         if self.params.get('progress_with_newline', False):
             self.to_screen(u'[download] %s of %s at %s ETA %s' %
@@ -251,7 +264,7 @@ class FileDownloader(object):
         """Report file has already been fully downloaded."""
         try:
             self.to_screen(u'[download] %s has already been downloaded' % file_name)
-        except (UnicodeEncodeError) as err:
+        except UnicodeEncodeError:
             self.to_screen(u'[download] The file has already been downloaded')
 
     def report_unable_to_resume(self):
@@ -267,7 +280,7 @@ class FileDownloader(object):
             self.to_screen(u'\r%s[download] 100%% of %s in %s' %
                 (clear_line, data_len_str, self.format_seconds(tot_time)))
 
-    def _download_with_rtmpdump(self, filename, url, player_url, page_url, play_path, tc_url):
+    def _download_with_rtmpdump(self, filename, url, player_url, page_url, play_path, tc_url, live):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
         test = self.params.get('test', False)
@@ -294,6 +307,8 @@ class FileDownloader(object):
             basic_args += ['--tcUrl', url]
         if test:
             basic_args += ['--stop', '1']
+        if live:
+            basic_args += ['--live']
         args = basic_args + [[], ['--resume', '--skip', '1']][self.params.get('continuedl', False)]
         if self.params.get('verbose', False):
             try:
@@ -423,15 +438,20 @@ class FileDownloader(object):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
 
-        args = ['ffmpeg', '-y', '-i', url, '-f', 'mp4', tmpfilename]
-        # Check for ffmpeg first
-        try:
-            subprocess.call(['ffmpeg', '-h'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
-        except (OSError, IOError):
-            self.report_error(u'm3u8 download detected but "%s" could not be run' % args[0] )
-            return False
+        args = ['-y', '-i', url, '-f', 'mp4', '-c', 'copy',
+            '-bsf:a', 'aac_adtstoasc', tmpfilename]
 
-        retval = subprocess.call(args)
+        for program in ['avconv', 'ffmpeg']:
+            try:
+                subprocess.call([program, '-version'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
+                break
+            except (OSError, IOError):
+                pass
+        else:
+            self.report_error(u'm3u8 download detected but ffmpeg or avconv could not be found')
+        cmd = [program] + args
+
+        retval = subprocess.call(cmd)
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))
             self.to_screen(u'\r[%s] %s bytes' % (args[0], fsize))
@@ -468,7 +488,8 @@ class FileDownloader(object):
                                                 info_dict.get('player_url', None),
                                                 info_dict.get('page_url', None),
                                                 info_dict.get('play_path', None),
-                                                info_dict.get('tc_url', None))
+                                                info_dict.get('tc_url', None),
+                                                info_dict.get('rtmp_live', False))
 
         # Attempt to download using mplayer
         if url.startswith('mms') or url.startswith('rtsp'):
@@ -609,12 +630,11 @@ class FileDownloader(object):
             # Progress message
             speed = self.calc_speed(start, time.time(), byte_counter - resume_len)
             if data_len is None:
-                self.report_progress('Unknown %', data_len_str, speed_str, 'Unknown ETA')
-                eta = None
+                eta = percent = None
             else:
                 percent = self.calc_percent(byte_counter, data_len)
                 eta = self.calc_eta(start, time.time(), data_len - resume_len, byte_counter - resume_len)
-                self.report_progress(percent, data_len_str, speed, eta)
+            self.report_progress(percent, data_len_str, speed, eta)
 
             self._hook_progress({
                 'downloaded_bytes': byte_counter,

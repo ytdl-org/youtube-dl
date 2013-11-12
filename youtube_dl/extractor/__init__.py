@@ -38,8 +38,10 @@ from .defense import DefenseGouvFrIE
 from .ebaumsworld import EbaumsWorldIE
 from .ehow import EHowIE
 from .eighttracks import EightTracksIE
+from .eitb import EitbIE
 from .escapist import EscapistIE
 from .exfm import ExfmIE
+from .extremetube import ExtremeTubeIE
 from .facebook import FacebookIE
 from .faz import FazIE
 from .fktv import (
@@ -82,6 +84,7 @@ from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
 from .mit import TechTVMITIE, MITIE
 from .mixcloud import MixcloudIE
+from .mofosex import MofosexIE
 from .mtv import MTVIE
 from .muzu import MuzuTVIE
 from .myspace import MySpaceIE
@@ -113,6 +116,7 @@ from .slideshare import SlideshareIE
 from .sohu import SohuIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE, SoundcloudUserIE
 from .southparkstudios import SouthParkStudiosIE
+from .space import SpaceIE
 from .spankwire import SpankwireIE
 from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
@@ -152,6 +156,7 @@ from .worldstarhiphop import WorldStarHipHopIE
 from .xhamster import XHamsterIE
 from .xnxx import XNXXIE
 from .xvideos import XVideosIE
+from .xtube import XTubeIE
 from .yahoo import YahooIE, YahooSearchIE
 from .youjizz import YouJizzIE
 from .youku import YoukuIE
@@ -160,6 +165,7 @@ from .youtube import (
     YoutubeIE,
     YoutubePlaylistIE,
     YoutubeSearchIE,
+    YoutubeSearchDateIE,
     YoutubeUserIE,
     YoutubeChannelIE,
     YoutubeShowIE,

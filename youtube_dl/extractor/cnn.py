@@ -6,7 +6,7 @@ from ..utils import determine_ext
 
 
 class CNNIE(InfoExtractor):
-    _VALID_URL = r'''(?x)https?://(edition\.)?cnn\.com/video/(data/.+?|\?)/
+    _VALID_URL = r'''(?x)https?://((edition|www)\.)?cnn\.com/video/(data/.+?|\?)/
         (?P<path>.+?/(?P<title>[^/]+?)(?:\.cnn|(?=&)))'''
 
     _TESTS = [{

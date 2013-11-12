@@ -10,6 +10,7 @@ from ..utils import (
     unified_strdate,
     determine_ext,
     get_element_by_id,
+    compat_str,
 )
 
 # There are different sources of video in arte.tv, the extraction process 
@@ -181,20 +182,30 @@ class ArteTVPlus7IE(InfoExtractor):
                 formats = all_formats
             else:
                 raise ExtractorError(u'The formats list is empty')
-        # We order the formats by quality
+
         if re.match(r'[A-Z]Q', formats[0]['quality']) is not None:
-            sort_key = lambda f: ['HQ', 'MQ', 'EQ', 'SQ'].index(f['quality'])
+            def sort_key(f):
+                return ['HQ', 'MQ', 'EQ', 'SQ'].index(f['quality'])
         else:
-            sort_key = lambda f: int(f.get('height',-1))
+            def sort_key(f):
+                return (
+                    # Sort first by quality
+                    int(f.get('height',-1)),
+                    int(f.get('bitrate',-1)),
+                    # The original version with subtitles has lower relevance
+                    re.match(r'VO-ST(F|A)', f.get('versionCode', '')) is None,
+                    # The version with sourds/mal subtitles has also lower relevance
+                    re.match(r'VO?(F|A)-STM\1', f.get('versionCode', '')) is None,
+                )
         formats = sorted(formats, key=sort_key)
-        # Prefer videos without subtitles in the same language
-        formats = sorted(formats, key=lambda f: re.match(r'VO(F|A)-STM\1', f.get('versionCode', '')) is None)
-        # Pick the best quality
         def _format(format_info):
-            quality = format_info['quality']
-            m_quality = re.match(r'\w*? - (\d*)p', quality)
-            if m_quality is not None:
-                quality = m_quality.group(1)
+            quality = ''
+            height = format_info.get('height')
+            if height is not None:
+                quality = compat_str(height)
+            bitrate = format_info.get('bitrate')
+            if bitrate is not None:
+                quality += '-%d' % bitrate
             if format_info.get('versionCode') is not None:
                 format_id = u'%s-%s' % (quality, format_info['versionCode'])
             else:
@@ -203,7 +214,7 @@ class ArteTVPlus7IE(InfoExtractor):
                 'format_id': format_id,
                 'format_note': format_info.get('versionLibelle'),
                 'width': format_info.get('width'),
-                'height': format_info.get('height'),
+                'height': height,
             }
             if format_info['mediaType'] == u'rtmp':
                 info['url'] = format_info['streamer']

@@ -8,7 +8,7 @@ from ..utils import (
 
 
 class ViddlerIE(InfoExtractor):
-    _VALID_URL = r'(?P<domain>https?://(?:www\.)?viddler.com)/(?:v|embed|player)/(?P<id>[0-9]+)'
+    _VALID_URL = r'(?P<domain>https?://(?:www\.)?viddler.com)/(?:v|embed|player)/(?P<id>[a-z0-9]+)'
     _TEST = {
         u"url": u"http://www.viddler.com/v/43903784",
         u'file': u'43903784.mp4',

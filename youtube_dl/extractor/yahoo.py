@@ -132,7 +132,7 @@ class YahooSearchIE(SearchInfoExtractor):
                 mobj = re.search(r'(?P<url>screen\.yahoo\.com/.*?-\d*?\.html)"', r)
                 e = self.url_result('http://' + mobj.group('url'), 'Yahoo')
                 res['entries'].append(e)
-            if (pagenum * 30 +i >= n) or (m[u'last'] >= (m[u'total'] -1 )):
+            if (pagenum * 30 +i >= n) or (m[u'last'] >= (m[u'total'] -1)):
                 break
 
         return res

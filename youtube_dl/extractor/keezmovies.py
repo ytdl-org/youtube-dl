@@ -43,10 +43,10 @@ class KeezMoviesIE(InfoExtractor):
         if webpage.find('encrypted=true')!=-1:
             password = self._html_search_regex(r'video_title=(.+?)&amp;', webpage, u'password')
             video_url = aes_decrypt_text(video_url, password, 32).decode('utf-8')
-        path = compat_urllib_parse_urlparse( video_url ).path
-        extension = os.path.splitext( path )[1][1:]
+        path = compat_urllib_parse_urlparse(video_url).path
+        extension = os.path.splitext(path)[1][1:]
         format = path.split('/')[4].split('_')[:2]
-        format = "-".join( format )
+        format = "-".join(format)
 
         age_limit = self._rta_search(webpage)
 

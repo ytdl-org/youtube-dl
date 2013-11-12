@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class XNXXIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?video\.xnxx\.com/video([0-9]+)/(.*)'
+    _VALID_URL = r'^(?:https?://)?(?:video|www)\.xnxx\.com/video([0-9]+)/(.*)'
     VIDEO_URL_RE = r'flv_url=(.*?)&amp;'
     VIDEO_TITLE_RE = r'<title>(.*?)\s+-\s+XNXX.COM'
     VIDEO_THUMB_RE = r'url_bigthumb=(.*?)&amp;'

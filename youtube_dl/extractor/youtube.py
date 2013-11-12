@@ -1082,7 +1082,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         else:
             raise ExtractorError(u'Unable to decrypt signature, key length %d not supported; retrying might work' % (len(s)))
 
-    def _get_available_subtitles(self, video_id):
+    def _get_available_subtitles(self, video_id, webpage):
         try:
             sub_list = self._download_webpage(
                 'http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id,
@@ -1485,7 +1485,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'subtitles':    video_subtitles,
                 'duration':     video_duration,
                 'age_limit':    18 if age_gate else 0,
-                'annotations':  video_annotations
+                'annotations':  video_annotations,
+                'webpage_url': 'https://www.youtube.com/watch?v=%s' % video_id,
             })
         return results
 
@@ -1571,7 +1572,6 @@ class YoutubePlaylistIE(InfoExtractor):
 class YoutubeChannelIE(InfoExtractor):
     IE_DESC = u'YouTube.com channels'
     _VALID_URL = r"^(?:https?://)?(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com)/channel/([0-9A-Za-z_-]+)"
-    _TEMPLATE_URL = 'http://www.youtube.com/channel/%s/videos?sort=da&flow=list&view=0&page=%s&gl=US&hl=en'
     _MORE_PAGES_INDICATOR = 'yt-uix-load-more'
     _MORE_PAGES_URL = 'http://www.youtube.com/c4_browse_ajax?action_load_more_videos=1&flow=list&paging=%s&view=0&sort=da&channel_id=%s'
     IE_NAME = u'youtube:channel'
@@ -1592,30 +1592,20 @@ class YoutubeChannelIE(InfoExtractor):
         # Download channel page
         channel_id = mobj.group(1)
         video_ids = []
-        pagenum = 1
 
-        url = self._TEMPLATE_URL % (channel_id, pagenum)
-        page = self._download_webpage(url, channel_id,
-                                      u'Downloading page #%s' % pagenum)
+        # Download all channel pages using the json-based channel_ajax query
+        for pagenum in itertools.count(1):
+            url = self._MORE_PAGES_URL % (pagenum, channel_id)
+            page = self._download_webpage(url, channel_id,
+                                          u'Downloading page #%s' % pagenum)
 
-        # Extract video identifiers
-        ids_in_page = self.extract_videos_from_page(page)
-        video_ids.extend(ids_in_page)
+            page = json.loads(page)
 
-        # Download any subsequent channel pages using the json-based channel_ajax query
-        if self._MORE_PAGES_INDICATOR in page:
-            for pagenum in itertools.count(1):
-                url = self._MORE_PAGES_URL % (pagenum, channel_id)
-                page = self._download_webpage(url, channel_id,
-                                              u'Downloading page #%s' % pagenum)
+            ids_in_page = self.extract_videos_from_page(page['content_html'])
+            video_ids.extend(ids_in_page)
 
-                page = json.loads(page)
-
-                ids_in_page = self.extract_videos_from_page(page['content_html'])
-                video_ids.extend(ids_in_page)
-
-                if self._MORE_PAGES_INDICATOR  not in page['load_more_widget_html']:
-                    break
+            if self._MORE_PAGES_INDICATOR not in page['load_more_widget_html']:
+                break
 
         self._downloader.to_screen(u'[youtube] Channel %s: Found %i videos' % (channel_id, len(video_ids)))
 
@@ -1731,6 +1721,10 @@ class YoutubeSearchIE(SearchInfoExtractor):
         videos = [self.url_result('http://www.youtube.com/watch?v=%s' % id, 'Youtube') for id in video_ids]
         return self.playlist_result(videos, query)
 
+class YoutubeSearchDateIE(YoutubeSearchIE):
+    _API_URL = 'https://gdata.youtube.com/feeds/api/videos?q=%s&start-index=%i&max-results=50&v=2&alt=jsonc&orderby=published'
+    _SEARCH_KEY = 'ytsearchdate'
+    IE_DESC = u'YouTube.com searches, newest videos first'
 
 class YoutubeShowIE(InfoExtractor):
     IE_DESC = u'YouTube.com (multi-season) shows'
