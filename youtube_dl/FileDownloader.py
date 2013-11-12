@@ -544,6 +544,7 @@ class FileDownloader(object):
             # Download and write
             before = time.time()
             data_block = data.read(block_size)
+            
             after = time.time()
             if len(data_block) == 0:
                 break
