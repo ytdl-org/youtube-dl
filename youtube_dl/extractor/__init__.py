@@ -25,6 +25,7 @@ from .comedycentral import ComedyCentralIE
 from .condenast import CondeNastIE
 from .criterion import CriterionIE
 from .cspan import CSpanIE
+from .d8 import D8IE
 from .dailymotion import (
     DailymotionIE,
     DailymotionPlaylistIE,
