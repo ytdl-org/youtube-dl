@@ -27,7 +27,7 @@ class VineIE(InfoExtractor):
         video_url = self._html_search_regex(r'<meta property="twitter:player:stream" content="(.+?)"',
             webpage, u'video URL')
 
-        uploader = self._html_search_regex(r'<div class="user">.*?<h2>(.+?)</h2>',
+        uploader = self._html_search_regex(r'<p class="username">(.*?)</p>',
             webpage, u'uploader', fatal=False, flags=re.DOTALL)
 
         return [{
