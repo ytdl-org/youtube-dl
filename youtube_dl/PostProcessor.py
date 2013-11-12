@@ -501,7 +501,7 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
 
         options = ['-c', 'copy']
         for (name, value) in metadata.items():
-            options.extend(['-metadata', '%s="%s"' % (name, value)])
+            options.extend(['-metadata', '%s=%s' % (name, value)])
         options.extend(['-f', ext])
 
         self._downloader.to_screen(u'[ffmpeg] Adding metadata to \'%s\'' % filename)
