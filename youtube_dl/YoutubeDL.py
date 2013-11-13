@@ -655,7 +655,7 @@ class YoutubeDL(object):
                     return
 
         if self.params.get('writeinfojson', False):
-            infofn = filename + u'.info.json'
+            infofn = os.path.splitext(filename)[0] + u'.info.json'
             self.report_writeinfojson(infofn)
             try:
                 json_info_dict = dict((k, v) for k, v in info_dict.items() if not k in ['urlhandle'])
