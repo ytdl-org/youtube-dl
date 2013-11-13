@@ -58,6 +58,7 @@ from .francetv import (
 )
 from .freesound import FreesoundIE
 from .funnyordie import FunnyOrDieIE
+from .gamekings import GamekingsIE
 from .gamespot import GameSpotIE
 from .gametrailers import GametrailersIE
 from .generic import GenericIE
