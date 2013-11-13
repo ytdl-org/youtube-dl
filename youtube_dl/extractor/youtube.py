@@ -1490,7 +1490,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             })
         return results
 
-class YoutubePlaylistIE(InfoExtractor):
+class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
     IE_DESC = u'YouTube.com playlists'
     _VALID_URL = r"""(?:
                         (?:https?://)?
@@ -1515,6 +1515,9 @@ class YoutubePlaylistIE(InfoExtractor):
     def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
         return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
+
+    def _real_initialize(self):
+        self._login()
 
     def _real_extract(self, url):
         # Extract playlist id
