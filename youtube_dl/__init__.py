@@ -33,6 +33,7 @@ __authors__  = (
     'Steffan \'Ruirize\' James',
     'Andras Elso',
     'Jelle van der Waa',
+    'Marcin Cieślak',
 )
 
 __license__ = 'Public Domain'
