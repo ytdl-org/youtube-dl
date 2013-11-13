@@ -32,6 +32,7 @@ __authors__  = (
     'Ismael Mejía',
     'Steffan \'Ruirize\' James',
     'Andras Elso',
+    'Jelle van der Waa',
 )
 
 __license__ = 'Public Domain'
