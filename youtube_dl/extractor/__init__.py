@@ -81,7 +81,7 @@ from .keezmovies import KeezMoviesIE
 from .kickstarter import KickStarterIE
 from .keek import KeekIE
 from .liveleak import LiveLeakIE
-from .livestream import LivestreamIE
+from .livestream import LivestreamIE, LivestreamOriginalIE
 from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
 from .mit import TechTVMITIE, MITIE
