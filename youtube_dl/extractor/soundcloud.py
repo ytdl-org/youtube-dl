@@ -87,7 +87,7 @@ class SoundcloudIE(InfoExtractor):
             'uploader': info['user']['username'],
             'upload_date': unified_strdate(info['created_at']),
             'title':    info['title'],
-            'ext':      u'mp3',
+            'ext':      info.get('original_format', u'mp3'),
             'description': info['description'],
             'thumbnail': thumbnail,
         }
