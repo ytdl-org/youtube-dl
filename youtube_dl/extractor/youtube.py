@@ -1019,6 +1019,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         """Turn the encrypted s field into a working signature"""
 
         if player_url is not None:
+            if player_url.startswith(u'//'):
+                player_url = u'https:' + player_url
             try:
                 player_id = (player_url, len(s))
                 if player_id not in self._player_cache:
