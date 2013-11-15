@@ -85,7 +85,7 @@ class TEDIE(SubtitlesInfoExtractor):
             'ext': 'mp4',
             'url': stream['file'],
             'format': stream['id']
-            } for stream in info['htmlStreams']]
+        } for stream in info['htmlStreams']]
 
         video_id = info['id']
 
@@ -95,7 +95,7 @@ class TEDIE(SubtitlesInfoExtractor):
             self._list_available_subtitles(video_id, webpage)
             return
 
-        info = {
+        return {
             'id': video_id,
             'title': title,
             'thumbnail': thumbnail,
@@ -103,11 +103,6 @@ class TEDIE(SubtitlesInfoExtractor):
             'subtitles': video_subtitles,
             'formats': formats,
         }
-
-        # TODO: Remove when #980 has been merged
-        info.update(info['formats'][-1])
-
-        return info
 
     def _get_available_subtitles(self, video_id, webpage):
         try:
