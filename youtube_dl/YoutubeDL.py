@@ -385,7 +385,7 @@ class YoutubeDL(object):
         result_type = ie_result.get('_type', 'video') # If not given we suppose it's a video, support the default old system
         if result_type == 'video':
             self.add_extra_info(ie_result, extra_info)
-            return self.process_video_result(ie_result)
+            return self.process_video_result(ie_result, download=download)
         elif result_type == 'url':
             # We have to add extra_info to the results because it may be
             # contained in a playlist
