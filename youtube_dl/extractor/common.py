@@ -315,13 +315,17 @@ class InfoExtractor(object):
 
     # Helper functions for extracting OpenGraph info
     @staticmethod
-    def _og_regex(prop):
-        return r'<meta.+?property=[\'"]og:%s[\'"].+?content=(?:"(.+?)"|\'(.+?)\')' % re.escape(prop)
+    def _og_regexes(prop):
+        esc_prop = re.escape(prop)
+        return [
+            r'<meta[^>]+?property=[\'"]og:%s[\'"][^>]+?content=(?:"(.+?)"|\'(.+?)\')' % esc_prop,
+            r'<meta[^>]+?content=(?:"(.+?)"|\'(.+?)\')[^>]+?property=[\'"]og:%s[\'"]' % esc_prop,
+        ]
 
     def _og_search_property(self, prop, html, name=None, **kargs):
         if name is None:
             name = 'OpenGraph %s' % prop
-        escaped = self._search_regex(self._og_regex(prop), html, name, flags=re.DOTALL, **kargs)
+        escaped = self._search_regex(self._og_regexes(prop), html, name, flags=re.DOTALL, **kargs)
         if escaped is None:
             return None
         return unescapeHTML(escaped)
@@ -336,8 +340,8 @@ class InfoExtractor(object):
         return self._og_search_property('title', html, **kargs)
 
     def _og_search_video_url(self, html, name='video url', secure=True, **kargs):
-        regexes = [self._og_regex('video')]
-        if secure: regexes.insert(0, self._og_regex('video:secure_url'))
+        regexes = self._og_regexes('video')
+        if secure: regexes = self._og_regexes('video:secure_url') + regexes
         return self._html_search_regex(regexes, html, name, **kargs)
 
     def _rta_search(self, html):
