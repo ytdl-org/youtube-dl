@@ -1100,7 +1100,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             params = compat_urllib_parse.urlencode({
                 'lang': lang,
                 'v': video_id,
-                'fmt': self._downloader.params.get('subtitlesformat'),
+                'fmt': self._downloader.params.get('subtitlesformat', 'srt'),
                 'name': l[0].encode('utf-8'),
             })
             url = u'http://www.youtube.com/api/timedtext?' + params
@@ -1113,7 +1113,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     def _get_available_automatic_caption(self, video_id, webpage):
         """We need the webpage for getting the captions url, pass it as an
            argument to speed up the process."""
-        sub_format = self._downloader.params.get('subtitlesformat')
+        sub_format = self._downloader.params.get('subtitlesformat', 'srt')
         self.to_screen(u'%s: Looking for automatic captions' % video_id)
         mobj = re.search(r';ytplayer.config = ({.*?});', webpage)
         err_msg = u'Couldn\'t find automatic captions for %s' % video_id

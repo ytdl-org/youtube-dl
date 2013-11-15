@@ -640,7 +640,7 @@ class YoutubeDL(object):
             # subtitles download errors are already managed as troubles in relevant IE
             # that way it will silently go on when used with unsupporting IE
             subtitles = info_dict['subtitles']
-            sub_format = self.params.get('subtitlesformat')
+            sub_format = self.params.get('subtitlesformat', 'srt')
             for sub_lang in subtitles.keys():
                 sub = subtitles[sub_lang]
                 if sub is None:
