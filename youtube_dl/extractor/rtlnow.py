@@ -63,18 +63,6 @@ class RTLnowIE(InfoExtractor):
         },
     },
     {
-        u'url': u'http://www.rtlnitronow.de/recht-ordnung/stadtpolizei-frankfurt-gerichtsvollzieher-leipzig.php?film_id=129679&player=1&season=1',
-        u'file': u'129679.flv',
-        u'info_dict': {
-            u'upload_date': u'20131016', 
-            u'title': u'Recht & Ordnung - Stadtpolizei Frankfurt/ Gerichtsvollzieher...',
-            u'description': u'Stadtpolizei Frankfurt/ Gerichtsvollzieher Leipzig',
-        },
-        u'params': {
-            u'skip_download': True,
-        },
-    },
-    {
         u'url': u'http://www.n-tvnow.de/top-gear/episode-1-2013-01-01-00-00-00.php?film_id=124903&player=1&season=10',
         u'file': u'124903.flv',
         u'info_dict': {
