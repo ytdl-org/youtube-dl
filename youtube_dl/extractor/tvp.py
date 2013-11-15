@@ -13,8 +13,8 @@ class TvpIE(InfoExtractor):
         u'md5': u'148408967a6a468953c0a75cbdaf0d7a',
         u'file': u'12878238.wmv',
         u'info_dict': {
-            u'title': u'31.10.2013',
-            u'description': u'31.10.2013',
+            u'title': u'31.10.2013 - Odcinek 2',
+            u'description': u'31.10.2013 - Odcinek 2',
         },
     }
 
