@@ -781,12 +781,28 @@ class YoutubeDL(object):
         return res
 
     def list_formats(self, info_dict):
+        def format_note(fdict):
+            if fdict.get('format_note') is not None:
+                return fdict['format_note']
+            res = u''
+            if fdict.get('vcodec') is not None:
+                res += fdict['vcodec']
+            if fdict.get('vbr') is not None:
+                res += u'@%4dk' % fdict['vbr']
+            if fdict.get('acodec') is not None:
+                if res:
+                    res += u', '
+                res += fdict['acodec']
+            if fdict.get('abr') is not None:
+                res += u'@%3dk' % fdict['abr']
+            return res
+
         def line(format):
             return (u'%-20s%-10s%-12s%s' % (
                 format['format_id'],
                 format['ext'],
                 self.format_resolution(format),
-                format.get('format_note', ''),
+                format_note(format),
                 )
             )
 

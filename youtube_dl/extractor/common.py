@@ -71,6 +71,10 @@ class InfoExtractor(object):
                                 ("3D" or "DASH video")
                     * width     Width of the video, if known
                     * height    Height of the video, if known
+                    * abr       Average audio bitrate in KBit/s
+                    * acodec    Name of the audio codec in use
+                    * vbr       Average video bitrate in KBit/s
+                    * vcodec    Name of the video codec in use
     webpage_url:    The url to the video webpage, if given to youtube-dl it
                     should allow to get the same result again. (It will be set
                     by YoutubeDL if it's missing)
