@@ -186,7 +186,7 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
             webpage = self._download_webpage(request,
                                              id, u'Downloading page %s' % pagenum)
 
-            playlist_el = get_element_by_attribute(u'class', u'video_list', webpage)
+            playlist_el = get_element_by_attribute(u'class', u'row video_list', webpage)
             video_ids.extend(re.findall(r'data-id="(.+?)"', playlist_el))
 
             if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
