@@ -815,8 +815,8 @@ class YoutubeDL(object):
         formats = info_dict.get('formats', [info_dict])
         formats_s = list(map(line, formats))
         if len(formats) > 1:
-            formats_s[0] += (' ' if formats[0].get('format_note') else '') + '(worst)'
-            formats_s[-1] += (' ' if formats[-1].get('format_note') else '') + '(best)'
+            formats_s[0] += (' ' if format_note(formats[0]) else '') + '(worst)'
+            formats_s[-1] += (' ' if format_note(formats[-1]) else '') + '(best)'
 
         header_line = line({
             'format_id': u'format code', 'ext': u'extension',
