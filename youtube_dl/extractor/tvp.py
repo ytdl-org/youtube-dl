@@ -16,6 +16,7 @@ class TvpIE(InfoExtractor):
             u'title': u'31.10.2013 - Odcinek 2',
             u'description': u'31.10.2013 - Odcinek 2',
         },
+        u'skip': u'Download has to use same server IP as extraction. Therefore, a good (load-balancing) DNS resolver will make the download fail.'
     }
 
     def _real_extract(self, url):
