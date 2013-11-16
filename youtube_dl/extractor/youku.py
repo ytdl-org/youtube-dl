@@ -5,10 +5,12 @@ import math
 import random
 import re
 import time
+from struct import unpack
 
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
+    compat_urllib_request
 )
 
 
@@ -67,8 +69,27 @@ class YoukuIE(InfoExtractor):
         try:
             config = json.loads(jsondata)
             error_code = config['data'][0].get('error_code')
+            # -8 means blocked outside China.
+            if error_code == -8:
+                proxy_handler = compat_urllib_request.ProxyHandler({
+                    'http': 'h0.edu.bj.ie.sogou.com'
+                })
+                opener = compat_urllib_request.build_opener(proxy_handler)
+                old_opener = compat_urllib_request.install_opener(opener)
+                t = hex(int(time.time()))[2:].rstrip('L').zfill(8)
+                proxied_request = compat_urllib_request.Request(info_url)
+                proxied_request.add_header('X-Sogou-Auth', self.x_sogou_auth)
+                proxied_request.add_header('X-Sogou-Tag', self.calc_sogou_hash(t, 'v.youku.com'))
+                proxied_request.add_header('X-Sogou-Timestamp', t)
+                jsondata = self._download_webpage(proxied_request, video_id)
+                config = json.loads(jsondata)
+                error_code = config['data'][0].get('error_code')
+                # XXX: needs a way to restore the original proxy settings
+                compat_urllib_request.install_opener(compat_urllib_request.build_opener(compat_urllib_request.ProxyHandler({})))
+            else:
+                print 'hahaha'
+
             if error_code:
-                # -8 means blocked outside China.
                 error = config['data'][0].get('error')  # Chinese and English, separated by newline.
                 raise ExtractorError(error or u'Server reported error %i' % error_code,
                     expected=True)
@@ -121,3 +142,50 @@ class YoukuIE(InfoExtractor):
             files_info.append(info)
 
         return files_info
+
+    x_sogou_auth = "9CD285F1E7ADB0BD403C22AD1D545F40/30/853edc6d49ba4e27"
+
+    # http://xiaoxia.org/2011/11/14/update-sogou-proxy-program-with-https-support/
+    def calc_sogou_hash(self, t, host):  
+        s = (t + host + 'SogouExplorerProxy').encode('ascii')  
+        code = len(s)  
+        dwords = int(len(s)/4)  
+        rest = len(s) % 4  
+        v = unpack(str(dwords) + 'i'+str(rest)+'s', s)  
+        for vv in v:  
+            if(type(vv)==type('i')):  
+                break  
+            a = (vv & 0xFFFF)  
+            b = (vv >> 16)  
+            code += a  
+            code = code ^ (((code<<5)^b) << 0xb)  
+            # To avoid overflows  
+            code &= 0xffffffff  
+            code += code >> 0xb  
+        if rest == 3:  
+            code += ord(s[len(s)-2]) * 256 + ord(s[len(s)-3])  
+            code = code ^ ((code ^ (ord(s[len(s)-1])*4)) << 0x10)  
+            code &= 0xffffffff  
+            code += code >> 0xb  
+        elif rest == 2:  
+            code += ord(s[len(s)-1]) * 256 + ord(s[len(s)-2])  
+            code ^= code << 0xb  
+            code &= 0xffffffff  
+            code += code >> 0x11  
+        elif rest == 1:  
+            code += ord(s[len(s)-1])  
+            code ^= code << 0xa  
+            code &= 0xffffffff  
+            code += code >> 0x1  
+        code ^= code * 8  
+        code &= 0xffffffff  
+        code += code >> 5  
+        code ^= code << 4  
+        code = code & 0xffffffff  
+        code += code >> 0x11  
+        code ^= code << 0x19  
+        code = code & 0xffffffff  
+        code += code >> 6  
+        code = code & 0xffffffff  
+        return hex(code)[2:].rstrip('L').zfill(8)  
+
