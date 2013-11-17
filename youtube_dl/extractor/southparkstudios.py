@@ -5,7 +5,7 @@ from .mtv import MTVIE, _media_xml_tag
 
 class SouthParkStudiosIE(MTVIE):
     IE_NAME = u'southparkstudios.com'
-    _VALID_URL = r'https?://www\.southparkstudios\.com/(clips|full-episodes)/(?P<id>.+?)(\?|#|$)'
+    _VALID_URL = r'(https?://)?(www\.)?(?P<url>southparkstudios\.com/(clips|full-episodes)/(?P<id>.+?)(\?|#|$))'
 
     _FEED_URL = 'http://www.southparkstudios.com/feeds/video-player/mrss'
 
@@ -31,6 +31,7 @@ class SouthParkStudiosIE(MTVIE):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        url = u'http://www.' + mobj.group(u'url')
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
         mgid = self._search_regex(r'swfobject.embedSWF\(".*?(mgid:.*?)"',
