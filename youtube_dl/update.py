@@ -2,11 +2,15 @@ import io
 import json
 import traceback
 import hashlib
+import os
 import subprocess
 import sys
 from zipimport import zipimporter
 
-from .utils import *
+from .utils import (
+    compat_str,
+    compat_urllib_request,
+)
 from .version import __version__
 
 def rsa_verify(message, signature, key):
