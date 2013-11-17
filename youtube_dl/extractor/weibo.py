@@ -13,6 +13,7 @@ class WeiboIE(InfoExtractor):
     _VALID_URL = r'https?://video\.weibo\.com/v/weishipin/t_(?P<id>.+?)\.htm'
 
     _TEST = {
+        u'add_ie': ['Sina'],
         u'url': u'http://video.weibo.com/v/weishipin/t_zjUw2kZ.htm',
         u'file': u'98322879.flv',
         u'info_dict': {

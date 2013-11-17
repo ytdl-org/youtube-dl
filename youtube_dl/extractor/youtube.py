@@ -74,14 +74,8 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             self._downloader.report_warning(u'unable to fetch login page: %s' % compat_str(err))
             return False
 
-        galx = None
-        dsh = None
-        match = re.search(re.compile(r'<input.+?name="GALX".+?value="(.+?)"', re.DOTALL), login_page)
-        if match:
-          galx = match.group(1)
-        match = re.search(re.compile(r'<input.+?name="dsh".+?value="(.+?)"', re.DOTALL), login_page)
-        if match:
-          dsh = match.group(1)
+        galx = self._search_regex(r'(?s)<input.+?name="GALX".+?value="(.+?)"',
+                                  login_page, u'Login GALX parameter')
 
         # Log in
         login_form_strs = {
@@ -95,7 +89,6 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 u'checkConnection': u'',
                 u'checkedDomains': u'youtube',
                 u'dnConn': u'',
-                u'dsh': dsh,
                 u'pstMsg': u'0',
                 u'rmShown': u'1',
                 u'secTok': u'',
@@ -344,18 +337,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 u"uploader_id": u"phihag",
                 u"upload_date": u"20121002",
                 u"description": u"test chars:  \"'/\\ä↭𝕐\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de ."
-            }
-        },
-        {
-            u"url":  u"http://www.youtube.com/watch?v=1ltcDfZMA3U",
-            u"file":  u"1ltcDfZMA3U.mp4",
-            u"note": u"Test VEVO video (#897)",
-            u"info_dict": {
-                u"upload_date": u"20070518",
-                u"title": u"Maps - It Will Find You",
-                u"description": u"Music video by Maps performing It Will Find You.",
-                u"uploader": u"MuteUSA",
-                u"uploader_id": u"MuteUSA"
             }
         },
         {
@@ -1038,6 +1019,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         """Turn the encrypted s field into a working signature"""
 
         if player_url is not None:
+            if player_url.startswith(u'//'):
+                player_url = u'https:' + player_url
             try:
                 player_id = (player_url, len(s))
                 if player_id not in self._player_cache:
@@ -1101,7 +1084,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         else:
             raise ExtractorError(u'Unable to decrypt signature, key length %d not supported; retrying might work' % (len(s)))
 
-    def _get_available_subtitles(self, video_id):
+    def _get_available_subtitles(self, video_id, webpage):
         try:
             sub_list = self._download_webpage(
                 'http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id,
@@ -1117,8 +1100,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             params = compat_urllib_parse.urlencode({
                 'lang': lang,
                 'v': video_id,
-                'fmt': self._downloader.params.get('subtitlesformat'),
-                'name': l[0],
+                'fmt': self._downloader.params.get('subtitlesformat', 'srt'),
+                'name': l[0].encode('utf-8'),
             })
             url = u'http://www.youtube.com/api/timedtext?' + params
             sub_lang_list[lang] = url
@@ -1130,7 +1113,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     def _get_available_automatic_caption(self, video_id, webpage):
         """We need the webpage for getting the captions url, pass it as an
            argument to speed up the process."""
-        sub_format = self._downloader.params.get('subtitlesformat')
+        sub_format = self._downloader.params.get('subtitlesformat', 'srt')
         self.to_screen(u'%s: Looking for automatic captions' % video_id)
         mobj = re.search(r';ytplayer.config = ({.*?});', webpage)
         err_msg = u'Couldn\'t find automatic captions for %s' % video_id
@@ -1318,6 +1301,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             else:
                 raise ExtractorError(u'"token" parameter not in video info for unknown reason')
 
+        if 'view_count' in video_info:
+            view_count = int(video_info['view_count'][0])
+        else:
+            view_count = None
+
         # Check for "rental" videos
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
             raise ExtractorError(u'"rental" videos not supported')
@@ -1504,7 +1492,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'subtitles':    video_subtitles,
                 'duration':     video_duration,
                 'age_limit':    18 if age_gate else 0,
-                'annotations':  video_annotations
+                'annotations':  video_annotations,
+                'webpage_url': 'https://www.youtube.com/watch?v=%s' % video_id,
+                'view_count': view_count,
             })
         return results
 
@@ -1590,7 +1580,6 @@ class YoutubePlaylistIE(InfoExtractor):
 class YoutubeChannelIE(InfoExtractor):
     IE_DESC = u'YouTube.com channels'
     _VALID_URL = r"^(?:https?://)?(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com)/channel/([0-9A-Za-z_-]+)"
-    _TEMPLATE_URL = 'http://www.youtube.com/channel/%s/videos?sort=da&flow=list&view=0&page=%s&gl=US&hl=en'
     _MORE_PAGES_INDICATOR = 'yt-uix-load-more'
     _MORE_PAGES_URL = 'http://www.youtube.com/c4_browse_ajax?action_load_more_videos=1&flow=list&paging=%s&view=0&sort=da&channel_id=%s'
     IE_NAME = u'youtube:channel'
@@ -1611,29 +1600,30 @@ class YoutubeChannelIE(InfoExtractor):
         # Download channel page
         channel_id = mobj.group(1)
         video_ids = []
-        pagenum = 1
+        url = 'https://www.youtube.com/channel/%s/videos' % channel_id
+        channel_page = self._download_webpage(url, channel_id)
+        if re.search(r'channel-header-autogenerated-label', channel_page) is not None:
+            autogenerated = True
+        else:
+            autogenerated = False
 
-        url = self._TEMPLATE_URL % (channel_id, pagenum)
-        page = self._download_webpage(url, channel_id,
-                                      u'Downloading page #%s' % pagenum)
-
-        # Extract video identifiers
-        ids_in_page = self.extract_videos_from_page(page)
-        video_ids.extend(ids_in_page)
-
-        # Download any subsequent channel pages using the json-based channel_ajax query
-        if self._MORE_PAGES_INDICATOR in page:
+        if autogenerated:
+            # The videos are contained in a single page
+            # the ajax pages can't be used, they are empty
+            video_ids = self.extract_videos_from_page(channel_page)
+        else:
+            # Download all channel pages using the json-based channel_ajax query
             for pagenum in itertools.count(1):
                 url = self._MORE_PAGES_URL % (pagenum, channel_id)
                 page = self._download_webpage(url, channel_id,
                                               u'Downloading page #%s' % pagenum)
-
+    
                 page = json.loads(page)
-
+    
                 ids_in_page = self.extract_videos_from_page(page['content_html'])
                 video_ids.extend(ids_in_page)
-
-                if self._MORE_PAGES_INDICATOR  not in page['load_more_widget_html']:
+    
+                if self._MORE_PAGES_INDICATOR not in page['load_more_widget_html']:
                     break
 
         self._downloader.to_screen(u'[youtube] Channel %s: Found %i videos' % (channel_id, len(video_ids)))
@@ -1750,6 +1740,10 @@ class YoutubeSearchIE(SearchInfoExtractor):
         videos = [self.url_result('http://www.youtube.com/watch?v=%s' % id, 'Youtube') for id in video_ids]
         return self.playlist_result(videos, query)
 
+class YoutubeSearchDateIE(YoutubeSearchIE):
+    _API_URL = 'https://gdata.youtube.com/feeds/api/videos?q=%s&start-index=%i&max-results=50&v=2&alt=jsonc&orderby=published'
+    _SEARCH_KEY = 'ytsearchdate'
+    IE_DESC = u'YouTube.com searches, newest videos first'
 
 class YoutubeShowIE(InfoExtractor):
     IE_DESC = u'YouTube.com (multi-season) shows'

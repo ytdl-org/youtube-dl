@@ -81,14 +81,14 @@ class YouPornIE(InfoExtractor):
             # http://cdn1.download.youporn.phncdn.com/201210/31/8004515/480p_370k_8004515/YouPorn%20-%20Nubile%20Films%20The%20Pillow%20Fight.mp4?nvb=20121113051249&nva=20121114051249&ir=1200&sr=1200&hash=014b882080310e95fb6a0
             # A path looks like this:
             # /201210/31/8004515/480p_370k_8004515/YouPorn%20-%20Nubile%20Films%20The%20Pillow%20Fight.mp4
-            video_url = unescapeHTML( link )
-            path = compat_urllib_parse_urlparse( video_url ).path
-            extension = os.path.splitext( path )[1][1:]
+            video_url = unescapeHTML(link)
+            path = compat_urllib_parse_urlparse(video_url).path
+            extension = os.path.splitext(path)[1][1:]
             format = path.split('/')[4].split('_')[:2]
 
             # size = format[0]
             # bitrate = format[1]
-            format = "-".join( format )
+            format = "-".join(format)
             # title = u'%s-%s-%s' % (video_title, size, bitrate)
 
             formats.append({

@@ -17,9 +17,11 @@ from youtube_dl.extractor import (
     DailymotionUserIE,
     VimeoChannelIE,
     UstreamChannelIE,
+    SoundcloudSetIE,
     SoundcloudUserIE,
     LivestreamIE,
     NHLVideocenterIE,
+    BambuserChannelIE,
 )
 
 
@@ -60,6 +62,14 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['id'], u'5124905')
         self.assertTrue(len(result['entries']) >= 11)
 
+    def test_soundcloud_set(self):
+        dl = FakeYDL()
+        ie = SoundcloudSetIE(dl)
+        result = ie.extract('https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['title'], u'The Royal Concept EP')
+        self.assertTrue(len(result['entries']) >= 6)
+
     def test_soundcloud_user(self):
         dl = FakeYDL()
         ie = SoundcloudUserIE(dl)
@@ -84,6 +94,14 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['id'], u'999')
         self.assertEqual(result['title'], u'Highlights')
         self.assertEqual(len(result['entries']), 12)
+
+    def test_bambuser_channel(self):
+        dl = FakeYDL()
+        ie = BambuserChannelIE(dl)
+        result = ie.extract('http://bambuser.com/channel/pixelversity')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['title'], u'pixelversity')
+        self.assertTrue(len(result['entries']) >= 66)
 
 if __name__ == '__main__':
     unittest.main()

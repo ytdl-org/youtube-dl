@@ -1,8 +1,10 @@
 import re
+import hashlib
 
 from .common import InfoExtractor
 from ..utils import determine_ext
 
+_md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
 
 class KankanIE(InfoExtractor):
     _VALID_URL = r'https?://(?:.*?\.)?kankan\.com/.+?/(?P<id>\d+)\.shtml'
@@ -30,7 +32,10 @@ class KankanIE(InfoExtractor):
                                                  video_id, u'Downloading video url info')
         ip = self._search_regex(r'ip:"(.+?)"', video_info_page, u'video url ip')
         path = self._search_regex(r'path:"(.+?)"', video_info_page, u'video url path')
-        video_url = 'http://%s%s' % (ip, path)
+        param1 = self._search_regex(r'param1:(\d+)', video_info_page, u'param1')
+        param2 = self._search_regex(r'param2:(\d+)', video_info_page, u'param2')
+        key = _md5('xl_mp43651' + param1 + param2)
+        video_url = 'http://%s%s?key=%s&key1=%s' % (ip, path, key, param2)
 
         return {'id': video_id,
                 'title': title,

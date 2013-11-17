@@ -41,7 +41,7 @@ class CinemassacreIE(InfoExtractor):
         webpage_url = u'http://' + mobj.group('url')
         webpage = self._download_webpage(webpage_url, None) # Don't know video id yet
         video_date = mobj.group('date_Y') + mobj.group('date_m') + mobj.group('date_d')
-        mobj = re.search(r'src="(?P<embed_url>http://player\.screenwavemedia\.com/play/(?:embed|player)\.php\?id=(?:Cinemassacre-)?(?P<video_id>.+?))"', webpage)
+        mobj = re.search(r'src="(?P<embed_url>http://player\.screenwavemedia\.com/play/[a-zA-Z]+\.php\?id=(?:Cinemassacre-)?(?P<video_id>.+?))"', webpage)
         if not mobj:
             raise ExtractorError(u'Can\'t extract embed url and video id')
         playerdata_url = mobj.group(u'embed_url')
@@ -65,6 +65,7 @@ class CinemassacreIE(InfoExtractor):
             {
                 'url': url,
                 'play_path': 'mp4:' + sd_file,
+                'rtmp_live': True, # workaround
                 'ext': 'flv',
                 'format': 'sd',
                 'format_id': 'sd',
@@ -72,6 +73,7 @@ class CinemassacreIE(InfoExtractor):
             {
                 'url': url,
                 'play_path': 'mp4:' + hd_file,
+                'rtmp_live': True, # workaround
                 'ext': 'flv',
                 'format': 'hd',
                 'format_id': 'hd',

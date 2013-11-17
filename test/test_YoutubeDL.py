@@ -62,10 +62,10 @@ class TestFormatSelection(unittest.TestCase):
 
     def test_format_limit(self):
         formats = [
-            {u'format_id': u'meh'},
-            {u'format_id': u'good'},
-            {u'format_id': u'great'},
-            {u'format_id': u'excellent'},
+            {u'format_id': u'meh', u'url': u'http://example.com/meh'},
+            {u'format_id': u'good', u'url': u'http://example.com/good'},
+            {u'format_id': u'great', u'url': u'http://example.com/great'},
+            {u'format_id': u'excellent', u'url': u'http://example.com/exc'},
         ]
         info_dict = {
             u'formats': formats, u'extractor': u'test', 'id': 'testvid'}
@@ -127,6 +127,18 @@ class TestFormatSelection(unittest.TestCase):
         ydl.process_ie_result(info_dict)
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], u'35')
+
+    def test_add_extra_info(self):
+        test_dict = {
+            'extractor': 'Foo',
+        }
+        extra_info = {
+            'extractor': 'Bar',
+            'playlist': 'funny videos',
+        }
+        YDL.add_extra_info(test_dict, extra_info)
+        self.assertEqual(test_dict['extractor'], 'Foo')
+        self.assertEqual(test_dict['playlist'], 'funny videos')
 
 
 if __name__ == '__main__':

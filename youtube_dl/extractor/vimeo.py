@@ -20,14 +20,14 @@ class VimeoIE(InfoExtractor):
     """Information extractor for vimeo.com."""
 
     # _VALID_URL matches Vimeo URLs
-    _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|player)\.)?vimeo(?P<pro>pro)?\.com/(?:(?:(?:groups|album)/[^/]+)|(?:.*?)/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)/?(?:[?].*)?(?:#.*)?$'
+    _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|(?P<player>player))\.)?vimeo(?P<pro>pro)?\.com/(?:(?:(?:groups|album)/[^/]+)|(?:.*?)/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)/?(?:[?].*)?(?:#.*)?$'
     _NETRC_MACHINE = 'vimeo'
     IE_NAME = u'vimeo'
     _TESTS = [
         {
             u'url': u'http://vimeo.com/56015672#at=0',
             u'file': u'56015672.mp4',
-            u'md5': u'ae7a1d8b183758a0506b0622f37dfa14',
+            u'md5': u'8879b6cc097e987f02484baf890129e5',
             u'info_dict': {
                 u"upload_date": u"20121220", 
                 u"description": u"This is a test case for youtube-dl.\nFor more information, see github.com/rg3/youtube-dl\nTest chars: \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550", 
@@ -128,11 +128,9 @@ class VimeoIE(InfoExtractor):
             raise ExtractorError(u'Invalid URL: %s' % url)
 
         video_id = mobj.group('id')
-        if not mobj.group('proto'):
-            url = 'https://' + url
-        elif mobj.group('pro'):
+        if mobj.group('pro') or mobj.group('player'):
             url = 'http://player.vimeo.com/video/' + video_id
-        elif mobj.group('direct_link'):
+        else:
             url = 'https://vimeo.com/' + video_id
 
         # Retrieve video webpage to extract further information
@@ -205,7 +203,7 @@ class VimeoIE(InfoExtractor):
         # Vimeo specific: extract video codec and quality information
         # First consider quality, then codecs, then take everything
         codecs = [('vp6', 'flv'), ('vp8', 'flv'), ('h264', 'mp4')]
-        files = { 'hd': [], 'sd': [], 'other': []}
+        files = {'hd': [], 'sd': [], 'other': []}
         config_files = config["video"].get("files") or config["request"].get("files")
         for codec_name, codec_extension in codecs:
             for quality in config_files.get(codec_name, []):
@@ -234,7 +232,7 @@ class VimeoIE(InfoExtractor):
         if len(formats) == 0:
             raise ExtractorError(u'No known codec found')
 
-        return [{
+        return {
             'id':       video_id,
             'uploader': video_uploader,
             'uploader_id': video_uploader_id,
@@ -243,7 +241,8 @@ class VimeoIE(InfoExtractor):
             'thumbnail':    video_thumbnail,
             'description':  video_description,
             'formats': formats,
-        }]
+            'webpage_url': url,
+        }
 
 
 class VimeoChannelIE(InfoExtractor):

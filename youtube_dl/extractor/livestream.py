@@ -1,16 +1,19 @@
 import re
 import json
+import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse_urlparse,
     compat_urlparse,
     get_meta_content,
+    xpath_with_ns,
     ExtractorError,
 )
 
 
 class LivestreamIE(InfoExtractor):
+    IE_NAME = u'livestream'
     _VALID_URL = r'http://new.livestream.com/.*?/(?P<event_name>.*?)(/videos/(?P<id>\d+))?/?$'
     _TEST = {
         u'url': u'http://new.livestream.com/CoheedandCambria/WebsterHall/videos/4719370',
@@ -40,13 +43,9 @@ class LivestreamIE(InfoExtractor):
 
         if video_id is None:
             # This is an event page:
-            player = get_meta_content('twitter:player', webpage)
-            if player is None:
-                raise ExtractorError('Couldn\'t extract event api url')
-            api_url = player.replace('/player', '')
-            api_url = re.sub(r'^(https?://)(new\.)', r'\1api.\2', api_url)
-            info = json.loads(self._download_webpage(api_url, event_name,
-                                                     u'Downloading event info'))
+            config_json = self._search_regex(r'window.config = ({.*?});',
+                webpage, u'window config')
+            info = json.loads(config_json)['event']
             videos = [self._extract_video_info(video_data['data'])
                 for video_data in info['feed']['data'] if video_data['type'] == u'video']
             return self.playlist_result(videos, info['id'], info['full_name'])
@@ -58,3 +57,44 @@ class LivestreamIE(InfoExtractor):
             info = json.loads(self._download_webpage(api_url, video_id,
                                                      u'Downloading video info'))
             return self._extract_video_info(info)
+
+
+# The original version of Livestream uses a different system
+class LivestreamOriginalIE(InfoExtractor):
+    IE_NAME = u'livestream:original'
+    _VALID_URL = r'https?://www\.livestream\.com/(?P<user>[^/]+)/video\?.*?clipId=(?P<id>.*?)(&|$)'
+    _TEST = {
+        u'url': u'http://www.livestream.com/dealbook/video?clipId=pla_8aa4a3f1-ba15-46a4-893b-902210e138fb',
+        u'info_dict': {
+            u'id': u'pla_8aa4a3f1-ba15-46a4-893b-902210e138fb',
+            u'ext': u'flv',
+            u'title': u'Spark 1 (BitCoin) with Cameron Winklevoss & Tyler Winklevoss of Winklevoss Capital',
+        },
+        u'params': {
+            # rtmp
+            u'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        user = mobj.group('user')
+        api_url = 'http://x{0}x.api.channel.livestream.com/2.0/clipdetails?extendedInfo=true&id={1}'.format(user, video_id)
+
+        api_response = self._download_webpage(api_url, video_id)
+        info = xml.etree.ElementTree.fromstring(api_response.encode('utf-8'))
+        item = info.find('channel').find('item')
+        ns = {'media': 'http://search.yahoo.com/mrss'}
+        thumbnail_url = item.find(xpath_with_ns('media:thumbnail', ns)).attrib['url']
+        # Remove the extension and number from the path (like 1.jpg)
+        path = self._search_regex(r'(user-files/.+)_.*?\.jpg$', thumbnail_url, u'path')
+
+        return {
+            'id': video_id,
+            'title': item.find('title').text,
+            'url': 'rtmp://extondemand.livestream.com/ondemand',
+            'play_path': 'mp4:trans/dv15/mogulus-{0}.mp4'.format(path),
+            'ext': 'flv',
+            'thumbnail': thumbnail_url,
+        }

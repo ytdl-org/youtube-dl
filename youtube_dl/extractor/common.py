@@ -63,7 +63,7 @@ class InfoExtractor(object):
                     * ext       Will be calculated from url if missing
                     * format    A human-readable description of the format
                                 ("mp4 container with h264/opus").
-                                Calculated from the format_id, width, height 
+                                Calculated from the format_id, width, height.
                                 and format_note fields if missing.
                     * format_id A short description of the format
                                 ("mp4_h264_opus" or "19")
@@ -71,6 +71,13 @@ class InfoExtractor(object):
                                 ("3D" or "DASH video")
                     * width     Width of the video, if known
                     * height    Height of the video, if known
+                    * abr       Average audio bitrate in KBit/s
+                    * acodec    Name of the audio codec in use
+                    * vbr       Average video bitrate in KBit/s
+                    * vcodec    Name of the video codec in use
+    webpage_url:    The url to the video webpage, if given to youtube-dl it
+                    should allow to get the same result again. (It will be set
+                    by YoutubeDL if it's missing)
 
     Unless mentioned otherwise, the fields should be Unicode strings.
 
@@ -312,13 +319,21 @@ class InfoExtractor(object):
 
     # Helper functions for extracting OpenGraph info
     @staticmethod
-    def _og_regex(prop):
-        return r'<meta.+?property=[\'"]og:%s[\'"].+?content=(?:"(.+?)"|\'(.+?)\')' % re.escape(prop)
+    def _og_regexes(prop):
+        content_re = r'content=(?:"([^>]+?)"|\'(.+?)\')'
+        property_re = r'property=[\'"]og:%s[\'"]' % re.escape(prop)
+        template = r'<meta[^>]+?%s[^>]+?%s'
+        return [
+            template % (property_re, content_re),
+            template % (content_re, property_re),
+        ]
 
     def _og_search_property(self, prop, html, name=None, **kargs):
         if name is None:
             name = 'OpenGraph %s' % prop
-        escaped = self._search_regex(self._og_regex(prop), html, name, flags=re.DOTALL, **kargs)
+        escaped = self._search_regex(self._og_regexes(prop), html, name, flags=re.DOTALL, **kargs)
+        if escaped is None:
+            return None
         return unescapeHTML(escaped)
 
     def _og_search_thumbnail(self, html, **kargs):
@@ -331,8 +346,8 @@ class InfoExtractor(object):
         return self._og_search_property('title', html, **kargs)
 
     def _og_search_video_url(self, html, name='video url', secure=True, **kargs):
-        regexes = [self._og_regex('video')]
-        if secure: regexes.insert(0, self._og_regex('video:secure_url'))
+        regexes = self._og_regexes('video')
+        if secure: regexes = self._og_regexes('video:secure_url') + regexes
         return self._html_search_regex(regexes, html, name, **kargs)
 
     def _rta_search(self, html):
