@@ -48,7 +48,7 @@ class MTVIE(InfoExtractor):
     def _transform_rtmp_url(rtmp_video_url):
         m = re.match(r'^rtmpe?://.*?/(?P<finalid>gsp\..+?/.*)$', rtmp_video_url)
         if not m:
-            raise ExtractorError(u'Cannot transform RTMP url')
+            return rtmp_video_url
         base = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=1+_pxI0=Ripod-h264+_pxL0=undefined+_pxM0=+_pxK=18639+_pxE=mp4/44620/mtvnorigin/'
         return base + m.group('finalid')
 
