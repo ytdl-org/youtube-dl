@@ -1301,6 +1301,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             else:
                 raise ExtractorError(u'"token" parameter not in video info for unknown reason')
 
+        if 'view_count' in video_info:
+            view_count = int(video_info['view_count'][0])
+        else:
+            view_count = None
+
         # Check for "rental" videos
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
             raise ExtractorError(u'"rental" videos not supported')
@@ -1489,6 +1494,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'age_limit':    18 if age_gate else 0,
                 'annotations':  video_annotations,
                 'webpage_url': 'https://www.youtube.com/watch?v=%s' % video_id,
+                'view_count': view_count,
             })
         return results
 
