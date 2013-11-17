@@ -13,6 +13,9 @@ import sys
 import time
 import traceback
 
+if os.name == 'nt':
+    import ctypes
+
 from .utils import *
 from .extractor import get_info_extractor, gen_extractors
 from .FileDownloader import FileDownloader
@@ -175,6 +178,16 @@ class YoutubeDL(object):
         if 'b' in getattr(self._screen_file, 'mode', '') or sys.version_info[0] < 3: # Python 2 lies about the mode of sys.stdout/sys.stderr
             output = output.encode(preferredencoding())
         sys.stderr.write(output)
+
+    def to_console_title(self, message):
+        if not self.params.get('consoletitle', False):
+            return
+        if os.name == 'nt' and ctypes.windll.kernel32.GetConsoleWindow():
+            # c_wchar_p() might not be necessary if `message` is
+            # already of type unicode()
+            ctypes.windll.kernel32.SetConsoleTitleW(ctypes.c_wchar_p(message))
+        elif 'TERM' in os.environ:
+            self.to_screen('\033]0;%s\007' % message, skip_eol=True)
 
     def fixed_template(self):
         """Checks if the output template is fixed."""

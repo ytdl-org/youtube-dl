@@ -5,9 +5,6 @@ import subprocess
 import sys
 import time
 
-if os.name == 'nt':
-    import ctypes
-
 from .utils import (
     compat_urllib_error,
     compat_urllib_request,
@@ -151,16 +148,8 @@ class FileDownloader(object):
     def to_stderr(self, message):
         self.ydl.to_screen(message)
 
-    def to_cons_title(self, message):
-        """Set console/terminal window title to message."""
-        if not self.params.get('consoletitle', False):
-            return
-        if os.name == 'nt' and ctypes.windll.kernel32.GetConsoleWindow():
-            # c_wchar_p() might not be necessary if `message` is
-            # already of type unicode()
-            ctypes.windll.kernel32.SetConsoleTitleW(ctypes.c_wchar_p(message))
-        elif 'TERM' in os.environ:
-            self.to_screen('\033]0;%s\007' % message, skip_eol=True)
+    def to_console_title(self, message):
+        self.ydl.to_console_title(message)
 
     def trouble(self, *args, **kargs):
         self.ydl.trouble(*args, **kargs)
@@ -249,7 +238,7 @@ class FileDownloader(object):
         else:
             self.to_screen(u'\r%s[download] %s of %s at %s ETA %s' %
                 (clear_line, percent_str, data_len_str, speed_str, eta_str), skip_eol=True)
-        self.to_cons_title(u'youtube-dl - %s of %s at %s ETA %s' %
+        self.to_console_title(u'youtube-dl - %s of %s at %s ETA %s' %
                 (percent_str.strip(), data_len_str.strip(), speed_str.strip(), eta_str.strip()))
 
     def report_resuming_byte(self, resume_len):
