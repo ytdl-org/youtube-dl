@@ -603,8 +603,7 @@ def _real_main(argv=None):
                      u' file! Use "%%(ext)s" instead of %r' %
                      determine_ext(outtmpl, u''))
 
-    # YoutubeDL
-    ydl = YoutubeDL({
+    ydl_opts = {
         'usenetrc': opts.usenetrc,
         'username': opts.username,
         'password': opts.password,
@@ -667,61 +666,63 @@ def _real_main(argv=None):
         'youtube_print_sig_code': opts.youtube_print_sig_code,
         'age_limit': opts.age_limit,
         'download_archive': opts.download_archive,
-        })
+    }
 
-    if opts.verbose:
-        write_string(u'[debug] youtube-dl version ' + __version__ + u'\n')
-        try:
-            sp = subprocess.Popen(
-                ['git', 'rev-parse', '--short', 'HEAD'],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                cwd=os.path.dirname(os.path.abspath(__file__)))
-            out, err = sp.communicate()
-            out = out.decode().strip()
-            if re.match('[0-9a-f]+', out):
-                write_string(u'[debug] Git HEAD: ' + out + u'\n')
-        except:
+    with YoutubeDL(ydl_opts) as ydl:
+        if opts.verbose:
+            write_string(u'[debug] youtube-dl version ' + __version__ + u'\n')
             try:
-                sys.exc_clear()
+                sp = subprocess.Popen(
+                    ['git', 'rev-parse', '--short', 'HEAD'],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    cwd=os.path.dirname(os.path.abspath(__file__)))
+                out, err = sp.communicate()
+                out = out.decode().strip()
+                if re.match('[0-9a-f]+', out):
+                    write_string(u'[debug] Git HEAD: ' + out + u'\n')
             except:
-                pass
-        write_string(u'[debug] Python version %s - %s' %(platform.python_version(), platform_name()) + u'\n')
+                try:
+                    sys.exc_clear()
+                except:
+                    pass
+            write_string(u'[debug] Python version %s - %s' %
+                         (platform.python_version(), platform_name()) + u'\n')
 
-        proxy_map = {}
-        for handler in opener.handlers:
-            if hasattr(handler, 'proxies'):
-                proxy_map.update(handler.proxies)
-        write_string(u'[debug] Proxy map: ' + compat_str(proxy_map) + u'\n')
+            proxy_map = {}
+            for handler in opener.handlers:
+                if hasattr(handler, 'proxies'):
+                    proxy_map.update(handler.proxies)
+            write_string(u'[debug] Proxy map: ' + compat_str(proxy_map) + u'\n')
 
-    ydl.add_default_info_extractors()
+        ydl.add_default_info_extractors()
 
-    # PostProcessors
-    # Add the metadata pp first, the other pps will copy it
-    if opts.addmetadata:
-        ydl.add_post_processor(FFmpegMetadataPP())
-    if opts.extractaudio:
-        ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
-    if opts.recodevideo:
-        ydl.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
-    if opts.embedsubtitles:
-        ydl.add_post_processor(FFmpegEmbedSubtitlePP(subtitlesformat=opts.subtitlesformat))
+        # PostProcessors
+        # Add the metadata pp first, the other pps will copy it
+        if opts.addmetadata:
+            ydl.add_post_processor(FFmpegMetadataPP())
+        if opts.extractaudio:
+            ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
+        if opts.recodevideo:
+            ydl.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
+        if opts.embedsubtitles:
+            ydl.add_post_processor(FFmpegEmbedSubtitlePP(subtitlesformat=opts.subtitlesformat))
 
-    # Update version
-    if opts.update_self:
-        update_self(ydl.to_screen, opts.verbose)
+        # Update version
+        if opts.update_self:
+            update_self(ydl.to_screen, opts.verbose)
 
-    # Maybe do nothing
-    if len(all_urls) < 1:
-        if not opts.update_self:
-            parser.error(u'you must provide at least one URL')
-        else:
-            sys.exit()
+        # Maybe do nothing
+        if len(all_urls) < 1:
+            if not opts.update_self:
+                parser.error(u'you must provide at least one URL')
+            else:
+                sys.exit()
 
-    try:
-        retcode = ydl.download(all_urls)
-    except MaxDownloadsReached:
-        ydl.to_screen(u'--max-download limit reached, aborting.')
-        retcode = 101
+        try:
+            retcode = ydl.download(all_urls)
+        except MaxDownloadsReached:
+            ydl.to_screen(u'--max-download limit reached, aborting.')
+            retcode = 101
 
     # Dump cookie jar if requested
     if opts.cookiefile is not None:

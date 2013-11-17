@@ -213,6 +213,25 @@ class YoutubeDL(object):
         elif 'TERM' in os.environ:
             self.to_screen('\033]0;%s\007' % message, skip_eol=True)
 
+    def save_console_title(self):
+        if not self.params.get('consoletitle', False):
+            return
+        if 'TERM' in os.environ:
+            self.to_screen('\033[22t')
+
+    def restore_console_title(self):
+        if not self.params.get('consoletitle', False):
+            return
+        if 'TERM' in os.environ:
+            self.to_screen('\033[23t')
+
+    def __enter__(self):
+        self.save_console_title()
+        return self
+
+    def __exit__(self, *args):
+        self.restore_console_title()
+
     def fixed_template(self):
         """Checks if the output template is fixed."""
         return (re.search(u'(?u)%\\(.+?\\)s', self.params['outtmpl']) is None)
