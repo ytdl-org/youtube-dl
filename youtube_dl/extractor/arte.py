@@ -69,7 +69,7 @@ class ArteTvIE(InfoExtractor):
             lang = mobj.group('lang')
             return self._extract_liveweb(url, name, lang)
 
-        if re.search(self._LIVE_URL, video_id) is not None:
+        if re.search(self._LIVE_URL, url) is not None:
             raise ExtractorError(u'Arte live streams are not yet supported, sorry')
             # self.extractLiveStream(url)
             # return
@@ -115,7 +115,7 @@ class ArteTvIE(InfoExtractor):
         event_doc = config_doc.find('event')
         url_node = event_doc.find('video').find('urlHd')
         if url_node is None:
-            url_node = video_doc.find('urlSd')
+            url_node = event_doc.find('urlSd')
 
         return {'id': video_id,
                 'title': event_doc.find('name%s' % lang.capitalize()).text,
