@@ -9,17 +9,15 @@ class SouthParkStudiosIE(MTVIE):
 
     _FEED_URL = 'http://www.southparkstudios.com/feeds/video-player/mrss'
 
-    _TEST = {
+    # Overwrite MTVIE properties we don't want
+    _TESTS = [{
         u'url': u'http://www.southparkstudios.com/clips/104437/bat-daded#tab=featured',
         u'file': u'a7bff6c2-ed00-11e0-aca6-0026b9414f30.mp4',
         u'info_dict': {
             u'title': u'Bat Daded',
             u'description': u'Randy disqualifies South Park by getting into a fight with Bat Dad.',
         },
-    }
-
-    # Overwrite MTVIE properties we don't want
-    _TESTS = []
+    }]
 
     def _get_thumbnail_url(self, uri, itemdoc):
         search_path = '%s/%s' % (_media_xml_tag('group'), _media_xml_tag('thumbnail'))
