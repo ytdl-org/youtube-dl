@@ -118,7 +118,10 @@ from .slashdot import SlashdotIE
 from .slideshare import SlideshareIE
 from .sohu import SohuIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE, SoundcloudUserIE
-from .southparkstudios import SouthParkStudiosIE
+from .southparkstudios import (
+    SouthParkStudiosIE,
+    SouthparkDeIE,
+)
 from .space import SpaceIE
 from .spankwire import SpankwireIE
 from .spiegel import SpiegelIE
