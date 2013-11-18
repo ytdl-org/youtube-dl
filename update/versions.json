@@ -1,6 +1,6 @@
 {
-    "latest": "2013.11.18", 
-    "signature": "3863b8ac479c69950d38cd77230741186013333d5d9a1d7d1078662c3b084834f3e4c0ebb071712a6734d53226123e7f7657a2e274f82e62da2fba10c806ad3d64661319ba5453bd21dff6a2f5491286cafc31983e20bf0913d14e592f13617d9b1d61c5defea3d3bef5b6667a35ad7ba1b2fd392ac6f9dbee1113183138e4d0", 
+    "latest": "2013.11.18.1", 
+    "signature": "7c51dfc52975f02c0e9520125410bfd0f110bfdc488c6b411c5698c2ecffa43b4a694418c8e7b5d393db485bff1555c8d121afa74f87c3a3997dfa26bf99a8f30c8877597dd53120948f25cc139a3e50cd6d860d81d2b2a025aa732dd0fd293fe357a36e0d2648ec2b5cafa6eba01bb687e35561947dee31a45d5e1576e0be02", 
     "versions": {
         "2012.02.22": {
             "bin": [
@@ -1756,6 +1756,20 @@
             "tar": [
                 "https://yt-dl.org/downloads/2013.11.18/youtube-dl-2013.11.18.tar.gz", 
                 "765c8213b0f646bb4fcc514643ce132bea80ce0048a641e8a2fe006459e8bce2"
+            ]
+        }, 
+        "2013.11.18.1": {
+            "bin": [
+                "https://yt-dl.org/downloads/2013.11.18.1/youtube-dl", 
+                "e545eeb1ac9f556780c45db7844db404657ab4798170816bd4e942668d377945"
+            ], 
+            "exe": [
+                "https://yt-dl.org/downloads/2013.11.18.1/youtube-dl.exe", 
+                "29e34dba2d47a3deba1bec8318eeff8a76d69feedffb691fffc2bc9a3b957837"
+            ], 
+            "tar": [
+                "https://yt-dl.org/downloads/2013.11.18.1/youtube-dl-2013.11.18.1.tar.gz", 
+                "b2a46b0c78635dbdc6c0654b156db7c1d03a7db5b0cedc744f1e82bade849e42"
             ]
         }
     }
