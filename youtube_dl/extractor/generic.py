@@ -177,11 +177,13 @@ class GenericIE(InfoExtractor):
             return self.url_result(surl, 'Vimeo')
 
         # Look for embedded YouTube player
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https?://(?:www\.)?youtube.com/embed/.+?)\1', webpage)
+        mobj = re.findall(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(https?:)?//(?:www\.)?youtube.com/embed/.+?)\1', webpage)
         if mobj:
-            surl = unescapeHTML(mobj.group(u'url'))
-            return self.url_result(surl, 'Youtube')
+            #surl = unescapeHTML(mobj.group(u'url'))
+            surl_list = [tuppl[1] for tuppl in mobj]
+            return [self.url_result(x, 'Youtube') for x in surl_list]
+
 
         # Look for Bandcamp pages with custom domain
         mobj = re.search(r'<meta property="og:url"[^>]*?content="(.*?bandcamp\.com.*?)"', webpage)
