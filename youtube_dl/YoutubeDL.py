@@ -217,13 +217,15 @@ class YoutubeDL(object):
         if not self.params.get('consoletitle', False):
             return
         if 'TERM' in os.environ:
-            write_string(u'\033[22t', self._screen_file)
+            # Save the title on stack
+            write_string(u'\033[22;0t', self._screen_file)
 
     def restore_console_title(self):
         if not self.params.get('consoletitle', False):
             return
         if 'TERM' in os.environ:
-            write_string(u'\033[23t', self._screen_file)
+            # Restore the title from stack
+            write_string(u'\033[23;0t', self._screen_file)
 
     def __enter__(self):
         self.save_console_title()
