@@ -162,6 +162,16 @@ class GenericIE(InfoExtractor):
             raise ExtractorError(u'Failed to download URL: %s' % url)
 
         self.report_extraction(video_id)
+
+        # it's tempting to parse this further, but you would
+        # have to take into account all the variations like
+        #   Video Title - Site Name
+        #   Site Name | Video Title
+        #   Video Title - Tagline | Site Name
+        # and so on and so forth; it's just not practical
+        video_title = self._html_search_regex(r'<title>(.*)</title>',
+            webpage, u'video title', default=u'video', flags=re.DOTALL)
+
         # Look for BrightCove:
         bc_url = BrightcoveIE._extract_brightcove_url(webpage)
         if bc_url is not None:
@@ -177,11 +187,13 @@ class GenericIE(InfoExtractor):
             return self.url_result(surl, 'Vimeo')
 
         # Look for embedded YouTube player
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https?://(?:www\.)?youtube.com/embed/.+?)\1', webpage)
-        if mobj:
-            surl = unescapeHTML(mobj.group(u'url'))
-            return self.url_result(surl, 'Youtube')
+        matches = re.findall(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?youtube.com/embed/.+?)\1', webpage)
+        if matches:
+            urlrs = [self.url_result(unescapeHTML(tuppl[1]), 'Youtube')
+                     for tuppl in matches]
+            return self.playlist_result(
+                urlrs, playlist_id=video_id, playlist_title=video_title)
 
         # Look for Bandcamp pages with custom domain
         mobj = re.search(r'<meta property="og:url"[^>]*?content="(.*?bandcamp\.com.*?)"', webpage)
@@ -225,15 +237,6 @@ class GenericIE(InfoExtractor):
         # here's a fun little line of code for you:
         video_extension = os.path.splitext(video_id)[1][1:]
         video_id = os.path.splitext(video_id)[0]
-
-        # it's tempting to parse this further, but you would
-        # have to take into account all the variations like
-        #   Video Title - Site Name
-        #   Site Name | Video Title
-        #   Video Title - Tagline | Site Name
-        # and so on and so forth; it's just not practical
-        video_title = self._html_search_regex(r'<title>(.*)</title>',
-            webpage, u'video title', default=u'video', flags=re.DOTALL)
 
         # video uploader is domain name
         video_uploader = self._search_regex(r'(?:https?://)?([^/]*)/.*',
