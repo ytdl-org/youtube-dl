@@ -139,10 +139,10 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
 class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     IE_DESC = u'YouTube.com'
-    _VALID_URL = r"""(?xi)^
+    _VALID_URL = r"""(?x)^
                      (
                          (?:https?://|//)?                                    # http(s):// or protocol-independent URL (optional)
-                         (?:(?:(?:(?:\w+\.)?youtube(?:-nocookie)?\.com/|
+                         (?:(?:(?:(?:\w+\.)?[yY][oO][uU][tT][uU][bB][eE](?:-nocookie)?\.com/|
                             tube\.majestyc\.net/|
                             youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
