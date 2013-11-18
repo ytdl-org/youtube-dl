@@ -44,7 +44,6 @@ class AUEngineIE(InfoExtractor):
         return {
             'id':        video_id,
             'url':       video_url,
-            'ext':       ext,
             'title':     title,
             'thumbnail': thumbnail,
         }
