@@ -139,7 +139,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
 class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     IE_DESC = u'YouTube.com'
-    _VALID_URL = r"""^
+    _VALID_URL = r"""(?xi)^
                      (
                          (?:https?://)?                                       # http(s):// (optional)
                          (?:(?:(?:(?:\w+\.)?youtube(?:-nocookie)?\.com/|
@@ -363,6 +363,18 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 u"uploader_id": u"justintimberlakeVEVO"
             }
         },
+        {
+            u"url":  u"https://www.YouTube.com/watch?v=yZIXLfi8CZQ",
+            u"file":  u"yZIXLfi8CZQ.mp4",
+            u"note": u"Embed-only video (#1746)",
+            u"info_dict": {
+                u"upload_date": u"20120608",
+                u"title": u"Principal Sexually Assaults A Teacher - Episode 117 - 8th June 2012",
+                u"description": u"md5:09b78bd971f1e3e289601dfba15ca4f7",
+                u"uploader": u"SET India",
+                u"uploader_id": u"setindia"
+            }
+        },
     ]
 
 
@@ -370,7 +382,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
         if YoutubePlaylistIE.suitable(url): return False
-        return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
+        return re.match(cls._VALID_URL, url) is not None
 
     def __init__(self, *args, **kwargs):
         super(YoutubeIE, self).__init__(*args, **kwargs)
@@ -1272,7 +1284,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             # We simulate the access to the video from www.youtube.com/v/{video_id}
             # this can be viewed without login into Youtube
             data = compat_urllib_parse.urlencode({'video_id': video_id,
-                                                  'el': 'embedded',
+                                                  'el': 'player_embedded',
                                                   'gl': 'US',
                                                   'hl': 'en',
                                                   'eurl': 'https://youtube.googleapis.com/v/' + video_id,
