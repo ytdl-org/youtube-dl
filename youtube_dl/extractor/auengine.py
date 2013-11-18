@@ -1,10 +1,10 @@
-import os.path
 import re
 
 from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
-    compat_urllib_parse_urlparse,
+    determine_ext,
+    ExtractorError,
 )
 
 class AUEngineIE(InfoExtractor):
@@ -25,22 +25,26 @@ class AUEngineIE(InfoExtractor):
         title = self._html_search_regex(r'<title>(?P<title>.+?)</title>',
                 webpage, u'title')
         title = title.strip()
-        links = re.findall(r'[^A-Za-z0-9]?(?:file|url):\s*["\'](http[^\'"&]*)', webpage)
-        links = [compat_urllib_parse.unquote(l) for l in links]
+        links = re.findall(r'\s(?:file|url):\s*["\']([^\'"]+)["\']', webpage)
+        links = map(compat_urllib_parse.unquote, links)
+
+        thumbnail = None
+        video_url = None
         for link in links:
-            root, pathext = os.path.splitext(compat_urllib_parse_urlparse(link).path)
-            if pathext == '.png':
+            if link.endswith('.png'):
                 thumbnail = link
-            elif pathext == '.mp4':
-                url = link
-                ext = pathext
+            elif '/videos/' in link:
+                video_url = link
+        if not video_url:
+            raise ExtractorError(u'Could not find video URL')
+        ext = u'.' + determine_ext(video_url)
         if ext == title[-len(ext):]:
             title = title[:-len(ext)]
-        ext = ext[1:]
-        return [{
+
+        return {
             'id':        video_id,
-            'url':       url,
+            'url':       video_url,
             'ext':       ext,
             'title':     title,
             'thumbnail': thumbnail,
-        }]
+        }
