@@ -141,7 +141,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     IE_DESC = u'YouTube.com'
     _VALID_URL = r"""(?xi)^
                      (
-                         (?:https?://)?                                       # http(s):// (optional)
+                         (?:https?://|//)?                                    # http(s):// or protocol-independent URL (optional)
                          (?:(?:(?:(?:\w+\.)?youtube(?:-nocookie)?\.com/|
                             tube\.majestyc\.net/|
                             youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
@@ -364,7 +364,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             }
         },
         {
-            u"url":  u"https://www.YouTube.com/watch?v=yZIXLfi8CZQ",
+            u"url":  u"//www.YouTube.com/watch?v=yZIXLfi8CZQ",
             u"file":  u"yZIXLfi8CZQ.mp4",
             u"note": u"Embed-only video (#1746)",
             u"info_dict": {
