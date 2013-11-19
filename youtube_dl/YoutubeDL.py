@@ -57,6 +57,7 @@ class YoutubeDL(object):
     forcethumbnail:    Force printing thumbnail URL.
     forcedescription:  Force printing description.
     forcefilename:     Force printing final filename.
+    forcejson:         Force printing json information.
     simulate:          Do not download the video files.
     format:            Video format code.
     format_limit:      Highest quality format to try.
@@ -593,6 +594,8 @@ class YoutubeDL(object):
             compat_print(filename)
         if self.params.get('forceformat', False):
             compat_print(info_dict['format'])
+        if self.params.get('forcejson', False):
+            compat_print(json.dumps(info_dict))
 
         # Do nothing else if in simulate mode
         if self.params.get('simulate', False):
