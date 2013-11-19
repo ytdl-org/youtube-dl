@@ -86,8 +86,6 @@ class YoukuIE(InfoExtractor):
                 error_code = config['data'][0].get('error_code')
                 # XXX: needs a way to restore the original proxy settings
                 compat_urllib_request.install_opener(compat_urllib_request.build_opener(compat_urllib_request.ProxyHandler({})))
-            else:
-                print 'hahaha'
 
             if error_code:
                 error = config['data'][0].get('error')  # Chinese and English, separated by newline.
