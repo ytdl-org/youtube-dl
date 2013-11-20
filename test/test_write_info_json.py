@@ -31,7 +31,7 @@ params = get_params({
 
 
 TEST_ID = 'BaW_jenozKc'
-INFO_JSON_FILE = TEST_ID + '.mp4.info.json'
+INFO_JSON_FILE = TEST_ID + '.info.json'
 DESCRIPTION_FILE = TEST_ID + '.mp4.description'
 EXPECTED_DESCRIPTION = u'''test chars:  "'/\ä↭𝕐
 
