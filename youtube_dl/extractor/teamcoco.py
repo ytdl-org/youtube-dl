@@ -60,7 +60,7 @@ class TeamcocoIE(InfoExtractor):
                 return -1
         formats.sort(key=sort_key)
         if not formats:
-            raise RegexNotFoundError(u'Unable to extract video URL')
+            raise ExtractorError(u'Unable to extract video URL')
 
         return {
             'id':          video_id,
