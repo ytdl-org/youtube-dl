@@ -6,11 +6,12 @@ from .common import InfoExtractor
 
 class AnitubeIE(InfoExtractor):
     IE_NAME = u'anitube.se'
-    _VALID_URL = r'http?://(?:www\.)?anitube\.se/video/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?anitube\.se/video/(?P<id>\d+)'
 
     _TEST = {
         u'url': u'http://www.anitube.se/video/36621',
-        u'md5': u'0c4e4f1051bf50f5982f829f7230f539',
+        u'md5': u'59d0eeae28ea0bc8c05e7af429998d43',
+        u'file': u'36621.mp4',
         u'info_dict': {
             u'id': u'36621',
             u'ext': u'mp4',
@@ -23,27 +24,22 @@ class AnitubeIE(InfoExtractor):
         video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id)
-
         key = self._html_search_regex(r'http://www\.anitube\.se/embed/([A-Za-z0-9_-]*)',
                                       webpage, u'key')
 
         webpage_config = self._download_webpage('http://www.anitube.se/nuevo/econfig.php?key=%s' % key,
                                                 key)
-
         config_xml = xml.etree.ElementTree.fromstring(webpage_config.encode('utf-8'))
 
         video_title = config_xml.find('title').text
 
-
         formats = []
-
         video_url = config_xml.find('file')
         if video_url is not None:
             formats.append({
                 'format_id': 'sd',
                 'url': video_url.text,
             })
-
         video_url = config_xml.find('filehd')
         if video_url is not None:
             formats.append({
@@ -54,6 +50,5 @@ class AnitubeIE(InfoExtractor):
         return {
             'id': video_id,
             'title': video_title,
-            'ext': 'mp4',
             'formats': formats
         }
