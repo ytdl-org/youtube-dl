@@ -350,6 +350,17 @@ class InfoExtractor(object):
         if secure: regexes = self._og_regexes('video:secure_url') + regexes
         return self._html_search_regex(regexes, html, name, **kargs)
 
+    def _html_search_meta(self, name, html, display_name=None):
+        if display_name is None:
+            display_name = name
+        return self._html_search_regex(
+            r'''(?ix)<meta(?=[^>]+(?:name|property)=["\']%s["\'])
+                    [^>]+content=["\']([^"\']+)["\']''' % re.escape(name),
+            html, display_name, fatal=False)
+
+    def _dc_search_uploader(self, html):
+        return self._html_search_meta('dc.creator', html, 'uploader')
+
     def _rta_search(self, html):
         # See http://www.rtalabel.org/index.php?content=howtofaq#single
         if re.search(r'(?ix)<meta\s+name="rating"\s+'
@@ -357,6 +368,23 @@ class InfoExtractor(object):
                      html):
             return 18
         return 0
+
+    def _media_rating_search(self, html):
+        # See http://www.tjg-designs.com/WP/metadata-code-examples-adding-metadata-to-your-web-pages/
+        rating = self._html_search_meta('rating', html)
+
+        if not rating:
+            return None
+
+        RATING_TABLE = {
+            'safe for kids': 0,
+            'general': 8,
+            '14 years': 14,
+            'mature': 17,
+            'restricted': 19,
+        }
+        return RATING_TABLE.get(rating.lower(), None)
+
 
 
 class SearchInfoExtractor(InfoExtractor):

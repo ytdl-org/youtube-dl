@@ -133,6 +133,7 @@ from .techtalks import TechTalksIE
 from .ted import TEDIE
 from .tf1 import TF1IE
 from .thisav import ThisAVIE
+from .toutv import TouTvIE
 from .traileraddict import TrailerAddictIE
 from .trilulilu import TriluliluIE
 from .tube8 import Tube8IE
