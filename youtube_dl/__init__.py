@@ -308,7 +308,7 @@ def parseOpts(overrideArguments=None):
             help='simulate, quiet but print output format', default=False)
     verbosity.add_option('-j', '--dump-json',
             action='store_true', dest='dumpjson',
-            help='simulate, quiet but print json information', default=False)
+            help='simulate, quiet but print JSON information', default=False)
     verbosity.add_option('--newline',
             action='store_true', dest='progress_with_newline', help='output progress bar as new lines', default=False)
     verbosity.add_option('--no-progress',

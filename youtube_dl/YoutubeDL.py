@@ -5,6 +5,7 @@ from __future__ import absolute_import
 
 import errno
 import io
+import json
 import os
 import re
 import shutil
@@ -84,7 +85,7 @@ class YoutubeDL(object):
     forcethumbnail:    Force printing thumbnail URL.
     forcedescription:  Force printing description.
     forcefilename:     Force printing final filename.
-    forcejson:         Force printing json information.
+    forcejson:         Force printing info_dict as JSON.
     simulate:          Do not download the video files.
     format:            Video format code.
     format_limit:      Highest quality format to try.
