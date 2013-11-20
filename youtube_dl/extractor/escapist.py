@@ -35,11 +35,11 @@ class EscapistIE(InfoExtractor):
             r'<meta name="description" content="([^"]*)"',
             webpage, u'description', fatal=False)
 
-        playerUrl = self._og_search_video_url(webpage, name='player URL')
+        playerUrl = self._og_search_video_url(webpage, name=u'player URL')
 
         title = self._html_search_regex(
-            'r<meta name="title" content="([^"]*)"',
-            webpage, u'player url').split(' : ')[-1]
+            r'<meta name="title" content="([^"]*)"',
+            webpage, u'title').split(' : ')[-1]
 
         configUrl = self._search_regex('config=(.*)$', playerUrl, u'config URL')
         configUrl = compat_urllib_parse.unquote(configUrl)
