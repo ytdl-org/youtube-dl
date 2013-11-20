@@ -35,11 +35,12 @@ class SpankwireIE(InfoExtractor):
         webpage = self._download_webpage(req, video_id)
 
         video_title = self._html_search_regex(r'<h1>([^<]+)', webpage, u'title')
-        video_uploader = self._html_search_regex(r'by:\s*<a [^>]*>(.+?)</a>', webpage, u'uploader', fatal=False)
-        thumbnail = self._html_search_regex(r'flashvars\.image_url = "([^"]+)', webpage, u'thumbnail', fatal=False)
-        description = self._html_search_regex(r'>\s*Description:</div>\s*<[^>]*>([^<]+)', webpage, u'description', fatal=False)
-        if len(description) == 0:
-            description = None
+        video_uploader = self._html_search_regex(
+            r'by:\s*<a [^>]*>(.+?)</a>', webpage, u'uploader', fatal=False)
+        thumbnail = self._html_search_regex(
+            r'flashvars\.image_url = "([^"]+)', webpage, u'thumbnail', fatal=False)
+        description = self._html_search_regex(
+            r'>\s*Description:</div>\s*<[^>]+>([^<]+)', webpage, u'description', fatal=False)
 
         video_urls = list(map(compat_urllib_parse.unquote , re.findall(r'flashvars\.quality_[0-9]{3}p = "([^"]+)', webpage)))
         if webpage.find('flashvars\.encrypted = "true"') != -1:
