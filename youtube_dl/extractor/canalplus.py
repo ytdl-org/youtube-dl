@@ -5,6 +5,7 @@ import xml.etree.ElementTree
 from .common import InfoExtractor
 from ..utils import unified_strdate
 
+
 class CanalplusIE(InfoExtractor):
     _VALID_URL = r'https?://(www\.canalplus\.fr/.*?/(?P<path>.*)|player\.canalplus\.fr/#/(?P<id>\d+))'
     _VIDEO_INFO_TEMPLATE = 'http://service.canal-plus.com/video/rest/getVideosLiees/cplus/%s'
@@ -25,7 +26,7 @@ class CanalplusIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = mobj.groupdict().get('id')
         if video_id is None:
             webpage = self._download_webpage(url, mobj.group('path'))
             video_id = self._search_regex(r'videoId = "(\d+)";', webpage, u'video id')

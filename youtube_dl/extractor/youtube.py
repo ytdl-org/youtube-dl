@@ -139,10 +139,10 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
 class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     IE_DESC = u'YouTube.com'
-    _VALID_URL = r"""^
+    _VALID_URL = r"""(?x)^
                      (
-                         (?:https?://)?                                       # http(s):// (optional)
-                         (?:(?:(?:(?:\w+\.)?youtube(?:-nocookie)?\.com/|
+                         (?:https?://|//)?                                    # http(s):// or protocol-independent URL (optional)
+                         (?:(?:(?:(?:\w+\.)?[yY][oO][uU][tT][uU][bB][eE](?:-nocookie)?\.com/|
                             tube\.majestyc\.net/|
                             youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
@@ -363,6 +363,18 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 u"uploader_id": u"justintimberlakeVEVO"
             }
         },
+        {
+            u"url":  u"//www.YouTube.com/watch?v=yZIXLfi8CZQ",
+            u"file":  u"yZIXLfi8CZQ.mp4",
+            u"note": u"Embed-only video (#1746)",
+            u"info_dict": {
+                u"upload_date": u"20120608",
+                u"title": u"Principal Sexually Assaults A Teacher - Episode 117 - 8th June 2012",
+                u"description": u"md5:09b78bd971f1e3e289601dfba15ca4f7",
+                u"uploader": u"SET India",
+                u"uploader_id": u"setindia"
+            }
+        },
     ]
 
 
@@ -370,7 +382,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
         if YoutubePlaylistIE.suitable(url): return False
-        return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
+        return re.match(cls._VALID_URL, url) is not None
 
     def __init__(self, *args, **kwargs):
         super(YoutubeIE, self).__init__(*args, **kwargs)
@@ -1019,6 +1031,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         """Turn the encrypted s field into a working signature"""
 
         if player_url is not None:
+            if player_url.startswith(u'//'):
+                player_url = u'https:' + player_url
             try:
                 player_id = (player_url, len(s))
                 if player_id not in self._player_cache:
@@ -1082,7 +1096,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         else:
             raise ExtractorError(u'Unable to decrypt signature, key length %d not supported; retrying might work' % (len(s)))
 
-    def _get_available_subtitles(self, video_id):
+    def _get_available_subtitles(self, video_id, webpage):
         try:
             sub_list = self._download_webpage(
                 'http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id,
@@ -1098,7 +1112,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             params = compat_urllib_parse.urlencode({
                 'lang': lang,
                 'v': video_id,
-                'fmt': self._downloader.params.get('subtitlesformat'),
+                'fmt': self._downloader.params.get('subtitlesformat', 'srt'),
                 'name': l[0].encode('utf-8'),
             })
             url = u'http://www.youtube.com/api/timedtext?' + params
@@ -1111,7 +1125,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     def _get_available_automatic_caption(self, video_id, webpage):
         """We need the webpage for getting the captions url, pass it as an
            argument to speed up the process."""
-        sub_format = self._downloader.params.get('subtitlesformat')
+        sub_format = self._downloader.params.get('subtitlesformat', 'srt')
         self.to_screen(u'%s: Looking for automatic captions' % video_id)
         mobj = re.search(r';ytplayer.config = ({.*?});', webpage)
         err_msg = u'Couldn\'t find automatic captions for %s' % video_id
@@ -1270,7 +1284,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             # We simulate the access to the video from www.youtube.com/v/{video_id}
             # this can be viewed without login into Youtube
             data = compat_urllib_parse.urlencode({'video_id': video_id,
-                                                  'el': 'embedded',
+                                                  'el': 'player_embedded',
                                                   'gl': 'US',
                                                   'hl': 'en',
                                                   'eurl': 'https://youtube.googleapis.com/v/' + video_id,
@@ -1298,6 +1312,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 raise ExtractorError(u'YouTube said: %s' % video_info['reason'][0], expected=True)
             else:
                 raise ExtractorError(u'"token" parameter not in video info for unknown reason')
+
+        if 'view_count' in video_info:
+            view_count = int(video_info['view_count'][0])
+        else:
+            view_count = None
 
         # Check for "rental" videos
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
@@ -1487,6 +1506,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'age_limit':    18 if age_gate else 0,
                 'annotations':  video_annotations,
                 'webpage_url': 'https://www.youtube.com/watch?v=%s' % video_id,
+                'view_count': view_count,
             })
         return results
 
@@ -1572,7 +1592,6 @@ class YoutubePlaylistIE(InfoExtractor):
 class YoutubeChannelIE(InfoExtractor):
     IE_DESC = u'YouTube.com channels'
     _VALID_URL = r"^(?:https?://)?(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com)/channel/([0-9A-Za-z_-]+)"
-    _TEMPLATE_URL = 'http://www.youtube.com/channel/%s/videos?sort=da&flow=list&view=0&page=%s&gl=US&hl=en'
     _MORE_PAGES_INDICATOR = 'yt-uix-load-more'
     _MORE_PAGES_URL = 'http://www.youtube.com/c4_browse_ajax?action_load_more_videos=1&flow=list&paging=%s&view=0&sort=da&channel_id=%s'
     IE_NAME = u'youtube:channel'
@@ -1593,29 +1612,30 @@ class YoutubeChannelIE(InfoExtractor):
         # Download channel page
         channel_id = mobj.group(1)
         video_ids = []
-        pagenum = 1
+        url = 'https://www.youtube.com/channel/%s/videos' % channel_id
+        channel_page = self._download_webpage(url, channel_id)
+        if re.search(r'channel-header-autogenerated-label', channel_page) is not None:
+            autogenerated = True
+        else:
+            autogenerated = False
 
-        url = self._TEMPLATE_URL % (channel_id, pagenum)
-        page = self._download_webpage(url, channel_id,
-                                      u'Downloading page #%s' % pagenum)
-
-        # Extract video identifiers
-        ids_in_page = self.extract_videos_from_page(page)
-        video_ids.extend(ids_in_page)
-
-        # Download any subsequent channel pages using the json-based channel_ajax query
-        if self._MORE_PAGES_INDICATOR in page:
+        if autogenerated:
+            # The videos are contained in a single page
+            # the ajax pages can't be used, they are empty
+            video_ids = self.extract_videos_from_page(channel_page)
+        else:
+            # Download all channel pages using the json-based channel_ajax query
             for pagenum in itertools.count(1):
                 url = self._MORE_PAGES_URL % (pagenum, channel_id)
                 page = self._download_webpage(url, channel_id,
                                               u'Downloading page #%s' % pagenum)
-
+    
                 page = json.loads(page)
-
+    
                 ids_in_page = self.extract_videos_from_page(page['content_html'])
                 video_ids.extend(ids_in_page)
-
-                if self._MORE_PAGES_INDICATOR  not in page['load_more_widget_html']:
+    
+                if self._MORE_PAGES_INDICATOR not in page['load_more_widget_html']:
                     break
 
         self._downloader.to_screen(u'[youtube] Channel %s: Found %i videos' % (channel_id, len(video_ids)))

@@ -78,12 +78,13 @@ class VevoIE(InfoExtractor):
                 continue
 
             format_url = self._SMIL_BASE_URL + m.group('path')
-            format_note = ('%(vcodec)s@%(vbr)4sk, %(acodec)s@%(abr)3sk' %
-                           m.groupdict())
             formats.append({
                 'url': format_url,
                 'format_id': u'SMIL_' + m.group('cbr'),
-                'format_note': format_note,
+                'vcodec': m.group('vcodec'),
+                'acodec': m.group('acodec'),
+                'vbr': int(m.group('vbr')),
+                'abr': int(m.group('abr')),
                 'ext': m.group('ext'),
                 'width': int(m.group('width')),
                 'height': int(m.group('height')),

@@ -17,6 +17,7 @@ from youtube_dl.extractor import (
     DailymotionUserIE,
     VimeoChannelIE,
     UstreamChannelIE,
+    SoundcloudSetIE,
     SoundcloudUserIE,
     LivestreamIE,
     NHLVideocenterIE,
@@ -60,6 +61,14 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], u'5124905')
         self.assertTrue(len(result['entries']) >= 11)
+
+    def test_soundcloud_set(self):
+        dl = FakeYDL()
+        ie = SoundcloudSetIE(dl)
+        result = ie.extract('https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['title'], u'The Royal Concept EP')
+        self.assertTrue(len(result['entries']) >= 6)
 
     def test_soundcloud_user(self):
         dl = FakeYDL()

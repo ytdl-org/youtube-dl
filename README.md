@@ -92,12 +92,14 @@ which means you can modify it, redistribute it or use it however you like.
                                ownloads/%(uploader)s/%(title)s-%(id)s.%(ext)s' .
     --autonumber-size NUMBER   Specifies the number of digits in %(autonumber)s
                                when it is present in output filename template or
-                               --autonumber option is given
+                               --auto-number option is given
     --restrict-filenames       Restrict filenames to only ASCII characters, and
                                avoid "&" and spaces in filenames
     -a, --batch-file FILE      file containing URLs to download ('-' for stdin)
     -w, --no-overwrites        do not overwrite files
-    -c, --continue             resume partially downloaded files
+    -c, --continue             force resume of partially downloaded files. By
+                               default, youtube-dl will resume downloads if
+                               possible.
     --no-continue              do not resume partially downloaded files (restart
                                from beginning)
     --cookies FILE             file to read cookies from and dump cookie jar in
@@ -121,6 +123,7 @@ which means you can modify it, redistribute it or use it however you like.
     --get-description          simulate, quiet but print video description
     --get-filename             simulate, quiet but print output filename
     --get-format               simulate, quiet but print output format
+    -j, --dump-json            simulate, quiet but print JSON information
     --newline                  output progress bar as new lines
     --no-progress              do not print progress bar
     --console-title            display progress in console titlebar

@@ -734,6 +734,8 @@ def unified_strdate(date_str):
         '%Y/%m/%d %H:%M:%S',
         '%d.%m.%Y %H:%M',
         '%Y-%m-%dT%H:%M:%SZ',
+        '%Y-%m-%dT%H:%M:%S.%fZ',
+        '%Y-%m-%dT%H:%M:%S.%f0Z',
         '%Y-%m-%dT%H:%M:%S',
     ]
     for expression in format_expressions:

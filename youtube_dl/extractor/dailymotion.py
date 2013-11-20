@@ -141,9 +141,9 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             raise ExtractorError(u'Unable to extract video URL')
 
         # subtitles
-        video_subtitles = self.extract_subtitles(video_id)
+        video_subtitles = self.extract_subtitles(video_id, webpage)
         if self._downloader.params.get('listsubtitles', False):
-            self._list_available_subtitles(video_id)
+            self._list_available_subtitles(video_id, webpage)
             return
 
         return {
@@ -157,7 +157,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             'age_limit': age_limit,
         }
 
-    def _get_available_subtitles(self, video_id):
+    def _get_available_subtitles(self, video_id, webpage):
         try:
             sub_list = self._download_webpage(
                 'https://api.dailymotion.com/video/%s/subtitles?fields=id,language,url' % video_id,
@@ -186,7 +186,7 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
             webpage = self._download_webpage(request,
                                              id, u'Downloading page %s' % pagenum)
 
-            playlist_el = get_element_by_attribute(u'class', u'video_list', webpage)
+            playlist_el = get_element_by_attribute(u'class', u'row video_list', webpage)
             video_ids.extend(re.findall(r'data-id="(.+?)"', playlist_el))
 
             if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:

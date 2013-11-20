@@ -22,7 +22,7 @@ class JeuxVideoIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        title = re.match(self._VALID_URL, url).group(1)
+        title = mobj.group(1)
         webpage = self._download_webpage(url, title)
         xml_link = self._html_search_regex(
             r'<param name="flashvars" value="config=(.*?)" />',

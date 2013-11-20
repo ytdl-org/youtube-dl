@@ -39,7 +39,6 @@ class FKTVIE(InfoExtractor):
         for i, _ in enumerate(files, 1):
             video_id = '%04d%d' % (episode, i)
             video_url = 'http://dl%d.fernsehkritik.tv/fernsehkritik%d%s.flv' % (server, episode, '' if i == 1 else '-%d' % i)
-            video_title = 'Fernsehkritik %d.%d' % (episode, i)
             videos.append({
                 'id': video_id,
                 'url': video_url,

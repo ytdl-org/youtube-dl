@@ -5,6 +5,7 @@ from __future__ import absolute_import
 
 import errno
 import io
+import json
 import os
 import re
 import shutil
@@ -13,7 +14,34 @@ import sys
 import time
 import traceback
 
-from .utils import *
+if os.name == 'nt':
+    import ctypes
+
+from .utils import (
+    compat_http_client,
+    compat_print,
+    compat_str,
+    compat_urllib_error,
+    compat_urllib_request,
+    ContentTooShortError,
+    date_from_str,
+    DateRange,
+    determine_ext,
+    DownloadError,
+    encodeFilename,
+    ExtractorError,
+    locked_file,
+    MaxDownloadsReached,
+    PostProcessingError,
+    preferredencoding,
+    SameFileError,
+    sanitize_filename,
+    subtitles_filename,
+    takewhile_inclusive,
+    UnavailableVideoError,
+    write_json_file,
+    write_string,
+)
 from .extractor import get_info_extractor, gen_extractors
 from .FileDownloader import FileDownloader
 
@@ -57,6 +85,7 @@ class YoutubeDL(object):
     forcethumbnail:    Force printing thumbnail URL.
     forcedescription:  Force printing description.
     forcefilename:     Force printing final filename.
+    forcejson:         Force printing info_dict as JSON.
     simulate:          Do not download the video files.
     format:            Video format code.
     format_limit:      Highest quality format to try.
@@ -176,6 +205,37 @@ class YoutubeDL(object):
             output = output.encode(preferredencoding())
         sys.stderr.write(output)
 
+    def to_console_title(self, message):
+        if not self.params.get('consoletitle', False):
+            return
+        if os.name == 'nt' and ctypes.windll.kernel32.GetConsoleWindow():
+            # c_wchar_p() might not be necessary if `message` is
+            # already of type unicode()
+            ctypes.windll.kernel32.SetConsoleTitleW(ctypes.c_wchar_p(message))
+        elif 'TERM' in os.environ:
+            write_string(u'\033]0;%s\007' % message, self._screen_file)
+
+    def save_console_title(self):
+        if not self.params.get('consoletitle', False):
+            return
+        if 'TERM' in os.environ:
+            # Save the title on stack
+            write_string(u'\033[22;0t', self._screen_file)
+
+    def restore_console_title(self):
+        if not self.params.get('consoletitle', False):
+            return
+        if 'TERM' in os.environ:
+            # Restore the title from stack
+            write_string(u'\033[23;0t', self._screen_file)
+
+    def __enter__(self):
+        self.save_console_title()
+        return self
+
+    def __exit__(self, *args):
+        self.restore_console_title()
+
     def fixed_template(self):
         """Checks if the output template is fixed."""
         return (re.search(u'(?u)%\\(.+?\\)s', self.params['outtmpl']) is None)
@@ -254,7 +314,7 @@ class YoutubeDL(object):
         """Report file has already been fully downloaded."""
         try:
             self.to_screen(u'[download] %s has already been downloaded' % file_name)
-        except (UnicodeEncodeError) as err:
+        except UnicodeEncodeError:
             self.to_screen(u'[download] The file has already been downloaded')
 
     def increment_downloads(self):
@@ -385,7 +445,7 @@ class YoutubeDL(object):
         result_type = ie_result.get('_type', 'video') # If not given we suppose it's a video, support the default old system
         if result_type == 'video':
             self.add_extra_info(ie_result, extra_info)
-            return self.process_video_result(ie_result)
+            return self.process_video_result(ie_result, download=download)
         elif result_type == 'url':
             # We have to add extra_info to the results because it may be
             # contained in a playlist
@@ -593,6 +653,8 @@ class YoutubeDL(object):
             compat_print(filename)
         if self.params.get('forceformat', False):
             compat_print(info_dict['format'])
+        if self.params.get('forcejson', False):
+            compat_print(json.dumps(info_dict))
 
         # Do nothing else if in simulate mode
         if self.params.get('simulate', False):
@@ -640,7 +702,7 @@ class YoutubeDL(object):
             # subtitles download errors are already managed as troubles in relevant IE
             # that way it will silently go on when used with unsupporting IE
             subtitles = info_dict['subtitles']
-            sub_format = self.params.get('subtitlesformat')
+            sub_format = self.params.get('subtitlesformat', 'srt')
             for sub_lang in subtitles.keys():
                 sub = subtitles[sub_lang]
                 if sub is None:
@@ -655,7 +717,7 @@ class YoutubeDL(object):
                     return
 
         if self.params.get('writeinfojson', False):
-            infofn = filename + u'.info.json'
+            infofn = os.path.splitext(filename)[0] + u'.info.json'
             self.report_writeinfojson(infofn)
             try:
                 json_info_dict = dict((k, v) for k, v in info_dict.items() if not k in ['urlhandle'])
@@ -828,20 +890,42 @@ class YoutubeDL(object):
         return res
 
     def list_formats(self, info_dict):
+        def format_note(fdict):
+            if fdict.get('format_note') is not None:
+                return fdict['format_note']
+            res = u''
+            if fdict.get('vcodec') is not None:
+                res += u'%-5s' % fdict['vcodec']
+            elif fdict.get('vbr') is not None:
+                res += u'video'
+            if fdict.get('vbr') is not None:
+                res += u'@%4dk' % fdict['vbr']
+            if fdict.get('acodec') is not None:
+                if res:
+                    res += u', '
+                res += u'%-5s' % fdict['acodec']
+            elif fdict.get('abr') is not None:
+                if res:
+                    res += u', '
+                res += 'audio'
+            if fdict.get('abr') is not None:
+                res += u'@%3dk' % fdict['abr']
+            return res
+
         def line(format):
-            return (u'%-15s%-10s%-12s%s' % (
+            return (u'%-20s%-10s%-12s%s' % (
                 format['format_id'],
                 format['ext'],
                 self.format_resolution(format),
-                format.get('format_note', ''),
+                format_note(format),
                 )
             )
 
         formats = info_dict.get('formats', [info_dict])
         formats_s = list(map(line, formats))
         if len(formats) > 1:
-            formats_s[0] += (' ' if formats[0].get('format_note') else '') + '(worst)'
-            formats_s[-1] += (' ' if formats[-1].get('format_note') else '') + '(best)'
+            formats_s[0] += (' ' if format_note(formats[0]) else '') + '(worst)'
+            formats_s[-1] += (' ' if format_note(formats[-1]) else '') + '(best)'
 
         header_line = line({
             'format_id': u'format code', 'ext': u'extension',

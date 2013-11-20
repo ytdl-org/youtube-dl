@@ -31,6 +31,7 @@ from youtube_dl.utils import (
     ExtractorError,
     UnavailableVideoError,
 )
+from youtube_dl.extractor import get_info_extractor
 
 RETRIES = 3
 
@@ -63,9 +64,10 @@ def generator(test_case):
 
     def test_template(self):
         ie = youtube_dl.extractor.get_info_extractor(test_case['name'])
+        other_ies = [get_info_extractor(ie_key) for ie_key in test_case.get('add_ie', [])]
         def print_skipping(reason):
             print('Skipping %s: %s' % (test_case['name'], reason))
-        if not ie._WORKING:
+        if not ie.working():
             print_skipping('IE marked as not _WORKING')
             return
         if 'playlist' not in test_case:
@@ -77,6 +79,10 @@ def generator(test_case):
         if 'skip' in test_case:
             print_skipping(test_case['skip'])
             return
+        for other_ie in other_ies:
+            if not other_ie.working():
+                print_skipping(u'test depends on %sIE, marked as not WORKING' % other_ie.ie_key())
+                return
 
         params = get_params(test_case.get('params', {}))
 
@@ -97,7 +103,7 @@ def generator(test_case):
                 tc_filename = get_tc_filename(tc)
                 try_rm(tc_filename)
                 try_rm(tc_filename + '.part')
-                try_rm(tc_filename + '.info.json')
+                try_rm(os.path.splitext(tc_filename)[0] + '.info.json')
         try_rm_tcs_files()
         try:
             try_num = 1
@@ -124,11 +130,12 @@ def generator(test_case):
                 if not test_case.get('params', {}).get('skip_download', False):
                     self.assertTrue(os.path.exists(tc_filename), msg='Missing file ' + tc_filename)
                     self.assertTrue(tc_filename in finished_hook_called)
-                self.assertTrue(os.path.exists(tc_filename + '.info.json'))
+                info_json_fn = os.path.splitext(tc_filename)[0] + '.info.json'
+                self.assertTrue(os.path.exists(info_json_fn))
                 if 'md5' in tc:
                     md5_for_file = _file_md5(tc_filename)
                     self.assertEqual(md5_for_file, tc['md5'])
-                with io.open(tc_filename + '.info.json', encoding='utf-8') as infof:
+                with io.open(info_json_fn, encoding='utf-8') as infof:
                     info_dict = json.load(infof)
                 for (info_field, expected) in tc.get('info_dict', {}).items():
                     if isinstance(expected, compat_str) and expected.startswith('md5:'):

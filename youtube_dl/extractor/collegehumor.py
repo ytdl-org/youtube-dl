@@ -71,10 +71,8 @@ class CollegeHumorIE(InfoExtractor):
 
             adoc = xml.etree.ElementTree.fromstring(manifestXml)
             try:
-                media_node = adoc.findall('./{http://ns.adobe.com/f4m/1.0}media')[0]
-                node_id = media_node.attrib['url']
                 video_id = adoc.findall('./{http://ns.adobe.com/f4m/1.0}id')[0].text
-            except IndexError as err:
+            except IndexError:
                 raise ExtractorError(u'Invalid manifest file')
             url_pr = compat_urllib_parse_urlparse(info['thumbnail'])
             info['url'] = url_pr.scheme + '://' + url_pr.netloc + video_id[:-2].replace('.csmil','').replace(',','')

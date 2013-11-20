@@ -1,5 +1,6 @@
 from .appletrailers import AppleTrailersIE
 from .addanime import AddAnimeIE
+from .anitube import AnitubeIE
 from .archiveorg import ArchiveOrgIE
 from .ard import ARDIE
 from .arte import (
@@ -25,6 +26,7 @@ from .comedycentral import ComedyCentralIE
 from .condenast import CondeNastIE
 from .criterion import CriterionIE
 from .cspan import CSpanIE
+from .d8 import D8IE
 from .dailymotion import (
     DailymotionIE,
     DailymotionPlaylistIE,
@@ -38,6 +40,7 @@ from .defense import DefenseGouvFrIE
 from .ebaumsworld import EbaumsWorldIE
 from .ehow import EHowIE
 from .eighttracks import EightTracksIE
+from .eitb import EitbIE
 from .escapist import EscapistIE
 from .exfm import ExfmIE
 from .extremetube import ExtremeTubeIE
@@ -56,6 +59,7 @@ from .francetv import (
 )
 from .freesound import FreesoundIE
 from .funnyordie import FunnyOrDieIE
+from .gamekings import GamekingsIE
 from .gamespot import GameSpotIE
 from .gametrailers import GametrailersIE
 from .generic import GenericIE
@@ -78,7 +82,7 @@ from .keezmovies import KeezMoviesIE
 from .kickstarter import KickStarterIE
 from .keek import KeekIE
 from .liveleak import LiveLeakIE
-from .livestream import LivestreamIE
+from .livestream import LivestreamIE, LivestreamOriginalIE
 from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
 from .mit import TechTVMITIE, MITIE
@@ -114,7 +118,11 @@ from .slashdot import SlashdotIE
 from .slideshare import SlideshareIE
 from .sohu import SohuIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE, SoundcloudUserIE
-from .southparkstudios import SouthParkStudiosIE
+from .southparkstudios import (
+    SouthParkStudiosIE,
+    SouthparkDeIE,
+)
+from .space import SpaceIE
 from .spankwire import SpankwireIE
 from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
@@ -126,12 +134,14 @@ from .techtalks import TechTalksIE
 from .ted import TEDIE
 from .tf1 import TF1IE
 from .thisav import ThisAVIE
+from .toutv import TouTvIE
 from .traileraddict import TrailerAddictIE
 from .trilulilu import TriluliluIE
 from .tube8 import Tube8IE
 from .tudou import TudouIE
 from .tumblr import TumblrIE
 from .tutv import TutvIE
+from .tvp import TvpIE
 from .unistra import UnistraIE
 from .ustream import UstreamIE, UstreamChannelIE
 from .vbox7 import Vbox7IE

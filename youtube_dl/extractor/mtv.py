@@ -26,6 +26,7 @@ class MTVIE(InfoExtractor):
             },
         },
         {
+            u'add_ie': ['Vevo'],
             u'url': u'http://www.mtv.com/videos/taylor-swift/916187/everything-has-changed-ft-ed-sheeran.jhtml',
             u'file': u'USCJY1331283.mp4',
             u'md5': u'73b4e7fcadd88929292fe52c3ced8caf',
@@ -47,7 +48,7 @@ class MTVIE(InfoExtractor):
     def _transform_rtmp_url(rtmp_video_url):
         m = re.match(r'^rtmpe?://.*?/(?P<finalid>gsp\..+?/.*)$', rtmp_video_url)
         if not m:
-            raise ExtractorError(u'Cannot transform RTMP url')
+            return rtmp_video_url
         base = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=1+_pxI0=Ripod-h264+_pxL0=undefined+_pxM0=+_pxK=18639+_pxE=mp4/44620/mtvnorigin/'
         return base + m.group('finalid')
 
@@ -58,7 +59,6 @@ class MTVIE(InfoExtractor):
         if '/error_country_block.swf' in metadataXml:
             raise ExtractorError(u'This video is not available from your country.', expected=True)
         mdoc = xml.etree.ElementTree.fromstring(metadataXml.encode('utf-8'))
-        renditions = mdoc.findall('.//rendition')
 
         formats = []
         for rendition in mdoc.findall('.//rendition'):

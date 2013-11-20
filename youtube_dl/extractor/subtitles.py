@@ -12,9 +12,9 @@ class SubtitlesInfoExtractor(InfoExtractor):
         return any([self._downloader.params.get('writesubtitles', False),
                     self._downloader.params.get('writeautomaticsub')])
 
-    def _list_available_subtitles(self, video_id, webpage=None):
+    def _list_available_subtitles(self, video_id, webpage):
         """ outputs the available subtitles for the video """
-        sub_lang_list = self._get_available_subtitles(video_id)
+        sub_lang_list = self._get_available_subtitles(video_id, webpage)
         auto_captions_list = self._get_available_automatic_caption(video_id, webpage)
         sub_lang = ",".join(list(sub_lang_list.keys()))
         self.to_screen(u'%s: Available subtitles for video: %s' %
@@ -23,7 +23,7 @@ class SubtitlesInfoExtractor(InfoExtractor):
         self.to_screen(u'%s: Available automatic captions for video: %s' %
                        (video_id, auto_lang))
 
-    def extract_subtitles(self, video_id, video_webpage=None):
+    def extract_subtitles(self, video_id, webpage):
         """
         returns {sub_lang: sub} ,{} if subtitles not found or None if the
         subtitles aren't requested.
@@ -32,9 +32,9 @@ class SubtitlesInfoExtractor(InfoExtractor):
             return None
         available_subs_list = {}
         if self._downloader.params.get('writeautomaticsub', False):
-            available_subs_list.update(self._get_available_automatic_caption(video_id, video_webpage))
+            available_subs_list.update(self._get_available_automatic_caption(video_id, webpage))
         if self._downloader.params.get('writesubtitles', False):
-            available_subs_list.update(self._get_available_subtitles(video_id))
+            available_subs_list.update(self._get_available_subtitles(video_id, webpage))
 
         if not available_subs_list:  # error, it didn't get the available subtitles
             return {}
@@ -74,7 +74,7 @@ class SubtitlesInfoExtractor(InfoExtractor):
             return
         return sub
 
-    def _get_available_subtitles(self, video_id):
+    def _get_available_subtitles(self, video_id, webpage):
         """
         returns {sub_lang: url} or {} if not available
         Must be redefined by the subclasses
