@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class EscapistIE(InfoExtractor):
-    _VALID_URL = r'^(https?://)?(www\.)?escapistmagazine\.com/videos/view/(?P<showname>[^/]+)/(?P<episode>[^/?]+)[/?]?.*$'
+    _VALID_URL = r'^(https?://)?(www\.)?escapistmagazine\.com/videos/view/(?P<showname>[^/]+)/(?P<episode>[^/?]+)(?P<hq>\?hq=1)?.*$'
     _TEST = {
         u'url': u'http://www.escapistmagazine.com/videos/view/the-escapist-presents/6618-Breaking-Down-Baldurs-Gate',
         u'file': u'6618-Breaking-Down-Baldurs-Gate.mp4',
@@ -29,6 +29,7 @@ class EscapistIE(InfoExtractor):
             raise ExtractorError(u'Invalid URL: %s' % url)
         showName = mobj.group('showname')
         videoId = mobj.group('episode')
+        isHQ = mobj.group('hq')
 
         self.report_extraction(videoId)
         webpage = self._download_webpage(url, videoId)
@@ -43,6 +44,8 @@ class EscapistIE(InfoExtractor):
 
         configUrl = self._search_regex('config=(.*)$', playerUrl, u'config url')
         configUrl = compat_urllib_parse.unquote(configUrl)
+        if isHQ:
+            configUrl = configUrl + '&hq=1' if '?' in configUrl else configUrl + '?hq=1'
 
         configJSON = self._download_webpage(configUrl, videoId,
                                             u'Downloading configuration',
