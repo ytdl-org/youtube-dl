@@ -4,7 +4,6 @@ import re
 from .subtitles import SubtitlesInfoExtractor
 
 from ..utils import (
-    compat_str,
     RegexNotFoundError,
 )
 
@@ -113,6 +112,6 @@ class TEDIE(SubtitlesInfoExtractor):
                     url = 'http://www.ted.com/talks/subtitles/id/%s/lang/%s/format/srt' % (video_id, l)
                     sub_lang_list[l] = url
                 return sub_lang_list
-        except RegexNotFoundError as err:
+        except RegexNotFoundError:
             self._downloader.report_warning(u'video doesn\'t have subtitles')
         return {}

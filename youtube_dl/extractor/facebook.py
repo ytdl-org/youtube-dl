@@ -1,5 +1,4 @@
 import json
-import netrc
 import re
 import socket
 

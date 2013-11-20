@@ -59,7 +59,6 @@ class MTVIE(InfoExtractor):
         if '/error_country_block.swf' in metadataXml:
             raise ExtractorError(u'This video is not available from your country.', expected=True)
         mdoc = xml.etree.ElementTree.fromstring(metadataXml.encode('utf-8'))
-        renditions = mdoc.findall('.//rendition')
 
         formats = []
         for rendition in mdoc.findall('.//rendition'):
