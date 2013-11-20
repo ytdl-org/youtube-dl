@@ -24,7 +24,7 @@ class GameSpotIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        page_id = video_id = mobj.group('page_id')
+        page_id = mobj.group('page_id')
         webpage = self._download_webpage(url, page_id)
         data_video_json = self._search_regex(r'data-video=\'(.*?)\'', webpage, u'data video')
         data_video = json.loads(unescapeHTML(data_video_json))

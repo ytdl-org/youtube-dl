@@ -53,7 +53,7 @@ class ZDFIE(InfoExtractor):
             video_id,
             u'Get stream URL')
 
-        MMS_STREAM = r'href="(?P<video_url>mms://[^"]*)"'
+        #MMS_STREAM = r'href="(?P<video_url>mms://[^"]*)"'
         RTSP_STREAM = r'(?P<video_url>rtsp://[^"]*.mp4)'
 
         mobj = re.search(self._MEDIA_STREAM, media_link)

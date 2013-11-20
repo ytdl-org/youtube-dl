@@ -1,4 +1,3 @@
-import itertools
 import json
 import random
 import re

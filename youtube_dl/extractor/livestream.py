@@ -6,9 +6,7 @@ from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse_urlparse,
     compat_urlparse,
-    get_meta_content,
     xpath_with_ns,
-    ExtractorError,
 )
 
 

@@ -158,7 +158,6 @@ class SoundcloudSetIE(SoundcloudIE):
         resolv_url = self._resolv_url(url)
         info_json = self._download_webpage(resolv_url, full_title)
 
-        videos = []
         info = json.loads(info_json)
         if 'errors' in info:
             for err in info['errors']:
