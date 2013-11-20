@@ -66,13 +66,12 @@ class EscapistIE(InfoExtractor):
             })
 
         _add_format(u'normal', configUrl)
+        hq_url = (configUrl +
+                  ('&hq=1' if '?' in configUrl else configUrl + '?hq=1'))
         try:
-            hq_url = (configUrl +
-                      ('&hq=1' if '?' in configUrl else configUrl + '?hq=1'))
-            try:
-                _add_format(u'hq', hq_url)
-            except ExtractorError:
-                pass  # That's fine, we'll just use normal quality
+            _add_format(u'hq', hq_url)
+        except ExtractorError:
+            pass  # That's fine, we'll just use normal quality
 
         return {
             'id': videoId,
