@@ -306,6 +306,9 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option('--get-format',
             action='store_true', dest='getformat',
             help='simulate, quiet but print output format', default=False)
+    verbosity.add_option('-j', '--dump-json',
+            action='store_true', dest='dumpjson',
+            help='simulate, quiet but print json information', default=False)
     verbosity.add_option('--newline',
             action='store_true', dest='progress_with_newline', help='output progress bar as new lines', default=False)
     verbosity.add_option('--no-progress',
@@ -608,7 +611,7 @@ def _real_main(argv=None):
         'username': opts.username,
         'password': opts.password,
         'videopassword': opts.videopassword,
-        'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat),
+        'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.dumpjson),
         'forceurl': opts.geturl,
         'forcetitle': opts.gettitle,
         'forceid': opts.getid,
@@ -616,8 +619,9 @@ def _real_main(argv=None):
         'forcedescription': opts.getdescription,
         'forcefilename': opts.getfilename,
         'forceformat': opts.getformat,
+        'forcejson': opts.dumpjson,
         'simulate': opts.simulate,
-        'skip_download': (opts.skip_download or opts.simulate or opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat),
+        'skip_download': (opts.skip_download or opts.simulate or opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.dumpjson),
         'format': opts.format,
         'format_limit': opts.format_limit,
         'listformats': opts.listformats,
