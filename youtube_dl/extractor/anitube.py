@@ -17,6 +17,7 @@ class AnitubeIE(InfoExtractor):
             u'ext': u'mp4',
             u'title': u'Recorder to Randoseru 01',
         },
+        u'skip': u'Blocked in the US',
     }
 
     def _real_extract(self, url):
