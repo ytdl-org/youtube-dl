@@ -72,7 +72,7 @@ class NHLIE(NHLBaseInfoExtractor):
 
 class NHLVideocenterIE(NHLBaseInfoExtractor):
     IE_NAME = u'nhl.com:videocenter'
-    IE_DESC = u'Download the first 12 videos from a videocenter category'
+    IE_DESC = u'NHL videocenter category'
     _VALID_URL = r'https?://video\.(?P<team>[^.]*)\.nhl\.com/videocenter/(console\?.*?catid=(?P<catid>[^&]+))?'
 
     @classmethod
