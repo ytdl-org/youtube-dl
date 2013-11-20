@@ -28,7 +28,7 @@ class TouTvIE(InfoExtractor):
         u'params': {
             u'skip_download': True,  # Requires rtmpdump
         },
-        u'xskip': 'Only available in Canada'
+        u'skip': 'Only available in Canada'
     }
 
     def _real_extract(self, url):
