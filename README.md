@@ -123,6 +123,7 @@ which means you can modify it, redistribute it or use it however you like.
     --get-description          simulate, quiet but print video description
     --get-filename             simulate, quiet but print output filename
     --get-format               simulate, quiet but print output format
+    -j, --dump-json            simulate, quiet but print JSON information
     --newline                  output progress bar as new lines
     --no-progress              do not print progress bar
     --console-title            display progress in console titlebar
