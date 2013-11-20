@@ -103,7 +103,7 @@ def generator(test_case):
                 tc_filename = get_tc_filename(tc)
                 try_rm(tc_filename)
                 try_rm(tc_filename + '.part')
-                try_rm(tc_filename + '.info.json')
+                try_rm(os.path.splitext(tc_filename)[0] + '.info.json')
         try_rm_tcs_files()
         try:
             try_num = 1
@@ -130,11 +130,12 @@ def generator(test_case):
                 if not test_case.get('params', {}).get('skip_download', False):
                     self.assertTrue(os.path.exists(tc_filename), msg='Missing file ' + tc_filename)
                     self.assertTrue(tc_filename in finished_hook_called)
-                self.assertTrue(os.path.exists(tc_filename + '.info.json'))
+                info_json_fn = os.path.splitext(tc_filename)[0] + '.info.json'
+                self.assertTrue(os.path.exists(info_json_fn))
                 if 'md5' in tc:
                     md5_for_file = _file_md5(tc_filename)
                     self.assertEqual(md5_for_file, tc['md5'])
-                with io.open(tc_filename + '.info.json', encoding='utf-8') as infof:
+                with io.open(info_json_fn, encoding='utf-8') as infof:
                     info_dict = json.load(infof)
                 for (info_field, expected) in tc.get('info_dict', {}).items():
                     if isinstance(expected, compat_str) and expected.startswith('md5:'):
