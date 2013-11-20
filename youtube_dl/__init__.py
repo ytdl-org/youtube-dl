@@ -34,6 +34,7 @@ __authors__  = (
     'Andras Elso',
     'Jelle van der Waa',
     'Marcin Cieślak',
+    'Anton Larionov',
 )
 
 __license__ = 'Public Domain'
