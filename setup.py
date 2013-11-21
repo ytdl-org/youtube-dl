@@ -48,7 +48,7 @@ else:
         'data_files': [  # Installing system-wide would require sudo...
             ('etc/bash_completion.d', ['youtube-dl.bash-completion']),
             ('share/doc/youtube_dl', ['README.txt']),
-            ('share/man/man1/', ['youtube-dl.1'])
+            ('share/man/man1', ['youtube-dl.1'])
         ]
     }
     if setuptools_available:
