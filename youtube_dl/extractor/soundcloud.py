@@ -59,6 +59,7 @@ class SoundcloudIE(InfoExtractor):
     ]
 
     _CLIENT_ID = 'b45b1aa10f1ac2941910a7f0d10f8e28'
+    _IPHONE_CLIENT_ID = '376f225bf427445fc4bfb6b99b72e0bf'
 
     @classmethod
     def suitable(cls, url):
@@ -83,7 +84,6 @@ class SoundcloudIE(InfoExtractor):
             thumbnail = thumbnail.replace('-large', '-t500x500')
         result = {
             'id':       track_id,
-            'url':      info['stream_url'] + '?client_id=' + self._CLIENT_ID,
             'uploader': info['user']['username'],
             'upload_date': unified_strdate(info['created_at']),
             'title':    info['title'],
@@ -92,19 +92,29 @@ class SoundcloudIE(InfoExtractor):
             'thumbnail': thumbnail,
         }
         if info.get('downloadable', False):
+            # We can build a direct link to the song
             result['url'] = 'https://api.soundcloud.com/tracks/{0}/download?client_id={1}'.format(track_id, self._CLIENT_ID)
-        if not info.get('streamable', False):
-            # We have to get the rtmp url
+        else:
+            # We have to retrieve the url
             stream_json = self._download_webpage(
-                'http://api.soundcloud.com/i1/tracks/{0}/streams?client_id={1}'.format(track_id, self._CLIENT_ID),
+                'http://api.soundcloud.com/i1/tracks/{0}/streams?client_id={1}'.format(track_id, self._IPHONE_CLIENT_ID),
                 track_id, u'Downloading track url')
-            rtmp_url = json.loads(stream_json)['rtmp_mp3_128_url']
-            # The url doesn't have an rtmp app, we have to extract the playpath
-            url, path = rtmp_url.split('mp3:', 1)
-            result.update({
-                'url': url,
-                'play_path': 'mp3:' + path,
-            })
+            # There should be only one entry in the dictionary
+            key, stream_url = list(json.loads(stream_json).items())[0]
+            if key.startswith(u'http'):
+                result['url'] = stream_url
+            elif key.startswith(u'rtmp'):
+                # The url doesn't have an rtmp app, we have to extract the playpath
+                url, path = stream_url.split('mp3:', 1)
+                result.update({
+                    'url': url,
+                    'play_path': 'mp3:' + path,
+                })
+            else:
+                # We fallback to the stream_url in the original info, this
+                # cannot be always used, sometimes it can give an HTTP 404 error
+                resut['url'] = info['stream_url'] + '?client_id=' + self._CLIENT_ID,
+
         return result
 
     def _real_extract(self, url):
