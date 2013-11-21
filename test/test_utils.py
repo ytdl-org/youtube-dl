@@ -24,6 +24,8 @@ from youtube_dl.utils import (
     xpath_with_ns,
     smuggle_url,
     unsmuggle_url,
+    shell_quote,
+    encodeFilename,
 )
 
 if sys.version_info < (3, 0):
@@ -169,6 +171,10 @@ class TestUtil(unittest.TestCase):
         res_url, res_data = unsmuggle_url(url)
         self.assertEqual(res_url, url)
         self.assertEqual(res_data, None)
+
+    def test_shell_quote(self):
+        args = ['ffmpeg', '-i', encodeFilename(u'ñ€ß\'.mp4')]
+        self.assertEqual(shell_quote(args), u"""ffmpeg -i 'ñ€ß'"'"'.mp4'""")
 
 
 if __name__ == '__main__':
