@@ -951,7 +951,16 @@ class locked_file(object):
 
 
 def shell_quote(args):
-    return ' '.join(map(pipes.quote, args))
+    quoted_args = []
+    encoding = sys.getfilesystemencoding()
+    if encoding is None:
+        encoding = 'utf-8'
+    for a in args:
+        if isinstance(a, bytes):
+            # We may get a filename encoded with 'encodeFilename'
+            a = a.decode(encoding)
+        quoted_args.append(pipes.quote(a))
+    return u' '.join(quoted_args)
 
 
 def takewhile_inclusive(pred, seq):
