@@ -639,7 +639,7 @@ class YoutubeDL(object):
 
         # Forced printings
         if self.params.get('forcetitle', False):
-            compat_print(info_dict['title'])
+            compat_print(info_dict['fulltitle'])
         if self.params.get('forceid', False):
             compat_print(info_dict['id'])
         if self.params.get('forceurl', False):
