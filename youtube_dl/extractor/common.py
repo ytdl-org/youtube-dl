@@ -8,7 +8,6 @@ import netrc
 from ..utils import (
     compat_http_client,
     compat_urllib_error,
-    compat_urllib_request,
     compat_str,
 
     clean_html,
@@ -18,6 +17,7 @@ from ..utils import (
     sanitize_filename,
     unescapeHTML,
 )
+
 
 class InfoExtractor(object):
     """Information Extractor class.
@@ -156,7 +156,7 @@ class InfoExtractor(object):
         elif note is not False:
             self.to_screen(u'%s: %s' % (video_id, note))
         try:
-            return compat_urllib_request.urlopen(url_or_request)
+            return self._downloader.urlopen(url_or_request)
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             if errnote is None:
                 errnote = u'Unable to download webpage'

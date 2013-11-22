@@ -7,8 +7,10 @@ import errno
 import io
 import json
 import os
+import platform
 import re
 import shutil
+import subprocess
 import socket
 import sys
 import time
@@ -18,6 +20,7 @@ if os.name == 'nt':
     import ctypes
 
 from .utils import (
+    compat_cookiejar,
     compat_http_client,
     compat_print,
     compat_str,
@@ -31,8 +34,10 @@ from .utils import (
     encodeFilename,
     ExtractorError,
     locked_file,
+    make_HTTPS_handler,
     MaxDownloadsReached,
     PostProcessingError,
+    platform_name,
     preferredencoding,
     SameFileError,
     sanitize_filename,
@@ -41,9 +46,11 @@ from .utils import (
     UnavailableVideoError,
     write_json_file,
     write_string,
+    YoutubeDLHandler,
 )
 from .extractor import get_info_extractor, gen_extractors
 from .FileDownloader import FileDownloader
+from .version import __version__
 
 
 class YoutubeDL(object):
@@ -120,6 +127,8 @@ class YoutubeDL(object):
     downloadarchive:   File name of a file where all downloads are recorded.
                        Videos already present in the file are not downloaded
                        again.
+    cookiefile:        File name where cookies should be read from and dumped to.
+    nocheckcertificate Do not verify SSL certificates
 
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:
@@ -159,6 +168,8 @@ class YoutubeDL(object):
 
         if '%(stitle)s' in self.params['outtmpl']:
             self.report_warning(u'%(stitle)s is deprecated. Use the %(title)s and the --restrict-filenames flag(which also secures %(uploader)s et al) instead.')
+
+        self._setup_opener()
 
     def add_info_extractor(self, ie):
         """Add an InfoExtractor object to the end of the list."""
@@ -235,6 +246,9 @@ class YoutubeDL(object):
 
     def __exit__(self, *args):
         self.restore_console_title()
+    
+        if self.params.get('cookiefile') is not None:
+            self.cookiejar.save()
 
     def fixed_template(self):
         """Checks if the output template is fixed."""
@@ -774,7 +788,7 @@ class YoutubeDL(object):
         for url in url_list:
             try:
                 #It also downloads the videos
-                videos = self.extract_info(url)
+                self.extract_info(url)
             except UnavailableVideoError:
                 self.report_error(u'unable to download video')
             except MaxDownloadsReached:
@@ -885,3 +899,73 @@ class YoutubeDL(object):
             '_resolution': u'resolution', 'format_note': u'note'})
         self.to_screen(u'[info] Available formats for %s:\n%s\n%s' %
                        (info_dict['id'], header_line, u"\n".join(formats_s)))
+
+    def urlopen(self, req):
+        """ Start an HTTP download """
+        return self._opener.open(req)
+
+    def print_debug_header(self):
+        if not self.params.get('verbose'):
+            return
+        write_string(u'[debug] youtube-dl version ' + __version__ + u'\n')
+        try:
+            sp = subprocess.Popen(
+                ['git', 'rev-parse', '--short', 'HEAD'],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                cwd=os.path.dirname(os.path.abspath(__file__)))
+            out, err = sp.communicate()
+            out = out.decode().strip()
+            if re.match('[0-9a-f]+', out):
+                write_string(u'[debug] Git HEAD: ' + out + u'\n')
+        except:
+            try:
+                sys.exc_clear()
+            except:
+                pass
+        write_string(u'[debug] Python version %s - %s' %
+                     (platform.python_version(), platform_name()) + u'\n')
+
+        proxy_map = {}
+        for handler in self._opener.handlers:
+            if hasattr(handler, 'proxies'):
+                proxy_map.update(handler.proxies)
+        write_string(u'[debug] Proxy map: ' + compat_str(proxy_map) + u'\n')
+
+    def _setup_opener(self, timeout=300):
+        opts_cookiefile = self.params.get('cookiefile')
+        opts_proxy = self.params.get('proxy')
+
+        if opts_cookiefile is None:
+            self.cookiejar = compat_cookiejar.CookieJar()
+        else:
+            self.cookiejar = compat_cookiejar.MozillaCookieJar(
+                opts_cookiefile)
+            if os.access(opts_cookiefile, os.R_OK):
+                self.cookiejar.load()
+
+        cookie_processor = compat_urllib_request.HTTPCookieProcessor(
+            self.cookiejar)
+        if opts_proxy is not None:
+            if opts_proxy == '':
+                proxies = {}
+            else:
+                proxies = {'http': opts_proxy, 'https': opts_proxy}
+        else:
+            proxies = compat_urllib_request.getproxies()
+            # Set HTTPS proxy to HTTP one if given (https://github.com/rg3/youtube-dl/issues/805)
+            if 'http' in proxies and 'https' not in proxies:
+                proxies['https'] = proxies['http']
+        proxy_handler = compat_urllib_request.ProxyHandler(proxies)
+        https_handler = make_HTTPS_handler(
+            self.params.get('nocheckcertificate', False))
+        opener = compat_urllib_request.build_opener(
+            https_handler, proxy_handler, cookie_processor, YoutubeDLHandler())
+        # Delete the default user-agent header, which would otherwise apply in
+        # cases where our custom HTTP handler doesn't come into play
+        # (See https://github.com/rg3/youtube-dl/issues/1309 for details)
+        opener.addheaders = []
+        self._opener = opener
+
+        # TODO remove this global modification
+        compat_urllib_request.install_opener(opener)
+        socket.setdefaulttimeout(timeout)

@@ -535,7 +535,7 @@ def formatSeconds(secs):
     else:
         return '%d' % secs
 
-def make_HTTPS_handler(opts):
+def make_HTTPS_handler(opts_no_check_certificate):
     if sys.version_info < (3,2):
         # Python's 2.x handler is very simplistic
         return compat_urllib_request.HTTPSHandler()
@@ -545,7 +545,7 @@ def make_HTTPS_handler(opts):
         context.set_default_verify_paths()
         
         context.verify_mode = (ssl.CERT_NONE
-                               if opts.no_check_certificate
+                               if opts_no_check_certificate
                                else ssl.CERT_REQUIRED)
         return compat_urllib_request.HTTPSHandler(context=context)
 
