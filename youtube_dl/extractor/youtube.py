@@ -1510,7 +1510,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             })
         return results
 
-class YoutubePlaylistIE(InfoExtractor):
+class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
     IE_DESC = u'YouTube.com playlists'
     _VALID_URL = r"""(?:
                         (?:https?://)?
@@ -1526,14 +1526,18 @@ class YoutubePlaylistIE(InfoExtractor):
                      |
                         ((?:PL|EC|UU|FL)[0-9A-Za-z-_]{10,})
                      )"""
-    _TEMPLATE_URL = 'https://gdata.youtube.com/feeds/api/playlists/%s?max-results=%i&start-index=%i&v=2&alt=json&safeSearch=none'
-    _MAX_RESULTS = 50
+    _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s&page=%s'
+    _MORE_PAGES_INDICATOR = r'data-link-type="next"'
+    _VIDEO_RE = r'href="/watch\?v=([0-9A-Za-z_-]{11})&amp;'
     IE_NAME = u'youtube:playlist'
 
     @classmethod
     def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
         return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
+
+    def _real_initialize(self):
+        self._login()
 
     def _real_extract(self, url):
         # Extract playlist id
@@ -1552,41 +1556,23 @@ class YoutubePlaylistIE(InfoExtractor):
             else:
                 self.to_screen(u'Downloading playlist PL%s - add --no-playlist to just download video %s' % (playlist_id, video_id))
 
-        # Download playlist videos from API
-        videos = []
+        # Extract the video ids from the playlist pages
+        ids = []
 
         for page_num in itertools.count(1):
-            start_index = self._MAX_RESULTS * (page_num - 1) + 1
-            if start_index >= 1000:
-                self._downloader.report_warning(u'Max number of results reached')
-                break
-            url = self._TEMPLATE_URL % (playlist_id, self._MAX_RESULTS, start_index)
+            url = self._TEMPLATE_URL % (playlist_id, page_num)
             page = self._download_webpage(url, playlist_id, u'Downloading page #%s' % page_num)
+            # The ids are duplicated
+            new_ids = orderedSet(re.findall(self._VIDEO_RE, page))
+            ids.extend(new_ids)
 
-            try:
-                response = json.loads(page)
-            except ValueError as err:
-                raise ExtractorError(u'Invalid JSON in API response: ' + compat_str(err))
-
-            if 'feed' not in response:
-                raise ExtractorError(u'Got a malformed response from YouTube API')
-            playlist_title = response['feed']['title']['$t']
-            if 'entry' not in response['feed']:
-                # Number of videos is a multiple of self._MAX_RESULTS
+            if re.search(self._MORE_PAGES_INDICATOR, page) is None:
                 break
 
-            for entry in response['feed']['entry']:
-                index = entry['yt$position']['$t']
-                if 'media$group' in entry and 'yt$videoid' in entry['media$group']:
-                    videos.append((
-                        index,
-                        'https://www.youtube.com/watch?v=' + entry['media$group']['yt$videoid']['$t']
-                    ))
+        playlist_title = self._og_search_title(page)
 
-        videos = [v[1] for v in sorted(videos)]
-
-        url_results = [self.url_result(vurl, 'Youtube') for vurl in videos]
-        return [self.playlist_result(url_results, playlist_id, playlist_title)]
+        url_results = [self.url_result(vid, 'Youtube') for vid in ids]
+        return self.playlist_result(url_results, playlist_id, playlist_title)
 
 
 class YoutubeChannelIE(InfoExtractor):
