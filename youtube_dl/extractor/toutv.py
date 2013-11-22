@@ -39,7 +39,6 @@ class TouTvIE(InfoExtractor):
         mediaId = self._search_regex(
             r'"idMedia":\s*"([^"]+)"', webpage, u'media ID')
 
-        # TODO test from de
         streams_url = u'http://release.theplatform.com/content.select?pid=' + mediaId
         streams_webpage = self._download_webpage(
             streams_url, video_id, note=u'Downloading stream list')
