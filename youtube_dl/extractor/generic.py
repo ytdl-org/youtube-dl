@@ -199,7 +199,8 @@ class GenericIE(InfoExtractor):
         mobj = re.search(r'<meta property="og:url"[^>]*?content="(.*?bandcamp\.com.*?)"', webpage)
         if mobj is not None:
             burl = unescapeHTML(mobj.group(1))
-            return self.url_result(burl, 'Bandcamp')
+            # Don't set the extractor because it can be a track url or an album
+            return self.url_result(burl)
 
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
