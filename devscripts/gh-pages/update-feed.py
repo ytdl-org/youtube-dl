@@ -5,6 +5,7 @@ import datetime
 import textwrap
 
 import json
+import subprocess
 
 atom_template=textwrap.dedent("""\
 								<?xml version='1.0' encoding='utf-8'?>
@@ -22,7 +23,8 @@ entry_template=textwrap.dedent("""
 									<atom:link href="http://rg3.github.io/youtube-dl" />
 									<atom:content type="xhtml">
 										<div xmlns="http://www.w3.org/1999/xhtml">
-											Downloads available at <a href="https://yt-dl.org/downloads/@VERSION@/">https://yt-dl.org/downloads/@VERSION@/</a>
+											<p>Downloads available at <a href="https://yt-dl.org/downloads/@VERSION@/">https://yt-dl.org/downloads/@VERSION@/</a></p>
+											<p>@CHANGES@</p>
 										</div>
 									</atom:content>
 									<atom:author>
@@ -46,6 +48,14 @@ versions.sort()
 for v in versions:
 	entry = entry_template.replace('@TIMESTAMP@',v.replace('.','-'))
 	entry = entry.replace('@VERSION@',v)
+	changes = versions_info['versions'][v].get('changelog', '')
+	if changes:
+		# We only convert the changelog to html with pandoc if it's not an empty string
+		pandoc_cmd = ['pandoc', '--from', 'markdown', '--to', 'html']
+		pandoc = subprocess.Popen(pandoc_cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+		changes = pandoc.communicate(input=changes.encode('utf-8'))[0].decode('utf-8')
+		changes = u'Changelog: {}'.format(changes)
+	entry = entry.replace('@CHANGES@', changes)
 	entries.append(entry)
 
 entries_str = textwrap.indent(''.join(entries), '\t')

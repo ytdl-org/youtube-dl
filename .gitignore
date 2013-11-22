@@ -9,6 +9,7 @@ build/
 dist/
 MANIFEST
 README.txt
+CHANGELOG
 youtube-dl.1
 youtube-dl.bash-completion
 youtube-dl

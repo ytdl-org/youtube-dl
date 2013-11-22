@@ -23,7 +23,7 @@ fi
 if [ -z "$1" ]; then echo "ERROR: specify version number like this: $0 1994.09.06"; exit 1; fi
 version="$1"
 if [ ! -z "`git tag | grep "$version"`" ]; then echo 'ERROR: version already present'; exit 1; fi
-if [ ! -z "`git status --porcelain | grep -v CHANGELOG`" ]; then echo 'ERROR: the working directory is not clean; commit or stash changes'; exit 1; fi
+if [ ! -z "`git status --porcelain | grep -v CHANGELOG.md`" ]; then echo 'ERROR: the working directory is not clean; commit or stash changes'; exit 1; fi
 if [ ! -f "updates_key.pem" ]; then echo 'ERROR: updates_key.pem missing'; exit 1; fi
 
 /bin/echo -e "\n### First of all, testing..."
@@ -34,12 +34,13 @@ else
     nosetests --verbose --with-coverage --cover-package=youtube_dl --cover-html test --stop || exit 1
 fi
 
-/bin/echo -e "\n### Changing version in version.py..."
+/bin/echo -e "\n### Changing version in version.py and CHANGELOG..."
 sed -i "s/__version__ = '.*'/__version__ = '$version'/" youtube_dl/version.py
+sed -i "s/@DEV@/$version/" CHANGELOG.md
 
-/bin/echo -e "\n### Committing CHANGELOG README.md and youtube_dl/version.py..."
+/bin/echo -e "\n### Committing CHANGELOG.md README.md and youtube_dl/version.py..."
 make README.md
-git add CHANGELOG README.md youtube_dl/version.py
+git add CHANGELOG.md README.md youtube_dl/version.py
 git commit -m "release $version"
 
 /bin/echo -e "\n### Now tagging, signing and pushing..."
@@ -72,6 +73,9 @@ for f in $RELEASE_FILES; do gpg --detach-sig "build/$version/$f"; done
 scp -r "build/$version" ytdl@yt-dl.org:html/tmp/
 ssh ytdl@yt-dl.org "mv html/tmp/$version html/downloads/"
 ssh ytdl@yt-dl.org "sh html/update_latest.sh $version"
+
+echo -e "\n### Generating changelog"
+pandoc CHANGELOG.md -t json | ./devscripts/extract-changes.py ${version} | pandoc -f json -o build/$version/CHANGELOG.md
 
 /bin/echo -e "\n### Now switching to gh-pages..."
 git clone --branch gh-pages --single-branch . build/gh-pages

@@ -5,7 +5,6 @@ import sys
 import hashlib
 import os.path
 
-
 if len(sys.argv) <= 1:
     print('Specify the version number as parameter')
     sys.exit()
@@ -34,6 +33,11 @@ for key, filename in filenames.items():
         raise ValueError('File %s is empty!' % fn)
     sha256sum = hashlib.sha256(data).hexdigest()
     new_version[key] = (url, sha256sum)
+
+with open(os.path.join(build_dir, 'CHANGELOG.md'), 'rt') as f:
+    changes = f.read().strip()
+    if changes:
+        new_version['changelog'] = changes
 
 versions_info['versions'][version] = new_version
 versions_info['latest'] = version

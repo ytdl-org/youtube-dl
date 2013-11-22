@@ -1,7 +1,7 @@
 all: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion
 
 clean:
-	rm -rf youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz
+	rm -rf youtube-dl.1 youtube-dl.bash-completion README.txt CHANGELOG MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz
 
 cleanall: clean
 	rm -f youtube-dl youtube-dl.exe
@@ -54,6 +54,9 @@ README.md: youtube_dl/*.py youtube_dl/*/*.py
 README.txt: README.md
 	pandoc -f markdown -t plain README.md -o README.txt
 
+CHANGELOG: CHANGELOG.md
+	pandoc -f markdown -t plain $< -o $@
+
 youtube-dl.1: README.md
 	pandoc -s -f markdown -t man README.md -o youtube-dl.1
 
@@ -62,7 +65,7 @@ youtube-dl.bash-completion: youtube_dl/*.py youtube_dl/*/*.py devscripts/bash-co
 
 bash-completion: youtube-dl.bash-completion
 
-youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion
+youtube-dl.tar.gz: youtube-dl README.md README.txt CHANGELOG.md CHANGELOG youtube-dl.1 youtube-dl.bash-completion
 	@tar -czf youtube-dl.tar.gz --transform "s|^|youtube-dl/|" --owner 0 --group 0 \
 		--exclude '*.DS_Store' \
 		--exclude '*.kate-swp' \
@@ -74,6 +77,6 @@ youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-
 		--exclude 'testdata' \
 		-- \
 		bin devscripts test youtube_dl \
-		CHANGELOG LICENSE README.md README.txt \
+		CHANGELOG.md CHANGELOG LICENSE README.md README.txt \
 		Makefile MANIFEST.in youtube-dl.1 youtube-dl.bash-completion setup.py \
 		youtube-dl
