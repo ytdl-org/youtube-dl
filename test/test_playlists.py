@@ -102,7 +102,7 @@ class TestPlaylists(unittest.TestCase):
         result = ie.extract('http://bambuser.com/channel/pixelversity')
         self.assertIsPlaylist(result)
         self.assertEqual(result['title'], u'pixelversity')
-        self.assertTrue(len(result['entries']) >= 66)
+        self.assertTrue(len(result['entries']) >= 60)
 
     def test_bandcamp_album(self):
         dl = FakeYDL()
