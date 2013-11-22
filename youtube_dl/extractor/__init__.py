@@ -128,6 +128,7 @@ from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
 from .statigram import StatigramIE
 from .steam import SteamIE
+from .streamcloud import StreamcloudIE
 from .sztvhu import SztvHuIE
 from .teamcoco import TeamcocoIE
 from .techtalks import TechTalksIE
