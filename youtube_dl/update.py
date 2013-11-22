@@ -109,7 +109,7 @@ def update_self(to_screen, verbose):
             urlh = compat_urllib_request.urlopen(version['exe'][0])
             newcontent = urlh.read()
             urlh.close()
-        except (IOError, OSError) as err:
+        except (IOError, OSError):
             if verbose: to_screen(compat_str(traceback.format_exc()))
             to_screen(u'ERROR: unable to download latest version')
             return
@@ -122,7 +122,7 @@ def update_self(to_screen, verbose):
         try:
             with open(exe + '.new', 'wb') as outf:
                 outf.write(newcontent)
-        except (IOError, OSError) as err:
+        except (IOError, OSError):
             if verbose: to_screen(compat_str(traceback.format_exc()))
             to_screen(u'ERROR: unable to write the new version')
             return
@@ -141,7 +141,7 @@ start /b "" cmd /c del "%%~f0"&exit /b"
 
             subprocess.Popen([bat])  # Continues to run in the background
             return  # Do not show premature success messages
-        except (IOError, OSError) as err:
+        except (IOError, OSError):
             if verbose: to_screen(compat_str(traceback.format_exc()))
             to_screen(u'ERROR: unable to overwrite current version')
             return
@@ -152,7 +152,7 @@ start /b "" cmd /c del "%%~f0"&exit /b"
             urlh = compat_urllib_request.urlopen(version['bin'][0])
             newcontent = urlh.read()
             urlh.close()
-        except (IOError, OSError) as err:
+        except (IOError, OSError):
             if verbose: to_screen(compat_str(traceback.format_exc()))
             to_screen(u'ERROR: unable to download latest version')
             return
@@ -165,7 +165,7 @@ start /b "" cmd /c del "%%~f0"&exit /b"
         try:
             with open(filename, 'wb') as outf:
                 outf.write(newcontent)
-        except (IOError, OSError) as err:
+        except (IOError, OSError):
             if verbose: to_screen(compat_str(traceback.format_exc()))
             to_screen(u'ERROR: unable to overwrite current version')
             return
