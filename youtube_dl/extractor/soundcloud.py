@@ -113,7 +113,7 @@ class SoundcloudIE(InfoExtractor):
             else:
                 # We fallback to the stream_url in the original info, this
                 # cannot be always used, sometimes it can give an HTTP 404 error
-                resut['url'] = info['stream_url'] + '?client_id=' + self._CLIENT_ID,
+                result['url'] = info['stream_url'] + '?client_id=' + self._CLIENT_ID,
 
         return result
 
