@@ -22,6 +22,7 @@ from youtube_dl.extractor import (
     LivestreamIE,
     NHLVideocenterIE,
     BambuserChannelIE,
+    BandcampAlbumIE
 )
 
 
@@ -102,6 +103,14 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['title'], u'pixelversity')
         self.assertTrue(len(result['entries']) >= 66)
+
+    def test_bandcamp_album(self):
+        dl = FakeYDL()
+        ie = BandcampAlbumIE(dl)
+        result = ie.extract('http://mpallante.bandcamp.com/album/nightmare-night-ep')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['title'], u'Nightmare Night EP')
+        self.assertTrue(len(result['entries']) >= 4)
 
 if __name__ == '__main__':
     unittest.main()

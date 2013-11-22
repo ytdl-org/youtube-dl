@@ -3,11 +3,13 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    compat_urlparse,
     ExtractorError,
 )
 
 
 class BandcampIE(InfoExtractor):
+    IE_NAME = u'Bandcamp'
     _VALID_URL = r'http://.*?\.bandcamp\.com/track/(?P<title>.*)'
     _TEST = {
         u'url': u'http://youtube-dl.bandcamp.com/track/youtube-dl-test-song',
@@ -61,3 +63,25 @@ class BandcampIE(InfoExtractor):
                       }
 
         return [track_info]
+
+
+class BandcampAlbumIE(InfoExtractor):
+    IE_NAME = u'Bandcamp:album'
+    _VALID_URL = r'http://.*?\.bandcamp\.com/album/(?P<title>.*)'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        title = mobj.group('title')
+        webpage = self._download_webpage(url, title)
+        tracks_paths = re.findall(r'<a href="(.*?)" itemprop="url">', webpage)
+        if not tracks_paths:
+            raise ExtractorError(u'The page doesn\'t contain any track')
+        entries = [
+            self.url_result(compat_urlparse.urljoin(url, t_path), ie=BandcampIE.ie_key())
+            for t_path in tracks_paths]
+        title = self._search_regex(r'album_title : "(.*?)"', webpage, u'title')
+        return {
+            '_type': 'playlist',
+            'title': title,
+            'entries': entries,
+        }
