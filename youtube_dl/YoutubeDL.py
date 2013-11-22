@@ -812,6 +812,12 @@ class YoutubeDL(object):
 
         return self._download_retcode
 
+    def download_with_info_file(self, info_filename):
+        with open(info_filename, 'r') as f:
+            # TODO: Check for errors
+            info = json.load(f)
+        self.process_ie_result(info, download=True)
+
     def post_process(self, filename, ie_info):
         """Run all the postprocessors on the given file."""
         info = dict(ie_info)
