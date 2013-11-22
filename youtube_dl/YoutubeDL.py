@@ -355,15 +355,17 @@ class YoutubeDL(object):
     def _match_entry(self, info_dict):
         """ Returns None iff the file should be downloaded """
 
-        title = info_dict['title']
-        matchtitle = self.params.get('matchtitle', False)
-        if matchtitle:
-            if not re.search(matchtitle, title, re.IGNORECASE):
-                return u'[download] "' + title + '" title did not match pattern "' + matchtitle + '"'
-        rejecttitle = self.params.get('rejecttitle', False)
-        if rejecttitle:
-            if re.search(rejecttitle, title, re.IGNORECASE):
-                return u'"' + title + '" title matched reject pattern "' + rejecttitle + '"'
+        if 'title' in info_dict:
+            # This can happen when we're just evaluating the playlist
+            title = info_dict['title']
+            matchtitle = self.params.get('matchtitle', False)
+            if matchtitle:
+                if not re.search(matchtitle, title, re.IGNORECASE):
+                    return u'[download] "' + title + '" title did not match pattern "' + matchtitle + '"'
+            rejecttitle = self.params.get('rejecttitle', False)
+            if rejecttitle:
+                if re.search(rejecttitle, title, re.IGNORECASE):
+                    return u'"' + title + '" title matched reject pattern "' + rejecttitle + '"'
         date = info_dict.get('upload_date', None)
         if date is not None:
             dateRange = self.params.get('daterange', DateRange())
@@ -374,8 +376,8 @@ class YoutubeDL(object):
             if age_limit < info_dict.get('age_limit', 0):
                 return u'Skipping "' + title + '" because it is age restricted'
         if self.in_download_archive(info_dict):
-            return (u'%(title)s has already been recorded in archive'
-                    % info_dict)
+            return (u'%s has already been recorded in archive'
+                    % info_dict.get('title', info_dict.get('id', u'video')))
         return None
 
     @staticmethod
@@ -454,7 +456,7 @@ class YoutubeDL(object):
                                      ie_key=ie_result.get('ie_key'),
                                      extra_info=extra_info)
         elif result_type == 'playlist':
-            self.add_extra_info(ie_result, extra_info)
+
             # We process each entry in the playlist
             playlist = ie_result.get('title', None) or ie_result.get('id', None)
             self.to_screen(u'[download] Downloading playlist: %s' % playlist)
@@ -484,6 +486,12 @@ class YoutubeDL(object):
                     'webpage_url': ie_result['webpage_url'],
                     'extractor_key': ie_result['extractor_key'],
                 }
+
+                reason = self._match_entry(entry)
+                if reason is not None:
+                    self.to_screen(u'[download] ' + reason)
+                    continue
+
                 entry_result = self.process_ie_result(entry,
                                                       download=download,
                                                       extra_info=extra)
@@ -810,7 +818,16 @@ class YoutubeDL(object):
         fn = self.params.get('download_archive')
         if fn is None:
             return False
-        vid_id = info_dict['extractor'] + u' ' + info_dict['id']
+        extractor = info_dict.get('extractor_id')
+        if extractor is None:
+            if 'id' in info_dict:
+                extractor = info_dict.get('ie_key')  # key in a playlist
+        if extractor is None:
+            return False  # Incomplete video information
+        # Future-proof against any change in case
+        # and backwards compatibility with prior versions
+        extractor = extractor.lower()
+        vid_id = extractor + u' ' + info_dict['id']
         try:
             with locked_file(fn, 'r', encoding='utf-8') as archive_file:
                 for line in archive_file:
