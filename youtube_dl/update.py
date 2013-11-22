@@ -41,6 +41,7 @@ def rsa_verify(message, signature, key):
     if signature != sha256(message).digest(): return False
     return True
 
+
 def update_self(to_screen, verbose):
     """Update the program file with the latest version from the repository"""
 
@@ -82,6 +83,13 @@ def update_self(to_screen, verbose):
         return
 
     version_id = versions_info['latest']
+
+    def version_tuple(version_str):
+        return tuple(map(int, version_str.split('.')))
+    if version_tuple(__version__) >= version_tuple(version_str):
+        to_screen(u'youtube-dl is up to date (%s)' % __version__)
+        return
+
     to_screen(u'Updating to version ' + version_id + '...')
     version = versions_info['versions'][version_id]
 
