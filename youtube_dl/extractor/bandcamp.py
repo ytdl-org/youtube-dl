@@ -3,6 +3,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    compat_str,
     compat_urlparse,
     ExtractorError,
 )
@@ -11,7 +12,7 @@ from ..utils import (
 class BandcampIE(InfoExtractor):
     IE_NAME = u'Bandcamp'
     _VALID_URL = r'http://.*?\.bandcamp\.com/track/(?P<title>.*)'
-    _TEST = {
+    _TESTS = [{
         u'url': u'http://youtube-dl.bandcamp.com/track/youtube-dl-test-song',
         u'file': u'1812978515.mp3',
         u'md5': u'cdeb30cdae1921719a3cbcab696ef53c',
@@ -19,7 +20,28 @@ class BandcampIE(InfoExtractor):
             u"title": u"youtube-dl test song \"'/\\\u00e4\u21ad"
         },
         u'skip': u'There is a limit of 200 free downloads / month for the test song'
-    }
+    }, {
+        u'url': u'http://blazo.bandcamp.com/album/jazz-format-mixtape-vol-1',
+        u'playlist': [
+            {
+                u'file': u'1353101989.mp3',
+                u'md5': u'39bc1eded3476e927c724321ddf116cf',
+                u'info_dict': {
+                    u'title': u'Intro',
+                }
+            },
+            {
+                u'file': u'38097443.mp3',
+                u'md5': u'1a2c32e2691474643e912cc6cd4bffaa',
+                u'info_dict': {
+                    u'title': u'Kero One - Keep It Alive (Blazo remix)',
+                }
+            },
+        ],
+        u'params': {
+            u'playlistend': 2
+        }
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -28,6 +50,26 @@ class BandcampIE(InfoExtractor):
         # We get the link to the free download page
         m_download = re.search(r'freeDownloadPage: "(.*?)"', webpage)
         if m_download is None:
+            m_trackinfo = re.search(r'trackinfo: (.+),\s*?\n', webpage)
+        if m_trackinfo:
+            json_code = m_trackinfo.group(1)
+            data = json.loads(json_code)
+
+            entries = []
+            for d in data:
+                formats = [{
+                    'format_id': 'format_id',
+                    'url': format_url,
+                    'ext': format_id.partition('-')[0]
+                } for format_id, format_url in sorted(d['file'].items())]
+                entries.append({
+                    'id': compat_str(d['id']),
+                    'title': d['title'],
+                    'formats': formats,
+                })
+
+            return self.playlist_result(entries, title, title)
+        else:
             raise ExtractorError(u'No free songs found')
 
         download_link = m_download.group(1)
