@@ -151,7 +151,7 @@ class VimeoIE(InfoExtractor):
                 config = json.loads(config_json)
             except RegexNotFoundError:
                 # For pro videos or player.vimeo.com urls
-                config = self._search_regex([r' = {config:({.+?}),assets:', r'c=({.+?);'],
+                config = self._search_regex([r' = {config:({.+?}),assets:', r'(?:c|b)=({.+?});'],
                     webpage, u'info section', flags=re.DOTALL)
                 config = json.loads(config)
         except Exception as e:
