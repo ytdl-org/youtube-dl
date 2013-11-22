@@ -40,7 +40,8 @@ class BandcampIE(InfoExtractor):
         ],
         u'params': {
             u'playlistend': 2
-        }
+        },
+        u'skip': u'Bancamp imposes download limits. See test_playlists:test_bandcamp_album for the playlist test'
     }]
 
     def _real_extract(self, url):
