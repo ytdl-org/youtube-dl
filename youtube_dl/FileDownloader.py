@@ -6,12 +6,14 @@ import sys
 import time
 
 from .utils import (
+    compat_cookiejar,
     compat_urllib_error,
     compat_urllib_request,
     ContentTooShortError,
     determine_ext,
     encodeFilename,
     sanitize_open,
+    std_headers,
     timeconvert,
 )
 
