@@ -21,6 +21,7 @@ class StreamcloudIE(InfoExtractor):
             u'title': u'youtube-dl test video  \'/\\ ä ↭',
             u'duration': 9,
         },
+        u'skip': u'Only available from the EU'
     }
 
     def _real_extract(self, url):
