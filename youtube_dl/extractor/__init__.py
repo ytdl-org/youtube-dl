@@ -186,6 +186,7 @@ from .youtube import (
     YoutubeTruncatedURLIE,
     YoutubeWatchLaterIE,
     YoutubeFavouritesIE,
+    YoutubeHistoryIE,
 )
 from .zdf import ZDFIE
 

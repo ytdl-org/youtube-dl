@@ -1826,6 +1826,20 @@ class YoutubeWatchLaterIE(YoutubeFeedsInfoExtractor):
     _PAGING_STEP = 100
     _PERSONAL_FEED = True
 
+class YoutubeHistoryIE(YoutubeFeedsInfoExtractor):
+    IE_DESC = u'Youtube watch history, "ythistory" keyword (requires authentication)'
+    _VALID_URL = u'https?://www\.youtube\.com/feed/history|:ythistory'
+    _FEED_NAME = 'history'
+    _PERSONAL_FEED = True
+    _PLAYLIST_TITLE = u'Youtube Watch History'
+
+    def _real_extract(self, url):
+        webpage = self._download_webpage('https://www.youtube.com/feed/history', u'History')
+        data_paging = self._search_regex(r'data-paging="(\d+)"', webpage, u'data-paging')
+        # The step is actually a ridiculously big number (like 1374343569725646)
+        self._PAGING_STEP = int(data_paging)
+        return super(YoutubeHistoryIE, self)._real_extract(url)
+
 class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
     IE_NAME = u'youtube:favorites'
     IE_DESC = u'YouTube.com favourite videos, "ytfav" keyword (requires authentication)'
