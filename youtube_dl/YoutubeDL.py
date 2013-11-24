@@ -97,6 +97,7 @@ class YoutubeDL(object):
     playlistend:       Playlist item to end at.
     matchtitle:        Download only matching titles.
     rejecttitle:       Reject downloads for matching titles.
+	logger:            Log messages to a logging.Logger instance.
     logtostderr:       Log messages to stderr instead of stdout.
     writedescription:  Write the video description to a .description file
     writeinfojson:     Write the video description to a .info.json file
@@ -192,7 +193,9 @@ class YoutubeDL(object):
 
     def to_screen(self, message, skip_eol=False):
         """Print message to stdout if not in quiet mode."""
-        if not self.params.get('quiet', False):
+        if self.params.get('logger', False):
+            self.params['logger'].debug(message)
+        elif not self.params.get('quiet', False):
             terminator = [u'\n', u''][skip_eol]
             output = message + terminator
             write_string(output, self._screen_file)
@@ -200,10 +203,13 @@ class YoutubeDL(object):
     def to_stderr(self, message):
         """Print message to stderr."""
         assert type(message) == type(u'')
-        output = message + u'\n'
-        if 'b' in getattr(self._screen_file, 'mode', '') or sys.version_info[0] < 3: # Python 2 lies about the mode of sys.stdout/sys.stderr
-            output = output.encode(preferredencoding())
-        sys.stderr.write(output)
+        if self.params.get('logger', False):
+            self.params['logger'].error(message)
+        else:
+            output = message + u'\n'
+            if 'b' in getattr(self._screen_file, 'mode', '') or sys.version_info[0] < 3: # Python 2 lies about the mode of sys.stdout/sys.stderr
+                output = output.encode(preferredencoding())
+            sys.stderr.write(output)
 
     def to_console_title(self, message):
         if not self.params.get('consoletitle', False):
