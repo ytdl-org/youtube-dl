@@ -101,10 +101,10 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch(':ytsubs', ['youtube:subscriptions'])
         self.assertMatch(':ytsubscriptions', ['youtube:subscriptions'])
         self.assertMatch(':ythistory', ['youtube:history'])
-        self.assertMatch(':thedailyshow', ['ComedyCentral'])
-        self.assertMatch(':tds', ['ComedyCentral'])
-        self.assertMatch(':colbertreport', ['ComedyCentral'])
-        self.assertMatch(':cr', ['ComedyCentral'])
+        self.assertMatch(':thedailyshow', ['ComedyCentralShows'])
+        self.assertMatch(':tds', ['ComedyCentralShows'])
+        self.assertMatch(':colbertreport', ['ComedyCentralShows'])
+        self.assertMatch(':cr', ['ComedyCentralShows'])
 
 
 if __name__ == '__main__':
