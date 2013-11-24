@@ -4,6 +4,7 @@ import re
 import socket
 import sys
 import netrc
+import xml.etree.ElementTree
 
 from ..utils import (
     compat_http_client,
@@ -207,6 +208,11 @@ class InfoExtractor(object):
     def _download_webpage(self, url_or_request, video_id, note=None, errnote=None):
         """ Returns the data of the page as a string """
         return self._download_webpage_handle(url_or_request, video_id, note, errnote)[0]
+
+    def _download_xml(self, url_or_request, video_id, note=u'Downloading XML', errnote=u'Unable to downloand XML'):
+        """Return the xml as an xml.etree.ElementTree.Element"""
+        xml_string = self._download_webpage(url_or_request, video_id, note, errnote)
+        return xml.etree.ElementTree.fromstring(xml_string.encode('utf-8'))
 
     def to_screen(self, msg):
         """Print msg to screen, prefixing it with '[ie_name]'"""
