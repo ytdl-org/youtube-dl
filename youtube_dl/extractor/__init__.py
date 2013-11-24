@@ -23,7 +23,7 @@ from .cinemassacre import CinemassacreIE
 from .clipfish import ClipfishIE
 from .cnn import CNNIE
 from .collegehumor import CollegeHumorIE
-from .comedycentral import ComedyCentralIE
+from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
 from .condenast import CondeNastIE
 from .criterion import CriterionIE
 from .cspan import CSpanIE

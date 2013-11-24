@@ -2,6 +2,7 @@ import re
 import xml.etree.ElementTree
 
 from .common import InfoExtractor
+from .mtv import MTVIE, _media_xml_tag
 from ..utils import (
     compat_str,
     compat_urllib_parse,
@@ -11,7 +12,37 @@ from ..utils import (
 )
 
 
-class ComedyCentralIE(InfoExtractor):
+class ComedyCentralIE(MTVIE):
+    _VALID_URL = r'http://www.comedycentral.com/(video-clips|episodes|cc-studios)/(?P<title>.*)'
+    _FEED_URL = u'http://comedycentral.com/feeds/mrss/'
+
+    _TEST = {
+        u'url': u'http://www.comedycentral.com/video-clips/kllhuv/stand-up-greg-fitzsimmons--uncensored---too-good-of-a-mother',
+        u'md5': u'4167875aae411f903b751a21f357f1ee',
+        u'info_dict': {
+            u'id': u'cef0cbb3-e776-4bc9-b62e-8016deccb354',
+            u'ext': u'mp4',
+            u'title': u'Uncensored - Greg Fitzsimmons - Too Good of a Mother',
+            u'description': u'After a certain point, breastfeeding becomes c**kblocking.',
+        },
+    }
+    # Overwrite MTVIE properties we don't want
+    _TESTS = []
+
+    def _get_thumbnail_url(self, uri, itemdoc):
+        search_path = '%s/%s' % (_media_xml_tag('group'), _media_xml_tag('thumbnail'))
+        return itemdoc.find(search_path).attrib['url']
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        title = mobj.group('title')
+        webpage = self._download_webpage(url, title)
+        mgid = self._search_regex(r'data-mgid="(?P<mgid>mgid:.*?)"',
+                                  webpage, u'mgid')
+        return self._get_videos_info(mgid)
+
+
+class ComedyCentralShowsIE(InfoExtractor):
     IE_DESC = u'The Daily Show / Colbert Report'
     # urls can be abbreviations like :thedailyshow or :colbert
     # urls for episodes like:
