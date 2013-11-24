@@ -1571,8 +1571,8 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
 
         playlist_title = self._og_search_title(page)
 
-        url_results = [self.url_result(video_id, 'Youtube', video_id=video_id)
-                       for video_id in ids]
+        url_results = [self.url_result(vid_id, 'Youtube', video_id=vid_id)
+                       for vid_id in ids]
         return self.playlist_result(url_results, playlist_id, playlist_title)
 
 
