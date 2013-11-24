@@ -60,7 +60,7 @@ class MixcloudIE(InfoExtractor):
             'title': info['name'],
             'url': final_song_url,
             'ext': 'mp3',
-            'description': info['description'],
+            'description': info.get('description'),
             'thumbnail': info['pictures'].get('extra_large'),
             'uploader': info['user']['name'],
             'uploader_id': info['user']['username'],
