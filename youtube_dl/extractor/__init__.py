@@ -20,6 +20,7 @@ from .c56 import C56IE
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
 from .cinemassacre import CinemassacreIE
+from .clipfish import ClipfishIE
 from .cnn import CNNIE
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE
