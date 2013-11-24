@@ -97,7 +97,7 @@ class YoutubeDL(object):
     playlistend:       Playlist item to end at.
     matchtitle:        Download only matching titles.
     rejecttitle:       Reject downloads for matching titles.
-	logger:            Log messages to a logging.Logger instance.
+    logger:            Log messages to a logging.Logger instance.
     logtostderr:       Log messages to stderr instead of stdout.
     writedescription:  Write the video description to a .description file
     writeinfojson:     Write the video description to a .info.json file
@@ -193,7 +193,7 @@ class YoutubeDL(object):
 
     def to_screen(self, message, skip_eol=False):
         """Print message to stdout if not in quiet mode."""
-        if self.params.get('logger', False):
+        if self.params.get('logger'):
             self.params['logger'].debug(message)
         elif not self.params.get('quiet', False):
             terminator = [u'\n', u''][skip_eol]
@@ -203,7 +203,7 @@ class YoutubeDL(object):
     def to_stderr(self, message):
         """Print message to stderr."""
         assert type(message) == type(u'')
-        if self.params.get('logger', False):
+        if self.params.get('logger'):
             self.params['logger'].error(message)
         else:
             output = message + u'\n'
