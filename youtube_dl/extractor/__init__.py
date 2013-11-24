@@ -98,6 +98,7 @@ from .nba import NBAIE
 from .nbc import NBCNewsIE
 from .newgrounds import NewgroundsIE
 from .nhl import NHLIE, NHLVideocenterIE
+from .niconico import NiconicoIE
 from .nowvideo import NowVideoIE
 from .ooyala import OoyalaIE
 from .orf import ORFIE
