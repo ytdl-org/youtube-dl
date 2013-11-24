@@ -51,7 +51,8 @@ class VikiIE(SubtitlesInfoExtractor):
         age_limit = RATINGS.get(rating_str)
 
         info_url = 'http://www.viki.com/player5_fragment/%s?action=show&controller=videos' % video_id
-        info_webpage = self._download_webpage(info_url, video_id)
+        info_webpage = self._download_webpage(
+            info_url, video_id, note=u'Downloading info page')
         video_url = self._html_search_regex(
             r'<source[^>]+src="([^"]+)"', info_webpage, u'video URL')
 
