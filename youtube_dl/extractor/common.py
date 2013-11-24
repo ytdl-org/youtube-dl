@@ -4,6 +4,7 @@ import re
 import socket
 import sys
 import netrc
+import xml.etree.ElementTree
 
 from ..utils import (
     compat_http_client,
@@ -208,6 +209,11 @@ class InfoExtractor(object):
         """ Returns the data of the page as a string """
         return self._download_webpage_handle(url_or_request, video_id, note, errnote)[0]
 
+    def _download_xml(self, url_or_request, video_id, note=u'Downloading XML', errnote=u'Unable to downloand XML'):
+        """Return the xml as an xml.etree.ElementTree.Element"""
+        xml_string = self._download_webpage(url_or_request, video_id, note, errnote)
+        return xml.etree.ElementTree.fromstring(xml_string.encode('utf-8'))
+
     def to_screen(self, msg):
         """Print msg to screen, prefixing it with '[ie_name]'"""
         self._downloader.to_screen(u'[%s] %s' % (self.IE_NAME, msg))
@@ -229,12 +235,14 @@ class InfoExtractor(object):
         self.to_screen(u'Logging in')
 
     #Methods for following #608
-    def url_result(self, url, ie=None):
+    def url_result(self, url, ie=None, video_id=None):
         """Returns a url that points to a page that should be processed"""
         #TODO: ie should be the class used for getting the info
         video_info = {'_type': 'url',
                       'url': url,
                       'ie_key': ie}
+        if video_id is not None:
+            video_info['id'] = video_id
         return video_info
     def playlist_result(self, entries, playlist_id=None, playlist_title=None):
         """Returns a playlist"""

@@ -35,6 +35,7 @@ __authors__  = (
     'Jelle van der Waa',
     'Marcin Cieślak',
     'Anton Larionov',
+    'Takuya Tsuchida',
 )
 
 __license__ = 'Public Domain'

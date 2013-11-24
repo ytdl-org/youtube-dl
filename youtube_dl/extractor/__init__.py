@@ -20,6 +20,7 @@ from .c56 import C56IE
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
 from .cinemassacre import CinemassacreIE
+from .clipfish import ClipfishIE
 from .cnn import CNNIE
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE
@@ -98,6 +99,7 @@ from .nba import NBAIE
 from .nbc import NBCNewsIE
 from .newgrounds import NewgroundsIE
 from .nhl import NHLIE, NHLVideocenterIE
+from .niconico import NiconicoIE
 from .nowvideo import NowVideoIE
 from .ooyala import OoyalaIE
 from .orf import ORFIE
@@ -156,6 +158,7 @@ from .videofyme import VideofyMeIE
 from .videopremium import VideoPremiumIE
 from .vimeo import VimeoIE, VimeoChannelIE
 from .vine import VineIE
+from .viki import VikiIE
 from .vk import VKIE
 from .wat import WatIE
 from .websurg import WeBSurgIE
@@ -183,6 +186,7 @@ from .youtube import (
     YoutubeTruncatedURLIE,
     YoutubeWatchLaterIE,
     YoutubeFavouritesIE,
+    YoutubeHistoryIE,
 )
 from .zdf import ZDFIE
 

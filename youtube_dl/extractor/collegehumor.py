@@ -1,5 +1,4 @@
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -46,11 +45,10 @@ class CollegeHumorIE(InfoExtractor):
 
         self.report_extraction(video_id)
         xmlUrl = 'http://www.collegehumor.com/moogaloop/video/' + video_id
-        metaXml = self._download_webpage(xmlUrl, video_id,
+        mdoc = self._download_xml(xmlUrl, video_id,
                                          u'Downloading info XML',
                                          u'Unable to download video info XML')
 
-        mdoc = xml.etree.ElementTree.fromstring(metaXml)
         try:
             videoNode = mdoc.findall('./video')[0]
             youtubeIdNode = videoNode.find('./youtubeID')
@@ -65,11 +63,10 @@ class CollegeHumorIE(InfoExtractor):
 
         if next_url.endswith(u'manifest.f4m'):
             manifest_url = next_url + '?hdcore=2.10.3'
-            manifestXml = self._download_webpage(manifest_url, video_id,
+            adoc = self._download_xml(manifest_url, video_id,
                                          u'Downloading XML manifest',
                                          u'Unable to download video info XML')
 
-            adoc = xml.etree.ElementTree.fromstring(manifestXml)
             try:
                 video_id = adoc.findall('./{http://ns.adobe.com/f4m/1.0}id')[0].text
             except IndexError:
