@@ -128,7 +128,8 @@ class YoutubeDL(object):
                        Videos already present in the file are not downloaded
                        again.
     cookiefile:        File name where cookies should be read from and dumped to.
-    nocheckcertificate Do not verify SSL certificates
+    nocheckcertificate:Do not verify SSL certificates
+    proxy:             URL of the proxy server to use
 
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:
