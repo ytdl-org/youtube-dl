@@ -157,6 +157,7 @@ from .videofyme import VideofyMeIE
 from .videopremium import VideoPremiumIE
 from .vimeo import VimeoIE, VimeoChannelIE
 from .vine import VineIE
+from .viki import VikiIE
 from .vk import VKIE
 from .wat import WatIE
 from .websurg import WeBSurgIE
