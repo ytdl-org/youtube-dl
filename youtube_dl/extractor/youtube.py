@@ -1510,7 +1510,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             })
         return results
 
-class YoutubePlaylistIE(InfoExtractor):
+class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
     IE_DESC = u'YouTube.com playlists'
     _VALID_URL = r"""(?:
                         (?:https?://)?
@@ -1526,14 +1526,18 @@ class YoutubePlaylistIE(InfoExtractor):
                      |
                         ((?:PL|EC|UU|FL)[0-9A-Za-z-_]{10,})
                      )"""
-    _TEMPLATE_URL = 'https://gdata.youtube.com/feeds/api/playlists/%s?max-results=%i&start-index=%i&v=2&alt=json&safeSearch=none'
-    _MAX_RESULTS = 50
+    _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s&page=%s'
+    _MORE_PAGES_INDICATOR = r'data-link-type="next"'
+    _VIDEO_RE = r'href="/watch\?v=([0-9A-Za-z_-]{11})&amp;'
     IE_NAME = u'youtube:playlist'
 
     @classmethod
     def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
         return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
+
+    def _real_initialize(self):
+        self._login()
 
     def _real_extract(self, url):
         # Extract playlist id
@@ -1548,45 +1552,28 @@ class YoutubePlaylistIE(InfoExtractor):
             video_id = query_dict['v'][0]
             if self._downloader.params.get('noplaylist'):
                 self.to_screen(u'Downloading just video %s because of --no-playlist' % video_id)
-                return self.url_result('https://www.youtube.com/watch?v=' + video_id, 'Youtube')
+                return self.url_result(video_id, 'Youtube', video_id=video_id)
             else:
                 self.to_screen(u'Downloading playlist PL%s - add --no-playlist to just download video %s' % (playlist_id, video_id))
 
-        # Download playlist videos from API
-        videos = []
+        # Extract the video ids from the playlist pages
+        ids = []
 
         for page_num in itertools.count(1):
-            start_index = self._MAX_RESULTS * (page_num - 1) + 1
-            if start_index >= 1000:
-                self._downloader.report_warning(u'Max number of results reached')
-                break
-            url = self._TEMPLATE_URL % (playlist_id, self._MAX_RESULTS, start_index)
+            url = self._TEMPLATE_URL % (playlist_id, page_num)
             page = self._download_webpage(url, playlist_id, u'Downloading page #%s' % page_num)
+            # The ids are duplicated
+            new_ids = orderedSet(re.findall(self._VIDEO_RE, page))
+            ids.extend(new_ids)
 
-            try:
-                response = json.loads(page)
-            except ValueError as err:
-                raise ExtractorError(u'Invalid JSON in API response: ' + compat_str(err))
-
-            if 'feed' not in response:
-                raise ExtractorError(u'Got a malformed response from YouTube API')
-            playlist_title = response['feed']['title']['$t']
-            if 'entry' not in response['feed']:
-                # Number of videos is a multiple of self._MAX_RESULTS
+            if re.search(self._MORE_PAGES_INDICATOR, page) is None:
                 break
 
-            for entry in response['feed']['entry']:
-                index = entry['yt$position']['$t']
-                if 'media$group' in entry and 'yt$videoid' in entry['media$group']:
-                    videos.append((
-                        index,
-                        'https://www.youtube.com/watch?v=' + entry['media$group']['yt$videoid']['$t']
-                    ))
+        playlist_title = self._og_search_title(page)
 
-        videos = [v[1] for v in sorted(videos)]
-
-        url_results = [self.url_result(vurl, 'Youtube') for vurl in videos]
-        return [self.playlist_result(url_results, playlist_id, playlist_title)]
+        url_results = [self.url_result(video_id, 'Youtube', video_id=video_id)
+                       for video_id in ids]
+        return self.playlist_result(url_results, playlist_id, playlist_title)
 
 
 class YoutubeChannelIE(InfoExtractor):
@@ -1640,9 +1627,9 @@ class YoutubeChannelIE(InfoExtractor):
 
         self._downloader.to_screen(u'[youtube] Channel %s: Found %i videos' % (channel_id, len(video_ids)))
 
-        urls = ['http://www.youtube.com/watch?v=%s' % id for id in video_ids]
-        url_entries = [self.url_result(eurl, 'Youtube') for eurl in urls]
-        return [self.playlist_result(url_entries, channel_id)]
+        url_entries = [self.url_result(video_id, 'Youtube', video_id=video_id)
+                       for video_id in video_ids]
+        return self.playlist_result(url_entries, channel_id)
 
 
 class YoutubeUserIE(InfoExtractor):
@@ -1706,9 +1693,11 @@ class YoutubeUserIE(InfoExtractor):
             if len(ids_in_page) < self._GDATA_PAGE_SIZE:
                 break
 
-        urls = ['http://www.youtube.com/watch?v=%s' % video_id for video_id in video_ids]
-        url_results = [self.url_result(rurl, 'Youtube') for rurl in urls]
-        return [self.playlist_result(url_results, playlist_title = username)]
+        url_results = [
+            self.url_result(video_id, 'Youtube', video_id=video_id)
+            for video_id in video_ids]
+        return self.playlist_result(url_results, playlist_title=username)
+
 
 class YoutubeSearchIE(SearchInfoExtractor):
     IE_DESC = u'YouTube.com searches'
@@ -1749,7 +1738,8 @@ class YoutubeSearchIE(SearchInfoExtractor):
 
         if len(video_ids) > n:
             video_ids = video_ids[:n]
-        videos = [self.url_result('http://www.youtube.com/watch?v=%s' % id, 'Youtube') for id in video_ids]
+        videos = [self.url_result(video_id, 'Youtube', video_id=video_id)
+                  for video_id in video_ids]
         return self.playlist_result(videos, query)
 
 class YoutubeSearchDateIE(YoutubeSearchIE):
@@ -1809,7 +1799,9 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
             feed_html = info['feed_html']
             m_ids = re.finditer(r'"/watch\?v=(.*?)["&]', feed_html)
             ids = orderedSet(m.group(1) for m in m_ids)
-            feed_entries.extend(self.url_result(id, 'Youtube') for id in ids)
+            feed_entries.extend(
+                self.url_result(video_id, 'Youtube', video_id=video_id)
+                for video_id in ids)
             if info['paging'] is None:
                 break
         return self.playlist_result(feed_entries, playlist_title=self._PLAYLIST_TITLE)

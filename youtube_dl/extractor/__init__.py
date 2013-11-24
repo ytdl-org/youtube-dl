@@ -11,7 +11,7 @@ from .arte import (
 )
 from .auengine import AUEngineIE
 from .bambuser import BambuserIE, BambuserChannelIE
-from .bandcamp import BandcampIE
+from .bandcamp import BandcampIE, BandcampAlbumIE
 from .bliptv import BlipTVIE, BlipTVUserIE
 from .bloomberg import BloombergIE
 from .breakcom import BreakIE
@@ -98,6 +98,7 @@ from .nba import NBAIE
 from .nbc import NBCNewsIE
 from .newgrounds import NewgroundsIE
 from .nhl import NHLIE, NHLVideocenterIE
+from .niconico import NiconicoIE
 from .nowvideo import NowVideoIE
 from .ooyala import OoyalaIE
 from .orf import ORFIE
@@ -128,6 +129,7 @@ from .spiegel import SpiegelIE
 from .stanfordoc import StanfordOpenClassroomIE
 from .statigram import StatigramIE
 from .steam import SteamIE
+from .streamcloud import StreamcloudIE
 from .sztvhu import SztvHuIE
 from .teamcoco import TeamcocoIE
 from .techtalks import TechTalksIE
