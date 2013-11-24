@@ -203,13 +203,13 @@ class GenericIE(InfoExtractor):
             return self.url_result(burl)
 
         # Start with something easy: JW Player in SWFObject
-        mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
+        mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"]*)', webpage)
         if mobj is None:
             # Broaden the search a little bit
-            mobj = re.search(r'[^A-Za-z0-9]?(?:file|source)=(http[^\'"&]*)', webpage)
+            mobj = re.search(r'[^A-Za-z0-9]?(?:file|source)=(http[^\'"]*)', webpage)
         if mobj is None:
             # Broaden the search a little bit: JWPlayer JS loader
-            mobj = re.search(r'[^A-Za-z0-9]?file["\']?:\s*["\'](http[^\'"&]*)', webpage)
+            mobj = re.search(r'[^A-Za-z0-9]?file["\']?:\s*["\'](http[^\'"]*)', webpage)
         if mobj is None:
             # Try to find twitter cards info
             mobj = re.search(r'<meta (?:property|name)="twitter:player:stream" (?:content|value)="(.+?)"', webpage)
