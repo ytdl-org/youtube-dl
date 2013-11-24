@@ -77,9 +77,9 @@ class NiconicoIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group(1)
 
-        # Get video webpage
-        video_webpage = self._download_webpage(
-            'http://www.nicovideo.jp/watch/' + video_id, video_id)
+        # Get video webpage. We are not actually interested in it, but need
+        # the cookies in order to be able to download the info webpage
+        self._download_webpage('http://www.nicovideo.jp/watch/' + video_id, video_id)
 
         video_info_webpage = self._download_webpage(
             'http://ext.nicovideo.jp/api/getthumbinfo/' + video_id, video_id,
