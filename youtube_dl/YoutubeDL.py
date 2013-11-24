@@ -797,7 +797,7 @@ class YoutubeDL(object):
         #  * figure out which xattrs can be used for 'duration', 'thumbnail', 'resolution'
         #
         try:
-            write_xattr
+            from .utils import write_xattr, hyphenate_date
         except NameError: # This box can't set xattrs
             return False
 
