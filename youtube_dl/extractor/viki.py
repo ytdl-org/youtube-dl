@@ -1,6 +1,7 @@
 import re
 
 from ..utils import (
+    ExtractorError,
     unified_strdate,
 )
 from .subtitles import SubtitlesInfoExtractor
@@ -20,7 +21,8 @@ class VikiIE(SubtitlesInfoExtractor):
             u'description': u'md5:c4b17b9626dd4b143dcc4d855ba3474e',
             u'upload_date': u'20131121',
             u'age_limit': 13,
-        }
+        },
+        u'skip': u'Blocked in the US',
     }
 
     def _real_extract(self, url):
@@ -53,6 +55,10 @@ class VikiIE(SubtitlesInfoExtractor):
         info_url = 'http://www.viki.com/player5_fragment/%s?action=show&controller=videos' % video_id
         info_webpage = self._download_webpage(
             info_url, video_id, note=u'Downloading info page')
+        if re.match(r'\s*<div\s+class="video-error', info_webpage):
+            raise ExtractorError(
+                u'Video %s is blocked from your location.' % video_id,
+                expected=True)
         video_url = self._html_search_regex(
             r'<source[^>]+src="([^"]+)"', info_webpage, u'video URL')
 
