@@ -17,6 +17,7 @@ from ..utils import (
     unified_strdate,
 )
 
+
 class NiconicoIE(InfoExtractor):
     IE_NAME = u'niconico'
     IE_DESC = u'ニコニコ動画'
@@ -38,8 +39,7 @@ class NiconicoIE(InfoExtractor):
         },
     }
 
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?nicovideo\.jp/watch/([a-z][a-z][0-9]+)(?:.*)$'
-    _LOGIN_URL = 'https://secure.nicovideo.jp/secure/login'
+    _VALID_URL = r'^https?://(?:www\.|secure\.)?nicovideo\.jp/watch/([a-z][a-z][0-9]+)(?:.*)$'
     _NETRC_MACHINE = 'niconico'
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = True
@@ -57,99 +57,63 @@ class NiconicoIE(InfoExtractor):
 
         # Log in
         login_form_strs = {
-                u'mail': username,
-                u'password': password,
+            u'mail': username,
+            u'password': password,
         }
         # Convert to UTF-8 *before* urlencode because Python 2.x's urlencode
         # chokes on unicode
         login_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k,v in login_form_strs.items())
-        login_data = compat_urllib_parse.urlencode(login_form).encode('ascii')
-        request = compat_urllib_request.Request(self._LOGIN_URL, login_data)
-        try:
-            self.report_login()
-            login_results = compat_urllib_request.urlopen(request).read().decode('utf-8')
-            if re.search(r'(?i)<h1 class="mb8p4">Log in error</h1>', login_results) is not None:
-                self._downloader.report_warning(u'unable to log in: bad username or password')
-                return False
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_warning(u'unable to log in: %s' % compat_str(err))
+        login_data = compat_urllib_parse.urlencode(login_form).encode('utf-8')
+        request = compat_urllib_request.Request(
+            u'https://secure.nicovideo.jp/secure/login', login_data)
+        login_results = self._download_webpage(
+            request, u'', note=u'Logging in', errnote=u'Unable to log in')
+        if re.search(r'(?i)<h1 class="mb8p4">Log in error</h1>', login_results) is not None:
+            self._downloader.report_warning(u'unable to log in: bad username or password')
             return False
         return True
 
     def _real_extract(self, url):
-        video_id = self._extract_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group(1)
 
         # Get video webpage
-        self.report_video_webpage_download(video_id)
-        url = 'http://www.nicovideo.jp/watch/' + video_id
-        request = compat_urllib_request.Request(url)
-        try:
-            video_webpage = compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'Unable to download video webpage: %s' % compat_str(err))
+        video_webpage = self._download_webpage(
+            'http://www.nicovideo.jp/watch/' + video_id, video_id)
 
-        # Get video info
-        self.report_video_info_webpage_download(video_id)
-        url = 'http://ext.nicovideo.jp/api/getthumbinfo/' + video_id
-        request = compat_urllib_request.Request(url)
-        try:
-            video_info_webpage = compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'Unable to download video info webpage: %s' % compat_str(err))
+        video_info_webpage = self._download_webpage(
+            'http://ext.nicovideo.jp/api/getthumbinfo/' + video_id, video_id,
+            note=u'Downloading video info page')
 
         # Get flv info
-        self.report_flv_info_webpage_download(video_id)
-        url = 'http://flapi.nicovideo.jp/api/getflv?v=' + video_id
-        request = compat_urllib_request.Request(url)
-        try:
-            flv_info_webpage = compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'Unable to download flv info webpage: %s' % compat_str(err))
+        flv_info_webpage = self._download_webpage(
+            u'http://flapi.nicovideo.jp/api/getflv?v=' + video_id,
+            video_id, u'Downloading flv info')
+        video_real_url = compat_urlparse.parse_qs(flv_info_webpage)['url'][0]
 
         # Start extracting information
-        self.report_information_extraction(video_id)
         video_info = xml.etree.ElementTree.fromstring(video_info_webpage)
-
-        # url
-        video_real_url = compat_urlparse.parse_qs(flv_info_webpage.decode('utf-8'))['url'][0]
-
-        # title
         video_title = video_info.find('.//title').text
-
-        # ext
         video_extension = video_info.find('.//movie_type').text
-
-        # format
         video_format = video_extension.upper()
-
-        # thumbnail
         video_thumbnail = video_info.find('.//thumbnail_url').text
-
-        # description
         video_description = video_info.find('.//description').text
-
-        # uploader_id
         video_uploader_id = video_info.find('.//user_id').text
+        video_upload_date = unified_strdate(video_info.find('.//first_retrieve').text.split('+')[0])
+        video_view_count = video_info.find('.//view_counter').text
+        video_webpage_url = video_info.find('.//watch_url').text
 
         # uploader
+        video_uploader = video_uploader_id
         url = 'http://seiga.nicovideo.jp/api/user/info?id=' + video_uploader_id
-        request = compat_urllib_request.Request(url)
         try:
-            user_info_webpage = compat_urllib_request.urlopen(request).read()
+            user_info_webpage = self._download_webpage(
+                url, video_id, note=u'Downloading user information')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             self._downloader.report_warning(u'Unable to download user info webpage: %s' % compat_str(err))
-
-        user_info = xml.etree.ElementTree.fromstring(user_info_webpage)
-        video_uploader = user_info.find('.//nickname').text
-
-        # uploder_date
-        video_upload_date = unified_strdate(video_info.find('.//first_retrieve').text.split('+')[0])
-
-        # view_count
-        video_view_count = video_info.find('.//view_counter').text
-
-        # webpage_url
-        video_webpage_url = video_info.find('.//watch_url').text
+        else:
+            user_info = xml.etree.ElementTree.fromstring(user_info_webpage)
+            video_uploader = user_info.find('.//nickname').text
 
         return {
             'id':          video_id,
@@ -165,26 +129,3 @@ class NiconicoIE(InfoExtractor):
             'view_count':  video_view_count,
             'webpage_url': video_webpage_url,
         }
-
-    def _extract_id(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
-        video_id = mobj.group(1)
-        return video_id
-
-    def report_video_webpage_download(self, video_id):
-        """Report attempt to download video webpage."""
-        self.to_screen(u'%s: Downloading video webpage' % video_id)
-
-    def report_video_info_webpage_download(self, video_id):
-        """Report attempt to download video info webpage."""
-        self.to_screen(u'%s: Downloading video info webpage' % video_id)
-
-    def report_flv_info_webpage_download(self, video_id):
-        """Report attempt to download flv info webpage."""
-        self.to_screen(u'%s: Downloading flv info webpage' % video_id)
-
-    def report_information_extraction(self, video_id):
-        """Report attempt to extract video information."""
-        self.to_screen(u'%s: Extracting video information' % video_id)

@@ -12,6 +12,7 @@ import os
 import pipes
 import platform
 import re
+import ssl
 import socket
 import sys
 import traceback
@@ -535,13 +536,31 @@ def formatSeconds(secs):
     else:
         return '%d' % secs
 
+
 def make_HTTPS_handler(opts):
-    if sys.version_info < (3,2):
-        # Python's 2.x handler is very simplistic
-        return compat_urllib_request.HTTPSHandler()
+    if sys.version_info < (3, 2):
+        import httplib
+
+        class HTTPSConnectionV3(httplib.HTTPSConnection):
+            def __init__(self, *args, **kwargs):
+                httplib.HTTPSConnection.__init__(self, *args, **kwargs)
+
+            def connect(self):
+                sock = socket.create_connection((self.host, self.port), self.timeout)
+                if self._tunnel_host:
+                    self.sock = sock
+                    self._tunnel()
+                try:
+                    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv3)
+                except ssl.SSLError as e:
+                    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv23)
+
+        class HTTPSHandlerV3(compat_urllib_request.HTTPSHandler):
+            def https_open(self, req):
+                return self.do_open(HTTPSConnectionV3, req)
+        return HTTPSHandlerV3()
     else:
-        import ssl
-        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        context = ssl.SSLContext(ssl.PROTOCOL_SSLv3)
         context.set_default_verify_paths()
         
         context.verify_mode = (ssl.CERT_NONE
