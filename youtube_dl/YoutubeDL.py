@@ -875,6 +875,8 @@ class YoutubeDL(object):
 
     @staticmethod
     def format_resolution(format, default='unknown'):
+        if format.get('vcodec') == 'none':
+            return 'audio only'
         if format.get('_resolution') is not None:
             return format['_resolution']
         if format.get('height') is not None:
@@ -891,7 +893,8 @@ class YoutubeDL(object):
             res = u''
             if fdict.get('format_note') is not None:
                 res += fdict['format_note'] + u' '
-            if fdict.get('vcodec') is not None:
+            if (fdict.get('vcodec') is not None and
+                    fdict.get('vcodec') != 'none'):
                 res += u'%-5s' % fdict['vcodec']
             elif fdict.get('vbr') is not None:
                 res += u'video'

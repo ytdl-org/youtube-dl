@@ -100,6 +100,7 @@ class SoundcloudIE(InfoExtractor):
                 'format_id': 'download',
                 'ext': ext,
                 'url': format_url,
+                'vcodec': 'none',
             }]
         else:
             # We have to retrieve the url
@@ -115,6 +116,7 @@ class SoundcloudIE(InfoExtractor):
                         'format_id': key,
                         'ext': ext,
                         'url': stream_url,
+                        'vcodec': 'none',
                     })
                 elif key.startswith(u'rtmp'):
                     # The url doesn't have an rtmp app, we have to extract the playpath
@@ -124,6 +126,7 @@ class SoundcloudIE(InfoExtractor):
                         'url': url,
                         'play_path': 'mp3:' + path,
                         'ext': ext,
+                        'vcodec': 'none',
                     })
 
             if not formats:
@@ -133,6 +136,7 @@ class SoundcloudIE(InfoExtractor):
                     'format_id': u'fallback',
                     'url': info['stream_url'] + '?client_id=' + self._CLIENT_ID,
                     'ext': ext,
+                    'vcodec': 'none',
                 })
 
             def format_pref(f):
