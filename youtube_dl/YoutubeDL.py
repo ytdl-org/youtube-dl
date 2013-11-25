@@ -126,7 +126,7 @@ class YoutubeDL(object):
     noplaylist:        Download single video instead of a playlist if in doubt.
     age_limit:         An integer representing the user's age in years.
                        Unsuitable videos for the given age are skipped.
-    downloadarchive:   File name of a file where all downloads are recorded.
+    download_archive:   File name of a file where all downloads are recorded.
                        Videos already present in the file are not downloaded
                        again.
     cookiefile:        File name where cookies should be read from and dumped to.
