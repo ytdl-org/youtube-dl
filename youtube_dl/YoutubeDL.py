@@ -146,7 +146,7 @@ class YoutubeDL(object):
     _num_downloads = None
     _screen_file = None
 
-    def __init__(self, params):
+    def __init__(self, params={}):
         """Create a FileDownloader object with the given options."""
         self._ies = []
         self._ies_instances = {}
@@ -169,7 +169,7 @@ class YoutubeDL(object):
         self.params = params
         self.fd = FileDownloader(self, self.params)
 
-        if '%(stitle)s' in self.params['outtmpl']:
+        if '%(stitle)s' in self.params.get('outtmpl', ''):
             self.report_warning(u'%(stitle)s is deprecated. Use the %(title)s and the --restrict-filenames flag(which also secures %(uploader)s et al) instead.')
 
         self._setup_opener()
