@@ -12,10 +12,6 @@ from youtube_dl import YoutubeDL
 from youtube_dl.utils import preferredencoding
 
 
-def global_setup():
-    youtube_dl._setup_opener(timeout=10)
-
-
 def get_params(override=None):
     PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                    "parameters.json")
