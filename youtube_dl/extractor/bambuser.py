@@ -25,6 +25,11 @@ class BambuserIE(InfoExtractor):
             u'uploader': u'pixelversity',
             u'uploader_id': u'344706',
         },
+        u'params': {
+            # It doesn't respect the 'Range' header, it would download the whole video
+            # caused the travis builds to fail: https://travis-ci.org/rg3/youtube-dl/jobs/14493845#L59
+            u'skip_download': True,
+        },
     }
 
     def _real_extract(self, url):
