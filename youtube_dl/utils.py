@@ -8,6 +8,7 @@ import gzip
 import io
 import json
 import locale
+import math
 import os
 import pipes
 import platform
@@ -16,6 +17,7 @@ import ssl
 import socket
 import sys
 import traceback
+import xml.etree.ElementTree
 import zlib
 
 try:
@@ -1006,3 +1008,22 @@ def unsmuggle_url(smug_url):
     jsond = compat_parse_qs(sdata)[u'__youtubedl_smuggle'][0]
     data = json.loads(jsond)
     return url, data
+
+
+def parse_xml_doc(s):
+    assert isinstance(s, type(u''))
+    return xml.etree.ElementTree.fromstring(s.encode('utf-8'))
+
+
+def format_bytes(bytes):
+    if bytes is None:
+        return u'N/A'
+    if type(bytes) is str:
+        bytes = float(bytes)
+    if bytes == 0.0:
+        exponent = 0
+    else:
+        exponent = int(math.log(bytes, 1024.0))
+    suffix = [u'B', u'KiB', u'MiB', u'GiB', u'TiB', u'PiB', u'EiB', u'ZiB', u'YiB'][exponent]
+    converted = float(bytes) / float(1024 ** exponent)
+    return u'%.2f%s' % (converted, suffix)

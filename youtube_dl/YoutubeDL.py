@@ -30,6 +30,7 @@ from .utils import (
     DownloadError,
     encodeFilename,
     ExtractorError,
+    format_bytes,
     locked_file,
     MaxDownloadsReached,
     PostProcessingError,
@@ -867,9 +868,11 @@ class YoutubeDL(object):
 
     def list_formats(self, info_dict):
         def format_note(fdict):
-            if fdict.get('format_note') is not None:
-                return fdict['format_note']
             res = u''
+            if fdict.get('format_note') is not None:
+                res += fdict['format_note'] + u' '
+            if fdict.get('quality_name') is not None:
+                res += u'%s ' % fdict['quality_name']
             if fdict.get('vcodec') is not None:
                 res += u'%-5s' % fdict['vcodec']
             elif fdict.get('vbr') is not None:
@@ -886,25 +889,30 @@ class YoutubeDL(object):
                 res += 'audio'
             if fdict.get('abr') is not None:
                 res += u'@%3dk' % fdict['abr']
+            if fdict.get('filesize') is not None:
+                if res:
+                    res += u', '
+                res += format_bytes(fdict['filesize'])
             return res
 
-        def line(format):
-            return (u'%-20s%-10s%-12s%s' % (
+        def line(format, idlen=20):
+            return ((u'%-' + compat_str(idlen + 1) + u's%-10s%-12s%s') % (
                 format['format_id'],
                 format['ext'],
                 self.format_resolution(format),
                 format_note(format),
-                )
-            )
+            ))
 
         formats = info_dict.get('formats', [info_dict])
-        formats_s = list(map(line, formats))
+        idlen = max(len(u'format code'),
+                    max(len(f['format_id']) for f in formats))
+        formats_s = [line(f, idlen) for f in formats]
         if len(formats) > 1:
             formats_s[0] += (' ' if format_note(formats[0]) else '') + '(worst)'
             formats_s[-1] += (' ' if format_note(formats[-1]) else '') + '(best)'
 
         header_line = line({
             'format_id': u'format code', 'ext': u'extension',
-            '_resolution': u'resolution', 'format_note': u'note'})
+            '_resolution': u'resolution', 'format_note': u'note'}, idlen=idlen)
         self.to_screen(u'[info] Available formats for %s:\n%s\n%s' %
                        (info_dict['id'], header_line, u"\n".join(formats_s)))

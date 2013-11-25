@@ -76,6 +76,8 @@ class InfoExtractor(object):
                     * acodec    Name of the audio codec in use
                     * vbr       Average video bitrate in KBit/s
                     * vcodec    Name of the video codec in use
+                    * quality_name Human-readable name of the video quality.
+                    * filesize  The number of bytes, if known in advance
     webpage_url:    The url to the video webpage, if given to youtube-dl it
                     should allow to get the same result again. (It will be set
                     by YoutubeDL if it's missing)

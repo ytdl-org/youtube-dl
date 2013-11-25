@@ -1,4 +1,3 @@
-import math
 import os
 import re
 import subprocess
@@ -11,6 +10,7 @@ from .utils import (
     ContentTooShortError,
     determine_ext,
     encodeFilename,
+    format_bytes,
     sanitize_open,
     timeconvert,
 )
@@ -52,20 +52,6 @@ class FileDownloader(object):
         self.ydl = ydl
         self._progress_hooks = []
         self.params = params
-
-    @staticmethod
-    def format_bytes(bytes):
-        if bytes is None:
-            return 'N/A'
-        if type(bytes) is str:
-            bytes = float(bytes)
-        if bytes == 0.0:
-            exponent = 0
-        else:
-            exponent = int(math.log(bytes, 1024.0))
-        suffix = ['B','KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB'][exponent]
-        converted = float(bytes) / float(1024 ** exponent)
-        return '%.2f%s' % (converted, suffix)
 
     @staticmethod
     def format_seconds(seconds):
@@ -117,7 +103,7 @@ class FileDownloader(object):
     def format_speed(speed):
         if speed is None:
             return '%10s' % '---b/s'
-        return '%10s' % ('%s/s' % FileDownloader.format_bytes(speed))
+        return '%10s' % ('%s/s' % format_bytes(speed))
 
     @staticmethod
     def best_block_size(elapsed_time, bytes):
@@ -525,7 +511,7 @@ class FileDownloader(object):
                 self.to_screen(u'\r[download] File is larger than max-filesize (%s bytes > %s bytes). Aborting.' % (data_len, max_data_len))
                 return False
 
-        data_len_str = self.format_bytes(data_len)
+        data_len_str = format_bytes(data_len)
         byte_counter = 0 + resume_len
         block_size = self.params.get('buffersize', 1024)
         start = time.time()
