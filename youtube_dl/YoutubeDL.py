@@ -836,20 +836,26 @@ class YoutubeDL(object):
             except (IOError, OSError):
                 self.report_warning(u'Unable to remove downloaded video file')
 
-    def in_download_archive(self, info_dict):
-        fn = self.params.get('download_archive')
-        if fn is None:
-            return False
-        extractor = info_dict.get('extractor_id')
+    def _make_archive_id(self, info_dict):
+        # Future-proof against any change in case
+        # and backwards compatibility with prior versions
+        extractor = info_dict.get('extractor')
         if extractor is None:
             if 'id' in info_dict:
                 extractor = info_dict.get('ie_key')  # key in a playlist
         if extractor is None:
+            return None  # Incomplete video information
+        return extractor.lower() + u' ' + info_dict['id']
+
+    def in_download_archive(self, info_dict):
+        fn = self.params.get('download_archive')
+        if fn is None:
+            return False
+
+        vid_id = self._make_archive_id(info_dict)
+        if vid_id is None:
             return False  # Incomplete video information
-        # Future-proof against any change in case
-        # and backwards compatibility with prior versions
-        extractor = extractor.lower()
-        vid_id = extractor + u' ' + info_dict['id']
+
         try:
             with locked_file(fn, 'r', encoding='utf-8') as archive_file:
                 for line in archive_file:
@@ -864,7 +870,8 @@ class YoutubeDL(object):
         fn = self.params.get('download_archive')
         if fn is None:
             return
-        vid_id = info_dict['extractor'] + u' ' + info_dict['id']
+        vid_id = self._make_archive_id(info_dict)
+        assert vid_id
         with locked_file(fn, 'a', encoding='utf-8') as archive_file:
             archive_file.write(vid_id + u'\n')
 
