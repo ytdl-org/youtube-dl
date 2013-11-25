@@ -91,7 +91,7 @@ class VikiIE(SubtitlesInfoExtractor):
 
     def _get_available_subtitles(self, video_id, info_webpage):
         res = {}
-        for sturl in re.findall(r'<track src="([^"]+)"/>'):
+        for sturl in re.findall(r'<track src="([^"]+)"/>', info_webpage):
             m = re.search(r'/(?P<lang>[a-z]+)\.vtt', sturl)
             if not m:
                 continue
