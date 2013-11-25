@@ -41,45 +41,35 @@ __authors__  = (
 __license__ = 'Public Domain'
 
 import codecs
-import collections
 import getpass
 import optparse
 import os
 import random
 import re
 import shlex
-import socket
 import subprocess
 import sys
-import traceback
-import platform
 
 
 from .utils import (
-    compat_cookiejar,
     compat_print,
-    compat_str,
-    compat_urllib_request,
     DateRange,
     decodeOption,
     determine_ext,
     DownloadError,
     get_cachedir,
-    make_HTTPS_handler,
     MaxDownloadsReached,
-    platform_name,
     preferredencoding,
     SameFileError,
     std_headers,
     write_string,
-    YoutubeDLHandler,
 )
 from .update import update_self
-from .version import __version__
 from .FileDownloader import (
     FileDownloader,
 )
 from .extractor import gen_extractors
+from .version import __version__
 from .YoutubeDL import YoutubeDL
 from .PostProcessor import (
     FFmpegMetadataPP,
@@ -452,19 +442,6 @@ def _real_main(argv=None):
 
     parser, opts, args = parseOpts(argv)
 
-    # Open appropriate CookieJar
-    if opts.cookiefile is None:
-        jar = compat_cookiejar.CookieJar()
-    else:
-        try:
-            jar = compat_cookiejar.MozillaCookieJar(opts.cookiefile)
-            if os.access(opts.cookiefile, os.R_OK):
-                jar.load()
-        except (IOError, OSError) as err:
-            if opts.verbose:
-                traceback.print_exc()
-            write_string(u'ERROR: unable to open cookie file\n')
-            sys.exit(101)
     # Set user agent
     if opts.user_agent is not None:
         std_headers['User-Agent'] = opts.user_agent
@@ -495,8 +472,6 @@ def _real_main(argv=None):
             sys.exit(u'ERROR: batch file could not be read')
     all_urls = batchurls + args
     all_urls = [url.strip() for url in all_urls]
-
-    opener = _setup_opener(jar=jar, opts=opts)
 
     extractors = gen_extractors()
 
@@ -552,7 +527,7 @@ def _real_main(argv=None):
     if opts.retries is not None:
         try:
             opts.retries = int(opts.retries)
-        except (TypeError, ValueError) as err:
+        except (TypeError, ValueError):
             parser.error(u'invalid retry count specified')
     if opts.buffersize is not None:
         numeric_buffersize = FileDownloader.parse_bytes(opts.buffersize)
@@ -563,13 +538,13 @@ def _real_main(argv=None):
         opts.playliststart = int(opts.playliststart)
         if opts.playliststart <= 0:
             raise ValueError(u'Playlist start must be positive')
-    except (TypeError, ValueError) as err:
+    except (TypeError, ValueError):
         parser.error(u'invalid playlist start number specified')
     try:
         opts.playlistend = int(opts.playlistend)
         if opts.playlistend != -1 and (opts.playlistend <= 0 or opts.playlistend < opts.playliststart):
             raise ValueError(u'Playlist end must be greater than playlist start')
-    except (TypeError, ValueError) as err:
+    except (TypeError, ValueError):
         parser.error(u'invalid playlist end number specified')
     if opts.extractaudio:
         if opts.audioformat not in ['best', 'aac', 'mp3', 'm4a', 'opus', 'vorbis', 'wav']:
@@ -672,34 +647,12 @@ def _real_main(argv=None):
         'youtube_print_sig_code': opts.youtube_print_sig_code,
         'age_limit': opts.age_limit,
         'download_archive': opts.download_archive,
+        'cookiefile': opts.cookiefile,
+        'nocheckcertificate': opts.no_check_certificate,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
-        if opts.verbose:
-            write_string(u'[debug] youtube-dl version ' + __version__ + u'\n')
-            try:
-                sp = subprocess.Popen(
-                    ['git', 'rev-parse', '--short', 'HEAD'],
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                    cwd=os.path.dirname(os.path.abspath(__file__)))
-                out, err = sp.communicate()
-                out = out.decode().strip()
-                if re.match('[0-9a-f]+', out):
-                    write_string(u'[debug] Git HEAD: ' + out + u'\n')
-            except:
-                try:
-                    sys.exc_clear()
-                except:
-                    pass
-            write_string(u'[debug] Python version %s - %s' %
-                         (platform.python_version(), platform_name()) + u'\n')
-
-            proxy_map = {}
-            for handler in opener.handlers:
-                if hasattr(handler, 'proxies'):
-                    proxy_map.update(handler.proxies)
-            write_string(u'[debug] Proxy map: ' + compat_str(proxy_map) + u'\n')
-
+        ydl.print_debug_header()
         ydl.add_default_info_extractors()
 
         # PostProcessors
@@ -730,44 +683,7 @@ def _real_main(argv=None):
             ydl.to_screen(u'--max-download limit reached, aborting.')
             retcode = 101
 
-    # Dump cookie jar if requested
-    if opts.cookiefile is not None:
-        try:
-            jar.save()
-        except (IOError, OSError):
-            sys.exit(u'ERROR: unable to save cookie jar')
-
     sys.exit(retcode)
-
-
-def _setup_opener(jar=None, opts=None, timeout=300):
-    if opts is None:
-        FakeOptions = collections.namedtuple(
-            'FakeOptions', ['proxy', 'no_check_certificate'])
-        opts = FakeOptions(proxy=None, no_check_certificate=False)
-
-    cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
-    if opts.proxy is not None:
-        if opts.proxy == '':
-            proxies = {}
-        else:
-            proxies = {'http': opts.proxy, 'https': opts.proxy}
-    else:
-        proxies = compat_urllib_request.getproxies()
-        # Set HTTPS proxy to HTTP one if given (https://github.com/rg3/youtube-dl/issues/805)
-        if 'http' in proxies and 'https' not in proxies:
-            proxies['https'] = proxies['http']
-    proxy_handler = compat_urllib_request.ProxyHandler(proxies)
-    https_handler = make_HTTPS_handler(opts)
-    opener = compat_urllib_request.build_opener(
-        https_handler, proxy_handler, cookie_processor, YoutubeDLHandler())
-    # Delete the default user-agent header, which would otherwise apply in
-    # cases where our custom HTTP handler doesn't come into play
-    # (See https://github.com/rg3/youtube-dl/issues/1309 for details)
-    opener.addheaders = []
-    compat_urllib_request.install_opener(opener)
-    socket.setdefaulttimeout(timeout)
-    return opener
 
 
 def main(argv=None):
