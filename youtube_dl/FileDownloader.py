@@ -339,13 +339,29 @@ class FileDownloader(object):
         if live:
             basic_args += ['--live']
         args = basic_args + [[], ['--resume', '--skip', '1']][self.params.get('continuedl', False)]
+
+        if sys.platform == 'win32' and sys.version_info < (3, 0):
+            # Windows subprocess module does not actually support Unicode
+            # on Python 2.x
+            # See http://stackoverflow.com/a/9951851/35070
+            subprocess_encoding = sys.getfilesystemencoding()
+            args = [a.encode(subprocess_encoding, 'ignore') for a in args]
+        else:
+            subprocess_encoding = None
+
         if self.params.get('verbose', False):
+            if subprocess_encoding:
+                str_args = [
+                    a.decode(subprocess_encoding) if isinstance(a, bytes) else a
+                    for a in args]
+            else:
+                str_args = args
             try:
                 import pipes
-                shell_quote = lambda args: ' '.join(map(pipes.quote, args))
+                shell_quote = lambda args: ' '.join(map(pipes.quote, str_args))
             except ImportError:
                 shell_quote = repr
-            self.to_screen(u'[debug] rtmpdump command line: ' + shell_quote(args))
+            self.to_screen(u'[debug] rtmpdump command line: ' + shell_quote(str_args))
 
         retval = run_rtmpdump(args)
 
