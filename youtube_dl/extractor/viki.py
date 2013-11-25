@@ -34,11 +34,12 @@ class VikiIE(SubtitlesInfoExtractor):
         description = self._og_search_description(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
 
-        uploader = self._html_search_regex(
-            r'<strong>Broadcast Network: </strong>\s*([^<]*)<', webpage,
-            u'uploader')
-        if uploader is not None:
-            uploader = uploader.strip()
+        uploader_m = re.search(
+            r'<strong>Broadcast Network: </strong>\s*([^<]*)<', webpage)
+        if uploader_m is None:
+            uploader = None
+        else:
+            uploader = uploader.group(1).strip()
 
         rating_str = self._html_search_regex(
             r'<strong>Rating: </strong>\s*([^<]*)<', webpage,
