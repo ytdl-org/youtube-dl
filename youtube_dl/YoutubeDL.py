@@ -258,10 +258,6 @@ class YoutubeDL(object):
         if self.params.get('cookiefile') is not None:
             self.cookiejar.save()
 
-    def fixed_template(self):
-        """Checks if the output template is fixed."""
-        return (re.search(u'(?u)%\\(.+?\\)s', self.params['outtmpl']) is None)
-
     def trouble(self, message=None, tb=None):
         """Determine action to take when a download problem appears.
 
@@ -798,7 +794,9 @@ class YoutubeDL(object):
 
     def download(self, url_list):
         """Download a given list of URLs."""
-        if len(url_list) > 1 and self.fixed_template():
+        if (len(url_list) > 1 and
+                '%' not in self.params['outtmpl']
+                and self.params.get('max_downloads') != 1):
             raise SameFileError(self.params['outtmpl'])
 
         for url in url_list:
