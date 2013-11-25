@@ -39,7 +39,7 @@ class VikiIE(SubtitlesInfoExtractor):
         if uploader_m is None:
             uploader = None
         else:
-            uploader = uploader.group(1).strip()
+            uploader = uploader_m.group(1).strip()
 
         rating_str = self._html_search_regex(
             r'<strong>Rating: </strong>\s*([^<]*)<', webpage,
