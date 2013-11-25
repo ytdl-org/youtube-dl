@@ -52,6 +52,9 @@ class ZDFIE(InfoExtractor):
                 (?P<proto>[^_]+)_(?P<index>[^_]+)_(?P<indexproto>[^_]+)
             ''', format_id)
 
+            ext = format_m.group('container')
+            is_supported = ext != 'f4f'
+
             PROTO_ORDER = ['http', 'rtmp', 'rtsp']
             try:
                 proto_pref = -PROTO_ORDER.index(format_m.group('proto'))
@@ -67,26 +70,34 @@ class ZDFIE(InfoExtractor):
 
             abr = int(fnode.find('./audioBitrate').text) // 1000
             vbr = int(fnode.find('./videoBitrate').text) // 1000
-            pref = (is_available, proto_pref, quality_pref, vbr, abr)
+            pref = (is_available, is_supported,
+                    proto_pref, quality_pref, vbr, abr)
+
+            format_note = u''
+            if not is_supported:
+                format_note += u'(unsupported)'
+            if not format_note:
+                format_note = None
 
             return {
-                'format_id': format_id,
+                'format_id': format_id + u'-' + quality,
                 'url': video_url,
-                'ext': format_m.group('container'),
+                'ext': ext,
                 'acodec': format_m.group('acodec'),
                 'vcodec': format_m.group('vcodec'),
                 'abr': abr,
                 'vbr': vbr,
                 'width': int(fnode.find('./width').text),
                 'height': int(fnode.find('./height').text),
-                'quality_name': quality,
                 'filesize': int(fnode.find('./filesize').text),
-                'format_note': None if is_available else u'(unavailable)',
+                'format_note': format_note,
                 '_pref': pref,
+                '_available': is_available,
             }
 
         format_nodes = doc.findall('.//formitaeten/formitaet')
-        formats = sorted(map(xml_to_format, format_nodes),
+        formats = sorted(filter(lambda f: f['_available'],
+                                map(xml_to_format, format_nodes)),
                          key=operator.itemgetter('_pref'))
 
         return {
