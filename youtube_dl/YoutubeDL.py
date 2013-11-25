@@ -837,7 +837,7 @@ class YoutubeDL(object):
     def _make_archive_id(self, info_dict):
         # Future-proof against any change in case
         # and backwards compatibility with prior versions
-        extractor = info_dict.get('extractor')
+        extractor = info_dict.get('extractor_key')
         if extractor is None:
             if 'id' in info_dict:
                 extractor = info_dict.get('ie_key')  # key in a playlist
