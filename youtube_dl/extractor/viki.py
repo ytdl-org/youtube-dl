@@ -2,6 +2,7 @@ import re
 
 from ..utils import (
     ExtractorError,
+    unescapeHTML,
     unified_strdate,
 )
 from .subtitles import SubtitlesInfoExtractor
@@ -91,7 +92,8 @@ class VikiIE(SubtitlesInfoExtractor):
 
     def _get_available_subtitles(self, video_id, info_webpage):
         res = {}
-        for sturl in re.findall(r'<track src="([^"]+)"/>', info_webpage):
+        for sturl_html in re.findall(r'<track src="([^"]+)"/>', info_webpage):
+            sturl = unescapeHTML(sturl_html)
             m = re.search(r'/(?P<lang>[a-z]+)\.vtt', sturl)
             if not m:
                 continue

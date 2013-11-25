@@ -553,7 +553,7 @@ def make_HTTPS_handler(opts_no_check_certificate):
                     self._tunnel()
                 try:
                     self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv3)
-                except ssl.SSLError as e:
+                except ssl.SSLError:
                     self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv23)
 
         class HTTPSHandlerV3(compat_urllib_request.HTTPSHandler):
