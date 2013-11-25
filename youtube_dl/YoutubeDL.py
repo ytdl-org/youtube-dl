@@ -968,7 +968,7 @@ class YoutubeDL(object):
                 proxy_map.update(handler.proxies)
         write_string(u'[debug] Proxy map: ' + compat_str(proxy_map) + u'\n')
 
-    def _setup_opener(self, timeout=300):
+    def _setup_opener(self, timeout=20):
         opts_cookiefile = self.params.get('cookiefile')
         opts_proxy = self.params.get('proxy')
 
