@@ -289,7 +289,7 @@ class FileDownloader(object):
                     data_len = None
                     if percent > 0:
                         data_len = int(downloaded_data_len * 100 / percent)
-                    data_len_str = u'~'+self.format_bytes(data_len)
+                    data_len_str = u'~' + format_bytes(data_len)
                     self.report_progress(percent, data_len_str, speed, eta)
                     cursor_in_new_line = False
                     self._hook_progress({
