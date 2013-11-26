@@ -107,5 +107,14 @@ class TestYoutubeLists(unittest.TestCase):
         result = ie.extract('http://www.youtube.com/show/airdisasters')
         self.assertTrue(len(result) >= 3)
 
+    def test_youtube_mix(self):
+        dl = FakeYDL()
+        ie = YoutubePlaylistIE(dl)
+        result = ie.extract('http://www.youtube.com/watch?v=lLJf9qJHR3E&list=RDrjFaenf1T-Y')
+        entries = result['entries']
+        self.assertTrue(len(entries) >= 20)
+        original_video = entries[0]
+        self.assertEqual(original_video['id'], 'rjFaenf1T-Y')
+
 if __name__ == '__main__':
     unittest.main()

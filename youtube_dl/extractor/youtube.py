@@ -28,6 +28,7 @@ from ..utils import (
     clean_html,
     get_cachedir,
     get_element_by_id,
+    get_element_by_attribute,
     ExtractorError,
     unescapeHTML,
     unified_strdate,
@@ -1537,6 +1538,22 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
     def _real_initialize(self):
         self._login()
 
+    def _ids_to_results(self, ids):
+        return [self.url_result(vid_id, 'Youtube', video_id=vid_id)
+                       for vid_id in ids]
+
+    def _extract_mix(self, playlist_id):
+        # The mixes are generated from a a single video
+        # the id of the playlist is just 'RD' + video_id
+        url = 'https://youtube.com/watch?v=%s&list=%s' % (playlist_id[2:], playlist_id)
+        webpage = self._download_webpage(url, playlist_id, u'Downloading Youtube mix')
+        title = clean_html(get_element_by_attribute('class', 'title long-title', webpage))
+        video_re = r'data-index="\d+".*?href="/watch\?v=([0-9A-Za-z_-]{11})&amp;[^"]*?list=%s' % re.escape(playlist_id)
+        ids = orderedSet(re.findall(video_re, webpage))
+        url_results = self._ids_to_results(ids)
+
+        return self.playlist_result(url_results, playlist_id, title)
+
     def _real_extract(self, url):
         # Extract playlist id
         mobj = re.match(self._VALID_URL, url, re.VERBOSE)
@@ -1553,6 +1570,10 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                 return self.url_result(video_id, 'Youtube', video_id=video_id)
             else:
                 self.to_screen(u'Downloading playlist PL%s - add --no-playlist to just download video %s' % (playlist_id, video_id))
+
+        if len(playlist_id) == 13:  # 'RD' + 11 characters for the video id
+            # Mixes require a custom extraction process
+            return self._extract_mix(playlist_id)
 
         # Extract the video ids from the playlist pages
         ids = []
@@ -1571,8 +1592,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
 
         playlist_title = self._og_search_title(page)
 
-        url_results = [self.url_result(vid_id, 'Youtube', video_id=vid_id)
-                       for vid_id in ids]
+        url_results = self._ids_to_results(ids)
         return self.playlist_result(url_results, playlist_id, playlist_title)
 
 
