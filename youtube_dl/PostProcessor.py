@@ -2,6 +2,7 @@ import os
 import subprocess
 import sys
 import time
+import io
 
 
 from .utils import (
@@ -10,6 +11,7 @@ from .utils import (
     PostProcessingError,
     shell_quote,
     subtitles_filename,
+    build_part_filename,
 )
 
 
@@ -78,15 +80,15 @@ class FFmpegPostProcessor(PostProcessor):
         programs = ['avprobe', 'avconv', 'ffmpeg', 'ffprobe']
         return dict((program, executable(program)) for program in programs)
 
-    def run_ffmpeg_multiple_files(self, input_paths, out_path, opts):
+    def run_ffmpeg_multiple_files(self, input_paths, out_path, opts, input_opts=[]):
         if not self._exes['ffmpeg'] and not self._exes['avconv']:
             raise FFmpegPostProcessorError(u'ffmpeg or avconv not found. Please install one.')
 
         files_cmd = []
         for path in input_paths:
             files_cmd.extend(['-i', encodeFilename(path)])
-        cmd = ([self._exes['avconv'] or self._exes['ffmpeg'], '-y'] + files_cmd
-               + opts +
+        cmd = ([self._exes['avconv'] or self._exes['ffmpeg'], '-y'] +
+               input_opts + files_cmd + opts +
                [encodeFilename(self._ffmpeg_filename_argument(out_path))])
 
         if self._downloader.params.get('verbose', False):
@@ -98,8 +100,8 @@ class FFmpegPostProcessor(PostProcessor):
             msg = stderr.strip().split('\n')[-1]
             raise FFmpegPostProcessorError(msg)
 
-    def run_ffmpeg(self, path, out_path, opts):
-        self.run_ffmpeg_multiple_files([path], out_path, opts)
+    def run_ffmpeg(self, path, out_path, opts, input_opts=[]):
+        self.run_ffmpeg_multiple_files([path], out_path, opts, input_opts)
 
     def _ffmpeg_filename_argument(self, fn):
         # ffmpeg broke --, see https://ffmpeg.org/trac/ffmpeg/ticket/2127 for details
@@ -509,3 +511,27 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         os.remove(encodeFilename(filename))
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         return True, info
+
+
+class FFmpegJoinVideosPP(FFmpegPostProcessor):
+    def run(self, information):
+        filename = information['filepath']
+        parts = information.get('parts')
+        if parts is None or len(parts) == 1:
+            return (True, information)
+        parts_files = [build_part_filename(filename, i) for (i, _) in enumerate(parts)]
+        files_file = u'%s.videos' % filename
+        with io.open(encodeFilename(files_file), 'w', encoding='utf-8') as f:
+                    for video in parts_files:
+                        f.write(u'file \'%s\'\n' % video)
+        self._downloader.to_screen(u'[ffmpeg] Joining video parts, destination: %s' % filename)
+        try:
+            self.run_ffmpeg(files_file, filename, ['-c', 'copy'], ['-f', 'concat'])
+        except FFmpegPostProcessorError:
+            return False, information
+        os.remove(encodeFilename(files_file))
+        # We have to manually remove the parts if requested
+        if not self._downloader.params.get('keepvideo', False):
+            for part_file in parts_files:
+                os.remove(encodeFilename(part_file))
+        return (True, information)

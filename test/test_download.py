@@ -151,8 +151,9 @@ def generator(test_case):
                     sys.stderr.write(u'\n"info_dict": ' + json.dumps(test_info_dict, ensure_ascii=False, indent=2) + u'\n')
 
                 # Check for the presence of mandatory fields
-                for key in ('id', 'url', 'title', 'ext'):
+                for key in ('id', 'title', 'ext'):
                     self.assertTrue(key in info_dict.keys() and info_dict[key])
+                self.assertTrue(any(key in info_dict.keys() and info_dict[key] for key in ('url', 'parts')))
                 # Check for mandatory fields that are automatically set by YoutubeDL
                 for key in ['webpage_url', 'extractor', 'extractor_key']:
                     self.assertTrue(info_dict.get(key), u'Missing field: %s' % key)

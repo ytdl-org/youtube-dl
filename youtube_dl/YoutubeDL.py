@@ -43,6 +43,7 @@ from .utils import (
     SameFileError,
     sanitize_filename,
     subtitles_filename,
+    build_part_filename,
     takewhile_inclusive,
     UnavailableVideoError,
     write_json_file,
@@ -773,7 +774,26 @@ class YoutubeDL(object):
                 success = True
             else:
                 try:
-                    success = self.fd._do_download(filename, info_dict)
+                    parts = info_dict.get('parts',[])
+                    if not parts:
+                        success = self.fd._do_download(filename, info_dict)
+                    elif len(parts) == 1:
+                        info_dict.update(parts[0])
+                        success = self.fd._do_download(filename, info_dict)
+                    else:
+                        # We check if the final video has already been downloaded
+                        if self.params.get('continuedl', False) and os.path.isfile(encodeFilename(filename)):
+                            self.fd.report_file_already_downloaded(filename)
+                            success = True
+                        else:
+                            parts_success = []
+                            self.to_screen(u'[info] Downloading %s parts' % len(parts))
+                            for (i, part) in enumerate(parts):
+                                part_info = dict(info_dict)
+                                part_info.update(part)
+                                part_filename = build_part_filename(filename, i)
+                                parts_success.append(self.fd._do_download(part_filename, part_info))
+                            success = all(parts_success)
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                     self.report_error(u'unable to download video data: %s' % str(err))
                     return

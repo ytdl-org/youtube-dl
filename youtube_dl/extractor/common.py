@@ -55,6 +55,9 @@ class InfoExtractor(object):
     subtitles:      The subtitle file contents as a dictionary in the format
                     {language: subtitles}.
     view_count:     How many users have watched the video on the platform.
+    parts:          A list of info_dicts for each of the parts of the video,
+                    it must include the url field, if it's a rtmp download it
+                    can contain additional fields for rtmpdump.
     urlhandle:      [internal] The urlHandle to be used to download the file,
                     like returned by urllib.request.urlopen
     age_limit:      Age restriction for the video, as an integer (years)
