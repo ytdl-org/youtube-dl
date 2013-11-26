@@ -155,6 +155,7 @@ class YoutubeDL(object):
         self._download_retcode = 0
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
+        self.params = params
 
         if (sys.version_info >= (3,) and sys.platform != 'win32' and
                 sys.getfilesystemencoding() in ['ascii', 'ANSI_X3.4-1968']
@@ -164,9 +165,8 @@ class YoutubeDL(object):
                 u'Assuming --restrict-filenames since file system encoding '
                 u'cannot encode all charactes. '
                 u'Set the LC_ALL environment variable to fix this.')
-            params['restrictfilenames'] = True
+            self.params['restrictfilenames'] = True
 
-        self.params = params
         self.fd = FileDownloader(self, self.params)
 
         if '%(stitle)s' in self.params.get('outtmpl', ''):
