@@ -1,6 +1,5 @@
 # encoding: utf-8
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -38,14 +37,12 @@ class NaverIE(InfoExtractor):
             'protocol': 'p2p',
             'inKey': key,
         })
-        info_xml = self._download_webpage(
+        info = self._download_xml(
             'http://serviceapi.rmcnmv.naver.com/flash/videoInfo.nhn?' + query,
             video_id, u'Downloading video info')
-        urls_xml = self._download_webpage(
+        urls = self._download_xml(
             'http://serviceapi.rmcnmv.naver.com/flash/playableEncodingOption.nhn?' + query_urls,
             video_id, u'Downloading video formats info')
-        info = xml.etree.ElementTree.fromstring(info_xml.encode('utf-8'))
-        urls = xml.etree.ElementTree.fromstring(urls_xml.encode('utf-8'))
 
         formats = []
         for format_el in urls.findall('EncodingOptions/EncodingOption'):

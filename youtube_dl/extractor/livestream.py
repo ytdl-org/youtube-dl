@@ -1,6 +1,5 @@
 import re
 import json
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -80,8 +79,7 @@ class LivestreamOriginalIE(InfoExtractor):
         user = mobj.group('user')
         api_url = 'http://x{0}x.api.channel.livestream.com/2.0/clipdetails?extendedInfo=true&id={1}'.format(user, video_id)
 
-        api_response = self._download_webpage(api_url, video_id)
-        info = xml.etree.ElementTree.fromstring(api_response.encode('utf-8'))
+        info = self._download_xml(api_url, video_id)
         item = info.find('channel').find('item')
         ns = {'media': 'http://search.yahoo.com/mrss'}
         thumbnail_url = item.find(xpath_with_ns('media:thumbnail', ns)).attrib['url']

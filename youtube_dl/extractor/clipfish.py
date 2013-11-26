@@ -1,6 +1,5 @@
 import re
 import time
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 
@@ -25,9 +24,8 @@ class ClipfishIE(InfoExtractor):
 
         info_url = ('http://www.clipfish.de/devxml/videoinfo/%s?ts=%d' %
                     (video_id, int(time.time())))
-        info_xml = self._download_webpage(
+        doc = self._download_xml(
             info_url, video_id, note=u'Downloading info page')
-        doc = xml.etree.ElementTree.fromstring(info_xml)
         title = doc.find('title').text
         video_url = doc.find('filename').text
         thumbnail = doc.find('imageurl').text

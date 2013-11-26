@@ -1,5 +1,4 @@
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 
@@ -33,11 +32,9 @@ class SpiegelIE(InfoExtractor):
             r'<div class="module-title">(.*?)</div>', webpage, u'title')
 
         xml_url = u'http://video2.spiegel.de/flash/' + video_id + u'.xml'
-        xml_code = self._download_webpage(
+        idoc = self._download_xml(
             xml_url, video_id,
             note=u'Downloading XML', errnote=u'Failed to download XML')
-
-        idoc = xml.etree.ElementTree.fromstring(xml_code)
 
         formats = [
             {

@@ -1,6 +1,5 @@
 # encoding: utf-8
 import re
-import xml.etree.ElementTree
 import json
 
 from .common import InfoExtractor
@@ -11,11 +10,10 @@ from ..utils import (
 
 class FranceTVBaseInfoExtractor(InfoExtractor):
     def _extract_video(self, video_id):
-        xml_desc = self._download_webpage(
+        info = self._download_xml(
             'http://www.francetvinfo.fr/appftv/webservices/video/'
             'getInfosOeuvre.php?id-diffusion='
             + video_id, video_id, 'Downloading XML config')
-        info = xml.etree.ElementTree.fromstring(xml_desc.encode('utf-8'))
 
         manifest_url = info.find('videos/video/url').text
         video_url = manifest_url.replace('manifest.f4m', 'index_2_av.m3u8')

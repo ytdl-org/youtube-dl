@@ -109,9 +109,8 @@ class MTVIE(InfoExtractor):
     def _get_videos_info(self, uri):
         video_id = self._id_from_uri(uri)
         data = compat_urllib_parse.urlencode({'uri': uri})
-        infoXml = self._download_webpage(self._FEED_URL +'?' + data, video_id,
+        idoc = self._download_xml(self._FEED_URL +'?' + data, video_id,
                                          u'Downloading info')
-        idoc = xml.etree.ElementTree.fromstring(infoXml.encode('utf-8'))
         return [self._get_video_info(item) for item in idoc.findall('.//item')]
 
     def _real_extract(self, url):

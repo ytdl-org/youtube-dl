@@ -1,5 +1,4 @@
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -32,8 +31,7 @@ class TeamcocoIE(InfoExtractor):
         self.report_extraction(video_id)
 
         data_url = 'http://teamcoco.com/cvp/2.0/%s.xml' % video_id
-        data_xml = self._download_webpage(data_url, video_id, 'Downloading data webpage')
-        data = xml.etree.ElementTree.fromstring(data_xml.encode('utf-8'))
+        data = self._download_xml(data_url, video_id, 'Downloading data webpage')
 
 
         qualities = ['500k', '480p', '1000k', '720p', '1080p']

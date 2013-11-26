@@ -1,6 +1,5 @@
 # encoding: utf-8
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -28,9 +27,8 @@ class FazIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         config_xml_url = self._search_regex(r'writeFLV\(\'(.+?)\',', webpage,
             u'config xml url')
-        config_xml = self._download_webpage(config_xml_url, video_id,
+        config = self._download_xml(config_xml_url, video_id,
             u'Downloading config xml')
-        config = xml.etree.ElementTree.fromstring(config_xml.encode('utf-8'))
 
         encodings = config.find('ENCODINGS')
         formats = []

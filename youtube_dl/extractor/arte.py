@@ -1,7 +1,6 @@
 # encoding: utf-8
 import re
 import json
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -78,8 +77,7 @@ class ArteTvIE(InfoExtractor):
         """Extract from videos.arte.tv"""
         ref_xml_url = url.replace('/videos/', '/do_delegate/videos/')
         ref_xml_url = ref_xml_url.replace('.html', ',view,asPlayerXml.xml')
-        ref_xml = self._download_webpage(ref_xml_url, video_id, note=u'Downloading metadata')
-        ref_xml_doc = xml.etree.ElementTree.fromstring(ref_xml)
+        ref_xml_doc = self._download_xml(ref_xml_url, video_id, note=u'Downloading metadata')
         config_node = find_xpath_attr(ref_xml_doc, './/video', 'lang', lang)
         config_xml_url = config_node.attrib['ref']
         config_xml = self._download_webpage(config_xml_url, video_id, note=u'Downloading configuration')
@@ -109,9 +107,8 @@ class ArteTvIE(InfoExtractor):
         """Extract form http://liveweb.arte.tv/"""
         webpage = self._download_webpage(url, name)
         video_id = self._search_regex(r'eventId=(\d+?)("|&)', webpage, u'event id')
-        config_xml = self._download_webpage('http://download.liveweb.arte.tv/o21/liveweb/events/event-%s.xml' % video_id,
+        config_doc = self._download_xml('http://download.liveweb.arte.tv/o21/liveweb/events/event-%s.xml' % video_id,
                                             video_id, u'Downloading information')
-        config_doc = xml.etree.ElementTree.fromstring(config_xml.encode('utf-8'))
         event_doc = config_doc.find('event')
         url_node = event_doc.find('video').find('urlHd')
         if url_node is None:

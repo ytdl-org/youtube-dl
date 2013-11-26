@@ -1,5 +1,4 @@
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import determine_ext
@@ -33,8 +32,7 @@ class CNNIE(InfoExtractor):
         path = mobj.group('path')
         page_title = mobj.group('title')
         info_url = u'http://cnn.com/video/data/3.0/%s/index.xml' % path
-        info_xml = self._download_webpage(info_url, page_title)
-        info = xml.etree.ElementTree.fromstring(info_xml.encode('utf-8'))
+        info = self._download_xml(info_url, page_title)
 
         formats = []
         for f in info.findall('files/file'):

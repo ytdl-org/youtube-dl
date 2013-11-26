@@ -1,6 +1,5 @@
 # encoding: utf-8
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import unified_strdate
@@ -31,11 +30,10 @@ class CanalplusIE(InfoExtractor):
             webpage = self._download_webpage(url, mobj.group('path'))
             video_id = self._search_regex(r'videoId = "(\d+)";', webpage, u'video id')
         info_url = self._VIDEO_INFO_TEMPLATE % video_id
-        info_page = self._download_webpage(info_url,video_id, 
+        doc = self._download_xml(info_url,video_id, 
                                            u'Downloading video info')
 
         self.report_extraction(video_id)
-        doc = xml.etree.ElementTree.fromstring(info_page.encode('utf-8'))
         video_info = [video for video in doc if video.find('ID').text == video_id][0]
         infos = video_info.find('INFOS')
         media = video_info.find('MEDIA')

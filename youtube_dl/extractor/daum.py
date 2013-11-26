@@ -1,6 +1,5 @@
 # encoding: utf-8
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -32,14 +31,12 @@ class DaumIE(InfoExtractor):
         full_id = self._search_regex(r'<link rel="video_src" href=".+?vid=(.+?)"',
             webpage, u'full id')
         query = compat_urllib_parse.urlencode({'vid': full_id})
-        info_xml = self._download_webpage(
+        info = self._download_xml(
             'http://tvpot.daum.net/clip/ClipInfoXml.do?' + query, video_id,
             u'Downloading video info')
-        urls_xml = self._download_webpage(
+        urls = self._download_xml(
             'http://videofarm.daum.net/controller/api/open/v1_2/MovieData.apixml?' + query,
             video_id, u'Downloading video formats info')
-        info = xml.etree.ElementTree.fromstring(info_xml.encode('utf-8'))
-        urls = xml.etree.ElementTree.fromstring(urls_xml.encode('utf-8'))
 
         self.to_screen(u'%s: Getting video urls' % video_id)
         formats = []
@@ -49,10 +46,9 @@ class DaumIE(InfoExtractor):
                 'vid': full_id,
                 'profile': profile,
             })
-            url_xml = self._download_webpage(
+            url_doc = self._download_xml(
                 'http://videofarm.daum.net/controller/api/open/v1_2/MovieLocation.apixml?' + format_query,
                 video_id, note=False)
-            url_doc = xml.etree.ElementTree.fromstring(url_xml.encode('utf-8'))
             format_url = url_doc.find('result/url').text
             formats.append({
                 'url': format_url,

@@ -1,5 +1,4 @@
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import find_xpath_attr, compat_str
@@ -21,8 +20,8 @@ class NBCNewsIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        info_xml = self._download_webpage('http://www.nbcnews.com/id/%s/displaymode/1219' % video_id, video_id)
-        info = xml.etree.ElementTree.fromstring(info_xml.encode('utf-8')).find('video')
+        all_info = self._download_xml('http://www.nbcnews.com/id/%s/displaymode/1219' % video_id, video_id)
+        info = all_info.find('video')
 
         return {'id': video_id,
                 'title': info.find('headline').text,

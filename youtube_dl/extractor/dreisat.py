@@ -1,7 +1,6 @@
 # coding: utf-8
 
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -30,8 +29,7 @@ class DreiSatIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         details_url = 'http://www.3sat.de/mediathek/xmlservice/web/beitragsDetails?ak=web&id=%s' % video_id
-        details_xml = self._download_webpage(details_url, video_id, note=u'Downloading video details')
-        details_doc = xml.etree.ElementTree.fromstring(details_xml.encode('utf-8'))
+        details_doc = self._download_xml(details_url, video_id, note=u'Downloading video details')
 
         thumbnail_els = details_doc.findall('.//teaserimage')
         thumbnails = [{

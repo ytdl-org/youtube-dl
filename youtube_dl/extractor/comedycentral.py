@@ -1,5 +1,4 @@
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from .mtv import MTVIE, _media_xml_tag
@@ -158,13 +157,12 @@ class ComedyCentralShowsIE(InfoExtractor):
 
         uri = mMovieParams[0][1]
         indexUrl = 'http://shadow.comedycentral.com/feeds/video_player/mrss/?' + compat_urllib_parse.urlencode({'uri': uri})
-        indexXml = self._download_webpage(indexUrl, epTitle,
+        idoc = self._download_xml(indexUrl, epTitle,
                                           u'Downloading show index',
                                           u'unable to download episode index')
 
         results = []
 
-        idoc = xml.etree.ElementTree.fromstring(indexXml)
         itemEls = idoc.findall('.//item')
         for partNum,itemEl in enumerate(itemEls):
             mediaId = itemEl.findall('./guid')[0].text
@@ -175,10 +173,9 @@ class ComedyCentralShowsIE(InfoExtractor):
 
             configUrl = ('http://www.comedycentral.com/global/feeds/entertainment/media/mediaGenEntertainment.jhtml?' +
                         compat_urllib_parse.urlencode({'uri': mediaId}))
-            configXml = self._download_webpage(configUrl, epTitle,
+            cdoc = self._download_xml(configUrl, epTitle,
                                                u'Downloading configuration for %s' % shortMediaId)
 
-            cdoc = xml.etree.ElementTree.fromstring(configXml)
             turls = []
             for rendition in cdoc.findall('.//rendition'):
                 finfo = (rendition.attrib['bitrate'], rendition.findall('./src')[0].text)
