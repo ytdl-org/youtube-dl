@@ -651,6 +651,7 @@ def _real_main(argv=None):
         'download_archive': opts.download_archive,
         'cookiefile': opts.cookiefile,
         'nocheckcertificate': opts.no_check_certificate,
+        'proxy': opts.proxy,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
