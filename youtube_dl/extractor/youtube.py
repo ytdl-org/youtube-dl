@@ -1528,7 +1528,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                      )"""
     _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s&page=%s'
     _MORE_PAGES_INDICATOR = r'data-link-type="next"'
-    _VIDEO_RE = r'href="/watch\?v=([0-9A-Za-z_-]{11})&amp;'
+    _VIDEO_RE = r'href="/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)'
     IE_NAME = u'youtube:playlist'
 
     @classmethod
@@ -1562,8 +1562,10 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         for page_num in itertools.count(1):
             url = self._TEMPLATE_URL % (playlist_id, page_num)
             page = self._download_webpage(url, playlist_id, u'Downloading page #%s' % page_num)
-            # The ids are duplicated
-            new_ids = orderedSet(re.findall(self._VIDEO_RE, page))
+            matches = re.finditer(self._VIDEO_RE, page)
+            # We remove the duplicates and the link with index 0
+            # (it's not the first video of the playlist)
+            new_ids = orderedSet(m.group('id') for m in matches if m.group('index') != '0')
             ids.extend(new_ids)
 
             if re.search(self._MORE_PAGES_INDICATOR, page) is None:
