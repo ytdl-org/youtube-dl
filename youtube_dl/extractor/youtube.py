@@ -1547,7 +1547,9 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         # the id of the playlist is just 'RD' + video_id
         url = 'https://youtube.com/watch?v=%s&list=%s' % (playlist_id[2:], playlist_id)
         webpage = self._download_webpage(url, playlist_id, u'Downloading Youtube mix')
-        title = clean_html(get_element_by_attribute('class', 'title long-title', webpage))
+        title_span = (get_element_by_attribute('class', 'title long-title', webpage) or
+            get_element_by_attribute('class', 'title ', webpage))
+        title = clean_html(title_span)
         video_re = r'data-index="\d+".*?href="/watch\?v=([0-9A-Za-z_-]{11})&amp;[^"]*?list=%s' % re.escape(playlist_id)
         ids = orderedSet(re.findall(video_re, webpage))
         url_results = self._ids_to_results(ids)
