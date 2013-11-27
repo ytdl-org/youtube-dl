@@ -1,5 +1,6 @@
 import re
 import time
+import xml.etree.ElementTree
 
 from .common import InfoExtractor
 
@@ -28,6 +29,10 @@ class ClipfishIE(InfoExtractor):
             info_url, video_id, note=u'Downloading info page')
         title = doc.find('title').text
         video_url = doc.find('filename').text
+        if video_url is None:
+            xml_bytes = xml.etree.ElementTree.tostring(doc)
+            raise ExtractorError(u'Cannot find video URL in document %r' %
+                                 xml_bytes)
         thumbnail = doc.find('imageurl').text
         duration_str = doc.find('duration').text
         m = re.match(
