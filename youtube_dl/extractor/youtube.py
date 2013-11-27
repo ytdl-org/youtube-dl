@@ -1791,7 +1791,6 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
     Subclasses must define the _FEED_NAME and _PLAYLIST_TITLE properties.
     """
     _LOGIN_REQUIRED = True
-    _PAGING_STEP = 30
     # use action_load_personal_feed instead of action_load_system_feed
     _PERSONAL_FEED = False
 
@@ -1811,9 +1810,8 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
 
     def _real_extract(self, url):
         feed_entries = []
-        # The step argument is available only in 2.7 or higher
-        for i in itertools.count(0):
-            paging = i*self._PAGING_STEP
+        paging = 0
+        for i in itertools.count(1):
             info = self._download_webpage(self._FEED_TEMPLATE % paging,
                                           u'%s feed' % self._FEED_NAME,
                                           u'Downloading page %s' % i)
@@ -1826,6 +1824,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
                 for video_id in ids)
             if info['paging'] is None:
                 break
+            paging = info['paging']
         return self.playlist_result(feed_entries, playlist_title=self._PLAYLIST_TITLE)
 
 class YoutubeSubscriptionsIE(YoutubeFeedsInfoExtractor):
@@ -1845,7 +1844,6 @@ class YoutubeWatchLaterIE(YoutubeFeedsInfoExtractor):
     _VALID_URL = r'https?://www\.youtube\.com/feed/watch_later|:ytwatchlater'
     _FEED_NAME = 'watch_later'
     _PLAYLIST_TITLE = u'Youtube Watch Later'
-    _PAGING_STEP = 100
     _PERSONAL_FEED = True
 
 class YoutubeHistoryIE(YoutubeFeedsInfoExtractor):
@@ -1854,13 +1852,6 @@ class YoutubeHistoryIE(YoutubeFeedsInfoExtractor):
     _FEED_NAME = 'history'
     _PERSONAL_FEED = True
     _PLAYLIST_TITLE = u'Youtube Watch History'
-
-    def _real_extract(self, url):
-        webpage = self._download_webpage('https://www.youtube.com/feed/history', u'History')
-        data_paging = self._search_regex(r'data-paging="(\d+)"', webpage, u'data-paging')
-        # The step is actually a ridiculously big number (like 1374343569725646)
-        self._PAGING_STEP = int(data_paging)
-        return super(YoutubeHistoryIE, self)._real_extract(url)
 
 class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
     IE_NAME = u'youtube:favorites'
