@@ -5,7 +5,6 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    parse_xml_doc,
     unified_strdate,
 )
 
@@ -30,9 +29,10 @@ class ZDFIE(InfoExtractor):
         video_id = mobj.group('video_id')
 
         xml_url = u'http://www.zdf.de/ZDFmediathek/xmlservice/web/beitragsDetails?ak=web&id=%s' % video_id
-        info_xml = self._download_webpage(
-            xml_url, video_id, note=u'Downloading video info')
-        doc = parse_xml_doc(info_xml)
+        doc = self._download_xml(
+            xml_url, video_id,
+            note=u'Downloading video info',
+            errnote=u'Failed to download video info')
 
         title = doc.find('.//information/title').text
         description = doc.find('.//information/detail').text

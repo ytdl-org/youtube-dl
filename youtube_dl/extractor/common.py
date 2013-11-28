@@ -210,7 +210,8 @@ class InfoExtractor(object):
         """ Returns the data of the page as a string """
         return self._download_webpage_handle(url_or_request, video_id, note, errnote)[0]
 
-    def _download_xml(self, url_or_request, video_id, note=u'Downloading XML', errnote=u'Unable to downloand XML'):
+    def _download_xml(self, url_or_request, video_id,
+                      note=u'Downloading XML', errnote=u'Unable to download XML'):
         """Return the xml as an xml.etree.ElementTree.Element"""
         xml_string = self._download_webpage(url_or_request, video_id, note, errnote)
         return xml.etree.ElementTree.fromstring(xml_string.encode('utf-8'))

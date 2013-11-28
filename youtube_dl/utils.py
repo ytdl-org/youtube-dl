@@ -1009,11 +1009,6 @@ def unsmuggle_url(smug_url):
     return url, data
 
 
-def parse_xml_doc(s):
-    assert isinstance(s, type(u''))
-    return xml.etree.ElementTree.fromstring(s.encode('utf-8'))
-
-
 def format_bytes(bytes):
     if bytes is None:
         return u'N/A'
