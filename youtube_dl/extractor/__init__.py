@@ -71,6 +71,7 @@ from .hotnewhiphop import HotNewHipHopIE
 from .howcast import HowcastIE
 from .hypem import HypemIE
 from .ign import IGNIE, OneUPIE
+from .imdb import ImdbIE
 from .ina import InaIE
 from .infoq import InfoQIE
 from .instagram import InstagramIE
