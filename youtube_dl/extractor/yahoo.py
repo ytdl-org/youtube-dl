@@ -46,7 +46,7 @@ class YahooIE(InfoExtractor):
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
 
-        items_json = self._search_regex(r'YVIDEO_INIT_ITEMS = ({.*?});$',
+        items_json = self._search_regex(r'mediaItems: ({.*?})$',
             webpage, u'items', flags=re.MULTILINE)
         items = json.loads(items_json)
         info = items['mediaItems']['query']['results']['mediaObj'][0]
@@ -91,17 +91,13 @@ class YahooIE(InfoExtractor):
             formats.append(format_info)
         formats = sorted(formats, key=lambda f:(f['height'], f['width']))
 
-        info = {
+        return {
             'id': video_id,
             'title': meta['title'],
             'formats': formats,
             'description': clean_html(meta['description']),
             'thumbnail': meta['thumbnail'],
         }
-        # TODO: Remove when #980 has been merged
-        info.update(formats[-1])
-
-        return info
 
 
 class YahooSearchIE(SearchInfoExtractor):
