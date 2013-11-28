@@ -38,8 +38,9 @@ class ImdbIE(InfoExtractor):
             format_page = self._download_webpage(
                 compat_urlparse.urljoin(url, f_path),
                 u'Downloading info for %s format' % f_id)
-            json_data = get_element_by_attribute('class', 'imdb-player-data',
-                format_page)
+            json_data = self._search_regex(
+                r'<script[^>]+class="imdb-player-data"[^>]*?>(.*?)</script>',
+                format_page, u'json data', flags=re.DOTALL)
             info = json.loads(json_data)
             format_info = info['videoPlayerObject']['video']
             formats.append({
