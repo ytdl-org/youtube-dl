@@ -3,6 +3,7 @@ import time
 import xml.etree.ElementTree
 
 from .common import InfoExtractor
+from ..utils import ExtractorError
 
 
 class ClipfishIE(InfoExtractor):
