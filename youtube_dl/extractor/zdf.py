@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import operator
 import re
 
@@ -9,7 +11,19 @@ from ..utils import (
 
 
 class ZDFIE(InfoExtractor):
-    _VALID_URL = r'^http://www\.zdf\.de\/ZDFmediathek(?P<hash>#)?\/(.*beitrag\/video\/)(?P<video_id>[^/\?]+)(?:\?.*)?'
+    _VALID_URL = r'^https?://www\.zdf\.de/ZDFmediathek(?P<hash>#)?/(.*beitrag/(?:video/)?)(?P<video_id>[0-9]+)(?:/[^/?]+)?(?:\?.*)?'
+
+    _TEST = {
+        u"url": u"http://www.zdf.de/ZDFmediathek/beitrag/video/2037704/ZDFspezial---Ende-des-Machtpokers--?bc=sts;stt",
+        u"file": u"2037704.webm",
+        u"info_dict": {
+            u"upload_date": u"20131127",
+            u"description": u"Union und SPD haben sich auf einen Koalitionsvertrag geeinigt. Aber was bedeutet das für die Bürger? Sehen Sie hierzu das ZDFspezial \"Ende des Machtpokers - Große Koalition für Deutschland\".",
+            u"uploader": u"spezial",
+            u"title": u"ZDFspezial - Ende des Machtpokers"
+        },
+        u"skip": u"Videos on ZDF.de are depublicised in short order",
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
