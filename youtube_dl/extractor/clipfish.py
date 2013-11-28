@@ -11,12 +11,12 @@ class ClipfishIE(InfoExtractor):
 
     _VALID_URL = r'^https?://(?:www\.)?clipfish\.de/.*?/video/(?P<id>[0-9]+)/'
     _TEST = {
-        u'url': u'http://www.clipfish.de/special/supertalent/video/4028320/supertalent-2013-ivana-opacak-singt-nobodys-perfect/',
-        u'file': u'4028320.f4v',
-        u'md5': u'5e38bda8c329fbfb42be0386a3f5a382',
+        u'url': u'http://www.clipfish.de/special/game-trailer/video/3966754/fifa-14-e3-2013-trailer/',
+        u'file': u'3966754.mp4',
+        u'md5': u'2521cd644e862936cf2e698206e47385',
         u'info_dict': {
-            u'title': u'Supertalent 2013: Ivana Opacak singt Nobody\'s Perfect',
-            u'duration': 399,
+            u'title': u'FIFA 14 - E3 2013 Trailer',
+            u'duration': 82,
         }
     }
 
