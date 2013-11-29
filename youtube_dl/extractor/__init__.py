@@ -107,6 +107,7 @@ from .ooyala import OoyalaIE
 from .orf import ORFIE
 from .pbs import PBSIE
 from .photobucket import PhotobucketIE
+from .podomatic import PodomaticIE
 from .pornhub import PornHubIE
 from .pornotube import PornotubeIE
 from .rbmaradio import RBMARadioIE
