@@ -146,7 +146,7 @@ class YoutubeDL(object):
     _num_downloads = None
     _screen_file = None
 
-    def __init__(self, params={}):
+    def __init__(self, params=None):
         """Create a FileDownloader object with the given options."""
         self._ies = []
         self._ies_instances = {}
@@ -155,7 +155,7 @@ class YoutubeDL(object):
         self._download_retcode = 0
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
-        self.params = params
+        self.params = {} if params is None else params
 
         if (sys.version_info >= (3,) and sys.platform != 'win32' and
                 sys.getfilesystemencoding() in ['ascii', 'ANSI_X3.4-1968']
