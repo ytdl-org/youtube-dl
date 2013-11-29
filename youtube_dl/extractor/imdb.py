@@ -46,8 +46,7 @@ class ImdbIE(InfoExtractor):
             formats.append({
                 'format_id': f_id,
                 'url': format_info['url'],
-                'height': format_info['height'],
-                'width': format_info['width'],
+                'height': int(info['titleObject']['encoding']['selected'][:-1]),
             })
 
         return {
