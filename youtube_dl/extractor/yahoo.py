@@ -17,26 +17,20 @@ class YahooIE(InfoExtractor):
     _TESTS = [
         {
             u'url': u'http://screen.yahoo.com/julian-smith-travis-legg-watch-214727115.html',
-            u'file': u'214727115.flv',
+            u'file': u'214727115.mp4',
+            u'md5': u'4962b075c08be8690a922ee026d05e69',
             u'info_dict': {
                 u'title': u'Julian Smith & Travis Legg Watch Julian Smith',
                 u'description': u'Julian and Travis watch Julian Smith',
             },
-            u'params': {
-                # Requires rtmpdump
-                u'skip_download': True,
-            },
         },
         {
             u'url': u'http://screen.yahoo.com/wired/codefellas-s1-ep12-cougar-lies-103000935.html',
-            u'file': u'103000935.flv',
+            u'file': u'103000935.mp4',
+            u'md5': u'd6e6fc6e1313c608f316ddad7b82b306',
             u'info_dict': {
                 u'title': u'Codefellas - The Cougar Lies with Spanish Moss',
                 u'description': u'Agent Topple\'s mustache does its dirty work, and Nicole brokers a deal for peace. But why is the NSA collecting millions of Instagram brunch photos? And if your waffles have nothing to hide, what are they so worried about?',
-            },
-            u'params': {
-                # Requires rtmpdump
-                u'skip_download': True,
             },
         },
     ]
@@ -57,7 +51,8 @@ class YahooIE(InfoExtractor):
 
     def _get_info(self, long_id, video_id):
         query = ('SELECT * FROM yahoo.media.video.streams WHERE id="%s"'
-                 ' AND plrs="86Gj0vCaSzV_Iuf6hNylf2" AND region="US"' % long_id)
+                 ' AND plrs="86Gj0vCaSzV_Iuf6hNylf2" AND region="US"'
+                 ' AND protocol="http"' % long_id)
         data = compat_urllib_parse.urlencode({
             'q': query,
             'env': 'prod',
@@ -109,15 +104,12 @@ class YahooNewsIE(YahooIE):
 
     _TEST = {
         u'url': u'http://news.yahoo.com/video/china-moses-crazy-blues-104538833.html',
+        u'md5': u'67010fdf3a08d290e060a4dd96baa07b',
         u'info_dict': {
             u'id': u'104538833',
-            u'ext': u'flv',
+            u'ext': u'mp4',
             u'title': u'China Moses Is Crazy About the Blues',
             u'description': u'md5:9900ab8cd5808175c7b3fe55b979bed0',
-        },
-        u'params': {
-            # Requires rtmpdump
-            u'skip_download': True,
         },
     }
 
