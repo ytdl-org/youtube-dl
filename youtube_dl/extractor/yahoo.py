@@ -53,8 +53,11 @@ class YahooIE(InfoExtractor):
         # The 'meta' field is not always in the video webpage, we request it
         # from another page
         long_id = info['id']
+        return self._get_info(info['id'], video_id)
+
+    def _get_info(self, long_id, video_id):
         query = ('SELECT * FROM yahoo.media.video.streams WHERE id="%s"'
-                 ' AND plrs="86Gj0vCaSzV_Iuf6hNylf2"' % long_id)
+                 ' AND plrs="86Gj0vCaSzV_Iuf6hNylf2" AND region="US"' % long_id)
         data = compat_urllib_parse.urlencode({
             'q': query,
             'env': 'prod',
@@ -98,6 +101,35 @@ class YahooIE(InfoExtractor):
             'description': clean_html(meta['description']),
             'thumbnail': meta['thumbnail'],
         }
+
+
+class YahooNewsIE(YahooIE):
+    IE_NAME = 'yahoo:news'
+    _VALID_URL = r'http://news\.yahoo\.com/video/.*?-(?P<id>\d*?)\.html'
+
+    _TEST = {
+        u'url': u'http://news.yahoo.com/video/china-moses-crazy-blues-104538833.html',
+        u'info_dict': {
+            u'id': u'104538833',
+            u'ext': u'flv',
+            u'title': u'China Moses Is Crazy About the Blues',
+            u'description': u'md5:9900ab8cd5808175c7b3fe55b979bed0',
+        },
+        u'params': {
+            # Requires rtmpdump
+            u'skip_download': True,
+        },
+    }
+
+    # Overwrite YahooIE properties we don't want
+    _TESTS = []
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        webpage = self._download_webpage(url, video_id)
+        long_id = self._search_regex(r'contentId: \'(.+?)\',', webpage, u'long id')
+        return self._get_info(long_id, video_id)
 
 
 class YahooSearchIE(SearchInfoExtractor):
