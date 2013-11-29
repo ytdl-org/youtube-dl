@@ -220,7 +220,7 @@ def parseOpts(overrideArguments=None):
                          default=None, type=int)
     selection.add_option('--download-archive', metavar='FILE',
                          dest='download_archive',
-                         help='Download only videos not present in the archive file. Record all downloaded videos in it.')
+                         help='Download only videos not present in the archive file. Record the IDs of all downloaded videos in it.')
 
 
     authentication.add_option('-u', '--username',
