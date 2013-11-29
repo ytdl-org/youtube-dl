@@ -134,7 +134,7 @@ which means you can modify it, redistribute it or use it however you like.
                                directory
 
 ## Video Format Options:
-    -f, --format FORMAT        video format code, specifiy the order of
+    -f, --format FORMAT        video format code, specify the order of
                                preference using slashes: "-f 22/17/18". "-f mp4"
                                and "-f flv" are also supported
     --all-formats              download all available video formats
