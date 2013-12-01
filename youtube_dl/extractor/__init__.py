@@ -159,7 +159,11 @@ from .viddler import ViddlerIE
 from .videodetective import VideoDetectiveIE
 from .videofyme import VideofyMeIE
 from .videopremium import VideoPremiumIE
-from .vimeo import VimeoIE, VimeoChannelIE
+from .vimeo import (
+    VimeoIE,
+    VimeoChannelIE,
+    VimeoUserIE,
+)
 from .vine import VineIE
 from .viki import VikiIE
 from .vk import VKIE

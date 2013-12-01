@@ -106,6 +106,10 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch(':colbertreport', ['ComedyCentralShows'])
         self.assertMatch(':cr', ['ComedyCentralShows'])
 
+    def test_vimeo_matching(self):
+        self.assertMatch('http://vimeo.com/channels/tributes', ['vimeo:channel'])
+        self.assertMatch('http://vimeo.com/user7108434', ['vimeo:user'])
+
 
 if __name__ == '__main__':
     unittest.main()
