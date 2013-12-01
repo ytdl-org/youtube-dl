@@ -132,6 +132,7 @@ class YoutubeDL(object):
     cookiefile:        File name where cookies should be read from and dumped to.
     nocheckcertificate:Do not verify SSL certificates
     proxy:             URL of the proxy server to use
+    socket_timeout:    Time to wait for unresponsive hosts, in seconds
 
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:
@@ -969,7 +970,8 @@ class YoutubeDL(object):
                 proxy_map.update(handler.proxies)
         write_string(u'[debug] Proxy map: ' + compat_str(proxy_map) + u'\n')
 
-    def _setup_opener(self, timeout=20):
+    def _setup_opener(self):
+        timeout = float(self.params.get('socket_timeout', 600))
         opts_cookiefile = self.params.get('cookiefile')
         opts_proxy = self.params.get('proxy')
 
