@@ -195,6 +195,15 @@ class GenericIE(InfoExtractor):
             return self.playlist_result(
                 urlrs, playlist_id=video_id, playlist_title=video_title)
 
+        # Look for embedded Dailymotion player
+        matches = re.findall(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion.com/embed/video/.+?)\1', webpage)
+        if matches:
+            urlrs = [self.url_result(unescapeHTML(tuppl[1]), 'Dailymotion')
+                     for tuppl in matches]
+            return self.playlist_result(
+                urlrs, playlist_id=video_id, playlist_title=video_title)
+
         # Look for Bandcamp pages with custom domain
         mobj = re.search(r'<meta property="og:url"[^>]*?content="(.*?bandcamp\.com.*?)"', webpage)
         if mobj is not None:
