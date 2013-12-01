@@ -17,7 +17,8 @@ class ClipfishIE(InfoExtractor):
         u'info_dict': {
             u'title': u'FIFA 14 - E3 2013 Trailer',
             u'duration': 82,
-        }
+        },
+        u'skip': 'Blocked in the US'
     }
 
     def _real_extract(self, url):
