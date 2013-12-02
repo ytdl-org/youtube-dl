@@ -971,7 +971,9 @@ class YoutubeDL(object):
         write_string(u'[debug] Proxy map: ' + compat_str(proxy_map) + u'\n')
 
     def _setup_opener(self):
-        timeout = float(self.params.get('socket_timeout', 600))
+        timeout_val = self.params.get('socket_timeout')
+        timeout = 600 if timeout_val is None else float(timeout_val)
+
         opts_cookiefile = self.params.get('cookiefile')
         opts_proxy = self.params.get('proxy')
 

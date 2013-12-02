@@ -198,6 +198,9 @@ def parseOpts(overrideArguments=None):
     general.add_option(
         '--no-cache-dir', action='store_const', const=None, dest='cachedir',
         help='Disable filesystem caching')
+    general.add_option(
+        '--socket-timeout', dest='socket_timeout',
+        type=float, default=None, help=optparse.SUPPRESS_HELP)
 
 
     selection.add_option('--playlist-start',
@@ -652,6 +655,7 @@ def _real_main(argv=None):
         'cookiefile': opts.cookiefile,
         'nocheckcertificate': opts.no_check_certificate,
         'proxy': opts.proxy,
+        'socket_timeout': opts.socket_timeout,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
