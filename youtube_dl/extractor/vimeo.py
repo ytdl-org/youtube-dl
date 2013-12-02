@@ -249,25 +249,46 @@ class VimeoChannelIE(InfoExtractor):
     IE_NAME = u'vimeo:channel'
     _VALID_URL = r'(?:https?://)?vimeo.\com/channels/(?P<id>[^/]+)'
     _MORE_PAGES_INDICATOR = r'<a.+?rel="next"'
+    _TITLE_RE = r'<link rel="alternate"[^>]+?title="(.*?)"'
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        channel_id =  mobj.group('id')
+    def _extract_videos(self, list_id, base_url):
         video_ids = []
-
         for pagenum in itertools.count(1):
-            webpage = self._download_webpage('http://vimeo.com/channels/%s/videos/page:%d' % (channel_id, pagenum),
-                                             channel_id, u'Downloading page %s' % pagenum)
+            webpage = self._download_webpage(
+                '%s/videos/page:%d/' % (base_url, pagenum),list_id,
+                u'Downloading page %s' % pagenum)
             video_ids.extend(re.findall(r'id="clip_(\d+?)"', webpage))
             if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
                 break
 
         entries = [self.url_result('http://vimeo.com/%s' % video_id, 'Vimeo')
                    for video_id in video_ids]
-        channel_title = self._html_search_regex(r'<a href="/channels/%s">(.*?)</a>' % channel_id,
-                                                webpage, u'channel title')
+        list_title = self._html_search_regex(self._TITLE_RE, webpage,
+            u'list title')
         return {'_type': 'playlist',
-                'id': channel_id,
-                'title': channel_title,
+                'id': list_id,
+                'title': list_title,
                 'entries': entries,
                 }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        channel_id =  mobj.group('id')
+        return self._extract_videos(channel_id, 'http://vimeo.com/channels/%s' % channel_id)
+
+
+class VimeoUserIE(VimeoChannelIE):
+    IE_NAME = u'vimeo:user'
+    _VALID_URL = r'(?:https?://)?vimeo.\com/(?P<name>[^/]+)'
+    _TITLE_RE = r'<a[^>]+?class="user">([^<>]+?)</a>'
+
+    @classmethod
+    def suitable(cls, url):
+        if VimeoChannelIE.suitable(url) or VimeoIE.suitable(url):
+            return False
+        return super(VimeoUserIE, cls).suitable(url)
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        name = mobj.group('name')
+        return self._extract_videos(name, 'http://vimeo.com/%s' % name)
