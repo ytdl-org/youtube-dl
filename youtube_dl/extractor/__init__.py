@@ -121,6 +121,11 @@ from .rutube import RutubeIE
 from .sina import SinaIE
 from .slashdot import SlashdotIE
 from .slideshare import SlideshareIE
+from .smotri import (
+    SmotriIE,
+    SmotriCommunityIE,
+    SmotriUserIE,
+)
 from .sohu import SohuIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE, SoundcloudUserIE
 from .southparkstudios import (
