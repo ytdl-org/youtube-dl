@@ -56,7 +56,8 @@ which means you can modify it, redistribute it or use it however you like.
     --no-playlist              download only the currently playing video
     --age-limit YEARS          download only videos suitable for the given age
     --download-archive FILE    Download only videos not present in the archive
-                               file. Record all downloaded videos in it.
+                               file. Record the IDs of all downloaded videos in
+                               it.
 
 ## Download Options:
     -r, --rate-limit LIMIT     maximum download rate in bytes per second (e.g.
@@ -130,8 +131,8 @@ which means you can modify it, redistribute it or use it however you like.
     -v, --verbose              print various debugging information
     --dump-intermediate-pages  print downloaded pages to debug problems(very
                                verbose)
-    --write-pages              Write downloaded pages to files in the current
-                               directory
+    --write-pages              Write downloaded intermediary pages to files in
+                               the current directory to debug problems
 
 ## Video Format Options:
     -f, --format FORMAT        video format code, specify the order of
