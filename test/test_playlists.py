@@ -22,7 +22,9 @@ from youtube_dl.extractor import (
     LivestreamIE,
     NHLVideocenterIE,
     BambuserChannelIE,
-    BandcampAlbumIE
+    BandcampAlbumIE,
+    SmotriCommunityIE,
+    SmotriUserIE
 )
 
 
@@ -119,6 +121,24 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['title'], u'Nightmare Night EP')
         self.assertTrue(len(result['entries']) >= 4)
+        
+    def test_smotri_community(self):
+        dl = FakeYDL()
+        ie = SmotriCommunityIE(dl)
+        result = ie.extract('http://smotri.com/community/video/kommuna')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], u'kommuna')
+        self.assertEqual(result['title'], u'КПРФ')
+        self.assertTrue(len(result['entries']) >= 4)
+        
+    def test_smotri_user(self):
+        dl = FakeYDL()
+        ie = SmotriUserIE(dl)
+        result = ie.extract('http://smotri.com/user/inspector')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], u'inspector')
+        self.assertEqual(result['title'], u'Inspector')
+        self.assertTrue(len(result['entries']) >= 9)
 
 if __name__ == '__main__':
     unittest.main()
