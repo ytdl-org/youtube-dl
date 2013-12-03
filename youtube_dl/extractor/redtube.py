@@ -30,7 +30,7 @@ class RedTubeIE(InfoExtractor):
             r'<source src="(.+?)" type="video/mp4">', webpage, u'video URL')
 
         video_title = self._html_search_regex(
-            r'<h1 class="videoTitle slidePanelMovable">(.+?)</h1>',
+            r'<h1 class="videoTitle[^"]*">(.+?)</h1>',
             webpage, u'title')
 
         # No self-labeling, but they describe themselves as
