@@ -816,7 +816,16 @@ class YoutubeDL(object):
         with open(info_filename, 'r') as f:
             # TODO: Check for errors
             info = json.load(f)
-        self.process_ie_result(info, download=True)
+        try:
+            self.process_ie_result(info, download=True)
+        except DownloadError:
+            webpage_url = info.get('webpage_url')
+            if webpage_url is not None:
+                self.report_warning(u'The info failed to download, trying with "%s"' % webpage_url)
+                return self.download([webpage_url])
+            else:
+                raise
+        return self._download_retcode
 
     def post_process(self, filename, ie_info):
         """Run all the postprocessors on the given file."""
