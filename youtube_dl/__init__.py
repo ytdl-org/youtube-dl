@@ -81,11 +81,11 @@ from .PostProcessor import (
 
 
 def parseOpts(overrideArguments=None):
-    def _readOptions(filename_bytes, def=[]):
+    def _readOptions(filename_bytes, default=[]):
         try:
             optionf = open(filename_bytes)
         except IOError:
-            return def  # silently skip if file is not present
+            return default  # silently skip if file is not present
         try:
             res = [shlex.split(l, comments=True) for l in optionf]
         finally:
@@ -435,12 +435,20 @@ def parseOpts(overrideArguments=None):
             if appdata_dir:
                 userConf = _readOptions(
                     os.path.join(appdata_dir, 'youtube-dl', 'config'),
-                    def=None)
+                    default=None)
+                if userConf is None:
+                    userConf = _readOptions(
+                        os.path.join(appdata_dir, 'youtube-dl', 'config.txt'),
+                        default=None)
 
         if userConf is None:
-            userConfFile = _readOptions(
+            userConf = _readOptions(
                 os.path.join(os.path.expanduser('~'), 'youtube-dl.conf'),
-                def=None)
+                default=None)
+        if userConf is None:
+            userConf = _readOptions(
+                os.path.join(os.path.expanduser('~'), 'youtube-dl.conf.txt'),
+                default=None)
 
         if userConf is None:
             userConf = []
