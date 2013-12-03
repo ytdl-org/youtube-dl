@@ -1,7 +1,7 @@
 import re
 
 from .common import InfoExtractor
-from .mtv import MTVIE, _media_xml_tag
+from .mtv import MTVServicesInfoExtractor
 from ..utils import (
     compat_str,
     compat_urllib_parse,
@@ -11,7 +11,7 @@ from ..utils import (
 )
 
 
-class ComedyCentralIE(MTVIE):
+class ComedyCentralIE(MTVServicesInfoExtractor):
     _VALID_URL = r'http://www.comedycentral.com/(video-clips|episodes|cc-studios)/(?P<title>.*)'
     _FEED_URL = u'http://comedycentral.com/feeds/mrss/'
 
@@ -25,12 +25,6 @@ class ComedyCentralIE(MTVIE):
             u'description': u'After a certain point, breastfeeding becomes c**kblocking.',
         },
     }
-    # Overwrite MTVIE properties we don't want
-    _TESTS = []
-
-    def _get_thumbnail_url(self, uri, itemdoc):
-        search_path = '%s/%s' % (_media_xml_tag('group'), _media_xml_tag('thumbnail'))
-        return itemdoc.find(search_path).attrib['url']
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
