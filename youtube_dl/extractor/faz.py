@@ -44,13 +44,10 @@ class FazIE(InfoExtractor):
             })
 
         descr = self._html_search_regex(r'<p class="Content Copy">(.*?)</p>', webpage, u'description')
-        info = {
+        return {
             'id': video_id,
             'title': self._og_search_title(webpage),
             'formats': formats,
             'description': descr,
             'thumbnail': config.find('STILL/STILL_BIG').text,
         }
-        # TODO: Remove when #980 has been merged
-        info.update(formats[-1])
-        return info

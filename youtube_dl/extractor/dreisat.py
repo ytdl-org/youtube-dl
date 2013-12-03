@@ -65,7 +65,7 @@ class DreiSatIE(InfoExtractor):
             return (qidx, prefer_http, format['video_bitrate'])
         formats.sort(key=_sortkey)
 
-        info = {
+        return {
             '_type': 'video',
             'id': video_id,
             'title': video_title,
@@ -76,8 +76,3 @@ class DreiSatIE(InfoExtractor):
             'uploader': video_uploader,
             'upload_date': upload_date,
         }
-
-        # TODO: Remove when #980 has been merged
-        info.update(formats[-1])
-
-        return info

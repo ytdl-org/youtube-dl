@@ -113,7 +113,7 @@ class AppleTrailersIE(InfoExtractor):
                 })
             formats = sorted(formats, key=lambda f: (f['height'], f['width']))
 
-            info = {
+            playlist.append({
                 '_type': 'video',
                 'id': video_id,
                 'title': title,
@@ -124,12 +124,7 @@ class AppleTrailersIE(InfoExtractor):
                 'upload_date': upload_date,
                 'uploader_id': uploader_id,
                 'user_agent': 'QuickTime compatible (youtube-dl)',
-            }
-            # TODO: Remove when #980 has been merged
-            info['url'] = formats[-1]['url']
-            info['ext'] = formats[-1]['ext']
-
-            playlist.append(info)
+            })
 
         return {
             '_type': 'playlist',

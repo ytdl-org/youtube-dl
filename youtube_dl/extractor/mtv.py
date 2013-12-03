@@ -93,18 +93,13 @@ class MTVIE(InfoExtractor):
         else:
             description = None
 
-        info = {
+        return {
             'title': itemdoc.find('title').text,
             'formats': self._extract_video_formats(mediagen_page),
             'id': video_id,
             'thumbnail': self._get_thumbnail_url(uri, itemdoc),
             'description': description,
         }
-
-        # TODO: Remove when #980 has been merged
-        info.update(info['formats'][-1])
-
-        return info
 
     def _get_videos_info(self, uri):
         video_id = self._id_from_uri(uri)

@@ -57,7 +57,7 @@ class DaumIE(InfoExtractor):
                 'format_id': profile,
             })
 
-        info = {
+        return {
             'id': video_id,
             'title': info.find('TITLE').text,
             'formats': formats,
@@ -66,6 +66,3 @@ class DaumIE(InfoExtractor):
             'duration': int(info.find('DURATION').text),
             'upload_date': info.find('REGDTTM').text[:8],
         }
-        # TODO: Remove when #980 has been merged
-        info.update(formats[-1])
-        return info

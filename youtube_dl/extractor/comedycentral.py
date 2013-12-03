@@ -197,7 +197,7 @@ class ComedyCentralShowsIE(InfoExtractor):
                 })
 
             effTitle = showId + u'-' + epTitle + u' part ' + compat_str(partNum+1)
-            info = {
+            results.append({
                 'id': shortMediaId,
                 'formats': formats,
                 'uploader': showId,
@@ -205,11 +205,6 @@ class ComedyCentralShowsIE(InfoExtractor):
                 'title': effTitle,
                 'thumbnail': None,
                 'description': compat_str(officialTitle),
-            }
-
-            # TODO: Remove when #980 has been merged
-            info.update(info['formats'][-1])
-
-            results.append(info)
+            })
 
         return results

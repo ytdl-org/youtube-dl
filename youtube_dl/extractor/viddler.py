@@ -47,7 +47,7 @@ class ViddlerIE(InfoExtractor):
             r"thumbnail\s*:\s*'([^']*)'",
             webpage, u'thumbnail', fatal=False)
 
-        info = {
+        return {
             '_type': 'video',
             'id': video_id,
             'title': title,
@@ -56,9 +56,3 @@ class ViddlerIE(InfoExtractor):
             'duration': duration,
             'formats': formats,
         }
-
-        # TODO: Remove when #980 has been merged
-        info['formats'][-1]['ext'] = determine_ext(info['formats'][-1]['url'])
-        info.update(info['formats'][-1])
-
-        return info

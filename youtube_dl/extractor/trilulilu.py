@@ -55,7 +55,7 @@ class TriluliluIE(InfoExtractor):
             for fnode in format_doc.findall('./formats/format')
         ]
 
-        info = {
+        return {
             '_type': 'video',
             'id': video_id,
             'formats': formats,
@@ -64,7 +64,3 @@ class TriluliluIE(InfoExtractor):
             'thumbnail': thumbnail,
         }
 
-        # TODO: Remove when #980 has been merged
-        info.update(formats[-1])
-
-        return info

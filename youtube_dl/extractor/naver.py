@@ -56,7 +56,7 @@ class NaverIE(InfoExtractor):
                 'height': int(format_el.find('height').text),
             })
 
-        info = {
+        return {
             'id': video_id,
             'title': info.find('Subject').text,
             'formats': formats,
@@ -65,6 +65,3 @@ class NaverIE(InfoExtractor):
             'upload_date': info.find('WriteDate').text.replace('.', ''),
             'view_count': int(info.find('PlayCount').text),
         }
-        # TODO: Remove when #980 has been merged
-        info.update(formats[-1])
-        return info
