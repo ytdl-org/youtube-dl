@@ -87,7 +87,9 @@ def parseOpts(overrideArguments=None):
         except IOError:
             return default  # silently skip if file is not present
         try:
-            res = [shlex.split(l, comments=True) for l in optionf]
+            res = []
+            for l in optionf:
+                res += shlex.split(l, comments=True)
         finally:
             optionf.close()
         return res
