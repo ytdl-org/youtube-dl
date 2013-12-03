@@ -81,15 +81,13 @@ from .PostProcessor import (
 
 
 def parseOpts(overrideArguments=None):
-    def _readOptions(filename_bytes):
+    def _readOptions(filename_bytes, def=[]):
         try:
             optionf = open(filename_bytes)
         except IOError:
-            return [] # silently skip if file is not present
+            return def  # silently skip if file is not present
         try:
-            res = []
-            for l in optionf:
-                res += shlex.split(l, comments=True)
+            res = [shlex.split(l, comments=True) for l in optionf]
         finally:
             optionf.close()
         return res
@@ -419,6 +417,8 @@ def parseOpts(overrideArguments=None):
         if opts.verbose:
             write_string(u'[debug] Override config: ' + repr(overrideArguments) + '\n')
     else:
+        systemConf = _readOptions('/etc/youtube-dl.conf')
+
         xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
         if xdg_config_home:
             userConfFile = os.path.join(xdg_config_home, 'youtube-dl', 'config')
@@ -428,8 +428,23 @@ def parseOpts(overrideArguments=None):
             userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl', 'config')
             if not os.path.isfile(userConfFile):
                 userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
-        systemConf = _readOptions('/etc/youtube-dl.conf')
-        userConf = _readOptions(userConfFile)
+        userConf = _readOptions(userConfFile, None)
+
+        if userConf is None:
+            appdata_dir = os.environ.get('appdata')
+            if appdata_dir:
+                userConf = _readOptions(
+                    os.path.join(appdata_dir, 'youtube-dl', 'config'),
+                    def=None)
+
+        if userConf is None:
+            userConfFile = _readOptions(
+                os.path.join(os.path.expanduser('~'), 'youtube-dl.conf'),
+                def=None)
+
+        if userConf is None:
+            userConf = []
+
         commandLineConf = sys.argv[1:]
         argv = systemConf + userConf + commandLineConf
         opts, args = parser.parse_args(argv)
