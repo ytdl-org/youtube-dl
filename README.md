@@ -55,7 +55,7 @@ which means you can modify it, redistribute it or use it however you like.
     --dateafter DATE           download only videos uploaded after this date
     --no-playlist              download only the currently playing video
     --age-limit YEARS          download only videos suitable for the given age
-    --download-archive FILE    Download only videos not present in the archive
+    --download-archive FILE    Download only videos not listed in the archive
                                file. Record the IDs of all downloaded videos in
                                it.
 
