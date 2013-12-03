@@ -191,7 +191,9 @@ def parseOpts(overrideArguments=None):
     general.add_option('--extractor-descriptions',
             action='store_true', dest='list_extractor_descriptions',
             help='Output descriptions of all supported extractors', default=False)
-    general.add_option('--proxy', dest='proxy', default=None, help='Use the specified HTTP/HTTPS proxy', metavar='URL')
+    general.add_option(
+        '--proxy', dest='proxy', default=None, metavar='URL',
+        help='Use the specified HTTP/HTTPS proxy. Pass in an empty string (--proxy "") for direct connection')
     general.add_option('--no-check-certificate', action='store_true', dest='no_check_certificate', default=False, help='Suppress HTTPS certificate validation.')
     general.add_option(
         '--cache-dir', dest='cachedir', default=get_cachedir(), metavar='DIR',
