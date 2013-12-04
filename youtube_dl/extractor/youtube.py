@@ -336,7 +336,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 u"uploader": u"Philipp Hagemeister",
                 u"uploader_id": u"phihag",
                 u"upload_date": u"20121002",
-                u"description": u"test chars:  \"'/\\ä↭𝕐\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de ."
+                u"description": u"test chars:  \"'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de ."
             }
         },
         {
@@ -1366,6 +1366,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         # description
         video_description = get_element_by_id("eow-description", video_webpage)
         if video_description:
+            video_description = re.sub(r'''(?x)
+                <a\s+
+                    (?:[a-zA-Z-]+="[^"]+"\s+)*?
+                    title="([^"]+)"\s+
+                    (?:[a-zA-Z-]+="[^"]+"\s+)*?
+                    class="yt-uix-redirect-link"\s*>
+                [^<]+
+                </a>
+            ''', r'\1', video_description)
             video_description = clean_html(video_description)
         else:
             fd_mobj = re.search(r'<meta name="description" content="([^"]+)"', video_webpage)
