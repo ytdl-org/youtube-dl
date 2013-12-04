@@ -144,6 +144,7 @@ from .teamcoco import TeamcocoIE
 from .techtalks import TechTalksIE
 from .ted import TEDIE
 from .tf1 import TF1IE
+from .theplatform import ThePlatformIE
 from .thisav import ThisAVIE
 from .toutv import TouTvIE
 from .traileraddict import TrailerAddictIE
