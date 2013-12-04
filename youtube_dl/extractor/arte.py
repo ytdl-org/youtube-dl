@@ -17,8 +17,8 @@ from ..utils import (
 # add tests.
 
 class ArteTvIE(InfoExtractor):
-    _VIDEOS_URL = r'(?:http://)?videos.arte.tv/(?P<lang>fr|de)/.*-(?P<id>.*?).html'
-    _LIVEWEB_URL = r'(?:http://)?liveweb.arte.tv/(?P<lang>fr|de)/(?P<subpage>.+?)/(?P<name>.+)'
+    _VIDEOS_URL = r'(?:http://)?videos\.arte\.tv/(?P<lang>fr|de)/.*-(?P<id>.*?)\.html'
+    _LIVEWEB_URL = r'(?:http://)?liveweb\.arte\.tv/(?P<lang>fr|de)/(?P<subpage>.+?)/(?P<name>.+)'
     _LIVE_URL = r'index-[0-9]+\.html$'
 
     IE_NAME = u'arte.tv'

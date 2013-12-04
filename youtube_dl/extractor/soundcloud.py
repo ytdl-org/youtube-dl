@@ -25,7 +25,7 @@ class SoundcloudIE(InfoExtractor):
     _VALID_URL = r'''^(?:https?://)?
                     (?:(?:(?:www\.)?soundcloud\.com/([\w\d-]+)/([\w\d-]+)/?(?:[?].*)?$)
                        |(?:api\.soundcloud\.com/tracks/(?P<track_id>\d+))
-                       |(?P<widget>w.soundcloud.com/player/?.*?url=.*)
+                       |(?P<widget>w\.soundcloud\.com/player/?.*?url=.*)
                     )
                     '''
     IE_NAME = u'soundcloud'
@@ -217,7 +217,7 @@ class SoundcloudSetIE(SoundcloudIE):
 
 
 class SoundcloudUserIE(SoundcloudIE):
-    _VALID_URL = r'https?://(www\.)?soundcloud.com/(?P<user>[^/]+)(/?(tracks/)?)?(\?.*)?$'
+    _VALID_URL = r'https?://(www\.)?soundcloud\.com/(?P<user>[^/]+)(/?(tracks/)?)?(\?.*)?$'
     IE_NAME = u'soundcloud:user'
 
     # it's in tests/test_playlists.py

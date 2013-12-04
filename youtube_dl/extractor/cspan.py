@@ -6,7 +6,7 @@ from ..utils import (
 )
 
 class CSpanIE(InfoExtractor):
-    _VALID_URL = r'http://www.c-spanvideo.org/program/(.*)'
+    _VALID_URL = r'http://www\.c-spanvideo\.org/program/(.*)'
     _TEST = {
         u'url': u'http://www.c-spanvideo.org/program/HolderonV',
         u'file': u'315139.flv',

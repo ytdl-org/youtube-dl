@@ -54,7 +54,7 @@ class BambuserIE(InfoExtractor):
 
 class BambuserChannelIE(InfoExtractor):
     IE_NAME = u'bambuser:channel'
-    _VALID_URL = r'http://bambuser.com/channel/(?P<user>.*?)(?:/|#|\?|$)'
+    _VALID_URL = r'https?://bambuser\.com/channel/(?P<user>.*?)(?:/|#|\?|$)'
     # The maximum number we can get with each request
     _STEP = 50
 

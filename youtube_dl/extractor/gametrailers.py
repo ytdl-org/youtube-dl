@@ -4,8 +4,7 @@ from .mtv import MTVServicesInfoExtractor
 
 
 class GametrailersIE(MTVServicesInfoExtractor):
-    _VALID_URL = r'http://www.gametrailers.com/(?P<type>videos|reviews|full-episodes)/(?P<id>.*?)/(?P<title>.*)'
-
+    _VALID_URL = r'http://www\.gametrailers\.com/(?P<type>videos|reviews|full-episodes)/(?P<id>.*?)/(?P<title>.*)'
     _TEST = {
         u'url': u'http://www.gametrailers.com/videos/zbvr8i/mirror-s-edge-2-e3-2013--debut-trailer',
         u'file': u'70e9a5d7-cf25-4a10-9104-6f3e7342ae0d.mp4',

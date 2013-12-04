@@ -11,7 +11,7 @@ from ..utils import (
 
 class LivestreamIE(InfoExtractor):
     IE_NAME = u'livestream'
-    _VALID_URL = r'http://new.livestream.com/.*?/(?P<event_name>.*?)(/videos/(?P<id>\d+))?/?$'
+    _VALID_URL = r'http://new\.livestream\.com/.*?/(?P<event_name>.*?)(/videos/(?P<id>\d+))?/?$'
     _TEST = {
         u'url': u'http://new.livestream.com/CoheedandCambria/WebsterHall/videos/4719370',
         u'file': u'4719370.mp4',
