@@ -125,6 +125,7 @@ from .smotri import (
     SmotriIE,
     SmotriCommunityIE,
     SmotriUserIE,
+    SmotriBroadcastIE,
 )
 from .sohu import SohuIE
 from .soundcloud import SoundcloudIE, SoundcloudSetIE, SoundcloudUserIE
