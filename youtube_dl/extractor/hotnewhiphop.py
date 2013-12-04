@@ -11,7 +11,7 @@ class HotNewHipHopIE(InfoExtractor):
         u'file': u'1435540.mp3',
         u'md5': u'2c2cd2f76ef11a9b3b581e8b232f3d96',
         u'info_dict': {
-            u"title": u"Freddie Gibbs - Lay It Down"
+            u"title": u'Freddie Gibbs "Lay It Down"'
         }
     }
 
