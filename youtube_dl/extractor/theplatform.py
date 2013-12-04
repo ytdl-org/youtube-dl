@@ -11,7 +11,7 @@ _x = lambda p: xpath_with_ns(p, {'smil': 'http://www.w3.org/2005/SMIL21/Language
 
 
 class ThePlatformIE(InfoExtractor):
-    _VALID_URL = r'https?://link\.theplatform\.com/s/[^/]+/(?P<id>[^/\?]+)'
+    _VALID_URL = r'(?:https?://link\.theplatform\.com/s/[^/]+/|theplatform:)(?P<id>[^/\?]+)'
 
     _TEST = {
         # from http://www.metacafe.com/watch/cb-e9I_cZgTgIPd/blackberrys_big_bold_z30/
