@@ -9,7 +9,7 @@ from ..utils import (
 )
 
 class VeeHDIE(InfoExtractor):
-    _VALID_URL = r'https?://veehd.com/video/(?P<id>\d+)'
+    _VALID_URL = r'https?://veehd\.com/video/(?P<id>\d+)'
 
     _TEST = {
         u'url': u'http://veehd.com/video/4686958',

@@ -13,7 +13,7 @@ from ..utils import (
 
 class AddAnimeIE(InfoExtractor):
 
-    _VALID_URL = r'^http://(?:\w+\.)?add-anime\.net/watch_video.php\?(?:.*?)v=(?P<video_id>[\w_]+)(?:.*)'
+    _VALID_URL = r'^http://(?:\w+\.)?add-anime\.net/watch_video\.php\?(?:.*?)v=(?P<video_id>[\w_]+)(?:.*)'
     IE_NAME = u'AddAnime'
     _TEST = {
         u'url': u'http://www.add-anime.net/watch_video.php?v=24MR3YO5SAS9',

@@ -4,7 +4,7 @@ from .common import InfoExtractor
 
 
 class SlashdotIE(InfoExtractor):
-    _VALID_URL = r'https?://tv.slashdot.org/video/\?embed=(?P<id>.*?)(&|$)'
+    _VALID_URL = r'https?://tv\.slashdot\.org/video/\?embed=(?P<id>.*?)(&|$)'
 
     _TEST = {
         u'add_ie': ['Ooyala'],

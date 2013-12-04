@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class AppleTrailersIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?trailers.apple.com/trailers/(?P<company>[^/]+)/(?P<movie>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?trailers\.apple\.com/trailers/(?P<company>[^/]+)/(?P<movie>[^/]+)'
     _TEST = {
         u"url": u"http://trailers.apple.com/trailers/wb/manofsteel/",
         u"playlist": [

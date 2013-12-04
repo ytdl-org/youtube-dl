@@ -8,7 +8,7 @@ from ..utils import (
 
 class LiveLeakIE(InfoExtractor):
 
-    _VALID_URL = r'^(?:http?://)?(?:\w+\.)?liveleak\.com/view\?(?:.*?)i=(?P<video_id>[\w_]+)(?:.*)'
+    _VALID_URL = r'^(?:http://)?(?:\w+\.)?liveleak\.com/view\?(?:.*?)i=(?P<video_id>[\w_]+)(?:.*)'
     IE_NAME = u'liveleak'
     _TEST = {
         u'url': u'http://www.liveleak.com/view?i=757_1364311680',

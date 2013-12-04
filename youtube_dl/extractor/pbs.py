@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class PBSIE(InfoExtractor):
-    _VALID_URL = r'https?://video.pbs.org/video/(?P<id>\d+)/?'
+    _VALID_URL = r'https?://video\.pbs\.org/video/(?P<id>\d+)/?'
 
     _TEST = {
         u'url': u'http://video.pbs.org/video/2365006249/',

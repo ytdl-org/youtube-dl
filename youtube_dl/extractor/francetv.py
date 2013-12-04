@@ -45,7 +45,7 @@ class PluzzIE(FranceTVBaseInfoExtractor):
 
 class FranceTvInfoIE(FranceTVBaseInfoExtractor):
     IE_NAME = u'francetvinfo.fr'
-    _VALID_URL = r'https?://www\.francetvinfo\.fr/replay.*/(?P<title>.+).html'
+    _VALID_URL = r'https?://www\.francetvinfo\.fr/replay.*/(?P<title>.+)\.html'
 
     _TEST = {
         u'url': u'http://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-lundi-26-aout-2013_393427.html',

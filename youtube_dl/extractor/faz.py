@@ -9,7 +9,7 @@ from ..utils import (
 
 class FazIE(InfoExtractor):
     IE_NAME = u'faz.net'
-    _VALID_URL = r'https?://www\.faz\.net/multimedia/videos/.*?-(?P<id>\d+).html'
+    _VALID_URL = r'https?://www\.faz\.net/multimedia/videos/.*?-(?P<id>\d+)\.html'
 
     _TEST = {
         u'url': u'http://www.faz.net/multimedia/videos/stockholm-chemie-nobelpreis-fuer-drei-amerikanische-forscher-12610585.html',

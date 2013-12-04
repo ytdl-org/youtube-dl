@@ -7,7 +7,7 @@ class GametrailersIE(MTVIE):
     Gametrailers use the same videos system as MTVIE, it just changes the feed
     url, where the uri is and the method to get the thumbnails.
     """
-    _VALID_URL = r'http://www.gametrailers.com/(?P<type>videos|reviews|full-episodes)/(?P<id>.*?)/(?P<title>.*)'
+    _VALID_URL = r'http://www\.gametrailers\.com/(?P<type>videos|reviews|full-episodes)/(?P<id>.*?)/(?P<title>.*)'
     _TEST = {
         u'url': u'http://www.gametrailers.com/videos/zbvr8i/mirror-s-edge-2-e3-2013--debut-trailer',
         u'file': u'70e9a5d7-cf25-4a10-9104-6f3e7342ae0d.mp4',

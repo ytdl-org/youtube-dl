@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class MySpassIE(InfoExtractor):
-    _VALID_URL = r'http://www.myspass.de/.*'
+    _VALID_URL = r'http://www\.myspass\.de/.*'
     _TEST = {
         u'url': u'http://www.myspass.de/myspass/shows/tvshows/absolute-mehrheit/Absolute-Mehrheit-vom-17022013-Die-Highlights-Teil-2--/11741/',
         u'file': u'11741.mp4',
