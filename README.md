@@ -30,7 +30,8 @@ which means you can modify it, redistribute it or use it however you like.
     --list-extractors          List all supported extractors and the URLs they
                                would handle
     --extractor-descriptions   Output descriptions of all supported extractors
-    --proxy URL                Use the specified HTTP/HTTPS proxy
+    --proxy URL                Use the specified HTTP/HTTPS proxy. Pass in an
+                               empty string (--proxy "") for direct connection
     --no-check-certificate     Suppress HTTPS certificate validation.
     --cache-dir DIR            Location in the filesystem where youtube-dl can
                                store downloaded information permanently. By
