@@ -302,7 +302,7 @@ class SmotriBroadcastIE(InfoExtractor):
             adult_content = False
 
         ticket = self._html_search_regex(
-            u'window.broadcast_control.addFlashVar\\(\'file\', \'([^\']+)\'\\);',
+            u'window\.broadcast_control\.addFlashVar\\(\'file\', \'([^\']+)\'\\);',
             broadcast_page, u'broadcast ticket')
 
         url = 'http://smotri.com/broadcast/view/url/?ticket=%s' % ticket
