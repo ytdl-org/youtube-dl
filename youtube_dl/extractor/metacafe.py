@@ -69,6 +69,21 @@ class MetacafeIE(InfoExtractor):
             u'age_limit': 18,
         },
     },
+    # cbs video
+    {
+        u'url': u'http://www.metacafe.com/watch/cb-0rOxMBabDXN6/samsung_galaxy_note_2_samsungs_next_generation_phablet/',
+        u'info_dict': {
+            u'id': u'0rOxMBabDXN6',
+            u'ext': u'flv',
+            u'title': u'Samsung Galaxy Note 2: Samsung\'s next-generation phablet',
+            u'description': u'md5:54d49fac53d26d5a0aaeccd061ada09d',
+            u'duration': 129,
+        },
+        u'params': {
+            # rtmp download
+            u'skip_download': True,
+        },
+    },
     ]
 
 
@@ -106,10 +121,16 @@ class MetacafeIE(InfoExtractor):
 
         video_id = mobj.group(1)
 
-        # Check if video comes from YouTube
-        mobj2 = re.match(r'^yt-(.*)$', video_id)
-        if mobj2 is not None:
-            return [self.url_result('http://www.youtube.com/watch?v=%s' % mobj2.group(1), 'Youtube')]
+        # the video may come from an external site
+        m_external = re.match('^(\w{2})-(.*)$', video_id)
+        if m_external is not None:
+            prefix, ext_id = m_external.groups()
+            # Check if video comes from YouTube
+            if prefix == 'yt':
+                return self.url_result('http://www.youtube.com/watch?v=%s' % ext_id, 'Youtube')
+            # CBS videos use theplatform.com
+            if prefix == 'cb':
+                return self.url_result('theplatform:%s' % ext_id, 'ThePlatform')
 
         # Retrieve video webpage to extract further information
         req = compat_urllib_request.Request('http://www.metacafe.com/watch/%s/' % video_id)
