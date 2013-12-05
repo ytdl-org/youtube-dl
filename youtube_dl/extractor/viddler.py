@@ -2,9 +2,6 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-)
 
 
 class ViddlerIE(InfoExtractor):

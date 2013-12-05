@@ -17,7 +17,6 @@ import ssl
 import socket
 import sys
 import traceback
-import xml.etree.ElementTree
 import zlib
 
 try:

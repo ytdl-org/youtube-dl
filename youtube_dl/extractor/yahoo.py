@@ -47,7 +47,7 @@ class YahooIE(InfoExtractor):
         # The 'meta' field is not always in the video webpage, we request it
         # from another page
         long_id = info['id']
-        return self._get_info(info['id'], video_id)
+        return self._get_info(long_id, video_id)
 
     def _get_info(self, long_id, video_id):
         query = ('SELECT * FROM yahoo.media.video.streams WHERE id="%s"'

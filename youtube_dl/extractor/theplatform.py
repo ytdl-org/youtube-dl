@@ -4,7 +4,6 @@ import json
 from .common import InfoExtractor
 from ..utils import (
     xpath_with_ns,
-    find_xpath_attr,
 )
 
 _x = lambda p: xpath_with_ns(p, {'smil': 'http://www.w3.org/2005/SMIL21/Language'})

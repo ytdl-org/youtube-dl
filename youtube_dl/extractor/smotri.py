@@ -6,7 +6,6 @@ import hashlib
 
 from .common import InfoExtractor
 from ..utils import (
-    determine_ext,
     ExtractorError
 )
 
