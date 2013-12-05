@@ -37,5 +37,7 @@ class NineGagIE(InfoExtractor):
             'title': data['title'],
             'description': data['description'],
             'view_count': int(data['view_count']),
+            'like_count': int(data['statistic']['like']),
+            'dislike_count': int(data['statistic']['dislike']),
             'thumbnail': data['thumbnail_url'],
         }

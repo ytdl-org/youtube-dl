@@ -55,6 +55,9 @@ class InfoExtractor(object):
     subtitles:      The subtitle file contents as a dictionary in the format
                     {language: subtitles}.
     view_count:     How many users have watched the video on the platform.
+    like_count:     Number of positive ratings of the video
+    dislike_count:  Number of negative ratings of the video
+    comment_count:  Number of comments on the video
     urlhandle:      [internal] The urlHandle to be used to download the file,
                     like returned by urllib.request.urlopen
     age_limit:      Age restriction for the video, as an integer (years)
