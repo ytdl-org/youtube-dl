@@ -72,7 +72,7 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
     _VALID_URL = r'''(?x)https?://www\.france[2345o]\.fr/
         (?:
             emissions/.*?/(videos|emissions)/(?P<id>[^/?]+)
-        |   (emission|jt)/(?P<key>[^/?]+)
+        |   (emissions?|jt)/(?P<key>[^/?]+)
         )'''
 
     _TESTS = [
@@ -91,12 +91,12 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
         },
         # france3
         {
-            u'url': u'http://www.france3.fr/emissions/pieces-a-conviction/videos/rhozet_pac_ba_20131204_1933_03122013164521_F3',
+            u'url': u'http://www.france3.fr/emissions/pieces-a-conviction/diffusions/13-11-2013_145575',
             u'info_dict': {
-                u'id': u'rhozet_pac_ba_20131204_1933_03122013164521_F3',
+                u'id': u'000702326_CAPP_PicesconvictionExtrait313022013_120220131722_Au',
                 u'ext': u'flv',
-                u'title': u'Pièces à conviction du 04/12/2013',
-                u'description': u'md5:1cf14ea302ba5f10d992c9eb2bff30dd',
+                u'title': u'Le scandale du prix des médicaments',
+                u'description': u'md5:1384089fbee2f04fc6c9de025ee2e9ce',
             },
             u'params': {
                 # rtmp download
@@ -158,6 +158,7 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
                     class="francetv-video-player">'''),
                 (r'<a id="player_direct" href="http://info\.francetelevisions'
                  '\.fr/\?id-video=([^"/&]+)'),
+                (r'<a class="video" id="ftv_player_(.+?)"'),
             ]
             video_id = self._html_search_regex(id_res, webpage, u'video ID')
         else:
