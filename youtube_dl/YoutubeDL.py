@@ -405,7 +405,8 @@ class YoutubeDL(object):
         for key, value in extra_info.items():
             info_dict.setdefault(key, value)
 
-    def extract_info(self, url, download=True, ie_key=None, extra_info={}):
+    def extract_info(self, url, download=True, ie_key=None, extra_info={},
+                     process=True):
         '''
         Returns a list with a dictionary for each video we find.
         If 'download', also downloads the videos.
@@ -441,7 +442,10 @@ class YoutubeDL(object):
                         'webpage_url': url,
                         'extractor_key': ie.ie_key(),
                     })
-                return self.process_ie_result(ie_result, download, extra_info)
+                if process:
+                    return self.process_ie_result(ie_result, download, extra_info)
+                else:
+                    return ie_result
             except ExtractorError as de: # An error we somewhat expected
                 self.report_error(compat_str(de), de.format_traceback())
                 break
@@ -474,8 +478,32 @@ class YoutubeDL(object):
                                      download,
                                      ie_key=ie_result.get('ie_key'),
                                      extra_info=extra_info)
-        elif result_type == 'playlist':
+        elif result_type == 'url_transparent':
+            # Use the information from the embedding page
+            info = self.extract_info(
+                ie_result['url'], ie_key=ie_result.get('ie_key'),
+                extra_info=extra_info, download=False, process=False)
 
+            def make_result(embedded_info):
+                new_result = ie_result.copy()
+                for f in ('_type', 'url', 'ext', 'player_url', 'formats',
+                          'entries', 'urlhandle', 'ie_key', 'duration',
+                          'subtitles', 'annotations', 'format'):
+                    if f in new_result:
+                        del new_result[f]
+                    if f in embedded_info:
+                        new_result[f] = embedded_info[f]
+                return new_result
+            new_result = make_result(info)
+
+            assert new_result.get('_type') != 'url_transparent'
+            if new_result.get('_type') == 'compat_list':
+                new_result['entries'] = [
+                    make_result(e) for e in new_result['entries']]
+
+            return self.process_ie_result(
+                new_result, download=download, extra_info=extra_info)
+        elif result_type == 'playlist':
             # We process each entry in the playlist
             playlist = ie_result.get('title', None) or ie_result.get('id', None)
             self.to_screen(u'[download] Downloading playlist: %s' % playlist)
