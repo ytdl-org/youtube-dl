@@ -17,6 +17,7 @@ from youtube_dl.extractor import (
     VimeoChannelIE,
     VimeoUserIE,
     VimeoAlbumIE,
+    VimeoGroupsIE,
     UstreamChannelIE,
     SoundcloudSetIE,
     SoundcloudUserIE,
@@ -73,6 +74,14 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['title'], u'Staff Favorites: November 2013')
         self.assertTrue(len(result['entries']) > 12)
+
+    def test_vimeo_groups(self):
+        dl = FakeYDL()
+        ie = VimeoGroupsIE(dl)
+        result = ie.extract('http://vimeo.com/groups/rolexawards')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['title'], u'Rolex Awards for Enterprise')
+        self.assertTrue(len(result['entries']) > 72)
 
     def test_ustream_channel(self):
         dl = FakeYDL()

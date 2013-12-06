@@ -20,7 +20,7 @@ class VimeoIE(InfoExtractor):
     """Information extractor for vimeo.com."""
 
     # _VALID_URL matches Vimeo URLs
-    _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|(?P<player>player))\.)?vimeo(?P<pro>pro)?\.com/(?:(?:(?:groups)/[^/]+)|(?:.*?)/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)/?(?:[?].*)?(?:#.*)?$'
+    _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|(?P<player>player))\.)?vimeo(?P<pro>pro)?\.com/(?:.*?/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)/?(?:[?].*)?(?:#.*)?$'
     _NETRC_MACHINE = 'vimeo'
     IE_NAME = u'vimeo'
     _TESTS = [
@@ -267,6 +267,9 @@ class VimeoChannelIE(InfoExtractor):
     def _page_url(self, base_url, pagenum):
         return '%s/videos/page:%d/' % (base_url, pagenum)
 
+    def _extract_list_title(self, webpage):
+        return self._html_search_regex(self._TITLE_RE, webpage, u'list title')
+
     def _extract_videos(self, list_id, base_url):
         video_ids = []
         for pagenum in itertools.count(1):
@@ -279,11 +282,9 @@ class VimeoChannelIE(InfoExtractor):
 
         entries = [self.url_result('http://vimeo.com/%s' % video_id, 'Vimeo')
                    for video_id in video_ids]
-        list_title = self._html_search_regex(self._TITLE_RE, webpage,
-            u'list title')
         return {'_type': 'playlist',
                 'id': list_id,
-                'title': list_title,
+                'title': self._extract_list_title(webpage),
                 'entries': entries,
                 }
 
@@ -300,7 +301,7 @@ class VimeoUserIE(VimeoChannelIE):
 
     @classmethod
     def suitable(cls, url):
-        if VimeoChannelIE.suitable(url) or VimeoIE.suitable(url) or VimeoAlbumIE.suitable(url):
+        if VimeoChannelIE.suitable(url) or VimeoIE.suitable(url) or VimeoAlbumIE.suitable(url) or VimeoGroupsIE.suitable(url):
             return False
         return super(VimeoUserIE, cls).suitable(url)
 
@@ -322,3 +323,16 @@ class VimeoAlbumIE(VimeoChannelIE):
         mobj = re.match(self._VALID_URL, url)
         album_id =  mobj.group('id')
         return self._extract_videos(album_id, 'http://vimeo.com/album/%s' % album_id)
+
+
+class VimeoGroupsIE(VimeoAlbumIE):
+    IE_NAME = u'vimeo:group'
+    _VALID_URL = r'(?:https?://)?vimeo.\com/groups/(?P<name>[^/]+)'
+
+    def _extract_list_title(self, webpage):
+        return self._og_search_title(webpage)
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        name = mobj.group('name')
+        return self._extract_videos(name, 'http://vimeo.com/groups/%s' % name)
