@@ -1553,7 +1553,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
     def _extract_mix(self, playlist_id):
         # The mixes are generated from a a single video
         # the id of the playlist is just 'RD' + video_id
-        url = 'https://youtube.com/watch?v=%s&list=%s' % (playlist_id[2:], playlist_id)
+        url = 'https://youtube.com/watch?v=%s&list=%s' % (playlist_id[-11:], playlist_id)
         webpage = self._download_webpage(url, playlist_id, u'Downloading Youtube mix')
         title_span = (get_element_by_attribute('class', 'title long-title', webpage) or
             get_element_by_attribute('class', 'title ', webpage))
@@ -1581,7 +1581,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
             else:
                 self.to_screen(u'Downloading playlist PL%s - add --no-playlist to just download video %s' % (playlist_id, video_id))
 
-        if len(playlist_id) == 13:  # 'RD' + 11 characters for the video id
+        if playlist_id.startswith('RD'):
             # Mixes require a custom extraction process
             return self._extract_mix(playlist_id)
 
