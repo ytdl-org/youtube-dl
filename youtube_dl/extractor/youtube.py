@@ -1528,10 +1528,10 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                            \? (?:.*?&)*? (?:p|a|list)=
                         |  p/
                         )
-                        ((?:PL|EC|UU|FL)?[0-9A-Za-z-_]{10,})
+                        ((?:PL|EC|UU|FL|RD)?[0-9A-Za-z-_]{10,})
                         .*
                      |
-                        ((?:PL|EC|UU|FL)[0-9A-Za-z-_]{10,})
+                        ((?:PL|EC|UU|FL|RD)[0-9A-Za-z-_]{10,})
                      )"""
     _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s&page=%s'
     _MORE_PAGES_INDICATOR = r'data-link-type="next"'
