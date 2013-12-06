@@ -178,6 +178,7 @@ from .wat import WatIE
 from .websurg import WeBSurgIE
 from .weibo import WeiboIE
 from .wimp import WimpIE
+from .wistia import WistiaIE
 from .worldstarhiphop import WorldStarHipHopIE
 from .xhamster import XHamsterIE
 from .xnxx import XNXXIE

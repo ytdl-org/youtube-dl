@@ -488,7 +488,8 @@ class YoutubeDL(object):
                 new_result = ie_result.copy()
                 for f in ('_type', 'url', 'ext', 'player_url', 'formats',
                           'entries', 'urlhandle', 'ie_key', 'duration',
-                          'subtitles', 'annotations', 'format'):
+                          'subtitles', 'annotations', 'format',
+                          'thumbnail', 'thumbnails'):
                     if f in new_result:
                         del new_result[f]
                     if f in embedded_info:

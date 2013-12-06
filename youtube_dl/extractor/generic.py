@@ -169,8 +169,13 @@ class GenericIE(InfoExtractor):
         #   Site Name | Video Title
         #   Video Title - Tagline | Site Name
         # and so on and so forth; it's just not practical
-        video_title = self._html_search_regex(r'<title>(.*)</title>',
-            webpage, u'video title', default=u'video', flags=re.DOTALL)
+        video_title = self._html_search_regex(
+            r'(?s)<title>(.*?)</title>', webpage, u'video title',
+            default=u'video')
+
+        # video uploader is domain name
+        video_uploader = self._search_regex(
+            r'^(?:https?://)?([^/]*)/.*', url, u'video uploader')
 
         # Look for BrightCove:
         bc_url = BrightcoveIE._extract_brightcove_url(webpage)
@@ -188,7 +193,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded YouTube player
         matches = re.findall(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?youtube.com/embed/.+?)\1', webpage)
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?youtube\.com/embed/.+?)\1', webpage)
         if matches:
             urlrs = [self.url_result(unescapeHTML(tuppl[1]), 'Youtube')
                      for tuppl in matches]
@@ -197,12 +202,25 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded Dailymotion player
         matches = re.findall(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion.com/embed/video/.+?)\1', webpage)
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/embed/video/.+?)\1', webpage)
         if matches:
             urlrs = [self.url_result(unescapeHTML(tuppl[1]), 'Dailymotion')
                      for tuppl in matches]
             return self.playlist_result(
                 urlrs, playlist_id=video_id, playlist_title=video_title)
+
+        # Look for embedded Wistia player
+        match = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:fast\.)?wistia\.net/embed/iframe/.+?)\1', webpage)
+        if match:
+            return {
+                '_type': 'url_transparent',
+                'url': unescapeHTML(match.group('url')),
+                'ie_key': 'Wistia',
+                'uploader': video_uploader,
+                'title': video_title,
+                'id': video_id,
+            }
 
         # Look for Bandcamp pages with custom domain
         mobj = re.search(r'<meta property="og:url"[^>]*?content="(.*?bandcamp\.com.*?)"', webpage)
@@ -247,14 +265,9 @@ class GenericIE(InfoExtractor):
         # here's a fun little line of code for you:
         video_id = os.path.splitext(video_id)[0]
 
-        # video uploader is domain name
-        video_uploader = self._search_regex(r'(?:https?://)?([^/]*)/.*',
-            url, u'video uploader')
-
         return {
             'id':       video_id,
             'url':      video_url,
             'uploader': video_uploader,
-            'upload_date':  None,
             'title':    video_title,
         }
