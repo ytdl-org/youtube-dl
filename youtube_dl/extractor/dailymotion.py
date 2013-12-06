@@ -11,6 +11,7 @@ from ..utils import (
     get_element_by_attribute,
     get_element_by_id,
     orderedSet,
+    str_to_int,
 
     ExtractorError,
 )
@@ -146,6 +147,9 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             self._list_available_subtitles(video_id, webpage)
             return
 
+        view_count = str_to_int(self._search_regex(
+            r'video_views_value[^>]+>([\d\.]+)<', webpage, u'view count'))
+
         return {
             'id':       video_id,
             'formats': formats,
@@ -155,6 +159,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             'subtitles':    video_subtitles,
             'thumbnail': info['thumbnail_url'],
             'age_limit': age_limit,
+            'view_count': view_count,
         }
 
     def _get_available_subtitles(self, video_id, webpage):

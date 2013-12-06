@@ -1020,3 +1020,7 @@ def format_bytes(bytes):
     suffix = [u'B', u'KiB', u'MiB', u'GiB', u'TiB', u'PiB', u'EiB', u'ZiB', u'YiB'][exponent]
     converted = float(bytes) / float(1024 ** exponent)
     return u'%.2f%s' % (converted, suffix)
+
+def str_to_int(int_str):
+    int_str = re.sub(r'[,\.]', u'', int_str)
+    return int(int_str)
