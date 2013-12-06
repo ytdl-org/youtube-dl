@@ -388,10 +388,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         super(YoutubeIE, self).__init__(*args, **kwargs)
         self._player_cache = {}
 
-    def report_video_webpage_download(self, video_id):
-        """Report attempt to download video webpage."""
-        self.to_screen(u'%s: Downloading video webpage' % video_id)
-
     def report_video_info_webpage_download(self, video_id):
         """Report attempt to download video info webpage."""
         self.to_screen(u'%s: Downloading video info webpage' % video_id)
@@ -1258,15 +1254,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         video_id = self._extract_id(url)
 
         # Get video webpage
-        self.report_video_webpage_download(video_id)
         url = 'https://www.youtube.com/watch?v=%s&gl=US&hl=en&has_verified=1' % video_id
-        request = compat_urllib_request.Request(url)
-        try:
-            video_webpage_bytes = compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'Unable to download video webpage: %s' % compat_str(err))
-
-        video_webpage = video_webpage_bytes.decode('utf-8', 'ignore')
+        video_webpage = self._download_webpage(url, video_id)
 
         # Attempt to extract SWF player URL
         mobj = re.search(r'swfConfig.*?"(https?:\\/\\/.*?watch.*?-.*?\.swf)"', video_webpage)
@@ -1382,6 +1371,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 video_description = unescapeHTML(fd_mobj.group(1))
             else:
                 video_description = u''
+
+        def _extract_count(klass):
+            count = self._search_regex(r'class="%s">([\d,]+)</span>' % re.escape(klass), video_webpage, klass, fatal=False)
+            if count is not None:
+                return int(count.replace(',', ''))
+            return None
+        like_count = _extract_count(u'likes-count')
+        dislike_count = _extract_count(u'dislikes-count')
 
         # subtitles
         video_subtitles = self.extract_subtitles(video_id, video_webpage)
@@ -1515,6 +1512,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'annotations':  video_annotations,
                 'webpage_url': 'https://www.youtube.com/watch?v=%s' % video_id,
                 'view_count': view_count,
+                'like_count': like_count,
+                'dislike_count': dislike_count,
             })
         return results
 
