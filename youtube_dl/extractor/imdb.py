@@ -21,7 +21,6 @@ class ImdbIE(InfoExtractor):
             u'ext': u'mp4',
             u'title': u'Ice Age: Continental Drift Trailer (No. 2) - IMDb',
             u'description': u'md5:9061c2219254e5d14e03c25c98e96a81',
-            u'duration': 151,
         }
     }
 
@@ -35,6 +34,7 @@ class ImdbIE(InfoExtractor):
             flags=re.MULTILINE)
         formats = []
         for f_id, f_path in available_formats:
+            f_path = f_path.strip()
             format_page = self._download_webpage(
                 compat_urlparse.urljoin(url, f_path),
                 u'Downloading info for %s format' % f_id)
@@ -46,7 +46,6 @@ class ImdbIE(InfoExtractor):
             formats.append({
                 'format_id': f_id,
                 'url': format_info['url'],
-                'height': int(info['titleObject']['encoding']['selected'][:-1]),
             })
 
         return {
@@ -55,5 +54,4 @@ class ImdbIE(InfoExtractor):
             'formats': formats,
             'description': descr,
             'thumbnail': format_info['slate'],
-            'duration': int(info['titleObject']['title']['duration_seconds']),
         }
