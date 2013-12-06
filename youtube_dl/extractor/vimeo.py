@@ -196,6 +196,16 @@ class VimeoIE(InfoExtractor):
         if mobj is not None:
             video_upload_date = mobj.group(1) + mobj.group(2) + mobj.group(3)
 
+        try:
+            view_count = int(self._search_regex(r'UserPlays:(\d+)', webpage, u'view count'))
+            like_count = int(self._search_regex(r'UserLikes:(\d+)', webpage, u'like count'))
+            comment_count = int(self._search_regex(r'UserComments:(\d+)', webpage, u'comment count'))
+        except RegexNotFoundError:
+            # This info is only available in vimeo.com/{id} urls
+            view_count = None
+            like_count = None
+            comment_count = None
+
         # Vimeo specific: extract request signature and timestamp
         sig = config['request']['signature']
         timestamp = config['request']['timestamp']
@@ -242,6 +252,9 @@ class VimeoIE(InfoExtractor):
             'description':  video_description,
             'formats': formats,
             'webpage_url': url,
+            'view_count': view_count,
+            'like_count': like_count,
+            'comment_count': comment_count,
         }
 
 
