@@ -148,7 +148,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             return
 
         view_count = str_to_int(self._search_regex(
-            r'video_views_value[^>]+>([\d\.]+)<', webpage, u'view count'))
+            r'video_views_value[^>]+>([\d\.,]+)<', webpage, u'view count'))
 
         return {
             'id':       video_id,
