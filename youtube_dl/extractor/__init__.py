@@ -170,6 +170,7 @@ from .vimeo import (
     VimeoIE,
     VimeoChannelIE,
     VimeoUserIE,
+    VimeoAlbumIE,
 )
 from .vine import VineIE
 from .viki import VikiIE
