@@ -24,7 +24,7 @@ class VevoIE(InfoExtractor):
             u"upload_date": u"20130624",
             u"uploader": u"Hurts",
             u"title": u"Somebody to Die For",
-            u"duration": 230,
+            u"duration": 230.12,
             u"width": 1920,
             u"height": 1080,
         }
