@@ -5,7 +5,6 @@ from ..utils import determine_ext
 
 
 class PyvideoIE(InfoExtractor):
-    _VALID_URL = r'(?:http://)?(?:www\.)?break\.com/video/([^/]+)'
     _VALID_URL = r'(?:http://)?(?:www\.)?pyvideo\.org/video/(\d+)/(.*)'
     _TEST = {
         u'url': u'http://pyvideo.org/video/1737/become-a-logging-expert-in-30-minutes',
