@@ -111,6 +111,7 @@ from .photobucket import PhotobucketIE
 from .podomatic import PodomaticIE
 from .pornhub import PornHubIE
 from .pornotube import PornotubeIE
+from .pyvideo import PyvideoIE
 from .rbmaradio import RBMARadioIE
 from .redtube import RedTubeIE
 from .ringtv import RingTVIE
