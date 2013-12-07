@@ -1,18 +1,22 @@
 import re
 
 from .common import InfoExtractor
-from ..utils import determine_ext
 
 
 class PyvideoIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:www\.)?pyvideo\.org/video/(\d+)/(.*)'
     _TEST = {
         u'url': u'http://pyvideo.org/video/1737/become-a-logging-expert-in-30-minutes',
-        u'file': u'Become a logging expert in 30 minutes-24_4WWkSmNo.mp4',
-        u'md5': u'bf08cae24e1601027f98ae1262c299ad',
+        u'file': u'24_4WWkSmNo.mp4',
+        u'md5': u'de317418c8bc76b1fd8633e4f32acbc6',
         u'info_dict': {
-            u"title": u"Become a logging expert in 30 minutes"
-        }
+            u"title": u"Become a logging expert in 30 minutes",
+            u"description": u"md5:9665350d466c67fb5b1598de379021f7",
+            u"upload_date": u"20130320",
+            u"uploader": u"NextDayVideo",
+            u"uploader_id": u"NextDayVideo",
+        },
+        u'add_ie': ['Youtube'],
     }
 
     def _real_extract(self, url):
