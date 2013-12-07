@@ -26,7 +26,7 @@ class XHamsterIE(InfoExtractor):
     {
         u'url': u'http://xhamster.com/movies/2221348/britney_spears_sexy_booty.html?hd',
         u'file': u'2221348.flv',
-        u'md5': u'970a94178ca4118c5aa3aaea21211b81',
+        u'md5': u'e767b9475de189320f691f49c679c4c7',
         u'info_dict': {
             u"upload_date": u"20130914",
             u"uploader_id": u"jojo747400",
