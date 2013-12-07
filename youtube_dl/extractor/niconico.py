@@ -2,7 +2,6 @@
 
 import re
 import socket
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -77,11 +76,11 @@ class NiconicoIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group(1)
 
-        # Get video webpage
-        video_webpage = self._download_webpage(
-            'http://www.nicovideo.jp/watch/' + video_id, video_id)
+        # Get video webpage. We are not actually interested in it, but need
+        # the cookies in order to be able to download the info webpage
+        self._download_webpage('http://www.nicovideo.jp/watch/' + video_id, video_id)
 
-        video_info_webpage = self._download_webpage(
+        video_info = self._download_xml(
             'http://ext.nicovideo.jp/api/getthumbinfo/' + video_id, video_id,
             note=u'Downloading video info page')
 
@@ -92,7 +91,6 @@ class NiconicoIE(InfoExtractor):
         video_real_url = compat_urlparse.parse_qs(flv_info_webpage)['url'][0]
 
         # Start extracting information
-        video_info = xml.etree.ElementTree.fromstring(video_info_webpage)
         video_title = video_info.find('.//title').text
         video_extension = video_info.find('.//movie_type').text
         video_format = video_extension.upper()
@@ -107,13 +105,11 @@ class NiconicoIE(InfoExtractor):
         video_uploader = video_uploader_id
         url = 'http://seiga.nicovideo.jp/api/user/info?id=' + video_uploader_id
         try:
-            user_info_webpage = self._download_webpage(
+            user_info = self._download_xml(
                 url, video_id, note=u'Downloading user information')
+            video_uploader = user_info.find('.//nickname').text
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             self._downloader.report_warning(u'Unable to download user info webpage: %s' % compat_str(err))
-        else:
-            user_info = xml.etree.ElementTree.fromstring(user_info_webpage)
-            video_uploader = user_info.find('.//nickname').text
 
         return {
             'id':          video_id,

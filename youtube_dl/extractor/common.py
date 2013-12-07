@@ -4,11 +4,11 @@ import re
 import socket
 import sys
 import netrc
+import xml.etree.ElementTree
 
 from ..utils import (
     compat_http_client,
     compat_urllib_error,
-    compat_urllib_request,
     compat_str,
 
     clean_html,
@@ -18,6 +18,7 @@ from ..utils import (
     sanitize_filename,
     unescapeHTML,
 )
+
 
 class InfoExtractor(object):
     """Information Extractor class.
@@ -54,6 +55,9 @@ class InfoExtractor(object):
     subtitles:      The subtitle file contents as a dictionary in the format
                     {language: subtitles}.
     view_count:     How many users have watched the video on the platform.
+    like_count:     Number of positive ratings of the video
+    dislike_count:  Number of negative ratings of the video
+    comment_count:  Number of comments on the video
     urlhandle:      [internal] The urlHandle to be used to download the file,
                     like returned by urllib.request.urlopen
     age_limit:      Age restriction for the video, as an integer (years)
@@ -75,6 +79,7 @@ class InfoExtractor(object):
                     * acodec    Name of the audio codec in use
                     * vbr       Average video bitrate in KBit/s
                     * vcodec    Name of the video codec in use
+                    * filesize  The number of bytes, if known in advance
     webpage_url:    The url to the video webpage, if given to youtube-dl it
                     should allow to get the same result again. (It will be set
                     by YoutubeDL if it's missing)
@@ -156,7 +161,7 @@ class InfoExtractor(object):
         elif note is not False:
             self.to_screen(u'%s: %s' % (video_id, note))
         try:
-            return compat_urllib_request.urlopen(url_or_request)
+            return self._downloader.urlopen(url_or_request)
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             if errnote is None:
                 errnote = u'Unable to download webpage'
@@ -207,6 +212,12 @@ class InfoExtractor(object):
     def _download_webpage(self, url_or_request, video_id, note=None, errnote=None):
         """ Returns the data of the page as a string """
         return self._download_webpage_handle(url_or_request, video_id, note, errnote)[0]
+
+    def _download_xml(self, url_or_request, video_id,
+                      note=u'Downloading XML', errnote=u'Unable to download XML'):
+        """Return the xml as an xml.etree.ElementTree.Element"""
+        xml_string = self._download_webpage(url_or_request, video_id, note, errnote)
+        return xml.etree.ElementTree.fromstring(xml_string.encode('utf-8'))
 
     def to_screen(self, msg):
         """Print msg to screen, prefixing it with '[ie_name]'"""
@@ -356,7 +367,8 @@ class InfoExtractor(object):
         if display_name is None:
             display_name = name
         return self._html_search_regex(
-            r'''(?ix)<meta(?=[^>]+(?:name|property)=["\']%s["\'])
+            r'''(?ix)<meta
+                    (?=[^>]+(?:itemprop|name|property)=["\']%s["\'])
                     [^>]+content=["\']([^"\']+)["\']''' % re.escape(name),
             html, display_name, fatal=False)
 

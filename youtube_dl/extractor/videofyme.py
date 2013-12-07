@@ -1,5 +1,4 @@
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -8,7 +7,7 @@ from ..utils import (
 )
 
 class VideofyMeIE(InfoExtractor):
-    _VALID_URL = r'https?://(www.videofy.me/.+?|p.videofy.me/v)/(?P<id>\d+)(&|#|$)'
+    _VALID_URL = r'https?://(www\.videofy\.me/.+?|p\.videofy\.me/v)/(?P<id>\d+)(&|#|$)'
     IE_NAME = u'videofy.me'
 
     _TEST = {
@@ -27,9 +26,8 @@ class VideofyMeIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        config_xml = self._download_webpage('http://sunshine.videofy.me/?videoId=%s' % video_id,
+        config = self._download_xml('http://sunshine.videofy.me/?videoId=%s' % video_id,
                                             video_id)
-        config = xml.etree.ElementTree.fromstring(config_xml.encode('utf-8'))
         video = config.find('video')
         sources = video.find('sources')
         url_node = next(node for node in [find_xpath_attr(sources, 'source', 'id', 'HQ %s' % key) 

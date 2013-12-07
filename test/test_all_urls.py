@@ -100,10 +100,15 @@ class TestAllURLsMatching(unittest.TestCase):
     def test_keywords(self):
         self.assertMatch(':ytsubs', ['youtube:subscriptions'])
         self.assertMatch(':ytsubscriptions', ['youtube:subscriptions'])
-        self.assertMatch(':thedailyshow', ['ComedyCentral'])
-        self.assertMatch(':tds', ['ComedyCentral'])
-        self.assertMatch(':colbertreport', ['ComedyCentral'])
-        self.assertMatch(':cr', ['ComedyCentral'])
+        self.assertMatch(':ythistory', ['youtube:history'])
+        self.assertMatch(':thedailyshow', ['ComedyCentralShows'])
+        self.assertMatch(':tds', ['ComedyCentralShows'])
+        self.assertMatch(':colbertreport', ['ComedyCentralShows'])
+        self.assertMatch(':cr', ['ComedyCentralShows'])
+
+    def test_vimeo_matching(self):
+        self.assertMatch('http://vimeo.com/channels/tributes', ['vimeo:channel'])
+        self.assertMatch('http://vimeo.com/user7108434', ['vimeo:user'])
 
 
 if __name__ == '__main__':

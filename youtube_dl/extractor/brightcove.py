@@ -76,18 +76,21 @@ class BrightcoveIE(InfoExtractor):
                   'playerID': find_xpath_attr(object_doc, './param', 'name', 'playerID').attrib['value'],
                   }
         def find_param(name):
-            return find_xpath_attr(object_doc, './param', 'name', name)
+            node = find_xpath_attr(object_doc, './param', 'name', name)
+            if node is not None:
+                return node.attrib['value']
+            return None
         playerKey = find_param('playerKey')
         # Not all pages define this value
         if playerKey is not None:
-            params['playerKey'] = playerKey.attrib['value']
+            params['playerKey'] = playerKey
         # The three fields hold the id of the video
         videoPlayer = find_param('@videoPlayer') or find_param('videoId') or find_param('videoID')
         if videoPlayer is not None:
-            params['@videoPlayer'] = videoPlayer.attrib['value']
+            params['@videoPlayer'] = videoPlayer
         linkBase = find_param('linkBaseURL')
         if linkBase is not None:
-            params['linkBaseURL'] = linkBase.attrib['value']
+            params['linkBaseURL'] = linkBase
         data = compat_urllib_parse.urlencode(params)
         return cls._FEDERATED_URL_TEMPLATE % data
 

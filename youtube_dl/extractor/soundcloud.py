@@ -25,7 +25,7 @@ class SoundcloudIE(InfoExtractor):
     _VALID_URL = r'''^(?:https?://)?
                     (?:(?:(?:www\.)?soundcloud\.com/([\w\d-]+)/([\w\d-]+)/?(?:[?].*)?$)
                        |(?:api\.soundcloud\.com/tracks/(?P<track_id>\d+))
-                       |(?P<widget>w.soundcloud.com/player/?.*?url=.*)
+                       |(?P<widget>w\.soundcloud\.com/player/?.*?url=.*)
                     )
                     '''
     IE_NAME = u'soundcloud'
@@ -76,44 +76,78 @@ class SoundcloudIE(InfoExtractor):
     def _extract_info_dict(self, info, full_title=None, quiet=False):
         track_id = compat_str(info['id'])
         name = full_title or track_id
-        if quiet == False:
+        if quiet:
             self.report_extraction(name)
 
         thumbnail = info['artwork_url']
         if thumbnail is not None:
             thumbnail = thumbnail.replace('-large', '-t500x500')
+        ext = info.get('original_format', u'mp3')
         result = {
-            'id':       track_id,
+            'id': track_id,
             'uploader': info['user']['username'],
             'upload_date': unified_strdate(info['created_at']),
-            'title':    info['title'],
-            'ext':      info.get('original_format', u'mp3'),
+            'title': info['title'],
             'description': info['description'],
             'thumbnail': thumbnail,
         }
         if info.get('downloadable', False):
             # We can build a direct link to the song
-            result['url'] = 'https://api.soundcloud.com/tracks/{0}/download?client_id={1}'.format(track_id, self._CLIENT_ID)
+            format_url = (
+                u'https://api.soundcloud.com/tracks/{0}/download?client_id={1}'.format(
+                    track_id, self._CLIENT_ID))
+            result['formats'] = [{
+                'format_id': 'download',
+                'ext': ext,
+                'url': format_url,
+                'vcodec': 'none',
+            }]
         else:
             # We have to retrieve the url
             stream_json = self._download_webpage(
                 'http://api.soundcloud.com/i1/tracks/{0}/streams?client_id={1}'.format(track_id, self._IPHONE_CLIENT_ID),
                 track_id, u'Downloading track url')
-            # There should be only one entry in the dictionary
-            key, stream_url = list(json.loads(stream_json).items())[0]
-            if key.startswith(u'http'):
-                result['url'] = stream_url
-            elif key.startswith(u'rtmp'):
-                # The url doesn't have an rtmp app, we have to extract the playpath
-                url, path = stream_url.split('mp3:', 1)
-                result.update({
-                    'url': url,
-                    'play_path': 'mp3:' + path,
-                })
-            else:
+
+            formats = []
+            format_dict = json.loads(stream_json)
+            for key, stream_url in format_dict.items():
+                if key.startswith(u'http'):
+                    formats.append({
+                        'format_id': key,
+                        'ext': ext,
+                        'url': stream_url,
+                        'vcodec': 'none',
+                    })
+                elif key.startswith(u'rtmp'):
+                    # The url doesn't have an rtmp app, we have to extract the playpath
+                    url, path = stream_url.split('mp3:', 1)
+                    formats.append({
+                        'format_id': key,
+                        'url': url,
+                        'play_path': 'mp3:' + path,
+                        'ext': ext,
+                        'vcodec': 'none',
+                    })
+
+            if not formats:
                 # We fallback to the stream_url in the original info, this
                 # cannot be always used, sometimes it can give an HTTP 404 error
-                result['url'] = info['stream_url'] + '?client_id=' + self._CLIENT_ID,
+                formats.append({
+                    'format_id': u'fallback',
+                    'url': info['stream_url'] + '?client_id=' + self._CLIENT_ID,
+                    'ext': ext,
+                    'vcodec': 'none',
+                })
+
+            def format_pref(f):
+                if f['format_id'].startswith('http'):
+                    return 2
+                if f['format_id'].startswith('rtmp'):
+                    return 1
+                return 0
+
+            formats.sort(key=format_pref)
+            result['formats'] = formats
 
         return result
 
@@ -183,7 +217,7 @@ class SoundcloudSetIE(SoundcloudIE):
 
 
 class SoundcloudUserIE(SoundcloudIE):
-    _VALID_URL = r'https?://(www\.)?soundcloud.com/(?P<user>[^/]+)(/?(tracks/)?)?(\?.*)?$'
+    _VALID_URL = r'https?://(www\.)?soundcloud\.com/(?P<user>[^/]+)(/?(tracks/)?)?(\?.*)?$'
     IE_NAME = u'soundcloud:user'
 
     # it's in tests/test_playlists.py

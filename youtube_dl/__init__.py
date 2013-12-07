@@ -36,50 +36,41 @@ __authors__  = (
     'Marcin Cieślak',
     'Anton Larionov',
     'Takuya Tsuchida',
+    'Sergey M.',
 )
 
 __license__ = 'Public Domain'
 
 import codecs
-import collections
 import getpass
 import optparse
 import os
 import random
 import re
 import shlex
-import socket
 import subprocess
 import sys
-import traceback
-import platform
 
 
 from .utils import (
-    compat_cookiejar,
     compat_print,
-    compat_str,
-    compat_urllib_request,
     DateRange,
     decodeOption,
     determine_ext,
     DownloadError,
     get_cachedir,
-    make_HTTPS_handler,
     MaxDownloadsReached,
-    platform_name,
     preferredencoding,
     SameFileError,
     std_headers,
     write_string,
-    YoutubeDLHandler,
 )
 from .update import update_self
-from .version import __version__
 from .FileDownloader import (
     FileDownloader,
 )
 from .extractor import gen_extractors
+from .version import __version__
 from .YoutubeDL import YoutubeDL
 from .PostProcessor import (
     FFmpegMetadataPP,
@@ -90,11 +81,11 @@ from .PostProcessor import (
 
 
 def parseOpts(overrideArguments=None):
-    def _readOptions(filename_bytes):
+    def _readOptions(filename_bytes, default=[]):
         try:
             optionf = open(filename_bytes)
         except IOError:
-            return [] # silently skip if file is not present
+            return default  # silently skip if file is not present
         try:
             res = []
             for l in optionf:
@@ -200,7 +191,9 @@ def parseOpts(overrideArguments=None):
     general.add_option('--extractor-descriptions',
             action='store_true', dest='list_extractor_descriptions',
             help='Output descriptions of all supported extractors', default=False)
-    general.add_option('--proxy', dest='proxy', default=None, help='Use the specified HTTP/HTTPS proxy', metavar='URL')
+    general.add_option(
+        '--proxy', dest='proxy', default=None, metavar='URL',
+        help='Use the specified HTTP/HTTPS proxy. Pass in an empty string (--proxy "") for direct connection')
     general.add_option('--no-check-certificate', action='store_true', dest='no_check_certificate', default=False, help='Suppress HTTPS certificate validation.')
     general.add_option(
         '--cache-dir', dest='cachedir', default=get_cachedir(), metavar='DIR',
@@ -208,6 +201,9 @@ def parseOpts(overrideArguments=None):
     general.add_option(
         '--no-cache-dir', action='store_const', const=None, dest='cachedir',
         help='Disable filesystem caching')
+    general.add_option(
+        '--socket-timeout', dest='socket_timeout',
+        type=float, default=None, help=optparse.SUPPRESS_HELP)
 
 
     selection.add_option('--playlist-start',
@@ -216,7 +212,9 @@ def parseOpts(overrideArguments=None):
             dest='playlistend', metavar='NUMBER', help='playlist video to end at (default is last)', default=-1)
     selection.add_option('--match-title', dest='matchtitle', metavar='REGEX',help='download only matching titles (regex or caseless sub-string)')
     selection.add_option('--reject-title', dest='rejecttitle', metavar='REGEX',help='skip download for matching titles (regex or caseless sub-string)')
-    selection.add_option('--max-downloads', metavar='NUMBER', dest='max_downloads', help='Abort after downloading NUMBER files', default=None)
+    selection.add_option('--max-downloads', metavar='NUMBER',
+                         dest='max_downloads', type=int, default=None,
+                         help='Abort after downloading NUMBER files')
     selection.add_option('--min-filesize', metavar='SIZE', dest='min_filesize', help="Do not download any videos smaller than SIZE (e.g. 50k or 44.6m)", default=None)
     selection.add_option('--max-filesize', metavar='SIZE', dest='max_filesize', help="Do not download any videos larger than SIZE (e.g. 50k or 44.6m)", default=None)
     selection.add_option('--date', metavar='DATE', dest='date', help='download only videos uploaded in this date', default=None)
@@ -228,7 +226,7 @@ def parseOpts(overrideArguments=None):
                          default=None, type=int)
     selection.add_option('--download-archive', metavar='FILE',
                          dest='download_archive',
-                         help='Download only videos not present in the archive file. Record all downloaded videos in it.')
+                         help='Download only videos not listed in the archive file. Record the IDs of all downloaded videos in it.')
 
 
     authentication.add_option('-u', '--username',
@@ -243,7 +241,7 @@ def parseOpts(overrideArguments=None):
 
     video_format.add_option('-f', '--format',
             action='store', dest='format', metavar='FORMAT', default='best',
-            help='video format code, specifiy the order of preference using slashes: "-f 22/17/18". "-f mp4" and "-f flv" are also supported')
+            help='video format code, specify the order of preference using slashes: "-f 22/17/18". "-f mp4" and "-f flv" are also supported')
     video_format.add_option('--all-formats',
             action='store_const', dest='format', help='download all available video formats', const='all')
     video_format.add_option('--prefer-free-formats',
@@ -325,7 +323,7 @@ def parseOpts(overrideArguments=None):
             help='print downloaded pages to debug problems(very verbose)')
     verbosity.add_option('--write-pages',
             action='store_true', dest='write_pages', default=False,
-            help='Write downloaded pages to files in the current directory')
+            help='Write downloaded intermediary pages to files in the current directory to debug problems')
     verbosity.add_option('--youtube-print-sig-code',
             action='store_true', dest='youtube_print_sig_code', default=False,
             help=optparse.SUPPRESS_HELP)
@@ -423,6 +421,8 @@ def parseOpts(overrideArguments=None):
         if opts.verbose:
             write_string(u'[debug] Override config: ' + repr(overrideArguments) + '\n')
     else:
+        systemConf = _readOptions('/etc/youtube-dl.conf')
+
         xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
         if xdg_config_home:
             userConfFile = os.path.join(xdg_config_home, 'youtube-dl', 'config')
@@ -432,8 +432,31 @@ def parseOpts(overrideArguments=None):
             userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl', 'config')
             if not os.path.isfile(userConfFile):
                 userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
-        systemConf = _readOptions('/etc/youtube-dl.conf')
-        userConf = _readOptions(userConfFile)
+        userConf = _readOptions(userConfFile, None)
+
+        if userConf is None:
+            appdata_dir = os.environ.get('appdata')
+            if appdata_dir:
+                userConf = _readOptions(
+                    os.path.join(appdata_dir, 'youtube-dl', 'config'),
+                    default=None)
+                if userConf is None:
+                    userConf = _readOptions(
+                        os.path.join(appdata_dir, 'youtube-dl', 'config.txt'),
+                        default=None)
+
+        if userConf is None:
+            userConf = _readOptions(
+                os.path.join(os.path.expanduser('~'), 'youtube-dl.conf'),
+                default=None)
+        if userConf is None:
+            userConf = _readOptions(
+                os.path.join(os.path.expanduser('~'), 'youtube-dl.conf.txt'),
+                default=None)
+
+        if userConf is None:
+            userConf = []
+
         commandLineConf = sys.argv[1:]
         argv = systemConf + userConf + commandLineConf
         opts, args = parser.parse_args(argv)
@@ -452,19 +475,6 @@ def _real_main(argv=None):
 
     parser, opts, args = parseOpts(argv)
 
-    # Open appropriate CookieJar
-    if opts.cookiefile is None:
-        jar = compat_cookiejar.CookieJar()
-    else:
-        try:
-            jar = compat_cookiejar.MozillaCookieJar(opts.cookiefile)
-            if os.access(opts.cookiefile, os.R_OK):
-                jar.load()
-        except (IOError, OSError) as err:
-            if opts.verbose:
-                traceback.print_exc()
-            write_string(u'ERROR: unable to open cookie file\n')
-            sys.exit(101)
     # Set user agent
     if opts.user_agent is not None:
         std_headers['User-Agent'] = opts.user_agent
@@ -495,8 +505,6 @@ def _real_main(argv=None):
             sys.exit(u'ERROR: batch file could not be read')
     all_urls = batchurls + args
     all_urls = [url.strip() for url in all_urls]
-
-    opener = _setup_opener(jar=jar, opts=opts)
 
     extractors = gen_extractors()
 
@@ -552,7 +560,7 @@ def _real_main(argv=None):
     if opts.retries is not None:
         try:
             opts.retries = int(opts.retries)
-        except (TypeError, ValueError) as err:
+        except (TypeError, ValueError):
             parser.error(u'invalid retry count specified')
     if opts.buffersize is not None:
         numeric_buffersize = FileDownloader.parse_bytes(opts.buffersize)
@@ -563,13 +571,13 @@ def _real_main(argv=None):
         opts.playliststart = int(opts.playliststart)
         if opts.playliststart <= 0:
             raise ValueError(u'Playlist start must be positive')
-    except (TypeError, ValueError) as err:
+    except (TypeError, ValueError):
         parser.error(u'invalid playlist start number specified')
     try:
         opts.playlistend = int(opts.playlistend)
         if opts.playlistend != -1 and (opts.playlistend <= 0 or opts.playlistend < opts.playliststart):
             raise ValueError(u'Playlist end must be greater than playlist start')
-    except (TypeError, ValueError) as err:
+    except (TypeError, ValueError):
         parser.error(u'invalid playlist end number specified')
     if opts.extractaudio:
         if opts.audioformat not in ['best', 'aac', 'mp3', 'm4a', 'opus', 'vorbis', 'wav']:
@@ -672,34 +680,14 @@ def _real_main(argv=None):
         'youtube_print_sig_code': opts.youtube_print_sig_code,
         'age_limit': opts.age_limit,
         'download_archive': opts.download_archive,
+        'cookiefile': opts.cookiefile,
+        'nocheckcertificate': opts.no_check_certificate,
+        'proxy': opts.proxy,
+        'socket_timeout': opts.socket_timeout,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
-        if opts.verbose:
-            write_string(u'[debug] youtube-dl version ' + __version__ + u'\n')
-            try:
-                sp = subprocess.Popen(
-                    ['git', 'rev-parse', '--short', 'HEAD'],
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                    cwd=os.path.dirname(os.path.abspath(__file__)))
-                out, err = sp.communicate()
-                out = out.decode().strip()
-                if re.match('[0-9a-f]+', out):
-                    write_string(u'[debug] Git HEAD: ' + out + u'\n')
-            except:
-                try:
-                    sys.exc_clear()
-                except:
-                    pass
-            write_string(u'[debug] Python version %s - %s' %
-                         (platform.python_version(), platform_name()) + u'\n')
-
-            proxy_map = {}
-            for handler in opener.handlers:
-                if hasattr(handler, 'proxies'):
-                    proxy_map.update(handler.proxies)
-            write_string(u'[debug] Proxy map: ' + compat_str(proxy_map) + u'\n')
-
+        ydl.print_debug_header()
         ydl.add_default_info_extractors()
 
         # PostProcessors
@@ -730,44 +718,7 @@ def _real_main(argv=None):
             ydl.to_screen(u'--max-download limit reached, aborting.')
             retcode = 101
 
-    # Dump cookie jar if requested
-    if opts.cookiefile is not None:
-        try:
-            jar.save()
-        except (IOError, OSError):
-            sys.exit(u'ERROR: unable to save cookie jar')
-
     sys.exit(retcode)
-
-
-def _setup_opener(jar=None, opts=None, timeout=300):
-    if opts is None:
-        FakeOptions = collections.namedtuple(
-            'FakeOptions', ['proxy', 'no_check_certificate'])
-        opts = FakeOptions(proxy=None, no_check_certificate=False)
-
-    cookie_processor = compat_urllib_request.HTTPCookieProcessor(jar)
-    if opts.proxy is not None:
-        if opts.proxy == '':
-            proxies = {}
-        else:
-            proxies = {'http': opts.proxy, 'https': opts.proxy}
-    else:
-        proxies = compat_urllib_request.getproxies()
-        # Set HTTPS proxy to HTTP one if given (https://github.com/rg3/youtube-dl/issues/805)
-        if 'http' in proxies and 'https' not in proxies:
-            proxies['https'] = proxies['http']
-    proxy_handler = compat_urllib_request.ProxyHandler(proxies)
-    https_handler = make_HTTPS_handler(opts)
-    opener = compat_urllib_request.build_opener(
-        https_handler, proxy_handler, cookie_processor, YoutubeDLHandler())
-    # Delete the default user-agent header, which would otherwise apply in
-    # cases where our custom HTTP handler doesn't come into play
-    # (See https://github.com/rg3/youtube-dl/issues/1309 for details)
-    opener.addheaders = []
-    compat_urllib_request.install_opener(opener)
-    socket.setdefaulttimeout(timeout)
-    return opener
 
 
 def main(argv=None):

@@ -11,7 +11,7 @@ from ..utils import (
 class ArchiveOrgIE(InfoExtractor):
     IE_NAME = 'archive.org'
     IE_DESC = 'archive.org videos'
-    _VALID_URL = r'(?:https?://)?(?:www\.)?archive.org/details/(?P<id>[^?/]+)(?:[?].*)?$'
+    _VALID_URL = r'(?:https?://)?(?:www\.)?archive\.org/details/(?P<id>[^?/]+)(?:[?].*)?$'
     _TEST = {
         u"url": u"http://archive.org/details/XD300-23_68HighlightsAResearchCntAugHumanIntellect",
         u'file': u'XD300-23_68HighlightsAResearchCntAugHumanIntellect.ogv',
@@ -49,7 +49,7 @@ class ArchiveOrgIE(InfoExtractor):
         for f in formats:
             f['ext'] = determine_ext(f['url'])
 
-        info = {
+        return {
             '_type': 'video',
             'id': video_id,
             'title': title,
@@ -57,12 +57,5 @@ class ArchiveOrgIE(InfoExtractor):
             'description': description,
             'uploader': uploader,
             'upload_date': upload_date,
+            'thumbnail': data.get('misc', {}).get('image'),
         }
-        thumbnail = data.get('misc', {}).get('image')
-        if thumbnail:
-            info['thumbnail'] = thumbnail
-
-        # TODO: Remove when #980 has been merged
-        info.update(formats[-1])
-
-        return info

@@ -7,7 +7,7 @@ from .common import InfoExtractor
 
 class TF1IE(InfoExtractor):
     """TF1 uses the wat.tv player."""
-    _VALID_URL = r'http://videos.tf1.fr/.*-(.*?).html'
+    _VALID_URL = r'http://videos\.tf1\.fr/.*-(.*?)\.html'
     _TEST = {
         u'url': u'http://videos.tf1.fr/auto-moto/citroen-grand-c4-picasso-2013-presentation-officielle-8062060.html',
         u'file': u'10635995.mp4',

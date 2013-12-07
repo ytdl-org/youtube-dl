@@ -1,7 +1,6 @@
 # coding: utf-8
 
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -35,12 +34,11 @@ class SinaIE(InfoExtractor):
 
     def _extract_video(self, video_id):
         data = compat_urllib_parse.urlencode({'vid': video_id})
-        url_page = self._download_webpage('http://v.iask.com/v_play.php?%s' % data,
+        url_doc = self._download_xml('http://v.iask.com/v_play.php?%s' % data,
             video_id, u'Downloading video url')
         image_page = self._download_webpage(
             'http://interface.video.sina.com.cn/interface/common/getVideoImage.php?%s' % data,
             video_id, u'Downloading thumbnail info')
-        url_doc = xml.etree.ElementTree.fromstring(url_page.encode('utf-8'))
 
         return {'id': video_id,
                 'url': url_doc.find('./durl/url').text,

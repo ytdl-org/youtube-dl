@@ -6,8 +6,7 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import FakeYDL, global_setup, md5
-global_setup()
+from test.helper import FakeYDL, md5
 
 
 from youtube_dl.extractor import (
@@ -73,7 +72,7 @@ class TestYoutubeSubtitles(BaseTestSubtitles):
         self.DL.params['writesubtitles'] = True
         self.DL.params['subtitlesformat'] = 'vtt'
         subtitles = self.getSubtitles()
-        self.assertEqual(md5(subtitles['en']), '356cdc577fde0c6783b9b822e7206ff7')
+        self.assertEqual(md5(subtitles['en']), '3cb210999d3e021bd6c7f0ea751eab06')
 
     def test_youtube_list_subtitles(self):
         self.DL.expect_warning(u'Video doesn\'t have automatic captions')

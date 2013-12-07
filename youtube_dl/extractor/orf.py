@@ -12,7 +12,7 @@ from ..utils import (
 )
 
 class ORFIE(InfoExtractor):
-    _VALID_URL = r'https?://tvthek.orf.at/(programs/.+?/episodes|topics/.+?)/(?P<id>\d+)'
+    _VALID_URL = r'https?://tvthek\.orf\.at/(programs/.+?/episodes|topics/.+?)/(?P<id>\d+)'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

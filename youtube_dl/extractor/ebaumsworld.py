@@ -1,5 +1,4 @@
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import determine_ext
@@ -21,9 +20,8 @@ class EbaumsWorldIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        config_xml = self._download_webpage(
+        config = self._download_xml(
             'http://www.ebaumsworld.com/video/player/%s' % video_id, video_id)
-        config = xml.etree.ElementTree.fromstring(config_xml.encode('utf-8'))
         video_url = config.find('file').text
 
         return {

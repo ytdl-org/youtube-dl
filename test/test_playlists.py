@@ -8,21 +8,25 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import FakeYDL, global_setup
-global_setup()
+from test.helper import FakeYDL
 
 
 from youtube_dl.extractor import (
     DailymotionPlaylistIE,
     DailymotionUserIE,
     VimeoChannelIE,
+    VimeoUserIE,
+    VimeoAlbumIE,
+    VimeoGroupsIE,
     UstreamChannelIE,
     SoundcloudSetIE,
     SoundcloudUserIE,
     LivestreamIE,
     NHLVideocenterIE,
     BambuserChannelIE,
-    BandcampAlbumIE
+    BandcampAlbumIE,
+    SmotriCommunityIE,
+    SmotriUserIE
 )
 
 
@@ -54,6 +58,30 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['title'], u'Vimeo Tributes')
         self.assertTrue(len(result['entries']) > 24)
+
+    def test_vimeo_user(self):
+        dl = FakeYDL()
+        ie = VimeoUserIE(dl)
+        result = ie.extract('http://vimeo.com/nkistudio/videos')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['title'], u'Nki')
+        self.assertTrue(len(result['entries']) > 65)
+
+    def test_vimeo_album(self):
+        dl = FakeYDL()
+        ie = VimeoAlbumIE(dl)
+        result = ie.extract('http://vimeo.com/album/2632481')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['title'], u'Staff Favorites: November 2013')
+        self.assertTrue(len(result['entries']) > 12)
+
+    def test_vimeo_groups(self):
+        dl = FakeYDL()
+        ie = VimeoGroupsIE(dl)
+        result = ie.extract('http://vimeo.com/groups/rolexawards')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['title'], u'Rolex Awards for Enterprise')
+        self.assertTrue(len(result['entries']) > 72)
 
     def test_ustream_channel(self):
         dl = FakeYDL()
@@ -111,6 +139,24 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['title'], u'Nightmare Night EP')
         self.assertTrue(len(result['entries']) >= 4)
+        
+    def test_smotri_community(self):
+        dl = FakeYDL()
+        ie = SmotriCommunityIE(dl)
+        result = ie.extract('http://smotri.com/community/video/kommuna')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], u'kommuna')
+        self.assertEqual(result['title'], u'КПРФ')
+        self.assertTrue(len(result['entries']) >= 4)
+        
+    def test_smotri_user(self):
+        dl = FakeYDL()
+        ie = SmotriUserIE(dl)
+        result = ie.extract('http://smotri.com/user/inspector')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], u'inspector')
+        self.assertEqual(result['title'], u'Inspector')
+        self.assertTrue(len(result['entries']) >= 9)
 
 if __name__ == '__main__':
     unittest.main()

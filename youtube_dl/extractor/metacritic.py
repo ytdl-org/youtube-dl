@@ -43,13 +43,10 @@ class MetacriticIE(InfoExtractor):
         description = self._html_search_regex(r'<b>Description:</b>(.*?)</p>',
             webpage, u'description', flags=re.DOTALL)
 
-        info = {
+        return {
             'id': video_id,
             'title': clip.find('title').text,
             'formats': formats,
             'description': description,
             'duration': int(clip.find('duration').text),
         }
-        # TODO: Remove when #980 has been merged
-        info.update(formats[-1])
-        return info

@@ -18,7 +18,7 @@ from ..utils import (
 class StanfordOpenClassroomIE(InfoExtractor):
     IE_NAME = u'stanfordoc'
     IE_DESC = u'Stanford Open ClassRoom'
-    _VALID_URL = r'^(?:https?://)?openclassroom.stanford.edu(?P<path>/?|(/MainFolder/(?:HomePage|CoursePage|VideoPage)\.php([?]course=(?P<course>[^&]+)(&video=(?P<video>[^&]+))?(&.*)?)?))$'
+    _VALID_URL = r'^(?:https?://)?openclassroom\.stanford\.edu(?P<path>/?|(/MainFolder/(?:HomePage|CoursePage|VideoPage)\.php([?]course=(?P<course>[^&]+)(&video=(?P<video>[^&]+))?(&.*)?)?))$'
     _TEST = {
         u'url': u'http://openclassroom.stanford.edu/MainFolder/VideoPage.php?course=PracticalUnix&video=intro-environment&speed=100',
         u'file': u'PracticalUnix_intro-environment.mp4',

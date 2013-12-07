@@ -4,7 +4,7 @@ from .common import InfoExtractor
 
 
 class BloombergIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.bloomberg\.com/video/(?P<name>.+?).html'
+    _VALID_URL = r'https?://www\.bloomberg\.com/video/(?P<name>.+?)\.html'
 
     _TEST = {
         u'url': u'http://www.bloomberg.com/video/shah-s-presentation-on-foreign-exchange-strategies-qurhIVlJSB6hzkVi229d8g.html',

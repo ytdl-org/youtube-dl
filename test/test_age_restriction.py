@@ -6,8 +6,7 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import global_setup, try_rm
-global_setup()
+from test.helper import try_rm
 
 
 from youtube_dl import YoutubeDL

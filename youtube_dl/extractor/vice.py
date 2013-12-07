@@ -6,7 +6,7 @@ from ..utils import ExtractorError
 
 
 class ViceIE(InfoExtractor):
-    _VALID_URL = r'http://www.vice.com/.*?/(?P<name>.+)'
+    _VALID_URL = r'http://www\.vice\.com/.*?/(?P<name>.+)'
 
     _TEST = {
         u'url': u'http://www.vice.com/Fringes/cowboy-capitalists-part-1',

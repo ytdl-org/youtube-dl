@@ -1,7 +1,7 @@
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
+from .mtv import MTVServicesInfoExtractor
 from ..utils import (
     compat_str,
     compat_urllib_parse,
@@ -11,7 +11,31 @@ from ..utils import (
 )
 
 
-class ComedyCentralIE(InfoExtractor):
+class ComedyCentralIE(MTVServicesInfoExtractor):
+    _VALID_URL = r'https?://(?:www.)?comedycentral.com/(video-clips|episodes|cc-studios)/(?P<title>.*)'
+    _FEED_URL = u'http://comedycentral.com/feeds/mrss/'
+
+    _TEST = {
+        u'url': u'http://www.comedycentral.com/video-clips/kllhuv/stand-up-greg-fitzsimmons--uncensored---too-good-of-a-mother',
+        u'md5': u'4167875aae411f903b751a21f357f1ee',
+        u'info_dict': {
+            u'id': u'cef0cbb3-e776-4bc9-b62e-8016deccb354',
+            u'ext': u'mp4',
+            u'title': u'Uncensored - Greg Fitzsimmons - Too Good of a Mother',
+            u'description': u'After a certain point, breastfeeding becomes c**kblocking.',
+        },
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        title = mobj.group('title')
+        webpage = self._download_webpage(url, title)
+        mgid = self._search_regex(r'data-mgid="(?P<mgid>mgid:.*?)"',
+                                  webpage, u'mgid')
+        return self._get_videos_info(mgid)
+
+
+class ComedyCentralShowsIE(InfoExtractor):
     IE_DESC = u'The Daily Show / Colbert Report'
     # urls can be abbreviations like :thedailyshow or :colbert
     # urls for episodes like:
@@ -127,13 +151,12 @@ class ComedyCentralIE(InfoExtractor):
 
         uri = mMovieParams[0][1]
         indexUrl = 'http://shadow.comedycentral.com/feeds/video_player/mrss/?' + compat_urllib_parse.urlencode({'uri': uri})
-        indexXml = self._download_webpage(indexUrl, epTitle,
+        idoc = self._download_xml(indexUrl, epTitle,
                                           u'Downloading show index',
                                           u'unable to download episode index')
 
         results = []
 
-        idoc = xml.etree.ElementTree.fromstring(indexXml)
         itemEls = idoc.findall('.//item')
         for partNum,itemEl in enumerate(itemEls):
             mediaId = itemEl.findall('./guid')[0].text
@@ -144,10 +167,9 @@ class ComedyCentralIE(InfoExtractor):
 
             configUrl = ('http://www.comedycentral.com/global/feeds/entertainment/media/mediaGenEntertainment.jhtml?' +
                         compat_urllib_parse.urlencode({'uri': mediaId}))
-            configXml = self._download_webpage(configUrl, epTitle,
+            cdoc = self._download_xml(configUrl, epTitle,
                                                u'Downloading configuration for %s' % shortMediaId)
 
-            cdoc = xml.etree.ElementTree.fromstring(configXml)
             turls = []
             for rendition in cdoc.findall('.//rendition'):
                 finfo = (rendition.attrib['bitrate'], rendition.findall('./src')[0].text)
@@ -169,7 +191,7 @@ class ComedyCentralIE(InfoExtractor):
                 })
 
             effTitle = showId + u'-' + epTitle + u' part ' + compat_str(partNum+1)
-            info = {
+            results.append({
                 'id': shortMediaId,
                 'formats': formats,
                 'uploader': showId,
@@ -177,11 +199,6 @@ class ComedyCentralIE(InfoExtractor):
                 'title': effTitle,
                 'thumbnail': None,
                 'description': compat_str(officialTitle),
-            }
-
-            # TODO: Remove when #980 has been merged
-            info.update(info['formats'][-1])
-
-            results.append(info)
+            })
 
         return results

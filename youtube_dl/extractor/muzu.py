@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class MuzuTVIE(InfoExtractor):
-    _VALID_URL = r'https?://www.muzu.tv/(.+?)/(.+?)/(?P<id>\d+)'
+    _VALID_URL = r'https?://www\.muzu\.tv/(.+?)/(.+?)/(?P<id>\d+)'
     IE_NAME = u'muzu.tv'
 
     _TEST = {

@@ -8,6 +8,7 @@ import gzip
 import io
 import json
 import locale
+import math
 import os
 import pipes
 import platform
@@ -536,8 +537,7 @@ def formatSeconds(secs):
     else:
         return '%d' % secs
 
-
-def make_HTTPS_handler(opts):
+def make_HTTPS_handler(opts_no_check_certificate):
     if sys.version_info < (3, 2):
         import httplib
 
@@ -552,7 +552,7 @@ def make_HTTPS_handler(opts):
                     self._tunnel()
                 try:
                     self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv3)
-                except ssl.SSLError as e:
+                except ssl.SSLError:
                     self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv23)
 
         class HTTPSHandlerV3(compat_urllib_request.HTTPSHandler):
@@ -564,7 +564,7 @@ def make_HTTPS_handler(opts):
         context.set_default_verify_paths()
         
         context.verify_mode = (ssl.CERT_NONE
-                               if opts.no_check_certificate
+                               if opts_no_check_certificate
                                else ssl.CERT_REQUIRED)
         return compat_urllib_request.HTTPSHandler(context=context)
 
@@ -1015,6 +1015,24 @@ def unsmuggle_url(smug_url):
     jsond = compat_parse_qs(sdata)[u'__youtubedl_smuggle'][0]
     data = json.loads(jsond)
     return url, data
+
+
+def format_bytes(bytes):
+    if bytes is None:
+        return u'N/A'
+    if type(bytes) is str:
+        bytes = float(bytes)
+    if bytes == 0.0:
+        exponent = 0
+    else:
+        exponent = int(math.log(bytes, 1024.0))
+    suffix = [u'B', u'KiB', u'MiB', u'GiB', u'TiB', u'PiB', u'EiB', u'ZiB', u'YiB'][exponent]
+    converted = float(bytes) / float(1024 ** exponent)
+    return u'%.2f%s' % (converted, suffix)
+
+def str_to_int(int_str):
+    int_str = re.sub(r'[,\.]', u'', int_str)
+    return int(int_str)
 
 
 try:
