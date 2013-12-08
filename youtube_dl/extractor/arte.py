@@ -261,6 +261,7 @@ class ArteTVFutureIE(ArteTVPlus7IE):
         row = get_element_by_id(anchor_id, webpage)
         return self._extract_from_webpage(row, anchor_id, lang)
 
+
 class ArteTVDDCIE(ArteTVPlus7IE):
     IE_NAME = u'arte.tv:ddc'
     _VALID_URL = r'http?://ddc\.arte\.tv/(?P<lang>emission|folge)/(?P<id>.+)'
@@ -270,6 +271,12 @@ class ArteTVDDCIE(ArteTVPlus7IE):
         u'file': u'049881-009_PLUS7-D.flv',
         u'info_dict': {
             u'title': u'Mit offenen Karten',
+            u'description': u'md5:57929b0eaeddeb8a0c983f58e9ebd3b6',
+            u'upload_date': u'20131207',
+        },
+        u'params': {
+            # rtmp download
+            u'skip_download': True,
         },
     }
 
