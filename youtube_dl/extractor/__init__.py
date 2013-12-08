@@ -8,6 +8,7 @@ from .arte import (
     ArteTVPlus7IE,
     ArteTVCreativeIE,
     ArteTVFutureIE,
+    ArteTVDDCIE,
 )
 from .auengine import AUEngineIE
 from .bambuser import BambuserIE, BambuserChannelIE
