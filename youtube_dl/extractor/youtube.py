@@ -7,7 +7,6 @@ import itertools
 import json
 import os.path
 import re
-import socket
 import string
 import struct
 import traceback
@@ -17,9 +16,7 @@ from .common import InfoExtractor, SearchInfoExtractor
 from .subtitles import SubtitlesInfoExtractor
 from ..utils import (
     compat_chr,
-    compat_http_client,
     compat_parse_qs,
-    compat_urllib_error,
     compat_urllib_parse,
     compat_urllib_request,
     compat_urlparse,
@@ -53,9 +50,9 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         request = compat_urllib_request.Request(self._LANG_URL)
         try:
             self.report_lang()
-            compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_warning(u'unable to set language: %s' % compat_str(err))
+            self._download_webpage(self._LANG_URL, None, False)
+        except ExtractorError as err:
+            self._downloader.report_warning(u'unable to set language: %s' % compat_str(err.cause))
             return False
         return True
 
@@ -67,12 +64,8 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 raise ExtractorError(u'No login info available, needed for using %s.' % self.IE_NAME, expected=True)
             return False
 
-        request = compat_urllib_request.Request(self._LOGIN_URL)
-        try:
-            login_page = compat_urllib_request.urlopen(request).read().decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_warning(u'unable to fetch login page: %s' % compat_str(err))
-            return False
+        login_page = self._download_webpage(self._LOGIN_URL, None, False,
+            u'Unable to fetch login page')
 
         galx = self._search_regex(r'(?s)<input.+?name="GALX".+?value="(.+?)"',
                                   login_page, u'Login GALX parameter')
@@ -105,12 +98,12 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         request = compat_urllib_request.Request(self._LOGIN_URL, login_data)
         try:
             self.report_login()
-            login_results = compat_urllib_request.urlopen(request).read().decode('utf-8')
+            login_results = self._download_webpage(request, None, False)
             if re.search(r'(?i)<form[^>]* id="gaia_loginform"', login_results) is not None:
                 self._downloader.report_warning(u'unable to log in: bad username or password')
                 return False
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            self._downloader.report_warning(u'unable to log in: %s' % compat_str(err))
+        except ExtractorError as err:
+            self._downloader.report_warning(u'unable to log in: %s' % compat_str(err.cause))
             return False
         return True
 
@@ -120,11 +113,8 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 'action_confirm':   'Confirm',
                 }
         request = compat_urllib_request.Request(self._AGE_URL, compat_urllib_parse.urlencode(age_form))
-        try:
-            self.report_age_confirmation()
-            compat_urllib_request.urlopen(request).read().decode('utf-8')
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'Unable to confirm age: %s' % compat_str(err))
+        self.report_age_confirmation()
+        self._download_webpage(request, None, False, u'Unable to confirm age')
         return True
 
     def _real_initialize(self):
@@ -1737,10 +1727,6 @@ class YoutubeSearchIE(SearchInfoExtractor):
     IE_NAME = u'youtube:search'
     _SEARCH_KEY = 'ytsearch'
 
-    def report_download_page(self, query, pagenum):
-        """Report attempt to download search page with given number."""
-        self._downloader.to_screen(u'[youtube] query "%s": Downloading page %s' % (query, pagenum))
-
     def _get_n_results(self, query, n):
         """Get a specified number of results for a query"""
 
@@ -1749,13 +1735,9 @@ class YoutubeSearchIE(SearchInfoExtractor):
         limit = n
 
         while (50 * pagenum) < limit:
-            self.report_download_page(query, pagenum+1)
             result_url = self._API_URL % (compat_urllib_parse.quote_plus(query), (50*pagenum)+1)
-            request = compat_urllib_request.Request(result_url)
-            try:
-                data = compat_urllib_request.urlopen(request).read().decode('utf-8')
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                raise ExtractorError(u'Unable to download API page: %s' % compat_str(err))
+            data = self._download_webpage(result_url, u'query "%s"' % query,
+                u'Downloading page %s' % pagenum, u'Unable to download API page')
             api_response = json.loads(data)['data']
 
             if not 'items' in api_response:

@@ -1,13 +1,10 @@
 import json
 import re
-import socket
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_http_client,
-    compat_urllib_error,
-    compat_urllib_request,
     unified_strdate,
+    ExtractorError,
 )
 
 
@@ -31,9 +28,11 @@ class MixcloudIE(InfoExtractor):
         """Returns 1st active url from list"""
         for url in url_list:
             try:
-                compat_urllib_request.urlopen(url)
+                # We only want to know if the request succeed
+                # don't download the whole file
+                self._request_webpage(url, None, False)
                 return url
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error):
+            except ExtractorError:
                 url = None
 
         return None

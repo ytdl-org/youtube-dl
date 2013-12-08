@@ -51,8 +51,7 @@ class BlipTVIE(InfoExtractor):
             url = 'http://blip.tv/play/g_%s' % api_mobj.group('video_id')
         urlp = compat_urllib_parse_urlparse(url)
         if urlp.path.startswith('/play/'):
-            request = compat_urllib_request.Request(url)
-            response = compat_urllib_request.urlopen(request)
+            response = self._request_webpage(url, None, False)
             redirecturl = response.geturl()
             rurlp = compat_urllib_parse_urlparse(redirecturl)
             file_id = compat_parse_qs(rurlp.fragment)['file'][0].rpartition('/')[2]
@@ -69,25 +68,23 @@ class BlipTVIE(InfoExtractor):
         request.add_header('User-Agent', 'iTunes/10.6.1')
         self.report_extraction(mobj.group(1))
         info = None
-        try:
-            urlh = compat_urllib_request.urlopen(request)
-            if urlh.headers.get('Content-Type', '').startswith('video/'): # Direct download
-                basename = url.split('/')[-1]
-                title,ext = os.path.splitext(basename)
-                title = title.decode('UTF-8')
-                ext = ext.replace('.', '')
-                self.report_direct_download(title)
-                info = {
-                    'id': title,
-                    'url': url,
-                    'uploader': None,
-                    'upload_date': None,
-                    'title': title,
-                    'ext': ext,
-                    'urlhandle': urlh
-                }
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'ERROR: unable to download video info webpage: %s' % compat_str(err))
+        urlh = self._request_webpage(request, None, False,
+            u'unable to download video info webpage')
+        if urlh.headers.get('Content-Type', '').startswith('video/'): # Direct download
+            basename = url.split('/')[-1]
+            title,ext = os.path.splitext(basename)
+            title = title.decode('UTF-8')
+            ext = ext.replace('.', '')
+            self.report_direct_download(title)
+            info = {
+                'id': title,
+                'url': url,
+                'uploader': None,
+                'upload_date': None,
+                'title': title,
+                'ext': ext,
+                'urlhandle': urlh
+            }
         if info is None: # Regular URL
             try:
                 json_code_bytes = urlh.read()
