@@ -205,12 +205,20 @@ class FileDownloader(object):
         self.to_screen(u'[download] Destination: ' + filename)
 
     def _report_progress_status(self, msg, is_last_line=False):
-        clear_line = (u'\x1b[K' if sys.stderr.isatty() and os.name != 'nt' else u'')
+        fullmsg = u'[download] ' + msg
         if self.params.get('progress_with_newline', False):
-            self.to_screen(u'[download] ' + msg)
+            self.to_screen(fullmsg)
         else:
-            self.to_screen(u'\r%s[download] %s' % (clear_line, msg),
-                           skip_eol=not is_last_line)
+            if os.name == 'nt':
+                prev_len = getattr(self, '_report_progress_prev_line_length',
+                                   0)
+                if prev_len > len(fullmsg):
+                    fullmsg += u' ' * (prev_len - len(fullmsg))
+                self._report_progress_prev_line_length = len(fullmsg)
+                clear_line = u'\r'
+            else:
+                clear_line = (u'\r\x1b[K' if sys.stderr.isatty() else u'\r')
+            self.to_screen(clear_line + fullmsg, skip_eol=not is_last_line)
         self.to_console_title(u'youtube-dl ' + msg)
 
     def report_progress(self, percent, data_len_str, speed, eta):
