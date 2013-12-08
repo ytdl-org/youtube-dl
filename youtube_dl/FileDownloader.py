@@ -204,11 +204,19 @@ class FileDownloader(object):
         """Report destination filename."""
         self.to_screen(u'[download] Destination: ' + filename)
 
+    def _report_progress_status(self, msg, is_last_line=False):
+        clear_line = (u'\x1b[K' if sys.stderr.isatty() and os.name != 'nt' else u'')
+        if self.params.get('progress_with_newline', False):
+            self.to_screen(u'[download] ' + msg)
+        else:
+            self.to_screen(u'\r%s[download] %s' % (clear_line, msg),
+                           skip_eol=not is_last_line)
+        self.to_console_title(u'youtube-dl ' + msg)
+
     def report_progress(self, percent, data_len_str, speed, eta):
         """Report download progress."""
         if self.params.get('noprogress', False):
             return
-        clear_line = (u'\x1b[K' if sys.stderr.isatty() and os.name != 'nt' else u'')
         if eta is not None:
             eta_str = self.format_eta(eta)
         else:
@@ -218,14 +226,20 @@ class FileDownloader(object):
         else:
             percent_str = 'Unknown %'
         speed_str = self.format_speed(speed)
-        if self.params.get('progress_with_newline', False):
-            self.to_screen(u'[download] %s of %s at %s ETA %s' %
-                (percent_str, data_len_str, speed_str, eta_str))
+
+        msg = (u'%s of %s at %s ETA %s' %
+               (percent_str, data_len_str, speed_str, eta_str))
+        self._report_progress_status(msg)
+
+    def report_finish(self, data_len_str, tot_time):
+        """Report download finished."""
+        if self.params.get('noprogress', False):
+            self.to_screen(u'[download] Download completed')
         else:
-            self.to_screen(u'\r%s[download] %s of %s at %s ETA %s' %
-                (clear_line, percent_str, data_len_str, speed_str, eta_str), skip_eol=True)
-        self.to_console_title(u'youtube-dl - %s of %s at %s ETA %s' %
-                (percent_str.strip(), data_len_str.strip(), speed_str.strip(), eta_str.strip()))
+            self._report_progress_status(
+                (u'100%% of %s in %s' %
+                 (data_len_str, self.format_seconds(tot_time))),
+                is_last_line=True)
 
     def report_resuming_byte(self, resume_len):
         """Report attempt to resume at given byte."""
@@ -245,15 +259,6 @@ class FileDownloader(object):
     def report_unable_to_resume(self):
         """Report it was impossible to resume download."""
         self.to_screen(u'[download] Unable to resume')
-
-    def report_finish(self, data_len_str, tot_time):
-        """Report download finished."""
-        if self.params.get('noprogress', False):
-            self.to_screen(u'[download] Download completed')
-        else:
-            clear_line = (u'\x1b[K' if sys.stderr.isatty() and os.name != 'nt' else u'')
-            self.to_screen(u'\r%s[download] 100%% of %s in %s' %
-                (clear_line, data_len_str, self.format_seconds(tot_time)))
 
     def _download_with_rtmpdump(self, filename, url, player_url, page_url, play_path, tc_url, live):
         def run_rtmpdump(args):
