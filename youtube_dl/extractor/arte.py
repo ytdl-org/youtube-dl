@@ -10,6 +10,7 @@ from ..utils import (
     determine_ext,
     get_element_by_id,
     compat_str,
+    get_element_by_attribute,
 )
 
 # There are different sources of video in arte.tv, the extraction process 
@@ -142,7 +143,9 @@ class ArteTVPlus7IE(InfoExtractor):
 
     def _extract_from_webpage(self, webpage, video_id, lang):
         json_url = self._html_search_regex(r'arte_vp_url="(.*?)"', webpage, 'json url')
+        return self._extract_from_json_url(json_url, video_id, lang)
 
+    def _extract_from_json_url(self, json_url, video_id, lang):
         json_info = self._download_webpage(json_url, video_id, 'Downloading info json')
         self.report_extraction(video_id)
         info = json.loads(json_info)
@@ -257,3 +260,28 @@ class ArteTVFutureIE(ArteTVPlus7IE):
         webpage = self._download_webpage(url, anchor_id)
         row = get_element_by_id(anchor_id, webpage)
         return self._extract_from_webpage(row, anchor_id, lang)
+
+class ArteTVDDCIE(ArteTVPlus7IE):
+    IE_NAME = u'arte.tv:ddc'
+    _VALID_URL = r'http?://ddc\.arte\.tv/(?P<lang>emission|folge)/(?P<id>.+)'
+
+    _TEST = {
+        u'url': u'http://ddc.arte.tv/folge/neues-aus-mauretanien',
+        u'file': u'049881-009_PLUS7-D.flv',
+        u'info_dict': {
+            u'title': u'Mit offenen Karten',
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id, lang = self._extract_url_info(url)
+        if lang == 'folge':
+            lang = 'de'
+        elif lang == 'emission':
+            lang = 'fr'
+        webpage = self._download_webpage(url, video_id)
+        scriptElement = get_element_by_attribute('class', 'visu_video_block', webpage)
+        script_url = self._html_search_regex(r'src="(.*?)"', scriptElement, 'script url')
+        javascriptPlayerGenerator = self._download_webpage(script_url, video_id, 'Download javascript player generator')
+        json_url = self._search_regex(r"json_url=(.*)&rendering_place.*", javascriptPlayerGenerator, 'json url')
+        return self._extract_from_json_url(json_url, video_id, lang)
