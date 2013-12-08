@@ -267,9 +267,9 @@ class ArteTVDDCIE(ArteTVPlus7IE):
 
     _TEST = {
         u'url': u'http://ddc.arte.tv/folge/neues-aus-mauretanien',
-        u'file': u'Mit offenen Karten-049881-009_PLUS7-D.flv',
+        u'file': u'049881-009_PLUS7-D.flv',
         u'info_dict': {
-            u'title': u'neues-aus-mauretanien',
+            u'title': u'Mit offenen Karten',
         },
     }
 
