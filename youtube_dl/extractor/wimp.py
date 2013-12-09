@@ -20,10 +20,9 @@ class WimpIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group(1)
         webpage = self._download_webpage(url, video_id)
-        title = self._html_search_meta('description', webpage, u'video title')
         googleString = self._search_regex("googleCode = '(.*?)'", webpage, 'file url')
         googleString = base64.b64decode(googleString).decode('ascii')
-        final_url = self._search_regex('","(.*?)"', googleString,'final video url')
+        final_url = self._search_regex('","(.*?)"', googleString, u'final video url')
 
         return {
             'id': video_id,

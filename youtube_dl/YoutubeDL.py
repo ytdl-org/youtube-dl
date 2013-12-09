@@ -22,7 +22,6 @@ if os.name == 'nt':
 from .utils import (
     compat_cookiejar,
     compat_http_client,
-    compat_print,
     compat_str,
     compat_urllib_error,
     compat_urllib_request,

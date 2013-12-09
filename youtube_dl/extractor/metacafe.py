@@ -5,7 +5,6 @@ from ..utils import (
     compat_parse_qs,
     compat_urllib_parse,
     compat_urllib_request,
-    compat_str,
     determine_ext,
     ExtractorError,
 )

@@ -2,8 +2,6 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_str,
-
     ExtractorError,
     orderedSet,
     unescapeHTML,
