@@ -133,6 +133,8 @@ class YoutubeDL(object):
     nocheckcertificate:Do not verify SSL certificates
     proxy:             URL of the proxy server to use
     socket_timeout:    Time to wait for unresponsive hosts, in seconds
+    bidi_workaround:   Work around buggy terminals without bidirectional text
+                       support, using fridibi
 
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:
@@ -156,7 +158,44 @@ class YoutubeDL(object):
         self._download_retcode = 0
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
+        self._err_file = sys.stderr
         self.params = {} if params is None else params
+
+        # Pipe messsages through fribidi
+        if params.get('bidi_workaround', False):
+            # fribidi does not support ungetting, so force newlines
+            params['progress_with_newline'] = True
+
+            for fid in ['_screen_file', '_err_file']:
+                class FribidiOut(object):
+                    def __init__(self, outfile, errfile):
+                        self.outfile = outfile
+                        self.process = subprocess.Popen(
+                            ['fribidi'],
+                            stdin=subprocess.PIPE,
+                            stdout=outfile,
+                            stderr=errfile)
+
+                    def write(self, s):
+                        res = self.process.stdin.write(s)
+                        self.flush()
+                        return res
+
+                    def flush(self):
+                        return self.process.stdin.flush()
+
+                    def isatty(self):
+                        return self.outfile.isatty()
+
+                try:
+                    vout = FribidiOut(getattr(self, fid), self._err_file)
+                    setattr(self, fid, vout)
+                except OSError as ose:
+                    if ose.errno == 2:
+                        self.report_warning(u'Could not find fribidi executable, ignoring --bidi-workaround . Make sure that  fribidi  is an executable file in one of the directories in your $PATH.')
+                        break
+                    else:
+                        raise
 
         if (sys.version_info >= (3,) and sys.platform != 'win32' and
                 sys.getfilesystemencoding() in ['ascii', 'ANSI_X3.4-1968']
@@ -207,9 +246,13 @@ class YoutubeDL(object):
 
     def to_screen(self, message, skip_eol=False):
         """Print message to stdout if not in quiet mode."""
+        return self.to_stdout(message, skip_eol, check_quiet=True)
+
+    def to_stdout(self, message, skip_eol=False, check_quiet=False):
+        """Print message to stdout if not in quiet mode."""
         if self.params.get('logger'):
             self.params['logger'].debug(message)
-        elif not self.params.get('quiet', False):
+        elif not check_quiet or not self.params.get('quiet', False):
             terminator = [u'\n', u''][skip_eol]
             output = message + terminator
             write_string(output, self._screen_file)
@@ -221,9 +264,7 @@ class YoutubeDL(object):
             self.params['logger'].error(message)
         else:
             output = message + u'\n'
-            if 'b' in getattr(self._screen_file, 'mode', '') or sys.version_info[0] < 3: # Python 2 lies about the mode of sys.stdout/sys.stderr
-                output = output.encode(preferredencoding())
-            sys.stderr.write(output)
+            write_string(output, self._err_file)
 
     def to_console_title(self, message):
         if not self.params.get('consoletitle', False):
@@ -294,7 +335,7 @@ class YoutubeDL(object):
         Print the message to stderr, it will be prefixed with 'WARNING:'
         If stderr is a tty file the 'WARNING:' will be colored
         '''
-        if sys.stderr.isatty() and os.name != 'nt':
+        if self._err_file.isatty() and os.name != 'nt':
             _msg_header = u'\033[0;33mWARNING:\033[0m'
         else:
             _msg_header = u'WARNING:'
@@ -306,7 +347,7 @@ class YoutubeDL(object):
         Do the same as trouble, but prefixes the message with 'ERROR:', colored
         in red if stderr is a tty file.
         '''
-        if sys.stderr.isatty() and os.name != 'nt':
+        if self._err_file.isatty() and os.name != 'nt':
             _msg_header = u'\033[0;31mERROR:\033[0m'
         else:
             _msg_header = u'ERROR:'
@@ -695,22 +736,22 @@ class YoutubeDL(object):
 
         # Forced printings
         if self.params.get('forcetitle', False):
-            compat_print(info_dict['fulltitle'])
+            self.to_stdout(info_dict['fulltitle'])
         if self.params.get('forceid', False):
-            compat_print(info_dict['id'])
+            self.to_stdout(info_dict['id'])
         if self.params.get('forceurl', False):
             # For RTMP URLs, also include the playpath
-            compat_print(info_dict['url'] + info_dict.get('play_path', u''))
+            self.to_stdout(info_dict['url'] + info_dict.get('play_path', u''))
         if self.params.get('forcethumbnail', False) and info_dict.get('thumbnail') is not None:
-            compat_print(info_dict['thumbnail'])
+            self.to_stdout(info_dict['thumbnail'])
         if self.params.get('forcedescription', False) and info_dict.get('description') is not None:
-            compat_print(info_dict['description'])
+            self.to_stdout(info_dict['description'])
         if self.params.get('forcefilename', False) and filename is not None:
-            compat_print(filename)
+            self.to_stdout(filename)
         if self.params.get('forceformat', False):
-            compat_print(info_dict['format'])
+            self.to_stdout(info_dict['format'])
         if self.params.get('forcejson', False):
-            compat_print(json.dumps(info_dict))
+            self.to_stdout(json.dumps(info_dict))
 
         # Do nothing else if in simulate mode
         if self.params.get('simulate', False):

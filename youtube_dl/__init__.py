@@ -204,6 +204,9 @@ def parseOpts(overrideArguments=None):
     general.add_option(
         '--socket-timeout', dest='socket_timeout',
         type=float, default=None, help=optparse.SUPPRESS_HELP)
+    general.add_option(
+        '--bidi-workaround', dest='bidi_workaround', action='store_true',
+        help=u'Work around terminals that lack bidirectional text support. Requires fribidi executable in PATH')
 
 
     selection.add_option('--playlist-start',
@@ -684,6 +687,7 @@ def _real_main(argv=None):
         'nocheckcertificate': opts.no_check_certificate,
         'proxy': opts.proxy,
         'socket_timeout': opts.socket_timeout,
+        'bidi_workaround': opts.bidi_workaround,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
