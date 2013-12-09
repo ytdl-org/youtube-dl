@@ -211,6 +211,7 @@ from .youtube import (
     YoutubeWatchLaterIE,
     YoutubeFavouritesIE,
     YoutubeHistoryIE,
+    YoutubeTopListIE,
 )
 from .zdf import ZDFIE
 
