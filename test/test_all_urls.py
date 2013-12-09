@@ -110,6 +110,9 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch('http://vimeo.com/channels/tributes', ['vimeo:channel'])
         self.assertMatch('http://vimeo.com/user7108434', ['vimeo:user'])
 
+    # https://github.com/rg3/youtube-dl/issues/1930
+    def test_soundcloud_not_matching_sets(self):
+        self.assertMatch('http://soundcloud.com/floex/sets/gone-ep', ['soundcloud:set'])
 
 if __name__ == '__main__':
     unittest.main()
