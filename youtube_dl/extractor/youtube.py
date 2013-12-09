@@ -1572,6 +1572,9 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         if playlist_id.startswith('RD'):
             # Mixes require a custom extraction process
             return self._extract_mix(playlist_id)
+        if playlist_id.startswith('TL'):
+            raise ExtractorError(u'For downloading YouTube.com top lists, use '
+                u'the "yttoplist" keyword, for example "youtube-dl \'yttoplist:music:Top Tracks\'"', expected=True)
 
         # Extract the video ids from the playlist pages
         ids = []
@@ -1592,6 +1595,38 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
 
         url_results = self._ids_to_results(ids)
         return self.playlist_result(url_results, playlist_id, playlist_title)
+
+
+class YoutubeTopListIE(YoutubePlaylistIE):
+    IE_NAME = u'youtube:toplist'
+    IE_DESC = (u'YouTube.com top lists, "yttoplist:{channel}:{list title}"'
+        u' (Example: "yttoplist:music:Top Tracks")')
+    _VALID_URL = r'yttoplist:(?P<chann>.*?):(?P<title>.*?)$'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        channel = mobj.group('chann')
+        title = mobj.group('title')
+        query = compat_urllib_parse.urlencode({'title': title})
+        playlist_re = 'href="([^"]+?%s[^"]+?)"' % re.escape(query)
+        channel_page = self._download_webpage('https://www.youtube.com/%s' % channel, title)
+        link = self._html_search_regex(playlist_re, channel_page, u'list')
+        url = compat_urlparse.urljoin('https://www.youtube.com/', link)
+        
+        video_re = r'data-index="\d+".*?data-video-id="([0-9A-Za-z_-]{11})"'
+        ids = []
+        # sometimes the webpage doesn't contain the videos
+        # retry until we get them
+        for i in itertools.count(0):
+            msg = u'Downloading Youtube mix'
+            if i > 0:
+                msg += ', retry #%d' % i
+            webpage = self._download_webpage(url, title, msg)
+            ids = orderedSet(re.findall(video_re, webpage))
+            if ids:
+                break
+        url_results = self._ids_to_results(ids)
+        return self.playlist_result(url_results, playlist_title=title)
 
 
 class YoutubeChannelIE(InfoExtractor):
