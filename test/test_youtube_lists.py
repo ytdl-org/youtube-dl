@@ -122,7 +122,7 @@ class TestYoutubeLists(unittest.TestCase):
         ie = YoutubeTopListIE(dl)
         result = ie.extract('yttoplist:music:Top Tracks')
         entries = result['entries']
-        self.assertTrue(len(entries) >= 9)
+        self.assertTrue(len(entries) >= 5)
 
 if __name__ == '__main__':
     unittest.main()
