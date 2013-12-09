@@ -154,27 +154,38 @@ class InfoExtractor(object):
     def IE_NAME(self):
         return type(self).__name__[:-2]
 
-    def _request_webpage(self, url_or_request, video_id, note=None, errnote=None):
+    def _request_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True):
         """ Returns the response handle """
         if note is None:
             self.report_download_webpage(video_id)
         elif note is not False:
-            self.to_screen(u'%s: %s' % (video_id, note))
+            if video_id is None:
+                self.to_screen(u'%s' % (note,))
+            else:
+                self.to_screen(u'%s: %s' % (video_id, note))
         try:
             return self._downloader.urlopen(url_or_request)
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             if errnote is None:
                 errnote = u'Unable to download webpage'
-            raise ExtractorError(u'%s: %s' % (errnote, compat_str(err)), sys.exc_info()[2], cause=err)
+            errmsg = u'%s: %s' % (errnote, compat_str(err))
+            if fatal:
+                raise ExtractorError(errmsg, sys.exc_info()[2], cause=err)
+            else:
+                self._downloader.report_warning(errmsg)
+                return False
 
-    def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None):
+    def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None, fatal=True):
         """ Returns a tuple (page content as string, URL handle) """
 
         # Strip hashes from the URL (#1038)
         if isinstance(url_or_request, (compat_str, str)):
             url_or_request = url_or_request.partition('#')[0]
 
-        urlh = self._request_webpage(url_or_request, video_id, note, errnote)
+        urlh = self._request_webpage(url_or_request, video_id, note, errnote, fatal)
+        if urlh is False:
+            assert not fatal
+            return False
         content_type = urlh.headers.get('Content-Type', '')
         webpage_bytes = urlh.read()
         m = re.match(r'[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+\s*;\s*charset=(.+)', content_type)
@@ -209,9 +220,14 @@ class InfoExtractor(object):
         content = webpage_bytes.decode(encoding, 'replace')
         return (content, urlh)
 
-    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None):
+    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True):
         """ Returns the data of the page as a string """
-        return self._download_webpage_handle(url_or_request, video_id, note, errnote)[0]
+        res = self._download_webpage_handle(url_or_request, video_id, note, errnote, fatal)
+        if res is False:
+            return res
+        else:
+            content, _ = res
+            return content
 
     def _download_xml(self, url_or_request, video_id,
                       note=u'Downloading XML', errnote=u'Unable to download XML'):

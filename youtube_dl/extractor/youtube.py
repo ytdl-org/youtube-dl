@@ -42,19 +42,11 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = False
 
-    def report_lang(self):
-        """Report attempt to set language."""
-        self.to_screen(u'Setting language')
-
     def _set_language(self):
-        request = compat_urllib_request.Request(self._LANG_URL)
-        try:
-            self.report_lang()
-            self._download_webpage(self._LANG_URL, None, False)
-        except ExtractorError as err:
-            self._downloader.report_warning(u'unable to set language: %s' % compat_str(err.cause))
-            return False
-        return True
+        return bool(self._download_webpage(
+            self._LANG_URL, None,
+            note=u'Setting language', errnote='unable to set language',
+            fatal=False))
 
     def _login(self):
         (username, password) = self._get_login_info()
@@ -64,8 +56,12 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 raise ExtractorError(u'No login info available, needed for using %s.' % self.IE_NAME, expected=True)
             return False
 
-        login_page = self._download_webpage(self._LOGIN_URL, None, False,
-            u'Unable to fetch login page')
+        login_page = self._download_webpage(
+            self._LOGIN_URL, None,
+            note=u'Downloading login page',
+            errnote=u'unable to fetch login page', fatal=False)
+        if login_page is False:
+            return
 
         galx = self._search_regex(r'(?s)<input.+?name="GALX".+?value="(.+?)"',
                                   login_page, u'Login GALX parameter')
@@ -95,26 +91,28 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         # chokes on unicode
         login_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k,v in login_form_strs.items())
         login_data = compat_urllib_parse.urlencode(login_form).encode('ascii')
-        request = compat_urllib_request.Request(self._LOGIN_URL, login_data)
-        try:
-            self.report_login()
-            login_results = self._download_webpage(request, None, False)
-            if re.search(r'(?i)<form[^>]* id="gaia_loginform"', login_results) is not None:
-                self._downloader.report_warning(u'unable to log in: bad username or password')
-                return False
-        except ExtractorError as err:
-            self._downloader.report_warning(u'unable to log in: %s' % compat_str(err.cause))
+
+        req = compat_urllib_request.Request(self._LOGIN_URL, login_data)
+        login_results = self._download_webpage(
+            req, None,
+            note=u'Logging in', errnote=u'unable to log in', fatal=False)
+        if login_results is False:
+            return False
+        if re.search(r'(?i)<form[^>]* id="gaia_loginform"', login_results) is not None:
+            self._downloader.report_warning(u'unable to log in: bad username or password')
             return False
         return True
 
     def _confirm_age(self):
         age_form = {
-                'next_url':     '/',
-                'action_confirm':   'Confirm',
-                }
-        request = compat_urllib_request.Request(self._AGE_URL, compat_urllib_parse.urlencode(age_form))
-        self.report_age_confirmation()
-        self._download_webpage(request, None, False, u'Unable to confirm age')
+            'next_url': '/',
+            'action_confirm': 'Confirm',
+        }
+        req = compat_urllib_request.Request(self._AGE_URL, compat_urllib_parse.urlencode(age_form))
+
+        self._download_webpage(
+            req, None,
+            note=u'Confirming age', errnote=u'Unable to confirm age')
         return True
 
     def _real_initialize(self):
@@ -1736,11 +1734,14 @@ class YoutubeSearchIE(SearchInfoExtractor):
 
         while (50 * pagenum) < limit:
             result_url = self._API_URL % (compat_urllib_parse.quote_plus(query), (50*pagenum)+1)
-            data = self._download_webpage(result_url, u'query "%s"' % query,
-                u'Downloading page %s' % pagenum, u'Unable to download API page')
-            api_response = json.loads(data)['data']
+            data_json = self._download_webpage(
+                result_url, video_id=u'query "%s"' % query,
+                note=u'Downloading page %s' % (pagenum + 1),
+                errnote=u'Unable to download API page')
+            data = json.loads(data_json)
+            api_response = data['data']
 
-            if not 'items' in api_response:
+            if 'items' not in api_response:
                 raise ExtractorError(u'[youtube] No video results')
 
             new_ids = list(video['id'] for video in api_response['items'])
