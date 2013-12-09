@@ -1,3 +1,4 @@
+# encoding: utf-8
 import json
 import re
 import itertools
@@ -23,7 +24,9 @@ class SoundcloudIE(InfoExtractor):
      """
 
     _VALID_URL = r'''^(?:https?://)?
-                    (?:(?:(?:www\.)?soundcloud\.com/([\w\d-]+)/([\w\d-]+)/?(?:[?].*)?$)
+                    (?:(?:(?:www\.)?soundcloud\.com/
+                            (?P<uploader>[\w\d-]+)/(?P<title>[\w\d-]+)/?
+                            (?P<token>[^?]+?)?(?:[?].*)?$)
                        |(?:api\.soundcloud\.com/tracks/(?P<track_id>\d+))
                        |(?P<widget>w\.soundcloud\.com/player/?.*?url=.*)
                     )
@@ -56,6 +59,19 @@ class SoundcloudIE(InfoExtractor):
                 u'skip_download': True,
             },
         },
+        # private link
+        {
+            u'url': u'https://soundcloud.com/jaimemf/youtube-dl-test-video-a-y-baw/s-8Pjrp',
+            u'md5': u'aa0dd32bfea9b0c5ef4f02aacd080604',
+            u'info_dict': {
+                u'id': u'123998367',
+                u'ext': u'mp3',
+                u'title': u'Youtube - Dl Test Video \'\' Ä↭',
+                u'uploader': u'jaimeMF',
+                u'description': u'test chars:  \"\'/\\ä↭',
+                u'upload_date': u'20131209',
+            },
+        },
     ]
 
     _CLIENT_ID = 'b45b1aa10f1ac2941910a7f0d10f8e28'
@@ -73,7 +89,7 @@ class SoundcloudIE(InfoExtractor):
     def _resolv_url(cls, url):
         return 'http://api.soundcloud.com/resolve.json?url=' + url + '&client_id=' + cls._CLIENT_ID
 
-    def _extract_info_dict(self, info, full_title=None, quiet=False):
+    def _extract_info_dict(self, info, full_title=None, quiet=False, secret_token=None):
         track_id = compat_str(info['id'])
         name = full_title or track_id
         if quiet:
@@ -104,8 +120,10 @@ class SoundcloudIE(InfoExtractor):
             }]
         else:
             # We have to retrieve the url
+            streams_url = ('http://api.soundcloud.com/i1/tracks/{0}/streams?'
+                'client_id={1}&secret_token={2}'.format(track_id, self._IPHONE_CLIENT_ID, secret_token))
             stream_json = self._download_webpage(
-                'http://api.soundcloud.com/i1/tracks/{0}/streams?client_id={1}'.format(track_id, self._IPHONE_CLIENT_ID),
+                streams_url,
                 track_id, u'Downloading track url')
 
             formats = []
@@ -157,6 +175,7 @@ class SoundcloudIE(InfoExtractor):
             raise ExtractorError(u'Invalid URL: %s' % url)
 
         track_id = mobj.group('track_id')
+        token = None
         if track_id is not None:
             info_json_url = 'http://api.soundcloud.com/tracks/' + track_id + '.json?client_id=' + self._CLIENT_ID
             full_title = track_id
@@ -165,19 +184,22 @@ class SoundcloudIE(InfoExtractor):
             return self.url_result(query['url'][0], ie='Soundcloud')
         else:
             # extract uploader (which is in the url)
-            uploader = mobj.group(1)
+            uploader = mobj.group('uploader')
             # extract simple title (uploader + slug of song title)
-            slug_title =  mobj.group(2)
-            full_title = '%s/%s' % (uploader, slug_title)
+            slug_title =  mobj.group('title')
+            token = mobj.group('token')
+            full_title = resolve_title = '%s/%s' % (uploader, slug_title)
+            if token:
+                resolve_title += '/%s' % token
     
             self.report_resolve(full_title)
     
-            url = 'http://soundcloud.com/%s/%s' % (uploader, slug_title)
+            url = 'http://soundcloud.com/%s' % resolve_title
             info_json_url = self._resolv_url(url)
         info_json = self._download_webpage(info_json_url, full_title, u'Downloading info JSON')
 
         info = json.loads(info_json)
-        return self._extract_info_dict(info, full_title)
+        return self._extract_info_dict(info, full_title, secret_token=token)
 
 class SoundcloudSetIE(SoundcloudIE):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/sets/([\w\d-]+)(?:[?].*)?$'
