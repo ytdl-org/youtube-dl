@@ -64,7 +64,7 @@ class BrightcoveIE(InfoExtractor):
                 u'ext': u'mp4',
                 u'title': u'Lost in Motion II',
                 u'description': u'md5:363109c02998fee92ec02211bd8000df',
-                u'uploader': u'National Ballet of Canada',                
+                u'uploader': u'National Ballet of Canada',
             },
         },
     ]
