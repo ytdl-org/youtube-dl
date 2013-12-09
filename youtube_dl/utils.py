@@ -1045,3 +1045,15 @@ def get_term_width():
     except:
         pass
     return None
+
+
+def month_by_name(name):
+    """ Return the number of a month by (locale-independently) English name """
+
+    ENGLISH_NAMES = [
+        u'Januar', u'February', u'March', u'April', u'May', u'June',
+        u'July', u'August', u'September', u'October', u'November', u'December']
+    try:
+        return ENGLISH_NAMES.index(name) + 1
+    except ValueError:
+        return None

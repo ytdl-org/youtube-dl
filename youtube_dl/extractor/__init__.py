@@ -100,6 +100,7 @@ from .myvideo import MyVideoIE
 from .naver import NaverIE
 from .nba import NBAIE
 from .nbc import NBCNewsIE
+from .ndtv import NDTVIE
 from .newgrounds import NewgroundsIE
 from .nhl import NHLIE, NHLVideocenterIE
 from .niconico import NiconicoIE
