@@ -883,8 +883,7 @@ class YoutubeDL(object):
         return self._download_retcode
 
     def download_with_info_file(self, info_filename):
-        with open(info_filename, 'r') as f:
-            # TODO: Check for errors
+        with io.open(info_filename, 'r', encoding='utf-8') as f:
             info = json.load(f)
         try:
             self.process_ie_result(info, download=True)
