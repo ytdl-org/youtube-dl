@@ -7,14 +7,15 @@ from ..utils import (
     ExtractorError,
 )
 
+
 class RTLnowIE(InfoExtractor):
     """Information Extractor for RTL NOW, RTL2 NOW, RTL NITRO, SUPER RTL NOW, VOX NOW and n-tv NOW"""
-    _VALID_URL = r'(?:http://)?(?P<url>(?P<base_url>rtl-now\.rtl\.de/|rtl2now\.rtl2\.de/|(?:www\.)?voxnow\.de/|(?:www\.)?rtlnitronow\.de/|(?:www\.)?superrtlnow\.de/|(?:www\.)?n-tvnow\.de/)[a-zA-Z0-9-]+/[a-zA-Z0-9-]+\.php\?(?:container_id|film_id)=(?P<video_id>[0-9]+)&player=1(?:&season=[0-9]+)?(?:&.*)?)'
+    _VALID_URL = r'(?:http://)?(?P<url>(?P<base_url>rtl-now\.rtl\.de|rtl2now\.rtl2\.de|(?:www\.)?voxnow\.de|(?:www\.)?rtlnitronow\.de|(?:www\.)?superrtlnow\.de|(?:www\.)?n-tvnow\.de)/+[a-zA-Z0-9-]+/[a-zA-Z0-9-]+\.php\?(?:container_id|film_id)=(?P<video_id>[0-9]+)&player=1(?:&season=[0-9]+)?(?:&.*)?)'
     _TESTS = [{
         u'url': u'http://rtl-now.rtl.de/ahornallee/folge-1.php?film_id=90419&player=1&season=1',
         u'file': u'90419.flv',
         u'info_dict': {
-            u'upload_date': u'20070416', 
+            u'upload_date': u'20070416',
             u'title': u'Ahornallee - Folge 1 - Der Einzug',
             u'description': u'Folge 1 - Der Einzug',
         },
