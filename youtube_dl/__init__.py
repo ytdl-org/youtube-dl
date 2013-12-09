@@ -363,6 +363,9 @@ def parseOpts(overrideArguments=None):
             help='Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames', default=False)
     filesystem.add_option('-a', '--batch-file',
             dest='batchfile', metavar='FILE', help='file containing URLs to download (\'-\' for stdin)')
+    filesystem.add_option('--load-info',
+            dest='load_info_filename', metavar='FILE',
+            help='json file containing the video information (created with the "--write-json" option')
     filesystem.add_option('-w', '--no-overwrites',
             action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
     filesystem.add_option('-c', '--continue',
@@ -710,14 +713,17 @@ def _real_main(argv=None):
             update_self(ydl.to_screen, opts.verbose)
 
         # Maybe do nothing
-        if len(all_urls) < 1:
+        if (len(all_urls) < 1) and (opts.load_info_filename is None):
             if not opts.update_self:
                 parser.error(u'you must provide at least one URL')
             else:
                 sys.exit()
 
         try:
-            retcode = ydl.download(all_urls)
+            if opts.load_info_filename is not None:
+                retcode = ydl.download_with_info_file(opts.load_info_filename)
+            else:
+                retcode = ydl.download(all_urls)
         except MaxDownloadsReached:
             ydl.to_screen(u'--max-download limit reached, aborting.')
             retcode = 101
