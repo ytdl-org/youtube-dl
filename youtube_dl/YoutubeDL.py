@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import
 
+import collections
 import errno
 import io
 import json
@@ -401,13 +402,11 @@ class YoutubeDL(object):
                 is_id=(k == u'id'))
             template_dict = dict((k, sanitize(k, v))
                                  for k, v in template_dict.items())
+            template_dict = collections.defaultdict(lambda: u'NA', template_dict)
 
             tmpl = os.path.expanduser(self.params['outtmpl'])
             filename = tmpl % template_dict
             return filename
-        except KeyError as err:
-            self.report_error(u'Erroneous output template')
-            return None
         except ValueError as err:
             self.report_error(u'Error in output template: ' + str(err) + u' (encoding: ' + repr(preferredencoding()) + ')')
             return None
