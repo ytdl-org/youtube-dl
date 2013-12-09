@@ -100,6 +100,8 @@ which means you can modify it, redistribute it or use it however you like.
     --restrict-filenames       Restrict filenames to only ASCII characters, and
                                avoid "&" and spaces in filenames
     -a, --batch-file FILE      file containing URLs to download ('-' for stdin)
+    --load-info FILE           json file containing the video information
+                               (created with the "--write-json" option
     -w, --no-overwrites        do not overwrite files
     -c, --continue             force resume of partially downloaded files. By
                                default, youtube-dl will resume downloads if
