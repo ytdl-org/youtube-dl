@@ -33,6 +33,7 @@ from .utils import (
     encodeFilename,
     ExtractorError,
     format_bytes,
+    get_term_width,
     locked_file,
     make_HTTPS_handler,
     MaxDownloadsReached,
@@ -160,41 +161,26 @@ class YoutubeDL(object):
         self._err_file = sys.stderr
         self.params = {} if params is None else params
 
-        # Pipe messsages through fribidi
         if params.get('bidi_workaround', False):
-            # fribidi does not support ungetting, so force newlines
-            params['progress_with_newline'] = True
-
-            for fid in ['_screen_file', '_err_file']:
-                class FribidiOut(object):
-                    def __init__(self, outfile, errfile):
-                        self.outfile = outfile
-                        self.process = subprocess.Popen(
-                            ['fribidi'],
-                            stdin=subprocess.PIPE,
-                            stdout=outfile,
-                            stderr=errfile)
-
-                    def write(self, s):
-                        res = self.process.stdin.write(s)
-                        self.flush()
-                        return res
-
-                    def flush(self):
-                        return self.process.stdin.flush()
-
-                    def isatty(self):
-                        return self.outfile.isatty()
-
-                try:
-                    vout = FribidiOut(getattr(self, fid), self._err_file)
-                    setattr(self, fid, vout)
-                except OSError as ose:
-                    if ose.errno == 2:
-                        self.report_warning(u'Could not find fribidi executable, ignoring --bidi-workaround . Make sure that  fribidi  is an executable file in one of the directories in your $PATH.')
-                        break
-                    else:
-                        raise
+            try:
+                import pty
+                master, slave = pty.openpty()
+                width = get_term_width()
+                if width is None:
+                    width_args = []
+                else:
+                    width_args = ['-w', str(width)]
+                self._fribidi = subprocess.Popen(
+                    ['fribidi', '-c', 'UTF-8'] + width_args,
+                    stdin=subprocess.PIPE,
+                    stdout=slave,
+                    stderr=self._err_file)
+                self._fribidi_channel = os.fdopen(master, 'rb')
+            except OSError as ose:
+                if ose.errno == 2:
+                    self.report_warning(u'Could not find fribidi executable, ignoring --bidi-workaround . Make sure that  fribidi  is an executable file in one of the directories in your $PATH.')
+                else:
+                    raise
 
         if (sys.version_info >= (3,) and sys.platform != 'win32' and
                 sys.getfilesystemencoding() in ['ascii', 'ANSI_X3.4-1968']
@@ -243,6 +229,18 @@ class YoutubeDL(object):
         self._pps.append(pp)
         pp.set_downloader(self)
 
+    def _bidi_workaround(self, message):
+        if not hasattr(self, '_fribidi_channel'):
+            return message
+
+        assert type(message) == type(u'')
+        line_count = message.count(u'\n') + 1
+        self._fribidi.stdin.write((message + u'\n').encode('utf-8'))
+        self._fribidi.stdin.flush()
+        res = u''.join(self._fribidi_channel.readline().decode('utf-8')
+                       for _ in range(line_count))
+        return res[:-len(u'\n')]
+
     def to_screen(self, message, skip_eol=False):
         """Print message to stdout if not in quiet mode."""
         return self.to_stdout(message, skip_eol, check_quiet=True)
@@ -252,8 +250,10 @@ class YoutubeDL(object):
         if self.params.get('logger'):
             self.params['logger'].debug(message)
         elif not check_quiet or not self.params.get('quiet', False):
+            message = self._bidi_workaround(message)
             terminator = [u'\n', u''][skip_eol]
             output = message + terminator
+
             write_string(output, self._screen_file)
 
     def to_stderr(self, message):
@@ -262,6 +262,7 @@ class YoutubeDL(object):
         if self.params.get('logger'):
             self.params['logger'].error(message)
         else:
+            message = self._bidi_workaround(message)
             output = message + u'\n'
             write_string(output, self._err_file)
 

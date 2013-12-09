@@ -48,7 +48,6 @@ import os
 import random
 import re
 import shlex
-import subprocess
 import sys
 
 
@@ -57,6 +56,7 @@ from .utils import (
     DateRange,
     decodeOption,
     determine_ext,
+    get_term_width,
     DownloadError,
     get_cachedir,
     MaxDownloadsReached,
@@ -113,19 +113,6 @@ def parseOpts(overrideArguments=None):
     def _comma_separated_values_options_callback(option, opt_str, value, parser):
         setattr(parser.values, option.dest, value.split(','))
 
-    def _find_term_columns():
-        columns = os.environ.get('COLUMNS', None)
-        if columns:
-            return int(columns)
-
-        try:
-            sp = subprocess.Popen(['stty', 'size'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            out,err = sp.communicate()
-            return int(out.split()[1])
-        except:
-            pass
-        return None
-
     def _hide_login_info(opts):
         opts = list(opts)
         for private_opt in ['-p', '--password', '-u', '--username', '--video-password']:
@@ -140,7 +127,7 @@ def parseOpts(overrideArguments=None):
     max_help_position = 80
 
     # No need to wrap help messages if we're on a wide console
-    columns = _find_term_columns()
+    columns = get_term_width()
     if columns: max_width = columns
 
     fmt = optparse.IndentedHelpFormatter(width=max_width, max_help_position=max_help_position)

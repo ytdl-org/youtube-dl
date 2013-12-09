@@ -15,6 +15,7 @@ import platform
 import re
 import ssl
 import socket
+import subprocess
 import sys
 import traceback
 import zlib
@@ -1024,6 +1025,23 @@ def format_bytes(bytes):
     converted = float(bytes) / float(1024 ** exponent)
     return u'%.2f%s' % (converted, suffix)
 
+
 def str_to_int(int_str):
     int_str = re.sub(r'[,\.]', u'', int_str)
     return int(int_str)
+
+
+def get_term_width():
+    columns = os.environ.get('COLUMNS', None)
+    if columns:
+        return int(columns)
+
+    try:
+        sp = subprocess.Popen(
+            ['stty', 'size'],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = sp.communicate()
+        return int(out.split()[1])
+    except:
+        pass
+    return None
