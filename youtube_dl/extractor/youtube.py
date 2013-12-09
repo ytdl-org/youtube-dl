@@ -1458,6 +1458,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                         url += '&signature=' + signature
                     if 'ratebypass' not in url:
                         url += '&ratebypass=yes'
+                    url += '&bp' # by pass - should at the very last of all parameters
                     url_map[url_data['itag'][0]] = url
             video_url_list = self._get_video_url_list(url_map)
             if not video_url_list:
