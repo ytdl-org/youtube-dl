@@ -751,6 +751,7 @@ class YoutubeDL(object):
         if self.params.get('forceformat', False):
             self.to_stdout(info_dict['format'])
         if self.params.get('forcejson', False):
+            info_dict['_filename'] = filename
             self.to_stdout(json.dumps(info_dict))
 
         # Do nothing else if in simulate mode
