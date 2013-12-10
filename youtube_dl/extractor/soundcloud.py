@@ -99,7 +99,7 @@ class SoundcloudIE(InfoExtractor):
         thumbnail = info['artwork_url']
         if thumbnail is not None:
             thumbnail = thumbnail.replace('-large', '-t500x500')
-        ext = info.get('original_format', u'mp3')
+        ext = u'mp3'
         result = {
             'id': track_id,
             'uploader': info['user']['username'],
