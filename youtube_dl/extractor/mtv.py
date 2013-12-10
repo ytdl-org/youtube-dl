@@ -82,8 +82,13 @@ class MTVServicesInfoExtractor(InfoExtractor):
     def _get_videos_info(self, uri):
         video_id = self._id_from_uri(uri)
         data = compat_urllib_parse.urlencode({'uri': uri})
-        idoc = self._download_xml(self._FEED_URL +'?' + data, video_id,
-                                         u'Downloading info')
+
+        def fix_ampersand(s):
+            """ Fix unencoded ampersand in XML """
+            return s.replace(u'& ', '&amp; ')
+        idoc = self._download_xml(
+            self._FEED_URL + '?' + data, video_id,
+            u'Downloading info', transform_source=fix_ampersand)
         return [self._get_video_info(item) for item in idoc.findall('.//item')]
 
 
