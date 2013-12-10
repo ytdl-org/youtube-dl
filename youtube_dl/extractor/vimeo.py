@@ -115,7 +115,7 @@ class VimeoIE(InfoExtractor):
     def _real_initialize(self):
         self._login()
 
-    def _real_extract(self, url, new_video=True):
+    def _real_extract(self, url):
         url, data = unsmuggle_url(url)
         headers = std_headers
         if data is not None:
