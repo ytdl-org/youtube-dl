@@ -101,10 +101,6 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             self.to_screen(u'Vevo video detected: %s' % vevo_id)
             return self.url_result(u'vevo:%s' % vevo_id, ie='Vevo')
 
-        video_uploader = self._search_regex([r'(?im)<span class="owner[^\"]+?">[^<]+?<a [^>]+?>([^<]+?)</a>',
-                                             # Looking for official user
-                                             r'<(?:span|a) .*?rel="author".*?>([^<]+?)</'],
-                                            webpage, 'video uploader', fatal=False)
         age_limit = self._rta_search(webpage)
 
         video_upload_date = None
@@ -153,7 +149,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
         return {
             'id':       video_id,
             'formats': formats,
-            'uploader': video_uploader,
+            'uploader': info['owner_screenname'],
             'upload_date':  video_upload_date,
             'title':    self._og_search_title(webpage),
             'subtitles':    video_subtitles,
