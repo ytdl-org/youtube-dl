@@ -143,8 +143,10 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             self._list_available_subtitles(video_id, webpage)
             return
 
-        view_count = str_to_int(self._search_regex(
-            r'video_views_value[^>]+>([\d\.,]+)<', webpage, u'view count'))
+        view_count = self._search_regex(
+            r'video_views_count[^>]+>\s+([\d\.,]+)', webpage, u'view count', fatal=False)
+        if view_count is not None:
+            view_count = str_to_int(view_count)
 
         return {
             'id':       video_id,
