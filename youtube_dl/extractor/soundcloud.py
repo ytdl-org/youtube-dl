@@ -73,6 +73,19 @@ class SoundcloudIE(InfoExtractor):
                 u'upload_date': u'20131209',
             },
         },
+        # downloadable song
+        {
+            u'url': u'https://soundcloud.com/simgretina/just-your-problem-baby-1',
+            u'md5': u'56a8b69568acaa967b4c49f9d1d52d19',
+            u'info_dict': {
+                u'id': u'105614606',
+                u'ext': u'wav',
+                u'title': u'Just Your Problem Baby (Acapella)',
+                u'description': u'Vocals',
+                u'uploader': u'Sim Gretina',
+                u'upload_date': u'20130815',
+            },
+        },
     ]
 
     _CLIENT_ID = 'b45b1aa10f1ac2941910a7f0d10f8e28'
@@ -115,7 +128,7 @@ class SoundcloudIE(InfoExtractor):
                     track_id, self._CLIENT_ID))
             result['formats'] = [{
                 'format_id': 'download',
-                'ext': ext,
+                'ext': info.get('original_format', u'mp3'),
                 'url': format_url,
                 'vcodec': 'none',
             }]
