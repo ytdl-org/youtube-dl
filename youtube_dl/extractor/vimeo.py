@@ -151,8 +151,14 @@ class VimeoIE(InfoExtractor):
                 config = json.loads(config_json)
             except RegexNotFoundError:
                 # For pro videos or player.vimeo.com urls
-                config = self._search_regex([r' = {config:({.+?}),assets:', r'(?:c|b)=({.+?});'],
-                    webpage, u'info section', flags=re.DOTALL)
+                # We try to find out to which variable is assigned the config dic
+                m_variable_name = re.search('(\w)\.video\.id', webpage)
+                if m_variable_name is not None:
+                    config_re = r'%s=({.+?});' % re.escape(m_variable_name.group(1))
+                else:
+                    config_re = [r' = {config:({.+?}),assets:', r'(?:[abc])=({.+?});']
+                config = self._search_regex(config_re, webpage, u'info section',
+                    flags=re.DOTALL)
                 config = json.loads(config)
         except Exception as e:
             if re.search('The creator of this video has not given you permission to embed it on this domain.', webpage):
