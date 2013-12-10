@@ -1057,3 +1057,8 @@ def month_by_name(name):
         return ENGLISH_NAMES.index(name) + 1
     except ValueError:
         return None
+
+
+def fix_xml_all_ampersand(xml_str):
+    """Replace all the '&' by '&amp;' in XML"""
+    return xml_str.replace(u'&', u'&amp;')

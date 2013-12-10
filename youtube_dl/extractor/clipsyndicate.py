@@ -1,9 +1,9 @@
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
     find_xpath_attr,
+    fix_xml_all_ampersand,
 )
 
 
@@ -30,12 +30,10 @@ class ClipsyndicateIE(InfoExtractor):
         # it includes a required token
         flvars = self._search_regex(r'flvars: "(.*?)"', js_player, u'flvars')
 
-        playlist_page = self._download_webpage(
+        pdoc = self._download_xml(
             'http://eplayer.clipsyndicate.com/osmf/playlist?%s' % flvars,
-            video_id, u'Downloading video info') 
-        # Fix broken xml
-        playlist_page = re.sub('&', '&amp;', playlist_page)
-        pdoc = xml.etree.ElementTree.fromstring(playlist_page.encode('utf-8'))
+            video_id, u'Downloading video info',
+            transform_source=fix_xml_all_ampersand) 
 
         track_doc = pdoc.find('trackList/track')
         def find_param(name):
