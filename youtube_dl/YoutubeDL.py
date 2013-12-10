@@ -397,11 +397,12 @@ class YoutubeDL(object):
                 template_dict['playlist_index'] = u'%05d' % template_dict['playlist_index']
 
             sanitize = lambda k, v: sanitize_filename(
-                u'NA' if v is None else compat_str(v),
+                compat_str(v),
                 restricted=self.params.get('restrictfilenames'),
                 is_id=(k == u'id'))
             template_dict = dict((k, sanitize(k, v))
-                                 for k, v in template_dict.items())
+                                 for k, v in template_dict.items()
+                                 if v is not None)
             template_dict = collections.defaultdict(lambda: u'NA', template_dict)
 
             tmpl = os.path.expanduser(self.params['outtmpl'])
