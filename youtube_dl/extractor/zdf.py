@@ -73,14 +73,14 @@ class ZDFIE(InfoExtractor):
             try:
                 proto_pref = -PROTO_ORDER.index(format_m.group('proto'))
             except ValueError:
-                proto_pref = 999
+                proto_pref = -999
 
             quality = fnode.find('./quality').text
             QUALITY_ORDER = ['veryhigh', '300', 'high', 'med', 'low']
             try:
                 quality_pref = -QUALITY_ORDER.index(quality)
             except ValueError:
-                quality_pref = 999
+                quality_pref = -999
 
             abr = int(fnode.find('./audioBitrate').text) // 1000
             vbr = int(fnode.find('./videoBitrate').text) // 1000
