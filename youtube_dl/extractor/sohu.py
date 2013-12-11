@@ -53,7 +53,7 @@ class SohuIE(InfoExtractor):
             raise ExtractorError(u'No formats available for this video')
 
         # For now, we just pick the highest available quality
-        vid_id = vid_ids[-1]
+        vid_id = vid_ids[0]
 
         format_data = data if vid == vid_id else _fetch_data(vid_id, mytv)
         part_count = format_data['data']['totalBlocks']
@@ -71,7 +71,10 @@ class SohuIE(InfoExtractor):
                 note=u'Downloading part %d of %d' % (i+1, part_count))
 
             part_info = part_str.split('|')
-            video_url = '%s%s?key=%s' % (part_info[0], su[i], part_info[3])
+            if part_info[0][-1] == '/' and su[i][0] == '/':
+                video_url = '%s%s?key=%s' % (part_info[0], su[i][1:], part_info[3])
+            else:
+                video_url = '%s%s?key=%s' % (part_info[0], su[i], part_info[3])
 
             video_info = {
                 'id': '%s_part%02d' % (video_id, i + 1),
