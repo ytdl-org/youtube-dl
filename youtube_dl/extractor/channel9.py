@@ -3,10 +3,7 @@
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    format_bytes,
-    ExtractorError,
-)
+from ..utils import ExtractorError
 
 class Channel9IE(InfoExtractor):
     '''
@@ -51,7 +48,6 @@ class Channel9IE(InfoExtractor):
     ]
 
     _RSS_URL = 'http://channel9.msdn.com/%s/RSS'
-    _EXTRACT_ENTRY_ITEMS_FROM_RSS = False
 
     # Sorted by quality
     _known_formats = ['MP3', 'MP4', 'Mid Quality WMV', 'Mid Quality MP4', 'High Quality WMV', 'High Quality MP4']
@@ -88,37 +84,6 @@ class Channel9IE(InfoExtractor):
                  } for x in list(re.finditer(FORMAT_REGEX, html)) if x.group('quality') in self._known_formats]
         # Sort according to known formats list
         formats.sort(key=lambda fmt: self._known_formats.index(fmt['format_id']))
-        return formats
-
-    def _formats_from_rss_item(self, item):
-
-        def process_formats(elem):
-            formats = []
-            for media_content in elem.findall('./{http://search.yahoo.com/mrss/}content'):
-                url = media_content.attrib['url']
-                # Ignore unrelated media
-                if url.endswith('.ism/manifest'):
-                    continue
-                format_note = media_content.attrib['type']
-                filesize = int(media_content.attrib['fileSize'])
-                formats.append({'url': url,
-                                'format_note': format_note,
-                                'format': '%s %s' % (format_note, format_bytes(filesize)),
-                                'filesize': filesize,
-                                })
-            return formats
-
-        formats = []
-
-        for media_group in item.findall('./{http://search.yahoo.com/mrss/}group'):
-            formats.extend(process_formats(media_group))
-
-        # Sometimes there are no media:groups in item, but there is media:content
-        # right in item (usually when there is the only media source)
-        formats.extend(process_formats(item))        
-
-        # Sort by file size
-        formats.sort(key=lambda fmt: fmt['filesize'])
         return formats
 
     def _extract_title(self, html):
@@ -274,61 +239,12 @@ class Channel9IE(InfoExtractor):
 
         return contents
 
-    def _extract_content_rss(self, rss):
-        '''
-        Extracts links to entry items right out of RSS feed.
-        This approach is faster than extracting from web pages
-        one by one, but suffers from some problems.
-        Pros:
-         - no need to download additional pages
-         - provides more media links
-         - accurate file size
-        Cons:
-         - fewer meta data provided
-         - links to media files have no appropriate data that may be used as format_id
-         - RSS does not contain links to presentation materials (slides, zip)
-        '''
-        entries = []
-        for item in rss.findall('./channel/item'):
-            url = item.find('./link').text
-            video_id = url.split('/')[-1]
-            formats = self._formats_from_rss_item(item)
-
-            if len(formats) == 0:
-                self._downloader.report_warning(u'The recording for session %s is not yet available' % video_id)
-                continue
-
-            title = item.find('./title').text
-            description = item.find('./description').text
-
-            thumbnail = item.find('./{http://search.yahoo.com/mrss/}thumbnail').text
-
-            duration_e = item.find('./{http://www.itunes.com/dtds/podcast-1.0.dtd}duration')
-            duration = duration_e.text if duration_e is not None else 0
-
-            speakers_e = item.find('./{http://purl.org/dc/elements/1.1/}creator')
-            speakers = speakers_e.text.split(', ') if speakers_e is not None and speakers_e.text else []
-
-            entries.append({'_type': 'video',
-                            'id': video_id,
-                            'formats': formats,
-                            'title': title,
-                            'description': description,
-                            'thumbnail': thumbnail,
-                            'duration': duration,
-                            'session_speakers': speakers,                            
-                            })
-        return entries
-
     def _extract_list(self, content_path):
         rss = self._download_xml(self._RSS_URL % content_path, content_path, u'Downloading RSS')
-        if self._EXTRACT_ENTRY_ITEMS_FROM_RSS:   
-            return self._extract_content_rss(rss)
-        else:
-            entries = [self.url_result(session_url.text, 'Channel9')
-                       for session_url in rss.findall('./channel/item/link')]
-            title_text = rss.find('./channel/title').text
-            return self.playlist_result(entries, content_path, title_text)
+        entries = [self.url_result(session_url.text, 'Channel9')
+                   for session_url in rss.findall('./channel/item/link')]
+        title_text = rss.find('./channel/title').text
+        return self.playlist_result(entries, content_path, title_text)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
