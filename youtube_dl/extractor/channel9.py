@@ -39,7 +39,7 @@ class Channel9IE(InfoExtractor):
             u'md5': u'b43ee4529d111bc37ba7ee4f34813e68',
             u'info_dict': {
                 u'title': u'Self-service BI with Power BI - nuclear testing',
-                u'description': u'md5:a6d5cfd9ee46d1851cf6e40ea61cfc10',
+                u'description': u'md5:d1e6ecaafa7fb52a2cacdf9599829f5b',
                 u'duration': 1540,
                 u'thumbnail': u'http://media.ch9.ms/ch9/87e1/0300391f-a455-4c72-bec3-4422f19287e1/selfservicenuk_512.jpg',
                 u'authors': [ u'Mike Wilmot' ],
