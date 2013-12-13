@@ -44,7 +44,7 @@ class IGNIE(InfoExtractor):
                 {
                     u'file': u'638672ee848ae4ff108df2a296418ee2.mp4',
                     u'info_dict': {
-                        u'title': u'GTA 5\'s Twisted Beauty in Super Slow Motion',
+                        u'title': u'26 Twisted Moments from GTA 5 in Slow Motion',
                         u'description': u'The twisted beauty of GTA 5 in stunning slow motion.',
                     },
                 },
