@@ -28,7 +28,7 @@ class DailymotionBaseInfoExtractor(InfoExtractor):
 class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
     """Information Extractor for Dailymotion"""
 
-    _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/(?:embed/)?video/([^/]+)'
+    _VALID_URL = r'(?i)(?:https?://)?(?:(www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(embed|#)/)?video/(?P<id>[^/?_]+)'
     IE_NAME = u'dailymotion'
 
     _FORMATS = [
@@ -81,7 +81,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
         # Extract id and simplified title from URL
         mobj = re.match(self._VALID_URL, url)
 
-        video_id = mobj.group(1).split('_')[0].split('?')[0]
+        video_id = mobj.group('id')
 
         url = 'http://www.dailymotion.com/video/%s' % video_id
 
