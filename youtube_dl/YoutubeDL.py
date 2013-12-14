@@ -218,12 +218,13 @@ class YoutubeDL(object):
             self.add_info_extractor(ie)
         return ie
 
-    def add_default_info_extractors(self):
+    def add_default_info_extractors(self, exclude=[]):
         """
         Add the InfoExtractors returned by gen_extractors to the end of the list
         """
         for ie in gen_extractors():
-            self.add_info_extractor(ie)
+            if not ie.__class__.__name__ in exclude:
+                self.add_info_extractor(ie)
 
     def add_post_processor(self, pp):
         """Add a PostProcessor object to the end of the chain."""
