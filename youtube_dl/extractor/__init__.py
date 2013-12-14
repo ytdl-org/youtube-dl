@@ -111,6 +111,7 @@ from .orf import ORFIE
 from .pbs import PBSIE
 from .photobucket import PhotobucketIE
 from .podomatic import PodomaticIE
+from .pornhd import PornHdIE
 from .pornhub import PornHubIE
 from .pornotube import PornotubeIE
 from .pyvideo import PyvideoIE
