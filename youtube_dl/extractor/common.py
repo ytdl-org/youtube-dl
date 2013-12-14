@@ -295,7 +295,7 @@ class InfoExtractor(object):
                 mobj = re.search(p, string, flags)
                 if mobj: break
 
-        if sys.stderr.isatty() and os.name != 'nt':
+        if os.name != 'nt' and sys.stderr.isatty():
             _name = u'\033[0;34m%s\033[0m' % name
         else:
             _name = name
