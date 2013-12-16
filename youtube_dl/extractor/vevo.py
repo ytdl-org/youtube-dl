@@ -18,6 +18,7 @@ class VevoIE(InfoExtractor):
     _VALID_URL = r'''(?x)
         (?:https?://www\.vevo\.com/watch/(?:[^/]+/[^/]+/)?|
            https?://cache\.vevo\.com/m/html/embed\.html\?video=|
+           https?://videoplayer\.vevo\.com/embed/embedded\?videoId=|
            vevo:)
         (?P<id>[^&?#]+)'''
     _TESTS = [{
