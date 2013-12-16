@@ -93,7 +93,9 @@ class MTVServicesInfoExtractor(InfoExtractor):
 
 
 class MTVIE(MTVServicesInfoExtractor):
-    _VALID_URL = r'^https?://(?:www\.)?mtv\.com/videos/.+?/(?P<videoid>[0-9]+)/[^/]+$'
+    _VALID_URL = r'''(?x)^https?://
+        (?:(?:www\.)?mtv\.com/videos/.+?/(?P<videoid>[0-9]+)/[^/]+$|
+           m\.mtv\.com/videos/video\.rbml\?.*?id=(?P<mgid>[^&]+))'''
 
     _FEED_URL = 'http://www.mtv.com/player/embed/AS3/rss/'
 
@@ -127,16 +129,17 @@ class MTVIE(MTVServicesInfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('videoid')
-
-        webpage = self._download_webpage(url, video_id)
-
-        # Some videos come from Vevo.com
-        m_vevo = re.search(r'isVevoVideo = true;.*?vevoVideoId = "(.*?)";',
-                           webpage, re.DOTALL)
-        if m_vevo:
-            vevo_id = m_vevo.group(1);
-            self.to_screen(u'Vevo video detected: %s' % vevo_id)
-            return self.url_result('vevo:%s' % vevo_id, ie='Vevo')
-
-        uri = self._html_search_regex(r'/uri/(.*?)\?', webpage, u'uri')
+        uri = mobj.group('mgid')
+        if uri is None:
+            webpage = self._download_webpage(url, video_id)
+    
+            # Some videos come from Vevo.com
+            m_vevo = re.search(r'isVevoVideo = true;.*?vevoVideoId = "(.*?)";',
+                               webpage, re.DOTALL)
+            if m_vevo:
+                vevo_id = m_vevo.group(1);
+                self.to_screen(u'Vevo video detected: %s' % vevo_id)
+                return self.url_result('vevo:%s' % vevo_id, ie='Vevo')
+    
+            uri = self._html_search_regex(r'/uri/(.*?)\?', webpage, u'uri')
         return self._get_videos_info(uri)
