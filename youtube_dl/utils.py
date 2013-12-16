@@ -1066,13 +1066,14 @@ def fix_xml_all_ampersand(xml_str):
 
 
 def setproctitle(title):
+    assert isinstance(title, type(u''))
     try:
         libc = ctypes.cdll.LoadLibrary("libc.so.6")
     except OSError:
         return
     title = title
     buf = ctypes.create_string_buffer(len(title) + 1)
-    buf.value = title
+    buf.value = title.encode('utf-8')
     try:
         libc.prctl(15, ctypes.byref(buf), 0, 0, 0)
     except AttributeError:
