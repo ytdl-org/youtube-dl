@@ -1,6 +1,4 @@
-import json
 import re
-import time
 
 from .common import InfoExtractor
 from ..utils import month_by_name
