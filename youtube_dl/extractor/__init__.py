@@ -119,6 +119,7 @@ from .pornhd import PornHdIE
 from .pornhub import PornHubIE
 from .pornotube import PornotubeIE
 from .pyvideo import PyvideoIE
+from .radiofrance import RadioFranceIE
 from .rbmaradio import RBMARadioIE
 from .redtube import RedTubeIE
 from .ringtv import RingTVIE
