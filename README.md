@@ -56,6 +56,10 @@ which means you can modify it, redistribute it or use it however you like.
     --date DATE                download only videos uploaded in this date
     --datebefore DATE          download only videos uploaded before this date
     --dateafter DATE           download only videos uploaded after this date
+    --min-views COUNT          Do not download any videos with less than COUNT
+                               views
+    --max-views COUNT          Do not download any videos with more than COUNT
+                               views
     --no-playlist              download only the currently playing video
     --age-limit YEARS          download only videos suitable for the given age
     --download-archive FILE    Download only videos not listed in the archive
@@ -127,6 +131,7 @@ which means you can modify it, redistribute it or use it however you like.
     --get-id                   simulate, quiet but print id
     --get-thumbnail            simulate, quiet but print thumbnail URL
     --get-description          simulate, quiet but print video description
+    --get-duration             simulate, quiet but print video length
     --get-filename             simulate, quiet but print output filename
     --get-format               simulate, quiet but print output format
     -j, --dump-json            simulate, quiet but print JSON information
