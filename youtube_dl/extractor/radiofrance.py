@@ -15,12 +15,12 @@ class RadioFranceIE(InfoExtractor):
 
     _TEST = {
         u'url': u'http://maison.radiofrance.fr/radiovisions/one-one',
-        u'file': u'one-one.mp4',
-        u'md5': u'todo',
+        u'file': u'one-one.ogg',
+        u'md5': u'bdbb28ace95ed0e04faab32ba3160daf',
         u'info_dict': {
             u"title": u"One to one",
             u"description": u"Plutôt que d'imaginer la radio de demain comme technologie ou comme création de contenu, je veux montrer que quelles que soient ses évolutions, j'ai l'intime conviction que la radio continuera d'être un grand média de proximité pour les auditeurs.",
-            u"uploader": u"ferdi",
+            u"uploader": u"Thomas Hercouët",
         },
     }
 
