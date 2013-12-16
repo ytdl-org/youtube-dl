@@ -1377,9 +1377,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         if 'length_seconds' not in video_info:
             self._downloader.report_warning(u'unable to extract video duration')
-            video_duration = ''
+            video_duration = None
         else:
-            video_duration = compat_urllib_parse.unquote_plus(video_info['length_seconds'][0])
+            video_duration = int(compat_urllib_parse.unquote_plus(video_info['length_seconds'][0]))
 
         # annotations
         video_annotations = None
