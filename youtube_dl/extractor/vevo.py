@@ -15,7 +15,11 @@ class VevoIE(InfoExtractor):
     Accepts urls from vevo.com or in the format 'vevo:{id}'
     (currently used by MTVIE)
     """
-    _VALID_URL = r'((http://www\.vevo\.com/watch/(?:[^/]+/[^/]+/)?)|(vevo:))(?P<id>.*?)(\?|$)'
+    _VALID_URL = r'''(?x)
+        (?:https?://www\.vevo\.com/watch/(?:[^/]+/[^/]+/)?|
+           https?://cache\.vevo\.com/m/html/embed\.html\?video=|
+           vevo:)
+        (?P<id>[^&?#]+)'''
     _TESTS = [{
         u'url': u'http://www.vevo.com/watch/hurts/somebody-to-die-for/GB1101300280',
         u'file': u'GB1101300280.mp4',

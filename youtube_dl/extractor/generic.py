@@ -241,6 +241,12 @@ class GenericIE(InfoExtractor):
             # Don't set the extractor because it can be a track url or an album
             return self.url_result(burl)
 
+        # Look for embedded Vevo player
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:cache\.)?vevo\.com/.+?)\1', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'))
+
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
         if mobj is None:
