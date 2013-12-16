@@ -845,7 +845,7 @@ class YoutubeDL(object):
             if info_dict.get('thumbnail') is not None:
                 thumb_format = determine_ext(info_dict['thumbnail'], u'jpg')
                 thumb_filename = os.path.splitext(filename)[0] + u'.' + thumb_format
-                if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(infofn)):
+                if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(thumb_filename)):
                     self.to_screen(u'[%s] %s: Thumbnail is already present' %
                                    (info_dict['extractor'], info_dict['id']))
                 else:
