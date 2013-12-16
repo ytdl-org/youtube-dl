@@ -210,6 +210,14 @@ def parseOpts(overrideArguments=None):
     selection.add_option('--date', metavar='DATE', dest='date', help='download only videos uploaded in this date', default=None)
     selection.add_option('--datebefore', metavar='DATE', dest='datebefore', help='download only videos uploaded before this date', default=None)
     selection.add_option('--dateafter', metavar='DATE', dest='dateafter', help='download only videos uploaded after this date', default=None)
+    selection.add_option(
+        '--min-views', metavar='COUNT', dest='min_views',
+        default=None, type=int,
+        help="Do not download any videos with less than COUNT views",)
+    selection.add_option(
+        '--max-views', metavar='COUNT', dest='max_views',
+        default=None, type=int,
+        help="Do not download any videos with more than COUNT views",)
     selection.add_option('--no-playlist', action='store_true', dest='noplaylist', help='download only the currently playing video', default=False)
     selection.add_option('--age-limit', metavar='YEARS', dest='age_limit',
                          help='download only videos suitable for the given age',
@@ -668,6 +676,8 @@ def _real_main(argv=None):
         'keepvideo': opts.keepvideo,
         'min_filesize': opts.min_filesize,
         'max_filesize': opts.max_filesize,
+        'min_views': opts.min_views,
+        'max_views': opts.max_views,
         'daterange': date,
         'cachedir': opts.cachedir,
         'youtube_print_sig_code': opts.youtube_print_sig_code,

@@ -127,7 +127,16 @@ class YoutubeDL(object):
     noplaylist:        Download single video instead of a playlist if in doubt.
     age_limit:         An integer representing the user's age in years.
                        Unsuitable videos for the given age are skipped.
-    download_archive:   File name of a file where all downloads are recorded.
+    min_views:         An integer representing the minimum view count the video
+                       must have in order to not be skipped.
+                       Videos without view count information are always
+                       downloaded. None for no limit.
+    max_views:         An integer representing the maximum view count.
+                       Videos that are more popular than that are not
+                       downloaded.
+                       Videos without view count information are always
+                       downloaded. None for no limit.
+    download_archive:  File name of a file where all downloads are recorded.
                        Videos already present in the file are not downloaded
                        again.
     cookiefile:        File name where cookies should be read from and dumped to.
@@ -415,13 +424,14 @@ class YoutubeDL(object):
     def _match_entry(self, info_dict):
         """ Returns None iff the file should be downloaded """
 
+        video_title = info_dict.get('title', info_dict.get('id', u'video'))
         if 'title' in info_dict:
             # This can happen when we're just evaluating the playlist
             title = info_dict['title']
             matchtitle = self.params.get('matchtitle', False)
             if matchtitle:
                 if not re.search(matchtitle, title, re.IGNORECASE):
-                    return u'[download] "' + title + '" title did not match pattern "' + matchtitle + '"'
+                    return u'"' + title + '" title did not match pattern "' + matchtitle + '"'
             rejecttitle = self.params.get('rejecttitle', False)
             if rejecttitle:
                 if re.search(rejecttitle, title, re.IGNORECASE):
@@ -430,14 +440,21 @@ class YoutubeDL(object):
         if date is not None:
             dateRange = self.params.get('daterange', DateRange())
             if date not in dateRange:
-                return u'[download] %s upload date is not in range %s' % (date_from_str(date).isoformat(), dateRange)
+                return u'%s upload date is not in range %s' % (date_from_str(date).isoformat(), dateRange)
+        view_count = info_dict.get('view_count', None)
+        if view_count is not None:
+            min_views = self.params.get('min_views')
+            if min_views is not None and view_count < min_views:
+                return u'Skipping %s, because it has not reached minimum view count (%d/%d)' % (video_title, view_count, min_views)
+            max_views = self.params.get('max_views')
+            if max_views is not None and view_count > max_views:
+                return u'Skipping %s, because it has exceeded the maximum view count (%d/%d)' % (video_title, view_count, max_views)
         age_limit = self.params.get('age_limit')
         if age_limit is not None:
             if age_limit < info_dict.get('age_limit', 0):
                 return u'Skipping "' + title + '" because it is age restricted'
         if self.in_download_archive(info_dict):
-            return (u'%s has already been recorded in archive'
-                    % info_dict.get('title', info_dict.get('id', u'video')))
+            return u'%s has already been recorded in archive' % video_title
         return None
 
     @staticmethod
