@@ -10,7 +10,7 @@ from ..utils import (
 
 class RTLnowIE(InfoExtractor):
     """Information Extractor for RTL NOW, RTL2 NOW, RTL NITRO, SUPER RTL NOW, VOX NOW and n-tv NOW"""
-    _VALID_URL = r'(?:http://)?(?P<url>(?P<base_url>rtl-now\.rtl\.de|rtl2now\.rtl2\.de|(?:www\.)?voxnow\.de|(?:www\.)?rtlnitronow\.de|(?:www\.)?superrtlnow\.de|(?:www\.)?n-tvnow\.de)/+[a-zA-Z0-9-]+/[a-zA-Z0-9-]+\.php\?(?:container_id|film_id)=(?P<video_id>[0-9]+)&player=1(?:&season=[0-9]+)?(?:&.*)?)'
+    _VALID_URL = r'(?:http://)?(?P<url>(?P<domain>rtl-now\.rtl\.de|rtl2now\.rtl2\.de|(?:www\.)?voxnow\.de|(?:www\.)?rtlnitronow\.de|(?:www\.)?superrtlnow\.de|(?:www\.)?n-tvnow\.de)/+[a-zA-Z0-9-]+/[a-zA-Z0-9-]+\.php\?(?:container_id|film_id)=(?P<video_id>[0-9]+)&player=1(?:&season=[0-9]+)?(?:&.*)?)'
     _TESTS = [{
         u'url': u'http://rtl-now.rtl.de/ahornallee/folge-1.php?film_id=90419&player=1&season=1',
         u'file': u'90419.flv',
@@ -82,7 +82,7 @@ class RTLnowIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
 
         webpage_url = u'http://' + mobj.group('url')
-        video_page_url = u'http://' + mobj.group('base_url')
+        video_page_url = u'http://' + mobj.group('domain') + u'/'
         video_id = mobj.group(u'video_id')
 
         webpage = self._download_webpage(webpage_url, video_id)
