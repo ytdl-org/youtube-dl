@@ -30,7 +30,6 @@ class MDRIE(InfoExtractor):
         m = re.match(self._VALID_URL, url)
         video_id = m.group('video_id')
         domain = m.group('domain')
-        mediatype = m.group('type')
 
         # determine title and media streams from webpage
         html = self._download_webpage(url, video_id)
@@ -70,7 +69,7 @@ class MDRIE(InfoExtractor):
             formats.append(format)
         formats.sort(key=lambda f: (f.get('vbr'), f['abr']))
         if not formats:
-            raise ValueError('Could not find any valid formats')
+            raise ExtractorError(u'Could not find any valid formats')
 
         return {
             'id': video_id,
