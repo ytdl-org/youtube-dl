@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import ctypes
 import datetime
 import email.utils
 import errno
@@ -1062,3 +1063,17 @@ def month_by_name(name):
 def fix_xml_all_ampersand(xml_str):
     """Replace all the '&' by '&amp;' in XML"""
     return xml_str.replace(u'&', u'&amp;')
+
+
+def setproctitle(title):
+    try:
+        libc = ctypes.cdll.LoadLibrary("libc.so.6")
+    except OSError:
+        return
+    title = title
+    buf = ctypes.create_string_buffer(len(title) + 1)
+    buf.value = title
+    try:
+        libc.prctl(15, ctypes.byref(buf), 0, 0, 0)
+    except AttributeError:
+        return  # Strange libc, just skip this
