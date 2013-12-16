@@ -35,14 +35,38 @@ class InfoExtractor(object):
 
     id:             Video identifier.
     title:          Video title, unescaped.
+
+    Additionally, it must contain either a formats entry or url and ext:
+
+    formats:        A list of dictionaries for each format available, it must
+                    be ordered from worst to best quality. Potential fields:
+                    * url        Mandatory. The URL of the video file
+                    * ext        Will be calculated from url if missing
+                    * format     A human-readable description of the format
+                                 ("mp4 container with h264/opus").
+                                 Calculated from the format_id, width, height.
+                                 and format_note fields if missing.
+                    * format_id  A short description of the format
+                                 ("mp4_h264_opus" or "19")
+                    * format_note Additional info about the format
+                                 ("3D" or "DASH video")
+                    * width      Width of the video, if known
+                    * height     Height of the video, if known
+                    * abr        Average audio bitrate in KBit/s
+                    * acodec     Name of the audio codec in use
+                    * vbr        Average video bitrate in KBit/s
+                    * vcodec     Name of the video codec in use
+                    * filesize   The number of bytes, if known in advance
+                    * player_url SWF Player URL (used for rtmpdump).
     url:            Final video URL.
     ext:            Video filename extension.
-
-    Instead of url and ext, formats can also specified.
+    format:         The video format, defaults to ext (used for --get-format)
+    player_url:     SWF Player URL (used for rtmpdump).
+    urlhandle:      [internal] The urlHandle to be used to download the file,
+                    like returned by urllib.request.urlopen
 
     The following fields are optional:
 
-    format:         The video format, defaults to ext (used for --get-format)
     thumbnails:     A list of dictionaries (with the entries "resolution" and
                     "url") for the varying thumbnails
     thumbnail:      Full URL to a video thumbnail image.
@@ -51,7 +75,6 @@ class InfoExtractor(object):
     upload_date:    Video upload date (YYYYMMDD).
     uploader_id:    Nickname or id of the video uploader.
     location:       Physical location of the video.
-    player_url:     SWF Player URL (used for rtmpdump).
     subtitles:      The subtitle file contents as a dictionary in the format
                     {language: subtitles}.
     duration:       Length of the video in seconds, as an integer.
@@ -59,28 +82,7 @@ class InfoExtractor(object):
     like_count:     Number of positive ratings of the video
     dislike_count:  Number of negative ratings of the video
     comment_count:  Number of comments on the video
-    urlhandle:      [internal] The urlHandle to be used to download the file,
-                    like returned by urllib.request.urlopen
     age_limit:      Age restriction for the video, as an integer (years)
-    formats:        A list of dictionaries for each format available, it must
-                    be ordered from worst to best quality. Potential fields:
-                    * url       Mandatory. The URL of the video file
-                    * ext       Will be calculated from url if missing
-                    * format    A human-readable description of the format
-                                ("mp4 container with h264/opus").
-                                Calculated from the format_id, width, height.
-                                and format_note fields if missing.
-                    * format_id A short description of the format
-                                ("mp4_h264_opus" or "19")
-                    * format_note Additional info about the format
-                                ("3D" or "DASH video")
-                    * width     Width of the video, if known
-                    * height    Height of the video, if known
-                    * abr       Average audio bitrate in KBit/s
-                    * acodec    Name of the audio codec in use
-                    * vbr       Average video bitrate in KBit/s
-                    * vcodec    Name of the video codec in use
-                    * filesize  The number of bytes, if known in advance
     webpage_url:    The url to the video webpage, if given to youtube-dl it
                     should allow to get the same result again. (It will be set
                     by YoutubeDL if it's missing)
