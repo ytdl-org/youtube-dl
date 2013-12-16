@@ -198,10 +198,14 @@ def parseOpts(overrideArguments=None):
         help=u'Work around terminals that lack bidirectional text support. Requires fribidi executable in PATH')
 
 
-    selection.add_option('--playlist-start',
-            dest='playliststart', metavar='NUMBER', help='playlist video to start at (default is %default)', default=1)
-    selection.add_option('--playlist-end',
-            dest='playlistend', metavar='NUMBER', help='playlist video to end at (default is last)', default=-1)
+    selection.add_option(
+        '--playlist-start',
+        dest='playliststart', metavar='NUMBER', default=1, type=int,
+        help='playlist video to start at (default is %default)')
+    selection.add_option(
+        '--playlist-end',
+        dest='playlistend', metavar='NUMBER', default=None, type=int,
+        help='playlist video to end at (default is last)')
     selection.add_option('--match-title', dest='matchtitle', metavar='REGEX',help='download only matching titles (regex or caseless sub-string)')
     selection.add_option('--reject-title', dest='rejecttitle', metavar='REGEX',help='skip download for matching titles (regex or caseless sub-string)')
     selection.add_option('--max-downloads', metavar='NUMBER',
@@ -576,18 +580,10 @@ def _real_main(argv=None):
         if numeric_buffersize is None:
             parser.error(u'invalid buffer size specified')
         opts.buffersize = numeric_buffersize
-    try:
-        opts.playliststart = int(opts.playliststart)
-        if opts.playliststart <= 0:
-            raise ValueError(u'Playlist start must be positive')
-    except (TypeError, ValueError):
-        parser.error(u'invalid playlist start number specified')
-    try:
-        opts.playlistend = int(opts.playlistend)
-        if opts.playlistend != -1 and (opts.playlistend <= 0 or opts.playlistend < opts.playliststart):
-            raise ValueError(u'Playlist end must be greater than playlist start')
-    except (TypeError, ValueError):
-        parser.error(u'invalid playlist end number specified')
+    if opts.playliststart <= 0:
+        raise ValueError(u'Playlist start must be positive')
+    if opts.playlistend not in (-1, None) and opts.playlistend < opts.playliststart:
+        raise ValueError(u'Playlist end must be greater than playlist start')
     if opts.extractaudio:
         if opts.audioformat not in ['best', 'aac', 'mp3', 'm4a', 'opus', 'vorbis', 'wav']:
             parser.error(u'invalid audio format specified')

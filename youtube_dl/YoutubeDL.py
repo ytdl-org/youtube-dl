@@ -557,16 +557,16 @@ class YoutubeDL(object):
 
             n_all_entries = len(ie_result['entries'])
             playliststart = self.params.get('playliststart', 1) - 1
-            playlistend = self.params.get('playlistend', -1)
-
+            playlistend = self.params.get('playlistend', None)
+            # For backwards compatibility, interpret -1 as whole list
             if playlistend == -1:
-                entries = ie_result['entries'][playliststart:]
-            else:
-                entries = ie_result['entries'][playliststart:playlistend]
+                playlistend = None
 
+            entries = ie_result['entries'][playliststart:playlistend]
             n_entries = len(entries)
 
-            self.to_screen(u"[%s] playlist '%s': Collected %d video ids (downloading %d of them)" %
+            self.to_screen(
+                u"[%s] playlist '%s': Collected %d video ids (downloading %d of them)" %
                 (ie_result['extractor'], playlist, n_all_entries, n_entries))
 
             for i, entry in enumerate(entries, 1):
