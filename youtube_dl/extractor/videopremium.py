@@ -15,6 +15,7 @@ class VideoPremiumIE(InfoExtractor):
         u'params': {
             u'skip_download': True,
         },
+        u'skip': u'Test file has been deleted.',
     }
 
     def _real_extract(self, url):
