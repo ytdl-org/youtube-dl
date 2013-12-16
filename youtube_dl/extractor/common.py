@@ -34,8 +34,8 @@ class InfoExtractor(object):
     The dictionaries must include the following fields:
 
     id:             Video identifier.
-    url:            Final video URL.
     title:          Video title, unescaped.
+    url:            Final video URL.
     ext:            Video filename extension.
 
     Instead of url and ext, formats can also specified.
@@ -54,6 +54,7 @@ class InfoExtractor(object):
     player_url:     SWF Player URL (used for rtmpdump).
     subtitles:      The subtitle file contents as a dictionary in the format
                     {language: subtitles}.
+    duration:       Length of the video in seconds, as an integer.
     view_count:     How many users have watched the video on the platform.
     like_count:     Number of positive ratings of the video
     dislike_count:  Number of negative ratings of the video
