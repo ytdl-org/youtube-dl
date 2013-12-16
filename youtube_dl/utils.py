@@ -1077,3 +1077,9 @@ def setproctitle(title):
         libc.prctl(15, ctypes.byref(buf), 0, 0, 0)
     except AttributeError:
         return  # Strange libc, just skip this
+
+
+def remove_start(s, start):
+    if s.startswith(start):
+        return s[len(start):]
+    return s

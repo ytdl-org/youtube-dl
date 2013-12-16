@@ -13,6 +13,7 @@ from .arte import (
 from .auengine import AUEngineIE
 from .bambuser import BambuserIE, BambuserChannelIE
 from .bandcamp import BandcampIE, BandcampAlbumIE
+from .blinkx import BlinkxIE
 from .bliptv import BlipTVIE, BlipTVUserIE
 from .bloomberg import BloombergIE
 from .breakcom import BreakIE
