@@ -34,6 +34,7 @@ from .utils import (
     encodeFilename,
     ExtractorError,
     format_bytes,
+    formatSeconds,
     get_term_width,
     locked_file,
     make_HTTPS_handler,
@@ -94,6 +95,7 @@ class YoutubeDL(object):
     forcethumbnail:    Force printing thumbnail URL.
     forcedescription:  Force printing description.
     forcefilename:     Force printing final filename.
+    forceduration:     Force printing duration.
     forcejson:         Force printing info_dict as JSON.
     simulate:          Do not download the video files.
     format:            Video format code.
@@ -765,6 +767,8 @@ class YoutubeDL(object):
             self.to_stdout(info_dict['description'])
         if self.params.get('forcefilename', False) and filename is not None:
             self.to_stdout(filename)
+        if self.params.get('forceduration', False) and info_dict.get('duration') is not None:
+            self.to_stdout(formatSeconds(info_dict['duration']))
         if self.params.get('forceformat', False):
             self.to_stdout(info_dict['format'])
         if self.params.get('forcejson', False):

@@ -298,6 +298,9 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option('--get-description',
             action='store_true', dest='getdescription',
             help='simulate, quiet but print video description', default=False)
+    verbosity.add_option('--get-duration',
+            action='store_true', dest='getduration',
+            help='simulate, quiet but print video length', default=False)
     verbosity.add_option('--get-filename',
             action='store_true', dest='getfilename',
             help='simulate, quiet but print output filename', default=False)
@@ -617,22 +620,25 @@ def _real_main(argv=None):
                      u' file! Use "{0}.%(ext)s" instead of "{0}" as the output'
                      u' template'.format(outtmpl))
 
+    any_printing = opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.getduration or opts.dumpjson
+
     ydl_opts = {
         'usenetrc': opts.usenetrc,
         'username': opts.username,
         'password': opts.password,
         'videopassword': opts.videopassword,
-        'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.dumpjson),
+        'quiet': (opts.quiet or any_printing),
         'forceurl': opts.geturl,
         'forcetitle': opts.gettitle,
         'forceid': opts.getid,
         'forcethumbnail': opts.getthumbnail,
         'forcedescription': opts.getdescription,
+        'forceduration': opts.getduration,
         'forcefilename': opts.getfilename,
         'forceformat': opts.getformat,
         'forcejson': opts.dumpjson,
         'simulate': opts.simulate,
-        'skip_download': (opts.skip_download or opts.simulate or opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.dumpjson),
+        'skip_download': (opts.skip_download or opts.simulate or any_printing),
         'format': opts.format,
         'format_limit': opts.format_limit,
         'listformats': opts.listformats,
