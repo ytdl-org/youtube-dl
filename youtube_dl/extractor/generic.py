@@ -164,18 +164,18 @@ class GenericIE(InfoExtractor):
 
             # Check for direct link to a video
             content_type = response.headers.get('Content-Type', '')
-            m = re.match(r'^(?:audio|video)/(?P<format_id>.+)$', content_type)
+            m = re.match(r'^(?P<type>audio|video|application(?=/ogg$))/(?P<format_id>.+)$', content_type)
             if m:
                 upload_date = response.headers.get('Last-Modified')
                 if upload_date:
                     upload_date = unified_strdate(upload_date)
-                assert (url_basename(url) == 'trailer.mp4')
                 return {
                     'id': video_id,
                     'title': os.path.splitext(url_basename(url))[0],
                     'formats': [{
                         'format_id': m.group('format_id'),
                         'url': url,
+                        'vcodec': u'none' if m.group('type') == 'audio' else None
                     }],
                     'upload_date': upload_date,
                 }
