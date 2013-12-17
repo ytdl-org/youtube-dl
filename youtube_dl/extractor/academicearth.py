@@ -1,11 +1,6 @@
-import datetime
-import json
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    remove_start,
-)
 
 
 class AcademicEarthCourseIE(InfoExtractor):
