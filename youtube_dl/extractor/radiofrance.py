@@ -1,12 +1,7 @@
 # coding: utf-8
-import datetime
-import json
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    remove_start,
-)
 
 
 class RadioFranceIE(InfoExtractor):
@@ -42,11 +37,11 @@ class RadioFranceIE(InfoExtractor):
             webpage, u'audio URLs')
         formats = [
             {
-                'format_id': m[0],
-                'url': m[1],
+                'format_id': fm[0],
+                'url': fm[1],
                 'vcodec': 'none',
             }
-            for m in
+            for fm in
             re.findall(r"([a-z0-9]+)\s*:\s*'([^']+)'", formats_str)
         ]
         # No sorting, we don't know any more about these formats
