@@ -54,18 +54,12 @@ class BlipTVIE(InfoExtractor):
             raise ExtractorError(u'Invalid URL: %s' % url)
 
         # See https://github.com/rg3/youtube-dl/issues/857
-        api_mobj = re.match(r'http://a\.blip\.tv/api\.swf#(?P<video_id>[\d\w]+)', url)
-        if api_mobj is not None:
-            url = 'http://blip.tv/play/g_%s' % api_mobj.group('video_id')
-        urlp = compat_urllib_parse_urlparse(url)
-        if urlp.path.startswith('/play/'):
-            response = self._request_webpage(url, None, False)
-            redirecturl = response.geturl()
-            rurlp = compat_urllib_parse_urlparse(redirecturl)
-            file_id = compat_parse_qs(rurlp.fragment)['file'][0].rpartition('/')[2]
-            url = 'http://blip.tv/a/a-' + file_id
-            return self._real_extract(url)
-
+        embed_mobj = re.search(r'^(?:https?://)?(?:\w+\.)?blip.tv/(?:play/|api\.swf#)([a-zA-Z0-9]+)', url)
+        if embed_mobj:
+            info_url = 'http://blip.tv/play/%s.x?p=1' % embed_mobj.group(1)
+            info_page = self._download_webpage(info_url, None)
+            video_id = self._search_regex(r'data-episode-id="(\d+)', info_page, u'video_id')
+            return self.url_result('http://blip.tv/a/a-'+video_id, 'BlipTV')
 
         if '?' in url:
             cchar = '&'
