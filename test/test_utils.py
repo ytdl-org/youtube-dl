@@ -188,6 +188,9 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(url_basename(u'http://foo.de/bar/baz?x=y'), u'baz')
         self.assertEqual(url_basename(u'http://foo.de/bar/baz#x=y'), u'baz')
         self.assertEqual(url_basename(u'http://foo.de/bar/baz/'), u'baz')
+        self.assertEqual(
+            url_basename(u'http://media.w3.org/2010/05/sintel/trailer.mp4'),
+            u'trailer.mp4')
 
 if __name__ == '__main__':
     unittest.main()

@@ -1087,7 +1087,7 @@ def remove_start(s, start):
 
 
 def url_basename(url):
-    m = re.match(r'(?:https?:|)//[^/]+/(?:[^/?#]+/)?([^/?#]+)/?(?:[?#]|$)', url)
+    m = re.match(r'(?:https?:|)//[^/]+/(?:[^?#]+/)?([^/?#]+)/?(?:[?#]|$)', url)
     if not m:
         return u''
     return m.group(1)
