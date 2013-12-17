@@ -13,6 +13,8 @@ from ..utils import (
     ExtractorError,
     smuggle_url,
     unescapeHTML,
+    unified_strdate,
+    url_basename,
 )
 from .brightcove import BrightcoveIE
 
@@ -71,6 +73,17 @@ class GenericIE(InfoExtractor):
                 u'skip_download': True,
             },
         },
+        # Direct link to a video
+        {
+            u'url': u'http://media.w3.org/2010/05/sintel/trailer.mp4',
+            u'file': u'trailer.mp4',
+            u'md5': u'67d406c2bcb6af27fa886f31aa934bbe',
+            u'info_dict': {
+                u'id': u'trailer',
+                u'title': u'trailer',
+                u'upload_date': u'20100513',
+            }
+        }
     ]
 
     def report_download_webpage(self, video_id):
@@ -83,7 +96,7 @@ class GenericIE(InfoExtractor):
         """Report information extraction."""
         self._downloader.to_screen(u'[redirect] Following redirect to %s' % new_url)
 
-    def _test_redirect(self, url):
+    def _send_head(self, url):
         """Check if it is a redirect, like url shorteners, in case return the new url."""
         class HeadRequest(compat_urllib_request.Request):
             def get_method(self):
@@ -131,29 +144,46 @@ class GenericIE(InfoExtractor):
         response = opener.open(HeadRequest(url))
         if response is None:
             raise ExtractorError(u'Invalid URL protocol')
-        new_url = response.geturl()
-
-        if url == new_url:
-            return False
-
-        self.report_following_redirect(new_url)
-        return new_url
+        return response
 
     def _real_extract(self, url):
         parsed_url = compat_urlparse.urlparse(url)
         if not parsed_url.scheme:
             self._downloader.report_warning('The url doesn\'t specify the protocol, trying with http')
             return self.url_result('http://' + url)
+        video_id = os.path.splitext(url.split('/')[-1])[0]
 
         try:
-            new_url = self._test_redirect(url)
-            if new_url:
+            response = self._send_head(url)
+
+            # Check for redirect
+            new_url = response.geturl()
+            if url != new_url:
+                self.report_following_redirect(new_url)
                 return self.url_result(new_url)
+
+            # Check for direct link to a video
+            content_type = response.headers.get('Content-Type', '')
+            m = re.match(r'^(?:audio|video)/(?P<format_id>.+)$', content_type)
+            if m:
+                upload_date = response.headers.get('Last-Modified')
+                if upload_date:
+                    upload_date = unified_strdate(upload_date)
+                assert (url_basename(url) == 'trailer.mp4')
+                return {
+                    'id': video_id,
+                    'title': os.path.splitext(url_basename(url))[0],
+                    'formats': [{
+                        'format_id': m.group('format_id'),
+                        'url': url,
+                    }],
+                    'upload_date': upload_date,
+                }
+
         except compat_urllib_error.HTTPError:
             # This may be a stupid server that doesn't like HEAD, our UA, or so
             pass
 
-        video_id = url.split('/')[-1]
         try:
             webpage = self._download_webpage(url, video_id)
         except ValueError:

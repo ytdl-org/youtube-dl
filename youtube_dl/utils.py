@@ -761,12 +761,17 @@ def unified_strdate(date_str):
         '%Y-%m-%dT%H:%M:%S.%fZ',
         '%Y-%m-%dT%H:%M:%S.%f0Z',
         '%Y-%m-%dT%H:%M:%S',
+        '%Y-%m-%dT%H:%M:%S',
     ]
     for expression in format_expressions:
         try:
             upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')
         except:
             pass
+    if upload_date is None:
+        timetuple = email.utils.parsedate_tz(date_str)
+        if timetuple:
+            upload_date = datetime.datetime(*timetuple[:6]).strftime('%Y%m%d')
     return upload_date
 
 def determine_ext(url, default_ext=u'unknown_video'):
