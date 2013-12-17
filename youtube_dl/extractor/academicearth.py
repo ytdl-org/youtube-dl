@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class AcademicEarthCourseIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:www\.)?academicearth\.org/courses/(?P<id>[^?#/]+)'
+    _VALID_URL = r'^https?://(?:www\.)?academicearth\.org/(?:courses|playlists)/(?P<id>[^?#/]+)'
     IE_NAME = u'AcademicEarth:Course'
 
     def _real_extract(self, url):
