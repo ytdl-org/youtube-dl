@@ -1361,7 +1361,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 video_description = u''
 
         def _extract_count(klass):
-            count = self._search_regex(r'class="%s">([\d,]+)</span>' % re.escape(klass), video_webpage, klass, fatal=False)
+            count = self._search_regex(
+                r'class="%s">([\d,]+)</span>' % re.escape(klass),
+                video_webpage, klass, default=None)
             if count is not None:
                 return int(count.replace(',', ''))
             return None

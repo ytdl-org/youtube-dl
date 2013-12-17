@@ -18,6 +18,7 @@ from ..utils import (
     sanitize_filename,
     unescapeHTML,
 )
+_NO_DEFAULT = object()
 
 
 class InfoExtractor(object):
@@ -281,7 +282,7 @@ class InfoExtractor(object):
             video_info['title'] = playlist_title
         return video_info
 
-    def _search_regex(self, pattern, string, name, default=None, fatal=True, flags=0):
+    def _search_regex(self, pattern, string, name, default=_NO_DEFAULT, fatal=True, flags=0):
         """
         Perform a regex search on the given string, using a single or a list of
         patterns returning the first matching group.
@@ -303,7 +304,7 @@ class InfoExtractor(object):
         if mobj:
             # return the first matching group
             return next(g for g in mobj.groups() if g is not None)
-        elif default is not None:
+        elif default is not _NO_DEFAULT:
             return default
         elif fatal:
             raise RegexNotFoundError(u'Unable to extract %s' % _name)
@@ -312,7 +313,7 @@ class InfoExtractor(object):
                 u'please report this issue on http://yt-dl.org/bug' % _name)
             return None
 
-    def _html_search_regex(self, pattern, string, name, default=None, fatal=True, flags=0):
+    def _html_search_regex(self, pattern, string, name, default=_NO_DEFAULT, fatal=True, flags=0):
         """
         Like _search_regex, but strips HTML tags and unescapes entities.
         """
