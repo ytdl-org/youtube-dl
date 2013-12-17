@@ -148,7 +148,7 @@ class GenericIE(InfoExtractor):
         try:
             new_url = self._test_redirect(url)
             if new_url:
-                return [self.url_result(new_url)]
+                return self.url_result(new_url)
         except compat_urllib_error.HTTPError:
             # This may be a stupid server that doesn't like HEAD, our UA, or so
             pass
