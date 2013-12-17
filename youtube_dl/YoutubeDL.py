@@ -47,6 +47,7 @@ from .utils import (
     subtitles_filename,
     takewhile_inclusive,
     UnavailableVideoError,
+    url_basename,
     write_json_file,
     write_string,
     YoutubeDLHandler,
@@ -484,6 +485,7 @@ class YoutubeDL(object):
                     {
                         'extractor': ie.IE_NAME,
                         'webpage_url': url,
+                        'webpage_url_basename': url_basename(url),
                         'extractor_key': ie.ie_key(),
                     })
                 if process:
@@ -576,6 +578,7 @@ class YoutubeDL(object):
                     'playlist_index': i + playliststart,
                     'extractor': ie_result['extractor'],
                     'webpage_url': ie_result['webpage_url'],
+                    'webpage_url_basename': url_basename(ie_result['webpage_url']),
                     'extractor_key': ie_result['extractor_key'],
                 }
 
@@ -596,6 +599,7 @@ class YoutubeDL(object):
                     {
                         'extractor': ie_result['extractor'],
                         'webpage_url': ie_result['webpage_url'],
+                        'webpage_url_basename': url_basename(ie_result['webpage_url']),
                         'extractor_key': ie_result['extractor_key'],
                     })
                 return r

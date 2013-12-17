@@ -1084,3 +1084,10 @@ def remove_start(s, start):
     if s.startswith(start):
         return s[len(start):]
     return s
+
+
+def url_basename(url):
+    m = re.match(r'(?:https?:|)//[^/]+/(?:[^/?#]+/)?([^/?#]+)/?(?:[?#]|$)', url)
+    if not m:
+        return u''
+    return m.group(1)
