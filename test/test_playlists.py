@@ -6,7 +6,6 @@
 import os
 import sys
 import unittest
-from youtube_dl.extractor.ivi import IviCompilationIE
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import FakeYDL
@@ -28,7 +27,8 @@ from youtube_dl.extractor import (
     BambuserChannelIE,
     BandcampAlbumIE,
     SmotriCommunityIE,
-    SmotriUserIE
+    SmotriUserIE,
+    IviCompilationIE
 )
 
 
