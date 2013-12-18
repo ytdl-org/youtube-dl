@@ -202,7 +202,7 @@ class SmotriIE(InfoExtractor):
             'uploader': video_uploader,
             'upload_date': video_upload_date,
             'uploader_id': video_uploader_id,
-            'video_duration': video_duration,
+            'duration': video_duration,
             'view_count': video_view_count,
             'age_limit': 18 if adult_content else 0,
             'video_page_url': video_page_url
