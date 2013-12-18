@@ -662,10 +662,6 @@ class YoutubeDL(object):
             if 'ext' not in format:
                 format['ext'] = determine_ext(format['url'])
 
-        if self.params.get('listformats', None):
-            self.list_formats(info_dict)
-            return
-
         format_limit = self.params.get('format_limit', None)
         if format_limit:
             formats = list(takewhile_inclusive(
@@ -680,6 +676,11 @@ class YoutubeDL(object):
                 # We only compare the extension if they have the same height and width
                 return (f.get('height'), f.get('width'), ext_ord)
             formats = sorted(formats, key=_free_formats_key)
+
+        info_dict['formats'] = formats
+        if self.params.get('listformats', None):
+            self.list_formats(info_dict)
+            return
 
         req_format = self.params.get('format', 'best')
         if req_format is None:
