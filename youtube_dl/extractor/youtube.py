@@ -162,23 +162,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                           # Dash audio
                           '141', '172', '140', '171', '139',
                           ]
-    _available_formats_prefer_free = ['38', '46', '37', '45', '22', '44', '35', '43', '34', '18', '6', '5', '36', '17', '13',
-                                      # Apple HTTP Live Streaming
-                                      '96', '95', '94', '93', '92', '132', '151',
-                                      # 3D
-                                      '85', '102', '84', '101', '83', '100', '82',
-                                      # Dash video
-                                      '138', '248', '137', '247', '136', '246', '245',
-                                      '244', '135', '243', '134', '242', '133', '160',
-                                      # Dash audio
-                                      '172', '141', '171', '140', '139',
-                                      ]
-    _video_formats_map = {
-        'flv': ['35', '34', '6', '5'],
-        '3gp': ['36', '17', '13'],
-        'mp4': ['38', '37', '22', '18'],
-        'webm': ['46', '45', '44', '43'],
-    }
     _video_extensions = {
         '13': '3gp',
         '17': '3gp',
@@ -1153,13 +1136,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             self._downloader.report_warning(err_msg)
             return {}
 
-    def _print_formats(self, formats):
-        print('Available formats:')
-        for x in formats:
-            print('%s\t:\t%s\t[%s]%s' %(x, self._video_extensions.get(x, 'flv'),
-                                        self._video_dimensions.get(x, '???'),
-                                        ' ('+self._special_itags[x]+')' if x in self._special_itags else ''))
-
     def _extract_id(self, url):
         mobj = re.match(self._VALID_URL, url, re.VERBOSE)
         if mobj is None:
@@ -1172,48 +1148,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         Transform a dictionary in the format {itag:url} to a list of (itag, url)
         with the requested formats.
         """
-        req_format = self._downloader.params.get('format', None)
-        format_limit = self._downloader.params.get('format_limit', None)
-        available_formats = self._available_formats_prefer_free if self._downloader.params.get('prefer_free_formats', False) else self._available_formats
-        if format_limit is not None and format_limit in available_formats:
-            format_list = available_formats[available_formats.index(format_limit):]
-        else:
-            format_list = available_formats
-        existing_formats = [x for x in format_list if x in url_map]
+        existing_formats = [x for x in self._available_formats if x in url_map]
         if len(existing_formats) == 0:
             raise ExtractorError(u'no known formats available for video')
-        if self._downloader.params.get('listformats', None):
-            self._print_formats(existing_formats)
-            return
-        if req_format is None or req_format == 'best':
-            video_url_list = [(existing_formats[0], url_map[existing_formats[0]])] # Best quality
-        elif req_format == 'worst':
-            video_url_list = [(existing_formats[-1], url_map[existing_formats[-1]])] # worst quality
-        elif req_format in ('-1', 'all'):
-            video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
-        else:
-            # Specific formats. We pick the first in a slash-delimeted sequence.
-            # Format can be specified as itag or 'mp4' or 'flv' etc. We pick the highest quality
-            # available in the specified format. For example,
-            # if '1/2/3/4' is requested and '2' and '4' are available, we pick '2'.
-            # if '1/mp4/3/4' is requested and '1' and '5' (is a mp4) are available, we pick '1'.
-            # if '1/mp4/3/4' is requested and '4' and '5' (is a mp4) are available, we pick '5'.
-            req_formats = req_format.split('/')
-            video_url_list = None
-            for rf in req_formats:
-                if rf in url_map:
-                    video_url_list = [(rf, url_map[rf])]
-                    break
-                if rf in self._video_formats_map:
-                    for srf in self._video_formats_map[rf]:
-                        if srf in url_map:
-                            video_url_list = [(srf, url_map[srf])]
-                            break
-                    else:
-                        continue
-                    break
-            if video_url_list is None:
-                raise ExtractorError(u'requested format not available')
+        video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
+        video_url_list.reverse() # order worst to best
         return video_url_list
 
     def _extract_from_m3u8(self, manifest_url, video_id):
@@ -1462,19 +1401,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                         url += '&ratebypass=yes'
                     url_map[url_data['itag'][0]] = url
             video_url_list = self._get_video_url_list(url_map)
-            if not video_url_list:
-                return
         elif video_info.get('hlsvp'):
             manifest_url = video_info['hlsvp'][0]
             url_map = self._extract_from_m3u8(manifest_url, video_id)
             video_url_list = self._get_video_url_list(url_map)
-            if not video_url_list:
-                return
-
         else:
             raise ExtractorError(u'no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
 
-        results = []
+        formats = []
         for itag, video_real_url in video_url_list:
             # Extension
             video_extension = self._video_extensions.get(itag, 'flv')
@@ -1482,30 +1416,37 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             video_format = '{0} - {1}{2}'.format(itag if itag else video_extension,
                                               self._video_dimensions.get(itag, '???'),
                                               ' ('+self._special_itags[itag]+')' if itag in self._special_itags else '')
+            note = self._special_itags.get(itag, None)
+            resolution = self._video_dimensions.get(itag, None)
 
-            results.append({
-                'id':       video_id,
-                'url':      video_real_url,
-                'uploader': video_uploader,
-                'uploader_id': video_uploader_id,
-                'upload_date':  upload_date,
-                'title':    video_title,
-                'ext':      video_extension,
-                'format':   video_format,
-                'format_id': itag,
-                'thumbnail':    video_thumbnail,
-                'description':  video_description,
-                'player_url':   player_url,
-                'subtitles':    video_subtitles,
-                'duration':     video_duration,
-                'age_limit':    18 if age_gate else 0,
-                'annotations':  video_annotations,
-                'webpage_url': 'https://www.youtube.com/watch?v=%s' % video_id,
-                'view_count': view_count,
-                'like_count': like_count,
-                'dislike_count': dislike_count,
+            formats.append({
+                'url':         video_real_url,
+                'ext':         video_extension,
+                'format':      video_format,
+                'format_id':   itag,
+                'player_url':  player_url,
+                '_resolution': resolution,
+                'format_note': note,
             })
-        return results
+
+        return {
+            'id':           video_id,
+            'uploader':     video_uploader,
+            'uploader_id':  video_uploader_id,
+            'upload_date':  upload_date,
+            'title':        video_title,
+            'thumbnail':    video_thumbnail,
+            'description':  video_description,
+            'subtitles':    video_subtitles,
+            'duration':     video_duration,
+            'age_limit':    18 if age_gate else 0,
+            'annotations':  video_annotations,
+            'webpage_url': 'https://www.youtube.com/watch?v=%s' % video_id,
+            'view_count':   view_count,
+            'like_count': like_count,
+            'dislike_count': dislike_count,
+            'formats':      formats,
+        }
 
 class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
     IE_DESC = u'YouTube.com playlists'
