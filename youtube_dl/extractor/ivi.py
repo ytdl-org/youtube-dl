@@ -27,6 +27,7 @@ class IviIE(InfoExtractor):
                 u'duration': 5498,
                 u'thumbnail': u'http://thumbs.ivi.ru/f20.vcp.digitalaccess.ru/contents/d/1/c3c885163a082c29bceeb7b5a267a6.jpg',
             },
+            u'skip': u'Only works from Russia',
         },
         # Serial's serie
         {
@@ -38,6 +39,7 @@ class IviIE(InfoExtractor):
                 u'duration': 2490,
                 u'thumbnail': u'http://thumbs.ivi.ru/f7.vcp.digitalaccess.ru/contents/8/e/bc2f6c2b6e5d291152fdd32c059141.jpg',
             },
+            u'skip': u'Only works from Russia',
          }
     ]
     
