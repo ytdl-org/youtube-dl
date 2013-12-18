@@ -1432,6 +1432,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'height':      height,
                 'format_note': note,
             })
+        def _formats_key(f):
+            return (f.get('height') if f.get('height') is not None else -1,
+                    f.get('width') if f.get('width') is not None else -1)
+        formats = sorted(formats, key=_formats_key)
 
         return {
             'id':           video_id,
