@@ -674,7 +674,9 @@ class YoutubeDL(object):
                 except ValueError:
                     ext_ord = -1
                 # We only compare the extension if they have the same height and width
-                return (f.get('height'), f.get('width'), ext_ord)
+                return (f.get('height') if f.get('height') is not None else -1,
+                        f.get('width') if f.get('width') is not None else -1,
+                        ext_ord)
             formats = sorted(formats, key=_free_formats_key)
 
         info_dict['formats'] = formats
