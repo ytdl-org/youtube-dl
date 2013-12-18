@@ -13,7 +13,7 @@ class SohuIE(InfoExtractor):
     _TEST = {
         u'url': u'http://tv.sohu.com/20130724/n382479172.shtml#super',
         u'file': u'382479172.mp4',
-        u'md5': u'bde8d9a6ffd82c63a1eefaef4eeefec7',
+        u'md5': u'cc84eed6b6fbf0f2f9a8d3cb9da1939b', 
         u'info_dict': {
             u'title': u'MV：Far East Movement《The Illest》',
         },
