@@ -54,6 +54,10 @@ class BlinkxIE(InfoExtractor):
                 })
             elif m['type'] == 'original':
                 duration = m['d']
+            elif m['type'] == 'youtube':
+                yt_id = m['link']
+                self.to_screen(u'Youtube video detected: %s' % yt_id)
+                return self.url_result(yt_id, 'Youtube', video_id=yt_id)
             elif m['type'] in ('flv', 'mp4'):
                 vcodec = remove_start(m['vcodec'], 'ff')
                 acodec = remove_start(m['acodec'], 'ff')
