@@ -11,7 +11,7 @@ from ..utils import (
 class ImdbIE(InfoExtractor):
     IE_NAME = u'imdb'
     IE_DESC = u'Internet Movie Database trailers'
-    _VALID_URL = r'http://www\.imdb\.com/video/imdb/vi(?P<id>\d+)'
+    _VALID_URL = r'http://(?:www|m)\.imdb\.com/video/imdb/vi(?P<id>\d+)'
 
     _TEST = {
         u'url': u'http://www.imdb.com/video/imdb/vi2524815897',
@@ -27,7 +27,7 @@ class ImdbIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        webpage = self._download_webpage(url,video_id)
+        webpage = self._download_webpage('http://www.imdb.com/video/imdb/vi%s' % video_id, video_id)
         descr = get_element_by_attribute('itemprop', 'description', webpage)
         available_formats = re.findall(
             r'case \'(?P<f_id>.*?)\' :$\s+url = \'(?P<path>.*?)\'', webpage,
