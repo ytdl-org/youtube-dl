@@ -24,7 +24,7 @@ class SoundcloudIE(InfoExtractor):
      """
 
     _VALID_URL = r'''^(?:https?://)?
-                    (?:(?:(?:www\.)?soundcloud\.com/
+                    (?:(?:(?:www\.|m\.)?soundcloud\.com/
                             (?P<uploader>[\w\d-]+)/
                             (?!sets/)(?P<title>[\w\d-]+)/?
                             (?P<token>[^?]+?)?(?:[?].*)?$)
