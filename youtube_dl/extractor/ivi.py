@@ -13,7 +13,7 @@ from ..utils import (
 class IviIE(InfoExtractor):
     IE_DESC = u'ivi.ru'
     IE_NAME = u'ivi'
-    _VALID_URL = r'^https?://(?:www\.)?(?P<url>ivi\.ru/watch(?:/(?P<compilationid>[^/]+))?/(?P<videoid>\d+))'
+    _VALID_URL = r'^https?://(?:www\.)?ivi\.ru/watch(?:/(?P<compilationid>[^/]+))?/(?P<videoid>\d+)'
 
     _TESTS = [
         # Single movie
@@ -103,9 +103,7 @@ class IviIE(InfoExtractor):
         previews.sort(key=lambda fmt: self._known_thumbnails.index(fmt['content_format']))
         thumbnail = previews[-1][u'url'] if len(previews) > 0 else None
 
-        video_page_url = 'http://' + mobj.group('url')
-        video_page = self._download_webpage(video_page_url, video_id, u'Downloading video page')
-
+        video_page = self._download_webpage(url, video_id, u'Downloading video page')
         description = self._extract_description(video_page)
         comment_count = self._extract_comment_count(video_page)
 
