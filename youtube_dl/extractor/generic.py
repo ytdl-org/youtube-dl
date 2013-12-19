@@ -233,8 +233,11 @@ class GenericIE(InfoExtractor):
             return self.url_result(surl, 'Vimeo')
 
         # Look for embedded YouTube player
-        matches = re.findall(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?youtube\.com/embed/.+?)\1', webpage)
+        matches = re.findall(r'''(?x)
+            (?:<iframe[^>]+?src=|embedSWF\(\s*)
+            (["\'])(?P<url>(?:https?:)?//(?:www\.)?youtube\.com/
+                (?:embed|v)/.+?)
+            \1''', webpage)
         if matches:
             urlrs = [self.url_result(unescapeHTML(tuppl[1]), 'Youtube')
                      for tuppl in matches]
