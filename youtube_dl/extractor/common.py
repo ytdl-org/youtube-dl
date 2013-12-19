@@ -263,7 +263,8 @@ class InfoExtractor(object):
         self.to_screen(u'Logging in')
 
     #Methods for following #608
-    def url_result(self, url, ie=None, video_id=None):
+    @staticmethod
+    def url_result(url, ie=None, video_id=None):
         """Returns a url that points to a page that should be processed"""
         #TODO: ie should be the class used for getting the info
         video_info = {'_type': 'url',
@@ -272,7 +273,8 @@ class InfoExtractor(object):
         if video_id is not None:
             video_info['id'] = video_id
         return video_info
-    def playlist_result(self, entries, playlist_id=None, playlist_title=None):
+    @staticmethod
+    def playlist_result(entries, playlist_id=None, playlist_title=None):
         """Returns a playlist"""
         video_info = {'_type': 'playlist',
                       'entries': entries}

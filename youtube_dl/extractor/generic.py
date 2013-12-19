@@ -17,6 +17,7 @@ from ..utils import (
     url_basename,
 )
 from .brightcove import BrightcoveIE
+from .ooyala import OoyalaIE
 
 
 class GenericIE(InfoExtractor):
@@ -83,7 +84,17 @@ class GenericIE(InfoExtractor):
                 u'title': u'trailer',
                 u'upload_date': u'20100513',
             }
-        }
+        },
+        # ooyala video
+        {
+            u'url': u'http://www.rollingstone.com/music/videos/norwegian-dj-cashmere-cat-goes-spartan-on-with-me-premiere-20131219',
+            u'md5': u'5644c6ca5d5782c1d0d350dad9bd840c',
+            u'info_dict': {
+                u'id': u'BwY2RxaTrTkslxOfcan0UCf0YqyvWysJ',
+                u'ext': u'mp4',
+                u'title': u'2cc213299525360.mov', #that's what we get
+            },
+        },
     ]
 
     def report_download_webpage(self, video_id):
@@ -276,6 +287,11 @@ class GenericIE(InfoExtractor):
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:cache\.)?vevo\.com/.+?)\1', webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'))
+
+        # Look for Ooyala videos
+        mobj = re.search(r'player.ooyala.com/[^"?]+\?[^"]*?(?:embedCode|ec)=([^"&]+)', webpage)
+        if mobj is not None:
+            return OoyalaIE._build_url_result(mobj.group(1))
 
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)

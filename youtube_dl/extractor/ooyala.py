@@ -22,6 +22,11 @@ class OoyalaIE(InfoExtractor):
     def _url_for_embed_code(embed_code):
         return 'http://player.ooyala.com/player.js?embedCode=%s' % embed_code
 
+    @classmethod
+    def _build_url_result(cls, embed_code):
+        return cls.url_result(cls._url_for_embed_code(embed_code),
+            ie=cls.ie_key())
+
     def _extract_result(self, info, more_info):
         return {'id': info['embedCode'],
                 'ext': 'mp4',
