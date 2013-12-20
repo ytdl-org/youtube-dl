@@ -83,6 +83,10 @@ from .ina import InaIE
 from .infoq import InfoQIE
 from .instagram import InstagramIE
 from .internetvideoarchive import InternetVideoArchiveIE
+from .ivi import (
+    IviIE,
+    IviCompilationIE
+)
 from .jeuxvideo import JeuxVideoIE
 from .jukebox import JukeboxIE
 from .justintv import JustinTVIE
