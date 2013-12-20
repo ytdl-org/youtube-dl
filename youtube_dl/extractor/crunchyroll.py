@@ -24,7 +24,7 @@ class CrunchyrollIE(InfoExtractor):
         u'file': u'645513.flv',
         #u'md5': u'b1639fd6ddfaa43788c85f6d1dddd412',
         u'info_dict': {
-            u'title': u'Wanna be the Strongest in the World – Episode 1 – An Idol-Wrestler is Born!',
+            u'title': u'Wanna be the Strongest in the World Episode 1 – An Idol-Wrestler is Born!',
             u'description': u'md5:2d17137920c64f2f49981a7797d275ef',
             u'thumbnail': u'http://img1.ak.crunchyroll.com/i/spire1-tmb/20c6b5e10f1a47b10516877d3c039cae1380951166_full.jpg',
             u'uploader': u'Yomiuri Telecasting Corporation (YTV)',
@@ -37,9 +37,9 @@ class CrunchyrollIE(InfoExtractor):
     }]
 
     _FORMAT_IDS = {
-        u'360':  (u'60', u'106'),
-        u'480':  (u'61', u'106'),
-        u'720':  (u'62', u'106'),
+        u'360': (u'60', u'106'),
+        u'480': (u'61', u'106'),
+        u'720': (u'62', u'106'),
         u'1080': (u'80', u'108'),
     }
 
@@ -102,7 +102,7 @@ class CrunchyrollIE(InfoExtractor):
             raise ExtractorError(note_m)
 
         video_title = self._html_search_regex(r'<h1[^>]*>(.+?)</h1>', webpage, u'video_title', flags=re.DOTALL)
-        video_title = re.sub(r' {5} *–? *', u' – ', video_title)
+        video_title = re.sub(r' {2,}', u' ', video_title)
         video_description = self._html_search_regex(r'"description":"([^"]+)', webpage, u'video_description', default=u'')
         if not video_description:
             video_description = None
