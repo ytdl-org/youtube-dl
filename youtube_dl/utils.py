@@ -1093,3 +1093,8 @@ def remove_start(s, start):
 def url_basename(url):
     path = compat_urlparse.urlparse(url).path
     return path.strip(u'/').split(u'/')[-1]
+
+
+class HEADRequest(compat_urllib_request.Request):
+    def get_method(self):
+        return "HEAD"

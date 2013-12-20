@@ -170,6 +170,8 @@ class InfoExtractor(object):
         try:
             return self._downloader.urlopen(url_or_request)
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            if errnote is False:
+                return False
             if errnote is None:
                 errnote = u'Unable to download webpage'
             errmsg = u'%s: %s' % (errnote, compat_str(err))

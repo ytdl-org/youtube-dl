@@ -1,6 +1,7 @@
 from .academicearth import AcademicEarthCourseIE
 from .addanime import AddAnimeIE
 from .anitube import AnitubeIE
+from .aparat import AparatIE
 from .appletrailers import AppleTrailersIE
 from .archiveorg import ArchiveOrgIE
 from .ard import ARDIE

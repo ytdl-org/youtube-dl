@@ -11,6 +11,7 @@ from ..utils import (
     compat_urlparse,
 
     ExtractorError,
+    HEADRequest,
     smuggle_url,
     unescapeHTML,
     unified_strdate,
@@ -109,21 +110,18 @@ class GenericIE(InfoExtractor):
 
     def _send_head(self, url):
         """Check if it is a redirect, like url shorteners, in case return the new url."""
-        class HeadRequest(compat_urllib_request.Request):
-            def get_method(self):
-                return "HEAD"
 
         class HEADRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
             """
             Subclass the HTTPRedirectHandler to make it use our
-            HeadRequest also on the redirected URL
+            HEADRequest also on the redirected URL
             """
             def redirect_request(self, req, fp, code, msg, headers, newurl):
                 if code in (301, 302, 303, 307):
                     newurl = newurl.replace(' ', '%20')
                     newheaders = dict((k,v) for k,v in req.headers.items()
                                       if k.lower() not in ("content-length", "content-type"))
-                    return HeadRequest(newurl,
+                    return HEADRequest(newurl,
                                        headers=newheaders,
                                        origin_req_host=req.get_origin_req_host(),
                                        unverifiable=True)
@@ -152,7 +150,7 @@ class GenericIE(InfoExtractor):
                         compat_urllib_request.HTTPErrorProcessor, compat_urllib_request.HTTPSHandler]:
             opener.add_handler(handler())
 
-        response = opener.open(HeadRequest(url))
+        response = opener.open(HEADRequest(url))
         if response is None:
             raise ExtractorError(u'Invalid URL protocol')
         return response
@@ -295,6 +293,11 @@ class GenericIE(InfoExtractor):
         mobj = re.search(r'player.ooyala.com/[^"?]+\?[^"]*?(?:embedCode|ec)=([^"&]+)', webpage)
         if mobj is not None:
             return OoyalaIE._build_url_result(mobj.group(1))
+
+        # Look for Aparat videos
+        mobj = re.search(r'<iframe src="(http://www.aparat.com/video/[^"]+)"', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group(1), 'Aparat')
 
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
