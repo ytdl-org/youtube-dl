@@ -8,23 +8,8 @@ from ..utils import (
 
 class MDRIE(InfoExtractor):
     _VALID_URL = r'^(?P<domain>(?:https?://)?(?:www\.)?mdr\.de)/mediathek/(?:.*)/(?P<type>video|audio)(?P<video_id>[^/_]+)_.*'
-
-    _TESTS = [{
-        u'url': u'http://www.mdr.de/mediathek/themen/nachrichten/video165624_zc-c5c7de76_zs-3795826d.html',
-        u'file': u'165624.mp4',
-        u'md5': u'ae785f36ecbf2f19b42edf1bc9c85815',
-        u'info_dict': {
-            u"title": u"MDR aktuell Eins30 09.12.2013, 22:48 Uhr"
-        },
-    },
-    {
-        u'url': u'http://www.mdr.de/mediathek/radio/mdr1-radio-sachsen/audio718370_zc-67b21197_zs-1b9b2483.html',
-        u'file': u'718370.mp3',
-        u'md5': u'a9d21345a234c7b45dee612f290fd8d7',
-        u'info_dict': {
-            u"title": u"MDR 1 RADIO SACHSEN 10.12.2013, 05:00 Uhr"
-        },
-    }]
+    
+    # No tests, MDR regularily deletes its videos
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
