@@ -3,6 +3,7 @@ import json
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     xpath_with_ns,
 )
 
@@ -32,6 +33,17 @@ class ThePlatformIE(InfoExtractor):
         smil_url = ('http://link.theplatform.com/s/dJ5BDC/{0}/meta.smil?'
             'format=smil&mbr=true'.format(video_id))
         meta = self._download_xml(smil_url, video_id)
+
+        try:
+            error_msg = next(
+                n.attrib['abstract']
+                for n in meta.findall(_x('.//smil:ref'))
+                if n.attrib.get('title') == u'Geographic Restriction')
+        except StopIteration:
+            pass
+        else:
+            raise ExtractorError(error_msg, expected=True)
+
         info_url = 'http://link.theplatform.com/s/dJ5BDC/{0}?format=preview'.format(video_id)
         info_json = self._download_webpage(info_url, video_id)
         info = json.loads(info_json)

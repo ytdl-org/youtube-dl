@@ -11,7 +11,8 @@ class WimpIE(InfoExtractor):
         u'file': u'deerfence.flv',
         u'md5': u'8b215e2e0168c6081a1cf84b2846a2b5',
         u'info_dict': {
-            u"title": u"Watch Till End: Herd of deer jump over a fence."
+            u"title": u"Watch Till End: Herd of deer jump over a fence.",
+            u"description": u"These deer look as fluid as running water when they jump over this fence as a herd. This video is one that needs to be watched until the very end for the true majesty to be witnessed, but once it comes, it's sure to take your breath away.",
         }
     }
 
@@ -19,18 +20,14 @@ class WimpIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group(1)
         webpage = self._download_webpage(url, video_id)
-        title = self._search_regex(r'<meta name="description" content="(.+?)" />',webpage, 'video title')
-        thumbnail_url = self._search_regex(r'<meta property="og\:image" content="(.+?)" />', webpage,'video thumbnail')
         googleString = self._search_regex("googleCode = '(.*?)'", webpage, 'file url')
         googleString = base64.b64decode(googleString).decode('ascii')
-        final_url = self._search_regex('","(.*?)"', googleString,'final video url')
-        ext = final_url.rpartition(u'.')[2]
+        final_url = self._search_regex('","(.*?)"', googleString, u'final video url')
 
-        return [{
-            'id':        video_id,
-            'url':       final_url,
-            'ext':       ext,
-            'title':     title,
-            'thumbnail': thumbnail_url,
-        }]
-
+        return {
+            'id': video_id,
+            'url': final_url,
+            'title': self._og_search_title(webpage),
+            'thumbnail': self._og_search_thumbnail(webpage),
+            'description': self._og_search_description(webpage),
+        }

@@ -28,7 +28,7 @@ class DailymotionBaseInfoExtractor(InfoExtractor):
 class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
     """Information Extractor for Dailymotion"""
 
-    _VALID_URL = r'(?i)(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/(?:embed/)?video/([^/]+)'
+    _VALID_URL = r'(?i)(?:https?://)?(?:(www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(embed|#)/)?video/(?P<id>[^/?_]+)'
     IE_NAME = u'dailymotion'
 
     _FORMATS = [
@@ -81,7 +81,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
         # Extract id and simplified title from URL
         mobj = re.match(self._VALID_URL, url)
 
-        video_id = mobj.group(1).split('_')[0].split('?')[0]
+        video_id = mobj.group('id')
 
         url = 'http://www.dailymotion.com/video/%s' % video_id
 
@@ -101,10 +101,6 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             self.to_screen(u'Vevo video detected: %s' % vevo_id)
             return self.url_result(u'vevo:%s' % vevo_id, ie='Vevo')
 
-        video_uploader = self._search_regex([r'(?im)<span class="owner[^\"]+?">[^<]+?<a [^>]+?>([^<]+?)</a>',
-                                             # Looking for official user
-                                             r'<(?:span|a) .*?rel="author".*?>([^<]+?)</'],
-                                            webpage, 'video uploader', fatal=False)
         age_limit = self._rta_search(webpage)
 
         video_upload_date = None
@@ -147,13 +143,15 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             self._list_available_subtitles(video_id, webpage)
             return
 
-        view_count = str_to_int(self._search_regex(
-            r'video_views_value[^>]+>([\d\.,]+)<', webpage, u'view count'))
+        view_count = self._search_regex(
+            r'video_views_count[^>]+>\s+([\d\.,]+)', webpage, u'view count', fatal=False)
+        if view_count is not None:
+            view_count = str_to_int(view_count)
 
         return {
             'id':       video_id,
             'formats': formats,
-            'uploader': video_uploader,
+            'uploader': info['owner_screenname'],
             'upload_date':  video_upload_date,
             'title':    self._og_search_title(webpage),
             'subtitles':    video_subtitles,

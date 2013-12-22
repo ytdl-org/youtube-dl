@@ -1,5 +1,4 @@
 import re
-import xml.etree.ElementTree
 import json
 
 from .common import InfoExtractor
@@ -65,18 +64,18 @@ class AppleTrailersIE(InfoExtractor):
         uploader_id = mobj.group('company')
 
         playlist_url = compat_urlparse.urljoin(url, u'includes/playlists/itunes.inc')
-        playlist_snippet = self._download_webpage(playlist_url, movie)
-        playlist_cleaned = re.sub(r'(?s)<script[^<]*?>.*?</script>', u'', playlist_snippet)
-        playlist_cleaned = re.sub(r'<img ([^<]*?)>', r'<img \1/>', playlist_cleaned)
-        # The ' in the onClick attributes are not escaped, it couldn't be parsed
-        # with xml.etree.ElementTree.fromstring
-        # like: http://trailers.apple.com/trailers/wb/gravity/
-        def _clean_json(m):
-            return u'iTunes.playURL(%s);' % m.group(1).replace('\'', '&#39;')
-        playlist_cleaned = re.sub(self._JSON_RE, _clean_json, playlist_cleaned)
-        playlist_html = u'<html>' + playlist_cleaned + u'</html>'
+        def fix_html(s):
+            s = re.sub(r'(?s)<script[^<]*?>.*?</script>', u'', s)
+            s = re.sub(r'<img ([^<]*?)>', r'<img \1/>', s)
+            # The ' in the onClick attributes are not escaped, it couldn't be parsed
+            # like: http://trailers.apple.com/trailers/wb/gravity/
+            def _clean_json(m):
+                return u'iTunes.playURL(%s);' % m.group(1).replace('\'', '&#39;')
+            s = re.sub(self._JSON_RE, _clean_json, s)
+            s = u'<html>' + s + u'</html>'
+            return s
+        doc = self._download_xml(playlist_url, movie, transform_source=fix_html)
 
-        doc = xml.etree.ElementTree.fromstring(playlist_html)
         playlist = []
         for li in doc.findall('./div/ul/li'):
             on_click = li.find('.//a').attrib['onClick']

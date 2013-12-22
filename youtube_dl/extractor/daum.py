@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class DaumIE(InfoExtractor):
-    _VALID_URL = r'https?://tvpot\.daum\.net/.*?clipid=(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:m\.)?tvpot\.daum\.net/.*?clipid=(?P<id>\d+)'
     IE_NAME = u'daum.net'
 
     _TEST = {

@@ -15,6 +15,7 @@ from youtube_dl.extractor import (
     YoutubeIE,
     YoutubeChannelIE,
     YoutubeShowIE,
+    YoutubeTopListIE,
 )
 
 
@@ -115,6 +116,13 @@ class TestYoutubeLists(unittest.TestCase):
         self.assertTrue(len(entries) >= 20)
         original_video = entries[0]
         self.assertEqual(original_video['id'], 'rjFaenf1T-Y')
+
+    def test_youtube_toplist(self):
+        dl = FakeYDL()
+        ie = YoutubeTopListIE(dl)
+        result = ie.extract('yttoplist:music:Top Tracks')
+        entries = result['entries']
+        self.assertTrue(len(entries) >= 5)
 
 if __name__ == '__main__':
     unittest.main()

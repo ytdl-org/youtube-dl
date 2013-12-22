@@ -1,14 +1,10 @@
 import re
-import socket
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_http_client,
     compat_parse_qs,
-    compat_urllib_error,
     compat_urllib_parse,
     compat_urllib_request,
-    compat_str,
     determine_ext,
     ExtractorError,
 )
@@ -93,12 +89,8 @@ class MetacafeIE(InfoExtractor):
 
     def _real_initialize(self):
         # Retrieve disclaimer
-        request = compat_urllib_request.Request(self._DISCLAIMER)
-        try:
-            self.report_disclaimer()
-            compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'Unable to retrieve disclaimer: %s' % compat_str(err))
+        self.report_disclaimer()
+        self._download_webpage(self._DISCLAIMER, None, False, u'Unable to retrieve disclaimer')
 
         # Confirm age
         disclaimer_form = {
@@ -107,11 +99,8 @@ class MetacafeIE(InfoExtractor):
             }
         request = compat_urllib_request.Request(self._FILTER_POST, compat_urllib_parse.urlencode(disclaimer_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        try:
-            self.report_age_confirmation()
-            compat_urllib_request.urlopen(request).read()
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'Unable to confirm age: %s' % compat_str(err))
+        self.report_age_confirmation()
+        self._download_webpage(request, None, False, u'Unable to confirm age')
 
     def _real_extract(self, url):
         # Extract id and simplified title from URL

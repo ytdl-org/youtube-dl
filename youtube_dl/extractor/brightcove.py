@@ -26,7 +26,7 @@ class BrightcoveIE(InfoExtractor):
             # From http://www.8tv.cat/8aldia/videos/xavier-sala-i-martin-aquesta-tarda-a-8-al-dia/
             u'url': u'http://c.brightcove.com/services/viewer/htmlFederated?playerID=1654948606001&flashID=myExperience&%40videoPlayer=2371591881001',
             u'file': u'2371591881001.mp4',
-            u'md5': u'8eccab865181d29ec2958f32a6a754f5',
+            u'md5': u'5423e113865d26e40624dce2e4b45d95',
             u'note': u'Test Brightcove downloads and detection in GenericIE',
             u'info_dict': {
                 u'title': u'Xavier Sala i Martín: “Un banc que no presta és un banc zombi que no serveix per a res”',
@@ -53,6 +53,18 @@ class BrightcoveIE(InfoExtractor):
                 u'title': u'This Bracelet Acts as a Personal Thermostat',
                 u'description': u'md5:547b78c64f4112766ccf4e151c20b6a0',
                 u'uploader': u'Mashable',
+            },
+        },
+        {
+            # test that the default referer works
+            # from http://national.ballet.ca/interact/video/Lost_in_Motion_II/
+            u'url': u'http://link.brightcove.com/services/player/bcpid756015033001?bckey=AQ~~,AAAApYJi_Ck~,GxhXCegT1Dp39ilhXuxMJxasUhVNZiil&bctid=2878862109001',
+            u'info_dict': {
+                u'id': u'2878862109001',
+                u'ext': u'mp4',
+                u'title': u'Lost in Motion II',
+                u'description': u'md5:363109c02998fee92ec02211bd8000df',
+                u'uploader': u'National Ballet of Canada',
             },
         },
     ]
@@ -118,17 +130,21 @@ class BrightcoveIE(InfoExtractor):
 
         videoPlayer = query.get('@videoPlayer')
         if videoPlayer:
-            return self._get_video_info(videoPlayer[0], query_str, query)
+            return self._get_video_info(videoPlayer[0], query_str, query,
+                # We set the original url as the default 'Referer' header
+                referer=url)
         else:
             player_key = query['playerKey']
             return self._get_playlist_info(player_key[0])
 
-    def _get_video_info(self, video_id, query_str, query):
+    def _get_video_info(self, video_id, query_str, query, referer=None):
         request_url = self._FEDERATED_URL_TEMPLATE % query_str
         req = compat_urllib_request.Request(request_url)
         linkBase = query.get('linkBaseURL')
         if linkBase is not None:
-            req.add_header('Referer', linkBase[0])
+            referer = linkBase[0]
+        if referer is not None:
+            req.add_header('Referer', referer)
         webpage = self._download_webpage(req, video_id)
 
         self.report_extraction(video_id)

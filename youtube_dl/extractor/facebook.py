@@ -17,7 +17,7 @@ from ..utils import (
 class FacebookIE(InfoExtractor):
     """Information Extractor for Facebook"""
 
-    _VALID_URL = r'^(?:https?://)?(?:\w+\.)?facebook\.com/(?:video/video|photo)\.php\?(?:.*?)v=(?P<ID>\d+)(?:.*)'
+    _VALID_URL = r'^(?:https?://)?(?:\w+\.)?facebook\.com/(?:[^#?]*#!/)?(?:video/video|photo)\.php\?(?:.*?)v=(?P<ID>\d+)(?:.*)'
     _LOGIN_URL = 'https://www.facebook.com/login.php?next=http%3A%2F%2Ffacebook.com%2Fhome.php&login_attempt=1'
     _CHECKPOINT_URL = 'https://www.facebook.com/checkpoint/?next=http%3A%2F%2Ffacebook.com%2Fhome.php&_fb_noscript=1'
     _NETRC_MACHINE = 'facebook'
@@ -27,7 +27,7 @@ class FacebookIE(InfoExtractor):
         u'file': u'120708114770723.mp4',
         u'md5': u'48975a41ccc4b7a581abd68651c1a5a8',
         u'info_dict': {
-            u"duration": 279, 
+            u"duration": 279,
             u"title": u"PEOPLE ARE AWESOME 2013"
         }
     }

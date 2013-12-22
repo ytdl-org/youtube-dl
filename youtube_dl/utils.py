@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import ctypes
 import datetime
 import email.utils
 import errno
@@ -15,6 +16,7 @@ import platform
 import re
 import ssl
 import socket
+import subprocess
 import sys
 import traceback
 import zlib
@@ -547,7 +549,7 @@ def make_HTTPS_handler(opts_no_check_certificate):
 
             def connect(self):
                 sock = socket.create_connection((self.host, self.port), self.timeout)
-                if self._tunnel_host:
+                if getattr(self, '_tunnel_host', False):
                     self.sock = sock
                     self._tunnel()
                 try:
@@ -561,11 +563,14 @@ def make_HTTPS_handler(opts_no_check_certificate):
         return HTTPSHandlerV3()
     else:
         context = ssl.SSLContext(ssl.PROTOCOL_SSLv3)
-        context.set_default_verify_paths()
-        
         context.verify_mode = (ssl.CERT_NONE
                                if opts_no_check_certificate
                                else ssl.CERT_REQUIRED)
+        context.set_default_verify_paths()
+        try:
+            context.load_default_certs()
+        except AttributeError:
+            pass  # Python < 3.4
         return compat_urllib_request.HTTPSHandler(context=context)
 
 class ExtractorError(Exception):
@@ -762,6 +767,10 @@ def unified_strdate(date_str):
             upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')
         except:
             pass
+    if upload_date is None:
+        timetuple = email.utils.parsedate_tz(date_str)
+        if timetuple:
+            upload_date = datetime.datetime(*timetuple[:6]).strftime('%Y%m%d')
     return upload_date
 
 def determine_ext(url, default_ext=u'unknown_video'):
@@ -1035,36 +1044,65 @@ def str_to_int(int_str):
     return int(int_str)
 
 
-try:
-    import xattr
-    def write_xattr(path, key, value):
-        return xattr.set(path, key, value)
-except ImportError:
-    if os.name == 'posix':
-        def which(bin):
-            for dir in os.environ["PATH"].split(":"):
-                path = os.path.join(dir, bin)
-                if os.path.exists(path):
-                    return path
+def get_term_width():
+    columns = os.environ.get('COLUMNS', None)
+    if columns:
+        return int(columns)
 
-        if which("setfattr"): # wrap the 'setfattr' commandline tool
-            import subprocess
-            def write_xattr(path, key, value):
-                cmd = ["setfattr", "-n", key, "-v", value, path]
-                try:
-                    output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
-                except subprocess.CalledProcessError as e:
-                    import errno
-                    potential_errors = {
-                        # setfattr: /tmp/blah: Operation not supported
-                        "Operation not supported": errno.EOPNOTSUPP,
-                        # setfattr: ~/blah: No such file or directory
-                        "No such file or directory": errno.ENOENT
-                    }
-                    errorstr = e.output.strip().decode()
-                    for potential_errorstr, potential_errno in potential_errors.items():
-                        if errorstr.endswith(potential_errorstr):
-                            e = OSError(potential_errno, potential_errorstr)
-                            e.__cause__ = None
-                            raise e
-                    raise # Reraise unhandled error
+    try:
+        sp = subprocess.Popen(
+            ['stty', 'size'],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = sp.communicate()
+        return int(out.split()[1])
+    except:
+        pass
+    return None
+
+
+def month_by_name(name):
+    """ Return the number of a month by (locale-independently) English name """
+
+    ENGLISH_NAMES = [
+        u'January', u'February', u'March', u'April', u'May', u'June',
+        u'July', u'August', u'September', u'October', u'November', u'December']
+    try:
+        return ENGLISH_NAMES.index(name) + 1
+    except ValueError:
+        return None
+
+
+def fix_xml_all_ampersand(xml_str):
+    """Replace all the '&' by '&amp;' in XML"""
+    return xml_str.replace(u'&', u'&amp;')
+
+
+def setproctitle(title):
+    assert isinstance(title, type(u''))
+    try:
+        libc = ctypes.cdll.LoadLibrary("libc.so.6")
+    except OSError:
+        return
+    title = title
+    buf = ctypes.create_string_buffer(len(title) + 1)
+    buf.value = title.encode('utf-8')
+    try:
+        libc.prctl(15, ctypes.byref(buf), 0, 0, 0)
+    except AttributeError:
+        return  # Strange libc, just skip this
+
+
+def remove_start(s, start):
+    if s.startswith(start):
+        return s[len(start):]
+    return s
+
+
+def url_basename(url):
+    path = compat_urlparse.urlparse(url).path
+    return path.strip(u'/').split(u'/')[-1]
+
+
+class HEADRequest(compat_urllib_request.Request):
+    def get_method(self):
+        return "HEAD"

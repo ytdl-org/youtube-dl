@@ -15,7 +15,7 @@ class Vbox7IE(InfoExtractor):
     _TEST = {
         u'url': u'http://vbox7.com/play:249bb972c2',
         u'file': u'249bb972c2.flv',
-        u'md5': u'9c70d6d956f888bdc08c124acc120cfe',
+        u'md5': u'99f65c0c9ef9b682b97313e052734c3f',
         u'info_dict': {
             u"title": u"\u0421\u043c\u044f\u0445! \u0427\u0443\u0434\u043e - \u0447\u0438\u0441\u0442 \u0437\u0430 \u0441\u0435\u043a\u0443\u043d\u0434\u0438 - \u0421\u043a\u0440\u0438\u0442\u0430 \u043a\u0430\u043c\u0435\u0440\u0430"
         }

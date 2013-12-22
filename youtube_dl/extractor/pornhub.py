@@ -12,7 +12,7 @@ from ..aes import (
 )
 
 class PornHubIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>pornhub\.com/view_video\.php\?viewkey=(?P<videoid>[0-9]+))'
+    _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>pornhub\.com/view_video\.php\?viewkey=(?P<videoid>[0-9a-f]+))'
     _TEST = {
         u'url': u'http://www.pornhub.com/view_video.php?viewkey=648719015',
         u'file': u'648719015.mp4',

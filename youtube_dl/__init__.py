@@ -37,6 +37,7 @@ __authors__  = (
     'Anton Larionov',
     'Takuya Tsuchida',
     'Sergey M.',
+    'Michael Orlitzky',
 )
 
 __license__ = 'Public Domain'
@@ -48,7 +49,6 @@ import os
 import random
 import re
 import shlex
-import subprocess
 import sys
 
 
@@ -56,12 +56,13 @@ from .utils import (
     compat_print,
     DateRange,
     decodeOption,
-    determine_ext,
+    get_term_width,
     DownloadError,
     get_cachedir,
     MaxDownloadsReached,
     preferredencoding,
     SameFileError,
+    setproctitle,
     std_headers,
     write_string,
 )
@@ -77,6 +78,7 @@ from .PostProcessor import (
     FFmpegVideoConvertor,
     FFmpegExtractAudioPP,
     FFmpegEmbedSubtitlePP,
+    XAttrMetadataPP,
 )
 
 
@@ -113,19 +115,6 @@ def parseOpts(overrideArguments=None):
     def _comma_separated_values_options_callback(option, opt_str, value, parser):
         setattr(parser.values, option.dest, value.split(','))
 
-    def _find_term_columns():
-        columns = os.environ.get('COLUMNS', None)
-        if columns:
-            return int(columns)
-
-        try:
-            sp = subprocess.Popen(['stty', 'size'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            out,err = sp.communicate()
-            return int(out.split()[1])
-        except:
-            pass
-        return None
-
     def _hide_login_info(opts):
         opts = list(opts)
         for private_opt in ['-p', '--password', '-u', '--username', '--video-password']:
@@ -140,7 +129,7 @@ def parseOpts(overrideArguments=None):
     max_help_position = 80
 
     # No need to wrap help messages if we're on a wide console
-    columns = _find_term_columns()
+    columns = get_term_width()
     if columns: max_width = columns
 
     fmt = optparse.IndentedHelpFormatter(width=max_width, max_help_position=max_help_position)
@@ -204,12 +193,19 @@ def parseOpts(overrideArguments=None):
     general.add_option(
         '--socket-timeout', dest='socket_timeout',
         type=float, default=None, help=optparse.SUPPRESS_HELP)
+    general.add_option(
+        '--bidi-workaround', dest='bidi_workaround', action='store_true',
+        help=u'Work around terminals that lack bidirectional text support. Requires fribidi executable in PATH')
 
 
-    selection.add_option('--playlist-start',
-            dest='playliststart', metavar='NUMBER', help='playlist video to start at (default is %default)', default=1)
-    selection.add_option('--playlist-end',
-            dest='playlistend', metavar='NUMBER', help='playlist video to end at (default is last)', default=-1)
+    selection.add_option(
+        '--playlist-start',
+        dest='playliststart', metavar='NUMBER', default=1, type=int,
+        help='playlist video to start at (default is %default)')
+    selection.add_option(
+        '--playlist-end',
+        dest='playlistend', metavar='NUMBER', default=None, type=int,
+        help='playlist video to end at (default is last)')
     selection.add_option('--match-title', dest='matchtitle', metavar='REGEX',help='download only matching titles (regex or caseless sub-string)')
     selection.add_option('--reject-title', dest='rejecttitle', metavar='REGEX',help='skip download for matching titles (regex or caseless sub-string)')
     selection.add_option('--max-downloads', metavar='NUMBER',
@@ -220,6 +216,14 @@ def parseOpts(overrideArguments=None):
     selection.add_option('--date', metavar='DATE', dest='date', help='download only videos uploaded in this date', default=None)
     selection.add_option('--datebefore', metavar='DATE', dest='datebefore', help='download only videos uploaded before this date', default=None)
     selection.add_option('--dateafter', metavar='DATE', dest='dateafter', help='download only videos uploaded after this date', default=None)
+    selection.add_option(
+        '--min-views', metavar='COUNT', dest='min_views',
+        default=None, type=int,
+        help="Do not download any videos with less than COUNT views",)
+    selection.add_option(
+        '--max-views', metavar='COUNT', dest='max_views',
+        default=None, type=int,
+        help="Do not download any videos with more than COUNT views",)
     selection.add_option('--no-playlist', action='store_true', dest='noplaylist', help='download only the currently playing video', default=False)
     selection.add_option('--age-limit', metavar='YEARS', dest='age_limit',
                          help='download only videos suitable for the given age',
@@ -300,6 +304,9 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option('--get-description',
             action='store_true', dest='getdescription',
             help='simulate, quiet but print video description', default=False)
+    verbosity.add_option('--get-duration',
+            action='store_true', dest='getduration',
+            help='simulate, quiet but print video length', default=False)
     verbosity.add_option('--get-filename',
             action='store_true', dest='getfilename',
             help='simulate, quiet but print output filename', default=False)
@@ -360,6 +367,9 @@ def parseOpts(overrideArguments=None):
             help='Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames', default=False)
     filesystem.add_option('-a', '--batch-file',
             dest='batchfile', metavar='FILE', help='file containing URLs to download (\'-\' for stdin)')
+    filesystem.add_option('--load-info',
+            dest='load_info_filename', metavar='FILE',
+            help='json file containing the video information (created with the "--write-json" option')
     filesystem.add_option('-w', '--no-overwrites',
             action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
     filesystem.add_option('-c', '--continue',
@@ -403,7 +413,9 @@ def parseOpts(overrideArguments=None):
     postproc.add_option('--embed-subs', action='store_true', dest='embedsubtitles', default=False,
             help='embed subtitles in the video (only for mp4 videos)')
     postproc.add_option('--add-metadata', action='store_true', dest='addmetadata', default=False,
-            help='add metadata to the files')
+            help='write metadata to the video file')
+    postproc.add_option('--xattrs', action='store_true', dest='xattrs', default=False,
+            help='write metadata to the video file\'s xattrs (using dublin core and xdg standards)')
 
 
     parser.add_option_group(general)
@@ -467,11 +479,14 @@ def parseOpts(overrideArguments=None):
 
     return parser, opts, args
 
+
 def _real_main(argv=None):
     # Compatibility fixes for Windows
     if sys.platform == 'win32':
         # https://github.com/rg3/youtube-dl/issues/820
         codecs.register(lambda name: codecs.lookup('utf-8') if name == 'cp65001' else None)
+
+    setproctitle(u'youtube-dl')
 
     parser, opts, args = parseOpts(argv)
 
@@ -512,7 +527,6 @@ def _real_main(argv=None):
         for ie in sorted(extractors, key=lambda ie: ie.IE_NAME.lower()):
             compat_print(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else ''))
             matchedUrls = [url for url in all_urls if ie.suitable(url)]
-            all_urls = [url for url in all_urls if url not in matchedUrls]
             for mu in matchedUrls:
                 compat_print(u'  ' + mu)
         sys.exit(0)
@@ -567,18 +581,10 @@ def _real_main(argv=None):
         if numeric_buffersize is None:
             parser.error(u'invalid buffer size specified')
         opts.buffersize = numeric_buffersize
-    try:
-        opts.playliststart = int(opts.playliststart)
-        if opts.playliststart <= 0:
-            raise ValueError(u'Playlist start must be positive')
-    except (TypeError, ValueError):
-        parser.error(u'invalid playlist start number specified')
-    try:
-        opts.playlistend = int(opts.playlistend)
-        if opts.playlistend != -1 and (opts.playlistend <= 0 or opts.playlistend < opts.playliststart):
-            raise ValueError(u'Playlist end must be greater than playlist start')
-    except (TypeError, ValueError):
-        parser.error(u'invalid playlist end number specified')
+    if opts.playliststart <= 0:
+        raise ValueError(u'Playlist start must be positive')
+    if opts.playlistend not in (-1, None) and opts.playlistend < opts.playliststart:
+        raise ValueError(u'Playlist end must be greater than playlist start')
     if opts.extractaudio:
         if opts.audioformat not in ['best', 'aac', 'mp3', 'm4a', 'opus', 'vorbis', 'wav']:
             parser.error(u'invalid audio format specified')
@@ -611,27 +617,30 @@ def _real_main(argv=None):
             or (opts.useid and u'%(id)s.%(ext)s')
             or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
             or u'%(title)s-%(id)s.%(ext)s')
-    if '%(ext)s' not in outtmpl and opts.extractaudio:
+    if not os.path.splitext(outtmpl)[1] and opts.extractaudio:
         parser.error(u'Cannot download a video and extract audio into the same'
-                     u' file! Use "%%(ext)s" instead of %r' %
-                     determine_ext(outtmpl, u''))
+                     u' file! Use "{0}.%(ext)s" instead of "{0}" as the output'
+                     u' template'.format(outtmpl))
+
+    any_printing = opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.getduration or opts.dumpjson
 
     ydl_opts = {
         'usenetrc': opts.usenetrc,
         'username': opts.username,
         'password': opts.password,
         'videopassword': opts.videopassword,
-        'quiet': (opts.quiet or opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.dumpjson),
+        'quiet': (opts.quiet or any_printing),
         'forceurl': opts.geturl,
         'forcetitle': opts.gettitle,
         'forceid': opts.getid,
         'forcethumbnail': opts.getthumbnail,
         'forcedescription': opts.getdescription,
+        'forceduration': opts.getduration,
         'forcefilename': opts.getfilename,
         'forceformat': opts.getformat,
         'forcejson': opts.dumpjson,
         'simulate': opts.simulate,
-        'skip_download': (opts.skip_download or opts.simulate or opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.dumpjson),
+        'skip_download': (opts.skip_download or opts.simulate or any_printing),
         'format': opts.format,
         'format_limit': opts.format_limit,
         'listformats': opts.listformats,
@@ -675,6 +684,8 @@ def _real_main(argv=None):
         'keepvideo': opts.keepvideo,
         'min_filesize': opts.min_filesize,
         'max_filesize': opts.max_filesize,
+        'min_views': opts.min_views,
+        'max_views': opts.max_views,
         'daterange': date,
         'cachedir': opts.cachedir,
         'youtube_print_sig_code': opts.youtube_print_sig_code,
@@ -684,6 +695,7 @@ def _real_main(argv=None):
         'nocheckcertificate': opts.no_check_certificate,
         'proxy': opts.proxy,
         'socket_timeout': opts.socket_timeout,
+        'bidi_workaround': opts.bidi_workaround,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
@@ -694,6 +706,8 @@ def _real_main(argv=None):
         # Add the metadata pp first, the other pps will copy it
         if opts.addmetadata:
             ydl.add_post_processor(FFmpegMetadataPP())
+        if opts.xattrs:
+            ydl.add_post_processor(XAttrMetadataPP())
         if opts.extractaudio:
             ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
         if opts.recodevideo:
@@ -706,14 +720,17 @@ def _real_main(argv=None):
             update_self(ydl.to_screen, opts.verbose)
 
         # Maybe do nothing
-        if len(all_urls) < 1:
+        if (len(all_urls) < 1) and (opts.load_info_filename is None):
             if not opts.update_self:
                 parser.error(u'you must provide at least one URL')
             else:
                 sys.exit()
 
         try:
-            retcode = ydl.download(all_urls)
+            if opts.load_info_filename is not None:
+                retcode = ydl.download_with_info_file(opts.load_info_filename)
+            else:
+                retcode = ydl.download(all_urls)
         except MaxDownloadsReached:
             ydl.to_screen(u'--max-download limit reached, aborting.')
             retcode = 101

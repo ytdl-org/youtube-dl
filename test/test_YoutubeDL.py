@@ -7,6 +7,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import FakeYDL
+from youtube_dl import YoutubeDL
 
 
 class YDL(FakeYDL):
@@ -139,6 +140,20 @@ class TestFormatSelection(unittest.TestCase):
         YDL.add_extra_info(test_dict, extra_info)
         self.assertEqual(test_dict['extractor'], 'Foo')
         self.assertEqual(test_dict['playlist'], 'funny videos')
+
+    def test_prepare_filename(self):
+        info = {
+            u'id': u'1234',
+            u'ext': u'mp4',
+            u'width': None,
+        }
+        def fname(templ):
+            ydl = YoutubeDL({'outtmpl': templ})
+            return ydl.prepare_filename(info)
+        self.assertEqual(fname(u'%(id)s.%(ext)s'), u'1234.mp4')
+        self.assertEqual(fname(u'%(id)s-%(width)s.%(ext)s'), u'1234-NA.mp4')
+        # Replace missing fields with 'NA'
+        self.assertEqual(fname(u'%(uploader_date)s-%(id)s.%(ext)s'), u'NA-1234.mp4')
 
 
 if __name__ == '__main__':

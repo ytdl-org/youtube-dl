@@ -13,20 +13,21 @@ import xml.etree.ElementTree
 
 #from youtube_dl.utils import htmlentity_transform
 from youtube_dl.utils import (
-    timeconvert,
-    sanitize_filename,
-    unescapeHTML,
-    orderedSet,
     DateRange,
-    unified_strdate,
+    encodeFilename,
     find_xpath_attr,
     get_meta_content,
-    xpath_with_ns,
-    smuggle_url,
-    unsmuggle_url,
+    orderedSet,
+    sanitize_filename,
     shell_quote,
-    encodeFilename,
+    smuggle_url,
     str_to_int,
+    timeconvert,
+    unescapeHTML,
+    unified_strdate,
+    unsmuggle_url,
+    url_basename,
+    xpath_with_ns,
 )
 
 if sys.version_info < (3, 0):
@@ -181,6 +182,15 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(str_to_int('123,456'), 123456)
         self.assertEqual(str_to_int('123.456'), 123456)
 
+    def test_url_basename(self):
+        self.assertEqual(url_basename(u'http://foo.de/'), u'')
+        self.assertEqual(url_basename(u'http://foo.de/bar/baz'), u'baz')
+        self.assertEqual(url_basename(u'http://foo.de/bar/baz?x=y'), u'baz')
+        self.assertEqual(url_basename(u'http://foo.de/bar/baz#x=y'), u'baz')
+        self.assertEqual(url_basename(u'http://foo.de/bar/baz/'), u'baz')
+        self.assertEqual(
+            url_basename(u'http://media.w3.org/2010/05/sintel/trailer.mp4'),
+            u'trailer.mp4')
 
 if __name__ == '__main__':
     unittest.main()

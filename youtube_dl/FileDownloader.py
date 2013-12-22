@@ -204,11 +204,27 @@ class FileDownloader(object):
         """Report destination filename."""
         self.to_screen(u'[download] Destination: ' + filename)
 
+    def _report_progress_status(self, msg, is_last_line=False):
+        fullmsg = u'[download] ' + msg
+        if self.params.get('progress_with_newline', False):
+            self.to_screen(fullmsg)
+        else:
+            if os.name == 'nt':
+                prev_len = getattr(self, '_report_progress_prev_line_length',
+                                   0)
+                if prev_len > len(fullmsg):
+                    fullmsg += u' ' * (prev_len - len(fullmsg))
+                self._report_progress_prev_line_length = len(fullmsg)
+                clear_line = u'\r'
+            else:
+                clear_line = (u'\r\x1b[K' if sys.stderr.isatty() else u'\r')
+            self.to_screen(clear_line + fullmsg, skip_eol=not is_last_line)
+        self.to_console_title(u'youtube-dl ' + msg)
+
     def report_progress(self, percent, data_len_str, speed, eta):
         """Report download progress."""
         if self.params.get('noprogress', False):
             return
-        clear_line = (u'\x1b[K' if sys.stderr.isatty() and os.name != 'nt' else u'')
         if eta is not None:
             eta_str = self.format_eta(eta)
         else:
@@ -218,14 +234,29 @@ class FileDownloader(object):
         else:
             percent_str = 'Unknown %'
         speed_str = self.format_speed(speed)
-        if self.params.get('progress_with_newline', False):
-            self.to_screen(u'[download] %s of %s at %s ETA %s' %
-                (percent_str, data_len_str, speed_str, eta_str))
+
+        msg = (u'%s of %s at %s ETA %s' %
+               (percent_str, data_len_str, speed_str, eta_str))
+        self._report_progress_status(msg)
+
+    def report_progress_live_stream(self, downloaded_data_len, speed, elapsed):
+        if self.params.get('noprogress', False):
+            return
+        downloaded_str = format_bytes(downloaded_data_len)
+        speed_str = self.format_speed(speed)
+        elapsed_str = FileDownloader.format_seconds(elapsed)
+        msg = u'%s at %s (%s)' % (downloaded_str, speed_str, elapsed_str)
+        self._report_progress_status(msg)
+
+    def report_finish(self, data_len_str, tot_time):
+        """Report download finished."""
+        if self.params.get('noprogress', False):
+            self.to_screen(u'[download] Download completed')
         else:
-            self.to_screen(u'\r%s[download] %s of %s at %s ETA %s' %
-                (clear_line, percent_str, data_len_str, speed_str, eta_str), skip_eol=True)
-        self.to_console_title(u'youtube-dl - %s of %s at %s ETA %s' %
-                (percent_str.strip(), data_len_str.strip(), speed_str.strip(), eta_str.strip()))
+            self._report_progress_status(
+                (u'100%% of %s in %s' %
+                 (data_len_str, self.format_seconds(tot_time))),
+                is_last_line=True)
 
     def report_resuming_byte(self, resume_len):
         """Report attempt to resume at given byte."""
@@ -246,16 +277,7 @@ class FileDownloader(object):
         """Report it was impossible to resume download."""
         self.to_screen(u'[download] Unable to resume')
 
-    def report_finish(self, data_len_str, tot_time):
-        """Report download finished."""
-        if self.params.get('noprogress', False):
-            self.to_screen(u'[download] Download completed')
-        else:
-            clear_line = (u'\x1b[K' if sys.stderr.isatty() and os.name != 'nt' else u'')
-            self.to_screen(u'\r%s[download] 100%% of %s in %s' %
-                (clear_line, data_len_str, self.format_seconds(tot_time)))
-
-    def _download_with_rtmpdump(self, filename, url, player_url, page_url, play_path, tc_url, live):
+    def _download_with_rtmpdump(self, filename, url, player_url, page_url, play_path, tc_url, live, conn):
         def run_rtmpdump(args):
             start = time.time()
             resume_percent = None
@@ -301,11 +323,27 @@ class FileDownloader(object):
                         'eta': eta,
                         'speed': speed,
                     })
-                elif self.params.get('verbose', False):
-                    if not cursor_in_new_line:
-                        self.to_screen(u'')
-                    cursor_in_new_line = True
-                    self.to_screen(u'[rtmpdump] '+line)
+                else:
+                    # no percent for live streams
+                    mobj = re.search(r'([0-9]+\.[0-9]{3}) kB / [0-9]+\.[0-9]{2} sec', line)
+                    if mobj:
+                        downloaded_data_len = int(float(mobj.group(1))*1024)
+                        time_now = time.time()
+                        speed = self.calc_speed(start, time_now, downloaded_data_len)
+                        self.report_progress_live_stream(downloaded_data_len, speed, time_now - start)
+                        cursor_in_new_line = False
+                        self._hook_progress({
+                            'downloaded_bytes': downloaded_data_len,
+                            'tmpfilename': tmpfilename,
+                            'filename': filename,
+                            'status': 'downloading',
+                            'speed': speed,
+                        })
+                    elif self.params.get('verbose', False):
+                        if not cursor_in_new_line:
+                            self.to_screen(u'')
+                        cursor_in_new_line = True
+                        self.to_screen(u'[rtmpdump] '+line)
             proc.wait()
             if not cursor_in_new_line:
                 self.to_screen(u'')
@@ -338,6 +376,8 @@ class FileDownloader(object):
             basic_args += ['--stop', '1']
         if live:
             basic_args += ['--live']
+        if conn:
+            basic_args += ['--conn', conn]
         args = basic_args + [[], ['--resume', '--skip', '1']][self.params.get('continuedl', False)]
 
         if sys.platform == 'win32' and sys.version_info < (3, 0):
@@ -479,7 +519,8 @@ class FileDownloader(object):
                                                 info_dict.get('page_url', None),
                                                 info_dict.get('play_path', None),
                                                 info_dict.get('tc_url', None),
-                                                info_dict.get('rtmp_live', False))
+                                                info_dict.get('rtmp_live', False),
+                                                info_dict.get('rtmp_conn', None))
 
         # Attempt to download using mplayer
         if url.startswith('mms') or url.startswith('rtsp'):
