@@ -222,13 +222,19 @@ class GenericIE(InfoExtractor):
             self.to_screen(u'Brightcove video detected.')
             return self.url_result(bc_url, 'Brightcove')
 
-        # Look for embedded Vimeo player
+        # Look for embedded (iframe) Vimeo player
         mobj = re.search(
             r'<iframe[^>]+?src="(https?://player.vimeo.com/video/.+?)"', webpage)
         if mobj:
             player_url = unescapeHTML(mobj.group(1))
             surl = smuggle_url(player_url, {'Referer': url})
             return self.url_result(surl, 'Vimeo')
+
+        # Look for embedded (swf embed) Vimeo player
+        mobj = re.search(
+            r'<embed[^>]+?src="(https?://(?:www\.)?vimeo.com/moogaloop.swf.+?)"', webpage)
+        if mobj:
+            return self.url_result(mobj.group(1), 'Vimeo')
 
         # Look for embedded YouTube player
         matches = re.findall(r'''(?x)

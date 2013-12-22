@@ -26,10 +26,10 @@ class VimeoIE(InfoExtractor):
         (?:(?:www|(?P<player>player))\.)?
         vimeo(?P<pro>pro)?\.com/
         (?:.*?/)?
-        (?P<direct_link>play_redirect_hls\?clip_id=)?
+        (?:(?:play_redirect_hls|moogaloop\.swf)\?clip_id=)?
         (?:videos?/)?
         (?P<id>[0-9]+)
-        /?(?:[?].*)?(?:[#].*)?$'''
+        /?(?:[?&].*)?(?:[#].*)?$'''
     _NETRC_MACHINE = 'vimeo'
     IE_NAME = u'vimeo'
     _TESTS = [
