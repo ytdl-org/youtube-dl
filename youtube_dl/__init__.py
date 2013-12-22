@@ -78,6 +78,7 @@ from .PostProcessor import (
     FFmpegVideoConvertor,
     FFmpegExtractAudioPP,
     FFmpegEmbedSubtitlePP,
+    XAttrMetadataPP,
 )
 
 
@@ -412,7 +413,9 @@ def parseOpts(overrideArguments=None):
     postproc.add_option('--embed-subs', action='store_true', dest='embedsubtitles', default=False,
             help='embed subtitles in the video (only for mp4 videos)')
     postproc.add_option('--add-metadata', action='store_true', dest='addmetadata', default=False,
-            help='add metadata to the files')
+            help='write metadata to the video file')
+    postproc.add_option('--xattrs', action='store_true', dest='xattrs', default=False,
+            help='write metadata to the video file\'s xattrs (using dublin core and xdg standards)')
 
 
     parser.add_option_group(general)
@@ -703,6 +706,8 @@ def _real_main(argv=None):
         # Add the metadata pp first, the other pps will copy it
         if opts.addmetadata:
             ydl.add_post_processor(FFmpegMetadataPP())
+        if opts.xattrs:
+            ydl.add_post_processor(XAttrMetadataPP())
         if opts.extractaudio:
             ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
         if opts.recodevideo:

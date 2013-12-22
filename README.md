@@ -189,7 +189,9 @@ which means you can modify it, redistribute it or use it however you like.
                                processed files are overwritten by default
     --embed-subs               embed subtitles in the video (only for mp4
                                videos)
-    --add-metadata             add metadata to the files
+    --add-metadata             write metadata to the video file
+    --xattrs                   write metadata to the video file's xattrs (using
+                               dublin core and xdg standards)
 
 # CONFIGURATION
 

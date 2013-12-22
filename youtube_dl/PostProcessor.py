@@ -509,3 +509,105 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         os.remove(encodeFilename(filename))
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         return True, info
+
+
+class XAttrMetadataPP(PostProcessor):
+
+    #
+    # More info about extended attributes for media:
+    #   http://freedesktop.org/wiki/CommonExtendedAttributes/
+    #   http://www.freedesktop.org/wiki/PhreedomDraft/
+    #   http://dublincore.org/documents/usageguide/elements.shtml
+    #
+    # TODO:
+    #  * capture youtube keywords and put them in 'user.dublincore.subject' (comma-separated)
+    #  * figure out which xattrs can be used for 'duration', 'thumbnail', 'resolution'
+    #
+
+    def run(self, info):
+        """ Set extended attributes on downloaded file (if the xattr module is installed). """
+
+        from .utils import hyphenate_date
+
+        # This mess below finds the best xattr tool for the job and creates a
+        # "write_xattr" function.
+        try:
+            # try the pyxattr module...
+            import xattr
+            def write_xattr(path, key, value):
+                return xattr.set(path, key, value)
+        except ImportError:
+            if os.name == 'posix':
+                def which(bin):
+                    for dir in os.environ["PATH"].split(":"):
+                        path = os.path.join(dir, bin)
+                        if os.path.exists(path):
+                            return path
+
+                # try the 'setfattr' commandline tool...
+                if which("setfattr"):
+
+                    import subprocess
+
+                    def write_xattr(path, key, value):
+                        cmd = ["setfattr", "-n", key, "-v", value, path]
+                        try:
+                            output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+                        except subprocess.CalledProcessError as e:
+                            import errno
+                            potential_errors = {
+                                # setfattr: /tmp/blah: Operation not supported
+                                "Operation not supported": errno.EOPNOTSUPP,
+                                # setfattr: ~/blah: No such file or directory
+                                "No such file or directory": errno.ENOENT
+                            }
+                            errorstr = e.output.strip().decode()
+                            for potential_errorstr, potential_errno in potential_errors.items():
+                                if errorstr.endswith(potential_errorstr):
+                                    e = OSError(potential_errno, potential_errorstr)
+                                    e.__cause__ = None
+                                    raise e
+                            raise # Reraise unhandled error
+
+                else:
+                    # On Unix, and can't find pyxattr or setfattr.
+                    self._downloader.report_error("Couldn't find a tool to set the xattrs. Install the python 'pyxattr' module, or the GNU 'attr' package (which contains the 'setfattr' tool).")
+            else:
+                # On Windows, and can't find pyxattr.
+                self._downloader.report_error("Couldn't find a tool to set the xattrs. Install the python 'pyxattr' module.")
+
+
+
+        # Write the metadata to the file's xattrs
+
+        self._downloader.to_screen('[metadata] Writing metadata to file\'s xattrs...')
+
+        filename = info['filepath']
+
+        try:
+            xattr_mapping = {
+                'user.xdg.referrer.url':       'webpage_url',
+                # 'user.xdg.comment':            'description',
+                'user.dublincore.title':       'title',
+                'user.dublincore.date':        'upload_date',
+                'user.dublincore.description': 'description',
+                'user.dublincore.contributor': 'uploader',
+                'user.dublincore.format':      'format',
+            }
+
+            for xattrname, infoname in xattr_mapping.items():
+
+                value = info.get(infoname)
+
+                if value:
+                    if infoname == "upload_date":
+                        value = hyphenate_date(value)
+
+                    write_xattr(filename, xattrname, value)
+
+            return True, info
+
+        except OSError:
+            self._downloader.report_error("This filesystem doesn't support extended attributes. (You may have to enable them in your /etc/fstab)")
+            return False, info
+

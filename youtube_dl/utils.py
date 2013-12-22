@@ -809,6 +809,15 @@ def date_from_str(date_str):
         return today + delta
     return datetime.datetime.strptime(date_str, "%Y%m%d").date()
     
+def hyphenate_date(date_str):
+    """
+    Convert a date in 'YYYYMMDD' format to 'YYYY-MM-DD' format"""
+    match = re.match(r'^(\d\d\d\d)(\d\d)(\d\d)$', date_str)
+    if match is not None:
+        return '-'.join(match.groups())
+    else:
+        return date_str
+
 class DateRange(object):
     """Represents a time interval between two dates"""
     def __init__(self, start=None, end=None):
@@ -1029,7 +1038,6 @@ def format_bytes(bytes):
     suffix = [u'B', u'KiB', u'MiB', u'GiB', u'TiB', u'PiB', u'EiB', u'ZiB', u'YiB'][exponent]
     converted = float(bytes) / float(1024 ** exponent)
     return u'%.2f%s' % (converted, suffix)
-
 
 def str_to_int(int_str):
     int_str = re.sub(r'[,\.]', u'', int_str)
