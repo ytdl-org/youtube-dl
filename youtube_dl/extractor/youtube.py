@@ -1717,7 +1717,7 @@ class YoutubeUserIE(InfoExtractor):
         # page by page until there are no video ids - it means we got
         # all of them.
 
-        video_ids = []
+        url_results = []
 
         for pagenum in itertools.count(0):
             start_index = pagenum * self._GDATA_PAGE_SIZE + 1
@@ -1735,10 +1735,17 @@ class YoutubeUserIE(InfoExtractor):
                 break
 
             # Extract video identifiers
-            ids_in_page = []
-            for entry in response['feed']['entry']:
-                ids_in_page.append(entry['id']['$t'].split('/')[-1])
-            video_ids.extend(ids_in_page)
+            entries = response['feed']['entry']
+            for entry in entries:
+                title = entry['title']['$t']
+                video_id = entry['id']['$t'].split('/')[-1]
+                url_results.append({
+                    '_type': 'url',
+                    'url': video_id,
+                    'ie_key': 'Youtube',
+                    'id': 'video_id',
+                    'title': title,
+                })
 
             # A little optimization - if current page is not
             # "full", ie. does not contain PAGE_SIZE video ids then
@@ -1746,12 +1753,9 @@ class YoutubeUserIE(InfoExtractor):
             # are no more ids on further pages - no need to query
             # again.
 
-            if len(ids_in_page) < self._GDATA_PAGE_SIZE:
+            if len(entries) < self._GDATA_PAGE_SIZE:
                 break
 
-        url_results = [
-            self.url_result(video_id, 'Youtube', video_id=video_id)
-            for video_id in video_ids]
         return self.playlist_result(url_results, playlist_title=username)
 
 
