@@ -56,7 +56,6 @@ from .utils import (
     compat_print,
     DateRange,
     decodeOption,
-    determine_ext,
     get_term_width,
     DownloadError,
     get_cachedir,
