@@ -525,7 +525,6 @@ def _real_main(argv=None):
         for ie in sorted(extractors, key=lambda ie: ie.IE_NAME.lower()):
             compat_print(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else ''))
             matchedUrls = [url for url in all_urls if ie.suitable(url)]
-            all_urls = [url for url in all_urls if url not in matchedUrls]
             for mu in matchedUrls:
                 compat_print(u'  ' + mu)
         sys.exit(0)
