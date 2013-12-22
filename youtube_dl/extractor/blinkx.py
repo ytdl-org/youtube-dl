@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class BlinkxIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://(?:www\.)blinkx\.com/ce/|blinkx:)(?P<id>[^?]+)'
+    _VALID_URL = r'^(?:https?://(?:www\.)blinkx\.com/#?ce/|blinkx:)(?P<id>[^?]+)'
     _IE_NAME = u'blinkx'
 
     _TEST = {
