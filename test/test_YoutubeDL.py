@@ -68,22 +68,22 @@ class TestFormatSelection(unittest.TestCase):
             {u'format_id': u'great', u'url': u'http://example.com/great'},
             {u'format_id': u'excellent', u'url': u'http://example.com/exc'},
         ]
-        info_dict = {
+        info_dict = lambda:{
             u'formats': formats, u'extractor': u'test', 'id': 'testvid'}
 
         ydl = YDL()
-        ydl.process_ie_result(info_dict)
+        ydl.process_ie_result(info_dict())
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded[u'format_id'], u'excellent')
 
         ydl = YDL({'format_limit': 'good'})
         assert ydl.params['format_limit'] == 'good'
-        ydl.process_ie_result(info_dict)
+        ydl.process_ie_result(info_dict())
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded[u'format_id'], u'good')
 
         ydl = YDL({'format_limit': 'great', 'format': 'all'})
-        ydl.process_ie_result(info_dict)
+        ydl.process_ie_result(info_dict())
         self.assertEqual(ydl.downloaded_info_dicts[0][u'format_id'], u'meh')
         self.assertEqual(ydl.downloaded_info_dicts[1][u'format_id'], u'good')
         self.assertEqual(ydl.downloaded_info_dicts[2][u'format_id'], u'great')
@@ -91,7 +91,7 @@ class TestFormatSelection(unittest.TestCase):
 
         ydl = YDL()
         ydl.params['format_limit'] = 'excellent'
-        ydl.process_ie_result(info_dict)
+        ydl.process_ie_result(info_dict())
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded[u'format_id'], u'excellent')
 
