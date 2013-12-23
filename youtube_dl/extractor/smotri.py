@@ -152,34 +152,40 @@ class SmotriIE(InfoExtractor):
 
         video_description = self._search_meta(u'description', video_page)
         END_TEXT = u' на сайте Smotri.com'
-        if video_description.endswith(END_TEXT):
+        if video_description and video_description.endswith(END_TEXT):
             video_description = video_description[:-len(END_TEXT)]
         START_TEXT = u'Смотреть онлайн ролик '
-        if video_description.startswith(START_TEXT):
+        if video_description and video_description.startswith(START_TEXT):
             video_description = video_description[len(START_TEXT):]
         video_thumbnail = self._search_meta(u'thumbnail', video_page)
 
         upload_date_str = self._search_meta(u'uploadDate', video_page, u'upload date')
-        upload_date_m = re.search(r'(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2})T', upload_date_str)
-        video_upload_date = (
-            (
-                upload_date_m.group('year') +
-                upload_date_m.group('month') +
-                upload_date_m.group('day')
+        if upload_date_str:
+            upload_date_m = re.search(r'(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2})T', upload_date_str)
+            video_upload_date = (
+                (
+                    upload_date_m.group('year') +
+                    upload_date_m.group('month') +
+                    upload_date_m.group('day')
+                )
+                if upload_date_m else None
             )
-            if upload_date_m else None
-        )
+        else:
+            video_upload_date = None
         
         duration_str = self._search_meta(u'duration', video_page)
-        duration_m = re.search(r'T(?P<hours>[0-9]{2})H(?P<minutes>[0-9]{2})M(?P<seconds>[0-9]{2})S', duration_str)
-        video_duration = (
-            (
-                (int(duration_m.group('hours')) * 60 * 60) +
-                (int(duration_m.group('minutes')) * 60) +
-                int(duration_m.group('seconds'))
+        if duration_str:
+            duration_m = re.search(r'T(?P<hours>[0-9]{2})H(?P<minutes>[0-9]{2})M(?P<seconds>[0-9]{2})S', duration_str)
+            video_duration = (
+                (
+                    (int(duration_m.group('hours')) * 60 * 60) +
+                    (int(duration_m.group('minutes')) * 60) +
+                    int(duration_m.group('seconds'))
+                )
+                if duration_m else None
             )
-            if duration_m else None
-        )
+        else:
+            video_duration = None
         
         video_uploader = self._html_search_regex(
             u'<div class="DescrUser"><div>Автор.*?onmouseover="popup_user_info[^"]+">(.*?)</a>',
