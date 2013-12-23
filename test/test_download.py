@@ -90,7 +90,7 @@ def generator(test_case):
         def _hook(status):
             if status['status'] == 'finished':
                 finished_hook_called.add(status['filename'])
-        ydl.fd.add_progress_hook(_hook)
+        ydl.add_downloader_progress_hook(_hook)
 
         def get_tc_filename(tc):
             return tc.get('file') or ydl.prepare_filename(tc.get('info_dict', {}))
