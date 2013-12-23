@@ -192,7 +192,6 @@ class YoutubeDL(object):
                         ['bidiv'] + width_args, **sp_kwargs
                     )
                 except OSError:
-                    print('Falling back to fribidi')
                     self._output_process = subprocess.Popen(
                         ['fribidi', '-c', 'UTF-8'] + width_args, **sp_kwargs)
                 self._output_channel = os.fdopen(master, 'rb')
@@ -251,7 +250,6 @@ class YoutubeDL(object):
 
     def _bidi_workaround(self, message):
         if not hasattr(self, '_output_channel'):
-            print('WORKAROUND NOT ENABLED')
             return message
 
         assert hasattr(self, '_output_process')
