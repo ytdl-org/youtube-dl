@@ -2,7 +2,7 @@
 <atom:feed xmlns:atom="http://www.w3.org/2005/Atom">
 	<atom:title>youtube-dl releases</atom:title>
 	<atom:id>youtube-dl-updates-feed</atom:id>
-	<atom:updated>2013-12-23T04:46:55.854697</atom:updated>
+	<atom:updated>2013-12-23T05:14:37.536098</atom:updated>
 	
 	<atom:entry>
 		<atom:id>youtube-dl-2012.02.22</atom:id>
@@ -2552,6 +2552,21 @@
 			<atom:name>The youtube-dl maintainers</atom:name>
 		</atom:author>
 		<atom:updated>2013-12-23-3</atom:updated>
+	</atom:entry>
+
+	<atom:entry>
+		<atom:id>youtube-dl-2013.12.23.4</atom:id>
+		<atom:title>New version 2013.12.23.4</atom:title>
+		<atom:link href="http://rg3.github.io/youtube-dl" />
+		<atom:content type="xhtml">
+			<div xmlns="http://www.w3.org/1999/xhtml">
+				Downloads available at <a href="https://yt-dl.org/downloads/2013.12.23.4/">https://yt-dl.org/downloads/2013.12.23.4/</a>
+			</div>
+		</atom:content>
+		<atom:author>
+			<atom:name>The youtube-dl maintainers</atom:name>
+		</atom:author>
+		<atom:updated>2013-12-23-4</atom:updated>
 	</atom:entry>
 
 </atom:feed>
