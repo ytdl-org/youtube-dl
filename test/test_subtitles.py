@@ -36,10 +36,6 @@ class TestYoutubeSubtitles(BaseTestSubtitles):
     url = 'QRS8MkLhQmM'
     IE = YoutubeIE
 
-    def getSubtitles(self):
-        info_dict = self.getInfoDict()
-        return info_dict[0]['subtitles']
-
     def test_youtube_no_writesubtitles(self):
         self.DL.params['writesubtitles'] = False
         subtitles = self.getSubtitles()

@@ -167,7 +167,7 @@ class YoutubeDL(object):
         self._ies = []
         self._ies_instances = {}
         self._pps = []
-        self._fd_progress_hooks = []
+        self._progress_hooks = []
         self._download_retcode = 0
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
@@ -246,9 +246,9 @@ class YoutubeDL(object):
         self._pps.append(pp)
         pp.set_downloader(self)
 
-    def add_downloader_progress_hook(self, ph):
-        """Add the progress hook to the file downloader"""
-        self._fd_progress_hooks.append(ph)
+    def add_progress_hook(self, ph):
+        """Add the progress hook (currently only for the file downloader)"""
+        self._progress_hooks.append(ph)
 
     def _bidi_workaround(self, message):
         if not hasattr(self, '_output_channel'):
@@ -688,7 +688,12 @@ class YoutubeDL(object):
                         ext_ord)
             formats = sorted(formats, key=_free_formats_key)
 
-        info_dict['formats'] = formats
+        if formats[0] is not info_dict: 
+            # only set the 'formats' fields if the original info_dict list them
+            # otherwise we end up with a circular reference, the first (and unique)
+            # element in the 'formats' field in info_dict is info_dict itself, 
+            # wich can't be exported to json
+            info_dict['formats'] = formats
         if self.params.get('listformats', None):
             self.list_formats(info_dict)
             return
@@ -883,7 +888,7 @@ class YoutubeDL(object):
             else:
                 try:
                     fd = get_suitable_downloader(info_dict)(self, self.params)
-                    for ph in self._fd_progress_hooks:
+                    for ph in self._progress_hooks:
                         fd.add_progress_hook(ph)
                     success = fd.download(filename, info_dict)
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
