@@ -273,14 +273,10 @@ class GenericIE(InfoExtractor):
         # Look for embedded blip.tv player
         mobj = re.search(r'<meta\s[^>]*https?://api.blip.tv/\w+/redirect/\w+/(\d+)', webpage)
         if mobj:
-            return self.url_result('http://blip.tv/seo/-'+mobj.group(1), 'BlipTV')
-        mobj = re.search(r'<(?:iframe|embed|object)\s[^>]*https?://(?:\w+\.)?blip.tv/(?:play/|api\.swf#)([a-zA-Z0-9]+)', webpage)
+            return self.url_result('http://blip.tv/a/a-'+mobj.group(1), 'BlipTV')
+        mobj = re.search(r'<(?:iframe|embed|object)\s[^>]*(https?://(?:\w+\.)?blip.tv/(?:play/|api\.swf#)[^\'"\s]+)', webpage)
         if mobj:
-            player_url = 'http://blip.tv/play/%s.x?p=1' % mobj.group(1)
-            player_page = self._download_webpage(player_url, mobj.group(1))
-            blip_video_id = self._search_regex(r'data-episode-id="(\d+)', player_page, u'blip_video_id', fatal=False)
-            if blip_video_id:
-                return self.url_result('http://blip.tv/seo/-'+blip_video_id, 'BlipTV')
+            return self.url_result(mobj.group(1), 'BlipTV')
 
         # Look for Bandcamp pages with custom domain
         mobj = re.search(r'<meta property="og:url"[^>]*?content="(.*?bandcamp\.com.*?)"', webpage)

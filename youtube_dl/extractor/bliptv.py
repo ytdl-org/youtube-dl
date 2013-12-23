@@ -15,6 +15,7 @@ from ..utils import (
 
     ExtractorError,
     unescapeHTML,
+    determine_ext,
 )
 
 
@@ -35,6 +36,13 @@ class BlipTVIE(InfoExtractor):
             u"title": u"CBR EXCLUSIVE: \"Gotham City Imposters\" Bats VS Jokerz Short 3"
         }
     }
+    
+    _format_ids = {
+        'Source': 'src',
+        'Blip LD': 'ld',
+        'Blip SD': 'sd',
+        'Blip HD 720': 'hd'
+    }
 
     def report_direct_download(self, title):
         """Report information extraction."""
@@ -46,18 +54,12 @@ class BlipTVIE(InfoExtractor):
             raise ExtractorError(u'Invalid URL: %s' % url)
 
         # See https://github.com/rg3/youtube-dl/issues/857
-        api_mobj = re.match(r'http://a\.blip\.tv/api\.swf#(?P<video_id>[\d\w]+)', url)
-        if api_mobj is not None:
-            url = 'http://blip.tv/play/g_%s' % api_mobj.group('video_id')
-        urlp = compat_urllib_parse_urlparse(url)
-        if urlp.path.startswith('/play/'):
-            response = self._request_webpage(url, None, False)
-            redirecturl = response.geturl()
-            rurlp = compat_urllib_parse_urlparse(redirecturl)
-            file_id = compat_parse_qs(rurlp.fragment)['file'][0].rpartition('/')[2]
-            url = 'http://blip.tv/a/a-' + file_id
-            return self._real_extract(url)
-
+        embed_mobj = re.search(r'^(?:https?://)?(?:\w+\.)?blip.tv/(?:play/|api\.swf#)([a-zA-Z0-9]+)', url)
+        if embed_mobj:
+            info_url = 'http://blip.tv/play/%s.x?p=1' % embed_mobj.group(1)
+            info_page = self._download_webpage(info_url, None)
+            video_id = self._search_regex(r'data-episode-id="(\d+)', info_page, u'video_id')
+            return self.url_result('http://blip.tv/a/a-'+video_id, 'BlipTV')
 
         if '?' in url:
             cchar = '&'
@@ -73,62 +75,67 @@ class BlipTVIE(InfoExtractor):
         if urlh.headers.get('Content-Type', '').startswith('video/'): # Direct download
             basename = url.split('/')[-1]
             title,ext = os.path.splitext(basename)
-            title = title.decode('UTF-8')
             ext = ext.replace('.', '')
             self.report_direct_download(title)
-            info = {
+            return {
                 'id': title,
-                'url': url,
-                'uploader': None,
-                'upload_date': None,
                 'title': title,
-                'ext': ext,
-                'urlhandle': urlh
-            }
-        if info is None: # Regular URL
-            try:
-                json_code_bytes = urlh.read()
-                json_code = json_code_bytes.decode('utf-8')
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                raise ExtractorError(u'Unable to read video info webpage: %s' % compat_str(err))
-
-            try:
-                json_data = json.loads(json_code)
-                if 'Post' in json_data:
-                    data = json_data['Post']
-                else:
-                    data = json_data
-
-                upload_date = datetime.datetime.strptime(data['datestamp'], '%m-%d-%y %H:%M%p').strftime('%Y%m%d')
-                if 'additionalMedia' in data:
-                    formats = sorted(data['additionalMedia'], key=lambda f: int(f['media_height']))
-                    best_format = formats[-1]
-                    video_url = best_format['url']
-                else:
-                    video_url = data['media']['url']
-                umobj = re.match(self._URL_EXT, video_url)
-                if umobj is None:
-                    raise ValueError('Can not determine filename extension')
-                ext = umobj.group(1)
-
-                info = {
-                    'id': compat_str(data['item_id']),
-                    'url': video_url,
-                    'uploader': data['display_name'],
-                    'upload_date': upload_date,
-                    'title': data['title'],
+                'user_agent': 'iTunes/10.6.1',
+                'formats': [{
+                    'format_id': 'unk',
+                    'url': url,
                     'ext': ext,
-                    'format': data['media']['mimeType'],
-                    'thumbnail': data['thumbnailUrl'],
-                    'description': data['description'],
-                    'player_url': data['embedUrl'],
-                    'user_agent': 'iTunes/10.6.1',
-                }
-            except (ValueError,KeyError) as err:
-                raise ExtractorError(u'Unable to parse video information: %s' % repr(err))
+                }]
+            }
 
-        return [info]
+        try:
+            json_code_bytes = urlh.read()
+            json_code = json_code_bytes.decode('utf-8')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            raise ExtractorError(u'Unable to read video info webpage: %s' % compat_str(err))
 
+        try:
+            json_data = json.loads(json_code)
+            if 'Post' in json_data:
+                data = json_data['Post']
+            else:
+                data = json_data
+
+            upload_date = datetime.datetime.strptime(data['datestamp'], '%m-%d-%y %H:%M%p').strftime('%Y%m%d')
+            formats = []
+            if 'additionalMedia' in data:
+                for raw_format in sorted(data['additionalMedia'], key=lambda f: int(f['media_height'])):
+                    if raw_format['media_width'] == '0': # filter m3u8
+                        continue
+                    formats.append({
+                        'url': raw_format['url'],
+                        'ext': determine_ext(raw_format['url']),
+                        'format_note': raw_format['role'],
+                        'format_id': self._format_ids.get(raw_format['role'], raw_format['role']),
+                        'width': raw_format['media_width'],
+                        'height': raw_format['media_height'],
+                    })
+            else:
+                formats.append({
+                    'url': data['media']['url'],
+                    'ext': determine_ext(data['media']['url']),
+                    'format_id': 'unk',
+                    'width': data['media']['width'],
+                    'height': data['media']['height'],
+                })
+
+            return {
+                'id': compat_str(data['item_id']),
+                'uploader': data['display_name'],
+                'upload_date': upload_date,
+                'title': data['title'],
+                'thumbnail': data['thumbnailUrl'],
+                'description': data['description'],
+                'user_agent': 'iTunes/10.6.1',
+                'formats': formats 
+            }
+        except (ValueError,KeyError) as err:
+            raise ExtractorError(u'Unable to parse video information: %s' % repr(err))
 
 class BlipTVUserIE(InfoExtractor):
     """Information Extractor for blip.tv users."""
