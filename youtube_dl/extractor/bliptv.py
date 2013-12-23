@@ -1,6 +1,5 @@
 import datetime
 import json
-import os
 import re
 import socket
 
@@ -66,7 +65,6 @@ class BlipTVIE(InfoExtractor):
         request = compat_urllib_request.Request(json_url)
         request.add_header('User-Agent', 'iTunes/10.6.1')
         self.report_extraction(mobj.group(1))
-        info = None
         urlh = self._request_webpage(request, None, False,
             u'unable to download video info webpage')
 

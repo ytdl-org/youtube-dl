@@ -1,7 +1,5 @@
-import math
 import os
 import re
-import subprocess
 import sys
 import time
 
@@ -175,7 +173,7 @@ class FileDownloader(object):
                 return
             os.rename(encodeFilename(old_filename), encodeFilename(new_filename))
         except (IOError, OSError) as err:
-            self.report_error(u'unable to rename file')
+            self.report_error(u'unable to rename file: %s' % str(err))
 
     def try_utime(self, filename, last_modified_hdr):
         """Try to set the last-modified time of the given file."""
@@ -279,8 +277,6 @@ class FileDownloader(object):
         """Download to a filename using the info from info_dict
         Return True on success and False otherwise
         """
-        url = info_dict['url']
-
         # Check file already present
         if self.params.get('continuedl', False) and os.path.isfile(encodeFilename(filename)) and not self.params.get('nopart', False):
             self.report_file_already_downloaded(filename)
@@ -290,8 +286,8 @@ class FileDownloader(object):
                 'total_bytes': os.path.getsize(encodeFilename(filename)),
             })
             return True
-        else:
-            return self.real_download(filename, info_dict)
+
+        return self.real_download(filename, info_dict)
 
     def real_download(self, filename, info_dict):
         """Real download process. Redefine in subclasses."""
