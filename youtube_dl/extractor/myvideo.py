@@ -143,8 +143,10 @@ class MyVideoIE(InfoExtractor):
         if mobj:
             video_url = compat_urllib_parse.unquote(mobj.group(1))
             if 'myvideo2flash' in video_url:
-                self._downloader.report_warning(u'forcing RTMPT ...')
-                video_url = video_url.replace('rtmpe://', 'rtmpt://')
+                self.report_warning(
+                    u'Rewriting URL to use unencrypted rtmp:// ...',
+                    video_id)
+                video_url = video_url.replace('rtmpe://', 'rtmp://')
 
         if not video_url:
             # extract non rtmp videos

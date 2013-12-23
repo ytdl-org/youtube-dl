@@ -242,6 +242,11 @@ class InfoExtractor(object):
             xml_string = transform_source(xml_string)
         return xml.etree.ElementTree.fromstring(xml_string.encode('utf-8'))
 
+    def report_warning(self, msg, video_id=None):
+        idstr = u'' if video_id is None else u'%s: ' % video_id
+        self._downloader.report_warning(
+            u'[%s] %s%s' % (self.IE_NAME, idstr, msg))
+
     def to_screen(self, msg):
         """Print msg to screen, prefixing it with '[ie_name]'"""
         self._downloader.to_screen(u'[%s] %s' % (self.IE_NAME, msg))
