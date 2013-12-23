@@ -297,6 +297,46 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         '248': 'DASH Video',
     }
 
+    _custom_sorting = {
+        # Apple HTTP Live Streaming
+        '96': -1,
+        '95': -1,
+        '94': -1,
+        '93': -1,
+        '92': -1,
+        '132': -1,
+        '151': -1,
+        # 3D
+        '85': -2,
+        '84': -2,
+        '102': -2,
+        '83': -2,
+        '101': -2,
+        '82': -2,
+        '100': -2,
+        # Dash video (no audio)
+        '138': -3,
+        '137': -3,
+        '248': -3,
+        '136': -3,
+        '247': -3,
+        '135': -3,
+        '246': -3,
+        '245': -3,
+        '244': -3,
+        '134': -3,
+        '243': -3,
+        '133': -3,
+        '242': -3,
+        '160': -3,
+        # Dash audio
+        '141': -4,
+        '172': -4,
+        '140': -4,
+        '171': -4,
+        '139': -4,
+    }
+
     IE_NAME = u'youtube'
     _TESTS = [
         {
@@ -1416,6 +1456,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             width = self._video_dimensions.get(itag, {}).get('width')
             height = self._video_dimensions.get(itag, {}).get('height')
             note = self._special_itags.get(itag)
+            custom_sorting = self._custom_sorting.get(itag)
 
             video_format = '{0} - {1}{2}'.format(itag if itag else video_extension,
                                               '%dx%d' % (width, height) if width is not None and height is not None else (resolution if resolution is not None else '???'),
@@ -1431,15 +1472,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'width':       width,
                 'height':      height,
                 'format_note': note,
+                'custom_sorting': custom_sorting,
             })
 
         def _formats_key(f):
-            note = f.get('format_note')
-            if note is None:
-                note = u''
-            is_dash = u'DASH' in note
             return (
-                0 if is_dash else 1,
+                f.get('custom_sorting') if f.get('custom_sorting') is not None else 0,
                 f.get('height') if f.get('height') is not None else -1,
                 f.get('width') if f.get('width') is not None else -1)
         formats.sort(key=_formats_key)
