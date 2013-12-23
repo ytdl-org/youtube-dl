@@ -39,7 +39,8 @@ which means you can modify it, redistribute it or use it however you like.
                                /youtube-dl .
     --no-cache-dir             Disable filesystem caching
     --bidi-workaround          Work around terminals that lack bidirectional
-                               text support. Requires fribidi executable in PATH
+                               text support. Requires bidiv or fribidi
+                               executable in PATH
 
 ## Video Selection:
     --playlist-start NUMBER    playlist video to start at (default is 1)
