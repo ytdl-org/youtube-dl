@@ -183,12 +183,19 @@ class YoutubeDL(object):
                     width_args = []
                 else:
                     width_args = ['-w', str(width)]
-                self._fribidi = subprocess.Popen(
-                    ['fribidi', '-c', 'UTF-8'] + width_args,
+                sp_kwargs = dict(
                     stdin=subprocess.PIPE,
                     stdout=slave,
                     stderr=self._err_file)
-                self._fribidi_channel = os.fdopen(master, 'rb')
+                try:
+                    self._output_process = subprocess.Popen(
+                        ['bidiv'] + width_args, **sp_kwargs
+                    )
+                except OSError:
+                    print('Falling back to fribidi')
+                    self._output_process = subprocess.Popen(
+                        ['fribidi', '-c', 'UTF-8'] + width_args, **sp_kwargs)
+                self._output_channel = os.fdopen(master, 'rb')
             except OSError as ose:
                 if ose.errno == 2:
                     self.report_warning(u'Could not find fribidi executable, ignoring --bidi-workaround . Make sure that  fribidi  is an executable file in one of the directories in your $PATH.')
@@ -243,14 +250,16 @@ class YoutubeDL(object):
         pp.set_downloader(self)
 
     def _bidi_workaround(self, message):
-        if not hasattr(self, '_fribidi_channel'):
+        if not hasattr(self, '_output_channel'):
+            print('WORKAROUND NOT ENABLED')
             return message
 
+        assert hasattr(self, '_output_process')
         assert type(message) == type(u'')
         line_count = message.count(u'\n') + 1
-        self._fribidi.stdin.write((message + u'\n').encode('utf-8'))
-        self._fribidi.stdin.flush()
-        res = u''.join(self._fribidi_channel.readline().decode('utf-8')
+        self._output_process.stdin.write((message + u'\n').encode('utf-8'))
+        self._output_process.stdin.flush()
+        res = u''.join(self._output_channel.readline().decode('utf-8')
                        for _ in range(line_count))
         return res[:-len(u'\n')]
 

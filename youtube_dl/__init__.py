@@ -194,7 +194,7 @@ def parseOpts(overrideArguments=None):
         type=float, default=None, help=optparse.SUPPRESS_HELP)
     general.add_option(
         '--bidi-workaround', dest='bidi_workaround', action='store_true',
-        help=u'Work around terminals that lack bidirectional text support. Requires fribidi executable in PATH')
+        help=u'Work around terminals that lack bidirectional text support. Requires bidiv or fribidi executable in PATH')
 
 
     selection.add_option(
