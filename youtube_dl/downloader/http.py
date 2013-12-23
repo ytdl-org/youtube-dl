@@ -52,8 +52,6 @@ class HttpFD(FileDownloader):
         while count <= retries:
             # Establish connection
             try:
-                if count == 0 and 'urlhandle' in info_dict:
-                    data = info_dict['urlhandle']
                 data = compat_urllib_request.urlopen(request)
                 break
             except (compat_urllib_error.HTTPError, ) as err:

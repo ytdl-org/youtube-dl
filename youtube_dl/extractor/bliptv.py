@@ -21,7 +21,7 @@ from ..utils import (
 class BlipTVIE(InfoExtractor):
     """Information extractor for blip.tv"""
 
-    _VALID_URL = r'^(?:https?://)?(?:\w+\.)?blip\.tv/((.+/)|(play/)|(api\.swf#))(.+)$'
+    _VALID_URL = r'^(?:https?://)?(?:www\.)?blip\.tv/((.+/)|(play/)|(api\.swf#))(.+)$'
     _URL_EXT = r'^.*\.([a-z0-9]+)$'
     IE_NAME = u'blip.tv'
     _TEST = {
@@ -58,7 +58,6 @@ class BlipTVIE(InfoExtractor):
             url = 'http://blip.tv/a/a-' + file_id
             return self._real_extract(url)
 
-
         if '?' in url:
             cchar = '&'
         else:
@@ -70,22 +69,6 @@ class BlipTVIE(InfoExtractor):
         info = None
         urlh = self._request_webpage(request, None, False,
             u'unable to download video info webpage')
-
-        if urlh.headers.get('Content-Type', '').startswith('video/'): # Direct download
-            basename = url.split('/')[-1]
-            title,ext = os.path.splitext(basename)
-            title = title.decode('UTF-8')
-            ext = ext.replace('.', '')
-            self.report_direct_download(title)
-            return {
-                'id': title,
-                'url': url,
-                'uploader': None,
-                'upload_date': None,
-                'title': title,
-                'ext': ext,
-                'urlhandle': urlh
-            }
 
         try:
             json_code_bytes = urlh.read()

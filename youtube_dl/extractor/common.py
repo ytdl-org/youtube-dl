@@ -63,8 +63,6 @@ class InfoExtractor(object):
     ext:            Video filename extension.
     format:         The video format, defaults to ext (used for --get-format)
     player_url:     SWF Player URL (used for rtmpdump).
-    urlhandle:      [internal] The urlHandle to be used to download the file,
-                    like returned by urllib.request.urlopen
 
     The following fields are optional:
 

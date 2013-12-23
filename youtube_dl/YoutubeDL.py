@@ -542,7 +542,7 @@ class YoutubeDL(object):
             def make_result(embedded_info):
                 new_result = ie_result.copy()
                 for f in ('_type', 'url', 'ext', 'player_url', 'formats',
-                          'entries', 'urlhandle', 'ie_key', 'duration',
+                          'entries', 'ie_key', 'duration',
                           'subtitles', 'annotations', 'format',
                           'thumbnail', 'thumbnails'):
                     if f in new_result:
@@ -856,8 +856,7 @@ class YoutubeDL(object):
             else:
                 self.to_screen(u'[info] Writing video description metadata as JSON to: ' + infofn)
                 try:
-                    json_info_dict = dict((k, v) for k, v in info_dict.items() if not k in ['urlhandle'])
-                    write_json_file(json_info_dict, encodeFilename(infofn))
+                    write_json_file(info_dict, encodeFilename(infofn))
                 except (OSError, IOError):
                     self.report_error(u'Cannot write metadata to JSON file ' + infofn)
                     return
