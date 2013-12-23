@@ -78,12 +78,12 @@ class TestFormatSelection(unittest.TestCase):
 
         ydl = YDL({'format_limit': 'good'})
         assert ydl.params['format_limit'] == 'good'
-        ydl.process_ie_result(info_dict)
+        ydl.process_ie_result(info_dict.copy())
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded[u'format_id'], u'good')
 
         ydl = YDL({'format_limit': 'great', 'format': 'all'})
-        ydl.process_ie_result(info_dict)
+        ydl.process_ie_result(info_dict.copy())
         self.assertEqual(ydl.downloaded_info_dicts[0][u'format_id'], u'meh')
         self.assertEqual(ydl.downloaded_info_dicts[1][u'format_id'], u'good')
         self.assertEqual(ydl.downloaded_info_dicts[2][u'format_id'], u'great')
@@ -91,7 +91,7 @@ class TestFormatSelection(unittest.TestCase):
 
         ydl = YDL()
         ydl.params['format_limit'] = 'excellent'
-        ydl.process_ie_result(info_dict)
+        ydl.process_ie_result(info_dict.copy())
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded[u'format_id'], u'excellent')
 
@@ -105,27 +105,27 @@ class TestFormatSelection(unittest.TestCase):
         info_dict = {u'formats': formats, u'extractor': u'test'}
 
         ydl = YDL({'format': u'20/47'})
-        ydl.process_ie_result(info_dict)
+        ydl.process_ie_result(info_dict.copy())
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], u'47')
 
         ydl = YDL({'format': u'20/71/worst'})
-        ydl.process_ie_result(info_dict)
+        ydl.process_ie_result(info_dict.copy())
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], u'35')
 
         ydl = YDL()
-        ydl.process_ie_result(info_dict)
+        ydl.process_ie_result(info_dict.copy())
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], u'2')
 
         ydl = YDL({'format': u'webm/mp4'})
-        ydl.process_ie_result(info_dict)
+        ydl.process_ie_result(info_dict.copy())
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], u'47')
 
         ydl = YDL({'format': u'3gp/40/mp4'})
-        ydl.process_ie_result(info_dict)
+        ydl.process_ie_result(info_dict.copy())
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], u'35')
 
