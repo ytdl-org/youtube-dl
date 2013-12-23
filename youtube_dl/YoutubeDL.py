@@ -643,7 +643,7 @@ class YoutubeDL(object):
             info_dict['playlist_index'] = None
 
         # This extractors handle format selection themselves
-        if info_dict['extractor'] in [u'youtube', u'Youku']:
+        if info_dict['extractor'] in [u'Youku']:
             if download:
                 self.process_info(info_dict)
             return info_dict
@@ -669,10 +669,6 @@ class YoutubeDL(object):
             if 'ext' not in format:
                 format['ext'] = determine_ext(format['url'])
 
-        if self.params.get('listformats', None):
-            self.list_formats(info_dict)
-            return
-
         format_limit = self.params.get('format_limit', None)
         if format_limit:
             formats = list(takewhile_inclusive(
@@ -685,8 +681,15 @@ class YoutubeDL(object):
                 except ValueError:
                     ext_ord = -1
                 # We only compare the extension if they have the same height and width
-                return (f.get('height'), f.get('width'), ext_ord)
+                return (f.get('height') if f.get('height') is not None else -1,
+                        f.get('width') if f.get('width') is not None else -1,
+                        ext_ord)
             formats = sorted(formats, key=_free_formats_key)
+
+        info_dict['formats'] = formats
+        if self.params.get('listformats', None):
+            self.list_formats(info_dict)
+            return
 
         req_format = self.params.get('format', 'best')
         if req_format is None:
