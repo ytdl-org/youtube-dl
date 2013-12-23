@@ -1,5 +1,6 @@
 # encoding: utf-8
 
+import os.path
 import re
 import json
 import hashlib
@@ -10,6 +11,7 @@ from ..utils import (
     compat_urllib_parse,
     compat_urllib_request,
     ExtractorError,
+    url_basename,
 )
 
 
@@ -132,7 +134,16 @@ class SmotriIE(InfoExtractor):
         # We will extract some from the video web page instead
         video_page_url = 'http://' + mobj.group('url')
         video_page = self._download_webpage(video_page_url, video_id, u'Downloading video page')
-        
+
+        # Warning if video is unavailable
+        warning = self._html_search_regex(
+            r'<div class="videoUnModer">(.*?)</div>', video_page,
+            u'warning messagef', default=None)
+        if warning is not None:
+            self._downloader.report_warning(
+                u'Video %s may not be available; smotri said: %s ' %
+                (video_id, warning))
+
         # Adult content
         if re.search(u'EroConfirmText">', video_page) is not None:
             self.report_age_confirmation()
@@ -148,7 +159,7 @@ class SmotriIE(InfoExtractor):
         # Extract the rest of meta data
         video_title = self._search_meta(u'name', video_page, u'title')
         if not video_title:
-            video_title = video_url.rsplit('/', 1)[-1]
+            video_title = os.path.splitext(url_basename(video_url))[0]
 
         video_description = self._search_meta(u'description', video_page)
         END_TEXT = u' на сайте Smotri.com'
