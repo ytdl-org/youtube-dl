@@ -52,9 +52,10 @@ class MDRIE(InfoExtractor):
                     'format_id': u'%s-%d' % (media_type, vbr),
                 })
             formats.append(format)
-        formats.sort(key=lambda f: (f.get('vbr'), f['abr']))
         if not formats:
             raise ExtractorError(u'Could not find any valid formats')
+
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
