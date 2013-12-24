@@ -676,17 +676,8 @@ class YoutubeDL(object):
             formats = list(takewhile_inclusive(
                 lambda f: f['format_id'] != format_limit, formats
             ))
-        if self.params.get('prefer_free_formats'):
-            def _free_formats_key(f):
-                try:
-                    ext_ord = [u'flv', u'mp4', u'webm'].index(f['ext'])
-                except ValueError:
-                    ext_ord = -1
-                # We only compare the extension if they have the same height and width
-                return (f.get('height') if f.get('height') is not None else -1,
-                        f.get('width') if f.get('width') is not None else -1,
-                        ext_ord)
-            formats = sorted(formats, key=_free_formats_key)
+
+        # TODO Central sorting goes here
 
         if formats[0] is not info_dict: 
             # only set the 'formats' fields if the original info_dict list them
