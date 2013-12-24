@@ -52,18 +52,12 @@ class DreiSatIE(InfoExtractor):
             'width': int(fe.find('./width').text),
             'height': int(fe.find('./height').text),
             'url': fe.find('./url').text,
-            'ext': determine_ext(fe.find('./url').text),
             'filesize': int(fe.find('./filesize').text),
             'video_bitrate': int(fe.find('./videoBitrate').text),
-            '3sat_qualityname': fe.find('./quality').text,
         } for fe in format_els
             if not fe.find('./url').text.startswith('http://www.metafilegenerator.de/')]
 
-        def _sortkey(format):
-            qidx = ['low', 'med', 'high', 'veryhigh'].index(format['3sat_qualityname'])
-            prefer_http = 1 if 'rtmp' in format['url'] else 0
-            return (qidx, prefer_http, format['video_bitrate'])
-        formats.sort(key=_sortkey)
+        self._sort_formats(formats)
 
         return {
             '_type': 'video',
