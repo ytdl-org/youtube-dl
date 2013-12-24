@@ -37,10 +37,12 @@ class InfoExtractor(object):
     id:             Video identifier.
     title:          Video title, unescaped.
 
-    Additionally, it must contain either a formats entry or url and ext:
+    Additionally, it must contain either a formats entry or a url one:
 
-    formats:        A list of dictionaries for each format available, it must
-                    be ordered from worst to best quality. Potential fields:
+    formats:        A list of dictionaries for each format available, ordered
+                    from worst to best quality.
+
+                    Potential fields:
                     * url        Mandatory. The URL of the video file
                     * ext        Will be calculated from url if missing
                     * format     A human-readable description of the format
@@ -53,12 +55,17 @@ class InfoExtractor(object):
                                  ("3D" or "DASH video")
                     * width      Width of the video, if known
                     * height     Height of the video, if known
+                    * resolution Textual description of width and height
                     * abr        Average audio bitrate in KBit/s
                     * acodec     Name of the audio codec in use
                     * vbr        Average video bitrate in KBit/s
                     * vcodec     Name of the video codec in use
                     * filesize   The number of bytes, if known in advance
                     * player_url SWF Player URL (used for rtmpdump).
+                    * preference Order number of this format. If this field is
+                                 present, the formats get sorted by this field.
+                                 -1 for default (order by other properties),
+                                 -2 or smaller for less than default.
     url:            Final video URL.
     ext:            Video filename extension.
     format:         The video format, defaults to ext (used for --get-format)

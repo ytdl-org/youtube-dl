@@ -1007,13 +1007,15 @@ class YoutubeDL(object):
     def format_resolution(format, default='unknown'):
         if format.get('vcodec') == 'none':
             return 'audio only'
-        if format.get('_resolution') is not None:
-            return format['_resolution']
+        if format.get('resolution') is not None:
+            return format['resolution']
         if format.get('height') is not None:
             if format.get('width') is not None:
                 res = u'%sx%s' % (format['width'], format['height'])
             else:
                 res = u'%sp' % format['height']
+        elif format.get('width') is not None:
+            res = u'?x%d' % format['width']
         else:
             res = default
         return res
@@ -1025,11 +1027,11 @@ class YoutubeDL(object):
                 res += fdict['format_note'] + u' '
             if (fdict.get('vcodec') is not None and
                     fdict.get('vcodec') != 'none'):
-                res += u'%-5s' % fdict['vcodec']
-            elif fdict.get('vbr') is not None:
-                res += u'video'
+                res += u'%-5s@' % fdict['vcodec']
+            elif fdict.get('vbr') is not None and fdict.get('abr') is not None:
+                res += u'video@'
             if fdict.get('vbr') is not None:
-                res += u'@%4dk' % fdict['vbr']
+                res += u'%4dk' % fdict['vbr']
             if fdict.get('acodec') is not None:
                 if res:
                     res += u', '
@@ -1064,7 +1066,7 @@ class YoutubeDL(object):
 
         header_line = line({
             'format_id': u'format code', 'ext': u'extension',
-            '_resolution': u'resolution', 'format_note': u'note'}, idlen=idlen)
+            'resolution': u'resolution', 'format_note': u'note'}, idlen=idlen)
         self.to_screen(u'[info] Available formats for %s:\n%s\n%s' %
                        (info_dict['id'], header_line, u"\n".join(formats_s)))
 
