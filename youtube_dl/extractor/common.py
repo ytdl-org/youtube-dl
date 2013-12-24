@@ -9,6 +9,7 @@ import xml.etree.ElementTree
 from ..utils import (
     compat_http_client,
     compat_urllib_error,
+    compat_urllib_parse_urlparse,
     compat_str,
 
     clean_html,
@@ -62,6 +63,9 @@ class InfoExtractor(object):
                     * vcodec     Name of the video codec in use
                     * filesize   The number of bytes, if known in advance
                     * player_url SWF Player URL (used for rtmpdump).
+                    * protocol   The protocol that will be used for the actual
+                                 download, lower-case.
+                                 "http", "https", "rtsp", "rtmp" or so.
                     * preference Order number of this format. If this field is
                                  present, the formats get sorted by this field.
                                  -1 for default (order by other properties),
@@ -445,7 +449,11 @@ class InfoExtractor(object):
 
             preference = f.get('preference')
             if preference is None:
-                preference = 0 if f.get('url', '').startswith('http') else -0.1
+                proto = f.get('protocol')
+                if proto is None:
+                    proto = compat_urllib_parse_urlparse(f.get('url', '')).scheme
+
+                preference = 0 if proto in ['http', 'https'] else -0.1
                 if f.get('ext') in ['f4f', 'f4m']:  # Not yet supported
                     preference -= 0.5
 

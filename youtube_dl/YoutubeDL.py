@@ -1014,6 +1014,8 @@ class YoutubeDL(object):
     def list_formats(self, info_dict):
         def format_note(fdict):
             res = u''
+            if f.get('ext') in ['f4f', 'f4m']:
+                res += u'(unsupported) '
             if fdict.get('format_note') is not None:
                 res += fdict['format_note'] + u' '
             if (fdict.get('vcodec') is not None and
