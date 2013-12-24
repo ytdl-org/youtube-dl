@@ -150,151 +150,68 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                      (?(1).+)?                                                # if we found the ID, everything can follow
                      $"""
     _NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
-    # Listed in order of quality
-    _available_formats = ['38', '37', '46', '22', '45', '35', '44', '34', '18', '43', '6', '5', '36', '17', '13',
-                          # Apple HTTP Live Streaming
-                          '96', '95', '94', '93', '92', '132', '151',
-                          # 3D
-                          '85', '84', '102', '83', '101', '82', '100',
-                          # Dash video
-                          '138', '137', '248', '136', '247', '135', '246',
-                          '245', '244', '134', '243', '133', '242', '160',
-                          # Dash audio
-                          '141', '172', '140', '171', '139',
-                          ]
-    _video_extensions = {
-        '13': '3gp',
-        '17': '3gp',
-        '18': 'mp4',
-        '22': 'mp4',
-        '36': '3gp',
-        '37': 'mp4',
-        '38': 'mp4',
-        '43': 'webm',
-        '44': 'webm',
-        '45': 'webm',
-        '46': 'webm',
+    _formats = {
+        '5': {'ext': 'flv', 'width': 400, 'height': 240},
+        '6': {'ext': 'flv', 'width': 450, 'height': 270},
+        '13': {'ext': '3gp'},
+        '17': {'ext': '3gp', 'width': 176, 'height': 144},
+        '18': {'ext': 'mp4', 'width': 640, 'height': 360},
+        '22': {'ext': 'mp4', 'width': 1280, 'height': 720},
+        '34': {'ext': 'flv', 'width': 640, 'height': 360},
+        '35': {'ext': 'flv', 'width': 854, 'height': 480},
+        '36': {'ext': '3gp', 'width': 320, 'height': 240},
+        '37': {'ext': 'mp4', 'width': 1920, 'height': 1080},
+        '38': {'ext': 'mp4', 'width': 4096, 'height': 3072},
+        '43': {'ext': 'webm', 'width': 640, 'height': 360},
+        '44': {'ext': 'webm', 'width': 854, 'height': 480},
+        '45': {'ext': 'webm', 'width': 1280, 'height': 720},
+        '46': {'ext': 'webm', 'width': 1920, 'height': 1080},
+
 
         # 3d videos
-        '82': 'mp4',
-        '83': 'mp4',
-        '84': 'mp4',
-        '85': 'mp4',
-        '100': 'webm',
-        '101': 'webm',
-        '102': 'webm',
+        '82': {'ext': 'mp4', 'height': 360, 'resolution': '360p', 'format_note': '3D', 'preference': -20},
+        '83': {'ext': 'mp4', 'height': 480, 'resolution': '480p', 'format_note': '3D', 'preference': -20},
+        '84': {'ext': 'mp4', 'height': 720, 'resolution': '720p', 'format_note': '3D', 'preference': -20},
+        '85': {'ext': 'mp4', 'height': 1080, 'resolution': '1080p', 'format_note': '3D', 'preference': -20},
+        '100': {'ext': 'webm', 'height': 360, 'resolution': '360p', 'format_note': '3D', 'preference': -20},
+        '101': {'ext': 'webm', 'height': 480, 'resolution': '480p', 'format_note': '3D', 'preference': -20},
+        '102': {'ext': 'webm', 'height': 720, 'resolution': '720p', 'format_note': '3D', 'preference': -20},
 
         # Apple HTTP Live Streaming
-        '92': 'mp4',
-        '93': 'mp4',
-        '94': 'mp4',
-        '95': 'mp4',
-        '96': 'mp4',
-        '132': 'mp4',
-        '151': 'mp4',
+        '92': {'ext': 'mp4', 'height': 240, 'resolution': '240p', 'format_note': 'HLS', 'preference': -10},
+        '93': {'ext': 'mp4', 'height': 360, 'resolution': '360p', 'format_note': 'HLS', 'preference': -10},
+        '94': {'ext': 'mp4', 'height': 480, 'resolution': '480p', 'format_note': 'HLS', 'preference': -10},
+        '95': {'ext': 'mp4', 'height': 720, 'resolution': '720p', 'format_note': 'HLS', 'preference': -10},
+        '96': {'ext': 'mp4', 'height': 1080, 'resolution': '1080p', 'format_note': 'HLS', 'preference': -10},
+        '132': {'ext': 'mp4', 'height': 240, 'resolution': '240p', 'format_note': 'HLS', 'preference': -10},
+        '151': {'ext': 'mp4', 'height': 72, 'resolution': '72p', 'format_note': 'HLS', 'preference': -10},
 
-        # Dash mp4
-        '133': 'mp4',
-        '134': 'mp4',
-        '135': 'mp4',
-        '136': 'mp4',
-        '137': 'mp4',
-        '138': 'mp4',
-        '160': 'mp4',
+        # DASH mp4 video
+        '133': {'ext': 'mp4', 'height': 240, 'resolution': '240p', 'format_note': 'DASH video', 'preference': -40},
+        '134': {'ext': 'mp4', 'height': 360, 'resolution': '360p', 'format_note': 'DASH video', 'preference': -40},
+        '135': {'ext': 'mp4', 'height': 480, 'resolution': '480p', 'format_note': 'DASH video', 'preference': -40},
+        '136': {'ext': 'mp4', 'height': 720, 'resolution': '720p', 'format_note': 'DASH video', 'preference': -40},
+        '137': {'ext': 'mp4', 'height': 1080, 'resolution': '1080p', 'format_note': 'DASH video', 'preference': -40},
+        '138': {'ext': 'mp4', 'height': 1081, 'resolution': '>1080p', 'format_note': 'DASH video', 'preference': -40},
+        '160': {'ext': 'mp4', 'height': 192, 'resolution': '192p', 'format_note': 'DASH video', 'preference': -40},
 
         # Dash mp4 audio
-        '139': 'm4a',
-        '140': 'm4a',
-        '141': 'm4a',
+        '139': {'ext': 'm4a', 'format_note': 'DASH audio', 'vcodec': 'none', 'abr': 48, 'preference': -50},
+        '140': {'ext': 'm4a', 'format_note': 'DASH audio', 'vcodec': 'none', 'abr': 128, 'preference': -50},
+        '141': {'ext': 'm4a', 'format_note': 'DASH audio', 'vcodec': 'none', 'abr': 256, 'preference': -50},
 
         # Dash webm
-        '171': 'webm',
-        '172': 'webm',
-        '242': 'webm',
-        '243': 'webm',
-        '244': 'webm',
-        '245': 'webm',
-        '246': 'webm',
-        '247': 'webm',
-        '248': 'webm',
-    }
-    _video_dimensions = {
-        '5': {'width': 400, 'height': 240},
-        '6': {},
-        '13': {},
-        '17': {'width': 176, 'height': 144},
-        '18': {'width': 640, 'height': 360},
-        '22': {'width': 1280, 'height': 720},
-        '34': {'width': 640, 'height': 360},
-        '35': {'width': 854, 'height': 480},
-        '36': {'width': 320, 'height': 240},
-        '37': {'width': 1920, 'height': 1080},
-        '38': {'width': 4096, 'height': 3072},
-        '43': {'width': 640, 'height': 360},
-        '44': {'width': 854, 'height': 480},
-        '45': {'width': 1280, 'height': 720},
-        '46': {'width': 1920, 'height': 1080},
-        '82': {'height': 360, 'display': '360p'},
-        '83': {'height': 480, 'display': '480p'},
-        '84': {'height': 720, 'display': '720p'},
-        '85': {'height': 1080, 'display': '1080p'},
-        '92': {'height': 240, 'display': '240p'},
-        '93': {'height': 360, 'display': '360p'},
-        '94': {'height': 480, 'display': '480p'},
-        '95': {'height': 720, 'display': '720p'},
-        '96': {'height': 1080, 'display': '1080p'},
-        '100': {'height': 360, 'display': '360p'},
-        '101': {'height': 480, 'display': '480p'},
-        '102': {'height': 720, 'display': '720p'},
-        '132': {'height': 240, 'display': '240p'},
-        '151': {'height': 72, 'display': '72p'},
-        '133': {'height': 240, 'display': '240p'},
-        '134': {'height': 360, 'display': '360p'},
-        '135': {'height': 480, 'display': '480p'},
-        '136': {'height': 720, 'display': '720p'},
-        '137': {'height': 1080, 'display': '1080p'},
-        '138': {'height': 1081, 'display': '>1080p'},
-        '139': {'display': '48k'},
-        '140': {'display': '128k'},
-        '141': {'display': '256k'},
-        '160': {'height': 192, 'display': '192p'},
-        '171': {'display': '128k'},
-        '172': {'display': '256k'},
-        '242': {'height': 240, 'display': '240p'},
-        '243': {'height': 360, 'display': '360p'},
-        '244': {'height': 480, 'display': '480p'},
-        '245': {'height': 480, 'display': '480p'},
-        '246': {'height': 480, 'display': '480p'},
-        '247': {'height': 720, 'display': '720p'},
-        '248': {'height': 1080, 'display': '1080p'},
-    }
-    _special_itags = {
-        '82': '3D',
-        '83': '3D',
-        '84': '3D',
-        '85': '3D',
-        '100': '3D',
-        '101': '3D',
-        '102': '3D',
-        '133': 'DASH Video',
-        '134': 'DASH Video',
-        '135': 'DASH Video',
-        '136': 'DASH Video',
-        '137': 'DASH Video',
-        '138': 'DASH Video',
-        '139': 'DASH Audio',
-        '140': 'DASH Audio',
-        '141': 'DASH Audio',
-        '160': 'DASH Video',
-        '171': 'DASH Audio',
-        '172': 'DASH Audio',
-        '242': 'DASH Video',
-        '243': 'DASH Video',
-        '244': 'DASH Video',
-        '245': 'DASH Video',
-        '246': 'DASH Video',
-        '247': 'DASH Video',
-        '248': 'DASH Video',
+        '242': {'ext': 'webm', 'height': 240, 'resolution': '240p', 'format_note': 'DASH webm', 'preference': -40},
+        '243': {'ext': 'webm', 'height': 360, 'resolution': '360p', 'format_note': 'DASH webm', 'preference': -40},
+        '244': {'ext': 'webm', 'height': 480, 'resolution': '480p', 'format_note': 'DASH webm', 'preference': -40},
+        '245': {'ext': 'webm', 'height': 480, 'resolution': '480p', 'format_note': 'DASH webm', 'preference': -40},
+        '246': {'ext': 'webm', 'height': 480, 'resolution': '480p', 'format_note': 'DASH webm', 'preference': -40},
+        '247': {'ext': 'webm', 'height': 720, 'resolution': '720p', 'format_note': 'DASH webm', 'preference': -40},
+        '248': {'ext': 'webm', 'height': 1080, 'resolution': '1080p', 'format_note': 'DASH webm', 'preference': -40},
+
+        # Dash webm audio
+        '171': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH webm audio', 'abr': 48, 'preference': -50},
+        '172': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH webm audio', 'abr': 256, 'preference': -50},
     }
 
     IE_NAME = u'youtube'
@@ -1148,7 +1065,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         Transform a dictionary in the format {itag:url} to a list of (itag, url)
         with the requested formats.
         """
-        existing_formats = [x for x in self._available_formats if x in url_map]
+        existing_formats = [x for x in self._formats if x in url_map]
         if len(existing_formats) == 0:
             raise ExtractorError(u'no known formats available for video')
         video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
@@ -1410,28 +1327,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         formats = []
         for itag, video_real_url in video_url_list:
-            # Extension
-            video_extension = self._video_extensions.get(itag, 'flv')
-            resolution = self._video_dimensions.get(itag, {}).get('display')
-            width = self._video_dimensions.get(itag, {}).get('width')
-            height = self._video_dimensions.get(itag, {}).get('height')
-            note = self._special_itags.get(itag)
-
-            video_format = '{0} - {1}{2}'.format(itag if itag else video_extension,
-                                              '%dx%d' % (width, height) if width is not None and height is not None else (resolution if resolution is not None else '???'),
-                                              ' ('+self._special_itags[itag]+')' if itag in self._special_itags else '')
-
-            formats.append({
-                'url':         video_real_url,
-                'ext':         video_extension,
-                'format':      video_format,
-                'format_id':   itag,
-                'player_url':  player_url,
-                '_resolution': resolution,
-                'width':       width,
-                'height':      height,
-                'format_note': note,
-            })
+            dct = {
+                'format_id': itag,
+                'url': video_real_url,
+                'player_url': player_url,
+            }
+            dct.update(self._formats[itag])
+            formats.append(dct)
 
         self._sort_formats(formats)
 
