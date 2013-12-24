@@ -438,6 +438,11 @@ class InfoExtractor(object):
 
     def _sort_formats(self, formats):
         def _formats_key(f):
+            # TODO remove the following workaround
+            from ..utils import determine_ext
+            if not f.get('ext') and 'url' in f:
+                f['ext'] = determine_ext(f['url'])
+
             preference = f.get('preference')
             if preference is None:
                 preference = 0 if f.get('url', '').startswith('http') else -0.1
