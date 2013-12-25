@@ -3,7 +3,6 @@ import json
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_str,
     clean_html,
     get_element_by_id,
 )
