@@ -138,7 +138,7 @@ class SmotriIE(InfoExtractor):
         # Warning if video is unavailable
         warning = self._html_search_regex(
             r'<div class="videoUnModer">(.*?)</div>', video_page,
-            u'warning messagef', default=None)
+            u'warning message', default=None)
         if warning is not None:
             self._downloader.report_warning(
                 u'Video %s may not be available; smotri said: %s ' %
