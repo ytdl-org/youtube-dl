@@ -1,10 +1,10 @@
 # coding: utf-8
 
-import operator
 import re
 
 from .common import InfoExtractor
 from ..utils import (
+    int_or_none,
     unified_strdate,
 )
 
@@ -67,7 +67,7 @@ class ZDFIE(InfoExtractor):
             ''', format_id)
 
             ext = format_m.group('container')
-            proto = format_m.group('proto')
+            proto = format_m.group('proto').lower()
 
             quality = fnode.find('./quality').text
             abr = int(fnode.find('./audioBitrate').text) // 1000
@@ -85,11 +85,11 @@ class ZDFIE(InfoExtractor):
                 'vcodec': format_m.group('vcodec'),
                 'abr': abr,
                 'vbr': vbr,
-                'width': int(fnode.find('./width').text),
-                'height': int(fnode.find('./height').text),
-                'filesize': int(fnode.find('./filesize').text),
+                'width': int_or_none(fnode.find('./width').text),
+                'height': int_or_none(fnode.find('./height').text),
+                'filesize': int_or_none(fnode.find('./filesize').text),
                 'format_note': format_note,
-                'protocol': format_m.group('proto').lower(),
+                'protocol': proto,
                 '_available': is_available,
             }
 
