@@ -110,7 +110,8 @@ class AppleTrailersIE(InfoExtractor):
                     'width': format['width'],
                     'height': int(format['height']),
                 })
-            formats = sorted(formats, key=lambda f: (f['height'], f['width']))
+
+            self._sort_formats(formats)
 
             playlist.append({
                 '_type': 'video',
