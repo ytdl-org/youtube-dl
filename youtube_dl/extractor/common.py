@@ -57,6 +57,7 @@ class InfoExtractor(object):
                     * width      Width of the video, if known
                     * height     Height of the video, if known
                     * resolution Textual description of width and height
+                    * tbr        Average bitrate of audio and video in KBit/s
                     * abr        Average audio bitrate in KBit/s
                     * acodec     Name of the audio codec in use
                     * vbr        Average video bitrate in KBit/s

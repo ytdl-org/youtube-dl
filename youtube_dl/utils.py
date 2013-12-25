@@ -1098,3 +1098,7 @@ def url_basename(url):
 class HEADRequest(compat_urllib_request.Request):
     def get_method(self):
         return "HEAD"
+
+
+def int_or_none(v):
+    return v if v is None else int(v)

@@ -6,8 +6,8 @@ from .common import InfoExtractor, SearchInfoExtractor
 from ..utils import (
     compat_urllib_parse,
     compat_urlparse,
-    determine_ext,
     clean_html,
+    int_or_none,
 )
 
 
@@ -68,9 +68,9 @@ class YahooIE(InfoExtractor):
         formats = []
         for s in info['streams']:
             format_info = {
-                'width': s.get('width'),
-                'height': s.get('height'),
-                'bitrate': s.get('bitrate'),
+                'width': int_or_none(s.get('width')),
+                'height': int_or_none(s.get('height')),
+                'tbr': int_or_none(s.get('bitrate')),
             }
 
             host = s['host']
@@ -84,10 +84,10 @@ class YahooIE(InfoExtractor):
             else:
                 format_url = compat_urlparse.urljoin(host, path)
                 format_info['url'] = format_url
-                format_info['ext'] = determine_ext(format_url)
                 
             formats.append(format_info)
-        formats = sorted(formats, key=lambda f:(f['height'], f['width']))
+
+        self._sort_formats(formats)
 
         return {
             'id': video_id,

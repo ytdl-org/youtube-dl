@@ -1018,6 +1018,8 @@ class YoutubeDL(object):
                 res += u'(unsupported) '
             if fdict.get('format_note') is not None:
                 res += fdict['format_note'] + u' '
+            if fdict.get('tbr') is not None:
+                res += u'%4dk ' % fdict['tbr']
             if (fdict.get('vcodec') is not None and
                     fdict.get('vcodec') != 'none'):
                 res += u'%-5s@' % fdict['vcodec']
