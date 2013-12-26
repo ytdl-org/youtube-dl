@@ -44,6 +44,7 @@ __license__ = 'Public Domain'
 
 import codecs
 import getpass
+import locale
 import optparse
 import os
 import random
@@ -473,6 +474,8 @@ def parseOpts(overrideArguments=None):
             write_string(u'[debug] System config: ' + repr(_hide_login_info(systemConf)) + '\n')
             write_string(u'[debug] User config: ' + repr(_hide_login_info(userConf)) + '\n')
             write_string(u'[debug] Command-line args: ' + repr(_hide_login_info(commandLineConf)) + '\n')
+            write_string(u'[debug] Encodings: locale %r, fs %r, out %r, pref: %r\n' %
+                         (locale.getpreferredencoding(), sys.getfilesystemencoding(), sys.stdout.encoding, preferredencoding()))
 
     return parser, opts, args
 
