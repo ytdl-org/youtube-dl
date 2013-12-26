@@ -10,14 +10,14 @@ from ..utils import (
 
 
 class BandcampIE(InfoExtractor):
-    IE_NAME = u'Bandcamp'
     _VALID_URL = r'http://.*?\.bandcamp\.com/track/(?P<title>.*)'
     _TESTS = [{
         u'url': u'http://youtube-dl.bandcamp.com/track/youtube-dl-test-song',
         u'file': u'1812978515.mp3',
-        u'md5': u'cdeb30cdae1921719a3cbcab696ef53c',
+        u'md5': u'c557841d5e50261777a6585648adf439',
         u'info_dict': {
-            u"title": u"youtube-dl test song \"'/\\\u00e4\u21ad"
+            u"title": u"youtube-dl  \"'/\\\u00e4\u21ad - youtube-dl test song \"'/\\\u00e4\u21ad",
+            u"duration": 10,
         },
         u'skip': u'There is a limit of 200 free downloads / month for the test song'
     }]
@@ -30,29 +30,42 @@ class BandcampIE(InfoExtractor):
         m_download = re.search(r'freeDownloadPage: "(.*?)"', webpage)
         if m_download is None:
             m_trackinfo = re.search(r'trackinfo: (.+),\s*?\n', webpage)
-        if m_trackinfo:
-            json_code = m_trackinfo.group(1)
-            data = json.loads(json_code)
+            if m_trackinfo:
+                json_code = m_trackinfo.group(1)
+                data = json.loads(json_code)
+                d = data[0]
 
-            for d in data:
-                formats = [{
-                    'format_id': 'format_id',
-                    'url': format_url,
-                    'ext': format_id.partition('-')[0]
-                } for format_id, format_url in sorted(d['file'].items())]
+                duration = int(round(d['duration']))
+                formats = []
+                for format_id, format_url in d['file'].items():
+                    ext, _, abr_str = format_id.partition('-')
+
+                    formats.append({
+                        'format_id': format_id,
+                        'url': format_url,
+                        'ext': format_id.partition('-')[0],
+                        'vcodec': 'none',
+                        'acodec': format_id.partition('-')[0],
+                        'abr': int(format_id.partition('-')[2]),
+                    })
+
+                self._sort_formats(formats)
+
                 return {
                     'id': compat_str(d['id']),
                     'title': d['title'],
                     'formats': formats,
+                    'duration': duration,
                 }
-        else:
-            raise ExtractorError(u'No free songs found')
+            else:
+                raise ExtractorError(u'No free songs found')
 
         download_link = m_download.group(1)
-        id = re.search(r'var TralbumData = {(.*?)id: (?P<id>\d*?)$', 
-                       webpage, re.MULTILINE|re.DOTALL).group('id')
+        video_id = re.search(
+            r'var TralbumData = {(.*?)id: (?P<id>\d*?)$',
+            webpage, re.MULTILINE | re.DOTALL).group('id')
 
-        download_webpage = self._download_webpage(download_link, id,
+        download_webpage = self._download_webpage(download_link, video_id,
                                                   'Downloading free downloads page')
         # We get the dictionary of the track from some javascrip code
         info = re.search(r'items: (.*?),$',
@@ -66,21 +79,21 @@ class BandcampIE(InfoExtractor):
         m_url = re.match(re_url, initial_url)
         #We build the url we will use to get the final track url
         # This url is build in Bandcamp in the script download_bunde_*.js
-        request_url = '%s/statdownload/track?enc=mp3-320&fsig=%s&id=%s&ts=%s&.rand=665028774616&.vrs=1' % (m_url.group('server'), m_url.group('fsig'), id, m_url.group('ts'))
+        request_url = '%s/statdownload/track?enc=mp3-320&fsig=%s&id=%s&ts=%s&.rand=665028774616&.vrs=1' % (m_url.group('server'), m_url.group('fsig'), video_id, m_url.group('ts'))
         final_url_webpage = self._download_webpage(request_url, id, 'Requesting download url')
         # If we could correctly generate the .rand field the url would be
         #in the "download_url" key
         final_url = re.search(r'"retry_url":"(.*?)"', final_url_webpage).group(1)
 
-        track_info = {'id':id,
-                      'title' : info[u'title'],
-                      'ext' :   'mp3',
-                      'url' :   final_url,
-                      'thumbnail' : info[u'thumb_url'],
-                      'uploader' :  info[u'artist']
-                      }
-
-        return [track_info]
+        return {
+            'id': video_id,
+            'title': info[u'title'],
+            'ext': 'mp3',
+            'vcodec': 'none',
+            'url': final_url,
+            'thumbnail': info[u'thumb_url'],
+            'uploader': info[u'artist'],
+        }
 
 
 class BandcampAlbumIE(InfoExtractor):
@@ -117,7 +130,7 @@ class BandcampAlbumIE(InfoExtractor):
         webpage = self._download_webpage(url, title)
         tracks_paths = re.findall(r'<a href="(.*?)" itemprop="url">', webpage)
         if not tracks_paths:
-            raise ExtractorError(u'The page doesn\'t contain any track')
+            raise ExtractorError(u'The page doesn\'t contain any tracks')
         entries = [
             self.url_result(compat_urlparse.urljoin(url, t_path), ie=BandcampIE.ie_key())
             for t_path in tracks_paths]
