@@ -51,7 +51,8 @@ class InfoExtractor(object):
                                  Calculated from the format_id, width, height.
                                  and format_note fields if missing.
                     * format_id  A short description of the format
-                                 ("mp4_h264_opus" or "19")
+                                 ("mp4_h264_opus" or "19").
+                                Technically optional, but strongly recommended.
                     * format_note Additional info about the format
                                  ("3D" or "DASH video")
                     * width      Width of the video, if known
