@@ -1102,3 +1102,19 @@ class HEADRequest(compat_urllib_request.Request):
 
 def int_or_none(v):
     return v if v is None else int(v)
+
+
+def parse_duration(s):
+    if s is None:
+        return None
+
+    m = re.match(
+        r'(?:(?:(?P<hours>[0-9]+):)?(?P<mins>[0-9]+):)?(?P<secs>[0-9]+)$', s)
+    if not m:
+        return None
+    res = int(m.group('secs'))
+    if m.group('mins'):
+        res += int(m.group('mins')) * 60
+        if m.group('hours'):
+            res += int(m.group('hours')) * 60 * 60
+    return res

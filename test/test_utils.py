@@ -18,6 +18,7 @@ from youtube_dl.utils import (
     find_xpath_attr,
     get_meta_content,
     orderedSet,
+    parse_duration,
     sanitize_filename,
     shell_quote,
     smuggle_url,
@@ -191,6 +192,13 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(
             url_basename(u'http://media.w3.org/2010/05/sintel/trailer.mp4'),
             u'trailer.mp4')
+
+    def test_parse_duration(self):
+        self.assertEqual(parse_duration(None), None)
+        self.assertEqual(parse_duration('1'), 1)
+        self.assertEqual(parse_duration('1337:12'), 80232)
+        self.assertEqual(parse_duration('9:12:43'), 33163)
+        self.assertEqual(parse_duration('x:y'), None)
 
 if __name__ == '__main__':
     unittest.main()
