@@ -47,13 +47,10 @@ class GameSpotIE(InfoExtractor):
                 'format_id': q,
             })
 
-        info = {
+        return {
             'id': data_video['guid'],
             'title': compat_urllib_parse.unquote(data_video['title']),
             'formats': formats,
             'description': get_meta_content('description', webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
         }
-        # TODO: Remove when #980 has been merged
-        info.update(formats[-1])
-        return info

@@ -11,10 +11,14 @@ from ..utils import (
     compat_urlparse,
 
     ExtractorError,
+    HEADRequest,
     smuggle_url,
     unescapeHTML,
+    unified_strdate,
+    url_basename,
 )
 from .brightcove import BrightcoveIE
+from .ooyala import OoyalaIE
 
 
 class GenericIE(InfoExtractor):
@@ -71,6 +75,27 @@ class GenericIE(InfoExtractor):
                 u'skip_download': True,
             },
         },
+        # Direct link to a video
+        {
+            u'url': u'http://media.w3.org/2010/05/sintel/trailer.mp4',
+            u'file': u'trailer.mp4',
+            u'md5': u'67d406c2bcb6af27fa886f31aa934bbe',
+            u'info_dict': {
+                u'id': u'trailer',
+                u'title': u'trailer',
+                u'upload_date': u'20100513',
+            }
+        },
+        # ooyala video
+        {
+            u'url': u'http://www.rollingstone.com/music/videos/norwegian-dj-cashmere-cat-goes-spartan-on-with-me-premiere-20131219',
+            u'md5': u'5644c6ca5d5782c1d0d350dad9bd840c',
+            u'info_dict': {
+                u'id': u'BwY2RxaTrTkslxOfcan0UCf0YqyvWysJ',
+                u'ext': u'mp4',
+                u'title': u'2cc213299525360.mov', #that's what we get
+            },
+        },
     ]
 
     def report_download_webpage(self, video_id):
@@ -83,23 +108,20 @@ class GenericIE(InfoExtractor):
         """Report information extraction."""
         self._downloader.to_screen(u'[redirect] Following redirect to %s' % new_url)
 
-    def _test_redirect(self, url):
+    def _send_head(self, url):
         """Check if it is a redirect, like url shorteners, in case return the new url."""
-        class HeadRequest(compat_urllib_request.Request):
-            def get_method(self):
-                return "HEAD"
 
         class HEADRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
             """
             Subclass the HTTPRedirectHandler to make it use our
-            HeadRequest also on the redirected URL
+            HEADRequest also on the redirected URL
             """
             def redirect_request(self, req, fp, code, msg, headers, newurl):
                 if code in (301, 302, 303, 307):
                     newurl = newurl.replace(' ', '%20')
                     newheaders = dict((k,v) for k,v in req.headers.items()
                                       if k.lower() not in ("content-length", "content-type"))
-                    return HeadRequest(newurl,
+                    return HEADRequest(newurl,
                                        headers=newheaders,
                                        origin_req_host=req.get_origin_req_host(),
                                        unverifiable=True)
@@ -128,32 +150,49 @@ class GenericIE(InfoExtractor):
                         compat_urllib_request.HTTPErrorProcessor, compat_urllib_request.HTTPSHandler]:
             opener.add_handler(handler())
 
-        response = opener.open(HeadRequest(url))
+        response = opener.open(HEADRequest(url))
         if response is None:
             raise ExtractorError(u'Invalid URL protocol')
-        new_url = response.geturl()
-
-        if url == new_url:
-            return False
-
-        self.report_following_redirect(new_url)
-        return new_url
+        return response
 
     def _real_extract(self, url):
         parsed_url = compat_urlparse.urlparse(url)
         if not parsed_url.scheme:
             self._downloader.report_warning('The url doesn\'t specify the protocol, trying with http')
             return self.url_result('http://' + url)
+        video_id = os.path.splitext(url.split('/')[-1])[0]
 
         try:
-            new_url = self._test_redirect(url)
-            if new_url:
-                return [self.url_result(new_url)]
+            response = self._send_head(url)
+
+            # Check for redirect
+            new_url = response.geturl()
+            if url != new_url:
+                self.report_following_redirect(new_url)
+                return self.url_result(new_url)
+
+            # Check for direct link to a video
+            content_type = response.headers.get('Content-Type', '')
+            m = re.match(r'^(?P<type>audio|video|application(?=/ogg$))/(?P<format_id>.+)$', content_type)
+            if m:
+                upload_date = response.headers.get('Last-Modified')
+                if upload_date:
+                    upload_date = unified_strdate(upload_date)
+                return {
+                    'id': video_id,
+                    'title': os.path.splitext(url_basename(url))[0],
+                    'formats': [{
+                        'format_id': m.group('format_id'),
+                        'url': url,
+                        'vcodec': u'none' if m.group('type') == 'audio' else None
+                    }],
+                    'upload_date': upload_date,
+                }
+
         except compat_urllib_error.HTTPError:
             # This may be a stupid server that doesn't like HEAD, our UA, or so
             pass
 
-        video_id = url.split('/')[-1]
         try:
             webpage = self._download_webpage(url, video_id)
         except ValueError:
@@ -169,8 +208,13 @@ class GenericIE(InfoExtractor):
         #   Site Name | Video Title
         #   Video Title - Tagline | Site Name
         # and so on and so forth; it's just not practical
-        video_title = self._html_search_regex(r'<title>(.*)</title>',
-            webpage, u'video title', default=u'video', flags=re.DOTALL)
+        video_title = self._html_search_regex(
+            r'(?s)<title>(.*?)</title>', webpage, u'video title',
+            default=u'video')
+
+        # video uploader is domain name
+        video_uploader = self._search_regex(
+            r'^(?:https?://)?([^/]*)/.*', url, u'video uploader')
 
         # Look for BrightCove:
         bc_url = BrightcoveIE._extract_brightcove_url(webpage)
@@ -178,7 +222,7 @@ class GenericIE(InfoExtractor):
             self.to_screen(u'Brightcove video detected.')
             return self.url_result(bc_url, 'Brightcove')
 
-        # Look for embedded Vimeo player
+        # Look for embedded (iframe) Vimeo player
         mobj = re.search(
             r'<iframe[^>]+?src="(https?://player.vimeo.com/video/.+?)"', webpage)
         if mobj:
@@ -186,14 +230,57 @@ class GenericIE(InfoExtractor):
             surl = smuggle_url(player_url, {'Referer': url})
             return self.url_result(surl, 'Vimeo')
 
+        # Look for embedded (swf embed) Vimeo player
+        mobj = re.search(
+            r'<embed[^>]+?src="(https?://(?:www\.)?vimeo.com/moogaloop.swf.+?)"', webpage)
+        if mobj:
+            return self.url_result(mobj.group(1), 'Vimeo')
+
         # Look for embedded YouTube player
-        matches = re.findall(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?youtube.com/embed/.+?)\1', webpage)
+        matches = re.findall(r'''(?x)
+            (?:<iframe[^>]+?src=|embedSWF\(\s*)
+            (["\'])(?P<url>(?:https?:)?//(?:www\.)?youtube\.com/
+                (?:embed|v)/.+?)
+            \1''', webpage)
         if matches:
             urlrs = [self.url_result(unescapeHTML(tuppl[1]), 'Youtube')
                      for tuppl in matches]
             return self.playlist_result(
                 urlrs, playlist_id=video_id, playlist_title=video_title)
+
+        # Look for embedded Dailymotion player
+        matches = re.findall(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/embed/video/.+?)\1', webpage)
+        if matches:
+            urlrs = [self.url_result(unescapeHTML(tuppl[1]), 'Dailymotion')
+                     for tuppl in matches]
+            return self.playlist_result(
+                urlrs, playlist_id=video_id, playlist_title=video_title)
+
+        # Look for embedded Wistia player
+        match = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:fast\.)?wistia\.net/embed/iframe/.+?)\1', webpage)
+        if match:
+            return {
+                '_type': 'url_transparent',
+                'url': unescapeHTML(match.group('url')),
+                'ie_key': 'Wistia',
+                'uploader': video_uploader,
+                'title': video_title,
+                'id': video_id,
+            }
+
+        # Look for embedded blip.tv player
+        mobj = re.search(r'<meta\s[^>]*https?://api.blip.tv/\w+/redirect/\w+/(\d+)', webpage)
+        if mobj:
+            return self.url_result('http://blip.tv/seo/-'+mobj.group(1), 'BlipTV')
+        mobj = re.search(r'<(?:iframe|embed|object)\s[^>]*https?://(?:\w+\.)?blip.tv/(?:play/|api\.swf#)([a-zA-Z0-9]+)', webpage)
+        if mobj:
+            player_url = 'http://blip.tv/play/%s.x?p=1' % mobj.group(1)
+            player_page = self._download_webpage(player_url, mobj.group(1))
+            blip_video_id = self._search_regex(r'data-episode-id="(\d+)', player_page, u'blip_video_id', fatal=False)
+            if blip_video_id:
+                return self.url_result('http://blip.tv/seo/-'+blip_video_id, 'BlipTV')
 
         # Look for Bandcamp pages with custom domain
         mobj = re.search(r'<meta property="og:url"[^>]*?content="(.*?bandcamp\.com.*?)"', webpage)
@@ -202,6 +289,22 @@ class GenericIE(InfoExtractor):
             # Don't set the extractor because it can be a track url or an album
             return self.url_result(burl)
 
+        # Look for embedded Vevo player
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:cache\.)?vevo\.com/.+?)\1', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'))
+
+        # Look for Ooyala videos
+        mobj = re.search(r'player.ooyala.com/[^"?]+\?[^"]*?(?:embedCode|ec)=([^"&]+)', webpage)
+        if mobj is not None:
+            return OoyalaIE._build_url_result(mobj.group(1))
+
+        # Look for Aparat videos
+        mobj = re.search(r'<iframe src="(http://www.aparat.com/video/[^"]+)"', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group(1), 'Aparat')
+
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
         if mobj is None:
@@ -209,7 +312,7 @@ class GenericIE(InfoExtractor):
             mobj = re.search(r'[^A-Za-z0-9]?(?:file|source)=(http[^\'"&]*)', webpage)
         if mobj is None:
             # Broaden the search a little bit: JWPlayer JS loader
-            mobj = re.search(r'[^A-Za-z0-9]?file["\']?:\s*["\'](http[^\'"&]*)', webpage)
+            mobj = re.search(r'[^A-Za-z0-9]?file["\']?:\s*["\'](http[^\'"]*)', webpage)
         if mobj is None:
             # Try to find twitter cards info
             mobj = re.search(r'<meta (?:property|name)="twitter:player:stream" (?:content|value)="(.+?)"', webpage)
@@ -236,18 +339,11 @@ class GenericIE(InfoExtractor):
         video_id = compat_urllib_parse.unquote(os.path.basename(video_url))
 
         # here's a fun little line of code for you:
-        video_extension = os.path.splitext(video_id)[1][1:]
         video_id = os.path.splitext(video_id)[0]
 
-        # video uploader is domain name
-        video_uploader = self._search_regex(r'(?:https?://)?([^/]*)/.*',
-            url, u'video uploader')
-
-        return [{
+        return {
             'id':       video_id,
             'url':      video_url,
             'uploader': video_uploader,
-            'upload_date':  None,
             'title':    video_title,
-            'ext':      video_extension,
-        }]
+        }

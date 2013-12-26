@@ -86,7 +86,7 @@ def update_self(to_screen, verbose):
 
     def version_tuple(version_str):
         return tuple(map(int, version_str.split('.')))
-    if version_tuple(__version__) >= version_tuple(version_str):
+    if version_tuple(__version__) >= version_tuple(version_id):
         to_screen(u'youtube-dl is up to date (%s)' % __version__)
         return
 

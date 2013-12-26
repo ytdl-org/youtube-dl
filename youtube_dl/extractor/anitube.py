@@ -1,5 +1,4 @@
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 
@@ -28,9 +27,8 @@ class AnitubeIE(InfoExtractor):
         key = self._html_search_regex(r'http://www\.anitube\.se/embed/([A-Za-z0-9_-]*)',
                                       webpage, u'key')
 
-        webpage_config = self._download_webpage('http://www.anitube.se/nuevo/econfig.php?key=%s' % key,
+        config_xml = self._download_xml('http://www.anitube.se/nuevo/econfig.php?key=%s' % key,
                                                 key)
-        config_xml = xml.etree.ElementTree.fromstring(webpage_config.encode('utf-8'))
 
         video_title = config_xml.find('title').text
 

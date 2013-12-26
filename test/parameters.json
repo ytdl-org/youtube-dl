@@ -39,5 +39,6 @@
     "writeinfojson": true, 
     "writesubtitles": false,
     "allsubtitles": false,
-    "listssubtitles": false
+    "listssubtitles": false,
+    "socket_timeout": 20
 }

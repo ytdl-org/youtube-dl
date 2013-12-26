@@ -16,11 +16,20 @@ from ..utils import (
     unsmuggle_url,
 )
 
+
 class VimeoIE(InfoExtractor):
     """Information extractor for vimeo.com."""
 
     # _VALID_URL matches Vimeo URLs
-    _VALID_URL = r'(?P<proto>https?://)?(?:(?:www|(?P<player>player))\.)?vimeo(?P<pro>pro)?\.com/(?:(?:(?:groups|album)/[^/]+)|(?:.*?)/)?(?P<direct_link>play_redirect_hls\?clip_id=)?(?:videos?/)?(?P<id>[0-9]+)/?(?:[?].*)?(?:#.*)?$'
+    _VALID_URL = r'''(?x)
+        (?P<proto>https?://)?
+        (?:(?:www|(?P<player>player))\.)?
+        vimeo(?P<pro>pro)?\.com/
+        (?:.*?/)?
+        (?:(?:play_redirect_hls|moogaloop\.swf)\?clip_id=)?
+        (?:videos?/)?
+        (?P<id>[0-9]+)
+        /?(?:[?&].*)?(?:[#].*)?$'''
     _NETRC_MACHINE = 'vimeo'
     IE_NAME = u'vimeo'
     _TESTS = [
@@ -115,7 +124,7 @@ class VimeoIE(InfoExtractor):
     def _real_initialize(self):
         self._login()
 
-    def _real_extract(self, url, new_video=True):
+    def _real_extract(self, url):
         url, data = unsmuggle_url(url)
         headers = std_headers
         if data is not None:
@@ -151,8 +160,14 @@ class VimeoIE(InfoExtractor):
                 config = json.loads(config_json)
             except RegexNotFoundError:
                 # For pro videos or player.vimeo.com urls
-                config = self._search_regex([r' = {config:({.+?}),assets:', r'(?:c|b)=({.+?});'],
-                    webpage, u'info section', flags=re.DOTALL)
+                # We try to find out to which variable is assigned the config dic
+                m_variable_name = re.search('(\w)\.video\.id', webpage)
+                if m_variable_name is not None:
+                    config_re = r'%s=({.+?});' % re.escape(m_variable_name.group(1))
+                else:
+                    config_re = [r' = {config:({.+?}),assets:', r'(?:[abc])=({.+?});']
+                config = self._search_regex(config_re, webpage, u'info section',
+                    flags=re.DOTALL)
                 config = json.loads(config)
         except Exception as e:
             if re.search('The creator of this video has not given you permission to embed it on this domain.', webpage):
@@ -195,6 +210,16 @@ class VimeoIE(InfoExtractor):
         mobj = re.search(r'<meta itemprop="dateCreated" content="(\d{4})-(\d{2})-(\d{2})T', webpage)
         if mobj is not None:
             video_upload_date = mobj.group(1) + mobj.group(2) + mobj.group(3)
+
+        try:
+            view_count = int(self._search_regex(r'UserPlays:(\d+)', webpage, u'view count'))
+            like_count = int(self._search_regex(r'UserLikes:(\d+)', webpage, u'like count'))
+            comment_count = int(self._search_regex(r'UserComments:(\d+)', webpage, u'comment count'))
+        except RegexNotFoundError:
+            # This info is only available in vimeo.com/{id} urls
+            view_count = None
+            like_count = None
+            comment_count = None
 
         # Vimeo specific: extract request signature and timestamp
         sig = config['request']['signature']
@@ -242,6 +267,9 @@ class VimeoIE(InfoExtractor):
             'description':  video_description,
             'formats': formats,
             'webpage_url': url,
+            'view_count': view_count,
+            'like_count': like_count,
+            'comment_count': comment_count,
         }
 
 
@@ -249,25 +277,77 @@ class VimeoChannelIE(InfoExtractor):
     IE_NAME = u'vimeo:channel'
     _VALID_URL = r'(?:https?://)?vimeo.\com/channels/(?P<id>[^/]+)'
     _MORE_PAGES_INDICATOR = r'<a.+?rel="next"'
+    _TITLE_RE = r'<link rel="alternate"[^>]+?title="(.*?)"'
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        channel_id =  mobj.group('id')
+    def _page_url(self, base_url, pagenum):
+        return '%s/videos/page:%d/' % (base_url, pagenum)
+
+    def _extract_list_title(self, webpage):
+        return self._html_search_regex(self._TITLE_RE, webpage, u'list title')
+
+    def _extract_videos(self, list_id, base_url):
         video_ids = []
-
         for pagenum in itertools.count(1):
-            webpage = self._download_webpage('http://vimeo.com/channels/%s/videos/page:%d' % (channel_id, pagenum),
-                                             channel_id, u'Downloading page %s' % pagenum)
+            webpage = self._download_webpage(
+                self._page_url(base_url, pagenum) ,list_id,
+                u'Downloading page %s' % pagenum)
             video_ids.extend(re.findall(r'id="clip_(\d+?)"', webpage))
             if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
                 break
 
         entries = [self.url_result('http://vimeo.com/%s' % video_id, 'Vimeo')
                    for video_id in video_ids]
-        channel_title = self._html_search_regex(r'<a href="/channels/%s">(.*?)</a>' % channel_id,
-                                                webpage, u'channel title')
         return {'_type': 'playlist',
-                'id': channel_id,
-                'title': channel_title,
+                'id': list_id,
+                'title': self._extract_list_title(webpage),
                 'entries': entries,
                 }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        channel_id =  mobj.group('id')
+        return self._extract_videos(channel_id, 'http://vimeo.com/channels/%s' % channel_id)
+
+
+class VimeoUserIE(VimeoChannelIE):
+    IE_NAME = u'vimeo:user'
+    _VALID_URL = r'(?:https?://)?vimeo.\com/(?P<name>[^/]+)'
+    _TITLE_RE = r'<a[^>]+?class="user">([^<>]+?)</a>'
+
+    @classmethod
+    def suitable(cls, url):
+        if VimeoChannelIE.suitable(url) or VimeoIE.suitable(url) or VimeoAlbumIE.suitable(url) or VimeoGroupsIE.suitable(url):
+            return False
+        return super(VimeoUserIE, cls).suitable(url)
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        name = mobj.group('name')
+        return self._extract_videos(name, 'http://vimeo.com/%s' % name)
+
+
+class VimeoAlbumIE(VimeoChannelIE):
+    IE_NAME = u'vimeo:album'
+    _VALID_URL = r'(?:https?://)?vimeo.\com/album/(?P<id>\d+)'
+    _TITLE_RE = r'<header id="page_header">\n\s*<h1>(.*?)</h1>'
+
+    def _page_url(self, base_url, pagenum):
+        return '%s/page:%d/' % (base_url, pagenum)
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        album_id =  mobj.group('id')
+        return self._extract_videos(album_id, 'http://vimeo.com/album/%s' % album_id)
+
+
+class VimeoGroupsIE(VimeoAlbumIE):
+    IE_NAME = u'vimeo:group'
+    _VALID_URL = r'(?:https?://)?vimeo.\com/groups/(?P<name>[^/]+)'
+
+    def _extract_list_title(self, webpage):
+        return self._og_search_title(webpage)
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        name = mobj.group('name')
+        return self._extract_videos(name, 'http://vimeo.com/groups/%s' % name)

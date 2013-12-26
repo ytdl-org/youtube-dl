@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from test.helper import get_testcases
 
 from youtube_dl.extractor import (
+    FacebookIE,
     gen_extractors,
     JustinTVIE,
     YoutubeIE,
@@ -87,12 +88,15 @@ class TestAllURLsMatching(unittest.TestCase):
         assertExtractId('http://www.youtube.com/watch?v=BaW_jenozKcsharePLED17F32AD9753930', 'BaW_jenozKc')
         assertExtractId('BaW_jenozKc', 'BaW_jenozKc')
 
+    def test_facebook_matching(self):
+        self.assertTrue(FacebookIE.suitable(u'https://www.facebook.com/Shiniknoh#!/photo.php?v=10153317450565268'))
+
     def test_no_duplicates(self):
         ies = gen_extractors()
         for tc in get_testcases():
             url = tc['url']
             for ie in ies:
-                if type(ie).__name__ in ['GenericIE', tc['name'] + 'IE']:
+                if type(ie).__name__ in ('GenericIE', tc['name'] + 'IE'):
                     self.assertTrue(ie.suitable(url), '%s should match URL %r' % (type(ie).__name__, url))
                 else:
                     self.assertFalse(ie.suitable(url), '%s should not match URL %r' % (type(ie).__name__, url))
@@ -100,11 +104,19 @@ class TestAllURLsMatching(unittest.TestCase):
     def test_keywords(self):
         self.assertMatch(':ytsubs', ['youtube:subscriptions'])
         self.assertMatch(':ytsubscriptions', ['youtube:subscriptions'])
-        self.assertMatch(':thedailyshow', ['ComedyCentral'])
-        self.assertMatch(':tds', ['ComedyCentral'])
-        self.assertMatch(':colbertreport', ['ComedyCentral'])
-        self.assertMatch(':cr', ['ComedyCentral'])
+        self.assertMatch(':ythistory', ['youtube:history'])
+        self.assertMatch(':thedailyshow', ['ComedyCentralShows'])
+        self.assertMatch(':tds', ['ComedyCentralShows'])
+        self.assertMatch(':colbertreport', ['ComedyCentralShows'])
+        self.assertMatch(':cr', ['ComedyCentralShows'])
 
+    def test_vimeo_matching(self):
+        self.assertMatch('http://vimeo.com/channels/tributes', ['vimeo:channel'])
+        self.assertMatch('http://vimeo.com/user7108434', ['vimeo:user'])
+
+    # https://github.com/rg3/youtube-dl/issues/1930
+    def test_soundcloud_not_matching_sets(self):
+        self.assertMatch('http://soundcloud.com/floex/sets/gone-ep', ['soundcloud:set'])
 
 if __name__ == '__main__':
     unittest.main()

@@ -7,8 +7,7 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import get_params, global_setup
-global_setup()
+from test.helper import get_params
 
 
 import io
@@ -34,6 +33,7 @@ TEST_ID = 'BaW_jenozKc'
 INFO_JSON_FILE = TEST_ID + '.info.json'
 DESCRIPTION_FILE = TEST_ID + '.mp4.description'
 EXPECTED_DESCRIPTION = u'''test chars:  "'/\ä↭𝕐
+test URL: https://github.com/rg3/youtube-dl/issues/1892
 
 This is a test video for youtube-dl.
 

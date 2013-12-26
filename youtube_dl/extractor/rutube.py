@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class RutubeIE(InfoExtractor):
-    _VALID_URL = r'https?://rutube.ru/video/(?P<long_id>\w+)'
+    _VALID_URL = r'https?://rutube\.ru/video/(?P<long_id>\w+)'
 
     _TEST = {
         u'url': u'http://rutube.ru/video/3eac3b4561676c17df9132a9a1e62e3e/',

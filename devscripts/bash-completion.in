@@ -1,10 +1,21 @@
 __youtube_dl()
 {
-    local cur prev opts
+    local cur prev opts fileopts diropts keywords
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
     opts="{{flags}}"
-    keywords=":ytfavorites :ytrecommended :ytsubscriptions :ytwatchlater"
+    keywords=":ytfavorites :ytrecommended :ytsubscriptions :ytwatchlater :ythistory"
+    fileopts="-a|--batch-file|--download-archive|--cookies"
+    diropts="--cache-dir"
+
+    if [[ ${prev} =~ ${fileopts} ]]; then
+        COMPREPLY=( $(compgen -f -- ${cur}) )
+        return 0
+    elif [[ ${prev} =~ ${diropts} ]]; then
+        COMPREPLY=( $(compgen -d -- ${cur}) )
+        return 0
+    fi
 
     if [[ ${cur} =~ : ]]; then
         COMPREPLY=( $(compgen -W "${keywords}" -- ${cur}) )

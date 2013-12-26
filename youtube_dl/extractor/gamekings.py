@@ -4,7 +4,7 @@ from .common import InfoExtractor
 
 
 class GamekingsIE(InfoExtractor):
-    _VALID_URL = r'http?://www\.gamekings\.tv/videos/(?P<name>[0-9a-z\-]+)'
+    _VALID_URL = r'http://www\.gamekings\.tv/videos/(?P<name>[0-9a-z\-]+)'
     _TEST = {
         u"url": u"http://www.gamekings.tv/videos/phoenix-wright-ace-attorney-dual-destinies-review/",
         u'file': u'20130811.mp4',

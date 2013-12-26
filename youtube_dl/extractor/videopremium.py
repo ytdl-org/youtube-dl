@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class VideoPremiumIE(InfoExtractor):
-    _VALID_URL = r'(?:https?://)?(?:www\.)?videopremium\.tv/(?P<id>\w+)(?:/.*)?'
+    _VALID_URL = r'(?:https?://)?(?:www\.)?videopremium\.(?:tv|me)/(?P<id>\w+)(?:/.*)?'
     _TEST = {
         u'url': u'http://videopremium.tv/4w7oadjsf156',
         u'file': u'4w7oadjsf156.f4v',
@@ -15,6 +15,7 @@ class VideoPremiumIE(InfoExtractor):
         u'params': {
             u'skip_download': True,
         },
+        u'skip': u'Test file has been deleted.',
     }
 
     def _real_extract(self, url):

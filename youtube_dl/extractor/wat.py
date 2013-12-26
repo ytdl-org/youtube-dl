@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class WatIE(InfoExtractor):
-    _VALID_URL=r'http://www.wat.tv/.*-(?P<shortID>.*?)_.*?.html'
+    _VALID_URL=r'http://www\.wat\.tv/.*-(?P<shortID>.*?)_.*?\.html'
     IE_NAME = 'wat.tv'
     _TEST = {
         u'url': u'http://www.wat.tv/video/world-war-philadelphia-vost-6bv55_2fjr7_.html',

@@ -34,7 +34,6 @@ class BandcampIE(InfoExtractor):
             json_code = m_trackinfo.group(1)
             data = json.loads(json_code)
 
-            entries = []
             for d in data:
                 formats = [{
                     'format_id': 'format_id',

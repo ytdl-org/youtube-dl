@@ -30,13 +30,17 @@ which means you can modify it, redistribute it or use it however you like.
     --list-extractors          List all supported extractors and the URLs they
                                would handle
     --extractor-descriptions   Output descriptions of all supported extractors
-    --proxy URL                Use the specified HTTP/HTTPS proxy
+    --proxy URL                Use the specified HTTP/HTTPS proxy. Pass in an
+                               empty string (--proxy "") for direct connection
     --no-check-certificate     Suppress HTTPS certificate validation.
     --cache-dir DIR            Location in the filesystem where youtube-dl can
                                store downloaded information permanently. By
                                default $XDG_CACHE_HOME/youtube-dl or ~/.cache
                                /youtube-dl .
     --no-cache-dir             Disable filesystem caching
+    --bidi-workaround          Work around terminals that lack bidirectional
+                               text support. Requires bidiv or fribidi
+                               executable in PATH
 
 ## Video Selection:
     --playlist-start NUMBER    playlist video to start at (default is 1)
@@ -53,10 +57,15 @@ which means you can modify it, redistribute it or use it however you like.
     --date DATE                download only videos uploaded in this date
     --datebefore DATE          download only videos uploaded before this date
     --dateafter DATE           download only videos uploaded after this date
+    --min-views COUNT          Do not download any videos with less than COUNT
+                               views
+    --max-views COUNT          Do not download any videos with more than COUNT
+                               views
     --no-playlist              download only the currently playing video
     --age-limit YEARS          download only videos suitable for the given age
-    --download-archive FILE    Download only videos not present in the archive
-                               file. Record all downloaded videos in it.
+    --download-archive FILE    Download only videos not listed in the archive
+                               file. Record the IDs of all downloaded videos in
+                               it.
 
 ## Download Options:
     -r, --rate-limit LIMIT     maximum download rate in bytes per second (e.g.
@@ -96,6 +105,8 @@ which means you can modify it, redistribute it or use it however you like.
     --restrict-filenames       Restrict filenames to only ASCII characters, and
                                avoid "&" and spaces in filenames
     -a, --batch-file FILE      file containing URLs to download ('-' for stdin)
+    --load-info FILE           json file containing the video information
+                               (created with the "--write-json" option
     -w, --no-overwrites        do not overwrite files
     -c, --continue             force resume of partially downloaded files. By
                                default, youtube-dl will resume downloads if
@@ -121,6 +132,7 @@ which means you can modify it, redistribute it or use it however you like.
     --get-id                   simulate, quiet but print id
     --get-thumbnail            simulate, quiet but print thumbnail URL
     --get-description          simulate, quiet but print video description
+    --get-duration             simulate, quiet but print video length
     --get-filename             simulate, quiet but print output filename
     --get-format               simulate, quiet but print output format
     -j, --dump-json            simulate, quiet but print JSON information
@@ -130,11 +142,11 @@ which means you can modify it, redistribute it or use it however you like.
     -v, --verbose              print various debugging information
     --dump-intermediate-pages  print downloaded pages to debug problems(very
                                verbose)
-    --write-pages              Write downloaded pages to files in the current
-                               directory
+    --write-pages              Write downloaded intermediary pages to files in
+                               the current directory to debug problems
 
 ## Video Format Options:
-    -f, --format FORMAT        video format code, specifiy the order of
+    -f, --format FORMAT        video format code, specify the order of
                                preference using slashes: "-f 22/17/18". "-f mp4"
                                and "-f flv" are also supported
     --all-formats              download all available video formats
@@ -182,7 +194,7 @@ which means you can modify it, redistribute it or use it however you like.
 
 # CONFIGURATION
 
-You can configure youtube-dl by placing default arguments (such as `--extract-audio --no-mtime` to always extract the audio and not copy the mtime) into `/etc/youtube-dl.conf` and/or `~/.config/youtube-dl.conf`.
+You can configure youtube-dl by placing default arguments (such as `--extract-audio --no-mtime` to always extract the audio and not copy the mtime) into `/etc/youtube-dl.conf` and/or `~/.config/youtube-dl.conf`. On Windows, the configuration file locations are `%APPDATA%\youtube-dl\config.txt` and `C:\Users\<Yourname>\youtube-dl.conf`.
 
 # OUTPUT TEMPLATE
 
@@ -272,14 +284,54 @@ This README file was originally written by Daniel Bolton (<https://github.com/db
 
 # BUGS
 
-Bugs and suggestions should be reported at: <https://github.com/rg3/youtube-dl/issues>
+Bugs and suggestions should be reported at: <https://github.com/rg3/youtube-dl/issues> . Unless you were prompted so or there is another pertinent reason (e.g. GitHub fails to accept the bug report), please do not send bug reports via personal email.
 
-Please include:
-
-* Your exact command line, like `youtube-dl -t "http://www.youtube.com/watch?v=uHlDtZ6Oc3s&feature=channel_video_title"`. A common mistake is not to escape the `&`. Putting URLs in quotes should solve this problem.
-* If possible re-run the command with `--verbose`, and include the full output, it is really helpful to us.
-* The output of `youtube-dl --version`
-* The output of `python --version`
-* The name and version of your Operating System ("Ubuntu 11.04 x64" or "Windows 7 x64" is usually enough).
+Please include the full output of the command when run with `--verbose`. The output (including the first lines) contain important debugging information. Issues without the full output are often not reproducible and therefore do not get solved in short order, if ever.
 
 For discussions, join us in the irc channel #youtube-dl on freenode.
+
+When you submit a request, please re-read it once to avoid a couple of mistakes (you can and should use this as a checklist):
+
+### Is the description of the issue itself sufficient?
+
+We often get issue reports that we cannot really decipher. While in most cases we eventually get the required information after asking back multiple times, this poses an unnecessary drain on our resources. Many contributors, including myself, are also not native speakers, so we may misread some parts.
+
+So please elaborate on what feature you are requesting, or what bug you want to be fixed. Make sure that it's obvious
+
+- What the problem is
+- How it could be fixed
+- How your proposed solution would look like
+
+If your report is shorter than two lines, it is almost certainly missing some of these, which makes it hard for us to respond to it. We're often too polite to close the issue outright, but the missing info makes misinterpretation likely. As a commiter myself, I often get frustrated by these issues, since the only possible way for me to move forward on them is to ask for clarification over and over.
+
+For bug reports, this means that your report should contain the *complete* output of youtube-dl when called with the -v flag. The error message you get for (most) bugs even says so, but you would not believe how many of our bug reports do not contain this information.
+
+Site support requests must contain an example URL. An example URL is a URL you might want to download, like http://www.youtube.com/watch?v=BaW_jenozKc . There should be an obvious video present. Except under very special circumstances, the main page of a video service (e.g. http://www.youtube.com/ ) is *not* an example URL.
+
+###  Are you using the latest version?
+
+Before reporting any issue, type youtube-dl -U. This should report that you're up-to-date. Ábout 20% of the reports we receive are already fixed, but people are using outdated versions. This goes for feature requests as well.
+
+###  Is the issue already documented?
+
+Make sure that someone has not already opened the issue you're trying to open. Search at the top of the window or at https://github.com/rg3/youtube-dl/search?type=Issues . If there is an issue, feel free to write something along the lines of "This affects me as well, with version 2015.01.01. Here is some more information on the issue: ...". While some issues may be old, a new post into them often spurs rapid activity.
+
+###  Why are existing options not enough?
+
+Before requesting a new feature, please have a quick peek at [the list of supported options](https://github.com/rg3/youtube-dl/blob/master/README.md#synopsis). Many feature requests are for features that actually exist already! Please, absolutely do show off your work in the issue report and detail how the existing similar options do *not* solve your problem.
+
+###  Is there enough context in your bug report?
+
+People want to solve problems, and often think they do us a favor by breaking down their larger problems (e.g. wanting to skip already downloaded files) to a specific request (e.g. requesting us to look whether the file exists before downloading the info page). However, what often happens is that they break down the problem into two steps: One simple, and one impossible (or extremely complicated one).
+
+We are then presented with a very complicated request when the original problem could be solved far easier, e.g. by recording the downloaded video IDs in a separate file. To avoid this, you must include the greater context where it is non-obvious. In particular, every feature request that does not consist of adding support for a new site should contain a use case scenario that explains in what situation the missing feature would be useful.
+
+###  Does the issue involve one problem, and one problem only?
+
+Some of our users seem to think there is a limit of issues they can or should open. There is no limit of issues they can or should open. While it may seem appealing to be able to dump all your issues into one ticket, that means that someone who solves one of your issues cannot mark the issue as closed. Typically, reporting a bunch of issues leads to the ticket lingering since nobody wants to attack that behemoth, until someone mercifully splits the issue into multiple ones.
+
+In particular, every site support request issue should only pertain to services at one site (generally under a common domain, but always using the same backend technology). Do not request support for vimeo user videos, Whitehouse podcasts, and Google Plus pages in the same issue. Also, make sure that you don't post bug reports alongside feature requests. As a rule of thumb, a feature request does not include outputs of youtube-dl that are not immediately related to the feature at hand. Do not post reports of a network error alongside the request for a new video service.
+
+###  Is anyone going to need the feature?
+
+Only post features that you (or an incapicated friend you can personally talk to) require. Do not post features because they seem like a good idea. If they are really useful, they will be requested by someone who requires them.

@@ -1,7 +1,6 @@
 # encoding: utf-8
 import re
 import json
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -11,6 +10,7 @@ from ..utils import (
     determine_ext,
     get_element_by_id,
     compat_str,
+    get_element_by_attribute,
 )
 
 # There are different sources of video in arte.tv, the extraction process 
@@ -18,8 +18,8 @@ from ..utils import (
 # add tests.
 
 class ArteTvIE(InfoExtractor):
-    _VIDEOS_URL = r'(?:http://)?videos.arte.tv/(?P<lang>fr|de)/.*-(?P<id>.*?).html'
-    _LIVEWEB_URL = r'(?:http://)?liveweb.arte.tv/(?P<lang>fr|de)/(?P<subpage>.+?)/(?P<name>.+)'
+    _VIDEOS_URL = r'(?:http://)?videos\.arte\.tv/(?P<lang>fr|de)/.*-(?P<id>.*?)\.html'
+    _LIVEWEB_URL = r'(?:http://)?liveweb\.arte\.tv/(?P<lang>fr|de)/(?P<subpage>.+?)/(?P<name>.+)'
     _LIVE_URL = r'index-[0-9]+\.html$'
 
     IE_NAME = u'arte.tv'
@@ -78,8 +78,7 @@ class ArteTvIE(InfoExtractor):
         """Extract from videos.arte.tv"""
         ref_xml_url = url.replace('/videos/', '/do_delegate/videos/')
         ref_xml_url = ref_xml_url.replace('.html', ',view,asPlayerXml.xml')
-        ref_xml = self._download_webpage(ref_xml_url, video_id, note=u'Downloading metadata')
-        ref_xml_doc = xml.etree.ElementTree.fromstring(ref_xml)
+        ref_xml_doc = self._download_xml(ref_xml_url, video_id, note=u'Downloading metadata')
         config_node = find_xpath_attr(ref_xml_doc, './/video', 'lang', lang)
         config_xml_url = config_node.attrib['ref']
         config_xml = self._download_webpage(config_xml_url, video_id, note=u'Downloading configuration')
@@ -109,9 +108,8 @@ class ArteTvIE(InfoExtractor):
         """Extract form http://liveweb.arte.tv/"""
         webpage = self._download_webpage(url, name)
         video_id = self._search_regex(r'eventId=(\d+?)("|&)', webpage, u'event id')
-        config_xml = self._download_webpage('http://download.liveweb.arte.tv/o21/liveweb/events/event-%s.xml' % video_id,
+        config_doc = self._download_xml('http://download.liveweb.arte.tv/o21/liveweb/events/event-%s.xml' % video_id,
                                             video_id, u'Downloading information')
-        config_doc = xml.etree.ElementTree.fromstring(config_xml.encode('utf-8'))
         event_doc = config_doc.find('event')
         url_node = event_doc.find('video').find('urlHd')
         if url_node is None:
@@ -145,7 +143,9 @@ class ArteTVPlus7IE(InfoExtractor):
 
     def _extract_from_webpage(self, webpage, video_id, lang):
         json_url = self._html_search_regex(r'arte_vp_url="(.*?)"', webpage, 'json url')
+        return self._extract_from_json_url(json_url, video_id, lang)
 
+    def _extract_from_json_url(self, json_url, video_id, lang):
         json_info = self._download_webpage(json_url, video_id, 'Downloading info json')
         self.report_extraction(video_id)
         info = json.loads(json_info)
@@ -260,3 +260,21 @@ class ArteTVFutureIE(ArteTVPlus7IE):
         webpage = self._download_webpage(url, anchor_id)
         row = get_element_by_id(anchor_id, webpage)
         return self._extract_from_webpage(row, anchor_id, lang)
+
+
+class ArteTVDDCIE(ArteTVPlus7IE):
+    IE_NAME = u'arte.tv:ddc'
+    _VALID_URL = r'http?://ddc\.arte\.tv/(?P<lang>emission|folge)/(?P<id>.+)'
+
+    def _real_extract(self, url):
+        video_id, lang = self._extract_url_info(url)
+        if lang == 'folge':
+            lang = 'de'
+        elif lang == 'emission':
+            lang = 'fr'
+        webpage = self._download_webpage(url, video_id)
+        scriptElement = get_element_by_attribute('class', 'visu_video_block', webpage)
+        script_url = self._html_search_regex(r'src="(.*?)"', scriptElement, 'script url')
+        javascriptPlayerGenerator = self._download_webpage(script_url, video_id, 'Download javascript player generator')
+        json_url = self._search_regex(r"json_url=(.*)&rendering_place.*", javascriptPlayerGenerator, 'json url')
+        return self._extract_from_json_url(json_url, video_id, lang)

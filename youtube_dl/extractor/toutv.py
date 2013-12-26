@@ -1,6 +1,5 @@
 # coding: utf-8
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -40,11 +39,9 @@ class TouTvIE(InfoExtractor):
             r'"idMedia":\s*"([^"]+)"', webpage, u'media ID')
 
         streams_url = u'http://release.theplatform.com/content.select?pid=' + mediaId
-        streams_webpage = self._download_webpage(
+        streams_doc = self._download_xml(
             streams_url, video_id, note=u'Downloading stream list')
 
-        streams_doc = xml.etree.ElementTree.fromstring(
-            streams_webpage.encode('utf-8'))
         video_url = next(n.text
                          for n in streams_doc.findall('.//choice/url')
                          if u'//ad.doubleclick' not in n.text)

@@ -1,13 +1,10 @@
 import json
 import re
-import socket
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_http_client,
-    compat_urllib_error,
-    compat_urllib_request,
     unified_strdate,
+    ExtractorError,
 )
 
 
@@ -31,12 +28,17 @@ class MixcloudIE(InfoExtractor):
         """Returns 1st active url from list"""
         for url in url_list:
             try:
-                compat_urllib_request.urlopen(url)
+                # We only want to know if the request succeed
+                # don't download the whole file
+                self._request_webpage(url, None, False)
                 return url
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error):
+            except ExtractorError:
                 url = None
 
         return None
+
+    def _get_url(self, template_url):
+        return self.check_urls(template_url % i for i in range(30))
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -53,14 +55,19 @@ class MixcloudIE(InfoExtractor):
         preview_url = self._search_regex(r'data-preview-url="(.+?)"', webpage, u'preview url')
         song_url = preview_url.replace('/previews/', '/cloudcasts/originals/')
         template_url = re.sub(r'(stream\d*)', 'stream%d', song_url)
-        final_song_url = self.check_urls(template_url % i for i in range(30))
+        final_song_url = self._get_url(template_url)
+        if final_song_url is None:
+            self.to_screen('Trying with m4a extension')
+            template_url = template_url.replace('.mp3', '.m4a').replace('originals/', 'm4a/64/')
+            final_song_url = self._get_url(template_url)
+        if final_song_url is None:
+            raise ExtractorError(u'Unable to extract track url')
 
         return {
             'id': track_id,
             'title': info['name'],
             'url': final_song_url,
-            'ext': 'mp3',
-            'description': info['description'],
+            'description': info.get('description'),
             'thumbnail': info['pictures'].get('extra_large'),
             'uploader': info['user']['name'],
             'uploader_id': info['user']['username'],

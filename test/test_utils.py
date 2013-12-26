@@ -13,19 +13,22 @@ import xml.etree.ElementTree
 
 #from youtube_dl.utils import htmlentity_transform
 from youtube_dl.utils import (
-    timeconvert,
-    sanitize_filename,
-    unescapeHTML,
-    orderedSet,
     DateRange,
-    unified_strdate,
+    encodeFilename,
     find_xpath_attr,
     get_meta_content,
-    xpath_with_ns,
-    smuggle_url,
-    unsmuggle_url,
+    orderedSet,
+    parse_duration,
+    sanitize_filename,
     shell_quote,
-    encodeFilename,
+    smuggle_url,
+    str_to_int,
+    timeconvert,
+    unescapeHTML,
+    unified_strdate,
+    unsmuggle_url,
+    url_basename,
+    xpath_with_ns,
 )
 
 if sys.version_info < (3, 0):
@@ -176,6 +179,26 @@ class TestUtil(unittest.TestCase):
         args = ['ffmpeg', '-i', encodeFilename(u'ñ€ß\'.mp4')]
         self.assertEqual(shell_quote(args), u"""ffmpeg -i 'ñ€ß'"'"'.mp4'""")
 
+    def test_str_to_int(self):
+        self.assertEqual(str_to_int('123,456'), 123456)
+        self.assertEqual(str_to_int('123.456'), 123456)
+
+    def test_url_basename(self):
+        self.assertEqual(url_basename(u'http://foo.de/'), u'')
+        self.assertEqual(url_basename(u'http://foo.de/bar/baz'), u'baz')
+        self.assertEqual(url_basename(u'http://foo.de/bar/baz?x=y'), u'baz')
+        self.assertEqual(url_basename(u'http://foo.de/bar/baz#x=y'), u'baz')
+        self.assertEqual(url_basename(u'http://foo.de/bar/baz/'), u'baz')
+        self.assertEqual(
+            url_basename(u'http://media.w3.org/2010/05/sintel/trailer.mp4'),
+            u'trailer.mp4')
+
+    def test_parse_duration(self):
+        self.assertEqual(parse_duration(None), None)
+        self.assertEqual(parse_duration('1'), 1)
+        self.assertEqual(parse_duration('1337:12'), 80232)
+        self.assertEqual(parse_duration('9:12:43'), 33163)
+        self.assertEqual(parse_duration('x:y'), None)
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,6 +1,5 @@
 import datetime
 import json
-import os
 import re
 import socket
 
@@ -21,7 +20,7 @@ from ..utils import (
 class BlipTVIE(InfoExtractor):
     """Information extractor for blip.tv"""
 
-    _VALID_URL = r'^(?:https?://)?(?:\w+\.)?blip\.tv/((.+/)|(play/)|(api\.swf#))(.+)$'
+    _VALID_URL = r'^(?:https?://)?(?:www\.)?blip\.tv/((.+/)|(play/)|(api\.swf#))(.+)$'
     _URL_EXT = r'^.*\.([a-z0-9]+)$'
     IE_NAME = u'blip.tv'
     _TEST = {
@@ -51,14 +50,12 @@ class BlipTVIE(InfoExtractor):
             url = 'http://blip.tv/play/g_%s' % api_mobj.group('video_id')
         urlp = compat_urllib_parse_urlparse(url)
         if urlp.path.startswith('/play/'):
-            request = compat_urllib_request.Request(url)
-            response = compat_urllib_request.urlopen(request)
+            response = self._request_webpage(url, None, False)
             redirecturl = response.geturl()
             rurlp = compat_urllib_parse_urlparse(redirecturl)
             file_id = compat_parse_qs(rurlp.fragment)['file'][0].rpartition('/')[2]
             url = 'http://blip.tv/a/a-' + file_id
             return self._real_extract(url)
-
 
         if '?' in url:
             cchar = '&'
@@ -68,69 +65,49 @@ class BlipTVIE(InfoExtractor):
         request = compat_urllib_request.Request(json_url)
         request.add_header('User-Agent', 'iTunes/10.6.1')
         self.report_extraction(mobj.group(1))
-        info = None
+        urlh = self._request_webpage(request, None, False,
+            u'unable to download video info webpage')
+
         try:
-            urlh = compat_urllib_request.urlopen(request)
-            if urlh.headers.get('Content-Type', '').startswith('video/'): # Direct download
-                basename = url.split('/')[-1]
-                title,ext = os.path.splitext(basename)
-                title = title.decode('UTF-8')
-                ext = ext.replace('.', '')
-                self.report_direct_download(title)
-                info = {
-                    'id': title,
-                    'url': url,
-                    'uploader': None,
-                    'upload_date': None,
-                    'title': title,
-                    'ext': ext,
-                    'urlhandle': urlh
-                }
+            json_code_bytes = urlh.read()
+            json_code = json_code_bytes.decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'ERROR: unable to download video info webpage: %s' % compat_str(err))
-        if info is None: # Regular URL
-            try:
-                json_code_bytes = urlh.read()
-                json_code = json_code_bytes.decode('utf-8')
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                raise ExtractorError(u'Unable to read video info webpage: %s' % compat_str(err))
+            raise ExtractorError(u'Unable to read video info webpage: %s' % compat_str(err))
 
-            try:
-                json_data = json.loads(json_code)
-                if 'Post' in json_data:
-                    data = json_data['Post']
-                else:
-                    data = json_data
+        try:
+            json_data = json.loads(json_code)
+            if 'Post' in json_data:
+                data = json_data['Post']
+            else:
+                data = json_data
 
-                upload_date = datetime.datetime.strptime(data['datestamp'], '%m-%d-%y %H:%M%p').strftime('%Y%m%d')
-                if 'additionalMedia' in data:
-                    formats = sorted(data['additionalMedia'], key=lambda f: int(f['media_height']))
-                    best_format = formats[-1]
-                    video_url = best_format['url']
-                else:
-                    video_url = data['media']['url']
-                umobj = re.match(self._URL_EXT, video_url)
-                if umobj is None:
-                    raise ValueError('Can not determine filename extension')
-                ext = umobj.group(1)
+            upload_date = datetime.datetime.strptime(data['datestamp'], '%m-%d-%y %H:%M%p').strftime('%Y%m%d')
+            if 'additionalMedia' in data:
+                formats = sorted(data['additionalMedia'], key=lambda f: int(f['media_height']))
+                best_format = formats[-1]
+                video_url = best_format['url']
+            else:
+                video_url = data['media']['url']
+            umobj = re.match(self._URL_EXT, video_url)
+            if umobj is None:
+                raise ValueError('Can not determine filename extension')
+            ext = umobj.group(1)
 
-                info = {
-                    'id': compat_str(data['item_id']),
-                    'url': video_url,
-                    'uploader': data['display_name'],
-                    'upload_date': upload_date,
-                    'title': data['title'],
-                    'ext': ext,
-                    'format': data['media']['mimeType'],
-                    'thumbnail': data['thumbnailUrl'],
-                    'description': data['description'],
-                    'player_url': data['embedUrl'],
-                    'user_agent': 'iTunes/10.6.1',
-                }
-            except (ValueError,KeyError) as err:
-                raise ExtractorError(u'Unable to parse video information: %s' % repr(err))
-
-        return [info]
+            return {
+                'id': compat_str(data['item_id']),
+                'url': video_url,
+                'uploader': data['display_name'],
+                'upload_date': upload_date,
+                'title': data['title'],
+                'ext': ext,
+                'format': data['media']['mimeType'],
+                'thumbnail': data['thumbnailUrl'],
+                'description': data['description'],
+                'player_url': data['embedUrl'],
+                'user_agent': 'iTunes/10.6.1',
+            }
+        except (ValueError, KeyError) as err:
+            raise ExtractorError(u'Unable to parse video information: %s' % repr(err))
 
 
 class BlipTVUserIE(InfoExtractor):

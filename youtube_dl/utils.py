@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import ctypes
 import datetime
 import email.utils
 import errno
@@ -8,11 +9,14 @@ import gzip
 import io
 import json
 import locale
+import math
 import os
 import pipes
 import platform
 import re
+import ssl
 import socket
+import subprocess
 import sys
 import traceback
 import zlib
@@ -535,18 +539,38 @@ def formatSeconds(secs):
     else:
         return '%d' % secs
 
-def make_HTTPS_handler(opts):
-    if sys.version_info < (3,2):
-        # Python's 2.x handler is very simplistic
-        return compat_urllib_request.HTTPSHandler()
+def make_HTTPS_handler(opts_no_check_certificate):
+    if sys.version_info < (3, 2):
+        import httplib
+
+        class HTTPSConnectionV3(httplib.HTTPSConnection):
+            def __init__(self, *args, **kwargs):
+                httplib.HTTPSConnection.__init__(self, *args, **kwargs)
+
+            def connect(self):
+                sock = socket.create_connection((self.host, self.port), self.timeout)
+                if getattr(self, '_tunnel_host', False):
+                    self.sock = sock
+                    self._tunnel()
+                try:
+                    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv3)
+                except ssl.SSLError:
+                    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv23)
+
+        class HTTPSHandlerV3(compat_urllib_request.HTTPSHandler):
+            def https_open(self, req):
+                return self.do_open(HTTPSConnectionV3, req)
+        return HTTPSHandlerV3()
     else:
-        import ssl
-        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-        context.set_default_verify_paths()
-        
+        context = ssl.SSLContext(ssl.PROTOCOL_SSLv3)
         context.verify_mode = (ssl.CERT_NONE
-                               if opts.no_check_certificate
+                               if opts_no_check_certificate
                                else ssl.CERT_REQUIRED)
+        context.set_default_verify_paths()
+        try:
+            context.load_default_certs()
+        except AttributeError:
+            pass  # Python < 3.4
         return compat_urllib_request.HTTPSHandler(context=context)
 
 class ExtractorError(Exception):
@@ -743,6 +767,10 @@ def unified_strdate(date_str):
             upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')
         except:
             pass
+    if upload_date is None:
+        timetuple = email.utils.parsedate_tz(date_str)
+        if timetuple:
+            upload_date = datetime.datetime(*timetuple[:6]).strftime('%Y%m%d')
     return upload_date
 
 def determine_ext(url, default_ext=u'unknown_video'):
@@ -987,3 +1015,106 @@ def unsmuggle_url(smug_url):
     jsond = compat_parse_qs(sdata)[u'__youtubedl_smuggle'][0]
     data = json.loads(jsond)
     return url, data
+
+
+def format_bytes(bytes):
+    if bytes is None:
+        return u'N/A'
+    if type(bytes) is str:
+        bytes = float(bytes)
+    if bytes == 0.0:
+        exponent = 0
+    else:
+        exponent = int(math.log(bytes, 1024.0))
+    suffix = [u'B', u'KiB', u'MiB', u'GiB', u'TiB', u'PiB', u'EiB', u'ZiB', u'YiB'][exponent]
+    converted = float(bytes) / float(1024 ** exponent)
+    return u'%.2f%s' % (converted, suffix)
+
+
+def str_to_int(int_str):
+    int_str = re.sub(r'[,\.]', u'', int_str)
+    return int(int_str)
+
+
+def get_term_width():
+    columns = os.environ.get('COLUMNS', None)
+    if columns:
+        return int(columns)
+
+    try:
+        sp = subprocess.Popen(
+            ['stty', 'size'],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = sp.communicate()
+        return int(out.split()[1])
+    except:
+        pass
+    return None
+
+
+def month_by_name(name):
+    """ Return the number of a month by (locale-independently) English name """
+
+    ENGLISH_NAMES = [
+        u'January', u'February', u'March', u'April', u'May', u'June',
+        u'July', u'August', u'September', u'October', u'November', u'December']
+    try:
+        return ENGLISH_NAMES.index(name) + 1
+    except ValueError:
+        return None
+
+
+def fix_xml_all_ampersand(xml_str):
+    """Replace all the '&' by '&amp;' in XML"""
+    return xml_str.replace(u'&', u'&amp;')
+
+
+def setproctitle(title):
+    assert isinstance(title, type(u''))
+    try:
+        libc = ctypes.cdll.LoadLibrary("libc.so.6")
+    except OSError:
+        return
+    title = title
+    buf = ctypes.create_string_buffer(len(title) + 1)
+    buf.value = title.encode('utf-8')
+    try:
+        libc.prctl(15, ctypes.byref(buf), 0, 0, 0)
+    except AttributeError:
+        return  # Strange libc, just skip this
+
+
+def remove_start(s, start):
+    if s.startswith(start):
+        return s[len(start):]
+    return s
+
+
+def url_basename(url):
+    path = compat_urlparse.urlparse(url).path
+    return path.strip(u'/').split(u'/')[-1]
+
+
+class HEADRequest(compat_urllib_request.Request):
+    def get_method(self):
+        return "HEAD"
+
+
+def int_or_none(v):
+    return v if v is None else int(v)
+
+
+def parse_duration(s):
+    if s is None:
+        return None
+
+    m = re.match(
+        r'(?:(?:(?P<hours>[0-9]+):)?(?P<mins>[0-9]+):)?(?P<secs>[0-9]+)$', s)
+    if not m:
+        return None
+    res = int(m.group('secs'))
+    if m.group('mins'):
+        res += int(m.group('mins')) * 60
+        if m.group('hours'):
+            res += int(m.group('hours')) * 60 * 60
+    return res

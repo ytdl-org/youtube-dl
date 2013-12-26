@@ -10,35 +10,8 @@ from ..utils import (
 def _media_xml_tag(tag):
     return '{http://search.yahoo.com/mrss/}%s' % tag
 
-class MTVIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:www\.)?mtv\.com/videos/.+?/(?P<videoid>[0-9]+)/[^/]+$'
 
-    _FEED_URL = 'http://www.mtv.com/player/embed/AS3/rss/'
-
-    _TESTS = [
-        {
-            u'url': u'http://www.mtv.com/videos/misc/853555/ours-vh1-storytellers.jhtml',
-            u'file': u'853555.mp4',
-            u'md5': u'850f3f143316b1e71fa56a4edfd6e0f8',
-            u'info_dict': {
-                u'title': u'Taylor Swift - "Ours (VH1 Storytellers)"',
-                u'description': u'Album: Taylor Swift performs "Ours" for VH1 Storytellers at Harvey Mudd College.',
-            },
-        },
-        {
-            u'add_ie': ['Vevo'],
-            u'url': u'http://www.mtv.com/videos/taylor-swift/916187/everything-has-changed-ft-ed-sheeran.jhtml',
-            u'file': u'USCJY1331283.mp4',
-            u'md5': u'73b4e7fcadd88929292fe52c3ced8caf',
-            u'info_dict': {
-                u'title': u'Everything Has Changed',
-                u'upload_date': u'20130606',
-                u'uploader': u'Taylor Swift',
-            },
-            u'skip': u'VEVO is only available in some countries',
-        },
-    ]
-
+class MTVServicesInfoExtractor(InfoExtractor):
     @staticmethod
     def _id_from_uri(uri):
         return uri.split(':')[-1]
@@ -53,7 +26,12 @@ class MTVIE(InfoExtractor):
         return base + m.group('finalid')
 
     def _get_thumbnail_url(self, uri, itemdoc):
-        return 'http://mtv.mtvnimages.com/uri/' + uri
+        search_path = '%s/%s' % (_media_xml_tag('group'), _media_xml_tag('thumbnail'))
+        thumb_node = itemdoc.find(search_path)
+        if thumb_node is None:
+            return None
+        else:
+            return thumb_node.attrib['url']
 
     def _extract_video_formats(self, metadataXml):
         if '/error_country_block.swf' in metadataXml:
@@ -93,7 +71,7 @@ class MTVIE(InfoExtractor):
         else:
             description = None
 
-        info = {
+        return {
             'title': itemdoc.find('title').text,
             'formats': self._extract_video_formats(mediagen_page),
             'id': video_id,
@@ -101,32 +79,67 @@ class MTVIE(InfoExtractor):
             'description': description,
         }
 
-        # TODO: Remove when #980 has been merged
-        info.update(info['formats'][-1])
-
-        return info
-
     def _get_videos_info(self, uri):
         video_id = self._id_from_uri(uri)
         data = compat_urllib_parse.urlencode({'uri': uri})
-        infoXml = self._download_webpage(self._FEED_URL +'?' + data, video_id,
-                                         u'Downloading info')
-        idoc = xml.etree.ElementTree.fromstring(infoXml.encode('utf-8'))
+
+        def fix_ampersand(s):
+            """ Fix unencoded ampersand in XML """
+            return s.replace(u'& ', '&amp; ')
+        idoc = self._download_xml(
+            self._FEED_URL + '?' + data, video_id,
+            u'Downloading info', transform_source=fix_ampersand)
         return [self._get_video_info(item) for item in idoc.findall('.//item')]
+
+
+class MTVIE(MTVServicesInfoExtractor):
+    _VALID_URL = r'''(?x)^https?://
+        (?:(?:www\.)?mtv\.com/videos/.+?/(?P<videoid>[0-9]+)/[^/]+$|
+           m\.mtv\.com/videos/video\.rbml\?.*?id=(?P<mgid>[^&]+))'''
+
+    _FEED_URL = 'http://www.mtv.com/player/embed/AS3/rss/'
+
+    _TESTS = [
+        {
+            u'url': u'http://www.mtv.com/videos/misc/853555/ours-vh1-storytellers.jhtml',
+            u'file': u'853555.mp4',
+            u'md5': u'850f3f143316b1e71fa56a4edfd6e0f8',
+            u'info_dict': {
+                u'title': u'Taylor Swift - "Ours (VH1 Storytellers)"',
+                u'description': u'Album: Taylor Swift performs "Ours" for VH1 Storytellers at Harvey Mudd College.',
+            },
+        },
+        {
+            u'add_ie': ['Vevo'],
+            u'url': u'http://www.mtv.com/videos/taylor-swift/916187/everything-has-changed-ft-ed-sheeran.jhtml',
+            u'file': u'USCJY1331283.mp4',
+            u'md5': u'73b4e7fcadd88929292fe52c3ced8caf',
+            u'info_dict': {
+                u'title': u'Everything Has Changed',
+                u'upload_date': u'20130606',
+                u'uploader': u'Taylor Swift',
+            },
+            u'skip': u'VEVO is only available in some countries',
+        },
+    ]
+
+    def _get_thumbnail_url(self, uri, itemdoc):
+        return 'http://mtv.mtvnimages.com/uri/' + uri
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('videoid')
-
-        webpage = self._download_webpage(url, video_id)
-
-        # Some videos come from Vevo.com
-        m_vevo = re.search(r'isVevoVideo = true;.*?vevoVideoId = "(.*?)";',
-                           webpage, re.DOTALL)
-        if m_vevo:
-            vevo_id = m_vevo.group(1);
-            self.to_screen(u'Vevo video detected: %s' % vevo_id)
-            return self.url_result('vevo:%s' % vevo_id, ie='Vevo')
-
-        uri = self._html_search_regex(r'/uri/(.*?)\?', webpage, u'uri')
+        uri = mobj.group('mgid')
+        if uri is None:
+            webpage = self._download_webpage(url, video_id)
+    
+            # Some videos come from Vevo.com
+            m_vevo = re.search(r'isVevoVideo = true;.*?vevoVideoId = "(.*?)";',
+                               webpage, re.DOTALL)
+            if m_vevo:
+                vevo_id = m_vevo.group(1);
+                self.to_screen(u'Vevo video detected: %s' % vevo_id)
+                return self.url_result('vevo:%s' % vevo_id, ie='Vevo')
+    
+            uri = self._html_search_regex(r'/uri/(.*?)\?', webpage, u'uri')
         return self._get_videos_info(uri)

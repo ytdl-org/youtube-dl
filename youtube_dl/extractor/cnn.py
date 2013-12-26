@@ -1,8 +1,10 @@
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
-from ..utils import determine_ext
+from ..utils import (
+    int_or_none,
+    parse_duration,
+)
 
 
 class CNNIE(InfoExtractor):
@@ -16,6 +18,8 @@ class CNNIE(InfoExtractor):
         u'info_dict': {
             u'title': u'Nadal wins 8th French Open title',
             u'description': u'World Sport\'s Amanda Davies chats with 2013 French Open champion Rafael Nadal.',
+            u'duration': 135,
+            u'upload_date': u'20130609',
         },
     },
     {
@@ -33,26 +37,61 @@ class CNNIE(InfoExtractor):
         path = mobj.group('path')
         page_title = mobj.group('title')
         info_url = u'http://cnn.com/video/data/3.0/%s/index.xml' % path
-        info_xml = self._download_webpage(info_url, page_title)
-        info = xml.etree.ElementTree.fromstring(info_xml.encode('utf-8'))
+        info = self._download_xml(info_url, page_title)
 
         formats = []
+        rex = re.compile(r'''(?x)
+            (?P<width>[0-9]+)x(?P<height>[0-9]+)
+            (?:_(?P<bitrate>[0-9]+)k)?
+        ''')
         for f in info.findall('files/file'):
-            mf = re.match(r'(\d+)x(\d+)(?:_(.*)k)?',f.attrib['bitrate'])
-            if mf is not None:
-                formats.append((int(mf.group(1)), int(mf.group(2)), int(mf.group(3) or 0), f.text))
-        formats = sorted(formats)
-        (_,_,_, video_path) = formats[-1]
-        video_url = 'http://ht.cdn.turner.com/cnn/big%s' % video_path
+            video_url = 'http://ht.cdn.turner.com/cnn/big%s' % (f.text.strip())
+            fdct = {
+                'format_id': f.attrib['bitrate'],
+                'url': video_url,
+            }
+
+            mf = rex.match(f.attrib['bitrate'])
+            if mf:
+                fdct['width'] = int(mf.group('width'))
+                fdct['height'] = int(mf.group('height'))
+                fdct['tbr'] = int_or_none(mf.group('bitrate'))
+            else:
+                mf = rex.search(f.text)
+                if mf:
+                    fdct['width'] = int(mf.group('width'))
+                    fdct['height'] = int(mf.group('height'))
+                    fdct['tbr'] = int_or_none(mf.group('bitrate'))
+                else:
+                    mi = re.match(r'ios_(audio|[0-9]+)$', f.attrib['bitrate'])
+                    if mi:
+                        if mi.group(1) == 'audio':
+                            fdct['vcodec'] = 'none'
+                            fdct['ext'] = 'm4a'
+                        else:
+                            fdct['tbr'] = int(mi.group(1))
+
+            formats.append(fdct)
+
+        self._sort_formats(formats)
 
         thumbnails = sorted([((int(t.attrib['height']),int(t.attrib['width'])), t.text) for t in info.findall('images/image')])
         thumbs_dict = [{'resolution': res, 'url': t_url} for (res, t_url) in thumbnails]
 
-        return {'id': info.attrib['id'],
-                'title': info.find('headline').text,
-                'url': video_url,
-                'ext': determine_ext(video_url),
-                'thumbnail': thumbnails[-1][1],
-                'thumbnails': thumbs_dict,
-                'description': info.find('description').text,
-                }
+        metas_el = info.find('metas')
+        upload_date = (
+            metas_el.attrib.get('version') if metas_el is not None else None)
+
+        duration_el = info.find('length')
+        duration = parse_duration(duration_el.text)
+
+        return {
+            'id': info.attrib['id'],
+            'title': info.find('headline').text,
+            'formats': formats,
+            'thumbnail': thumbnails[-1][1],
+            'thumbnails': thumbs_dict,
+            'description': info.find('description').text,
+            'duration': duration,
+            'upload_date': upload_date,
+        }

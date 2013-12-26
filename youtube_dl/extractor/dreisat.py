@@ -1,18 +1,16 @@
 # coding: utf-8
 
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
-    determine_ext,
     unified_strdate,
 )
 
 
 class DreiSatIE(InfoExtractor):
     IE_NAME = '3sat'
-    _VALID_URL = r'(?:http://)?(?:www\.)?3sat.de/mediathek/index.php\?(?:(?:mode|display)=[^&]+&)*obj=(?P<id>[0-9]+)$'
+    _VALID_URL = r'(?:http://)?(?:www\.)?3sat\.de/mediathek/index\.php\?(?:(?:mode|display)=[^&]+&)*obj=(?P<id>[0-9]+)$'
     _TEST = {
         u"url": u"http://www.3sat.de/mediathek/index.php?obj=36983",
         u'file': u'36983.webm',
@@ -30,8 +28,7 @@ class DreiSatIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         details_url = 'http://www.3sat.de/mediathek/xmlservice/web/beitragsDetails?ak=web&id=%s' % video_id
-        details_xml = self._download_webpage(details_url, video_id, note=u'Downloading video details')
-        details_doc = xml.etree.ElementTree.fromstring(details_xml.encode('utf-8'))
+        details_doc = self._download_xml(details_url, video_id, note=u'Downloading video details')
 
         thumbnail_els = details_doc.findall('.//teaserimage')
         thumbnails = [{
@@ -54,20 +51,14 @@ class DreiSatIE(InfoExtractor):
             'width': int(fe.find('./width').text),
             'height': int(fe.find('./height').text),
             'url': fe.find('./url').text,
-            'ext': determine_ext(fe.find('./url').text),
             'filesize': int(fe.find('./filesize').text),
             'video_bitrate': int(fe.find('./videoBitrate').text),
-            '3sat_qualityname': fe.find('./quality').text,
         } for fe in format_els
             if not fe.find('./url').text.startswith('http://www.metafilegenerator.de/')]
 
-        def _sortkey(format):
-            qidx = ['low', 'med', 'high', 'veryhigh'].index(format['3sat_qualityname'])
-            prefer_http = 1 if 'rtmp' in format['url'] else 0
-            return (qidx, prefer_http, format['video_bitrate'])
-        formats.sort(key=_sortkey)
+        self._sort_formats(formats)
 
-        info = {
+        return {
             '_type': 'video',
             'id': video_id,
             'title': video_title,
@@ -78,8 +69,3 @@ class DreiSatIE(InfoExtractor):
             'uploader': video_uploader,
             'upload_date': upload_date,
         }
-
-        # TODO: Remove when #980 has been merged
-        info.update(formats[-1])
-
-        return info

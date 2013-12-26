@@ -44,7 +44,7 @@ class IGNIE(InfoExtractor):
                 {
                     u'file': u'638672ee848ae4ff108df2a296418ee2.mp4',
                     u'info_dict': {
-                        u'title': u'GTA 5\'s Twisted Beauty in Super Slow Motion',
+                        u'title': u'26 Twisted Moments from GTA 5 in Slow Motion',
                         u'description': u'The twisted beauty of GTA 5 in stunning slow motion.',
                     },
                 },
@@ -103,7 +103,7 @@ class IGNIE(InfoExtractor):
 class OneUPIE(IGNIE):
     """Extractor for 1up.com, it uses the ign videos system."""
 
-    _VALID_URL = r'https?://gamevideos.1up.com/(?P<type>video)/id/(?P<name_or_id>.+)'
+    _VALID_URL = r'https?://gamevideos\.1up\.com/(?P<type>video)/id/(?P<name_or_id>.+)'
     IE_NAME = '1up.com'
 
     _DESCRIPTION_RE = r'<div id="vid_summary">(.+?)</div>'

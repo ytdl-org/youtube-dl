@@ -6,8 +6,7 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import FakeYDL, global_setup
-global_setup()
+from test.helper import FakeYDL
 
 
 from youtube_dl.extractor import (
@@ -16,6 +15,7 @@ from youtube_dl.extractor import (
     YoutubeIE,
     YoutubeChannelIE,
     YoutubeShowIE,
+    YoutubeTopListIE,
 )
 
 
@@ -107,6 +107,22 @@ class TestYoutubeLists(unittest.TestCase):
         ie = YoutubeShowIE(dl)
         result = ie.extract('http://www.youtube.com/show/airdisasters')
         self.assertTrue(len(result) >= 3)
+
+    def test_youtube_mix(self):
+        dl = FakeYDL()
+        ie = YoutubePlaylistIE(dl)
+        result = ie.extract('http://www.youtube.com/watch?v=lLJf9qJHR3E&list=RDrjFaenf1T-Y')
+        entries = result['entries']
+        self.assertTrue(len(entries) >= 20)
+        original_video = entries[0]
+        self.assertEqual(original_video['id'], 'rjFaenf1T-Y')
+
+    def test_youtube_toplist(self):
+        dl = FakeYDL()
+        ie = YoutubeTopListIE(dl)
+        result = ie.extract('yttoplist:music:Top Tracks')
+        entries = result['entries']
+        self.assertTrue(len(entries) >= 5)
 
 if __name__ == '__main__':
     unittest.main()

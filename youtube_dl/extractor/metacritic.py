@@ -1,8 +1,10 @@
 import re
-import xml.etree.ElementTree
 import operator
 
 from .common import InfoExtractor
+from ..utils import (
+    fix_xml_all_ampersand,
+)
 
 
 class MetacriticIE(InfoExtractor):
@@ -23,9 +25,8 @@ class MetacriticIE(InfoExtractor):
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
         # The xml is not well formatted, there are raw '&'
-        info_xml = self._download_webpage('http://www.metacritic.com/video_data?video=' + video_id,
-            video_id, u'Downloading info xml').replace('&', '&amp;')
-        info = xml.etree.ElementTree.fromstring(info_xml.encode('utf-8'))
+        info = self._download_xml('http://www.metacritic.com/video_data?video=' + video_id,
+            video_id, u'Downloading info xml', transform_source=fix_xml_all_ampersand)
 
         clip = next(c for c in info.findall('playList/clip') if c.find('id').text == video_id)
         formats = []
@@ -43,13 +44,10 @@ class MetacriticIE(InfoExtractor):
         description = self._html_search_regex(r'<b>Description:</b>(.*?)</p>',
             webpage, u'description', flags=re.DOTALL)
 
-        info = {
+        return {
             'id': video_id,
             'title': clip.find('title').text,
             'formats': formats,
             'description': description,
             'duration': int(clip.find('duration').text),
         }
-        # TODO: Remove when #980 has been merged
-        info.update(formats[-1])
-        return info
