@@ -55,15 +55,21 @@ class ThePlatformIE(InfoExtractor):
         formats = []
         for f in switch.findall(_x('smil:video')):
             attr = f.attrib
+            width = int(attr['width'])
+            height = int(attr['height'])
+            vbr = int(attr['system-bitrate']) // 1000
+            format_id = '%dx%d_%dk' % (width, height, vbr)
             formats.append({
+                'format_id': format_id,
                 'url': base_url,
                 'play_path': 'mp4:' + attr['src'],
                 'ext': 'flv',
-                'width': int(attr['width']),
-                'height': int(attr['height']),
-                'vbr': int(attr['system-bitrate']),
+                'width': width,
+                'height': height,
+                'vbr': vbr,
             })
-        formats.sort(key=lambda f: (f['height'], f['width'], f['vbr']))
+
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
