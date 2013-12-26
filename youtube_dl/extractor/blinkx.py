@@ -61,9 +61,10 @@ class BlinkxIE(InfoExtractor):
             elif m['type'] in ('flv', 'mp4'):
                 vcodec = remove_start(m['vcodec'], 'ff')
                 acodec = remove_start(m['acodec'], 'ff')
+                tbr = (int(m['vbr']) + int(m['abr'])) // 1000
                 format_id = (u'%s-%sk-%s' %
                              (vcodec,
-                              (int(m['vbr']) + int(m['abr'])) // 1000,
+                              tbr,
                               m['w']))
                 formats.append({
                     'format_id': format_id,
@@ -72,10 +73,12 @@ class BlinkxIE(InfoExtractor):
                     'acodec': acodec,
                     'abr': int(m['abr']) // 1000,
                     'vbr': int(m['vbr']) // 1000,
+                    'tbr': tbr,
                     'width': int(m['w']),
                     'height': int(m['h']),
                 })
-        formats.sort(key=lambda f: (f['width'], f['vbr'], f['abr']))
+
+        self._sort_formats(formats)
 
         return {
             'id': display_id,
