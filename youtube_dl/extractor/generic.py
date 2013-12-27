@@ -162,6 +162,8 @@ class GenericIE(InfoExtractor):
             return self.url_result('http://' + url)
         video_id = os.path.splitext(url.split('/')[-1])[0]
 
+        self.to_screen(u'%s: Requesting header' % video_id)
+
         try:
             response = self._send_head(url)
 
