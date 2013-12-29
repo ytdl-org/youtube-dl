@@ -334,7 +334,9 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option('--youtube-print-sig-code',
             action='store_true', dest='youtube_print_sig_code', default=False,
             help=optparse.SUPPRESS_HELP)
-
+    verbosity.add_option('--print-traffic',
+            dest='debug_printtraffic', action='store_true', default=False,
+            help=optparse.SUPPRESS_HELP)
 
     filesystem.add_option('-t', '--title',
             action='store_true', dest='usetitle', help='use title in file name (default)', default=False)
@@ -696,6 +698,7 @@ def _real_main(argv=None):
         'proxy': opts.proxy,
         'socket_timeout': opts.socket_timeout,
         'bidi_workaround': opts.bidi_workaround,
+        'debug_printtraffic': opts.debug_printtraffic,
     }
 
     with YoutubeDL(ydl_opts) as ydl:

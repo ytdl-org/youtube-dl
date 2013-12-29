@@ -148,6 +148,7 @@ class YoutubeDL(object):
     socket_timeout:    Time to wait for unresponsive hosts, in seconds
     bidi_workaround:   Work around buggy terminals without bidirectional text
                        support, using fridibi
+    debug_printtraffic:Print out sent and received HTTP traffic
 
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:
@@ -1124,10 +1125,13 @@ class YoutubeDL(object):
             if 'http' in proxies and 'https' not in proxies:
                 proxies['https'] = proxies['http']
         proxy_handler = compat_urllib_request.ProxyHandler(proxies)
+
+        debuglevel = 1 if self.params.get('debug_printtraffic') else 0
         https_handler = make_HTTPS_handler(
-            self.params.get('nocheckcertificate', False))
+            self.params.get('nocheckcertificate', False), debuglevel=debuglevel)
+        ydlh = YoutubeDLHandler(debuglevel=debuglevel)
         opener = compat_urllib_request.build_opener(
-            https_handler, proxy_handler, cookie_processor, YoutubeDLHandler())
+            https_handler, proxy_handler, cookie_processor, ydlh)
         # Delete the default user-agent header, which would otherwise apply in
         # cases where our custom HTTP handler doesn't come into play
         # (See https://github.com/rg3/youtube-dl/issues/1309 for details)
