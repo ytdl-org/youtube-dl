@@ -53,7 +53,7 @@ class MixcloudIE(InfoExtractor):
         info = json.loads(json_data)
 
         preview_url = self._search_regex(r'data-preview-url="(.+?)"', webpage, u'preview url')
-        song_url = preview_url.replace('/previews/', '/cloudcasts/originals/')
+        song_url = preview_url.replace('/previews/', '/c/originals/')
         template_url = re.sub(r'(stream\d*)', 'stream%d', song_url)
         final_song_url = self._get_url(template_url)
         if final_song_url is None:
