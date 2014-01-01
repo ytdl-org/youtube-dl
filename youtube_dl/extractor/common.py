@@ -69,7 +69,8 @@ class InfoExtractor(object):
                                  download, lower-case.
                                  "http", "https", "rtsp", "rtmp" or so.
                     * preference Order number of this format. If this field is
-                                 present, the formats get sorted by this field.
+                                 present and not None, the formats get sorted
+                                 by this field.
                                  -1 for default (order by other properties),
                                  -2 or smaller for less than default.
     url:            Final video URL.

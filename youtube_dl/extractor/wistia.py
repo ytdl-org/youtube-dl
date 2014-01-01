@@ -44,6 +44,7 @@ class WistiaIE(InfoExtractor):
                 'height': a['height'],
                 'filesize': a['size'],
                 'ext': a['ext'],
+                'preference': 1 if atype == 'original' else None,
             })
 
         self._sort_formats(formats)
