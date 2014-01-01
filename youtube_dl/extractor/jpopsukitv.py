@@ -1,3 +1,4 @@
+# coding=utf-8
 import re
 from ..utils import unified_strdate
 from .common import InfoExtractor
