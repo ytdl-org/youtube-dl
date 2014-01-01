@@ -133,7 +133,7 @@ class HttpFD(FileDownloader):
                     return False
             try:
                 stream.write(data_block)
-            except (IOError, OSError):
+            except (IOError, OSError) as err:
                 self.to_stderr(u"\n")
                 self.report_error(u'unable to write data: %s' % str(err))
                 return False

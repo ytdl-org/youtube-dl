@@ -28,6 +28,7 @@ from .channel9 import Channel9IE
 from .cinemassacre import CinemassacreIE
 from .clipfish import ClipfishIE
 from .clipsyndicate import ClipsyndicateIE
+from .cmt import CMTIE
 from .cnn import CNNIE
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE

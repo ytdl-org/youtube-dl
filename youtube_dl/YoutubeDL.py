@@ -165,6 +165,8 @@ class YoutubeDL(object):
 
     def __init__(self, params=None):
         """Create a FileDownloader object with the given options."""
+        if params is None:
+            params = {}
         self._ies = []
         self._ies_instances = {}
         self._pps = []
@@ -173,7 +175,7 @@ class YoutubeDL(object):
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
         self._err_file = sys.stderr
-        self.params = {} if params is None else params
+        self.params = params
 
         if params.get('bidi_workaround', False):
             try:
