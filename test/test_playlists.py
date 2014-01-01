@@ -28,7 +28,8 @@ from youtube_dl.extractor import (
     BandcampAlbumIE,
     SmotriCommunityIE,
     SmotriUserIE,
-    IviCompilationIE
+    IviCompilationIE,
+    ImdbListIE,
 )
 
 
@@ -187,6 +188,15 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['id'], u'dezhurnyi_angel/season2')
         self.assertEqual(result['title'], u'Дежурный ангел (2010 - 2012) 2 сезон')
         self.assertTrue(len(result['entries']) >= 20)
+        
+    def test_imdb_list(self):
+        dl = FakeYDL()
+        ie = ImdbListIE(dl)
+        result = ie.extract('http://www.imdb.com/list/sMjedvGDd8U')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], u'sMjedvGDd8U')
+        self.assertEqual(result['title'], u'Animated and Family Films')
+        self.assertTrue(len(result['entries']) >= 48)
 
 
 if __name__ == '__main__':
