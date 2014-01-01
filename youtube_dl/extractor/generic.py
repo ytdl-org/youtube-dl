@@ -338,6 +338,8 @@ class GenericIE(InfoExtractor):
 
         video_url = mobj.group(1)
         video_url = compat_urlparse.urljoin(url, video_url)
+        if re.search(r'^(?:https?://|//)?(?:\w+\.)?[yY][oO][uU][tT][uU][bB][eE]\.com/', video_url):
+            return self.url_result(video_url, 'Youtube')
         video_id = compat_urllib_parse.unquote(os.path.basename(video_url))
 
         # here's a fun little line of code for you:
