@@ -29,7 +29,7 @@ class SoundcloudIE(InfoExtractor):
                             (?!sets/)(?P<title>[\w\d-]+)/?
                             (?P<token>[^?]+?)?(?:[?].*)?$)
                        |(?:api\.soundcloud\.com/tracks/(?P<track_id>\d+))
-                       |(?P<widget>w\.soundcloud\.com/player/?.*?url=.*)
+                       |(?P<player>(?:w|player|p.)\.soundcloud\.com/player/?.*?url=.*)
                     )
                     '''
     IE_NAME = u'soundcloud'
@@ -193,7 +193,7 @@ class SoundcloudIE(InfoExtractor):
         if track_id is not None:
             info_json_url = 'http://api.soundcloud.com/tracks/' + track_id + '.json?client_id=' + self._CLIENT_ID
             full_title = track_id
-        elif mobj.group('widget'):
+        elif mobj.group('player'):
             query = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
             return self.url_result(query['url'][0], ie='Soundcloud')
         else:
