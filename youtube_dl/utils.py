@@ -1119,3 +1119,8 @@ def parse_duration(s):
         if m.group('hours'):
             res += int(m.group('hours')) * 60 * 60
     return res
+
+
+def prepend_extension(filename, ext):
+    name, real_ext = os.path.splitext(filename) 
+    return u'{0}.{1}{2}'.format(name, ext, real_ext)

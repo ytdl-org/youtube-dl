@@ -10,6 +10,7 @@ from .utils import (
     PostProcessingError,
     shell_quote,
     subtitles_filename,
+    prepend_extension,
 )
 
 
@@ -496,13 +497,11 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
             return True, info
 
         filename = info['filepath']
-        ext = os.path.splitext(filename)[1][1:]
-        temp_filename = filename + u'.temp'
+        temp_filename = prepend_extension(filename, 'temp')
 
         options = ['-c', 'copy']
         for (name, value) in metadata.items():
             options.extend(['-metadata', '%s=%s' % (name, value)])
-        options.extend(['-f', ext])
 
         self._downloader.to_screen(u'[ffmpeg] Adding metadata to \'%s\'' % filename)
         self.run_ffmpeg(filename, temp_filename, options)
