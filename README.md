@@ -34,9 +34,11 @@ which means you can modify it, redistribute it or use it however you like.
                                empty string (--proxy "") for direct connection
     --no-check-certificate     Suppress HTTPS certificate validation.
     --cache-dir DIR            Location in the filesystem where youtube-dl can
-                               store downloaded information permanently. By
+                               store some downloaded information permanently. By
                                default $XDG_CACHE_HOME/youtube-dl or ~/.cache
-                               /youtube-dl .
+                               /youtube-dl . At the moment, only YouTube player
+                               files (for videos with obfuscated signatures) are
+                               cached, but that may change.
     --no-cache-dir             Disable filesystem caching
     --bidi-workaround          Work around terminals that lack bidirectional
                                text support. Requires bidiv or fribidi
