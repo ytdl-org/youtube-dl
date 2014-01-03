@@ -102,6 +102,10 @@ from .kickstarter import KickStarterIE
 from .keek import KeekIE
 from .liveleak import LiveLeakIE
 from .livestream import LivestreamIE, LivestreamOriginalIE
+from .lynda import (
+    LyndaIE,
+    LyndaCourseIE
+)
 from .macgamestore import MacGameStoreIE
 from .mdr import MDRIE
 from .metacafe import MetacafeIE
