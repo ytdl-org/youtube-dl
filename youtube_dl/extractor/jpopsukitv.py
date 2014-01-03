@@ -1,25 +1,31 @@
 # coding=utf-8
+from __future__ import unicode_literals
+
 import re
-from ..utils import unified_strdate
+
 from .common import InfoExtractor
+from ..utils import (
+    int_or_none,
+    unified_strdate,
+)
 
 
 class JpopsukiIE(InfoExtractor):
-    IE_NAME = u'jpopsuki.tv'
+    IE_NAME = 'jpopsuki.tv'
     _VALID_URL = r'https?://(?:www\.)?jpopsuki\.tv/video/(.*?)/(?P<id>\S+)'
 
     _TEST = {
-        u'url': u'http://www.jpopsuki.tv/video/ayumi-hamasaki---evolution/00be659d23b0b40508169cdee4545771',
-        u'md5': u'88018c0c1a9b1387940e90ec9e7e198e',
-        u'file': u'00be659d23b0b40508169cdee4545771.mp4',
-        u'info_dict': {
-            u'id': u'00be659d23b0b40508169cdee4545771',
-            u'title': u'ayumi hamasaki - evolution',
-            'description': u'Release date: 2001.01.31\r 浜崎あゆみ - evolution',
-            'thumbnail': u'http://www.jpopsuki.tv/cache/89722c74d2a2ebe58bcac65321c115b2.jpg',
-            'uploader': u'plama_chan',
-            'uploader_id': u'404',
-            'upload_date': u'20121101'
+        'url': 'http://www.jpopsuki.tv/video/ayumi-hamasaki---evolution/00be659d23b0b40508169cdee4545771',
+        'md5': '88018c0c1a9b1387940e90ec9e7e198e',
+        'file': '00be659d23b0b40508169cdee4545771.mp4',
+        'info_dict': {
+            'id': '00be659d23b0b40508169cdee4545771',
+            'title': 'ayumi hamasaki - evolution',
+            'description': 'Release date: 2001.01.31\r\n浜崎あゆみ - evolution',
+            'thumbnail': 'http://www.jpopsuki.tv/cache/89722c74d2a2ebe58bcac65321c115b2.jpg',
+            'uploader': 'plama_chan',
+            'uploader_id': '404',
+            'upload_date': '20121101'
         }
     }
 
@@ -30,26 +36,28 @@ class JpopsukiIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_url = 'http://www.jpopsuki.tv' + self._html_search_regex(
-            r'<source src="(.*?)" type', webpage, u'video url')
+            r'<source src="(.*?)" type', webpage, 'video url')
 
-        video_title = self._html_search_regex(
-            r'<meta name="og:title" content="(.*?)" />', webpage, u'video title')
-        description = self._html_search_regex(
-            r'<meta name="og:description" content="(.*?)" />', webpage, u'video description', flags=re.DOTALL)
-        thumbnail = self._html_search_regex(
-            r'<meta name="og:image" content="(.*?)" />', webpage, u'video thumbnail')
+        video_title = self._og_search_title(webpage)
+        description = self._og_search_description(webpage)
+        thumbnail = self._og_search_thumbnail(webpage)
         uploader = self._html_search_regex(
-            r'<li>from: <a href="/user/view/user/(.*?)/uid/', webpage, u'video uploader')
+            r'<li>from: <a href="/user/view/user/(.*?)/uid/',
+            webpage, 'video uploader', fatal=False)
         uploader_id = self._html_search_regex(
-            r'<li>from: <a href="/user/view/user/\S*?/uid/(\d*)', webpage, u'video uploader_id')
+            r'<li>from: <a href="/user/view/user/\S*?/uid/(\d*)',
+            webpage, 'video uploader_id', fatal=False)
         upload_date = self._html_search_regex(
-            r'<li>uploaded: (.*?)</li>', webpage, u'video upload_date')
+            r'<li>uploaded: (.*?)</li>', webpage, 'video upload_date',
+            fatal=False)
         if upload_date is not None:
             upload_date = unified_strdate(upload_date)
-        view_count = self._html_search_regex(
-            r'<li>Hits: (\d*?)</li>', webpage, u'video view_count')
-        comment_count = self._html_search_regex(
-            r'<h2>(\d*?) comments</h2>', webpage, u'video comment_count')
+        view_count_str = self._html_search_regex(
+            r'<li>Hits: ([0-9]+?)</li>', webpage, 'video view_count',
+            fatal=False)
+        comment_count_str = self._html_search_regex(
+            r'<h2>([0-9]+?) comments</h2>', webpage, 'video comment_count',
+            fatal=False)
 
         return {
             'id': video_id,
@@ -60,6 +68,6 @@ class JpopsukiIE(InfoExtractor):
             'uploader': uploader,
             'uploader_id': uploader_id,
             'upload_date': upload_date,
-            'view_count': view_count,
-            'comment_count': comment_count,
+            'view_count': int_or_none(view_count_str),
+            'comment_count': int_or_none(comment_count_str),
         }
