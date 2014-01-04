@@ -51,9 +51,11 @@ from .utils import (
     write_json_file,
     write_string,
     YoutubeDLHandler,
+    prepend_extension,
 )
 from .extractor import get_info_extractor, gen_extractors
 from .downloader import get_suitable_downloader
+from .PostProcessor import FFmpegMergerPP
 from .version import __version__
 
 
@@ -704,7 +706,17 @@ class YoutubeDL(object):
             # the first that is available, starting from left
             req_formats = req_format.split('/')
             for rf in req_formats:
-                selected_format = self.select_format(rf, formats)
+                if re.match(r'.+?\+.+?', rf) is not None:
+                    # Two formats have been requested like '137+139'
+                    format_1, format_2 = rf.split('+')
+                    formats_info = (self.select_format(format_1, formats),
+                        self.select_format(format_2, formats))
+                    if all(formats_info):
+                        selected_format = {'requested_formats': formats_info}
+                    else:
+                        selected_format = None
+                else:
+                    selected_format = self.select_format(rf, formats)
                 if selected_format is not None:
                     formats_to_download = [selected_format]
                     break
@@ -880,10 +892,27 @@ class YoutubeDL(object):
                 success = True
             else:
                 try:
-                    fd = get_suitable_downloader(info_dict)(self, self.params)
-                    for ph in self._progress_hooks:
-                        fd.add_progress_hook(ph)
-                    success = fd.download(filename, info_dict)
+                    def dl(name, info):
+                        fd = get_suitable_downloader(info)(self, self.params)
+                        for ph in self._progress_hooks:
+                            fd.add_progress_hook(ph)
+                        return fd.download(name, info)
+                    if info_dict.get('requested_formats') is not None:
+                        downloaded = []
+                        success = True
+                        for f in info_dict['requested_formats']:
+                            new_info = dict(info_dict)
+                            new_info.update(f)
+                            fname = self.prepare_filename(new_info)
+                            fname = prepend_extension(fname, 'f%s' % f['format_id'])
+                            downloaded.append(fname)
+                            partial_success = dl(fname, new_info)
+                            success = success and partial_success
+                        info_dict['__postprocessors'] = [FFmpegMergerPP(self)]
+                        info_dict['__files_to_merge'] = downloaded
+                    else:
+                        # Just a single file
+                        success = dl(filename, info_dict)
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                     self.report_error(u'unable to download video data: %s' % str(err))
                     return
@@ -940,7 +969,11 @@ class YoutubeDL(object):
         info = dict(ie_info)
         info['filepath'] = filename
         keep_video = None
-        for pp in self._pps:
+        pps_chain = []
+        if ie_info.get('__postprocessors') is not None:
+            pps_chain.extend(ie_info['__postprocessors'])
+        pps_chain.extend(self._pps)
+        for pp in pps_chain:
             try:
                 keep_video_wish, new_info = pp.run(info)
                 if keep_video_wish is not None:
