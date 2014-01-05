@@ -10,7 +10,7 @@ rootDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class TestUnicodeLiterals(unittest.TestCase):
     def test_all_files(self):
-        print('Skipping this test (not yet fully implemtned)')
+        print('Skipping this test (not yet fully implemented)')
         return
 
         for dirpath, _, filenames in os.walk(rootDir):
