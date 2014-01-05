@@ -522,6 +522,8 @@ def _real_main(argv=None):
             sys.exit(u'ERROR: batch file could not be read')
     all_urls = batchurls + args
     all_urls = [url.strip() for url in all_urls]
+    _enc = preferredencoding()
+    all_urls = [url.decode(_enc, 'ignore') if isinstance(url, bytes) else url]
 
     extractors = gen_extractors()
 
