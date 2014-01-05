@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
+    <link rel="self" href="http://rg3.github.io/youtube-dl/update/releases.atom" />
     <title>youtube-dl releases</title>
     <id>https://yt-dl.org/feed/youtube-dl-updates-feed</id>
-    <updated>2014-01-05T05:01:37.843144Z</updated>
+    <updated>2014-01-05T05:15:29.417895Z</updated>
     
 	<entry>
 	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2012.02.22</id>
@@ -361,7 +362,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-04-31T00:00:00Z</updated>
+	    <updated>2013-04-30T00:01:00Z</updated>
 	</entry>
 
 	<entry>
@@ -601,7 +602,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-06-31T00:00:00Z</updated>
+	    <updated>2013-06-30T00:01:00Z</updated>
 	</entry>
 
 	<entry>
@@ -616,7 +617,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-06-32T00:00:00Z</updated>
+	    <updated>2013-06-30T00:02:00Z</updated>
 	</entry>
 
 	<entry>
@@ -631,7 +632,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-06-33T00:00:00Z</updated>
+	    <updated>2013-06-30T00:03:00Z</updated>
 	</entry>
 
 	<entry>
@@ -646,7 +647,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-06-34T00:00:00Z</updated>
+	    <updated>2013-06-30T00:04:00Z</updated>
 	</entry>
 
 	<entry>
@@ -661,7 +662,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-06-34-1T00:00:00Z</updated>
+	    <updated>2013-06-30T00:04:01Z</updated>
 	</entry>
 
 	<entry>
@@ -676,7 +677,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-06-34-2T00:00:00Z</updated>
+	    <updated>2013-06-30T00:04:02Z</updated>
 	</entry>
 
 	<entry>
@@ -691,7 +692,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-06-34-3T00:00:00Z</updated>
+	    <updated>2013-06-30T00:04:03Z</updated>
 	</entry>
 
 	<entry>
@@ -706,7 +707,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-06-34-4T00:00:00Z</updated>
+	    <updated>2013-06-30T00:04:04Z</updated>
 	</entry>
 
 	<entry>
@@ -766,7 +767,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-07-07-01T00:00:00Z</updated>
+	    <updated>2013-07-07T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -796,7 +797,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-07-08-1T00:00:00Z</updated>
+	    <updated>2013-07-08T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -871,7 +872,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-07-17-1T00:00:00Z</updated>
+	    <updated>2013-07-17T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -931,7 +932,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-07-23-1T00:00:00Z</updated>
+	    <updated>2013-07-23T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -946,7 +947,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-07-24-2T00:00:00Z</updated>
+	    <updated>2013-07-24T00:00:02Z</updated>
 	</entry>
 
 	<entry>
@@ -976,7 +977,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-07-25-1T00:00:00Z</updated>
+	    <updated>2013-07-25T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -991,7 +992,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-07-25-2T00:00:00Z</updated>
+	    <updated>2013-07-25T00:00:02Z</updated>
 	</entry>
 
 	<entry>
@@ -1051,7 +1052,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-08-08-1T00:00:00Z</updated>
+	    <updated>2013-08-08T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -1186,7 +1187,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-08-28-1T00:00:00Z</updated>
+	    <updated>2013-08-28T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -1276,7 +1277,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-09-06-1T00:00:00Z</updated>
+	    <updated>2013-09-06T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -1366,7 +1367,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-09-20-1T00:00:00Z</updated>
+	    <updated>2013-09-20T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -1396,7 +1397,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-09-24-1T00:00:00Z</updated>
+	    <updated>2013-09-24T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -1411,7 +1412,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-09-24-2T00:00:00Z</updated>
+	    <updated>2013-09-24T00:00:02Z</updated>
 	</entry>
 
 	<entry>
@@ -1456,7 +1457,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-10-01-1T00:00:00Z</updated>
+	    <updated>2013-10-01T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -1576,7 +1577,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-10-18-1T00:00:00Z</updated>
+	    <updated>2013-10-18T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -1591,7 +1592,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-10-18-2T00:00:00Z</updated>
+	    <updated>2013-10-18T00:00:02Z</updated>
 	</entry>
 
 	<entry>
@@ -1636,7 +1637,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-10-23-1T00:00:00Z</updated>
+	    <updated>2013-10-23T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -1651,7 +1652,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-10-23-2T00:00:00Z</updated>
+	    <updated>2013-10-23T00:00:02Z</updated>
 	</entry>
 
 	<entry>
@@ -1756,7 +1757,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-11-06-1T00:00:00Z</updated>
+	    <updated>2013-11-06T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -1846,7 +1847,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-11-15-1T00:00:00Z</updated>
+	    <updated>2013-11-15T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -1891,7 +1892,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-11-18-1T00:00:00Z</updated>
+	    <updated>2013-11-18T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -1966,7 +1967,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-11-22-1T00:00:00Z</updated>
+	    <updated>2013-11-22T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -1981,7 +1982,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-11-22-2T00:00:00Z</updated>
+	    <updated>2013-11-22T00:00:02Z</updated>
 	</entry>
 
 	<entry>
@@ -2011,7 +2012,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-11-24-1T00:00:00Z</updated>
+	    <updated>2013-11-24T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -2041,7 +2042,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-11-25-1T00:00:00Z</updated>
+	    <updated>2013-11-25T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -2056,7 +2057,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-11-25-2T00:00:00Z</updated>
+	    <updated>2013-11-25T00:00:02Z</updated>
 	</entry>
 
 	<entry>
@@ -2071,7 +2072,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-11-25-3T00:00:00Z</updated>
+	    <updated>2013-11-25T00:00:03Z</updated>
 	</entry>
 
 	<entry>
@@ -2116,7 +2117,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-11-28-1T00:00:00Z</updated>
+	    <updated>2013-11-28T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -2206,7 +2207,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-12-08-1T00:00:00Z</updated>
+	    <updated>2013-12-08T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -2236,7 +2237,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-12-09-1T00:00:00Z</updated>
+	    <updated>2013-12-09T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -2251,7 +2252,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-12-09-2T00:00:00Z</updated>
+	    <updated>2013-12-09T00:00:02Z</updated>
 	</entry>
 
 	<entry>
@@ -2266,7 +2267,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-12-09-4T00:00:00Z</updated>
+	    <updated>2013-12-09T00:00:04Z</updated>
 	</entry>
 
 	<entry>
@@ -2311,7 +2312,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-12-11-1T00:00:00Z</updated>
+	    <updated>2013-12-11T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -2326,7 +2327,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-12-11-2T00:00:00Z</updated>
+	    <updated>2013-12-11T00:00:02Z</updated>
 	</entry>
 
 	<entry>
@@ -2356,7 +2357,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-12-16-1T00:00:00Z</updated>
+	    <updated>2013-12-16T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -2371,7 +2372,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-12-16-2T00:00:00Z</updated>
+	    <updated>2013-12-16T00:00:02Z</updated>
 	</entry>
 
 	<entry>
@@ -2386,7 +2387,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-12-16-3T00:00:00Z</updated>
+	    <updated>2013-12-16T00:00:03Z</updated>
 	</entry>
 
 	<entry>
@@ -2401,7 +2402,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-12-16-4T00:00:00Z</updated>
+	    <updated>2013-12-16T00:00:04Z</updated>
 	</entry>
 
 	<entry>
@@ -2416,7 +2417,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-12-16-6T00:00:00Z</updated>
+	    <updated>2013-12-16T00:00:06Z</updated>
 	</entry>
 
 	<entry>
@@ -2431,7 +2432,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-12-16-7T00:00:00Z</updated>
+	    <updated>2013-12-16T00:00:07Z</updated>
 	</entry>
 
 	<entry>
@@ -2461,7 +2462,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-12-17-1T00:00:00Z</updated>
+	    <updated>2013-12-17T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -2476,7 +2477,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-12-17-2T00:00:00Z</updated>
+	    <updated>2013-12-17T00:00:02Z</updated>
 	</entry>
 
 	<entry>
@@ -2521,7 +2522,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-12-23-1T00:00:00Z</updated>
+	    <updated>2013-12-23T00:00:01Z</updated>
 	</entry>
 
 	<entry>
@@ -2536,7 +2537,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-12-23-2T00:00:00Z</updated>
+	    <updated>2013-12-23T00:00:02Z</updated>
 	</entry>
 
 	<entry>
@@ -2551,7 +2552,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-12-23-3T00:00:00Z</updated>
+	    <updated>2013-12-23T00:00:03Z</updated>
 	</entry>
 
 	<entry>
@@ -2566,7 +2567,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2013-12-23-4T00:00:00Z</updated>
+	    <updated>2013-12-23T00:00:04Z</updated>
 	</entry>
 
 	<entry>
@@ -2611,7 +2612,7 @@
 	    <author>
 	        <name>The youtube-dl maintainers</name>
 	    </author>
-	    <updated>2014-01-05-1T00:00:00Z</updated>
+	    <updated>2014-01-05T00:00:01Z</updated>
 	</entry>
 
 </feed>
