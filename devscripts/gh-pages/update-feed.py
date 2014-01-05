@@ -7,45 +7,44 @@ import textwrap
 
 
 atom_template = textwrap.dedent("""\
-    <?xml version='1.0' encoding='utf-8'?>
-    <atom:feed xmlns:atom="http://www.w3.org/2005/Atom">
-        <atom:title>youtube-dl releases</atom:title>
-        <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed</atom:id>
-        <atom:updated>@TIMESTAMP@</atom:updated>
+    <?xml version="1.0" encoding="utf-8"?>
+    <feed xmlns="http://www.w3.org/2005/Atom">
+        <title>youtube-dl releases</title>
+        <id>https://yt-dl.org/feed/youtube-dl-updates-feed</id>
+        <updated>@TIMESTAMP@</updated>
         @ENTRIES@
-    </atom:feed>""")
+    </feed>""")
 
 entry_template = textwrap.dedent("""
-    <atom:entry>
-        <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-@VERSION@</atom:id>
-        <atom:title>New version @VERSION@</atom:title>
-        <atom:link href="http://rg3.github.io/youtube-dl" />
-        <atom:content type="xhtml">
+    <entry>
+        <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-@VERSION@</id>
+        <title>New version @VERSION@</title>
+        <link href="http://rg3.github.io/youtube-dl" />
+        <content type="xhtml">
             <div xmlns="http://www.w3.org/1999/xhtml">
                 Downloads available at <a href="https://yt-dl.org/downloads/@VERSION@/">https://yt-dl.org/downloads/@VERSION@/</a>
             </div>
-        </atom:content>
-        <atom:author>
-            <atom:name>The youtube-dl maintainers</atom:name>
-        </atom:author>
-        <atom:updated>@TIMESTAMP@</atom:updated>
-    </atom:entry>
+        </content>
+        <author>
+            <name>The youtube-dl maintainers</name>
+        </author>
+        <updated>@TIMESTAMP@</updated>
+    </entry>
     """)
 
 now = datetime.datetime.now()
-now_iso = now.isoformat()
+now_iso = now.isoformat() + 'Z'
 
 atom_template = atom_template.replace('@TIMESTAMP@', now_iso)
-
-entries=[]
 
 versions_info = json.load(open('update/versions.json'))
 versions = list(versions_info['versions'].keys())
 versions.sort()
 
+entries = []
 for v in versions:
-    entry = entry_template.replace('@TIMESTAMP@',v.replace('.','-'))
-    entry = entry.replace('@VERSION@',v)
+    entry = entry_template.replace('@TIMESTAMP@', v.replace('.', '-') + 'T00:00:00Z')
+    entry = entry.replace('@VERSION@', v)
     entries.append(entry)
 
 entries_str = textwrap.indent(''.join(entries), '\t')
