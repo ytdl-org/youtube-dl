@@ -14,6 +14,7 @@ from ..utils import (
 
     ExtractorError,
     unescapeHTML,
+    determine_ext,
 )
 
 
@@ -21,7 +22,6 @@ class BlipTVIE(InfoExtractor):
     """Information extractor for blip.tv"""
 
     _VALID_URL = r'^(?:https?://)?(?:www\.)?blip\.tv/((.+/)|(play/)|(api\.swf#))(.+)$'
-    _URL_EXT = r'^.*\.([a-z0-9]+)$'
     IE_NAME = u'blip.tv'
     _TEST = {
         u'url': u'http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352',
@@ -82,29 +82,35 @@ class BlipTVIE(InfoExtractor):
                 data = json_data
 
             upload_date = datetime.datetime.strptime(data['datestamp'], '%m-%d-%y %H:%M%p').strftime('%Y%m%d')
+            formats = []
             if 'additionalMedia' in data:
-                formats = sorted(data['additionalMedia'], key=lambda f: int(f['media_height']))
-                best_format = formats[-1]
-                video_url = best_format['url']
+                for f in sorted(data['additionalMedia'], key=lambda f: int(f['media_height'])):
+                    if not int(f['media_width']): # filter m3u8
+                        continue
+                    formats.append({
+                        'url': f['url'],
+                        'ext': determine_ext(f['url']),
+                        'format_id': f['role'],
+                        'width': int(f['media_width']),
+                        'height': int(f['media_height']),
+                    })
             else:
-                video_url = data['media']['url']
-            umobj = re.match(self._URL_EXT, video_url)
-            if umobj is None:
-                raise ValueError('Can not determine filename extension')
-            ext = umobj.group(1)
+                formats.append({
+                    'url': data['media']['url'],
+                    'ext': determine_ext(data['media']['url']),
+                    'width': int(data['media']['width']),
+                    'height': int(data['media']['height']),
+                })
 
             return {
                 'id': compat_str(data['item_id']),
-                'url': video_url,
                 'uploader': data['display_name'],
                 'upload_date': upload_date,
                 'title': data['title'],
-                'ext': ext,
-                'format': data['media']['mimeType'],
                 'thumbnail': data['thumbnailUrl'],
                 'description': data['description'],
-                'player_url': data['embedUrl'],
                 'user_agent': 'iTunes/10.6.1',
+                'formats': formats,
             }
         except (ValueError, KeyError) as err:
             raise ExtractorError(u'Unable to parse video information: %s' % repr(err))
