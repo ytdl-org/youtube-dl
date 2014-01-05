@@ -14,6 +14,7 @@ class CollegeHumorIE(InfoExtractor):
         u'info_dict': {
             u'title': u'Comic-Con Cosplay Catastrophe',
             u'description': u'Fans get creative this year at San Diego.  Too',
+            u'age_limit': 13,
         },
     },
     {
@@ -23,6 +24,7 @@ class CollegeHumorIE(InfoExtractor):
         u'info_dict': {
             u'title': u'Font Conference',
             u'description': u'This video wasn\'t long enough, so we made it double-spaced.',
+            u'age_limit': 10,
         },
     }]
 
@@ -35,6 +37,13 @@ class CollegeHumorIE(InfoExtractor):
             jsonUrl, video_id, u'Downloading info JSON'))
         vdata = data['video']
 
+        AGE_LIMITS = {'nc17': 18, 'r': 18, 'pg13': 13, 'pg': 10, 'g': 0}
+        rating = vdata.get('rating')
+        if rating:
+            age_limit = AGE_LIMITS.get(rating.lower())
+        else:
+            age_limit = None  # None = No idea
+
         PREFS = {'high_quality': 2, 'low_quality': 0}
         formats = []
         for format_key in ('mp4', 'webm'):
@@ -45,7 +54,6 @@ class CollegeHumorIE(InfoExtractor):
                     'format': format_key,
                     'preference': PREFS.get(qname),
                 })
-
         self._sort_formats(formats)
 
         return {
@@ -54,4 +62,5 @@ class CollegeHumorIE(InfoExtractor):
             'description': vdata.get('description'),
             'thumbnail': vdata.get('thumbnail'),
             'formats': formats,
+            'age_limit': age_limit,
         }
