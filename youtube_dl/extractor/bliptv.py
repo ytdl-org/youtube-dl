@@ -26,8 +26,8 @@ class BlipTVIE(InfoExtractor):
     IE_NAME = 'blip.tv'
     _TEST = {
         'url': 'http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352',
-        'file': '5779306.m4v',
-        'md5': '80baf1ec5c3d2019037c1c707d676b9f',
+        'file': '5779306.mov',
+        'md5': 'c6934ad0b6acf2bd920720ec888eb812',
         'info_dict': {
             'upload_date': '20111205',
             'description': 'md5:9bc31f227219cde65e47eeec8d2dc596',
@@ -100,6 +100,8 @@ class BlipTVIE(InfoExtractor):
                     'width': int(data['media']['width']),
                     'height': int(data['media']['height']),
                 })
+
+            self._sort_formats(formats)
 
             return {
                 'id': compat_str(data['item_id']),
