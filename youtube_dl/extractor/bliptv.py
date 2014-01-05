@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import datetime
 import json
 import re
@@ -14,7 +16,6 @@ from ..utils import (
 
     ExtractorError,
     unescapeHTML,
-    determine_ext,
 )
 
 
@@ -22,27 +23,27 @@ class BlipTVIE(InfoExtractor):
     """Information extractor for blip.tv"""
 
     _VALID_URL = r'^(?:https?://)?(?:www\.)?blip\.tv/((.+/)|(play/)|(api\.swf#))(.+)$'
-    IE_NAME = u'blip.tv'
+    IE_NAME = 'blip.tv'
     _TEST = {
-        u'url': u'http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352',
-        u'file': u'5779306.m4v',
-        u'md5': u'80baf1ec5c3d2019037c1c707d676b9f',
-        u'info_dict': {
-            u"upload_date": u"20111205", 
-            u"description": u"md5:9bc31f227219cde65e47eeec8d2dc596", 
-            u"uploader": u"Comic Book Resources - CBR TV", 
-            u"title": u"CBR EXCLUSIVE: \"Gotham City Imposters\" Bats VS Jokerz Short 3"
+        'url': 'http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352',
+        'file': '5779306.m4v',
+        'md5': '80baf1ec5c3d2019037c1c707d676b9f',
+        'info_dict': {
+            'upload_date': '20111205',
+            'description': 'md5:9bc31f227219cde65e47eeec8d2dc596',
+            'uploader': 'Comic Book Resources - CBR TV',
+            'title': 'CBR EXCLUSIVE: "Gotham City Imposters" Bats VS Jokerz Short 3',
         }
     }
 
     def report_direct_download(self, title):
         """Report information extraction."""
-        self.to_screen(u'%s: Direct download detected' % title)
+        self.to_screen('%s: Direct download detected' % title)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
+            raise ExtractorError('Invalid URL: %s' % url)
 
         # See https://github.com/rg3/youtube-dl/issues/857
         api_mobj = re.match(r'http://a\.blip\.tv/api\.swf#(?P<video_id>[\d\w]+)', url)
@@ -66,13 +67,13 @@ class BlipTVIE(InfoExtractor):
         request.add_header('User-Agent', 'iTunes/10.6.1')
         self.report_extraction(mobj.group(1))
         urlh = self._request_webpage(request, None, False,
-            u'unable to download video info webpage')
+            'unable to download video info webpage')
 
         try:
             json_code_bytes = urlh.read()
             json_code = json_code_bytes.decode('utf-8')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-            raise ExtractorError(u'Unable to read video info webpage: %s' % compat_str(err))
+            raise ExtractorError('Unable to read video info webpage: %s' % compat_str(err))
 
         try:
             json_data = json.loads(json_code)
@@ -89,7 +90,6 @@ class BlipTVIE(InfoExtractor):
                         continue
                     formats.append({
                         'url': f['url'],
-                        'ext': determine_ext(f['url']),
                         'format_id': f['role'],
                         'width': int(f['media_width']),
                         'height': int(f['media_height']),
@@ -97,7 +97,6 @@ class BlipTVIE(InfoExtractor):
             else:
                 formats.append({
                     'url': data['media']['url'],
-                    'ext': determine_ext(data['media']['url']),
                     'width': int(data['media']['width']),
                     'height': int(data['media']['height']),
                 })
@@ -113,7 +112,7 @@ class BlipTVIE(InfoExtractor):
                 'formats': formats,
             }
         except (ValueError, KeyError) as err:
-            raise ExtractorError(u'Unable to parse video information: %s' % repr(err))
+            raise ExtractorError('Unable to parse video information: %s' % repr(err))
 
 
 class BlipTVUserIE(InfoExtractor):
@@ -121,19 +120,19 @@ class BlipTVUserIE(InfoExtractor):
 
     _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?blip\.tv/)|bliptvuser:)([^/]+)/*$'
     _PAGE_SIZE = 12
-    IE_NAME = u'blip.tv:user'
+    IE_NAME = 'blip.tv:user'
 
     def _real_extract(self, url):
         # Extract username
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
+            raise ExtractorError('Invalid URL: %s' % url)
 
         username = mobj.group(1)
 
         page_base = 'http://m.blip.tv/pr/show_get_full_episode_list?users_id=%s&lite=0&esi=1'
 
-        page = self._download_webpage(url, username, u'Downloading user page')
+        page = self._download_webpage(url, username, 'Downloading user page')
         mobj = re.search(r'data-users-id="([^"]+)"', page)
         page_base = page_base % mobj.group(1)
 
@@ -149,7 +148,7 @@ class BlipTVUserIE(InfoExtractor):
         while True:
             url = page_base + "&page=" + str(pagenum)
             page = self._download_webpage(url, username,
-                                          u'Downloading video ids from page %d' % pagenum)
+                                          'Downloading video ids from page %d' % pagenum)
 
             # Extract video identifiers
             ids_in_page = []
@@ -171,6 +170,6 @@ class BlipTVUserIE(InfoExtractor):
 
             pagenum += 1
 
-        urls = [u'http://blip.tv/%s' % video_id for video_id in video_ids]
+        urls = ['http://blip.tv/%s' % video_id for video_id in video_ids]
         url_entries = [self.url_result(vurl, 'BlipTV') for vurl in urls]
         return [self.playlist_result(url_entries, playlist_title = username)]
