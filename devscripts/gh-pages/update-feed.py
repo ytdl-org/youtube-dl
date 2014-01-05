@@ -9,6 +9,7 @@ import textwrap
 atom_template = textwrap.dedent("""\
     <?xml version="1.0" encoding="utf-8"?>
     <feed xmlns="http://www.w3.org/2005/Atom">
+        <link rel="self" href="http://rg3.github.io/youtube-dl/update/releases.atom" />
         <title>youtube-dl releases</title>
         <id>https://yt-dl.org/feed/youtube-dl-updates-feed</id>
         <updated>@TIMESTAMP@</updated>
@@ -43,7 +44,27 @@ versions.sort()
 
 entries = []
 for v in versions:
-    entry = entry_template.replace('@TIMESTAMP@', v.replace('.', '-') + 'T00:00:00Z')
+    fields = v.split('.')
+    year, month, day = map(int, fields[:3])
+    faked = 0
+    patchlevel = 0
+    while True:
+        try:
+            datetime.date(year, month, day)
+        except ValueError:
+            day -= 1
+            faked += 1
+            assert day > 0
+            continue
+        break
+    if len(fields) >= 4:
+        try:
+            patchlevel = int(fields[3])
+        except ValueError:
+            patchlevel = 1
+    timestamp = '%04d-%02d-%02dT00:%02d:%02dZ' % (year, month, day, faked, patchlevel)
+
+    entry = entry_template.replace('@TIMESTAMP@', timestamp)
     entry = entry.replace('@VERSION@', v)
     entries.append(entry)
 
