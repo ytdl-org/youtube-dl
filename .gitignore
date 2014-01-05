@@ -23,6 +23,8 @@ updates_key.pem
 *.vtt
 *.flv
 *.mp4
+*.m4a
+*.m4v
 *.part
 test/testdata
 .tox
