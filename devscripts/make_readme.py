@@ -1,10 +1,11 @@
+import io
 import sys
 import re
 
 README_FILE = 'README.md'
 helptext = sys.stdin.read()
 
-with open(README_FILE) as f:
+with io.open(README_FILE, encoding='utf-8') as f:
     oldreadme = f.read()
 
 header = oldreadme[:oldreadme.index('# OPTIONS')]
@@ -14,7 +15,7 @@ options = helptext[helptext.index('  General Options:')+19:]
 options = re.sub(r'^  (\w.+)$', r'## \1', options, flags=re.M)
 options = '# OPTIONS\n' + options + '\n'
 
-with open(README_FILE, 'w') as f:
+with io.open(README_FILE, 'w', encoding='utf-8') as f:
     f.write(header)
     f.write(options)
     f.write(footer)
