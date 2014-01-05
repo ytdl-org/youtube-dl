@@ -508,3 +508,11 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         os.remove(encodeFilename(filename))
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         return True, info
+
+
+class FFmpegMergerPP(FFmpegPostProcessor):
+    def run(self, info):
+        filename = info['filepath']
+        args = ['-c', 'copy']
+        self.run_ffmpeg_multiple_files(info['__files_to_merge'], filename, args)
+        return True, info
