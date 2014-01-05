@@ -8,10 +8,8 @@ import socket
 from .common import InfoExtractor
 from ..utils import (
     compat_http_client,
-    compat_parse_qs,
     compat_str,
     compat_urllib_error,
-    compat_urllib_parse_urlparse,
     compat_urllib_request,
 
     ExtractorError,
