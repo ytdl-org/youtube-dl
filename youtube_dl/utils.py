@@ -500,12 +500,13 @@ def unescapeHTML(s):
     result = re.sub(u'(?u)&(.+?);', htmlentity_transform, s)
     return result
 
-def encodeFilename(s):
+
+def encodeFilename(s, for_subprocess=False):
     """
     @param s The name of the file
     """
 
-    assert type(s) == type(u'')
+    assert type(s) == compat_str
 
     # Python 3 has a Unicode API
     if sys.version_info >= (3, 0):
@@ -515,12 +516,18 @@ def encodeFilename(s):
         # Pass u'' directly to use Unicode APIs on Windows 2000 and up
         # (Detecting Windows NT 4 is tricky because 'major >= 4' would
         # match Windows 9x series as well. Besides, NT 4 is obsolete.)
-        return s
+        if not for_subprocess:
+            return s
+        else:
+            # For subprocess calls, encode with locale encoding
+            # Refer to http://stackoverflow.com/a/9951851/35070
+            encoding = preferredencoding()
     else:
         encoding = sys.getfilesystemencoding()
-        if encoding is None:
-            encoding = 'utf-8'
-        return s.encode(encoding, 'ignore')
+    if encoding is None:
+        encoding = 'utf-8'
+    return s.encode(encoding, 'ignore')
+
 
 def decodeOption(optval):
     if optval is None:
@@ -850,12 +857,22 @@ def platform_name():
 def write_string(s, out=None):
     if out is None:
         out = sys.stderr
-    assert type(s) == type(u'')
+    assert type(s) == compat_str
 
     if ('b' in getattr(out, 'mode', '') or
             sys.version_info[0] < 3):  # Python 2 lies about mode of sys.stderr
         s = s.encode(preferredencoding(), 'ignore')
-    out.write(s)
+    try:
+        out.write(s)
+    except UnicodeEncodeError:
+        # In Windows shells, this can fail even when the codec is just charmap!?
+        # See https://wiki.python.org/moin/PrintFails#Issue
+        if sys.platform == 'win32' and hasattr(out, 'encoding'):
+            s = s.encode(out.encoding, 'ignore').decode(out.encoding)
+            out.write(s)
+        else:
+            raise
+
     out.flush()
 
 
@@ -1071,7 +1088,7 @@ def fix_xml_all_ampersand(xml_str):
 
 
 def setproctitle(title):
-    assert isinstance(title, type(u''))
+    assert isinstance(title, compat_str)
     try:
         libc = ctypes.cdll.LoadLibrary("libc.so.6")
     except OSError:

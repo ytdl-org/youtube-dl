@@ -85,10 +85,10 @@ class FFmpegPostProcessor(PostProcessor):
 
         files_cmd = []
         for path in input_paths:
-            files_cmd.extend(['-i', encodeFilename(path)])
+            files_cmd.extend(['-i', encodeFilename(path, True)])
         cmd = ([self._exes['avconv'] or self._exes['ffmpeg'], '-y'] + files_cmd
                + opts +
-               [encodeFilename(self._ffmpeg_filename_argument(out_path))])
+               [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
 
         if self._downloader.params.get('verbose', False):
             self._downloader.to_screen(u'[debug] ffmpeg command line: %s' % shell_quote(cmd))
@@ -121,7 +121,10 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         if not self._exes['ffprobe'] and not self._exes['avprobe']:
             raise PostProcessingError(u'ffprobe or avprobe not found. Please install one.')
         try:
-            cmd = [self._exes['avprobe'] or self._exes['ffprobe'], '-show_streams', encodeFilename(self._ffmpeg_filename_argument(path))]
+            cmd = [
+                self._exes['avprobe'] or self._exes['ffprobe'],
+                '-show_streams',
+                encodeFilename(self._ffmpeg_filename_argument(path), True)]
             handle = subprocess.Popen(cmd, stderr=compat_subprocess_get_DEVNULL(), stdout=subprocess.PIPE)
             output = handle.communicate()[0]
             if handle.wait() != 0:
