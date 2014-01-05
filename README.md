@@ -40,6 +40,7 @@ which means you can modify it, redistribute it or use it however you like.
                                files (for videos with obfuscated signatures) are
                                cached, but that may change.
     --no-cache-dir             Disable filesystem caching
+    --socket-timeout None      Time to wait before giving up, in seconds
     --bidi-workaround          Work around terminals that lack bidirectional
                                text support. Requires bidiv or fribidi
                                executable in PATH
