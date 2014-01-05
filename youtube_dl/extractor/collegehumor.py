@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import json
 import re
 
@@ -8,23 +10,23 @@ class CollegeHumorIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?collegehumor\.com/(video|embed|e)/(?P<videoid>[0-9]+)/?(?P<shorttitle>.*)$'
 
     _TESTS = [{
-        u'url': u'http://www.collegehumor.com/video/6902724/comic-con-cosplay-catastrophe',
-        u'file': u'6902724.mp4',
-        u'md5': u'dcc0f5c1c8be98dc33889a191f4c26bd',
-        u'info_dict': {
-            u'title': u'Comic-Con Cosplay Catastrophe',
-            u'description': u'Fans get creative this year at San Diego.  Too',
-            u'age_limit': 13,
+        'url': 'http://www.collegehumor.com/video/6902724/comic-con-cosplay-catastrophe',
+        'file': '6902724.mp4',
+        'md5': 'dcc0f5c1c8be98dc33889a191f4c26bd',
+        'info_dict': {
+            'title': 'Comic-Con Cosplay Catastrophe',
+            'description': 'Fans get creative this year at San Diego.  Too',
+            'age_limit': 13,
         },
     },
     {
-        u'url': u'http://www.collegehumor.com/video/3505939/font-conference',
-        u'file': u'3505939.mp4',
-        u'md5': u'72fa701d8ef38664a4dbb9e2ab721816',
-        u'info_dict': {
-            u'title': u'Font Conference',
-            u'description': u'This video wasn\'t long enough, so we made it double-spaced.',
-            u'age_limit': 10,
+        'url': 'http://www.collegehumor.com/video/3505939/font-conference',
+        'file': '3505939.mp4',
+        'md5': '72fa701d8ef38664a4dbb9e2ab721816',
+        'info_dict': {
+            'title': 'Font Conference',
+            'description': 'This video wasn\'t long enough, so we made it double-spaced.',
+            'age_limit': 10,
         },
     }]
 
@@ -34,7 +36,7 @@ class CollegeHumorIE(InfoExtractor):
 
         jsonUrl = 'http://www.collegehumor.com/moogaloop/video/' + video_id + '.json'
         data = json.loads(self._download_webpage(
-            jsonUrl, video_id, u'Downloading info JSON'))
+            jsonUrl, video_id, 'Downloading info JSON'))
         vdata = data['video']
 
         AGE_LIMITS = {'nc17': 18, 'r': 18, 'pg13': 13, 'pg': 10, 'g': 0}
