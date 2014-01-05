@@ -523,7 +523,7 @@ def _real_main(argv=None):
     all_urls = batchurls + args
     all_urls = [url.strip() for url in all_urls]
     _enc = preferredencoding()
-    all_urls = [url.decode(_enc, 'ignore') if isinstance(url, bytes) else url]
+    all_urls = [url.decode(_enc, 'ignore') if isinstance(url, bytes) else url for url in all_urls]
 
     extractors = gen_extractors()
 
