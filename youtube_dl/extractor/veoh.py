@@ -7,7 +7,7 @@ from ..utils import (
 )
 
 class VeohIE(InfoExtractor):
-    _VALID_URL = r'http://www\.veoh\.com/watch/v(?P<id>\d*)'
+    _VALID_URL = r'http://(?:www\.)?veoh\.com/(?:watch|iphone/#_Watch)/v(?P<id>\d*)'
 
     _TEST = {
         u'url': u'http://www.veoh.com/watch/v56314296nk7Zdmz3',
