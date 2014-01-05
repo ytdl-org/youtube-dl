@@ -7,6 +7,10 @@ import unittest
 
 rootDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+IGNORED_FILES = [
+    'setup.py',  # http://bugs.python.org/issue13943
+]
+
 
 class TestUnicodeLiterals(unittest.TestCase):
     def test_all_files(self):
@@ -17,6 +21,9 @@ class TestUnicodeLiterals(unittest.TestCase):
             for basename in filenames:
                 if not basename.endswith('.py'):
                     continue
+                if basename in IGNORED_FILES:
+                    continue
+
                 fn = os.path.join(dirpath, basename)
                 with io.open(fn, encoding='utf-8') as inf:
                     code = inf.read()
