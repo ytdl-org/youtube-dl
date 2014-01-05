@@ -702,7 +702,7 @@ class YoutubeDL(object):
         if req_format in ('-1', 'all'):
             formats_to_download = formats
         else:
-            # We can accept formats requestd in the format: 34/5/best, we pick
+            # We can accept formats requested in the format: 34/5/best, we pick
             # the first that is available, starting from left
             req_formats = req_format.split('/')
             for rf in req_formats:
@@ -712,7 +712,11 @@ class YoutubeDL(object):
                     formats_info = (self.select_format(format_1, formats),
                         self.select_format(format_2, formats))
                     if all(formats_info):
-                        selected_format = {'requested_formats': formats_info}
+                        selected_format = {
+                            'requested_formats': formats_info,
+                            'format': rf,
+                            'ext': formats_info[0]['ext'],
+                        }
                     else:
                         selected_format = None
                 else:
