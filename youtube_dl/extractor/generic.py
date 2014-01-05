@@ -306,6 +306,9 @@ class GenericIE(InfoExtractor):
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
         if mobj is None:
+            # Look for gorilla-vid style embedding
+            mobj = re.search(r'(?s)jw_plugins.*?file:\s*["\'](.*?)["\']', webpage)
+        if mobj is None:
             # Broaden the search a little bit
             mobj = re.search(r'[^A-Za-z0-9]?(?:file|source)=(http[^\'"&]*)', webpage)
         if mobj is None:
