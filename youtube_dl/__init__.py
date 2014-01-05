@@ -192,7 +192,7 @@ def parseOpts(overrideArguments=None):
         help='Disable filesystem caching')
     general.add_option(
         '--socket-timeout', dest='socket_timeout',
-        type=float, default=None, help=optparse.SUPPRESS_HELP)
+        type=float, default=None, help=u'Time to wait before giving up, in seconds')
     general.add_option(
         '--bidi-workaround', dest='bidi_workaround', action='store_true',
         help=u'Work around terminals that lack bidirectional text support. Requires bidiv or fribidi executable in PATH')
