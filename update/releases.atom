@@ -1,2617 +1,2617 @@
-<?xml version='1.0' encoding='utf-8'?>
-<atom:feed xmlns:atom="http://www.w3.org/2005/Atom">
-    <atom:title>youtube-dl releases</atom:title>
-    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed</atom:id>
-    <atom:updated>2014-01-05T04:52:33.955690</atom:updated>
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>youtube-dl releases</title>
+    <id>https://yt-dl.org/feed/youtube-dl-updates-feed</id>
+    <updated>2014-01-05T05:01:37.843144Z</updated>
     
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2012.02.22</atom:id>
-	    <atom:title>New version 2012.02.22</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2012.02.22</id>
+	    <title>New version 2012.02.22</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2012.02.22/">https://yt-dl.org/downloads/2012.02.22/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2012-02-22</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2012-02-22T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.01.02</atom:id>
-	    <atom:title>New version 2013.01.02</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.01.02</id>
+	    <title>New version 2013.01.02</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.01.02/">https://yt-dl.org/downloads/2013.01.02/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-01-02</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-01-02T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.01.06</atom:id>
-	    <atom:title>New version 2013.01.06</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.01.06</id>
+	    <title>New version 2013.01.06</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.01.06/">https://yt-dl.org/downloads/2013.01.06/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-01-06</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-01-06T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.01.08</atom:id>
-	    <atom:title>New version 2013.01.08</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.01.08</id>
+	    <title>New version 2013.01.08</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.01.08/">https://yt-dl.org/downloads/2013.01.08/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-01-08</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-01-08T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.01.11</atom:id>
-	    <atom:title>New version 2013.01.11</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.01.11</id>
+	    <title>New version 2013.01.11</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.01.11/">https://yt-dl.org/downloads/2013.01.11/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-01-11</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-01-11T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.01.12</atom:id>
-	    <atom:title>New version 2013.01.12</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.01.12</id>
+	    <title>New version 2013.01.12</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.01.12/">https://yt-dl.org/downloads/2013.01.12/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-01-12</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-01-12T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.01.13</atom:id>
-	    <atom:title>New version 2013.01.13</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.01.13</id>
+	    <title>New version 2013.01.13</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.01.13/">https://yt-dl.org/downloads/2013.01.13/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-01-13</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-01-13T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.01.28</atom:id>
-	    <atom:title>New version 2013.01.28</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.01.28</id>
+	    <title>New version 2013.01.28</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.01.28/">https://yt-dl.org/downloads/2013.01.28/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-01-28</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-01-28T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.02.01</atom:id>
-	    <atom:title>New version 2013.02.01</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.02.01</id>
+	    <title>New version 2013.02.01</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.02.01/">https://yt-dl.org/downloads/2013.02.01/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-02-01</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-02-01T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.02.02</atom:id>
-	    <atom:title>New version 2013.02.02</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.02.02</id>
+	    <title>New version 2013.02.02</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.02.02/">https://yt-dl.org/downloads/2013.02.02/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-02-02</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-02-02T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.02.18</atom:id>
-	    <atom:title>New version 2013.02.18</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.02.18</id>
+	    <title>New version 2013.02.18</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.02.18/">https://yt-dl.org/downloads/2013.02.18/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-02-18</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-02-18T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.02.19</atom:id>
-	    <atom:title>New version 2013.02.19</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.02.19</id>
+	    <title>New version 2013.02.19</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.02.19/">https://yt-dl.org/downloads/2013.02.19/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-02-19</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-02-19T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.02.22</atom:id>
-	    <atom:title>New version 2013.02.22</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.02.22</id>
+	    <title>New version 2013.02.22</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.02.22/">https://yt-dl.org/downloads/2013.02.22/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-02-22</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-02-22T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.02.25</atom:id>
-	    <atom:title>New version 2013.02.25</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.02.25</id>
+	    <title>New version 2013.02.25</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.02.25/">https://yt-dl.org/downloads/2013.02.25/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-02-25</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-02-25T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.03.29</atom:id>
-	    <atom:title>New version 2013.03.29</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.03.29</id>
+	    <title>New version 2013.03.29</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.03.29/">https://yt-dl.org/downloads/2013.03.29/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-03-29</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-03-29T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.04.03</atom:id>
-	    <atom:title>New version 2013.04.03</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.04.03</id>
+	    <title>New version 2013.04.03</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.04.03/">https://yt-dl.org/downloads/2013.04.03/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-04-03</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-04-03T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.04.11</atom:id>
-	    <atom:title>New version 2013.04.11</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.04.11</id>
+	    <title>New version 2013.04.11</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.04.11/">https://yt-dl.org/downloads/2013.04.11/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-04-11</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-04-11T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.04.18</atom:id>
-	    <atom:title>New version 2013.04.18</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.04.18</id>
+	    <title>New version 2013.04.18</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.04.18/">https://yt-dl.org/downloads/2013.04.18/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-04-18</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-04-18T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.04.21</atom:id>
-	    <atom:title>New version 2013.04.21</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.04.21</id>
+	    <title>New version 2013.04.21</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.04.21/">https://yt-dl.org/downloads/2013.04.21/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-04-21</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-04-21T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.04.22</atom:id>
-	    <atom:title>New version 2013.04.22</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.04.22</id>
+	    <title>New version 2013.04.22</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.04.22/">https://yt-dl.org/downloads/2013.04.22/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-04-22</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-04-22T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.04.27</atom:id>
-	    <atom:title>New version 2013.04.27</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.04.27</id>
+	    <title>New version 2013.04.27</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.04.27/">https://yt-dl.org/downloads/2013.04.27/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-04-27</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-04-27T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.04.28</atom:id>
-	    <atom:title>New version 2013.04.28</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.04.28</id>
+	    <title>New version 2013.04.28</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.04.28/">https://yt-dl.org/downloads/2013.04.28/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-04-28</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-04-28T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.04.30</atom:id>
-	    <atom:title>New version 2013.04.30</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.04.30</id>
+	    <title>New version 2013.04.30</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.04.30/">https://yt-dl.org/downloads/2013.04.30/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-04-30</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-04-30T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.04.31</atom:id>
-	    <atom:title>New version 2013.04.31</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.04.31</id>
+	    <title>New version 2013.04.31</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.04.31/">https://yt-dl.org/downloads/2013.04.31/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-04-31</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-04-31T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.05.01</atom:id>
-	    <atom:title>New version 2013.05.01</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.05.01</id>
+	    <title>New version 2013.05.01</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.05.01/">https://yt-dl.org/downloads/2013.05.01/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-05-01</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-05-01T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.05.04</atom:id>
-	    <atom:title>New version 2013.05.04</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.05.04</id>
+	    <title>New version 2013.05.04</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.05.04/">https://yt-dl.org/downloads/2013.05.04/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-05-04</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-05-04T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.05.05</atom:id>
-	    <atom:title>New version 2013.05.05</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.05.05</id>
+	    <title>New version 2013.05.05</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.05.05/">https://yt-dl.org/downloads/2013.05.05/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-05-05</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-05-05T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.05.07</atom:id>
-	    <atom:title>New version 2013.05.07</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.05.07</id>
+	    <title>New version 2013.05.07</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.05.07/">https://yt-dl.org/downloads/2013.05.07/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-05-07</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-05-07T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.05.10</atom:id>
-	    <atom:title>New version 2013.05.10</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.05.10</id>
+	    <title>New version 2013.05.10</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.05.10/">https://yt-dl.org/downloads/2013.05.10/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-05-10</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-05-10T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.05.14</atom:id>
-	    <atom:title>New version 2013.05.14</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.05.14</id>
+	    <title>New version 2013.05.14</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.05.14/">https://yt-dl.org/downloads/2013.05.14/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-05-14</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-05-14T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.05.23</atom:id>
-	    <atom:title>New version 2013.05.23</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.05.23</id>
+	    <title>New version 2013.05.23</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.05.23/">https://yt-dl.org/downloads/2013.05.23/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-05-23</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-05-23T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.21</atom:id>
-	    <atom:title>New version 2013.06.21</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.21</id>
+	    <title>New version 2013.06.21</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.06.21/">https://yt-dl.org/downloads/2013.06.21/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-06-21</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-06-21T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.23</atom:id>
-	    <atom:title>New version 2013.06.23</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.23</id>
+	    <title>New version 2013.06.23</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.06.23/">https://yt-dl.org/downloads/2013.06.23/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-06-23</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-06-23T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.25</atom:id>
-	    <atom:title>New version 2013.06.25</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.25</id>
+	    <title>New version 2013.06.25</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.06.25/">https://yt-dl.org/downloads/2013.06.25/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-06-25</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-06-25T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.26</atom:id>
-	    <atom:title>New version 2013.06.26</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.26</id>
+	    <title>New version 2013.06.26</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.06.26/">https://yt-dl.org/downloads/2013.06.26/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-06-26</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-06-26T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.27</atom:id>
-	    <atom:title>New version 2013.06.27</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.27</id>
+	    <title>New version 2013.06.27</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.06.27/">https://yt-dl.org/downloads/2013.06.27/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-06-27</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-06-27T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.28</atom:id>
-	    <atom:title>New version 2013.06.28</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.28</id>
+	    <title>New version 2013.06.28</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.06.28/">https://yt-dl.org/downloads/2013.06.28/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-06-28</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-06-28T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.29</atom:id>
-	    <atom:title>New version 2013.06.29</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.29</id>
+	    <title>New version 2013.06.29</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.06.29/">https://yt-dl.org/downloads/2013.06.29/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-06-29</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-06-29T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.30</atom:id>
-	    <atom:title>New version 2013.06.30</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.30</id>
+	    <title>New version 2013.06.30</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.06.30/">https://yt-dl.org/downloads/2013.06.30/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-06-30</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-06-30T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.31</atom:id>
-	    <atom:title>New version 2013.06.31</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.31</id>
+	    <title>New version 2013.06.31</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.06.31/">https://yt-dl.org/downloads/2013.06.31/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-06-31</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-06-31T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.32</atom:id>
-	    <atom:title>New version 2013.06.32</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.32</id>
+	    <title>New version 2013.06.32</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.06.32/">https://yt-dl.org/downloads/2013.06.32/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-06-32</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-06-32T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.33</atom:id>
-	    <atom:title>New version 2013.06.33</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.33</id>
+	    <title>New version 2013.06.33</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.06.33/">https://yt-dl.org/downloads/2013.06.33/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-06-33</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-06-33T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.34</atom:id>
-	    <atom:title>New version 2013.06.34</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.34</id>
+	    <title>New version 2013.06.34</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.06.34/">https://yt-dl.org/downloads/2013.06.34/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-06-34</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-06-34T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.34.1</atom:id>
-	    <atom:title>New version 2013.06.34.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.34.1</id>
+	    <title>New version 2013.06.34.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.06.34.1/">https://yt-dl.org/downloads/2013.06.34.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-06-34-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-06-34-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.34.2</atom:id>
-	    <atom:title>New version 2013.06.34.2</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.34.2</id>
+	    <title>New version 2013.06.34.2</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.06.34.2/">https://yt-dl.org/downloads/2013.06.34.2/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-06-34-2</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-06-34-2T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.34.3</atom:id>
-	    <atom:title>New version 2013.06.34.3</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.34.3</id>
+	    <title>New version 2013.06.34.3</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.06.34.3/">https://yt-dl.org/downloads/2013.06.34.3/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-06-34-3</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-06-34-3T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.34.4</atom:id>
-	    <atom:title>New version 2013.06.34.4</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.06.34.4</id>
+	    <title>New version 2013.06.34.4</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.06.34.4/">https://yt-dl.org/downloads/2013.06.34.4/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-06-34-4</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-06-34-4T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.02</atom:id>
-	    <atom:title>New version 2013.07.02</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.02</id>
+	    <title>New version 2013.07.02</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.02/">https://yt-dl.org/downloads/2013.07.02/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-02</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-02T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.04</atom:id>
-	    <atom:title>New version 2013.07.04</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.04</id>
+	    <title>New version 2013.07.04</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.04/">https://yt-dl.org/downloads/2013.07.04/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-04</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-04T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.05</atom:id>
-	    <atom:title>New version 2013.07.05</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.05</id>
+	    <title>New version 2013.07.05</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.05/">https://yt-dl.org/downloads/2013.07.05/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-05</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-05T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.07.01</atom:id>
-	    <atom:title>New version 2013.07.07.01</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.07.01</id>
+	    <title>New version 2013.07.07.01</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.07.01/">https://yt-dl.org/downloads/2013.07.07.01/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-07-01</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-07-01T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.08</atom:id>
-	    <atom:title>New version 2013.07.08</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.08</id>
+	    <title>New version 2013.07.08</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.08/">https://yt-dl.org/downloads/2013.07.08/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-08</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-08T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.08.1</atom:id>
-	    <atom:title>New version 2013.07.08.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.08.1</id>
+	    <title>New version 2013.07.08.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.08.1/">https://yt-dl.org/downloads/2013.07.08.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-08-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-08-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.10</atom:id>
-	    <atom:title>New version 2013.07.10</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.10</id>
+	    <title>New version 2013.07.10</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.10/">https://yt-dl.org/downloads/2013.07.10/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-10</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-10T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.11</atom:id>
-	    <atom:title>New version 2013.07.11</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.11</id>
+	    <title>New version 2013.07.11</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.11/">https://yt-dl.org/downloads/2013.07.11/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-11</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-11T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.12</atom:id>
-	    <atom:title>New version 2013.07.12</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.12</id>
+	    <title>New version 2013.07.12</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.12/">https://yt-dl.org/downloads/2013.07.12/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-12</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-12T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.17</atom:id>
-	    <atom:title>New version 2013.07.17</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.17</id>
+	    <title>New version 2013.07.17</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.17/">https://yt-dl.org/downloads/2013.07.17/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-17</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-17T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.17.1</atom:id>
-	    <atom:title>New version 2013.07.17.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.17.1</id>
+	    <title>New version 2013.07.17.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.17.1/">https://yt-dl.org/downloads/2013.07.17.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-17-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-17-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.18</atom:id>
-	    <atom:title>New version 2013.07.18</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.18</id>
+	    <title>New version 2013.07.18</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.18/">https://yt-dl.org/downloads/2013.07.18/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-18</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-18T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.19</atom:id>
-	    <atom:title>New version 2013.07.19</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.19</id>
+	    <title>New version 2013.07.19</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.19/">https://yt-dl.org/downloads/2013.07.19/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-19</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-19T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.23</atom:id>
-	    <atom:title>New version 2013.07.23</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.23</id>
+	    <title>New version 2013.07.23</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.23/">https://yt-dl.org/downloads/2013.07.23/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-23</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-23T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.23.1</atom:id>
-	    <atom:title>New version 2013.07.23.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.23.1</id>
+	    <title>New version 2013.07.23.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.23.1/">https://yt-dl.org/downloads/2013.07.23.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-23-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-23-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.24.2</atom:id>
-	    <atom:title>New version 2013.07.24.2</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.24.2</id>
+	    <title>New version 2013.07.24.2</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.24.2/">https://yt-dl.org/downloads/2013.07.24.2/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-24-2</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-24-2T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.25</atom:id>
-	    <atom:title>New version 2013.07.25</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.25</id>
+	    <title>New version 2013.07.25</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.25/">https://yt-dl.org/downloads/2013.07.25/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-25</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-25T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.25.1</atom:id>
-	    <atom:title>New version 2013.07.25.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.25.1</id>
+	    <title>New version 2013.07.25.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.25.1/">https://yt-dl.org/downloads/2013.07.25.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-25-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-25-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.25.2</atom:id>
-	    <atom:title>New version 2013.07.25.2</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.25.2</id>
+	    <title>New version 2013.07.25.2</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.25.2/">https://yt-dl.org/downloads/2013.07.25.2/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-25-2</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-25-2T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.31</atom:id>
-	    <atom:title>New version 2013.07.31</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.07.31</id>
+	    <title>New version 2013.07.31</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.07.31/">https://yt-dl.org/downloads/2013.07.31/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-07-31</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-07-31T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.02</atom:id>
-	    <atom:title>New version 2013.08.02</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.02</id>
+	    <title>New version 2013.08.02</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.08.02/">https://yt-dl.org/downloads/2013.08.02/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-08-02</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-08-02T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.08</atom:id>
-	    <atom:title>New version 2013.08.08</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.08</id>
+	    <title>New version 2013.08.08</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.08.08/">https://yt-dl.org/downloads/2013.08.08/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-08-08</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-08-08T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.08.1</atom:id>
-	    <atom:title>New version 2013.08.08.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.08.1</id>
+	    <title>New version 2013.08.08.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.08.08.1/">https://yt-dl.org/downloads/2013.08.08.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-08-08-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-08-08-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.09</atom:id>
-	    <atom:title>New version 2013.08.09</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.09</id>
+	    <title>New version 2013.08.09</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.08.09/">https://yt-dl.org/downloads/2013.08.09/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-08-09</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-08-09T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.14</atom:id>
-	    <atom:title>New version 2013.08.14</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.14</id>
+	    <title>New version 2013.08.14</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.08.14/">https://yt-dl.org/downloads/2013.08.14/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-08-14</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-08-14T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.15</atom:id>
-	    <atom:title>New version 2013.08.15</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.15</id>
+	    <title>New version 2013.08.15</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.08.15/">https://yt-dl.org/downloads/2013.08.15/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-08-15</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-08-15T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.17</atom:id>
-	    <atom:title>New version 2013.08.17</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.17</id>
+	    <title>New version 2013.08.17</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.08.17/">https://yt-dl.org/downloads/2013.08.17/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-08-17</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-08-17T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.22</atom:id>
-	    <atom:title>New version 2013.08.22</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.22</id>
+	    <title>New version 2013.08.22</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.08.22/">https://yt-dl.org/downloads/2013.08.22/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-08-22</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-08-22T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.23</atom:id>
-	    <atom:title>New version 2013.08.23</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.23</id>
+	    <title>New version 2013.08.23</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.08.23/">https://yt-dl.org/downloads/2013.08.23/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-08-23</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-08-23T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.27</atom:id>
-	    <atom:title>New version 2013.08.27</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.27</id>
+	    <title>New version 2013.08.27</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.08.27/">https://yt-dl.org/downloads/2013.08.27/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-08-27</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-08-27T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.28</atom:id>
-	    <atom:title>New version 2013.08.28</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.28</id>
+	    <title>New version 2013.08.28</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.08.28/">https://yt-dl.org/downloads/2013.08.28/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-08-28</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-08-28T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.28.1</atom:id>
-	    <atom:title>New version 2013.08.28.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.28.1</id>
+	    <title>New version 2013.08.28.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.08.28.1/">https://yt-dl.org/downloads/2013.08.28.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-08-28-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-08-28-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.29</atom:id>
-	    <atom:title>New version 2013.08.29</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.29</id>
+	    <title>New version 2013.08.29</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.08.29/">https://yt-dl.org/downloads/2013.08.29/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-08-29</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-08-29T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.30</atom:id>
-	    <atom:title>New version 2013.08.30</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.08.30</id>
+	    <title>New version 2013.08.30</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.08.30/">https://yt-dl.org/downloads/2013.08.30/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-08-30</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-08-30T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.04</atom:id>
-	    <atom:title>New version 2013.09.04</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.04</id>
+	    <title>New version 2013.09.04</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.09.04/">https://yt-dl.org/downloads/2013.09.04/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-09-04</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-09-04T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.05</atom:id>
-	    <atom:title>New version 2013.09.05</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.05</id>
+	    <title>New version 2013.09.05</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.09.05/">https://yt-dl.org/downloads/2013.09.05/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-09-05</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-09-05T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.06</atom:id>
-	    <atom:title>New version 2013.09.06</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.06</id>
+	    <title>New version 2013.09.06</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.09.06/">https://yt-dl.org/downloads/2013.09.06/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-09-06</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-09-06T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.06.1</atom:id>
-	    <atom:title>New version 2013.09.06.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.06.1</id>
+	    <title>New version 2013.09.06.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.09.06.1/">https://yt-dl.org/downloads/2013.09.06.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-09-06-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-09-06-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.07</atom:id>
-	    <atom:title>New version 2013.09.07</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.07</id>
+	    <title>New version 2013.09.07</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.09.07/">https://yt-dl.org/downloads/2013.09.07/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-09-07</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-09-07T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.10</atom:id>
-	    <atom:title>New version 2013.09.10</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.10</id>
+	    <title>New version 2013.09.10</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.09.10/">https://yt-dl.org/downloads/2013.09.10/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-09-10</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-09-10T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.16</atom:id>
-	    <atom:title>New version 2013.09.16</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.16</id>
+	    <title>New version 2013.09.16</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.09.16/">https://yt-dl.org/downloads/2013.09.16/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-09-16</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-09-16T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.17</atom:id>
-	    <atom:title>New version 2013.09.17</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.17</id>
+	    <title>New version 2013.09.17</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.09.17/">https://yt-dl.org/downloads/2013.09.17/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-09-17</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-09-17T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.20</atom:id>
-	    <atom:title>New version 2013.09.20</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.20</id>
+	    <title>New version 2013.09.20</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.09.20/">https://yt-dl.org/downloads/2013.09.20/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-09-20</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-09-20T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.20.1</atom:id>
-	    <atom:title>New version 2013.09.20.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.20.1</id>
+	    <title>New version 2013.09.20.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.09.20.1/">https://yt-dl.org/downloads/2013.09.20.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-09-20-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-09-20-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.24</atom:id>
-	    <atom:title>New version 2013.09.24</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.24</id>
+	    <title>New version 2013.09.24</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.09.24/">https://yt-dl.org/downloads/2013.09.24/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-09-24</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-09-24T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.24.1</atom:id>
-	    <atom:title>New version 2013.09.24.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.24.1</id>
+	    <title>New version 2013.09.24.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.09.24.1/">https://yt-dl.org/downloads/2013.09.24.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-09-24-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-09-24-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.24.2</atom:id>
-	    <atom:title>New version 2013.09.24.2</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.24.2</id>
+	    <title>New version 2013.09.24.2</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.09.24.2/">https://yt-dl.org/downloads/2013.09.24.2/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-09-24-2</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-09-24-2T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.29</atom:id>
-	    <atom:title>New version 2013.09.29</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.09.29</id>
+	    <title>New version 2013.09.29</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.09.29/">https://yt-dl.org/downloads/2013.09.29/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-09-29</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-09-29T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.01</atom:id>
-	    <atom:title>New version 2013.10.01</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.01</id>
+	    <title>New version 2013.10.01</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.10.01/">https://yt-dl.org/downloads/2013.10.01/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-10-01</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-10-01T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.01.1</atom:id>
-	    <atom:title>New version 2013.10.01.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.01.1</id>
+	    <title>New version 2013.10.01.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.10.01.1/">https://yt-dl.org/downloads/2013.10.01.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-10-01-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-10-01-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.04</atom:id>
-	    <atom:title>New version 2013.10.04</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.04</id>
+	    <title>New version 2013.10.04</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.10.04/">https://yt-dl.org/downloads/2013.10.04/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-10-04</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-10-04T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.06</atom:id>
-	    <atom:title>New version 2013.10.06</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.06</id>
+	    <title>New version 2013.10.06</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.10.06/">https://yt-dl.org/downloads/2013.10.06/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-10-06</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-10-06T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.07</atom:id>
-	    <atom:title>New version 2013.10.07</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.07</id>
+	    <title>New version 2013.10.07</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.10.07/">https://yt-dl.org/downloads/2013.10.07/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-10-07</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-10-07T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.09</atom:id>
-	    <atom:title>New version 2013.10.09</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.09</id>
+	    <title>New version 2013.10.09</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.10.09/">https://yt-dl.org/downloads/2013.10.09/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-10-09</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-10-09T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.15</atom:id>
-	    <atom:title>New version 2013.10.15</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.15</id>
+	    <title>New version 2013.10.15</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.10.15/">https://yt-dl.org/downloads/2013.10.15/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-10-15</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-10-15T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.17</atom:id>
-	    <atom:title>New version 2013.10.17</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.17</id>
+	    <title>New version 2013.10.17</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.10.17/">https://yt-dl.org/downloads/2013.10.17/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-10-17</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-10-17T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.18</atom:id>
-	    <atom:title>New version 2013.10.18</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.18</id>
+	    <title>New version 2013.10.18</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.10.18/">https://yt-dl.org/downloads/2013.10.18/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-10-18</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-10-18T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.18.1</atom:id>
-	    <atom:title>New version 2013.10.18.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.18.1</id>
+	    <title>New version 2013.10.18.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.10.18.1/">https://yt-dl.org/downloads/2013.10.18.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-10-18-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-10-18-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.18.2</atom:id>
-	    <atom:title>New version 2013.10.18.2</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.18.2</id>
+	    <title>New version 2013.10.18.2</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.10.18.2/">https://yt-dl.org/downloads/2013.10.18.2/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-10-18-2</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-10-18-2T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.22</atom:id>
-	    <atom:title>New version 2013.10.22</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.22</id>
+	    <title>New version 2013.10.22</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.10.22/">https://yt-dl.org/downloads/2013.10.22/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-10-22</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-10-22T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.23</atom:id>
-	    <atom:title>New version 2013.10.23</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.23</id>
+	    <title>New version 2013.10.23</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.10.23/">https://yt-dl.org/downloads/2013.10.23/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-10-23</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-10-23T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.23.1</atom:id>
-	    <atom:title>New version 2013.10.23.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.23.1</id>
+	    <title>New version 2013.10.23.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.10.23.1/">https://yt-dl.org/downloads/2013.10.23.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-10-23-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-10-23-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.23.2</atom:id>
-	    <atom:title>New version 2013.10.23.2</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.23.2</id>
+	    <title>New version 2013.10.23.2</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.10.23.2/">https://yt-dl.org/downloads/2013.10.23.2/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-10-23-2</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-10-23-2T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.28</atom:id>
-	    <atom:title>New version 2013.10.28</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.28</id>
+	    <title>New version 2013.10.28</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.10.28/">https://yt-dl.org/downloads/2013.10.28/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-10-28</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-10-28T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.29</atom:id>
-	    <atom:title>New version 2013.10.29</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.29</id>
+	    <title>New version 2013.10.29</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.10.29/">https://yt-dl.org/downloads/2013.10.29/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-10-29</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-10-29T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.30</atom:id>
-	    <atom:title>New version 2013.10.30</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.10.30</id>
+	    <title>New version 2013.10.30</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.10.30/">https://yt-dl.org/downloads/2013.10.30/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-10-30</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-10-30T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.02</atom:id>
-	    <atom:title>New version 2013.11.02</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.02</id>
+	    <title>New version 2013.11.02</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.02/">https://yt-dl.org/downloads/2013.11.02/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-02</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-02T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.03</atom:id>
-	    <atom:title>New version 2013.11.03</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.03</id>
+	    <title>New version 2013.11.03</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.03/">https://yt-dl.org/downloads/2013.11.03/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-03</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-03T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.06</atom:id>
-	    <atom:title>New version 2013.11.06</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.06</id>
+	    <title>New version 2013.11.06</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.06/">https://yt-dl.org/downloads/2013.11.06/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-06</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-06T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.06.1</atom:id>
-	    <atom:title>New version 2013.11.06.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.06.1</id>
+	    <title>New version 2013.11.06.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.06.1/">https://yt-dl.org/downloads/2013.11.06.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-06-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-06-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.07</atom:id>
-	    <atom:title>New version 2013.11.07</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.07</id>
+	    <title>New version 2013.11.07</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.07/">https://yt-dl.org/downloads/2013.11.07/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-07</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-07T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.09</atom:id>
-	    <atom:title>New version 2013.11.09</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.09</id>
+	    <title>New version 2013.11.09</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.09/">https://yt-dl.org/downloads/2013.11.09/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-09</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-09T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.11</atom:id>
-	    <atom:title>New version 2013.11.11</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.11</id>
+	    <title>New version 2013.11.11</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.11/">https://yt-dl.org/downloads/2013.11.11/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-11</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-11T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.13</atom:id>
-	    <atom:title>New version 2013.11.13</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.13</id>
+	    <title>New version 2013.11.13</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.13/">https://yt-dl.org/downloads/2013.11.13/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-13</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-13T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.15</atom:id>
-	    <atom:title>New version 2013.11.15</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.15</id>
+	    <title>New version 2013.11.15</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.15/">https://yt-dl.org/downloads/2013.11.15/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-15</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-15T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.15.1</atom:id>
-	    <atom:title>New version 2013.11.15.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.15.1</id>
+	    <title>New version 2013.11.15.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.15.1/">https://yt-dl.org/downloads/2013.11.15.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-15-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-15-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.17</atom:id>
-	    <atom:title>New version 2013.11.17</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.17</id>
+	    <title>New version 2013.11.17</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.17/">https://yt-dl.org/downloads/2013.11.17/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-17</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-17T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.18</atom:id>
-	    <atom:title>New version 2013.11.18</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.18</id>
+	    <title>New version 2013.11.18</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.18/">https://yt-dl.org/downloads/2013.11.18/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-18</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-18T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.18.1</atom:id>
-	    <atom:title>New version 2013.11.18.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.18.1</id>
+	    <title>New version 2013.11.18.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.18.1/">https://yt-dl.org/downloads/2013.11.18.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-18-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-18-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.19</atom:id>
-	    <atom:title>New version 2013.11.19</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.19</id>
+	    <title>New version 2013.11.19</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.19/">https://yt-dl.org/downloads/2013.11.19/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-19</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-19T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.20</atom:id>
-	    <atom:title>New version 2013.11.20</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.20</id>
+	    <title>New version 2013.11.20</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.20/">https://yt-dl.org/downloads/2013.11.20/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-20</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-20T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.21</atom:id>
-	    <atom:title>New version 2013.11.21</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.21</id>
+	    <title>New version 2013.11.21</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.21/">https://yt-dl.org/downloads/2013.11.21/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-21</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-21T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.22</atom:id>
-	    <atom:title>New version 2013.11.22</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.22</id>
+	    <title>New version 2013.11.22</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.22/">https://yt-dl.org/downloads/2013.11.22/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-22</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-22T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.22.1</atom:id>
-	    <atom:title>New version 2013.11.22.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.22.1</id>
+	    <title>New version 2013.11.22.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.22.1/">https://yt-dl.org/downloads/2013.11.22.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-22-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-22-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.22.2</atom:id>
-	    <atom:title>New version 2013.11.22.2</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.22.2</id>
+	    <title>New version 2013.11.22.2</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.22.2/">https://yt-dl.org/downloads/2013.11.22.2/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-22-2</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-22-2T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.24</atom:id>
-	    <atom:title>New version 2013.11.24</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.24</id>
+	    <title>New version 2013.11.24</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.24/">https://yt-dl.org/downloads/2013.11.24/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-24</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-24T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.24.1</atom:id>
-	    <atom:title>New version 2013.11.24.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.24.1</id>
+	    <title>New version 2013.11.24.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.24.1/">https://yt-dl.org/downloads/2013.11.24.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-24-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-24-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.25</atom:id>
-	    <atom:title>New version 2013.11.25</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.25</id>
+	    <title>New version 2013.11.25</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.25/">https://yt-dl.org/downloads/2013.11.25/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-25</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-25T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.25.1</atom:id>
-	    <atom:title>New version 2013.11.25.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.25.1</id>
+	    <title>New version 2013.11.25.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.25.1/">https://yt-dl.org/downloads/2013.11.25.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-25-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-25-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.25.2</atom:id>
-	    <atom:title>New version 2013.11.25.2</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.25.2</id>
+	    <title>New version 2013.11.25.2</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.25.2/">https://yt-dl.org/downloads/2013.11.25.2/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-25-2</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-25-2T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.25.3</atom:id>
-	    <atom:title>New version 2013.11.25.3</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.25.3</id>
+	    <title>New version 2013.11.25.3</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.25.3/">https://yt-dl.org/downloads/2013.11.25.3/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-25-3</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-25-3T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.26</atom:id>
-	    <atom:title>New version 2013.11.26</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.26</id>
+	    <title>New version 2013.11.26</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.26/">https://yt-dl.org/downloads/2013.11.26/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-26</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-26T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.28</atom:id>
-	    <atom:title>New version 2013.11.28</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.28</id>
+	    <title>New version 2013.11.28</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.28/">https://yt-dl.org/downloads/2013.11.28/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-28</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-28T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.28.1</atom:id>
-	    <atom:title>New version 2013.11.28.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.28.1</id>
+	    <title>New version 2013.11.28.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.28.1/">https://yt-dl.org/downloads/2013.11.28.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-28-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-28-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.29</atom:id>
-	    <atom:title>New version 2013.11.29</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.11.29</id>
+	    <title>New version 2013.11.29</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.11.29/">https://yt-dl.org/downloads/2013.11.29/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-11-29</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-11-29T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.02</atom:id>
-	    <atom:title>New version 2013.12.02</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.02</id>
+	    <title>New version 2013.12.02</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.02/">https://yt-dl.org/downloads/2013.12.02/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-02</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-02T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.03</atom:id>
-	    <atom:title>New version 2013.12.03</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.03</id>
+	    <title>New version 2013.12.03</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.03/">https://yt-dl.org/downloads/2013.12.03/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-03</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-03T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.04</atom:id>
-	    <atom:title>New version 2013.12.04</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.04</id>
+	    <title>New version 2013.12.04</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.04/">https://yt-dl.org/downloads/2013.12.04/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-04</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-04T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.08</atom:id>
-	    <atom:title>New version 2013.12.08</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.08</id>
+	    <title>New version 2013.12.08</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.08/">https://yt-dl.org/downloads/2013.12.08/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-08</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-08T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.08.1</atom:id>
-	    <atom:title>New version 2013.12.08.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.08.1</id>
+	    <title>New version 2013.12.08.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.08.1/">https://yt-dl.org/downloads/2013.12.08.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-08-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-08-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.09</atom:id>
-	    <atom:title>New version 2013.12.09</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.09</id>
+	    <title>New version 2013.12.09</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.09/">https://yt-dl.org/downloads/2013.12.09/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-09</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-09T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.09.1</atom:id>
-	    <atom:title>New version 2013.12.09.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.09.1</id>
+	    <title>New version 2013.12.09.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.09.1/">https://yt-dl.org/downloads/2013.12.09.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-09-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-09-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.09.2</atom:id>
-	    <atom:title>New version 2013.12.09.2</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.09.2</id>
+	    <title>New version 2013.12.09.2</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.09.2/">https://yt-dl.org/downloads/2013.12.09.2/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-09-2</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-09-2T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.09.4</atom:id>
-	    <atom:title>New version 2013.12.09.4</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.09.4</id>
+	    <title>New version 2013.12.09.4</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.09.4/">https://yt-dl.org/downloads/2013.12.09.4/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-09-4</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-09-4T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.10</atom:id>
-	    <atom:title>New version 2013.12.10</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.10</id>
+	    <title>New version 2013.12.10</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.10/">https://yt-dl.org/downloads/2013.12.10/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-10</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-10T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.11</atom:id>
-	    <atom:title>New version 2013.12.11</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.11</id>
+	    <title>New version 2013.12.11</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.11/">https://yt-dl.org/downloads/2013.12.11/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-11</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-11T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.11.1</atom:id>
-	    <atom:title>New version 2013.12.11.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.11.1</id>
+	    <title>New version 2013.12.11.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.11.1/">https://yt-dl.org/downloads/2013.12.11.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-11-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-11-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.11.2</atom:id>
-	    <atom:title>New version 2013.12.11.2</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.11.2</id>
+	    <title>New version 2013.12.11.2</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.11.2/">https://yt-dl.org/downloads/2013.12.11.2/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-11-2</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-11-2T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.16</atom:id>
-	    <atom:title>New version 2013.12.16</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.16</id>
+	    <title>New version 2013.12.16</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.16/">https://yt-dl.org/downloads/2013.12.16/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-16</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-16T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.16.1</atom:id>
-	    <atom:title>New version 2013.12.16.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.16.1</id>
+	    <title>New version 2013.12.16.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.16.1/">https://yt-dl.org/downloads/2013.12.16.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-16-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-16-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.16.2</atom:id>
-	    <atom:title>New version 2013.12.16.2</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.16.2</id>
+	    <title>New version 2013.12.16.2</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.16.2/">https://yt-dl.org/downloads/2013.12.16.2/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-16-2</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-16-2T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.16.3</atom:id>
-	    <atom:title>New version 2013.12.16.3</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.16.3</id>
+	    <title>New version 2013.12.16.3</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.16.3/">https://yt-dl.org/downloads/2013.12.16.3/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-16-3</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-16-3T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.16.4</atom:id>
-	    <atom:title>New version 2013.12.16.4</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.16.4</id>
+	    <title>New version 2013.12.16.4</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.16.4/">https://yt-dl.org/downloads/2013.12.16.4/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-16-4</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-16-4T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.16.6</atom:id>
-	    <atom:title>New version 2013.12.16.6</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.16.6</id>
+	    <title>New version 2013.12.16.6</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.16.6/">https://yt-dl.org/downloads/2013.12.16.6/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-16-6</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-16-6T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.16.7</atom:id>
-	    <atom:title>New version 2013.12.16.7</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.16.7</id>
+	    <title>New version 2013.12.16.7</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.16.7/">https://yt-dl.org/downloads/2013.12.16.7/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-16-7</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-16-7T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.17</atom:id>
-	    <atom:title>New version 2013.12.17</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.17</id>
+	    <title>New version 2013.12.17</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.17/">https://yt-dl.org/downloads/2013.12.17/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-17</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-17T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.17.1</atom:id>
-	    <atom:title>New version 2013.12.17.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.17.1</id>
+	    <title>New version 2013.12.17.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.17.1/">https://yt-dl.org/downloads/2013.12.17.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-17-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-17-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.17.2</atom:id>
-	    <atom:title>New version 2013.12.17.2</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.17.2</id>
+	    <title>New version 2013.12.17.2</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.17.2/">https://yt-dl.org/downloads/2013.12.17.2/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-17-2</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-17-2T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.20</atom:id>
-	    <atom:title>New version 2013.12.20</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.20</id>
+	    <title>New version 2013.12.20</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.20/">https://yt-dl.org/downloads/2013.12.20/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-20</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-20T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.23</atom:id>
-	    <atom:title>New version 2013.12.23</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.23</id>
+	    <title>New version 2013.12.23</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.23/">https://yt-dl.org/downloads/2013.12.23/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-23</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-23T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.23.1</atom:id>
-	    <atom:title>New version 2013.12.23.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.23.1</id>
+	    <title>New version 2013.12.23.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.23.1/">https://yt-dl.org/downloads/2013.12.23.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-23-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-23-1T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.23.2</atom:id>
-	    <atom:title>New version 2013.12.23.2</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.23.2</id>
+	    <title>New version 2013.12.23.2</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.23.2/">https://yt-dl.org/downloads/2013.12.23.2/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-23-2</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-23-2T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.23.3</atom:id>
-	    <atom:title>New version 2013.12.23.3</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.23.3</id>
+	    <title>New version 2013.12.23.3</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.23.3/">https://yt-dl.org/downloads/2013.12.23.3/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-23-3</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-23-3T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.23.4</atom:id>
-	    <atom:title>New version 2013.12.23.4</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.23.4</id>
+	    <title>New version 2013.12.23.4</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.23.4/">https://yt-dl.org/downloads/2013.12.23.4/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-23-4</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-23-4T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.26</atom:id>
-	    <atom:title>New version 2013.12.26</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2013.12.26</id>
+	    <title>New version 2013.12.26</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2013.12.26/">https://yt-dl.org/downloads/2013.12.26/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2013-12-26</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2013-12-26T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2014.01.03</atom:id>
-	    <atom:title>New version 2014.01.03</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2014.01.03</id>
+	    <title>New version 2014.01.03</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2014.01.03/">https://yt-dl.org/downloads/2014.01.03/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2014-01-03</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2014-01-03T00:00:00Z</updated>
+	</entry>
 
-	<atom:entry>
-	    <atom:id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2014.01.05.1</atom:id>
-	    <atom:title>New version 2014.01.05.1</atom:title>
-	    <atom:link href="http://rg3.github.io/youtube-dl" />
-	    <atom:content type="xhtml">
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2014.01.05.1</id>
+	    <title>New version 2014.01.05.1</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
 	        <div xmlns="http://www.w3.org/1999/xhtml">
 	            Downloads available at <a href="https://yt-dl.org/downloads/2014.01.05.1/">https://yt-dl.org/downloads/2014.01.05.1/</a>
 	        </div>
-	    </atom:content>
-	    <atom:author>
-	        <atom:name>The youtube-dl maintainers</atom:name>
-	    </atom:author>
-	    <atom:updated>2014-01-05-1</atom:updated>
-	</atom:entry>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2014-01-05-1T00:00:00Z</updated>
+	</entry>
 
-</atom:feed>
+</feed>
