@@ -5,7 +5,7 @@ from ..utils import compat_urllib_parse
 
 
 class PornHdIE(InfoExtractor):
-    _VALID_URL = r'(?:http://)?(?:www\.)?pornhd\.com/videos/(?P<video_id>[0-9]+)/(?P<video_title>.+)'
+    _VALID_URL = r'(?:http://)?(?:www\.)?pornhd\.com/(?:[a-z]{2,4}/)?videos/(?P<video_id>[0-9]+)/(?P<video_title>.+)'
     _TEST = {
         u'url': u'http://www.pornhd.com/videos/1962/sierra-day-gets-his-cum-all-over-herself-hd-porn-video',
         u'file': u'1962.flv',
