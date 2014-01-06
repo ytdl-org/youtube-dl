@@ -199,6 +199,7 @@ from .vimeo import (
     VimeoUserIE,
     VimeoAlbumIE,
     VimeoGroupsIE,
+    VimeoReviewIE,
 )
 from .vine import VineIE
 from .viki import VikiIE

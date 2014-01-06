@@ -311,7 +311,7 @@ class VimeoChannelIE(InfoExtractor):
 
 class VimeoUserIE(VimeoChannelIE):
     IE_NAME = u'vimeo:user'
-    _VALID_URL = r'(?:https?://)?vimeo.\com/(?P<name>[^/]+)'
+    _VALID_URL = r'(?:https?://)?vimeo.\com/(?P<name>[^/]+)(?:[#?]|$)'
     _TITLE_RE = r'<a[^>]+?class="user">([^<>]+?)</a>'
 
     @classmethod
@@ -336,7 +336,7 @@ class VimeoAlbumIE(VimeoChannelIE):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        album_id =  mobj.group('id')
+        album_id = mobj.group('id')
         return self._extract_videos(album_id, 'http://vimeo.com/album/%s' % album_id)
 
 
@@ -351,3 +351,24 @@ class VimeoGroupsIE(VimeoAlbumIE):
         mobj = re.match(self._VALID_URL, url)
         name = mobj.group('name')
         return self._extract_videos(name, 'http://vimeo.com/groups/%s' % name)
+
+
+class VimeoReviewIE(InfoExtractor):
+    IE_NAME = u'vimeo:review'
+    IE_DESC = u'Review pages on vimeo'
+    _VALID_URL = r'(?:https?://)?vimeo.\com/[^/]+/review/(?P<id>[^/]+)'
+    _TEST = {
+        'url': 'https://vimeo.com/user21297594/review/75524534/3c257a1b5d',
+        'file': '75524534.mp4',
+        'md5': 'c507a72f780cacc12b2248bb4006d253',
+        'info_dict': {
+            'title': "DICK HARDWICK 'Comedian'",
+            'uploader': 'Richard Hardwick',
+        }
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        player_url = 'https://player.vimeo.com/player/' + video_id
+        return self.url_result(player_url, 'Vimeo', video_id)
