@@ -3,11 +3,12 @@ from __future__ import unicode_literals
 import re
 import json
 
+from .subtitles import SubtitlesInfoExtractor
 from .common import InfoExtractor
 from ..utils import ExtractorError
 
 
-class LyndaIE(InfoExtractor):
+class LyndaIE(SubtitlesInfoExtractor):
     IE_NAME = 'lynda'
     IE_DESC = 'lynda.com videos'
     _VALID_URL = r'https?://www\.lynda\.com/[^/]+/[^/]+/\d+/(\d+)-\d\.html'
@@ -21,7 +22,7 @@ class LyndaIE(InfoExtractor):
             'duration': 68
         }
     }
-
+    
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group(1)
@@ -45,17 +46,56 @@ class LyndaIE(InfoExtractor):
                     'width': fmt['Width'],
                     'height': fmt['Height'],
                     'filesize': fmt['FileSize'],
-                    'format_id': fmt['Resolution']
+                    'format_id': str(fmt['Resolution'])
                     } for fmt in video_json['Formats']]
 
         self._sort_formats(formats)
-
+        
+        if self._downloader.params.get('listsubtitles', False):
+            self._list_available_subtitles(video_id, page)
+            return
+        
+        subtitles = self._fix_subtitles(self.extract_subtitles(video_id, page))
+        
         return {
             'id': video_id,
             'title': title,
             'duration': duration,
+            'subtitles': subtitles,
             'formats': formats
         }
+        
+    _TIMECODE_REGEX = r'\[(?P<timecode>\d+:\d+:\d+[\.,]\d+)\]'    
+    
+    def _fix_subtitles(self, subtitles):
+        fixed_subtitles = {}
+        for k, v in subtitles.items():
+            subs = json.loads(v)
+            if len(subs) == 0:
+                continue
+            srt = ''
+            for pos in range(0, len(subs) - 1):
+                seq_current = subs[pos]                
+                m_current = re.match(self._TIMECODE_REGEX, seq_current['Timecode'])
+                if m_current is None:
+                    continue                
+                seq_next = subs[pos+1]
+                m_next = re.match(self._TIMECODE_REGEX, seq_next['Timecode'])
+                if m_next is None:
+                    continue                
+                appear_time = m_current.group('timecode')
+                disappear_time = m_next.group('timecode')
+                text = seq_current['Caption']
+                srt += '%s\r\n%s --> %s\r\n%s' % (str(pos), appear_time, disappear_time, text)
+            if srt:
+                fixed_subtitles[k] = srt
+        return fixed_subtitles
+        
+    def _get_available_subtitles(self, video_id, webpage):
+        url = 'http://www.lynda.com/ajax/player?videoId=%s&type=transcript' % video_id
+        sub = self._download_webpage(url, None, note=False)
+        sub_json = json.loads(sub)
+        return {'en': url} if len(sub_json) > 0 else {}
 
 
 class LyndaCourseIE(InfoExtractor):
