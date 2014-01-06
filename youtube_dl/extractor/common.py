@@ -73,6 +73,10 @@ class InfoExtractor(object):
                                  by this field.
                                  -1 for default (order by other properties),
                                  -2 or smaller for less than default.
+                    * quality    Order number of the video quality of this
+                                 format, irrespective of the file format.
+                                 -1 for default (order by other properties),
+                                 -2 or smaller for less than default.
     url:            Final video URL.
     ext:            Video filename extension.
     format:         The video format, defaults to ext (used for --get-format)
@@ -483,6 +487,7 @@ class InfoExtractor(object):
 
             return (
                 preference,
+                f.get('quality') if f.get('quality') is not None else -1,
                 f.get('height') if f.get('height') is not None else -1,
                 f.get('width') if f.get('width') is not None else -1,
                 ext_preference,
