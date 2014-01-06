@@ -179,6 +179,10 @@ class VimeoIE(InfoExtractor):
             else:
                 raise ExtractorError(u'Unable to extract info section',
                                      cause=e)
+        else:
+            if config.get('view') == 4:
+                self._verify_video_password(url, video_id, webpage)
+                return self._real_extract(url)
 
         # Extract title
         video_title = config["video"]["title"]
