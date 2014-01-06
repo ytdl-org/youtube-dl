@@ -4,6 +4,7 @@ import os
 import re
 
 from .common import InfoExtractor
+from .youtube import YoutubeIE
 from ..utils import (
     compat_urllib_error,
     compat_urllib_parse,
@@ -339,12 +340,16 @@ class GenericIE(InfoExtractor):
         video_url = compat_urlparse.urljoin(url, video_url)
         video_id = compat_urllib_parse.unquote(os.path.basename(video_url))
 
+        # Sometimes, jwplayer extraction will result in a YouTube URL
+        if YoutubeIE.suitable(video_url):
+            return self.url_result(video_url, 'Youtube')
+
         # here's a fun little line of code for you:
         video_id = os.path.splitext(video_id)[0]
 
         return {
-            'id':       video_id,
-            'url':      video_url,
+            'id': video_id,
+            'url': video_url,
             'uploader': video_uploader,
-            'title':    video_title,
+            'title': video_title,
         }
