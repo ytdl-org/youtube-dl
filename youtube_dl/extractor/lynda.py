@@ -65,8 +65,8 @@ class LyndaIE(SubtitlesInfoExtractor):
             'formats': formats
         }
         
-    _TIMECODE_REGEX = r'\[(?P<timecode>\d+:\d+:\d+[\.,]\d+)\]'    
-    
+    _TIMECODE_REGEX = r'\[(?P<timecode>\d+:\d+:\d+[\.,]\d+)\]'
+
     def _fix_subtitles(self, subtitles):
         fixed_subtitles = {}
         for k, v in subtitles.items():
@@ -75,14 +75,14 @@ class LyndaIE(SubtitlesInfoExtractor):
                 continue
             srt = ''
             for pos in range(0, len(subs) - 1):
-                seq_current = subs[pos]                
+                seq_current = subs[pos]
                 m_current = re.match(self._TIMECODE_REGEX, seq_current['Timecode'])
                 if m_current is None:
-                    continue                
-                seq_next = subs[pos+1]
+                    continue
+                seq_next = subs[pos + 1]
                 m_next = re.match(self._TIMECODE_REGEX, seq_next['Timecode'])
                 if m_next is None:
-                    continue                
+                    continue
                 appear_time = m_current.group('timecode')
                 disappear_time = m_next.group('timecode')
                 text = seq_current['Caption']
