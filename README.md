@@ -58,8 +58,10 @@ which means you can modify it, redistribute it or use it however you like.
     --max-filesize SIZE        Do not download any videos larger than SIZE (e.g.
                                50k or 44.6m)
     --date DATE                download only videos uploaded in this date
-    --datebefore DATE          download only videos uploaded before this date
-    --dateafter DATE           download only videos uploaded after this date
+    --datebefore DATE          download only videos uploaded on or before this
+                               date (i.e. inclusive)
+    --dateafter DATE           download only videos uploaded on or after this
+                               date (i.e. inclusive)
     --min-views COUNT          Do not download any videos with less than COUNT
                                views
     --max-views COUNT          Do not download any videos with more than COUNT
