@@ -7,6 +7,7 @@ import time
 from .common import AudioConversionError, PostProcessor
 
 from ..utils import (
+    check_executable,
     compat_subprocess_get_DEVNULL,
     encodeFilename,
     PostProcessingError,
@@ -27,14 +28,8 @@ class FFmpegPostProcessor(PostProcessor):
 
     @staticmethod
     def detect_executables():
-        def executable(exe):
-            try:
-                subprocess.Popen([exe, '-version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-            except OSError:
-                return False
-            return exe
         programs = ['avprobe', 'avconv', 'ffmpeg', 'ffprobe']
-        return dict((program, executable(program)) for program in programs)
+        return dict((program, check_executable(program, ['-version'])) for program in programs)
 
     def run_ffmpeg_multiple_files(self, input_paths, out_path, opts):
         if not self._exes['ffmpeg'] and not self._exes['avconv']:

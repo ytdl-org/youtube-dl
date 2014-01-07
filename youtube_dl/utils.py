@@ -1151,3 +1151,13 @@ def parse_duration(s):
 def prepend_extension(filename, ext):
     name, real_ext = os.path.splitext(filename) 
     return u'{0}.{1}{2}'.format(name, ext, real_ext)
+
+
+def check_executable(exe, args=[]):
+    """ Checks if the given binary is installed somewhere in PATH, and returns its name.
+    args can be a list of arguments for a short output (like -version) """
+    try:
+        subprocess.Popen([exe] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+    except OSError:
+        return False
+    return exe
