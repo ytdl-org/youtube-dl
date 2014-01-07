@@ -5,6 +5,7 @@ import sys
 from .common import PostProcessor
 from ..utils import (
     hyphenate_date,
+    preferredencoding,
 )
 
 
@@ -70,7 +71,7 @@ class XAttrMetadataPP(PostProcessor):
                                     e = OSError(potential_errno, potential_errorstr)
                                     e.__cause__ = None
                                     raise e
-                            raise # Reraise unhandled error
+                            raise  # Reraise unhandled error
 
                 else:
                     # On Unix, and can't find pyxattr, setfattr, or xattr.
@@ -113,7 +114,8 @@ class XAttrMetadataPP(PostProcessor):
                     if infoname == "upload_date":
                         value = hyphenate_date(value)
 
-                    write_xattr(filename, xattrname, value)
+                    byte_value = value.encode(preferredencoding())
+                    write_xattr(filename, xattrname, byte_value)
 
             return True, info
 
