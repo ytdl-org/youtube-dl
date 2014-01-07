@@ -1,5 +1,6 @@
+from __future__ import unicode_literals
+
 import re
-import operator
 
 from .common import InfoExtractor
 from ..utils import (
@@ -11,12 +12,12 @@ class MetacriticIE(InfoExtractor):
     _VALID_URL = r'https?://www\.metacritic\.com/.+?/trailers/(?P<id>\d+)'
 
     _TEST = {
-        u'url': u'http://www.metacritic.com/game/playstation-4/infamous-second-son/trailers/3698222',
-        u'file': u'3698222.mp4',
-        u'info_dict': {
-            u'title': u'inFamous: Second Son - inSide Sucker Punch: Smoke & Mirrors',
-            u'description': u'Take a peak behind-the-scenes to see how Sucker Punch brings smoke into the universe of inFAMOUS Second Son on the PS4.',
-            u'duration': 221,
+        'url': 'http://www.metacritic.com/game/playstation-4/infamous-second-son/trailers/3698222',
+        'file': '3698222.mp4',
+        'info_dict': {
+            'title': 'inFamous: Second Son - inSide Sucker Punch: Smoke & Mirrors',
+            'description': 'Take a peak behind-the-scenes to see how Sucker Punch brings smoke into the universe of inFAMOUS Second Son on the PS4.',
+            'duration': 221,
         },
     }
 
@@ -26,7 +27,7 @@ class MetacriticIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         # The xml is not well formatted, there are raw '&'
         info = self._download_xml('http://www.metacritic.com/video_data?video=' + video_id,
-            video_id, u'Downloading info xml', transform_source=fix_xml_all_ampersand)
+            video_id, 'Downloading info xml', transform_source=fix_xml_all_ampersand)
 
         clip = next(c for c in info.findall('playList/clip') if c.find('id').text == video_id)
         formats = []
@@ -37,12 +38,12 @@ class MetacriticIE(InfoExtractor):
                 'url': video_url,
                 'ext': 'mp4',
                 'format_id': rate_str,
-                'rate': int(rate_str),
+                'tbr': int(rate_str),
             })
-        formats.sort(key=operator.itemgetter('rate'))
+        self._sort_formats(formats)
 
         description = self._html_search_regex(r'<b>Description:</b>(.*?)</p>',
-            webpage, u'description', flags=re.DOTALL)
+            webpage, 'description', flags=re.DOTALL)
 
         return {
             'id': video_id,
