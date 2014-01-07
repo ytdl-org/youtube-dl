@@ -68,6 +68,9 @@ class LyndaIE(SubtitlesInfoExtractor):
     _TIMECODE_REGEX = r'\[(?P<timecode>\d+:\d+:\d+[\.,]\d+)\]'
 
     def _fix_subtitles(self, subtitles):
+        if subtitles is None:
+            return subtitles  # subtitles not requested
+
         fixed_subtitles = {}
         for k, v in subtitles.items():
             subs = json.loads(v)
