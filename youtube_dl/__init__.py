@@ -38,6 +38,7 @@ __authors__  = (
     'Takuya Tsuchida',
     'Sergey M.',
     'Michael Orlitzky',
+    'Chris Gahan',
 )
 
 __license__ = 'Public Domain'
@@ -79,6 +80,7 @@ from .PostProcessor import (
     FFmpegVideoConvertor,
     FFmpegExtractAudioPP,
     FFmpegEmbedSubtitlePP,
+    XAttrMetadataPP,
 )
 
 
@@ -415,7 +417,9 @@ def parseOpts(overrideArguments=None):
     postproc.add_option('--embed-subs', action='store_true', dest='embedsubtitles', default=False,
             help='embed subtitles in the video (only for mp4 videos)')
     postproc.add_option('--add-metadata', action='store_true', dest='addmetadata', default=False,
-            help='add metadata to the files')
+            help='write metadata to the video file')
+    postproc.add_option('--xattrs', action='store_true', dest='xattrs', default=False,
+            help='write metadata to the video file\'s xattrs (using dublin core and xdg standards)')
 
 
     parser.add_option_group(general)
@@ -717,6 +721,8 @@ def _real_main(argv=None):
             ydl.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
         if opts.embedsubtitles:
             ydl.add_post_processor(FFmpegEmbedSubtitlePP(subtitlesformat=opts.subtitlesformat))
+        if opts.xattrs:
+            ydl.add_post_processor(XAttrMetadataPP())
 
         # Update version
         if opts.update_self:
