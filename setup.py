@@ -71,7 +71,10 @@ setup(
     author_email='ytdl@yt-dl.org',
     maintainer='Philipp Hagemeister',
     maintainer_email='phihag@phihag.de',
-    packages=['youtube_dl', 'youtube_dl.extractor', 'youtube_dl.downloader'],
+    packages=[
+        'youtube_dl',
+        'youtube_dl.extractor', 'youtube_dl.downloader',
+        'youtube_dl.postprocessor'],
 
     # Provokes warning on most systems (why?!)
     # test_suite = 'nose.collector',

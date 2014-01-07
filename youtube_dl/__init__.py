@@ -75,7 +75,7 @@ from .FileDownloader import (
 from .extractor import gen_extractors
 from .version import __version__
 from .YoutubeDL import YoutubeDL
-from .PostProcessor import (
+from .postprocessor import (
     FFmpegMetadataPP,
     FFmpegVideoConvertor,
     FFmpegExtractAudioPP,

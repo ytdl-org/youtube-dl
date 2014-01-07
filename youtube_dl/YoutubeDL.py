@@ -55,7 +55,7 @@ from .utils import (
 )
 from .extractor import get_info_extractor, gen_extractors
 from .downloader import get_suitable_downloader
-from .PostProcessor import FFmpegMergerPP
+from .postprocessor import FFmpegMergerPP
 from .version import __version__
 
 

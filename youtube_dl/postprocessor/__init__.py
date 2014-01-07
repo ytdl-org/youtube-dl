@@ -4,13 +4,14 @@ import sys
 import time
 
 
-from .utils import (
+from ..utils import (
     compat_subprocess_get_DEVNULL,
     encodeFilename,
+    hyphenate_date,
     PostProcessingError,
+    prepend_extension,
     shell_quote,
     subtitles_filename,
-    prepend_extension,
 )
 
 
@@ -539,8 +540,6 @@ class XAttrMetadataPP(PostProcessor):
 
     def run(self, info):
         """ Set extended attributes on downloaded file (if xattr support is found). """
-
-        from .utils import hyphenate_date
 
         # This mess below finds the best xattr tool for the job and creates a
         # "write_xattr" function.
