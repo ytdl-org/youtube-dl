@@ -216,8 +216,12 @@ def parseOpts(overrideArguments=None):
     selection.add_option('--min-filesize', metavar='SIZE', dest='min_filesize', help="Do not download any videos smaller than SIZE (e.g. 50k or 44.6m)", default=None)
     selection.add_option('--max-filesize', metavar='SIZE', dest='max_filesize', help="Do not download any videos larger than SIZE (e.g. 50k or 44.6m)", default=None)
     selection.add_option('--date', metavar='DATE', dest='date', help='download only videos uploaded in this date', default=None)
-    selection.add_option('--datebefore', metavar='DATE', dest='datebefore', help='download only videos uploaded before this date', default=None)
-    selection.add_option('--dateafter', metavar='DATE', dest='dateafter', help='download only videos uploaded after this date', default=None)
+    selection.add_option(
+        '--datebefore', metavar='DATE', dest='datebefore', default=None,
+        help='download only videos uploaded on or before this date (i.e. inclusive)')
+    selection.add_option(
+        '--dateafter', metavar='DATE', dest='dateafter', default=None,
+        help='download only videos uploaded on or after this date (i.e. inclusive)')
     selection.add_option(
         '--min-views', metavar='COUNT', dest='min_views',
         default=None, type=int,
