@@ -99,7 +99,7 @@ class XAttrMetadataPP(PostProcessor):
                     if infoname == "upload_date":
                         value = hyphenate_date(value)
 
-                    byte_value = value.encode(preferredencoding())
+                    byte_value = value.encode('utf-8')
                     write_xattr(filename, xattrname, byte_value)
 
             return True, info
