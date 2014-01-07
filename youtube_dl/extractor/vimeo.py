@@ -318,7 +318,7 @@ class VimeoChannelIE(InfoExtractor):
 
 class VimeoUserIE(VimeoChannelIE):
     IE_NAME = 'vimeo:user'
-    _VALID_URL = r'(?:https?://)?vimeo.\com/(?P<name>[^/]+)(?:[#?]|$)'
+    _VALID_URL = r'(?:https?://)?vimeo.\com/(?P<name>[^/]+)(?:/videos|[#?]|$)'
     _TITLE_RE = r'<a[^>]+?class="user">([^<>]+?)</a>'
 
     @classmethod
