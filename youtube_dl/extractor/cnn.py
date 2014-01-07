@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import re
 
 from .common import InfoExtractor
@@ -12,14 +14,14 @@ class CNNIE(InfoExtractor):
         (?P<path>.+?/(?P<title>[^/]+?)(?:\.cnn|(?=&)))'''
 
     _TESTS = [{
-        u'url': u'http://edition.cnn.com/video/?/video/sports/2013/06/09/nadal-1-on-1.cnn',
-        u'file': u'sports_2013_06_09_nadal-1-on-1.cnn.mp4',
-        u'md5': u'3e6121ea48df7e2259fe73a0628605c4',
-        u'info_dict': {
-            u'title': u'Nadal wins 8th French Open title',
-            u'description': u'World Sport\'s Amanda Davies chats with 2013 French Open champion Rafael Nadal.',
-            u'duration': 135,
-            u'upload_date': u'20130609',
+        'url': 'http://edition.cnn.com/video/?/video/sports/2013/06/09/nadal-1-on-1.cnn',
+        'file': 'sports_2013_06_09_nadal-1-on-1.cnn.mp4',
+        'md5': '3e6121ea48df7e2259fe73a0628605c4',
+        'info_dict': {
+            'title': 'Nadal wins 8th French Open title',
+            'description': 'World Sport\'s Amanda Davies chats with 2013 French Open champion Rafael Nadal.',
+            'duration': 135,
+            'upload_date': '20130609',
         },
     },
     {
@@ -36,7 +38,7 @@ class CNNIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         path = mobj.group('path')
         page_title = mobj.group('title')
-        info_url = u'http://cnn.com/video/data/3.0/%s/index.xml' % path
+        info_url = 'http://cnn.com/video/data/3.0/%s/index.xml' % path
         info = self._download_xml(info_url, page_title)
 
         formats = []

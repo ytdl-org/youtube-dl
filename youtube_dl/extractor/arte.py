@@ -1,4 +1,6 @@
 # encoding: utf-8
+from __future__ import unicode_literals
+
 import re
 import json
 
@@ -22,7 +24,7 @@ class ArteTvIE(InfoExtractor):
     _LIVEWEB_URL = r'(?:http://)?liveweb\.arte\.tv/(?P<lang>fr|de)/(?P<subpage>.+?)/(?P<name>.+)'
     _LIVE_URL = r'index-[0-9]+\.html$'
 
-    IE_NAME = u'arte.tv'
+    IE_NAME = 'arte.tv'
 
     @classmethod
     def suitable(cls, url):
@@ -37,7 +39,7 @@ class ArteTvIE(InfoExtractor):
     #         r'src="(.*?/videothek_js.*?\.js)',
     #         0,
     #         [
-    #             (1, 'url', u'Invalid URL: %s' % url)
+    #             (1, 'url', 'Invalid URL: %s' % url)
     #         ]
     #     )
     #     http_host = url.split('/')[2]
@@ -49,12 +51,12 @@ class ArteTvIE(InfoExtractor):
     #             '(rtmp://.*?)\'',
     #         re.DOTALL,
     #         [
-    #             (1, 'path',   u'could not extract video path: %s' % url),
-    #             (2, 'player', u'could not extract video player: %s' % url),
-    #             (3, 'url',    u'could not extract video url: %s' % url)
+    #             (1, 'path',   'could not extract video path: %s' % url),
+    #             (2, 'player', 'could not extract video player: %s' % url),
+    #             (3, 'url',    'could not extract video url: %s' % url)
     #         ]
     #     )
-    #     video_url = u'%s/%s' % (info.get('url'), info.get('path'))
+    #     video_url = '%s/%s' % (info.get('url'), info.get('path'))
 
     def _real_extract(self, url):
         mobj = re.match(self._VIDEOS_URL, url)
@@ -107,9 +109,9 @@ class ArteTvIE(InfoExtractor):
     def _extract_liveweb(self, url, name, lang):
         """Extract form http://liveweb.arte.tv/"""
         webpage = self._download_webpage(url, name)
-        video_id = self._search_regex(r'eventId=(\d+?)("|&)', webpage, u'event id')
+        video_id = self._search_regex(r'eventId=(\d+?)("|&)', webpage, 'event id')
         config_doc = self._download_xml('http://download.liveweb.arte.tv/o21/liveweb/events/event-%s.xml' % video_id,
-                                            video_id, u'Downloading information')
+                                            video_id, 'Downloading information')
         event_doc = config_doc.find('event')
         url_node = event_doc.find('video').find('urlHd')
         if url_node is None:
@@ -124,7 +126,7 @@ class ArteTvIE(InfoExtractor):
 
 
 class ArteTVPlus7IE(InfoExtractor):
-    IE_NAME = u'arte.tv:+7'
+    IE_NAME = 'arte.tv:+7'
     _VALID_URL = r'https?://www\.arte.tv/guide/(?P<lang>fr|de)/(?:(?:sendungen|emissions)/)?(?P<id>.*?)/(?P<name>.*?)(\?.*)?'
 
     @classmethod
@@ -207,7 +209,7 @@ class ArteTVPlus7IE(InfoExtractor):
             if bitrate is not None:
                 quality += '-%d' % bitrate
             if format_info.get('versionCode') is not None:
-                format_id = u'%s-%s' % (quality, format_info['versionCode'])
+                format_id = '%s-%s' % (quality, format_info['versionCode'])
             else:
                 format_id = quality
             info = {
@@ -216,7 +218,7 @@ class ArteTVPlus7IE(InfoExtractor):
                 'width': format_info.get('width'),
                 'height': height,
             }
-            if format_info['mediaType'] == u'rtmp':
+            if format_info['mediaType'] == 'rtmp':
                 info['url'] = format_info['streamer']
                 info['play_path'] = 'mp4:' + format_info['url']
                 info['ext'] = 'flv'
@@ -231,27 +233,27 @@ class ArteTVPlus7IE(InfoExtractor):
 
 # It also uses the arte_vp_url url from the webpage to extract the information
 class ArteTVCreativeIE(ArteTVPlus7IE):
-    IE_NAME = u'arte.tv:creative'
+    IE_NAME = 'arte.tv:creative'
     _VALID_URL = r'https?://creative\.arte\.tv/(?P<lang>fr|de)/magazine?/(?P<id>.+)'
 
     _TEST = {
-        u'url': u'http://creative.arte.tv/de/magazin/agentur-amateur-corporate-design',
-        u'file': u'050489-002.mp4',
-        u'info_dict': {
-            u'title': u'Agentur Amateur / Agence Amateur #2 : Corporate Design',
+        'url': 'http://creative.arte.tv/de/magazin/agentur-amateur-corporate-design',
+        'file': '050489-002.mp4',
+        'info_dict': {
+            'title': 'Agentur Amateur / Agence Amateur #2 : Corporate Design',
         },
     }
 
 
 class ArteTVFutureIE(ArteTVPlus7IE):
-    IE_NAME = u'arte.tv:future'
+    IE_NAME = 'arte.tv:future'
     _VALID_URL = r'https?://future\.arte\.tv/(?P<lang>fr|de)/(thema|sujet)/.*?#article-anchor-(?P<id>\d+)'
 
     _TEST = {
-        u'url': u'http://future.arte.tv/fr/sujet/info-sciences#article-anchor-7081',
-        u'file': u'050940-003.mp4',
-        u'info_dict': {
-            u'title': u'Les champignons au secours de la planète',
+        'url': 'http://future.arte.tv/fr/sujet/info-sciences#article-anchor-7081',
+        'file': '050940-003.mp4',
+        'info_dict': {
+            'title': 'Les champignons au secours de la planète',
         },
     }
 
@@ -263,7 +265,7 @@ class ArteTVFutureIE(ArteTVPlus7IE):
 
 
 class ArteTVDDCIE(ArteTVPlus7IE):
-    IE_NAME = u'arte.tv:ddc'
+    IE_NAME = 'arte.tv:ddc'
     _VALID_URL = r'http?://ddc\.arte\.tv/(?P<lang>emission|folge)/(?P<id>.+)'
 
     def _real_extract(self, url):
