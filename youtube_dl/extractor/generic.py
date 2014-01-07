@@ -303,12 +303,12 @@ class GenericIE(InfoExtractor):
             return OoyalaIE._build_url_result(mobj.group(1))
 
         # Look for Aparat videos
-        mobj = re.search(r'<iframe src="(http://www.aparat.com/video/[^"]+)"', webpage)
+        mobj = re.search(r'<iframe src="(http://www\.aparat\.com/video/[^"]+)"', webpage)
         if mobj is not None:
             return self.url_result(mobj.group(1), 'Aparat')
 
         # Look for MPORA videos
-        mobj = re.search(r'<iframe .*?src="(http://mpora.com/videos/[^"]+)"', webpage)
+        mobj = re.search(r'<iframe .*?src="(http://mpora\.com/videos/[^"]+)"', webpage)
         if mobj is not None:
             return self.url_result(mobj.group(1), 'Mpora')
 
