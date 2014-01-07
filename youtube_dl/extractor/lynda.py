@@ -17,7 +17,7 @@ class LyndaIE(SubtitlesInfoExtractor):
         'url': 'http://www.lynda.com/Bootstrap-tutorials/Using-exercise-files/110885/114408-4.html',
         'file': '114408.mp4',
         'md5': 'ecfc6862da89489161fb9cd5f5a6fac1',
-        u"info_dict": {
+        'info_dict': {
             'title': 'Using the exercise files',
             'duration': 68
         }
