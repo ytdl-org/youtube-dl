@@ -523,6 +523,7 @@ class FFmpegMergerPP(FFmpegPostProcessor):
         self.run_ffmpeg_multiple_files(info['__files_to_merge'], filename, args)
         return True, info
 
+
 class XAttrMetadataPP(PostProcessor):
 
     #
@@ -602,9 +603,9 @@ class XAttrMetadataPP(PostProcessor):
                     assert(path.find(":") < 0)
                     assert(os.path.exists(path))
 
-                    f = open(path+":"+key, "w")
-                    f.write(value)
-                    f.close()
+                    ads_fn = path + ":" + key
+                    with open(ads_fn, "w") as f:
+                        f.write(value)
 
         # Write the metadata to the file's xattrs
         self._downloader.to_screen('[metadata] Writing metadata to file\'s xattrs...')
@@ -613,13 +614,13 @@ class XAttrMetadataPP(PostProcessor):
 
         try:
             xattr_mapping = {
-                'user.xdg.referrer.url':       'webpage_url',
+                'user.xdg.referrer.url': 'webpage_url',
                 # 'user.xdg.comment':            'description',
-                'user.dublincore.title':       'title',
-                'user.dublincore.date':        'upload_date',
+                'user.dublincore.title': 'title',
+                'user.dublincore.date': 'upload_date',
                 'user.dublincore.description': 'description',
                 'user.dublincore.contributor': 'uploader',
-                'user.dublincore.format':      'format',
+                'user.dublincore.format': 'format',
             }
 
             for xattrname, infoname in xattr_mapping.items():
