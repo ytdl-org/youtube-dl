@@ -1,4 +1,5 @@
 # encoding: utf-8
+from __future__ import unicode_literals
 
 import re
 import json
@@ -24,47 +25,47 @@ class BrightcoveIE(InfoExtractor):
     _TESTS = [
         {
             # From http://www.8tv.cat/8aldia/videos/xavier-sala-i-martin-aquesta-tarda-a-8-al-dia/
-            u'url': u'http://c.brightcove.com/services/viewer/htmlFederated?playerID=1654948606001&flashID=myExperience&%40videoPlayer=2371591881001',
-            u'file': u'2371591881001.mp4',
-            u'md5': u'5423e113865d26e40624dce2e4b45d95',
-            u'note': u'Test Brightcove downloads and detection in GenericIE',
-            u'info_dict': {
-                u'title': u'Xavier Sala i Martín: “Un banc que no presta és un banc zombi que no serveix per a res”',
-                u'uploader': u'8TV',
-                u'description': u'md5:a950cc4285c43e44d763d036710cd9cd',
+            'url': 'http://c.brightcove.com/services/viewer/htmlFederated?playerID=1654948606001&flashID=myExperience&%40videoPlayer=2371591881001',
+            'file': '2371591881001.mp4',
+            'md5': '5423e113865d26e40624dce2e4b45d95',
+            'note': 'Test Brightcove downloads and detection in GenericIE',
+            'info_dict': {
+                'title': 'Xavier Sala i Martín: “Un banc que no presta és un banc zombi que no serveix per a res”',
+                'uploader': '8TV',
+                'description': 'md5:a950cc4285c43e44d763d036710cd9cd',
             }
         },
         {
             # From http://medianetwork.oracle.com/video/player/1785452137001
-            u'url': u'http://c.brightcove.com/services/viewer/htmlFederated?playerID=1217746023001&flashID=myPlayer&%40videoPlayer=1785452137001',
-            u'file': u'1785452137001.flv',
-            u'info_dict': {
-                u'title': u'JVMLS 2012: Arrays 2.0 - Opportunities and Challenges',
-                u'description': u'John Rose speaks at the JVM Language Summit, August 1, 2012.',
-                u'uploader': u'Oracle',
+            'url': 'http://c.brightcove.com/services/viewer/htmlFederated?playerID=1217746023001&flashID=myPlayer&%40videoPlayer=1785452137001',
+            'file': '1785452137001.flv',
+            'info_dict': {
+                'title': 'JVMLS 2012: Arrays 2.0 - Opportunities and Challenges',
+                'description': 'John Rose speaks at the JVM Language Summit, August 1, 2012.',
+                'uploader': 'Oracle',
             },
         },
         {
             # From http://mashable.com/2013/10/26/thermoelectric-bracelet-lets-you-control-your-body-temperature/
-            u'url': u'http://c.brightcove.com/services/viewer/federated_f9?&playerID=1265504713001&publisherID=AQ%7E%7E%2CAAABBzUwv1E%7E%2CxP-xFHVUstiMFlNYfvF4G9yFnNaqCw_9&videoID=2750934548001',
-            u'info_dict': {
-                u'id': u'2750934548001',
-                u'ext': u'mp4',
-                u'title': u'This Bracelet Acts as a Personal Thermostat',
-                u'description': u'md5:547b78c64f4112766ccf4e151c20b6a0',
-                u'uploader': u'Mashable',
+            'url': 'http://c.brightcove.com/services/viewer/federated_f9?&playerID=1265504713001&publisherID=AQ%7E%7E%2CAAABBzUwv1E%7E%2CxP-xFHVUstiMFlNYfvF4G9yFnNaqCw_9&videoID=2750934548001',
+            'info_dict': {
+                'id': '2750934548001',
+                'ext': 'mp4',
+                'title': 'This Bracelet Acts as a Personal Thermostat',
+                'description': 'md5:547b78c64f4112766ccf4e151c20b6a0',
+                'uploader': 'Mashable',
             },
         },
         {
             # test that the default referer works
             # from http://national.ballet.ca/interact/video/Lost_in_Motion_II/
-            u'url': u'http://link.brightcove.com/services/player/bcpid756015033001?bckey=AQ~~,AAAApYJi_Ck~,GxhXCegT1Dp39ilhXuxMJxasUhVNZiil&bctid=2878862109001',
-            u'info_dict': {
-                u'id': u'2878862109001',
-                u'ext': u'mp4',
-                u'title': u'Lost in Motion II',
-                u'description': u'md5:363109c02998fee92ec02211bd8000df',
-                u'uploader': u'National Ballet of Canada',
+            'url': 'http://link.brightcove.com/services/player/bcpid756015033001?bckey=AQ~~,AAAApYJi_Ck~,GxhXCegT1Dp39ilhXuxMJxasUhVNZiil&bctid=2878862109001',
+            'info_dict': {
+                'id': '2878862109001',
+                'ext': 'mp4',
+                'title': 'Lost in Motion II',
+                'description': 'md5:363109c02998fee92ec02211bd8000df',
+                'uploader': 'National Ballet of Canada',
             },
         },
     ]
@@ -80,10 +81,10 @@ class BrightcoveIE(InfoExtractor):
         object_str = re.sub(r'(<param name="[^"]+" value="[^"]+")>',
                             lambda m: m.group(1) + '/>', object_str)
         # Fix up some stupid XML, see https://github.com/rg3/youtube-dl/issues/1608
-        object_str = object_str.replace(u'<--', u'<!--')
+        object_str = object_str.replace('<--', '<!--')
 
         object_doc = xml.etree.ElementTree.fromstring(object_str)
-        assert u'BrightcoveExperience' in object_doc.attrib['class']
+        assert 'BrightcoveExperience' in object_doc.attrib['class']
         params = {'flashID': object_doc.attrib['id'],
                   'playerID': find_xpath_attr(object_doc, './param', 'name', 'playerID').attrib['value'],
                   }
@@ -156,11 +157,11 @@ class BrightcoveIE(InfoExtractor):
 
     def _get_playlist_info(self, player_key):
         playlist_info = self._download_webpage(self._PLAYLIST_URL_TEMPLATE % player_key,
-                                               player_key, u'Downloading playlist information')
+                                               player_key, 'Downloading playlist information')
 
         json_data = json.loads(playlist_info)
         if 'videoList' not in json_data:
-            raise ExtractorError(u'Empty playlist')
+            raise ExtractorError('Empty playlist')
         playlist_info = json_data['videoList']
         videos = [self._extract_video_info(video_info) for video_info in playlist_info['mediaCollectionDTO']['videoDTOs']]
 
@@ -189,5 +190,5 @@ class BrightcoveIE(InfoExtractor):
                 'url': video_info['FLVFullLengthURL'],
             })
         else:
-            raise ExtractorError(u'Unable to extract video url for %s' % info['id'])
+            raise ExtractorError('Unable to extract video url for %s' % info['id'])
         return info
