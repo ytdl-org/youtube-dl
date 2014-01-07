@@ -1759,6 +1759,6 @@ class YoutubeTruncatedURLIE(InfoExtractor):
             u'Did you forget to quote the URL? Remember that & is a meta '
             u'character in most shells, so you want to put the URL in quotes, '
             u'like  youtube-dl '
-            u'\'http://www.youtube.com/watch?feature=foo&v=BaW_jenozKc\''
-            u' (or simply  youtube-dl BaW_jenozKc  ).',
+            u'"http://www.youtube.com/watch?feature=foo&v=BaW_jenozKc" '
+            u' or simply  youtube-dl BaW_jenozKc  .',
             expected=True)
