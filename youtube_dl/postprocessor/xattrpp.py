@@ -6,7 +6,6 @@ from .common import PostProcessor
 from ..utils import (
     check_executable,
     hyphenate_date,
-    preferredencoding,
 )
 
 
