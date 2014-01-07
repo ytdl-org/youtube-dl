@@ -93,7 +93,7 @@ class VimeoIE(InfoExtractor):
         self.report_login()
         login_url = 'https://vimeo.com/log_in'
         webpage = self._download_webpage(login_url, None, False)
-        token = re.search(r'xsrft: \'(.*?)\'', webpage).group(1)
+        token = self._search_regex(r'xsrft: \'(.*?)\'', webpage, 'login token')
         data = compat_urllib_parse.urlencode({'email': username,
                                               'password': password,
                                               'action': 'login',
@@ -109,7 +109,7 @@ class VimeoIE(InfoExtractor):
         password = self._downloader.params.get('videopassword', None)
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option')
-        token = re.search(r'xsrft: \'(.*?)\'', webpage).group(1)
+        token = self._search_regex(r'xsrft: \'(.*?)\'', webpage, 'login token')
         data = compat_urllib_parse.urlencode({'password': password,
                                               'token': token})
         # I didn't manage to use the password with https
