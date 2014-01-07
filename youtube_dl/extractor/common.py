@@ -1,4 +1,5 @@
 import base64
+import json
 import os
 import re
 import socket
@@ -259,6 +260,15 @@ class InfoExtractor(object):
         if transform_source:
             xml_string = transform_source(xml_string)
         return xml.etree.ElementTree.fromstring(xml_string.encode('utf-8'))
+
+    def _download_json(self, url_or_request, video_id,
+                       note=u'Downloading JSON metadata',
+                       errnote=u'Unable to download JSON metadata'):
+        json_string = self._download_webpage(url_or_request, video_id, note, errnote)
+        try:
+            return json.loads(json_string)
+        except ValueError as ve:
+            raise ExtractorError('Failed to download JSON', cause=ve)
 
     def report_warning(self, msg, video_id=None):
         idstr = u'' if video_id is None else u'%s: ' % video_id

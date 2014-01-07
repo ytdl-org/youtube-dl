@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-
 # Allow direct execution
 import os
 import sys
@@ -30,6 +29,7 @@ from youtube_dl.extractor import (
     SmotriUserIE,
     IviCompilationIE,
     ImdbListIE,
+    KhanAcademyIE,
 )
 
 
@@ -197,6 +197,16 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['id'], u'sMjedvGDd8U')
         self.assertEqual(result['title'], u'Animated and Family Films')
         self.assertTrue(len(result['entries']) >= 48)
+
+    def test_khanacademy_topic(self):
+        dl = FakeYDL()
+        ie = KhanAcademyIE(dl)
+        result = ie.extract('https://www.khanacademy.org/math/applied-math/cryptography')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], u'cryptography')
+        self.assertEqual(result['title'], u'Journey into cryptography')
+        self.assertEqual(result['description'], u'How have humans protected their secret messages through history? What has changed today?')
+        self.assertTrue(len(result['entries']) >= 3)
 
 
 if __name__ == '__main__':

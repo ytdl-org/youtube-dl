@@ -98,6 +98,7 @@ from .justintv import JustinTVIE
 from .jpopsukitv import JpopsukiIE
 from .kankan import KankanIE
 from .keezmovies import KeezMoviesIE
+from .khanacademy import KhanAcademyIE
 from .kickstarter import KickStarterIE
 from .keek import KeekIE
 from .liveleak import LiveLeakIE
