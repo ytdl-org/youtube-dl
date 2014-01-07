@@ -1062,7 +1062,9 @@ class YoutubeDL(object):
                 res += '%4dk ' % fdict['tbr']
             if (fdict.get('vcodec') is not None and
                     fdict.get('vcodec') != 'none'):
-                res += '%-5s@' % fdict['vcodec']
+                res += '%-5s' % fdict['vcodec']
+                if fdict.get('vbr') is not None:
+                    res += '@'
             elif fdict.get('vbr') is not None and fdict.get('abr') is not None:
                 res += 'video@'
             if fdict.get('vbr') is not None:
