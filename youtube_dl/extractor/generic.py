@@ -225,7 +225,8 @@ class GenericIE(InfoExtractor):
         bc_url = BrightcoveIE._extract_brightcove_url(webpage)
         if bc_url is not None:
             self.to_screen('Brightcove video detected.')
-            return self.url_result(bc_url, 'Brightcove')
+            surl = smuggle_url(bc_url, {'Referer': url})
+            return self.url_result(surl, 'Brightcove')
 
         # Look for embedded (iframe) Vimeo player
         mobj = re.search(

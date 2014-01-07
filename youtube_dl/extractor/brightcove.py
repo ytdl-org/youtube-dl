@@ -14,6 +14,7 @@ from ..utils import (
     compat_urllib_request,
 
     ExtractorError,
+    unsmuggle_url,
 )
 
 
@@ -121,6 +122,8 @@ class BrightcoveIE(InfoExtractor):
             return None
 
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
+
         # Change the 'videoId' and others field to '@videoPlayer'
         url = re.sub(r'(?<=[?&])(videoI(d|D)|bctid)', '%40videoPlayer', url)
         # Change bckey (used by bcove.me urls) to playerKey
@@ -131,9 +134,10 @@ class BrightcoveIE(InfoExtractor):
 
         videoPlayer = query.get('@videoPlayer')
         if videoPlayer:
-            return self._get_video_info(videoPlayer[0], query_str, query,
-                # We set the original url as the default 'Referer' header
-                referer=url)
+            # We set the original url as the default 'Referer' header
+            referer = smuggled_data.get('Referer', url)
+            return self._get_video_info(
+                videoPlayer[0], query_str, query, referer=referer)
         else:
             player_key = query['playerKey']
             return self._get_playlist_info(player_key[0])

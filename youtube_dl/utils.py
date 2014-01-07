@@ -1027,9 +1027,9 @@ def smuggle_url(url, data):
     return url + u'#' + sdata
 
 
-def unsmuggle_url(smug_url):
+def unsmuggle_url(smug_url, default=None):
     if not '#__youtubedl_smuggle' in smug_url:
-        return smug_url, None
+        return smug_url, default
     url, _, sdata = smug_url.rpartition(u'#')
     jsond = compat_parse_qs(sdata)[u'__youtubedl_smuggle'][0]
     data = json.loads(jsond)
