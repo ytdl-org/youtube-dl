@@ -5,7 +5,6 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    determine_ext,
     unified_strdate,
 )
 
@@ -26,7 +25,6 @@ class ArchiveOrgIE(InfoExtractor):
         }
     }
 
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
@@ -40,16 +38,16 @@ class ArchiveOrgIE(InfoExtractor):
         uploader = data['metadata']['creator'][0]
         upload_date = unified_strdate(data['metadata']['date'][0])
 
-        formats = [{
+        formats = [
+            {
                 'format': fdata['format'],
                 'url': 'http://' + data['server'] + data['dir'] + fn,
                 'file_size': int(fdata['size']),
             }
-            for fn,fdata in data['files'].items()
+            for fn, fdata in data['files'].items()
             if 'Video' in fdata['format']]
-        formats.sort(key=lambda fdata: fdata['file_size'])
-        for f in formats:
-            f['ext'] = determine_ext(f['url'])
+
+        self._sort_formats(formats)
 
         return {
             '_type': 'video',
