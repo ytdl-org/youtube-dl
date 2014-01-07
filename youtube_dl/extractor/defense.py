@@ -7,7 +7,7 @@ from .common import InfoExtractor
 
 
 class DefenseGouvFrIE(InfoExtractor):
-    _IE_NAME = 'defense.gouv.fr'
+    IE_NAME = 'defense.gouv.fr'
     _VALID_URL = (r'http://.*?\.defense\.gouv\.fr/layout/set/'
         r'ligthboxvideo/base-de-medias/webtv/(.*)')
 

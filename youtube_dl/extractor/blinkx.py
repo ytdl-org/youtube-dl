@@ -12,7 +12,7 @@ from ..utils import (
 
 class BlinkxIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://(?:www\.)blinkx\.com/#?ce/|blinkx:)(?P<id>[^?]+)'
-    _IE_NAME = 'blinkx'
+    IE_NAME = 'blinkx'
 
     _TEST = {
         'url': 'http://www.blinkx.com/ce/8aQUy7GVFYgFzpKhT0oqsilwOGFRVXk3R1ZGWWdGenBLaFQwb3FzaWx3OGFRVXk3R1ZGWWdGenB',

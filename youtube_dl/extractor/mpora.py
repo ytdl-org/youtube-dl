@@ -11,7 +11,7 @@ from ..utils import (
 
 class MporaIE(InfoExtractor):
     _VALID_URL = r'^https?://(www\.)?mpora\.(?:com|de)/videos/(?P<id>[^?#/]+)'
-    _IE_NAME = 'MPORA'
+    IE_NAME = 'MPORA'
 
     _TEST = {
         'url': 'http://mpora.de/videos/AAdo8okx4wiz/embed?locale=de',
