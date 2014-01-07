@@ -124,6 +124,19 @@ class VimeoIE(InfoExtractor):
                                'Verifying the password',
                                'Wrong password')
 
+    def _verify_player_video_password(self, url, video_id):
+        password = self._downloader.params.get('videopassword', None)
+        if password is None:
+            raise ExtractorError('This video is protected by a password, use the --video-password option')
+        data = compat_urllib_parse.urlencode({'password': password})
+        pass_url = url + '/check-password'
+        password_request = compat_urllib_request.Request(pass_url, data)
+        password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        return self._download_json(
+            password_request, video_id,
+            'Verifying the password',
+            'Wrong password')
+
     def _real_initialize(self):
         self._login()
 
@@ -184,8 +197,7 @@ class VimeoIE(InfoExtractor):
                                      cause=e)
         else:
             if config.get('view') == 4:
-                self._verify_video_password(url, video_id, webpage)
-                return self._real_extract(url)
+                config = self._verify_player_video_password(url, video_id)
 
         # Extract title
         video_title = config["video"]["title"]
