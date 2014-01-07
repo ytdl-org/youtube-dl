@@ -307,6 +307,11 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group(1), 'Aparat')
 
+        # Look for MPORA videos
+        mobj = re.search(r'<iframe .*?src="(http://mpora.com/videos/[^"]+)"', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group(1), 'Mpora')
+
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
         if mobj is None:

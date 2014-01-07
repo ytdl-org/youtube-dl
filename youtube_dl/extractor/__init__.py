@@ -112,6 +112,7 @@ from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
 from .mit import TechTVMITIE, MITIE
 from .mixcloud import MixcloudIE
+from .mpora import MporaIE
 from .mofosex import MofosexIE
 from .mtv import MTVIE
 from .muzu import MuzuTVIE
