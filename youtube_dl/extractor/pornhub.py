@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import os
 import re
 
@@ -11,16 +13,17 @@ from ..aes import (
     aes_decrypt_text
 )
 
+
 class PornHubIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>pornhub\.com/view_video\.php\?viewkey=(?P<videoid>[0-9a-f]+))'
     _TEST = {
-        u'url': u'http://www.pornhub.com/view_video.php?viewkey=648719015',
-        u'file': u'648719015.mp4',
-        u'md5': u'882f488fa1f0026f023f33576004a2ed',
-        u'info_dict': {
-            u"uploader": u"BABES-COM", 
-            u"title": u"Seductive Indian beauty strips down and fingers her pink pussy",
-            u"age_limit": 18
+        'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
+        'file': '648719015.mp4',
+        'md5': '882f488fa1f0026f023f33576004a2ed',
+        'info_dict': {
+            "uploader": "BABES-COM",
+            "title": "Seductive Indian beauty strips down and fingers her pink pussy",
+            "age_limit": 18
         }
     }
 
@@ -33,15 +36,15 @@ class PornHubIE(InfoExtractor):
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
 
-        video_title = self._html_search_regex(r'<h1 [^>]+>([^<]+)', webpage, u'title')
-        video_uploader = self._html_search_regex(r'<b>From: </b>(?:\s|<[^>]*>)*(.+?)<', webpage, u'uploader', fatal=False)
-        thumbnail = self._html_search_regex(r'"image_url":"([^"]+)', webpage, u'thumbnail', fatal=False)
+        video_title = self._html_search_regex(r'<h1 [^>]+>([^<]+)', webpage, 'title')
+        video_uploader = self._html_search_regex(r'<b>From: </b>(?:\s|<[^>]*>)*(.+?)<', webpage, 'uploader', fatal=False)
+        thumbnail = self._html_search_regex(r'"image_url":"([^"]+)', webpage, 'thumbnail', fatal=False)
         if thumbnail:
             thumbnail = compat_urllib_parse.unquote(thumbnail)
 
         video_urls = list(map(compat_urllib_parse.unquote , re.findall(r'"quality_[0-9]{3}p":"([^"]+)', webpage)))
         if webpage.find('"encrypted":true') != -1:
-            password = self._html_search_regex(r'"video_title":"([^"]+)', webpage, u'password').replace('+', ' ')
+            password = self._html_search_regex(r'"video_title":"([^"]+)', webpage, 'password').replace('+', ' ')
             video_urls = list(map(lambda s: aes_decrypt_text(s, password, 32).decode('utf-8'), video_urls))
 
         formats = []
@@ -50,13 +53,24 @@ class PornHubIE(InfoExtractor):
             extension = os.path.splitext(path)[1][1:]
             format = path.split('/')[5].split('_')[:2]
             format = "-".join(format)
+
+            m = re.match(r'^(?P<height>[0-9]+)P-(?P<tbr>[0-9]+)K$', format)
+            if m is None:
+                height = None
+                tbr = None
+            else:
+                height = int(m.group('height'))
+                tbr = int(m.group('tbr'))
+
             formats.append({
                 'url': video_url,
                 'ext': extension,
                 'format': format,
                 'format_id': format,
+                'tbr': tbr,
+                'height': height,
             })
-        formats.sort(key=lambda format: list(map(lambda s: s.zfill(6), format['format'].split('-'))))
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
