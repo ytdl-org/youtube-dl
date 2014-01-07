@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import re
 import json
 
@@ -10,10 +12,9 @@ class DefenseGouvFrIE(InfoExtractor):
         r'ligthboxvideo/base-de-medias/webtv/(.*)')
 
     _TEST = {
-        u'url': (u'http://www.defense.gouv.fr/layout/set/ligthboxvideo/'
-        u'base-de-medias/webtv/attaque-chimique-syrienne-du-21-aout-2013-1'),
-        u'file': u'11213.mp4',
-        u'md5': u'75bba6124da7e63d2d60b5244ec9430c',
+        'url': 'http://www.defense.gouv.fr/layout/set/ligthboxvideo/base-de-medias/webtv/attaque-chimique-syrienne-du-21-aout-2013-1',
+        'file': '11213.mp4',
+        'md5': '75bba6124da7e63d2d60b5244ec9430c',
         "info_dict": {
             "title": "attaque-chimique-syrienne-du-21-aout-2013-1"
         }
