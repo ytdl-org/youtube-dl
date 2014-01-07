@@ -68,7 +68,7 @@ class ORFIE(InfoExtractor):
                     pass
                 else:
                     req = HEADRequest(http_url)
-                    response = self._request_webpage(
+                    self._request_webpage(
                         req, video_id,
                         note='Testing for geoblocking',
                         errnote=((
