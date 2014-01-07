@@ -76,9 +76,16 @@ class XAttrMetadataPP(PostProcessor):
                 else:
                     # On Unix, and can't find pyxattr, setfattr, or xattr.
                     if sys.platform.startswith('linux'):
-                        self._downloader.report_error("Couldn't find a tool to set the xattrs. Install either the python 'pyxattr' or 'xattr' modules, or the GNU 'attr' package (which contains the 'setfattr' tool).")
-                    elif sys.platform == 'darwin':
-                        self._downloader.report_error("Couldn't find a tool to set the xattrs. Install either the python 'xattr' module, or the 'xattr' binary.")
+                        self._downloader.report_error(
+                            "Couldn't find a tool to set the xattrs. "
+                            "Install either the python 'pyxattr' or 'xattr' "
+                            "modules, or the GNU 'attr' package "
+                            "(which contains the 'setfattr' tool).")
+                    else:
+                        self._downloader.report_error(
+                            "Couldn't find a tool to set the xattrs. "
+                            "Install either the python 'xattr' module, "
+                            "or the 'xattr' binary.")
             else:
                 # Write xattrs to NTFS Alternate Data Streams: http://en.wikipedia.org/wiki/NTFS#Alternate_data_streams_.28ADS.29
                 def write_xattr(path, key, value):
