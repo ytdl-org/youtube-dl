@@ -40,12 +40,11 @@ class XAttrMetadataPP(PostProcessor):
                 # Write xattrs to NTFS Alternate Data Streams:
                 # http://en.wikipedia.org/wiki/NTFS#Alternate_data_streams_.28ADS.29
                 def write_xattr(path, key, value):
-                    assert(key.find(":") < 0)
-                    assert(path.find(":") < 0)
-                    assert(os.path.exists(path))
+                    assert ':' not in key
+                    assert os.path.exists(path)
 
                     ads_fn = path + ":" + key
-                    with open(ads_fn, "w") as f:
+                    with open(ads_fn, "wb") as f:
                         f.write(value)
             else:
                 user_has_setfattr = check_executable("setfattr", ['--version'])
