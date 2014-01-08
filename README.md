@@ -198,6 +198,10 @@ which means you can modify it, redistribute it or use it however you like.
     --add-metadata             write metadata to the video file
     --xattrs                   write metadata to the video file's xattrs (using
                                dublin core and xdg standards)
+    --prefer-avconv            Prefer avconv over ffmpeg for running the
+                               postprocessors (default)
+    --prefer-ffmpeg            Prefer ffmpeg over avconv for running the
+                               postprocessors
 
 # CONFIGURATION
 
