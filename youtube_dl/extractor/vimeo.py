@@ -24,7 +24,7 @@ class VimeoIE(InfoExtractor):
 
     # _VALID_URL matches Vimeo URLs
     _VALID_URL = r'''(?x)
-        (?P<proto>https?://)?
+        (?P<proto>(?:https?:)?//)?
         (?:(?:www|(?P<player>player))\.)?
         vimeo(?P<pro>pro)?\.com/
         (?:.*?/)?
@@ -149,9 +149,6 @@ class VimeoIE(InfoExtractor):
 
         # Extract ID from URL
         mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError('Invalid URL: %s' % url)
-
         video_id = mobj.group('id')
         if mobj.group('pro') or mobj.group('player'):
             url = 'http://player.vimeo.com/video/' + video_id
