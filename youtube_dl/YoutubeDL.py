@@ -156,6 +156,10 @@ class YoutubeDL(object):
     the FileDownloader:
     nopart, updatetime, buffersize, ratelimit, min_filesize, max_filesize, test,
     noresizebuffer, retries, continuedl, noprogress, consoletitle
+
+    The following options are used by the post processors:
+    prefer_ffmpeg:     If True, use ffmpeg instead of avconv if both are available,
+                       otherwise prefer avconv.
     """
 
     params = None

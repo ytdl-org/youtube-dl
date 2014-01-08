@@ -424,6 +424,10 @@ def parseOpts(overrideArguments=None):
             help='write metadata to the video file')
     postproc.add_option('--xattrs', action='store_true', dest='xattrs', default=False,
             help='write metadata to the video file\'s xattrs (using dublin core and xdg standards)')
+    postproc.add_option('--prefer-avconv', action='store_false', dest='prefer_ffmpeg',
+        help='Prefer avconv over ffmpeg for running the postprocessors (default)')
+    postproc.add_option('--prefer-ffmpeg', action='store_true', dest='prefer_ffmpeg',
+        help='Prefer ffmpeg over avconv for running the postprocessors')
 
 
     parser.add_option_group(general)
@@ -709,6 +713,7 @@ def _real_main(argv=None):
         'socket_timeout': opts.socket_timeout,
         'bidi_workaround': opts.bidi_workaround,
         'debug_printtraffic': opts.debug_printtraffic,
+        'prefer_ffmpeg': opts.prefer_ffmpeg,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
