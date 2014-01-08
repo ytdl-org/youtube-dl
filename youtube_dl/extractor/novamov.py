@@ -8,9 +8,8 @@ from ..utils import (
     compat_urlparse
 )
 
+
 class NovamovIE(InfoExtractor):
-    IE_NAME = 'novamov'
-    IE_DESC = 'novamov.com videos'
     _VALID_URL = r'http://(?:www\.novamov\.com/video/|embed\.novamov\.com/embed\.php\?v=)(?P<videoid>[a-z\d]{13})'
 
     _TEST = {
@@ -33,11 +32,8 @@ class NovamovIE(InfoExtractor):
         if re.search(r'This file no longer exists on our servers!</h2>', page) is not None:
             raise ExtractorError(u'Video %s does not exist' % video_id, expected=True)
 
-        mobj= re.search(r'flashvars\.filekey="(?P<filekey>[^"]+)";', page)
-        if mobj is None:
-            raise ExtractorError('Unable to extract filekey', expected=True)
-
-        filekey = mobj.group('filekey')
+        filekey = self._search_regex(
+            r'flashvars\.filekey="(?P<filekey>[^"]+)";', page, 'filekey')
 
         title = self._html_search_regex(
             r'(?s)<div class="v_tab blockborder rounded5" id="v_tab1">\s*<h3>([^<]+)</h3>',
@@ -47,8 +43,9 @@ class NovamovIE(InfoExtractor):
             r'(?s)<div class="v_tab blockborder rounded5" id="v_tab1">\s*<h3>[^<]+</h3><p>([^<]+)</p>',
             page, 'description', fatal=False)
 
-        api_response = self._download_webpage('http://www.novamov.com/api/player.api.php?key=%s&file=%s' % (filekey, video_id),
-                                              video_id, 'Downloading video api response')
+        api_response = self._download_webpage(
+            'http://www.novamov.com/api/player.api.php?key=%s&file=%s' % (filekey, video_id),
+            video_id, 'Downloading video api response')
 
         response = compat_urlparse.parse_qs(api_response)
 
