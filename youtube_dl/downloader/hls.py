@@ -29,7 +29,7 @@ class HlsFD(FileDownloader):
         retval = subprocess.call(cmd)
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen(u'\r[%s] %s bytes' % (args[0], fsize))
+            self.to_screen(u'\r[%s] %s bytes' % (cmd[0], fsize))
             self.try_rename(tmpfilename, filename)
             self._hook_progress({
                 'downloaded_bytes': fsize,
