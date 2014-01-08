@@ -65,7 +65,8 @@ from .francetv import (
     PluzzIE,
     FranceTvInfoIE,
     FranceTVIE,
-    GenerationQuoiIE
+    GenerationQuoiIE,
+    CultureboxIE,
 )
 from .freesound import FreesoundIE
 from .funnyordie import FunnyOrDieIE
