@@ -31,14 +31,23 @@ class FFmpegPostProcessor(PostProcessor):
         programs = ['avprobe', 'avconv', 'ffmpeg', 'ffprobe']
         return dict((program, check_executable(program, ['-version'])) for program in programs)
 
+    def _get_executable(self):
+        if self._downloader.params.get('prefer_ffmpeg', False):
+            return self._exes['ffmpeg'] or self._exes['avconv']
+        else:
+            return self._exes['avconv'] or self._exes['ffmpeg']
+
+    def _uses_avconv(self):
+        return self._get_executable() == self._exes['avconv']
+
     def run_ffmpeg_multiple_files(self, input_paths, out_path, opts):
-        if not self._exes['ffmpeg'] and not self._exes['avconv']:
+        if not self._get_executable():
             raise FFmpegPostProcessorError(u'ffmpeg or avconv not found. Please install one.')
 
         files_cmd = []
         for path in input_paths:
             files_cmd.extend(['-i', encodeFilename(path, True)])
-        cmd = ([self._exes['avconv'] or self._exes['ffmpeg'], '-y'] + files_cmd
+        cmd = ([self._get_executable(), '-y'] + files_cmd
                + opts +
                [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
 
@@ -93,8 +102,6 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         return None
 
     def run_ffmpeg(self, path, out_path, codec, more_opts):
-        if not self._exes['ffmpeg'] and not self._exes['avconv']:
-            raise AudioConversionError('ffmpeg or avconv not found. Please install one.')
         if codec is None:
             acodec_opts = []
         else:
@@ -112,13 +119,14 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         if filecodec is None:
             raise PostProcessingError(u'WARNING: unable to obtain file audio codec with ffprobe')
 
+        uses_avconv = self._uses_avconv()
         more_opts = []
         if self._preferredcodec == 'best' or self._preferredcodec == filecodec or (self._preferredcodec == 'm4a' and filecodec == 'aac'):
             if filecodec == 'aac' and self._preferredcodec in ['m4a', 'best']:
                 # Lossless, but in another container
                 acodec = 'copy'
                 extension = 'm4a'
-                more_opts = [self._exes['avconv'] and '-bsf:a' or '-absf', 'aac_adtstoasc']
+                more_opts = ['-bsf:a' if uses_avconv else '-absf', 'aac_adtstoasc']
             elif filecodec in ['aac', 'mp3', 'vorbis', 'opus']:
                 # Lossless if possible
                 acodec = 'copy'
@@ -134,9 +142,9 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                 more_opts = []
                 if self._preferredquality is not None:
                     if int(self._preferredquality) < 10:
-                        more_opts += [self._exes['avconv'] and '-q:a' or '-aq', self._preferredquality]
+                        more_opts += ['-q:a' if uses_avconv else '-aq', self._preferredquality]
                     else:
-                        more_opts += [self._exes['avconv'] and '-b:a' or '-ab', self._preferredquality + 'k']
+                        more_opts += ['-b:a' if uses_avconv else '-ab', self._preferredquality + 'k']
         else:
             # We convert the audio (lossy)
             acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'm4a': 'aac', 'opus': 'opus', 'vorbis': 'libvorbis', 'wav': None}[self._preferredcodec]
@@ -145,13 +153,13 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             if self._preferredquality is not None:
                 # The opus codec doesn't support the -aq option
                 if int(self._preferredquality) < 10 and extension != 'opus':
-                    more_opts += [self._exes['avconv'] and '-q:a' or '-aq', self._preferredquality]
+                    more_opts += ['-q:a' if uses_avconv else '-aq', self._preferredquality]
                 else:
-                    more_opts += [self._exes['avconv'] and '-b:a' or '-ab', self._preferredquality + 'k']
+                    more_opts += ['-b:a' if uses_avconv else '-ab', self._preferredquality + 'k']
             if self._preferredcodec == 'aac':
                 more_opts += ['-f', 'adts']
             if self._preferredcodec == 'm4a':
-                more_opts += [self._exes['avconv'] and '-bsf:a' or '-absf', 'aac_adtstoasc']
+                more_opts += ['-bsf:a' if uses_avconv else '-absf', 'aac_adtstoasc']
             if self._preferredcodec == 'vorbis':
                 extension = 'ogg'
             if self._preferredcodec == 'wav':
@@ -169,14 +177,14 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             if self._nopostoverwrites and os.path.exists(encodeFilename(new_path)):
                 self._downloader.to_screen(u'[youtube] Post-process file %s exists, skipping' % new_path)
             else:
-                self._downloader.to_screen(u'[' + (self._exes['avconv'] and 'avconv' or 'ffmpeg') + '] Destination: ' + new_path)
+                self._downloader.to_screen(u'[' + self._get_executable() + '] Destination: ' + new_path)
                 self.run_ffmpeg(path, new_path, acodec, more_opts)
         except:
             etype,e,tb = sys.exc_info()
             if isinstance(e, AudioConversionError):
                 msg = u'audio conversion failed: ' + e.msg
             else:
-                msg = u'error running ' + (self._exes['avconv'] and 'avconv' or 'ffmpeg')
+                msg = u'error running ' + self._get_executable()
             raise PostProcessingError(msg)
 
         # Try to update the date time for extracted audio file.
