@@ -93,8 +93,8 @@ class BandcampIE(InfoExtractor):
             'ext': 'mp3',
             'vcodec': 'none',
             'url': final_url,
-            'thumbnail': info['thumb_url'],
-            'uploader': info['artist'],
+            'thumbnail': info.get('thumb_url'),
+            'uploader': info.get('artist'),
         }
 
 
