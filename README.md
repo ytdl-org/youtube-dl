@@ -324,7 +324,7 @@ Site support requests must contain an example URL. An example URL is a URL you m
 
 ###  Are you using the latest version?
 
-Before reporting any issue, type youtube-dl -U. This should report that you're up-to-date. Ábout 20% of the reports we receive are already fixed, but people are using outdated versions. This goes for feature requests as well.
+Before reporting any issue, type youtube-dl -U. This should report that you're up-to-date. About 20% of the reports we receive are already fixed, but people are using outdated versions. This goes for feature requests as well.
 
 ###  Is the issue already documented?
 
