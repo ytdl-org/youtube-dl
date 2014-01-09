@@ -82,7 +82,7 @@ class BandcampIE(InfoExtractor):
         #We build the url we will use to get the final track url
         # This url is build in Bandcamp in the script download_bunde_*.js
         request_url = '%s/statdownload/track?enc=mp3-320&fsig=%s&id=%s&ts=%s&.rand=665028774616&.vrs=1' % (m_url.group('server'), m_url.group('fsig'), video_id, m_url.group('ts'))
-        final_url_webpage = self._download_webpage(request_url, id, 'Requesting download url')
+        final_url_webpage = self._download_webpage(request_url, video_id, 'Requesting download url')
         # If we could correctly generate the .rand field the url would be
         #in the "download_url" key
         final_url = re.search(r'"retry_url":"(.*?)"', final_url_webpage).group(1)
