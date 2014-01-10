@@ -86,9 +86,9 @@ class BrightcoveIE(InfoExtractor):
 
         object_doc = xml.etree.ElementTree.fromstring(object_str)
         assert 'BrightcoveExperience' in object_doc.attrib['class']
-        params = {'flashID': object_doc.attrib['id'],
-                  'playerID': find_xpath_attr(object_doc, './param', 'name', 'playerID').attrib['value'],
-                  }
+        params = {
+            'playerID': find_xpath_attr(object_doc, './param', 'name', 'playerID').attrib['value'],
+        }
         def find_param(name):
             node = find_xpath_attr(object_doc, './param', 'name', name)
             if node is not None:
