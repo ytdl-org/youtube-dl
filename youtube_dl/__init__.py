@@ -246,7 +246,7 @@ def parseOpts(overrideArguments=None):
     authentication.add_option('-n', '--netrc',
             action='store_true', dest='usenetrc', help='use .netrc authentication data', default=False)
     authentication.add_option('--video-password',
-            dest='videopassword', metavar='PASSWORD', help='video password (vimeo only)')
+            dest='videopassword', metavar='PASSWORD', help='video password (vimeo, smotri)')
 
 
     video_format.add_option('-f', '--format',
@@ -333,7 +333,7 @@ def parseOpts(overrideArguments=None):
             action='store_true', dest='verbose', help='print various debugging information', default=False)
     verbosity.add_option('--dump-intermediate-pages',
             action='store_true', dest='dump_intermediate_pages', default=False,
-            help='print downloaded pages to debug problems(very verbose)')
+            help='print downloaded pages to debug problems (very verbose)')
     verbosity.add_option('--write-pages',
             action='store_true', dest='write_pages', default=False,
             help='Write downloaded intermediary pages to files in the current directory to debug problems')
@@ -359,11 +359,11 @@ def parseOpts(overrideArguments=None):
                   '%(uploader)s for the uploader name, %(uploader_id)s for the uploader nickname if different, '
                   '%(autonumber)s to get an automatically incremented number, '
                   '%(ext)s for the filename extension, '
-                  '%(format)s for the format description (like "22 - 1280x720" or "HD"),'
-                  '%(format_id)s for the unique id of the format (like Youtube\'s itags: "137"),'
+                  '%(format)s for the format description (like "22 - 1280x720" or "HD"), '
+                  '%(format_id)s for the unique id of the format (like Youtube\'s itags: "137"), '
                   '%(upload_date)s for the upload date (YYYYMMDD), '
                   '%(extractor)s for the provider (youtube, metacafe, etc), '
-                  '%(id)s for the video id , %(playlist)s for the playlist the video is in, '
+                  '%(id)s for the video id, %(playlist)s for the playlist the video is in, '
                   '%(playlist_index)s for the position in the playlist and %% for a literal percent. '
                   'Use - to output to stdout. Can also be used to download to a different directory, '
                   'for example with -o \'/my/downloads/%(uploader)s/%(title)s-%(id)s.%(ext)s\' .'))
@@ -377,7 +377,7 @@ def parseOpts(overrideArguments=None):
             dest='batchfile', metavar='FILE', help='file containing URLs to download (\'-\' for stdin)')
     filesystem.add_option('--load-info',
             dest='load_info_filename', metavar='FILE',
-            help='json file containing the video information (created with the "--write-json" option')
+            help='json file containing the video information (created with the "--write-json" option)')
     filesystem.add_option('-w', '--no-overwrites',
             action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
     filesystem.add_option('-c', '--continue',
@@ -565,7 +565,7 @@ def _real_main(argv=None):
     if opts.usenetrc and (opts.username is not None or opts.password is not None):
         parser.error(u'using .netrc conflicts with giving username/password')
     if opts.password is not None and opts.username is None:
-        parser.error(u' account username missing\n')
+        parser.error(u'account username missing\n')
     if opts.outtmpl is not None and (opts.usetitle or opts.autonumber or opts.useid):
         parser.error(u'using output template conflicts with using title, video ID or auto number')
     if opts.usetitle and opts.useid:
