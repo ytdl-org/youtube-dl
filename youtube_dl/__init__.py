@@ -259,7 +259,7 @@ def parseOpts(overrideArguments=None):
     video_format.add_option('--max-quality',
             action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
     video_format.add_option('-F', '--list-formats',
-            action='store_true', dest='listformats', help='list all available formats (currently youtube only)')
+            action='store_true', dest='listformats', help='list all available formats')
 
     subtitles.add_option('--write-sub', '--write-srt',
             action='store_true', dest='writesubtitles',
