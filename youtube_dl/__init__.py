@@ -639,6 +639,7 @@ def _real_main(argv=None):
                      u' template'.format(outtmpl))
 
     any_printing = opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.getduration or opts.dumpjson
+    download_archive_fn = os.path.expanduser(opts.download_archive) if opts.download_archive is not None else opts.download_archive
 
     ydl_opts = {
         'usenetrc': opts.usenetrc,
@@ -706,7 +707,7 @@ def _real_main(argv=None):
         'cachedir': opts.cachedir,
         'youtube_print_sig_code': opts.youtube_print_sig_code,
         'age_limit': opts.age_limit,
-        'download_archive': opts.download_archive,
+        'download_archive': download_archive_fn,
         'cookiefile': opts.cookiefile,
         'nocheckcertificate': opts.no_check_certificate,
         'proxy': opts.proxy,
