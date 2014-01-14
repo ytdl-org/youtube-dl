@@ -39,7 +39,7 @@ class RTLnowIE(InfoExtractor):
         u'skip': u'Only works from Germany',
     },
     {
-        u'url': u'www.voxnow.de/voxtours/suedafrika-reporter-ii.php?film_id=13883&player=1&season=17',
+        u'url': u'http://www.voxnow.de/voxtours/suedafrika-reporter-ii.php?film_id=13883&player=1&season=17',
         u'file': u'13883.flv',
         u'info_dict': {
             u'upload_date': u'20090627', 
