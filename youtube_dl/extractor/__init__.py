@@ -61,6 +61,7 @@ from .fktv import (
     FKTVPosteckeIE,
 )
 from .flickr import FlickrIE
+from .franceinter import FranceInterIE
 from .francetv import (
     PluzzIE,
     FranceTvInfoIE,
