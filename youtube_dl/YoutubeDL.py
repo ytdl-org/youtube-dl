@@ -908,6 +908,14 @@ class YoutubeDL(object):
                     if info_dict.get('requested_formats') is not None:
                         downloaded = []
                         success = True
+                        merger = FFmpegMergerPP(self)
+                        if not merger._get_executable():
+                            postprocessors = []
+                            self.report_warning('You have requested multiple '
+                                'formats but ffmpeg or avconv are not installed.'
+                                ' The formats won\'t be merged')
+                        else:
+                            postprocessors = [merger]
                         for f in info_dict['requested_formats']:
                             new_info = dict(info_dict)
                             new_info.update(f)
@@ -916,7 +924,7 @@ class YoutubeDL(object):
                             downloaded.append(fname)
                             partial_success = dl(fname, new_info)
                             success = success and partial_success
-                        info_dict['__postprocessors'] = [FFmpegMergerPP(self)]
+                        info_dict['__postprocessors'] = postprocessors
                         info_dict['__files_to_merge'] = downloaded
                     else:
                         # Just a single file
