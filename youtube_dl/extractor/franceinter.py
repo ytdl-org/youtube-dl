@@ -31,5 +31,5 @@ class FranceInterIE(InfoExtractor):
         video_url=self.get_download_url(webpage)
         
         return{'id': video_id,u'url': video_url,u'title': title}
-        
+         
         
