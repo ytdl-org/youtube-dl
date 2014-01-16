@@ -62,7 +62,28 @@ For a complete list, see the <a href="supportedsites.html">Supported sites</a> p
 
 <h1 id="d6">YouTube formats</h1>
 
-<p>Using the -f option and other related options, you can specify the video format to be downloaded from YouTube. If you have an order of preference, specify the formats separating them with slashes: <code>-f 22/17/18</code>. Instead of keeping a video format table here, I will refer you to the <a href="http://en.wikipedia.org/wiki/YouTube#Quality_and_codecs">list of YouTube formats on Wikipedia</a>.</p>
+<p>Using the -f option and other related options, you can specify the video format to be downloaded from YouTube. If you have an order of preference, specify the formats separating them with slashes: <code>-f 22/17/18</code>. The current video format codes are as follows, with thanks to the <a href="http://en.wikipedia.org/wiki/YouTube#Quality_and_codecs">list of YouTube formats on Wikipedia</a>:</p>
+
+<h2 id="fmttable">Standard formats</h2>
+<table>
+<tr><th>itag value</th><th>Extension</th><th>Video resolution</th><th>Video encoding</th><th>Video bitrate (Mbit/s)</th><th>Audio encoding</th><th>Audio bitrate (kbit/s)</th></tr>
+<tr><td>5</td><td>FLV</td><td>240p</td><td>Sorenson H.263</td><td>0.25</td><td>MP3</td><td>64</td></tr>
+<tr><td>17</td><td>3GP</td><td>144p</td><td>MPEG-4 Visual</td><td>0.5</td><td>AAC</td><td>24</td></tr>
+<tr><td>18</td><td>MP4</td><td>270p/360p</td><td>H.264</td><td>0.5</td><td>AAC</td><td>96</td></tr>
+<tr><td>22</td><td>MP4</td><td>720p</td><td>H.264</td><td>2-3</td><td>AAC</td><td>192</td></tr>
+<tr><td>36</td><td>3GP</td><td>240p</td><td>MPEG-4 Visual</td><td>0.175</td><td>AAC</td><td>36</td></tr>
+<tr><td>43</td><td>WebM</td><td>360p</td><td>VP8</td><td>0.5</td><td>Vorbis</td><td>128</td></tr>
+</table>
+
+<h2 id="3dfmttable">3D formats</h2>
+<table>
+<tr><th>itag value</th><th>Extension</th><th>Video resolution</th><th>Video encoding</th><th>Video bitrate (Mbit/s)</th><th>Audio encoding</th><th>Audio bitrate (kbit/s)</th></tr>
+<tr><td>82</td><td>MP4</td><td>360p</td><td>H.264</td><td>0.5</td><td>AAC</td><td>96</td></tr>
+<tr><td>83</td><td>MP4</td><td>240p</td><td>H.264</td><td>0.5</td><td>AAC</td><td>96</td></tr>
+<tr><td>84</td><td>MP4</td><td>720p</td><td>H.264</td><td>2-3</td><td>AAC</td><td>192</td></tr>
+<tr><td>85</td><td>MP4</td><td>1080p</td><td>H.264</td><td>3-4</td><td>AAC</td><td>192</td></tr>
+<tr><td>100</td><td>WebM</td><td>360p</td><td>VP8</td><td>N/A</td><td>Vorbis</td><td>128</td></tr>
+</table>
 
 <h1 id="d7">Output template</h1>
 
