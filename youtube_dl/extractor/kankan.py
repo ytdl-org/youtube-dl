@@ -18,6 +18,7 @@ class KankanIE(InfoExtractor):
         'info_dict': {
             'title': 'Ready To Go',
         },
+        'skip': 'Only available from China',
     }
 
     def _real_extract(self, url):
