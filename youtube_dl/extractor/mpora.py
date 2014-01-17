@@ -34,7 +34,7 @@ class MporaIE(InfoExtractor):
 
         data = json.loads(data_json)
 
-        uploader = data['info_overlay']['name']
+        uploader = data['info_overlay'].get('username')
         duration = data['video']['duration'] // 1000
         thumbnail = data['video']['encodings']['sd']['poster']
         title = data['info_overlay']['title']
