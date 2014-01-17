@@ -25,12 +25,13 @@ class CNNIE(InfoExtractor):
         },
     },
     {
-        u"url": u"http://edition.cnn.com/video/?/video/us/2013/08/21/sot-student-gives-epic-speech.georgia-institute-of-technology&utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+rss%2Fcnn_topstories+%28RSS%3A+Top+Stories%29",
-        u"file": u"us_2013_08_21_sot-student-gives-epic-speech.georgia-institute-of-technology.mp4",
-        u"md5": u"b5cc60c60a3477d185af8f19a2a26f4e",
-        u"info_dict": {
-            u"title": "Student's epic speech stuns new freshmen",
-            u"description": "A Georgia Tech student welcomes the incoming freshmen with an epic speech backed by music from \"2001: A Space Odyssey.\""
+        "url": "http://edition.cnn.com/video/?/video/us/2013/08/21/sot-student-gives-epic-speech.georgia-institute-of-technology&utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+rss%2Fcnn_topstories+%28RSS%3A+Top+Stories%29",
+        "file": "us_2013_08_21_sot-student-gives-epic-speech.georgia-institute-of-technology.mp4",
+        "md5": "b5cc60c60a3477d185af8f19a2a26f4e",
+        "info_dict": {
+            "title": "Student's epic speech stuns new freshmen",
+            "description": "A Georgia Tech student welcomes the incoming freshmen with an epic speech backed by music from \"2001: A Space Odyssey.\"",
+            "upload_date": "20130821",
         }
     }]
 
