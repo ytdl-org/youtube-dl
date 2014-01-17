@@ -38,29 +38,34 @@ class TeamcocoIE(InfoExtractor):
 
         qualities = ['500k', '480p', '1000k', '720p', '1080p']
         formats = []
-        for file in data.findall('files/file'):
-            if file.attrib.get('playmode') == 'all':
+        for filed in data.findall('files/file'):
+            if filed.attrib.get('playmode') == 'all':
                 # it just duplicates one of the entries
                 break
-            file_url = file.text
+            file_url = filed.text
             m_format = re.search(r'(\d+(k|p))\.mp4', file_url)
             if m_format is not None:
                 format_id = m_format.group(1)
             else:
-                format_id = file.attrib['bitrate']
+                format_id = filed.attrib['bitrate']
+            tbr = (
+                int(filed.attrib['bitrate'])
+                if filed.attrib['bitrate'].isdigit()
+                else None)
+
+            try:
+                quality = qualities.index(format_id)
+            except ValueError:
+                quality = -1
             formats.append({
                 'url': file_url,
                 'ext': 'mp4',
+                'tbr': tbr,
                 'format_id': format_id,
+                'quality': quality,
             })
-        def sort_key(f):
-            try:
-                return qualities.index(f['format_id'])
-            except ValueError:
-                return -1
-        formats.sort(key=sort_key)
-        if not formats:
-            raise ExtractorError('Unable to extract video URL')
+
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
