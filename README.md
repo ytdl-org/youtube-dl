@@ -93,13 +93,13 @@ which means you can modify it, redistribute it or use it however you like.
                                different, %(autonumber)s to get an automatically
                                incremented number, %(ext)s for the filename
                                extension, %(format)s for the format description
-                               (like "22 - 1280x720" or "HD"),%(format_id)s for
+                               (like "22 - 1280x720" or "HD"), %(format_id)s for
                                the unique id of the format (like Youtube's
-                               itags: "137"),%(upload_date)s for the upload date
-                               (YYYYMMDD), %(extractor)s for the provider
-                               (youtube, metacafe, etc), %(id)s for the video id
-                               , %(playlist)s for the playlist the video is in,
-                               %(playlist_index)s for the position in the
+                               itags: "137"), %(upload_date)s for the upload
+                               date (YYYYMMDD), %(extractor)s for the provider
+                               (youtube, metacafe, etc), %(id)s for the video
+                               id, %(playlist)s for the playlist the video is
+                               in, %(playlist_index)s for the position in the
                                playlist and %% for a literal percent. Use - to
                                output to stdout. Can also be used to download to
                                a different directory, for example with -o '/my/d
@@ -111,7 +111,7 @@ which means you can modify it, redistribute it or use it however you like.
                                avoid "&" and spaces in filenames
     -a, --batch-file FILE      file containing URLs to download ('-' for stdin)
     --load-info FILE           json file containing the video information
-                               (created with the "--write-json" option
+                               (created with the "--write-json" option)
     -w, --no-overwrites        do not overwrite files
     -c, --continue             force resume of partially downloaded files. By
                                default, youtube-dl will resume downloads if
@@ -145,7 +145,7 @@ which means you can modify it, redistribute it or use it however you like.
     --no-progress              do not print progress bar
     --console-title            display progress in console titlebar
     -v, --verbose              print various debugging information
-    --dump-intermediate-pages  print downloaded pages to debug problems(very
+    --dump-intermediate-pages  print downloaded pages to debug problems (very
                                verbose)
     --write-pages              Write downloaded intermediary pages to files in
                                the current directory to debug problems
@@ -158,8 +158,7 @@ which means you can modify it, redistribute it or use it however you like.
     --prefer-free-formats      prefer free video formats unless a specific one
                                is requested
     --max-quality FORMAT       highest quality format to download
-    -F, --list-formats         list all available formats (currently youtube
-                               only)
+    -F, --list-formats         list all available formats
 
 ## Subtitle Options:
     --write-sub                write subtitle file
@@ -177,7 +176,7 @@ which means you can modify it, redistribute it or use it however you like.
     -u, --username USERNAME    account username
     -p, --password PASSWORD    account password
     -n, --netrc                use .netrc authentication data
-    --video-password PASSWORD  video password (vimeo only)
+    --video-password PASSWORD  video password (vimeo, smotri)
 
 ## Post-processing Options:
     -x, --extract-audio        convert video files to audio-only files (requires
