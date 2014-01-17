@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import json
 import os
 import re
@@ -234,6 +235,9 @@ class InfoExtractor(object):
                 url = url_or_request.get_full_url()
             except AttributeError:
                 url = url_or_request
+            if len(url) > 200:
+                h = hashlib.md5(url).hexdigest()
+                url = url[:200 - len(h)] + h
             raw_filename = ('%s_%s.dump' % (video_id, url))
             filename = sanitize_filename(raw_filename, restricted=True)
             self.to_screen(u'Saving request to ' + filename)
