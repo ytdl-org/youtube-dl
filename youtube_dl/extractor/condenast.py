@@ -79,19 +79,21 @@ class CondeNastIE(InfoExtractor):
         video_info = self._search_regex(r'var video = ({.+?});', info_page, 'video info')
         video_info = json.loads(video_info)
 
-        def _formats_sort_key(f):
-            type_ord = 1 if f['type'] == 'video/mp4' else 0
-            quality_ord = 1 if f['quality'] == 'high' else 0
-            return (quality_ord, type_ord)
-        best_format = sorted(video_info['sources'][0], key=_formats_sort_key)[-1]
+        formats = [{
+            'format_id': '%s-%s' % (fdata['type'].split('/')[-1], fdata['quality']),
+            'url': fdata['src'],
+            'ext': fdata['type'].split('/')[-1],
+            'quality': 1 if fdata['quality'] == 'high' else 0,
+        } for fdata in video_info['sources'][0]]
+        self._sort_formats(formats)
 
-        return {'id': video_id,
-                'url': best_format['src'],
-                'ext': best_format['type'].split('/')[-1],
-                'title': video_info['title'],
-                'thumbnail': video_info['poster_frame'],
-                'description': description,
-                }
+        return {
+            'id': video_id,
+            'formats': formats,
+            'title': video_info['title'],
+            'thumbnail': video_info['poster_frame'],
+            'description': description,
+        }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
