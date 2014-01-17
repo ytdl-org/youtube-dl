@@ -52,6 +52,7 @@ from .ehow import EHowIE
 from .eighttracks import EightTracksIE
 from .eitb import EitbIE
 from .escapist import EscapistIE
+from .everyonesmixtape import EveryonesMixtapeIE
 from .exfm import ExfmIE
 from .extremetube import ExtremeTubeIE
 from .facebook import FacebookIE

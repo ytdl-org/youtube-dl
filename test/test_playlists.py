@@ -32,6 +32,7 @@ from youtube_dl.extractor import (
     IviCompilationIE,
     ImdbListIE,
     KhanAcademyIE,
+    EveryonesMixtapeIE,
 )
 
 
@@ -209,6 +210,15 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['title'], 'Journey into cryptography')
         self.assertEqual(result['description'], 'How have humans protected their secret messages through history? What has changed today?')
         self.assertTrue(len(result['entries']) >= 3)
+
+    def test_EveryonesMixtape(self):
+        dl = FakeYDL()
+        ie = EveryonesMixtapeIE(dl)
+        result = ie.extract('http://everyonesmixtape.com/#/mix/m7m0jJAbMQi')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], 'm7m0jJAbMQi')
+        self.assertEqual(result['title'], 'Driving')
+        self.assertEqual(len(result['entries']), 24)
 
 
 if __name__ == '__main__':

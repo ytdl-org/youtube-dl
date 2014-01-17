@@ -148,7 +148,7 @@ def generator(test_case):
                     for key, value in info_dict.items()
                     if value and key in ('title', 'description', 'uploader', 'upload_date', 'uploader_id', 'location'))
                 if not all(key in tc.get('info_dict', {}).keys() for key in test_info_dict.keys()):
-                    sys.stderr.write(u'\n"info_dict": ' + json.dumps(test_info_dict, ensure_ascii=False, indent=2) + u'\n')
+                    sys.stderr.write(u'\n"info_dict": ' + json.dumps(test_info_dict, ensure_ascii=False, indent=4) + u'\n')
 
                 # Check for the presence of mandatory fields
                 for key in ('id', 'url', 'title', 'ext'):
