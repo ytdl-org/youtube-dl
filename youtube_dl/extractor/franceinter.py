@@ -20,7 +20,7 @@ class FranceInterIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        
+
         webpage = self._download_webpage(url, video_id)
         title = self._html_search_regex(
             r'<span class="roll_overflow">(.*?)</span></h1>', webpage, 'title')
@@ -36,5 +36,3 @@ class FranceInterIE(InfoExtractor):
             }],
             'title': title,
         }
-
-        
