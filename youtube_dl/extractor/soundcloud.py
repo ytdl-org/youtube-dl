@@ -1,4 +1,6 @@
 # encoding: utf-8
+from __future__ import unicode_literals
+
 import json
 import re
 import itertools
@@ -32,58 +34,58 @@ class SoundcloudIE(InfoExtractor):
                        |(?P<player>(?:w|player|p.)\.soundcloud\.com/player/?.*?url=.*)
                     )
                     '''
-    IE_NAME = u'soundcloud'
+    IE_NAME = 'soundcloud'
     _TESTS = [
         {
-            u'url': u'http://soundcloud.com/ethmusic/lostin-powers-she-so-heavy',
-            u'file': u'62986583.mp3',
-            u'md5': u'ebef0a451b909710ed1d7787dddbf0d7',
-            u'info_dict': {
-                u"upload_date": u"20121011", 
-                u"description": u"No Downloads untill we record the finished version this weekend, i was too pumped n i had to post it , earl is prolly gonna b hella p.o'd", 
-                u"uploader": u"E.T. ExTerrestrial Music", 
-                u"title": u"Lostin Powers - She so Heavy (SneakPreview) Adrian Ackers Blueprint 1"
+            'url': 'http://soundcloud.com/ethmusic/lostin-powers-she-so-heavy',
+            'file': '62986583.mp3',
+            'md5': 'ebef0a451b909710ed1d7787dddbf0d7',
+            'info_dict': {
+                "upload_date": "20121011",
+                "description": "No Downloads untill we record the finished version this weekend, i was too pumped n i had to post it , earl is prolly gonna b hella p.o'd",
+                "uploader": "E.T. ExTerrestrial Music",
+                "title": "Lostin Powers - She so Heavy (SneakPreview) Adrian Ackers Blueprint 1"
             }
         },
         # not streamable song
         {
-            u'url': u'https://soundcloud.com/the-concept-band/goldrushed-mastered?in=the-concept-band/sets/the-royal-concept-ep',
-            u'info_dict': {
-                u'id': u'47127627',
-                u'ext': u'mp3',
-                u'title': u'Goldrushed',
-                u'uploader': u'The Royal Concept',
-                u'upload_date': u'20120521',
+            'url': 'https://soundcloud.com/the-concept-band/goldrushed-mastered?in=the-concept-band/sets/the-royal-concept-ep',
+            'info_dict': {
+                'id': '47127627',
+                'ext': 'mp3',
+                'title': 'Goldrushed',
+                'uploader': 'The Royal Concept',
+                'upload_date': '20120521',
             },
-            u'params': {
+            'params': {
                 # rtmp
-                u'skip_download': True,
+                'skip_download': True,
             },
         },
         # private link
         {
-            u'url': u'https://soundcloud.com/jaimemf/youtube-dl-test-video-a-y-baw/s-8Pjrp',
-            u'md5': u'aa0dd32bfea9b0c5ef4f02aacd080604',
-            u'info_dict': {
-                u'id': u'123998367',
-                u'ext': u'mp3',
-                u'title': u'Youtube - Dl Test Video \'\' Ä↭',
-                u'uploader': u'jaimeMF',
-                u'description': u'test chars:  \"\'/\\ä↭',
-                u'upload_date': u'20131209',
+            'url': 'https://soundcloud.com/jaimemf/youtube-dl-test-video-a-y-baw/s-8Pjrp',
+            'md5': 'aa0dd32bfea9b0c5ef4f02aacd080604',
+            'info_dict': {
+                'id': '123998367',
+                'ext': 'mp3',
+                'title': 'Youtube - Dl Test Video \'\' Ä↭',
+                'uploader': 'jaimeMF',
+                'description': 'test chars:  \"\'/\\ä↭',
+                'upload_date': '20131209',
             },
         },
         # downloadable song
         {
-            u'url': u'https://soundcloud.com/simgretina/just-your-problem-baby-1',
-            u'md5': u'56a8b69568acaa967b4c49f9d1d52d19',
-            u'info_dict': {
-                u'id': u'105614606',
-                u'ext': u'wav',
-                u'title': u'Just Your Problem Baby (Acapella)',
-                u'description': u'Vocals',
-                u'uploader': u'Sim Gretina',
-                u'upload_date': u'20130815',
+            'url': 'https://soundcloud.com/simgretina/just-your-problem-baby-1',
+            'md5': '56a8b69568acaa967b4c49f9d1d52d19',
+            'info_dict': {
+                'id': '105614606',
+                'ext': 'wav',
+                'title': 'Just Your Problem Baby (Acapella)',
+                'description': 'Vocals',
+                'uploader': 'Sim Gretina',
+                'upload_date': '20130815',
             },
         },
     ]
@@ -112,7 +114,7 @@ class SoundcloudIE(InfoExtractor):
         thumbnail = info['artwork_url']
         if thumbnail is not None:
             thumbnail = thumbnail.replace('-large', '-t500x500')
-        ext = u'mp3'
+        ext = 'mp3'
         result = {
             'id': track_id,
             'uploader': info['user']['username'],
@@ -124,11 +126,11 @@ class SoundcloudIE(InfoExtractor):
         if info.get('downloadable', False):
             # We can build a direct link to the song
             format_url = (
-                u'https://api.soundcloud.com/tracks/{0}/download?client_id={1}'.format(
+                'https://api.soundcloud.com/tracks/{0}/download?client_id={1}'.format(
                     track_id, self._CLIENT_ID))
             result['formats'] = [{
                 'format_id': 'download',
-                'ext': info.get('original_format', u'mp3'),
+                'ext': info.get('original_format', 'mp3'),
                 'url': format_url,
                 'vcodec': 'none',
             }]
@@ -138,7 +140,7 @@ class SoundcloudIE(InfoExtractor):
                 'client_id={1}&secret_token={2}'.format(track_id, self._IPHONE_CLIENT_ID, secret_token))
             stream_json = self._download_webpage(
                 streams_url,
-                track_id, u'Downloading track url')
+                track_id, 'Downloading track url')
 
             formats = []
             format_dict = json.loads(stream_json)
@@ -165,20 +167,19 @@ class SoundcloudIE(InfoExtractor):
                 # We fallback to the stream_url in the original info, this
                 # cannot be always used, sometimes it can give an HTTP 404 error
                 formats.append({
-                    'format_id': u'fallback',
+                    'format_id': 'fallback',
                     'url': info['stream_url'] + '?client_id=' + self._CLIENT_ID,
                     'ext': ext,
                     'vcodec': 'none',
                 })
 
-            def format_pref(f):
+            for f in formats:
                 if f['format_id'].startswith('http'):
-                    return 2
+                    f['protocol'] = 'http'
                 if f['format_id'].startswith('rtmp'):
-                    return 1
-                return 0
+                    f['protocol'] = 'rtmp'
 
-            formats.sort(key=format_pref)
+            self._sort_formats(formats)
             result['formats'] = formats
 
         return result
@@ -210,14 +211,14 @@ class SoundcloudIE(InfoExtractor):
     
             url = 'http://soundcloud.com/%s' % resolve_title
             info_json_url = self._resolv_url(url)
-        info_json = self._download_webpage(info_json_url, full_title, u'Downloading info JSON')
+        info_json = self._download_webpage(info_json_url, full_title, 'Downloading info JSON')
 
         info = json.loads(info_json)
         return self._extract_info_dict(info, full_title, secret_token=token)
 
 class SoundcloudSetIE(SoundcloudIE):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/sets/([\w\d-]+)(?:[?].*)?$'
-    IE_NAME = u'soundcloud:set'
+    IE_NAME = 'soundcloud:set'
     # it's in tests/test_playlists.py
     _TESTS = []
 
@@ -254,7 +255,7 @@ class SoundcloudSetIE(SoundcloudIE):
 
 class SoundcloudUserIE(SoundcloudIE):
     _VALID_URL = r'https?://(www\.)?soundcloud\.com/(?P<user>[^/]+)(/?(tracks/)?)?(\?.*)?$'
-    IE_NAME = u'soundcloud:user'
+    IE_NAME = 'soundcloud:user'
 
     # it's in tests/test_playlists.py
     _TESTS = []
@@ -266,7 +267,7 @@ class SoundcloudUserIE(SoundcloudIE):
         url = 'http://soundcloud.com/%s/' % uploader
         resolv_url = self._resolv_url(url)
         user_json = self._download_webpage(resolv_url, uploader,
-            u'Downloading user info')
+            'Downloading user info')
         user = json.loads(user_json)
 
         tracks = []
@@ -276,7 +277,7 @@ class SoundcloudUserIE(SoundcloudIE):
                                                   })
             tracks_url = 'http://api.soundcloud.com/users/%s/tracks.json?' % user['id'] + data
             response = self._download_webpage(tracks_url, uploader, 
-                u'Downloading tracks page %s' % (i+1))
+                'Downloading tracks page %s' % (i+1))
             new_tracks = json.loads(response)
             tracks.extend(self._extract_info_dict(track, quiet=True) for track in new_tracks)
             if len(new_tracks) < 50:
