@@ -479,6 +479,7 @@ class FFmpegMergerPP(FFmpegPostProcessor):
     def run(self, info):
         filename = info['filepath']
         args = ['-c', 'copy']
+        self._downloader.to_screen(u'[ffmpeg] Merging formats into "%s"' % filename)
         self.run_ffmpeg_multiple_files(info['__files_to_merge'], filename, args)
         return True, info
 
