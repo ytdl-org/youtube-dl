@@ -1,4 +1,5 @@
-import json
+from __future__ import unicode_literals
+
 import re
 
 from .common import InfoExtractor
@@ -10,17 +11,17 @@ from ..utils import (
 
 class MixcloudIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/([\w\d-]+)/([\w\d-]+)'
-    IE_NAME = u'mixcloud'
+    IE_NAME = 'mixcloud'
 
     _TEST = {
-        u'url': u'http://www.mixcloud.com/dholbach/cryptkeeper/',
-        u'file': u'dholbach-cryptkeeper.mp3',
-        u'info_dict': {
-            u'title': u'Cryptkeeper',
-            u'description': u'After quite a long silence from myself, finally another Drum\'n\'Bass mix with my favourite current dance floor bangers.',
-            u'uploader': u'Daniel Holbach',
-            u'uploader_id': u'dholbach',
-            u'upload_date': u'20111115',
+        'url': 'http://www.mixcloud.com/dholbach/cryptkeeper/',
+        'file': 'dholbach-cryptkeeper.mp3',
+        'info_dict': {
+            'title': 'Cryptkeeper',
+            'description': 'After quite a long silence from myself, finally another Drum\'n\'Bass mix with my favourite current dance floor bangers.',
+            'uploader': 'Daniel Holbach',
+            'uploader_id': 'dholbach',
+            'upload_date': '20111115',
         },
     }
 
@@ -50,10 +51,10 @@ class MixcloudIE(InfoExtractor):
 
         api_url = 'http://api.mixcloud.com/%s/%s/' % (uploader, cloudcast_name)
         info = self._download_json(
-            api_url, track_id, u'Downloading cloudcast info')
+            api_url, track_id, 'Downloading cloudcast info')
 
         preview_url = self._search_regex(
-            r'\s(?:data-preview-url|m-preview)="(.+?)"', webpage, u'preview url')
+            r'\s(?:data-preview-url|m-preview)="(.+?)"', webpage, 'preview url')
         song_url = preview_url.replace('/previews/', '/c/originals/')
         template_url = re.sub(r'(stream\d*)', 'stream%d', song_url)
         final_song_url = self._get_url(template_url)
