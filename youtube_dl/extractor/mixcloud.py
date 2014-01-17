@@ -42,17 +42,18 @@ class MixcloudIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-
         uploader = mobj.group(1)
         cloudcast_name = mobj.group(2)
         track_id = '-'.join((uploader, cloudcast_name))
-        api_url = 'http://api.mixcloud.com/%s/%s/' % (uploader, cloudcast_name)
-        webpage = self._download_webpage(url, track_id)
-        json_data = self._download_webpage(api_url, track_id,
-            u'Downloading cloudcast info')
-        info = json.loads(json_data)
 
-        preview_url = self._search_regex(r'data-preview-url="(.+?)"', webpage, u'preview url')
+        webpage = self._download_webpage(url, track_id)
+
+        api_url = 'http://api.mixcloud.com/%s/%s/' % (uploader, cloudcast_name)
+        info = self._download_json(
+            api_url, track_id, u'Downloading cloudcast info')
+
+        preview_url = self._search_regex(
+            r'\s(?:data-preview-url|m-preview)="(.+?)"', webpage, u'preview url')
         song_url = preview_url.replace('/previews/', '/c/originals/')
         template_url = re.sub(r'(stream\d*)', 'stream%d', song_url)
         final_song_url = self._get_url(template_url)
