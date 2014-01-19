@@ -5,7 +5,6 @@ from ..utils import (
     compat_urlparse,
     compat_urllib_parse,
     xpath_with_ns,
-    determine_ext,
 )
 
 
@@ -63,13 +62,17 @@ class InternetVideoArchiveIE(InfoExtractor):
         for content in item.findall(_bp('media:group/media:content')):
             attr = content.attrib
             f_url = attr['url']
+            width = int(attr['width'])
+            bitrate = int(attr['bitrate'])
+            format_id = '%d-%dk' % (width, bitrate)
             formats.append({
+                'format_id': format_id,
                 'url': f_url,
-                'ext': determine_ext(f_url),
-                'width': int(attr['width']),
-                'bitrate': int(attr['bitrate']),
+                'width': width,
+                'tbr': bitrate,
             })
-        formats = sorted(formats, key=lambda f: f['bitrate'])
+
+        self._sort_formats(formats)
 
         return {
             'id': video_id,

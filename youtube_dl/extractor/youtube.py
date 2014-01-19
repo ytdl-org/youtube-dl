@@ -131,6 +131,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                      (
                          (?:https?://|//)?                                    # http(s):// or protocol-independent URL (optional)
                          (?:(?:(?:(?:\w+\.)?[yY][oO][uU][tT][uU][bB][eE](?:-nocookie)?\.com/|
+                            (?:www\.)?deturl\.com/www\.youtube\.com/|
+                            (?:www\.)?pwnyoutube\.com|
                             tube\.majestyc\.net/|
                             youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
@@ -194,6 +196,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         '137': {'ext': 'mp4', 'height': 1080, 'resolution': '1080p', 'format_note': 'DASH video', 'preference': -40},
         '138': {'ext': 'mp4', 'height': 1081, 'resolution': '>1080p', 'format_note': 'DASH video', 'preference': -40},
         '160': {'ext': 'mp4', 'height': 192, 'resolution': '192p', 'format_note': 'DASH video', 'preference': -40},
+        '264': {'ext': 'mp4', 'height': 1080, 'resolution': '1080p', 'format_note': 'DASH video', 'preference': -40},
 
         # Dash mp4 audio
         '139': {'ext': 'm4a', 'format_note': 'DASH audio', 'vcodec': 'none', 'abr': 48, 'preference': -50},
@@ -212,6 +215,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         # Dash webm audio
         '171': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH webm audio', 'abr': 48, 'preference': -50},
         '172': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH webm audio', 'abr': 256, 'preference': -50},
+
+        # RTMP (unnamed)
+        '_rtmp': {'protocol': 'rtmp'},
     }
 
     IE_NAME = u'youtube'
@@ -997,7 +1003,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'lang': lang,
                 'v': video_id,
                 'fmt': self._downloader.params.get('subtitlesformat', 'srt'),
-                'name': l[0].encode('utf-8'),
+                'name': unescapeHTML(l[0]).encode('utf-8'),
             })
             url = u'http://www.youtube.com/api/timedtext?' + params
             sub_lang_list[lang] = url
@@ -1272,7 +1278,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         if 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
             self.report_rtmp_download()
-            video_url_list = [(None, video_info['conn'][0])]
+            video_url_list = [('_rtmp', video_info['conn'][0])]
         elif len(video_info.get('url_encoded_fmt_stream_map', [])) >= 1 or len(video_info.get('adaptive_fmts', [])) >= 1:
             encoded_url_map = video_info.get('url_encoded_fmt_stream_map', [''])[0] + ',' + video_info.get('adaptive_fmts',[''])[0]
             if 'rtmpe%3Dyes' in encoded_url_map:
@@ -1758,6 +1764,6 @@ class YoutubeTruncatedURLIE(InfoExtractor):
             u'Did you forget to quote the URL? Remember that & is a meta '
             u'character in most shells, so you want to put the URL in quotes, '
             u'like  youtube-dl '
-            u'\'http://www.youtube.com/watch?feature=foo&v=BaW_jenozKc\''
-            u' (or simply  youtube-dl BaW_jenozKc  ).',
+            u'"http://www.youtube.com/watch?feature=foo&v=BaW_jenozKc" '
+            u' or simply  youtube-dl BaW_jenozKc  .',
             expected=True)

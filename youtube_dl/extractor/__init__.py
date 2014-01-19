@@ -28,6 +28,7 @@ from .channel9 import Channel9IE
 from .cinemassacre import CinemassacreIE
 from .clipfish import ClipfishIE
 from .clipsyndicate import ClipsyndicateIE
+from .cmt import CMTIE
 from .cnn import CNNIE
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
@@ -51,6 +52,7 @@ from .ehow import EHowIE
 from .eighttracks import EightTracksIE
 from .eitb import EitbIE
 from .escapist import EscapistIE
+from .everyonesmixtape import EveryonesMixtapeIE
 from .exfm import ExfmIE
 from .extremetube import ExtremeTubeIE
 from .facebook import FacebookIE
@@ -60,11 +62,13 @@ from .fktv import (
     FKTVPosteckeIE,
 )
 from .flickr import FlickrIE
+from .franceinter import FranceInterIE
 from .francetv import (
     PluzzIE,
     FranceTvInfoIE,
     FranceTVIE,
-    GenerationQuoiIE
+    GenerationQuoiIE,
+    CultureboxIE,
 )
 from .freesound import FreesoundIE
 from .funnyordie import FunnyOrDieIE
@@ -79,7 +83,10 @@ from .hotnewhiphop import HotNewHipHopIE
 from .howcast import HowcastIE
 from .hypem import HypemIE
 from .ign import IGNIE, OneUPIE
-from .imdb import ImdbIE
+from .imdb import (
+    ImdbIE,
+    ImdbListIE
+)
 from .ina import InaIE
 from .infoq import InfoQIE
 from .instagram import InstagramIE
@@ -91,17 +98,25 @@ from .ivi import (
 from .jeuxvideo import JeuxVideoIE
 from .jukebox import JukeboxIE
 from .justintv import JustinTVIE
+from .jpopsukitv import JpopsukiIE
 from .kankan import KankanIE
 from .keezmovies import KeezMoviesIE
+from .khanacademy import KhanAcademyIE
 from .kickstarter import KickStarterIE
 from .keek import KeekIE
 from .liveleak import LiveLeakIE
 from .livestream import LivestreamIE, LivestreamOriginalIE
+from .lynda import (
+    LyndaIE,
+    LyndaCourseIE
+)
+from .macgamestore import MacGameStoreIE
 from .mdr import MDRIE
 from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
 from .mit import TechTVMITIE, MITIE
 from .mixcloud import MixcloudIE
+from .mpora import MporaIE
 from .mofosex import MofosexIE
 from .mtv import MTVIE
 from .muzu import MuzuTVIE
@@ -116,6 +131,7 @@ from .newgrounds import NewgroundsIE
 from .nhl import NHLIE, NHLVideocenterIE
 from .niconico import NiconicoIE
 from .ninegag import NineGagIE
+from .novamov import NovamovIE
 from .nowvideo import NowVideoIE
 from .ooyala import OoyalaIE
 from .orf import ORFIE
@@ -189,6 +205,7 @@ from .vimeo import (
     VimeoUserIE,
     VimeoAlbumIE,
     VimeoGroupsIE,
+    VimeoReviewIE,
 )
 from .vine import VineIE
 from .viki import VikiIE

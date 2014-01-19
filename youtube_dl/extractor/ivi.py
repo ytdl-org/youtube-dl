@@ -84,14 +84,16 @@ class IviIE(InfoExtractor):
 
         result = video_json[u'result']
 
-        formats = [{'url': x[u'url'],
-                    'format_id': x[u'content_format']
-                    } for x in result[u'files'] if x[u'content_format'] in self._known_formats]
-        formats.sort(key=lambda fmt: self._known_formats.index(fmt['format_id']))
+        formats = [{
+            'url': x[u'url'],
+            'format_id': x[u'content_format'],
+            'preference': self._known_formats.index(x[u'content_format']),
+        } for x in result[u'files'] if x[u'content_format'] in self._known_formats]
 
-        if len(formats) == 0:
-            self._downloader.report_warning(u'No media links available for %s' % video_id)
-            return
+        self._sort_formats(formats)
+
+        if not formats:
+            raise ExtractorError(u'No media links available for %s' % video_id)
 
         duration = result[u'duration']
         compilation = result[u'compilation']

@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import json
 import re
 
@@ -6,6 +8,7 @@ from .subtitles import SubtitlesInfoExtractor
 from ..utils import (
     RegexNotFoundError,
 )
+
 
 class TEDIE(SubtitlesInfoExtractor):
     _VALID_URL=r'''http://www\.ted\.com/
@@ -18,12 +21,12 @@ class TEDIE(SubtitlesInfoExtractor):
                    /(?P<name>\w+) # Here goes the name and then ".html"
                    '''
     _TEST = {
-        u'url': u'http://www.ted.com/talks/dan_dennett_on_our_consciousness.html',
-        u'file': u'102.mp4',
-        u'md5': u'2d76ee1576672e0bd8f187513267adf6',
-        u'info_dict': {
-            u"description": u"md5:c6fa72e6eedbd938c9caf6b2702f5922", 
-            u"title": u"Dan Dennett: The illusion of consciousness"
+        'url': 'http://www.ted.com/talks/dan_dennett_on_our_consciousness.html',
+        'file': '102.mp4',
+        'md5': '4ea1dada91e4174b53dac2bb8ace429d',
+        'info_dict': {
+            "description": "md5:c6fa72e6eedbd938c9caf6b2702f5922",
+            "title": "Dan Dennett: The illusion of consciousness"
         }
     }
 
@@ -47,7 +50,7 @@ class TEDIE(SubtitlesInfoExtractor):
         '''Returns the videos of the playlist'''
 
         webpage = self._download_webpage(
-            url, playlist_id, u'Downloading playlist webpage')
+            url, playlist_id, 'Downloading playlist webpage')
         matches = re.finditer(
             r'<p\s+class="talk-title[^"]*"><a\s+href="(?P<talk_url>/talks/[^"]+\.html)">[^<]*</a></p>',
             webpage)

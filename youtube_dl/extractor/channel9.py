@@ -76,14 +76,18 @@ class Channel9IE(InfoExtractor):
             </div>)?                                                # File size part may be missing
         '''
         # Extract known formats
-        formats = [{'url': x.group('url'),
-                 'format_id': x.group('quality'),
-                 'format_note': x.group('note'),
-                 'format': '%s (%s)' % (x.group('quality'), x.group('note')), 
-                 'filesize': self._restore_bytes(x.group('filesize')), # File size is approximate
-                 } for x in list(re.finditer(FORMAT_REGEX, html)) if x.group('quality') in self._known_formats]
-        # Sort according to known formats list
-        formats.sort(key=lambda fmt: self._known_formats.index(fmt['format_id']))
+        formats = [{
+            'url': x.group('url'),
+            'format_id': x.group('quality'),
+            'format_note': x.group('note'),
+            'format': u'%s (%s)' % (x.group('quality'), x.group('note')),
+            'filesize': self._restore_bytes(x.group('filesize')), # File size is approximate
+            'preference': self._known_formats.index(x.group('quality')),
+            'vcodec': 'none' if x.group('note') == 'Audio only' else None,
+        } for x in list(re.finditer(FORMAT_REGEX, html)) if x.group('quality') in self._known_formats]
+
+        self._sort_formats(formats)
+
         return formats
 
     def _extract_title(self, html):

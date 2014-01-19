@@ -167,13 +167,13 @@ class TestTedSubtitles(BaseTestSubtitles):
     def test_subtitles(self):
         self.DL.params['writesubtitles'] = True
         subtitles = self.getSubtitles()
-        self.assertEqual(md5(subtitles['en']), '2154f31ff9b9f89a0aa671537559c21d')
+        self.assertEqual(md5(subtitles['en']), '4262c1665ff928a2dada178f62cb8d14')
 
     def test_subtitles_lang(self):
         self.DL.params['writesubtitles'] = True
         self.DL.params['subtitleslangs'] = ['fr']
         subtitles = self.getSubtitles()
-        self.assertEqual(md5(subtitles['fr']), '7616cbc6df20ec2c1204083c83871cf6')
+        self.assertEqual(md5(subtitles['fr']), '66a63f7f42c97a50f8c0e90bc7797bb5')
 
     def test_allsubtitles(self):
         self.DL.params['writesubtitles'] = True

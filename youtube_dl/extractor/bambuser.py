@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import re
 import json
 import itertools
@@ -9,26 +11,26 @@ from ..utils import (
 
 
 class BambuserIE(InfoExtractor):
-    IE_NAME = u'bambuser'
+    IE_NAME = 'bambuser'
     _VALID_URL = r'https?://bambuser\.com/v/(?P<id>\d+)'
     _API_KEY = '005f64509e19a868399060af746a00aa'
 
     _TEST = {
-        u'url': u'http://bambuser.com/v/4050584',
+        'url': 'http://bambuser.com/v/4050584',
         # MD5 seems to be flaky, see https://travis-ci.org/rg3/youtube-dl/jobs/14051016#L388
-        #u'md5': u'fba8f7693e48fd4e8641b3fd5539a641',
-        u'info_dict': {
-            u'id': u'4050584',
-            u'ext': u'flv',
-            u'title': u'Education engineering days - lightning talks',
-            u'duration': 3741,
-            u'uploader': u'pixelversity',
-            u'uploader_id': u'344706',
+        #u'md5': 'fba8f7693e48fd4e8641b3fd5539a641',
+        'info_dict': {
+            'id': '4050584',
+            'ext': 'flv',
+            'title': 'Education engineering days - lightning talks',
+            'duration': 3741,
+            'uploader': 'pixelversity',
+            'uploader_id': '344706',
         },
-        u'params': {
+        'params': {
             # It doesn't respect the 'Range' header, it would download the whole video
             # caused the travis builds to fail: https://travis-ci.org/rg3/youtube-dl/jobs/14493845#L59
-            u'skip_download': True,
+            'skip_download': True,
         },
     }
 
@@ -53,7 +55,7 @@ class BambuserIE(InfoExtractor):
 
 
 class BambuserChannelIE(InfoExtractor):
-    IE_NAME = u'bambuser:channel'
+    IE_NAME = 'bambuser:channel'
     _VALID_URL = r'https?://bambuser\.com/channel/(?P<user>.*?)(?:/|#|\?|$)'
     # The maximum number we can get with each request
     _STEP = 50
@@ -72,7 +74,7 @@ class BambuserChannelIE(InfoExtractor):
             # Without setting this header, we wouldn't get any result
             req.add_header('Referer', 'http://bambuser.com/channel/%s' % user)
             info_json = self._download_webpage(req, user,
-                u'Downloading page %d' % i)
+                'Downloading page %d' % i)
             results = json.loads(info_json)['result']
             if len(results) == 0:
                 break

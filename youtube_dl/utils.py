@@ -500,12 +500,13 @@ def unescapeHTML(s):
     result = re.sub(u'(?u)&(.+?);', htmlentity_transform, s)
     return result
 
-def encodeFilename(s):
+
+def encodeFilename(s, for_subprocess=False):
     """
     @param s The name of the file
     """
 
-    assert type(s) == type(u'')
+    assert type(s) == compat_str
 
     # Python 3 has a Unicode API
     if sys.version_info >= (3, 0):
@@ -515,12 +516,18 @@ def encodeFilename(s):
         # Pass u'' directly to use Unicode APIs on Windows 2000 and up
         # (Detecting Windows NT 4 is tricky because 'major >= 4' would
         # match Windows 9x series as well. Besides, NT 4 is obsolete.)
-        return s
+        if not for_subprocess:
+            return s
+        else:
+            # For subprocess calls, encode with locale encoding
+            # Refer to http://stackoverflow.com/a/9951851/35070
+            encoding = preferredencoding()
     else:
         encoding = sys.getfilesystemencoding()
-        if encoding is None:
-            encoding = 'utf-8'
-        return s.encode(encoding, 'ignore')
+    if encoding is None:
+        encoding = 'utf-8'
+    return s.encode(encoding, 'ignore')
+
 
 def decodeOption(optval):
     if optval is None:
@@ -539,7 +546,8 @@ def formatSeconds(secs):
     else:
         return '%d' % secs
 
-def make_HTTPS_handler(opts_no_check_certificate):
+
+def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
     if sys.version_info < (3, 2):
         import httplib
 
@@ -560,7 +568,7 @@ def make_HTTPS_handler(opts_no_check_certificate):
         class HTTPSHandlerV3(compat_urllib_request.HTTPSHandler):
             def https_open(self, req):
                 return self.do_open(HTTPSConnectionV3, req)
-        return HTTPSHandlerV3()
+        return HTTPSHandlerV3(**kwargs)
     else:
         context = ssl.SSLContext(ssl.PROTOCOL_SSLv3)
         context.verify_mode = (ssl.CERT_NONE
@@ -571,7 +579,7 @@ def make_HTTPS_handler(opts_no_check_certificate):
             context.load_default_certs()
         except AttributeError:
             pass  # Python < 3.4
-        return compat_urllib_request.HTTPSHandler(context=context)
+        return compat_urllib_request.HTTPSHandler(context=context, **kwargs)
 
 class ExtractorError(Exception):
     """Error during info extraction."""
@@ -756,6 +764,7 @@ def unified_strdate(date_str):
         '%Y-%m-%d',
         '%d/%m/%Y',
         '%Y/%m/%d %H:%M:%S',
+        '%Y-%m-%d %H:%M:%S',
         '%d.%m.%Y %H:%M',
         '%Y-%m-%dT%H:%M:%SZ',
         '%Y-%m-%dT%H:%M:%S.%fZ',
@@ -809,6 +818,15 @@ def date_from_str(date_str):
         return today + delta
     return datetime.datetime.strptime(date_str, "%Y%m%d").date()
     
+def hyphenate_date(date_str):
+    """
+    Convert a date in 'YYYYMMDD' format to 'YYYY-MM-DD' format"""
+    match = re.match(r'^(\d\d\d\d)(\d\d)(\d\d)$', date_str)
+    if match is not None:
+        return '-'.join(match.groups())
+    else:
+        return date_str
+
 class DateRange(object):
     """Represents a time interval between two dates"""
     def __init__(self, start=None, end=None):
@@ -849,12 +867,22 @@ def platform_name():
 def write_string(s, out=None):
     if out is None:
         out = sys.stderr
-    assert type(s) == type(u'')
+    assert type(s) == compat_str
 
     if ('b' in getattr(out, 'mode', '') or
             sys.version_info[0] < 3):  # Python 2 lies about mode of sys.stderr
         s = s.encode(preferredencoding(), 'ignore')
-    out.write(s)
+    try:
+        out.write(s)
+    except UnicodeEncodeError:
+        # In Windows shells, this can fail even when the codec is just charmap!?
+        # See https://wiki.python.org/moin/PrintFails#Issue
+        if sys.platform == 'win32' and hasattr(out, 'encoding'):
+            s = s.encode(out.encoding, 'ignore').decode(out.encoding)
+            out.write(s)
+        else:
+            raise
+
     out.flush()
 
 
@@ -1008,9 +1036,9 @@ def smuggle_url(url, data):
     return url + u'#' + sdata
 
 
-def unsmuggle_url(smug_url):
+def unsmuggle_url(smug_url, default=None):
     if not '#__youtubedl_smuggle' in smug_url:
-        return smug_url, None
+        return smug_url, default
     url, _, sdata = smug_url.rpartition(u'#')
     jsond = compat_parse_qs(sdata)[u'__youtubedl_smuggle'][0]
     data = json.loads(jsond)
@@ -1070,7 +1098,7 @@ def fix_xml_all_ampersand(xml_str):
 
 
 def setproctitle(title):
-    assert isinstance(title, type(u''))
+    assert isinstance(title, compat_str)
     try:
         libc = ctypes.cdll.LoadLibrary("libc.so.6")
     except OSError:
@@ -1118,3 +1146,18 @@ def parse_duration(s):
         if m.group('hours'):
             res += int(m.group('hours')) * 60 * 60
     return res
+
+
+def prepend_extension(filename, ext):
+    name, real_ext = os.path.splitext(filename) 
+    return u'{0}.{1}{2}'.format(name, ext, real_ext)
+
+
+def check_executable(exe, args=[]):
+    """ Checks if the given binary is installed somewhere in PATH, and returns its name.
+    args can be a list of arguments for a short output (like -version) """
+    try:
+        subprocess.Popen([exe] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+    except OSError:
+        return False
+    return exe

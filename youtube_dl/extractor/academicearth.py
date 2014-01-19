@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
@@ -5,7 +6,7 @@ from .common import InfoExtractor
 
 class AcademicEarthCourseIE(InfoExtractor):
     _VALID_URL = r'^https?://(?:www\.)?academicearth\.org/(?:courses|playlists)/(?P<id>[^?#/]+)'
-    IE_NAME = u'AcademicEarth:Course'
+    IE_NAME = 'AcademicEarth:Course'
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)

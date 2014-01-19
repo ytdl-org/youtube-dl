@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import re
 
 from .common import InfoExtractor
@@ -12,23 +14,24 @@ class CNNIE(InfoExtractor):
         (?P<path>.+?/(?P<title>[^/]+?)(?:\.cnn|(?=&)))'''
 
     _TESTS = [{
-        u'url': u'http://edition.cnn.com/video/?/video/sports/2013/06/09/nadal-1-on-1.cnn',
-        u'file': u'sports_2013_06_09_nadal-1-on-1.cnn.mp4',
-        u'md5': u'3e6121ea48df7e2259fe73a0628605c4',
-        u'info_dict': {
-            u'title': u'Nadal wins 8th French Open title',
-            u'description': u'World Sport\'s Amanda Davies chats with 2013 French Open champion Rafael Nadal.',
-            u'duration': 135,
-            u'upload_date': u'20130609',
+        'url': 'http://edition.cnn.com/video/?/video/sports/2013/06/09/nadal-1-on-1.cnn',
+        'file': 'sports_2013_06_09_nadal-1-on-1.cnn.mp4',
+        'md5': '3e6121ea48df7e2259fe73a0628605c4',
+        'info_dict': {
+            'title': 'Nadal wins 8th French Open title',
+            'description': 'World Sport\'s Amanda Davies chats with 2013 French Open champion Rafael Nadal.',
+            'duration': 135,
+            'upload_date': '20130609',
         },
     },
     {
-        u"url": u"http://edition.cnn.com/video/?/video/us/2013/08/21/sot-student-gives-epic-speech.georgia-institute-of-technology&utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+rss%2Fcnn_topstories+%28RSS%3A+Top+Stories%29",
-        u"file": u"us_2013_08_21_sot-student-gives-epic-speech.georgia-institute-of-technology.mp4",
-        u"md5": u"b5cc60c60a3477d185af8f19a2a26f4e",
-        u"info_dict": {
-            u"title": "Student's epic speech stuns new freshmen",
-            u"description": "A Georgia Tech student welcomes the incoming freshmen with an epic speech backed by music from \"2001: A Space Odyssey.\""
+        "url": "http://edition.cnn.com/video/?/video/us/2013/08/21/sot-student-gives-epic-speech.georgia-institute-of-technology&utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+rss%2Fcnn_topstories+%28RSS%3A+Top+Stories%29",
+        "file": "us_2013_08_21_sot-student-gives-epic-speech.georgia-institute-of-technology.mp4",
+        "md5": "b5cc60c60a3477d185af8f19a2a26f4e",
+        "info_dict": {
+            "title": "Student's epic speech stuns new freshmen",
+            "description": "A Georgia Tech student welcomes the incoming freshmen with an epic speech backed by music from \"2001: A Space Odyssey.\"",
+            "upload_date": "20130821",
         }
     }]
 
@@ -36,7 +39,7 @@ class CNNIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         path = mobj.group('path')
         page_title = mobj.group('title')
-        info_url = u'http://cnn.com/video/data/3.0/%s/index.xml' % path
+        info_url = 'http://cnn.com/video/data/3.0/%s/index.xml' % path
         info = self._download_xml(info_url, page_title)
 
         formats = []

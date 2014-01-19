@@ -24,6 +24,8 @@ if [ -z "$1" ]; then echo "ERROR: specify version number like this: $0 1994.09.0
 version="$1"
 if [ ! -z "`git tag | grep "$version"`" ]; then echo 'ERROR: version already present'; exit 1; fi
 if [ ! -z "`git status --porcelain | grep -v CHANGELOG`" ]; then echo 'ERROR: the working directory is not clean; commit or stash changes'; exit 1; fi
+useless_files=$(find youtube_dl -type f -not -name '*.py')
+if [ ! -z "$useless_files" ]; then echo "ERROR: Non-.py files in youtube_dl: $useless_files"; exit 1; fi
 if [ ! -f "updates_key.pem" ]; then echo 'ERROR: updates_key.pem missing'; exit 1; fi
 
 /bin/echo -e "\n### First of all, testing..."

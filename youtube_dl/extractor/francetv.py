@@ -191,3 +191,29 @@ class GenerationQuoiIE(InfoExtractor):
         info = json.loads(info_json)
         return self.url_result('http://www.dailymotion.com/video/%s' % info['id'],
             ie='Dailymotion')
+
+
+class CultureboxIE(FranceTVBaseInfoExtractor):
+    IE_NAME = u'culturebox.francetvinfo.fr'
+    _VALID_URL = r'https?://culturebox\.francetvinfo\.fr/(?P<name>.*?)(\?|$)'
+
+    _TEST = {
+        u'url': u'http://culturebox.francetvinfo.fr/einstein-on-the-beach-au-theatre-du-chatelet-146813',
+        u'info_dict': {
+            u'id': u'EV_6785',
+            u'ext': u'mp4',
+            u'title': u'Einstein on the beach au Théâtre du Châtelet',
+            u'description': u'md5:9ce2888b1efefc617b5e58b3f6200eeb',
+        },
+        u'params': {
+            # m3u8 download
+            u'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        name = mobj.group('name')
+        webpage = self._download_webpage(url, name)
+        video_id = self._search_regex(r'"http://videos\.francetv\.fr/video/(.*?)"', webpage, u'video id')
+        return self._extract_video(video_id)

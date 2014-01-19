@@ -34,10 +34,13 @@ which means you can modify it, redistribute it or use it however you like.
                                empty string (--proxy "") for direct connection
     --no-check-certificate     Suppress HTTPS certificate validation.
     --cache-dir DIR            Location in the filesystem where youtube-dl can
-                               store downloaded information permanently. By
+                               store some downloaded information permanently. By
                                default $XDG_CACHE_HOME/youtube-dl or ~/.cache
-                               /youtube-dl .
+                               /youtube-dl . At the moment, only YouTube player
+                               files (for videos with obfuscated signatures) are
+                               cached, but that may change.
     --no-cache-dir             Disable filesystem caching
+    --socket-timeout None      Time to wait before giving up, in seconds
     --bidi-workaround          Work around terminals that lack bidirectional
                                text support. Requires bidiv or fribidi
                                executable in PATH
@@ -55,8 +58,10 @@ which means you can modify it, redistribute it or use it however you like.
     --max-filesize SIZE        Do not download any videos larger than SIZE (e.g.
                                50k or 44.6m)
     --date DATE                download only videos uploaded in this date
-    --datebefore DATE          download only videos uploaded before this date
-    --dateafter DATE           download only videos uploaded after this date
+    --datebefore DATE          download only videos uploaded on or before this
+                               date (i.e. inclusive)
+    --dateafter DATE           download only videos uploaded on or after this
+                               date (i.e. inclusive)
     --min-views COUNT          Do not download any videos with less than COUNT
                                views
     --max-views COUNT          Do not download any videos with more than COUNT
@@ -88,13 +93,13 @@ which means you can modify it, redistribute it or use it however you like.
                                different, %(autonumber)s to get an automatically
                                incremented number, %(ext)s for the filename
                                extension, %(format)s for the format description
-                               (like "22 - 1280x720" or "HD"),%(format_id)s for
+                               (like "22 - 1280x720" or "HD"), %(format_id)s for
                                the unique id of the format (like Youtube's
-                               itags: "137"),%(upload_date)s for the upload date
-                               (YYYYMMDD), %(extractor)s for the provider
-                               (youtube, metacafe, etc), %(id)s for the video id
-                               , %(playlist)s for the playlist the video is in,
-                               %(playlist_index)s for the position in the
+                               itags: "137"), %(upload_date)s for the upload
+                               date (YYYYMMDD), %(extractor)s for the provider
+                               (youtube, metacafe, etc), %(id)s for the video
+                               id, %(playlist)s for the playlist the video is
+                               in, %(playlist_index)s for the position in the
                                playlist and %% for a literal percent. Use - to
                                output to stdout. Can also be used to download to
                                a different directory, for example with -o '/my/d
@@ -106,7 +111,7 @@ which means you can modify it, redistribute it or use it however you like.
                                avoid "&" and spaces in filenames
     -a, --batch-file FILE      file containing URLs to download ('-' for stdin)
     --load-info FILE           json file containing the video information
-                               (created with the "--write-json" option
+                               (created with the "--write-json" option)
     -w, --no-overwrites        do not overwrite files
     -c, --continue             force resume of partially downloaded files. By
                                default, youtube-dl will resume downloads if
@@ -140,7 +145,7 @@ which means you can modify it, redistribute it or use it however you like.
     --no-progress              do not print progress bar
     --console-title            display progress in console titlebar
     -v, --verbose              print various debugging information
-    --dump-intermediate-pages  print downloaded pages to debug problems(very
+    --dump-intermediate-pages  print downloaded pages to debug problems (very
                                verbose)
     --write-pages              Write downloaded intermediary pages to files in
                                the current directory to debug problems
@@ -153,8 +158,7 @@ which means you can modify it, redistribute it or use it however you like.
     --prefer-free-formats      prefer free video formats unless a specific one
                                is requested
     --max-quality FORMAT       highest quality format to download
-    -F, --list-formats         list all available formats (currently youtube
-                               only)
+    -F, --list-formats         list all available formats
 
 ## Subtitle Options:
     --write-sub                write subtitle file
@@ -172,7 +176,7 @@ which means you can modify it, redistribute it or use it however you like.
     -u, --username USERNAME    account username
     -p, --password PASSWORD    account password
     -n, --netrc                use .netrc authentication data
-    --video-password PASSWORD  video password (vimeo only)
+    --video-password PASSWORD  video password (vimeo, smotri)
 
 ## Post-processing Options:
     -x, --extract-audio        convert video files to audio-only files (requires
@@ -190,7 +194,13 @@ which means you can modify it, redistribute it or use it however you like.
                                processed files are overwritten by default
     --embed-subs               embed subtitles in the video (only for mp4
                                videos)
-    --add-metadata             add metadata to the files
+    --add-metadata             write metadata to the video file
+    --xattrs                   write metadata to the video file's xattrs (using
+                               dublin core and xdg standards)
+    --prefer-avconv            Prefer avconv over ffmpeg for running the
+                               postprocessors (default)
+    --prefer-ffmpeg            Prefer ffmpeg over avconv for running the
+                               postprocessors
 
 # CONFIGURATION
 
@@ -229,9 +239,12 @@ Videos can be filtered by their upload date using the options `--date`, `--dateb
  
 Examples:
 
-	$ youtube-dl --dateafter now-6months #will only download the videos uploaded in the last 6 months
-	$ youtube-dl --date 19700101 #will only download the videos uploaded in January 1, 1970
-	$ youtube-dl --dateafter 20000101 --datebefore 20100101 #will only download the videos uploaded between 2000 and 2010
+  $ # Download only the videos uploaded in the last 6 months
+	$ youtube-dl --dateafter now-6months
+  $ # Download only the videos uploaded on January 1, 1970
+	$ youtube-dl --date 19700101
+  $ # will only download the videos uploaded in the 200x decade
+	$ youtube-dl --dateafter 20000101 --datebefore 20091231
 
 # FAQ
 
@@ -310,7 +323,7 @@ Site support requests must contain an example URL. An example URL is a URL you m
 
 ###  Are you using the latest version?
 
-Before reporting any issue, type youtube-dl -U. This should report that you're up-to-date. Ábout 20% of the reports we receive are already fixed, but people are using outdated versions. This goes for feature requests as well.
+Before reporting any issue, type youtube-dl -U. This should report that you're up-to-date. About 20% of the reports we receive are already fixed, but people are using outdated versions. This goes for feature requests as well.
 
 ###  Is the issue already documented?
 
@@ -335,3 +348,7 @@ In particular, every site support request issue should only pertain to services 
 ###  Is anyone going to need the feature?
 
 Only post features that you (or an incapicated friend you can personally talk to) require. Do not post features because they seem like a good idea. If they are really useful, they will be requested by someone who requires them.
+
+###  Is your question about youtube-dl?
+
+It may sound strange, but some bug reports we receive are completely unrelated to youtube-dl and relate to a different or even the reporter's own application. Please make sure that you are actually using youtube-dl. If you are using a UI for youtube-dl, report the bug to the maintainer of the actual application providing the UI. On the other hand, if your UI for youtube-dl fails in some way you believe is related to youtube-dl, by all means, go ahead and report the bug.

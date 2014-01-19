@@ -1,4 +1,6 @@
 import base64
+import hashlib
+import json
 import os
 import re
 import socket
@@ -51,7 +53,8 @@ class InfoExtractor(object):
                                  Calculated from the format_id, width, height.
                                  and format_note fields if missing.
                     * format_id  A short description of the format
-                                 ("mp4_h264_opus" or "19")
+                                 ("mp4_h264_opus" or "19").
+                                Technically optional, but strongly recommended.
                     * format_note Additional info about the format
                                  ("3D" or "DASH video")
                     * width      Width of the video, if known
@@ -68,7 +71,12 @@ class InfoExtractor(object):
                                  download, lower-case.
                                  "http", "https", "rtsp", "rtmp" or so.
                     * preference Order number of this format. If this field is
-                                 present, the formats get sorted by this field.
+                                 present and not None, the formats get sorted
+                                 by this field.
+                                 -1 for default (order by other properties),
+                                 -2 or smaller for less than default.
+                    * quality    Order number of the video quality of this
+                                 format, irrespective of the file format.
                                  -1 for default (order by other properties),
                                  -2 or smaller for less than default.
     url:            Final video URL.
@@ -227,6 +235,9 @@ class InfoExtractor(object):
                 url = url_or_request.get_full_url()
             except AttributeError:
                 url = url_or_request
+            if len(url) > 200:
+                h = hashlib.md5(url).hexdigest()
+                url = url[:200 - len(h)] + h
             raw_filename = ('%s_%s.dump' % (video_id, url))
             filename = sanitize_filename(raw_filename, restricted=True)
             self.to_screen(u'Saving request to ' + filename)
@@ -253,6 +264,15 @@ class InfoExtractor(object):
         if transform_source:
             xml_string = transform_source(xml_string)
         return xml.etree.ElementTree.fromstring(xml_string.encode('utf-8'))
+
+    def _download_json(self, url_or_request, video_id,
+                       note=u'Downloading JSON metadata',
+                       errnote=u'Unable to download JSON metadata'):
+        json_string = self._download_webpage(url_or_request, video_id, note, errnote)
+        try:
+            return json.loads(json_string)
+        except ValueError as ve:
+            raise ExtractorError('Failed to download JSON', cause=ve)
 
     def report_warning(self, msg, video_id=None):
         idstr = u'' if video_id is None else u'%s: ' % video_id
@@ -376,7 +396,7 @@ class InfoExtractor(object):
     @staticmethod
     def _og_regexes(prop):
         content_re = r'content=(?:"([^>]+?)"|\'(.+?)\')'
-        property_re = r'property=[\'"]og:%s[\'"]' % re.escape(prop)
+        property_re = r'(?:name|property)=[\'"]og:%s[\'"]' % re.escape(prop)
         template = r'<meta[^>]+?%s[^>]+?%s'
         return [
             template % (property_re, content_re),
@@ -481,9 +501,11 @@ class InfoExtractor(object):
 
             return (
                 preference,
+                f.get('quality') if f.get('quality') is not None else -1,
                 f.get('height') if f.get('height') is not None else -1,
                 f.get('width') if f.get('width') is not None else -1,
                 ext_preference,
+                f.get('tbr') if f.get('tbr') is not None else -1,
                 f.get('vbr') if f.get('vbr') is not None else -1,
                 f.get('abr') if f.get('abr') is not None else -1,
                 audio_ext_preference,

@@ -129,7 +129,7 @@ class MTVIE(MTVServicesInfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('videoid')
-        uri = mobj.group('mgid')
+        uri = mobj.groupdict().get('mgid')
         if uri is None:
             webpage = self._download_webpage(url, video_id)
     

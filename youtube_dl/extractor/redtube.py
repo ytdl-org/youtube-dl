@@ -4,7 +4,7 @@ from .common import InfoExtractor
 
 
 class RedTubeIE(InfoExtractor):
-    _VALID_URL = r'(?:http://)?(?:www\.)?redtube\.com/(?P<id>[0-9]+)'
+    _VALID_URL = r'http://(?:www\.)?redtube\.com/(?P<id>[0-9]+)'
     _TEST = {
         u'url': u'http://www.redtube.com/66418',
         u'file': u'66418.mp4',

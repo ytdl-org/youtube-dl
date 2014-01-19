@@ -38,12 +38,15 @@ __authors__  = (
     'Takuya Tsuchida',
     'Sergey M.',
     'Michael Orlitzky',
+    'Chris Gahan',
+    'Saimadhav Heblikar',
 )
 
 __license__ = 'Public Domain'
 
 import codecs
 import getpass
+import locale
 import optparse
 import os
 import random
@@ -73,11 +76,12 @@ from .FileDownloader import (
 from .extractor import gen_extractors
 from .version import __version__
 from .YoutubeDL import YoutubeDL
-from .PostProcessor import (
+from .postprocessor import (
     FFmpegMetadataPP,
     FFmpegVideoConvertor,
     FFmpegExtractAudioPP,
     FFmpegEmbedSubtitlePP,
+    XAttrMetadataPP,
 )
 
 
@@ -185,13 +189,13 @@ def parseOpts(overrideArguments=None):
     general.add_option('--no-check-certificate', action='store_true', dest='no_check_certificate', default=False, help='Suppress HTTPS certificate validation.')
     general.add_option(
         '--cache-dir', dest='cachedir', default=get_cachedir(), metavar='DIR',
-        help='Location in the filesystem where youtube-dl can store downloaded information permanently. By default $XDG_CACHE_HOME/youtube-dl or ~/.cache/youtube-dl .')
+        help='Location in the filesystem where youtube-dl can store some downloaded information permanently. By default $XDG_CACHE_HOME/youtube-dl or ~/.cache/youtube-dl . At the moment, only YouTube player files (for videos with obfuscated signatures) are cached, but that may change.')
     general.add_option(
         '--no-cache-dir', action='store_const', const=None, dest='cachedir',
         help='Disable filesystem caching')
     general.add_option(
         '--socket-timeout', dest='socket_timeout',
-        type=float, default=None, help=optparse.SUPPRESS_HELP)
+        type=float, default=None, help=u'Time to wait before giving up, in seconds')
     general.add_option(
         '--bidi-workaround', dest='bidi_workaround', action='store_true',
         help=u'Work around terminals that lack bidirectional text support. Requires bidiv or fribidi executable in PATH')
@@ -213,8 +217,12 @@ def parseOpts(overrideArguments=None):
     selection.add_option('--min-filesize', metavar='SIZE', dest='min_filesize', help="Do not download any videos smaller than SIZE (e.g. 50k or 44.6m)", default=None)
     selection.add_option('--max-filesize', metavar='SIZE', dest='max_filesize', help="Do not download any videos larger than SIZE (e.g. 50k or 44.6m)", default=None)
     selection.add_option('--date', metavar='DATE', dest='date', help='download only videos uploaded in this date', default=None)
-    selection.add_option('--datebefore', metavar='DATE', dest='datebefore', help='download only videos uploaded before this date', default=None)
-    selection.add_option('--dateafter', metavar='DATE', dest='dateafter', help='download only videos uploaded after this date', default=None)
+    selection.add_option(
+        '--datebefore', metavar='DATE', dest='datebefore', default=None,
+        help='download only videos uploaded on or before this date (i.e. inclusive)')
+    selection.add_option(
+        '--dateafter', metavar='DATE', dest='dateafter', default=None,
+        help='download only videos uploaded on or after this date (i.e. inclusive)')
     selection.add_option(
         '--min-views', metavar='COUNT', dest='min_views',
         default=None, type=int,
@@ -239,7 +247,7 @@ def parseOpts(overrideArguments=None):
     authentication.add_option('-n', '--netrc',
             action='store_true', dest='usenetrc', help='use .netrc authentication data', default=False)
     authentication.add_option('--video-password',
-            dest='videopassword', metavar='PASSWORD', help='video password (vimeo only)')
+            dest='videopassword', metavar='PASSWORD', help='video password (vimeo, smotri)')
 
 
     video_format.add_option('-f', '--format',
@@ -252,7 +260,7 @@ def parseOpts(overrideArguments=None):
     video_format.add_option('--max-quality',
             action='store', dest='format_limit', metavar='FORMAT', help='highest quality format to download')
     video_format.add_option('-F', '--list-formats',
-            action='store_true', dest='listformats', help='list all available formats (currently youtube only)')
+            action='store_true', dest='listformats', help='list all available formats')
 
     subtitles.add_option('--write-sub', '--write-srt',
             action='store_true', dest='writesubtitles',
@@ -326,14 +334,16 @@ def parseOpts(overrideArguments=None):
             action='store_true', dest='verbose', help='print various debugging information', default=False)
     verbosity.add_option('--dump-intermediate-pages',
             action='store_true', dest='dump_intermediate_pages', default=False,
-            help='print downloaded pages to debug problems(very verbose)')
+            help='print downloaded pages to debug problems (very verbose)')
     verbosity.add_option('--write-pages',
             action='store_true', dest='write_pages', default=False,
             help='Write downloaded intermediary pages to files in the current directory to debug problems')
     verbosity.add_option('--youtube-print-sig-code',
             action='store_true', dest='youtube_print_sig_code', default=False,
             help=optparse.SUPPRESS_HELP)
-
+    verbosity.add_option('--print-traffic',
+            dest='debug_printtraffic', action='store_true', default=False,
+            help=optparse.SUPPRESS_HELP)
 
     filesystem.add_option('-t', '--title',
             action='store_true', dest='usetitle', help='use title in file name (default)', default=False)
@@ -350,11 +360,11 @@ def parseOpts(overrideArguments=None):
                   '%(uploader)s for the uploader name, %(uploader_id)s for the uploader nickname if different, '
                   '%(autonumber)s to get an automatically incremented number, '
                   '%(ext)s for the filename extension, '
-                  '%(format)s for the format description (like "22 - 1280x720" or "HD"),'
-                  '%(format_id)s for the unique id of the format (like Youtube\'s itags: "137"),'
+                  '%(format)s for the format description (like "22 - 1280x720" or "HD"), '
+                  '%(format_id)s for the unique id of the format (like Youtube\'s itags: "137"), '
                   '%(upload_date)s for the upload date (YYYYMMDD), '
                   '%(extractor)s for the provider (youtube, metacafe, etc), '
-                  '%(id)s for the video id , %(playlist)s for the playlist the video is in, '
+                  '%(id)s for the video id, %(playlist)s for the playlist the video is in, '
                   '%(playlist_index)s for the position in the playlist and %% for a literal percent. '
                   'Use - to output to stdout. Can also be used to download to a different directory, '
                   'for example with -o \'/my/downloads/%(uploader)s/%(title)s-%(id)s.%(ext)s\' .'))
@@ -368,7 +378,7 @@ def parseOpts(overrideArguments=None):
             dest='batchfile', metavar='FILE', help='file containing URLs to download (\'-\' for stdin)')
     filesystem.add_option('--load-info',
             dest='load_info_filename', metavar='FILE',
-            help='json file containing the video information (created with the "--write-json" option')
+            help='json file containing the video information (created with the "--write-json" option)')
     filesystem.add_option('-w', '--no-overwrites',
             action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
     filesystem.add_option('-c', '--continue',
@@ -412,7 +422,13 @@ def parseOpts(overrideArguments=None):
     postproc.add_option('--embed-subs', action='store_true', dest='embedsubtitles', default=False,
             help='embed subtitles in the video (only for mp4 videos)')
     postproc.add_option('--add-metadata', action='store_true', dest='addmetadata', default=False,
-            help='add metadata to the files')
+            help='write metadata to the video file')
+    postproc.add_option('--xattrs', action='store_true', dest='xattrs', default=False,
+            help='write metadata to the video file\'s xattrs (using dublin core and xdg standards)')
+    postproc.add_option('--prefer-avconv', action='store_false', dest='prefer_ffmpeg',
+        help='Prefer avconv over ffmpeg for running the postprocessors (default)')
+    postproc.add_option('--prefer-ffmpeg', action='store_true', dest='prefer_ffmpeg',
+        help='Prefer ffmpeg over avconv for running the postprocessors')
 
 
     parser.add_option_group(general)
@@ -473,6 +489,8 @@ def parseOpts(overrideArguments=None):
             write_string(u'[debug] System config: ' + repr(_hide_login_info(systemConf)) + '\n')
             write_string(u'[debug] User config: ' + repr(_hide_login_info(userConf)) + '\n')
             write_string(u'[debug] Command-line args: ' + repr(_hide_login_info(commandLineConf)) + '\n')
+            write_string(u'[debug] Encodings: locale %r, fs %r, out %r, pref: %r\n' %
+                         (locale.getpreferredencoding(), sys.getfilesystemencoding(), sys.stdout.encoding, preferredencoding()))
 
     return parser, opts, args
 
@@ -517,6 +535,8 @@ def _real_main(argv=None):
             sys.exit(u'ERROR: batch file could not be read')
     all_urls = batchurls + args
     all_urls = [url.strip() for url in all_urls]
+    _enc = preferredencoding()
+    all_urls = [url.decode(_enc, 'ignore') if isinstance(url, bytes) else url for url in all_urls]
 
     extractors = gen_extractors()
 
@@ -546,7 +566,7 @@ def _real_main(argv=None):
     if opts.usenetrc and (opts.username is not None or opts.password is not None):
         parser.error(u'using .netrc conflicts with giving username/password')
     if opts.password is not None and opts.username is None:
-        parser.error(u' account username missing\n')
+        parser.error(u'account username missing\n')
     if opts.outtmpl is not None and (opts.usetitle or opts.autonumber or opts.useid):
         parser.error(u'using output template conflicts with using title, video ID or auto number')
     if opts.usetitle and opts.useid:
@@ -620,6 +640,7 @@ def _real_main(argv=None):
                      u' template'.format(outtmpl))
 
     any_printing = opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.getduration or opts.dumpjson
+    download_archive_fn = os.path.expanduser(opts.download_archive) if opts.download_archive is not None else opts.download_archive
 
     ydl_opts = {
         'usenetrc': opts.usenetrc,
@@ -687,12 +708,14 @@ def _real_main(argv=None):
         'cachedir': opts.cachedir,
         'youtube_print_sig_code': opts.youtube_print_sig_code,
         'age_limit': opts.age_limit,
-        'download_archive': opts.download_archive,
+        'download_archive': download_archive_fn,
         'cookiefile': opts.cookiefile,
         'nocheckcertificate': opts.no_check_certificate,
         'proxy': opts.proxy,
         'socket_timeout': opts.socket_timeout,
         'bidi_workaround': opts.bidi_workaround,
+        'debug_printtraffic': opts.debug_printtraffic,
+        'prefer_ffmpeg': opts.prefer_ffmpeg,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
@@ -709,6 +732,8 @@ def _real_main(argv=None):
             ydl.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
         if opts.embedsubtitles:
             ydl.add_post_processor(FFmpegEmbedSubtitlePP(subtitlesformat=opts.subtitlesformat))
+        if opts.xattrs:
+            ydl.add_post_processor(XAttrMetadataPP())
 
         # Update version
         if opts.update_self:

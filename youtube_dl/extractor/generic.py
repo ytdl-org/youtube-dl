@@ -1,9 +1,12 @@
 # encoding: utf-8
 
+from __future__ import unicode_literals
+
 import os
 import re
 
 from .common import InfoExtractor
+from .youtube import YoutubeIE
 from ..utils import (
     compat_urllib_error,
     compat_urllib_parse,
@@ -22,78 +25,78 @@ from .ooyala import OoyalaIE
 
 
 class GenericIE(InfoExtractor):
-    IE_DESC = u'Generic downloader that works on some sites'
+    IE_DESC = 'Generic downloader that works on some sites'
     _VALID_URL = r'.*'
-    IE_NAME = u'generic'
+    IE_NAME = 'generic'
     _TESTS = [
         {
-            u'url': u'http://www.hodiho.fr/2013/02/regis-plante-sa-jeep.html',
-            u'file': u'13601338388002.mp4',
-            u'md5': u'6e15c93721d7ec9e9ca3fdbf07982cfd',
-            u'info_dict': {
-                u"uploader": u"www.hodiho.fr",
-                u"title": u"R\u00e9gis plante sa Jeep"
+            'url': 'http://www.hodiho.fr/2013/02/regis-plante-sa-jeep.html',
+            'file': '13601338388002.mp4',
+            'md5': '6e15c93721d7ec9e9ca3fdbf07982cfd',
+            'info_dict': {
+                'uploader': 'www.hodiho.fr',
+                'title': 'R\u00e9gis plante sa Jeep',
             }
         },
         # embedded vimeo video
         {
-            u'add_ie': ['Vimeo'],
-            u'url': u'http://skillsmatter.com/podcast/home/move-semanticsperfect-forwarding-and-rvalue-references',
-            u'file': u'22444065.mp4',
-            u'md5': u'2903896e23df39722c33f015af0666e2',
-            u'info_dict': {
-                u'title': u'ACCU 2011: Move Semantics,Perfect Forwarding, and Rvalue references- Scott Meyers- 13/04/2011',
-                u"uploader_id": u"skillsmatter",
-                u"uploader": u"Skills Matter",
+            'add_ie': ['Vimeo'],
+            'url': 'http://skillsmatter.com/podcast/home/move-semanticsperfect-forwarding-and-rvalue-references',
+            'file': '22444065.mp4',
+            'md5': '2903896e23df39722c33f015af0666e2',
+            'info_dict': {
+                'title': 'ACCU 2011: Move Semantics,Perfect Forwarding, and Rvalue references- Scott Meyers- 13/04/2011',
+                'uploader_id': 'skillsmatter',
+                'uploader': 'Skills Matter',
             }
         },
         # bandcamp page with custom domain
         {
-            u'add_ie': ['Bandcamp'],
-            u'url': u'http://bronyrock.com/track/the-pony-mash',
-            u'file': u'3235767654.mp3',
-            u'info_dict': {
-                u'title': u'The Pony Mash',
-                u'uploader': u'M_Pallante',
+            'add_ie': ['Bandcamp'],
+            'url': 'http://bronyrock.com/track/the-pony-mash',
+            'file': '3235767654.mp3',
+            'info_dict': {
+                'title': 'The Pony Mash',
+                'uploader': 'M_Pallante',
             },
-            u'skip': u'There is a limit of 200 free downloads / month for the test song',
+            'skip': 'There is a limit of 200 free downloads / month for the test song',
         },
         # embedded brightcove video
         # it also tests brightcove videos that need to set the 'Referer' in the
         # http requests
         {
-            u'add_ie': ['Brightcove'],
-            u'url': u'http://www.bfmtv.com/video/bfmbusiness/cours-bourse/cours-bourse-l-analyse-technique-154522/',
-            u'info_dict': {
-                u'id': u'2765128793001',
-                u'ext': u'mp4',
-                u'title': u'Le cours de bourse : l’analyse technique',
-                u'description': u'md5:7e9ad046e968cb2d1114004aba466fd9',
-                u'uploader': u'BFM BUSINESS',
+            'add_ie': ['Brightcove'],
+            'url': 'http://www.bfmtv.com/video/bfmbusiness/cours-bourse/cours-bourse-l-analyse-technique-154522/',
+            'info_dict': {
+                'id': '2765128793001',
+                'ext': 'mp4',
+                'title': 'Le cours de bourse : l’analyse technique',
+                'description': 'md5:7e9ad046e968cb2d1114004aba466fd9',
+                'uploader': 'BFM BUSINESS',
             },
-            u'params': {
-                u'skip_download': True,
+            'params': {
+                'skip_download': True,
             },
         },
         # Direct link to a video
         {
-            u'url': u'http://media.w3.org/2010/05/sintel/trailer.mp4',
-            u'file': u'trailer.mp4',
-            u'md5': u'67d406c2bcb6af27fa886f31aa934bbe',
-            u'info_dict': {
-                u'id': u'trailer',
-                u'title': u'trailer',
-                u'upload_date': u'20100513',
+            'url': 'http://media.w3.org/2010/05/sintel/trailer.mp4',
+            'file': 'trailer.mp4',
+            'md5': '67d406c2bcb6af27fa886f31aa934bbe',
+            'info_dict': {
+                'id': 'trailer',
+                'title': 'trailer',
+                'upload_date': '20100513',
             }
         },
         # ooyala video
         {
-            u'url': u'http://www.rollingstone.com/music/videos/norwegian-dj-cashmere-cat-goes-spartan-on-with-me-premiere-20131219',
-            u'md5': u'5644c6ca5d5782c1d0d350dad9bd840c',
-            u'info_dict': {
-                u'id': u'BwY2RxaTrTkslxOfcan0UCf0YqyvWysJ',
-                u'ext': u'mp4',
-                u'title': u'2cc213299525360.mov', #that's what we get
+            'url': 'http://www.rollingstone.com/music/videos/norwegian-dj-cashmere-cat-goes-spartan-on-with-me-premiere-20131219',
+            'md5': '5644c6ca5d5782c1d0d350dad9bd840c',
+            'info_dict': {
+                'id': 'BwY2RxaTrTkslxOfcan0UCf0YqyvWysJ',
+                'ext': 'mp4',
+                'title': '2cc213299525360.mov', #that's what we get
             },
         },
     ]
@@ -101,12 +104,12 @@ class GenericIE(InfoExtractor):
     def report_download_webpage(self, video_id):
         """Report webpage download."""
         if not self._downloader.params.get('test', False):
-            self._downloader.report_warning(u'Falling back on generic information extractor.')
+            self._downloader.report_warning('Falling back on generic information extractor.')
         super(GenericIE, self).report_download_webpage(video_id)
 
     def report_following_redirect(self, new_url):
         """Report information extraction."""
-        self._downloader.to_screen(u'[redirect] Following redirect to %s' % new_url)
+        self._downloader.to_screen('[redirect] Following redirect to %s' % new_url)
 
     def _send_head(self, url):
         """Check if it is a redirect, like url shorteners, in case return the new url."""
@@ -152,7 +155,7 @@ class GenericIE(InfoExtractor):
 
         response = opener.open(HEADRequest(url))
         if response is None:
-            raise ExtractorError(u'Invalid URL protocol')
+            raise ExtractorError('Invalid URL protocol')
         return response
 
     def _real_extract(self, url):
@@ -161,6 +164,8 @@ class GenericIE(InfoExtractor):
             self._downloader.report_warning('The url doesn\'t specify the protocol, trying with http')
             return self.url_result('http://' + url)
         video_id = os.path.splitext(url.split('/')[-1])[0]
+
+        self.to_screen('%s: Requesting header' % video_id)
 
         try:
             response = self._send_head(url)
@@ -184,7 +189,7 @@ class GenericIE(InfoExtractor):
                     'formats': [{
                         'format_id': m.group('format_id'),
                         'url': url,
-                        'vcodec': u'none' if m.group('type') == 'audio' else None
+                        'vcodec': 'none' if m.group('type') == 'audio' else None
                     }],
                     'upload_date': upload_date,
                 }
@@ -198,7 +203,7 @@ class GenericIE(InfoExtractor):
         except ValueError:
             # since this is the last-resort InfoExtractor, if
             # this error is thrown, it'll be thrown here
-            raise ExtractorError(u'Failed to download URL: %s' % url)
+            raise ExtractorError('Failed to download URL: %s' % url)
 
         self.report_extraction(video_id)
 
@@ -209,22 +214,23 @@ class GenericIE(InfoExtractor):
         #   Video Title - Tagline | Site Name
         # and so on and so forth; it's just not practical
         video_title = self._html_search_regex(
-            r'(?s)<title>(.*?)</title>', webpage, u'video title',
-            default=u'video')
+            r'(?s)<title>(.*?)</title>', webpage, 'video title',
+            default='video')
 
         # video uploader is domain name
         video_uploader = self._search_regex(
-            r'^(?:https?://)?([^/]*)/.*', url, u'video uploader')
+            r'^(?:https?://)?([^/]*)/.*', url, 'video uploader')
 
         # Look for BrightCove:
         bc_url = BrightcoveIE._extract_brightcove_url(webpage)
         if bc_url is not None:
-            self.to_screen(u'Brightcove video detected.')
-            return self.url_result(bc_url, 'Brightcove')
+            self.to_screen('Brightcove video detected.')
+            surl = smuggle_url(bc_url, {'Referer': url})
+            return self.url_result(surl, 'Brightcove')
 
         # Look for embedded (iframe) Vimeo player
         mobj = re.search(
-            r'<iframe[^>]+?src="(https?://player.vimeo.com/video/.+?)"', webpage)
+            r'<iframe[^>]+?src="((?:https?:)?//player.vimeo.com/video/.+?)"', webpage)
         if mobj:
             player_url = unescapeHTML(mobj.group(1))
             surl = smuggle_url(player_url, {'Referer': url})
@@ -271,16 +277,12 @@ class GenericIE(InfoExtractor):
             }
 
         # Look for embedded blip.tv player
-        mobj = re.search(r'<meta\s[^>]*https?://api.blip.tv/\w+/redirect/\w+/(\d+)', webpage)
+        mobj = re.search(r'<meta\s[^>]*https?://api\.blip\.tv/\w+/redirect/\w+/(\d+)', webpage)
         if mobj:
-            return self.url_result('http://blip.tv/seo/-'+mobj.group(1), 'BlipTV')
-        mobj = re.search(r'<(?:iframe|embed|object)\s[^>]*https?://(?:\w+\.)?blip.tv/(?:play/|api\.swf#)([a-zA-Z0-9]+)', webpage)
+            return self.url_result('http://blip.tv/a/a-'+mobj.group(1), 'BlipTV')
+        mobj = re.search(r'<(?:iframe|embed|object)\s[^>]*(https?://(?:\w+\.)?blip\.tv/(?:play/|api\.swf#)[a-zA-Z0-9]+)', webpage)
         if mobj:
-            player_url = 'http://blip.tv/play/%s.x?p=1' % mobj.group(1)
-            player_page = self._download_webpage(player_url, mobj.group(1))
-            blip_video_id = self._search_regex(r'data-episode-id="(\d+)', player_page, u'blip_video_id', fatal=False)
-            if blip_video_id:
-                return self.url_result('http://blip.tv/seo/-'+blip_video_id, 'BlipTV')
+            return self.url_result(mobj.group(1), 'BlipTV')
 
         # Look for Bandcamp pages with custom domain
         mobj = re.search(r'<meta property="og:url"[^>]*?content="(.*?bandcamp\.com.*?)"', webpage)
@@ -301,18 +303,32 @@ class GenericIE(InfoExtractor):
             return OoyalaIE._build_url_result(mobj.group(1))
 
         # Look for Aparat videos
-        mobj = re.search(r'<iframe src="(http://www.aparat.com/video/[^"]+)"', webpage)
+        mobj = re.search(r'<iframe src="(http://www\.aparat\.com/video/[^"]+)"', webpage)
         if mobj is not None:
             return self.url_result(mobj.group(1), 'Aparat')
 
+        # Look for MPORA videos
+        mobj = re.search(r'<iframe .*?src="(http://mpora\.com/videos/[^"]+)"', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group(1), 'Mpora')
+
+        # Look for embedded Novamov player
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>http://(?:(?:embed|www)\.)?novamov\.com/embed\.php.+?)\1', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'Novamov')
+
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
+        if mobj is None:
+            # Look for gorilla-vid style embedding
+            mobj = re.search(r'(?s)jw_plugins.*?file:\s*["\'](.*?)["\']', webpage)
         if mobj is None:
             # Broaden the search a little bit
             mobj = re.search(r'[^A-Za-z0-9]?(?:file|source)=(http[^\'"&]*)', webpage)
         if mobj is None:
             # Broaden the search a little bit: JWPlayer JS loader
-            mobj = re.search(r'[^A-Za-z0-9]?file["\']?:\s*["\'](http[^\'"]*)', webpage)
+            mobj = re.search(r'[^A-Za-z0-9]?file["\']?:\s*["\'](http(?![^\'"]+\.[0-9]+[\'"])[^\'"]+)["\']', webpage)
         if mobj is None:
             # Try to find twitter cards info
             mobj = re.search(r'<meta (?:property|name)="twitter:player:stream" (?:content|value)="(.+?)"', webpage)
@@ -327,23 +343,27 @@ class GenericIE(InfoExtractor):
             # HTML5 video
             mobj = re.search(r'<video[^<]*(?:>.*?<source.*?)? src="([^"]+)"', webpage, flags=re.DOTALL)
         if mobj is None:
-            raise ExtractorError(u'Unsupported URL: %s' % url)
+            raise ExtractorError('Unsupported URL: %s' % url)
 
         # It's possible that one of the regexes
         # matched, but returned an empty group:
         if mobj.group(1) is None:
-            raise ExtractorError(u'Did not find a valid video URL at %s' % url)
+            raise ExtractorError('Did not find a valid video URL at %s' % url)
 
         video_url = mobj.group(1)
         video_url = compat_urlparse.urljoin(url, video_url)
         video_id = compat_urllib_parse.unquote(os.path.basename(video_url))
 
+        # Sometimes, jwplayer extraction will result in a YouTube URL
+        if YoutubeIE.suitable(video_url):
+            return self.url_result(video_url, 'Youtube')
+
         # here's a fun little line of code for you:
         video_id = os.path.splitext(video_id)[0]
 
         return {
-            'id':       video_id,
-            'url':      video_url,
+            'id': video_id,
+            'url': video_url,
             'uploader': video_uploader,
-            'title':    video_title,
+            'title': video_title,
         }

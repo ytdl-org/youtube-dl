@@ -1,5 +1,4 @@
 import json
-import os
 import re
 import sys
 
@@ -16,6 +15,7 @@ from ..aes import (
     aes_decrypt_text
 )
 
+
 class YouPornIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>youporn\.com/watch/(?P<videoid>[0-9]+)/(?P<title>[^/]+))'
     _TEST = {
@@ -23,9 +23,9 @@ class YouPornIE(InfoExtractor):
         u'file': u'505835.mp4',
         u'md5': u'71ec5fcfddacf80f495efa8b6a8d9a89',
         u'info_dict': {
-            u"upload_date": u"20101221", 
-            u"description": u"Love & Sex Answers: http://bit.ly/DanAndJenn -- Is It Unhealthy To Masturbate Daily?", 
-            u"uploader": u"Ask Dan And Jennifer", 
+            u"upload_date": u"20101221",
+            u"description": u"Love & Sex Answers: http://bit.ly/DanAndJenn -- Is It Unhealthy To Masturbate Daily?",
+            u"uploader": u"Ask Dan And Jennifer",
             u"title": u"Sex Ed: Is It Safe To Masturbate Daily?",
             u"age_limit": 18,
         }
@@ -71,38 +71,36 @@ class YouPornIE(InfoExtractor):
             link = aes_decrypt_text(encrypted_link, video_title, 32).decode('utf-8')
             links.append(link)
         
-        if not links:
-            raise ExtractorError(u'ERROR: no known formats available for video')
-
         formats = []
         for link in links:
-
             # A link looks like this:
             # http://cdn1.download.youporn.phncdn.com/201210/31/8004515/480p_370k_8004515/YouPorn%20-%20Nubile%20Films%20The%20Pillow%20Fight.mp4?nvb=20121113051249&nva=20121114051249&ir=1200&sr=1200&hash=014b882080310e95fb6a0
             # A path looks like this:
             # /201210/31/8004515/480p_370k_8004515/YouPorn%20-%20Nubile%20Films%20The%20Pillow%20Fight.mp4
             video_url = unescapeHTML(link)
             path = compat_urllib_parse_urlparse(video_url).path
-            extension = os.path.splitext(path)[1][1:]
-            format = path.split('/')[4].split('_')[:2]
+            format_parts = path.split('/')[4].split('_')[:2]
 
-            # size = format[0]
-            # bitrate = format[1]
-            format = "-".join(format)
-            # title = u'%s-%s-%s' % (video_title, size, bitrate)
+            dn = compat_urllib_parse_urlparse(video_url).netloc.partition('.')[0]
+
+            resolution = format_parts[0]
+            height = int(resolution[:-len('p')])
+            bitrate = int(format_parts[1][:-len('k')])
+            format = u'-'.join(format_parts) + u'-' + dn
 
             formats.append({
                 'url': video_url,
-                'ext': extension,
                 'format': format,
                 'format_id': format,
+                'height': height,
+                'tbr': bitrate,
+                'resolution': resolution,
             })
 
-        # Sort and remove doubles
-        formats.sort(key=lambda format: list(map(lambda s: s.zfill(6), format['format'].split('-'))))
-        for i in range(len(formats)-1,0,-1):
-            if formats[i]['format_id'] == formats[i-1]['format_id']:
-                del formats[i]
+        self._sort_formats(formats)
+
+        if not formats:
+            raise ExtractorError(u'ERROR: no known formats available for video')
         
         return {
             'id': video_id,

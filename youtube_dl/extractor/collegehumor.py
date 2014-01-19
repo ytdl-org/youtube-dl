@@ -1,82 +1,68 @@
+from __future__ import unicode_literals
+
+import json
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    compat_urllib_parse_urlparse,
-    determine_ext,
-
-    ExtractorError,
-)
 
 
 class CollegeHumorIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?collegehumor\.com/(video|embed|e)/(?P<videoid>[0-9]+)/?(?P<shorttitle>.*)$'
 
     _TESTS = [{
-        u'url': u'http://www.collegehumor.com/video/6902724/comic-con-cosplay-catastrophe',
-        u'file': u'6902724.mp4',
-        u'md5': u'1264c12ad95dca142a9f0bf7968105a0',
-        u'info_dict': {
-            u'title': u'Comic-Con Cosplay Catastrophe',
-            u'description': u'Fans get creative this year at San Diego.  Too creative.  And yes, that\'s really Joss Whedon.',
+        'url': 'http://www.collegehumor.com/video/6902724/comic-con-cosplay-catastrophe',
+        'file': '6902724.mp4',
+        'md5': 'dcc0f5c1c8be98dc33889a191f4c26bd',
+        'info_dict': {
+            'title': 'Comic-Con Cosplay Catastrophe',
+            'description': 'Fans get creative this year at San Diego.  Too',
+            'age_limit': 13,
         },
     },
     {
-        u'url': u'http://www.collegehumor.com/video/3505939/font-conference',
-        u'file': u'3505939.mp4',
-        u'md5': u'c51ca16b82bb456a4397987791a835f5',
-        u'info_dict': {
-            u'title': u'Font Conference',
-            u'description': u'This video wasn\'t long enough, so we made it double-spaced.',
+        'url': 'http://www.collegehumor.com/video/3505939/font-conference',
+        'file': '3505939.mp4',
+        'md5': '72fa701d8ef38664a4dbb9e2ab721816',
+        'info_dict': {
+            'title': 'Font Conference',
+            'description': 'This video wasn\'t long enough, so we made it double-spaced.',
+            'age_limit': 10,
         },
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
         video_id = mobj.group('videoid')
 
-        info = {
-            'id': video_id,
-            'uploader': None,
-            'upload_date': None,
-        }
+        jsonUrl = 'http://www.collegehumor.com/moogaloop/video/' + video_id + '.json'
+        data = json.loads(self._download_webpage(
+            jsonUrl, video_id, 'Downloading info JSON'))
+        vdata = data['video']
 
-        self.report_extraction(video_id)
-        xmlUrl = 'http://www.collegehumor.com/moogaloop/video/' + video_id
-        mdoc = self._download_xml(xmlUrl, video_id,
-                                         u'Downloading info XML',
-                                         u'Unable to download video info XML')
-
-        try:
-            videoNode = mdoc.findall('./video')[0]
-            youtubeIdNode = videoNode.find('./youtubeID')
-            if youtubeIdNode is not None:
-                return self.url_result(youtubeIdNode.text, 'Youtube')
-            info['description'] = videoNode.findall('./description')[0].text
-            info['title'] = videoNode.findall('./caption')[0].text
-            info['thumbnail'] = videoNode.findall('./thumbnail')[0].text
-            next_url = videoNode.findall('./file')[0].text
-        except IndexError:
-            raise ExtractorError(u'Invalid metadata XML file')
-
-        if next_url.endswith(u'manifest.f4m'):
-            manifest_url = next_url + '?hdcore=2.10.3'
-            adoc = self._download_xml(manifest_url, video_id,
-                                         u'Downloading XML manifest',
-                                         u'Unable to download video info XML')
-
-            try:
-                video_id = adoc.findall('./{http://ns.adobe.com/f4m/1.0}id')[0].text
-            except IndexError:
-                raise ExtractorError(u'Invalid manifest file')
-            url_pr = compat_urllib_parse_urlparse(info['thumbnail'])
-            info['url'] = url_pr.scheme + '://' + url_pr.netloc + video_id[:-2].replace('.csmil','').replace(',','')
-            info['ext'] = 'mp4'
+        AGE_LIMITS = {'nc17': 18, 'r': 18, 'pg13': 13, 'pg': 10, 'g': 0}
+        rating = vdata.get('rating')
+        if rating:
+            age_limit = AGE_LIMITS.get(rating.lower())
         else:
-            # Old-style direct links
-            info['url'] = next_url
-            info['ext'] = determine_ext(info['url'])
+            age_limit = None  # None = No idea
 
-        return info
+        PREFS = {'high_quality': 2, 'low_quality': 0}
+        formats = []
+        for format_key in ('mp4', 'webm'):
+            for qname, qurl in vdata[format_key].items():
+                formats.append({
+                    'format_id': format_key + '_' + qname,
+                    'url': qurl,
+                    'format': format_key,
+                    'preference': PREFS.get(qname),
+                })
+        self._sort_formats(formats)
+
+        return {
+            'id': video_id,
+            'title': vdata['title'],
+            'description': vdata.get('description'),
+            'thumbnail': vdata.get('thumbnail'),
+            'formats': formats,
+            'age_limit': age_limit,
+        }
