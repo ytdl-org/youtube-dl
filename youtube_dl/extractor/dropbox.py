@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import os.path
 import re
 
 from .common import InfoExtractor
@@ -11,7 +12,7 @@ class DropboxIE(InfoExtractor):
     _TEST = {
         'url': 'https://www.dropbox.com/s/mcnzehi9wo55th4/20131219_085616.mp4',
         'file': 'mcnzehi9wo55th4.mp4',
-        'md5': '2cec58eb277054eca0dbaaf3bdc72564',
+        'md5': 'f6d65b1b326e82fd7ab7720bea3dacae',
         'info_dict': {
             'title': '20131219_085616'
         }
@@ -20,7 +21,7 @@ class DropboxIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        title = mobj.group('title')
+        title = os.path.splitext(mobj.group('title'))[0]
         video_url = url + '?dl=1'
 
         return {
