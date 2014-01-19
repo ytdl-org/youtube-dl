@@ -5,13 +5,15 @@ import re
 
 from .common import InfoExtractor
 
-class DropBoxIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?dropbox.com/s/(?P<id>[a-zA-Z0-9]{15})/(?P<title>.*)'
+class DropboxIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?dropbox[.]com/s/(?P<id>[a-zA-Z0-9]{15})/(?P<title>[^?#]*)'
     _TEST = {
-        'url': 'https://www.dropbox.com/s/mcnzehi9wo55th4/20131219_085616.mp4',
-        'file': '20131219_085616.mp4',
-        'md5': '2cec58eb277054eca0dbaaf3bdc72564',
-        
+        u'url': u'https://www.dropbox.com/s/mcnzehi9wo55th4/20131219_085616.mp4',
+        u'file': u'mcnzehi9wo55th4.mp4',
+        u'md5': u'2cec58eb277054eca0dbaaf3bdc72564',
+        u'info_dict': {
+            u'title': '20131219_085616'
+        }
     }
     
     
@@ -24,10 +26,7 @@ class DropBoxIE(InfoExtractor):
         return{
                'id':video_id,
                'title':title,
-               'formats': [{
-                            'url': video_url,
-                            'vcodec': 'none',
-                          }]
+               'url':video_url
                
                }
         
