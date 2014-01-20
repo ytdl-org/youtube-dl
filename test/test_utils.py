@@ -16,6 +16,7 @@ from youtube_dl.utils import (
     DateRange,
     encodeFilename,
     find_xpath_attr,
+    fix_xml_ampersands,
     get_meta_content,
     orderedSet,
     parse_duration,
@@ -199,6 +200,19 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_duration('1337:12'), 80232)
         self.assertEqual(parse_duration('9:12:43'), 33163)
         self.assertEqual(parse_duration('x:y'), None)
+
+    def test_fix_xml_ampersands(self):
+        self.assertEqual(
+            fix_xml_ampersands('"&x=y&z=a'), '"&amp;x=y&amp;z=a')
+        self.assertEqual(
+            fix_xml_ampersands('"&amp;x=y&wrong;&z=a'),
+            '"&amp;x=y&amp;wrong;&amp;z=a')
+        self.assertEqual(
+            fix_xml_ampersands('&amp;&apos;&gt;&lt;&quot;'),
+            '&amp;&apos;&gt;&lt;&quot;')
+        self.assertEqual(
+            fix_xml_ampersands('&#1234;&#x1abC;'), '&#1234;&#x1abC;')
+        self.assertEqual(fix_xml_ampersands('&#&#'), '&amp;#&amp;#')
 
 if __name__ == '__main__':
     unittest.main()

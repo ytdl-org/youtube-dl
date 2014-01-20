@@ -3,7 +3,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     find_xpath_attr,
-    fix_xml_all_ampersand,
+    fix_xml_ampersands
 )
 
 
@@ -33,7 +33,7 @@ class ClipsyndicateIE(InfoExtractor):
         pdoc = self._download_xml(
             'http://eplayer.clipsyndicate.com/osmf/playlist?%s' % flvars,
             video_id, u'Downloading video info',
-            transform_source=fix_xml_all_ampersand) 
+            transform_source=fix_xml_ampersands)
 
         track_doc = pdoc.find('trackList/track')
         def find_param(name):

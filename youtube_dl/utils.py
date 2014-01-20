@@ -1092,9 +1092,12 @@ def month_by_name(name):
         return None
 
 
-def fix_xml_all_ampersand(xml_str):
+def fix_xml_ampersands(xml_str):
     """Replace all the '&' by '&amp;' in XML"""
-    return xml_str.replace(u'&', u'&amp;')
+    return re.sub(
+        r'&(?!amp;|lt;|gt;|apos;|quot;|#x[0-9a-fA-F]{,4};|#[0-9]{,4};)',
+        u'&amp;',
+        xml_str)
 
 
 def setproctitle(title):

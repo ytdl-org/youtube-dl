@@ -5,6 +5,7 @@ from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
     ExtractorError,
+    fix_xml_ampersands,
 )
 
 def _media_xml_tag(tag):
@@ -83,12 +84,9 @@ class MTVServicesInfoExtractor(InfoExtractor):
         video_id = self._id_from_uri(uri)
         data = compat_urllib_parse.urlencode({'uri': uri})
 
-        def fix_ampersand(s):
-            """ Fix unencoded ampersand in XML """
-            return s.replace(u'& ', '&amp; ')
         idoc = self._download_xml(
             self._FEED_URL + '?' + data, video_id,
-            u'Downloading info', transform_source=fix_ampersand)
+            u'Downloading info', transform_source=fix_xml_ampersands)
         return [self._get_video_info(item) for item in idoc.findall('.//item')]
 
 
