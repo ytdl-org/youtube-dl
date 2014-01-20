@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class MySpaceIE(InfoExtractor):
-    _VALID_URL = r'https?://myspace\.com/([^/]+)/(?:video/[^/]+/|music/song/.*?)(?P<id>\d+)'
+    _VALID_URL = r'https?://myspace\.com/([^/]+)/(?P<mediatype>video/[^/]+/|music/song/.*?)(?P<id>\d+)'
 
     _TESTS = [
         {
@@ -49,7 +49,7 @@ class MySpaceIE(InfoExtractor):
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
 
-        if 'music/song' in url:
+        if mobj.group('mediatype').startswith('music/song'):
             # songs don't store any useful info in the 'context' variable
             def search_data(name):
                 return self._search_regex(r'data-%s="(.*?)"' % name, webpage,
