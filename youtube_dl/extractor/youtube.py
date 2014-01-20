@@ -27,6 +27,7 @@ from ..utils import (
     get_element_by_id,
     get_element_by_attribute,
     ExtractorError,
+    RegexNotFoundError,
     unescapeHTML,
     unified_strdate,
     orderedSet,
@@ -1448,7 +1449,14 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
             if re.search(self._MORE_PAGES_INDICATOR, page) is None:
                 break
 
-        playlist_title = self._og_search_title(page)
+        try:
+            playlist_title = self._og_search_title(page)
+        except RegexNotFoundError:
+            self.report_warning(
+                u'Playlist page is missing OpenGraph title, falling back ...',
+                playlist_id)
+            playlist_title = self._html_search_regex(
+                r'<h1 class="pl-header-title">(.*?)</h1>', page, u'title')
 
         url_results = self._ids_to_results(ids)
         return self.playlist_result(url_results, playlist_id, playlist_title)
