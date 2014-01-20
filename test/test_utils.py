@@ -18,6 +18,7 @@ from youtube_dl.utils import (
     find_xpath_attr,
     get_meta_content,
     orderedSet,
+    PagedList,
     parse_duration,
     sanitize_filename,
     shell_quote,
@@ -199,6 +200,27 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_duration('1337:12'), 80232)
         self.assertEqual(parse_duration('9:12:43'), 33163)
         self.assertEqual(parse_duration('x:y'), None)
+
+    def test_paged_list(self):
+        def testPL(size, pagesize, sliceargs, expected):
+            def get_page(pagenum):
+                firstid = pagenum * pagesize
+                upto = min(size, pagenum * pagesize + pagesize)
+                for i in range(firstid, upto):
+                    yield i
+
+            pl = PagedList(get_page, pagesize)
+            got = pl.getslice(*sliceargs)
+            self.assertEqual(got, expected)
+
+        testPL(5, 2, (), [0, 1, 2, 3, 4])
+        testPL(5, 2, (1,), [1, 2, 3, 4])
+        testPL(5, 2, (2,), [2, 3, 4])
+        testPL(5, 2, (4,), [4])
+        testPL(5, 2, (0, 3), [0, 1, 2])
+        testPL(5, 2, (1, 4), [1, 2, 3])
+        testPL(5, 2, (2, 99), [2, 3, 4])
+        testPL(5, 2, (20, 99), [])
 
 if __name__ == '__main__':
     unittest.main()
