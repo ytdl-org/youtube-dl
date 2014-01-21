@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import re
 import xml.etree.ElementTree
 
@@ -36,7 +38,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
 
     def _extract_video_formats(self, metadataXml):
         if '/error_country_block.swf' in metadataXml:
-            raise ExtractorError(u'This video is not available from your country.', expected=True)
+            raise ExtractorError('This video is not available from your country.', expected=True)
         mdoc = xml.etree.ElementTree.fromstring(metadataXml.encode('utf-8'))
 
         formats = []
@@ -60,11 +62,11 @@ class MTVServicesInfoExtractor(InfoExtractor):
         self.report_extraction(video_id)
         mediagen_url = itemdoc.find('%s/%s' % (_media_xml_tag('group'), _media_xml_tag('content'))).attrib['url']
         # Remove the templates, like &device={device}
-        mediagen_url = re.sub(r'&[^=]*?={.*?}(?=(&|$))', u'', mediagen_url)
+        mediagen_url = re.sub(r'&[^=]*?={.*?}(?=(&|$))', '', mediagen_url)
         if 'acceptMethods' not in mediagen_url:
             mediagen_url += '&acceptMethods=fms'
         mediagen_page = self._download_webpage(mediagen_url, video_id,
-                                               u'Downloading video urls')
+                                               'Downloading video urls')
 
         description_node = itemdoc.find('description')
         if description_node is not None:
@@ -86,7 +88,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
 
         idoc = self._download_xml(
             self._FEED_URL + '?' + data, video_id,
-            u'Downloading info', transform_source=fix_xml_ampersands)
+            'Downloading info', transform_source=fix_xml_ampersands)
         return [self._get_video_info(item) for item in idoc.findall('.//item')]
 
 
@@ -99,25 +101,25 @@ class MTVIE(MTVServicesInfoExtractor):
 
     _TESTS = [
         {
-            u'url': u'http://www.mtv.com/videos/misc/853555/ours-vh1-storytellers.jhtml',
-            u'file': u'853555.mp4',
-            u'md5': u'850f3f143316b1e71fa56a4edfd6e0f8',
-            u'info_dict': {
-                u'title': u'Taylor Swift - "Ours (VH1 Storytellers)"',
-                u'description': u'Album: Taylor Swift performs "Ours" for VH1 Storytellers at Harvey Mudd College.',
+            'url': 'http://www.mtv.com/videos/misc/853555/ours-vh1-storytellers.jhtml',
+            'file': '853555.mp4',
+            'md5': '850f3f143316b1e71fa56a4edfd6e0f8',
+            'info_dict': {
+                'title': 'Taylor Swift - "Ours (VH1 Storytellers)"',
+                'description': 'Album: Taylor Swift performs "Ours" for VH1 Storytellers at Harvey Mudd College.',
             },
         },
         {
-            u'add_ie': ['Vevo'],
-            u'url': u'http://www.mtv.com/videos/taylor-swift/916187/everything-has-changed-ft-ed-sheeran.jhtml',
-            u'file': u'USCJY1331283.mp4',
-            u'md5': u'73b4e7fcadd88929292fe52c3ced8caf',
-            u'info_dict': {
-                u'title': u'Everything Has Changed',
-                u'upload_date': u'20130606',
-                u'uploader': u'Taylor Swift',
+            'add_ie': ['Vevo'],
+            'url': 'http://www.mtv.com/videos/taylor-swift/916187/everything-has-changed-ft-ed-sheeran.jhtml',
+            'file': 'USCJY1331283.mp4',
+            'md5': '73b4e7fcadd88929292fe52c3ced8caf',
+            'info_dict': {
+                'title': 'Everything Has Changed',
+                'upload_date': '20130606',
+                'uploader': 'Taylor Swift',
             },
-            u'skip': u'VEVO is only available in some countries',
+            'skip': 'VEVO is only available in some countries',
         },
     ]
 
@@ -136,8 +138,8 @@ class MTVIE(MTVServicesInfoExtractor):
                                webpage, re.DOTALL)
             if m_vevo:
                 vevo_id = m_vevo.group(1);
-                self.to_screen(u'Vevo video detected: %s' % vevo_id)
+                self.to_screen('Vevo video detected: %s' % vevo_id)
                 return self.url_result('vevo:%s' % vevo_id, ie='Vevo')
     
-            uri = self._html_search_regex(r'/uri/(.*?)\?', webpage, u'uri')
+            uri = self._html_search_regex(r'/uri/(.*?)\?', webpage, 'uri')
         return self._get_videos_info(uri)
