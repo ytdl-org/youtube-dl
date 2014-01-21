@@ -171,6 +171,7 @@ from .southparkstudios import (
 from .space import SpaceIE
 from .spankwire import SpankwireIE
 from .spiegel import SpiegelIE
+from .spike import SpikeIE
 from .stanfordoc import StanfordOpenClassroomIE
 from .statigram import StatigramIE
 from .steam import SteamIE
