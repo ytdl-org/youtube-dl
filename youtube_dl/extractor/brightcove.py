@@ -230,6 +230,6 @@ class BrightcoveIE(InfoExtractor):
                 else:
                     return ad_info
 
-        if 'url' not in info:
+        if 'url' not in info and not info.get('formats'):
             raise ExtractorError('Unable to extract video url for %s' % info['id'])
         return info
