@@ -319,6 +319,12 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'Novamov')
 
+        # Look for embedded Facebook player
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>https://www.facebook.com/video/embed.+?)\1', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'Facebook')
+
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
         if mobj is None:
