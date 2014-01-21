@@ -9,9 +9,11 @@ from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
     find_xpath_attr,
+    fix_xml_ampersands,
     compat_urlparse,
     compat_str,
     compat_urllib_request,
+    compat_parse_qs,
 
     ExtractorError,
     unsmuggle_url,
@@ -83,17 +85,30 @@ class BrightcoveIE(InfoExtractor):
                             lambda m: m.group(1) + '/>', object_str)
         # Fix up some stupid XML, see https://github.com/rg3/youtube-dl/issues/1608
         object_str = object_str.replace('<--', '<!--')
+        object_str = fix_xml_ampersands(object_str)
 
         object_doc = xml.etree.ElementTree.fromstring(object_str)
-        assert 'BrightcoveExperience' in object_doc.attrib['class']
-        params = {
-            'playerID': find_xpath_attr(object_doc, './param', 'name', 'playerID').attrib['value'],
-        }
+
+        fv_el = find_xpath_attr(object_doc, './param', 'name', 'flashVars')
+        flashvars = dict(
+            (k, v[0])
+            for k, v in compat_parse_qs(fv_el.attrib['value']).items())
+
         def find_param(name):
+            if name in flashvars:
+                return flashvars[name]
             node = find_xpath_attr(object_doc, './param', 'name', name)
             if node is not None:
                 return node.attrib['value']
             return None
+
+        params = {}
+
+        playerID = find_param('playerID')
+        if playerID is None:
+            raise ExtractorError('Cannot find player ID')
+        params['playerID'] = playerID
+
         playerKey = find_param('playerKey')
         # Not all pages define this value
         if playerKey is not None:
@@ -114,8 +129,12 @@ class BrightcoveIE(InfoExtractor):
         if it can't be found
         """
         m_brightcove = re.search(
-            r'<object[^>]+?class=([\'"])[^>]*?BrightcoveExperience.*?\1.+?</object>',
-            webpage, re.DOTALL)
+            r'''(?sx)<object
+            (?:
+                :[^>]+?class=([\'"])[^>]*?BrightcoveExperience.*?\1 |
+                [^>]*?>\s*<param\s+name="movie"\s+value="https?://[^/]*brightcove\.com/
+            ).+?</object>''',
+            webpage)
         if m_brightcove is not None:
             return cls._build_brighcove_url(m_brightcove.group())
         else:
@@ -156,6 +175,7 @@ class BrightcoveIE(InfoExtractor):
         info = self._search_regex(r'var experienceJSON = ({.*?});', webpage, 'json')
         info = json.loads(info)['data']
         video_info = info['programmedContent']['videoPlayer']['mediaDTO']
+        video_info['_youtubedl_adServerURL'] = info.get('adServerURL')
 
         return self._extract_video_info(video_info)
 
@@ -193,6 +213,23 @@ class BrightcoveIE(InfoExtractor):
             info.update({
                 'url': video_info['FLVFullLengthURL'],
             })
-        else:
+
+        if self._downloader.params.get('include_ads', False):
+            adServerURL = video_info.get('_youtubedl_adServerURL')
+            if adServerURL:
+                ad_info = {
+                    '_type': 'url',
+                    'url': adServerURL,
+                }
+                if 'url' in info:
+                    return {
+                        '_type': 'playlist',
+                        'title': info['title'],
+                        'entries': [ad_info, info],
+                    }
+                else:
+                    return ad_info
+
+        if 'url' not in info:
             raise ExtractorError('Unable to extract video url for %s' % info['id'])
         return info

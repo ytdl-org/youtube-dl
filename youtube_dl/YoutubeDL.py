@@ -151,6 +151,7 @@ class YoutubeDL(object):
     bidi_workaround:   Work around buggy terminals without bidirectional text
                        support, using fridibi
     debug_printtraffic:Print out sent and received HTTP traffic
+    include_ads:       Download ads as well
 
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:

@@ -152,6 +152,7 @@ from .rottentomatoes import RottenTomatoesIE
 from .roxwel import RoxwelIE
 from .rtlnow import RTLnowIE
 from .rutube import RutubeIE
+from .servingsys import ServingSysIE
 from .sina import SinaIE
 from .slashdot import SlashdotIE
 from .slideshare import SlideshareIE

@@ -238,7 +238,10 @@ def parseOpts(overrideArguments=None):
     selection.add_option('--download-archive', metavar='FILE',
                          dest='download_archive',
                          help='Download only videos not listed in the archive file. Record the IDs of all downloaded videos in it.')
-
+    selection.add_option(
+        '--include-ads', dest='include_ads',
+        action='store_true',
+        help='Download advertisements as well (experimental)')
 
     authentication.add_option('-u', '--username',
             dest='username', metavar='USERNAME', help='account username')
@@ -716,6 +719,7 @@ def _real_main(argv=None):
         'bidi_workaround': opts.bidi_workaround,
         'debug_printtraffic': opts.debug_printtraffic,
         'prefer_ffmpeg': opts.prefer_ffmpeg,
+        'include_ads': opts.include_ads,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
