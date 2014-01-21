@@ -154,3 +154,17 @@ class MTVIE(MTVServicesInfoExtractor):
     
             uri = self._html_search_regex(r'/uri/(.*?)\?', webpage, 'uri')
         return self._get_videos_info(uri)
+
+
+class MTVIggyIE(MTVServicesInfoExtractor):
+    IE_NAME = 'mtviggy.com'
+    _VALID_URL = r'https?://www\.mtviggy\.com/videos/.+'
+    _TEST = {
+        'url': 'http://www.mtviggy.com/videos/arcade-fire-behind-the-scenes-at-the-biggest-music-experiment-yet/',
+        'info_dict': {
+            'id': '984696',
+            'ext': 'mp4',
+            'title': 'Short',
+        }
+    }
+    _FEED_URL = 'http://all.mtvworldverticals.com/feed-xml/'

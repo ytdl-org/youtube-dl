@@ -119,7 +119,10 @@ from .mit import TechTVMITIE, MITIE
 from .mixcloud import MixcloudIE
 from .mpora import MporaIE
 from .mofosex import MofosexIE
-from .mtv import MTVIE
+from .mtv import (
+    MTVIE,
+    MTVIggyIE,
+)
 from .muzu import MuzuTVIE
 from .myspace import MySpaceIE
 from .myspass import MySpassIE
