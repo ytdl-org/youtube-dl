@@ -238,7 +238,7 @@ class InfoExtractor(object):
             except AttributeError:
                 url = url_or_request
             if len(url) > 200:
-                h = hashlib.md5(url).hexdigest()
+                h = u'___' + hashlib.md5(url).hexdigest()
                 url = url[:200 - len(h)] + h
             raw_filename = ('%s_%s.dump' % (video_id, url))
             filename = sanitize_filename(raw_filename, restricted=True)
