@@ -71,6 +71,7 @@ which means you can modify it, redistribute it or use it however you like.
     --download-archive FILE    Download only videos not listed in the archive
                                file. Record the IDs of all downloaded videos in
                                it.
+    --include-ads              Download advertisements as well (experimental)
 
 ## Download Options:
     -r, --rate-limit LIMIT     maximum download rate in bytes per second (e.g.
