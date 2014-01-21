@@ -92,11 +92,12 @@ class GenericIE(InfoExtractor):
         # ooyala video
         {
             'url': 'http://www.rollingstone.com/music/videos/norwegian-dj-cashmere-cat-goes-spartan-on-with-me-premiere-20131219',
+            'file': 'BwY2RxaTrTkslxOfcan0UCf0YqyvWysJ.mp4',
             'md5': '5644c6ca5d5782c1d0d350dad9bd840c',
             'info_dict': {
                 'id': 'BwY2RxaTrTkslxOfcan0UCf0YqyvWysJ',
                 'ext': 'mp4',
-                'title': '2cc213299525360.mov', #that's what we get
+                'title': '2cc213299525360.mov',  # that's what we get
             },
         },
     ]
