@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -36,10 +35,9 @@ class MTVServicesInfoExtractor(InfoExtractor):
         else:
             return thumb_node.attrib['url']
 
-    def _extract_video_formats(self, metadataXml):
-        if '/error_country_block.swf' in metadataXml:
+    def _extract_video_formats(self, mdoc):
+        if re.match(r'.*/error_country_block\.swf$', mdoc.find('.//src').text) is not None:
             raise ExtractorError('This video is not available from your country.', expected=True)
-        mdoc = xml.etree.ElementTree.fromstring(metadataXml.encode('utf-8'))
 
         formats = []
         for rendition in mdoc.findall('.//rendition'):
@@ -65,8 +63,8 @@ class MTVServicesInfoExtractor(InfoExtractor):
         mediagen_url = re.sub(r'&[^=]*?={.*?}(?=(&|$))', '', mediagen_url)
         if 'acceptMethods' not in mediagen_url:
             mediagen_url += '&acceptMethods=fms'
-        mediagen_page = self._download_webpage(mediagen_url, video_id,
-                                               'Downloading video urls')
+        mediagen_doc = self._download_xml(mediagen_url, video_id,
+            'Downloading video urls')
 
         description_node = itemdoc.find('description')
         if description_node is not None:
@@ -76,7 +74,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
 
         return {
             'title': itemdoc.find('title').text,
-            'formats': self._extract_video_formats(mediagen_page),
+            'formats': self._extract_video_formats(mediagen_doc),
             'id': video_id,
             'thumbnail': self._get_thumbnail_url(uri, itemdoc),
             'description': description,
