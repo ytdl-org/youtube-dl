@@ -15,7 +15,7 @@ class VKIE(InfoExtractor):
     IE_NAME = 'vk.com'
     _VALID_URL = r'https?://vk\.com/(?:videos.*?\?.*?z=)?video(?P<id>.*?)(?:\?|%2F|$)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://vk.com/videos-77521?z=video-77521_162222515%2Fclub77521',
         'file': '162222515.flv',
         'md5': '0deae91935c54e00003c2a00646315f0',
@@ -23,7 +23,16 @@ class VKIE(InfoExtractor):
             'title': 'ProtivoGunz - Хуёвая песня',
             'uploader': 'Noize MC',
         },
-    }
+    },
+    {
+        'url': 'http://vk.com/video4643923_163339118',
+        'file': '163339118.mp4',
+        'md5': 'f79bccb5cd182b1f43502ca5685b2b36',
+        'info_dict': {
+            'uploader': 'Elvira Dzhonik',
+            'title': 'Dream Theater - Hollow Years Live at Budokan 720*',
+        }
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -37,10 +46,18 @@ class VKIE(InfoExtractor):
         data_json = self._search_regex(r'var vars = ({.*?});', info_page, 'vars')
         data = json.loads(data_json)
 
+        formats = [{
+            'format_id': k,
+            'url': v,
+            'width': int(k[len('url'):]),
+        } for k, v in data.items()
+            if k.startswith('url')]
+        self._sort_formats(formats)
+
         return {
             'id': compat_str(data['vid']),
-            'url': data['url240'],
+            'formats': formats,
             'title': unescapeHTML(data['md_title']),
-            'thumbnail': data['jpg'],
-            'uploader': data['md_author'],
+            'thumbnail': data.get('jpg'),
+            'uploader': data.get('md_author'),
         }
