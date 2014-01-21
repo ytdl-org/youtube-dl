@@ -90,9 +90,12 @@ class BrightcoveIE(InfoExtractor):
         object_doc = xml.etree.ElementTree.fromstring(object_str)
 
         fv_el = find_xpath_attr(object_doc, './param', 'name', 'flashVars')
-        flashvars = dict(
-            (k, v[0])
-            for k, v in compat_parse_qs(fv_el.attrib['value']).items())
+        if fv_el is not None:
+            flashvars = dict(
+                (k, v[0])
+                for k, v in compat_parse_qs(fv_el.attrib['value']).items())
+        else:
+            flashvars = {}
 
         def find_param(name):
             if name in flashvars:
@@ -131,7 +134,7 @@ class BrightcoveIE(InfoExtractor):
         m_brightcove = re.search(
             r'''(?sx)<object
             (?:
-                :[^>]+?class=([\'"])[^>]*?BrightcoveExperience.*?\1 |
+                [^>]+?class=([\'"])[^>]*?BrightcoveExperience.*?\1 |
                 [^>]*?>\s*<param\s+name="movie"\s+value="https?://[^/]*brightcove\.com/
             ).+?</object>''',
             webpage)
@@ -230,6 +233,6 @@ class BrightcoveIE(InfoExtractor):
                 else:
                     return ad_info
 
-        if 'url' not in info:
+        if 'url' not in info and not info.get('formats'):
             raise ExtractorError('Unable to extract video url for %s' % info['id'])
         return info

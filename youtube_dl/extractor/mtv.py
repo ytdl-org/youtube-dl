@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -9,6 +8,8 @@ from ..utils import (
     ExtractorError,
     find_xpath_attr,
     fix_xml_ampersands,
+    url_basename,
+    RegexNotFoundError,
 )
 
 
@@ -38,10 +39,9 @@ class MTVServicesInfoExtractor(InfoExtractor):
         else:
             return thumb_node.attrib['url']
 
-    def _extract_video_formats(self, metadataXml):
-        if '/error_country_block.swf' in metadataXml:
+    def _extract_video_formats(self, mdoc):
+        if re.match(r'.*/error_country_block\.swf$', mdoc.find('.//src').text) is not None:
             raise ExtractorError('This video is not available from your country.', expected=True)
-        mdoc = xml.etree.ElementTree.fromstring(metadataXml.encode('utf-8'))
 
         formats = []
         for rendition in mdoc.findall('.//rendition'):
@@ -67,8 +67,9 @@ class MTVServicesInfoExtractor(InfoExtractor):
         mediagen_url = re.sub(r'&[^=]*?={.*?}(?=(&|$))', '', mediagen_url)
         if 'acceptMethods' not in mediagen_url:
             mediagen_url += '&acceptMethods=fms'
-        mediagen_page = self._download_webpage(mediagen_url, video_id,
-                                               'Downloading video urls')
+
+        mediagen_doc = self._download_xml(mediagen_url, video_id,
+            'Downloading video urls')
 
         description_node = itemdoc.find('description')
         if description_node is not None:
@@ -91,7 +92,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
 
         return {
             'title': title,
-            'formats': self._extract_video_formats(mediagen_page),
+            'formats': self._extract_video_formats(mediagen_doc),
             'id': video_id,
             'thumbnail': self._get_thumbnail_url(uri, itemdoc),
             'description': description,
@@ -105,6 +106,17 @@ class MTVServicesInfoExtractor(InfoExtractor):
             self._FEED_URL + '?' + data, video_id,
             'Downloading info', transform_source=fix_xml_ampersands)
         return [self._get_video_info(item) for item in idoc.findall('.//item')]
+
+    def _real_extract(self, url):
+        title = url_basename(url)
+        webpage = self._download_webpage(url, title)
+        try:
+            # the url is in the format http://media.mtvnservices.com/fb/{mgid}.swf
+            fb_url = self._og_search_video_url(webpage)
+            mgid = url_basename(fb_url).rpartition('.')[0]
+        except RegexNotFoundError:
+            mgid = self._search_regex(r'data-mgid="(.*?)"', webpage, u'mgid')
+        return self._get_videos_info(mgid)
 
 
 class MTVIE(MTVServicesInfoExtractor):
@@ -158,3 +170,17 @@ class MTVIE(MTVServicesInfoExtractor):
     
             uri = self._html_search_regex(r'/uri/(.*?)\?', webpage, 'uri')
         return self._get_videos_info(uri)
+
+
+class MTVIggyIE(MTVServicesInfoExtractor):
+    IE_NAME = 'mtviggy.com'
+    _VALID_URL = r'https?://www\.mtviggy\.com/videos/.+'
+    _TEST = {
+        'url': 'http://www.mtviggy.com/videos/arcade-fire-behind-the-scenes-at-the-biggest-music-experiment-yet/',
+        'info_dict': {
+            'id': '984696',
+            'ext': 'mp4',
+            'title': 'Short',
+        }
+    }
+    _FEED_URL = 'http://all.mtvworldverticals.com/feed-xml/'
