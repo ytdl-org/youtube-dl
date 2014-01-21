@@ -33,6 +33,10 @@ class RedTubeIE(InfoExtractor):
             r'<h1 class="videoTitle[^"]*">(.+?)</h1>',
             webpage, u'title')
 
+        video_thumbnail = self._html_search_regex(
+            r'playerInnerHTML.+?<img\s+src="(.+?)"',
+            webpage, u'thumbnail', fatal=False)
+
         # No self-labeling, but they describe themselves as
         # "Home of Videos Porno"
         age_limit = 18
@@ -42,5 +46,6 @@ class RedTubeIE(InfoExtractor):
             'url':       video_url,
             'ext':       video_extension,
             'title':     video_title,
+            'thumbnail': video_thumbnail,
             'age_limit': age_limit,
         }
