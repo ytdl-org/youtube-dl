@@ -33,13 +33,13 @@ class VKIE(InfoExtractor):
         if m_yt is not None:
             self.to_screen(u'Youtube video detected')
             return self.url_result(m_yt.group(1), 'Youtube')
-        vars_json = self._search_regex(r'var vars = ({.*?});', info_page, u'vars')
-        vars = json.loads(vars_json)
+        data_json = self._search_regex(r'var vars = ({.*?});', info_page, u'vars')
+        data = json.loads(data_json)
 
         return {
-            'id': compat_str(vars['vid']),
-            'url': vars['url240'],
-            'title': unescapeHTML(vars['md_title']),
-            'thumbnail': vars['jpg'],
-            'uploader': vars['md_author'],
+            'id': compat_str(data['vid']),
+            'url': data['url240'],
+            'title': unescapeHTML(data['md_title']),
+            'thumbnail': data['jpg'],
+            'uploader': data['md_author'],
         }
