@@ -220,6 +220,8 @@ class InfoExtractor(object):
                           webpage_bytes[:1024])
             if m:
                 encoding = m.group(1).decode('ascii')
+            elif webpage_bytes.startswith(b'\xff\xfe'):
+                encoding = 'utf-16'
             else:
                 encoding = 'utf-8'
         if self._downloader.params.get('dump_intermediate_pages', False):
