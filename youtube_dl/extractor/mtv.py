@@ -5,8 +5,10 @@ from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
     ExtractorError,
+    find_xpath_attr,
     fix_xml_ampersands,
 )
+
 
 def _media_xml_tag(tag):
     return '{http://search.yahoo.com/mrss/}%s' % tag
@@ -72,8 +74,21 @@ class MTVServicesInfoExtractor(InfoExtractor):
         else:
             description = None
 
+        title_el = None
+        if title_el is None:
+            title_el = find_xpath_attr(
+                itemdoc, './/{http://search.yahoo.com/mrss/}category',
+                'scheme', 'urn:mtvn:video_title')
+        if title_el is None:
+            title_el = itemdoc.find('.//{http://search.yahoo.com/mrss/}title')
+        if title_el is None:
+            title_el = itemdoc.find('.//title')
+        title = title_el.text
+        if title is None:
+            raise ExtractorError('Could not find video title')
+
         return {
-            'title': itemdoc.find('title').text,
+            'title': title,
             'formats': self._extract_video_formats(mediagen_page),
             'id': video_id,
             'thumbnail': self._get_thumbnail_url(uri, itemdoc),

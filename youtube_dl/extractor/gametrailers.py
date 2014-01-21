@@ -10,7 +10,7 @@ class GametrailersIE(MTVServicesInfoExtractor):
         u'file': u'70e9a5d7-cf25-4a10-9104-6f3e7342ae0d.mp4',
         u'md5': u'4c8e67681a0ea7ec241e8c09b3ea8cf7',
         u'info_dict': {
-            u'title': u'E3 2013: Debut Trailer',
+            u'title': u'Mirror\'s Edge 2|E3 2013: Debut Trailer',
             u'description': u'Faith is back!  Check out the World Premiere trailer for Mirror\'s Edge 2 straight from the EA Press Conference at E3 2013!',
         },
     }
