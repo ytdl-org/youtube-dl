@@ -1,4 +1,6 @@
 # encoding: utf-8
+from __future__ import unicode_literals
+
 import re
 import json
 
@@ -10,17 +12,16 @@ from ..utils import (
 
 
 class VKIE(InfoExtractor):
-    IE_NAME = u'vk.com'
+    IE_NAME = 'vk.com'
     _VALID_URL = r'https?://vk\.com/(?:videos.*?\?.*?z=)?video(?P<id>.*?)(?:\?|%2F|$)'
 
     _TEST = {
-        u'url': u'http://vk.com/videos-77521?z=video-77521_162222515%2Fclub77521',
-        u'md5': u'0deae91935c54e00003c2a00646315f0',
-        u'info_dict': {
-            u'id': u'162222515',
-            u'ext': u'flv',
-            u'title': u'ProtivoGunz - Хуёвая песня',
-            u'uploader': u'Noize MC',
+        'url': 'http://vk.com/videos-77521?z=video-77521_162222515%2Fclub77521',
+        'file': '162222515.flv',
+        'md5': '0deae91935c54e00003c2a00646315f0',
+        'info_dict': {
+            'title': 'ProtivoGunz - Хуёвая песня',
+            'uploader': 'Noize MC',
         },
     }
 
@@ -33,7 +34,7 @@ class VKIE(InfoExtractor):
         if m_yt is not None:
             self.to_screen(u'Youtube video detected')
             return self.url_result(m_yt.group(1), 'Youtube')
-        data_json = self._search_regex(r'var vars = ({.*?});', info_page, u'vars')
+        data_json = self._search_regex(r'var vars = ({.*?});', info_page, 'vars')
         data = json.loads(data_json)
 
         return {
