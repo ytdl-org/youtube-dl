@@ -36,7 +36,8 @@ class ServingSysIE(InfoExtractor):
         }],
         'params': {
             'playlistend': 2,
-        }
+        },
+        'skip': 'Blocked in the US [sic]',
     }
 
     def _real_extract(self, url):
