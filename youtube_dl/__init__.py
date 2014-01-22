@@ -256,7 +256,7 @@ def parseOpts(overrideArguments=None):
 
 
     video_format.add_option('-f', '--format',
-            action='store', dest='format', metavar='FORMAT', default='best',
+            action='store', dest='format', metavar='FORMAT', default=None,
             help='video format code, specify the order of preference using slashes: "-f 22/17/18". "-f mp4" and "-f flv" are also supported. You can also use the special names "best", "bestaudio", and "worst"')
     video_format.add_option('--all-formats',
             action='store_const', dest='format', help='download all available video formats', const='all')
@@ -623,6 +623,10 @@ def _real_main(argv=None):
         date = DateRange(opts.dateafter, opts.datebefore)
     if opts.default_search not in ('auto', None) and ':' not in opts.default_search:
         parser.error(u'--default-search invalid; did you forget a colon (:) at the end?')
+
+    # Do not download videos when there are audio-only formats
+    if opts.extractaudio and not opts.keepvideo and opts.format is None:
+        opts.format = 'bestaudio/best'
 
     # --all-sub automatically sets --write-sub if --write-auto-sub is not given
     # this was the old behaviour if only --all-sub was given.
