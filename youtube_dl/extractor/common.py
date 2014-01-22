@@ -316,7 +316,6 @@ class InfoExtractor(object):
     @staticmethod
     def video_result(video_url=None, video_id=None, uploader=None, video_title=None):
         """Returns a url that points to a page that should be processed"""
-        #TODO: ie should be the class used for getting the info
         video_info = {'_type': 'video',
                       'url': video_url,
                       'id': video_id,

@@ -28,4 +28,3 @@ updates_key.pem
 *.part
 test/testdata
 .tox
-/.idea
