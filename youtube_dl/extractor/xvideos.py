@@ -35,8 +35,8 @@ class XVideosIE(InfoExtractor):
             webpage, u'title')
 
         # Extract video thumbnail
-        video_thumbnail = self._search_regex(r'http://(?:img.*?\.)xvideos.com/videos/thumbs/[a-fA-F0-9]+/[a-fA-F0-9]+/[a-fA-F0-9]+/[a-fA-F0-9]+/([a-fA-F0-9.]+jpg)',
-            webpage, u'thumbnail', fatal=False)
+        video_thumbnail = self._search_regex(r'url_bigthumb=(.+?)&amp',
+             webpage, u'thumbnail', fatal=False)
 
         info = {
             'id': video_id,
