@@ -180,7 +180,7 @@ class MTVIggyIE(MTVServicesInfoExtractor):
         'info_dict': {
             'id': '984696',
             'ext': 'mp4',
-            'title': 'Short',
+            'title': 'Arcade Fire: Behind the Scenes at the Biggest Music Experiment Yet',
         }
     }
     _FEED_URL = 'http://all.mtvworldverticals.com/feed-xml/'

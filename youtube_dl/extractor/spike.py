@@ -11,7 +11,7 @@ class SpikeIE(MTVServicesInfoExtractor):
         'info_dict': {
             'id': 'b9c8221a-4e50-479a-b86d-3333323e38ba',
             'ext': 'mp4',
-            'title': 'Can Allen Ride A Hundred Year-Old Motorcycle?',
+            'title': 'Auction Hunters|Can Allen Ride A Hundred Year-Old Motorcycle?',
             'description': 'md5:fbed7e82ed5fad493615b3094a9499cb',
         },
     }
