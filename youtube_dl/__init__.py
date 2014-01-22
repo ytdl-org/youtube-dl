@@ -244,7 +244,7 @@ def parseOpts(overrideArguments=None):
         '--include-ads', dest='include_ads',
         action='store_true',
         help='Download advertisements as well (experimental)')
-    verbosity.add_option(
+    selection.add_option(
         '--youtube-include-dash-manifest', action='store_true',
         dest='youtube_include_dash_manifest', default=False,
         help='Try to download the DASH manifest on YouTube videos (experimental)')
