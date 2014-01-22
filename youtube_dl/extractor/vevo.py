@@ -15,7 +15,12 @@ class VevoIE(InfoExtractor):
     Accepts urls from vevo.com or in the format 'vevo:{id}'
     (currently used by MTVIE)
     """
-    _VALID_URL = r'((http://www.vevo.com/watch/.*?/.*?/)|(vevo:))(?P<id>.*?)(\?|$)'
+    _VALID_URL = r'''(?x)
+        (?:https?://www\.vevo\.com/watch/(?:[^/]+/[^/]+/)?|
+           https?://cache\.vevo\.com/m/html/embed\.html\?video=|
+           https?://videoplayer\.vevo\.com/embed/embedded\?videoId=|
+           vevo:)
+        (?P<id>[^&?#]+)'''
     _TESTS = [{
         u'url': u'http://www.vevo.com/watch/hurts/somebody-to-die-for/GB1101300280',
         u'file': u'GB1101300280.mp4',
@@ -24,7 +29,7 @@ class VevoIE(InfoExtractor):
             u"upload_date": u"20130624",
             u"uploader": u"Hurts",
             u"title": u"Somebody to Die For",
-            u"duration": 230,
+            u"duration": 230.12,
             u"width": 1920,
             u"height": 1080,
         }

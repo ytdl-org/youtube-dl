@@ -9,12 +9,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from test.helper import (
     get_params,
     get_testcases,
-    global_setup,
     try_rm,
     md5,
     report_warning
 )
-global_setup()
 
 
 import hashlib
@@ -92,7 +90,7 @@ def generator(test_case):
         def _hook(status):
             if status['status'] == 'finished':
                 finished_hook_called.add(status['filename'])
-        ydl.fd.add_progress_hook(_hook)
+        ydl.add_progress_hook(_hook)
 
         def get_tc_filename(tc):
             return tc.get('file') or ydl.prepare_filename(tc.get('info_dict', {}))
@@ -103,7 +101,7 @@ def generator(test_case):
                 tc_filename = get_tc_filename(tc)
                 try_rm(tc_filename)
                 try_rm(tc_filename + '.part')
-                try_rm(tc_filename + '.info.json')
+                try_rm(os.path.splitext(tc_filename)[0] + '.info.json')
         try_rm_tcs_files()
         try:
             try_num = 1
@@ -130,11 +128,12 @@ def generator(test_case):
                 if not test_case.get('params', {}).get('skip_download', False):
                     self.assertTrue(os.path.exists(tc_filename), msg='Missing file ' + tc_filename)
                     self.assertTrue(tc_filename in finished_hook_called)
-                self.assertTrue(os.path.exists(tc_filename + '.info.json'))
+                info_json_fn = os.path.splitext(tc_filename)[0] + '.info.json'
+                self.assertTrue(os.path.exists(info_json_fn))
                 if 'md5' in tc:
                     md5_for_file = _file_md5(tc_filename)
                     self.assertEqual(md5_for_file, tc['md5'])
-                with io.open(tc_filename + '.info.json', encoding='utf-8') as infof:
+                with io.open(info_json_fn, encoding='utf-8') as infof:
                     info_dict = json.load(infof)
                 for (info_field, expected) in tc.get('info_dict', {}).items():
                     if isinstance(expected, compat_str) and expected.startswith('md5:'):
@@ -149,7 +148,7 @@ def generator(test_case):
                     for key, value in info_dict.items()
                     if value and key in ('title', 'description', 'uploader', 'upload_date', 'uploader_id', 'location'))
                 if not all(key in tc.get('info_dict', {}).keys() for key in test_info_dict.keys()):
-                    sys.stderr.write(u'\n"info_dict": ' + json.dumps(test_info_dict, ensure_ascii=False, indent=2) + u'\n')
+                    sys.stderr.write(u'\n"info_dict": ' + json.dumps(test_info_dict, ensure_ascii=False, indent=4) + u'\n')
 
                 # Check for the presence of mandatory fields
                 for key in ('id', 'url', 'title', 'ext'):

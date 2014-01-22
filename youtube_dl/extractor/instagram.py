@@ -3,7 +3,7 @@ import re
 from .common import InfoExtractor
 
 class InstagramIE(InfoExtractor):
-    _VALID_URL = r'(?:http://)?instagram.com/p/(.*?)/'
+    _VALID_URL = r'(?:http://)?instagram\.com/p/(.*?)/'
     _TEST = {
         u'url': u'http://instagram.com/p/aye83DjauH/?foo=bar#abc',
         u'file': u'aye83DjauH.mp4',

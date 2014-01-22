@@ -5,7 +5,7 @@ from ..utils import compat_urlparse
 
 
 class NowVideoIE(InfoExtractor):
-    _VALID_URL = r'(?:https?://)?(?:www\.)?nowvideo\.ch/video/(?P<id>\w+)'
+    _VALID_URL = r'(?:https?://)?(?:www\.)?nowvideo\.(?:ch|sx)/video/(?P<id>\w+)'
     _TEST = {
         u'url': u'http://www.nowvideo.ch/video/0mw0yow7b6dxa',
         u'file': u'0mw0yow7b6dxa.flv',

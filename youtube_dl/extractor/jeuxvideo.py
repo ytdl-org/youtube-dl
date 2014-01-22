@@ -2,7 +2,6 @@
 
 import json
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 
@@ -22,7 +21,7 @@ class JeuxVideoIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        title = re.match(self._VALID_URL, url).group(1)
+        title = mobj.group(1)
         webpage = self._download_webpage(url, title)
         xml_link = self._html_search_regex(
             r'<param name="flashvars" value="config=(.*?)" />',
@@ -32,12 +31,9 @@ class JeuxVideoIE(InfoExtractor):
             r'http://www\.jeuxvideo\.com/config/\w+/\d+/(.*?)/\d+_player\.xml',
             xml_link, u'video ID')
 
-        xml_config = self._download_webpage(
+        config = self._download_xml(
             xml_link, title, u'Downloading XML config')
-        config = xml.etree.ElementTree.fromstring(xml_config.encode('utf-8'))
-        info_json = self._search_regex(
-            r'(?sm)<format\.json>(.*?)</format\.json>',
-            xml_config, u'JSON information')
+        info_json = config.find('format.json').text
         info = json.loads(info_json)['versions'][0]
         
         video_url = 'http://video720.jeuxvideo.com/' + info['file']

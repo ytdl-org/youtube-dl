@@ -48,7 +48,7 @@ else:
         'data_files': [  # Installing system-wide would require sudo...
             ('etc/bash_completion.d', ['youtube-dl.bash-completion']),
             ('share/doc/youtube_dl', ['README.txt']),
-            ('share/man/man1/', ['youtube-dl.1'])
+            ('share/man/man1', ['youtube-dl.1'])
         ]
     }
     if setuptools_available:
@@ -71,7 +71,10 @@ setup(
     author_email='ytdl@yt-dl.org',
     maintainer='Philipp Hagemeister',
     maintainer_email='phihag@phihag.de',
-    packages=['youtube_dl', 'youtube_dl.extractor'],
+    packages=[
+        'youtube_dl',
+        'youtube_dl.extractor', 'youtube_dl.downloader',
+        'youtube_dl.postprocessor'],
 
     # Provokes warning on most systems (why?!)
     # test_suite = 'nose.collector',

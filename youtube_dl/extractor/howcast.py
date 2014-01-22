@@ -8,7 +8,7 @@ class HowcastIE(InfoExtractor):
     _TEST = {
         u'url': u'http://www.howcast.com/videos/390161-How-to-Tie-a-Square-Knot-Properly',
         u'file': u'390161.mp4',
-        u'md5': u'1d7ba54e2c9d7dc6935ef39e00529138',
+        u'md5': u'8b743df908c42f60cf6496586c7f12c3',
         u'info_dict': {
             u"description": u"The square knot, also known as the reef knot, is one of the oldest, most basic knots to tie, and can be used in many different ways. Here's the proper way to tie a square knot.", 
             u"title": u"How to Tie a Square Knot Properly"

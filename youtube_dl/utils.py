@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import ctypes
 import datetime
 import email.utils
 import errno
@@ -8,11 +9,14 @@ import gzip
 import io
 import json
 import locale
+import math
 import os
 import pipes
 import platform
 import re
+import ssl
 import socket
+import subprocess
 import sys
 import traceback
 import zlib
@@ -220,7 +224,7 @@ if sys.version_info >= (2,7):
     def find_xpath_attr(node, xpath, key, val):
         """ Find the xpath xpath[@key=val] """
         assert re.match(r'^[a-zA-Z]+$', key)
-        assert re.match(r'^[a-zA-Z0-9@\s]*$', val)
+        assert re.match(r'^[a-zA-Z0-9@\s:._]*$', val)
         expr = xpath + u"[@%s='%s']" % (key, val)
         return node.find(expr)
 else:
@@ -496,12 +500,13 @@ def unescapeHTML(s):
     result = re.sub(u'(?u)&(.+?);', htmlentity_transform, s)
     return result
 
-def encodeFilename(s):
+
+def encodeFilename(s, for_subprocess=False):
     """
     @param s The name of the file
     """
 
-    assert type(s) == type(u'')
+    assert type(s) == compat_str
 
     # Python 3 has a Unicode API
     if sys.version_info >= (3, 0):
@@ -511,12 +516,18 @@ def encodeFilename(s):
         # Pass u'' directly to use Unicode APIs on Windows 2000 and up
         # (Detecting Windows NT 4 is tricky because 'major >= 4' would
         # match Windows 9x series as well. Besides, NT 4 is obsolete.)
-        return s
+        if not for_subprocess:
+            return s
+        else:
+            # For subprocess calls, encode with locale encoding
+            # Refer to http://stackoverflow.com/a/9951851/35070
+            encoding = preferredencoding()
     else:
         encoding = sys.getfilesystemencoding()
-        if encoding is None:
-            encoding = 'utf-8'
-        return s.encode(encoding, 'ignore')
+    if encoding is None:
+        encoding = 'utf-8'
+    return s.encode(encoding, 'ignore')
+
 
 def decodeOption(optval):
     if optval is None:
@@ -535,19 +546,40 @@ def formatSeconds(secs):
     else:
         return '%d' % secs
 
-def make_HTTPS_handler(opts):
-    if sys.version_info < (3,2):
-        # Python's 2.x handler is very simplistic
-        return compat_urllib_request.HTTPSHandler()
+
+def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
+    if sys.version_info < (3, 2):
+        import httplib
+
+        class HTTPSConnectionV3(httplib.HTTPSConnection):
+            def __init__(self, *args, **kwargs):
+                httplib.HTTPSConnection.__init__(self, *args, **kwargs)
+
+            def connect(self):
+                sock = socket.create_connection((self.host, self.port), self.timeout)
+                if getattr(self, '_tunnel_host', False):
+                    self.sock = sock
+                    self._tunnel()
+                try:
+                    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv3)
+                except ssl.SSLError:
+                    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv23)
+
+        class HTTPSHandlerV3(compat_urllib_request.HTTPSHandler):
+            def https_open(self, req):
+                return self.do_open(HTTPSConnectionV3, req)
+        return HTTPSHandlerV3(**kwargs)
     else:
-        import ssl
-        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-        context.set_default_verify_paths()
-        
+        context = ssl.SSLContext(ssl.PROTOCOL_SSLv3)
         context.verify_mode = (ssl.CERT_NONE
-                               if opts.no_check_certificate
+                               if opts_no_check_certificate
                                else ssl.CERT_REQUIRED)
-        return compat_urllib_request.HTTPSHandler(context=context)
+        context.set_default_verify_paths()
+        try:
+            context.load_default_certs()
+        except AttributeError:
+            pass  # Python < 3.4
+        return compat_urllib_request.HTTPSHandler(context=context, **kwargs)
 
 class ExtractorError(Exception):
     """Error during info extraction."""
@@ -732,8 +764,11 @@ def unified_strdate(date_str):
         '%Y-%m-%d',
         '%d/%m/%Y',
         '%Y/%m/%d %H:%M:%S',
+        '%Y-%m-%d %H:%M:%S',
         '%d.%m.%Y %H:%M',
         '%Y-%m-%dT%H:%M:%SZ',
+        '%Y-%m-%dT%H:%M:%S.%fZ',
+        '%Y-%m-%dT%H:%M:%S.%f0Z',
         '%Y-%m-%dT%H:%M:%S',
     ]
     for expression in format_expressions:
@@ -741,6 +776,10 @@ def unified_strdate(date_str):
             upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')
         except:
             pass
+    if upload_date is None:
+        timetuple = email.utils.parsedate_tz(date_str)
+        if timetuple:
+            upload_date = datetime.datetime(*timetuple[:6]).strftime('%Y%m%d')
     return upload_date
 
 def determine_ext(url, default_ext=u'unknown_video'):
@@ -779,6 +818,15 @@ def date_from_str(date_str):
         return today + delta
     return datetime.datetime.strptime(date_str, "%Y%m%d").date()
     
+def hyphenate_date(date_str):
+    """
+    Convert a date in 'YYYYMMDD' format to 'YYYY-MM-DD' format"""
+    match = re.match(r'^(\d\d\d\d)(\d\d)(\d\d)$', date_str)
+    if match is not None:
+        return '-'.join(match.groups())
+    else:
+        return date_str
+
 class DateRange(object):
     """Represents a time interval between two dates"""
     def __init__(self, start=None, end=None):
@@ -819,12 +867,22 @@ def platform_name():
 def write_string(s, out=None):
     if out is None:
         out = sys.stderr
-    assert type(s) == type(u'')
+    assert type(s) == compat_str
 
     if ('b' in getattr(out, 'mode', '') or
             sys.version_info[0] < 3):  # Python 2 lies about mode of sys.stderr
         s = s.encode(preferredencoding(), 'ignore')
-    out.write(s)
+    try:
+        out.write(s)
+    except UnicodeEncodeError:
+        # In Windows shells, this can fail even when the codec is just charmap!?
+        # See https://wiki.python.org/moin/PrintFails#Issue
+        if sys.platform == 'win32' and hasattr(out, 'encoding'):
+            s = s.encode(out.encoding, 'ignore').decode(out.encoding)
+            out.write(s)
+        else:
+            raise
+
     out.flush()
 
 
@@ -949,7 +1007,16 @@ class locked_file(object):
 
 
 def shell_quote(args):
-    return ' '.join(map(pipes.quote, args))
+    quoted_args = []
+    encoding = sys.getfilesystemencoding()
+    if encoding is None:
+        encoding = 'utf-8'
+    for a in args:
+        if isinstance(a, bytes):
+            # We may get a filename encoded with 'encodeFilename'
+            a = a.decode(encoding)
+        quoted_args.append(pipes.quote(a))
+    return u' '.join(quoted_args)
 
 
 def takewhile_inclusive(pred, seq):
@@ -969,10 +1036,131 @@ def smuggle_url(url, data):
     return url + u'#' + sdata
 
 
-def unsmuggle_url(smug_url):
+def unsmuggle_url(smug_url, default=None):
     if not '#__youtubedl_smuggle' in smug_url:
-        return smug_url, None
+        return smug_url, default
     url, _, sdata = smug_url.rpartition(u'#')
     jsond = compat_parse_qs(sdata)[u'__youtubedl_smuggle'][0]
     data = json.loads(jsond)
     return url, data
+
+
+def format_bytes(bytes):
+    if bytes is None:
+        return u'N/A'
+    if type(bytes) is str:
+        bytes = float(bytes)
+    if bytes == 0.0:
+        exponent = 0
+    else:
+        exponent = int(math.log(bytes, 1024.0))
+    suffix = [u'B', u'KiB', u'MiB', u'GiB', u'TiB', u'PiB', u'EiB', u'ZiB', u'YiB'][exponent]
+    converted = float(bytes) / float(1024 ** exponent)
+    return u'%.2f%s' % (converted, suffix)
+
+
+def str_to_int(int_str):
+    int_str = re.sub(r'[,\.]', u'', int_str)
+    return int(int_str)
+
+
+def get_term_width():
+    columns = os.environ.get('COLUMNS', None)
+    if columns:
+        return int(columns)
+
+    try:
+        sp = subprocess.Popen(
+            ['stty', 'size'],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = sp.communicate()
+        return int(out.split()[1])
+    except:
+        pass
+    return None
+
+
+def month_by_name(name):
+    """ Return the number of a month by (locale-independently) English name """
+
+    ENGLISH_NAMES = [
+        u'January', u'February', u'March', u'April', u'May', u'June',
+        u'July', u'August', u'September', u'October', u'November', u'December']
+    try:
+        return ENGLISH_NAMES.index(name) + 1
+    except ValueError:
+        return None
+
+
+def fix_xml_ampersands(xml_str):
+    """Replace all the '&' by '&amp;' in XML"""
+    return re.sub(
+        r'&(?!amp;|lt;|gt;|apos;|quot;|#x[0-9a-fA-F]{,4};|#[0-9]{,4};)',
+        u'&amp;',
+        xml_str)
+
+
+def setproctitle(title):
+    assert isinstance(title, compat_str)
+    try:
+        libc = ctypes.cdll.LoadLibrary("libc.so.6")
+    except OSError:
+        return
+    title = title
+    buf = ctypes.create_string_buffer(len(title) + 1)
+    buf.value = title.encode('utf-8')
+    try:
+        libc.prctl(15, ctypes.byref(buf), 0, 0, 0)
+    except AttributeError:
+        return  # Strange libc, just skip this
+
+
+def remove_start(s, start):
+    if s.startswith(start):
+        return s[len(start):]
+    return s
+
+
+def url_basename(url):
+    path = compat_urlparse.urlparse(url).path
+    return path.strip(u'/').split(u'/')[-1]
+
+
+class HEADRequest(compat_urllib_request.Request):
+    def get_method(self):
+        return "HEAD"
+
+
+def int_or_none(v):
+    return v if v is None else int(v)
+
+
+def parse_duration(s):
+    if s is None:
+        return None
+
+    m = re.match(
+        r'(?:(?:(?P<hours>[0-9]+):)?(?P<mins>[0-9]+):)?(?P<secs>[0-9]+)$', s)
+    if not m:
+        return None
+    res = int(m.group('secs'))
+    if m.group('mins'):
+        res += int(m.group('mins')) * 60
+        if m.group('hours'):
+            res += int(m.group('hours')) * 60 * 60
+    return res
+
+
+def prepend_extension(filename, ext):
+    name, real_ext = os.path.splitext(filename) 
+    return u'{0}.{1}{2}'.format(name, ext, real_ext)
+
+
+def check_executable(exe, args=[]):
+    """ Checks if the given binary is installed somewhere in PATH, and returns its name.
+    args can be a list of arguments for a short output (like -version) """
+    try:
+        subprocess.Popen([exe] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+    except OSError:
+        return False
+    return exe

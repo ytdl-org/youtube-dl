@@ -7,7 +7,7 @@ class InaIE(InfoExtractor):
     """Information Extractor for Ina.fr"""
     _VALID_URL = r'(?:http://)?(?:www\.)?ina\.fr/video/(?P<id>I?[A-F0-9]+)/.*'
     _TEST = {
-        u'url': u'www.ina.fr/video/I12055569/francois-hollande-je-crois-que-c-est-clair-video.html',
+        u'url': u'http://www.ina.fr/video/I12055569/francois-hollande-je-crois-que-c-est-clair-video.html',
         u'file': u'I12055569.mp4',
         u'md5': u'a667021bf2b41f8dc6049479d9bb38a3',
         u'info_dict': {

@@ -2,13 +2,10 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-)
 
 
 class ViddlerIE(InfoExtractor):
-    _VALID_URL = r'(?P<domain>https?://(?:www\.)?viddler.com)/(?:v|embed|player)/(?P<id>[a-z0-9]+)'
+    _VALID_URL = r'(?P<domain>https?://(?:www\.)?viddler\.com)/(?:v|embed|player)/(?P<id>[a-z0-9]+)'
     _TEST = {
         u"url": u"http://www.viddler.com/v/43903784",
         u'file': u'43903784.mp4',
@@ -47,7 +44,7 @@ class ViddlerIE(InfoExtractor):
             r"thumbnail\s*:\s*'([^']*)'",
             webpage, u'thumbnail', fatal=False)
 
-        info = {
+        return {
             '_type': 'video',
             'id': video_id,
             'title': title,
@@ -56,9 +53,3 @@ class ViddlerIE(InfoExtractor):
             'duration': duration,
             'formats': formats,
         }
-
-        # TODO: Remove when #980 has been merged
-        info['formats'][-1]['ext'] = determine_ext(info['formats'][-1]['url'])
-        info.update(info['formats'][-1])
-
-        return info

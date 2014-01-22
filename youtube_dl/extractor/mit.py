@@ -33,8 +33,18 @@ class TechTVMITIE(InfoExtractor):
             raw_page, u'base url')
         formats_json = self._search_regex(r'bitrates: (\[.+?\])', raw_page,
             u'video formats')
-        formats = json.loads(formats_json)
-        formats = sorted(formats, key=lambda f: f['bitrate'])
+        formats_mit = json.loads(formats_json)
+        formats = [
+            {
+                'format_id': f['label'],
+                'url': base_url + f['url'].partition(':')[2],
+                'ext': f['url'].partition(':')[0],
+                'format': f['label'],
+                'width': f['width'],
+                'vbr': f['bitrate'],
+            }
+            for f in formats_mit
+        ]
 
         title = get_element_by_id('edit-title', clean_page)
         description = clean_html(get_element_by_id('edit-description', clean_page))
@@ -43,8 +53,7 @@ class TechTVMITIE(InfoExtractor):
 
         return {'id': video_id,
                 'title': title,
-                'url': base_url + formats[-1]['url'].replace('mp4:', ''),
-                'ext': 'mp4',
+                'formats': formats,
                 'description': description,
                 'thumbnail': thumbnail,
                 }

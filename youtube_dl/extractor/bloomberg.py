@@ -1,10 +1,11 @@
 import re
 
 from .common import InfoExtractor
+from .ooyala import OoyalaIE
 
 
 class BloombergIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.bloomberg\.com/video/(?P<name>.+?).html'
+    _VALID_URL = r'https?://www\.bloomberg\.com/video/(?P<name>.+?)\.html'
 
     _TEST = {
         u'url': u'http://www.bloomberg.com/video/shah-s-presentation-on-foreign-exchange-strategies-qurhIVlJSB6hzkVi229d8g.html',
@@ -23,5 +24,5 @@ class BloombergIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         name = mobj.group('name')
         webpage = self._download_webpage(url, name)
-        ooyala_url = self._og_search_video_url(webpage)
-        return self.url_result(ooyala_url, ie='Ooyala')
+        ooyala_code = self._search_regex(r'<source src="http://player.ooyala.com/player/[^/]+/([^".]+)', webpage, u'ooyala url')
+        return OoyalaIE._build_url_result(ooyala_code)

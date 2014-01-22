@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class VideoPremiumIE(InfoExtractor):
-    _VALID_URL = r'(?:https?://)?(?:www\.)?videopremium\.tv/(?P<id>\w+)(?:/.*)?'
+    _VALID_URL = r'(?:https?://)?(?:www\.)?videopremium\.(?:tv|me)/(?P<id>\w+)(?:/.*)?'
     _TEST = {
         u'url': u'http://videopremium.tv/4w7oadjsf156',
         u'file': u'4w7oadjsf156.f4v',
@@ -15,6 +15,7 @@ class VideoPremiumIE(InfoExtractor):
         u'params': {
             u'skip_download': True,
         },
+        u'skip': u'Test file has been deleted.',
     }
 
     def _real_extract(self, url):
@@ -24,12 +25,16 @@ class VideoPremiumIE(InfoExtractor):
         webpage_url = 'http://videopremium.tv/' + video_id
         webpage = self._download_webpage(webpage_url, video_id)
 
-        self.report_extraction(video_id)
+        if re.match(r"^<html><head><script[^>]*>window.location\s*=", webpage):
+            # Download again, we need a cookie
+            webpage = self._download_webpage(
+                webpage_url, video_id,
+                note=u'Downloading webpage again (with cookie)')
 
-        video_title = self._html_search_regex(r'<h2(?:.*?)>\s*(.+?)\s*<',
-            webpage, u'video title')
+        video_title = self._html_search_regex(
+            r'<h2(?:.*?)>\s*(.+?)\s*<', webpage, u'video title')
 
-        return [{
+        return {
             'id':          video_id,
             'url':         "rtmp://e%d.md.iplay.md/play" % random.randint(1, 16),
             'play_path':   "mp4:%s.f4v" % video_id,
@@ -37,4 +42,4 @@ class VideoPremiumIE(InfoExtractor):
             'player_url':  "http://videopremium.tv/uplayer/uppod.swf",
             'ext':         'f4v',
             'title':       video_title,
-        }]
+        }

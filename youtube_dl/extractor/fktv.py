@@ -12,7 +12,7 @@ from ..utils import (
 
 class FKTVIE(InfoExtractor):
     IE_NAME = u'fernsehkritik.tv'
-    _VALID_URL = r'(?:http://)?(?:www\.)?fernsehkritik.tv/folge-(?P<ep>[0-9]+)(?:/.*)?'
+    _VALID_URL = r'(?:http://)?(?:www\.)?fernsehkritik\.tv/folge-(?P<ep>[0-9]+)(?:/.*)?'
 
     _TEST = {
         u'url': u'http://fernsehkritik.tv/folge-1',
@@ -39,7 +39,6 @@ class FKTVIE(InfoExtractor):
         for i, _ in enumerate(files, 1):
             video_id = '%04d%d' % (episode, i)
             video_url = 'http://dl%d.fernsehkritik.tv/fernsehkritik%d%s.flv' % (server, episode, '' if i == 1 else '-%d' % i)
-            video_title = 'Fernsehkritik %d.%d' % (episode, i)
             videos.append({
                 'id': video_id,
                 'url': video_url,
@@ -53,7 +52,7 @@ class FKTVIE(InfoExtractor):
 
 class FKTVPosteckeIE(InfoExtractor):
     IE_NAME = u'fernsehkritik.tv:postecke'
-    _VALID_URL = r'(?:http://)?(?:www\.)?fernsehkritik.tv/inline-video/postecke.php\?(.*&)?ep=(?P<ep>[0-9]+)(&|$)'
+    _VALID_URL = r'(?:http://)?(?:www\.)?fernsehkritik\.tv/inline-video/postecke\.php\?(.*&)?ep=(?P<ep>[0-9]+)(&|$)'
     _TEST = {
         u'url': u'http://fernsehkritik.tv/inline-video/postecke.php?iframe=true&width=625&height=440&ep=120',
         u'file': u'0120.flv',

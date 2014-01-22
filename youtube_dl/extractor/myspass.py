@@ -1,5 +1,4 @@
 import os.path
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -10,7 +9,7 @@ from ..utils import (
 
 
 class MySpassIE(InfoExtractor):
-    _VALID_URL = r'http://www.myspass.de/.*'
+    _VALID_URL = r'http://www\.myspass\.de/.*'
     _TEST = {
         u'url': u'http://www.myspass.de/myspass/shows/tvshows/absolute-mehrheit/Absolute-Mehrheit-vom-17022013-Die-Highlights-Teil-2--/11741/',
         u'file': u'11741.mp4',
@@ -33,8 +32,7 @@ class MySpassIE(InfoExtractor):
 
         # get metadata
         metadata_url = META_DATA_URL_TEMPLATE % video_id
-        metadata_text = self._download_webpage(metadata_url, video_id)
-        metadata = xml.etree.ElementTree.fromstring(metadata_text.encode('utf-8'))
+        metadata = self._download_xml(metadata_url, video_id)
 
         # extract values from metadata
         url_flv_el = metadata.find('url_flv')

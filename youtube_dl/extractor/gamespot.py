@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import re
 import json
 
@@ -13,18 +15,18 @@ from ..utils import (
 class GameSpotIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:www\.)?gamespot\.com/.*-(?P<page_id>\d+)/?'
     _TEST = {
-        u"url": u"http://www.gamespot.com/arma-iii/videos/arma-iii-community-guide-sitrep-i-6410818/",
-        u"file": u"gs-2300-6410818.mp4",
-        u"md5": u"b2a30deaa8654fcccd43713a6b6a4825",
-        u"info_dict": {
-            u"title": u"Arma 3 - Community Guide: SITREP I",
-            u'description': u'Check out this video where some of the basics of Arma 3 is explained.',
+        "url": "http://www.gamespot.com/arma-iii/videos/arma-iii-community-guide-sitrep-i-6410818/",
+        "file": "gs-2300-6410818.mp4",
+        "md5": "b2a30deaa8654fcccd43713a6b6a4825",
+        "info_dict": {
+            "title": "Arma 3 - Community Guide: SITREP I",
+            'description': 'Check out this video where some of the basics of Arma 3 is explained.',
         }
     }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        page_id = video_id = mobj.group('page_id')
+        page_id = mobj.group('page_id')
         webpage = self._download_webpage(url, page_id)
         data_video_json = self._search_regex(r'data-video=\'(.*?)\'', webpage, u'data video')
         data_video = json.loads(unescapeHTML(data_video_json))
@@ -47,13 +49,10 @@ class GameSpotIE(InfoExtractor):
                 'format_id': q,
             })
 
-        info = {
+        return {
             'id': data_video['guid'],
             'title': compat_urllib_parse.unquote(data_video['title']),
             'formats': formats,
             'description': get_meta_content('description', webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
         }
-        # TODO: Remove when #980 has been merged
-        info.update(formats[-1])
-        return info

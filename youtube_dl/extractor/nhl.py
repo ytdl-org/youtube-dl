@@ -1,6 +1,5 @@
 import re
 import json
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -26,9 +25,8 @@ class NHLBaseInfoExtractor(InfoExtractor):
             'path': initial_video_url.replace('.mp4', '_sd.mp4'),
         })
         path_url = 'http://video.nhl.com/videocenter/servlets/encryptvideopath?' + data
-        path_response = self._download_webpage(path_url, video_id,
+        path_doc = self._download_xml(path_url, video_id,
             u'Downloading final video url')
-        path_doc = xml.etree.ElementTree.fromstring(path_response)
         video_url = path_doc.find('path').text
 
         join = compat_urlparse.urljoin
@@ -72,7 +70,7 @@ class NHLIE(NHLBaseInfoExtractor):
 
 class NHLVideocenterIE(NHLBaseInfoExtractor):
     IE_NAME = u'nhl.com:videocenter'
-    IE_DESC = u'Download the first 12 videos from a videocenter category'
+    IE_DESC = u'NHL videocenter category'
     _VALID_URL = r'https?://video\.(?P<team>[^.]*)\.nhl\.com/videocenter/(console\?.*?catid=(?P<catid>[^&]+))?'
 
     @classmethod

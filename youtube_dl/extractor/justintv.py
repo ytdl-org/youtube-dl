@@ -1,7 +1,6 @@
 import json
 import os
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -94,10 +93,9 @@ class JustinTVIE(InfoExtractor):
             archive_id = m.group(1)
 
             api = api_base + '/broadcast/by_chapter/%s.xml' % chapter_id
-            chapter_info_xml = self._download_webpage(api, chapter_id,
+            doc = self._download_xml(api, chapter_id,
                                              note=u'Downloading chapter information',
                                              errnote=u'Chapter information download failed')
-            doc = xml.etree.ElementTree.fromstring(chapter_info_xml)
             for a in doc.findall('.//archive'):
                 if archive_id == a.find('./id').text:
                     break

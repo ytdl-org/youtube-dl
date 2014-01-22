@@ -1,14 +1,7 @@
 import re
-import socket
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_http_client,
-    compat_str,
-    compat_urllib_error,
-    compat_urllib_request,
-
     ExtractorError,
     orderedSet,
     unescapeHTML,
@@ -18,7 +11,7 @@ from ..utils import (
 class StanfordOpenClassroomIE(InfoExtractor):
     IE_NAME = u'stanfordoc'
     IE_DESC = u'Stanford Open ClassRoom'
-    _VALID_URL = r'^(?:https?://)?openclassroom.stanford.edu(?P<path>/?|(/MainFolder/(?:HomePage|CoursePage|VideoPage)\.php([?]course=(?P<course>[^&]+)(&video=(?P<video>[^&]+))?(&.*)?)?))$'
+    _VALID_URL = r'^(?:https?://)?openclassroom\.stanford\.edu(?P<path>/?|(/MainFolder/(?:HomePage|CoursePage|VideoPage)\.php([?]course=(?P<course>[^&]+)(&video=(?P<video>[^&]+))?(&.*)?)?))$'
     _TEST = {
         u'url': u'http://openclassroom.stanford.edu/MainFolder/VideoPage.php?course=PracticalUnix&video=intro-environment&speed=100',
         u'file': u'PracticalUnix_intro-environment.mp4',
@@ -45,11 +38,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
             self.report_extraction(info['id'])
             baseUrl = 'http://openclassroom.stanford.edu/MainFolder/courses/' + course + '/videos/'
             xmlUrl = baseUrl + video + '.xml'
-            try:
-                metaXml = compat_urllib_request.urlopen(xmlUrl).read()
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                raise ExtractorError(u'Unable to download video info XML: %s' % compat_str(err))
-            mdoc = xml.etree.ElementTree.fromstring(metaXml)
+            mdoc = self._download_xml(xmlUrl, info['id'])
             try:
                 info['title'] = mdoc.findall('./title')[0].text
                 info['url'] = baseUrl + mdoc.findall('./videoFile')[0].text
@@ -95,12 +84,9 @@ class StanfordOpenClassroomIE(InfoExtractor):
                 'upload_date': None,
             }
 
-            self.report_download_webpage(info['id'])
             rootURL = 'http://openclassroom.stanford.edu/MainFolder/HomePage.php'
-            try:
-                rootpage = compat_urllib_request.urlopen(rootURL).read()
-            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                raise ExtractorError(u'Unable to download course info page: ' + compat_str(err))
+            rootpage = self._download_webpage(rootURL, info['id'],
+                errnote=u'Unable to download course info page')
 
             info['title'] = info['id']
 

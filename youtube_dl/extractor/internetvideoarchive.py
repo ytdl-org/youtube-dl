@@ -1,12 +1,10 @@
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
     compat_urlparse,
     compat_urllib_parse,
     xpath_with_ns,
-    determine_ext,
 )
 
 
@@ -43,9 +41,8 @@ class InternetVideoArchiveIE(InfoExtractor):
         video_id = query_dic['publishedid'][0]
         url = self._build_url(query)
 
-        flashconfiguration_xml = self._download_webpage(url, video_id,
+        flashconfiguration = self._download_xml(url, video_id,
             u'Downloading flash configuration')
-        flashconfiguration = xml.etree.ElementTree.fromstring(flashconfiguration_xml.encode('utf-8'))
         file_url = flashconfiguration.find('file').text
         file_url = file_url.replace('/playlist.aspx', '/mrssplaylist.aspx')
         # Replace some of the parameters in the query to get the best quality
@@ -53,9 +50,8 @@ class InternetVideoArchiveIE(InfoExtractor):
         file_url = re.sub(r'(?<=\?)(.+)$',
             lambda m: self._clean_query(m.group()),
             file_url)
-        info_xml = self._download_webpage(file_url, video_id,
+        info = self._download_xml(file_url, video_id,
             u'Downloading video info')
-        info = xml.etree.ElementTree.fromstring(info_xml.encode('utf-8'))
         item = info.find('channel/item')
 
         def _bp(p):
@@ -66,13 +62,17 @@ class InternetVideoArchiveIE(InfoExtractor):
         for content in item.findall(_bp('media:group/media:content')):
             attr = content.attrib
             f_url = attr['url']
+            width = int(attr['width'])
+            bitrate = int(attr['bitrate'])
+            format_id = '%d-%dk' % (width, bitrate)
             formats.append({
+                'format_id': format_id,
                 'url': f_url,
-                'ext': determine_ext(f_url),
-                'width': int(attr['width']),
-                'bitrate': int(attr['bitrate']),
+                'width': width,
+                'tbr': bitrate,
             })
-        formats = sorted(formats, key=lambda f: f['bitrate'])
+
+        self._sort_formats(formats)
 
         return {
             'id': video_id,

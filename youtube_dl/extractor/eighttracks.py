@@ -1,4 +1,3 @@
-import itertools
 import json
 import random
 import re
@@ -11,7 +10,7 @@ from ..utils import (
 
 class EightTracksIE(InfoExtractor):
     IE_NAME = '8tracks'
-    _VALID_URL = r'https?://8tracks.com/(?P<user>[^/]+)/(?P<id>[^/#]+)(?:#.*)?$'
+    _VALID_URL = r'https?://8tracks\.com/(?P<user>[^/]+)/(?P<id>[^/#]+)(?:#.*)?$'
     _TEST = {
         u"name": u"EightTracks",
         u"url": u"http://8tracks.com/ytdl/youtube-dl-test-tracks-a",

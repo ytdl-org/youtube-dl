@@ -46,7 +46,7 @@ class XHamsterIE(InfoExtractor):
                 return mobj.group('server')+'/key='+mobj.group('file')
 
         def is_hd(webpage):
-            return webpage.find('<div class=\'icon iconHD\'>') != -1
+            return webpage.find('<div class=\'icon iconHD\'') != -1
 
         mobj = re.match(self._VALID_URL, url)
 
