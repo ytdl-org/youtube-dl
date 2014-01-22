@@ -18,14 +18,6 @@ class SouthParkStudiosIE(MTVServicesInfoExtractor):
         },
     }]
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        url = u'http://www.' + mobj.group(u'url')
-        video_id = mobj.group('id')
-        webpage = self._download_webpage(url, video_id)
-        mgid = self._search_regex(r'swfobject.embedSWF\(".*?(mgid:.*?)"',
-                                  webpage, u'mgid')
-        return self._get_videos_info(mgid)
 
 class SouthparkDeIE(SouthParkStudiosIE):
     IE_NAME = u'southpark.de'

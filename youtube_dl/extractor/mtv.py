@@ -112,9 +112,12 @@ class MTVServicesInfoExtractor(InfoExtractor):
         title = url_basename(url)
         webpage = self._download_webpage(url, title)
         try:
-            # the url is in the format http://media.mtvnservices.com/fb/{mgid}.swf
-            fb_url = self._og_search_video_url(webpage)
-            mgid = url_basename(fb_url).rpartition('.')[0]
+            # the url can be http://media.mtvnservices.com/fb/{mgid}.swf
+            # or http://media.mtvnservices.com/{mgid}
+            og_url = self._og_search_video_url(webpage)
+            mgid = url_basename(og_url)
+            if mgid.endswith('.swf'):
+                mgid = mgid[:-4]
         except RegexNotFoundError:
             mgid = self._search_regex(r'data-mgid="(.*?)"', webpage, u'mgid')
         return self._get_videos_info(mgid)
