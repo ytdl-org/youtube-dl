@@ -150,6 +150,36 @@ class TestFormatSelection(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], u'35')
 
+    def test_format_selection_audio(self):
+        formats = [
+            {u'format_id': u'audio-low', u'ext': u'webm', 'preference': 1, 'vcodec': 'none'},
+            {u'format_id': u'audio-mid', u'ext': u'webm', 'preference': 2, 'vcodec': 'none'},
+            {u'format_id': u'audio-high', u'ext': u'flv', 'preference': 3, 'vcodec': 'none'},
+            {u'format_id': u'vid', u'ext': u'mp4', 'preference': 4},
+        ]
+        info_dict = {u'formats': formats, u'extractor': u'test'}
+
+        ydl = YDL({'format': u'bestaudio'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], u'audio-high')
+
+        ydl = YDL({'format': u'worstaudio'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], u'audio-low')
+
+        formats = [
+            {u'format_id': u'vid-low', u'ext': u'mp4', 'preference': 1},
+            {u'format_id': u'vid-high', u'ext': u'mp4', 'preference': 2},
+        ]
+        info_dict = {u'formats': formats, u'extractor': u'test'}
+
+        ydl = YDL({'format': u'bestaudio/worstaudio/best'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], u'vid-high')
+
     def test_youtube_format_selection(self):
         order = [
             '38', '37', '46', '22', '45', '35', '44', '18', '34', '43', '6', '5', '36', '17', '13',
