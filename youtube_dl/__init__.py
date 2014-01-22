@@ -244,6 +244,10 @@ def parseOpts(overrideArguments=None):
         '--include-ads', dest='include_ads',
         action='store_true',
         help='Download advertisements as well (experimental)')
+    verbosity.add_option(
+        '--youtube-include-dash-manifest', action='store_true',
+        dest='youtube_include_dash_manifest', default=False,
+        help='Try to download the DASH manifest on YouTube videos (experimental)')
 
     authentication.add_option('-u', '--username',
             dest='username', metavar='USERNAME', help='account username')
@@ -348,7 +352,8 @@ def parseOpts(overrideArguments=None):
             help=optparse.SUPPRESS_HELP)
     verbosity.add_option('--print-traffic',
             dest='debug_printtraffic', action='store_true', default=False,
-            help=optparse.SUPPRESS_HELP)
+            help='Display sent and read HTTP traffic')
+
 
     filesystem.add_option('-t', '--title',
             action='store_true', dest='usetitle', help='use title in file name (default)', default=False)
@@ -729,6 +734,7 @@ def _real_main(argv=None):
         'prefer_ffmpeg': opts.prefer_ffmpeg,
         'include_ads': opts.include_ads,
         'default_search': opts.default_search,
+        'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,
     }
 
     with YoutubeDL(ydl_opts) as ydl:

@@ -276,16 +276,17 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             u"url": u"http://www.youtube.com/watch?v=a9LDPn-MO4I",
             u"file": u"a9LDPn-MO4I.m4a",
             u"note": u"256k DASH audio (format 141) via DASH manifest",
-            u"params": {
-                u"format": "141"
-            },
             u"info_dict": {
                 u"upload_date": "20121002",
                 u"uploader_id": "8KVIDEO",
                 u"description": "No description available.",
                 u"uploader": "8KVIDEO",
                 u"title": "UHDTV TEST 8K VIDEO.mp4"
-            }
+            },
+            u"params": {
+                u"youtube_include_dash_manifest": True,
+                u"format": "141",
+            },
         },
     ]
 
@@ -1355,7 +1356,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         # Look for the DASH manifest
         dash_manifest_url_lst = video_info.get('dashmpd')
-        if dash_manifest_url_lst and dash_manifest_url_lst[0]:
+        if (dash_manifest_url_lst and dash_manifest_url_lst[0] and
+                self._downloader.params.get('youtube_include_dash_manifest', False)):
             try:
                 dash_doc = self._download_xml(
                     dash_manifest_url_lst[0], video_id,
