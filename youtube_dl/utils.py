@@ -1131,8 +1131,8 @@ class HEADRequest(compat_urllib_request.Request):
         return "HEAD"
 
 
-def int_or_none(v):
-    return v if v is None else int(v)
+def int_or_none(v, scale=1):
+    return v if v is None else (int(v) // scale)
 
 
 def parse_duration(s):

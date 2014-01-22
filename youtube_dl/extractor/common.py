@@ -63,6 +63,7 @@ class InfoExtractor(object):
                     * tbr        Average bitrate of audio and video in KBit/s
                     * abr        Average audio bitrate in KBit/s
                     * acodec     Name of the audio codec in use
+                    * asr        Audio sampling rate in Hertz
                     * vbr        Average video bitrate in KBit/s
                     * vcodec     Name of the video codec in use
                     * filesize   The number of bytes, if known in advance

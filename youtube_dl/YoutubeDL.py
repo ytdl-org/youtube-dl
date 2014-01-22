@@ -1106,6 +1106,8 @@ class YoutubeDL(object):
                 res += 'audio'
             if fdict.get('abr') is not None:
                 res += '@%3dk' % fdict['abr']
+            if fdict.get('asr') is not None:
+                res += ' (%5dHz)' % fdict['asr']
             if fdict.get('filesize') is not None:
                 if res:
                     res += ', '

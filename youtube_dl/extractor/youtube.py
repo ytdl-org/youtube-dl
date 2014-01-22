@@ -27,6 +27,7 @@ from ..utils import (
     get_element_by_id,
     get_element_by_attribute,
     ExtractorError,
+    int_or_none,
     RegexNotFoundError,
     unescapeHTML,
     unified_strdate,
@@ -268,6 +269,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 u"description": u"md5:09b78bd971f1e3e289601dfba15ca4f7",
                 u"uploader": u"SET India",
                 u"uploader_id": u"setindia"
+            }
+        },
+        {
+            u"url": u"http://www.youtube.com/watch?v=a9LDPn-MO4I",
+            u"file": u"a9LDPn-MO4I.m4a",
+            u"note": u"256k DASH audio (format 141) via DASH manifest",
+            u"params": {
+                u"format": "141"
+            },
+            u"info_dict": {
+                u"upload_date": "20121002",
+                u"uploader_id": "8KVIDEO",
+                u"description": "No description available.",
+                u"uploader": "8KVIDEO",
+                u"title": "UHDTV TEST 8K VIDEO.mp4"
             }
         },
     ]
@@ -1067,18 +1083,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         video_id = mobj.group(2)
         return video_id
 
-    def _get_video_url_list(self, url_map):
-        """
-        Transform a dictionary in the format {itag:url} to a list of (itag, url)
-        with the requested formats.
-        """
-        existing_formats = [x for x in self._formats if x in url_map]
-        if len(existing_formats) == 0:
-            raise ExtractorError(u'no known formats available for video')
-        video_url_list = [(f, url_map[f]) for f in existing_formats] # All formats
-        video_url_list.reverse() # order worst to best
-        return video_url_list
-
     def _extract_from_m3u8(self, manifest_url, video_id):
         url_map = {}
         def _get_urls(_manifest):
@@ -1252,7 +1256,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 video_annotations = self._extract_annotations(video_id)
 
         # Decide which formats to download
-
         try:
             mobj = re.search(r';ytplayer.config = ({.*?});', video_webpage)
             if not mobj:
@@ -1277,9 +1280,26 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         except ValueError:
             pass
 
+        def _map_to_format_list(urlmap):
+            formats = []
+            for itag, video_real_url in urlmap.items():
+                dct = {
+                    'format_id': itag,
+                    'url': video_real_url,
+                    'player_url': player_url,
+                }
+                dct.update(self._formats[itag])
+                formats.append(dct)
+            return formats
+
         if 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
             self.report_rtmp_download()
-            video_url_list = [('_rtmp', video_info['conn'][0])]
+            formats = [{
+                'format_id': '_rtmp',
+                'protocol': 'rtmp',
+                'url': video_info['conn'][0],
+                'player_url': player_url,
+            }]
         elif len(video_info.get('url_encoded_fmt_stream_map', [])) >= 1 or len(video_info.get('adaptive_fmts', [])) >= 1:
             encoded_url_map = video_info.get('url_encoded_fmt_stream_map', [''])[0] + ',' + video_info.get('adaptive_fmts',[''])[0]
             if 'rtmpe%3Dyes' in encoded_url_map:
@@ -1324,23 +1344,49 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                     if 'ratebypass' not in url:
                         url += '&ratebypass=yes'
                     url_map[url_data['itag'][0]] = url
-            video_url_list = self._get_video_url_list(url_map)
+            formats = _map_to_format_list(url_map)
         elif video_info.get('hlsvp'):
             manifest_url = video_info['hlsvp'][0]
             url_map = self._extract_from_m3u8(manifest_url, video_id)
-            video_url_list = self._get_video_url_list(url_map)
+            formats = _map_to_format_list(url_map)
         else:
             raise ExtractorError(u'no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
 
-        formats = []
-        for itag, video_real_url in video_url_list:
-            dct = {
-                'format_id': itag,
-                'url': video_real_url,
-                'player_url': player_url,
-            }
-            dct.update(self._formats[itag])
-            formats.append(dct)
+        # Look for the DASH manifest
+        dash_manifest_url_lst = video_info.get('dashmpd')
+        if dash_manifest_url_lst and dash_manifest_url_lst[0]:
+            try:
+                dash_doc = self._download_xml(
+                    dash_manifest_url_lst[0], video_id,
+                    note=u'Downloading DASH manifest',
+                    errnote=u'Could not download DASH manifest')
+                for r in dash_doc.findall(u'.//{urn:mpeg:DASH:schema:MPD:2011}Representation'):
+                    url_el = r.find('{urn:mpeg:DASH:schema:MPD:2011}BaseURL')
+                    if url_el is None:
+                        continue
+                    format_id = r.attrib['id']
+                    video_url = url_el.text
+                    filesize = int_or_none(url_el.attrib.get('{http://youtube.com/yt/2012/10/10}contentLength'))
+                    f = {
+                        'format_id': format_id,
+                        'url': video_url,
+                        'width': int_or_none(r.attrib.get('width')),
+                        'tbr': int_or_none(r.attrib.get('bandwidth'), 1000),
+                        'asr': int_or_none(r.attrib.get('audioSamplingRate')),
+                        'filesize': filesize,
+                    }
+                    try:
+                        existing_format = next(
+                            fo for fo in formats
+                            if fo['format_id'] == format_id)
+                    except StopIteration:
+                        f.update(self._formats.get(format_id, {}))
+                        formats.append(f)
+                    else:
+                        existing_format.update(f)
+
+            except (ExtractorError, KeyError) as e:
+                self.report_warning(u'Skipping DASH manifest: %s' % e, video_id)
 
         self._sort_formats(formats)
 
