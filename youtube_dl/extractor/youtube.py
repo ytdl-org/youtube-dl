@@ -28,6 +28,7 @@ from ..utils import (
     get_element_by_attribute,
     ExtractorError,
     int_or_none,
+    PagedList,
     RegexNotFoundError,
     unescapeHTML,
     unified_strdate,
@@ -1626,44 +1627,35 @@ class YoutubeUserIE(InfoExtractor):
         # page by page until there are no video ids - it means we got
         # all of them.
 
-        url_results = []
-
-        for pagenum in itertools.count(0):
+        def download_page(pagenum):
             start_index = pagenum * self._GDATA_PAGE_SIZE + 1
 
             gdata_url = self._GDATA_URL % (username, self._GDATA_PAGE_SIZE, start_index)
-            page = self._download_webpage(gdata_url, username,
-                                          u'Downloading video ids from %d to %d' % (start_index, start_index + self._GDATA_PAGE_SIZE))
+            page = self._download_webpage(
+                gdata_url, username,
+                u'Downloading video ids from %d to %d' % (
+                    start_index, start_index + self._GDATA_PAGE_SIZE))
 
             try:
                 response = json.loads(page)
             except ValueError as err:
                 raise ExtractorError(u'Invalid JSON in API response: ' + compat_str(err))
             if 'entry' not in response['feed']:
-                # Number of videos is a multiple of self._MAX_RESULTS
-                break
+                return
 
             # Extract video identifiers
             entries = response['feed']['entry']
             for entry in entries:
                 title = entry['title']['$t']
                 video_id = entry['id']['$t'].split('/')[-1]
-                url_results.append({
+                yield {
                     '_type': 'url',
                     'url': video_id,
                     'ie_key': 'Youtube',
                     'id': 'video_id',
                     'title': title,
-                })
-
-            # A little optimization - if current page is not
-            # "full", ie. does not contain PAGE_SIZE video ids then
-            # we can assume that this page is the last one - there
-            # are no more ids on further pages - no need to query
-            # again.
-
-            if len(entries) < self._GDATA_PAGE_SIZE:
-                break
+                }
+        url_results = PagedList(download_page, self._GDATA_PAGE_SIZE)
 
         return self.playlist_result(url_results, playlist_title=username)
 

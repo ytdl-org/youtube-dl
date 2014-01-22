@@ -39,6 +39,7 @@ from .utils import (
     locked_file,
     make_HTTPS_handler,
     MaxDownloadsReached,
+    PagedList,
     PostProcessingError,
     platform_name,
     preferredencoding,
@@ -578,19 +579,27 @@ class YoutubeDL(object):
 
             playlist_results = []
 
-            n_all_entries = len(ie_result['entries'])
             playliststart = self.params.get('playliststart', 1) - 1
             playlistend = self.params.get('playlistend', None)
             # For backwards compatibility, interpret -1 as whole list
             if playlistend == -1:
                 playlistend = None
 
-            entries = ie_result['entries'][playliststart:playlistend]
-            n_entries = len(entries)
-
-            self.to_screen(
-                "[%s] playlist '%s': Collected %d video ids (downloading %d of them)" %
-                (ie_result['extractor'], playlist, n_all_entries, n_entries))
+            if isinstance(ie_result['entries'], list):
+                n_all_entries = len(ie_result['entries'])
+                entries = ie_result['entries'][playliststart:playlistend]
+                n_entries = len(entries)
+                self.to_screen(
+                    "[%s] playlist %s: Collected %d video ids (downloading %d of them)" %
+                    (ie_result['extractor'], playlist, n_all_entries, n_entries))
+            else:
+                assert isinstance(ie_result['entries'], PagedList)
+                entries = ie_result['entries'].getslice(
+                    playliststart, playlistend)
+                n_entries = len(entries)
+                self.to_screen(
+                    "[%s] playlist %s: Downloading %d videos" %
+                    (ie_result['extractor'], playlist, n_entries))
 
             for i, entry in enumerate(entries, 1):
                 self.to_screen('[download] Downloading video #%s of %s' % (i, n_entries))
