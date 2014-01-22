@@ -28,7 +28,7 @@ class GameSpotIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         page_id = mobj.group('page_id')
         webpage = self._download_webpage(url, page_id)
-        data_video_json = self._search_regex(r'data-video=\'(.*?)\'', webpage, u'data video')
+        data_video_json = self._search_regex(r'data-video=["\'](.*?)["\']', webpage, 'data video')
         data_video = json.loads(unescapeHTML(data_video_json))
 
         # Transform the manifest url to a link to the mp4 files
@@ -36,7 +36,7 @@ class GameSpotIE(InfoExtractor):
         f4m_url = data_video['videoStreams']['f4m_stream']
         f4m_path = compat_urlparse.urlparse(f4m_url).path
         QUALITIES_RE = r'((,\d+)+,?)'
-        qualities = self._search_regex(QUALITIES_RE, f4m_path, u'qualities').strip(',').split(',')
+        qualities = self._search_regex(QUALITIES_RE, f4m_path, 'qualities').strip(',').split(',')
         http_path = f4m_path[1:].split('/', 1)[1]
         http_template = re.sub(QUALITIES_RE, r'%s', http_path)
         http_template = http_template.replace('.csmil/manifest.f4m', '')
