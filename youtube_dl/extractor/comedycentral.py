@@ -30,14 +30,6 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
         },
     }
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        title = mobj.group('title')
-        webpage = self._download_webpage(url, title)
-        mgid = self._search_regex(r'data-mgid="(?P<mgid>mgid:.*?)"',
-                                  webpage, 'mgid')
-        return self._get_videos_info(mgid)
-
 
 class ComedyCentralShowsIE(InfoExtractor):
     IE_DESC = 'The Daily Show / Colbert Report'
