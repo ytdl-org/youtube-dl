@@ -1,5 +1,5 @@
 # encoding: utf-8
-from __future__ import unicode_literal
+from __future__ import unicode_literals
 
 from .canalplus import CanalplusIE
 
