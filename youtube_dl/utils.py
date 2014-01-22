@@ -1172,6 +1172,10 @@ class PagedList(object):
         self._pagefunc = pagefunc
         self._pagesize = pagesize
 
+    def __len__(self):
+        # This is only useful for tests
+        return len(self.getslice())
+
     def getslice(self, start=0, end=None):
         res = []
         for pagenum in itertools.count(start // self._pagesize):
