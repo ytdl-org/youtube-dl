@@ -23,7 +23,7 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
         u'info_dict': {
             u'id': u'cef0cbb3-e776-4bc9-b62e-8016deccb354',
             u'ext': u'mp4',
-            u'title': u'Uncensored - Greg Fitzsimmons - Too Good of a Mother',
+            u'title': u'CC:Stand-Up|Greg Fitzsimmons: Life on Stage|Uncensored - Too Good of a Mother',
             u'description': u'After a certain point, breastfeeding becomes c**kblocking.',
         },
     }

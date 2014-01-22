@@ -89,6 +89,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         title = title_el.text
         if title is None:
             raise ExtractorError('Could not find video title')
+        title = title.strip()
 
         return {
             'title': title,
