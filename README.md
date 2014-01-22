@@ -44,6 +44,10 @@ which means you can modify it, redistribute it or use it however you like.
     --bidi-workaround          Work around terminals that lack bidirectional
                                text support. Requires bidiv or fribidi
                                executable in PATH
+    --default-search PREFIX    Use this prefix for unqualified URLs. For example
+                               "gvsearch2:" downloads two videos from google
+                               videos for  youtube-dl "large apple". By default
+                               (with value "auto") youtube-dl guesses.
 
 ## Video Selection:
     --playlist-start NUMBER    playlist video to start at (default is 1)
