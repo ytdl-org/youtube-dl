@@ -152,6 +152,8 @@ class YoutubeDL(object):
                        support, using fridibi
     debug_printtraffic:Print out sent and received HTTP traffic
     include_ads:       Download ads as well
+    default_search:    Prepend this string if an input url is not valid.
+                       'auto' for elaborate guessing
 
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:

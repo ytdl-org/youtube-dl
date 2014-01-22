@@ -162,8 +162,19 @@ class GenericIE(InfoExtractor):
     def _real_extract(self, url):
         parsed_url = compat_urlparse.urlparse(url)
         if not parsed_url.scheme:
-            self._downloader.report_warning('The url doesn\'t specify the protocol, trying with http')
-            return self.url_result('http://' + url)
+            default_search = self._downloader.params.get('default_search')
+            if default_search is None:
+                default_search = 'auto'
+
+            if default_search == 'auto':
+                if '/' in url:
+                    self._downloader.report_warning('The url doesn\'t specify the protocol, trying with http')
+                    return self.url_result('http://' + url)
+                else:
+                    return self.url_result('ytsearch:' + url)
+            else:
+                assert ':' in default_search
+                return self.url_result(default_search + url)
         video_id = os.path.splitext(url.split('/')[-1])[0]
 
         self.to_screen('%s: Requesting header' % video_id)

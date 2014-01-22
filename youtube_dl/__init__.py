@@ -199,7 +199,9 @@ def parseOpts(overrideArguments=None):
     general.add_option(
         '--bidi-workaround', dest='bidi_workaround', action='store_true',
         help=u'Work around terminals that lack bidirectional text support. Requires bidiv or fribidi executable in PATH')
-
+    general.add_option('--default-search',
+            dest='default_search', metavar='PREFIX',
+            help='Use this prefix for unqualified URLs. For example "gvsearch2:" downloads two videos from google videos for  youtube-dl "large apple". By default (with value "auto") youtube-dl guesses.')
 
     selection.add_option(
         '--playlist-start',
@@ -619,6 +621,8 @@ def _real_main(argv=None):
         date = DateRange.day(opts.date)
     else:
         date = DateRange(opts.dateafter, opts.datebefore)
+    if opts.default_search not in ('auto', None) and ':' not in opts.default_search:
+        parser.error(u'--default-search invalid; did you forget a colon (:) at the end?')
 
     # --all-sub automatically sets --write-sub if --write-auto-sub is not given
     # this was the old behaviour if only --all-sub was given.
@@ -720,6 +724,7 @@ def _real_main(argv=None):
         'debug_printtraffic': opts.debug_printtraffic,
         'prefer_ffmpeg': opts.prefer_ffmpeg,
         'include_ads': opts.include_ads,
+        'default_search': opts.default_search,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
