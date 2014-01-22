@@ -198,7 +198,7 @@ class BrightcoveIE(InfoExtractor):
     def _extract_video_info(self, video_info):
         info = {
             'id': compat_str(video_info['id']),
-            'title': video_info['displayName'],
+            'title': video_info['displayName'].strip(),
             'description': video_info.get('shortDescription'),
             'thumbnail': video_info.get('videoStillURL') or video_info.get('thumbnailURL'),
             'uploader': video_info.get('publisherName'),
