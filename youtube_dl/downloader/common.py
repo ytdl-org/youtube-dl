@@ -282,7 +282,7 @@ class FileDownloader(object):
             self.report_file_already_downloaded(filename)
             self._hook_progress({
                 'filename': filename,
-                'status': 'finished',
+                'status': 'already_downloaded',
                 'total_bytes': os.path.getsize(encodeFilename(filename)),
             })
             return True
@@ -300,7 +300,7 @@ class FileDownloader(object):
     def add_progress_hook(self, ph):
         """ ph gets called on download progress, with a dictionary with the entries
         * filename: The final filename
-        * status: One of "downloading" and "finished"
+        * status: One of "downloading", "finished" or "already_downloaded"
 
         It can also have some of the following entries:
 
