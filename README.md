@@ -83,6 +83,8 @@ which means you can modify it, redistribute it or use it however you like.
                                      downloaded videos in it.
     --include-ads                    Download advertisements as well
                                      (experimental)
+    --youtube-include-dash-manifest  Try to download the DASH manifest on
+                                     YouTube videos (experimental)
 
 ## Download Options:
     -r, --rate-limit LIMIT           maximum download rate in bytes per second
@@ -150,8 +152,6 @@ which means you can modify it, redistribute it or use it however you like.
     --write-thumbnail                write thumbnail image to disk
 
 ## Verbosity / Simulation Options:
-    --youtube-include-dash-manifest  Try to download the DASH manifest on
-                                     YouTube videos (experimental)
     -q, --quiet                      activates quiet mode
     -s, --simulate                   do not download the video and do not write
                                      anything to disk
