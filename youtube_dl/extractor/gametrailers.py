@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import re
-
 from .mtv import MTVServicesInfoExtractor
 
 
@@ -18,12 +16,3 @@ class GametrailersIE(MTVServicesInfoExtractor):
     }
 
     _FEED_URL = 'http://www.gametrailers.com/feeds/mrss'
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        webpage = self._download_webpage(url, video_id)
-        mgid = self._search_regex([r'data-video="(?P<mgid>mgid:.*?)"',
-                                   r'data-contentId=\'(?P<mgid>mgid:.*?)\''],
-                                  webpage, 'mgid')
-        return self._get_videos_info(mgid)
