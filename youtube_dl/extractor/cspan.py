@@ -20,6 +20,7 @@ class CSpanIE(InfoExtractor):
             'title': 'Attorney General Eric Holder on Voting Rights Act Decision',
             'description': 'Attorney General Eric Holder spoke to reporters following the Supreme Court decision in [Shelby County v. Holder] in which the court ruled that the preclearance provisions of the Voting Rights Act could not be enforced until Congress established new guidelines for review.',
         },
+        'skip': 'Regularly fails on travis, for unknown reasons',
     }
 
     def _real_extract(self, url):
