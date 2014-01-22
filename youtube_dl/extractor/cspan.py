@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class CSpanIE(InfoExtractor):
-    _VALID_URL = r'http://www\.c-spanvideo\.org/program/(.*)'
+    _VALID_URL = r'http://(?:www\.)?c-spanvideo\.org/program/(?P<name>.*)'
     IE_DESC = 'C-SPAN'
     _TEST = {
         'url': 'http://www.c-spanvideo.org/program/HolderonV',
@@ -24,9 +24,9 @@ class CSpanIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        prog_name = mobj.group(1)
+        prog_name = mobj.group('name')
         webpage = self._download_webpage(url, prog_name)
-        video_id = self._search_regex(r'programid=(.*?)&', webpage, 'video id')
+        video_id = self._search_regex(r'prog(?:ram)?id=(.*?)&', webpage, 'video id')
 
         title = self._html_search_regex(
             r'<!-- title -->\n\s*<h1[^>]*>(.*?)</h1>', webpage, 'title')
