@@ -325,11 +325,27 @@ Since June 2012 (#342) youtube-dl is packed as an executable zipfile, simply unz
 
 To run the exe you need to install first the [Microsoft Visual C++ 2008 Redistributable Package](http://www.microsoft.com/en-us/download/details.aspx?id=29).
 
-# COPYRIGHT
+# BUILD INSTRUCTIONS
 
-youtube-dl is released into the public domain by the copyright holders.
+Most users do not need to build youtube-dl and can [download the builds](http://rg3.github.io/youtube-dl/download.html) or get them from their distribution.
 
-This README file was originally written by Daniel Bolton (<https://github.com/dbbolton>) and is likewise released into the public domain.
+To run youtube-dl as a developer, you don't need to build anything either. Simply execute
+
+    python -m youtube_dl
+
+To run the test, simply invoke your favorite test runner, or execute a test file directly; any of the following work:
+
+    python -m unittest discover
+    python test/test_download.py
+    nosetests
+
+If you want to create a build of youtube-dl yourself, you'll need
+
+* python
+* make
+* pandoc
+* zip
+* nosetests
 
 # BUGS
 
@@ -388,3 +404,9 @@ Only post features that you (or an incapicated friend you can personally talk to
 ###  Is your question about youtube-dl?
 
 It may sound strange, but some bug reports we receive are completely unrelated to youtube-dl and relate to a different or even the reporter's own application. Please make sure that you are actually using youtube-dl. If you are using a UI for youtube-dl, report the bug to the maintainer of the actual application providing the UI. On the other hand, if your UI for youtube-dl fails in some way you believe is related to youtube-dl, by all means, go ahead and report the bug.
+
+# COPYRIGHT
+
+youtube-dl is released into the public domain by the copyright holders.
+
+This README file was originally written by Daniel Bolton (<https://github.com/dbbolton>) and is likewise released into the public domain.
