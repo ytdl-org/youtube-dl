@@ -45,6 +45,13 @@ class XHamsterIE(InfoExtractor):
             else:
                 return mobj.group('server')+'/key='+mobj.group('file')
 
+        def extract_mp4_video_url(webpage):
+            mp4 = re.search(r'<a href=\"(.+?)\" class=\"mp4Play\"',webpage)
+            if mp4 is None:
+                return None
+            else:
+                return mp4.group(1)
+
         def is_hd(webpage):
             return webpage.find('<div class=\'icon iconHD\'') != -1
 
@@ -80,14 +87,25 @@ class XHamsterIE(InfoExtractor):
 
         age_limit = self._rta_search(webpage)
 
-        video_url = extract_video_url(webpage)
         hd = is_hd(webpage)
+
+        video_url = extract_video_url(webpage)
         formats = [{
             'url': video_url,
             'ext': determine_ext(video_url),
             'format': 'hd' if hd else 'sd',
             'format_id': 'hd' if hd else 'sd',
         }]
+
+        video_mp4_url = extract_mp4_video_url(webpage)
+        if (not video_mp4_url is None) and (formats[0]['ext'] != 'mp4'):
+            formats.append( {
+            'url': video_mp4_url,
+            'ext': 'mp4',
+            'format': 'hd' if hd else 'sd',
+            'format_id': 'hd' if hd else 'sd',
+        })
+
         if not hd:
             webpage = self._download_webpage(mrss_url+'?hd', video_id)
             if is_hd(webpage):
