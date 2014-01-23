@@ -13,7 +13,7 @@ class HlsFD(FileDownloader):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
 
-        args = ['-y', '-i', url, '-f', 'mp4', '-c', 'copy',
+        args = ['-y', '-i', url, '-t', '72000', '-f', 'mp4', '-c', 'copy',
             '-bsf:a', 'aac_adtstoasc', tmpfilename]
 
         for program in ['avconv', 'ffmpeg']:
