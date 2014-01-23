@@ -396,10 +396,6 @@ class YoutubeDL(object):
         except UnicodeEncodeError:
             self.to_screen('[download] The file has already been downloaded')
 
-    def increment_downloads(self):
-        """Increment the ordinal that assigns a number to each file."""
-        self._num_downloads += 1
-
     def prepare_filename(self, info_dict):
         """Generate the output filename."""
         try:
@@ -773,8 +769,11 @@ class YoutubeDL(object):
         """Process a single resolved IE result."""
 
         assert info_dict.get('_type', 'video') == 'video'
-        #We increment the download the download count here to match the previous behaviour.
-        self.increment_downloads()
+
+        max_downloads = self.params.get('max_downloads')
+        if max_downloads is not None:
+            if self._num_downloads >= int(max_downloads):
+                raise MaxDownloadsReached()
 
         info_dict['fulltitle'] = info_dict['title']
         if len(info_dict['title']) > 200:
@@ -791,10 +790,7 @@ class YoutubeDL(object):
             self.to_screen('[download] ' + reason)
             return
 
-        max_downloads = self.params.get('max_downloads')
-        if max_downloads is not None:
-            if self._num_downloads > int(max_downloads):
-                raise MaxDownloadsReached()
+        self._num_downloads += 1
 
         filename = self.prepare_filename(info_dict)
 
