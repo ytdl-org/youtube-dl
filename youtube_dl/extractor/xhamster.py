@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import re
 
 from .common import InfoExtractor
@@ -13,25 +15,25 @@ class XHamsterIE(InfoExtractor):
     """Information Extractor for xHamster"""
     _VALID_URL = r'(?:http://)?(?:www\.)?xhamster\.com/movies/(?P<id>[0-9]+)/(?P<seo>.+?)\.html(?:\?.*)?'
     _TESTS = [{
-        u'url': u'http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html',
-        u'file': u'1509445.flv',
-        u'md5': u'9f48e0e8d58e3076bb236ff412ab62fa',
-        u'info_dict': {
-            u"upload_date": u"20121014", 
-            u"uploader_id": u"Ruseful2011", 
-            u"title": u"FemaleAgent Shy beauty takes the bait",
-            u"age_limit": 18,
+        'url': 'http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html',
+        'file': '1509445.flv',
+        'md5': '9f48e0e8d58e3076bb236ff412ab62fa',
+        'info_dict': {
+            "upload_date": "20121014", 
+            "uploader_id": "Ruseful2011", 
+            "title": "FemaleAgent Shy beauty takes the bait",
+            "age_limit": 18,
         }
     },
     {
-        u'url': u'http://xhamster.com/movies/2221348/britney_spears_sexy_booty.html?hd',
-        u'file': u'2221348.flv',
-        u'md5': u'e767b9475de189320f691f49c679c4c7',
-        u'info_dict': {
-            u"upload_date": u"20130914",
-            u"uploader_id": u"jojo747400",
-            u"title": u"Britney Spears  Sexy Booty",
-            u"age_limit": 18,
+        'url': 'http://xhamster.com/movies/2221348/britney_spears_sexy_booty.html?hd',
+        'file': '2221348.flv',
+        'md5': 'e767b9475de189320f691f49c679c4c7',
+        'info_dict': {
+            "upload_date": "20130914",
+            "uploader_id": "jojo747400",
+            "title": "Britney Spears  Sexy Booty",
+            "age_limit": 18,
         }
     }]
 
@@ -63,7 +65,7 @@ class XHamsterIE(InfoExtractor):
         webpage = self._download_webpage(mrss_url, video_id)
 
         video_title = self._html_search_regex(r'<title>(?P<title>.+?) - xHamster\.com</title>',
-            webpage, u'title')
+            webpage, 'title')
 
         # Only a few videos have an description
         mobj = re.search('<span>Description: </span>(?P<description>[^<]+)', webpage)
@@ -80,10 +82,10 @@ class XHamsterIE(InfoExtractor):
             self._downloader.report_warning(u'Unable to extract upload date')
 
         video_uploader_id = self._html_search_regex(r'<a href=\'/user/[^>]+>(?P<uploader_id>[^<]+)',
-            webpage, u'uploader id', default=u'anonymous')
+            webpage, 'uploader id', default=u'anonymous')
 
         video_thumbnail = self._search_regex(r'\'image\':\'(?P<thumbnail>[^\']+)\'',
-            webpage, u'thumbnail', fatal=False)
+            webpage, 'thumbnail', fatal=False)
 
         age_limit = self._rta_search(webpage)
 
@@ -99,12 +101,12 @@ class XHamsterIE(InfoExtractor):
 
         video_mp4_url = extract_mp4_video_url(webpage)
         if (not video_mp4_url is None) and (formats[0]['ext'] != 'mp4'):
-            formats.append( {
-            'url': video_mp4_url,
-            'ext': 'mp4',
-            'format': 'hd' if hd else 'sd',
-            'format_id': 'hd' if hd else 'sd',
-        })
+            formats.append({
+                'url': video_mp4_url,
+                'ext': 'mp4',
+                'format': 'hd' if hd else 'sd',
+                'format_id': 'hd' if hd else 'sd',
+            })
 
         if not hd:
             webpage = self._download_webpage(mrss_url+'?hd', video_id)
