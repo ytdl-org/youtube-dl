@@ -13,21 +13,31 @@ from ..utils import (
 class SinaIE(InfoExtractor):
     _VALID_URL = r'''https?://(.*?\.)?video\.sina\.com\.cn/
                         (
-                            (.+?/(((?P<pseudo_id>\d+).html)|(.*?(\#|(vid=))(?P<id>\d+?)($|&))))
+                            (.+?/(((?P<pseudo_id>\d+).html)|(.*?(\#|(vid=)|b/)(?P<id>\d+?)($|&|\-))))
                             |
                             # This is used by external sites like Weibo
                             (api/sinawebApi/outplay.php/(?P<token>.+?)\.swf)
                         )
                   '''
 
-    _TEST = {
-        'url': 'http://video.sina.com.cn/news/vlist/zt/chczlj2013/?opsubject_id=top12#110028898',
-        'file': '110028898.flv',
-        'md5': 'd65dd22ddcf44e38ce2bf58a10c3e71f',
-        'info_dict': {
-            'title': '《中国新闻》 朝鲜要求巴拿马立即释放被扣船员',
-        }
-    }
+    _TESTS = [
+        {
+            'url': 'http://video.sina.com.cn/news/vlist/zt/chczlj2013/?opsubject_id=top12#110028898',
+            'file': '110028898.flv',
+            'md5': 'd65dd22ddcf44e38ce2bf58a10c3e71f',
+            'info_dict': {
+                'title': '《中国新闻》 朝鲜要求巴拿马立即释放被扣船员',
+            }
+        },
+        {
+            'url': 'http://video.sina.com.cn/v/b/101314253-1290078633.html',
+            'info_dict': {
+                'id': '101314253',
+                'ext': 'flv',
+                'title': '军方提高对朝情报监视级别',
+            },
+        },
+    ]
 
     @classmethod
     def suitable(cls, url):
