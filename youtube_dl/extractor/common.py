@@ -66,6 +66,7 @@ class InfoExtractor(object):
                     * asr        Audio sampling rate in Hertz
                     * vbr        Average video bitrate in KBit/s
                     * vcodec     Name of the video codec in use
+                    * container  Name of the container format
                     * filesize   The number of bytes, if known in advance
                     * player_url SWF Player URL (used for rtmpdump).
                     * protocol   The protocol that will be used for the actual
