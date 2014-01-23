@@ -1290,7 +1290,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                     'url': video_real_url,
                     'player_url': player_url,
                 }
-                dct.update(self._formats[itag])
+                if itag in self._formats:
+                    dct.update(self._formats[itag])
                 formats.append(dct)
             return formats
 
