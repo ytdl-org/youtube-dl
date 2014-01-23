@@ -1,4 +1,5 @@
 # coding: utf-8
+from __future__ import unicode_literals
 
 import re
 
@@ -20,11 +21,11 @@ class SinaIE(InfoExtractor):
                   '''
 
     _TEST = {
-        u'url': u'http://video.sina.com.cn/news/vlist/zt/chczlj2013/?opsubject_id=top12#110028898',
-        u'file': u'110028898.flv',
-        u'md5': u'd65dd22ddcf44e38ce2bf58a10c3e71f',
-        u'info_dict': {
-            u'title': u'《中国新闻》 朝鲜要求巴拿马立即释放被扣船员',
+        'url': 'http://video.sina.com.cn/news/vlist/zt/chczlj2013/?opsubject_id=top12#110028898',
+        'file': '110028898.flv',
+        'md5': 'd65dd22ddcf44e38ce2bf58a10c3e71f',
+        'info_dict': {
+            'title': '《中国新闻》 朝鲜要求巴拿马立即释放被扣船员',
         }
     }
 
@@ -35,10 +36,10 @@ class SinaIE(InfoExtractor):
     def _extract_video(self, video_id):
         data = compat_urllib_parse.urlencode({'vid': video_id})
         url_doc = self._download_xml('http://v.iask.com/v_play.php?%s' % data,
-            video_id, u'Downloading video url')
+            video_id, 'Downloading video url')
         image_page = self._download_webpage(
             'http://interface.video.sina.com.cn/interface/common/getVideoImage.php?%s' % data,
-            video_id, u'Downloading thumbnail info')
+            video_id, 'Downloading thumbnail info')
 
         return {'id': video_id,
                 'url': url_doc.find('./durl/url').text,
@@ -52,7 +53,7 @@ class SinaIE(InfoExtractor):
         video_id = mobj.group('id')
         if mobj.group('token') is not None:
             # The video id is in the redirected url
-            self.to_screen(u'Getting video id')
+            self.to_screen('Getting video id')
             request = compat_urllib_request.Request(url)
             request.get_method = lambda: 'HEAD'
             (_, urlh) = self._download_webpage_handle(request, 'NA', False)
@@ -60,6 +61,6 @@ class SinaIE(InfoExtractor):
         elif video_id is None:
             pseudo_id = mobj.group('pseudo_id')
             webpage = self._download_webpage(url, pseudo_id)
-            video_id = self._search_regex(r'vid:\'(\d+?)\'', webpage, u'video id')
+            video_id = self._search_regex(r'vid:\'(\d+?)\'', webpage, 'video id')
 
         return self._extract_video(video_id)
