@@ -32,12 +32,11 @@ class CliphunterIE(InfoExtractor):
     _TESTS = [{
         u'url': u'http://www.cliphunter.com/w/1012420/Fun_Jynx_Maze_solo',
         u'file': u'1012420.flv',
-        u'md5': u'49f72e2fd2977e6e518be9836dcf861e',
+        u'md5': u'15e7740f30428abf70f4223478dc1225',
         u'info_dict': {
-            u"title": u"Fun Jynx Maze solo",
+            u'title': u'Fun Jynx Maze solo',
         }
-    },
-    ]
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -65,5 +64,4 @@ class CliphunterIE(InfoExtractor):
             'id': video_id,
             'title': video_title,
             'formats': formats,
-            'description': '',
         }
