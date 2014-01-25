@@ -8,6 +8,7 @@ from ..utils import (
     determine_ext,
 )
 
+
 def get_suitable_downloader(info_dict):
     """Get the downloader class that can handle the info dict."""
     url = info_dict['url']
@@ -20,4 +21,3 @@ def get_suitable_downloader(info_dict):
         return MplayerFD
     else:
         return HttpFD
-

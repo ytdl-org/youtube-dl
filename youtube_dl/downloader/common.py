@@ -314,4 +314,3 @@ class FileDownloader(object):
         if the download is successful.
         """
         self._progress_hooks.append(ph)
-
