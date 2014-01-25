@@ -291,7 +291,7 @@ class VimeoIE(InfoExtractor):
 
 class VimeoChannelIE(InfoExtractor):
     IE_NAME = 'vimeo:channel'
-    _VALID_URL = r'(?:https?://)?vimeo.\com/channels/(?P<id>[^/]+)'
+    _VALID_URL = r'(?:https?://)?vimeo\.com/channels/(?P<id>[^/]+)'
     _MORE_PAGES_INDICATOR = r'<a.+?rel="next"'
     _TITLE_RE = r'<link rel="alternate"[^>]+?title="(.*?)"'
 
@@ -327,7 +327,7 @@ class VimeoChannelIE(InfoExtractor):
 
 class VimeoUserIE(VimeoChannelIE):
     IE_NAME = 'vimeo:user'
-    _VALID_URL = r'(?:https?://)?vimeo.\com/(?P<name>[^/]+)(?:/videos|[#?]|$)'
+    _VALID_URL = r'(?:https?://)?vimeo\.com/(?P<name>[^/]+)(?:/videos|[#?]|$)'
     _TITLE_RE = r'<a[^>]+?class="user">([^<>]+?)</a>'
 
     @classmethod
@@ -344,7 +344,7 @@ class VimeoUserIE(VimeoChannelIE):
 
 class VimeoAlbumIE(VimeoChannelIE):
     IE_NAME = 'vimeo:album'
-    _VALID_URL = r'(?:https?://)?vimeo.\com/album/(?P<id>\d+)'
+    _VALID_URL = r'(?:https?://)?vimeo\.com/album/(?P<id>\d+)'
     _TITLE_RE = r'<header id="page_header">\n\s*<h1>(.*?)</h1>'
 
     def _page_url(self, base_url, pagenum):
@@ -358,7 +358,7 @@ class VimeoAlbumIE(VimeoChannelIE):
 
 class VimeoGroupsIE(VimeoAlbumIE):
     IE_NAME = 'vimeo:group'
-    _VALID_URL = r'(?:https?://)?vimeo.\com/groups/(?P<name>[^/]+)'
+    _VALID_URL = r'(?:https?://)?vimeo\.com/groups/(?P<name>[^/]+)'
 
     def _extract_list_title(self, webpage):
         return self._og_search_title(webpage)
@@ -372,7 +372,7 @@ class VimeoGroupsIE(VimeoAlbumIE):
 class VimeoReviewIE(InfoExtractor):
     IE_NAME = 'vimeo:review'
     IE_DESC = 'Review pages on vimeo'
-    _VALID_URL = r'(?:https?://)?vimeo.\com/[^/]+/review/(?P<id>[^/]+)'
+    _VALID_URL = r'(?:https?://)?vimeo\.com/[^/]+/review/(?P<id>[^/]+)'
     _TEST = {
         'url': 'https://vimeo.com/user21297594/review/75524534/3c257a1b5d',
         'file': '75524534.mp4',

@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class HotNewHipHopIE(InfoExtractor):
-    _VALID_URL = r'http://www\.hotnewhiphop.com/.*\.(?P<id>.*)\.html'
+    _VALID_URL = r'http://www\.hotnewhiphop\.com/.*\.(?P<id>.*)\.html'
     _TEST = {
         'url': 'http://www.hotnewhiphop.com/freddie-gibbs-lay-it-down-song.1435540.html',
         'file': '1435540.mp3',
