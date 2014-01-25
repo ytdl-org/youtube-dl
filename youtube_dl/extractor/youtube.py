@@ -111,7 +111,8 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'next_url': '/',
             'action_confirm': 'Confirm',
         }
-        req = compat_urllib_request.Request(self._AGE_URL, compat_urllib_parse.urlencode(age_form))
+        req = compat_urllib_request.Request(self._AGE_URL,
+            compat_urllib_parse.urlencode(age_form).encode('ascii'))
 
         self._download_webpage(
             req, None,
