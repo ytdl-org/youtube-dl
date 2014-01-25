@@ -1529,7 +1529,7 @@ class YoutubeTopListIE(YoutubePlaylistIE):
         channel = mobj.group('chann')
         title = mobj.group('title')
         query = compat_urllib_parse.urlencode({'title': title})
-        playlist_re = 'href="([^"]+?%s[^"]+?)"' % re.escape(query)
+        playlist_re = 'href="([^"]+?%s.*?)"' % re.escape(query)
         channel_page = self._download_webpage('https://www.youtube.com/%s' % channel, title)
         link = self._html_search_regex(playlist_re, channel_page, u'list')
         url = compat_urlparse.urljoin('https://www.youtube.com/', link)
