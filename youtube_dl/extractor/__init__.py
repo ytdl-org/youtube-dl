@@ -72,6 +72,7 @@ from .francetv import (
     CultureboxIE,
 )
 from .freesound import FreesoundIE
+from .freespeech import FreespeechIE
 from .funnyordie import FunnyOrDieIE
 from .gamekings import GamekingsIE
 from .gamespot import GameSpotIE
