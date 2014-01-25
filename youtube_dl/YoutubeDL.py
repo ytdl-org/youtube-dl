@@ -898,24 +898,38 @@ class YoutubeDL(object):
                     return
 
         if self.params.get('writethumbnail', False):
-            if info_dict.get('thumbnail') is not None:
-                thumb_format = determine_ext(info_dict['thumbnail'], 'jpg')
-                thumb_filename = os.path.splitext(filename)[0] + '.' + thumb_format
-                if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(thumb_filename)):
-                    self.to_screen('[%s] %s: Thumbnail is already present' %
-                                   (info_dict['extractor'], info_dict['id']))
+            thumblist = info_dict.get('thumbnail')
+            if thumblist is not None:
+                single_thumb = not type(thumblist) is list
+                if single_thumb:
+                    thumblist = [ thumblist ]
                 else:
-                    self.to_screen('[%s] %s: Downloading thumbnail ...' %
-                                   (info_dict['extractor'], info_dict['id']))
-                    try:
-                        uf = compat_urllib_request.urlopen(info_dict['thumbnail'])
-                        with open(thumb_filename, 'wb') as thumbf:
-                            shutil.copyfileobj(uf, thumbf)
-                        self.to_screen('[%s] %s: Writing thumbnail to: %s' %
-                            (info_dict['extractor'], info_dict['id'], thumb_filename))
-                    except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                        self.report_warning('Unable to download thumbnail "%s": %s' %
-                            (info_dict['thumbnail'], compat_str(err)))
+                    digitfmt = '_%%0%sd.' % (len(str(len(thumblist))))
+                count = 0
+
+                for fnm in thumblist:
+                    count += 1
+                    thumb_format = determine_ext(fnm, 'jpg')
+                    if single_thumb:
+                        thumb_filename = os.path.splitext(filename)[0] + '.' + thumb_format
+                    else:
+                        thumb_filename = os.path.splitext(filename)[0] + (digitfmt % count) + thumb_format
+
+                    if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(thumb_filename)):
+                        self.to_screen('[%s] %s: Thumbnail is already present' %
+                                       (info_dict['extractor'], info_dict['id']))
+                    else:
+                        self.to_screen('[%s] %s: Downloading thumbnail ...' %
+                                       (info_dict['extractor'], info_dict['id']))
+                        try:
+                            uf = compat_urllib_request.urlopen(fnm)
+                            with open(thumb_filename, 'wb') as thumbf:
+                                shutil.copyfileobj(uf, thumbf)
+                            self.to_screen('[%s] %s: Writing thumbnail to: %s' %
+                                (info_dict['extractor'], info_dict['id'], thumb_filename))
+                        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+                            self.report_warning('Unable to download thumbnail "%s": %s' %
+                                (fnm, compat_str(err)))
 
         if not self.params.get('skip_download', False):
             if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(filename)):
