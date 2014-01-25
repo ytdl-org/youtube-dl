@@ -120,7 +120,7 @@ class TestYoutubeLists(unittest.TestCase):
     def test_youtube_toplist(self):
         dl = FakeYDL()
         ie = YoutubeTopListIE(dl)
-        result = ie.extract('yttoplist:music:Top Tracks')
+        result = ie.extract('yttoplist:music:Trending')
         entries = result['entries']
         self.assertTrue(len(entries) >= 5)
 
