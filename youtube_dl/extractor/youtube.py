@@ -40,7 +40,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     """Provide base functions for Youtube extractors"""
     _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
     _LANG_URL = r'https://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
-    _AGE_URL = 'http://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
+    _AGE_URL = 'https://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
     _NETRC_MACHINE = 'youtube'
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = False
@@ -1014,7 +1014,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     def _get_available_subtitles(self, video_id, webpage):
         try:
             sub_list = self._download_webpage(
-                'http://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id,
+                'https://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id,
                 video_id, note=False)
         except ExtractorError as err:
             self._downloader.report_warning(u'unable to download video subtitles: %s' % compat_str(err))
@@ -1030,7 +1030,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'fmt': self._downloader.params.get('subtitlesformat', 'srt'),
                 'name': unescapeHTML(l[0]).encode('utf-8'),
             })
-            url = u'http://www.youtube.com/api/timedtext?' + params
+            url = u'https://www.youtube.com/api/timedtext?' + params
             sub_lang_list[lang] = url
         if not sub_lang_list:
             self._downloader.report_warning(u'video doesn\'t have subtitles')
@@ -1554,7 +1554,7 @@ class YoutubeChannelIE(InfoExtractor):
     IE_DESC = u'YouTube.com channels'
     _VALID_URL = r"^(?:https?://)?(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com)/channel/([0-9A-Za-z_-]+)"
     _MORE_PAGES_INDICATOR = 'yt-uix-load-more'
-    _MORE_PAGES_URL = 'http://www.youtube.com/c4_browse_ajax?action_load_more_videos=1&flow=list&paging=%s&view=0&sort=da&channel_id=%s'
+    _MORE_PAGES_URL = 'https://www.youtube.com/c4_browse_ajax?action_load_more_videos=1&flow=list&paging=%s&view=0&sort=da&channel_id=%s'
     IE_NAME = u'youtube:channel'
 
     def extract_videos_from_page(self, page):
@@ -1610,9 +1610,9 @@ class YoutubeChannelIE(InfoExtractor):
 class YoutubeUserIE(InfoExtractor):
     IE_DESC = u'YouTube.com user videos (URL or "ytuser" keyword)'
     _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?youtube\.com/(?:user/)?(?!(?:attribution_link|watch)(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)([A-Za-z0-9_-]+)'
-    _TEMPLATE_URL = 'http://gdata.youtube.com/feeds/api/users/%s'
+    _TEMPLATE_URL = 'https://gdata.youtube.com/feeds/api/users/%s'
     _GDATA_PAGE_SIZE = 50
-    _GDATA_URL = 'http://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d&alt=json'
+    _GDATA_URL = 'https://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d&alt=json'
     IE_NAME = u'youtube:user'
 
     @classmethod
@@ -1743,7 +1743,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
         action = 'action_load_system_feed'
         if self._PERSONAL_FEED:
             action = 'action_load_personal_feed'
-        return 'http://www.youtube.com/feed_ajax?%s=1&feed_name=%s&paging=%%s' % (action, self._FEED_NAME)
+        return 'https://www.youtube.com/feed_ajax?%s=1&feed_name=%s&paging=%%s' % (action, self._FEED_NAME)
 
     @property
     def IE_NAME(self):
