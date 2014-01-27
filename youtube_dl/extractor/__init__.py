@@ -115,6 +115,7 @@ from .lynda import (
     LyndaCourseIE
 )
 from .macgamestore import MacGameStoreIE
+from .malemotion import MalemotionIE
 from .mdr import MDRIE
 from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
