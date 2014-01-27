@@ -38,8 +38,15 @@ class ARDIE(InfoExtractor):
             raise ExtractorError(u'This video is only available after 8:00 pm')
 
         # choose default media type and highest quality for now
-        stream = max([s for s in streams if int(s["media_type"]) == 0],
-                     key=lambda s: int(s["quality"]))
+        filtered_streams = []
+        for stream in streams:
+            if int(stream["media_type"]) != 0:
+                continue
+            if stream["video_url"].endswith("f4m"):
+                continue
+            filtered_streams.append(stream)
+
+        stream = max(filtered_streams, key=lambda s: int(s["quality"]))
 
         # there's two possibilities: RTMP stream or HTTP download
         info = {'id': video_id, 'title': title, 'ext': 'mp4'}
