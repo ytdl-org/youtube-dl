@@ -40,6 +40,7 @@ __authors__  = (
     'Michael Orlitzky',
     'Chris Gahan',
     'Saimadhav Heblikar',
+    'Mike Col',
 )
 
 __license__ = 'Public Domain'
