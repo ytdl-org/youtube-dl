@@ -10,7 +10,13 @@ from ..utils import (
 
 class LA7IE(InfoExtractor):
     IE_NAME = 'la7.tv'
-    _VALID_URL = r'https?://(?:www\.)?la7\.tv/richplayer/\?assetid=(?P<id>[0-9]+)'
+    _VALID_URL = r'''(?x)
+        https?://(?:www\.)?la7\.tv/
+        (?:
+            richplayer/\?assetid=|
+            \?contentId=
+        )
+        (?P<id>[0-9]+)'''
 
     _TEST = {
         'url': 'http://www.la7.tv/richplayer/?assetid=50355319',
