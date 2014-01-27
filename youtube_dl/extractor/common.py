@@ -466,6 +466,9 @@ class InfoExtractor(object):
         return RATING_TABLE.get(rating.lower(), None)
 
     def _sort_formats(self, formats):
+        if not formats:
+            raise ExtractorError(u'No video formats found')
+
         def _formats_key(f):
             # TODO remove the following workaround
             from ..utils import determine_ext
