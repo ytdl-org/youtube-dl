@@ -1,9 +1,10 @@
+from __future__ import unicode_literals
+
 import re
 import string
 
 from .common import InfoExtractor
 from ..utils import (
-    determine_ext,
     ExtractorError,
 )
 
@@ -23,39 +24,34 @@ translation_table = (
 
 
 class CliphunterIE(InfoExtractor):
-    """Information Extractor for Cliphunter"""
-    IE_NAME = u'cliphunter'
+    IE_NAME = 'cliphunter'
 
     _VALID_URL = (r'(?:http://)?(?:www\.)?cliphunter\.com/w/'
                   '(?P<id>[0-9]+)/'
                   '(?P<seo>.+?)(?:\?.*)?')
-    _TESTS = [{
-        u'url': u'http://www.cliphunter.com/w/1012420/Fun_Jynx_Maze_solo',
-        u'file': u'1012420.flv',
-        u'md5': u'15e7740f30428abf70f4223478dc1225',
-        u'info_dict': {
-            u'title': u'Fun Jynx Maze solo',
+    _TESTS = {
+        'url': 'http://www.cliphunter.com/w/1012420/Fun_Jynx_Maze_solo',
+        'file': '1012420.flv',
+        'md5': '15e7740f30428abf70f4223478dc1225',
+        'info_dict': {
+            'title': 'Fun Jynx Maze solo',
         }
-    }]
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError(u'Unable to extract media URL')
-
         video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id)
 
-        pl_fiji = re.search(r'pl_fiji = \'([^\']+)\'', webpage).group(1)
-        pl_c_qual = re.search(r'pl_c_qual = "(.)"', webpage).group(1)
-        video_title = re.search(r'mediaTitle = "([^"]+)"', webpage).group(1)
+        pl_fiji = self._search_regex(r'pl_fiji = \'([^\']+)\'', webpage, 'video data')
+        pl_c_qual = self._search_regex(r'pl_c_qual = "(.)"', webpage, 'video quality')
+        video_title = self._search_regex(r'mediaTitle = "([^"]+)"', webpage, 'title')
 
         video_url = string.translate(pl_fiji.encode(), translation_table)
 
         formats = [{
             'url': video_url,
-            'ext': determine_ext(video_url),
             'format': pl_c_qual,
             'format_id': pl_c_qual,
         }]
