@@ -3,7 +3,9 @@
 
 from __future__ import print_function
 
+import os.path
 import pkg_resources
+import warnings
 import sys
 
 try:
@@ -44,12 +46,24 @@ py2exe_params = {
 if len(sys.argv) >= 2 and sys.argv[1] == 'py2exe':
     params = py2exe_params
 else:
+    files_spec = [
+        ('etc/bash_completion.d', ['youtube-dl.bash-completion']),
+        ('share/doc/youtube_dl', ['README.txt']),
+        ('share/man/man1', ['youtube-dl.1'])
+    ]
+    root = os.path.dirname(os.path.abspath(__file__))
+    data_files = []
+    for dirname, files in files_spec:
+        resfiles = []
+        for fn in files:
+            if not os.path.exists(fn):
+                warnings.warn('Skipping file %s since it is not present. Type  make  to build all automatically generated files.' % fn)
+            else:
+                resfiles.append(fn)
+        data_files.append((dirname, resfiles))
+
     params = {
-        'data_files': [  # Installing system-wide would require sudo...
-            ('etc/bash_completion.d', ['youtube-dl.bash-completion']),
-            ('share/doc/youtube_dl', ['README.txt']),
-            ('share/man/man1', ['youtube-dl.1'])
-        ]
+        'data_files': data_files,
     }
     if setuptools_available:
         params['entry_points'] = {'console_scripts': ['youtube-dl = youtube_dl:main']}
