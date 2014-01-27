@@ -26,7 +26,8 @@ class LA7IE(InfoExtractor):
             'title': 'IL DIVO',
             'description': 'Un film di Paolo Sorrentino con Toni Servillo, Anna Bonaiuto, Giulio Bosetti  e Flavio Bucci',
             'duration': 6254,
-        }
+        },
+        'skip': 'Blocked in the US',
     }
 
     def _real_extract(self, url):
