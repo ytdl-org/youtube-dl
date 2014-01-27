@@ -48,6 +48,7 @@ from .depositfiles import DepositFilesIE
 from .dotsub import DotsubIE
 from .dreisat import DreiSatIE
 from .defense import DefenseGouvFrIE
+from .discovery import DiscoveryIE
 from .dropbox import DropboxIE
 from .ebaumsworld import EbaumsWorldIE
 from .ehow import EHowIE
