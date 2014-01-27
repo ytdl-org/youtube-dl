@@ -34,9 +34,11 @@ class TumblrIE(InfoExtractor):
         video_url = video.group('video_url')
         ext = video.group('ext')
 
-        video_thumbnail = self._search_regex(r'posters(.*?)\[\\x22(?P<thumb>.*?)\\x22',
+        video_thumbnail = self._search_regex(
+            r'posters.*?\[\\x22(.*?)\\x22',
             webpage, 'thumbnail', fatal=False)  # We pick the first poster
-        if video_thumbnail: video_thumbnail = video_thumbnail.replace('\\', '')
+        if video_thumbnail:
+            video_thumbnail = video_thumbnail.replace('\\\\/', '/')
 
         # The only place where you can get a title, it's not complete,
         # but searching in other places doesn't work for all videos
