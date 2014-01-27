@@ -83,6 +83,7 @@ from .googlesearch import GoogleSearchIE
 from .hark import HarkIE
 from .hotnewhiphop import HotNewHipHopIE
 from .howcast import HowcastIE
+from .huffpost import HuffPostIE
 from .hypem import HypemIE
 from .ign import IGNIE, OneUPIE
 from .imdb import (

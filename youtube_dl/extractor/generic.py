@@ -332,9 +332,15 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded Facebook player
         mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https://www.facebook.com/video/embed.+?)\1', webpage)
+            r'<iframe[^>]+?src=(["\'])(?P<url>https://www\.facebook\.com/video/embed.+?)\1', webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'Facebook')
+
+        # Look for embedded Huffington Post player
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>https?://embed\.live.huffingtonpost\.com/.+?)\1', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'HuffPost')
 
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
