@@ -161,7 +161,11 @@ from .ro220 import Ro220IE
 from .rottentomatoes import RottenTomatoesIE
 from .roxwel import RoxwelIE
 from .rtlnow import RTLnowIE
-from .rutube import RutubeIE
+from .rutube import (
+    RutubeIE,
+    RutubeChannelIE,
+    RutubeMovieIE
+)
 from .servingsys import ServingSysIE
 from .sina import SinaIE
 from .slashdot import SlashdotIE
