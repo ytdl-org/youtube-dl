@@ -219,7 +219,6 @@ from .vine import VineIE
 from .viki import VikiIE
 from .vk import VKIE
 from .wat import WatIE
-from .websurg import WeBSurgIE
 from .weibo import WeiboIE
 from .wimp import WimpIE
 from .wistia import WistiaIE
