@@ -27,6 +27,7 @@ from .cbs import CBSIE
 from .channel9 import Channel9IE
 from .cinemassacre import CinemassacreIE
 from .clipfish import ClipfishIE
+from .cliphunter import CliphunterIE
 from .clipsyndicate import ClipsyndicateIE
 from .cmt import CMTIE
 from .cnn import CNNIE
