@@ -1,4 +1,4 @@
-# encoding: utf-8
+from __future__ import unicode_literals
 
 import re
 
@@ -11,38 +11,38 @@ class Channel9IE(InfoExtractor):
 
     The type of provided URL (video or playlist) is determined according to
     meta Search.PageType from web page HTML rather than URL itself, as it is
-    not always possible to do.    
+    not always possible to do.
     '''
-    IE_DESC = u'Channel 9'
-    IE_NAME = u'channel9'
+    IE_DESC = 'Channel 9'
+    IE_NAME = 'channel9'
     _VALID_URL = r'^https?://(?:www\.)?channel9\.msdn\.com/(?P<contentpath>.+)/?'
 
     _TESTS = [
         {
-            u'url': u'http://channel9.msdn.com/Events/TechEd/Australia/2013/KOS002',
-            u'file': u'Events_TechEd_Australia_2013_KOS002.mp4',
-            u'md5': u'bbd75296ba47916b754e73c3a4bbdf10',
-            u'info_dict': {
-                u'title': u'Developer Kick-Off Session: Stuff We Love',
-                u'description': u'md5:c08d72240b7c87fcecafe2692f80e35f',
-                u'duration': 4576,
-                u'thumbnail': u'http://media.ch9.ms/ch9/9d51/03902f2d-fc97-4d3c-b195-0bfe15a19d51/KOS002_220.jpg',
-                u'session_code': u'KOS002',
-                u'session_day': u'Day 1',
-                u'session_room': u'Arena 1A',
-                u'session_speakers': [ u'Ed Blankenship', u'Andrew Coates', u'Brady Gaster', u'Patrick Klug', u'Mads Kristensen' ],
+            'url': 'http://channel9.msdn.com/Events/TechEd/Australia/2013/KOS002',
+            'file': 'Events_TechEd_Australia_2013_KOS002.mp4',
+            'md5': 'bbd75296ba47916b754e73c3a4bbdf10',
+            'info_dict': {
+                'title': 'Developer Kick-Off Session: Stuff We Love',
+                'description': 'md5:c08d72240b7c87fcecafe2692f80e35f',
+                'duration': 4576,
+                'thumbnail': 'http://media.ch9.ms/ch9/9d51/03902f2d-fc97-4d3c-b195-0bfe15a19d51/KOS002_220.jpg',
+                'session_code': 'KOS002',
+                'session_day': 'Day 1',
+                'session_room': 'Arena 1A',
+                'session_speakers': [ 'Ed Blankenship', 'Andrew Coates', 'Brady Gaster', 'Patrick Klug', 'Mads Kristensen' ],
             },
         },
         {
-            u'url': u'http://channel9.msdn.com/posts/Self-service-BI-with-Power-BI-nuclear-testing',
-            u'file': u'posts_Self-service-BI-with-Power-BI-nuclear-testing.mp4',
-            u'md5': u'b43ee4529d111bc37ba7ee4f34813e68',
-            u'info_dict': {
-                u'title': u'Self-service BI with Power BI - nuclear testing',
-                u'description': u'md5:d1e6ecaafa7fb52a2cacdf9599829f5b',
-                u'duration': 1540,
-                u'thumbnail': u'http://media.ch9.ms/ch9/87e1/0300391f-a455-4c72-bec3-4422f19287e1/selfservicenuk_512.jpg',
-                u'authors': [ u'Mike Wilmot' ],
+            'url': 'http://channel9.msdn.com/posts/Self-service-BI-with-Power-BI-nuclear-testing',
+            'file': 'posts_Self-service-BI-with-Power-BI-nuclear-testing.mp4',
+            'md5': 'b43ee4529d111bc37ba7ee4f34813e68',
+            'info_dict': {
+                'title': 'Self-service BI with Power BI - nuclear testing',
+                'description': 'md5:d1e6ecaafa7fb52a2cacdf9599829f5b',
+                'duration': 1540,
+                'thumbnail': 'http://media.ch9.ms/ch9/87e1/0300391f-a455-4c72-bec3-4422f19287e1/selfservicenuk_512.jpg',
+                'authors': [ 'Mike Wilmot' ],
             },
         }
     ]
@@ -60,7 +60,7 @@ class Channel9IE(InfoExtractor):
             return 0
         units = m.group('units')
         try:
-            exponent = [u'B', u'KB', u'MB', u'GB', u'TB', u'PB', u'EB', u'ZB', u'YB'].index(units.upper())
+            exponent = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'].index(units.upper())
         except ValueError:
             return 0
         size = float(m.group('size'))
@@ -80,7 +80,7 @@ class Channel9IE(InfoExtractor):
             'url': x.group('url'),
             'format_id': x.group('quality'),
             'format_note': x.group('note'),
-            'format': u'%s (%s)' % (x.group('quality'), x.group('note')),
+            'format': '%s (%s)' % (x.group('quality'), x.group('note')),
             'filesize': self._restore_bytes(x.group('filesize')), # File size is approximate
             'preference': self._known_formats.index(x.group('quality')),
             'vcodec': 'none' if x.group('note') == 'Audio only' else None,
@@ -91,10 +91,10 @@ class Channel9IE(InfoExtractor):
         return formats
 
     def _extract_title(self, html):
-        title = self._html_search_meta(u'title', html, u'title')
+        title = self._html_search_meta('title', html, 'title')
         if title is None:           
             title = self._og_search_title(html)
-            TITLE_SUFFIX = u' (Channel 9)'
+            TITLE_SUFFIX = ' (Channel 9)'
             if title is not None and title.endswith(TITLE_SUFFIX):
                 title = title[:-len(TITLE_SUFFIX)]
         return title
@@ -110,7 +110,7 @@ class Channel9IE(InfoExtractor):
         m = re.search(DESCRIPTION_REGEX, html)
         if m is not None:
             return m.group('description')
-        return self._html_search_meta(u'description', html, u'description')
+        return self._html_search_meta('description', html, 'description')
 
     def _extract_duration(self, html):
         m = re.search(r'data-video_duration="(?P<hours>\d{2}):(?P<minutes>\d{2}):(?P<seconds>\d{2})"', html)
@@ -172,7 +172,7 @@ class Channel9IE(InfoExtractor):
 
         # Nothing to download
         if len(formats) == 0 and slides is None and zip_ is None:
-            self._downloader.report_warning(u'None of recording, slides or zip are available for %s' % content_path)
+            self._downloader.report_warning('None of recording, slides or zip are available for %s' % content_path)
             return
 
         # Extract meta
@@ -244,7 +244,7 @@ class Channel9IE(InfoExtractor):
         return contents
 
     def _extract_list(self, content_path):
-        rss = self._download_xml(self._RSS_URL % content_path, content_path, u'Downloading RSS')
+        rss = self._download_xml(self._RSS_URL % content_path, content_path, 'Downloading RSS')
         entries = [self.url_result(session_url.text, 'Channel9')
                    for session_url in rss.findall('./channel/item/link')]
         title_text = rss.find('./channel/title').text
@@ -254,11 +254,11 @@ class Channel9IE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         content_path = mobj.group('contentpath')
 
-        webpage = self._download_webpage(url, content_path, u'Downloading web page')
+        webpage = self._download_webpage(url, content_path, 'Downloading web page')
 
         page_type_m = re.search(r'<meta name="Search.PageType" content="(?P<pagetype>[^"]+)"/>', webpage)
         if page_type_m is None:
-            raise ExtractorError(u'Search.PageType not found, don\'t know how to process this page', expected=True)
+            raise ExtractorError('Search.PageType not found, don\'t know how to process this page', expected=True)
 
         page_type = page_type_m.group('pagetype')
         if page_type == 'List':         # List page, may contain list of 'item'-like objects
@@ -268,4 +268,4 @@ class Channel9IE(InfoExtractor):
         elif page_type == 'Session':    # Event session page, may contain downloadable content
             return self._extract_session(webpage, content_path)
         else:
-            raise ExtractorError(u'Unexpected Search.PageType %s' % page_type, expected=True)
+            raise ExtractorError('Unexpected Search.PageType %s' % page_type, expected=True)
