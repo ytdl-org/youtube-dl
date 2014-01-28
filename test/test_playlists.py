@@ -33,6 +33,7 @@ from youtube_dl.extractor import (
     ImdbListIE,
     KhanAcademyIE,
     EveryonesMixtapeIE,
+    RutubeChannelIE,
 )
 
 
@@ -219,6 +220,14 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['id'], 'm7m0jJAbMQi')
         self.assertEqual(result['title'], 'Driving')
         self.assertEqual(len(result['entries']), 24)
+        
+    def test_rutube_channel(self):
+        dl = FakeYDL()
+        ie = RutubeChannelIE(dl)
+        result = ie.extract('http://rutube.ru/tags/video/1409')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], '1409')
+        self.assertTrue(len(result['entries']) >= 34)
 
 
 if __name__ == '__main__':
