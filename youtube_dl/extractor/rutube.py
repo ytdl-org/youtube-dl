@@ -7,8 +7,8 @@ import itertools
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_urlparse,
     compat_str,
+    unified_strdate,
     ExtractorError,
 )
 
@@ -32,20 +32,18 @@ class RutubeIE(InfoExtractor):
         },
     }
 
-    def _get_api_response(self, short_id, subpath):
-        api_url = 'http://rutube.ru/api/play/%s/%s/?format=json' % (subpath, short_id)
-        response_json = self._download_webpage(api_url, short_id,
-            'Downloading %s json' % subpath)
-        return json.loads(response_json)
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         long_id = mobj.group('long_id')
-        webpage = self._download_webpage(url, long_id)
-        og_video = self._og_search_video_url(webpage)
-        short_id = compat_urlparse.urlparse(og_video).path[1:]
-        options = self._get_api_response(short_id, 'options')
-        trackinfo = self._get_api_response(short_id, 'trackinfo')
+        
+        api_response = self._download_webpage('http://rutube.ru/api/video/%s/?format=json' % long_id,
+                                              long_id, 'Downloading video JSON')
+        video = json.loads(api_response)
+        
+        api_response = self._download_webpage('http://rutube.ru/api/play/trackinfo/%s/?format=json' % long_id,
+                                              long_id, 'Downloading trackinfo JSON')
+        trackinfo = json.loads(api_response)
+        
         # Some videos don't have the author field
         author = trackinfo.get('author') or {}
         m3u8_url = trackinfo['video_balancer'].get('m3u8')
@@ -53,13 +51,18 @@ class RutubeIE(InfoExtractor):
             raise ExtractorError('Couldn\'t find m3u8 manifest url')
 
         return {
-            'id': trackinfo['id'],
-            'title': trackinfo['title'],
+            'id': video['id'],
+            'title': video['title'],
+            'description': video['description'],
+            'duration': video['duration'],
+            'view_count': video['hits'],
             'url': m3u8_url,
             'ext': 'mp4',
-            'thumbnail': options['thumbnail_url'],
+            'thumbnail': video['thumbnail_url'],
             'uploader': author.get('name'),
             'uploader_id': compat_str(author['id']) if author else None,
+            'upload_date': unified_strdate(video['created_ts']),
+            'age_limit': 18 if video['is_adult'] else 0,
         }
 
 
@@ -73,15 +76,13 @@ class RutubeChannelIE(InfoExtractor):
     def _extract_videos(self, channel_id, channel_title=None):
         entries = []
         for pagenum in itertools.count(1):
-            response_json = self._download_webpage(self._PAGE_TEMPLATE % (channel_id, pagenum),
+            api_response = self._download_webpage(self._PAGE_TEMPLATE % (channel_id, pagenum),
                                                    channel_id, 'Downloading page %s' % pagenum)
-            page = json.loads(response_json)
-            if 'detail' in page and page['detail'] == 'Not found':
-                raise ExtractorError('Channel %s does not exist' % channel_id, expected=True)
+            page = json.loads(api_response)
             results = page['results']
             if len(results) == 0:
                 break;
-            entries.extend(self.url_result(v['video_url'], 'Rutube') for v in results)
+            entries.extend(self.url_result(result['video_url'], 'Rutube') for result in results)
             if page['has_next'] is False:
                 break;
         return self.playlist_result(entries, channel_id, channel_title)
@@ -103,10 +104,8 @@ class RutubeMovieIE(RutubeChannelIE):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         movie_id = mobj.group('id')
-        movie_json = self._download_webpage(self._MOVIE_TEMPLATE % movie_id, movie_id,
+        api_response = self._download_webpage(self._MOVIE_TEMPLATE % movie_id, movie_id,
                                             'Downloading movie JSON')
-        movie = json.loads(movie_json)
-        if 'detail' in movie and movie['detail'] == 'Not found':
-            raise ExtractorError('Movie %s does not exist' % movie_id, expected=True)
+        movie = json.loads(api_response)
         movie_name = movie['name']
         return self._extract_videos(movie_id, movie_name)
