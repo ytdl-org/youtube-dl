@@ -23,8 +23,11 @@ class RutubeIE(InfoExtractor):
         'file': '3eac3b4561676c17df9132a9a1e62e3e.mp4',
         'info_dict': {
             'title': 'Раненный кенгуру забежал в аптеку',
+            'description': 'http://www.ntdtv.ru ',
+            'duration': 80,
             'uploader': 'NTDRussian',
             'uploader_id': '29790',
+            'upload_date': '20131016',
         },
         'params': {
             # It requires ffmpeg (m3u8 download)
