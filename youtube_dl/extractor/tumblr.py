@@ -41,7 +41,7 @@ class TumblrIE(InfoExtractor):
             for t in ma.group('thumb').replace(r'\\/', '/').split(','):
                 t = t.replace(r'\x22','"')
                 if (t[0] == '"') and (t[-1] == '"'):
-                    thumb_list.append(t[1:-1])
+                    thumb_list.append( {"url": t[1:-1]} )
 
         # The only place where you can get a title, it's not complete,
         # but searching in other places doesn't work for all videos
