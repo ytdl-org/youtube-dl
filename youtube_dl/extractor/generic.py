@@ -78,6 +78,18 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        {
+            # https://github.com/rg3/youtube-dl/issues/2253
+            'url': 'http://bcove.me/i6nfkrc3',
+            'file': '3101154703001.mp4',
+            'md5': '0ba9446db037002366bab3b3eb30c88c',
+            'info_dict': {
+                'title': 'Still no power',
+                'uploader': 'thestar.com',
+                'description': 'Mississauga resident David Farmer is still out of power as a result of the ice storm a month ago. To keep the house warm, Farmer cuts wood from his property for a wood burning stove downstairs.',
+            },
+            'add_ie': ['Brightcove'],
+        },
         # Direct link to a video
         {
             'url': 'http://media.w3.org/2010/05/sintel/trailer.mp4',

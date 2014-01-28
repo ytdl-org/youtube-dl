@@ -69,17 +69,6 @@ class BrightcoveIE(InfoExtractor):
                 'description': 'md5:363109c02998fee92ec02211bd8000df',
                 'uploader': 'National Ballet of Canada',
             },
-        },
-        {
-            # https://github.com/rg3/youtube-dl/issues/2253
-            'url': 'http://v.thestar.com/services/player/bcpid2071349530001?bckey=AQ~~,AAAAuO4KaJE~,gatFNwSKdGDmDpIYqNJ-fTHn_c4z_LH_&bctid=3101154703001',
-            'file': '3101154703001.mp4',
-            'md5': '0ba9446db037002366bab3b3eb30c88c',
-            'info_dict': {
-                'title': 'Still no power',
-                'uploader': 'thestar.com',
-                'description': 'Mississauga resident David Farmer is still out of power as a result of the ice storm a month ago. To keep the house warm, Farmer cuts wood from his property for a wood burning stove downstairs.',
-            }
         }
     ]
 
