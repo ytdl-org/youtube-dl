@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class TumblrIE(InfoExtractor):
-    _VALID_URL = r'http://(?P<blog_name>.*?)\.tumblr\.com/((post)|(video))/(?P<id>\d*)/(.*?)'
+    _VALID_URL = r'http://(?P<blog_name>.*?)\.tumblr\.com/((post)|(video))/(?P<id>\d*)($|/)'
     _TEST = {
         'url': 'http://tatianamaslanydaily.tumblr.com/post/54196191430/orphan-black-dvd-extra-behind-the-scenes',
         'file': '54196191430.mp4',
