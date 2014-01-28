@@ -15,7 +15,7 @@ from ..utils import (
 
 class RutubeIE(InfoExtractor):
     IE_NAME = 'rutube'
-    IE_DESC = 'Rutube videos'    
+    IE_DESC = 'Rutube videos'
     _VALID_URL = r'https?://rutube\.ru/video/(?P<id>[\da-z]{32})'
 
     _TEST = {
@@ -68,7 +68,7 @@ class RutubeIE(InfoExtractor):
 
 class RutubeChannelIE(InfoExtractor):
     IE_NAME = 'rutube:channel'
-    IE_DESC = 'Rutube channels'    
+    IE_DESC = 'Rutube channels'
     _VALID_URL = r'http://rutube\.ru/tags/video/(?P<id>\d+)'
 
     _PAGE_TEMPLATE = 'http://rutube.ru/api/tags/video/%s/?page=%s&format=json'
@@ -76,15 +76,16 @@ class RutubeChannelIE(InfoExtractor):
     def _extract_videos(self, channel_id, channel_title=None):
         entries = []
         for pagenum in itertools.count(1):
-            api_response = self._download_webpage(self._PAGE_TEMPLATE % (channel_id, pagenum),
-                                                   channel_id, 'Downloading page %s' % pagenum)
+            api_response = self._download_webpage(
+                self._PAGE_TEMPLATE % (channel_id, pagenum),
+                channel_id, 'Downloading page %s' % pagenum)
             page = json.loads(api_response)
             results = page['results']
-            if len(results) == 0:
-                break;
+            if not results:
+                break
             entries.extend(self.url_result(result['video_url'], 'Rutube') for result in results)
-            if page['has_next'] is False:
-                break;
+            if not page['has_next']:
+                break
         return self.playlist_result(entries, channel_id, channel_title)
 
     def _real_extract(self, url):
@@ -95,7 +96,7 @@ class RutubeChannelIE(InfoExtractor):
 
 class RutubeMovieIE(RutubeChannelIE):
     IE_NAME = 'rutube:movie'
-    IE_DESC = 'Rutube movies'    
+    IE_DESC = 'Rutube movies'
     _VALID_URL = r'http://rutube\.ru/metainfo/tv/(?P<id>\d+)'
 
     _MOVIE_TEMPLATE = 'http://rutube.ru/api/metainfo/tv/%s/?format=json'
@@ -104,8 +105,9 @@ class RutubeMovieIE(RutubeChannelIE):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         movie_id = mobj.group('id')
-        api_response = self._download_webpage(self._MOVIE_TEMPLATE % movie_id, movie_id,
-                                            'Downloading movie JSON')
+        api_response = self._download_webpage(
+            self._MOVIE_TEMPLATE % movie_id, movie_id,
+            'Downloading movie JSON')
         movie = json.loads(api_response)
         movie_name = movie['name']
         return self._extract_videos(movie_id, movie_name)
