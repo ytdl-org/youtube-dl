@@ -195,11 +195,11 @@ class TestPlaylists(unittest.TestCase):
     def test_imdb_list(self):
         dl = FakeYDL()
         ie = ImdbListIE(dl)
-        result = ie.extract('http://www.imdb.com/list/sMjedvGDd8U')
+        result = ie.extract('http://www.imdb.com/list/JFs9NWw6XI0')
         self.assertIsPlaylist(result)
-        self.assertEqual(result['id'], 'sMjedvGDd8U')
-        self.assertEqual(result['title'], 'Animated and Family Films')
-        self.assertTrue(len(result['entries']) >= 48)
+        self.assertEqual(result['id'], 'JFs9NWw6XI0')
+        self.assertEqual(result['title'], 'March 23, 2012 Releases')
+        self.assertEqual(len(result['entries']), 7)
 
     def test_khanacademy_topic(self):
         dl = FakeYDL()
