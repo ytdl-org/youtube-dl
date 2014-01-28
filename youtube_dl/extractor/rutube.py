@@ -16,7 +16,7 @@ from ..utils import (
 class RutubeIE(InfoExtractor):
     IE_NAME = 'rutube'
     IE_DESC = 'Rutube videos'    
-    _VALID_URL = r'https?://rutube\.ru/video/(?P<long_id>\w+)'
+    _VALID_URL = r'https?://rutube\.ru/video/(?P<id>[\da-z]{32})'
 
     _TEST = {
         'url': 'http://rutube.ru/video/3eac3b4561676c17df9132a9a1e62e3e/',
@@ -34,14 +34,14 @@ class RutubeIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        long_id = mobj.group('long_id')
+        video_id = mobj.group('id')
         
-        api_response = self._download_webpage('http://rutube.ru/api/video/%s/?format=json' % long_id,
-                                              long_id, 'Downloading video JSON')
+        api_response = self._download_webpage('http://rutube.ru/api/video/%s/?format=json' % video_id,
+                                              video_id, 'Downloading video JSON')
         video = json.loads(api_response)
         
-        api_response = self._download_webpage('http://rutube.ru/api/play/trackinfo/%s/?format=json' % long_id,
-                                              long_id, 'Downloading trackinfo JSON')
+        api_response = self._download_webpage('http://rutube.ru/api/play/trackinfo/%s/?format=json' % video_id,
+                                              video_id, 'Downloading trackinfo JSON')
         trackinfo = json.loads(api_response)
         
         # Some videos don't have the author field
@@ -109,3 +109,11 @@ class RutubeMovieIE(RutubeChannelIE):
         movie = json.loads(api_response)
         movie_name = movie['name']
         return self._extract_videos(movie_id, movie_name)
+
+
+class RutubePersonIE(RutubeChannelIE):
+    IE_NAME = 'rutube:person'
+    IE_DESC = 'Rutube person videos'
+    _VALID_URL = r'http://rutube\.ru/video/person/(?P<id>\d+)'
+
+    _PAGE_TEMPLATE = 'http://rutube.ru/api/video/person/%s/?page=%s&format=json'

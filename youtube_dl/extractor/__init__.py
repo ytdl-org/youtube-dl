@@ -164,7 +164,8 @@ from .rtlnow import RTLnowIE
 from .rutube import (
     RutubeIE,
     RutubeChannelIE,
-    RutubeMovieIE
+    RutubeMovieIE,
+    RutubePersonIE,
 )
 from .servingsys import ServingSysIE
 from .sina import SinaIE
