@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import json
 import re
 
@@ -9,13 +11,13 @@ class NineGagIE(InfoExtractor):
     _VALID_URL = r'^https?://(?:www\.)?9gag\.tv/v/(?P<id>[0-9]+)'
 
     _TEST = {
-        u"url": u"http://9gag.tv/v/1912",
-        u"file": u"1912.mp4",
-        u"info_dict": {
-            u"description": u"This 3-minute video will make you smile and then make you feel untalented and insignificant. Anyway, you should share this awesomeness. (Thanks, Dino!)",
-            u"title": u"\"People Are Awesome 2013\" Is Absolutely Awesome"
+        "url": "http://9gag.tv/v/1912",
+        "file": "1912.mp4",
+        "info_dict": {
+            "description": "This 3-minute video will make you smile and then make you feel untalented and insignificant. Anyway, you should share this awesomeness. (Thanks, Dino!)",
+            "title": "\"People Are Awesome 2013\" Is Absolutely Awesome"
         },
-        u'add_ie': [u'Youtube']
+        'add_ie': ['Youtube']
     }
 
     def _real_extract(self, url):
@@ -25,7 +27,7 @@ class NineGagIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         data_json = self._html_search_regex(r'''(?x)
             <div\s*id="tv-video"\s*data-video-source="youtube"\s*
-                data-video-meta="([^"]+)"''', webpage, u'video metadata')
+                data-video-meta="([^"]+)"''', webpage, 'video metadata')
 
         data = json.loads(data_json)
 
