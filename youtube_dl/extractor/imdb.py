@@ -69,12 +69,9 @@ class ImdbListIE(InfoExtractor):
         list_id = mobj.group('id')
 
         webpage = self._download_webpage(url, list_id)
-        list_code = self._search_regex(
-            r'(?s)<div\s+class="list\sdetail">(.*?)class="see-more"',
-            webpage, 'list code')
         entries = [
             self.url_result('http://www.imdb.com' + m, 'Imdb')
-            for m in re.findall(r'href="(/video/imdb/vi[^"]+)"', webpage)]
+            for m in re.findall(r'href="(/video/imdb/vi[^"]+)"\s+data-type="playlist"', webpage)]
 
         list_title = self._html_search_regex(
             r'<h1 class="header">(.*?)</h1>', webpage, 'list title')
