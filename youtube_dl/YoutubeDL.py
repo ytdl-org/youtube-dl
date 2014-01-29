@@ -901,16 +901,13 @@ class YoutubeDL(object):
         if self.params.get('writethumbnail', False) or self.params.get('writeallthumbnails', False):
             # create a list of all thumbnails the user has requested (all or only one)
             allthumbs = []
-            if self.params.get('writeallthumbnails', False) and info_dict.get('thumbnails') is not None:
-                for ele in info_dict.get('thumbnails'):
-                    try:
-                        if ele.get('url'):
-                            allthumbs.append(ele.get('url'))
-                    except AttributeError:
-                        # not all extractor return dicts
-                        allthumbs.append(ele)
-                if info_dict.get('thumbnail') and not info_dict.get('thumbnail') in allthumbs:
+            if info_dict.get('thumbnails') is not None:
+                allthumbs = [ ele.get('url') for ele in info_dict.get('thumbnails')]
+            if info_dict.get('thumbnail') is not None:
+                if self.params.get('writethumbnail', False) or (not info_dict.get('thumbnail') in allthumbs):
                     allthumbs.insert(0,info_dict.get('thumbnail'))
+            if self.params.get('writethumbnail', False):
+                allthumbs = allthumbs[0:1]
 
             allthumblen = len(allthumbs)
             thumbcnt = 0
