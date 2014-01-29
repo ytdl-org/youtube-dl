@@ -38,8 +38,7 @@ class TumblrIE(InfoExtractor):
         thumb_list = []
         ma = re.search(r'posters.*?\[(?P<thumb>\\x22.*?\\x22)]', webpage)
         if not ma is None:
-            for t in ma.group('thumb').replace(r'\\/', '/').split(','):
-                t = t.replace(r'\x22','"')
+            for t in ma.group('thumb').decode('string-escape').replace(r'\/',r'/').split(','):
                 if (t[0] == '"') and (t[-1] == '"'):
                     thumb_list.append( {"url": t[1:-1]} )
 
