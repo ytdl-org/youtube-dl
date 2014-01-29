@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class ComedyCentralIE(MTVServicesInfoExtractor):
-    _VALID_URL = r'''(?x)https?://(?:www.)?comedycentral.com/
+    _VALID_URL = r'''(?x)https?://(?:www\.)?comedycentral\.com/
         (video-clips|episodes|cc-studios|video-collections)
         /(?P<title>.*)'''
     _FEED_URL = 'http://comedycentral.com/feeds/mrss/'
@@ -86,7 +86,7 @@ class ComedyCentralShowsIE(InfoExtractor):
 
     @staticmethod
     def _transform_rtmp_url(rtmp_video_url):
-        m = re.match(r'^rtmpe?://.*?/(?P<finalid>gsp.comedystor/.*)$', rtmp_video_url)
+        m = re.match(r'^rtmpe?://.*?/(?P<finalid>gsp\.comedystor/.*)$', rtmp_video_url)
         if not m:
             raise ExtractorError('Cannot transform RTMP url')
         base = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=1+_pxI0=Ripod-h264+_pxL0=undefined+_pxM0=+_pxK=18639+_pxE=mp4/44620/mtvnorigin/'
