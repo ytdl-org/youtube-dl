@@ -465,6 +465,10 @@ class InfoExtractor(object):
         }
         return RATING_TABLE.get(rating.lower(), None)
 
+    def _twitter_search_player(self, html):
+        return self._html_search_meta('twitter:player', html,
+            'twitter card player')
+
     def _sort_formats(self, formats):
         if not formats:
             raise ExtractorError(u'No video formats found')
