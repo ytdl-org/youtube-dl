@@ -1662,7 +1662,7 @@ class YoutubeUserIE(InfoExtractor):
                     '_type': 'url',
                     'url': video_id,
                     'ie_key': 'Youtube',
-                    'id': 'video_id',
+                    'id': video_id,
                     'title': title,
                 }
         url_results = PagedList(download_page, self._GDATA_PAGE_SIZE)
