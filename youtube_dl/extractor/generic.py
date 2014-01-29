@@ -254,7 +254,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded (iframe) Vimeo player
         mobj = re.search(
-            r'<iframe[^>]+?src="((?:https?:)?//player.vimeo.com/video/.+?)"', webpage)
+            r'<iframe[^>]+?src="((?:https?:)?//player\.vimeo\.com/video/.+?)"', webpage)
         if mobj:
             player_url = unescapeHTML(mobj.group(1))
             surl = smuggle_url(player_url, {'Referer': url})
@@ -262,7 +262,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded (swf embed) Vimeo player
         mobj = re.search(
-            r'<embed[^>]+?src="(https?://(?:www\.)?vimeo.com/moogaloop.swf.+?)"', webpage)
+            r'<embed[^>]+?src="(https?://(?:www\.)?vimeo\.com/moogaloop\.swf.+?)"', webpage)
         if mobj:
             return self.url_result(mobj.group(1), 'Vimeo')
 
@@ -332,7 +332,7 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group(1), 'Aparat')
 
         # Look for MPORA videos
-        mobj = re.search(r'<iframe .*?src="(http://mpora\.com/videos/[^"]+)"', webpage)
+        mobj = re.search(r'<iframe .*?src="(http://mpora\.(?:com|de)/videos/[^"]+)"', webpage)
         if mobj is not None:
             return self.url_result(mobj.group(1), 'Mpora')
 
@@ -350,7 +350,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded Huffington Post player
         mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https?://embed\.live.huffingtonpost\.com/.+?)\1', webpage)
+            r'<iframe[^>]+?src=(["\'])(?P<url>https?://embed\.live\.huffingtonpost\.com/.+?)\1', webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'HuffPost')
 
