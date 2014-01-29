@@ -82,6 +82,7 @@ from .gametrailers import GametrailersIE
 from .generic import GenericIE
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
+from .theguardian import TheGuardianIE
 from .hark import HarkIE
 from .hotnewhiphop import HotNewHipHopIE
 from .howcast import HowcastIE
