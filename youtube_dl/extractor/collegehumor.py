@@ -49,7 +49,7 @@ class CollegeHumorIE(InfoExtractor):
         PREFS = {'high_quality': 2, 'low_quality': 0}
         formats = []
         for format_key in ('mp4', 'webm'):
-            for qname, qurl in vdata[format_key].items():
+            for qname, qurl in vdata.get(format_key, {}).items():
                 formats.append({
                     'format_id': format_key + '_' + qname,
                     'url': qurl,
