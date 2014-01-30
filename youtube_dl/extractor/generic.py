@@ -38,18 +38,6 @@ class GenericIE(InfoExtractor):
                 'title': 'R\u00e9gis plante sa Jeep',
             }
         },
-        # embedded vimeo video
-        {
-            'add_ie': ['Vimeo'],
-            'url': 'http://skillsmatter.com/podcast/home/move-semanticsperfect-forwarding-and-rvalue-references',
-            'file': '22444065.mp4',
-            'md5': '2903896e23df39722c33f015af0666e2',
-            'info_dict': {
-                'title': 'ACCU 2011: Move Semantics,Perfect Forwarding, and Rvalue references- Scott Meyers- 13/04/2011',
-                'uploader_id': 'skillsmatter',
-                'uploader': 'Skills Matter',
-            }
-        },
         # bandcamp page with custom domain
         {
             'add_ie': ['Bandcamp'],
