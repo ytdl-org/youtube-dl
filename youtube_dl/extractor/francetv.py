@@ -62,7 +62,7 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         page_title = mobj.group('title')
         webpage = self._download_webpage(url, page_title)
-        video_id = self._search_regex(r'id-video=(\d+?)"', webpage, u'video id')
+        video_id = self._search_regex(r'id-video=(\d+?)[@"]', webpage, u'video id')
         return self._extract_video(video_id)
 
 
