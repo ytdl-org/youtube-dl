@@ -119,7 +119,9 @@ class MTVServicesInfoExtractor(InfoExtractor):
             if mgid.endswith('.swf'):
                 mgid = mgid[:-4]
         except RegexNotFoundError:
-            mgid = self._search_regex(r'data-mgid="(.*?)"', webpage, u'mgid')
+            mgid = self._search_regex(
+                [r'data-mgid="(.*?)"', r'swfobject.embedSWF\(".*?(mgid:.*?)"'],
+                webpage, u'mgid')
         return self._get_videos_info(mgid)
 
 
