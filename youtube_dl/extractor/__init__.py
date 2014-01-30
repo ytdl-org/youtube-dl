@@ -141,6 +141,7 @@ from .newgrounds import NewgroundsIE
 from .nhl import NHLIE, NHLVideocenterIE
 from .niconico import NiconicoIE
 from .ninegag import NineGagIE
+from .normalboots import NormalbootsIE
 from .novamov import NovamovIE
 from .nowness import NownessIE
 from .nowvideo import NowVideoIE
