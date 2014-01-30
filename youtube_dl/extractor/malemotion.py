@@ -16,7 +16,8 @@ class MalemotionIE(InfoExtractor):
         'info_dict': {
             "title": "Bien dur",
             "age_limit": 18,
-        }
+        },
+        'skip': 'This video has been deleted.'
     }
 
     def _real_extract(self, url):
