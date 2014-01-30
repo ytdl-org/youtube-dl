@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import json
 import re
 
 from .common import InfoExtractor
@@ -26,8 +27,16 @@ class LiveLeakIE(InfoExtractor):
 
         video_id = mobj.group('video_id')
         webpage = self._download_webpage(url, video_id)
-        video_url = self._search_regex(
-            r'file: "(.*?)",', webpage, 'video URL')
+        sources_raw = self._search_regex(
+            r'(?s)sources:\s*(\[.*?\]),', webpage, 'video URLs')
+        sources_json = re.sub(r'\s([a-z]+):\s', r'"\1": ', sources_raw)
+        sources = json.loads(sources_json)
+
+        formats = [{
+            'format_note': s.get('label'),
+            'url': s['file'],
+        } for s in sources]
+        self._sort_formats(formats)
 
         video_title = self._og_search_title(webpage).replace('LiveLeak.com -', '').strip()
         video_description = self._og_search_description(webpage)
@@ -36,9 +45,8 @@ class LiveLeakIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'url': video_url,
-            'ext': 'mp4',
             'title': video_title,
             'description': video_description,
-            'uploader': video_uploader
+            'uploader': video_uploader,
+            'formats': formats,
         }
