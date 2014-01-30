@@ -110,6 +110,7 @@ from .khanacademy import KhanAcademyIE
 from .kickstarter import KickStarterIE
 from .keek import KeekIE
 from .la7 import LA7IE
+from .lifenews import LifeNewsIE
 from .liveleak import LiveLeakIE
 from .livestream import LivestreamIE, LivestreamOriginalIE
 from .lynda import (
