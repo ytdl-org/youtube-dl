@@ -28,7 +28,25 @@ class CollegeHumorIE(InfoExtractor):
             'description': 'This video wasn\'t long enough, so we made it double-spaced.',
             'age_limit': 10,
         },
-    }]
+    },
+    # embedded youtube video
+    {
+        'url': 'http://www.collegehumor.com/embed/6950457',
+        'info_dict': {
+            'id': 'W5gMp3ZjYg4',
+            'ext': 'mp4',
+            'title': 'Funny Dogs Protecting Babies Compilation 2014 [NEW HD]',
+            'uploader': 'Funnyplox TV',
+            'uploader_id': 'funnyploxtv',
+            'description': 'md5:b20fc87608e2837596bbc8df85a3c34d',
+            'upload_date': '20140128',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': ['Youtube'],
+    },
+    ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -38,6 +56,12 @@ class CollegeHumorIE(InfoExtractor):
         data = json.loads(self._download_webpage(
             jsonUrl, video_id, 'Downloading info JSON'))
         vdata = data['video']
+        if vdata.get('youtubeId') is not None:
+            return {
+                '_type': 'url',
+                'url': vdata['youtubeId'],
+                'ie_key': 'Youtube',
+            }
 
         AGE_LIMITS = {'nc17': 18, 'r': 18, 'pg13': 13, 'pg': 10, 'g': 0}
         rating = vdata.get('rating')
