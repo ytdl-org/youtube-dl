@@ -78,8 +78,8 @@ class BlipTVIE(InfoExtractor):
             upload_date = datetime.datetime.strptime(data['datestamp'], '%m-%d-%y %H:%M%p').strftime('%Y%m%d')
             formats = []
             if 'additionalMedia' in data:
-                for f in sorted(data['additionalMedia'], key=lambda f: int(f['media_height'])):
-                    if not int(f['media_width']): # filter m3u8
+                for f in sorted(data['additionalMedia'], key=lambda f: int(0 if f['media_height'] is None else f['media_height'])):
+                    if not int(0 if f['media_height'] is None else f['media_height']): # filter out m3u8 and srt files
                         continue
                     formats.append({
                         'url': f['url'],
