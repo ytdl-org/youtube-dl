@@ -325,7 +325,7 @@ Since June 2012 (#342) youtube-dl is packed as an executable zipfile, simply unz
 
 To run the exe you need to install first the [Microsoft Visual C++ 2008 Redistributable Package](http://www.microsoft.com/en-us/download/details.aspx?id=29).
 
-# BUILD INSTRUCTIONS
+# DEVELOPER INSTRUCTIONS
 
 Most users do not need to build youtube-dl and can [download the builds](http://rg3.github.io/youtube-dl/download.html) or get them from their distribution.
 
@@ -346,6 +346,10 @@ If you want to create a build of youtube-dl yourself, you'll need
 * pandoc
 * zip
 * nosetests
+
+### Adding support for a new site
+
+If you want to add support for a new site, copy *any* [recently modified](https://github.com/rg3/youtube-dl/commits/master/youtube_dl/extractor) file in `youtube_dl/extractor`, add an import in [`youtube_dl/extractor/__init__.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/__init__.py). Have a look at [`youtube_dl/common/extractor/common.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py) for possible helper methods and a [detailed description of what your extractor should return](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L38). Don't forget to run the tests with `python test/test_download.py Test_Download.test_YourExtractor`! For a detailed tutorial, refer to [this blog post](http://filippo.io/add-support-for-a-new-video-site-to-youtube-dl/).
 
 # BUGS
 
