@@ -11,8 +11,8 @@ class NormalbootsIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:www\.)?normalboots\.com/video/(?P<videoid>[0-9a-z-]*)/?$'
     _TEST = {
         u'url': u'http://normalboots.com/video/home-alone-games-jontron/',
-        u'file': u'JonTronShow-52e2fafa8718e_high.mp4',
-        u'md5': u'8b215e2e0168c6081a1cf84b2846a2b5',
+        u'file': u'home-alone-games-jontron.mp4',
+        u'md5': u'8bf6de238915dd501105b44ef5f1e0f6',
         u'info_dict': {
             u'title': u'Home Alone Games - JonTron - NormalBoots',
             u'description': u'Jon is late for Christmas. Typical. Thanks to: Paul Ritchey for Co-Writing/Filming: http://www.youtube.com/user/ContinueShow Micha Frar for Christmas Intro Animation: http://michafrar.tumblr.com/ Jerrod Waters for Christmas Intro Music: http://www.youtube.com/user/xXJerryTerryXx Casey Ormond for \u2018Tense Battle Theme\u2019:\xa0http://www.youtube.com/Kiamet/',
