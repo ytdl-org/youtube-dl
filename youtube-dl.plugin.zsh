@@ -18,6 +18,7 @@
 # code is documented here:
 # https://github.com/zsh-users/antigen#notes-on-writing-plugins
 
-# This specific script just adds the downloaded folder to the end of the $PATH,
-# which allows the contained youtube-dl executable to be found.
-export PATH=${PATH}:$(dirname $0)
+# This specific script just aliases youtube-dl to the python script that this
+# library provides. This requires updating the PYTHONPATH to ensure that the
+# full set of code can be located.
+alias youtube-dl="PYTHONPATH=$(dirname $0) $(dirname $0)/bin/youtube-dl"
