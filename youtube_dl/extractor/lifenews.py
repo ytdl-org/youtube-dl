@@ -17,7 +17,7 @@ class LifeNewsIE(InfoExtractor):
         'file': '126342.mp4',
         'md5': 'e1b50a5c5fb98a6a544250f2e0db570a',
         'info_dict': {
-            'title': 'МВД разыскивает троих мужчин, оставивших в IKEA сумку с автоматом',
+            'title': 'МВД разыскивает мужчин, оставивших в IKEA сумку с автоматом',
             'description': 'Камеры наблюдения гипермаркета зафиксировали троих мужчин, спрятавших оружейный арсенал в камере хранения.',
             'thumbnail': 'http://lifenews.ru/static/posts/2014/1/126342/.video.jpg',
             'upload_date': '20140130',
