@@ -15,7 +15,7 @@ class NormalbootsIE(InfoExtractor):
         u'md5': u'8bf6de238915dd501105b44ef5f1e0f6',
         u'info_dict': {
             u'title': u'Home Alone Games - JonTron - NormalBoots',
-            u'description': u'Jon is late for Christmas. Typical. Thanks to: Paul Ritchey for Co-Writing/Filming: http://www.youtube.com/user/ContinueShow Micha Frar for Christmas Intro Animation: http://michafrar.tumblr.com/ Jerrod Waters for Christmas Intro Music: http://www.youtube.com/user/xXJerryTerryXx Casey Ormond for \u2018Tense Battle Theme\u2019:\xa0http://www.youtube.com/Kiamet/',
+            u'description': u'Jon is late for Christmas. Typical. Thanks to: Paul Ritchey for Co-Writing/Filming: http://www.youtube.com/user/ContinueShow Michael Azzi for Christmas Intro Animation: http://michafrar.tumblr.com/ Jerrod Waters for Christmas Intro Music: http://www.youtube.com/user/xXJerryTerryXx Casey Ormond for \u2018Tense Battle Theme\u2019:\xa0http://www.youtube.com/Kiamet/',
             u'uploader': u'JonTron',
             u'upload_date': u'20140125',
         }
