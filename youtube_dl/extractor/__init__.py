@@ -229,6 +229,7 @@ from .vimeo import (
 from .vine import VineIE
 from .viki import VikiIE
 from .vk import VKIE
+from .vube import VubeIE
 from .wat import WatIE
 from .weibo import WeiboIE
 from .wimp import WimpIE
