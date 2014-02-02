@@ -1,12 +1,9 @@
 from __future__ import unicode_literals
 
 import re
-import string
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-)
+
 
 translation_table = {
     'a': 'h', 'd': 'e', 'e': 'v', 'f': 'o', 'g': 'f', 'i': 'd', 'l': 'n',

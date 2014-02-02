@@ -1,34 +1,36 @@
-import re
+from __future__ import unicode_literals
 
 from .mtv import MTVServicesInfoExtractor
 
 
 class SouthParkStudiosIE(MTVServicesInfoExtractor):
-    IE_NAME = u'southparkstudios.com'
-    _VALID_URL = r'(https?://)?(www\.)?(?P<url>southparkstudios\.com/(clips|full-episodes)/(?P<id>.+?)(\?|#|$))'
+    IE_NAME = 'southparkstudios.com'
+    _VALID_URL = r'https?://(www\.)?(?P<url>southparkstudios\.com/(clips|full-episodes)/(?P<id>.+?)(\?|#|$))'
 
     _FEED_URL = 'http://www.southparkstudios.com/feeds/video-player/mrss'
 
     _TESTS = [{
-        u'url': u'http://www.southparkstudios.com/clips/104437/bat-daded#tab=featured',
-        u'file': u'a7bff6c2-ed00-11e0-aca6-0026b9414f30.mp4',
-        u'info_dict': {
-            u'title': u'Bat Daded',
-            u'description': u'Randy disqualifies South Park by getting into a fight with Bat Dad.',
+        'url': 'http://www.southparkstudios.com/clips/104437/bat-daded#tab=featured',
+        'info_dict': {
+            'id': 'a7bff6c2-ed00-11e0-aca6-0026b9414f30',
+            'ext': 'mp4',
+            'title': 'Bat Daded',
+            'description': 'Randy disqualifies South Park by getting into a fight with Bat Dad.',
         },
     }]
 
 
 class SouthparkDeIE(SouthParkStudiosIE):
-    IE_NAME = u'southpark.de'
-    _VALID_URL = r'(https?://)?(www\.)?(?P<url>southpark\.de/(clips|alle-episoden)/(?P<id>.+?)(\?|#|$))'
+    IE_NAME = 'southpark.de'
+    _VALID_URL = r'https?://(www\.)?(?P<url>southpark\.de/(clips|alle-episoden)/(?P<id>.+?)(\?|#|$))'
     _FEED_URL = 'http://www.southpark.de/feeds/video-player/mrss/'
 
     _TESTS = [{
-        u'url': u'http://www.southpark.de/clips/uygssh/the-government-wont-respect-my-privacy#tab=featured',
-        u'file': u'85487c96-b3b9-4e39-9127-ad88583d9bf2.mp4',
-        u'info_dict': {
-            u'title': u'The Government Won\'t Respect My Privacy',
-            u'description': u'Cartman explains the benefits of "Shitter" to Stan, Kyle and Craig.',
+        'url': 'http://www.southpark.de/clips/uygssh/the-government-wont-respect-my-privacy#tab=featured',
+        'info_dict': {
+            'id': '85487c96-b3b9-4e39-9127-ad88583d9bf2',
+            'ext': 'mp4',
+            'title': 'The Government Won\'t Respect My Privacy',
+            'description': 'Cartman explains the benefits of "Shitter" to Stan, Kyle and Craig.',
         },
     }]

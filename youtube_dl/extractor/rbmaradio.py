@@ -6,8 +6,6 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_urllib_parse_urlparse,
-
     ExtractorError,
 )
 
@@ -16,9 +14,10 @@ class RBMARadioIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?rbmaradio\.com/shows/(?P<videoID>[^/]+)$'
     _TEST = {
         'url': 'http://www.rbmaradio.com/shows/ford-lopatin-live-at-primavera-sound-2011',
-        'file': 'ford-lopatin-live-at-primavera-sound-2011.mp3',
         'md5': '6bc6f9bcb18994b4c983bc3bf4384d95',
         'info_dict': {
+            'id': 'ford-lopatin-live-at-primavera-sound-2011',
+            'ext': 'mp3',
             "uploader_id": "ford-lopatin",
             "location": "Spain",
             "description": "Joel Ford and Daniel ’Oneohtrix Point Never’ Lopatin fly their midified pop extravaganza to Spain. Live at Primavera Sound 2011.",
@@ -42,7 +41,6 @@ class RBMARadioIE(InfoExtractor):
             raise ExtractorError('Invalid JSON: ' + str(e))
 
         video_url = data['akamai_url'] + '&cbr=256'
-        url_parts = compat_urllib_parse_urlparse(video_url)
 
         return {
             'id': video_id,

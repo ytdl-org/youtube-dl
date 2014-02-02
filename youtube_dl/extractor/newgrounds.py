@@ -4,18 +4,18 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..utils import determine_ext
 
 
 class NewgroundsIE(InfoExtractor):
-    _VALID_URL = r'(?:https?://)?(?:www\.)?newgrounds\.com/audio/listen/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?newgrounds\.com/audio/listen/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.newgrounds.com/audio/listen/549479',
-        'file': '549479.mp3',
         'md5': 'fe6033d297591288fa1c1f780386f07a',
         'info_dict': {
-            "title": "B7 - BusMode",
-            "uploader": "Burn7",
+            'id': '549479',
+            'ext': 'mp3',
+            'title': 'B7 - BusMode',
+            'uploader': 'Burn7',
         }
     }
 

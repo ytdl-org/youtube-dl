@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class InfoQIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?infoq\.com/[^/]+/[^/]+$'
+    _VALID_URL = r'https?://(?:www\.)?infoq\.com/[^/]+/(?P<id>[^/]+)$'
     _TEST = {
         "name": "InfoQ",
         "url": "http://www.infoq.com/presentations/A-Few-of-My-Favorite-Python-Things",
@@ -26,9 +26,9 @@ class InfoQIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
 
-        webpage = self._download_webpage(url, video_id=url)
-        self.report_extraction(url)
+        webpage = self._download_webpage(url, video_id)
 
         # Extract video URL
         encoded_id = self._search_regex(r"jsclassref ?= ?'([^']*)'", webpage, 'encoded id')
@@ -50,6 +50,6 @@ class InfoQIE(InfoExtractor):
             'id': video_id,
             'url': video_url,
             'title': video_title,
-            'ext': extension, # Extension is always(?) mp4, but seems to be flv
+            'ext': extension,  # Extension is always(?) mp4, but seems to be flv
             'description': video_description,
         }

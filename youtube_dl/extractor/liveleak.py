@@ -4,9 +4,6 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-)
 
 
 class LiveLeakIE(InfoExtractor):
