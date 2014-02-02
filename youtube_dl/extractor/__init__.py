@@ -96,6 +96,7 @@ from .ina import InaIE
 from .infoq import InfoQIE
 from .instagram import InstagramIE
 from .internetvideoarchive import InternetVideoArchiveIE
+from .iprima import IPrimaIE
 from .ivi import (
     IviIE,
     IviCompilationIE
