@@ -14,7 +14,6 @@ class IPrimaIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://play.iprima.cz/particka/particka-92',
-        'md5': 'bc7df58940ef1a6ec75797c5f8c24c6c',
         'info_dict': {
             'id': '39152',
             'ext': 'flv',
