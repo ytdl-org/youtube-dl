@@ -45,7 +45,7 @@ class VubeIE(InfoExtractor):
         self._sort_formats(formats)
 
         title = video['title']
-        description = video['description']
+        description = video.get('description')
         thumbnail = video['thumbnail_src']
         if thumbnail.startswith('//'):
             thumbnail = 'http:' + thumbnail
