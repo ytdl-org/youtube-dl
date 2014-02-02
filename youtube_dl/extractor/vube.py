@@ -13,9 +13,10 @@ class VubeIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://vube.com/Chiara+Grispo+Video+Channel/YL2qNPkqon',
-        'file': 'YL2qNPkqon.mp4',
         'md5': 'f81dcf6d0448e3291f54380181695821',
         'info_dict': {
+            'id': 'YL2qNPkqon',
+            'ext': 'mp4',
             'title': 'Chiara Grispo - Price Tag by Jessie J',
             'description': 'md5:8ea652a1f36818352428cb5134933313',
             'thumbnail': 'http://frame.thestaticvube.com/snap/228x128/102e7e63057-5ebc-4f5c-4065-6ce4ebde131f.jpg',
