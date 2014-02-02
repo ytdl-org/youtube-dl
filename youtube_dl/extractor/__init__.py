@@ -200,6 +200,7 @@ from .ted import TEDIE
 from .tf1 import TF1IE
 from .theplatform import ThePlatformIE
 from .thisav import ThisAVIE
+from .tinypic import TinyPicIE
 from .toutv import TouTvIE
 from .traileraddict import TrailerAddictIE
 from .trilulilu import TriluliluIE
