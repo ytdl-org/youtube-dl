@@ -10,6 +10,7 @@ from test.helper import FakeYDL, md5
 
 
 from youtube_dl.extractor import (
+    BlipTVIE,
     YoutubeIE,
     DailymotionIE,
     TEDIE,
@@ -201,6 +202,26 @@ class TestTedSubtitles(BaseTestSubtitles):
         subtitles = self.getSubtitles()
         for lang in langs:
             self.assertTrue(subtitles.get(lang) is not None, u'Subtitles for \'%s\' not extracted' % lang)
+
+
+class TestBlipTVSubtitles(BaseTestSubtitles):
+    url = 'http://blip.tv/a/a-6603250'
+    IE = BlipTVIE
+
+    def test_list_subtitles(self):
+        self.DL.expect_warning(u'Automatic Captions not supported by this server')
+        self.DL.params['listsubtitles'] = True
+        info_dict = self.getInfoDict()
+        self.assertEqual(info_dict, None)
+
+    def test_allsubtitles(self):
+        self.DL.expect_warning(u'Automatic Captions not supported by this server')
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(set(subtitles.keys()), set(['en']))
+        self.assertEqual(md5(subtitles['en']), '5b75c300af65fe4476dff79478bb93e4')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -62,24 +62,30 @@ class SubtitlesInfoExtractor(InfoExtractor):
                 subtitles[sub_lang] = subtitle
         return subtitles
 
+    def _download_subtitle_url(self, sub_lang, url):
+        return self._download_webpage(url, None, note=False)
+
     def _request_subtitle_url(self, sub_lang, url):
         """ makes the http request for the subtitle """
         try:
-            sub = self._download_webpage(url, None, note=False)
+            return self._download_subtitle_url(sub_lang, url)
         except ExtractorError as err:
             self._downloader.report_warning(u'unable to download video subtitles for %s: %s' % (sub_lang, compat_str(err)))
             return
         if not sub:
             self._downloader.report_warning(u'Did not fetch video subtitles')
             return
-        return sub
 
     def _get_available_subtitles(self, video_id, webpage):
         """
         returns {sub_lang: url} or {} if not available
         Must be redefined by the subclasses
         """
-        pass
+
+        # By default, allow implementations to simply pass in the result
+        assert isinstance(webpage, dict), \
+            '_get_available_subtitles not implemented'
+        return webpage
 
     def _get_available_automatic_caption(self, video_id, webpage):
         """
