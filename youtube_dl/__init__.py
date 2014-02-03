@@ -100,6 +100,43 @@ def parseOpts(overrideArguments=None):
             optionf.close()
         return res
 
+    def _readUserConf():
+        xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
+        if xdg_config_home:
+            userConfFile = os.path.join(xdg_config_home, 'youtube-dl', 'config')
+            if not os.path.isfile(userConfFile):
+                userConfFile = os.path.join(xdg_config_home, 'youtube-dl.conf')
+        else:
+            userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl', 'config')
+            if not os.path.isfile(userConfFile):
+                userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
+        userConf = _readOptions(userConfFile, None)
+
+        if userConf is None:
+            appdata_dir = os.environ.get('appdata')
+            if appdata_dir:
+                userConf = _readOptions(
+                    os.path.join(appdata_dir, 'youtube-dl', 'config'),
+                    default=None)
+                if userConf is None:
+                    userConf = _readOptions(
+                        os.path.join(appdata_dir, 'youtube-dl', 'config.txt'),
+                        default=None)
+
+        if userConf is None:
+            userConf = _readOptions(
+                os.path.join(os.path.expanduser('~'), 'youtube-dl.conf'),
+                default=None)
+        if userConf is None:
+            userConf = _readOptions(
+                os.path.join(os.path.expanduser('~'), 'youtube-dl.conf.txt'),
+                default=None)
+
+        if userConf is None:
+            userConf = []
+
+        return userConf
+
     def _format_option_string(option):
         ''' ('-o', '--option') -> -o, --format METAVAR'''
 
@@ -203,6 +240,11 @@ def parseOpts(overrideArguments=None):
     general.add_option('--default-search',
             dest='default_search', metavar='PREFIX',
             help='Use this prefix for unqualified URLs. For example "gvsearch2:" downloads two videos from google videos for  youtube-dl "large apple". By default (with value "auto") youtube-dl guesses.')
+    general.add_option(
+        '--ignore-config',
+        action='store_true',
+        help='Do not read configuration files. When given in the global configuration file /etc/youtube-dl.conf: do not read the user configuration in ~/.config/youtube-dl.conf (%APPDATA%/youtube-dl/config.txt on Windows)')
+
 
     selection.add_option(
         '--playlist-start',
@@ -457,44 +499,18 @@ def parseOpts(overrideArguments=None):
         if opts.verbose:
             write_string(u'[debug] Override config: ' + repr(overrideArguments) + '\n')
     else:
-        systemConf = _readOptions('/etc/youtube-dl.conf')
-
-        xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
-        if xdg_config_home:
-            userConfFile = os.path.join(xdg_config_home, 'youtube-dl', 'config')
-            if not os.path.isfile(userConfFile):
-                userConfFile = os.path.join(xdg_config_home, 'youtube-dl.conf')
-        else:
-            userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl', 'config')
-            if not os.path.isfile(userConfFile):
-                userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
-        userConf = _readOptions(userConfFile, None)
-
-        if userConf is None:
-            appdata_dir = os.environ.get('appdata')
-            if appdata_dir:
-                userConf = _readOptions(
-                    os.path.join(appdata_dir, 'youtube-dl', 'config'),
-                    default=None)
-                if userConf is None:
-                    userConf = _readOptions(
-                        os.path.join(appdata_dir, 'youtube-dl', 'config.txt'),
-                        default=None)
-
-        if userConf is None:
-            userConf = _readOptions(
-                os.path.join(os.path.expanduser('~'), 'youtube-dl.conf'),
-                default=None)
-        if userConf is None:
-            userConf = _readOptions(
-                os.path.join(os.path.expanduser('~'), 'youtube-dl.conf.txt'),
-                default=None)
-
-        if userConf is None:
-            userConf = []
-
         commandLineConf = sys.argv[1:]
+        if '--ignore-config' in commandLineConf:
+            systemConf = []
+            userConf = []
+        else:
+            systemConf = _readOptions('/etc/youtube-dl.conf')
+            if '--ignore-config' in systemConf:
+                userConf = []
+            else:
+                userConf = _readUserConf()
         argv = systemConf + userConf + commandLineConf
+
         opts, args = parser.parse_args(argv)
         if opts.verbose:
             write_string(u'[debug] System config: ' + repr(_hide_login_info(systemConf)) + '\n')
