@@ -127,25 +127,28 @@ class BrightcoveIE(InfoExtractor):
 
     @classmethod
     def _extract_brightcove_url(cls, webpage):
-        """Try to extract the brightcove url from the wepbage, returns None
+        """Try to extract the brightcove url from the webpage, returns None
         if it can't be found
         """
+        urls = cls._extract_brightcove_urls(webpage)
+        return urls[0] if urls else None
+
+    @classmethod
+    def _extract_brightcove_urls(cls, webpage):
+        """Return a list of all Brightcove URLs from the webpage """
 
         url_m = re.search(r'<meta\s+property="og:video"\s+content="(http://c.brightcove.com/[^"]+)"', webpage)
         if url_m:
-            return url_m.group(1)
+            return [url_m.group(1)]
 
-        m_brightcove = re.search(
+        matches = re.findall(
             r'''(?sx)<object
             (?:
-                [^>]+?class=([\'"])[^>]*?BrightcoveExperience.*?\1 |
+                [^>]+?class=[\'"][^>]*?BrightcoveExperience.*?[\'"] |
                 [^>]*?>\s*<param\s+name="movie"\s+value="https?://[^/]*brightcove\.com/
             ).+?</object>''',
             webpage)
-        if m_brightcove is not None:
-            return cls._build_brighcove_url(m_brightcove.group())
-        else:
-            return None
+        return [cls._build_brighcove_url(m) for m in matches]
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})

@@ -34,6 +34,7 @@ from youtube_dl.extractor import (
     KhanAcademyIE,
     EveryonesMixtapeIE,
     RutubeChannelIE,
+    GenericIE,
 )
 
 
@@ -228,6 +229,16 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], '1409')
         self.assertTrue(len(result['entries']) >= 34)
+
+    def test_multiple_brightcove_videos(self):
+        # https://github.com/rg3/youtube-dl/issues/2283
+        dl = FakeYDL()
+        ie = GenericIE(dl)
+        result = ie.extract('http://www.newyorker.com/online/blogs/newsdesk/2014/01/always-never-nuclear-command-and-control.html')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], 'always-never-nuclear-command-and-control')
+        self.assertEqual(result['title'], 'Always/Never: A Little-Seen Movie About Nuclear Command and Control : The New Yorker')
+        self.assertEqual(len(result['entries']), 3)
 
 
 if __name__ == '__main__':

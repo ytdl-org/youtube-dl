@@ -234,11 +234,21 @@ class GenericIE(InfoExtractor):
             r'^(?:https?://)?([^/]*)/.*', url, 'video uploader')
 
         # Look for BrightCove:
-        bc_url = BrightcoveIE._extract_brightcove_url(webpage)
-        if bc_url is not None:
+        bc_urls = BrightcoveIE._extract_brightcove_urls(webpage)
+        if bc_urls:
             self.to_screen('Brightcove video detected.')
-            surl = smuggle_url(bc_url, {'Referer': url})
-            return self.url_result(surl, 'Brightcove')
+            entries = [{
+                '_type': 'url',
+                'url': smuggle_url(bc_url, {'Referer': url}),
+                'ie_key': 'Brightcove'
+            } for bc_url in bc_urls]
+
+            return {
+                '_type': 'playlist',
+                'title': video_title,
+                'id': video_id,
+                'entries': entries,
+            }
 
         # Look for embedded (iframe) Vimeo player
         mobj = re.search(
