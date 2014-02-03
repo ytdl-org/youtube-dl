@@ -66,6 +66,7 @@ class BlipTVIE(SubtitlesInfoExtractor):
         json_url = url + cchar + 'skin=json&version=2&no_wrap=1'
         request = compat_urllib_request.Request(json_url)
         request.add_header('User-Agent', 'iTunes/10.6.1')
+
         json_data = self._download_json(request, video_id=presumptive_id)
 
         if 'Post' in json_data:
