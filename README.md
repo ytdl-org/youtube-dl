@@ -53,6 +53,12 @@ which means you can modify it, redistribute it or use it however you like.
                                      from google videos for  youtube-dl "large
                                      apple". By default (with value "auto")
                                      youtube-dl guesses.
+    --ignore-config                  Do not read configuration files. When given
+                                     in the global configuration file /etc
+                                     /youtube-dl.conf: do not read the user
+                                     configuration in ~/.config/youtube-dl.conf
+                                     (%APPDATA%/youtube-dl/config.txt on
+                                     Windows)
 
 ## Video Selection:
     --playlist-start NUMBER          playlist video to start at (default is 1)
