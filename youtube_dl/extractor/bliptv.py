@@ -22,17 +22,30 @@ class BlipTVIE(InfoExtractor):
 
     _VALID_URL = r'^(?:https?://)?(?:\w+\.)?blip\.tv/((.+/)|(play/)|(api\.swf#))(.+)$'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352',
-        'file': '5779306.mov',
         'md5': 'c6934ad0b6acf2bd920720ec888eb812',
         'info_dict': {
+            'id': '5779306',
+            'ext': 'mov',
             'upload_date': '20111205',
             'description': 'md5:9bc31f227219cde65e47eeec8d2dc596',
             'uploader': 'Comic Book Resources - CBR TV',
             'title': 'CBR EXCLUSIVE: "Gotham City Imposters" Bats VS Jokerz Short 3',
         }
-    }
+    }, {
+        # With subtitles (ignored) #2274
+        'url': 'http://blip.tv/play/h6Uag5OEVgI.html',
+        'md5': '309f9d25b820b086ca163ffac8031806',
+        'info_dict': {
+            "id": "6586561",
+            "ext": "mp4",
+            "upload_date": "20130614",
+            "uploader": "Red vs. Blue",
+            "title": "Red vs. Blue Season 11 Episode 1",
+            "description": "One-Zero-One"
+        }
+    }]
 
     def report_direct_download(self, title):
         """Report information extraction."""
