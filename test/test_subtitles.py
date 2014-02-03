@@ -227,7 +227,7 @@ class TestBlipTVSubtitles(BaseTestSubtitles):
 class TestVimeoSubtitles(BaseTestSubtitles):
     url = 'http://vimeo.com/76979871'
     IE = VimeoIE
-   
+
     def test_no_writesubtitles(self):
         subtitles = self.getSubtitles()
         self.assertEqual(subtitles, None)

@@ -10,7 +10,6 @@ from .subtitles import SubtitlesInfoExtractor
 from ..utils import (
     compat_urllib_parse,
     compat_urllib_request,
-
     clean_html,
     get_element_by_attribute,
     ExtractorError,
@@ -300,13 +299,13 @@ class VimeoIE(SubtitlesInfoExtractor):
             return
 
         return {
-            'id':       video_id,
+            'id': video_id,
             'uploader': video_uploader,
             'uploader_id': video_uploader_id,
-            'upload_date':  video_upload_date,
-            'title':    video_title,
-            'thumbnail':    video_thumbnail,
-            'description':  video_description,
+            'upload_date': video_upload_date,
+            'title': video_title,
+            'thumbnail': video_thumbnail,
+            'description': video_description,
             'formats': formats,
             'webpage_url': url,
             'view_count': view_count,
