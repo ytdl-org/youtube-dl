@@ -502,7 +502,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 return a % b
 
             m = re.match(
-                r'^(?P<func>[a-zA-Z]+)\((?P<args>[a-z0-9,]+)\)$', expr)
+                r'^(?P<func>[a-zA-Z$]+)\((?P<args>[a-z0-9,]+)\)$', expr)
             if m:
                 fname = m.group('func')
                 if fname not in functions:
