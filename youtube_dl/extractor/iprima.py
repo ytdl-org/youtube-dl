@@ -72,7 +72,9 @@ class IPrimaIE(InfoExtractor):
                 'play_path': 'mp4:'+filename.replace('"', '')[:-4],
                 'rtmp_live': True,
                 'ext': 'flv',
-                })
+            })
+
+        self._sort_formats(formats)
 
         return {
             'id': real_id,
