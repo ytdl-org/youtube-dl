@@ -1,19 +1,14 @@
 from __future__ import unicode_literals
 
 import datetime
-import json
 import re
-import socket
 
 from .common import InfoExtractor
 from .subtitles import SubtitlesInfoExtractor
 from ..utils import (
-    compat_http_client,
     compat_str,
-    compat_urllib_error,
     compat_urllib_request,
 
-    ExtractorError,
     unescapeHTML,
 )
 
