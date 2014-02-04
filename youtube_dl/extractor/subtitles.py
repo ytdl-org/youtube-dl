@@ -68,13 +68,14 @@ class SubtitlesInfoExtractor(InfoExtractor):
     def _request_subtitle_url(self, sub_lang, url):
         """ makes the http request for the subtitle """
         try:
-            return self._download_subtitle_url(sub_lang, url)
+            sub = self._download_subtitle_url(sub_lang, url)
         except ExtractorError as err:
             self._downloader.report_warning(u'unable to download video subtitles for %s: %s' % (sub_lang, compat_str(err)))
             return
         if not sub:
             self._downloader.report_warning(u'Did not fetch video subtitles')
             return
+        return sub
 
     def _get_available_subtitles(self, video_id, webpage):
         """
