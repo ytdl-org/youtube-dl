@@ -95,9 +95,10 @@ class EightTracksIE(InfoExtractor):
         data = json.loads(json_like)
 
         session = str(random.randint(0, 1000000000))
+        api_key = "e7b8d8788cb321ab5d12bb2066b23c9a07c69efc";
         mix_id = data['id']
         track_count = data['tracks_count']
-        first_url = 'http://8tracks.com/sets/%s/play?player=sm&mix_id=%s&format=jsonh' % (session, mix_id)
+        first_url = 'http://8tracks.com/sets/%s/play.json?api_version=3&mix_id=%s&api_key=%s' % (session, mix_id, api_key)
         next_url = first_url
         res = []
         for i in range(track_count):
@@ -115,5 +116,5 @@ class EightTracksIE(InfoExtractor):
                 'ext': 'm4a',
             }
             res.append(info)
-            next_url = 'http://8tracks.com/sets/%s/next?player=sm&mix_id=%s&format=jsonh&track_id=%s' % (session, mix_id, track_data['id'])
+            next_url = 'http://8tracks.com/sets/%s/next.json?api_version=3&mix_id=%s&api_key=%s' % (session, mix_id, api_key)
         return res
