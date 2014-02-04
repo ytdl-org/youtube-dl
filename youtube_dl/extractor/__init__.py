@@ -127,6 +127,7 @@ from .mit import TechTVMITIE, MITIE
 from .mixcloud import MixcloudIE
 from .mpora import MporaIE
 from .mofosex import MofosexIE
+from .mooshare import MooshareIE
 from .mtv import (
     MTVIE,
     MTVIggyIE,

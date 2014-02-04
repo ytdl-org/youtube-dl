@@ -31,7 +31,7 @@ class LifeNewsIE(InfoExtractor):
         webpage = self._download_webpage('http://lifenews.ru/mobile/news/%s' % video_id, video_id, 'Downloading page')
 
         video_url = self._html_search_regex(
-            r'<video.*?src="([^"]+)"></video>', webpage, 'video URL')
+            r'<video.*?src="([^"]+)".*?></video>', webpage, 'video URL')
         
         thumbnail = self._html_search_regex(
             r'<video.*?poster="([^"]+)".*?"></video>', webpage, 'video thumbnail')
