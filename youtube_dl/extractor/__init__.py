@@ -118,6 +118,7 @@ from .lynda import (
     LyndaIE,
     LyndaCourseIE
 )
+from .m6 import M6IE
 from .macgamestore import MacGameStoreIE
 from .malemotion import MalemotionIE
 from .mdr import MDRIE
