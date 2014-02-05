@@ -60,6 +60,7 @@ from .exfm import ExfmIE
 from .extremetube import ExtremeTubeIE
 from .facebook import FacebookIE
 from .faz import FazIE
+from .firstpost import FirstpostIE
 from .fktv import (
     FKTVIE,
     FKTVPosteckeIE,
