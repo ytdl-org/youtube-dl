@@ -25,6 +25,7 @@ from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
 from .cbs import CBSIE
 from .channel9 import Channel9IE
+from .chilloutzone import ChilloutzoneIE
 from .cinemassacre import CinemassacreIE
 from .clipfish import ClipfishIE
 from .cliphunter import CliphunterIE
