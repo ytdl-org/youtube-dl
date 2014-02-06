@@ -144,6 +144,7 @@ from .nba import NBAIE
 from .nbc import NBCNewsIE
 from .ndtv import NDTVIE
 from .newgrounds import NewgroundsIE
+from .nfb import NFBIE
 from .nhl import NHLIE, NHLVideocenterIE
 from .niconico import NiconicoIE
 from .ninegag import NineGagIE
