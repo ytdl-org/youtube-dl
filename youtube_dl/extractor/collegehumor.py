@@ -4,6 +4,7 @@ import json
 import re
 
 from .common import InfoExtractor
+from ..utils import int_or_none
 
 
 class CollegeHumorIE(InfoExtractor):
@@ -11,22 +12,25 @@ class CollegeHumorIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.collegehumor.com/video/6902724/comic-con-cosplay-catastrophe',
-        'file': '6902724.mp4',
         'md5': 'dcc0f5c1c8be98dc33889a191f4c26bd',
         'info_dict': {
+            'id': '6902724',
+            'ext': 'mp4',
             'title': 'Comic-Con Cosplay Catastrophe',
-            'description': 'Fans get creative this year at San Diego.  Too',
+            'description': 'Fans get creative this year',
             'age_limit': 13,
         },
     },
     {
         'url': 'http://www.collegehumor.com/video/3505939/font-conference',
-        'file': '3505939.mp4',
         'md5': '72fa701d8ef38664a4dbb9e2ab721816',
         'info_dict': {
+            'id': '3505939',
+            'ext': 'mp4',
             'title': 'Font Conference',
-            'description': 'This video wasn\'t long enough, so we made it double-spaced.',
+            'description': 'This video wasn\'t long enough,',
             'age_limit': 10,
+            'duration': 179,
         },
     },
     # embedded youtube video
@@ -82,6 +86,8 @@ class CollegeHumorIE(InfoExtractor):
                 })
         self._sort_formats(formats)
 
+        duration = int_or_none(vdata.get('duration'), 1000)
+
         return {
             'id': video_id,
             'title': vdata['title'],
@@ -89,4 +95,5 @@ class CollegeHumorIE(InfoExtractor):
             'thumbnail': vdata.get('thumbnail'),
             'formats': formats,
             'age_limit': age_limit,
+            'duration': duration,
         }
