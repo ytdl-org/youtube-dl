@@ -43,7 +43,7 @@ class NFBIE(InfoExtractor):
             page, 'director name', fatal=False)
 
         request = compat_urllib_request.Request('https://www.nfb.ca/film/%s/player_config' % video_id,
-            compat_urllib_parse.urlencode({'getConfig': 'true'}))
+            compat_urllib_parse.urlencode({'getConfig': 'true'}).encode('ascii'))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         request.add_header('X-NFB-Referer', 'http://www.nfb.ca/medias/flash/NFBVideoPlayer.swf')
 
