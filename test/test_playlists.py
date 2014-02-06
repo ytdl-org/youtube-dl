@@ -34,6 +34,7 @@ from youtube_dl.extractor import (
     KhanAcademyIE,
     EveryonesMixtapeIE,
     RutubeChannelIE,
+    GoogleSearchIE,
     GenericIE,
 )
 
@@ -240,6 +241,14 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['title'], 'Always/Never: A Little-Seen Movie About Nuclear Command and Control : The New Yorker')
         self.assertEqual(len(result['entries']), 3)
 
+    def test_GoogleSearch(self):
+        dl = FakeYDL()
+        ie = GoogleSearchIE(dl)
+        result = ie.extract('gvsearch15:python language')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], 'python language')
+        self.assertEqual(result['title'], 'python language')
+        self.assertTrue(len(result['entries']) == 15)
 
 if __name__ == '__main__':
     unittest.main()
