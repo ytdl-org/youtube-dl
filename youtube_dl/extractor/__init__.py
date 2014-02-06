@@ -54,6 +54,7 @@ from .ebaumsworld import EbaumsWorldIE
 from .ehow import EHowIE
 from .eighttracks import EightTracksIE
 from .eitb import EitbIE
+from .elpais import ElPaisIE
 from .escapist import EscapistIE
 from .everyonesmixtape import EveryonesMixtapeIE
 from .exfm import ExfmIE

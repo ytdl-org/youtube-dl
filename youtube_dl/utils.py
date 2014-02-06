@@ -751,13 +751,14 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     https_request = http_request
     https_response = http_response
 
+
 def unified_strdate(date_str):
     """Return a string with the date in the format YYYYMMDD"""
     upload_date = None
     #Replace commas
     date_str = date_str.replace(',',' ')
     # %z (UTC offset) is only supported in python>=3.2
-    date_str = re.sub(r' (\+|-)[\d]*$', '', date_str)
+    date_str = re.sub(r' ?(\+|-)[0-9:]*$', '', date_str)
     format_expressions = [
         '%d %B %Y',
         '%B %d %Y',
@@ -771,11 +772,12 @@ def unified_strdate(date_str):
         '%Y-%m-%dT%H:%M:%S.%fZ',
         '%Y-%m-%dT%H:%M:%S.%f0Z',
         '%Y-%m-%dT%H:%M:%S',
+        '%Y-%m-%dT%H:%M',
     ]
     for expression in format_expressions:
         try:
             upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')
-        except:
+        except ValueError:
             pass
     if upload_date is None:
         timetuple = email.utils.parsedate_tz(date_str)
