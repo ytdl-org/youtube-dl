@@ -83,9 +83,12 @@ class MTVServicesInfoExtractor(InfoExtractor):
                 itemdoc, './/{http://search.yahoo.com/mrss/}category',
                 'scheme', 'urn:mtvn:video_title')
         if title_el is None:
-            title_el = itemdoc.find('.//{http://search.yahoo.com/mrss/}title')
-        if title_el is None:
             title_el = itemdoc.find('.//title')
+            if title_el.text is None:
+                title_el = None
+        if title_el is None:
+            title_el = itemdoc.find('.//{http://search.yahoo.com/mrss/}title')
+
         title = title_el.text
         if title is None:
             raise ExtractorError('Could not find video title')
