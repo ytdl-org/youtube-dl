@@ -117,6 +117,13 @@ class TestYoutubeLists(unittest.TestCase):
         original_video = entries[0]
         self.assertEqual(original_video['id'], 'rjFaenf1T-Y')
 
+    def test_youtube_toptracks(self):
+        dl = FakeYDL()
+        ie = YoutubePlaylistIE(dl)
+        result = ie.extract('https://www.youtube.com/playlist?list=MCUS')
+        entries = result['entries']
+        self.assertEqual(len(entries), 100)
+
     def test_youtube_toplist(self):
         dl = FakeYDL()
         ie = YoutubeTopListIE(dl)
