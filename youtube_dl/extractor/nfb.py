@@ -12,7 +12,7 @@ from ..utils import (
 class NFBIE(InfoExtractor):
     IE_NAME = 'nfb'
     IE_DESC = 'National Film Board of Canada'
-    _VALID_URL = r'https?://(?:www\.)?nfb\.ca/film/(?P<id>[\da-z_-]+)'
+    _VALID_URL = r'https?://(?:www\.)?(nfb|onf)\.ca/film/(?P<id>[\da-z_-]+)'
 
     _TEST = {
         'url': 'https://www.nfb.ca/film/qallunaat_why_white_people_are_funny',
@@ -35,7 +35,7 @@ class NFBIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        page = self._download_webpage(url, video_id, 'Downloading film page')
+        page = self._download_webpage('https://www.nfb.ca/film/%s' % video_id, video_id, 'Downloading film page')
 
         uploader_id = self._html_search_regex(r'<a class="director-link" href="/explore-all-directors/([^/]+)/"',
             page, 'director id', fatal=False)
