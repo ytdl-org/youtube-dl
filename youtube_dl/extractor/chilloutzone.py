@@ -1,14 +1,18 @@
+from __future__ import unicode_literals
+
 import re
 import base64
-import urllib
 import json
 
 from .common import InfoExtractor
+from ..utils import (
+    clean_html,
+    ExtractorError
+)
 
-video_container = ('.mp4', '.mkv', '.flv')
 
 class ChilloutzoneIE(InfoExtractor):
-    _VALID_URL = r'(?:https?://)?(?:www\.)?chilloutzone\.net/video/(?P<id>[\w|-]+).html'
+    _VALID_URL = r'https?://(?:www\.)?chilloutzone\.net/video/(?P<id>[\w|-]+)\.html'
     _TEST = {
         'url': 'http://www.chilloutzone.net/video/enemene-meck-alle-katzen-weg.html',
         'md5': 'a76f3457e813ea0037e5244f509e66d1',
@@ -16,6 +20,7 @@ class ChilloutzoneIE(InfoExtractor):
             'id': 'enemene-meck-alle-katzen-weg',
             'ext': 'mp4',
             'title': 'Enemene Meck - Alle Katzen weg',
+            'description': 'Ist das der Umkehrschluss des Niesenden Panda-Babys?',
         },
     }
 
@@ -23,71 +28,45 @@ class ChilloutzoneIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        webpage_url = 'http://www.chilloutzone.net/video/' + video_id + '.html'
+        webpage = self._download_webpage(url, video_id)
 
-        # Log that we are starting to download the page
-        self.report_download_webpage(webpage_url)
-        webpage = self._download_webpage(webpage_url, video_id)
-    
-        # Log that we are starting to parse the page
-        self.report_extraction(video_id)        
-        # Find base64 decoded file info
-        base64_video_info = self._html_search_regex(r'var cozVidData = "(.+?)";', webpage, u'video Data')
-        # decode string and find video file
+        base64_video_info = self._html_search_regex(
+            r'var cozVidData = "(.+?)";', webpage, 'video data')
         decoded_video_info = base64.b64decode(base64_video_info).decode("utf-8")
         video_info_dict = json.loads(decoded_video_info)
+
         # get video information from dict
-        media_url = video_info_dict['mediaUrl']
-        description = video_info_dict['description']
+        video_url = video_info_dict['mediaUrl']
+        description = clean_html(video_info_dict.get('description'))
         title = video_info_dict['title']
         native_platform = video_info_dict['nativePlatform']
         native_video_id = video_info_dict['nativeVideoId']
         source_priority = video_info_dict['sourcePriority']
 
-
-        # Start video extraction
-        video_url = ''
         # If nativePlatform is None a fallback mechanism is used (i.e. youtube embed)
-        if native_platform == None:
-            # Look for other video urls
-            video_url = self._html_search_regex(r'<iframe.* src="(.+?)".*', webpage, u'fallback Video URL')
-            if 'youtube' in video_url:
-                self.to_screen(u'Youtube video detected:')
-                return self.url_result(video_url, ie='Youtube')
-
-        # For debugging purposes
-        #print video_info_dict
-        #print native_platform
-        #print native_video_id
-        #print source_priority
-        #print media_url
+        if native_platform is None:
+            youtube_url = self._html_search_regex(
+                r'<iframe.* src="((?:https?:)?//(?:[^.]+\.)?youtube\.com/.+?)"',
+                webpage, 'fallback video URL', default=None)
+            if youtube_url is not None:
+                return self.url_result(youtube_url, ie='Youtube')
 
         # Non Fallback: Decide to use native source (e.g. youtube or vimeo) or
         # the own CDN
         if source_priority == 'native':
             if native_platform == 'youtube':
-                self.to_screen(u'Youtube video detected:')
-                video_url = 'https://www.youtube.com/watch?v=' + native_video_id
-                return self.url_result(video_url, ie='Youtube') 
+                return self.url_result(video_id, ie='Youtube')
             if native_platform == 'vimeo':
-                self.to_screen(u'Vimeo video detected:')
-                video_url = 'http://vimeo.com/' + native_video_id
-                return self.url_result(video_url, ie='Vimeo')
+                return self.url_result(
+                    'http://vimeo.com/' + native_video_id, ie='Vimeo')
 
-        # No redirect, use coz media url
-        video_url = media_url
-        if video_url.endswith('.mp4') == False:
-            self.report_warning(u'Url does not contain a video container')
-            return []
+        if not video_url:
+            raise ExtractorError('No video found')
 
-
-        return [{
-            'id':        video_id,
-            'url':       video_url,
-            'ext':       'mp4',
-            'title':     title,
+        return {
+            'id': video_id,
+            'url': video_url,
+            'ext': 'mp4',
+            'title': title,
             'description': description,
-        }]
-
-
-
+        }

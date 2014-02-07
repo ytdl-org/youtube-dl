@@ -37,6 +37,8 @@ class TestAllURLsMatching(unittest.TestCase):
         assertPlaylist(u'https://www.youtube.com/playlist?list=PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC')
         assertPlaylist(u'https://www.youtube.com/watch?v=AV6J6_AeFEQ&playnext=1&list=PL4023E734DA416012') #668
         self.assertFalse('youtube:playlist' in self.matching_ies(u'PLtS2H6bU1M'))
+        # Top tracks
+        assertPlaylist('https://www.youtube.com/playlist?list=MCUS.20142101')
 
     def test_youtube_matching(self):
         self.assertTrue(YoutubeIE.suitable(u'PLtS2H6bU1M'))

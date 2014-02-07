@@ -9,7 +9,7 @@ from ..utils import unified_strdate
 
 class ElPaisIE(InfoExtractor):
     _VALID_URL = r'https?://(?:[^.]+\.)?elpais\.com/.*/(?P<id>[^/#?]+)\.html(?:$|[?#])'
-    IE_DESCR = 'El País'
+    IE_DESC = 'El País'
 
     _TEST = {
         'url': 'http://blogs.elpais.com/la-voz-de-inaki/2014/02/tiempo-nuevo-recetas-viejas.html',

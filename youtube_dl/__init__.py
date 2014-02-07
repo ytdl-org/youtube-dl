@@ -41,6 +41,7 @@ __authors__  = (
     'Chris Gahan',
     'Saimadhav Heblikar',
     'Mike Col',
+    'Andreas Schmitz',
 )
 
 __license__ = 'Public Domain'
