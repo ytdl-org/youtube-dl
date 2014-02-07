@@ -14,15 +14,16 @@ from ..utils import (
 class IviIE(InfoExtractor):
     IE_DESC = 'ivi.ru'
     IE_NAME = 'ivi'
-    _VALID_URL = r'^https?://(?:www\.)?ivi\.ru/watch(?:/(?P<compilationid>[^/]+))?/(?P<videoid>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?ivi\.ru/watch(?:/(?P<compilationid>[^/]+))?/(?P<videoid>\d+)'
 
     _TESTS = [
         # Single movie
         {
             'url': 'http://www.ivi.ru/watch/53141',
-            'file': '53141.mp4',
             'md5': '6ff5be2254e796ed346251d117196cf4',
             'info_dict': {
+                'id': '53141',
+                'ext': 'mp4',
                 'title': 'Иван Васильевич меняет профессию',
                 'description': 'md5:b924063ea1677c8fe343d8a72ac2195f',
                 'duration': 5498,
@@ -33,9 +34,10 @@ class IviIE(InfoExtractor):
         # Serial's serie
         {
             'url': 'http://www.ivi.ru/watch/dezhurnyi_angel/74791',
-            'file': '74791.mp4',
             'md5': '3e6cc9a848c1d2ebcc6476444967baa9',
             'info_dict': {
+                'id': '74791',
+                'ext': 'mp4',
                 'title': 'Дежурный ангел - 1 серия',
                 'duration': 2490,
                 'thumbnail': 'http://thumbs.ivi.ru/f7.vcp.digitalaccess.ru/contents/8/e/bc2f6c2b6e5d291152fdd32c059141.jpg',
@@ -124,7 +126,7 @@ class IviIE(InfoExtractor):
 class IviCompilationIE(InfoExtractor):
     IE_DESC = 'ivi.ru compilations'
     IE_NAME = 'ivi:compilation'
-    _VALID_URL = r'^https?://(?:www\.)?ivi\.ru/watch/(?!\d+)(?P<compilationid>[a-z\d_-]+)(?:/season(?P<seasonid>\d+))?$'
+    _VALID_URL = r'https?://(?:www\.)?ivi\.ru/watch/(?!\d+)(?P<compilationid>[a-z\d_-]+)(?:/season(?P<seasonid>\d+))?$'
 
     def _extract_entries(self, html, compilation_id):
         return [self.url_result('http://www.ivi.ru/watch/%s/%s' % (compilation_id, serie), 'Ivi')
