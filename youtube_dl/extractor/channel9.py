@@ -15,14 +15,15 @@ class Channel9IE(InfoExtractor):
     '''
     IE_DESC = 'Channel 9'
     IE_NAME = 'channel9'
-    _VALID_URL = r'^https?://(?:www\.)?channel9\.msdn\.com/(?P<contentpath>.+)/?'
+    _VALID_URL = r'https?://(?:www\.)?channel9\.msdn\.com/(?P<contentpath>.+)/?'
 
     _TESTS = [
         {
             'url': 'http://channel9.msdn.com/Events/TechEd/Australia/2013/KOS002',
-            'file': 'Events_TechEd_Australia_2013_KOS002.mp4',
             'md5': 'bbd75296ba47916b754e73c3a4bbdf10',
             'info_dict': {
+                'id': 'Events/TechEd/Australia/2013/KOS002',
+                'ext': 'mp4',
                 'title': 'Developer Kick-Off Session: Stuff We Love',
                 'description': 'md5:c08d72240b7c87fcecafe2692f80e35f',
                 'duration': 4576,
@@ -35,9 +36,10 @@ class Channel9IE(InfoExtractor):
         },
         {
             'url': 'http://channel9.msdn.com/posts/Self-service-BI-with-Power-BI-nuclear-testing',
-            'file': 'posts_Self-service-BI-with-Power-BI-nuclear-testing.mp4',
             'md5': 'b43ee4529d111bc37ba7ee4f34813e68',
             'info_dict': {
+                'id': 'posts/Self-service-BI-with-Power-BI-nuclear-testing',
+                'ext': 'mp4',
                 'title': 'Self-service BI with Power BI - nuclear testing',
                 'description': 'md5:d1e6ecaafa7fb52a2cacdf9599829f5b',
                 'duration': 1540,
