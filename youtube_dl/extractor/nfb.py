@@ -49,20 +49,37 @@ class NFBIE(InfoExtractor):
 
         config = self._download_xml(request, video_id, 'Downloading player config XML')
 
-        thumbnail = config.find("./player/stream/media[@type='posterImage']/assets/asset[@quality='high']/default/url").text
-        video = config.find("./player/stream/media[@type='video']")
-        duration = int(video.get('duration'))
-        title = video.find('title').text
-        description = video.find('description').text
+        title = None
+        description = None
+        thumbnail = None
+        duration = None
+        formats = []
 
-        # It seems assets always go from lower to better quality, so no need to sort
-        formats = [{
-            'url': x.find('default/streamerURI').text + '/',
-            'play_path': x.find('default/url').text,
-            'rtmp_live': False,
-            'ext': 'mp4',
-            'format_id': x.get('quality'),
-        } for x in video.findall('assets/asset')]
+        def extract_thumbnail(media):
+            thumbnails = {}
+            for asset in media.findall('assets/asset'):
+                thumbnails[asset.get('quality')] = asset.find('default/url').text
+            if not thumbnails:
+                return None
+            if 'high' in thumbnails:
+                return thumbnails['high']
+            return list(thumbnails.values())[0]
+
+        for media in config.findall('./player/stream/media'):
+            if media.get('type') == 'posterImage':
+                thumbnail = extract_thumbnail(media)
+            elif media.get('type') == 'video':
+                duration = int(media.get('duration'))
+                title = media.find('title').text
+                description = media.find('description').text
+                # It seems assets always go from lower to better quality, so no need to sort
+                formats = [{
+                    'url': x.find('default/streamerURI').text + '/',
+                    'play_path': x.find('default/url').text,
+                    'rtmp_live': False,
+                    'ext': 'mp4',
+                    'format_id': x.get('quality'),
+                } for x in media.findall('assets/asset')]
 
         return {
             'id': video_id,
