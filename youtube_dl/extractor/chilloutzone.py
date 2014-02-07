@@ -5,7 +5,10 @@ import base64
 import json
 
 from .common import InfoExtractor
-from ..utils import clean_html
+from ..utils import (
+    clean_html,
+    ExtractorError
+)
 
 
 class ChilloutzoneIE(InfoExtractor):
