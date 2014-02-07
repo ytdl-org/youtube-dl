@@ -13,7 +13,7 @@ from ..utils import (
 
 class ChilloutzoneIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?chilloutzone\.net/video/(?P<id>[\w|-]+)\.html'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.chilloutzone.net/video/enemene-meck-alle-katzen-weg.html',
         'md5': 'a76f3457e813ea0037e5244f509e66d1',
         'info_dict': {
@@ -22,7 +22,32 @@ class ChilloutzoneIE(InfoExtractor):
             'title': 'Enemene Meck - Alle Katzen weg',
             'description': 'Ist das der Umkehrschluss des Niesenden Panda-Babys?',
         },
-    }
+    }, {
+        'note': 'Video hosted at YouTube',
+        'url': 'http://www.chilloutzone.net/video/eine-sekunde-bevor.html',
+        'info_dict': {
+            'id': '1YVQaAgHyRU',
+            'ext': 'mp4',
+            'title': '16 Photos Taken 1 Second Before Disaster',
+            'description': 'md5:58a8fcf6a459fe0a08f54140f0ad1814',
+            'uploader': 'BuzzFeedVideo',
+            'uploader_id': 'BuzzFeedVideo',
+            'upload_date': '20131105',
+        },
+    }, {
+        'note': 'Video hosted at Vimeo',
+        'url': 'http://www.chilloutzone.net/video/icon-blending.html',
+        'md5': '2645c678b8dc4fefcc0e1b60db18dac1',
+        'info_dict': {
+            'id': '85523671',
+            'ext': 'mp4',
+            'title': 'The Sunday Times - Icons',
+            'description': 'md5:3e5e8e839f076a637c6b9406c8f25c4c',
+            'uploader': 'Us',
+            'uploader_id': 'usfilms',
+            'upload_date': '20140131'
+        },
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
