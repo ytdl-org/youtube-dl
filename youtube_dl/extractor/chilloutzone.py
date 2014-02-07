@@ -55,7 +55,7 @@ class ChilloutzoneIE(InfoExtractor):
         # the own CDN
         if source_priority == 'native':
             if native_platform == 'youtube':
-                return self.url_result(video_id, ie='Youtube')
+                return self.url_result(native_video_id, ie='Youtube')
             if native_platform == 'vimeo':
                 return self.url_result(
                     'http://vimeo.com/' + native_video_id, ie='Vimeo')
