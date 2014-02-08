@@ -85,7 +85,7 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertTrue(JustinTVIE.suitable(u"http://www.twitch.tv/tsm_theoddone/c/2349361"))
 
     def test_youtube_extract(self):
-        assertExtractId = lambda url, id: self.assertEqual(YoutubeIE()._extract_id(url), id)
+        assertExtractId = lambda url, id: self.assertEqual(YoutubeIE.extract_id(url), id)
         assertExtractId('http://www.youtube.com/watch?&v=BaW_jenozKc', 'BaW_jenozKc')
         assertExtractId('https://www.youtube.com/watch?&v=BaW_jenozKc', 'BaW_jenozKc')
         assertExtractId('https://www.youtube.com/watch?feature=player_embedded&v=BaW_jenozKc', 'BaW_jenozKc')

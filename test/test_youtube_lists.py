@@ -30,7 +30,7 @@ class TestYoutubeLists(unittest.TestCase):
         result = ie.extract('https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re')
         self.assertIsPlaylist(result)
         self.assertEqual(result['title'], 'ytdl test PL')
-        ytie_results = [YoutubeIE()._extract_id(url['url']) for url in result['entries']]
+        ytie_results = [YoutubeIE().extract_id(url['url']) for url in result['entries']]
         self.assertEqual(ytie_results, [ 'bV9L5Ht9LgY', 'FXxLjLQi3Fg', 'tU3Bgo5qJZE'])
 
     def test_youtube_playlist_noplaylist(self):
@@ -39,7 +39,7 @@ class TestYoutubeLists(unittest.TestCase):
         ie = YoutubePlaylistIE(dl)
         result = ie.extract('https://www.youtube.com/watch?v=FXxLjLQi3Fg&list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re')
         self.assertEqual(result['_type'], 'url')
-        self.assertEqual(YoutubeIE()._extract_id(result['url']), 'FXxLjLQi3Fg')
+        self.assertEqual(YoutubeIE().extract_id(result['url']), 'FXxLjLQi3Fg')
 
     def test_issue_673(self):
         dl = FakeYDL()
@@ -59,7 +59,7 @@ class TestYoutubeLists(unittest.TestCase):
         dl = FakeYDL()
         ie = YoutubePlaylistIE(dl)
         result = ie.extract('https://www.youtube.com/playlist?list=PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC')
-        ytie_results = [YoutubeIE()._extract_id(url['url']) for url in result['entries']]
+        ytie_results = [YoutubeIE().extract_id(url['url']) for url in result['entries']]
         self.assertFalse('pElCt5oNDuI' in ytie_results)
         self.assertFalse('KdPEApIVdWM' in ytie_results)
         
@@ -76,9 +76,9 @@ class TestYoutubeLists(unittest.TestCase):
         # TODO find a > 100 (paginating?) videos course
         result = ie.extract('https://www.youtube.com/course?list=ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8')
         entries = result['entries']
-        self.assertEqual(YoutubeIE()._extract_id(entries[0]['url']), 'j9WZyLZCBzs')
+        self.assertEqual(YoutubeIE().extract_id(entries[0]['url']), 'j9WZyLZCBzs')
         self.assertEqual(len(entries), 25)
-        self.assertEqual(YoutubeIE()._extract_id(entries[-1]['url']), 'rYefUsYuEp0')
+        self.assertEqual(YoutubeIE().extract_id(entries[-1]['url']), 'rYefUsYuEp0')
 
     def test_youtube_channel(self):
         dl = FakeYDL()

@@ -105,6 +105,7 @@ from .ivi import (
     IviIE,
     IviCompilationIE
 )
+from .jadorecettepub import JadoreCettePubIE
 from .jeuxvideo import JeuxVideoIE
 from .jukebox import JukeboxIE
 from .justintv import JustinTVIE

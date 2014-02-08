@@ -1085,8 +1085,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             self._downloader.report_warning(err_msg)
             return {}
 
-    def _extract_id(self, url):
-        mobj = re.match(self._VALID_URL, url, re.VERBOSE)
+    @classmethod
+    def extract_id(cls, url):
+        mobj = re.match(cls._VALID_URL, url, re.VERBOSE)
         if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
         video_id = mobj.group(2)
@@ -1115,7 +1116,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         mobj = re.search(self._NEXT_URL_RE, url)
         if mobj:
             url = 'https://www.youtube.com/' + compat_urllib_parse.unquote(mobj.group(1)).lstrip('/')
-        video_id = self._extract_id(url)
+        video_id = self.extract_id(url)
 
         # Get video webpage
         url = 'https://www.youtube.com/watch?v=%s&gl=US&hl=en&has_verified=1' % video_id
