@@ -14,8 +14,8 @@ class XHamsterIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:www\.)?xhamster\.com/movies/(?P<id>[0-9]+)/(?P<seo>.+?)\.html(?:\?.*)?'
     _TESTS = [{
         'url': 'http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html',
-        'file': '1509445.mp4',
-        'md5': '8281348b8d3c53d39fffb377d24eac4e',
+        'file': '1509445.flv',
+        'md5': '9f48e0e8d58e3076bb236ff412ab62fa',
         'info_dict': {
             "upload_date": "20121014",
             "uploader_id": "Ruseful2011",
@@ -91,7 +91,6 @@ class XHamsterIE(InfoExtractor):
         formats = [{
             'url': video_url,
             'format_id': 'hd' if hd else 'sd',
-            'preference': 0,
         }]
 
         video_mp4_url = extract_mp4_video_url(webpage)
@@ -100,7 +99,7 @@ class XHamsterIE(InfoExtractor):
                 'url': video_mp4_url,
                 'ext': 'mp4',
                 'format_id': 'mp4-hd' if hd else 'mp4-sd',
-                'preference': 1,
+                'preference': -2, # download sometimes doesn't work (error 404)
             })
 
         if not hd:
@@ -111,8 +110,17 @@ class XHamsterIE(InfoExtractor):
                 formats.append({
                     'url': video_url,
                     'format_id': 'hd',
-                    'preference': 2,
+                    'quality': 1,
                 })
+                video_mp4_url = extract_mp4_video_url(webpage)
+                if video_mp4_url is not None:
+                    formats.append({
+                        'url': video_mp4_url,
+                        'ext': 'mp4',
+                        'format_id': 'mp4-hd',
+                        'quality': 1,
+                        'preference': -2, # download sometimes doesn't work (error 404)
+                    })
 
         self._sort_formats(formats)
 
