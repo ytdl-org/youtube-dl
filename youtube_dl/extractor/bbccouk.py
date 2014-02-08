@@ -9,7 +9,7 @@ from ..utils import ExtractorError
 class BBCCoUkIE(InfoExtractor):
     IE_NAME = 'bbc.co.uk'
     IE_DESC = 'BBC - iPlayer Radio'
-    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(programmes|iplayer/episode)/(?P<id>[\da-z]{8})'
+    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:programmes|iplayer/episode)/(?P<id>[\da-z]{8})'
 
     _TEST = {
         'url': 'http://www.bbc.co.uk/programmes/p01q7wz1',
