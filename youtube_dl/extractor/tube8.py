@@ -11,7 +11,7 @@ from ..aes import (
 )
 
 class Tube8IE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>tube8\.com/[^/]+/[^/]+/(?P<videoid>[0-9]+)/?)'
+    _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>tube8\.com/.+?/(?P<videoid>\d+)/?)$'
     _TEST = {
         u'url': u'http://www.tube8.com/teen/kasia-music-video/229795/',
         u'file': u'229795.mp4',
