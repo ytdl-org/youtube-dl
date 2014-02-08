@@ -2,29 +2,160 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
+from .subtitles import SubtitlesInfoExtractor
 from ..utils import ExtractorError
 
 
-class BBCCoUkIE(InfoExtractor):
+class BBCCoUkIE(SubtitlesInfoExtractor):
     IE_NAME = 'bbc.co.uk'
-    IE_DESC = 'BBC - iPlayer Radio'
+    IE_DESC = 'BBC iPlayer'
     _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:programmes|iplayer/episode)/(?P<id>[\da-z]{8})'
 
-    _TEST = {
-        'url': 'http://www.bbc.co.uk/programmes/p01q7wz1',
-        'info_dict': {
-            'id': 'p01q7wz4',
-            'ext': 'flv',
-            'title': 'Friction: Blu Mar Ten guest mix: Blu Mar Ten - Guest Mix',
-            'description': 'Blu Mar Ten deliver a Guest Mix for Friction.',
-            'duration': 1936,
+    _TESTS = [
+        {
+            'url': 'http://www.bbc.co.uk/programmes/p01q7wz1',
+            'info_dict': {
+                'id': 'p01q7wz4',
+                'ext': 'flv',
+                'title': 'Friction: Blu Mar Ten guest mix: Blu Mar Ten - Guest Mix',
+                'description': 'Blu Mar Ten deliver a Guest Mix for Friction.',
+                'duration': 1936,
+            },
+            'params': {
+                # rtmp download
+                'skip_download': True,
+            }
         },
-        'params': {
-            # rtmp download
-            'skip_download': True,
+        {
+            'url': 'http://www.bbc.co.uk/iplayer/episode/b00yng5w/The_Man_in_Black_Series_3_The_Printed_Name/',
+            'info_dict': {
+                'id': 'b00yng1d',
+                'ext': 'flv',
+                'title': 'The Man in Black: Series 3: The Printed Name',
+                'description': "Mark Gatiss introduces Nicholas Pierpan's chilling tale of a writer's devilish pact with a mysterious man. Stars Ewan Bailey.",
+                'duration': 1800,
+            },
+            'params': {
+                # rtmp download
+                'skip_download': True,
+            }
+        },
+        {
+            'url': 'http://www.bbc.co.uk/iplayer/episode/b03vhd1f/The_Voice_UK_Series_3_Blind_Auditions_5/',
+            'info_dict': {
+                'id': 'b00yng1d',
+                'ext': 'flv',
+                'title': 'The Man in Black: Series 3: The Printed Name',
+                'description': "Mark Gatiss introduces Nicholas Pierpan's chilling tale of a writer's devilish pact with a mysterious man. Stars Ewan Bailey.",
+                'duration': 1800,
+            },
+            'params': {
+                # rtmp download
+                'skip_download': True,
+            },
+            'skip': 'Currently BBC iPlayer TV programmes are available to play in the UK only',
         }
-    }
+    ]
+
+    def _extract_asx_playlist(self, connection, programme_id):
+        asx = self._download_xml(connection.get('href'), programme_id, 'Downloading ASX playlist')
+        return [ref.get('href') for ref in asx.findall('./Entry/ref')]
+
+    def _extract_connection(self, connection, programme_id):
+        formats = []
+        protocol = connection.get('protocol')
+        supplier = connection.get('supplier')
+        if protocol == 'http':
+            href = connection.get('href')
+            # ASX playlist
+            if supplier == 'asx':
+                for i, ref in enumerate(self._extract_asx_playlist(connection, programme_id)):
+                    formats.append({
+                        'url': ref,
+                        'format_id': 'ref%s_%s' % (i, supplier),
+                    })
+            # Direct link
+            else:
+                formats.append({
+                    'url': href,
+                    'format_id': supplier,
+                })
+        elif protocol == 'rtmp':
+            application = connection.get('application', 'ondemand')
+            auth_string = connection.get('authString')
+            identifier = connection.get('identifier')
+            server = connection.get('server')
+            formats.append({
+                'url': '%s://%s/%s?%s' % (protocol, server, application, auth_string),
+                'play_path': identifier,
+                'app': '%s?%s' % (application, auth_string),
+                'page_url': 'http://www.bbc.co.uk',
+                'player_url': 'http://www.bbc.co.uk/emp/releases/iplayer/revisions/617463_618125_4/617463_618125_4_emp.swf',
+                'rtmp_live': False,
+                'ext': 'flv',
+                'format_id': supplier,
+            })
+        return formats
+
+    def _extract_items(self, playlist):
+        return playlist.findall('./{http://bbc.co.uk/2008/emp/playlist}item')
+
+    def _extract_medias(self, media_selection):
+        return media_selection.findall('./{http://bbc.co.uk/2008/mp/mediaselection}media')
+
+    def _extract_connections(self, media):
+        return media.findall('./{http://bbc.co.uk/2008/mp/mediaselection}connection')
+
+    def _extract_video(self, media, programme_id):
+        formats = []
+        vbr = int(media.get('bitrate'))
+        vcodec = media.get('encoding')
+        service = media.get('service')
+        width = int(media.get('width'))
+        height = int(media.get('height'))
+        file_size = int(media.get('media_file_size'))
+        for connection in self._extract_connections(media):
+            conn_formats = self._extract_connection(connection, programme_id)
+            for format in conn_formats:
+                format.update({
+                    'format_id': '%s_%s' % (service, format['format_id']),
+                    'width': width,
+                    'height': height,
+                    'vbr': vbr,
+                    'vcodec': vcodec,
+                    'filesize': file_size,
+                })
+            formats.extend(conn_formats)
+        return formats
+
+    def _extract_audio(self, media, programme_id):
+        formats = []
+        abr = int(media.get('bitrate'))
+        acodec = media.get('encoding')
+        service = media.get('service')
+        for connection in self._extract_connections(media):
+            conn_formats = self._extract_connection(connection, programme_id)
+            for format in conn_formats:
+                format.update({
+                    'format_id': '%s_%s' % (service, format['format_id']),
+                    'abr': abr,
+                    'acodec': acodec,
+                })
+            formats.extend(conn_formats)
+        return formats
+
+    def _extract_captions(self, media, programme_id):
+        subtitles = {}
+        for connection in self._extract_connections(media):
+            captions = self._download_xml(connection.get('href'), programme_id, 'Downloading captions')
+            lang = captions.get('{http://www.w3.org/XML/1998/namespace}lang', 'en')
+            ps = captions.findall('./{0}body/{0}div/{0}p'.format('{http://www.w3.org/2006/10/ttaf1}'))
+            srt = ''
+            for pos, p in enumerate(ps):
+                srt += '%s\r\n%s --> %s\r\n%s\r\n\r\n' % (str(pos), p.get('begin'), p.get('end'),
+                                                          p.text.strip() if p.text is not None else '')
+            subtitles[lang] = srt
+        return subtitles
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -33,84 +164,54 @@ class BBCCoUkIE(InfoExtractor):
         playlist = self._download_xml('http://www.bbc.co.uk/iplayer/playlist/%s' % group_id, group_id,
             'Downloading playlist XML')
 
-        item = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}item')
-        if item is None:
-            no_items = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}noItems')
-            if no_items is not None:
-                reason = no_items.get('reason')
-                if reason == 'preAvailability':
-                    msg = 'Episode %s is not yet available' % group_id
-                elif reason == 'postAvailability':
-                    msg = 'Episode %s is no longer available' % group_id
-                else:
-                    msg = 'Episode %s is not available: %s' % (group_id, reason)
-                raise ExtractorError(msg, expected=True)
-            raise ExtractorError('Failed to extract media for episode %s' % group_id, expected=True)
-
-        title = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}title').text
-        description = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}summary').text
-
-        radio_programme_id = item.get('identifier')
-        duration = int(item.get('duration'))
-
-        media_selection = self._download_xml(
-            'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s'  % radio_programme_id,
-            radio_programme_id, 'Downloading media selection XML')
+        no_items = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}noItems')
+        if no_items is not None:
+            reason = no_items.get('reason')
+            if reason == 'preAvailability':
+                msg = 'Episode %s is not yet available' % group_id
+            elif reason == 'postAvailability':
+                msg = 'Episode %s is no longer available' % group_id
+            else:
+                msg = 'Episode %s is not available: %s' % (group_id, reason)
+            raise ExtractorError(msg, expected=True)
 
         formats = []
-        for media in media_selection.findall('./{http://bbc.co.uk/2008/mp/mediaselection}media'):
-            bitrate = int(media.get('bitrate'))
-            encoding = media.get('encoding')
-            service = media.get('service')
-            connection = media.find('./{http://bbc.co.uk/2008/mp/mediaselection}connection')
-            protocol = connection.get('protocol')
-            priority = connection.get('priority')
-            supplier = connection.get('supplier')
-            if protocol == 'http':
-                href = connection.get('href')
-                # ASX playlist
-                if supplier == 'asx':
-                    asx = self._download_xml(href, radio_programme_id, 'Downloading %s ASX playlist' % service)
-                    for i, ref in enumerate(asx.findall('./Entry/ref')):
-                        formats.append({
-                            'url': ref.get('href'),
-                            'format_id': '%s_ref%s' % (service, i),
-                            'abr': bitrate,
-                            'acodec': encoding,
-                            'preference': priority,
-                        })
-                    continue
-                # Direct link
-                formats.append({
-                    'url': href,
-                    'format_id': service,
-                    'abr': bitrate,
-                    'acodec': encoding,
-                    'preference': priority,
-                })
-            elif protocol == 'rtmp':
-                application = connection.get('application', 'ondemand')
-                auth_string = connection.get('authString')
-                identifier = connection.get('identifier')
-                server = connection.get('server')
-                formats.append({
-                    'url': '%s://%s/%s?%s' % (protocol, server, application, auth_string),
-                    'play_path': identifier,
-                    'app': '%s?%s' % (application, auth_string),
-                    'rtmp_live': False,
-                    'ext': 'flv',
-                    'format_id': service,
-                    'abr': bitrate,
-                    'acodec': encoding,
-                    'preference': priority,
-                })
+        subtitles = None
+
+        for item in self._extract_items(playlist):
+            kind = item.get('kind')
+            if kind != 'programme' and kind != 'radioProgramme':
+                continue
+            title = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}title').text
+            description = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}summary').text
+
+            programme_id = item.get('identifier')
+            duration = int(item.get('duration'))
+
+            media_selection = self._download_xml(
+                'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s'  % programme_id,
+                programme_id, 'Downloading media selection XML')
+
+            for media in self._extract_medias(media_selection):
+                kind = media.get('kind')
+                if kind == 'audio':
+                    formats.extend(self._extract_audio(media, programme_id))
+                elif kind == 'video':
+                    formats.extend(self._extract_video(media, programme_id))
+                elif kind == 'captions':
+                    subtitles = self._extract_captions(media, programme_id)
+
+        if self._downloader.params.get('listsubtitles', False):
+            self._list_available_subtitles(programme_id, subtitles)
+            return
 
         self._sort_formats(formats)
 
         return {
-            'id': radio_programme_id,
+            'id': programme_id,
             'title': title,
             'description': description,
             'duration': duration,
             'formats': formats,
+            'subtitles': subtitles,
         }
