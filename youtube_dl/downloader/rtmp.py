@@ -87,8 +87,10 @@ class RtmpFD(FileDownloader):
         url = info_dict['url']
         player_url = info_dict.get('player_url', None)
         page_url = info_dict.get('page_url', None)
+        app = info_dict.get('app', None)
         play_path = info_dict.get('play_path', None)
         tc_url = info_dict.get('tc_url', None)
+        flash_version = info_dict.get('flash_version', None)
         live = info_dict.get('rtmp_live', False)
         conn = info_dict.get('rtmp_conn', None)
 
@@ -111,12 +113,16 @@ class RtmpFD(FileDownloader):
             basic_args += ['--swfVfy', player_url]
         if page_url is not None:
             basic_args += ['--pageUrl', page_url]
+        if app is not None:
+            basic_args += ['--app', app]
         if play_path is not None:
             basic_args += ['--playpath', play_path]
         if tc_url is not None:
             basic_args += ['--tcUrl', url]
         if test:
             basic_args += ['--stop', '1']
+        if flash_version is not None:
+            basic_args += ['--flashVer', flash_version]
         if live:
             basic_args += ['--live']
         if conn:
