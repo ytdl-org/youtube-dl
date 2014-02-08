@@ -45,9 +45,9 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
             'info_dict': {
                 'id': 'b00yng1d',
                 'ext': 'flv',
-                'title': 'The Man in Black: Series 3: The Printed Name',
-                'description': "Mark Gatiss introduces Nicholas Pierpan's chilling tale of a writer's devilish pact with a mysterious man. Stars Ewan Bailey.",
-                'duration': 1800,
+                'title': 'The Voice UK: Series 3: Blind Auditions 5',
+                'description': "Emma Willis and Marvin Humes present the fifth set of blind auditions in the singing competition, as the coaches continue to build their teams based on voice alone.",
+                'duration': 5100,
             },
             'params': {
                 # rtmp download
