@@ -9,7 +9,7 @@ class PBSIE(InfoExtractor):
     _VALID_URL = r'''(?x)https?://
         (?:
             # Direct video URL
-            video\.pbs\.org/video/(?P<id>[0-9]+)/? |
+            video\.pbs\.org/(?:viralplayer|video)/(?P<id>[0-9]+)/? |
             # Article with embedded player
            (?:www\.)?pbs\.org/(?:[^/]+/){2,5}(?P<presumptive_id>[^/]+)/?(?:$|[?\#]) |
            # Player
