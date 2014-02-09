@@ -34,6 +34,7 @@ from ..utils import (
     unified_strdate,
     orderedSet,
     write_json_file,
+    uppercase_escape,
 )
 
 class YoutubeBaseInfoExtractor(InfoExtractor):
@@ -1590,11 +1591,10 @@ class YoutubeChannelIE(InfoExtractor):
             # Download all channel pages using the json-based channel_ajax query
             for pagenum in itertools.count(1):
                 url = self._MORE_PAGES_URL % (pagenum, channel_id)
-                page = self._download_webpage(url, channel_id,
-                                              u'Downloading page #%s' % pagenum)
-    
-                page = json.loads(page)
-    
+                page = self._download_json(
+                    url, channel_id, note=u'Downloading page #%s' % pagenum,
+                    transform_source=uppercase_escape)
+
                 ids_in_page = self.extract_videos_from_page(page['content_html'])
                 video_ids.extend(ids_in_page)
     

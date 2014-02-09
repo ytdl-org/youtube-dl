@@ -271,8 +271,11 @@ class InfoExtractor(object):
 
     def _download_json(self, url_or_request, video_id,
                        note=u'Downloading JSON metadata',
-                       errnote=u'Unable to download JSON metadata'):
+                       errnote=u'Unable to download JSON metadata',
+                       transform_source=None):
         json_string = self._download_webpage(url_or_request, video_id, note, errnote)
+        if transform_source:
+            json_string = transform_source(json_string)
         try:
             return json.loads(json_string)
         except ValueError as ve:

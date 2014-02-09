@@ -1214,3 +1214,9 @@ class PagedList(object):
             if end == nextfirstid:
                 break
         return res
+
+
+def uppercase_escape(s):
+    return re.sub(
+        r'\\U([0-9a-fA-F]{8})',
+        lambda m: compat_chr(int(m.group(1), base=16)), s)
