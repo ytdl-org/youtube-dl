@@ -127,6 +127,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unified_strdate('8/7/2009'), '20090708')
         self.assertEqual(unified_strdate('Dec 14, 2012'), '20121214')
         self.assertEqual(unified_strdate('2012/10/11 01:56:38 +0000'), '20121011')
+        self.assertEqual(unified_strdate('1968-12-10'), '19681210')
 
     def test_find_xpath_attr(self):
         testxml = u'''<root>
