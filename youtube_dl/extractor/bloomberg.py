@@ -24,5 +24,7 @@ class BloombergIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         name = mobj.group('name')
         webpage = self._download_webpage(url, name)
-        ooyala_url = self._twitter_search_player(webpage)
-        return self.url_result(ooyala_url, OoyalaIE.ie_key())
+        embed_code = self._search_regex(
+            r'<source src="https?://[^/]+/[^/]+/[^/]+/([^/]+)', webpage,
+            'embed code')
+        return OoyalaIE._build_url_result(embed_code)
