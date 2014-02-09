@@ -115,6 +115,7 @@ from .keezmovies import KeezMoviesIE
 from .khanacademy import KhanAcademyIE
 from .kickstarter import KickStarterIE
 from .keek import KeekIE
+from .kontrtube import KontrTubeIE
 from .la7 import LA7IE
 from .lifenews import LifeNewsIE
 from .liveleak import LiveLeakIE
