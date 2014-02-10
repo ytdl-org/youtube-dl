@@ -17,6 +17,7 @@ from ..utils import (
 
     ExtractorError,
     unsmuggle_url,
+    unescapeHTML,
 )
 
 
@@ -139,7 +140,7 @@ class BrightcoveIE(InfoExtractor):
 
         url_m = re.search(r'<meta\s+property="og:video"\s+content="(http://c.brightcove.com/[^"]+)"', webpage)
         if url_m:
-            return [url_m.group(1)]
+            return [unescapeHTML(url_m.group(1))]
 
         matches = re.findall(
             r'''(?sx)<object
