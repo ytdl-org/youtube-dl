@@ -1,17 +1,20 @@
+from __future__ import unicode_literals
+
 import re
 
 from .common import InfoExtractor
 
 
 class HowcastIE(InfoExtractor):
-    _VALID_URL = r'(?:https?://)?(?:www\.)?howcast\.com/videos/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?howcast\.com/videos/(?P<id>\d+)'
     _TEST = {
-        u'url': u'http://www.howcast.com/videos/390161-How-to-Tie-a-Square-Knot-Properly',
-        u'file': u'390161.mp4',
-        u'md5': u'8b743df908c42f60cf6496586c7f12c3',
-        u'info_dict': {
-            u"description": u"The square knot, also known as the reef knot, is one of the oldest, most basic knots to tie, and can be used in many different ways. Here's the proper way to tie a square knot.", 
-            u"title": u"How to Tie a Square Knot Properly"
+        'url': 'http://www.howcast.com/videos/390161-How-to-Tie-a-Square-Knot-Properly',
+        'md5': '8b743df908c42f60cf6496586c7f12c3',
+        'info_dict': {
+            'id': '390161',
+            'ext': 'mp4',
+            'description': 'The square knot, also known as the reef knot, is one of the oldest, most basic knots to tie, and can be used in many different ways. Here\'s the proper way to tie a square knot.', 
+            'title': 'How to Tie a Square Knot Properly',
         }
     }
 
@@ -24,22 +27,15 @@ class HowcastIE(InfoExtractor):
         self.report_extraction(video_id)
 
         video_url = self._search_regex(r'\'?file\'?: "(http://mobile-media\.howcast\.com/[0-9]+\.mp4)',
-            webpage, u'video URL')
-
-        video_title = self._html_search_regex(r'<meta content=(?:"([^"]+)"|\'([^\']+)\') property=\'og:title\'',
-            webpage, u'title')
+            webpage, 'video URL')
 
         video_description = self._html_search_regex(r'<meta content=(?:"([^"]+)"|\'([^\']+)\') name=\'description\'',
-            webpage, u'description', fatal=False)
+            webpage, 'description', fatal=False)
 
-        thumbnail = self._html_search_regex(r'<meta content=\'(.+?)\' property=\'og:image\'',
-            webpage, u'thumbnail', fatal=False)
-
-        return [{
-            'id':       video_id,
-            'url':      video_url,
-            'ext':      'mp4',
-            'title':    video_title,
+        return {
+            'id': video_id,
+            'url': video_url,
+            'title': self._og_search_title(webpage),
             'description': video_description,
-            'thumbnail': thumbnail,
-        }]
+            'thumbnail': self._og_search_thumbnail(webpage),
+        }
