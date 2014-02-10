@@ -4,19 +4,23 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import unified_strdate
+from ..utils import (
+    int_or_none,
+    unified_strdate
+)
 
 
 class LifeNewsIE(InfoExtractor):
     IE_NAME = 'lifenews'
     IE_DESC = 'LIFE | NEWS'
     _VALID_URL = r'http://lifenews\.ru/(?:mobile/)?news/(?P<id>\d+)'
-    
+
     _TEST = {
         'url': 'http://lifenews.ru/news/126342',
-        'file': '126342.mp4',
         'md5': 'e1b50a5c5fb98a6a544250f2e0db570a',
         'info_dict': {
+            'id': '126342',
+            'ext': 'mp4',
             'title': 'МВД разыскивает мужчин, оставивших в IKEA сумку с автоматом',
             'description': 'Камеры наблюдения гипермаркета зафиксировали троих мужчин, спрятавших оружейный арсенал в камере хранения.',
             'thumbnail': 'http://lifenews.ru/static/posts/2014/1/126342/.video.jpg',
@@ -32,7 +36,7 @@ class LifeNewsIE(InfoExtractor):
 
         video_url = self._html_search_regex(
             r'<video.*?src="([^"]+)".*?></video>', webpage, 'video URL')
-        
+
         thumbnail = self._html_search_regex(
             r'<video.*?poster="([^"]+)".*?"></video>', webpage, 'video thumbnail')
 
@@ -44,12 +48,14 @@ class LifeNewsIE(InfoExtractor):
         description = self._og_search_description(webpage)
 
         view_count = self._html_search_regex(
-            r'<div class=\'views\'>(\d+)</div>', webpage, 'view count')
+            r'<div class=\'views\'>(\d+)</div>', webpage, 'view count', fatal=False)
         comment_count = self._html_search_regex(
-            r'<div class=\'comments\'>(\d+)</div>', webpage, 'comment count')
+            r'<div class=\'comments\'>(\d+)</div>', webpage, 'comment count', fatal=False)
 
         upload_date = self._html_search_regex(
-            r'<time datetime=\'([^\']+)\'>', webpage, 'upload date')
+            r'<time datetime=\'([^\']+)\'>', webpage, 'upload date',fatal=False)
+        if upload_date is not None:
+            upload_date = unified_strdate(upload_date)
 
         return {
             'id': video_id,
@@ -57,7 +63,7 @@ class LifeNewsIE(InfoExtractor):
             'thumbnail': thumbnail,
             'title': title,
             'description': description,
-            'view_count': view_count,
-            'comment_count': comment_count,
-            'upload_date': unified_strdate(upload_date),
+            'view_count': int_or_none(view_count),
+            'comment_count': int_or_none(comment_count),
+            'upload_date': upload_date,
         }
