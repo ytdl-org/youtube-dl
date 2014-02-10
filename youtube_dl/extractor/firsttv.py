@@ -32,7 +32,7 @@ class FirstTVIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id, 'Downloading page')
 
         video_url = self._html_search_regex(
-            r'''(?s)jwplayer\('flashvideoportal_1'\).setup\({.*?'file': '([^']+)'.*?}\);''', webpage, 'video URL')
+            r'''(?s)jwplayer\('flashvideoportal_1'\)\.setup\({.*?'file': '([^']+)'.*?}\);''', webpage, 'video URL')
 
         title = self._html_search_regex(
             r'<div class="tv_translation">\s*<h1><a href="[^"]+">([^<]*)</a>', webpage, 'title')
