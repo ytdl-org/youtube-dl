@@ -64,6 +64,7 @@ from .extremetube import ExtremeTubeIE
 from .facebook import FacebookIE
 from .faz import FazIE
 from .firstpost import FirstpostIE
+from .firsttv import FirstTVIE
 from .fktv import (
     FKTVIE,
     FKTVPosteckeIE,
