@@ -5,6 +5,7 @@ from .hls import HlsFD
 from .http import HttpFD
 from .mplayer import MplayerFD
 from .rtmp import RtmpFD
+from .f4m import F4mFD
 
 from ..utils import (
     determine_ext,
@@ -22,5 +23,7 @@ def get_suitable_downloader(info_dict):
         return HlsFD
     if url.startswith('mms') or url.startswith('rtsp'):
         return MplayerFD
+    if determine_ext(url) == 'f4m':
+        return F4mFD
     else:
         return HttpFD
