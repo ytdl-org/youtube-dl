@@ -10,11 +10,12 @@ from .common import InfoExtractor
 class DropboxIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?dropbox[.]com/s/(?P<id>[a-zA-Z0-9]{15})/(?P<title>[^?#]*)'
     _TEST = {
-        'url': 'https://www.dropbox.com/s/mcnzehi9wo55th4/20131219_085616.mp4',
-        'file': 'mcnzehi9wo55th4.mp4',
-        'md5': 'f6d65b1b326e82fd7ab7720bea3dacae',
+        'url': 'https://www.dropbox.com/s/0qr9sai2veej4f8/THE_DOCTOR_GAMES.mp4',
+        'md5': '8ae17c51172fb7f93bdd6a214cc8c896',
         'info_dict': {
-            'title': '20131219_085616'
+            'id': '0qr9sai2veej4f8',
+            'ext': 'mp4',
+            'title': 'THE_DOCTOR_GAMES'
         }
     }
 
