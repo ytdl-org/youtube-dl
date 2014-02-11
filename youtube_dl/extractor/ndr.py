@@ -13,22 +13,22 @@ class NDRIE(InfoExtractor):
     _VALID_URL = r'https?://www\.ndr\.de/.+?(?P<id>\d+)\.html'
 
     _TESTS = [
-        # video
         {
-            'url': 'http://www.ndr.de/fernsehen/sendungen/hallo_niedersachsen/media/hallonds19925.html',
-            'md5': '20eba151ff165f386643dad9c1da08f7',
+            'url': 'http://www.ndr.de/fernsehen/sendungen/markt/markt7959.html',
+            'md5': 'e7a6079ca39d3568f4996cb858dd6708',
+            'note': 'Video file',
             'info_dict': {
-                'id': '19925',
+                'id': '7959',
                 'ext': 'mp4',
-                'title': 'Hallo Niedersachsen  ',
-                'description': 'Bei Hallo Niedersachsen um 19:30 Uhr erfahren Sie alles, was am Tag in Niedersachsen los war.',
-                'duration': 1722,
+                'title': 'Markt - die ganze Sendung',
+                'description': 'md5:af9179cf07f67c5c12dc6d9997e05725',
+                'duration': 2655,
             },
         },
-        # audio
         {
             'url': 'http://www.ndr.de/903/audio191719.html',
             'md5': '41ed601768534dd18a9ae34d84798129',
+            'note': 'Audio file',
             'info_dict': {
                 'id': '191719',
                 'ext': 'mp3',
