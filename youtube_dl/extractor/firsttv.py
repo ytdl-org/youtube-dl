@@ -22,7 +22,8 @@ class FirstTVIE(InfoExtractor):
             'description': 'md5:cc730d2bf4215463e37fff6a1e277b13',
             'thumbnail': 'http://img1.1tv.ru/imgsize640x360/PR20140210114657.JPG',
             'duration': 149,
-        }
+        },
+        'skip': 'Only works from Russia',
     }
 
     def _real_extract(self, url):
