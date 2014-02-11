@@ -33,7 +33,7 @@ class XTubeIE(InfoExtractor):
         webpage = self._download_webpage(req, video_id)
 
         video_title = self._html_search_regex(r'<div class="p_5px[^>]*>([^<]+)', webpage, 'title')
-        video_uploader = self._html_search_regex(r'so_s\.addVariable\("owner_", "([^"]+)', webpage, 'uploader', fatal=False)
+        video_uploader = self._html_search_regex(r'so_s\.addVariable\("owner_u", "([^"]+)', webpage, 'uploader', fatal=False)
         video_description = self._html_search_regex(r'<p class="video_description">([^<]+)', webpage, 'description', fatal=False)
         video_url= self._html_search_regex(r'var videoMp4 = "([^"]+)', webpage, 'video_url').replace('\\/', '/')
         path = compat_urllib_parse_urlparse(video_url).path
