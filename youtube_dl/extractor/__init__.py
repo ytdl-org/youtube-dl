@@ -32,7 +32,10 @@ from .clipfish import ClipfishIE
 from .cliphunter import CliphunterIE
 from .clipsyndicate import ClipsyndicateIE
 from .cmt import CMTIE
-from .cnn import CNNIE
+from .cnn import (
+    CNNIE,
+    CNNBlogsIE,
+)
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
 from .condenast import CondeNastIE

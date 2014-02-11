@@ -6,6 +6,7 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     parse_duration,
+    url_basename,
 )
 
 
@@ -97,4 +98,29 @@ class CNNIE(InfoExtractor):
             'description': info.find('description').text,
             'duration': duration,
             'upload_date': upload_date,
+        }
+
+
+class CNNBlogsIE(InfoExtractor):
+    _VALID_URL = r'https?://[^\.]+\.blogs\.cnn\.com/.+'
+    _TEST = {
+        'url': 'http://reliablesources.blogs.cnn.com/2014/02/09/criminalizing-journalism/',
+        'md5': '3e56f97b0b6ffb4b79f4ea0749551084',
+        'info_dict': {
+            'id': 'bestoftv/2014/02/09/criminalizing-journalism.cnn',
+            'ext': 'mp4',
+            'title': 'Criminalizing journalism?',
+            'description': 'Glenn Greenwald responds to comments made this week on Capitol Hill that journalists could be criminal accessories.',
+            'upload_date': '20140209',
+        },
+        'add_ie': ['CNN'],
+    }
+
+    def _real_extract(self, url):
+        webpage = self._download_webpage(url, url_basename(url))
+        cnn_url = self._html_search_regex(r'data-url="(.+?)"', webpage, 'cnn url')
+        return {
+            '_type': 'url',
+            'url': cnn_url,
+            'ie_key': CNNIE.ie_key(),
         }
