@@ -57,6 +57,7 @@ class VestiIE(InfoExtractor):
                 # m3u8 download
                 'skip_download': True,
             },
+            'skip': 'Blocked outside Russia'
         },
         {
             'url': 'http://sochi2014.vesti.ru/live/play/live_id/301',
