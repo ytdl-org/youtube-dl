@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import compat_urllib_request
 
 
 class PBSIE(InfoExtractor):
@@ -57,11 +58,35 @@ class PBSIE(InfoExtractor):
         info_url = 'http://video.pbs.org/videoInfo/%s?format=json' % video_id
         info = self._download_json(info_url, display_id)
 
+        redir_url = compat_urllib_request.urlopen(info['recommended_encoding']['url']).geturl()
+        base_url = '/'.join(redir_url.split('/')[0:len(redir_url.split('/'))-1])
+
+        m3u8 = self._download_webpage(redir_url, display_id, note='Downloading m3u8 playlist')
+
+        splitted_m3u8 = m3u8.splitlines()
+
+        formats = []
+        for line in splitted_m3u8:
+            if line.startswith('#EXT-X-STREAM-INF'):
+                bandwidth = self._search_regex(r'BANDWIDTH=(\d+)', line, 'bandwidth')
+                codecs = self._search_regex(r'CODECS="(.+?)"', line, 'codecs')
+                filename = splitted_m3u8[splitted_m3u8.index(line)+1]
+
+                formats.append({
+                    'format_id': re.sub(r'(.*)000', r'\1k', bandwidth),
+                    'url': base_url+'/'+filename,
+                    'protocol': 'm3u8',
+                    'ext': 'mp4',
+                    'format_note': codecs,
+                    'quality': int(bandwidth),
+                })
+
+        self._sort_formats(formats)
+
         return {
             'id': video_id,
             'title': info['title'],
-            'url': info['alternate_encoding']['url'],
-            'ext': 'mp4',
+            'formats': formats,
             'description': info['program'].get('description'),
             'thumbnail': info.get('image_url'),
             'duration': info.get('duration'),
