@@ -20,13 +20,15 @@ class PBSIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://www.pbs.org/tpt/constitution-usa-peter-sagal/watch/a-more-perfect-union/',
-        'md5': 'ce1888486f0908d555a8093cac9a7362',
         'info_dict': {
             'id': '2365006249',
             'ext': 'mp4',
             'title': 'A More Perfect Union',
             'description': 'md5:ba0c207295339c8d6eced00b7c363c6a',
             'duration': 3190,
+        },
+        'params': {
+            'skip_download': True,
         },
     }
 
