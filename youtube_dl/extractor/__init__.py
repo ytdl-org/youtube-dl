@@ -91,6 +91,7 @@ from .generic import GenericIE
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
 from .hark import HarkIE
+from .helsinki import HelsinkiIE
 from .hotnewhiphop import HotNewHipHopIE
 from .howcast import HowcastIE
 from .huffpost import HuffPostIE
