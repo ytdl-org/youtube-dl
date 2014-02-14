@@ -79,7 +79,7 @@ class PBSIE(InfoExtractor):
                     'url': base_url+'/'+filename,
                     'protocol': 'm3u8',
                     'ext': 'mp4',
-                    'format_note': codecs,
+                    'format_note': 'Audio only' if codecs.split('.')[0] == 'mp4a' else 'Video',
                     'quality': int(bandwidth),
                 })
 
