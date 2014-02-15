@@ -11,7 +11,10 @@ _x = lambda p: xpath_with_ns(p, {'smil': 'http://www.w3.org/2005/SMIL21/Language
 
 
 class ThePlatformIE(InfoExtractor):
-    _VALID_URL = r'(?:https?://link\.theplatform\.com/s/[^/]+/|theplatform:)(?P<id>[^/\?]+)'
+    _VALID_URL = r'''(?x)
+        (?:https?://(?:link|player)\.theplatform\.com/[sp]/[^/]+/
+           (?P<config>[^/\?]+/(?:swf|config)/select/)?
+         |theplatform:)(?P<id>[^/\?&]+)'''
 
     _TEST = {
         # from http://www.metacafe.com/watch/cb-e9I_cZgTgIPd/blackberrys_big_bold_z30/
@@ -29,9 +32,7 @@ class ThePlatformIE(InfoExtractor):
         },
     }
 
-    def _get_info(self, video_id):
-        smil_url = ('http://link.theplatform.com/s/dJ5BDC/{0}/meta.smil?'
-            'format=smil&mbr=true'.format(video_id))
+    def _get_info(self, video_id, smil_url):
         meta = self._download_xml(smil_url, video_id)
 
         try:
@@ -50,26 +51,34 @@ class ThePlatformIE(InfoExtractor):
 
         head = meta.find(_x('smil:head'))
         body = meta.find(_x('smil:body'))
-        base_url = head.find(_x('smil:meta')).attrib['base']
-        switch = body.find(_x('smil:switch'))
-        formats = []
-        for f in switch.findall(_x('smil:video')):
-            attr = f.attrib
-            width = int(attr['width'])
-            height = int(attr['height'])
-            vbr = int(attr['system-bitrate']) // 1000
-            format_id = '%dx%d_%dk' % (width, height, vbr)
-            formats.append({
-                'format_id': format_id,
-                'url': base_url,
-                'play_path': 'mp4:' + attr['src'],
-                'ext': 'flv',
-                'width': width,
-                'height': height,
-                'vbr': vbr,
-            })
 
-        self._sort_formats(formats)
+        f4m_node = body.find(_x('smil:seq/smil:video'))
+        if f4m_node is not None:
+            formats = [{
+                'ext': 'flv',
+                # the parameters are from syfy.com, other sites may use others
+                'url': f4m_node.attrib['src'] + '?g=UXWGVKRWHFSP&hdcore=3.0.3',
+            }]
+        else:
+            base_url = head.find(_x('smil:meta')).attrib['base']
+            switch = body.find(_x('smil:switch'))
+            formats = []
+            for f in switch.findall(_x('smil:video')):
+                attr = f.attrib
+                width = int(attr['width'])
+                height = int(attr['height'])
+                vbr = int(attr['system-bitrate']) // 1000
+                format_id = '%dx%d_%dk' % (width, height, vbr)
+                formats.append({
+                    'format_id': format_id,
+                    'url': base_url,
+                    'play_path': 'mp4:' + attr['src'],
+                    'ext': 'flv',
+                    'width': width,
+                    'height': height,
+                    'vbr': vbr,
+                })
+            self._sort_formats(formats)
 
         return {
             'id': video_id,
@@ -83,4 +92,13 @@ class ThePlatformIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        return self._get_info(video_id)
+        if mobj.group('config'):
+            config_url = url+ '&form=json'
+            config_url = config_url.replace('swf/', 'config/')
+            config_json = self._download_webpage(config_url, video_id, u'Downloading config')
+            config = json.loads(config_json)
+            smil_url = config['releaseUrl'] + '&format=SMIL&formats=MPEG4'
+        else:
+            smil_url = ('http://link.theplatform.com/s/dJ5BDC/{0}/meta.smil?'
+                'format=smil&mbr=true'.format(video_id))
+        return self._get_info(video_id, smil_url)

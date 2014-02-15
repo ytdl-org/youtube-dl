@@ -209,6 +209,7 @@ from .statigram import StatigramIE
 from .steam import SteamIE
 from .streamcloud import StreamcloudIE
 from .streamcz import StreamCZIE
+from .syfy import SyfyIE
 from .sztvhu import SztvHuIE
 from .teamcoco import TeamcocoIE
 from .techtalks import TechTalksIE
