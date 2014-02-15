@@ -10,15 +10,12 @@ class SyfyIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://www.syfy.com/videos/Robot%20Combat%20League/Behind%20the%20Scenes/vid:2631458',
+        'md5': 'e07de1d52c7278adbb9b9b1c93a66849',
         'info_dict': {
             'id': 'NmqMrGnXvmO1',
             'ext': 'flv',
             'title': 'George Lucas has Advice for his Daughter',
             'description': 'Listen to what insights George Lucas give his daughter Amanda.',
-        },
-        'params': {
-            # f4m download
-            'skip_download': True,
         },
         'add_ie': ['ThePlatform'],
     }
