@@ -25,6 +25,7 @@ from youtube_dl.utils import (
     shell_quote,
     smuggle_url,
     str_to_int,
+    struct_unpack,
     timeconvert,
     unescapeHTML,
     unified_strdate,
@@ -236,6 +237,9 @@ class TestUtil(unittest.TestCase):
         testPL(5, 2, (1, 4), [1, 2, 3])
         testPL(5, 2, (2, 99), [2, 3, 4])
         testPL(5, 2, (20, 99), [])
+
+    def test_struct_unpack(self):
+        self.assertEqual(struct_unpack(u'!B', b'\x00'), (0,))
 
 if __name__ == '__main__':
     unittest.main()

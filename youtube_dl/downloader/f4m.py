@@ -4,13 +4,14 @@ import base64
 import io
 import itertools
 import os
-from struct import unpack, pack
 import time
 import xml.etree.ElementTree as etree
 
 from .common import FileDownloader
 from .http import HttpFD
 from ..utils import (
+    struct_pack,
+    struct_unpack,
     compat_urllib_request,
     compat_urlparse,
     format_bytes,
@@ -27,13 +28,13 @@ class FlvReader(io.BytesIO):
 
     # Utility functions for reading numbers and strings
     def read_unsigned_long_long(self):
-        return unpack('!Q', self.read(8))[0]
+        return struct_unpack('!Q', self.read(8))[0]
 
     def read_unsigned_int(self):
-        return unpack('!I', self.read(4))[0]
+        return struct_unpack('!I', self.read(4))[0]
 
     def read_unsigned_char(self):
-        return unpack('!B', self.read(1))[0]
+        return struct_unpack('!B', self.read(1))[0]
 
     def read_string(self):
         res = b''
@@ -196,7 +197,7 @@ def write_flv_header(stream, metadata):
     # Script data
     stream.write(b'\x12')
     # Size of the metadata with 3 bytes
-    stream.write(pack('!L', len(metadata))[1:])
+    stream.write(struct_pack('!L', len(metadata))[1:])
     stream.write(b'\x00\x00\x00\x00\x00\x00\x00')
     stream.write(metadata)
     # Magic numbers extracted from the output files produced by AdobeHDS.php

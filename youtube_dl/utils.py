@@ -17,6 +17,7 @@ import platform
 import re
 import ssl
 import socket
+import struct
 import subprocess
 import sys
 import traceback
@@ -1220,3 +1221,20 @@ def uppercase_escape(s):
     return re.sub(
         r'\\U([0-9a-fA-F]{8})',
         lambda m: compat_chr(int(m.group(1), base=16)), s)
+
+try:
+    struct.pack(u'!I', 0)
+except TypeError:
+    # In Python 2.6 (and some 2.7 versions), struct requires a bytes argument
+    def struct_pack(spec, *args):
+        if isinstance(spec, compat_str):
+            spec = spec.encode('ascii')
+        return struct.pack(spec, *args)
+
+    def struct_unpack(spec, *args):
+        if isinstance(spec, compat_str):
+            spec = spec.encode('ascii')
+        return struct.unpack(spec, *args)
+else:
+    struct_pack = struct.pack
+    struct_unpack = struct.unpack
