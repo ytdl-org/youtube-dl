@@ -184,6 +184,7 @@ class GenerationQuoiIE(InfoExtractor):
             # It uses Dailymotion
             'skip_download': True,
         },
+        'skip': 'Only available from France',
     }
 
     def _real_extract(self, url):
