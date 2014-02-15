@@ -1694,7 +1694,8 @@ class YoutubeSearchIE(SearchInfoExtractor):
             api_response = data['data']
 
             if 'items' not in api_response:
-                raise ExtractorError(u'[youtube] No video results')
+                raise ExtractorError(
+                    u'[youtube] No video results', expected=True)
 
             new_ids = list(video['id'] for video in api_response['items'])
             video_ids += new_ids
