@@ -26,15 +26,15 @@ class NDRIE(InfoExtractor):
             },
         },
         {
-            'url': 'http://www.ndr.de/903/audio191719.html',
-            'md5': '41ed601768534dd18a9ae34d84798129',
+            'url': 'http://www.ndr.de/info/audio51535.html',
+            'md5': 'bb3cd38e24fbcc866d13b50ca59307b8',
             'note': 'Audio file',
             'info_dict': {
-                'id': '191719',
+                'id': '51535',
                 'ext': 'mp3',
-                'title': '"Es war schockierend"',
-                'description': 'md5:ed7ff8364793545021a6355b97e95f10',
-                'duration': 112,
+                'title': 'La Valette entgeht der Hinrichtung',
+                'description': 'md5:22f9541913a40fe50091d5cdd7c9f536',
+                'duration': 884,
             }
         }
     ]

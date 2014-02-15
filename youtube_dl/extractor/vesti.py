@@ -87,8 +87,7 @@ class VestiIE(InfoExtractor):
             video_id = mobj.group('id')
         else:
             mobj = re.search(
-                r'<div.+?id="current-video-holder".*?>\s*<iframe src="http://player\.rutv\.ru/iframe/(?P<type>[^/]+)/id/(?P<id>\d+)[^"]*"',
-                page)
+                r'<iframe.+?src="http://player\.rutv\.ru/iframe/(?P<type>[^/]+)/id/(?P<id>\d+)[^"]*".*?></iframe>', page)
 
             if not mobj:
                 raise ExtractorError('No media found')
