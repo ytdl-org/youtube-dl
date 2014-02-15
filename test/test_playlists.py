@@ -55,10 +55,10 @@ class TestPlaylists(unittest.TestCase):
     def test_dailymotion_user(self):
         dl = FakeYDL()
         ie = DailymotionUserIE(dl)
-        result = ie.extract('http://www.dailymotion.com/user/generation-quoi/')
+        result = ie.extract('https://www.dailymotion.com/user/nqtv')
         self.assertIsPlaylist(result)
-        self.assertEqual(result['title'], 'Génération Quoi')
-        self.assertTrue(len(result['entries']) >= 26)
+        self.assertEqual(result['title'], 'Rémi Gaillard')
+        self.assertTrue(len(result['entries']) >= 100)
 
     def test_vimeo_channel(self):
         dl = FakeYDL()
