@@ -224,7 +224,13 @@ class F4mFD(FileDownloader):
         self.to_screen('[download] Downloading f4m manifest')
         manifest = self.ydl.urlopen(man_url).read()
         self.report_destination(filename)
-        http_dl = HttpQuietDownloader(self.ydl, {'continuedl': True, 'quiet': True, 'noprogress': True})
+        http_dl = HttpQuietDownloader(self.ydl,
+            {
+                'continuedl': True,
+                'quiet': True,
+                'noprogress': True,
+                'test': self.params.get('test', False),
+            })
 
         doc = etree.fromstring(manifest)
         formats = [(int(f.attrib.get('bitrate', -1)), f) for f in doc.findall(_add_ns('media'))]
@@ -235,6 +241,9 @@ class F4mFD(FileDownloader):
         metadata = base64.b64decode(media.find(_add_ns('metadata')).text)
         boot_info = read_bootstrap_info(bootstrap)
         fragments_list = build_fragments_list(boot_info)
+        if self.params.get('test', False):
+            # We only download the first fragment
+            fragments_list = fragments_list[:1]
         total_frags = len(fragments_list)
 
         tmpfilename = self.temp_name(filename)
