@@ -74,7 +74,8 @@ class NFBIE(InfoExtractor):
                 description = media.find('description').text
                 # It seems assets always go from lower to better quality, so no need to sort
                 formats = [{
-                    'url': x.find('default/streamerURI').text + '/',
+                    'url': x.find('default/streamerURI').text,
+                    'app': x.find('default/streamerURI').text.split('/', 3)[3],
                     'play_path': x.find('default/url').text,
                     'rtmp_live': False,
                     'ext': 'mp4',
