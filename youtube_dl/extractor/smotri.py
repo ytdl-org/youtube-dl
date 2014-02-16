@@ -20,6 +20,7 @@ class SmotriIE(InfoExtractor):
     IE_DESC = 'Smotri.com'
     IE_NAME = 'smotri'
     _VALID_URL = r'^https?://(?:www\.)?(?P<url>smotri\.com/video/view/\?id=(?P<videoid>v(?P<realvideoid>[0-9]+)[a-z0-9]{4}))'
+    _NETRC_MACHINE = 'smotri'
 
     _TESTS = [
         # real video id 2610366
