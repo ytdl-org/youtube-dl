@@ -762,6 +762,7 @@ def unified_strdate(date_str):
     date_str = re.sub(r' ?(\+|-)[0-9]{2}:?[0-9]{2}$', '', date_str)
     format_expressions = [
         '%d %B %Y',
+        '%d %b %Y',
         '%B %d %Y',
         '%b %d %Y',
         '%Y-%m-%d',
