@@ -17,6 +17,7 @@ from ..utils import (
 class VKIE(InfoExtractor):
     IE_NAME = 'vk.com'
     _VALID_URL = r'https?://vk\.com/(?:videos.*?\?.*?z=)?video(?P<id>.*?)(?:\?|%2F|$)'
+    _NETRC_MACHINE = 'vk'
 
     _TESTS = [
         {
