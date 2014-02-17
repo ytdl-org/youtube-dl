@@ -41,6 +41,7 @@ __authors__  = (
     'Chris Gahan',
     'Saimadhav Heblikar',
     'Mike Col',
+    'Oleg Prutz',
     'Andreas Schmitz',
 )
 
