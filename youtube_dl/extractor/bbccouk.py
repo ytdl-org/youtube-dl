@@ -38,7 +38,8 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
             'params': {
                 # rtmp download
                 'skip_download': True,
-            }
+            },
+            'skip': 'Episode is no longer available on BBC iPlayer Radio',
         },
         {
             'url': 'http://www.bbc.co.uk/iplayer/episode/b03vhd1f/The_Voice_UK_Series_3_Blind_Auditions_5/',
