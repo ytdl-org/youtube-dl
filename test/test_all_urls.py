@@ -68,6 +68,9 @@ class TestAllURLsMatching(unittest.TestCase):
     def test_youtube_show_matching(self):
         self.assertMatch('http://www.youtube.com/show/airdisasters', ['youtube:show'])
 
+    def test_youtube_truncated(self):
+        self.assertMatch('http://www.youtube.com/watch?', ['youtube:truncated_url'])
+
     def test_justin_tv_channelid_matching(self):
         self.assertTrue(JustinTVIE.suitable(u"justin.tv/vanillatv"))
         self.assertTrue(JustinTVIE.suitable(u"twitch.tv/vanillatv"))
