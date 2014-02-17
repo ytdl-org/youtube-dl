@@ -44,6 +44,7 @@ __authors__  = (
     'Oleg Prutz',
     'pulpe',
     'Andreas Schmitz',
+    'Michael Kaiser',
 )
 
 __license__ = 'Public Domain'
