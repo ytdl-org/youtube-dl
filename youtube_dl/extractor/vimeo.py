@@ -37,13 +37,14 @@ class VimeoIE(SubtitlesInfoExtractor):
     _TESTS = [
         {
             'url': 'http://vimeo.com/56015672#at=0',
-            'file': '56015672.mp4',
             'md5': '8879b6cc097e987f02484baf890129e5',
             'info_dict': {
-                "upload_date": "20121220", 
-                "description": "This is a test case for youtube-dl.\nFor more information, see github.com/rg3/youtube-dl\nTest chars: \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550", 
-                "uploader_id": "user7108434", 
-                "uploader": "Filippo Valsorda", 
+                'id': '56015672',
+                'ext': 'mp4',
+                "upload_date": "20121220",
+                "description": "This is a test case for youtube-dl.\nFor more information, see github.com/rg3/youtube-dl\nTest chars: \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
+                "uploader_id": "user7108434",
+                "uploader": "Filippo Valsorda",
                 "title": "youtube-dl test video - \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
             },
         },
