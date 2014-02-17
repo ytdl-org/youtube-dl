@@ -42,6 +42,7 @@ __authors__  = (
     'Saimadhav Heblikar',
     'Mike Col',
     'Oleg Prutz',
+    'pulpe',
     'Andreas Schmitz',
 )
 
