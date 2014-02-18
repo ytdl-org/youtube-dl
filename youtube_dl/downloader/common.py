@@ -37,6 +37,7 @@ class FileDownloader(object):
     test:              Download only first bytes to test the downloader.
     min_filesize:      Skip files smaller than this size
     max_filesize:      Skip files larger than this size
+    get_filesize:      Simulate quietly and print video filesize
 
     Subclasses of this one must re-define the real_download method.
     """

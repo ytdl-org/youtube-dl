@@ -377,6 +377,9 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option('--get-format',
             action='store_true', dest='getformat',
             help='simulate, quiet but print output format', default=False)
+    verbosity.add_option('--get-filesize',
+            action='store_true', dest='get_filesize',
+            help='simulate, quiet but print video filesize', default=False)
     verbosity.add_option('-j', '--dump-json',
             action='store_true', dest='dumpjson',
             help='simulate, quiet but print JSON information', default=False)
@@ -685,7 +688,7 @@ def _real_main(argv=None):
         'username': opts.username,
         'password': opts.password,
         'videopassword': opts.videopassword,
-        'quiet': (opts.quiet or any_printing),
+        'quiet': (opts.quiet or any_printing or opts.get_filesize),
         'forceurl': opts.geturl,
         'forcetitle': opts.gettitle,
         'forceid': opts.getid,
@@ -740,6 +743,7 @@ def _real_main(argv=None):
         'keepvideo': opts.keepvideo,
         'min_filesize': opts.min_filesize,
         'max_filesize': opts.max_filesize,
+        'get_filesize': opts.get_filesize,
         'min_views': opts.min_views,
         'max_views': opts.max_views,
         'daterange': date,

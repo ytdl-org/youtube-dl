@@ -97,6 +97,9 @@ class HttpFD(FileDownloader):
             return False
 
         data_len = data.info().get('Content-length', None)
+        if self.params.get('get_filesize', False):
+            print data_len
+            return True
         if data_len is not None:
             data_len = int(data_len) + resume_len
             min_data_len = self.params.get("min_filesize", None)
