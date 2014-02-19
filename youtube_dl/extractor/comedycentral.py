@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import re
 
 from .common import InfoExtractor
@@ -12,33 +14,25 @@ from ..utils import (
 
 
 class ComedyCentralIE(MTVServicesInfoExtractor):
-    _VALID_URL = r'''(?x)https?://(?:www.)?comedycentral.com/
+    _VALID_URL = r'''(?x)https?://(?:www\.)?comedycentral\.com/
         (video-clips|episodes|cc-studios|video-collections)
         /(?P<title>.*)'''
-    _FEED_URL = u'http://comedycentral.com/feeds/mrss/'
+    _FEED_URL = 'http://comedycentral.com/feeds/mrss/'
 
     _TEST = {
-        u'url': u'http://www.comedycentral.com/video-clips/kllhuv/stand-up-greg-fitzsimmons--uncensored---too-good-of-a-mother',
-        u'md5': u'4167875aae411f903b751a21f357f1ee',
-        u'info_dict': {
-            u'id': u'cef0cbb3-e776-4bc9-b62e-8016deccb354',
-            u'ext': u'mp4',
-            u'title': u'Uncensored - Greg Fitzsimmons - Too Good of a Mother',
-            u'description': u'After a certain point, breastfeeding becomes c**kblocking.',
+        'url': 'http://www.comedycentral.com/video-clips/kllhuv/stand-up-greg-fitzsimmons--uncensored---too-good-of-a-mother',
+        'md5': '4167875aae411f903b751a21f357f1ee',
+        'info_dict': {
+            'id': 'cef0cbb3-e776-4bc9-b62e-8016deccb354',
+            'ext': 'mp4',
+            'title': 'CC:Stand-Up|Greg Fitzsimmons: Life on Stage|Uncensored - Too Good of a Mother',
+            'description': 'After a certain point, breastfeeding becomes c**kblocking.',
         },
     }
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        title = mobj.group('title')
-        webpage = self._download_webpage(url, title)
-        mgid = self._search_regex(r'data-mgid="(?P<mgid>mgid:.*?)"',
-                                  webpage, u'mgid')
-        return self._get_videos_info(mgid)
-
 
 class ComedyCentralShowsIE(InfoExtractor):
-    IE_DESC = u'The Daily Show / Colbert Report'
+    IE_DESC = 'The Daily Show / Colbert Report'
     # urls can be abbreviations like :thedailyshow or :colbert
     # urls for episodes like:
     # or urls for clips like: http://www.thedailyshow.com/watch/mon-december-10-2012/any-given-gun-day
@@ -55,14 +49,14 @@ class ComedyCentralShowsIE(InfoExtractor):
                               extended-interviews/(?P<interID>[0-9]+)/playlist_tds_extended_(?P<interview_title>.*?)/.*?)))
                      $"""
     _TEST = {
-        u'url': u'http://www.thedailyshow.com/watch/thu-december-13-2012/kristen-stewart',
-        u'file': u'422212.mp4',
-        u'md5': u'4e2f5cb088a83cd8cdb7756132f9739d',
-        u'info_dict': {
-            u"upload_date": u"20121214", 
-            u"description": u"Kristen Stewart", 
-            u"uploader": u"thedailyshow", 
-            u"title": u"thedailyshow-kristen-stewart part 1"
+        'url': 'http://www.thedailyshow.com/watch/thu-december-13-2012/kristen-stewart',
+        'file': '422212.mp4',
+        'md5': '4e2f5cb088a83cd8cdb7756132f9739d',
+        'info_dict': {
+            "upload_date": "20121214",
+            "description": "Kristen Stewart",
+            "uploader": "thedailyshow",
+            "title": "thedailyshow-kristen-stewart part 1"
         }
     }
 
@@ -92,22 +86,22 @@ class ComedyCentralShowsIE(InfoExtractor):
 
     @staticmethod
     def _transform_rtmp_url(rtmp_video_url):
-        m = re.match(r'^rtmpe?://.*?/(?P<finalid>gsp.comedystor/.*)$', rtmp_video_url)
+        m = re.match(r'^rtmpe?://.*?/(?P<finalid>gsp\.comedystor/.*)$', rtmp_video_url)
         if not m:
-            raise ExtractorError(u'Cannot transform RTMP url')
+            raise ExtractorError('Cannot transform RTMP url')
         base = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=1+_pxI0=Ripod-h264+_pxL0=undefined+_pxM0=+_pxK=18639+_pxE=mp4/44620/mtvnorigin/'
         return base + m.group('finalid')
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url, re.VERBOSE)
         if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
+            raise ExtractorError('Invalid URL: %s' % url)
 
         if mobj.group('shortname'):
             if mobj.group('shortname') in ('tds', 'thedailyshow'):
-                url = u'http://www.thedailyshow.com/full-episodes/'
+                url = 'http://www.thedailyshow.com/full-episodes/'
             else:
-                url = u'http://www.colbertnation.com/full-episodes/'
+                url = 'http://www.colbertnation.com/full-episodes/'
             mobj = re.match(self._VALID_URL, url, re.VERBOSE)
             assert mobj is not None
 
@@ -133,9 +127,9 @@ class ComedyCentralShowsIE(InfoExtractor):
             url = htmlHandle.geturl()
             mobj = re.match(self._VALID_URL, url, re.VERBOSE)
             if mobj is None:
-                raise ExtractorError(u'Invalid redirected URL: ' + url)
+                raise ExtractorError('Invalid redirected URL: ' + url)
             if mobj.group('episode') == '':
-                raise ExtractorError(u'Redirected URL is still not specific: ' + url)
+                raise ExtractorError('Redirected URL is still not specific: ' + url)
             epTitle = mobj.group('episode')
 
         mMovieParams = re.findall('(?:<param name="movie" value="|var url = ")(http://media.mtvnservices.com/([^"]*(?:episode|video).*?:.*?))"', webpage)
@@ -147,15 +141,15 @@ class ComedyCentralShowsIE(InfoExtractor):
 
             altMovieParams = re.findall('data-mgid="([^"]*(?:episode|video).*?:.*?)"', webpage)
             if len(altMovieParams) == 0:
-                raise ExtractorError(u'unable to find Flash URL in webpage ' + url)
+                raise ExtractorError('unable to find Flash URL in webpage ' + url)
             else:
                 mMovieParams = [("http://media.mtvnservices.com/" + altMovieParams[0], altMovieParams[0])]
 
         uri = mMovieParams[0][1]
         indexUrl = 'http://shadow.comedycentral.com/feeds/video_player/mrss/?' + compat_urllib_parse.urlencode({'uri': uri})
         idoc = self._download_xml(indexUrl, epTitle,
-                                          u'Downloading show index',
-                                          u'unable to download episode index')
+                                          'Downloading show index',
+                                          'unable to download episode index')
 
         results = []
 
@@ -170,7 +164,7 @@ class ComedyCentralShowsIE(InfoExtractor):
             configUrl = ('http://www.comedycentral.com/global/feeds/entertainment/media/mediaGenEntertainment.jhtml?' +
                         compat_urllib_parse.urlencode({'uri': mediaId}))
             cdoc = self._download_xml(configUrl, epTitle,
-                                               u'Downloading configuration for %s' % shortMediaId)
+                                               'Downloading configuration for %s' % shortMediaId)
 
             turls = []
             for rendition in cdoc.findall('.//rendition'):
@@ -178,7 +172,7 @@ class ComedyCentralShowsIE(InfoExtractor):
                 turls.append(finfo)
 
             if len(turls) == 0:
-                self._downloader.report_error(u'unable to download ' + mediaId + ': No videos found')
+                self._downloader.report_error('unable to download ' + mediaId + ': No videos found')
                 continue
 
             formats = []
@@ -192,7 +186,7 @@ class ComedyCentralShowsIE(InfoExtractor):
                     'width': w,
                 })
 
-            effTitle = showId + u'-' + epTitle + u' part ' + compat_str(partNum+1)
+            effTitle = showId + '-' + epTitle + ' part ' + compat_str(partNum+1)
             results.append({
                 'id': shortMediaId,
                 'formats': formats,

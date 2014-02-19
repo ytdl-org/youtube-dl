@@ -22,6 +22,7 @@ import socket
 
 import youtube_dl.YoutubeDL
 from youtube_dl.utils import (
+    compat_http_client,
     compat_str,
     compat_urllib_error,
     compat_HTTPError,
@@ -110,7 +111,7 @@ def generator(test_case):
                     ydl.download([test_case['url']])
                 except (DownloadError, ExtractorError) as err:
                     # Check if the exception is not a network related one
-                    if not err.exc_info[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError) or (err.exc_info[0] == compat_HTTPError and err.exc_info[1].code == 503):
+                    if not err.exc_info[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError, compat_http_client.BadStatusLine) or (err.exc_info[0] == compat_HTTPError and err.exc_info[1].code == 503):
                         raise
 
                     if try_num == RETRIES:

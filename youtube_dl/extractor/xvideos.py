@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import re
 
 from .common import InfoExtractor
@@ -9,12 +11,12 @@ from ..utils import (
 class XVideosIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?xvideos\.com/video([0-9]+)(?:.*)'
     _TEST = {
-        u'url': u'http://www.xvideos.com/video939581/funny_porns_by_s_-1',
-        u'file': u'939581.flv',
-        u'md5': u'1d0c835822f0a71a7bf011855db929d0',
-        u'info_dict': {
-            u"title": u"Funny Porns By >>>>S<<<<<< -1",
-            u"age_limit": 18,
+        'url': 'http://www.xvideos.com/video939581/funny_porns_by_s_-1',
+        'file': '939581.flv',
+        'md5': '1d0c835822f0a71a7bf011855db929d0',
+        'info_dict': {
+            "title": "Funny Porns By >>>>S<<<<<< -1",
+            "age_limit": 18,
         }
     }
 
@@ -27,18 +29,18 @@ class XVideosIE(InfoExtractor):
         self.report_extraction(video_id)
 
         # Extract video URL
-        video_url = compat_urllib_parse.unquote(self._search_regex(r'flv_url=(.+?)&',
-            webpage, u'video URL'))
+        video_url = compat_urllib_parse.unquote(
+            self._search_regex(r'flv_url=(.+?)&', webpage, 'video URL'))
 
         # Extract title
-        video_title = self._html_search_regex(r'<title>(.*?)\s+-\s+XVID',
-            webpage, u'title')
+        video_title = self._html_search_regex(
+            r'<title>(.*?)\s+-\s+XVID', webpage, 'title')
 
         # Extract video thumbnail
-        video_thumbnail = self._search_regex(r'http://(?:img.*?\.)xvideos.com/videos/thumbs/[a-fA-F0-9]+/[a-fA-F0-9]+/[a-fA-F0-9]+/[a-fA-F0-9]+/([a-fA-F0-9.]+jpg)',
-            webpage, u'thumbnail', fatal=False)
+        video_thumbnail = self._search_regex(
+            r'url_bigthumb=(.+?)&amp', webpage, 'thumbnail', fatal=False)
 
-        info = {
+        return {
             'id': video_id,
             'url': video_url,
             'uploader': None,
@@ -49,5 +51,3 @@ class XVideosIE(InfoExtractor):
             'description': None,
             'age_limit': 18,
         }
-
-        return [info]

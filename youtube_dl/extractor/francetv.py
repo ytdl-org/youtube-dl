@@ -1,4 +1,7 @@
 # encoding: utf-8
+
+from __future__ import unicode_literals
+
 import re
 import json
 
@@ -30,7 +33,7 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
 
 
 class PluzzIE(FranceTVBaseInfoExtractor):
-    IE_NAME = u'pluzz.francetv.fr'
+    IE_NAME = 'pluzz.francetv.fr'
     _VALID_URL = r'https?://pluzz\.francetv\.fr/videos/(.*?)\.html'
 
     # Can't use tests, videos expire in 7 days
@@ -44,17 +47,17 @@ class PluzzIE(FranceTVBaseInfoExtractor):
 
 
 class FranceTvInfoIE(FranceTVBaseInfoExtractor):
-    IE_NAME = u'francetvinfo.fr'
+    IE_NAME = 'francetvinfo.fr'
     _VALID_URL = r'https?://www\.francetvinfo\.fr/replay.*/(?P<title>.+)\.html'
 
     _TEST = {
-        u'url': u'http://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-lundi-26-aout-2013_393427.html',
-        u'file': u'84981923.mp4',
-        u'info_dict': {
-            u'title': u'Soir 3',
+        'url': 'http://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-lundi-26-aout-2013_393427.html',
+        'file': '84981923.mp4',
+        'info_dict': {
+            'title': 'Soir 3',
         },
-        u'params': {
-            u'skip_download': True,
+        'params': {
+            'skip_download': True,
         },
     }
 
@@ -62,13 +65,13 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         page_title = mobj.group('title')
         webpage = self._download_webpage(url, page_title)
-        video_id = self._search_regex(r'id-video=(\d+?)"', webpage, u'video id')
+        video_id = self._search_regex(r'id-video=(\d+?)[@"]', webpage, 'video id')
         return self._extract_video(video_id)
 
 
 class FranceTVIE(FranceTVBaseInfoExtractor):
-    IE_NAME = u'francetv'
-    IE_DESC = u'France 2, 3, 4, 5 and Ô'
+    IE_NAME = 'francetv'
+    IE_DESC = 'France 2, 3, 4, 5 and Ô'
     _VALID_URL = r'''(?x)https?://www\.france[2345o]\.fr/
         (?:
             emissions/.*?/(videos|emissions)/(?P<id>[^/?]+)
@@ -78,73 +81,73 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
     _TESTS = [
         # france2
         {
-            u'url': u'http://www.france2.fr/emissions/13h15-le-samedi-le-dimanche/videos/75540104',
-            u'file': u'75540104.mp4',
-            u'info_dict': {
-                u'title': u'13h15, le samedi...',
-                u'description': u'md5:2e5b58ba7a2d3692b35c792be081a03d',
+            'url': 'http://www.france2.fr/emissions/13h15-le-samedi-le-dimanche/videos/75540104',
+            'file': '75540104.mp4',
+            'info_dict': {
+                'title': '13h15, le samedi...',
+                'description': 'md5:2e5b58ba7a2d3692b35c792be081a03d',
             },
-            u'params': {
+            'params': {
                 # m3u8 download
-                u'skip_download': True,
+                'skip_download': True,
             },
         },
         # france3
         {
-            u'url': u'http://www.france3.fr/emissions/pieces-a-conviction/diffusions/13-11-2013_145575',
-            u'info_dict': {
-                u'id': u'000702326_CAPP_PicesconvictionExtrait313022013_120220131722_Au',
-                u'ext': u'flv',
-                u'title': u'Le scandale du prix des médicaments',
-                u'description': u'md5:1384089fbee2f04fc6c9de025ee2e9ce',
+            'url': 'http://www.france3.fr/emissions/pieces-a-conviction/diffusions/13-11-2013_145575',
+            'info_dict': {
+                'id': '000702326_CAPP_PicesconvictionExtrait313022013_120220131722_Au',
+                'ext': 'flv',
+                'title': 'Le scandale du prix des médicaments',
+                'description': 'md5:1384089fbee2f04fc6c9de025ee2e9ce',
             },
-            u'params': {
+            'params': {
                 # rtmp download
-                u'skip_download': True,
+                'skip_download': True,
             },
         },
         # france4
         {
-            u'url': u'http://www.france4.fr/emissions/hero-corp/videos/rhozet_herocorp_bonus_1_20131106_1923_06112013172108_F4',
-            u'info_dict': {
-                u'id': u'rhozet_herocorp_bonus_1_20131106_1923_06112013172108_F4',
-                u'ext': u'flv',
-                u'title': u'Hero Corp Making of - Extrait 1',
-                u'description': u'md5:c87d54871b1790679aec1197e73d650a',
+            'url': 'http://www.france4.fr/emissions/hero-corp/videos/rhozet_herocorp_bonus_1_20131106_1923_06112013172108_F4',
+            'info_dict': {
+                'id': 'rhozet_herocorp_bonus_1_20131106_1923_06112013172108_F4',
+                'ext': 'flv',
+                'title': 'Hero Corp Making of - Extrait 1',
+                'description': 'md5:c87d54871b1790679aec1197e73d650a',
             },
-            u'params': {
+            'params': {
                 # rtmp download
-                u'skip_download': True,
+                'skip_download': True,
             },
         },
         # france5
         {
-            u'url': u'http://www.france5.fr/emissions/c-a-dire/videos/92837968',
-            u'info_dict': {
-                u'id': u'92837968',
-                u'ext': u'mp4',
-                u'title': u'C à dire ?!',
-                u'description': u'md5:fb1db1cbad784dcce7c7a7bd177c8e2f',
+            'url': 'http://www.france5.fr/emissions/c-a-dire/videos/92837968',
+            'info_dict': {
+                'id': '92837968',
+                'ext': 'mp4',
+                'title': 'C à dire ?!',
+                'description': 'md5:fb1db1cbad784dcce7c7a7bd177c8e2f',
             },
-            u'params': {
+            'params': {
                 # m3u8 download
-                u'skip_download': True,
+                'skip_download': True,
             },
         },
         # franceo
         {
-            u'url': u'http://www.franceo.fr/jt/info-afrique/04-12-2013',
-            u'info_dict': {
-                u'id': u'92327925',
-                u'ext': u'mp4',
-                u'title': u'Infô-Afrique',
-                u'description': u'md5:ebf346da789428841bee0fd2a935ea55',
+            'url': 'http://www.franceo.fr/jt/info-afrique/04-12-2013',
+            'info_dict': {
+                'id': '92327925',
+                'ext': 'mp4',
+                'title': 'Infô-Afrique',
+                'description': 'md5:ebf346da789428841bee0fd2a935ea55',
             },
-            u'params': {
+            'params': {
                 # m3u8 download
-                u'skip_download': True,
+                'skip_download': True,
             },
-            u'skip': u'The id changes frequently',
+            'skip': 'The id changes frequently',
         },
     ]
 
@@ -160,27 +163,28 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
                  '\.fr/\?id-video=([^"/&]+)'),
                 (r'<a class="video" id="ftv_player_(.+?)"'),
             ]
-            video_id = self._html_search_regex(id_res, webpage, u'video ID')
+            video_id = self._html_search_regex(id_res, webpage, 'video ID')
         else:
             video_id = mobj.group('id')
         return self._extract_video(video_id)
 
 
 class GenerationQuoiIE(InfoExtractor):
-    IE_NAME = u'france2.fr:generation-quoi'
+    IE_NAME = 'france2.fr:generation-quoi'
     _VALID_URL = r'https?://generation-quoi\.france2\.fr/portrait/(?P<name>.*)(\?|$)'
 
     _TEST = {
-        u'url': u'http://generation-quoi.france2.fr/portrait/garde-a-vous',
-        u'file': u'k7FJX8VBcvvLmX4wA5Q.mp4',
-        u'info_dict': {
-            u'title': u'Génération Quoi - Garde à Vous',
-            u'uploader': u'Génération Quoi',
+        'url': 'http://generation-quoi.france2.fr/portrait/garde-a-vous',
+        'file': 'k7FJX8VBcvvLmX4wA5Q.mp4',
+        'info_dict': {
+            'title': 'Génération Quoi - Garde à Vous',
+            'uploader': 'Génération Quoi',
         },
-        u'params': {
+        'params': {
             # It uses Dailymotion
-            u'skip_download': True,
+            'skip_download': True,
         },
+        'skip': 'Only available from France',
     }
 
     def _real_extract(self, url):
@@ -194,20 +198,20 @@ class GenerationQuoiIE(InfoExtractor):
 
 
 class CultureboxIE(FranceTVBaseInfoExtractor):
-    IE_NAME = u'culturebox.francetvinfo.fr'
+    IE_NAME = 'culturebox.francetvinfo.fr'
     _VALID_URL = r'https?://culturebox\.francetvinfo\.fr/(?P<name>.*?)(\?|$)'
 
     _TEST = {
-        u'url': u'http://culturebox.francetvinfo.fr/einstein-on-the-beach-au-theatre-du-chatelet-146813',
-        u'info_dict': {
-            u'id': u'EV_6785',
-            u'ext': u'mp4',
-            u'title': u'Einstein on the beach au Théâtre du Châtelet',
-            u'description': u'md5:9ce2888b1efefc617b5e58b3f6200eeb',
+        'url': 'http://culturebox.francetvinfo.fr/einstein-on-the-beach-au-theatre-du-chatelet-146813',
+        'info_dict': {
+            'id': 'EV_6785',
+            'ext': 'mp4',
+            'title': 'Einstein on the beach au Théâtre du Châtelet',
+            'description': 'md5:9ce2888b1efefc617b5e58b3f6200eeb',
         },
-        u'params': {
+        'params': {
             # m3u8 download
-            u'skip_download': True,
+            'skip_download': True,
         },
     }
 
@@ -215,5 +219,5 @@ class CultureboxIE(FranceTVBaseInfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         name = mobj.group('name')
         webpage = self._download_webpage(url, name)
-        video_id = self._search_regex(r'"http://videos\.francetv\.fr/video/(.*?)"', webpage, u'video id')
+        video_id = self._search_regex(r'"http://videos\.francetv\.fr/video/(.*?)"', webpage, 'video id')
         return self._extract_video(video_id)

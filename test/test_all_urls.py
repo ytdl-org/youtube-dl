@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import unicode_literals
+
 # Allow direct execution
 import os
 import sys
@@ -13,6 +15,7 @@ from youtube_dl.extractor import (
     FacebookIE,
     gen_extractors,
     JustinTVIE,
+    PBSIE,
     YoutubeIE,
 )
 
@@ -29,18 +32,20 @@ class TestAllURLsMatching(unittest.TestCase):
 
     def test_youtube_playlist_matching(self):
         assertPlaylist = lambda url: self.assertMatch(url, ['youtube:playlist'])
-        assertPlaylist(u'ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8')
-        assertPlaylist(u'UUBABnxM4Ar9ten8Mdjj1j0Q') #585
-        assertPlaylist(u'PL63F0C78739B09958')
-        assertPlaylist(u'https://www.youtube.com/playlist?list=UUBABnxM4Ar9ten8Mdjj1j0Q')
-        assertPlaylist(u'https://www.youtube.com/course?list=ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8')
-        assertPlaylist(u'https://www.youtube.com/playlist?list=PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC')
-        assertPlaylist(u'https://www.youtube.com/watch?v=AV6J6_AeFEQ&playnext=1&list=PL4023E734DA416012') #668
-        self.assertFalse('youtube:playlist' in self.matching_ies(u'PLtS2H6bU1M'))
+        assertPlaylist('ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8')
+        assertPlaylist('UUBABnxM4Ar9ten8Mdjj1j0Q') #585
+        assertPlaylist('PL63F0C78739B09958')
+        assertPlaylist('https://www.youtube.com/playlist?list=UUBABnxM4Ar9ten8Mdjj1j0Q')
+        assertPlaylist('https://www.youtube.com/course?list=ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8')
+        assertPlaylist('https://www.youtube.com/playlist?list=PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC')
+        assertPlaylist('https://www.youtube.com/watch?v=AV6J6_AeFEQ&playnext=1&list=PL4023E734DA416012') #668
+        self.assertFalse('youtube:playlist' in self.matching_ies('PLtS2H6bU1M'))
+        # Top tracks
+        assertPlaylist('https://www.youtube.com/playlist?list=MCUS.20142101')
 
     def test_youtube_matching(self):
-        self.assertTrue(YoutubeIE.suitable(u'PLtS2H6bU1M'))
-        self.assertFalse(YoutubeIE.suitable(u'https://www.youtube.com/watch?v=AV6J6_AeFEQ&playnext=1&list=PL4023E734DA416012')) #668
+        self.assertTrue(YoutubeIE.suitable('PLtS2H6bU1M'))
+        self.assertFalse(YoutubeIE.suitable('https://www.youtube.com/watch?v=AV6J6_AeFEQ&playnext=1&list=PL4023E734DA416012')) #668
         self.assertMatch('http://youtu.be/BaW_jenozKc', ['youtube'])
         self.assertMatch('http://www.youtube.com/v/BaW_jenozKc', ['youtube'])
         self.assertMatch('https://youtube.googleapis.com/v/BaW_jenozKc', ['youtube'])
@@ -63,6 +68,9 @@ class TestAllURLsMatching(unittest.TestCase):
     def test_youtube_show_matching(self):
         self.assertMatch('http://www.youtube.com/show/airdisasters', ['youtube:show'])
 
+    def test_youtube_truncated(self):
+        self.assertMatch('http://www.youtube.com/watch?', ['youtube:truncated_url'])
+
     def test_justin_tv_channelid_matching(self):
         self.assertTrue(JustinTVIE.suitable(u"justin.tv/vanillatv"))
         self.assertTrue(JustinTVIE.suitable(u"twitch.tv/vanillatv"))
@@ -80,7 +88,7 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertTrue(JustinTVIE.suitable(u"http://www.twitch.tv/tsm_theoddone/c/2349361"))
 
     def test_youtube_extract(self):
-        assertExtractId = lambda url, id: self.assertEqual(YoutubeIE()._extract_id(url), id)
+        assertExtractId = lambda url, id: self.assertEqual(YoutubeIE.extract_id(url), id)
         assertExtractId('http://www.youtube.com/watch?&v=BaW_jenozKc', 'BaW_jenozKc')
         assertExtractId('https://www.youtube.com/watch?&v=BaW_jenozKc', 'BaW_jenozKc')
         assertExtractId('https://www.youtube.com/watch?feature=player_embedded&v=BaW_jenozKc', 'BaW_jenozKc')
@@ -89,7 +97,7 @@ class TestAllURLsMatching(unittest.TestCase):
         assertExtractId('BaW_jenozKc', 'BaW_jenozKc')
 
     def test_facebook_matching(self):
-        self.assertTrue(FacebookIE.suitable(u'https://www.facebook.com/Shiniknoh#!/photo.php?v=10153317450565268'))
+        self.assertTrue(FacebookIE.suitable('https://www.facebook.com/Shiniknoh#!/photo.php?v=10153317450565268'))
 
     def test_no_duplicates(self):
         ies = gen_extractors()
@@ -119,6 +127,14 @@ class TestAllURLsMatching(unittest.TestCase):
     # https://github.com/rg3/youtube-dl/issues/1930
     def test_soundcloud_not_matching_sets(self):
         self.assertMatch('http://soundcloud.com/floex/sets/gone-ep', ['soundcloud:set'])
+
+    def test_tumblr(self):
+        self.assertMatch('http://tatianamaslanydaily.tumblr.com/post/54196191430/orphan-black-dvd-extra-behind-the-scenes', ['Tumblr'])
+        self.assertMatch('http://tatianamaslanydaily.tumblr.com/post/54196191430', ['Tumblr'])
+
+    def test_pbs(self):
+        # https://github.com/rg3/youtube-dl/issues/2350
+        self.assertMatch('http://video.pbs.org/viralplayer/2365173446/', ['PBS'])
 
 if __name__ == '__main__':
     unittest.main()

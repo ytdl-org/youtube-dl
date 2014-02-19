@@ -63,13 +63,15 @@ class InfoExtractor(object):
                     * tbr        Average bitrate of audio and video in KBit/s
                     * abr        Average audio bitrate in KBit/s
                     * acodec     Name of the audio codec in use
+                    * asr        Audio sampling rate in Hertz
                     * vbr        Average video bitrate in KBit/s
                     * vcodec     Name of the video codec in use
+                    * container  Name of the container format
                     * filesize   The number of bytes, if known in advance
                     * player_url SWF Player URL (used for rtmpdump).
                     * protocol   The protocol that will be used for the actual
                                  download, lower-case.
-                                 "http", "https", "rtsp", "rtmp" or so.
+                                 "http", "https", "rtsp", "rtmp", "m3u8" or so.
                     * preference Order number of this format. If this field is
                                  present and not None, the formats get sorted
                                  by this field.
@@ -220,6 +222,8 @@ class InfoExtractor(object):
                           webpage_bytes[:1024])
             if m:
                 encoding = m.group(1).decode('ascii')
+            elif webpage_bytes.startswith(b'\xff\xfe'):
+                encoding = 'utf-16'
             else:
                 encoding = 'utf-8'
         if self._downloader.params.get('dump_intermediate_pages', False):
@@ -236,7 +240,7 @@ class InfoExtractor(object):
             except AttributeError:
                 url = url_or_request
             if len(url) > 200:
-                h = hashlib.md5(url).hexdigest()
+                h = u'___' + hashlib.md5(url.encode('utf-8')).hexdigest()
                 url = url[:200 - len(h)] + h
             raw_filename = ('%s_%s.dump' % (video_id, url))
             filename = sanitize_filename(raw_filename, restricted=True)
@@ -267,8 +271,11 @@ class InfoExtractor(object):
 
     def _download_json(self, url_or_request, video_id,
                        note=u'Downloading JSON metadata',
-                       errnote=u'Unable to download JSON metadata'):
+                       errnote=u'Unable to download JSON metadata',
+                       transform_source=None):
         json_string = self._download_webpage(url_or_request, video_id, note, errnote)
+        if transform_source:
+            json_string = transform_source(json_string)
         try:
             return json.loads(json_string)
         except ValueError as ve:
@@ -395,7 +402,7 @@ class InfoExtractor(object):
     # Helper functions for extracting OpenGraph info
     @staticmethod
     def _og_regexes(prop):
-        content_re = r'content=(?:"([^>]+?)"|\'(.+?)\')'
+        content_re = r'content=(?:"([^>]+?)"|\'([^>]+?)\')'
         property_re = r'(?:name|property)=[\'"]og:%s[\'"]' % re.escape(prop)
         template = r'<meta[^>]+?%s[^>]+?%s'
         return [
@@ -461,7 +468,14 @@ class InfoExtractor(object):
         }
         return RATING_TABLE.get(rating.lower(), None)
 
+    def _twitter_search_player(self, html):
+        return self._html_search_meta('twitter:player', html,
+            'twitter card player')
+
     def _sort_formats(self, formats):
+        if not formats:
+            raise ExtractorError(u'No video formats found')
+
         def _formats_key(f):
             # TODO remove the following workaround
             from ..utils import determine_ext

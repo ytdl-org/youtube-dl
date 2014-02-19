@@ -19,7 +19,8 @@ class NovamovIE(InfoExtractor):
         'info_dict': {
             'title': 'search engine optimization',
             'description': 'search engine optimization is used to rank the web page in the google search engine'
-        }
+        },
+        'skip': '"Invalid token" errors abound (in web interface as well as youtube-dl, there is nothing we can do about it.)'
     }
 
     def _real_extract(self, url):

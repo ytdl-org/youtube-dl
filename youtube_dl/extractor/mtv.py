@@ -1,11 +1,17 @@
+from __future__ import unicode_literals
+
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
     ExtractorError,
+    find_xpath_attr,
+    fix_xml_ampersands,
+    url_basename,
+    RegexNotFoundError,
 )
+
 
 def _media_xml_tag(tag):
     return '{http://search.yahoo.com/mrss/}%s' % tag
@@ -33,10 +39,9 @@ class MTVServicesInfoExtractor(InfoExtractor):
         else:
             return thumb_node.attrib['url']
 
-    def _extract_video_formats(self, metadataXml):
-        if '/error_country_block.swf' in metadataXml:
-            raise ExtractorError(u'This video is not available from your country.', expected=True)
-        mdoc = xml.etree.ElementTree.fromstring(metadataXml.encode('utf-8'))
+    def _extract_video_formats(self, mdoc):
+        if re.match(r'.*/error_country_block\.swf$', mdoc.find('.//src').text) is not None:
+            raise ExtractorError('This video is not available from your country.', expected=True)
 
         formats = []
         for rendition in mdoc.findall('.//rendition'):
@@ -59,11 +64,12 @@ class MTVServicesInfoExtractor(InfoExtractor):
         self.report_extraction(video_id)
         mediagen_url = itemdoc.find('%s/%s' % (_media_xml_tag('group'), _media_xml_tag('content'))).attrib['url']
         # Remove the templates, like &device={device}
-        mediagen_url = re.sub(r'&[^=]*?={.*?}(?=(&|$))', u'', mediagen_url)
+        mediagen_url = re.sub(r'&[^=]*?={.*?}(?=(&|$))', '', mediagen_url)
         if 'acceptMethods' not in mediagen_url:
             mediagen_url += '&acceptMethods=fms'
-        mediagen_page = self._download_webpage(mediagen_url, video_id,
-                                               u'Downloading video urls')
+
+        mediagen_doc = self._download_xml(mediagen_url, video_id,
+            'Downloading video urls')
 
         description_node = itemdoc.find('description')
         if description_node is not None:
@@ -71,9 +77,26 @@ class MTVServicesInfoExtractor(InfoExtractor):
         else:
             description = None
 
+        title_el = None
+        if title_el is None:
+            title_el = find_xpath_attr(
+                itemdoc, './/{http://search.yahoo.com/mrss/}category',
+                'scheme', 'urn:mtvn:video_title')
+        if title_el is None:
+            title_el = itemdoc.find('.//{http://search.yahoo.com/mrss/}title')
+        if title_el is None:
+            title_el = itemdoc.find('.//title')
+            if title_el.text is None:
+                title_el = None
+
+        title = title_el.text
+        if title is None:
+            raise ExtractorError('Could not find video title')
+        title = title.strip()
+
         return {
-            'title': itemdoc.find('title').text,
-            'formats': self._extract_video_formats(mediagen_page),
+            'title': title,
+            'formats': self._extract_video_formats(mediagen_doc),
             'id': video_id,
             'thumbnail': self._get_thumbnail_url(uri, itemdoc),
             'description': description,
@@ -83,13 +106,26 @@ class MTVServicesInfoExtractor(InfoExtractor):
         video_id = self._id_from_uri(uri)
         data = compat_urllib_parse.urlencode({'uri': uri})
 
-        def fix_ampersand(s):
-            """ Fix unencoded ampersand in XML """
-            return s.replace(u'& ', '&amp; ')
         idoc = self._download_xml(
             self._FEED_URL + '?' + data, video_id,
-            u'Downloading info', transform_source=fix_ampersand)
+            'Downloading info', transform_source=fix_xml_ampersands)
         return [self._get_video_info(item) for item in idoc.findall('.//item')]
+
+    def _real_extract(self, url):
+        title = url_basename(url)
+        webpage = self._download_webpage(url, title)
+        try:
+            # the url can be http://media.mtvnservices.com/fb/{mgid}.swf
+            # or http://media.mtvnservices.com/{mgid}
+            og_url = self._og_search_video_url(webpage)
+            mgid = url_basename(og_url)
+            if mgid.endswith('.swf'):
+                mgid = mgid[:-4]
+        except RegexNotFoundError:
+            mgid = self._search_regex(
+                [r'data-mgid="(.*?)"', r'swfobject.embedSWF\(".*?(mgid:.*?)"'],
+                webpage, u'mgid')
+        return self._get_videos_info(mgid)
 
 
 class MTVIE(MTVServicesInfoExtractor):
@@ -101,25 +137,25 @@ class MTVIE(MTVServicesInfoExtractor):
 
     _TESTS = [
         {
-            u'url': u'http://www.mtv.com/videos/misc/853555/ours-vh1-storytellers.jhtml',
-            u'file': u'853555.mp4',
-            u'md5': u'850f3f143316b1e71fa56a4edfd6e0f8',
-            u'info_dict': {
-                u'title': u'Taylor Swift - "Ours (VH1 Storytellers)"',
-                u'description': u'Album: Taylor Swift performs "Ours" for VH1 Storytellers at Harvey Mudd College.',
+            'url': 'http://www.mtv.com/videos/misc/853555/ours-vh1-storytellers.jhtml',
+            'file': '853555.mp4',
+            'md5': '850f3f143316b1e71fa56a4edfd6e0f8',
+            'info_dict': {
+                'title': 'Taylor Swift - "Ours (VH1 Storytellers)"',
+                'description': 'Album: Taylor Swift performs "Ours" for VH1 Storytellers at Harvey Mudd College.',
             },
         },
         {
-            u'add_ie': ['Vevo'],
-            u'url': u'http://www.mtv.com/videos/taylor-swift/916187/everything-has-changed-ft-ed-sheeran.jhtml',
-            u'file': u'USCJY1331283.mp4',
-            u'md5': u'73b4e7fcadd88929292fe52c3ced8caf',
-            u'info_dict': {
-                u'title': u'Everything Has Changed',
-                u'upload_date': u'20130606',
-                u'uploader': u'Taylor Swift',
+            'add_ie': ['Vevo'],
+            'url': 'http://www.mtv.com/videos/taylor-swift/916187/everything-has-changed-ft-ed-sheeran.jhtml',
+            'file': 'USCJY1331283.mp4',
+            'md5': '73b4e7fcadd88929292fe52c3ced8caf',
+            'info_dict': {
+                'title': 'Everything Has Changed',
+                'upload_date': '20130606',
+                'uploader': 'Taylor Swift',
             },
-            u'skip': u'VEVO is only available in some countries',
+            'skip': 'VEVO is only available in some countries',
         },
     ]
 
@@ -138,8 +174,22 @@ class MTVIE(MTVServicesInfoExtractor):
                                webpage, re.DOTALL)
             if m_vevo:
                 vevo_id = m_vevo.group(1);
-                self.to_screen(u'Vevo video detected: %s' % vevo_id)
+                self.to_screen('Vevo video detected: %s' % vevo_id)
                 return self.url_result('vevo:%s' % vevo_id, ie='Vevo')
     
-            uri = self._html_search_regex(r'/uri/(.*?)\?', webpage, u'uri')
+            uri = self._html_search_regex(r'/uri/(.*?)\?', webpage, 'uri')
         return self._get_videos_info(uri)
+
+
+class MTVIggyIE(MTVServicesInfoExtractor):
+    IE_NAME = 'mtviggy.com'
+    _VALID_URL = r'https?://www\.mtviggy\.com/videos/.+'
+    _TEST = {
+        'url': 'http://www.mtviggy.com/videos/arcade-fire-behind-the-scenes-at-the-biggest-music-experiment-yet/',
+        'info_dict': {
+            'id': '984696',
+            'ext': 'mp4',
+            'title': 'Arcade Fire: Behind the Scenes at the Biggest Music Experiment Yet',
+        }
+    }
+    _FEED_URL = 'http://all.mtvworldverticals.com/feed-xml/'

@@ -30,7 +30,7 @@ class CondeNastIE(InfoExtractor):
         'vanityfair': 'Vanity Fair',
     }
 
-    _VALID_URL = r'http://(video|www).(?P<site>%s).com/(?P<type>watch|series|video)/(?P<id>.+)' % '|'.join(_SITES.keys())
+    _VALID_URL = r'http://(video|www)\.(?P<site>%s)\.com/(?P<type>watch|series|video)/(?P<id>.+)' % '|'.join(_SITES.keys())
     IE_DESC = 'Condé Nast media group: %s' % ', '.join(sorted(_SITES.values()))
 
     _TEST = {

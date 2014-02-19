@@ -5,7 +5,7 @@ from .common import InfoExtractor
 from ..utils import unescapeHTML
 
 class OoyalaIE(InfoExtractor):
-    _VALID_URL = r'https?://.+?\.ooyala\.com/.*?embedCode=(?P<id>.+?)(&|$)'
+    _VALID_URL = r'https?://.+?\.ooyala\.com/.*?(?:embedCode|ec)=(?P<id>.+?)(&|$)'
 
     _TEST = {
         # From http://it.slashdot.org/story/13/04/25/178216/recovering-data-from-broken-hard-drives-and-ssds-video

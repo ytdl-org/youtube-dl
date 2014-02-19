@@ -18,10 +18,10 @@ class MplayerFD(FileDownloader):
         try:
             subprocess.call(['mplayer', '-h'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
         except (OSError, IOError):
-            self.report_error(u'MMS or RTSP download detected but "%s" could not be run' % args[0] )
+            self.report_error(u'MMS or RTSP download detected but "%s" could not be run' % args[0])
             return False
 
-        # Download using mplayer. 
+        # Download using mplayer.
         retval = subprocess.call(args)
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))

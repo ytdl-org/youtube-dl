@@ -27,7 +27,7 @@ class HttpFD(FileDownloader):
         request = compat_urllib_request.Request(url, None, headers)
 
         if self.params.get('test', False):
-            request.add_header('Range','bytes=0-10240')
+            request.add_header('Range', 'bytes=0-10240')
 
         # Establish possible resume length
         if os.path.isfile(encodeFilename(tmpfilename)):
@@ -39,7 +39,7 @@ class HttpFD(FileDownloader):
         if resume_len != 0:
             if self.params.get('continuedl', False):
                 self.report_resuming_byte(resume_len)
-                request.add_header('Range','bytes=%d-' % resume_len)
+                request.add_header('Range', 'bytes=%d-' % resume_len)
                 open_mode = 'ab'
             else:
                 resume_len = 0
@@ -100,7 +100,7 @@ class HttpFD(FileDownloader):
         if data_len is not None:
             data_len = int(data_len) + resume_len
             min_data_len = self.params.get("min_filesize", None)
-            max_data_len =  self.params.get("max_filesize", None)
+            max_data_len = self.params.get("max_filesize", None)
             if min_data_len is not None and data_len < min_data_len:
                 self.to_screen(u'\r[download] File is smaller than min-filesize (%s bytes < %s bytes). Aborting.' % (data_len, min_data_len))
                 return False

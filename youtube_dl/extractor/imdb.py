@@ -67,23 +67,13 @@ class ImdbListIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         list_id = mobj.group('id')
-        
-        # RSS XML is sometimes malformed
-        rss = self._download_webpage('http://rss.imdb.com/list/%s' % list_id, list_id, 'Downloading list RSS')
-        list_title = self._html_search_regex(r'<title>(.*?)</title>', rss, 'list title')
-        
-        # Export is independent of actual author_id, but returns 404 if no author_id is provided.
-        # However, passing dummy author_id seems to be enough.
-        csv = self._download_webpage('http://www.imdb.com/list/export?list_id=%s&author_id=ur00000000' % list_id,
-                                     list_id, 'Downloading list CSV')
-        
-        entries = []
-        for item in csv.split('\n')[1:]:
-            cols = item.split(',')
-            if len(cols) < 2:
-                continue
-            item_id = cols[1][1:-1]
-            if item_id.startswith('vi'):
-                entries.append(self.url_result('http://www.imdb.com/video/imdb/%s' % item_id, 'Imdb'))
-        
+
+        webpage = self._download_webpage(url, list_id)
+        entries = [
+            self.url_result('http://www.imdb.com' + m, 'Imdb')
+            for m in re.findall(r'href="(/video/imdb/vi[^"]+)"\s+data-type="playlist"', webpage)]
+
+        list_title = self._html_search_regex(
+            r'<h1 class="header">(.*?)</h1>', webpage, 'list title')
+
         return self.playlist_result(entries, list_id, list_title)

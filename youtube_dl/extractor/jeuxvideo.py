@@ -1,5 +1,7 @@
 # coding: utf-8
 
+from __future__ import unicode_literals
+
 import json
 import re
 
@@ -10,12 +12,13 @@ class JeuxVideoIE(InfoExtractor):
     _VALID_URL = r'http://.*?\.jeuxvideo\.com/.*/(.*?)-\d+\.htm'
 
     _TEST = {
-        u'url': u'http://www.jeuxvideo.com/reportages-videos-jeux/0004/00046170/tearaway-playstation-vita-gc-2013-tearaway-nous-presente-ses-papiers-d-identite-00115182.htm',
-        u'file': u'5182.mp4',
-        u'md5': u'046e491afb32a8aaac1f44dd4ddd54ee',
-        u'info_dict': {
-            u'title': u'GC 2013 : Tearaway nous présente ses papiers d\'identité',
-            u'description': u'Lorsque les développeurs de LittleBigPlanet proposent un nouveau titre, on ne peut que s\'attendre à un résultat original et fort attrayant.\n',
+        'url': 'http://www.jeuxvideo.com/reportages-videos-jeux/0004/00046170/tearaway-playstation-vita-gc-2013-tearaway-nous-presente-ses-papiers-d-identite-00115182.htm',
+        'md5': '046e491afb32a8aaac1f44dd4ddd54ee',
+        'info_dict': {
+            'id': '5182',
+            'ext': 'mp4',
+            'title': 'GC 2013 : Tearaway nous présente ses papiers d\'identité',
+            'description': 'Lorsque les développeurs de LittleBigPlanet proposent un nouveau titre, on ne peut que s\'attendre à un résultat original et fort attrayant.\n',
         },
     }
 
@@ -25,14 +28,14 @@ class JeuxVideoIE(InfoExtractor):
         webpage = self._download_webpage(url, title)
         xml_link = self._html_search_regex(
             r'<param name="flashvars" value="config=(.*?)" />',
-            webpage, u'config URL')
+            webpage, 'config URL')
         
         video_id = self._search_regex(
             r'http://www\.jeuxvideo\.com/config/\w+/\d+/(.*?)/\d+_player\.xml',
-            xml_link, u'video ID')
+            xml_link, 'video ID')
 
         config = self._download_xml(
-            xml_link, title, u'Downloading XML config')
+            xml_link, title, 'Downloading XML config')
         info_json = config.find('format.json').text
         info = json.loads(info_json)['versions'][0]
         

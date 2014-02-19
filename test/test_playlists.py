@@ -33,6 +33,9 @@ from youtube_dl.extractor import (
     ImdbListIE,
     KhanAcademyIE,
     EveryonesMixtapeIE,
+    RutubeChannelIE,
+    GoogleSearchIE,
+    GenericIE,
 )
 
 
@@ -52,10 +55,10 @@ class TestPlaylists(unittest.TestCase):
     def test_dailymotion_user(self):
         dl = FakeYDL()
         ie = DailymotionUserIE(dl)
-        result = ie.extract('http://www.dailymotion.com/user/generation-quoi/')
+        result = ie.extract('https://www.dailymotion.com/user/nqtv')
         self.assertIsPlaylist(result)
-        self.assertEqual(result['title'], 'Génération Quoi')
-        self.assertTrue(len(result['entries']) >= 26)
+        self.assertEqual(result['title'], 'Rémi Gaillard')
+        self.assertTrue(len(result['entries']) >= 100)
 
     def test_vimeo_channel(self):
         dl = FakeYDL()
@@ -195,11 +198,11 @@ class TestPlaylists(unittest.TestCase):
     def test_imdb_list(self):
         dl = FakeYDL()
         ie = ImdbListIE(dl)
-        result = ie.extract('http://www.imdb.com/list/sMjedvGDd8U')
+        result = ie.extract('http://www.imdb.com/list/JFs9NWw6XI0')
         self.assertIsPlaylist(result)
-        self.assertEqual(result['id'], 'sMjedvGDd8U')
-        self.assertEqual(result['title'], 'Animated and Family Films')
-        self.assertTrue(len(result['entries']) >= 48)
+        self.assertEqual(result['id'], 'JFs9NWw6XI0')
+        self.assertEqual(result['title'], 'March 23, 2012 Releases')
+        self.assertEqual(len(result['entries']), 7)
 
     def test_khanacademy_topic(self):
         dl = FakeYDL()
@@ -219,7 +222,33 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['id'], 'm7m0jJAbMQi')
         self.assertEqual(result['title'], 'Driving')
         self.assertEqual(len(result['entries']), 24)
+        
+    def test_rutube_channel(self):
+        dl = FakeYDL()
+        ie = RutubeChannelIE(dl)
+        result = ie.extract('http://rutube.ru/tags/video/1409')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], '1409')
+        self.assertTrue(len(result['entries']) >= 34)
 
+    def test_multiple_brightcove_videos(self):
+        # https://github.com/rg3/youtube-dl/issues/2283
+        dl = FakeYDL()
+        ie = GenericIE(dl)
+        result = ie.extract('http://www.newyorker.com/online/blogs/newsdesk/2014/01/always-never-nuclear-command-and-control.html')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], 'always-never-nuclear-command-and-control')
+        self.assertEqual(result['title'], 'Always/Never: A Little-Seen Movie About Nuclear Command and Control : The New Yorker')
+        self.assertEqual(len(result['entries']), 3)
+
+    def test_GoogleSearch(self):
+        dl = FakeYDL()
+        ie = GoogleSearchIE(dl)
+        result = ie.extract('gvsearch15:python language')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], 'python language')
+        self.assertEqual(result['title'], 'python language')
+        self.assertTrue(len(result['entries']) == 15)
 
 if __name__ == '__main__':
     unittest.main()

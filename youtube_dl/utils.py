@@ -6,6 +6,7 @@ import datetime
 import email.utils
 import errno
 import gzip
+import itertools
 import io
 import json
 import locale
@@ -16,6 +17,7 @@ import platform
 import re
 import ssl
 import socket
+import struct
 import subprocess
 import sys
 import traceback
@@ -224,7 +226,7 @@ if sys.version_info >= (2,7):
     def find_xpath_attr(node, xpath, key, val):
         """ Find the xpath xpath[@key=val] """
         assert re.match(r'^[a-zA-Z]+$', key)
-        assert re.match(r'^[a-zA-Z0-9@\s]*$', val)
+        assert re.match(r'^[a-zA-Z0-9@\s:._]*$', val)
         expr = xpath + u"[@%s='%s']" % (key, val)
         return node.find(expr)
 else:
@@ -750,15 +752,17 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     https_request = http_request
     https_response = http_response
 
+
 def unified_strdate(date_str):
     """Return a string with the date in the format YYYYMMDD"""
     upload_date = None
     #Replace commas
-    date_str = date_str.replace(',',' ')
+    date_str = date_str.replace(',', ' ')
     # %z (UTC offset) is only supported in python>=3.2
-    date_str = re.sub(r' (\+|-)[\d]*$', '', date_str)
+    date_str = re.sub(r' ?(\+|-)[0-9]{2}:?[0-9]{2}$', '', date_str)
     format_expressions = [
         '%d %B %Y',
+        '%d %b %Y',
         '%B %d %Y',
         '%b %d %Y',
         '%Y-%m-%d',
@@ -770,11 +774,12 @@ def unified_strdate(date_str):
         '%Y-%m-%dT%H:%M:%S.%fZ',
         '%Y-%m-%dT%H:%M:%S.%f0Z',
         '%Y-%m-%dT%H:%M:%S',
+        '%Y-%m-%dT%H:%M',
     ]
     for expression in format_expressions:
         try:
             upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')
-        except:
+        except ValueError:
             pass
     if upload_date is None:
         timetuple = email.utils.parsedate_tz(date_str)
@@ -1092,9 +1097,12 @@ def month_by_name(name):
         return None
 
 
-def fix_xml_all_ampersand(xml_str):
+def fix_xml_ampersands(xml_str):
     """Replace all the '&' by '&amp;' in XML"""
-    return xml_str.replace(u'&', u'&amp;')
+    return re.sub(
+        r'&(?!amp;|lt;|gt;|apos;|quot;|#x[0-9a-fA-F]{,4};|#[0-9]{,4};)',
+        u'&amp;',
+        xml_str)
 
 
 def setproctitle(title):
@@ -1128,8 +1136,8 @@ class HEADRequest(compat_urllib_request.Request):
         return "HEAD"
 
 
-def int_or_none(v):
-    return v if v is None else int(v)
+def int_or_none(v, scale=1):
+    return v if v is None else (int(v) // scale)
 
 
 def parse_duration(s):
@@ -1137,7 +1145,7 @@ def parse_duration(s):
         return None
 
     m = re.match(
-        r'(?:(?:(?P<hours>[0-9]+):)?(?P<mins>[0-9]+):)?(?P<secs>[0-9]+)$', s)
+        r'(?:(?:(?P<hours>[0-9]+)[:h])?(?P<mins>[0-9]+)[:m])?(?P<secs>[0-9]+)s?$', s)
     if not m:
         return None
     res = int(m.group('secs'))
@@ -1161,3 +1169,73 @@ def check_executable(exe, args=[]):
     except OSError:
         return False
     return exe
+
+
+class PagedList(object):
+    def __init__(self, pagefunc, pagesize):
+        self._pagefunc = pagefunc
+        self._pagesize = pagesize
+
+    def __len__(self):
+        # This is only useful for tests
+        return len(self.getslice())
+
+    def getslice(self, start=0, end=None):
+        res = []
+        for pagenum in itertools.count(start // self._pagesize):
+            firstid = pagenum * self._pagesize
+            nextfirstid = pagenum * self._pagesize + self._pagesize
+            if start >= nextfirstid:
+                continue
+
+            page_results = list(self._pagefunc(pagenum))
+
+            startv = (
+                start % self._pagesize
+                if firstid <= start < nextfirstid
+                else 0)
+
+            endv = (
+                ((end - 1) % self._pagesize) + 1
+                if (end is not None and firstid <= end <= nextfirstid)
+                else None)
+
+            if startv != 0 or endv is not None:
+                page_results = page_results[startv:endv]
+            res.extend(page_results)
+
+            # A little optimization - if current page is not "full", ie. does
+            # not contain page_size videos then we can assume that this page
+            # is the last one - there are no more ids on further pages -
+            # i.e. no need to query again.
+            if len(page_results) + startv < self._pagesize:
+                break
+
+            # If we got the whole page, but the next page is not interesting,
+            # break out early as well
+            if end == nextfirstid:
+                break
+        return res
+
+
+def uppercase_escape(s):
+    return re.sub(
+        r'\\U([0-9a-fA-F]{8})',
+        lambda m: compat_chr(int(m.group(1), base=16)), s)
+
+try:
+    struct.pack(u'!I', 0)
+except TypeError:
+    # In Python 2.6 (and some 2.7 versions), struct requires a bytes argument
+    def struct_pack(spec, *args):
+        if isinstance(spec, compat_str):
+            spec = spec.encode('ascii')
+        return struct.pack(spec, *args)
+
+    def struct_unpack(spec, *args):
+        if isinstance(spec, compat_str):
+            spec = spec.encode('ascii')
+        return struct.unpack(spec, *args)
+else:
+    struct_pack = struct.pack
+    struct_unpack = struct.unpack

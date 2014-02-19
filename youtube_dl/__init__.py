@@ -40,6 +40,12 @@ __authors__  = (
     'Michael Orlitzky',
     'Chris Gahan',
     'Saimadhav Heblikar',
+    'Mike Col',
+    'Oleg Prutz',
+    'pulpe',
+    'Andreas Schmitz',
+    'Michael Kaiser',
+    'Niklas Laxström',
 )
 
 __license__ = 'Public Domain'
@@ -98,6 +104,43 @@ def parseOpts(overrideArguments=None):
         finally:
             optionf.close()
         return res
+
+    def _readUserConf():
+        xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
+        if xdg_config_home:
+            userConfFile = os.path.join(xdg_config_home, 'youtube-dl', 'config')
+            if not os.path.isfile(userConfFile):
+                userConfFile = os.path.join(xdg_config_home, 'youtube-dl.conf')
+        else:
+            userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl', 'config')
+            if not os.path.isfile(userConfFile):
+                userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
+        userConf = _readOptions(userConfFile, None)
+
+        if userConf is None:
+            appdata_dir = os.environ.get('appdata')
+            if appdata_dir:
+                userConf = _readOptions(
+                    os.path.join(appdata_dir, 'youtube-dl', 'config'),
+                    default=None)
+                if userConf is None:
+                    userConf = _readOptions(
+                        os.path.join(appdata_dir, 'youtube-dl', 'config.txt'),
+                        default=None)
+
+        if userConf is None:
+            userConf = _readOptions(
+                os.path.join(os.path.expanduser('~'), 'youtube-dl.conf'),
+                default=None)
+        if userConf is None:
+            userConf = _readOptions(
+                os.path.join(os.path.expanduser('~'), 'youtube-dl.conf.txt'),
+                default=None)
+
+        if userConf is None:
+            userConf = []
+
+        return userConf
 
     def _format_option_string(option):
         ''' ('-o', '--option') -> -o, --format METAVAR'''
@@ -199,6 +242,13 @@ def parseOpts(overrideArguments=None):
     general.add_option(
         '--bidi-workaround', dest='bidi_workaround', action='store_true',
         help=u'Work around terminals that lack bidirectional text support. Requires bidiv or fribidi executable in PATH')
+    general.add_option('--default-search',
+            dest='default_search', metavar='PREFIX',
+            help='Use this prefix for unqualified URLs. For example "gvsearch2:" downloads two videos from google videos for  youtube-dl "large apple". By default (with value "auto") youtube-dl guesses.')
+    general.add_option(
+        '--ignore-config',
+        action='store_true',
+        help='Do not read configuration files. When given in the global configuration file /etc/youtube-dl.conf: do not read the user configuration in ~/.config/youtube-dl.conf (%APPDATA%/youtube-dl/config.txt on Windows)')
 
 
     selection.add_option(
@@ -238,7 +288,14 @@ def parseOpts(overrideArguments=None):
     selection.add_option('--download-archive', metavar='FILE',
                          dest='download_archive',
                          help='Download only videos not listed in the archive file. Record the IDs of all downloaded videos in it.')
-
+    selection.add_option(
+        '--include-ads', dest='include_ads',
+        action='store_true',
+        help='Download advertisements as well (experimental)')
+    selection.add_option(
+        '--youtube-include-dash-manifest', action='store_true',
+        dest='youtube_include_dash_manifest', default=False,
+        help='Try to download the DASH manifest on YouTube videos (experimental)')
 
     authentication.add_option('-u', '--username',
             dest='username', metavar='USERNAME', help='account username')
@@ -251,8 +308,8 @@ def parseOpts(overrideArguments=None):
 
 
     video_format.add_option('-f', '--format',
-            action='store', dest='format', metavar='FORMAT', default='best',
-            help='video format code, specify the order of preference using slashes: "-f 22/17/18". "-f mp4" and "-f flv" are also supported')
+            action='store', dest='format', metavar='FORMAT', default=None,
+            help='video format code, specify the order of preference using slashes: "-f 22/17/18". "-f mp4" and "-f flv" are also supported. You can also use the special names "best", "bestaudio", "worst", and "worstaudio". By default, youtube-dl will pick the best quality.')
     video_format.add_option('--all-formats',
             action='store_const', dest='format', help='download all available video formats', const='all')
     video_format.add_option('--prefer-free-formats',
@@ -343,7 +400,8 @@ def parseOpts(overrideArguments=None):
             help=optparse.SUPPRESS_HELP)
     verbosity.add_option('--print-traffic',
             dest='debug_printtraffic', action='store_true', default=False,
-            help=optparse.SUPPRESS_HELP)
+            help='Display sent and read HTTP traffic')
+
 
     filesystem.add_option('-t', '--title',
             action='store_true', dest='usetitle', help='use title in file name (default)', default=False)
@@ -446,44 +504,18 @@ def parseOpts(overrideArguments=None):
         if opts.verbose:
             write_string(u'[debug] Override config: ' + repr(overrideArguments) + '\n')
     else:
-        systemConf = _readOptions('/etc/youtube-dl.conf')
-
-        xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
-        if xdg_config_home:
-            userConfFile = os.path.join(xdg_config_home, 'youtube-dl', 'config')
-            if not os.path.isfile(userConfFile):
-                userConfFile = os.path.join(xdg_config_home, 'youtube-dl.conf')
-        else:
-            userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl', 'config')
-            if not os.path.isfile(userConfFile):
-                userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
-        userConf = _readOptions(userConfFile, None)
-
-        if userConf is None:
-            appdata_dir = os.environ.get('appdata')
-            if appdata_dir:
-                userConf = _readOptions(
-                    os.path.join(appdata_dir, 'youtube-dl', 'config'),
-                    default=None)
-                if userConf is None:
-                    userConf = _readOptions(
-                        os.path.join(appdata_dir, 'youtube-dl', 'config.txt'),
-                        default=None)
-
-        if userConf is None:
-            userConf = _readOptions(
-                os.path.join(os.path.expanduser('~'), 'youtube-dl.conf'),
-                default=None)
-        if userConf is None:
-            userConf = _readOptions(
-                os.path.join(os.path.expanduser('~'), 'youtube-dl.conf.txt'),
-                default=None)
-
-        if userConf is None:
-            userConf = []
-
         commandLineConf = sys.argv[1:]
+        if '--ignore-config' in commandLineConf:
+            systemConf = []
+            userConf = []
+        else:
+            systemConf = _readOptions('/etc/youtube-dl.conf')
+            if '--ignore-config' in systemConf:
+                userConf = []
+            else:
+                userConf = _readUserConf()
         argv = systemConf + userConf + commandLineConf
+
         opts, args = parser.parse_args(argv)
         if opts.verbose:
             write_string(u'[debug] System config: ' + repr(_hide_login_info(systemConf)) + '\n')
@@ -616,6 +648,12 @@ def _real_main(argv=None):
         date = DateRange.day(opts.date)
     else:
         date = DateRange(opts.dateafter, opts.datebefore)
+    if opts.default_search not in ('auto', None) and ':' not in opts.default_search:
+        parser.error(u'--default-search invalid; did you forget a colon (:) at the end?')
+
+    # Do not download videos when there are audio-only formats
+    if opts.extractaudio and not opts.keepvideo and opts.format is None:
+        opts.format = 'bestaudio/best'
 
     # --all-sub automatically sets --write-sub if --write-auto-sub is not given
     # this was the old behaviour if only --all-sub was given.
@@ -716,6 +754,9 @@ def _real_main(argv=None):
         'bidi_workaround': opts.bidi_workaround,
         'debug_printtraffic': opts.debug_printtraffic,
         'prefer_ffmpeg': opts.prefer_ffmpeg,
+        'include_ads': opts.include_ads,
+        'default_search': opts.default_search,
+        'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,
     }
 
     with YoutubeDL(ydl_opts) as ydl:

@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import os.path
 
 from .common import InfoExtractor
@@ -11,13 +12,13 @@ from ..utils import (
 class MySpassIE(InfoExtractor):
     _VALID_URL = r'http://www\.myspass\.de/.*'
     _TEST = {
-        u'url': u'http://www.myspass.de/myspass/shows/tvshows/absolute-mehrheit/Absolute-Mehrheit-vom-17022013-Die-Highlights-Teil-2--/11741/',
-        u'file': u'11741.mp4',
-        u'md5': u'0b49f4844a068f8b33f4b7c88405862b',
-        u'info_dict': {
-            u"description": u"Wer kann in die Fu\u00dfstapfen von Wolfgang Kubicki treten und die Mehrheit der Zuschauer hinter sich versammeln? Wird vielleicht sogar die Absolute Mehrheit geknackt und der Jackpot von 200.000 Euro mit nach Hause genommen?", 
-            u"title": u"Absolute Mehrheit vom 17.02.2013 - Die Highlights, Teil 2"
-        }
+        'url': 'http://www.myspass.de/myspass/shows/tvshows/absolute-mehrheit/Absolute-Mehrheit-vom-17022013-Die-Highlights-Teil-2--/11741/',
+        'file': '11741.mp4',
+        'md5': '0b49f4844a068f8b33f4b7c88405862b',
+        'info_dict': {
+            "description": "Wer kann in die Fu\u00dfstapfen von Wolfgang Kubicki treten und die Mehrheit der Zuschauer hinter sich versammeln? Wird vielleicht sogar die Absolute Mehrheit geknackt und der Jackpot von 200.000 Euro mit nach Hause genommen?",
+            "title": "Absolute Mehrheit vom 17.02.2013 - Die Highlights, Teil 2",
+        },
     }
 
     def _real_extract(self, url):
@@ -37,12 +38,11 @@ class MySpassIE(InfoExtractor):
         # extract values from metadata
         url_flv_el = metadata.find('url_flv')
         if url_flv_el is None:
-            raise ExtractorError(u'Unable to extract download url')
+            raise ExtractorError('Unable to extract download url')
         video_url = url_flv_el.text
-        extension = os.path.splitext(video_url)[1][1:]
         title_el = metadata.find('title')
         if title_el is None:
-            raise ExtractorError(u'Unable to extract title')
+            raise ExtractorError('Unable to extract title')
         title = title_el.text
         format_id_el = metadata.find('format_id')
         if format_id_el is None:
@@ -59,13 +59,12 @@ class MySpassIE(InfoExtractor):
             thumbnail = imagePreview_el.text
         else:
             thumbnail = None
-        info = {
+
+        return {
             'id': video_id,
             'url': video_url,
             'title': title,
-            'ext': extension,
             'format': format,
             'thumbnail': thumbnail,
-            'description': description
+            'description': description,
         }
-        return [info]

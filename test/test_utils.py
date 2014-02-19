@@ -16,13 +16,16 @@ from youtube_dl.utils import (
     DateRange,
     encodeFilename,
     find_xpath_attr,
+    fix_xml_ampersands,
     get_meta_content,
     orderedSet,
+    PagedList,
     parse_duration,
     sanitize_filename,
     shell_quote,
     smuggle_url,
     str_to_int,
+    struct_unpack,
     timeconvert,
     unescapeHTML,
     unified_strdate,
@@ -125,6 +128,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unified_strdate('8/7/2009'), '20090708')
         self.assertEqual(unified_strdate('Dec 14, 2012'), '20121214')
         self.assertEqual(unified_strdate('2012/10/11 01:56:38 +0000'), '20121011')
+        self.assertEqual(unified_strdate('1968-12-10'), '19681210')
 
     def test_find_xpath_attr(self):
         testxml = u'''<root>
@@ -198,7 +202,53 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_duration('1'), 1)
         self.assertEqual(parse_duration('1337:12'), 80232)
         self.assertEqual(parse_duration('9:12:43'), 33163)
+        self.assertEqual(parse_duration('12:00'), 720)
+        self.assertEqual(parse_duration('00:01:01'), 61)
         self.assertEqual(parse_duration('x:y'), None)
+        self.assertEqual(parse_duration('3h11m53s'), 11513)
+        self.assertEqual(parse_duration('62m45s'), 3765)
+        self.assertEqual(parse_duration('6m59s'), 419)
+        self.assertEqual(parse_duration('49s'), 49)
+        self.assertEqual(parse_duration('0h0m0s'), 0)
+        self.assertEqual(parse_duration('0m0s'), 0)
+        self.assertEqual(parse_duration('0s'), 0)
+
+    def test_fix_xml_ampersands(self):
+        self.assertEqual(
+            fix_xml_ampersands('"&x=y&z=a'), '"&amp;x=y&amp;z=a')
+        self.assertEqual(
+            fix_xml_ampersands('"&amp;x=y&wrong;&z=a'),
+            '"&amp;x=y&amp;wrong;&amp;z=a')
+        self.assertEqual(
+            fix_xml_ampersands('&amp;&apos;&gt;&lt;&quot;'),
+            '&amp;&apos;&gt;&lt;&quot;')
+        self.assertEqual(
+            fix_xml_ampersands('&#1234;&#x1abC;'), '&#1234;&#x1abC;')
+        self.assertEqual(fix_xml_ampersands('&#&#'), '&amp;#&amp;#')
+
+    def test_paged_list(self):
+        def testPL(size, pagesize, sliceargs, expected):
+            def get_page(pagenum):
+                firstid = pagenum * pagesize
+                upto = min(size, pagenum * pagesize + pagesize)
+                for i in range(firstid, upto):
+                    yield i
+
+            pl = PagedList(get_page, pagesize)
+            got = pl.getslice(*sliceargs)
+            self.assertEqual(got, expected)
+
+        testPL(5, 2, (), [0, 1, 2, 3, 4])
+        testPL(5, 2, (1,), [1, 2, 3, 4])
+        testPL(5, 2, (2,), [2, 3, 4])
+        testPL(5, 2, (4,), [4])
+        testPL(5, 2, (0, 3), [0, 1, 2])
+        testPL(5, 2, (1, 4), [1, 2, 3])
+        testPL(5, 2, (2, 99), [2, 3, 4])
+        testPL(5, 2, (20, 99), [])
+
+    def test_struct_unpack(self):
+        self.assertEqual(struct_unpack(u'!B', b'\x00'), (0,))
 
 if __name__ == '__main__':
     unittest.main()

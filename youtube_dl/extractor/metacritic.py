@@ -4,7 +4,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    fix_xml_all_ampersand,
+    fix_xml_ampersands,
 )
 
 
@@ -27,7 +27,7 @@ class MetacriticIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         # The xml is not well formatted, there are raw '&'
         info = self._download_xml('http://www.metacritic.com/video_data?video=' + video_id,
-            video_id, 'Downloading info xml', transform_source=fix_xml_all_ampersand)
+            video_id, 'Downloading info xml', transform_source=fix_xml_ampersands)
 
         clip = next(c for c in info.findall('playList/clip') if c.find('id').text == video_id)
         formats = []

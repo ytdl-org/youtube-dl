@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from .videodetective import VideoDetectiveIE
 
 
@@ -7,10 +9,10 @@ class RottenTomatoesIE(VideoDetectiveIE):
     _VALID_URL = r'https?://www\.rottentomatoes\.com/m/[^/]+/trailers/(?P<id>\d+)'
 
     _TEST = {
-        u'url': u'http://www.rottentomatoes.com/m/toy_story_3/trailers/11028566/',
-        u'file': '613340.mp4',
-        u'info_dict': {
-            u'title': u'TOY STORY 3',
-            u'description': u'From the creators of the beloved TOY STORY films, comes a story that will reunite the gang in a whole new way.',
+        'url': 'http://www.rottentomatoes.com/m/toy_story_3/trailers/11028566/',
+        'file': '613340.mp4',
+        'info_dict': {
+            'title': 'TOY STORY 3',
+            'description': 'From the creators of the beloved TOY STORY films, comes a story that will reunite the gang in a whole new way.',
         },
     }

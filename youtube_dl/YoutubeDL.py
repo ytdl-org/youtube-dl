@@ -39,6 +39,7 @@ from .utils import (
     locked_file,
     make_HTTPS_handler,
     MaxDownloadsReached,
+    PagedList,
     PostProcessingError,
     platform_name,
     preferredencoding,
@@ -151,6 +152,9 @@ class YoutubeDL(object):
     bidi_workaround:   Work around buggy terminals without bidirectional text
                        support, using fridibi
     debug_printtraffic:Print out sent and received HTTP traffic
+    include_ads:       Download ads as well
+    default_search:    Prepend this string if an input url is not valid.
+                       'auto' for elaborate guessing
 
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:
@@ -327,7 +331,7 @@ class YoutubeDL(object):
 
     def __exit__(self, *args):
         self.restore_console_title()
-    
+
         if self.params.get('cookiefile') is not None:
             self.cookiejar.save()
 
@@ -391,10 +395,6 @@ class YoutubeDL(object):
             self.to_screen('[download] %s has already been downloaded' % file_name)
         except UnicodeEncodeError:
             self.to_screen('[download] The file has already been downloaded')
-
-    def increment_downloads(self):
-        """Increment the ordinal that assigns a number to each file."""
-        self._num_downloads += 1
 
     def prepare_filename(self, info_dict):
         """Generate the output filename."""
@@ -513,6 +513,8 @@ class YoutubeDL(object):
             except ExtractorError as de: # An error we somewhat expected
                 self.report_error(compat_str(de), de.format_traceback())
                 break
+            except MaxDownloadsReached:
+                raise
             except Exception as e:
                 if self.params.get('ignoreerrors', False):
                     self.report_error(compat_str(e), tb=compat_str(traceback.format_exc()))
@@ -575,19 +577,27 @@ class YoutubeDL(object):
 
             playlist_results = []
 
-            n_all_entries = len(ie_result['entries'])
             playliststart = self.params.get('playliststart', 1) - 1
             playlistend = self.params.get('playlistend', None)
             # For backwards compatibility, interpret -1 as whole list
             if playlistend == -1:
                 playlistend = None
 
-            entries = ie_result['entries'][playliststart:playlistend]
-            n_entries = len(entries)
-
-            self.to_screen(
-                "[%s] playlist '%s': Collected %d video ids (downloading %d of them)" %
-                (ie_result['extractor'], playlist, n_all_entries, n_entries))
+            if isinstance(ie_result['entries'], list):
+                n_all_entries = len(ie_result['entries'])
+                entries = ie_result['entries'][playliststart:playlistend]
+                n_entries = len(entries)
+                self.to_screen(
+                    "[%s] playlist %s: Collected %d video ids (downloading %d of them)" %
+                    (ie_result['extractor'], playlist, n_all_entries, n_entries))
+            else:
+                assert isinstance(ie_result['entries'], PagedList)
+                entries = ie_result['entries'].getslice(
+                    playliststart, playlistend)
+                n_entries = len(entries)
+                self.to_screen(
+                    "[%s] playlist %s: Downloading %d videos" %
+                    (ie_result['extractor'], playlist, n_entries))
 
             for i, entry in enumerate(entries, 1):
                 self.to_screen('[download] Downloading video #%s of %s' % (i, n_entries))
@@ -634,6 +644,18 @@ class YoutubeDL(object):
             return available_formats[-1]
         elif format_spec == 'worst':
             return available_formats[0]
+        elif format_spec == 'bestaudio':
+            audio_formats = [
+                f for f in available_formats
+                if f.get('vcodec') == 'none']
+            if audio_formats:
+                return audio_formats[-1]
+        elif format_spec == 'worstaudio':
+            audio_formats = [
+                f for f in available_formats
+                if f.get('vcodec') == 'none']
+            if audio_formats:
+                return audio_formats[0]
         else:
             extensions = ['mp4', 'flv', 'webm', '3gp']
             if format_spec in extensions:
@@ -688,17 +710,17 @@ class YoutubeDL(object):
 
         # TODO Central sorting goes here
 
-        if formats[0] is not info_dict: 
+        if formats[0] is not info_dict:
             # only set the 'formats' fields if the original info_dict list them
             # otherwise we end up with a circular reference, the first (and unique)
-            # element in the 'formats' field in info_dict is info_dict itself, 
+            # element in the 'formats' field in info_dict is info_dict itself,
             # wich can't be exported to json
             info_dict['formats'] = formats
         if self.params.get('listformats', None):
             self.list_formats(info_dict)
             return
 
-        req_format = self.params.get('format', 'best')
+        req_format = self.params.get('format')
         if req_format is None:
             req_format = 'best'
         formats_to_download = []
@@ -747,8 +769,11 @@ class YoutubeDL(object):
         """Process a single resolved IE result."""
 
         assert info_dict.get('_type', 'video') == 'video'
-        #We increment the download the download count here to match the previous behaviour.
-        self.increment_downloads()
+
+        max_downloads = self.params.get('max_downloads')
+        if max_downloads is not None:
+            if self._num_downloads >= int(max_downloads):
+                raise MaxDownloadsReached()
 
         info_dict['fulltitle'] = info_dict['title']
         if len(info_dict['title']) > 200:
@@ -765,10 +790,7 @@ class YoutubeDL(object):
             self.to_screen('[download] ' + reason)
             return
 
-        max_downloads = self.params.get('max_downloads')
-        if max_downloads is not None:
-            if self._num_downloads > int(max_downloads):
-                raise MaxDownloadsReached()
+        self._num_downloads += 1
 
         filename = self.prepare_filename(info_dict)
 
@@ -1072,9 +1094,15 @@ class YoutubeDL(object):
                 res += fdict['format_note'] + ' '
             if fdict.get('tbr') is not None:
                 res += '%4dk ' % fdict['tbr']
+            if fdict.get('container') is not None:
+                if res:
+                    res += ', '
+                res += '%s container' % fdict['container']
             if (fdict.get('vcodec') is not None and
                     fdict.get('vcodec') != 'none'):
-                res += '%-5s' % fdict['vcodec']
+                if res:
+                    res += ', '
+                res += fdict['vcodec']
                 if fdict.get('vbr') is not None:
                     res += '@'
             elif fdict.get('vbr') is not None and fdict.get('abr') is not None:
@@ -1084,13 +1112,18 @@ class YoutubeDL(object):
             if fdict.get('acodec') is not None:
                 if res:
                     res += ', '
-                res += '%-5s' % fdict['acodec']
+                if fdict['acodec'] == 'none':
+                    res += 'video only'
+                else:
+                    res += '%-5s' % fdict['acodec']
             elif fdict.get('abr') is not None:
                 if res:
                     res += ', '
                 res += 'audio'
             if fdict.get('abr') is not None:
                 res += '@%3dk' % fdict['abr']
+            if fdict.get('asr') is not None:
+                res += ' (%5dHz)' % fdict['asr']
             if fdict.get('filesize') is not None:
                 if res:
                     res += ', '

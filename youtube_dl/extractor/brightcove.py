@@ -9,19 +9,21 @@ from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
     find_xpath_attr,
+    fix_xml_ampersands,
     compat_urlparse,
     compat_str,
     compat_urllib_request,
+    compat_parse_qs,
 
     ExtractorError,
     unsmuggle_url,
+    unescapeHTML,
 )
 
 
 class BrightcoveIE(InfoExtractor):
     _VALID_URL = r'https?://.*brightcove\.com/(services|viewer).*\?(?P<query>.*)'
     _FEDERATED_URL_TEMPLATE = 'http://c.brightcove.com/services/viewer/htmlFederated?%s'
-    _PLAYLIST_URL_TEMPLATE = 'http://c.brightcove.com/services/json/experience/runtime/?command=get_programming_for_experience&playerKey=%s'
 
     _TESTS = [
         {
@@ -68,7 +70,7 @@ class BrightcoveIE(InfoExtractor):
                 'description': 'md5:363109c02998fee92ec02211bd8000df',
                 'uploader': 'National Ballet of Canada',
             },
-        },
+        }
     ]
 
     @classmethod
@@ -83,17 +85,33 @@ class BrightcoveIE(InfoExtractor):
                             lambda m: m.group(1) + '/>', object_str)
         # Fix up some stupid XML, see https://github.com/rg3/youtube-dl/issues/1608
         object_str = object_str.replace('<--', '<!--')
+        object_str = fix_xml_ampersands(object_str)
 
         object_doc = xml.etree.ElementTree.fromstring(object_str)
-        assert 'BrightcoveExperience' in object_doc.attrib['class']
-        params = {
-            'playerID': find_xpath_attr(object_doc, './param', 'name', 'playerID').attrib['value'],
-        }
+
+        fv_el = find_xpath_attr(object_doc, './param', 'name', 'flashVars')
+        if fv_el is not None:
+            flashvars = dict(
+                (k, v[0])
+                for k, v in compat_parse_qs(fv_el.attrib['value']).items())
+        else:
+            flashvars = {}
+
         def find_param(name):
+            if name in flashvars:
+                return flashvars[name]
             node = find_xpath_attr(object_doc, './param', 'name', name)
             if node is not None:
                 return node.attrib['value']
             return None
+
+        params = {}
+
+        playerID = find_param('playerID')
+        if playerID is None:
+            raise ExtractorError('Cannot find player ID')
+        params['playerID'] = playerID
+
         playerKey = find_param('playerKey')
         # Not all pages define this value
         if playerKey is not None:
@@ -110,16 +128,28 @@ class BrightcoveIE(InfoExtractor):
 
     @classmethod
     def _extract_brightcove_url(cls, webpage):
-        """Try to extract the brightcove url from the wepbage, returns None
+        """Try to extract the brightcove url from the webpage, returns None
         if it can't be found
         """
-        m_brightcove = re.search(
-            r'<object[^>]+?class=([\'"])[^>]*?BrightcoveExperience.*?\1.+?</object>',
-            webpage, re.DOTALL)
-        if m_brightcove is not None:
-            return cls._build_brighcove_url(m_brightcove.group())
-        else:
-            return None
+        urls = cls._extract_brightcove_urls(webpage)
+        return urls[0] if urls else None
+
+    @classmethod
+    def _extract_brightcove_urls(cls, webpage):
+        """Return a list of all Brightcove URLs from the webpage """
+
+        url_m = re.search(r'<meta\s+property="og:video"\s+content="(http://c.brightcove.com/[^"]+)"', webpage)
+        if url_m:
+            return [unescapeHTML(url_m.group(1))]
+
+        matches = re.findall(
+            r'''(?sx)<object
+            (?:
+                [^>]+?class=[\'"][^>]*?BrightcoveExperience.*?[\'"] |
+                [^>]*?>\s*<param\s+name="movie"\s+value="https?://[^/]*brightcove\.com/
+            ).+?</object>''',
+            webpage)
+        return [cls._build_brighcove_url(m) for m in matches]
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
@@ -156,12 +186,14 @@ class BrightcoveIE(InfoExtractor):
         info = self._search_regex(r'var experienceJSON = ({.*?});', webpage, 'json')
         info = json.loads(info)['data']
         video_info = info['programmedContent']['videoPlayer']['mediaDTO']
+        video_info['_youtubedl_adServerURL'] = info.get('adServerURL')
 
         return self._extract_video_info(video_info)
 
     def _get_playlist_info(self, player_key):
-        playlist_info = self._download_webpage(self._PLAYLIST_URL_TEMPLATE % player_key,
-                                               player_key, 'Downloading playlist information')
+        info_url = 'http://c.brightcove.com/services/json/experience/runtime/?command=get_programming_for_experience&playerKey=%s' % player_key
+        playlist_info = self._download_webpage(
+            info_url, player_key, 'Downloading playlist information')
 
         json_data = json.loads(playlist_info)
         if 'videoList' not in json_data:
@@ -175,7 +207,7 @@ class BrightcoveIE(InfoExtractor):
     def _extract_video_info(self, video_info):
         info = {
             'id': compat_str(video_info['id']),
-            'title': video_info['displayName'],
+            'title': video_info['displayName'].strip(),
             'description': video_info.get('shortDescription'),
             'thumbnail': video_info.get('videoStillURL') or video_info.get('thumbnailURL'),
             'uploader': video_info.get('publisherName'),
@@ -193,6 +225,23 @@ class BrightcoveIE(InfoExtractor):
             info.update({
                 'url': video_info['FLVFullLengthURL'],
             })
-        else:
+
+        if self._downloader.params.get('include_ads', False):
+            adServerURL = video_info.get('_youtubedl_adServerURL')
+            if adServerURL:
+                ad_info = {
+                    '_type': 'url',
+                    'url': adServerURL,
+                }
+                if 'url' in info:
+                    return {
+                        '_type': 'playlist',
+                        'title': info['title'],
+                        'entries': [ad_info, info],
+                    }
+                else:
+                    return ad_info
+
+        if 'url' not in info and not info.get('formats'):
             raise ExtractorError('Unable to extract video url for %s' % info['id'])
         return info

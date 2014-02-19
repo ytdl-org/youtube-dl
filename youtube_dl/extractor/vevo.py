@@ -1,5 +1,6 @@
+from __future__ import unicode_literals
+
 import re
-import json
 import xml.etree.ElementTree
 import datetime
 
@@ -22,16 +23,16 @@ class VevoIE(InfoExtractor):
            vevo:)
         (?P<id>[^&?#]+)'''
     _TESTS = [{
-        u'url': u'http://www.vevo.com/watch/hurts/somebody-to-die-for/GB1101300280',
-        u'file': u'GB1101300280.mp4',
-        u"md5": u"06bea460acb744eab74a9d7dcb4bfd61",
-        u'info_dict': {
-            u"upload_date": u"20130624",
-            u"uploader": u"Hurts",
-            u"title": u"Somebody to Die For",
-            u"duration": 230.12,
-            u"width": 1920,
-            u"height": 1080,
+        'url': 'http://www.vevo.com/watch/hurts/somebody-to-die-for/GB1101300280',
+        'file': 'GB1101300280.mp4',
+        "md5": "06bea460acb744eab74a9d7dcb4bfd61",
+        'info_dict': {
+            "upload_date": "20130624",
+            "uploader": "Hurts",
+            "title": "Somebody to Die For",
+            "duration": 230.12,
+            "width": 1920,
+            "height": 1080,
         }
     }]
     _SMIL_BASE_URL = 'http://smil.lvl3.vevo.com/'
@@ -44,7 +45,7 @@ class VevoIE(InfoExtractor):
                 if version['version'] > last_version['version']:
                     last_version = version
         if last_version['version'] == -1:
-            raise ExtractorError(u'Unable to extract last version of the video')
+            raise ExtractorError('Unable to extract last version of the video')
 
         renditions = xml.etree.ElementTree.fromstring(last_version['data'])
         formats = []
@@ -85,7 +86,7 @@ class VevoIE(InfoExtractor):
             format_url = self._SMIL_BASE_URL + m.group('path')
             formats.append({
                 'url': format_url,
-                'format_id': u'SMIL_' + m.group('cbr'),
+                'format_id': 'SMIL_' + m.group('cbr'),
                 'vcodec': m.group('vcodec'),
                 'acodec': m.group('acodec'),
                 'vbr': int(m.group('vbr')),
@@ -101,26 +102,25 @@ class VevoIE(InfoExtractor):
         video_id = mobj.group('id')
 
         json_url = 'http://videoplayer.vevo.com/VideoService/AuthenticateVideo?isrc=%s' % video_id
-        info_json = self._download_webpage(json_url, video_id, u'Downloading json info')
-        video_info = json.loads(info_json)['video']
+        video_info = self._download_json(json_url, video_id)['video']
 
         formats = self._formats_from_json(video_info)
         try:
             smil_url = '%s/Video/V2/VFILE/%s/%sr.smil' % (
                 self._SMIL_BASE_URL, video_id, video_id.lower())
             smil_xml = self._download_webpage(smil_url, video_id,
-                                              u'Downloading SMIL info')
+                                              'Downloading SMIL info')
             formats.extend(self._formats_from_smil(smil_xml))
         except ExtractorError as ee:
             if not isinstance(ee.cause, compat_HTTPError):
                 raise
             self._downloader.report_warning(
-                u'Cannot download SMIL information, falling back to JSON ..')
+                'Cannot download SMIL information, falling back to JSON ..')
 
         timestamp_ms = int(self._search_regex(
-            r'/Date\((\d+)\)/', video_info['launchDate'], u'launch date'))
+            r'/Date\((\d+)\)/', video_info['launchDate'], 'launch date'))
         upload_date = datetime.datetime.fromtimestamp(timestamp_ms // 1000)
-        info = {
+        return {
             'id': video_id,
             'title': video_info['title'],
             'formats': formats,
@@ -129,5 +129,3 @@ class VevoIE(InfoExtractor):
             'uploader': video_info['mainArtists'][0]['artistName'],
             'duration': video_info['duration'],
         }
-
-        return info

@@ -6,10 +6,10 @@ import re
 import itertools
 
 from .common import InfoExtractor
+from .subtitles import SubtitlesInfoExtractor
 from ..utils import (
     compat_urllib_parse,
     compat_urllib_request,
-
     clean_html,
     get_element_by_attribute,
     ExtractorError,
@@ -19,7 +19,7 @@ from ..utils import (
 )
 
 
-class VimeoIE(InfoExtractor):
+class VimeoIE(SubtitlesInfoExtractor):
     """Information extractor for vimeo.com."""
 
     # _VALID_URL matches Vimeo URLs
@@ -37,13 +37,14 @@ class VimeoIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://vimeo.com/56015672#at=0',
-            'file': '56015672.mp4',
             'md5': '8879b6cc097e987f02484baf890129e5',
             'info_dict': {
-                "upload_date": "20121220", 
-                "description": "This is a test case for youtube-dl.\nFor more information, see github.com/rg3/youtube-dl\nTest chars: \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550", 
-                "uploader_id": "user7108434", 
-                "uploader": "Filippo Valsorda", 
+                'id': '56015672',
+                'ext': 'mp4',
+                "upload_date": "20121220",
+                "description": "This is a test case for youtube-dl.\nFor more information, see github.com/rg3/youtube-dl\nTest chars: \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
+                "uploader_id": "user7108434",
+                "uploader": "Filippo Valsorda",
                 "title": "youtube-dl test video - \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
             },
         },
@@ -83,6 +84,20 @@ class VimeoIE(InfoExtractor):
             'params': {
                 'videopassword': 'youtube-dl',
             },
+        },
+        {
+            'url': 'http://vimeo.com/76979871',
+            'md5': '3363dd6ffebe3784d56f4132317fd446',
+            'note': 'Video with subtitles',
+            'info_dict': {
+                'id': '76979871',
+                'ext': 'mp4',
+                'title': 'The New Vimeo Player (You Know, For Videos)',
+                'description': 'md5:2ec900bf97c3f389378a96aee11260ea',
+                'upload_date': '20131015',
+                'uploader_id': 'staff',
+                'uploader': 'Vimeo Staff',
+            }
         },
     ]
 
@@ -273,25 +288,37 @@ class VimeoIE(InfoExtractor):
         if len(formats) == 0:
             raise ExtractorError('No known codec found')
 
+        subtitles = {}
+        text_tracks = config['request'].get('text_tracks')
+        if text_tracks:
+            for tt in text_tracks:
+                subtitles[tt['lang']] = 'http://vimeo.com' + tt['url']
+
+        video_subtitles = self.extract_subtitles(video_id, subtitles)
+        if self._downloader.params.get('listsubtitles', False):
+            self._list_available_subtitles(video_id, subtitles)
+            return
+
         return {
-            'id':       video_id,
+            'id': video_id,
             'uploader': video_uploader,
             'uploader_id': video_uploader_id,
-            'upload_date':  video_upload_date,
-            'title':    video_title,
-            'thumbnail':    video_thumbnail,
-            'description':  video_description,
+            'upload_date': video_upload_date,
+            'title': video_title,
+            'thumbnail': video_thumbnail,
+            'description': video_description,
             'formats': formats,
             'webpage_url': url,
             'view_count': view_count,
             'like_count': like_count,
             'comment_count': comment_count,
+            'subtitles': video_subtitles,
         }
 
 
 class VimeoChannelIE(InfoExtractor):
     IE_NAME = 'vimeo:channel'
-    _VALID_URL = r'(?:https?://)?vimeo.\com/channels/(?P<id>[^/]+)'
+    _VALID_URL = r'(?:https?://)?vimeo\.com/channels/(?P<id>[^/]+)'
     _MORE_PAGES_INDICATOR = r'<a.+?rel="next"'
     _TITLE_RE = r'<link rel="alternate"[^>]+?title="(.*?)"'
 
@@ -327,7 +354,7 @@ class VimeoChannelIE(InfoExtractor):
 
 class VimeoUserIE(VimeoChannelIE):
     IE_NAME = 'vimeo:user'
-    _VALID_URL = r'(?:https?://)?vimeo.\com/(?P<name>[^/]+)(?:/videos|[#?]|$)'
+    _VALID_URL = r'(?:https?://)?vimeo\.com/(?P<name>[^/]+)(?:/videos|[#?]|$)'
     _TITLE_RE = r'<a[^>]+?class="user">([^<>]+?)</a>'
 
     @classmethod
@@ -344,7 +371,7 @@ class VimeoUserIE(VimeoChannelIE):
 
 class VimeoAlbumIE(VimeoChannelIE):
     IE_NAME = 'vimeo:album'
-    _VALID_URL = r'(?:https?://)?vimeo.\com/album/(?P<id>\d+)'
+    _VALID_URL = r'(?:https?://)?vimeo\.com/album/(?P<id>\d+)'
     _TITLE_RE = r'<header id="page_header">\n\s*<h1>(.*?)</h1>'
 
     def _page_url(self, base_url, pagenum):
@@ -358,7 +385,7 @@ class VimeoAlbumIE(VimeoChannelIE):
 
 class VimeoGroupsIE(VimeoAlbumIE):
     IE_NAME = 'vimeo:group'
-    _VALID_URL = r'(?:https?://)?vimeo.\com/groups/(?P<name>[^/]+)'
+    _VALID_URL = r'(?:https?://)?vimeo\.com/groups/(?P<name>[^/]+)'
 
     def _extract_list_title(self, webpage):
         return self._og_search_title(webpage)
@@ -372,7 +399,7 @@ class VimeoGroupsIE(VimeoAlbumIE):
 class VimeoReviewIE(InfoExtractor):
     IE_NAME = 'vimeo:review'
     IE_DESC = 'Review pages on vimeo'
-    _VALID_URL = r'(?:https?://)?vimeo.\com/[^/]+/review/(?P<id>[^/]+)'
+    _VALID_URL = r'(?:https?://)?vimeo\.com/[^/]+/review/(?P<id>[^/]+)'
     _TEST = {
         'url': 'https://vimeo.com/user21297594/review/75524534/3c257a1b5d',
         'file': '75524534.mp4',

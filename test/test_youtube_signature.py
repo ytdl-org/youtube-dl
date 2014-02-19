@@ -27,6 +27,12 @@ _TESTS = [
         85,
         u'3456789a0cdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRS[UVWXYZ!"#$%&\'()*+,-./:;<=>?@',
     ),
+    (
+        u'https://s.ytimg.com/yts/jsbin/html5player-vfle-mVwz.js',
+        u'js',
+        90,
+        u']\\[@?>=<;:/.-,+*)(\'&%$#"hZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjiagfedcb39876',
+    ),
 ]
 
 
