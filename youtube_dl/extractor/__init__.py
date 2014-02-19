@@ -216,6 +216,7 @@ from .sztvhu import SztvHuIE
 from .teamcoco import TeamcocoIE
 from .techtalks import TechTalksIE
 from .ted import TEDIE
+from .testurl import TestURLIE
 from .tf1 import TF1IE
 from .theplatform import ThePlatformIE
 from .thisav import ThisAVIE
