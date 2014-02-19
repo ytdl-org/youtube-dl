@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import re
 
 from .common import InfoExtractor
@@ -8,14 +10,14 @@ from ..utils import RegexNotFoundError, ExtractorError
 class SpaceIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?:www|m)\.)?space\.com/\d+-(?P<title>[^/\.\?]*?)-video\.html'
     _TEST = {
-        u'add_ie': ['Brightcove'],
-        u'url': u'http://www.space.com/23373-huge-martian-landforms-detail-revealed-by-european-probe-video.html',
-        u'info_dict': {
-            u'id': u'2780937028001',
-            u'ext': u'mp4',
-            u'title': u'Huge Martian Landforms\' Detail Revealed By European Probe | Video',
-            u'description': u'md5:db81cf7f3122f95ed234b631a6ea1e61',
-            u'uploader': u'TechMedia Networks',
+        'add_ie': ['Brightcove'],
+        'url': 'http://www.space.com/23373-huge-martian-landforms-detail-revealed-by-european-probe-video.html',
+        'info_dict': {
+            'id': '2780937028001',
+            'ext': 'mp4',
+            'title': 'Huge Martian Landforms\' Detail Revealed By European Probe | Video',
+            'description': 'md5:db81cf7f3122f95ed234b631a6ea1e61',
+            'uploader': 'TechMedia Networks',
         },
     }
 
