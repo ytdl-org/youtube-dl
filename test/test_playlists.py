@@ -250,5 +250,14 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['title'], 'python language')
         self.assertTrue(len(result['entries']) == 15)
 
+    def test_generic_rss_feed(self):
+        dl = FakeYDL()
+        ie = GenericIE(dl)
+        result = ie.extract('http://www.escapistmagazine.com/rss/videos/list/1.xml')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], 'http://www.escapistmagazine.com/rss/videos/list/1.xml')
+        self.assertEqual(result['title'], 'Zero Punctuation')
+        self.assertTrue(len(result['entries']) > 10)
+
 if __name__ == '__main__':
     unittest.main()
