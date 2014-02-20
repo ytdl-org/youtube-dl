@@ -1366,12 +1366,26 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             raise ExtractorError(u'no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
 
         # Look for the DASH manifest
-        dash_manifest_url_lst = video_info.get('dashmpd')
-        if (dash_manifest_url_lst and dash_manifest_url_lst[0] and
-                self._downloader.params.get('youtube_include_dash_manifest', False)):
+        if (self._downloader.params.get('youtube_include_dash_manifest', False)):
             try:
+                # The DASH manifest used needs to be the one from the original video_webpage.
+                # The one found in get_video_info seems to be using different signatures.
+                # However, in the case of an age restriction there won't be any embedded dashmpd in the video_webpage.
+                # Luckily, it seems, this case uses some kind of default signature (len == 86), so the
+                # combination of get_video_info and the _static_decrypt_signature() decryption fallback will work here.
+                if age_gate:
+                    dash_manifest_url = video_info.get('dashmpd')[0];
+                else:
+                    x = re.search(r'ytplayer\.config = ({.*});', video_webpage)
+                    x = json.loads(x.group(1));
+                    dash_manifest_url = x['args']['dashmpd']
+                def decrypt_sig(mobj):
+                    s = mobj.group(1)
+                    dec_s = self._decrypt_signature(s, video_id, player_url, age_gate)
+                    return '/signature/%s' % dec_s
+                dash_manifest_url = re.sub(r'/s/([\w\.]+)', decrypt_sig, dash_manifest_url)
                 dash_doc = self._download_xml(
-                    dash_manifest_url_lst[0], video_id,
+                    dash_manifest_url, video_id,
                     note=u'Downloading DASH manifest',
                     errnote=u'Could not download DASH manifest')
                 for r in dash_doc.findall(u'.//{urn:mpeg:DASH:schema:MPD:2011}Representation'):
