@@ -45,7 +45,7 @@ class SpankwireIE(InfoExtractor):
         description = self._html_search_regex(
             r'<div\s+id="descriptionContent">([^<]+)<', webpage, 'description', fatal=False)
 
-        video_urls = list(map(compat_urllib_parse.unquote , re.findall(r'flashvars\.quality_[0-9]{3}p = "([^"]+)', webpage)))
+        video_urls = list(map(compat_urllib_parse.unquote, re.findall(r'flashvars\.quality_[0-9]{3}p = "([^"]+)', webpage)))
         if webpage.find('flashvars\.encrypted = "true"') != -1:
             password = self._html_search_regex(r'flashvars\.video_title = "([^"]+)', webpage, 'password').replace('+', ' ')
             video_urls = list(map(lambda s: aes_decrypt_text(s, password, 32).decode('utf-8'), video_urls))

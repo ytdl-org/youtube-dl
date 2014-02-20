@@ -37,17 +37,17 @@ class TechTalksIE(InfoExtractor):
         talk_id = mobj.group('id')
         webpage = self._download_webpage(url, talk_id)
         rtmp_url = self._search_regex(r'netConnectionUrl: \'(.*?)\'', webpage,
-            u'rtmp url')
+                                      u'rtmp url')
         play_path = self._search_regex(r'href=\'(.*?)\' [^>]*id="flowplayer_presenter"',
-            webpage, u'presenter play path')
+                                       webpage, u'presenter play path')
         title = clean_html(get_element_by_attribute('class', 'title', webpage))
         video_info = {
-                'id': talk_id,
-                'title': title,
-                'url': rtmp_url,
-                'play_path': play_path,
-                'ext': 'flv',
-            }
+            'id': talk_id,
+            'title': title,
+            'url': rtmp_url,
+            'play_path': play_path,
+            'ext': 'flv',
+        }
         m_slides = re.search(r'<a class="slides" href=\'(.*?)\'', webpage)
         if m_slides is None:
             return video_info

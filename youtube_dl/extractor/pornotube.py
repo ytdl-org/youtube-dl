@@ -15,7 +15,7 @@ class PornotubeIE(InfoExtractor):
         u'file': u'1689755.flv',
         u'md5': u'374dd6dcedd24234453b295209aa69b6',
         u'info_dict': {
-            u"upload_date": u"20090708", 
+            u"upload_date": u"20090708",
             u"title": u"Marilyn-Monroe-Bathing",
             u"age_limit": 18
         }
@@ -35,10 +35,11 @@ class PornotubeIE(InfoExtractor):
         video_url = self._search_regex(VIDEO_URL_RE, webpage, u'video url')
         video_url = compat_urllib_parse.unquote(video_url)
 
-        #Get the uploaded date
+        # Get the uploaded date
         VIDEO_UPLOADED_RE = r'<div class="video_added_by">Added (?P<date>[0-9\/]+) by'
         upload_date = self._html_search_regex(VIDEO_UPLOADED_RE, webpage, u'upload date', fatal=False)
-        if upload_date: upload_date = unified_strdate(upload_date)
+        if upload_date:
+            upload_date = unified_strdate(upload_date)
         age_limit = self._rta_search(webpage)
 
         info = {'id': video_id,

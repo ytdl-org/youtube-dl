@@ -5,7 +5,9 @@ import re
 
 from .common import InfoExtractor
 
+
 class TF1IE(InfoExtractor):
+
     """TF1 uses the wat.tv player."""
     _VALID_URL = r'http://videos\.tf1\.fr/.*-(.*?)\.html'
     _TEST = {
@@ -24,7 +26,7 @@ class TF1IE(InfoExtractor):
         id = mobj.group(1)
         webpage = self._download_webpage(url, id)
         embed_url = self._html_search_regex(r'"(https://www.wat.tv/embedframe/.*?)"',
-                                webpage, 'embed url')
+                                            webpage, 'embed url')
         embed_page = self._download_webpage(embed_url, id, u'Downloading embed player page')
         wat_id = self._search_regex(r'UVID=(.*?)&', embed_page, 'wat id')
         wat_info = self._download_webpage('http://www.wat.tv/interface/contentv3/%s' % wat_id, id, u'Downloading Wat info')

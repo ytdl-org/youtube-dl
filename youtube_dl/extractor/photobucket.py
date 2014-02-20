@@ -8,7 +8,9 @@ from ..utils import (
     ExtractorError,
 )
 
+
 class PhotobucketIE(InfoExtractor):
+
     """Information extractor for photobucket.com."""
 
     # TODO: the original _VALID_URL was:
@@ -21,8 +23,8 @@ class PhotobucketIE(InfoExtractor):
         u'file': u'zpsc0c3b9fa.mp4',
         u'md5': u'7dabfb92b0a31f6c16cebc0f8e60ff99',
         u'info_dict': {
-            u"upload_date": u"20130504", 
-            u"uploader": u"rachaneronas", 
+            u"upload_date": u"20130504",
+            u"uploader": u"rachaneronas",
             u"title": u"Tired of Link Building? Try BacklinkMyDomain.com!"
         }
     }
@@ -47,18 +49,18 @@ class PhotobucketIE(InfoExtractor):
         if mobj is not None:
             info = json.loads(mobj.group('json'))
             return [{
-                'id':       video_id,
-                'url':      info[u'downloadUrl'],
+                'id': video_id,
+                'url': info[u'downloadUrl'],
                 'uploader': info[u'username'],
-                'upload_date':  datetime.date.fromtimestamp(info[u'creationDate']).strftime('%Y%m%d'),
-                'title':    info[u'title'],
-                'ext':      video_extension,
+                'upload_date': datetime.date.fromtimestamp(info[u'creationDate']).strftime('%Y%m%d'),
+                'title': info[u'title'],
+                'ext': video_extension,
                 'thumbnail': info[u'thumbUrl'],
             }]
 
         # We try looking in other parts of the webpage
         video_url = self._search_regex(r'<link rel="video_src" href=".*\?file=([^"]+)" />',
-            webpage, u'video URL')
+                                       webpage, u'video URL')
 
         mobj = re.search(r'<title>(.*) video by (.*) - Photobucket</title>', webpage)
         if mobj is None:
@@ -67,10 +69,10 @@ class PhotobucketIE(InfoExtractor):
         video_uploader = mobj.group(2).decode('utf-8')
 
         return [{
-            'id':       video_id.decode('utf-8'),
-            'url':      video_url.decode('utf-8'),
+            'id': video_id.decode('utf-8'),
+            'url': video_url.decode('utf-8'),
             'uploader': video_uploader,
-            'upload_date':  None,
-            'title':    video_title,
-            'ext':      video_extension.decode('utf-8'),
+            'upload_date': None,
+            'title': video_title,
+            'ext': video_extension.decode('utf-8'),
         }]

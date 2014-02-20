@@ -1,5 +1,6 @@
 from .mtv import MTVIE
 
+
 class CMTIE(MTVIE):
     IE_NAME = u'cmt.com'
     _VALID_URL = r'https?://www\.cmt\.com/videos/.+?/(?P<videoid>[^/]+)\.jhtml'

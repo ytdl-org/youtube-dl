@@ -26,7 +26,7 @@ class AUEngineIE(InfoExtractor):
         video_id = mobj.group(1)
         webpage = self._download_webpage(url, video_id)
         title = self._html_search_regex(r'<title>(?P<title>.+?)</title>',
-                webpage, 'title')
+                                        webpage, 'title')
         title = title.strip()
         links = re.findall(r'\s(?:file|url):\s*["\']([^\'"]+)["\']', webpage)
         links = map(compat_urllib_parse.unquote, links)
@@ -45,8 +45,8 @@ class AUEngineIE(InfoExtractor):
             title = title[:-len(ext)]
 
         return {
-            'id':        video_id,
-            'url':       video_url,
-            'title':     title,
+            'id': video_id,
+            'url': video_url,
+            'title': title,
             'thumbnail': thumbnail,
         }

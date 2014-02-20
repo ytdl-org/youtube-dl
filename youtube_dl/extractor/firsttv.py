@@ -44,9 +44,9 @@ class FirstTVIE(InfoExtractor):
         duration = self._og_search_property('video:duration', webpage, 'video duration', fatal=False)
 
         like_count = self._html_search_regex(r'title="Понравилось".*?/></label> \[(\d+)\]',
-            webpage, 'like count', fatal=False)
+                                             webpage, 'like count', fatal=False)
         dislike_count = self._html_search_regex(r'title="Не понравилось".*?/></label> \[(\d+)\]',
-            webpage, 'dislike count', fatal=False)
+                                                webpage, 'dislike count', fatal=False)
 
         return {
             'id': video_id,

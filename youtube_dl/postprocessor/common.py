@@ -2,6 +2,7 @@ from ..utils import PostProcessingError
 
 
 class PostProcessor(object):
+
     """Post Processor class.
 
     PostProcessor objects can be added to downloaders with their

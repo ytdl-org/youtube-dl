@@ -163,7 +163,7 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
         group_id = mobj.group('id')
 
         playlist = self._download_xml('http://www.bbc.co.uk/iplayer/playlist/%s' % group_id, group_id,
-            'Downloading playlist XML')
+                                      'Downloading playlist XML')
 
         no_items = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}noItems')
         if no_items is not None:
@@ -190,7 +190,7 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
             duration = int(item.get('duration'))
 
             media_selection = self._download_xml(
-                'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s'  % programme_id,
+                'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s' % programme_id,
                 programme_id, 'Downloading media selection XML')
 
             for media in self._extract_medias(media_selection):

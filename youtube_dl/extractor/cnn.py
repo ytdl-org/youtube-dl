@@ -25,16 +25,16 @@ class CNNIE(InfoExtractor):
             'upload_date': '20130609',
         },
     },
-    {
-        "url": "http://edition.cnn.com/video/?/video/us/2013/08/21/sot-student-gives-epic-speech.georgia-institute-of-technology&utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+rss%2Fcnn_topstories+%28RSS%3A+Top+Stories%29",
-        "file": "us_2013_08_21_sot-student-gives-epic-speech.georgia-institute-of-technology.mp4",
-        "md5": "b5cc60c60a3477d185af8f19a2a26f4e",
-        "info_dict": {
-            "title": "Student's epic speech stuns new freshmen",
-            "description": "A Georgia Tech student welcomes the incoming freshmen with an epic speech backed by music from \"2001: A Space Odyssey.\"",
-            "upload_date": "20130821",
-        }
-    }]
+        {
+            "url": "http://edition.cnn.com/video/?/video/us/2013/08/21/sot-student-gives-epic-speech.georgia-institute-of-technology&utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+rss%2Fcnn_topstories+%28RSS%3A+Top+Stories%29",
+            "file": "us_2013_08_21_sot-student-gives-epic-speech.georgia-institute-of-technology.mp4",
+            "md5": "b5cc60c60a3477d185af8f19a2a26f4e",
+            "info_dict": {
+                "title": "Student's epic speech stuns new freshmen",
+                "description": "A Georgia Tech student welcomes the incoming freshmen with an epic speech backed by music from \"2001: A Space Odyssey.\"",
+                "upload_date": "20130821",
+            }
+        }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -79,7 +79,7 @@ class CNNIE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        thumbnails = sorted([((int(t.attrib['height']),int(t.attrib['width'])), t.text) for t in info.findall('images/image')])
+        thumbnails = sorted([((int(t.attrib['height']), int(t.attrib['width'])), t.text) for t in info.findall('images/image')])
         thumbs_dict = [{'resolution': res, 'url': t_url} for (res, t_url) in thumbnails]
 
         metas_el = info.find('metas')

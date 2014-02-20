@@ -15,6 +15,7 @@ from ..utils import (
 
 
 class DepositFilesIE(InfoExtractor):
+
     """Information extractor for depositfiles.com"""
 
     _VALID_URL = r'(?:http://)?(?:\w+\.)?depositfiles\.com/(?:../(?#locale))?files/(.+)'
@@ -25,7 +26,7 @@ class DepositFilesIE(InfoExtractor):
         url = 'http://depositfiles.com/en/files/' + file_id
 
         # Retrieve file webpage with 'Free download' button pressed
-        free_download_indication = {'gateway_result' : '1'}
+        free_download_indication = {'gateway_result': '1'}
         request = compat_urllib_request.Request(url, compat_urllib_parse.urlencode(free_download_indication))
         try:
             self.report_download_webpage(file_id)
@@ -51,10 +52,10 @@ class DepositFilesIE(InfoExtractor):
         file_title = self._search_regex(r'<b title="(.*?)">', webpage, u'title')
 
         return [{
-            'id':       file_id.decode('utf-8'),
-            'url':      file_url.decode('utf-8'),
+            'id': file_id.decode('utf-8'),
+            'url': file_url.decode('utf-8'),
             'uploader': None,
-            'upload_date':  None,
-            'title':    file_title,
-            'ext':      file_extension.decode('utf-8'),
+            'upload_date': None,
+            'title': file_title,
+            'ext': file_extension.decode('utf-8'),
         }]

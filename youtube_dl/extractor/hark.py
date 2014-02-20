@@ -6,6 +6,7 @@ import json
 from .common import InfoExtractor
 from ..utils import determine_ext
 
+
 class HarkIE(InfoExtractor):
     _VALID_URL = r'https?://www\.hark\.com/clips/(.+?)-.+'
     _TEST = {
@@ -22,13 +23,13 @@ class HarkIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group(1)
-        json_url = "http://www.hark.com/clips/%s.json" %(video_id)
+        json_url = "http://www.hark.com/clips/%s.json" % (video_id)
         info_json = self._download_webpage(json_url, video_id)
         info = json.loads(info_json)
         final_url = info['url']
 
         return {'id': video_id,
-                'url' : final_url,
+                'url': final_url,
                 'title': info['name'],
                 'ext': determine_ext(final_url),
                 'description': info['description'],

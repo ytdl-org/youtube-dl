@@ -13,8 +13,8 @@ from ..utils import (
 
 
 class YoukuIE(InfoExtractor):
-    _VALID_URL =  r'(?:(?:http://)?(?:v|player)\.youku\.com/(?:v_show/id_|player\.php/sid/)|youku:)(?P<ID>[A-Za-z0-9]+)(?:\.html|/v\.swf|)'
-    _TEST =   {
+    _VALID_URL = r'(?:(?:http://)?(?:v|player)\.youku\.com/(?:v_show/id_|player\.php/sid/)|youku:)(?P<ID>[A-Za-z0-9]+)(?:\.html|/v\.swf|)'
+    _TEST = {
         u"url": u"http://v.youku.com/v_show/id_XNDgyMDQ2NTQw.html",
         u"file": u"XNDgyMDQ2NTQw_part00.flv",
         u"md5": u"ffe3f2e435663dc2d1eea34faeff5b5b",
@@ -24,24 +24,23 @@ class YoukuIE(InfoExtractor):
         }
     }
 
-
     def _gen_sid(self):
         nowTime = int(time.time() * 1000)
-        random1 = random.randint(1000,1998)
-        random2 = random.randint(1000,9999)
+        random1 = random.randint(1000, 1998)
+        random2 = random.randint(1000, 9999)
 
-        return "%d%d%d" %(nowTime,random1,random2)
+        return "%d%d%d" % (nowTime, random1, random2)
 
     def _get_file_ID_mix_string(self, seed):
         mixed = []
         source = list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/\:._-1234567890")
         seed = float(seed)
         for i in range(len(source)):
-            seed  =  (seed * 211 + 30031) % 65536
-            index  =  math.floor(seed / 65536 * len(source))
+            seed = (seed * 211 + 30031) % 65536
+            index = math.floor(seed / 65536 * len(source))
             mixed.append(source[int(index)])
             source.remove(source[int(index)])
-        #return ''.join(mixed)
+        # return ''.join(mixed)
         return mixed
 
     def _get_file_id(self, fileId, seed):
@@ -71,9 +70,9 @@ class YoukuIE(InfoExtractor):
                 # -8 means blocked outside China.
                 error = config['data'][0].get('error')  # Chinese and English, separated by newline.
                 raise ExtractorError(error or u'Server reported error %i' % error_code,
-                    expected=True)
+                                     expected=True)
 
-            video_title =  config['data'][0]['title']
+            video_title = config['data'][0]['title']
             seed = config['data'][0]['seed']
 
             format = self._downloader.params.get('format', None)
@@ -92,19 +91,18 @@ class YoukuIE(InfoExtractor):
                 format = 'flv'
                 ext = u'flv'
 
-
             fileid = config['data'][0]['streamfileids'][format]
             keys = [s['k'] for s in config['data'][0]['segs'][format]]
             # segs is usually a dictionary, but an empty *list* if an error occured.
         except (UnicodeDecodeError, ValueError, KeyError):
             raise ExtractorError(u'Unable to extract info section')
 
-        files_info=[]
+        files_info = []
         sid = self._gen_sid()
         fileid = self._get_file_id(fileid, seed)
 
-        #column 8,9 of fileid represent the segment number
-        #fileid[7:9] should be changed
+        # column 8,9 of fileid represent the segment number
+        # fileid[7:9] should be changed
         for index, key in enumerate(keys):
 
             temp_fileid = '%s%02X%s' % (fileid[0:8], index, fileid[10:])

@@ -17,6 +17,7 @@ from ..utils import (
 
 
 class SoundcloudIE(InfoExtractor):
+
     """Information extractor for soundcloud.com
        To access the media, the uid of the song and a stream token
        must be extracted from the page source and the script must make
@@ -137,7 +138,7 @@ class SoundcloudIE(InfoExtractor):
         else:
             # We have to retrieve the url
             streams_url = ('http://api.soundcloud.com/i1/tracks/{0}/streams?'
-                'client_id={1}&secret_token={2}'.format(track_id, self._IPHONE_CLIENT_ID, secret_token))
+                           'client_id={1}&secret_token={2}'.format(track_id, self._IPHONE_CLIENT_ID, secret_token))
             stream_json = self._download_webpage(
                 streams_url,
                 track_id, 'Downloading track url')
@@ -201,20 +202,21 @@ class SoundcloudIE(InfoExtractor):
             # extract uploader (which is in the url)
             uploader = mobj.group('uploader')
             # extract simple title (uploader + slug of song title)
-            slug_title =  mobj.group('title')
+            slug_title = mobj.group('title')
             token = mobj.group('token')
             full_title = resolve_title = '%s/%s' % (uploader, slug_title)
             if token:
                 resolve_title += '/%s' % token
-    
+
             self.report_resolve(full_title)
-    
+
             url = 'http://soundcloud.com/%s' % resolve_title
             info_json_url = self._resolv_url(url)
         info_json = self._download_webpage(info_json_url, full_title, 'Downloading info JSON')
 
         info = json.loads(info_json)
         return self._extract_info_dict(info, full_title, secret_token=token)
+
 
 class SoundcloudSetIE(SoundcloudIE):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/sets/([\w\d-]+)(?:[?].*)?$'
@@ -230,7 +232,7 @@ class SoundcloudSetIE(SoundcloudIE):
         # extract uploader (which is in the url)
         uploader = mobj.group(1)
         # extract simple title (uploader + slug of song title)
-        slug_title =  mobj.group(2)
+        slug_title = mobj.group(2)
         full_title = '%s/sets/%s' % (uploader, slug_title)
 
         self.report_resolve(full_title)
@@ -267,17 +269,17 @@ class SoundcloudUserIE(SoundcloudIE):
         url = 'http://soundcloud.com/%s/' % uploader
         resolv_url = self._resolv_url(url)
         user_json = self._download_webpage(resolv_url, uploader,
-            'Downloading user info')
+                                           'Downloading user info')
         user = json.loads(user_json)
 
         tracks = []
         for i in itertools.count():
-            data = compat_urllib_parse.urlencode({'offset': i*50,
+            data = compat_urllib_parse.urlencode({'offset': i * 50,
                                                   'client_id': self._CLIENT_ID,
                                                   })
             tracks_url = 'http://api.soundcloud.com/users/%s/tracks.json?' % user['id'] + data
-            response = self._download_webpage(tracks_url, uploader, 
-                'Downloading tracks page %s' % (i+1))
+            response = self._download_webpage(tracks_url, uploader,
+                                              'Downloading tracks page %s' % (i + 1))
             new_tracks = json.loads(response)
             tracks.extend(self._extract_info_dict(track, quiet=True) for track in new_tracks)
             if len(new_tracks) < 50:

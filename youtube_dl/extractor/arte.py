@@ -15,9 +15,10 @@ from ..utils import (
     get_element_by_attribute,
 )
 
-# There are different sources of video in arte.tv, the extraction process 
+# There are different sources of video in arte.tv, the extraction process
 # is different for each one. The videos usually expire in 7 days, so we can't
 # add tests.
+
 
 class ArteTvIE(InfoExtractor):
     _VIDEOS_URL = r'(?:http://)?videos\.arte\.tv/(?P<lang>fr|de)/.*-(?P<id>.*?)\.html'
@@ -86,6 +87,7 @@ class ArteTvIE(InfoExtractor):
         config_xml = self._download_webpage(config_xml_url, video_id, note=u'Downloading configuration')
 
         video_urls = list(re.finditer(r'<url quality="(?P<quality>.*?)">(?P<url>.*?)</url>', config_xml))
+
         def _key(m):
             quality = m.group('quality')
             if quality == 'hd':
@@ -95,7 +97,7 @@ class ArteTvIE(InfoExtractor):
         # We pick the best quality
         video_urls = sorted(video_urls, key=_key)
         video_url = list(video_urls)[-1].group('url')
-        
+
         title = self._html_search_regex(r'<name>(.*?)</name>', config_xml, 'title')
         thumbnail = self._html_search_regex(r'<firstThumbnailUrl>(.*?)</firstThumbnailUrl>',
                                             config_xml, 'thumbnail')
@@ -111,7 +113,7 @@ class ArteTvIE(InfoExtractor):
         webpage = self._download_webpage(url, name)
         video_id = self._search_regex(r'eventId=(\d+?)("|&)', webpage, 'event id')
         config_doc = self._download_xml('http://download.liveweb.arte.tv/o21/liveweb/events/event-%s.xml' % video_id,
-                                            video_id, 'Downloading information')
+                                        video_id, 'Downloading information')
         event_doc = config_doc.find('event')
         url_node = event_doc.find('video').find('urlHd')
         if url_node is None:
@@ -164,6 +166,7 @@ class ArteTVPlus7IE(InfoExtractor):
         all_formats = player_info['VSR'].values()
         # Some formats use the m3u8 protocol
         all_formats = list(filter(lambda f: f.get('videoFormat') != 'M3U8', all_formats))
+
         def _match_lang(f):
             if f.get('versionCode') is None:
                 return True
@@ -176,7 +179,7 @@ class ArteTVPlus7IE(InfoExtractor):
             return any(re.match(r, f['versionCode']) for r in regexes)
         # Some formats may not be in the same language as the url
         formats = filter(_match_lang, all_formats)
-        formats = list(formats) # in python3 filter returns an iterator
+        formats = list(formats)  # in python3 filter returns an iterator
         if not formats:
             # Some videos are only available in the 'Originalversion'
             # they aren't tagged as being in French or German
@@ -192,14 +195,15 @@ class ArteTVPlus7IE(InfoExtractor):
             def sort_key(f):
                 return (
                     # Sort first by quality
-                    int(f.get('height',-1)),
-                    int(f.get('bitrate',-1)),
+                    int(f.get('height', -1)),
+                    int(f.get('bitrate', -1)),
                     # The original version with subtitles has lower relevance
                     re.match(r'VO-ST(F|A)', f.get('versionCode', '')) is None,
                     # The version with sourds/mal subtitles has also lower relevance
                     re.match(r'VO?(F|A)-STM\1', f.get('versionCode', '')) is None,
                 )
         formats = sorted(formats, key=sort_key)
+
         def _format(format_info):
             quality = ''
             height = format_info.get('height')

@@ -25,7 +25,7 @@ class TrailerAddictIE(InfoExtractor):
         webpage = self._download_webpage(url, name)
 
         title = self._search_regex(r'<title>(.+?)</title>',
-                webpage, 'video title').replace(' - Trailer Addict','')
+                                   webpage, 'video title').replace(' - Trailer Addict', '')
         view_count_str = self._search_regex(
             r'<span class="views_n">([0-9,.]+)</span>',
             webpage, 'view count', fatal=False)
@@ -43,12 +43,12 @@ class TrailerAddictIE(InfoExtractor):
             fvar = "fvar"
 
         info_url = "http://www.traileraddict.com/%s.php?tid=%s" % (fvar, str(video_id))
-        info_webpage = self._download_webpage(info_url, video_id , "Downloading the info webpage")
+        info_webpage = self._download_webpage(info_url, video_id, "Downloading the info webpage")
 
         final_url = self._search_regex(r'&fileurl=(.+)',
-                info_webpage, 'Download url').replace('%3F','?')
+                                       info_webpage, 'Download url').replace('%3F', '?')
         thumbnail_url = self._search_regex(r'&image=(.+?)&',
-                info_webpage, 'thumbnail url')
+                                           info_webpage, 'thumbnail url')
 
         description = self._html_search_regex(
             r'(?s)<div class="synopsis">.*?<div class="movie_label_info"[^>]*>(.*?)</div>',

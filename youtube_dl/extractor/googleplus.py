@@ -48,17 +48,17 @@ class GooglePlusIE(InfoExtractor):
 
         # Extract uploader
         uploader = self._html_search_regex(r'rel\="author".*?>(.*?)</a>',
-            webpage, 'uploader', fatal=False)
+                                           webpage, 'uploader', fatal=False)
 
         # Extract title
         # Get the first line for title
         video_title = self._html_search_regex(r'<meta name\=\"Description\" content\=\"(.*?)[\n<"]',
-            webpage, 'title', default='NA')
+                                              webpage, 'title', default='NA')
 
         # Step 2, Simulate clicking the image box to launch video
         DOMAIN = 'https://plus.google.com/'
         video_page = self._search_regex(r'<a href="((?:%s)?photos/.*?)"' % re.escape(DOMAIN),
-            webpage, 'video page URL')
+                                        webpage, 'video page URL')
         if not video_page.startswith(DOMAIN):
             video_page = DOMAIN + video_page
 
@@ -80,7 +80,7 @@ class GooglePlusIE(InfoExtractor):
         # Treat escaped \u0026 style hex
         try:
             video_url = video_url.decode("unicode_escape")
-        except AttributeError: # Python 3
+        except AttributeError:  # Python 3
             video_url = bytes(video_url, 'ascii').decode('unicode-escape')
 
         return {

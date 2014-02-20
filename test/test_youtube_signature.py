@@ -37,6 +37,7 @@ _TESTS = [
 
 
 class TestSignature(unittest.TestCase):
+
     def setUp(self):
         TEST_DIR = os.path.dirname(os.path.abspath(__file__))
         self.TESTDATA_DIR = os.path.join(TEST_DIR, 'testdata')

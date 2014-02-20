@@ -38,12 +38,12 @@ class NFBIE(InfoExtractor):
         page = self._download_webpage('https://www.nfb.ca/film/%s' % video_id, video_id, 'Downloading film page')
 
         uploader_id = self._html_search_regex(r'<a class="director-link" href="/explore-all-directors/([^/]+)/"',
-            page, 'director id', fatal=False)
+                                              page, 'director id', fatal=False)
         uploader = self._html_search_regex(r'<em class="director-name" itemprop="name">([^<]+)</em>',
-            page, 'director name', fatal=False)
+                                           page, 'director name', fatal=False)
 
         request = compat_urllib_request.Request('https://www.nfb.ca/film/%s/player_config' % video_id,
-            compat_urllib_parse.urlencode({'getConfig': 'true'}).encode('ascii'))
+                                                compat_urllib_parse.urlencode({'getConfig': 'true'}).encode('ascii'))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         request.add_header('X-NFB-Referer', 'http://www.nfb.ca/medias/flash/NFBVideoPlayer.swf')
 

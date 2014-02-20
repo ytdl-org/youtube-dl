@@ -21,35 +21,35 @@ class CollegeHumorIE(InfoExtractor):
             'age_limit': 13,
         },
     },
-    {
-        'url': 'http://www.collegehumor.com/video/3505939/font-conference',
-        'md5': '72fa701d8ef38664a4dbb9e2ab721816',
-        'info_dict': {
-            'id': '3505939',
-            'ext': 'mp4',
-            'title': 'Font Conference',
-            'description': 'This video wasn\'t long enough,',
-            'age_limit': 10,
-            'duration': 179,
+        {
+            'url': 'http://www.collegehumor.com/video/3505939/font-conference',
+            'md5': '72fa701d8ef38664a4dbb9e2ab721816',
+            'info_dict': {
+                'id': '3505939',
+                'ext': 'mp4',
+                'title': 'Font Conference',
+                'description': 'This video wasn\'t long enough,',
+                'age_limit': 10,
+                'duration': 179,
+            },
         },
-    },
-    # embedded youtube video
-    {
-        'url': 'http://www.collegehumor.com/embed/6950457',
-        'info_dict': {
-            'id': 'W5gMp3ZjYg4',
-            'ext': 'mp4',
-            'title': 'Funny Dogs Protecting Babies Compilation 2014 [NEW HD]',
-            'uploader': 'Funnyplox TV',
-            'uploader_id': 'funnyploxtv',
-            'description': 'md5:7ded37421526d54afdf005e25bc2b7a3',
-            'upload_date': '20140128',
+        # embedded youtube video
+        {
+            'url': 'http://www.collegehumor.com/embed/6950457',
+            'info_dict': {
+                'id': 'W5gMp3ZjYg4',
+                'ext': 'mp4',
+                'title': 'Funny Dogs Protecting Babies Compilation 2014 [NEW HD]',
+                'uploader': 'Funnyplox TV',
+                'uploader_id': 'funnyploxtv',
+                'description': 'md5:7ded37421526d54afdf005e25bc2b7a3',
+                'upload_date': '20140128',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': ['Youtube'],
         },
-        'params': {
-            'skip_download': True,
-        },
-        'add_ie': ['Youtube'],
-    },
     ]
 
     def _real_extract(self, url):

@@ -46,7 +46,7 @@ class CSpanIE(InfoExtractor):
         url = unescapeHTML(data['video']['files'][0]['path']['#text'])
 
         doc = self._download_xml('http://www.c-span.org/common/services/flashXml.php?programid=' + video_id,
-            video_id)
+                                 video_id)
 
         def find_string(s):
             return find_xpath_attr(doc, './/string', 'name', s).text

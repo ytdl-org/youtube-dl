@@ -1,4 +1,4 @@
-#coding: utf-8
+# coding: utf-8
 
 import re
 
@@ -19,7 +19,7 @@ class AparatIE(InfoExtractor):
         u'info_dict': {
             u"title": u"تیم گلکسی 11 - زومیت",
         },
-        #u'skip': u'Extremely unreliable',
+        # u'skip': u'Extremely unreliable',
     }
 
     def _real_extract(self, url):

@@ -26,12 +26,12 @@ class NaverIE(InfoExtractor):
         video_id = mobj.group(1)
         webpage = self._download_webpage(url, video_id)
         m_id = re.search(r'var rmcPlayer = new nhn.rmcnmv.RMCVideoPlayer\("(.+?)", "(.+?)"',
-            webpage)
+                         webpage)
         if m_id is None:
             raise ExtractorError(u'couldn\'t extract vid and key')
         vid = m_id.group(1)
         key = m_id.group(2)
-        query = compat_urllib_parse.urlencode({'vid': vid, 'inKey': key,})
+        query = compat_urllib_parse.urlencode({'vid': vid, 'inKey': key, })
         query_urls = compat_urllib_parse.urlencode({
             'masterVid': vid,
             'protocol': 'p2p',

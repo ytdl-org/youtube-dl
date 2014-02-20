@@ -13,6 +13,7 @@ IGNORED_FILES = [
 
 
 class TestUnicodeLiterals(unittest.TestCase):
+
     def test_all_files(self):
         print('Skipping this test (not yet fully implemented)')
         return

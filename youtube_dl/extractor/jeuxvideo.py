@@ -29,7 +29,7 @@ class JeuxVideoIE(InfoExtractor):
         xml_link = self._html_search_regex(
             r'<param name="flashvars" value="config=(.*?)" />',
             webpage, 'config URL')
-        
+
         video_id = self._search_regex(
             r'http://www\.jeuxvideo\.com/config/\w+/\d+/(.*?)/\d+_player\.xml',
             xml_link, 'video ID')
@@ -38,7 +38,7 @@ class JeuxVideoIE(InfoExtractor):
             xml_link, title, 'Downloading XML config')
         info_json = config.find('format.json').text
         info = json.loads(info_json)['versions'][0]
-        
+
         video_url = 'http://video720.jeuxvideo.com/' + info['file']
 
         return {

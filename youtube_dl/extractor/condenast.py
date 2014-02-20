@@ -14,6 +14,7 @@ from ..utils import (
 
 
 class CondeNastIE(InfoExtractor):
+
     """
     Condé Nast is a media group, some of its sites use a custom HTML5 player
     that works the same in all of them.

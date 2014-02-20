@@ -1,21 +1,27 @@
 #!/usr/bin/env python
 
-import sys, os
-import json, hashlib
+import sys
+import os
+import json
+import hashlib
 
 try:
     import urllib.request as compat_urllib_request
-except ImportError: # Python 2
+except ImportError:  # Python 2
     import urllib2 as compat_urllib_request
+
 
 def rsa_verify(message, signature, key):
     from struct import pack
     from hashlib import sha256
     from sys import version_info
+
     def b(x):
-        if version_info[0] == 2: return x
-        else: return x.encode('latin1')
-    assert(type(message) == type(b('')))
+        if version_info[0] == 2:
+            return x
+        else:
+            return x.encode('latin1')
+    assert(isinstance(message, type(b(''))))
     block_size = 0
     n = key[0]
     while n:
@@ -27,13 +33,17 @@ def rsa_verify(message, signature, key):
         raw_bytes.insert(0, pack("B", signature & 0xFF))
         signature >>= 8
     signature = (block_size - len(raw_bytes)) * b('\x00') + b('').join(raw_bytes)
-    if signature[0:2] != b('\x00\x01'): return False
+    if signature[0:2] != b('\x00\x01'):
+        return False
     signature = signature[2:]
-    if not b('\x00') in signature: return False
-    signature = signature[signature.index(b('\x00'))+1:]
-    if not signature.startswith(b('\x30\x31\x30\x0D\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x01\x05\x00\x04\x20')): return False
+    if not b('\x00') in signature:
+        return False
+    signature = signature[signature.index(b('\x00')) + 1:]
+    if not signature.startswith(b('\x30\x31\x30\x0D\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x01\x05\x00\x04\x20')):
+        return False
     signature = signature[19:]
-    if signature != sha256(message).digest(): return False
+    if signature != sha256(message).digest():
+        return False
     return True
 
 sys.stderr.write(u'Hi! We changed distribution method and now youtube-dl needs to update itself one more time.\n')
@@ -41,9 +51,9 @@ sys.stderr.write(u'This will only happen once. Simply press enter to go on. Sorr
 sys.stderr.write(u'From now on, get the binaries from http://rg3.github.io/youtube-dl/download.html, not from the git repository.\n\n')
 
 try:
-	raw_input()
-except NameError: # Python 3
-	input()
+    raw_input()
+except NameError:  # Python 3
+    input()
 
 filename = sys.argv[0]
 

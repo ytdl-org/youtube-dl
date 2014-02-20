@@ -14,6 +14,7 @@ from ..utils import (
 
 
 class BlipTVIE(SubtitlesInfoExtractor):
+
     """Information extractor for blip.tv"""
 
     _VALID_URL = r'https?://(?:\w+\.)?blip\.tv/((.+/)|(play/)|(api\.swf#))(?P<presumptive_id>.+)$'
@@ -56,7 +57,7 @@ class BlipTVIE(SubtitlesInfoExtractor):
             video_id = self._search_regex(
                 r'data-episode-id="([0-9]+)', info_page, 'video_id')
             return self.url_result('http://blip.tv/a/a-' + video_id, 'BlipTV')
-        
+
         cchar = '&' if '?' in url else '?'
         json_url = url + cchar + 'skin=json&version=2&no_wrap=1'
         request = compat_urllib_request.Request(json_url)

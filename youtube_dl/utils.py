@@ -25,47 +25,47 @@ import zlib
 
 try:
     import urllib.request as compat_urllib_request
-except ImportError: # Python 2
+except ImportError:  # Python 2
     import urllib2 as compat_urllib_request
 
 try:
     import urllib.error as compat_urllib_error
-except ImportError: # Python 2
+except ImportError:  # Python 2
     import urllib2 as compat_urllib_error
 
 try:
     import urllib.parse as compat_urllib_parse
-except ImportError: # Python 2
+except ImportError:  # Python 2
     import urllib as compat_urllib_parse
 
 try:
     from urllib.parse import urlparse as compat_urllib_parse_urlparse
-except ImportError: # Python 2
+except ImportError:  # Python 2
     from urlparse import urlparse as compat_urllib_parse_urlparse
 
 try:
     import urllib.parse as compat_urlparse
-except ImportError: # Python 2
+except ImportError:  # Python 2
     import urlparse as compat_urlparse
 
 try:
     import http.cookiejar as compat_cookiejar
-except ImportError: # Python 2
+except ImportError:  # Python 2
     import cookielib as compat_cookiejar
 
 try:
     import html.entities as compat_html_entities
-except ImportError: # Python 2
+except ImportError:  # Python 2
     import htmlentitydefs as compat_html_entities
 
 try:
     import html.parser as compat_html_parser
-except ImportError: # Python 2
+except ImportError:  # Python 2
     import HTMLParser as compat_html_parser
 
 try:
     import http.client as compat_http_client
-except ImportError: # Python 2
+except ImportError:  # Python 2
     import httplib as compat_http_client
 
 try:
@@ -87,7 +87,7 @@ except ImportError:
 
 try:
     from urllib.parse import parse_qs as compat_parse_qs
-except ImportError: # Python 2
+except ImportError:  # Python 2
     # HACK: The following is the correct parse_qs implementation from cpython 3's stdlib.
     # Python 2's version is apparently totally broken
     def _unquote(string, encoding='utf-8', errors='replace'):
@@ -126,7 +126,7 @@ except ImportError: # Python 2
         return string
 
     def _parse_qsl(qs, keep_blank_values=False, strict_parsing=False,
-                encoding='utf-8', errors='replace'):
+                   encoding='utf-8', errors='replace'):
         qs, _coerce_result = qs, unicode
         pairs = [s2 for s1 in qs.split('&') for s2 in s1.split(';')]
         r = []
@@ -153,10 +153,10 @@ except ImportError: # Python 2
         return r
 
     def compat_parse_qs(qs, keep_blank_values=False, strict_parsing=False,
-                encoding='utf-8', errors='replace'):
+                        encoding='utf-8', errors='replace'):
         parsed_result = {}
         pairs = _parse_qsl(qs, keep_blank_values, strict_parsing,
-                        encoding=encoding, errors=errors)
+                           encoding=encoding, errors=errors)
         for name, value in pairs:
             if name in parsed_result:
                 parsed_result[name].append(value)
@@ -165,18 +165,21 @@ except ImportError: # Python 2
         return parsed_result
 
 try:
-    compat_str = unicode # Python 2
+    compat_str = unicode  # Python 2
 except NameError:
     compat_str = str
 
 try:
-    compat_chr = unichr # Python 2
+    compat_chr = unichr  # Python 2
 except NameError:
     compat_chr = chr
 
+
 def compat_ord(c):
-    if type(c) is int: return c
-    else: return ord(c)
+    if isinstance(c, int):
+        return c
+    else:
+        return ord(c)
 
 # This is not clearly defined otherwise
 compiled_regex_type = type(re.compile(''))
@@ -188,6 +191,7 @@ std_headers = {
     'Accept-Encoding': 'gzip, deflate',
     'Accept-Language': 'en-us,en;q=0.5',
 }
+
 
 def preferredencoding():
     """Get preferred encoding.
@@ -203,17 +207,17 @@ def preferredencoding():
 
     return pref
 
-if sys.version_info < (3,0):
+if sys.version_info < (3, 0):
     def compat_print(s):
         print(s.encode(preferredencoding(), 'xmlcharrefreplace'))
 else:
     def compat_print(s):
-        assert type(s) == type(u'')
+        assert isinstance(s, type(u''))
         print(s)
 
 # In Python 2.x, json.dump expects a bytestream.
 # In Python 3.x, it writes to a character stream
-if sys.version_info < (3,0):
+if sys.version_info < (3, 0):
     def write_json_file(obj, fn):
         with open(fn, 'wb') as f:
             json.dump(obj, f)
@@ -222,7 +226,7 @@ else:
         with open(fn, 'w', encoding='utf-8') as f:
             json.dump(obj, f)
 
-if sys.version_info >= (2,7):
+if sys.version_info >= (2, 7):
     def find_xpath_attr(node, xpath, key, val):
         """ Find the xpath xpath[@key=val] """
         assert re.match(r'^[a-zA-Z]+$', key)
@@ -238,6 +242,8 @@ else:
 
 # On python2.6 the xml.etree.ElementTree.Element methods don't support
 # the namespace parameter
+
+
 def xpath_with_ns(path, ns_map):
     components = [c.split(':') for c in path.split('/')]
     replaced = []
@@ -248,6 +254,7 @@ def xpath_with_ns(path, ns_map):
             ns, tag = c
             replaced.append('{%s}%s' % (ns_map[ns], tag))
     return '/'.join(replaced)
+
 
 def htmlentity_transform(matchobj):
     """Transforms an HTML entity to a character.
@@ -274,8 +281,11 @@ def htmlentity_transform(matchobj):
     # Unknown entity in name, return its literal representation
     return (u'&%s;' % entity)
 
-compat_html_parser.locatestarttagend = re.compile(r"""<[a-zA-Z][-.a-zA-Z0-9:_]*(?:\s+(?:(?<=['"\s])[^\s/>][^\s/=>]*(?:\s*=+\s*(?:'[^']*'|"[^"]*"|(?!['"])[^>\s]*))?\s*)*)?\s*""", re.VERBOSE) # backport bugfix
+compat_html_parser.locatestarttagend = re.compile(r"""<[a-zA-Z][-.a-zA-Z0-9:_]*(?:\s+(?:(?<=['"\s])[^\s/>][^\s/=>]*(?:\s*=+\s*(?:'[^']*'|"[^"]*"|(?!['"])[^>\s]*))?\s*)*)?\s*""", re.VERBOSE)  # backport bugfix
+
+
 class BaseHTMLParser(compat_html_parser.HTMLParser):
+
     def __init(self):
         compat_html_parser.HTMLParser.__init__(self)
         self.html = None
@@ -285,8 +295,11 @@ class BaseHTMLParser(compat_html_parser.HTMLParser):
         self.feed(html)
         self.close()
 
+
 class AttrParser(BaseHTMLParser):
+
     """Modified HTMLParser that isolates a tag with the specified attribute"""
+
     def __init__(self, attribute, value):
         self.attribute = attribute
         self.value = value
@@ -300,7 +313,7 @@ class AttrParser(BaseHTMLParser):
     def error(self, message):
         if self.error_count > 10 or self.started:
             raise compat_html_parser.HTMLParseError(message, self.getpos())
-        self.rawdata = '\n'.join(self.html.split('\n')[self.getpos()[0]:]) # skip one line
+        self.rawdata = '\n'.join(self.html.split('\n')[self.getpos()[0]:])  # skip one line
         self.error_count += 1
         self.goahead(1)
 
@@ -313,12 +326,14 @@ class AttrParser(BaseHTMLParser):
             self.started = True
             self.watch_startpos = True
         if self.started:
-            if not tag in self.depth: self.depth[tag] = 0
+            if not tag in self.depth:
+                self.depth[tag] = 0
             self.depth[tag] += 1
 
     def handle_endtag(self, tag):
         if self.started:
-            if tag in self.depth: self.depth[tag] -= 1
+            if tag in self.depth:
+                self.depth[tag] -= 1
             if self.depth[self.result[0]] == 0:
                 self.started = False
                 self.result.append(self.getpos())
@@ -330,7 +345,7 @@ class AttrParser(BaseHTMLParser):
             self.watch_startpos = False
             self.result.append(self.getpos())
     handle_entityref = handle_charref = handle_data = handle_comment = \
-    handle_decl = handle_pi = unknown_decl = find_startpos
+        handle_decl = handle_pi = unknown_decl = find_startpos
 
     def get_result(self):
         if self.result is None:
@@ -338,22 +353,24 @@ class AttrParser(BaseHTMLParser):
         if len(self.result) != 3:
             return None
         lines = self.html.split('\n')
-        lines = lines[self.result[1][0]-1:self.result[2][0]]
+        lines = lines[self.result[1][0] - 1:self.result[2][0]]
         lines[0] = lines[0][self.result[1][1]:]
         if len(lines) == 1:
-            lines[-1] = lines[-1][:self.result[2][1]-self.result[1][1]]
+            lines[-1] = lines[-1][:self.result[2][1] - self.result[1][1]]
         lines[-1] = lines[-1][:self.result[2][1]]
         return '\n'.join(lines).strip()
 # Hack for https://github.com/rg3/youtube-dl/issues/662
 if sys.version_info < (2, 7, 3):
     AttrParser.parse_endtag = (lambda self, i:
-        i + len("</scr'+'ipt>")
-        if self.rawdata[i:].startswith("</scr'+'ipt>")
-        else compat_html_parser.HTMLParser.parse_endtag(self, i))
+                               i + len("</scr'+'ipt>")
+                               if self.rawdata[i:].startswith("</scr'+'ipt>")
+                               else compat_html_parser.HTMLParser.parse_endtag(self, i))
+
 
 def get_element_by_id(id, html):
     """Return the content of the tag with the specified ID in the passed HTML document"""
     return get_element_by_attribute("id", id, html)
+
 
 def get_element_by_attribute(attribute, value, html):
     """Return the content of the tag with the specified attribute in the passed HTML document"""
@@ -364,11 +381,14 @@ def get_element_by_attribute(attribute, value, html):
         pass
     return parser.get_result()
 
+
 class MetaParser(BaseHTMLParser):
+
     """
-    Modified HTMLParser that isolates a meta tag with the specified name 
+    Modified HTMLParser that isolates a meta tag with the specified name
     attribute.
     """
+
     def __init__(self, name):
         BaseHTMLParser.__init__(self)
         self.name = name
@@ -384,6 +404,7 @@ class MetaParser(BaseHTMLParser):
 
     def get_result(self):
         return self.result
+
 
 def get_meta_content(name, html):
     """
@@ -434,9 +455,9 @@ def sanitize_open(filename, open_mode):
 
         # In case of error, try to remove win32 forbidden chars
         alt_filename = os.path.join(
-                        re.sub(u'[/<>:"\\|\\\\?\\*]', u'#', path_part)
-                        for path_part in os.path.split(filename)
-                       )
+            re.sub(u'[/<>:"\\|\\\\?\\*]', u'#', path_part)
+            for path_part in os.path.split(filename)
+        )
         if alt_filename == filename:
             raise
         else:
@@ -452,6 +473,7 @@ def timeconvert(timestr):
     if timetuple is not None:
         timestamp = email.utils.mktime_tz(timetuple)
     return timestamp
+
 
 def sanitize_filename(s, restricted=False, is_id=False):
     """Sanitizes a string so it could be used as part of a filename.
@@ -485,6 +507,7 @@ def sanitize_filename(s, restricted=False, is_id=False):
             result = '_'
     return result
 
+
 def orderedSet(iterable):
     """ Remove all duplicates from the input iterable """
     res = []
@@ -493,11 +516,12 @@ def orderedSet(iterable):
             res.append(el)
     return res
 
+
 def unescapeHTML(s):
     """
     @param s a string
     """
-    assert type(s) == type(u'')
+    assert isinstance(s, type(u''))
 
     result = re.sub(u'(?u)&(.+?);', htmlentity_transform, s)
     return result
@@ -508,7 +532,7 @@ def encodeFilename(s, for_subprocess=False):
     @param s The name of the file
     """
 
-    assert type(s) == compat_str
+    assert isinstance(s, compat_str)
 
     # Python 3 has a Unicode API
     if sys.version_info >= (3, 0):
@@ -540,6 +564,7 @@ def decodeOption(optval):
     assert isinstance(optval, compat_str)
     return optval
 
+
 def formatSeconds(secs):
     if secs > 3600:
         return '%d:%02d:%02d' % (secs // 3600, (secs % 3600) // 60, secs % 60)
@@ -554,6 +579,7 @@ def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
         import httplib
 
         class HTTPSConnectionV3(httplib.HTTPSConnection):
+
             def __init__(self, *args, **kwargs):
                 httplib.HTTPSConnection.__init__(self, *args, **kwargs)
 
@@ -568,6 +594,7 @@ def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
                     self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv23)
 
         class HTTPSHandlerV3(compat_urllib_request.HTTPSHandler):
+
             def https_open(self, req):
                 return self.do_open(HTTPSConnectionV3, req)
         return HTTPSHandlerV3(**kwargs)
@@ -583,8 +610,11 @@ def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
             pass  # Python < 3.4
         return compat_urllib_request.HTTPSHandler(context=context, **kwargs)
 
+
 class ExtractorError(Exception):
+
     """Error during info extraction."""
+
     def __init__(self, msg, tb=None, expected=False, cause=None):
         """ tb, if given, is the original traceback (so that it can be printed out).
         If expected is set, this is a normal error message and most likely not a bug in youtube-dl.
@@ -607,17 +637,20 @@ class ExtractorError(Exception):
 
 
 class RegexNotFoundError(ExtractorError):
+
     """Error when a regex didn't match"""
     pass
 
 
 class DownloadError(Exception):
+
     """Download Error exception.
 
     This exception may be thrown by FileDownloader objects if they are not
     configured to continue on errors. They will contain the appropriate
     error message.
     """
+
     def __init__(self, msg, exc_info=None):
         """ exc_info, if given, is the original exception that caused the trouble (as returned by sys.exc_info()). """
         super(DownloadError, self).__init__(msg)
@@ -625,6 +658,7 @@ class DownloadError(Exception):
 
 
 class SameFileError(Exception):
+
     """Same File exception.
 
     This exception will be thrown by FileDownloader objects if they detect
@@ -634,20 +668,25 @@ class SameFileError(Exception):
 
 
 class PostProcessingError(Exception):
+
     """Post Processing exception.
 
     This exception may be raised by PostProcessor's .run() method to
     indicate an error in the postprocessing task.
     """
+
     def __init__(self, msg):
         self.msg = msg
 
+
 class MaxDownloadsReached(Exception):
+
     """ --max-downloads limit has been reached. """
     pass
 
 
 class UnavailableVideoError(Exception):
+
     """Unavailable Format exception.
 
     This exception will be thrown when a video is requested
@@ -657,6 +696,7 @@ class UnavailableVideoError(Exception):
 
 
 class ContentTooShortError(Exception):
+
     """Content Too Short exception.
 
     This exception may be raised by FileDownloader objects when a file they
@@ -671,7 +711,9 @@ class ContentTooShortError(Exception):
         self.downloaded = downloaded
         self.expected = expected
 
+
 class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
+
     """Handler for HTTP requests and responses.
 
     This class, when installed with an OpenerDirector, automatically adds
@@ -705,7 +747,7 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
         return ret
 
     def http_request(self, req):
-        for h,v in std_headers.items():
+        for h, v in std_headers.items():
             if h in req.headers:
                 del req.headers[h]
             req.add_header(h, v)
@@ -756,7 +798,7 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
 def unified_strdate(date_str):
     """Return a string with the date in the format YYYYMMDD"""
     upload_date = None
-    #Replace commas
+    # Replace commas
     date_str = date_str.replace(',', ' ')
     # %z (UTC offset) is only supported in python>=3.2
     date_str = re.sub(r' ?(\+|-)[0-9]{2}:?[0-9]{2}$', '', date_str)
@@ -787,6 +829,7 @@ def unified_strdate(date_str):
             upload_date = datetime.datetime(*timetuple[:6]).strftime('%Y%m%d')
     return upload_date
 
+
 def determine_ext(url, default_ext=u'unknown_video'):
     guess = url.partition(u'?')[0].rpartition(u'.')[2]
     if re.match(r'^[A-Za-z0-9]+$', guess):
@@ -794,8 +837,10 @@ def determine_ext(url, default_ext=u'unknown_video'):
     else:
         return default_ext
 
+
 def subtitles_filename(filename, sub_lang, sub_format):
     return filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
+
 
 def date_from_str(date_str):
     """
@@ -811,7 +856,7 @@ def date_from_str(date_str):
         if sign == '-':
             time = -time
         unit = match.group('unit')
-        #A bad aproximation?
+        # A bad aproximation?
         if unit == 'month':
             unit = 'day'
             time *= 30
@@ -822,7 +867,8 @@ def date_from_str(date_str):
         delta = datetime.timedelta(**{unit: time})
         return today + delta
     return datetime.datetime.strptime(date_str, "%Y%m%d").date()
-    
+
+
 def hyphenate_date(date_str):
     """
     Convert a date in 'YYYYMMDD' format to 'YYYY-MM-DD' format"""
@@ -832,8 +878,11 @@ def hyphenate_date(date_str):
     else:
         return date_str
 
+
 class DateRange(object):
+
     """Represents a time interval between two dates"""
+
     def __init__(self, start=None, end=None):
         """start and end must be strings in the format accepted by date"""
         if start is not None:
@@ -846,17 +895,20 @@ class DateRange(object):
             self.end = datetime.datetime.max.date()
         if self.start > self.end:
             raise ValueError('Date range: "%s" , the start date must be before the end date' % self)
+
     @classmethod
     def day(cls, day):
         """Returns a range that only contains the given day"""
-        return cls(day,day)
+        return cls(day, day)
+
     def __contains__(self, date):
         """Check if the date is in the range"""
         if not isinstance(date, datetime.date):
             date = date_from_str(date)
         return self.start <= date <= self.end
+
     def __str__(self):
-        return '%s - %s' % ( self.start.isoformat(), self.end.isoformat())
+        return '%s - %s' % (self.start.isoformat(), self.end.isoformat())
 
 
 def platform_name():
@@ -872,7 +924,7 @@ def platform_name():
 def write_string(s, out=None):
     if out is None:
         out = sys.stderr
-    assert type(s) == compat_str
+    assert isinstance(s, compat_str)
 
     if ('b' in getattr(out, 'mode', '') or
             sys.version_info[0] < 3):  # Python 2 lies about mode of sys.stderr
@@ -981,6 +1033,7 @@ else:
 
 
 class locked_file(object):
+
     def __init__(self, filename, mode, encoding=None):
         assert mode in ['r', 'a', 'w']
         self.f = io.open(filename, mode, encoding=encoding)
@@ -1053,7 +1106,7 @@ def unsmuggle_url(smug_url, default=None):
 def format_bytes(bytes):
     if bytes is None:
         return u'N/A'
-    if type(bytes) is str:
+    if isinstance(bytes, str):
         bytes = float(bytes)
     if bytes == 0.0:
         exponent = 0
@@ -1132,6 +1185,7 @@ def url_basename(url):
 
 
 class HEADRequest(compat_urllib_request.Request):
+
     def get_method(self):
         return "HEAD"
 
@@ -1157,7 +1211,7 @@ def parse_duration(s):
 
 
 def prepend_extension(filename, ext):
-    name, real_ext = os.path.splitext(filename) 
+    name, real_ext = os.path.splitext(filename)
     return u'{0}.{1}{2}'.format(name, ext, real_ext)
 
 
@@ -1172,6 +1226,7 @@ def check_executable(exe, args=[]):
 
 
 class PagedList(object):
+
     def __init__(self, pagefunc, pagesize):
         self._pagefunc = pagefunc
         self._pagesize = pagesize

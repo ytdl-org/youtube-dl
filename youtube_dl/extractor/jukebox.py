@@ -7,6 +7,7 @@ from ..utils import (
     unescapeHTML,
 )
 
+
 class JukeboxIE(InfoExtractor):
     _VALID_URL = r'^http://www\.jukebox?\..+?\/.+[,](?P<video_id>[a-z0-9\-]+)\.html'
     _IFRAME = r'<iframe .*src="(?P<iframe>[^"]*)".*>'
@@ -37,10 +38,10 @@ class JukeboxIE(InfoExtractor):
             mobj = re.search(self._IS_YOUTUBE, iframe_html)
             if mobj is None:
                 raise ExtractorError(u'Cannot extract video url')
-            youtube_url = unescapeHTML(mobj.group('youtube_url')).replace('\/','/')
+            youtube_url = unescapeHTML(mobj.group('youtube_url')).replace('\/', '/')
             self.to_screen(u'Youtube video detected')
-            return self.url_result(youtube_url,ie='Youtube')
-        video_url = unescapeHTML(mobj.group('video_url')).replace('\/','/')
+            return self.url_result(youtube_url, ie='Youtube')
+        video_url = unescapeHTML(mobj.group('video_url')).replace('\/', '/')
         video_ext = unescapeHTML(mobj.group('video_ext'))
 
         mobj = re.search(self._TITLE, html)

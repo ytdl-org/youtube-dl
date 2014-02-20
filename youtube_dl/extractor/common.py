@@ -25,6 +25,7 @@ _NO_DEFAULT = object()
 
 
 class InfoExtractor(object):
+
     """Information Extractor class.
 
     Information extractors are the classes that, given a URL, extract
@@ -306,17 +307,18 @@ class InfoExtractor(object):
         """Report attempt to log in."""
         self.to_screen(u'Logging in')
 
-    #Methods for following #608
+    # Methods for following #608
     @staticmethod
     def url_result(url, ie=None, video_id=None):
         """Returns a url that points to a page that should be processed"""
-        #TODO: ie should be the class used for getting the info
+        # TODO: ie should be the class used for getting the info
         video_info = {'_type': 'url',
                       'url': url,
                       'ie_key': ie}
         if video_id is not None:
             video_info['id'] = video_id
         return video_info
+
     @staticmethod
     def playlist_result(entries, playlist_id=None, playlist_title=None):
         """Returns a playlist"""
@@ -340,7 +342,8 @@ class InfoExtractor(object):
         else:
             for p in pattern:
                 mobj = re.search(p, string, flags)
-                if mobj: break
+                if mobj:
+                    break
 
         if os.name != 'nt' and sys.stderr.isatty():
             _name = u'\033[0;34m%s\033[0m' % name
@@ -356,7 +359,7 @@ class InfoExtractor(object):
             raise RegexNotFoundError(u'Unable to extract %s' % _name)
         else:
             self._downloader.report_warning(u'unable to extract %s; '
-                u'please report this issue on http://yt-dl.org/bug' % _name)
+                                            u'please report this issue on http://yt-dl.org/bug' % _name)
             return None
 
     def _html_search_regex(self, pattern, string, name, default=_NO_DEFAULT, fatal=True, flags=0):
@@ -396,7 +399,7 @@ class InfoExtractor(object):
                     raise netrc.NetrcParseError('No authenticators for %s' % self._NETRC_MACHINE)
             except (IOError, netrc.NetrcParseError) as err:
                 self._downloader.report_warning(u'parsing .netrc: %s' % compat_str(err))
-        
+
         return (username, password)
 
     # Helper functions for extracting OpenGraph info
@@ -429,7 +432,8 @@ class InfoExtractor(object):
 
     def _og_search_video_url(self, html, name='video url', secure=True, **kargs):
         regexes = self._og_regexes('video')
-        if secure: regexes = self._og_regexes('video:secure_url') + regexes
+        if secure:
+            regexes = self._og_regexes('video:secure_url') + regexes
         return self._html_search_regex(regexes, html, name, **kargs)
 
     def _html_search_meta(self, name, html, display_name=None):
@@ -470,7 +474,7 @@ class InfoExtractor(object):
 
     def _twitter_search_player(self, html):
         return self._html_search_meta('twitter:player', html,
-            'twitter card player')
+                                      'twitter card player')
 
     def _sort_formats(self, formats):
         if not formats:
@@ -530,6 +534,7 @@ class InfoExtractor(object):
 
 
 class SearchInfoExtractor(InfoExtractor):
+
     """
     Base class for paged search queries extractors.
     They accept urls in the format _SEARCH_KEY(|all|[0-9]):{query}

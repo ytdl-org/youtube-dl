@@ -13,6 +13,7 @@ from ..utils import (
 
 
 class HypemIE(InfoExtractor):
+
     """Information Extractor for hypem"""
     _VALID_URL = r'(?:http://)?(?:www\.)?hypem\.com/track/([^/]+)/([^/]+)'
     _TEST = {
@@ -40,7 +41,7 @@ class HypemIE(InfoExtractor):
         self.report_extraction(track_id)
 
         html_tracks = self._html_search_regex(r'<script type="application/json" id="displayList-data">(.*?)</script>',
-            response, u'tracks', flags=re.MULTILINE|re.DOTALL).strip()
+                                              response, u'tracks', flags=re.MULTILINE | re.DOTALL).strip()
         try:
             track_list = json.loads(html_tracks)
             track = track_list[u'tracks'][0]
@@ -53,7 +54,7 @@ class HypemIE(InfoExtractor):
         title = track[u"song"]
 
         serve_url = "http://hypem.com/serve/source/%s/%s" % (compat_str(track_id), compat_str(key))
-        request = compat_urllib_request.Request(serve_url, "" , {'Content-Type': 'application/json'})
+        request = compat_urllib_request.Request(serve_url, "", {'Content-Type': 'application/json'})
         request.add_header('cookie', cookie)
         song_data_json = self._download_webpage(request, track_id, u'Downloading metadata')
         try:
@@ -63,9 +64,9 @@ class HypemIE(InfoExtractor):
         final_url = song_data[u"url"]
 
         return [{
-            'id':       track_id,
-            'url':      final_url,
-            'ext':      "mp3",
-            'title':    title,
-            'artist':   artist,
+            'id': track_id,
+            'url': final_url,
+            'ext': "mp3",
+            'title': title,
+            'artist': artist,
         }]

@@ -33,20 +33,20 @@ class KontrTubeIE(InfoExtractor):
         video_url = self._html_search_regex(r"video_url: '(.+?)/?',", webpage, 'video URL')
         thumbnail = self._html_search_regex(r"preview_url: '(.+?)/?',", webpage, 'video thumbnail', fatal=False)
         title = self._html_search_regex(r'<title>(.+?) - Труба зовёт - Интересный видеохостинг</title>', webpage,
-            'video title')
+                                        'video title')
         description = self._html_search_meta('description', webpage, 'video description')
 
         mobj = re.search(r'<div class="col_2">Длительность: <span>(?P<minutes>\d+)м:(?P<seconds>\d+)с</span></div>',
-            webpage)
+                         webpage)
         duration = int(mobj.group('minutes')) * 60 + int(mobj.group('seconds')) if mobj else None
 
         view_count = self._html_search_regex(r'<div class="col_2">Просмотров: <span>(\d+)</span></div>', webpage,
-            'view count', fatal=False)
+                                             'view count', fatal=False)
         view_count = int(view_count) if view_count is not None else None
 
         comment_count = None
         comment_str = self._html_search_regex(r'Комментарии: <span>([^<]+)</span>', webpage, 'comment count',
-            fatal=False)
+                                              fatal=False)
         if comment_str.startswith('комментариев нет'):
             comment_count = 0
         else:

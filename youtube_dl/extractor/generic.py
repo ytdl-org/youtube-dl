@@ -116,14 +116,16 @@ class GenericIE(InfoExtractor):
         """Check if it is a redirect, like url shorteners, in case return the new url."""
 
         class HEADRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
+
             """
             Subclass the HTTPRedirectHandler to make it use our
             HEADRequest also on the redirected URL
             """
+
             def redirect_request(self, req, fp, code, msg, headers, newurl):
                 if code in (301, 302, 303, 307):
                     newurl = newurl.replace(' ', '%20')
-                    newheaders = dict((k,v) for k,v in req.headers.items()
+                    newheaders = dict((k, v) for k, v in req.headers.items()
                                       if k.lower() not in ("content-length", "content-type"))
                     return HEADRequest(newurl,
                                        headers=newheaders,
@@ -133,19 +135,21 @@ class GenericIE(InfoExtractor):
                     raise compat_urllib_error.HTTPError(req.get_full_url(), code, msg, headers, fp)
 
         class HTTPMethodFallback(compat_urllib_request.BaseHandler):
+
             """
             Fallback to GET if HEAD is not allowed (405 HTTP error)
             """
+
             def http_error_405(self, req, fp, code, msg, headers):
                 fp.read()
                 fp.close()
 
-                newheaders = dict((k,v) for k,v in req.headers.items()
+                newheaders = dict((k, v) for k, v in req.headers.items()
                                   if k.lower() not in ("content-length", "content-type"))
                 return self.parent.open(compat_urllib_request.Request(req.get_full_url(),
-                                                 headers=newheaders,
-                                                 origin_req_host=req.get_origin_req_host(),
-                                                 unverifiable=True))
+                                                                      headers=newheaders,
+                                                                      origin_req_host=req.get_origin_req_host(),
+                                                                      unverifiable=True))
 
         # Build our opener
         opener = compat_urllib_request.OpenerDirector()
@@ -301,7 +305,7 @@ class GenericIE(InfoExtractor):
         # Look for embedded blip.tv player
         mobj = re.search(r'<meta\s[^>]*https?://api\.blip\.tv/\w+/redirect/\w+/(\d+)', webpage)
         if mobj:
-            return self.url_result('http://blip.tv/a/a-'+mobj.group(1), 'BlipTV')
+            return self.url_result('http://blip.tv/a/a-' + mobj.group(1), 'BlipTV')
         mobj = re.search(r'<(?:iframe|embed|object)\s[^>]*(https?://(?:\w+\.)?blip\.tv/(?:play/|api\.swf#)[a-zA-Z0-9]+)', webpage)
         if mobj:
             return self.url_result(mobj.group(1), 'BlipTV')

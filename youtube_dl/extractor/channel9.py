@@ -5,7 +5,9 @@ import re
 from .common import InfoExtractor
 from ..utils import ExtractorError
 
+
 class Channel9IE(InfoExtractor):
+
     '''
     Common extractor for channel9.msdn.com.
 
@@ -31,7 +33,7 @@ class Channel9IE(InfoExtractor):
                 'session_code': 'KOS002',
                 'session_day': 'Day 1',
                 'session_room': 'Arena 1A',
-                'session_speakers': [ 'Ed Blankenship', 'Andrew Coates', 'Brady Gaster', 'Patrick Klug', 'Mads Kristensen' ],
+                'session_speakers': ['Ed Blankenship', 'Andrew Coates', 'Brady Gaster', 'Patrick Klug', 'Mads Kristensen'],
             },
         },
         {
@@ -44,7 +46,7 @@ class Channel9IE(InfoExtractor):
                 'description': 'md5:d1e6ecaafa7fb52a2cacdf9599829f5b',
                 'duration': 1540,
                 'thumbnail': 'http://media.ch9.ms/ch9/87e1/0300391f-a455-4c72-bec3-4422f19287e1/selfservicenuk_512.jpg',
-                'authors': [ 'Mike Wilmot' ],
+                'authors': ['Mike Wilmot'],
             },
         }
     ]
@@ -83,7 +85,7 @@ class Channel9IE(InfoExtractor):
             'format_id': x.group('quality'),
             'format_note': x.group('note'),
             'format': '%s (%s)' % (x.group('quality'), x.group('note')),
-            'filesize': self._restore_bytes(x.group('filesize')), # File size is approximate
+            'filesize': self._restore_bytes(x.group('filesize')),  # File size is approximate
             'preference': self._known_formats.index(x.group('quality')),
             'vcodec': 'none' if x.group('note') == 'Audio only' else None,
         } for x in list(re.finditer(FORMAT_REGEX, html)) if x.group('quality') in self._known_formats]
@@ -94,7 +96,7 @@ class Channel9IE(InfoExtractor):
 
     def _extract_title(self, html):
         title = self._html_search_meta('title', html, 'title')
-        if title is None:           
+        if title is None:
             title = self._og_search_title(html)
             TITLE_SUFFIX = ' (Channel 9)'
             if title is not None and title.endswith(TITLE_SUFFIX):
@@ -167,7 +169,7 @@ class Channel9IE(InfoExtractor):
         return re.findall(r'<a href="/Events/Speakers/[^"]+">([^<]+)</a>', html)
 
     def _extract_content(self, html, content_path):
-        # Look for downloadable content        
+        # Look for downloadable content
         formats = self._formats_from_html(html)
         slides = self._extract_slides(html)
         zip_ = self._extract_zip(html)
@@ -196,23 +198,23 @@ class Channel9IE(InfoExtractor):
                   'rating_count': rating_count,
                   'view_count': view_count,
                   'comment_count': comment_count,
-                }
+                  }
 
         result = []
 
         if slides is not None:
             d = common.copy()
-            d.update({ 'title': title + '-Slides', 'url': slides })
+            d.update({'title': title + '-Slides', 'url': slides})
             result.append(d)
 
         if zip_ is not None:
             d = common.copy()
-            d.update({ 'title': title + '-Zip', 'url': zip_ })
+            d.update({'title': title + '-Zip', 'url': zip_})
             result.append(d)
 
         if len(formats) > 0:
             d = common.copy()
-            d.update({ 'title': title, 'formats': formats })
+            d.update({'title': title, 'formats': formats})
             result.append(d)
 
         return result
@@ -265,7 +267,7 @@ class Channel9IE(InfoExtractor):
         page_type = page_type_m.group('pagetype')
         if page_type == 'List':         # List page, may contain list of 'item'-like objects
             return self._extract_list(content_path)
-        elif page_type == 'Entry.Item': # Any 'item'-like page, may contain downloadable content
+        elif page_type == 'Entry.Item':  # Any 'item'-like page, may contain downloadable content
             return self._extract_entry_item(webpage, content_path)
         elif page_type == 'Session':    # Event session page, may contain downloadable content
             return self._extract_session(webpage, content_path)

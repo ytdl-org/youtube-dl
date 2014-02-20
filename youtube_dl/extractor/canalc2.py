@@ -29,7 +29,7 @@ class Canalc2IE(InfoExtractor):
 
         title = self._html_search_regex(
             r'class="evenement8">(.*?)</a>', webpage, u'title')
-        
+
         return {'id': video_id,
                 'ext': 'mp4',
                 'url': video_url,

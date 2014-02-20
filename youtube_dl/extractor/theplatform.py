@@ -86,19 +86,19 @@ class ThePlatformIE(InfoExtractor):
             'formats': formats,
             'description': info['description'],
             'thumbnail': info['defaultThumbnailUrl'],
-            'duration': info['duration']//1000,
+            'duration': info['duration'] // 1000,
         }
-        
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         if mobj.group('config'):
-            config_url = url+ '&form=json'
+            config_url = url + '&form=json'
             config_url = config_url.replace('swf/', 'config/')
             config_json = self._download_webpage(config_url, video_id, u'Downloading config')
             config = json.loads(config_json)
             smil_url = config['releaseUrl'] + '&format=SMIL&formats=MPEG4'
         else:
             smil_url = ('http://link.theplatform.com/s/dJ5BDC/{0}/meta.smil?'
-                'format=smil&mbr=true'.format(video_id))
+                        'format=smil&mbr=true'.format(video_id))
         return self._get_info(video_id, smil_url)

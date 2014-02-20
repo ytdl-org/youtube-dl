@@ -23,12 +23,12 @@ class NewgroundsIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         music_id = mobj.group('id')
         webpage = self._download_webpage(url, music_id)
-        
+
         title = self._html_search_regex(
             r',"name":"([^"]+)",', webpage, 'music title')
         uploader = self._html_search_regex(
             r',"artist":"([^"]+)",', webpage, 'music uploader')
-        
+
         music_url_json_string = self._html_search_regex(
             r'({"url":"[^"]+"),', webpage, 'music url') + '}'
         music_url_json = json.loads(music_url_json_string)

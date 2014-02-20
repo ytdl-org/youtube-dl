@@ -233,7 +233,9 @@ def rmtree(path):
 
 #==============================================================================
 
+
 class BuildError(Exception):
+
     def __init__(self, output, code=500):
         self.output = output
         self.code = code
@@ -247,6 +249,7 @@ class HTTPError(BuildError):
 
 
 class PythonBuilder(object):
+
     def __init__(self, **kwargs):
         pythonVersion = kwargs.pop('python', '2.7')
         try:
@@ -262,6 +265,7 @@ class PythonBuilder(object):
 
 
 class GITInfoBuilder(object):
+
     def __init__(self, **kwargs):
         try:
             self.user, self.repoName = kwargs['path'][:2]
@@ -281,6 +285,7 @@ class GITInfoBuilder(object):
 
 
 class GITBuilder(GITInfoBuilder):
+
     def build(self):
         try:
             subprocess.check_output(['git', 'clone', 'git://github.com/%s/%s.git' % (self.user, self.repoName), self.buildPath])
@@ -313,6 +318,7 @@ class YoutubeDLBuilder(object):
 
 
 class DownloadBuilder(object):
+
     def __init__(self, **kwargs):
         self.handler = kwargs.pop('handler')
         self.srcPath = os.path.join(self.buildPath, *tuple(kwargs['path'][2:]))
@@ -341,6 +347,7 @@ class DownloadBuilder(object):
 
 
 class CleanupTempDir(object):
+
     def build(self):
         try:
             rmtree(self.basePath)
@@ -351,6 +358,7 @@ class CleanupTempDir(object):
 
 
 class Null(object):
+
     def __init__(self, **kwargs):
         pass
 
@@ -369,7 +377,7 @@ class Builder(PythonBuilder, GITBuilder, YoutubeDLBuilder, DownloadBuilder, Clea
 
 
 class BuildHTTPRequestHandler(BaseHTTPRequestHandler):
-    actionDict = { 'build': Builder, 'download': Builder } # They're the same, no more caching.
+    actionDict = {'build': Builder, 'download': Builder}  # They're the same, no more caching.
 
     def do_GET(self):
         path = urlparse.urlparse(self.path)

@@ -26,9 +26,9 @@ class FazIE(InfoExtractor):
         self.to_screen(video_id)
         webpage = self._download_webpage(url, video_id)
         config_xml_url = self._search_regex(r'writeFLV\(\'(.+?)\',', webpage,
-            u'config xml url')
+                                            u'config xml url')
         config = self._download_xml(config_xml_url, video_id,
-            u'Downloading config xml')
+                                    u'Downloading config xml')
 
         encodings = config.find('ENCODINGS')
         formats = []

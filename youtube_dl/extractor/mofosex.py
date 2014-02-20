@@ -8,6 +8,7 @@ from ..utils import (
     compat_urllib_parse,
 )
 
+
 class MofosexIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>mofosex\.com/videos/(?P<videoid>[0-9]+)/.*?\.html)'
     _TEST = {

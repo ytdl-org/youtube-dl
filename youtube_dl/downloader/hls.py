@@ -8,13 +8,14 @@ from ..utils import (
 
 
 class HlsFD(FileDownloader):
+
     def real_download(self, filename, info_dict):
         url = info_dict['url']
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
 
         args = ['-y', '-i', url, '-f', 'mp4', '-c', 'copy',
-            '-bsf:a', 'aac_adtstoasc', tmpfilename]
+                '-bsf:a', 'aac_adtstoasc', tmpfilename]
 
         for program in ['avconv', 'ffmpeg']:
             try:

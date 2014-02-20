@@ -32,16 +32,16 @@ class VubeIE(InfoExtractor):
         video_id = mobj.group('id')
 
         video = self._download_json('http://vube.com/api/v2/video/%s' % video_id,
-            video_id, 'Downloading video JSON')
+                                    video_id, 'Downloading video JSON')
 
         public_id = video['public_id']
 
         formats = [{'url': 'http://video.thestaticvube.com/video/%s/%s.mp4' % (fmt['media_resolution_id'], public_id),
                    'height': int(fmt['height']),
-                   'abr': int(fmt['audio_bitrate']),
-                   'vbr': int(fmt['video_bitrate']),
-                   'format_id': fmt['media_resolution_id']
-                   } for fmt in video['mtm'] if fmt['transcoding_status'] == 'processed']
+                    'abr': int(fmt['audio_bitrate']),
+                    'vbr': int(fmt['video_bitrate']),
+                    'format_id': fmt['media_resolution_id']
+                    } for fmt in video['mtm'] if fmt['transcoding_status'] == 'processed']
 
         self._sort_formats(formats)
 
@@ -56,10 +56,10 @@ class VubeIE(InfoExtractor):
         duration = video['duration']
         view_count = video['raw_view_count']
         like_count = video['total_likes']
-        dislike_count= video['total_hates']
+        dislike_count = video['total_hates']
 
         comment = self._download_json('http://vube.com/api/video/%s/comment' % video_id,
-            video_id, 'Downloading video comment JSON')
+                                      video_id, 'Downloading video comment JSON')
 
         comment_count = comment['total']
 

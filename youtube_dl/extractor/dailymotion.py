@@ -16,7 +16,9 @@ from ..utils import (
     ExtractorError,
 )
 
+
 class DailymotionBaseInfoExtractor(InfoExtractor):
+
     @staticmethod
     def _build_request(url):
         """Build a request with the family filter disabled"""
@@ -25,7 +27,9 @@ class DailymotionBaseInfoExtractor(InfoExtractor):
         request.add_header('Cookie', 'ff=off')
         return request
 
+
 class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
+
     """Information Extractor for Dailymotion"""
 
     _VALID_URL = r'(?i)(?:https?://)?(?:(www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(embed|#)/)?video/(?P<id>[^/?_]+)'
@@ -45,7 +49,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             u'file': u'x33vw9.mp4',
             u'md5': u'392c4b85a60a90dc4792da41ce3144eb',
             u'info_dict': {
-                u"uploader": u"Amphora Alex and Van .", 
+                u"uploader": u"Amphora Alex and Van .",
                 u"title": u"Tutoriel de Youtubeur\"DL DES VIDEO DE YOUTUBE\""
             }
         },
@@ -112,7 +116,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
         embed_page = self._download_webpage(embed_url, video_id,
                                             u'Downloading embed page')
         info = self._search_regex(r'var info = ({.*?}),$', embed_page,
-            'video info', flags=re.MULTILINE)
+                                  'video info', flags=re.MULTILINE)
         info = json.loads(info)
         if info.get('error') is not None:
             msg = 'Couldn\'t get video, Dailymotion says: %s' % info['error']['title']
@@ -149,12 +153,12 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             view_count = str_to_int(view_count)
 
         return {
-            'id':       video_id,
+            'id': video_id,
             'formats': formats,
             'uploader': info['owner_screenname'],
-            'upload_date':  video_upload_date,
-            'title':    self._og_search_title(webpage),
-            'subtitles':    video_subtitles,
+            'upload_date': video_upload_date,
+            'title': self._og_search_title(webpage),
+            'subtitles': video_subtitles,
             'thumbnail': info['thumbnail_url'],
             'age_limit': age_limit,
             'view_count': view_count,
@@ -195,7 +199,7 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
             if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
                 break
         return [self.url_result('http://www.dailymotion.com/video/%s' % video_id, 'Dailymotion')
-                   for video_id in orderedSet(video_ids)]
+                for video_id in orderedSet(video_ids)]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

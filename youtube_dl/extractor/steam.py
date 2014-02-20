@@ -24,7 +24,7 @@ class SteamIE(InfoExtractor):
                 u"md5": u"f870007cee7065d7c76b88f0a45ecc07",
                 u"info_dict": {
                         u"title": u"Terraria 1.1 Trailer",
-                        u'playlist_index': 1,
+                    u'playlist_index': 1,
                 }
             },
             {
@@ -37,7 +37,6 @@ class SteamIE(InfoExtractor):
             }
         ]
     }
-
 
     @classmethod
     def suitable(cls, url):
@@ -67,7 +66,7 @@ class SteamIE(InfoExtractor):
         thumbsRE = r'<img class="movie_thumb" src="(?P<thumbnail>.+?)">'
         thumbs = re.finditer(thumbsRE, webpage)
         videos = []
-        for vid,vtitle,thumb in zip(mweb,titles,thumbs):
+        for vid, vtitle, thumb in zip(mweb, titles, thumbs):
             video_id = vid.group('videoID')
             title = vtitle.group('videoName')
             video_url = vid.group('videoURL')
@@ -75,11 +74,11 @@ class SteamIE(InfoExtractor):
             if not video_url:
                 raise ExtractorError(u'Cannot find video url for %s' % video_id)
             info = {
-                'id':video_id,
-                'url':video_url,
+                'id': video_id,
+                'url': video_url,
                 'ext': 'flv',
                 'title': unescapeHTML(title),
                 'thumbnail': video_thumb
-                  }
+            }
             videos.append(info)
         return [self.playlist_result(videos, gameID, game_title)]

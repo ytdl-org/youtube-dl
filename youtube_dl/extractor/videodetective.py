@@ -27,4 +27,4 @@ class VideoDetectiveIE(InfoExtractor):
         og_video = self._og_search_video_url(webpage)
         query = compat_urlparse.urlparse(og_video).query
         return self.url_result(InternetVideoArchiveIE._build_url(query),
-            ie=InternetVideoArchiveIE.ie_key())
+                               ie=InternetVideoArchiveIE.ie_key())

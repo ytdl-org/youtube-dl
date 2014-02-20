@@ -7,6 +7,7 @@ from ..utils import ExtractorError
 
 
 class TestURLIE(InfoExtractor):
+
     """ Allows adressing of the test cases as test:yout.*be_1 """
 
     IE_DESC = False  # Do not list

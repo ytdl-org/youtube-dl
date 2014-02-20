@@ -61,7 +61,7 @@ class NiconicoIE(InfoExtractor):
         }
         # Convert to UTF-8 *before* urlencode because Python 2.x's urlencode
         # chokes on unicode
-        login_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k,v in login_form_strs.items())
+        login_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k, v in login_form_strs.items())
         login_data = compat_urllib_parse.urlencode(login_form).encode('utf-8')
         request = compat_urllib_request.Request(
             u'https://secure.nicovideo.jp/secure/login', login_data)
@@ -112,16 +112,16 @@ class NiconicoIE(InfoExtractor):
             self._downloader.report_warning(u'Unable to download user info webpage: %s' % compat_str(err))
 
         return {
-            'id':          video_id,
-            'url':         video_real_url,
-            'title':       video_title,
-            'ext':         video_extension,
-            'format':      video_format,
-            'thumbnail':   video_thumbnail,
+            'id': video_id,
+            'url': video_real_url,
+            'title': video_title,
+            'ext': video_extension,
+            'format': video_format,
+            'thumbnail': video_thumbnail,
             'description': video_description,
-            'uploader':    video_uploader,
+            'uploader': video_uploader,
             'upload_date': video_upload_date,
             'uploader_id': video_uploader_id,
-            'view_count':  video_view_count,
+            'view_count': video_view_count,
             'webpage_url': video_webpage_url,
         }

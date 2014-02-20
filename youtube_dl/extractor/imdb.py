@@ -63,7 +63,7 @@ class ImdbListIE(InfoExtractor):
     IE_NAME = 'imdb:list'
     IE_DESC = 'Internet Movie Database lists'
     _VALID_URL = r'http://www\.imdb\.com/list/(?P<id>[\da-zA-Z_-]{11})'
-    
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         list_id = mobj.group('id')

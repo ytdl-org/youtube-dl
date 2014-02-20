@@ -9,4 +9,4 @@ py2exe_options = {
     "dll_excludes": ['w9xpopen.exe']
 }
 
-setup(console=['youtube-dl.py'], options={ "py2exe": py2exe_options }, zipfile=None)
+setup(console=['youtube-dl.py'], options={"py2exe": py2exe_options}, zipfile=None)

@@ -7,6 +7,7 @@ from ..utils import (
 
 
 class SubtitlesInfoExtractor(InfoExtractor):
+
     @property
     def _have_to_download_any_subtitles(self):
         return any([self._downloader.params.get('writesubtitles', False),

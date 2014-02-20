@@ -1,7 +1,9 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import re, base64, zlib
+import re
+import base64
+import zlib
 from hashlib import sha1
 from math import pow, sqrt, floor
 from .common import InfoExtractor
@@ -18,6 +20,7 @@ from ..aes import (
     aes_cbc_decrypt,
     inc,
 )
+
 
 class CrunchyrollIE(InfoExtractor):
     _VALID_URL = r'(?:https?://)?(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.com/(?:[^/]*/[^/?&]*?|media/\?id=)(?P<video_id>[0-9]+))(?:[/?&]|$)'
@@ -68,10 +71,12 @@ class CrunchyrollIE(InfoExtractor):
             shaHash = bytes_to_intlist(sha1(prefix + str(num4).encode('ascii')).digest())
             # Extend 160 Bit hash to 256 Bit
             return shaHash + [0] * 12
-        
+
         key = obfuscate_key(id)
+
         class Counter:
             __value = iv
+
             def next_value(self):
                 temp = self.__value
                 self.__value = inc(self.__value)
@@ -80,7 +85,7 @@ class CrunchyrollIE(InfoExtractor):
         return zlib.decompress(decrypted_data)
 
     def _convert_subtitles_to_srt(self, subtitles):
-        i=1
+        i = 1
         output = ''
         for start, end, text in re.findall(r'<event [^>]*?start="([^"]+)" [^>]*?end="([^"]+)" [^>]*?text="([^"]+)"[^>]*?>', subtitles):
             start = start.replace('.', ',')
@@ -90,10 +95,10 @@ class CrunchyrollIE(InfoExtractor):
             if not text:
                 continue
             output += '%d\n%s --> %s\n%s\n\n' % (i, start, end, text)
-            i+=1
+            i += 1
         return output
 
-    def _real_extract(self,url):
+    def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('video_id')
 
@@ -123,25 +128,25 @@ class CrunchyrollIE(InfoExtractor):
         playerdata_req.data = compat_urllib_parse.urlencode({'current_page': webpage_url})
         playerdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
         playerdata = self._download_webpage(playerdata_req, video_id, note='Downloading media info')
-        
+
         stream_id = self._search_regex(r'<media_id>([^<]+)', playerdata, 'stream_id')
         video_thumbnail = self._search_regex(r'<episode_image_url>([^<]+)', playerdata, 'thumbnail', fatal=False)
 
         formats = []
         for fmt in re.findall(r'\?p([0-9]{3,4})=1', webpage):
             stream_quality, stream_format = self._FORMAT_IDS[fmt]
-            video_format = fmt+'p'
+            video_format = fmt + 'p'
             streamdata_req = compat_urllib_request.Request('http://www.crunchyroll.com/xml/')
             # urlencode doesn't work!
-            streamdata_req.data = 'req=RpcApiVideoEncode%5FGetStreamInfo&video%5Fencode%5Fquality='+stream_quality+'&media%5Fid='+stream_id+'&video%5Fformat='+stream_format
+            streamdata_req.data = 'req=RpcApiVideoEncode%5FGetStreamInfo&video%5Fencode%5Fquality=' + stream_quality + '&media%5Fid=' + stream_id + '&video%5Fformat=' + stream_format
             streamdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
             streamdata_req.add_header('Content-Length', str(len(streamdata_req.data)))
-            streamdata = self._download_webpage(streamdata_req, video_id, note='Downloading media info for '+video_format)
+            streamdata = self._download_webpage(streamdata_req, video_id, note='Downloading media info for ' + video_format)
             video_url = self._search_regex(r'<host>([^<]+)', streamdata, 'video_url')
             video_play_path = self._search_regex(r'<file>([^<]+)', streamdata, 'video_play_path')
             formats.append({
                 'url': video_url,
-                'play_path':   video_play_path,
+                'play_path': video_play_path,
                 'ext': 'flv',
                 'format': video_format,
                 'format_id': video_format,
@@ -149,8 +154,8 @@ class CrunchyrollIE(InfoExtractor):
 
         subtitles = {}
         for sub_id, sub_name in re.findall(r'\?ssid=([0-9]+)" title="([^"]+)', webpage):
-            sub_page = self._download_webpage('http://www.crunchyroll.com/xml/?req=RpcApiSubtitle_GetXml&subtitle_script_id='+sub_id,\
-                                              video_id, note='Downloading subtitles for '+sub_name)
+            sub_page = self._download_webpage('http://www.crunchyroll.com/xml/?req=RpcApiSubtitle_GetXml&subtitle_script_id=' + sub_id,
+                                              video_id, note='Downloading subtitles for ' + sub_name)
             id = self._search_regex(r'id=\'([0-9]+)', sub_page, 'subtitle_id', fatal=False)
             iv = self._search_regex(r'<iv>([^<]+)', sub_page, 'subtitle_iv', fatal=False)
             data = self._search_regex(r'<data>([^<]+)', sub_page, 'subtitle_data', fatal=False)
@@ -167,12 +172,12 @@ class CrunchyrollIE(InfoExtractor):
             subtitles[lang_code] = self._convert_subtitles_to_srt(subtitle)
 
         return {
-            'id':          video_id,
-            'title':       video_title,
+            'id': video_id,
+            'title': video_title,
             'description': video_description,
-            'thumbnail':   video_thumbnail,
-            'uploader':    video_uploader,
+            'thumbnail': video_thumbnail,
+            'uploader': video_uploader,
             'upload_date': video_upload_date,
-            'subtitles':   subtitles,
-            'formats':     formats,
+            'subtitles': subtitles,
+            'formats': formats,
         }

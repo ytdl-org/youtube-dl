@@ -14,6 +14,7 @@ from youtube_dl.extractor import YoutubeIE
 
 
 class YDL(FakeYDL):
+
     def __init__(self, *args, **kwargs):
         super(YDL, self).__init__(*args, **kwargs)
         self.downloaded_info_dicts = []
@@ -27,13 +28,14 @@ class YDL(FakeYDL):
 
 
 class TestFormatSelection(unittest.TestCase):
+
     def test_prefer_free_formats(self):
         # Same resolution => download webm
         ydl = YDL()
         ydl.params['prefer_free_formats'] = True
         formats = [
             {'ext': 'webm', 'height': 460},
-            {'ext': 'mp4',  'height': 460},
+            {'ext': 'mp4', 'height': 460},
         ]
         info_dict = {'formats': formats, 'extractor': 'test'}
         yie = YoutubeIE(ydl)
@@ -236,6 +238,7 @@ class TestFormatSelection(unittest.TestCase):
             'ext': 'mp4',
             'width': None,
         }
+
         def fname(templ):
             ydl = YoutubeDL({'outtmpl': templ})
             return ydl.prepare_filename(info)

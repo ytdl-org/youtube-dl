@@ -16,23 +16,23 @@ class TudouIE(InfoExtractor):
             u"title": u"卡马乔国足开大脚长传冲吊集锦"
         }
     },
-    {
-        u'url': u'http://www.tudou.com/albumplay/TenTw_JgiPM/PzsAs5usU9A.html',
-        u'file': u'todo.mp4',
-        u'md5': u'todo.mp4',
-        u'info_dict': {
-            u'title': u'todo.mp4',
-        },
-        u'add_ie': [u'Youku'],
-        u'skip': u'Only works from China'
-    }]
+        {
+            u'url': u'http://www.tudou.com/albumplay/TenTw_JgiPM/PzsAs5usU9A.html',
+            u'file': u'todo.mp4',
+            u'md5': u'todo.mp4',
+            u'info_dict': {
+                u'title': u'todo.mp4',
+            },
+            u'add_ie': [u'Youku'],
+            u'skip': u'Only works from China'
+        }]
 
-    def _url_for_id(self, id, quality = None):
-        info_url = "http://v2.tudou.com/f?id="+str(id)
+    def _url_for_id(self, id, quality=None):
+        info_url = "http://v2.tudou.com/f?id=" + str(id)
         if quality:
             info_url += '&hd' + quality
         webpage = self._download_webpage(info_url, id, "Opening the info webpage")
-        final_url = self._html_search_regex('>(.+?)</f>',webpage, 'video url')
+        final_url = self._html_search_regex('>(.+?)</f>', webpage, 'video url')
         return final_url
 
     def _real_extract(self, url):
@@ -68,11 +68,11 @@ class TudouIE(InfoExtractor):
             final_url = self._url_for_id(part_id, quality)
             ext = (final_url.split('?')[0]).split('.')[-1]
             part_info = {'id': part_id,
-                          'url': final_url,
-                          'ext': ext,
-                          'title': title,
-                          'thumbnail': thumbnail_url,
-                          }
+                         'url': final_url,
+                         'ext': ext,
+                         'title': title,
+                         'thumbnail': thumbnail_url,
+                         }
             result.append(part_info)
 
         return result

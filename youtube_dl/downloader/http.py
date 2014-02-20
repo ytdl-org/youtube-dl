@@ -14,6 +14,7 @@ from ..utils import (
 
 
 class HttpFD(FileDownloader):
+
     def real_download(self, filename, info_dict):
         url = info_dict['url']
         tmpfilename = self.temp_name(filename)

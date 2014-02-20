@@ -46,7 +46,7 @@ class SinaIE(InfoExtractor):
     def _extract_video(self, video_id):
         data = compat_urllib_parse.urlencode({'vid': video_id})
         url_doc = self._download_xml('http://v.iask.com/v_play.php?%s' % data,
-            video_id, 'Downloading video url')
+                                     video_id, 'Downloading video url')
         image_page = self._download_webpage(
             'http://interface.video.sina.com.cn/interface/common/getVideoImage.php?%s' % data,
             video_id, 'Downloading thumbnail info')

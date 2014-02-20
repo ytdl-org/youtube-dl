@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class WatIE(InfoExtractor):
-    _VALID_URL=r'http://www\.wat\.tv/.*-(?P<shortID>.*?)_.*?\.html'
+    _VALID_URL = r'http://www\.wat\.tv/.*-(?P<shortID>.*?)_.*?\.html'
     IE_NAME = 'wat.tv'
     _TEST = {
         u'url': u'http://www.wat.tv/video/world-war-philadelphia-vost-6bv55_2fjr7_.html',
@@ -23,14 +23,13 @@ class WatIE(InfoExtractor):
         },
         u'skip': u'Sometimes wat serves the whole file with the --test option',
     }
-    
+
     def download_video_info(self, real_id):
         # 'contentv4' is used in the website, but it also returns the related
         # videos, we don't need them
         info = self._download_webpage('http://www.wat.tv/interface/contentv3/' + real_id, real_id, 'Downloading video info')
         info = json.loads(info)
         return info['media']
-
 
     def _real_extract(self, url):
         def real_id_for_chapter(chapter):
