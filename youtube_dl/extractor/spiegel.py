@@ -15,14 +15,14 @@ class SpiegelIE(InfoExtractor):
             'title': 'Vulkanausbruch in Ecuador: Der "Feuerschlund" ist wieder aktiv',
         },
     },
-    {
-        'url': 'http://www.spiegel.de/video/schach-wm-videoanalyse-des-fuenften-spiels-video-1309159.html',
-        'file': '1309159.mp4',
-        'md5': 'f2cdf638d7aa47654e251e1aee360af1',
-        'info_dict': {
-            'title': 'Schach-WM in der Videoanalyse: Carlsen nutzt die Fehlgriffe des Titelverteidigers',
-        },
-    }]
+        {
+            'url': 'http://www.spiegel.de/video/schach-wm-videoanalyse-des-fuenften-spiels-video-1309159.html',
+            'file': '1309159.mp4',
+            'md5': 'f2cdf638d7aa47654e251e1aee360af1',
+            'info_dict': {
+                'title': 'Schach-WM in der Videoanalyse: Carlsen nutzt die Fehlgriffe des Titelverteidigers',
+            },
+        }]
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)

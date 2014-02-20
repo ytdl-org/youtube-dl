@@ -28,7 +28,7 @@ class AnitubeIE(InfoExtractor):
                                       webpage, u'key')
 
         config_xml = self._download_xml('http://www.anitube.se/nuevo/econfig.php?key=%s' % key,
-                                                key)
+                                        key)
 
         video_title = config_xml.find('title').text
 

@@ -11,18 +11,18 @@ except NameError:
 
 versions_info = json.load(open('update/versions.json'))
 if 'signature' in versions_info:
-	del versions_info['signature']
+    del versions_info['signature']
 
 print('Enter the PKCS1 private key, followed by a blank line:')
 privkey = b''
 while True:
-	try:
-		line = input()
-	except EOFError:
-		break
-	if line == '':
-		break
-	privkey += line.encode('ascii') + b'\n'
+    try:
+        line = input()
+    except EOFError:
+        break
+    if line == '':
+        break
+    privkey += line.encode('ascii') + b'\n'
 privkey = rsa.PrivateKey.load_pkcs1(privkey)
 
 signature = hexlify(rsa.pkcs1.sign(json.dumps(versions_info, sort_keys=True).encode('utf-8'), privkey, 'SHA-256')).decode()

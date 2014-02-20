@@ -22,24 +22,24 @@ class CinemassacreIE(InfoExtractor):
             u'skip_download': True,
         },
     },
-    {
-        u'url': u'http://cinemassacre.com/2013/10/02/the-mummys-hand-1940',
-        u'file': u'521be8ef82b16.flv',
-        u'info_dict': {
-            u'upload_date': u'20131002',
-            u'title': u'The Mummy’s Hand (1940)',
-        },
-        u'params': {
-            # rtmp download
-            u'skip_download': True,
-        },
-    }]
+        {
+            u'url': u'http://cinemassacre.com/2013/10/02/the-mummys-hand-1940',
+            u'file': u'521be8ef82b16.flv',
+            u'info_dict': {
+                u'upload_date': u'20131002',
+                u'title': u'The Mummy’s Hand (1940)',
+            },
+            u'params': {
+                # rtmp download
+                u'skip_download': True,
+            },
+        }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
 
         webpage_url = u'http://' + mobj.group('url')
-        webpage = self._download_webpage(webpage_url, None) # Don't know video id yet
+        webpage = self._download_webpage(webpage_url, None)  # Don't know video id yet
         video_date = mobj.group('date_Y') + mobj.group('date_m') + mobj.group('date_d')
         mobj = re.search(r'src="(?P<embed_url>http://player\.screenwavemedia\.com/play/[a-zA-Z]+\.php\?id=(?:Cinemassacre-)?(?P<video_id>.+?))"', webpage)
         if not mobj:
@@ -48,9 +48,9 @@ class CinemassacreIE(InfoExtractor):
         video_id = mobj.group(u'video_id')
 
         video_title = self._html_search_regex(r'<title>(?P<title>.+?)\|',
-            webpage, u'title')
+                                              webpage, u'title')
         video_description = self._html_search_regex(r'<div class="entry-content">(?P<description>.+?)</div>',
-            webpage, u'description', flags=re.DOTALL, fatal=False)
+                                                    webpage, u'description', flags=re.DOTALL, fatal=False)
         if len(video_description) == 0:
             video_description = None
 
@@ -65,7 +65,7 @@ class CinemassacreIE(InfoExtractor):
             {
                 'url': url,
                 'play_path': 'mp4:' + sd_file,
-                'rtmp_live': True, # workaround
+                'rtmp_live': True,  # workaround
                 'ext': 'flv',
                 'format': 'sd',
                 'format_id': 'sd',
@@ -73,7 +73,7 @@ class CinemassacreIE(InfoExtractor):
             {
                 'url': url,
                 'play_path': 'mp4:' + hd_file,
-                'rtmp_live': True, # workaround
+                'rtmp_live': True,  # workaround
                 'ext': 'flv',
                 'format': 'hd',
                 'format_id': 'hd',

@@ -71,7 +71,7 @@ class VKIE(InfoExtractor):
         }
 
         request = compat_urllib_request.Request('https://login.vk.com/?act=login',
-            compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+                                                compat_urllib_parse.urlencode(login_form).encode('utf-8'))
         login_page = self._download_webpage(request, None, note='Logging in as %s' % username)
 
         if re.search(r'onLoginFailed', login_page):
@@ -89,7 +89,7 @@ class VKIE(InfoExtractor):
 
         if re.search(r'<!>Please log in or <', info_page):
             raise ExtractorError('This video is only available for registered users, '
-                'use --username and --password options to provide account credentials.', expected=True)
+                                 'use --username and --password options to provide account credentials.', expected=True)
 
         m_yt = re.search(r'src="(http://www.youtube.com/.*?)"', info_page)
         if m_yt is not None:

@@ -79,7 +79,7 @@ class AddAnimeIE(InfoExtractor):
 
         return {
             '_type': 'video',
-            'id':  video_id,
+            'id': video_id,
             'formats': formats,
             'title': video_title,
             'description': video_description

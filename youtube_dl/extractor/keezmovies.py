@@ -11,6 +11,7 @@ from ..aes import (
     aes_decrypt_text
 )
 
+
 class KeezMoviesIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>keezmovies\.com/video/.+?(?P<videoid>[0-9]+))(?:[/?&]|$)'
     _TEST = {
@@ -40,7 +41,7 @@ class KeezMoviesIE(InfoExtractor):
 
         video_title = self._html_search_regex(r'<h1 [^>]*>([^<]+)', webpage, u'title')
         video_url = compat_urllib_parse.unquote(self._html_search_regex(r'video_url=(.+?)&amp;', webpage, u'video_url'))
-        if webpage.find('encrypted=true')!=-1:
+        if webpage.find('encrypted=true') != -1:
             password = self._html_search_regex(r'video_title=(.+?)&amp;', webpage, u'password')
             video_url = aes_decrypt_text(video_url, password, 32).decode('utf-8')
         path = compat_urllib_parse_urlparse(video_url).path

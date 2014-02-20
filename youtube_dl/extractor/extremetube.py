@@ -8,6 +8,7 @@ from ..utils import (
     compat_urllib_parse,
 )
 
+
 class ExtremeTubeIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>extremetube\.com/video/.+?(?P<videoid>[0-9]+))(?:[/?&]|$)'
     _TEST = {

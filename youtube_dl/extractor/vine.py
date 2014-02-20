@@ -28,10 +28,10 @@ class VineIE(InfoExtractor):
         self.report_extraction(video_id)
 
         video_url = self._html_search_meta('twitter:player:stream', webpage,
-            'video URL')
+                                           'video URL')
 
         uploader = self._html_search_regex(r'<p class="username">(.*?)</p>',
-            webpage, 'uploader', fatal=False, flags=re.DOTALL)
+                                           webpage, 'uploader', fatal=False, flags=re.DOTALL)
 
         return {
             'id': video_id,

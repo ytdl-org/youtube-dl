@@ -89,7 +89,7 @@ class LyndaIE(SubtitlesInfoExtractor):
             'password': password,
             'remember': 'false',
             'stayPut': 'false'
-        }        
+        }
         request = compat_urllib_request.Request(self._LOGIN_URL, compat_urllib_parse.urlencode(login_form))
         login_page = self._download_webpage(request, None, note='Logging in as %s' % username)
 
@@ -97,7 +97,7 @@ class LyndaIE(SubtitlesInfoExtractor):
         m = re.search(r'loginResultJson = \'(?P<json>[^\']+)\';', login_page)
         if m is not None:
             response = m.group('json')
-            response_json = json.loads(response)            
+            response_json = json.loads(response)
             state = response_json['state']
 
             if state == 'notlogged':
@@ -167,7 +167,7 @@ class LyndaCourseIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         course_path = mobj.group('coursepath')
         course_id = mobj.group('courseid')
-        
+
         page = self._download_webpage('http://www.lynda.com/ajax/player?courseId=%s&type=course' % course_id,
                                       course_id, 'Downloading course JSON')
         course_json = json.loads(page)

@@ -18,6 +18,7 @@ import youtube_dl.extractor
 
 
 class YoutubeDL(youtube_dl.YoutubeDL):
+
     def __init__(self, *args, **kwargs):
         super(YoutubeDL, self).__init__(*args, **kwargs)
         self.to_stderr = self.to_screen
@@ -41,6 +42,7 @@ For more information, contact phihag@phihag.de .'''
 
 
 class TestInfoJSON(unittest.TestCase):
+
     def setUp(self):
         # Clear old files
         self.tearDown()

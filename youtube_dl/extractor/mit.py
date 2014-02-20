@@ -30,9 +30,9 @@ class TechTVMITIE(InfoExtractor):
         clean_page = re.compile(u'<!--.*?-->', re.S).sub(u'', raw_page)
 
         base_url = self._search_regex(r'ipadUrl: \'(.+?cloudfront.net/)',
-            raw_page, u'base url')
+                                      raw_page, u'base url')
         formats_json = self._search_regex(r'bitrates: (\[.+?\])', raw_page,
-            u'video formats')
+                                          u'video formats')
         formats_mit = json.loads(formats_json)
         formats = [
             {
@@ -49,7 +49,7 @@ class TechTVMITIE(InfoExtractor):
         title = get_element_by_id('edit-title', clean_page)
         description = clean_html(get_element_by_id('edit-description', clean_page))
         thumbnail = self._search_regex(r'playlist:.*?url: \'(.+?)\'',
-            raw_page, u'thumbnail', flags=re.DOTALL)
+                                       raw_page, u'thumbnail', flags=re.DOTALL)
 
         return {'id': video_id,
                 'title': title,
@@ -79,5 +79,5 @@ class MITIE(TechTVMITIE):
         webpage = self._download_webpage(url, page_title)
         self.to_screen('%s: Extracting %s url' % (page_title, TechTVMITIE.IE_NAME))
         embed_url = self._search_regex(r'<iframe .*?src="(.+?)"', webpage,
-            u'embed url')
+                                       u'embed url')
         return self.url_result(embed_url, ie='TechTVMIT')

@@ -122,7 +122,7 @@ class ComedyCentralShowsIE(InfoExtractor):
                 epTitle = mobj.group('episode')
 
         self.report_extraction(epTitle)
-        webpage,htmlHandle = self._download_webpage_handle(url, epTitle)
+        webpage, htmlHandle = self._download_webpage_handle(url, epTitle)
         if dlNewest:
             url = htmlHandle.geturl()
             mobj = re.match(self._VALID_URL, url, re.VERBOSE)
@@ -148,13 +148,13 @@ class ComedyCentralShowsIE(InfoExtractor):
         uri = mMovieParams[0][1]
         indexUrl = 'http://shadow.comedycentral.com/feeds/video_player/mrss/?' + compat_urllib_parse.urlencode({'uri': uri})
         idoc = self._download_xml(indexUrl, epTitle,
-                                          'Downloading show index',
-                                          'unable to download episode index')
+                                  'Downloading show index',
+                                  'unable to download episode index')
 
         results = []
 
         itemEls = idoc.findall('.//item')
-        for partNum,itemEl in enumerate(itemEls):
+        for partNum, itemEl in enumerate(itemEls):
             mediaId = itemEl.findall('./guid')[0].text
             shortMediaId = mediaId.split(':')[-1]
             showId = mediaId.split(':')[-2].replace('.com', '')
@@ -162,9 +162,9 @@ class ComedyCentralShowsIE(InfoExtractor):
             officialDate = unified_strdate(itemEl.findall('./pubDate')[0].text)
 
             configUrl = ('http://www.comedycentral.com/global/feeds/entertainment/media/mediaGenEntertainment.jhtml?' +
-                        compat_urllib_parse.urlencode({'uri': mediaId}))
+                         compat_urllib_parse.urlencode({'uri': mediaId}))
             cdoc = self._download_xml(configUrl, epTitle,
-                                               'Downloading configuration for %s' % shortMediaId)
+                                      'Downloading configuration for %s' % shortMediaId)
 
             turls = []
             for rendition in cdoc.findall('.//rendition'):
@@ -186,7 +186,7 @@ class ComedyCentralShowsIE(InfoExtractor):
                     'width': w,
                 })
 
-            effTitle = showId + '-' + epTitle + ' part ' + compat_str(partNum+1)
+            effTitle = showId + '-' + epTitle + ' part ' + compat_str(partNum + 1)
             results.append({
                 'id': shortMediaId,
                 'formats': formats,

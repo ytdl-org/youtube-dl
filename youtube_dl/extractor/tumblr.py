@@ -43,7 +43,7 @@ class TumblrIE(InfoExtractor):
         # The only place where you can get a title, it's not complete,
         # but searching in other places doesn't work for all videos
         video_title = self._html_search_regex(r'<title>(?P<title>.*?)(?: \| Tumblr)?</title>',
-            webpage, 'title', flags=re.DOTALL)
+                                              webpage, 'title', flags=re.DOTALL)
 
         return [{'id': video_id,
                  'url': video_url,

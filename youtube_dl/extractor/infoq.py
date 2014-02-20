@@ -37,11 +37,11 @@ class InfoQIE(InfoExtractor):
 
         # Extract title
         video_title = self._search_regex(r'contentTitle = "(.*?)";',
-            webpage, 'title')
+                                         webpage, 'title')
 
         # Extract description
         video_description = self._html_search_regex(r'<meta name="description" content="(.*)"(?:\s*/)?>',
-            webpage, 'description', fatal=False)
+                                                    webpage, 'description', fatal=False)
 
         video_filename = video_url.split('/')[-1]
         video_id, extension = video_filename.split('.')

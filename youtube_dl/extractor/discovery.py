@@ -28,7 +28,7 @@ class DiscoveryIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_list_json = self._search_regex(r'var videoListJSON = ({.*?});',
-            webpage, 'video list', flags=re.DOTALL)
+                                             webpage, 'video list', flags=re.DOTALL)
         video_list = json.loads(video_list_json)
         info = video_list['clips'][0]
         formats = []

@@ -27,7 +27,7 @@ class M6IE(InfoExtractor):
         video_id = mobj.group('id')
 
         rss = self._download_xml('http://ws.m6.fr/v1/video/info/m6/bonus/%s' % video_id, video_id,
-            'Downloading video RSS')
+                                 'Downloading video RSS')
 
         title = rss.find('./channel/item/title').text
         description = rss.find('./channel/item/description').text

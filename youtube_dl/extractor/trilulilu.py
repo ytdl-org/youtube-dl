@@ -39,7 +39,7 @@ class TriluliluIE(InfoExtractor):
             format_url, video_id,
             note=u'Downloading formats',
             errnote=u'Error while downloading formats')
- 
+
         video_url_template = (
             u'http://fs%(server)s.trilulilu.ro/stream.php?type=video'
             u'&source=site&hash=%(hash)s&username=%(userid)s&'
@@ -63,4 +63,3 @@ class TriluliluIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
         }
-

@@ -11,12 +11,14 @@ try:
 except AttributeError:
     _DEV_NULL = open(os.devnull, 'wb')
 
+
 class TestExecution(unittest.TestCase):
+
     def test_import(self):
         subprocess.check_call([sys.executable, '-c', 'import youtube_dl'], cwd=rootDir)
 
     def test_module_exec(self):
-        if sys.version_info >= (2,7): # Python 2.6 doesn't support package execution
+        if sys.version_info >= (2, 7):  # Python 2.6 doesn't support package execution
             subprocess.check_call([sys.executable, '-m', 'youtube_dl', '--version'], cwd=rootDir, stdout=_DEV_NULL)
 
     def test_main_exec(self):

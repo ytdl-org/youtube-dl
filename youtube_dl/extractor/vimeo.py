@@ -20,6 +20,7 @@ from ..utils import (
 
 
 class VimeoIE(SubtitlesInfoExtractor):
+
     """Information extractor for vimeo.com."""
 
     # _VALID_URL matches Vimeo URLs
@@ -129,10 +130,10 @@ class VimeoIE(SubtitlesInfoExtractor):
                                               'token': token})
         # I didn't manage to use the password with https
         if url.startswith('https'):
-            pass_url = url.replace('https','http')
+            pass_url = url.replace('https', 'http')
         else:
             pass_url = url
-        password_request = compat_urllib_request.Request(pass_url+'/password', data)
+        password_request = compat_urllib_request.Request(pass_url + '/password', data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         password_request.add_header('Cookie', 'xsrft=%s' % token)
         self._download_webpage(password_request, video_id,
@@ -195,7 +196,7 @@ class VimeoIE(SubtitlesInfoExtractor):
                 else:
                     config_re = [r' = {config:({.+?}),assets:', r'(?:[abc])=({.+?});']
                 config = self._search_regex(config_re, webpage, 'info section',
-                    flags=re.DOTALL)
+                                            flags=re.DOTALL)
                 config = json.loads(config)
         except Exception as e:
             if re.search('The creator of this video has not given you permission to embed it on this domain.', webpage):
@@ -227,7 +228,8 @@ class VimeoIE(SubtitlesInfoExtractor):
         video_description = None
         try:
             video_description = get_element_by_attribute("itemprop", "description", webpage)
-            if video_description: video_description = clean_html(video_description)
+            if video_description:
+                video_description = clean_html(video_description)
         except AssertionError as err:
             # On some pages like (http://player.vimeo.com/video/54469442) the
             # html tags are not closed, python 2.6 cannot handle it
@@ -273,7 +275,7 @@ class VimeoIE(SubtitlesInfoExtractor):
                     file_info = {}
                 if video_url is None:
                     video_url = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=%s&type=moogaloop_local&embed_location=" \
-                        %(video_id, sig, timestamp, quality, codec_name.upper())
+                        % (video_id, sig, timestamp, quality, codec_name.upper())
 
                 files[key].append({
                     'ext': codec_extension,
@@ -332,7 +334,7 @@ class VimeoChannelIE(InfoExtractor):
         video_ids = []
         for pagenum in itertools.count(1):
             webpage = self._download_webpage(
-                self._page_url(base_url, pagenum) ,list_id,
+                self._page_url(base_url, pagenum), list_id,
                 'Downloading page %s' % pagenum)
             video_ids.extend(re.findall(r'id="clip_(\d+?)"', webpage))
             if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
@@ -348,7 +350,7 @@ class VimeoChannelIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        channel_id =  mobj.group('id')
+        channel_id = mobj.group('id')
         return self._extract_videos(channel_id, 'http://vimeo.com/channels/%s' % channel_id)
 
 

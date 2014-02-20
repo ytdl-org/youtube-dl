@@ -34,17 +34,22 @@ from youtube_dl.extractor import get_info_extractor
 
 RETRIES = 3
 
+
 class YoutubeDL(youtube_dl.YoutubeDL):
+
     def __init__(self, *args, **kwargs):
         self.to_stderr = self.to_screen
         self.processed_info_dicts = []
         super(YoutubeDL, self).__init__(*args, **kwargs)
+
     def report_warning(self, message):
         # Don't accept warnings during tests
         raise ExtractorError(message)
+
     def process_info(self, info_dict):
         self.processed_info_dicts.append(info_dict)
         return super(YoutubeDL, self).process_info(info_dict)
+
 
 def _file_md5(fn):
     with open(fn, 'rb') as f:
@@ -55,15 +60,19 @@ defs = get_testcases()
 
 class TestDownload(unittest.TestCase):
     maxDiff = None
+
     def setUp(self):
         self.defs = defs
 
-### Dynamically generate tests
+# Dynamically generate tests
+
+
 def generator(test_case):
 
     def test_template(self):
         ie = youtube_dl.extractor.get_info_extractor(test_case['name'])
         other_ies = [get_info_extractor(ie_key) for ie_key in test_case.get('add_ie', [])]
+
         def print_skipping(reason):
             print('Skipping %s: %s' % (test_case['name'], reason))
         if not ie.working():
@@ -73,7 +82,7 @@ def generator(test_case):
             info_dict = test_case.get('info_dict', {})
             if not test_case.get('file') and not (info_dict.get('id') and info_dict.get('ext')):
                 print_skipping('The output file cannot be know, the "file" '
-                    'key is missing or the info_dict is incomplete')
+                               'key is missing or the info_dict is incomplete')
                 return
         if 'skip' in test_case:
             print_skipping(test_case['skip'])
@@ -88,6 +97,7 @@ def generator(test_case):
         ydl = YoutubeDL(params)
         ydl.add_default_info_extractors()
         finished_hook_called = set()
+
         def _hook(status):
             if status['status'] == 'finished':
                 finished_hook_called.add(status['filename'])
@@ -97,6 +107,7 @@ def generator(test_case):
             return tc.get('file') or ydl.prepare_filename(tc.get('info_dict', {}))
 
         test_cases = test_case.get('playlist', [test_case])
+
         def try_rm_tcs_files():
             for tc in test_cases:
                 tc_filename = get_tc_filename(tc)
@@ -142,12 +153,12 @@ def generator(test_case):
                     else:
                         got = info_dict.get(info_field)
                     self.assertEqual(expected, got,
-                        u'invalid value for field %s, expected %r, got %r' % (info_field, expected, got))
+                                     u'invalid value for field %s, expected %r, got %r' % (info_field, expected, got))
 
                 # If checkable fields are missing from the test case, print the info_dict
                 test_info_dict = dict((key, value if not isinstance(value, compat_str) or len(value) < 250 else 'md5:' + md5(value))
-                    for key, value in info_dict.items()
-                    if value and key in ('title', 'description', 'uploader', 'upload_date', 'uploader_id', 'location'))
+                                      for key, value in info_dict.items()
+                                      if value and key in ('title', 'description', 'uploader', 'upload_date', 'uploader_id', 'location'))
                 if not all(key in tc.get('info_dict', {}).keys() for key in test_info_dict.keys()):
                     sys.stderr.write(u'\n"info_dict": ' + json.dumps(test_info_dict, ensure_ascii=False, indent=4) + u'\n')
 
@@ -162,13 +173,13 @@ def generator(test_case):
 
     return test_template
 
-### And add them to TestDownload
+# And add them to TestDownload
 for n, test_case in enumerate(defs):
     test_method = generator(test_case)
     tname = 'test_' + str(test_case['name'])
     i = 1
     while hasattr(TestDownload, tname):
-        tname = 'test_'  + str(test_case['name']) + '_' + str(i)
+        tname = 'test_' + str(test_case['name']) + '_' + str(i)
         i += 1
     test_method.__name__ = tname
     setattr(TestDownload, test_method.__name__, test_method)

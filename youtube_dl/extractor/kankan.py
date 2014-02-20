@@ -10,7 +10,7 @@ _md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
 
 class KankanIE(InfoExtractor):
     _VALID_URL = r'https?://(?:.*?\.)?kankan\.com/.+?/(?P<id>\d+)\.shtml'
-    
+
     _TEST = {
         'url': 'http://yinyue.kankan.com/vod/48/48863.shtml',
         'file': '48863.flv',

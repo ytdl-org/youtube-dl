@@ -15,6 +15,7 @@ from ..utils import (
 
 
 class FacebookIE(InfoExtractor):
+
     """Information Extractor for Facebook"""
 
     _VALID_URL = r'''(?x)
@@ -50,7 +51,7 @@ class FacebookIE(InfoExtractor):
         login_page_req.add_header('Cookie', 'locale=en_US')
         self.report_login()
         login_page = self._download_webpage(login_page_req, None, note=False,
-            errnote=u'Unable to download login page')
+                                            errnote=u'Unable to download login page')
         lsd = self._search_regex(r'"lsd":"(\w*?)"', login_page, u'lsd')
         lgnrnd = self._search_regex(r'name="lgnrnd" value="([^"]*?)"', login_page, u'lgnrnd')
 
@@ -64,7 +65,7 @@ class FacebookIE(InfoExtractor):
             'legacy_return': '1',
             'timezone': '-60',
             'trynum': '1',
-            }
+        }
         request = compat_urllib_request.Request(self._LOGIN_URL, compat_urllib_parse.urlencode(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         try:

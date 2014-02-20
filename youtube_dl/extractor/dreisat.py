@@ -17,12 +17,11 @@ class DreiSatIE(InfoExtractor):
         u'md5': u'9dcfe344732808dbfcc901537973c922',
         u'info_dict': {
             u"title": u"Kaffeeland Schweiz",
-            u"description": u"Über 80 Kaffeeröstereien liefern in der Schweiz das Getränk, in das das Land so vernarrt ist: Mehr als 1000 Tassen trinkt ein Schweizer pro Jahr. SCHWEIZWEIT nimmt die Kaffeekultur unter die...", 
+            u"description": u"Über 80 Kaffeeröstereien liefern in der Schweiz das Getränk, in das das Land so vernarrt ist: Mehr als 1000 Tassen trinkt ein Schweizer pro Jahr. SCHWEIZWEIT nimmt die Kaffeekultur unter die...",
             u"uploader": u"3sat",
             u"upload_date": u"20130622"
         }
     }
-
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

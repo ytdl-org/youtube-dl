@@ -30,13 +30,13 @@ class Vbox7IE(InfoExtractor):
 
         redirect_page, urlh = self._download_webpage_handle(url, video_id)
         new_location = self._search_regex(r'window\.location = \'(.*)\';',
-            redirect_page, 'redirect location')
+                                          redirect_page, 'redirect location')
         redirect_url = urlh.geturl() + new_location
         webpage = self._download_webpage(redirect_url, video_id,
-            'Downloading redirect page')
+                                         'Downloading redirect page')
 
         title = self._html_search_regex(r'<title>(.*)</title>',
-            webpage, 'title').split('/')[0].strip()
+                                        webpage, 'title').split('/')[0].strip()
 
         info_url = "http://vbox7.com/play/magare.do"
         data = compat_urllib_parse.urlencode({'as3': '1', 'vid': video_id})

@@ -8,7 +8,7 @@ from ..utils import (
 
 class MDRIE(InfoExtractor):
     _VALID_URL = r'^(?P<domain>(?:https?://)?(?:www\.)?mdr\.de)/mediathek/(?:.*)/(?P<type>video|audio)(?P<video_id>[^/_]+)_.*'
-    
+
     # No tests, MDR regularily deletes its videos
 
     def _real_extract(self, url):

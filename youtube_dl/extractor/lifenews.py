@@ -53,7 +53,7 @@ class LifeNewsIE(InfoExtractor):
             r'<div class=\'comments\'>(\d+)</div>', webpage, 'comment count', fatal=False)
 
         upload_date = self._html_search_regex(
-            r'<time datetime=\'([^\']+)\'>', webpage, 'upload date',fatal=False)
+            r'<time datetime=\'([^\']+)\'>', webpage, 'upload date', fatal=False)
         if upload_date is not None:
             upload_date = unified_strdate(upload_date)
 

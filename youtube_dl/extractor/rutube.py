@@ -38,15 +38,15 @@ class RutubeIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        
+
         api_response = self._download_webpage('http://rutube.ru/api/video/%s/?format=json' % video_id,
                                               video_id, 'Downloading video JSON')
         video = json.loads(api_response)
-        
+
         api_response = self._download_webpage('http://rutube.ru/api/play/trackinfo/%s/?format=json' % video_id,
                                               video_id, 'Downloading trackinfo JSON')
         trackinfo = json.loads(api_response)
-        
+
         # Some videos don't have the author field
         author = trackinfo.get('author') or {}
         m3u8_url = trackinfo['video_balancer'].get('m3u8')

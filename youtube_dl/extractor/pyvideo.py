@@ -19,15 +19,15 @@ class PyvideoIE(InfoExtractor):
         },
         u'add_ie': ['Youtube'],
     },
-    {
-        u'url': u'http://pyvideo.org/video/2542/gloriajw-spotifywitherikbernhardsson182m4v',
-        u'md5': u'5fe1c7e0a8aa5570330784c847ff6d12',
-        u'info_dict': {
-            u'id': u'2542',
-            u'ext': u'm4v',
-            u'title': u'Gloriajw-SpotifyWithErikBernhardsson182',
+        {
+            u'url': u'http://pyvideo.org/video/2542/gloriajw-spotifywitherikbernhardsson182m4v',
+            u'md5': u'5fe1c7e0a8aa5570330784c847ff6d12',
+            u'info_dict': {
+                u'id': u'2542',
+                u'ext': u'm4v',
+                u'title': u'Gloriajw-SpotifyWithErikBernhardsson182',
+            },
         },
-    },
     ]
 
     def _real_extract(self, url):
@@ -40,10 +40,10 @@ class PyvideoIE(InfoExtractor):
             return self.url_result(m_youtube.group(1), 'Youtube')
 
         title = self._html_search_regex(r'<div class="section">.*?<h3>([^>]+?)</h3>',
-            webpage, u'title', flags=re.DOTALL)
+                                        webpage, u'title', flags=re.DOTALL)
         video_url = self._search_regex([r'<source src="(.*?)"',
-            r'<dt>Download</dt>.*?<a href="(.+?)"'],
-            webpage, u'video url', flags=re.DOTALL)
+                                        r'<dt>Download</dt>.*?<a href="(.+?)"'],
+                                       webpage, u'video url', flags=re.DOTALL)
         return {
             'id': video_id,
             'title': os.path.splitext(title)[0],

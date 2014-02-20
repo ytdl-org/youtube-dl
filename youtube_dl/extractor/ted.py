@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class TEDIE(SubtitlesInfoExtractor):
-    _VALID_URL=r'''http://www\.ted\.com/
+    _VALID_URL = r'''http://www\.ted\.com/
                    (
                         ((?P<type_playlist>playlists)/(?P<playlist_id>\d+)) # We have a playlist
                         |
@@ -36,15 +36,14 @@ class TEDIE(SubtitlesInfoExtractor):
         return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
     def _real_extract(self, url):
-        m=re.match(self._VALID_URL, url, re.VERBOSE)
+        m = re.match(self._VALID_URL, url, re.VERBOSE)
         if m.group('type_talk'):
             return self._talk_info(url)
-        else :
-            playlist_id=m.group('playlist_id')
-            name=m.group('name')
-            self.to_screen(u'Getting info of playlist %s: "%s"' % (playlist_id,name))
-            return [self._playlist_videos_info(url,name,playlist_id)]
-
+        else:
+            playlist_id = m.group('playlist_id')
+            name = m.group('name')
+            self.to_screen(u'Getting info of playlist %s: "%s"' % (playlist_id, name))
+            return [self._playlist_videos_info(url, name, playlist_id)]
 
     def _playlist_videos_info(self, url, name, playlist_id):
         '''Returns the videos of the playlist'''
@@ -67,7 +66,7 @@ class TEDIE(SubtitlesInfoExtractor):
 
     def _talk_info(self, url, video_id=0):
         """Return the video for the talk in the url"""
-        m = re.match(self._VALID_URL, url,re.VERBOSE)
+        m = re.match(self._VALID_URL, url, re.VERBOSE)
         video_name = m.group('name')
         webpage = self._download_webpage(url, video_id, 'Downloading \"%s\" page' % video_name)
         self.report_extraction(video_name)
@@ -75,11 +74,11 @@ class TEDIE(SubtitlesInfoExtractor):
         title = self._html_search_regex(r'<span .*?id="altHeadline".+?>(?P<title>.*)</span>',
                                         webpage, 'title')
         json_data = self._search_regex(r'<script.*?>var talkDetails = ({.*?})</script>',
-                                    webpage, 'json data')
+                                       webpage, 'json data')
         info = json.loads(json_data)
         desc = self._html_search_regex(r'<div class="talk-intro">.*?<p.*?>(.*?)</p>',
-                                       webpage, 'description', flags = re.DOTALL)
-        
+                                       webpage, 'description', flags=re.DOTALL)
+
         thumbnail = self._search_regex(r'</span>[\s.]*</div>[\s.]*<img src="(.*?)"',
                                        webpage, 'thumbnail')
         formats = [{

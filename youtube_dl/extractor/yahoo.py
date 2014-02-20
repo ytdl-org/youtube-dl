@@ -43,7 +43,7 @@ class YahooIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         items_json = self._search_regex(r'mediaItems: ({.*?})$',
-            webpage, 'items', flags=re.MULTILINE)
+                                        webpage, 'items', flags=re.MULTILINE)
         items = json.loads(items_json)
         info = items['mediaItems']['query']['results']['mediaObj'][0]
         # The 'meta' field is not always in the video webpage, we request it
@@ -86,7 +86,7 @@ class YahooIE(InfoExtractor):
             else:
                 format_url = compat_urlparse.urljoin(host, path)
                 format_info['url'] = format_url
-                
+
             formats.append(format_info)
 
         self._sort_formats(formats)
@@ -140,21 +140,21 @@ class YahooSearchIE(SearchInfoExtractor):
             'id': query,
             'entries': []
         }
-        for pagenum in itertools.count(0): 
+        for pagenum in itertools.count(0):
             result_url = 'http://video.search.yahoo.com/search/?p=%s&fr=screen&o=js&gs=0&b=%d' % (compat_urllib_parse.quote_plus(query), pagenum * 30)
             webpage = self._download_webpage(result_url, query,
-                                             note='Downloading results page '+str(pagenum+1))
+                                             note='Downloading results page ' + str(pagenum + 1))
             info = json.loads(webpage)
             m = info['m']
             results = info['results']
 
             for (i, r) in enumerate(results):
-                if (pagenum * 30) +i >= n:
+                if (pagenum * 30) + i >= n:
                     break
                 mobj = re.search(r'(?P<url>screen\.yahoo\.com/.*?-\d*?\.html)"', r)
                 e = self.url_result('http://' + mobj.group('url'), 'Yahoo')
                 res['entries'].append(e)
-            if (pagenum * 30 +i >= n) or (m['last'] >= (m['total'] -1)):
+            if (pagenum * 30 + i >= n) or (m['last'] >= (m['total'] - 1)):
                 break
 
         return res

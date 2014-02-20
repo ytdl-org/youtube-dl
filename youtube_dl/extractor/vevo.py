@@ -12,6 +12,7 @@ from ..utils import (
 
 
 class VevoIE(InfoExtractor):
+
     """
     Accepts urls from vevo.com or in the format 'vevo:{id}'
     (currently used by MTVIE)

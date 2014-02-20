@@ -2,6 +2,7 @@ import re
 
 from .common import InfoExtractor
 
+
 class UnistraIE(InfoExtractor):
     _VALID_URL = r'http://utv\.unistra\.fr/(?:index|video)\.php\?id_video\=(\d+)'
 

@@ -20,29 +20,29 @@ class LiveLeakIE(InfoExtractor):
             'title': 'Most unlucky car accident'
         }
     },
-    {
-        'url': 'http://www.liveleak.com/view?i=f93_1390833151',
-        'md5': 'd3f1367d14cc3c15bf24fbfbe04b9abf',
-        'info_dict': {
-            'id': 'f93_1390833151',
-            'ext': 'mp4',
-            'description': 'German Television Channel NDR does an exclusive interview with Edward Snowden.\r\nUploaded on LiveLeak cause German Television thinks the rest of the world isn\'t intereseted in Edward Snowden.',
-            'uploader': 'ARD_Stinkt',
-            'title': 'German Television does first Edward Snowden Interview (ENGLISH)',
-        }
-    },
-    {
-        'url': 'http://www.liveleak.com/view?i=4f7_1392687779',
-        'md5': '42c6d97d54f1db107958760788c5f48f',
-        'info_dict': {
-            'id': '4f7_1392687779',
-            'ext': 'mp4',
-            'description': "The guy with the cigarette seems amazingly nonchalant about the whole thing...  I really hope my friends' reactions would be a bit stronger.\r\n\r\nAction-go to 0:55.",
-            'uploader': 'CapObveus',
-            'title': 'Man is Fatally Struck by Reckless Car While Packing up a Moving Truck',
-            'age_limit': 18,
-        }
-    }]
+        {
+            'url': 'http://www.liveleak.com/view?i=f93_1390833151',
+            'md5': 'd3f1367d14cc3c15bf24fbfbe04b9abf',
+            'info_dict': {
+                'id': 'f93_1390833151',
+                'ext': 'mp4',
+                'description': 'German Television Channel NDR does an exclusive interview with Edward Snowden.\r\nUploaded on LiveLeak cause German Television thinks the rest of the world isn\'t intereseted in Edward Snowden.',
+                'uploader': 'ARD_Stinkt',
+                'title': 'German Television does first Edward Snowden Interview (ENGLISH)',
+            }
+        },
+        {
+            'url': 'http://www.liveleak.com/view?i=4f7_1392687779',
+            'md5': '42c6d97d54f1db107958760788c5f48f',
+            'info_dict': {
+                'id': '4f7_1392687779',
+                'ext': 'mp4',
+                'description': "The guy with the cigarette seems amazingly nonchalant about the whole thing...  I really hope my friends' reactions would be a bit stronger.\r\n\r\nAction-go to 0:55.",
+                'uploader': 'CapObveus',
+                'title': 'Man is Fatally Struck by Reckless Car While Packing up a Moving Truck',
+                'age_limit': 18,
+            }
+        }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

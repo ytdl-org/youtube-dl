@@ -11,6 +11,7 @@ from ..utils import (
 
 
 class NHLBaseInfoExtractor(InfoExtractor):
+
     @staticmethod
     def _fix_json(json_string):
         return json_string.replace('\\\'', '\'')
@@ -26,7 +27,7 @@ class NHLBaseInfoExtractor(InfoExtractor):
         })
         path_url = 'http://video.nhl.com/videocenter/servlets/encryptvideopath?' + data
         path_doc = self._download_xml(path_url, video_id,
-            u'Downloading final video url')
+                                      u'Downloading final video url')
         video_url = path_doc.find('path').text
 
         join = compat_urlparse.urljoin
@@ -62,7 +63,7 @@ class NHLIE(NHLBaseInfoExtractor):
         video_id = mobj.group('id')
         json_url = 'http://video.nhl.com/videocenter/servlets/playlist?ids=%s&format=json' % video_id
         info_json = self._download_webpage(json_url, video_id,
-            u'Downloading info json')
+                                           u'Downloading info json')
         info_json = self._fix_json(info_json)
         info = json.loads(info_json)[0]
         return self._extract_video(info)
@@ -106,7 +107,7 @@ class NHLVideocenterIE(NHLBaseInfoExtractor):
             self._downloader.report_warning(u'Got an empty reponse, trying '
                                             u'adding the "newvideos" parameter')
             response = self._download_webpage(request_url + '&newvideos=true',
-                playlist_title)
+                                              playlist_title)
             response = self._fix_json(response)
         videos = json.loads(response)
 

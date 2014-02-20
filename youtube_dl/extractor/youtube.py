@@ -37,7 +37,9 @@ from ..utils import (
     uppercase_escape,
 )
 
+
 class YoutubeBaseInfoExtractor(InfoExtractor):
+
     """Provide base functions for Youtube extractors"""
     _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
     _LANG_URL = r'https://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
@@ -72,28 +74,28 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
         # Log in
         login_form_strs = {
-                u'continue': u'https://www.youtube.com/signin?action_handle_signin=true&feature=sign_in_button&hl=en_US&nomobiletemp=1',
-                u'Email': username,
-                u'GALX': galx,
-                u'Passwd': password,
-                u'PersistentCookie': u'yes',
-                u'_utf8': u'霱',
-                u'bgresponse': u'js_disabled',
-                u'checkConnection': u'',
-                u'checkedDomains': u'youtube',
-                u'dnConn': u'',
-                u'pstMsg': u'0',
-                u'rmShown': u'1',
-                u'secTok': u'',
-                u'signIn': u'Sign in',
-                u'timeStmp': u'',
-                u'service': u'youtube',
-                u'uilel': u'3',
-                u'hl': u'en_US',
+            u'continue': u'https://www.youtube.com/signin?action_handle_signin=true&feature=sign_in_button&hl=en_US&nomobiletemp=1',
+            u'Email': username,
+            u'GALX': galx,
+            u'Passwd': password,
+            u'PersistentCookie': u'yes',
+            u'_utf8': u'霱',
+            u'bgresponse': u'js_disabled',
+            u'checkConnection': u'',
+            u'checkedDomains': u'youtube',
+            u'dnConn': u'',
+            u'pstMsg': u'0',
+            u'rmShown': u'1',
+            u'secTok': u'',
+            u'signIn': u'Sign in',
+            u'timeStmp': u'',
+            u'service': u'youtube',
+            u'uilel': u'3',
+            u'hl': u'en_US',
         }
         # Convert to UTF-8 *before* urlencode because Python 2.x's urlencode
         # chokes on unicode
-        login_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k,v in login_form_strs.items())
+        login_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k, v in login_form_strs.items())
         login_data = compat_urllib_parse.urlencode(login_form).encode('ascii')
 
         req = compat_urllib_request.Request(self._LOGIN_URL, login_data)
@@ -113,7 +115,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'action_confirm': 'Confirm',
         }
         req = compat_urllib_request.Request(self._AGE_URL,
-            compat_urllib_parse.urlencode(age_form).encode('ascii'))
+                                            compat_urllib_parse.urlencode(age_form).encode('ascii'))
 
         self._download_webpage(
             req, None,
@@ -235,8 +237,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     IE_NAME = u'youtube'
     _TESTS = [
         {
-            u"url":  u"http://www.youtube.com/watch?v=BaW_jenozKc",
-            u"file":  u"BaW_jenozKc.mp4",
+            u"url": u"http://www.youtube.com/watch?v=BaW_jenozKc",
+            u"file": u"BaW_jenozKc.mp4",
             u"info_dict": {
                 u"title": u"youtube-dl test video \"'/\\ä↭𝕐",
                 u"uploader": u"Philipp Hagemeister",
@@ -246,8 +248,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             }
         },
         {
-            u"url":  u"http://www.youtube.com/watch?v=UxxajLWwzqY",
-            u"file":  u"UxxajLWwzqY.mp4",
+            u"url": u"http://www.youtube.com/watch?v=UxxajLWwzqY",
+            u"file": u"UxxajLWwzqY.mp4",
             u"note": u"Test generic use_cipher_signature video (#897)",
             u"info_dict": {
                 u"upload_date": u"20120506",
@@ -258,8 +260,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             }
         },
         {
-            u"url":  u"https://www.youtube.com/watch?v=07FYdnEawAQ",
-            u"file":  u"07FYdnEawAQ.mp4",
+            u"url": u"https://www.youtube.com/watch?v=07FYdnEawAQ",
+            u"file": u"07FYdnEawAQ.mp4",
             u"note": u"Test VEVO video with age protection (#956)",
             u"info_dict": {
                 u"upload_date": u"20130703",
@@ -270,8 +272,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             }
         },
         {
-            u"url":  u"//www.YouTube.com/watch?v=yZIXLfi8CZQ",
-            u"file":  u"yZIXLfi8CZQ.mp4",
+            u"url": u"//www.YouTube.com/watch?v=yZIXLfi8CZQ",
+            u"file": u"yZIXLfi8CZQ.mp4",
             u"note": u"Embed-only video (#1746)",
             u"info_dict": {
                 u"upload_date": u"20120608",
@@ -299,11 +301,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         },
     ]
 
-
     @classmethod
     def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
-        if YoutubePlaylistIE.suitable(url): return False
+        if YoutubePlaylistIE.suitable(url):
+            return False
         return re.match(cls._VALID_URL, url) is not None
 
     def __init__(self, *args, **kwargs):
@@ -387,7 +389,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         def gen_sig_code(idxs):
             def _genslice(start, end, step):
                 starts = u'' if start == 0 else str(start)
-                ends = (u':%d' % (end+step)) if end + step >= 0 else u':'
+                ends = (u':%d' % (end + step)) if end + step >= 0 else u':'
                 steps = u'' if step == 1 else (u':%d' % step)
                 return u's[%s%s%s]' % (starts, ends, steps)
 
@@ -484,7 +486,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 slice_m = re.match(r'slice\((?P<idx>.*)\)', member)
                 if slice_m:
                     idx = interpret_expression(
-                        slice_m.group('idx'), local_vars, allow_recursion-1)
+                        slice_m.group('idx'), local_vars, allow_recursion - 1)
                     return val[idx:]
 
             m = re.match(
@@ -492,7 +494,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             if m:
                 val = local_vars[m.group('in')]
                 idx = interpret_expression(m.group('idx'), local_vars,
-                                           allow_recursion-1)
+                                           allow_recursion - 1)
                 return val[idx]
 
             m = re.match(r'^(?P<a>.+?)(?P<op>[%])(?P<b>.+?)$', expr)
@@ -544,15 +546,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         def extract_tags(content):
             pos = 0
             while pos < len(content):
-                header16 = struct.unpack('<H', content[pos:pos+2])[0]
+                header16 = struct.unpack('<H', content[pos:pos + 2])[0]
                 pos += 2
                 tag_code = header16 >> 6
                 tag_len = header16 & 0x3f
                 if tag_len == 0x3f:
-                    tag_len = struct.unpack('<I', content[pos:pos+4])[0]
+                    tag_len = struct.unpack('<I', content[pos:pos + 4])[0]
                     pos += 4
-                assert pos+tag_len <= len(content)
-                yield (tag_code, content[pos:pos+tag_len])
+                assert pos + tag_len <= len(content)
+                yield (tag_code, content[pos:pos + tag_len])
                 pos += tag_len
 
         code_tag = next(tag
@@ -620,7 +622,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         for _c in range(1, uint_count):
             u32()
         double_count = u30()
-        read_bytes((double_count-1) * 8)
+        read_bytes((double_count - 1) * 8)
         string_count = u30()
         constant_strings = [u'']
         for _c in range(1, string_count):
@@ -1064,7 +1066,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             list_url = caption_url + '&' + list_params
             caption_list = self._download_xml(list_url, video_id)
             original_lang_node = caption_list.find('track')
-            if original_lang_node is None or original_lang_node.attrib.get('kind') != 'asr' :
+            if original_lang_node is None or original_lang_node.attrib.get('kind') != 'asr':
                 self._downloader.report_warning(u'Video doesn\'t have automatic captions')
                 return {}
             original_lang = original_lang_node.attrib['lang_code']
@@ -1097,10 +1099,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
     def _extract_from_m3u8(self, manifest_url, video_id):
         url_map = {}
+
         def _get_urls(_manifest):
             lines = _manifest.split('\n')
             urls = filter(lambda l: l and not l.startswith('#'),
-                            lines)
+                          lines)
             return urls
         manifest = self._download_webpage(manifest_url, video_id, u'Downloading formats manifest')
         formats_urls = _get_urls(manifest)
@@ -1144,21 +1147,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                                                   'hl': 'en',
                                                   'eurl': 'https://youtube.googleapis.com/v/' + video_id,
                                                   'asv': 3,
-                                                  'sts':'1588',
+                                                  'sts': '1588',
                                                   })
             video_info_url = 'https://www.youtube.com/get_video_info?' + data
             video_info_webpage = self._download_webpage(video_info_url, video_id,
-                                    note=False,
-                                    errnote='unable to download video info webpage')
+                                                        note=False,
+                                                        errnote='unable to download video info webpage')
             video_info = compat_parse_qs(video_info_webpage)
         else:
             age_gate = False
             for el_type in ['&el=embedded', '&el=detailpage', '&el=vevo', '']:
                 video_info_url = ('https://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
-                        % (video_id, el_type))
+                                  % (video_id, el_type))
                 video_info_webpage = self._download_webpage(video_info_url, video_id,
-                                        note=False,
-                                        errnote='unable to download video info webpage')
+                                                            note=False,
+                                                            errnote='unable to download video info webpage')
                 video_info = compat_parse_qs(video_info_webpage)
                 if 'token' in video_info:
                     break
@@ -1314,7 +1317,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'player_url': player_url,
             }]
         elif len(video_info.get('url_encoded_fmt_stream_map', [])) >= 1 or len(video_info.get('adaptive_fmts', [])) >= 1:
-            encoded_url_map = video_info.get('url_encoded_fmt_stream_map', [''])[0] + ',' + video_info.get('adaptive_fmts',[''])[0]
+            encoded_url_map = video_info.get('url_encoded_fmt_stream_map', [''])[0] + ',' + video_info.get('adaptive_fmts', [''])[0]
             if 'rtmpe%3Dyes' in encoded_url_map:
                 raise ExtractorError('rtmpe downloads are not supported, see https://github.com/rg3/youtube-dl/issues/343 for more information.', expected=True)
             url_map = {}
@@ -1343,7 +1346,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
                             parts_sizes = u'.'.join(compat_str(len(part)) for part in encrypted_sig.split('.'))
                             self.to_screen(u'encrypted signature length %d (%s), itag %s, %s' %
-                                (len(encrypted_sig), parts_sizes, url_data['itag'][0], player_desc))
+                                           (len(encrypted_sig), parts_sizes, url_data['itag'][0], player_desc))
 
                         if not age_gate:
                             jsplayer_url_json = self._search_regex(
@@ -1405,23 +1408,24 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         self._sort_formats(formats)
 
         return {
-            'id':           video_id,
-            'uploader':     video_uploader,
-            'uploader_id':  video_uploader_id,
-            'upload_date':  upload_date,
-            'title':        video_title,
-            'thumbnail':    video_thumbnail,
-            'description':  video_description,
-            'subtitles':    video_subtitles,
-            'duration':     video_duration,
-            'age_limit':    18 if age_gate else 0,
-            'annotations':  video_annotations,
+            'id': video_id,
+            'uploader': video_uploader,
+            'uploader_id': video_uploader_id,
+            'upload_date': upload_date,
+            'title': video_title,
+            'thumbnail': video_thumbnail,
+            'description': video_description,
+            'subtitles': video_subtitles,
+            'duration': video_duration,
+            'age_limit': 18 if age_gate else 0,
+            'annotations': video_annotations,
             'webpage_url': 'https://www.youtube.com/watch?v=%s' % video_id,
-            'view_count':   view_count,
+            'view_count': view_count,
             'like_count': like_count,
             'dislike_count': dislike_count,
-            'formats':      formats,
+            'formats': formats,
         }
+
 
 class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
     IE_DESC = u'YouTube.com playlists'
@@ -1436,7 +1440,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                         )
                         (
                             (?:PL|EC|UU|FL|RD)?[0-9A-Za-z-_]{10,}
-                            # Top tracks, they can also include dots 
+                            # Top tracks, they can also include dots
                             |(?:MC)[\w\.]*
                         )
                         .*
@@ -1453,7 +1457,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
 
     def _ids_to_results(self, ids):
         return [self.url_result(vid_id, 'Youtube', video_id=vid_id)
-                       for vid_id in ids]
+                for vid_id in ids]
 
     def _extract_mix(self, playlist_id):
         # The mixes are generated from a a single video
@@ -1461,7 +1465,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         url = 'https://youtube.com/watch?v=%s&list=%s' % (playlist_id[-11:], playlist_id)
         webpage = self._download_webpage(url, playlist_id, u'Downloading Youtube mix')
         title_span = (get_element_by_attribute('class', 'title long-title', webpage) or
-            get_element_by_attribute('class', 'title ', webpage))
+                      get_element_by_attribute('class', 'title ', webpage))
         title = clean_html(title_span)
         video_re = r'data-index="\d+".*?href="/watch\?v=([0-9A-Za-z_-]{11})&amp;[^"]*?list=%s' % re.escape(playlist_id)
         ids = orderedSet(re.findall(video_re, webpage))
@@ -1491,7 +1495,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
             return self._extract_mix(playlist_id)
         if playlist_id.startswith('TL'):
             raise ExtractorError(u'For downloading YouTube.com top lists, use '
-                u'the "yttoplist" keyword, for example "youtube-dl \'yttoplist:music:Top Tracks\'"', expected=True)
+                                 u'the "yttoplist" keyword, for example "youtube-dl \'yttoplist:music:Top Tracks\'"', expected=True)
 
         # Extract the video ids from the playlist pages
         ids = []
@@ -1524,7 +1528,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
 class YoutubeTopListIE(YoutubePlaylistIE):
     IE_NAME = u'youtube:toplist'
     IE_DESC = (u'YouTube.com top lists, "yttoplist:{channel}:{list title}"'
-        u' (Example: "yttoplist:music:Top Tracks")')
+               u' (Example: "yttoplist:music:Top Tracks")')
     _VALID_URL = r'yttoplist:(?P<chann>.*?):(?P<title>.*?)$'
 
     def _real_extract(self, url):
@@ -1536,7 +1540,7 @@ class YoutubeTopListIE(YoutubePlaylistIE):
         channel_page = self._download_webpage('https://www.youtube.com/%s' % channel, title)
         link = self._html_search_regex(playlist_re, channel_page, u'list')
         url = compat_urlparse.urljoin('https://www.youtube.com/', link)
-        
+
         video_re = r'data-index="\d+".*?data-video-id="([0-9A-Za-z_-]{11})"'
         ids = []
         # sometimes the webpage doesn't contain the videos
@@ -1598,7 +1602,7 @@ class YoutubeChannelIE(InfoExtractor):
 
                 ids_in_page = self.extract_videos_from_page(page['content_html'])
                 video_ids.extend(ids_in_page)
-    
+
                 if self._MORE_PAGES_INDICATOR not in page['load_more_widget_html']:
                     break
 
@@ -1622,8 +1626,10 @@ class YoutubeUserIE(InfoExtractor):
         # Don't return True if the url can be extracted with other youtube
         # extractor, the regex would is too permissive and it would match.
         other_ies = iter(klass for (name, klass) in globals().items() if name.endswith('IE') and klass is not cls)
-        if any(ie.suitable(url) for ie in other_ies): return False
-        else: return super(YoutubeUserIE, cls).suitable(url)
+        if any(ie.suitable(url) for ie in other_ies):
+            return False
+        else:
+            return super(YoutubeUserIE, cls).suitable(url)
 
     def _real_extract(self, url):
         # Extract username
@@ -1686,7 +1692,7 @@ class YoutubeSearchIE(SearchInfoExtractor):
         limit = n
 
         while (50 * pagenum) < limit:
-            result_url = self._API_URL % (compat_urllib_parse.quote_plus(query), (50*pagenum)+1)
+            result_url = self._API_URL % (compat_urllib_parse.quote_plus(query), (50 * pagenum) + 1)
             data_json = self._download_webpage(
                 result_url, video_id=u'query "%s"' % query,
                 note=u'Downloading page %s' % (pagenum + 1),
@@ -1710,11 +1716,13 @@ class YoutubeSearchIE(SearchInfoExtractor):
                   for video_id in video_ids]
         return self.playlist_result(videos, query)
 
+
 class YoutubeSearchDateIE(YoutubeSearchIE):
     IE_NAME = YoutubeSearchIE.IE_NAME + ':date'
     _API_URL = 'https://gdata.youtube.com/feeds/api/videos?q=%s&start-index=%i&max-results=50&v=2&alt=jsonc&orderby=published'
     _SEARCH_KEY = 'ytsearchdate'
     IE_DESC = u'YouTube.com searches, newest videos first'
+
 
 class YoutubeShowIE(InfoExtractor):
     IE_DESC = u'YouTube.com (multi-season) shows'
@@ -1732,6 +1740,7 @@ class YoutubeShowIE(InfoExtractor):
 
 
 class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
+
     """
     Base class for extractors that fetch info from
     http://www.youtube.com/feed_ajax
@@ -1774,17 +1783,20 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
             paging = info['paging']
         return self.playlist_result(feed_entries, playlist_title=self._PLAYLIST_TITLE)
 
+
 class YoutubeSubscriptionsIE(YoutubeFeedsInfoExtractor):
     IE_DESC = u'YouTube.com subscriptions feed, "ytsubs" keyword(requires authentication)'
     _VALID_URL = r'https?://www\.youtube\.com/feed/subscriptions|:ytsubs(?:criptions)?'
     _FEED_NAME = 'subscriptions'
     _PLAYLIST_TITLE = u'Youtube Subscriptions'
 
+
 class YoutubeRecommendedIE(YoutubeFeedsInfoExtractor):
     IE_DESC = u'YouTube.com recommended videos, "ytrec" keyword (requires authentication)'
     _VALID_URL = r'https?://www\.youtube\.com/feed/recommended|:ytrec(?:ommended)?'
     _FEED_NAME = 'recommended'
     _PLAYLIST_TITLE = u'Youtube Recommended videos'
+
 
 class YoutubeWatchLaterIE(YoutubeFeedsInfoExtractor):
     IE_DESC = u'Youtube watch later list, "ytwatchlater" keyword (requires authentication)'
@@ -1793,12 +1805,14 @@ class YoutubeWatchLaterIE(YoutubeFeedsInfoExtractor):
     _PLAYLIST_TITLE = u'Youtube Watch Later'
     _PERSONAL_FEED = True
 
+
 class YoutubeHistoryIE(YoutubeFeedsInfoExtractor):
     IE_DESC = u'Youtube watch history, "ythistory" keyword (requires authentication)'
     _VALID_URL = u'https?://www\.youtube\.com/feed/history|:ythistory'
     _FEED_NAME = 'history'
     _PERSONAL_FEED = True
     _PLAYLIST_TITLE = u'Youtube Watch History'
+
 
 class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
     IE_NAME = u'youtube:favorites'

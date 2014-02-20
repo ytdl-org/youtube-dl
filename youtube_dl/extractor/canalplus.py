@@ -30,15 +30,15 @@ class CanalplusIE(InfoExtractor):
             webpage = self._download_webpage(url, mobj.group('path'))
             video_id = self._search_regex(r'videoId = "(\d+)";', webpage, u'video id')
         info_url = self._VIDEO_INFO_TEMPLATE % video_id
-        doc = self._download_xml(info_url,video_id, 
-                                           u'Downloading video info')
+        doc = self._download_xml(info_url, video_id,
+                                 u'Downloading video info')
 
         self.report_extraction(video_id)
         video_info = [video for video in doc if video.find('ID').text == video_id][0]
         infos = video_info.find('INFOS')
         media = video_info.find('MEDIA')
         formats = [media.find('VIDEOS/%s' % format)
-            for format in ['BAS_DEBIT', 'HAUT_DEBIT', 'HD']]
+                   for format in ['BAS_DEBIT', 'HAUT_DEBIT', 'HD']]
         video_url = [format.text for format in formats if format is not None][-1]
 
         return {'id': video_id,

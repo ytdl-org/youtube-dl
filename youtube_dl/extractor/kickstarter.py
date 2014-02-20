@@ -20,18 +20,18 @@ class KickStarterIE(InfoExtractor):
         webpage_src = self._download_webpage(url, video_id)
 
         video_url = self._search_regex(r'data-video="(.*?)">',
-            webpage_src, u'video URL')
+                                       webpage_src, u'video URL')
         if 'mp4' in video_url:
             ext = 'mp4'
         else:
             ext = 'flv'
         video_title = self._html_search_regex(r"<title>(.*?)</title>",
-            webpage_src, u'title').rpartition(u'\u2014 Kickstarter')[0].strip()
+                                              webpage_src, u'title').rpartition(u'\u2014 Kickstarter')[0].strip()
 
         results = [{
-                    'id': video_id,
-                    'url': video_url,
-                    'title': video_title,
-                    'ext': ext,
-                    }]
+            'id': video_id,
+            'url': video_url,
+            'title': video_title,
+            'ext': ext,
+        }]
         return results

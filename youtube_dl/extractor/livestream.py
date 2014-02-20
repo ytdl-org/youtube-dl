@@ -29,7 +29,7 @@ class LivestreamIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': video_data['caption'],
                 'thumbnail': video_data['thumbnail_url'],
-                'upload_date': video_data['updated_at'].replace('-','')[:8],
+                'upload_date': video_data['updated_at'].replace('-', '')[:8],
                 }
 
     def _real_extract(self, url):
@@ -41,10 +41,10 @@ class LivestreamIE(InfoExtractor):
         if video_id is None:
             # This is an event page:
             config_json = self._search_regex(r'window.config = ({.*?});',
-                webpage, u'window config')
+                                             webpage, u'window config')
             info = json.loads(config_json)['event']
             videos = [self._extract_video_info(video_data['data'])
-                for video_data in info['feed']['data'] if video_data['type'] == u'video']
+                      for video_data in info['feed']['data'] if video_data['type'] == u'video']
             return self.playlist_result(videos, info['id'], info['full_name'])
         else:
             og_video = self._og_search_video_url(webpage, name=u'player url')

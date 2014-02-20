@@ -82,7 +82,6 @@ class EightTracksIE(InfoExtractor):
         ]
     }
 
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
@@ -102,8 +101,8 @@ class EightTracksIE(InfoExtractor):
         res = []
         for i in range(track_count):
             api_json = self._download_webpage(next_url, playlist_id,
-                note=u'Downloading song information %s/%s' % (str(i+1), track_count),
-                errnote=u'Failed to download song information')
+                                              note=u'Downloading song information %s/%s' % (str(i + 1), track_count),
+                                              errnote=u'Failed to download song information')
             api_data = json.loads(api_json)
             track_data = api_data[u'set']['track']
             info = {

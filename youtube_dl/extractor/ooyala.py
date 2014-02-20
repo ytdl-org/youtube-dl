@@ -4,6 +4,7 @@ import json
 from .common import InfoExtractor
 from ..utils import unescapeHTML
 
+
 class OoyalaIE(InfoExtractor):
     _VALID_URL = r'https?://.+?\.ooyala\.com/.*?(?:embedCode|ec)=(?P<id>.+?)(&|$)'
 
@@ -25,7 +26,7 @@ class OoyalaIE(InfoExtractor):
     @classmethod
     def _build_url_result(cls, embed_code):
         return cls.url_result(cls._url_for_embed_code(embed_code),
-            ie=cls.ie_key())
+                              ie=cls.ie_key())
 
     def _extract_result(self, info, more_info):
         return {'id': info['embedCode'],
@@ -46,10 +47,10 @@ class OoyalaIE(InfoExtractor):
         mobile_player = self._download_webpage(mobile_url, embedCode)
         videos_info = self._search_regex(
             r'var streams=window.oo_testEnv\?\[\]:eval\("\((\[{.*?}\])\)"\);',
-            mobile_player, u'info').replace('\\"','"')
-        videos_more_info = self._search_regex(r'eval\("\(({.*?\\"promo\\".*?})\)"', mobile_player, u'more info').replace('\\"','"')
+            mobile_player, u'info').replace('\\"', '"')
+        videos_more_info = self._search_regex(r'eval\("\(({.*?\\"promo\\".*?})\)"', mobile_player, u'more info').replace('\\"', '"')
         videos_info = json.loads(videos_info)
-        videos_more_info =json.loads(videos_more_info)
+        videos_more_info = json.loads(videos_more_info)
 
         if videos_more_info.get('lineup'):
             videos = [self._extract_result(info, more_info) for (info, more_info) in zip(videos_info, videos_more_info['lineup'])]
@@ -60,4 +61,3 @@ class OoyalaIE(InfoExtractor):
                     }
         else:
             return self._extract_result(videos_info[0], videos_more_info)
-        

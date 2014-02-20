@@ -9,6 +9,7 @@ from ..utils import (
     compat_urllib_request,
 )
 
+
 class XTubeIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>xtube\.com/watch\.php\?v=(?P<videoid>[^/?&]+))'
     _TEST = {
@@ -35,7 +36,7 @@ class XTubeIE(InfoExtractor):
         video_title = self._html_search_regex(r'<div class="p_5px[^>]*>([^<]+)', webpage, 'title')
         video_uploader = self._html_search_regex(r'so_s\.addVariable\("owner_u", "([^"]+)', webpage, 'uploader', fatal=False)
         video_description = self._html_search_regex(r'<p class="video_description">([^<]+)', webpage, 'description', fatal=False)
-        video_url= self._html_search_regex(r'var videoMp4 = "([^"]+)', webpage, 'video_url').replace('\\/', '/')
+        video_url = self._html_search_regex(r'var videoMp4 = "([^"]+)', webpage, 'video_url').replace('\\/', '/')
         path = compat_urllib_parse_urlparse(video_url).path
         extension = os.path.splitext(path)[1][1:]
         format = path.split('/')[5].split('_')[:2]

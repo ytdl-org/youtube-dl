@@ -32,7 +32,7 @@ class YouJizzIE(InfoExtractor):
 
         # Get the video title
         video_title = self._html_search_regex(r'<title>(?P<title>.*)</title>',
-            webpage, 'title').strip()
+                                              webpage, 'title').strip()
 
         # Get the embed page
         result = re.search(r'https?://www.youjizz.com/videos/embed/(?P<videoid>[0-9]+)', webpage)

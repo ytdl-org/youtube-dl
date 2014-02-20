@@ -26,7 +26,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
         if mobj is None:
             raise ExtractorError(u'Invalid URL: %s' % url)
 
-        if mobj.group('course') and mobj.group('video'): # A specific video
+        if mobj.group('course') and mobj.group('video'):  # A specific video
             course = mobj.group('course')
             video = mobj.group('video')
             info = {
@@ -46,7 +46,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
                 raise ExtractorError(u'Invalid metadata XML file')
             info['ext'] = info['url'].rpartition('.')[2]
             return [info]
-        elif mobj.group('course'): # A course page
+        elif mobj.group('course'):  # A course page
             course = mobj.group('course')
             info = {
                 'id': course,
@@ -56,13 +56,13 @@ class StanfordOpenClassroomIE(InfoExtractor):
             }
 
             coursepage = self._download_webpage(url, info['id'],
-                                        note='Downloading course info page',
-                                        errnote='Unable to download course info page')
+                                                note='Downloading course info page',
+                                                errnote='Unable to download course info page')
 
             info['title'] = self._html_search_regex('<h1>([^<]+)</h1>', coursepage, 'title', default=info['id'])
 
             info['description'] = self._html_search_regex('<description>([^<]+)</description>',
-                coursepage, u'description', fatal=False)
+                                                          coursepage, u'description', fatal=False)
 
             links = orderedSet(re.findall('<a href="(VideoPage.php\?[^"]+)">', coursepage))
             info['list'] = [
@@ -70,13 +70,13 @@ class StanfordOpenClassroomIE(InfoExtractor):
                     'type': 'reference',
                     'url': 'http://openclassroom.stanford.edu/MainFolder/' + unescapeHTML(vpage),
                 }
-                    for vpage in links]
+                for vpage in links]
             results = []
             for entry in info['list']:
                 assert entry['type'] == 'reference'
                 results += self.extract(entry['url'])
             return results
-        else: # Root page
+        else:  # Root page
             info = {
                 'id': 'Stanford OpenClassroom',
                 'type': 'playlist',
@@ -86,7 +86,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
 
             rootURL = 'http://openclassroom.stanford.edu/MainFolder/HomePage.php'
             rootpage = self._download_webpage(rootURL, info['id'],
-                errnote=u'Unable to download course info page')
+                                              errnote=u'Unable to download course info page')
 
             info['title'] = info['id']
 
@@ -96,7 +96,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
                     'type': 'reference',
                     'url': 'http://openclassroom.stanford.edu/MainFolder/' + unescapeHTML(cpage),
                 }
-                    for cpage in links]
+                for cpage in links]
 
             results = []
             for entry in info['list']:

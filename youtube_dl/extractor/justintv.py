@@ -10,6 +10,7 @@ from ..utils import (
 
 
 class JustinTVIE(InfoExtractor):
+
     """Information extractor for justin.tv and twitch.tv"""
     # TODO: One broadcast may be split into multiple videos. The key
     # 'broadcast_id' is the same for all parts, and 'broadcast_part'
@@ -30,9 +31,9 @@ class JustinTVIE(InfoExtractor):
         u'file': u'296128360.flv',
         u'md5': u'ecaa8a790c22a40770901460af191c9a',
         u'info_dict': {
-            u"upload_date": u"20110927", 
-            u"uploader_id": 25114803, 
-            u"uploader": u"thegamedevhub", 
+            u"upload_date": u"20110927",
+            u"uploader_id": 25114803,
+            u"uploader": u"thegamedevhub",
             u"title": u"Beginner Series - Scripting With Python Pt.1"
         }
     }
@@ -40,7 +41,7 @@ class JustinTVIE(InfoExtractor):
     def report_download_page(self, channel, offset):
         """Report attempt to download a single page of videos."""
         self.to_screen(u'%s: Downloading video information from %d to %d' %
-                (channel, offset, offset + self._JUSTIN_PAGE_LIMIT))
+                       (channel, offset, offset + self._JUSTIN_PAGE_LIMIT))
 
     # Return count of items, list of *valid* items
     def _parse_page(self, url, video_id):
@@ -49,7 +50,7 @@ class JustinTVIE(InfoExtractor):
                                            u'unable to download video info JSON')
 
         response = json.loads(info_json)
-        if type(response) != list:
+        if not isinstance(response, list):
             error_text = response.get('error', 'unknown error')
             raise ExtractorError(u'Justin.tv API: %s' % error_text)
         info = []
@@ -94,8 +95,8 @@ class JustinTVIE(InfoExtractor):
 
             api = api_base + '/broadcast/by_chapter/%s.xml' % chapter_id
             doc = self._download_xml(api, chapter_id,
-                                             note=u'Downloading chapter information',
-                                             errnote=u'Chapter information download failed')
+                                     note=u'Downloading chapter information',
+                                     errnote=u'Chapter information download failed')
             for a in doc.findall('.//archive'):
                 if archive_id == a.find('./id').text:
                     break
@@ -107,8 +108,8 @@ class JustinTVIE(InfoExtractor):
 
             chapter_api_url = u'https://api.twitch.tv/kraken/videos/c' + chapter_id
             chapter_info_json = self._download_webpage(chapter_api_url, u'c' + chapter_id,
-                                   note='Downloading chapter metadata',
-                                   errnote='Download of chapter metadata failed')
+                                                       note='Downloading chapter metadata',
+                                                       errnote='Download of chapter metadata failed')
             chapter_info = json.loads(chapter_info_json)
 
             bracket_start = int(doc.find('.//bracket_start').text)
@@ -116,7 +117,7 @@ class JustinTVIE(InfoExtractor):
 
             # TODO determine start (and probably fix up file)
             #  youtube-dl -v http://www.twitch.tv/firmbelief/c/1757457
-            #video_url += u'?start=' + TODO:start_timestamp
+            # video_url += u'?start=' + TODO:start_timestamp
             # bracket_start is 13290, but we want 51670615
             self._downloader.report_warning(u'Chapter detected, but we can just download the whole file. '
                                             u'Chapter starts at %s and ends at %s' % (formatSeconds(bracket_start), formatSeconds(bracket_end)))

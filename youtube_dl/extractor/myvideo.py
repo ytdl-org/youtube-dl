@@ -14,8 +14,8 @@ from ..utils import (
 )
 
 
-
 class MyVideoIE(InfoExtractor):
+
     """Information Extractor for myvideo.de."""
 
     _VALID_URL = r'(?:http://)?(?:www\.)?myvideo\.de/(?:[^/]+/)?watch/([0-9]+)/([^?/]+).*'
@@ -32,7 +32,7 @@ class MyVideoIE(InfoExtractor):
     # Original Code from: https://github.com/dersphere/plugin.video.myvideo_de.git
     # Released into the Public Domain by Tristan Fischer on 2013-05-19
     # https://github.com/rg3/youtube-dl/pull/842
-    def __rc4crypt(self,data, key):
+    def __rc4crypt(self, data, key):
         x = 0
         box = list(range(256))
         for i in list(range(256)):
@@ -48,10 +48,10 @@ class MyVideoIE(InfoExtractor):
             out += chr(compat_ord(char) ^ box[(box[x] + box[y]) % 256])
         return out
 
-    def __md5(self,s):
+    def __md5(self, s):
         return hashlib.md5(s).hexdigest().encode()
 
-    def _real_extract(self,url):
+    def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
             raise ExtractorError(u'invalid URL: %s' % url)
@@ -59,9 +59,9 @@ class MyVideoIE(InfoExtractor):
         video_id = mobj.group(1)
 
         GK = (
-          b'WXpnME1EZGhNRGhpTTJNM01XVmhOREU0WldNNVpHTTJOakpt'
-          b'TW1FMU5tVTBNR05pWkRaa05XRXhNVFJoWVRVd1ptSXhaVEV3'
-          b'TnpsbA0KTVRkbU1tSTRNdz09'
+            b'WXpnME1EZGhNRGhpTTJNM01XVmhOREU0WldNNVpHTTJOakpt'
+            b'TW1FMU5tVTBNR05pWkRaa05XRXhNVFJoWVRVd1ptSXhaVEV3'
+            b'TnpsbA0KTVRkbU1tSTRNdz09'
         )
 
         # Get video webpage
@@ -74,17 +74,17 @@ class MyVideoIE(InfoExtractor):
             video_url = mobj.group(1) + '.flv'
 
             video_title = self._html_search_regex('<title>([^<]+)</title>',
-                webpage, u'title')
+                                                  webpage, u'title')
 
             video_ext = self._search_regex('[.](.+?)$', video_url, u'extension')
 
             return [{
-                'id':       video_id,
-                'url':      video_url,
+                'id': video_id,
+                'url': video_url,
                 'uploader': None,
-                'upload_date':  None,
-                'title':    video_title,
-                'ext':      video_ext,
+                'upload_date': None,
+                'title': video_title,
+                'ext': video_ext,
             }]
 
         mobj = re.search(r'data-video-service="/service/data/video/%s/config' % video_id, webpage)
@@ -172,19 +172,18 @@ class MyVideoIE(InfoExtractor):
         video_swfobj = compat_urllib_parse.unquote(video_swfobj)
 
         video_title = self._html_search_regex("<h1(?: class='globalHd')?>(.*?)</h1>",
-            webpage, u'title')
+                                              webpage, u'title')
 
         return [{
-            'id':                 video_id,
-            'url':                video_url,
-            'tc_url':             video_url,
-            'uploader':           None,
-            'upload_date':        None,
-            'title':              video_title,
-            'ext':                u'flv',
-            'play_path':          video_playpath,
-            'video_file':         video_file,
+            'id': video_id,
+            'url': video_url,
+            'tc_url': video_url,
+            'uploader': None,
+            'upload_date': None,
+            'title': video_title,
+            'ext': u'flv',
+            'play_path': video_playpath,
+            'video_file': video_file,
             'video_hls_playlist': video_hls_playlist,
-            'player_url':         video_swfobj,
+            'player_url': video_swfobj,
         }]
-

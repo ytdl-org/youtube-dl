@@ -18,6 +18,7 @@ def _media_xml_tag(tag):
 
 
 class MTVServicesInfoExtractor(InfoExtractor):
+
     @staticmethod
     def _id_from_uri(uri):
         return uri.split(':')[-1]
@@ -69,7 +70,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
             mediagen_url += '&acceptMethods=fms'
 
         mediagen_doc = self._download_xml(mediagen_url, video_id,
-            'Downloading video urls')
+                                          'Downloading video urls')
 
         description_node = itemdoc.find('description')
         if description_node is not None:
@@ -168,15 +169,15 @@ class MTVIE(MTVServicesInfoExtractor):
         uri = mobj.groupdict().get('mgid')
         if uri is None:
             webpage = self._download_webpage(url, video_id)
-    
+
             # Some videos come from Vevo.com
             m_vevo = re.search(r'isVevoVideo = true;.*?vevoVideoId = "(.*?)";',
                                webpage, re.DOTALL)
             if m_vevo:
-                vevo_id = m_vevo.group(1);
+                vevo_id = m_vevo.group(1)
                 self.to_screen('Vevo video detected: %s' % vevo_id)
                 return self.url_result('vevo:%s' % vevo_id, ie='Vevo')
-    
+
             uri = self._html_search_regex(r'/uri/(.*?)\?', webpage, 'uri')
         return self._get_videos_info(uri)
 

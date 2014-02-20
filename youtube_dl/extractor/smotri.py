@@ -114,7 +114,7 @@ class SmotriIE(InfoExtractor):
         status = video_json['status']
         if status == self._VIDEO_NOT_FOUND:
             raise ExtractorError('Video %s does not exist' % video_id, expected=True)
-        elif status == self._PASSWORD_DETECTED: # The video is protected by a password, retry with
+        elif status == self._PASSWORD_DETECTED:  # The video is protected by a password, retry with
                                                 # video-password set
             video_password = self._downloader.params.get('videopassword', None)
             if not video_password:
@@ -202,15 +202,15 @@ class SmotriIE(InfoExtractor):
 
         video_uploader = self._html_search_regex(
             '<div class="DescrUser"><div>Автор.*?onmouseover="popup_user_info[^"]+">(.*?)</a>',
-            video_page, 'uploader', fatal=False, flags=re.MULTILINE|re.DOTALL)
+            video_page, 'uploader', fatal=False, flags=re.MULTILINE | re.DOTALL)
 
         video_uploader_id = self._html_search_regex(
             '<div class="DescrUser"><div>Автор.*?onmouseover="popup_user_info\\(.*?\'([^\']+)\'\\);">',
-            video_page, 'uploader id', fatal=False, flags=re.MULTILINE|re.DOTALL)
+            video_page, 'uploader id', fatal=False, flags=re.MULTILINE | re.DOTALL)
 
         video_view_count = self._html_search_regex(
             'Общее количество просмотров.*?<span class="Number">(\\d+)</span>',
-            video_page, 'view count', fatal=False, flags=re.MULTILINE|re.DOTALL)
+            video_page, 'view count', fatal=False, flags=re.MULTILINE | re.DOTALL)
 
         return {
             'id': video_id,
@@ -232,7 +232,7 @@ class SmotriCommunityIE(InfoExtractor):
     IE_DESC = 'Smotri.com community videos'
     IE_NAME = 'smotri:community'
     _VALID_URL = r'^https?://(?:www\.)?smotri\.com/community/video/(?P<communityid>[0-9A-Za-z_\'-]+)'
-    
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         community_id = mobj.group('communityid')
@@ -294,7 +294,7 @@ class SmotriBroadcastIE(InfoExtractor):
             (username, password) = self._get_login_info()
             if username is None:
                 raise ExtractorError('Erotic broadcasts allowed only for registered users, '
-                    'use --username and --password options to provide account credentials.', expected=True)
+                                     'use --username and --password options to provide account credentials.', expected=True)
 
             login_form = {
                 'login-hint53': '1',

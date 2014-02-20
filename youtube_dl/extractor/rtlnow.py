@@ -12,6 +12,7 @@ from ..utils import (
 
 
 class RTLnowIE(InfoExtractor):
+
     """Information Extractor for RTL NOW, RTL2 NOW, RTL NITRO, SUPER RTL NOW, VOX NOW and n-tv NOW"""
     _VALID_URL = r'(?:http://)?(?P<url>(?P<domain>rtl-now\.rtl\.de|rtl2now\.rtl2\.de|(?:www\.)?voxnow\.de|(?:www\.)?rtlnitronow\.de|(?:www\.)?superrtlnow\.de|(?:www\.)?n-tvnow\.de)/+[a-zA-Z0-9-]+/[a-zA-Z0-9-]+\.php\?(?:container_id|film_id)=(?P<video_id>[0-9]+)&player=1(?:&season=[0-9]+)?(?:&.*)?)'
     _TESTS = [{
@@ -27,58 +28,58 @@ class RTLnowIE(InfoExtractor):
         },
         'skip': 'Only works from Germany',
     },
-    {
-        'url': 'http://rtl2now.rtl2.de/aerger-im-revier/episode-15-teil-1.php?film_id=69756&player=1&season=2&index=5',
-        'file': '69756.flv',
-        'info_dict': {
-            'upload_date': '20120519',
-            'title': 'Ärger im Revier - Ein junger Ladendieb, ein handfester Streit...',
-            'description': 'Ärger im Revier - Ein junger Ladendieb, ein handfester Streit u.a.',
-            'thumbnail': 'http://autoimg.static-fra.de/rtl2now/219850/1500x1500/image2.jpg',
+        {
+            'url': 'http://rtl2now.rtl2.de/aerger-im-revier/episode-15-teil-1.php?film_id=69756&player=1&season=2&index=5',
+            'file': '69756.flv',
+            'info_dict': {
+                'upload_date': '20120519',
+                'title': 'Ärger im Revier - Ein junger Ladendieb, ein handfester Streit...',
+                'description': 'Ärger im Revier - Ein junger Ladendieb, ein handfester Streit u.a.',
+                'thumbnail': 'http://autoimg.static-fra.de/rtl2now/219850/1500x1500/image2.jpg',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'skip': 'Only works from Germany',
         },
-        'params': {
-            'skip_download': True,
+        {
+            'url': 'http://www.voxnow.de/voxtours/suedafrika-reporter-ii.php?film_id=13883&player=1&season=17',
+            'file': '13883.flv',
+            'info_dict': {
+                'upload_date': '20090627',
+                'title': 'Voxtours - Südafrika-Reporter II',
+                'description': 'Südafrika-Reporter II',
+            },
+            'params': {
+                'skip_download': True,
+            },
         },
-        'skip': 'Only works from Germany',
-    },
-    {
-        'url': 'http://www.voxnow.de/voxtours/suedafrika-reporter-ii.php?film_id=13883&player=1&season=17',
-        'file': '13883.flv',
-        'info_dict': {
-            'upload_date': '20090627',
-            'title': 'Voxtours - Südafrika-Reporter II',
-            'description': 'Südafrika-Reporter II',
+        {
+            'url': 'http://superrtlnow.de/medicopter-117/angst.php?film_id=99205&player=1',
+            'file': '99205.flv',
+            'info_dict': {
+                'upload_date': '20080928',
+                'title': 'Medicopter 117 - Angst!',
+                'description': 'Angst!',
+                'thumbnail': 'http://autoimg.static-fra.de/superrtlnow/287529/1500x1500/image2.jpg'
+            },
+            'params': {
+                'skip_download': True,
+            },
         },
-        'params': {
-            'skip_download': True,
-        },
-    },
-    {
-        'url': 'http://superrtlnow.de/medicopter-117/angst.php?film_id=99205&player=1',
-        'file': '99205.flv',
-        'info_dict': {
-            'upload_date': '20080928', 
-            'title': 'Medicopter 117 - Angst!',
-            'description': 'Angst!',
-            'thumbnail': 'http://autoimg.static-fra.de/superrtlnow/287529/1500x1500/image2.jpg'
-        },
-        'params': {
-            'skip_download': True,
-        },
-    },
-    {
-        'url': 'http://www.n-tvnow.de/top-gear/episode-1-2013-01-01-00-00-00.php?film_id=124903&player=1&season=10',
-        'file': '124903.flv',
-        'info_dict': {
-            'upload_date': '20130101',
-            'title': 'Top Gear vom 01.01.2013',
-            'description': 'Episode 1',
-        },
-        'params': {
-            'skip_download': True,
-        },
-        'skip': 'Only works from Germany',
-    }]
+        {
+            'url': 'http://www.n-tvnow.de/top-gear/episode-1-2013-01-01-00-00-00.php?film_id=124903&player=1&season=10',
+            'file': '124903.flv',
+            'info_dict': {
+                'upload_date': '20130101',
+                'title': 'Top Gear vom 01.01.2013',
+                'description': 'Episode 1',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'skip': 'Only works from Germany',
+        }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

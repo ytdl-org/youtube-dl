@@ -35,11 +35,11 @@ class VideoPremiumIE(InfoExtractor):
             r'<h2(?:.*?)>\s*(.+?)\s*<', webpage, u'video title')
 
         return {
-            'id':          video_id,
-            'url':         "rtmp://e%d.md.iplay.md/play" % random.randint(1, 16),
-            'play_path':   "mp4:%s.f4v" % video_id,
-            'page_url':    "http://videopremium.tv/" + video_id,
-            'player_url':  "http://videopremium.tv/uplayer/uppod.swf",
-            'ext':         'f4v',
-            'title':       video_title,
+            'id': video_id,
+            'url': "rtmp://e%d.md.iplay.md/play" % random.randint(1, 16),
+            'play_path': "mp4:%s.f4v" % video_id,
+            'page_url': "http://videopremium.tv/" + video_id,
+            'player_url': "http://videopremium.tv/uplayer/uppod.swf",
+            'ext': 'f4v',
+            'title': video_title,
         }

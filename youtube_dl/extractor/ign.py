@@ -8,6 +8,7 @@ from ..utils import (
 
 
 class IGNIE(InfoExtractor):
+
     """
     Extractor for some of the IGN sites, like www.ign.com, es.ign.com de.ign.com.
     Some videos of it.ign.com are also supported
@@ -101,6 +102,7 @@ class IGNIE(InfoExtractor):
 
 
 class OneUPIE(IGNIE):
+
     """Extractor for 1up.com, it uses the ign videos system."""
 
     _VALID_URL = r'https?://gamevideos\.1up\.com/(?P<type>video)/id/(?P<name_or_id>.+)'

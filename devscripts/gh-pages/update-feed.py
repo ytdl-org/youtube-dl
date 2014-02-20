@@ -39,8 +39,7 @@ now_iso = now.isoformat() + 'Z'
 atom_template = atom_template.replace('@TIMESTAMP@', now_iso)
 
 versions_info = json.load(open('update/versions.json'))
-versions = list(versions_info['versions'].keys())
-versions.sort()
+versions = sorted(versions_info['versions'].keys())
 
 entries = []
 for v in versions:
@@ -73,4 +72,3 @@ atom_template = atom_template.replace('@ENTRIES@', entries_str)
 
 with io.open('update/releases.atom', 'w', encoding='utf-8') as atom_file:
     atom_file.write(atom_template)
-

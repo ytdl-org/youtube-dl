@@ -32,6 +32,7 @@ def _download_restricted(url, filename, age):
 
 
 class TestAgeRestriction(unittest.TestCase):
+
     def _assert_restricted(self, url, filename, age, old_age=None):
         self.assertTrue(_download_restricted(url, filename, old_age))
         self.assertFalse(_download_restricted(url, filename, age))

@@ -34,8 +34,8 @@ class IPrimaIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         player_url = 'http://embed.livebox.cz/iprimaplay/player-embed-v2.js?__tok%s__=%s' % (
-                         floor(random()*1073741824),
-                         floor(random()*1073741824))
+            floor(random() * 1073741824),
+            floor(random() * 1073741824))
 
         req = compat_urllib_request.Request(player_url)
         req.add_header('Referer', url)
@@ -46,7 +46,7 @@ class IPrimaIE(InfoExtractor):
         zoneGEO = self._html_search_regex(r'"zoneGEO":(.+?),', webpage, 'zoneGEO')
 
         if zoneGEO != '0':
-            base_url = base_url.replace('token', 'token_'+zoneGEO)
+            base_url = base_url.replace('token', 'token_' + zoneGEO)
 
         formats = []
         for format_id in ['lq', 'hq', 'hd']:
@@ -63,13 +63,13 @@ class IPrimaIE(InfoExtractor):
                 quality = 1
             elif format_id == 'hd':
                 quality = 2
-                filename = 'hq/'+filename
+                filename = 'hq/' + filename
 
             formats.append({
                 'format_id': format_id,
                 'url': base_url,
                 'quality': quality,
-                'play_path': 'mp4:'+filename.replace('"', '')[:-4],
+                'play_path': 'mp4:' + filename.replace('"', '')[:-4],
                 'rtmp_live': True,
                 'ext': 'flv',
             })
