@@ -162,6 +162,11 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         group_id = mobj.group('id')
 
+        webpage = self._download_webpage(url, group_id, 'Downloading video page')
+        if re.search(r'id="emp-error" class="notinuk">', webpage):
+            raise ExtractorError('Currently BBC iPlayer TV programmes are available to play in the UK only',
+                expected=True)
+
         playlist = self._download_xml('http://www.bbc.co.uk/iplayer/playlist/%s' % group_id, group_id,
             'Downloading playlist XML')
 
