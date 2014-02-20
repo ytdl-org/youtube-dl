@@ -244,14 +244,18 @@ class FileDownloader(object):
         msg = u'%s at %s (%s)' % (downloaded_str, speed_str, elapsed_str)
         self._report_progress_status(msg)
 
-    def report_finish(self, data_len_str, tot_time):
+    def report_finish(self, percent, data_len_str, tot_time):
         """Report download finished."""
         if self.params.get('noprogress', False):
             self.to_screen(u'[download] Download completed')
         else:
+            if percent is not None:
+                percent_str = self.format_percent(percent)
+            else:
+                percent_str = 'Unknown %'
             self._report_progress_status(
-                (u'100%% of %s in %s' %
-                 (data_len_str, self.format_seconds(tot_time))),
+                (u'%s of %s in %s' %
+                 (percent_str, data_len_str, self.format_seconds(tot_time))),
                 is_last_line=True)
 
     def report_resuming_byte(self, resume_len):

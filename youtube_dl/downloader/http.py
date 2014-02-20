@@ -167,7 +167,11 @@ class HttpFD(FileDownloader):
             self.report_error(u'Did not get any data blocks')
             return False
         stream.close()
-        self.report_finish(data_len_str, (time.time() - start))
+        if data_len is None:
+            percent = None
+        else:
+            percent = self.calc_percent(byte_counter, data_len)
+        self.report_finish(percent, data_len_str, (time.time() - start))
         if data_len is not None and byte_counter != data_len:
             raise ContentTooShortError(byte_counter, int(data_len))
         self.try_rename(tmpfilename, filename)
