@@ -20,7 +20,7 @@ which means you can modify it, redistribute it or use it however you like.
                                      sure that you have sufficient permissions
                                      (run with sudo if needed)
     -i, --ignore-errors              continue on download errors, for example to
-                                     to skip unavailable videos in a playlist
+                                     skip unavailable videos in a playlist
     --abort-on-error                 Abort downloading of further videos (in the
                                      playlist or the command line) if an error
                                      occurs
