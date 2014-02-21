@@ -174,6 +174,11 @@ try:
 except NameError:
     compat_chr = chr
 
+try:
+    from xml.etree.ElementTree import ParseError as compat_xml_parse_error
+except ImportError:  # Python 2.6
+    from xml.parsers.expat import ExpatError as compat_xml_parse_error
+
 def compat_ord(c):
     if type(c) is int: return c
     else: return ord(c)

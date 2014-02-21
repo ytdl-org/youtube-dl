@@ -13,6 +13,7 @@ from ..utils import (
     compat_urllib_parse,
     compat_urllib_request,
     compat_urlparse,
+    compat_xml_parse_error,
 
     ExtractorError,
     HEADRequest,
@@ -241,10 +242,10 @@ class GenericIE(InfoExtractor):
 
         # Is it an RSS feed?
         try:
-            doc = xml.etree.ElementTree.fromstring(webpage)
+            doc = xml.etree.ElementTree.fromstring(webpage.encode('utf-8'))
             if doc.tag == 'rss':
                 return self._extract_rss(url, video_id, doc)
-        except xml.etree.ElementTree.ParseError:
+        except compat_xml_parse_error:
             pass
 
         # it's tempting to parse this further, but you would
