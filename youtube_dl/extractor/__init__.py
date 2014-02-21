@@ -19,6 +19,7 @@ from .bbccouk import BBCCoUkIE
 from .blinkx import BlinkxIE
 from .bliptv import BlipTVIE, BlipTVUserIE
 from .bloomberg import BloombergIE
+from .br import BRIE
 from .breakcom import BreakIE
 from .brightcove import BrightcoveIE
 from .c56 import C56IE
