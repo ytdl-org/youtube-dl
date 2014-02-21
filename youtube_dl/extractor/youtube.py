@@ -297,6 +297,23 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 u"format": "141",
             },
         },
+        # DASH manifest with encrypted signature
+        {
+            u'url': u'https://www.youtube.com/watch?v=IB3lcPjvWLA',
+            u'info_dict': {
+                u'id': u'IB3lcPjvWLA',
+                u'ext': u'm4a',
+                u'title': u'Afrojack - The Spark ft. Spree Wilson',
+                u'description': u'md5:3199ed45ee8836572865580804d7ac0f',
+                u'uploader': u'AfrojackVEVO',
+                u'uploader_id': u'AfrojackVEVO',
+                u'upload_date': u'20131011',
+            },
+            u"params": {
+                u'youtube_include_dash_manifest': True,
+                u'format': '141',
+            },
+        },
     ]
 
 
@@ -1272,8 +1289,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             mobj = re.search(r';ytplayer.config = ({.*?});', video_webpage)
             if not mobj:
                 raise ValueError('Could not find vevo ID')
-            info = json.loads(mobj.group(1))
-            args = info['args']
+            ytplayer_config = json.loads(mobj.group(1))
+            args = ytplayer_config['args']
             # Easy way to know if the 's' value is in url_encoded_fmt_stream_map
             # this signatures are encrypted
             if 'url_encoded_fmt_stream_map' not in args:
@@ -1374,11 +1391,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 # Luckily, it seems, this case uses some kind of default signature (len == 86), so the
                 # combination of get_video_info and the _static_decrypt_signature() decryption fallback will work here.
                 if age_gate:
-                    dash_manifest_url = video_info.get('dashmpd')[0];
+                    dash_manifest_url = video_info.get('dashmpd')[0]
                 else:
-                    x = re.search(r'ytplayer\.config = ({.*});', video_webpage)
-                    x = json.loads(x.group(1));
-                    dash_manifest_url = x['args']['dashmpd']
+                    dash_manifest_url = ytplayer_config['args']['dashmpd']
                 def decrypt_sig(mobj):
                     s = mobj.group(1)
                     dec_s = self._decrypt_signature(s, video_id, player_url, age_gate)
