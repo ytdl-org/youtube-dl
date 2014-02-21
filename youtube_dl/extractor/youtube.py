@@ -1443,9 +1443,9 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                      |
                         ((?:PL|EC|UU|FL|RD)[0-9A-Za-z-_]{10,})
                      )"""
-    _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s&page=%s'
+    _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s'
     _MORE_PAGES_INDICATOR = r'data-link-type="next"'
-    _VIDEO_RE = r'href="/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)'
+    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)'
     IE_NAME = u'youtube:playlist'
 
     def _real_initialize(self):
@@ -1493,29 +1493,31 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
             raise ExtractorError(u'For downloading YouTube.com top lists, use '
                 u'the "yttoplist" keyword, for example "youtube-dl \'yttoplist:music:Top Tracks\'"', expected=True)
 
+        url = self._TEMPLATE_URL % playlist_id
+        page = self._download_webpage(url, playlist_id)
+        more_widget_html = content_html = page
+
         # Extract the video ids from the playlist pages
         ids = []
 
         for page_num in itertools.count(1):
-            url = self._TEMPLATE_URL % (playlist_id, page_num)
-            page = self._download_webpage(url, playlist_id, u'Downloading page #%s' % page_num)
-            matches = re.finditer(self._VIDEO_RE, page)
+            matches = re.finditer(self._VIDEO_RE, content_html)
             # We remove the duplicates and the link with index 0
             # (it's not the first video of the playlist)
             new_ids = orderedSet(m.group('id') for m in matches if m.group('index') != '0')
             ids.extend(new_ids)
 
-            if re.search(self._MORE_PAGES_INDICATOR, page) is None:
+            mobj = re.search(r'data-uix-load-more-href="/?(?P<more>[^"]+)"', more_widget_html)
+            if not mobj:
                 break
 
-        try:
-            playlist_title = self._og_search_title(page)
-        except RegexNotFoundError:
-            self.report_warning(
-                u'Playlist page is missing OpenGraph title, falling back ...',
-                playlist_id)
-            playlist_title = self._html_search_regex(
-                r'<h1 class="pl-header-title">(.*?)</h1>', page, u'title')
+            more = self._download_json(
+                'https://youtube.com/%s' % mobj.group('more'), playlist_id, 'Downloading page #%s' % page_num)
+            content_html = more['content_html']
+            more_widget_html = more['load_more_widget_html']
+
+        playlist_title = self._html_search_regex(
+                r'<h1 class="pl-header-title">\s*(.*?)\s*</h1>', page, u'title')
 
         url_results = self._ids_to_results(ids)
         return self.playlist_result(url_results, playlist_id, playlist_title)
