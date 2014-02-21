@@ -6,14 +6,15 @@ from .common import InfoExtractor
 
 
 class WimpIE(InfoExtractor):
-    _VALID_URL = r'(?:http://)?(?:www\.)?wimp\.com/([^/]+)/'
+    _VALID_URL = r'http://(?:www\.)?wimp\.com/([^/]+)/'
     _TEST = {
-        'url': 'http://www.wimp.com/deerfence/',
-        'file': 'deerfence.flv',
-        'md5': '8b215e2e0168c6081a1cf84b2846a2b5',
+        'url': 'http://www.wimp.com/maruexhausted/',
+        'md5': 'f1acced123ecb28d9bb79f2479f2b6a1',
         'info_dict': {
-            "title": "Watch Till End: Herd of deer jump over a fence.",
-            "description": "These deer look as fluid as running water when they jump over this fence as a herd. This video is one that needs to be watched until the very end for the true majesty to be witnessed, but once it comes, it's sure to take your breath away.",
+            'id': 'maruexhausted',
+            'ext': 'flv',
+            'title': 'Maru is exhausted.',
+            'description': 'md5:57e099e857c0a4ea312542b684a869b8',
         }
     }
 
