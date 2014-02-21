@@ -8,7 +8,19 @@ class BRIE(InfoExtractor):
     _VALID_URL = r"^https?://(?:www\.)?br\.de/mediathek/video/(?:sendungen/)?(?:[a-z0-9\-]+\.html)$"
     _BASE_URL = u"http://www.br.de"
 
-    _TESTS = []
+    _TESTS = [
+        {
+            u"url": u"http://www.br.de/mediathek/video/anselm-gruen-114.html",
+            u"file": u"2c8d81c5-6fb7-4a74-88d4-e768e5856532.mp4",
+            u"md5": u"c4f83cf0f023ba5875aba0bf46860df2",
+            u"info_dict": {
+                u"title": u"Feiern und Verzichten",
+                u"description": u"Anselm Grün: Feiern und Verzichten",
+                u"uploader": u"BR/Birgit Baier",
+                u"upload_date": u"20140301"
+            }
+        }
+    ]
 
     def _real_extract(self, url):
         page = self._download_webpage(url, None)
