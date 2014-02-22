@@ -83,6 +83,8 @@ from .extractor import gen_extractors
 from .version import __version__
 from .YoutubeDL import YoutubeDL
 from .postprocessor import (
+    AtomicParsleyPP,
+    FFmpegMediaFixPP,
     FFmpegMetadataPP,
     FFmpegVideoConvertor,
     FFmpegExtractAudioPP,
@@ -479,6 +481,8 @@ def parseOpts(overrideArguments=None):
             help='do not overwrite post-processed files; the post-processed files are overwritten by default')
     postproc.add_option('--embed-subs', action='store_true', dest='embedsubtitles', default=False,
             help='embed subtitles in the video (only for mp4 videos)')
+    postproc.add_option('--embed-thumbnail', action='store_true', dest='embedthumbnail', default=False,
+            help='embed thumbnail in the audio as cover art')
     postproc.add_option('--add-metadata', action='store_true', dest='addmetadata', default=False,
             help='write metadata to the video file')
     postproc.add_option('--xattrs', action='store_true', dest='xattrs', default=False,
@@ -775,6 +779,9 @@ def _real_main(argv=None):
             ydl.add_post_processor(FFmpegEmbedSubtitlePP(subtitlesformat=opts.subtitlesformat))
         if opts.xattrs:
             ydl.add_post_processor(XAttrMetadataPP())
+        if opts.embedthumbnail:
+            ydl.add_post_processor(FFmpegMediaFixPP())
+            ydl.add_post_processor(AtomicParsleyPP())
 
         # Update version
         if opts.update_self:
