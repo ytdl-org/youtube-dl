@@ -29,7 +29,6 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     PagedList,
-    RegexNotFoundError,
     unescapeHTML,
     unified_strdate,
     orderedSet,
