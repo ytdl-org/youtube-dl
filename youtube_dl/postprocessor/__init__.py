@@ -1,7 +1,7 @@
 
 from .atomicparsley import AtomicParsleyPP
 from .ffmpeg import (
-    FFmpegMediaFixPP,
+    FFmpegAudioFixPP,
     FFmpegMergerPP,
     FFmpegMetadataPP,
     FFmpegVideoConvertor,
@@ -12,7 +12,7 @@ from .xattrpp import XAttrMetadataPP
 
 __all__ = [
     'AtomicParsleyPP',
-    'FFmpegMediaFixPP',
+    'FFmpegAudioFixPP',
     'FFmpegMergerPP',
     'FFmpegMetadataPP',
     'FFmpegVideoConvertor',
