@@ -14,9 +14,9 @@
 
 set -e
 
-skip_tests=false
-if [ "$1" = '--skip-test' ]; then
-    skip_tests=true
+skip_tests=true
+if [ "$1" = '--run-tests' ]; then
+    skip_tests=false
     shift
 fi
 
