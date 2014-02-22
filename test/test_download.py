@@ -18,6 +18,7 @@ from test.helper import (
 import hashlib
 import io
 import json
+import re
 import socket
 
 import youtube_dl.YoutubeDL
@@ -137,12 +138,21 @@ def generator(test_case):
                 with io.open(info_json_fn, encoding='utf-8') as infof:
                     info_dict = json.load(infof)
                 for (info_field, expected) in tc.get('info_dict', {}).items():
-                    if isinstance(expected, compat_str) and expected.startswith('md5:'):
-                        got = 'md5:' + md5(info_dict.get(info_field))
-                    else:
+                    if isinstance(expected, compat_str) and expected.startswith('re:'):
                         got = info_dict.get(info_field)
-                    self.assertEqual(expected, got,
-                        u'invalid value for field %s, expected %r, got %r' % (info_field, expected, got))
+                        match_str = expected[len('re:'):]
+                        match_rex = re.compile(match_str)
+
+                        self.assertTrue(
+                            isinstance(got, compat_str) and match_rex.match(got),
+                            u'field %s (value: %r) should match %r' % (info_field, got, match_str))
+                    else:
+                        if isinstance(expected, compat_str) and expected.startswith('md5:'):
+                            got = 'md5:' + md5(info_dict.get(info_field))
+                        else:
+                            got = info_dict.get(info_field)
+                        self.assertEqual(expected, got,
+                            u'invalid value for field %s, expected %r, got %r' % (info_field, expected, got))
 
                 # If checkable fields are missing from the test case, print the info_dict
                 test_info_dict = dict((key, value if not isinstance(value, compat_str) or len(value) < 250 else 'md5:' + md5(value))

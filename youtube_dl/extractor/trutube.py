@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import re
 
 from .common import InfoExtractor
@@ -7,37 +9,39 @@ from ..utils import (
 
 
 class TruTubeIE(InfoExtractor):
-    _VALID_URL = r'(?:https?://)?(?:www\.)?(?P<url>trutube\.tv/video/(?P<videoid>.*/.*))'
+    _VALID_URL = r'https?://(?:www\.)?trutube\.tv/video/(?P<id>[0-9]+)/.*'
     _TEST = {
-        'url': ('http://www.trutube.tv/video/20814/Ernst-Zundel-met-les-Jui'
-                'fs-en-guarde-VOSTFR'),
-        'md5': '9973aa3c2870626799d2ac4e36cfc3dc',
+        'url': 'http://trutube.tv/video/14880/Ramses-II-Proven-To-Be-A-Red-Headed-Caucasoid-',
+        'md5': 'c5b6e301b0a2040b074746cbeaa26ca1',
         'info_dict': {
-            u"title": u"TruTube.TV - Spitting in the face of die-versity",
-            u"ext": u"mp4"
+            'id': '14880',
+            'ext': 'flv',
+            'title': 'Ramses II - Proven To Be A Red Headed Caucasoid',
+            'thumbnail': 're:^http:.*\.jpg$',
         }
     }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
 
-        video_id = mobj.group('videoid')
-
-        # Get webpage content
         webpage = self._download_webpage(url, video_id)
+        video_title = self._og_search_title(webpage).strip()
+        thumbnail = self._search_regex(
+            r"var splash_img = '([^']+)';", webpage, 'thumbnail', fatal=False)
 
-        # Get the video title
-        video_title = self._html_search_regex(r'<title>(?P<title>.*)</title>',
-                                              webpage, 'title').strip()
-
-        video_url = self._search_regex(r'(http://.*\.(?:mp4|flv))',
-                                       webpage, u'video URL')
-
-        ext = video_url[-3:]
+        all_formats = re.finditer(
+            r"var (?P<key>[a-z]+)_video_file\s*=\s*'(?P<url>[^']+)';", webpage)
+        formats = [{
+            'format_id': m.group('key'),
+            'quality': -i,
+            'url': m.group('url'),
+        } for i, m in enumerate(all_formats)]
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'url': video_url,
             'title': video_title,
-            'ext': ext
-            }
+            'formats': formats,
+            'thumbnail': thumbnail,
+        }
