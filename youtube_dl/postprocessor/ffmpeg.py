@@ -464,7 +464,7 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         filename = info['filepath']
         temp_filename = prepend_extension(filename, 'temp')
 
-        if info['ext'] == u'm4a':
+        if info.get('ext') == u'm4a':
             options = ['-vn', '-acodec', 'copy']
         else:
             options = ['-c', 'copy']
