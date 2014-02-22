@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import unicode_literals
+
 import re
 
 from .common import InfoExtractor
@@ -9,11 +11,12 @@ class Canalc2IE(InfoExtractor):
     _VALID_URL = r'http://.*?\.canalc2\.tv/video\.asp\?.*?idVideo=(?P<id>\d+)'
 
     _TEST = {
-        u'url': u'http://www.canalc2.tv/video.asp?idVideo=12163&voir=oui',
-        u'file': u'12163.mp4',
-        u'md5': u'060158428b650f896c542dfbb3d6487f',
-        u'info_dict': {
-            u'title': u'Terrasses du Numérique'
+        'url': 'http://www.canalc2.tv/video.asp?idVideo=12163&voir=oui',
+        'md5': '060158428b650f896c542dfbb3d6487f',
+        'info_dict': {
+            'id': '12163',
+            'ext': 'mp4',
+            'title': 'Terrasses du Numérique'
         }
     }
 
@@ -28,10 +31,11 @@ class Canalc2IE(InfoExtractor):
         video_url = 'http://vod-flash.u-strasbg.fr:8080/' + file_name
 
         title = self._html_search_regex(
-            r'class="evenement8">(.*?)</a>', webpage, u'title')
-        
-        return {'id': video_id,
-                'ext': 'mp4',
-                'url': video_url,
-                'title': title,
-                }
+            r'class="evenement8">(.*?)</a>', webpage, 'title')
+
+        return {
+            'id': video_id,
+            'ext': 'mp4',
+            'url': video_url,
+            'title': title,
+        }
