@@ -76,4 +76,5 @@ class VideoBamIE(InfoExtractor):
             'uploader': uploader,
             'view_count': view_count,
             'formats': formats,
+            'age_limit': 18,
         }
