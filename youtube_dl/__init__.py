@@ -46,6 +46,7 @@ __authors__  = (
     'Andreas Schmitz',
     'Michael Kaiser',
     'Niklas Laxström',
+    'David Triendl',
 )
 
 __license__ = 'Public Domain'
