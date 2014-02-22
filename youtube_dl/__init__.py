@@ -84,7 +84,7 @@ from .version import __version__
 from .YoutubeDL import YoutubeDL
 from .postprocessor import (
     AtomicParsleyPP,
-    FFmpegMediaFixPP,
+    FFmpegAudioFixPP,
     FFmpegMetadataPP,
     FFmpegVideoConvertor,
     FFmpegExtractAudioPP,
@@ -780,7 +780,7 @@ def _real_main(argv=None):
         if opts.xattrs:
             ydl.add_post_processor(XAttrMetadataPP())
         if opts.embedthumbnail:
-            ydl.add_post_processor(FFmpegMediaFixPP())
+            ydl.add_post_processor(FFmpegAudioFixPP())
             ydl.add_post_processor(AtomicParsleyPP())
 
         # Update version

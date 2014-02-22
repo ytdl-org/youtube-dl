@@ -484,13 +484,13 @@ class FFmpegMergerPP(FFmpegPostProcessor):
         return True, info
 
 
-class FFmpegMediaFixPP(FFmpegPostProcessor):
+class FFmpegAudioFixPP(FFmpegPostProcessor):
     def run(self, info):
         filename = info['filepath']
         temp_filename = prepend_extension(filename, 'temp')
 
-        options = ['-vcodec', 'copy', '-acodec', 'copy']
-        self._downloader.to_screen(u'[ffmpeg] Fixing media file "%s"' % filename)
+        options = ['-vn', '-acodec', 'copy']
+        self._downloader.to_screen(u'[ffmpeg] Fixing audio file "%s"' % filename)
         self.run_ffmpeg(filename, temp_filename, options)
 
         os.remove(encodeFilename(filename))
