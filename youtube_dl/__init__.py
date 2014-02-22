@@ -780,7 +780,8 @@ def _real_main(argv=None):
         if opts.xattrs:
             ydl.add_post_processor(XAttrMetadataPP())
         if opts.embedthumbnail:
-            ydl.add_post_processor(FFmpegAudioFixPP())
+            if not opts.addmetadata:
+                ydl.add_post_processor(FFmpegAudioFixPP())
             ydl.add_post_processor(AtomicParsleyPP())
 
         # Update version
