@@ -186,6 +186,7 @@ from .rutube import (
     RutubeMovieIE,
     RutubePersonIE,
 )
+from .savefrom import SaveFromIE
 from .servingsys import ServingSysIE
 from .sina import SinaIE
 from .slashdot import SlashdotIE
