@@ -49,7 +49,7 @@ class NormalbootsIE(InfoExtractor):
             
         player_url = self._html_search_regex(r'<iframe\swidth="[0-9]+"\sheight="[0-9]+"\ssrc="(?P<url>[\S]+)"', webpage, 'url')
         player_page = self._download_webpage(player_url, video_id)
-        video_url = u'http://player.screenwavemedia.com/' + self._html_search_regex(r"'file':\s'(?P<file>[0-9A-Za-z-_\.]+)'", player_page, 'file')
+        video_url = self._html_search_regex(r"file:\s'(?P<file>[^']+\.mp4)'", player_page, 'file')
         
         info['url'] = video_url
         info['title'] = video_title
