@@ -22,10 +22,21 @@ class IPrimaIE(InfoExtractor):
             'thumbnail': 'http://play.iprima.cz/sites/default/files/image_crops/image_620x349/3/491483_particka-92_image_620x349.jpg',
         },
         'params': {
-            'skip_download': True,
+            'skip_download': True,  # requires rtmpdump
         },
-    },
-    ]
+    }, {
+        'url': 'http://play.iprima.cz/particka/tchibo-particka-jarni-moda',
+        'info_dict': {
+            'id': '9718337',
+            'ext': 'flv',
+            'title': 'Tchibo Partička - Jarní móda',
+            'description': 'md5:589f8f59f414220621ff8882eb3ce7be',
+            'thumbnail': 're:^http:.*\.jpg$',
+        },
+        'params': {
+            'skip_download': True,  # requires rtmpdump
+        },
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -33,9 +44,9 @@ class IPrimaIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        player_url = 'http://embed.livebox.cz/iprimaplay/player-embed-v2.js?__tok%s__=%s' % (
-                         floor(random()*1073741824),
-                         floor(random()*1073741824))
+        player_url = (
+            'http://embed.livebox.cz/iprimaplay/player-embed-v2.js?__tok%s__=%s' %
+            (floor(random()*1073741824), floor(random()*1073741824))
 
         req = compat_urllib_request.Request(player_url)
         req.add_header('Referer', url)
@@ -56,7 +67,8 @@ class IPrimaIE(InfoExtractor):
                 continue
 
             real_id = self._search_regex(
-                r'Prima-[0-9]{10}-([0-9]+)_', filename, 'real video id')
+                r'Prima-(?:[0-9]{10}|WEB)-([0-9]+)[-_]',
+                filename, 'real video id')
 
             if format_id == 'lq':
                 quality = 0
