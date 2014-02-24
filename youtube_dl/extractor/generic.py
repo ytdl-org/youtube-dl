@@ -102,6 +102,18 @@ class GenericIE(InfoExtractor):
                 'title': '2cc213299525360.mov',  # that's what we get
             },
         },
+        # embed.ly video
+        {
+            'url': 'http://www.tested.com/science/weird/460206-tested-grinding-coffee-2000-frames-second/',
+            'info_dict': {
+                'id': '9ODmcdjQcHQ',
+                'ext': 'mp4',
+            },
+            # No need to test YoutubeIE here
+            'params': {
+                'skip_download': True,
+            },
+        },
     ]
 
     def report_download_webpage(self, video_id):
@@ -380,6 +392,14 @@ class GenericIE(InfoExtractor):
             r'<iframe[^>]+?src=(["\'])(?P<url>https?://embed\.live\.huffingtonpost\.com/.+?)\1', webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'HuffPost')
+
+        # Look for embed.ly
+        mobj = re.search(r'class=["\']embedly-card["\'][^>]href=["\'](?P<url>[^"\']+)', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'))
+        mobj = re.search(r'class=["\']embedly-embed["\'][^>]src=["\'][^"\']*url=(?P<url>[^&]+)', webpage)
+        if mobj is not None:
+            return self.url_result(compat_urllib_parse.unquote(mobj.group('url')))
 
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
