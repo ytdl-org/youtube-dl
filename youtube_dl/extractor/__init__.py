@@ -161,7 +161,7 @@ from .nhl import NHLIE, NHLVideocenterIE
 from .niconico import NiconicoIE
 from .ninegag import NineGagIE
 from .normalboots import NormalbootsIE
-from .novamov import NovamovIE
+from .novamov import NovaMovIE
 from .nowness import NownessIE
 from .nowvideo import NowVideoIE
 from .ooyala import OoyalaIE
