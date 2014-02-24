@@ -18,7 +18,6 @@ class AcademicEarthCourseIE(InfoExtractor):
         description = self._html_search_regex(
             r'<p class="excerpt"[^>]*?>(.*?)</p>',
             webpage, u'description', fatal=False)
-        print(description)
         urls = re.findall(
             r'<li class="lecture-preview">\s*?<a target="_blank" href="([^"]+)">',
             webpage)
