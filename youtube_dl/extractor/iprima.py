@@ -55,7 +55,7 @@ class IPrimaIE(InfoExtractor):
             if filename == 'null':
                 continue
 
-            real_id = self._search_regex(r'Prima-(?:WEB-)(\d+)-\d+_\d+|\d+-(\d+)_\d+', filename, 'real video id')
+            real_id = self._search_regex(r'Prima-WEB-(\d+)-\d+_\d+|\d+-(\d+)_\d+', filename, 'real video id')
 
             if format_id == 'lq':
                 quality = 0
