@@ -291,6 +291,8 @@ class GenericIE(InfoExtractor):
         except compat_xml_parse_error:
             pass
 
+        webpage = compat_urllib_parse.unquote(webpage)
+
         # it's tempting to parse this further, but you would
         # have to take into account all the variations like
         #   Video Title - Site Name
