@@ -10,7 +10,7 @@ from ..utils import compat_urllib_request
 
 
 class IPrimaIE(InfoExtractor):
-    _VALID_URL = r'https?://play\.iprima\.cz/(?P<videogroup>.+)/(?P<videoid>.+)'
+    _VALID_URL = r'https?://play\.iprima\.cz/(.+/)?(?P<videoid>.+)'
 
     _TESTS = [{
         'url': 'http://play.iprima.cz/particka/particka-92',
@@ -55,7 +55,7 @@ class IPrimaIE(InfoExtractor):
             if filename == 'null':
                 continue
 
-            real_id = self._search_regex(r'Prima-[0-9]{10}-([0-9]+)_', filename, 'real video id')
+            real_id = self._search_regex(r'Prima-WEB-(\d+)-\d+_\d+|\d+-(\d+)_\d+', filename, 'real video id')
 
             if format_id == 'lq':
                 quality = 0
