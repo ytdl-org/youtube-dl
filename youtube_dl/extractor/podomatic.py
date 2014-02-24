@@ -1,7 +1,10 @@
+from __future__ import unicode_literals
+
 import json
 import re
 
 from .common import InfoExtractor
+from ..utils import int_or_none
 
 
 class PodomaticIE(InfoExtractor):
@@ -9,14 +12,14 @@ class PodomaticIE(InfoExtractor):
     _VALID_URL = r'^(?P<proto>https?)://(?P<channel>[^.]+)\.podomatic\.com/entry/(?P<id>[^?]+)'
 
     _TEST = {
-        u"url": u"http://scienceteachingtips.podomatic.com/entry/2009-01-02T16_03_35-08_00",
-        u"file": u"2009-01-02T16_03_35-08_00.mp3",
-        u"md5": u"84bb855fcf3429e6bf72460e1eed782d",
-        u"info_dict": {
-            u"uploader": u"Science Teaching Tips",
-            u"uploader_id": u"scienceteachingtips",
-            u"title": u"64.  When the Moon Hits Your Eye",
-            u"duration": 446,
+        "url": "http://scienceteachingtips.podomatic.com/entry/2009-01-02T16_03_35-08_00",
+        "file": "2009-01-02T16_03_35-08_00.mp3",
+        "md5": "84bb855fcf3429e6bf72460e1eed782d",
+        "info_dict": {
+            "uploader": "Science Teaching Tips",
+            "uploader_id": "scienceteachingtips",
+            "title": "64.  When the Moon Hits Your Eye",
+            "duration": 446,
         }
     }
 
@@ -36,7 +39,7 @@ class PodomaticIE(InfoExtractor):
         uploader = data['podcast']
         title = data['title']
         thumbnail = data['imageLocation']
-        duration = int(data['length'] / 1000.0)
+        duration = int_or_none(data.get('length'), 1000)
 
         return {
             'id': video_id,
