@@ -4,6 +4,7 @@ import re
 import json
 
 from .common import InfoExtractor
+from ..utils import compat_urllib_request
 
 
 class VeohIE(InfoExtractor):
@@ -24,6 +25,13 @@ class VeohIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
+        age_limit = 0
+        if 'class="adultwarning-container"' in webpage:
+            self.report_age_confirmation()
+            age_limit = 18
+            request = compat_urllib_request.Request(url)
+            request.add_header('Cookie', 'confirmedAdult=true')
+            webpage = self._download_webpage(request, video_id)
 
         m_youtube = re.search(r'http://www\.youtube\.com/v/(.*?)(\&|")', webpage)
         if m_youtube is not None:
@@ -44,4 +52,5 @@ class VeohIE(InfoExtractor):
             'thumbnail': info.get('highResImage') or info.get('medResImage'),
             'description': info['description'],
             'view_count': info['views'],
+            'age_limit': age_limit,
         }
