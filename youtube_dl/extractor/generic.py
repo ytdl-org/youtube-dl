@@ -363,11 +363,17 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group(1), 'Mpora')
 
-        # Look for embedded Novamov player
+        # Look for embedded NovaMov player
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>http://(?:(?:embed|www)\.)?novamov\.com/embed\.php.+?)\1', webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Novamov')
+            return self.url_result(mobj.group('url'), 'NovaMov')
+
+        # Look for embedded NowVideo player
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>http://(?:(?:embed|www)\.)?nowvideo\.(?:ch|sx|eu)/embed\.php.+?)\1', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'NowVideo')
 
         # Look for embedded Facebook player
         mobj = re.search(
