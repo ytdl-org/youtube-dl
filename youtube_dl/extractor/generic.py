@@ -381,6 +381,16 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'HuffPost')
 
+        # Look for embed.ly
+        mobj = re.search(r'class=["\']embedly-card["\'][^>]href=["\'](?P<url>[^"\']+)', webpage)
+        if mobj is None:
+            mobj = re.search(r'class=["\']embedly-embed["\'][^>]src=["\'][^"\']*url=(?P<url>[^&]+)', webpage)
+        if mobj is not None:
+            url = compat_urllib_parse.unquote(mobj.group('url'))
+            from . import _ALL_CLASSES
+            if any(map(lambda klass: klass != GenericIE and klass.suitable(url), _ALL_CLASSES)):
+                return self.url_result(url)
+
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
         if mobj is None:
