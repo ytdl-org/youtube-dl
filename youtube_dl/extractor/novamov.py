@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class NovamovIE(InfoExtractor):
-    _VALID_URL = r'http://(?:(?:www\.)?novamov\.com/video/|(?:(?:embed|www)\.)novamov\.com/embed\.php\?v=)(?P<videoid>[a-z\d]{13})'
+    _VALID_URL = r'http://(?:(?:www\.)?novamov\.com/video/|(?:(?:embed|www)\.)novamov\.com/embed\.php\?(?:.*?&)?v=)(?P<videoid>[a-z\d]{13})'
 
     _TEST = {
         'url': 'http://www.novamov.com/video/4rurhn9x446jj',
