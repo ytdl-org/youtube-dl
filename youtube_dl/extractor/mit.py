@@ -4,6 +4,7 @@ import re
 import json
 
 from .common import InfoExtractor
+from .youtube import YoutubeIE
 from ..utils import (
     compat_urlparse,
     clean_html,
@@ -89,40 +90,47 @@ class MITIE(TechTVMITIE):
             r'<iframe .*?src="(.+?)"', webpage, 'embed url')
         return self.url_result(embed_url, ie='TechTVMIT')
 
+
 class OCWMITIE(InfoExtractor):
-    IE_NAME = u'ocw.mit.edu'
+    IE_NAME = 'ocw.mit.edu'
     _VALID_URL = r'^http://ocw\.mit\.edu/courses/(?P<topic>[a-z0-9\-]+)'
-    _BASE_URL = u'http://ocw.mit.edu/'
+    _BASE_URL = 'http://ocw.mit.edu/'
 
     _TESTS = [
         {
-            u'url': u'http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-041-probabilistic-systems-analysis-and-applied-probability-fall-2010/video-lectures/lecture-7-multiple-variables-expectations-independence/',
-            u'md5': u'348bef727b573c0bd9ad8a7c08c89ebd',
-            u'info_dict': {
-                u'title': u'7. Discrete Random Variables III',
-                u'description': u'In this lecture, the professor discussed multiple random variables, expectations, and binomial distribution.',
-                u'subtitles': u'http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-041-probabilistic-systems-analysis-and-applied-probability-fall-2010/video-lectures/lecture-7-multiple-variables-expectations-independence/MIT6_041F11_lec07_300k.mp4.srt'
+            'url': 'http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-041-probabilistic-systems-analysis-and-applied-probability-fall-2010/video-lectures/lecture-7-multiple-variables-expectations-independence/',
+            'info_dict': {
+                'id': 'EObHWIEKGjA',
+                'ext': 'mp4',
+                'title': 'Lecture 7: Multiple Discrete Random Variables: Expectations, Conditioning, Independence',
+                'description': 'In this lecture, the professor discussed multiple random variables, expectations, and binomial distribution.',
+                #'subtitles': 'http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-041-probabilistic-systems-analysis-and-applied-probability-fall-2010/video-lectures/lecture-7-multiple-variables-expectations-independence/MIT6_041F11_lec07_300k.mp4.srt'
             }
         },
         {
-            u'url': u'http://ocw.mit.edu/courses/mathematics/18-01sc-single-variable-calculus-fall-2010/1.-differentiation/part-a-definition-and-basic-rules/session-1-introduction-to-derivatives/',
-            u'md5': u'f4a434f08f15e581eb67cec0b57bcf6f',
-            u'info_dict': {
-                u'title': u'Lec 1 _ MIT 18.01 Single Variable Calculus, Fall 2007',
-                u'subtitles': u'http://ocw.mit.edu//courses/mathematics/18-01sc-single-variable-calculus-fall-2010/ocw-18.01-f07-lec01_300k.SRT'
+            'url': 'http://ocw.mit.edu/courses/mathematics/18-01sc-single-variable-calculus-fall-2010/1.-differentiation/part-a-definition-and-basic-rules/session-1-introduction-to-derivatives/',
+            'info_dict': {
+                'id': '7K1sB05pE0A',
+                'ext': 'mp4',
+                'title': 'Session 1: Introduction to Derivatives',
+                'description': 'This section contains lecture video excerpts, lecture notes, an interactive mathlet with supporting documents, and problem solving videos.',
+                #'subtitles': 'http://ocw.mit.edu//courses/mathematics/18-01sc-single-variable-calculus-fall-2010/ocw-18.01-f07-lec01_300k.SRT'
             }
         }
     ]
 
     def _real_extract(self, url):
-        webpage = self._download_webpage(url, self.IE_NAME)
-        title = self._html_search_meta(u'WT.cg_s', webpage)
-        description = self._html_search_meta(u'Description', webpage)
+        mobj = re.match(self._VALID_URL, url)
+        topic = mobj.group('topic')
+
+        webpage = self._download_webpage(url, topic)
+        title = self._html_search_meta('WT.cg_s', webpage)
+        description = self._html_search_meta('Description', webpage)
 
         # search for call to ocw_embed_chapter_media(container_id, media_url, provider, page_url, image_url, start, stop, captions_file)
         embed_chapter_media = re.search(r'ocw_embed_chapter_media\((.+?)\)', webpage)
         if embed_chapter_media:
-            metadata = re.sub(r'[\'"]', u'', embed_chapter_media.group(1))
+            metadata = re.sub(r'[\'"]', '', embed_chapter_media.group(1))
             metadata = re.split(r', ?', metadata)
             yt = metadata[1]
             subs = compat_urlparse.urljoin(self._BASE_URL, metadata[7])
@@ -130,14 +138,21 @@ class OCWMITIE(InfoExtractor):
             # search for call to ocw_embed_chapter_media(container_id, media_url, provider, page_url, image_url, captions_file)
             embed_media = re.search(r'ocw_embed_media\((.+?)\)', webpage)
             if embed_media:
-                metadata = re.sub(r'[\'"]', u'', embed_media.group(1))
+                metadata = re.sub(r'[\'"]', '', embed_media.group(1))
                 metadata = re.split(r', ?', metadata)
                 yt = metadata[1]
                 subs = compat_urlparse.urljoin(self._BASE_URL, metadata[5])
             else:
                 raise ExtractorError('Unable to find embedded YouTube video.')
+        video_id = YoutubeIE.extract_id(yt)
 
-        data = self.url_result(yt, 'Youtube')
-        data['subtitles'] = subs
-        
-        return data
+        return {
+            '_type': 'url_transparent',
+            'id': video_id,
+            'title': title,
+            'description': description,
+            'url': yt,
+            'url_transparent'
+            'subtitles': subs,
+            'ie_key': 'Youtube',
+        }
