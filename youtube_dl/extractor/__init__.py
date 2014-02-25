@@ -152,7 +152,10 @@ from .myspass import MySpassIE
 from .myvideo import MyVideoIE
 from .naver import NaverIE
 from .nba import NBAIE
-from .nbc import NBCNewsIE
+from .nbc import (
+    NBCIE,
+    NBCNewsIE,
+)
 from .ndr import NDRIE
 from .ndtv import NDTVIE
 from .newgrounds import NewgroundsIE

@@ -13,7 +13,7 @@ _x = lambda p: xpath_with_ns(p, {'smil': 'http://www.w3.org/2005/SMIL21/Language
 class ThePlatformIE(InfoExtractor):
     _VALID_URL = r'''(?x)
         (?:https?://(?:link|player)\.theplatform\.com/[sp]/[^/]+/
-           (?P<config>[^/\?]+/(?:swf|config)/select/)?
+           (?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/)?
          |theplatform:)(?P<id>[^/\?&]+)'''
 
     _TEST = {
@@ -54,10 +54,15 @@ class ThePlatformIE(InfoExtractor):
 
         f4m_node = body.find(_x('smil:seq/smil:video'))
         if f4m_node is not None:
+            f4m_url = f4m_node.attrib['src']
+            if 'manifest.f4m?' not in f4m_url:
+                f4m_url += '?'
+            # the parameters are from syfy.com, other sites may use others,
+            # they also work for nbc.com
+            f4m_url += '&g=UXWGVKRWHFSP&hdcore=3.0.3'
             formats = [{
                 'ext': 'flv',
-                # the parameters are from syfy.com, other sites may use others
-                'url': f4m_node.attrib['src'] + '?g=UXWGVKRWHFSP&hdcore=3.0.3',
+                'url': f4m_url,
             }]
         else:
             base_url = head.find(_x('smil:meta')).attrib['base']
@@ -95,9 +100,10 @@ class ThePlatformIE(InfoExtractor):
         if mobj.group('config'):
             config_url = url+ '&form=json'
             config_url = config_url.replace('swf/', 'config/')
+            config_url = config_url.replace('onsite/', 'onsite/config/')
             config_json = self._download_webpage(config_url, video_id, u'Downloading config')
             config = json.loads(config_json)
-            smil_url = config['releaseUrl'] + '&format=SMIL&formats=MPEG4'
+            smil_url = config['releaseUrl'] + '&format=SMIL&formats=MPEG4&manifest=f4m'
         else:
             smil_url = ('http://link.theplatform.com/s/dJ5BDC/{0}/meta.smil?'
                 'format=smil&mbr=true'.format(video_id))
