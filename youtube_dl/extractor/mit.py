@@ -8,6 +8,7 @@ from .youtube import YoutubeIE
 from ..utils import (
     compat_urlparse,
     clean_html,
+    ExtractorError,
     get_element_by_id,
 )
 
