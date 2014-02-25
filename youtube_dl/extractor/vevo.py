@@ -24,15 +24,28 @@ class VevoIE(InfoExtractor):
         (?P<id>[^&?#]+)'''
     _TESTS = [{
         'url': 'http://www.vevo.com/watch/hurts/somebody-to-die-for/GB1101300280',
-        'file': 'GB1101300280.mp4',
         "md5": "06bea460acb744eab74a9d7dcb4bfd61",
         'info_dict': {
+            'id': 'GB1101300280',
+            'ext': 'mp4',
             "upload_date": "20130624",
             "uploader": "Hurts",
             "title": "Somebody to Die For",
             "duration": 230.12,
             "width": 1920,
             "height": 1080,
+        }
+    }, {
+        'note': 'v3 SMIL format',
+        'url': 'http://www.vevo.com/watch/cassadee-pope/i-wish-i-could-break-your-heart/USUV71302923',
+        'md5': '893ec0e0d4426a1d96c01de8f2bdff58',
+        'info_dict': {
+            'id': 'USUV71302923',
+            'ext': 'mp4',
+            'upload_date': '20140219',
+            'uploader': 'Cassadee Pope',
+            'title': 'I Wish I Could Break Your Heart',
+            'duration': 226.101,
         }
     }]
     _SMIL_BASE_URL = 'http://smil.lvl3.vevo.com/'
@@ -105,9 +118,23 @@ class VevoIE(InfoExtractor):
         video_info = self._download_json(json_url, video_id)['video']
 
         formats = self._formats_from_json(video_info)
+
+        # Download SMIL
+        smil_blocks = sorted((
+            f for f in video_info['videoVersions']
+            if f['sourceType'] == 13),
+            key=lambda f: f['version'])
+
+        smil_url = '%s/Video/V2/VFILE/%s/%sr.smil' % (
+            self._SMIL_BASE_URL, video_id, video_id.lower())
+        if smil_blocks:
+            smil_url_m = self._search_regex(
+                r'url="([^"]+)"', smil_blocks[-1]['data'], 'SMIL URL',
+                fatal=False)
+            if smil_url_m is not None:
+                smil_url = smil_url_m
+
         try:
-            smil_url = '%s/Video/V2/VFILE/%s/%sr.smil' % (
-                self._SMIL_BASE_URL, video_id, video_id.lower())
             smil_xml = self._download_webpage(smil_url, video_id,
                                               'Downloading SMIL info')
             formats.extend(self._formats_from_smil(smil_xml))
