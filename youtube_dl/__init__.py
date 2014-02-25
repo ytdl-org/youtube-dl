@@ -71,6 +71,7 @@ from .utils import (
     get_cachedir,
     MaxDownloadsReached,
     preferredencoding,
+    read_batch_urls,
     SameFileError,
     setproctitle,
     std_headers,
@@ -552,21 +553,19 @@ def _real_main(argv=None):
         sys.exit(0)
 
     # Batch file verification
-    batchurls = []
+    batch_urls = []
     if opts.batchfile is not None:
         try:
             if opts.batchfile == '-':
                 batchfd = sys.stdin
             else:
-                batchfd = open(opts.batchfile, 'r')
-            batchurls = batchfd.readlines()
-            batchurls = [x.strip() for x in batchurls]
-            batchurls = [x for x in batchurls if len(x) > 0 and not re.search(r'^[#/;]', x)]
+                batchfd = io.open(opts.batchfile, 'r', encoding='utf-8', errors='ignore')
+            batch_urls = read_batch_urls(batchfd)
             if opts.verbose:
-                write_string(u'[debug] Batch file urls: ' + repr(batchurls) + u'\n')
+                write_string(u'[debug] Batch file urls: ' + repr(batch_urls) + u'\n')
         except IOError:
             sys.exit(u'ERROR: batch file could not be read')
-    all_urls = batchurls + args
+    all_urls = batch_urls + args
     all_urls = [url.strip() for url in all_urls]
     _enc = preferredencoding()
     all_urls = [url.decode(_enc, 'ignore') if isinstance(url, bytes) else url for url in all_urls]
