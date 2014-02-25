@@ -39,6 +39,8 @@ class TestURLIE(InfoExtractor):
                     ('Found multiple matching extractors: %s' %
                         ' '.join(ie.IE_NAME for ie in matching_extractors)),
                     expected=True)
+        else:
+            extractor = matching_extractors[0]
 
         num_str = mobj.group('num')
         num = int(num_str) if num_str else 0
