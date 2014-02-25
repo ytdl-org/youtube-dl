@@ -53,6 +53,7 @@ __license__ = 'Public Domain'
 
 import codecs
 import getpass
+import io
 import locale
 import optparse
 import os
