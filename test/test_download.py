@@ -73,9 +73,7 @@ def generator(test_case):
         if 'playlist' not in test_case:
             info_dict = test_case.get('info_dict', {})
             if not test_case.get('file') and not (info_dict.get('id') and info_dict.get('ext')):
-                print_skipping('The output file cannot be know, the "file" '
-                    'key is missing or the info_dict is incomplete')
-                return
+                raise Exception('Test definition incorrect. The output file cannot be known. Are both \'id\' and \'ext\' keys present?')
         if 'skip' in test_case:
             print_skipping(test_case['skip'])
             return
