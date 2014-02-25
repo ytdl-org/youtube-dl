@@ -166,7 +166,7 @@ class CrunchyrollIE(InfoExtractor):
             data = base64.b64decode(data)
 
             subtitle = self._decrypt_subtitles(data, iv, id).decode('utf-8')
-            lang_code = self._search_regex(r'lang_code=\'([^\']+)', subtitle, 'subtitle_lang_code', fatal=False)
+            lang_code = self._search_regex(r'lang_code=["\']([^"\']+)', subtitle, 'subtitle_lang_code', fatal=False)
             if not lang_code:
                 continue
             subtitles[lang_code] = self._convert_subtitles_to_srt(subtitle)
