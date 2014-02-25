@@ -46,6 +46,21 @@ class VevoIE(InfoExtractor):
             'uploader': 'Cassadee Pope',
             'title': 'I Wish I Could Break Your Heart',
             'duration': 226.101,
+            'age_limit': 0,
+        }
+    }, {
+        'note': 'Age-limited video',
+        'url': 'https://www.vevo.com/watch/justin-timberlake/tunnel-vision-explicit/USRV81300282',
+        'info_dict': {
+            'id': 'USRV81300282',
+            'ext': 'mp4',
+            'age_limit': 18,
+            'title': 'Tunnel Vision (Explicit)',
+            'uploader': 'Justin Timberlake',
+            'upload_date': '20130704',
+        },
+        'params': {
+            'skip_download': 'true',
         }
     }]
     _SMIL_BASE_URL = 'http://smil.lvl3.vevo.com/'
@@ -119,6 +134,14 @@ class VevoIE(InfoExtractor):
 
         formats = self._formats_from_json(video_info)
 
+        is_explicit = video_info.get('isExplicit')
+        if is_explicit is True:
+            age_limit = 18
+        elif is_explicit is False:
+            age_limit = 0
+        else:
+            age_limit = None
+
         # Download SMIL
         smil_blocks = sorted((
             f for f in video_info['videoVersions']
@@ -155,4 +178,5 @@ class VevoIE(InfoExtractor):
             'upload_date': upload_date.strftime('%Y%m%d'),
             'uploader': video_info['mainArtists'][0]['artistName'],
             'duration': video_info['duration'],
+            'age_limit': age_limit,
         }
