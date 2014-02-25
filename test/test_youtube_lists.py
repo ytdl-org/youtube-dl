@@ -118,6 +118,8 @@ class TestYoutubeLists(unittest.TestCase):
         self.assertEqual(original_video['id'], 'rjFaenf1T-Y')
 
     def test_youtube_toptracks(self):
+        print('Skipping: The playlist page gives error 500')
+        return
         dl = FakeYDL()
         ie = YoutubePlaylistIE(dl)
         result = ie.extract('https://www.youtube.com/playlist?list=MCUS')
