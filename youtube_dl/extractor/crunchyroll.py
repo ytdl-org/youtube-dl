@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import re
+import json
 import base64
 import zlib
 
@@ -112,6 +113,12 @@ class CrunchyrollIE(InfoExtractor):
         note_m = self._html_search_regex(r'<div class="showmedia-trailer-notice">(.+?)</div>', webpage, 'trailer-notice', default='')
         if note_m:
             raise ExtractorError(note_m)
+
+        mobj = re.search(r'Page\.messaging_box_controller\.addItems\(\[(?P<msg>{.+?})\]\)', webpage)
+        if mobj:
+            msg = json.loads(mobj.group('msg'))
+            if msg.get('type') == 'error':
+                raise ExtractorError('crunchyroll returned error: %s' % msg['message_body'], expected=True)
 
         video_title = self._html_search_regex(r'<h1[^>]*>(.+?)</h1>', webpage, 'video_title', flags=re.DOTALL)
         video_title = re.sub(r' {2,}', ' ', video_title)
