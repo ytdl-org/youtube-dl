@@ -86,9 +86,8 @@ class CrunchyrollIE(InfoExtractor):
         return zlib.decompress(decrypted_data)
 
     def _convert_subtitles_to_srt(self, subtitles):
-        i = 1
         output = ''
-        for start, end, text in re.findall(r'<event [^>]*?start="([^"]+)" [^>]*?end="([^"]+)" [^>]*?text="([^"]+)"[^>]*?>', subtitles):
+        for i, (start, end, text) in enumerate(re.findall(r'<event [^>]*?start="([^"]+)" [^>]*?end="([^"]+)" [^>]*?text="([^"]+)"[^>]*?>', subtitles), 1):
             start = start.replace('.', ',')
             end = end.replace('.', ',')
             text = clean_html(text)
@@ -96,7 +95,6 @@ class CrunchyrollIE(InfoExtractor):
             if not text:
                 continue
             output += '%d\n%s --> %s\n%s\n\n' % (i, start, end, text)
-            i += 1
         return output
 
     def _real_extract(self,url):
