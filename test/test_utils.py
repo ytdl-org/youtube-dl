@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 # Various small unit tests
+import io
 import xml.etree.ElementTree
 
 #from youtube_dl.utils import htmlentity_transform
@@ -21,6 +22,7 @@ from youtube_dl.utils import (
     orderedSet,
     PagedList,
     parse_duration,
+    read_batch_urls,
     sanitize_filename,
     shell_quote,
     smuggle_url,
@@ -249,6 +251,15 @@ class TestUtil(unittest.TestCase):
 
     def test_struct_unpack(self):
         self.assertEqual(struct_unpack(u'!B', b'\x00'), (0,))
+
+    def test_read_batch_urls(self):
+        f = io.StringIO(u'''\xef\xbb\xbf foo
+            bar\r
+            baz
+            # More after this line\r
+            ; or after this
+            bam''')
+        self.assertEqual(read_batch_urls(f), [u'foo', u'bar', u'baz', u'bam'])
 
 if __name__ == '__main__':
     unittest.main()

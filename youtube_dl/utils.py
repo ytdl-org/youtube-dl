@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import contextlib
 import ctypes
 import datetime
 import email.utils
@@ -173,6 +174,11 @@ try:
     compat_chr = unichr # Python 2
 except NameError:
     compat_chr = chr
+
+try:
+    from xml.etree.ElementTree import ParseError as compat_xml_parse_error
+except ImportError:  # Python 2.6
+    from xml.parsers.expat import ExpatError as compat_xml_parse_error
 
 def compat_ord(c):
     if type(c) is int: return c
@@ -774,6 +780,7 @@ def unified_strdate(date_str):
         '%Y-%m-%dT%H:%M:%S.%fZ',
         '%Y-%m-%dT%H:%M:%S.%f0Z',
         '%Y-%m-%dT%H:%M:%S',
+        '%Y-%m-%dT%H:%M:%S.%f',
         '%Y-%m-%dT%H:%M',
     ]
     for expression in format_expressions:
@@ -1239,3 +1246,19 @@ except TypeError:
 else:
     struct_pack = struct.pack
     struct_unpack = struct.unpack
+
+
+def read_batch_urls(batch_fd):
+    def fixup(url):
+        if not isinstance(url, compat_str):
+            url = url.decode('utf-8', 'replace')
+        BOM_UTF8 = u'\xef\xbb\xbf'
+        if url.startswith(BOM_UTF8):
+            url = url[len(BOM_UTF8):]
+        url = url.strip()
+        if url.startswith(('#', ';', ']')):
+            return False
+        return url
+
+    with contextlib.closing(batch_fd) as fd:
+        return [url for url in map(fixup, fd) if url]

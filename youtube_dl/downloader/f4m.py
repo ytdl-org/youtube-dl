@@ -12,7 +12,6 @@ from .http import HttpFD
 from ..utils import (
     struct_pack,
     struct_unpack,
-    compat_urllib_request,
     compat_urlparse,
     format_bytes,
     encodeFilename,
@@ -117,8 +116,8 @@ class FlvReader(io.BytesIO):
         self.read_unsigned_char()
         # flags
         self.read(3)
-        # BootstrapinfoVersion
-        bootstrap_info_version = self.read_unsigned_int()
+
+        self.read_unsigned_int()  # BootstrapinfoVersion
         # Profile,Live,Update,Reserved
         self.read(1)
         # time scale
@@ -127,15 +126,15 @@ class FlvReader(io.BytesIO):
         self.read_unsigned_long_long()
         # SmpteTimeCodeOffset
         self.read_unsigned_long_long()
-        # MovieIdentifier
-        movie_identifier = self.read_string()
+
+        self.read_string()  # MovieIdentifier
         server_count = self.read_unsigned_char()
         # ServerEntryTable
         for i in range(server_count):
             self.read_string()
         quality_count = self.read_unsigned_char()
         # QualityEntryTable
-        for i in range(server_count):
+        for i in range(quality_count):
             self.read_string()
         # DrmData
         self.read_string()

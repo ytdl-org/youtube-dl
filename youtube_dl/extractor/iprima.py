@@ -10,7 +10,7 @@ from ..utils import compat_urllib_request
 
 
 class IPrimaIE(InfoExtractor):
-    _VALID_URL = r'https?://play\.iprima\.cz/(?P<videogroup>.+)/(?P<videoid>.+)'
+    _VALID_URL = r'https?://play\.iprima\.cz/[^?#]+/(?P<id>[^?#]+)'
 
     _TESTS = [{
         'url': 'http://play.iprima.cz/particka/particka-92',
@@ -22,20 +22,32 @@ class IPrimaIE(InfoExtractor):
             'thumbnail': 'http://play.iprima.cz/sites/default/files/image_crops/image_620x349/3/491483_particka-92_image_620x349.jpg',
         },
         'params': {
-            'skip_download': True,
+            'skip_download': True,  # requires rtmpdump
         },
-    },
-    ]
+    }, {
+        'url': 'http://play.iprima.cz/particka/tchibo-particka-jarni-moda',
+        'info_dict': {
+            'id': '9718337',
+            'ext': 'flv',
+            'title': 'Tchibo Partička - Jarní móda',
+            'description': 'md5:589f8f59f414220621ff8882eb3ce7be',
+            'thumbnail': 're:^http:.*\.jpg$',
+        },
+        'params': {
+            'skip_download': True,  # requires rtmpdump
+        },
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('videoid')
+        video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id)
 
-        player_url = 'http://embed.livebox.cz/iprimaplay/player-embed-v2.js?__tok%s__=%s' % (
-                         floor(random()*1073741824),
-                         floor(random()*1073741824))
+        player_url = (
+            'http://embed.livebox.cz/iprimaplay/player-embed-v2.js?__tok%s__=%s' %
+            (floor(random()*1073741824), floor(random()*1073741824))
+        )
 
         req = compat_urllib_request.Request(player_url)
         req.add_header('Referer', url)
@@ -44,18 +56,20 @@ class IPrimaIE(InfoExtractor):
         base_url = ''.join(re.findall(r"embed\['stream'\] = '(.+?)'.+'(\?auth=)'.+'(.+?)';", playerpage)[1])
 
         zoneGEO = self._html_search_regex(r'"zoneGEO":(.+?),', webpage, 'zoneGEO')
-
         if zoneGEO != '0':
-            base_url = base_url.replace('token', 'token_'+zoneGEO)
+            base_url = base_url.replace('token', 'token_' + zoneGEO)
 
         formats = []
         for format_id in ['lq', 'hq', 'hd']:
-            filename = self._html_search_regex(r'"%s_id":(.+?),' % format_id, webpage, 'filename')
+            filename = self._html_search_regex(
+                r'"%s_id":(.+?),' % format_id, webpage, 'filename')
 
             if filename == 'null':
                 continue
 
-            real_id = self._search_regex(r'Prima-[0-9]{10}-([0-9]+)_', filename, 'real video id')
+            real_id = self._search_regex(
+                r'Prima-(?:[0-9]{10}|WEB)-([0-9]+)[-_]',
+                filename, 'real video id')
 
             if format_id == 'lq':
                 quality = 0
@@ -63,13 +77,13 @@ class IPrimaIE(InfoExtractor):
                 quality = 1
             elif format_id == 'hd':
                 quality = 2
-                filename = 'hq/'+filename
+                filename = 'hq/' + filename
 
             formats.append({
                 'format_id': format_id,
                 'url': base_url,
                 'quality': quality,
-                'play_path': 'mp4:'+filename.replace('"', '')[:-4],
+                'play_path': 'mp4:' + filename.replace('"', '')[:-4],
                 'rtmp_live': True,
                 'ext': 'flv',
             })

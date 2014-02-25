@@ -19,6 +19,7 @@ from .bbccouk import BBCCoUkIE
 from .blinkx import BlinkxIE
 from .bliptv import BlipTVIE, BlipTVUserIE
 from .bloomberg import BloombergIE
+from .br import BRIE
 from .breakcom import BreakIE
 from .brightcove import BrightcoveIE
 from .c56 import C56IE
@@ -160,7 +161,7 @@ from .nhl import NHLIE, NHLVideocenterIE
 from .niconico import NiconicoIE
 from .ninegag import NineGagIE
 from .normalboots import NormalbootsIE
-from .novamov import NovamovIE
+from .novamov import NovaMovIE
 from .nowness import NownessIE
 from .nowvideo import NowVideoIE
 from .ooyala import OoyalaIE
@@ -186,6 +187,7 @@ from .rutube import (
     RutubeMovieIE,
     RutubePersonIE,
 )
+from .savefrom import SaveFromIE
 from .servingsys import ServingSysIE
 from .sina import SinaIE
 from .slashdot import SlashdotIE
@@ -224,6 +226,7 @@ from .tinypic import TinyPicIE
 from .toutv import TouTvIE
 from .traileraddict import TrailerAddictIE
 from .trilulilu import TriluliluIE
+from .trutube import TruTubeIE
 from .tube8 import Tube8IE
 from .tudou import TudouIE
 from .tumblr import TumblrIE
@@ -238,6 +241,7 @@ from .vesti import VestiIE
 from .vevo import VevoIE
 from .vice import ViceIE
 from .viddler import ViddlerIE
+from .videobam import VideoBamIE
 from .videodetective import VideoDetectiveIE
 from .videofyme import VideofyMeIE
 from .videopremium import VideoPremiumIE

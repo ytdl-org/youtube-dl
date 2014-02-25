@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class AcademicEarthCourseIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:www\.)?academicearth\.org/(?:courses|playlists)/(?P<id>[^?#/]+)'
+    _VALID_URL = r'^https?://(?:www\.)?academicearth\.org/playlists/(?P<id>[^?#/]+)'
     IE_NAME = 'AcademicEarth:Course'
 
     def _real_extract(self, url):
@@ -14,12 +14,12 @@ class AcademicEarthCourseIE(InfoExtractor):
 
         webpage = self._download_webpage(url, playlist_id)
         title = self._html_search_regex(
-            r'<h1 class="playlist-name">(.*?)</h1>', webpage, u'title')
+            r'<h1 class="playlist-name"[^>]*?>(.*?)</h1>', webpage, u'title')
         description = self._html_search_regex(
-            r'<p class="excerpt">(.*?)</p>',
+            r'<p class="excerpt"[^>]*?>(.*?)</p>',
             webpage, u'description', fatal=False)
         urls = re.findall(
-            r'<h3 class="lecture-title"><a target="_blank" href="([^"]+)">',
+            r'<li class="lecture-preview">\s*?<a target="_blank" href="([^"]+)">',
             webpage)
         entries = [self.url_result(u) for u in urls]
 

@@ -29,7 +29,6 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     PagedList,
-    RegexNotFoundError,
     unescapeHTML,
     unified_strdate,
     orderedSet,
@@ -295,6 +294,23 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             u"params": {
                 u"youtube_include_dash_manifest": True,
                 u"format": "141",
+            },
+        },
+        # DASH manifest with encrypted signature
+        {
+            u'url': u'https://www.youtube.com/watch?v=IB3lcPjvWLA',
+            u'info_dict': {
+                u'id': u'IB3lcPjvWLA',
+                u'ext': u'm4a',
+                u'title': u'Afrojack - The Spark ft. Spree Wilson',
+                u'description': u'md5:3199ed45ee8836572865580804d7ac0f',
+                u'uploader': u'AfrojackVEVO',
+                u'uploader_id': u'AfrojackVEVO',
+                u'upload_date': u'20131011',
+            },
+            u"params": {
+                u'youtube_include_dash_manifest': True,
+                u'format': '141',
             },
         },
     ]
@@ -1272,8 +1288,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             mobj = re.search(r';ytplayer.config = ({.*?});', video_webpage)
             if not mobj:
                 raise ValueError('Could not find vevo ID')
-            info = json.loads(mobj.group(1))
-            args = info['args']
+            ytplayer_config = json.loads(mobj.group(1))
+            args = ytplayer_config['args']
             # Easy way to know if the 's' value is in url_encoded_fmt_stream_map
             # this signatures are encrypted
             if 'url_encoded_fmt_stream_map' not in args:
@@ -1366,12 +1382,24 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             raise ExtractorError(u'no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
 
         # Look for the DASH manifest
-        dash_manifest_url_lst = video_info.get('dashmpd')
-        if (dash_manifest_url_lst and dash_manifest_url_lst[0] and
-                self._downloader.params.get('youtube_include_dash_manifest', False)):
+        if (self._downloader.params.get('youtube_include_dash_manifest', False)):
             try:
+                # The DASH manifest used needs to be the one from the original video_webpage.
+                # The one found in get_video_info seems to be using different signatures.
+                # However, in the case of an age restriction there won't be any embedded dashmpd in the video_webpage.
+                # Luckily, it seems, this case uses some kind of default signature (len == 86), so the
+                # combination of get_video_info and the _static_decrypt_signature() decryption fallback will work here.
+                if age_gate:
+                    dash_manifest_url = video_info.get('dashmpd')[0]
+                else:
+                    dash_manifest_url = ytplayer_config['args']['dashmpd']
+                def decrypt_sig(mobj):
+                    s = mobj.group(1)
+                    dec_s = self._decrypt_signature(s, video_id, player_url, age_gate)
+                    return '/signature/%s' % dec_s
+                dash_manifest_url = re.sub(r'/s/([\w\.]+)', decrypt_sig, dash_manifest_url)
                 dash_doc = self._download_xml(
-                    dash_manifest_url_lst[0], video_id,
+                    dash_manifest_url, video_id,
                     note=u'Downloading DASH manifest',
                     errnote=u'Could not download DASH manifest')
                 for r in dash_doc.findall(u'.//{urn:mpeg:DASH:schema:MPD:2011}Representation'):
@@ -1443,9 +1471,9 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                      |
                         ((?:PL|EC|UU|FL|RD)[0-9A-Za-z-_]{10,})
                      )"""
-    _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s&page=%s'
+    _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s'
     _MORE_PAGES_INDICATOR = r'data-link-type="next"'
-    _VIDEO_RE = r'href="/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)'
+    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)'
     IE_NAME = u'youtube:playlist'
 
     def _real_initialize(self):
@@ -1460,11 +1488,15 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         # the id of the playlist is just 'RD' + video_id
         url = 'https://youtube.com/watch?v=%s&list=%s' % (playlist_id[-11:], playlist_id)
         webpage = self._download_webpage(url, playlist_id, u'Downloading Youtube mix')
-        title_span = (get_element_by_attribute('class', 'title long-title', webpage) or
-            get_element_by_attribute('class', 'title ', webpage))
+        search_title = lambda class_name: get_element_by_attribute('class', class_name, webpage)
+        title_span = (search_title('playlist-title') or
+            search_title('title long-title') or search_title('title'))
         title = clean_html(title_span)
-        video_re = r'data-index="\d+".*?href="/watch\?v=([0-9A-Za-z_-]{11})&amp;[^"]*?list=%s' % re.escape(playlist_id)
-        ids = orderedSet(re.findall(video_re, webpage))
+        video_re = r'''(?x)data-video-username="(.*?)".*?
+                       href="/watch\?v=([0-9A-Za-z_-]{11})&amp;[^"]*?list=%s''' % re.escape(playlist_id)
+        matches = orderedSet(re.findall(video_re, webpage, flags=re.DOTALL))
+        # Some of the videos may have been deleted, their username field is empty
+        ids = [video_id for (username, video_id) in matches if username]
         url_results = self._ids_to_results(ids)
 
         return self.playlist_result(url_results, playlist_id, title)
@@ -1493,29 +1525,31 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
             raise ExtractorError(u'For downloading YouTube.com top lists, use '
                 u'the "yttoplist" keyword, for example "youtube-dl \'yttoplist:music:Top Tracks\'"', expected=True)
 
+        url = self._TEMPLATE_URL % playlist_id
+        page = self._download_webpage(url, playlist_id)
+        more_widget_html = content_html = page
+
         # Extract the video ids from the playlist pages
         ids = []
 
         for page_num in itertools.count(1):
-            url = self._TEMPLATE_URL % (playlist_id, page_num)
-            page = self._download_webpage(url, playlist_id, u'Downloading page #%s' % page_num)
-            matches = re.finditer(self._VIDEO_RE, page)
+            matches = re.finditer(self._VIDEO_RE, content_html)
             # We remove the duplicates and the link with index 0
             # (it's not the first video of the playlist)
             new_ids = orderedSet(m.group('id') for m in matches if m.group('index') != '0')
             ids.extend(new_ids)
 
-            if re.search(self._MORE_PAGES_INDICATOR, page) is None:
+            mobj = re.search(r'data-uix-load-more-href="/?(?P<more>[^"]+)"', more_widget_html)
+            if not mobj:
                 break
 
-        try:
-            playlist_title = self._og_search_title(page)
-        except RegexNotFoundError:
-            self.report_warning(
-                u'Playlist page is missing OpenGraph title, falling back ...',
-                playlist_id)
-            playlist_title = self._html_search_regex(
-                r'<h1 class="pl-header-title">(.*?)</h1>', page, u'title')
+            more = self._download_json(
+                'https://youtube.com/%s' % mobj.group('more'), playlist_id, 'Downloading page #%s' % page_num)
+            content_html = more['content_html']
+            more_widget_html = more['load_more_widget_html']
+
+        playlist_title = self._html_search_regex(
+                r'<h1 class="pl-header-title">\s*(.*?)\s*</h1>', page, u'title')
 
         url_results = self._ids_to_results(ids)
         return self.playlist_result(url_results, playlist_id, playlist_title)

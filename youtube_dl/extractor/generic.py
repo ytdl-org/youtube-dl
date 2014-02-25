@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import os
 import re
+import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from .youtube import YoutubeIE
@@ -12,6 +13,7 @@ from ..utils import (
     compat_urllib_parse,
     compat_urllib_request,
     compat_urlparse,
+    compat_xml_parse_error,
 
     ExtractorError,
     HEADRequest,
@@ -159,6 +161,25 @@ class GenericIE(InfoExtractor):
             raise ExtractorError('Invalid URL protocol')
         return response
 
+    def _extract_rss(self, url, video_id, doc):
+        playlist_title = doc.find('./channel/title').text
+        playlist_desc_el = doc.find('./channel/description')
+        playlist_desc = None if playlist_desc_el is None else playlist_desc_el.text
+
+        entries = [{
+            '_type': 'url',
+            'url': e.find('link').text,
+            'title': e.find('title').text,
+        } for e in doc.findall('./channel/item')]
+
+        return {
+            '_type': 'playlist',
+            'id': url,
+            'title': playlist_title,
+            'description': playlist_desc,
+            'entries': entries,
+        }
+
     def _real_extract(self, url):
         parsed_url = compat_urlparse.urlparse(url)
         if not parsed_url.scheme:
@@ -218,6 +239,14 @@ class GenericIE(InfoExtractor):
             raise ExtractorError('Failed to download URL: %s' % url)
 
         self.report_extraction(video_id)
+
+        # Is it an RSS feed?
+        try:
+            doc = xml.etree.ElementTree.fromstring(webpage.encode('utf-8'))
+            if doc.tag == 'rss':
+                return self._extract_rss(url, video_id, doc)
+        except compat_xml_parse_error:
+            pass
 
         # it's tempting to parse this further, but you would
         # have to take into account all the variations like
@@ -334,11 +363,17 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group(1), 'Mpora')
 
-        # Look for embedded Novamov player
+        # Look for embedded NovaMov player
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>http://(?:(?:embed|www)\.)?novamov\.com/embed\.php.+?)\1', webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Novamov')
+            return self.url_result(mobj.group('url'), 'NovaMov')
+
+        # Look for embedded NowVideo player
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>http://(?:(?:embed|www)\.)?nowvideo\.(?:ch|sx|eu)/embed\.php.+?)\1', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'NowVideo')
 
         # Look for embedded Facebook player
         mobj = re.search(

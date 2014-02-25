@@ -20,7 +20,7 @@ which means you can modify it, redistribute it or use it however you like.
                                      sure that you have sufficient permissions
                                      (run with sudo if needed)
     -i, --ignore-errors              continue on download errors, for example to
-                                     to skip unavailable videos in a playlist
+                                     skip unavailable videos in a playlist
     --abort-on-error                 Abort downloading of further videos (in the
                                      playlist or the command line) if an error
                                      occurs
@@ -246,7 +246,7 @@ which means you can modify it, redistribute it or use it however you like.
 
 # CONFIGURATION
 
-You can configure youtube-dl by placing default arguments (such as `--extract-audio --no-mtime` to always extract the audio and not copy the mtime) into `/etc/youtube-dl.conf` and/or `~/.config/youtube-dl.conf`. On Windows, the configuration file locations are `%APPDATA%\youtube-dl\config.txt` and `C:\Users\<Yourname>\youtube-dl.conf`.
+You can configure youtube-dl by placing default arguments (such as `--extract-audio --no-mtime` to always extract the audio and not copy the mtime) into `/etc/youtube-dl.conf` and/or `~/.config/youtube-dl/config`. On Windows, the configuration file locations are `%APPDATA%\youtube-dl\config.txt` and `C:\Users\<Yourname>\youtube-dl.conf`.
 
 # OUTPUT TEMPLATE
 
@@ -357,7 +357,7 @@ If you want to create a build of youtube-dl yourself, you'll need
 
 ### Adding support for a new site
 
-If you want to add support for a new site, copy *any* [recently modified](https://github.com/rg3/youtube-dl/commits/master/youtube_dl/extractor) file in `youtube_dl/extractor`, add an import in [`youtube_dl/extractor/__init__.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/__init__.py). Have a look at [`youtube_dl/common/extractor/common.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py) for possible helper methods and a [detailed description of what your extractor should return](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L38). Don't forget to run the tests with `python test/test_download.py Test_Download.test_YourExtractor`! For a detailed tutorial, refer to [this blog post](http://filippo.io/add-support-for-a-new-video-site-to-youtube-dl/).
+If you want to add support for a new site, copy *any* [recently modified](https://github.com/rg3/youtube-dl/commits/master/youtube_dl/extractor) file in `youtube_dl/extractor`, add an import in [`youtube_dl/extractor/__init__.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/__init__.py). Have a look at [`youtube_dl/common/extractor/common.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py) for possible helper methods and a [detailed description of what your extractor should return](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L38). Don't forget to run the tests with `python test/test_download.py TestDownload.test_YourExtractor`! For a detailed tutorial, refer to [this blog post](http://filippo.io/add-support-for-a-new-video-site-to-youtube-dl/).
 
 # BUGS
 
