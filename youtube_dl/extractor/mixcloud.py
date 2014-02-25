@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class MixcloudIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/([\w\d-]+)/([\w\d-]+)'
+    _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/([^/]+)/([^/]+)'
     IE_NAME = 'mixcloud'
 
     _TEST = {
