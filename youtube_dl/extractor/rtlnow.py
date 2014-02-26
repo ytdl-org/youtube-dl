@@ -123,14 +123,16 @@ class RTLnowIE(InfoExtractor):
 
         upload_date = unified_strdate(self._html_search_meta('uploadDate', webpage, 'upload date'))
 
+        mobj = re.search(r'<meta itemprop="duration" content="PT(?P<seconds>\d+)S" />', webpage)
+        duration = int(mobj.group('seconds')) if mobj else None
+
         playerdata_url = self._html_search_regex(
             r"'playerdata': '(?P<playerdata_url>[^']+)'", webpage, 'playerdata_url')
 
         playerdata = self._download_xml(playerdata_url, video_id, 'Downloading player data XML')
 
         videoinfo = playerdata.find('./playlist/videoinfo')
-        duration = parse_duration(videoinfo.find('duration').text)
-
+        
         formats = []
         for filename in videoinfo.findall('filename'):
             mobj = re.search(r'(?P<url>rtmpe://(?:[^/]+/){2})(?P<play_path>.+)', filename.text)
