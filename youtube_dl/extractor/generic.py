@@ -102,6 +102,14 @@ class GenericIE(InfoExtractor):
                 'title': '2cc213299525360.mov',  # that's what we get
             },
         },
+        # embed.ly video
+        {
+            'url': 'http://www.tested.com/science/weird/460206-tested-grinding-coffee-2000-frames-second/',
+            'file': '9ODmcdjQcHQ.mp4',
+            'params': {
+                'skip_download': True,
+            },
+        },
     ]
 
     def report_download_webpage(self, video_id):
