@@ -92,16 +92,15 @@ class RTLnowIE(InfoExtractor):
             },
         },
         {
-            'url': 'http://www.n-tvnow.de/top-gear/episode-1-2013-01-01-00-00-00.php?film_id=124903&player=1&season=10',
+            'url': 'http://www.n-tvnow.de/deluxe-alles-was-spass-macht/thema-ua-luxushotel-fuer-vierbeiner.php?container_id=153819&player=1&season=0',
             'info_dict': {
-                'id': '124903',
+                'id': '153819',
                 'ext': 'flv',
-                'title': 'Top Gear vom 01.01.2013',
-                'description': 'Episode 1',
-                'upload_date': '20130101',
-            },
-            'params': {
-                'skip_download': True,
+                'title': 'Deluxe - Alles was Spaß macht - Thema u.a.: Luxushotel für Vierbeiner',
+                'description': 'md5:c3705e1bb32e1a5b2bcd634fc065c631',
+                'thumbnail': 'http://autoimg.static-fra.de/ntvnow/383157/1500x1500/image2.jpg',
+                'upload_date': '20140221',
+                'duration': 2429,
             },
             'skip': 'Only works from Germany',
         },
