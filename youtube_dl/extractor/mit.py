@@ -73,7 +73,6 @@ class MITIE(TechTVMITIE):
 
     _TEST = {
         'url': 'http://video.mit.edu/watch/the-government-is-profiling-you-13222/',
-        'file': '.mp4',
         'md5': '7db01d5ccc1895fc5010e9c9e13648da',
         'info_dict': {
             'id': '21783',
