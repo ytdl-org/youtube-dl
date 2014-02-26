@@ -8,7 +8,6 @@ from ..utils import (
     ExtractorError,
     clean_html,
     unified_strdate,
-    parse_duration,
     int_or_none,
 )
 
