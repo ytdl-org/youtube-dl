@@ -103,6 +103,7 @@ class XHamsterIE(InfoExtractor):
         }]
 
         if not hd:
+            mrss_url = self._search_regex(r'<link rel="canonical" href="([^"]+)', webpage, 'mrss_url')
             webpage = self._download_webpage(mrss_url + '?hd', video_id, note='Downloading HD webpage')
             if is_hd(webpage):
                 video_url = extract_video_url(webpage)
