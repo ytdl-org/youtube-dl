@@ -175,6 +175,7 @@ from .podomatic import PodomaticIE
 from .pornhd import PornHdIE
 from .pornhub import PornHubIE
 from .pornotube import PornotubeIE
+from .prosiebensat1 import ProSiebenSat1IE
 from .pyvideo import PyvideoIE
 from .radiofrance import RadioFranceIE
 from .rbmaradio import RBMARadioIE
