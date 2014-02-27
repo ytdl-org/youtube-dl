@@ -32,7 +32,7 @@ class LifeNewsIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        webpage = self._download_webpage('http://lifenews.ru/mobile/news/%s' % video_id, video_id, 'Downloading page')
+        webpage = self._download_webpage('http://lifenews.ru/news/%s' % video_id, video_id, 'Downloading page')
 
         video_url = self._html_search_regex(
             r'<video.*?src="([^"]+)".*?></video>', webpage, 'video URL')
@@ -50,7 +50,7 @@ class LifeNewsIE(InfoExtractor):
         view_count = self._html_search_regex(
             r'<div class=\'views\'>(\d+)</div>', webpage, 'view count', fatal=False)
         comment_count = self._html_search_regex(
-            r'<div class=\'comments\'>(\d+)</div>', webpage, 'comment count', fatal=False)
+            r'<div class=\'comments\'>\s*<span class=\'counter\'>(\d+)</span>', webpage, 'comment count', fatal=False)
 
         upload_date = self._html_search_regex(
             r'<time datetime=\'([^\']+)\'>', webpage, 'upload date',fatal=False)
