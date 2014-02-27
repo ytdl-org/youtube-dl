@@ -23,7 +23,6 @@ class GDCVaultIE(InfoExtractor):
         },
         {
             'url': 'http://www.gdcvault.com/play/1015683/Embracing-the-Dark-Art-of',
-            'md5': 'fca91078a90f28aa5164ef6b23b78654',
             'info_dict': {
                 'id': '1015683',
                 'ext': 'flv',
