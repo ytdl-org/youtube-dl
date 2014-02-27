@@ -263,8 +263,9 @@ class ProSiebenSat1IE(InfoExtractor):
             return bitrate / 1000 if bitrate % 1000 == 0 else bitrate
 
         for source in urls_sources:
-            if source['protocol'] == 'rtmp':
-                mobj = re.search(r'^(?P<url>rtmp://[^/]+/(?P<app>[^/]+))/(?P<playpath>.+)$', source['url'])
+            protocol = source['protocol']
+            if protocol == 'rtmp' or protocol == 'rtmpe':
+                mobj = re.search(r'^(?P<url>rtmpe?://[^/]+/(?P<app>[^/]+))/(?P<playpath>.+)$', source['url'])
                 if not mobj:
                     continue
                 formats.append({
