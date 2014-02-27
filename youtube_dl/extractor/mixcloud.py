@@ -5,6 +5,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     unified_strdate,
+    compat_urllib_parse,
     ExtractorError,
 )
 
@@ -15,8 +16,9 @@ class MixcloudIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://www.mixcloud.com/dholbach/cryptkeeper/',
-        'file': 'dholbach-cryptkeeper.mp3',
         'info_dict': {
+            'id': 'dholbach-cryptkeeper',
+            'ext': 'mp3',
             'title': 'Cryptkeeper',
             'description': 'After quite a long silence from myself, finally another Drum\'n\'Bass mix with my favourite current dance floor bangers.',
             'uploader': 'Daniel Holbach',
@@ -45,7 +47,7 @@ class MixcloudIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         uploader = mobj.group(1)
         cloudcast_name = mobj.group(2)
-        track_id = '-'.join((uploader, cloudcast_name))
+        track_id = compat_urllib_parse.unquote('-'.join((uploader, cloudcast_name)))
 
         webpage = self._download_webpage(url, track_id)
 
