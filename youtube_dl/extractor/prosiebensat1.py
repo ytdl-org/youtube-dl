@@ -281,7 +281,7 @@ class ProSiebenSat1IE(InfoExtractor):
             else:
                 formats.append({
                     'url': source['url'],
-                    'vbr': fix_bitrate(sources['bitrate']),
+                    'vbr': fix_bitrate(source['bitrate']),
                 })
 
         self._sort_formats(formats)
