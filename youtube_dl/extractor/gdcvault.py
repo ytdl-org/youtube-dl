@@ -13,21 +13,24 @@ class GDCVaultIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?gdcvault\.com/play/(?P<id>\d+)/(?P<name>(\w|-)+)'
     _TESTS = [
         {
-            u'url': u'http://www.gdcvault.com/play/1019721/Doki-Doki-Universe-Sweet-Simple',
-            u'md5': u'7ce8388f544c88b7ac11c7ab1b593704',
-            u'info_dict': {
-                u"id": u"1019721",
-                u"ext": u"mp4",
-                u"title": u"Doki-Doki Universe: Sweet, Simple and Genuine (GDC Next 10)"
+            'url': 'http://www.gdcvault.com/play/1019721/Doki-Doki-Universe-Sweet-Simple',
+            'md5': '7ce8388f544c88b7ac11c7ab1b593704',
+            'info_dict': {
+                'id': '1019721',
+                'ext': 'mp4',
+                'title': 'Doki-Doki Universe: Sweet, Simple and Genuine (GDC Next 10)'
             }
         },
         {
-            u'url': u'http://www.gdcvault.com/play/1015683/Embracing-the-Dark-Art-of',
-            u'md5': u'fca91078a90f28aa5164ef6b23b78654',
-            u'info_dict': {
-                u"id": u"1015683",
-                u"ext": u"flv",
-                u"title": u"Embracing the Dark Art of Mathematical Modeling in AI"
+            'url': 'http://www.gdcvault.com/play/1015683/Embracing-the-Dark-Art-of',
+            'md5': 'fca91078a90f28aa5164ef6b23b78654',
+            'info_dict': {
+                'id': '1015683',
+                'ext': 'flv',
+                'title': 'Embracing the Dark Art of Mathematical Modeling in AI'
+            },
+            'params' : {
+               'skip_download': True,  # Requires rtmpdump
             }
         },
     ]
@@ -75,7 +78,7 @@ class GDCVaultIE(InfoExtractor):
     def _login(self, webpage_url, video_id):
         (username, password) = self._get_login_info()
         if username is None or password is None:
-            self.report_warning(u'It looks like ' + webpage_url + u' requires a login. Try specifying a username and password and try again.')
+            self.report_warning('It looks like ' + webpage_url + ' requires a login. Try specifying a username and password and try again.')
             return None
 
         mobj = re.match(r'(?P<root_url>https?://.*?/).*', webpage_url)
@@ -108,12 +111,11 @@ class GDCVaultIE(InfoExtractor):
             # Probably need to authenticate
             start_page = self._login(webpage_url, video_id)
             if start_page is None:
-                self.report_warning(u'Could not login.')
+                self.report_warning('Could not login.')
             else:
                 # Grab the url from the authenticated page
                 xml_root = self._html_search_regex(r'<iframe src="(?P<xml_root>.*?)player.html.*?".*?</iframe>', start_page, 'xml root')
 
-        self.report_extraction(video_id)
         xml_name = self._html_search_regex(r'<iframe src=".*?\?xml=(?P<xml_file>.+?\.xml).*?".*?</iframe>', start_page, 'xml filename', None, False)
         if xml_name is None:
             # Fallback to the older format
@@ -123,17 +125,12 @@ class GDCVaultIE(InfoExtractor):
         xml_description = self._download_xml(xml_decription_url, video_id)
 
         video_title = xml_description.find('./metadata/title').text
-        video_details = {
-            'id': video_id,
-            'title': video_title,
-        }
-
         video_formats = self._parse_mp4(xml_description)
         if video_formats is None:
             video_formats = self._parse_flv(xml_description)
 
-        return [{
+        return {
             'id': video_id,
             'title': video_title,
             'formats': video_formats,
-        }]
+        }
