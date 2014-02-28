@@ -16,7 +16,7 @@ from ..utils import (
 
 class VKIE(InfoExtractor):
     IE_NAME = 'vk.com'
-    _VALID_URL = r'https?://vk\.com/(?:videos.*?\?.*?z=)?video(?P<id>.*?)(?:\?|%2F|$)'
+    _VALID_URL = r'https?://vk\.com/(?:video_ext\.php\?.*?\boid=(?P<oid>\d+).*?\bid=(?P<id>\d+)|(?:videos.*?\?.*?z=)?video(?P<videoid>.*?)(?:\?|%2F|$))'
     _NETRC_MACHINE = 'vk'
 
     _TESTS = [
@@ -43,6 +43,18 @@ class VKIE(InfoExtractor):
             }
         },
         {
+            'note': 'Embedded video',
+            'url': 'http://vk.com/video_ext.php?oid=32194266&id=162925554&hash=7d8c2e0d5e05aeaa&hd=1',
+            'md5': 'c7ce8f1f87bec05b3de07fdeafe21a0a',
+            'info_dict': {
+                'id': '162925554',
+                'ext': 'mp4',
+                'uploader': 'Vladimir Gavrin',
+                'title': 'Lin Dan',
+                'duration': 101,
+            }
+        },
+        {
             'url': 'http://vk.com/video-8871596_164049491',
             'md5': 'a590bcaf3d543576c9bd162812387666',
             'note': 'Only available for registered users',
@@ -54,7 +66,7 @@ class VKIE(InfoExtractor):
                 'duration': 8352,
             },
             'skip': 'Requires vk account credentials',
-        }
+        },
     ]
 
     def _login(self):
@@ -82,7 +94,10 @@ class VKIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = mobj.group('videoid')
+
+        if not video_id:
+            video_id = '%s_%s' % (mobj.group('oid'), mobj.group('id'))
 
         info_url = 'http://vk.com/al_video.php?act=show&al=1&video=%s' % video_id
         info_page = self._download_webpage(info_url, video_id)
