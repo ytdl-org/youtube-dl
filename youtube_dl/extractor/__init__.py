@@ -89,6 +89,7 @@ from .funnyordie import FunnyOrDieIE
 from .gamekings import GamekingsIE
 from .gamespot import GameSpotIE
 from .gametrailers import GametrailersIE
+from .gdcvault import GDCVaultIE
 from .generic import GenericIE
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
