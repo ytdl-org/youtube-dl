@@ -6,7 +6,8 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
-    unified_strdate
+    unified_strdate,
+    ExtractorError,
 )
 
 
@@ -34,11 +35,9 @@ class LifeNewsIE(InfoExtractor):
 
         webpage = self._download_webpage('http://lifenews.ru/news/%s' % video_id, video_id, 'Downloading page')
 
-        video_url = self._html_search_regex(
-            r'<video.*?src="([^"]+)".*?></video>', webpage, 'video URL')
-
-        thumbnail = self._html_search_regex(
-            r'<video.*?poster="([^"]+)".*?"></video>', webpage, 'video thumbnail')
+        videos = re.findall(r'<video.*?poster="(?P<poster>[^"]+)".*?src="(?P<video>[^"]+)".*?></video>', webpage)
+        if not videos:
+            raise ExtractorError('No media links available for %s' % video_id)
 
         title = self._og_search_title(webpage)
         TITLE_SUFFIX = ' - Первый по срочным новостям — LIFE | NEWS'
@@ -57,13 +56,19 @@ class LifeNewsIE(InfoExtractor):
         if upload_date is not None:
             upload_date = unified_strdate(upload_date)
 
-        return {
-            'id': video_id,
-            'url': video_url,
-            'thumbnail': thumbnail,
-            'title': title,
-            'description': description,
-            'view_count': int_or_none(view_count),
-            'comment_count': int_or_none(comment_count),
-            'upload_date': upload_date,
-        }
+        def make_entry(video_id, media, video_number=None):
+            return {
+                'id': video_id,
+                'url': media[1],
+                'thumbnail': media[0],
+                'title': title if video_number is None else '%s-video%s' % (title, video_number),
+                'description': description,
+                'view_count': int_or_none(view_count),
+                'comment_count': int_or_none(comment_count),
+                'upload_date': upload_date,
+            }
+
+        if len(videos) == 1:
+            return make_entry(video_id, videos[0])
+        else:
+            return [make_entry(video_id, media, video_number+1) for video_number, media in enumerate(videos)]
