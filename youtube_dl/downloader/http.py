@@ -85,6 +85,7 @@ class HttpFD(FileDownloader):
                         else:
                             # The length does not match, we start the download over
                             self.report_unable_to_resume()
+                            resume_len = 0
                             open_mode = 'wb'
                             break
             # Retry
