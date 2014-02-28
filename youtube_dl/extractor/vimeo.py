@@ -220,7 +220,7 @@ class VimeoIE(SubtitlesInfoExtractor):
 
         # Extract video thumbnail
         video_thumbnail = config["video"].get("thumbnail")
-        if video_thumbnail is None:
+        if video_thumbnail is None and config["video"].get("thumbs"):
             _, video_thumbnail = sorted((int(width), t_url) for (width, t_url) in config["video"]["thumbs"].items())[-1]
 
         # Extract video description
