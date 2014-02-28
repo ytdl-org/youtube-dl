@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -28,8 +27,8 @@ class GDCVaultIE(InfoExtractor):
                 'ext': 'flv',
                 'title': 'Embracing the Dark Art of Mathematical Modeling in AI'
             },
-            'params' : {
-               'skip_download': True,  # Requires rtmpdump
+            'params': {
+                'skip_download': True,  # Requires rtmpdump
             }
         },
     ]
@@ -58,20 +57,20 @@ class GDCVaultIE(InfoExtractor):
         akami_url = xml_description.find('./metadata/akamaiHost').text
         slide_video_path = xml_description.find('./metadata/slideVideo').text
         video_formats.append({
-                'url': 'rtmp://' + akami_url + '/' + slide_video_path,
-                'format_note': 'slide deck video',
-                'quality': -2,
-                'preference': -2,
-                'format_id': 'slides',
-            })
+            'url': 'rtmp://' + akami_url + '/' + slide_video_path,
+            'format_note': 'slide deck video',
+            'quality': -2,
+            'preference': -2,
+            'format_id': 'slides',
+        })
         speaker_video_path = xml_description.find('./metadata/speakerVideo').text
         video_formats.append({
-                'url': 'rtmp://' + akami_url + '/' + speaker_video_path,
-                'format_note': 'speaker video',
-                'quality': -1,
-                'preference': -1,
-                'format_id': 'speaker',
-            })
+            'url': 'rtmp://' + akami_url + '/' + speaker_video_path,
+            'format_note': 'speaker video',
+            'quality': -1,
+            'preference': -1,
+            'format_id': 'speaker',
+        })
         return video_formats
 
     def _login(self, webpage_url, video_id):
@@ -91,9 +90,9 @@ class GDCVaultIE(InfoExtractor):
 
         request = compat_urllib_request.Request(login_url, compat_urllib_parse.urlencode(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        login_content = self._download_webpage(request, video_id, 'Logging in')
+        self._download_webpage(request, video_id, 'Logging in')
         start_page = self._download_webpage(webpage_url, video_id, 'Getting authenticated video page')
-        logout_content = self._download_webpage(logout_url, video_id, 'Logging out')
+        self._download_webpage(logout_url, video_id, 'Logging out')
 
         return start_page
 
