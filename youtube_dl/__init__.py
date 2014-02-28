@@ -48,6 +48,7 @@ __authors__  = (
     'Niklas Laxström',
     'David Triendl',
     'Anthony Weems',
+    'David Wagner',
 )
 
 __license__ = 'Public Domain'
