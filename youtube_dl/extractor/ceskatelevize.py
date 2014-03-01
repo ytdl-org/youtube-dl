@@ -8,7 +8,8 @@ from .common import InfoExtractor
 from ..utils import (
     compat_urllib_request,
     compat_urllib_parse,
-    compat_urllib_parse_urlparse
+    compat_urllib_parse_urlparse,
+    ExtractorError,
 )
 
 
@@ -48,6 +49,10 @@ class CeskaTelevizeIE(InfoExtractor):
         video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id)
+
+        if '<p class="title">Chyba konfigurace prohlížeče.</p>' not in webpage:
+            msg = self._html_search_regex(r'<p class="title">(.+?)</p>', webpage, 'error-message')
+            raise ExtractorError(msg.replace('<br />', ' '))
 
         typ = self._html_search_regex(r'getPlaylistUrl\(\[\{"type":"(.+?)","id":".+?"\}\],', webpage, 'type')
         episode_id = self._html_search_regex(r'getPlaylistUrl\(\[\{"type":".+?","id":"(.+?)"\}\],', webpage, 'episode_id')
