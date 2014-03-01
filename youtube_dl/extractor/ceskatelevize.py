@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
 from ..utils import (
@@ -87,9 +86,9 @@ class CeskaTelevizeIE(InfoExtractor):
         req.add_header('X-Requested-With', 'XMLHttpRequest')
         req.add_header('Referer', url)
 
-        playlistpage = self._download_webpage(req, video_id)
+        playlistpage = self._download_json(req, video_id)
 
-        req = compat_urllib_request.Request(compat_urllib_parse.unquote(json.loads(playlistpage)['url']))
+        req = compat_urllib_request.Request(compat_urllib_parse.unquote(playlistpage['url']))
         req.add_header('Referer', url)
 
         playlist = self._download_xml(req, video_id)
