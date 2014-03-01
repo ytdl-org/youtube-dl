@@ -27,6 +27,7 @@ class CeskaTelevizeIE(InfoExtractor):
         'params': {
             'skip_download': True,  # requires rtmpdump
         },
+        'skip': 'Works only from Czech Republic.',
     }, {
         'url': 'http://www.ceskatelevize.cz/ivysilani/1030584952-tsatsiki-maminka-a-policajt',
         'info_dict': {
@@ -38,6 +39,7 @@ class CeskaTelevizeIE(InfoExtractor):
         'params': {
             'skip_download': True,  # requires rtmpdump
         },
+        'skip': 'Works only from Czech Republic.',
     }]
 
     def _real_extract(self, url):
