@@ -66,5 +66,6 @@ class TvigleIE(InfoExtractor):
             'thumbnail': thumbnail,
             'upload_date': upload_date,
             'like_count': like_count,
+            'age_limit': 18,
             'formats': formats,
         }
