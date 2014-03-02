@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..utils import (
     unified_strdate,
     clean_html,
+    int_or_none,
 )
 
 
@@ -42,7 +43,7 @@ class TvigleIE(InfoExtractor):
             description = clean_html(description)
         thumbnail = video_data.get('img')
         upload_date = unified_strdate(video.get('date'))
-        like_count = video.get('vtp')
+        like_count = int_or_none(video.get('vtp'))
 
         formats = []
         for num, (format_id, format_note) in enumerate([['low_file', 'SQ'], ['file', 'HQ'], ['hd', 'HD 720']]):
