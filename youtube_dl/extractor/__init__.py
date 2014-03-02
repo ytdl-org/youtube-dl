@@ -238,6 +238,7 @@ from .tube8 import Tube8IE
 from .tudou import TudouIE
 from .tumblr import TumblrIE
 from .tutv import TutvIE
+from .tvigle import TvigleIE
 from .tvp import TvpIE
 from .unistra import UnistraIE
 from .ustream import UstreamIE, UstreamChannelIE
