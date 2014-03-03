@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from youtube_dl.utils import ExtractorError
+from ..utils import ExtractorError
 
 
 class TinyPicIE(InfoExtractor):
