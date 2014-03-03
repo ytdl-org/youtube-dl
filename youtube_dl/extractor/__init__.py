@@ -23,6 +23,7 @@ from .br import BRIE
 from .breakcom import BreakIE
 from .brightcove import BrightcoveIE
 from .c56 import C56IE
+from .canal13cl import Canal13cslIE
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
 from .cbs import CBSIE
