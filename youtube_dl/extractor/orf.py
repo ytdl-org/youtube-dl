@@ -8,6 +8,7 @@ from .common import InfoExtractor
 from ..utils import (
     HEADRequest,
     unified_strdate,
+    ExtractorError,
 )
 
 
@@ -35,7 +36,15 @@ class ORFIE(InfoExtractor):
         data_json = self._search_regex(
             r'initializeAdworx\((.+?)\);\n', webpage, 'video info')
         all_data = json.loads(data_json)
-        sdata = all_data[0]['values']['segments']
+
+        def get_segments(all_data):
+            for data in all_data:
+                if data['name'] == 'Tracker::EPISODE_DETAIL_PAGE_OVER_PROGRAM':
+                    return data['values']['segments']
+
+        sdata = get_segments(all_data)
+        if not sdata:
+            raise ExtractorError('Unable to extract segments')
 
         def quality_to_int(s):
             m = re.search('([0-9]+)', s)
