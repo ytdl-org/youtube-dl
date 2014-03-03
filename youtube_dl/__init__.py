@@ -49,6 +49,7 @@ __authors__  = (
     'David Triendl',
     'Anthony Weems',
     'David Wagner',
+    'Juan C. Olivares',
 )
 
 __license__ = 'Public Domain'
