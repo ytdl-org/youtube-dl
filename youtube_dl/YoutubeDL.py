@@ -675,6 +675,9 @@ class YoutubeDL(object):
             info_dict['playlist'] = None
             info_dict['playlist_index'] = None
 
+        if 'display_id' not in info_dict:
+            info_dict['display_id'] = info_dict['id']
+
         # This extractors handle format selection themselves
         if info_dict['extractor'] in ['Youku']:
             if download:

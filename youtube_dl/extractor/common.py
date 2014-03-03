@@ -88,6 +88,10 @@ class InfoExtractor(object):
 
     The following fields are optional:
 
+    display_id      An alternative identifier for the video, not necessarily
+                    unique, but available before title. Typically, id is
+                    something like "4234987", title "Dancing naked mole rats",
+                    and display_id "dancing-naked-mole-rats"
     thumbnails:     A list of dictionaries (with the entries "resolution" and
                     "url") for the varying thumbnails
     thumbnail:      Full URL to a video thumbnail image.
