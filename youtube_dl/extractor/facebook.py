@@ -35,8 +35,8 @@ class FacebookIE(InfoExtractor):
         'info_dict': {
             'id': '120708114770723',
             'ext': 'mp4',
-            u"duration": 279,
-            u"title": u"PEOPLE ARE AWESOME 2013"
+            'duration': 279,
+            'title': 'PEOPLE ARE AWESOME 2013'
         }
     }
 
