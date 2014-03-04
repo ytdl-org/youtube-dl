@@ -14,19 +14,32 @@ from ..utils import (
 class TvigleIE(InfoExtractor):
     IE_NAME = 'tvigle'
     IE_DESC = 'Интернет-телевидение Tvigle.ru'
-    _VALID_URL = r'http://(?:www\.)?tvigle\.ru/category/.+?video=(?P<id>\d+)'
+    _VALID_URL = r'http://(?:www\.)?tvigle\.ru/category/.+?[\?&]v(?:ideo)?=(?P<id>\d+)'
 
-    _TEST = {
-        'url': 'http://www.tvigle.ru/category/cinema/1608/?video=503081',
-        'md5': '09afba4616666249f087efc6dcf83cb3',
-        'info_dict': {
-            'id': '503081',
-            'ext': 'flv',
-            'title': 'Брат 2 ',
-            'description': 'md5:f5a42970f50648cee3d7ad740f3ae769',
-            'upload_date': '20110919',
-        }
-    }
+    _TESTS = [
+        {
+            'url': 'http://www.tvigle.ru/category/cinema/1608/?video=503081',
+            'md5': '09afba4616666249f087efc6dcf83cb3',
+            'info_dict': {
+                'id': '503081',
+                'ext': 'flv',
+                'title': 'Брат 2 ',
+                'description': 'md5:f5a42970f50648cee3d7ad740f3ae769',
+                'upload_date': '20110919',
+            },
+        },
+        {
+            'url': 'http://www.tvigle.ru/category/men/vysotskiy_vospominaniya02/?flt=196&v=676433',
+            'md5': 'e7efe5350dd5011d0de6550b53c3ba7b',
+            'info_dict': {
+                'id': '676433',
+                'ext': 'flv',
+                'title': 'Ведущий телепрограммы «60 минут» (США) о Владимире Высоцком',
+                'description': 'md5:027f7dc872948f14c96d19b4178428a4',
+                'upload_date': '20121218',
+            },
+        },
+    ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
