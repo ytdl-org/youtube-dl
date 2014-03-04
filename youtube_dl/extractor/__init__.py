@@ -285,19 +285,20 @@ from .youku import YoukuIE
 from .youporn import YouPornIE
 from .youtube import (
     YoutubeIE,
-    YoutubePlaylistIE,
-    YoutubeSearchIE,
-    YoutubeSearchDateIE,
-    YoutubeUserIE,
     YoutubeChannelIE,
-    YoutubeShowIE,
-    YoutubeSubscriptionsIE,
-    YoutubeRecommendedIE,
-    YoutubeTruncatedURLIE,
-    YoutubeWatchLaterIE,
     YoutubeFavouritesIE,
     YoutubeHistoryIE,
+    YoutubePlaylistIE,
+    YoutubeRecommendedIE,
+    YoutubeSearchDateIE,
+    YoutubeSearchIE,
+    YoutubeSearchURLIE,
+    YoutubeShowIE,
+    YoutubeSubscriptionsIE,
     YoutubeTopListIE,
+    YoutubeTruncatedURLIE,
+    YoutubeUserIE,
+    YoutubeWatchLaterIE,
 )
 from .zdf import ZDFIE
 

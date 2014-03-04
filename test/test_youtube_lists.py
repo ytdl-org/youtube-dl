@@ -16,6 +16,7 @@ from youtube_dl.extractor import (
     YoutubeChannelIE,
     YoutubeShowIE,
     YoutubeTopListIE,
+    YoutubeSearchURLIE,
 )
 
 
@@ -131,6 +132,15 @@ class TestYoutubeLists(unittest.TestCase):
         ie = YoutubeTopListIE(dl)
         result = ie.extract('yttoplist:music:Trending')
         entries = result['entries']
+        self.assertTrue(len(entries) >= 5)
+
+    def test_youtube_search_url(self):
+        dl = FakeYDL()
+        ie = YoutubeSearchURLIE(dl)
+        result = ie.extract('https://www.youtube.com/results?baz=bar&search_query=youtube-dl+test+video&filters=video&lclk=video')
+        entries = result['entries']
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['title'], 'youtube-dl test video')
         self.assertTrue(len(entries) >= 5)
 
 if __name__ == '__main__':

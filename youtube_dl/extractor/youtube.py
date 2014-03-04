@@ -1645,7 +1645,7 @@ class YoutubeChannelIE(InfoExtractor):
 
 class YoutubeUserIE(InfoExtractor):
     IE_DESC = u'YouTube.com user videos (URL or "ytuser" keyword)'
-    _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?youtube\.com/(?:user/)?(?!(?:attribution_link|watch)(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)([A-Za-z0-9_-]+)'
+    _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?youtube\.com/(?:user/)?(?!(?:attribution_link|watch|results)(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)([A-Za-z0-9_-]+)'
     _TEMPLATE_URL = 'https://gdata.youtube.com/feeds/api/users/%s'
     _GDATA_PAGE_SIZE = 50
     _GDATA_URL = 'https://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d&alt=json'
@@ -1744,11 +1744,49 @@ class YoutubeSearchIE(SearchInfoExtractor):
                   for video_id in video_ids]
         return self.playlist_result(videos, query)
 
+
 class YoutubeSearchDateIE(YoutubeSearchIE):
     IE_NAME = YoutubeSearchIE.IE_NAME + ':date'
     _API_URL = 'https://gdata.youtube.com/feeds/api/videos?q=%s&start-index=%i&max-results=50&v=2&alt=jsonc&orderby=published'
     _SEARCH_KEY = 'ytsearchdate'
     IE_DESC = u'YouTube.com searches, newest videos first'
+
+
+class YoutubeSearchURLIE(InfoExtractor):
+    IE_DESC = u'YouTube.com search URLs'
+    IE_NAME = u'youtube:search_url'
+    _VALID_URL = r'https?://(?:www\.)?youtube\.com/results\?(.*?&)?search_query=(?P<query>[^&]+)(?:[&]|$)'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        query = compat_urllib_parse.unquote_plus(mobj.group('query'))
+
+        webpage = self._download_webpage(url, query)
+        result_code = self._search_regex(
+            r'(?s)<ol id="search-results"(.*?)</ol>', webpage, u'result HTML')
+
+        part_codes = re.findall(
+            r'(?s)<h3 class="yt-lockup-title">(.*?)</h3>', result_code)
+        entries = []
+        for part_code in part_codes:
+            part_title = self._html_search_regex(
+                r'(?s)title="([^"]+)"', part_code, 'item title', fatal=False)
+            part_url_snippet = self._html_search_regex(
+                r'(?s)href="([^"]+)"', part_code, 'item URL')
+            part_url = compat_urlparse.urljoin(
+                'https://www.youtube.com/', part_url_snippet)
+            entries.append({
+                '_type': 'url',
+                'url': part_url,
+                'title': part_title,
+            })
+
+        return {
+            '_type': 'playlist',
+            'entries': entries,
+            'title': query,
+        }
+
 
 class YoutubeShowIE(InfoExtractor):
     IE_DESC = u'YouTube.com (multi-season) shows'
