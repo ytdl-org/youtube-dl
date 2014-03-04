@@ -217,7 +217,7 @@ class SoundcloudIE(InfoExtractor):
         return self._extract_info_dict(info, full_title, secret_token=token)
 
 class SoundcloudSetIE(SoundcloudIE):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?soundcloud\.com/([\w\d-]+)/sets/([\w\d-]+)(?:[?].*)?$'
+    _VALID_URL = r'https?://(?:www\.)?soundcloud\.com/([\w\d-]+)/sets/([\w\d-]+)'
     IE_NAME = 'soundcloud:set'
     # it's in tests/test_playlists.py
     _TESTS = []
