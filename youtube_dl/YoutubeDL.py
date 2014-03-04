@@ -409,6 +409,13 @@ class YoutubeDL(object):
             template_dict['autonumber'] = autonumber_templ % self._num_downloads
             if template_dict.get('playlist_index') is not None:
                 template_dict['playlist_index'] = '%05d' % template_dict['playlist_index']
+            if template_dict.get('resolution') is None:
+                if template_dict.get('width') and template_dict.get('height'):
+                    template_dict['resolution'] = '%dx%d' % (template_dict['width'], template_dict['height'])
+                elif template_dict.get('height'):
+                    res = '%sp' % template_dict['height']
+                elif template_dict.get('width'):
+                    res = '?x%d' % template_dict['width']
 
             sanitize = lambda k, v: sanitize_filename(
                 compat_str(v),
