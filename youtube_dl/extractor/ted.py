@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class TEDIE(SubtitlesInfoExtractor):
-    _VALID_URL=r'''http://www\.ted\.com/
+    _VALID_URL=r'''(?x)http://www\.ted\.com/
                    (
                         ((?P<type_playlist>playlists)/(?P<playlist_id>\d+)) # We have a playlist
                         |
@@ -25,15 +25,17 @@ class TEDIE(SubtitlesInfoExtractor):
         'file': '102.mp4',
         'md5': '4ea1dada91e4174b53dac2bb8ace429d',
         'info_dict': {
-            "description": "md5:c6fa72e6eedbd938c9caf6b2702f5922",
-            "title": "Dan Dennett: The illusion of consciousness"
+            'title': 'The illusion of consciousness',
+            'description': 'Philosopher Dan Dennett makes a compelling argument that not only don\'t we understand our own consciousness, but that half the time our brains are actively fooling us.',
+            'uploader': 'Dan Dennett',
         }
     }
 
-    @classmethod
-    def suitable(cls, url):
-        """Receives a URL and returns True if suitable for this IE."""
-        return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
+    _FORMATS_PREFERENCE = {
+        'low': 1,
+        'medium': 2,
+        'high': 3,
+    }
 
     def _real_extract(self, url):
         m=re.match(self._VALID_URL, url, re.VERBOSE)
@@ -67,54 +69,49 @@ class TEDIE(SubtitlesInfoExtractor):
 
     def _talk_info(self, url, video_id=0):
         """Return the video for the talk in the url"""
-        m = re.match(self._VALID_URL, url,re.VERBOSE)
+        m = re.match(self._VALID_URL, url)
         video_name = m.group('name')
         webpage = self._download_webpage(url, video_id, 'Downloading \"%s\" page' % video_name)
         self.report_extraction(video_name)
-        # If the url includes the language we get the title translated
-        title = self._html_search_regex(r'<span .*?id="altHeadline".+?>(?P<title>.*)</span>',
-                                        webpage, 'title')
-        json_data = self._search_regex(r'<script.*?>var talkDetails = ({.*?})</script>',
-                                    webpage, 'json data')
-        info = json.loads(json_data)
-        desc = self._html_search_regex(r'<div class="talk-intro">.*?<p.*?>(.*?)</p>',
-                                       webpage, 'description', flags = re.DOTALL)
-        
-        thumbnail = self._search_regex(r'</span>[\s.]*</div>[\s.]*<img src="(.*?)"',
-                                       webpage, 'thumbnail')
+
+        info_json = self._search_regex(r'"talkPage.init",({.+})\)</script>', webpage, 'info json')
+        info = json.loads(info_json)
+        talk_info = info['talks'][0]
+
         formats = [{
             'ext': 'mp4',
-            'url': stream['file'],
-            'format': stream['id']
-        } for stream in info['htmlStreams']]
+            'url': format_url,
+            'format_id': format_id,
+            'format': format_id,
+            'preference': self._FORMATS_PREFERENCE.get(format_id, -1),
+        } for (format_id, format_url) in talk_info['nativeDownloads'].items()]
+        self._sort_formats(formats)
 
-        video_id = info['id']
-
+        video_id = talk_info['id']
         # subtitles
-        video_subtitles = self.extract_subtitles(video_id, webpage)
+        video_subtitles = self.extract_subtitles(video_id, talk_info)
         if self._downloader.params.get('listsubtitles', False):
-            self._list_available_subtitles(video_id, webpage)
+            self._list_available_subtitles(video_id, talk_info)
             return
 
         return {
             'id': video_id,
-            'title': title,
-            'thumbnail': thumbnail,
-            'description': desc,
+            'title': talk_info['title'],
+            'uploader': talk_info['speaker'],
+            'thumbnail': talk_info['thumb'],
+            'description': self._og_search_description(webpage),
             'subtitles': video_subtitles,
             'formats': formats,
         }
 
-    def _get_available_subtitles(self, video_id, webpage):
-        try:
-            options = self._search_regex(r'(?:<select name="subtitles_language_select" id="subtitles_language_select">)(.*?)(?:</select>)', webpage, 'subtitles_language_select', flags=re.DOTALL)
-            languages = re.findall(r'(?:<option value=")(\S+)"', options)
-            if languages:
-                sub_lang_list = {}
-                for l in languages:
-                    url = 'http://www.ted.com/talks/subtitles/id/%s/lang/%s/format/srt' % (video_id, l)
-                    sub_lang_list[l] = url
-                return sub_lang_list
-        except RegexNotFoundError:
+    def _get_available_subtitles(self, video_id, talk_info):
+        languages = [lang['languageCode'] for lang in talk_info.get('languages', [])]
+        if languages:
+            sub_lang_list = {}
+            for l in languages:
+                url = 'http://www.ted.com/talks/subtitles/id/%s/lang/%s/format/srt' % (video_id, l)
+                sub_lang_list[l] = url
+            return sub_lang_list
+        else:
             self._downloader.report_warning(u'video doesn\'t have subtitles')
-        return {}
+            return {}
