@@ -54,7 +54,9 @@ class FacebookIE(InfoExtractor):
         self.report_login()
         login_page = self._download_webpage(login_page_req, None, note=False,
             errnote='Unable to download login page')
-        lsd = self._search_regex(r'"lsd":"(\w*?)"', login_page, 'lsd')
+        lsd = self._search_regex(
+            r'<input type="hidden" name="lsd" value="([^""]*)"',
+            login_page, 'lsd')
         lgnrnd = self._search_regex(r'name="lgnrnd" value="([^"]*?)"', login_page, 'lgnrnd')
 
         login_form = {
