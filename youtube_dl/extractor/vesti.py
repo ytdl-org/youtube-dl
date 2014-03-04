@@ -113,8 +113,8 @@ class VestiIE(InfoExtractor):
         priority_transport = playlist['priority_transport']
 
         thumbnail = media['picture']
-        width = media['width']
-        height = media['height']
+        width = int_or_none(media['width'])
+        height = int_or_none(media['height'])
         description = media['anons']
         title = media['title']
         duration = int_or_none(media.get('duration'))
