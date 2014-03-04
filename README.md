@@ -125,12 +125,13 @@ which means you can modify it, redistribute it or use it however you like.
                                      video is in, %(playlist_index)s for the
                                      position in the playlist and %% for a
                                      literal percent. %(height)s and %(width)s
-                                     for the width and height of the video in
-                                     the picked format. Use - to output to
-                                     stdout. Can also be used to download to a
-                                     different directory, for example with -o '/
-                                     my/downloads/%(uploader)s/%(title)s-%(id)s.
-                                     %(ext)s' .
+                                     for the width and height of the video
+                                     format. %(resolution)s for a textual
+                                     description of the resolution of the video
+                                     format. Use - to output to stdout. Can also
+                                     be used to download to a different
+                                     directory, for example with -o '/my/downloa
+                                     ds/%(uploader)s/%(title)s-%(id)s.%(ext)s' .
     --autonumber-size NUMBER         Specifies the number of digits in
                                      %(autonumber)s when it is present in output
                                      filename template or --auto-number option
