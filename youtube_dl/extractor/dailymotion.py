@@ -12,6 +12,7 @@ from ..utils import (
     get_element_by_id,
     orderedSet,
     str_to_int,
+    int_or_none,
 
     ExtractorError,
 )
@@ -124,7 +125,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             if video_url is not None:
                 m_size = re.search(r'H264-(\d+)x(\d+)', video_url)
                 if m_size is not None:
-                    width, height = m_size.group(1), m_size.group(2)
+                    width, height = map(int_or_none, (m_size.group(1), m_size.group(2)))
                 else:
                     width, height = None, None
                 formats.append({
