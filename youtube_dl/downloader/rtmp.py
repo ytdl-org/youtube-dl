@@ -129,7 +129,7 @@ class RtmpFD(FileDownloader):
             basic_args += ['--live']
         if conn:
             basic_args += ['--conn', conn]
-        args = basic_args + [[], ['--resume', '--skip', '1']][self.params.get('continuedl', False)]
+        args = basic_args + [[], ['--resume', '--skip', '1']][not live and self.params.get('continuedl', False)]
 
         if sys.platform == 'win32' and sys.version_info < (3, 0):
             # Windows subprocess module does not actually support Unicode
@@ -165,7 +165,7 @@ class RtmpFD(FileDownloader):
             self.report_error('[rtmpdump] Could not connect to RTMP server.')
             return False
 
-        while (retval == RD_INCOMPLETE or retval == RD_FAILED) and not test:
+        while (retval == RD_INCOMPLETE or retval == RD_FAILED) and not test and not live:
             prevsize = os.path.getsize(encodeFilename(tmpfilename))
             self.to_screen('[rtmpdump] %s bytes' % prevsize)
             time.sleep(5.0) # This seems to be needed
