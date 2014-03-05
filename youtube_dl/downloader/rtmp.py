@@ -152,22 +152,26 @@ class RtmpFD(FileDownloader):
                 shell_quote = repr
             self.to_screen(u'[debug] rtmpdump command line: ' + shell_quote(str_args))
 
+        RD_SUCCESS = 0
+        RD_FAILED = 1
+        RD_INCOMPLETE = 2
+
         retval = run_rtmpdump(args)
 
-        while (retval == 2 or retval == 1) and not test:
+        while (retval == RD_INCOMPLETE or retval == RD_ FAILED) and not test:
             prevsize = os.path.getsize(encodeFilename(tmpfilename))
             self.to_screen(u'[rtmpdump] %s bytes' % prevsize)
             time.sleep(5.0) # This seems to be needed
-            retval = run_rtmpdump(basic_args + ['-e'] + [[], ['-k', '1']][retval == 1])
+            retval = run_rtmpdump(basic_args + ['-e'] + [[], ['-k', '1']][retval == RD_FAILED])
             cursize = os.path.getsize(encodeFilename(tmpfilename))
-            if prevsize == cursize and retval == 1:
+            if prevsize == cursize and retval == RD_FAILED:
                 break
              # Some rtmp streams seem abort after ~ 99.8%. Don't complain for those
-            if prevsize == cursize and retval == 2 and cursize > 1024:
+            if prevsize == cursize and retval == RD_INCOMPLETE and cursize > 1024:
                 self.to_screen(u'[rtmpdump] Could not download the whole video. This can happen for some advertisements.')
-                retval = 0
+                retval = RD_SUCCESS
                 break
-        if retval == 0 or (test and retval == 2):
+        if retval == RD_SUCCESS or (test and retval == RD_INCOMPLETE):
             fsize = os.path.getsize(encodeFilename(tmpfilename))
             self.to_screen(u'[rtmpdump] %s bytes' % fsize)
             self.try_rename(tmpfilename, filename)
