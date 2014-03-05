@@ -123,6 +123,11 @@ class GenericIE(InfoExtractor):
             'info_dict': {
                 'id': '9ODmcdjQcHQ',
                 'ext': 'mp4',
+                'title': 'Tested: Grinding Coffee at 2000 Frames Per Second',
+                'upload_date': '20140225',
+                'description': 'md5:06a40fbf30b220468f1e0957c0f558ff',
+                'uploader': 'Tested',
+                'uploader_id': 'testedcom',
             },
             # No need to test YoutubeIE here
             'params': {
