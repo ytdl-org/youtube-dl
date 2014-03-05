@@ -12,22 +12,25 @@ from ..utils import (
 
 
 class TEDIE(SubtitlesInfoExtractor):
-    _VALID_URL=r'''(?x)http://www\.ted\.com/
-                   (
-                        (?P<type_playlist>playlists(?:/\d+)?) # We have a playlist
-                        |
-                        ((?P<type_talk>talks)) # We have a simple talk
-                   )
-                   (/lang/(.*?))? # The url may contain the language
-                   /(?P<name>\w+) # Here goes the name and then ".html"
-                   '''
+    _VALID_URL = r'''(?x)http://www\.ted\.com/
+        (
+            (?P<type_playlist>playlists(?:/\d+)?) # We have a playlist
+            |
+            ((?P<type_talk>talks)) # We have a simple talk
+        )
+        (/lang/(.*?))? # The url may contain the language
+        /(?P<name>\w+) # Here goes the name and then ".html"
+        '''
     _TEST = {
         'url': 'http://www.ted.com/talks/dan_dennett_on_our_consciousness.html',
         'file': '102.mp4',
         'md5': '4ea1dada91e4174b53dac2bb8ace429d',
         'info_dict': {
             'title': 'The illusion of consciousness',
-            'description': 'Philosopher Dan Dennett makes a compelling argument that not only don\'t we understand our own consciousness, but that half the time our brains are actively fooling us.',
+            'description': ('Philosopher Dan Dennett makes a compelling '
+                'argument that not only don\'t we understand our own '
+                'consciousness, but that half the time our brains are '
+                'actively fooling us.'),
             'uploader': 'Dan Dennett',
         }
     }
@@ -39,17 +42,17 @@ class TEDIE(SubtitlesInfoExtractor):
     }
 
     def _extract_info(self, webpage):
-        info_json = self._search_regex(r'q\("\w+.init",({.+})\)</script>', webpage, 'info json')
+        info_json = self._search_regex(r'q\("\w+.init",({.+})\)</script>',
+            webpage, 'info json')
         return json.loads(info_json)
 
     def _real_extract(self, url):
-        m=re.match(self._VALID_URL, url, re.VERBOSE)
+        m = re.match(self._VALID_URL, url, re.VERBOSE)
+        name = m.group('name')
         if m.group('type_talk'):
-            return self._talk_info(url)
-        else :
-            name=m.group('name')
+            return self._talk_info(url, name)
+        else:
             return self._playlist_videos_info(url, name)
-
 
     def _playlist_videos_info(self, url, name):
         '''Returns the videos of the playlist'''
@@ -68,11 +71,8 @@ class TEDIE(SubtitlesInfoExtractor):
             playlist_id=compat_str(playlist_info['id']),
             playlist_title=playlist_info['title'])
 
-    def _talk_info(self, url, video_id=0):
-        """Return the video for the talk in the url"""
-        m = re.match(self._VALID_URL, url)
-        video_name = m.group('name')
-        webpage = self._download_webpage(url, video_id, 'Downloading \"%s\" page' % video_name)
+    def _talk_info(self, url, video_name):
+        webpage = self._download_webpage(url, video_name)
         self.report_extraction(video_name)
 
         talk_info = self._extract_info(webpage)['talks'][0]
