@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import os
 import re
 import subprocess
@@ -22,7 +24,7 @@ class RtmpFD(FileDownloader):
             proc_stderr_closed = False
             while not proc_stderr_closed:
                 # read line from stderr
-                line = u''
+                line = ''
                 while True:
                     char = proc.stderr.read(1)
                     if not char:
@@ -46,7 +48,7 @@ class RtmpFD(FileDownloader):
                     data_len = None
                     if percent > 0:
                         data_len = int(downloaded_data_len * 100 / percent)
-                    data_len_str = u'~' + format_bytes(data_len)
+                    data_len_str = '~' + format_bytes(data_len)
                     self.report_progress(percent, data_len_str, speed, eta)
                     cursor_in_new_line = False
                     self._hook_progress({
@@ -76,12 +78,12 @@ class RtmpFD(FileDownloader):
                         })
                     elif self.params.get('verbose', False):
                         if not cursor_in_new_line:
-                            self.to_screen(u'')
+                            self.to_screen('')
                         cursor_in_new_line = True
-                        self.to_screen(u'[rtmpdump] '+line)
+                        self.to_screen('[rtmpdump] '+line)
             proc.wait()
             if not cursor_in_new_line:
-                self.to_screen(u'')
+                self.to_screen('')
             return proc.returncode
 
         url = info_dict['url']
@@ -102,7 +104,7 @@ class RtmpFD(FileDownloader):
         try:
             subprocess.call(['rtmpdump', '-h'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
         except (OSError, IOError):
-            self.report_error(u'RTMP download detected but "rtmpdump" could not be run')
+            self.report_error('RTMP download detected but "rtmpdump" could not be run')
             return False
 
         # Download using rtmpdump. rtmpdump returns exit code 2 when
@@ -127,7 +129,7 @@ class RtmpFD(FileDownloader):
             basic_args += ['--live']
         if conn:
             basic_args += ['--conn', conn]
-        args = basic_args + [[], ['--resume', '--skip', '1']][self.params.get('continuedl', False)]
+        args = basic_args + [[], ['--resume', '--skip', '1']][not live and self.params.get('continuedl', False)]
 
         if sys.platform == 'win32' and sys.version_info < (3, 0):
             # Windows subprocess module does not actually support Unicode
@@ -150,26 +152,35 @@ class RtmpFD(FileDownloader):
                 shell_quote = lambda args: ' '.join(map(pipes.quote, str_args))
             except ImportError:
                 shell_quote = repr
-            self.to_screen(u'[debug] rtmpdump command line: ' + shell_quote(str_args))
+            self.to_screen('[debug] rtmpdump command line: ' + shell_quote(str_args))
+
+        RD_SUCCESS = 0
+        RD_FAILED = 1
+        RD_INCOMPLETE = 2
+        RD_NO_CONNECT = 3
 
         retval = run_rtmpdump(args)
 
-        while (retval == 2 or retval == 1) and not test:
+        if retval == RD_NO_CONNECT:
+            self.report_error('[rtmpdump] Could not connect to RTMP server.')
+            return False
+
+        while (retval == RD_INCOMPLETE or retval == RD_FAILED) and not test and not live:
             prevsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen(u'[rtmpdump] %s bytes' % prevsize)
+            self.to_screen('[rtmpdump] %s bytes' % prevsize)
             time.sleep(5.0) # This seems to be needed
-            retval = run_rtmpdump(basic_args + ['-e'] + [[], ['-k', '1']][retval == 1])
+            retval = run_rtmpdump(basic_args + ['-e'] + [[], ['-k', '1']][retval == RD_FAILED])
             cursize = os.path.getsize(encodeFilename(tmpfilename))
-            if prevsize == cursize and retval == 1:
+            if prevsize == cursize and retval == RD_FAILED:
                 break
              # Some rtmp streams seem abort after ~ 99.8%. Don't complain for those
-            if prevsize == cursize and retval == 2 and cursize > 1024:
-                self.to_screen(u'[rtmpdump] Could not download the whole video. This can happen for some advertisements.')
-                retval = 0
+            if prevsize == cursize and retval == RD_INCOMPLETE and cursize > 1024:
+                self.to_screen('[rtmpdump] Could not download the whole video. This can happen for some advertisements.')
+                retval = RD_SUCCESS
                 break
-        if retval == 0 or (test and retval == 2):
+        if retval == RD_SUCCESS or (test and retval == RD_INCOMPLETE):
             fsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen(u'[rtmpdump] %s bytes' % fsize)
+            self.to_screen('[rtmpdump] %s bytes' % fsize)
             self.try_rename(tmpfilename, filename)
             self._hook_progress({
                 'downloaded_bytes': fsize,
@@ -179,6 +190,6 @@ class RtmpFD(FileDownloader):
             })
             return True
         else:
-            self.to_stderr(u"\n")
-            self.report_error(u'rtmpdump exited with code %d' % retval)
+            self.to_stderr('\n')
+            self.report_error('rtmpdump exited with code %d' % retval)
             return False
