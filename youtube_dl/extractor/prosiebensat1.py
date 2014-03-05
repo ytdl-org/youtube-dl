@@ -51,14 +51,14 @@ class ProSiebenSat1IE(InfoExtractor):
             'skip': 'Seems to be broken',
         },
         {
-            'url': 'http://www.prosiebenmaxx.de/yep/one-piece/video/148-folge-48-gold-rogers-heimat-ganze-folge',
+            'url': 'http://www.prosiebenmaxx.de/tv/experience/video/144-countdown-fuer-die-autowerkstatt-ganze-folge',
             'info_dict': {
-                'id': '2437108',
+                'id': '2429369',
                 'ext': 'mp4',
-                'title': 'Folge 48: Gold Rogers Heimat',
-                'description': 'Ruffy erreicht die Insel, auf der der berühmte Gold Roger lebte und hingerichtet wurde.',
-                'upload_date': '20140226',
-                'duration': 1401.48,
+                'title': 'Countdown für die Autowerkstatt',
+                'description': 'md5:809fc051a457b5d8666013bc40698817',
+                'upload_date': '20140223',
+                'duration': 2595.04,
             },
             'params': {
                 # rtmp download
