@@ -7,7 +7,6 @@ from .subtitles import SubtitlesInfoExtractor
 
 from ..utils import (
     compat_str,
-    RegexNotFoundError,
 )
 
 
@@ -23,9 +22,10 @@ class TEDIE(SubtitlesInfoExtractor):
         '''
     _TEST = {
         'url': 'http://www.ted.com/talks/dan_dennett_on_our_consciousness.html',
-        'file': '102.mp4',
         'md5': '4ea1dada91e4174b53dac2bb8ace429d',
         'info_dict': {
+            'id': '102',
+            'ext': 'mp4',
             'title': 'The illusion of consciousness',
             'description': ('Philosopher Dan Dennett makes a compelling '
                 'argument that not only don\'t we understand our own '
@@ -86,7 +86,7 @@ class TEDIE(SubtitlesInfoExtractor):
         } for (format_id, format_url) in talk_info['nativeDownloads'].items()]
         self._sort_formats(formats)
 
-        video_id = talk_info['id']
+        video_id = compat_str(talk_info['id'])
         # subtitles
         video_subtitles = self.extract_subtitles(video_id, talk_info)
         if self._downloader.params.get('listsubtitles', False):
