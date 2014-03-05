@@ -158,7 +158,7 @@ class RtmpFD(FileDownloader):
 
         retval = run_rtmpdump(args)
 
-        while (retval == RD_INCOMPLETE or retval == RD_ FAILED) and not test:
+        while (retval == RD_INCOMPLETE or retval == RD_FAILED) and not test:
             prevsize = os.path.getsize(encodeFilename(tmpfilename))
             self.to_screen(u'[rtmpdump] %s bytes' % prevsize)
             time.sleep(5.0) # This seems to be needed
