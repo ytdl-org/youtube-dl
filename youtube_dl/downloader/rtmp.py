@@ -160,7 +160,7 @@ class RtmpFD(FileDownloader):
         retval = run_rtmpdump(args)
 
         if retval == RD_NO_CONNECT:
-            self.to_screen(u'[rtmpdump] Could not connect to RTMP server.')
+            self.report_error(u'[rtmpdump] Could not connect to RTMP server.')
             return False
 
         while (retval == RD_INCOMPLETE or retval == RD_FAILED) and not test:
