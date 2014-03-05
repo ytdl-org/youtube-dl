@@ -36,6 +36,7 @@ from youtube_dl.extractor import (
     RutubeChannelIE,
     GoogleSearchIE,
     GenericIE,
+    TEDIE,
 )
 
 
@@ -258,6 +259,15 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['id'], 'http://www.escapistmagazine.com/rss/videos/list/1.xml')
         self.assertEqual(result['title'], 'Zero Punctuation')
         self.assertTrue(len(result['entries']) > 10)
+
+    def test_ted_playlist(self):
+        dl = FakeYDL()
+        ie = TEDIE(dl)
+        result = ie.extract('http://www.ted.com/playlists/who_are_the_hackers')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], '10')
+        self.assertEqual(result['title'], 'Who are the hackers?')
+        self.assertTrue(len(result['entries']) >= 6)
 
 if __name__ == '__main__':
     unittest.main()

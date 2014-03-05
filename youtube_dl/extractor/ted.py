@@ -6,6 +6,7 @@ import re
 from .subtitles import SubtitlesInfoExtractor
 
 from ..utils import (
+    compat_str,
     RegexNotFoundError,
 )
 
@@ -13,7 +14,7 @@ from ..utils import (
 class TEDIE(SubtitlesInfoExtractor):
     _VALID_URL=r'''(?x)http://www\.ted\.com/
                    (
-                        ((?P<type_playlist>playlists)/(?P<playlist_id>\d+)) # We have a playlist
+                        (?P<type_playlist>playlists(?:/\d+)?) # We have a playlist
                         |
                         ((?P<type_talk>talks)) # We have a simple talk
                    )
@@ -37,35 +38,35 @@ class TEDIE(SubtitlesInfoExtractor):
         'high': 3,
     }
 
+    def _extract_info(self, webpage):
+        info_json = self._search_regex(r'q\("\w+.init",({.+})\)</script>', webpage, 'info json')
+        return json.loads(info_json)
+
     def _real_extract(self, url):
         m=re.match(self._VALID_URL, url, re.VERBOSE)
         if m.group('type_talk'):
             return self._talk_info(url)
         else :
-            playlist_id=m.group('playlist_id')
             name=m.group('name')
-            self.to_screen(u'Getting info of playlist %s: "%s"' % (playlist_id,name))
-            return [self._playlist_videos_info(url,name,playlist_id)]
+            return self._playlist_videos_info(url, name)
 
 
-    def _playlist_videos_info(self, url, name, playlist_id):
+    def _playlist_videos_info(self, url, name):
         '''Returns the videos of the playlist'''
 
-        webpage = self._download_webpage(
-            url, playlist_id, 'Downloading playlist webpage')
-        matches = re.finditer(
-            r'<p\s+class="talk-title[^"]*"><a\s+href="(?P<talk_url>/talks/[^"]+\.html)">[^<]*</a></p>',
-            webpage)
-
-        playlist_title = self._html_search_regex(r'div class="headline">\s*?<h1>\s*?<span>(.*?)</span>',
-                                                 webpage, 'playlist title')
+        webpage = self._download_webpage(url, name,
+            'Downloading playlist webpage')
+        info = self._extract_info(webpage)
+        playlist_info = info['playlist']
 
         playlist_entries = [
-            self.url_result(u'http://www.ted.com' + m.group('talk_url'), 'TED')
-            for m in matches
+            self.url_result(u'http://www.ted.com/talks/' + talk['slug'], self.ie_key())
+            for talk in info['talks']
         ]
         return self.playlist_result(
-            playlist_entries, playlist_id=playlist_id, playlist_title=playlist_title)
+            playlist_entries,
+            playlist_id=compat_str(playlist_info['id']),
+            playlist_title=playlist_info['title'])
 
     def _talk_info(self, url, video_id=0):
         """Return the video for the talk in the url"""
@@ -74,9 +75,7 @@ class TEDIE(SubtitlesInfoExtractor):
         webpage = self._download_webpage(url, video_id, 'Downloading \"%s\" page' % video_name)
         self.report_extraction(video_name)
 
-        info_json = self._search_regex(r'"talkPage.init",({.+})\)</script>', webpage, 'info json')
-        info = json.loads(info_json)
-        talk_info = info['talks'][0]
+        talk_info = self._extract_info(webpage)['talks'][0]
 
         formats = [{
             'ext': 'mp4',
