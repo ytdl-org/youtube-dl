@@ -223,7 +223,7 @@ class GenericIE(InfoExtractor):
             else:
                 assert ':' in default_search
                 return self.url_result(default_search + url)
-        video_id = os.path.splitext(url.split('/')[-1])[0]
+        video_id = os.path.splitext(url.rstrip('/').split('/')[-1])[0]
 
         self.to_screen('%s: Requesting header' % video_id)
 
