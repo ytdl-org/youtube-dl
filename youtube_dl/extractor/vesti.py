@@ -13,7 +13,7 @@ from ..utils import (
 class VestiIE(InfoExtractor):
     IE_NAME = 'vesti'
     IE_DESC = 'Вести.Ru'
-    _VALID_URL = r'http://(?:.+?\.)?vesti\.ru/(?P<id>.+)'
+    _VALID_URL = r'http://(?:.+?\.)?(?:vesti\.ru|russia\.tv)/(?P<id>.+)'
 
     _TESTS = [
         {
@@ -31,6 +31,20 @@ class VestiIE(InfoExtractor):
             },
         },
         {
+            'url': 'http://www.vesti.ru/doc.html?id=1349233',
+            'info_dict': {
+                'id': '773865',
+                'ext': 'mp4',
+                'title': 'Участники митинга штурмуют Донецкую областную администрацию',
+                'description': 'md5:1a160e98b3195379b4c849f2f4958009',
+                'duration': 210,
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
+        },
+        {
             'url': 'http://www.vesti.ru/only_video.html?vid=576180',
             'info_dict': {
                 'id': '766048',
@@ -38,6 +52,48 @@ class VestiIE(InfoExtractor):
                 'title': 'США заморозило, Британию затопило',
                 'description': 'md5:f0ed0695ec05aed27c56a70a58dc4cc1',
                 'duration': 87,
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
+        },
+        {
+            'url': 'http://hitech.vesti.ru/news/view/id/4000',
+            'info_dict': {
+                'id': '766888',
+                'ext': 'mp4',
+                'title': 'Вести.net: интернет-гиганты начали перетягивание программных "одеял"',
+                'description': 'md5:65ddd47f9830c4f42ed6475f8730c995',
+                'duration': 279,
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
+        },
+        {
+            'url': 'http://russia.tv/video/show/brand_id/5169/episode_id/970443/video_id/975648',
+            'info_dict': {
+                'id': '771852',
+                'ext': 'mp4',
+                'title': 'Прямой эфир. Жертвы загадочной болезни: смерть от старости в 17 лет',
+                'description': 'md5:b81c8c55247a4bd996b43ce17395b2d8',
+                'duration': 3096,
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
+        },
+        {
+            'url': 'http://russia.tv/brand/show/brand_id/57638',
+            'info_dict': {
+                'id': '774016',
+                'ext': 'mp4',
+                'title': 'Чужой в семье Сталина',
+                'description': '',
+                'duration': 2539,
             },
             'params': {
                 # m3u8 download
@@ -81,16 +137,26 @@ class VestiIE(InfoExtractor):
 
         page = self._download_webpage(url, video_id, 'Downloading page')
 
-        mobj = re.search(r'<meta property="og:video" content=".+?\.swf\?v?id=(?P<id>\d+).*?" />', page)
+        mobj = re.search(
+            r'<meta property="og:video" content="http://www\.vesti\.ru/i/flvplayer_videoHost\.swf\?vid=(?P<id>\d+)',
+            page)
+        if mobj:
+            video_id = mobj.group('id')
+            page = self._download_webpage('http://www.vesti.ru/only_video.html?vid=%s' % video_id, video_id,
+                'Downloading video page')
+
+        mobj = re.search(
+            r'<meta property="og:video" content="http://player\.rutv\.ru/flash2v/container\.swf\?id=(?P<id>\d+)', page)
         if mobj:
             video_type = 'video'
             video_id = mobj.group('id')
         else:
             mobj = re.search(
-                r'<iframe.+?src="http://player\.rutv\.ru/iframe/(?P<type>[^/]+)/id/(?P<id>\d+)[^"]*".*?></iframe>', page)
+                r'<iframe.+?src="http://player\.rutv\.ru/iframe/(?P<type>[^/]+)/id/(?P<id>\d+)[^"]*".*?></iframe>',
+                page)
 
             if not mobj:
-                raise ExtractorError('No media found')
+                raise ExtractorError('No media found', expected=True)
 
             video_type = mobj.group('type')
             video_id = mobj.group('id')
