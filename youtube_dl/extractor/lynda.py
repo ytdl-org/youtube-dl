@@ -8,7 +8,8 @@ from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
     compat_urllib_request,
-    ExtractorError
+    ExtractorError,
+    int_or_none,
 )
 
 
@@ -19,7 +20,7 @@ class LyndaIE(SubtitlesInfoExtractor):
     _LOGIN_URL = 'https://www.lynda.com/login/login.aspx'
     _NETRC_MACHINE = 'lynda'
 
-    _SUCCESSFUL_LOGIN_REGEX = r'<a href="https://www.lynda.com/home/userAccount/ChangeContactInfo.aspx" data-qa="eyebrow_account_menu">My account'
+    _SUCCESSFUL_LOGIN_REGEX = r'isLoggedIn: true'
     _TIMECODE_REGEX = r'\[(?P<timecode>\d+:\d+:\d+[\.,]\d+)\]'
 
     ACCOUNT_CREDENTIALS_HINT = 'Use --username and --password options to provide lynda.com account credentials.'
@@ -55,13 +56,29 @@ class LyndaIE(SubtitlesInfoExtractor):
         duration = video_json['DurationInSeconds']
         title = video_json['Title']
 
-        formats = [{'url': fmt['Url'],
+        formats = []
+
+        fmts = video_json.get('Formats')
+        if fmts:
+            formats.extend([
+                {
+                    'url': fmt['Url'],
                     'ext': fmt['Extension'],
                     'width': fmt['Width'],
                     'height': fmt['Height'],
                     'filesize': fmt['FileSize'],
                     'format_id': str(fmt['Resolution'])
-                    } for fmt in video_json['Formats']]
+                } for fmt in fmts])
+
+        prioritized_streams = video_json.get('PrioritizedStreams')
+        if prioritized_streams:
+            formats.extend([
+                {
+                    'url': video_url,
+                    'width': int_or_none(format_id),
+                    'format_id': format_id,
+                } for format_id, video_url in prioritized_streams['0'].items()
+            ])
 
         self._sort_formats(formats)
 
@@ -178,6 +195,9 @@ class LyndaCourseIE(InfoExtractor):
         unaccessible_videos = 0
         videos = []
         (username, _) = self._get_login_info()
+
+        # Might want to extract videos right here from video['Formats'] as it seems 'Formats' is not provided
+        # by single video API anymore
 
         for chapter in course_json['Chapters']:
             for video in chapter['Videos']:
