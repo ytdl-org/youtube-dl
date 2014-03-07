@@ -1431,6 +1431,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 self.report_warning(u'Skipping DASH manifest: %s' % e, video_id)
 
         self._sort_formats(formats)
+        
+        #Warn user if DASH offers higher qualities
+        for format in formats:
+            if 'height' in format:
+                if format['height'] > formats[-1]['height']:
+                    self.to_screen("Warning: youtube-dl can't automatically download the best version of this video.")
+                    self.to_screen("For more information: https://goo.gl/ychwk3")
+                    break
 
         return {
             'id':           video_id,
