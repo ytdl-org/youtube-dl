@@ -918,7 +918,7 @@ class YoutubeDL(object):
                     self.to_screen('[%s] %s: Downloading thumbnail ...' %
                                    (info_dict['extractor'], info_dict['id']))
                     try:
-                        uf = compat_urllib_request.urlopen(info_dict['thumbnail'])
+                        uf = self.urlopen(info_dict['thumbnail'])
                         with open(thumb_filename, 'wb') as thumbf:
                             shutil.copyfileobj(uf, thumbf)
                         self.to_screen('[%s] %s: Writing thumbnail to: %s' %
