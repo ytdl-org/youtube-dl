@@ -160,6 +160,7 @@ which means you can modify it, redistribute it or use it however you like.
     --write-annotations              write video annotations to a .annotation
                                      file
     --write-thumbnail                write thumbnail image to disk
+    --write-all-thumbnails           write all thumbnail images to disk
 
 ## Verbosity / Simulation Options:
     -q, --quiet                      activates quiet mode

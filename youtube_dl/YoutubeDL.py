@@ -118,6 +118,7 @@ class YoutubeDL(object):
     writeinfojson:     Write the video description to a .info.json file
     writeannotations:  Write the video annotations to a .annotations.xml file
     writethumbnail:    Write the thumbnail image to a file
+    writeallthumbnails:Write all thumbnail images to disk
     writesubtitles:    Write the video subtitles to a file
     writeautomaticsub: Write the automatic subtitles to a file
     allsubtitles:      Downloads all the subtitles of the video
@@ -907,10 +908,28 @@ class YoutubeDL(object):
                     self.report_error('Cannot write metadata to JSON file ' + infofn)
                     return
 
-        if self.params.get('writethumbnail', False):
+        if self.params.get('writethumbnail', False) or self.params.get('writeallthumbnails', False):
+            # create a list of all thumbnails the user has requested (all or only one)
+            allthumbs = []
+            if info_dict.get('thumbnails') is not None:
+                allthumbs = [ ele.get('url') for ele in info_dict.get('thumbnails')]
             if info_dict.get('thumbnail') is not None:
-                thumb_format = determine_ext(info_dict['thumbnail'], 'jpg')
-                thumb_filename = os.path.splitext(filename)[0] + '.' + thumb_format
+                if self.params.get('writethumbnail', False) or (not info_dict.get('thumbnail') in allthumbs):
+                    allthumbs.insert(0,info_dict.get('thumbnail'))
+            if self.params.get('writethumbnail', False):
+                allthumbs = allthumbs[0:1]
+
+            allthumblen = len(allthumbs)
+            thumbcnt = 0
+            for thumburl in allthumbs:
+                thumbcnt += 1
+                thumb_format = determine_ext(thumburl, 'jpg')
+                if allthumblen == 1:
+                    thumb_filename = os.path.splitext(filename)[0] + '.' + thumb_format
+                else:
+                    # append '_1', '_2' etc. to filename, if necessary with leading zero(s)
+                    thumb_filename = os.path.splitext(filename)[0] + \
+                           ('_%%0%sd.%%s' % len(str(allthumblen)) % (thumbcnt, thumb_format))
                 if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(thumb_filename)):
                     self.to_screen('[%s] %s: Thumbnail is already present' %
                                    (info_dict['extractor'], info_dict['id']))
@@ -918,14 +937,14 @@ class YoutubeDL(object):
                     self.to_screen('[%s] %s: Downloading thumbnail ...' %
                                    (info_dict['extractor'], info_dict['id']))
                     try:
-                        uf = compat_urllib_request.urlopen(info_dict['thumbnail'])
+                        uf = compat_urllib_request.urlopen(thumburl)
                         with open(thumb_filename, 'wb') as thumbf:
                             shutil.copyfileobj(uf, thumbf)
                         self.to_screen('[%s] %s: Writing thumbnail to: %s' %
                             (info_dict['extractor'], info_dict['id'], thumb_filename))
                     except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                         self.report_warning('Unable to download thumbnail "%s": %s' %
-                            (info_dict['thumbnail'], compat_str(err)))
+                            (thumburl, compat_str(err)))
 
         if not self.params.get('skip_download', False):
             if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(filename)):

@@ -471,7 +471,9 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option('--write-thumbnail',
             action='store_true', dest='writethumbnail',
             help='write thumbnail image to disk', default=False)
-
+    filesystem.add_option('--write-all-thumbnails',
+            action='store_true', dest='writeallthumbnails',
+            help='write all thumbnail images to disk', default=False)
 
     postproc.add_option('-x', '--extract-audio', action='store_true', dest='extractaudio', default=False,
             help='convert video files to audio-only files (requires ffmpeg or avconv and ffprobe or avprobe)')
@@ -729,6 +731,7 @@ def _real_main(argv=None):
         'writeannotations': opts.writeannotations,
         'writeinfojson': opts.writeinfojson,
         'writethumbnail': opts.writethumbnail,
+        'writeallthumbnails': opts.writeallthumbnails,
         'writesubtitles': opts.writesubtitles,
         'writeautomaticsub': opts.writeautomaticsub,
         'allsubtitles': opts.allsubtitles,
