@@ -33,6 +33,7 @@ from youtube_dl.utils import (
     unified_strdate,
     unsmuggle_url,
     url_basename,
+    urlencode_postdata,
     xpath_with_ns,
 )
 
@@ -260,6 +261,10 @@ class TestUtil(unittest.TestCase):
             ; or after this
             bam''')
         self.assertEqual(read_batch_urls(f), [u'foo', u'bar', u'baz', u'bam'])
+
+    def test_urlencode_postdata(self):
+        data = urlencode_postdata({'username': 'foo@bar.com', 'password': '1234'})
+        self.assertTrue(isinstance(data, bytes))
 
 if __name__ == '__main__':
     unittest.main()

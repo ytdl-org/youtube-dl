@@ -1263,3 +1263,7 @@ def read_batch_urls(batch_fd):
 
     with contextlib.closing(batch_fd) as fd:
         return [url for url in map(fixup, fd) if url]
+
+
+def urlencode_postdata(*args, **kargs):
+    return compat_urllib_parse.urlencode(*args, **kargs).encode('ascii')
