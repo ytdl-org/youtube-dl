@@ -210,13 +210,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         '170': {'ext': 'webm', 'height': 1080, 'width': 1920, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'VP8', 'acodec': 'none', 'preference': -40},
         '218': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'VP8', 'acodec': 'none', 'preference': -40},
         '219': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'VP8', 'acodec': 'none', 'preference': -40},
-        '242': {'ext': 'webm', 'height': 240, 'resolution': '240p', 'format_note': 'DASH webm', 'preference': -40},
-        '243': {'ext': 'webm', 'height': 360, 'resolution': '360p', 'format_note': 'DASH webm', 'preference': -40},
-        '244': {'ext': 'webm', 'height': 480, 'resolution': '480p', 'format_note': 'DASH webm', 'preference': -40},
-        '245': {'ext': 'webm', 'height': 480, 'resolution': '480p', 'format_note': 'DASH webm', 'preference': -40},
-        '246': {'ext': 'webm', 'height': 480, 'resolution': '480p', 'format_note': 'DASH webm', 'preference': -40},
-        '247': {'ext': 'webm', 'height': 720, 'resolution': '720p', 'format_note': 'DASH webm', 'preference': -40},
-        '248': {'ext': 'webm', 'height': 1080, 'resolution': '1080p', 'format_note': 'DASH webm', 'preference': -40},
+        '242': {'ext': 'webm', 'height': 240, 'resolution': '240p', 'format_note': 'DASH video', 'preference': -40},
+        '243': {'ext': 'webm', 'height': 360, 'resolution': '360p', 'format_note': 'DASH video', 'preference': -40},
+        '244': {'ext': 'webm', 'height': 480, 'resolution': '480p', 'format_note': 'DASH video', 'preference': -40},
+        '245': {'ext': 'webm', 'height': 480, 'resolution': '480p', 'format_note': 'DASH video', 'preference': -40},
+        '246': {'ext': 'webm', 'height': 480, 'resolution': '480p', 'format_note': 'DASH video', 'preference': -40},
+        '247': {'ext': 'webm', 'height': 720, 'resolution': '720p', 'format_note': 'DASH video', 'preference': -40},
+        '248': {'ext': 'webm', 'height': 1080, 'resolution': '1080p', 'format_note': 'DASH video', 'preference': -40},
 
         # DASH mp4 audio
         '139': {'ext': 'm4a', 'format_note': 'DASH audio', 'vcodec': 'none', 'abr': 48, 'preference': -50},
@@ -224,8 +224,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         '141': {'ext': 'm4a', 'format_note': 'DASH audio', 'vcodec': 'none', 'abr': 256, 'preference': -50},
 
         # DASH webm audio
-        '171': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH webm audio', 'abr': 48, 'preference': -50},
-        '172': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH webm audio', 'abr': 256, 'preference': -50},
+        '171': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH audio', 'abr': 48, 'preference': -50},
+        '172': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH audio', 'abr': 256, 'preference': -50},
 
         # RTMP (unnamed)
         '_rtmp': {'protocol': 'rtmp'},

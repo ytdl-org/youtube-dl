@@ -1101,7 +1101,7 @@ class YoutubeDL(object):
             if fdict.get('ext') in ['f4f', 'f4m']:
                 res += '(unsupported) '
             if fdict.get('format_note') is not None:
-                res += fdict['format_note'] + ' '
+                res += fdict['format_note']
             if fdict.get('tbr') is not None:
                 res += '%4dk ' % fdict['tbr']
             if fdict.get('container') is not None:
