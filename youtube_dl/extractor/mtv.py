@@ -5,9 +5,11 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
+    compat_urllib_request,
     ExtractorError,
     find_xpath_attr,
     fix_xml_ampersands,
+    unescapeHTML,
     url_basename,
     RegexNotFoundError,
 )
@@ -18,6 +20,7 @@ def _media_xml_tag(tag):
 
 
 class MTVServicesInfoExtractor(InfoExtractor):
+    _MOBILE_TEMPLATE = None
     @staticmethod
     def _id_from_uri(uri):
         return uri.split(':')[-1]
@@ -39,8 +42,22 @@ class MTVServicesInfoExtractor(InfoExtractor):
         else:
             return thumb_node.attrib['url']
 
-    def _extract_video_formats(self, mdoc):
+    def _extract_mobile_video_formats(self, mtvn_id):
+        webpage_url = self._MOBILE_TEMPLATE % mtvn_id
+        req = compat_urllib_request.Request(webpage_url)
+        # Otherwise we get a webpage that would execute some javascript
+        req.add_header('Youtubedl-user-agent', 'curl/7')
+        webpage = self._download_webpage(req, mtvn_id,
+            'Downloading mobile page')
+        url = unescapeHTML(self._search_regex(r'<a href="(http://metrics.+?)"', webpage, 'url'))
+        return [{'url': url,'ext': 'mp4',}]
+
+    def _extract_video_formats(self, mdoc, mtvn_id):
         if re.match(r'.*/(error_country_block\.swf|geoblock\.mp4)$', mdoc.find('.//src').text) is not None:
+            if mtvn_id is not None and self._MOBILE_TEMPLATE is not None:
+                self._downloader.report_warning('The normal version is not '
+                    'available from your country, trying with the mobile version')
+                return self._extract_mobile_video_formats(mtvn_id)
             raise ExtractorError('This video is not available from your country.',
                 expected=True)
 
@@ -95,9 +112,16 @@ class MTVServicesInfoExtractor(InfoExtractor):
             raise ExtractorError('Could not find video title')
         title = title.strip()
 
+        # This a short id that's used in the webpage urls
+        mtvn_id = None
+        mtvn_id_node = find_xpath_attr(itemdoc, './/{http://search.yahoo.com/mrss/}category',
+                'scheme', 'urn:mtvn:id')
+        if mtvn_id_node is not None:
+            mtvn_id = mtvn_id_node.text
+
         return {
             'title': title,
-            'formats': self._extract_video_formats(mediagen_doc),
+            'formats': self._extract_video_formats(mediagen_doc, mtvn_id),
             'id': video_id,
             'thumbnail': self._get_thumbnail_url(uri, itemdoc),
             'description': description,
