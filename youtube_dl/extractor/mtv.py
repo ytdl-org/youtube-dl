@@ -9,6 +9,7 @@ from ..utils import (
     ExtractorError,
     find_xpath_attr,
     fix_xml_ampersands,
+    HEADRequest,
     unescapeHTML,
     url_basename,
     RegexNotFoundError,
@@ -49,14 +50,19 @@ class MTVServicesInfoExtractor(InfoExtractor):
         req.add_header('Youtubedl-user-agent', 'curl/7')
         webpage = self._download_webpage(req, mtvn_id,
             'Downloading mobile page')
-        url = unescapeHTML(self._search_regex(r'<a href="(http://metrics.+?)"', webpage, 'url'))
-        return [{'url': url,'ext': 'mp4',}]
+        metrics_url = unescapeHTML(self._search_regex(r'<a href="(http://metrics.+?)"', webpage, 'url'))
+        req = HEADRequest(metrics_url)
+        response = self._request_webpage(req, mtvn_id, 'Resolving url')
+        url = response.geturl()
+        # Transform the url to get the best quality:
+        url = re.sub(r'.+pxE=mp4', 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=0+_pxK=18639+_pxE=mp4', url, 1)
+        return [{'url': url,'ext': 'mp4'}]
 
     def _extract_video_formats(self, mdoc, mtvn_id):
         if re.match(r'.*/(error_country_block\.swf|geoblock\.mp4)$', mdoc.find('.//src').text) is not None:
             if mtvn_id is not None and self._MOBILE_TEMPLATE is not None:
-                self._downloader.report_warning('The normal version is not '
-                    'available from your country, trying with the mobile version')
+                self.to_screen('The normal version is not available from your '
+                    'country, trying with the mobile version')
                 return self._extract_mobile_video_formats(mtvn_id)
             raise ExtractorError('This video is not available from your country.',
                 expected=True)
