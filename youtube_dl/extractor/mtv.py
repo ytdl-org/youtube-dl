@@ -40,8 +40,9 @@ class MTVServicesInfoExtractor(InfoExtractor):
             return thumb_node.attrib['url']
 
     def _extract_video_formats(self, mdoc):
-        if re.match(r'.*/error_country_block\.swf$', mdoc.find('.//src').text) is not None:
-            raise ExtractorError('This video is not available from your country.', expected=True)
+        if re.match(r'.*/(error_country_block\.swf|geoblock\.mp4)$', mdoc.find('.//src').text) is not None:
+            raise ExtractorError('This video is not available from your country.',
+                expected=True)
 
         formats = []
         for rendition in mdoc.findall('.//rendition'):
