@@ -72,18 +72,22 @@ class ArteTvIE(InfoExtractor):
             return self._extract_liveweb(url, name, lang)
 
         if re.search(self._LIVE_URL, url) is not None:
-            raise ExtractorError(u'Arte live streams are not yet supported, sorry')
+            raise ExtractorError('Arte live streams are not yet supported, sorry')
             # self.extractLiveStream(url)
             # return
+
+        raise ExtractorError('No video found')
 
     def _extract_video(self, url, video_id, lang):
         """Extract from videos.arte.tv"""
         ref_xml_url = url.replace('/videos/', '/do_delegate/videos/')
         ref_xml_url = ref_xml_url.replace('.html', ',view,asPlayerXml.xml')
-        ref_xml_doc = self._download_xml(ref_xml_url, video_id, note=u'Downloading metadata')
+        ref_xml_doc = self._download_xml(
+            ref_xml_url, video_id, note='Downloading metadata')
         config_node = find_xpath_attr(ref_xml_doc, './/video', 'lang', lang)
         config_xml_url = config_node.attrib['ref']
-        config_xml = self._download_webpage(config_xml_url, video_id, note=u'Downloading configuration')
+        config_xml = self._download_webpage(
+            config_xml_url, video_id, note='Downloading configuration')
 
         video_urls = list(re.finditer(r'<url quality="(?P<quality>.*?)">(?P<url>.*?)</url>', config_xml))
         def _key(m):
