@@ -13,7 +13,7 @@ class VubeIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://vube.com/Chiara+Grispo+Video+Channel/YL2qNPkqon',
-        'md5': 'f81dcf6d0448e3291f54380181695821',
+        'md5': 'db7aba89d4603dadd627e9d1973946fe',
         'info_dict': {
             'id': 'YL2qNPkqon',
             'ext': 'mp4',
