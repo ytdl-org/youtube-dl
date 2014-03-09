@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import binascii
 import base64
 import hashlib
@@ -14,18 +16,16 @@ from ..utils import (
 )
 
 
-
 class MyVideoIE(InfoExtractor):
-    """Information Extractor for myvideo.de."""
-
-    _VALID_URL = r'(?:http://)?(?:www\.)?myvideo\.de/(?:[^/]+/)?watch/([0-9]+)/([^?/]+).*'
-    IE_NAME = u'myvideo'
+    _VALID_URL = r'http://(?:www\.)?myvideo\.de/(?:[^/]+/)?watch/(?P<id>[0-9]+)/[^?/]+.*'
+    IE_NAME = 'myvideo'
     _TEST = {
-        u'url': u'http://www.myvideo.de/watch/8229274/bowling_fail_or_win',
-        u'file': u'8229274.flv',
-        u'md5': u'2d2753e8130479ba2cb7e0a37002053e',
-        u'info_dict': {
-            u"title": u"bowling-fail-or-win"
+        'url': 'http://www.myvideo.de/watch/8229274/bowling_fail_or_win',
+        'md5': '2d2753e8130479ba2cb7e0a37002053e',
+        'info_dict': {
+            'id': '8229274',
+            'ext': 'flv',
+            'title': 'bowling-fail-or-win',
         }
     }
 
@@ -53,10 +53,7 @@ class MyVideoIE(InfoExtractor):
 
     def _real_extract(self,url):
         mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError(u'invalid URL: %s' % url)
-
-        video_id = mobj.group(1)
+        video_id = mobj.group('id')
 
         GK = (
           b'WXpnME1EZGhNRGhpTTJNM01XVmhOREU0WldNNVpHTTJOakpt'
@@ -74,37 +71,33 @@ class MyVideoIE(InfoExtractor):
             video_url = mobj.group(1) + '.flv'
 
             video_title = self._html_search_regex('<title>([^<]+)</title>',
-                webpage, u'title')
+                webpage, 'title')
 
-            video_ext = self._search_regex('[.](.+?)$', video_url, u'extension')
-
-            return [{
-                'id':       video_id,
-                'url':      video_url,
-                'uploader': None,
-                'upload_date':  None,
-                'title':    video_title,
-                'ext':      video_ext,
-            }]
+            return {
+                'id': video_id,
+                'url': video_url,
+                'title': video_title,
+            }
 
         mobj = re.search(r'data-video-service="/service/data/video/%s/config' % video_id, webpage)
         if mobj is not None:
             request = compat_urllib_request.Request('http://www.myvideo.de/service/data/video/%s/config' % video_id, '')
             response = self._download_webpage(request, video_id,
-                                              u'Downloading video info')
+                                              'Downloading video info')
             info = json.loads(base64.b64decode(response).decode('utf-8'))
-            return {'id': video_id,
-                    'title': info['title'],
-                    'url': info['streaming_url'].replace('rtmpe', 'rtmpt'),
-                    'play_path': info['filename'],
-                    'ext': 'flv',
-                    'thumbnail': info['thumbnail'][0]['url'],
-                    }
+            return {
+                'id': video_id,
+                'title': info['title'],
+                'url': info['streaming_url'].replace('rtmpe', 'rtmpt'),
+                'play_path': info['filename'],
+                'ext': 'flv',
+                'thumbnail': info['thumbnail'][0]['url'],
+            }
 
         # try encxml
         mobj = re.search('var flashvars={(.+?)}', webpage)
         if mobj is None:
-            raise ExtractorError(u'Unable to extract video')
+            raise ExtractorError('Unable to extract video')
 
         params = {}
         encxml = ''
@@ -118,7 +111,7 @@ class MyVideoIE(InfoExtractor):
             params['domain'] = 'www.myvideo.de'
         xmldata_url = '%s?%s' % (encxml, compat_urllib_parse.urlencode(params))
         if 'flash_playertype=MTV' in xmldata_url:
-            self._downloader.report_warning(u'avoiding MTV player')
+            self._downloader.report_warning('avoiding MTV player')
             xmldata_url = (
                 'http://www.myvideo.de/dynamic/get_player_video_xml.php'
                 '?flash_playertype=D&ID=%s&_countlimit=4&autorun=yes'
@@ -144,7 +137,7 @@ class MyVideoIE(InfoExtractor):
             video_url = compat_urllib_parse.unquote(mobj.group(1))
             if 'myvideo2flash' in video_url:
                 self.report_warning(
-                    u'Rewriting URL to use unencrypted rtmp:// ...',
+                    'Rewriting URL to use unencrypted rtmp:// ...',
                     video_id)
                 video_url = video_url.replace('rtmpe://', 'rtmp://')
 
@@ -152,39 +145,31 @@ class MyVideoIE(InfoExtractor):
             # extract non rtmp videos
             mobj = re.search('path=\'(http.*?)\' source=\'(.*?)\'', dec_data)
             if mobj is None:
-                raise ExtractorError(u'unable to extract url')
+                raise ExtractorError('unable to extract url')
             video_url = compat_urllib_parse.unquote(mobj.group(1)) + compat_urllib_parse.unquote(mobj.group(2))
 
-        video_file = self._search_regex('source=\'(.*?)\'', dec_data, u'video file')
+        video_file = self._search_regex('source=\'(.*?)\'', dec_data, 'video file')
         video_file = compat_urllib_parse.unquote(video_file)
 
         if not video_file.endswith('f4m'):
             ppath, prefix = video_file.split('.')
             video_playpath = '%s:%s' % (prefix, ppath)
-            video_hls_playlist = ''
         else:
             video_playpath = ''
-            video_hls_playlist = (
-                video_file
-            ).replace('.f4m', '.m3u8')
 
-        video_swfobj = self._search_regex('swfobject.embedSWF\(\'(.+?)\'', webpage, u'swfobj')
+        video_swfobj = self._search_regex('swfobject.embedSWF\(\'(.+?)\'', webpage, 'swfobj')
         video_swfobj = compat_urllib_parse.unquote(video_swfobj)
 
         video_title = self._html_search_regex("<h1(?: class='globalHd')?>(.*?)</h1>",
-            webpage, u'title')
+            webpage, 'title')
 
-        return [{
-            'id':                 video_id,
-            'url':                video_url,
-            'tc_url':             video_url,
-            'uploader':           None,
-            'upload_date':        None,
-            'title':              video_title,
-            'ext':                u'flv',
-            'play_path':          video_playpath,
-            'video_file':         video_file,
-            'video_hls_playlist': video_hls_playlist,
-            'player_url':         video_swfobj,
-        }]
+        return {
+            'id': video_id,
+            'url': video_url,
+            'tc_url': video_url,
+            'title': video_title,
+            'ext': 'flv',
+            'play_path': video_playpath,
+            'player_url': video_swfobj,
+        }
 
