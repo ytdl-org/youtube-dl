@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import re
 
 from .common import InfoExtractor
@@ -6,13 +8,14 @@ from .common import InfoExtractor
 class GamekingsIE(InfoExtractor):
     _VALID_URL = r'http://www\.gamekings\.tv/videos/(?P<name>[0-9a-z\-]+)'
     _TEST = {
-        u"url": u"http://www.gamekings.tv/videos/phoenix-wright-ace-attorney-dual-destinies-review/",
-        u'file': u'20130811.mp4',
+        'url': 'http://www.gamekings.tv/videos/phoenix-wright-ace-attorney-dual-destinies-review/',
         # MD5 is flaky, seems to change regularly
-        #u'md5': u'2f32b1f7b80fdc5cb616efb4f387f8a3',
+        # 'md5': '2f32b1f7b80fdc5cb616efb4f387f8a3',
         u'info_dict': {
-            u"title": u"Phoenix Wright: Ace Attorney \u2013 Dual Destinies Review",
-            u"description": u"Melle en Steven hebben voor de review een week in de rechtbank doorbracht met Phoenix Wright: Ace Attorney - Dual Destinies.",
+            'id': '20130811',
+            'ext': 'mp4',
+            'title': 'Phoenix Wright: Ace Attorney \u2013 Dual Destinies Review',
+            'description': 'md5:632e61a9f97d700e83f43d77ddafb6a4',
         }
     }
 

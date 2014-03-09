@@ -35,15 +35,15 @@ class CollegeHumorIE(InfoExtractor):
     },
     # embedded youtube video
     {
-        'url': 'http://www.collegehumor.com/embed/6950457',
+        'url': 'http://www.collegehumor.com/embed/6950306',
         'info_dict': {
-            'id': 'W5gMp3ZjYg4',
+            'id': 'Z-bao9fg6Yc',
             'ext': 'mp4',
-            'title': 'Funny Dogs Protecting Babies Compilation 2014 [NEW HD]',
-            'uploader': 'FunnyPlox TV',
-            'uploader_id': 'funnyploxtv',
-            'description': 'md5:7ded37421526d54afdf005e25bc2b7a3',
-            'upload_date': '20140128',
+            'title': 'Young Americans Think President John F. Kennedy Died THIS MORNING IN A CAR ACCIDENT!!!',
+            'uploader': 'Mark Dice',
+            'uploader_id': 'MarkDice',
+            'description': 'md5:62c3dab9351fac7bb44b53b69511d87f',
+            'upload_date': '20140127',
         },
         'params': {
             'skip_download': True,

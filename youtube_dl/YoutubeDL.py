@@ -370,12 +370,15 @@ class YoutubeDL(object):
         Print the message to stderr, it will be prefixed with 'WARNING:'
         If stderr is a tty file the 'WARNING:' will be colored
         '''
-        if self._err_file.isatty() and os.name != 'nt':
-            _msg_header = '\033[0;33mWARNING:\033[0m'
+        if self.params.get('logger') is not None:
+            self.params['logger'].warning(message)
         else:
-            _msg_header = 'WARNING:'
-        warning_message = '%s %s' % (_msg_header, message)
-        self.to_stderr(warning_message)
+            if self._err_file.isatty() and os.name != 'nt':
+                _msg_header = '\033[0;33mWARNING:\033[0m'
+            else:
+                _msg_header = 'WARNING:'
+            warning_message = '%s %s' % (_msg_header, message)
+            self.to_stderr(warning_message)
 
     def report_error(self, message, tb=None):
         '''

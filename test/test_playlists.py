@@ -99,7 +99,7 @@ class TestPlaylists(unittest.TestCase):
         result = ie.extract('http://www.ustream.tv/channel/young-americans-for-liberty')
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], '5124905')
-        self.assertTrue(len(result['entries']) >= 11)
+        self.assertTrue(len(result['entries']) >= 6)
 
     def test_soundcloud_set(self):
         dl = FakeYDL()
