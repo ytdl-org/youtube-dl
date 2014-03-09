@@ -54,6 +54,7 @@ class SoundcloudIE(InfoExtractor):
                 'id': '47127627',
                 'ext': 'mp3',
                 'title': 'Goldrushed',
+                'description': 'From Stockholm Sweden\r\nPovel / Magnus / Filip / David\r\nwww.theroyalconcept.com',
                 'uploader': 'The Royal Concept',
                 'upload_date': '20120521',
             },
