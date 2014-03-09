@@ -1,5 +1,6 @@
 from .academicearth import AcademicEarthCourseIE
 from .addanime import AddAnimeIE
+from .aftonbladet import AftonbladetIE
 from .anitube import AnitubeIE
 from .aparat import AparatIE
 from .appletrailers import AppleTrailersIE
