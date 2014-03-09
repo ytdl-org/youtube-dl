@@ -18,10 +18,8 @@ from ..utils import (
 
 
 class FacebookIE(InfoExtractor):
-    """Information Extractor for Facebook"""
-
     _VALID_URL = r'''(?x)
-        (?:https?://)?(?:\w+\.)?facebook\.com/
+        https?://(?:\w+\.)?facebook\.com/
         (?:[^#?]*\#!/)?
         (?:video/video\.php|photo\.php|video/embed)\?(?:.*?)
         (?:v|video_id)=(?P<id>[0-9]+)
@@ -37,13 +35,9 @@ class FacebookIE(InfoExtractor):
             'id': '120708114770723',
             'ext': 'mp4',
             'duration': 279,
-            'title': 'PEOPLE ARE AWESOME 2013'
+            'title': 'PEOPLE ARE AWESOME 2013',
         }
     }
-
-    def report_login(self):
-        """Report attempt to log in."""
-        self.to_screen('Logging in')
 
     def _login(self):
         (useremail, password) = self._get_login_info()
@@ -101,8 +95,6 @@ class FacebookIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError('Invalid URL: %s' % url)
         video_id = mobj.group('id')
 
         url = 'https://www.facebook.com/video/video.php?v=%s' % video_id
@@ -128,18 +120,14 @@ class FacebookIE(InfoExtractor):
             video_url = video_data['sd_src']
         if not video_url:
             raise ExtractorError('Cannot find video URL')
-        video_duration = int(video_data['video_duration'])
-        thumbnail = video_data['thumbnail_src']
 
         video_title = self._html_search_regex(
             r'<h2 class="uiHeaderTitle">([^<]*)</h2>', webpage, 'title')
 
-        info = {
+        return {
             'id': video_id,
             'title': video_title,
             'url': video_url,
-            'ext': 'mp4',
-            'duration': video_duration,
-            'thumbnail': thumbnail,
+            'duration': int(video_data['video_duration']),
+            'thumbnail': video_data['thumbnail_src'],
         }
-        return [info]
