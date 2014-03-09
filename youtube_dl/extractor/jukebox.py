@@ -1,56 +1,61 @@
-# coding: utf-8
+from __future__ import unicode_literals
+
 import re
 
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
+    RegexNotFoundError,
     unescapeHTML,
 )
 
+
 class JukeboxIE(InfoExtractor):
     _VALID_URL = r'^http://www\.jukebox?\..+?\/.+[,](?P<video_id>[a-z0-9\-]+)\.html'
-    _IFRAME = r'<iframe .*src="(?P<iframe>[^"]*)".*>'
-    _VIDEO_URL = r'"config":{"file":"(?P<video_url>http:[^"]+[.](?P<video_ext>[^.?]+)[?]mdtk=[0-9]+)"'
-    _TITLE = r'<h1 class="inline">(?P<title>[^<]+)</h1>.*<span id="infos_article_artist">(?P<artist>[^<]+)</span>'
-    _IS_YOUTUBE = r'config":{"file":"(?P<youtube_url>http:[\\][/][\\][/]www[.]youtube[.]com[\\][/]watch[?]v=[^"]+)"'
+    _TEST = {
+        'url': 'http://www.jukebox.es/kosheen/videoclip,pride,r303r.html',
+        'md5': '5dc6477e74b1e37042ac5acedd8413e5',
+        'info_dict': {
+            'id': 'r303r',
+            'ext': 'flv',
+            'title': 'Kosheen-En Vivo Pride',
+            'uploader': 'Kosheen',
+        },
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('video_id')
 
         html = self._download_webpage(url, video_id)
-
-        mobj = re.search(self._IFRAME, html)
-        if mobj is None:
-            raise ExtractorError(u'Cannot extract iframe url')
-        iframe_url = unescapeHTML(mobj.group('iframe'))
+        iframe_url = unescapeHTML(self._search_regex(r'<iframe .*src="([^"]*)"', html, 'iframe url'))
 
         iframe_html = self._download_webpage(iframe_url, video_id, 'Downloading iframe')
-        mobj = re.search(r'class="jkb_waiting"', iframe_html)
-        if mobj is not None:
-            raise ExtractorError(u'Video is not available(in your country?)!')
+        if re.search(r'class="jkb_waiting"', iframe_html) is not None:
+            raise ExtractorError('Video is not available(in your country?)!')
 
         self.report_extraction(video_id)
 
-        mobj = re.search(self._VIDEO_URL, iframe_html)
-        if mobj is None:
-            mobj = re.search(self._IS_YOUTUBE, iframe_html)
-            if mobj is None:
-                raise ExtractorError(u'Cannot extract video url')
-            youtube_url = unescapeHTML(mobj.group('youtube_url')).replace('\/','/')
-            self.to_screen(u'Youtube video detected')
-            return self.url_result(youtube_url,ie='Youtube')
-        video_url = unescapeHTML(mobj.group('video_url')).replace('\/','/')
-        video_ext = unescapeHTML(mobj.group('video_ext'))
+        try:
+            video_url = self._search_regex(r'"config":{"file":"(?P<video_url>http:[^"]+\?mdtk=[0-9]+)"',
+                iframe_html, 'video url')
+            video_url = unescapeHTML(video_url).replace('\/', '/')
+        except RegexNotFoundError:
+            youtube_url = self._search_regex(
+                r'config":{"file":"(http:\\/\\/www\.youtube\.com\\/watch\?v=[^"]+)"',
+                iframe_html, 'youtube url')
+            youtube_url = unescapeHTML(youtube_url).replace('\/', '/')
+            self.to_screen('Youtube video detected')
+            return self.url_result(youtube_url, ie='Youtube')
 
-        mobj = re.search(self._TITLE, html)
-        if mobj is None:
-            raise ExtractorError(u'Cannot extract title')
-        title = unescapeHTML(mobj.group('title'))
-        artist = unescapeHTML(mobj.group('artist'))
+        title = self._html_search_regex(r'<h1 class="inline">([^<]+)</h1>',
+            html, 'title')
+        artist = self._html_search_regex(r'<span id="infos_article_artist">([^<]+)</span>',
+            html, 'artist')
 
-        return [{'id': video_id,
-                 'url': video_url,
-                 'title': artist + '-' + title,
-                 'ext': video_ext
-                 }]
+        return {
+            'id': video_id,
+            'url': video_url,
+            'title': artist + '-' + title,
+            'uploader': artist,
+        }
