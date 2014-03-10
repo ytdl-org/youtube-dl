@@ -22,6 +22,7 @@ import struct
 import subprocess
 import sys
 import traceback
+import xml.etree.ElementTree
 import zlib
 
 try:
@@ -1267,3 +1268,13 @@ def read_batch_urls(batch_fd):
 
 def urlencode_postdata(*args, **kargs):
     return compat_urllib_parse.urlencode(*args, **kargs).encode('ascii')
+
+
+def parse_xml(s):
+    class TreeBuilder(xml.etree.ElementTree.TreeBuilder):
+        def doctype(self, name, pubid, system):
+            pass  # Ignore doctypes
+
+    parser = xml.etree.ElementTree.XMLParser(target=TreeBuilder())
+    kwargs = {'parser': parser} if sys.version_info >= (2, 7) else {}
+    return xml.etree.ElementTree.XML(s.encode('utf-8'), **kwargs)

@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 import os
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from .youtube import YoutubeIE
@@ -17,6 +16,7 @@ from ..utils import (
 
     ExtractorError,
     HEADRequest,
+    parse_xml,
     smuggle_url,
     unescapeHTML,
     unified_strdate,
@@ -274,7 +274,7 @@ class GenericIE(InfoExtractor):
 
         # Is it an RSS feed?
         try:
-            doc = xml.etree.ElementTree.fromstring(webpage.encode('utf-8'))
+            doc = parse_xml(webpage)
             if doc.tag == 'rss':
                 return self._extract_rss(url, video_id, doc)
         except compat_xml_parse_error:
