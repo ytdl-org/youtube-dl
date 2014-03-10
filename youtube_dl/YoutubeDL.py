@@ -701,8 +701,11 @@ class YoutubeDL(object):
         else:
             formats = info_dict['formats']
 
+        if not formats:
+            raise ExtractorError('No video formats found!')
+
         # We check that all the formats have the format and format_id fields
-        for (i, format) in enumerate(formats):
+        for i, format in enumerate(formats):
             if format.get('format_id') is None:
                 format['format_id'] = compat_str(i)
             if format.get('format') is None:
