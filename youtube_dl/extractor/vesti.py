@@ -85,7 +85,7 @@ class VestiIE(InfoExtractor):
                 # m3u8 download
                 'skip_download': True,
             },
-            'skip': 'Blocked outside Russia'
+            'skip': 'Blocked outside Russia',
         },
         {
             'url': 'http://sochi2014.vesti.ru/live/play/live_id/301',
@@ -142,6 +142,7 @@ class VestiIE(InfoExtractor):
                 # m3u8 download
                 'skip_download': True,
             },
+            'skip': 'Blocked outside Russia',
         },
         {
             'url': 'http://tvkultura.ru/video/show/brand_id/31724/episode_id/972347/video_id/978186',
