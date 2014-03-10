@@ -53,7 +53,6 @@ from .dailymotion import (
     DailymotionUserIE,
 )
 from .daum import DaumIE
-from .depositfiles import DepositFilesIE
 from .dotsub import DotsubIE
 from .dreisat import DreiSatIE
 from .defense import DefenseGouvFrIE
