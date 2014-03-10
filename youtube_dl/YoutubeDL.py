@@ -1236,6 +1236,3 @@ class YoutubeDL(object):
         # (See https://github.com/rg3/youtube-dl/issues/1309 for details)
         opener.addheaders = []
         self._opener = opener
-
-        # TODO remove this global modification
-        compat_urllib_request.install_opener(opener)
