@@ -1167,7 +1167,7 @@ class YoutubeDL(object):
 
     def urlopen(self, req):
         """ Start an HTTP download """
-        return self._opener.open(req)
+        return self._opener.open(req, timeout=self._socket_timeout)
 
     def print_debug_header(self):
         if not self.params.get('verbose'):
@@ -1198,7 +1198,7 @@ class YoutubeDL(object):
 
     def _setup_opener(self):
         timeout_val = self.params.get('socket_timeout')
-        timeout = 600 if timeout_val is None else float(timeout_val)
+        self._socket_timeout = 600 if timeout_val is None else float(timeout_val)
 
         opts_cookiefile = self.params.get('cookiefile')
         opts_proxy = self.params.get('proxy')
@@ -1236,7 +1236,3 @@ class YoutubeDL(object):
         # (See https://github.com/rg3/youtube-dl/issues/1309 for details)
         opener.addheaders = []
         self._opener = opener
-
-        # TODO remove this global modification
-        compat_urllib_request.install_opener(opener)
-        socket.setdefaulttimeout(timeout)
