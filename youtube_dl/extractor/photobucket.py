@@ -10,10 +10,10 @@ from .common import InfoExtractor
 class PhotobucketIE(InfoExtractor):
     _VALID_URL = r'http://(?:[a-z0-9]+\.)?photobucket\.com/.*(([\?\&]current=)|_)(?P<id>.*)\.(?P<ext>(flv)|(mp4))'
     _TEST = {
-        u'url': u'http://media.photobucket.com/user/rachaneronas/media/TiredofLinkBuildingTryBacklinkMyDomaincom_zpsc0c3b9fa.mp4.html?filters[term]=search&filters[primary]=videos&filters[secondary]=images&sort=1&o=0',
-        u'file': u'zpsc0c3b9fa.mp4',
-        u'md5': u'7dabfb92b0a31f6c16cebc0f8e60ff99',
-        u'info_dict': {
+        'url': 'http://media.photobucket.com/user/rachaneronas/media/TiredofLinkBuildingTryBacklinkMyDomaincom_zpsc0c3b9fa.mp4.html?filters[term]=search&filters[primary]=videos&filters[secondary]=images&sort=1&o=0',
+        'file': 'zpsc0c3b9fa.mp4',
+        'md5': '7dabfb92b0a31f6c16cebc0f8e60ff99',
+        'info_dict': {
             'upload_date': '20130504',
             'uploader': 'rachaneronas',
             'title': 'Tired of Link Building? Try BacklinkMyDomain.com!',
@@ -34,10 +34,10 @@ class PhotobucketIE(InfoExtractor):
         info = json.loads(info_json)
         return {
             'id': video_id,
-            'url': info[u'downloadUrl'],
-            'uploader': info[u'username'],
-            'upload_date': datetime.date.fromtimestamp(info[u'creationDate']).strftime('%Y%m%d'),
-            'title': info[u'title'],
+            'url': info['downloadUrl'],
+            'uploader': info['username'],
+            'upload_date': datetime.date.fromtimestamp(info['creationDate']).strftime('%Y%m%d'),
+            'title': info['title'],
             'ext': video_extension,
-            'thumbnail': info[u'thumbUrl'],
+            'thumbnail': info['thumbUrl'],
         }

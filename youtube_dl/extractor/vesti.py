@@ -13,7 +13,7 @@ from ..utils import (
 class VestiIE(InfoExtractor):
     IE_NAME = 'vesti'
     IE_DESC = 'Вести.Ru'
-    _VALID_URL = r'http://(?:.+?\.)?(?:vesti\.ru|russia\.tv)/(?P<id>.+)'
+    _VALID_URL = r'http://(?:(?:.+?\.)?vesti\.ru|(?:2\.)?russia\.tv|tvkultura\.ru|rutv\.ru)/(?P<id>.+)'
 
     _TESTS = [
         {
@@ -73,6 +73,35 @@ class VestiIE(InfoExtractor):
             },
         },
         {
+            'url': 'http://sochi2014.vesti.ru/video/index/video_id/766403',
+            'info_dict': {
+                'id': '766403',
+                'ext': 'mp4',
+                'title': 'XXII зимние Олимпийские игры. Российские хоккеисты стартовали на Олимпиаде с победы',
+                'description': 'md5:55805dfd35763a890ff50fa9e35e31b3',
+                'duration': 271,
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
+            'skip': 'Blocked outside Russia'
+        },
+        {
+            'url': 'http://sochi2014.vesti.ru/live/play/live_id/301',
+            'info_dict': {
+                'id': '51499',
+                'ext': 'flv',
+                'title': 'Сочи-2014. Биатлон. Индивидуальная гонка. Мужчины ',
+                'description': 'md5:9e0ed5c9d2fa1efbfdfed90c9a6d179c',
+            },
+            'params': {
+                # rtmp download
+                'skip_download': True,
+            },
+            'skip': 'Translation has finished'
+        },
+        {
             'url': 'http://russia.tv/video/show/brand_id/5169/episode_id/970443/video_id/975648',
             'info_dict': {
                 'id': '771852',
@@ -101,34 +130,47 @@ class VestiIE(InfoExtractor):
             },
         },
         {
-            'url': 'http://sochi2014.vesti.ru/video/index/video_id/766403',
+            'url': 'http://2.russia.tv/video/show/brand_id/48863/episode_id/972920/video_id/978667/viewtype/picture',
             'info_dict': {
-                'id': '766403',
+                'id': '775081',
                 'ext': 'mp4',
-                'title': 'XXII зимние Олимпийские игры. Российские хоккеисты стартовали на Олимпиаде с победы',
-                'description': 'md5:55805dfd35763a890ff50fa9e35e31b3',
-                'duration': 271,
+                'title': 'XXII зимние Олимпийские игры. Россияне заняли весь пьедестал в лыжных гонках',
+                'description': 'md5:15d3741dd8d04b203fbc031c6a47fb0f',
+                'duration': 101,
             },
             'params': {
                 # m3u8 download
                 'skip_download': True,
             },
-            'skip': 'Blocked outside Russia'
         },
         {
-            'url': 'http://sochi2014.vesti.ru/live/play/live_id/301',
+            'url': 'http://tvkultura.ru/video/show/brand_id/31724/episode_id/972347/video_id/978186',
             'info_dict': {
-                'id': '51499',
-                'ext': 'flv',
-                'title': 'Сочи-2014. Биатлон. Индивидуальная гонка. Мужчины ',
-                'description': 'md5:9e0ed5c9d2fa1efbfdfed90c9a6d179c',
+                'id': '774471',
+                'ext': 'mp4',
+                'title': 'Монологи на все времена',
+                'description': 'md5:18d8b5e6a41fb1faa53819471852d5d5',
+                'duration': 2906,
             },
             'params': {
-                # rtmp download
+                # m3u8 download
                 'skip_download': True,
             },
-            'skip': 'Translation has finished'
-        }
+        },
+        {
+            'url': 'http://rutv.ru/brand/show/id/6792/channel/75',
+            'info_dict': {
+                'id': '125521',
+                'ext': 'mp4',
+                'title': 'Грустная дама червей. Х/ф',
+                'description': '',
+                'duration': 4882,
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
+        },
     ]
 
     def _real_extract(self, url):
