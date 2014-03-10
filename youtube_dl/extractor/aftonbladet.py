@@ -8,7 +8,7 @@ from .common import InfoExtractor
 
 
 class AftonbladetIE(InfoExtractor):
-    _VALID_URL = r'^http://tv\.aftonbladet\.se/webbtv.+(?P<video_id>article\d+)\.ab$'
+    _VALID_URL = r'^http://tv\.aftonbladet\.se/webbtv.+?(?P<video_id>article[0-9]+)\.ab(?:$|[?#])'
     _TEST = {
         'url': 'http://tv.aftonbladet.se/webbtv/nyheter/vetenskap/rymden/article36015.ab',
         'info_dict': {
@@ -28,19 +28,21 @@ class AftonbladetIE(InfoExtractor):
 
         # find internal video meta data
         META_URL = 'http://aftonbladet-play.drlib.aptoma.no/video/%s.json'
-        internal_meta_id = self._html_search_regex(r'data-aptomaId="([\w\d]+)"', webpage, 'internal_meta_id')
+        internal_meta_id = self._html_search_regex(
+            r'data-aptomaId="([\w\d]+)"', webpage, 'internal_meta_id')
         internal_meta_url = META_URL % internal_meta_id
-        internal_meta_json = self._download_json(internal_meta_url, video_id, 'Downloading video meta data')
+        internal_meta_json = self._download_json(
+            internal_meta_url, video_id, 'Downloading video meta data')
 
         # find internal video formats
         FORMATS_URL = 'http://aftonbladet-play.videodata.drvideo.aptoma.no/actions/video/?id=%s'
         internal_video_id = internal_meta_json['videoId']
         internal_formats_url = FORMATS_URL % internal_video_id
-        internal_formats_json = self._download_json(internal_formats_url, video_id, 'Downloading video formats')
+        internal_formats_json = self._download_json(
+            internal_formats_url, video_id, 'Downloading video formats')
 
-        self.report_extraction(video_id)
         formats = []
-        for fmt in reversed(internal_formats_json['formats']['http']['pseudostreaming']['mp4']):
+        for fmt in internal_formats_json['formats']['http']['pseudostreaming']['mp4']:
             p = fmt['paths'][0]
             formats.append({
                 'url': 'http://%s:%d/%s/%s' % (p['address'], p['port'], p['path'], p['filename']),
@@ -50,11 +52,12 @@ class AftonbladetIE(InfoExtractor):
                 'tbr': fmt['bitrate'],
                 'protocol': 'http',
             })
+        self._sort_formats(formats)
 
         timestamp = datetime.datetime.fromtimestamp(internal_meta_json['timePublished'])
         upload_date = timestamp.strftime('%Y%m%d')
 
-        return [{
+        return {
             'id': video_id,
             'title': internal_meta_json['title'],
             'formats': formats,
@@ -63,4 +66,4 @@ class AftonbladetIE(InfoExtractor):
             'upload_date': upload_date,
             'duration': internal_meta_json['duration'],
             'view_count': internal_meta_json['views'],
-        }]
+        }
