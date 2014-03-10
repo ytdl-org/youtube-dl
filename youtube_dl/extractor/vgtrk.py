@@ -10,10 +10,9 @@ from ..utils import (
 )
 
 
-class VestiIE(InfoExtractor):
-    IE_NAME = 'vesti'
-    IE_DESC = 'Вести.Ru'
-    _VALID_URL = r'http://(?:.+?\.)?(?:vesti\.ru|russia\.tv|tvkultura\.ru|rutv\.ru)/(?P<id>.+)'
+class VGTRKIE(InfoExtractor):
+    IE_DESC = 'ВГТРК'
+    _VALID_URL = r'http://(?:.+?\.)?(?:vesti\.ru|russia2?\.tv|tvkultura\.ru|rutv\.ru)/(?P<id>.+)'
 
     _TESTS = [
         {
