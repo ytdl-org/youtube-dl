@@ -169,7 +169,7 @@ class VevoIE(InfoExtractor):
 
         timestamp_ms = int(self._search_regex(
             r'/Date\((\d+)\)/', video_info['launchDate'], 'launch date'))
-        upload_date = datetime.datetime.fromtimestamp(timestamp_ms // 1000)
+        upload_date = datetime.datetime.utcfromtimestamp(timestamp_ms // 1000)
         return {
             'id': video_id,
             'title': video_info['title'],
