@@ -50,6 +50,7 @@ __authors__  = (
     'Anthony Weems',
     'David Wagner',
     'Juan C. Olivares',
+    'Mattias Harrysson',
 )
 
 __license__ = 'Public Domain'
