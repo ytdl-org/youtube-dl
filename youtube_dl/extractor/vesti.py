@@ -13,7 +13,7 @@ from ..utils import (
 class VestiIE(InfoExtractor):
     IE_NAME = 'vesti'
     IE_DESC = 'Вести.Ru'
-    _VALID_URL = r'http://(?:(?:.+?\.)?vesti\.ru|(?:2\.)?russia\.tv|tvkultura\.ru|rutv\.ru)/(?P<id>.+)'
+    _VALID_URL = r'http://(?:.+?\.)?(?:vesti\.ru|russia\.tv|tvkultura\.ru|rutv\.ru)/(?P<id>.+)'
 
     _TESTS = [
         {
