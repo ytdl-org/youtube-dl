@@ -1285,10 +1285,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         # Decide which formats to download
         try:
-            mobj = re.search(r';ytplayer.config = ({.*?});', video_webpage)
+            mobj = re.search(r';ytplayer\.config\s*=\s*({.*?});', video_webpage)
             if not mobj:
                 raise ValueError('Could not find vevo ID')
-            ytplayer_config = json.loads(mobj.group(1))
+            json_code = uppercase_escape(mobj.group(1))
+            ytplayer_config = json.loads(json_code)
             args = ytplayer_config['args']
             # Easy way to know if the 's' value is in url_encoded_fmt_stream_map
             # this signatures are encrypted
