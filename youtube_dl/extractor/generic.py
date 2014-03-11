@@ -134,6 +134,17 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        # funnyordie embed
+        {
+            'url': 'http://www.theguardian.com/world/2014/mar/11/obama-zach-galifianakis-between-two-ferns',
+            'md5': '7cf780be104d40fea7bae52eed4a470e',
+            'info_dict': {
+                'id': '18e820ec3f',
+                'ext': 'mp4',
+                'title': 'Between Two Ferns with Zach Galifianakis: President Barack Obama',
+                'description': 'Episode 18: President Barack Obama sits down with Zach Galifianakis for his most memorable interview yet.',
+            }
+        },
     ]
 
     def report_download_webpage(self, video_id):
@@ -431,6 +442,14 @@ class GenericIE(InfoExtractor):
         mobj = re.search(r'class=["\']embedly-embed["\'][^>]src=["\'][^"\']*url=(?P<url>[^&]+)', webpage)
         if mobj is not None:
             return self.url_result(compat_urllib_parse.unquote(mobj.group('url')))
+
+        # Look for funnyordie embed
+        matches = re.findall(r'<iframe[^>]+?src="(https?://(?:www\.)?funnyordie\.com/embed/[^"]+)"', webpage)
+        if matches:
+            urlrs = [self.url_result(unescapeHTML(eurl), 'FunnyOrDie')
+                     for eurl in matches]
+            return self.playlist_result(
+                urlrs, playlist_id=video_id, playlist_title=video_title)
 
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)

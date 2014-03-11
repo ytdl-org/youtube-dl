@@ -1,12 +1,13 @@
 from __future__ import unicode_literals
 
+import json
 import re
 
 from .common import InfoExtractor
 
 
 class FunnyOrDieIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?funnyordie\.com/videos/(?P<id>[0-9a-f]+)/.*$'
+    _VALID_URL = r'https?://(?:www\.)?funnyordie\.com/(?P<type>embed|videos)/(?P<id>[0-9a-f]+)(?:$|[?#/])'
     _TEST = {
         'url': 'http://www.funnyordie.com/videos/0732f586d7/heart-shaped-box-literal-video-version',
         'file': '0732f586d7.mp4',
@@ -30,10 +31,20 @@ class FunnyOrDieIE(InfoExtractor):
             [r'type="video/mp4" src="(.*?)"', r'src="([^>]*?)" type=\'video/mp4\''],
             webpage, 'video URL', flags=re.DOTALL)
 
+        if mobj.group('type') == 'embed':
+            post_json = self._search_regex(
+                r'fb_post\s*=\s*(\{.*?\});', webpage, 'post details')
+            post = json.loads(post_json)['attachment']
+            title = post['name']
+            description = post.get('description')
+        else:
+            title = self._og_search_title(webpage)
+            description = self._og_search_description(webpage)
+
         return {
             'id': video_id,
             'url': video_url,
             'ext': 'mp4',
-            'title': self._og_search_title(webpage),
-            'description': self._og_search_description(webpage),
+            'title': title,
+            'description': description,
         }
