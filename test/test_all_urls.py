@@ -124,6 +124,8 @@ class TestAllURLsMatching(unittest.TestCase):
 
     def test_vimeo_matching(self):
         self.assertMatch('http://vimeo.com/channels/tributes', ['vimeo:channel'])
+        self.assertMatch('http://vimeo.com/channels/31259', ['vimeo:channel'])
+        self.assertMatch('http://vimeo.com/channels/31259/53576664', ['vimeo'])
         self.assertMatch('http://vimeo.com/user7108434', ['vimeo:user'])
         self.assertMatch('http://vimeo.com/user7108434/videos', ['vimeo:user'])
         self.assertMatch('https://vimeo.com/user21297594/review/75524534/3c257a1b5d', ['vimeo:review'])

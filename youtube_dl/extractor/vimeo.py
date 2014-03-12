@@ -102,6 +102,15 @@ class VimeoIE(SubtitlesInfoExtractor):
         },
     ]
 
+    @classmethod
+    def suitable(cls, url):
+        if VimeoChannelIE.suitable(url):
+            # Otherwise channel urls like http://vimeo.com/channels/31259 would
+            # match
+            return False
+        else:
+            return super(VimeoIE, cls).suitable(url)
+
     def _login(self):
         (username, password) = self._get_login_info()
         if username is None:
@@ -332,7 +341,7 @@ class VimeoIE(SubtitlesInfoExtractor):
 
 class VimeoChannelIE(InfoExtractor):
     IE_NAME = 'vimeo:channel'
-    _VALID_URL = r'(?:https?://)?vimeo\.com/channels/(?P<id>[^/]+)'
+    _VALID_URL = r'(?:https?://)?vimeo\.com/channels/(?P<id>[^/]+)/?(\?.*)?$'
     _MORE_PAGES_INDICATOR = r'<a.+?rel="next"'
     _TITLE_RE = r'<link rel="alternate"[^>]+?title="(.*?)"'
 
