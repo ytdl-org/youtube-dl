@@ -29,7 +29,7 @@ class CollegeHumorIE(InfoExtractor):
             'id': '3505939',
             'ext': 'mp4',
             'title': 'Font Conference',
-            'description': 'This video wasn\'t long enough,',
+            'description': "This video wasn't long enough, so we made it double-spaced.",
             'age_limit': 10,
             'duration': 179,
         },
