@@ -88,6 +88,7 @@ class CollegeHumorIE(InfoExtractor):
         self._sort_formats(formats)
 
         duration = int_or_none(vdata.get('duration'), 1000)
+        like_count = int_or_none(vdata.get('likes'))
 
         return {
             'id': video_id,
@@ -97,4 +98,5 @@ class CollegeHumorIE(InfoExtractor):
             'formats': formats,
             'age_limit': age_limit,
             'duration': duration,
+            'like_count': like_count,
         }
