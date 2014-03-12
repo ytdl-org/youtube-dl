@@ -34,12 +34,14 @@ class FunnyOrDieIE(InfoExtractor):
         if mobj.group('type') == 'embed':
             post_json = self._search_regex(
                 r'fb_post\s*=\s*(\{.*?\});', webpage, 'post details')
-            post = json.loads(post_json)['attachment']
+            post = json.loads(post_json)
             title = post['name']
             description = post.get('description')
+            thumbnail = post.get('picture')
         else:
             title = self._og_search_title(webpage)
             description = self._og_search_description(webpage)
+            thumbnail = None
 
         return {
             'id': video_id,
@@ -47,4 +49,5 @@ class FunnyOrDieIE(InfoExtractor):
             'ext': 'mp4',
             'title': title,
             'description': description,
+            'thumbnail': thumbnail,
         }
