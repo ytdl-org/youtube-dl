@@ -17,8 +17,9 @@ class CollegeHumorIE(InfoExtractor):
             'id': '6902724',
             'ext': 'mp4',
             'title': 'Comic-Con Cosplay Catastrophe',
-            'description': 'Fans get creative this year',
+            'description': "Fans get creative this year at San Diego.  Too creative.  And yes, that's really Joss Whedon.",
             'age_limit': 13,
+            'duration': 187,
         },
     },
     {
