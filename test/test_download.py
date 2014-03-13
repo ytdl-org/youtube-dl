@@ -166,7 +166,7 @@ def generator(test_case):
                 # If checkable fields are missing from the test case, print the info_dict
                 test_info_dict = dict((key, value if not isinstance(value, compat_str) or len(value) < 250 else 'md5:' + md5(value))
                     for key, value in info_dict.items()
-                    if value and key in ('title', 'description', 'uploader', 'upload_date', 'uploader_id', 'location'))
+                    if value and key in ('title', 'description', 'uploader', 'upload_date', 'timestamp', 'uploader_id', 'location'))
                 if not all(key in tc.get('info_dict', {}).keys() for key in test_info_dict.keys()):
                     sys.stderr.write(u'\n"info_dict": ' + json.dumps(test_info_dict, ensure_ascii=False, indent=4) + u'\n')
         finally:

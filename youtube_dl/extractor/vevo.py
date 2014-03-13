@@ -33,6 +33,7 @@ class VevoIE(InfoExtractor):
             "duration": 230.12,
             "width": 1920,
             "height": 1080,
+            'timestamp': 1372057200,
         }
     }, {
         'note': 'v3 SMIL format',
@@ -46,6 +47,7 @@ class VevoIE(InfoExtractor):
             'title': 'I Wish I Could Break Your Heart',
             'duration': 226.101,
             'age_limit': 0,
+            'timestamp': 1392796919,
         }
     }, {
         'note': 'Age-limited video',
@@ -57,7 +59,7 @@ class VevoIE(InfoExtractor):
             'title': 'Tunnel Vision (Explicit)',
             'uploader': 'Justin Timberlake',
             'upload_date': '20130704',
-            'upload_timestamp': 1372906800,
+            'timestamp': 1372906800,
         },
         'params': {
             'skip_download': 'true',
@@ -175,7 +177,7 @@ class VevoIE(InfoExtractor):
             'title': video_info['title'],
             'formats': formats,
             'thumbnail': video_info['imageUrl'],
-            'upload_timestamp': timestamp_ms // 1000,
+            'timestamp': timestamp_ms // 1000,
             'uploader': video_info['mainArtists'][0]['artistName'],
             'duration': video_info['duration'],
             'age_limit': age_limit,
