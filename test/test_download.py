@@ -144,6 +144,10 @@ def generator(test_case):
                         self.assertTrue(
                             isinstance(got, compat_str) and match_rex.match(got),
                             u'field %s (value: %r) should match %r' % (info_field, got, match_str))
+                    elif isinstance(expected, type):
+                        got = info_dict.get(info_field)
+                        self.assertTrue(isinstance(got, expected),
+                            u'Expected type %r, but got value %r of type %r' % (expected, got, type(got)))
                     else:
                         if isinstance(expected, compat_str) and expected.startswith('md5:'):
                             got = 'md5:' + md5(info_dict.get(info_field))

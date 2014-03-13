@@ -15,7 +15,9 @@ class NineGagIE(InfoExtractor):
         "file": "1912.mp4",
         "info_dict": {
             "description": "This 3-minute video will make you smile and then make you feel untalented and insignificant. Anyway, you should share this awesomeness. (Thanks, Dino!)",
-            "title": "\"People Are Awesome 2013\" Is Absolutely Awesome"
+            "title": "\"People Are Awesome 2013\" Is Absolutely Awesome",
+            "view_count": int,
+            "thumbnail": "re:^https?://",
         },
         'add_ie': ['Youtube']
     }
@@ -25,21 +27,27 @@ class NineGagIE(InfoExtractor):
         video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id)
-        data_json = self._html_search_regex(r'''(?x)
-            <div\s*id="tv-video"\s*data-video-source="youtube"\s*
-                data-video-meta="([^"]+)"''', webpage, 'video metadata')
 
-        data = json.loads(data_json)
+        youtube_id = self._html_search_regex(
+            r'(?s)id="jsid-video-post-container".*?data-external-id="([^"]+)"',
+            webpage, 'video ID')
+        description = self._html_search_regex(
+            r'(?s)<div class="video-caption">.*?<p>(.*?)</p>', webpage,
+            'description', fatal=False)
+        view_count_str = self._html_search_regex(
+            r'<p><b>([0-9][0-9,]*)</b> views</p>', webpage, 'view count',
+            fatal=False)
+        view_count = (
+            None if view_count_str is None
+            else int(view_count_str.replace(',', '')))
 
         return {
             '_type': 'url_transparent',
-            'url': data['youtubeVideoId'],
+            'url': youtube_id,
             'ie_key': 'Youtube',
             'id': video_id,
-            'title': data['title'],
-            'description': data['description'],
-            'view_count': int(data['view_count']),
-            'like_count': int(data['statistic']['like']),
-            'dislike_count': int(data['statistic']['dislike']),
-            'thumbnail': data['thumbnail_url'],
+            'title': self._og_search_title(webpage),
+            'description': description,
+            'view_count': view_count,
+            'thumbnail': self._og_search_thumbnail(webpage),
         }
