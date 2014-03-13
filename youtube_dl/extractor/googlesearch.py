@@ -46,6 +46,6 @@ class GoogleSearchIE(SearchInfoExtractor):
                     'url': mobj.group(1)
                 })
 
-            if (len(entries) >= n) or not re.search(r'class="pn" id="pnnext"', webpage):
+            if (len(entries) >= n) or not re.search(r'id="pnnext"', webpage):
                 res['entries'] = entries[:n]
                 return res

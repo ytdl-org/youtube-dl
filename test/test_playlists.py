@@ -249,7 +249,7 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], 'python language')
         self.assertEqual(result['title'], 'python language')
-        self.assertTrue(len(result['entries']) == 15)
+        self.assertEqual(len(result['entries']), 15)
 
     def test_generic_rss_feed(self):
         dl = FakeYDL()
