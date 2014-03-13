@@ -34,6 +34,7 @@ class WDRIE(InfoExtractor):
                 'id': 'mdb-363194',
                 'ext': 'flv',
                 'title': 'Marga Spiegel ist tot',
+                'description': 'md5:2309992a6716c347891c045be50992e4',
                 'upload_date': '20140311',
             },
             'params': {
@@ -47,6 +48,7 @@ class WDRIE(InfoExtractor):
                 'id': 'mdb-194332',
                 'ext': 'mp3',
                 'title': 'Erlebte Geschichten: Marga Spiegel (29.11.2009)',
+                'description': 'md5:2309992a6716c347891c045be50992e4',
                 'upload_date': '20091129',
             },
         },
@@ -57,6 +59,7 @@ class WDRIE(InfoExtractor):
                 'id': 'mdb-363068',
                 'ext': 'mp3',
                 'title': 'Grenzenlos lecker - Baklava',
+                'description': 'md5:7b29e97e10dfb6e265238b32fa35b23a',
                 'upload_date': '20140311',
             },
         },
