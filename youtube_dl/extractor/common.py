@@ -97,7 +97,9 @@ class InfoExtractor(object):
     thumbnail:      Full URL to a video thumbnail image.
     description:    One-line video description.
     uploader:       Full name of the video uploader.
+    upload_timestamp:UNIX timestamp of the upload moment.
     upload_date:    Video upload date (YYYYMMDD).
+                    If not explicitly set, calculated from update_timestamp.
     uploader_id:    Nickname or id of the video uploader.
     location:       Physical location of the video.
     subtitles:      The subtitle file contents as a dictionary in the format

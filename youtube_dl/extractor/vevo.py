@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 import re
 import xml.etree.ElementTree
-import datetime
 
 from .common import InfoExtractor
 from ..utils import (
@@ -57,7 +56,8 @@ class VevoIE(InfoExtractor):
             'age_limit': 18,
             'title': 'Tunnel Vision (Explicit)',
             'uploader': 'Justin Timberlake',
-            'upload_date': '20130703',
+            'upload_date': '20130704',
+            'upload_timestamp': 1372906800,
         },
         'params': {
             'skip_download': 'true',
@@ -169,13 +169,13 @@ class VevoIE(InfoExtractor):
 
         timestamp_ms = int(self._search_regex(
             r'/Date\((\d+)\)/', video_info['launchDate'], 'launch date'))
-        upload_date = datetime.datetime.utcfromtimestamp(timestamp_ms // 1000)
+
         return {
             'id': video_id,
             'title': video_info['title'],
             'formats': formats,
             'thumbnail': video_info['imageUrl'],
-            'upload_date': upload_date.strftime('%Y%m%d'),
+            'upload_timestamp': timestamp_ms // 1000,
             'uploader': video_info['mainArtists'][0]['artistName'],
             'duration': video_info['duration'],
             'age_limit': age_limit,
