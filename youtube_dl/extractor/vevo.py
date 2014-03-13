@@ -58,8 +58,9 @@ class VevoIE(InfoExtractor):
             'age_limit': 18,
             'title': 'Tunnel Vision (Explicit)',
             'uploader': 'Justin Timberlake',
-            'upload_date': '20130704',
-            'timestamp': 1372906800,
+            # timestamp and upload_date are often incorrect; seem to change randomly
+            'upload_date': 're:2013070[34]',
+            'timestamp': int,
         },
         'params': {
             'skip_download': 'true',
