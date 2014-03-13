@@ -242,6 +242,10 @@ from .tumblr import TumblrIE
 from .tutv import TutvIE
 from .tvigle import TvigleIE
 from .tvp import TvpIE
+from .udemy import (
+    UdemyIE,
+    UdemyCourseIE
+)
 from .unistra import UnistraIE
 from .ustream import UstreamIE, UstreamChannelIE
 from .vbox7 import Vbox7IE
