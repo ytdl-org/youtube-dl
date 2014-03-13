@@ -29,6 +29,7 @@ class VideoBamIE(InfoExtractor):
             'info_dict': {
                 'id': 'pqLvq',
                 'ext': 'mp4',
+                'title': '_',
             }
         },
     ]
@@ -61,7 +62,7 @@ class VideoBamIE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        title = self._og_search_title(page, default='VideoBam', fatal=False)
+        title = self._og_search_title(page, default='_', fatal=False)
         description = self._og_search_description(page, default=None)
         thumbnail = self._og_search_thumbnail(page)
         uploader = self._html_search_regex(r'Upload by ([^<]+)</a>', page, 'uploader', fatal=False, default=None)
