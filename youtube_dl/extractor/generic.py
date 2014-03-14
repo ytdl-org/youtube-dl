@@ -291,6 +291,9 @@ class GenericIE(InfoExtractor):
         except compat_xml_parse_error:
             pass
 
+        # Sometimes embedded video player is hidden behind percent encoding
+        # (e.g. https://github.com/rg3/youtube-dl/issues/2448)
+        # Unescaping the whole page allows to handle those cases in a generic way
         webpage = compat_urllib_parse.unquote(webpage)
 
         # it's tempting to parse this further, but you would
