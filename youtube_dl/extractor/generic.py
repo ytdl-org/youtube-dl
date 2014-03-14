@@ -145,6 +145,17 @@ class GenericIE(InfoExtractor):
                 'description': 'Episode 18: President Barack Obama sits down with Zach Galifianakis for his most memorable interview yet.',
             }
         },
+        # nowvideo embed hidden behind percent encoding
+        {
+            'url': 'http://www.waoanime.tv/the-super-dimension-fortress-macross-episode-1/',
+            'md5': '2baf4ddd70f697d94b1c18cf796d5107',
+            'info_dict': {
+                'id': '06e53103ca9aa',
+                'ext': 'flv',
+                'title': 'Macross Episode 001  Watch Macross Episode 001 onl',
+                'description': 'No description',
+            },
+        }
     ]
 
     def report_download_webpage(self, video_id):
