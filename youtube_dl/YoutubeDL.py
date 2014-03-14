@@ -667,6 +667,18 @@ class YoutubeDL(object):
                 if f.get('vcodec') == 'none']
             if audio_formats:
                 return audio_formats[0]
+        elif format_spec == 'bestvideo':
+            video_formats = [
+                f for f in available_formats
+                if f.get('acodec') == 'none']
+            if video_formats:
+                return video_formats[-1]
+        elif format_spec == 'worstvideo':
+            video_formats = [
+                f for f in available_formats
+                if f.get('acodec') == 'none']
+            if video_formats:
+                return video_formats[0]
         else:
             extensions = ['mp4', 'flv', 'webm', '3gp']
             if format_spec in extensions:

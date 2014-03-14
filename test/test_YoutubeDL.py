@@ -182,6 +182,24 @@ class TestFormatSelection(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], 'vid-high')
 
+    def test_format_selection_video(self):
+        formats = [
+            {'format_id': 'dash-video-low', 'ext': 'mp4', 'preference': 1, 'acodec': 'none'},
+            {'format_id': 'dash-video-high', 'ext': 'mp4', 'preference': 2, 'acodec': 'none'},
+            {'format_id': 'vid', 'ext': 'mp4', 'preference': 3},
+        ]
+        info_dict = {'formats': formats, 'extractor': 'test'}
+
+        ydl = YDL({'format': 'bestvideo'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'dash-video-high')
+
+        ydl = YDL({'format': 'worstvideo'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'dash-video-low')
+
     def test_youtube_format_selection(self):
         order = [
             '38', '37', '46', '22', '45', '35', '44', '18', '34', '43', '6', '5', '36', '17', '13',
