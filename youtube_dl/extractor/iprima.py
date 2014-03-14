@@ -39,6 +39,7 @@ class IPrimaIE(InfoExtractor):
         'params': {
             'skip_download': True,  # requires rtmpdump
         },
+        'skip': 'Do not have permission to access this page',
     }]
 
     def _real_extract(self, url):
