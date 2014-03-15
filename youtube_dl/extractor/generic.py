@@ -145,6 +145,17 @@ class GenericIE(InfoExtractor):
                 'description': 'Episode 18: President Barack Obama sits down with Zach Galifianakis for his most memorable interview yet.',
             }
         },
+        # nowvideo embed hidden behind percent encoding
+        {
+            'url': 'http://www.waoanime.tv/the-super-dimension-fortress-macross-episode-1/',
+            'md5': '2baf4ddd70f697d94b1c18cf796d5107',
+            'info_dict': {
+                'id': '06e53103ca9aa',
+                'ext': 'flv',
+                'title': 'Macross Episode 001  Watch Macross Episode 001 onl',
+                'description': 'No description',
+            },
+        }
     ]
 
     def report_download_webpage(self, video_id):
@@ -290,6 +301,11 @@ class GenericIE(InfoExtractor):
                 return self._extract_rss(url, video_id, doc)
         except compat_xml_parse_error:
             pass
+
+        # Sometimes embedded video player is hidden behind percent encoding
+        # (e.g. https://github.com/rg3/youtube-dl/issues/2448)
+        # Unescaping the whole page allows to handle those cases in a generic way
+        webpage = compat_urllib_parse.unquote(webpage)
 
         # it's tempting to parse this further, but you would
         # have to take into account all the variations like
