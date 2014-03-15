@@ -324,9 +324,9 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded (iframe) Vimeo player
         mobj = re.search(
-            r'<iframe[^>]+?src="((?:https?:)?//player\.vimeo\.com/video/.+?)"', webpage)
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//player\.vimeo\.com/video/.+?)\1', webpage)
         if mobj:
-            player_url = unescapeHTML(mobj.group(1))
+            player_url = unescapeHTML(mobj.group('url'))
             surl = smuggle_url(player_url, {'Referer': url})
             return self.url_result(surl, 'Vimeo')
 
