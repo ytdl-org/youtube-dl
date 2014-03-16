@@ -16,7 +16,7 @@ class UdemyIE(InfoExtractor):
     _LOGIN_URL = 'https://www.udemy.com/join/login-submit/'
     _NETRC_MACHINE = 'udemy'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'https://www.udemy.com/java-tutorial/#/lecture/172757',
         'md5': '98eda5b657e752cf945d8445e261b5c5',
         'info_dict': {
@@ -27,7 +27,7 @@ class UdemyIE(InfoExtractor):
             'duration': 579.29,
         },
         'skip': 'Requires udemy account credentials',
-    }
+    }]
 
     def _handle_error(self, response):
         if not isinstance(response, dict):
@@ -129,6 +129,7 @@ class UdemyCourseIE(UdemyIE):
     _VALID_URL = r'https?://www\.udemy\.com/(?P<coursepath>[\da-z-]+)'
     _SUCCESSFULLY_ENROLLED = '>You have enrolled in this course!<'
     _ALREADY_ENROLLED = '>You are already taking this course.<'
+    _TESTS = []
 
     @classmethod
     def suitable(cls, url):
