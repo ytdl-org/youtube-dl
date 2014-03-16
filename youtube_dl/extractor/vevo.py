@@ -21,6 +21,7 @@ class VevoIE(InfoExtractor):
            https?://videoplayer\.vevo\.com/embed/embedded\?videoId=|
            vevo:)
         (?P<id>[^&?#]+)'''
+
     _TESTS = [{
         'url': 'http://www.vevo.com/watch/hurts/somebody-to-die-for/GB1101300280',
         "md5": "06bea460acb744eab74a9d7dcb4bfd61",
@@ -33,7 +34,8 @@ class VevoIE(InfoExtractor):
             "duration": 230.12,
             "width": 1920,
             "height": 1080,
-            'timestamp': 1372057200,
+            # timestamp and upload_date are often incorrect; seem to change randomly
+            'timestamp': int,
         }
     }, {
         'note': 'v3 SMIL format',
@@ -47,7 +49,7 @@ class VevoIE(InfoExtractor):
             'title': 'I Wish I Could Break Your Heart',
             'duration': 226.101,
             'age_limit': 0,
-            'timestamp': 1392796919,
+            'timestamp': int,
         }
     }, {
         'note': 'Age-limited video',
@@ -58,7 +60,6 @@ class VevoIE(InfoExtractor):
             'age_limit': 18,
             'title': 'Tunnel Vision (Explicit)',
             'uploader': 'Justin Timberlake',
-            # timestamp and upload_date are often incorrect; seem to change randomly
             'upload_date': 're:2013070[34]',
             'timestamp': int,
         },
