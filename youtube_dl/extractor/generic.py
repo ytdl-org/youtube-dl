@@ -24,6 +24,7 @@ from ..utils import (
 )
 from .brightcove import BrightcoveIE
 from .ooyala import OoyalaIE
+from .rutv import RUTVIE
 
 
 class GenericIE(InfoExtractor):
@@ -143,8 +144,22 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Between Two Ferns with Zach Galifianakis: President Barack Obama',
                 'description': 'Episode 18: President Barack Obama sits down with Zach Galifianakis for his most memorable interview yet.',
-            }
+            },
         },
+        # RUTV embed
+        {
+            'url': 'http://www.rg.ru/2014/03/15/reg-dfo/anklav-anons.html',
+            'info_dict': {
+                'id': '776940',
+                'ext': 'mp4',
+                'title': 'Охотское море стало целиком российским',
+                'description': 'md5:5ed62483b14663e2a95ebbe115eb8f43',
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
+        }
     ]
 
     def report_download_webpage(self, video_id):
@@ -450,6 +465,11 @@ class GenericIE(InfoExtractor):
                      for eurl in matches]
             return self.playlist_result(
                 urlrs, playlist_id=video_id, playlist_title=video_title)
+
+        # Look for embedded RUTV player
+        rutv_url = RUTVIE._extract_url(webpage)
+        if rutv_url:
+            return self.url_result(rutv_url, 'RUTV')
 
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
