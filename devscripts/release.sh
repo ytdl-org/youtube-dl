@@ -97,7 +97,7 @@ rm -rf build
 
 make pypi-files
 echo "Uploading to PyPi ..."
-python setup.py sdist upload
+python setup.py sdist bdist_wheel upload
 make clean
 
 /bin/echo -e "\n### DONE!"
