@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import (
     get_params,
-    get_testcases,
+    gettestcases,
     try_rm,
     md5,
     report_warning
@@ -51,7 +51,7 @@ def _file_md5(fn):
     with open(fn, 'rb') as f:
         return hashlib.md5(f.read()).hexdigest()
 
-defs = get_testcases()
+defs = gettestcases()
 
 
 class TestDownload(unittest.TestCase):

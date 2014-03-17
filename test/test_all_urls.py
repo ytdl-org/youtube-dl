@@ -9,7 +9,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
-from test.helper import get_testcases
+from test.helper import gettestcases
 
 from youtube_dl.extractor import (
     FacebookIE,
@@ -105,7 +105,7 @@ class TestAllURLsMatching(unittest.TestCase):
 
     def test_no_duplicates(self):
         ies = gen_extractors()
-        for tc in get_testcases():
+        for tc in gettestcases():
             url = tc['url']
             for ie in ies:
                 if type(ie).__name__ in ('GenericIE', tc['name'] + 'IE'):
