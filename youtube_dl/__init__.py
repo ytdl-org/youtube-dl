@@ -56,7 +56,6 @@ __authors__  = (
 __license__ = 'Public Domain'
 
 import codecs
-import getpass
 import io
 import locale
 import optparse
@@ -68,6 +67,7 @@ import sys
 
 
 from .utils import (
+    compat_getpass,
     compat_print,
     DateRange,
     decodeOption,
@@ -611,7 +611,7 @@ def _real_main(argv=None):
     if opts.usetitle and opts.useid:
         parser.error(u'using title conflicts with using video ID')
     if opts.username is not None and opts.password is None:
-        opts.password = getpass.getpass(u'Type account password and press return:')
+        opts.password = compat_getpass(u'Type account password and press [Return]: ')
     if opts.ratelimit is not None:
         numeric_limit = FileDownloader.parse_bytes(opts.ratelimit)
         if numeric_limit is None:
