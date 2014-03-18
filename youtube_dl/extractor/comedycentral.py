@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class ComedyCentralIE(MTVServicesInfoExtractor):
-    _VALID_URL = r'''(?x)https?://(?:www\.)?comedycentral\.com/
+    _VALID_URL = r'''(?x)https?://(?:www\.)?(comedycentral|cc)\.com/
         (video-clips|episodes|cc-studios|video-collections)
         /(?P<title>.*)'''
     _FEED_URL = 'http://comedycentral.com/feeds/mrss/'
