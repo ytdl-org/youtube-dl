@@ -1285,7 +1285,7 @@ def parse_xml(s):
 if sys.version_info < (3, 0) and sys.platform == 'win32':
     def compat_getpass(prompt, *args, **kwargs):
         if isinstance(prompt, compat_str):
-            prompt = prompt.encode(getpreferredencoding())
+            prompt = prompt.encode(preferredencoding())
         return getpass.getpass(prompt, *args, **kwargs)
 else:
     compat_getpass = getpass.getpass
