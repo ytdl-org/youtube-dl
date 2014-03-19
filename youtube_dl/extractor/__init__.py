@@ -196,6 +196,7 @@ from .rutube import (
     RutubeMovieIE,
     RutubePersonIE,
 )
+from .rutv import RUTVIE
 from .savefrom import SaveFromIE
 from .servingsys import ServingSysIE
 from .sina import SinaIE
@@ -251,8 +252,8 @@ from .ustream import UstreamIE, UstreamChannelIE
 from .vbox7 import Vbox7IE
 from .veehd import VeeHDIE
 from .veoh import VeohIE
+from .vesti import VestiIE
 from .vevo import VevoIE
-from .vgtrk import VGTRKIE
 from .vice import ViceIE
 from .viddler import ViddlerIE
 from .videobam import VideoBamIE

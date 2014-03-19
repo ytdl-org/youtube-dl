@@ -70,7 +70,7 @@ RELEASE_FILES="youtube-dl youtube-dl.exe youtube-dl-$version.tar.gz"
 git checkout HEAD -- youtube-dl youtube-dl.exe
 
 /bin/echo -e "\n### Signing and uploading the new binaries to yt-dl.org ..."
-for f in $RELEASE_FILES; do gpg --detach-sig "build/$version/$f"; done
+for f in $RELEASE_FILES; do gpg --passphrase-repeat 5 --detach-sig "build/$version/$f"; done
 scp -r "build/$version" ytdl@yt-dl.org:html/tmp/
 ssh ytdl@yt-dl.org "mv html/tmp/$version html/downloads/"
 ssh ytdl@yt-dl.org "sh html/update_latest.sh $version"
@@ -97,7 +97,7 @@ rm -rf build
 
 make pypi-files
 echo "Uploading to PyPi ..."
-python setup.py sdist upload
+python setup.py sdist bdist_wheel upload
 make clean
 
 /bin/echo -e "\n### DONE!"

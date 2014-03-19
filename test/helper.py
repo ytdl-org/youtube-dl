@@ -71,7 +71,7 @@ class FakeYDL(YoutubeDL):
             old_report_warning(message)
         self.report_warning = types.MethodType(report_warning, self)
 
-def get_testcases():
+def gettestcases():
     for ie in youtube_dl.extractor.gen_extractors():
         t = getattr(ie, '_TEST', None)
         if t:

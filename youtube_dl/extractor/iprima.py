@@ -48,7 +48,7 @@ class IPrimaIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        if re.search(r'Nemáte oprávnění přistupovat na tuto stránku.\s*</div>', webpage):
+        if re.search(r'Nemáte oprávnění přistupovat na tuto stránku\.\s*</div>', webpage):
             raise ExtractorError(
                 '%s said: You do not have permission to access this page' % self.IE_NAME, expected=True)
 
