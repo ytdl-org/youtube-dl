@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import json
 import re
 
 from .common import InfoExtractor
@@ -12,8 +11,9 @@ class NineGagIE(InfoExtractor):
 
     _TEST = {
         "url": "http://9gag.tv/v/1912",
-        "file": "1912.mp4",
         "info_dict": {
+            "id": "1912",
+            "ext": "mp4",
             "description": "This 3-minute video will make you smile and then make you feel untalented and insignificant. Anyway, you should share this awesomeness. (Thanks, Dino!)",
             "title": "\"People Are Awesome 2013\" Is Absolutely Awesome",
             "view_count": int,
