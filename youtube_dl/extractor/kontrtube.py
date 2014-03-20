@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import int_or_none
 
 
 class KontrTubeIE(InfoExtractor):
@@ -32,27 +33,26 @@ class KontrTubeIE(InfoExtractor):
 
         video_url = self._html_search_regex(r"video_url: '(.+?)/?',", webpage, 'video URL')
         thumbnail = self._html_search_regex(r"preview_url: '(.+?)/?',", webpage, 'video thumbnail', fatal=False)
-        title = self._html_search_regex(r'<title>(.+?) - Труба зовёт - Интересный видеохостинг</title>', webpage,
-            'video title')
+        title = self._html_search_regex(
+            r'<title>(.+?) - Труба зовёт - Интересный видеохостинг</title>', webpage, 'video title')
         description = self._html_search_meta('description', webpage, 'video description')
 
-        mobj = re.search(r'<div class="col_2">Длительность: <span>(?P<minutes>\d+)м:(?P<seconds>\d+)с</span></div>',
-            webpage)
+        mobj = re.search(
+            r'<div class="col_2">Длительность: <span>(?P<minutes>\d+)м:(?P<seconds>\d+)с</span></div>', webpage)
         duration = int(mobj.group('minutes')) * 60 + int(mobj.group('seconds')) if mobj else None
 
-        view_count = self._html_search_regex(r'<div class="col_2">Просмотров: <span>(\d+)</span></div>', webpage,
-            'view count', fatal=False)
-        view_count = int(view_count) if view_count is not None else None
+        view_count = self._html_search_regex(
+            r'<div class="col_2">Просмотров: <span>(\d+)</span></div>', webpage, 'view count', fatal=False)
 
         comment_count = None
-        comment_str = self._html_search_regex(r'Комментарии: <span>([^<]+)</span>', webpage, 'comment count',
-            fatal=False)
+        comment_str = self._html_search_regex(
+            r'Комментарии: <span>([^<]+)</span>', webpage, 'comment count', fatal=False)
         if comment_str.startswith('комментариев нет'):
             comment_count = 0
         else:
             mobj = re.search(r'\d+ из (?P<total>\d+) комментариев', comment_str)
             if mobj:
-                comment_count = int(mobj.group('total'))
+                comment_count = mobj.group('total')
 
         return {
             'id': video_id,
@@ -61,6 +61,6 @@ class KontrTubeIE(InfoExtractor):
             'title': title,
             'description': description,
             'duration': duration,
-            'view_count': view_count,
-            'comment_count': comment_count,
+            'view_count': int_or_none(view_count),
+            'comment_count': int_or_none(comment_count),
         }
