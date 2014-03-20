@@ -11,7 +11,9 @@ from ..utils import (
 
 
 class TEDIE(SubtitlesInfoExtractor):
-    _VALID_URL = r'''(?x)http://(?P<type>www|embed)\.ted\.com/
+    _VALID_URL = r'''(?x)
+        (?P<proto>https?://)
+        (?P<type>www|embed)(?P<urlmain>\.ted\.com/
         (
             (?P<type_playlist>playlists(?:/\d+)?) # We have a playlist
             |
@@ -19,6 +21,7 @@ class TEDIE(SubtitlesInfoExtractor):
         )
         (/lang/(.*?))? # The url may contain the language
         /(?P<name>\w+) # Here goes the name and then ".html"
+        .*)$
         '''
     _TEST = {
         'url': 'http://www.ted.com/talks/dan_dennett_on_our_consciousness.html',
@@ -48,9 +51,9 @@ class TEDIE(SubtitlesInfoExtractor):
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url, re.VERBOSE)
-        if m.group('type') == 'embed': # if the _VALID_URL is an embed 
-            desktop_url = re.sub("embed", "www", url) 
-            return self.url_result(desktop_url, 'TED') # pass the desktop version to the extractor
+        if m.group('type') == 'embed':
+            desktop_url = m.group('proto') + 'www' + m.group('urlmain')
+            return self.url_result(desktop_url, 'TED')
         name = m.group('name')
         if m.group('type_talk'):
             return self._talk_info(url, name)

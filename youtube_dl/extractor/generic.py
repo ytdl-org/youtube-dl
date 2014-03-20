@@ -159,6 +159,18 @@ class GenericIE(InfoExtractor):
                 # m3u8 download
                 'skip_download': True,
             },
+        },
+        # Embedded TED video
+        {
+            'url': 'http://en.support.wordpress.com/videos/ted-talks/',
+            'md5': 'deeeabcc1085eb2ba205474e7235a3d5',
+            'info_dict': {
+                'id': '981',
+                'ext': 'mp4',
+                'title': 'My web playroom',
+                'uploader': 'Ze Frank',
+                'description': 'md5:ddb2a40ecd6b6a147e400e535874947b',
+            }
         }
     ]
 
