@@ -10,6 +10,7 @@ from .arte import (
     ArteTvIE,
     ArteTVPlus7IE,
     ArteTVCreativeIE,
+    ArteTVConcertIE,
     ArteTVFutureIE,
     ArteTVDDCIE,
 )

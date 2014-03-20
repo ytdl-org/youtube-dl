@@ -202,6 +202,8 @@ class ArteTVPlus7IE(InfoExtractor):
                     re.match(r'VO-ST(F|A)', f.get('versionCode', '')) is None,
                     # The version with sourds/mal subtitles has also lower relevance
                     re.match(r'VO?(F|A)-STM\1', f.get('versionCode', '')) is None,
+                    # Prefer http downloads over m3u8
+                    0 if f['url'].endswith('m3u8') else 1,
                 )
         formats = sorted(formats, key=sort_key)
         def _format(format_info):
@@ -284,3 +286,19 @@ class ArteTVDDCIE(ArteTVPlus7IE):
         javascriptPlayerGenerator = self._download_webpage(script_url, video_id, 'Download javascript player generator')
         json_url = self._search_regex(r"json_url=(.*)&rendering_place.*", javascriptPlayerGenerator, 'json url')
         return self._extract_from_json_url(json_url, video_id, lang)
+
+
+class ArteTVConcertIE(ArteTVPlus7IE):
+    IE_NAME = 'arte.tv:concert'
+    _VALID_URL = r'https?://concert\.arte\.tv/(?P<lang>de|fr)/(?P<id>.+)'
+
+    _TEST = {
+        'url': 'http://concert.arte.tv/de/notwist-im-pariser-konzertclub-divan-du-monde',
+        'md5': '9ea035b7bd69696b67aa2ccaaa218161',
+        'info_dict': {
+            'id': '186',
+            'ext': 'mp4',
+            'title': 'The Notwist im Pariser Konzertclub "Divan du Monde"',
+            'upload_date': '20140128',
+        },
+    }
