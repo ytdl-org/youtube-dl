@@ -533,7 +533,7 @@ class YoutubeDL(object):
                 else:
                     raise
         else:
-            self.report_error('no suitable InfoExtractor: %s' % url)
+            self.report_error('no suitable InfoExtractor for URL %s' % url)
 
     def process_ie_result(self, ie_result, download=True, extra_info={}):
         """
