@@ -412,10 +412,18 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'))
 
         # Look for Ooyala videos
+        
+        # First, try and see if the full player URL is provided
         mobj = re.search(r'player.ooyala.com/[^"?]+\?[^"]*?(?:embedCode|ec)=([^"&]+)', webpage)
         if mobj is not None:
             return OoyalaIE._build_url_result(mobj.group(1))
-
+        
+        # If it isn't, you have to dig deeper. "OO.Player.create" can be given different values. 
+        # Best bet is to simply look for the embed code variable inside the Javascript.
+        mobj = re.search(r"var embedCode = '(.*?)';", webpage)
+        if mobj is not None:
+            return OoyalaIE._build_url_result(mobj.group(1))
+        
         # Look for Aparat videos
         mobj = re.search(r'<iframe src="(http://www\.aparat\.com/video/[^"]+)"', webpage)
         if mobj is not None:
