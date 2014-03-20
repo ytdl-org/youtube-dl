@@ -13,7 +13,7 @@ class PBSIE(InfoExtractor):
             # Article with embedded player
            (?:www\.)?pbs\.org/(?:[^/]+/){2,5}(?P<presumptive_id>[^/]+)/?(?:$|[?\#]) |
            # Player
-           video\.pbs\.org/partnerplayer/(?P<player_id>[^/]+)/
+           video\.pbs\.org/(?:widget/)?partnerplayer/(?P<player_id>[^/]+)/
         )
     '''
 
