@@ -1289,3 +1289,12 @@ if sys.version_info < (3, 0) and sys.platform == 'win32':
         return getpass.getpass(prompt, *args, **kwargs)
 else:
     compat_getpass = getpass.getpass
+
+
+US_RATINGS = {
+    'G': 0,
+    'PG': 10,
+    'PG-13': 13,
+    'R': 16,
+    'NC': 18,
+}

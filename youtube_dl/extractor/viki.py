@@ -6,6 +6,7 @@ from ..utils import (
     ExtractorError,
     unescapeHTML,
     unified_strdate,
+    US_RATINGS,
 )
 from .subtitles import SubtitlesInfoExtractor
 
@@ -48,14 +49,7 @@ class VikiIE(SubtitlesInfoExtractor):
         rating_str = self._html_search_regex(
             r'<strong>Rating: </strong>\s*([^<]*)<', webpage,
             'rating information', default='').strip()
-        RATINGS = {
-            'G': 0,
-            'PG': 10,
-            'PG-13': 13,
-            'R': 16,
-            'NC': 18,
-        }
-        age_limit = RATINGS.get(rating_str)
+        age_limit = US_RATINGS.get(rating_str)
 
         info_url = 'http://www.viki.com/player5_fragment/%s?action=show&controller=videos' % video_id
         info_webpage = self._download_webpage(

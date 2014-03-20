@@ -3,6 +3,9 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import (
+    US_RATINGS,
+)
 
 
 class PBSIE(InfoExtractor):
@@ -57,6 +60,11 @@ class PBSIE(InfoExtractor):
         info_url = 'http://video.pbs.org/videoInfo/%s?format=json' % video_id
         info = self._download_json(info_url, display_id)
 
+        rating_str = info.get('rating')
+        if rating_str is not None:
+            rating_str = rating_str.rpartition('-')[2]
+        age_limit = US_RATINGS.get(rating_str)
+
         return {
             'id': video_id,
             'title': info['title'],
@@ -65,4 +73,5 @@ class PBSIE(InfoExtractor):
             'description': info['program'].get('description'),
             'thumbnail': info.get('image_url'),
             'duration': info.get('duration'),
+            'age_limit': age_limit,
         }
