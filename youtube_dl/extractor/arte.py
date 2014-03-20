@@ -244,8 +244,9 @@ class ArteTVCreativeIE(ArteTVPlus7IE):
 
     _TEST = {
         'url': 'http://creative.arte.tv/de/magazin/agentur-amateur-corporate-design',
-        'file': '050489-002.mp4',
         'info_dict': {
+            'id': '050489-002',
+            'ext': 'mp4',
             'title': 'Agentur Amateur / Agence Amateur #2 : Corporate Design',
         },
     }
@@ -257,8 +258,9 @@ class ArteTVFutureIE(ArteTVPlus7IE):
 
     _TEST = {
         'url': 'http://future.arte.tv/fr/sujet/info-sciences#article-anchor-7081',
-        'file': '050940-003.mp4',
         'info_dict': {
+            'id': '050940-003',
+            'ext': 'mp4',
             'title': 'Les champignons au secours de la planète',
         },
     }
@@ -272,7 +274,7 @@ class ArteTVFutureIE(ArteTVPlus7IE):
 
 class ArteTVDDCIE(ArteTVPlus7IE):
     IE_NAME = 'arte.tv:ddc'
-    _VALID_URL = r'http?://ddc\.arte\.tv/(?P<lang>emission|folge)/(?P<id>.+)'
+    _VALID_URL = r'https?://ddc\.arte\.tv/(?P<lang>emission|folge)/(?P<id>.+)'
 
     def _real_extract(self, url):
         video_id, lang = self._extract_url_info(url)
