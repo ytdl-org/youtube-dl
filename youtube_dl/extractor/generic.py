@@ -487,6 +487,13 @@ class GenericIE(InfoExtractor):
         if mobj is None:
             # Broaden the search a little bit: JWPlayer JS loader
             mobj = re.search(r'[^A-Za-z0-9]?file["\']?:\s*["\'](http(?![^\'"]+\.[0-9]+[\'"])[^\'"]+)["\']', webpage)
+
+        # Look for embedded TED player
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>http://embed\.ted\.com/.+?)\1', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'TED')
+
         if mobj is None:
             # Try to find twitter cards info
             mobj = re.search(r'<meta (?:property|name)="twitter:player:stream" (?:content|value)="(.+?)"', webpage)

@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class TEDIE(SubtitlesInfoExtractor):
-    _VALID_URL = r'''(?x)http://www\.ted\.com/
+    _VALID_URL = r'''(?x)http://(?P<type>www|embed)\.ted\.com/
         (
             (?P<type_playlist>playlists(?:/\d+)?) # We have a playlist
             |
@@ -48,6 +48,9 @@ class TEDIE(SubtitlesInfoExtractor):
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url, re.VERBOSE)
+        if m.group('type') == 'embed': # if the _VALID_URL is an embed 
+            desktop_url = re.sub("embed", "www", url) 
+            return self.url_result(desktop_url, 'TED') # pass the desktop version to the extractor
         name = m.group('name')
         if m.group('type_talk'):
             return self._talk_info(url, name)
