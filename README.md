@@ -36,6 +36,9 @@ which means you can modify it, redistribute it or use it however you like.
                                      an empty string (--proxy "") for direct
                                      connection
     --no-check-certificate           Suppress HTTPS certificate validation.
+    --prefer-insecure                Use an unencrypted connection to retrieve
+                                     information about the video. (Currently
+                                     supported only for YouTube)
     --cache-dir DIR                  Location in the filesystem where youtube-dl
                                      can store some downloaded information
                                      permanently. By default $XDG_CACHE_HOME
