@@ -148,6 +148,8 @@ class YoutubeDL(object):
                        again.
     cookiefile:        File name where cookies should be read from and dumped to.
     nocheckcertificate:Do not verify SSL certificates
+    prefer_insecure:   Use HTTP instead of HTTPS to retrieve information.
+                       At the moment, this is only supported by YouTube.
     proxy:             URL of the proxy server to use
     socket_timeout:    Time to wait for unresponsive hosts, in seconds
     bidi_workaround:   Work around buggy terminals without bidirectional text

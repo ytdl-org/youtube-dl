@@ -1130,14 +1130,18 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         return self._download_webpage(url, video_id, note=u'Searching for annotations.', errnote=u'Unable to download video annotations.')
 
     def _real_extract(self, url):
+        proto = (
+            u'http' if self._downloader.params.get('prefer_insecure', False)
+            else u'https')
+
         # Extract original video URL from URL with redirection, like age verification, using next_url parameter
         mobj = re.search(self._NEXT_URL_RE, url)
         if mobj:
-            url = 'https://www.youtube.com/' + compat_urllib_parse.unquote(mobj.group(1)).lstrip('/')
+            url = proto + '://www.youtube.com/' + compat_urllib_parse.unquote(mobj.group(1)).lstrip('/')
         video_id = self.extract_id(url)
 
         # Get video webpage
-        url = 'https://www.youtube.com/watch?v=%s&gl=US&hl=en&has_verified=1' % video_id
+        url = proto + '://www.youtube.com/watch?v=%s&gl=US&hl=en&has_verified=1' % video_id
         video_webpage = self._download_webpage(url, video_id)
 
         # Attempt to extract SWF player URL
@@ -1162,7 +1166,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                                                   'asv': 3,
                                                   'sts':'1588',
                                                   })
-            video_info_url = 'https://www.youtube.com/get_video_info?' + data
+            video_info_url = proto + '://www.youtube.com/get_video_info?' + data
             video_info_webpage = self._download_webpage(video_info_url, video_id,
                                     note=False,
                                     errnote='unable to download video info webpage')
@@ -1170,7 +1174,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         else:
             age_gate = False
             for el_type in ['&el=embedded', '&el=detailpage', '&el=vevo', '']:
-                video_info_url = ('https://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
+                video_info_url = (proto + '://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
                         % (video_id, el_type))
                 video_info_webpage = self._download_webpage(video_info_url, video_id,
                                         note=False,
@@ -1445,7 +1449,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             'duration':     video_duration,
             'age_limit':    18 if age_gate else 0,
             'annotations':  video_annotations,
-            'webpage_url': 'https://www.youtube.com/watch?v=%s' % video_id,
+            'webpage_url': proto + '://www.youtube.com/watch?v=%s' % video_id,
             'view_count':   view_count,
             'like_count': like_count,
             'dislike_count': dislike_count,
