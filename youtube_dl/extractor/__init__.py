@@ -260,6 +260,7 @@ from .vice import ViceIE
 from .viddler import ViddlerIE
 from .videobam import VideoBamIE
 from .videodetective import VideoDetectiveIE
+from .videolecturesnet import VideoLecturesNetIE
 from .videofyme import VideofyMeIE
 from .videopremium import VideoPremiumIE
 from .vimeo import (

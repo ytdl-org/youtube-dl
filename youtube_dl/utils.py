@@ -763,6 +763,10 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
 
 def unified_strdate(date_str):
     """Return a string with the date in the format YYYYMMDD"""
+
+    if date_str is None:
+        return None
+
     upload_date = None
     #Replace commas
     date_str = date_str.replace(',', ' ')
