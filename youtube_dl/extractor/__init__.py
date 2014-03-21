@@ -174,6 +174,7 @@ from .nowness import NownessIE
 from .nowvideo import NowVideoIE
 from .ooyala import OoyalaIE
 from .orf import ORFIE
+from .parliamentliveuk import ParliamentLiveUKIE
 from .pbs import PBSIE
 from .photobucket import PhotobucketIE
 from .playvid import PlayvidIE
