@@ -36,7 +36,10 @@ class VideoLecturesNetIE(InfoExtractor):
         smil = self._download_xml(smil_url, video_id)
 
         title = find_xpath_attr(smil, './/meta', 'name', 'title').attrib['content']
-        description = find_xpath_attr(smil, './/meta', 'name', 'abstract').attrib['content']
+        description_el = find_xpath_attr(smil, './/meta', 'name', 'abstract')
+        description = (
+            None if description_el is None
+            else description_el.attrib['content'])
         upload_date = unified_strdate(
             find_xpath_attr(smil, './/meta', 'name', 'date').attrib['content'])
 
