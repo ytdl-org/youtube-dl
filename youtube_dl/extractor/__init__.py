@@ -2,6 +2,7 @@ from .academicearth import AcademicEarthCourseIE
 from .addanime import AddAnimeIE
 from .aftonbladet import AftonbladetIE
 from .anitube import AnitubeIE
+from .aol import AolIE
 from .aparat import AparatIE
 from .appletrailers import AppleTrailersIE
 from .archiveorg import ArchiveOrgIE
