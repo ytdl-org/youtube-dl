@@ -24,7 +24,7 @@ class CSpanIE(InfoExtractor):
         'skip': 'Regularly fails on travis, for unknown reasons',
     }, {
         'url': 'http://www.c-span.org/video/?c4486943/cspan-international-health-care-models',
-        # For whatever reason, the served vide oalternates between
+        # For whatever reason, the served video alternates between
         # two different ones
         #'md5': 'dbb0f047376d457f2ab8b3929cbb2d0c',
         'info_dict': {
