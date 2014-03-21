@@ -64,6 +64,7 @@ from .ehow import EHowIE
 from .eighttracks import EightTracksIE
 from .eitb import EitbIE
 from .elpais import ElPaisIE
+from .engadget import EngadgetIE
 from .escapist import EscapistIE
 from .everyonesmixtape import EveryonesMixtapeIE
 from .exfm import ExfmIE
@@ -72,6 +73,7 @@ from .facebook import FacebookIE
 from .faz import FazIE
 from .firstpost import FirstpostIE
 from .firsttv import FirstTVIE
+from .fivemin import FiveMinIE
 from .fktv import (
     FKTVIE,
     FKTVPosteckeIE,
