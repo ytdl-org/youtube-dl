@@ -10,9 +10,9 @@ from ..utils import (
 
 
 class CSpanIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?c-span\.org/video/\?(?P<id>\d+)'
+    _VALID_URL = r'http://(?:www\.)?c-span\.org/video/\?(?P<id>[0-9a-f]+)'
     IE_DESC = 'C-SPAN'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.c-span.org/video/?313572-1/HolderonV',
         'md5': '8e44ce11f0f725527daccc453f553eb0',
         'info_dict': {
@@ -22,13 +22,24 @@ class CSpanIE(InfoExtractor):
             'description': 'Attorney General Eric Holder spoke to reporters following the Supreme Court decision in Shelby County v. Holder in which the court ruled that the preclearance provisions of the Voting Rights Act could not be enforced until Congress established new guidelines for review.',
         },
         'skip': 'Regularly fails on travis, for unknown reasons',
-    }
+    }, {
+        'url': 'http://www.c-span.org/video/?c4486943/cspan-international-health-care-models',
+        # For whatever reason, the served vide oalternates between
+        # two different ones
+        #'md5': 'dbb0f047376d457f2ab8b3929cbb2d0c',
+        'info_dict': {
+            'id': '340723',
+            'ext': 'mp4',
+            'title': 'International Health Care Models',
+            'description': 'md5:7a985a2d595dba00af3d9c9f0783c967',
+        }
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         page_id = mobj.group('id')
         webpage = self._download_webpage(url, page_id)
-        video_id = self._search_regex(r'data-progid=\'(\d+)\'>', webpage, 'video id')
+        video_id = self._search_regex(r'progid=\'?([0-9]+)\'?>', webpage, 'video id')
 
         description = self._html_search_regex(
             [
