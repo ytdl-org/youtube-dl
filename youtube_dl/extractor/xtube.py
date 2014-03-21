@@ -1,11 +1,10 @@
 from __future__ import unicode_literals
 
-import os
 import re
+import json
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_urllib_parse_urlparse,
     compat_urllib_request,
     parse_duration,
     str_to_int,
@@ -42,7 +41,6 @@ class XTubeIE(InfoExtractor):
             r'so_s\.addVariable\("owner_u", "([^"]+)', webpage, 'uploader', fatal=False)
         video_description = self._html_search_regex(
             r'<p class="fieldsDesc">([^<]+)', webpage, 'description', fatal=False)
-        video_url = self._html_search_regex(r'var videoMp4 = "([^"]+)', webpage, 'video_url').replace('\\/', '/')
         duration = parse_duration(self._html_search_regex(
             r'<span class="bold">Runtime:</span> ([^<]+)</p>', webpage, 'duration', fatal=False))
         view_count = self._html_search_regex(
@@ -54,12 +52,18 @@ class XTubeIE(InfoExtractor):
         if comment_count:
             comment_count = str_to_int(comment_count)
 
-        path = compat_urllib_parse_urlparse(video_url).path
-        extension = os.path.splitext(path)[1][1:]
-        format = path.split('/')[5].split('_')[:2]
-        format[0] += 'p'
-        format[1] += 'k'
-        format = "-".join(format)
+        player_quality_option = json.loads(self._html_search_regex(
+            r'playerQualityOption = ({.+?});', webpage, 'player quality option'))
+
+        QUALITIES = ['3gp', 'mp4_normal', 'mp4_high', 'flv', 'mp4_ultra', 'mp4_720', 'mp4_1080']
+        formats = [
+            {
+                'url': url,
+                'format_id': format_id,
+                'preference': QUALITIES.index(format_id) if format_id in QUALITIES else -1,
+            } for format_id, url in player_quality_option.items()
+        ]
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
@@ -69,9 +73,6 @@ class XTubeIE(InfoExtractor):
             'duration': duration,
             'view_count': view_count,
             'comment_count': comment_count,
-            'url': video_url,
-            'ext': extension,
-            'format': format,
-            'format_id': format,
+            'formats': formats,
             'age_limit': 18,
         }
