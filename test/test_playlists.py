@@ -38,6 +38,7 @@ from youtube_dl.extractor import (
     GenericIE,
     TEDIE,
     ToypicsUserIE,
+    XTubeUserIE,
 )
 
 
@@ -277,6 +278,14 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], 'Mikey')
         self.assertTrue(len(result['entries']) >= 17)
+
+    def test_xtube_user(self):
+        dl = FakeYDL()
+        ie = XTubeUserIE(dl)
+        result = ie.extract('http://www.xtube.com/community/profile.php?user=greenshowers')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], 'greenshowers')
+        self.assertTrue(len(result['entries']) >= 155)
 
 if __name__ == '__main__':
     unittest.main()
