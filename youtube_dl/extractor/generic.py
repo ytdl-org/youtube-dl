@@ -519,6 +519,12 @@ class GenericIE(InfoExtractor):
         if rutv_url:
             return self.url_result(rutv_url, 'RUTV')
 
+        # Look for embedded TED player
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>http://embed\.ted\.com/.+?)\1', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'TED')
+
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
         if mobj is None:
@@ -530,12 +536,6 @@ class GenericIE(InfoExtractor):
         if mobj is None:
             # Broaden the search a little bit: JWPlayer JS loader
             mobj = re.search(r'[^A-Za-z0-9]?file["\']?:\s*["\'](http(?![^\'"]+\.[0-9]+[\'"])[^\'"]+)["\']', webpage)
-
-        # Look for embedded TED player
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>http://embed\.ted\.com/.+?)\1', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'TED')
 
         if mobj is None:
             # Try to find twitter cards info
