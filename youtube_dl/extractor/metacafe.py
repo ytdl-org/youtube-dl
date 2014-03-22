@@ -70,13 +70,13 @@ class MetacafeIE(InfoExtractor):
         },
         # cbs video
         {
-            'url': 'http://www.metacafe.com/watch/cb-0rOxMBabDXN6/samsung_galaxy_note_2_samsungs_next_generation_phablet/',
+            'url': 'http://www.metacafe.com/watch/cb-8VD4r_Zws8VP/open_this_is_face_the_nation_february_9/',
             'info_dict': {
-                'id': '0rOxMBabDXN6',
+                'id': '8VD4r_Zws8VP',
                 'ext': 'flv',
-                'title': 'Samsung Galaxy Note 2: Samsung\'s next-generation phablet',
-                'description': 'md5:54d49fac53d26d5a0aaeccd061ada09d',
-                'duration': 129,
+                'title': 'Open: This is Face the Nation, February 9',
+                'description': 'md5:8a9ceec26d1f7ed6eab610834cc1a476',
+                'duration': 96,
             },
             'params': {
                 # rtmp download
