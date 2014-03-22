@@ -37,6 +37,7 @@ from youtube_dl.extractor import (
     GoogleSearchIE,
     GenericIE,
     TEDIE,
+    ToypicsUserIE,
 )
 
 
@@ -268,6 +269,14 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['id'], '10')
         self.assertEqual(result['title'], 'Who are the hackers?')
         self.assertTrue(len(result['entries']) >= 6)
+
+    def test_toypics_user(self):
+        dl = FakeYDL()
+        ie = ToypicsUserIE(dl)
+        result = ie.extract('http://videos.toypics.net/Mikey')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], 'Mikey')
+        self.assertTrue(len(result['entries']) >= 17)
 
 if __name__ == '__main__':
     unittest.main()

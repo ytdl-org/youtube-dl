@@ -239,7 +239,7 @@ from .theplatform import ThePlatformIE
 from .thisav import ThisAVIE
 from .tinypic import TinyPicIE
 from .toutv import TouTvIE
-from .toypics import ToypicsIE
+from .toypics import ToypicsUserIE, ToypicsIE
 from .traileraddict import TrailerAddictIE
 from .trilulilu import TriluliluIE
 from .trutube import TruTubeIE
