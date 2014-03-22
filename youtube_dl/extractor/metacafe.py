@@ -102,7 +102,7 @@ class MetacafeIE(InfoExtractor):
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         self.report_age_confirmation()
         self._download_webpage(request, None, False, 'Unable to confirm age')
-        """Report disclaimer retrieval."""
+
     def _real_extract(self, url):
         # Extract id and simplified title from URL
         mobj = re.match(self._VALID_URL, url)
