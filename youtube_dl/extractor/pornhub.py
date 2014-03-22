@@ -8,6 +8,7 @@ from ..utils import (
     compat_urllib_parse_urlparse,
     compat_urllib_request,
     compat_urllib_parse,
+    str_to_int,
 )
 from ..aes import (
     aes_decrypt_text
@@ -27,6 +28,12 @@ class PornHubIE(InfoExtractor):
         }
     }
 
+    def _extract_count(self, pattern, webpage, name):
+        count = self._html_search_regex(pattern, webpage, '%s count' % name, fatal=False)
+        if count:
+            count = str_to_int(count)
+        return count
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('videoid')
@@ -37,10 +44,18 @@ class PornHubIE(InfoExtractor):
         webpage = self._download_webpage(req, video_id)
 
         video_title = self._html_search_regex(r'<h1 [^>]+>([^<]+)', webpage, 'title')
-        video_uploader = self._html_search_regex(r'<b>From: </b>(?:\s|<[^>]*>)*(.+?)<', webpage, 'uploader', fatal=False)
+        video_uploader = self._html_search_regex(
+            r'(?s)<div class="video-info-row">\s*From:&nbsp;.+?<(?:a href="/users/|<span class="username)[^>]+>(.+?)<',
+            webpage, 'uploader', fatal=False)
         thumbnail = self._html_search_regex(r'"image_url":"([^"]+)', webpage, 'thumbnail', fatal=False)
         if thumbnail:
             thumbnail = compat_urllib_parse.unquote(thumbnail)
+
+        view_count = self._extract_count(r'<span class="count">([\d,\.]+)</span> views', webpage, 'view')
+        like_count = self._extract_count(r'<span class="votesUp">([\d,\.]+)</span>', webpage, 'like')
+        dislike_count = self._extract_count(r'<span class="votesDown">([\d,\.]+)</span>', webpage, 'dislike')
+        comment_count = self._extract_count(
+            r'All comments \(<var class="videoCommentCount">([\d,\.]+)</var>', webpage, 'comment')
 
         video_urls = list(map(compat_urllib_parse.unquote , re.findall(r'"quality_[0-9]{3}p":"([^"]+)', webpage)))
         if webpage.find('"encrypted":true') != -1:
@@ -77,6 +92,10 @@ class PornHubIE(InfoExtractor):
             'uploader': video_uploader,
             'title': video_title,
             'thumbnail': thumbnail,
+            'view_count': view_count,
+            'like_count': like_count,
+            'dislike_count': dislike_count,
+            'comment_count': comment_count,
             'formats': formats,
             'age_limit': 18,
         }
