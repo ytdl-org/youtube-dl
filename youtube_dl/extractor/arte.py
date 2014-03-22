@@ -302,5 +302,6 @@ class ArteTVConcertIE(ArteTVPlus7IE):
             'ext': 'mp4',
             'title': 'The Notwist im Pariser Konzertclub "Divan du Monde"',
             'upload_date': '20140128',
+            'description': 'md5:486eb08f991552ade77439fe6d82c305',
         },
     }

@@ -163,12 +163,17 @@ def generator(test_case):
                 for key in ['webpage_url', 'extractor', 'extractor_key']:
                     self.assertTrue(info_dict.get(key), u'Missing field: %s' % key)
 
-                # If checkable fields are missing from the test case, print the info_dict
+                # Are checkable fields missing from the test case definition?
                 test_info_dict = dict((key, value if not isinstance(value, compat_str) or len(value) < 250 else 'md5:' + md5(value))
                     for key, value in info_dict.items()
                     if value and key in ('title', 'description', 'uploader', 'upload_date', 'timestamp', 'uploader_id', 'location'))
-                if not all(key in tc.get('info_dict', {}).keys() for key in test_info_dict.keys()):
+                missing_keys = set(test_info_dict.keys()) - set(tc.get('info_dict', {}).keys())
+                if missing_keys:
                     sys.stderr.write(u'\n"info_dict": ' + json.dumps(test_info_dict, ensure_ascii=False, indent=4) + u'\n')
+                    self.assertFalse(
+                        missing_keys,
+                        'Missing keys in test definition: %s' % (
+                            ','.join(sorted(missing_keys))))
         finally:
             try_rm_tcs_files()
 
