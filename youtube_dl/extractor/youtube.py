@@ -200,7 +200,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         '136': {'ext': 'mp4', 'height': 720, 'resolution': '720p', 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
         '137': {'ext': 'mp4', 'height': 1080, 'resolution': '1080p', 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
         '138': {'ext': 'mp4', 'height': 2160, 'resolution': '2160p', 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
-        '160': {'ext': 'mp4', 'height': 192, 'resolution': '192p', 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
+        '160': {'ext': 'mp4', 'height': 144, 'resolution': '144p', 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
         '264': {'ext': 'mp4', 'height': 1440, 'resolution': '1440p', 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
 
         # Dash mp4 audio
