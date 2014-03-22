@@ -1,5 +1,4 @@
 from .common import InfoExtractor
-from math import ceil
 import re
 
 
@@ -70,7 +69,7 @@ class ToypicsUserIE(InfoExtractor):
             'id': username,
             'entries': [{
                 '_type': 'url',
-                'url': url,
+                'url': eurl,
                 'ie_key': 'Toypics',
-            } for url in urls]
+            } for eurl in urls]
         }

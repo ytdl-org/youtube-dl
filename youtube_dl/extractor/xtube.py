@@ -58,10 +58,10 @@ class XTubeIE(InfoExtractor):
         QUALITIES = ['3gp', 'mp4_normal', 'mp4_high', 'flv', 'mp4_ultra', 'mp4_720', 'mp4_1080']
         formats = [
             {
-                'url': url,
+                'url': furl,
                 'format_id': format_id,
                 'preference': QUALITIES.index(format_id) if format_id in QUALITIES else -1,
-            } for format_id, url in player_quality_option.items()
+            } for format_id, furl in player_quality_option.items()
         ]
         self._sort_formats(formats)
 
