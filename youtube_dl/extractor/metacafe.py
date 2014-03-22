@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class MetacafeIE(InfoExtractor):
-    _VALID_URL = r'(?:http://)?(?:www\.)?metacafe\.com/watch/([^/]+)/([^/]+)/.*'
+    _VALID_URL = r'http://(?:www\.)?metacafe\.com/watch/([^/]+)/([^/]+)/.*'
     _DISCLAIMER = 'http://www.metacafe.com/family_filter/'
     _FILTER_POST = 'http://www.metacafe.com/f/index.php?inputType=filter&controllerGroup=user'
     IE_NAME = 'metacafe'
@@ -26,7 +26,7 @@ class MetacafeIE(InfoExtractor):
                 'id': '_aUehQsCQtM',
                 'ext': 'mp4',
                 'upload_date': '20090102',
-                'title': 'The Electric Company | \"Short I\" | PBS KIDS GO!',
+                'title': 'The Electric Company | "Short I" | PBS KIDS GO!',
                 'description': 'md5:2439a8ef6d5a70e380c22f5ad323e5a8',
                 'uploader': 'PBS',
                 'uploader_id': 'PBS'
@@ -86,7 +86,6 @@ class MetacafeIE(InfoExtractor):
     ]
 
     def report_disclaimer(self):
-        """Report disclaimer retrieval."""
         self.to_screen('Retrieving disclaimer')
 
     def _real_initialize(self):
@@ -103,7 +102,7 @@ class MetacafeIE(InfoExtractor):
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         self.report_age_confirmation()
         self._download_webpage(request, None, False, 'Unable to confirm age')
-
+        """Report disclaimer retrieval."""
     def _real_extract(self, url):
         # Extract id and simplified title from URL
         mobj = re.match(self._VALID_URL, url)
