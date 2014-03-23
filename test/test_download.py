@@ -137,25 +137,6 @@ def generator(test_case):
                     info_dict = json.load(infof)
 
                 expect_info_dict(self, tc.get('info_dict', {}), info_dict)
-
-                # Check for the presence of mandatory fields
-                for key in ('id', 'url', 'title', 'ext'):
-                    self.assertTrue(key in info_dict.keys() and info_dict[key])
-                # Check for mandatory fields that are automatically set by YoutubeDL
-                for key in ['webpage_url', 'extractor', 'extractor_key']:
-                    self.assertTrue(info_dict.get(key), u'Missing field: %s' % key)
-
-                # Are checkable fields missing from the test case definition?
-                test_info_dict = dict((key, value if not isinstance(value, compat_str) or len(value) < 250 else 'md5:' + md5(value))
-                    for key, value in info_dict.items()
-                    if value and key in ('title', 'description', 'uploader', 'upload_date', 'timestamp', 'uploader_id', 'location'))
-                missing_keys = set(test_info_dict.keys()) - set(tc.get('info_dict', {}).keys())
-                if missing_keys:
-                    sys.stderr.write(u'\n"info_dict": ' + json.dumps(test_info_dict, ensure_ascii=False, indent=4) + u'\n')
-                    self.assertFalse(
-                        missing_keys,
-                        'Missing keys in test definition: %s' % (
-                            ','.join(sorted(missing_keys))))
         finally:
             try_rm_tcs_files()
 

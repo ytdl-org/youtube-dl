@@ -3,6 +3,9 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import (
+    int_or_none,
+)
 
 
 class InstagramIE(InfoExtractor):
@@ -36,4 +39,69 @@ class InstagramIE(InfoExtractor):
             'thumbnail': self._og_search_thumbnail(webpage),
             'uploader_id': uploader_id,
             'description': desc,
+        }
+
+
+class InstagramUserIE(InfoExtractor):
+    _VALID_URL = r'http://instagram\.com/(?P<username>[^/]{2,})/?(?:$|[?#])'
+    IE_DESC = 'Instagram user profile'
+    IE_NAME = 'instagram:user'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        uploader_id = mobj.group('username')
+
+        entries = []
+        page_count = 0
+        media_url = 'http://instagram.com/%s/media' % uploader_id
+        while True:
+            page = self._download_json(
+                media_url, uploader_id,
+                note='Downloading page %d ' % (page_count + 1),
+            )
+            page_count += 1
+
+            for it in page['items']:
+                if it.get('type') != 'video':
+                    continue
+                like_count = int_or_none(it.get('likes', {}).get('count'))
+                user = it.get('user', {})
+
+                formats = [{
+                    'format_id': k,
+                    'height': v.get('height'),
+                    'width': v.get('width'),
+                    'url': v['url'],
+                } for k, v in it['videos'].items()]
+                self._sort_formats(formats)
+
+                thumbnails_el = it.get('images', {})
+                thumbnail = thumbnails_el.get('thumbnail', {}).get('url')
+
+                title = it.get('caption', {}).get('text', it['id'])
+
+                entries.append({
+                    'id': it['id'],
+                    'title': title,
+                    'formats': formats,
+                    'thumbnail': thumbnail,
+                    'webpage_url': it.get('link'),
+                    'uploader': user.get('full_name'),
+                    'uploader_id': user.get('username'),
+                    'like_count': like_count,
+                    'upload_timestamp': int_or_none(it.get('created_time')),
+                })
+
+            if not page['items']:
+                break
+            max_id = page['items'][-1]['id']
+            media_url = (
+                'http://instagram.com/%s/media?max_id=%s' % (
+                    uploader_id, max_id))
+
+        return {
+            '_type': 'playlist',
+            'entries': entries,
+            'id': uploader_id,
+            'title': uploader_id,
         }

@@ -512,13 +512,7 @@ class YoutubeDL(object):
                         '_type': 'compat_list',
                         'entries': ie_result,
                     }
-                self.add_extra_info(ie_result,
-                    {
-                        'extractor': ie.IE_NAME,
-                        'webpage_url': url,
-                        'webpage_url_basename': url_basename(url),
-                        'extractor_key': ie.ie_key(),
-                    })
+                self.add_default_extra_info(ie_result, ie, url)
                 if process:
                     return self.process_ie_result(ie_result, download, extra_info)
                 else:
@@ -536,6 +530,14 @@ class YoutubeDL(object):
                     raise
         else:
             self.report_error('no suitable InfoExtractor for URL %s' % url)
+
+    def add_default_extra_info(self, ie_result, ie, url):
+        self.add_extra_info(ie_result, {
+            'extractor': ie.IE_NAME,
+            'webpage_url': url,
+            'webpage_url_basename': url_basename(url),
+            'extractor_key': ie.ie_key(),
+        })
 
     def process_ie_result(self, ie_result, download=True, extra_info={}):
         """

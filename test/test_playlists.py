@@ -9,8 +9,10 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import FakeYDL
-
+from test.helper import (
+    expect_info_dict,
+    FakeYDL,
+)
 
 from youtube_dl.extractor import (
     AcademicEarthCourseIE,
@@ -39,6 +41,7 @@ from youtube_dl.extractor import (
     TEDIE,
     ToypicsUserIE,
     XTubeUserIE,
+    InstagramUserIE,
 )
 
 
@@ -286,6 +289,29 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], 'greenshowers')
         self.assertTrue(len(result['entries']) >= 155)
+
+    def test_InstagramUser(self):
+        dl = FakeYDL()
+        ie = InstagramUserIE(dl)
+        result = ie.extract('http://instagram.com/porsche')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], 'porsche')
+        self.assertTrue(len(result['entries']) >= 2)
+        test_video = next(
+            e for e in result['entries']
+            if e['id'] == '614605558512799803_462752227')
+        dl.add_default_extra_info(test_video, ie, '(irrelevant URL)')
+        dl.process_video_result(test_video, download=False)
+        EXPECTED = {
+            'id': '614605558512799803_462752227',
+            'ext': 'mp4',
+            'title': '#Porsche Intelligent Performance.',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'uploader': 'Porsche',
+            'uploader_id': 'porsche',
+        }
+        expect_info_dict(self, EXPECTED, test_video)
+
 
 if __name__ == '__main__':
     unittest.main()
