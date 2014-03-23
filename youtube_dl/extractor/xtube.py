@@ -76,3 +76,39 @@ class XTubeIE(InfoExtractor):
             'formats': formats,
             'age_limit': 18,
         }
+
+class XTubeUserIE(InfoExtractor):
+    IE_DESC = 'XTube user profile'
+    _VALID_URL = r'https?://(?:www\.)?xtube\.com/community/profile\.php\?(.*?)user=(?P<username>[^&#]+)(?:$|[&#])'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        username = mobj.group('username')
+
+        profile_page = self._download_webpage(
+            url, username, note='Retrieving profile page')
+
+        video_count = int(self._search_regex(
+            r'<strong>%s\'s Videos \(([0-9]+)\)</strong>'%username, profile_page,
+            'video count'))
+
+        PAGE_SIZE = 25
+        urls = []
+        page_count = (video_count + PAGE_SIZE + 1) // PAGE_SIZE
+        for n in range(1, page_count + 1):
+            lpage_url = 'http://www.xtube.com/user_videos.php?page=%d&u=%s' % (n, username)
+            lpage = self._download_webpage(
+                lpage_url, username,
+                note='Downloading page %d/%d' % (n, page_count))
+            urls.extend(
+                re.findall(r'addthis:url="([^"]+)"', lpage))
+
+        return {
+            '_type': 'playlist',
+            'id': username,
+            'entries': [{
+                '_type': 'url',
+                'url': eurl,
+                'ie_key': 'XTube',
+            } for eurl in urls]
+        }
