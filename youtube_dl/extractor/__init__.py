@@ -288,7 +288,7 @@ from .worldstarhiphop import WorldStarHipHopIE
 from .xhamster import XHamsterIE
 from .xnxx import XNXXIE
 from .xvideos import XVideosIE
-from .xtube import XTubeIE
+from .xtube import XTubeUserIE, XTubeIE
 from .yahoo import (
     YahooIE,
     YahooNewsIE,
