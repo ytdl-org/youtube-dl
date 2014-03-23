@@ -1126,11 +1126,11 @@ def setproctitle(title):
         libc = ctypes.cdll.LoadLibrary("libc.so.6")
     except OSError:
         return
-    title = title
-    buf = ctypes.create_string_buffer(len(title) + 1)
-    buf.value = title.encode('utf-8')
+    title_bytes = title.encode('utf-8')
+    buf = ctypes.create_string_buffer(len(title_bytes))
+    buf.value = title_bytes
     try:
-        libc.prctl(15, ctypes.byref(buf), 0, 0, 0)
+        libc.prctl(15, buf, 0, 0, 0)
     except AttributeError:
         return  # Strange libc, just skip this
 
