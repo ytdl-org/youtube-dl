@@ -9,7 +9,10 @@ import sys
 
 import youtube_dl.extractor
 from youtube_dl import YoutubeDL
-from youtube_dl.utils import preferredencoding
+from youtube_dl.utils import (
+    compat_str,
+    preferredencoding,
+)
 
 
 def get_params(override=None):
@@ -83,3 +86,27 @@ def gettestcases():
 
 
 md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
+
+
+def expect_info_dict(self, expected_dict, got_dict):
+    for info_field, expected in expected_dict.items():
+        if isinstance(expected, compat_str) and expected.startswith('re:'):
+            got = got_dict.get(info_field)
+            match_str = expected[len('re:'):]
+            match_rex = re.compile(match_str)
+
+            self.assertTrue(
+                isinstance(got, compat_str) and match_rex.match(got),
+                u'field %s (value: %r) should match %r' % (info_field, got, match_str))
+        elif isinstance(expected, type):
+            got = got_dict.get(info_field)
+            self.assertTrue(isinstance(got, expected),
+                u'Expected type %r, but got value %r of type %r' % (expected, got, type(got)))
+        else:
+            if isinstance(expected, compat_str) and expected.startswith('md5:'):
+                got = 'md5:' + md5(got_dict.get(info_field))
+            else:
+                got = got_dict.get(info_field)
+            self.assertEqual(expected, got,
+                u'invalid value for field %s, expected %r, got %r' % (info_field, expected, got))
+

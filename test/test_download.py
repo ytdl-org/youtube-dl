@@ -9,16 +9,16 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from test.helper import (
     get_params,
     gettestcases,
-    try_rm,
+    expect_info_dict,
     md5,
-    report_warning
+    try_rm,
+    report_warning,
 )
 
 
 import hashlib
 import io
 import json
-import re
 import socket
 
 import youtube_dl.YoutubeDL
@@ -135,26 +135,8 @@ def generator(test_case):
                     self.assertEqual(md5_for_file, tc['md5'])
                 with io.open(info_json_fn, encoding='utf-8') as infof:
                     info_dict = json.load(infof)
-                for (info_field, expected) in tc.get('info_dict', {}).items():
-                    if isinstance(expected, compat_str) and expected.startswith('re:'):
-                        got = info_dict.get(info_field)
-                        match_str = expected[len('re:'):]
-                        match_rex = re.compile(match_str)
 
-                        self.assertTrue(
-                            isinstance(got, compat_str) and match_rex.match(got),
-                            u'field %s (value: %r) should match %r' % (info_field, got, match_str))
-                    elif isinstance(expected, type):
-                        got = info_dict.get(info_field)
-                        self.assertTrue(isinstance(got, expected),
-                            u'Expected type %r, but got value %r of type %r' % (expected, got, type(got)))
-                    else:
-                        if isinstance(expected, compat_str) and expected.startswith('md5:'):
-                            got = 'md5:' + md5(info_dict.get(info_field))
-                        else:
-                            got = info_dict.get(info_field)
-                        self.assertEqual(expected, got,
-                            u'invalid value for field %s, expected %r, got %r' % (info_field, expected, got))
+                expect_info_dict(self, tc.get('info_dict', {}), info_dict)
 
                 # Check for the presence of mandatory fields
                 for key in ('id', 'url', 'title', 'ext'):
