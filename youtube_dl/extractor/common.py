@@ -74,7 +74,7 @@ class InfoExtractor(object):
                                  "http", "https", "rtsp", "rtmp", "m3u8" or so.
                     * preference Order number of this format. If this field is
                                  present and not None, the formats get sorted
-                                 by this field.
+                                 by this field, regardless of all other values.
                                  -1 for default (order by other properties),
                                  -2 or smaller for less than default.
                     * quality    Order number of the video quality of this
