@@ -22,6 +22,12 @@ fi
 
 if [ -z "$1" ]; then echo "ERROR: specify version number like this: $0 1994.09.06"; exit 1; fi
 version="$1"
+major_version=$(echo "$version" | sed -n 's#^\([0-9]*\.[0-9]*\.[0-9]*\).*#\1#p')
+if test "$major_version" '!=' "$(date '+%Y.%m.%d')"; then
+    echo "$version does not start with today's date!"
+    exit 1
+fi
+
 if [ ! -z "`git tag | grep "$version"`" ]; then echo 'ERROR: version already present'; exit 1; fi
 if [ ! -z "`git status --porcelain | grep -v CHANGELOG`" ]; then echo 'ERROR: the working directory is not clean; commit or stash changes'; exit 1; fi
 useless_files=$(find youtube_dl -type f -not -name '*.py')
