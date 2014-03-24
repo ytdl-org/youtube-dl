@@ -20,3 +20,5 @@ which means you can modify it, redistribute it or use it however you like.
 OPTIONS
 =======
 .. include:: options.rst.inc
+
+.. include:: faq.rst

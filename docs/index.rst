@@ -11,6 +11,7 @@ User guide
     :maxdepth: 2
 
     cli_options
+    faq
 
 Developer guide
 ---------------
