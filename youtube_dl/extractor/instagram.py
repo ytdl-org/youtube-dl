@@ -89,7 +89,7 @@ class InstagramUserIE(InfoExtractor):
                     'uploader': user.get('full_name'),
                     'uploader_id': user.get('username'),
                     'like_count': like_count,
-                    'upload_timestamp': int_or_none(it.get('created_time')),
+                    'timestamp': int_or_none(it.get('created_time')),
                 })
 
             if not page['items']:

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import calendar
 import contextlib
 import ctypes
 import datetime
@@ -501,13 +502,13 @@ def orderedSet(iterable):
             res.append(el)
     return res
 
-def unescapeHTML(s):
-    """
-    @param s a string
-    """
-    assert type(s) == type(u'')
 
-    result = re.sub(u'(?u)&(.+?);', htmlentity_transform, s)
+def unescapeHTML(s):
+    if s is None:
+        return None
+    assert type(s) == compat_str
+
+    result = re.sub(r'(?u)&(.+?);', htmlentity_transform, s)
     return result
 
 
@@ -759,6 +760,31 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
 
     https_request = http_request
     https_response = http_response
+
+
+def parse_iso8601(date_str):
+    """ Return a UNIX timestamp from the given date """
+
+    if date_str is None:
+        return None
+
+    m = re.search(
+        r'Z$| ?(?P<sign>\+|-)(?P<hours>[0-9]{2}):?(?P<minutes>[0-9]{2})$',
+        date_str)
+    if not m:
+        timezone = datetime.timedelta()
+    else:
+        date_str = date_str[:-len(m.group(0))]
+        if not m.group('sign'):
+            timezone = datetime.timedelta()
+        else:
+            sign = 1 if m.group('sign') == '+' else -1
+            timezone = datetime.timedelta(
+                hours=sign * int(m.group('hours')),
+                minutes=sign * int(m.group('minutes')))
+
+    dt = datetime.datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S') - timezone
+    return calendar.timegm(dt.timetuple())
 
 
 def unified_strdate(date_str):

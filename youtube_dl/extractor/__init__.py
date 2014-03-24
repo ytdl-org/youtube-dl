@@ -195,6 +195,7 @@ from .ro220 import Ro220IE
 from .rottentomatoes import RottenTomatoesIE
 from .roxwel import RoxwelIE
 from .rtlnow import RTLnowIE
+from .rts import RTSIE
 from .rutube import (
     RutubeIE,
     RutubeChannelIE,

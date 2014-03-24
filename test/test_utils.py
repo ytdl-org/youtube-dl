@@ -35,6 +35,7 @@ from youtube_dl.utils import (
     url_basename,
     urlencode_postdata,
     xpath_with_ns,
+    parse_iso8601,
 )
 
 if sys.version_info < (3, 0):
@@ -265,6 +266,11 @@ class TestUtil(unittest.TestCase):
     def test_urlencode_postdata(self):
         data = urlencode_postdata({'username': 'foo@bar.com', 'password': '1234'})
         self.assertTrue(isinstance(data, bytes))
+
+    def test_parse_iso8601(self):
+        self.assertEqual(parse_iso8601('2014-03-23T23:04:26+0100'), 1395612266)
+        self.assertEqual(parse_iso8601('2014-03-23T22:04:26+0000'), 1395612266)
+        self.assertEqual(parse_iso8601('2014-03-23T22:04:26Z'), 1395612266)
 
 if __name__ == '__main__':
     unittest.main()

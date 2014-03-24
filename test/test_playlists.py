@@ -309,6 +309,8 @@ class TestPlaylists(unittest.TestCase):
             'thumbnail': 're:^https?://.*\.jpg',
             'uploader': 'Porsche',
             'uploader_id': 'porsche',
+            'timestamp': 1387486713,
+            'upload_date': '20131219',
         }
         expect_info_dict(self, EXPECTED, test_video)
 
