@@ -75,9 +75,7 @@ class ArteTVPlus7IE(InfoExtractor):
         return self._extract_from_json_url(json_url, video_id, lang)
 
     def _extract_from_json_url(self, json_url, video_id, lang):
-        json_info = self._download_webpage(json_url, video_id, 'Downloading info json')
-        self.report_extraction(video_id)
-        info = json.loads(json_info)
+        info = self._download_json(json_url, video_id)
         player_info = info['videoJsonPlayer']
 
         info_dict = {
@@ -99,6 +97,8 @@ class ArteTVPlus7IE(InfoExtractor):
                 l = 'F'
             elif lang == 'de':
                 l = 'A'
+            else:
+                l = lang
             regexes = [r'VO?%s' % l, r'VO?.-ST%s' % l]
             return any(re.match(r, f['versionCode']) for r in regexes)
         # Some formats may not be in the same language as the url
@@ -228,3 +228,22 @@ class ArteTVConcertIE(ArteTVPlus7IE):
             'description': 'md5:486eb08f991552ade77439fe6d82c305',
         },
     }
+
+
+class ArteTVEmbedIE(ArteTVPlus7IE):
+    IE_NAME = 'arte.tv:embed'
+    _VALID_URL = r'''(?x)
+        http://www\.arte\.tv
+        /playerv2/embed\.php\?json_url=
+        (?P<json_url>
+            http://arte\.tv/papi/tvguide/videos/stream/player/
+            (?P<lang>[^/]+)/(?P<id>[^/]+)[^&]*
+        )
+    '''
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        lang = mobj.group('lang')
+        json_url = mobj.group('json_url')
+        return self._extract_from_json_url(json_url, video_id, lang)

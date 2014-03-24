@@ -197,6 +197,21 @@ class GenericIE(InfoExtractor):
                 'description': 'No description',
             },
         },
+        # arte embed
+        {
+            'url': 'http://www.tv-replay.fr/redirection/20-03-14/x-enius-arte-10753389.html',
+            'md5': '7653032cbb25bf6c80d80f217055fa43',
+            'info_dict': {
+                'id': '048195-004_PLUS7-F',
+                'ext': 'flv',
+                'title': 'X:enius',
+                'description': 'md5:d5fdf32ef6613cdbfd516ae658abf168',
+                'upload_date': '20140320',
+            },
+            'params': {
+                'skip_download': 'Requires rtmpdump'
+            }
+        },
     ]
 
     def report_download_webpage(self, video_id):
@@ -524,6 +539,13 @@ class GenericIE(InfoExtractor):
             r'<iframe[^>]+?src=(["\'])(?P<url>http://embed\.ted\.com/.+?)\1', webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'TED')
+
+        # Look for embedded arte.tv player
+        mobj = re.search(
+            r'<script [^>]*?src="(?P<url>http://www\.arte\.tv/playerv2/embed[^"]+)"',
+            webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'ArteTVEmbed')
 
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)

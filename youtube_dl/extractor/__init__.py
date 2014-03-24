@@ -14,6 +14,7 @@ from .arte import (
     ArteTVConcertIE,
     ArteTVFutureIE,
     ArteTVDDCIE,
+    ArteTVEmbedIE,
 )
 from .auengine import AUEngineIE
 from .bambuser import BambuserIE, BambuserChannelIE
