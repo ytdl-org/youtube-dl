@@ -124,45 +124,46 @@ class SoundcloudIE(InfoExtractor):
             'description': info['description'],
             'thumbnail': thumbnail,
         }
+        formats = []
         if info.get('downloadable', False):
             # We can build a direct link to the song
             format_url = (
                 'https://api.soundcloud.com/tracks/{0}/download?client_id={1}'.format(
                     track_id, self._CLIENT_ID))
-            result['formats'] = [{
+            formats.append({
                 'format_id': 'download',
                 'ext': info.get('original_format', 'mp3'),
                 'url': format_url,
                 'vcodec': 'none',
-            }]
-        else:
-            # We have to retrieve the url
-            streams_url = ('http://api.soundcloud.com/i1/tracks/{0}/streams?'
-                'client_id={1}&secret_token={2}'.format(track_id, self._IPHONE_CLIENT_ID, secret_token))
-            stream_json = self._download_webpage(
-                streams_url,
-                track_id, 'Downloading track url')
+                'preference': 10,
+            })
 
-            formats = []
-            format_dict = json.loads(stream_json)
-            for key, stream_url in format_dict.items():
-                if key.startswith('http'):
-                    formats.append({
-                        'format_id': key,
-                        'ext': ext,
-                        'url': stream_url,
-                        'vcodec': 'none',
-                    })
-                elif key.startswith('rtmp'):
-                    # The url doesn't have an rtmp app, we have to extract the playpath
-                    url, path = stream_url.split('mp3:', 1)
-                    formats.append({
-                        'format_id': key,
-                        'url': url,
-                        'play_path': 'mp3:' + path,
-                        'ext': ext,
-                        'vcodec': 'none',
-                    })
+        # We have to retrieve the url
+        streams_url = ('http://api.soundcloud.com/i1/tracks/{0}/streams?'
+            'client_id={1}&secret_token={2}'.format(track_id, self._IPHONE_CLIENT_ID, secret_token))
+        stream_json = self._download_webpage(
+            streams_url,
+            track_id, 'Downloading track url')
+
+        format_dict = json.loads(stream_json)
+        for key, stream_url in format_dict.items():
+            if key.startswith('http'):
+                formats.append({
+                    'format_id': key,
+                    'ext': ext,
+                    'url': stream_url,
+                    'vcodec': 'none',
+                })
+            elif key.startswith('rtmp'):
+                # The url doesn't have an rtmp app, we have to extract the playpath
+                url, path = stream_url.split('mp3:', 1)
+                formats.append({
+                    'format_id': key,
+                    'url': url,
+                    'play_path': 'mp3:' + path,
+                    'ext': ext,
+                    'vcodec': 'none',
+                })
 
             if not formats:
                 # We fallback to the stream_url in the original info, this
