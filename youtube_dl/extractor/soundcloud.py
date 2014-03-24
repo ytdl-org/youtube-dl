@@ -100,7 +100,7 @@ class SoundcloudIE(InfoExtractor):
 
     def report_resolve(self, video_id):
         """Report information extraction."""
-        self.to_screen(u'%s: Resolving id' % video_id)
+        self.to_screen('%s: Resolving id' % video_id)
 
     @classmethod
     def _resolv_url(cls, url):
@@ -146,14 +146,14 @@ class SoundcloudIE(InfoExtractor):
             formats = []
             format_dict = json.loads(stream_json)
             for key, stream_url in format_dict.items():
-                if key.startswith(u'http'):
+                if key.startswith('http'):
                     formats.append({
                         'format_id': key,
                         'ext': ext,
                         'url': stream_url,
                         'vcodec': 'none',
                     })
-                elif key.startswith(u'rtmp'):
+                elif key.startswith('rtmp'):
                     # The url doesn't have an rtmp app, we have to extract the playpath
                     url, path = stream_url.split('mp3:', 1)
                     formats.append({
@@ -188,7 +188,7 @@ class SoundcloudIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url, flags=re.VERBOSE)
         if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
+            raise ExtractorError('Invalid URL: %s' % url)
 
         track_id = mobj.group('track_id')
         token = None
@@ -226,7 +226,7 @@ class SoundcloudSetIE(SoundcloudIE):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
+            raise ExtractorError('Invalid URL: %s' % url)
 
         # extract uploader (which is in the url)
         uploader = mobj.group(1)
@@ -243,7 +243,7 @@ class SoundcloudSetIE(SoundcloudIE):
         info = json.loads(info_json)
         if 'errors' in info:
             for err in info['errors']:
-                self._downloader.report_error(u'unable to download video webpage: %s' % compat_str(err['error_message']))
+                self._downloader.report_error('unable to download video webpage: %s' % compat_str(err['error_message']))
             return
 
         self.report_extraction(full_title)
