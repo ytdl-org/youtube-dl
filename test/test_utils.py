@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Various small unit tests
 import io
+import json
 import xml.etree.ElementTree
 
 #from youtube_dl.utils import htmlentity_transform
@@ -36,6 +37,7 @@ from youtube_dl.utils import (
     urlencode_postdata,
     xpath_with_ns,
     parse_iso8601,
+    strip_jsonp,
 )
 
 if sys.version_info < (3, 0):
@@ -271,6 +273,12 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_iso8601('2014-03-23T23:04:26+0100'), 1395612266)
         self.assertEqual(parse_iso8601('2014-03-23T22:04:26+0000'), 1395612266)
         self.assertEqual(parse_iso8601('2014-03-23T22:04:26Z'), 1395612266)
+
+    def test_strip_jsonp(self):
+        stripped = strip_jsonp('cb ([ {"id":"532cb",\n\n\n"x":\n3}\n]\n);')
+        d = json.loads(stripped)
+        self.assertEqual(d, [{"id": "532cb", "x": 3}])
+
 
 if __name__ == '__main__':
     unittest.main()

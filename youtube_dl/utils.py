@@ -1328,3 +1328,7 @@ US_RATINGS = {
     'R': 16,
     'NC': 18,
 }
+
+
+def strip_jsonp(code):
+    return re.sub(r'(?s)^[a-zA-Z_]+\s*\(\s*(.*)\);\s*?\s*$', r'\1', code)

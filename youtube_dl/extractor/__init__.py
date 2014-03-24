@@ -282,6 +282,7 @@ from .vine import VineIE
 from .viki import VikiIE
 from .vk import VKIE
 from .vube import VubeIE
+from .washingtonpost import WashingtonPostIE
 from .wat import WatIE
 from .wdr import WDRIE
 from .weibo import WeiboIE
