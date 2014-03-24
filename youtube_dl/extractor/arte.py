@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
 from ..utils import (
@@ -25,6 +24,10 @@ class ArteTvIE(InfoExtractor):
     IE_NAME = 'arte.tv'
 
     def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        lang = mobj.group('lang')
+        video_id = mobj.group('id')
+
         ref_xml_url = url.replace('/videos/', '/do_delegate/videos/')
         ref_xml_url = ref_xml_url.replace('.html', ',view,asPlayerXml.xml')
         ref_xml_doc = self._download_xml(
@@ -47,7 +50,7 @@ class ArteTvIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'thumbnail': thumbnail,
-            'url': video_url,
+            'formats': formats,
             'ext': 'flv',
         }
 
