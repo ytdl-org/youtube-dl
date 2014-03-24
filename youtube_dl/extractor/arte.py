@@ -21,7 +21,7 @@ from ..utils import (
 
 
 class ArteTvIE(InfoExtractor):
-    _VALID_URL = r'(?:http://)?videos\.arte\.tv/(?P<lang>fr|de)/.*-(?P<id>.*?)\.html'
+    _VALID_URL = r'http://videos\.arte\.tv/(?P<lang>fr|de)/.*-(?P<id>.*?)\.html'
     IE_NAME = 'arte.tv'
 
     def _real_extract(self, url):
@@ -31,28 +31,24 @@ class ArteTvIE(InfoExtractor):
             ref_xml_url, video_id, note='Downloading metadata')
         config_node = find_xpath_attr(ref_xml_doc, './/video', 'lang', lang)
         config_xml_url = config_node.attrib['ref']
-        config_xml = self._download_webpage(
+        config = self._download_xml(
             config_xml_url, video_id, note='Downloading configuration')
 
-        video_urls = list(re.finditer(r'<url quality="(?P<quality>.*?)">(?P<url>.*?)</url>', config_xml))
-        def _key(m):
-            quality = m.group('quality')
-            if quality == 'hd':
-                return 2
-            else:
-                return 1
-        # We pick the best quality
-        video_urls = sorted(video_urls, key=_key)
-        video_url = list(video_urls)[-1].group('url')
-        
-        title = self._html_search_regex(r'<name>(.*?)</name>', config_xml, 'title')
-        thumbnail = self._html_search_regex(r'<firstThumbnailUrl>(.*?)</firstThumbnailUrl>',
-                                            config_xml, 'thumbnail')
-        return {'id': video_id,
-                'title': title,
-                'thumbnail': thumbnail,
-                'url': video_url,
-                'ext': 'flv',
+        formats = [{
+            'forma_id': q.attrib['quality'],
+            'url': q.text,
+            'quality': 2 if q.attrib['quality'] == 'hd' else 1,
+        } for q in config.findall('.//quality')]
+        self._sort_formats(formats)
+
+        title = config.find('.//name').text
+        thumbnail = config.find('.//firstThumbnailUrl').text
+        return {
+            'id': video_id,
+            'title': title,
+            'thumbnail': thumbnail,
+            'url': video_url,
+            'ext': 'flv',
         }
 
 
