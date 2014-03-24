@@ -40,8 +40,9 @@ class ArteTvIE(InfoExtractor):
         formats = [{
             'forma_id': q.attrib['quality'],
             'url': q.text,
+            'ext': 'flv',
             'quality': 2 if q.attrib['quality'] == 'hd' else 1,
-        } for q in config.findall('.//quality')]
+        } for q in config.findall('./urls/url')]
         self._sort_formats(formats)
 
         title = config.find('.//name').text
@@ -51,7 +52,6 @@ class ArteTvIE(InfoExtractor):
             'title': title,
             'thumbnail': thumbnail,
             'formats': formats,
-            'ext': 'flv',
         }
 
 
