@@ -227,6 +227,9 @@ def parseOpts(overrideArguments=None):
     general.add_option('--referer',
             dest='referer', help='specify a custom referer, use if the video access is restricted to one domain',
             metavar='REF', default=None)
+    general.add_option('--add-header',
+            dest='headers', help='specify a custom HTTP header and its value, separated by a colon \':\'. You can use this option multiple times', action="append",
+            metavar='FIELD:VALUE')
     general.add_option('--list-extractors',
             action='store_true', dest='list_extractors',
             help='List all supported extractors and the URLs they would handle', default=False)
@@ -555,6 +558,16 @@ def _real_main(argv=None):
     # Set referer
     if opts.referer is not None:
         std_headers['Referer'] = opts.referer
+
+    # Custom HTTP headers
+    if opts.headers is not None:
+        for h in opts.headers:
+            if h.find(':', 1) < 0:
+                parser.error(u'wrong header formatting, it should be key:value, not "%s"'%h)
+            key, value = h.split(':', 2)
+            if opts.verbose:
+                write_string(u'[debug] Adding header from command line option %s:%s\n'%(key, value))
+            std_headers[key] = value
 
     # Dump user agent
     if opts.dump_user_agent:
