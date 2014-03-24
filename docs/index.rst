@@ -4,6 +4,14 @@ Welcome to youtube-dl's documentation!
 *youtube-dl* is a command-line program to download videos from YouTube.com and more sites.
 It can also be used in Python code.
 
+User guide
+----------
+
+.. toctree::
+    :maxdepth: 2
+
+    cli_options
+
 Developer guide
 ---------------
 
