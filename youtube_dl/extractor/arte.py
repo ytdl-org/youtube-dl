@@ -19,67 +19,12 @@ from ..utils import (
 # is different for each one. The videos usually expire in 7 days, so we can't
 # add tests.
 
-class ArteTvIE(InfoExtractor):
-    _VIDEOS_URL = r'(?:http://)?videos\.arte\.tv/(?P<lang>fr|de)/.*-(?P<id>.*?)\.html'
-    _LIVEWEB_URL = r'(?:http://)?liveweb\.arte\.tv/(?P<lang>fr|de)/(?P<subpage>.+?)/(?P<name>.+)'
-    _LIVE_URL = r'index-[0-9]+\.html$'
 
+class ArteTvIE(InfoExtractor):
+    _VALID_URL = r'(?:http://)?videos\.arte\.tv/(?P<lang>fr|de)/.*-(?P<id>.*?)\.html'
     IE_NAME = 'arte.tv'
 
-    @classmethod
-    def suitable(cls, url):
-        return any(re.match(regex, url) for regex in (cls._VIDEOS_URL, cls._LIVEWEB_URL))
-
-    # TODO implement Live Stream
-    # from ..utils import compat_urllib_parse
-    # def extractLiveStream(self, url):
-    #     video_lang = url.split('/')[-4]
-    #     info = self.grep_webpage(
-    #         url,
-    #         r'src="(.*?/videothek_js.*?\.js)',
-    #         0,
-    #         [
-    #             (1, 'url', 'Invalid URL: %s' % url)
-    #         ]
-    #     )
-    #     http_host = url.split('/')[2]
-    #     next_url = 'http://%s%s' % (http_host, compat_urllib_parse.unquote(info.get('url')))
-    #     info = self.grep_webpage(
-    #         next_url,
-    #         r'(s_artestras_scst_geoFRDE_' + video_lang + '.*?)\'.*?' +
-    #             '(http://.*?\.swf).*?' +
-    #             '(rtmp://.*?)\'',
-    #         re.DOTALL,
-    #         [
-    #             (1, 'path',   'could not extract video path: %s' % url),
-    #             (2, 'player', 'could not extract video player: %s' % url),
-    #             (3, 'url',    'could not extract video url: %s' % url)
-    #         ]
-    #     )
-    #     video_url = '%s/%s' % (info.get('url'), info.get('path'))
-
     def _real_extract(self, url):
-        mobj = re.match(self._VIDEOS_URL, url)
-        if mobj is not None:
-            id = mobj.group('id')
-            lang = mobj.group('lang')
-            return self._extract_video(url, id, lang)
-
-        mobj = re.match(self._LIVEWEB_URL, url)
-        if mobj is not None:
-            name = mobj.group('name')
-            lang = mobj.group('lang')
-            return self._extract_liveweb(url, name, lang)
-
-        if re.search(self._LIVE_URL, url) is not None:
-            raise ExtractorError('Arte live streams are not yet supported, sorry')
-            # self.extractLiveStream(url)
-            # return
-
-        raise ExtractorError('No video found')
-
-    def _extract_video(self, url, video_id, lang):
-        """Extract from videos.arte.tv"""
         ref_xml_url = url.replace('/videos/', '/do_delegate/videos/')
         ref_xml_url = ref_xml_url.replace('.html', ',view,asPlayerXml.xml')
         ref_xml_doc = self._download_xml(
@@ -108,25 +53,7 @@ class ArteTvIE(InfoExtractor):
                 'thumbnail': thumbnail,
                 'url': video_url,
                 'ext': 'flv',
-                }
-
-    def _extract_liveweb(self, url, name, lang):
-        """Extract form http://liveweb.arte.tv/"""
-        webpage = self._download_webpage(url, name)
-        video_id = self._search_regex(r'eventId=(\d+?)("|&)', webpage, 'event id')
-        config_doc = self._download_xml('http://download.liveweb.arte.tv/o21/liveweb/events/event-%s.xml' % video_id,
-                                            video_id, 'Downloading information')
-        event_doc = config_doc.find('event')
-        url_node = event_doc.find('video').find('urlHd')
-        if url_node is None:
-            url_node = event_doc.find('urlSd')
-
-        return {'id': video_id,
-                'title': event_doc.find('name%s' % lang.capitalize()).text,
-                'url': url_node.text.replace('MP4', 'mp4'),
-                'ext': 'flv',
-                'thumbnail': self._og_search_thumbnail(webpage),
-                }
+        }
 
 
 class ArteTVPlus7IE(InfoExtractor):
