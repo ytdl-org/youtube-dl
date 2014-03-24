@@ -25,6 +25,10 @@ class ArteTvIE(InfoExtractor):
     IE_NAME = 'arte.tv'
 
     def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        lang = mobj.group('lang')
+
         ref_xml_url = url.replace('/videos/', '/do_delegate/videos/')
         ref_xml_url = ref_xml_url.replace('.html', ',view,asPlayerXml.xml')
         ref_xml_doc = self._download_xml(
@@ -37,8 +41,9 @@ class ArteTvIE(InfoExtractor):
         formats = [{
             'forma_id': q.attrib['quality'],
             'url': q.text,
+            'ext': 'flv',
             'quality': 2 if q.attrib['quality'] == 'hd' else 1,
-        } for q in config.findall('.//quality')]
+        } for q in config.findall('./urls/url')]
         self._sort_formats(formats)
 
         title = config.find('.//name').text
@@ -47,8 +52,7 @@ class ArteTvIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'thumbnail': thumbnail,
-            'url': video_url,
-            'ext': 'flv',
+            'formats': formats,
         }
 
 
