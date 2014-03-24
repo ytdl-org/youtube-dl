@@ -28,6 +28,7 @@ class RTSIE(InfoExtractor):
             'uploader': 'Divers',
             'upload_date': '19680921',
             'timestamp': -40280400,
+            'thumbnail': 're:^https?://.*\.image'
         },
     }
 
@@ -58,4 +59,5 @@ class RTSIE(InfoExtractor):
             'duration': duration,
             'uploader': info.get('programName'),
             'timestamp': upload_timestamp,
+            'thumbnail': thumbnail,
         }
