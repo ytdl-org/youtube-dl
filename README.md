@@ -28,6 +28,9 @@ which means you can modify it, redistribute it or use it however you like.
     --user-agent UA                  specify a custom user agent
     --referer REF                    specify a custom referer, use if the video
                                      access is restricted to one domain
+    --add-header FIELD:VALUE         specify a custom HTTP header and its value,
+                                     separated by a colon ':'. You can use this
+                                     option multiple times
     --list-extractors                List all supported extractors and the URLs
                                      they would handle
     --extractor-descriptions         Output descriptions of all supported
