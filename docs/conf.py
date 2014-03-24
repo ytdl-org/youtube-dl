@@ -69,3 +69,7 @@ html_static_path = ['_static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'youtube-dldoc'
+
+
+# -- Options for the man page ---------------------------------------------
+man_pages = [('youtube-dl.1', 'youtube-dl', 'download videos from youtube.com or other video platforms', 'Ricardo Garcia Gonzalez', 1)]
