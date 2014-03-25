@@ -191,7 +191,7 @@ class ComedyCentralShowsIE(InfoExtractor):
                 })
                 self._sort_formats(formats)
 
-            virtual_id = show_name + '-' + epTitle + ' part ' + compat_str(part_num + 1)
+            virtual_id = show_name + ' ' + epTitle + ' part ' + compat_str(part_num + 1)
             entries.append({
                 'id': guid,
                 'title': virtual_id,
@@ -206,6 +206,6 @@ class ComedyCentralShowsIE(InfoExtractor):
         return {
             '_type': 'playlist',
             'entries': entries,
-            'title': title,
+            'title': show_name + ' ' + title,
             'description': description,
         }
