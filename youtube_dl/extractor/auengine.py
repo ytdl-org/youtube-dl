@@ -51,5 +51,5 @@ class AUEngineIE(InfoExtractor):
             'url': video_url,
             'title': title,
             'thumbnail': thumbnail,
-            'referer': 'http://www.auengine.com/flowplayer/flowplayer.commercial-3.2.14.swf',
+            'http_referer': 'http://www.auengine.com/flowplayer/flowplayer.commercial-3.2.14.swf',
         }
