@@ -7,8 +7,8 @@ from .mtv import MTVServicesInfoExtractor
 from ..utils import (
     compat_str,
     compat_urllib_parse,
-
     ExtractorError,
+    int_or_none,
     unified_strdate,
 )
 
@@ -32,31 +32,32 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
 
 
 class ComedyCentralShowsIE(InfoExtractor):
-    IE_DESC = 'The Daily Show / Colbert Report'
+    IE_DESC = 'The Daily Show / The Colbert Report'
     # urls can be abbreviations like :thedailyshow or :colbert
     # urls for episodes like:
     # or urls for clips like: http://www.thedailyshow.com/watch/mon-december-10-2012/any-given-gun-day
     #                     or: http://www.colbertnation.com/the-colbert-report-videos/421667/november-29-2012/moon-shattering-news
     #                     or: http://www.colbertnation.com/the-colbert-report-collections/422008/festival-of-lights/79524
-    _VALID_URL = r"""^(:(?P<shortname>tds|thedailyshow|cr|colbert|colbertnation|colbertreport)
-                      |(https?://)?(www\.)?
-                          (?P<showname>thedailyshow|colbertnation)\.com/
+    _VALID_URL = r'''(?x)^(:(?P<shortname>tds|thedailyshow|cr|colbert|colbertnation|colbertreport)
+                      |https?://(:www\.)?
+                          (?P<showname>thedailyshow|thecolbertreport)\.(?:cc\.)?com/
                          (full-episodes/(?P<episode>.*)|
                           (?P<clip>
                               (the-colbert-report-(videos|collections)/(?P<clipID>[0-9]+)/[^/]*/(?P<cntitle>.*?))
                               |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*)))|
                           (?P<interview>
                               extended-interviews/(?P<interID>[0-9]+)/playlist_tds_extended_(?P<interview_title>.*?)/.*?)))
-                     $"""
+                     $'''
     _TEST = {
-        'url': 'http://www.thedailyshow.com/watch/thu-december-13-2012/kristen-stewart',
-        'file': '422212.mp4',
+        'url': 'http://thedailyshow.cc.com/watch/thu-december-13-2012/kristen-stewart',
         'md5': '4e2f5cb088a83cd8cdb7756132f9739d',
         'info_dict': {
-            "upload_date": "20121214",
-            "description": "Kristen Stewart",
-            "uploader": "thedailyshow",
-            "title": "thedailyshow-kristen-stewart part 1"
+            'id': 'ab9ab3e7-5a98-4dbe-8b21-551dc0523d55',
+            'ext': 'mp4',
+            'upload_date': '20121213',
+            'description': 'Kristen Stewart learns to let loose in "On the Road."',
+            'uploader': 'thedailyshow',
+            'title': 'thedailyshow-kristen-stewart part 1',
         }
     }
 
@@ -79,11 +80,6 @@ class ComedyCentralShowsIE(InfoExtractor):
         '400': (384, 216),
     }
 
-    @classmethod
-    def suitable(cls, url):
-        """Receives a URL and returns True if suitable for this IE."""
-        return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
-
     @staticmethod
     def _transform_rtmp_url(rtmp_video_url):
         m = re.match(r'^rtmpe?://.*?/(?P<finalid>gsp\.comedystor/.*)$', rtmp_video_url)
@@ -99,9 +95,9 @@ class ComedyCentralShowsIE(InfoExtractor):
 
         if mobj.group('shortname'):
             if mobj.group('shortname') in ('tds', 'thedailyshow'):
-                url = 'http://www.thedailyshow.com/full-episodes/'
+                url = 'http://thedailyshow.cc.com/full-episodes/'
             else:
-                url = 'http://www.colbertnation.com/full-episodes/'
+                url = 'http://thecolbertreport.cc.com/full-episodes/'
             mobj = re.match(self._VALID_URL, url, re.VERBOSE)
             assert mobj is not None
 
@@ -120,9 +116,9 @@ class ComedyCentralShowsIE(InfoExtractor):
                 epTitle = mobj.group('showname')
             else:
                 epTitle = mobj.group('episode')
+        show_name = mobj.group('showname')
 
-        self.report_extraction(epTitle)
-        webpage,htmlHandle = self._download_webpage_handle(url, epTitle)
+        webpage, htmlHandle = self._download_webpage_handle(url, epTitle)
         if dlNewest:
             url = htmlHandle.geturl()
             mobj = re.match(self._VALID_URL, url, re.VERBOSE)
@@ -130,10 +126,9 @@ class ComedyCentralShowsIE(InfoExtractor):
                 raise ExtractorError('Invalid redirected URL: ' + url)
             if mobj.group('episode') == '':
                 raise ExtractorError('Redirected URL is still not specific: ' + url)
-            epTitle = mobj.group('episode')
+            epTitle = mobj.group('episode').rpartition('/')[-1]
 
         mMovieParams = re.findall('(?:<param name="movie" value="|var url = ")(http://media.mtvnservices.com/([^"]*(?:episode|video).*?:.*?))"', webpage)
-
         if len(mMovieParams) == 0:
             # The Colbert Report embeds the information in a without
             # a URL prefix; so extract the alternate reference
@@ -146,55 +141,68 @@ class ComedyCentralShowsIE(InfoExtractor):
                 mMovieParams = [("http://media.mtvnservices.com/" + altMovieParams[0], altMovieParams[0])]
 
         uri = mMovieParams[0][1]
-        indexUrl = 'http://shadow.comedycentral.com/feeds/video_player/mrss/?' + compat_urllib_parse.urlencode({'uri': uri})
-        idoc = self._download_xml(indexUrl, epTitle,
-                                          'Downloading show index',
-                                          'unable to download episode index')
+        index_url = 'http://%s.cc.com/feeds/mrss?%s' % (show_name, compat_urllib_parse.urlencode({'uri': uri}))
+        idoc = self._download_xml(
+            index_url, epTitle,
+            'Downloading show index', 'Unable to download episode index')
 
-        results = []
+        title = idoc.find('./channel/title').text
+        description = idoc.find('./channel/description').text
 
-        itemEls = idoc.findall('.//item')
-        for partNum,itemEl in enumerate(itemEls):
-            mediaId = itemEl.findall('./guid')[0].text
-            shortMediaId = mediaId.split(':')[-1]
-            showId = mediaId.split(':')[-2].replace('.com', '')
-            officialTitle = itemEl.findall('./title')[0].text
-            officialDate = unified_strdate(itemEl.findall('./pubDate')[0].text)
+        entries = []
+        item_els = idoc.findall('.//item')
+        for part_num, itemEl in enumerate(item_els):
+            upload_date = unified_strdate(itemEl.findall('./pubDate')[0].text)
+            thumbnail = itemEl.find('.//{http://search.yahoo.com/mrss/}thumbnail').attrib.get('url')
 
-            configUrl = ('http://www.comedycentral.com/global/feeds/entertainment/media/mediaGenEntertainment.jhtml?' +
-                        compat_urllib_parse.urlencode({'uri': mediaId}))
-            cdoc = self._download_xml(configUrl, epTitle,
-                                               'Downloading configuration for %s' % shortMediaId)
+            content = itemEl.find('.//{http://search.yahoo.com/mrss/}content')
+            duration = int_or_none(content.attrib.get('duration'))
+            mediagen_url = content.attrib['url']
+            guid = itemEl.find('.//guid').text.rpartition(':')[-1]
+
+            cdoc = self._download_xml(
+                mediagen_url, epTitle,
+                'Downloading configuration for segment %d / %d' % (part_num + 1, len(item_els)))
 
             turls = []
             for rendition in cdoc.findall('.//rendition'):
                 finfo = (rendition.attrib['bitrate'], rendition.findall('./src')[0].text)
                 turls.append(finfo)
 
-            if len(turls) == 0:
-                self._downloader.report_error('unable to download ' + mediaId + ': No videos found')
-                continue
-
             formats = []
             for format, rtmp_video_url in turls:
                 w, h = self._video_dimensions.get(format, (None, None))
                 formats.append({
+                    'format_id': 'vhttp-%s' % format,
                     'url': self._transform_rtmp_url(rtmp_video_url),
                     'ext': self._video_extensions.get(format, 'mp4'),
-                    'format_id': format,
                     'height': h,
                     'width': w,
                 })
+                formats.append({
+                    'format_id': 'rtmp-%s' % format,
+                    'url': rtmp_video_url,
+                    'ext': self._video_extensions.get(format, 'mp4'),
+                    'height': h,
+                    'width': w,
+                })
+                self._sort_formats(formats)
 
-            effTitle = showId + '-' + epTitle + ' part ' + compat_str(partNum+1)
-            results.append({
-                'id': shortMediaId,
+            virtual_id = show_name + '-' + epTitle + ' part ' + compat_str(part_num + 1)
+            entries.append({
+                'id': guid,
+                'title': virtual_id,
                 'formats': formats,
-                'uploader': showId,
-                'upload_date': officialDate,
-                'title': effTitle,
-                'thumbnail': None,
-                'description': compat_str(officialTitle),
+                'uploader': show_name,
+                'upload_date': upload_date,
+                'duration': duration,
+                'thumbnail': thumbnail,
+                'description': description,
             })
 
-        return results
+        return {
+            '_type': 'playlist',
+            'entries': entries,
+            'title': title,
+            'description': description,
+        }
