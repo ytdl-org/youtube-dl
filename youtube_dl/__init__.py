@@ -364,6 +364,10 @@ def parseOpts(overrideArguments=None):
 
     verbosity.add_option('-q', '--quiet',
             action='store_true', dest='quiet', help='activates quiet mode', default=False)
+    verbosity.add_option(
+        '--no-warnings',
+        dest='no_warnings', action='store_true', default=False,
+        help='Ignore warnings')
     verbosity.add_option('-s', '--simulate',
             action='store_true', dest='simulate', help='do not download the video and do not write anything to disk', default=False)
     verbosity.add_option('--skip-download',
@@ -708,6 +712,7 @@ def _real_main(argv=None):
         'password': opts.password,
         'videopassword': opts.videopassword,
         'quiet': (opts.quiet or any_printing),
+        'no_warnings': opts.no_warnings,
         'forceurl': opts.geturl,
         'forcetitle': opts.gettitle,
         'forceid': opts.getid,

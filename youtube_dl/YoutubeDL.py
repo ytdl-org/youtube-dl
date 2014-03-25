@@ -94,6 +94,7 @@ class YoutubeDL(object):
     usenetrc:          Use netrc for authentication instead.
     verbose:           Print additional info to stdout.
     quiet:             Do not print messages to stdout.
+    no_warnings:       Do not print out anything for warnings.
     forceurl:          Force printing final URL.
     forcetitle:        Force printing title.
     forceid:           Force printing ID.
@@ -376,6 +377,8 @@ class YoutubeDL(object):
         if self.params.get('logger') is not None:
             self.params['logger'].warning(message)
         else:
+            if self.params.get('no_warnings'):
+                return
             if self._err_file.isatty() and os.name != 'nt':
                 _msg_header = '\033[0;33mWARNING:\033[0m'
             else:
