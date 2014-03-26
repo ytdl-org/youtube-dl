@@ -95,6 +95,7 @@ from .postprocessor import (
     FFmpegExtractAudioPP,
     FFmpegEmbedSubtitlePP,
     XAttrMetadataPP,
+    FFmpegJoinVideosPP,
 )
 
 
@@ -491,6 +492,8 @@ def parseOpts(overrideArguments=None):
             help='ffmpeg/avconv audio quality specification, insert a value between 0 (better) and 9 (worse) for VBR or a specific bitrate like 128K (default 5)')
     postproc.add_option('--recode-video', metavar='FORMAT', dest='recodevideo', default=None,
             help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm)')
+    postproc.add_option('--join-parts', action='store_true', dest='joinparts', default=False,
+            help='Join the video parts if the video is splitted in different parts.')
     postproc.add_option('-k', '--keep-video', action='store_true', dest='keepvideo', default=False,
             help='keeps the video file on disk after the post-processing; the video is erased by default')
     postproc.add_option('--no-post-overwrites', action='store_true', dest='nopostoverwrites', default=False,
@@ -792,6 +795,8 @@ def _real_main(argv=None):
         ydl.add_default_info_extractors()
 
         # PostProcessors
+        if opts.joinparts:
+            ydl.add_post_processor(FFmpegJoinVideosPP())
         # Add the metadata pp first, the other pps will copy it
         if opts.addmetadata:
             ydl.add_post_processor(FFmpegMetadataPP())

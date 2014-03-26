@@ -109,6 +109,9 @@ class InfoExtractor(object):
     like_count:     Number of positive ratings of the video
     dislike_count:  Number of negative ratings of the video
     comment_count:  Number of comments on the video
+    parts:          A list of info_dicts for each of the parts of the video,
+                    it must include the url field, if it's a rtmp download it
+                    can contain additional fields for rtmpdump.
     age_limit:      Age restriction for the video, as an integer (years)
     webpage_url:    The url to the video webpage, if given to youtube-dl it
                     should allow to get the same result again. (It will be set
