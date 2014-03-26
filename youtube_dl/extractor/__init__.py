@@ -208,7 +208,6 @@ from .rutv import RUTVIE
 from .savefrom import SaveFromIE
 from .servingsys import ServingSysIE
 from .sina import SinaIE
-from .slashdot import SlashdotIE
 from .slideshare import SlideshareIE
 from .smotri import (
     SmotriIE,
