@@ -203,9 +203,18 @@ class ComedyCentralShowsIE(InfoExtractor):
                 'description': description,
             })
 
+        playlist_title = show_name + ' ' + title
+        if self._downloader.params.get('joinparts') and len(entries) > 1:
+            return {
+                'id': epTitle,
+                'title': playlist_title,
+                'description': description,
+                'formats': self._entry_formats_to_parts(entries)
+            }
+
         return {
             '_type': 'playlist',
             'entries': entries,
-            'title': show_name + ' ' + title,
+            'title': playlist_title,
             'description': description,
         }
