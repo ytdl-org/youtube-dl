@@ -156,7 +156,22 @@ class MTVServicesInfoExtractor(InfoExtractor):
             mgid = self._search_regex(
                 [r'data-mgid="(.*?)"', r'swfobject.embedSWF\(".*?(mgid:.*?)"'],
                 webpage, u'mgid')
-        return self._get_videos_info(mgid)
+        videos_info = self._get_videos_info(mgid)
+        if self._downloader.params.get('joinparts'):
+            show_name = self._html_search_regex(
+                r'<h2.*?class="[^"]*show_name[^"]*".*?>(.*?)</h2>',
+                webpage, 'show name')
+            video_name = self._og_search_title(webpage)
+            description = self._og_search_description(webpage)
+            thumbnail = self._og_search_thumbnail(webpage)
+            return {
+                'id': title,
+                'title': '{0} - {1}'.format(show_name, video_name),
+                'description': description,
+                'thumbnail': thumbnail,
+                'formats': self._entry_formats_to_parts(videos_info),
+            }
+        return videos_info
 
 
 class MTVIE(MTVServicesInfoExtractor):
