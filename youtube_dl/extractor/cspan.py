@@ -56,61 +56,16 @@ class CSpanIE(InfoExtractor):
 
         url = unescapeHTML(data['video']['files'][0]['path']['#text'])
 
-        doc = self._download_xml('http://www.c-span.org/common/services/flashXml.php?programid=' + video_id + '&version=2014-01-23',
+        doc = self._download_xml('http://www.c-span.org/common/services/flashXml.php?programid=' + video_id,
             video_id)
 
-        formats = [
-            {
-                'url': url,
-            }
-        ]
-
-        def find_string(node, s):
-            return find_xpath_attr(node, './/string', 'name', s).text
-
-        def find_number(node, s):
-            return int(find_xpath_attr(node, './/number', 'name', s).text)
-
-        def find_array(node, s):
-            return find_xpath_attr(node, './/array', 'name', s)
-
-        def process_files(files, url, formats):
-            for file in files:
-                path = find_string(file, 'path')
-                #duration = find_number(file, './number', 'name', 'length')
-                hd = find_number(file, 'hd')
-                formats.append({
-                    'url': url,
-                    'play_path': path,
-                    'ext': 'flv',
-                    'quality': hd,
-                })
-
-        def process_node(node, formats):
-            url = find_xpath_attr(node, './string', 'name', 'url')
-            if url is None:
-                url = find_xpath_attr(node, './string', 'name', 'URL')
-                if url is None:
-                    return
-            url = url.text.replace('$(protocol)', 'rtmp').replace('$(port)', '1935')
-            files = find_array(node, 'files')
-            if files is None:
-                return
-            process_files(files, url, formats)
-
-        process_node(doc.find('./media-link'), formats)
-
-        streams = find_array(doc, 'streams')
-        if streams is not None:
-            for stream in streams:
-                if find_string(stream, 'name') != 'vod':
-                    continue
-                process_node(stream, formats)
+        def find_string(s):
+            return find_xpath_attr(doc, './/string', 'name', s).text
 
         return {
             'id': video_id,
-            'title': find_string(doc, 'title'),
+            'title': find_string('title'),
+            'url': url,
             'description': description,
-            'thumbnail': find_string(doc, 'poster'),
-            'formats': formats,
+            'thumbnail': find_string('poster'),
         }
