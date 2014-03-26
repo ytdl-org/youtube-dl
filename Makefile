@@ -54,8 +54,11 @@ README.md: youtube_dl/*.py youtube_dl/*/*.py
 README.txt: README.md
 	pandoc -f markdown -t plain README.md -o README.txt
 
-youtube-dl.1: README.md
-	pandoc -s -f markdown -t man README.md -o youtube-dl.1
+docs/options.rst.inc: youtube_dl/*.py youtube_dl/*/*.py
+	python devscripts/docs/make_options.py
+
+youtube-dl.1: docs/options.rst.inc docs/*.rst
+	sphinx-build -b man -d docs/_build/doctrees docs ./
 
 youtube-dl.bash-completion: youtube_dl/*.py youtube_dl/*/*.py devscripts/bash-completion.in
 	python devscripts/bash-completion.py
