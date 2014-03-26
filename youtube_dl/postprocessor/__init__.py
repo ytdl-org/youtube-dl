@@ -5,6 +5,7 @@ from .ffmpeg import (
     FFmpegVideoConvertor,
     FFmpegExtractAudioPP,
     FFmpegEmbedSubtitlePP,
+    FFmpegJoinVideosPP,
 )
 from .xattrpp import XAttrMetadataPP
 
@@ -14,5 +15,6 @@ __all__ = [
     'FFmpegVideoConvertor',
     'FFmpegExtractAudioPP',
     'FFmpegEmbedSubtitlePP',
+    'FFmpegJoinVideosPP',
     'XAttrMetadataPP',
 ]
