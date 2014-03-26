@@ -71,3 +71,8 @@ Examples::
     $ youtube-dl --dateafter 20000101 --datebefore 20091231
 
 .. include:: faq.rst
+
+BUGS
+====
+
+Bugs and suggestions should be reported at: https://github.com/rg3/youtube-dl/issues. Please read the `bug reporting guidelines <https://github.com/rg3/youtube-dl/#bugs>`_ before opening a ticket.
