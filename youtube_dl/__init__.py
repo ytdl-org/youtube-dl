@@ -745,6 +745,7 @@ def _real_main(argv=None):
         'playliststart': opts.playliststart,
         'playlistend': opts.playlistend,
         'noplaylist': opts.noplaylist,
+        'joinparts': opts.joinparts,
         'logtostderr': opts.outtmpl == '-',
         'consoletitle': opts.consoletitle,
         'nopart': opts.nopart,

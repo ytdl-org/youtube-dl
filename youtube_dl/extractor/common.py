@@ -1,4 +1,5 @@
 import base64
+from collections import defaultdict
 import hashlib
 import json
 import os
@@ -533,6 +534,29 @@ class InfoExtractor(object):
                 f.get('format_id'),
             )
         formats.sort(key=_formats_key)
+
+    def _entry_formats_to_parts(self, entries):
+        '''Transforms entries with formats to formats with parts. Used when joinparts is set.'''
+        ekeys = None
+        fmt_map = defaultdict(dict)
+        fkeys = None
+        for entry in entries:
+            if ekeys is None:
+                ekeys = set(entry.keys()) - set(['formats'])
+            for fmt in entry['formats']:
+                if fkeys is None:
+                    fkeys = set(fmt.keys()) - set(['url'])
+                fid = fmt['format_id']
+                if 'parts' not in fmt_map[fid]:
+                    for k in fkeys:
+                        fmt_map[fid][k] = fmt[k]
+                    fmt_map[fid]['parts'] = []
+                part = dict([(k, entry[k]) for k in ekeys])
+                part['url'] = fmt['url']
+                fmt_map[fid]['parts'].append(part)
+        formats = fmt_map.values()
+        self._sort_formats(formats)
+        return formats
 
 
 class SearchInfoExtractor(InfoExtractor):
