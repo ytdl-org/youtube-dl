@@ -169,6 +169,7 @@ which means you can modify it, redistribute it or use it however you like.
 
 ## Verbosity / Simulation Options:
     -q, --quiet                      activates quiet mode
+    --no-warnings                    Ignore warnings
     -s, --simulate                   do not download the video and do not write
                                      anything to disk
     --skip-download                  do not download the video
