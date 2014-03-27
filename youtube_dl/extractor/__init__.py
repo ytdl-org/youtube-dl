@@ -256,6 +256,7 @@ from .udemy import (
     UdemyCourseIE
 )
 from .unistra import UnistraIE
+from .urort import UrortIE
 from .ustream import UstreamIE, UstreamChannelIE
 from .vbox7 import Vbox7IE
 from .veehd import VeeHDIE
