@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
+    unified_strdate,
 )
 
 
@@ -24,6 +25,7 @@ class UrortIE(InfoExtractor):
             'like_count': int,
             'uploader': 'Gerilja',
             'uploader_id': 'Gerilja',
+            'upload_date': '20100323',
         },
         'params': {
             'matchtitle': '^The Bomb$',  # To test, we want just one video
@@ -37,6 +39,7 @@ class UrortIE(InfoExtractor):
         fstr = compat_urllib_parse.quote("InternalBandUrl eq '%s'" % playlist_id)
         json_url = 'http://urort.p3.no/breeze/urort/TrackDtos?$filter=' + fstr
         songs = self._download_json(json_url, playlist_id)
+        print(songs[0])
 
         entries = [{
             'id': '%d-%s' % (s['BandId'], s['$id']),
@@ -47,6 +50,7 @@ class UrortIE(InfoExtractor):
             'uploader': s.get('BandName', playlist_id),
             'like_count': s.get('LikeCount'),
             'thumbnail': 'http://urort.p3.no/cloud/images/%s' % s['Image'],
+            'upload_date': unified_strdate(s.get('Released')),
         } for s in songs]
 
         return {
