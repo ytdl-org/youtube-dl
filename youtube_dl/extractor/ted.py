@@ -18,12 +18,14 @@ class TEDIE(SubtitlesInfoExtractor):
             (?P<type_playlist>playlists(?:/\d+)?) # We have a playlist
             |
             ((?P<type_talk>talks)) # We have a simple talk
+            |
+            (?P<type_watch>watch)/[^/]+/[^/]+
         )
         (/lang/(.*?))? # The url may contain the language
-        /(?P<name>\w+) # Here goes the name and then ".html"
+        /(?P<name>[\w-]+) # Here goes the name and then ".html"
         .*)$
         '''
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.ted.com/talks/dan_dennett_on_our_consciousness.html',
         'md5': '4ea1dada91e4174b53dac2bb8ace429d',
         'info_dict': {
@@ -36,7 +38,17 @@ class TEDIE(SubtitlesInfoExtractor):
                 'actively fooling us.'),
             'uploader': 'Dan Dennett',
         }
-    }
+    }, {
+        'url': 'http://www.ted.com/watch/ted-institute/ted-bcg/vishal-sikka-the-beauty-and-power-of-algorithms',
+        'md5': '226f4fb9c62380d11b7995efa4c87994',
+        'info_dict': {
+            'id': 'vishal-sikka-the-beauty-and-power-of-algorithms',
+            'ext': 'mp4',
+            'title': 'Vishal Sikka: The beauty and power of algorithms',
+            'thumbnail': 're:^https?://.+\.jpg',
+            'description': 'Adaptive, intelligent, and consistent, algorithms are emerging as the ultimate app for everything from matching consumers to products to assessing medical diagnoses. Vishal Sikka shares his appreciation for the algorithm, charting both its inherent beauty and its growing power.',
+        }
+    }]
 
     _FORMATS_PREFERENCE = {
         'low': 1,
@@ -57,6 +69,8 @@ class TEDIE(SubtitlesInfoExtractor):
         name = m.group('name')
         if m.group('type_talk'):
             return self._talk_info(url, name)
+        elif m.group('type_watch'):
+            return self._watch_info(url, name)
         else:
             return self._playlist_videos_info(url, name)
 
@@ -123,3 +137,26 @@ class TEDIE(SubtitlesInfoExtractor):
         else:
             self._downloader.report_warning(u'video doesn\'t have subtitles')
             return {}
+
+    def _watch_info(self, url, name):
+        webpage = self._download_webpage(url, name)
+
+        config_json = self._html_search_regex(
+            r"data-config='([^']+)", webpage, 'config')
+        config = json.loads(config_json)
+        video_url = config['video']['url']
+        thumbnail = config.get('image', {}).get('url')
+
+        title = self._html_search_regex(
+            r"(?s)<h1(?:\s+class='[^']+')?>(.+?)</h1>", webpage, 'title')
+        description = self._html_search_regex(
+            r'(?s)<h4 class="[^"]+" id="h3--about-this-talk">.*?</h4>(.*?)</div>',
+            webpage, 'description', fatal=False)
+
+        return {
+            'id': name,
+            'url': video_url,
+            'title': title,
+            'thumbnail': thumbnail,
+            'description': description,
+        }
