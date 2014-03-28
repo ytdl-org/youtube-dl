@@ -1,8 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
+
 import calendar
 import datetime
-import json
 import re
 
 from .common import InfoExtractor
@@ -12,15 +12,17 @@ from .common import InfoExtractor
 
 
 class OE1IE(InfoExtractor):
-    _VALID_URL = r'http://oe1\.orf\.at/programm/(?P<id>\d+)'
+    IE_DESC = 'oe1.orf.at'
+    _VALID_URL = r'http://oe1\.orf\.at/programm/(?P<id>[0-9]+)'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         show_id = mobj.group('id')
-        data = json.loads(self._download_webpage(
+
+        data = self._download_json(
             'http://oe1.orf.at/programm/%s/konsole' % show_id,
             show_id
-        ))
+        )
 
         timestamp = datetime.datetime.strptime('%s %s' % (
             data['item']['day_label'],
@@ -33,6 +35,6 @@ class OE1IE(InfoExtractor):
             'title': data['item']['title'],
             'url': data['item']['url_stream'],
             'ext': 'mp3',
-            'description': data['item']['info'],
+            'description': data['item'].get('info'),
             'timestamp': unix_timestamp
         }
