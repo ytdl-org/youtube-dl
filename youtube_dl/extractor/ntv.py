@@ -125,13 +125,14 @@ class NTVIE(InfoExtractor):
             '7': 'video2',
         }
 
+        app = apps[puid22] if puid22 in apps else apps['4']
+
         formats = []
         for format_id in ['', 'hi', 'webm']:
             file = video.find('./%sfile' % format_id)
             if file is None:
                 continue
             size = video.find('./%ssize' % format_id)
-            app = apps[puid22] if puid22 in apps else apps['4']
             formats.append({
                 'url': 'rtmp://media.ntv.ru/%s' % app,
                 'app': app,
