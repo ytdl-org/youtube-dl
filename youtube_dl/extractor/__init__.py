@@ -177,6 +177,7 @@ from .normalboots import NormalbootsIE
 from .novamov import NovaMovIE
 from .nowness import NownessIE
 from .nowvideo import NowVideoIE
+from .ntv import NTVIE
 from .ooyala import OoyalaIE
 from .orf import ORFIE
 from .parliamentliveuk import ParliamentLiveUKIE
