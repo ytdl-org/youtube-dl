@@ -25,6 +25,7 @@ from ..utils import (
 from .brightcove import BrightcoveIE
 from .ooyala import OoyalaIE
 from .rutv import RUTVIE
+from .smotri import SmotriIE
 
 
 class GenericIE(InfoExtractor):
@@ -211,6 +212,21 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': 'Requires rtmpdump'
             }
+        },
+        # smotri embed
+        {
+            'url': 'http://rbctv.rbc.ru/archive/news/562949990879132.shtml',
+            'md5': 'ec40048448e9284c9a1de77bb188108b',
+            'info_dict': {
+                'id': 'v27008541fad',
+                'ext': 'mp4',
+                'title': 'Крым и Севастополь вошли в состав России',
+                'description': 'md5:fae01b61f68984c7bd2fa741e11c3175',
+                'duration': 900,
+                'upload_date': '20140318',
+                'uploader': 'rbctv_2012_4',
+                'uploader_id': 'rbctv_2012_4',
+            },
         },
     ]
 
@@ -546,6 +562,11 @@ class GenericIE(InfoExtractor):
             webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'ArteTVEmbed')
+
+        # Look for embedded smotri.com player
+        smotri_url = SmotriIE._extract_url(webpage)
+        if smotri_url:
+            return self.url_result(smotri_url, 'Smotri')
 
         # Start with something easy: JW Player in SWFObject
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
