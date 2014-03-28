@@ -8,7 +8,7 @@ from ..utils import (
     compat_str,
     compat_urllib_parse,
     ExtractorError,
-    int_or_none,
+    float_or_none,
     unified_strdate,
 )
 
@@ -159,7 +159,7 @@ class ComedyCentralShowsIE(InfoExtractor):
             thumbnail = itemEl.find('.//{http://search.yahoo.com/mrss/}thumbnail').attrib.get('url')
 
             content = itemEl.find('.//{http://search.yahoo.com/mrss/}content')
-            duration = int_or_none(content.attrib.get('duration'))
+            duration = float_or_none(content.attrib.get('duration'))
             mediagen_url = content.attrib['url']
             guid = itemEl.find('.//guid').text.rpartition(':')[-1]
 

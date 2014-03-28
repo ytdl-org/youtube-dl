@@ -1181,6 +1181,10 @@ def int_or_none(v, scale=1):
     return v if v is None else (int(v) // scale)
 
 
+def float_or_none(v, scale=1):
+    return v if v is None else (float(v) / scale)
+
+
 def parse_duration(s):
     if s is None:
         return None
