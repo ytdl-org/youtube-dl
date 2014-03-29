@@ -51,6 +51,7 @@ __authors__  = (
     'David Wagner',
     'Juan C. Olivares',
     'Mattias Harrysson',
+    'phaer',
 )
 
 __license__ = 'Public Domain'
