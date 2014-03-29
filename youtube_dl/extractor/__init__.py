@@ -177,6 +177,8 @@ from .normalboots import NormalbootsIE
 from .novamov import NovaMovIE
 from .nowness import NownessIE
 from .nowvideo import NowVideoIE
+from .ntv import NTVIE
+from .oe1 import OE1IE
 from .ooyala import OoyalaIE
 from .orf import ORFIE
 from .parliamentliveuk import ParliamentLiveUKIE
@@ -256,6 +258,7 @@ from .udemy import (
     UdemyCourseIE
 )
 from .unistra import UnistraIE
+from .urort import UrortIE
 from .ustream import UstreamIE, UstreamChannelIE
 from .vbox7 import Vbox7IE
 from .veehd import VeeHDIE

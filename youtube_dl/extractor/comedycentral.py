@@ -8,7 +8,7 @@ from ..utils import (
     compat_str,
     compat_urllib_parse,
     ExtractorError,
-    int_or_none,
+    float_or_none,
     unified_strdate,
 )
 
@@ -46,7 +46,7 @@ class ComedyCentralShowsIE(InfoExtractor):
                               (the-colbert-report-(videos|collections)/(?P<clipID>[0-9]+)/[^/]*/(?P<cntitle>.*?))
                               |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*)))|
                           (?P<interview>
-                              extended-interviews/(?P<interID>[0-9]+)/playlist_tds_extended_(?P<interview_title>.*?)/.*?)))
+                              extended-interviews/(?P<interID>[0-9a-z]+)/(?:playlist_tds_extended_)?(?P<interview_title>.*?)(/.*?)?)))
                      $'''
     _TEST = {
         'url': 'http://thedailyshow.cc.com/watch/thu-december-13-2012/kristen-stewart',
@@ -134,7 +134,7 @@ class ComedyCentralShowsIE(InfoExtractor):
             # a URL prefix; so extract the alternate reference
             # and then add the URL prefix manually.
 
-            altMovieParams = re.findall('data-mgid="([^"]*(?:episode|video).*?:.*?)"', webpage)
+            altMovieParams = re.findall('data-mgid="([^"]*(?:episode|video|playlist).*?:.*?)"', webpage)
             if len(altMovieParams) == 0:
                 raise ExtractorError('unable to find Flash URL in webpage ' + url)
             else:
@@ -159,7 +159,7 @@ class ComedyCentralShowsIE(InfoExtractor):
             thumbnail = itemEl.find('.//{http://search.yahoo.com/mrss/}thumbnail').attrib.get('url')
 
             content = itemEl.find('.//{http://search.yahoo.com/mrss/}content')
-            duration = int_or_none(content.attrib.get('duration'))
+            duration = float_or_none(content.attrib.get('duration'))
             mediagen_url = content.attrib['url']
             guid = itemEl.find('.//guid').text.rpartition(':')[-1]
 

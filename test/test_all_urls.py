@@ -143,5 +143,8 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch('http://video.pbs.org/viralplayer/2365173446/', ['PBS'])
         self.assertMatch('http://video.pbs.org/widget/partnerplayer/980042464/', ['PBS'])
 
+    def test_ComedyCentralShows(self):
+        self.assertMatch('http://thedailyshow.cc.com/extended-interviews/xm3fnq/andrew-napolitano-extended-interview', ['ComedyCentralShows'])
+
 if __name__ == '__main__':
     unittest.main()

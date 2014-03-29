@@ -14,7 +14,7 @@ from ..utils import (
 class MooshareIE(InfoExtractor):
     IE_NAME = 'mooshare'
     IE_DESC = 'Mooshare.biz'
-    _VALID_URL = r'http://mooshare\.biz/(?P<id>[\da-z]{12})'
+    _VALID_URL = r'http://(?:www\.)?mooshare\.biz/(?P<id>[\da-z]{12})'
 
     _TESTS = [
         {

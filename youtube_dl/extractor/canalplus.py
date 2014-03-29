@@ -28,7 +28,7 @@ class CanalplusIE(InfoExtractor):
         video_id = mobj.groupdict().get('id')
         if video_id is None:
             webpage = self._download_webpage(url, mobj.group('path'))
-            video_id = self._search_regex(r'videoId = "(\d+)";', webpage, u'video id')
+            video_id = self._search_regex(r'<canal:player videoId="(\d+)"', webpage, u'video id')
         info_url = self._VIDEO_INFO_TEMPLATE % video_id
         doc = self._download_xml(info_url,video_id, 
                                            u'Downloading video info')

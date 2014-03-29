@@ -13,22 +13,24 @@ from ..utils import (
     compat_urllib_request,
     ExtractorError,
     url_basename,
+    int_or_none,
 )
 
 
 class SmotriIE(InfoExtractor):
     IE_DESC = 'Smotri.com'
     IE_NAME = 'smotri'
-    _VALID_URL = r'^https?://(?:www\.)?(?P<url>smotri\.com/video/view/\?id=(?P<videoid>v(?P<realvideoid>[0-9]+)[a-z0-9]{4}))'
+    _VALID_URL = r'^https?://(?:www\.)?(?:smotri\.com/video/view/\?id=|pics\.smotri\.com/(?:player|scrubber_custom8)\.swf\?file=)(?P<videoid>v(?P<realvideoid>[0-9]+)[a-z0-9]{4})'
     _NETRC_MACHINE = 'smotri'
 
     _TESTS = [
         # real video id 2610366
         {
             'url': 'http://smotri.com/video/view/?id=v261036632ab',
-            'file': 'v261036632ab.mp4',
             'md5': '2a7b08249e6f5636557579c368040eb9',
             'info_dict': {
+                'id': 'v261036632ab',
+                'ext': 'mp4',
                 'title': 'катастрофа с камер видеонаблюдения',
                 'uploader': 'rbc2008',
                 'uploader_id': 'rbc08',
@@ -40,9 +42,10 @@ class SmotriIE(InfoExtractor):
         # real video id 57591
         {
             'url': 'http://smotri.com/video/view/?id=v57591cb20',
-            'file': 'v57591cb20.flv',
             'md5': '830266dfc21f077eac5afd1883091bcd',
             'info_dict': {
+                'id': 'v57591cb20',
+                'ext': 'flv',
                 'title': 'test',
                 'uploader': 'Support Photofile@photofile',
                 'uploader_id': 'support-photofile',
@@ -54,9 +57,10 @@ class SmotriIE(InfoExtractor):
         # video-password
         {
             'url': 'http://smotri.com/video/view/?id=v1390466a13c',
-            'file': 'v1390466a13c.mp4',
             'md5': 'f6331cef33cad65a0815ee482a54440b',
             'info_dict': {
+                'id': 'v1390466a13c',
+                'ext': 'mp4',
                 'title': 'TOCCA_A_NOI_-_LE_COSE_NON_VANNO_CAMBIAMOLE_ORA-1',
                 'uploader': 'timoxa40',
                 'uploader_id': 'timoxa40',
@@ -71,9 +75,10 @@ class SmotriIE(InfoExtractor):
         # age limit + video-password
         {
             'url': 'http://smotri.com/video/view/?id=v15408898bcf',
-            'file': 'v15408898bcf.flv',
             'md5': '91e909c9f0521adf5ee86fbe073aad70',
             'info_dict': {
+                'id': 'v15408898bcf',
+                'ext': 'flv',
                 'title': 'этот ролик не покажут по ТВ',
                 'uploader': 'zzxxx',
                 'uploader_id': 'ueggb',
@@ -85,13 +90,43 @@ class SmotriIE(InfoExtractor):
             'params': {
                 'videopassword': '333'
             }
-        }
+        },
+        # swf player
+        {
+            'url': 'http://pics.smotri.com/scrubber_custom8.swf?file=v9188090500',
+            'md5': '4d47034979d9390d14acdf59c4935bc2',
+            'info_dict': {
+                'id': 'v9188090500',
+                'ext': 'mp4',
+                'title': 'Shakira - Don\'t Bother',
+                'uploader': 'HannahL',
+                'uploader_id': 'lisaha95',
+                'upload_date': '20090331',
+                'description': 'Shakira - Don\'t Bother, видео Shakira - Don\'t Bother',
+                'thumbnail': 'http://frame8.loadup.ru/44/0b/918809.7.3.jpg',
+            },
+        },
     ]
 
     _SUCCESS = 0
     _PASSWORD_NOT_VERIFIED = 1
     _PASSWORD_DETECTED = 2
     _VIDEO_NOT_FOUND = 3
+
+    @classmethod
+    def _extract_url(cls, webpage):
+        mobj = re.search(
+            r'<embed[^>]src=(["\'])(?P<url>http://pics\.smotri\.com/(?:player|scrubber_custom8)\.swf\?file=v.+?\1)',
+            webpage)
+        if mobj is not None:
+            return mobj.group('url')
+
+        mobj = re.search(
+            r'''(?x)<div\s+class="video_file">http://smotri\.com/video/download/file/[^<]+</div>\s*
+                    <div\s+class="video_image">[^<]+</div>\s*
+                    <div\s+class="video_id">(?P<id>[^<]+)</div>''', webpage)
+        if mobj is not None:
+            return 'http://smotri.com/video/view/?id=%s' % mobj.group('id')
 
     def _search_meta(self, name, html, display_name=None):
         if display_name is None:
@@ -134,7 +169,7 @@ class SmotriIE(InfoExtractor):
 
         # Video JSON does not provide enough meta data
         # We will extract some from the video web page instead
-        video_page_url = 'http://' + mobj.group('url')
+        video_page_url = 'http://smotri.com/video/view/?id=%s' % video_id
         video_page = self._download_webpage(video_page_url, video_id, 'Downloading video page')
 
         # Warning if video is unavailable
@@ -222,7 +257,7 @@ class SmotriIE(InfoExtractor):
             'upload_date': video_upload_date,
             'uploader_id': video_uploader_id,
             'duration': video_duration,
-            'view_count': video_view_count,
+            'view_count': int_or_none(video_view_count),
             'age_limit': 18 if adult_content else 0,
             'video_page_url': video_page_url
         }
