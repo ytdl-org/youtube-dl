@@ -10,9 +10,10 @@ class DiscoveryIE(InfoExtractor):
     _VALID_URL = r'http://dsc\.discovery\.com\/[a-zA-Z0-9\-]*/[a-zA-Z0-9\-]*/videos/(?P<id>[a-zA-Z0-9\-]*)(.htm)?'
     _TEST = {
         'url': 'http://dsc.discovery.com/tv-shows/mythbusters/videos/mission-impossible-outtakes.htm',
-        'file': '614784.mp4',
         'md5': 'e12614f9ee303a6ccef415cb0793eba2',
         'info_dict': {
+            'id': '614784',
+            'ext': 'mp4',
             'title': 'MythBusters: Mission Impossible Outtakes',
             'description': ('Watch Jamie Hyneman and Adam Savage practice being'
                 ' each other -- to the point of confusing Jamie\'s dog -- and '
@@ -34,7 +35,7 @@ class DiscoveryIE(InfoExtractor):
         formats = []
         for f in info['mp4']:
             formats.append(
-                {'url': f['src'], r'ext': r'mp4', 'tbr': int(f['bitrate'][:-1])})
+                {'url': f['src'], 'ext': 'mp4', 'tbr': int(f['bitrate'][:-1])})
 
         return {
             'id': info['contentId'],
