@@ -20,8 +20,9 @@ class RutubeIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://rutube.ru/video/3eac3b4561676c17df9132a9a1e62e3e/',
-        'file': '3eac3b4561676c17df9132a9a1e62e3e.mp4',
         'info_dict': {
+            'id': '3eac3b4561676c17df9132a9a1e62e3e',
+            'ext': 'mp4',
             'title': 'Раненный кенгуру забежал в аптеку',
             'description': 'http://www.ntdtv.ru ',
             'duration': 80,
@@ -39,12 +40,14 @@ class RutubeIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         
-        api_response = self._download_webpage('http://rutube.ru/api/video/%s/?format=json' % video_id,
-                                              video_id, 'Downloading video JSON')
+        api_response = self._download_webpage(
+            'http://rutube.ru/api/video/%s/?format=json' % video_id,
+            video_id, 'Downloading video JSON')
         video = json.loads(api_response)
         
-        api_response = self._download_webpage('http://rutube.ru/api/play/trackinfo/%s/?format=json' % video_id,
-                                              video_id, 'Downloading trackinfo JSON')
+        api_response = self._download_webpage(
+            'http://rutube.ru/api/play/trackinfo/%s/?format=json' % video_id,
+            video_id, 'Downloading trackinfo JSON')
         trackinfo = json.loads(api_response)
         
         # Some videos don't have the author field
