@@ -539,7 +539,6 @@ def encodeFilename(s, for_subprocess=False):
         encoding = 'utf-8'
     return s.encode(encoding, 'ignore')
 
-
 def decodeOption(optval):
     if optval is None:
         return optval

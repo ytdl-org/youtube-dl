@@ -263,6 +263,9 @@ def parseOpts(overrideArguments=None):
         '--ignore-config',
         action='store_true',
         help='Do not read configuration files. When given in the global configuration file /etc/youtube-dl.conf: do not read the user configuration in ~/.config/youtube-dl.conf (%APPDATA%/youtube-dl/config.txt on Windows)')
+    general.add_option(
+        '--encoding', dest='encoding', metavar='ENCODING',
+        help='Force the specified encoding (experimental)')
 
     selection.add_option(
         '--playlist-start',
@@ -540,8 +543,6 @@ def parseOpts(overrideArguments=None):
             write_string(u'[debug] System config: ' + repr(_hide_login_info(systemConf)) + '\n')
             write_string(u'[debug] User config: ' + repr(_hide_login_info(userConf)) + '\n')
             write_string(u'[debug] Command-line args: ' + repr(_hide_login_info(commandLineConf)) + '\n')
-            write_string(u'[debug] Encodings: locale %r, fs %r, out %r, pref: %r\n' %
-                         (locale.getpreferredencoding(), sys.getfilesystemencoding(), sys.stdout.encoding, preferredencoding()))
 
     return parser, opts, args
 
@@ -786,6 +787,7 @@ def _real_main(argv=None):
         'include_ads': opts.include_ads,
         'default_search': opts.default_search,
         'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,
+        'encoding': opts.encoding,
     }
 
     with YoutubeDL(ydl_opts) as ydl:

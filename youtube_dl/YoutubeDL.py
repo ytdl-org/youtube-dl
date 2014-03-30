@@ -8,6 +8,7 @@ import datetime
 import errno
 import io
 import json
+import locale
 import os
 import platform
 import re
@@ -159,6 +160,7 @@ class YoutubeDL(object):
     include_ads:       Download ads as well
     default_search:    Prepend this string if an input url is not valid.
                        'auto' for elaborate guessing
+    encoding:          Use this encoding instead of the system-specified.
 
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:
@@ -1200,6 +1202,9 @@ class YoutubeDL(object):
     def print_debug_header(self):
         if not self.params.get('verbose'):
             return
+
+        write_string('[debug] Encodings: locale %s, fs %s, out %s, pref %s\n' %
+                 (locale.getpreferredencoding(), sys.getfilesystemencoding(), sys.stdout.encoding, self.get_encoding()))
         write_string('[debug] youtube-dl version ' + __version__ + '\n')
         try:
             sp = subprocess.Popen(
@@ -1264,3 +1269,19 @@ class YoutubeDL(object):
         # (See https://github.com/rg3/youtube-dl/issues/1309 for details)
         opener.addheaders = []
         self._opener = opener
+
+    def encode(self, s):
+        if isinstance(s, bytes):
+            return s  # Already encoded
+
+        try:
+            return s.encode(self.get_encoding())
+        except UnicodeEncodeError as err:
+            err.reason = err.reason + '. Check your system encoding configuration or use the --encoding option.'
+            raise
+
+    def get_encoding(self):
+        encoding = self.params.get('encoding')
+        if encoding is None:
+            encoding = preferredencoding()
+        return encoding
