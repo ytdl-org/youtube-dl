@@ -1609,7 +1609,7 @@ class YoutubeUserIE(InfoExtractor):
 
 class YoutubeSearchIE(SearchInfoExtractor):
     IE_DESC = u'YouTube.com searches'
-    _API_URL = 'https://gdata.youtube.com/feeds/api/videos?q=%s&start-index=%i&max-results=50&v=2&alt=jsonc'
+    _API_URL = u'https://gdata.youtube.com/feeds/api/videos?q=%s&start-index=%i&max-results=50&v=2&alt=jsonc'
     _MAX_RESULTS = 1000
     IE_NAME = u'youtube:search'
     _SEARCH_KEY = 'ytsearch'
@@ -1620,9 +1620,12 @@ class YoutubeSearchIE(SearchInfoExtractor):
         video_ids = []
         pagenum = 0
         limit = n
+        PAGE_SIZE = 50
 
-        while (50 * pagenum) < limit:
-            result_url = self._API_URL % (compat_urllib_parse.quote_plus(query), (50*pagenum)+1)
+        while (PAGE_SIZE * pagenum) < limit:
+            result_url = self._API_URL % (
+                compat_urllib_parse.quote_plus(query.encode('utf-8')),
+                (PAGE_SIZE * pagenum) + 1)
             data_json = self._download_webpage(
                 result_url, video_id=u'query "%s"' % query,
                 note=u'Downloading page %s' % (pagenum + 1),
