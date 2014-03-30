@@ -285,7 +285,10 @@ from .vk import VKIE
 from .vube import VubeIE
 from .washingtonpost import WashingtonPostIE
 from .wat import WatIE
-from .wdr import WDRIE
+from .wdr import (
+    WDRIE,
+    WDRMausIE,
+)
 from .weibo import WeiboIE
 from .wimp import WimpIE
 from .wistia import WistiaIE
