@@ -316,13 +316,16 @@ class GenericIE(InfoExtractor):
         if not parsed_url.scheme:
             default_search = self._downloader.params.get('default_search')
             if default_search is None:
-                default_search = 'auto'
+                default_search = 'auto_warning'
 
-            if default_search == 'auto':
+            if default_search in ('auto', 'auto_warning'):
                 if '/' in url:
                     self._downloader.report_warning('The url doesn\'t specify the protocol, trying with http')
                     return self.url_result('http://' + url)
                 else:
+                    if default_search == 'auto_warning':
+                        self._downloader.report_warning(
+                            'Falling back to youtube search for  %s . Set --default-search to "auto" to suppress this warning.' % url)
                     return self.url_result('ytsearch:' + url)
             else:
                 assert ':' in default_search
