@@ -116,7 +116,7 @@ class WDRIE(InfoExtractor):
 
 
 class WDRMausIE(InfoExtractor):
-    _VALID_URL = 'http://(?:www\.)?wdrmaus\.de/(?:extras/|sachgeschichten/sachgeschichten/)?(?P<id>[^/?#]+)(?:/index\.php5|\.php5|/(?:$|[?#]))'
+    _VALID_URL = 'http://(?:www\.)?wdrmaus\.de/(?:[^/]+/){,2}(?P<id>[^/?#]+)(?:/index\.php5|(?<!index)\.php5|/(?:$|[?#]))'
     IE_DESC = 'Sendung mit der Maus'
     _TESTS = [{
         'url': 'http://www.wdrmaus.de/aktuelle-sendung/index.php5',
