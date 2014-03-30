@@ -99,9 +99,12 @@ class JSInterpreter(object):
 
     def extract_function(self, funcname):
         func_m = re.search(
-            r'function ' + re.escape(funcname) +
+            (r'(?:function %s|%s\s*=\s*function)' % (
+                re.escape(funcname), re.escape(funcname))) +
             r'\((?P<args>[a-z,]+)\){(?P<code>[^}]+)}',
             self.code)
+        if func_m is None:
+            raise ExtractorError('Could not find JS function %r' % funcname)
         argnames = func_m.group('args').split(',')
 
         def resf(args):
