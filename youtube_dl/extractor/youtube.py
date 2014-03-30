@@ -7,7 +7,6 @@ import itertools
 import json
 import os.path
 import re
-import string
 import struct
 import traceback
 import zlib
