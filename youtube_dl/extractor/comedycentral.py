@@ -45,10 +45,11 @@ class ComedyCentralShowsIE(InfoExtractor):
                           (?P<clip>
                               (?:videos/[^/]+/(?P<videotitle>[^/?#]+))
                               |(the-colbert-report-(videos|collections)/(?P<clipID>[0-9]+)/[^/]*/(?P<cntitle>.*?))
-                              |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*)))|
+                              |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*))
+                          )|
                           (?P<interview>
                               extended-interviews/(?P<interID>[0-9a-z]+)/(?:playlist_tds_extended_)?(?P<interview_title>.*?)(/.*?)?)))
-                     $'''
+                     (?:[?#].*|$)'''
     _TEST = {
         'url': 'http://thedailyshow.cc.com/watch/thu-december-13-2012/kristen-stewart',
         'md5': '4e2f5cb088a83cd8cdb7756132f9739d',

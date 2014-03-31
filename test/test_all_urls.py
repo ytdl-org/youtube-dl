@@ -150,6 +150,9 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch(
             'http://thecolbertreport.cc.com/videos/29w6fx/-realhumanpraise-for-fox-news',
             ['ComedyCentralShows'])
+        self.assertMatch(
+            'http://thecolbertreport.cc.com/videos/gh6urb/neil-degrasse-tyson-pt--1?xrs=eml_col_031114',
+            ['ComedyCentralShows'])
 
 if __name__ == '__main__':
     unittest.main()
