@@ -113,6 +113,7 @@ class YoutubeDL(object):
     nooverwrites:      Prevent overwriting files.
     playliststart:     Playlist item to start at.
     playlistend:       Playlist item to end at.
+    playlistitems:     Specific items of playlist to download.
     matchtitle:        Download only matching titles.
     rejecttitle:       Reject downloads for matching titles.
     logger:            Log messages to a logging.Logger instance.
@@ -603,17 +604,40 @@ class YoutubeDL(object):
             if playlistend == -1:
                 playlistend = None
 
+            playlistitems = self.params.get('playlistitems', None)
+            if playlistitems:
+                if bool(re.compile(r'[^0-9,-]').search(playlistitems)):
+                    raise ValueError('Invalid charecters in --playlist-items argument.')
+                _playlistitems = playlistitems.split(',')
+                playlistitems = []
+                for item in _playlistitems:
+                    if '-' in item:
+                        start, end = item.split('-')
+                        playlistitems.extend(list(range(int(start), int(end) + 1)))
+                    else:
+                        playlistitems.append(int(item))
+
             if isinstance(ie_result['entries'], list):
                 n_all_entries = len(ie_result['entries'])
-                entries = ie_result['entries'][playliststart:playlistend]
+                if playlistitems:
+                    entries = [e for i, e in enumerate(ie_result['entries'], 1) if i in playlistitems]
+                else:
+                    entries = ie_result['entries'][playliststart:playlistend]
                 n_entries = len(entries)
                 self.to_screen(
                     "[%s] playlist %s: Collected %d video ids (downloading %d of them)" %
                     (ie_result['extractor'], playlist, n_all_entries, n_entries))
             else:
                 assert isinstance(ie_result['entries'], PagedList)
-                entries = ie_result['entries'].getslice(
-                    playliststart, playlistend)
+                if playlistitems:
+                    entries = []
+                    for item in playlistitems:
+                        entries.append(ie_result.getslice(
+                            item, item + 1
+                        ))
+                else:
+                    entries = ie_result['entries'].getslice(
+                        playliststart, playlistend)
                 n_entries = len(entries)
                 self.to_screen(
                     "[%s] playlist %s: Downloading %d videos" %
