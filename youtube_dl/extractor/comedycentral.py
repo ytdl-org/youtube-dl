@@ -43,7 +43,8 @@ class ComedyCentralShowsIE(InfoExtractor):
                           (?P<showname>thedailyshow|thecolbertreport)\.(?:cc\.)?com/
                          (full-episodes/(?P<episode>.*)|
                           (?P<clip>
-                              (the-colbert-report-(videos|collections)/(?P<clipID>[0-9]+)/[^/]*/(?P<cntitle>.*?))
+                              (?:videos/[^/]+/(?P<videotitle>[^/?#]+))
+                              |(the-colbert-report-(videos|collections)/(?P<clipID>[0-9]+)/[^/]*/(?P<cntitle>.*?))
                               |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*)))|
                           (?P<interview>
                               extended-interviews/(?P<interID>[0-9a-z]+)/(?:playlist_tds_extended_)?(?P<interview_title>.*?)(/.*?)?)))
@@ -102,7 +103,9 @@ class ComedyCentralShowsIE(InfoExtractor):
             assert mobj is not None
 
         if mobj.group('clip'):
-            if mobj.group('showname') == 'thedailyshow':
+            if mobj.group('videotitle'):
+                epTitle = mobj.group('videotitle')
+            elif mobj.group('showname') == 'thedailyshow':
                 epTitle = mobj.group('tdstitle')
             else:
                 epTitle = mobj.group('cntitle')
