@@ -88,6 +88,32 @@ def aes_cbc_encrypt(data, key, iv):
     return encrypted_data
 
 
+def aes_cfb_decrypt(data, key, iv):
+    """
+    Decrypt with aes in ciphed feedback mode
+
+    @param {int[]} data        cipher
+    @param {int[]} key         16/24/32-Byte cipher key
+    @param {int[]} iv          16-Byte IV
+    @returns {int[]}           decrypted data
+    """
+    expanded_key = key_expansion(key)
+    block_count = int(ceil(float(len(data)) / BLOCK_SIZE_BYTES))
+
+    decrypted_data = []
+    previous_cipher_block = iv
+    for i in range(block_count):
+        block = data[i * BLOCK_SIZE_BYTES: (i + 1) * BLOCK_SIZE_BYTES]
+        block += [0] * (BLOCK_SIZE_BYTES - len(block))
+
+        encrypted_vector = aes_encrypt(previous_cipher_block, expanded_key)
+        decrypted_data += xor(block, encrypted_vector)
+        previous_cipher_block = block
+    decrypted_data = decrypted_data[:len(data)]
+
+    return decrypted_data
+
+
 def key_expansion(data):
     """
     Generate key schedule

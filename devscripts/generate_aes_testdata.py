@@ -30,6 +30,10 @@ r = openssl_encode('aes-128-cbc', key, iv)
 print('aes_cbc_decrypt')
 print(repr(r))
 
+r = openssl_encode('aes-128-cfb', key, iv)
+print('aes_cfb_decrypt')
+print(repr(r))
+
 password = key
 new_key = aes_encrypt(password, key_expansion(password))
 r = openssl_encode('aes-128-ctr', new_key, iv)
