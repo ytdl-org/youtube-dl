@@ -59,7 +59,7 @@ class ComedyCentralShowsIE(InfoExtractor):
             'upload_date': '20121213',
             'description': 'Kristen Stewart learns to let loose in "On the Road."',
             'uploader': 'thedailyshow',
-            'title': 'thedailyshow-kristen-stewart part 1',
+            'title': 'thedailyshow kristen-stewart part 1',
         }
     }
 
