@@ -16,7 +16,7 @@ from ..utils import (
 
 class VKIE(InfoExtractor):
     IE_NAME = 'vk.com'
-    _VALID_URL = r'https?://vk\.com/(?:video_ext\.php\?.*?\boid=(?P<oid>\d+).*?\bid=(?P<id>\d+)|(?:videos.*?\?.*?z=)?video(?P<videoid>.*?)(?:\?|%2F|$))'
+    _VALID_URL = r'https?://vk\.com/(?:video_ext\.php\?.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+)|(?:videos.*?\?.*?z=)?video(?P<videoid>.*?)(?:\?|%2F|$))'
     _NETRC_MACHINE = 'vk'
 
     _TESTS = [
