@@ -1264,8 +1264,8 @@ class PagedList(object):
 
 def uppercase_escape(s):
     return re.sub(
-        r'\\U([0-9a-fA-F]{8})',
-        lambda m: compat_chr(int(m.group(1), base=16)), s)
+        r'\\U[0-9a-fA-F]{8}',
+        lambda m: m.group(0).decode('unicode-escape'), s)
 
 try:
     struct.pack(u'!I', 0)
