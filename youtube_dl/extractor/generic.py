@@ -82,6 +82,17 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': ['Brightcove'],
         },
+        {
+            'url': 'http://www.championat.com/video/football/v/87/87499.html',
+            'md5': 'fb973ecf6e4a78a67453647444222983',
+            'info_dict': {
+                'id': '3414141473001',
+                'ext': 'mp4',
+                'title': 'Видео. Удаление Дзагоева (ЦСКА)',
+                'description': 'Онлайн-трансляция матча ЦСКА - "Волга"',
+                'uploader': 'Championat',
+            },
+        },
         # Direct link to a video
         {
             'url': 'http://media.w3.org/2010/05/sintel/trailer.mp4',
