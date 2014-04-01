@@ -165,7 +165,7 @@ class ComedyCentralShowsIE(InfoExtractor):
             content = itemEl.find('.//{http://search.yahoo.com/mrss/}content')
             duration = float_or_none(content.attrib.get('duration'))
             mediagen_url = content.attrib['url']
-            guid = itemEl.find('.//guid').text.rpartition(':')[-1]
+            guid = itemEl.find('./guid').text.rpartition(':')[-1]
 
             cdoc = self._download_xml(
                 mediagen_url, epTitle,
