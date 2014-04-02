@@ -604,7 +604,6 @@ class YoutubeDL(object):
             if playlistend == -1:
                 playlistend = None
 
-            print ie_result['entries']
             playlistitems = self.params.get('playlistitems', None)
             if playlistitems:
                 def iter_playlistitems(format):
@@ -621,7 +620,6 @@ class YoutubeDL(object):
                 n_all_entries = len(ie_result['entries'])
                 if playlistitems:
                     entries = [ie_result['entries'][i-1] for i in playlistitems]
-                    print entries
                 else:
                     entries = ie_result['entries'][playliststart:playlistend]
                 n_entries = len(entries)
