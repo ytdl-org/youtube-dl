@@ -113,7 +113,7 @@ class YoutubeDL(object):
     nooverwrites:      Prevent overwriting files.
     playliststart:     Playlist item to start at.
     playlistend:       Playlist item to end at.
-    playlistitems:     Specific items of playlist to download.
+    playlistitems:     Specific indices of playlist to download.
     matchtitle:        Download only matching titles.
     rejecttitle:       Reject downloads for matching titles.
     logger:            Log messages to a logging.Logger instance.
@@ -604,23 +604,24 @@ class YoutubeDL(object):
             if playlistend == -1:
                 playlistend = None
 
+            print ie_result['entries']
             playlistitems = self.params.get('playlistitems', None)
             if playlistitems:
-                if bool(re.compile(r'[^0-9,-]').search(playlistitems)):
-                    raise ValueError('Invalid charecters in --playlist-items argument.')
-                _playlistitems = playlistitems.split(',')
-                playlistitems = []
-                for item in _playlistitems:
-                    if '-' in item:
-                        start, end = item.split('-')
-                        playlistitems.extend(list(range(int(start), int(end) + 1)))
-                    else:
-                        playlistitems.append(int(item))
+                def iter_playlistitems(format):
+                    for string_segment in format.split(','):
+                        if '-' in string_segment:
+                            start, end = string_segment.split('-')
+                            for item in range(int(start), int(end) + 1):
+                                yield int(item)
+                        else:
+                            yield int(string_segment)
+                playlistitems = iter_playlistitems(playlistitems)
 
             if isinstance(ie_result['entries'], list):
                 n_all_entries = len(ie_result['entries'])
                 if playlistitems:
-                    entries = [e for i, e in enumerate(ie_result['entries'], 1) if i in playlistitems]
+                    entries = [ie_result['entries'][i-1] for i in playlistitems]
+                    print entries
                 else:
                     entries = ie_result['entries'][playliststart:playlistend]
                 n_entries = len(entries)
