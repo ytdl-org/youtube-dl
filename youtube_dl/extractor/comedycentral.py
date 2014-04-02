@@ -43,11 +43,13 @@ class ComedyCentralShowsIE(InfoExtractor):
                           (?P<showname>thedailyshow|thecolbertreport)\.(?:cc\.)?com/
                          (full-episodes/(?P<episode>.*)|
                           (?P<clip>
-                              (the-colbert-report-(videos|collections)/(?P<clipID>[0-9]+)/[^/]*/(?P<cntitle>.*?))
-                              |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*)))|
+                              (?:videos/[^/]+/(?P<videotitle>[^/?#]+))
+                              |(the-colbert-report-(videos|collections)/(?P<clipID>[0-9]+)/[^/]*/(?P<cntitle>.*?))
+                              |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*))
+                          )|
                           (?P<interview>
                               extended-interviews/(?P<interID>[0-9a-z]+)/(?:playlist_tds_extended_)?(?P<interview_title>.*?)(/.*?)?)))
-                     $'''
+                     (?:[?#].*|$)'''
     _TEST = {
         'url': 'http://thedailyshow.cc.com/watch/thu-december-13-2012/kristen-stewart',
         'md5': '4e2f5cb088a83cd8cdb7756132f9739d',
@@ -57,7 +59,7 @@ class ComedyCentralShowsIE(InfoExtractor):
             'upload_date': '20121213',
             'description': 'Kristen Stewart learns to let loose in "On the Road."',
             'uploader': 'thedailyshow',
-            'title': 'thedailyshow-kristen-stewart part 1',
+            'title': 'thedailyshow kristen-stewart part 1',
         }
     }
 
@@ -102,7 +104,9 @@ class ComedyCentralShowsIE(InfoExtractor):
             assert mobj is not None
 
         if mobj.group('clip'):
-            if mobj.group('showname') == 'thedailyshow':
+            if mobj.group('videotitle'):
+                epTitle = mobj.group('videotitle')
+            elif mobj.group('showname') == 'thedailyshow':
                 epTitle = mobj.group('tdstitle')
             else:
                 epTitle = mobj.group('cntitle')
@@ -161,7 +165,7 @@ class ComedyCentralShowsIE(InfoExtractor):
             content = itemEl.find('.//{http://search.yahoo.com/mrss/}content')
             duration = float_or_none(content.attrib.get('duration'))
             mediagen_url = content.attrib['url']
-            guid = itemEl.find('.//guid').text.rpartition(':')[-1]
+            guid = itemEl.find('./guid').text.rpartition(':')[-1]
 
             cdoc = self._download_xml(
                 mediagen_url, epTitle,

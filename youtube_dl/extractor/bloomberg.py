@@ -1,22 +1,21 @@
+from __future__ import unicode_literals
+
 import re
 
 from .common import InfoExtractor
-from .ooyala import OoyalaIE
 
 
 class BloombergIE(InfoExtractor):
     _VALID_URL = r'https?://www\.bloomberg\.com/video/(?P<name>.+?)\.html'
 
     _TEST = {
-        u'url': u'http://www.bloomberg.com/video/shah-s-presentation-on-foreign-exchange-strategies-qurhIVlJSB6hzkVi229d8g.html',
-        u'file': u'12bzhqZTqQHmmlA8I-i0NpzJgcG5NNYX.mp4',
-        u'info_dict': {
-            u'title': u'Shah\'s Presentation on Foreign-Exchange Strategies',
-            u'description': u'md5:abc86e5236f9f0e4866c59ad36736686',
-        },
-        u'params': {
-            # Requires ffmpeg (m3u8 manifest)
-            u'skip_download': True,
+        'url': 'http://www.bloomberg.com/video/shah-s-presentation-on-foreign-exchange-strategies-qurhIVlJSB6hzkVi229d8g.html',
+        'md5': '7bf08858ff7c203c870e8a6190e221e5',
+        'info_dict': {
+            'id': 'qurhIVlJSB6hzkVi229d8g',
+            'ext': 'flv',
+            'title': 'Shah\'s Presentation on Foreign-Exchange Strategies',
+            'description': 'md5:0681e0d30dcdfc6abf34594961d8ea88',
         },
     }
 
@@ -24,7 +23,16 @@ class BloombergIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         name = mobj.group('name')
         webpage = self._download_webpage(url, name)
-        embed_code = self._search_regex(
-            r'<source src="https?://[^/]+/[^/]+/[^/]+/([^/]+)', webpage,
-            'embed code')
-        return OoyalaIE._build_url_result(embed_code)
+        f4m_url = self._search_regex(
+            r'<source src="(https?://[^"]+\.f4m.*?)"', webpage,
+            'f4m url')
+        title = re.sub(': Video$', '', self._og_search_title(webpage))
+
+        return {
+            'id': name.split('-')[-1],
+            'title': title,
+            'url': f4m_url,
+            'ext': 'flv',
+            'description': self._og_search_description(webpage),
+            'thumbnail': self._og_search_thumbnail(webpage),
+        }

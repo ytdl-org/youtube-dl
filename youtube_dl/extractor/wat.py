@@ -1,36 +1,36 @@
 # coding: utf-8
+from __future__ import unicode_literals
 
-import json
 import re
 
 from .common import InfoExtractor
-
 from ..utils import (
     unified_strdate,
 )
 
 
 class WatIE(InfoExtractor):
-    _VALID_URL=r'http://www\.wat\.tv/.*-(?P<shortID>.*?)_.*?\.html'
+    _VALID_URL = r'http://www\.wat\.tv/.*-(?P<shortID>.*?)_.*?\.html'
     IE_NAME = 'wat.tv'
     _TEST = {
-        u'url': u'http://www.wat.tv/video/world-war-philadelphia-vost-6bv55_2fjr7_.html',
-        u'file': u'10631273.mp4',
-        u'md5': u'd8b2231e1e333acd12aad94b80937e19',
-        u'info_dict': {
-            u'title': u'World War Z - Philadelphia VOST',
-            u'description': u'La menace est partout. Que se passe-t-il à Philadelphia ?\r\nWORLD WAR Z, avec Brad Pitt, au cinéma le 3 juillet.\r\nhttp://www.worldwarz.fr',
+        'url': 'http://www.wat.tv/video/world-war-philadelphia-vost-6bv55_2fjr7_.html',
+        'info_dict': {
+            'id': '10631273',
+            'ext': 'mp4',
+            'title': 'World War Z - Philadelphia VOST',
+            'description': 'La menace est partout. Que se passe-t-il à Philadelphia ?\r\nWORLD WAR Z, avec Brad Pitt, au cinéma le 3 juillet.\r\nhttp://www.worldwarz.fr',
         },
-        u'skip': u'Sometimes wat serves the whole file with the --test option',
+        'params': {
+            # Sometimes wat serves the whole file with the --test option
+            'skip_download': True,
+        },
     }
-    
+
     def download_video_info(self, real_id):
         # 'contentv4' is used in the website, but it also returns the related
         # videos, we don't need them
-        info = self._download_webpage('http://www.wat.tv/interface/contentv3/' + real_id, real_id, 'Downloading video info')
-        info = json.loads(info)
+        info = self._download_json('http://www.wat.tv/interface/contentv3/' + real_id, real_id)
         return info['media']
-
 
     def _real_extract(self, url):
         def real_id_for_chapter(chapter):
@@ -56,17 +56,17 @@ class WatIE(InfoExtractor):
             entries = [self.url_result(chapter_url) for chapter_url in chapter_urls]
             return self.playlist_result(entries, real_id, video_info['title'])
 
+        upload_date = None
+        if 'date_diffusion' in first_chapter:
+            upload_date = unified_strdate(first_chapter['date_diffusion'])
         # Otherwise we can continue and extract just one part, we have to use
         # the short id for getting the video url
-        info = {'id': real_id,
-                'url': 'http://wat.tv/get/android5/%s.mp4' % real_id,
-                'ext': 'mp4',
-                'title': first_chapter['title'],
-                'thumbnail': first_chapter['preview'],
-                'description': first_chapter['description'],
-                'view_count': video_info['views'],
-                }
-        if 'date_diffusion' in first_chapter:
-            info['upload_date'] = unified_strdate(first_chapter['date_diffusion'])
-
-        return info
+        return {
+            'id': real_id,
+            'url': 'http://wat.tv/get/android5/%s.mp4' % real_id,
+            'title': first_chapter['title'],
+            'thumbnail': first_chapter['preview'],
+            'description': first_chapter['description'],
+            'view_count': video_info['views'],
+            'upload_date': upload_date,
+        }

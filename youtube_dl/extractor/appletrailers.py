@@ -6,7 +6,6 @@ import json
 from .common import InfoExtractor
 from ..utils import (
     compat_urlparse,
-    determine_ext,
 )
 
 

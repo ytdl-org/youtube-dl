@@ -6,12 +6,13 @@ from .common import InfoExtractor
 
 
 class NBAIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:watch\.|www\.)?nba\.com/(?:nba/)?video(/[^?]*?)(?:/index\.html)?(?:\?.*)?$'
+    _VALID_URL = r'https?://(?:watch\.|www\.)?nba\.com/(?:nba/)?video(?P<id>/[^?]*?)(?:/index\.html)?(?:\?.*)?$'
     _TEST = {
         'url': 'http://www.nba.com/video/games/nets/2012/12/04/0021200253-okc-bkn-recap.nba/index.html',
-        'file': u'0021200253-okc-bkn-recap.nba.mp4',
         'md5': u'c0edcfc37607344e2ff8f13c378c88a4',
         'info_dict': {
+            'id': '0021200253-okc-bkn-recap.nba',
+            'ext': 'mp4',
             'description': 'Kevin Durant scores 32 points and dishes out six assists as the Thunder beat the Nets in Brooklyn.',
             'title': 'Thunder vs. Nets',
         },
@@ -19,7 +20,7 @@ class NBAIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group(1)
+        video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id)
 
@@ -33,7 +34,6 @@ class NBAIE(InfoExtractor):
         return {
             'id': shortened_video_id,
             'url': video_url,
-            'ext': 'mp4',
             'title': title,
             'description': description,
         }

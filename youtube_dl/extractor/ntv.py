@@ -5,7 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    RegexNotFoundError,
+    ExtractorError,
     unescapeHTML
 )
 
@@ -98,16 +98,15 @@ class NTVIE(InfoExtractor):
 
         page = self._download_webpage(url, video_id, 'Downloading page')
 
-        def extract(patterns, name, page, fatal=False):
-            for pattern in patterns:
-                mobj = re.search(pattern, page)
-                if mobj:
-                    return mobj.group(1)
-            if fatal:
-                raise RegexNotFoundError(u'Unable to extract %s' % name)
-            return None
+        for pattern in self._VIDEO_ID_REGEXES:
+            mobj = re.search(pattern, page)
+            if mobj:
+                break
 
-        video_id = extract(self._VIDEO_ID_REGEXES, 'video id', page, fatal=True)
+        if not mobj:
+            raise ExtractorError('No media links available for %s' % video_id)
+
+        video_id = mobj.group(1)
 
         player = self._download_xml('http://www.ntv.ru/vi%s/' % video_id, video_id, 'Downloading video XML')
         title = unescapeHTML(player.find('./data/title').text)

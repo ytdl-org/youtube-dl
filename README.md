@@ -65,6 +65,7 @@ which means you can modify it, redistribute it or use it however you like.
                                      configuration in ~/.config/youtube-dl.conf
                                      (%APPDATA%/youtube-dl/config.txt on
                                      Windows)
+    --encoding ENCODING              Force the specified encoding (experimental)
 
 ## Video Selection:
     --playlist-start NUMBER          playlist video to start at (default is 1)

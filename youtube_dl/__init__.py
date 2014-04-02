@@ -51,6 +51,7 @@ __authors__  = (
     'David Wagner',
     'Juan C. Olivares',
     'Mattias Harrysson',
+    'phaer',
 )
 
 __license__ = 'Public Domain'
@@ -256,13 +257,17 @@ def parseOpts(overrideArguments=None):
     general.add_option(
         '--bidi-workaround', dest='bidi_workaround', action='store_true',
         help=u'Work around terminals that lack bidirectional text support. Requires bidiv or fribidi executable in PATH')
-    general.add_option('--default-search',
-            dest='default_search', metavar='PREFIX',
-            help='Use this prefix for unqualified URLs. For example "gvsearch2:" downloads two videos from google videos for  youtube-dl "large apple". By default (with value "auto") youtube-dl guesses.')
+    general.add_option(
+        '--default-search',
+        dest='default_search', metavar='PREFIX',
+        help='Use this prefix for unqualified URLs. For example "gvsearch2:" downloads two videos from google videos for  youtube-dl "large apple". By default (with value "auto") youtube-dl guesses.')
     general.add_option(
         '--ignore-config',
         action='store_true',
         help='Do not read configuration files. When given in the global configuration file /etc/youtube-dl.conf: do not read the user configuration in ~/.config/youtube-dl.conf (%APPDATA%/youtube-dl/config.txt on Windows)')
+    general.add_option(
+        '--encoding', dest='encoding', metavar='ENCODING',
+        help='Force the specified encoding (experimental)')
 
     selection.add_option(
         '--playlist-start',
@@ -542,8 +547,6 @@ def parseOpts(overrideArguments=None):
             write_string(u'[debug] System config: ' + repr(_hide_login_info(systemConf)) + '\n')
             write_string(u'[debug] User config: ' + repr(_hide_login_info(userConf)) + '\n')
             write_string(u'[debug] Command-line args: ' + repr(_hide_login_info(commandLineConf)) + '\n')
-            write_string(u'[debug] Encodings: locale %r, fs %r, out %r, pref: %r\n' %
-                         (locale.getpreferredencoding(), sys.getfilesystemencoding(), sys.stdout.encoding, preferredencoding()))
 
     return parser, opts, args
 
@@ -677,7 +680,7 @@ def _real_main(argv=None):
         date = DateRange.day(opts.date)
     else:
         date = DateRange(opts.dateafter, opts.datebefore)
-    if opts.default_search not in ('auto', None) and ':' not in opts.default_search:
+    if opts.default_search not in ('auto', 'auto_warning', None) and ':' not in opts.default_search:
         parser.error(u'--default-search invalid; did you forget a colon (:) at the end?')
 
     # Do not download videos when there are audio-only formats
@@ -789,6 +792,7 @@ def _real_main(argv=None):
         'include_ads': opts.include_ads,
         'default_search': opts.default_search,
         'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,
+        'encoding': opts.encoding,
     }
 
     with YoutubeDL(ydl_opts) as ydl:

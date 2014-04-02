@@ -87,7 +87,7 @@ class BrightcoveIE(InfoExtractor):
         object_str = object_str.replace('<--', '<!--')
         object_str = fix_xml_ampersands(object_str)
 
-        object_doc = xml.etree.ElementTree.fromstring(object_str)
+        object_doc = xml.etree.ElementTree.fromstring(object_str.encode('utf-8'))
 
         fv_el = find_xpath_attr(object_doc, './param', 'name', 'flashVars')
         if fv_el is not None:

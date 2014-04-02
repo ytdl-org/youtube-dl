@@ -7,13 +7,13 @@ import itertools
 import json
 import os.path
 import re
-import string
 import struct
 import traceback
 import zlib
 
 from .common import InfoExtractor, SearchInfoExtractor
 from .subtitles import SubtitlesInfoExtractor
+from ..jsinterp import JSInterpreter
 from ..utils import (
     compat_chr,
     compat_parse_qs,
@@ -438,113 +438,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     def _parse_sig_js(self, jscode):
         funcname = self._search_regex(
             r'signature=([a-zA-Z]+)', jscode,
-            u'Initial JS player signature function name')
+             u'Initial JS player signature function name')
 
-        functions = {}
-
-        def argidx(varname):
-            return string.lowercase.index(varname)
-
-        def interpret_statement(stmt, local_vars, allow_recursion=20):
-            if allow_recursion < 0:
-                raise ExtractorError(u'Recursion limit reached')
-
-            if stmt.startswith(u'var '):
-                stmt = stmt[len(u'var '):]
-            ass_m = re.match(r'^(?P<out>[a-z]+)(?:\[(?P<index>[^\]]+)\])?' +
-                             r'=(?P<expr>.*)$', stmt)
-            if ass_m:
-                if ass_m.groupdict().get('index'):
-                    def assign(val):
-                        lvar = local_vars[ass_m.group('out')]
-                        idx = interpret_expression(ass_m.group('index'),
-                                                   local_vars, allow_recursion)
-                        assert isinstance(idx, int)
-                        lvar[idx] = val
-                        return val
-                    expr = ass_m.group('expr')
-                else:
-                    def assign(val):
-                        local_vars[ass_m.group('out')] = val
-                        return val
-                    expr = ass_m.group('expr')
-            elif stmt.startswith(u'return '):
-                assign = lambda v: v
-                expr = stmt[len(u'return '):]
-            else:
-                raise ExtractorError(
-                    u'Cannot determine left side of statement in %r' % stmt)
-
-            v = interpret_expression(expr, local_vars, allow_recursion)
-            return assign(v)
-
-        def interpret_expression(expr, local_vars, allow_recursion):
-            if expr.isdigit():
-                return int(expr)
-
-            if expr.isalpha():
-                return local_vars[expr]
-
-            m = re.match(r'^(?P<in>[a-z]+)\.(?P<member>.*)$', expr)
-            if m:
-                member = m.group('member')
-                val = local_vars[m.group('in')]
-                if member == 'split("")':
-                    return list(val)
-                if member == 'join("")':
-                    return u''.join(val)
-                if member == 'length':
-                    return len(val)
-                if member == 'reverse()':
-                    return val[::-1]
-                slice_m = re.match(r'slice\((?P<idx>.*)\)', member)
-                if slice_m:
-                    idx = interpret_expression(
-                        slice_m.group('idx'), local_vars, allow_recursion-1)
-                    return val[idx:]
-
-            m = re.match(
-                r'^(?P<in>[a-z]+)\[(?P<idx>.+)\]$', expr)
-            if m:
-                val = local_vars[m.group('in')]
-                idx = interpret_expression(m.group('idx'), local_vars,
-                                           allow_recursion-1)
-                return val[idx]
-
-            m = re.match(r'^(?P<a>.+?)(?P<op>[%])(?P<b>.+?)$', expr)
-            if m:
-                a = interpret_expression(m.group('a'),
-                                         local_vars, allow_recursion)
-                b = interpret_expression(m.group('b'),
-                                         local_vars, allow_recursion)
-                return a % b
-
-            m = re.match(
-                r'^(?P<func>[a-zA-Z$]+)\((?P<args>[a-z0-9,]+)\)$', expr)
-            if m:
-                fname = m.group('func')
-                if fname not in functions:
-                    functions[fname] = extract_function(fname)
-                argvals = [int(v) if v.isdigit() else local_vars[v]
-                           for v in m.group('args').split(',')]
-                return functions[fname](argvals)
-            raise ExtractorError(u'Unsupported JS expression %r' % expr)
-
-        def extract_function(funcname):
-            func_m = re.search(
-                r'function ' + re.escape(funcname) +
-                r'\((?P<args>[a-z,]+)\){(?P<code>[^}]+)}',
-                jscode)
-            argnames = func_m.group('args').split(',')
-
-            def resf(args):
-                local_vars = dict(zip(argnames, args))
-                for stmt in func_m.group('code').split(';'):
-                    res = interpret_statement(stmt, local_vars)
-                return res
-            return resf
-
-        initial_function = extract_function(funcname)
+        jsi = JSInterpreter(jscode)
+        initial_function = jsi.extract_function(funcname)
         return lambda s: initial_function([s])
 
     def _parse_sig_swf(self, file_contents):
@@ -1549,7 +1446,9 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                 break
 
             more = self._download_json(
-                'https://youtube.com/%s' % mobj.group('more'), playlist_id, 'Downloading page #%s' % page_num)
+                'https://youtube.com/%s' % mobj.group('more'), playlist_id,
+                'Downloading page #%s' % page_num,
+                transform_source=uppercase_escape)
             content_html = more['content_html']
             more_widget_html = more['load_more_widget_html']
 
@@ -1712,7 +1611,7 @@ class YoutubeUserIE(InfoExtractor):
 
 class YoutubeSearchIE(SearchInfoExtractor):
     IE_DESC = u'YouTube.com searches'
-    _API_URL = 'https://gdata.youtube.com/feeds/api/videos?q=%s&start-index=%i&max-results=50&v=2&alt=jsonc'
+    _API_URL = u'https://gdata.youtube.com/feeds/api/videos?q=%s&start-index=%i&max-results=50&v=2&alt=jsonc'
     _MAX_RESULTS = 1000
     IE_NAME = u'youtube:search'
     _SEARCH_KEY = 'ytsearch'
@@ -1723,9 +1622,12 @@ class YoutubeSearchIE(SearchInfoExtractor):
         video_ids = []
         pagenum = 0
         limit = n
+        PAGE_SIZE = 50
 
-        while (50 * pagenum) < limit:
-            result_url = self._API_URL % (compat_urllib_parse.quote_plus(query), (50*pagenum)+1)
+        while (PAGE_SIZE * pagenum) < limit:
+            result_url = self._API_URL % (
+                compat_urllib_parse.quote_plus(query.encode('utf-8')),
+                (PAGE_SIZE * pagenum) + 1)
             data_json = self._download_webpage(
                 result_url, video_id=u'query "%s"' % query,
                 note=u'Downloading page %s' % (pagenum + 1),
@@ -1836,11 +1738,10 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
         feed_entries = []
         paging = 0
         for i in itertools.count(1):
-            info = self._download_webpage(self._FEED_TEMPLATE % paging,
+            info = self._download_json(self._FEED_TEMPLATE % paging,
                                           u'%s feed' % self._FEED_NAME,
                                           u'Downloading page %s' % i)
-            info = json.loads(info)
-            feed_html = info['feed_html']
+            feed_html = info.get('feed_html') or info.get('content_html')
             m_ids = re.finditer(r'"/watch\?v=(.*?)["&]', feed_html)
             ids = orderedSet(m.group(1) for m in m_ids)
             feed_entries.extend(

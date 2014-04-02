@@ -4,9 +4,10 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    unified_strdate,
+    compat_parse_qs,
     compat_urlparse,
     determine_ext,
+    unified_strdate,
 )
 
 
@@ -112,3 +113,84 @@ class WDRIE(InfoExtractor):
             'thumbnail': thumbnail,
             'upload_date': upload_date,
         }
+
+
+class WDRMausIE(InfoExtractor):
+    _VALID_URL = 'http://(?:www\.)?wdrmaus\.de/(?:[^/]+/){,2}(?P<id>[^/?#]+)(?:/index\.php5|(?<!index)\.php5|/(?:$|[?#]))'
+    IE_DESC = 'Sendung mit der Maus'
+    _TESTS = [{
+        'url': 'http://www.wdrmaus.de/aktuelle-sendung/index.php5',
+        'info_dict': {
+            'id': 'aktuelle-sendung',
+            'ext': 'mp4',
+            'thumbnail': 're:^http://.+\.jpg',
+            'upload_date': 're:^[0-9]{8}$',
+            'title': 're:^[0-9.]{10} - Aktuelle Sendung$',
+        }
+    }, {
+        'url': 'http://www.wdrmaus.de/sachgeschichten/sachgeschichten/40_jahre_maus.php5',
+        'md5': '3b1227ca3ed28d73ec5737c65743b2a3',
+        'info_dict': {
+            'id': '40_jahre_maus',
+            'ext': 'mp4',
+            'thumbnail': 're:^http://.+\.jpg',
+            'upload_date': '20131007',
+            'title': '12.03.2011 - 40 Jahre Maus',
+        }
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+
+        webpage = self._download_webpage(url, video_id)
+        param_code = self._html_search_regex(
+            r'<a href="\?startVideo=1&amp;([^"]+)"', webpage, 'parameters')
+
+        title_date = self._search_regex(
+            r'<div class="sendedatum"><p>Sendedatum:\s*([0-9\.]+)</p>',
+            webpage, 'air date')
+        title_str = self._html_search_regex(
+            r'<h1>(.*?)</h1>', webpage, 'title')
+        title = '%s - %s' % (title_date, title_str)
+        upload_date = unified_strdate(
+            self._html_search_meta('dc.date', webpage))
+
+        fields = compat_parse_qs(param_code)
+        video_url = fields['firstVideo'][0]
+        thumbnail = compat_urlparse.urljoin(url, fields['startPicture'][0])
+
+        formats = [{
+            'format_id': 'rtmp',
+            'url': video_url,
+        }]
+
+        jscode = self._download_webpage(
+            'http://www.wdrmaus.de/codebase/js/extended-medien.min.js',
+            video_id, fatal=False,
+            note='Downloading URL translation table',
+            errnote='Could not download URL translation table')
+        if jscode:
+            for m in re.finditer(
+                    r"stream:\s*'dslSrc=(?P<stream>[^']+)',\s*download:\s*'(?P<dl>[^']+)'\s*\}",
+                    jscode):
+                if video_url.startswith(m.group('stream')):
+                    http_url = video_url.replace(
+                        m.group('stream'), m.group('dl'))
+                    formats.append({
+                        'format_id': 'http',
+                        'url': http_url,
+                    })
+                    break
+
+        self._sort_formats(formats)
+
+        return {
+            'id': video_id,
+            'title': title,
+            'formats': formats,
+            'thumbnail': thumbnail,
+            'upload_date': upload_date,
+        }
+
+# TODO test _1

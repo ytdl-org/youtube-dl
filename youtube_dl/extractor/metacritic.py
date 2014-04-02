@@ -13,8 +13,9 @@ class MetacriticIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://www.metacritic.com/game/playstation-4/infamous-second-son/trailers/3698222',
-        'file': '3698222.mp4',
         'info_dict': {
+            'id': '3698222',
+            'ext': 'mp4',
             'title': 'inFamous: Second Son - inSide Sucker Punch: Smoke & Mirrors',
             'description': 'Take a peak behind-the-scenes to see how Sucker Punch brings smoke into the universe of inFAMOUS Second Son on the PS4.',
             'duration': 221,
