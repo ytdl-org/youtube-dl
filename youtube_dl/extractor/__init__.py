@@ -156,6 +156,7 @@ from .mtv import (
     MTVIE,
     MTVIggyIE,
 )
+from .musicplayon import MusicPlayOnIE
 from .muzu import MuzuTVIE
 from .myspace import MySpaceIE
 from .myspass import MySpassIE
