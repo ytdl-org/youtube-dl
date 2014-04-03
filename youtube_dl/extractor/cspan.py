@@ -4,6 +4,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    int_or_none,
     unescapeHTML,
     find_xpath_attr,
 )
@@ -54,18 +55,29 @@ class CSpanIE(InfoExtractor):
         info_url = 'http://c-spanvideo.org/videoLibrary/assets/player/ajax-player.php?os=android&html5=program&id=' + video_id
         data = self._download_json(info_url, video_id)
 
-        url = unescapeHTML(data['video']['files'][0]['path']['#text'])
-
-        doc = self._download_xml('http://www.c-span.org/common/services/flashXml.php?programid=' + video_id,
+        doc = self._download_xml(
+            'http://www.c-span.org/common/services/flashXml.php?programid=' + video_id,
             video_id)
 
-        def find_string(s):
-            return find_xpath_attr(doc, './/string', 'name', s).text
+        title = find_xpath_attr(doc, './/string', 'name', 'title').text
+        thumbnail = find_xpath_attr(doc, './/string', 'name', 'poster').text
+
+        files = data['video']['files']
+
+        entries = [{
+            'id': '%s_%d' % (video_id, partnum + 1),
+            'title': (
+                title if len(files) == 1 else
+                '%s part %d' % (title, partnum + 1)),
+            'url': unescapeHTML(f['path']['#text']),
+            'description': description,
+            'thumbnail': thumbnail,
+            'duration': int_or_none(f.get('length', {}).get('#text')),
+        } for partnum, f in enumerate(files)]
 
         return {
+            '_type': 'playlist',
+            'entries': entries,
+            'title': title,
             'id': video_id,
-            'title': find_string('title'),
-            'url': url,
-            'description': description,
-            'thumbnail': find_string('poster'),
         }
