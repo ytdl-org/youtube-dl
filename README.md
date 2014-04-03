@@ -371,7 +371,65 @@ If you want to create a build of youtube-dl yourself, you'll need
 
 ### Adding support for a new site
 
-If you want to add support for a new site, copy *any* [recently modified](https://github.com/rg3/youtube-dl/commits/master/youtube_dl/extractor) file in `youtube_dl/extractor`, add an import in [`youtube_dl/extractor/__init__.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/__init__.py). Have a look at [`youtube_dl/common/extractor/common.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py) for possible helper methods and a [detailed description of what your extractor should return](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L38). Don't forget to run the tests with `python test/test_download.py TestDownload.test_YourExtractor`! For a detailed tutorial, refer to [this blog post](http://filippo.io/add-support-for-a-new-video-site-to-youtube-dl/).
+If you want to add support for a new site, you can follow this quick list (assuming your service is called `yourextractor`):
+
+1. [Fork this repository](https://github.com/rg3/youtube-dl/fork)
+2. Check out the source code with `git clone git@github.com:YOUR_GITHUB_USERNAME/youtube-dl.git`
+3. Start a new git branch with `cd youtube-dl; git checkout -b yourextractor`
+4. Start with this simple template and save it to `youtube_dl/extractor/yourextractor.py`:
+
+        # coding: utf-8
+        from __future__ import unicode_literals
+
+        import re
+
+        from .common import InfoExtractor
+
+
+        class YourExtractorIE(InfoExtractor):
+            _VALID_URL = r'https?://(?:www\.)yourextractor\.com/watch/(?P<id>[0-9]+)'
+            _TEST = {
+                'url': 'http://yourextractor.com/watch/42',
+                'info_dict': {
+                    'id': '42',
+                    'ext': 'mp4',
+                    'title': 'Video title goes here',
+                    # TODO more properties, either as:
+                    # * A value
+                    # * MD5 checksum; start the string with md5:
+                    # * A regular expression; start the string with re:
+                    # * Any Python type (for example int or float)
+                }
+            }
+
+            def _real_extract(self, url):
+                mobj = re.match(self._VALID_URL, url)
+                video_id = mobj.group('id')
+
+                # TODO more code goes here, for example ...
+                webpage = self._download_webpage(url, video_id)
+                title = self._html_search_regex(r'<h1>(.*?)</h1>', webpage, 'title')
+
+                return {
+                    'id': video_id,
+                    'title': title,
+                    # TODO more properties (see youtube_dl/extractor/common.py)
+                }
+
+5. Add an import in [`youtube_dl/extractor/__init__.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/__init__.py).
+6. Run `python test/test_download.py TestDownload.test_YourExtractor`. This *should fail* at first, but you can continually re-run it until you're done.
+7. Have a look at [`youtube_dl/common/extractor/common.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py) for possible helper methods and a [detailed description of what your extractor should return](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L38). Add tests and code for as many as you want.
+8. If you can, check the code with [pyflakes](https://pypi.python.org/pypi/pyflakes) (a good idea) and [pep8](https://pypi.python.org/pypi/pep8) (optional, ignore E501).
+9. When the tests pass, [add](https://www.kernel.org/pub/software/scm/git/docs/git-add.html) the new files and [commit](https://www.kernel.org/pub/software/scm/git/docs/git-commit.html) them and [push](https://www.kernel.org/pub/software/scm/git/docs/git-push.html) the result, like this:
+
+        $ git add youtube_dl/extractor/__init__.py
+        $ git add youtube_dl/extractor/yourextractor.py
+        $ git commit -m '[yourextractor] Add new extractor'
+        $ git push origin yourextractor
+
+10. Finally, [create a pull request](https://help.github.com/articles/creating-a-pull-request). We'll then review and merge it.
+
+In any case, thank you very much for your contributions!
 
 # BUGS
 
