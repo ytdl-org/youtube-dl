@@ -876,7 +876,7 @@ class YoutubeDL(object):
 
         try:
             dn = os.path.dirname(encodeFilename(filename))
-            if dn != '' and not os.path.exists(dn):
+            if dn and not os.path.exists(dn):
                 os.makedirs(dn)
         except (OSError, IOError) as err:
             self.report_error('unable to create directory ' + compat_str(err))
