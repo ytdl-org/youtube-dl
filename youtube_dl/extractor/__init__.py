@@ -154,6 +154,7 @@ from .mixcloud import MixcloudIE
 from .mpora import MporaIE
 from .mofosex import MofosexIE
 from .mooshare import MooshareIE
+from .morningstar import MorningstarIE
 from .motorsport import MotorsportIE
 from .mtv import (
     MTVIE,
