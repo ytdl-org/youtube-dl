@@ -26,16 +26,27 @@ class YDL(FakeYDL):
         self.msgs.append(msg)
 
 
+def _make_result(formats, **kwargs):
+    res = {
+        'formats': formats,
+        'id': 'testid',
+        'title': 'testttitle',
+        'extractor': 'testex',
+    }
+    res.update(**kwargs)
+    return res
+
+
 class TestFormatSelection(unittest.TestCase):
     def test_prefer_free_formats(self):
         # Same resolution => download webm
         ydl = YDL()
         ydl.params['prefer_free_formats'] = True
         formats = [
-            {'ext': 'webm', 'height': 460},
-            {'ext': 'mp4',  'height': 460},
+            {'ext': 'webm', 'height': 460, 'url': 'x'},
+            {'ext': 'mp4', 'height': 460, 'url': 'y'},
         ]
-        info_dict = {'formats': formats, 'extractor': 'test'}
+        info_dict = _make_result(formats)
         yie = YoutubeIE(ydl)
         yie._sort_formats(info_dict['formats'])
         ydl.process_ie_result(info_dict)
@@ -46,8 +57,8 @@ class TestFormatSelection(unittest.TestCase):
         ydl = YDL()
         ydl.params['prefer_free_formats'] = True
         formats = [
-            {'ext': 'webm', 'height': 720},
-            {'ext': 'mp4', 'height': 1080},
+            {'ext': 'webm', 'height': 720, 'url': 'a'},
+            {'ext': 'mp4', 'height': 1080, 'url': 'b'},
         ]
         info_dict['formats'] = formats
         yie = YoutubeIE(ydl)
@@ -60,9 +71,9 @@ class TestFormatSelection(unittest.TestCase):
         ydl = YDL()
         ydl.params['prefer_free_formats'] = False
         formats = [
-            {'ext': 'webm', 'height': 720},
-            {'ext': 'mp4', 'height': 720},
-            {'ext': 'flv', 'height': 720},
+            {'ext': 'webm', 'height': 720, 'url': '_'},
+            {'ext': 'mp4', 'height': 720, 'url': '_'},
+            {'ext': 'flv', 'height': 720, 'url': '_'},
         ]
         info_dict['formats'] = formats
         yie = YoutubeIE(ydl)
@@ -74,8 +85,8 @@ class TestFormatSelection(unittest.TestCase):
         ydl = YDL()
         ydl.params['prefer_free_formats'] = False
         formats = [
-            {'ext': 'flv', 'height': 720},
-            {'ext': 'webm', 'height': 720},
+            {'ext': 'flv', 'height': 720, 'url': '_'},
+            {'ext': 'webm', 'height': 720, 'url': '_'},
         ]
         info_dict['formats'] = formats
         yie = YoutubeIE(ydl)
@@ -91,8 +102,7 @@ class TestFormatSelection(unittest.TestCase):
             {'format_id': 'great', 'url': 'http://example.com/great', 'preference': 3},
             {'format_id': 'excellent', 'url': 'http://example.com/exc', 'preference': 4},
         ]
-        info_dict = {
-            'formats': formats, 'extractor': 'test', 'id': 'testvid'}
+        info_dict = _make_result(formats)
 
         ydl = YDL()
         ydl.process_ie_result(info_dict)
@@ -120,12 +130,12 @@ class TestFormatSelection(unittest.TestCase):
 
     def test_format_selection(self):
         formats = [
-            {'format_id': '35', 'ext': 'mp4', 'preference': 1},
-            {'format_id': '45', 'ext': 'webm', 'preference': 2},
-            {'format_id': '47', 'ext': 'webm', 'preference': 3},
-            {'format_id': '2', 'ext': 'flv', 'preference': 4},
+            {'format_id': '35', 'ext': 'mp4', 'preference': 1, 'url': '_'},
+            {'format_id': '45', 'ext': 'webm', 'preference': 2, 'url': '_'},
+            {'format_id': '47', 'ext': 'webm', 'preference': 3, 'url': '_'},
+            {'format_id': '2', 'ext': 'flv', 'preference': 4, 'url': '_'},
         ]
-        info_dict = {'formats': formats, 'extractor': 'test'}
+        info_dict = _make_result(formats)
 
         ydl = YDL({'format': '20/47'})
         ydl.process_ie_result(info_dict.copy())
@@ -154,12 +164,12 @@ class TestFormatSelection(unittest.TestCase):
 
     def test_format_selection_audio(self):
         formats = [
-            {'format_id': 'audio-low', 'ext': 'webm', 'preference': 1, 'vcodec': 'none'},
-            {'format_id': 'audio-mid', 'ext': 'webm', 'preference': 2, 'vcodec': 'none'},
-            {'format_id': 'audio-high', 'ext': 'flv', 'preference': 3, 'vcodec': 'none'},
-            {'format_id': 'vid', 'ext': 'mp4', 'preference': 4},
+            {'format_id': 'audio-low', 'ext': 'webm', 'preference': 1, 'vcodec': 'none', 'url': '_'},
+            {'format_id': 'audio-mid', 'ext': 'webm', 'preference': 2, 'vcodec': 'none', 'url': '_'},
+            {'format_id': 'audio-high', 'ext': 'flv', 'preference': 3, 'vcodec': 'none', 'url': '_'},
+            {'format_id': 'vid', 'ext': 'mp4', 'preference': 4, 'url': '_'},
         ]
-        info_dict = {'formats': formats, 'extractor': 'test'}
+        info_dict = _make_result(formats)
 
         ydl = YDL({'format': 'bestaudio'})
         ydl.process_ie_result(info_dict.copy())
@@ -172,10 +182,10 @@ class TestFormatSelection(unittest.TestCase):
         self.assertEqual(downloaded['format_id'], 'audio-low')
 
         formats = [
-            {'format_id': 'vid-low', 'ext': 'mp4', 'preference': 1},
-            {'format_id': 'vid-high', 'ext': 'mp4', 'preference': 2},
+            {'format_id': 'vid-low', 'ext': 'mp4', 'preference': 1, 'url': '_'},
+            {'format_id': 'vid-high', 'ext': 'mp4', 'preference': 2, 'url': '_'},
         ]
-        info_dict = {'formats': formats, 'extractor': 'test'}
+        info_dict = _make_result(formats)
 
         ydl = YDL({'format': 'bestaudio/worstaudio/best'})
         ydl.process_ie_result(info_dict.copy())
@@ -184,11 +194,11 @@ class TestFormatSelection(unittest.TestCase):
 
     def test_format_selection_video(self):
         formats = [
-            {'format_id': 'dash-video-low', 'ext': 'mp4', 'preference': 1, 'acodec': 'none'},
-            {'format_id': 'dash-video-high', 'ext': 'mp4', 'preference': 2, 'acodec': 'none'},
-            {'format_id': 'vid', 'ext': 'mp4', 'preference': 3},
+            {'format_id': 'dash-video-low', 'ext': 'mp4', 'preference': 1, 'acodec': 'none', 'url': '_'},
+            {'format_id': 'dash-video-high', 'ext': 'mp4', 'preference': 2, 'acodec': 'none', 'url': '_'},
+            {'format_id': 'vid', 'ext': 'mp4', 'preference': 3, 'url': '_'},
         ]
-        info_dict = {'formats': formats, 'extractor': 'test'}
+        info_dict = _make_result(formats)
 
         ydl = YDL({'format': 'bestvideo'})
         ydl.process_ie_result(info_dict.copy())
@@ -217,10 +227,12 @@ class TestFormatSelection(unittest.TestCase):
         for f1id, f2id in zip(order, order[1:]):
             f1 = YoutubeIE._formats[f1id].copy()
             f1['format_id'] = f1id
+            f1['url'] = 'url:' + f1id
             f2 = YoutubeIE._formats[f2id].copy()
             f2['format_id'] = f2id
+            f2['url'] = 'url:' + f2id
 
-            info_dict = {'formats': [f1, f2], 'extractor': 'youtube'}
+            info_dict = _make_result([f1, f2], extractor='youtube')
             ydl = YDL()
             yie = YoutubeIE(ydl)
             yie._sort_formats(info_dict['formats'])
@@ -228,7 +240,7 @@ class TestFormatSelection(unittest.TestCase):
             downloaded = ydl.downloaded_info_dicts[0]
             self.assertEqual(downloaded['format_id'], f1id)
 
-            info_dict = {'formats': [f2, f1], 'extractor': 'youtube'}
+            info_dict = _make_result([f2, f1], extractor='youtube')
             ydl = YDL()
             yie = YoutubeIE(ydl)
             yie._sort_formats(info_dict['formats'])
