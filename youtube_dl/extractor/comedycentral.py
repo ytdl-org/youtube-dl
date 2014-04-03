@@ -43,7 +43,7 @@ class ComedyCentralShowsIE(InfoExtractor):
                           (?P<showname>thedailyshow|thecolbertreport)\.(?:cc\.)?com/
                          (full-episodes/(?P<episode>.*)|
                           (?P<clip>
-                              (?:videos/[^/]+/(?P<videotitle>[^/?#]+))
+                              (?:(?:guests/[^/]+|videos)/[^/]+/(?P<videotitle>[^/?#]+))
                               |(the-colbert-report-(videos|collections)/(?P<clipID>[0-9]+)/[^/]*/(?P<cntitle>.*?))
                               |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*))
                           )|
