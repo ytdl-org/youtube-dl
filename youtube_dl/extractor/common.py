@@ -255,7 +255,7 @@ class InfoExtractor(object):
 
         if (u'<title>Access to this site is blocked</title>' in content and
                 u'Websense' in content[:512]):
-            msg = u'Access to URL %s has been blocked by Websense filtering software in your network.' % urlh.geturl()
+            msg = u'Access to this webpage has been blocked by Websense filtering software in your network.'
             blocked_iframe = self._html_search_regex(
                 r'<iframe src="([^"]+)"', content,
                 u'Websense information URL', default=None)
