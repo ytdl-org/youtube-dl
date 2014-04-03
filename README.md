@@ -390,6 +390,7 @@ If you want to add support for a new site, you can follow this quick list (assum
             _VALID_URL = r'https?://(?:www\.)yourextractor\.com/watch/(?P<id>[0-9]+)'
             _TEST = {
                 'url': 'http://yourextractor.com/watch/42',
+                'md5': 'TODO: md5 sum of the first 10KiB of the video file',
                 'info_dict': {
                     'id': '42',
                     'ext': 'mp4',
@@ -415,6 +416,7 @@ If you want to add support for a new site, you can follow this quick list (assum
                     'title': title,
                     # TODO more properties (see youtube_dl/extractor/common.py)
                 }
+
 
 5. Add an import in [`youtube_dl/extractor/__init__.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/__init__.py).
 6. Run `python test/test_download.py TestDownload.test_YourExtractor`. This *should fail* at first, but you can continually re-run it until you're done.
