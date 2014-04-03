@@ -40,6 +40,7 @@ from .clipfish import ClipfishIE
 from .cliphunter import CliphunterIE
 from .clipsyndicate import ClipsyndicateIE
 from .cmt import CMTIE
+from .cnet import CNETIE
 from .cnn import (
     CNNIE,
     CNNBlogsIE,
