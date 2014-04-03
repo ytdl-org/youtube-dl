@@ -743,7 +743,7 @@ class YoutubeDL(object):
                 )
             # Automatically determine file extension if missing
             if 'ext' not in format:
-                format['ext'] = determine_ext(format['url'])
+                format['ext'] = determine_ext(format['url']).lower()
 
         format_limit = self.params.get('format_limit', None)
         if format_limit:

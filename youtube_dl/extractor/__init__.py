@@ -83,6 +83,7 @@ from .fktv import (
 )
 from .flickr import FlickrIE
 from .fourtube import FourTubeIE
+from .franceculture import FranceCultureIE
 from .franceinter import FranceInterIE
 from .francetv import (
     PluzzIE,
