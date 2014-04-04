@@ -189,7 +189,9 @@ class GenericIE(InfoExtractor):
             'url': 'http://www.american.edu/spa/pti/nsa-privacy-janus-2014.cfm',
             'md5': '27b99cdb639c9b12a79bca876a073417',
             'info_dict': {
-                'uploader': 'AU SPA: The NSA and Privacy',
+                'id': '45734260',
+                'ext': 'flv',
+                'uploader': 'AU SPA:  The NSA and Privacy',
                 'title': 'NSA and Privacy Forum Debate featuring General Hayden and Barton Gellman'
             }
         },
