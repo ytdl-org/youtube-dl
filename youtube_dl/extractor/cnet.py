@@ -6,6 +6,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     int_or_none,
 )
 
@@ -36,6 +37,10 @@ class CNETIE(InfoExtractor):
             webpage, 'data json')
         data = json.loads(data_json)
         vdata = data['video']
+        if not vdata:
+            vdata = data['videos'][0]
+        if not vdata:
+            raise ExtractorError('Cannot find video data')
 
         video_id = vdata['id']
         title = vdata['headline']
