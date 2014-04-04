@@ -10,7 +10,17 @@ from ..utils import (
 
 class TeamcocoIE(InfoExtractor):
     _VALID_URL = r'http://teamcoco\.com/video/(?P<video_id>\d*)?/?(?P<url_title>.*)'
-    _TEST = {
+    _TESTS = [
+    {
+        'url': 'http://teamcoco.com/video/80187/conan-becomes-a-mary-kay-beauty-consultant',
+        'file': '80187.mp4',
+        'md5': '3f7746aa0dc86de18df7539903d399ea',
+        'info_dict': {
+            'title': 'Conan Becomes A Mary Kay Beauty Consultant',
+            'description': 'Mary Kay is perhaps the most trusted name in female beauty, so of course Conan is a natural choice to sell their products.'
+        }
+    },
+    {
         'url': 'http://teamcoco.com/video/louis-ck-interview-george-w-bush',
         'file': '19705.mp4',
         'md5': 'cde9ba0fa3506f5f017ce11ead928f9a',
@@ -19,6 +29,7 @@ class TeamcocoIE(InfoExtractor):
             "title": "Louis C.K. Interview Pt. 1 11/3/11"
         }
     }
+    ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
