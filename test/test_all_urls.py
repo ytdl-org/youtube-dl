@@ -157,5 +157,11 @@ class TestAllURLsMatching(unittest.TestCase):
             'http://thedailyshow.cc.com/guests/michael-lewis/3efna8/exclusive---michael-lewis-extended-interview-pt--3',
             ['ComedyCentralShows'])
 
+    def test_yahoo_https(self):
+        # https://github.com/rg3/youtube-dl/issues/2701
+        self.assertMatch(
+            'https://screen.yahoo.com/smartwatches-latest-wearable-gadgets-163745379-cbs.html',
+            ['Yahoo'])
+
 if __name__ == '__main__':
     unittest.main()

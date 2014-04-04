@@ -15,7 +15,7 @@ from ..utils import (
 
 class YahooIE(InfoExtractor):
     IE_DESC = 'Yahoo screen'
-    _VALID_URL = r'http://screen\.yahoo\.com/.*?-(?P<id>\d*?)\.html'
+    _VALID_URL = r'https?://screen\.yahoo\.com/.*?-(?P<id>[0-9]+)(?:-[a-z]+)?\.html'
     _TESTS = [
         {
             'url': 'http://screen.yahoo.com/julian-smith-travis-legg-watch-214727115.html',
