@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import calendar
+import codecs
 import contextlib
 import ctypes
 import datetime
@@ -1263,9 +1264,11 @@ class PagedList(object):
 
 
 def uppercase_escape(s):
+    unicode_escape = codecs.getdecoder('unicode_escape')
     return re.sub(
         r'\\U[0-9a-fA-F]{8}',
-        lambda m: m.group(0).decode('unicode-escape'), s)
+        lambda m: unicode_escape(m.group(0))[0],
+        s)
 
 try:
     struct.pack(u'!I', 0)
