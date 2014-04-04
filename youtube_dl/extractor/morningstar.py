@@ -1,17 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import hashlib
-import json
 import re
-import time
 
 from .common import InfoExtractor
-from ..utils import (
-    compat_parse_qs,
-    compat_str,
-    int_or_none,
-)
 
 
 class MorningstarIE(InfoExtractor):

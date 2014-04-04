@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import itertools
+import json
 import re
 
 from .common import InfoExtractor, SearchInfoExtractor
