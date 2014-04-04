@@ -703,6 +703,11 @@ class YoutubeDL(object):
     def process_video_result(self, info_dict, download=True):
         assert info_dict.get('_type', 'video') == 'video'
 
+        if 'id' not in info_dict:
+            raise ExtractorError('Missing "id" field in extractor result')
+        if 'title' not in info_dict:
+            raise ExtractorError('Missing "title" field in extractor result')
+
         if 'playlist' not in info_dict:
             # It isn't part of a playlist
             info_dict['playlist'] = None
@@ -734,6 +739,9 @@ class YoutubeDL(object):
 
         # We check that all the formats have the format and format_id fields
         for i, format in enumerate(formats):
+            if 'url' not in format:
+                raise ExtractorError('Missing "url" key in result (index %d)' % i)
+
             if format.get('format_id') is None:
                 format['format_id'] = compat_str(i)
             if format.get('format') is None:
@@ -744,7 +752,7 @@ class YoutubeDL(object):
                 )
             # Automatically determine file extension if missing
             if 'ext' not in format:
-                format['ext'] = determine_ext(format['url'])
+                format['ext'] = determine_ext(format['url']).lower()
 
         format_limit = self.params.get('format_limit', None)
         if format_limit:
@@ -869,7 +877,7 @@ class YoutubeDL(object):
 
         try:
             dn = os.path.dirname(encodeFilename(filename))
-            if dn != '' and not os.path.exists(dn):
+            if dn and not os.path.exists(dn):
                 os.makedirs(dn)
         except (OSError, IOError) as err:
             self.report_error('unable to create directory ' + compat_str(err))

@@ -3,5 +3,4 @@ include test/*.py
 include test/*.json
 include youtube-dl.bash-completion
 include youtube-dl.1
-recursive-include docs *
-prune docs/_build
+recursive-include docs Makefile conf.py *.rst

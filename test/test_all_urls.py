@@ -153,6 +153,9 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch(
             'http://thecolbertreport.cc.com/videos/gh6urb/neil-degrasse-tyson-pt--1?xrs=eml_col_031114',
             ['ComedyCentralShows'])
+        self.assertMatch(
+            'http://thedailyshow.cc.com/guests/michael-lewis/3efna8/exclusive---michael-lewis-extended-interview-pt--3',
+            ['ComedyCentralShows'])
 
 if __name__ == '__main__':
     unittest.main()

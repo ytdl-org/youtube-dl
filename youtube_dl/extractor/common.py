@@ -256,6 +256,17 @@ class InfoExtractor(object):
                 outf.write(webpage_bytes)
 
         content = webpage_bytes.decode(encoding, 'replace')
+
+        if (u'<title>Access to this site is blocked</title>' in content and
+                u'Websense' in content[:512]):
+            msg = u'Access to this webpage has been blocked by Websense filtering software in your network.'
+            blocked_iframe = self._html_search_regex(
+                r'<iframe src="([^"]+)"', content,
+                u'Websense information URL', default=None)
+            if blocked_iframe:
+                msg += u' Visit %s for more details' % blocked_iframe
+            raise ExtractorError(msg, expected=True)
+
         return (content, urlh)
 
     def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True):

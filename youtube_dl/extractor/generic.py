@@ -114,20 +114,6 @@ class GenericIE(InfoExtractor):
                 'title': '2cc213299525360.mov',  # that's what we get
             },
         },
-        # second style of embedded ooyala videos
-        {
-            'url': 'http://www.smh.com.au/tv/business/show/financial-review-sunday/behind-the-scenes-financial-review-sunday--4350201.html',
-            'info_dict': {
-                'id': '13djJjYjptA1XpPx8r9kuzPyj3UZH0Uk',
-                'ext': 'mp4',
-                'title': 'Behind-the-scenes: Financial Review Sunday ',
-                'description': 'Step inside Channel Nine studios for an exclusive tour of its upcoming financial business show.',
-            },
-            'params': {
-                # m3u8 download
-                'skip_download': True,
-            },
-        },
         # google redirect
         {
             'url': 'http://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&ved=0CCUQtwIwAA&url=http%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DcmQHVoWB5FY&ei=F-sNU-LLCaXk4QT52ICQBQ&usg=AFQjCNEw4hL29zgOohLXvpJ-Bdh2bils1Q&bvm=bv.61965928,d.bGE',

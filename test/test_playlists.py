@@ -42,6 +42,7 @@ from youtube_dl.extractor import (
     ToypicsUserIE,
     XTubeUserIE,
     InstagramUserIE,
+    CSpanIE,
 )
 
 
@@ -313,6 +314,19 @@ class TestPlaylists(unittest.TestCase):
             'upload_date': '20131219',
         }
         expect_info_dict(self, EXPECTED, test_video)
+
+    def test_CSpan_playlist(self):
+        dl = FakeYDL()
+        ie = CSpanIE(dl)
+        result = ie.extract(
+            'http://www.c-span.org/video/?318608-1/gm-ignition-switch-recall')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], '342759')
+        self.assertEqual(
+            result['title'], 'General Motors Ignition Switch Recall')
+        self.assertEqual(len(result['entries']), 9)
+        whole_duration = sum(e['duration'] for e in result['entries'])
+        self.assertEqual(whole_duration, 14855)
 
 
 if __name__ == '__main__':

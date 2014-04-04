@@ -1453,7 +1453,8 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
             more_widget_html = more['load_more_widget_html']
 
         playlist_title = self._html_search_regex(
-                r'<h1 class="pl-header-title">\s*(.*?)\s*</h1>', page, u'title')
+            r'(?s)<h1 class="pl-header-title[^"]*">\s*(.*?)\s*</h1>',
+            page, u'title')
 
         url_results = self._ids_to_results(ids)
         return self.playlist_result(url_results, playlist_id, playlist_title)
@@ -1753,7 +1754,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
         return self.playlist_result(feed_entries, playlist_title=self._PLAYLIST_TITLE)
 
 class YoutubeSubscriptionsIE(YoutubeFeedsInfoExtractor):
-    IE_DESC = u'YouTube.com subscriptions feed, "ytsubs" keyword(requires authentication)'
+    IE_DESC = u'YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)'
     _VALID_URL = r'https?://www\.youtube\.com/feed/subscriptions|:ytsubs(?:criptions)?'
     _FEED_NAME = 'subscriptions'
     _PLAYLIST_TITLE = u'Youtube Subscriptions'

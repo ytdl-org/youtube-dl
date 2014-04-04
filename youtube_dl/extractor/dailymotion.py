@@ -180,7 +180,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
 class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
     IE_NAME = u'dailymotion:playlist'
     _VALID_URL = r'(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/playlist/(?P<id>.+?)/'
-    _MORE_PAGES_INDICATOR = r'<div class="next">.*?<a.*?href="/playlist/.+?".*?>.*?</a>.*?</div>'
+    _MORE_PAGES_INDICATOR = r'(?s)<div class="pages[^"]*">.*?<a\s+class="[^"]*?icon-arrow_right[^"]*?"'
     _PAGE_TEMPLATE = 'https://www.dailymotion.com/playlist/%s/%s'
 
     def _extract_entries(self, id):
@@ -190,10 +190,9 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
             webpage = self._download_webpage(request,
                                              id, u'Downloading page %s' % pagenum)
 
-            playlist_el = get_element_by_attribute(u'class', u'row video_list', webpage)
-            video_ids.extend(re.findall(r'data-id="(.+?)"', playlist_el))
+            video_ids.extend(re.findall(r'data-id="(.+?)"', webpage))
 
-            if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
+            if re.search(self._MORE_PAGES_INDICATOR, webpage) is None:
                 break
         return [self.url_result('http://www.dailymotion.com/video/%s' % video_id, 'Dailymotion')
                    for video_id in orderedSet(video_ids)]
@@ -212,8 +211,7 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
 
 class DailymotionUserIE(DailymotionPlaylistIE):
     IE_NAME = u'dailymotion:user'
-    _VALID_URL = r'(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/user/(?P<user>[^/]+)'
-    _MORE_PAGES_INDICATOR = r'<div class="next">.*?<a.*?href="/user/.+?".*?>.*?</a>.*?</div>'
+    _VALID_URL = r'https?://(?:www\.)?dailymotion\.[a-z]{2,3}/user/(?P<user>[^/]+)'
     _PAGE_TEMPLATE = 'http://www.dailymotion.com/user/%s/%s'
 
     def _real_extract(self, url):

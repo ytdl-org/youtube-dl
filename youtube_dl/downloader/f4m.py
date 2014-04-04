@@ -297,6 +297,7 @@ class F4mFD(FileDownloader):
                         break
             frags_filenames.append(frag_filename)
 
+        dest_stream.close()
         self.report_finish(format_bytes(state['downloaded_bytes']), time.time() - start)
 
         self.try_rename(tmpfilename, filename)

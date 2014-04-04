@@ -40,6 +40,7 @@ from .clipfish import ClipfishIE
 from .cliphunter import CliphunterIE
 from .clipsyndicate import ClipsyndicateIE
 from .cmt import CMTIE
+from .cnet import CNETIE
 from .cnn import (
     CNNIE,
     CNNBlogsIE,
@@ -83,6 +84,7 @@ from .fktv import (
 )
 from .flickr import FlickrIE
 from .fourtube import FourTubeIE
+from .franceculture import FranceCultureIE
 from .franceinter import FranceInterIE
 from .francetv import (
     PluzzIE,
@@ -152,6 +154,8 @@ from .mixcloud import MixcloudIE
 from .mpora import MporaIE
 from .mofosex import MofosexIE
 from .mooshare import MooshareIE
+from .morningstar import MorningstarIE
+from .motorsport import MotorsportIE
 from .mtv import (
     MTVIE,
     MTVIggyIE,
