@@ -1453,7 +1453,8 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
             more_widget_html = more['load_more_widget_html']
 
         playlist_title = self._html_search_regex(
-                r'<h1 class="pl-header-title">\s*(.*?)\s*</h1>', page, u'title')
+            r'(?s)<h1 class="pl-header-title[^"]*">\s*(.*?)\s*</h1>',
+            page, u'title')
 
         url_results = self._ids_to_results(ids)
         return self.playlist_result(url_results, playlist_id, playlist_title)
