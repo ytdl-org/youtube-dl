@@ -324,7 +324,6 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['id'], '342759')
         self.assertEqual(
             result['title'], 'General Motors Ignition Switch Recall')
-        self.assertEqual(len(result['entries']), 9)
         whole_duration = sum(e['duration'] for e in result['entries'])
         self.assertEqual(whole_duration, 14855)
 
