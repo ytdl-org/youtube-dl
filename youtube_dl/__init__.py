@@ -242,7 +242,7 @@ def parseOpts(overrideArguments=None):
         help='Use the specified HTTP/HTTPS proxy. Pass in an empty string (--proxy "") for direct connection')
     general.add_option('--no-check-certificate', action='store_true', dest='no_check_certificate', default=False, help='Suppress HTTPS certificate validation.')
     general.add_option(
-        '--prefer-insecure', action='store_true', dest='prefer_insecure',
+        '--prefer-insecure', '--prefer-unsecure', action='store_true', dest='prefer_insecure',
         help='Use an unencrypted connection to retrieve information about the video. (Currently supported only for YouTube)')
     general.add_option(
         '--cache-dir', dest='cachedir', default=get_cachedir(), metavar='DIR',
