@@ -18,7 +18,7 @@ class Ro220IE(InfoExtractor):
         'md5': '03af18b73a07b4088753930db7a34add',
         'info_dict': {
             "title": "Luati-le Banii sez 4 ep 1",
-            "description": "Iata-ne reveniti dupa o binemeritata vacanta. Va astept si pe Facebook cu pareri si comentarii.",
+            "description": "re:^Iata-ne reveniti dupa o binemeritata vacanta\. +Va astept si pe Facebook cu pareri si comentarii.$",
         }
     }
 
