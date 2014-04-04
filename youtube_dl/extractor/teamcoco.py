@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class TeamcocoIE(InfoExtractor):
-    _VALID_URL = r'http://teamcoco\.com/video/(?P<video_id>\d*)?/?(?P<url_title>.*)'
+    _VALID_URL = r'http://teamcoco\.com/video/(?P<video_id>[0-9]+)?/?(?P<url_title>.*)'
     _TESTS = [
     {
         'url': 'http://teamcoco.com/video/80187/conan-becomes-a-mary-kay-beauty-consultant',
