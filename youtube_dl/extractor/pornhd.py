@@ -1,44 +1,81 @@
 from __future__ import unicode_literals
 
 import re
+import json
 
 from .common import InfoExtractor
-from ..utils import compat_urllib_parse
+from ..utils import int_or_none
 
 
 class PornHdIE(InfoExtractor):
-    _VALID_URL = r'(?:http://)?(?:www\.)?pornhd\.com/(?:[a-z]{2,4}/)?videos/(?P<video_id>[0-9]+)/(?P<video_title>.+)'
+    _VALID_URL = r'http://(?:www\.)?pornhd\.com/(?:[a-z]{2,4}/)?videos/(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.pornhd.com/videos/1962/sierra-day-gets-his-cum-all-over-herself-hd-porn-video',
-        'file': '1962.flv',
         'md5': '35272469887dca97abd30abecc6cdf75',
         'info_dict': {
-            "title": "sierra-day-gets-his-cum-all-over-herself-hd-porn-video",
-            "age_limit": 18,
+            'id': '1962',
+            'ext': 'mp4',
+            'title': 'Sierra loves doing laundry',
+            'description': 'md5:8ff0523848ac2b8f9b065ba781ccf294',
+            'age_limit': 18,
         }
     }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-
-        video_id = mobj.group('video_id')
-        video_title = mobj.group('video_title')
+        video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id)
 
-        next_url = self._html_search_regex(
-            r'&hd=(http.+?)&', webpage, 'video URL')
-        next_url = compat_urllib_parse.unquote(next_url)
+        title = self._og_search_title(webpage)
+        TITLE_SUFFIX = ' porn HD Video | PornHD.com '
+        if title.endswith(TITLE_SUFFIX):
+            title = title[:-len(TITLE_SUFFIX)]
 
-        video_url = self._download_webpage(
-            next_url, video_id, note='Retrieving video URL',
-            errnote='Could not retrieve video URL')
-        age_limit = 18
+        description = self._html_search_regex(
+            r'<div class="description">([^<]+)</div>', webpage, 'description', fatal=False)
+        view_count = int_or_none(self._html_search_regex(
+            r'(\d+) views 	</span>', webpage, 'view count', fatal=False))
+
+        formats = [
+            {
+                'url': url,
+                'ext': format.lower(),
+                'format_id': '%s-%s' % (format.lower(), quality.lower()),
+                'quality': 1 if quality.lower() == 'high' else 0,
+            } for format, quality, url in re.findall(
+                r'var __video([\da-zA-Z]+?)(Low|High)StreamUrl = \'(http://.+?)\?noProxy=1\'', webpage)
+        ]
+
+        mobj = re.search(r'flashVars = (?P<flashvars>{.+?});', webpage)
+        if mobj:
+            flashvars = json.loads(mobj.group('flashvars'))
+            formats.extend([
+                {
+                    'url': flashvars['hashlink'].replace('?noProxy=1', ''),
+                    'ext': 'flv',
+                    'format_id': 'flv-low',
+                    'quality': 0,
+                },
+                {
+                    'url': flashvars['hd'].replace('?noProxy=1', ''),
+                    'ext': 'flv',
+                    'format_id': 'flv-high',
+                    'quality': 1,
+                }
+            ])
+            thumbnail = flashvars['urlWallpaper']
+        else:
+            thumbnail = self._og_search_thumbnail(webpage)
+
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'url': video_url,
-            'ext': 'flv',
-            'title': video_title,
-            'age_limit': age_limit,
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'view_count': view_count,
+            'formats': formats,
+            'age_limit': 18,
         }
