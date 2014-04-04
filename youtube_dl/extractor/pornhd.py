@@ -11,7 +11,7 @@ class PornHdIE(InfoExtractor):
     _VALID_URL = r'http://(?:www\.)?pornhd\.com/(?:[a-z]{2,4}/)?videos/(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.pornhd.com/videos/1962/sierra-day-gets-his-cum-all-over-herself-hd-porn-video',
-        'md5': '35272469887dca97abd30abecc6cdf75',
+        'md5': '956b8ca569f7f4d8ec563e2c41598441',
         'info_dict': {
             'id': '1962',
             'ext': 'mp4',
