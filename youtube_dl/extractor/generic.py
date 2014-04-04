@@ -184,6 +184,15 @@ class GenericIE(InfoExtractor):
                 'description': 'md5:ddb2a40ecd6b6a147e400e535874947b',
             }
         },
+        # Embeded Ustream video
+        {
+            'url': 'http://www.american.edu/spa/pti/nsa-privacy-janus-2014.cfm',
+            'md5': '27b99cdb639c9b12a79bca876a073417',
+            'info_dict': {
+                'uploader': 'AU SPA: The NSA and Privacy',
+                'title': 'NSA and Privacy Forum Debate featuring General Hayden and Barton Gellman'
+            }
+        },
         # nowvideo embed hidden behind percent encoding
         {
             'url': 'http://www.waoanime.tv/the-super-dimension-fortress-macross-episode-1/',
@@ -555,6 +564,12 @@ class GenericIE(InfoExtractor):
             r'<iframe[^>]+?src=(["\'])(?P<url>http://embed\.ted\.com/.+?)\1', webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'TED')
+
+        # Look for embedded Ustream videos
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>http://www\.ustream\.tv/embed/.+?)\1', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'Ustream')
 
         # Look for embedded arte.tv player
         mobj = re.search(
