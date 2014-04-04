@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class TeamcocoIE(InfoExtractor):
-    _VALID_URL = r'http://teamcoco\.com/video/(?P<video_id>\d*)?/?(?P<url_title>.*)'
+    _VALID_URL = r'http://teamcoco\.com/video/([^/]*)?/?(.*)'
     _TESTS = [
     {
         'url': 'http://teamcoco.com/video/80187/conan-becomes-a-mary-kay-beauty-consultant',
@@ -35,11 +35,13 @@ class TeamcocoIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
             raise ExtractorError('Invalid URL: %s' % url)
-        url_title = mobj.group('url_title')
+        url_title = mobj.group(2)
+        if url_title == '':
+            url_title = mobj.group(1)
         webpage = self._download_webpage(url, url_title)
         
-        video_id = mobj.group("video_id")
-        if video_id == '':
+        video_id = mobj.group(1)
+        if mobj.group(2) == '':
             video_id = self._html_search_regex(
                 r'<article class="video" data-id="(\d+?)"',
                 webpage, 'video id')
