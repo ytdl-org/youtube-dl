@@ -52,6 +52,7 @@ __authors__  = (
     'Juan C. Olivares',
     'Mattias Harrysson',
     'phaer',
+    'Enam Mijbah Noor'
 )
 
 __license__ = 'Public Domain'
@@ -276,6 +277,10 @@ def parseOpts(overrideArguments=None):
         '--playlist-end',
         dest='playlistend', metavar='NUMBER', default=None, type=int,
         help='playlist video to end at (default is last)')
+    selection.add_option(
+        '--playlist-items',
+        dest='playlistitems', metavar='FORMAT', default=None,
+        help='playlist video items to download. Specify indices of the videos in the playlist seperated by commas like: "--playlist-items 1,2,5,8" if you want to download videos indexed 1, 2, 5, 8 in the playlist. You can specify range: "--playlist-items 1-3,7,10-13", it will download the videos at index 1, 2, 3, 7, 10, 11, 12 and 13.')
     selection.add_option('--match-title', dest='matchtitle', metavar='REGEX',help='download only matching titles (regex or caseless sub-string)')
     selection.add_option('--reject-title', dest='rejecttitle', metavar='REGEX',help='skip download for matching titles (regex or caseless sub-string)')
     selection.add_option('--max-downloads', metavar='NUMBER',
@@ -744,6 +749,7 @@ def _real_main(argv=None):
         'progress_with_newline': opts.progress_with_newline,
         'playliststart': opts.playliststart,
         'playlistend': opts.playlistend,
+        'playlistitems': opts.playlistitems,
         'noplaylist': opts.noplaylist,
         'logtostderr': opts.outtmpl == '-',
         'consoletitle': opts.consoletitle,
