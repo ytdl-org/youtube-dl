@@ -519,7 +519,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded NowVideo player
         mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>http://(?:(?:embed|www)\.)?nowvideo\.(?:ch|sx|eu)/embed\.php.+?)\1', webpage)
+            r'<iframe[^>]+?src=(["\'])(?P<url>http://(?:(?:embed|www)\.)?nowvideo\.(?:ch|sx|eu|at|ag|co)/embed\.php.+?)\1', webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'NowVideo')
 
