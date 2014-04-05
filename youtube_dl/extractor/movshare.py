@@ -7,7 +7,7 @@ class MovShareIE(NovaMovIE):
     IE_NAME = 'movshare'
     IE_DESC = 'MovShare'
 
-    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'movshare\.(?:net|sx)'}
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'movshare\.(?:net|sx|ag)'}
 
     _HOST = 'www.movshare.net'
 
