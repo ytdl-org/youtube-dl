@@ -37,7 +37,7 @@ class VideoweedIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        print "itworks"
+        
         page = self._download_webpage(
             'http://%s/file/%s' % (self._HOST, video_id), video_id, 'Downloading video page')
 
