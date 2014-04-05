@@ -11,6 +11,7 @@ class VideoWeedIE(NovaMovIE):
 
     _HOST = 'www.videoweed.es'
 
+    _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
     _TITLE_REGEX = r'<h1 class="text_shadow">([^<]+)</h1>'
 
     _TEST = {
