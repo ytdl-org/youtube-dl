@@ -11,6 +11,7 @@ class MovShareIE(NovaMovIE):
 
     _HOST = 'www.movshare.net'
 
+    _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
     _TITLE_REGEX = r'<strong>Title:</strong> ([^<]+)</p>'
     _DESCRIPTION_REGEX = r'<strong>Description:</strong> ([^<]+)</p>'
 
