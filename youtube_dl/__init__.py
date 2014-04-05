@@ -52,6 +52,7 @@ __authors__  = (
     'Juan C. Olivares',
     'Mattias Harrysson',
     'phaer',
+    'Sainyam Kapoor',
 )
 
 __license__ = 'Public Domain'
