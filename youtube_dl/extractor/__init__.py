@@ -284,6 +284,7 @@ from .vimeo import (
     VimeoGroupsIE,
     VimeoReviewIE,
 )
+from .videoweed import VideoweedIE
 from .vine import VineIE
 from .viki import VikiIE
 from .vk import VKIE
