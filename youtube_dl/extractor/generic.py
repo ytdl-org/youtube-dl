@@ -523,6 +523,12 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'NowVideo')
 
+        # Look for embedded VideoWeed player
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>http://(?:(?:embed|www)\.)?videoweed\.(?:es|com)/embed\.php.+?)\1', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'VideoWeed')
+
         # Look for embedded Facebook player
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>https://www\.facebook\.com/video/embed.+?)\1', webpage)
