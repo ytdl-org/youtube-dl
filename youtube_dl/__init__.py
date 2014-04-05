@@ -696,10 +696,10 @@ def _real_main(argv=None):
     outtmpl =((opts.outtmpl is not None and opts.outtmpl)
             or (opts.format == '-1' and opts.usetitle and u'%(title)s-%(id)s-%(format)s.%(ext)s')
             or (opts.format == '-1' and u'%(id)s-%(format)s.%(ext)s')
-            or (opts.usetitle and opts.autonumber and u'%(autonumber)s-%(title)s-%(id)s.%(ext)s')
+            or (opts.autonumber and opts.useid and u'%(autonumber)s-%(id)s.%(ext)s')
+            or (opts.autonumber and u'%(autonumber)s-%(title)s-%(id)s.%(ext)s')
             or (opts.usetitle and u'%(title)s-%(id)s.%(ext)s')
             or (opts.useid and u'%(id)s.%(ext)s')
-            or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
             or u'%(title)s-%(id)s.%(ext)s')
     if not os.path.splitext(outtmpl)[1] and opts.extractaudio:
         parser.error(u'Cannot download a video and extract audio into the same'
