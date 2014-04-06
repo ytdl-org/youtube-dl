@@ -35,13 +35,13 @@ class RTSIE(InfoExtractor):
         },
         {
             'url': 'http://www.rts.ch/emissions/passe-moi-les-jumelles/5624067-entre-ciel-et-mer.html',
-            'md5': 'c197f0b2421995c63a64cc73d800f42e',
+            'md5': 'c148457a27bdc9e5b1ffe081a7a8337b',
             'info_dict': {
                 'id': '5624067',
                 'ext': 'mp4',
-                'duration': 55,
-                'title': 'Bande de lancement de Passe-moi les jumelles',
-                'description': '',
+                'duration': 3720,
+                'title': 'Les yeux dans les cieux - Mon homard au Canada',
+                'description': 'md5:d22ee46f5cc5bac0912e5a0c6d44a9f7',
                 'uploader': 'Passe-moi les jumelles',
                 'upload_date': '20140404',
                 'timestamp': 1396635300,
