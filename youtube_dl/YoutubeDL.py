@@ -286,6 +286,9 @@ class YoutubeDL(object):
         """Print message to stdout if not in quiet mode."""
         return self.to_stdout(message, skip_eol, check_quiet=True)
 
+    def _write_string(self, s, out=None):
+        write_string(s, out=out, encoding=self.get_encoding())
+
     def to_stdout(self, message, skip_eol=False, check_quiet=False):
         """Print message to stdout if not in quiet mode."""
         if self.params.get('logger'):
@@ -295,7 +298,7 @@ class YoutubeDL(object):
             terminator = ['\n', ''][skip_eol]
             output = message + terminator
 
-            write_string(output, self._screen_file)
+            self._write_string(output, self._screen_file)
 
     def to_stderr(self, message):
         """Print message to stderr."""
@@ -305,7 +308,7 @@ class YoutubeDL(object):
         else:
             message = self._bidi_workaround(message)
             output = message + '\n'
-            write_string(output, self._err_file)
+            self._write_string(output, self._err_file)
 
     def to_console_title(self, message):
         if not self.params.get('consoletitle', False):
@@ -315,21 +318,21 @@ class YoutubeDL(object):
             # already of type unicode()
             ctypes.windll.kernel32.SetConsoleTitleW(ctypes.c_wchar_p(message))
         elif 'TERM' in os.environ:
-            write_string('\033]0;%s\007' % message, self._screen_file)
+            self._write_string('\033]0;%s\007' % message, self._screen_file)
 
     def save_console_title(self):
         if not self.params.get('consoletitle', False):
             return
         if 'TERM' in os.environ:
             # Save the title on stack
-            write_string('\033[22;0t', self._screen_file)
+            self._write_string('\033[22;0t', self._screen_file)
 
     def restore_console_title(self):
         if not self.params.get('consoletitle', False):
             return
         if 'TERM' in os.environ:
             # Restore the title from stack
-            write_string('\033[23;0t', self._screen_file)
+            self._write_string('\033[23;0t', self._screen_file)
 
     def __enter__(self):
         self.save_console_title()
@@ -1211,9 +1214,16 @@ class YoutubeDL(object):
         if not self.params.get('verbose'):
             return
 
-        write_string('[debug] Encodings: locale %s, fs %s, out %s, pref %s\n' %
-                 (locale.getpreferredencoding(), sys.getfilesystemencoding(), sys.stdout.encoding, self.get_encoding()))
-        write_string('[debug] youtube-dl version ' + __version__ + '\n')
+        write_string(
+            '[debug] Encodings: locale %s, fs %s, out %s, pref %s\n' % (
+                locale.getpreferredencoding(),
+                sys.getfilesystemencoding(),
+                sys.stdout.encoding,
+                self.get_encoding()),
+            encoding=None
+        )
+
+        self._write_string('[debug] youtube-dl version ' + __version__ + '\n')
         try:
             sp = subprocess.Popen(
                 ['git', 'rev-parse', '--short', 'HEAD'],
@@ -1222,20 +1232,20 @@ class YoutubeDL(object):
             out, err = sp.communicate()
             out = out.decode().strip()
             if re.match('[0-9a-f]+', out):
-                write_string('[debug] Git HEAD: ' + out + '\n')
+                self._write_string('[debug] Git HEAD: ' + out + '\n')
         except:
             try:
                 sys.exc_clear()
             except:
                 pass
-        write_string('[debug] Python version %s - %s' %
+        self._write_string('[debug] Python version %s - %s' %
                      (platform.python_version(), platform_name()) + '\n')
 
         proxy_map = {}
         for handler in self._opener.handlers:
             if hasattr(handler, 'proxies'):
                 proxy_map.update(handler.proxies)
-        write_string('[debug] Proxy map: ' + compat_str(proxy_map) + '\n')
+        self._write_string('[debug] Proxy map: ' + compat_str(proxy_map) + '\n')
 
     def _setup_opener(self):
         timeout_val = self.params.get('socket_timeout')
