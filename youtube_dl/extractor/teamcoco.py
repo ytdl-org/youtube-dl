@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class TeamcocoIE(InfoExtractor):
-    _VALID_URL = r'http://teamcoco\.com/video/(?P<video_id>[0-9]+)?/?(?P<url_title>.*)'
+    _VALID_URL = r'http://teamcoco\.com/video/(?P<video_id>[0-9]+)?/?(?P<display_id>.*)'
     _TESTS = [
     {
         'url': 'http://teamcoco.com/video/80187/conan-becomes-a-mary-kay-beauty-consultant',
@@ -33,21 +33,19 @@ class TeamcocoIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError('Invalid URL: %s' % url)
-        url_title = mobj.group('url_title')
-        webpage = self._download_webpage(url, url_title)
+
+        display_id = mobj.group('display_id')
+        webpage = self._download_webpage(url, display_id)
         
         video_id = mobj.group("video_id")
-        if video_id == '':
+        if not video_id:
             video_id = self._html_search_regex(
                 r'<article class="video" data-id="(\d+?)"',
                 webpage, 'video id')
-        
-        self.report_extraction(video_id)
 
         data_url = 'http://teamcoco.com/cvp/2.0/%s.xml' % video_id
-        data = self._download_xml(data_url, video_id, 'Downloading data webpage')
+        data = self._download_xml(
+            data_url, display_id, 'Downloading data webpage')
 
         qualities = ['500k', '480p', '1000k', '720p', '1080p']
         formats = []
@@ -82,6 +80,7 @@ class TeamcocoIE(InfoExtractor):
 
         return {
             'id': video_id,
+            'display_id': display_id,
             'formats': formats,
             'title': self._og_search_title(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
