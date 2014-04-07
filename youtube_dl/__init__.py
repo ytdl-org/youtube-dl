@@ -97,6 +97,7 @@ from .postprocessor import (
     FFmpegExtractAudioPP,
     FFmpegEmbedSubtitlePP,
     XAttrMetadataPP,
+    FFmpegConcatPP,
 )
 
 
@@ -495,6 +496,8 @@ def parseOpts(overrideArguments=None):
             help='"best", "aac", "vorbis", "mp3", "m4a", "opus", or "wav"; best by default')
     postproc.add_option('--audio-quality', metavar='QUALITY', dest='audioquality', default='5',
             help='ffmpeg/avconv audio quality specification, insert a value between 0 (better) and 9 (worse) for VBR or a specific bitrate like 128K (default 5)')
+    postproc.add_option('--join', action='store_true', dest='concat', default=False,
+            help='when downloading a playlist of multiple videos, try to join them together end-to-end (EXPERIMENTAL)')
     postproc.add_option('--recode-video', metavar='FORMAT', dest='recodevideo', default=None,
             help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm)')
     postproc.add_option('-k', '--keep-video', action='store_true', dest='keepvideo', default=False,
@@ -790,6 +793,7 @@ def _real_main(argv=None):
         'default_search': opts.default_search,
         'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,
         'encoding': opts.encoding,
+        'concat': opts.concat,
     }
 
     with YoutubeDL(ydl_opts) as ydl:

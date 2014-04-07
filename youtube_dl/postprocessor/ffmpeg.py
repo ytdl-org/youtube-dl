@@ -488,13 +488,17 @@ class FFmpegMergerPP(FFmpegPostProcessor):
         return True, info
 
 class FFmpegConcatPP(FFmpegPostProcessor):
+    #Concat support requires that the IE return '_type' = 'playlist'
+    #Otherwise it silently fail
     def run(self, info):
-        filename = info['filepath']
+        filename = info['title'] + u'.mp4' #What could possibly go wrong?
         concatargs = ['-f', 'concat']
         args = ['-c', 'copy']
         self._downloader.to_screen(u'[ffmpeg] Appending files into "%s"' % filename)
+        #According to the ffmpeg docs this is literally how you're supposed to concat files.
+        #No method using solely the command line is listed. And I'm like "really?".
         with open(u'youtube-dl_ffmpeg_append_list.txt', 'wb') as f:
-            for file in info['__files_to_merge']:
+            for file in info['__files_to_append']:
                 f.write("file '" + file + "'\n")
         self.run_ffmpeg_multiple_files([u'youtube-dl_ffmpeg_append_list.txt'], filename, args, preopts=concatargs)
         os.unlink('youtube-dl_ffmpeg_append_list.txt')

@@ -58,7 +58,7 @@ from .utils import (
 )
 from .extractor import get_info_extractor, gen_extractors
 from .downloader import get_suitable_downloader
-from .postprocessor import FFmpegMergerPP
+from .postprocessor import FFmpegMergerPP, FFmpegConcatPP
 from .version import __version__
 
 
@@ -640,6 +640,18 @@ class YoutubeDL(object):
                                                       extra_info=extra)
                 playlist_results.append(entry_result)
             ie_result['entries'] = playlist_results
+            
+            #Run concat PP
+            if self.params['concat']:
+                pp = FFmpegConcatPP(self)
+                
+                mergelist = []
+                for video in playlist_results:
+                    mergelist.append(video['saved_filename'])
+                ie_result['__files_to_append'] = mergelist
+                
+                pp.run(ie_result)
+            
             return ie_result
         elif result_type == 'compat_list':
             def _fixup(r):
@@ -811,13 +823,16 @@ class YoutubeDL(object):
             for format in formats_to_download:
                 new_info = dict(info_dict)
                 new_info.update(format)
-                self.process_info(new_info)
+                saved_filename = self.process_info(new_info)
+                #Maintain a list of saved files when processing playlists. Used by the concat PP.
+                info_dict['saved_filename'] = saved_filename
         # We update the info dict with the best quality format (backwards compatibility)
         info_dict.update(formats_to_download[-1])
+
         return info_dict
 
     def process_info(self, info_dict):
-        """Process a single resolved IE result."""
+        """Process a single resolved IE result. Returns the saved filename."""
 
         assert info_dict.get('_type', 'video') == 'video'
 
@@ -1019,6 +1034,7 @@ class YoutubeDL(object):
                     return
 
         self.record_download_archive(info_dict)
+        return filename
 
     def download(self, url_list):
         """Download a given list of URLs."""
