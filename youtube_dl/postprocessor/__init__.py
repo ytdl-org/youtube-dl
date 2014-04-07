@@ -1,6 +1,7 @@
 
 from .ffmpeg import (
     FFmpegMergerPP,
+    FFmpegConcatPP,
     FFmpegMetadataPP,
     FFmpegVideoConvertor,
     FFmpegExtractAudioPP,
@@ -10,6 +11,7 @@ from .xattrpp import XAttrMetadataPP
 
 __all__ = [
     'FFmpegMergerPP',
+    'FFmpegConcatPP',
     'FFmpegMetadataPP',
     'FFmpegVideoConvertor',
     'FFmpegExtractAudioPP',

@@ -40,16 +40,19 @@ class FFmpegPostProcessor(PostProcessor):
     def _uses_avconv(self):
         return self._get_executable() == self._exes['avconv']
 
-    def run_ffmpeg_multiple_files(self, input_paths, out_path, opts):
+    def run_ffmpeg_multiple_files(self, input_paths, out_path, opts, preopts=None):
         if not self._get_executable():
             raise FFmpegPostProcessorError(u'ffmpeg or avconv not found. Please install one.')
 
+        preopt_cmd = []
+        if preopts:
+            preopt_cmd = preopts
         files_cmd = []
         for path in input_paths:
             files_cmd.extend(['-i', encodeFilename(path, True)])
-        cmd = ([self._get_executable(), '-y'] + files_cmd
-               + opts +
-               [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
+        cmd = ([self._get_executable(), '-y'] +
+            preopt_cmd + files_cmd + opts +
+            [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
 
         if self._downloader.params.get('verbose', False):
             self._downloader.to_screen(u'[debug] ffmpeg command line: %s' % shell_quote(cmd))
@@ -484,3 +487,15 @@ class FFmpegMergerPP(FFmpegPostProcessor):
         self.run_ffmpeg_multiple_files(info['__files_to_merge'], filename, args)
         return True, info
 
+class FFmpegConcatPP(FFmpegPostProcessor):
+    def run(self, info):
+        filename = info['filepath']
+        concatargs = ['-f', 'concat']
+        args = ['-c', 'copy']
+        self._downloader.to_screen(u'[ffmpeg] Appending files into "%s"' % filename)
+        with open(u'youtube-dl_ffmpeg_append_list.txt', 'wb') as f:
+            for file in info['__files_to_merge']:
+                f.write("file '" + file + "'\n")
+        self.run_ffmpeg_multiple_files([u'youtube-dl_ffmpeg_append_list.txt'], filename, args, preopts=concatargs)
+        os.unlink('youtube-dl_ffmpeg_append_list.txt')
+        return True, info
