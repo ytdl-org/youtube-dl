@@ -910,10 +910,70 @@ def platform_name():
     return res
 
 
+def _windows_write_string(s, out):
+    """ Returns True if the string was written using special methods,
+    False if it has yet to be written out."""
+    # Adapted from http://stackoverflow.com/a/3259271/35070
+
+    import ctypes
+    import ctypes.wintypes
+
+    WIN_OUTPUT_IDS = {
+        1: -11,
+        2: -12,
+    }
+
+    fileno = out.fileno()
+    if fileno not in WIN_OUTPUT_IDS:
+        return False
+
+    GetStdHandle = ctypes.WINFUNCTYPE(
+        ctypes.wintypes.HANDLE, ctypes.wintypes.DWORD)(
+        ("GetStdHandle", ctypes.windll.kernel32))
+    h = GetStdHandle(WIN_OUTPUT_IDS[fileno])
+
+    WriteConsoleW = ctypes.WINFUNCTYPE(
+        ctypes.wintypes.BOOL, ctypes.wintypes.HANDLE, ctypes.wintypes.LPWSTR,
+        ctypes.wintypes.DWORD, ctypes.POINTER(ctypes.wintypes.DWORD),
+        ctypes.wintypes.LPVOID)(("WriteConsoleW", ctypes.windll.kernel32))
+    written = ctypes.wintypes.DWORD(0)
+
+    GetFileType = ctypes.WINFUNCTYPE(ctypes.wintypes.DWORD, ctypes.wintypes.DWORD)(("GetFileType", ctypes.windll.kernel32))
+    FILE_TYPE_CHAR = 0x0002
+    FILE_TYPE_REMOTE = 0x8000
+    GetConsoleMode = ctypes.WINFUNCTYPE(
+        ctypes.wintypes.BOOL, ctypes.wintypes.HANDLE,
+        ctypes.POINTER(ctypes.wintypes.DWORD))(
+        ("GetConsoleMode", ctypes.windll.kernel32))
+    INVALID_HANDLE_VALUE = ctypes.wintypes.DWORD(-1).value
+
+    def not_a_console(handle):
+        if handle == INVALID_HANDLE_VALUE or handle is None:
+            return True
+        return ((GetFileType(handle) & ~FILE_TYPE_REMOTE) != FILE_TYPE_CHAR
+                or GetConsoleMode(handle, ctypes.byref(ctypes.wintypes.DWORD())) == 0)
+
+    if not_a_console(h):
+        return False
+
+    remaining = len(s)
+    while remaining > 0:
+        ret = WriteConsoleW(
+            h, s, min(len(s), 1024), ctypes.byref(written), None)
+        if ret == 0:
+            raise OSError('Failed to write string')
+        remaining -= written.value
+    return True
+
+
 def write_string(s, out=None, encoding=None):
     if out is None:
         out = sys.stderr
     assert type(s) == compat_str
+
+    if sys.platform == 'win32' and encoding is None and hasattr(out, 'fileno'):
+        if _windows_write_string(s, out):
+            return
 
     if ('b' in getattr(out, 'mode', '') or
             sys.version_info[0] < 3):  # Python 2 lies about mode of sys.stderr

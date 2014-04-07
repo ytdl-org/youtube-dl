@@ -287,7 +287,7 @@ class YoutubeDL(object):
         return self.to_stdout(message, skip_eol, check_quiet=True)
 
     def _write_string(self, s, out=None):
-        write_string(s, out=out, encoding=self.get_encoding())
+        write_string(s, out=out, encoding=self.params.get('encoding'))
 
     def to_stdout(self, message, skip_eol=False, check_quiet=False):
         """Print message to stdout if not in quiet mode."""
