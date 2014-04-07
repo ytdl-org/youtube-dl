@@ -37,6 +37,7 @@ class TEDIE(SubtitlesInfoExtractor):
                 'consciousness, but that half the time our brains are '
                 'actively fooling us.'),
             'uploader': 'Dan Dennett',
+            'width': 854,
         }
     }, {
         'url': 'http://www.ted.com/watch/ted-institute/ted-bcg/vishal-sikka-the-beauty-and-power-of-algorithms',
@@ -50,10 +51,10 @@ class TEDIE(SubtitlesInfoExtractor):
         }
     }]
 
-    _FORMATS_PREFERENCE = {
-        'low': 1,
-        'medium': 2,
-        'high': 3,
+    _NATIVE_FORMATS = {
+        'low': {'preference': 1, 'width': 320, 'height': 180},
+        'medium': {'preference': 2, 'width': 512, 'height': 288},
+        'high': {'preference': 3, 'width': 854, 'height': 480},
     }
 
     def _extract_info(self, webpage):
@@ -98,12 +99,14 @@ class TEDIE(SubtitlesInfoExtractor):
         talk_info = self._extract_info(webpage)['talks'][0]
 
         formats = [{
-            'ext': 'mp4',
             'url': format_url,
             'format_id': format_id,
             'format': format_id,
-            'preference': self._FORMATS_PREFERENCE.get(format_id, -1),
         } for (format_id, format_url) in talk_info['nativeDownloads'].items()]
+        for f in formats:
+            finfo = self._NATIVE_FORMATS.get(f['format_id'])
+            if finfo:
+                f.update(finfo)
         self._sort_formats(formats)
 
         video_id = compat_str(talk_info['id'])
