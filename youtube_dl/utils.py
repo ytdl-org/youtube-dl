@@ -923,6 +923,9 @@ def _windows_write_string(s, out):
         2: -12,
     }
 
+    def ucs2_len(s):
+        return sum((2 if ord(c) > 0xffff else 1) for c in s)
+
     fileno = out.fileno()
     if fileno not in WIN_OUTPUT_IDS:
         return False
@@ -956,10 +959,10 @@ def _windows_write_string(s, out):
     if not_a_console(h):
         return False
 
-    remaining = len(s)
+    remaining = ucs2_len(s)
     while remaining > 0:
         ret = WriteConsoleW(
-            h, s, min(len(s), 1024), ctypes.byref(written), None)
+            h, s, min(remaining, 1024), ctypes.byref(written), None)
         if ret == 0:
             raise OSError('Failed to write string')
         remaining -= written.value
