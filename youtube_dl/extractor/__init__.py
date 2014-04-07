@@ -208,6 +208,7 @@ from .rottentomatoes import RottenTomatoesIE
 from .roxwel import RoxwelIE
 from .rtlnow import RTLnowIE
 from .rts import RTSIE
+from .rtve import RTVEALaCartaIE
 from .rutube import (
     RutubeIE,
     RutubeChannelIE,
