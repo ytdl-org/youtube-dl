@@ -917,21 +917,14 @@ def write_string(s, out=None, encoding=None):
 
     if ('b' in getattr(out, 'mode', '') or
             sys.version_info[0] < 3):  # Python 2 lies about mode of sys.stderr
-        s = s.encode(encoding or preferredencoding(), 'ignore')
-    try:
+        byt = s.encode(encoding or preferredencoding(), 'ignore')
+        out.write(byt)
+    elif hasattr(out, 'buffer'):
+        enc = encoding or getattr(out, 'encoding', None) or preferredencoding()
+        byt = s.encode(enc, 'ignore')
+        out.buffer.write(byt)
+    else:
         out.write(s)
-    except UnicodeEncodeError:
-        # In Windows shells, this can fail even when the codec is just charmap!?
-        # See https://wiki.python.org/moin/PrintFails#Issue
-        if sys.platform == 'win32':
-            if not encoding and hasattr(out, 'encoding'):
-                encoding = out.encoding
-            if encoding:
-                b = s.encode(encoding, 'ignore').decode(encoding)
-                out.write(b)
-        else:
-            raise
-
     out.flush()
 
 
