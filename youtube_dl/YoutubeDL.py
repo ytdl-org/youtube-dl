@@ -936,7 +936,7 @@ class YoutubeDL(object):
                         with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
                                 subfile.write(sub)
                 except (OSError, IOError):
-                    self.report_error('Cannot write subtitles file ' + descfn)
+                    self.report_error('Cannot write subtitles file ' + sub_filename)
                     return
 
         if self.params.get('writeinfojson', False):
