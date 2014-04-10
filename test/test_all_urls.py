@@ -172,5 +172,6 @@ class TestAllURLsMatching(unittest.TestCase):
             'https://screen.yahoo.com/smartwatches-latest-wearable-gadgets-163745379-cbs.html',
             ['Yahoo'])
 
+
 if __name__ == '__main__':
     unittest.main()
