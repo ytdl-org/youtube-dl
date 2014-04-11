@@ -46,7 +46,8 @@ class PyvideoIE(InfoExtractor):
             return self.url_result(m_youtube.group(1), 'Youtube')
 
         title = self._html_search_regex(
-            r'<div class="section">.*?<h3>([^>]+?)</h3>', webpage, 'title', flags=re.DOTALL)
+            r'<div class="section">.*?<h3(?:\s+class="[^"]*")?>([^>]+?)</h3>',
+            webpage, 'title', flags=re.DOTALL)
         video_url = self._search_regex(
             [r'<source src="(.*?)"', r'<dt>Download</dt>.*?<a href="(.+?)"'],
             webpage, 'video url', flags=re.DOTALL)
