@@ -49,6 +49,7 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch('http://youtu.be/BaW_jenozKc', ['youtube'])
         self.assertMatch('http://www.youtube.com/v/BaW_jenozKc', ['youtube'])
         self.assertMatch('https://youtube.googleapis.com/v/BaW_jenozKc', ['youtube'])
+        self.assertMatch('http://www.cleanvideosearch.com/media/action/yt/watch?videoId=8v_4O44sfjM', ['youtube'])
 
     def test_youtube_channel_matching(self):
         assertChannel = lambda url: self.assertMatch(url, ['youtube:channel'])
