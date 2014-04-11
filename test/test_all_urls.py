@@ -165,6 +165,9 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch(
             'http://thedailyshow.cc.com/video-playlists/npde3s/the-daily-show-19088-highlights',
             ['ComedyCentralShows'])
+        self.assertMatch(
+            'http://thedailyshow.cc.com/special-editions/2l8fdb/special-edition---a-look-back-at-food',
+            ['ComedyCentralShows'])
 
     def test_yahoo_https(self):
         # https://github.com/rg3/youtube-dl/issues/2701
