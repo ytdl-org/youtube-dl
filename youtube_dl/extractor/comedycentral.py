@@ -21,7 +21,7 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
 
     _TEST = {
         'url': 'http://www.comedycentral.com/video-clips/kllhuv/stand-up-greg-fitzsimmons--uncensored---too-good-of-a-mother',
-        'md5': '4167875aae411f903b751a21f357f1ee',
+        'md5': 'c4f48e9eda1b16dd10add0744344b6d8',
         'info_dict': {
             'id': 'cef0cbb3-e776-4bc9-b62e-8016deccb354',
             'ext': 'mp4',
