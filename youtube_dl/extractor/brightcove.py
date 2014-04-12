@@ -140,7 +140,11 @@ class BrightcoveIE(InfoExtractor):
 
         url_m = re.search(r'<meta\s+property="og:video"\s+content="(http://c.brightcove.com/[^"]+)"', webpage)
         if url_m:
-            return [unescapeHTML(url_m.group(1))]
+            url = unescapeHTML(url_m.group(1))
+            # Some sites don't add it, we can't download with this url, for example:
+            # http://www.ktvu.com/videos/news/raw-video-caltrain-releases-video-of-man-almost/vCTZdY/
+            if 'playerKey' in url:
+                return [url]
 
         matches = re.findall(
             r'''(?sx)<object
