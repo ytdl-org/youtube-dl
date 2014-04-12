@@ -464,7 +464,11 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         filename = info['filepath']
         temp_filename = prepend_extension(filename, 'temp')
 
-        options = ['-c', 'copy']
+        if info['ext'] == u'm4a':
+            options = ['-vn', '-acodec', 'copy']
+        else:
+            options = ['-c', 'copy']
+
         for (name, value) in metadata.items():
             options.extend(['-metadata', '%s=%s' % (name, value)])
 
@@ -483,3 +487,17 @@ class FFmpegMergerPP(FFmpegPostProcessor):
         self.run_ffmpeg_multiple_files(info['__files_to_merge'], filename, args)
         return True, info
 
+
+class FFmpegAudioFixPP(FFmpegPostProcessor):
+    def run(self, info):
+        filename = info['filepath']
+        temp_filename = prepend_extension(filename, 'temp')
+
+        options = ['-vn', '-acodec', 'copy']
+        self._downloader.to_screen(u'[ffmpeg] Fixing audio file "%s"' % filename)
+        self.run_ffmpeg(filename, temp_filename, options)
+
+        os.remove(encodeFilename(filename))
+        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+
+        return True, info
