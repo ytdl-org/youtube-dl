@@ -22,9 +22,6 @@ class AtomicParsleyPPError(PostProcessingError):
 
 
 class AtomicParsleyPP(PostProcessor):
-    def __init__(self, downloader=None):
-        PostProcessor.__init__(self, downloader)
-
     def run(self, info):
         if not check_executable('AtomicParsley', ['-v']):
             raise AtomicParsleyPPError('AtomicParsley was not found. Please install.')
