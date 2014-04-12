@@ -76,3 +76,10 @@ BUGS
 ====
 
 Bugs and suggestions should be reported at: https://github.com/rg3/youtube-dl/issues. Please read the `bug reporting guidelines <https://github.com/rg3/youtube-dl/#bugs>`_ before opening a ticket.
+
+COPYRIGHT
+=========
+
+youtube-dl is released into the public domain by the copyright holders.
+
+This manual page is based on the README file originally written by `Daniel Bolton <https://github.com/dbbolton>`_ and is likewise released into the public domain.
