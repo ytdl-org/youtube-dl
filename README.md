@@ -250,6 +250,7 @@ which means you can modify it, redistribute it or use it however you like.
                                      default
     --embed-subs                     embed subtitles in the video (only for mp4
                                      videos)
+    --embed-thumbnail                embed thumbnail in the audio as cover art
     --add-metadata                   write metadata to the video file
     --xattrs                         write metadata to the video file's xattrs
                                      (using dublin core and xdg standards)
