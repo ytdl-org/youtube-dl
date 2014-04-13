@@ -43,6 +43,7 @@ from youtube_dl.extractor import (
     XTubeUserIE,
     InstagramUserIE,
     CSpanIE,
+    AolIE,
 )
 
 
@@ -327,6 +328,16 @@ class TestPlaylists(unittest.TestCase):
         whole_duration = sum(e['duration'] for e in result['entries'])
         self.assertEqual(whole_duration, 14855)
 
+    def test_aol_playlist(self):
+        dl = FakeYDL()
+        ie = AolIE(dl)
+        result = ie.extract(
+            'http://on.aol.com/playlist/brace-yourself---todays-weirdest-news-152147?icid=OnHomepageC4_Omg_Img#_videoid=518184316')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], '152147')
+        self.assertEqual(
+            result['title'], 'Brace Yourself - Today\'s Weirdest News')
+        self.assertTrue(len(result['entries']) >= 10)
 
 if __name__ == '__main__':
     unittest.main()
