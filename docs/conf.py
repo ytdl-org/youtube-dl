@@ -37,7 +37,9 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'youtube-dl'
-copyright = u'2014, Ricardo Garcia Gonzalez'
+# Set it to None so that we can set different copyrights in the html and man
+# output
+copyright = None
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -69,3 +71,9 @@ html_static_path = ['_static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'youtube-dldoc'
+
+
+# -- Options for the man page ---------------------------------------------
+man_pages = [('youtube-dl.1', 'youtube-dl', 'download videos from youtube.com or other video platforms', None, 1)]
+
+man_show_urls = True
