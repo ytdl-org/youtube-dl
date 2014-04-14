@@ -49,6 +49,19 @@ class TEDIE(SubtitlesInfoExtractor):
             'thumbnail': 're:^https?://.+\.jpg',
             'description': 'Adaptive, intelligent, and consistent, algorithms are emerging as the ultimate app for everything from matching consumers to products to assessing medical diagnoses. Vishal Sikka shares his appreciation for the algorithm, charting both its inherent beauty and its growing power.',
         }
+    }, {
+        'url': 'http://www.ted.com/talks/gabby_giffords_and_mark_kelly_be_passionate_be_courageous_be_your_best',
+        'info_dict': {
+            'id': '1972',
+            'ext': 'flv',
+            'title': 'Be passionate. Be courageous. Be your best.',
+            'uploader': 'Gabby Giffords and Mark Kelly',
+            'description': 'md5:d89e1d8ebafdac8e55df4c219ecdbfe9',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        },
     }]
 
     _NATIVE_FORMATS = {
@@ -102,11 +115,23 @@ class TEDIE(SubtitlesInfoExtractor):
             'url': format_url,
             'format_id': format_id,
             'format': format_id,
-        } for (format_id, format_url) in talk_info['nativeDownloads'].items()]
-        for f in formats:
-            finfo = self._NATIVE_FORMATS.get(f['format_id'])
-            if finfo:
-                f.update(finfo)
+        } for (format_id, format_url) in talk_info['nativeDownloads'].items() if format_url is not None]
+        if formats:
+            for f in formats:
+                finfo = self._NATIVE_FORMATS.get(f['format_id'])
+                if finfo:
+                    f.update(finfo)
+        else:
+            # Use rtmp downloads
+            formats = [{
+                'format_id': f['name'],
+                'url': talk_info['streamer'],
+                'play_path': f['file'],
+                'ext': 'flv',
+                'width': f['width'],
+                'height': f['height'],
+                'tbr': f['bitrate'],
+            } for f in talk_info['resources']['rtmp']]
         self._sort_formats(formats)
 
         video_id = compat_str(talk_info['id'])
