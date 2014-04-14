@@ -35,9 +35,10 @@ class GenericIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://www.hodiho.fr/2013/02/regis-plante-sa-jeep.html',
-            'file': '13601338388002.mp4',
-            'md5': '6e15c93721d7ec9e9ca3fdbf07982cfd',
+            'md5': '85b90ccc9d73b4acd9138d3af4c27f89',
             'info_dict': {
+                'id': '13601338388002',
+                'ext': 'mp4',
                 'uploader': 'www.hodiho.fr',
                 'title': 'R\u00e9gis plante sa Jeep',
             }
