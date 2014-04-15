@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 
 import re
+import json
 
 from .common import InfoExtractor
+from ..utils import str_to_int
 
 
 class NineGagIE(InfoExtractor):
@@ -44,23 +46,14 @@ class NineGagIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        youtube_id = self._html_search_regex(
-            r'(?s)id="jsid-video-post-container".*?data-external-id="([^"]+)"',
-            webpage, 'video ID')
-        title = self._html_search_regex(
-            r'(?s)id="jsid-video-post-container".*?data-title="([^"]+)"',
-            webpage, 'title', default=None)
-        if not title:
-            title = self._og_search_title(webpage)
-        description = self._html_search_regex(
-            r'(?s)<div class="video-caption">.*?<p>(.*?)</p>', webpage,
-            'description', fatal=False)
-        view_count_str = self._html_search_regex(
-            r'<p><b>([0-9][0-9,]*)</b> views</p>', webpage, 'view count',
-            fatal=False)
-        view_count = (
-            None if view_count_str is None
-            else int(view_count_str.replace(',', '')))
+        post_view = json.loads(self._html_search_regex(
+            r'var postView = new app\.PostView\({ post: ({.+?}),', webpage, 'post view'))
+
+        youtube_id = post_view['videoExternalId']
+        title = post_view['title']
+        description = post_view['description']
+        view_count = str_to_int(post_view['externalView'])
+        thumbnail = post_view.get('thumbnail_700w') or post_view.get('ogImageUrl') or post_view.get('thumbnail_300w')
 
         return {
             '_type': 'url_transparent',
@@ -71,5 +64,5 @@ class NineGagIE(InfoExtractor):
             'title': title,
             'description': description,
             'view_count': view_count,
-            'thumbnail': self._og_search_thumbnail(webpage),
+            'thumbnail': thumbnail,
         }
