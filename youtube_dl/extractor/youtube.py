@@ -151,6 +151,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                              )
                          ))
                          |youtu\.be/                                          # just youtu.be/xxxx
+                         |https?://(?:www\.)?cleanvideosearch\.com/media/action/yt/watch\?videoId=
                          )
                      )?                                                       # all until now is optional -> you can pass the naked ID
                      ([0-9A-Za-z_-]{11})                                      # here is it! the YouTube video ID
@@ -1418,7 +1419,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                 self.to_screen(u'Downloading just video %s because of --no-playlist' % video_id)
                 return self.url_result(video_id, 'Youtube', video_id=video_id)
             else:
-                self.to_screen(u'Downloading playlist PL%s - add --no-playlist to just download video %s' % (playlist_id, video_id))
+                self.to_screen(u'Downloading playlist %s - add --no-playlist to just download video %s' % (playlist_id, video_id))
 
         if playlist_id.startswith('RD'):
             # Mixes require a custom extraction process

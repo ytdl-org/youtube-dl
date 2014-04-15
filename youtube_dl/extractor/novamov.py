@@ -13,7 +13,8 @@ class NovaMovIE(InfoExtractor):
     IE_NAME = 'novamov'
     IE_DESC = 'NovaMov'
 
-    _VALID_URL = r'http://(?:(?:www\.)?%(host)s/video/|(?:(?:embed|www)\.)%(host)s/embed\.php\?(?:.*?&)?v=)(?P<videoid>[a-z\d]{13})' % {'host': 'novamov\.com'}
+    _VALID_URL_TEMPLATE = r'http://(?:(?:www\.)?%(host)s/(?:file|video)/|(?:(?:embed|www)\.)%(host)s/embed\.php\?(?:.*?&)?v=)(?P<id>[a-z\d]{13})'
+    _VALID_URL = _VALID_URL_TEMPLATE % {'host': 'novamov\.com'}
 
     _HOST = 'www.novamov.com'
 
@@ -36,18 +37,17 @@ class NovaMovIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('videoid')
+        video_id = mobj.group('id')
 
         page = self._download_webpage(
             'http://%s/video/%s' % (self._HOST, video_id), video_id, 'Downloading video page')
 
         if re.search(self._FILE_DELETED_REGEX, page) is not None:
-            raise ExtractorError(u'Video %s does not exist' % video_id, expected=True)
+            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
 
         filekey = self._search_regex(self._FILEKEY_REGEX, page, 'filekey')
 
         title = self._html_search_regex(self._TITLE_REGEX, page, 'title', fatal=False)
-
         description = self._html_search_regex(self._DESCRIPTION_REGEX, page, 'description', default='', fatal=False)
 
         api_response = self._download_webpage(

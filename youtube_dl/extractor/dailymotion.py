@@ -8,7 +8,6 @@ from .subtitles import SubtitlesInfoExtractor
 from ..utils import (
     compat_urllib_request,
     compat_str,
-    get_element_by_attribute,
     get_element_by_id,
     orderedSet,
     str_to_int,
@@ -202,11 +201,12 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
         playlist_id = mobj.group('id')
         webpage = self._download_webpage(url, playlist_id)
 
-        return {'_type': 'playlist',
-                'id': playlist_id,
-                'title': get_element_by_id(u'playlist_name', webpage),
-                'entries': self._extract_entries(playlist_id),
-                }
+        return {
+            '_type': 'playlist',
+            'id': playlist_id,
+            'title': self._og_search_title(webpage),
+            'entries': self._extract_entries(playlist_id),
+        }
 
 
 class DailymotionUserIE(DailymotionPlaylistIE):

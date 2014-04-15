@@ -59,11 +59,11 @@ class NTVIE(InfoExtractor):
         {
             'url': 'http://www.ntv.ru/kino/Koma_film',
             'info_dict': {
-                'id': '750783',
+                'id': '758100',
                 'ext': 'flv',
-                'title': 'Остросюжетный фильм «Кома»  4 апреля вечером на НТВ',
-                'description': 'Остросюжетный фильм «Кома»  4 апреля вечером на НТВ',
-                'duration': 28,
+                'title': 'Остросюжетный фильм «Кома»',
+                'description': 'Остросюжетный фильм «Кома»',
+                'duration': 5592,
             },
             'params': {
                     # rtmp download

@@ -1,63 +1,83 @@
-import os
+from __future__ import unicode_literals
+
+import json
 import re
 
 from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse_urlparse,
     compat_urllib_request,
+    int_or_none,
+    str_to_int,
 )
-from ..aes import (
-    aes_decrypt_text
-)
+from ..aes import aes_decrypt_text
+
 
 class Tube8IE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>tube8\.com/.+?/(?P<videoid>\d+)/?)$'
+    _VALID_URL = r'https?://(?:www\.)?tube8\.com/(?:[^/]+/){2}(?P<id>\d+)'
     _TEST = {
-        u'url': u'http://www.tube8.com/teen/kasia-music-video/229795/',
-        u'file': u'229795.mp4',
-        u'md5': u'e9e0b0c86734e5e3766e653509475db0',
-        u'info_dict': {
-            u"description": u"hot teen Kasia grinding", 
-            u"uploader": u"unknown", 
-            u"title": u"Kasia music video",
-            u"age_limit": 18,
+        'url': 'http://www.tube8.com/teen/kasia-music-video/229795/',
+        'file': '229795.mp4',
+        'md5': 'e9e0b0c86734e5e3766e653509475db0',
+        'info_dict': {
+            'description': 'hot teen Kasia grinding',
+            'uploader': 'unknown',
+            'title': 'Kasia music video',
+            'age_limit': 18,
         }
     }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('videoid')
-        url = 'http://www.' + mobj.group('url')
+        video_id = mobj.group('id')
 
         req = compat_urllib_request.Request(url)
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
 
-        video_title = self._html_search_regex(r'videotitle	="([^"]+)', webpage, u'title')
-        video_description = self._html_search_regex(r'>Description:</strong>(.+?)<', webpage, u'description', fatal=False)
-        video_uploader = self._html_search_regex(r'>Submitted by:</strong>(?:\s|<[^>]*>)*(.+?)<', webpage, u'uploader', fatal=False)
-        thumbnail = self._html_search_regex(r'"image_url":"([^"]+)', webpage, u'thumbnail', fatal=False)
-        if thumbnail:
-            thumbnail = thumbnail.replace('\\/', '/')
+        flashvars = json.loads(self._html_search_regex(
+            r'var flashvars\s*=\s*({.+?})', webpage, 'flashvars'))
 
-        video_url = self._html_search_regex(r'"video_url":"([^"]+)', webpage, u'video_url')
-        if webpage.find('"encrypted":true')!=-1:
-            password = self._html_search_regex(r'"video_title":"([^"]+)', webpage, u'password')
-            video_url = aes_decrypt_text(video_url, password, 32).decode('utf-8')
+        video_url = flashvars['video_url']
+        if flashvars.get('encrypted') is True:
+            video_url = aes_decrypt_text(video_url, flashvars['video_title'], 32).decode('utf-8')
         path = compat_urllib_parse_urlparse(video_url).path
-        extension = os.path.splitext(path)[1][1:]
-        format = path.split('/')[4].split('_')[:2]
-        format = "-".join(format)
+        format_id = '-'.join(path.split('/')[4].split('_')[:2])
+
+        thumbnail = flashvars.get('image_url')
+
+        title = self._html_search_regex(
+            r'videotitle\s*=\s*"([^"]+)', webpage, 'title')
+        description = self._html_search_regex(
+            r'>Description:</strong>(.+?)<', webpage, 'description', fatal=False)
+        uploader = self._html_search_regex(
+            r'<strong class="video-username">(?:<a href="[^"]+">)?([^<]+)(?:</a>)?</strong>',
+            webpage, 'uploader', fatal=False)
+
+        like_count = int_or_none(self._html_search_regex(
+            r"rupVar\s*=\s*'(\d+)'", webpage, 'like count', fatal=False))
+        dislike_count = int_or_none(self._html_search_regex(
+            r"rdownVar\s*=\s*'(\d+)'", webpage, 'dislike count', fatal=False))
+        view_count = self._html_search_regex(
+            r'<strong>Views: </strong>([\d,\.]+)</li>', webpage, 'view count', fatal=False)
+        if view_count:
+            view_count = str_to_int(view_count)
+        comment_count = self._html_search_regex(
+            r'<span id="allCommentsCount">(\d+)</span>', webpage, 'comment count', fatal=False)
+        if comment_count:
+            comment_count = str_to_int(comment_count)
 
         return {
             'id': video_id,
-            'uploader': video_uploader,
-            'title': video_title,
-            'thumbnail': thumbnail,
-            'description': video_description,
             'url': video_url,
-            'ext': extension,
-            'format': format,
-            'format_id': format,
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'uploader': uploader,
+            'format_id': format_id,
+            'view_count': view_count,
+            'like_count': like_count,
+            'dislike_count': dislike_count,
+            'comment_count': comment_count,
             'age_limit': 18,
         }

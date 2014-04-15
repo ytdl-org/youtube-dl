@@ -38,6 +38,7 @@ from youtube_dl.utils import (
     xpath_with_ns,
     parse_iso8601,
     strip_jsonp,
+    uppercase_escape,
 )
 
 if sys.version_info < (3, 0):
@@ -279,6 +280,9 @@ class TestUtil(unittest.TestCase):
         d = json.loads(stripped)
         self.assertEqual(d, [{"id": "532cb", "x": 3}])
 
+    def test_uppercase_escpae(self):
+        self.assertEqual(uppercase_escape(u'aä'), u'aä')
+        self.assertEqual(uppercase_escape(u'\\U0001d550'), u'𝕐')
 
 if __name__ == '__main__':
     unittest.main()

@@ -35,13 +35,13 @@ class RTSIE(InfoExtractor):
         },
         {
             'url': 'http://www.rts.ch/emissions/passe-moi-les-jumelles/5624067-entre-ciel-et-mer.html',
-            'md5': 'c197f0b2421995c63a64cc73d800f42e',
+            'md5': 'c148457a27bdc9e5b1ffe081a7a8337b',
             'info_dict': {
-                'id': '5738317',
+                'id': '5624067',
                 'ext': 'mp4',
-                'duration': 55,
-                'title': 'Bande de lancement de Passe-moi les jumelles',
-                'description': '',
+                'duration': 3720,
+                'title': 'Les yeux dans les cieux - Mon homard au Canada',
+                'description': 'md5:d22ee46f5cc5bac0912e5a0c6d44a9f7',
                 'uploader': 'Passe-moi les jumelles',
                 'upload_date': '20140404',
                 'timestamp': 1396635300,
@@ -98,17 +98,20 @@ class RTSIE(InfoExtractor):
         m = re.match(self._VALID_URL, url)
         video_id = m.group('id')
 
-        def download_json(video_id):
+        def download_json(internal_id):
             return self._download_json(
-                'http://www.rts.ch/a/%s.html?f=json/article' % video_id, video_id)
+                'http://www.rts.ch/a/%s.html?f=json/article' % internal_id,
+                video_id)
 
         all_info = download_json(video_id)
 
         # video_id extracted out of URL is not always a real id
         if 'video' not in all_info and 'audio' not in all_info:
             page = self._download_webpage(url, video_id)
-            video_id = self._html_search_regex(r'<(?:video|audio) data-id="(\d+)"', page, 'video id')
-            all_info = download_json(video_id)
+            internal_id = self._html_search_regex(
+                r'<(?:video|audio) data-id="([0-9]+)"', page,
+                'internal video id')
+            all_info = download_json(internal_id)
 
         info = all_info['video']['JSONinfo'] if 'video' in all_info else all_info['audio']
 

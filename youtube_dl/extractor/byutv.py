@@ -4,9 +4,7 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-)
+from ..utils import ExtractorError
 
 
 class BYUtvIE(InfoExtractor):
@@ -16,7 +14,7 @@ class BYUtvIE(InfoExtractor):
         'info_dict': {
             'id': 'granite-flats-talking',
             'ext': 'mp4',
-            'description': 'md5:1a7ae3e153359b7cc355ef3963441e5f',
+            'description': 'md5:4e9a7ce60f209a33eca0ac65b4918e1c',
             'title': 'Talking',
             'thumbnail': 're:^https?://.*promo.*'
         },

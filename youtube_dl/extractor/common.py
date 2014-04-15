@@ -255,7 +255,10 @@ class InfoExtractor(object):
             with open(filename, 'wb') as outf:
                 outf.write(webpage_bytes)
 
-        content = webpage_bytes.decode(encoding, 'replace')
+        try:
+            content = webpage_bytes.decode(encoding, 'replace')
+        except LookupError:
+            content = webpage_bytes.decode('utf-8', 'replace')
 
         if (u'<title>Access to this site is blocked</title>' in content and
                 u'Websense' in content[:512]):

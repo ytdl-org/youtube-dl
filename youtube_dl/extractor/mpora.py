@@ -4,9 +4,7 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-)
+from ..utils import int_or_none
 
 
 class MporaIE(InfoExtractor):
@@ -20,7 +18,7 @@ class MporaIE(InfoExtractor):
         'info_dict': {
             'title': 'Katy Curd -  Winter in the Forest',
             'duration': 416,
-            'uploader': 'petenewman',
+            'uploader': 'Peter Newman Media',
         },
     }
 

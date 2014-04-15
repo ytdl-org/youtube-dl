@@ -21,7 +21,7 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
 
     _TEST = {
         'url': 'http://www.comedycentral.com/video-clips/kllhuv/stand-up-greg-fitzsimmons--uncensored---too-good-of-a-mother',
-        'md5': '4167875aae411f903b751a21f357f1ee',
+        'md5': 'c4f48e9eda1b16dd10add0744344b6d8',
         'info_dict': {
             'id': 'cef0cbb3-e776-4bc9-b62e-8016deccb354',
             'ext': 'mp4',
@@ -41,9 +41,9 @@ class ComedyCentralShowsIE(InfoExtractor):
     _VALID_URL = r'''(?x)^(:(?P<shortname>tds|thedailyshow|cr|colbert|colbertnation|colbertreport)
                       |https?://(:www\.)?
                           (?P<showname>thedailyshow|thecolbertreport)\.(?:cc\.)?com/
-                         (full-episodes/(?:[0-9a-z]{6}/)?(?P<episode>.*)|
+                         ((?:full-)?episodes/(?:[0-9a-z]{6}/)?(?P<episode>.*)|
                           (?P<clip>
-                              (?:(?:guests/[^/]+|videos)/[^/]+/(?P<videotitle>[^/?#]+))
+                              (?:(?:guests/[^/]+|videos|video-playlists|special-editions)/[^/]+/(?P<videotitle>[^/?#]+))
                               |(the-colbert-report-(videos|collections)/(?P<clipID>[0-9]+)/[^/]*/(?P<cntitle>.*?))
                               |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*))
                           )|

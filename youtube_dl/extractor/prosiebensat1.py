@@ -160,6 +160,7 @@ class ProSiebenSat1IE(InfoExtractor):
     _CLIPID_REGEXES = [
         r'"clip_id"\s*:\s+"(\d+)"',
         r'clipid: "(\d+)"',
+        r'clipId=(\d+)',
     ]
     _TITLE_REGEXES = [
         r'<h2 class="subtitle" itemprop="name">\s*(.+?)</h2>',

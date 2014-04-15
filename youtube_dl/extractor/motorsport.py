@@ -44,7 +44,7 @@ class MotorsportIE(InfoExtractor):
         e = compat_str(int(time.time()) + 24 * 60 * 60)
         base_video_url = params['location'] + '?e=' + e
         s = 'h3hg713fh32'
-        h = hashlib.md5(s + base_video_url).hexdigest()
+        h = hashlib.md5((s + base_video_url).encode('utf-8')).hexdigest()
         video_url = base_video_url + '&h=' + h
 
         uploader = self._html_search_regex(

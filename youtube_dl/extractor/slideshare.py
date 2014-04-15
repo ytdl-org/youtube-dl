@@ -39,7 +39,8 @@ class SlideshareIE(InfoExtractor):
         ext = info['jsplayer']['video_extension']
         video_url = compat_urlparse.urljoin(bucket, doc + '-SD.' + ext)
         description = self._html_search_regex(
-            r'<p class="description.*?"[^>]*>(.*?)</p>', webpage, 'description')
+            r'<p\s+(?:style="[^"]*"\s+)?class="description.*?"[^>]*>(.*?)</p>', webpage,
+            'description', fatal=False)
 
         return {
             '_type': 'video',

@@ -49,6 +49,7 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch('http://youtu.be/BaW_jenozKc', ['youtube'])
         self.assertMatch('http://www.youtube.com/v/BaW_jenozKc', ['youtube'])
         self.assertMatch('https://youtube.googleapis.com/v/BaW_jenozKc', ['youtube'])
+        self.assertMatch('http://www.cleanvideosearch.com/media/action/yt/watch?videoId=8v_4O44sfjM', ['youtube'])
 
     def test_youtube_channel_matching(self):
         assertChannel = lambda url: self.assertMatch(url, ['youtube:channel'])
@@ -156,6 +157,24 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch(
             'http://thedailyshow.cc.com/guests/michael-lewis/3efna8/exclusive---michael-lewis-extended-interview-pt--3',
             ['ComedyCentralShows'])
+        self.assertMatch(
+            'http://thedailyshow.cc.com/episodes/sy7yv0/april-8--2014---denis-leary',
+            ['ComedyCentralShows'])
+        self.assertMatch(
+            'http://thecolbertreport.cc.com/episodes/8ase07/april-8--2014---jane-goodall',
+            ['ComedyCentralShows'])
+        self.assertMatch(
+            'http://thedailyshow.cc.com/video-playlists/npde3s/the-daily-show-19088-highlights',
+            ['ComedyCentralShows'])
+        self.assertMatch(
+            'http://thedailyshow.cc.com/special-editions/2l8fdb/special-edition---a-look-back-at-food',
+            ['ComedyCentralShows'])
+
+    def test_yahoo_https(self):
+        # https://github.com/rg3/youtube-dl/issues/2701
+        self.assertMatch(
+            'https://screen.yahoo.com/smartwatches-latest-wearable-gadgets-163745379-cbs.html',
+            ['Yahoo'])
 
 if __name__ == '__main__':
     unittest.main()

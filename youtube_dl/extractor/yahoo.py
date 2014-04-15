@@ -15,22 +15,24 @@ from ..utils import (
 
 class YahooIE(InfoExtractor):
     IE_DESC = 'Yahoo screen'
-    _VALID_URL = r'http://screen\.yahoo\.com/.*?-(?P<id>\d*?)\.html'
+    _VALID_URL = r'https?://screen\.yahoo\.com/.*?-(?P<id>[0-9]+)(?:-[a-z]+)?\.html'
     _TESTS = [
         {
             'url': 'http://screen.yahoo.com/julian-smith-travis-legg-watch-214727115.html',
-            'file': '214727115.mp4',
             'md5': '4962b075c08be8690a922ee026d05e69',
             'info_dict': {
+                'id': '214727115',
+                'ext': 'mp4',
                 'title': 'Julian Smith & Travis Legg Watch Julian Smith',
                 'description': 'Julian and Travis watch Julian Smith',
             },
         },
         {
             'url': 'http://screen.yahoo.com/wired/codefellas-s1-ep12-cougar-lies-103000935.html',
-            'file': '103000935.mp4',
             'md5': 'd6e6fc6e1313c608f316ddad7b82b306',
             'info_dict': {
+                'id': '103000935',
+                'ext': 'mp4',
                 'title': 'Codefellas - The Cougar Lies with Spanish Moss',
                 'description': 'Agent Topple\'s mustache does its dirty work, and Nicole brokers a deal for peace. But why is the NSA collecting millions of Instagram brunch photos? And if your waffles have nothing to hide, what are they so worried about?',
             },
@@ -60,10 +62,9 @@ class YahooIE(InfoExtractor):
             'env': 'prod',
             'format': 'json',
         })
-        query_result_json = self._download_webpage(
+        query_result = self._download_json(
             'http://video.query.yahoo.com/v1/public/yql?' + data,
             video_id, 'Downloading video info')
-        query_result = json.loads(query_result_json)
         info = query_result['query']['results']['mediaObj'][0]
         meta = info['meta']
 
@@ -86,7 +87,6 @@ class YahooIE(InfoExtractor):
             else:
                 format_url = compat_urlparse.urljoin(host, path)
                 format_info['url'] = format_url
-                
             formats.append(format_info)
 
         self._sort_formats(formats)
@@ -134,27 +134,25 @@ class YahooSearchIE(SearchInfoExtractor):
 
     def _get_n_results(self, query, n):
         """Get a specified number of results for a query"""
-
-        res = {
-            '_type': 'playlist',
-            'id': query,
-            'entries': []
-        }
-        for pagenum in itertools.count(0): 
+        entries = []
+        for pagenum in itertools.count(0):
             result_url = 'http://video.search.yahoo.com/search/?p=%s&fr=screen&o=js&gs=0&b=%d' % (compat_urllib_parse.quote_plus(query), pagenum * 30)
-            webpage = self._download_webpage(result_url, query,
-                                             note='Downloading results page '+str(pagenum+1))
-            info = json.loads(webpage)
+            info = self._download_json(result_url, query,
+                note='Downloading results page '+str(pagenum+1))
             m = info['m']
             results = info['results']
 
             for (i, r) in enumerate(results):
-                if (pagenum * 30) +i >= n:
+                if (pagenum * 30) + i >= n:
                     break
                 mobj = re.search(r'(?P<url>screen\.yahoo\.com/.*?-\d*?\.html)"', r)
                 e = self.url_result('http://' + mobj.group('url'), 'Yahoo')
-                res['entries'].append(e)
-            if (pagenum * 30 +i >= n) or (m['last'] >= (m['total'] -1)):
+                entries.append(e)
+            if (pagenum * 30 + i >= n) or (m['last'] >= (m['total'] - 1)):
                 break
 
-        return res
+        return {
+            '_type': 'playlist',
+            'id': query,
+            'entries': entries,
+        }

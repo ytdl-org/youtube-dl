@@ -35,9 +35,10 @@ class GenericIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://www.hodiho.fr/2013/02/regis-plante-sa-jeep.html',
-            'file': '13601338388002.mp4',
-            'md5': '6e15c93721d7ec9e9ca3fdbf07982cfd',
+            'md5': '85b90ccc9d73b4acd9138d3af4c27f89',
             'info_dict': {
+                'id': '13601338388002',
+                'ext': 'mp4',
                 'uploader': 'www.hodiho.fr',
                 'title': 'R\u00e9gis plante sa Jeep',
             }
@@ -46,8 +47,9 @@ class GenericIE(InfoExtractor):
         {
             'add_ie': ['Bandcamp'],
             'url': 'http://bronyrock.com/track/the-pony-mash',
-            'file': '3235767654.mp3',
             'info_dict': {
+                'id': '3235767654',
+                'ext': 'mp3',
                 'title': 'The Pony Mash',
                 'uploader': 'M_Pallante',
             },
@@ -73,9 +75,10 @@ class GenericIE(InfoExtractor):
         {
             # https://github.com/rg3/youtube-dl/issues/2253
             'url': 'http://bcove.me/i6nfkrc3',
-            'file': '3101154703001.mp4',
             'md5': '0ba9446db037002366bab3b3eb30c88c',
             'info_dict': {
+                'id': '3101154703001',
+                'ext': 'mp4',
                 'title': 'Still no power',
                 'uploader': 'thestar.com',
                 'description': 'Mississauga resident David Farmer is still out of power as a result of the ice storm a month ago. To keep the house warm, Farmer cuts wood from his property for a wood burning stove downstairs.',
@@ -182,6 +185,17 @@ class GenericIE(InfoExtractor):
                 'title': 'My web playroom',
                 'uploader': 'Ze Frank',
                 'description': 'md5:ddb2a40ecd6b6a147e400e535874947b',
+            }
+        },
+        # Embeded Ustream video
+        {
+            'url': 'http://www.american.edu/spa/pti/nsa-privacy-janus-2014.cfm',
+            'md5': '27b99cdb639c9b12a79bca876a073417',
+            'info_dict': {
+                'id': '45734260',
+                'ext': 'flv',
+                'uploader': 'AU SPA:  The NSA and Privacy',
+                'title': 'NSA and Privacy Forum Debate featuring General Hayden and Barton Gellman'
             }
         },
         # nowvideo embed hidden behind percent encoding
@@ -500,17 +514,18 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group(1), 'Mpora')
 
-        # Look for embedded NovaMov player
+        # Look for embedded NovaMov-based player
         mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>http://(?:(?:embed|www)\.)?novamov\.com/embed\.php.+?)\1', webpage)
+            r'''(?x)<iframe[^>]+?src=(["\'])
+                    (?P<url>http://(?:(?:embed|www)\.)?
+                        (?:novamov\.com|
+                           nowvideo\.(?:ch|sx|eu|at|ag|co)|
+                           videoweed\.(?:es|com)|
+                           movshare\.(?:net|sx|ag)|
+                           divxstage\.(?:eu|net|ch|co|at|ag))
+                        /embed\.php.+?)\1''', webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'), 'NovaMov')
-
-        # Look for embedded NowVideo player
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>http://(?:(?:embed|www)\.)?nowvideo\.(?:ch|sx|eu)/embed\.php.+?)\1', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'NowVideo')
+            return self.url_result(mobj.group('url'))
 
         # Look for embedded Facebook player
         mobj = re.search(
@@ -555,6 +570,12 @@ class GenericIE(InfoExtractor):
             r'<iframe[^>]+?src=(["\'])(?P<url>http://embed\.ted\.com/.+?)\1', webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'TED')
+
+        # Look for embedded Ustream videos
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>http://www\.ustream\.tv/embed/.+?)\1', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'Ustream')
 
         # Look for embedded arte.tv player
         mobj = re.search(

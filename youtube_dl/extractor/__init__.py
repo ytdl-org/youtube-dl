@@ -32,6 +32,7 @@ from .canal13cl import Canal13clIE
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
 from .cbs import CBSIE
+from .cbsnews import CBSNewsIE
 from .ceskatelevize import CeskaTelevizeIE
 from .channel9 import Channel9IE
 from .chilloutzone import ChilloutzoneIE
@@ -62,6 +63,7 @@ from .dotsub import DotsubIE
 from .dreisat import DreiSatIE
 from .defense import DefenseGouvFrIE
 from .discovery import DiscoveryIE
+from .divxstage import DivxStageIE
 from .dropbox import DropboxIE
 from .ebaumsworld import EbaumsWorldIE
 from .ehow import EHowIE
@@ -156,6 +158,7 @@ from .mofosex import MofosexIE
 from .mooshare import MooshareIE
 from .morningstar import MorningstarIE
 from .motorsport import MotorsportIE
+from .movshare import MovShareIE
 from .mtv import (
     MTVIE,
     MTVIggyIE,
@@ -205,6 +208,7 @@ from .rottentomatoes import RottenTomatoesIE
 from .roxwel import RoxwelIE
 from .rtlnow import RTLnowIE
 from .rts import RTSIE
+from .rtve import RTVEALaCartaIE
 from .rutube import (
     RutubeIE,
     RutubeChannelIE,
@@ -276,6 +280,7 @@ from .videodetective import VideoDetectiveIE
 from .videolecturesnet import VideoLecturesNetIE
 from .videofyme import VideofyMeIE
 from .videopremium import VideoPremiumIE
+from .videoweed import VideoWeedIE
 from .vimeo import (
     VimeoIE,
     VimeoChannelIE,

@@ -37,6 +37,7 @@ class TEDIE(SubtitlesInfoExtractor):
                 'consciousness, but that half the time our brains are '
                 'actively fooling us.'),
             'uploader': 'Dan Dennett',
+            'width': 854,
         }
     }, {
         'url': 'http://www.ted.com/watch/ted-institute/ted-bcg/vishal-sikka-the-beauty-and-power-of-algorithms',
@@ -48,12 +49,25 @@ class TEDIE(SubtitlesInfoExtractor):
             'thumbnail': 're:^https?://.+\.jpg',
             'description': 'Adaptive, intelligent, and consistent, algorithms are emerging as the ultimate app for everything from matching consumers to products to assessing medical diagnoses. Vishal Sikka shares his appreciation for the algorithm, charting both its inherent beauty and its growing power.',
         }
+    }, {
+        'url': 'http://www.ted.com/talks/gabby_giffords_and_mark_kelly_be_passionate_be_courageous_be_your_best',
+        'info_dict': {
+            'id': '1972',
+            'ext': 'flv',
+            'title': 'Be passionate. Be courageous. Be your best.',
+            'uploader': 'Gabby Giffords and Mark Kelly',
+            'description': 'md5:d89e1d8ebafdac8e55df4c219ecdbfe9',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        },
     }]
 
-    _FORMATS_PREFERENCE = {
-        'low': 1,
-        'medium': 2,
-        'high': 3,
+    _NATIVE_FORMATS = {
+        'low': {'preference': 1, 'width': 320, 'height': 180},
+        'medium': {'preference': 2, 'width': 512, 'height': 288},
+        'high': {'preference': 3, 'width': 854, 'height': 480},
     }
 
     def _extract_info(self, webpage):
@@ -98,12 +112,26 @@ class TEDIE(SubtitlesInfoExtractor):
         talk_info = self._extract_info(webpage)['talks'][0]
 
         formats = [{
-            'ext': 'mp4',
             'url': format_url,
             'format_id': format_id,
             'format': format_id,
-            'preference': self._FORMATS_PREFERENCE.get(format_id, -1),
-        } for (format_id, format_url) in talk_info['nativeDownloads'].items()]
+        } for (format_id, format_url) in talk_info['nativeDownloads'].items() if format_url is not None]
+        if formats:
+            for f in formats:
+                finfo = self._NATIVE_FORMATS.get(f['format_id'])
+                if finfo:
+                    f.update(finfo)
+        else:
+            # Use rtmp downloads
+            formats = [{
+                'format_id': f['name'],
+                'url': talk_info['streamer'],
+                'play_path': f['file'],
+                'ext': 'flv',
+                'width': f['width'],
+                'height': f['height'],
+                'tbr': f['bitrate'],
+            } for f in talk_info['resources']['rtmp']]
         self._sort_formats(formats)
 
         video_id = compat_str(talk_info['id'])

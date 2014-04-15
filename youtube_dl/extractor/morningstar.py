@@ -1,22 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import hashlib
-import json
 import re
-import time
 
 from .common import InfoExtractor
-from ..utils import (
-    compat_parse_qs,
-    compat_str,
-    int_or_none,
-)
 
 
 class MorningstarIE(InfoExtractor):
     IE_DESC = 'morningstar.com'
-    _VALID_URL = r'https?://(?:www\.)?morningstar\.com/cover/videocenter\.aspx\?id=(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?morningstar\.com/[cC]over/video[cC]enter\.aspx\?id=(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.morningstar.com/cover/videocenter.aspx?id=615869',
         'md5': '6c0acface7a787aadc8391e4bbf7b0f5',

@@ -39,11 +39,11 @@ class PornHdIE(InfoExtractor):
 
         formats = [
             {
-                'url': url,
+                'url': format_url,
                 'ext': format.lower(),
                 'format_id': '%s-%s' % (format.lower(), quality.lower()),
                 'quality': 1 if quality.lower() == 'high' else 0,
-            } for format, quality, url in re.findall(
+            } for format, quality, format_url in re.findall(
                 r'var __video([\da-zA-Z]+?)(Low|High)StreamUrl = \'(http://.+?)\?noProxy=1\'', webpage)
         ]
 
