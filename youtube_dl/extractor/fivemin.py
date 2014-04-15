@@ -5,6 +5,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     compat_str,
+    compat_urllib_parse,
 )
 
 
@@ -16,16 +17,28 @@ class FiveMinIE(InfoExtractor):
         (?P<id>\d+)
         '''
 
-    _TEST = {
-        # From http://www.engadget.com/2013/11/15/ipad-mini-retina-display-review/
-        'url': 'http://pshared.5min.com/Scripts/PlayerSeed.js?sid=281&width=560&height=345&playList=518013791',
-        'md5': '4f7b0b79bf1a470e5004f7112385941d',
-        'info_dict': {
-            'id': '518013791',
-            'ext': 'mp4',
-            'title': 'iPad Mini with Retina Display Review',
+    _TESTS = [
+        {
+            # From http://www.engadget.com/2013/11/15/ipad-mini-retina-display-review/
+            'url': 'http://pshared.5min.com/Scripts/PlayerSeed.js?sid=281&width=560&height=345&playList=518013791',
+            'md5': '4f7b0b79bf1a470e5004f7112385941d',
+            'info_dict': {
+                'id': '518013791',
+                'ext': 'mp4',
+                'title': 'iPad Mini with Retina Display Review',
+            },
         },
-    }
+        {
+            # From http://on.aol.com/video/how-to-make-a-next-level-fruit-salad-518086247
+            'url': '5min:518086247',
+            'md5': 'e539a9dd682c288ef5a498898009f69e',
+            'info_dict': {
+                'id': '518086247',
+                'ext': 'mp4',
+                'title': 'How to Make a Next-Level Fruit Salad',
+            },
+        },
+    ]
 
     @classmethod
     def _build_result(cls, video_id):
@@ -34,9 +47,19 @@ class FiveMinIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
+        embed_url = 'https://embed.5min.com/playerseed/?playList=%s' % video_id
+        embed_page = self._download_webpage(embed_url, video_id,
+            'Downloading embed page')
+        sid = self._search_regex(r'sid=(\d+)', embed_page, 'sid')
+        query = compat_urllib_parse.urlencode({
+            'func': 'GetResults',
+            'playlist': video_id,
+            'sid': sid,
+            'isPlayerSeed': 'true',
+            'url': embed_url,
+        })
         info = self._download_json(
-            'https://syn.5min.com/handlers/SenseHandler.ashx?func=GetResults&'
-            'playlist=%s&url=https' % video_id,
+            'https://syn.5min.com/handlers/SenseHandler.ashx?' + query,
             video_id)['binding'][0]
 
         second_id = compat_str(int(video_id[:-2]) + 1)
