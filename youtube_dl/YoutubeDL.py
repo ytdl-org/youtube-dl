@@ -739,8 +739,13 @@ class YoutubeDL(object):
 
         # We check that all the formats have the format and format_id fields
         for i, format in enumerate(formats):
-            if 'url' not in format:
-                raise ExtractorError('Missing "url" key in result (index %d)' % i)
+            if 'parts' in format:
+                for j, part in enumerate(format['parts']):
+                    if 'url' not in part:
+                        raise ExtractorError('Missing "url" key in result (index %d, part %d)' % (i, j))
+            else:
+                if 'url' not in format:
+                    raise ExtractorError('Missing "url" key in result (index %d)' % i)
 
             if format.get('format_id') is None:
                 format['format_id'] = compat_str(i)
