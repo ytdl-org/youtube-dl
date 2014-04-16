@@ -14,15 +14,13 @@ class CanalplusIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://www.canalplus.fr/c-infos-documentaires/pid1830-c-zapping.html?vid=922470',
+        'md5': '60c29434a416a83c15dae2587d47027d',
         'info_dict': {
             'id': '922470',
             'ext': 'flv',
             'title': 'Zapping - 26/08/13',
             'description': 'Le meilleur de toutes les chaînes, tous les jours.\nEmission du 26 août 2013',
             'upload_date': '20130826',
-        },
-        'params': {
-            'skip_download': True,
         },
     }
 
