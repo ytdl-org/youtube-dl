@@ -21,7 +21,7 @@ class NocoIE(InfoExtractor):
             'id': '11538',
             'ext': 'mp4',
             'title': 'Ami Ami Idol - Hello! France',
-            'description': 'md5:6fcfdbbb73aee107a6b7553cefbcbeae',
+            'description': 'md5:4eaab46ab68fa4197a317a88a53d3b86',
             'upload_date': '20140412',
             'uploader': 'Nolife',
             'uploader_id': 'NOL',
