@@ -181,6 +181,7 @@ from .nfb import NFBIE
 from .nhl import NHLIE, NHLVideocenterIE
 from .niconico import NiconicoIE
 from .ninegag import NineGagIE
+from .noco import NocoIE
 from .normalboots import NormalbootsIE
 from .novamov import NovaMovIE
 from .nowness import NownessIE
