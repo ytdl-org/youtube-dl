@@ -9,7 +9,7 @@ from ..utils import (
 )
 
 class ExtremeTubeIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>extremetube\.com/video/.+?(?P<videoid>[0-9]+))(?:[/?&]|$)'
+    _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>extremetube\.com/.*?video/.+?(?P<videoid>[0-9]+))(?:[/?&]|$)'
     _TEST = {
         u'url': u'http://www.extremetube.com/video/music-video-14-british-euro-brit-european-cumshots-swallow-652431',
         u'file': u'652431.mp4',
