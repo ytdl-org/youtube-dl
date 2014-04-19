@@ -104,7 +104,7 @@ class YahooNewsIE(YahooIE):
     IE_NAME = 'yahoo:news'
     _VALID_URL = r'http://news\.yahoo\.com/video/.*?-(?P<id>\d*?)\.html'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://news.yahoo.com/video/china-moses-crazy-blues-104538833.html',
         'md5': '67010fdf3a08d290e060a4dd96baa07b',
         'info_dict': {
@@ -113,10 +113,7 @@ class YahooNewsIE(YahooIE):
             'title': 'China Moses Is Crazy About the Blues',
             'description': 'md5:9900ab8cd5808175c7b3fe55b979bed0',
         },
-    }
-
-    # Overwrite YahooIE properties we don't want
-    _TESTS = []
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

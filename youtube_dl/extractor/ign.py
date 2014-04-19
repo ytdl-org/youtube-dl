@@ -106,7 +106,7 @@ class OneUPIE(IGNIE):
 
     _DESCRIPTION_RE = r'<div id="vid_summary">(.+?)</div>'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://gamevideos.1up.com/video/id/34976',
         'md5': '68a54ce4ebc772e4b71e3123d413163d',
         'info_dict': {
@@ -115,10 +115,7 @@ class OneUPIE(IGNIE):
             'title': 'Sniper Elite V2 - Trailer',
             'description': 'md5:5d289b722f5a6d940ca3136e9dae89cf',
         }
-    }
-
-    # Override IGN tests
-    _TESTS = []
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

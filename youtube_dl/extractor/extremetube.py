@@ -10,7 +10,7 @@ from ..utils import (
 
 class ExtremeTubeIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>extremetube\.com/.*?video/.+?(?P<videoid>[0-9]+))(?:[/?&]|$)'
-    _TEST = {
+    _TESTS = [{
         u'url': u'http://www.extremetube.com/video/music-video-14-british-euro-brit-european-cumshots-swallow-652431',
         u'file': u'652431.mp4',
         u'md5': u'1fb9228f5e3332ec8c057d6ac36f33e0',
@@ -19,7 +19,10 @@ class ExtremeTubeIE(InfoExtractor):
             u"uploader": u"unknown",
             u"age_limit": 18,
         }
-    }
+    }, {
+        'url': 'http://www.extremetube.com/gay/video/abcde-1234',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

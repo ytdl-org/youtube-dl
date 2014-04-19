@@ -106,7 +106,7 @@ class TestAllURLsMatching(unittest.TestCase):
 
     def test_no_duplicates(self):
         ies = gen_extractors()
-        for tc in gettestcases():
+        for tc in gettestcases(include_onlymatching=True):
             url = tc['url']
             for ie in ies:
                 if type(ie).__name__ in ('GenericIE', tc['name'] + 'IE'):
@@ -175,6 +175,7 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch(
             'https://screen.yahoo.com/smartwatches-latest-wearable-gadgets-163745379-cbs.html',
             ['Yahoo'])
+
 
 if __name__ == '__main__':
     unittest.main()

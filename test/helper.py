@@ -74,13 +74,19 @@ class FakeYDL(YoutubeDL):
             old_report_warning(message)
         self.report_warning = types.MethodType(report_warning, self)
 
-def gettestcases():
+
+def gettestcases(include_onlymatching=False):
     for ie in youtube_dl.extractor.gen_extractors():
         t = getattr(ie, '_TEST', None)
         if t:
-            t['name'] = type(ie).__name__[:-len('IE')]
-            yield t
-        for t in getattr(ie, '_TESTS', []):
+            assert not hasattr(ie, '_TESTS'), \
+                '%s has _TEST and _TESTS' % type(ie).__name__
+            tests = [t]
+        else:
+            tests = getattr(ie, '_TESTS', [])
+        for t in tests:
+            if not include_onlymatching and getattr(t, 'only_matching', False):
+                continue
             t['name'] = type(ie).__name__[:-len('IE')]
             yield t
 
