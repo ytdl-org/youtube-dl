@@ -35,9 +35,13 @@ class InfoQIE(InfoExtractor):
         video_title = self._html_search_regex(r'<title>(.*?)</title>', webpage, 'title')
         video_description = self._html_search_meta('description', webpage, 'description')
 
+        # The server URL is hardcoded
         video_url = 'rtmpe://video.infoq.com/cfx/st/'
-        base64playpath = self._search_regex(r"jsclassref = '([^']*)'", webpage, 'jsclassref')
-        playpath = 'mp4:' + base64.b64decode(base64playpath).decode('utf-8')
+
+        # Extract video URL
+        encoded_id = self._search_regex(r"jsclassref ?= ?'([^']*)'", webpage, 'encoded id')
+        real_id = compat_urllib_parse.unquote(base64.b64decode(encoded_id.encode('ascii')).decode('utf-8'))
+        playpath = 'mp4:' + real_id
 
         video_filename = playpath.split('/')[-1]
         video_id, extension = video_filename.split('.')
