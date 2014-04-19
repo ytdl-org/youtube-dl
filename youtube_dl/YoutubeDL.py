@@ -128,6 +128,7 @@ class YoutubeDL(object):
     listsubtitles:     Lists all available subtitles for the video
     subtitlesformat:   Subtitle format [srt/sbv/vtt] (default=srt)
     subtitleslangs:    List of languages of the subtitles to download
+    concat:            Join videos in a playlist end-to-end
     keepvideo:         Keep the video file after post-processing
     daterange:         A DateRange object, download only if the upload_date is in the range.
     skip_download:     Skip the actual download of the video file
