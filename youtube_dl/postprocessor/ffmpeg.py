@@ -506,6 +506,7 @@ class FFmpegConcatPP(FFmpegPostProcessor):
         #No method using solely the command line is listed. And I'm like "really?".
         with open(filename + '.list.txt', 'wb') as f:
             for file in info['__files_to_append']:
+                file = file.replace("'", "\\'")
                 f.write("file '" + file + "'\n")
         self.run_ffmpeg_multiple_files([filename + '.list.txt'], filename, args, preopts=concatargs)
         os.unlink(filename + '.list.txt')
