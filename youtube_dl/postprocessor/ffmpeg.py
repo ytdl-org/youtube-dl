@@ -491,7 +491,14 @@ class FFmpegConcatPP(FFmpegPostProcessor):
     #Concat support requires that the IE return '_type' = 'playlist'
     #Otherwise it silently fail
     def run(self, info):
-        filename = info['title'] + u'.mp4' #What could possibly go wrong?
+        #Determine appropriate output extension
+        extlist = []
+        for input_filename in info['__files_to_append']:
+            extlist.append(os.path.splitext(input_filename)[-1])
+        if len(set(extlist)) != 1:
+            self._downloader.report_warning('Not all files are in the same format! Joining the files may fail.')
+        
+        filename = info['title'] + extlist[0]
         concatargs = ['-f', 'concat']
         args = ['-c', 'copy']
         self._downloader.to_screen(u'[ffmpeg] Appending files into "%s"' % filename)
