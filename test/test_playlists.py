@@ -192,8 +192,8 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], 'dezhurnyi_angel')
         self.assertEqual(result['title'], 'Дежурный ангел (2010 - 2012)')
-        self.assertTrue(len(result['entries']) >= 36)
-        
+        self.assertTrue(len(result['entries']) >= 23)
+
     def test_ivi_compilation_season(self):
         dl = FakeYDL()
         ie = IviCompilationIE(dl)
@@ -201,7 +201,7 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], 'dezhurnyi_angel/season2')
         self.assertEqual(result['title'], 'Дежурный ангел (2010 - 2012) 2 сезон')
-        self.assertTrue(len(result['entries']) >= 20)
+        self.assertTrue(len(result['entries']) >= 7)
         
     def test_imdb_list(self):
         dl = FakeYDL()
