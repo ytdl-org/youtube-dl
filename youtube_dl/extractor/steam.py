@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class SteamIE(InfoExtractor):
-    _VALID_URL = r"""http://store\.steampowered\.com/
+    _VALID_URL = r"""(?x)http://store\.steampowered\.com/
                 (agecheck/)?
                 (?P<urltype>video|app)/ #If the page is only for videos or for a game
                 (?P<gameID>\d+)/?
@@ -39,14 +39,11 @@ class SteamIE(InfoExtractor):
                     'playlist_index': 2,
                 }
             }
-        ]
+        ],
+        'params': {
+            'playlistend': 2,
+        }
     }
-
-
-    @classmethod
-    def suitable(cls, url):
-        """Receives a URL and returns True if suitable for this IE."""
-        return re.match(cls._VALID_URL, url, re.VERBOSE) is not None
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url, re.VERBOSE)
@@ -64,26 +61,26 @@ class SteamIE(InfoExtractor):
         game_title = self._html_search_regex(r'<h2 class="pageheader">(.*?)</h2>',
                                              webpage, 'game title')
 
-        urlRE = r"'movie_(?P<videoID>\d+)': \{\s*FILENAME: \"(?P<videoURL>[\w:/\.\?=]+)\"(,\s*MOVIE_NAME: \"(?P<videoName>[\w:/\.\?=\+-]+)\")?\s*\},"
-        mweb = re.finditer(urlRE, webpage)
-        namesRE = r'<span class="title">(?P<videoName>.+?)</span>'
-        titles = re.finditer(namesRE, webpage)
-        thumbsRE = r'<img class="movie_thumb" src="(?P<thumbnail>.+?)">'
-        thumbs = re.finditer(thumbsRE, webpage)
+        mweb = re.finditer(
+            r"'movie_(?P<videoID>\d+)': \{\s*FILENAME: \"(?P<videoURL>[\w:/\.\?=]+)\"(,\s*MOVIE_NAME: \"(?P<videoName>[\w:/\.\?=\+-]+)\")?\s*\},",
+            webpage)
+        titles = re.finditer(
+            r'<span class="title">(?P<videoName>.+?)</span>', webpage)
+        thumbs = re.finditer(
+            r'<img class="movie_thumb" src="(?P<thumbnail>.+?)">', webpage)
         videos = []
-        for vid,vtitle,thumb in zip(mweb,titles,thumbs):
+        for vid, vtitle, thumb in zip(mweb, titles, thumbs):
             video_id = vid.group('videoID')
             title = vtitle.group('videoName')
             video_url = vid.group('videoURL')
             video_thumb = thumb.group('thumbnail')
             if not video_url:
                 raise ExtractorError('Cannot find video url for %s' % video_id)
-            info = {
-                'id':video_id,
-                'url':video_url,
+            videos.append({
+                'id': video_id,
+                'url': video_url,
                 'ext': 'flv',
                 'title': unescapeHTML(title),
                 'thumbnail': video_thumb
-                  }
-            videos.append(info)
+            })
         return self.playlist_result(videos, gameID, game_title)
