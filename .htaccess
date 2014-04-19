@@ -1,4 +1,5 @@
 RewriteEngine On
 RewriteRule ^ip/?$ ip.php
 
-RewriteRule ^bugs?/? http://github.com/rg3/youtube-dl/issues [R=302,L]
+RewriteRule ^bugs?/? https://github.com/rg3/youtube-dl/issues [R=302,L]
+RewriteRule ^bug-tips/? https://github.com/rg3/youtube-dl#bugs [R=302,L]
