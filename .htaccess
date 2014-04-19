@@ -2,4 +2,4 @@ RewriteEngine On
 RewriteRule ^ip/?$ ip.php
 
 RewriteRule ^bugs?/? https://github.com/rg3/youtube-dl/issues [R=302,L]
-RewriteRule ^bug-tips/? https://github.com/rg3/youtube-dl#bugs [R=302,L]
+RewriteRule ^reporting/? https://github.com/rg3/youtube-dl/blob/master/README.md#bugs [R=302,L]
