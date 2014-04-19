@@ -8,7 +8,6 @@ from .subtitles import SubtitlesInfoExtractor
 from ..utils import (
     compat_urllib_request,
     compat_str,
-    get_element_by_id,
     orderedSet,
     str_to_int,
     int_or_none,
