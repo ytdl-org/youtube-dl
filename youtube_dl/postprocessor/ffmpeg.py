@@ -497,9 +497,9 @@ class FFmpegConcatPP(FFmpegPostProcessor):
         self._downloader.to_screen(u'[ffmpeg] Appending files into "%s"' % filename)
         #According to the ffmpeg docs this is literally how you're supposed to concat files.
         #No method using solely the command line is listed. And I'm like "really?".
-        with open(u'youtube-dl_ffmpeg_append_list.txt', 'wb') as f:
+        with open(filename + '.list.txt', 'wb') as f:
             for file in info['__files_to_append']:
                 f.write("file '" + file + "'\n")
-        self.run_ffmpeg_multiple_files([u'youtube-dl_ffmpeg_append_list.txt'], filename, args, preopts=concatargs)
-        os.unlink('youtube-dl_ffmpeg_append_list.txt')
+        self.run_ffmpeg_multiple_files([filename + '.list.txt'], filename, args, preopts=concatargs)
+        os.unlink(filename + '.list.txt')
         return True, info
