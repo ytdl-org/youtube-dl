@@ -11,16 +11,16 @@ from ..utils import (
 
 class InfoQIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?infoq\.com/[^/]+/(?P<id>[^/]+)$'
+
     _TEST = {
-        "name": "InfoQ",
-        "url": "http://www.infoq.com/presentations/A-Few-of-My-Favorite-Python-Things",
-        "file": "12-jan-pythonthings.mp4",
-        "info_dict": {
-            "description": "Mike Pirnat presents some tips and tricks, standard libraries and third party packages that make programming in Python a richer experience.",
-            "title": "A Few of My Favorite [Python] Things",
-        },
-        "params": {
-            "skip_download": True,
+        u'name': u'InfoQ',
+        u'url': u'http://www.infoq.com/presentations/A-Few-of-My-Favorite-Python-Things',
+        u'md5': u'fcaa3d995e04080dcb9465d86b5eef62',
+        u'info_dict': {
+            u'id': u'12-jan-pythonthings',
+            u'ext': u'mp4',
+            u'description': u'Mike Pirnat presents some tips and tricks, standard libraries and third party packages that make programming in Python a richer experience.',
+            u'title': u'A Few of My Favorite [Python] Things',
         },
     }
 
@@ -30,26 +30,25 @@ class InfoQIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        # Extract video URL
-        encoded_id = self._search_regex(r"jsclassref ?= ?'([^']*)'", webpage, 'encoded id')
-        real_id = compat_urllib_parse.unquote(base64.b64decode(encoded_id.encode('ascii')).decode('utf-8'))
-        video_url = 'rtmpe://video.infoq.com/cfx/st/' + real_id
+        self.report_extraction(video_id)
 
-        # Extract title
-        video_title = self._search_regex(r'contentTitle = "(.*?)";',
-            webpage, 'title')
+        video_title = self._html_search_regex(r'<title>(.*?)</title>', webpage, 'title')
+        video_description = self._html_search_meta('description', webpage, 'description')
 
-        # Extract description
-        video_description = self._html_search_regex(r'<meta name="description" content="(.*)"(?:\s*/)?>',
-            webpage, 'description', fatal=False)
+        video_url = 'rtmpe://video.infoq.com/cfx/st/'
+        base64playpath = self._search_regex(r"jsclassref = '([^']*)'", webpage, 'jsclassref')
+        playpath = 'mp4:' + base64.b64decode(base64playpath).decode('utf-8')
 
-        video_filename = video_url.split('/')[-1]
+        video_filename = playpath.split('/')[-1]
         video_id, extension = video_filename.split('.')
 
-        return {
+        return [{
             'id': video_id,
-            'url': video_url,
             'title': video_title,
-            'ext': extension,  # Extension is always(?) mp4, but seems to be flv
             'description': video_description,
-        }
+            'formats': [{
+                'url': video_url,
+                'ext': extension,
+                'play_path': playpath,
+            }],
+        }]
