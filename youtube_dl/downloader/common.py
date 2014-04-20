@@ -8,6 +8,7 @@ from ..utils import (
     encodeFilename,
     format_bytes,
     timeconvert,
+    StopDownloads
 )
 
 
@@ -49,6 +50,8 @@ class FileDownloader(object):
         self.ydl = ydl
         self._progress_hooks = []
         self.params = params
+        self._stop_handler = None
+        self._pause_handler = None
 
     @staticmethod
     def format_seconds(seconds):
@@ -155,7 +158,7 @@ class FileDownloader(object):
         speed = float(byte_counter) / elapsed
         if speed > rate_limit:
             time.sleep((byte_counter - rate_limit * (now - start_time)) / rate_limit)
-
+            
     def temp_name(self, filename):
         """Returns a temporary filename for the given filename."""
         if self.params.get('nopart', False) or filename == u'-' or \
@@ -298,6 +301,28 @@ class FileDownloader(object):
         for ph in self._progress_hooks:
             ph(status)
 
+    def _stop(self):
+	""" Check stop handler """
+	if self._stop_handler is not None:
+	  if self._stop_handler():
+	    raise StopDownloads()
+      
+    def _pause(self):
+	""" Check pause/resume handler """
+	if self._pause_handler is not None:
+	  while self._pause_handler():
+	    # Break if stop handler enable
+	    if self._stop_handler(): break
+	    time.sleep(1)
+    
+    def add_stop_handler(self, shand):
+	""" shand gets checked. If True raise StopDownloads """
+	self._stop_handler = shand
+      
+    def add_pause_handler(self, phand):
+	""" phand gets checked. If True pause downloads """
+	self._pause_handler = phand
+    
     def add_progress_hook(self, ph):
         """ ph gets called on download progress, with a dictionary with the entries
         * filename: The final filename

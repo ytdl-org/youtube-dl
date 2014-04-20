@@ -655,6 +655,9 @@ class MaxDownloadsReached(Exception):
     """ --max-downloads limit has been reached. """
     pass
 
+class StopDownloads(Exception):
+    """ Stop Downloads """
+    pass
 
 class UnavailableVideoError(Exception):
     """Unavailable Format exception.
