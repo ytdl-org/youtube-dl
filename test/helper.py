@@ -85,7 +85,7 @@ def gettestcases(include_onlymatching=False):
         else:
             tests = getattr(ie, '_TESTS', [])
         for t in tests:
-            if not include_onlymatching and getattr(t, 'only_matching', False):
+            if not include_onlymatching and t.get('only_matching', False):
                 continue
             t['name'] = type(ie).__name__[:-len('IE')]
             yield t
