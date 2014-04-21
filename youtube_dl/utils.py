@@ -923,9 +923,6 @@ def _windows_write_string(s, out):
         2: -12,
     }
 
-    def ucs2_len(s):
-        return sum((2 if ord(c) > 0xffff else 1) for c in s)
-
     fileno = out.fileno()
     if fileno not in WIN_OUTPUT_IDS:
         return False
@@ -959,13 +956,25 @@ def _windows_write_string(s, out):
     if not_a_console(h):
         return False
 
-    remaining = ucs2_len(s)
-    while remaining > 0:
+    def next_nonbmp_pos(s):
+        try:
+            return next(i for i, c in enumerate(s) if ord(c) > 0xffff)
+        except StopIteration:
+            return len(s)
+
+    while s:
+        count = min(next_nonbmp_pos(s), 1024)
+
         ret = WriteConsoleW(
-            h, s, min(remaining, 1024), ctypes.byref(written), None)
+            h, s, count if count else 2, ctypes.byref(written), None)
         if ret == 0:
             raise OSError('Failed to write string')
-        remaining -= written.value
+        if not count:  # We just wrote a non-BMP character
+            assert written.value == 2
+            s = s[1:]
+        else:
+            assert written.value > 0
+            s = s[written.value:]
     return True
 
 
