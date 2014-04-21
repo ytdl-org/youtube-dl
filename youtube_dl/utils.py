@@ -656,7 +656,11 @@ class MaxDownloadsReached(Exception):
     pass
 
 class StopDownloads(Exception):
-    """ Stop Downloads """
+    """ Stop Downloads exception.
+    
+    This exception will be raised by FileDownloader objects when
+    YoutubDL._stop_state is True
+    """
     pass
 
 class UnavailableVideoError(Exception):

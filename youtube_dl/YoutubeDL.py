@@ -187,8 +187,8 @@ class YoutubeDL(object):
         self._ies = []
         self._ies_instances = {}
         self._pps = []
-        self._stop = False
-        self._pause = False
+        self._stop_state = False
+        self._pause_state = False
         self._progress_hooks = []
         self._download_retcode = 0
         self._num_downloads = 0
@@ -984,8 +984,8 @@ class YoutubeDL(object):
                         for ph in self._progress_hooks:
                             fd.add_progress_hook(ph)
                         # Add stop, pause handlers 
-                        fd.add_stop_handler(self._stop_handler)
-                        fd.add_pause_handler(self._pause_handler)
+                        fd.set_stop_handler(self.get_stop_state)
+                        fd.set_pause_handler(self.get_pause_state)
                         return fd.download(name, info)
                     if info_dict.get('requested_formats') is not None:
                         downloaded = []
@@ -1019,7 +1019,7 @@ class YoutubeDL(object):
                 except (ContentTooShortError, ) as err:
                     self.report_error('content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
                     return
-                except StopDownloads:
+		except StopDownloads:
 		    return
 
             if success:
@@ -1031,27 +1031,17 @@ class YoutubeDL(object):
 
         self.record_download_archive(info_dict)
 
-    def _stop_handler(self):
-	""" Return self._stop status """
-	return self._stop
-	
-    def _pause_handler(self):
-	""" Return self._pause status """
-	return self._pause
+    def get_stop_state(self):
+	return self._stop_state
         
-    def stop(self):
-	""" Stop downloads """
-	if self._stop:
-	  self._stop = False
-	else:
-	  self._stop = True
-	  
-    def pause(self):
-	""" Pause/Resume downloads """
-	if self._pause:
-	  self._pause = False
-	else:
-	  self._pause = True
+    def get_pause_state(self):
+	return self._pause_state
+
+    def set_stop_state(self, stop_state):
+	self._stop_state = stop_state
+        
+    def set_pause_state(self, pause_state):
+	self._pause_state = pause_state
         
     def download(self, url_list):
         """Download a given list of URLs."""

@@ -301,27 +301,24 @@ class FileDownloader(object):
         for ph in self._progress_hooks:
             ph(status)
 
-    def _stop(self):
-	""" Check stop handler """
+    def _check_stop_handler(self):
 	if self._stop_handler is not None:
-	  if self._stop_handler():
-	    raise StopDownloads()
+	    if self._stop_handler():
+		raise StopDownloads()
       
-    def _pause(self):
-	""" Check pause/resume handler """
+    def _check_pause_handler(self):
 	if self._pause_handler is not None:
-	  while self._pause_handler():
-	    # Break if stop handler enable
-	    if self._stop_handler(): break
-	    time.sleep(1)
+	    while self._pause_handler():
+		if self._stop_handler(): break
+		time.sleep(1)
     
-    def add_stop_handler(self, shand):
-	""" shand gets checked. If True raise StopDownloads """
-	self._stop_handler = shand
+    def set_stop_handler(self, stop_handler):
+	""" stop_handler gets checked. If True raise StopDownloads """
+	self._stop_handler = stop_handler
       
-    def add_pause_handler(self, phand):
-	""" phand gets checked. If True pause downloads """
-	self._pause_handler = phand
+    def set_pause_handler(self, pause_handler):
+	""" pause_handler gets checked. If True pause downloads """
+	self._pause_handler = pause_handler
     
     def add_progress_hook(self, ph):
         """ ph gets called on download progress, with a dictionary with the entries
