@@ -178,7 +178,10 @@ class TEDIE(SubtitlesInfoExtractor):
         title = self._html_search_regex(
             r"(?s)<h1(?:\s+class='[^']+')?>(.+?)</h1>", webpage, 'title')
         description = self._html_search_regex(
-            r'(?s)<h4 class="[^"]+" id="h3--about-this-talk">.*?</h4>(.*?)</div>',
+            [
+                r'(?s)<h4 class="[^"]+" id="h3--about-this-talk">.*?</h4>(.*?)</div>',
+                r'(?s)<p><strong>About this talk:</strong>\s+(.*?)</p>',
+            ],
             webpage, 'description', fatal=False)
 
         return {
