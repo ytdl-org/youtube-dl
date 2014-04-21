@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class VuClipIE(InfoExtractor):
-    _VALID_URL = r'http://(?:m)?\.vuclip\.com/w\?.*?cid=(?P<id>[0-9]+)'
+    _VALID_URL = r'http://(?:m\.)?vuclip\.com/w\?.*?cid=(?P<id>[0-9]+)'
 
     _TEST = {
         'url': 'http://m.vuclip.com/w?cid=843902317&fid=63532&z=1007&nvar&frm=index.html&bu=4757321434',
