@@ -97,7 +97,7 @@ class TEDIE(SubtitlesInfoExtractor):
         playlist_info = info['playlist']
 
         playlist_entries = [
-            self.url_result(u'http://www.ted.com/talks/' + talk['slug'], self.ie_key())
+            self.url_result('http://www.ted.com/talks/' + talk['slug'], self.ie_key())
             for talk in info['talks']
         ]
         return self.playlist_result(
@@ -163,7 +163,7 @@ class TEDIE(SubtitlesInfoExtractor):
                 sub_lang_list[l] = url
             return sub_lang_list
         else:
-            self._downloader.report_warning(u'video doesn\'t have subtitles')
+            self._downloader.report_warning('video doesn\'t have subtitles')
             return {}
 
     def _watch_info(self, url, name):
