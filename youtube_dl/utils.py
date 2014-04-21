@@ -1245,7 +1245,10 @@ class HEADRequest(compat_urllib_request.Request):
         return "HEAD"
 
 
-def int_or_none(v, scale=1, default=None):
+def int_or_none(v, scale=1, default=None, get_attr=None):
+    if get_attr:
+        if v is not None:
+            v = getattr(v, get_attr, None)
     return default if v is None else (int(v) // scale)
 
 

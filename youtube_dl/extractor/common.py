@@ -279,9 +279,12 @@ class InfoExtractor(object):
 
     def _download_xml(self, url_or_request, video_id,
                       note=u'Downloading XML', errnote=u'Unable to download XML',
-                      transform_source=None):
+                      transform_source=None, fatal=True):
         """Return the xml as an xml.etree.ElementTree.Element"""
-        xml_string = self._download_webpage(url_or_request, video_id, note, errnote)
+        xml_string = self._download_webpage(
+            url_or_request, video_id, note, errnote, fatal=fatal)
+        if xml_string is False:
+            return xml_string
         if transform_source:
             xml_string = transform_source(xml_string)
         return xml.etree.ElementTree.fromstring(xml_string.encode('utf-8'))
