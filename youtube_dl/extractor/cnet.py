@@ -33,7 +33,7 @@ class CNETIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
         data_json = self._html_search_regex(
-            r"<div class=\"cnetVideoPlayer\" data-cnet-video-options='([^']+)'",
+            r"<div class=\"cnetVideoPlayer\"\s+.*?data-cnet-video-options='([^']+)'",
             webpage, 'data json')
         data = json.loads(data_json)
         vdata = data['video']
