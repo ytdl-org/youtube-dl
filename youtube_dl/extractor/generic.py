@@ -619,7 +619,13 @@ class GenericIE(InfoExtractor):
         mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
         if mobj is None:
             # Look for gorilla-vid style embedding
-            mobj = re.search(r'(?s)(?:jw_plugins|JWPlayerOptions).*?file\s*:\s*["\'](.*?)["\']', webpage)
+            mobj = re.search(r'''(?sx)
+                (?:
+                    jw_plugins|
+                    JWPlayerOptions|
+                    jwplayer\s*\(\s*["'][^'"]+["']\s*\)\s*\.setup
+                )
+                .*?file\s*:\s*["\'](.*?)["\']''', webpage)
         if mobj is None:
             # Broaden the search a little bit
             mobj = re.search(r'[^A-Za-z0-9]?(?:file|source)=(http[^\'"&]*)', webpage)
