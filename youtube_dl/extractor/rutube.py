@@ -47,7 +47,7 @@ class RutubeIE(InfoExtractor):
         author = video.get('author') or {}
 
         options = self._download_json(
-            'http://rutube.ru/api/play/options/%s/?format=json' %video_id,
+            'http://rutube.ru/api/play/options/%s/?format=json' % video_id,
             video_id, 'Downloading options JSON')
 
         m3u8_url = options['video_balancer'].get('m3u8')
