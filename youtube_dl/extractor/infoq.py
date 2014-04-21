@@ -13,9 +13,8 @@ class InfoQIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?infoq\.com/[^/]+/(?P<id>[^/]+)$'
 
     _TEST = {
-        'name': 'InfoQ',
         'url': 'http://www.infoq.com/presentations/A-Few-of-My-Favorite-Python-Things',
-        'md5': 'fcaa3d995e04080dcb9465d86b5eef62',
+        'md5': 'b5ca0e0a8c1fed93b0e65e48e462f9a2',
         'info_dict': {
             'id': '12-jan-pythonthings',
             'ext': 'mp4',
@@ -37,20 +36,32 @@ class InfoQIE(InfoExtractor):
         video_url = 'rtmpe://video.infoq.com/cfx/st/'
 
         # Extract video URL
-        encoded_id = self._search_regex(r"jsclassref ?= ?'([^']*)'", webpage, 'encoded id')
+        encoded_id = self._search_regex(
+            r"jsclassref\s*=\s*'([^']*)'", webpage, 'encoded id')
         real_id = compat_urllib_parse.unquote(base64.b64decode(encoded_id.encode('ascii')).decode('utf-8'))
         playpath = 'mp4:' + real_id
 
         video_filename = playpath.split('/')[-1]
         video_id, extension = video_filename.split('.')
 
+        http_base = self._search_regex(
+            r'EXPRESSINSTALL_SWF\s*=\s*"(https?://[^/"]+/)', webpage,
+            'HTTP base URL')
+
+        formats = [{
+            'format_id': 'rtmp',
+            'url': video_url,
+            'ext': extension,
+            'play_path': playpath,
+        }, {
+            'format_id': 'http',
+            'url': http_base + real_id,
+        }]
+        self._sort_formats(formats)
+
         return {
             'id': video_id,
             'title': video_title,
             'description': video_description,
-            'formats': [{
-                'url': video_url,
-                'ext': extension,
-                'play_path': playpath,
-            }],
+            'formats': formats,
         }
