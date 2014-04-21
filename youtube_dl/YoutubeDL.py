@@ -1019,8 +1019,8 @@ class YoutubeDL(object):
                 except (ContentTooShortError, ) as err:
                     self.report_error('content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
                     return
-		except StopDownloads:
-		    return
+                except StopDownloads
+                    return
 
             if success:
                 try:
@@ -1032,16 +1032,16 @@ class YoutubeDL(object):
         self.record_download_archive(info_dict)
 
     def get_stop_state(self):
-	return self._stop_state
+        return self._stop_state
         
     def get_pause_state(self):
-	return self._pause_state
+        return self._pause_state
 
     def set_stop_state(self, stop_state):
-	self._stop_state = stop_state
+        self._stop_state = stop_state
         
     def set_pause_state(self, pause_state):
-	self._pause_state = pause_state
+        self._pause_state = pause_state
         
     def download(self, url_list):
         """Download a given list of URLs."""

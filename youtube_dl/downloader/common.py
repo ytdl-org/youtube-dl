@@ -158,7 +158,7 @@ class FileDownloader(object):
         speed = float(byte_counter) / elapsed
         if speed > rate_limit:
             time.sleep((byte_counter - rate_limit * (now - start_time)) / rate_limit)
-            
+
     def temp_name(self, filename):
         """Returns a temporary filename for the given filename."""
         if self.params.get('nopart', False) or filename == u'-' or \
@@ -302,23 +302,23 @@ class FileDownloader(object):
             ph(status)
 
     def _check_stop_handler(self):
-	if self._stop_handler is not None:
-	    if self._stop_handler():
-		raise StopDownloads()
+        if self._stop_handler is not None:
+            if self._stop_handler():
+                raise StopDownloads()
       
     def _check_pause_handler(self):
-	if self._pause_handler is not None:
-	    while self._pause_handler():
-		if self._stop_handler(): break
-		time.sleep(1)
+        if self._pause_handler is not None:
+            while self._pause_handler():
+                if self._stop_handler(): break
+                time.sleep(1)
     
     def set_stop_handler(self, stop_handler):
-	""" stop_handler gets checked. If True raise StopDownloads """
-	self._stop_handler = stop_handler
+        """ stop_handler gets checked. If True raise StopDownloads """
+        self._stop_handler = stop_handler
       
     def set_pause_handler(self, pause_handler):
-	""" pause_handler gets checked. If True pause downloads """
-	self._pause_handler = pause_handler
+        """ pause_handler gets checked. If True pause downloads """
+        self._pause_handler = pause_handler
     
     def add_progress_hook(self, ph):
         """ ph gets called on download progress, with a dictionary with the entries
