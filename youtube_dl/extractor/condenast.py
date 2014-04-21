@@ -28,16 +28,18 @@ class CondeNastIE(InfoExtractor):
         'glamour': 'Glamour',
         'wmagazine': 'W Magazine',
         'vanityfair': 'Vanity Fair',
+        'cnevids': 'Condé Nast',
     }
 
-    _VALID_URL = r'http://(video|www)\.(?P<site>%s)\.com/(?P<type>watch|series|video)/(?P<id>.+)' % '|'.join(_SITES.keys())
+    _VALID_URL = r'http://(video|www|player)\.(?P<site>%s)\.com/(?P<type>watch|series|video|embed)/(?P<id>[^/?#]+)' % '|'.join(_SITES.keys())
     IE_DESC = 'Condé Nast media group: %s' % ', '.join(sorted(_SITES.values()))
 
     _TEST = {
         'url': 'http://video.wired.com/watch/3d-printed-speakers-lit-with-led',
-        'file': '5171b343c2b4c00dd0c1ccb3.mp4',
         'md5': '1921f713ed48aabd715691f774c451f7',
         'info_dict': {
+            'id': '5171b343c2b4c00dd0c1ccb3',
+            'ext': 'mp4',
             'title': '3D Printed Speakers Lit With LED',
             'description': 'Check out these beautiful 3D printed LED speakers.  You can\'t actually buy them, but LumiGeek is working on a board that will let you make you\'re own.',
         }
@@ -55,12 +57,16 @@ class CondeNastIE(InfoExtractor):
         entries = [self.url_result(build_url(path), 'CondeNast') for path in paths]
         return self.playlist_result(entries, playlist_title=title)
 
-    def _extract_video(self, webpage):
-        description = self._html_search_regex([r'<div class="cne-video-description">(.+?)</div>',
-                                               r'<div class="video-post-content">(.+?)</div>',
-                                               ],
-                                              webpage, 'description',
-                                              fatal=False, flags=re.DOTALL)
+    def _extract_video(self, webpage, url_type):
+        if url_type != 'embed':
+            description = self._html_search_regex(
+                [
+                    r'<div class="cne-video-description">(.+?)</div>',
+                    r'<div class="video-post-content">(.+?)</div>',
+                ],
+                webpage, 'description', fatal=False, flags=re.DOTALL)
+        else:
+            description = None
         params = self._search_regex(r'var params = {(.+?)}[;,]', webpage,
                                     'player params', flags=re.DOTALL)
         video_id = self._search_regex(r'videoId: [\'"](.+?)[\'"]', params, 'video id')
@@ -99,12 +105,12 @@ class CondeNastIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         site = mobj.group('site')
         url_type = mobj.group('type')
-        id = mobj.group('id')
+        item_id = mobj.group('id')
 
-        self.to_screen(u'Extracting from %s with the Condé Nast extractor' % self._SITES[site])
-        webpage = self._download_webpage(url, id)
+        self.to_screen('Extracting from %s with the Condé Nast extractor' % self._SITES[site])
+        webpage = self._download_webpage(url, item_id)
 
         if url_type == 'series':
             return self._extract_series(url, webpage)
         else:
-            return self._extract_video(webpage)
+            return self._extract_video(webpage, url_type)

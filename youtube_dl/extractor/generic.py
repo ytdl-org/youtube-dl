@@ -239,6 +239,16 @@ class GenericIE(InfoExtractor):
                 'uploader_id': 'rbctv_2012_4',
             },
         },
+        # Condé Nast embed
+        {
+            'url': 'http://www.wired.com/2014/04/honda-asimo/',
+            'md5': 'ba0dfe966fa007657bd1443ee672db0f',
+            'info_dict': {
+                'id': '53501be369702d3275860000',
+                'ext': 'mp4',
+                'title': 'Honda’s  New Asimo Robot Is More Human Than Ever',
+            }
+        }
     ]
 
     def report_download_webpage(self, video_id):
@@ -484,6 +494,22 @@ class GenericIE(InfoExtractor):
         mobj = re.search(r'<(?:iframe|embed|object)\s[^>]*(https?://(?:\w+\.)?blip\.tv/(?:play/|api\.swf#)[a-zA-Z0-9]+)', webpage)
         if mobj:
             return self.url_result(mobj.group(1), 'BlipTV')
+
+        # Look for embedded condenast player
+        matches = re.findall(
+            r'<iframe\s+(?:[a-zA-Z-]+="[^"]+"\s+)*?src="(https?://player\.cnevids\.com/embed/[^"]+")',
+            webpage)
+        if matches:
+            return {
+                '_type': 'playlist',
+                'entries': [{
+                    '_type': 'url',
+                    'ie_key': 'CondeNast',
+                    'url': ma,
+                } for ma in matches],
+                'title': video_title,
+                'id': video_id,
+            }
 
         # Look for Bandcamp pages with custom domain
         mobj = re.search(r'<meta property="og:url"[^>]*?content="(.*?bandcamp\.com.*?)"', webpage)
