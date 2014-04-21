@@ -1406,3 +1406,14 @@ US_RATINGS = {
 
 def strip_jsonp(code):
     return re.sub(r'(?s)^[a-zA-Z_]+\s*\(\s*(.*)\);\s*?\s*$', r'\1', code)
+
+
+def qualities(quality_ids):
+    """ Get a numeric quality value out of a list of possible values """
+    def q(qid):
+        try:
+            return quality_ids.index(qid)
+        except ValueError:
+            return -1
+    return q
+
