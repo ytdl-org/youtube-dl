@@ -1082,9 +1082,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                     break
         if 'token' not in video_info:
             if 'reason' in video_info:
-                raise ExtractorError(u'YouTube said: %s' % video_info['reason'][0], expected=True)
+                raise ExtractorError(
+                    u'YouTube said: %s' % video_info['reason'][0],
+                    expected=True, video_id=video_id)
             else:
-                raise ExtractorError(u'"token" parameter not in video info for unknown reason')
+                raise ExtractorError(
+                    u'"token" parameter not in video info for unknown reason',
+                    video_id=video_id)
 
         if 'view_count' in video_info:
             view_count = int(video_info['view_count'][0])

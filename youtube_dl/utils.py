@@ -594,13 +594,15 @@ def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
 
 class ExtractorError(Exception):
     """Error during info extraction."""
-    def __init__(self, msg, tb=None, expected=False, cause=None):
+    def __init__(self, msg, tb=None, expected=False, cause=None, video_id=None):
         """ tb, if given, is the original traceback (so that it can be printed out).
         If expected is set, this is a normal error message and most likely not a bug in youtube-dl.
         """
 
         if sys.exc_info()[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError):
             expected = True
+        if video_id is not None:
+            msg = video_id + ': ' + msg
         if not expected:
             msg = msg + u'; please report this issue on https://yt-dl.org/bug . Be sure to call youtube-dl with the --verbose flag and include its complete output. Make sure you are using the latest version; type  youtube-dl -U  to update.'
         super(ExtractorError, self).__init__(msg)
@@ -608,6 +610,7 @@ class ExtractorError(Exception):
         self.traceback = tb
         self.exc_info = sys.exc_info()  # preserve original exception
         self.cause = cause
+        self.video_id = video_id
 
     def format_traceback(self):
         if self.traceback is None:
