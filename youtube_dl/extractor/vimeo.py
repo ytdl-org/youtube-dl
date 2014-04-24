@@ -17,6 +17,7 @@ from ..utils import (
     RegexNotFoundError,
     std_headers,
     unsmuggle_url,
+    urlencode_postdata,
 )
 
 
@@ -119,12 +120,13 @@ class VimeoIE(SubtitlesInfoExtractor):
         login_url = 'https://vimeo.com/log_in'
         webpage = self._download_webpage(login_url, None, False)
         token = self._search_regex(r'xsrft: \'(.*?)\'', webpage, 'login token')
-        data = compat_urllib_parse.urlencode({'email': username,
-                                              'password': password,
-                                              'action': 'login',
-                                              'service': 'vimeo',
-                                              'token': token,
-                                              })
+        data = urlencode_postdata({
+            'email': username,
+            'password': password,
+            'action': 'login',
+            'service': 'vimeo',
+            'token': token,
+        })
         login_request = compat_urllib_request.Request(login_url, data)
         login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         login_request.add_header('Cookie', 'xsrft=%s' % token)
