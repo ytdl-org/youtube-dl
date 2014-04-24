@@ -292,6 +292,7 @@ from .vimeo import (
     VimeoAlbumIE,
     VimeoGroupsIE,
     VimeoReviewIE,
+    VimeoWatchLaterIE,
 )
 from .vine import VineIE
 from .viki import VikiIE

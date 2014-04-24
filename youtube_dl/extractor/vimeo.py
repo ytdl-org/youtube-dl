@@ -21,7 +21,34 @@ from ..utils import (
 )
 
 
-class VimeoIE(SubtitlesInfoExtractor):
+class VimeoBaseInfoExtractor(InfoExtractor):
+    _NETRC_MACHINE = 'vimeo'
+    _LOGIN_REQUIRED = False
+
+    def _login(self):
+        (username, password) = self._get_login_info()
+        if username is None:
+            if self._LOGIN_REQUIRED:
+                raise ExtractorError(u'No login info available, needed for using %s.' % self.IE_NAME, expected=True)
+            return
+        self.report_login()
+        login_url = 'https://vimeo.com/log_in'
+        webpage = self._download_webpage(login_url, None, False)
+        token = self._search_regex(r'xsrft: \'(.*?)\'', webpage, 'login token')
+        data = urlencode_postdata({
+            'email': username,
+            'password': password,
+            'action': 'login',
+            'service': 'vimeo',
+            'token': token,
+        })
+        login_request = compat_urllib_request.Request(login_url, data)
+        login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        login_request.add_header('Cookie', 'xsrft=%s' % token)
+        self._download_webpage(login_request, None, False, 'Wrong login info')
+
+
+class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
     """Information extractor for vimeo.com."""
 
     # _VALID_URL matches Vimeo URLs
@@ -34,7 +61,6 @@ class VimeoIE(SubtitlesInfoExtractor):
         (?:videos?/)?
         (?P<id>[0-9]+)
         /?(?:[?&].*)?(?:[#].*)?$'''
-    _NETRC_MACHINE = 'vimeo'
     IE_NAME = 'vimeo'
     _TESTS = [
         {
@@ -111,26 +137,6 @@ class VimeoIE(SubtitlesInfoExtractor):
             return False
         else:
             return super(VimeoIE, cls).suitable(url)
-
-    def _login(self):
-        (username, password) = self._get_login_info()
-        if username is None:
-            return
-        self.report_login()
-        login_url = 'https://vimeo.com/log_in'
-        webpage = self._download_webpage(login_url, None, False)
-        token = self._search_regex(r'xsrft: \'(.*?)\'', webpage, 'login token')
-        data = urlencode_postdata({
-            'email': username,
-            'password': password,
-            'action': 'login',
-            'service': 'vimeo',
-            'token': token,
-        })
-        login_request = compat_urllib_request.Request(login_url, data)
-        login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        login_request.add_header('Cookie', 'xsrft=%s' % token)
-        self._download_webpage(login_request, None, False, 'Wrong login info')
 
     def _verify_video_password(self, url, video_id, webpage):
         password = self._downloader.params.get('videopassword', None)
@@ -440,3 +446,25 @@ class VimeoReviewIE(InfoExtractor):
         video_id = mobj.group('id')
         player_url = 'https://player.vimeo.com/player/' + video_id
         return self.url_result(player_url, 'Vimeo', video_id)
+
+
+class VimeoWatchLaterIE(VimeoBaseInfoExtractor, VimeoChannelIE):
+    IE_NAME = 'vimeo:watchlater'
+    IE_DESC = 'Vimeo watch later list, "vimeowatchlater" keyword (requires authentication)'
+    _VALID_URL = r'https?://vimeo\.com/home/watchlater|:vimeowatchlater'
+    _LOGIN_REQUIRED = True
+    _TITLE_RE = r'href="/home/watchlater".*?>(.*?)<'
+
+    def _real_initialize(self):
+        self._login()
+
+    def _page_url(self, base_url, pagenum):
+        url = '%s/page:%d/' % (base_url, pagenum)
+        request = compat_urllib_request.Request(url)
+        # Set the header to get a partial html page with the ids,
+        # the normal page doesn't contain them.
+        request.add_header('X-Requested-With', 'XMLHttpRequest')
+        return request
+
+    def _real_extract(self, url):
+        return self._extract_videos('watchlater', 'https://vimeo.com/home/watchlater')
