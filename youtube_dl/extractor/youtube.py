@@ -1117,7 +1117,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         # title
         if 'title' in video_info:
-            video_title = compat_urllib_parse.unquote_plus(video_info['title'][0])
+            video_title = video_info['title'][0]
         else:
             self._downloader.report_warning(u'Unable to extract video title')
             video_title = u'_'
