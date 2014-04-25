@@ -304,7 +304,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 u'id': u'IB3lcPjvWLA',
                 u'ext': u'm4a',
                 u'title': u'Afrojack - The Spark ft. Spree Wilson',
-                u'description': u'md5:3199ed45ee8836572865580804d7ac0f',
+                u'description': u'md5:9717375db5a9a3992be4668bbf3bc0a8',
                 u'uploader': u'AfrojackVEVO',
                 u'uploader_id': u'AfrojackVEVO',
                 u'upload_date': u'20131011',
