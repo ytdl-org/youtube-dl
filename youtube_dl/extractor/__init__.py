@@ -160,6 +160,7 @@ from .mofosex import MofosexIE
 from .mooshare import MooshareIE
 from .morningstar import MorningstarIE
 from .motorsport import MotorsportIE
+from .moviezine import MoviezineIE
 from .movshare import MovShareIE
 from .mtv import (
     MTVIE,
