@@ -221,6 +221,7 @@ from .rutube import (
 )
 from .rutv import RUTVIE
 from .savefrom import SaveFromIE
+from .scivee import SciVeeIE
 from .servingsys import ServingSysIE
 from .sina import SinaIE
 from .slideshare import SlideshareIE
