@@ -469,8 +469,13 @@ class GenericIE(InfoExtractor):
         matches = re.findall(
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/embed/video/.+?)\1', webpage)
         if matches:
-            urlrs = [self.url_result(unescapeHTML(tuppl[1]), 'Dailymotion')
-                     for tuppl in matches]
+            urlrs = []
+            for tuppl in matches:
+                unrl = unescapeHTML(tuppl[1])
+                if unrl.startswith('//'):
+                    unrl = ('http:' if self._downloader.params.get('prefer_insecure', False) else 'https:') + unrl
+                urlrs.append(self.url_result(unrl, 'Dailymotion'))
+
             return self.playlist_result(
                 urlrs, playlist_id=video_id, playlist_title=video_title)
 
