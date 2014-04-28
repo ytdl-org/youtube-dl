@@ -210,6 +210,7 @@ from .ringtv import RingTVIE
 from .ro220 import Ro220IE
 from .rottentomatoes import RottenTomatoesIE
 from .roxwel import RoxwelIE
+from .rtbf import RTBFVideoIE
 from .rtlnow import RTLnowIE
 from .rts import RTSIE
 from .rtve import RTVEALaCartaIE
