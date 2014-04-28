@@ -1149,10 +1149,14 @@ class YoutubeDL(object):
             if fdict.get('tbr') is not None:
                 res += '%5dk' % fdict['tbr']
             if fdict.get('container') is not None:
-                res += ', %s container' % fdict['container']
+                if res:
+                    res += ', '
+                res += '%s container' % fdict['container']
             if (fdict.get('vcodec') is not None and
                     fdict.get('vcodec') != 'none'):
-                res += ', ' + fdict['vcodec']
+                if res:
+                    res += ', '
+                res += fdict['vcodec']
                 if fdict.get('vbr') is not None:
                     res += '@'
             elif fdict.get('vbr') is not None and fdict.get('abr') is not None:
@@ -1160,18 +1164,24 @@ class YoutubeDL(object):
             if fdict.get('vbr') is not None:
                 res += '%4dk' % fdict['vbr']
             if fdict.get('acodec') is not None:
+                if res:
+                    res += ', '
                 if fdict['acodec'] == 'none':
-                    res += ', video only'
+                    res += 'video only'
                 else:
                     res += ', %-5s' % fdict['acodec']
             elif fdict.get('abr') is not None:
-                res += ', audio'
+                if res:
+                    res += ', '
+                res += 'audio'
             if fdict.get('abr') is not None:
                 res += '@%3dk' % fdict['abr']
             if fdict.get('asr') is not None:
                 res += ' (%5dHz)' % fdict['asr']
             if fdict.get('filesize') is not None:
-                res += ', ' + format_bytes(fdict['filesize'])
+                if res:
+                    res += ', '
+                res += format_bytes(fdict['filesize'])
             return res
 
         def line(format, idlen=20):
