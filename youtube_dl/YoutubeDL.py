@@ -1145,43 +1145,33 @@ class YoutubeDL(object):
             if fdict.get('ext') in ['f4f', 'f4m']:
                 res += '(unsupported) '
             if fdict.get('format_note') is not None:
-                res += fdict['format_note'] + ' '
+                res += fdict['format_note']
             if fdict.get('tbr') is not None:
-                res += '%4dk ' % fdict['tbr']
+                res += '%5dk' % fdict['tbr']
             if fdict.get('container') is not None:
-                if res:
-                    res += ', '
-                res += '%s container' % fdict['container']
+                res += ', %s container' % fdict['container']
             if (fdict.get('vcodec') is not None and
                     fdict.get('vcodec') != 'none'):
-                if res:
-                    res += ', '
-                res += fdict['vcodec']
+                res += ', ' + fdict['vcodec']
                 if fdict.get('vbr') is not None:
                     res += '@'
             elif fdict.get('vbr') is not None and fdict.get('abr') is not None:
-                res += 'video@'
+                res += ', video@'
             if fdict.get('vbr') is not None:
                 res += '%4dk' % fdict['vbr']
             if fdict.get('acodec') is not None:
-                if res:
-                    res += ', '
                 if fdict['acodec'] == 'none':
-                    res += 'video only'
+                    res += ', video only'
                 else:
-                    res += '%-5s' % fdict['acodec']
+                    res += ', %-5s' % fdict['acodec']
             elif fdict.get('abr') is not None:
-                if res:
-                    res += ', '
-                res += 'audio'
+                res += ', audio'
             if fdict.get('abr') is not None:
                 res += '@%3dk' % fdict['abr']
             if fdict.get('asr') is not None:
                 res += ' (%5dHz)' % fdict['asr']
             if fdict.get('filesize') is not None:
-                if res:
-                    res += ', '
-                res += format_bytes(fdict['filesize'])
+                res += ', ' + format_bytes(fdict['filesize'])
             return res
 
         def line(format, idlen=20):
