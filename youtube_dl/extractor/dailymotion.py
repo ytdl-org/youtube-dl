@@ -27,7 +27,7 @@ class DailymotionBaseInfoExtractor(InfoExtractor):
 class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
     """Information Extractor for Dailymotion"""
 
-    _VALID_URL = r'(?i)(?:https?://)?(?:(www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(embed|#)/)?video/(?P<id>[^/?_]+)'
+    _VALID_URL = r'(?i)(?:(?:https?:)?//)?(?:(www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(embed|#)/)?video/(?P<id>[^/?_]+)'
     IE_NAME = u'dailymotion'
 
     _FORMATS = [
