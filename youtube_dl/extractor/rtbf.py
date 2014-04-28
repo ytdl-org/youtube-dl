@@ -29,7 +29,6 @@ class RTBFVideoIE(InfoExtractor):
         title = self._html_search_regex(
             r'<meta property="og:description" content="([^"]*)"',
             webpage, 'title', mobj.group('title'))
-        print title
 
         iframe_url = self._html_search_regex(r'<iframe [^>]*src="([^"]+)"',
             webpage, 'iframe')
