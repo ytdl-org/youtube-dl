@@ -1145,9 +1145,9 @@ class YoutubeDL(object):
             if fdict.get('ext') in ['f4f', 'f4m']:
                 res += '(unsupported) '
             if fdict.get('format_note') is not None:
-                res += fdict['format_note'] + ' '
+                res += fdict['format_note']
             if fdict.get('tbr') is not None:
-                res += '%4dk ' % fdict['tbr']
+                res += '%5dk' % fdict['tbr']
             if fdict.get('container') is not None:
                 if res:
                     res += ', '
@@ -1160,7 +1160,7 @@ class YoutubeDL(object):
                 if fdict.get('vbr') is not None:
                     res += '@'
             elif fdict.get('vbr') is not None and fdict.get('abr') is not None:
-                res += 'video@'
+                res += ', video@'
             if fdict.get('vbr') is not None:
                 res += '%4dk' % fdict['vbr']
             if fdict.get('acodec') is not None:
@@ -1169,7 +1169,7 @@ class YoutubeDL(object):
                 if fdict['acodec'] == 'none':
                     res += 'video only'
                 else:
-                    res += '%-5s' % fdict['acodec']
+                    res += ', %-5s' % fdict['acodec']
             elif fdict.get('abr') is not None:
                 if res:
                     res += ', '
