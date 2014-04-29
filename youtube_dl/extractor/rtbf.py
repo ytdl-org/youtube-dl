@@ -5,10 +5,10 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import clean_html
 
-class RTBFVideoIE(InfoExtractor):
-    _VALID_URL = r'https?://www.rtbf.be/video/(?P<title>[^?]+)\?.*id=(?P<id>[0-9]+)'
+
+class RTBFIE(InfoExtractor):
+    _VALID_URL = r'https?://www.rtbf.be/video/[^\?]+\?id=(?P<id>\d+)'
     _TEST = {
         'url': 'https://www.rtbf.be/video/detail_les-diables-au-coeur-episode-2?id=1921274',
         'md5': '799f334ddf2c0a582ba80c44655be570',
@@ -16,7 +16,10 @@ class RTBFVideoIE(InfoExtractor):
             'id': '1921274',
             'ext': 'mp4',
             'title': 'Les Diables au coeur (épisode 2)',
+            'description': 'Football - Diables Rouges',
             'duration': 3099,
+            'timestamp': 1398456336,
+            'upload_date': '20140425',
         }
     }
 
@@ -24,25 +27,23 @@ class RTBFVideoIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        # TODO more code goes here, for example ...
-        webpage = self._download_webpage(url, video_id)
-        title = self._html_search_regex(
-            r'<meta property="og:description" content="([^"]*)"',
-            webpage, 'title', mobj.group('title'))
+        page = self._download_webpage('https://www.rtbf.be/video/embed?id=%s' % video_id, video_id)
 
-        iframe_url = self._html_search_regex(r'<iframe [^>]*src="([^"]+)"',
-            webpage, 'iframe')
-        iframe = self._download_webpage(iframe_url, video_id)
+        data = json.loads(self._html_search_regex(
+            r'<div class="js-player-embed" data-video="([^"]+)"', page, 'data video'))['data']
 
-        data_video_idx = iframe.find('data-video')
-        next_data_idx = iframe.find('data-', data_video_idx + 1)
-        json_data_start = data_video_idx + len('data-video=') + 1
-        json_data_end = next_data_idx - 2
-        video_data = json.loads(clean_html(iframe[json_data_start:json_data_end]))
+        video_url = data.get('downloadUrl') or data.get('url')
+
+        if data['provider'].lower() == 'youtube':
+            return self.url_result(video_url, 'Youtube')
 
         return {
             'id': video_id,
-            'title': title,
-            'url': video_data['data']['downloadUrl'],
-            'duration': video_data['data']['duration'],
+            'url': video_url,
+            'title': data['title'],
+            'description': data.get('description') or data.get('subtitle'),
+            'thumbnail': data['thumbnail']['large'],
+            'duration': data.get('duration') or data.get('realDuration'),
+            'timestamp': data['created'],
+            'view_count': data['viewCount'],
         }
