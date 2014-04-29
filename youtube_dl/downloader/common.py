@@ -8,6 +8,7 @@ from ..utils import (
     encodeFilename,
     format_bytes,
     timeconvert,
+    StopDownloads
 )
 
 
@@ -49,6 +50,8 @@ class FileDownloader(object):
         self.ydl = ydl
         self._progress_hooks = []
         self.params = params
+        self._stop_handler = None
+        self._pause_handler = None
 
     @staticmethod
     def format_seconds(seconds):
@@ -298,6 +301,25 @@ class FileDownloader(object):
         for ph in self._progress_hooks:
             ph(status)
 
+    def _check_stop_handler(self):
+        if self._stop_handler is not None:
+            if self._stop_handler():
+                raise StopDownloads()
+      
+    def _check_pause_handler(self):
+        if self._pause_handler is not None:
+            while self._pause_handler():
+                if self._stop_handler(): break
+                time.sleep(1)
+    
+    def set_stop_handler(self, stop_handler):
+        """ stop_handler gets checked. If True raise StopDownloads """
+        self._stop_handler = stop_handler
+      
+    def set_pause_handler(self, pause_handler):
+        """ pause_handler gets checked. If True pause downloads """
+        self._pause_handler = pause_handler
+    
     def add_progress_hook(self, ph):
         """ ph gets called on download progress, with a dictionary with the entries
         * filename: The final filename

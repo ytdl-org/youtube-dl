@@ -162,6 +162,10 @@ class HttpFD(FileDownloader):
                 'speed': speed,
             })
 
+            self._check_stop_handler()
+            
+            self._check_pause_handler()
+            
             # Apply rate limit
             self.slow_down(start, byte_counter - resume_len)
 
