@@ -337,6 +337,17 @@ class InfoExtractor(object):
         if video_id is not None:
             video_info['id'] = video_id
         return video_info
+
+    @staticmethod
+    def video_result(video_url=None, video_id=None, uploader=None, video_title=None):
+        """Returns a url that points to a page that should be processed"""
+        video_info = {'_type': 'video',
+                      'url': video_url,
+                      'id': video_id,
+                      'uploader': uploader,
+                       'title': video_title}
+        return video_info
+
     @staticmethod
     def playlist_result(entries, playlist_id=None, playlist_title=None):
         """Returns a playlist"""

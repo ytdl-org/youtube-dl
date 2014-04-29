@@ -645,7 +645,13 @@ class GenericIE(InfoExtractor):
                 mobj = re.search(r'<meta.*?property="og:video".*?content="(.*?)"', webpage)
         if mobj is None:
             # HTML5 video
-            mobj = re.search(r'<video[^<]*(?:>.*?<source.*?)? src="([^"]+)"', webpage, flags=re.DOTALL)
+            matches = re.findall(r'<video[^<]*(?:>.*?<source.*?)? src="([^"]+)"', webpage, flags=re.DOTALL)
+            if matches:
+                urlrs = [self.video_result(unescapeHTML(tuppl), video_id, video_uploader,video_title)
+                for tuppl in matches]
+                return self.playlist_result(
+                    urlrs, playlist_id=video_id, playlist_title=video_title)
+
         if mobj is None:
             mobj = re.search(
                 r'(?i)<meta\s+(?=(?:[a-z-]+="[^"]+"\s+)*http-equiv="refresh")'
