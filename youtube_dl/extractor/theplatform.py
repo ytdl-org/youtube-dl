@@ -52,7 +52,7 @@ class ThePlatformIE(InfoExtractor):
         head = meta.find(_x('smil:head'))
         body = meta.find(_x('smil:body'))
 
-        f4m_node = body.find(_x('smil:seq/smil:video'))
+        f4m_node = body.find(_x('smil:seq//smil:video'))
         if f4m_node is not None:
             f4m_url = f4m_node.attrib['src']
             if 'manifest.f4m?' not in f4m_url:
