@@ -248,6 +248,18 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Honda’s  New Asimo Robot Is More Human Than Ever',
             }
+        },
+        # Dailymotion embed
+        {
+            'url': 'http://www.spi0n.com/zap-spi0n-com-n216/',
+            'md5': '441aeeb82eb72c422c7f14ec533999cd',
+            'info_dict': {
+                'id': 'k2mm4bCdJ6CQ2i7c8o2',
+                'ext': 'mp4',
+                'title': 'Le Zap de Spi0n n°216 - Zapping du Web',
+                'uploader': 'Spi0n',
+            },
+            'add_ie': ['Dailymotion'],
         }
     ]
 
@@ -333,6 +345,15 @@ class GenericIE(InfoExtractor):
         }
 
     def _real_extract(self, url):
+        if url.startswith('//'):
+            return {
+                '_type': 'url',
+                'url': (
+                    'http:'
+                    if self._downloader.params.get('prefer_insecure', False)
+                    else 'https:') + url,
+            }
+
         parsed_url = compat_urlparse.urlparse(url)
         if not parsed_url.scheme:
             default_search = self._downloader.params.get('default_search')
@@ -469,7 +490,7 @@ class GenericIE(InfoExtractor):
         matches = re.findall(
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/embed/video/.+?)\1', webpage)
         if matches:
-            urlrs = [self.url_result(unescapeHTML(tuppl[1]), 'Dailymotion')
+            urlrs = [self.url_result(unescapeHTML(tuppl[1]))
                      for tuppl in matches]
             return self.playlist_result(
                 urlrs, playlist_id=video_id, playlist_title=video_title)
