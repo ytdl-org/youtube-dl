@@ -105,14 +105,6 @@ class HttpFD(FileDownloader):
 
         data_len = data.info().get('Content-length', None)
 
-        # Range HTTP header may be ignored/unsupported by a webserver
-        # (e.g. extractor/scivee.py, extractor/bambuser.py).
-        # However, for a test we still would like to download just a piece of a file.
-        # To achieve this we limit data_len to _TEST_FILE_SIZE and manually control
-        # block size when downloading a file.
-        if is_test and data_len > self._TEST_FILE_SIZE:
-            data_len = self._TEST_FILE_SIZE
-
         if data_len is not None:
             data_len = int(data_len) + resume_len
             min_data_len = self.params.get("min_filesize", None)
@@ -123,6 +115,14 @@ class HttpFD(FileDownloader):
             if max_data_len is not None and data_len > max_data_len:
                 self.to_screen(u'\r[download] File is larger than max-filesize (%s bytes > %s bytes). Aborting.' % (data_len, max_data_len))
                 return False
+
+            # Range HTTP header may be ignored/unsupported by a webserver
+            # (e.g. extractor/scivee.py, extractor/bambuser.py).
+            # However, for a test we still would like to download just a piece of a file.
+            # To achieve this we limit data_len to _TEST_FILE_SIZE and manually control
+            # block size when downloading a file.
+            if is_test and data_len > self._TEST_FILE_SIZE:
+                data_len = self._TEST_FILE_SIZE
 
         data_len_str = format_bytes(data_len)
         byte_counter = 0 + resume_len
