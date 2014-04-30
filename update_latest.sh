@@ -16,5 +16,7 @@ for f in $(ls "downloads/$version/"); do \
 done
 
 ln -sf --no-target-directory "$version" "downloads/latest"
+/bin/echo -e "RewriteEngine On\nRewriteRule latest(.*) /downloads/${version}\$1 [L,R=302]" > .htaccess
+
 echo -n "$version" > latest/version
 
