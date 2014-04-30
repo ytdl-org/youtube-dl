@@ -11,16 +11,12 @@ class SciVeeIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://www.scivee.tv/node/62352',
-        #'md5': 'b16699b74c9e6a120f6772a44960304f',
+        'md5': 'b16699b74c9e6a120f6772a44960304f',
         'info_dict': {
             'id': '62352',
             'ext': 'mp4',
             'title': 'Adam Arkin at the 2014 DOE JGI Genomics of Energy & Environment Meeting',
             'description': 'md5:81f1710638e11a481358fab1b11059d7',
-        },
-        'params': {
-            # Range HTTP header is ignored
-            'skip_download': True,
         },
     }
 

@@ -13,7 +13,7 @@ class NRKIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://www.nrk.no/video/dompap_og_andre_fugler_i_piip_show/D0FA54B5C8B6CE59/emne/piipshow/',
-            'md5': '12618eef328c9a35c1b47d5583d9c30d',
+            'md5': 'a6eac35052f3b242bb6bb7f43aed5886',
             'info_dict': {
                 'id': '150533',
                 'ext': 'flv',
@@ -23,7 +23,7 @@ class NRKIE(InfoExtractor):
         },
         {
             'url': 'http://www.nrk.no/lyd/lyd_av_oppleser_for_blinde/AEFDDD5473BA0198/',
-            'md5': '390b2ce15c0d6aa376ef5059ac9f865e',
+            'md5': '3471f2a51718195164e88f46bf427668',
             'info_dict': {
                 'id': '154915',
                 'ext': 'flv',
