@@ -14,6 +14,7 @@ ln -sf --no-target-directory ../downloads/$version latest/directory
 for f in $(ls "downloads/$version/"); do \
     ln -sf --no-target-directory "../downloads/$version/$f" latest/$(echo $f | sed -e "s@-$version@@")
 done
-ln -sf --no-target-directory "downloads/$version" "downloads/latest"
+
+ln -sf --no-target-directory "$version" "downloads/latest"
 echo -n "$version" > latest/version
 
