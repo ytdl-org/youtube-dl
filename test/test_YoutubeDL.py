@@ -8,7 +8,7 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import FakeYDL
+from test.helper import FakeYDL, assertRegexpMatches
 from youtube_dl import YoutubeDL
 from youtube_dl.extractor import YoutubeIE
 
@@ -274,6 +274,12 @@ class TestFormatSelection(unittest.TestCase):
         # Replace missing fields with 'NA'
         self.assertEqual(fname('%(uploader_date)s-%(id)s.%(ext)s'), 'NA-1234.mp4')
 
+    def test_format_note(self):
+        ydl = YoutubeDL()
+        self.assertEqual(ydl._format_note({}), '')
+        assertRegexpMatches(self, ydl._format_note({
+            'vbr': 10,
+        }), '^x\s*10k$')
 
 if __name__ == '__main__':
     unittest.main()

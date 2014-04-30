@@ -134,3 +134,17 @@ def expect_info_dict(self, expected_dict, got_dict):
             missing_keys,
             'Missing keys in test definition: %s' % (
                 ', '.join(sorted(missing_keys))))
+
+
+def assertRegexpMatches(self, text, regexp, msg=None):
+    if hasattr(self, 'assertRegexpMatches'):
+        return self.assertRegexpMatches(text, regexp, msg)
+    else:
+        m = re.match(regexp, text)
+        if not m:
+            note = 'Regexp didn\'t match: %r not found in %r' % (regexp, text)
+            if msg is None:
+                msg = note
+            else:
+                msg = note + ', ' + msg
+            self.assertTrue(m, msg)
