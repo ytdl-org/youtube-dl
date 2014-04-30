@@ -14,7 +14,7 @@ class CanalplusIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://www.canalplus.fr/c-infos-documentaires/pid1830-c-zapping.html?vid=922470',
-        'md5': '60c29434a416a83c15dae2587d47027d',
+        'md5': '3db39fb48b9685438ecf33a1078023e4',
         'info_dict': {
             'id': '922470',
             'ext': 'flv',
