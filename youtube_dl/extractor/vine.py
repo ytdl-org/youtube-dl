@@ -31,7 +31,7 @@ class VineIE(InfoExtractor):
 
         data = json.loads(self._html_search_regex(
             r'window\.POST_DATA = { %s: ({.+?}) }' % video_id, webpage, 'vine data'))
-
+        print(json.dumps(data, indent=2))
         formats = [
             {
                 'url': data['videoLowURL'],

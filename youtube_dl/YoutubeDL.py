@@ -31,6 +31,7 @@ from .utils import (
     ContentTooShortError,
     date_from_str,
     DateRange,
+    DEFAULT_OUTTMPL,
     determine_ext,
     DownloadError,
     encodeFilename,
@@ -440,7 +441,8 @@ class YoutubeDL(object):
                                  if v is not None)
             template_dict = collections.defaultdict(lambda: 'NA', template_dict)
 
-            tmpl = os.path.expanduser(self.params['outtmpl'])
+            outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
+            tmpl = os.path.expanduser(outtmpl)
             filename = tmpl % template_dict
             return filename
         except ValueError as err:
@@ -1025,10 +1027,11 @@ class YoutubeDL(object):
 
     def download(self, url_list):
         """Download a given list of URLs."""
+        outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
         if (len(url_list) > 1 and
-                '%' not in self.params['outtmpl']
+                '%' not in outtmpl
                 and self.params.get('max_downloads') != 1):
-            raise SameFileError(self.params['outtmpl'])
+            raise SameFileError(outtmpl)
 
         for url in url_list:
             try:

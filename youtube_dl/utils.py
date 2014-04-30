@@ -1423,3 +1423,5 @@ def qualities(quality_ids):
             return -1
     return q
 
+
+DEFAULT_OUTTMPL = '%(title)s-%(id)s.%(ext)s'

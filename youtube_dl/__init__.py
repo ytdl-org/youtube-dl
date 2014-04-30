@@ -72,6 +72,7 @@ from .utils import (
     compat_getpass,
     compat_print,
     DateRange,
+    DEFAULT_OUTTMPL,
     decodeOption,
     get_term_width,
     DownloadError,
@@ -705,7 +706,7 @@ def _real_main(argv=None):
             or (opts.usetitle and u'%(title)s-%(id)s.%(ext)s')
             or (opts.useid and u'%(id)s.%(ext)s')
             or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
-            or u'%(title)s-%(id)s.%(ext)s')
+            or DEFAULT_OUTTMPL)
     if not os.path.splitext(outtmpl)[1] and opts.extractaudio:
         parser.error(u'Cannot download a video and extract audio into the same'
                      u' file! Use "{0}.%(ext)s" instead of "{0}" as the output'
