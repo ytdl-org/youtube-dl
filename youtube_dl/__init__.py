@@ -383,29 +383,29 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option('--skip-download',
             action='store_true', dest='skip_download', help='do not download the video', default=False)
     verbosity.add_option('-g', '--get-url',
-            action='store_true', dest='geturl', help='simulate, quiet but print URL', default=False)
+            action='store_true', dest='geturl', help='Be quiet but print URL', default=False)
     verbosity.add_option('-e', '--get-title',
-            action='store_true', dest='gettitle', help='simulate, quiet but print title', default=False)
+            action='store_true', dest='gettitle', help='Be quiet but print title', default=False)
     verbosity.add_option('--get-id',
-            action='store_true', dest='getid', help='simulate, quiet but print id', default=False)
+            action='store_true', dest='getid', help='Be quiet but print id', default=False)
     verbosity.add_option('--get-thumbnail',
             action='store_true', dest='getthumbnail',
-            help='simulate, quiet but print thumbnail URL', default=False)
+            help='Be quiet but print thumbnail URL', default=False)
     verbosity.add_option('--get-description',
             action='store_true', dest='getdescription',
-            help='simulate, quiet but print video description', default=False)
+            help='Be quiet but print video description', default=False)
     verbosity.add_option('--get-duration',
             action='store_true', dest='getduration',
-            help='simulate, quiet but print video length', default=False)
+            help='Be quiet but print video length', default=False)
     verbosity.add_option('--get-filename',
             action='store_true', dest='getfilename',
-            help='simulate, quiet but print output filename', default=False)
+            help='Be quiet but print output filename', default=False)
     verbosity.add_option('--get-format',
             action='store_true', dest='getformat',
-            help='simulate, quiet but print output format', default=False)
+            help='Be quiet but print output format', default=False)
     verbosity.add_option('-j', '--dump-json',
             action='store_true', dest='dumpjson',
-            help='simulate, quiet but print JSON information. See --output for a description of available keys.', default=False)
+            help='Be quiet but print JSON information. See --output for a description of available keys.', default=False)
     verbosity.add_option('--newline',
             action='store_true', dest='progress_with_newline', help='output progress bar as new lines', default=False)
     verbosity.add_option('--no-progress',
@@ -733,7 +733,7 @@ def _real_main(argv=None):
         'forceformat': opts.getformat,
         'forcejson': opts.dumpjson,
         'simulate': opts.simulate,
-        'skip_download': (opts.skip_download or opts.simulate or any_printing),
+        'skip_download': (opts.skip_download or opts.simulate),
         'format': opts.format,
         'format_limit': opts.format_limit,
         'listformats': opts.listformats,
