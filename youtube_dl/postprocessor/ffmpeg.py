@@ -517,6 +517,8 @@ class FFmpegConcatPP(FFmpegPostProcessor):
         for path in files:
             os.remove(encodeFilename(path))
 
+        return True, info
+
 class FFmpegAudioFixPP(FFmpegPostProcessor):
     def run(self, info):
         filename = info['filepath']
