@@ -10,6 +10,7 @@ from .common import FileDownloader
 from ..utils import (
     encodeFilename,
     format_bytes,
+    compat_str,
 )
 
 
@@ -127,7 +128,10 @@ class RtmpFD(FileDownloader):
             basic_args += ['--flashVer', flash_version]
         if live:
             basic_args += ['--live']
-        if conn:
+        if isinstance(conn, list):
+            for entry in conn:
+                basic_args += ['--conn', entry]
+        elif isinstance(conn, compat_str):
             basic_args += ['--conn', conn]
         args = basic_args + [[], ['--resume', '--skip', '1']][not live and self.params.get('continuedl', False)]
 
