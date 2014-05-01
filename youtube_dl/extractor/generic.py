@@ -702,7 +702,7 @@ class GenericIE(InfoExtractor):
             })
 
         if len(entries) == 1:
-            return entries[1]
+            return entries[0]
         else:
             for num, e in enumerate(entries, start=1):
                 e['title'] = '%s (%d)' % (e['title'], num)
