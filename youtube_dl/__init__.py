@@ -53,6 +53,7 @@ __authors__  = (
     'Mattias Harrysson',
     'phaer',
     'Sainyam Kapoor',
+    'Nicolas Évrard',
 )
 
 __license__ = 'Public Domain'
