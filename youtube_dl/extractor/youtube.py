@@ -1436,6 +1436,13 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         page = self._download_webpage(url, playlist_id)
         more_widget_html = content_html = page
 
+        # Check if the playlist exists or is private
+        if re.search(r'<div class="yt-alert-message">[^<]*?The playlist does not exist[^<]*?</div>', page) is not None:
+            raise ExtractorError(
+                u'The playlist doesn\'t exist or is private, use --username or '
+                '--netrc to access it.',
+                expected=True)
+
         # Extract the video ids from the playlist pages
         ids = []
 
