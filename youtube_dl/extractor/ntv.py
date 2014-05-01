@@ -24,9 +24,9 @@ class NTVIE(InfoExtractor):
                 'duration': 136,
             },
             'params': {
-                    # rtmp download
-                    'skip_download': True,
-                },
+                # rtmp download
+                'skip_download': True,
+            },
         },
         {
             'url': 'http://www.ntv.ru/video/novosti/750370/',
@@ -38,9 +38,9 @@ class NTVIE(InfoExtractor):
                 'duration': 172,
             },
             'params': {
-                    # rtmp download
-                    'skip_download': True,
-                },
+                # rtmp download
+                'skip_download': True,
+            },
         },
         {
             'url': 'http://www.ntv.ru/peredacha/segodnya/m23700/o232416',
@@ -52,9 +52,9 @@ class NTVIE(InfoExtractor):
                 'duration': 1496,
             },
             'params': {
-                    # rtmp download
-                    'skip_download': True,
-                },
+                # rtmp download
+                'skip_download': True,
+            },
         },
         {
             'url': 'http://www.ntv.ru/kino/Koma_film',
@@ -66,9 +66,9 @@ class NTVIE(InfoExtractor):
                 'duration': 5592,
             },
             'params': {
-                    # rtmp download
-                    'skip_download': True,
-                },
+                # rtmp download
+                'skip_download': True,
+            },
         },
         {
             'url': 'http://www.ntv.ru/serial/Delo_vrachey/m31760/o233916/',
@@ -80,33 +80,25 @@ class NTVIE(InfoExtractor):
                 'duration': 2590,
             },
             'params': {
-                    # rtmp download
-                    'skip_download': True,
-                },
+                # rtmp download
+                'skip_download': True,
+            },
         },
     ]
 
     _VIDEO_ID_REGEXES = [
         r'<meta property="og:url" content="http://www\.ntv\.ru/video/(\d+)',
         r'<video embed=[^>]+><id>(\d+)</id>',
-        r'<video restriction[^>]+><key>(\d+)</key>'
+        r'<video restriction[^>]+><key>(\d+)</key>',
     ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        page = self._download_webpage(url, video_id, 'Downloading page')
+        page = self._download_webpage(url, video_id)
 
-        for pattern in self._VIDEO_ID_REGEXES:
-            mobj = re.search(pattern, page)
-            if mobj:
-                break
-
-        if not mobj:
-            raise ExtractorError('No media links available for %s' % video_id)
-
-        video_id = mobj.group(1)
+        video_id = self._html_search_regex(self._VIDEO_ID_REGEXES, page, 'video id')
 
         player = self._download_xml('http://www.ntv.ru/vi%s/' % video_id, video_id, 'Downloading video XML')
         title = unescapeHTML(player.find('./data/title').text)
@@ -124,7 +116,7 @@ class NTVIE(InfoExtractor):
             '7': 'video2',
         }
 
-        app = apps[puid22] if puid22 in apps else apps['4']
+        app = apps.get(puid22, apps['4'])
 
         formats = []
         for format_id in ['', 'hi', 'webm']:
