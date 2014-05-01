@@ -59,7 +59,7 @@ from .utils import (
 )
 from .extractor import get_info_extractor, gen_extractors
 from .downloader import get_suitable_downloader
-from .postprocessor import FFmpegMergerPP
+from .postprocessor import FFmpegMergerPP, FFmpegConcatPP
 from .version import __version__
 
 
@@ -645,6 +645,32 @@ class YoutubeDL(object):
                                                       extra_info=extra)
                 playlist_results.append(entry_result)
             ie_result['entries'] = playlist_results
+
+            if download and not(self.params.get('simulate', False)) and \
+                    self.params.get('concat', False):
+                downloaded = []
+                concat = FFmpegConcatPP(self)
+                if not concat._get_executable():
+                    postprocessors = []
+                    self.report_warning('You have requested multiple '
+                        'formats but ffmpeg or avconv are not installed.'
+                        ' The formats won\'t be merged')
+                else:
+                    postprocessors = [concat]
+                for f in ie_result['entries']:
+                    new_info = dict(ie_result)
+                    new_info.update(f)
+                    if 'ext' in new_info: ie_result['ext'] = new_info['ext']
+                    if 'id' in new_info: ie_result['id'] = new_info['id']
+                    fname = self.prepare_filename(new_info)
+                    downloaded.append(fname)
+                
+                filename = self.prepare_filename(ie_result)
+
+                ie_result['__postprocessors'] = postprocessors
+                ie_result['__files_to_merge'] = downloaded
+                self.post_process(filename, ie_result)
+
             return ie_result
         elif result_type == 'compat_list':
             def _fixup(r):

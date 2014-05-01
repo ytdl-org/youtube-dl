@@ -500,6 +500,8 @@ def parseOpts(overrideArguments=None):
             help='ffmpeg/avconv audio quality specification, insert a value between 0 (better) and 9 (worse) for VBR or a specific bitrate like 128K (default 5)')
     postproc.add_option('--recode-video', metavar='FORMAT', dest='recodevideo', default=None,
             help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm)')
+    postproc.add_option('--concat', action='store_true', dest='concat',
+            help='Attempt to concatenate multiple videos into one file')
     postproc.add_option('-k', '--keep-video', action='store_true', dest='keepvideo', default=False,
             help='keeps the video file on disk after the post-processing; the video is erased by default')
     postproc.add_option('--no-post-overwrites', action='store_true', dest='nopostoverwrites', default=False,
@@ -516,6 +518,7 @@ def parseOpts(overrideArguments=None):
         help='Prefer avconv over ffmpeg for running the postprocessors (default)')
     postproc.add_option('--prefer-ffmpeg', action='store_true', dest='prefer_ffmpeg',
         help='Prefer ffmpeg over avconv for running the postprocessors')
+
 
 
     parser.add_option_group(general)
@@ -791,6 +794,7 @@ def _real_main(argv=None):
         'bidi_workaround': opts.bidi_workaround,
         'debug_printtraffic': opts.debug_printtraffic,
         'prefer_ffmpeg': opts.prefer_ffmpeg,
+        'concat': opts.concat,
         'include_ads': opts.include_ads,
         'default_search': opts.default_search,
         'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,

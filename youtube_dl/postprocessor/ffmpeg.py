@@ -487,6 +487,35 @@ class FFmpegMergerPP(FFmpegPostProcessor):
         self.run_ffmpeg_multiple_files(info['__files_to_merge'], filename, args)
         return True, info
 
+class FFmpegConcatPP(FFmpegPostProcessor):
+    def run(self, info):
+        filename = info['filepath']
+        args = ['-f', 'concat', '-i', '-', '-c', 'copy']
+        self._downloader.to_screen(u'[ffmpeg] Concatenating files into "%s"' % filename)
+        
+        if not self._get_executable():
+            raise FFmpegPostProcessorError(u'ffmpeg or avconv not found. Please install one.')
+
+        cmd = ([self._get_executable(), '-y'] + args +
+               [encodeFilename(self._ffmpeg_filename_argument(filename), True)])
+        files = info['__files_to_merge']
+
+        if self._downloader.params.get('verbose', False):
+            self._downloader.to_screen(u'[debug] ffmpeg command line: %s' % shell_quote(cmd))
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        files_cmd = u''
+        for path in files:
+            encoded_path = encodeFilename(path, True)
+            files_cmd += u'file \'%s\'\n' % path
+        stdout, stderr = p.communicate(input=files_cmd)
+        if p.returncode != 0:
+            stderr = stderr.decode('utf-8', 'replace')
+            msg = stderr.strip().split('\n')[-1]
+            raise FFmpegPostProcessorError(msg)
+        
+        for path in files:
+            os.remove(encodeFilename(path))
 
 class FFmpegAudioFixPP(FFmpegPostProcessor):
     def run(self, info):
