@@ -180,6 +180,7 @@ from .nbc import (
 from .ndr import NDRIE
 from .ndtv import NDTVIE
 from .newgrounds import NewgroundsIE
+from .newstube import NewstubeIE
 from .nfb import NFBIE
 from .nhl import NHLIE, NHLVideocenterIE
 from .niconico import NiconicoIE
