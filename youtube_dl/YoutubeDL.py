@@ -646,29 +646,27 @@ class YoutubeDL(object):
                 playlist_results.append(entry_result)
             ie_result['entries'] = playlist_results
 
-            if download and not(self.params.get('simulate', False)) and \
-                    self.params.get('concat', False):
-                downloaded = []
+            if self.params['concat']:
                 concat = FFmpegConcatPP(self)
-                if not concat._get_executable():
+                if concat._get_executable():
+                    postprocessors = [concat]
+                else:
                     postprocessors = []
                     self.report_warning('You have requested multiple '
                         'formats but ffmpeg or avconv are not installed.'
                         ' The formats won\'t be merged')
-                else:
-                    postprocessors = [concat]
-                for f in ie_result['entries']:
+
+                downloaded = []
+                for video in playlist_results:
                     new_info = dict(ie_result)
-                    new_info.update(f)
-                    if 'ext' in new_info: ie_result['ext'] = new_info['ext']
-                    if 'id' in new_info: ie_result['id'] = new_info['id']
+                    new_info.update(video)
+                    ie_result['ext'] = video['ext']
                     fname = self.prepare_filename(new_info)
                     downloaded.append(fname)
-                
                 filename = self.prepare_filename(ie_result)
-
                 ie_result['__postprocessors'] = postprocessors
                 ie_result['__files_to_merge'] = downloaded
+
                 self.post_process(filename, ie_result)
 
             return ie_result
