@@ -507,7 +507,7 @@ class FFmpegConcatPP(FFmpegPostProcessor):
         files_cmd = u''
         for path in files:
             encoded_path = encodeFilename(path, True)
-            files_cmd += u'file \'%s\'\n' % path
+            files_cmd += u'file \'%s\'\n' % encoded_path
         stdout, stderr = p.communicate(input=bytes(files_cmd, 'utf-8'))
         if p.returncode != 0:
             stderr = stderr.decode('utf-8', 'replace')
