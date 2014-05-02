@@ -37,8 +37,8 @@ class NewstubeIE(InfoExtractor):
             'http://p.newstube.ru/v2/player.asmx/GetAutoPlayInfo6?state=&url=%s&sessionId=&id=%s&placement=profile&location=n2' % (url, video_guid),
             video_guid, 'Downloading player XML')
 
-        def ns(str):
-            return str.replace('/', '/%(ns)s') % {'ns': '{http://app1.newstube.ru/N2SiteWS/player.asmx}'}
+        def ns(s):
+            return s.replace('/', '/%(ns)s') % {'ns': '{http://app1.newstube.ru/N2SiteWS/player.asmx}'}
 
         session_id = player.find(ns('./SessionId')).text
         media_info = player.find(ns('./Medias/MediaInfo'))
