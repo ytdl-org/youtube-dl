@@ -646,7 +646,7 @@ class YoutubeDL(object):
                 playlist_results.append(entry_result)
             ie_result['entries'] = playlist_results
 
-            if self.params['concat']:
+            if self.params.get('concat', False):
                 concat = FFmpegConcatPP(self)
                 if concat._get_executable():
                     postprocessors = [concat]
