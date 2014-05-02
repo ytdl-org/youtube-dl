@@ -40,21 +40,29 @@ class FFmpegPostProcessor(PostProcessor):
     def _uses_avconv(self):
         return self._get_executable() == self._exes['avconv']
 
-    def run_ffmpeg_multiple_files(self, input_paths, out_path, opts):
+    def run_ffmpeg_multiple_files(self, input_paths, out_path, opts, via_stdin=False):
         if not self._get_executable():
             raise FFmpegPostProcessorError(u'ffmpeg or avconv not found. Please install one.')
 
         files_cmd = []
+        stdin_cmd = u''
         for path in input_paths:
-            files_cmd.extend(['-i', encodeFilename(path, True)])
+            if via_stdin:
+                stdin_cmd += u"file '%s'\n" % encodeFilename(path, True)
+            else:
+                files_cmd.extend(['-i', encodeFilename(path, True)])
+
         cmd = ([self._get_executable(), '-y'] + files_cmd
                + opts +
                [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
 
         if self._downloader.params.get('verbose', False):
             self._downloader.to_screen(u'[debug] ffmpeg command line: %s' % shell_quote(cmd))
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = p.communicate()
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        if via_stdin:
+            stdout, stderr = p.communicate(input=bytes(stdin_cmd, 'utf-8'))
+        else:
+            stdout, stderr = p.communicate()
         if p.returncode != 0:
             stderr = stderr.decode('utf-8', 'replace')
             msg = stderr.strip().split('\n')[-1]
@@ -492,31 +500,9 @@ class FFmpegConcatPP(FFmpegPostProcessor):
         filename = info['filepath']
         args = ['-f', 'concat', '-i', '-', '-c', 'copy']
         self._downloader.to_screen(u'[ffmpeg] Concatenating files into "%s"' % filename)
-        
-        if not self._get_executable():
-            raise FFmpegPostProcessorError(u'ffmpeg or avconv not found. Please install one.')
-
-        cmd = ([self._get_executable(), '-y'] + args +
-               [encodeFilename(self._ffmpeg_filename_argument(filename), True)])
-        files = info['__files_to_merge']
-
-        if self._downloader.params.get('verbose', False):
-            self._downloader.to_screen(u'[debug] ffmpeg command line: %s' % shell_quote(cmd))
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        files_cmd = u''
-        for path in files:
-            encoded_path = encodeFilename(path, True)
-            files_cmd += u'file \'%s\'\n' % encoded_path
-        stdout, stderr = p.communicate(input=bytes(files_cmd, 'utf-8'))
-        if p.returncode != 0:
-            stderr = stderr.decode('utf-8', 'replace')
-            msg = stderr.strip().split('\n')[-1]
-            raise FFmpegPostProcessorError(msg)
-        
-        for path in files:
+        self.run_ffmpeg_multiple_files(info['__files_to_merge'], filename, args, via_stdin=True)
+        for path in info['__files_to_merge']:
             os.remove(encodeFilename(path))
-
         return True, info
 
 class FFmpegAudioFixPP(FFmpegPostProcessor):
