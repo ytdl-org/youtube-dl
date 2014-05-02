@@ -501,8 +501,10 @@ class FFmpegConcatPP(FFmpegPostProcessor):
         args = ['-f', 'concat', '-i', '-', '-c', 'copy']
         self._downloader.to_screen(u'[ffmpeg] Concatenating files into "%s"' % filename)
         self.run_ffmpeg_multiple_files(info['__files_to_merge'], filename, args, via_stdin=True)
-        for path in info['__files_to_merge']:
-            os.remove(encodeFilename(path))
+        if self._downloader.params.get('keepvideo', False) is False:
+            for path in info['__files_to_merge']:
+                self._downloader.to_screen('Deleting original file %s (pass -k to keep)' % filename)
+                os.remove(encodeFilename(path))
         return True, info
 
 class FFmpegAudioFixPP(FFmpegPostProcessor):
