@@ -38,6 +38,14 @@ class NYTimesIE(InfoExtractor):
         uploader = video_data['byline']
         timestamp = parse_iso8601(video_data['publication_date'][:-8])
 
+        def get_file_size(file_size):
+            if isinstance(file_size, int):
+                return file_size
+            elif isinstance(file_size, dict):
+                return int(file_size.get('value', 0))
+            else:
+                return 0
+
         formats = [
             {
                 'url': video['url'],
@@ -45,7 +53,7 @@ class NYTimesIE(InfoExtractor):
                 'vcodec': video['video_codec'],
                 'width': video['width'],
                 'height': video['height'],
-                'filesize': video['fileSize'],
+                'filesize': get_file_size(video['fileSize']),
             } for video in video_data['renditions']
         ]
         self._sort_formats(formats)
