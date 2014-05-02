@@ -520,7 +520,6 @@ def parseOpts(overrideArguments=None):
         help='Prefer ffmpeg over avconv for running the postprocessors')
 
 
-
     parser.add_option_group(general)
     parser.add_option_group(selection)
     parser.add_option_group(downloader)
