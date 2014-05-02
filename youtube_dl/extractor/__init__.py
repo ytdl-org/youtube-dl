@@ -192,6 +192,7 @@ from .nowness import NownessIE
 from .nowvideo import NowVideoIE
 from .nrk import NRKIE
 from .ntv import NTVIE
+from .nytimes import NYTimesIE
 from .oe1 import OE1IE
 from .ooyala import OoyalaIE
 from .orf import ORFIE
