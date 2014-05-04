@@ -113,6 +113,7 @@ from .hotnewhiphop import HotNewHipHopIE
 from .howcast import HowcastIE
 from .huffpost import HuffPostIE
 from .hypem import HypemIE
+from .iconosquare import IconosquareIE
 from .ign import IGNIE, OneUPIE
 from .imdb import (
     ImdbIE,
@@ -246,7 +247,6 @@ from .spankwire import SpankwireIE
 from .spiegel import SpiegelIE
 from .spike import SpikeIE
 from .stanfordoc import StanfordOpenClassroomIE
-from .statigram import StatigramIE
 from .steam import SteamIE
 from .streamcloud import StreamcloudIE
 from .streamcz import StreamCZIE

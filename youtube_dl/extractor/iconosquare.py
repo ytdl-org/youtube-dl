@@ -5,8 +5,8 @@ import re
 from .common import InfoExtractor
 
 
-class StatigramIE(InfoExtractor):
-    _VALID_URL = r'https?://(www\.)?statigr\.am/p/(?P<id>[^/]+)'
+class IconosquareIE(InfoExtractor):
+    _VALID_URL = r'https?://(www\.)?(?:iconosquare\.com|statigr\.am)/p/(?P<id>[^/]+)'
     _TEST = {
         'url': 'http://statigr.am/p/522207370455279102_24101272',
         'md5': '6eb93b882a3ded7c378ee1d6884b1814',
@@ -15,6 +15,7 @@ class StatigramIE(InfoExtractor):
             'ext': 'mp4',
             'uploader_id': 'aguynamedpatrick',
             'title': 'Instagram photo by @aguynamedpatrick (Patrick Janelle)',
+            'description': 'md5:644406a9ec27457ed7aa7a9ebcd4ce3d',
         },
     }
 
@@ -25,7 +26,7 @@ class StatigramIE(InfoExtractor):
         html_title = self._html_search_regex(
             r'<title>(.+?)</title>',
             webpage, 'title')
-        title = re.sub(r'(?: *\(Videos?\))? \| Statigram$', '', html_title)
+        title = re.sub(r'(?: *\(Videos?\))? \| (?:Iconosquare|Statigram)$', '', html_title)
         uploader_id = self._html_search_regex(
             r'@([^ ]+)', title, 'uploader name', fatal=False)
 
@@ -33,6 +34,7 @@ class StatigramIE(InfoExtractor):
             'id': video_id,
             'url': self._og_search_video_url(webpage),
             'title': title,
+            'description': self._og_search_description(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
             'uploader_id': uploader_id
         }
