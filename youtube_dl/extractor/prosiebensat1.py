@@ -8,8 +8,6 @@ from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
     unified_strdate,
-    clean_html,
-    RegexNotFoundError,
 )
 
 
@@ -188,16 +186,7 @@ class ProSiebenSat1IE(InfoExtractor):
 
         page = self._download_webpage(url, video_id, 'Downloading page')
 
-        def extract(patterns, name, page, fatal=False):
-            for pattern in patterns:
-                mobj = re.search(pattern, page)
-                if mobj:
-                    return clean_html(mobj.group(1))
-            if fatal:
-                raise RegexNotFoundError(u'Unable to extract %s' % name)
-            return None
-
-        clip_id = extract(self._CLIPID_REGEXES, 'clip id', page, fatal=True)
+        clip_id = self._html_search_regex(self._CLIPID_REGEXES, page, 'clip id')
 
         access_token = 'testclient'
         client_name = 'kolibri-1.2.5'
@@ -246,13 +235,12 @@ class ProSiebenSat1IE(InfoExtractor):
 
         urls = self._download_json(url_api_url, clip_id, 'Downloading urls JSON')
 
-        title = extract(self._TITLE_REGEXES, 'title', page, fatal=True)
-        description = extract(self._DESCRIPTION_REGEXES, 'description', page)
+        title = self._html_search_regex(self._TITLE_REGEXES, page, 'title')
+        description = self._html_search_regex(self._DESCRIPTION_REGEXES, page, 'description', fatal=False)
         thumbnail = self._og_search_thumbnail(page)
 
-        upload_date = extract(self._UPLOAD_DATE_REGEXES, 'upload date', page)
-        if upload_date:
-            upload_date = unified_strdate(upload_date)
+        upload_date = unified_strdate(self._html_search_regex(
+            self._UPLOAD_DATE_REGEXES, page, 'upload date', fatal=False))
 
         formats = []
 
