@@ -237,7 +237,12 @@ from .smotri import (
     SmotriBroadcastIE,
 )
 from .sohu import SohuIE
-from .soundcloud import SoundcloudIE, SoundcloudSetIE, SoundcloudUserIE
+from .soundcloud import (
+    SoundcloudIE,
+    SoundcloudSetIE,
+    SoundcloudUserIE,
+    SoundcloudPlaylistIE
+)
 from .southparkstudios import (
     SouthParkStudiosIE,
     SouthparkDeIE,

@@ -10,6 +10,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import (
+    assertRegexpMatches,
     expect_info_dict,
     FakeYDL,
 )
@@ -25,6 +26,7 @@ from youtube_dl.extractor import (
     UstreamChannelIE,
     SoundcloudSetIE,
     SoundcloudUserIE,
+    SoundcloudPlaylistIE,
     LivestreamIE,
     NHLVideocenterIE,
     BambuserChannelIE,
@@ -123,6 +125,17 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], '9615865')
         self.assertTrue(len(result['entries']) >= 12)
+
+    def test_soundcloud_playlist(self):
+        dl = FakeYDL()
+        ie = SoundcloudPlaylistIE(dl)
+        result = ie.extract('http://api.soundcloud.com/playlists/4110309')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], '4110309')
+        self.assertEqual(result['title'], 'TILT Brass - Bowery Poetry Club, August \'03 [Non-Site SCR 02]')
+        assertRegexpMatches(
+            self, result['description'], r'TILT Brass - Bowery Poetry Club')
+        self.assertEqual(len(result['entries']), 6)
 
     def test_livestream_event(self):
         dl = FakeYDL()

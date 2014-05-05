@@ -548,6 +548,13 @@ class InfoExtractor(object):
             )
         formats.sort(key=_formats_key)
 
+    def http_scheme(self):
+        """ Either "https:" or "https:", depending on the user's preferences """
+        return (
+            'http:'
+            if self._downloader.params.get('prefer_insecure', False)
+            else 'https:')
+
 
 class SearchInfoExtractor(InfoExtractor):
     """
@@ -591,3 +598,4 @@ class SearchInfoExtractor(InfoExtractor):
     @property
     def SEARCH_KEY(self):
         return self._SEARCH_KEY
+

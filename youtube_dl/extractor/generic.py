@@ -348,10 +348,7 @@ class GenericIE(InfoExtractor):
         if url.startswith('//'):
             return {
                 '_type': 'url',
-                'url': (
-                    'http:'
-                    if self._downloader.params.get('prefer_insecure', False)
-                    else 'https:') + url,
+                'url': self.http_scheme() + url,
             }
 
         parsed_url = compat_urlparse.urlparse(url)
@@ -635,6 +632,14 @@ class GenericIE(InfoExtractor):
         smotri_url = SmotriIE._extract_url(webpage)
         if smotri_url:
             return self.url_result(smotri_url, 'Smotri')
+
+        # Look for embeded soundcloud player
+        mobj = re.search(
+            r'<iframe src="(?P<url>https?://(?:w\.)?soundcloud\.com/player[^"]+)"',
+            webpage)
+        if mobj is not None:
+            url = unescapeHTML(mobj.group('url'))
+            return self.url_result(url)
 
         # Start with something easy: JW Player in SWFObject
         found = re.findall(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
