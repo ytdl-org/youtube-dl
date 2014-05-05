@@ -4,11 +4,14 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import unified_strdate
+from ..utils import (
+    unified_strdate,
+    url_basename,
+)
 
 
 class CanalplusIE(InfoExtractor):
-    _VALID_URL = r'https?://(www\.canalplus\.fr/.*?/(?P<path>.*)|player\.canalplus\.fr/#/(?P<id>\d+))'
+    _VALID_URL = r'https?://(?:www\.canalplus\.fr/.*?/(?P<path>.*)|player\.canalplus\.fr/#/(?P<id>[0-9]+))'
     _VIDEO_INFO_TEMPLATE = 'http://service.canal-plus.com/video/rest/getVideosLiees/cplus/%s'
     IE_NAME = 'canalplus.fr'
 
@@ -26,10 +29,13 @@ class CanalplusIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = mobj.groupdict().get('id')
+
+        # Beware, some subclasses do not define an id group
+        display_id = url_basename(mobj.group('path'))
 
         if video_id is None:
-            webpage = self._download_webpage(url, mobj.group('path'))
+            webpage = self._download_webpage(url, display_id)
             video_id = self._search_regex(r'<canal:player videoId="(\d+)"', webpage, 'video id')
 
         info_url = self._VIDEO_INFO_TEMPLATE % video_id
@@ -53,6 +59,7 @@ class CanalplusIE(InfoExtractor):
 
         return {
             'id': video_id,
+            'display_id': display_id,
             'title': '%s - %s' % (infos.find('TITRAGE/TITRE').text,
                                   infos.find('TITRAGE/SOUS_TITRE').text),
             'upload_date': unified_strdate(infos.find('PUBLICATION/DATE').text),
