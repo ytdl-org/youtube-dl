@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class BandcampIE(InfoExtractor):
-    _VALID_URL = r'http://.*?\.bandcamp\.com/track/(?P<title>.*)'
+    _VALID_URL = r'https?://.*?\.bandcamp\.com/track/(?P<title>.*)'
     _TESTS = [{
         'url': 'http://youtube-dl.bandcamp.com/track/youtube-dl-test-song',
         'file': '1812978515.mp3',
@@ -100,7 +100,7 @@ class BandcampIE(InfoExtractor):
 
 class BandcampAlbumIE(InfoExtractor):
     IE_NAME = 'Bandcamp:album'
-    _VALID_URL = r'http://.*?\.bandcamp\.com/album/(?P<title>.*)'
+    _VALID_URL = r'https?://(?:(?P<subdomain>[^.]+)\.)?bandcamp\.com(?:/album/(?P<title>[^?#]+))?'
 
     _TEST = {
         'url': 'http://blazo.bandcamp.com/album/jazz-format-mixtape-vol-1',
@@ -128,8 +128,10 @@ class BandcampAlbumIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        playlist_id = mobj.group('subdomain')
         title = mobj.group('title')
-        webpage = self._download_webpage(url, title)
+        display_id = title or playlist_id
+        webpage = self._download_webpage(url, display_id)
         tracks_paths = re.findall(r'<a href="(.*?)" itemprop="url">', webpage)
         if not tracks_paths:
             raise ExtractorError('The page doesn\'t contain any tracks')
@@ -139,6 +141,8 @@ class BandcampAlbumIE(InfoExtractor):
         title = self._search_regex(r'album_title : "(.*?)"', webpage, 'title')
         return {
             '_type': 'playlist',
+            'id': playlist_id,
+            'display_id': display_id,
             'title': title,
             'entries': entries,
         }
