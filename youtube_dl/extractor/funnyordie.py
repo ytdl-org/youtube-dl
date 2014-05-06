@@ -43,16 +43,12 @@ class FunnyOrDieIE(InfoExtractor):
         post_json = self._search_regex(
             r'fb_post\s*=\s*(\{.*?\});', webpage, 'post details')
         post = json.loads(post_json)
-        title = post['name']
-        description = post.get('description')
-        thumbnail = post.get('picture')
-
 
         return {
             'id': video_id,
             'url': video_url,
             'ext': 'mp4',
-            'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
+            'title': post['name'],
+            'description': post.get('description'),
+            'thumbnail': post.get('picture'),
         }
