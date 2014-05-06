@@ -8,18 +8,27 @@ from .common import InfoExtractor
 
 class FunnyOrDieIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?funnyordie\.com/(?P<type>embed|videos)/(?P<id>[0-9a-f]+)(?:$|[?#/])'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.funnyordie.com/videos/0732f586d7/heart-shaped-box-literal-video-version',
-        'file': '0732f586d7.mp4',
         'md5': 'f647e9e90064b53b6e046e75d0241fbd',
         'info_dict': {
-            'description': ('Lyrics changed to match the video. Spoken cameo '
-                'by Obscurus Lupa (from ThatGuyWithTheGlasses.com). Based on a '
-                'concept by Dustin McLean (DustFilms.com). Performed, edited, '
-                'and written by David A. Scott.'),
+            'id': '0732f586d7',
+            'ext': 'mp4',
             'title': 'Heart-Shaped Box: Literal Video Version',
+            'description': 'md5:ea09a01bc9a1c46d9ab696c01747c338',
+            'thumbnail': 're:^http:.*\.jpg$',
         },
-    }
+    }, {
+        'url': 'http://www.funnyordie.com/embed/e402820827',
+        'md5': '0e0c5a7bf45c52b95cd16aa7f28be0b6',
+        'info_dict': {
+            'id': 'e402820827',
+            'ext': 'mp4',
+            'title': 'Please Use This Song (Jon Lajoie)',
+            'description': 'md5:2ed27d364f5a805a6dba199faaf6681d',
+            'thumbnail': 're:^http:.*\.jpg$',
+        },
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -31,17 +40,13 @@ class FunnyOrDieIE(InfoExtractor):
             [r'type="video/mp4" src="(.*?)"', r'src="([^>]*?)" type=\'video/mp4\''],
             webpage, 'video URL', flags=re.DOTALL)
 
-        if mobj.group('type') == 'embed':
-            post_json = self._search_regex(
-                r'fb_post\s*=\s*(\{.*?\});', webpage, 'post details')
-            post = json.loads(post_json)
-            title = post['name']
-            description = post.get('description')
-            thumbnail = post.get('picture')
-        else:
-            title = self._og_search_title(webpage)
-            description = self._og_search_description(webpage)
-            thumbnail = None
+        post_json = self._search_regex(
+            r'fb_post\s*=\s*(\{.*?\});', webpage, 'post details')
+        post = json.loads(post_json)
+        title = post['name']
+        description = post.get('description')
+        thumbnail = post.get('picture')
+
 
         return {
             'id': video_id,
