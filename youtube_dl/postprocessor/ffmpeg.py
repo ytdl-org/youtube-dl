@@ -60,7 +60,7 @@ class FFmpegPostProcessor(PostProcessor):
             self._downloader.to_screen(u'[debug] ffmpeg command line: %s' % shell_quote(cmd))
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
         if via_stdin:
-            stdout, stderr = p.communicate(input=bytes(stdin_cmd, 'utf-8'))
+            stdout, stderr = p.communicate(input=stdin_cmd.encode('utf-8'))
         else:
             stdout, stderr = p.communicate()
         if p.returncode != 0:
