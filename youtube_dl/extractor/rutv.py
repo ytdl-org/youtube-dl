@@ -12,7 +12,12 @@ from ..utils import (
 
 class RUTVIE(InfoExtractor):
     IE_DESC = 'RUTV.RU'
-    _VALID_URL = r'https?://player\.(?:rutv\.ru|vgtrk\.com)/(?:flash2v/container\.swf\?id=|iframe/(?P<type>swf|video|live)/id/)(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+        https?://player\.(?:rutv\.ru|vgtrk\.com)/
+            (?P<path>flash2v/container\.swf\?id=
+            |iframe/(?P<type>swf|video|live)/id/
+            |index/iframe/cast_id/)
+            (?P<id>\d+)'''
 
     _TESTS = [
         {
@@ -90,7 +95,7 @@ class RUTVIE(InfoExtractor):
     @classmethod
     def _extract_url(cls, webpage):
         mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https?://player\.rutv\.ru/iframe/(?:swf|video|live)/id/.+?)\1', webpage)
+            r'<iframe[^>]+?src=(["\'])(?P<url>https?://player\.rutv\.ru/(?:iframe/(?:swf|video|live)/id|index/iframe/cast_id)/.+?)\1', webpage)
         if mobj:
             return mobj.group('url')
 
@@ -103,10 +108,16 @@ class RUTVIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        video_type = mobj.group('type')
+        video_path = mobj.group('path')
 
-        if not video_type or video_type == 'swf':
+        if video_path.startswith('flash2v'):
             video_type = 'video'
+        elif video_path.startswith('iframe'):
+            video_type = mobj.group('type')
+            if video_type == 'swf':
+                video_type = 'video'
+        elif video_path.startswith('index/iframe/cast_id'):
+            video_type = 'live'
 
         json_data = self._download_json(
             'http://player.rutv.ru/iframe/%splay/id/%s' % ('live-' if video_type == 'live' else '', video_id),
