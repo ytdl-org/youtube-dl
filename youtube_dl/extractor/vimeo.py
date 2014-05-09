@@ -18,6 +18,7 @@ from ..utils import (
     std_headers,
     unsmuggle_url,
     urlencode_postdata,
+    int_or_none,
 )
 
 
@@ -74,6 +75,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
                 "uploader_id": "user7108434",
                 "uploader": "Filippo Valsorda",
                 "title": "youtube-dl test video - \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
+                "duration": 10,
             },
         },
         {
@@ -86,6 +88,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
                 'uploader_id': 'openstreetmapus',
                 'uploader': 'OpenStreetMap US',
                 'title': 'Andy Allan - Putting the Carto into OpenStreetMap Cartography',
+                'duration': 1595,
             },
         },
         {
@@ -98,6 +101,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
                 'title': 'Kathy Sierra: Building the minimum Badass User, Business of Software',
                 'uploader': 'The BLN & Business of Software',
                 'uploader_id': 'theblnbusinessofsoftware',
+                'duration': 3610,
             },
         },
         {
@@ -111,6 +115,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
                 'upload_date': '20130614',
                 'uploader_id': 'user18948128',
                 'uploader': 'Jaime Marquínez Ferrándiz',
+                'duration': 10,
             },
             'params': {
                 'videopassword': 'youtube-dl',
@@ -128,6 +133,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
                 'upload_date': '20131015',
                 'uploader_id': 'staff',
                 'uploader': 'Vimeo Staff',
+                'duration': 62,
             }
         },
     ]
@@ -273,6 +279,9 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
             else:
                 raise
 
+        # Extract video duration
+        video_duration = int_or_none(config["video"].get("duration"))
+
         # Extract upload date
         video_upload_date = None
         mobj = re.search(r'<meta itemprop="dateCreated" content="(\d{4})-(\d{2})-(\d{2})T', webpage)
@@ -344,6 +353,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
             'title': video_title,
             'thumbnail': video_thumbnail,
             'description': video_description,
+            'duration': video_duration,
             'formats': formats,
             'webpage_url': url,
             'view_count': view_count,
