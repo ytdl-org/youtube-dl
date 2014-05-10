@@ -60,6 +60,7 @@ from .exfm import ExfmIE
 from .extremetube import ExtremeTubeIE
 from .facebook import FacebookIE
 from .faz import FazIE
+from .fc2 import FC2IE
 from .fktv import (
     FKTVIE,
     FKTVPosteckeIE,
