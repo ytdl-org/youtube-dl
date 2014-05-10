@@ -678,7 +678,7 @@ def _real_main(argv=None):
         if not opts.audioquality.isdigit():
             parser.error(u'invalid audio quality specified')
     if opts.recodevideo is not None:
-        if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg']:
+        if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg', 'mkv']:
             parser.error(u'invalid video recode format specified')
     if opts.date is not None:
         date = DateRange.day(opts.date)
