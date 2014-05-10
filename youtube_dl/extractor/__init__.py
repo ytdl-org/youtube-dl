@@ -54,6 +54,7 @@ from .ebaumsworld import EbaumsWorldIE
 from .ehow import EHowIE
 from .eighttracks import EightTracksIE
 from .eitb import EitbIE
+from .empflix import EmpflixIE
 from .escapist import EscapistIE
 from .everyonesmixtape import EveryonesMixtapeIE
 from .exfm import ExfmIE
@@ -82,7 +83,9 @@ from .gametrailers import GametrailersIE
 from .generic import GenericIE
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
+from .hardsextube import HardSexTubeIE
 from .hark import HarkIE
+from .hentaistigma import HentaiStigmaIE
 from .hotnewhiphop import HotNewHipHopIE
 from .howcast import HowcastIE
 from .huffpost import HuffPostIE
@@ -134,6 +137,7 @@ from .myspace import MySpaceIE
 from .myspass import MySpassIE
 from .myvideo import MyVideoIE
 from .naver import NaverIE
+from .nuvid import NuvidIE
 from .nba import NBAIE
 from .nbc import NBCNewsIE
 from .ndtv import NDTVIE
@@ -171,6 +175,7 @@ from .servingsys import ServingSysIE
 from .sina import SinaIE
 from .slashdot import SlashdotIE
 from .slideshare import SlideshareIE
+from .slutload import SlutloadIE
 from .smotri import (
     SmotriIE,
     SmotriCommunityIE,
