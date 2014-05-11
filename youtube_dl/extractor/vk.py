@@ -37,7 +37,7 @@ class VKIE(InfoExtractor):
             'info_dict': {
                 'id': '163339118',
                 'ext': 'mp4',
-                'uploader': 'Elvira Dzhonik',
+                'uploader': 'Elya Iskhakova',
                 'title': 'Dream Theater - Hollow Years Live at Budokan 720*',
                 'duration': 558,
             }
@@ -108,7 +108,7 @@ class VKIE(InfoExtractor):
 
         m_yt = re.search(r'src="(http://www.youtube.com/.*?)"', info_page)
         if m_yt is not None:
-            self.to_screen(u'Youtube video detected')
+            self.to_screen('Youtube video detected')
             return self.url_result(m_yt.group(1), 'Youtube')
         data_json = self._search_regex(r'var vars = ({.*?});', info_page, 'vars')
         data = json.loads(data_json)
