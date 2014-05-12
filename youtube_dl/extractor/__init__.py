@@ -295,6 +295,7 @@ from .videodetective import VideoDetectiveIE
 from .videolecturesnet import VideoLecturesNetIE
 from .videofyme import VideofyMeIE
 from .videopremium import VideoPremiumIE
+from .videott import VideoTtIE
 from .videoweed import VideoWeedIE
 from .vimeo import (
     VimeoIE,
