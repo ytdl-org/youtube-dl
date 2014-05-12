@@ -230,6 +230,7 @@ from .scivee import SciVeeIE
 from .servingsys import ServingSysIE
 from .sina import SinaIE
 from .slideshare import SlideshareIE
+from .slutload import SlutloadIE
 from .smotri import (
     SmotriIE,
     SmotriCommunityIE,
