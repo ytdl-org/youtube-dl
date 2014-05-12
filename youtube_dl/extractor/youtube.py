@@ -1437,7 +1437,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         more_widget_html = content_html = page
 
         # Check if the playlist exists or is private
-        if re.search(r'<div class="yt-alert-message">[^<]*?The playlist does not exist[^<]*?</div>', page) is not None:
+        if re.search(r'<div class="yt-alert-message">[^<]*?(The|This) playlist (does not exist|is private)[^<]*?</div>', page) is not None:
             raise ExtractorError(
                 u'The playlist doesn\'t exist or is private, use --username or '
                 '--netrc to access it.',
