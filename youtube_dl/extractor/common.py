@@ -242,10 +242,11 @@ class InfoExtractor(object):
                 url = url_or_request.get_full_url()
             except AttributeError:
                 url = url_or_request
-            if len(url) > 200:
-                h = u'___' + hashlib.md5(url.encode('utf-8')).hexdigest()
-                url = url[:200 - len(h)] + h
-            raw_filename = ('%s_%s.dump' % (video_id, url))
+            basen = video_id + '_' + url
+            if len(basen) > 240:
+                h = u'___' + hashlib.md5(basen.encode('utf-8')).hexdigest()
+                basen = basen[:240 - len(h)] + h
+            raw_filename = basen + '.dump'
             filename = sanitize_filename(raw_filename, restricted=True)
             self.to_screen(u'Saving request to ' + filename)
             with open(filename, 'wb') as outf:
