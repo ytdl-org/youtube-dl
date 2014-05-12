@@ -315,6 +315,7 @@ from .washingtonpost import WashingtonPostIE
 from .wat import WatIE
 from .wdr import (
     WDRIE,
+    WDRMobileIE,
     WDRMausIE,
 )
 from .weibo import WeiboIE

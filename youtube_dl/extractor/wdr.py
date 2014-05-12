@@ -115,6 +115,34 @@ class WDRIE(InfoExtractor):
         }
 
 
+class WDRMobileIE(InfoExtractor):
+    _VALID_URL = r'''(?x)
+        https?://mobile-ondemand\.wdr\.de/
+        .*?/fsk(?P<age_limit>[0-9]+)
+        /[0-9]+/[0-9]+/
+        (?P<id>[0-9]+)_(?P<title>[0-9]+)'''
+    IE_NAME = 'wdr:mobile'
+    _TEST = {
+        'url': 'http://mobile-ondemand.wdr.de/CMS2010/mdb/ondemand/weltweit/fsk0/42/421735/421735_4283021.mp4',
+        'info_dict': {
+            'title': '4283021',
+            'id': '421735',
+            'age_limit': 0,
+        },
+        '_skip': 'Will be depublicized shortly'
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        return {
+            'id': mobj.group('id'),
+            'title': mobj.group('title'),
+            'age_limit': int(mobj.group('age_limit')),
+            'url': url,
+            'user_agent': 'mobile',
+        }
+
+
 class WDRMausIE(InfoExtractor):
     _VALID_URL = 'http://(?:www\.)?wdrmaus\.de/(?:[^/]+/){,2}(?P<id>[^/?#]+)(?:/index\.php5|(?<!index)\.php5|/(?:$|[?#]))'
     IE_DESC = 'Sendung mit der Maus'
