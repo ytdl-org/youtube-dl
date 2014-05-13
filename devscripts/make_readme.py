@@ -15,7 +15,7 @@ header = oldreadme[:oldreadme.index('# OPTIONS')]
 footer = oldreadme[oldreadme.index('# CONFIGURATION'):]
 
 options = helptext[helptext.index('  General Options:') + 19:]
-options = re.sub(r'^  (\w.+)$', r'## \1', options, flags=re.M)
+options = re.sub(r'(?m)^  (\w.+)$', r'## \1', options)
 options = '# OPTIONS\n' + options + '\n'
 
 with io.open(README_FILE, 'w', encoding='utf-8') as f:
