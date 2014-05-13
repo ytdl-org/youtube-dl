@@ -195,6 +195,7 @@ from .nowvideo import NowVideoIE
 from .nrk import NRKIE
 from .ntv import NTVIE
 from .nytimes import NYTimesIE
+from .nuvid import NuvidIE
 from .oe1 import OE1IE
 from .ooyala import OoyalaIE
 from .orf import ORFIE
