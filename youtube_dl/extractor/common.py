@@ -556,6 +556,16 @@ class InfoExtractor(object):
             if self._downloader.params.get('prefer_insecure', False)
             else 'https:')
 
+    def _proto_relative_url(self, url, scheme=None):
+        if url is None:
+            return url
+        if url.startswith('//'):
+            if scheme is None:
+                scheme = self.http_scheme()
+            return scheme + url
+        else:
+            return url
+
 
 class SearchInfoExtractor(InfoExtractor):
     """
