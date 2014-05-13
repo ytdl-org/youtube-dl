@@ -306,7 +306,10 @@ from .vimeo import (
     VimeoReviewIE,
     VimeoWatchLaterIE,
 )
-from .vine import VineIE
+from .vine import (
+    VineIE,
+    VineUserIE,
+)
 from .viki import VikiIE
 from .vk import VKIE
 from .vube import VubeIE

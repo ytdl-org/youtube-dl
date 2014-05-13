@@ -23,6 +23,7 @@ from youtube_dl.extractor import (
     VimeoUserIE,
     VimeoAlbumIE,
     VimeoGroupsIE,
+    VineUserIE,
     UstreamChannelIE,
     SoundcloudSetIE,
     SoundcloudUserIE,
@@ -101,6 +102,13 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['title'], 'Rolex Awards for Enterprise')
         self.assertTrue(len(result['entries']) > 72)
+
+    def test_vine_user(self):
+        dl = FakeYDL()
+        ie = VineUserIE(dl)
+        result = ie.extract('https://vine.co/Visa')
+        self.assertIsPlaylist(result)
+        self.assertTrue(len(result['entries']) >= 50)
 
     def test_ustream_channel(self):
         dl = FakeYDL()
