@@ -109,6 +109,7 @@ from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
 from .hark import HarkIE
 from .helsinki import HelsinkiIE
+from .hentaistigma import HentaiStigmaIE
 from .hotnewhiphop import HotNewHipHopIE
 from .howcast import HowcastIE
 from .huffpost import HuffPostIE
