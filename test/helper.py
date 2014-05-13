@@ -107,7 +107,7 @@ def expect_info_dict(self, expected_dict, got_dict):
         elif isinstance(expected, type):
             got = got_dict.get(info_field)
             self.assertTrue(isinstance(got, expected),
-                u'Expected type %r, but got value %r of type %r' % (expected, got, type(got)))
+                u'Expected type %r for field %s, but got value %r of type %r' % (expected, info_field, got, type(got)))
         else:
             if isinstance(expected, compat_str) and expected.startswith('md5:'):
                 got = 'md5:' + md5(got_dict.get(info_field))
