@@ -26,7 +26,8 @@ class NocoIE(InfoExtractor):
             'uploader': 'Nolife',
             'uploader_id': 'NOL',
             'duration': 2851.2,
-        }
+        },
+        'skip': 'Requires noco account',
     }
 
     def _real_extract(self, url):
