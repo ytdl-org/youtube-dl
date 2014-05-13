@@ -55,6 +55,7 @@ __authors__  = (
     'Sainyam Kapoor',
     'Nicolas Évrard',
     'Jason Normore',
+    'Hoje Lee',
 )
 
 __license__ = 'Public Domain'
