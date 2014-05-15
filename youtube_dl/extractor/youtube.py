@@ -1145,7 +1145,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         m_cat_container = get_element_by_id("eow-category", video_webpage)
         if m_cat_container:
             category = self._html_search_regex(
-                r'(?s)<a[^<]+>(.*?)</a>', m_cat_container, 'cateory',
+                r'(?s)<a[^<]+>(.*?)</a>', m_cat_container, 'category',
                 default=None)
             video_categories = None if category is None else [category]
         else:
