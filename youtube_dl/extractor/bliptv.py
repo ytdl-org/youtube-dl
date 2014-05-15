@@ -1,102 +1,124 @@
 from __future__ import unicode_literals
 
-import datetime
 import re
 
 from .common import InfoExtractor
 from .subtitles import SubtitlesInfoExtractor
 from ..utils import (
-    compat_str,
     compat_urllib_request,
-
     unescapeHTML,
+    parse_iso8601,
+    compat_urlparse,
+    clean_html,
+    compat_str,
 )
 
 
 class BlipTVIE(SubtitlesInfoExtractor):
-    """Information extractor for blip.tv"""
+    _VALID_URL = r'https?://(?:\w+\.)?blip\.tv/(?:(?:.+-|rss/flash/)(?P<id>\d+)|((?:play/|api\.swf#)(?P<lookup_id>[\da-zA-Z]+)))'
 
-    _VALID_URL = r'https?://(?:\w+\.)?blip\.tv/((.+/)|(play/)|(api\.swf#))(?P<presumptive_id>.+)$'
-
-    _TESTS = [{
-        'url': 'http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352',
-        'md5': 'c6934ad0b6acf2bd920720ec888eb812',
-        'info_dict': {
-            'id': '5779306',
-            'ext': 'mov',
-            'upload_date': '20111205',
-            'description': 'md5:9bc31f227219cde65e47eeec8d2dc596',
-            'uploader': 'Comic Book Resources - CBR TV',
-            'title': 'CBR EXCLUSIVE: "Gotham City Imposters" Bats VS Jokerz Short 3',
+    _TESTS = [
+        {
+            'url': 'http://blip.tv/cbr/cbr-exclusive-gotham-city-imposters-bats-vs-jokerz-short-3-5796352',
+            'md5': 'c6934ad0b6acf2bd920720ec888eb812',
+            'info_dict': {
+                'id': '5779306',
+                'ext': 'mov',
+                'title': 'CBR EXCLUSIVE: "Gotham City Imposters" Bats VS Jokerz Short 3',
+                'description': 'md5:9bc31f227219cde65e47eeec8d2dc596',
+                'timestamp': 1323138843,
+                'upload_date': '20111206',
+                'uploader': 'cbr',
+                'uploader_id': '679425',
+                'duration': 81,
+            }
+        },
+        {
+            # https://github.com/rg3/youtube-dl/pull/2274
+            'note': 'Video with subtitles',
+            'url': 'http://blip.tv/play/h6Uag5OEVgI.html',
+            'md5': '309f9d25b820b086ca163ffac8031806',
+            'info_dict': {
+                'id': '6586561',
+                'ext': 'mp4',
+                'title': 'Red vs. Blue Season 11 Episode 1',
+                'description': 'One-Zero-One',
+                'timestamp': 1371261608,
+                'upload_date': '20130615',
+                'uploader': 'redvsblue',
+                'uploader_id': '792887',
+                'duration': 279,
+            }
         }
-    }, {
-        # https://github.com/rg3/youtube-dl/pull/2274
-        'note': 'Video with subtitles',
-        'url': 'http://blip.tv/play/h6Uag5OEVgI.html',
-        'md5': '309f9d25b820b086ca163ffac8031806',
-        'info_dict': {
-            'id': '6586561',
-            'ext': 'mp4',
-            'uploader': 'Red vs. Blue',
-            'description': 'One-Zero-One',
-            'upload_date': '20130614',
-            'title': 'Red vs. Blue Season 11 Episode 1',
-        }
-    }]
+    ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        presumptive_id = mobj.group('presumptive_id')
+        lookup_id = mobj.group('lookup_id')
 
         # See https://github.com/rg3/youtube-dl/issues/857
-        embed_mobj = re.match(r'https?://(?:\w+\.)?blip\.tv/(?:play/|api\.swf#)([a-zA-Z0-9]+)', url)
-        if embed_mobj:
-            info_url = 'http://blip.tv/play/%s.x?p=1' % embed_mobj.group(1)
-            info_page = self._download_webpage(info_url, embed_mobj.group(1))
-            video_id = self._search_regex(
-                r'data-episode-id="([0-9]+)', info_page, 'video_id')
-            return self.url_result('http://blip.tv/a/a-' + video_id, 'BlipTV')
-        
-        cchar = '&' if '?' in url else '?'
-        json_url = url + cchar + 'skin=json&version=2&no_wrap=1'
-        request = compat_urllib_request.Request(json_url)
-        request.add_header('User-Agent', 'iTunes/10.6.1')
-
-        json_data = self._download_json(request, video_id=presumptive_id)
-
-        if 'Post' in json_data:
-            data = json_data['Post']
+        if lookup_id:
+            info_page = self._download_webpage(
+                'http://blip.tv/play/%s.x?p=1' % lookup_id, lookup_id, 'Resolving lookup id')
+            video_id = self._search_regex(r'data-episode-id="([0-9]+)', info_page, 'video_id')
         else:
-            data = json_data
+            video_id = mobj.group('id')
 
-        video_id = compat_str(data['item_id'])
-        upload_date = datetime.datetime.strptime(data['datestamp'], '%m-%d-%y %H:%M%p').strftime('%Y%m%d')
-        subtitles = {}
+        rss = self._download_xml('http://blip.tv/rss/flash/%s' % video_id, video_id, 'Downloading video RSS')
+
+        def blip(s):
+            return '{http://blip.tv/dtd/blip/1.0}%s' % s
+
+        def media(s):
+            return '{http://search.yahoo.com/mrss/}%s' % s
+
+        def itunes(s):
+            return '{http://www.itunes.com/dtds/podcast-1.0.dtd}%s' % s
+
+        item = rss.find('channel/item')
+
+        video_id = item.find(blip('item_id')).text
+        title = item.find('./title').text
+        description = clean_html(compat_str(item.find(blip('puredescription')).text))
+        timestamp = parse_iso8601(item.find(blip('datestamp')).text)
+        uploader = item.find(blip('user')).text
+        uploader_id = item.find(blip('userid')).text
+        duration = int(item.find(blip('runtime')).text)
+        media_thumbnail = item.find(media('thumbnail'))
+        thumbnail = media_thumbnail.get('url') if media_thumbnail is not None else item.find(itunes('image')).text
+        categories = [category.text for category in item.findall('category')]
+
         formats = []
-        if 'additionalMedia' in data:
-            for f in data['additionalMedia']:
-                if f.get('file_type_srt') == 1:
-                    LANGS = {
-                        'english': 'en',
-                    }
-                    lang = f['role'].rpartition('-')[-1].strip().lower()
-                    langcode = LANGS.get(lang, lang)
-                    subtitles[langcode] = f['url']
-                    continue
-                if not int(f['media_width']):  # filter m3u8
-                    continue
+        subtitles = {}
+
+        media_group = item.find(media('group'))
+        for media_content in media_group.findall(media('content')):
+            url = media_content.get('url')
+            role = media_content.get(blip('role'))
+            msg = self._download_webpage(
+                url + '?showplayer=20140425131715&referrer=http://blip.tv&mask=7&skin=flashvars&view=url',
+                video_id, 'Resolving URL for %s' % role)
+            real_url = compat_urlparse.parse_qs(msg)['message'][0]
+
+            media_type = media_content.get('type')
+            if media_type == 'text/srt' or url.endswith('.srt'):
+                LANGS = {
+                    'english': 'en',
+                }
+                lang = role.rpartition('-')[-1].strip().lower()
+                langcode = LANGS.get(lang, lang)
+                subtitles[langcode] = url
+            elif media_type.startswith('video/'):
                 formats.append({
-                    'url': f['url'],
-                    'format_id': f['role'],
-                    'width': int(f['media_width']),
-                    'height': int(f['media_height']),
+                    'url': real_url,
+                    'format_id': role,
+                    'format_note': media_type,
+                    'vcodec': media_content.get(blip('vcodec')),
+                    'acodec': media_content.get(blip('acodec')),
+                    'filesize': media_content.get('filesize'),
+                    'width': int(media_content.get('width')),
+                    'height': int(media_content.get('height')),
                 })
-        else:
-            formats.append({
-                'url': data['media']['url'],
-                'width': int(data['media']['width']),
-                'height': int(data['media']['height']),
-            })
         self._sort_formats(formats)
 
         # subtitles
@@ -107,12 +129,14 @@ class BlipTVIE(SubtitlesInfoExtractor):
 
         return {
             'id': video_id,
-            'uploader': data['display_name'],
-            'upload_date': upload_date,
-            'title': data['title'],
-            'thumbnail': data['thumbnailUrl'],
-            'description': data['description'],
-            'user_agent': 'iTunes/10.6.1',
+            'title': title,
+            'description': description,
+            'timestamp': timestamp,
+            'uploader': uploader,
+            'uploader_id': uploader_id,
+            'duration': duration,
+            'thumbnail': thumbnail,
+            'categories': categories,
             'formats': formats,
             'subtitles': video_subtitles,
         }
