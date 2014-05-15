@@ -1141,6 +1141,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             upload_date = ' '.join(re.sub(r'[/,-]', r' ', mobj.group(1)).split())
             upload_date = unified_strdate(upload_date)
 
+
+        video_categories = []
+        # categories
+        m_cat_container = get_element_by_id("eow-category", video_webpage)
+        if m_cat_container:
+            video_categories = re.findall(r'<a[^<]+>(.*?)</a>',
+                                m_cat_container, re.DOTALL)
+
         # description
         video_description = get_element_by_id("eow-description", video_webpage)
         if video_description:
@@ -1347,6 +1355,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             'title':        video_title,
             'thumbnail':    video_thumbnail,
             'description':  video_description,
+            'categories':   video_categories,
             'subtitles':    video_subtitles,
             'duration':     video_duration,
             'age_limit':    18 if age_gate else 0,
