@@ -113,6 +113,8 @@ class InfoExtractor(object):
     webpage_url:    The url to the video webpage, if given to youtube-dl it
                     should allow to get the same result again. (It will be set
                     by YoutubeDL if it's missing)
+    categories:     A list of categories that the video falls in, for example
+                    ["Sports", "Berlin"]
 
     Unless mentioned otherwise, the fields should be Unicode strings.
 

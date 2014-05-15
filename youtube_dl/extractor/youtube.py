@@ -242,7 +242,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 u"uploader": u"Philipp Hagemeister",
                 u"uploader_id": u"phihag",
                 u"upload_date": u"20121002",
-                u"description": u"test chars:  \"'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de ."
+                u"description": u"test chars:  \"'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .",
+                u"categories": [u'Science & Technology'],
             }
         },
         {
@@ -1136,18 +1137,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         # upload date
         upload_date = None
-        mobj = re.search(r'id="eow-date.*?>(.*?)</span>', video_webpage, re.DOTALL)
+        mobj = re.search(r'(?s)id="eow-date.*?>(.*?)</span>', video_webpage)
         if mobj is not None:
             upload_date = ' '.join(re.sub(r'[/,-]', r' ', mobj.group(1)).split())
             upload_date = unified_strdate(upload_date)
 
-
-        video_categories = []
-        # categories
         m_cat_container = get_element_by_id("eow-category", video_webpage)
         if m_cat_container:
-            video_categories = re.findall(r'<a[^<]+>(.*?)</a>',
-                                m_cat_container, re.DOTALL)
+            category = self._html_search_regex(
+                r'(?s)<a[^<]+>(.*?)</a>', m_cat_container, 'cateory',
+                default=None)
+            video_categories = None if category is None else [category]
+        else:
+            video_categories = None
 
         # description
         video_description = get_element_by_id("eow-description", video_webpage)
