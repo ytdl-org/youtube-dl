@@ -242,7 +242,7 @@ class InfoExtractor(object):
                 url = url_or_request.get_full_url()
             except AttributeError:
                 url = url_or_request
-            basen = video_id + '_' + url
+            basen = '%s_%s' % (video_id, url)
             if len(basen) > 240:
                 h = u'___' + hashlib.md5(basen.encode('utf-8')).hexdigest()
                 basen = basen[:240 - len(h)] + h
