@@ -1429,3 +1429,15 @@ def qualities(quality_ids):
 
 
 DEFAULT_OUTTMPL = '%(title)s-%(id)s.%(ext)s'
+
+try:
+    subprocess_check_output = subprocess.check_output
+except AttributeError:
+    def subprocess_check_output(*args, **kwargs):
+        assert 'input' not in kwargs
+        p = subprocess.Popen(*args, stdout=subprocess.PIPE, **kwargs)
+        output, _ = p.communicate()
+        ret = p.poll()
+        if ret:
+            raise subprocess.CalledProcessError(ret, p.args, output=output)
+        return output
