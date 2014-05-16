@@ -204,7 +204,7 @@ class MTVIE(MTVServicesInfoExtractor):
             m_vevo = re.search(r'isVevoVideo = true;.*?vevoVideoId = "(.*?)";',
                                webpage, re.DOTALL)
             if m_vevo:
-                vevo_id = m_vevo.group(1);
+                vevo_id = m_vevo.group(1)
                 self.to_screen('Vevo video detected: %s' % vevo_id)
                 return self.url_result('vevo:%s' % vevo_id, ie='Vevo')
     
