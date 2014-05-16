@@ -1138,6 +1138,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         # upload date
         upload_date = None
         mobj = re.search(r'(?s)id="eow-date.*?>(.*?)</span>', video_webpage)
+        if mobj is None:
+            mobj = re.search(
+                r'(?s)id="watch-uploader-info".*?>.*?Published on (.*?)</strong>',
+                video_webpage)
         if mobj is not None:
             upload_date = ' '.join(re.sub(r'[/,-]', r' ', mobj.group(1)).split())
             upload_date = unified_strdate(upload_date)
@@ -1771,9 +1775,12 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
             feed_entries.extend(
                 self.url_result(video_id, 'Youtube', video_id=video_id)
                 for video_id in ids)
-            if info['paging'] is None:
+            mobj = re.search(
+                r'data-uix-load-more-href="/?[^"]+paging=(?P<paging>\d+)',
+                feed_html)
+            if mobj is None:
                 break
-            paging = info['paging']
+            paging = mobj.group('paging')
         return self.playlist_result(feed_entries, playlist_title=self._PLAYLIST_TITLE)
 
 class YoutubeSubscriptionsIE(YoutubeFeedsInfoExtractor):

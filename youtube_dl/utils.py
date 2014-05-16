@@ -540,6 +540,16 @@ def encodeFilename(s, for_subprocess=False):
         encoding = 'utf-8'
     return s.encode(encoding, 'ignore')
 
+
+def encodeArgument(s):
+    if not isinstance(s, compat_str):
+        # Legacy code that uses byte strings
+        # Uncomment the following line after fixing all post processors
+        #assert False, 'Internal error: %r should be of type %r, is %r' % (s, compat_str, type(s))
+        s = s.decode('ascii')
+    return encodeFilename(s, True)
+
+
 def decodeOption(optval):
     if optval is None:
         return optval
@@ -1429,3 +1439,15 @@ def qualities(quality_ids):
 
 
 DEFAULT_OUTTMPL = '%(title)s-%(id)s.%(ext)s'
+
+try:
+    subprocess_check_output = subprocess.check_output
+except AttributeError:
+    def subprocess_check_output(*args, **kwargs):
+        assert 'input' not in kwargs
+        p = subprocess.Popen(*args, stdout=subprocess.PIPE, **kwargs)
+        output, _ = p.communicate()
+        ret = p.poll()
+        if ret:
+            raise subprocess.CalledProcessError(ret, p.args, output=output)
+        return output

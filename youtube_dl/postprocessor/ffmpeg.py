@@ -9,6 +9,7 @@ from .common import AudioConversionError, PostProcessor
 from ..utils import (
     check_executable,
     compat_subprocess_get_DEVNULL,
+    encodeArgument,
     encodeFilename,
     PostProcessingError,
     prepend_extension,
@@ -48,7 +49,7 @@ class FFmpegPostProcessor(PostProcessor):
         for path in input_paths:
             files_cmd.extend(['-i', encodeFilename(path, True)])
         cmd = ([self._get_executable(), '-y'] + files_cmd
-               + opts +
+               + [encodeArgument(o) for o in opts] +
                [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
 
         if self._downloader.params.get('verbose', False):

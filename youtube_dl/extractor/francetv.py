@@ -48,24 +48,36 @@ class PluzzIE(FranceTVBaseInfoExtractor):
 
 class FranceTvInfoIE(FranceTVBaseInfoExtractor):
     IE_NAME = 'francetvinfo.fr'
-    _VALID_URL = r'https?://www\.francetvinfo\.fr/replay.*/(?P<title>.+)\.html'
+    _VALID_URL = r'https?://www\.francetvinfo\.fr/.*/(?P<title>.+)\.html'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-lundi-26-aout-2013_393427.html',
-        'file': '84981923.mp4',
         'info_dict': {
+            'id': '84981923',
+            'ext': 'mp4',
             'title': 'Soir 3',
         },
         'params': {
             'skip_download': True,
         },
-    }
+    }, {
+        'url': 'http://www.francetvinfo.fr/elections/europeennes/direct-europeennes-regardez-le-debat-entre-les-candidats-a-la-presidence-de-la-commission_600639.html',
+        'info_dict': {
+            'id': 'EV_20019',
+            'ext': 'mp4',
+            'title': 'Débat des candidats à la Commission européenne',
+            'description': 'Débat des candidats à la Commission européenne',
+        },
+        'params': {
+            'skip_download': 'HLS (reqires ffmpeg)'
+        }
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         page_title = mobj.group('title')
         webpage = self._download_webpage(url, page_title)
-        video_id = self._search_regex(r'id-video=(\d+?)[@"]', webpage, 'video id')
+        video_id = self._search_regex(r'id-video=((?:[^0-9]*?_)?[0-9]+)[@"]', webpage, 'video id')
         return self._extract_video(video_id)
 
 
