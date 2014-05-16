@@ -168,7 +168,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             self._downloader.report_warning(u'unable to download video subtitles: %s' % compat_str(err))
             return {}
         info = json.loads(sub_list)
-        if (info['total'] > 0):
+        if info['total'] > 0:
             sub_lang_list = dict((l['language'], l['url']) for l in info['list'])
             return sub_lang_list
         self._downloader.report_warning(u'video doesn\'t have subtitles')
