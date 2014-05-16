@@ -12,9 +12,9 @@ sys.stderr.write(u'This will only happen once. Simply press enter to go on. Sorr
 sys.stderr.write(u'The new location of the binaries is https://github.com/rg3/youtube-dl/downloads, not the git repository.\n\n')
 
 try:
-	raw_input()
+    raw_input()
 except NameError: # Python 3
-	input()
+    input()
 
 filename = sys.argv[0]
 
