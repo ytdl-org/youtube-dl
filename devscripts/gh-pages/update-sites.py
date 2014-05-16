@@ -21,7 +21,7 @@ def main():
             continue
         elif ie_desc is not None:
             ie_html += ': {}'.format(ie.IE_DESC)
-        if ie.working() == False:
+        if not ie.working():
             ie_html += ' (Currently broken)'
         ie_htmls.append('<li>{}</li>'.format(ie_html))
 

@@ -31,7 +31,7 @@ class NDTVIE(InfoExtractor):
         video_url = (u'http://bitcast-b.bitgravity.com/ndtvod/23372/ndtv/%s' %
                      filename)
 
-        duration_str = filename = self._search_regex(
+        duration_str = self._search_regex(
             r"__duration='([^']+)'", webpage, u'duration', fatal=False)
         duration = None if duration_str is None else int(duration_str)
 

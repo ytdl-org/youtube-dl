@@ -76,12 +76,6 @@ class CrunchyrollIE(InfoExtractor):
             return shaHash + [0] * 12
 
         key = obfuscate_key(id)
-        class Counter:
-            __value = iv
-            def next_value(self):
-                temp = self.__value
-                self.__value = inc(self.__value)
-                return temp
         decrypted_data = intlist_to_bytes(aes_cbc_decrypt(data, key, iv))
         return zlib.decompress(decrypted_data)
 
@@ -159,7 +153,7 @@ class CrunchyrollIE(InfoExtractor):
 
         subtitles = {}
         for sub_id, sub_name in re.findall(r'\?ssid=([0-9]+)" title="([^"]+)', webpage):
-            sub_page = self._download_webpage('http://www.crunchyroll.com/xml/?req=RpcApiSubtitle_GetXml&subtitle_script_id='+sub_id,\
+            sub_page = self._download_webpage('http://www.crunchyroll.com/xml/?req=RpcApiSubtitle_GetXml&subtitle_script_id='+sub_id,
                                               video_id, note='Downloading subtitles for '+sub_name)
             id = self._search_regex(r'id=\'([0-9]+)', sub_page, 'subtitle_id', fatal=False)
             iv = self._search_regex(r'<iv>([^<]+)', sub_page, 'subtitle_iv', fatal=False)
