@@ -1138,6 +1138,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         # upload date
         upload_date = None
         mobj = re.search(r'(?s)id="eow-date.*?>(.*?)</span>', video_webpage)
+        if mobj is None:
+            mobj = re.search(
+                r'(?s)id="watch-uploader-info".*?>.*?Published on (.*?)</strong>',
+                video_webpage)
         if mobj is not None:
             upload_date = ' '.join(re.sub(r'[/,-]', r' ', mobj.group(1)).split())
             upload_date = unified_strdate(upload_date)
