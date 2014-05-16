@@ -6,13 +6,13 @@ from .common import InfoExtractor
 from ..utils import ExtractorError
 
 class Channel9IE(InfoExtractor):
-    '''
+    """
     Common extractor for channel9.msdn.com.
 
     The type of provided URL (video or playlist) is determined according to
     meta Search.PageType from web page HTML rather than URL itself, as it is
     not always possible to do.
-    '''
+    """
     IE_DESC = 'Channel 9'
     IE_NAME = 'channel9'
     _VALID_URL = r'https?://(?:www\.)?channel9\.msdn\.com/(?P<contentpath>.+)/?'
