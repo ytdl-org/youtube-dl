@@ -158,7 +158,7 @@ def parseOpts(overrideArguments=None):
         return userConf
 
     def _format_option_string(option):
-        ''' ('-o', '--option') -> -o, --format METAVAR'''
+        """ ('-o', '--option') -> -o, --format METAVAR"""
 
         opts = []
 

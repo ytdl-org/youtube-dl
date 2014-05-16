@@ -35,10 +35,10 @@ def try_rm(filename):
 
 
 def report_warning(message):
-    '''
+    """
     Print the message to stderr, it will be prefixed with 'WARNING:'
     If stderr is a tty file the 'WARNING:' will be colored
-    '''
+    """
     if sys.stderr.isatty() and os.name != 'nt':
         _msg_header = u'\033[0;33mWARNING:\033[0m'
     else:

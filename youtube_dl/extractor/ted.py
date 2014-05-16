@@ -86,7 +86,7 @@ class TEDIE(SubtitlesInfoExtractor):
             return self._playlist_videos_info(url, name)
 
     def _playlist_videos_info(self, url, name):
-        '''Returns the videos of the playlist'''
+        """Returns the videos of the playlist"""
 
         webpage = self._download_webpage(url, name,
             'Downloading playlist webpage')
