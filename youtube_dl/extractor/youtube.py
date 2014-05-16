@@ -1299,7 +1299,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             raise ExtractorError(u'no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
 
         # Look for the DASH manifest
-        if (self._downloader.params.get('youtube_include_dash_manifest', False)):
+        if self._downloader.params.get('youtube_include_dash_manifest'):
             try:
                 # The DASH manifest used needs to be the one from the original video_webpage.
                 # The one found in get_video_info seems to be using different signatures.

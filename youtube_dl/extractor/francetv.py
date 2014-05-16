@@ -161,7 +161,7 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
                     class="francetv-video-player">'''),
                 (r'<a id="player_direct" href="http://info\.francetelevisions'
                  '\.fr/\?id-video=([^"/&]+)'),
-                (r'<a class="video" id="ftv_player_(.+?)"'),
+                r'<a class="video" id="ftv_player_(.+?)"',
             ]
             video_id = self._html_search_regex(id_res, webpage, 'video ID')
         else:

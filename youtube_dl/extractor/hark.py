@@ -22,7 +22,7 @@ class HarkIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group(1)
-        json_url = "http://www.hark.com/clips/%s.json" %(video_id)
+        json_url = "http://www.hark.com/clips/%s.json" % video_id
         info_json = self._download_webpage(json_url, video_id)
         info = json.loads(info_json)
         final_url = info['url']

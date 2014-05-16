@@ -70,7 +70,7 @@ class JustinTVIE(InfoExtractor):
                     'upload_date': video_date,
                     'ext': video_extension,
                 })
-        return (len(response), info)
+        return len(response), info
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
