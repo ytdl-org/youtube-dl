@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
+from ..utils import (
+    ExtractorError,
+    int_or_none,
+)
 
 
 class NDRIE(InfoExtractor):
@@ -45,13 +48,12 @@ class NDRIE(InfoExtractor):
 
         page = self._download_webpage(url, video_id, 'Downloading page')
 
-        title = self._og_search_title(page)
+        title = self._og_search_title(page).strip()
         description = self._og_search_description(page)
+        if description:
+            description = description.strip()
 
-        mobj = re.search(
-            r'<div class="duration"><span class="min">(?P<minutes>\d+)</span>:<span class="sec">(?P<seconds>\d+)</span></div>',
-            page)
-        duration = int(mobj.group('minutes')) * 60 + int(mobj.group('seconds')) if mobj else None
+        duration = int_or_none(self._html_search_regex(r'duration: (\d+),\n', page, 'duration', fatal=False))
 
         formats = []
 
