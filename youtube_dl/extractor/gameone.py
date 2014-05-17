@@ -26,11 +26,7 @@ class GameOneIE(InfoExtractor):
             'title': 'Game One - Folge 288',
             'duration': 1238,
             'thumbnail': 'http://s3.gameone.de/gameone/assets/video_metas/teaser_images/000/643/636/big/640x360.jpg',
-            'description': 'Puh, das ist ja wieder eine volle Packung! Erst begleiten wir Nils zum '
-                'FIFA-Pressepokal 2014, den er nach 2010 nun zum zweiten Mal gewinnen will.\n'
-                'Danach gibt’s eine Vorschau auf die drei kommenden Hits “Star Citizen”, “Kingdom Come: Deliverance” und “Project Cars”.\n'
-                'Und dann geht’s auch schon weiter mit der nächsten Folge vom Nerdquiz! Der schöne Trant foltert seine Kandidaten wieder '
-                'mit fiesen Fragen. Hier gibt’s die erste Hälfte, in Folge 289 geht’s weiter.'
+            'description': 'FIFA-Pressepokal 2014, Star Citizen, Kingdom Come: Deliverance, Project Cars, Schöner Trants Nerdquiz Folge 2 Runde 1',
         }
     }
 
@@ -40,12 +36,12 @@ class GameOneIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
         og_video = self._og_search_video_url(webpage, secure=False)
+        description = self._html_search_meta('description', webpage)
         mrss_url = self._search_regex(r'mrss=([^&]+)', og_video, 'mrss')
 
         mrss = self._download_xml(mrss_url, video_id, 'Downloading mrss')
         title = mrss.find('.//item/title').text
         thumbnail = mrss.find('.//item/image').get('url')
-        description = self._extract_description(mrss)
         content = mrss.find(xpath_with_ns('.//media:content', NAMESPACE_MAP))
         content_url = content.get('url')
 
@@ -70,7 +66,3 @@ class GameOneIE(InfoExtractor):
             'formats': formats,
             'description': description,
         }
-
-    def _extract_description(self, mrss):
-        description = mrss.find('.//item/description')
-        return u''.join(t for t in description.itertext())
