@@ -66,10 +66,12 @@ class NDRIE(InfoExtractor):
 
         video_url = re.search(r'''3: {src:'(?P<video>.+?)\.hi\.mp4', type:"video/mp4"},''', page)
         if video_url:
-            thumbnail = self._html_search_regex(r'(?m)title: "NDR PLAYER",\s*poster: "([^"]+)",',
-                page, 'thumbnail', fatal=False)
-            if thumbnail:
-                thumbnail = 'http://www.ndr.de' + thumbnail
+            thumbnails = re.findall(r'''\d+: {src: "([^"]+)"(?: \|\| '[^']+')?, quality: '([^']+)'}''', page)
+            if thumbnails:
+                QUALITIES = ['xs', 's', 'm', 'l', 'xl']
+                thumbnails.sort(key=lambda thumb: QUALITIES.index(thumb[1]))
+                thumbnail = 'http://www.ndr.de' + thumbnails[-1][0]
+
             for format_id in ['lo', 'hi', 'hq']:
                 formats.append({
                     'url': '%s.%s.mp4' % (video_url.group('video'), format_id),
