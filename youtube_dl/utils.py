@@ -282,7 +282,7 @@ def htmlentity_transform(matchobj):
         return compat_chr(int(numstr, base))
 
     # Unknown entity in name, return its literal representation
-    return (u'&%s;' % entity)
+    return u'&%s;' % entity
 
 compat_html_parser.locatestarttagend = re.compile(r"""<[a-zA-Z][-.a-zA-Z0-9:_]*(?:\s+(?:(?<=['"\s])[^\s/>][^\s/=>]*(?:\s*=+\s*(?:'[^']*'|"[^"]*"|(?!['"])[^>\s]*))?\s*)*)?\s*""", re.VERBOSE) # backport bugfix
 class BaseHTMLParser(compat_html_parser.HTMLParser):
@@ -435,9 +435,9 @@ def sanitize_open(filename, open_mode):
             if sys.platform == 'win32':
                 import msvcrt
                 msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
-            return (sys.stdout.buffer if hasattr(sys.stdout, 'buffer') else sys.stdout, filename)
+            return sys.stdout.buffer if hasattr(sys.stdout, 'buffer') else sys.stdout, filename
         stream = open(encodeFilename(filename), open_mode)
-        return (stream, filename)
+        return stream, filename
     except (IOError, OSError) as err:
         if err.errno in (errno.EACCES,):
             raise
@@ -452,7 +452,7 @@ def sanitize_open(filename, open_mode):
         else:
             # An exception here should be caught in the caller
             stream = open(encodeFilename(filename), open_mode)
-            return (stream, alt_filename)
+            return stream, alt_filename
 
 
 def timeconvert(timestr):
@@ -614,7 +614,7 @@ class ExtractorError(Exception):
         if video_id is not None:
             msg = video_id + ': ' + msg
         if not expected:
-            msg = msg + u'; please report this issue on https://yt-dl.org/bug . Be sure to call youtube-dl with the --verbose flag and include its complete output. Make sure you are using the latest version; type  youtube-dl -U  to update.'
+            msg += u'; please report this issue on https://yt-dl.org/bug . Be sure to call youtube-dl with the --verbose flag and include its complete output. Make sure you are using the latest version; type  youtube-dl -U  to update.'
         super(ExtractorError, self).__init__(msg)
 
         self.traceback = tb

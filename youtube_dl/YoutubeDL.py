@@ -376,10 +376,10 @@ class YoutubeDL(object):
         self._download_retcode = 1
 
     def report_warning(self, message):
-        '''
+        """
         Print the message to stderr, it will be prefixed with 'WARNING:'
         If stderr is a tty file the 'WARNING:' will be colored
-        '''
+        """
         if self.params.get('logger') is not None:
             self.params['logger'].warning(message)
         else:
@@ -393,10 +393,10 @@ class YoutubeDL(object):
             self.to_stderr(warning_message)
 
     def report_error(self, message, tb=None):
-        '''
+        """
         Do the same as trouble, but prefixes the message with 'ERROR:', colored
         in red if stderr is a tty file.
-        '''
+        """
         if self._err_file.isatty() and os.name != 'nt':
             _msg_header = '\033[0;31mERROR:\033[0m'
         else:
@@ -487,17 +487,17 @@ class YoutubeDL(object):
 
     @staticmethod
     def add_extra_info(info_dict, extra_info):
-        '''Set the keys from extra_info in info dict if they are missing'''
+        """Set the keys from extra_info in info dict if they are missing"""
         for key, value in extra_info.items():
             info_dict.setdefault(key, value)
 
     def extract_info(self, url, download=True, ie_key=None, extra_info={},
                      process=True):
-        '''
+        """
         Returns a list with a dictionary for each video we find.
         If 'download', also downloads the videos.
         extra_info is a dict containing the extra values to add to each result
-         '''
+         """
 
         if ie_key:
             ies = [self.get_info_extractor(ie_key)]
@@ -1019,7 +1019,7 @@ class YoutubeDL(object):
             if success:
                 try:
                     self.post_process(filename, info_dict)
-                except (PostProcessingError) as err:
+                except PostProcessingError as err:
                     self.report_error('postprocessing: %s' % str(err))
                     return
 
@@ -1298,7 +1298,7 @@ class YoutubeDL(object):
         try:
             return s.encode(self.get_encoding())
         except UnicodeEncodeError as err:
-            err.reason = err.reason + '. Check your system encoding configuration or use the --encoding option.'
+            err.reason += '. Check your system encoding configuration or use the --encoding option.'
             raise
 
     def get_encoding(self):

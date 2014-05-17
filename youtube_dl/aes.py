@@ -261,7 +261,7 @@ def xor(data1, data2):
     return [x^y for x, y in zip(data1, data2)]
 
 def rijndael_mul(a, b):
-    if(a==0 or b==0):
+    if a==0 or b==0:
         return 0
     return RIJNDAEL_EXP_TABLE[(RIJNDAEL_LOG_TABLE[a] + RIJNDAEL_LOG_TABLE[b]) % 0xFF]
 
@@ -301,10 +301,10 @@ def shift_rows_inv(data):
 
 def inc(data):
     data = data[:] # copy
-    for i in range(len(data)-1,-1,-1):
+    for i in range(len(data)-1, -1, -1):
         if data[i] == 255:
             data[i] = 0
         else:
-            data[i] = data[i] + 1
+            data[i] += 1
             break
     return data

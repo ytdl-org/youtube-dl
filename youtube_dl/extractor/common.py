@@ -269,7 +269,7 @@ class InfoExtractor(object):
                 msg += u' Visit %s for more details' % blocked_iframe
             raise ExtractorError(msg, expected=True)
 
-        return (content, urlh)
+        return content, urlh
 
     def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True):
         """ Returns the data of the page as a string """
@@ -399,7 +399,7 @@ class InfoExtractor(object):
         If there's no info available, return (None, None)
         """
         if self._downloader is None:
-            return (None, None)
+            return None, None
 
         username = None
         password = None
@@ -420,7 +420,7 @@ class InfoExtractor(object):
             except (IOError, netrc.NetrcParseError) as err:
                 self._downloader.report_warning(u'parsing .netrc: %s' % compat_str(err))
         
-        return (username, password)
+        return username, password
 
     # Helper functions for extracting OpenGraph info
     @staticmethod

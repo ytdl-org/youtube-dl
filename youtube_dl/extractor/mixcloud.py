@@ -41,7 +41,7 @@ class MixcloudIE(InfoExtractor):
                 self._request_webpage(url, None, False)
                 return url
             except ExtractorError:
-                url = None
+                pass
 
         return None
 
