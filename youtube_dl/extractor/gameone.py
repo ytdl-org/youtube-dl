@@ -10,6 +10,8 @@ NAMESPACE_MAP = {
     'media': 'http://search.yahoo.com/mrss/',
 }
 
+# URL prefix to download the mp4 files directly instead of streaming via rtmp
+# Credits go to XBox-Maniac http://board.jdownloader.org/showpost.php?p=185835&postcount=31 
 RAW_MP4_URL = 'http://cdn.riptide-mtvn.com/'
 
 class GameOneIE(InfoExtractor):
