@@ -27,6 +27,7 @@ class GameOneIE(InfoExtractor):
             'duration': 1238,
             'thumbnail': 'http://s3.gameone.de/gameone/assets/video_metas/teaser_images/000/643/636/big/640x360.jpg',
             'description': 'FIFA-Pressepokal 2014, Star Citizen, Kingdom Come: Deliverance, Project Cars, Schöner Trants Nerdquiz Folge 2 Runde 1',
+            'age_limit': 16
         }
     }
 
@@ -37,6 +38,7 @@ class GameOneIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         og_video = self._og_search_video_url(webpage, secure=False)
         description = self._html_search_meta('description', webpage)
+        age_limit = int(self._search_regex(r'age=(\d+)', self._html_search_meta('age-de-meta-label', webpage), 'age_limit', '0'))
         mrss_url = self._search_regex(r'mrss=([^&]+)', og_video, 'mrss')
 
         mrss = self._download_xml(mrss_url, video_id, 'Downloading mrss')
@@ -65,4 +67,5 @@ class GameOneIE(InfoExtractor):
             'duration': duration,
             'formats': formats,
             'description': description,
+            'age_limit': age_limit,
         }
