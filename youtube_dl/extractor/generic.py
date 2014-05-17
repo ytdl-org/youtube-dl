@@ -560,7 +560,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded NovaMov-based player
         mobj = re.search(
-            r'''(?x)<iframe[^>]+?src=(["\'])
+            r'''(?x)<(?:pagespeed_)?iframe[^>]+?src=(["\'])
                     (?P<url>http://(?:(?:embed|www)\.)?
                         (?:novamov\.com|
                            nowvideo\.(?:ch|sx|eu|at|ag|co)|
