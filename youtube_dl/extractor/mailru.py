@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import re
-import datetime
 
 from .common import InfoExtractor
 
@@ -19,6 +18,7 @@ class MailRuIE(InfoExtractor):
             'id': '46301138',
             'ext': 'mp4',
             'title': 'Новый Человек-Паук. Высокое напряжение. Восстание Электро',
+            'timestamp': 1393232740,
             'upload_date': '20140224',
             'uploader': 'sonypicturesrus',
             'uploader_id': 'sonypicturesrus@mail.ru',
@@ -43,7 +43,6 @@ class MailRuIE(InfoExtractor):
         thumbnail = movie['poster']
         duration = movie['duration']
 
-        upload_date = datetime.datetime.fromtimestamp(video_data['timestamp']).strftime('%Y%m%d')
         view_count = video_data['views_count']
 
         formats = [
@@ -57,7 +56,7 @@ class MailRuIE(InfoExtractor):
             'id': content_id,
             'title': title,
             'thumbnail': thumbnail,
-            'upload_date': upload_date,
+            'timestamp': video_data['timestamp'],
             'uploader': uploader,
             'uploader_id': uploader_id,
             'duration': duration,
