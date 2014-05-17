@@ -2,10 +2,12 @@
 from __future__ import unicode_literals
 
 import re
-import xml.etree.ElementTree as ET
 
 from .common import InfoExtractor
-from ..utils import xpath_with_ns
+from ..utils import (
+    xpath_with_ns,
+    parse_iso8601
+)
 
 NAMESPACE_MAP = {
     'media': 'http://search.yahoo.com/mrss/',
@@ -14,6 +16,8 @@ NAMESPACE_MAP = {
 # URL prefix to download the mp4 files directly instead of streaming via rtmp
 # Credits go to XBox-Maniac http://board.jdownloader.org/showpost.php?p=185835&postcount=31 
 RAW_MP4_URL = 'http://cdn.riptide-mtvn.com/'
+
+PUB_DATE_FORMAT = '%Y-%m-%d %H:%M:%S %z'
 
 class GameOneIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?gameone\.de/tv/(?P<id>\d+)'
@@ -27,7 +31,9 @@ class GameOneIE(InfoExtractor):
             'duration': 1238,
             'thumbnail': 'http://s3.gameone.de/gameone/assets/video_metas/teaser_images/000/643/636/big/640x360.jpg',
             'description': 'FIFA-Pressepokal 2014, Star Citizen, Kingdom Come: Deliverance, Project Cars, Schöner Trants Nerdquiz Folge 2 Runde 1',
-            'age_limit': 16
+            'age_limit': 16,
+            'upload_date': '20140513',
+            'timestamp': 1399980122,
         }
     }
 
@@ -44,6 +50,7 @@ class GameOneIE(InfoExtractor):
         mrss = self._download_xml(mrss_url, video_id, 'Downloading mrss')
         title = mrss.find('.//item/title').text
         thumbnail = mrss.find('.//item/image').get('url')
+        timestamp = parse_iso8601(mrss.find('.//pubDate').text, delimiter=' ')
         content = mrss.find(xpath_with_ns('.//media:content', NAMESPACE_MAP))
         content_url = content.get('url')
 
@@ -68,4 +75,5 @@ class GameOneIE(InfoExtractor):
             'formats': formats,
             'description': description,
             'age_limit': age_limit,
+            'timestamp': timestamp,
         }
