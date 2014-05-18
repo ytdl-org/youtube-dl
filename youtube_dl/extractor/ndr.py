@@ -71,7 +71,7 @@ class NDRIE(InfoExtractor):
             thumbnails = re.findall(r'''\d+: {src: "([^"]+)"(?: \|\| '[^']+')?, quality: '([^']+)'}''', page)
             if thumbnails:
                 QUALITIES = ['xs', 's', 'm', 'l', 'xl']
-                thumbnails.sort(key=lambda thumb: QUALITIES.index(thumb[1]))
+                thumbnails.sort(key=lambda thumb: QUALITIES.index(thumb[1]) if thumb[1] in QUALITIES else -1)
                 thumbnail = 'http://www.ndr.de' + thumbnails[-1][0]
 
             for format_id in ['lo', 'hi', 'hq']:
