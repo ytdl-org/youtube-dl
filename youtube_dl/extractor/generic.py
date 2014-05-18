@@ -473,7 +473,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded YouTube player
         matches = re.findall(r'''(?x)
-            (?:<iframe[^>]+?src=|embedSWF\(\s*)
+            (?:<iframe[^>]+?src=|data-video-url=|embedSWF\(\s*)
             (["\'])(?P<url>(?:https?:)?//(?:www\.)?youtube\.com/
                 (?:embed|v)/.+?)
             \1''', webpage)
