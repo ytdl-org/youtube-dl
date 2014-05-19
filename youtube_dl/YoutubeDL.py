@@ -188,6 +188,7 @@ class YoutubeDL(object):
         self._ies_instances = {}
         self._pps = []
         self._progress_hooks = []
+        self._metadata_hooks = []
         self._download_retcode = 0
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
@@ -266,8 +267,12 @@ class YoutubeDL(object):
         self._pps.append(pp)
         pp.set_downloader(self)
 
+    def add_metadata_hook(self, ph):
+        """Add the metadata progress hook"""
+        self._metadata_hooks.append(ph)
+
     def add_progress_hook(self, ph):
-        """Add the progress hook (currently only for the file downloader)"""
+        """Add the download progress hook"""
         self._progress_hooks.append(ph)
 
     def _bidi_workaround(self, message):
@@ -634,6 +639,21 @@ class YoutubeDL(object):
                     'webpage_url_basename': url_basename(ie_result['webpage_url']),
                     'extractor_key': ie_result['extractor_key'],
                 }
+                playlistProgress = {
+                    'current': i,
+                    'total':   n_entries,
+                    'playlist': ie_result['webpage_url'],
+                    'next': entry
+                }
+                skipNext = False
+                for ph in self._metadata_hooks:
+                    skipNext = skipNext or ph(playlistProgress) == False
+                    if skipNext:
+                        break
+
+                if skipNext:
+                    self.to_screen('[skip] Skipping next (id: %s)' % entry['id'])
+                    continue
 
                 reason = self._match_entry(entry)
                 if reason is not None:
