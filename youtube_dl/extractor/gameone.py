@@ -14,10 +14,10 @@ NAMESPACE_MAP = {
 }
 
 # URL prefix to download the mp4 files directly instead of streaming via rtmp
-# Credits go to XBox-Maniac http://board.jdownloader.org/showpost.php?p=185835&postcount=31 
+# Credits go to XBox-Maniac
+# http://board.jdownloader.org/showpost.php?p=185835&postcount=31
 RAW_MP4_URL = 'http://cdn.riptide-mtvn.com/'
 
-PUB_DATE_FORMAT = '%Y-%m-%d %H:%M:%S %z'
 
 class GameOneIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?gameone\.de/tv/(?P<id>\d+)'
@@ -44,7 +44,14 @@ class GameOneIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         og_video = self._og_search_video_url(webpage, secure=False)
         description = self._html_search_meta('description', webpage)
-        age_limit = int(self._search_regex(r'age=(\d+)', self._html_search_meta('age-de-meta-label', webpage), 'age_limit', '0'))
+        age_limit = int(
+            self._search_regex(
+                r'age=(\d+)',
+                self._html_search_meta(
+                    'age-de-meta-label',
+                    webpage),
+                'age_limit',
+                '0'))
         mrss_url = self._search_regex(r'mrss=([^&]+)', og_video, 'mrss')
 
         mrss = self._download_xml(mrss_url, video_id, 'Downloading mrss')
@@ -54,16 +61,19 @@ class GameOneIE(InfoExtractor):
         content = mrss.find(xpath_with_ns('.//media:content', NAMESPACE_MAP))
         content_url = content.get('url')
 
-        content = self._download_xml(content_url, video_id, 'Downloading media:content')
+        content = self._download_xml(
+            content_url,
+            video_id,
+            'Downloading media:content')
         rendition_items = content.findall('.//rendition')
         duration = int(rendition_items[0].get('duration'))
         formats = [
-                {
-                    'url': re.sub(r'.*/(r2)', RAW_MP4_URL + r'\1', r.find('./src').text),
-                    'width': int(r.get('width')),
-                    'height': int(r.get('height')),
-                    'tbr': int(r.get('bitrate')),
-                }
+            {
+                'url': re.sub(r'.*/(r2)', RAW_MP4_URL + r'\1', r.find('./src').text),
+                'width': int(r.get('width')),
+                'height': int(r.get('height')),
+                'tbr': int(r.get('bitrate')),
+            }
             for r in rendition_items
         ]
 
