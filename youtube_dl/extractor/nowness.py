@@ -4,9 +4,7 @@ import re
 
 from .brightcove import BrightcoveIE
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-)
+from ..utils import ExtractorError
 
 
 class NownessIE(InfoExtractor):
@@ -14,9 +12,10 @@ class NownessIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://www.nowness.com/day/2013/6/27/3131/candor--the-art-of-gesticulation',
-        'file': '2520295746001.mp4',
-        'md5': '0ece2f70a7bd252c7b00f3070182d418',
+        'md5': '068bc0202558c2e391924cb8cc470676',
         'info_dict': {
+            'id': '2520295746001',
+            'ext': 'mp4',
             'description': 'Candor: The Art of Gesticulation',
             'uploader': 'Nowness',
             'title': 'Candor: The Art of Gesticulation',
