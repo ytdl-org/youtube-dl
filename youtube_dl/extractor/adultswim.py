@@ -9,12 +9,52 @@ class AdultSwimIE(InfoExtractor):
     _VALID_URL = r'https?://video\.adultswim\.com/(?P<path>.+?)(?:\.html)?(?:\?.*)?(?:#.*)?$'
     _TEST = {
         'url': 'http://video.adultswim.com/rick-and-morty/close-rick-counters-of-the-rick-kind.html?x=y#title',
-        'md5': '4a90c63a07537ec9383175b330dfeab4',
-        'info_dict': {
-            'id': '8a250ba1450996e901453d7e9caf02f3',
-            'title': 'Rick and Morty Close Rick-Counters of the Rick Kind',
-            'description': 'Rick has a run in with some old associates, resulting in a fallout with Morty. You got any chips, broh?',
-        }
+        'playlist': [
+            {
+                'md5': '4da359ec73b58df4575cd01a610ba5dc',
+                'info_dict': {
+                    'id': '8a250ba1450996e901453d7f02ca02f5',
+                    'ext': 'flv',
+                    'title': 'Rick and Morty Close Rick-Counters of the Rick Kind part 1',
+                    'description': 'Rick has a run in with some old associates, resulting in a fallout with Morty. You got any chips, broh?',
+                    'uploader': 'Rick and Morty',
+                    'thumbnail': 'http://i.cdn.turner.com/asfix/repository/8a250ba13f865824013fc9db8b6b0400/thumbnail_267549017116827057.jpg'
+                }
+            },
+            {
+                'md5': 'ffbdf55af9331c509d95350bd0cc1819',
+                'info_dict': {
+                    'id': '8a250ba1450996e901453d7f4bd102f6',
+                    'ext': 'flv',
+                    'title': 'Rick and Morty Close Rick-Counters of the Rick Kind part 2',
+                    'description': 'Rick has a run in with some old associates, resulting in a fallout with Morty. You got any chips, broh?',
+                    'uploader': 'Rick and Morty',
+                    'thumbnail': 'http://i.cdn.turner.com/asfix/repository/8a250ba13f865824013fc9db8b6b0400/thumbnail_267549017116827057.jpg'
+                }
+            },
+            {
+                'md5': 'b92409635540304280b4b6c36bd14a0a',
+                'info_dict': {
+                    'id': '8a250ba1450996e901453d7fa73c02f7',
+                    'ext': 'flv',
+                    'title': 'Rick and Morty Close Rick-Counters of the Rick Kind part 3',
+                    'description': 'Rick has a run in with some old associates, resulting in a fallout with Morty. You got any chips, broh?',
+                    'uploader': 'Rick and Morty',
+                    'thumbnail': 'http://i.cdn.turner.com/asfix/repository/8a250ba13f865824013fc9db8b6b0400/thumbnail_267549017116827057.jpg'
+                }
+            },
+            {
+                'md5': 'e8818891d60e47b29cd89d7b0278156d',
+                'info_dict': {
+                    'id': '8a250ba1450996e901453d7fc8ba02f8',
+                    'ext': 'flv',
+                    'title': 'Rick and Morty Close Rick-Counters of the Rick Kind part 4',
+                    'description': 'Rick has a run in with some old associates, resulting in a fallout with Morty. You got any chips, broh?',
+                    'uploader': 'Rick and Morty',
+                    'thumbnail': 'http://i.cdn.turner.com/asfix/repository/8a250ba13f865824013fc9db8b6b0400/thumbnail_267549017116827057.jpg'
+                }
+            }
+        ]
     }
 
     _available_formats = ['150', '640', '3500']
