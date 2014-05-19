@@ -363,8 +363,13 @@ class GenericIE(InfoExtractor):
                     return self.url_result('http://' + url)
                 else:
                     if default_search == 'auto_warning':
-                        self._downloader.report_warning(
-                            'Falling back to youtube search for  %s . Set --default-search to "auto" to suppress this warning.' % url)
+                        if re.match(r'^(?:url|URL)$', url):
+                            raise ExtractorError(
+                                'Invalid URL:  %r . Call youtube-dl like this:  youtube-dl -v "https://www.youtube.com/watch?v=BaW_jenozKc"  ' % url,
+                                expected=True)
+                        else:
+                            self._downloader.report_warning(
+                                'Falling back to youtube search for  %s . Set --default-search to "auto" to suppress this warning.' % url)
                     return self.url_result('ytsearch:' + url)
             else:
                 assert ':' in default_search
