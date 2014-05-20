@@ -19,7 +19,7 @@ class BandcampIE(InfoExtractor):
         'md5': 'c557841d5e50261777a6585648adf439',
         'info_dict': {
             "title": "youtube-dl  \"'/\\\u00e4\u21ad - youtube-dl test song \"'/\\\u00e4\u21ad",
-            "duration": 10,
+            "duration": 9.8485,
         },
         '_skip': 'There is a limit of 200 free downloads / month for the test song'
     }]
@@ -28,36 +28,32 @@ class BandcampIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         title = mobj.group('title')
         webpage = self._download_webpage(url, title)
-        # We get the link to the free download page
         m_download = re.search(r'freeDownloadPage: "(.*?)"', webpage)
-        if m_download is None:
+        if not m_download:
             m_trackinfo = re.search(r'trackinfo: (.+),\s*?\n', webpage)
             if m_trackinfo:
                 json_code = m_trackinfo.group(1)
-                data = json.loads(json_code)
-                d = data[0]
+                data = json.loads(json_code)[0]
 
-                duration = int(round(d['duration']))
                 formats = []
-                for format_id, format_url in d['file'].items():
-                    ext, _, abr_str = format_id.partition('-')
-
+                for format_id, format_url in data['file'].items():
+                    ext, abr_str = format_id.split('-', 1)
                     formats.append({
                         'format_id': format_id,
                         'url': format_url,
-                        'ext': format_id.partition('-')[0],
+                        'ext': ext,
                         'vcodec': 'none',
-                        'acodec': format_id.partition('-')[0],
-                        'abr': int(format_id.partition('-')[2]),
+                        'acodec': ext,
+                        'abr': int(abr_str),
                     })
 
                 self._sort_formats(formats)
 
                 return {
-                    'id': compat_str(d['id']),
-                    'title': d['title'],
+                    'id': compat_str(data['id']),
+                    'title': data['title'],
                     'formats': formats,
-                    'duration': duration,
+                    'duration': float(data['duration']),
                 }
             else:
                 raise ExtractorError('No free songs found')
@@ -67,11 +63,9 @@ class BandcampIE(InfoExtractor):
             r'var TralbumData = {(.*?)id: (?P<id>\d*?)$',
             webpage, re.MULTILINE | re.DOTALL).group('id')
 
-        download_webpage = self._download_webpage(download_link, video_id,
-                                                  'Downloading free downloads page')
-        # We get the dictionary of the track from some javascrip code
-        info = re.search(r'items: (.*?),$',
-                         download_webpage, re.MULTILINE).group(1)
+        download_webpage = self._download_webpage(download_link, video_id, 'Downloading free downloads page')
+        # We get the dictionary of the track from some javascript code
+        info = re.search(r'items: (.*?),$', download_webpage, re.MULTILINE).group(1)
         info = json.loads(info)[0]
         # We pick mp3-320 for now, until format selection can be easily implemented.
         mp3_info = info['downloads']['mp3-320']
@@ -100,7 +94,7 @@ class BandcampIE(InfoExtractor):
 
 class BandcampAlbumIE(InfoExtractor):
     IE_NAME = 'Bandcamp:album'
-    _VALID_URL = r'https?://(?:(?P<subdomain>[^.]+)\.)?bandcamp\.com(?:/album/(?P<title>[^?#]+))?'
+    _VALID_URL = r'https?://(?:(?P<subdomain>[^.]+)\.)?bandcamp\.com(?:/album/(?P<title>[^?#]+))'
 
     _TEST = {
         'url': 'http://blazo.bandcamp.com/album/jazz-format-mixtape-vol-1',
@@ -123,7 +117,7 @@ class BandcampAlbumIE(InfoExtractor):
         'params': {
             'playlistend': 2
         },
-        'skip': 'Bancamp imposes download limits. See test_playlists:test_bandcamp_album for the playlist test'
+        'skip': 'Bandcamp imposes download limits. See test_playlists:test_bandcamp_album for the playlist test'
     }
 
     def _real_extract(self, url):
