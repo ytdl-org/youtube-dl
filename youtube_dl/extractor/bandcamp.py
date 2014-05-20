@@ -37,7 +37,7 @@ class BandcampIE(InfoExtractor):
 
                 formats = []
                 for format_id, format_url in data['file'].items():
-                    ext, abr_str = format_id.split('-', maxsplit=1)
+                    ext, abr_str = format_id.split('-', 1)
                     formats.append({
                         'format_id': format_id,
                         'url': format_url,
