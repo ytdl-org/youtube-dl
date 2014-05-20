@@ -11,6 +11,7 @@ from os.path import basename
 from .common import InfoExtractor
 from ..utils import ExtractorError, compat_urllib_request, compat_html_parser
 
+
 class GroovesharkHtmlParser(compat_html_parser.HTMLParser):
     def __init__(self):
         self._current_object = None
@@ -20,10 +21,10 @@ class GroovesharkHtmlParser(compat_html_parser.HTMLParser):
     def handle_starttag(self, tag, attrs):
         attrs = dict((k, v) for k, v in attrs)
         if tag == 'object':
-            self._current_object = { 'attrs': attrs, 'params': [] }
+            self._current_object = {'attrs': attrs, 'params': []}
         elif tag == 'param':
             self._current_object['params'].append(attrs)
-    
+
     def handle_endtag(self, tag):
         if tag == 'object':
             self.objects.append(self._current_object)
@@ -35,6 +36,7 @@ class GroovesharkHtmlParser(compat_html_parser.HTMLParser):
         p.feed(html)
         p.close()
         return p.objects
+
 
 class GroovesharkIE(InfoExtractor):
     _VALID_URL = r'https?://(www\.)?grooveshark\.com/#!/s/([^/]+)/([^/]+)'
@@ -104,7 +106,7 @@ class GroovesharkIE(InfoExtractor):
 
     def _get_bootstrap(self, target):
         (bootstrap_url, token) = self._build_bootstrap_url(target)
-        
+
         headers = {'Referer': urldefrag(target)[0]}
         req = compat_urllib_request.Request(bootstrap_url, headers=headers)
         res = self._download_json(req, token, fatal=False,
@@ -112,25 +114,25 @@ class GroovesharkIE(InfoExtractor):
                                   errnote='Unable to download player bootstrap data',
                                   transform_source=self._transform_bootstrap)
         return res
-    
+
     def _get_playerpage(self, target):
         (_, _, token) = self._parse_target(target)
-        
+
         res = self._download_webpage(
             target, token,
             note='Downloading player page',
             errnote='Unable to download player page',
             fatal=False)
-        
+
         if res is not None:
             o = GroovesharkHtmlParser.extract_object_tags(res)
             return (res, [x for x in o if x['attrs']['id'] == 'jsPlayerEmbed'])
-        
+
         return (res, None)
-    
+
     def _real_extract(self, url):
         (target_uri, _, token) = self._parse_target(url)
-    
+
         # 1. Fill cookiejar by making a request to the player page
         if self.do_playerpage_request:
             (_, player_objs) = self._get_playerpage(url)
@@ -142,10 +144,10 @@ class GroovesharkIE(InfoExtractor):
         if self.do_bootstrap_request:
             bootstrap = self._get_bootstrap(url)
             self.to_screen('CommunicationToken: %s' % bootstrap['getCommunicationToken'])
-        
+
         # 3. Ask preload.php for track metadata.
         meta = self._get_meta(url)
-        
+
         # 4. Construct stream request for track.
         stream_url = self._build_stream_url(meta)
         duration = int(math.ceil(float(meta['streamKey']['uSecs']) / 1000000))
@@ -154,13 +156,13 @@ class GroovesharkIE(InfoExtractor):
         headers = {
             'Content-Length': len(post_data),
             'Content-Type': 'application/x-www-form-urlencoded'
-            }
+        }
 
         if 'swf_referer' in locals():
-            headers['Referer'] = swf_referer        
+            headers['Referer'] = swf_referer
 
-        req = compat_urllib_request.Request(streamurl, post_data, headers)
-        
+        req = compat_urllib_request.Request(stream_url, post_data, headers)
+
         info_dict = {
             'id': token,
             'title': meta['song']['Name'],
@@ -169,16 +171,18 @@ class GroovesharkIE(InfoExtractor):
             'ext': 'mp3',
             'format': 'mp3 audio',
             'duration': duration,
-            
+
+            # various ways of supporting the download request.
+            # remove keys unnecessary to the eventual post implementation
             'post_data': post_data,
             'post_dict': post_dict,
             'headers': headers,
             'request': req
-            }
-        
+        }
+
         if 'swf_referer' in locals():
-            info_dict['http_referer'] = swf_referer        
-        
+            info_dict['http_referer'] = swf_referer
+
         return info_dict
 
     def _real_initialize(self):
@@ -197,4 +201,3 @@ class GroovesharkIE(InfoExtractor):
             if fatal:
                 raise ee
         return None
-
