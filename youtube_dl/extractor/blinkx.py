@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import datetime
 import json
 import re
 
@@ -19,15 +18,16 @@ class BlinkxIE(InfoExtractor):
         'file': '8aQUy7GV.mp4',
         'md5': '2e9a07364af40163a908edbf10bb2492',
         'info_dict': {
-            "title": "Police Car Rolls Away",
-            "uploader": "stupidvideos.com",
-            "upload_date": "20131215",
-            "description": "A police car gently rolls away from a fight. Maybe it felt weird being around a confrontation and just had to get out of there!",
-            "duration": 14.886,
-            "thumbnails": [{
-                "width": 100,
-                "height": 76,
-                "url": "http://cdn.blinkx.com/stream/b/41/StupidVideos/20131215/1873969261/1873969261_tn_0.jpg",
+            'title': 'Police Car Rolls Away',
+            'uploader': 'stupidvideos.com',
+            'upload_date': '20131215',
+            'timestamp': 1387068000,
+            'description': 'A police car gently rolls away from a fight. Maybe it felt weird being around a confrontation and just had to get out of there!',
+            'duration': 14.886,
+            'thumbnails': [{
+                'width': 100,
+                'height': 76,
+                'url': 'http://cdn.blinkx.com/stream/b/41/StupidVideos/20131215/1873969261/1873969261_tn_0.jpg',
             }],
         },
     }
@@ -41,9 +41,6 @@ class BlinkxIE(InfoExtractor):
                    'video=%s' % video_id)
         data_json = self._download_webpage(api_url, display_id)
         data = json.loads(data_json)['api']['results'][0]
-        dt = datetime.datetime.fromtimestamp(data['pubdate_epoch'])
-        pload_date = dt.strftime('%Y%m%d')
-
         duration = None
         thumbnails = []
         formats = []
@@ -64,10 +61,7 @@ class BlinkxIE(InfoExtractor):
                 vcodec = remove_start(m['vcodec'], 'ff')
                 acodec = remove_start(m['acodec'], 'ff')
                 tbr = (int(m['vbr']) + int(m['abr'])) // 1000
-                format_id = (u'%s-%sk-%s' %
-                             (vcodec,
-                              tbr,
-                              m['w']))
+                format_id = u'%s-%sk-%s' % (vcodec, tbr, m['w'])
                 formats.append({
                     'format_id': format_id,
                     'url': m['link'],
@@ -88,7 +82,7 @@ class BlinkxIE(InfoExtractor):
             'title': data['title'],
             'formats': formats,
             'uploader': data['channel_name'],
-            'upload_date': pload_date,
+            'timestamp': data['pubdate_epoch'],
             'description': data.get('description'),
             'thumbnails': thumbnails,
             'duration': duration,
