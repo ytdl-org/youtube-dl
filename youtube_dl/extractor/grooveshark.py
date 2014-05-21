@@ -4,12 +4,17 @@ from __future__ import unicode_literals
 import time
 import math
 import re
-from urlparse import urlparse, urlunparse, urldefrag
+
 from urllib import quote, urlencode
 from os.path import basename
 
 from .common import InfoExtractor
 from ..utils import ExtractorError, compat_urllib_request, compat_html_parser
+
+from ..utils import compat_urlparse
+urlparse = compat_urlparse.urlparse
+urlunparse = compat_urlparse.urlunparse
+urldefrag = compat_urlparse.urldefrag
 
 
 class GroovesharkHtmlParser(compat_html_parser.HTMLParser):
@@ -78,7 +83,7 @@ class GroovesharkIE(InfoExtractor):
         return urlunparse((uri.scheme, uri.netloc, obj['attrs']['data'], None, None, None))
 
     def _transform_bootstrap(self, js):
-        return re.split('^\s*try\s*{', js, flags=re.M)[0] \
+        return re.split('(?m)^\s*try\s*{', js)[0] \
                  .split(' = ', 1)[1].strip().rstrip(';')
 
     def _transform_meta(self, js):
@@ -161,8 +166,6 @@ class GroovesharkIE(InfoExtractor):
         if 'swf_referer' in locals():
             headers['Referer'] = swf_referer
 
-        req = compat_urllib_request.Request(stream_url, post_data, headers)
-
         info_dict = {
             'id': token,
             'title': meta['song']['Name'],
@@ -176,8 +179,7 @@ class GroovesharkIE(InfoExtractor):
             # remove keys unnecessary to the eventual post implementation
             'post_data': post_data,
             'post_dict': post_dict,
-            'headers': headers,
-            'request': req
+            'headers': headers
         }
 
         if 'swf_referer' in locals():
