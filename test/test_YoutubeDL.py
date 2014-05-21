@@ -67,7 +67,7 @@ class TestFormatSelection(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['ext'], 'mp4')
 
-        # No prefer_free_formats => prefer mp4 and flv for greater compatibilty
+        # No prefer_free_formats => prefer mp4 and flv for greater compatibility
         ydl = YDL()
         ydl.params['prefer_free_formats'] = False
         formats = [
@@ -279,7 +279,7 @@ class TestFormatSelection(unittest.TestCase):
         self.assertEqual(ydl._format_note({}), '')
         assertRegexpMatches(self, ydl._format_note({
             'vbr': 10,
-        }), '^x\s*10k$')
+        }), '^\s*10k$')
 
 if __name__ == '__main__':
     unittest.main()
