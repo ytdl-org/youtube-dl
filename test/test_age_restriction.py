@@ -13,7 +13,7 @@ from youtube_dl import YoutubeDL
 
 
 def _download_restricted(url, filename, age):
-    """ Returns true iff the file has been downloaded """
+    """ Returns true if the file has been downloaded """
 
     params = {
         'age_limit': age,
