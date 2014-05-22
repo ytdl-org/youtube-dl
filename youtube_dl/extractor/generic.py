@@ -308,9 +308,14 @@ class GenericIE(InfoExtractor):
 
                 newheaders = dict((k,v) for k,v in req.headers.items()
                                   if k.lower() not in ("content-length", "content-type"))
+                try:
+                    # This function was deprecated in python 3.3 and removed in 3.4
+                    origin_req_host = req.get_origin_req_host()
+                except AttributeError:
+                    origin_req_host = req.origin_req_host
                 return self.parent.open(compat_urllib_request.Request(req.get_full_url(),
                                                  headers=newheaders,
-                                                 origin_req_host=req.get_origin_req_host(),
+                                                 origin_req_host=origin_req_host,
                                                  unverifiable=True))
 
         # Build our opener
