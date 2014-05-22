@@ -114,6 +114,7 @@ class YoutubeDL(object):
     nooverwrites:      Prevent overwriting files.
     playliststart:     Playlist item to start at.
     playlistend:       Playlist item to end at.
+    playlistonly:      Stops after getting the playlist entries
     matchtitle:        Download only matching titles.
     rejecttitle:       Reject downloads for matching titles.
     logger:            Log messages to a logging.Logger instance.
@@ -661,11 +662,13 @@ class YoutubeDL(object):
                     self.to_screen('[download] ' + reason)
                     continue
 
-                entry_result = self.process_ie_result(entry,
+                if not self.params.get('playlistonly', False):
+                    entry_result = self.process_ie_result(entry,
                                                       download=download,
                                                       extra_info=extra)
-                playlist_results.append(entry_result)
-
+                    playlist_results.append(entry_result)
+                else:
+                    playlist_results.append(entry)
 
             playlistProgress = {
                 'current': n_entries,
@@ -678,10 +681,9 @@ class YoutubeDL(object):
             for ph in self._metadata_hooks:
                 ph(playlistProgress)
 
-
-
             ie_result['entries'] = playlist_results
             return ie_result
+
         elif result_type == 'compat_list':
             def _fixup(r):
                 self.add_extra_info(r,
