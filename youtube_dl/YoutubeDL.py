@@ -640,9 +640,10 @@ class YoutubeDL(object):
                     'extractor_key': ie_result['extractor_key'],
                 }
                 playlistProgress = {
-                    'current': i,
+                    'current': i-1,
                     'total':   n_entries,
                     'playlist': ie_result['webpage_url'],
+                    'currentData': playlist_results[-1] if len(playlist_results) > 0 else None,
                     'next': entry
                 }
                 skipNext = False
@@ -664,6 +665,21 @@ class YoutubeDL(object):
                                                       download=download,
                                                       extra_info=extra)
                 playlist_results.append(entry_result)
+
+
+            playlistProgress = {
+                'current': n_entries,
+                'total':   n_entries,
+                'playlist': ie_result['webpage_url'],
+                'currentData': playlist_results[-1] if len(playlist_results) > 0 else None,
+                'next': None
+            }
+
+            for ph in self._metadata_hooks:
+                ph(playlistProgress)
+
+
+
             ie_result['entries'] = playlist_results
             return ie_result
         elif result_type == 'compat_list':
