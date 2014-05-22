@@ -63,14 +63,13 @@ __license__ = 'Public Domain'
 
 import codecs
 import io
-import locale
 import optparse
 import os
 import random
-import re
 import shlex
 import sys
 
+from .downloader import FileDownloader
 
 from .utils import (
     compat_getpass,
@@ -90,9 +89,6 @@ from .utils import (
     write_string,
 )
 from .update import update_self
-from .FileDownloader import (
-    FileDownloader,
-)
 from .extractor import gen_extractors
 from .version import __version__
 from .YoutubeDL import YoutubeDL
