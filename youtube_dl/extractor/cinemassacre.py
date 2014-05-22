@@ -14,7 +14,7 @@ class CinemassacreIE(InfoExtractor):
         {
             'url': 'http://cinemassacre.com/2012/11/10/avgn-the-movie-trailer/',
             'file': '19911.mp4',
-            'md5': '782f8504ca95a0eba8fc9177c373eec7',
+            'md5': 'fde81fbafaee331785f58cd6c0d46190',
             'info_dict': {
                 'upload_date': '20121110',
                 'title': '“Angry Video Game Nerd: The Movie” – Trailer',
@@ -24,7 +24,7 @@ class CinemassacreIE(InfoExtractor):
         {
             'url': 'http://cinemassacre.com/2013/10/02/the-mummys-hand-1940',
             'file': '521be8ef82b16.mp4',
-            'md5': 'dec39ee5118f8d9cc067f45f9cbe3a35',
+            'md5': 'd72f10cd39eac4215048f62ab477a511',
             'info_dict': {
                 'upload_date': '20131002',
                 'title': 'The Mummy’s Hand (1940)',
@@ -51,28 +51,30 @@ class CinemassacreIE(InfoExtractor):
             webpage, 'description', flags=re.DOTALL, fatal=False)
 
         playerdata = self._download_webpage(playerdata_url, video_id)
-
-        sd_url = self._html_search_regex(r'file: \'([^\']+)\', label: \'SD\'', playerdata, 'sd_file')
-        hd_url = self._html_search_regex(
-            r'file: \'([^\']+)\', label: \'HD\'', playerdata, 'hd_file',
-            default=None)
-        video_thumbnail = self._html_search_regex(r'image: \'(?P<thumbnail>[^\']+)\'', playerdata, 'thumbnail', fatal=False)
-
-        formats = [{
-            'url': sd_url,
-            'ext': 'mp4',
-            'format': 'sd',
-            'format_id': 'sd',
-            'quality': 1,
-        }]
-        if hd_url:
-            formats.append({
-                'url': hd_url,
-                'ext': 'mp4',
-                'format': 'hd',
-                'format_id': 'hd',
-                'quality': 2,
-            })
+        video_thumbnail = self._search_regex(r'image: \'(?P<thumbnail>[^\']+)\'', playerdata, 'thumbnail', fatal=False)
+        sd_url = self._search_regex(r'file: \'([^\']+)\', label: \'SD\'', playerdata, 'sd_file')
+        videolist_url = self._search_regex(r'file: \'([^\']+\.smil)\'}', playerdata, 'videolist_url')
+        
+        videolist = self._download_webpage(videolist_url, video_id)
+        formats = []
+        baseurl = sd_url[:sd_url.rfind('/')+1]
+        for match in re.finditer('<video src="mp4:(?P<file>[^"]+_(?P<format_id>[^"]+)\.[^"]+)" system-bitrate="(?P<br>\d+)"(?: width="(?P<width>\d+)" height="(?P<height>\d+)")?/>', videolist):
+            format = {
+                'url': baseurl + match.group('file'),
+                'format_id': match.group('format_id')
+            }
+            if match.group('width'):
+                format.update({
+                    'tbr': int(match.group('br')) // 1000,
+                    'width': int(match.group('width')),
+                    'height': int(match.group('height'))
+                })
+            else:
+                format.update({
+                    'abr': int(match.group('br')) // 1000,
+                    'vcodec': 'none'
+                })
+            formats.append(format)
         self._sort_formats(formats)
 
         return {
