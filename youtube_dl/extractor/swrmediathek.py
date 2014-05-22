@@ -43,7 +43,7 @@ class SWRMediathekIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         smilurl = 'http://swrmediathek.de/rtmpQuals/%s/clips.smil'
-        smildoc = self._download_xml(smilurl % video_id, video_id, note='Downloading SMIL page')
+        smildoc = self._download_xml(smilurl % video_id, video_id, 'Downloading SMIL page')
 
         baseurl = smildoc.find('.//meta').attrib['base']
 
@@ -67,8 +67,8 @@ class SWRMediathekIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': self._html_search_regex(r'<meta name="title" content="(.+)" />', webpage, 'title'),
+            'title': self._html_search_meta('title', webpage, 'title', fatal=True),
             'thumbnail': self._search_regex(r'<link rel="image_src".+href="(.+)" />', webpage, 'thumbnail'),
             'formats': formats,
-            'description': self._html_search_regex(r'<meta name="description" content="(.+)" />', webpage, 'description'),
+            'description': self._html_search_meta('description', webpage, 'description'),
         }
