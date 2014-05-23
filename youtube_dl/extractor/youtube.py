@@ -231,6 +231,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         # RTMP (unnamed)
         '_rtmp': {'protocol': 'rtmp'},
     }
+    _merged_formats = [x+'+'+y for x in ['133','134','135','136','137','138','160','264'] for y in ['139','140','141']] + \
+                      [x+'+'+y for x in ['167','168','169','170','218','219','242','243','244','245','246','247','248'] for y in ['171','172']]
 
     IE_NAME = u'youtube'
     _TESTS = [
@@ -1351,6 +1353,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             except (ExtractorError, KeyError) as e:
                 self.report_warning(u'Skipping DASH manifest: %s' % e, video_id)
 
+        self._add_merged_formats(formats,self._merged_formats)
         self._sort_formats(formats)
 
         return {
