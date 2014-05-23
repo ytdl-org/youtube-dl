@@ -1052,6 +1052,13 @@ class YoutubeDL(object):
                 os.remove(encodeFilename(filename))
             except (IOError, OSError):
                 self.report_warning('Unable to remove downloaded video file')
+        if '__files_to_merge' in ie_info and not self.params.get('keepvideo', False):
+            for fname in ie_info['__files_to_merge']:
+                try:
+                    self.to_screen('Deleting original file %s (pass -k to keep)' % fname)
+                    os.remove(encodeFilename(fname))
+                except (IOError, OSError):
+                    self.report_warning('Unable to remove downloaded video file')
 
     def _make_archive_id(self, info_dict):
         # Future-proof against any change in case
