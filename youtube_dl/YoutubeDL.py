@@ -56,6 +56,7 @@ from .utils import (
     write_string,
     YoutubeDLHandler,
     prepend_extension,
+    select_format,
 )
 from .extractor import get_info_extractor, gen_extractors
 from .downloader import get_suitable_downloader
@@ -664,46 +665,6 @@ class YoutubeDL(object):
         else:
             raise Exception('Invalid result type: %s' % result_type)
 
-    def select_format(self, format_spec, available_formats):
-        if format_spec == 'best' or format_spec is None:
-            return available_formats[-1]
-        elif format_spec == 'worst':
-            return available_formats[0]
-        elif format_spec == 'bestaudio':
-            audio_formats = [
-                f for f in available_formats
-                if f.get('vcodec') == 'none']
-            if audio_formats:
-                return audio_formats[-1]
-        elif format_spec == 'worstaudio':
-            audio_formats = [
-                f for f in available_formats
-                if f.get('vcodec') == 'none']
-            if audio_formats:
-                return audio_formats[0]
-        elif format_spec == 'bestvideo':
-            video_formats = [
-                f for f in available_formats
-                if f.get('acodec') == 'none']
-            if video_formats:
-                return video_formats[-1]
-        elif format_spec == 'worstvideo':
-            video_formats = [
-                f for f in available_formats
-                if f.get('acodec') == 'none']
-            if video_formats:
-                return video_formats[0]
-        else:
-            extensions = ['mp4', 'flv', 'webm', '3gp']
-            if format_spec in extensions:
-                filter_f = lambda f: f['ext'] == format_spec
-            else:
-                filter_f = lambda f: f['format_id'] == format_spec
-            matches = list(filter(filter_f, available_formats))
-            if matches:
-                return matches[-1]
-        return None
-
     def process_video_result(self, info_dict, download=True):
         assert info_dict.get('_type', 'video') == 'video'
 
@@ -743,8 +704,21 @@ class YoutubeDL(object):
 
         # We check that all the formats have the format and format_id fields
         for i, format in enumerate(formats):
-            if 'url' not in format:
-                raise ExtractorError('Missing "url" key in result (index %d)' % i)
+            if 'url' in format and 'sub_formats' in format:
+                raise ExtractorError('Both "url" and "sub_formats" key in result (index %d)' % i)
+            if not 'url' in format and not 'sub_formats' in format:
+                raise ExtractorError('Neither "url" nor "sub_formats" key in result (index %d)' % i)
+            if 'sub_formats' in format:
+                if not len(format['sub_formats'])==2:
+                    raise ExtractorError('Not two "sub_formats" in result (index %d)' % i)
+                if not format['sub_formats'][0] in formats:
+                    raise ExtractorError('Result\'s first sub format is not in formats (index %d)' % i)
+                if not format['sub_formats'][1] in formats:
+                    raise ExtractorError('Result\'s second sub format is not in formats (index %d)' % i)
+                if not 'url' in format['sub_formats'][0]:
+                    raise ExtractorError('Missing "url" key in result\'s first sub format (index %d)' % i)
+                if not 'url' in format['sub_formats'][1]:
+                    raise ExtractorError('Missing "url" key in result\'s second sub format (index %d)' % i)
 
             if format.get('format_id') is None:
                 format['format_id'] = compat_str(i)
@@ -756,7 +730,10 @@ class YoutubeDL(object):
                 )
             # Automatically determine file extension if missing
             if 'ext' not in format:
-                format['ext'] = determine_ext(format['url']).lower()
+                if 'url' in format:
+                    format['ext'] = determine_ext(format['url']).lower()
+                else:
+                    format['ext'] = determine_ext(format['sub_formats'][0]['url']).lower()
 
         format_limit = self.params.get('format_limit', None)
         if format_limit:
@@ -788,21 +765,7 @@ class YoutubeDL(object):
             # the first that is available, starting from left
             req_formats = req_format.split('/')
             for rf in req_formats:
-                if re.match(r'.+?\+.+?', rf) is not None:
-                    # Two formats have been requested like '137+139'
-                    format_1, format_2 = rf.split('+')
-                    formats_info = (self.select_format(format_1, formats),
-                        self.select_format(format_2, formats))
-                    if all(formats_info):
-                        selected_format = {
-                            'requested_formats': formats_info,
-                            'format': rf,
-                            'ext': formats_info[0]['ext'],
-                        }
-                    else:
-                        selected_format = None
-                else:
-                    selected_format = self.select_format(rf, formats)
+                selected_format = select_format(rf, formats)
                 if selected_format is not None:
                     formats_to_download = [selected_format]
                     break
@@ -857,7 +820,11 @@ class YoutubeDL(object):
             self.to_stdout(info_dict['id'])
         if self.params.get('forceurl', False):
             # For RTMP URLs, also include the playpath
-            self.to_stdout(info_dict['url'] + info_dict.get('play_path', ''))
+            if 'url' in info_dict:
+                self.to_stdout(info_dict['url'] + info_dict.get('play_path', ''))
+            else:
+                for f in info_dict['sub_formats']:
+                    self.to_stdout(f['url'] + f.get('play_path', ''))
         if self.params.get('forcethumbnail', False) and info_dict.get('thumbnail') is not None:
             self.to_stdout(info_dict['thumbnail'])
         if self.params.get('forcedescription', False) and info_dict.get('description') is not None:
@@ -983,7 +950,7 @@ class YoutubeDL(object):
                         for ph in self._progress_hooks:
                             fd.add_progress_hook(ph)
                         return fd.download(name, info)
-                    if info_dict.get('requested_formats') is not None:
+                    if info_dict.get('sub_formats') is not None:
                         downloaded = []
                         success = True
                         merger = FFmpegMergerPP(self)
@@ -994,7 +961,7 @@ class YoutubeDL(object):
                                 ' The formats won\'t be merged')
                         else:
                             postprocessors = [merger]
-                        for f in info_dict['requested_formats']:
+                        for f in info_dict['sub_formats']:
                             new_info = dict(info_dict)
                             new_info.update(f)
                             fname = self.prepare_filename(new_info)

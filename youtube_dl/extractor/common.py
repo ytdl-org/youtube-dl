@@ -20,7 +20,9 @@ from ..utils import (
     RegexNotFoundError,
     sanitize_filename,
     unescapeHTML,
+    select_format,
 )
+from ..postprocessor import FFmpegMergerPP
 _NO_DEFAULT = object()
 
 
@@ -81,6 +83,8 @@ class InfoExtractor(object):
                                  format, irrespective of the file format.
                                  -1 for default (order by other properties),
                                  -2 or smaller for less than default.
+                    * sub_formats List of two formats for combined formats,
+                                  first file is video and second audio.
     url:            Final video URL.
     ext:            Video filename extension.
     format:         The video format, defaults to ext (used for --get-format)
@@ -495,25 +499,71 @@ class InfoExtractor(object):
         return self._html_search_meta('twitter:player', html,
             'twitter card player')
 
+    def _merge_formats(self, format_1, format_2):
+        format = {
+            'ext': format_1.get('ext'),
+            'format_id': format_1['format_id']+'+'+format_2['format_id'],
+            'width': format_1.get('width'),
+            'height': format_1.get('height'),
+            'resolution': format_1.get('resolution'),
+            'abr': format_2.get('abr'),
+            'acodec': format_2.get('acodec'),
+            'asr': format_2.get('asr'),
+            'vbr': format_1.get('vbr'),
+            'vcodec': format_1.get('vcodec'),
+            'container': format_1.get('container'),
+            'sub_formats': [format_1, format_2],
+            'protocol': format_1.get('protocol') if format_1.get('protocol') == format_2.get('protocol') else None,
+            'tbr': format_1.get('vbr')+format_2.get('abr') if format_1.get('vbr') is not None and format_2.get('abr') is not None else None,
+            'filesize': format_1.get('filesize')+format_2.get('filesize') if format_1.get('filesize') is not None and format_2.get('filesize') is not None else None,
+        }
+        return format
+
+    def _add_merged_formats(self, formats, format_ids):
+        for format_1_id, format_2_id in map(lambda x: x.split('+'), format_ids):
+            format_1 = select_format(format_1_id, formats)
+            format_2 = select_format(format_2_id, formats)
+            if format_1 == None or format_2 == None:
+                continue
+            formats.append(self._merge_formats(format_1, format_2))
+        
+
     def _sort_formats(self, formats):
         if not formats:
             raise ExtractorError(u'No video formats found')
 
         def _formats_key(f):
+            ext = f.get('ext')
             # TODO remove the following workaround
             from ..utils import determine_ext
-            if not f.get('ext') and 'url' in f:
-                f['ext'] = determine_ext(f['url'])
+            if not ext:
+                if 'url' in f:
+                    ext = determine_ext(f['url'])
+                elif 'sub_formats' in f and 'url' in f['sub_formats'][0]:
+                    ext = determine_ext(f['sub_formats'][0]['url'])
 
             preference = f.get('preference')
             if preference is None:
                 proto = f.get('protocol')
                 if proto is None:
-                    proto = compat_urllib_parse_urlparse(f.get('url', '')).scheme
+                    if 'url' in f:
+                        proto = compat_urllib_parse_urlparse(f['url']).scheme
+                    elif 'sub_formats' in f and 'url' in f['sub_formats'][0] and\
+                            'url' in f['sub_formats'][1]:
+                        proto_1 = compat_urllib_parse_urlparse(f['sub_formats'][0]['url']).scheme
+                        proto_2 = compat_urllib_parse_urlparse(f['sub_formats'][1]['url']).scheme
+                        if proto_1 == proto_2:
+                            proto = proto_1
+                        elif proto_1 in ['http', 'https'] and proto_2 in ['http', 'https']:
+                            proto = 'https'
 
                 preference = 0 if proto in ['http', 'https'] else -0.1
-                if f.get('ext') in ['f4f', 'f4m']:  # Not yet supported
+                if ext in ['f4f', 'f4m']:  # Not yet supported
                     preference -= 0.5
+
+                merger = FFmpegMergerPP(self._downloader)
+                if 'sub_formats' in f and not merger._get_executable(): # can't merge files
+                    preference -= 1000
 
             if f.get('vcodec') == 'none':  # audio only
                 if self._downloader.params.get('prefer_free_formats'):
@@ -522,7 +572,7 @@ class InfoExtractor(object):
                     ORDER = [u'webm', u'opus', u'ogg', u'mp3', u'aac', u'm4a']
                 ext_preference = 0
                 try:
-                    audio_ext_preference = ORDER.index(f['ext'])
+                    audio_ext_preference = ORDER.index(ext)
                 except ValueError:
                     audio_ext_preference = -1
             else:
@@ -531,7 +581,7 @@ class InfoExtractor(object):
                 else:
                     ORDER = [u'webm', u'flv', u'mp4']
                 try:
-                    ext_preference = ORDER.index(f['ext'])
+                    ext_preference = ORDER.index(ext)
                 except ValueError:
                     ext_preference = -1
                 audio_ext_preference = 0
