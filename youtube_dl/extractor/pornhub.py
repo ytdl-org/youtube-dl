@@ -45,7 +45,7 @@ class PornHubIE(InfoExtractor):
 
         video_title = self._html_search_regex(r'<h1 [^>]+>([^<]+)', webpage, 'title')
         video_uploader = self._html_search_regex(
-            r'(?s)<div class="video-info-row">\s*From:&nbsp;.+?<(?:a href="/users/|<span class="username)[^>]+>(.+?)<',
+            r'(?s)From:&nbsp;.+?<(?:a href="/users/|<span class="username)[^>]+>(.+?)<',
             webpage, 'uploader', fatal=False)
         thumbnail = self._html_search_regex(r'"image_url":"([^"]+)', webpage, 'thumbnail', fatal=False)
         if thumbnail:
