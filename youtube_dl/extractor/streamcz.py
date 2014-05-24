@@ -5,7 +5,10 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    compat_str,
+)
 
 
 class StreamCZIE(InfoExtractor):
@@ -68,7 +71,7 @@ class StreamCZIE(InfoExtractor):
         self._sort_formats(formats)
 
         return {
-            'id': str(jsonData['episode_id']),
+            'id': compat_str(jsonData['episode_id']),
             'title': self._og_search_title(webpage),
             'thumbnail': jsonData['episode_image_original_url'].replace('//', 'http://'),
             'formats': formats,
