@@ -26,7 +26,7 @@ class StreamCZIE(InfoExtractor):
             'duration': 256,
         },
     }, {
-        'url': 'https://www.stream.cz/blanik/10002447-tri-roky-pro-mazanka',
+        'url': 'http://www.stream.cz/blanik/10002447-tri-roky-pro-mazanka',
         'md5': '246272e753e26bbace7fcd9deca0650c',
         'info_dict': {
             'id': '10002447',
