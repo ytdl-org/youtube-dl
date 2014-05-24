@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     int_or_none,
+    qualities,
 )
 
 
@@ -57,7 +58,7 @@ class NDRIE(InfoExtractor):
 
         formats = []
 
-        mp3_url = re.search(r'''{src:'(?P<audio>[^']+)', type:"audio/mp3"},''', page)
+        mp3_url = re.search(r'''\{src:'(?P<audio>[^']+)', type:"audio/mp3"},''', page)
         if mp3_url:
             formats.append({
                 'url': mp3_url.group('audio'),
@@ -66,15 +67,15 @@ class NDRIE(InfoExtractor):
 
         thumbnail = None
 
-        video_url = re.search(r'''3: {src:'(?P<video>.+?)\.hi\.mp4', type:"video/mp4"},''', page)
+        video_url = re.search(r'''3: \{src:'(?P<video>.+?)\.hi\.mp4', type:"video/mp4"},''', page)
         if video_url:
-            thumbnails = re.findall(r'''\d+: {src: "([^"]+)"(?: \|\| '[^']+')?, quality: '([^']+)'}''', page)
+            thumbnails = re.findall(r'''\d+: \{src: "([^"]+)"(?: \|\| '[^']+')?, quality: '([^']+)'}''', page)
             if thumbnails:
-                QUALITIES = ['xs', 's', 'm', 'l', 'xl']
-                thumbnails.sort(key=lambda thumb: QUALITIES.index(thumb[1]) if thumb[1] in QUALITIES else -1)
-                thumbnail = 'http://www.ndr.de' + thumbnails[-1][0]
+                quality_key = qualities(['xs', 's', 'm', 'l', 'xl'])
+                largest = max(thumbnails, key=lambda thumb: quality_key(thumb[1]))
+                thumbnail = 'http://www.ndr.de' + largest[0]
 
-            for format_id in ['lo', 'hi', 'hq']:
+            for format_id in 'lo', 'hi', 'hq':
                 formats.append({
                     'url': '%s.%s.mp4' % (video_url.group('video'), format_id),
                     'format_id': format_id,
