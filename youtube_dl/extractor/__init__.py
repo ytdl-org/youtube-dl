@@ -194,7 +194,10 @@ from .normalboots import NormalbootsIE
 from .novamov import NovaMovIE
 from .nowness import NownessIE
 from .nowvideo import NowVideoIE
-from .nrk import NRKIE
+from .nrk import (
+    NRKIE,
+    NRKTVIE,
+)
 from .ntv import NTVIE
 from .nytimes import NYTimesIE
 from .nuvid import NuvidIE
