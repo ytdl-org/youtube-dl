@@ -4,10 +4,12 @@ from os.path import dirname as dirn
 import sys
 
 sys.path.append(dirn(dirn((os.path.abspath(__file__)))))
-import youtube_dl
+
+from youtube_dl import configuration
 
 BASH_COMPLETION_FILE = "youtube-dl.bash-completion"
-BASH_COMPLETION_TEMPLATE = "devscripts/bash-completion.in"
+BASH_COMPLETION_TEMPLATE = "bash-completion.in"
+
 
 def build_completion(opt_parser):
     opts_flag = []
@@ -22,5 +24,5 @@ def build_completion(opt_parser):
         filled_template = template.replace("{{flags}}", " ".join(opts_flag))
         f.write(filled_template)
 
-parser = youtube_dl.parseOpts()[0]
+parser = configuration.parse_options()[0]
 build_completion(parser)
