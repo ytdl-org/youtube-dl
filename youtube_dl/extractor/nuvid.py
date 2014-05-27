@@ -30,7 +30,7 @@ class NuvidIE(InfoExtractor):
             webpage, 'title').strip()
 
         url_end = self._html_search_regex(
-            r'href="(/mp4/[^"]+)"[^>]*data-link_type="mp4"',
+            r'href="(/[^"]+)"[^>]*data-link_type="mp4"',
             webpage, 'video_url')
         video_url = 'http://m.nuvid.com' + url_end
 
