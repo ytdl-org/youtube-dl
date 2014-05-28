@@ -51,16 +51,13 @@ class TEDIE(SubtitlesInfoExtractor):
         }
     }, {
         'url': 'http://www.ted.com/talks/gabby_giffords_and_mark_kelly_be_passionate_be_courageous_be_your_best',
+        'md5': '49144e345a899b8cb34d315f3b9cfeeb',
         'info_dict': {
             'id': '1972',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Be passionate. Be courageous. Be your best.',
             'uploader': 'Gabby Giffords and Mark Kelly',
-            'description': 'md5:d89e1d8ebafdac8e55df4c219ecdbfe9',
-        },
-        'params': {
-            # rtmp download
-            'skip_download': True,
+            'description': 'md5:5174aed4d0f16021b704120360f72b92',
         },
     }]
 
@@ -97,7 +94,7 @@ class TEDIE(SubtitlesInfoExtractor):
         playlist_info = info['playlist']
 
         playlist_entries = [
-            self.url_result(u'http://www.ted.com/talks/' + talk['slug'], self.ie_key())
+            self.url_result('http://www.ted.com/talks/' + talk['slug'], self.ie_key())
             for talk in info['talks']
         ]
         return self.playlist_result(
@@ -163,7 +160,7 @@ class TEDIE(SubtitlesInfoExtractor):
                 sub_lang_list[l] = url
             return sub_lang_list
         else:
-            self._downloader.report_warning(u'video doesn\'t have subtitles')
+            self._downloader.report_warning('video doesn\'t have subtitles')
             return {}
 
     def _watch_info(self, url, name):
@@ -178,7 +175,10 @@ class TEDIE(SubtitlesInfoExtractor):
         title = self._html_search_regex(
             r"(?s)<h1(?:\s+class='[^']+')?>(.+?)</h1>", webpage, 'title')
         description = self._html_search_regex(
-            r'(?s)<h4 class="[^"]+" id="h3--about-this-talk">.*?</h4>(.*?)</div>',
+            [
+                r'(?s)<h4 class="[^"]+" id="h3--about-this-talk">.*?</h4>(.*?)</div>',
+                r'(?s)<p><strong>About this talk:</strong>\s+(.*?)</p>',
+            ],
             webpage, 'description', fatal=False)
 
         return {

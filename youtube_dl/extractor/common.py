@@ -117,6 +117,8 @@ class InfoExtractor(object):
     webpage_url:    The url to the video webpage, if given to youtube-dl it
                     should allow to get the same result again. (It will be set
                     by YoutubeDL if it's missing)
+    categories:     A list of categories that the video falls in, for example
+                    ["Sports", "Berlin"]
 
     Unless mentioned otherwise, the fields should be Unicode strings.
 
@@ -246,10 +248,11 @@ class InfoExtractor(object):
                 url = url_or_request.get_full_url()
             except AttributeError:
                 url = url_or_request
-            if len(url) > 200:
-                h = u'___' + hashlib.md5(url.encode('utf-8')).hexdigest()
-                url = url[:200 - len(h)] + h
-            raw_filename = ('%s_%s.dump' % (video_id, url))
+            basen = '%s_%s' % (video_id, url)
+            if len(basen) > 240:
+                h = u'___' + hashlib.md5(basen.encode('utf-8')).hexdigest()
+                basen = basen[:240 - len(h)] + h
+            raw_filename = basen + '.dump'
             filename = sanitize_filename(raw_filename, restricted=True)
             self.to_screen(u'Saving request to ' + filename)
             with open(filename, 'wb') as outf:
@@ -283,9 +286,12 @@ class InfoExtractor(object):
 
     def _download_xml(self, url_or_request, video_id,
                       note=u'Downloading XML', errnote=u'Unable to download XML',
-                      transform_source=None):
+                      transform_source=None, fatal=True):
         """Return the xml as an xml.etree.ElementTree.Element"""
-        xml_string = self._download_webpage(url_or_request, video_id, note, errnote)
+        xml_string = self._download_webpage(
+            url_or_request, video_id, note, errnote, fatal=fatal)
+        if xml_string is False:
+            return xml_string
         if transform_source:
             xml_string = transform_source(xml_string)
         return xml.etree.ElementTree.fromstring(xml_string.encode('utf-8'))
@@ -549,6 +555,23 @@ class InfoExtractor(object):
             )
         formats.sort(key=_formats_key)
 
+    def http_scheme(self):
+        """ Either "https:" or "https:", depending on the user's preferences """
+        return (
+            'http:'
+            if self._downloader.params.get('prefer_insecure', False)
+            else 'https:')
+
+    def _proto_relative_url(self, url, scheme=None):
+        if url is None:
+            return url
+        if url.startswith('//'):
+            if scheme is None:
+                scheme = self.http_scheme()
+            return scheme + url
+        else:
+            return url
+
     def _entry_formats_to_parts(self, entries):
         '''Transforms entries with formats to formats with parts. Used when joinparts is set.'''
         ekeys = None
@@ -615,3 +638,4 @@ class SearchInfoExtractor(InfoExtractor):
     @property
     def SEARCH_KEY(self):
         return self._SEARCH_KEY
+

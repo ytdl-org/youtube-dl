@@ -14,6 +14,8 @@ from ..utils import (
 
 
 class HttpFD(FileDownloader):
+    _TEST_FILE_SIZE = 10241
+
     def real_download(self, filename, info_dict):
         url = info_dict['url']
         tmpfilename = self.temp_name(filename)
@@ -28,8 +30,10 @@ class HttpFD(FileDownloader):
         basic_request = compat_urllib_request.Request(url, None, headers)
         request = compat_urllib_request.Request(url, None, headers)
 
-        if self.params.get('test', False):
-            request.add_header('Range', 'bytes=0-10240')
+        is_test = self.params.get('test', False)
+
+        if is_test:
+            request.add_header('Range', 'bytes=0-%s' % str(self._TEST_FILE_SIZE - 1))
 
         # Establish possible resume length
         if os.path.isfile(encodeFilename(tmpfilename)):
@@ -100,6 +104,15 @@ class HttpFD(FileDownloader):
             return False
 
         data_len = data.info().get('Content-length', None)
+
+        # Range HTTP header may be ignored/unsupported by a webserver
+        # (e.g. extractor/scivee.py, extractor/bambuser.py).
+        # However, for a test we still would like to download just a piece of a file.
+        # To achieve this we limit data_len to _TEST_FILE_SIZE and manually control
+        # block size when downloading a file.
+        if is_test and (data_len is None or int(data_len) > self._TEST_FILE_SIZE):
+            data_len = self._TEST_FILE_SIZE
+
         if data_len is not None:
             data_len = int(data_len) + resume_len
             min_data_len = self.params.get("min_filesize", None)
@@ -118,7 +131,7 @@ class HttpFD(FileDownloader):
         while True:
             # Download and write
             before = time.time()
-            data_block = data.read(block_size)
+            data_block = data.read(block_size if not is_test else min(block_size, data_len - byte_counter))
             after = time.time()
             if len(data_block) == 0:
                 break
@@ -161,6 +174,9 @@ class HttpFD(FileDownloader):
                 'eta': eta,
                 'speed': speed,
             })
+
+            if is_test and byte_counter == data_len:
+                break
 
             # Apply rate limit
             self.slow_down(start, byte_counter - resume_len)

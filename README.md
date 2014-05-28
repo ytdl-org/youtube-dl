@@ -1,10 +1,23 @@
-% YOUTUBE-DL(1)
-
-# NAME
 youtube-dl - download videos from youtube.com or other video platforms
 
 # SYNOPSIS
 **youtube-dl** [OPTIONS] URL [URL...]
+
+# INSTALLATION
+
+To install it right away for all UNIX users (Linux, OS X, etc.), type:
+
+    sudo curl https://yt-dl.org/latest/youtube-dl -o /usr/local/bin/youtube-dl
+    sudo chmod a+x /usr/local/bin/youtube-dl
+
+If you do not have curl, you can alternatively use a recent wget:
+
+    sudo wget https://yt-dl.org/downloads/2014.05.13/youtube-dl -O /usr/local/bin/youtube-dl
+    sudo chmod a+x /usr/local/bin/youtube-dl
+
+Windows users can [download a .exe file](https://yt-dl.org/latest/youtube-dl.exe) and place it in their home directory or any other location on their [PATH](http://en.wikipedia.org/wiki/PATH_%28variable%29).
+
+Alternatively, refer to the developer instructions below for how to check out and work with the git repository. For further options, including PGP signatures, see https://rg3.github.io/youtube-dl/download.html .
 
 # DESCRIPTION
 **youtube-dl** is a small command-line program to download videos from
@@ -458,7 +471,7 @@ If your report is shorter than two lines, it is almost certainly missing some of
 
 For bug reports, this means that your report should contain the *complete* output of youtube-dl when called with the -v flag. The error message you get for (most) bugs even says so, but you would not believe how many of our bug reports do not contain this information.
 
-Site support requests must contain an example URL. An example URL is a URL you might want to download, like http://www.youtube.com/watch?v=BaW_jenozKc . There should be an obvious video present. Except under very special circumstances, the main page of a video service (e.g. http://www.youtube.com/ ) is *not* an example URL.
+Site support requests **must contain an example URL**. An example URL is a URL you might want to download, like http://www.youtube.com/watch?v=BaW_jenozKc . There should be an obvious video present. Except under very special circumstances, the main page of a video service (e.g. http://www.youtube.com/ ) is *not* an example URL.
 
 ###  Are you using the latest version?
 

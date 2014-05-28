@@ -15,11 +15,12 @@ from ..utils import (
 class GameSpotIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?:www\.)?gamespot\.com/.*-(?P<page_id>\d+)/?'
     _TEST = {
-        "url": "http://www.gamespot.com/arma-iii/videos/arma-iii-community-guide-sitrep-i-6410818/",
-        "file": "gs-2300-6410818.mp4",
-        "md5": "b2a30deaa8654fcccd43713a6b6a4825",
-        "info_dict": {
-            "title": "Arma 3 - Community Guide: SITREP I",
+        'url': 'http://www.gamespot.com/videos/arma-3-community-guide-sitrep-i/2300-6410818/',
+        'md5': 'b2a30deaa8654fcccd43713a6b6a4825',
+        'info_dict': {
+            'id': 'gs-2300-6410818',
+            'ext': 'mp4',
+            'title': 'Arma 3 - Community Guide: SITREP I',
             'description': 'Check out this video where some of the basics of Arma 3 is explained.',
         }
     }

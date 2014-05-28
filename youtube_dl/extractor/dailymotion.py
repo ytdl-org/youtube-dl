@@ -8,12 +8,11 @@ from .subtitles import SubtitlesInfoExtractor
 from ..utils import (
     compat_urllib_request,
     compat_str,
-    get_element_by_id,
     orderedSet,
     str_to_int,
     int_or_none,
-
     ExtractorError,
+    unescapeHTML,
 )
 
 class DailymotionBaseInfoExtractor(InfoExtractor):
@@ -189,7 +188,7 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
             webpage = self._download_webpage(request,
                                              id, u'Downloading page %s' % pagenum)
 
-            video_ids.extend(re.findall(r'data-id="(.+?)"', webpage))
+            video_ids.extend(re.findall(r'data-xid="(.+?)"', webpage))
 
             if re.search(self._MORE_PAGES_INDICATOR, webpage) is None:
                 break
@@ -218,9 +217,9 @@ class DailymotionUserIE(DailymotionPlaylistIE):
         mobj = re.match(self._VALID_URL, url)
         user = mobj.group('user')
         webpage = self._download_webpage(url, user)
-        full_user = self._html_search_regex(
-            r'<a class="label" href="/%s".*?>(.*?)</' % re.escape(user),
-            webpage, u'user', flags=re.DOTALL)
+        full_user = unescapeHTML(self._html_search_regex(
+            r'<a class="nav-image" title="([^"]+)" href="/%s">' % re.escape(user),
+            webpage, u'user', flags=re.DOTALL))
 
         return {
             '_type': 'playlist',

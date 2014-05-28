@@ -1,7 +1,6 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import datetime
 import re
 
 from .common import InfoExtractor
@@ -16,6 +15,7 @@ class AftonbladetIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Vulkanutbrott i rymden - nu släpper NASA bilderna',
             'description': 'Jupiters måne mest aktiv av alla himlakroppar',
+            'timestamp': 1394142732,
             'upload_date': '20140306',
         },
     }
@@ -27,17 +27,17 @@ class AftonbladetIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         # find internal video meta data
-        META_URL = 'http://aftonbladet-play.drlib.aptoma.no/video/%s.json'
+        meta_url = 'http://aftonbladet-play.drlib.aptoma.no/video/%s.json'
         internal_meta_id = self._html_search_regex(
             r'data-aptomaId="([\w\d]+)"', webpage, 'internal_meta_id')
-        internal_meta_url = META_URL % internal_meta_id
+        internal_meta_url = meta_url % internal_meta_id
         internal_meta_json = self._download_json(
             internal_meta_url, video_id, 'Downloading video meta data')
 
         # find internal video formats
-        FORMATS_URL = 'http://aftonbladet-play.videodata.drvideo.aptoma.no/actions/video/?id=%s'
+        format_url = 'http://aftonbladet-play.videodata.drvideo.aptoma.no/actions/video/?id=%s'
         internal_video_id = internal_meta_json['videoId']
-        internal_formats_url = FORMATS_URL % internal_video_id
+        internal_formats_url = format_url % internal_video_id
         internal_formats_json = self._download_json(
             internal_formats_url, video_id, 'Downloading video formats')
 
@@ -54,16 +54,13 @@ class AftonbladetIE(InfoExtractor):
             })
         self._sort_formats(formats)
 
-        timestamp = datetime.datetime.fromtimestamp(internal_meta_json['timePublished'])
-        upload_date = timestamp.strftime('%Y%m%d')
-
         return {
             'id': video_id,
             'title': internal_meta_json['title'],
             'formats': formats,
             'thumbnail': internal_meta_json['imageUrl'],
             'description': internal_meta_json['shortPreamble'],
-            'upload_date': upload_date,
+            'timestamp': internal_meta_json['timePublished'],
             'duration': internal_meta_json['duration'],
             'view_count': internal_meta_json['views'],
         }

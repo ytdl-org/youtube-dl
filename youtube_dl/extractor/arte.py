@@ -74,7 +74,8 @@ class ArteTVPlus7IE(InfoExtractor):
         return self._extract_from_webpage(webpage, video_id, lang)
 
     def _extract_from_webpage(self, webpage, video_id, lang):
-        json_url = self._html_search_regex(r'arte_vp_url="(.*?)"', webpage, 'json url')
+        json_url = self._html_search_regex(
+            r'arte_vp_url="(.*?)"', webpage, 'json vp url')
         return self._extract_from_json_url(json_url, video_id, lang)
 
     def _extract_from_json_url(self, json_url, video_id, lang):
@@ -120,14 +121,17 @@ class ArteTVPlus7IE(InfoExtractor):
                 return ['HQ', 'MQ', 'EQ', 'SQ'].index(f['quality'])
         else:
             def sort_key(f):
+                versionCode = f.get('versionCode')
+                if versionCode is None:
+                    versionCode = ''
                 return (
                     # Sort first by quality
-                    int(f.get('height',-1)),
-                    int(f.get('bitrate',-1)),
+                    int(f.get('height', -1)),
+                    int(f.get('bitrate', -1)),
                     # The original version with subtitles has lower relevance
-                    re.match(r'VO-ST(F|A)', f.get('versionCode', '')) is None,
+                    re.match(r'VO-ST(F|A)', versionCode) is None,
                     # The version with sourds/mal subtitles has also lower relevance
-                    re.match(r'VO?(F|A)-STM\1', f.get('versionCode', '')) is None,
+                    re.match(r'VO?(F|A)-STM\1', versionCode) is None,
                     # Prefer http downloads over m3u8
                     0 if f['url'].endswith('m3u8') else 1,
                 )

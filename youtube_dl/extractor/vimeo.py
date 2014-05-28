@@ -17,10 +17,39 @@ from ..utils import (
     RegexNotFoundError,
     std_headers,
     unsmuggle_url,
+    urlencode_postdata,
+    int_or_none,
 )
 
 
-class VimeoIE(SubtitlesInfoExtractor):
+class VimeoBaseInfoExtractor(InfoExtractor):
+    _NETRC_MACHINE = 'vimeo'
+    _LOGIN_REQUIRED = False
+
+    def _login(self):
+        (username, password) = self._get_login_info()
+        if username is None:
+            if self._LOGIN_REQUIRED:
+                raise ExtractorError('No login info available, needed for using %s.' % self.IE_NAME, expected=True)
+            return
+        self.report_login()
+        login_url = 'https://vimeo.com/log_in'
+        webpage = self._download_webpage(login_url, None, False)
+        token = self._search_regex(r'xsrft: \'(.*?)\'', webpage, 'login token')
+        data = urlencode_postdata({
+            'email': username,
+            'password': password,
+            'action': 'login',
+            'service': 'vimeo',
+            'token': token,
+        })
+        login_request = compat_urllib_request.Request(login_url, data)
+        login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        login_request.add_header('Cookie', 'xsrft=%s' % token)
+        self._download_webpage(login_request, None, False, 'Wrong login info')
+
+
+class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
     """Information extractor for vimeo.com."""
 
     # _VALID_URL matches Vimeo URLs
@@ -33,7 +62,6 @@ class VimeoIE(SubtitlesInfoExtractor):
         (?:videos?/)?
         (?P<id>[0-9]+)
         /?(?:[?&].*)?(?:[#].*)?$'''
-    _NETRC_MACHINE = 'vimeo'
     IE_NAME = 'vimeo'
     _TESTS = [
         {
@@ -47,40 +75,47 @@ class VimeoIE(SubtitlesInfoExtractor):
                 "uploader_id": "user7108434",
                 "uploader": "Filippo Valsorda",
                 "title": "youtube-dl test video - \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
+                "duration": 10,
             },
         },
         {
             'url': 'http://vimeopro.com/openstreetmapus/state-of-the-map-us-2013/video/68093876',
-            'file': '68093876.mp4',
             'md5': '3b5ca6aa22b60dfeeadf50b72e44ed82',
             'note': 'Vimeo Pro video (#1197)',
             'info_dict': {
+                'id': '68093876',
+                'ext': 'mp4',
                 'uploader_id': 'openstreetmapus',
                 'uploader': 'OpenStreetMap US',
                 'title': 'Andy Allan - Putting the Carto into OpenStreetMap Cartography',
+                'duration': 1595,
             },
         },
         {
             'url': 'http://player.vimeo.com/video/54469442',
-            'file': '54469442.mp4',
             'md5': '619b811a4417aa4abe78dc653becf511',
             'note': 'Videos that embed the url in the player page',
             'info_dict': {
+                'id': '54469442',
+                'ext': 'mp4',
                 'title': 'Kathy Sierra: Building the minimum Badass User, Business of Software',
                 'uploader': 'The BLN & Business of Software',
                 'uploader_id': 'theblnbusinessofsoftware',
+                'duration': 3610,
             },
         },
         {
             'url': 'http://vimeo.com/68375962',
-            'file': '68375962.mp4',
             'md5': 'aaf896bdb7ddd6476df50007a0ac0ae7',
             'note': 'Video protected with password',
             'info_dict': {
+                'id': '68375962',
+                'ext': 'mp4',
                 'title': 'youtube-dl password protected test video',
                 'upload_date': '20130614',
                 'uploader_id': 'user18948128',
                 'uploader': 'Jaime Marquínez Ferrándiz',
+                'duration': 10,
             },
             'params': {
                 'videopassword': 'youtube-dl',
@@ -98,6 +133,7 @@ class VimeoIE(SubtitlesInfoExtractor):
                 'upload_date': '20131015',
                 'uploader_id': 'staff',
                 'uploader': 'Vimeo Staff',
+                'duration': 62,
             }
         },
     ]
@@ -111,38 +147,21 @@ class VimeoIE(SubtitlesInfoExtractor):
         else:
             return super(VimeoIE, cls).suitable(url)
 
-    def _login(self):
-        (username, password) = self._get_login_info()
-        if username is None:
-            return
-        self.report_login()
-        login_url = 'https://vimeo.com/log_in'
-        webpage = self._download_webpage(login_url, None, False)
-        token = self._search_regex(r'xsrft: \'(.*?)\'', webpage, 'login token')
-        data = compat_urllib_parse.urlencode({'email': username,
-                                              'password': password,
-                                              'action': 'login',
-                                              'service': 'vimeo',
-                                              'token': token,
-                                              })
-        login_request = compat_urllib_request.Request(login_url, data)
-        login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        login_request.add_header('Cookie', 'xsrft=%s' % token)
-        self._download_webpage(login_request, None, False, 'Wrong login info')
-
     def _verify_video_password(self, url, video_id, webpage):
         password = self._downloader.params.get('videopassword', None)
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option')
         token = self._search_regex(r'xsrft: \'(.*?)\'', webpage, 'login token')
-        data = compat_urllib_parse.urlencode({'password': password,
-                                              'token': token})
+        data = compat_urllib_parse.urlencode({
+            'password': password,
+            'token': token,
+        })
         # I didn't manage to use the password with https
         if url.startswith('https'):
-            pass_url = url.replace('https','http')
+            pass_url = url.replace('https', 'http')
         else:
             pass_url = url
-        password_request = compat_urllib_request.Request(pass_url+'/password', data)
+        password_request = compat_urllib_request.Request(pass_url + '/password', data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         password_request.add_header('Cookie', 'xsrft=%s' % token)
         self._download_webpage(password_request, video_id,
@@ -249,8 +268,9 @@ class VimeoIE(SubtitlesInfoExtractor):
         # Extract video description
         video_description = None
         try:
-            video_description = get_element_by_attribute("itemprop", "description", webpage)
-            if video_description: video_description = clean_html(video_description)
+            video_description = get_element_by_attribute("class", "description_wrapper", webpage)
+            if video_description:
+                video_description = clean_html(video_description)
         except AssertionError as err:
             # On some pages like (http://player.vimeo.com/video/54469442) the
             # html tags are not closed, python 2.6 cannot handle it
@@ -258,6 +278,9 @@ class VimeoIE(SubtitlesInfoExtractor):
                 pass
             else:
                 raise
+
+        # Extract video duration
+        video_duration = int_or_none(config["video"].get("duration"))
 
         # Extract upload date
         video_upload_date = None
@@ -296,7 +319,7 @@ class VimeoIE(SubtitlesInfoExtractor):
                     file_info = {}
                 if video_url is None:
                     video_url = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=%s&type=moogaloop_local&embed_location=" \
-                        %(video_id, sig, timestamp, quality, codec_name.upper())
+                        % (video_id, sig, timestamp, quality, codec_name.upper())
 
                 files[key].append({
                     'ext': codec_extension,
@@ -330,6 +353,7 @@ class VimeoIE(SubtitlesInfoExtractor):
             'title': video_title,
             'thumbnail': video_thumbnail,
             'description': video_description,
+            'duration': video_duration,
             'formats': formats,
             'webpage_url': url,
             'view_count': view_count,
@@ -355,7 +379,7 @@ class VimeoChannelIE(InfoExtractor):
         video_ids = []
         for pagenum in itertools.count(1):
             webpage = self._download_webpage(
-                self._page_url(base_url, pagenum) ,list_id,
+                self._page_url(base_url, pagenum), list_id,
                 'Downloading page %s' % pagenum)
             video_ids.extend(re.findall(r'id="clip_(\d+?)"', webpage))
             if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
@@ -371,7 +395,7 @@ class VimeoChannelIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        channel_id =  mobj.group('id')
+        channel_id = mobj.group('id')
         return self._extract_videos(channel_id, 'http://vimeo.com/channels/%s' % channel_id)
 
 
@@ -438,3 +462,25 @@ class VimeoReviewIE(InfoExtractor):
         video_id = mobj.group('id')
         player_url = 'https://player.vimeo.com/player/' + video_id
         return self.url_result(player_url, 'Vimeo', video_id)
+
+
+class VimeoWatchLaterIE(VimeoBaseInfoExtractor, VimeoChannelIE):
+    IE_NAME = 'vimeo:watchlater'
+    IE_DESC = 'Vimeo watch later list, "vimeowatchlater" keyword (requires authentication)'
+    _VALID_URL = r'https?://vimeo\.com/home/watchlater|:vimeowatchlater'
+    _LOGIN_REQUIRED = True
+    _TITLE_RE = r'href="/home/watchlater".*?>(.*?)<'
+
+    def _real_initialize(self):
+        self._login()
+
+    def _page_url(self, base_url, pagenum):
+        url = '%s/page:%d/' % (base_url, pagenum)
+        request = compat_urllib_request.Request(url)
+        # Set the header to get a partial html page with the ids,
+        # the normal page doesn't contain them.
+        request.add_header('X-Requested-With', 'XMLHttpRequest')
+        return request
+
+    def _real_extract(self, url):
+        return self._extract_videos('watchlater', 'https://vimeo.com/home/watchlater')

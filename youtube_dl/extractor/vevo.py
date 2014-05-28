@@ -134,7 +134,13 @@ class VevoIE(InfoExtractor):
         video_id = mobj.group('id')
 
         json_url = 'http://videoplayer.vevo.com/VideoService/AuthenticateVideo?isrc=%s' % video_id
-        video_info = self._download_json(json_url, video_id)['video']
+        response = self._download_json(json_url, video_id)
+        video_info = response['video']
+
+        if not video_info:
+            if 'statusMessage' in response:
+                raise ExtractorError('%s said: %s' % (self.IE_NAME, response['statusMessage']), expected=True)
+            raise ExtractorError('Unable to extract videos')
 
         formats = self._formats_from_json(video_info)
 

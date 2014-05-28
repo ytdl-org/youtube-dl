@@ -31,6 +31,7 @@ from .utils import (
     ContentTooShortError,
     date_from_str,
     DateRange,
+    DEFAULT_OUTTMPL,
     determine_ext,
     DownloadError,
     encodeFilename,
@@ -441,7 +442,8 @@ class YoutubeDL(object):
                                  if v is not None)
             template_dict = collections.defaultdict(lambda: 'NA', template_dict)
 
-            tmpl = os.path.expanduser(self.params['outtmpl'])
+            outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
+            tmpl = os.path.expanduser(outtmpl)
             filename = tmpl % template_dict
             return filename
         except ValueError as err:
@@ -1049,10 +1051,11 @@ class YoutubeDL(object):
 
     def download(self, url_list):
         """Download a given list of URLs."""
+        outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
         if (len(url_list) > 1 and
-                '%' not in self.params['outtmpl']
+                '%' not in outtmpl
                 and self.params.get('max_downloads') != 1):
-            raise SameFileError(self.params['outtmpl'])
+            raise SameFileError(outtmpl)
 
         for url in url_list:
             try:
@@ -1163,57 +1166,57 @@ class YoutubeDL(object):
             res = default
         return res
 
-    def list_formats(self, info_dict):
-        def format_note(fdict):
-            res = ''
-            if fdict.get('ext') in ['f4f', 'f4m']:
-                res += '(unsupported) '
-            if fdict.get('format_note') is not None:
-                res += fdict['format_note'] + ' '
-            if fdict.get('tbr') is not None:
-                res += '%4dk ' % fdict['tbr']
-            if fdict.get('container') is not None:
-                if res:
-                    res += ', '
-                res += '%s container' % fdict['container']
-            if (fdict.get('vcodec') is not None and
-                    fdict.get('vcodec') != 'none'):
-                if res:
-                    res += ', '
-                res += fdict['vcodec']
-                if fdict.get('vbr') is not None:
-                    res += '@'
-            elif fdict.get('vbr') is not None and fdict.get('abr') is not None:
-                res += 'video@'
+    def _format_note(self, fdict):
+        res = ''
+        if fdict.get('ext') in ['f4f', 'f4m']:
+            res += '(unsupported) '
+        if fdict.get('format_note') is not None:
+            res += fdict['format_note'] + ' '
+        if fdict.get('tbr') is not None:
+            res += '%4dk ' % fdict['tbr']
+        if fdict.get('container') is not None:
+            if res:
+                res += ', '
+            res += '%s container' % fdict['container']
+        if (fdict.get('vcodec') is not None and
+                fdict.get('vcodec') != 'none'):
+            if res:
+                res += ', '
+            res += fdict['vcodec']
             if fdict.get('vbr') is not None:
-                res += '%4dk' % fdict['vbr']
-            if fdict.get('acodec') is not None:
-                if res:
-                    res += ', '
-                if fdict['acodec'] == 'none':
-                    res += 'video only'
-                else:
-                    res += '%-5s' % fdict['acodec']
-            elif fdict.get('abr') is not None:
-                if res:
-                    res += ', '
-                res += 'audio'
-            if fdict.get('abr') is not None:
-                res += '@%3dk' % fdict['abr']
-            if fdict.get('asr') is not None:
-                res += ' (%5dHz)' % fdict['asr']
-            if fdict.get('filesize') is not None:
-                if res:
-                    res += ', '
-                res += format_bytes(fdict['filesize'])
-            return res
+                res += '@'
+        elif fdict.get('vbr') is not None and fdict.get('abr') is not None:
+            res += 'video@'
+        if fdict.get('vbr') is not None:
+            res += '%4dk' % fdict['vbr']
+        if fdict.get('acodec') is not None:
+            if res:
+                res += ', '
+            if fdict['acodec'] == 'none':
+                res += 'video only'
+            else:
+                res += '%-5s' % fdict['acodec']
+        elif fdict.get('abr') is not None:
+            if res:
+                res += ', '
+            res += 'audio'
+        if fdict.get('abr') is not None:
+            res += '@%3dk' % fdict['abr']
+        if fdict.get('asr') is not None:
+            res += ' (%5dHz)' % fdict['asr']
+        if fdict.get('filesize') is not None:
+            if res:
+                res += ', '
+            res += format_bytes(fdict['filesize'])
+        return res
 
+    def list_formats(self, info_dict):
         def line(format, idlen=20):
             return (('%-' + compat_str(idlen + 1) + 's%-10s%-12s%s') % (
                 format['format_id'],
                 format['ext'],
                 self.format_resolution(format),
-                format_note(format),
+                self._format_note(format),
             ))
 
         formats = info_dict.get('formats', [info_dict])
@@ -1221,8 +1224,8 @@ class YoutubeDL(object):
                     max(len(f['format_id']) for f in formats))
         formats_s = [line(f, idlen) for f in formats]
         if len(formats) > 1:
-            formats_s[0] += (' ' if format_note(formats[0]) else '') + '(worst)'
-            formats_s[-1] += (' ' if format_note(formats[-1]) else '') + '(best)'
+            formats_s[0] += (' ' if self._format_note(formats[0]) else '') + '(worst)'
+            formats_s[-1] += (' ' if self._format_note(formats[-1]) else '') + '(best)'
 
         header_line = line({
             'format_id': 'format code', 'ext': 'extension',

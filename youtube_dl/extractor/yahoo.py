@@ -14,8 +14,8 @@ from ..utils import (
 
 
 class YahooIE(InfoExtractor):
-    IE_DESC = 'Yahoo screen'
-    _VALID_URL = r'https?://screen\.yahoo\.com/.*?-(?P<id>[0-9]+)(?:-[a-z]+)?\.html'
+    IE_DESC = 'Yahoo screen and movies'
+    _VALID_URL = r'https?://(?:screen|movies)\.yahoo\.com/.*?-(?P<id>[0-9]+)(?:-[a-z]+)?\.html'
     _TESTS = [
         {
             'url': 'http://screen.yahoo.com/julian-smith-travis-legg-watch-214727115.html',
@@ -37,6 +37,16 @@ class YahooIE(InfoExtractor):
                 'description': 'Agent Topple\'s mustache does its dirty work, and Nicole brokers a deal for peace. But why is the NSA collecting millions of Instagram brunch photos? And if your waffles have nothing to hide, what are they so worried about?',
             },
         },
+        {
+            'url': 'https://movies.yahoo.com/video/world-loves-spider-man-190819223.html',
+            'md5': '410b7104aa9893b765bc22787a22f3d9',
+            'info_dict': {
+                'id': '516ed8e2-2c4f-339f-a211-7a8b49d30845',
+                'ext': 'mp4',
+                'title': 'The World Loves Spider-Man',
+                'description': '''People all over the world are celebrating the release of \"The Amazing Spider-Man 2.\" We're taking a look at the enthusiastic response Spider-Man has received from viewers all over the world.''',
+            }
+        }
     ]
 
     def _real_extract(self, url):
@@ -44,13 +54,20 @@ class YahooIE(InfoExtractor):
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
 
-        items_json = self._search_regex(r'mediaItems: ({.*?})$',
-            webpage, 'items', flags=re.MULTILINE)
-        items = json.loads(items_json)
-        info = items['mediaItems']['query']['results']['mediaObj'][0]
-        # The 'meta' field is not always in the video webpage, we request it
-        # from another page
-        long_id = info['id']
+        items_json = self._search_regex(
+            r'mediaItems: ({.*?})$', webpage, 'items', flags=re.MULTILINE,
+            default=None)
+        if items_json is None:
+            long_id = self._search_regex(
+                r'YUI\.namespace\("Media"\)\.CONTENT_ID\s*=\s*"([^"]+)"',
+                webpage, 'content ID')
+            video_id = long_id
+        else:
+            items = json.loads(items_json)
+            info = items['mediaItems']['query']['results']['mediaObj'][0]
+            # The 'meta' field is not always in the video webpage, we request it
+            # from another page
+            long_id = info['id']
         return self._get_info(long_id, video_id)
 
     def _get_info(self, long_id, video_id):
@@ -104,7 +121,7 @@ class YahooNewsIE(YahooIE):
     IE_NAME = 'yahoo:news'
     _VALID_URL = r'http://news\.yahoo\.com/video/.*?-(?P<id>\d*?)\.html'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://news.yahoo.com/video/china-moses-crazy-blues-104538833.html',
         'md5': '67010fdf3a08d290e060a4dd96baa07b',
         'info_dict': {
@@ -113,10 +130,7 @@ class YahooNewsIE(YahooIE):
             'title': 'China Moses Is Crazy About the Blues',
             'description': 'md5:9900ab8cd5808175c7b3fe55b979bed0',
         },
-    }
-
-    # Overwrite YahooIE properties we don't want
-    _TESTS = []
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

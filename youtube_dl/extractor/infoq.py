@@ -11,16 +11,15 @@ from ..utils import (
 
 class InfoQIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?infoq\.com/[^/]+/(?P<id>[^/]+)$'
+
     _TEST = {
-        "name": "InfoQ",
-        "url": "http://www.infoq.com/presentations/A-Few-of-My-Favorite-Python-Things",
-        "file": "12-jan-pythonthings.mp4",
-        "info_dict": {
-            "description": "Mike Pirnat presents some tips and tricks, standard libraries and third party packages that make programming in Python a richer experience.",
-            "title": "A Few of My Favorite [Python] Things",
-        },
-        "params": {
-            "skip_download": True,
+        'url': 'http://www.infoq.com/presentations/A-Few-of-My-Favorite-Python-Things',
+        'md5': 'b5ca0e0a8c1fed93b0e65e48e462f9a2',
+        'info_dict': {
+            'id': '12-jan-pythonthings',
+            'ext': 'mp4',
+            'description': 'Mike Pirnat presents some tips and tricks, standard libraries and third party packages that make programming in Python a richer experience.',
+            'title': 'A Few of My Favorite [Python] Things',
         },
     }
 
@@ -30,26 +29,39 @@ class InfoQIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
+        video_title = self._html_search_regex(r'<title>(.*?)</title>', webpage, 'title')
+        video_description = self._html_search_meta('description', webpage, 'description')
+
+        # The server URL is hardcoded
+        video_url = 'rtmpe://video.infoq.com/cfx/st/'
+
         # Extract video URL
-        encoded_id = self._search_regex(r"jsclassref ?= ?'([^']*)'", webpage, 'encoded id')
+        encoded_id = self._search_regex(
+            r"jsclassref\s*=\s*'([^']*)'", webpage, 'encoded id')
         real_id = compat_urllib_parse.unquote(base64.b64decode(encoded_id.encode('ascii')).decode('utf-8'))
-        video_url = 'rtmpe://video.infoq.com/cfx/st/' + real_id
+        playpath = 'mp4:' + real_id
 
-        # Extract title
-        video_title = self._search_regex(r'contentTitle = "(.*?)";',
-            webpage, 'title')
-
-        # Extract description
-        video_description = self._html_search_regex(r'<meta name="description" content="(.*)"(?:\s*/)?>',
-            webpage, 'description', fatal=False)
-
-        video_filename = video_url.split('/')[-1]
+        video_filename = playpath.split('/')[-1]
         video_id, extension = video_filename.split('.')
+
+        http_base = self._search_regex(
+            r'EXPRESSINSTALL_SWF\s*=\s*"(https?://[^/"]+/)', webpage,
+            'HTTP base URL')
+
+        formats = [{
+            'format_id': 'rtmp',
+            'url': video_url,
+            'ext': extension,
+            'play_path': playpath,
+        }, {
+            'format_id': 'http',
+            'url': http_base + real_id,
+        }]
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'url': video_url,
             'title': video_title,
-            'ext': extension,  # Extension is always(?) mp4, but seems to be flv
             'description': video_description,
+            'formats': formats,
         }

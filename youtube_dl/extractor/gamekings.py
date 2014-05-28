@@ -15,7 +15,7 @@ class GamekingsIE(InfoExtractor):
             'id': '20130811',
             'ext': 'mp4',
             'title': 'Phoenix Wright: Ace Attorney \u2013 Dual Destinies Review',
-            'description': 'md5:632e61a9f97d700e83f43d77ddafb6a4',
+            'description': 'md5:36fd701e57e8c15ac8682a2374c99731',
         }
     }
 

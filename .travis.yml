@@ -3,6 +3,7 @@ python:
   - "2.6"
   - "2.7"
   - "3.3"
+  - "3.4"
 script: nosetests test --verbose
 notifications:
   email:

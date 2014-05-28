@@ -73,14 +73,16 @@ class NFBIE(InfoExtractor):
                 title = media.find('title').text
                 description = media.find('description').text
                 # It seems assets always go from lower to better quality, so no need to sort
-                formats = [{
-                    'url': x.find('default/streamerURI').text,
-                    'app': x.find('default/streamerURI').text.split('/', 3)[3],
-                    'play_path': x.find('default/url').text,
-                    'rtmp_live': False,
-                    'ext': 'mp4',
-                    'format_id': x.get('quality'),
-                } for x in media.findall('assets/asset')]
+                for asset in media.findall('assets/asset'):
+                    for x in asset:
+                        formats.append({
+                            'url': x.find('streamerURI').text,
+                            'app': x.find('streamerURI').text.split('/', 3)[3],
+                            'play_path': x.find('url').text,
+                            'rtmp_live': False,
+                            'ext': 'mp4',
+                            'format_id': '%s-%s' % (x.tag, asset.get('quality')),
+                        })
 
         return {
             'id': video_id,

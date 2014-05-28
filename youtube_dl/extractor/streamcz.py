@@ -5,13 +5,16 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    compat_str,
+)
 
 
 class StreamCZIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?stream\.cz/.+/(?P<videoid>.+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.stream.cz/peklonataliri/765767-ecka-pro-deti',
         'md5': '6d3ca61a8d0633c9c542b92fcb936b0c',
         'info_dict': {
@@ -22,7 +25,18 @@ class StreamCZIE(InfoExtractor):
             'thumbnail': 'http://im.stream.cz/episode/52961d7e19d423f8f06f0100',
             'duration': 256,
         },
-    }
+    }, {
+        'url': 'http://www.stream.cz/blanik/10002447-tri-roky-pro-mazanka',
+        'md5': '246272e753e26bbace7fcd9deca0650c',
+        'info_dict': {
+            'id': '10002447',
+            'ext': 'mp4',
+            'title': 'Kancelář Blaník: Tři roky pro Mazánka',
+            'description': 'md5:9177695a8b756a0a8ab160de4043b392',
+            'thumbnail': 'http://im.stream.cz/episode/537f838c50c11f8d21320000',
+            'duration': 368,
+        },
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -57,7 +71,7 @@ class StreamCZIE(InfoExtractor):
         self._sort_formats(formats)
 
         return {
-            'id': str(jsonData['id']),
+            'id': compat_str(jsonData['episode_id']),
             'title': self._og_search_title(webpage),
             'thumbnail': jsonData['episode_image_original_url'].replace('//', 'http://'),
             'formats': formats,

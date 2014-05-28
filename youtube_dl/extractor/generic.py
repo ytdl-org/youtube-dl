@@ -239,6 +239,28 @@ class GenericIE(InfoExtractor):
                 'uploader_id': 'rbctv_2012_4',
             },
         },
+        # Condé Nast embed
+        {
+            'url': 'http://www.wired.com/2014/04/honda-asimo/',
+            'md5': 'ba0dfe966fa007657bd1443ee672db0f',
+            'info_dict': {
+                'id': '53501be369702d3275860000',
+                'ext': 'mp4',
+                'title': 'Honda’s  New Asimo Robot Is More Human Than Ever',
+            }
+        },
+        # Dailymotion embed
+        {
+            'url': 'http://www.spi0n.com/zap-spi0n-com-n216/',
+            'md5': '441aeeb82eb72c422c7f14ec533999cd',
+            'info_dict': {
+                'id': 'k2mm4bCdJ6CQ2i7c8o2',
+                'ext': 'mp4',
+                'title': 'Le Zap de Spi0n n°216 - Zapping du Web',
+                'uploader': 'Spi0n',
+            },
+            'add_ie': ['Dailymotion'],
+        }
     ]
 
     def report_download_webpage(self, video_id):
@@ -323,6 +345,12 @@ class GenericIE(InfoExtractor):
         }
 
     def _real_extract(self, url):
+        if url.startswith('//'):
+            return {
+                '_type': 'url',
+                'url': self.http_scheme() + url,
+            }
+
         parsed_url = compat_urlparse.urlparse(url)
         if not parsed_url.scheme:
             default_search = self._downloader.params.get('default_search')
@@ -335,8 +363,13 @@ class GenericIE(InfoExtractor):
                     return self.url_result('http://' + url)
                 else:
                     if default_search == 'auto_warning':
-                        self._downloader.report_warning(
-                            'Falling back to youtube search for  %s . Set --default-search to "auto" to suppress this warning.' % url)
+                        if re.match(r'^(?:url|URL)$', url):
+                            raise ExtractorError(
+                                'Invalid URL:  %r . Call youtube-dl like this:  youtube-dl -v "https://www.youtube.com/watch?v=BaW_jenozKc"  ' % url,
+                                expected=True)
+                        else:
+                            self._downloader.report_warning(
+                                'Falling back to youtube search for  %s . Set --default-search to "auto" to suppress this warning.' % url)
                     return self.url_result('ytsearch:' + url)
             else:
                 assert ':' in default_search
@@ -459,7 +492,7 @@ class GenericIE(InfoExtractor):
         matches = re.findall(
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/embed/video/.+?)\1', webpage)
         if matches:
-            urlrs = [self.url_result(unescapeHTML(tuppl[1]), 'Dailymotion')
+            urlrs = [self.url_result(unescapeHTML(tuppl[1]))
                      for tuppl in matches]
             return self.playlist_result(
                 urlrs, playlist_id=video_id, playlist_title=video_title)
@@ -485,6 +518,22 @@ class GenericIE(InfoExtractor):
         if mobj:
             return self.url_result(mobj.group(1), 'BlipTV')
 
+        # Look for embedded condenast player
+        matches = re.findall(
+            r'<iframe\s+(?:[a-zA-Z-]+="[^"]+"\s+)*?src="(https?://player\.cnevids\.com/embed/[^"]+")',
+            webpage)
+        if matches:
+            return {
+                '_type': 'playlist',
+                'entries': [{
+                    '_type': 'url',
+                    'ie_key': 'CondeNast',
+                    'url': ma,
+                } for ma in matches],
+                'title': video_title,
+                'id': video_id,
+            }
+
         # Look for Bandcamp pages with custom domain
         mobj = re.search(r'<meta property="og:url"[^>]*?content="(.*?bandcamp\.com.*?)"', webpage)
         if mobj is not None:
@@ -505,7 +554,7 @@ class GenericIE(InfoExtractor):
             return OoyalaIE._build_url_result(mobj.group('ec'))
 
         # Look for Aparat videos
-        mobj = re.search(r'<iframe src="(http://www\.aparat\.com/video/[^"]+)"', webpage)
+        mobj = re.search(r'<iframe .*?src="(http://www\.aparat\.com/video/[^"]+)"', webpage)
         if mobj is not None:
             return self.url_result(mobj.group(1), 'Aparat')
 
@@ -516,7 +565,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded NovaMov-based player
         mobj = re.search(
-            r'''(?x)<iframe[^>]+?src=(["\'])
+            r'''(?x)<(?:pagespeed_)?iframe[^>]+?src=(["\'])
                     (?P<url>http://(?:(?:embed|www)\.)?
                         (?:novamov\.com|
                            nowvideo\.(?:ch|sx|eu|at|ag|co)|
@@ -589,65 +638,86 @@ class GenericIE(InfoExtractor):
         if smotri_url:
             return self.url_result(smotri_url, 'Smotri')
 
-        # Start with something easy: JW Player in SWFObject
-        mobj = re.search(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
-        if mobj is None:
-            # Look for gorilla-vid style embedding
-            mobj = re.search(r'(?s)(?:jw_plugins|JWPlayerOptions).*?file\s*:\s*["\'](.*?)["\']', webpage)
-        if mobj is None:
-            # Broaden the search a little bit
-            mobj = re.search(r'[^A-Za-z0-9]?(?:file|source)=(http[^\'"&]*)', webpage)
-        if mobj is None:
-            # Broaden the search a little bit: JWPlayer JS loader
-            mobj = re.search(r'[^A-Za-z0-9]?file["\']?:\s*["\'](http(?![^\'"]+\.[0-9]+[\'"])[^\'"]+)["\']', webpage)
+        # Look for embeded soundcloud player
+        mobj = re.search(
+            r'<iframe src="(?P<url>https?://(?:w\.)?soundcloud\.com/player[^"]+)"',
+            webpage)
+        if mobj is not None:
+            url = unescapeHTML(mobj.group('url'))
+            return self.url_result(url)
 
-        if mobj is None:
+        # Start with something easy: JW Player in SWFObject
+        found = re.findall(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
+        if not found:
+            # Look for gorilla-vid style embedding
+            found = re.findall(r'''(?sx)
+                (?:
+                    jw_plugins|
+                    JWPlayerOptions|
+                    jwplayer\s*\(\s*["'][^'"]+["']\s*\)\s*\.setup
+                )
+                .*?file\s*:\s*["\'](.*?)["\']''', webpage)
+        if not found:
+            # Broaden the search a little bit
+            found = re.findall(r'[^A-Za-z0-9]?(?:file|source)=(http[^\'"&]*)', webpage)
+        if not found:
+            # Broaden the findall a little bit: JWPlayer JS loader
+            found = re.findall(r'[^A-Za-z0-9]?file["\']?:\s*["\'](http(?![^\'"]+\.[0-9]+[\'"])[^\'"]+)["\']', webpage)
+        if not found:
             # Try to find twitter cards info
-            mobj = re.search(r'<meta (?:property|name)="twitter:player:stream" (?:content|value)="(.+?)"', webpage)
-        if mobj is None:
+            found = re.findall(r'<meta (?:property|name)="twitter:player:stream" (?:content|value)="(.+?)"', webpage)
+        if not found:
             # We look for Open Graph info:
             # We have to match any number spaces between elements, some sites try to align them (eg.: statigr.am)
-            m_video_type = re.search(r'<meta.*?property="og:video:type".*?content="video/(.*?)"', webpage)
+            m_video_type = re.findall(r'<meta.*?property="og:video:type".*?content="video/(.*?)"', webpage)
             # We only look in og:video if the MIME type is a video, don't try if it's a Flash player:
             if m_video_type is not None:
-                mobj = re.search(r'<meta.*?property="og:video".*?content="(.*?)"', webpage)
-        if mobj is None:
+                found = re.findall(r'<meta.*?property="og:video".*?content="(.*?)"', webpage)
+        if not found:
             # HTML5 video
-            mobj = re.search(r'<video[^<]*(?:>.*?<source.*?)? src="([^"]+)"', webpage, flags=re.DOTALL)
-        if mobj is None:
-            mobj = re.search(
+            found = re.findall(r'(?s)<video[^<]*(?:>.*?<source.*?)? src="([^"]+)"', webpage)
+        if not found:
+            found = re.search(
                 r'(?i)<meta\s+(?=(?:[a-z-]+="[^"]+"\s+)*http-equiv="refresh")'
                 r'(?:[a-z-]+="[^"]+"\s+)*?content="[0-9]{,2};url=\'([^\']+)\'"',
                 webpage)
-            if mobj:
-                new_url = mobj.group(1)
+            if found:
+                new_url = found.group(1)
                 self.report_following_redirect(new_url)
                 return {
                     '_type': 'url',
                     'url': new_url,
                 }
-        if mobj is None:
+        if not found:
             raise ExtractorError('Unsupported URL: %s' % url)
 
-        # It's possible that one of the regexes
-        # matched, but returned an empty group:
-        if mobj.group(1) is None:
-            raise ExtractorError('Did not find a valid video URL at %s' % url)
+        entries = []
+        for video_url in found:
+            video_url = compat_urlparse.urljoin(url, video_url)
+            video_id = compat_urllib_parse.unquote(os.path.basename(video_url))
 
-        video_url = mobj.group(1)
-        video_url = compat_urlparse.urljoin(url, video_url)
-        video_id = compat_urllib_parse.unquote(os.path.basename(video_url))
+            # Sometimes, jwplayer extraction will result in a YouTube URL
+            if YoutubeIE.suitable(video_url):
+                entries.append(self.url_result(video_url, 'Youtube'))
+                continue
 
-        # Sometimes, jwplayer extraction will result in a YouTube URL
-        if YoutubeIE.suitable(video_url):
-            return self.url_result(video_url, 'Youtube')
+            # here's a fun little line of code for you:
+            video_id = os.path.splitext(video_id)[0]
 
-        # here's a fun little line of code for you:
-        video_id = os.path.splitext(video_id)[0]
+            entries.append({
+                'id': video_id,
+                'url': video_url,
+                'uploader': video_uploader,
+                'title': video_title,
+            })
 
-        return {
-            'id': video_id,
-            'url': video_url,
-            'uploader': video_uploader,
-            'title': video_title,
-        }
+        if len(entries) == 1:
+            return entries[0]
+        else:
+            for num, e in enumerate(entries, start=1):
+                e['title'] = '%s (%d)' % (e['title'], num)
+            return {
+                '_type': 'playlist',
+                'entries': entries,
+            }
+

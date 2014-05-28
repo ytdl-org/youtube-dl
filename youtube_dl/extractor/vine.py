@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import re
 import json
+import itertools
 
 from .common import InfoExtractor
 from ..utils import unified_strdate
@@ -58,3 +59,33 @@ class VineIE(InfoExtractor):
             'repost_count': data['reposts']['count'],
             'formats': formats,
         }
+
+
+class VineUserIE(InfoExtractor):
+    IE_NAME = 'vine:user'
+    _VALID_URL = r'(?:https?://)?vine\.co/(?P<user>[^/]+)/?(\?.*)?$'
+    _VINE_BASE_URL = "https://vine.co/"
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        user = mobj.group('user')
+
+        profile_url = "%sapi/users/profiles/vanity/%s" % (
+            self._VINE_BASE_URL, user)
+        profile_data = self._download_json(
+            profile_url, user, note='Downloading user profile data')
+
+        user_id = profile_data['data']['userId']
+        timeline_data = []
+        for pagenum in itertools.count(1):
+            timeline_url = "%sapi/timelines/users/%s?page=%s" % (
+                self._VINE_BASE_URL, user_id, pagenum)
+            timeline_page = self._download_json(
+                timeline_url, user, note='Downloading page %d' % pagenum)
+            timeline_data.extend(timeline_page['data']['records'])
+            if timeline_page['data']['nextPage'] is None:
+                break
+
+        entries = [
+            self.url_result(e['permalinkUrl'], 'Vine') for e in timeline_data]
+        return self.playlist_result(entries, user)

@@ -10,6 +10,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import (
+    assertRegexpMatches,
     expect_info_dict,
     FakeYDL,
 )
@@ -22,9 +23,11 @@ from youtube_dl.extractor import (
     VimeoUserIE,
     VimeoAlbumIE,
     VimeoGroupsIE,
+    VineUserIE,
     UstreamChannelIE,
     SoundcloudSetIE,
     SoundcloudUserIE,
+    SoundcloudPlaylistIE,
     LivestreamIE,
     NHLVideocenterIE,
     BambuserChannelIE,
@@ -100,6 +103,13 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['title'], 'Rolex Awards for Enterprise')
         self.assertTrue(len(result['entries']) > 72)
 
+    def test_vine_user(self):
+        dl = FakeYDL()
+        ie = VineUserIE(dl)
+        result = ie.extract('https://vine.co/Visa')
+        self.assertIsPlaylist(result)
+        self.assertTrue(len(result['entries']) >= 50)
+
     def test_ustream_channel(self):
         dl = FakeYDL()
         ie = UstreamChannelIE(dl)
@@ -123,6 +133,17 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], '9615865')
         self.assertTrue(len(result['entries']) >= 12)
+
+    def test_soundcloud_playlist(self):
+        dl = FakeYDL()
+        ie = SoundcloudPlaylistIE(dl)
+        result = ie.extract('http://api.soundcloud.com/playlists/4110309')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], '4110309')
+        self.assertEqual(result['title'], 'TILT Brass - Bowery Poetry Club, August \'03 [Non-Site SCR 02]')
+        assertRegexpMatches(
+            self, result['description'], r'TILT Brass - Bowery Poetry Club')
+        self.assertEqual(len(result['entries']), 6)
 
     def test_livestream_event(self):
         dl = FakeYDL()
@@ -192,16 +213,16 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], 'dezhurnyi_angel')
         self.assertEqual(result['title'], 'Дежурный ангел (2010 - 2012)')
-        self.assertTrue(len(result['entries']) >= 36)
-        
+        self.assertTrue(len(result['entries']) >= 16)
+
     def test_ivi_compilation_season(self):
         dl = FakeYDL()
         ie = IviCompilationIE(dl)
-        result = ie.extract('http://www.ivi.ru/watch/dezhurnyi_angel/season2')
+        result = ie.extract('http://www.ivi.ru/watch/dezhurnyi_angel/season1')
         self.assertIsPlaylist(result)
-        self.assertEqual(result['id'], 'dezhurnyi_angel/season2')
-        self.assertEqual(result['title'], 'Дежурный ангел (2010 - 2012) 2 сезон')
-        self.assertTrue(len(result['entries']) >= 20)
+        self.assertEqual(result['id'], 'dezhurnyi_angel/season1')
+        self.assertEqual(result['title'], 'Дежурный ангел (2010 - 2012) 1 сезон')
+        self.assertTrue(len(result['entries']) >= 16)
         
     def test_imdb_list(self):
         dl = FakeYDL()

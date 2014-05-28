@@ -181,7 +181,7 @@ class TestTedSubtitles(BaseTestSubtitles):
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
-        self.assertEqual(len(subtitles.keys()), 28)
+        self.assertTrue(len(subtitles.keys()) >= 28)
 
     def test_list_subtitles(self):
         self.DL.expect_warning(u'Automatic Captions not supported by this server')

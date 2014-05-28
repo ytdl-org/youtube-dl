@@ -43,13 +43,14 @@ class RutubeIE(InfoExtractor):
             'http://rutube.ru/api/video/%s/?format=json' % video_id,
             video_id, 'Downloading video JSON')
 
-        trackinfo = self._download_json(
-            'http://rutube.ru/api/play/trackinfo/%s/?format=json' % video_id,
-            video_id, 'Downloading trackinfo JSON')
-
         # Some videos don't have the author field
-        author = trackinfo.get('author') or {}
-        m3u8_url = trackinfo['video_balancer'].get('m3u8')
+        author = video.get('author') or {}
+
+        options = self._download_json(
+            'http://rutube.ru/api/play/options/%s/?format=json' % video_id,
+            video_id, 'Downloading options JSON')
+
+        m3u8_url = options['video_balancer'].get('m3u8')
         if m3u8_url is None:
             raise ExtractorError('Couldn\'t find m3u8 manifest url')
 

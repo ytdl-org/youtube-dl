@@ -1,15 +1,18 @@
+from __future__ import unicode_literals
+
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-)
 
 
 class MDRIE(InfoExtractor):
-    _VALID_URL = r'^(?P<domain>(?:https?://)?(?:www\.)?mdr\.de)/mediathek/(?:.*)/(?P<type>video|audio)(?P<video_id>[^/_]+)_.*'
+    _VALID_URL = r'^(?P<domain>https?://(?:www\.)?mdr\.de)/(?:.*)/(?P<type>video|audio)(?P<video_id>[^/_]+)(?:_|\.html)'
     
     # No tests, MDR regularily deletes its videos
+    _TEST = {
+        'url': 'http://www.mdr.de/fakt/video189002.html',
+        'only_matching': True,
+    }
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
@@ -19,9 +22,9 @@ class MDRIE(InfoExtractor):
         # determine title and media streams from webpage
         html = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(r'<h2>(.*?)</h2>', html, u'title')
+        title = self._html_search_regex(r'<h[12]>(.*?)</h[12]>', html, 'title')
         xmlurl = self._search_regex(
-            r'(/mediathek/(?:.+)/(?:video|audio)[0-9]+-avCustom.xml)', html, u'XML URL')
+            r'dataURL:\'(/(?:.+)/(?:video|audio)[0-9]+-avCustom.xml)', html, 'XML URL')
 
         doc = self._download_xml(domain + xmlurl, video_id)
         formats = []
@@ -41,7 +44,7 @@ class MDRIE(InfoExtractor):
             if vbr_el is None:
                 format.update({
                     'vcodec': 'none',
-                    'format_id': u'%s-%d' % (media_type, abr),
+                    'format_id': '%s-%d' % (media_type, abr),
                 })
             else:
                 vbr = int(vbr_el.text) // 1000
@@ -49,12 +52,9 @@ class MDRIE(InfoExtractor):
                     'vbr': vbr,
                     'width': int(a.find('frameWidth').text),
                     'height': int(a.find('frameHeight').text),
-                    'format_id': u'%s-%d' % (media_type, vbr),
+                    'format_id': '%s-%d' % (media_type, vbr),
                 })
             formats.append(format)
-        if not formats:
-            raise ExtractorError(u'Could not find any valid formats')
-
         self._sort_formats(formats)
 
         return {

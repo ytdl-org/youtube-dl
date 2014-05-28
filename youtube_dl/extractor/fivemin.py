@@ -6,6 +6,7 @@ from .common import InfoExtractor
 from ..utils import (
     compat_str,
     compat_urllib_parse,
+    ExtractorError,
 )
 
 
@@ -58,9 +59,17 @@ class FiveMinIE(InfoExtractor):
             'isPlayerSeed': 'true',
             'url': embed_url,
         })
-        info = self._download_json(
+        response = self._download_json(
             'https://syn.5min.com/handlers/SenseHandler.ashx?' + query,
-            video_id)['binding'][0]
+            video_id)
+        if not response['success']:
+            err_msg = response['errorMessage']
+            if err_msg == 'ErrorVideoUserNotGeo':
+                msg = 'Video not available from your location'
+            else:
+                msg = 'Aol said: %s' % err_msg
+            raise ExtractorError(msg, expected=True, video_id=video_id)
+        info = response['binding'][0]
 
         second_id = compat_str(int(video_id[:-2]) + 1)
         formats = []

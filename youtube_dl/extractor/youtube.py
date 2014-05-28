@@ -210,23 +210,23 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         '141': {'ext': 'm4a', 'format_note': 'DASH audio', 'vcodec': 'none', 'abr': 256, 'preference': -50},
 
         # Dash webm
-        '167': {'ext': 'webm', 'height': 360, 'width': 640, 'format_note': 'DASH video', 'acodec': 'none', 'container': 'webm', 'vcodec': 'VP8', 'acodec': 'none', 'preference': -40},
-        '168': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'acodec': 'none', 'container': 'webm', 'vcodec': 'VP8', 'acodec': 'none', 'preference': -40},
-        '169': {'ext': 'webm', 'height': 720, 'width': 1280, 'format_note': 'DASH video', 'acodec': 'none', 'container': 'webm', 'vcodec': 'VP8', 'acodec': 'none', 'preference': -40},
-        '170': {'ext': 'webm', 'height': 1080, 'width': 1920, 'format_note': 'DASH video', 'acodec': 'none', 'container': 'webm', 'vcodec': 'VP8', 'acodec': 'none', 'preference': -40},
-        '218': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'acodec': 'none', 'container': 'webm', 'vcodec': 'VP8', 'acodec': 'none', 'preference': -40},
-        '219': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'acodec': 'none', 'container': 'webm', 'vcodec': 'VP8', 'acodec': 'none', 'preference': -40},
-        '242': {'ext': 'webm', 'height': 240, 'format_note': 'DASH webm', 'preference': -40},
-        '243': {'ext': 'webm', 'height': 360, 'format_note': 'DASH webm', 'preference': -40},
-        '244': {'ext': 'webm', 'height': 480, 'format_note': 'DASH webm', 'preference': -40},
-        '245': {'ext': 'webm', 'height': 480, 'format_note': 'DASH webm', 'preference': -40},
-        '246': {'ext': 'webm', 'height': 480, 'format_note': 'DASH webm', 'preference': -40},
-        '247': {'ext': 'webm', 'height': 720, 'format_note': 'DASH webm', 'preference': -40},
-        '248': {'ext': 'webm', 'height': 1080, 'format_note': 'DASH webm', 'preference': -40},
+        '167': {'ext': 'webm', 'height': 360, 'width': 640, 'format_note': 'DASH video', 'acodec': 'none', 'container': 'webm', 'vcodec': 'VP8', 'preference': -40},
+        '168': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'acodec': 'none', 'container': 'webm', 'vcodec': 'VP8', 'preference': -40},
+        '169': {'ext': 'webm', 'height': 720, 'width': 1280, 'format_note': 'DASH video', 'acodec': 'none', 'container': 'webm', 'vcodec': 'VP8', 'preference': -40},
+        '170': {'ext': 'webm', 'height': 1080, 'width': 1920, 'format_note': 'DASH video', 'acodec': 'none', 'container': 'webm', 'vcodec': 'VP8', 'preference': -40},
+        '218': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'acodec': 'none', 'container': 'webm', 'vcodec': 'VP8', 'preference': -40},
+        '219': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'acodec': 'none', 'container': 'webm', 'vcodec': 'VP8', 'preference': -40},
+        '242': {'ext': 'webm', 'height': 240, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
+        '243': {'ext': 'webm', 'height': 360, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
+        '244': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
+        '245': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
+        '246': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
+        '247': {'ext': 'webm', 'height': 720, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
+        '248': {'ext': 'webm', 'height': 1080, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
 
         # Dash webm audio
-        '171': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH webm audio', 'abr': 48, 'preference': -50},
-        '172': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH webm audio', 'abr': 256, 'preference': -50},
+        '171': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH audio', 'abr': 48, 'preference': -50},
+        '172': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH audio', 'abr': 256, 'preference': -50},
 
         # RTMP (unnamed)
         '_rtmp': {'protocol': 'rtmp'},
@@ -242,7 +242,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 u"uploader": u"Philipp Hagemeister",
                 u"uploader_id": u"phihag",
                 u"upload_date": u"20121002",
-                u"description": u"test chars:  \"'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de ."
+                u"description": u"test chars:  \"'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .",
+                u"categories": [u'Science & Technology'],
             }
         },
         {
@@ -252,7 +253,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             u"info_dict": {
                 u"upload_date": u"20120506",
                 u"title": u"Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]",
-                u"description": u"md5:5b292926389560516e384ac437c0ec07",
+                u"description": u"md5:fea86fda2d5a5784273df5c7cc994d9f",
                 u"uploader": u"Icona Pop",
                 u"uploader_id": u"IconaPop"
             }
@@ -304,7 +305,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 u'id': u'IB3lcPjvWLA',
                 u'ext': u'm4a',
                 u'title': u'Afrojack - The Spark ft. Spree Wilson',
-                u'description': u'md5:3199ed45ee8836572865580804d7ac0f',
+                u'description': u'md5:9717375db5a9a3992be4668bbf3bc0a8',
                 u'uploader': u'AfrojackVEVO',
                 u'uploader_id': u'AfrojackVEVO',
                 u'upload_date': u'20131011',
@@ -1082,9 +1083,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                     break
         if 'token' not in video_info:
             if 'reason' in video_info:
-                raise ExtractorError(u'YouTube said: %s' % video_info['reason'][0], expected=True)
+                raise ExtractorError(
+                    u'YouTube said: %s' % video_info['reason'][0],
+                    expected=True, video_id=video_id)
             else:
-                raise ExtractorError(u'"token" parameter not in video info for unknown reason')
+                raise ExtractorError(
+                    u'"token" parameter not in video info for unknown reason',
+                    video_id=video_id)
 
         if 'view_count' in video_info:
             view_count = int(video_info['view_count'][0])
@@ -1113,7 +1118,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         # title
         if 'title' in video_info:
-            video_title = compat_urllib_parse.unquote_plus(video_info['title'][0])
+            video_title = video_info['title'][0]
         else:
             self._downloader.report_warning(u'Unable to extract video title')
             video_title = u'_'
@@ -1132,10 +1137,23 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         # upload date
         upload_date = None
-        mobj = re.search(r'id="eow-date.*?>(.*?)</span>', video_webpage, re.DOTALL)
+        mobj = re.search(r'(?s)id="eow-date.*?>(.*?)</span>', video_webpage)
+        if mobj is None:
+            mobj = re.search(
+                r'(?s)id="watch-uploader-info".*?>.*?(?:Published|Uploaded) on (.*?)</strong>',
+                video_webpage)
         if mobj is not None:
             upload_date = ' '.join(re.sub(r'[/,-]', r' ', mobj.group(1)).split())
             upload_date = unified_strdate(upload_date)
+
+        m_cat_container = get_element_by_id("eow-category", video_webpage)
+        if m_cat_container:
+            category = self._html_search_regex(
+                r'(?s)<a[^<]+>(.*?)</a>', m_cat_container, 'category',
+                default=None)
+            video_categories = None if category is None else [category]
+        else:
+            video_categories = None
 
         # description
         video_description = get_element_by_id("eow-description", video_webpage)
@@ -1343,6 +1361,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             'title':        video_title,
             'thumbnail':    video_thumbnail,
             'description':  video_description,
+            'categories':   video_categories,
             'subtitles':    video_subtitles,
             'duration':     video_duration,
             'age_limit':    18 if age_gate else 0,
@@ -1431,6 +1450,13 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         url = self._TEMPLATE_URL % playlist_id
         page = self._download_webpage(url, playlist_id)
         more_widget_html = content_html = page
+
+        # Check if the playlist exists or is private
+        if re.search(r'<div class="yt-alert-message">[^<]*?(The|This) playlist (does not exist|is private)[^<]*?</div>', page) is not None:
+            raise ExtractorError(
+                u'The playlist doesn\'t exist or is private, use --username or '
+                '--netrc to access it.',
+                expected=True)
 
         # Extract the video ids from the playlist pages
         ids = []
@@ -1749,9 +1775,12 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
             feed_entries.extend(
                 self.url_result(video_id, 'Youtube', video_id=video_id)
                 for video_id in ids)
-            if info['paging'] is None:
+            mobj = re.search(
+                r'data-uix-load-more-href="/?[^"]+paging=(?P<paging>\d+)',
+                feed_html)
+            if mobj is None:
                 break
-            paging = info['paging']
+            paging = mobj.group('paging')
         return self.playlist_result(feed_entries, playlist_title=self._PLAYLIST_TITLE)
 
 class YoutubeSubscriptionsIE(YoutubeFeedsInfoExtractor):

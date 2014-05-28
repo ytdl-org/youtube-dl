@@ -10,6 +10,7 @@ from .common import AudioConversionError, PostProcessor
 from ..utils import (
     check_executable,
     compat_subprocess_get_DEVNULL,
+    encodeArgument,
     encodeFilename,
     PostProcessingError,
     prepend_extension,
@@ -42,6 +43,9 @@ class FFmpegPostProcessor(PostProcessor):
     def _uses_avconv(self):
         return self._get_executable() == self._exes['avconv']
 
+    def _encode_opts(self, opts):
+        return [encodeArgument(o) for o in opts]
+
     def run_ffmpeg_multiple_files(self, input_paths, out_path, opts, input_opts=[]):
         if not self._get_executable():
             raise FFmpegPostProcessorError(u'ffmpeg or avconv not found. Please install one.')
@@ -50,7 +54,7 @@ class FFmpegPostProcessor(PostProcessor):
         for path in input_paths:
             files_cmd.extend(['-i', encodeFilename(path, True)])
         cmd = ([self._get_executable(), '-y'] +
-               input_opts + files_cmd + opts +
+               self._encode_opts(input_opts) + files_cmd + self._encode_opts(opts) +
                [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
 
         if self._downloader.params.get('verbose', False):

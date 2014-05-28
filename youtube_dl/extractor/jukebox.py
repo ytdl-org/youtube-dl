@@ -14,7 +14,7 @@ class JukeboxIE(InfoExtractor):
     _VALID_URL = r'^http://www\.jukebox?\..+?\/.+[,](?P<video_id>[a-z0-9\-]+)\.html'
     _TEST = {
         'url': 'http://www.jukebox.es/kosheen/videoclip,pride,r303r.html',
-        'md5': '5dc6477e74b1e37042ac5acedd8413e5',
+        'md5': '1574e9b4d6438446d5b7dbcdf2786276',
         'info_dict': {
             'id': 'r303r',
             'ext': 'flv',

@@ -74,13 +74,19 @@ class FakeYDL(YoutubeDL):
             old_report_warning(message)
         self.report_warning = types.MethodType(report_warning, self)
 
-def gettestcases():
+
+def gettestcases(include_onlymatching=False):
     for ie in youtube_dl.extractor.gen_extractors():
         t = getattr(ie, '_TEST', None)
         if t:
-            t['name'] = type(ie).__name__[:-len('IE')]
-            yield t
-        for t in getattr(ie, '_TESTS', []):
+            assert not hasattr(ie, '_TESTS'), \
+                '%s has _TEST and _TESTS' % type(ie).__name__
+            tests = [t]
+        else:
+            tests = getattr(ie, '_TESTS', [])
+        for t in tests:
+            if not include_onlymatching and t.get('only_matching', False):
+                continue
             t['name'] = type(ie).__name__[:-len('IE')]
             yield t
 
@@ -101,7 +107,7 @@ def expect_info_dict(self, expected_dict, got_dict):
         elif isinstance(expected, type):
             got = got_dict.get(info_field)
             self.assertTrue(isinstance(got, expected),
-                u'Expected type %r, but got value %r of type %r' % (expected, got, type(got)))
+                u'Expected type %r for field %s, but got value %r of type %r' % (expected, info_field, got, type(got)))
         else:
             if isinstance(expected, compat_str) and expected.startswith('md5:'):
                 got = 'md5:' + md5(got_dict.get(info_field))
@@ -129,3 +135,17 @@ def expect_info_dict(self, expected_dict, got_dict):
             missing_keys,
             'Missing keys in test definition: %s' % (
                 ', '.join(sorted(missing_keys))))
+
+
+def assertRegexpMatches(self, text, regexp, msg=None):
+    if hasattr(self, 'assertRegexpMatches'):
+        return self.assertRegexpMatches(text, regexp, msg)
+    else:
+        m = re.match(regexp, text)
+        if not m:
+            note = 'Regexp didn\'t match: %r not found in %r' % (regexp, text)
+            if msg is None:
+                msg = note
+            else:
+                msg = note + ', ' + msg
+            self.assertTrue(m, msg)

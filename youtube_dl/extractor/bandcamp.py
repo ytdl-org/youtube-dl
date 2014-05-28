@@ -12,14 +12,14 @@ from ..utils import (
 
 
 class BandcampIE(InfoExtractor):
-    _VALID_URL = r'http://.*?\.bandcamp\.com/track/(?P<title>.*)'
+    _VALID_URL = r'https?://.*?\.bandcamp\.com/track/(?P<title>.*)'
     _TESTS = [{
         'url': 'http://youtube-dl.bandcamp.com/track/youtube-dl-test-song',
         'file': '1812978515.mp3',
         'md5': 'c557841d5e50261777a6585648adf439',
         'info_dict': {
             "title": "youtube-dl  \"'/\\\u00e4\u21ad - youtube-dl test song \"'/\\\u00e4\u21ad",
-            "duration": 10,
+            "duration": 9.8485,
         },
         '_skip': 'There is a limit of 200 free downloads / month for the test song'
     }]
@@ -28,36 +28,32 @@ class BandcampIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         title = mobj.group('title')
         webpage = self._download_webpage(url, title)
-        # We get the link to the free download page
         m_download = re.search(r'freeDownloadPage: "(.*?)"', webpage)
-        if m_download is None:
+        if not m_download:
             m_trackinfo = re.search(r'trackinfo: (.+),\s*?\n', webpage)
             if m_trackinfo:
                 json_code = m_trackinfo.group(1)
-                data = json.loads(json_code)
-                d = data[0]
+                data = json.loads(json_code)[0]
 
-                duration = int(round(d['duration']))
                 formats = []
-                for format_id, format_url in d['file'].items():
-                    ext, _, abr_str = format_id.partition('-')
-
+                for format_id, format_url in data['file'].items():
+                    ext, abr_str = format_id.split('-', 1)
                     formats.append({
                         'format_id': format_id,
                         'url': format_url,
-                        'ext': format_id.partition('-')[0],
+                        'ext': ext,
                         'vcodec': 'none',
-                        'acodec': format_id.partition('-')[0],
-                        'abr': int(format_id.partition('-')[2]),
+                        'acodec': ext,
+                        'abr': int(abr_str),
                     })
 
                 self._sort_formats(formats)
 
                 return {
-                    'id': compat_str(d['id']),
-                    'title': d['title'],
+                    'id': compat_str(data['id']),
+                    'title': data['title'],
                     'formats': formats,
-                    'duration': duration,
+                    'duration': float(data['duration']),
                 }
             else:
                 raise ExtractorError('No free songs found')
@@ -67,11 +63,9 @@ class BandcampIE(InfoExtractor):
             r'var TralbumData = {(.*?)id: (?P<id>\d*?)$',
             webpage, re.MULTILINE | re.DOTALL).group('id')
 
-        download_webpage = self._download_webpage(download_link, video_id,
-                                                  'Downloading free downloads page')
-        # We get the dictionary of the track from some javascrip code
-        info = re.search(r'items: (.*?),$',
-                         download_webpage, re.MULTILINE).group(1)
+        download_webpage = self._download_webpage(download_link, video_id, 'Downloading free downloads page')
+        # We get the dictionary of the track from some javascript code
+        info = re.search(r'items: (.*?),$', download_webpage, re.MULTILINE).group(1)
         info = json.loads(info)[0]
         # We pick mp3-320 for now, until format selection can be easily implemented.
         mp3_info = info['downloads']['mp3-320']
@@ -100,7 +94,7 @@ class BandcampIE(InfoExtractor):
 
 class BandcampAlbumIE(InfoExtractor):
     IE_NAME = 'Bandcamp:album'
-    _VALID_URL = r'http://.*?\.bandcamp\.com/album/(?P<title>.*)'
+    _VALID_URL = r'https?://(?:(?P<subdomain>[^.]+)\.)?bandcamp\.com(?:/album/(?P<title>[^?#]+))'
 
     _TEST = {
         'url': 'http://blazo.bandcamp.com/album/jazz-format-mixtape-vol-1',
@@ -123,13 +117,15 @@ class BandcampAlbumIE(InfoExtractor):
         'params': {
             'playlistend': 2
         },
-        'skip': 'Bancamp imposes download limits. See test_playlists:test_bandcamp_album for the playlist test'
+        'skip': 'Bandcamp imposes download limits. See test_playlists:test_bandcamp_album for the playlist test'
     }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        playlist_id = mobj.group('subdomain')
         title = mobj.group('title')
-        webpage = self._download_webpage(url, title)
+        display_id = title or playlist_id
+        webpage = self._download_webpage(url, display_id)
         tracks_paths = re.findall(r'<a href="(.*?)" itemprop="url">', webpage)
         if not tracks_paths:
             raise ExtractorError('The page doesn\'t contain any tracks')
@@ -139,6 +135,8 @@ class BandcampAlbumIE(InfoExtractor):
         title = self._search_regex(r'album_title : "(.*?)"', webpage, 'title')
         return {
             '_type': 'playlist',
+            'id': playlist_id,
+            'display_id': display_id,
             'title': title,
             'entries': entries,
         }

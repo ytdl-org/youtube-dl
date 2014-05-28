@@ -540,6 +540,16 @@ def encodeFilename(s, for_subprocess=False):
         encoding = 'utf-8'
     return s.encode(encoding, 'ignore')
 
+
+def encodeArgument(s):
+    if not isinstance(s, compat_str):
+        # Legacy code that uses byte strings
+        # Uncomment the following line after fixing all post processors
+        #assert False, 'Internal error: %r should be of type %r, is %r' % (s, compat_str, type(s))
+        s = s.decode('ascii')
+    return encodeFilename(s, True)
+
+
 def decodeOption(optval):
     if optval is None:
         return optval
@@ -594,13 +604,15 @@ def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
 
 class ExtractorError(Exception):
     """Error during info extraction."""
-    def __init__(self, msg, tb=None, expected=False, cause=None):
+    def __init__(self, msg, tb=None, expected=False, cause=None, video_id=None):
         """ tb, if given, is the original traceback (so that it can be printed out).
         If expected is set, this is a normal error message and most likely not a bug in youtube-dl.
         """
 
         if sys.exc_info()[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError):
             expected = True
+        if video_id is not None:
+            msg = video_id + ': ' + msg
         if not expected:
             msg = msg + u'; please report this issue on https://yt-dl.org/bug . Be sure to call youtube-dl with the --verbose flag and include its complete output. Make sure you are using the latest version; type  youtube-dl -U  to update.'
         super(ExtractorError, self).__init__(msg)
@@ -608,6 +620,7 @@ class ExtractorError(Exception):
         self.traceback = tb
         self.exc_info = sys.exc_info()  # preserve original exception
         self.cause = cause
+        self.video_id = video_id
 
     def format_traceback(self):
         if self.traceback is None:
@@ -927,10 +940,11 @@ def _windows_write_string(s, out):
         2: -12,
     }
 
-    def ucs2_len(s):
-        return sum((2 if ord(c) > 0xffff else 1) for c in s)
-
-    fileno = out.fileno()
+    try:
+        fileno = out.fileno()
+    except AttributeError:
+        # If the output stream doesn't have a fileno, it's virtual
+        return False
     if fileno not in WIN_OUTPUT_IDS:
         return False
 
@@ -963,13 +977,25 @@ def _windows_write_string(s, out):
     if not_a_console(h):
         return False
 
-    remaining = ucs2_len(s)
-    while remaining > 0:
+    def next_nonbmp_pos(s):
+        try:
+            return next(i for i, c in enumerate(s) if ord(c) > 0xffff)
+        except StopIteration:
+            return len(s)
+
+    while s:
+        count = min(next_nonbmp_pos(s), 1024)
+
         ret = WriteConsoleW(
-            h, s, min(remaining, 1024), ctypes.byref(written), None)
+            h, s, count if count else 2, ctypes.byref(written), None)
         if ret == 0:
             raise OSError('Failed to write string')
-        remaining -= written.value
+        if not count:  # We just wrote a non-BMP character
+            assert written.value == 2
+            s = s[1:]
+        else:
+            assert written.value > 0
+            s = s[written.value:]
     return True
 
 
@@ -1240,7 +1266,10 @@ class HEADRequest(compat_urllib_request.Request):
         return "HEAD"
 
 
-def int_or_none(v, scale=1, default=None):
+def int_or_none(v, scale=1, default=None, get_attr=None):
+    if get_attr:
+        if v is not None:
+            v = getattr(v, get_attr, None)
     return default if v is None else (int(v) // scale)
 
 
@@ -1401,3 +1430,28 @@ US_RATINGS = {
 
 def strip_jsonp(code):
     return re.sub(r'(?s)^[a-zA-Z_]+\s*\(\s*(.*)\);\s*?\s*$', r'\1', code)
+
+
+def qualities(quality_ids):
+    """ Get a numeric quality value out of a list of possible values """
+    def q(qid):
+        try:
+            return quality_ids.index(qid)
+        except ValueError:
+            return -1
+    return q
+
+
+DEFAULT_OUTTMPL = '%(title)s-%(id)s.%(ext)s'
+
+try:
+    subprocess_check_output = subprocess.check_output
+except AttributeError:
+    def subprocess_check_output(*args, **kwargs):
+        assert 'input' not in kwargs
+        p = subprocess.Popen(*args, stdout=subprocess.PIPE, **kwargs)
+        output, _ = p.communicate()
+        ret = p.poll()
+        if ret:
+            raise subprocess.CalledProcessError(ret, p.args, output=output)
+        return output
