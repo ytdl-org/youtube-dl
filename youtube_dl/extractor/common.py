@@ -343,6 +343,16 @@ class InfoExtractor(object):
     @staticmethod
     def playlist_result(entries, playlist_id=None, playlist_title=None):
         """Returns a playlist"""
+        # Ensure we don't have any duplicates in the playlist
+        seen = set()
+        new_list = []
+        for url in entries:
+            theurl = tuple(url.items())
+            if theurl not in seen:
+             seen.add(theurl)
+             new_list.append(url)
+             entries = new_list
+
         video_info = {'_type': 'playlist',
                       'entries': entries}
         if playlist_id:

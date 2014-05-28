@@ -260,6 +260,20 @@ class GenericIE(InfoExtractor):
                 'uploader': 'Spi0n',
             },
             'add_ie': ['Dailymotion'],
+        },
+        # YouTube embed via <data-embed-url="">
+        {
+            'url': 'https://play.google.com/store/apps/details?id=com.gameloft.android.ANMP.GloftA8HM',
+            'md5': 'c267b1ab6d736057d64babaa37e07a66',
+            'info_dict': {
+                'id': 'Ybd-qmqYYpA',
+                'ext': 'mp4',
+                'title': 'Asphalt 8: Airborne -  Chinese Great Wall - Android Game Trailer',
+                'uploader': 'gameloftandroid',
+                'uploader_id': 'gameloftandroid',
+                'upload_date': '20140321',
+                'description': 'md5:9c6dca5dd75b7131ce482ccf080749d6'
+            }
         }
     ]
 
@@ -478,7 +492,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded YouTube player
         matches = re.findall(r'''(?x)
-            (?:<iframe[^>]+?src=|embedSWF\(\s*)
+            (?:<iframe[^>]+?src=|data-video-url=|embedSWF\(\s*)
             (["\'])(?P<url>(?:https?:)?//(?:www\.)?youtube\.com/
                 (?:embed|v)/.+?)
             \1''', webpage)
