@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class UstreamIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.ustream\.tv/(?P<type>recorded|embed)/(?P<videoID>\d+)'
+    _VALID_URL = r'https?://www\.ustream\.tv/(?P<type>recorded|embed|embed/recorded)/(?P<videoID>\d+)'
     IE_NAME = 'ustream'
     _TEST = {
         'url': 'http://www.ustream.tv/recorded/20274954',
@@ -25,14 +25,19 @@ class UstreamIE(InfoExtractor):
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
+        video_id = m.group('videoID')
+
+        if m.group('type') == 'embed/recorded': # some sites use this embed format (see: http://github.com/rg3/youtube-dl/issues/2990)
+            video_id = m.group('videoID')
+            webpage = self._download_webpage(url, video_id, note="Downloading embedded Ustream page")
+            desktop_url = 'http://www.ustream.tv/recorded/' + video_id
+            return self.url_result(desktop_url, 'Ustream')
         if m.group('type') == 'embed':
             video_id = m.group('videoID')
             webpage = self._download_webpage(url, video_id)
             desktop_video_id = self._html_search_regex(r'ContentVideoIds=\["([^"]*?)"\]', webpage, 'desktop_video_id')
             desktop_url = 'http://www.ustream.tv/recorded/' + desktop_video_id
             return self.url_result(desktop_url, 'Ustream')
-
-        video_id = m.group('videoID')
 
         video_url = 'http://tcdn.ustream.tv/video/%s' % video_id
         webpage = self._download_webpage(url, video_id)
