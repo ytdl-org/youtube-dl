@@ -15,11 +15,12 @@ class UstreamIE(InfoExtractor):
     IE_NAME = 'ustream'
     _TEST = {
         'url': 'http://www.ustream.tv/recorded/20274954',
-        'file': '20274954.flv',
         'md5': '088f151799e8f572f84eb62f17d73e5c',
         'info_dict': {
-            "uploader": "Young Americans for Liberty",
-            "title": "Young Americans for Liberty February 7, 2012 2:28 AM",
+            'id': '20274954',
+            'ext': 'flv',
+            'uploader': 'Young Americans for Liberty',
+            'title': 'Young Americans for Liberty February 7, 2012 2:28 AM',
         },
     }
 
@@ -27,14 +28,16 @@ class UstreamIE(InfoExtractor):
         m = re.match(self._VALID_URL, url)
         video_id = m.group('videoID')
 
-        if m.group('type') == 'embed/recorded': # some sites use this embed format (see: http://github.com/rg3/youtube-dl/issues/2990)
+        # some sites use this embed format (see: http://github.com/rg3/youtube-dl/issues/2990)
+        if m.group('type') == 'embed/recorded':
             video_id = m.group('videoID')
             desktop_url = 'http://www.ustream.tv/recorded/' + video_id
             return self.url_result(desktop_url, 'Ustream')
         if m.group('type') == 'embed':
             video_id = m.group('videoID')
             webpage = self._download_webpage(url, video_id)
-            desktop_video_id = self._html_search_regex(r'ContentVideoIds=\["([^"]*?)"\]', webpage, 'desktop_video_id')
+            desktop_video_id = self._html_search_regex(
+                r'ContentVideoIds=\["([^"]*?)"\]', webpage, 'desktop_video_id')
             desktop_url = 'http://www.ustream.tv/recorded/' + desktop_video_id
             return self.url_result(desktop_url, 'Ustream')
 
