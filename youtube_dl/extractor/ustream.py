@@ -29,7 +29,6 @@ class UstreamIE(InfoExtractor):
 
         if m.group('type') == 'embed/recorded': # some sites use this embed format (see: http://github.com/rg3/youtube-dl/issues/2990)
             video_id = m.group('videoID')
-            webpage = self._download_webpage(url, video_id, note="Downloading embedded Ustream page")
             desktop_url = 'http://www.ustream.tv/recorded/' + video_id
             return self.url_result(desktop_url, 'Ustream')
         if m.group('type') == 'embed':
