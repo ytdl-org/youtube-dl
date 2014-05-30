@@ -23,7 +23,6 @@ class SpiegeltvIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        # TODO more code goes here, for example ...
         webpage = self._download_webpage(url, video_id)
         title = self._html_search_regex(r'<h1.*?>(.*?)</h1>', webpage, 'title')
 
