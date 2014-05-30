@@ -2,8 +2,6 @@
 from __future__ import unicode_literals
 
 import re
-import json
-import urllib
 from .common import InfoExtractor
 
 class SpiegeltvIE(InfoExtractor):
@@ -28,22 +26,17 @@ class SpiegeltvIE(InfoExtractor):
 
         apihost           = 'http://spiegeltv-ivms2-restapi.s3.amazonaws.com';
 
-        version_json_code = urllib.urlopen('%s/version.json' % apihost).read()
-        version_json      = json.loads(version_json_code)
+        version_json      = self._download_json('%s/version.json' % apihost, None)
         version_name      = version_json['version_name']
 
-        slug_json_code    = urllib.urlopen('%s/%s/restapi/slugs/%s.json' % (apihost, version_name, video_id)).read()
-        slug_json         = json.loads(slug_json_code)
+        slug_json         = self._download_json('%s/%s/restapi/slugs/%s.json' % (apihost, version_name, video_id), None)
         oid               = slug_json['object_id']
               
-        media_json_code   = urllib.urlopen('%s/%s/restapi/media/%s.json' % (apihost, version_name, oid)).read()
-        media_json        = json.loads(media_json_code)
-
+        media_json        = self._download_json('%s/%s/restapi/media/%s.json' % (apihost, version_name, oid), None)
         uuid              = media_json['uuid']
         is_wide           = media_json['is_wide']
 
-        server_json_code  = urllib.urlopen('http://www.spiegel.tv/streaming_servers/').read()
-        server_json       = json.loads(server_json_code)
+        server_json       = self._download_json('http://www.spiegel.tv/streaming_servers/', None)
         server            = server_json[0]['endpoint']
 
         thumbnails = []
