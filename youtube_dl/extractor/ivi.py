@@ -33,14 +33,14 @@ class IviIE(InfoExtractor):
         },
         # Serial's serie
         {
-            'url': 'http://www.ivi.ru/watch/dezhurnyi_angel/74791',
-            'md5': '3e6cc9a848c1d2ebcc6476444967baa9',
+            'url': 'http://www.ivi.ru/watch/dvoe_iz_lartsa/9549',
+            'md5': '221f56b35e3ed815fde2df71032f4b3e',
             'info_dict': {
-                'id': '74791',
+                'id': '9549',
                 'ext': 'mp4',
-                'title': 'Дежурный ангел - 1 серия',
-                'duration': 2490,
-                'thumbnail': 'http://thumbs.ivi.ru/f7.vcp.digitalaccess.ru/contents/8/e/bc2f6c2b6e5d291152fdd32c059141.jpg',
+                'title': 'Двое из ларца - Серия 1',
+                'duration': 2655,
+                'thumbnail': 'http://thumbs.ivi.ru/f15.vcp.digitalaccess.ru/contents/8/4/0068dc0677041f3336b7c2baad8fc0.jpg',
             },
             'skip': 'Only works from Russia',
          }
