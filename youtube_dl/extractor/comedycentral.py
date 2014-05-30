@@ -188,7 +188,7 @@ class ComedyCentralShowsIE(InfoExtractor):
                 })
                 formats.append({
                     'format_id': 'rtmp-%s' % format,
-                    'url': rtmp_video_url,
+                    'url': rtmp_video_url.replace('viacomccstrm', 'viacommtvstrm'),
                     'ext': self._video_extensions.get(format, 'mp4'),
                     'height': h,
                     'width': w,
