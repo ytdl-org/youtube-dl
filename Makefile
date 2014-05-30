@@ -77,6 +77,6 @@ youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-
 		--exclude 'docs/_build' \
 		-- \
 		bin devscripts test youtube_dl docs \
-		CHANGELOG LICENSE README.md README.txt \
+		LICENSE README.md README.txt \
 		Makefile MANIFEST.in youtube-dl.1 youtube-dl.bash-completion setup.py \
 		youtube-dl
