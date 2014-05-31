@@ -72,7 +72,7 @@ class NRKIE(InfoExtractor):
 
 
 class NRKTVIE(InfoExtractor):
-    _VALID_URL = r'http://tv\.nrk\.no/(?:serie/[^/]+|program)/(?P<id>[a-z]{4}\d{8})'
+    _VALID_URL = r'http://tv\.nrk(?:super)?\.no/(?:serie/[^/]+|program)/(?P<id>[a-z]{4}\d{8})'
 
     _TESTS = [
         {
