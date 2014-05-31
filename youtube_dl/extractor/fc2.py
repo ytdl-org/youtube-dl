@@ -36,7 +36,7 @@ class FC2IE(InfoExtractor):
         thumbnail = self._og_search_thumbnail(webpage)
         refer = url.replace('/content/', '/a/content/')
 
-        mimi = hashlib.md5(video_id + '_gGddgPfeaf_gzyr').hexdigest()
+        mimi = hashlib.md5((video_id + '_gGddgPfeaf_gzyr').encode('utf-8')).hexdigest()
 
         info_url = (
             "http://video.fc2.com/ginfo.php?mimi={1:s}&href={2:s}&v={0:s}&fversion=WIN%2011%2C6%2C602%2C180&from=2&otag=0&upid={0:s}&tk=null&".
