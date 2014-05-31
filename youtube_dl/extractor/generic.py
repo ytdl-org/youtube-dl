@@ -494,6 +494,14 @@ class GenericIE(InfoExtractor):
         if matches:
             urlrs = [self.url_result(unescapeHTML(tuppl[1]), 'Youtube')
                      for tuppl in matches]
+            # First, ensure we have a duplicate free list of entries
+            seen = set()
+            new_list = []
+            theurl = tuple(url.items())
+            if theurl not in seen:
+                seen.add(theurl)
+                new_list.append(url)
+                urlrs = new_list
             return self.playlist_result(
                 urlrs, playlist_id=video_id, playlist_title=video_title)
 
@@ -503,6 +511,14 @@ class GenericIE(InfoExtractor):
         if matches:
             urlrs = [self.url_result(unescapeHTML(tuppl[1]))
                      for tuppl in matches]
+            # First, ensure we have a duplicate free list of entries
+            seen = set()
+            new_list = []
+            theurl = tuple(url.items())
+            if theurl not in seen:
+                seen.add(theurl)
+                new_list.append(url)
+                urlrs = new_list
             return self.playlist_result(
                 urlrs, playlist_id=video_id, playlist_title=video_title)
 
@@ -615,6 +631,14 @@ class GenericIE(InfoExtractor):
         if matches:
             urlrs = [self.url_result(unescapeHTML(eurl), 'FunnyOrDie')
                      for eurl in matches]
+            # First, ensure we have a duplicate free list of entries
+            seen = set()
+            new_list = []
+            theurl = tuple(url.items())
+            if theurl not in seen:
+                seen.add(theurl)
+                new_list.append(url)
+                urlrs = new_list
             return self.playlist_result(
                 urlrs, playlist_id=video_id, playlist_title=video_title)
 
