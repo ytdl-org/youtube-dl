@@ -37,7 +37,7 @@ class ExtremeTubeIE(InfoExtractor):
         webpage = self._download_webpage(req, video_id)
 
         video_title = self._html_search_regex(
-            r'<h1 [^>]*?title="([^"]+)"[^>]*>\1<', webpage, 'title')
+            r'<h1 [^>]*?title="([^"]+)"[^>]*>', webpage, 'title')
         uploader = self._html_search_regex(
             r'>Posted by:(?=<)(?:\s|<[^>]*>)*(.+?)\|', webpage, 'uploader',
             fatal=False)
