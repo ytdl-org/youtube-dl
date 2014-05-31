@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class FC2IE(InfoExtractor):
-    _VALID_URL = r'^http://video\.fc2\.com/(?P<lang>[^/]+)/content/(?P<id>[^/]+)'
+    _VALID_URL = r'^http://video\.fc2\.com/((?P<lang>[^/]+)/)?content/(?P<id>[^/]+)'
     IE_NAME = 'fc2'
     _TEST = {
         'url': 'http://video.fc2.com/en/content/20121103kUan1KHs',
