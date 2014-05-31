@@ -38,7 +38,9 @@ class ARDIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         title = self._html_search_regex(
-            r'<h1(?:\s+class="boxTopHeadline")?>(.*?)</h1>', webpage, 'title')
+            [r'<h1(?:\s+class="boxTopHeadline")?>(.*?)</h1>',
+             r'<h4 class="headline">(.*?)</h4>'],
+            webpage, 'title')
         description = self._html_search_meta(
             'dcterms.abstract', webpage, 'description')
         thumbnail = self._og_search_thumbnail(webpage)

@@ -209,20 +209,20 @@ class TestPlaylists(unittest.TestCase):
     def test_ivi_compilation(self):
         dl = FakeYDL()
         ie = IviCompilationIE(dl)
-        result = ie.extract('http://www.ivi.ru/watch/dezhurnyi_angel')
+        result = ie.extract('http://www.ivi.ru/watch/dvoe_iz_lartsa')
         self.assertIsPlaylist(result)
-        self.assertEqual(result['id'], 'dezhurnyi_angel')
-        self.assertEqual(result['title'], 'Дежурный ангел (2010 - 2012)')
-        self.assertTrue(len(result['entries']) >= 16)
+        self.assertEqual(result['id'], 'dvoe_iz_lartsa')
+        self.assertEqual(result['title'], 'Двое из ларца (2006 - 2008)')
+        self.assertTrue(len(result['entries']) >= 24)
 
     def test_ivi_compilation_season(self):
         dl = FakeYDL()
         ie = IviCompilationIE(dl)
-        result = ie.extract('http://www.ivi.ru/watch/dezhurnyi_angel/season1')
+        result = ie.extract('http://www.ivi.ru/watch/dvoe_iz_lartsa/season1')
         self.assertIsPlaylist(result)
-        self.assertEqual(result['id'], 'dezhurnyi_angel/season1')
-        self.assertEqual(result['title'], 'Дежурный ангел (2010 - 2012) 1 сезон')
-        self.assertTrue(len(result['entries']) >= 16)
+        self.assertEqual(result['id'], 'dvoe_iz_lartsa/season1')
+        self.assertEqual(result['title'], 'Двое из ларца (2006 - 2008) 1 сезон')
+        self.assertTrue(len(result['entries']) >= 12)
         
     def test_imdb_list(self):
         dl = FakeYDL()
