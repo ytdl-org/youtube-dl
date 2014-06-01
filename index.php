@@ -12,7 +12,7 @@
 <?php
 $DOWNLOAD_DIR = 'downloads';
 
-$versions = array_filter(scandir($DOWNLOAD_DIR), function($v) {return $v{0} != '.';});
+$versions = array_filter(scandir($DOWNLOAD_DIR), function($v) {return (($v{0} != '.') && ($v != 'latest'));});
 sort($versions);
 
 $latest = end($versions);
