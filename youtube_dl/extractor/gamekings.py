@@ -25,12 +25,16 @@ class GamekingsIE(InfoExtractor):
         name = mobj.group('name')
         webpage = self._download_webpage(url, name)
         video_url = self._og_search_video_url(webpage)
+        if 'vimeo' in video_url:
+            video = re.search(r'[0-9]+', video_url)
+            video_id = video.group(0)
+            video_url = video_url.replace('http://stream.gamekings.tv/','')
+        else:
+            video = re.search(r'[0-9]+', video_url)
+            video_id = video.group(0)
 
-        video = re.search(r'[0-9]+', video_url)
-        video_id = video.group(0)
-
-        # Todo: add medium format
-        video_url = video_url.replace(video_id, 'large/' + video_id)
+            # Todo: add medium format
+            video_url = video_url.replace(video_id, 'large/' + video_id)
 
         return {
             'id': video_id,
