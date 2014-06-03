@@ -8,7 +8,6 @@ class SpiegeltvIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?spiegel\.tv/filme/(?P<id>[\-a-z0-9]+)'
     _TEST = {
         'url': 'http://www.spiegel.tv/filme/flug-mh370/',
-        'md5': '700d62dc485f3a81cf9d52144e5ead59',
         'info_dict': {
             'id': 'flug-mh370',
             'ext': 'm4v',
