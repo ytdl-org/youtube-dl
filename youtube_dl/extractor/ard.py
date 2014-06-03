@@ -39,16 +39,18 @@ class ARDIE(InfoExtractor):
 
         title = self._html_search_regex(
             [r'<h1(?:\s+class="boxTopHeadline")?>(.*?)</h1>',
+             r'<meta name="dcterms.title" content="(.*?)"/>',
              r'<h4 class="headline">(.*?)</h4>'],
             webpage, 'title')
         description = self._html_search_meta(
             'dcterms.abstract', webpage, 'description')
         thumbnail = self._og_search_thumbnail(webpage)
 
-        streams = [
-            mo.groupdict()
-            for mo in re.finditer(
-                r'mediaCollection\.addMediaStream\((?P<media_type>\d+), (?P<quality>\d+), "(?P<rtmp_url>[^"]*)", "(?P<video_url>[^"]*)", "[^"]*"\)', webpage)]
+
+        media_info = self._download_json(
+            'http://www.ardmediathek.de/play/media/%s' % video_id, video_id)
+        # The second element of the _mediaArray contains the standard http urls
+        streams = media_info['_mediaArray'][1]['_mediaStreamArray']
         if not streams:
             if '"fsk"' in webpage:
                 raise ExtractorError('This video is only available after 20:00')
@@ -56,21 +58,12 @@ class ARDIE(InfoExtractor):
         formats = []
         for s in streams:
             format = {
-                'quality': int(s['quality']),
+                'quality': s['_quality'],
+                'url': s['_stream'],
             }
-            if s.get('rtmp_url'):
-                format['protocol'] = 'rtmp'
-                format['url'] = s['rtmp_url']
-                format['playpath'] = s['video_url']
-            else:
-                format['url'] = s['video_url']
 
-            quality_name = self._search_regex(
-                r'[,.]([a-zA-Z0-9_-]+),?\.mp4', format['url'],
-                'quality name', default='NA')
-            format['format_id'] = '%s-%s-%s-%s' % (
-                determine_ext(format['url']), quality_name, s['media_type'],
-                s['quality'])
+            format['format_id'] = '%s-%s' % (
+                determine_ext(format['url']), format['quality'])
 
             formats.append(format)
 
