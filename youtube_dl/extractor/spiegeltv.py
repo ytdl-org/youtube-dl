@@ -14,6 +14,10 @@ class SpiegeltvIE(InfoExtractor):
             'ext': 'm4v',
             'title': 'Flug MH370',
             'description': 'Das Rätsel um die Boeing 777 der Malaysia-Airlines',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
         }
     }
 
