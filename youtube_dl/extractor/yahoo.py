@@ -70,9 +70,9 @@ class YahooIE(InfoExtractor):
             # The 'meta' field is not always in the video webpage, we request it
             # from another page
             long_id = info['id']
-        return self._get_info(long_id, video_id)
+        return self._get_info(long_id, video_id, webpage)
 
-    def _get_info(self, long_id, video_id):
+    def _get_info(self, long_id, video_id, webpage):
         query = ('SELECT * FROM yahoo.media.video.streams WHERE id="%s"'
                  ' AND plrs="86Gj0vCaSzV_Iuf6hNylf2" AND region="US"'
                  ' AND protocol="http"' % long_id)
@@ -115,7 +115,7 @@ class YahooIE(InfoExtractor):
             'title': meta['title'],
             'formats': formats,
             'description': clean_html(meta['description']),
-            'thumbnail': meta.get('thumbnail'),
+            'thumbnail': meta['thumbnail'] if meta.get('thumbnail') else self._og_search_thumbnail(webpage),
         }
 
 
@@ -139,7 +139,7 @@ class YahooNewsIE(YahooIE):
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
         long_id = self._search_regex(r'contentId: \'(.+?)\',', webpage, 'long id')
-        return self._get_info(long_id, video_id)
+        return self._get_info(long_id, video_id, webpage)
 
 
 class YahooSearchIE(SearchInfoExtractor):
