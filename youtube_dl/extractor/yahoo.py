@@ -113,7 +113,7 @@ class YahooIE(InfoExtractor):
             'title': meta['title'],
             'formats': formats,
             'description': clean_html(meta['description']),
-            'thumbnail': meta['thumbnail'],
+            'thumbnail': meta.get('thumbnail'),
         }
 
 
