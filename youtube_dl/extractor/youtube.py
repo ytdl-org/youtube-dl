@@ -1414,11 +1414,9 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         title_span = (search_title('playlist-title') or
             search_title('title long-title') or search_title('title'))
         title = clean_html(title_span)
-        video_re = r'''(?x)data-video-username="(.*?)".*?
+        video_re = r'''(?x)data-video-username=".*?".*?
                        href="/watch\?v=([0-9A-Za-z_-]{11})&amp;[^"]*?list=%s''' % re.escape(playlist_id)
-        matches = orderedSet(re.findall(video_re, webpage, flags=re.DOTALL))
-        # Some of the videos may have been deleted, their username field is empty
-        ids = [video_id for (username, video_id) in matches if username]
+        ids = orderedSet(re.findall(video_re, webpage, flags=re.DOTALL))
         url_results = self._ids_to_results(ids)
 
         return self.playlist_result(url_results, playlist_id, title)
