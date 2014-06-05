@@ -43,7 +43,7 @@ class TagesschauIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         playerpage = self._download_webpage(
-            'http://www.tagesschau.de/multimedia/video/video%s~player_autoplay-true.html' % video_id, display_id)
+            'http://www.tagesschau.de/multimedia/video/video%s~player_autoplay-true.html' % video_id, display_id, 'Downloading player page')
 
         medias = re.findall(r'"(http://media.+?)", type:"video/(.+?)", quality:"(.+?)"', playerpage)
 
