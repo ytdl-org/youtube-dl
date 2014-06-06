@@ -59,6 +59,8 @@ class TagesschauIE(InfoExtractor):
             elif res == 'l':
                 res = 'large'
                 quality = 2
+            else:
+                quality = 0
 
             formats.append({
                 'format_id': res+'_'+ext,
