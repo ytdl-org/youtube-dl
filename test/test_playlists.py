@@ -28,6 +28,7 @@ from youtube_dl.extractor import (
     SoundcloudSetIE,
     SoundcloudUserIE,
     SoundcloudPlaylistIE,
+    TeacherTubeClassroomIE,
     LivestreamIE,
     NHLVideocenterIE,
     BambuserChannelIE,
@@ -359,6 +360,14 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(
             result['title'], 'Brace Yourself - Today\'s Weirdest News')
         self.assertTrue(len(result['entries']) >= 10)
+
+    def test_TeacherTubeClassroom(self):
+        dl = FakeYDL()
+        ie = TeacherTubeClassroomIE(dl)
+        result = ie.extract('http://www.teachertube.com/view_classroom.php?user=rbhagwati2')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], 'rbhagwati2')
+        self.assertTrue(len(result['entries']) >= 20)
 
 if __name__ == '__main__':
     unittest.main()
