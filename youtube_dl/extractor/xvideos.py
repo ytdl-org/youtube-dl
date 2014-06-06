@@ -5,6 +5,8 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
+    ExtractorError,
+    clean_html,
 )
 
 
@@ -27,6 +29,10 @@ class XVideosIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         self.report_extraction(video_id)
+
+        mobj = re.search(r'<h1 class="inlineError">(.+?)</h1>', webpage)
+        if mobj:
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, clean_html(mobj.group(1))), expected=True)
 
         # Extract video URL
         video_url = compat_urllib_parse.unquote(
