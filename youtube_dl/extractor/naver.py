@@ -47,14 +47,19 @@ class NaverIE(InfoExtractor):
         formats = []
         for format_el in urls.findall('EncodingOptions/EncodingOption'):
             domain = format_el.find('Domain').text
-            if domain.startswith('rtmp'):
-                continue
-            formats.append({
+            f = {
                 'url': domain + format_el.find('uri').text,
                 'ext': 'mp4',
                 'width': int(format_el.find('width').text),
                 'height': int(format_el.find('height').text),
-            })
+            }
+            if domain.startswith('rtmp'):
+                f.update({
+                    'ext': 'flv',
+                    'rtmp_protocol': '1', # rtmpt
+                })
+            formats.append(f)
+        self._sort_formats(formats)
 
         return {
             'id': video_id,

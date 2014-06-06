@@ -96,6 +96,7 @@ class RtmpFD(FileDownloader):
         flash_version = info_dict.get('flash_version', None)
         live = info_dict.get('rtmp_live', False)
         conn = info_dict.get('rtmp_conn', None)
+        protocol = info_dict.get('rtmp_protocol', None)
 
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
@@ -133,6 +134,8 @@ class RtmpFD(FileDownloader):
                 basic_args += ['--conn', entry]
         elif isinstance(conn, compat_str):
             basic_args += ['--conn', conn]
+        if protocol is not None:
+            basic_args += ['--protocol', protocol]
         args = basic_args + [[], ['--resume', '--skip', '1']][not live and self.params.get('continuedl', False)]
 
         if sys.platform == 'win32' and sys.version_info < (3, 0):
