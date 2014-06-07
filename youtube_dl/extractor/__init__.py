@@ -306,12 +306,7 @@ from .veehd import VeeHDIE
 from .veoh import VeohIE
 from .vesti import VestiIE
 from .vevo import VevoIE
-from .vh1 import (
-    VH1EpisodeIE,
-    VH1ClipIE,
-    VH1ShortUrlIE,
-    VH1MusicVideoIE
-)
+from .vh1 import VH1IE
 from .viddler import ViddlerIE
 from .videobam import VideoBamIE
 from .videodetective import VideoDetectiveIE
