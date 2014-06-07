@@ -12,6 +12,7 @@ from ..utils import (
     compat_urllib_parse,
 
     ExtractorError,
+    int_or_none,
     unified_strdate,
 )
 
@@ -44,7 +45,8 @@ class SoundcloudIE(InfoExtractor):
                 "upload_date": "20121011",
                 "description": "No Downloads untill we record the finished version this weekend, i was too pumped n i had to post it , earl is prolly gonna b hella p.o'd",
                 "uploader": "E.T. ExTerrestrial Music",
-                "title": "Lostin Powers - She so Heavy (SneakPreview) Adrian Ackers Blueprint 1"
+                "title": "Lostin Powers - She so Heavy (SneakPreview) Adrian Ackers Blueprint 1",
+                "duration": 143,
             }
         },
         # not streamable song
@@ -57,6 +59,7 @@ class SoundcloudIE(InfoExtractor):
                 'description': 'From Stockholm Sweden\r\nPovel / Magnus / Filip / David\r\nwww.theroyalconcept.com',
                 'uploader': 'The Royal Concept',
                 'upload_date': '20120521',
+                'duration': 227,
             },
             'params': {
                 # rtmp
@@ -74,6 +77,7 @@ class SoundcloudIE(InfoExtractor):
                 'uploader': 'jaimeMF',
                 'description': 'test chars:  \"\'/\\ä↭',
                 'upload_date': '20131209',
+                'duration': 9,
             },
         },
         # downloadable song
@@ -87,6 +91,7 @@ class SoundcloudIE(InfoExtractor):
                 'description': 'Vocals',
                 'uploader': 'Sim Gretina',
                 'upload_date': '20130815',
+                #'duration': 42,
             },
         },
     ]
@@ -119,6 +124,7 @@ class SoundcloudIE(InfoExtractor):
             'title': info['title'],
             'description': info['description'],
             'thumbnail': thumbnail,
+            'duration': int_or_none(info.get('duration'), 1000),
         }
         formats = []
         if info.get('downloadable', False):
