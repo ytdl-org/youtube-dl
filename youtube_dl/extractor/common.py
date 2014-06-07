@@ -92,8 +92,12 @@ class InfoExtractor(object):
                     unique, but available before title. Typically, id is
                     something like "4234987", title "Dancing naked mole rats",
                     and display_id "dancing-naked-mole-rats"
-    thumbnails:     A list of dictionaries (with the entries "resolution" and
-                    "url") for the varying thumbnails
+    thumbnails:     A list of dictionaries, with the following entries:
+                        * "url"
+                        * "width" (optional, int)
+                        * "height" (optional, int)
+                        * "resolution" (optional, string "{width}x{height"},
+                                        deprecated)
     thumbnail:      Full URL to a video thumbnail image.
     description:    One-line video description.
     uploader:       Full name of the video uploader.

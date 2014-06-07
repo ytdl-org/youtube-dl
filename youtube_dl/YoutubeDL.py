@@ -717,6 +717,15 @@ class YoutubeDL(object):
             info_dict['playlist'] = None
             info_dict['playlist_index'] = None
 
+        thumbnails = info_dict.get('thumbnails')
+        if thumbnails:
+            for t in thumbnails:
+                if 'width' in t and 'height' in t:
+                    t['resolution'] = '%dx%d' % (t['width'], t['height'])
+
+        if thumbnails and 'thumbnail' not in info_dict:
+            info_dict['thumbnail'] = thumbnails[-1]['url']
+
         if 'display_id' not in info_dict and 'id' in info_dict:
             info_dict['display_id'] = info_dict['id']
 
