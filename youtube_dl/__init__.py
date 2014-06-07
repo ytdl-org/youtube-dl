@@ -58,6 +58,7 @@ __authors__  = (
     'Hoje Lee',
     'Adam Thalhammer',
     'Georg Jähnig',
+    'Ralf Haring',
 )
 
 __license__ = 'Public Domain'
