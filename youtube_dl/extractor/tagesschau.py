@@ -7,7 +7,7 @@ from .common import InfoExtractor
 
 
 class TagesschauIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/multimedia/video/video(?P<id>-?\d+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/multimedia/video/video(?P<id>-?[0-9]+)\.html'
 
     _TESTS = [{
         'url': 'http://www.tagesschau.de/multimedia/video/video1399128.html',
@@ -25,11 +25,17 @@ class TagesschauIE(InfoExtractor):
         'info_dict': {
             'id': '196',
             'ext': 'mp4',
-            'title': 'Ukraine-Konflikt: Klitschko in Kiew als B\xfcrgermeister vereidigt',
+            'title': 'Ukraine-Konflikt: Klitschko in Kiew als Bürgermeister vereidigt',
             'description': 'md5:f22e4af75821d174fa6c977349682691',
             'thumbnail': 're:http://.*\.jpg',
         },
-    }]      
+    }]
+
+    _FORMATS = {
+        's': {'width': 256, 'height': 144, 'quality': 1},
+        'm': {'width': 512, 'height': 288, 'quality': 2},
+        'l': {'width': 960, 'height': 544, 'quality': 3},
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -43,31 +49,22 @@ class TagesschauIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         playerpage = self._download_webpage(
-            'http://www.tagesschau.de/multimedia/video/video%s~player_autoplay-true.html' % video_id, display_id, 'Downloading player page')
+            'http://www.tagesschau.de/multimedia/video/video%s~player_autoplay-true.html' % video_id,
+            display_id, 'Downloading player page')
 
-        medias = re.findall(r'"(http://media.+?)", type:"video/(.+?)", quality:"(.+?)"', playerpage)
+        medias = re.findall(
+            r'"(http://media.+?)", type:"video/(.+?)", quality:"(.+?)"',
+            playerpage)
 
         formats = []
         for url, ext, res in medias:
-            
-            if res == 's':
-                res = 'small'
-                quality = 0
-            elif res == 'm':
-                res = 'medium'
-                quality = 1
-            elif res == 'l':
-                res = 'large'
-                quality = 2
-            else:
-                quality = 0
-
-            formats.append({
-                'format_id': res+'_'+ext,
+            f = {
+                'format_id': res + '_' + ext,
                 'url': url,
-                'quality': quality,
                 'ext': ext,
-            })
+            }
+            f.update(self._FORMATS.get(res, {}))
+            formats.append(f)
 
         self._sort_formats(formats)
 
@@ -76,7 +73,7 @@ class TagesschauIE(InfoExtractor):
         return {
             'id': display_id,
             'title': self._og_search_title(webpage).strip(),
-            'thumbnail': 'http://www.tagesschau.de'+thumbnail,
+            'thumbnail': 'http://www.tagesschau.de' + thumbnail,
             'formats': formats,
             'description': self._og_search_description(webpage).strip(),
         }
