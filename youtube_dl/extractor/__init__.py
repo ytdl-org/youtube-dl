@@ -258,6 +258,7 @@ from .southparkstudios import (
 from .space import SpaceIE
 from .spankwire import SpankwireIE
 from .spiegel import SpiegelIE
+from .spiegeltv import SpiegeltvIE
 from .spike import SpikeIE
 from .stanfordoc import StanfordOpenClassroomIE
 from .steam import SteamIE
