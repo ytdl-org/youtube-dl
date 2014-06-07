@@ -4,13 +4,17 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import (
+    qualities,
+    determine_ext,
+)
 
 
 class TeacherTubeIE(InfoExtractor):
     IE_NAME = 'teachertube'
     IE_DESC = 'teachertube.com videos'
 
-    _VALID_URL = r'https?://(?:www\.)?teachertube\.com/viewVideo\.php\?video_id=(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?teachertube\.com/(viewVideo\.php\?video_id=|music\.php\?music_id=)(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.teachertube.com/viewVideo.php?video_id=339997',
@@ -32,6 +36,15 @@ class TeacherTubeIE(InfoExtractor):
             'description': 'md5:2ca52b20cd727773d1dc418b3d6bd07b',
             'thumbnail': 're:http://.*\.jpg',
         },
+    }, {
+        'url': 'http://www.teachertube.com/music.php?music_id=8805',
+        'md5': '01e8352006c65757caf7b961f6050e21',
+        'info_dict': {
+            'id': '8805',
+            'ext': 'mp3',
+            'title': 'PER ASPERA AD ASTRA',
+            'description': 'RADIJSKA EMISIJA ZRAKOPLOVNE TEHNIČKE ŠKOLE PER ASPERA AD ASTRA',
+        },
     }]
 
     def _real_extract(self, url):
@@ -40,19 +53,14 @@ class TeacherTubeIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        url = self._html_search_meta('twitter:player:stream', webpage, 'twitter player')
+        quality = qualities(['mp3', 'flv', 'mp4'])
 
-        formats = [{
-            'format_id': 'flv',
-            'url': url.replace('mp4v', 'flv').replace('.mp4', '.flv'),
-            'quality': 0,
-            'ext': 'flv',
-        }, {
-            'format_id': 'mp4',
-            'url': url,
-            'quality': 1,
-            'ext': 'mp4',
-        }]
+        formats = [
+            {
+                'url': media_url,
+                'quality': quality(determine_ext(media_url))
+            } for media_url in set(zip(*re.findall(r'([\'"])file\1\s*:\s*"([^"]+)"', webpage))[1])
+        ]
 
         self._sort_formats(formats)
 
