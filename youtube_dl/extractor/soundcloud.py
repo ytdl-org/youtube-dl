@@ -13,7 +13,7 @@ from ..utils import (
 
     ExtractorError,
     unified_strdate,
-)
+    int_or_none)
 
 
 class SoundcloudIE(InfoExtractor):
@@ -119,6 +119,7 @@ class SoundcloudIE(InfoExtractor):
             'title': info['title'],
             'description': info['description'],
             'thumbnail': thumbnail,
+            'duration': int(int_or_none(info.get("duration")) / 1000),
         }
         formats = []
         if info.get('downloadable', False):
