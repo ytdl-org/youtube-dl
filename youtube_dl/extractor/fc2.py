@@ -50,10 +50,13 @@ class FC2IE(InfoExtractor):
             raise ExtractorError('Error code: %s' % info['err_code'][0])
 
         video_url = info['filepath'][0] + '?mid=' + info['mid'][0]
+        title_info = info.get('title')
+        if title_info:
+            title = title_info[0]
 
         return {
             'id': video_id,
-            'title': info['title'][0],
+            'title': title,
             'url': video_url,
             'ext': 'flv',
             'thumbnail': thumbnail,
