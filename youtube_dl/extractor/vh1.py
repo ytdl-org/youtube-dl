@@ -58,7 +58,7 @@ class VH1IE(MTVIE):
                 }
             }
         ],
-        '_skip': 'Blocked outside the US',
+        'skip': 'Blocked outside the US',
     }, {
         # Clip
         'url': 'http://www.vh1.com/video/misc/706675/metal-evolution-episode-1-pre-metal-show-clip.jhtml#id=1674118',
@@ -68,7 +68,8 @@ class VH1IE(MTVIE):
             'ext': 'mp4',
             'title': 'Metal Evolution: Episode 1 Pre-Metal Show Clip',
             'description': 'The greatest documentary ever made about Heavy Metal begins as our host Sam Dunn travels the globe to seek out the origins and influences that helped create Heavy Metal. Sam speaks to legends like Kirk Hammett, Alice Cooper, Slash, Bill Ward, Geezer Butler, Tom Morello, Ace Frehley, Lemmy Kilmister, Dave Davies, and many many more. This episode is the prologue for the 11 hour series, and Sam goes back to the very beginning to reveal how Heavy Metal was created.'
-        }
+        },
+        'skip': 'Blocked outside the US',
     }, {
         # Short link
         'url': 'http://www.vh1.com/video/play.jhtml?id=1678353',
@@ -78,15 +79,18 @@ class VH1IE(MTVIE):
             'ext': 'mp4',
             'title': 'Metal Evolution: Episode 11 Progressive Metal Sneak',
             'description': 'In Metal Evolution\'s finale sneak, Sam sits with Michael Giles of King Crimson and gets feedback from Metallica guitarist Kirk Hammett on why the group was influential.'
-        }
+        },
+        'skip': 'Blocked outside the US',
     }, {
         'url': 'http://www.vh1.com/video/macklemore-ryan-lewis/900535/cant-hold-us-ft-ray-dalton.jhtml',
+        'md5': 'b1bcb5b4380c9d7f544065589432dee7',
         'info_dict': {
             'id': '900535',
             'ext': 'mp4',
             'title': 'Macklemore & Ryan Lewis - "Can\'t Hold Us ft. Ray Dalton"',
             'description': 'The Heist'
-        }
+        },
+        'skip': 'Blocked outside the US',
     }]
 
     _VALID_URL = r'''(?x)
