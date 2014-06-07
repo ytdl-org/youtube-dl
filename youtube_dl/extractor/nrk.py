@@ -6,7 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    int_or_none,
+    float_or_none,
     unified_strdate,
 )
 
@@ -89,7 +89,7 @@ class NRKTVIE(InfoExtractor):
         },
         {
             'url': 'http://tv.nrk.no/program/mdfp15000514',
-            'md5': '383650ece2b25ecec996ad7b5bb2a384',
+            'md5': 'af01795a31f1cf7265c8657534d8077b',
             'info_dict': {
                 'id': 'mdfp15000514',
                 'ext': 'flv',
@@ -111,9 +111,8 @@ class NRKTVIE(InfoExtractor):
         description = self._html_search_meta('description', page, 'description')
         thumbnail = self._html_search_regex(r'data-posterimage="([^"]+)"', page, 'thumbnail', fatal=False)
         upload_date = unified_strdate(self._html_search_meta('rightsfrom', page, 'upload date', fatal=False))
-        duration = self._html_search_regex(r'data-duration="([^"]+)"', page, 'duration', fatal=False)
-        if duration:
-            duration = float(duration)
+        duration = float_or_none(
+            self._html_search_regex(r'data-duration="([^"]+)"', page, 'duration', fatal=False))
 
         formats = []
 
