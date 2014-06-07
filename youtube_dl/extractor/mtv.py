@@ -80,6 +80,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
                                 })
             except (KeyError, TypeError):
                 raise ExtractorError('Invalid rendition field.')
+        self._sort_formats(formats)
         return formats
 
     def _get_video_info(self, itemdoc):
