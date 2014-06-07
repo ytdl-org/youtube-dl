@@ -719,6 +719,8 @@ class YoutubeDL(object):
 
         thumbnails = info_dict.get('thumbnails')
         if thumbnails:
+            thumbnails.sort(key=lambda t: (
+                t.get('width'), t.get('height'), t.get('url')))
             for t in thumbnails:
                 if 'width' in t and 'height' in t:
                     t['resolution'] = '%dx%d' % (t['width'], t['height'])
