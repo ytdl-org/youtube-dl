@@ -6,14 +6,14 @@ import re
 from .common import InfoExtractor
 
 class GorillaVidIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www.)?gorillavid.in/(?:embed-)?(?P<id>\w+)(?:\-\d+x\d+)?.html'
+    _VALID_URL = r'https?://(?:www.)?gorillavid.in/(?:embed-)?(?P<id>\w+)(?:\-\d+x\d+)?(?:.html)?'
     _TEST = {
-        'url': "http://gorillavid.in/kdk7i5r1p5ye.html",
-        'md5': '5a01b05ed3da82a10c6659e954b80108',
+        'url': "http://gorillavid.in/z08zf8le23c6",
+        'md5': 'c9e293ca74d46cad638e199c3f3fe604',
         'info_dict': {
-            'id': 'kdk7i5r1p5ye',
-            'ext': 'flv',
-            'title': 'Full House 1x16 - But Seriously, Folks.avi',
+            'id': 'z08zf8le23c6',
+            'ext': 'mp4',
+            'title': 'Say something nice',
         }
     }
 
