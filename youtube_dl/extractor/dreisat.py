@@ -32,8 +32,8 @@ class DreiSatIE(InfoExtractor):
 
         thumbnail_els = details_doc.findall('.//teaserimage')
         thumbnails = [{
-            'width': te.attrib['key'].partition('x')[0],
-            'height': te.attrib['key'].partition('x')[2],
+            'width': int(te.attrib['key'].partition('x')[0]),
+            'height': int(te.attrib['key'].partition('x')[2]),
             'url': te.text,
         } for te in thumbnail_els]
 
