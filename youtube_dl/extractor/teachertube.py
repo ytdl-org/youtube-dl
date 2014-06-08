@@ -55,11 +55,13 @@ class TeacherTubeIE(InfoExtractor):
 
         quality = qualities(['mp3', 'flv', 'mp4'])
 
+        _, media_urls = zip(*re.findall(r'([\'"])file\1\s*:\s*"([^"]+)"', webpage))
+
         formats = [
             {
                 'url': media_url,
                 'quality': quality(determine_ext(media_url))
-            } for media_url in set(zip(*re.findall(r'([\'"])file\1\s*:\s*"([^"]+)"', webpage))[1])
+            } for media_url in set(media_urls)
         ]
 
         self._sort_formats(formats)
