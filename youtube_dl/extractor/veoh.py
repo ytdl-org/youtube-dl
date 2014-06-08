@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..utils import (
     compat_urllib_request,
     int_or_none,
+    ExtractorError,
 )
 
 
@@ -94,8 +95,12 @@ class VeohIE(InfoExtractor):
         if video_id.startswith('v'):
             rsp = self._download_xml(
                 r'http://www.veoh.com/api/findByPermalink?permalink=%s' % video_id, video_id, 'Downloading video XML')
-            if rsp.get('stat') == 'ok':
+            stat = rsp.get('stat')
+            if stat == 'ok':
                 return self._extract_video(rsp.find('./videoList/video'))
+            elif stat == 'fail':
+                raise ExtractorError(
+                    '%s said: %s' % (self.IE_NAME, rsp.find('./errorList/error').get('errorMessage')), expected=True)
 
         webpage = self._download_webpage(url, video_id)
         age_limit = 0
