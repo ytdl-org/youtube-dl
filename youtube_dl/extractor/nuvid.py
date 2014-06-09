@@ -61,7 +61,7 @@ class NuvidIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'thumbnail': 'http://m.nuvid.com/%s' % thumbnail,
+            'thumbnail': 'http://m.nuvid.com%s' % thumbnail,
             'duration': duration,
             'upload_date': upload_date,
             'age_limit': 18,
