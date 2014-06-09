@@ -6,7 +6,6 @@ import time
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_str,
     compat_urllib_parse,
     compat_urllib_request,
 
