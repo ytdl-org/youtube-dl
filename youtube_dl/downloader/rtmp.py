@@ -106,7 +106,7 @@ class RtmpFD(FileDownloader):
         try:
             subprocess.call(['rtmpdump', '-h'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
         except (OSError, IOError):
-            self.report_error('RTMP download detected but "rtmpdump" could not be run')
+            self.report_error('RTMP download detected but "rtmpdump" could not be run. Please install it.')
             return False
 
         # Download using rtmpdump. rtmpdump returns exit code 2 when
