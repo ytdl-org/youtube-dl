@@ -668,6 +668,14 @@ class GenericIE(InfoExtractor):
             url = unescapeHTML(mobj.group('url'))
             return self.url_result(url)
 
+        # Look for embedded vulture.com player
+        mobj = re.search(
+            r'<iframe src="(?P<url>https?://video\.vulture\.com/[^"]+)"',
+            webpage)
+        if mobj is not None:
+            url = unescapeHTML(mobj.group('url'))
+            return self.url_result(url, ie='Vulture')
+
         # Start with something easy: JW Player in SWFObject
         found = re.findall(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
         if not found:

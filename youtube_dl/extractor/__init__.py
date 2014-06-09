@@ -332,6 +332,7 @@ from .viki import VikiIE
 from .vk import VKIE
 from .vube import VubeIE
 from .vuclip import VuClipIE
+from .vulture import VultureIE
 from .washingtonpost import WashingtonPostIE
 from .wat import WatIE
 from .wdr import (
