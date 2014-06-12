@@ -48,6 +48,10 @@ This command will update youtube-dl if you have already installed it.
 See the <a href="https://pypi.python.org/pypi/youtube_dl">pypi page</a> for more information.
 </p>
 
+<p>You can use Homebrew if you have it:
+<code class="commands">brew install youtube-dl</code>
+</p>
+
 <p>To check the signature, type:
 <code class="commands">sudo wget @PROGRAM_URL@.sig -O youtube-dl.sig<br/>gpg --verify youtube-dl.sig /usr/local/bin/youtube-dl<br/>rm youtube-dl.sig</code>
 </p>
