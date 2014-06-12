@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import re
 import json
 
@@ -6,31 +8,34 @@ from ..utils import (
     compat_urllib_parse_urlparse,
     compat_urlparse,
     xpath_with_ns,
+    compat_str,
 )
 
 
 class LivestreamIE(InfoExtractor):
-    IE_NAME = u'livestream'
+    IE_NAME = 'livestream'
     _VALID_URL = r'http://new\.livestream\.com/.*?/(?P<event_name>.*?)(/videos/(?P<id>\d+))?/?$'
     _TEST = {
-        u'url': u'http://new.livestream.com/CoheedandCambria/WebsterHall/videos/4719370',
-        u'file': u'4719370.mp4',
-        u'md5': u'0d2186e3187d185a04b3cdd02b828836',
-        u'info_dict': {
-            u'title': u'Live from Webster Hall NYC',
-            u'upload_date': u'20121012',
+        'url': 'http://new.livestream.com/CoheedandCambria/WebsterHall/videos/4719370',
+        'md5': '53274c76ba7754fb0e8d072716f2292b',
+        'info_dict': {
+            'id': '4719370',
+            'ext': 'mp4',
+            'title': 'Live from Webster Hall NYC',
+            'upload_date': '20121012',
         }
     }
 
     def _extract_video_info(self, video_data):
         video_url = video_data.get('progressive_url_hd') or video_data.get('progressive_url')
-        return {'id': video_data['id'],
-                'url': video_url,
-                'ext': 'mp4',
-                'title': video_data['caption'],
-                'thumbnail': video_data['thumbnail_url'],
-                'upload_date': video_data['updated_at'].replace('-','')[:8],
-                }
+        return {
+            'id': compat_str(video_data['id']),
+            'url': video_url,
+            'ext': 'mp4',
+            'title': video_data['caption'],
+            'thumbnail': video_data['thumbnail_url'],
+            'upload_date': video_data['updated_at'].replace('-', '')[:8],
+        }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -40,36 +45,36 @@ class LivestreamIE(InfoExtractor):
 
         if video_id is None:
             # This is an event page:
-            config_json = self._search_regex(r'window.config = ({.*?});',
-                webpage, u'window config')
+            config_json = self._search_regex(
+                r'window.config = ({.*?});', webpage, 'window config')
             info = json.loads(config_json)['event']
             videos = [self._extract_video_info(video_data['data'])
-                for video_data in info['feed']['data'] if video_data['type'] == u'video']
+                for video_data in info['feed']['data'] if video_data['type'] == 'video']
             return self.playlist_result(videos, info['id'], info['full_name'])
         else:
-            og_video = self._og_search_video_url(webpage, name=u'player url')
+            og_video = self._og_search_video_url(webpage, 'player url')
             query_str = compat_urllib_parse_urlparse(og_video).query
             query = compat_urlparse.parse_qs(query_str)
             api_url = query['play_url'][0].replace('.smil', '')
-            info = json.loads(self._download_webpage(api_url, video_id,
-                                                     u'Downloading video info'))
+            info = json.loads(self._download_webpage(
+                api_url, video_id, 'Downloading video info'))
             return self._extract_video_info(info)
 
 
 # The original version of Livestream uses a different system
 class LivestreamOriginalIE(InfoExtractor):
-    IE_NAME = u'livestream:original'
+    IE_NAME = 'livestream:original'
     _VALID_URL = r'https?://www\.livestream\.com/(?P<user>[^/]+)/video\?.*?clipId=(?P<id>.*?)(&|$)'
     _TEST = {
-        u'url': u'http://www.livestream.com/dealbook/video?clipId=pla_8aa4a3f1-ba15-46a4-893b-902210e138fb',
-        u'info_dict': {
-            u'id': u'pla_8aa4a3f1-ba15-46a4-893b-902210e138fb',
-            u'ext': u'flv',
-            u'title': u'Spark 1 (BitCoin) with Cameron Winklevoss & Tyler Winklevoss of Winklevoss Capital',
+        'url': 'http://www.livestream.com/dealbook/video?clipId=pla_8aa4a3f1-ba15-46a4-893b-902210e138fb',
+        'info_dict': {
+            'id': 'pla_8aa4a3f1-ba15-46a4-893b-902210e138fb',
+            'ext': 'flv',
+            'title': 'Spark 1 (BitCoin) with Cameron Winklevoss & Tyler Winklevoss of Winklevoss Capital',
         },
-        u'params': {
+        'params': {
             # rtmp
-            u'skip_download': True,
+            'skip_download': True,
         },
     }
 
@@ -84,7 +89,7 @@ class LivestreamOriginalIE(InfoExtractor):
         ns = {'media': 'http://search.yahoo.com/mrss'}
         thumbnail_url = item.find(xpath_with_ns('media:thumbnail', ns)).attrib['url']
         # Remove the extension and number from the path (like 1.jpg)
-        path = self._search_regex(r'(user-files/.+)_.*?\.jpg$', thumbnail_url, u'path')
+        path = self._search_regex(r'(user-files/.+)_.*?\.jpg$', thumbnail_url, 'path')
 
         return {
             'id': video_id,
