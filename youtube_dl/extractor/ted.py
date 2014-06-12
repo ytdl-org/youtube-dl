@@ -27,7 +27,7 @@ class TEDIE(SubtitlesInfoExtractor):
         '''
     _TESTS = [{
         'url': 'http://www.ted.com/talks/dan_dennett_on_our_consciousness.html',
-        'md5': '4ea1dada91e4174b53dac2bb8ace429d',
+        'md5': 'fc94ac279feebbce69f21c0c6ee82810',
         'info_dict': {
             'id': '102',
             'ext': 'mp4',
