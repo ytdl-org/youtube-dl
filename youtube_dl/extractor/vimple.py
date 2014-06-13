@@ -40,7 +40,7 @@ class VimpleIE(InfoExtractor):
         player = zlib.decompress(player[8:])
 
 
-        xml_pieces = re.findall(b'([a-zA-Z0-9 =\\+/]{500})', player)
+        xml_pieces = re.findall(b'([a-zA-Z0-9 =+/]{500})', player)
         xml_pieces = [piece[1:-1] for piece in xml_pieces]
         
         xml_data = b''.join(xml_pieces)
