@@ -1386,13 +1386,13 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                         |  p/
                         )
                         (
-                            (?:PL|EC|UU|FL|RD)?[0-9A-Za-z-_]{10,}
+                            (?:PL|LL|EC|UU|FL|RD)?[0-9A-Za-z-_]{10,}
                             # Top tracks, they can also include dots 
                             |(?:MC)[\w\.]*
                         )
                         .*
                      |
-                        ((?:PL|EC|UU|FL|RD)[0-9A-Za-z-_]{10,})
+                        ((?:PL|LL|EC|UU|FL|RD)[0-9A-Za-z-_]{10,})
                      )"""
     _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s'
     _MORE_PAGES_INDICATOR = r'data-link-type="next"'
