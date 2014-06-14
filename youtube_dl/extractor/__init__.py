@@ -345,6 +345,7 @@ from .weibo import WeiboIE
 from .wimp import WimpIE
 from .wistia import WistiaIE
 from .worldstarhiphop import WorldStarHipHopIE
+from .wrzuta import WrzutaIE
 from .xbef import XBefIE
 from .xhamster import XHamsterIE
 from .xnxx import XNXXIE
