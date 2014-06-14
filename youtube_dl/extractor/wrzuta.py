@@ -77,4 +77,5 @@ class WrzutaIE(InfoExtractor):
             'duration': int_or_none(embedpage['duration']),
             'uploader_id': uploader,
             'description': self._og_search_description(webpage),
+            'age_limit': embedpage.get('minimalAge', 0),
         }
