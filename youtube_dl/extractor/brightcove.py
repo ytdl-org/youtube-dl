@@ -187,7 +187,7 @@ class BrightcoveIE(InfoExtractor):
         webpage = self._download_webpage(req, video_id)
 
         self.report_extraction(video_id)
-        info = self._search_regex(r'var experienceJSON = ({.*?});', webpage, 'json')
+        info = self._search_regex(r'var experienceJSON = ({.*});', webpage, 'json')
         info = json.loads(info)['data']
         video_info = info['programmedContent']['videoPlayer']['mediaDTO']
         video_info['_youtubedl_adServerURL'] = info.get('adServerURL')
