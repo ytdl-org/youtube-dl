@@ -235,7 +235,6 @@ class BrightcoveIE(InfoExtractor):
 
         renditions = video_info.get('renditions')
         if renditions:
-            renditions = sorted(renditions, key=lambda r: r['size'])
             formats = []
             for rend in renditions:
                 url = rend['defaultURL']
@@ -246,12 +245,15 @@ class BrightcoveIE(InfoExtractor):
                     ext = 'flv'
                 else:
                     ext = determine_ext(url)
+                size = rend.get('size')
                 formats.append({
                     'url': url,
                     'ext': ext,
                     'height': rend.get('frameHeight'),
                     'width': rend.get('frameWidth'),
+                    'filesize': size if size != 0 else None,
                 })
+            self._sort_formats(formats)
             info['formats'] = formats
         elif video_info.get('FLVFullLengthURL') is not None:
             info.update({
