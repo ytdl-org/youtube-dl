@@ -56,7 +56,19 @@ class ARDIE(InfoExtractor):
                 raise ExtractorError('This video is only available after 20:00')
 
         formats = []
+
         for s in streams:
+            if type(s['_stream']) == list:
+                reverse = s['_stream'][::-1]
+                for i in reverse:
+                    quality = s['_quality'] + reverse.index(i)
+                    formats.append({
+                        'quality': quality,
+                        'url': i,
+                        'format_id': '%s-%s' % (determine_ext(i), quality)
+                        })
+                continue
+
             format = {
                 'quality': s['_quality'],
                 'url': s['_stream'],
