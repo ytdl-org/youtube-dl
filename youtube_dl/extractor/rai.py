@@ -46,7 +46,8 @@ class RaiIE(SubtitlesInfoExtractor):
                 'title': 'State of the Net, Antonella La Carpia: regole virali',
                 'description': 'md5:b0ba04a324126903e3da7763272ae63c',
                 'upload_date': '20140613',
-            }
+            },
+            'skip': 'Error 404',
         },
         {
             'url': 'http://www.rai.tv/dl/RaiTV/programmi/media/ContentItem-b4a49761-e0cc-4b14-8736-2729f6f73132-tg2.html',
