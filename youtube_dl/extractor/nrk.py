@@ -72,11 +72,11 @@ class NRKIE(InfoExtractor):
 
 
 class NRKTVIE(InfoExtractor):
-    _VALID_URL = r'http://tv\.nrk(?:super)?\.no/(?:serie/[^/]+|program)/(?P<id>[a-z]{4}\d{8})'
+    _VALID_URL = r'http://tv\.nrk(?:super)?\.no/(?:serie/[^/]+|program)/(?P<id>[a-zA-Z]{4}\d{8})'
 
     _TESTS = [
         {
-            'url': 'http://tv.nrk.no/serie/20-spoersmaal-tv/muhh48000314/23-05-2014',
+            'url': 'http://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
             'md5': '7b96112fbae1faf09a6f9ae1aff6cb84',
             'info_dict': {
                 'id': 'muhh48000314',
