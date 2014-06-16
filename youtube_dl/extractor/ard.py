@@ -59,13 +59,12 @@ class ARDIE(InfoExtractor):
 
         for s in streams:
             if type(s['_stream']) == list:
-                reverse = s['_stream'][::-1]
-                for i in reverse:
-                    quality = s['_quality'] + reverse.index(i)
+                for index, url in enumerate(s['_stream'][::-1]):
+                    quality = s['_quality'] + index
                     formats.append({
                         'quality': quality,
-                        'url': i,
-                        'format_id': '%s-%s' % (determine_ext(i), quality)
+                        'url': url,
+                        'format_id': '%s-%s' % (determine_ext(url), quality)
                         })
                 continue
 
