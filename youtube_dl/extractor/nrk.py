@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from .subtitles import SubtitlesInfoExtractor
 from ..utils import (
     ExtractorError,
     float_or_none,
@@ -71,8 +72,8 @@ class NRKIE(InfoExtractor):
         }
 
 
-class NRKTVIE(InfoExtractor):
-    _VALID_URL = r'http://tv\.nrk(?:super)?\.no/(?:serie/[^/]+|program)/(?P<id>[a-zA-Z]{4}\d{8})'
+class NRKTVIE(SubtitlesInfoExtractor):
+    _VALID_URL = r'(?P<baseurl>http://tv\.nrk(?:super)?\.no)/(?:serie/[^/]+|program)/(?P<id>[a-zA-Z]{4}\d{8})'
 
     _TESTS = [
         {
@@ -101,9 +102,49 @@ class NRKTVIE(InfoExtractor):
         },
     ]
 
+    def _str2seconds(self, t):
+        parts = t.split(':')
+        try:
+            s = float(parts[2])
+        except ValueError: # NRK Uses a negative duration for copyright info
+            s = 0.0
+        return int(parts[0]) * 3600 + int(parts[1]) * 60 + s;
+
+    def _seconds2str(self, s):
+        return '%02d:%02d:%02d.%03d' % (s/3600, (s%3600)/60, s%60, (s%1)*1000)
+
+    def _debug_print(self, txt):
+        if self._downloader.params.get('verbose', False):
+            self.to_screen(u'[debug] %s' % txt)
+
+    def _extract_captions(self, subtitlesurl, video_id, baseurl):
+        url = "%s%s" % (baseurl, subtitlesurl)
+        self._debug_print(u'%s: Subtitle url: %s' % (video_id, url))
+        captions = self._download_xml(url, video_id, 'Downloading subtitles')
+        lang = captions.get('lang', 'no')
+        ps = captions.findall('./{0}body/{0}div/{0}p'.format('{http://www.w3.org/ns/ttml}'))
+        if not len(ps):
+            self._debug_print(u'%s: Found no subtitles on subtitle page, something is wrong.')
+        srt = ''
+        for pos, p in enumerate(ps):
+            begin = self._str2seconds(p.get('begin'))
+            duration = self._str2seconds(p.get('dur'))
+            starttime = self._seconds2str(begin)
+            endtime = self._seconds2str(begin + duration)
+            linebreak = ''
+            text = ''
+            for child in p.itertext():
+                text = text + linebreak + child;
+                linebreak = '\n'
+            srt += '%s\r\n%s --> %s\r\n%s\r\n\r\n' % (str(pos), starttime, endtime, text)
+        subtitle = {}
+        subtitle[lang] = srt
+        return subtitle
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
+        baseurl = mobj.group('baseurl')
 
         page = self._download_webpage(url, video_id)
 
@@ -113,6 +154,14 @@ class NRKTVIE(InfoExtractor):
         upload_date = unified_strdate(self._html_search_meta('rightsfrom', page, 'upload date', fatal=False))
         duration = float_or_none(
             self._html_search_regex(r'data-duration="([^"]+)"', page, 'duration', fatal=False))
+        subtitlesurl = self._html_search_regex(
+            r'data-subtitlesurl[ ]*=[ ]*"([^"]+)"', page, 'subtitlesurl', fatal=False, default=None)
+
+        subtitle = {}
+
+        if subtitlesurl:
+            subtitle = self._extract_captions(subtitlesurl, video_id, baseurl)
+        else: self._debug_print("Failed to find subtitles")
 
         formats = []
 
@@ -131,6 +180,10 @@ class NRKTVIE(InfoExtractor):
                 'format_id': 'm3u8',
             })
 
+        if self._downloader.params.get('listsubtitles', False):
+            self._list_available_subtitles(video_id, subtitle)
+            return
+
         self._sort_formats(formats)
 
         return {
@@ -141,4 +194,5 @@ class NRKTVIE(InfoExtractor):
             'upload_date': upload_date,
             'duration': duration,
             'formats': formats,
+            'subtitles': subtitle,
         }
