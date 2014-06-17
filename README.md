@@ -1,4 +1,4 @@
-youtube-dl 
+youtube-dl [![Build Status](https://travis-ci.org/rg3/youtube-dl.svg?branch=master)](https://travis-ci.org/rg3/youtube-dl)
 ==========
 Download videos from youtube.com or other video platforms
 
