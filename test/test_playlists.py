@@ -114,10 +114,10 @@ class TestPlaylists(unittest.TestCase):
     def test_ustream_channel(self):
         dl = FakeYDL()
         ie = UstreamChannelIE(dl)
-        result = ie.extract('http://www.ustream.tv/channel/young-americans-for-liberty')
+        result = ie.extract('http://www.ustream.tv/channel/channeljapan')
         self.assertIsPlaylist(result)
-        self.assertEqual(result['id'], '5124905')
-        self.assertTrue(len(result['entries']) >= 6)
+        self.assertEqual(result['id'], '10874166')
+        self.assertTrue(len(result['entries']) >= 54)
 
     def test_soundcloud_set(self):
         dl = FakeYDL()
