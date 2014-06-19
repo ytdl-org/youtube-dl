@@ -53,7 +53,7 @@ class SteamIE(InfoExtractor):
             'ext': 'mp4',
             'upload_date': '20140329',
             'title': 'FRONTIERS - Final Greenlight Trailer',
-            'description': "The final trailer for the Steam Greenlight launch. Hooray, progress! Here's the official Greenlight page: http://steamcommunity.com/sharedfiles/filedetails/?id=242472205",
+            'description': 'md5:6df4fe8dd494ae811869672b0767e025',
             'uploader': 'AAD Productions',
             'uploader_id': 'AtomicAgeDogGames',
         }
