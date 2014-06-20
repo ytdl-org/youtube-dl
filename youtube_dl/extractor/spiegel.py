@@ -33,7 +33,13 @@ class SpiegelIE(InfoExtractor):
         video_title = self._html_search_regex(
             r'<div class="module-title">(.*?)</div>', webpage, 'title')
 
-        xml_url = 'http://video2.spiegel.de/flash/' + video_id + '.xml'
+        base_url = self._search_regex(
+            r'var\s+server\s+=\s+\"(http://video\d*\.spiegel\.de/flash/\d+/\d+/)\";',
+            webpage,
+            'base_url',
+        )
+
+        xml_url = base_url + video_id + '.xml'
         idoc = self._download_xml(
             xml_url, video_id,
             note='Downloading XML', errnote='Failed to download XML from "{0}"'.format(xml_url))
