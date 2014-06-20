@@ -47,7 +47,7 @@ class SpiegelIE(InfoExtractor):
         formats = [
             {
                 'format_id': n.tag.rpartition('type')[2],
-                'url': 'http://video2.spiegel.de/flash/' + n.find('./filename').text,
+                'url': base_url + n.find('./filename').text,
                 'width': int(n.find('./width').text),
                 'height': int(n.find('./height').text),
                 'abr': int(n.find('./audiobitrate').text),
