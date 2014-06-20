@@ -36,7 +36,7 @@ class SpiegelIE(InfoExtractor):
         xml_url = 'http://video2.spiegel.de/flash/' + video_id + '.xml'
         idoc = self._download_xml(
             xml_url, video_id,
-            note='Downloading XML', errnote='Failed to download XML')
+            note='Downloading XML', errnote='Failed to download XML from "{0}"'.format(xml_url))
 
         formats = [
             {
