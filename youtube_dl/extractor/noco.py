@@ -35,7 +35,7 @@ class NocoIE(InfoExtractor):
         video_id = mobj.group('id')
 
         medias = self._download_json(
-            'http://api.noco.tv/1.0/video/medias/%s' % video_id, video_id, 'Downloading video JSON')
+            'https://api.noco.tv/1.0/video/medias/%s' % video_id, video_id, 'Downloading video JSON')
 
         formats = []
 
@@ -43,7 +43,7 @@ class NocoIE(InfoExtractor):
             format_id = fmt['quality_key']
 
             file = self._download_json(
-                'http://api.noco.tv/1.0/video/file/%s/fr/%s' % (format_id.lower(), video_id),
+                'https://api.noco.tv/1.0/video/file/%s/fr/%s' % (format_id.lower(), video_id),
                 video_id, 'Downloading %s video JSON' % format_id)
 
             file_url = file['file']
@@ -71,7 +71,7 @@ class NocoIE(InfoExtractor):
         self._sort_formats(formats)
 
         show = self._download_json(
-            'http://api.noco.tv/1.0/shows/show/%s' % video_id, video_id, 'Downloading show JSON')[0]
+            'https://api.noco.tv/1.0/shows/show/%s' % video_id, video_id, 'Downloading show JSON')[0]
 
         upload_date = unified_strdate(show['indexed'])
         uploader = show['partner_name']
