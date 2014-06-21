@@ -15,6 +15,7 @@ class FirstpostIE(InfoExtractor):
             'id': '1025403',
             'ext': 'mp4',
             'title': 'India to launch indigenous aircraft carrier INS Vikrant today',
+            'description': 'md5:feef3041cb09724e0bdc02843348f5f4',
         }
     }
 
@@ -22,13 +23,16 @@ class FirstpostIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
+        page = self._download_webpage(url, video_id)
+        title = self._html_search_meta('twitter:title', page, 'title')
+        description = self._html_search_meta('twitter:description', page, 'title')
+
         data = self._download_xml(
             'http://www.firstpost.com/getvideoxml-%s.xml' % video_id, video_id,
             'Downloading video XML')
 
         item = data.find('./playlist/item')
         thumbnail = item.find('./image').text
-        title = item.find('./title').text
 
         formats = [
             {
@@ -42,6 +46,7 @@ class FirstpostIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
+            'description': description,
             'thumbnail': thumbnail,
             'formats': formats,
         }
