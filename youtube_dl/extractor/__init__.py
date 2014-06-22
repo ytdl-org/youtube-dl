@@ -170,6 +170,7 @@ from .moviezine import MoviezineIE
 from .movshare import MovShareIE
 from .mtv import (
     MTVIE,
+    MTVServicesEmbeddedIE,
     MTVIggyIE,
 )
 from .musicplayon import MusicPlayOnIE

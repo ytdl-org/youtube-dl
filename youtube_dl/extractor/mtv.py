@@ -22,6 +22,7 @@ def _media_xml_tag(tag):
 
 class MTVServicesInfoExtractor(InfoExtractor):
     _MOBILE_TEMPLATE = None
+
     @staticmethod
     def _id_from_uri(uri):
         return uri.split(':')[-1]
@@ -34,6 +35,9 @@ class MTVServicesInfoExtractor(InfoExtractor):
             return rtmp_video_url
         base = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=1+_pxI0=Ripod-h264+_pxL0=undefined+_pxM0=+_pxK=18639+_pxE=mp4/44620/mtvnorigin/'
         return base + m.group('finalid')
+
+    def _get_feed_url(self, uri):
+        return self._FEED_URL
 
     def _get_thumbnail_url(self, uri, itemdoc):
         search_path = '%s/%s' % (_media_xml_tag('group'), _media_xml_tag('thumbnail'))
@@ -136,10 +140,10 @@ class MTVServicesInfoExtractor(InfoExtractor):
 
     def _get_videos_info(self, uri):
         video_id = self._id_from_uri(uri)
+        feed_url = self._get_feed_url(uri)
         data = compat_urllib_parse.urlencode({'uri': uri})
-
         idoc = self._download_xml(
-            self._FEED_URL + '?' + data, video_id,
+            feed_url + '?' + data, video_id,
             'Downloading info', transform_source=fix_xml_ampersands)
         return [self._get_video_info(item) for item in idoc.findall('.//item')]
 
@@ -157,6 +161,37 @@ class MTVServicesInfoExtractor(InfoExtractor):
             mgid = self._search_regex(
                 [r'data-mgid="(.*?)"', r'swfobject.embedSWF\(".*?(mgid:.*?)"'],
                 webpage, u'mgid')
+        return self._get_videos_info(mgid)
+
+
+class MTVServicesEmbeddedIE(MTVServicesInfoExtractor):
+    IE_NAME = 'mtvservices:embedded'
+    _VALID_URL = r'https?://media\.mtvnservices\.com/embed/(?P<mgid>.+?)(\?|/|$)'
+
+    _TEST = {
+        # From http://www.thewrap.com/peter-dinklage-sums-up-game-of-thrones-in-45-seconds-video/
+        'url': 'http://media.mtvnservices.com/embed/mgid:uma:video:mtv.com:1043906/cp~vid%3D1043906%26uri%3Dmgid%3Auma%3Avideo%3Amtv.com%3A1043906',
+        'md5': 'cb349b21a7897164cede95bd7bf3fbb9',
+        'info_dict': {
+            'id': '1043906',
+            'ext': 'mp4',
+            'title': 'Peter Dinklage Sums Up \'Game Of Thrones\' In 45 Seconds',
+            'description': '"Sexy sexy sexy, stabby stabby stabby, beautiful language," says Peter Dinklage as he tries summarizing "Game of Thrones" in under a minute.',
+        },
+    }
+
+    def _get_feed_url(self, uri):
+        video_id = self._id_from_uri(uri)
+        site_id = uri.replace(video_id, '')
+        config_url = 'http://media.mtvnservices.com/pmt/e1/players/{0}/config.xml'.format(site_id)
+        config_doc = self._download_xml(config_url, video_id)
+        feed_node = config_doc.find('.//feed')
+        feed_url = feed_node.text.strip().split('?')[0]
+        return feed_url
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        mgid = mobj.group('mgid')
         return self._get_videos_info(mgid)
 
 
