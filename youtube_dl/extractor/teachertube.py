@@ -22,8 +22,8 @@ class TeacherTubeIE(InfoExtractor):
         'info_dict': {
             'id': '339997',
             'ext': 'mp4',
-            'title': 'Measures of dispersion from a frequency table_x264',
-            'description': 'md5:a3e9853487185e9fcd7181a07164650b',
+            'title': 'Measures of dispersion from a frequency table',
+            'description': 'Measures of dispersion from a frequency table',
             'thumbnail': 're:http://.*\.jpg',
         },
     }, {
@@ -33,7 +33,7 @@ class TeacherTubeIE(InfoExtractor):
             'id': '340064',
             'ext': 'mp4',
             'title': 'How to Make Paper Dolls _ Paper Art Projects',
-            'description': 'md5:2ca52b20cd727773d1dc418b3d6bd07b',
+            'description': 'Learn how to make paper dolls in this simple',
             'thumbnail': 're:http://.*\.jpg',
         },
     }, {
@@ -43,7 +43,7 @@ class TeacherTubeIE(InfoExtractor):
             'id': '8805',
             'ext': 'mp3',
             'title': 'PER ASPERA AD ASTRA',
-            'description': 'RADIJSKA EMISIJA ZRAKOPLOVNE TEHNIČKE ŠKOLE PER ASPERA AD ASTRA',
+            'description': 'RADIJSKA EMISIJA ZRAKOPLOVNE TEHNI?KE ?KOLE P',
         },
     }]
 
@@ -53,9 +53,19 @@ class TeacherTubeIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
+        title = self._html_search_meta('title', webpage, 'title')
+        TITLE_SUFFIX = ' - TeacherTube'
+        if title.endswith(TITLE_SUFFIX):
+            title = title[:-len(TITLE_SUFFIX)].strip()
+
+        description = self._html_search_meta('description', webpage, 'description')
+        if description:
+            description = description.strip()
+
         quality = qualities(['mp3', 'flv', 'mp4'])
 
-        _, media_urls = zip(*re.findall(r'([\'"])file\1\s*:\s*"([^"]+)"', webpage))
+        media_urls = re.findall(r'data-contenturl="([^"]+)"', webpage)
+        media_urls.extend(re.findall(r'var\s+filePath\s*=\s*"([^"]+)"', webpage))
 
         formats = [
             {
@@ -68,10 +78,10 @@ class TeacherTubeIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': self._og_search_title(webpage),
-            'thumbnail': self._og_search_thumbnail(webpage),
+            'title': title,
+            'thumbnail': self._html_search_regex(r'var\s+thumbUrl\s*=\s*"([^"]+)"', webpage, 'thumbnail'),
             'formats': formats,
-            'description': self._og_search_description(webpage),
+            'description': description,
         }
 
 
@@ -85,8 +95,9 @@ class TeacherTubeClassroomIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         user_id = mobj.group('user')
 
-        rss = self._download_xml('http://www.teachertube.com/rssclassroom.php?mode=user&username=%s' % user_id,
-                                      user_id, 'Downloading classroom RSS')
+        rss = self._download_xml(
+            'http://www.teachertube.com/rssclassroom.php?mode=user&username=%s' % user_id,
+            user_id, 'Downloading classroom RSS')
 
         entries = []
         for url in rss.findall('.//{http://search.yahoo.com/mrss/}player'):
