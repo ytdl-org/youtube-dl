@@ -278,6 +278,17 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             }
         },
+        # MTVSercices embed
+        {
+            'url': 'http://www.gametrailers.com/news-post/76093/north-america-europe-is-getting-that-mario-kart-8-mercedes-dlc-too',
+            'md5': '35727f82f58c76d996fc188f9755b0d5',
+            'info_dict': {
+                'id': '0306a69b-8adf-4fb5-aace-75f8e8cbfca9',
+                'ext': 'mp4',
+                'title': 'Review',
+                'description': 'Mario\'s life in the fast lane has never looked so good.',
+            },
+        },
     ]
 
     def report_download_webpage(self, video_id):
@@ -675,6 +686,14 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             url = unescapeHTML(mobj.group('url'))
             return self.url_result(url, ie='Vulture')
+
+        # Look for embedded mtvservices player
+        mobj = re.search(
+            r'<iframe src="(?P<url>https?://media\.mtvnservices\.com/embed/[^"]+)"',
+            webpage)
+        if mobj is not None:
+            url = unescapeHTML(mobj.group('url'))
+            return self.url_result(url, ie='MTVServicesEmbedded')
 
         # Start with something easy: JW Player in SWFObject
         found = re.findall(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
