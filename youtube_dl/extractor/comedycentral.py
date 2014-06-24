@@ -130,7 +130,7 @@ class ComedyCentralShowsIE(InfoExtractor):
                 raise ExtractorError('Invalid redirected URL: ' + url)
             if mobj.group('episode') == '':
                 raise ExtractorError('Redirected URL is still not specific: ' + url)
-            epTitle = mobj.group('episode').rpartition('/')[-1]
+            epTitle = (mobj.group('episode') or mobj.group('videotitle')).rpartition('/')[-1]
 
         mMovieParams = re.findall('(?:<param name="movie" value="|var url = ")(http://media.mtvnservices.com/([^"]*(?:episode|video).*?:.*?))"', webpage)
         if len(mMovieParams) == 0:
