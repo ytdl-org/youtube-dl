@@ -15,7 +15,7 @@ from ..utils import (
 
 
 class BlipTVIE(SubtitlesInfoExtractor):
-    _VALID_URL = r'https?://(?:\w+\.)?blip\.tv/(?:(?:.+-|rss/flash/)(?P<id>\d+)|((?:play/|api\.swf#)(?P<lookup_id>[\da-zA-Z]+)))'
+    _VALID_URL = r'https?://(?:\w+\.)?blip\.tv/(?:(?:.+-|rss/flash/)(?P<id>\d+)|((?:play/|api\.swf#)(?P<lookup_id>[\da-zA-Z+]+)))'
 
     _TESTS = [
         {
