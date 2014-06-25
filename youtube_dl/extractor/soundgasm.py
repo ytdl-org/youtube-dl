@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 
+
 class SoundgasmIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?soundgasm\.net/u/(?P<user>[0-9a-zA-Z_\-]+)/(?P<title>[0-9a-zA-Z_\-]+)'
     _TEST = {
@@ -20,14 +21,19 @@ class SoundgasmIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        display_id = mobj.group('title')
         audio_title = mobj.group('user') + '_' + mobj.group('title')
-        webpage = self._download_webpage(url, '')
-        audio_url = self._html_search_regex(r'(?s)m4a\:\s"([^"]+)"', webpage, 'audio URL')
+        webpage = self._download_webpage(url, display_id)
+        audio_url = self._html_search_regex(
+            r'(?s)m4a\:\s"([^"]+)"', webpage, 'audio URL')
         audio_id = re.split('\/|\.', audio_url)[-2]
-        description = self._html_search_regex(r'(?s)<li>Description:\s(.*?)<\/li>', webpage, 'description', fatal=False, flags=re.DOTALL)
+        description = self._html_search_regex(
+            r'(?s)<li>Description:\s(.*?)<\/li>', webpage, 'description',
+            fatal=False)
 
         return {
             'id': audio_id,
+            'display_id': display_id,
             'url': audio_url,
             'title': audio_title,
             'description': description
