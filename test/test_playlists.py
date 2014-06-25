@@ -40,6 +40,7 @@ from youtube_dl.extractor import (
     KhanAcademyIE,
     EveryonesMixtapeIE,
     RutubeChannelIE,
+    RutubePersonIE,
     GoogleSearchIE,
     GenericIE,
     TEDIE,
@@ -256,10 +257,18 @@ class TestPlaylists(unittest.TestCase):
     def test_rutube_channel(self):
         dl = FakeYDL()
         ie = RutubeChannelIE(dl)
-        result = ie.extract('http://rutube.ru/tags/video/1409')
+        result = ie.extract('http://rutube.ru/tags/video/1800/')
         self.assertIsPlaylist(result)
-        self.assertEqual(result['id'], '1409')
-        self.assertTrue(len(result['entries']) >= 34)
+        self.assertEqual(result['id'], '1800')
+        self.assertTrue(len(result['entries']) >= 68)
+
+    def test_rutube_person(self):
+        dl = FakeYDL()
+        ie = RutubePersonIE(dl)
+        result = ie.extract('http://rutube.ru/video/person/313878/')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], '313878')
+        self.assertTrue(len(result['entries']) >= 37)
 
     def test_multiple_brightcove_videos(self):
         # https://github.com/rg3/youtube-dl/issues/2283
