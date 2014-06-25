@@ -255,6 +255,7 @@ from .soundcloud import (
     SoundcloudUserIE,
     SoundcloudPlaylistIE
 )
+from .soundgasm import SoundgasmIE
 from .southparkstudios import (
     SouthParkStudiosIE,
     SouthparkDeIE,
