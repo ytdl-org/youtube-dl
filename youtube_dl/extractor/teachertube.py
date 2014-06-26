@@ -14,7 +14,7 @@ class TeacherTubeIE(InfoExtractor):
     IE_NAME = 'teachertube'
     IE_DESC = 'teachertube.com videos'
 
-    _VALID_URL = r'https?://(?:www\.)?teachertube\.com/(viewVideo\.php\?video_id=|music\.php\?music_id=)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?teachertube\.com/(viewVideo\.php\?video_id=|music\.php\?music_id=|video/|audio/)(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.teachertube.com/viewVideo.php?video_id=339997',
