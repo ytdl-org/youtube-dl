@@ -30,6 +30,7 @@ from youtube_dl.extractor import (
     SoundcloudPlaylistIE,
     TeacherTubeClassroomIE,
     LivestreamIE,
+    LivestreamOriginalIE,
     NHLVideocenterIE,
     BambuserChannelIE,
     BandcampAlbumIE,
@@ -154,6 +155,14 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['title'], 'TEDCity2.0 (English)')
         self.assertTrue(len(result['entries']) >= 4)
+
+    def test_livestreamoriginal_folder(self):
+        dl = FakeYDL()
+        ie = LivestreamOriginalIE(dl)
+        result = ie.extract('https://www.livestream.com/newplay/folder?dirId=a07bf706-d0e4-4e75-a747-b021d84f2fd3')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], 'a07bf706-d0e4-4e75-a747-b021d84f2fd3')
+        self.assertTrue(len(result['entries']) >= 28)
 
     def test_nhl_videocenter(self):
         dl = FakeYDL()

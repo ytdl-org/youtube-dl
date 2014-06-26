@@ -459,6 +459,9 @@ class InfoExtractor(object):
         if secure: regexes = self._og_regexes('video:secure_url') + regexes
         return self._html_search_regex(regexes, html, name, **kargs)
 
+    def _og_search_url(self, html, **kargs):
+        return self._og_search_property('url', html, **kargs)
+
     def _html_search_meta(self, name, html, display_name=None, fatal=False):
         if display_name is None:
             display_name = name

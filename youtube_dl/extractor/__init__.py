@@ -147,7 +147,11 @@ from .ku6 import Ku6IE
 from .la7 import LA7IE
 from .lifenews import LifeNewsIE
 from .liveleak import LiveLeakIE
-from .livestream import LivestreamIE, LivestreamOriginalIE
+from .livestream import (
+    LivestreamIE,
+    LivestreamOriginalIE,
+    LivestreamShortenerIE,
+)
 from .lynda import (
     LyndaIE,
     LyndaCourseIE
