@@ -66,6 +66,7 @@ class TeacherTubeIE(InfoExtractor):
 
         media_urls = re.findall(r'data-contenturl="([^"]+)"', webpage)
         media_urls.extend(re.findall(r'var\s+filePath\s*=\s*"([^"]+)"', webpage))
+        media_urls.extend(re.findall(r'\'file\'\s*:\s*["\']([^"\']+)["\'],', webpage))
 
         formats = [
             {
@@ -79,7 +80,7 @@ class TeacherTubeIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'thumbnail': self._html_search_regex(r'var\s+thumbUrl\s*=\s*"([^"]+)"', webpage, 'thumbnail'),
+            'thumbnail': self._html_search_regex(r'\'image\'\s*:\s*["\']([^"\']+)["\']', webpage, 'thumbnail'),
             'formats': formats,
             'description': description,
         }
