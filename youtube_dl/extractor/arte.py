@@ -111,7 +111,7 @@ class ArteTVPlus7IE(InfoExtractor):
         if not formats:
             # Some videos are only available in the 'Originalversion'
             # they aren't tagged as being in French or German
-            if all(f['versionCode'] == 'VO' for f in all_formats):
+            if all(f['versionCode'] == 'VO' or f['versionCode'] == 'VA' for f in all_formats):
                 formats = all_formats
             else:
                 raise ExtractorError(u'The formats list is empty')
@@ -189,9 +189,10 @@ class ArteTVFutureIE(ArteTVPlus7IE):
     _TEST = {
         'url': 'http://future.arte.tv/fr/sujet/info-sciences#article-anchor-7081',
         'info_dict': {
-            'id': '050940-003',
+            'id': '5201',
             'ext': 'mp4',
             'title': 'Les champignons au secours de la planète',
+            'upload_date': '20131101',
         },
     }
 
