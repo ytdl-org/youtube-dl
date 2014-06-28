@@ -4,11 +4,13 @@ import datetime
 import re
 
 from .common import InfoExtractor
-from ..utils import str_to_int
+from ..utils import (
+    int_or_none,
+    unified_strdate,
+)
 
 
 class MotherlessIE(InfoExtractor):
-    """Information Extractor for Motherless"""
     _VALID_URL = r'http://(?:www\.)?motherless\.com/(?P<id>[A-Z0-9]+)'
     _TESTS = [
         {
@@ -21,7 +23,7 @@ class MotherlessIE(InfoExtractor):
                 'categories': ['Gaming', 'anal', 'reluctant', 'rough', 'Wife'],
                 'upload_date': '20100913',
                 'uploader_id': 'famouslyfuckedup',
-                'thumbnail': 'http://thumbs.motherlessmedia.com/thumbs/AC3FFE1.jpg',
+                'thumbnail': 're:http://.*\.jpg',
                 'age_limit': 18,
             }
         },
@@ -35,7 +37,7 @@ class MotherlessIE(InfoExtractor):
                 'categories': ['Amateur', 'webcam', 'omegle', 'pink', 'young', 'masturbate', 'teen', 'game', 'hairy'],
                 'upload_date': '20140622',
                 'uploader_id': 'Sulivana7x',
-                'thumbnail': 'http://thumbs.motherlessmedia.com/thumbs/532291B.jpg',
+                'thumbnail': 're:http://.*\.jpg',
                 'age_limit': 18,
             }
         }
@@ -47,46 +49,38 @@ class MotherlessIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(r'<title>(?P<title>.+?) - MOTHERLESS.COM</title>', webpage, 'title')
-        video_url = self._search_regex(r"__fileurl = '(?P<video_url>[^']+)'", webpage, 'video_url')
-        thumbnail = self._og_search_thumbnail(webpage)
-        age_limit = self._rta_search(webpage)  # Hint: it's 18 ;)
-        view_count = str_to_int(self._html_search_regex(r'<strong>Views</strong>(.+?)</h2>', webpage,
-                                                        'view_count', flags=re.DOTALL))
+        title = self._html_search_regex(r'id="view-upload-title">\s+([^<]+)<', webpage, 'title')
+        
+        video_url = self._html_search_regex(r'setup\(\{\s+"file".+: "([^"]+)",', webpage, 'video_url')
+        age_limit = self._rta_search(webpage)
 
-        like_count = str_to_int(self._html_search_regex(r'<strong>Favorited</strong>(.+?)</h2>', webpage,
-                                                        'like_count', flags=re.DOTALL))
+        view_count = self._html_search_regex(r'<strong>Views</strong>\s+([^<]+)<', webpage, 'view_count')
+ 
+        upload_date = self._html_search_regex(r'<strong>Uploaded</strong>\s+([^<]+)<', webpage, 'upload_date')
+        if 'Ago' in upload_date:
+            days = int(re.search(r'([0-9]+)', upload_date).group(1))
+            upload_date = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime('%Y%m%d')
+        else:
+            upload_date = unified_strdate(upload_date)
+
+        like_count = self._html_search_regex(r'<strong>Favorited</strong>\s+([^<]+)<', webpage, 'like_count')
+
         comment_count = webpage.count('class="media-comment-contents"')
-        uploader_id = self._html_search_regex(r'<div class="thumb-member-username">.*?<a [^>]*>(.+?)</a>',
-                                              webpage, 'uploader_id', flags=re.DOTALL)
+        uploader_id = self._html_search_regex(r'"thumb-member-username">\s+<a href="/m/([^"]+)"', webpage, 'uploader_id')
 
         categories = self._html_search_meta('keywords', webpage)
-        if categories is not None:
+        if categories:
             categories = [cat.strip() for cat in categories.split(',')]
-
-        upload_date = self._html_search_regex(r'<strong>Uploaded</strong>(.+?)</h2>', webpage,
-                                              'upload_date', flags=re.DOTALL)
-        mobj = re.search(r'(\d+) days? ago', upload_date, re.I)
-        if mobj is not None:
-            upload_date = datetime.datetime.now() - datetime.timedelta(days=int(mobj.group(1)))
-        else:
-            mobj = re.search(r'(\w+) (\d+)\w* (\d+)', upload_date, re.I)
-            if mobj is not None:
-                upload_date = datetime.datetime.strptime('%s %s %s' % mobj.groups(), '%b %d %Y').date()
-            else:
-                upload_date = None
-        if upload_date is not None:
-            upload_date = upload_date.strftime('%Y%m%d')
 
         return {
             'id': video_id,
             'title': title,
             'upload_date': upload_date,
             'uploader_id': uploader_id,
-            'thumbnail': thumbnail,
+            'thumbnail': self._og_search_thumbnail(webpage),
             'categories': categories,
-            'view_count': view_count,
-            'like_count': like_count,
+            'view_count': int_or_none(view_count.replace(',', '')),
+            'like_count': int_or_none(like_count.replace(',', '')),
             'comment_count': comment_count,
             'age_limit': age_limit,
             'url': video_url,
