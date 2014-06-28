@@ -63,6 +63,7 @@ from .dailymotion import (
 from .daum import DaumIE
 from .dotsub import DotsubIE
 from .dreisat import DreiSatIE
+from .drtv import DRTVIE
 from .defense import DefenseGouvFrIE
 from .discovery import DiscoveryIE
 from .divxstage import DivxStageIE
