@@ -27,7 +27,7 @@ class VKIE(InfoExtractor):
                 'id': '162222515',
                 'ext': 'flv',
                 'title': 'ProtivoGunz - Хуёвая песня',
-                'uploader': 'Noize MC',
+                'uploader': 're:Noize MC.*',
                 'duration': 195,
             },
         },
