@@ -99,7 +99,7 @@ class TeacherTubeUserIE(InfoExtractor):
         urls = []
         webpage = self._download_webpage(url, user_id)
         urls.extend(re.findall(
-            r'"sidebar_thumb_time">[0-9:]+</div>\s+<a href="(https?://(?:www\.)?teachertube\.com/(video|audio)/[^"]+)">',
+            r'"sidebar_thumb_time">[0-9:]+</div>\s+<a href="(https?://(?:www\.)?teachertube\.com/(?:video|audio)/[^"]+)">',
             webpage))
         
         pages = re.findall(r'/ajax-user/user-videos/%s\?page=([0-9]+)' % user_id, webpage)[1:-1]
@@ -107,7 +107,7 @@ class TeacherTubeUserIE(InfoExtractor):
             more = 'http://www.teachertube.com/ajax-user/user-videos/%s?page=%s' % (user_id, p)
             webpage = self._download_webpage(more, user_id, 'Downloading page %s/%s' % (p, len(pages) + 1))
             urls.extend(re.findall(
-                r'"sidebar_thumb_time">[0-9:]+</div>\s+<a href="(https?://(?:www\.)?teachertube\.com/(video|audio)/[^"]+)">',
+                r'"sidebar_thumb_time">[0-9:]+</div>\s+<a href="(https?://(?:www\.)?teachertube\.com/(?:video|audio)/[^"]+)">',
                 webpage))
 
         entries = []
