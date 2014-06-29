@@ -16,7 +16,7 @@ from ..utils import (
 
 class VKIE(InfoExtractor):
     IE_NAME = 'vk.com'
-    _VALID_URL = r'https?://vk\.com/(?:video_ext\.php\?.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+)|(?:videos.*?\?.*?z=)?video(?P<videoid>.*?)(?:\?|%2F|$))'
+    _VALID_URL = r'https?://vk\.com/(?:video_ext\.php\?.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+)|(?:.+?\?.*?z=)?video(?P<videoid>.*?)(?:\?|%2F|$))'
     _NETRC_MACHINE = 'vk'
 
     _TESTS = [
@@ -62,8 +62,32 @@ class VKIE(InfoExtractor):
                 'id': '164049491',
                 'ext': 'mp4',
                 'uploader': 'Триллеры',
-                'title': '► Бойцовский клуб / Fight Club 1999 [HD 720]\u00a0',
+                'title': '► Бойцовский клуб / Fight Club 1999 [HD 720]',
                 'duration': 8352,
+            },
+            'skip': 'Requires vk account credentials',
+        },
+        {
+            'url': 'http://vk.com/feed?z=video-43215063_166094326%2Fbb50cacd3177146d7a',
+            'md5': 'd82c22e449f036282d1d3f7f4d276869',
+            'info_dict': {
+                'id': '166094326',
+                'ext': 'mp4',
+                'uploader': 'Киномания - лучшее из мира кино',
+                'title': 'Запах женщины (1992)',
+                'duration': 9392,
+            },
+            'skip': 'Requires vk account credentials',
+        },
+        {
+            'url': 'http://vk.com/hd_kino_mania?z=video-43215063_168067957%2F15c66b9b533119788d',
+            'md5': '4d7a5ef8cf114dfa09577e57b2993202',
+            'info_dict': {
+                'id': '168067957',
+                'ext': 'mp4',
+                'uploader': 'Киномания - лучшее из мира кино',
+                'title': ' ',
+                'duration': 7291,
             },
             'skip': 'Requires vk account credentials',
         },
