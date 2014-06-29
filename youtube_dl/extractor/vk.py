@@ -16,7 +16,7 @@ from ..utils import (
 
 class VKIE(InfoExtractor):
     IE_NAME = 'vk.com'
-    _VALID_URL = r'https?://vk\.com/(?:video_ext\.php\?.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+)|(?:.+?\?.*?z=)?video(?P<videoid>.*?)(?:\?|%2F|$))'
+    _VALID_URL = r'https?://(?:m\.)?vk\.com/(?:video_ext\.php\?.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+)|(?:.+?\?.*?z=)?video(?P<videoid>.*?)(?:\?|%2F|$))'
     _NETRC_MACHINE = 'vk'
 
     _TESTS = [
@@ -91,6 +91,17 @@ class VKIE(InfoExtractor):
             },
             'skip': 'Requires vk account credentials',
         },
+        {
+            'url': 'http://m.vk.com/video-43215063_169084319?list=125c627d1aa1cebb83&from=wall-43215063_2566540',
+            'md5': '0c45586baa71b7cb1d0784ee3f4e00a6',
+            'note': 'ivi.ru embed',
+            'info_dict': {
+                'id': '60690',
+                'ext': 'mp4',
+                'title': 'Книга Илая',
+                'duration': 6771,
+            },
+        },
     ]
 
     def _login(self):
@@ -134,6 +145,16 @@ class VKIE(InfoExtractor):
         if m_yt is not None:
             self.to_screen('Youtube video detected')
             return self.url_result(m_yt.group(1), 'Youtube')
+
+        m_opts = re.search(r'(?s)var\s+opts\s*=\s*({.*?});', info_page)
+        if m_opts:
+            m_opts_url = re.search(r"url\s*:\s*'([^']+)", m_opts.group(1))
+            if m_opts_url:
+                opts_url = m_opts_url.group(1)
+                if opts_url.startswith('//'):
+                    opts_url = 'http:' + opts_url
+                return self.url_result(opts_url)
+
         data_json = self._search_regex(r'var vars = ({.*?});', info_page, 'vars')
         data = json.loads(data_json)
 

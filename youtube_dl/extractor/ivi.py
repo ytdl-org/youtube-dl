@@ -14,7 +14,7 @@ from ..utils import (
 class IviIE(InfoExtractor):
     IE_DESC = 'ivi.ru'
     IE_NAME = 'ivi'
-    _VALID_URL = r'https?://(?:www\.)?ivi\.ru/watch(?:/(?P<compilationid>[^/]+))?/(?P<videoid>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?ivi\.ru/(?:watch/(?:[^/]+/)?|video/player\?.*?videoId=)(?P<videoid>\d+)'
 
     _TESTS = [
         # Single movie

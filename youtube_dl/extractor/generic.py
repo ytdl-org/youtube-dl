@@ -620,6 +620,11 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'VK')
 
+        # Look for embedded ivi player
+        mobj = re.search(r'<embed[^>]+?src=(["\'])(?P<url>https?://(?:www\.)?ivi\.ru/video/player.+?)\1', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'Ivi')
+
         # Look for embedded Huffington Post player
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>https?://embed\.live\.huffingtonpost\.com/.+?)\1', webpage)
