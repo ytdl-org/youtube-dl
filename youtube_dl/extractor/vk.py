@@ -101,6 +101,7 @@ class VKIE(InfoExtractor):
                 'title': 'Книга Илая',
                 'duration': 6771,
             },
+            'skip': 'Only works from Russia',
         },
     ]
 
