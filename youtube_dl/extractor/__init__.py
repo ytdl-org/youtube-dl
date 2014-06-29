@@ -282,7 +282,7 @@ from .sztvhu import SztvHuIE
 from .tagesschau import TagesschauIE
 from .teachertube import (
     TeacherTubeIE,
-    TeacherTubeClassroomIE,
+    TeacherTubeUserIE,
 )
 from .teachingchannel import TeachingChannelIE
 from .teamcoco import TeamcocoIE
