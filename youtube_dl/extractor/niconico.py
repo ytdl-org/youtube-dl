@@ -39,15 +39,18 @@ class NiconicoIE(InfoExtractor):
 
     _VALID_URL = r'^https?://(?:www\.|secure\.)?nicovideo\.jp/watch/([a-z][a-z][0-9]+)(?:.*)$'
     _NETRC_MACHINE = 'niconico'
+    # Determine whether the downloader uses authentication to download video
+    _AUTHENTICATE = False
 
     def _real_initialize(self):
-        self._login()
+        if self._downloader.params.get('username', None) is not None:
+            self._AUTHENTICATE = True
+
+        if self._AUTHENTICATE:
+            self._login()
 
     def _login(self):
         (username, password) = self._get_login_info()
-        if username is None:
-            # Login is required
-            raise ExtractorError('No login info available, needed for using %s.' % self.IE_NAME, expected=True)
 
         # Log in
         login_form_strs = {
@@ -79,10 +82,30 @@ class NiconicoIE(InfoExtractor):
             'http://ext.nicovideo.jp/api/getthumbinfo/' + video_id, video_id,
             note='Downloading video info page')
 
-        # Get flv info
-        flv_info_webpage = self._download_webpage(
-            'http://flapi.nicovideo.jp/api/getflv?v=' + video_id,
-            video_id, 'Downloading flv info')
+        if self._AUTHENTICATE:
+            # Get flv info
+            flv_info_webpage = self._download_webpage(
+                'http://flapi.nicovideo.jp/api/getflv?v=' + video_id,
+                video_id, 'Downloading flv info')
+        else:
+            # Get external player info
+            ext_player_info = self._download_webpage(
+                'http://ext.nicovideo.jp/thumb_watch/' + video_id, video_id)
+            thumb_play_key = self._search_regex(
+                r'\'thumbPlayKey\'\s*:\s*\'(.*?)\'', ext_player_info, 'thumbPlayKey')
+
+            # Get flv info
+            flv_info_data = compat_urllib_parse.urlencode({
+                'k': thumb_play_key,
+                'v': video_id
+            })
+            flv_info_request = compat_urllib_request.Request(
+                'http://ext.nicovideo.jp/thumb_watch', flv_info_data,
+                {'Content-Type': 'application/x-www-form-urlencoded'})
+            flv_info_webpage = self._download_webpage(
+                flv_info_request, video_id,
+                note='Downloading flv info', errnote='Unable to download flv info')
+
         video_real_url = compat_urlparse.parse_qs(flv_info_webpage)['url'][0]
 
         # Start extracting information
