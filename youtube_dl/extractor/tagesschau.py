@@ -20,13 +20,13 @@ class TagesschauIE(InfoExtractor):
             'thumbnail': 're:^http:.*\.jpg$',
         },
     }, {
-        'url': 'http://www.tagesschau.de/multimedia/video/video-196.html',
-        'md5': '8aaa8bf3ae1ca2652309718c03019128',
+        'url': 'http://www.tagesschau.de/multimedia/video/video-5964.html',
+        'md5': '66652566900963a3f962333579eeffcf',
         'info_dict': {
-            'id': '196',
+            'id': '5964',
             'ext': 'mp4',
-            'title': 'Ukraine-Konflikt: Klitschko in Kiew als Bürgermeister vereidigt',
-            'description': 'md5:f22e4af75821d174fa6c977349682691',
+            'title': 'Nahost-Konflikt: Israel bombadiert Ziele im Gazastreifen und Westjordanland',
+            'description': 'md5:07bfc78c48eec3145ed4805299a1900a',
             'thumbnail': 're:http://.*\.jpg',
         },
     }]
