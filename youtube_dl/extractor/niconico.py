@@ -37,7 +37,7 @@ class NiconicoIE(InfoExtractor):
         },
     }
 
-    _VALID_URL = r'^https?://(?:www\.|secure\.)?nicovideo\.jp/watch/([a-z][a-z][0-9]+)(?:.*)$'
+    _VALID_URL = r'^https?://(?:www\.|secure\.)?nicovideo\.jp/watch/((?:[a-z][a-z])?[0-9]+)(?:.*)$'
     _NETRC_MACHINE = 'niconico'
 
     def _real_initialize(self):
@@ -91,20 +91,18 @@ class NiconicoIE(InfoExtractor):
         video_format = video_extension.upper()
         video_thumbnail = video_info.find('.//thumbnail_url').text
         video_description = video_info.find('.//description').text
-        video_uploader_id = video_info.find('.//user_id').text
         video_upload_date = unified_strdate(video_info.find('.//first_retrieve').text.split('+')[0])
         video_view_count = video_info.find('.//view_counter').text
         video_webpage_url = video_info.find('.//watch_url').text
 
         # uploader
-        video_uploader = video_uploader_id
-        url = 'http://seiga.nicovideo.jp/api/user/info?id=' + video_uploader_id
-        try:
-            user_info = self._download_xml(
-                url, video_id, note='Downloading user information')
-            video_uploader = user_info.find('.//nickname').text
-        except ExtractorError as err:
-            self._downloader.report_warning('Unable to download user info webpage: %s' % compat_str(err))
+        # No need to fetch extra resources...new API has field for uploader's name
+        if video_info.find('.//ch_id') is not None:
+            video_uploader_id = video_info.find('.//ch_id').text
+            video_uploader = video_info.find('.//ch_name').text
+        elif video_info.find('.//user_id') is not None:
+            video_uploader_id = video_info.find('.//user_id').text
+            video_uploader = video_info.find('.//user_nickname').text
 
         return {
             'id': video_id,
