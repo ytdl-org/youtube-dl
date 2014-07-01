@@ -35,7 +35,8 @@ class RaiIE(SubtitlesInfoExtractor):
                 'description': '',
                 'upload_date': '20140612',
                 'duration': 1758,
-            }
+            },
+            'skip': 'Error 404',
         },
         {
             'url': 'http://www.rainews.it/dl/rainews/media/state-of-the-net-Antonella-La-Carpia-regole-virali-7aafdea9-0e5d-49d5-88a6-7e65da67ae13.html',
