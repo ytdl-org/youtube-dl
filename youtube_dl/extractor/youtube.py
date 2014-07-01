@@ -1825,9 +1825,17 @@ class YoutubeTruncatedURLIE(InfoExtractor):
     IE_NAME = 'youtube:truncated_url'
     IE_DESC = False  # Do not list
     _VALID_URL = r'''(?x)
-        (?:https?://)?[^/]+/watch\?(?:feature=[a-z_]+)?$|
+        (?:https?://)?[^/]+/watch\?(?:
+            feature=[a-z_]+|
+            annotation_id=annotation_[^&]+
+        )?$|
         (?:https?://)?(?:www\.)?youtube\.com/attribution_link\?a=[^&]+$
     '''
+
+    _TESTS = [{
+        'url': 'http://www.youtube.com/watch?annotation_id=annotation_3951667041',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         raise ExtractorError(
