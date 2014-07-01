@@ -1835,6 +1835,9 @@ class YoutubeTruncatedURLIE(InfoExtractor):
     _TESTS = [{
         'url': 'http://www.youtube.com/watch?annotation_id=annotation_3951667041',
         'only_matching': True,
+    }, {
+        'url': 'http://www.youtube.com/watch?',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
