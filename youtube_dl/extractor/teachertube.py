@@ -92,23 +92,21 @@ class TeacherTubeUserIE(InfoExtractor):
 
     _VALID_URL = r'https?://(?:www\.)?teachertube\.com/(user/profile|collection)/(?P<user>[0-9a-zA-Z]+)/?'
 
+    _MEDIA_RE = r'(?s)"sidebar_thumb_time">[0-9:]+</div>.+?<a href="(https?://(?:www\.)?teachertube\.com/(?:video|audio)/[^"]+)">'
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         user_id = mobj.group('user')
 
         urls = []
         webpage = self._download_webpage(url, user_id)
-        urls.extend(re.findall(
-            r'"sidebar_thumb_time">[0-9:]+</div>\s+<a href="(https?://(?:www\.)?teachertube\.com/(?:video|audio)/[^"]+)">',
-            webpage))
+        urls.extend(re.findall(self._MEDIA_RE, webpage))
         
         pages = re.findall(r'/ajax-user/user-videos/%s\?page=([0-9]+)' % user_id, webpage)[1:-1]
         for p in pages:
             more = 'http://www.teachertube.com/ajax-user/user-videos/%s?page=%s' % (user_id, p)
             webpage = self._download_webpage(more, user_id, 'Downloading page %s/%s' % (p, len(pages) + 1))
-            urls.extend(re.findall(
-                r'"sidebar_thumb_time">[0-9:]+</div>\s+<a href="(https?://(?:www\.)?teachertube\.com/(?:video|audio)/[^"]+)">',
-                webpage))
+            urls.extend(re.findall(self._MEDIA_RE, webpage))
 
         entries = []
         for url in urls:
