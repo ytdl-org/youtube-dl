@@ -14,7 +14,7 @@ class TeacherTubeIE(InfoExtractor):
     IE_NAME = 'teachertube'
     IE_DESC = 'teachertube.com videos'
 
-    _VALID_URL = r'https?://(?:www\.)?teachertube\.com/(viewVideo\.php\?video_id=|music\.php\?music_id=|video/|audio/)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?teachertube\.com/(viewVideo\.php\?video_id=|music\.php\?music_id=|video/(?:[\da-z-]+-)?|audio/)(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.teachertube.com/viewVideo.php?video_id=339997',
@@ -44,6 +44,15 @@ class TeacherTubeIE(InfoExtractor):
             'ext': 'mp3',
             'title': 'PER ASPERA AD ASTRA',
             'description': 'RADIJSKA EMISIJA ZRAKOPLOVNE TEHNI?KE ?KOLE P',
+        },
+    }, {
+        'url': 'http://www.teachertube.com/video/intro-video-schleicher-297790',
+        'md5': '9c79fbb2dd7154823996fc28d4a26998',
+        'info_dict': {
+            'id': '297790',
+            'ext': 'mp4',
+            'title': 'Intro Video - Schleicher',
+            'description': 'Intro Video - Why to flip, how flipping will',
         },
     }]
 
