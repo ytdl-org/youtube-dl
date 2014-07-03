@@ -19,6 +19,10 @@ Windows users can [download a .exe file](https://yt-dl.org/latest/youtube-dl.exe
 
 Alternatively, refer to the developer instructions below for how to check out and work with the git repository. For further options, including PGP signatures, see https://rg3.github.io/youtube-dl/download.html .
 
+OS X users can install **youtube-dl** with [Homebrew](http://brew.sh).
+
+    brew install youtube-dl
+
 # DESCRIPTION
 **youtube-dl** is a small command-line program to download videos from
 YouTube.com and a few more sites. It requires the Python interpreter, version
