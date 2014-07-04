@@ -8,7 +8,6 @@ from ..utils import (
     compat_urllib_parse,
     compat_urllib_request,
     compat_urlparse,
-    ExtractorError,
     unified_strdate,
     parse_duration,
     int_or_none,
