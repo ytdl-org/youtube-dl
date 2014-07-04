@@ -8,10 +8,10 @@ from ..utils import (
     compat_urllib_parse,
     compat_urllib_request,
     compat_urlparse,
-    compat_str,
-
     ExtractorError,
     unified_strdate,
+    parse_duration,
+    int_or_none,
 )
 
 
@@ -30,6 +30,7 @@ class NiconicoIE(InfoExtractor):
             'uploader_id': '2698420',
             'upload_date': '20131123',
             'description': '(c) copyright 2008, Blender Foundation / www.bigbuckbunny.org',
+            'duration': 33,
         },
         'params': {
             'username': 'ydl.niconico@gmail.com',
@@ -37,7 +38,7 @@ class NiconicoIE(InfoExtractor):
         },
     }
 
-    _VALID_URL = r'^https?://(?:www\.|secure\.)?nicovideo\.jp/watch/((?:[a-z][a-z])?[0-9]+)(?:.*)$'
+    _VALID_URL = r'https?://(?:www\.|secure\.)?nicovideo\.jp/watch/((?:[a-z]{2})?[0-9]+)'
     _NETRC_MACHINE = 'niconico'
 
     def _real_initialize(self):
@@ -86,35 +87,39 @@ class NiconicoIE(InfoExtractor):
         video_real_url = compat_urlparse.parse_qs(flv_info_webpage)['url'][0]
 
         # Start extracting information
-        video_title = video_info.find('.//title').text
-        video_extension = video_info.find('.//movie_type').text
-        video_format = video_extension.upper()
-        video_thumbnail = video_info.find('.//thumbnail_url').text
-        video_description = video_info.find('.//description').text
-        video_upload_date = unified_strdate(video_info.find('.//first_retrieve').text.split('+')[0])
-        video_view_count = video_info.find('.//view_counter').text
-        video_webpage_url = video_info.find('.//watch_url').text
+        title = video_info.find('.//title').text
+        extension = video_info.find('.//movie_type').text
+        video_format = extension.upper()
+        thumbnail = video_info.find('.//thumbnail_url').text
+        description = video_info.find('.//description').text
+        upload_date = unified_strdate(video_info.find('.//first_retrieve').text.split('+')[0])
+        view_count = int_or_none(video_info.find('.//view_counter').text)
+        comment_count = int_or_none(video_info.find('.//comment_num').text)
+        duration = parse_duration(video_info.find('.//length').text)
+        webpage_url = video_info.find('.//watch_url').text
 
-        # uploader
-        # No need to fetch extra resources...new API has field for uploader's name
         if video_info.find('.//ch_id') is not None:
-            video_uploader_id = video_info.find('.//ch_id').text
-            video_uploader = video_info.find('.//ch_name').text
+            uploader_id = video_info.find('.//ch_id').text
+            uploader = video_info.find('.//ch_name').text
         elif video_info.find('.//user_id') is not None:
-            video_uploader_id = video_info.find('.//user_id').text
-            video_uploader = video_info.find('.//user_nickname').text
+            uploader_id = video_info.find('.//user_id').text
+            uploader = video_info.find('.//user_nickname').text
+        else:
+            uploader_id = uploader = None
 
         return {
             'id': video_id,
             'url': video_real_url,
-            'title': video_title,
-            'ext': video_extension,
+            'title': title,
+            'ext': extension,
             'format': video_format,
-            'thumbnail': video_thumbnail,
-            'description': video_description,
-            'uploader': video_uploader,
-            'upload_date': video_upload_date,
-            'uploader_id': video_uploader_id,
-            'view_count': video_view_count,
-            'webpage_url': video_webpage_url,
+            'thumbnail': thumbnail,
+            'description': description,
+            'uploader': uploader,
+            'upload_date': upload_date,
+            'uploader_id': uploader_id,
+            'view_count': view_count,
+            'comment_count': comment_count,
+            'duration': duration,
+            'webpage_url': webpage_url,
         }
