@@ -59,6 +59,7 @@ __authors__  = (
     'Adam Thalhammer',
     'Georg Jähnig',
     'Ralf Haring',
+    'Koki Takahashi',
 )
 
 __license__ = 'Public Domain'
