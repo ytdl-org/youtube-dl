@@ -87,10 +87,10 @@ class FC2IE(InfoExtractor):
         if 'err_code' in info:
             #raise ExtractorError('Error code: %s' % info['err_code'][0])
             # most of the time we can still download wideo even if err_code is 403 or 602
-            print 'Error code was: %s... but still trying' % info['err_code'][0]
-            
+            self._downloader.report_warning('Error code was: %s... but still trying' % info['err_code'][0])
+
         if 'filepath' not in info:
-            raise ExtractorError('No file path for download. Maybe not logged?')
+            raise ExtractorError('Cannot download file. Are you logged?')
 
         video_url = info['filepath'][0] + '?mid=' + info['mid'][0]
         title_info = info.get('title')
