@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import ExtractorError
 
 
 class NewstubeIE(InfoExtractor):
@@ -39,6 +40,10 @@ class NewstubeIE(InfoExtractor):
 
         def ns(s):
             return s.replace('/', '/%(ns)s') % {'ns': '{http://app1.newstube.ru/N2SiteWS/player.asmx}'}
+
+        error_message = player.find(ns('./ErrorMessage'))
+        if error_message is not None:
+            raise ExtractorError('%s returned error: %s' % (self.IE_NAME, error_message.text), expected=True)
 
         session_id = player.find(ns('./SessionId')).text
         media_info = player.find(ns('./Medias/MediaInfo'))
