@@ -33,7 +33,7 @@ class FC2IE(InfoExtractor):
     def _login(self):
         (username, password) = self._get_login_info()
         if (username is None) or (password is None):
-           self._downloader.report_warning('unable to log in: will be downloading in non authorized mode')
+           self.to_screen('unable to log in: will be downloading in non authorized mode') # report_warning
            return False
 
         # Log in
@@ -53,7 +53,7 @@ class FC2IE(InfoExtractor):
 
         login_results = self._download_webpage(request, None, note='Logging in', errnote='Unable to log in')
         if 'mode=redirect&login=done' not in login_results:
-            self._downloader.report_warning('unable to log in: bad username or password')
+            self.to_screen('unable to log in: bad username or password') # report_warning
             return False
         
         # this is also needed
@@ -87,7 +87,7 @@ class FC2IE(InfoExtractor):
         if 'err_code' in info:
             #raise ExtractorError('Error code: %s' % info['err_code'][0])
             # most of the time we can still download wideo even if err_code is 403 or 602
-            self._downloader.report_warning('Error code was: %s... but still trying' % info['err_code'][0])
+            self.to_screen('Error code was: %s... but still trying' % info['err_code'][0]) # report_warning
 
         if 'filepath' not in info:
             raise ExtractorError('Cannot download file. Are you logged?')
