@@ -137,6 +137,14 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['id'], '9615865')
         self.assertTrue(len(result['entries']) >= 12)
 
+    def test_soundcloud_likes(self):
+        dl = FakeYDL()
+        ie = SoundcloudUserIE(dl)
+        result = ie.extract('https://soundcloud.com/the-concept-band/likes')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], '9615865')
+        self.assertTrue(len(result['entries']) >= 1)
+
     def test_soundcloud_playlist(self):
         dl = FakeYDL()
         ie = SoundcloudPlaylistIE(dl)
