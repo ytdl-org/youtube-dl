@@ -12,7 +12,9 @@ from ..utils import (
 
 
 class GorillaVidIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?gorillavid\.in/(?:embed-)?(?P<id>[0-9a-zA-Z]+)(?:-[0-9]+x[0-9]+\.html)?'
+    _HOST = 'gorollavid.id'
+    _VALID_URL_TEMPLATE = r'https?://(?:www\.)?%(host)s/(?:embed-)?(?P<id>[0-9a-zA-Z]+)(?:-[0-9]+x[0-9]+\.html)?'
+    _VALID_URL = _VALID_URL_TEMPLATE % {'host': re.escape(_HOST)}
 
     _TESTS = [{
         'url': 'http://gorillavid.in/06y9juieqpmi',
@@ -38,7 +40,7 @@ class GorillaVidIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        url = 'http://gorillavid.in/%s' % video_id
+        url = 'http://%s/%s' % (self._HOST, video_id)
 
         webpage = self._download_webpage(url, video_id)
 
