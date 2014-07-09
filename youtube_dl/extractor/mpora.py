@@ -28,7 +28,7 @@ class MporaIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
         data_json = self._search_regex(
-            r"new FM\.Player\('[^']+',\s*(\{.*?)\);\n", webpage, 'json')
+            r"new FM\.Player\('[^']+',\s*(\{.*?)\).player;", webpage, 'json')
 
         data = json.loads(data_json)
 
