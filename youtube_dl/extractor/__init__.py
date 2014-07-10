@@ -232,6 +232,7 @@ from .radiofrance import RadioFranceIE
 from .rai import RaiIE
 from .rbmaradio import RBMARadioIE
 from .redtube import RedTubeIE
+from .reverbnation import ReverbNationIE
 from .ringtv import RingTVIE
 from .ro220 import Ro220IE
 from .rottentomatoes import RottenTomatoesIE
