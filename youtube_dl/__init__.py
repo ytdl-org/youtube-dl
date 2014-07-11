@@ -509,7 +509,7 @@ def parseOpts(overrideArguments=None):
     postproc.add_option('--audio-quality', metavar='QUALITY', dest='audioquality', default='5',
             help='ffmpeg/avconv audio quality specification, insert a value between 0 (better) and 9 (worse) for VBR or a specific bitrate like 128K (default 5)')
     postproc.add_option('--recode-video', metavar='FORMAT', dest='recodevideo', default=None,
-            help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm)')
+            help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm|mkv)')
     postproc.add_option('-k', '--keep-video', action='store_true', dest='keepvideo', default=False,
             help='keeps the video file on disk after the post-processing; the video is erased by default')
     postproc.add_option('--no-post-overwrites', action='store_true', dest='nopostoverwrites', default=False,
