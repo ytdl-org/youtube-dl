@@ -33,6 +33,12 @@ _TESTS = [
         90,
         u']\\[@?>=<;:/.-,+*)(\'&%$#"hZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjiagfedcb39876',
     ),
+    (
+        u'https://s.ytimg.com/yts/jsbin/html5player-en_US-vflXGBaUN.js',
+        u'js',
+        u'BF51B8F76F05D81CEAED01F5ACE376131B23D830.5805F8368CB04C36C973A8CF997B774AC4B685B77',
+        u'2909FDCA8C5E6D92D34B34E7C7AFFD7CA57532DA.5BA2848AD58DAA15002012C7CD77187D24E048A5',
+    ),
 ]
 
 
@@ -44,7 +50,7 @@ class TestSignature(unittest.TestCase):
             os.mkdir(self.TESTDATA_DIR)
 
 
-def make_tfunc(url, stype, sig_length, expected_sig):
+def make_tfunc(url, stype, sig_input, expected_sig):
     basename = url.rpartition('/')[2]
     m = re.match(r'.*-([a-zA-Z0-9_-]+)\.[a-z]+$', basename)
     assert m, '%r should follow URL format' % basename
@@ -66,7 +72,9 @@ def make_tfunc(url, stype, sig_length, expected_sig):
             with open(fn, 'rb') as testf:
                 swfcode = testf.read()
             func = ie._parse_sig_swf(swfcode)
-        src_sig = compat_str(string.printable[:sig_length])
+        src_sig = (
+            compat_str(string.printable[:sig_input])
+            if isinstance(sig_input, int) else sig_input)
         got_sig = func(src_sig)
         self.assertEqual(got_sig, expected_sig)
 
