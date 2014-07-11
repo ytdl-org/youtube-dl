@@ -61,6 +61,7 @@ __authors__  = (
     'Ralf Haring',
     'Koki Takahashi',
     'Ariset Llerena',
+    'Adam Malcontenti-Wilson',
 )
 
 __license__ = 'Public Domain'
