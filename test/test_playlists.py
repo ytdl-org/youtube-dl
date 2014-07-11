@@ -111,7 +111,7 @@ class TestPlaylists(unittest.TestCase):
         ie = VineUserIE(dl)
         result = ie.extract('https://vine.co/Visa')
         self.assertIsPlaylist(result)
-        self.assertTrue(len(result['entries']) >= 50)
+        self.assertTrue(len(result['entries']) >= 47)
 
     def test_ustream_channel(self):
         dl = FakeYDL()
