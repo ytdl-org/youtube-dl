@@ -114,6 +114,7 @@ class YoutubeDL(object):
     nooverwrites:      Prevent overwriting files.
     playliststart:     Playlist item to start at.
     playlistend:       Playlist item to end at.
+    playlistreverse:   Download playlist items in reverse order.
     matchtitle:        Download only matching titles.
     rejecttitle:       Reject downloads for matching titles.
     logger:            Log messages to a logging.Logger instance.
@@ -611,6 +612,8 @@ class YoutubeDL(object):
             if isinstance(ie_result['entries'], list):
                 n_all_entries = len(ie_result['entries'])
                 entries = ie_result['entries'][playliststart:playlistend]
+                if self.params.get('playlistreverse', False):
+                    entries = entries[::-1]
                 n_entries = len(entries)
                 self.to_screen(
                     "[%s] playlist %s: Collected %d video ids (downloading %d of them)" %
