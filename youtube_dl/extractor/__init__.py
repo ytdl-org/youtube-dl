@@ -342,6 +342,7 @@ from .vine import (
 )
 from .viki import VikiIE
 from .vk import VKIE
+from .vodlocker import VodlockerIE
 from .vube import VubeIE
 from .vuclip import VuClipIE
 from .vulture import VultureIE
