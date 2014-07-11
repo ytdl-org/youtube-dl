@@ -60,6 +60,7 @@ __authors__  = (
     'Georg Jähnig',
     'Ralf Haring',
     'Koki Takahashi',
+    'Ariset Llerena',
 )
 
 __license__ = 'Public Domain'
