@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     compat_parse_qs,
     compat_urllib_request,
 )
@@ -12,7 +13,7 @@ from ..utils import (
 
 class ScreencastIE(InfoExtractor):
     _VALID_URL = r'https?://www\.screencast\.com/t/(?P<id>[a-zA-Z0-9]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.screencast.com/t/3ZEjQXlT',
         'md5': '917df1c13798a3e96211dd1561fded83',
         'info_dict': {
@@ -20,24 +21,70 @@ class ScreencastIE(InfoExtractor):
             'ext': 'm4v',
             'title': 'Color Measurement with Ocean Optics Spectrometers',
             'description': 'md5:240369cde69d8bed61349a199c5fb153',
-            'thumbnail': 're:^https?://.*\.jpg$'
+            'thumbnail': 're:^https?://.*\.(?:gif|jpg)$',
         }
-    }
+    }, {
+        'url': 'http://www.screencast.com/t/V2uXehPJa1ZI',
+        'md5': 'e8e4b375a7660a9e7e35c33973410d34',
+        'info_dict': {
+            'id': 'V2uXehPJa1ZI',
+            'ext': 'mov',
+            'title': 'The Amadeus Spectrometer',
+            'description': 're:^In this video, our friends at.*To learn more about Amadeus, visit',
+            'thumbnail': 're:^https?://.*\.(?:gif|jpg)$',
+        }
+    }, {
+        'url': 'http://www.screencast.com/t/aAB3iowa',
+        'md5': 'dedb2734ed00c9755761ccaee88527cd',
+        'info_dict': {
+            'id': 'aAB3iowa',
+            'ext': 'mp4',
+            'title': 'Google Earth Export',
+            'description': 'Provides a demo of a CommunityViz export to Google Earth, one of the 3D viewing options.',
+            'thumbnail': 're:^https?://.*\.(?:gif|jpg)$',
+        }
+    },
+    ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
 
-        flash_vars_s = self._html_search_regex(
-            r'<param name="flashVars" value="([^"]+)"', webpage, 'flash vars')
-        flash_vars = compat_parse_qs(flash_vars_s)
+        video_url = self._html_search_regex(
+            r'<embed name="Video".*?src="([^"]+)"', webpage,
+            'QuickTime embed', default=None)
 
-        thumbnail = flash_vars.get('thumb', [None])[0]
-        video_url_raw = compat_urllib_request.quote(flash_vars['content'][0])
-        video_url = video_url_raw.replace('http%3A', 'http:')
-        title = self._og_search_title(webpage)
-        description = self._og_search_description(webpage)
+        if video_url is None:
+            flash_vars_s = self._html_search_regex(
+                r'<param name="flashVars" value="([^"]+)"', webpage, 'flash vars',
+                default=None)
+            if flash_vars_s:
+                flash_vars = compat_parse_qs(flash_vars_s)
+                video_url_raw = compat_urllib_request.quote(
+                    flash_vars['content'][0])
+                video_url = video_url_raw.replace('http%3A', 'http:')
+
+        if video_url is None:
+            video_meta = self._html_search_meta(
+                'og:video', webpage, default=None)
+            if video_meta:
+                video_url = self._search_regex(
+                    r'src=(.*?)(?:$|&)', video_meta,
+                    'meta tag video URL', default=None)
+
+        if video_url is None:
+            raise ExtractorError('Cannot find video')
+
+        title = self._og_search_title(webpage, default=None)
+        if title is None:
+            title = self._html_search_regex(
+                r'class="tabSeperator">></span><span class="tabText">(.*?)<',
+                webpage, 'title')
+        thumbnail = self._og_search_thumbnail(webpage)
+        description = self._og_search_description(webpage, default=None)
+        if description is None:
+            description = self._html_search_meta('description', webpage)
 
         return {
             'id': video_id,
