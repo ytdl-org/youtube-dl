@@ -1,10 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-import zlib
 import base64
+import re
 import xml.etree.ElementTree
+import zlib
 
 from .common import InfoExtractor
 from ..utils import int_or_none
@@ -38,21 +38,21 @@ class VimpleIE(InfoExtractor):
         },
     ]
 
-    # http://jsunpack-n.googlecode.com/svn-history/r63/trunk/swf.py
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
         iframe_url = 'http://player.vimple.ru/iframe/%s' % video_id
 
-        iframe = self._download_webpage(iframe_url, video_id, note='Downloading iframe', errnote='unable to fetch iframe')
-        player_url = self._html_search_regex(r'"(http://player.vimple.ru/flash/.+?)"', iframe, 'player url')
+        iframe = self._download_webpage(
+            iframe_url, video_id,
+            note='Downloading iframe', errnote='unable to fetch iframe')
+        player_url = self._html_search_regex(
+            r'"(http://player.vimple.ru/flash/.+?)"', iframe, 'player url')
 
-        player = self._request_webpage(player_url, video_id, note='Downloading swf player').read()
+        player = self._request_webpage(
+            player_url, video_id, note='Downloading swf player').read()
 
-        # http://stackoverflow.com/a/6804758
-        # http://stackoverflow.com/a/12073686
         player = zlib.decompress(player[8:])
 
         xml_pieces = re.findall(b'([a-zA-Z0-9 =+/]{500})', player)
