@@ -56,6 +56,7 @@ from .criterion import CriterionIE
 from .crunchyroll import CrunchyrollIE
 from .cspan import CSpanIE
 from .d8 import D8IE
+from .daclips import DaclipsIE
 from .dailymotion import (
     DailymotionIE,
     DailymotionPlaylistIE,
