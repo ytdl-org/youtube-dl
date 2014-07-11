@@ -349,6 +349,10 @@ def parseOpts(overrideArguments=None):
         '--test',
         action='store_true', dest='test', default=False,
         help=optparse.SUPPRESS_HELP)
+    downloader.add_option(
+        '--playlist-reverse',
+        action='store_true',
+        help='Download playlist videos in reverse order')
 
     workarounds = optparse.OptionGroup(parser, 'Workarounds')
     workarounds.add_option(
