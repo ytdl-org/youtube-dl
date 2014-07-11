@@ -337,6 +337,7 @@ from .vimeo import (
     VimeoReviewIE,
     VimeoWatchLaterIE,
 )
+from .vimple import VimpleIE
 from .vine import (
     VineIE,
     VineUserIE,
