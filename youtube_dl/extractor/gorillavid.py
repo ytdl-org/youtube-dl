@@ -14,8 +14,8 @@ from ..utils import (
 class GorillaVidIE(InfoExtractor):
     IE_DESC = 'GorillaVid.in and daclips.in'
     _VALID_URL = r'''(?x)
-        https?://(?:www\.)?
-            (?:daclips\.in|gorillavid\.in)/
+        https?://(?P<host>(?:www\.)?
+            (?:daclips\.in|gorillavid\.in))/
         (?:embed-)?(?P<id>[0-9a-zA-Z]+)(?:-[0-9]+x[0-9]+\.html)?
     '''
 
@@ -39,6 +39,7 @@ class GorillaVidIE(InfoExtractor):
         },
     }, {
         'url': 'http://daclips.in/3rso4kdn6f9m',
+        'md5': '1ad8fd39bb976eeb66004d3a4895f106',
         'info_dict': {
             'id': '3rso4kdn6f9m',
             'ext': 'mp4',
@@ -51,7 +52,7 @@ class GorillaVidIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage('http://%s/%s' % (mobj.group('host'), video_id), video_id)
 
         fields = dict(re.findall(r'''(?x)<input\s+
             type="hidden"\s+
