@@ -99,7 +99,7 @@ class JSInterpreter(object):
 
     def extract_function(self, funcname):
         func_m = re.search(
-            (r'(?:function %s|%s\s*=\s*function)' % (
+            (r'(?:function %s|[{;]%s\s*=\s*function)' % (
                 re.escape(funcname), re.escape(funcname))) +
             r'\((?P<args>[a-z,]+)\){(?P<code>[^}]+)}',
             self.code)
