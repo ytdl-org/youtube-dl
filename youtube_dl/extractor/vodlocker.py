@@ -28,9 +28,6 @@ class VodlockerIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-
-        url = 'http://vodlocker.com/%s' % video_id
-
         webpage = self._download_webpage(url, video_id)
 
         fields = dict(re.findall(r'''(?x)<input\s+
@@ -41,21 +38,23 @@ class VodlockerIE(InfoExtractor):
             ''', webpage))
 
         if fields['op'] == 'download1':
-            time.sleep(3) #they do detect when requests happen too fast!
+            self._sleep(3, video_id)  # they do detect when requests happen too fast!
             post = compat_urllib_parse.urlencode(fields)
             req = compat_urllib_request.Request(url, post)
             req.add_header('Content-type', 'application/x-www-form-urlencoded')
-            webpage = self._download_webpage(req, video_id, 'Downloading video page')
+            webpage = self._download_webpage(
+                req, video_id, 'Downloading video page')
 
-        title = self._search_regex(r'id="file_title".*?>\s*(.*?)\s*<span', webpage, 'title')
-        thumbnail = self._search_regex(r'image:\s*"(http[^\"]+)",', webpage, 'thumbnail')
-        url = self._search_regex(r'file:\s*"(http[^\"]+)",', webpage, 'file url')
+        title = self._search_regex(
+            r'id="file_title".*?>\s*(.*?)\s*<span', webpage, 'title')
+        thumbnail = self._search_regex(
+            r'image:\s*"(http[^\"]+)",', webpage, 'thumbnail')
+        url = self._search_regex(
+            r'file:\s*"(http[^\"]+)",', webpage, 'file url')
 
         formats = [{
             'format_id': 'sd',
             'url': url,
-            'ext': determine_ext(url),
-            'quality': 1,
         }]
 
         return {
