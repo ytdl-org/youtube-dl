@@ -43,6 +43,16 @@ class ScreencastIE(InfoExtractor):
             'description': 'Provides a demo of a CommunityViz export to Google Earth, one of the 3D viewing options.',
             'thumbnail': 're:^https?://.*\.(?:gif|jpg)$',
         }
+    }, {
+        'url': 'http://www.screencast.com/t/X3ddTrYh',
+        'md5': '669ee55ff9c51988b4ebc0877cc8b159',
+        'info_dict': {
+            'id': 'X3ddTrYh',
+            'ext': 'wmv',
+            'title': 'Toolkit 6 User Group Webinar (2014-03-04) - Default Judgment and First Impression',
+            'description': 'md5:7b9f393bc92af02326a5c5889639eab0',
+            'thumbnail': 're:^https?://.*\.(?:gif|jpg)$',
+        }
     },
     ]
 
@@ -59,6 +69,12 @@ class ScreencastIE(InfoExtractor):
             flash_vars_s = self._html_search_regex(
                 r'<param name="flashVars" value="([^"]+)"', webpage, 'flash vars',
                 default=None)
+            if not flash_vars_s:
+                flash_vars_s = self._html_search_regex(
+                    r'<param name="initParams" value="([^"]+)"', webpage, 'flash vars',
+                    default=None)
+                if flash_vars_s:
+                    flash_vars_s = flash_vars_s.replace(',', '&')
             if flash_vars_s:
                 flash_vars = compat_parse_qs(flash_vars_s)
                 video_url_raw = compat_urllib_request.quote(
@@ -79,7 +95,8 @@ class ScreencastIE(InfoExtractor):
         title = self._og_search_title(webpage, default=None)
         if title is None:
             title = self._html_search_regex(
-                r'class="tabSeperator">></span><span class="tabText">(.*?)<',
+                [r'<b>Title:</b> ([^<]*)</div>',
+                r'class="tabSeperator">></span><span class="tabText">(.*?)<'],
                 webpage, 'title')
         thumbnail = self._og_search_thumbnail(webpage)
         description = self._og_search_description(webpage, default=None)
