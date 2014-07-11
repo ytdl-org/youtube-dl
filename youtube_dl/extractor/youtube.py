@@ -865,27 +865,26 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     def _decrypt_signature(self, s, video_id, player_url, age_gate=False):
         """Turn the encrypted s field into a working signature"""
 
-        if player_url is not None:
-            if player_url.startswith(u'//'):
-                player_url = u'https:' + player_url
-            try:
-                player_id = (player_url, len(s))
-                if player_id not in self._player_cache:
-                    func = self._extract_signature_function(
-                        video_id, player_url, len(s)
-                    )
-                    self._player_cache[player_id] = func
-                func = self._player_cache[player_id]
-                if self._downloader.params.get('youtube_print_sig_code'):
-                    self._print_sig_code(func, len(s))
-                return func(s)
-            except Exception as e:
-                tb = traceback.format_exc()
-                raise ExtractorError(
-                    u'Automatic signature extraction failed: ' + tb, cause=e)
+        if player_url is None:
+            raise ExtractorError(u'Cannot decrypt signature without player_url')
 
-        return self._static_decrypt_signature(
-            s, video_id, player_url, age_gate)
+        if player_url.startswith(u'//'):
+            player_url = u'https:' + player_url
+        try:
+            player_id = (player_url, len(s))
+            if player_id not in self._player_cache:
+                func = self._extract_signature_function(
+                    video_id, player_url, len(s)
+                )
+                self._player_cache[player_id] = func
+            func = self._player_cache[player_id]
+            if self._downloader.params.get('youtube_print_sig_code'):
+                self._print_sig_code(func, len(s))
+            return func(s)
+        except Exception as e:
+            tb = traceback.format_exc()
+            raise ExtractorError(
+                u'Automatic signature extraction failed: ' + tb, cause=e)
 
     def _get_available_subtitles(self, video_id, webpage):
         try:
