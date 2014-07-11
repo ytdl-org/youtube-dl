@@ -2,10 +2,8 @@
 from __future__ import unicode_literals
 
 import re
-import time
 from .common import InfoExtractor
 from ..utils import (
-    determine_ext,
     compat_urllib_parse,
     compat_urllib_request,
 )
