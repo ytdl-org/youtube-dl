@@ -1,11 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
+
 import re
 import zlib
 import base64
 import xml.etree.ElementTree
 
 from .common import InfoExtractor
+from ..utils import int_or_none
 
 
 class VimpleIE(InfoExtractor):
@@ -79,6 +81,6 @@ class VimpleIE(InfoExtractor):
             'title': video.find('Title').text,
             'formats': formats,
             'thumbnail': video.find('Poster').get('url'),
-            'duration': int(video.get('duration')),
+            'duration': int_or_none(video.get('duration')),
             'webpage_url': video.find('Share').get('videoPageUrl'),
         }
