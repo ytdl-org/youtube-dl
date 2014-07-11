@@ -12,7 +12,12 @@ from ..utils import (
 
 
 class GorillaVidIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?gorillavid\.in/(?:embed-)?(?P<id>[0-9a-zA-Z]+)(?:-[0-9]+x[0-9]+\.html)?'
+    IE_DESC = 'GorillaVid.in and daclips.in'
+    _VALID_URL = r'''(?x)
+        https?://(?:www\.)?
+            (?:daclips\.in|gorillavid\.in)/
+        (?:embed-)?(?P<id>[0-9a-zA-Z]+)(?:-[0-9]+x[0-9]+\.html)?
+    '''
 
     _TESTS = [{
         'url': 'http://gorillavid.in/06y9juieqpmi',
@@ -32,13 +37,19 @@ class GorillaVidIE(InfoExtractor):
             'title': 'Say something nice',
             'thumbnail': 're:http://.*\.jpg',
         },
+    }, {
+        'url': 'http://daclips.in/3rso4kdn6f9m',
+        'info_dict': {
+            'id': '3rso4kdn6f9m',
+            'ext': 'mp4',
+            'title': 'Micro Pig piglets ready on 16th July 2009',
+            'thumbnail': 're:http://.*\.jpg',
+        },
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-
-        url = 'http://gorillavid.in/%s' % video_id
 
         webpage = self._download_webpage(url, video_id)
 
