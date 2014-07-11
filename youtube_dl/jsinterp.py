@@ -59,7 +59,7 @@ class JSInterpreter(object):
             if member == 'split("")':
                 return list(val)
             if member == 'join("")':
-                return u''.join(val)
+                return ''.join(val)
             if member == 'length':
                 return len(val)
             if member == 'reverse()':
