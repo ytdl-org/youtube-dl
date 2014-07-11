@@ -62,6 +62,7 @@ __authors__  = (
     'Koki Takahashi',
     'Ariset Llerena',
     'Adam Malcontenti-Wilson',
+    'Tobias Bell',
 )
 
 __license__ = 'Public Domain'
