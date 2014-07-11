@@ -105,6 +105,7 @@ from .freesound import FreesoundIE
 from .freespeech import FreespeechIE
 from .funnyordie import FunnyOrDieIE
 from .gamekings import GamekingsIE
+from .gameone import GameOneIE
 from .gamespot import GameSpotIE
 from .gametrailers import GametrailersIE
 from .gdcvault import GDCVaultIE
