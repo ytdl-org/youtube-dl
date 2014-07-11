@@ -22,6 +22,7 @@ class GoshgayIE(InfoExtractor):
             'ext': 'flv',
             'title': 'md5:089833a4790b5e103285a07337f245bf',
             'thumbnail': 're:http://.*\.jpg',
+            'age_limit': 18,
         }
     }
 
@@ -32,8 +33,8 @@ class GoshgayIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         title = self._search_regex(r'class="video-title"><h1>(.+?)<', webpage, 'title')
 
-        player_config = self._search_regex(r'jwplayer\("player"\)\.setup\(({.+?})\)', webpage, 'config settings',
-                                           fatal=True, flags=re.S)
+        player_config = self._search_regex(
+            r'(?s)jwplayer\("player"\)\.setup\(({.+?})\)', webpage, 'config settings')
         player_vars = json.loads(player_config.replace("'", '"'))
         width = str_to_int(player_vars.get('width'))
         height = str_to_int(player_vars.get('height'))
