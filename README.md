@@ -84,6 +84,7 @@ which means you can modify it, redistribute it or use it however you like.
 ## Video Selection:
     --playlist-start NUMBER          playlist video to start at (default is 1)
     --playlist-end NUMBER            playlist video to end at (default is last)
+    --playlist-reverse               Download playlist videos in reverse order
     --match-title REGEX              download only matching titles (regex or
                                      caseless sub-string)
     --reject-title REGEX             skip download for matching titles (regex or
