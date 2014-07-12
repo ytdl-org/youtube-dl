@@ -24,7 +24,7 @@ class FiredriveIE(InfoExtractor):
             'id': 'FEB892FA160EBD01',
             'ext': 'flv',
             'title': 'bbb_theora_486kbit.flv',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': 're:^http://.*\.jpg$',
         },
     }]
 
@@ -37,7 +37,7 @@ class FiredriveIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         if re.search(self._FILE_DELETED_REGEX, webpage) is not None:
-            raise ExtractorError(u'Video %s does not exist' % video_id,
+            raise ExtractorError('Video %s does not exist' % video_id,
                                  expected=True)
 
         fields = dict(re.findall(r'''(?x)<input\s+
@@ -60,22 +60,24 @@ class FiredriveIE(InfoExtractor):
         title = self._search_regex(r'class="external_title_left">(.+)</div>',
                                    webpage, 'title')
         thumbnail = self._search_regex(r'image:\s?"(//[^\"]+)', webpage,
-                                       'thumbnail', fatal=False, default="")
-        url = self._search_regex(r'file:\s?\'(http[^\']+)\',',
-                                 webpage, 'file url')
+                                       'thumbnail', fatal=False)
+        if thumbnail is not None:
+            thumbnail = 'http:' + thumbnail
+
         ext = self._search_regex(r'type:\s?\'([^\']+)\',',
                                  webpage, 'extension', fatal=False)
+        video_url = self._search_regex(
+            r'file:\s?\'(http[^\']+)\',', webpage, 'file url')
 
         formats = [{
             'format_id': 'sd',
-            'url': url,
-            'ext': ext or determine_ext(url),
-            'quality': 1,
+            'url': video_url,
+            'ext': ext,
         }]
 
         return {
             'id': video_id,
             'title': title,
-            'thumbnail': "http:" + thumbnail,
+            'thumbnail': thumbnail,
             'formats': formats,
         }
