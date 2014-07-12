@@ -63,6 +63,7 @@ __authors__  = (
     'Ariset Llerena',
     'Adam Malcontenti-Wilson',
     'Tobias Bell',
+    'Naglis Jonaitis',
 )
 
 __license__ = 'Public Domain'
