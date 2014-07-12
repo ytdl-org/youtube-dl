@@ -240,6 +240,7 @@ from .rtbf import RTBFIE
 from .rtlnow import RTLnowIE
 from .rts import RTSIE
 from .rtve import RTVEALaCartaIE
+from .ruhd import RUHDIE
 from .rutube import (
     RutubeIE,
     RutubeChannelIE,
