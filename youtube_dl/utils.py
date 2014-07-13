@@ -1428,7 +1428,7 @@ US_RATINGS = {
 
 
 def strip_jsonp(code):
-    return re.sub(r'(?s)^[a-zA-Z0-9_]+\s*\(\s*(.*)\)\s*?\s*$', r'\1', code)
+    return re.sub(r'(?s)^[a-zA-Z0-9_]+\s*\(\s*(.*)\);?\s*?\s*$', r'\1', code)
 
 
 def qualities(quality_ids):
