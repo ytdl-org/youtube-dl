@@ -270,8 +270,8 @@ from .soundcloud import (
     SoundcloudPlaylistIE
 )
 from .soundgasm import SoundgasmIE
-from .southparkstudios import (
-    SouthParkStudiosIE,
+from .southpark import (
+    SouthParkIE,
     SouthparkDeIE,
 )
 from .space import SpaceIE
