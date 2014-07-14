@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 import re
@@ -54,14 +55,14 @@ class WDRIE(InfoExtractor):
             },
         },
         {
-            'url': 'http://www.funkhauseuropa.de/av/audiogrenzenlosleckerbaklava101-audioplayer.html',
-            'md5': 'cfff440d4ee64114083ac44676df5d15',
+            'url': 'http://www.funkhauseuropa.de/av/audiosuepersongsoulbossanova100-audioplayer.html',
+            'md5': '24e83813e832badb0a8d7d1ef9ef0691',
             'info_dict': {
-                'id': 'mdb-363068',
+                'id': 'mdb-463528',
                 'ext': 'mp3',
-                'title': 'Grenzenlos lecker - Baklava',
+                'title': 'Süpersong: Soul Bossa Nova',
                 'description': 'md5:7b29e97e10dfb6e265238b32fa35b23a',
-                'upload_date': '20140311',
+                'upload_date': '20140630',
             },
         },
     ]
@@ -127,9 +128,10 @@ class WDRMobileIE(InfoExtractor):
         'info_dict': {
             'title': '4283021',
             'id': '421735',
+            'ext': 'mp4',
             'age_limit': 0,
         },
-        '_skip': 'Will be depublicized shortly'
+        'skip': 'Problems with loading data.'
     }
 
     def _real_extract(self, url):
@@ -139,6 +141,7 @@ class WDRMobileIE(InfoExtractor):
             'title': mobj.group('title'),
             'age_limit': int(mobj.group('age_limit')),
             'url': url,
+            'ext': determine_ext(url),
             'user_agent': 'mobile',
         }
 

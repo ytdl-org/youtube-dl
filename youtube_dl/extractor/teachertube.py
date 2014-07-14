@@ -14,7 +14,7 @@ class TeacherTubeIE(InfoExtractor):
     IE_NAME = 'teachertube'
     IE_DESC = 'teachertube.com videos'
 
-    _VALID_URL = r'https?://(?:www\.)?teachertube\.com/(viewVideo\.php\?video_id=|music\.php\?music_id=|video/|audio/)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?teachertube\.com/(viewVideo\.php\?video_id=|music\.php\?music_id=|video/(?:[\da-z-]+-)?|audio/)(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.teachertube.com/viewVideo.php?video_id=339997',
@@ -44,6 +44,15 @@ class TeacherTubeIE(InfoExtractor):
             'ext': 'mp3',
             'title': 'PER ASPERA AD ASTRA',
             'description': 'RADIJSKA EMISIJA ZRAKOPLOVNE TEHNI?KE ?KOLE P',
+        },
+    }, {
+        'url': 'http://www.teachertube.com/video/intro-video-schleicher-297790',
+        'md5': '9c79fbb2dd7154823996fc28d4a26998',
+        'info_dict': {
+            'id': '297790',
+            'ext': 'mp4',
+            'title': 'Intro Video - Schleicher',
+            'description': 'Intro Video - Why to flip, how flipping will',
         },
     }]
 
@@ -86,22 +95,30 @@ class TeacherTubeIE(InfoExtractor):
         }
 
 
-class TeacherTubeClassroomIE(InfoExtractor):
-    IE_NAME = 'teachertube:classroom'
-    IE_DESC = 'teachertube.com online classrooms'
+class TeacherTubeUserIE(InfoExtractor):
+    IE_NAME = 'teachertube:user:collection'
+    IE_DESC = 'teachertube.com user and collection videos'
 
-    _VALID_URL = r'https?://(?:www\.)?teachertube\.com/view_classroom\.php\?user=(?P<user>[0-9a-zA-Z]+)'
+    _VALID_URL = r'https?://(?:www\.)?teachertube\.com/(user/profile|collection)/(?P<user>[0-9a-zA-Z]+)/?'
+
+    _MEDIA_RE = r'(?s)"sidebar_thumb_time">[0-9:]+</div>.+?<a href="(https?://(?:www\.)?teachertube\.com/(?:video|audio)/[^"]+)">'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         user_id = mobj.group('user')
 
-        rss = self._download_xml(
-            'http://www.teachertube.com/rssclassroom.php?mode=user&username=%s' % user_id,
-            user_id, 'Downloading classroom RSS')
+        urls = []
+        webpage = self._download_webpage(url, user_id)
+        urls.extend(re.findall(self._MEDIA_RE, webpage))
+        
+        pages = re.findall(r'/ajax-user/user-videos/%s\?page=([0-9]+)' % user_id, webpage)[1:-1]
+        for p in pages:
+            more = 'http://www.teachertube.com/ajax-user/user-videos/%s?page=%s' % (user_id, p)
+            webpage = self._download_webpage(more, user_id, 'Downloading page %s/%s' % (p, len(pages) + 1))
+            urls.extend(re.findall(self._MEDIA_RE, webpage))
 
         entries = []
-        for url in rss.findall('.//{http://search.yahoo.com/mrss/}player'):
-            entries.append(self.url_result(url.attrib['url'], 'TeacherTube'))
+        for url in urls:
+            entries.append(self.url_result(url, 'TeacherTube'))
 
         return self.playlist_result(entries, user_id)

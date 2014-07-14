@@ -49,6 +49,7 @@ class VeohIE(InfoExtractor):
                 'description': 'md5:f5a11c51f8fb51d2315bca0937526891',
                 'uploader': 'newsy-videos',
             },
+            'skip': 'This video has been deleted.',
         },
     ]
 

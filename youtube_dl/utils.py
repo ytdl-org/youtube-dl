@@ -775,7 +775,7 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     https_response = http_response
 
 
-def parse_iso8601(date_str):
+def parse_iso8601(date_str, delimiter='T'):
     """ Return a UNIX timestamp from the given date """
 
     if date_str is None:
@@ -795,8 +795,8 @@ def parse_iso8601(date_str):
             timezone = datetime.timedelta(
                 hours=sign * int(m.group('hours')),
                 minutes=sign * int(m.group('minutes')))
-
-    dt = datetime.datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S') - timezone
+    date_format =  '%Y-%m-%d{0}%H:%M:%S'.format(delimiter)
+    dt = datetime.datetime.strptime(date_str, date_format) - timezone
     return calendar.timegm(dt.timetuple())
 
 
@@ -1428,7 +1428,7 @@ US_RATINGS = {
 
 
 def strip_jsonp(code):
-    return re.sub(r'(?s)^[a-zA-Z_]+\s*\(\s*(.*)\);\s*?\s*$', r'\1', code)
+    return re.sub(r'(?s)^[a-zA-Z0-9_]+\s*\(\s*(.*)\);?\s*?\s*$', r'\1', code)
 
 
 def qualities(quality_ids):

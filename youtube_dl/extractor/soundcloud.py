@@ -255,7 +255,7 @@ class SoundcloudSetIE(SoundcloudIE):
 
 
 class SoundcloudUserIE(SoundcloudIE):
-    _VALID_URL = r'https?://(www\.)?soundcloud\.com/(?P<user>[^/]+)(/?(tracks/)?)?(\?.*)?$'
+    _VALID_URL = r'https?://(www\.)?soundcloud\.com/(?P<user>[^/]+)/?((?P<rsrc>tracks|likes)/?)?(\?.*)?$'
     IE_NAME = 'soundcloud:user'
 
     # it's in tests/test_playlists.py
@@ -264,24 +264,31 @@ class SoundcloudUserIE(SoundcloudIE):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         uploader = mobj.group('user')
+        resource = mobj.group('rsrc')
+        if resource is None:
+            resource = 'tracks'
+        elif resource == 'likes':
+            resource = 'favorites'
 
         url = 'http://soundcloud.com/%s/' % uploader
         resolv_url = self._resolv_url(url)
         user = self._download_json(
             resolv_url, uploader, 'Downloading user info')
-        base_url = 'http://api.soundcloud.com/users/%s/tracks.json?' % uploader
+        base_url = 'http://api.soundcloud.com/users/%s/%s.json?' % (uploader, resource)
 
         entries = []
         for i in itertools.count():
             data = compat_urllib_parse.urlencode({
                 'offset': i * 50,
+                'limit': 50,
                 'client_id': self._CLIENT_ID,
             })
             new_entries = self._download_json(
                 base_url + data, uploader, 'Downloading track page %s' % (i + 1))
-            entries.extend(self._extract_info_dict(e, quiet=True) for e in new_entries)
-            if len(new_entries) < 50:
+            if len(new_entries) == 0:
+                self.to_screen('%s: End page received' % uploader)
                 break
+            entries.extend(self._extract_info_dict(e, quiet=True) for e in new_entries)
 
         return {
             '_type': 'playlist',

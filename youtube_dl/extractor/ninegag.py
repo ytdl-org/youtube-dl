@@ -47,7 +47,7 @@ class NineGagIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         post_view = json.loads(self._html_search_regex(
-            r'var postView = new app\.PostView\({\s*post:\s*({.+?}),', webpage, 'post view'))
+            r'var postView = new app\.PostView\({\s*post:\s*({.+?}),\s*posts:\s*prefetchedCurrentPost', webpage, 'post view'))
 
         youtube_id = post_view['videoExternalId']
         title = post_view['title']

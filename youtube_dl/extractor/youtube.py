@@ -865,71 +865,26 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     def _decrypt_signature(self, s, video_id, player_url, age_gate=False):
         """Turn the encrypted s field into a working signature"""
 
-        if player_url is not None:
-            if player_url.startswith(u'//'):
-                player_url = u'https:' + player_url
-            try:
-                player_id = (player_url, len(s))
-                if player_id not in self._player_cache:
-                    func = self._extract_signature_function(
-                        video_id, player_url, len(s)
-                    )
-                    self._player_cache[player_id] = func
-                func = self._player_cache[player_id]
-                if self._downloader.params.get('youtube_print_sig_code'):
-                    self._print_sig_code(func, len(s))
-                return func(s)
-            except Exception:
-                tb = traceback.format_exc()
-                self._downloader.report_warning(
-                    u'Automatic signature extraction failed: ' + tb)
+        if player_url is None:
+            raise ExtractorError(u'Cannot decrypt signature without player_url')
 
-            self._downloader.report_warning(
-                u'Warning: Falling back to static signature algorithm')
-
-        return self._static_decrypt_signature(
-            s, video_id, player_url, age_gate)
-
-    def _static_decrypt_signature(self, s, video_id, player_url, age_gate):
-        if age_gate:
-            # The videos with age protection use another player, so the
-            # algorithms can be different.
-            if len(s) == 86:
-                return s[2:63] + s[82] + s[64:82] + s[63]
-
-        if len(s) == 93:
-            return s[86:29:-1] + s[88] + s[28:5:-1]
-        elif len(s) == 92:
-            return s[25] + s[3:25] + s[0] + s[26:42] + s[79] + s[43:79] + s[91] + s[80:83]
-        elif len(s) == 91:
-            return s[84:27:-1] + s[86] + s[26:5:-1]
-        elif len(s) == 90:
-            return s[25] + s[3:25] + s[2] + s[26:40] + s[77] + s[41:77] + s[89] + s[78:81]
-        elif len(s) == 89:
-            return s[84:78:-1] + s[87] + s[77:60:-1] + s[0] + s[59:3:-1]
-        elif len(s) == 88:
-            return s[7:28] + s[87] + s[29:45] + s[55] + s[46:55] + s[2] + s[56:87] + s[28]
-        elif len(s) == 87:
-            return s[6:27] + s[4] + s[28:39] + s[27] + s[40:59] + s[2] + s[60:]
-        elif len(s) == 86:
-            return s[80:72:-1] + s[16] + s[71:39:-1] + s[72] + s[38:16:-1] + s[82] + s[15::-1]
-        elif len(s) == 85:
-            return s[3:11] + s[0] + s[12:55] + s[84] + s[56:84]
-        elif len(s) == 84:
-            return s[78:70:-1] + s[14] + s[69:37:-1] + s[70] + s[36:14:-1] + s[80] + s[:14][::-1]
-        elif len(s) == 83:
-            return s[80:63:-1] + s[0] + s[62:0:-1] + s[63]
-        elif len(s) == 82:
-            return s[80:37:-1] + s[7] + s[36:7:-1] + s[0] + s[6:0:-1] + s[37]
-        elif len(s) == 81:
-            return s[56] + s[79:56:-1] + s[41] + s[55:41:-1] + s[80] + s[40:34:-1] + s[0] + s[33:29:-1] + s[34] + s[28:9:-1] + s[29] + s[8:0:-1] + s[9]
-        elif len(s) == 80:
-            return s[1:19] + s[0] + s[20:68] + s[19] + s[69:80]
-        elif len(s) == 79:
-            return s[54] + s[77:54:-1] + s[39] + s[53:39:-1] + s[78] + s[38:34:-1] + s[0] + s[33:29:-1] + s[34] + s[28:9:-1] + s[29] + s[8:0:-1] + s[9]
-
-        else:
-            raise ExtractorError(u'Unable to decrypt signature, key length %d not supported; retrying might work' % (len(s)))
+        if player_url.startswith(u'//'):
+            player_url = u'https:' + player_url
+        try:
+            player_id = (player_url, len(s))
+            if player_id not in self._player_cache:
+                func = self._extract_signature_function(
+                    video_id, player_url, len(s)
+                )
+                self._player_cache[player_id] = func
+            func = self._player_cache[player_id]
+            if self._downloader.params.get('youtube_print_sig_code'):
+                self._print_sig_code(func, len(s))
+            return func(s)
+        except Exception as e:
+            tb = traceback.format_exc()
+            raise ExtractorError(
+                u'Automatic signature extraction failed: ' + tb, cause=e)
 
     def _get_available_subtitles(self, video_id, webpage):
         try:
@@ -1698,14 +1653,14 @@ class YoutubeSearchURLIE(InfoExtractor):
 
         webpage = self._download_webpage(url, query)
         result_code = self._search_regex(
-            r'(?s)<ol id="search-results"(.*?)</ol>', webpage, u'result HTML')
+            r'(?s)<ol class="item-section"(.*?)</ol>', webpage, u'result HTML')
 
         part_codes = re.findall(
             r'(?s)<h3 class="yt-lockup-title">(.*?)</h3>', result_code)
         entries = []
         for part_code in part_codes:
             part_title = self._html_search_regex(
-                r'(?s)title="([^"]+)"', part_code, 'item title', fatal=False)
+                [r'(?s)title="([^"]+)"', r'>([^<]+)</a>'], part_code, 'item title', fatal=False)
             part_url_snippet = self._html_search_regex(
                 r'(?s)href="([^"]+)"', part_code, 'item URL')
             part_url = compat_urlparse.urljoin(
@@ -1825,9 +1780,20 @@ class YoutubeTruncatedURLIE(InfoExtractor):
     IE_NAME = 'youtube:truncated_url'
     IE_DESC = False  # Do not list
     _VALID_URL = r'''(?x)
-        (?:https?://)?[^/]+/watch\?(?:feature=[a-z_]+)?$|
+        (?:https?://)?[^/]+/watch\?(?:
+            feature=[a-z_]+|
+            annotation_id=annotation_[^&]+
+        )?$|
         (?:https?://)?(?:www\.)?youtube\.com/attribution_link\?a=[^&]+$
     '''
+
+    _TESTS = [{
+        'url': 'http://www.youtube.com/watch?annotation_id=annotation_3951667041',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.youtube.com/watch?',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         raise ExtractorError(

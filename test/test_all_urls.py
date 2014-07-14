@@ -69,9 +69,6 @@ class TestAllURLsMatching(unittest.TestCase):
     def test_youtube_show_matching(self):
         self.assertMatch('http://www.youtube.com/show/airdisasters', ['youtube:show'])
 
-    def test_youtube_truncated(self):
-        self.assertMatch('http://www.youtube.com/watch?', ['youtube:truncated_url'])
-
     def test_youtube_search_matching(self):
         self.assertMatch('http://www.youtube.com/results?search_query=making+mustard', ['youtube:search_url'])
         self.assertMatch('https://www.youtube.com/results?baz=bar&search_query=youtube-dl+test+video&filters=video&lclk=video', ['youtube:search_url'])

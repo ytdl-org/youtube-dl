@@ -39,7 +39,10 @@ class ArteTvIE(InfoExtractor):
 
         formats = [{
             'forma_id': q.attrib['quality'],
-            'url': q.text,
+            # The playpath starts at 'mp4:', if we don't manually
+            # split the url, rtmpdump will incorrectly parse them
+            'url': q.text.split('mp4:', 1)[0],
+            'play_path': 'mp4:' + q.text.split('mp4:', 1)[1],
             'ext': 'flv',
             'quality': 2 if q.attrib['quality'] == 'hd' else 1,
         } for q in config.findall('./urls/url')]

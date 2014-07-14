@@ -3,6 +3,7 @@ from .addanime import AddAnimeIE
 from .aftonbladet import AftonbladetIE
 from .anitube import AnitubeIE
 from .aol import AolIE
+from .allocine import AllocineIE
 from .aparat import AparatIE
 from .appletrailers import AppleTrailersIE
 from .archiveorg import ArchiveOrgIE
@@ -82,6 +83,7 @@ from .extremetube import ExtremeTubeIE
 from .facebook import FacebookIE
 from .faz import FazIE
 from .fc2 import FC2IE
+from .firedrive import FiredriveIE
 from .firstpost import FirstpostIE
 from .firsttv import FirstTVIE
 from .fivemin import FiveMinIE
@@ -104,6 +106,7 @@ from .freesound import FreesoundIE
 from .freespeech import FreespeechIE
 from .funnyordie import FunnyOrDieIE
 from .gamekings import GamekingsIE
+from .gameone import GameOneIE
 from .gamespot import GameSpotIE
 from .gametrailers import GametrailersIE
 from .gdcvault import GDCVaultIE
@@ -111,6 +114,7 @@ from .generic import GenericIE
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
 from .gorillavid import GorillaVidIE
+from .goshgay import GoshgayIE
 from .hark import HarkIE
 from .helsinki import HelsinkiIE
 from .hentaistigma import HentaiStigmaIE
@@ -228,6 +232,7 @@ from .radiofrance import RadioFranceIE
 from .rai import RaiIE
 from .rbmaradio import RBMARadioIE
 from .redtube import RedTubeIE
+from .reverbnation import ReverbNationIE
 from .ringtv import RingTVIE
 from .ro220 import Ro220IE
 from .rottentomatoes import RottenTomatoesIE
@@ -236,6 +241,7 @@ from .rtbf import RTBFIE
 from .rtlnow import RTLnowIE
 from .rts import RTSIE
 from .rtve import RTVEALaCartaIE
+from .ruhd import RUHDIE
 from .rutube import (
     RutubeIE,
     RutubeChannelIE,
@@ -245,6 +251,7 @@ from .rutube import (
 from .rutv import RUTVIE
 from .savefrom import SaveFromIE
 from .scivee import SciVeeIE
+from .screencast import ScreencastIE
 from .servingsys import ServingSysIE
 from .sina import SinaIE
 from .slideshare import SlideshareIE
@@ -263,8 +270,8 @@ from .soundcloud import (
     SoundcloudPlaylistIE
 )
 from .soundgasm import SoundgasmIE
-from .southparkstudios import (
-    SouthParkStudiosIE,
+from .southpark import (
+    SouthParkIE,
     SouthparkDeIE,
 )
 from .space import SpaceIE
@@ -282,12 +289,13 @@ from .sztvhu import SztvHuIE
 from .tagesschau import TagesschauIE
 from .teachertube import (
     TeacherTubeIE,
-    TeacherTubeClassroomIE,
+    TeacherTubeUserIE,
 )
 from .teachingchannel import TeachingChannelIE
 from .teamcoco import TeamcocoIE
 from .techtalks import TechTalksIE
 from .ted import TEDIE
+from .tenplay import TenPlayIE
 from .testurl import TestURLIE
 from .tf1 import TF1IE
 from .theplatform import ThePlatformIE
@@ -335,12 +343,14 @@ from .vimeo import (
     VimeoReviewIE,
     VimeoWatchLaterIE,
 )
+from .vimple import VimpleIE
 from .vine import (
     VineIE,
     VineUserIE,
 )
 from .viki import VikiIE
 from .vk import VKIE
+from .vodlocker import VodlockerIE
 from .vube import VubeIE
 from .vuclip import VuClipIE
 from .vulture import VultureIE

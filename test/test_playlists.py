@@ -28,7 +28,7 @@ from youtube_dl.extractor import (
     SoundcloudSetIE,
     SoundcloudUserIE,
     SoundcloudPlaylistIE,
-    TeacherTubeClassroomIE,
+    TeacherTubeUserIE,
     LivestreamIE,
     LivestreamOriginalIE,
     NHLVideocenterIE,
@@ -111,7 +111,7 @@ class TestPlaylists(unittest.TestCase):
         ie = VineUserIE(dl)
         result = ie.extract('https://vine.co/Visa')
         self.assertIsPlaylist(result)
-        self.assertTrue(len(result['entries']) >= 50)
+        self.assertTrue(len(result['entries']) >= 47)
 
     def test_ustream_channel(self):
         dl = FakeYDL()
@@ -136,6 +136,14 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], '9615865')
         self.assertTrue(len(result['entries']) >= 12)
+
+    def test_soundcloud_likes(self):
+        dl = FakeYDL()
+        ie = SoundcloudUserIE(dl)
+        result = ie.extract('https://soundcloud.com/the-concept-band/likes')
+        self.assertIsPlaylist(result)
+        self.assertEqual(result['id'], '9615865')
+        self.assertTrue(len(result['entries']) >= 1)
 
     def test_soundcloud_playlist(self):
         dl = FakeYDL()
@@ -379,13 +387,13 @@ class TestPlaylists(unittest.TestCase):
             result['title'], 'Brace Yourself - Today\'s Weirdest News')
         self.assertTrue(len(result['entries']) >= 10)
 
-    def test_TeacherTubeClassroom(self):
+    def test_TeacherTubeUser(self):
         dl = FakeYDL()
-        ie = TeacherTubeClassroomIE(dl)
-        result = ie.extract('http://www.teachertube.com/view_classroom.php?user=rbhagwati2')
+        ie = TeacherTubeUserIE(dl)
+        result = ie.extract('http://www.teachertube.com/user/profile/rbhagwati2')
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], 'rbhagwati2')
-        self.assertTrue(len(result['entries']) >= 20)
+        self.assertTrue(len(result['entries']) >= 179)
 
 if __name__ == '__main__':
     unittest.main()

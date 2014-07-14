@@ -993,6 +993,8 @@ class YoutubeDL(object):
                         fd = get_suitable_downloader(info)(self, self.params)
                         for ph in self._progress_hooks:
                             fd.add_progress_hook(ph)
+                        if self.params.get('verbose'):
+                            self.to_stdout('[debug] Invoking downloader on %r' % info.get('url'))
                         return fd.download(name, info)
                     if info_dict.get('requested_formats') is not None:
                         downloaded = []
