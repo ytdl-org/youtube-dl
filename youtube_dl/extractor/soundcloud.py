@@ -81,16 +81,16 @@ class SoundcloudIE(InfoExtractor):
         },
         # downloadable song
         {
-            'url': 'https://soundcloud.com/simgretina/just-your-problem-baby-1',
-            'md5': '56a8b69568acaa967b4c49f9d1d52d19',
+            'url': 'https://soundcloud.com/oddsamples/bus-brakes',
+            'md5': 'fee7b8747b09bb755cefd4b853e7249a',
             'info_dict': {
-                'id': '105614606',
+                'id': '128590877',
                 'ext': 'wav',
-                'title': 'Just Your Problem Baby (Acapella)',
-                'description': 'Vocals',
-                'uploader': 'Sim Gretina',
-                'upload_date': '20130815',
-                #'duration': 42,
+                'title': 'Bus Brakes',
+                'description': 'md5:0170be75dd395c96025d210d261c784e',
+                'uploader': 'oddsamples',
+                'upload_date': '20140109',
+                'duration': 17,
             },
         },
     ]
