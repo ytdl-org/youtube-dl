@@ -34,6 +34,12 @@ _TESTS = [
         u']\\[@?>=<;:/.-,+*)(\'&%$#"hZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjiagfedcb39876',
     ),
     (
+        u'https://s.ytimg.com/yts/jsbin/html5player-en_US-vfl0Cbn9e.js',
+        u'js',
+        84,
+        u'O1I3456789abcde0ghijklmnopqrstuvwxyzABCDEFGHfJKLMN2PQRSTUVW@YZ!"#$%&\'()*+,-./:;<=',
+    ),
+    (
         u'https://s.ytimg.com/yts/jsbin/html5player-en_US-vflXGBaUN.js',
         u'js',
         u'2ACFC7A61CA478CD21425E5A57EBD73DDC78E22A.2094302436B2D377D14A3BBA23022D023B8BC25AA',
