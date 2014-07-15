@@ -28,37 +28,44 @@ class MlbIE(InfoExtractor):
         title = self._og_search_title(webpage, default=video_id)
         description = self._html_search_regex(r'<meta name="description" (?:content|value)="(.*?)"/>', webpage, 'description', fatal=False)
         thumbnail = self._html_search_regex(r'<meta itemprop="image" (?:content|value)="(.*?)" />', webpage, 'image', fatal=False)
+
+        # use the video_id to find the Media detail XML
+        id_len = len(video_id)
+        _mediadetail_url = 'http://m.mlb.com/gen/multimedia/detail/'+video_id[id_len-3]+'/'+video_id[id_len-2]+'/'+video_id[id_len-1]+'/'+video_id+'.xml'
         
-        # use the thumbnail URL to find the folder that contains the videos
-        _image_url = r'http://mediadownloads.mlb.com/mlbam/(?P<_date>n?.+)/images/.*$'
-        bobj = re.match(_image_url, thumbnail)
-        datestr = bobj.group('_date')
-        base_url = 'http://mediadownloads.mlb.com/mlbam/' + datestr
-        filespage = self._download_webpage(base_url, video_id)
-        
-        # Try 1800K, 1500K, 1200K, 600K, then 300K videos
-        video = self._html_search_regex(r'<li><a href="(.*?)_'+video_id+'_1800K.mp4"', filespage, '1800K', fatal=False)
-        if video is not None:
-            video_url = base_url+'/'+video+'_'+video_id+'_1800K.mp4'
-        else:
-            video = self._html_search_regex(r'<li><a href="(.*?)_'+video_id+'_1500K.mp4"', filespage, '1500K', fatal=False)
-            if video is not None:
-                video_url = base_url+'/'+video+'_'+video_id+'_1500K.mp4'
-            else:
-                video = self._html_search_regex(r'<li><a href="(.*?)_'+video_id+'_600K.mp4"', filespage, '600K', fatal=False)
-                if video is not None:
-                    video_url = base_url+'/'+video+'_'+video_id+'_600K.mp4'
+        mediadetails = self._download_xml(_mediadetail_url, video_id, "Downloading media detail...")
+        has1500K = 0
+        has1200K = 0
+        has600K = 0
+        # loop through the list of url's and only get the highest quality MP4 content
+        for element in mediadetails.findall('url'):
+            scenario = element.attrib['playback_scenario']
+            if scenario.startswith(u'FLASH'):
+                if scenario.startswith(u'FLASH_1800K'):
+                    video_url = element.text
+                    # 1800K is the current highest quality video on MLB.com
+                    break
                 else:
-                    video = self._html_search_regex(r'<li><a href="(.*?)_'+video_id+'_300K.mp4"', filespage, 'MLB', fatal=False)
-                    if video is not None:
-                        video_url = base_url+'/'+video+'_'+video_id+'_300K.mp4'
+                    if scenario.startswith(u'FLASH_1500K'):
+                        video_url = element.text
+                        has1500K = 1
                     else:
-                        # nothing valuable to return
-                        return None
-                
+                        if (scenario.startswith(u'FLASH_1200K') and not has1500K):
+                            video_url = element.text
+                            has1200K = 1
+                        else:
+                            if (scenario.startswith(u'FLASH_600K') and not has1200K):
+                                video_url = element.text
+                                has600K = 1
+                            else:
+                                if (scenario.startswith(u'FLASH_300K') and not has600K):
+                                    video_url = element.text
+
         return {
             'id': video_id,
             'url': video_url,
+            'extractor': 'mlb',
+            'webpage_url': url,
             'title': title,
             'ext': 'mp4',
             'format': 'mp4',
