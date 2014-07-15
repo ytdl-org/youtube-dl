@@ -45,6 +45,23 @@ class JSInterpreter(object):
         v = self.interpret_expression(expr, local_vars, allow_recursion)
         return assign(v)
 
+    def XG(self, list, desiredNonCommentArgIndex):
+        file = list[0]
+        v = int(desiredNonCommentArgIndex) % int(len(list))
+        list[0] = list[int(v)]
+        list[int(desiredNonCommentArgIndex)] = file
+        return list
+    
+    def NZ(self, suite):
+        return suite[::-1]
+    
+    def PL(self, curr, _part):
+        return curr[int(_part):]
+
+    def fo(self, curr):
+        curr = curr.split("")
+        
+
     def interpret_expression(self, expr, local_vars, allow_recursion):
         if expr.isdigit():
             return int(expr)
@@ -55,7 +72,20 @@ class JSInterpreter(object):
         m = re.match(r'^(?P<in>[a-z]+)\.(?P<member>.*)$', expr)
         if m:
             member = m.group('member')
-            val = local_vars[m.group('in')]
+            if m.group('in') == u'fo':
+                val = local_vars[u'a']
+                le = re.match(r'^(?P<function>[A-Z]+)\([a]\,(?P<num>.*)\)$', member)
+                f  = le.group('function')
+                n  = le.group('num')
+                if f == 'XG':
+                    return self.XG(val, n)
+                elif f == 'NZ':
+                    return self.NZ(val)
+                elif f == 'PL':
+                    return self.PL(val, n)
+            else:
+                val = local_vars[m.group('in')]
+            
             if member == 'split("")':
                 return list(val)
             if member == 'join("")':
@@ -64,6 +94,7 @@ class JSInterpreter(object):
                 return len(val)
             if member == 'reverse()':
                 return val[::-1]
+                
             slice_m = re.match(r'slice\((?P<idx>.*)\)', member)
             if slice_m:
                 idx = self.interpret_expression(
