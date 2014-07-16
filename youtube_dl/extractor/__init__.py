@@ -170,6 +170,7 @@ from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
 from .mit import TechTVMITIE, MITIE, OCWMITIE
 from .mixcloud import MixcloudIE
+from .mlb import MlbIE
 from .mpora import MporaIE
 from .mofosex import MofosexIE
 from .mooshare import MooshareIE
