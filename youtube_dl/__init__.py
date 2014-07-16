@@ -64,6 +64,7 @@ __authors__  = (
     'Adam Malcontenti-Wilson',
     'Tobias Bell',
     'Naglis Jonaitis',
+    'Charles Chen',
 )
 
 __license__ = 'Public Domain'
