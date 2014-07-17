@@ -1,5 +1,6 @@
 from .academicearth import AcademicEarthCourseIE
 from .addanime import AddAnimeIE
+from .adultswim import AdultSwimIE
 from .aftonbladet import AftonbladetIE
 from .anitube import AnitubeIE
 from .aol import AolIE
