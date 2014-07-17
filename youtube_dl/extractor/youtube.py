@@ -347,8 +347,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         self.to_screen(u'RTMP download detected')
 
     def _extract_signature_function(self, video_id, player_url, slen):
-        id_m = re.match(r'.*-(?P<id>[a-zA-Z0-9_-]+)\.(?P<ext>[a-z]+)$',
-                        player_url)
+        id_m = re.match(
+            r'.*-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3)?\.(?P<ext>[a-z]+)$',
+            player_url)
         player_type = id_m.group('ext')
         player_id = id_m.group('id')
 
@@ -1220,30 +1221,37 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                         url += '&signature=' + url_data['sig'][0]
                     elif 's' in url_data:
                         encrypted_sig = url_data['s'][0]
-                        if self._downloader.params.get('verbose'):
-                            if age_gate:
-                                if player_url is None:
-                                    player_version = 'unknown'
-                                else:
-                                    player_version = self._search_regex(
-                                        r'-(.+)\.swf$', player_url,
-                                        u'flash player', fatal=False)
-                                player_desc = 'flash player %s' % player_version
-                            else:
-                                player_version = self._search_regex(
-                                    r'html5player-(.+?)\.js', video_webpage,
-                                    'html5 player', fatal=False)
-                                player_desc = u'html5 player %s' % player_version
-
-                            parts_sizes = u'.'.join(compat_str(len(part)) for part in encrypted_sig.split('.'))
-                            self.to_screen(u'encrypted signature length %d (%s), itag %s, %s' %
-                                (len(encrypted_sig), parts_sizes, url_data['itag'][0], player_desc))
 
                         if not age_gate:
                             jsplayer_url_json = self._search_regex(
                                 r'"assets":.+?"js":\s*("[^"]+")',
                                 video_webpage, u'JS player URL')
                             player_url = json.loads(jsplayer_url_json)
+                        if player_url is None:
+                            player_url_json = self._search_regex(
+                                r'ytplayer\.config.*?"url"\s*:\s*("[^"]+")',
+                                video_webpage, u'age gate player URL')
+                            player_url = json.loads(player_url_json)
+
+                        if self._downloader.params.get('verbose'):
+                            if player_url is None:
+                                player_version = 'unknown'
+                                player_desc = 'unknown'
+                            else:
+                                if player_url.endswith('swf'):
+                                    player_version = self._search_regex(
+                                        r'-(.+)\.swf$', player_url,
+                                        u'flash player', fatal=False)
+                                    player_desc = 'flash player %s' % player_version
+                                else:
+                                    player_version = self._search_regex(
+                                        r'html5player-(.+?)\.js', video_webpage,
+                                        'html5 player', fatal=False)
+                                    player_desc = u'html5 player %s' % player_version
+
+                            parts_sizes = u'.'.join(compat_str(len(part)) for part in encrypted_sig.split('.'))
+                            self.to_screen(u'encrypted signature length %d (%s), itag %s, %s' %
+                                (len(encrypted_sig), parts_sizes, url_data['itag'][0], player_desc))
 
                         signature = self._decrypt_signature(
                             encrypted_sig, video_id, player_url, age_gate)
