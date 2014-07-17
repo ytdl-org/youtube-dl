@@ -110,7 +110,8 @@ class AdultSwimIE(InfoExtractor):
                     'format_id': '%s-%s' % (bitrate, type),
                     'url': file_el.text,
                     'ext': self._video_extensions.get(bitrate, 'mp4'),
-                    'tbr': bitrate,
+                    # The bitrate may not be a number (for example: 'iphone')
+                    'tbr': int(bitrate) if bitrate.isdigit() else None,
                     'height': height,
                     'width': width
                 })
