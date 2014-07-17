@@ -35,9 +35,7 @@ class RedTubeIE(InfoExtractor):
             r'<h1 class="videoTitle[^"]*">(.+?)</h1>',
             webpage, u'title')
 
-        video_thumbnail = self._html_search_regex(
-            r'playerInnerHTML.+?<img\s+src="(.+?)"',
-            webpage, u'thumbnail', fatal=False)
+        video_thumbnail = self._og_search_thumbnail(webpage)
 
         # No self-labeling, but they describe themselves as
         # "Home of Videos Porno"
