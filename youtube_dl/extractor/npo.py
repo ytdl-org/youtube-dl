@@ -32,7 +32,7 @@ class NPOIE(InfoExtractor):
             'http://e.omroep.nl/metadata/aflevering/%s' % video_id,
             video_id,
             # We have to remove the javascript callback
-            transform_source=lambda j: re.sub(r'parseMetadata\((.*?)\);\n//epc', r'\1', j)
+            transform_source=lambda j: re.sub(r'parseMetadata\((.*?)\);\n//.*$', r'\1', j)
         )
         token_page = self._download_webpage(
             'http://ida.omroep.nl/npoplayer/i.js',
