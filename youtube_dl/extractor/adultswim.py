@@ -57,8 +57,6 @@ class AdultSwimIE(InfoExtractor):
         ]
     }
 
-    _available_formats = ['150', '640', '3500']
-
     _video_extensions = {
         '3500': 'flv',
         '640': 'mp4',
@@ -78,7 +76,7 @@ class AdultSwimIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_path)
         episode_id = self._html_search_regex(r'<link rel="video_src" href="http://i\.adultswim\.com/adultswim/adultswimtv/tools/swf/viralplayer.swf\?id=([0-9a-f]+?)"\s*/?\s*>', webpage, 'episode_id')
-        title = self._html_search_regex(r'<meta property="og:title" content="\s*(.*?)\s*"\s*/?\s*>', webpage, 'title')
+        title = self._og_search_title(webpage)
 
         index_url = 'http://asfix.adultswim.com/asfix-svc/episodeSearch/getEpisodesByIDs?networkName=AS&ids=%s' % episode_id
         idoc = self._download_xml(index_url, title, 'Downloading episode index', 'Unable to download episode index')
