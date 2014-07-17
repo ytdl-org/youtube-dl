@@ -799,6 +799,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                             raise NotImplementedError(
                                 u'Unsupported (void) property %r on %r'
                                 % (mname, obj))
+                    elif opcode == 86:  # newarray
+                        arg_count = u30(coder)
+                        arr = []
+                        for i in range(arg_count):
+                            arr.append(stack.pop())
+                        arr = arr[::-1]
+                        stack.append(arr)
                     elif opcode == 93:  # findpropstrict
                         index = u30(coder)
                         mname = multinames[index]
