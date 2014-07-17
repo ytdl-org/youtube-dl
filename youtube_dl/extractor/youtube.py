@@ -507,6 +507,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 v = - ((v ^ 0xffffffff) + 1)
             return v
 
+        def s24(reader):
+            bs = reader.read(3)
+            assert len(bs) == 3
+            first_byte = b'\xff' if (ord(bs[0:1]) >= 0x80) else b'\x00'
+            return struct.unpack('!i', first_byte + bs)
+
         def read_string(reader=None):
             if reader is None:
                 reader = code_reader
@@ -647,16 +653,25 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
             return methods
 
+        class AVMClass(object):
+            def __init__(self, name_idx):
+                self.name_idx = name_idx
+                self.method_names = {}
+                self.method_idxs = {}
+                self.methods = {}
+                self.method_pyfunctions = {}
+                self.variables = {}
+
+            @property
+            def name(self):
+                return multinames[self.name_idx]
+
         # Classes
-        TARGET_CLASSNAME = u'SignatureDecipher'
-        searched_idx = multinames.index(TARGET_CLASSNAME)
-        searched_class_id = None
         class_count = u30()
+        classes = []
         for class_id in range(class_count):
             name_idx = u30()
-            if name_idx == searched_idx:
-                # We found the class we're looking for!
-                searched_class_id = class_id
+            classes.append(AVMClass(name_idx))
             u30()  # super_name idx
             flags = read_byte()
             if flags & 0x08 != 0:  # Protected namespace is present
@@ -668,23 +683,24 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             trait_count = u30()
             for _c2 in range(trait_count):
                 parse_traits_info()
+        assert len(classes) == class_count
 
-        if searched_class_id is None:
+        TARGET_CLASSNAME = u'SignatureDecipher'
+        searched_class = next(
+            c for c in classes if c.name == TARGET_CLASSNAME)
+        if searched_class is None:
             raise ExtractorError(u'Target class %r not found' %
                                  TARGET_CLASSNAME)
 
-        method_names = {}
-        method_idxs = {}
-        for class_id in range(class_count):
+        for avm_class in classes:
             u30()  # cinit
             trait_count = u30()
             for _c2 in range(trait_count):
                 trait_methods = parse_traits_info()
-                if class_id == searched_class_id:
-                    method_names.update(trait_methods.items())
-                    method_idxs.update(dict(
-                        (idx, name)
-                        for name, idx in trait_methods.items()))
+                avm_class.method_names.update(trait_methods.items())
+                avm_class.method_idxs.update(dict(
+                    (idx, name)
+                    for name, idx in trait_methods.items()))
 
         # Scripts
         script_count = u30()
@@ -697,7 +713,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         # Method bodies
         method_body_count = u30()
         Method = collections.namedtuple('Method', ['code', 'local_count'])
-        methods = {}
         for _c in range(method_body_count):
             method_idx = u30()
             u30()  # max_stack
@@ -706,9 +721,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             u30()  # max_scope_depth
             code_length = u30()
             code = read_bytes(code_length)
-            if method_idx in method_idxs:
-                m = Method(code, local_count)
-                methods[method_idxs[method_idx]] = m
+            for avm_class in classes:
+                if method_idx in avm_class.method_idxs:
+                    m = Method(code, local_count)
+                    avm_class.methods[avm_class.method_idxs[method_idx]] = m
             exception_count = u30()
             for _c2 in range(exception_count):
                 u30()  # from
@@ -721,16 +737,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 parse_traits_info()
 
         assert p + code_reader.tell() == len(code_tag)
-        assert len(methods) == len(method_idxs)
 
-        method_pyfunctions = {}
-
-        def extract_function(func_name):
-            if func_name in method_pyfunctions:
-                return method_pyfunctions[func_name]
-            if func_name not in methods:
+        def extract_function(avm_class, func_name):
+            if func_name in avm_class.method_pyfunctions:
+                return avm_class.method_pyfunctions[func_name]
+            if func_name not in avm_class.methods:
                 raise ExtractorError(u'Cannot find function %r' % func_name)
-            m = methods[func_name]
+            m = avm_class.methods[func_name]
 
             def resfunc(args):
                 registers = ['(this)'] + list(args) + [None] * m.local_count
@@ -738,7 +751,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 coder = io.BytesIO(m.code)
                 while True:
                     opcode = struct.unpack('!B', coder.read(1))[0]
-                    if opcode == 36:  # pushbyte
+                    if opcode == 17:  # iftrue
+                        offset = s24(coder)
+                        value = stack.pop()
+                        if value:
+                            coder.seek(coder.tell() + offset)
+                    elif opcode == 36:  # pushbyte
                         v = struct.unpack('!B', coder.read(1))[0]
                         stack.append(v)
                     elif opcode == 44:  # pushstring
@@ -776,8 +794,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                             assert isinstance(obj, list)
                             res = args[0].join(obj)
                             stack.append(res)
-                        elif mname in method_pyfunctions:
-                            stack.append(method_pyfunctions[mname](args))
+                        elif mname in avm_class.method_pyfunctions:
+                            stack.append(avm_class.method_pyfunctions[mname](args))
                         else:
                             raise NotImplementedError(
                                 u'Unsupported property %r on %r'
@@ -809,7 +827,17 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                     elif opcode == 93:  # findpropstrict
                         index = u30(coder)
                         mname = multinames[index]
-                        res = extract_function(mname)
+                        res = extract_function(avm_class, mname)
+                        stack.append(res)
+                    elif opcode == 94:  # findproperty
+                        index = u30(coder)
+                        mname = multinames[index]
+                        res = avm_class.variables.get(mname)
+                        stack.append(res)
+                    elif opcode == 96:  # getlex
+                        index = u30(coder)
+                        mname = multinames[index]
+                        res = avm_class.variables.get(mname)
                         stack.append(res)
                     elif opcode == 97:  # setproperty
                         index = u30(coder)
@@ -848,6 +876,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                         value1 = stack.pop()
                         res = value1 % value2
                         stack.append(res)
+                    elif opcode == 175:  # greaterequals
+                        value2 = stack.pop()
+                        value1 = stack.pop()
+                        result = value1 >= value2
+                        stack.append(result)
                     elif opcode == 208:  # getlocal_0
                         stack.append(registers[0])
                     elif opcode == 209:  # getlocal_1
@@ -864,10 +897,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                         raise NotImplementedError(
                             u'Unsupported opcode %d' % opcode)
 
-            method_pyfunctions[func_name] = resfunc
+            avm_class.method_pyfunctions[func_name] = resfunc
             return resfunc
 
-        initial_function = extract_function(u'decipher')
+        initial_function = extract_function(searched_class, u'decipher')
         return lambda s: initial_function([s])
 
     def _decrypt_signature(self, s, video_id, player_url, age_gate=False):
