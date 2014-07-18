@@ -8,8 +8,22 @@ import zlib
 from .utils import ExtractorError
 
 
-def _extract_tags(content):
-    pos = 0
+def _extract_tags(file_contents):
+    if file_contents[1:3] != b'WS':
+        raise ExtractorError(
+            'Not an SWF file; header is %r' % file_contents[:3])
+    if file_contents[:1] == b'C':
+        content = zlib.decompress(file_contents[8:])
+    else:
+        raise NotImplementedError(
+            'Unsupported compression format %r' %
+            file_contents[:1])
+
+    # Determine number of bits in framesize rectangle
+    framesize_nbits = struct.unpack('!B', content[:1])[0] >> 3
+    framesize_len = (5 + 4 * framesize_nbits + 7) // 8
+
+    pos = framesize_len + 2 + 2
     while pos < len(content):
         header16 = struct.unpack('<H', content[pos:pos + 2])[0]
         pos += 2
@@ -18,7 +32,9 @@ def _extract_tags(content):
         if tag_len == 0x3f:
             tag_len = struct.unpack('<I', content[pos:pos + 4])[0]
             pos += 4
-        assert pos + tag_len <= len(content)
+        assert pos + tag_len <= len(content), \
+            ('Tag %d ends at %d+%d - that\'s longer than the file (%d)'
+                % (tag_code, pos, tag_len, len(content)))
         yield (tag_code, content[pos:pos + tag_len])
         pos += tag_len
 
@@ -88,8 +104,7 @@ def _read_string(reader):
 
 
 def _read_bytes(count, reader):
-    if reader is None:
-        reader = code_reader
+    assert count >= 0
     resb = reader.read(count)
     assert len(resb) == count
     return resb
@@ -103,18 +118,8 @@ def _read_byte(reader):
 
 class SWFInterpreter(object):
     def __init__(self, file_contents):
-        if file_contents[1:3] != b'WS':
-            raise ExtractorError(
-                'Not an SWF file; header is %r' % file_contents[:3])
-        if file_contents[:1] == b'C':
-            content = zlib.decompress(file_contents[8:])
-        else:
-            raise NotImplementedError(
-                'Unsupported compression format %r' %
-                file_contents[:1])
-
         code_tag = next(tag
-                        for tag_code, tag in _extract_tags(content)
+                        for tag_code, tag in _extract_tags(file_contents)
                         if tag_code == 82)
         p = code_tag.index(b'\0', 4) + 1
         code_reader = io.BytesIO(code_tag[p:])
@@ -139,7 +144,7 @@ class SWFInterpreter(object):
         for _c in range(1, uint_count):
             u32()
         double_count = u30()
-        read_bytes((double_count - 1) * 8)
+        read_bytes(max(0, (double_count - 1)) * 8)
         string_count = u30()
         constant_strings = ['']
         for _c in range(1, string_count):
@@ -349,6 +354,9 @@ class SWFInterpreter(object):
                 elif opcode == 36:  # pushbyte
                     v = _read_byte(coder)
                     stack.append(v)
+                elif opcode == 42:  # dup
+                    value = stack[-1]
+                    stack.append(value)
                 elif opcode == 44:  # pushstring
                     idx = u30()
                     stack.append(constant_strings[idx])
@@ -468,10 +476,24 @@ class SWFInterpreter(object):
                         obj = stack.pop()
                         assert isinstance(obj, list)
                         stack.append(obj[idx])
+                elif opcode == 115:  # convert_
+                    value = stack.pop()
+                    intvalue = int(value)
+                    stack.append(intvalue)
                 elif opcode == 128:  # coerce
                     u30()
                 elif opcode == 133:  # coerce_s
                     assert isinstance(stack[-1], (type(None), compat_str))
+                elif opcode == 160:  # add
+                    value2 = stack.pop()
+                    value1 = stack.pop()
+                    res = value1 + value2
+                    stack.append(res)
+                elif opcode == 161:  # subtract
+                    value2 = stack.pop()
+                    value1 = stack.pop()
+                    res = value1 - value2
+                    stack.append(res)
                 elif opcode == 164:  # modulo
                     value2 = stack.pop()
                     value1 = stack.pop()
