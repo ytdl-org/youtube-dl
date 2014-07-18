@@ -53,6 +53,7 @@ from .cnn import (
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
 from .condenast import CondeNastIE
+from .cracked import CrackedIE
 from .criterion import CriterionIE
 from .crunchyroll import CrunchyrollIE
 from .cspan import CSpanIE
@@ -399,6 +400,7 @@ from .youtube import (
     YoutubeUserIE,
     YoutubeWatchLaterIE,
 )
+
 from .zdf import ZDFIE
 
 
