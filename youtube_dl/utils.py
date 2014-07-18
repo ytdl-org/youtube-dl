@@ -1194,6 +1194,8 @@ def format_bytes(bytes):
 
 
 def str_to_int(int_str):
+    if int_str is None:
+        return None
     int_str = re.sub(r'[,\.]', u'', int_str)
     return int(int_str)
 
