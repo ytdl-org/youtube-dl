@@ -253,6 +253,7 @@ from .rutube import (
     RutubePersonIE,
 )
 from .rutv import RUTVIE
+from .sapo import SapoIE
 from .savefrom import SaveFromIE
 from .scivee import SciVeeIE
 from .screencast import ScreencastIE
