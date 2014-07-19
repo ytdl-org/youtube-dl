@@ -48,7 +48,7 @@ class PluzzIE(FranceTVBaseInfoExtractor):
 
 class FranceTvInfoIE(FranceTVBaseInfoExtractor):
     IE_NAME = 'francetvinfo.fr'
-    _VALID_URL = r'https?://www\.francetvinfo\.fr/.*/(?P<title>.+)\.html'
+    _VALID_URL = r'https?://(?:www|mobile)\.francetvinfo\.fr/.*/(?P<title>.+)\.html'
 
     _TESTS = [{
         'url': 'http://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-lundi-26-aout-2013_393427.html',
@@ -211,7 +211,7 @@ class GenerationQuoiIE(InfoExtractor):
 
 class CultureboxIE(FranceTVBaseInfoExtractor):
     IE_NAME = 'culturebox.francetvinfo.fr'
-    _VALID_URL = r'https?://culturebox\.francetvinfo\.fr/(?P<name>.*?)(\?|$)'
+    _VALID_URL = r'https?://(?:m\.)?culturebox\.francetvinfo\.fr/(?P<name>.*?)(\?|$)'
 
     _TEST = {
         'url': 'http://culturebox.francetvinfo.fr/einstein-on-the-beach-au-theatre-du-chatelet-146813',
