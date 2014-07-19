@@ -5,7 +5,10 @@ import io
 import struct
 import zlib
 
-from .utils import ExtractorError
+from .utils import (
+    compat_str,
+    ExtractorError,
+)
 
 
 def _extract_tags(file_contents):
@@ -65,7 +68,26 @@ class _AVMClass(object):
         self.method_idxs = {}
         self.methods = {}
         self.method_pyfunctions = {}
-        self.variables = {}
+
+        class ScopeDict(dict):
+            def __init__(self, avm_class):
+                super(ScopeDict, self).__init__()
+                self.avm_class = avm_class
+
+            def __getitem__(self, k):
+                print('getting %r' % k)
+                return super(ScopeDict, self).__getitem__(k)
+
+            def __contains__(self, k):
+                print('contains %r' % k)
+                return super(ScopeDict, self).__contains__(k)
+
+            def __repr__(self):
+                return '%s__Scope(%s)' % (
+                    self.avm_class.name,
+                    super(ScopeDict, self).__repr__())
+
+        self.variables = ScopeDict(self)
 
     def make_object(self):
         return _AVMClass_Object(self)
@@ -156,10 +178,10 @@ class SWFInterpreter(object):
         double_count = u30()
         read_bytes(max(0, (double_count - 1)) * 8)
         string_count = u30()
-        constant_strings = ['']
+        self.constant_strings = ['']
         for _c in range(1, string_count):
             s = _read_string(code_reader)
-            constant_strings.append(s)
+            self.constant_strings.append(s)
         namespace_count = u30()
         for _c in range(1, namespace_count):
             read_bytes(1)  # kind
@@ -189,7 +211,7 @@ class SWFInterpreter(object):
             if kind == 0x07:
                 u30()  # namespace_idx
                 name_idx = u30()
-                self.multinames.append(constant_strings[name_idx])
+                self.multinames.append(self.constant_strings[name_idx])
             else:
                 self.multinames.append('[MULTINAME kind: %d]' % kind)
                 for _c2 in range(MULTINAME_SIZES[kind]):
@@ -375,7 +397,7 @@ class SWFInterpreter(object):
                     stack.append(value)
                 elif opcode == 44:  # pushstring
                     idx = u30()
-                    stack.append(constant_strings[idx])
+                    stack.append(self.constant_strings[idx])
                 elif opcode == 48:  # pushscope
                     new_scope = stack.pop()
                     scopes.append(new_scope)
@@ -450,6 +472,16 @@ class SWFInterpreter(object):
                         arr.append(stack.pop())
                     arr = arr[::-1]
                     stack.append(arr)
+                elif opcode == 93:  # findpropstrict
+                    index = u30()
+                    mname = self.multinames[index]
+                    for s in reversed(scopes):
+                        if mname in s:
+                            res = s
+                            break
+                    else:
+                        res = scopes[0]
+                    stack.append(res)
                 elif opcode == 94:  # findproperty
                     index = u30()
                     mname = self.multinames[index]
@@ -535,6 +567,10 @@ class SWFInterpreter(object):
                     stack.append(registers[2])
                 elif opcode == 211:  # getlocal_3
                     stack.append(registers[3])
+                elif opcode == 212:  # setlocal_0
+                    registers[0] = stack.pop()
+                elif opcode == 213:  # setlocal_1
+                    registers[1] = stack.pop()
                 elif opcode == 214:  # setlocal_2
                     registers[2] = stack.pop()
                 elif opcode == 215:  # setlocal_3
