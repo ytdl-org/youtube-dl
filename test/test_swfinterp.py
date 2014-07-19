@@ -23,10 +23,10 @@ class TestSWFInterpreter(unittest.TestCase):
     pass
 
 
-for testfile in os.listdir(TEST_DIR):
+def _make_testfunc(testfile):
     m = re.match(r'^(.*)\.(as)$', testfile)
     if not m:
-        continue
+        return
     test_id = m.group(1)
 
     def test_func(self):
@@ -36,7 +36,7 @@ for testfile in os.listdir(TEST_DIR):
                 or os.path.getmtime(swf_file) < os.path.getmtime(as_file)):
             # Recompile
             try:
-                subprocess.check_call(['mxmlc', '--output', swf_file, as_file])
+                subprocess.check_call(['mxmlc', '-output', swf_file, as_file])
             except OSError as ose:
                 if ose.errno == errno.ENOENT:
                     print('mxmlc not found! Skipping test.')
@@ -68,6 +68,9 @@ for testfile in os.listdir(TEST_DIR):
     test_func.__name__ = str('test_swf_' + test_id)
     setattr(TestSWFInterpreter, test_func.__name__, test_func)
 
+
+for testfile in os.listdir(TEST_DIR):
+    _make_testfunc(testfile)
 
 if __name__ == '__main__':
     unittest.main()

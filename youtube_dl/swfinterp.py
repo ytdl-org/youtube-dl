@@ -39,6 +39,16 @@ def _extract_tags(file_contents):
         pos += tag_len
 
 
+class _AVM_Object(object):
+    def __init__(self, value=None, name_hint=None):
+        self.value = value
+        self.name_hint = name_hint
+
+    def __repr__(self):
+        nh = '' if self.name_hint is None else (' %s' % self.name_hint)
+        return 'AVMObject%s(%r)' % (nh, self.value)
+
+
 class _AVMClass_Object(object):
     def __init__(self, avm_class):
         self.avm_class = avm_class
@@ -92,8 +102,8 @@ def _s32(reader):
 def _s24(reader):
     bs = reader.read(3)
     assert len(bs) == 3
-    first_byte = b'\xff' if (ord(bs[0:1]) >= 0x80) else b'\x00'
-    return struct.unpack('!i', first_byte + bs)
+    last_byte = b'\xff' if (ord(bs[2:3]) >= 0x80) else b'\x00'
+    return struct.unpack('<i', bs + last_byte)[0]
 
 
 def _read_string(reader):
@@ -341,8 +351,9 @@ class SWFInterpreter(object):
             u30 = lambda: _u30(coder)
 
             print('Invoking %s.%s(%r)' % (avm_class.name, func_name, tuple(args)))
-            registers = ['(this)'] + list(args) + [None] * m.local_count
+            registers = [avm_class.variables] + list(args) + [None] * m.local_count
             stack = []
+            scopes = collections.deque([avm_class.variables])
             while True:
                 opcode = _read_byte(coder)
                 print('opcode: %r, stack(%d): %r' % (opcode, len(stack), stack))
@@ -350,6 +361,11 @@ class SWFInterpreter(object):
                     offset = s24()
                     value = stack.pop()
                     if value:
+                        coder.seek(coder.tell() + offset)
+                elif opcode == 18:  # iffalse
+                    offset = s24()
+                    value = stack.pop()
+                    if not value:
                         coder.seek(coder.tell() + offset)
                 elif opcode == 36:  # pushbyte
                     v = _read_byte(coder)
@@ -361,9 +377,8 @@ class SWFInterpreter(object):
                     idx = u30()
                     stack.append(constant_strings[idx])
                 elif opcode == 48:  # pushscope
-                    # We don't implement the scope register, so we'll just
-                    # ignore the popped value
                     new_scope = stack.pop()
+                    scopes.append(new_scope)
                 elif opcode == 70:  # callproperty
                     index = u30()
                     mname = self.multinames[index]
@@ -435,20 +450,28 @@ class SWFInterpreter(object):
                         arr.append(stack.pop())
                     arr = arr[::-1]
                     stack.append(arr)
-                elif opcode == 93:  # findpropstrict
-                    index = u30()
-                    mname = self.multinames[index]
-                    res = self.extract_function(avm_class, mname)
-                    stack.append(res)
                 elif opcode == 94:  # findproperty
                     index = u30()
                     mname = self.multinames[index]
-                    res = avm_class.variables.get(mname)
+                    for s in reversed(scopes):
+                        if mname in s:
+                            res = s
+                            break
+                    else:
+                        res = scopes[0]
                     stack.append(res)
                 elif opcode == 96:  # getlex
                     index = u30()
                     mname = self.multinames[index]
-                    res = avm_class.variables.get(mname, None)
+                    for s in reversed(scopes):
+                        if mname in s:
+                            scope = s
+                            break
+                    else:
+                        scope = scopes[0]
+                    # I cannot find where static variables are initialized
+                    # so let's just return None
+                    res = scope.get(mname)
                     stack.append(res)
                 elif opcode == 97:  # setproperty
                     index = u30()
