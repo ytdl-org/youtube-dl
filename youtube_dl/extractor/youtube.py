@@ -609,14 +609,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             age_gate = True
             # We simulate the access to the video from www.youtube.com/v/{video_id}
             # this can be viewed without login into Youtube
-            data = compat_urllib_parse.urlencode({'video_id': video_id,
-                                                  'el': 'player_embedded',
-                                                  'gl': 'US',
-                                                  'hl': 'en',
-                                                  'eurl': 'https://youtube.googleapis.com/v/' + video_id,
-                                                  'asv': 3,
-                                                  'sts':'1588',
-                                                  })
+            data = compat_urllib_parse.urlencode({
+                'video_id': video_id,
+                'eurl': 'https://youtube.googleapis.com/v/' + video_id,
+                'sts':'16268',
+            })
             video_info_url = proto + '://www.youtube.com/get_video_info?' + data
             video_info_webpage = self._download_webpage(video_info_url, video_id,
                                     note=False,
