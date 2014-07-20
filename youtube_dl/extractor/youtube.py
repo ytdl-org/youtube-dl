@@ -834,7 +834,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                             else:
                                 if player_url.endswith('swf'):
                                     player_version = self._search_regex(
-                                        r'-(.+)\.swf$', player_url,
+                                        r'-(.+?)(?:/watch_as3)?\.swf$', player_url,
                                         u'flash player', fatal=False)
                                     player_desc = 'flash player %s' % player_version
                                 else:
