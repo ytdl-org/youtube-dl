@@ -470,8 +470,7 @@ class SWFInterpreter(object):
 
                     mname = self.multinames[index]
                     assert isinstance(obj, _AVMClass)
-                    construct_method = self.extract_function(
-                        obj, mname)
+
                     # We do not actually call the constructor for now;
                     # we just pretend it does nothing
                     stack.append(obj.make_object())
