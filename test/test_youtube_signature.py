@@ -49,7 +49,7 @@ _TESTS = [
         u'http://s.ytimg.com/yts/swfbin/player-vfl5vIhK2/watch_as3.swf',
         u'swf',
         86,
-        u'23456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!?#$%&\'()*+,-./:;<=>"'
+        u'O1I3456789abcde0ghijklmnopqrstuvwxyzABCDEFGHfJKLMN2PQRSTUVWXY\\!"#$%&\'()*+,-./:;<=>?'
     ),
 ]
 
