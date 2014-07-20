@@ -42,16 +42,6 @@ def _extract_tags(file_contents):
         pos += tag_len
 
 
-class _AVM_Object(object):
-    def __init__(self, value=None, name_hint=None):
-        self.value = value
-        self.name_hint = name_hint
-
-    def __repr__(self):
-        nh = '' if self.name_hint is None else (' %s' % self.name_hint)
-        return 'AVMObject%s(%r)' % (nh, self.value)
-
-
 class _AVMClass_Object(object):
     def __init__(self, avm_class):
         self.avm_class = avm_class
@@ -74,14 +64,6 @@ class _AVMClass(object):
                 super(ScopeDict, self).__init__()
                 self.avm_class = avm_class
 
-            def __getitem__(self, k):
-                print('getting %r' % k)
-                return super(ScopeDict, self).__getitem__(k)
-
-            def __contains__(self, k):
-                print('contains %r' % k)
-                return super(ScopeDict, self).__contains__(k)
-
             def __repr__(self):
                 return '%s__Scope(%s)' % (
                     self.avm_class.name,
@@ -91,6 +73,15 @@ class _AVMClass(object):
 
     def make_object(self):
         return _AVMClass_Object(self)
+
+    def __repr__(self):
+        return '_AVMClass(%s)' % (self.name)
+
+    def register_methods(self, methods):
+        self.method_names.update(methods.items())
+        self.method_idxs.update(dict(
+            (idx, name)
+            for name, idx in methods.items()))
 
 
 def _read_int(reader):
@@ -290,7 +281,11 @@ class SWFInterpreter(object):
         classes = []
         for class_id in range(class_count):
             name_idx = u30()
-            classes.append(_AVMClass(name_idx, self.multinames[name_idx]))
+
+            cname = self.multinames[name_idx]
+            avm_class = _AVMClass(name_idx, cname)
+            classes.append(avm_class)
+
             u30()  # super_name idx
             flags = read_byte()
             if flags & 0x08 != 0:  # Protected namespace is present
@@ -301,7 +296,9 @@ class SWFInterpreter(object):
             u30()  # iinit
             trait_count = u30()
             for _c2 in range(trait_count):
-                parse_traits_info()
+                trait_methods = parse_traits_info()
+                avm_class.register_methods(trait_methods)
+
         assert len(classes) == class_count
         self._classes_by_name = dict((c.name, c) for c in classes)
 
@@ -310,10 +307,7 @@ class SWFInterpreter(object):
             trait_count = u30()
             for _c2 in range(trait_count):
                 trait_methods = parse_traits_info()
-                avm_class.method_names.update(trait_methods.items())
-                avm_class.method_idxs.update(dict(
-                    (idx, name)
-                    for name, idx in trait_methods.items()))
+                avm_class.register_methods(trait_methods)
 
         # Scripts
         script_count = u30()
@@ -358,12 +352,14 @@ class SWFInterpreter(object):
             raise ExtractorError('Class %r not found' % class_name)
 
     def extract_function(self, avm_class, func_name):
+        print('Extracting %s.%s' % (avm_class.name, func_name))
         if func_name in avm_class.method_pyfunctions:
             return avm_class.method_pyfunctions[func_name]
         if func_name in self._classes_by_name:
             return self._classes_by_name[func_name].make_object()
         if func_name not in avm_class.methods:
-            raise ExtractorError('Cannot find function %r' % func_name)
+            raise ExtractorError('Cannot find function %s.%s' % (
+                avm_class.name, func_name))
         m = avm_class.methods[func_name]
 
         def resfunc(args):
@@ -375,7 +371,8 @@ class SWFInterpreter(object):
             print('Invoking %s.%s(%r)' % (avm_class.name, func_name, tuple(args)))
             registers = [avm_class.variables] + list(args) + [None] * m.local_count
             stack = []
-            scopes = collections.deque([avm_class.variables])
+            scopes = collections.deque([
+                self._classes_by_name, avm_class.variables])
             while True:
                 opcode = _read_byte(coder)
                 print('opcode: %r, stack(%d): %r' % (opcode, len(stack), stack))
@@ -408,33 +405,38 @@ class SWFInterpreter(object):
                     args = list(reversed(
                         [stack.pop() for _ in range(arg_count)]))
                     obj = stack.pop()
-                    if mname == 'split':
-                        assert len(args) == 1
-                        assert isinstance(args[0], compat_str)
-                        assert isinstance(obj, compat_str)
-                        if args[0] == '':
-                            res = list(obj)
-                        else:
-                            res = obj.split(args[0])
+
+                    if isinstance(obj, _AVMClass_Object):
+                        func = self.extract_function(obj.avm_class, mname)
+                        res = func(args)
                         stack.append(res)
-                    elif mname == 'slice':
-                        assert len(args) == 1
-                        assert isinstance(args[0], int)
-                        assert isinstance(obj, list)
-                        res = obj[args[0]:]
-                        stack.append(res)
-                    elif mname == 'join':
-                        assert len(args) == 1
-                        assert isinstance(args[0], compat_str)
-                        assert isinstance(obj, list)
-                        res = args[0].join(obj)
-                        stack.append(res)
-                    elif mname in avm_class.method_pyfunctions:
-                        stack.append(avm_class.method_pyfunctions[mname](args))
-                    else:
-                        raise NotImplementedError(
-                            'Unsupported property %r on %r'
-                            % (mname, obj))
+                        continue
+                    elif isinstance(obj, compat_str):
+                        if mname == 'split':
+                            assert len(args) == 1
+                            assert isinstance(args[0], compat_str)
+                            if args[0] == '':
+                                res = list(obj)
+                            else:
+                                res = obj.split(args[0])
+                            stack.append(res)
+                            continue
+                    elif isinstance(obj, list):
+                        if mname == 'slice':
+                            assert len(args) == 1
+                            assert isinstance(args[0], int)
+                            res = obj[args[0]:]
+                            stack.append(res)
+                            continue
+                        elif mname == 'join':
+                            assert len(args) == 1
+                            assert isinstance(args[0], compat_str)
+                            res = args[0].join(obj)
+                            stack.append(res)
+                            continue
+                    raise NotImplementedError(
+                        'Unsupported property %r on %r'
+                        % (mname, obj))
                 elif opcode == 72:  # returnvalue
                     res = stack.pop()
                     return res
@@ -446,11 +448,12 @@ class SWFInterpreter(object):
                     obj = stack.pop()
 
                     mname = self.multinames[index]
+                    assert isinstance(obj, _AVMClass)
                     construct_method = self.extract_function(
-                        obj.avm_class, mname)
+                        obj, mname)
                     # We do not actually call the constructor for now;
                     # we just pretend it does nothing
-                    stack.append(obj)
+                    stack.append(obj.make_object())
                 elif opcode == 79:  # callpropvoid
                     index = u30()
                     mname = self.multinames[index]
@@ -481,7 +484,7 @@ class SWFInterpreter(object):
                             break
                     else:
                         res = scopes[0]
-                    stack.append(res)
+                    stack.append(res[mname])
                 elif opcode == 94:  # findproperty
                     index = u30()
                     mname = self.multinames[index]
@@ -490,7 +493,7 @@ class SWFInterpreter(object):
                             res = s
                             break
                     else:
-                        res = scopes[0]
+                        res = avm_class.variables
                     stack.append(res)
                 elif opcode == 96:  # getlex
                     index = u30()
@@ -500,7 +503,7 @@ class SWFInterpreter(object):
                             scope = s
                             break
                     else:
-                        scope = scopes[0]
+                        scope = avm_class.variables
                     # I cannot find where static variables are initialized
                     # so let's just return None
                     res = scope.get(mname)
