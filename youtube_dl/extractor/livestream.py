@@ -28,11 +28,13 @@ class LivestreamIE(InfoExtractor):
     }
 
     def _extract_video_info(self, video_data):
-        video_url = video_data.get('progressive_url_hd') or video_data.get('progressive_url')
+        video_url = (
+            video_data.get('progressive_url_hd') or
+            video_data.get('progressive_url')
+        )
         return {
             'id': compat_str(video_data['id']),
             'url': video_url,
-            'ext': 'mp4',
             'title': video_data['caption'],
             'thumbnail': video_data['thumbnail_url'],
             'upload_date': video_data['updated_at'].replace('-', '')[:8],
@@ -50,7 +52,8 @@ class LivestreamIE(InfoExtractor):
                 r'window.config = ({.*?});', webpage, 'window config')
             info = json.loads(config_json)['event']
             videos = [self._extract_video_info(video_data['data'])
-                for video_data in info['feed']['data'] if video_data['type'] == 'video']
+                for video_data in info['feed']['data']
+                if video_data['type'] == 'video']
             return self.playlist_result(videos, info['id'], info['full_name'])
         else:
             og_video = self._og_search_video_url(webpage, 'player url')
