@@ -460,6 +460,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     def _decrypt_signature(self, s, video_id, player_url, age_gate=False):
         """Turn the encrypted s field into a working signature"""
 
+        if age_gate:
+            return self._static_decrypt_age_gate_signature(s)
+
         if player_url is None:
             raise ExtractorError(u'Cannot decrypt signature without player_url')
 
@@ -480,6 +483,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             tb = traceback.format_exc()
             raise ExtractorError(
                 u'Automatic signature extraction failed: ' + tb, cause=e)
+
+    def _static_decrypt_age_gate_signature(self, s):
+        if len(s) == 86:
+            return s[2:63] + s[82] + s[64:82] + s[63]
+        else:
+            raise ExtractorError(u'Unable to decrypt signature, key length %d not supported; retrying might work' % (len(s)))
 
     def _get_available_subtitles(self, video_id, webpage):
         try:
