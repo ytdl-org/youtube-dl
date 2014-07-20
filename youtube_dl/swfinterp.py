@@ -85,6 +85,14 @@ class _AVMClass(object):
             for name, idx in methods.items()))
 
 
+class _Multiname(object):
+    def __init__(self, kind):
+        self.kind = kind
+
+    def __repr__(self):
+        return '[MULTINAME kind: 0x%x]' % self.kind
+
+
 def _read_int(reader):
     res = 0
     shift = 0
@@ -205,7 +213,7 @@ class SWFInterpreter(object):
                 name_idx = u30()
                 self.multinames.append(self.constant_strings[name_idx])
             else:
-                self.multinames.append('[MULTINAME kind: %d]' % kind)
+                self.multinames.append(_Multiname(kind))
                 for _c2 in range(MULTINAME_SIZES[kind]):
                     u30()
 
@@ -399,6 +407,13 @@ class SWFInterpreter(object):
                 elif opcode == 48:  # pushscope
                     new_scope = stack.pop()
                     scopes.append(new_scope)
+                elif opcode == 66:  # construct
+                    arg_count = u30()
+                    args = list(reversed(
+                        [stack.pop() for _ in range(arg_count)]))
+                    obj = stack.pop()
+                    res = obj.avm_class.make_object()
+                    stack.append(res)
                 elif opcode == 70:  # callproperty
                     index = u30()
                     mname = self.multinames[index]
@@ -521,7 +536,10 @@ class SWFInterpreter(object):
                     index = u30()
                     value = stack.pop()
                     idx = self.multinames[index]
+                    if isinstance(idx, _Multiname):
+                        idx = stack.pop()
                     obj = stack.pop()
+                    print('Setting %r.%r = %r' % (obj, idx, value))
                     obj[idx] = value
                 elif opcode == 98:  # getlocal
                     index = u30()
