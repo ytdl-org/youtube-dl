@@ -485,9 +485,6 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
 
 
 class FFmpegMergerPP(FFmpegPostProcessor):
-    def __init__(self,downloader=None,deletetempfiles=True):
-        FFmpegPostProcessor.__init__(self, downloader, deletetempfiles)
-
     def run(self, info):
         filename = info['filepath']
         args = ['-c', 'copy']
