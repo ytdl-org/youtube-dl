@@ -1,15 +1,12 @@
 # coding: utf-8
 
-import collections
 import errno
 import io
 import itertools
 import json
 import os.path
 import re
-import struct
 import traceback
-import zlib
 
 from .common import InfoExtractor, SearchInfoExtractor
 from .subtitles import SubtitlesInfoExtractor
