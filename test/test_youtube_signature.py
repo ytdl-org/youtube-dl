@@ -51,6 +51,12 @@ _TESTS = [
         86,
         u'O1I3456789abcde0ghijklmnopqrstuvwxyzABCDEFGHfJKLMN2PQRSTUVWXY\\!"#$%&\'()*+,-./:;<=>?'
     ),
+    (
+        u'http://s.ytimg.com/yts/swfbin/player-vflmDyk47/watch_as3.swf',
+        u'swf',
+        u'F375F75BF2AFDAAF2666E43868D46816F83F13E81C46.3725A8218E446A0DECD33F79DC282994D6AA92C92C9',
+        u'9C29AA6D499282CD97F33DCED0A644E8128A5273.64C18E31F38361864D86834E6662FAADFA2FB57F'
+    ),
 ]
 
 
