@@ -23,9 +23,10 @@ class FFmpegPostProcessorError(PostProcessingError):
     pass
 
 class FFmpegPostProcessor(PostProcessor):
-    def __init__(self,downloader=None):
+    def __init__(self,downloader=None,deletetempfiles=False):
         PostProcessor.__init__(self, downloader)
         self._exes = self.detect_executables()
+        self._deletetempfiles = deletetempfiles
 
     @staticmethod
     def detect_executables():
@@ -60,6 +61,9 @@ class FFmpegPostProcessor(PostProcessor):
             stderr = stderr.decode('utf-8', 'replace')
             msg = stderr.strip().split('\n')[-1]
             raise FFmpegPostProcessorError(msg)
+        if self._deletetempfiles:
+            for rempath in input_paths:
+                os.remove(rempath)
 
     def run_ffmpeg(self, path, out_path, opts):
         self.run_ffmpeg_multiple_files([path], out_path, opts)
@@ -481,6 +485,9 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
 
 
 class FFmpegMergerPP(FFmpegPostProcessor):
+    def __init__(self,downloader=None,deletetempfiles=True):
+        FFmpegPostProcessor.__init__(self, downloader, deletetempfiles)
+
     def run(self, info):
         filename = info['filepath']
         args = ['-c', 'copy']
