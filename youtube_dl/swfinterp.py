@@ -50,6 +50,17 @@ class _AVMClass_Object(object):
         return '%s#%x' % (self.avm_class.name, id(self))
 
 
+class _ScopeDict(dict):
+    def __init__(self, avm_class):
+        super(_ScopeDict, self).__init__()
+        self.avm_class = avm_class
+
+    def __repr__(self):
+        return '%s__Scope(%s)' % (
+            self.avm_class.name,
+            super(_ScopeDict, self).__repr__())
+
+
 class _AVMClass(object):
     def __init__(self, name_idx, name):
         self.name_idx = name_idx
@@ -59,17 +70,7 @@ class _AVMClass(object):
         self.methods = {}
         self.method_pyfunctions = {}
 
-        class ScopeDict(dict):
-            def __init__(self, avm_class):
-                super(ScopeDict, self).__init__()
-                self.avm_class = avm_class
-
-            def __repr__(self):
-                return '%s__Scope(%s)' % (
-                    self.avm_class.name,
-                    super(ScopeDict, self).__repr__())
-
-        self.variables = ScopeDict(self)
+        self.variables = _ScopeDict(self)
 
     def make_object(self):
         return _AVMClass_Object(self)
@@ -409,6 +410,14 @@ class SWFInterpreter(object):
                     if isinstance(obj, _AVMClass_Object):
                         func = self.extract_function(obj.avm_class, mname)
                         res = func(args)
+                        stack.append(res)
+                        continue
+                    elif isinstance(obj, _ScopeDict):
+                        if mname in obj.avm_class.method_names:
+                            func = self.extract_function(obj.avm_class, mname)
+                            res = func(args)
+                        else:
+                            res = obj[mname]
                         stack.append(res)
                         continue
                     elif isinstance(obj, compat_str):
