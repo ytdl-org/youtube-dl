@@ -361,7 +361,6 @@ class SWFInterpreter(object):
             raise ExtractorError('Class %r not found' % class_name)
 
     def extract_function(self, avm_class, func_name):
-        print('Extracting %s.%s' % (avm_class.name, func_name))
         if func_name in avm_class.method_pyfunctions:
             return avm_class.method_pyfunctions[func_name]
         if func_name in self._classes_by_name:
@@ -377,14 +376,12 @@ class SWFInterpreter(object):
             s24 = lambda: _s24(coder)
             u30 = lambda: _u30(coder)
 
-            print('Invoking %s.%s(%r)' % (avm_class.name, func_name, tuple(args)))
             registers = [avm_class.variables] + list(args) + [None] * m.local_count
             stack = []
             scopes = collections.deque([
                 self._classes_by_name, avm_class.variables])
             while True:
                 opcode = _read_byte(coder)
-                print('opcode: %r, stack(%d): %r' % (opcode, len(stack), stack))
                 if opcode == 17:  # iftrue
                     offset = s24()
                     value = stack.pop()
@@ -539,7 +536,6 @@ class SWFInterpreter(object):
                     if isinstance(idx, _Multiname):
                         idx = stack.pop()
                     obj = stack.pop()
-                    print('Setting %r.%r = %r' % (obj, idx, value))
                     obj[idx] = value
                 elif opcode == 98:  # getlocal
                     index = u30()
