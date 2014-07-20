@@ -111,7 +111,7 @@ def _u30(reader):
     res = _read_int(reader)
     assert res & 0xf0000000 == 0
     return res
-u32 = _read_int
+_u32 = _read_int
 
 
 def _s32(reader):
