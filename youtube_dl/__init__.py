@@ -251,6 +251,9 @@ def parseOpts(overrideArguments=None):
     general.add_option('--list-extractors',
             action='store_true', dest='list_extractors',
             help='List all supported extractors and the URLs they would handle', default=False)
+    general.add_option('--only-suitable',
+            action='store_true', dest='only_suitable',
+            help='Only list suitable extractors', default=False)
     general.add_option('--extractor-descriptions',
             action='store_true', dest='list_extractor_descriptions',
             help='Output descriptions of all supported extractors', default=False)
@@ -622,10 +625,13 @@ def _real_main(argv=None):
 
     if opts.list_extractors:
         for ie in sorted(extractors, key=lambda ie: ie.IE_NAME.lower()):
-            compat_print(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else ''))
             matchedUrls = [url for url in all_urls if ie.suitable(url)]
-            for mu in matchedUrls:
-                compat_print(u'  ' + mu)
+            if opts.only_suitable and not matchedUrls:
+                continue
+            compat_print(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else ''))
+            if not opts.only_suitable:
+                for mu in matchedUrls:
+                    compat_print(u'  ' + mu)
         sys.exit(0)
     if opts.list_extractor_descriptions:
         for ie in sorted(extractors, key=lambda ie: ie.IE_NAME.lower()):
