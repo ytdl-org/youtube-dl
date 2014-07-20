@@ -32,7 +32,7 @@ class AllocineIE(InfoExtractor):
             'id': '19540403',
             'ext': 'mp4',
             'title': 'Planes 2 Bande-annonce VF',
-            'description': 'md5:c4b1f7bd682a91de6491ada267ec0f4d',
+            'description': 'md5:eeaffe7c2d634525e21159b93acf3b1e',
             'thumbnail': 're:http://.*\.jpg',
         },
     }, {
@@ -42,7 +42,7 @@ class AllocineIE(InfoExtractor):
             'id': '19544709',
             'ext': 'mp4',
             'title': 'Dragons 2 - Bande annonce finale VF',
-            'description': 'md5:e74a4dc750894bac300ece46c7036490',
+            'description': 'md5:71742e3a74b0d692c7fce0dd2017a4ac',
             'thumbnail': 're:http://.*\.jpg',
         },
     }]
