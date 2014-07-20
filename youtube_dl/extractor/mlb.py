@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class MLBIE(InfoExtractor):
-    _VALID_URL = r'http?://m\.mlb\.com/video/(?:topic/[\da-z_-]+/)?v(?P<id>n?\d+)'
+    _VALID_URL = r'https?://m\.mlb\.com/video/(?:topic/[\da-z_-]+/)?v(?P<id>n?\d+)'
     _TESTS = [
         {
             'url': 'http://m.mlb.com/video/topic/81536970/v34496663/mianym-stanton-practices-for-the-home-run-derby',
