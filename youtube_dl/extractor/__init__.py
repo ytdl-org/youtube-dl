@@ -268,6 +268,7 @@ from .smotri import (
     SmotriBroadcastIE,
 )
 from .snotr import SnotrIE
+from .sockshare import SockshareIE
 from .sohu import SohuIE
 from .soundcloud import (
     SoundcloudIE,
