@@ -72,11 +72,9 @@ __license__ = 'Public Domain'
 
 import codecs
 import io
-import locale
 import optparse
 import os
 import random
-import re
 import shlex
 import sys
 
