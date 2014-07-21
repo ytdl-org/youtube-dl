@@ -1193,13 +1193,6 @@ def format_bytes(bytes):
     return u'%.2f%s' % (converted, suffix)
 
 
-def str_to_int(int_str):
-    if int_str is None:
-        return None
-    int_str = re.sub(r'[,\.]', u'', int_str)
-    return int(int_str)
-
-
 def get_term_width():
     columns = os.environ.get('COLUMNS', None)
     if columns:
@@ -1267,15 +1260,22 @@ class HEADRequest(compat_urllib_request.Request):
         return "HEAD"
 
 
-def int_or_none(v, scale=1, default=None, get_attr=None):
+def int_or_none(v, scale=1, default=None, get_attr=None, invscale=1):
     if get_attr:
         if v is not None:
             v = getattr(v, get_attr, None)
-    return default if v is None else (int(v) // scale)
+    return default if v is None else (int(v) * invscale // scale)
 
 
-def float_or_none(v, scale=1, default=None):
-    return default if v is None else (float(v) / scale)
+def str_to_int(int_str):
+    if int_str is None:
+        return None
+    int_str = re.sub(r'[,\.]', u'', int_str)
+    return int(int_str)
+
+
+def float_or_none(v, scale=1, invscale=1, default=None):
+    return default if v is None else (float(v) * invscale / scale)
 
 
 def parse_duration(s):

@@ -69,6 +69,7 @@ class InfoExtractor(object):
                     * vcodec     Name of the video codec in use
                     * container  Name of the container format
                     * filesize   The number of bytes, if known in advance
+                    * filesize_approx  An estimate for the number of bytes
                     * player_url SWF Player URL (used for rtmpdump).
                     * protocol   The protocol that will be used for the actual
                                  download, lower-case.
@@ -555,6 +556,7 @@ class InfoExtractor(object):
                 f.get('abr') if f.get('abr') is not None else -1,
                 audio_ext_preference,
                 f.get('filesize') if f.get('filesize') is not None else -1,
+                f.get('filesize_approx') if f.get('filesize_approx') is not None else -1,
                 f.get('format_id'),
             )
         formats.sort(key=_formats_key)
