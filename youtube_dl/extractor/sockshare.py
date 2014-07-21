@@ -5,7 +5,6 @@ from ..utils import (
     ExtractorError,
     compat_urllib_parse,
     compat_urllib_request,
-    determine_ext,
 )
 import re
 
@@ -34,7 +33,7 @@ class SockshareIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         if re.search(self._FILE_DELETED_REGEX, webpage) is not None:
-            raise ExtractorError(u'Video %s does not exist' % video_id,
+            raise ExtractorError('Video %s does not exist' % video_id,
                                  expected=True)
 
         confirm_hash = self._html_search_regex(r'''(?x)<input\s+
@@ -54,19 +53,21 @@ class SockshareIE(InfoExtractor):
         req.add_header('Host', 'www.sockshare.com')
         req.add_header('Content-type', 'application/x-www-form-urlencoded')
 
-        webpage = self._download_webpage(req, video_id, 'Downloading video page')
+        webpage = self._download_webpage(
+            req, video_id, 'Downloading video page')
 
-        video_url = self._html_search_regex(r'<a href="([^"]*)".+class="download_file_link"', webpage, 'file url')
+        video_url = self._html_search_regex(
+            r'<a href="([^"]*)".+class="download_file_link"',
+            webpage, 'file url')
         video_url = "http://www.sockshare.com" + video_url
         title = self._html_search_regex(r'<h1>(.+)<strong>', webpage, 'title')
-        thumbnail = self._html_search_regex(r'<img\ssrc="([^"]*)".+name="bg"',
-                                            webpage, 'thumbnail')
-        ext = determine_ext(title)
+        thumbnail = self._html_search_regex(
+            r'<img\s+src="([^"]*)".+?name="bg"',
+            webpage, 'thumbnail')
 
         formats = [{
             'format_id': 'sd',
             'url': video_url,
-            'ext': ext,
         }]
 
         return {
