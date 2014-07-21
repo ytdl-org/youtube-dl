@@ -85,11 +85,25 @@ class NBCNewsIE(InfoExtractor):
                 flags=re.MULTILINE)
             bootstrap = json.loads(bootstrap_json)
             info = bootstrap['results'][0]['video']
-            playlist_url = info['fallbackPlaylistUrl'] + '?form=MPXNBCNewsAPI'
             mpxid = info['mpxId']
-            all_videos = self._download_json(playlist_url, title)['videos']
-            # The response contains additional videos
-            info = next(v for v in all_videos if v['mpxId'] == mpxid)
+
+            base_urls = [
+                info['fallbackPlaylistUrl'],
+                info['associatedPlaylistUrl'],
+            ]
+
+            for base_url in base_urls:
+                playlist_url = base_url + '?form=MPXNBCNewsAPI'
+                all_videos = self._download_json(playlist_url, title)['videos']
+
+                try:
+                    info = next(v for v in all_videos if v['mpxId'] == mpxid)
+                    break
+                except StopIteration:
+                    continue
+
+            if info is None:
+                raise ExtractorError('Could not find video in playlists')
 
             return {
                 '_type': 'url',
