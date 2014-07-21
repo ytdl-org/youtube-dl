@@ -402,7 +402,7 @@ class GenericIE(InfoExtractor):
             elif default_search == 'error':
                 raise ExtractorError(
                     ('%r is not a valid URL. '
-                     'Set --default-search "ytseach" (or run  youtube-dl "ytsearch:%s" ) to search YouTube'
+                     'Set --default-search "ytsearch" (or run  youtube-dl "ytsearch:%s" ) to search YouTube'
                     ) % (url, url), expected=True)
             else:
                 assert ':' in default_search
