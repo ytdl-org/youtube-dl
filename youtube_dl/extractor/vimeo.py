@@ -98,7 +98,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
             'info_dict': {
                 'id': '54469442',
                 'ext': 'mp4',
-                'title': 'Kathy Sierra: Building the minimum Badass User, Business of Software',
+                'title': 'Kathy Sierra: Building the minimum Badass User, Business of Software 2012',
                 'uploader': 'The BLN & Business of Software',
                 'uploader_id': 'theblnbusinessofsoftware',
                 'duration': 3610,
