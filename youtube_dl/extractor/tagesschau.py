@@ -19,16 +19,6 @@ class TagesschauIE(InfoExtractor):
             'description': 'md5:69da3c61275b426426d711bde96463ab',
             'thumbnail': 're:^http:.*\.jpg$',
         },
-    }, {
-        'url': 'http://www.tagesschau.de/multimedia/video/video-5964.html',
-        'md5': '66652566900963a3f962333579eeffcf',
-        'info_dict': {
-            'id': '5964',
-            'ext': 'mp4',
-            'title': 'Nahost-Konflikt: Israel bombadiert Ziele im Gazastreifen und Westjordanland',
-            'description': 'md5:07bfc78c48eec3145ed4805299a1900a',
-            'thumbnail': 're:http://.*\.jpg',
-        },
     }]
 
     _FORMATS = {

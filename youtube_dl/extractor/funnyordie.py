@@ -26,7 +26,7 @@ class FunnyOrDieIE(InfoExtractor):
             'id': 'e402820827',
             'ext': 'mp4',
             'title': 'Please Use This Song (Jon Lajoie)',
-            'description': 'md5:2ed27d364f5a805a6dba199faaf6681d',
+            'description': 'Please use this to sell something.  www.jonlajoie.com',
             'thumbnail': 're:^http:.*\.jpg$',
         },
     }]

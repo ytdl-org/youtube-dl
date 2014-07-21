@@ -91,11 +91,9 @@ except ImportError:
     compat_subprocess_get_DEVNULL = lambda: open(os.path.devnull, 'w')
 
 try:
-    from urllib.parse import parse_qs as compat_parse_qs
-except ImportError: # Python 2
-    # HACK: The following is the correct parse_qs implementation from cpython 3's stdlib.
-    # Python 2's version is apparently totally broken
-    def _unquote(string, encoding='utf-8', errors='replace'):
+    from urllib.parse import unquote as compat_urllib_parse_unquote
+except ImportError:
+    def compat_urllib_parse_unquote(string, encoding='utf-8', errors='replace'):
         if string == '':
             return string
         res = string.split('%')
@@ -130,6 +128,13 @@ except ImportError: # Python 2
             string += pct_sequence.decode(encoding, errors)
         return string
 
+
+try:
+    from urllib.parse import parse_qs as compat_parse_qs
+except ImportError: # Python 2
+    # HACK: The following is the correct parse_qs implementation from cpython 3's stdlib.
+    # Python 2's version is apparently totally broken
+
     def _parse_qsl(qs, keep_blank_values=False, strict_parsing=False,
                 encoding='utf-8', errors='replace'):
         qs, _coerce_result = qs, unicode
@@ -149,10 +154,12 @@ except ImportError: # Python 2
                     continue
             if len(nv[1]) or keep_blank_values:
                 name = nv[0].replace('+', ' ')
-                name = _unquote(name, encoding=encoding, errors=errors)
+                name = compat_urllib_parse_unquote(
+                    name, encoding=encoding, errors=errors)
                 name = _coerce_result(name)
                 value = nv[1].replace('+', ' ')
-                value = _unquote(value, encoding=encoding, errors=errors)
+                value = compat_urllib_parse_unquote(
+                    value, encoding=encoding, errors=errors)
                 value = _coerce_result(value)
                 r.append((name, value))
         return r
@@ -1193,13 +1200,6 @@ def format_bytes(bytes):
     return u'%.2f%s' % (converted, suffix)
 
 
-def str_to_int(int_str):
-    if int_str is None:
-        return None
-    int_str = re.sub(r'[,\.]', u'', int_str)
-    return int(int_str)
-
-
 def get_term_width():
     columns = os.environ.get('COLUMNS', None)
     if columns:
@@ -1267,15 +1267,22 @@ class HEADRequest(compat_urllib_request.Request):
         return "HEAD"
 
 
-def int_or_none(v, scale=1, default=None, get_attr=None):
+def int_or_none(v, scale=1, default=None, get_attr=None, invscale=1):
     if get_attr:
         if v is not None:
             v = getattr(v, get_attr, None)
-    return default if v is None else (int(v) // scale)
+    return default if v is None else (int(v) * invscale // scale)
 
 
-def float_or_none(v, scale=1, default=None):
-    return default if v is None else (float(v) / scale)
+def str_to_int(int_str):
+    if int_str is None:
+        return None
+    int_str = re.sub(r'[,\.]', u'', int_str)
+    return int(int_str)
+
+
+def float_or_none(v, scale=1, invscale=1, default=None):
+    return default if v is None else (float(v) * invscale / scale)
 
 
 def parse_duration(s):

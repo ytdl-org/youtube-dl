@@ -148,3 +148,10 @@ def assertRegexpMatches(self, text, regexp, msg=None):
             else:
                 msg = note + ', ' + msg
             self.assertTrue(m, msg)
+
+
+def assertGreaterEqual(self, got, expected, msg=None):
+    if not (got >= expected):
+        if msg is None:
+            msg = '%r not greater than or equal to %r' % (got, expected)
+        self.assertTrue(got >= expected, msg)

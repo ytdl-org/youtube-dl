@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import (
     assertRegexpMatches,
+    assertGreaterEqual,
     expect_info_dict,
     FakeYDL,
 )
@@ -71,8 +72,8 @@ class TestPlaylists(unittest.TestCase):
         ie = DailymotionUserIE(dl)
         result = ie.extract('https://www.dailymotion.com/user/nqtv')
         self.assertIsPlaylist(result)
+        assertGreaterEqual(self, len(result['entries']), 100)
         self.assertEqual(result['title'], 'Rémi Gaillard')
-        self.assertTrue(len(result['entries']) >= 100)
 
     def test_vimeo_channel(self):
         dl = FakeYDL()
@@ -111,7 +112,7 @@ class TestPlaylists(unittest.TestCase):
         ie = VineUserIE(dl)
         result = ie.extract('https://vine.co/Visa')
         self.assertIsPlaylist(result)
-        self.assertTrue(len(result['entries']) >= 47)
+        assertGreaterEqual(self, len(result['entries']), 47)
 
     def test_ustream_channel(self):
         dl = FakeYDL()
@@ -119,7 +120,7 @@ class TestPlaylists(unittest.TestCase):
         result = ie.extract('http://www.ustream.tv/channel/channeljapan')
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], '10874166')
-        self.assertTrue(len(result['entries']) >= 54)
+        assertGreaterEqual(self, len(result['entries']), 54)
 
     def test_soundcloud_set(self):
         dl = FakeYDL()
@@ -127,7 +128,7 @@ class TestPlaylists(unittest.TestCase):
         result = ie.extract('https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep')
         self.assertIsPlaylist(result)
         self.assertEqual(result['title'], 'The Royal Concept EP')
-        self.assertTrue(len(result['entries']) >= 6)
+        assertGreaterEqual(self, len(result['entries']), 6)
 
     def test_soundcloud_user(self):
         dl = FakeYDL()
@@ -135,7 +136,7 @@ class TestPlaylists(unittest.TestCase):
         result = ie.extract('https://soundcloud.com/the-concept-band')
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], '9615865')
-        self.assertTrue(len(result['entries']) >= 12)
+        assertGreaterEqual(self, len(result['entries']), 12)
 
     def test_soundcloud_likes(self):
         dl = FakeYDL()
@@ -143,7 +144,7 @@ class TestPlaylists(unittest.TestCase):
         result = ie.extract('https://soundcloud.com/the-concept-band/likes')
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], '9615865')
-        self.assertTrue(len(result['entries']) >= 1)
+        assertGreaterEqual(self, len(result['entries']), 1)
 
     def test_soundcloud_playlist(self):
         dl = FakeYDL()
@@ -162,7 +163,7 @@ class TestPlaylists(unittest.TestCase):
         result = ie.extract('http://new.livestream.com/tedx/cityenglish')
         self.assertIsPlaylist(result)
         self.assertEqual(result['title'], 'TEDCity2.0 (English)')
-        self.assertTrue(len(result['entries']) >= 4)
+        assertGreaterEqual(self, len(result['entries']), 4)
 
     def test_livestreamoriginal_folder(self):
         dl = FakeYDL()
@@ -170,7 +171,7 @@ class TestPlaylists(unittest.TestCase):
         result = ie.extract('https://www.livestream.com/newplay/folder?dirId=a07bf706-d0e4-4e75-a747-b021d84f2fd3')
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], 'a07bf706-d0e4-4e75-a747-b021d84f2fd3')
-        self.assertTrue(len(result['entries']) >= 28)
+        assertGreaterEqual(self, len(result['entries']), 28)
 
     def test_nhl_videocenter(self):
         dl = FakeYDL()
@@ -187,7 +188,7 @@ class TestPlaylists(unittest.TestCase):
         result = ie.extract('http://bambuser.com/channel/pixelversity')
         self.assertIsPlaylist(result)
         self.assertEqual(result['title'], 'pixelversity')
-        self.assertTrue(len(result['entries']) >= 60)
+        assertGreaterEqual(self, len(result['entries']), 60)
 
     def test_bandcamp_album(self):
         dl = FakeYDL()
@@ -195,7 +196,7 @@ class TestPlaylists(unittest.TestCase):
         result = ie.extract('http://mpallante.bandcamp.com/album/nightmare-night-ep')
         self.assertIsPlaylist(result)
         self.assertEqual(result['title'], 'Nightmare Night EP')
-        self.assertTrue(len(result['entries']) >= 4)
+        assertGreaterEqual(self, len(result['entries']), 4)
         
     def test_smotri_community(self):
         dl = FakeYDL()
@@ -204,7 +205,7 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], 'kommuna')
         self.assertEqual(result['title'], 'КПРФ')
-        self.assertTrue(len(result['entries']) >= 4)
+        assertGreaterEqual(self, len(result['entries']), 4)
         
     def test_smotri_user(self):
         dl = FakeYDL()
@@ -213,7 +214,7 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], 'inspector')
         self.assertEqual(result['title'], 'Inspector')
-        self.assertTrue(len(result['entries']) >= 9)
+        assertGreaterEqual(self, len(result['entries']), 9)
 
     def test_AcademicEarthCourse(self):
         dl = FakeYDL()
@@ -232,7 +233,7 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], 'dvoe_iz_lartsa')
         self.assertEqual(result['title'], 'Двое из ларца (2006 - 2008)')
-        self.assertTrue(len(result['entries']) >= 24)
+        assertGreaterEqual(self, len(result['entries']), 24)
 
     def test_ivi_compilation_season(self):
         dl = FakeYDL()
@@ -241,7 +242,7 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], 'dvoe_iz_lartsa/season1')
         self.assertEqual(result['title'], 'Двое из ларца (2006 - 2008) 1 сезон')
-        self.assertTrue(len(result['entries']) >= 12)
+        assertGreaterEqual(self, len(result['entries']), 12)
         
     def test_imdb_list(self):
         dl = FakeYDL()
@@ -260,7 +261,7 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['id'], 'cryptography')
         self.assertEqual(result['title'], 'Journey into cryptography')
         self.assertEqual(result['description'], 'How have humans protected their secret messages through history? What has changed today?')
-        self.assertTrue(len(result['entries']) >= 3)
+        assertGreaterEqual(self, len(result['entries']), 3)
 
     def test_EveryonesMixtape(self):
         dl = FakeYDL()
@@ -277,7 +278,7 @@ class TestPlaylists(unittest.TestCase):
         result = ie.extract('http://rutube.ru/tags/video/1800/')
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], '1800')
-        self.assertTrue(len(result['entries']) >= 68)
+        assertGreaterEqual(self, len(result['entries']), 68)
 
     def test_rutube_person(self):
         dl = FakeYDL()
@@ -285,7 +286,7 @@ class TestPlaylists(unittest.TestCase):
         result = ie.extract('http://rutube.ru/video/person/313878/')
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], '313878')
-        self.assertTrue(len(result['entries']) >= 37)
+        assertGreaterEqual(self, len(result['entries']), 37)
 
     def test_multiple_brightcove_videos(self):
         # https://github.com/rg3/youtube-dl/issues/2283
@@ -322,7 +323,7 @@ class TestPlaylists(unittest.TestCase):
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], '10')
         self.assertEqual(result['title'], 'Who are the hackers?')
-        self.assertTrue(len(result['entries']) >= 6)
+        assertGreaterEqual(self, len(result['entries']), 6)
 
     def test_toypics_user(self):
         dl = FakeYDL()
@@ -330,7 +331,7 @@ class TestPlaylists(unittest.TestCase):
         result = ie.extract('http://videos.toypics.net/Mikey')
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], 'Mikey')
-        self.assertTrue(len(result['entries']) >= 17)
+        assertGreaterEqual(self, len(result['entries']), 17)
 
     def test_xtube_user(self):
         dl = FakeYDL()
@@ -338,7 +339,7 @@ class TestPlaylists(unittest.TestCase):
         result = ie.extract('http://www.xtube.com/community/profile.php?user=greenshowers')
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], 'greenshowers')
-        self.assertTrue(len(result['entries']) >= 155)
+        assertGreaterEqual(self, len(result['entries']), 155)
 
     def test_InstagramUser(self):
         dl = FakeYDL()
@@ -346,7 +347,7 @@ class TestPlaylists(unittest.TestCase):
         result = ie.extract('http://instagram.com/porsche')
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], 'porsche')
-        self.assertTrue(len(result['entries']) >= 2)
+        assertGreaterEqual(self, len(result['entries']), 2)
         test_video = next(
             e for e in result['entries']
             if e['id'] == '614605558512799803_462752227')
@@ -385,7 +386,7 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['id'], '152147')
         self.assertEqual(
             result['title'], 'Brace Yourself - Today\'s Weirdest News')
-        self.assertTrue(len(result['entries']) >= 10)
+        assertGreaterEqual(self, len(result['entries']), 10)
 
     def test_TeacherTubeUser(self):
         dl = FakeYDL()
@@ -393,7 +394,7 @@ class TestPlaylists(unittest.TestCase):
         result = ie.extract('http://www.teachertube.com/user/profile/rbhagwati2')
         self.assertIsPlaylist(result)
         self.assertEqual(result['id'], 'rbhagwati2')
-        self.assertTrue(len(result['entries']) >= 179)
+        assertGreaterEqual(self, len(result['entries']), 179)
 
 if __name__ == '__main__':
     unittest.main()
