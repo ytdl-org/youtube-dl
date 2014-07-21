@@ -469,7 +469,7 @@ class InfoExtractor(object):
             display_name = name
         return self._html_search_regex(
             r'''(?ix)<meta
-                    (?=[^>]+(?:itemprop|name|property)=["\']%s["\'])
+                    (?=[^>]+(?:itemprop|name|property)=["\']?%s["\']?)
                     [^>]+content=["\']([^"\']+)["\']''' % re.escape(name),
             html, display_name, fatal=fatal, **kwargs)
 
