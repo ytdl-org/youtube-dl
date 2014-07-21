@@ -21,6 +21,7 @@ class SnotrIE(InfoExtractor):
             'title': 'Drone flying through fireworks!',
             'duration': 247,
             'filesize_approx': 98566144,
+            'description': 'A drone flying through Fourth of July Fireworks',
         }
     }, {
         'url': 'http://www.snotr.com/video/530/David_Letteman_-_George_W_Bush_Top_10',
@@ -30,6 +31,7 @@ class SnotrIE(InfoExtractor):
             'title': 'David Letteman - George W. Bush Top 10',
             'duration': 126,
             'filesize_approx': 8912896,
+            'description': 'The top 10 George W. Bush moments, brought to you by David Letterman!',
         }
     }]
 
@@ -41,7 +43,6 @@ class SnotrIE(InfoExtractor):
         title = self._og_search_title(webpage)
 
         description = self._og_search_description(webpage)
-
         video_url = "http://cdn.videos.snotr.com/%s.flv" % video_id
 
         view_count = str_to_int(self._html_search_regex(
@@ -58,6 +59,7 @@ class SnotrIE(InfoExtractor):
 
         return {
             'id': video_id,
+            'description': description,
             'title': title,
             'url': video_url,
             'view_count': view_count,
