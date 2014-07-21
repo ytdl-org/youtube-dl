@@ -17,7 +17,7 @@ class RTVEALaCartaIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://www.rtve.es/alacarta/videos/balonmano/o-swiss-cup-masculina-final-espana-suecia/2491869/',
-        'md5': '18fcd45965bdd076efdb12cd7f6d7b9e',
+        'md5': '1d49b7e1ca7a7502c56a4bf1b60f1b43',
         'info_dict': {
             'id': '2491869',
             'ext': 'mp4',
