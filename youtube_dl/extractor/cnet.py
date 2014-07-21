@@ -43,7 +43,11 @@ class CNETIE(InfoExtractor):
             raise ExtractorError('Cannot find video data')
 
         video_id = vdata['id']
-        title = vdata['headline']
+        title = vdata.get('headline')
+        if title is None:
+            title = vdata.get('title')
+        if title is None:
+            raise ExtractorError('Cannot find title!')
         description = vdata.get('dek')
         thumbnail = vdata.get('image', {}).get('path')
         author = vdata.get('author')
