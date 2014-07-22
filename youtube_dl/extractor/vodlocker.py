@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class VodlockerIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?vodlocker.com/(?P<id>[0-9a-zA-Z]+)(?:\..*?)?'
+    _VALID_URL = r'https?://(?:www\.)?vodlocker\.com/(?P<id>[0-9a-zA-Z]+)(?:\..*?)?'
 
     _TESTS = [{
         'url': 'http://vodlocker.com/e8wvyzz4sl42',
