@@ -82,10 +82,10 @@ class SoundcloudIE(InfoExtractor):
         # downloadable song
         {
             'url': 'https://soundcloud.com/oddsamples/bus-brakes',
-            'md5': 'fee7b8747b09bb755cefd4b853e7249a',
+            'md5': '7624f2351f8a3b2e7cd51522496e7631',
             'info_dict': {
                 'id': '128590877',
-                'ext': 'wav',
+                'ext': 'mp3',
                 'title': 'Bus Brakes',
                 'description': 'md5:0170be75dd395c96025d210d261c784e',
                 'uploader': 'oddsamples',
