@@ -11,8 +11,22 @@ from ..utils import (
 
 
 class MLBIE(InfoExtractor):
-    _VALID_URL = r'http?://m\.mlb\.com/video/(?:topic/[\da-z_-]+/)?v(?P<id>n?\d+)'
+    _VALID_URL = r'http?://m\.mlb\.com/.*video/(?:topic/[\da-z_-]+/)?v(?P<id>n?\d+)'
     _TESTS = [
+        {
+            'url': 'http://m.mlb.com/sea/video/topic/51231442/v34698933/nymsea-ackley-robs-a-home-run-with-an-amazing-catch/?c_id=sea',
+            'md5': 'ff56a598c2cf411a9a38a69709e97079',
+            'info_dict': {
+                'id': '34698933',
+                'ext': 'mp4',
+                'title': "Ackley's spectacular catch",
+                'description': 'md5:7f5a981eb4f3cbc8daf2aeffa2215bf0',
+                'duration': 66,
+                'timestamp': 1405980600,
+                'upload_date': '20140721',
+                'thumbnail': 're:^https?://.*\.jpg$',
+            },
+        },
         {
             'url': 'http://m.mlb.com/video/topic/81536970/v34496663/mianym-stanton-practices-for-the-home-run-derby',
             'md5': 'd9c022c10d21f849f49c05ae12a8a7e9',
