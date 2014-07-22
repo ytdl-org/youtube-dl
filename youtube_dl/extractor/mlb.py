@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class MLBIE(InfoExtractor):
-    _VALID_URL = r'http?://m\.mlb\.com/.*video/(?:topic/[\da-z_-]+/)?v(?P<id>n?\d+)'
+    _VALID_URL = r'https?://m\.mlb\.com/(?:.*?/)?video/(?:topic/[\da-z_-]+/)?v(?P<id>n?\d+)'
     _TESTS = [
         {
             'url': 'http://m.mlb.com/sea/video/topic/51231442/v34698933/nymsea-ackley-robs-a-home-run-with-an-amazing-catch/?c_id=sea',
