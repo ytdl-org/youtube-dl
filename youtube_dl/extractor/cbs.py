@@ -4,9 +4,9 @@ from .common import InfoExtractor
 
 
 class CBSIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?cbs\.com/shows/[^/]+/video/(?P<id>[^/]+)/.*'
+    _VALID_URL = r'https?://(?:www\.)?cbs\.com/shows/[^/]+/(video|artist)/(?P<id>[^/]+)/.*'
 
-    _TEST = {
+    _TESTS = [{
         u'url': u'http://www.cbs.com/shows/garth-brooks/video/_u7W953k6la293J7EPTd9oHkSPs6Xn6_/connect-chat-feat-garth-brooks/',
         u'file': u'4JUVEwq3wUT7.flv',
         u'info_dict': {
@@ -18,7 +18,19 @@ class CBSIE(InfoExtractor):
             # rtmp download
             u'skip_download': True,
         },
-    }
+    }, {
+        u'url': u'http://www.cbs.com/shows/liveonletterman/artist/221752/st-vincent/',
+        u'file': u'P9gjWjelt6iP.flv',
+        u'info_dict': {
+            u'title': u'Live on Letterman - St. Vincent',
+            u'description': u'Live On Letterman: St. Vincent in concert from New York\'s Ed Sullivan Theater on Tuesday, July 16, 2014.',
+            u'duration': 3221,
+        },
+        u'params': {
+            # rtmp download
+            u'skip_download': True,
+        },
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
