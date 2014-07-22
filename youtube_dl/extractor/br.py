@@ -12,7 +12,7 @@ from ..utils import (
 
 class BRIE(InfoExtractor):
     IE_DESC = 'Bayerischer Rundfunk Mediathek'
-    _VALID_URL = r'https?://(?:www\.)?br\.de/(?:[a-z0-9\-]+/)+(?P<id>[a-z0-9\-]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?br\.de/(?:[a-z0-9\-_]+/)+(?P<id>[a-z0-9\-_]+)\.html'
     _BASE_URL = 'http://www.br.de'
 
     _TESTS = [
