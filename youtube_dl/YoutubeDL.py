@@ -1197,6 +1197,10 @@ class YoutubeDL(object):
             if res:
                 res += ', '
             res += format_bytes(fdict['filesize'])
+        elif fdict.get('filesize_approx') is not None:
+            if res:
+                res += ', '
+            res += '~' + format_bytes(fdict['filesize_approx'])
         return res
 
     def list_formats(self, info_dict):

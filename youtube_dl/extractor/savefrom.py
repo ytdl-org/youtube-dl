@@ -20,7 +20,7 @@ class SaveFromIE(InfoExtractor):
             'upload_date': '20120816',
             'uploader': 'Howcast',
             'uploader_id': 'Howcast',
-            'description': 'md5:4f0aac94361a12e1ce57d74f85265175',
+            'description': 'md5:727900f130df3dc9a25e2721497c7910',
         },
         'params': {
             'skip_download': True

@@ -8,7 +8,6 @@ from ..utils import (
     ExtractorError,
     compat_urllib_parse,
     compat_urllib_request,
-    determine_ext,
 )
 
 

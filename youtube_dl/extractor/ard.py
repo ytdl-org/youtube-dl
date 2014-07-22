@@ -7,23 +7,32 @@ from .common import InfoExtractor
 from ..utils import (
     determine_ext,
     ExtractorError,
+    qualities,
 )
 
 
 class ARDIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.daserste\.de)/(?:.*/)(?P<video_id>[^/\?]+)(?:\?.*)?'
+    _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.daserste\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
 
-    _TEST = {
-        'url': 'http://www.ardmediathek.de/das-erste/guenther-jauch/edward-snowden-im-interview-held-oder-verraeter?documentId=19288786',
-        'file': '19288786.mp4',
-        'md5': '515bf47ce209fb3f5a61b7aad364634c',
+    _TESTS = [{
+        'url': 'http://mediathek.daserste.de/sendungen_a-z/328454_anne-will/22429276_vertrauen-ist-gut-spionieren-ist-besser-geht',
+        'file': '22429276.mp4',
+        'md5': '469751912f1de0816a9fc9df8336476c',
         'info_dict': {
-            'title': 'Edward Snowden im Interview - Held oder Verräter?',
-            'description': 'Edward Snowden hat alles aufs Spiel gesetzt, um die weltweite \xdcberwachung durch die Geheimdienste zu enttarnen. Nun stellt sich der ehemalige NSA-Mitarbeiter erstmals weltweit in einem TV-Interview den Fragen eines NDR-Journalisten. Die Sendung vom Sonntagabend.',
-            'thumbnail': 'http://www.ardmediathek.de/ard/servlet/contentblob/19/28/87/90/19288790/bild/2250037',
+            'title': 'Vertrauen ist gut, Spionieren ist besser - Geht so deutsch-amerikanische Freundschaft?',
+            'description': 'Das Erste Mediathek [ARD]: Vertrauen ist gut, Spionieren ist besser - Geht so deutsch-amerikanische Freundschaft?, Anne Will, Über die Spionage-Affäre diskutieren Clemens Binninger, Katrin Göring-Eckardt, Georg Mascolo, Andrew B. Denison und Constanze Kurz.. Das Video zur Sendung Anne Will am Mittwoch, 16.07.2014',
         },
         'skip': 'Blocked outside of Germany',
-    }
+    }, {
+        'url': 'http://www.ardmediathek.de/tv/Tatort/Das-Wunder-von-Wolbeck-Video-tgl-ab-20/Das-Erste/Video?documentId=22490580&bcastId=602916',
+        'info_dict': {
+            'id': '22490580',
+            'ext': 'mp4',
+            'title': 'Das Wunder von Wolbeck (Video tgl. ab 20 Uhr)',
+            'description': 'Auf einem restaurierten Hof bei Wolbeck wird der Heilpraktiker Raffael Lembeck eines morgens von seiner Frau Stella tot aufgefunden. Das Opfer war offensichtlich in seiner Praxis zu Fall gekommen und ist dann verblutet, erklärt Prof. Boerne am Tatort.',
+        },
+        'skip': 'Blocked outside of Germany',
+    }]
 
     def _real_extract(self, url):
         # determine video id from url
@@ -43,40 +52,64 @@ class ARDIE(InfoExtractor):
              r'<h4 class="headline">(.*?)</h4>'],
             webpage, 'title')
         description = self._html_search_meta(
-            'dcterms.abstract', webpage, 'description')
-        thumbnail = self._og_search_thumbnail(webpage)
+            'dcterms.abstract', webpage, 'description', default=None)
+        if description is None:
+            description = self._html_search_meta(
+                'description', webpage, 'meta description')
 
+        # Thumbnail is sometimes not present.
+        # It is in the mobile version, but that seems to use a different URL
+        # structure altogether.
+        thumbnail = self._og_search_thumbnail(webpage, default=None)
 
-        media_info = self._download_json(
-            'http://www.ardmediathek.de/play/media/%s' % video_id, video_id)
-        # The second element of the _mediaArray contains the standard http urls
-        streams = media_info['_mediaArray'][1]['_mediaStreamArray']
-        if not streams:
-            if '"fsk"' in webpage:
-                raise ExtractorError('This video is only available after 20:00')
+        media_streams = re.findall(r'''(?x)
+            mediaCollection\.addMediaStream\([0-9]+,\s*[0-9]+,\s*"[^"]*",\s*
+            "([^"]+)"''', webpage)
 
-        formats = []
+        if media_streams:
+            QUALITIES = qualities(['lo', 'hi', 'hq'])
+            formats = []
+            for furl in set(media_streams):
+                if furl.endswith('.f4m'):
+                    fid = 'f4m'
+                else:
+                    fid_m = re.match(r'.*\.([^.]+)\.[^.]+$', furl)
+                    fid = fid_m.group(1) if fid_m else None
+                formats.append({
+                    'quality': QUALITIES(fid),
+                    'format_id': fid,
+                    'url': furl,
+                })
+        else:  # request JSON file
+            media_info = self._download_json(
+                'http://www.ardmediathek.de/play/media/%s' % video_id, video_id)
+            # The second element of the _mediaArray contains the standard http urls
+            streams = media_info['_mediaArray'][1]['_mediaStreamArray']
+            if not streams:
+                if '"fsk"' in webpage:
+                    raise ExtractorError('This video is only available after 20:00')
 
-        for s in streams:
-            if type(s['_stream']) == list:
-                for index, url in enumerate(s['_stream'][::-1]):
-                    quality = s['_quality'] + index
-                    formats.append({
-                        'quality': quality,
-                        'url': url,
-                        'format_id': '%s-%s' % (determine_ext(url), quality)
+            formats = []
+            for s in streams:
+                if type(s['_stream']) == list:
+                    for index, url in enumerate(s['_stream'][::-1]):
+                        quality = s['_quality'] + index
+                        formats.append({
+                            'quality': quality,
+                            'url': url,
+                            'format_id': '%s-%s' % (determine_ext(url), quality)
                         })
-                continue
+                    continue
 
-            format = {
-                'quality': s['_quality'],
-                'url': s['_stream'],
-            }
+                format = {
+                    'quality': s['_quality'],
+                    'url': s['_stream'],
+                }
 
-            format['format_id'] = '%s-%s' % (
-                determine_ext(format['url']), format['quality'])
+                format['format_id'] = '%s-%s' % (
+                    determine_ext(format['url']), format['quality'])
 
-            formats.append(format)
+                formats.append(format)
 
         self._sort_formats(formats)
 

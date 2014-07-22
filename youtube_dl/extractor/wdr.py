@@ -55,14 +55,14 @@ class WDRIE(InfoExtractor):
             },
         },
         {
-            'url': 'http://www.funkhauseuropa.de/av/audiosuepersongsoulbossanova100-audioplayer.html',
-            'md5': '24e83813e832badb0a8d7d1ef9ef0691',
+            'url': 'http://www.funkhauseuropa.de/av/audioflaviacoelhoamaramar100-audioplayer.html',
+            'md5': '99a1443ff29af19f6c52cf6f4dc1f4aa',
             'info_dict': {
-                'id': 'mdb-463528',
+                'id': 'mdb-478135',
                 'ext': 'mp3',
-                'title': 'Süpersong: Soul Bossa Nova',
+                'title': 'Flavia Coelho: Amar é Amar',
                 'description': 'md5:7b29e97e10dfb6e265238b32fa35b23a',
-                'upload_date': '20140630',
+                'upload_date': '20140717',
             },
         },
     ]
