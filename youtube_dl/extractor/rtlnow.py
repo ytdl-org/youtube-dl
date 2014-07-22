@@ -92,16 +92,7 @@ class RTLnowIE(InfoExtractor):
         },
         {
             'url': 'http://www.n-tvnow.de/deluxe-alles-was-spass-macht/thema-ua-luxushotel-fuer-vierbeiner.php?container_id=153819&player=1&season=0',
-            'info_dict': {
-                'id': '153819',
-                'ext': 'flv',
-                'title': 'Deluxe - Alles was Spaß macht - Thema u.a.: Luxushotel für Vierbeiner',
-                'description': 'md5:c3705e1bb32e1a5b2bcd634fc065c631',
-                'thumbnail': 'http://autoimg.static-fra.de/ntvnow/383157/1500x1500/image2.jpg',
-                'upload_date': '20140221',
-                'duration': 2429,
-            },
-            'skip': 'Only works from Germany',
+            'only_matching': True,
         },
     ]
 
