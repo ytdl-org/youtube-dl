@@ -4,7 +4,11 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import find_xpath_attr, compat_str
+from ..utils import (
+    compat_str,
+    ExtractorError,
+    find_xpath_attr,
+)
 
 
 class NBCIE(InfoExtractor):
