@@ -301,8 +301,12 @@ class InfoExtractor(object):
     def _download_json(self, url_or_request, video_id,
                        note=u'Downloading JSON metadata',
                        errnote=u'Unable to download JSON metadata',
-                       transform_source=None):
-        json_string = self._download_webpage(url_or_request, video_id, note, errnote)
+                       transform_source=None,
+                       fatal=True):
+        json_string = self._download_webpage(
+            url_or_request, video_id, note, errnote, fatal=fatal)
+        if (not fatal) and json_string is False:
+            return None
         if transform_source:
             json_string = transform_source(json_string)
         try:

@@ -25,7 +25,10 @@ class VubeIE(InfoExtractor):
                 'uploader': 'Chiara.Grispo',
                 'timestamp': 1388743358,
                 'upload_date': '20140103',
-                'duration': 170.56
+                'duration': 170.56,
+                'like_count': int,
+                'dislike_count': int,
+                'comment_count': int,
             }
         },
         {
@@ -40,7 +43,10 @@ class VubeIE(InfoExtractor):
                 'uploader': 'Seraina',
                 'timestamp': 1396492438,
                 'upload_date': '20140403',
-                'duration': 240.107
+                'duration': 240.107,
+                'like_count': int,
+                'dislike_count': int,
+                'comment_count': int,
             }
         }, {
             'url': 'http://vube.com/vote/Siren+Gene/0nmsMY5vEq?n=2&t=s',
@@ -56,6 +62,7 @@ class VubeIE(InfoExtractor):
                 'duration': 221.788,
                 'like_count': int,
                 'dislike_count': int,
+                'comment_count': int,
             }
         }
     ]
@@ -70,7 +77,6 @@ class VubeIE(InfoExtractor):
             webpage, 'video data'
         )
         data = json.loads(data_json)
-        open('/dev/shm/f', 'w').write(json.dumps(data, indent=2))
         video = (
             data.get('video') or
             data)
@@ -101,12 +107,22 @@ class VubeIE(InfoExtractor):
         duration = video['duration']
         view_count = video.get('raw_view_count')
         like_count = video.get('rlikes')
+        if like_count is None:
+            like_count = video.get('total_likes')
         dislike_count = video.get('rhates')
+        if dislike_count is None:
+            dislike_count = video.get('total_hates')
 
-        comment = self._download_json(
-            'http://vube.com/api/video/%s/comment' % video_id, video_id, 'Downloading video comment JSON')
-
-        comment_count = int_or_none(comment.get('total'))
+        comments = video.get('comments')
+        comment_count = None
+        if comments is None:
+            comment_data = self._download_json(
+                'http://vube.com/api/video/%s/comment' % video_id,
+                video_id, 'Downloading video comment JSON', fatal=False)
+            if comment_data is not None:
+                comment_count = int_or_none(comment_data.get('total'))
+        else:
+            comment_count = len(comments)
 
         return {
             'id': video_id,
