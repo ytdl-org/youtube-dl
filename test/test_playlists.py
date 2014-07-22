@@ -154,7 +154,7 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['id'], '4110309')
         self.assertEqual(result['title'], 'TILT Brass - Bowery Poetry Club, August \'03 [Non-Site SCR 02]')
         assertRegexpMatches(
-            self, result['description'], r'TILT Brass - Bowery Poetry Club')
+            self, result['description'], r'.*?TILT Brass - Bowery Poetry Club')
         self.assertEqual(len(result['entries']), 6)
 
     def test_livestream_event(self):
