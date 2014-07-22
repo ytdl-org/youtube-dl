@@ -6,7 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     compat_parse_qs,
-    compat_urlparse,
+    compat_parse_qs,
     determine_ext,
     unified_strdate,
 )
@@ -81,7 +81,7 @@ class WDRIE(InfoExtractor):
             ]
             return self.playlist_result(entries, page_id)
 
-        flashvars = compat_urlparse.parse_qs(
+        flashvars = compat_parse_qs(
             self._html_search_regex(r'<param name="flashvars" value="([^"]+)"', webpage, 'flashvars'))
 
         page_id = flashvars['trackerClipId'][0]
