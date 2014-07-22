@@ -5,6 +5,7 @@ from ..utils import (
     ExtractorError,
     compat_urllib_parse,
     compat_urllib_request,
+    determine_ext,
 )
 import re
 
@@ -68,6 +69,7 @@ class SockshareIE(InfoExtractor):
         formats = [{
             'format_id': 'sd',
             'url': video_url,
+            'ext': determine_ext(title),
         }]
 
         return {
