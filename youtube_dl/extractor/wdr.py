@@ -6,7 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     compat_parse_qs,
-    compat_parse_qs,
+    compat_urlparse,
     determine_ext,
     unified_strdate,
 )
