@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import datetime
 import re
 
 from .common import InfoExtractor
@@ -94,8 +93,7 @@ class GameOnePlaylistIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?gameone\.de(?:/tv)?/?$'
 
     def _real_extract(self, url):
-        this_year = datetime.date.today().year
-        webpage = self._download_webpage('http://www.gameone.de/tv/year/%d' % this_year, this_year)
+        webpage = self._download_webpage('http://www.gameone.de/tv', 'TV')
         max_id = max(map(int, re.findall(r'<a href="/tv/(\d+)"', webpage)))
         entries = [self.url_result('http://www.gameone.de/tv/%d' % video_id, 'GameOne') for video_id in range(max_id, 0, -1)]
 
