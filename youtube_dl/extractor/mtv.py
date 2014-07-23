@@ -167,7 +167,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         videos_info = self._get_videos_info(mgid)
         if self._downloader.params.get('joinparts'):
             show_name = self._html_search_regex(
-                r'<h2.*?class="[^"]*show_name[^"]*".*?>(.*?)</h2>',
+                r'<span.*?class="[^"]*title[^"]*".*?>(.*?)</span>',
                 webpage, 'show name')
             video_name = self._og_search_title(webpage)
             description = self._og_search_description(webpage)
