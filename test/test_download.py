@@ -10,7 +10,6 @@ from test.helper import (
     get_params,
     gettestcases,
     expect_info_dict,
-    md5,
     try_rm,
     report_warning,
 )
@@ -24,7 +23,6 @@ import socket
 import youtube_dl.YoutubeDL
 from youtube_dl.utils import (
     compat_http_client,
-    compat_str,
     compat_urllib_error,
     compat_HTTPError,
     DownloadError,

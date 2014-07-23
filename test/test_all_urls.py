@@ -15,7 +15,6 @@ from youtube_dl.extractor import (
     FacebookIE,
     gen_extractors,
     JustinTVIE,
-    PBSIE,
     YoutubeIE,
 )
 
