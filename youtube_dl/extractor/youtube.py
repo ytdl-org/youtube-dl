@@ -346,8 +346,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
     def _extract_signature_function(self, video_id, player_url, slen):
         id_m = re.match(
-            r'.*-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3)?\.(?P<ext>[a-z]+)$',
+            r'.*-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player)?\.(?P<ext>[a-z]+)$',
             player_url)
+        if not id_m:
+            raise ExtractorError('Cannot identify player %r' % player_url)
         player_type = id_m.group('ext')
         player_id = id_m.group('id')
 
