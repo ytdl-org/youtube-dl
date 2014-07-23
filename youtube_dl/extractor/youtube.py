@@ -611,7 +611,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             data = compat_urllib_parse.urlencode({
                 'video_id': video_id,
                 'eurl': 'https://youtube.googleapis.com/v/' + video_id,
-                'sts':'16268',
+                'sts': self._search_regex(
+                    r'"sts"\s*:\s*(\d+)', video_webpage, 'sts'),
             })
             video_info_url = proto + '://www.youtube.com/get_video_info?' + data
             video_info_webpage = self._download_webpage(video_info_url, video_id,
