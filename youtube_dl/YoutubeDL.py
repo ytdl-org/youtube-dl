@@ -1234,14 +1234,21 @@ class YoutubeDL(object):
         if not self.params.get('verbose'):
             return
 
-        write_string(
+        encoding_str = (
             '[debug] Encodings: locale %s, fs %s, out %s, pref %s\n' % (
                 locale.getpreferredencoding(),
                 sys.getfilesystemencoding(),
                 sys.stdout.encoding,
-                self.get_encoding()),
-            encoding=None
-        )
+                self.get_encoding()))
+        try:
+            write_string(encoding_str, encoding=None)
+        except:
+            errmsg = 'Failed to write encoding string %r' % encoding_str
+            try:
+                sys.stdout.write(errmsg)
+            except:
+                pass
+            raise IOError(errmsg)
 
         self._write_string('[debug] youtube-dl version ' + __version__ + '\n')
         try:
