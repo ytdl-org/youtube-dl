@@ -97,7 +97,7 @@ from .utils import (
     write_string,
 )
 from .update import update_self
-from .FileDownloader import (
+from .downloader import (
     FileDownloader,
 )
 from .extractor import gen_extractors
