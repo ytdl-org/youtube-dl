@@ -16,7 +16,7 @@ from ..utils import (
 
 class VKIE(InfoExtractor):
     IE_NAME = 'vk.com'
-    _VALID_URL = r'https?://vk\.com/(?:video_ext\.php\?.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+)|(?:videos.*?\?.*?z=)?video(?P<videoid>.*?)(?:\?|%2F|$))'
+    _VALID_URL = r'https?://(?:m\.)?vk\.com/(?:video_ext\.php\?.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+)|(?:.+?\?.*?z=)?video(?P<videoid>.*?)(?:\?|%2F|$))'
     _NETRC_MACHINE = 'vk'
 
     _TESTS = [
@@ -27,7 +27,7 @@ class VKIE(InfoExtractor):
                 'id': '162222515',
                 'ext': 'flv',
                 'title': 'ProtivoGunz - Хуёвая песня',
-                'uploader': 'Noize MC',
+                'uploader': 're:Noize MC.*',
                 'duration': 195,
             },
         },
@@ -62,10 +62,46 @@ class VKIE(InfoExtractor):
                 'id': '164049491',
                 'ext': 'mp4',
                 'uploader': 'Триллеры',
-                'title': '► Бойцовский клуб / Fight Club 1999 [HD 720]\u00a0',
+                'title': '► Бойцовский клуб / Fight Club 1999 [HD 720]',
                 'duration': 8352,
             },
             'skip': 'Requires vk account credentials',
+        },
+        {
+            'url': 'http://vk.com/feed?z=video-43215063_166094326%2Fbb50cacd3177146d7a',
+            'md5': 'd82c22e449f036282d1d3f7f4d276869',
+            'info_dict': {
+                'id': '166094326',
+                'ext': 'mp4',
+                'uploader': 'Киномания - лучшее из мира кино',
+                'title': 'Запах женщины (1992)',
+                'duration': 9392,
+            },
+            'skip': 'Requires vk account credentials',
+        },
+        {
+            'url': 'http://vk.com/hd_kino_mania?z=video-43215063_168067957%2F15c66b9b533119788d',
+            'md5': '4d7a5ef8cf114dfa09577e57b2993202',
+            'info_dict': {
+                'id': '168067957',
+                'ext': 'mp4',
+                'uploader': 'Киномания - лучшее из мира кино',
+                'title': ' ',
+                'duration': 7291,
+            },
+            'skip': 'Requires vk account credentials',
+        },
+        {
+            'url': 'http://m.vk.com/video-43215063_169084319?list=125c627d1aa1cebb83&from=wall-43215063_2566540',
+            'md5': '0c45586baa71b7cb1d0784ee3f4e00a6',
+            'note': 'ivi.ru embed',
+            'info_dict': {
+                'id': '60690',
+                'ext': 'mp4',
+                'title': 'Книга Илая',
+                'duration': 6771,
+            },
+            'skip': 'Only works from Russia',
         },
     ]
 
@@ -110,6 +146,16 @@ class VKIE(InfoExtractor):
         if m_yt is not None:
             self.to_screen('Youtube video detected')
             return self.url_result(m_yt.group(1), 'Youtube')
+
+        m_opts = re.search(r'(?s)var\s+opts\s*=\s*({.*?});', info_page)
+        if m_opts:
+            m_opts_url = re.search(r"url\s*:\s*'([^']+)", m_opts.group(1))
+            if m_opts_url:
+                opts_url = m_opts_url.group(1)
+                if opts_url.startswith('//'):
+                    opts_url = 'http:' + opts_url
+                return self.url_result(opts_url)
+
         data_json = self._search_regex(r'var vars = ({.*?});', info_page, 'vars')
         data = json.loads(data_json)
 

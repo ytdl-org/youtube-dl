@@ -1,10 +1,13 @@
+# -*- coding:utf-8 -*-
+from __future__ import unicode_literals
+
 from .common import InfoExtractor
 import re
 
 
 class ToypicsIE(InfoExtractor):
     IE_DESC = 'Toypics user profile'
-    _VALID_URL = r'http://videos\.toypics\.net/view/(?P<id>[0-9]+)/.*'
+    _VALID_URL = r'https?://videos\.toypics\.net/view/(?P<id>[0-9]+)/.*'
     _TEST = {
         'url': 'http://videos.toypics.net/view/514/chancebulged,-2-1/',
         'md5': '16e806ad6d6f58079d210fe30985e08b',
@@ -61,7 +64,7 @@ class ToypicsUserIE(InfoExtractor):
                 note='Downloading page %d/%d' % (n, page_count))
             urls.extend(
                 re.findall(
-                    r'<p class="video-entry-title">\n\s*<a href="(http://videos.toypics.net/view/[^"]+)">',
+                    r'<p class="video-entry-title">\s+<a href="(https?://videos.toypics.net/view/[^"]+)">',
                     lpage))
 
         return {

@@ -4,7 +4,10 @@ import re
 import base64
 
 from .common import InfoExtractor
-from ..utils import unified_strdate
+from ..utils import (
+    unified_strdate,
+    int_or_none,
+)
 
 
 class VideoTtIE(InfoExtractor):
@@ -50,9 +53,9 @@ class VideoTtIE(InfoExtractor):
             'thumbnail': settings['config']['thumbnail'],
             'upload_date': unified_strdate(video['added']),
             'uploader': video['owner'],
-            'view_count': int(video['view_count']),
-            'comment_count': int(video['comment_count']),
-            'like_count': int(video['liked']),
-            'dislike_count': int(video['disliked']),
+            'view_count': int_or_none(video['view_count']),
+            'comment_count': None if video.get('comment_count') == '--' else int_or_none(video['comment_count']),
+            'like_count': int_or_none(video['liked']),
+            'dislike_count': int_or_none(video['disliked']),
             'formats': formats,
         }

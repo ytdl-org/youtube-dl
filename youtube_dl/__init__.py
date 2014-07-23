@@ -57,17 +57,24 @@ __authors__  = (
     'Jason Normore',
     'Hoje Lee',
     'Adam Thalhammer',
+    'Georg Jähnig',
+    'Ralf Haring',
+    'Koki Takahashi',
+    'Ariset Llerena',
+    'Adam Malcontenti-Wilson',
+    'Tobias Bell',
+    'Naglis Jonaitis',
+    'Charles Chen',
+    'Hassaan Ali',
 )
 
 __license__ = 'Public Domain'
 
 import codecs
 import io
-import locale
 import optparse
 import os
 import random
-import re
 import shlex
 import sys
 
@@ -90,7 +97,7 @@ from .utils import (
     write_string,
 )
 from .update import update_self
-from .FileDownloader import (
+from .downloader import (
     FileDownloader,
 )
 from .extractor import gen_extractors
@@ -268,7 +275,7 @@ def parseOpts(overrideArguments=None):
     general.add_option(
         '--default-search',
         dest='default_search', metavar='PREFIX',
-        help='Use this prefix for unqualified URLs. For example "gvsearch2:" downloads two videos from google videos for  youtube-dl "large apple". By default (with value "auto") youtube-dl guesses.')
+        help='Use this prefix for unqualified URLs. For example "gvsearch2:" downloads two videos from google videos for  youtube-dl "large apple". Use the value "auto" to let youtube-dl guess. The default value "error" just throws an error.')
     general.add_option(
         '--ignore-config',
         action='store_true',
@@ -504,7 +511,7 @@ def parseOpts(overrideArguments=None):
     postproc.add_option('--audio-quality', metavar='QUALITY', dest='audioquality', default='5',
             help='ffmpeg/avconv audio quality specification, insert a value between 0 (better) and 9 (worse) for VBR or a specific bitrate like 128K (default 5)')
     postproc.add_option('--recode-video', metavar='FORMAT', dest='recodevideo', default=None,
-            help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm)')
+            help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm|mkv)')
     postproc.add_option('--join-parts', action='store_true', dest='joinparts', default=False,
             help='Join the video parts if the video is splitted in different parts.')
     postproc.add_option('-k', '--keep-video', action='store_true', dest='keepvideo', default=False,
@@ -629,7 +636,7 @@ def _real_main(argv=None):
             if desc is False:
                 continue
             if hasattr(ie, 'SEARCH_KEY'):
-                _SEARCHES = (u'cute kittens', u'slithering pythons', u'falling cat', u'angry poodle', u'purple fish', u'running tortoise')
+                _SEARCHES = (u'cute kittens', u'slithering pythons', u'falling cat', u'angry poodle', u'purple fish', u'running tortoise', u'sleeping bunny')
                 _COUNTS = (u'', u'5', u'10', u'all')
                 desc += u' (Example: "%s%s:%s" )' % (ie.SEARCH_KEY, random.choice(_COUNTS), random.choice(_SEARCHES))
             compat_print(desc)

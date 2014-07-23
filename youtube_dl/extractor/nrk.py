@@ -6,7 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    int_or_none,
+    float_or_none,
     unified_strdate,
 )
 
@@ -72,14 +72,14 @@ class NRKIE(InfoExtractor):
 
 
 class NRKTVIE(InfoExtractor):
-    _VALID_URL = r'http://tv\.nrk\.no/(?:serie/[^/]+|program)/(?P<id>[a-z]{4}\d{8})'
+    _VALID_URL = r'http://tv\.nrk(?:super)?\.no/(?:serie/[^/]+|program)/(?P<id>[a-zA-Z]{4}\d{8})'
 
     _TESTS = [
         {
-            'url': 'http://tv.nrk.no/serie/20-spoersmaal-tv/muhh48000314/23-05-2014',
+            'url': 'http://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
             'md5': '7b96112fbae1faf09a6f9ae1aff6cb84',
             'info_dict': {
-                'id': 'muhh48000314',
+                'id': 'MUHH48000314',
                 'ext': 'flv',
                 'title': '20 spørsmål',
                 'description': 'md5:bdea103bc35494c143c6a9acdd84887a',
@@ -89,7 +89,7 @@ class NRKTVIE(InfoExtractor):
         },
         {
             'url': 'http://tv.nrk.no/program/mdfp15000514',
-            'md5': '383650ece2b25ecec996ad7b5bb2a384',
+            'md5': 'af01795a31f1cf7265c8657534d8077b',
             'info_dict': {
                 'id': 'mdfp15000514',
                 'ext': 'flv',
@@ -111,9 +111,8 @@ class NRKTVIE(InfoExtractor):
         description = self._html_search_meta('description', page, 'description')
         thumbnail = self._html_search_regex(r'data-posterimage="([^"]+)"', page, 'thumbnail', fatal=False)
         upload_date = unified_strdate(self._html_search_meta('rightsfrom', page, 'upload date', fatal=False))
-        duration = self._html_search_regex(r'data-duration="([^"]+)"', page, 'duration', fatal=False)
-        if duration:
-            duration = float(duration)
+        duration = float_or_none(
+            self._html_search_regex(r'data-duration="([^"]+)"', page, 'duration', fatal=False))
 
         formats = []
 

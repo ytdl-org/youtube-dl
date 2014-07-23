@@ -5,18 +5,21 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
+    ExtractorError,
+    clean_html,
 )
 
 
 class XVideosIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?xvideos\.com/video([0-9]+)(?:.*)'
     _TEST = {
-        'url': 'http://www.xvideos.com/video939581/funny_porns_by_s_-1',
-        'file': '939581.flv',
-        'md5': '1d0c835822f0a71a7bf011855db929d0',
+        'url': 'http://www.xvideos.com/video4588838/biker_takes_his_girl',
+        'md5': '4b46ae6ea5e6e9086e714d883313c0c9',
         'info_dict': {
-            "title": "Funny Porns By >>>>S<<<<<< -1",
-            "age_limit": 18,
+            'id': '4588838',
+            'ext': 'flv',
+            'title': 'Biker Takes his Girl',
+            'age_limit': 18,
         }
     }
 
@@ -27,6 +30,10 @@ class XVideosIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         self.report_extraction(video_id)
+
+        mobj = re.search(r'<h1 class="inlineError">(.+?)</h1>', webpage)
+        if mobj:
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, clean_html(mobj.group(1))), expected=True)
 
         # Extract video URL
         video_url = compat_urllib_parse.unquote(

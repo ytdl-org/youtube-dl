@@ -79,8 +79,11 @@ class CNNIE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        thumbnails = sorted([((int(t.attrib['height']),int(t.attrib['width'])), t.text) for t in info.findall('images/image')])
-        thumbs_dict = [{'resolution': res, 'url': t_url} for (res, t_url) in thumbnails]
+        thumbnails = [{
+            'height': int(t.attrib['height']),
+            'width': int(t.attrib['width']),
+            'url': t.text,
+        } for t in info.findall('images/image')]
 
         metas_el = info.find('metas')
         upload_date = (
@@ -93,8 +96,7 @@ class CNNIE(InfoExtractor):
             'id': info.attrib['id'],
             'title': info.find('headline').text,
             'formats': formats,
-            'thumbnail': thumbnails[-1][1],
-            'thumbnails': thumbs_dict,
+            'thumbnails': thumbnails,
             'description': info.find('description').text,
             'duration': duration,
             'upload_date': upload_date,

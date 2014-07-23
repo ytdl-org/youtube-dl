@@ -18,15 +18,15 @@ class NDRIE(InfoExtractor):
 
     _TESTS = [
         {
-            'url': 'http://www.ndr.de/fernsehen/sendungen/markt/markt7959.html',
-            'md5': 'e7a6079ca39d3568f4996cb858dd6708',
+            'url': 'http://www.ndr.de/fernsehen/media/dienordreportage325.html',
+            'md5': '4a4eeafd17c3058b65f0c8f091355855',
             'note': 'Video file',
             'info_dict': {
-                'id': '7959',
+                'id': '325',
                 'ext': 'mp4',
-                'title': 'Markt - die ganze Sendung',
-                'description': 'md5:af9179cf07f67c5c12dc6d9997e05725',
-                'duration': 2655,
+                'title': 'Blaue Bohnen aus Blocken',
+                'description': 'md5:190d71ba2ccddc805ed01547718963bc',
+                'duration': 1715,
             },
         },
         {

@@ -21,7 +21,7 @@ class YahooIE(InfoExtractor):
             'url': 'http://screen.yahoo.com/julian-smith-travis-legg-watch-214727115.html',
             'md5': '4962b075c08be8690a922ee026d05e69',
             'info_dict': {
-                'id': '214727115',
+                'id': '2d25e626-2378-391f-ada0-ddaf1417e588',
                 'ext': 'mp4',
                 'title': 'Julian Smith & Travis Legg Watch Julian Smith',
                 'description': 'Julian and Travis watch Julian Smith',
@@ -31,7 +31,7 @@ class YahooIE(InfoExtractor):
             'url': 'http://screen.yahoo.com/wired/codefellas-s1-ep12-cougar-lies-103000935.html',
             'md5': 'd6e6fc6e1313c608f316ddad7b82b306',
             'info_dict': {
-                'id': '103000935',
+                'id': 'd1dedf8c-d58c-38c3-8963-e899929ae0a9',
                 'ext': 'mp4',
                 'title': 'Codefellas - The Cougar Lies with Spanish Moss',
                 'description': 'Agent Topple\'s mustache does its dirty work, and Nicole brokers a deal for peace. But why is the NSA collecting millions of Instagram brunch photos? And if your waffles have nothing to hide, what are they so worried about?',
@@ -58,9 +58,11 @@ class YahooIE(InfoExtractor):
             r'mediaItems: ({.*?})$', webpage, 'items', flags=re.MULTILINE,
             default=None)
         if items_json is None:
-            long_id = self._search_regex(
+            CONTENT_ID_REGEXES = [
                 r'YUI\.namespace\("Media"\)\.CONTENT_ID\s*=\s*"([^"]+)"',
-                webpage, 'content ID')
+                r'root\.App\.Cache\.context\.videoCache\.curVideo = \{"([^"]+)"'
+            ]
+            long_id = self._search_regex(CONTENT_ID_REGEXES, webpage, 'content ID')
             video_id = long_id
         else:
             items = json.loads(items_json)
@@ -68,9 +70,9 @@ class YahooIE(InfoExtractor):
             # The 'meta' field is not always in the video webpage, we request it
             # from another page
             long_id = info['id']
-        return self._get_info(long_id, video_id)
+        return self._get_info(long_id, video_id, webpage)
 
-    def _get_info(self, long_id, video_id):
+    def _get_info(self, long_id, video_id, webpage):
         query = ('SELECT * FROM yahoo.media.video.streams WHERE id="%s"'
                  ' AND plrs="86Gj0vCaSzV_Iuf6hNylf2" AND region="US"'
                  ' AND protocol="http"' % long_id)
@@ -113,7 +115,7 @@ class YahooIE(InfoExtractor):
             'title': meta['title'],
             'formats': formats,
             'description': clean_html(meta['description']),
-            'thumbnail': meta['thumbnail'],
+            'thumbnail': meta['thumbnail'] if meta.get('thumbnail') else self._og_search_thumbnail(webpage),
         }
 
 
@@ -137,7 +139,7 @@ class YahooNewsIE(YahooIE):
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
         long_id = self._search_regex(r'contentId: \'(.+?)\',', webpage, 'long id')
-        return self._get_info(long_id, video_id)
+        return self._get_info(long_id, video_id, webpage)
 
 
 class YahooSearchIE(SearchInfoExtractor):

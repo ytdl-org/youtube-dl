@@ -15,6 +15,7 @@ from ..utils import (
     compat_urllib_request,
     compat_parse_qs,
 
+    determine_ext,
     ExtractorError,
     unsmuggle_url,
     unescapeHTML,
@@ -29,10 +30,11 @@ class BrightcoveIE(InfoExtractor):
         {
             # From http://www.8tv.cat/8aldia/videos/xavier-sala-i-martin-aquesta-tarda-a-8-al-dia/
             'url': 'http://c.brightcove.com/services/viewer/htmlFederated?playerID=1654948606001&flashID=myExperience&%40videoPlayer=2371591881001',
-            'file': '2371591881001.mp4',
             'md5': '5423e113865d26e40624dce2e4b45d95',
             'note': 'Test Brightcove downloads and detection in GenericIE',
             'info_dict': {
+                'id': '2371591881001',
+                'ext': 'mp4',
                 'title': 'Xavier Sala i Martín: “Un banc que no presta és un banc zombi que no serveix per a res”',
                 'uploader': '8TV',
                 'description': 'md5:a950cc4285c43e44d763d036710cd9cd',
@@ -41,8 +43,9 @@ class BrightcoveIE(InfoExtractor):
         {
             # From http://medianetwork.oracle.com/video/player/1785452137001
             'url': 'http://c.brightcove.com/services/viewer/htmlFederated?playerID=1217746023001&flashID=myPlayer&%40videoPlayer=1785452137001',
-            'file': '1785452137001.flv',
             'info_dict': {
+                'id': '1785452137001',
+                'ext': 'flv',
                 'title': 'JVMLS 2012: Arrays 2.0 - Opportunities and Challenges',
                 'description': 'John Rose speaks at the JVM Language Summit, August 1, 2012.',
                 'uploader': 'Oracle',
@@ -70,7 +73,20 @@ class BrightcoveIE(InfoExtractor):
                 'description': 'md5:363109c02998fee92ec02211bd8000df',
                 'uploader': 'National Ballet of Canada',
             },
-        }
+        },
+        {
+            # test flv videos served by akamaihd.net
+            # From http://www.redbull.com/en/bike/stories/1331655643987/replay-uci-dh-world-cup-2014-from-fort-william
+            'url': 'http://c.brightcove.com/services/viewer/htmlFederated?%40videoPlayer=ref%3ABC2996102916001&linkBaseURL=http%3A%2F%2Fwww.redbull.com%2Fen%2Fbike%2Fvideos%2F1331655630249%2Freplay-uci-fort-william-2014-dh&playerKey=AQ%7E%7E%2CAAAApYJ7UqE%7E%2Cxqr_zXk0I-zzNndy8NlHogrCb5QdyZRf&playerID=1398061561001#__youtubedl_smuggle=%7B%22Referer%22%3A+%22http%3A%2F%2Fwww.redbull.com%2Fen%2Fbike%2Fstories%2F1331655643987%2Freplay-uci-dh-world-cup-2014-from-fort-william%22%7D',
+            # The md5 checksum changes on each download
+            'info_dict': {
+                'id': '2996102916001',
+                'ext': 'flv',
+                'title': 'UCI MTB World Cup 2014: Fort William, UK - Downhill Finals',
+                'uploader': 'Red Bull TV',
+                'description': 'UCI MTB World Cup 2014: Fort William, UK - Downhill Finals',
+            },
+        },
     ]
 
     @classmethod
@@ -187,7 +203,7 @@ class BrightcoveIE(InfoExtractor):
         webpage = self._download_webpage(req, video_id)
 
         self.report_extraction(video_id)
-        info = self._search_regex(r'var experienceJSON = ({.*?});', webpage, 'json')
+        info = self._search_regex(r'var experienceJSON = ({.*});', webpage, 'json')
         info = json.loads(info)['data']
         video_info = info['programmedContent']['videoPlayer']['mediaDTO']
         video_info['_youtubedl_adServerURL'] = info.get('adServerURL')
@@ -219,12 +235,26 @@ class BrightcoveIE(InfoExtractor):
 
         renditions = video_info.get('renditions')
         if renditions:
-            renditions = sorted(renditions, key=lambda r: r['size'])
-            info['formats'] = [{
-                'url': rend['defaultURL'],
-                'height': rend.get('frameHeight'),
-                'width': rend.get('frameWidth'),
-            } for rend in renditions]
+            formats = []
+            for rend in renditions:
+                url = rend['defaultURL']
+                if rend['remote']:
+                    # This type of renditions are served through akamaihd.net,
+                    # but they don't use f4m manifests
+                    url = url.replace('control/', '') + '?&v=3.3.0&fp=13&r=FEEFJ&g=RTSJIMBMPFPB'
+                    ext = 'flv'
+                else:
+                    ext = determine_ext(url)
+                size = rend.get('size')
+                formats.append({
+                    'url': url,
+                    'ext': ext,
+                    'height': rend.get('frameHeight'),
+                    'width': rend.get('frameWidth'),
+                    'filesize': size if size != 0 else None,
+                })
+            self._sort_formats(formats)
+            info['formats'] = formats
         elif video_info.get('FLVFullLengthURL') is not None:
             info.update({
                 'url': video_info['FLVFullLengthURL'],

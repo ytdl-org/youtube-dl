@@ -5,24 +5,26 @@ import os.path
 import re
 
 from .common import InfoExtractor
+from ..utils import compat_urllib_parse_unquote
 
 
 class DropboxIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?dropbox[.]com/s/(?P<id>[a-zA-Z0-9]{15})/(?P<title>[^?#]*)'
     _TEST = {
-        'url': 'https://www.dropbox.com/s/0qr9sai2veej4f8/THE_DOCTOR_GAMES.mp4',
-        'md5': '8ae17c51172fb7f93bdd6a214cc8c896',
+        'url': 'https://www.dropbox.com/s/nelirfsxnmcfbfh/youtube-dl%20test%20video%20%27%C3%A4%22BaW_jenozKc.mp4',
+        'md5': '8a3d905427a6951ccb9eb292f154530b',
         'info_dict': {
-            'id': '0qr9sai2veej4f8',
+            'id': 'nelirfsxnmcfbfh',
             'ext': 'mp4',
-            'title': 'THE_DOCTOR_GAMES'
+            'title': 'youtube-dl test video \'ä"BaW_jenozKc'
         }
     }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        title = os.path.splitext(mobj.group('title'))[0]
+        fn = compat_urllib_parse_unquote(mobj.group('title'))
+        title = os.path.splitext(fn)[0]
         video_url = url + '?dl=1'
 
         return {

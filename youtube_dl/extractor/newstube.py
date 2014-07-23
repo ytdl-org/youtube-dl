@@ -4,18 +4,19 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import ExtractorError
 
 
 class NewstubeIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?newstube\.ru/media/(?P<id>.+)'
     _TEST = {
-        'url': 'http://newstube.ru/media/na-korable-progress-prodolzhaetsya-testirovanie-sistemy-kurs',
+        'url': 'http://www.newstube.ru/media/telekanal-cnn-peremestil-gorod-slavyansk-v-krym',
         'info_dict': {
-            'id': 'd156a237-a6e9-4111-a682-039995f721f1',
+            'id': '728e0ef2-e187-4012-bac0-5a081fdcb1f6',
             'ext': 'flv',
-            'title': 'На корабле «Прогресс» продолжается тестирование системы «Курс»',
-            'description': 'md5:d0cbe7b4a6f600552617e48548d5dc77',
-            'duration': 20.04,
+            'title': 'Телеканал CNN переместил город Славянск в Крым',
+            'description': 'md5:419a8c9f03442bc0b0a794d689360335',
+            'duration': 31.05,
         },
         'params': {
             # rtmp download
@@ -39,6 +40,10 @@ class NewstubeIE(InfoExtractor):
 
         def ns(s):
             return s.replace('/', '/%(ns)s') % {'ns': '{http://app1.newstube.ru/N2SiteWS/player.asmx}'}
+
+        error_message = player.find(ns('./ErrorMessage'))
+        if error_message is not None:
+            raise ExtractorError('%s returned error: %s' % (self.IE_NAME, error_message.text), expected=True)
 
         session_id = player.find(ns('./SessionId')).text
         media_info = player.find(ns('./Medias/MediaInfo'))

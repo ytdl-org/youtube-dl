@@ -17,9 +17,10 @@ class Tube8IE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?tube8\.com/(?:[^/]+/){2}(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.tube8.com/teen/kasia-music-video/229795/',
-        'file': '229795.mp4',
-        'md5': 'e9e0b0c86734e5e3766e653509475db0',
+        'md5': '44bf12b98313827dd52d35b8706a4ea0',
         'info_dict': {
+            'id': '229795',
+            'ext': 'mp4',
             'description': 'hot teen Kasia grinding',
             'uploader': 'unknown',
             'title': 'Kasia music video',

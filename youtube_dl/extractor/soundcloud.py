@@ -1,7 +1,6 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import json
 import re
 import itertools
 
@@ -12,6 +11,7 @@ from ..utils import (
     compat_urllib_parse,
 
     ExtractorError,
+    int_or_none,
     unified_strdate,
 )
 
@@ -44,7 +44,8 @@ class SoundcloudIE(InfoExtractor):
                 "upload_date": "20121011",
                 "description": "No Downloads untill we record the finished version this weekend, i was too pumped n i had to post it , earl is prolly gonna b hella p.o'd",
                 "uploader": "E.T. ExTerrestrial Music",
-                "title": "Lostin Powers - She so Heavy (SneakPreview) Adrian Ackers Blueprint 1"
+                "title": "Lostin Powers - She so Heavy (SneakPreview) Adrian Ackers Blueprint 1",
+                "duration": 143,
             }
         },
         # not streamable song
@@ -57,6 +58,7 @@ class SoundcloudIE(InfoExtractor):
                 'description': 'From Stockholm Sweden\r\nPovel / Magnus / Filip / David\r\nwww.theroyalconcept.com',
                 'uploader': 'The Royal Concept',
                 'upload_date': '20120521',
+                'duration': 227,
             },
             'params': {
                 # rtmp
@@ -74,19 +76,21 @@ class SoundcloudIE(InfoExtractor):
                 'uploader': 'jaimeMF',
                 'description': 'test chars:  \"\'/\\ä↭',
                 'upload_date': '20131209',
+                'duration': 9,
             },
         },
         # downloadable song
         {
-            'url': 'https://soundcloud.com/simgretina/just-your-problem-baby-1',
-            'md5': '56a8b69568acaa967b4c49f9d1d52d19',
+            'url': 'https://soundcloud.com/oddsamples/bus-brakes',
+            'md5': '7624f2351f8a3b2e7cd51522496e7631',
             'info_dict': {
-                'id': '105614606',
-                'ext': 'wav',
-                'title': 'Just Your Problem Baby (Acapella)',
-                'description': 'Vocals',
-                'uploader': 'Sim Gretina',
-                'upload_date': '20130815',
+                'id': '128590877',
+                'ext': 'mp3',
+                'title': 'Bus Brakes',
+                'description': 'md5:0170be75dd395c96025d210d261c784e',
+                'uploader': 'oddsamples',
+                'upload_date': '20140109',
+                'duration': 17,
             },
         },
     ]
@@ -119,6 +123,7 @@ class SoundcloudIE(InfoExtractor):
             'title': info['title'],
             'description': info['description'],
             'thumbnail': thumbnail,
+            'duration': int_or_none(info.get('duration'), 1000),
         }
         formats = []
         if info.get('downloadable', False):
@@ -250,7 +255,7 @@ class SoundcloudSetIE(SoundcloudIE):
 
 
 class SoundcloudUserIE(SoundcloudIE):
-    _VALID_URL = r'https?://(www\.)?soundcloud\.com/(?P<user>[^/]+)(/?(tracks/)?)?(\?.*)?$'
+    _VALID_URL = r'https?://(www\.)?soundcloud\.com/(?P<user>[^/]+)/?((?P<rsrc>tracks|likes)/?)?(\?.*)?$'
     IE_NAME = 'soundcloud:user'
 
     # it's in tests/test_playlists.py
@@ -259,24 +264,31 @@ class SoundcloudUserIE(SoundcloudIE):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         uploader = mobj.group('user')
+        resource = mobj.group('rsrc')
+        if resource is None:
+            resource = 'tracks'
+        elif resource == 'likes':
+            resource = 'favorites'
 
         url = 'http://soundcloud.com/%s/' % uploader
         resolv_url = self._resolv_url(url)
         user = self._download_json(
             resolv_url, uploader, 'Downloading user info')
-        base_url = 'http://api.soundcloud.com/users/%s/tracks.json?' % uploader
+        base_url = 'http://api.soundcloud.com/users/%s/%s.json?' % (uploader, resource)
 
         entries = []
         for i in itertools.count():
             data = compat_urllib_parse.urlencode({
                 'offset': i * 50,
+                'limit': 50,
                 'client_id': self._CLIENT_ID,
             })
             new_entries = self._download_json(
                 base_url + data, uploader, 'Downloading track page %s' % (i + 1))
-            entries.extend(self._extract_info_dict(e, quiet=True) for e in new_entries)
-            if len(new_entries) < 50:
+            if len(new_entries) == 0:
+                self.to_screen('%s: End page received' % uploader)
                 break
+            entries.extend(self._extract_info_dict(e, quiet=True) for e in new_entries)
 
         return {
             '_type': 'playlist',

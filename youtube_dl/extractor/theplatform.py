@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import re
 import json
 
@@ -18,17 +20,17 @@ class ThePlatformIE(InfoExtractor):
 
     _TEST = {
         # from http://www.metacafe.com/watch/cb-e9I_cZgTgIPd/blackberrys_big_bold_z30/
-        u'url': u'http://link.theplatform.com/s/dJ5BDC/e9I_cZgTgIPd/meta.smil?format=smil&Tracking=true&mbr=true',
-        u'info_dict': {
-            u'id': u'e9I_cZgTgIPd',
-            u'ext': u'flv',
-            u'title': u'Blackberry\'s big, bold Z30',
-            u'description': u'The Z30 is Blackberry\'s biggest, baddest mobile messaging device yet.',
-            u'duration': 247,
+        'url': 'http://link.theplatform.com/s/dJ5BDC/e9I_cZgTgIPd/meta.smil?format=smil&Tracking=true&mbr=true',
+        'info_dict': {
+            'id': 'e9I_cZgTgIPd',
+            'ext': 'flv',
+            'title': 'Blackberry\'s big, bold Z30',
+            'description': 'The Z30 is Blackberry\'s biggest, baddest mobile messaging device yet.',
+            'duration': 247,
         },
-        u'params': {
+        'params': {
             # rtmp download
-            u'skip_download': True,
+            'skip_download': True,
         },
     }
 
@@ -39,7 +41,7 @@ class ThePlatformIE(InfoExtractor):
             error_msg = next(
                 n.attrib['abstract']
                 for n in meta.findall(_x('.//smil:ref'))
-                if n.attrib.get('title') == u'Geographic Restriction')
+                if n.attrib.get('title') == 'Geographic Restriction')
         except StopIteration:
             pass
         else:
@@ -101,8 +103,7 @@ class ThePlatformIE(InfoExtractor):
             config_url = url+ '&form=json'
             config_url = config_url.replace('swf/', 'config/')
             config_url = config_url.replace('onsite/', 'onsite/config/')
-            config_json = self._download_webpage(config_url, video_id, u'Downloading config')
-            config = json.loads(config_json)
+            config = self._download_json(config_url, video_id, 'Downloading config')
             smil_url = config['releaseUrl'] + '&format=SMIL&formats=MPEG4&manifest=f4m'
         else:
             smil_url = ('http://link.theplatform.com/s/dJ5BDC/{0}/meta.smil?'

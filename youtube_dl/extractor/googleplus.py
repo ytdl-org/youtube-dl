@@ -52,8 +52,7 @@ class GooglePlusIE(InfoExtractor):
 
         # Extract title
         # Get the first line for title
-        video_title = self._html_search_regex(r'<meta name\=\"Description\" content\=\"(.*?)[\n<"]',
-            webpage, 'title', default='NA')
+        video_title = self._og_search_description(webpage).splitlines()[0]
 
         # Step 2, Simulate clicking the image box to launch video
         DOMAIN = 'https://plus.google.com/'

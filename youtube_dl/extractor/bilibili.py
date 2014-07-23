@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class BiliBiliIE(InfoExtractor):
-    _VALID_URL = r'http://www\.bilibili\.tv/video/av(?P<id>[0-9]+)/'
+    _VALID_URL = r'http://www\.bilibili\.(?:tv|com)/video/av(?P<id>[0-9]+)/'
 
     _TEST = {
         'url': 'http://www.bilibili.tv/video/av1074402/',
@@ -56,7 +56,7 @@ class BiliBiliIE(InfoExtractor):
             'thumbnailUrl', video_code, 'thumbnail', fatal=False)
 
         player_params = compat_parse_qs(self._html_search_regex(
-            r'<iframe .*?class="player" src="https://secure.bilibili.tv/secure,([^"]+)"',
+            r'<iframe .*?class="player" src="https://secure\.bilibili\.(?:tv|com)/secure,([^"]+)"',
             webpage, 'player params'))
 
         if 'cid' in player_params:

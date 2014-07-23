@@ -7,9 +7,9 @@ from .common import InfoExtractor
 
 
 class DiscoveryIE(InfoExtractor):
-    _VALID_URL = r'http://dsc\.discovery\.com\/[a-zA-Z0-9\-]*/[a-zA-Z0-9\-]*/videos/(?P<id>[a-zA-Z0-9\-]*)(.htm)?'
+    _VALID_URL = r'http://www\.discovery\.com\/[a-zA-Z0-9\-]*/[a-zA-Z0-9\-]*/videos/(?P<id>[a-zA-Z0-9\-]*)(.htm)?'
     _TEST = {
-        'url': 'http://dsc.discovery.com/tv-shows/mythbusters/videos/mission-impossible-outtakes.htm',
+        'url': 'http://www.discovery.com/tv-shows/mythbusters/videos/mission-impossible-outtakes.htm',
         'md5': 'e12614f9ee303a6ccef415cb0793eba2',
         'info_dict': {
             'id': '614784',

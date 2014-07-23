@@ -12,20 +12,18 @@ from ..utils import (
 
 class BRIE(InfoExtractor):
     IE_DESC = 'Bayerischer Rundfunk Mediathek'
-    _VALID_URL = r'https?://(?:www\.)?br\.de/(?:[a-z0-9\-]+/)+(?P<id>[a-z0-9\-]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?br\.de/(?:[a-z0-9\-_]+/)+(?P<id>[a-z0-9\-_]+)\.html'
     _BASE_URL = 'http://www.br.de'
 
     _TESTS = [
         {
-            'url': 'http://www.br.de/mediathek/video/anselm-gruen-114.html',
-            'md5': 'c4f83cf0f023ba5875aba0bf46860df2',
+            'url': 'http://www.br.de/mediathek/video/sendungen/heimatsound/heimatsound-festival-2014-trailer-100.html',
+            'md5': '93556dd2bcb2948d9259f8670c516d59',
             'info_dict': {
-                'id': '2c8d81c5-6fb7-4a74-88d4-e768e5856532',
+                'id': '25e279aa-1ffd-40fd-9955-5325bd48a53a',
                 'ext': 'mp4',
-                'title': 'Feiern und Verzichten',
-                'description': 'Anselm Grün: Feiern und Verzichten',
-                'uploader': 'BR/Birgit Baier',
-                'upload_date': '20140301',
+                'title': 'Am 1. und 2. August in Oberammergau',
+                'description': 'md5:dfd224e5aa6819bc1fcbb7826a932021',
             }
         },
         {

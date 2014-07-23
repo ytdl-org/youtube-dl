@@ -150,7 +150,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
         return {
             'id':       video_id,
             'formats': formats,
-            'uploader': info['owner_screenname'],
+            'uploader': info['owner.screenname'],
             'upload_date':  video_upload_date,
             'title':    self._og_search_title(webpage),
             'subtitles':    video_subtitles,

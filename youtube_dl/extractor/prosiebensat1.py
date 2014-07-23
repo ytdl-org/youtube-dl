@@ -158,19 +158,19 @@ class ProSiebenSat1IE(InfoExtractor):
     _CLIPID_REGEXES = [
         r'"clip_id"\s*:\s+"(\d+)"',
         r'clipid: "(\d+)"',
-        r'clipId=(\d+)',
+        r'clip[iI]d=(\d+)',
     ]
     _TITLE_REGEXES = [
         r'<h2 class="subtitle" itemprop="name">\s*(.+?)</h2>',
         r'<header class="clearfix">\s*<h3>(.+?)</h3>',
         r'<!-- start video -->\s*<h1>(.+?)</h1>',
-        r'<div class="ep-femvideos-pi4-video-txt">\s*<h2>(.+?)</h2>',
+        r'<h1 class="att-name">\s*(.+?)</h1>',
     ]
     _DESCRIPTION_REGEXES = [
         r'<p itemprop="description">\s*(.+?)</p>',
         r'<div class="videoDecription">\s*<p><strong>Beschreibung</strong>: (.+?)</p>',
         r'<div class="g-plusone" data-size="medium"></div>\s*</div>\s*</header>\s*(.+?)\s*<footer>',
-        r'<p>(.+?)</p>\s*<div class="ep-femvideos-pi4-video-footer">',
+        r'<p class="att-description">\s*(.+?)\s*</p>',
     ]
     _UPLOAD_DATE_REGEXES = [
         r'<meta property="og:published_time" content="(.+?)">',

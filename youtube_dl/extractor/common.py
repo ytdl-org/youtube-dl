@@ -2,11 +2,12 @@ import base64
 from collections import defaultdict
 import hashlib
 import json
+import netrc
 import os
 import re
 import socket
 import sys
-import netrc
+import time
 import xml.etree.ElementTree
 
 from ..utils import (
@@ -69,6 +70,7 @@ class InfoExtractor(object):
                     * vcodec     Name of the video codec in use
                     * container  Name of the container format
                     * filesize   The number of bytes, if known in advance
+                    * filesize_approx  An estimate for the number of bytes
                     * player_url SWF Player URL (used for rtmpdump).
                     * protocol   The protocol that will be used for the actual
                                  download, lower-case.
@@ -93,8 +95,12 @@ class InfoExtractor(object):
                     unique, but available before title. Typically, id is
                     something like "4234987", title "Dancing naked mole rats",
                     and display_id "dancing-naked-mole-rats"
-    thumbnails:     A list of dictionaries (with the entries "resolution" and
-                    "url") for the varying thumbnails
+    thumbnails:     A list of dictionaries, with the following entries:
+                        * "url"
+                        * "width" (optional, int)
+                        * "height" (optional, int)
+                        * "resolution" (optional, string "{width}x{height"},
+                                        deprecated)
     thumbnail:      Full URL to a video thumbnail image.
     description:    One-line video description.
     uploader:       Full name of the video uploader.
@@ -299,8 +305,12 @@ class InfoExtractor(object):
     def _download_json(self, url_or_request, video_id,
                        note=u'Downloading JSON metadata',
                        errnote=u'Unable to download JSON metadata',
-                       transform_source=None):
-        json_string = self._download_webpage(url_or_request, video_id, note, errnote)
+                       transform_source=None,
+                       fatal=True):
+        json_string = self._download_webpage(
+            url_or_request, video_id, note, errnote, fatal=fatal)
+        if (not fatal) and json_string is False:
+            return None
         if transform_source:
             json_string = transform_source(json_string)
         try:
@@ -459,14 +469,17 @@ class InfoExtractor(object):
         if secure: regexes = self._og_regexes('video:secure_url') + regexes
         return self._html_search_regex(regexes, html, name, **kargs)
 
-    def _html_search_meta(self, name, html, display_name=None, fatal=False):
+    def _og_search_url(self, html, **kargs):
+        return self._og_search_property('url', html, **kargs)
+
+    def _html_search_meta(self, name, html, display_name=None, fatal=False, **kwargs):
         if display_name is None:
             display_name = name
         return self._html_search_regex(
             r'''(?ix)<meta
-                    (?=[^>]+(?:itemprop|name|property)=["\']%s["\'])
+                    (?=[^>]+(?:itemprop|name|property)=["\']?%s["\']?)
                     [^>]+content=["\']([^"\']+)["\']''' % re.escape(name),
-            html, display_name, fatal=fatal)
+            html, display_name, fatal=fatal, **kwargs)
 
     def _dc_search_uploader(self, html):
         return self._html_search_meta('dc.creator', html, 'uploader')
@@ -551,6 +564,7 @@ class InfoExtractor(object):
                 f.get('abr') if f.get('abr') is not None else -1,
                 audio_ext_preference,
                 f.get('filesize') if f.get('filesize') is not None else -1,
+                f.get('filesize_approx') if f.get('filesize_approx') is not None else -1,
                 f.get('format_id'),
             )
         formats.sort(key=_formats_key)
@@ -571,6 +585,13 @@ class InfoExtractor(object):
             return scheme + url
         else:
             return url
+
+    def _sleep(self, timeout, video_id, msg_template=None):
+        if msg_template is None:
+            msg_template = u'%(video_id)s: Waiting for %(timeout)s seconds'
+        msg = msg_template % {'video_id': video_id, 'timeout': timeout}
+        self.to_screen(msg)
+        time.sleep(timeout)
 
     def _entry_formats_to_parts(self, entries):
         '''Transforms entries with formats to formats with parts. Used when joinparts is set.'''
@@ -638,4 +659,3 @@ class SearchInfoExtractor(InfoExtractor):
     @property
     def SEARCH_KEY(self):
         return self._SEARCH_KEY
-

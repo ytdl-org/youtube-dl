@@ -138,8 +138,8 @@ def expect_info_dict(self, expected_dict, got_dict):
 
 
 def assertRegexpMatches(self, text, regexp, msg=None):
-    if hasattr(self, 'assertRegexpMatches'):
-        return self.assertRegexpMatches(text, regexp, msg)
+    if hasattr(self, 'assertRegexp'):
+        return self.assertRegexp(text, regexp, msg)
     else:
         m = re.match(regexp, text)
         if not m:
@@ -149,3 +149,10 @@ def assertRegexpMatches(self, text, regexp, msg=None):
             else:
                 msg = note + ', ' + msg
             self.assertTrue(m, msg)
+
+
+def assertGreaterEqual(self, got, expected, msg=None):
+    if not (got >= expected):
+        if msg is None:
+            msg = '%r not greater than or equal to %r' % (got, expected)
+        self.assertTrue(got >= expected, msg)

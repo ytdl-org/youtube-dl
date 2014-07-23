@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class FC2IE(InfoExtractor):
-    _VALID_URL = r'^http://video\.fc2\.com/(?P<lang>[^/]+)/content/(?P<id>[^/]+)'
+    _VALID_URL = r'^http://video\.fc2\.com/((?P<lang>[^/]+)/)?content/(?P<id>[^/]+)'
     IE_NAME = 'fc2'
     _TEST = {
         'url': 'http://video.fc2.com/en/content/20121103kUan1KHs',
@@ -36,7 +36,7 @@ class FC2IE(InfoExtractor):
         thumbnail = self._og_search_thumbnail(webpage)
         refer = url.replace('/content/', '/a/content/')
 
-        mimi = hashlib.md5(video_id + '_gGddgPfeaf_gzyr').hexdigest()
+        mimi = hashlib.md5((video_id + '_gGddgPfeaf_gzyr').encode('utf-8')).hexdigest()
 
         info_url = (
             "http://video.fc2.com/ginfo.php?mimi={1:s}&href={2:s}&v={0:s}&fversion=WIN%2011%2C6%2C602%2C180&from=2&otag=0&upid={0:s}&tk=null&".
@@ -50,10 +50,13 @@ class FC2IE(InfoExtractor):
             raise ExtractorError('Error code: %s' % info['err_code'][0])
 
         video_url = info['filepath'][0] + '?mid=' + info['mid'][0]
+        title_info = info.get('title')
+        if title_info:
+            title = title_info[0]
 
         return {
             'id': video_id,
-            'title': info['title'][0],
+            'title': title,
             'url': video_url,
             'ext': 'flv',
             'thumbnail': thumbnail,

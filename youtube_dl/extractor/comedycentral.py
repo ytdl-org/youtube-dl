@@ -14,13 +14,13 @@ from ..utils import (
 
 
 class ComedyCentralIE(MTVServicesInfoExtractor):
-    _VALID_URL = r'''(?x)https?://(?:www\.)?(comedycentral|cc)\.com/
-        (video-clips|episodes|cc-studios|video-collections)
+    _VALID_URL = r'''(?x)https?://(?:www\.)?cc\.com/
+        (video-clips|episodes|cc-studios|video-collections|full-episodes)
         /(?P<title>.*)'''
     _FEED_URL = 'http://comedycentral.com/feeds/mrss/'
 
     _TEST = {
-        'url': 'http://www.comedycentral.com/video-clips/kllhuv/stand-up-greg-fitzsimmons--uncensored---too-good-of-a-mother',
+        'url': 'http://www.cc.com/video-clips/kllhuv/stand-up-greg-fitzsimmons--uncensored---too-good-of-a-mother',
         'md5': 'c4f48e9eda1b16dd10add0744344b6d8',
         'info_dict': {
             'id': 'cef0cbb3-e776-4bc9-b62e-8016deccb354',
@@ -130,7 +130,7 @@ class ComedyCentralShowsIE(InfoExtractor):
                 raise ExtractorError('Invalid redirected URL: ' + url)
             if mobj.group('episode') == '':
                 raise ExtractorError('Redirected URL is still not specific: ' + url)
-            epTitle = mobj.group('episode').rpartition('/')[-1]
+            epTitle = (mobj.group('episode') or mobj.group('videotitle')).rpartition('/')[-1]
 
         mMovieParams = re.findall('(?:<param name="movie" value="|var url = ")(http://media.mtvnservices.com/([^"]*(?:episode|video).*?:.*?))"', webpage)
         if len(mMovieParams) == 0:
@@ -188,7 +188,7 @@ class ComedyCentralShowsIE(InfoExtractor):
                 })
                 formats.append({
                     'format_id': 'rtmp-%s' % format,
-                    'url': rtmp_video_url,
+                    'url': rtmp_video_url.replace('viacomccstrm', 'viacommtvstrm'),
                     'ext': self._video_extensions.get(format, 'mp4'),
                     'height': h,
                     'width': w,

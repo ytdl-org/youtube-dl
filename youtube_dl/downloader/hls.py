@@ -25,7 +25,7 @@ class HlsFD(FileDownloader):
             except (OSError, IOError):
                 pass
         else:
-            self.report_error(u'm3u8 download detected but ffmpeg or avconv could not be found')
+            self.report_error(u'm3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
         cmd = [program] + args
 
         retval = subprocess.call(cmd)
