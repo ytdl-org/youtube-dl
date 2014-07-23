@@ -18,12 +18,12 @@ from ..utils import (
 )
 
 
-
 class FFmpegPostProcessorError(PostProcessingError):
     pass
 
+
 class FFmpegPostProcessor(PostProcessor):
-    def __init__(self,downloader=None,deletetempfiles=False):
+    def __init__(self, downloader=None, deletetempfiles=False):
         PostProcessor.__init__(self, downloader)
         self._exes = self.detect_executables()
         self._deletetempfiles = deletetempfiles
@@ -62,8 +62,8 @@ class FFmpegPostProcessor(PostProcessor):
             msg = stderr.strip().split('\n')[-1]
             raise FFmpegPostProcessorError(msg)
         if self._deletetempfiles:
-            for rempath in input_paths:
-                os.remove(rempath)
+            for ipath in input_paths:
+                os.remove(ipath)
 
     def run_ffmpeg(self, path, out_path, opts):
         self.run_ffmpeg_multiple_files([path], out_path, opts)
