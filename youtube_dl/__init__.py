@@ -222,6 +222,7 @@ def parseOpts(overrideArguments=None):
     downloader     = optparse.OptionGroup(parser, 'Download Options')
     postproc       = optparse.OptionGroup(parser, 'Post-processing Options')
     filesystem     = optparse.OptionGroup(parser, 'Filesystem Options')
+    workarounds    = optparse.OptionGroup(parser, 'Workarounds')
     verbosity      = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
 
     general.add_option('-h', '--help',
@@ -238,14 +239,6 @@ def parseOpts(overrideArguments=None):
     general.add_option('--dump-user-agent',
             action='store_true', dest='dump_user_agent',
             help='display the current browser identification', default=False)
-    general.add_option('--user-agent',
-            dest='user_agent', help='specify a custom user agent', metavar='UA')
-    general.add_option('--referer',
-            dest='referer', help='specify a custom referer, use if the video access is restricted to one domain',
-            metavar='REF', default=None)
-    general.add_option('--add-header',
-            dest='headers', help='specify a custom HTTP header and its value, separated by a colon \':\'. You can use this option multiple times', action="append",
-            metavar='FIELD:VALUE')
     general.add_option('--list-extractors',
             action='store_true', dest='list_extractors',
             help='List all supported extractors and the URLs they would handle', default=False)
@@ -255,10 +248,6 @@ def parseOpts(overrideArguments=None):
     general.add_option(
         '--proxy', dest='proxy', default=None, metavar='URL',
         help='Use the specified HTTP/HTTPS proxy. Pass in an empty string (--proxy "") for direct connection')
-    general.add_option('--no-check-certificate', action='store_true', dest='no_check_certificate', default=False, help='Suppress HTTPS certificate validation.')
-    general.add_option(
-        '--prefer-insecure', '--prefer-unsecure', action='store_true', dest='prefer_insecure',
-        help='Use an unencrypted connection to retrieve information about the video. (Currently supported only for YouTube)')
     general.add_option(
         '--cache-dir', dest='cachedir', default=get_cachedir(), metavar='DIR',
         help='Location in the filesystem where youtube-dl can store some downloaded information permanently. By default $XDG_CACHE_HOME/youtube-dl or ~/.cache/youtube-dl . At the moment, only YouTube player files (for videos with obfuscated signatures) are cached, but that may change.')
@@ -279,9 +268,6 @@ def parseOpts(overrideArguments=None):
         '--ignore-config',
         action='store_true',
         help='Do not read configuration files. When given in the global configuration file /etc/youtube-dl.conf: do not read the user configuration in ~/.config/youtube-dl.conf (%APPDATA%/youtube-dl/config.txt on Windows)')
-    general.add_option(
-        '--encoding', dest='encoding', metavar='ENCODING',
-        help='Force the specified encoding (experimental)')
 
     selection.add_option(
         '--playlist-start',
@@ -381,6 +367,30 @@ def parseOpts(overrideArguments=None):
             action='store_true', dest='noresizebuffer',
             help='do not automatically adjust the buffer size. By default, the buffer size is automatically resized from an initial value of SIZE.', default=False)
     downloader.add_option('--test', action='store_true', dest='test', default=False, help=optparse.SUPPRESS_HELP)
+
+    workarounds.add_option(
+        '--encoding', dest='encoding', metavar='ENCODING',
+        help='Force the specified encoding (experimental)')
+    workarounds.add_option(
+        '--no-check-certificate', action='store_true',
+        dest='no_check_certificate', default=False,
+        help='Suppress HTTPS certificate validation.')
+    workarounds.add_option(
+        '--prefer-insecure', '--prefer-unsecure', action='store_true', dest='prefer_insecure',
+        help='Use an unencrypted connection to retrieve information about the video. (Currently supported only for YouTube)')
+    workarounds.add_option(
+        '--user-agent', metavar='UA',
+        dest='user_agent', help='specify a custom user agent')
+    workarounds.add_option(
+        '--referer', metavar='REF',
+        dest='referer', default=None,
+        help='specify a custom referer, use if the video access is restricted to one domain',
+    )
+    workarounds.add_option(
+        '--add-header', metavar='FIELD:VALUE',
+        dest='headers', action='append',
+        help='specify a custom HTTP header and its value, separated by a colon \':\'. You can use this option multiple times',
+    )
 
     verbosity.add_option('-q', '--quiet',
             action='store_true', dest='quiet', help='activates quiet mode', default=False)
@@ -534,6 +544,7 @@ def parseOpts(overrideArguments=None):
     parser.add_option_group(downloader)
     parser.add_option_group(filesystem)
     parser.add_option_group(verbosity)
+    parser.add_option_group(workarounds)
     parser.add_option_group(video_format)
     parser.add_option_group(subtitles)
     parser.add_option_group(authentication)
