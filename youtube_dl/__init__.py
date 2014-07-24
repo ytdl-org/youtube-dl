@@ -76,6 +76,7 @@ import optparse
 import os
 import random
 import shlex
+import shutil
 import sys
 
 
@@ -511,6 +512,9 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '--no-cache-dir', action='store_const', const=None, dest='cachedir',
         help='Disable filesystem caching')
+    filesystem.add_option(
+        '--rm-cache-dir', action='store_true', dest='rm_cachedir',
+        help='Delete all filesystem cache files')
 
 
     postproc.add_option('-x', '--extract-audio', action='store_true', dest='extractaudio', default=False,
@@ -844,9 +848,26 @@ def _real_main(argv=None):
         if opts.update_self:
             update_self(ydl.to_screen, opts.verbose)
 
+        # Remove cache dir
+        if opts.rm_cachedir:
+            if opts.cachedir is None:
+                ydl.to_screen(u'No cache dir specified (Did you combine --no-cache-dir and --rm-cache-dir?)')
+            else:
+                if ('.cache' not in opts.cachedir) or ('youtube-dl' not in opts.cachedir):
+                    ydl.to_screen(u'Not removing directory %s - this does not look like a cache dir')
+                    retcode = 141
+                else:
+                    ydl.to_screen(
+                        u'Removing cache dir %s .' % opts.cachedir,
+                        skip_eol=True)
+                    if os.path.exists(opts.cachedir):
+                        ydl.to_screen(u'.', skip_eol=True)
+                        shutil.rmtree(opts.cachedir)
+                    ydl.to_screen(u'.')
+
         # Maybe do nothing
         if (len(all_urls) < 1) and (opts.load_info_filename is None):
-            if not opts.update_self:
+            if not (opts.update_self or opts.rm_cachedir):
                 parser.error(u'you must provide at least one URL')
             else:
                 sys.exit()
