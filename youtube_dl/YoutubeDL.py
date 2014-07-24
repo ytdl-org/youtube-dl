@@ -1234,21 +1234,18 @@ class YoutubeDL(object):
         if not self.params.get('verbose'):
             return
 
+        if type('') is not compat_str:
+            # Python 2.6 on SLES11 SP1 (https://github.com/rg3/youtube-dl/issues/3326)
+            self.report_warning(
+                'Your Python is broken! Update to a newer and supported version')
+
         encoding_str = (
             '[debug] Encodings: locale %s, fs %s, out %s, pref %s\n' % (
                 locale.getpreferredencoding(),
                 sys.getfilesystemencoding(),
                 sys.stdout.encoding,
                 self.get_encoding()))
-        try:
-            write_string(encoding_str, encoding=None)
-        except:
-            errmsg = 'Failed to write encoding string %r' % encoding_str
-            try:
-                sys.stdout.write(errmsg)
-            except:
-                pass
-            raise IOError(errmsg)
+        write_string(encoding_str, encoding=None)
 
         self._write_string('[debug] youtube-dl version ' + __version__ + '\n')
         try:
