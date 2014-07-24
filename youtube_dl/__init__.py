@@ -473,7 +473,7 @@ def parseOpts(overrideArguments=None):
             action='store_true', dest='restrictfilenames',
             help='Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames', default=False)
     filesystem.add_option('-t', '--title',
-            action='store_true', dest='usetitle', help='use title in file name (default)', default=False)
+            action='store_true', dest='usetitle', help='[deprecated] use title in file name (default)', default=False)
     filesystem.add_option('-l', '--literal',
             action='store_true', dest='usetitle', help='[deprecated] alias of --title', default=False)
     filesystem.add_option('-w', '--no-overwrites',
