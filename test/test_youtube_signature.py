@@ -62,7 +62,13 @@ _TESTS = [
         u'js',
         84,
         u'123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ0STUVWXYZ!"#$%&\'()*+,@./:;<=>'
-    )
+    ),
+    (
+        u'https://s.ytimg.com/yts/jsbin/html5player-en_US-vfl9FYC6l.js',
+        u'js',
+        83,
+        u'123456789abcdefghijklmnopqr0tuvwxyzABCDETGHIJKLMNOPQRS>UVWXYZ!"#$%&\'()*+,-./:;<=F'
+    ),
 ]
 
 

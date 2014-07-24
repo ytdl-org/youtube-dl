@@ -98,7 +98,8 @@ class JSInterpreter(object):
                 return argvals[0].join(obj)
             if member == 'reverse':
                 assert len(argvals) == 0
-                return obj[::-1]
+                obj.reverse()
+                return obj
             if member == 'slice':
                 assert len(argvals) == 1
                 return obj[argvals[0]:]
