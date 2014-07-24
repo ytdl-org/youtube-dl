@@ -249,12 +249,6 @@ def parseOpts(overrideArguments=None):
         '--proxy', dest='proxy', default=None, metavar='URL',
         help='Use the specified HTTP/HTTPS proxy. Pass in an empty string (--proxy "") for direct connection')
     general.add_option(
-        '--cache-dir', dest='cachedir', default=get_cachedir(), metavar='DIR',
-        help='Location in the filesystem where youtube-dl can store some downloaded information permanently. By default $XDG_CACHE_HOME/youtube-dl or ~/.cache/youtube-dl . At the moment, only YouTube player files (for videos with obfuscated signatures) are cached, but that may change.')
-    general.add_option(
-        '--no-cache-dir', action='store_const', const=None, dest='cachedir',
-        help='Disable filesystem caching')
-    general.add_option(
         '--socket-timeout', dest='socket_timeout',
         type=float, default=None, help=u'Time to wait before giving up, in seconds')
     general.add_option(
@@ -511,6 +505,12 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option('--write-thumbnail',
             action='store_true', dest='writethumbnail',
             help='write thumbnail image to disk', default=False)
+    filesystem.add_option(
+        '--cache-dir', dest='cachedir', default=get_cachedir(), metavar='DIR',
+        help='Location in the filesystem where youtube-dl can store some downloaded information permanently. By default $XDG_CACHE_HOME/youtube-dl or ~/.cache/youtube-dl . At the moment, only YouTube player files (for videos with obfuscated signatures) are cached, but that may change.')
+    filesystem.add_option(
+        '--no-cache-dir', action='store_const', const=None, dest='cachedir',
+        help='Disable filesystem caching')
 
 
     postproc.add_option('-x', '--extract-audio', action='store_true', dest='extractaudio', default=False,
