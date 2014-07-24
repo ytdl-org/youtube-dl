@@ -259,6 +259,7 @@ from .savefrom import SaveFromIE
 from .scivee import SciVeeIE
 from .screencast import ScreencastIE
 from .servingsys import ServingSysIE
+from .shared import SharedIE
 from .sina import SinaIE
 from .slideshare import SlideshareIE
 from .slutload import SlutloadIE
