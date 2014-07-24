@@ -443,12 +443,10 @@ def parseOpts(overrideArguments=None):
             help='Display sent and read HTTP traffic')
 
 
-    filesystem.add_option('-t', '--title',
-            action='store_true', dest='usetitle', help='use title in file name (default)', default=False)
+    filesystem.add_option('-a', '--batch-file',
+            dest='batchfile', metavar='FILE', help='file containing URLs to download (\'-\' for stdin)')
     filesystem.add_option('--id',
             action='store_true', dest='useid', help='use only video ID in file name', default=False)
-    filesystem.add_option('-l', '--literal',
-            action='store_true', dest='usetitle', help='[deprecated] alias of --title', default=False)
     filesystem.add_option('-A', '--auto-number',
             action='store_true', dest='autonumber',
             help='number downloaded files starting from 00000', default=False)
@@ -474,11 +472,10 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option('--restrict-filenames',
             action='store_true', dest='restrictfilenames',
             help='Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames', default=False)
-    filesystem.add_option('-a', '--batch-file',
-            dest='batchfile', metavar='FILE', help='file containing URLs to download (\'-\' for stdin)')
-    filesystem.add_option('--load-info',
-            dest='load_info_filename', metavar='FILE',
-            help='json file containing the video information (created with the "--write-json" option)')
+    filesystem.add_option('-t', '--title',
+            action='store_true', dest='usetitle', help='use title in file name (default)', default=False)
+    filesystem.add_option('-l', '--literal',
+            action='store_true', dest='usetitle', help='[deprecated] alias of --title', default=False)
     filesystem.add_option('-w', '--no-overwrites',
             action='store_true', dest='nooverwrites', help='do not overwrite files', default=False)
     filesystem.add_option('-c', '--continue',
@@ -486,8 +483,6 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option('--no-continue',
             action='store_false', dest='continue_dl',
             help='do not resume partially downloaded files (restart from beginning)')
-    filesystem.add_option('--cookies',
-            dest='cookiefile', metavar='FILE', help='file to read cookies from and dump cookie jar in')
     filesystem.add_option('--no-part',
             action='store_true', dest='nopart', help='do not use .part files', default=False)
     filesystem.add_option('--no-mtime',
@@ -505,6 +500,11 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option('--write-thumbnail',
             action='store_true', dest='writethumbnail',
             help='write thumbnail image to disk', default=False)
+    filesystem.add_option('--load-info',
+            dest='load_info_filename', metavar='FILE',
+            help='json file containing the video information (created with the "--write-json" option)')
+    filesystem.add_option('--cookies',
+            dest='cookiefile', metavar='FILE', help='file to read cookies from and dump cookie jar in')
     filesystem.add_option(
         '--cache-dir', dest='cachedir', default=get_cachedir(), metavar='DIR',
         help='Location in the filesystem where youtube-dl can store some downloaded information permanently. By default $XDG_CACHE_HOME/youtube-dl or ~/.cache/youtube-dl . At the moment, only YouTube player files (for videos with obfuscated signatures) are cached, but that may change.')
