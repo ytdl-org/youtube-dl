@@ -73,8 +73,10 @@ class LivestreamIE(InfoExtractor):
             for vn in video_nodes:
                 tbr = int_or_none(vn.attrib.get('system-bitrate'))
                 furl = (
-                    'http://livestream-f.akamaihd.net/%s?v=3.0.3&fp=WIN%%2014,0,0,145&seek=%s' %
-                    (vn.attrib['src'], vn.attrib['clipBegin']))
+                    'http://livestream-f.akamaihd.net/%s?v=3.0.3&fp=WIN%%2014,0,0,145' %
+                    (vn.attrib['src']))
+                if 'clipBegin' in vn.attrib:
+                    furl += '&ssek=' + vn.attrib['clipBegin']
                 formats.append({
                     'url': furl,
                     'format_id': 'smil_%d' % tbr,
