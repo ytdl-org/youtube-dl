@@ -33,6 +33,49 @@ class LivestreamIE(InfoExtractor):
         }
     }
 
+    def _parse_smil(self, video_id, smil_url):
+        formats = []
+        _SWITCH_XPATH = (
+            './/{http://www.w3.org/2001/SMIL20/Language}body/'
+            '{http://www.w3.org/2001/SMIL20/Language}switch')
+        smil_doc = self._download_xml(
+            smil_url, video_id,
+            note='Downloading SMIL information',
+            errnote='Unable to download SMIL information',
+            fatal=False)
+        if smil_doc is False:  # Download failed
+            return formats
+        title_node = find_xpath_attr(
+            smil_doc, './/{http://www.w3.org/2001/SMIL20/Language}meta',
+            'name', 'title')
+        if title_node is None:
+            self.report_warning('Cannot find SMIL id')
+            switch_node = smil_doc.find(_SWITCH_XPATH)
+        else:
+            title_id = title_node.attrib['content']
+            switch_node = find_xpath_attr(
+                smil_doc, _SWITCH_XPATH, 'id', title_id)
+        if switch_node is None:
+            raise ExtractorError('Cannot find switch node')
+        video_nodes = switch_node.findall(
+            '{http://www.w3.org/2001/SMIL20/Language}video')
+
+        for vn in video_nodes:
+            tbr = int_or_none(vn.attrib.get('system-bitrate'))
+            furl = (
+                'http://livestream-f.akamaihd.net/%s?v=3.0.3&fp=WIN%%2014,0,0,145' %
+                (vn.attrib['src']))
+            if 'clipBegin' in vn.attrib:
+                furl += '&ssek=' + vn.attrib['clipBegin']
+            formats.append({
+                'url': furl,
+                'format_id': 'smil_%d' % tbr,
+                'ext': 'flv',
+                'tbr': tbr,
+                'preference': -1000,
+            })
+        return formats
+
     def _extract_video_info(self, video_data):
         video_id = compat_str(video_data['id'])
 
@@ -49,41 +92,7 @@ class LivestreamIE(InfoExtractor):
 
         smil_url = video_data.get('smil_url')
         if smil_url:
-            _SWITCH_XPATH = (
-                './/{http://www.w3.org/2001/SMIL20/Language}body/'
-                '{http://www.w3.org/2001/SMIL20/Language}switch')
-            smil_doc = self._download_xml(
-                smil_url, video_id, note='Downloading SMIL information')
-
-            title_node = find_xpath_attr(
-                smil_doc, './/{http://www.w3.org/2001/SMIL20/Language}meta',
-                'name', 'title')
-            if title_node is None:
-                self.report_warning('Cannot find SMIL id')
-                switch_node = smil_doc.find(_SWITCH_XPATH)
-            else:
-                title_id = title_node.attrib['content']
-                switch_node = find_xpath_attr(
-                    smil_doc, _SWITCH_XPATH, 'id', title_id)
-            if switch_node is None:
-                raise ExtractorError('Cannot find switch node')
-            video_nodes = switch_node.findall(
-                '{http://www.w3.org/2001/SMIL20/Language}video')
-
-            for vn in video_nodes:
-                tbr = int_or_none(vn.attrib.get('system-bitrate'))
-                furl = (
-                    'http://livestream-f.akamaihd.net/%s?v=3.0.3&fp=WIN%%2014,0,0,145' %
-                    (vn.attrib['src']))
-                if 'clipBegin' in vn.attrib:
-                    furl += '&ssek=' + vn.attrib['clipBegin']
-                formats.append({
-                    'url': furl,
-                    'format_id': 'smil_%d' % tbr,
-                    'ext': 'flv',
-                    'tbr': tbr,
-                    'preference': -1000,
-                })
+            formats.extend(self._parse_smil(video_id, smil_url))
         self._sort_formats(formats)
 
         return {
