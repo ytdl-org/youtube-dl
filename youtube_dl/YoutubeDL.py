@@ -849,7 +849,7 @@ class YoutubeDL(object):
         # Keep for backwards compatibility
         info_dict['stitle'] = info_dict['title']
 
-        if not 'format' in info_dict:
+        if 'format' not in info_dict:
             info_dict['format'] = info_dict['ext']
 
         reason = self._match_entry(info_dict)
