@@ -108,7 +108,7 @@ class JSInterpreter(object):
                 index, howMany = argvals
                 res = []
                 for i in range(index, min(index + howMany, len(obj))):
-                    res.append(obj.pop(i))
+                    res.append(obj.pop(index))
                 return res
 
             return obj[member](argvals)
