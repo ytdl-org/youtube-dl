@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import itertools
 import json
 import os
 import re
@@ -43,10 +44,11 @@ class JustinTVIE(InfoExtractor):
     }
 
     # Return count of items, list of *valid* items
-    def _parse_page(self, url, video_id):
-        info_json = self._download_webpage(url, video_id,
-                                           'Downloading video info JSON',
-                                           'unable to download video info JSON')
+    def _parse_page(self, url, video_id, counter):
+        info_json = self._download_webpage(
+            url, video_id,
+            'Downloading video info JSON on page %d' % counter,
+            'Unable to download video info JSON %d' % counter)
 
         response = json.loads(info_json)
         if type(response) != list:
@@ -138,11 +140,10 @@ class JustinTVIE(InfoExtractor):
         entries = []
         offset = 0
         limit = self._JUSTIN_PAGE_LIMIT
-        while True:
-            if paged:
-                self.report_download_page(video_id, offset)
+        for counter in itertools.count(1):
             page_url = api + ('?offset=%d&limit=%d' % (offset, limit))
-            page_count, page_info = self._parse_page(page_url, video_id)
+            page_count, page_info = self._parse_page(
+                page_url, video_id, counter)
             entries.extend(page_info)
             if not paged or page_count != limit:
                 break
