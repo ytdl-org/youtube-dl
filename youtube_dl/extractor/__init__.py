@@ -322,6 +322,7 @@ from .tumblr import TumblrIE
 from .tutv import TutvIE
 from .tvigle import TvigleIE
 from .tvp import TvpIE
+from .tvplay import TVPlayIE
 from .udemy import (
     UdemyIE,
     UdemyCourseIE
