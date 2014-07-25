@@ -275,7 +275,7 @@ class YoutubeDL(object):
             return message
 
         assert hasattr(self, '_output_process')
-        assert type(message) == type('')
+        assert isinstance(message, str)
         line_count = message.count('\n') + 1
         self._output_process.stdin.write((message + '\n').encode('utf-8'))
         self._output_process.stdin.flush()
@@ -303,7 +303,7 @@ class YoutubeDL(object):
 
     def to_stderr(self, message):
         """Print message to stderr."""
-        assert type(message) == type('')
+        assert isinstance(message, str)
         if self.params.get('logger'):
             self.params['logger'].error(message)
         else:
