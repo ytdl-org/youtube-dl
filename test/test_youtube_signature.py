@@ -71,6 +71,12 @@ _TESTS = [
         83,
         '123456789abcdefghijklmnopqr0tuvwxyzABCDETGHIJKLMNOPQRS>UVWXYZ!"#$%&\'()*+,-./:;<=F'
     ),
+    (
+        'https://s.ytimg.com/yts/jsbin/html5player-en_US-vflCGk6yw/html5player.js',
+        'js',
+        '4646B5181C6C3020DF1D9C7FCFEA.AD80ABF70C39BD369CCCAE780AFBB98FA6B6CB42766249D9488C288',
+        '82C8849D94266724DC6B6AF89BBFA087EACCD963.B93C07FBA084ACAEFCF7C9D1FD0203C6C1815B6B'
+    )
 ]
 
 
@@ -83,7 +89,7 @@ class TestSignature(unittest.TestCase):
 
 
 def make_tfunc(url, stype, sig_input, expected_sig):
-    m = re.match(r'.*-([a-zA-Z0-9_-]+)(?:/watch_as3)?\.[a-z]+$', url)
+    m = re.match(r'.*-([a-zA-Z0-9_-]+)(?:/watch_as3|/html5player)?\.[a-z]+$', url)
     assert m, '%r should follow URL format' % url
     test_id = m.group(1)
 
