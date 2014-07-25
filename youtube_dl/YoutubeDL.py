@@ -275,7 +275,7 @@ class YoutubeDL(object):
             return message
 
         assert hasattr(self, '_output_process')
-        assert type(message) == type('')
+        assert isinstance(message, compat_str)
         line_count = message.count('\n') + 1
         self._output_process.stdin.write((message + '\n').encode('utf-8'))
         self._output_process.stdin.flush()
@@ -303,7 +303,7 @@ class YoutubeDL(object):
 
     def to_stderr(self, message):
         """Print message to stderr."""
-        assert type(message) == type('')
+        assert isinstance(message, compat_str)
         if self.params.get('logger'):
             self.params['logger'].error(message)
         else:
@@ -849,7 +849,7 @@ class YoutubeDL(object):
         # Keep for backwards compatibility
         info_dict['stitle'] = info_dict['title']
 
-        if not 'format' in info_dict:
+        if 'format' not in info_dict:
             info_dict['format'] = info_dict['ext']
 
         reason = self._match_entry(info_dict)
