@@ -38,12 +38,6 @@ which means you can modify it, redistribute it or use it however you like.
                                      playlist or the command line) if an error
                                      occurs
     --dump-user-agent                display the current browser identification
-    --user-agent UA                  specify a custom user agent
-    --referer REF                    specify a custom referer, use if the video
-                                     access is restricted to one domain
-    --add-header FIELD:VALUE         specify a custom HTTP header and its value,
-                                     separated by a colon ':'. You can use this
-                                     option multiple times
     --list-extractors                List all supported extractors and the URLs
                                      they would handle
     --extractor-descriptions         Output descriptions of all supported
@@ -51,18 +45,6 @@ which means you can modify it, redistribute it or use it however you like.
     --proxy URL                      Use the specified HTTP/HTTPS proxy. Pass in
                                      an empty string (--proxy "") for direct
                                      connection
-    --no-check-certificate           Suppress HTTPS certificate validation.
-    --prefer-insecure                Use an unencrypted connection to retrieve
-                                     information about the video. (Currently
-                                     supported only for YouTube)
-    --cache-dir DIR                  Location in the filesystem where youtube-dl
-                                     can store some downloaded information
-                                     permanently. By default $XDG_CACHE_HOME
-                                     /youtube-dl or ~/.cache/youtube-dl . At the
-                                     moment, only YouTube player files (for
-                                     videos with obfuscated signatures) are
-                                     cached, but that may change.
-    --no-cache-dir                   Disable filesystem caching
     --socket-timeout None            Time to wait before giving up, in seconds
     --bidi-workaround                Work around terminals that lack
                                      bidirectional text support. Requires bidiv
@@ -79,7 +61,6 @@ which means you can modify it, redistribute it or use it however you like.
                                      configuration in ~/.config/youtube-dl.conf
                                      (%APPDATA%/youtube-dl/config.txt on
                                      Windows)
-    --encoding ENCODING              Force the specified encoding (experimental)
 
 ## Video Selection:
     --playlist-start NUMBER          playlist video to start at (default is 1)
@@ -125,9 +106,9 @@ which means you can modify it, redistribute it or use it however you like.
                                      of SIZE.
 
 ## Filesystem Options:
-    -t, --title                      use title in file name (default)
+    -a, --batch-file FILE            file containing URLs to download ('-' for
+                                     stdin)
     --id                             use only video ID in file name
-    -l, --literal                    [deprecated] alias of --title
     -A, --auto-number                number downloaded files starting from 00000
     -o, --output TEMPLATE            output filename template. Use %(title)s to
                                      get the title, %(uploader)s for the
@@ -160,18 +141,15 @@ which means you can modify it, redistribute it or use it however you like.
     --restrict-filenames             Restrict filenames to only ASCII
                                      characters, and avoid "&" and spaces in
                                      filenames
-    -a, --batch-file FILE            file containing URLs to download ('-' for
-                                     stdin)
-    --load-info FILE                 json file containing the video information
-                                     (created with the "--write-json" option)
+    -t, --title                      [deprecated] use title in file name
+                                     (default)
+    -l, --literal                    [deprecated] alias of --title
     -w, --no-overwrites              do not overwrite files
     -c, --continue                   force resume of partially downloaded files.
                                      By default, youtube-dl will resume
                                      downloads if possible.
     --no-continue                    do not resume partially downloaded files
                                      (restart from beginning)
-    --cookies FILE                   file to read cookies from and dump cookie
-                                     jar in
     --no-part                        do not use .part files
     --no-mtime                       do not use the Last-modified header to set
                                      the file modification time
@@ -181,6 +159,19 @@ which means you can modify it, redistribute it or use it however you like.
     --write-annotations              write video annotations to a .annotation
                                      file
     --write-thumbnail                write thumbnail image to disk
+    --load-info FILE                 json file containing the video information
+                                     (created with the "--write-json" option)
+    --cookies FILE                   file to read cookies from and dump cookie
+                                     jar in
+    --cache-dir DIR                  Location in the filesystem where youtube-dl
+                                     can store some downloaded information
+                                     permanently. By default $XDG_CACHE_HOME
+                                     /youtube-dl or ~/.cache/youtube-dl . At the
+                                     moment, only YouTube player files (for
+                                     videos with obfuscated signatures) are
+                                     cached, but that may change.
+    --no-cache-dir                   Disable filesystem caching
+    --rm-cache-dir                   Delete all filesystem cache files
 
 ## Verbosity / Simulation Options:
     -q, --quiet                      activates quiet mode
@@ -209,6 +200,19 @@ which means you can modify it, redistribute it or use it however you like.
                                      files in the current directory to debug
                                      problems
     --print-traffic                  Display sent and read HTTP traffic
+
+## Workarounds:
+    --encoding ENCODING              Force the specified encoding (experimental)
+    --no-check-certificate           Suppress HTTPS certificate validation.
+    --prefer-insecure                Use an unencrypted connection to retrieve
+                                     information about the video. (Currently
+                                     supported only for YouTube)
+    --user-agent UA                  specify a custom user agent
+    --referer REF                    specify a custom referer, use if the video
+                                     access is restricted to one domain
+    --add-header FIELD:VALUE         specify a custom HTTP header and its value,
+                                     separated by a colon ':'. You can use this
+                                     option multiple times
 
 ## Video Format Options:
     -f, --format FORMAT              video format code, specify the order of
