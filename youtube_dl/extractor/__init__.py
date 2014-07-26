@@ -115,6 +115,7 @@ from .gamespot import GameSpotIE
 from .gametrailers import GametrailersIE
 from .gdcvault import GDCVaultIE
 from .generic import GenericIE
+from .godtube import GodTubeIE
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
 from .gorillavid import GorillaVidIE
