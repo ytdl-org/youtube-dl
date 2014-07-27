@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     int_or_none,
+    parse_duration,
 )
 
 
@@ -24,6 +25,7 @@ class BRIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Wenn das Traditions-Theater wackelt',
                 'description': 'Heimatsound-Festival 2014: Wenn das Traditions-Theater wackelt',
+                'duration': 34,
             }
         },
         {
@@ -34,6 +36,7 @@ class BRIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Über den Pass',
                 'description': 'Die Eroberung der Alpen: Über den Pass',
+                'duration': 2588,
             }
         },
         {
@@ -44,6 +47,7 @@ class BRIE(InfoExtractor):
                 'ext': 'aac',
                 'title': '"Keine neuen Schulden im nächsten Jahr"',
                 'description': 'Haushaltsentwurf: "Keine neuen Schulden im nächsten Jahr"',
+                'duration': 64,
             }
         },
         {
@@ -54,6 +58,7 @@ class BRIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Umweltbewusster Häuslebauer',
                 'description': 'Uwe Erdelt: Umweltbewusster Häuslebauer',
+                'duration': 116,
             }
         },
         {
@@ -64,6 +69,7 @@ class BRIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Folge 1 - Metaphysik',
                 'description': 'Kant für Anfänger: Folge 1 - Metaphysik',
+                'duration': 893,
                 'uploader': 'Eva Maria Steimle',
                 'upload_date': '20140117',
             }
@@ -84,6 +90,7 @@ class BRIE(InfoExtractor):
             media = {
                 'id': xml_media.get('externalId'),
                 'title': xml_media.find('title').text,
+                'duration': parse_duration(xml_media.find('duration').text),
                 'formats': self._extract_formats(xml_media.find('assets')),
                 'thumbnails': self._extract_thumbnails(xml_media.find('teaserImage/variants')),
                 'description': ' '.join(xml_media.find('shareTitle').text.splitlines()),
