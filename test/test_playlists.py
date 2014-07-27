@@ -193,10 +193,10 @@ class TestPlaylists(unittest.TestCase):
     def test_bandcamp_album(self):
         dl = FakeYDL()
         ie = BandcampAlbumIE(dl)
-        result = ie.extract('http://mpallante.bandcamp.com/album/nightmare-night-ep')
+        result = ie.extract('http://nightbringer.bandcamp.com/album/hierophany-of-the-open-grave')
         self.assertIsPlaylist(result)
-        self.assertEqual(result['title'], 'Nightmare Night EP')
-        assertGreaterEqual(self, len(result['entries']), 4)
+        self.assertEqual(result['title'], 'Hierophany of the Open Grave')
+        assertGreaterEqual(self, len(result['entries']), 9)
         
     def test_smotri_community(self):
         dl = FakeYDL()
