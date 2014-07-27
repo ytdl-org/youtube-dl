@@ -22,8 +22,8 @@ class BRIE(InfoExtractor):
             'info_dict': {
                 'id': '25e279aa-1ffd-40fd-9955-5325bd48a53a',
                 'ext': 'mp4',
-                'title': 'Am 1. und 2. August in Oberammergau',
-                'description': 'md5:dfd224e5aa6819bc1fcbb7826a932021',
+                'title': 'Wenn das Traditions-Theater wackelt',
+                'description': 'Heimatsound-Festival 2014: Wenn das Traditions-Theater wackelt',
             }
         },
         {
