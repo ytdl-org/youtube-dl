@@ -592,7 +592,9 @@ class InfoExtractor(object):
         time.sleep(timeout)
 
     def _extract_f4m_formats(self, manifest_url, video_id):
-        manifest = self._download_xml(manifest_url, video_id)
+        manifest = self._download_xml(
+            manifest_url, video_id, 'Downloading f4m manifest',
+            'Unable to download f4m manifest')
 
         formats = []
         for media_el in manifest.findall('{http://ns.adobe.com/f4m/1.0}media'):
