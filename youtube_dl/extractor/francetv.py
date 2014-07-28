@@ -21,7 +21,7 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
         manifest_url = info.find('videos/video/url').text
         manifest_url = manifest_url.replace('/z/', '/i/')
         
-        if url.startswith('rtmp'):
+        if manifest_url.startswith('rtmp'):
             formats = [{'url': manifest_url, 'ext': 'flv'}]
         else:
             formats = []
