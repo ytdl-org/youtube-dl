@@ -18,6 +18,7 @@ from ..utils import (
     clean_html,
     compiled_regex_type,
     ExtractorError,
+    int_or_none,
     RegexNotFoundError,
     sanitize_filename,
     unescapeHTML,
@@ -589,6 +590,22 @@ class InfoExtractor(object):
         msg = msg_template % {'video_id': video_id, 'timeout': timeout}
         self.to_screen(msg)
         time.sleep(timeout)
+
+    def _extract_f4m_formats(self, manifest_url, video_id):
+        manifest = self._download_xml(manifest_url, video_id)
+
+        formats = []
+        for media_el in manifest.findall('{http://ns.adobe.com/f4m/1.0}media'):
+            formats.append({
+                'url': manifest_url,
+                'ext': 'flv',
+                'tbr': int_or_none(media_el.attrib.get('bitrate')),
+                'width': int_or_none(media_el.attrib.get('width')),
+                'height': int_or_none(media_el.attrib.get('height')),
+            })
+        self._sort_formats(formats)
+
+        return formats
 
 
 class SearchInfoExtractor(InfoExtractor):

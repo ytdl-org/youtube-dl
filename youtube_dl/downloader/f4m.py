@@ -220,6 +220,7 @@ class F4mFD(FileDownloader):
 
     def real_download(self, filename, info_dict):
         man_url = info_dict['url']
+        requested_bitrate = info_dict.get('tbr')
         self.to_screen('[download] Downloading f4m manifest')
         manifest = self.ydl.urlopen(man_url).read()
         self.report_destination(filename)
@@ -233,8 +234,14 @@ class F4mFD(FileDownloader):
 
         doc = etree.fromstring(manifest)
         formats = [(int(f.attrib.get('bitrate', -1)), f) for f in doc.findall(_add_ns('media'))]
-        formats = sorted(formats, key=lambda f: f[0])
-        rate, media = formats[-1]
+        if requested_bitrate is None:
+            # get the best format
+            formats = sorted(formats, key=lambda f: f[0])
+            rate, media = formats[-1]
+        else:
+            rate, media = list(filter(
+                lambda f: int(f[0]) == requested_bitrate, formats))[0]
+
         base_url = compat_urlparse.urljoin(man_url, media.attrib['url'])
         bootstrap = base64.b64decode(doc.find(_add_ns('bootstrapInfo')).text)
         metadata = base64.b64decode(media.find(_add_ns('metadata')).text)
