@@ -226,6 +226,7 @@ from .oe1 import OE1IE
 from .ooyala import OoyalaIE
 from .orf import ORFIE
 from .parliamentliveuk import ParliamentLiveUKIE
+from .patreon import PatreonIE
 from .pbs import PBSIE
 from .photobucket import PhotobucketIE
 from .playvid import PlayvidIE
