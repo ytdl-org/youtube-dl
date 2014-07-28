@@ -112,6 +112,7 @@ from .funnyordie import FunnyOrDieIE
 from .gamekings import GamekingsIE
 from .gameone import GameOneIE
 from .gamespot import GameSpotIE
+from .gamestar import GameStarIE
 from .gametrailers import GametrailersIE
 from .gdcvault import GDCVaultIE
 from .generic import GenericIE
