@@ -383,13 +383,13 @@ class GenericIE(InfoExtractor):
         if not parsed_url.scheme:
             default_search = self._downloader.params.get('default_search')
             if default_search is None:
-                default_search = 'error'
+                default_search = 'fixup_error'
 
-            if default_search in ('auto', 'auto_warning'):
+            if default_search in ('auto', 'auto_warning', 'fixup_error'):
                 if '/' in url:
                     self._downloader.report_warning('The url doesn\'t specify the protocol, trying with http')
                     return self.url_result('http://' + url)
-                else:
+                elif default_search != 'fixup_error':
                     if default_search == 'auto_warning':
                         if re.match(r'^(?:url|URL)$', url):
                             raise ExtractorError(
@@ -399,7 +399,8 @@ class GenericIE(InfoExtractor):
                             self._downloader.report_warning(
                                 'Falling back to youtube search for  %s . Set --default-search "auto" to suppress this warning.' % url)
                     return self.url_result('ytsearch:' + url)
-            elif default_search == 'error':
+
+            if default_search in ('error', 'fixup_error'):
                 raise ExtractorError(
                     ('%r is not a valid URL. '
                      'Set --default-search "ytsearch" (or run  youtube-dl "ytsearch:%s" ) to search YouTube'
