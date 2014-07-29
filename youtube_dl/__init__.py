@@ -253,9 +253,6 @@ def parseOpts(overrideArguments=None):
         '--socket-timeout', dest='socket_timeout',
         type=float, default=None, help=u'Time to wait before giving up, in seconds')
     general.add_option(
-        '--bidi-workaround', dest='bidi_workaround', action='store_true',
-        help=u'Work around terminals that lack bidirectional text support. Requires bidiv or fribidi executable in PATH')
-    general.add_option(
         '--default-search',
         dest='default_search', metavar='PREFIX',
         help='Use this prefix for unqualified URLs. For example "gvsearch2:" downloads two videos from google videos for  youtube-dl "large apple". Use the value "auto" to let youtube-dl guess ("auto_warning" to emit a warning when guessing). "error" just throws an error. The default value "fixup_error" repairs broken URLs, but emits an error if this is not possible instead of searching.')
@@ -386,6 +383,9 @@ def parseOpts(overrideArguments=None):
         dest='headers', action='append',
         help='specify a custom HTTP header and its value, separated by a colon \':\'. You can use this option multiple times',
     )
+    workarounds.add_option(
+        '--bidi-workaround', dest='bidi_workaround', action='store_true',
+        help=u'Work around terminals that lack bidirectional text support. Requires bidiv or fribidi executable in PATH')
 
     verbosity.add_option('-q', '--quiet',
             action='store_true', dest='quiet', help='activates quiet mode', default=False)
