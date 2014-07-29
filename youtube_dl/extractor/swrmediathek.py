@@ -8,7 +8,7 @@ from ..utils import parse_duration
 
 
 class SWRMediathekIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?swrmediathek\.de/player\.htm\?show=(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
+    _VALID_URL = r'https?://(?:www\.)?swrmediathek\.de/(?:content/)?player\.htm\?show=(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
 
     _TESTS = [{
         'url': 'http://swrmediathek.de/player.htm?show=849790d0-dab8-11e3-a953-0026b975f2e6',
@@ -51,6 +51,20 @@ class SWRMediathekIE(InfoExtractor):
             'upload_date': '20140520',
             'uploader': 'SWR 2',
             'uploader_id': '284670',
+        }
+    }, {
+        'url': 'http://swrmediathek.de/content/player.htm?show=52dc7e00-15c5-11e4-84bc-0026b975f2e6',
+        'md5': '881531487d0633080a8cc88d31ef896f',
+        'info_dict': {
+            'id': '52dc7e00-15c5-11e4-84bc-0026b975f2e6',
+            'ext': 'mp4',
+            'title': 'Familienspaß am Bodensee',
+            'description': 'md5:0b591225a32cfde7be1629ed49fe4315',
+            'thumbnail': 're:http://.*\.jpg',
+            'duration': 1784,
+            'upload_date': '20140727',
+            'uploader': 'SWR Fernsehen BW',
+            'uploader_id': '281130',
         }
     }]
 
