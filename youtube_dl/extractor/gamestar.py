@@ -4,6 +4,13 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import (
+    int_or_none,
+    parse_duration,
+    str_to_int,
+    unified_strdate,
+)
+
 
 class GameStarIE(InfoExtractor):
     _VALID_URL = r'http://www\.gamestar\.de/videos/.*,(?P<id>[0-9]+)\.html'
@@ -34,25 +41,24 @@ class GameStarIE(InfoExtractor):
 
         description = self._og_search_description(webpage).strip()
 
-        og_thumbnail = self._og_search_thumbnail(webpage)
-        thumbnail = 'http:' + og_thumbnail
+        thumbnail = self._proto_relative_url(
+            self._og_search_thumbnail(webpage), scheme='http:')
 
-        upload_date_raw = self._html_search_regex(
+        upload_date = unified_strdate(self._html_search_regex(
             r'<span style="float:left;font-size:11px;">Datum: ([0-9]+\.[0-9]+\.[0-9]+)&nbsp;&nbsp;',
-            webpage, 'upload_date').split('.')
-        upload_date = upload_date_raw[2] + upload_date_raw[1] + upload_date_raw[0]
+            webpage, 'upload_date', fatal=False))
 
-        duration_raw = self._html_search_regex(
-            r'&nbsp;&nbsp;Länge: ([0-9]+:[0-9]+)</span>', webpage, 'duration').split(':')
-        duration = int(duration_raw[0])*60 + int(duration_raw[1])
+        duration = parse_duration(self._html_search_regex(
+            r'&nbsp;&nbsp;Länge: ([0-9]+:[0-9]+)</span>', webpage, 'duration',
+            fatal=False))
 
-        view_count_raw = self._html_search_regex(
-            r'&nbsp;&nbsp;Zuschauer: ([0-9\.]+)&nbsp;&nbsp;', webpage, 'view_count')
-        view_count = int(view_count_raw.replace('.', ''))
+        view_count = str_to_int(self._html_search_regex(
+            r'&nbsp;&nbsp;Zuschauer: ([0-9\.]+)&nbsp;&nbsp;', webpage,
+            'view_count', fatal=False))
 
-        comment_count_raw = self._html_search_regex(
-            r'>Kommentieren \(([0-9]+)\)</a>', webpage, 'comment_count')
-        comment_count = int(comment_count_raw)
+        comment_count = int_or_none(self._html_search_regex(
+            r'>Kommentieren \(([0-9]+)\)</a>', webpage, 'comment_count',
+            fatal=False))
 
         return {
             'id': video_id,
