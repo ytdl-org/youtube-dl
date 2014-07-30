@@ -46,15 +46,15 @@ which means you can modify it, redistribute it or use it however you like.
                                      an empty string (--proxy "") for direct
                                      connection
     --socket-timeout None            Time to wait before giving up, in seconds
-    --bidi-workaround                Work around terminals that lack
-                                     bidirectional text support. Requires bidiv
-                                     or fribidi executable in PATH
     --default-search PREFIX          Use this prefix for unqualified URLs. For
                                      example "gvsearch2:" downloads two videos
                                      from google videos for  youtube-dl "large
                                      apple". Use the value "auto" to let
-                                     youtube-dl guess. The default value "error"
-                                     just throws an error.
+                                     youtube-dl guess ("auto_warning" to emit a
+                                     warning when guessing). "error" just throws
+                                     an error. The default value "fixup_error"
+                                     repairs broken URLs, but emits an error if
+                                     this is not possible instead of searching.
     --ignore-config                  Do not read configuration files. When given
                                      in the global configuration file /etc
                                      /youtube-dl.conf: do not read the user
@@ -213,6 +213,9 @@ which means you can modify it, redistribute it or use it however you like.
     --add-header FIELD:VALUE         specify a custom HTTP header and its value,
                                      separated by a colon ':'. You can use this
                                      option multiple times
+    --bidi-workaround                Work around terminals that lack
+                                     bidirectional text support. Requires bidiv
+                                     or fribidi executable in PATH
 
 ## Video Format Options:
     -f, --format FORMAT              video format code, specify the order of
