@@ -122,6 +122,6 @@ class PatreonIE(InfoExtractor):
         parser = PatreonHTMLParser()
         parser.get_creation_info(info_page)
         if not parser.creation_info.get('url'):
-            raise ExtractionError('Unable to retrieve creation URL')
+            raise ExtractorError('Unable to retrieve creation URL')
         ret.update(parser.creation_info)
         return ret
