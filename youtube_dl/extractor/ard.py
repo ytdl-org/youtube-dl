@@ -8,6 +8,8 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     qualities,
+    compat_urllib_parse_urlparse,
+    compat_urllib_parse,
 )
 
 
@@ -44,7 +46,10 @@ class ARDIE(InfoExtractor):
         else:
             video_id = m.group('video_id')
 
-        webpage = self._download_webpage(url.encode('utf-8'), video_id)
+        urlp = compat_urllib_parse_urlparse(url)
+        url = urlp._replace(path=compat_urllib_parse.quote(urlp.path.encode('utf-8'))).geturl()
+
+        webpage = self._download_webpage(url, video_id)
 
         title = self._html_search_regex(
             [r'<h1(?:\s+class="boxTopHeadline")?>(.*?)</h1>',
