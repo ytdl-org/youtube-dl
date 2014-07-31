@@ -44,7 +44,7 @@ class ARDIE(InfoExtractor):
         else:
             video_id = m.group('video_id')
 
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(url.encode('utf-8'), video_id)
 
         title = self._html_search_regex(
             [r'<h1(?:\s+class="boxTopHeadline")?>(.*?)</h1>',
