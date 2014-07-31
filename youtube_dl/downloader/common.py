@@ -77,8 +77,10 @@ class FileDownloader(object):
     def calc_eta(start, now, total, current):
         if total is None:
             return None
+        if now is None:
+            now = time.time()
         dif = now - start
-        if current == 0 or dif < 0.001: # One millisecond
+        if current == 0 or dif < 0.001:  # One millisecond
             return None
         rate = float(current) / dif
         return int((float(total) - float(current)) / rate)
@@ -92,7 +94,7 @@ class FileDownloader(object):
     @staticmethod
     def calc_speed(start, now, bytes):
         dif = now - start
-        if bytes == 0 or dif < 0.001: # One millisecond
+        if bytes == 0 or dif < 0.001:  # One millisecond
             return None
         return float(bytes) / dif
 
@@ -105,7 +107,7 @@ class FileDownloader(object):
     @staticmethod
     def best_block_size(elapsed_time, bytes):
         new_min = max(bytes / 2.0, 1.0)
-        new_max = min(max(bytes * 2.0, 1.0), 4194304) # Do not surpass 4 MB
+        new_max = min(max(bytes * 2.0, 1.0), 4194304)  # Do not surpass 4 MB
         if elapsed_time < 0.001:
             return int(new_max)
         rate = bytes / elapsed_time
@@ -143,18 +145,19 @@ class FileDownloader(object):
     def report_error(self, *args, **kargs):
         self.ydl.report_error(*args, **kargs)
 
-    def slow_down(self, start_time, byte_counter):
+    def slow_down(self, start_time, now, byte_counter):
         """Sleep if the download speed is over the rate limit."""
         rate_limit = self.params.get('ratelimit', None)
         if rate_limit is None or byte_counter == 0:
             return
-        now = time.time()
+        if now is None:
+            now = time.time()
         elapsed = now - start_time
         if elapsed <= 0.0:
             return
         speed = float(byte_counter) / elapsed
         if speed > rate_limit:
-            time.sleep((byte_counter - rate_limit * (now - start_time)) / rate_limit)
+            time.sleep((byte_counter / rate_limit) - elapsed)
 
     def temp_name(self, filename):
         """Returns a temporary filename for the given filename."""
