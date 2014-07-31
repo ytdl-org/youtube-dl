@@ -347,6 +347,7 @@ from .videofyme import VideofyMeIE
 from .videopremium import VideoPremiumIE
 from .videott import VideoTtIE
 from .videoweed import VideoWeedIE
+from .vidme import VidmeIE
 from .vimeo import (
     VimeoIE,
     VimeoChannelIE,
