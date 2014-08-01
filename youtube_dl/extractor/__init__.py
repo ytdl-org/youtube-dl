@@ -143,6 +143,7 @@ from .ivi import (
     IviIE,
     IviCompilationIE
 )
+from .izlesene import IzleseneIE
 from .jadorecettepub import JadoreCettePubIE
 from .jeuxvideo import JeuxVideoIE
 from .jukebox import JukeboxIE
