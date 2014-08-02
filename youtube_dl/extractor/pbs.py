@@ -32,13 +32,21 @@ class PBSIE(InfoExtractor):
         },
     }
 
-    def _real_extract(self, url):
+    def _extract_ids(self, url):
         mobj = re.match(self._VALID_URL, url)
 
         presumptive_id = mobj.group('presumptive_id')
         display_id = presumptive_id
         if presumptive_id:
             webpage = self._download_webpage(url, display_id)
+
+            # frontline video embed
+            media_id = self._search_regex(
+                r"div\s*:\s*'videoembed'\s*,\s*mediaid\s*:\s*'(\d+)'",
+                webpage, 'frontline video ID', fatal=False, default=None)
+            if media_id:
+                return media_id, presumptive_id
+
             url = self._search_regex(
                 r'<iframe\s+id=["\']partnerPlayer["\'].*?\s+src=["\'](.*?)["\']>',
                 webpage, 'player URL')
@@ -56,6 +64,11 @@ class PBSIE(InfoExtractor):
         else:
             video_id = mobj.group('id')
             display_id = video_id
+
+        return video_id, display_id
+
+    def _real_extract(self, url):
+        video_id, display_id = self._extract_ids(url)
 
         info_url = 'http://video.pbs.org/videoInfo/%s?format=json' % video_id
         info = self._download_json(info_url, display_id)
