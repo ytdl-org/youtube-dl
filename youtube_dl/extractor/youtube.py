@@ -473,7 +473,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         if player_url.startswith(u'//'):
             player_url = u'https:' + player_url
         try:
-            player_id = (player_url, len(s))
+            player_id = (player_url, self._signature_cache_id(s))
             if player_id not in self._player_cache:
                 func = self._extract_signature_function(
                     video_id, player_url, s
