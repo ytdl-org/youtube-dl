@@ -806,51 +806,54 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             url_map = {}
             for url_data_str in encoded_url_map.split(','):
                 url_data = compat_parse_qs(url_data_str)
-                if 'itag' in url_data and 'url' in url_data:
-                    url = url_data['url'][0]
-                    if 'sig' in url_data:
-                        url += '&signature=' + url_data['sig'][0]
-                    elif 's' in url_data:
-                        encrypted_sig = url_data['s'][0]
+                if 'itag' not in url_data or 'url' not in url_data:
+                    continue
+                format_id = url_data['itag'][0]
+                url = url_data['url'][0]
 
-                        if not age_gate:
-                            jsplayer_url_json = self._search_regex(
-                                r'"assets":.+?"js":\s*("[^"]+")',
-                                video_webpage, u'JS player URL')
-                            player_url = json.loads(jsplayer_url_json)
+                if 'sig' in url_data:
+                    url += '&signature=' + url_data['sig'][0]
+                elif 's' in url_data:
+                    encrypted_sig = url_data['s'][0]
+
+                    if not age_gate:
+                        jsplayer_url_json = self._search_regex(
+                            r'"assets":.+?"js":\s*("[^"]+")',
+                            video_webpage, u'JS player URL')
+                        player_url = json.loads(jsplayer_url_json)
+                    if player_url is None:
+                        player_url_json = self._search_regex(
+                            r'ytplayer\.config.*?"url"\s*:\s*("[^"]+")',
+                            video_webpage, u'age gate player URL')
+                        player_url = json.loads(player_url_json)
+
+                    if self._downloader.params.get('verbose'):
                         if player_url is None:
-                            player_url_json = self._search_regex(
-                                r'ytplayer\.config.*?"url"\s*:\s*("[^"]+")',
-                                video_webpage, u'age gate player URL')
-                            player_url = json.loads(player_url_json)
-
-                        if self._downloader.params.get('verbose'):
-                            if player_url is None:
-                                player_version = 'unknown'
-                                player_desc = 'unknown'
+                            player_version = 'unknown'
+                            player_desc = 'unknown'
+                        else:
+                            if player_url.endswith('swf'):
+                                player_version = self._search_regex(
+                                    r'-(.+?)(?:/watch_as3)?\.swf$', player_url,
+                                    u'flash player', fatal=False)
+                                player_desc = 'flash player %s' % player_version
                             else:
-                                if player_url.endswith('swf'):
-                                    player_version = self._search_regex(
-                                        r'-(.+?)(?:/watch_as3)?\.swf$', player_url,
-                                        u'flash player', fatal=False)
-                                    player_desc = 'flash player %s' % player_version
-                                else:
-                                    player_version = self._search_regex(
-                                        r'html5player-([^/]+?)(?:/html5player)?\.js',
-                                        player_url,
-                                        'html5 player', fatal=False)
-                                    player_desc = u'html5 player %s' % player_version
+                                player_version = self._search_regex(
+                                    r'html5player-([^/]+?)(?:/html5player)?\.js',
+                                    player_url,
+                                    'html5 player', fatal=False)
+                                player_desc = u'html5 player %s' % player_version
 
-                            parts_sizes = u'.'.join(compat_str(len(part)) for part in encrypted_sig.split('.'))
-                            self.to_screen(u'encrypted signature length %d (%s), itag %s, %s' %
-                                (len(encrypted_sig), parts_sizes, url_data['itag'][0], player_desc))
+                        parts_sizes = u'.'.join(compat_str(len(part)) for part in encrypted_sig.split('.'))
+                        self.to_screen(u'{%s} encrypted signature length %d (%s), itag %s, %s' %
+                            (format_id, len(encrypted_sig), parts_sizes, url_data['itag'][0], player_desc))
 
-                        signature = self._decrypt_signature(
-                            encrypted_sig, video_id, player_url, age_gate)
-                        url += '&signature=' + signature
-                    if 'ratebypass' not in url:
-                        url += '&ratebypass=yes'
-                    url_map[url_data['itag'][0]] = url
+                    signature = self._decrypt_signature(
+                        encrypted_sig, video_id, player_url, age_gate)
+                    url += '&signature=' + signature
+                if 'ratebypass' not in url:
+                    url += '&ratebypass=yes'
+                url_map[format_id] = url
             formats = _map_to_format_list(url_map)
         elif video_info.get('hlsvp'):
             manifest_url = video_info['hlsvp'][0]
