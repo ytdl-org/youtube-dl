@@ -344,7 +344,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         """Indicate the download will use the RTMP protocol."""
         self.to_screen(u'RTMP download detected')
 
-    def _extract_signature_function(self, video_id, player_url, slen):
+    def _signature_cache_id(self, example_sig):
+        """ Return a string representation of a signature """
+        return u'.'.join(compat_str(len(part)) for part in example_sig.split('.'))
+
+    def _extract_signature_function(self, video_id, player_url, example_sig):
         id_m = re.match(
             r'.*-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player)?\.(?P<ext>[a-z]+)$',
             player_url)
@@ -354,7 +358,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         player_id = id_m.group('id')
 
         # Read from filesystem cache
-        func_id = '%s_%s_%d' % (player_type, player_id, slen)
+        func_id = '%s_%s_%s' % (
+            player_type, player_id, self._signature_cache_id(example_sig))
         assert os.path.basename(func_id) == func_id
         cache_dir = get_cachedir(self._downloader.params)
 
@@ -388,7 +393,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         if cache_enabled:
             try:
-                test_string = u''.join(map(compat_chr, range(slen)))
+                test_string = u''.join(map(compat_chr, range(len(example_sig))))
                 cache_res = res(test_string)
                 cache_spec = [ord(c) for c in cache_res]
                 try:
@@ -404,7 +409,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         return res
 
-    def _print_sig_code(self, func, slen):
+    def _print_sig_code(self, func, example_sig):
         def gen_sig_code(idxs):
             def _genslice(start, end, step):
                 starts = u'' if start == 0 else str(start)
@@ -433,11 +438,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             else:
                 yield _genslice(start, i, step)
 
-        test_string = u''.join(map(compat_chr, range(slen)))
+        test_string = u''.join(map(compat_chr, range(len(example_sig))))
         cache_res = func(test_string)
         cache_spec = [ord(c) for c in cache_res]
         expr_code = u' + '.join(gen_sig_code(cache_spec))
-        code = u'if len(s) == %d:\n    return %s\n' % (slen, expr_code)
+        signature_id_tuple = '(%s)' % (
+            ', '.join(compat_str(len(p)) for p in example_sig.split('.')))
+        code = (u'if tuple(len(p) for p in s.split(\'.\')) == %s:\n'
+                u'    return %s\n') % (signature_id_tuple, expr_code)
         self.to_screen(u'Extracted signature function:\n' + code)
 
     def _parse_sig_js(self, jscode):
@@ -468,17 +476,17 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             player_id = (player_url, len(s))
             if player_id not in self._player_cache:
                 func = self._extract_signature_function(
-                    video_id, player_url, len(s)
+                    video_id, player_url, s
                 )
                 self._player_cache[player_id] = func
             func = self._player_cache[player_id]
             if self._downloader.params.get('youtube_print_sig_code'):
-                self._print_sig_code(func, len(s))
+                self._print_sig_code(func, s)
             return func(s)
         except Exception as e:
             tb = traceback.format_exc()
             raise ExtractorError(
-                u'Automatic signature extraction failed: ' + tb, cause=e)
+                u'Signature extraction failed: ' + tb, cause=e)
 
     def _get_available_subtitles(self, video_id, webpage):
         try:
@@ -844,7 +852,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                                     'html5 player', fatal=False)
                                 player_desc = u'html5 player %s' % player_version
 
-                        parts_sizes = u'.'.join(compat_str(len(part)) for part in encrypted_sig.split('.'))
+                        parts_sizes = self._signature_cache_id(encrypted_sig)
                         self.to_screen(u'{%s} signature length %s, %s' %
                             (format_id, parts_sizes, player_desc))
 
