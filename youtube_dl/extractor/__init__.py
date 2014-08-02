@@ -327,6 +327,7 @@ from .tutv import TutvIE
 from .tvigle import TvigleIE
 from .tvp import TvpIE
 from .tvplay import TVPlayIE
+from.ubu import UbuIE
 from .udemy import (
     UdemyIE,
     UdemyCourseIE
