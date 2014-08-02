@@ -845,8 +845,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                                 player_desc = u'html5 player %s' % player_version
 
                         parts_sizes = u'.'.join(compat_str(len(part)) for part in encrypted_sig.split('.'))
-                        self.to_screen(u'{%s} encrypted signature length %d (%s), itag %s, %s' %
-                            (format_id, len(encrypted_sig), parts_sizes, url_data['itag'][0], player_desc))
+                        self.to_screen(u'{%s} signature length %s, %s' %
+                            (format_id, parts_sizes, player_desc))
 
                     signature = self._decrypt_signature(
                         encrypted_sig, video_id, player_url, age_gate)
