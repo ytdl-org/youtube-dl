@@ -12,13 +12,8 @@ class MojvideoIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'V avtu pred mano rdečelaska - Alfi Nipič',
             'description':'Video: V avtu pred mano rdečelaska - Alfi Nipič',
-            'height':378,
+            'height':37 8,
             'width':480
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
         }
     }
 
@@ -26,7 +21,6 @@ class MojvideoIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        # TODO more code goes here, for example ...
         webpage = self._download_webpage(url, video_id)
         title = self._html_search_regex(r'<title>(.*?)</title>', webpage, 'title')
         description = self._search_regex(r'<meta name="description" content="(.*)" />', webpage, 'video description')
@@ -42,5 +36,4 @@ class MojvideoIE(InfoExtractor):
             'url': final_url,
             'height':height,
             'width':width
-            # TODO more properties (see youtube_dl/extractor/common.py)
         }
