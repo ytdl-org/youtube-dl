@@ -6,7 +6,6 @@ import codecs
 import contextlib
 import ctypes
 import datetime
-import time
 import email.utils
 import errno
 import getpass
@@ -748,8 +747,6 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
                 del req.headers['User-agent']
             req.headers['User-agent'] = req.headers['Youtubedl-user-agent']
             del req.headers['Youtubedl-user-agent']
-        #print("sleeping\n")
-        #time.sleep(1)
         return req
 
     def http_response(self, req, resp):
