@@ -122,6 +122,21 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
             },
         },
         {
+            'url': 'http://vimeo.com/channels/keypeele/75629013',
+            'md5': '2f86a05afe9d7abc0b9126d229bbe15d',
+            'note': 'Video is freely available via original URL '
+                    'and protected with password when accessed via http://vimeo.com/75629013',
+            'info_dict': {
+                'id': '75629013',
+                'ext': 'mp4',
+                'title': 'Key & Peele: Terrorist Interrogation',
+                'description': 'md5:8678b246399b070816b12313e8b4eb5c',
+                'uploader_id': 'atencio',
+                'uploader': 'Peter Atencio',
+                'duration': 187,
+            },
+        },
+        {
             'url': 'http://vimeo.com/76979871',
             'md5': '3363dd6ffebe3784d56f4132317fd446',
             'note': 'Video with subtitles',
@@ -196,8 +211,6 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
         video_id = mobj.group('id')
         if mobj.group('pro') or mobj.group('player'):
             url = 'http://player.vimeo.com/video/' + video_id
-        else:
-            url = 'https://vimeo.com/' + video_id
 
         # Retrieve video webpage to extract further information
         request = compat_urllib_request.Request(url, None, headers)
