@@ -351,6 +351,8 @@ def parseOpts(overrideArguments=None):
 
     downloader.add_option('-r', '--rate-limit',
             dest='ratelimit', metavar='LIMIT', help='maximum download rate in bytes per second (e.g. 50K or 4.2M)')
+    downloader.add_option('--sleep-interval',
+            dest='sleepinterval', metavar='SLEEPINTERVAL', help='number of seconds to sleep between downloads (default is %default)', default="0")
     downloader.add_option('-R', '--retries',
             dest='retries', metavar='RETRIES', help='number of retries (default is %default)', default=10)
     downloader.add_option('--buffer-size',
@@ -671,6 +673,11 @@ def _real_main(argv=None):
         if numeric_limit is None:
             parser.error(u'invalid rate limit specified')
         opts.ratelimit = numeric_limit
+    if opts.sleepinterval is not None:
+        try:
+            opts.sleepinterval = abs(int(opts.sleepinterval))
+        except ValueError:
+            parser.error(u'invalid sleep interval specified')
     if opts.min_filesize is not None:
         numeric_limit = FileDownloader.parse_bytes(opts.min_filesize)
         if numeric_limit is None:
@@ -767,6 +774,7 @@ def _real_main(argv=None):
         'restrictfilenames': opts.restrictfilenames,
         'ignoreerrors': opts.ignoreerrors,
         'ratelimit': opts.ratelimit,
+        'sleepinterval': opts.sleepinterval,
         'nooverwrites': opts.nooverwrites,
         'retries': opts.retries,
         'buffersize': opts.buffersize,
