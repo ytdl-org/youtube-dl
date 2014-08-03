@@ -12,7 +12,7 @@ class MojvideoIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'V avtu pred mano rdečelaska - Alfi Nipič',
             'description':'Video: V avtu pred mano rdečelaska - Alfi Nipič',
-            'height':37 8,
+            'height':378,
             'width':480
         }
     }
