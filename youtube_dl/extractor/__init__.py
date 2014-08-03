@@ -96,6 +96,7 @@ from .fktv import (
     FKTVPosteckeIE,
 )
 from .flickr import FlickrIE
+from .fm4 import FM4IE
 from .fourtube import FourTubeIE
 from .franceculture import FranceCultureIE
 from .franceinter import FranceInterIE
