@@ -66,6 +66,7 @@ __authors__  = (
     'Naglis Jonaitis',
     'Charles Chen',
     'Hassaan Ali',
+    'Dobrosław Żybort',
 )
 
 __license__ = 'Public Domain'
