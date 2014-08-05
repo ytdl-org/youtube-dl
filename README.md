@@ -303,10 +303,12 @@ The current default template is `%(title)s-%(id)s.%(ext)s`.
 
 In some cases, you don't want special characters such as 中, spaces, or &, such as when transferring the downloaded filename to a Windows system or the filename through an 8bit-unsafe channel. In these cases, add the `--restrict-filenames` flag to get a shorter title:
 
-    $ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc
-    youtube-dl test video ''_ä↭𝕐.mp4    # All kinds of weird characters
-    $ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc --restrict-filenames
-    youtube-dl_test_video_.mp4          # A simple file name
+```bash
+$ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc
+youtube-dl test video ''_ä↭𝕐.mp4    # All kinds of weird characters
+$ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc --restrict-filenames
+youtube-dl_test_video_.mp4          # A simple file name
+```
 
 # VIDEO SELECTION
 
@@ -317,14 +319,16 @@ Videos can be filtered by their upload date using the options `--date`, `--dateb
  
 Examples:
 
-    # Download only the videos uploaded in the last 6 months
-    $ youtube-dl --dateafter now-6months
+```bash
+# Download only the videos uploaded in the last 6 months
+$ youtube-dl --dateafter now-6months
 
-    # Download only the videos uploaded on January 1, 1970
-    $ youtube-dl --date 19700101
+# Download only the videos uploaded on January 1, 1970
+$ youtube-dl --date 19700101
 
-    $ # will only download the videos uploaded in the 200x decade
-    $ youtube-dl --dateafter 20000101 --datebefore 20091231
+$ # will only download the videos uploaded in the 200x decade
+$ youtube-dl --dateafter 20000101 --datebefore 20091231
+```
 
 # FAQ
 
@@ -399,49 +403,76 @@ If you want to add support for a new site, you can follow this quick list (assum
 2. Check out the source code with `git clone git@github.com:YOUR_GITHUB_USERNAME/youtube-dl.git`
 3. Start a new git branch with `cd youtube-dl; git checkout -b yourextractor`
 4. Start with this simple template and save it to `youtube_dl/extractor/yourextractor.py`:
+    ```python
+    # coding: utf-8
+    from __future__ import unicode_literals
 
-        # coding: utf-8
-        from __future__ import unicode_literals
+    import re
 
-        import re
+    from .common import InfoExtractor
 
-        from .common import InfoExtractor
-        
-        
-        class YourExtractorIE(InfoExtractor):
-            _VALID_URL = r'https?://(?:www\.)?yourextractor\.com/watch/(?P<id>[0-9]+)'
-            _TEST = {
-                'url': 'http://yourextractor.com/watch/42',
-                'md5': 'TODO: md5 sum of the first 10KiB of the video file',
-                'info_dict': {
-                    'id': '42',
-                    'ext': 'mp4',
-                    'title': 'Video title goes here',
-                    # TODO more properties, either as:
-                    # * A value
-                    # * MD5 checksum; start the string with md5:
-                    # * A regular expression; start the string with re:
-                    # * Any Python type (for example int or float)
-                }
+
+    class YourExtractorIE(InfoExtractor):
+        _VALID_URL = r'https?://(?:www\.)?yourextractor\.com/watch/(?P<id>[0-9]+)'
+        _TEST = {
+            'url': 'http://yourextractor.com/watch/42',
+            'md5': 'TODO: md5 sum of the first 10KiB of the video file',
+            'info_dict': {
+                'id': '42',
+                'ext': 'mp4',
+                'title': 'Video title goes here',
+                # TODO more properties, either as:
+                # * A value
+                # * MD5 checksum; start the string with md5:
+                # * A regular expression; start the string with re:
+                # * Any Python type (for example int or float)
             }
+        }
 
-            def _real_extract(self, url):
-                mobj = re.match(self._VALID_URL, url)
-                video_id = mobj.group('id')
+        def _real_extract(self, url):
+            mobj = re.match(self._VALID_URL, url)
+            video_id = mobj.group('id')
 
-                # TODO more code goes here, for example ...
-                webpage = self._download_webpage(url, video_id)
-                title = self._html_search_regex(r'<h1>(.*?)</h1>', webpage, 'title')
+            # TODO more code goes here, for example ...
+            webpage = self._download_webpage(url, video_id)
+            title = self._html_search_regex(r'<h1>(.*?)</h1>', webpage, 'title')
 
-                return {
-                    'id': video_id,
-                    'title': title,
-                    # TODO more properties (see youtube_dl/extractor/common.py)
-                }
-
-
+            return {
+                'id': video_id,
+                'title': title,
+                # TODO more properties (see youtube_dl/extractor/common.py)
+            }
+    ```
 5. Add an import in [`youtube_dl/extractor/__init__.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/__init__.py).
 6. Run `python test/test_download.py TestDownload.test_YourExtractor`. This *should fail* at first, but you can continually re-run it until you're done.
+    * If you decide to add more than one test, then rename the ``_TEST`` variable to ``_TESTS`` and make it into a list of dictionaries, like the example below. The tests will be then respectfully be named `TestDownload.test_YourExtractor`, `TestDownload.test_YourExtractor_1`, `TestDownload.test_YourExtractor_2`, etc.
+    ```python
+    _TESTS = [
+        {
+            'url': 'http://yourextractor.com/watch/42',
+            'md5': 'TODO: md5 sum of the first 10KiB of the video file',
+            'info_dict': {
+                'id': '42',
+                'ext': 'mp4',
+                'title': 'Video title goes here',
+                # TODO more properties, either as:
+                # * A value
+                # * MD5 checksum; start the string with md5:
+                # * A regular expression; start the string with re:
+                # * Any Python type (for example int or float)
+            }
+        },
+        {
+            'url': 'http://yourextractor.com/watch/43',
+            'md5': 'TODO: md5 sum of the first 10KiB of the video file',
+            'info_dict': {
+                'id': '43',
+                'ext': 'mp4',
+                'title': 'Video title goes here',
+            }
+        }
+    ]
+    ```
 7. Have a look at [`youtube_dl/common/extractor/common.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py) for possible helper methods and a [detailed description of what your extractor should return](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L38). Add tests and code for as many as you want.
 8. If you can, check the code with [pyflakes](https://pypi.python.org/pypi/pyflakes) (a good idea) and [pep8](https://pypi.python.org/pypi/pep8) (optional, ignore E501).
 9. When the tests pass, [add](https://www.kernel.org/pub/software/scm/git/docs/git-add.html) the new files and [commit](https://www.kernel.org/pub/software/scm/git/docs/git-commit.html) them and [push](https://www.kernel.org/pub/software/scm/git/docs/git-push.html) the result, like this:
