@@ -16,14 +16,24 @@ class PatreonHTMLParser(compat_html_parser.HTMLParser):
     _PREFIX = 'http://www.patreon.com'
     _ATTACH_TAGS = 5 * ['div']
     _ATTACH_CLASSES = [
-        'fancyboxhidden', 'box photo double', 'boxwrapper double',
+        'fancyboxhidden', 'box photo', 'boxwrapper',
         'hiddendisplay shareinfo', 'attach'
     ]
     _INFO_TAGS = 4 * ['div']
     _INFO_CLASSES = [
-        'fancyboxhidden', 'box photo double', 'boxwrapper double',
+        'fancyboxhidden', 'box photo', 'boxwrapper',
         'hiddendisplay shareinfo'
     ]
+
+    def _match(self, attrs_classes, desired):
+        if attrs_classes == desired:
+            return True
+        elif len(attrs_classes) == len(desired):
+            return all(
+                x.startswith(y)
+                for x, y in zip(attrs_classes, desired)
+            )
+        return False
 
     def get_creation_info(self, html_data):
         self.tag_stack = []
@@ -45,7 +55,7 @@ class PatreonHTMLParser(compat_html_parser.HTMLParser):
             attrs_classes = [
                 x.get('class', '').lower() for x in self.attrs_stack[-6:-1]
             ]
-            if attrs_classes == self._ATTACH_CLASSES:
+            if self._match(attrs_classes, self._ATTACH_CLASSES):
                 if self.tag_stack[-1] == 'a':
                     url = self._PREFIX + self.attrs_stack[-1].get('href')
                     self.creation_info['url'] = url
@@ -56,7 +66,7 @@ class PatreonHTMLParser(compat_html_parser.HTMLParser):
             attrs_classes = [
                 x.get('class', '').lower() for x in self.attrs_stack[-5:-1]
             ]
-            if attrs_classes == self._INFO_CLASSES:
+            if self._match(attrs_classes, self._INFO_CLASSES):
                 if self.attrs_stack[-1].get('class') == 'utitle':
                     self.creation_info['title'] = data.strip()
 
@@ -65,14 +75,24 @@ class PatreonIE(InfoExtractor):
     IE_NAME = 'patreon'
     _VALID_URL = r'https?://(?:www\.)?patreon\.com/creation\?hid=(.+)'
     _TESTS = [
+        # CSS names with "double" in the name, i.e. "boxwrapper double"
         {
             'url': 'http://www.patreon.com/creation?hid=743933',
             'md5': 'e25505eec1053a6e6813b8ed369875cc',
-            'name': 'Patreon',
             'info_dict': {
                 'id': '743933',
                 'ext': 'mp3',
                 'title': 'Episode 166: David Smalley of Dogma Debate',
+                'uploader': 'Cognitive Dissonance Podcast',
+            },
+        },
+        {
+            'url': 'http://www.patreon.com/creation?hid=754133',
+            'md5': '3eb09345bf44bf60451b8b0b81759d0a',
+            'info_dict': {
+                'id': '754133',
+                'ext': 'mp3',
+                'title': 'CD 167 Extra',
                 'uploader': 'Cognitive Dissonance Podcast',
             },
         },
