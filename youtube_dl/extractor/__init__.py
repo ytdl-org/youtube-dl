@@ -181,6 +181,7 @@ from .mixcloud import MixcloudIE
 from .mlb import MLBIE
 from .mpora import MporaIE
 from .mofosex import MofosexIE
+from .mojvideo import MojvideoIE
 from .mooshare import MooshareIE
 from .morningstar import MorningstarIE
 from .motherless import MotherlessIE
