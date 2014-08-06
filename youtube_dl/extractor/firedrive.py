@@ -42,7 +42,6 @@ class FiredriveIE(InfoExtractor):
         fields = dict(re.findall(r'''(?x)<input\s+
             type="hidden"\s+
             name="([^"]+)"\s+
-            (?:id="[^"]+"\s+)?
             value="([^"]*)"
             ''', webpage))
 
@@ -66,7 +65,7 @@ class FiredriveIE(InfoExtractor):
         ext = self._search_regex(r'type:\s?\'([^\']+)\',',
                                  webpage, 'extension', fatal=False)
         video_url = self._search_regex(
-            r'file:\s?\'(http[^\']+)\',', webpage, 'file url')
+            r'file:\s?loadURL\(\'(http[^\']+)\'\),', webpage, 'file url')
 
         formats = [{
             'format_id': 'sd',
