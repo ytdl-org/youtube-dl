@@ -71,12 +71,8 @@ class VubeIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        webpage = self._download_webpage(url, video_id)
-        data_json = self._search_regex(
-            r'(?s)window\["(?:tapiVideoData|vubeOriginalVideoData)"\]\s*=\s*(\{.*?\n});\n',
-            webpage, 'video data'
-        )
-        data = json.loads(data_json)
+        json_url = 'http://vube.com/t-api/v1/video/%s?country=US&limit=120&region=US' % video_id
+        data = self._download_json(json_url, video_id)
         video = (
             data.get('video') or
             data)
