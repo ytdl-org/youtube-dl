@@ -109,15 +109,19 @@ class ArteTVPlus7IE(InfoExtractor):
             regexes = [r'VO?%s' % l, r'VO?.-ST%s' % l]
             return any(re.match(r, f['versionCode']) for r in regexes)
         # Some formats may not be in the same language as the url
+        # TODO: Might want not to drop videos that does not match requested language
+        # but to process those formats with lower precedence
         formats = filter(_match_lang, all_formats)
-        formats = list(formats) # in python3 filter returns an iterator
+        formats = list(formats)  # in python3 filter returns an iterator
         if not formats:
             # Some videos are only available in the 'Originalversion'
             # they aren't tagged as being in French or German
-            if all(f['versionCode'] == 'VO' or f['versionCode'] == 'VA' for f in all_formats):
-                formats = all_formats
-            else:
-                raise ExtractorError(u'The formats list is empty')
+            # Sometimes there are neither videos of requested lang code
+            # nor original version videos available
+            # For such cases we just take all_formats as is
+            formats = all_formats
+            if not formats:
+                raise ExtractorError('The formats list is empty')
 
         if re.match(r'[A-Z]Q', formats[0]['quality']) is not None:
             def sort_key(f):
