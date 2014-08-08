@@ -1,10 +1,12 @@
 from __future__ import unicode_literals
 
-import json
 import re
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    compat_str,
+)
 
 
 class VubeIE(InfoExtractor):
@@ -29,6 +31,7 @@ class VubeIE(InfoExtractor):
                 'like_count': int,
                 'dislike_count': int,
                 'comment_count': int,
+                'categories': ['pop', 'music', 'cover', 'singing', 'jessie j', 'price tag', 'chiara grispo'],
             }
         },
         {
@@ -47,6 +50,7 @@ class VubeIE(InfoExtractor):
                 'like_count': int,
                 'dislike_count': int,
                 'comment_count': int,
+                'categories': ['seraina', 'jessica', 'krewella', 'alive'],
             }
         }, {
             'url': 'http://vube.com/vote/Siren+Gene/0nmsMY5vEq?n=2&t=s',
@@ -56,13 +60,15 @@ class VubeIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Frozen - Let It Go Cover by Siren Gene',
                 'description': 'My rendition of "Let It Go" originally sung by Idina Menzel.',
-                'uploader': 'Siren Gene',
-                'uploader_id': 'Siren',
                 'thumbnail': 're:^http://frame\.thestaticvube\.com/snap/[0-9x]+/10283ab622a-86c9-4681-51f2-30d1f65774af\.jpg$',
+                'uploader': 'Siren',
+                'timestamp': 1395448018,
+                'upload_date': '20140322',
                 'duration': 221.788,
                 'like_count': int,
                 'dislike_count': int,
                 'comment_count': int,
+                'categories': ['let it go', 'cover', 'idina menzel', 'frozen', 'singing', 'disney', 'siren gene'],
             }
         }
     ]
@@ -71,47 +77,40 @@ class VubeIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        webpage = self._download_webpage(url, video_id)
-        data_json = self._search_regex(
-            r'(?s)window\["(?:tapiVideoData|vubeOriginalVideoData)"\]\s*=\s*(\{.*?\n});\n',
-            webpage, 'video data'
-        )
-        data = json.loads(data_json)
-        video = (
-            data.get('video') or
-            data)
-        assert isinstance(video, dict)
+        video = self._download_json(
+            'http://vube.com/t-api/v1/video/%s' % video_id, video_id, 'Downloading video JSON')
 
         public_id = video['public_id']
 
-        formats = [
-            {
-                'url': 'http://video.thestaticvube.com/video/%s/%s.mp4' % (fmt['media_resolution_id'], public_id),
-                'height': int(fmt['height']),
-                'abr': int(fmt['audio_bitrate']),
-                'vbr': int(fmt['video_bitrate']),
-                'format_id': fmt['media_resolution_id']
-            } for fmt in video['mtm'] if fmt['transcoding_status'] == 'processed'
-        ]
+        formats = []
+
+        for media in video['media'].get('video', []) + video['media'].get('audio', []):
+            if media['transcoding_status'] != 'processed':
+                continue
+            fmt = {
+                'url': 'http://video.thestaticvube.com/video/%s/%s.mp4' % (media['media_resolution_id'], public_id),
+                'abr': int(media['audio_bitrate']),
+                'format_id': compat_str(media['media_resolution_id']),
+            }
+            vbr = int(media['video_bitrate'])
+            if vbr:
+                fmt.update({
+                    'vbr': vbr,
+                    'height': int(media['height']),
+                })
+            formats.append(fmt)
 
         self._sort_formats(formats)
 
         title = video['title']
         description = video.get('description')
-        thumbnail = self._proto_relative_url(
-            video.get('thumbnail') or video.get('thumbnail_src'),
-            scheme='http:')
-        uploader = data.get('user', {}).get('channel', {}).get('name') or video.get('user_alias')
-        uploader_id = data.get('user', {}).get('name')
+        thumbnail = self._proto_relative_url(video.get('thumbnail_src'), scheme='http:')
+        uploader = video.get('user_alias') or video.get('channel')
         timestamp = int_or_none(video.get('upload_time'))
         duration = video['duration']
         view_count = video.get('raw_view_count')
-        like_count = video.get('rlikes')
-        if like_count is None:
-            like_count = video.get('total_likes')
-        dislike_count = video.get('rhates')
-        if dislike_count is None:
-            dislike_count = video.get('total_hates')
+        like_count = video.get('total_likes')
+        dislike_count = video.get('total_hates')
 
         comments = video.get('comments')
         comment_count = None
@@ -124,6 +123,8 @@ class VubeIE(InfoExtractor):
         else:
             comment_count = len(comments)
 
+        categories = [tag['text'] for tag in video['tags']]
+
         return {
             'id': video_id,
             'formats': formats,
@@ -131,11 +132,11 @@ class VubeIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
             'uploader': uploader,
-            'uploader_id': uploader_id,
             'timestamp': timestamp,
             'duration': duration,
             'view_count': view_count,
             'like_count': like_count,
             'dislike_count': dislike_count,
             'comment_count': comment_count,
+            'categories': categories,
         }

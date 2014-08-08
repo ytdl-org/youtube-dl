@@ -384,6 +384,7 @@ from .wistia import WistiaIE
 from .worldstarhiphop import WorldStarHipHopIE
 from .wrzuta import WrzutaIE
 from .xbef import XBefIE
+from .xboxclips import XboxClipsIE
 from .xhamster import XHamsterIE
 from .xnxx import XNXXIE
 from .xvideos import XVideosIE
