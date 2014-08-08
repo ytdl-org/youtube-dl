@@ -101,7 +101,7 @@ class ArteTVPlus7IE(InfoExtractor):
                 return True
             # Return true if that format is in the language of the url
             if lang == 'fr':
-                l = 'F'
+                l = 'A'
             elif lang == 'de':
                 l = 'A'
             else:
