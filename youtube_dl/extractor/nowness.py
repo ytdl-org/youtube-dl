@@ -1,3 +1,4 @@
+# encoding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -8,19 +9,34 @@ from ..utils import ExtractorError
 
 
 class NownessIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?nowness\.com/[^?#]*?/(?P<id>[0-9]+)/(?P<slug>[^/]+?)(?:$|[?#])'
+    _VALID_URL = r'https?://(?:(?:www|cn)\.)?nowness\.com/[^?#]*?/(?P<id>[0-9]+)/(?P<slug>[^/]+?)(?:$|[?#])'
 
-    _TEST = {
-        'url': 'http://www.nowness.com/day/2013/6/27/3131/candor--the-art-of-gesticulation',
-        'md5': '068bc0202558c2e391924cb8cc470676',
-        'info_dict': {
-            'id': '2520295746001',
-            'ext': 'mp4',
-            'description': 'Candor: The Art of Gesticulation',
-            'uploader': 'Nowness',
-            'title': 'Candor: The Art of Gesticulation',
-        }
-    }
+    _TESTS = [
+        {
+            'url': 'http://www.nowness.com/day/2013/6/27/3131/candor--the-art-of-gesticulation',
+            'md5': '068bc0202558c2e391924cb8cc470676',
+            'info_dict': {
+                'id': '2520295746001',
+                'ext': 'mp4',
+                'title': 'Candor: The Art of Gesticulation',
+                'description': 'Candor: The Art of Gesticulation',
+                'thumbnail': 're:^https?://.*\.jpg',
+                'uploader': 'Nowness',
+            }
+        },
+        {
+            'url': 'http://cn.nowness.com/day/2014/8/7/4069/kasper-bj-rke-ft-jaakko-eino-kalevi--tnr',
+            'md5': 'e79cf125e387216f86b2e0a5b5c63aa3',
+            'info_dict': {
+                'id': '3716354522001',
+                'ext': 'mp4',
+                'title': 'Kasper Bjørke ft. Jaakko Eino Kalevi: TNR',
+                'description': 'Kasper Bjørke ft. Jaakko Eino Kalevi: TNR',
+                'thumbnail': 're:^https?://.*\.jpg',
+                'uploader': 'Nowness',
+            }
+        },
+    ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
