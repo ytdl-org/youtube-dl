@@ -8,7 +8,7 @@ from ..utils import ExtractorError
 
 
 class NownessIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?nowness\.com/[^?#]*?/(?P<id>[0-9]+)/(?P<slug>[^/]+?)(?:$|[?#])'
+    _VALID_URL = r'https?://((?:www\.)|(?:cn\.))?nowness\.com/[^?#]*?/(?P<id>[0-9]+)/(?P<slug>[^/]+?)(?:$|[?#])'
 
     _TEST = {
         'url': 'http://www.nowness.com/day/2013/6/27/3131/candor--the-art-of-gesticulation',
