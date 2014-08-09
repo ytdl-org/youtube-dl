@@ -96,7 +96,6 @@ from .fktv import (
     FKTVPosteckeIE,
 )
 from .flickr import FlickrIE
-from .fm4 import FM4IE
 from .fourtube import FourTubeIE
 from .franceculture import FranceCultureIE
 from .franceinter import FranceInterIE
@@ -226,9 +225,12 @@ from .nrk import (
 from .ntv import NTVIE
 from .nytimes import NYTimesIE
 from .nuvid import NuvidIE
-from .oe1 import OE1IE
 from .ooyala import OoyalaIE
-from .orf import ORFIE
+from .orf import (
+    ORFTVthekIE,
+    ORFOE1IE,
+    ORFFM4IE,
+)
 from .parliamentliveuk import ParliamentLiveUKIE
 from .pbs import PBSIE
 from .photobucket import PhotobucketIE
