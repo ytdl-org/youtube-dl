@@ -68,6 +68,7 @@ __authors__  = (
     'Hassaan Ali',
     'Dobrosław Żybort',
     'David Fabijan',
+    'Sebastian Haas',
 )
 
 __license__ = 'Public Domain'
