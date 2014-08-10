@@ -1275,6 +1275,9 @@ def int_or_none(v, scale=1, default=None, get_attr=None, invscale=1):
             v = getattr(v, get_attr, None)
     return default if v is None else (int(v) * invscale // scale)
 
+def str_or_none(v, default=None):
+    return default if v is None else compat_str(v)
+
 
 def str_to_int(int_str):
     if int_str is None:

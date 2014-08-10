@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import strip_jsonp
+from ..utils import str_or_none
 
 
 class ReverbNationIE(InfoExtractor):
@@ -16,7 +16,7 @@ class ReverbNationIE(InfoExtractor):
             "ext": "mp3",
             "title": "MONA LISA",
             "uploader": "ALKILADOS",
-            "uploader_id": 216429,
+            "uploader_id": "216429",
             "thumbnail": "re:^https://gp1\.wac\.edgecastcdn\.net/.*?\.jpg$"
         },
     }]
@@ -36,7 +36,7 @@ class ReverbNationIE(InfoExtractor):
             'title': api_res.get('name'),
             'url': api_res.get('url'),
             'uploader': api_res.get('artist', {}).get('name'),
-            'uploader_id': api_res.get('artist', {}).get('id'),
+            'uploader_id': str_or_none(api_res.get('artist', {}).get('id')),
             'thumbnail': self._proto_relative_url(
                 api_res.get('image', api_res.get('thumbnail'))),
             'ext': 'mp3',
