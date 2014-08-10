@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import re
-import time
 
 from .common import InfoExtractor
 from ..utils import strip_jsonp
@@ -27,10 +26,8 @@ class ReverbNationIE(InfoExtractor):
         song_id = mobj.group('id')
 
         api_res = self._download_json(
-            'https://api.reverbnation.com/song/%s?callback=api_response_5&_=%d'
-                % (song_id, int(time.time() * 1000)),
+            'https://api.reverbnation.com/song/%s' % song_id,
             song_id,
-            transform_source=strip_jsonp,
             note='Downloading information of song %s' % song_id
         )
 
