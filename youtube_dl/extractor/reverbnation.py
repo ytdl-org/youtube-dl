@@ -11,9 +11,10 @@ class ReverbNationIE(InfoExtractor):
     _VALID_URL = r'^https?://(?:www\.)?reverbnation\.com/.*?/song/(?P<id>\d+).*?$'
     _TESTS = [{
         'url': 'http://www.reverbnation.com/alkilados/song/16965047-mona-lisa',
-        'file': '16965047.mp3',
         'md5': '3da12ebca28c67c111a7f8b262d3f7a7',
         'info_dict': {
+            "id": "16965047",
+            "ext": "mp3",
             "title": "MONA LISA",
             "uploader": "ALKILADOS",
             "uploader_id": 216429,
