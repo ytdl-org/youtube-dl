@@ -17,7 +17,7 @@ class ReverbNationIE(InfoExtractor):
             "title": "MONA LISA",
             "uploader": "ALKILADOS",
             "uploader_id": 216429,
-            "thumbnail": "//gp1.wac.edgecastcdn.net/802892/production_public/Photo/13761700/image/1366002176_AVATAR_MONA_LISA.jpg"
+            "thumbnail": "re:^https://gp1\.wac\.edgecastcdn\.net/.*?\.jpg$"
         },
     }]
 
@@ -39,7 +39,8 @@ class ReverbNationIE(InfoExtractor):
             'url': api_res.get('url'),
             'uploader': api_res.get('artist', {}).get('name'),
             'uploader_id': api_res.get('artist', {}).get('id'),
-            'thumbnail': api_res.get('image', api_res.get('thumbnail')),
+            'thumbnail': self._proto_relative_url(
+                api_res.get('image', api_res.get('thumbnail'))),
             'ext': 'mp3',
             'vcodec': 'none',
         }
