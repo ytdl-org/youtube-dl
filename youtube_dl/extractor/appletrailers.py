@@ -6,6 +6,7 @@ import json
 from .common import InfoExtractor
 from ..utils import (
     compat_urlparse,
+    int_or_none,
 )
 
 
@@ -110,8 +111,8 @@ class AppleTrailersIE(InfoExtractor):
                 formats.append({
                     'url': format_url,
                     'format': format['type'],
-                    'width': format['width'],
-                    'height': int(format['height']),
+                    'width': int_or_none(format['width']),
+                    'height': int_or_none(format['height']),
                 })
 
             self._sort_formats(formats)
