@@ -17,11 +17,11 @@ class SharedIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://shared.sx/0060718775',
-        'md5': '53e1c58fc3e777ae1dfe9e57ba2f9c72',
+        'md5': '106fefed92a8a2adb8c98e6a0652f49b',
         'info_dict': {
             'id': '0060718775',
             'ext': 'mp4',
-            'title': 'Big Buck Bunny Trailer',
+            'title': 'Bmp4',
         },
     }
 
