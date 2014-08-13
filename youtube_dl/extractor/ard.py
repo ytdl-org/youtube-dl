@@ -51,6 +51,9 @@ class ARDIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
+        if '>Der gewünschte Beitrag ist nicht mehr verfügbar.<' in webpage:
+            raise ExtractorError('Video %s is no longer available' % video_id, expected=True)
+
         title = self._html_search_regex(
             [r'<h1(?:\s+class="boxTopHeadline")?>(.*?)</h1>',
              r'<meta name="dcterms.title" content="(.*?)"/>',

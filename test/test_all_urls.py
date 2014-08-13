@@ -99,6 +99,7 @@ class TestAllURLsMatching(unittest.TestCase):
 
     def test_facebook_matching(self):
         self.assertTrue(FacebookIE.suitable('https://www.facebook.com/Shiniknoh#!/photo.php?v=10153317450565268'))
+        self.assertTrue(FacebookIE.suitable('https://www.facebook.com/cindyweather?fref=ts#!/photo.php?v=10152183998945793'))
 
     def test_no_duplicates(self):
         ies = gen_extractors()

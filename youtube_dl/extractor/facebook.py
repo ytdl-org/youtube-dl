@@ -20,7 +20,7 @@ from ..utils import (
 class FacebookIE(InfoExtractor):
     _VALID_URL = r'''(?x)
         https?://(?:\w+\.)?facebook\.com/
-        (?:[^#?]*\#!/)?
+        (?:[^#]*?\#!/)?
         (?:video/video\.php|photo\.php|video/embed)\?(?:.*?)
         (?:v|video_id)=(?P<id>[0-9]+)
         (?:.*)'''
