@@ -279,8 +279,9 @@ class FileDownloader(object):
         Return True on success and False otherwise
         """
         sleep_interval = self.params.get('sleepinterval', 0)
-        self.to_screen(u'[download] Sleeping %d seconds...' %sleep_interval)
-        time.sleep(sleep_interval)
+        if sleep_interval > 0:
+            self.to_screen(u'[download] Sleeping %d seconds...' %sleep_interval)
+            time.sleep(sleep_interval)
         # Check file already present
         if self.params.get('continuedl', False) and os.path.isfile(encodeFilename(filename)) and not self.params.get('nopart', False):
             self.report_file_already_downloaded(filename)
