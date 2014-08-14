@@ -111,17 +111,28 @@ class LivestreamIE(InfoExtractor):
         event_name = mobj.group('event_name')
         webpage = self._download_webpage(url, video_id or event_name)
 
-        if video_id is None:
-            # This is an event page:
+        og_video = self._og_search_video_url(webpage, 'player url', fatal=False, default=None)
+        if og_video is None:
             config_json = self._search_regex(
                 r'window.config = ({.*?});', webpage, 'window config')
             info = json.loads(config_json)['event']
+
+            def is_relevant(vdata, vid):
+                result = vdata['type'] == 'video'
+                if video_id is not None:
+                    result = result and compat_str(vdata['data']['id']) == vid
+                return result
+
             videos = [self._extract_video_info(video_data['data'])
-                for video_data in info['feed']['data']
-                if video_data['type'] == 'video']
-            return self.playlist_result(videos, info['id'], info['full_name'])
+                      for video_data in info['feed']['data']
+                      if is_relevant(video_data, video_id)]
+            if video_id is None:
+                # This is an event page:
+                return self.playlist_result(videos, info['id'], info['full_name'])
+            else:
+                if videos:
+                    return videos[0]
         else:
-            og_video = self._og_search_video_url(webpage, 'player url')
             query_str = compat_urllib_parse_urlparse(og_video).query
             query = compat_urlparse.parse_qs(query_str)
             api_url = query['play_url'][0].replace('.smil', '')
