@@ -6,10 +6,10 @@ clean:
 cleanall: clean
 	rm -f youtube-dl youtube-dl.exe
 
-PREFIX=/usr/local
-BINDIR=$(PREFIX)/bin
-MANDIR=$(PREFIX)/man
-PYTHON=/usr/bin/env python
+PREFIX ?= /usr/local
+BINDIR ?= $(PREFIX)/bin
+MANDIR ?= $(PREFIX)/man
+PYTHON ?= /usr/bin/env python
 
 # set SYSCONFDIR to /etc if PREFIX=/usr or PREFIX=/usr/local
 ifeq ($(PREFIX),/usr)
