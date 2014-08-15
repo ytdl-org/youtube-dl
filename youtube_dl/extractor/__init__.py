@@ -77,6 +77,10 @@ from .ebaumsworld import EbaumsWorldIE
 from .ehow import EHowIE
 from .eighttracks import EightTracksIE
 from .eitb import EitbIE
+from .ellentv import (
+    EllenTVIE,
+    EllenTVClipsIE,
+)
 from .elpais import ElPaisIE
 from .empflix import EmpflixIE
 from .engadget import EngadgetIE
