@@ -10,6 +10,9 @@ dist/
 MANIFEST
 README.txt
 youtube-dl.1
+youtube-dl.1.html
+youtube-dl.3
+youtube-dl.3.html
 youtube-dl.bash-completion
 youtube-dl
 youtube-dl.exe
