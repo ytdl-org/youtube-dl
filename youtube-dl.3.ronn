@@ -1,4 +1,4 @@
-youtube-dl(3) - download videos from youtube.com or other video platforms
+youtube-dl(3) -- download videos from youtube.com or other video platforms
 =========================================================================
 
 ## SYNOPSIS
