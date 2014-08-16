@@ -30,7 +30,7 @@ class DFBIE(InfoExtractor):
             video_id)
         video_info = player_info.find('video')
 
-        f4m_info = self._download_xml(video_info.find('url').text, video_id)
+        f4m_info = self._download_xml(self._proto_relative_url(video_info.find('url').text.strip()), video_id)
         token_el = f4m_info.find('token')
         manifest_url = token_el.attrib['url'] + '?' + 'hdnea=' + token_el.attrib['auth'] + '&hdcore=3.2.0'
 
