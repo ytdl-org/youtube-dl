@@ -442,14 +442,12 @@ class InfoExtractor(object):
         If there's no info available, return None
         """
         if self._downloader is None:
-            self.to_screen("no downloader")
             return None
         downloader_params = self._downloader.params
 
         if downloader_params.get('twofactor', None) is not None:
             return downloader_params['twofactor']
 
-        self.to_screen("param is None")
         return None
 
     # Helper functions for extracting OpenGraph info
