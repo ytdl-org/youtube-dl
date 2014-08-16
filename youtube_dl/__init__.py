@@ -314,6 +314,8 @@ def parseOpts(overrideArguments=None):
             dest='username', metavar='USERNAME', help='account username')
     authentication.add_option('-p', '--password',
             dest='password', metavar='PASSWORD', help='account password')
+    authentication.add_option('-2', '--twofactor',
+            dest='twofactor', metavar='TWOFACTOR', help='two-factor auth code')
     authentication.add_option('-n', '--netrc',
             action='store_true', dest='usenetrc', help='use .netrc authentication data', default=False)
     authentication.add_option('--video-password',
@@ -748,6 +750,7 @@ def _real_main(argv=None):
         'usenetrc': opts.usenetrc,
         'username': opts.username,
         'password': opts.password,
+        'twofactor': opts.twofactor,
         'videopassword': opts.videopassword,
         'quiet': (opts.quiet or any_printing),
         'no_warnings': opts.no_warnings,

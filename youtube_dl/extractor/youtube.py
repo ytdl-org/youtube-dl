@@ -37,6 +37,7 @@ from ..utils import (
 class YoutubeBaseInfoExtractor(InfoExtractor):
     """Provide base functions for Youtube extractors"""
     _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
+    _TWOFACTOR_URL = 'https://accounts.google.com/SecondFactor'
     _LANG_URL = r'https://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
     _AGE_URL = 'https://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
     _NETRC_MACHINE = 'youtube'
@@ -50,12 +51,19 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             fatal=False))
 
     def _login(self):
+        """
+        Attempt to log in to YouTube.
+        True is returned if successful or skipped.
+        False is returned if login failed.
+
+        If _LOGIN_REQUIRED is set and no authentication was provided, an error is raised.
+        """
         (username, password) = self._get_login_info()
         # No authentication to be performed
         if username is None:
             if self._LOGIN_REQUIRED:
                 raise ExtractorError(u'No login info available, needed for using %s.' % self.IE_NAME, expected=True)
-            return False
+            return True
 
         login_page = self._download_webpage(
             self._LOGIN_URL, None,
@@ -73,6 +81,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 u'Email': username,
                 u'GALX': galx,
                 u'Passwd': password,
+
                 u'PersistentCookie': u'yes',
                 u'_utf8': u'霱',
                 u'bgresponse': u'js_disabled',
@@ -88,6 +97,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 u'uilel': u'3',
                 u'hl': u'en_US',
         }
+
         # Convert to UTF-8 *before* urlencode because Python 2.x's urlencode
         # chokes on unicode
         login_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k,v in login_form_strs.items())
@@ -99,6 +109,68 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             note=u'Logging in', errnote=u'unable to log in', fatal=False)
         if login_results is False:
             return False
+
+        if re.search(r'id="errormsg_0_Passwd"', login_results) is not None:
+            raise ExtractorError(u'Please use your account password and a two-factor code instead of an application-specific password.', expected=True)
+
+        # Two-Factor
+        # TODO add SMS and phone call support - these require making a request and then prompting the user
+
+        if re.search(r'(?i)<form[^>]* id="gaia_secondfactorform"', login_results) is not None:
+            tfa_code = self._get_tfa_info()
+
+            if tfa_code is None:
+                self._downloader.report_warning(u'Two-factor authentication required. Provide it with --twofactor <code>')
+                self._downloader.report_warning(u'(Note that only TOTP (Google Authenticator App) codes work at this time.)')
+                return False
+
+            # Unlike the first login form, secTok and timeStmp are both required for the TFA form
+
+            match = re.search(r'id="secTok"\n\s+value=\'(.+)\'/>', login_results, re.M | re.U)
+            if match is None:
+                self._downloader.report_warning(u'Failed to get secTok - did the page structure change?')
+            secTok = match.group(1)
+            match = re.search(r'id="timeStmp"\n\s+value=\'(.+)\'/>', login_results, re.M | re.U)
+            if match is None:
+                self._downloader.report_warning(u'Failed to get timeStmp - did the page structure change?')
+            timeStmp = match.group(1)
+
+            tfa_form_strs = {
+                u'continue': u'https://www.youtube.com/signin?action_handle_signin=true&feature=sign_in_button&hl=en_US&nomobiletemp=1',
+                u'smsToken': u'',
+                u'smsUserPin': tfa_code,
+                u'smsVerifyPin': u'Verify',
+
+                u'PersistentCookie': u'yes',
+                u'checkConnection': u'',
+                u'checkedDomains': u'youtube',
+                u'pstMsg': u'1',
+                u'secTok': secTok,
+                u'timeStmp': timeStmp,
+                u'service': u'youtube',
+                u'hl': u'en_US',
+            }
+            tfa_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k,v in tfa_form_strs.items())
+            tfa_data = compat_urllib_parse.urlencode(tfa_form).encode('ascii')
+
+            tfa_req = compat_urllib_request.Request(self._TWOFACTOR_URL, tfa_data)
+            tfa_results = self._download_webpage(
+                tfa_req, None,
+                note=u'Submitting TFA code', errnote=u'unable to submit tfa', fatal=False)
+
+            if tfa_results is False:
+                return False
+
+            if re.search(r'(?i)<form[^>]* id="gaia_secondfactorform"', tfa_results) is not None:
+                self._downloader.report_warning(u'Two-factor code expired. Please try again, or use a one-use backup code instead.')
+                return False
+            if re.search(r'(?i)<form[^>]* id="gaia_loginform"', tfa_results) is not None:
+                self._downloader.report_warning(u'unable to log in - did the page structure change?')
+                return False
+            if re.search(r'smsauth-interstitial-reviewsettings', tfa_results) is not None:
+                self._downloader.report_warning(u'Your Google account has a security notice. Please log in on your web browser, resolve the notice, and try again.')
+                return False
+
         if re.search(r'(?i)<form[^>]* id="gaia_loginform"', login_results) is not None:
             self._downloader.report_warning(u'unable to log in: bad username or password')
             return False
