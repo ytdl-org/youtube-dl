@@ -321,6 +321,7 @@ from .thisav import ThisAVIE
 from .tinypic import TinyPicIE
 from .tlc import TlcIE, TlcDeIE
 from .toutv import TouTvIE
+from .toukoucity import ToukouCityIE
 from .toypics import ToypicsUserIE, ToypicsIE
 from .traileraddict import TrailerAddictIE
 from .trilulilu import TriluliluIE
