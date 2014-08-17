@@ -2,7 +2,12 @@
 from __future__ import unicode_literals
 
 import re
-import urllib2
+try:
+    # Python 3 urllib
+    from urllib.request import urlopen
+except ImportError:
+    # Fall back to Python 2's urllib2
+    from urllib2 import urlopen
 
 from .common import InfoExtractor
 from ..utils import (
@@ -42,7 +47,7 @@ class ToukouCityIE(InfoExtractor):
         view_count = self._html_search_regex(r'<span class="load">(.+?)</span>', webpage, u'view_count')
         player_url = self._search_regex(r'SWFObject\(\'(.+?)\'.+?\)', webpage, u'player_url')
         description = self._search_regex(r'<p class="dot">(.+?)</p>', webpage, u'description')
-        filesize = int(urllib2.urlopen(video_url).headers["Content-Length"])
+        filesize = int(urlopen(video_url).headers["Content-Length"])
 
         return {
             'id': video_id,
