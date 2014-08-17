@@ -126,6 +126,7 @@ from .helsinki import HelsinkiIE
 from .hentaistigma import HentaiStigmaIE
 from .hotnewhiphop import HotNewHipHopIE
 from .howcast import HowcastIE
+from .howstuffworks import HowStuffWorksIE
 from .huffpost import HuffPostIE
 from .hypem import HypemIE
 from .iconosquare import IconosquareIE

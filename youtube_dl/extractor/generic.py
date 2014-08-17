@@ -706,6 +706,13 @@ class GenericIE(InfoExtractor):
             url = unescapeHTML(mobj.group('url'))
             return self.url_result(url, ie='MTVServicesEmbedded')
 
+        # Look for embedded yahoo player
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>https?://(?:screen|movies)\.yahoo\.com/.+?\.html\?format=embed)\1',
+            webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'Yahoo')
+
         # Start with something easy: JW Player in SWFObject
         found = re.findall(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
         if not found:
