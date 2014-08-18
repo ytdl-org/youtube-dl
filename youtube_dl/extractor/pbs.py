@@ -33,6 +33,17 @@ class PBSIE(InfoExtractor):
             },
         },
         {
+            'url': 'http://www.pbs.org/wgbh/pages/frontline/losing-iraq/',
+            'md5': '143c98aa54a346738a3d78f54c925321',
+            'info_dict': {
+                'id': '2365297690',
+                'ext': 'mp4',
+                'title': 'Losing Iraq',
+                'description': 'md5:f5bfbefadf421e8bb8647602011caf8e',
+                'duration': 5050,
+            },
+        },
+        {
             'url': 'http://www.pbs.org/newshour/bb/education-jan-june12-cyberschools_02-23/',
             'md5': 'b19856d7f5351b17a5ab1dc6a64be633',
             'info_dict': {
