@@ -147,6 +147,7 @@ from .ivi import (
 from .izlesene import IzleseneIE
 from .jadorecettepub import JadoreCettePubIE
 from .jeuxvideo import JeuxVideoIE
+from .jove import JoveIE
 from .jukebox import JukeboxIE
 from .justintv import JustinTVIE
 from .jpopsukitv import JpopsukiIE
