@@ -37,7 +37,7 @@ class TeamcocoIE(InfoExtractor):
         video_id = mobj.group("video_id")
         if not video_id:
             video_id = self._html_search_regex(
-                r'<article class="video" data-id="(\d+?)"',
+                r'data-node-id="(\d+?)"',
                 webpage, 'video id')
 
         data_url = 'http://teamcoco.com/cvp/2.0/%s.xml' % video_id
