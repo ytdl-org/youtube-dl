@@ -69,6 +69,7 @@ __authors__  = (
     'Dobrosław Żybort',
     'David Fabijan',
     'Sebastian Haas',
+    'Alexander Kirk',
 )
 
 __license__ = 'Public Domain'
