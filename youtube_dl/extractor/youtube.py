@@ -374,6 +374,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 return lambda s: u''.join(s[i] for i in cache_spec)
             except IOError:
                 pass  # No cache available
+            except ValueError:
+                try:
+                    file_size = os.path.getsize(cache_fn)
+                except (OSError, IOError) as oe:
+                    file_size = str(oe)
+                self._downloader.report_warning(
+                    u'Cache %s failed (%s)' % (cache_fn, file_size))
 
         if player_type == 'js':
             code = self._download_webpage(
