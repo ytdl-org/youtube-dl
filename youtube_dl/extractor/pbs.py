@@ -20,17 +20,41 @@ class PBSIE(InfoExtractor):
         )
     '''
 
-    _TEST = {
-        'url': 'http://www.pbs.org/tpt/constitution-usa-peter-sagal/watch/a-more-perfect-union/',
-        'md5': 'ce1888486f0908d555a8093cac9a7362',
-        'info_dict': {
-            'id': '2365006249',
-            'ext': 'mp4',
-            'title': 'A More Perfect Union',
-            'description': 'md5:ba0c207295339c8d6eced00b7c363c6a',
-            'duration': 3190,
+    _TESTS = [
+        {
+            'url': 'http://www.pbs.org/tpt/constitution-usa-peter-sagal/watch/a-more-perfect-union/',
+            'md5': 'ce1888486f0908d555a8093cac9a7362',
+            'info_dict': {
+                'id': '2365006249',
+                'ext': 'mp4',
+                'title': 'A More Perfect Union',
+                'description': 'md5:ba0c207295339c8d6eced00b7c363c6a',
+                'duration': 3190,
+            },
         },
-    }
+        {
+            'url': 'http://www.pbs.org/wgbh/pages/frontline/losing-iraq/',
+            'md5': '143c98aa54a346738a3d78f54c925321',
+            'info_dict': {
+                'id': '2365297690',
+                'ext': 'mp4',
+                'title': 'Losing Iraq',
+                'description': 'md5:f5bfbefadf421e8bb8647602011caf8e',
+                'duration': 5050,
+            },
+        },
+        {
+            'url': 'http://www.pbs.org/newshour/bb/education-jan-june12-cyberschools_02-23/',
+            'md5': 'b19856d7f5351b17a5ab1dc6a64be633',
+            'info_dict': {
+                'id': '2201174722',
+                'ext': 'mp4',
+                'title': 'Cyber Schools Gain Popularity, but Quality Questions Persist',
+                'description': 'md5:5871c15cba347c1b3d28ac47a73c7c28',
+                'duration': 801,
+            },
+        },
+    ]
 
     def _extract_ids(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -40,10 +64,13 @@ class PBSIE(InfoExtractor):
         if presumptive_id:
             webpage = self._download_webpage(url, display_id)
 
-            # frontline video embed
+            MEDIA_ID_REGEXES = [
+                r"div\s*:\s*'videoembed'\s*,\s*mediaid\s*:\s*'(\d+)'",  # frontline video embed
+                r'class="coveplayerid">([^<]+)<',                       # coveplayer
+            ]
+
             media_id = self._search_regex(
-                r"div\s*:\s*'videoembed'\s*,\s*mediaid\s*:\s*'(\d+)'",
-                webpage, 'frontline video ID', fatal=False, default=None)
+                MEDIA_ID_REGEXES, webpage, 'media ID', fatal=False, default=None)
             if media_id:
                 return media_id, presumptive_id
 
