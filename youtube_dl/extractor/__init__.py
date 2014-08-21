@@ -240,6 +240,7 @@ from .orf import (
     ORFFM4IE,
 )
 from .parliamentliveuk import ParliamentLiveUKIE
+from .patreon import PatreonIE
 from .pbs import PBSIE
 from .photobucket import PhotobucketIE
 from .playvid import PlayvidIE
