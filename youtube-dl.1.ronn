@@ -104,55 +104,68 @@ youtube-dl(1) -- download videos from youtube.com or other video platforms
     do not resume partially downloaded files (restart from beginning)
   * `--no-part`:
     do not use .part files
-    --no-mtime                       do not use the Last-modified header to set
-                                     the file modification time
-    --write-description              write video description to a .description
-                                     file
-    --write-info-json                write video metadata to a .info.json file
-    --write-annotations              write video annotations to a .annotation
-                                     file
-    --write-thumbnail                write thumbnail image to disk
-    --load-info FILE                 json file containing the video information
-                                     (created with the "--write-json" option)
-    --cookies FILE                   file to read cookies from and dump cookie
-                                     jar in
-    --cache-dir DIR                  Location in the filesystem where youtube-dl
-                                     can store some downloaded information
-                                     permanently. By default $XDG_CACHE_HOME
-                                     /youtube-dl or ~/.cache/youtube-dl . At the
-                                     moment, only YouTube player files (for
-                                     videos with obfuscated signatures) are
-                                     cached, but that may change.
-    --no-cache-dir                   Disable filesystem caching
-    --rm-cache-dir                   Delete all filesystem cache files
+  * `--no-mtime`:
+    do not use the Last-modified header to set the file modification time
+  * `--write-description`:
+    write video description to a .description file
+  * `--write-info-json`:
+    write video metadata to a .info.json file
+  * `--write-annotations`:
+    write video annotations to a .annotation file
+  * `--write-thumbnail`:
+    write thumbnail image to disk
+  * `--load-info FILE`:
+    json file containing the video information (created with the "--write-json" option)
+  * `--cookies FILE`:
+    file to read cookies from and dump cookie jar in
+  * `--cache-dir DIR`:
+    Location in the filesystem where youtube-dl can store some downloaded information permanently. By default $XDG_CACHE_HOME /youtube-dl or ~/.cache/youtube-dl . At the moment, only YouTube player files (for videos with obfuscated signatures) are cached, but that may change.
+  * `--no-cache-dir`:
+    Disable filesystem caching
+  * `--rm-cache-dir`:
+    Delete all filesystem cache files
 
 ### Verbosity / Simulation Options:
-    -q, --quiet                      activates quiet mode
-    --no-warnings                    Ignore warnings
-    -s, --simulate                   do not download the video and do not write
-                                     anything to disk
-    --skip-download                  do not download the video
-    -g, --get-url                    simulate, quiet but print URL
-    -e, --get-title                  simulate, quiet but print title
-    --get-id                         simulate, quiet but print id
-    --get-thumbnail                  simulate, quiet but print thumbnail URL
-    --get-description                simulate, quiet but print video description
-    --get-duration                   simulate, quiet but print video length
-    --get-filename                   simulate, quiet but print output filename
-    --get-format                     simulate, quiet but print output format
-    -j, --dump-json                  simulate, quiet but print JSON information.
-                                     See --output for a description of available
-                                     keys.
-    --newline                        output progress bar as new lines
-    --no-progress                    do not print progress bar
-    --console-title                  display progress in console titlebar
-    -v, --verbose                    print various debugging information
-    --dump-intermediate-pages        print downloaded pages to debug problems
-                                     (very verbose)
-    --write-pages                    Write downloaded intermediary pages to
-                                     files in the current directory to debug
-                                     problems
-    --print-traffic                  Display sent and read HTTP traffic
+  * `-q`, `--quiet`:
+    activates quiet mode
+  * `--no-warnings`:
+    Ignore warnings
+  * `-s`, `--simulate`:
+    do not download the video and do not write anything to disk
+  * `--skip-download`:
+    do not download the video
+  * `-g`, `--get-url`:
+    simulate, quiet but print URL
+  * `-e`, `--get-title`:
+    simulate, quiet but print title
+  * `--get-id`:
+    simulate, quiet but print id
+  * `--get-thumbnail`:
+    simulate, quiet but print thumbnail URL
+  * `--get-description`:
+    simulate, quiet but print video description
+  * `--get-duration`:
+    simulate, quiet but print video length
+  * `--get-filename`:
+    simulate, quiet but print output filename
+  * `--get-format`:
+    simulate, quiet but print output format
+  * `-j`, `--dump-json`:
+    simulate, quiet but print JSON information. See --output for a description of available keys.
+  * `--newline`:
+    output progress bar as new lines
+  * `--no-progress`:
+    do not print progress bar
+  * `--console-title`:
+    display progress in console titlebar
+  * `-v, --verbose`:
+    print various debugging information
+  * `--dump-intermediate-pages`:
+    print downloaded pages to debug problems (very verbose)
+  * `--write-pages`:
+    Write downloaded intermediary pages to files in the current directory to debug problems
+  * `--print-traffic`:
+    Display sent and read HTTP traffic
 
 ### Workarounds:
     --encoding ENCODING              Force the specified encoding (experimental)
@@ -241,25 +254,28 @@ You can configure youtube-dl by placing default arguments (such as `--extract-au
 
 The `-o` option allows users to indicate a template for the output file names. The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "http://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences have the format `%(NAME)s`. To clarify, that is a percent symbol followed by a name in parenthesis, followed by a lowercase S. Allowed names are:
 
- - `id`: The sequence will be replaced by the video identifier.
- - `url`: The sequence will be replaced by the video URL.
- - `uploader`: The sequence will be replaced by the nickname of the person who uploaded the video.
- - `upload_date`: The sequence will be replaced by the upload date in YYYYMMDD format.
- - `title`: The sequence will be replaced by the video title.
- - `ext`: The sequence will be replaced by the appropriate extension (like flv or mp4).
- - `epoch`: The sequence will be replaced by the Unix epoch when creating the file.
- - `autonumber`: The sequence will be replaced by a five-digit number that will be increased with each download, starting at zero.
- - `playlist`: The name or the id of the playlist that contains the video.
- - `playlist_index`: The index of the video in the playlist, a five-digit number.
+ * `id`: The sequence will be replaced by the video identifier.
+ * `url`: The sequence will be replaced by the video URL.
+ * `uploader`: The sequence will be replaced by the nickname of the person who uploaded the video.
+ * `upload_date`: The sequence will be replaced by the upload date in YYYYMMDD format.
+ * `title`: The sequence will be replaced by the video title.
+ * `ext`: The sequence will be replaced by the appropriate extension (like flv or mp4).
+ * `epoch`: The sequence will be replaced by the Unix epoch when creating the file.
+ * `autonumber`: The sequence will be replaced by a five-digit number that will be increased with each download, starting at zero.
+ * `playlist`: The name or the id of the playlist that contains the video.
+ * `playlist_index`: The index of the video in the playlist, a five-digit number.
 
 The current default template is `%(title)s-%(id)s.%(ext)s`.
 
 In some cases, you don't want special characters such as 中, spaces, or &, such as when transferring the downloaded filename to a Windows system or the filename through an 8bit-unsafe channel. In these cases, add the `--restrict-filenames` flag to get a shorter title:
-
-    $ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc
-    youtube-dl test video ''_ä↭𝕐.mp4    # All kinds of weird characters
-    $ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc --restrict-filenames
-    youtube-dl_test_video_.mp4          # A simple file name
+```bash
+$ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc
+youtube-dl test video ''_ä↭𝕐.mp4    # All kinds of weird characters
+```
+```bash
+$ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc --restrict-filenames
+youtube-dl_test_video_.mp4          # A simple file name
+```
 
 ## VIDEO SELECTION
 
