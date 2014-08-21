@@ -134,6 +134,7 @@ class MetacafeIE(InfoExtractor):
 
         # Extract URL, uploader and title from webpage
         self.report_extraction(video_id)
+        video_url = None
         mobj = re.search(r'(?m)&mediaURL=([^&]+)', webpage)
         if mobj is not None:
             mediaURL = compat_urllib_parse.unquote(mobj.group(1))
@@ -146,14 +147,16 @@ class MetacafeIE(InfoExtractor):
             else:
                 gdaKey = mobj.group(1)
                 video_url = '%s?__gda__=%s' % (mediaURL, gdaKey)
-        else:
+        if video_url is None:
             mobj = re.search(r'<video src="([^"]+)"', webpage)
             if mobj:
                 video_url = mobj.group(1)
                 video_ext = 'mp4'
-            else:
-                flashvars = self._search_regex(
-                    r' name="flashvars" value="(.*?)"', webpage, 'flashvars')
+        if video_url is None:
+            flashvars = self._search_regex(
+                r' name="flashvars" value="(.*?)"', webpage, 'flashvars',
+                default=None)
+            if flashvars:
                 vardict = compat_parse_qs(flashvars)
                 if 'mediaData' not in vardict:
                     raise ExtractorError('Unable to extract media URL')
@@ -164,6 +167,7 @@ class MetacafeIE(InfoExtractor):
                 mediaURL = mobj.group('mediaURL').replace('\\/', '/')
                 video_url = '%s?__gda__=%s' % (mediaURL, mobj.group('key'))
                 video_ext = determine_ext(video_url)
+
 
         video_title = self._html_search_regex(
             r'(?im)<title>(.*) - Video</title>', webpage, 'title')
