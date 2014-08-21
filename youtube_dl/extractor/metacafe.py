@@ -9,6 +9,7 @@ from ..utils import (
     compat_urllib_request,
     determine_ext,
     ExtractorError,
+    int_or_none,
 )
 
 
@@ -83,6 +84,21 @@ class MetacafeIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        # Movieclips.com video
+        {
+            'url': 'http://www.metacafe.com/watch/mv-Wy7ZU/my_week_with_marilyn_do_you_love_me/',
+            'info_dict': {
+                'id': 'mv-Wy7ZU',
+                'ext': 'mp4',
+                'title': 'My Week with Marilyn - Do You Love Me?',
+                'description': 'From the movie My Week with Marilyn - Colin (Eddie Redmayne) professes his love to Marilyn (Michelle Williams) and gets her to promise to return to set and finish the movie.',
+                'uploader': 'movie_trailers',
+                'duration': 176,
+            },
+            'params': {
+                'skip_download': 'requires rtmpdump',
+            }
+        }
     ]
 
     def report_disclaimer(self):
@@ -167,7 +183,36 @@ class MetacafeIE(InfoExtractor):
                 mediaURL = mobj.group('mediaURL').replace('\\/', '/')
                 video_url = '%s?__gda__=%s' % (mediaURL, mobj.group('key'))
                 video_ext = determine_ext(video_url)
+        if video_url is None:
+            player_url = self._search_regex(
+                r"swfobject\.embedSWF\('([^']+)'",
+                webpage, 'config URL', default=None)
+            if player_url:
+                config_url = self._search_regex(
+                    r'config=(.+)$', player_url, 'config URL')
+                config_doc = self._download_xml(
+                    config_url, video_id,
+                    note='Downloading video config')
+                smil_url = config_doc.find('.//properties').attrib['smil_file']
+                smil_doc = self._download_xml(
+                    smil_url, video_id,
+                    note='Downloading SMIL document')
+                base_url = smil_doc.find('./head/meta').attrib['base']
+                video_url = []
+                for vn in smil_doc.findall('.//video'):
+                    br = int(vn.attrib['system-bitrate'])
+                    play_path = vn.attrib['src']
+                    video_url.append({
+                        'format_id': 'smil-%d' % br,
+                        'url': base_url,
+                        'play_path': play_path,
+                        'page_url': url,
+                        'player_url': player_url,
+                        'ext': play_path.partition(':')[0],
+                    })
 
+        if video_url is None:
+            raise ExtractorError('Unsupported video type')
 
         video_title = self._html_search_regex(
             r'(?im)<title>(.*) - Video</title>', webpage, 'title')
@@ -176,19 +221,30 @@ class MetacafeIE(InfoExtractor):
         video_uploader = self._html_search_regex(
                 r'submitter=(.*?);|googletag\.pubads\(\)\.setTargeting\("(?:channel|submiter)","([^"]+)"\);',
                 webpage, 'uploader nickname', fatal=False)
+        duration = int_or_none(
+            self._html_search_meta('video:duration', webpage))
 
-        if re.search(r'"contentRating":"restricted"', webpage) is not None:
-            age_limit = 18
+        age_limit = (
+            18
+            if re.search(r'"contentRating":"restricted"', webpage)
+            else 0)
+
+        if isinstance(video_url, list):
+            formats = video_url
         else:
-            age_limit = 0
+            formats = [{
+                'url': video_url,
+                'ext': video_ext,
+            }]
 
+        self._sort_formats(formats)
         return {
             'id': video_id,
-            'url': video_url,
             'description': description,
             'uploader': video_uploader,
             'title': video_title,
             'thumbnail': thumbnail,
-            'ext': video_ext,
             'age_limit': age_limit,
+            'formats': formats,
+            'duration': duration,
         }
