@@ -4,10 +4,14 @@ from __future__ import unicode_literals
 import re
 import json
 
-from .common import InfoExtractor, ExtractorError
+from .common import InfoExtractor
+from ..utils import (
+    ExtractorError,
+    parse_iso8601,
+)
+
 
 class EllenTVIE(InfoExtractor):
-    IE_NAME = u'ellentv'
     _VALID_URL = r'https?://(?:www\.)?ellentv\.com/videos/(?P<id>[a-z0-9_-]+)'
     _TEST = {
         'url': 'http://www.ellentv.com/videos/0-7jqrsr18/',
@@ -15,43 +19,39 @@ class EllenTVIE(InfoExtractor):
         'info_dict': {
             'id': '0-7jqrsr18',
             'ext': 'mp4',
-            'title': u'What\'s Wrong with These Photos? A Whole Lot',
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
+            'title': 'What\'s Wrong with These Photos? A Whole Lot',
+            'timestamp': 1406876400,
+            'upload_date': '20140801',
         }
     }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        id = mobj.group('id')
+        video_id = mobj.group('id')
 
-        webpage = self._download_webpage(url, id)
+        webpage = self._download_webpage(url, video_id)
+        timestamp = parse_iso8601(self._search_regex(
+            r'<span class="publish-date"><time datetime="([^"]+)">',
+            webpage, 'timestamp'))
 
         return {
-            'id': id,
+            'id': video_id,
             'title': self._og_search_title(webpage),
-            'url': self._html_search_meta('VideoURL', webpage, 'url')
+            'url': self._html_search_meta('VideoURL', webpage, 'url'),
+            'timestamp': timestamp,
         }
 
+
 class EllenTVClipsIE(InfoExtractor):
-    IE_NAME = u'ellentv:clips'
+    IE_NAME = 'EllenTV:clips'
     _VALID_URL = r'https?://(?:www\.)?ellentv\.com/episodes/(?P<id>[a-z0-9_-]+)'
     _TEST = {
         'url': 'http://www.ellentv.com/episodes/meryl-streep-vanessa-hudgens/',
-        'md5': 'TODO: md5 sum of the first 10KiB of the video file',
         'info_dict': {
-            'id': '0_wf6pizq7',
-            'ext': 'mp4',
-            'title': 'Video title goes here',
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
-        }
+            'id': 'meryl-streep-vanessa-hudgens',
+            'title': 'Meryl Streep, Vanessa Hudgens',
+        },
+        'playlist_mincount': 9,
     }
 
     def _real_extract(self, url):
@@ -76,4 +76,4 @@ class EllenTVClipsIE(InfoExtractor):
             raise ExtractorError('Failed to download JSON', cause=ve)
 
     def _extract_entries(self, playlist):
-        return [self.url_result(item[u'url'], 'EllenTV') for item in playlist]
+        return [self.url_result(item['url'], 'EllenTV') for item in playlist]
