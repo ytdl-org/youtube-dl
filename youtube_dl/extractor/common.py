@@ -463,8 +463,9 @@ class InfoExtractor(object):
         return self._og_search_property('title', html, **kargs)
 
     def _og_search_video_url(self, html, name='video url', secure=True, **kargs):
-        regexes = self._og_regexes('video')
-        if secure: regexes = self._og_regexes('video:secure_url') + regexes
+        regexes = self._og_regexes('video') + self._og_regexes('video:url')
+        if secure:
+            regexes = self._og_regexes('video:secure_url') + regexes
         return self._html_search_regex(regexes, html, name, **kargs)
 
     def _og_search_url(self, html, **kargs):
