@@ -69,6 +69,7 @@ from .dfb import DFBIE
 from .dotsub import DotsubIE
 from .dreisat import DreiSatIE
 from .drtv import DRTVIE
+from .dump import DumpIE
 from .defense import DefenseGouvFrIE
 from .discovery import DiscoveryIE
 from .divxstage import DivxStageIE
