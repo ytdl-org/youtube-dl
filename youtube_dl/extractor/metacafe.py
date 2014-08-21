@@ -152,10 +152,9 @@ class MetacafeIE(InfoExtractor):
                 video_url = mobj.group(1)
                 video_ext = 'mp4'
             else:
-                mobj = re.search(r' name="flashvars" value="(.*?)"', webpage)
-                if mobj is None:
-                    raise ExtractorError('Unable to extract media URL')
-                vardict = compat_parse_qs(mobj.group(1))
+                flashvars = self._search_regex(
+                    r' name="flashvars" value="(.*?)"', webpage, 'flashvars')
+                vardict = compat_parse_qs(flashvars)
                 if 'mediaData' not in vardict:
                     raise ExtractorError('Unable to extract media URL')
                 mobj = re.search(
@@ -166,7 +165,8 @@ class MetacafeIE(InfoExtractor):
                 video_url = '%s?__gda__=%s' % (mediaURL, mobj.group('key'))
                 video_ext = determine_ext(video_url)
 
-        video_title = self._html_search_regex(r'(?im)<title>(.*) - Video</title>', webpage, 'title')
+        video_title = self._html_search_regex(
+            r'(?im)<title>(.*) - Video</title>', webpage, 'title')
         description = self._og_search_description(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
         video_uploader = self._html_search_regex(
@@ -184,7 +184,7 @@ class MetacafeIE(InfoExtractor):
             'description': description,
             'uploader': video_uploader,
             'title': video_title,
-            'thumbnail':thumbnail,
+            'thumbnail': thumbnail,
             'ext': video_ext,
             'age_limit': age_limit,
         }
