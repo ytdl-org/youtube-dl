@@ -1,6 +1,17 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+## DEPRECATED FILE!
+# Add new tests to the extractors themselves, like this:
+# _TEST = {
+#    'url': 'http://example.com/playlist/42',
+#    'playlist_mincount': 99,
+#    'info_dict': {
+#        'id': '42',
+#        'title': 'Playlist number forty-two',
+#    }
+# }
+
 from __future__ import unicode_literals
 
 # Allow direct execution
