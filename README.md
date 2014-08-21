@@ -453,34 +453,7 @@ If you want to add support for a new site, you can follow this quick list (assum
     ```
 5. Add an import in [`youtube_dl/extractor/__init__.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/__init__.py).
 6. Run `python test/test_download.py TestDownload.test_YourExtractor`. This *should fail* at first, but you can continually re-run it until you're done.
-    * If you decide to add more than one test, then rename the ``_TEST`` variable to ``_TESTS`` and make it into a list of dictionaries, like the example below. The tests will be then respectfully be named `TestDownload.test_YourExtractor`, `TestDownload.test_YourExtractor_1`, `TestDownload.test_YourExtractor_2`, etc.
-    ```python
-    _TESTS = [
-        {
-            'url': 'http://yourextractor.com/watch/42',
-            'md5': 'TODO: md5 sum of the first 10KiB of the video file',
-            'info_dict': {
-                'id': '42',
-                'ext': 'mp4',
-                'title': 'Video title goes here',
-                # TODO more properties, either as:
-                # * A value
-                # * MD5 checksum; start the string with md5:
-                # * A regular expression; start the string with re:
-                # * Any Python type (for example int or float)
-            }
-        },
-        {
-            'url': 'http://yourextractor.com/watch/43',
-            'md5': 'TODO: md5 sum of the first 10KiB of the video file',
-            'info_dict': {
-                'id': '43',
-                'ext': 'mp4',
-                'title': 'Video title goes here',
-            }
-        }
-    ]
-    ```
+    * If you decide to add more than one test, then rename the ``_TEST`` variable to ``_TESTS`` and make it into a list of dictionaries. The tests will be then be named `TestDownload.test_YourExtractor`, `TestDownload.test_YourExtractor_1`, `TestDownload.test_YourExtractor_2`, etc.
 7. Have a look at [`youtube_dl/common/extractor/common.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py) for possible helper methods and a [detailed description of what your extractor should return](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L38). Add tests and code for as many as you want.
 8. If you can, check the code with [pyflakes](https://pypi.python.org/pypi/pyflakes) (a good idea) and [pep8](https://pypi.python.org/pypi/pep8) (optional, ignore E501).
 9. When the tests pass, [add](https://www.kernel.org/pub/software/scm/git/docs/git-add.html) the new files and [commit](https://www.kernel.org/pub/software/scm/git/docs/git-commit.html) them and [push](https://www.kernel.org/pub/software/scm/git/docs/git-push.html) the result, like this:
