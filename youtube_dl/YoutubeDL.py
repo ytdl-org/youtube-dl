@@ -162,6 +162,7 @@ class YoutubeDL(object):
     default_search:    Prepend this string if an input url is not valid.
                        'auto' for elaborate guessing
     encoding:          Use this encoding instead of the system-specified.
+    extract_flat:      Do not resolve URLs, return the immediate result.
 
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:
@@ -558,7 +559,12 @@ class YoutubeDL(object):
         Returns the resolved ie_result.
         """
 
-        result_type = ie_result.get('_type', 'video') # If not given we suppose it's a video, support the default old system
+        result_type = ie_result.get('_type', 'video')
+
+        if self.params.get('extract_flat', False):
+            if result_type in ('url', 'url_transparent'):
+                return ie_result
+
         if result_type == 'video':
             self.add_extra_info(ie_result, extra_info)
             return self.process_video_result(ie_result, download=download)

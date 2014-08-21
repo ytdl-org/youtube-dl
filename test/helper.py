@@ -117,8 +117,9 @@ def expect_info_dict(self, expected_dict, got_dict):
                 u'invalid value for field %s, expected %r, got %r' % (info_field, expected, got))
 
     # Check for the presence of mandatory fields
-    for key in ('id', 'url', 'title', 'ext'):
-        self.assertTrue(got_dict.get(key), 'Missing mandatory field %s' % key)
+    if got_dict.get('_type') != 'playlist':
+        for key in ('id', 'url', 'title', 'ext'):
+            self.assertTrue(got_dict.get(key), 'Missing mandatory field %s' % key)
     # Check for mandatory fields that are automatically set by YoutubeDL
     for key in ['webpage_url', 'extractor', 'extractor_key']:
         self.assertTrue(got_dict.get(key), u'Missing field: %s' % key)

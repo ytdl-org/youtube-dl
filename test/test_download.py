@@ -63,15 +63,21 @@ def generator(test_case):
     def test_template(self):
         ie = youtube_dl.extractor.get_info_extractor(test_case['name'])
         other_ies = [get_info_extractor(ie_key) for ie_key in test_case.get('add_ie', [])]
+        is_playlist = any(k.startswith('playlist') for k in test_case)
+        test_cases = test_case.get(
+            'playlist', [] if is_playlist else [test_case])
+
         def print_skipping(reason):
             print('Skipping %s: %s' % (test_case['name'], reason))
         if not ie.working():
             print_skipping('IE marked as not _WORKING')
             return
-        if 'playlist' not in test_case:
-            info_dict = test_case.get('info_dict', {})
-            if not test_case.get('file') and not (info_dict.get('id') and info_dict.get('ext')):
+
+        for tc in test_cases:
+            info_dict = tc.get('info_dict', {})
+            if not tc.get('file') and not (info_dict.get('id') and info_dict.get('ext')):
                 raise Exception('Test definition incorrect. The output file cannot be known. Are both \'id\' and \'ext\' keys present?')
+
         if 'skip' in test_case:
             print_skipping(test_case['skip'])
             return
@@ -81,6 +87,9 @@ def generator(test_case):
                 return
 
         params = get_params(test_case.get('params', {}))
+        if is_playlist and 'playlist' not in test_case:
+            params.setdefault('extract_flat', True)
+            params.setdefault('skip_download', True)
 
         ydl = YoutubeDL(params)
         ydl.add_default_info_extractors()
@@ -93,7 +102,6 @@ def generator(test_case):
         def get_tc_filename(tc):
             return tc.get('file') or ydl.prepare_filename(tc.get('info_dict', {}))
 
-        test_cases = test_case.get('playlist', [test_case])
         def try_rm_tcs_files():
             for tc in test_cases:
                 tc_filename = get_tc_filename(tc)
@@ -105,7 +113,10 @@ def generator(test_case):
             try_num = 1
             while True:
                 try:
-                    ydl.download([test_case['url']])
+                    # We're not using .download here sine that is just a shim
+                    # for outside error handling, and returns the exit code
+                    # instead of the result dict.
+                    res_dict = ydl.extract_info(test_case['url'])
                 except (DownloadError, ExtractorError) as err:
                     # Check if the exception is not a network related one
                     if not err.exc_info[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError, compat_http_client.BadStatusLine) or (err.exc_info[0] == compat_HTTPError and err.exc_info[1].code == 503):
@@ -120,6 +131,17 @@ def generator(test_case):
                     try_num += 1
                 else:
                     break
+
+            if is_playlist:
+                self.assertEqual(res_dict['_type'], 'playlist')
+                expect_info_dict(self, test_case.get('info_dict', {}), res_dict)
+            if 'playlist_mincount' in test_case:
+                self.assertGreaterEqual(
+                    len(res_dict['entries']),
+                    test_case['playlist_mincount'],
+                    'Expected at least %d in playlist %s, but got only %d' % (
+                        test_case['playlist_mincount'], test_case['url'],
+                        len(res_dict['entries'])))
 
             for tc in test_cases:
                 tc_filename = get_tc_filename(tc)
