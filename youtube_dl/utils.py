@@ -233,18 +233,24 @@ else:
 def write_json_file(obj, fn):
     """ Encode obj as JSON and write it to fn, atomically """
 
+    args = {
+        'suffix': '.tmp',
+        'prefix': os.path.basename(fn) + '.',
+        'dir': os.path.dirname(fn),
+        'delete': False,
+    }
+
     # In Python 2.x, json.dump expects a bytestream.
     # In Python 3.x, it writes to a character stream
     if sys.version_info < (3, 0):
-        mode = 'wb'
-        encoding = None
+        args['mode'] = 'wb'
     else:
-        mode = 'w'
-        encoding = 'utf-8'
-    tf = tempfile.NamedTemporaryFile(
-        suffix='.tmp', prefix=os.path.basename(fn) + '.',
-        dir=os.path.dirname(fn),
-        delete=False)
+        args.update({
+            'mode': 'w',
+            'encoding': 'utf-8',
+        })
+
+    tf = tempfile.NamedTemporaryFile(**args)
 
     try:
         with tf:
