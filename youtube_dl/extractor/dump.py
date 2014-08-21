@@ -11,6 +11,15 @@ from ..utils import (
 class DumpIE(InfoExtractor):
     _VALID_URL = r'^https?://(?:www\.)?dump\.com/(?P<id>[a-zA-Z0-9]+)/'
 
+    _TEST = {
+        u'url': u'http://www.dump.com/oneus/',
+        u'file': u'oneus.flv',
+        u'md5': u'ad71704d1e67dfd9e81e3e8b42d69d99',
+        u'info_dict': {
+            u"title": u"He's one of us.",
+        },
+    }
+
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
         video_id = m.group('id')
