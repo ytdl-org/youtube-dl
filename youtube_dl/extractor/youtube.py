@@ -508,6 +508,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         sub_lang_list = {}
         for l in lang_list:
             lang = l[1]
+            if lang in sub_lang_list:
+                continue
             params = compat_urllib_parse.urlencode({
                 'lang': lang,
                 'v': video_id,
