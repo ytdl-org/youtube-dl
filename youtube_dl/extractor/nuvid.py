@@ -38,7 +38,7 @@ class NuvidIE(InfoExtractor):
             webpage = self._download_webpage(
                 request, video_id, 'Downloading %s page' % format_id)
             video_url = self._html_search_regex(
-                r'<a href="([^"]+)"\s*>Continue to watch video', webpage, '%s video URL' % format_id, fatal=False)
+                r'<a\s+href="([^"]+)"\s+class="b_link">', webpage, '%s video URL' % format_id, fatal=False)
             if not video_url:
                 continue
             formats.append({
@@ -49,19 +49,24 @@ class NuvidIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://m.nuvid.com/video/%s' % video_id, video_id, 'Downloading video page')
         title = self._html_search_regex(
-            r'<div class="title">\s+<h2[^>]*>([^<]+)</h2>', webpage, 'title').strip()
-        thumbnail = self._html_search_regex(
-            r'href="(/thumbs/[^"]+)"[^>]*data-link_type="thumbs"',
-            webpage, 'thumbnail URL', fatal=False)
+            [r'<span title="([^"]+)">',
+             r'<div class="thumb-holder video">\s*<h5[^>]*>([^<]+)</h5>'], webpage, 'title').strip()
+        thumbnails = [
+            {
+                'url': thumb_url,
+            } for thumb_url in re.findall(r'<img src="([^"]+)" alt="" />', webpage)
+        ]
+        thumbnail = thumbnails[0]['url'] if thumbnails else None
         duration = parse_duration(self._html_search_regex(
-            r'Length:\s*<span>(\d{2}:\d{2})</span>',webpage, 'duration', fatal=False))
+            r'<i class="fa fa-clock-o"></i>\s*(\d{2}:\d{2})', webpage, 'duration', fatal=False))
         upload_date = unified_strdate(self._html_search_regex(
-            r'Added:\s*<span>(\d{4}-\d{2}-\d{2})</span>', webpage, 'upload date', fatal=False))
+            r'<i class="fa fa-user"></i>\s*(\d{4}-\d{2}-\d{2})', webpage, 'upload date', fatal=False))
 
         return {
             'id': video_id,
             'title': title,
-            'thumbnail': 'http://m.nuvid.com%s' % thumbnail,
+            'thumbnails': thumbnails,
+            'thumbnail': thumbnail,
             'duration': duration,
             'upload_date': upload_date,
             'age_limit': 18,
