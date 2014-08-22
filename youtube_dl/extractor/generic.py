@@ -289,6 +289,20 @@ class GenericIE(InfoExtractor):
                 'description': 'Mario\'s life in the fast lane has never looked so good.',
             },
         },
+        # YouTube embed via <data-embed-url="">
+        {
+            'url': 'https://play.google.com/store/apps/details?id=com.gameloft.android.ANMP.GloftA8HM',
+            'md5': 'c267b1ab6d736057d64babaa37e07a66',
+            'info_dict': {
+                'id': 'Ybd-qmqYYpA',
+                'ext': 'mp4',
+                'title': 'Asphalt 8: Airborne -  Chinese Great Wall - Android Game Trailer',
+                'uploader': 'gameloftandroid',
+                'uploader_id': 'gameloftandroid',
+                'upload_date': '20140321',
+                'description': 'md5:9c6dca5dd75b7131ce482ccf080749d6'
+            }
+        }
     ]
 
     def report_download_webpage(self, video_id):
@@ -514,6 +528,7 @@ class GenericIE(InfoExtractor):
         matches = re.findall(r'''(?x)
             (?:
                 <iframe[^>]+?src=|
+                data-video-url=|
                 <embed[^>]+?src=|
                 embedSWF\(?:\s*
             )
@@ -524,6 +539,14 @@ class GenericIE(InfoExtractor):
         if matches:
             urlrs = [self.url_result(unescapeHTML(tuppl[1]), 'Youtube')
                      for tuppl in matches]
+            # First, ensure we have a duplicate free list of entries
+            seen = set()
+            new_list = []
+            theurl = tuple(url.items())
+            if theurl not in seen:
+                seen.add(theurl)
+                new_list.append(url)
+                urlrs = new_list
             return self.playlist_result(
                 urlrs, playlist_id=video_id, playlist_title=video_title)
 
@@ -533,6 +556,14 @@ class GenericIE(InfoExtractor):
         if matches:
             urlrs = [self.url_result(unescapeHTML(tuppl[1]))
                      for tuppl in matches]
+            # First, ensure we have a duplicate free list of entries
+            seen = set()
+            new_list = []
+            theurl = tuple(url.items())
+            if theurl not in seen:
+                seen.add(theurl)
+                new_list.append(url)
+                urlrs = new_list
             return self.playlist_result(
                 urlrs, playlist_id=video_id, playlist_title=video_title)
 
@@ -650,6 +681,14 @@ class GenericIE(InfoExtractor):
         if matches:
             urlrs = [self.url_result(unescapeHTML(eurl), 'FunnyOrDie')
                      for eurl in matches]
+            # First, ensure we have a duplicate free list of entries
+            seen = set()
+            new_list = []
+            theurl = tuple(url.items())
+            if theurl not in seen:
+                seen.add(theurl)
+                new_list.append(url)
+                urlrs = new_list
             return self.playlist_result(
                 urlrs, playlist_id=video_id, playlist_title=video_title)
 
