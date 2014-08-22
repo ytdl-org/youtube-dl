@@ -1,81 +1,19 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
+import json
 import re
 
 from .common import InfoExtractor
 from ..utils import (
-    ExtractorError,
-    compat_html_parser,
-    #compat_urllib_request,
-    #compat_urllib_parse,
+    compat_urlparse,
+    js_to_json,
 )
 
 
-class PatreonHTMLParser(compat_html_parser.HTMLParser):
-    _PREFIX = 'http://www.patreon.com'
-    _ATTACH_TAGS = 5 * ['div']
-    _ATTACH_CLASSES = [
-        'fancyboxhidden', 'box photo', 'boxwrapper',
-        'hiddendisplay shareinfo', 'attach'
-    ]
-    _INFO_TAGS = 4 * ['div']
-    _INFO_CLASSES = [
-        'fancyboxhidden', 'box photo', 'boxwrapper',
-        'hiddendisplay shareinfo'
-    ]
-
-    def _match(self, attrs_classes, desired):
-        if attrs_classes == desired:
-            return True
-        elif len(attrs_classes) == len(desired):
-            return all(
-                x.startswith(y)
-                for x, y in zip(attrs_classes, desired)
-            )
-        return False
-
-    def get_creation_info(self, html_data):
-        self.tag_stack = []
-        self.attrs_stack = []
-        self.creation_info = {}
-        self.feed(html_data)
-
-    def handle_starttag(self, tag, attrs):
-        self.tag_stack.append(tag.lower())
-        self.attrs_stack.append(dict(attrs))
-
-    def handle_endtag(self, tag):
-        self.tag_stack.pop()
-        self.attrs_stack.pop()
-
-    def handle_data(self, data):
-        # Check first if this is a creation attachment
-        if self.tag_stack[-6:-1] == self._ATTACH_TAGS:
-            attrs_classes = [
-                x.get('class', '').lower() for x in self.attrs_stack[-6:-1]
-            ]
-            if self._match(attrs_classes, self._ATTACH_CLASSES):
-                if self.tag_stack[-1] == 'a':
-                    url = self._PREFIX + self.attrs_stack[-1].get('href')
-                    self.creation_info['url'] = url
-                    if '.' in data:
-                        self.creation_info['ext'] = data.rsplit('.')[-1]
-        # Next, check if this is within the div containing the creation info
-        if self.tag_stack[-5:-1] == self._INFO_TAGS:
-            attrs_classes = [
-                x.get('class', '').lower() for x in self.attrs_stack[-5:-1]
-            ]
-            if self._match(attrs_classes, self._INFO_CLASSES):
-                if self.attrs_stack[-1].get('class') == 'utitle':
-                    self.creation_info['title'] = data.strip()
-
-
 class PatreonIE(InfoExtractor):
-    IE_NAME = 'patreon'
     _VALID_URL = r'https?://(?:www\.)?patreon\.com/creation\?hid=(.+)'
     _TESTS = [
-        # CSS names with "double" in the name, i.e. "boxwrapper double"
         {
             'url': 'http://www.patreon.com/creation?hid=743933',
             'md5': 'e25505eec1053a6e6813b8ed369875cc',
@@ -84,6 +22,7 @@ class PatreonIE(InfoExtractor):
                 'ext': 'mp3',
                 'title': 'Episode 166: David Smalley of Dogma Debate',
                 'uploader': 'Cognitive Dissonance Podcast',
+                'thumbnail': 're:^https?://.*$',
             },
         },
         {
@@ -94,6 +33,7 @@ class PatreonIE(InfoExtractor):
                 'ext': 'mp3',
                 'title': 'CD 167 Extra',
                 'uploader': 'Cognitive Dissonance Podcast',
+                'thumbnail': 're:^https?://.*$',
             },
         },
     ]
@@ -129,19 +69,33 @@ class PatreonIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group(1)
 
-        info_page = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(url, video_id)
+        title = self._og_search_title(webpage).strip()
 
-        ret = {'id': video_id}
-        try:
-            ret['uploader'] = re.search(
-                r'<strong>(.+)</strong> is creating', info_page
-            ).group(1)
-        except AttributeError:
-            pass
+        attach_fn = self._html_search_regex(
+            r'<div class="attach"><a target="_blank" href="([^"]+)">',
+            webpage, 'attachment URL', default=None)
+        if attach_fn is not None:
+            video_url = 'http://www.patreon.com' + attach_fn
+            thumbnail = self._og_search_thumbnail(webpage)
+            uploader = self._html_search_regex(
+                r'<strong>(.*?)</strong> is creating', webpage, 'uploader')
+        else:
+            playlist_js = self._search_regex(
+                r'(?s)new\s+jPlayerPlaylist\(\s*\{\s*[^}]*},\s*(\[.*?,?\s*\])',
+                webpage, 'playlist JSON')
+            playlist_json = js_to_json(playlist_js)
+            playlist = json.loads(playlist_json)
+            data = playlist[0]
+            video_url = self._proto_relative_url(data['mp3'])
+            thumbnail = self._proto_relative_url(data.get('cover'))
+            uploader = data.get('artist')
 
-        parser = PatreonHTMLParser()
-        parser.get_creation_info(info_page)
-        if not parser.creation_info.get('url'):
-            raise ExtractorError('Unable to retrieve creation URL')
-        ret.update(parser.creation_info)
-        return ret
+        return {
+            'id': video_id,
+            'url': video_url,
+            'ext': 'mp3',
+            'title': title,
+            'uploader': uploader,
+            'thumbnail': thumbnail,
+        }
