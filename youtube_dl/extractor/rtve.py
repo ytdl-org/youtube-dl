@@ -100,7 +100,7 @@ class RTVEALaCartaIE(InfoExtractor):
 class RTVELiveIE(InfoExtractor):
     IE_NAME = 'rtve.es:live'
     IE_DESC = 'RTVE.es live streams'
-    _VALID_URL = r'http://www\.rtve\.es/(?:deportes/directo|noticias(?=/directo-la-1)|television)/(?P<id>[a-zA-Z0-9-]+)'
+    _VALID_URL = r'http://www\.rtve\.es/(?:deportes/directo|noticias|television)/(?P<id>[a-zA-Z0-9-]+)'
 
     _TESTS = [{
         'url': 'http://www.rtve.es/noticias/directo-la-1/',
@@ -130,8 +130,6 @@ class RTVELiveIE(InfoExtractor):
         png_url = 'http://www.rtve.es/ztnr/movil/thumbnail/default/videos/%s.png' % vidplayer_id
         png = self._download_webpage(png_url, video_id, 'Downloading url information')
         video_url = _decrypt_url(png)
-
-        print(video_url)
 
         return {
             'id': video_id,
