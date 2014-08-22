@@ -14,7 +14,7 @@ from ..utils import (
 
 class XHamsterIE(InfoExtractor):
     """Information Extractor for xHamster"""
-    _VALID_URL = r'http://(?:www\.)?xhamster\.com/movies/(?P<id>[0-9]+)/(?P<seo>.+?)\.html(?:\?.*)?'
+    _VALID_URL = r'http://(?:.+?\.)?xhamster\.com/movies/(?P<id>[0-9]+)/(?P<seo>.+?)\.html(?:\?.*)?'
     _TESTS = [
         {
             'url': 'http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html',
