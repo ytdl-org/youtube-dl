@@ -429,6 +429,7 @@ If you want to add support for a new site, you can follow this quick list (assum
                 'id': '42',
                 'ext': 'mp4',
                 'title': 'Video title goes here',
+                'thumbnail': 're:^https?://.*\.jpg$',
                 # TODO more properties, either as:
                 # * A value
                 # * MD5 checksum; start the string with md5:
