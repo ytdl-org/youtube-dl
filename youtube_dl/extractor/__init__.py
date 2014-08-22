@@ -243,6 +243,7 @@ from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
 from .photobucket import PhotobucketIE
+from .playfm import PlayFMIE
 from .playvid import PlayvidIE
 from .podomatic import PodomaticIE
 from .pornhd import PornHdIE
