@@ -71,8 +71,12 @@ __authors__  = (
     'Sebastian Haas',
     'Alexander Kirk',
     'Erik Johnson',
+<<<<<<< HEAD
     'Keith Beckman',
     'Ole Ernst',
+=======
+    'Aaron McDaniel (mcd1992)',
+>>>>>>> Implemented --exec option.
 )
 
 __license__ = 'Public Domain'
@@ -119,6 +123,7 @@ from .postprocessor import (
     FFmpegExtractAudioPP,
     FFmpegEmbedSubtitlePP,
     XAttrMetadataPP,
+    ExecAfterDownload,
 )
 
 
@@ -550,7 +555,8 @@ def parseOpts(overrideArguments=None):
         help='Prefer avconv over ffmpeg for running the postprocessors (default)')
     postproc.add_option('--prefer-ffmpeg', action='store_true', dest='prefer_ffmpeg',
         help='Prefer ffmpeg over avconv for running the postprocessors')
-
+    postproc.add_option('--exec', metavar='', action='store', dest='execstring',
+        help='Execute a command on the file after downloading, similar to find\'s -exec syntax. Must be enclosed in quotes. Example: --exec \'adb push {} /sdcard/Music/ && rm {}\'' )
 
     parser.add_option_group(general)
     parser.add_option_group(selection)
@@ -831,6 +837,7 @@ def _real_main(argv=None):
         'default_search': opts.default_search,
         'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,
         'encoding': opts.encoding,
+        'execstring': opts.execstring,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
@@ -853,6 +860,12 @@ def _real_main(argv=None):
             if not opts.addmetadata:
                 ydl.add_post_processor(FFmpegAudioFixPP())
             ydl.add_post_processor(AtomicParsleyPP())
+
+
+        # Please keep ExecAfterDownload towards the bottom as it allows the user to modify the final file in any way.
+        # So if the user is able to remove the file before your postprocessor runs it might cause a few problems.
+        if opts.execstring:
+            ydl.add_post_processor(ExecAfterDownload(commandString=opts.execstring))
 
         # Update version
         if opts.update_self:
