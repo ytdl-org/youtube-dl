@@ -16,6 +16,7 @@ from ..utils import (
 
     ExtractorError,
     HEADRequest,
+    orderedSet,
     parse_xml,
     smuggle_url,
     unescapeHTML,
@@ -292,15 +293,17 @@ class GenericIE(InfoExtractor):
         # YouTube embed via <data-embed-url="">
         {
             'url': 'https://play.google.com/store/apps/details?id=com.gameloft.android.ANMP.GloftA8HM',
-            'md5': 'c267b1ab6d736057d64babaa37e07a66',
             'info_dict': {
-                'id': 'Ybd-qmqYYpA',
+                'id': 'jpSGZsgga_I',
                 'ext': 'mp4',
-                'title': 'Asphalt 8: Airborne -  Chinese Great Wall - Android Game Trailer',
-                'uploader': 'gameloftandroid',
-                'uploader_id': 'gameloftandroid',
-                'upload_date': '20140321',
-                'description': 'md5:9c6dca5dd75b7131ce482ccf080749d6'
+                'title': 'Asphalt 8: Airborne - Launch Trailer',
+                'uploader': 'Gameloft',
+                'uploader_id': 'gameloft',
+                'upload_date': '20130821',
+                'description': 'md5:87bd95f13d8be3e7da87a5f2c443106a',
+            },
+            'params': {
+                'skip_download': True,
             }
         }
     ]
@@ -493,6 +496,12 @@ class GenericIE(InfoExtractor):
         video_uploader = self._search_regex(
             r'^(?:https?://)?([^/]*)/.*', url, 'video uploader')
 
+        # Helper method
+        def _playlist_from_matches(matches, getter, ie=None):
+            urlrs = orderedSet(self.url_result(getter(m), ie) for m in matches)
+            return self.playlist_result(
+                urlrs, playlist_id=video_id, playlist_title=video_title)
+
         # Look for BrightCove:
         bc_urls = BrightcoveIE._extract_brightcove_urls(webpage)
         if bc_urls:
@@ -537,35 +546,15 @@ class GenericIE(InfoExtractor):
                 (?:embed|v)/.+?)
             \1''', webpage)
         if matches:
-            urlrs = [self.url_result(unescapeHTML(tuppl[1]), 'Youtube')
-                     for tuppl in matches]
-            # First, ensure we have a duplicate free list of entries
-            seen = set()
-            new_list = []
-            theurl = tuple(url.items())
-            if theurl not in seen:
-                seen.add(theurl)
-                new_list.append(url)
-                urlrs = new_list
-            return self.playlist_result(
-                urlrs, playlist_id=video_id, playlist_title=video_title)
+            return _playlist_from_matches(
+                matches, lambda m: unescapeHTML(m[1]), ie='Youtube')
 
         # Look for embedded Dailymotion player
         matches = re.findall(
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/embed/video/.+?)\1', webpage)
         if matches:
-            urlrs = [self.url_result(unescapeHTML(tuppl[1]))
-                     for tuppl in matches]
-            # First, ensure we have a duplicate free list of entries
-            seen = set()
-            new_list = []
-            theurl = tuple(url.items())
-            if theurl not in seen:
-                seen.add(theurl)
-                new_list.append(url)
-                urlrs = new_list
-            return self.playlist_result(
-                urlrs, playlist_id=video_id, playlist_title=video_title)
+            return _playlist_from_matches(
+                matches, lambda m: unescapeHTML(m[1]))
 
         # Look for embedded Wistia player
         match = re.search(
@@ -679,18 +668,8 @@ class GenericIE(InfoExtractor):
         # Look for funnyordie embed
         matches = re.findall(r'<iframe[^>]+?src="(https?://(?:www\.)?funnyordie\.com/embed/[^"]+)"', webpage)
         if matches:
-            urlrs = [self.url_result(unescapeHTML(eurl), 'FunnyOrDie')
-                     for eurl in matches]
-            # First, ensure we have a duplicate free list of entries
-            seen = set()
-            new_list = []
-            theurl = tuple(url.items())
-            if theurl not in seen:
-                seen.add(theurl)
-                new_list.append(url)
-                urlrs = new_list
-            return self.playlist_result(
-                urlrs, playlist_id=video_id, playlist_title=video_title)
+            return _playlist_from_matches(
+                matches, getter=unescapeHTML, ie='FunnyOrDie')
 
         # Look for embedded RUTV player
         rutv_url = RUTVIE._extract_url(webpage)
