@@ -1285,6 +1285,12 @@ def remove_start(s, start):
     return s
 
 
+def remove_end(s, end):
+    if s.endswith(end):
+        return s[:-len(end)]
+    return s
+
+
 def url_basename(url):
     path = compat_urlparse.urlparse(url).path
     return path.strip(u'/').split(u'/')[-1]

@@ -264,7 +264,7 @@ from .rtbf import RTBFIE
 from .rtlnl import RtlXlIE
 from .rtlnow import RTLnowIE
 from .rts import RTSIE
-from .rtve import RTVEALaCartaIE
+from .rtve import RTVEALaCartaIE, RTVELiveIE
 from .ruhd import RUHDIE
 from .rutube import (
     RutubeIE,
