@@ -54,6 +54,18 @@ class PBSIE(InfoExtractor):
                 'duration': 801,
             },
         },
+        {
+            'url': 'http://www.pbs.org/wnet/gperf/dudamel-conducts-verdi-requiem-hollywood-bowl-full-episode/3374/',
+            'md5': 'c62859342be2a0358d6c9eb306595978',
+            'info_dict': {
+                'id': '2365297708',
+                'ext': 'mp4',
+                'description': 'md5:68d87ef760660eb564455eb30ca464fe',
+                'title': 'Dudamel Conducts Verdi Requiem at the Hollywood Bowl - Full',
+                'duration': 6559,
+                'thumbnail': 're:^https?://.*\.jpg$',
+            }
+        }
     ]
 
     def _extract_ids(self, url):
@@ -75,7 +87,7 @@ class PBSIE(InfoExtractor):
                 return media_id, presumptive_id
 
             url = self._search_regex(
-                r'<iframe\s+id=["\']partnerPlayer["\'].*?\s+src=["\'](.*?)["\']>',
+                r'<iframe\s+(?:class|id)=["\']partnerPlayer["\'].*?\s+src=["\'](.*?)["\']>',
                 webpage, 'player URL')
             mobj = re.match(self._VALID_URL, url)
 
