@@ -70,6 +70,7 @@ __authors__  = (
     'David Fabijan',
     'Sebastian Haas',
     'Alexander Kirk',
+    'Erik Johnson',
 )
 
 __license__ = 'Public Domain'
