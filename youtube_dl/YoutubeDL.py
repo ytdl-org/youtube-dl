@@ -480,7 +480,10 @@ class YoutubeDL(object):
                 return 'Skipping %s, because it has exceeded the maximum view count (%d/%d)' % (video_title, view_count, max_views)
         age_limit = self.params.get('age_limit')
         if age_limit is not None:
-            if age_limit < info_dict.get('age_limit', 0):
+            actual_age_limit = info_dict.get('age_limit')
+            if actual_age_limit is None:
+                actual_age_limit = 0
+            if age_limit < actual_age_limit:
                 return 'Skipping "' + title + '" because it is age restricted'
         if self.in_download_archive(info_dict):
             return '%s has already been recorded in archive' % video_title
