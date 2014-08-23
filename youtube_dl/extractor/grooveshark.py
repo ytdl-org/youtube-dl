@@ -47,7 +47,7 @@ class GroovesharkIE(InfoExtractor):
     _VALID_URL = r'https?://(www\.)?grooveshark\.com/#!/s/([^/]+)/([^/]+)'
     _TEST = {
         'url': 'http://grooveshark.com/#!/s/Jolene+Tenth+Key+Remix+Ft+Will+Sessions/6SS1DW?src=5',
-        'md5': 'bbccc50b19daca23b8f961152c1dc95b',
+        'md5': '7ecf8aefa59d6b2098517e1baa530023',
         'info_dict': {
             'id': '6SS1DW',
             'title': 'Jolene (Tenth Key Remix ft. Will Sessions)',
@@ -122,7 +122,6 @@ class GroovesharkIE(InfoExtractor):
 
     def _get_playerpage(self, target):
         (_, _, token) = self._parse_target(target)
-
 
         webpage = self._download_webpage(
             target, token,
