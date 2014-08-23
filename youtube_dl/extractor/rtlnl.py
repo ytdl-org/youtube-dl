@@ -35,7 +35,6 @@ class RtlXlIE(InfoExtractor):
         info = self._download_json(
             'http://www.rtl.nl/system/s4m/vfd/version=2/uuid=%s/fmt=flash/' % uuid,
             uuid)
-        meta = info['meta']
         material = info['material'][0]
         episode_info = info['episodes'][0]
 
