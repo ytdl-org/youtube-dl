@@ -276,6 +276,7 @@ from .rutube import (
 from .rutv import RUTVIE
 from .sapo import SapoIE
 from .savefrom import SaveFromIE
+from .sbs import SBSIE
 from .scivee import SciVeeIE
 from .screencast import ScreencastIE
 from .servingsys import ServingSysIE
