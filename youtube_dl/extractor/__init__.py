@@ -126,6 +126,7 @@ from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
 from .gorillavid import GorillaVidIE
 from .goshgay import GoshgayIE
+from .grooveshark import GroovesharkIE
 from .hark import HarkIE
 from .helsinki import HelsinkiIE
 from .hentaistigma import HentaiStigmaIE

@@ -71,6 +71,7 @@ __authors__  = (
     'Sebastian Haas',
     'Alexander Kirk',
     'Erik Johnson',
+    'Keith Beckman',
 )
 
 __license__ = 'Public Domain'
