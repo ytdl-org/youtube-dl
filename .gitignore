@@ -26,5 +26,6 @@ updates_key.pem
 *.m4a
 *.m4v
 *.part
+*.swp
 test/testdata
 .tox

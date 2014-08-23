@@ -123,7 +123,7 @@ from .postprocessor import (
     FFmpegExtractAudioPP,
     FFmpegEmbedSubtitlePP,
     XAttrMetadataPP,
-    ExecAfterDownload,
+    ExecAfterDownloadPP,
 )
 
 
@@ -865,7 +865,7 @@ def _real_main(argv=None):
         # Please keep ExecAfterDownload towards the bottom as it allows the user to modify the final file in any way.
         # So if the user is able to remove the file before your postprocessor runs it might cause a few problems.
         if opts.execstring:
-            ydl.add_post_processor(ExecAfterDownload(commandString=opts.execstring))
+            ydl.add_post_processor(ExecAfterDownloadPP(verboseOutput=opts.verbose,commandString=opts.execstring))
 
         # Update version
         if opts.update_self:
