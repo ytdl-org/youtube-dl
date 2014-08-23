@@ -12,7 +12,7 @@ from .common import InfoExtractor
 from ..utils import ExtractorError, compat_urllib_request, compat_html_parser
 
 from ..utils import compat_urlparse
-urlparse = compat_urlparse.urlparse
+
 urlunparse = compat_urlparse.urlunparse
 urldefrag = compat_urlparse.urldefrag
 
@@ -52,7 +52,7 @@ class GroovesharkIE(InfoExtractor):
             'id': '6SS1DW',
             'title': 'Jolene (Tenth Key Remix ft. Will Sessions)',
             'ext': 'mp3',
-            'duration': 227
+            'duration': 227,
         }
     }
 
@@ -60,7 +60,7 @@ class GroovesharkIE(InfoExtractor):
     do_bootstrap_request = True
 
     def _parse_target(self, target):
-        uri = urlparse(target)
+        uri = compat_urlparse.urlparse(target)
         hash = uri.fragment[1:].split('?')[0]
         token = basename(hash.rstrip('/'))
         return (uri, hash, token)
@@ -123,22 +123,36 @@ class GroovesharkIE(InfoExtractor):
     def _get_playerpage(self, target):
         (_, _, token) = self._parse_target(target)
 
-        res = self._download_webpage(
+
+        webpage = self._download_webpage(
             target, token,
             note='Downloading player page',
             errnote='Unable to download player page',
             fatal=False)
 
-        if res is not None:
-            o = GroovesharkHtmlParser.extract_object_tags(res)
-            return (res, [x for x in o if x['attrs']['id'] == 'jsPlayerEmbed'])
+        if webpage is not None:
+            # Search (for example German) error message
+            error_msg = self._html_search_regex(
+                r'<div id="content">\s*<h2>(.*?)</h2>', webpage,
+                'error message', default=None)
+            if error_msg is not None:
+                error_msg = error_msg.replace('\n', ' ')
+                raise ExtractorError('Grooveshark said: %s' % error_msg)
 
-        return (res, None)
+        if webpage is not None:
+            o = GroovesharkHtmlParser.extract_object_tags(webpage)
+            return (webpage, [x for x in o if x['attrs']['id'] == 'jsPlayerEmbed'])
+
+        return (webpage, None)
+
+    def _real_initialize(self):
+        self.ts = int(time.time() * 1000)  # timestamp in millis
 
     def _real_extract(self, url):
         (target_uri, _, token) = self._parse_target(url)
 
         # 1. Fill cookiejar by making a request to the player page
+        swf_referer = None
         if self.do_playerpage_request:
             (_, player_objs) = self._get_playerpage(url)
             if player_objs is not None:
@@ -162,11 +176,10 @@ class GroovesharkIE(InfoExtractor):
             'Content-Length': len(post_data),
             'Content-Type': 'application/x-www-form-urlencoded'
         }
-
-        if 'swf_referer' in locals():
+        if swf_referer is not None:
             headers['Referer'] = swf_referer
 
-        info_dict = {
+        return {
             'id': token,
             'title': meta['song']['Name'],
             'http_method': 'POST',
@@ -174,32 +187,6 @@ class GroovesharkIE(InfoExtractor):
             'ext': 'mp3',
             'format': 'mp3 audio',
             'duration': duration,
-
-            # various ways of supporting the download request.
-            # remove keys unnecessary to the eventual post implementation
-            'post_data': post_data,
-            'post_dict': post_dict,
-            'headers': headers
+            'http_post_data': post_data,
+            'http_headers': headers,
         }
-
-        if 'swf_referer' in locals():
-            info_dict['http_referer'] = swf_referer
-
-        return info_dict
-
-    def _real_initialize(self):
-        self.ts = int(time.time() * 1000)  # timestamp in millis
-
-    def _download_json(self, url_or_request, video_id,
-                       note=u'Downloading JSON metadata',
-                       errnote=u'Unable to download JSON metadata',
-                       fatal=True,
-                       transform_source=None):
-        try:
-            out = super(GroovesharkIE, self)._download_json(
-                url_or_request, video_id, note, errnote, transform_source)
-            return out
-        except ExtractorError as ee:
-            if fatal:
-                raise ee
-        return None

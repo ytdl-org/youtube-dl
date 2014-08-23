@@ -84,6 +84,12 @@ class InfoExtractor(object):
                                  format, irrespective of the file format.
                                  -1 for default (order by other properties),
                                  -2 or smaller for less than default.
+                    * http_referer  HTTP Referer header value to set.
+                    * http_method  HTTP method to use for the download.
+                    * http_headers  A dictionary of additional HTTP headers
+                                 to add to the request.
+                    * http_post_data  Additional data to send with a POST
+                                 request.
     url:            Final video URL.
     ext:            Video filename extension.
     format:         The video format, defaults to ext (used for --get-format)
