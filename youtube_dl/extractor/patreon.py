@@ -6,7 +6,6 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_urlparse,
     js_to_json,
 )
 
