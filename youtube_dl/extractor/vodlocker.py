@@ -44,7 +44,7 @@ class VodlockerIE(InfoExtractor):
                 req, video_id, 'Downloading video page')
 
         title = self._search_regex(
-            r'id="file_title".*?>\s*(.*?)\s*<span', webpage, 'title')
+            r'id="file_title".*?>\s*(.*?)\s*<(?:br|span)', webpage, 'title')
         thumbnail = self._search_regex(
             r'image:\s*"(http[^\"]+)",', webpage, 'thumbnail')
         url = self._search_regex(
