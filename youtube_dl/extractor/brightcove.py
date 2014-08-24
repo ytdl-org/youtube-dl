@@ -188,9 +188,13 @@ class BrightcoveIE(InfoExtractor):
             referer = smuggled_data.get('Referer', url)
             return self._get_video_info(
                 videoPlayer[0], query_str, query, referer=referer)
-        else:
+        elif 'playerKey' in query:
             player_key = query['playerKey']
             return self._get_playlist_info(player_key[0])
+        else:
+            raise ExtractorError(
+                'Cannot find playerKey= variable. Did you forget quotes in a shell invocation?',
+                expected=True)
 
     def _get_video_info(self, video_id, query_str, query, referer=None):
         request_url = self._FEDERATED_URL_TEMPLATE % query_str
