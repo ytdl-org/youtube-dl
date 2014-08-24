@@ -154,12 +154,14 @@ class BrightcoveIE(InfoExtractor):
     def _extract_brightcove_urls(cls, webpage):
         """Return a list of all Brightcove URLs from the webpage """
 
-        url_m = re.search(r'<meta\s+property="og:video"\s+content="(http://c.brightcove.com/[^"]+)"', webpage)
+        url_m = re.search(
+            r'<meta\s+property="og:video"\s+content="(https?://(?:secure|c)\.brightcove.com/[^"]+)"',
+            webpage)
         if url_m:
             url = unescapeHTML(url_m.group(1))
             # Some sites don't add it, we can't download with this url, for example:
             # http://www.ktvu.com/videos/news/raw-video-caltrain-releases-video-of-man-almost/vCTZdY/
-            if 'playerKey' in url:
+            if 'playerKey' in url or 'videoId' in url:
                 return [url]
 
         matches = re.findall(
