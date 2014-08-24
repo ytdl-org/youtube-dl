@@ -15,6 +15,7 @@ from ..utils import (
     compat_xml_parse_error,
 
     ExtractorError,
+    float_or_none,
     HEADRequest,
     orderedSet,
     parse_xml,
@@ -305,6 +306,30 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             }
+        },
+        # Camtasia studio
+        {
+            'url': 'http://www.ll.mit.edu/workshops/education/videocourses/antennas/lecture1/video/',
+            'playlist': [{
+                'md5': '0c5e352edabf715d762b0ad4e6d9ee67',
+                'info_dict': {
+                    'id': 'Fenn-AA_PA_Radar_Course_Lecture_1c_Final',
+                    'title': 'Fenn-AA_PA_Radar_Course_Lecture_1c_Final - video1',
+                    'ext': 'flv',
+                    'duration': 2235.90,
+                }
+            }, {
+                'md5': '10e4bb3aaca9fd630e273ff92d9f3c63',
+                'info_dict': {
+                    'id': 'Fenn-AA_PA_Radar_Course_Lecture_1c_Final_PIP',
+                    'title': 'Fenn-AA_PA_Radar_Course_Lecture_1c_Final - pip',
+                    'ext': 'flv',
+                    'duration': 2235.93,
+                }
+            }],
+            'info_dict': {
+                'title': 'Fenn-AA_PA_Radar_Course_Lecture_1c_Final',
+            }
         }
     ]
 
@@ -387,6 +412,43 @@ class GenericIE(InfoExtractor):
             'title': playlist_title,
             'description': playlist_desc,
             'entries': entries,
+        }
+
+    def _extract_camtasia(self, url, video_id, webpage):
+        """ Returns None if no camtasia video can be found. """
+
+        camtasia_cfg = self._search_regex(
+            r'fo\.addVariable\(\s*"csConfigFile",\s*"([^"]+)"\s*\);',
+            webpage, 'camtasia configuration file', default=None)
+        if camtasia_cfg is None:
+            return None
+
+        title = self._html_search_meta('DC.title', webpage, fatal=True)
+
+        camtasia_url = compat_urlparse.urljoin(url, camtasia_cfg)
+        camtasia_cfg = self._download_xml(
+            camtasia_url, video_id,
+            note='Downloading camtasia configuration',
+            errnote='Failed to download camtasia configuration')
+        fileset_node = camtasia_cfg.find('./playlist/array/fileset')
+
+        entries = []
+        for n in fileset_node.getchildren():
+            url_n = n.find('./uri')
+            if url_n is None:
+                continue
+
+            entries.append({
+                'id': os.path.splitext(url_n.text.rpartition('/')[2])[0],
+                'title': '%s - %s' % (title, n.tag),
+                'url': compat_urlparse.urljoin(url, url_n.text),
+                'duration': float_or_none(n.find('./duration').text),
+            })
+
+        return {
+            '_type': 'playlist',
+            'entries': entries,
+            'title': title,
         }
 
     def _real_extract(self, url):
@@ -476,6 +538,11 @@ class GenericIE(InfoExtractor):
                 return self._extract_rss(url, video_id, doc)
         except compat_xml_parse_error:
             pass
+
+        # Is it a Camtasia project?
+        camtasia_res = self._extract_camtasia(url, video_id, webpage)
+        if camtasia_res is not None:
+            return camtasia_res
 
         # Sometimes embedded video player is hidden behind percent encoding
         # (e.g. https://github.com/rg3/youtube-dl/issues/2448)
