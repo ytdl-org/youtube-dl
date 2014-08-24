@@ -88,6 +88,7 @@ from .engadget import EngadgetIE
 from .escapist import EscapistIE
 from .everyonesmixtape import EveryonesMixtapeIE
 from .exfm import ExfmIE
+from .expotv import ExpoTVIE
 from .extremetube import ExtremeTubeIE
 from .facebook import FacebookIE
 from .faz import FazIE
