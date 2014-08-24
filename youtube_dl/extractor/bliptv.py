@@ -49,6 +49,21 @@ class BlipTVIE(SubtitlesInfoExtractor):
                 'uploader_id': '792887',
                 'duration': 279,
             }
+        },
+        {
+            # https://bugzilla.redhat.com/show_bug.cgi?id=967465
+            'url': 'http://a.blip.tv/api.swf#h6Uag5KbVwI',
+            'md5': '314e87b1ebe7a48fcbfdd51b791ce5a6',
+            'info_dict': {
+                'id': '6573122',
+                'ext': 'mov',
+                'upload_date': '20130520',
+                'description': 'Two hapless space marines argue over what to do when they realize they have an astronomically huge problem on their hands.',
+                'title': 'Red vs. Blue Season 11 Trailer',
+                'timestamp': 1369029609,
+                'uploader': 'redvsblue',
+                'uploader_id': '792887',
+            }
         }
     ]
 
@@ -150,7 +165,7 @@ class BlipTVIE(SubtitlesInfoExtractor):
 
 
 class BlipTVUserIE(InfoExtractor):
-    _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?blip\.tv/)|bliptvuser:)([^/]+)/*$'
+    _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?blip\.tv/)|bliptvuser:)(?!api\.swf)([^/]+)/*$'
     _PAGE_SIZE = 12
     IE_NAME = 'blip.tv:user'
 
