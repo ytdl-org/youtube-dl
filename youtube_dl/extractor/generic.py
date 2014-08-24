@@ -356,58 +356,6 @@ class GenericIE(InfoExtractor):
         """Report information extraction."""
         self._downloader.to_screen('[redirect] Following redirect to %s' % new_url)
 
-    def _send_head(self, url):
-        """Check if it is a redirect, like url shorteners, in case return the new url."""
-
-        class HEADRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
-            """
-            Subclass the HTTPRedirectHandler to make it use our
-            HEADRequest also on the redirected URL
-            """
-            def redirect_request(self, req, fp, code, msg, headers, newurl):
-                if code in (301, 302, 303, 307):
-                    newurl = newurl.replace(' ', '%20')
-                    newheaders = dict((k,v) for k,v in req.headers.items()
-                                      if k.lower() not in ("content-length", "content-type"))
-                    try:
-                        # This function was deprecated in python 3.3 and removed in 3.4
-                        origin_req_host = req.get_origin_req_host()
-                    except AttributeError:
-                        origin_req_host = req.origin_req_host
-                    return HEADRequest(newurl,
-                                       headers=newheaders,
-                                       origin_req_host=origin_req_host,
-                                       unverifiable=True)
-                else:
-                    raise compat_urllib_error.HTTPError(req.get_full_url(), code, msg, headers, fp)
-
-        class HTTPMethodFallback(compat_urllib_request.BaseHandler):
-            """
-            Fallback to GET if HEAD is not allowed (405 HTTP error)
-            """
-            def http_error_405(self, req, fp, code, msg, headers):
-                fp.read()
-                fp.close()
-
-                newheaders = dict((k,v) for k,v in req.headers.items()
-                                  if k.lower() not in ("content-length", "content-type"))
-                return self.parent.open(compat_urllib_request.Request(req.get_full_url(),
-                                                 headers=newheaders,
-                                                 origin_req_host=req.get_origin_req_host(),
-                                                 unverifiable=True))
-
-        # Build our opener
-        opener = compat_urllib_request.OpenerDirector()
-        for handler in [compat_urllib_request.HTTPHandler, compat_urllib_request.HTTPDefaultErrorHandler,
-                        HTTPMethodFallback, HEADRedirectHandler,
-                        compat_urllib_request.HTTPErrorProcessor, compat_urllib_request.HTTPSHandler]:
-            opener.add_handler(handler())
-
-        response = opener.open(HEADRequest(url))
-        if response is None:
-            raise ExtractorError('Invalid URL protocol')
-        return response
-
     def _extract_rss(self, url, video_id, doc):
         playlist_title = doc.find('./channel/title').text
         playlist_desc_el = doc.find('./channel/description')
@@ -511,9 +459,13 @@ class GenericIE(InfoExtractor):
 
         self.to_screen('%s: Requesting header' % video_id)
 
-        try:
-            response = self._send_head(url)
+        head_req = HEADRequest(url)
+        response = self._request_webpage(
+            head_req, video_id,
+            note=False, errnote='Could not send HEAD request to %s' % url,
+            fatal=False)
 
+        if response is not False:
             # Check for redirect
             new_url = response.geturl()
             if url != new_url:
@@ -540,10 +492,6 @@ class GenericIE(InfoExtractor):
                     }],
                     'upload_date': upload_date,
                 }
-
-        except compat_urllib_error.HTTPError:
-            # This may be a stupid server that doesn't like HEAD, our UA, or so
-            pass
 
         try:
             webpage = self._download_webpage(url, video_id)
