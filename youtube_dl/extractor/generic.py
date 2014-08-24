@@ -370,7 +370,7 @@ class GenericIE(InfoExtractor):
 
         class HTTPMethodFallback(compat_urllib_request.BaseHandler):
             """
-            Fallback to GET if HEAD is not allowed (405 HTTP error)
+            Fallback to GET if HEAD is not allowed (405 or 404 (youtube.com) HTTP error)
             """
             def http_error_405(self, req, fp, code, msg, headers):
                 fp.read()
@@ -378,10 +378,20 @@ class GenericIE(InfoExtractor):
 
                 newheaders = dict((k,v) for k,v in req.headers.items()
                                   if k.lower() not in ("content-length", "content-type"))
+                try:
+                    # This function was deprecated in python 3.3 and removed in 3.4
+                    origin_req_host = req.get_origin_req_host()
+                except AttributeError:
+                    origin_req_host = req.origin_req_host
                 return self.parent.open(compat_urllib_request.Request(req.get_full_url(),
                                                  headers=newheaders,
-                                                 origin_req_host=req.get_origin_req_host(),
+                                                 origin_req_host=origin_req_host,
                                                  unverifiable=True))
+
+            def http_error_404(self, req, fp, code, msg, headers):
+                # prevent infinite loop
+                if req.get_method() == "HEAD":
+                    return self.http_error_405(req, fp, code, msg, headers)
 
         # Build our opener
         opener = compat_urllib_request.OpenerDirector()
