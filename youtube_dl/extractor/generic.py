@@ -331,6 +331,18 @@ class GenericIE(InfoExtractor):
             'info_dict': {
                 'title': 'Fenn-AA_PA_Radar_Course_Lecture_1c_Final',
             }
+        },
+        # Flowplayer
+        {
+            'url': 'http://www.handjobhub.com/video/busty-blonde-siri-tit-fuck-while-wank-6313.html',
+            'md5': '9d65602bf31c6e20014319c7d07fba27',
+            'info_dict': {
+                'id': '5123ea6d5e5a7',
+                'ext': 'mp4',
+                'age_limit': 18,
+                'uploader': 'www.handjobhub.com',
+                'title': 'Busty Blonde Siri Tit Fuck While Wank at Handjob Hub',
+            }
         }
     ]
 
@@ -569,6 +581,16 @@ class GenericIE(InfoExtractor):
         video_title = self._html_search_regex(
             r'(?s)<title>(.*?)</title>', webpage, 'video title',
             default='video')
+
+        # Try to detect age limit automatically
+        age_limit = self._rta_search(webpage)
+        # And then there are the jokers who advertise that they use RTA,
+        # but actually don't.
+        AGE_LIMIT_MARKERS = [
+            r'Proudly Labeled <a href="http://www.rtalabel.org/" title="Restricted to Adults">RTA</a>',
+        ]
+        if any(re.search(marker, webpage) for marker in AGE_LIMIT_MARKERS):
+            age_limit = 18
 
         # video uploader is domain name
         video_uploader = self._search_regex(
@@ -834,6 +856,15 @@ class GenericIE(InfoExtractor):
             # Broaden the findall a little bit: JWPlayer JS loader
             found = re.findall(r'[^A-Za-z0-9]?file["\']?:\s*["\'](http(?![^\'"]+\.[0-9]+[\'"])[^\'"]+)["\']', webpage)
         if not found:
+            # Flow player
+            found = re.findall(r'''(?xs)
+                flowplayer\("[^"]+",\s*
+                    \{[^}]+?\}\s*,
+                    \s*{[^}]+? ["']?clip["']?\s*:\s*\{\s*
+                        ["']?url["']?\s*:\s*["']([^"']+)["']
+            ''', webpage)
+            assert found
+        if not found:
             # Try to find twitter cards info
             found = re.findall(r'<meta (?:property|name)="twitter:player:stream" (?:content|value)="(.+?)"', webpage)
         if not found:
@@ -884,6 +915,7 @@ class GenericIE(InfoExtractor):
                 'url': video_url,
                 'uploader': video_uploader,
                 'title': video_title,
+                'age_limit': age_limit,
             })
 
         if len(entries) == 1:
