@@ -833,7 +833,7 @@ class GenericIE(InfoExtractor):
             if m_video_type is not None:
                 def check_video(vurl):
                     vpath = compat_urlparse.urlparse(vurl).path
-                    return not vpath.endswith('.swf')
+                    return '.' in vpath and not vpath.endswith('.swf')
                 found = list(filter(
                     check_video,
                     re.findall(r'<meta.*?property="og:video".*?content="(.*?)"', webpage)))
