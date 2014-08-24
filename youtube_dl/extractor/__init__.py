@@ -390,6 +390,7 @@ from .vuclip import VuClipIE
 from .vulture import VultureIE
 from .washingtonpost import WashingtonPostIE
 from .wat import WatIE
+from .wayofthemaster import WayOfTheMasterIE
 from .wdr import (
     WDRIE,
     WDRMobileIE,
