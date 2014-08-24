@@ -206,6 +206,13 @@ class BrightcoveIE(InfoExtractor):
             req.add_header('Referer', referer)
         webpage = self._download_webpage(req, video_id)
 
+        error_msg = self._html_search_regex(
+            r"<h1>We're sorry.</h1>\s*<p>(.*?)</p>", webpage,
+            'error message', default=None)
+        if error_msg is not None:
+            raise ExtractorError(
+                'brightcove said: %s' % error_msg, expected=True)
+
         self.report_extraction(video_id)
         info = self._search_regex(r'var experienceJSON = ({.*});', webpage, 'json')
         info = json.loads(info)['data']
