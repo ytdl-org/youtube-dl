@@ -71,12 +71,9 @@ __authors__  = (
     'Sebastian Haas',
     'Alexander Kirk',
     'Erik Johnson',
-<<<<<<< HEAD
     'Keith Beckman',
     'Ole Ernst',
-=======
     'Aaron McDaniel (mcd1992)',
->>>>>>> Implemented --exec option.
 )
 
 __license__ = 'Public Domain'
