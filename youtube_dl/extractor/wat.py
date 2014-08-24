@@ -47,7 +47,8 @@ class WatIE(InfoExtractor):
         video_info = self.download_video_info(real_id)
 
         if video_info.get('geolock'):
-            raise ExtractorError('This content is not available in your area', expected=True)
+            self.report_warning(
+                'This content is marked as not available in your area. Trying anyway ..')
 
         chapters = video_info['chapters']
         first_chapter = chapters[0]
