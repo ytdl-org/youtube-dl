@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import determine_ext
 
 
 class EbaumsWorldIE(InfoExtractor):
@@ -31,7 +30,6 @@ class EbaumsWorldIE(InfoExtractor):
             'id': video_id,
             'title': config.find('title').text,
             'url': video_url,
-            'ext': determine_ext(video_url),
             'description': config.find('description').text,
             'thumbnail': config.find('image').text,
             'uploader': config.find('username').text,
