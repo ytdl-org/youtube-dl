@@ -440,6 +440,22 @@ class InfoExtractor(object):
         
         return (username, password)
 
+    def _get_tfa_info(self):
+        """
+        Get the two-factor authentication info
+        TODO - asking the user will be required for sms/phone verify
+        currently just uses the command line option
+        If there's no info available, return None
+        """
+        if self._downloader is None:
+            return None
+        downloader_params = self._downloader.params
+
+        if downloader_params.get('twofactor', None) is not None:
+            return downloader_params['twofactor']
+
+        return None
+
     # Helper functions for extracting OpenGraph info
     @staticmethod
     def _og_regexes(prop):
