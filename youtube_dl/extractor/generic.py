@@ -831,7 +831,12 @@ class GenericIE(InfoExtractor):
             m_video_type = re.findall(r'<meta.*?property="og:video:type".*?content="video/(.*?)"', webpage)
             # We only look in og:video if the MIME type is a video, don't try if it's a Flash player:
             if m_video_type is not None:
-                found = re.findall(r'<meta.*?property="og:video".*?content="(.*?)"', webpage)
+                def check_video(vurl):
+                    vpath = compat_urlparse.urlparse(vurl).path
+                    return not vpath.endswith('.swf')
+                found = list(filter(
+                    check_video,
+                    re.findall(r'<meta.*?property="og:video".*?content="(.*?)"', webpage)))
         if not found:
             # HTML5 video
             found = re.findall(r'(?s)<video[^<]*(?:>.*?<source.*?)? src="([^"]+)"', webpage)
