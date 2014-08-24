@@ -3,18 +3,17 @@ from __future__ import unicode_literals
 
 import time
 import math
+import os.path
 import re
 
-from urllib import quote, urlencode
-from os.path import basename
 
 from .common import InfoExtractor
 from ..utils import ExtractorError, compat_urllib_request, compat_html_parser
 
-from ..utils import compat_urlparse
-
-urlunparse = compat_urlparse.urlunparse
-urldefrag = compat_urlparse.urldefrag
+from ..utils import (
+    compat_urllib_parse,
+    compat_urlparse,
+)
 
 
 class GroovesharkHtmlParser(compat_html_parser.HTMLParser):
@@ -62,25 +61,25 @@ class GroovesharkIE(InfoExtractor):
     def _parse_target(self, target):
         uri = compat_urlparse.urlparse(target)
         hash = uri.fragment[1:].split('?')[0]
-        token = basename(hash.rstrip('/'))
+        token = os.path.basename(hash.rstrip('/'))
         return (uri, hash, token)
 
     def _build_bootstrap_url(self, target):
         (uri, hash, token) = self._parse_target(target)
-        query = 'getCommunicationToken=1&hash=%s&%d' % (quote(hash, safe=''), self.ts)
-        return (urlunparse((uri.scheme, uri.netloc, '/preload.php', None, query, None)), token)
+        query = 'getCommunicationToken=1&hash=%s&%d' % (compat_urllib_parse.quote(hash, safe=''), self.ts)
+        return (compat_urlparse.urlunparse((uri.scheme, uri.netloc, '/preload.php', None, query, None)), token)
 
     def _build_meta_url(self, target):
         (uri, hash, token) = self._parse_target(target)
-        query = 'hash=%s&%d' % (quote(hash, safe=''), self.ts)
-        return (urlunparse((uri.scheme, uri.netloc, '/preload.php', None, query, None)), token)
+        query = 'hash=%s&%d' % (compat_urllib_parse.quote(hash, safe=''), self.ts)
+        return (compat_urlparse.urlunparse((uri.scheme, uri.netloc, '/preload.php', None, query, None)), token)
 
     def _build_stream_url(self, meta):
-        return urlunparse(('http', meta['streamKey']['ip'], '/stream.php', None, None, None))
+        return compat_urlparse.urlunparse(('http', meta['streamKey']['ip'], '/stream.php', None, None, None))
 
     def _build_swf_referer(self, target, obj):
         (uri, _, _) = self._parse_target(target)
-        return urlunparse((uri.scheme, uri.netloc, obj['attrs']['data'], None, None, None))
+        return compat_urlparse.urlunparse((uri.scheme, uri.netloc, obj['attrs']['data'], None, None, None))
 
     def _transform_bootstrap(self, js):
         return re.split('(?m)^\s*try\s*{', js)[0] \
@@ -93,7 +92,7 @@ class GroovesharkIE(InfoExtractor):
         (meta_url, token) = self._build_meta_url(target)
         self.to_screen('Metadata URL: %s' % meta_url)
 
-        headers = {'Referer': urldefrag(target)[0]}
+        headers = {'Referer': compat_urlparse.urldefrag(target)[0]}
         req = compat_urllib_request.Request(meta_url, headers=headers)
         res = self._download_json(req, token,
                                   transform_source=self._transform_meta)
@@ -112,7 +111,7 @@ class GroovesharkIE(InfoExtractor):
     def _get_bootstrap(self, target):
         (bootstrap_url, token) = self._build_bootstrap_url(target)
 
-        headers = {'Referer': urldefrag(target)[0]}
+        headers = {'Referer': compat_urlparse.urldefrag(target)[0]}
         req = compat_urllib_request.Request(bootstrap_url, headers=headers)
         res = self._download_json(req, token, fatal=False,
                                   note='Downloading player bootstrap data',
@@ -170,7 +169,7 @@ class GroovesharkIE(InfoExtractor):
         stream_url = self._build_stream_url(meta)
         duration = int(math.ceil(float(meta['streamKey']['uSecs']) / 1000000))
         post_dict = {'streamKey': meta['streamKey']['streamKey']}
-        post_data = urlencode(post_dict).encode('utf-8')
+        post_data = compat_urllib_parse.urlencode(post_dict).encode('utf-8')
         headers = {
             'Content-Length': len(post_data),
             'Content-Type': 'application/x-www-form-urlencoded'
