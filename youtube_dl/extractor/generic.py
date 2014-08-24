@@ -22,6 +22,7 @@ from ..utils import (
     smuggle_url,
     unescapeHTML,
     unified_strdate,
+    unsmuggle_url,
     url_basename,
 )
 from .brightcove import BrightcoveIE
@@ -487,7 +488,14 @@ class GenericIE(InfoExtractor):
             else:
                 assert ':' in default_search
                 return self.url_result(default_search + url)
-        video_id = os.path.splitext(url.rstrip('/').split('/')[-1])[0]
+
+        url, smuggled_data = unsmuggle_url(url)
+        force_videoid = None
+        if smuggled_data and 'force_videoid' in smuggled_data:
+            force_videoid = smuggled_data['force_videoid']
+            video_id = force_videoid
+        else:
+            video_id = os.path.splitext(url.rstrip('/').split('/')[-1])[0]
 
         self.to_screen('%s: Requesting header' % video_id)
 
@@ -498,6 +506,9 @@ class GenericIE(InfoExtractor):
             new_url = response.geturl()
             if url != new_url:
                 self.report_following_redirect(new_url)
+                if force_videoid:
+                    new_url = smuggle_url(
+                        new_url, {'force_videoid': force_videoid})
                 return self.url_result(new_url)
 
             # Check for direct link to a video
