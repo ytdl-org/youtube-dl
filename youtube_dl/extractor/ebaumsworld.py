@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import re
 
 from .common import InfoExtractor
@@ -8,12 +10,13 @@ class EbaumsWorldIE(InfoExtractor):
     _VALID_URL = r'https?://www\.ebaumsworld\.com/video/watch/(?P<id>\d+)'
 
     _TEST = {
-        u'url': u'http://www.ebaumsworld.com/video/watch/83367677/',
-        u'file': u'83367677.mp4',
-        u'info_dict': {
-            u'title': u'A Giant Python Opens The Door',
-            u'description': u'This is how nightmares start...',
-            u'uploader': u'jihadpizza',
+        'url': 'http://www.ebaumsworld.com/video/watch/83367677/',
+        'info_dict': {
+            'id': '83367677',
+            'ext': 'mp4',
+            'title': 'A Giant Python Opens The Door',
+            'description': 'This is how nightmares start...',
+            'uploader': 'jihadpizza',
         },
     }
 
