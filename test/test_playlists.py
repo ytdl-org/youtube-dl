@@ -408,13 +408,6 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['id'], 'rbhagwati2')
         assertGreaterEqual(self, len(result['entries']), 179)
 
-    def test_GameOne_playlist(self):
-        dl = FakeYDL()
-        ie = GameOnePlaylistIE(dl)
-        result = ie.extract('http://www.gameone.de/tv')
-        self.assertIsPlaylist(result)
-        self.assertEqual(result['title'], 'GameOne')
-        assertGreaterEqual(self, len(result['entries']), 294)
 
 if __name__ == '__main__':
     unittest.main()
