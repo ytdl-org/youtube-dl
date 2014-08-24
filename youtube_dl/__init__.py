@@ -72,6 +72,7 @@ __authors__  = (
     'Alexander Kirk',
     'Erik Johnson',
     'Keith Beckman',
+    'Ole Ernst',
 )
 
 __license__ = 'Public Domain'
