@@ -88,3 +88,17 @@ class GameOneIE(InfoExtractor):
             'age_limit': age_limit,
             'timestamp': timestamp,
         }
+
+class GameOnePlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?gameone\.de(?:/tv)?/?$'
+
+    def _real_extract(self, url):
+        webpage = self._download_webpage('http://www.gameone.de/tv', 'TV')
+        max_id = max(map(int, re.findall(r'<a href="/tv/(\d+)"', webpage)))
+        entries = [self.url_result('http://www.gameone.de/tv/%d' % video_id, 'GameOne') for video_id in range(max_id, 0, -1)]
+
+        return {
+            '_type': 'playlist',
+            'title': 'GameOne',
+            'entries': entries,
+        }

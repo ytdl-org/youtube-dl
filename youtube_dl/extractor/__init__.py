@@ -116,7 +116,10 @@ from .freesound import FreesoundIE
 from .freespeech import FreespeechIE
 from .funnyordie import FunnyOrDieIE
 from .gamekings import GamekingsIE
-from .gameone import GameOneIE
+from .gameone import (
+    GameOneIE,
+    GameOnePlaylistIE,
+)
 from .gamespot import GameSpotIE
 from .gamestar import GameStarIE
 from .gametrailers import GametrailersIE
