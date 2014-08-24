@@ -193,6 +193,8 @@ class ArteTVCreativeIE(ArteTVPlus7IE):
             'id': '160676',
             'ext': 'mp4',
             'title': 'Monty Python live (mostly)',
+            'description': 'Événement ! Quarante-cinq ans après leurs premiers succès, les légendaires Monty Python remontent sur scène.\n',
+            'upload_date': '20140805',
         }
     }]
 
