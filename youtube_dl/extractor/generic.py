@@ -8,9 +8,7 @@ import re
 from .common import InfoExtractor
 from .youtube import YoutubeIE
 from ..utils import (
-    compat_urllib_error,
     compat_urllib_parse,
-    compat_urllib_request,
     compat_urlparse,
     compat_xml_parse_error,
 
