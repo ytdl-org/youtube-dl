@@ -7,7 +7,6 @@ import hashlib
 
 from .common import InfoExtractor
 from ..utils import (
-    ExtractorError,
     unified_strdate,
 )
 
