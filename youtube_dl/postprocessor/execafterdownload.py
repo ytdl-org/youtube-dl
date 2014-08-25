@@ -1,39 +1,31 @@
 from __future__ import unicode_literals
-from .common import PostProcessor
-from ..utils import PostProcessingError
+
 import subprocess
-import shlex
+
+from .common import PostProcessor
+from ..utils import (
+    shlex_quote,
+    PostProcessingError,
+)
 
 
 class ExecAfterDownloadPP(PostProcessor):
-    def __init__(self, downloader=None, verboseOutput=None, commandString=None):
+    def __init__(self, downloader=None, verboseOutput=None, exec_cmd=None):
         self.verboseOutput = verboseOutput
-        self.commandString = commandString
+        self.exec_cmd = exec_cmd
 
     def run(self, information):
-        self.targetFile = information['filepath'].replace('\'', '\'\\\'\'')  # Replace single quotes with '\''
-        self.commandList = shlex.split(self.commandString)
-        self.commandString = ''
+        cmd = self.exec_cmd
+        if not '{}' in cmd:
+            cmd += ' {}'
 
-        # Replace all instances of '{}' with the file name and convert argument list to single string.
-        for index, arg in enumerate(self.commandList):
-            if(arg == '{}'):
-                self.commandString += '\'' + self.targetFile + '\' '
-            else:
-                self.commandString += arg + ' '
+        cmd = cmd.replace('{}', shlex_quote(information['filepath']))
 
-        if self.targetFile not in self.commandString:  # Assume user wants the file appended to the end of the command if no {}'s were given.
-            self.commandString += '\'' + self.targetFile + '\''
-
-        print("[exec] Executing command: " + self.commandString)
-        self.retCode = subprocess.call(self.commandString, shell=True)
-        if(self.retCode < 0):
-            print("[exec] WARNING: Command exited with a negative return code, the process was killed externally. Your command may not of completed succesfully!")
-        elif(self.verboseOutput):
-            print("[exec] Command exited with return code: " + str(self.retCode))
+        self._downloader.to_screen("[exec] Executing command: %s" % cmd)
+        retCode = subprocess.call(cmd, shell=True)
+        if retCode != 0:
+            raise PostProcessingError(
+                'Command returned error code %d' % retCode)
 
         return None, information  # by default, keep file and do nothing
 
-
-class PostProcessingExecError(PostProcessingError):
-    pass

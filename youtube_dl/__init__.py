@@ -552,8 +552,9 @@ def parseOpts(overrideArguments=None):
         help='Prefer avconv over ffmpeg for running the postprocessors (default)')
     postproc.add_option('--prefer-ffmpeg', action='store_true', dest='prefer_ffmpeg',
         help='Prefer ffmpeg over avconv for running the postprocessors')
-    postproc.add_option('--exec', metavar='', action='store', dest='execstring',
-        help='Execute a command on the file after downloading, similar to find\'s -exec syntax. Must be enclosed in quotes. Example: --exec \'adb push {} /sdcard/Music/ && rm {}\'' )
+    postproc.add_option(
+        '--exec', metavar='CMD', dest='exec_cmd',
+        help='Execute a command on the file after downloading, similar to find\'s -exec syntax. Example: --exec \'adb push {} /sdcard/Music/ && rm {}\'' )
 
     parser.add_option_group(general)
     parser.add_option_group(selection)
@@ -834,7 +835,7 @@ def _real_main(argv=None):
         'default_search': opts.default_search,
         'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,
         'encoding': opts.encoding,
-        'execstring': opts.execstring,
+        'exec_cmd': opts.exec_cmd,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
@@ -861,8 +862,9 @@ def _real_main(argv=None):
 
         # Please keep ExecAfterDownload towards the bottom as it allows the user to modify the final file in any way.
         # So if the user is able to remove the file before your postprocessor runs it might cause a few problems.
-        if opts.execstring:
-            ydl.add_post_processor(ExecAfterDownloadPP(verboseOutput=opts.verbose,commandString=opts.execstring))
+        if opts.exec_cmd:
+            ydl.add_post_processor(ExecAfterDownloadPP(
+                verboseOutput=opts.verbose, exec_cmd=opts.exec_cmd))
 
         # Update version
         if opts.update_self:

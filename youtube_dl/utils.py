@@ -192,6 +192,13 @@ try:
 except ImportError:  # Python 2.6
     from xml.parsers.expat import ExpatError as compat_xml_parse_error
 
+try:
+    from shlex import quote as shlex_quote
+except ImportError:  # Python < 3.3
+    def shlex_quote(s):
+        return "'" + s.replace("'", "'\"'\"'") + "'"
+
+
 def compat_ord(c):
     if type(c) is int: return c
     else: return ord(c)
