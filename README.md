@@ -288,6 +288,10 @@ which means you can modify it, redistribute it or use it however you like.
                                      postprocessors (default)
     --prefer-ffmpeg                  Prefer ffmpeg over avconv for running the
                                      postprocessors
+    --exec CMD                       Execute a command on the file after
+                                     downloading, similar to find's -exec
+                                     syntax. Example: --exec 'adb push {}
+                                     /sdcard/Music/ && rm {}'
 
 # CONFIGURATION
 
