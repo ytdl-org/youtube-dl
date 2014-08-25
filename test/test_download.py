@@ -142,6 +142,11 @@ def generator(test_case):
                     'Expected at least %d in playlist %s, but got only %d' % (
                         test_case['playlist_mincount'], test_case['url'],
                         len(res_dict['entries'])))
+            if 'playlist_count' in test_case:
+                self.assertEqual(
+                    len(res_dict['entries']),
+                    test_case['playlist_count'],
+                    'Expected at %d in playlist %s, but got %d.')
 
             for tc in test_cases:
                 tc_filename = get_tc_filename(tc)

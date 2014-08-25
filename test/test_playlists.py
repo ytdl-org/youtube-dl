@@ -310,15 +310,6 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['title'], 'Always/Never: A Little-Seen Movie About Nuclear Command and Control : The New Yorker')
         self.assertEqual(len(result['entries']), 3)
 
-    def test_GoogleSearch(self):
-        dl = FakeYDL()
-        ie = GoogleSearchIE(dl)
-        result = ie.extract('gvsearch15:python language')
-        self.assertIsPlaylist(result)
-        self.assertEqual(result['id'], 'python language')
-        self.assertEqual(result['title'], 'python language')
-        self.assertEqual(len(result['entries']), 15)
-
     def test_generic_rss_feed(self):
         dl = FakeYDL()
         ie = GenericIE(dl)
