@@ -819,7 +819,6 @@ class GenericIE(InfoExtractor):
                     \s*{[^}]+? ["']?clip["']?\s*:\s*\{\s*
                         ["']?url["']?\s*:\s*["']([^"']+)["']
             ''', webpage)
-            assert found
         if not found:
             # Try to find twitter cards info
             found = re.findall(r'<meta (?:property|name)="twitter:player:stream" (?:content|value)="(.+?)"', webpage)
