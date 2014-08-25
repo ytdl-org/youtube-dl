@@ -425,7 +425,7 @@ class YoutubeDL(object):
             autonumber_templ = '%0' + str(autonumber_size) + 'd'
             template_dict['autonumber'] = autonumber_templ % self._num_downloads
             if template_dict.get('playlist_index') is not None:
-                template_dict['playlist_index'] = '%05d' % template_dict['playlist_index']
+                template_dict['playlist_index'] = '%0*d' % (len(str(template_dict['n_entries'])), template_dict['playlist_index'])
             if template_dict.get('resolution') is None:
                 if template_dict.get('width') and template_dict.get('height'):
                     template_dict['resolution'] = '%dx%d' % (template_dict['width'], template_dict['height'])
@@ -637,6 +637,7 @@ class YoutubeDL(object):
             for i, entry in enumerate(entries, 1):
                 self.to_screen('[download] Downloading video #%s of %s' % (i, n_entries))
                 extra = {
+                    'n_entries': n_entries,
                     'playlist': playlist,
                     'playlist_index': i + playliststart,
                     'extractor': ie_result['extractor'],
