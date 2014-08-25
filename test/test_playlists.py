@@ -310,15 +310,6 @@ class TestPlaylists(unittest.TestCase):
         self.assertEqual(result['title'], 'Always/Never: A Little-Seen Movie About Nuclear Command and Control : The New Yorker')
         self.assertEqual(len(result['entries']), 3)
 
-    def test_generic_rss_feed(self):
-        dl = FakeYDL()
-        ie = GenericIE(dl)
-        result = ie.extract('http://phihag.de/2014/youtube-dl/rss.xml')
-        self.assertIsPlaylist(result)
-        self.assertEqual(result['id'], 'http://phihag.de/2014/youtube-dl/rss.xml')
-        self.assertEqual(result['title'], 'Zero Punctuation')
-        self.assertTrue(len(result['entries']) > 10)
-
     def test_ted_playlist(self):
         dl = FakeYDL()
         ie = TEDIE(dl)

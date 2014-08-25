@@ -7,6 +7,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import (
+    assertGreaterEqual,
     get_params,
     gettestcases,
     expect_info_dict,
@@ -136,7 +137,8 @@ def generator(test_case):
                 self.assertEqual(res_dict['_type'], 'playlist')
                 expect_info_dict(self, test_case.get('info_dict', {}), res_dict)
             if 'playlist_mincount' in test_case:
-                self.assertGreaterEqual(
+                assertGreaterEqual(
+                    self,
                     len(res_dict['entries']),
                     test_case['playlist_mincount'],
                     'Expected at least %d in playlist %s, but got only %d' % (

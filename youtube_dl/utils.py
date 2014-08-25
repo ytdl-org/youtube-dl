@@ -1458,6 +1458,12 @@ def urlencode_postdata(*args, **kargs):
     return compat_urllib_parse.urlencode(*args, **kargs).encode('ascii')
 
 
+try:
+    etree_iter = xml.etree.ElementTree.Element.iter
+except AttributeError:  # Python <=2.6
+    etree_iter = lambda n: n.findall('.//*')
+
+
 def parse_xml(s):
     class TreeBuilder(xml.etree.ElementTree.TreeBuilder):
         def doctype(self, name, pubid, system):
@@ -1465,7 +1471,14 @@ def parse_xml(s):
 
     parser = xml.etree.ElementTree.XMLParser(target=TreeBuilder())
     kwargs = {'parser': parser} if sys.version_info >= (2, 7) else {}
-    return xml.etree.ElementTree.XML(s.encode('utf-8'), **kwargs)
+    tree = xml.etree.ElementTree.XML(s.encode('utf-8'), **kwargs)
+    # Fix up XML parser in Python 2.x
+    if sys.version_info < (3, 0):
+        for n in etree_iter(tree):
+            if n.text is not None:
+                if not isinstance(n.text, compat_str):
+                    n.text = n.text.decode('utf-8')
+    return tree
 
 
 if sys.version_info < (3, 0) and sys.platform == 'win32':

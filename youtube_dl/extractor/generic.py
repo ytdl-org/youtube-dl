@@ -341,6 +341,16 @@ class GenericIE(InfoExtractor):
                 'uploader': 'www.handjobhub.com',
                 'title': 'Busty Blonde Siri Tit Fuck While Wank at Handjob Hub',
             }
+        },
+        # RSS feed
+        {
+            'url': 'http://phihag.de/2014/youtube-dl/rss2.xml',
+            'info_dict': {
+                'id': 'http://phihag.de/2014/youtube-dl/rss2.xml',
+                'title': 'Zero Punctuation',
+                'description': 're:'
+            },
+            'playlist_mincount': 11,
         }
     ]
 
