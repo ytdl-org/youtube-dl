@@ -1338,7 +1338,7 @@ def parse_duration(s):
         return None
 
     m = re.match(
-        r'(?:(?:(?P<hours>[0-9]+)[:h])?(?P<mins>[0-9]+)[:m])?(?P<secs>[0-9]+)s?(?::[0-9]+)?$', s)
+        r'(?:(?:(?P<hours>[0-9]+)[:h])?(?P<mins>[0-9]+)[:m])?(?P<secs>[0-9]+)s?(?::[0-9]+)?(?P<ms>\.[0-9]+)?$', s)
     if not m:
         return None
     res = int(m.group('secs'))
@@ -1346,6 +1346,8 @@ def parse_duration(s):
         res += int(m.group('mins')) * 60
         if m.group('hours'):
             res += int(m.group('hours')) * 60 * 60
+    if m.group('ms'):
+        res += float(m.group('ms'))
     return res
 
 

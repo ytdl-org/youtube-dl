@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import parse_duration
 
 
 class RtlXlIE(InfoExtractor):
@@ -20,6 +21,7 @@ class RtlXlIE(InfoExtractor):
                 'onze mobiele apps.',
             'timestamp': 1408051800,
             'upload_date': '20140814',
+            'duration': 576.880,
         },
         'params': {
             # We download the first bytes of the first fragment, it can't be
@@ -35,6 +37,7 @@ class RtlXlIE(InfoExtractor):
         info = self._download_json(
             'http://www.rtl.nl/system/s4m/vfd/version=2/uuid=%s/fmt=flash/' % uuid,
             uuid)
+
         material = info['material'][0]
         episode_info = info['episodes'][0]
 
@@ -44,8 +47,9 @@ class RtlXlIE(InfoExtractor):
 
         return {
             'id': uuid,
-            'title': '%s - %s' % (progname, subtitle), 
+            'title': '%s - %s' % (progname, subtitle),
             'formats': self._extract_f4m_formats(f4m_url, uuid),
             'timestamp': material['original_date'],
             'description': episode_info['synopsis'],
+            'duration': parse_duration(material.get('duration')),
         }
