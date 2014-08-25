@@ -620,11 +620,15 @@ class InfoExtractor(object):
             'Unable to download f4m manifest')
 
         formats = []
-        for media_el in manifest.findall('{http://ns.adobe.com/f4m/1.0}media'):
+        media_nodes = manifest.findall('{http://ns.adobe.com/f4m/1.0}media')
+        for i, media_el in enumerate(media_nodes):
+            tbr = int_or_none(media_el.attrib.get('bitrate'))
+            format_id = 'f4m-%d' % (i if tbr is None else tbr)
             formats.append({
+                'format_id': format_id,
                 'url': manifest_url,
                 'ext': 'flv',
-                'tbr': int_or_none(media_el.attrib.get('bitrate')),
+                'tbr': tbr,
                 'width': int_or_none(media_el.attrib.get('width')),
                 'height': int_or_none(media_el.attrib.get('height')),
             })
