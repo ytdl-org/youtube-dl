@@ -151,6 +151,19 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
                 'duration': 62,
             }
         },
+        {
+            'note': 'video player needs Referer',
+            'url': 'http://vimeo.com/user22258446/review/91613211/13f927e053',
+            'md5': '6295fdab8f4bf6a002d058b2c6dce276',
+            'info_dict': {
+                'id': '91613211',
+                'ext': 'mp4',
+                'title': 'Death by dogma versus assembling agile - Sander Hoogendoorn',
+                'uploader': 'DevWeek Events',
+                'duration': 2773,
+                'thumbnail': 're:^https?://.*\.jpg$',
+            }
+        }
     ]
 
     @classmethod
@@ -205,6 +218,8 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
         if data is not None:
             headers = headers.copy()
             headers.update(data)
+        if 'Referer' not in headers:
+            headers['Referer'] = url
 
         # Extract ID from URL
         mobj = re.match(self._VALID_URL, url)
