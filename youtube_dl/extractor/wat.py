@@ -2,31 +2,43 @@
 from __future__ import unicode_literals
 
 import re
-import time
 import hashlib
 
 from .common import InfoExtractor
-from ..utils import (
-    unified_strdate,
-)
+from ..utils import unified_strdate
 
 
 class WatIE(InfoExtractor):
     _VALID_URL = r'http://www\.wat\.tv/video/(?P<display_id>.*)-(?P<short_id>.*?)_.*?\.html'
     IE_NAME = 'wat.tv'
-    _TEST = {
-        'url': 'http://www.wat.tv/video/soupe-figues-l-orange-aux-epices-6z1uz_2hvf7_.html',
-        'md5': 'ce70e9223945ed26a8056d413ca55dc9',
-        'info_dict': {
-            'id': '11713067',
-            'display_id': 'soupe-figues-l-orange-aux-epices',
-            'ext': 'mp4',
-            'title': 'Soupe de figues à l\'orange et aux épices',
-            'description': 'Retrouvez l\'émission "Petits plats en équilibre", diffusée le 18 août 2014.',
-            'upload_date': '20140819',
-            'duration': 120,
+    _TESTS = [
+        {
+            'url': 'http://www.wat.tv/video/soupe-figues-l-orange-aux-epices-6z1uz_2hvf7_.html',
+            'md5': 'ce70e9223945ed26a8056d413ca55dc9',
+            'info_dict': {
+                'id': '11713067',
+                'display_id': 'soupe-figues-l-orange-aux-epices',
+                'ext': 'mp4',
+                'title': 'Soupe de figues à l\'orange et aux épices',
+                'description': 'Retrouvez l\'émission "Petits plats en équilibre", diffusée le 18 août 2014.',
+                'upload_date': '20140819',
+                'duration': 120,
+            },
         },
-    }
+        {
+            'url': 'http://www.wat.tv/video/gregory-lemarchal-voix-ange-6z1v7_6ygkj_.html',
+            'md5': 'fbc84e4378165278e743956d9c1bf16b',
+            'info_dict': {
+                'id': '11713075',
+                'display_id': 'gregory-lemarchal-voix-ange',
+                'ext': 'mp4',
+                'title': 'Grégory Lemarchal, une voix d\'ange depuis 10 ans (1/3)',
+                'description': 'md5:b7a849cf16a2b733d9cd10c52906dee3',
+                'upload_date': '20140816',
+                'duration': 2910,
+            },
+        },
+    ]
 
     def download_video_info(self, real_id):
         # 'contentv4' is used in the website, but it also returns the related
@@ -45,9 +57,8 @@ class WatIE(InfoExtractor):
 
         video_info = self.download_video_info(real_id)
 
-        if video_info.get('geolock'):
-            self.report_warning(
-                'This content is marked as not available in your area. Trying anyway ..')
+        geo_list = video_info.get('geoList')
+        country = geo_list[0] if geo_list else ''
 
         chapters = video_info['chapters']
         first_chapter = chapters[0]
@@ -82,14 +93,16 @@ class WatIE(InfoExtractor):
             fmts.append(('HD', 'webhd'))
 
         def compute_token(param):
-            timestamp = '%08x' % int(time.time())
+            timestamp = '%08x' % int(self._download_webpage(
+                'http://www.wat.tv/servertime', real_id,
+                'Downloading server time').split('|')[0])
             magic = '9b673b13fa4682ed14c3cfa5af5310274b514c4133e9b3a81e6e3aba009l2564'
             return '%s/%s' % (hashlib.md5((magic + param + timestamp).encode('ascii')).hexdigest(), timestamp)
 
         for fmt in fmts:
             webid = '/%s/%s' % (fmt[1], real_id)
             video_url = self._download_webpage(
-                'http://www.wat.tv/get%s?token=%s&getURL=1' % (webid, compute_token(webid)),
+                'http://www.wat.tv/get%s?token=%s&getURL=1&country=%s' % (webid, compute_token(webid), country),
                 real_id,
                 'Downloding %s video URL' % fmt[0],
                 'Failed to download %s video URL' % fmt[0],
