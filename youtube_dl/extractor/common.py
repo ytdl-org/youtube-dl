@@ -636,6 +636,55 @@ class InfoExtractor(object):
 
         return formats
 
+    def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None):
+        formats = [{
+            'format_id': 'm3u8-meta',
+            'url': m3u8_url,
+            'ext': ext,
+            'protocol': 'm3u8',
+            'preference': -1,
+            'resolution': 'multiple',
+            'format_note': 'Quality selection URL',
+        }]
+
+        m3u8_doc = self._download_webpage(m3u8_url, video_id)
+        last_info = None
+        kv_rex = re.compile(
+            r'(?P<key>[a-zA-Z_-]+)=(?P<val>"[^"]+"|[^",]+)(?:,|$)')
+        for line in m3u8_doc.splitlines():
+            if line.startswith('#EXT-X-STREAM-INF:'):
+                last_info = {}
+                for m in kv_rex.finditer(line):
+                    v = m.group('val')
+                    if v.startswith('"'):
+                        v = v[1:-1]
+                    last_info[m.group('key')] = v
+            elif line.startswith('#') or not line.strip():
+                continue
+            else:
+                tbr = int_or_none(last_info.get('BANDWIDTH'), scale=1000)
+
+                f = {
+                    'format_id': 'm3u8-%d' % (tbr if tbr else len(formats)),
+                    'url': line.strip(),
+                    'tbr': tbr,
+                    'ext': ext,
+                }
+                codecs = last_info.get('CODECS')
+                if codecs:
+                    video, audio = codecs.split(',')
+                    f['vcodec'] = video.partition('.')[0]
+                    f['acodec'] = audio.partition('.')[0]
+                resolution = last_info.get('RESOLUTION')
+                if resolution:
+                    width_str, height_str = resolution.split('x')
+                    f['width'] = int(width_str)
+                    f['height'] = int(height_str)
+                formats.append(f)
+                last_info = {}
+        self._sort_formats(formats)
+        return formats
+
 
 class SearchInfoExtractor(InfoExtractor):
     """
