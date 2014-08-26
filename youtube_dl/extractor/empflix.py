@@ -47,10 +47,14 @@ class EmpflixIE(InfoExtractor):
                 r'<item>\s*<res>([^>]+)</res>\s*<videoLink>([^<]+)</videoLink>\s*</item>', cfg_xml)
         ]
 
+        thumbnail = self._html_search_regex(
+            r'<startThumb>([^<]+)</startThumb>', cfg_xml, 'thumbnail', fatal=False)
+
         return {
             'id': video_id,
             'title': video_title,
             'description': video_description,
+            'thumbnail': thumbnail,
             'formats': formats,
             'age_limit': age_limit,
         }
