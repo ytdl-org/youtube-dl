@@ -35,14 +35,16 @@ class EmpflixIE(InfoExtractor):
             r'flashvars\.config = escape\("([^"]+)"',
             webpage, 'flashvars.config')
 
-        cfg_xml = self._download_xml(
+        # XML is malformed
+        cfg_xml = self._download_webpage(
             cfg_url, video_id, note='Downloading metadata')
 
         formats = [
             {
-                'url': item.find('videoLink').text,
-                'format_id': item.find('res').text,
-            } for item in cfg_xml.findall('./quality/item')
+                'url': item[1],
+                'format_id': item[0],
+            } for item in re.findall(
+                r'<item>\s*<res>([^>]+)</res>\s*<videoLink>([^<]+)</videoLink>\s*</item>', cfg_xml)
         ]
 
         return {
