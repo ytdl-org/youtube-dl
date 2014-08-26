@@ -114,7 +114,7 @@ class InfoExtractor(object):
     upload_date:    Video upload date (YYYYMMDD).
                     If not explicitly set, calculated from timestamp.
     uploader_id:    Nickname or id of the video uploader.
-    location:       Physical location of the video.
+    location:       Physical location where the video was filmed.
     subtitles:      The subtitle file contents as a dictionary in the format
                     {language: subtitles}.
     duration:       Length of the video in seconds, as an integer.

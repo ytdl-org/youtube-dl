@@ -209,6 +209,7 @@ from .mtv import (
     MTVIggyIE,
 )
 from .musicplayon import MusicPlayOnIE
+from .musicvault import MusicVaultIE
 from .muzu import MuzuTVIE
 from .myspace import MySpaceIE
 from .myspass import MySpassIE
