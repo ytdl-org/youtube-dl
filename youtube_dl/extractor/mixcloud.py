@@ -6,6 +6,7 @@ from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
     ExtractorError,
+    HEADRequest,
     int_or_none,
     parse_iso8601,
 )
@@ -38,7 +39,7 @@ class MixcloudIE(InfoExtractor):
             try:
                 # We only want to know if the request succeed
                 # don't download the whole file
-                self._request_webpage(url, None, False)
+                self._request_webpage(HEADRequest(url), None, False)
                 return url
             except ExtractorError:
                 url = None
