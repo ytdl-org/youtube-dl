@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import fix_xml_ampersands
 
 
 class EmpflixIE(InfoExtractor):
@@ -35,20 +36,17 @@ class EmpflixIE(InfoExtractor):
             r'flashvars\.config = escape\("([^"]+)"',
             webpage, 'flashvars.config')
 
-        # XML is malformed
-        cfg_xml = self._download_webpage(
-            cfg_url, video_id, note='Downloading metadata')
+        cfg_xml = self._download_xml(
+            cfg_url, video_id, note='Downloading metadata',
+            transform_source=fix_xml_ampersands)
 
         formats = [
             {
-                'url': item[1],
-                'format_id': item[0],
-            } for item in re.findall(
-                r'<item>\s*<res>([^>]+)</res>\s*<videoLink>([^<]+)</videoLink>\s*</item>', cfg_xml)
+                'url': item.find('videoLink').text,
+                'format_id': item.find('res').text,
+            } for item in cfg_xml.findall('./quality/item')
         ]
-
-        thumbnail = self._html_search_regex(
-            r'<startThumb>([^<]+)</startThumb>', cfg_xml, 'thumbnail', fatal=False)
+        thumbnail = cfg_xml.find('./startThumb').text
 
         return {
             'id': video_id,
