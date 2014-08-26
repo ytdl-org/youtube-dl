@@ -766,10 +766,9 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
         return ret
 
     def http_request(self, req):
-        for h,v in std_headers.items():
-            if h in req.headers:
-                del req.headers[h]
-            req.add_header(h, v)
+        for h, v in std_headers.items():
+            if h not in req.headers:
+                req.add_header(h, v)
         if 'Youtubedl-no-compression' in req.headers:
             if 'Accept-encoding' in req.headers:
                 del req.headers['Accept-encoding']
