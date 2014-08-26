@@ -18,6 +18,7 @@ class IGNIE(InfoExtractor):
     _DESCRIPTION_RE = [
         r'<span class="page-object-description">(.+?)</span>',
         r'id="my_show_video">.*?<p>(.*?)</p>',
+        r'<meta name="description" content="(.*?)"',
     ]
 
     _TESTS = [
@@ -55,6 +56,17 @@ class IGNIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        {
+            'url': 'http://www.ign.com/articles/2014/08/15/rewind-theater-wild-trailer-gamescom-2014?watch',
+            'md5': '4e9a0bda1e5eebd31ddcf86ec0b9b3c7',
+            'info_dict': {
+                'id': '078fdd005f6d3c02f63d795faa1b984f',
+                'ext': 'mp4',
+                'title': 'Rewind Theater - Wild Trailer Gamescom 2014',
+                'description': 'Giant skeletons, bloody hunts, and captivating'
+                    ' natural beauty take our breath away.',
+            },
+        },
     ]
 
     def _find_video_id(self, webpage):
@@ -62,6 +74,7 @@ class IGNIE(InfoExtractor):
             r'data-video-id="(.+?)"',
             r'<object id="vid_(.+?)"',
             r'<meta name="og:image" content=".*/(.+?)-(.+?)/.+.jpg"',
+            r'class="hero-poster[^"]*?"[^>]*id="(.+?)"',
         ]
         return self._search_regex(res_id, webpage, 'video id')
 
@@ -70,10 +83,7 @@ class IGNIE(InfoExtractor):
         name_or_id = mobj.group('name_or_id')
         page_type = mobj.group('type')
         webpage = self._download_webpage(url, name_or_id)
-        if page_type == 'articles':
-            video_url = self._search_regex(r'var videoUrl = "(.+?)"', webpage, 'video url')
-            return self.url_result(video_url, ie='IGN')
-        elif page_type != 'video':
+        if page_type != 'video':
             multiple_urls = re.findall(
                 '<param name="flashvars" value="[^"]*?url=(https?://www\.ign\.com/videos/.*?)["&]',
                 webpage)
