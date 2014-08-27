@@ -16,8 +16,9 @@ class VeeHDIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://veehd.com/video/4686958',
-        'file': '4686958.mp4',
         'info_dict': {
+            'id': '4686958',
+            'ext': 'mp4',
             'title': 'Time Lapse View from Space ( ISS)',
             'uploader_id': 'spotted',
             'description': 'md5:f0094c4cf3a72e22bc4e4239ef767ad7',
