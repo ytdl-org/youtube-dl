@@ -151,19 +151,6 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
                 'duration': 62,
             }
         },
-        {
-            'note': 'video player needs Referer',
-            'url': 'http://vimeo.com/user22258446/review/91613211/13f927e053',
-            'md5': '6295fdab8f4bf6a002d058b2c6dce276',
-            'info_dict': {
-                'id': '91613211',
-                'ext': 'mp4',
-                'title': 'Death by dogma versus assembling agile - Sander Hoogendoorn',
-                'uploader': 'DevWeek Events',
-                'duration': 2773,
-                'thumbnail': 're:^https?://.*\.jpg$',
-            }
-        }
     ]
 
     @classmethod
@@ -474,8 +461,8 @@ class VimeoGroupsIE(VimeoAlbumIE):
 class VimeoReviewIE(InfoExtractor):
     IE_NAME = 'vimeo:review'
     IE_DESC = 'Review pages on vimeo'
-    _VALID_URL = r'(?:https?://)?vimeo\.com/[^/]+/review/(?P<id>[^/]+)'
-    _TEST = {
+    _VALID_URL = r'https?://vimeo\.com/[^/]+/review/(?P<id>[^/]+)'
+    _TESTS = [{
         'url': 'https://vimeo.com/user21297594/review/75524534/3c257a1b5d',
         'file': '75524534.mp4',
         'md5': 'c507a72f780cacc12b2248bb4006d253',
@@ -483,7 +470,19 @@ class VimeoReviewIE(InfoExtractor):
             'title': "DICK HARDWICK 'Comedian'",
             'uploader': 'Richard Hardwick',
         }
-    }
+    }, {
+        'note': 'video player needs Referer',
+        'url': 'http://vimeo.com/user22258446/review/91613211/13f927e053',
+        'md5': '6295fdab8f4bf6a002d058b2c6dce276',
+        'info_dict': {
+            'id': '91613211',
+            'ext': 'mp4',
+            'title': 'Death by dogma versus assembling agile - Sander Hoogendoorn',
+            'uploader': 'DevWeek Events',
+            'duration': 2773,
+            'thumbnail': 're:^https?://.*\.jpg$',
+        }
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
