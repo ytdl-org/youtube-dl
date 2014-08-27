@@ -837,7 +837,7 @@ class GenericIE(InfoExtractor):
                     re.findall(r'<meta.*?property="og:video".*?content="(.*?)"', webpage)))
         if not found:
             # HTML5 video
-            found = re.findall(r'(?s)<video[^<]*(?:>.*?<source.*?)? src="([^"]+)"', webpage)
+            found = re.findall(r'(?s)<video[^<]*(?:>.*?<source[^>]+)? src="([^"]+)"', webpage)
         if not found:
             found = re.search(
                 r'(?i)<meta\s+(?=(?:[a-z-]+="[^"]+"\s+)*http-equiv="refresh")'
