@@ -3,6 +3,7 @@ import subprocess
 
 from .common import FileDownloader
 from ..utils import (
+    check_executable,
     encodeFilename,
 )
 
@@ -19,11 +20,8 @@ class HlsFD(FileDownloader):
             encodeFilename(tmpfilename, for_subprocess=True)]
 
         for program in ['avconv', 'ffmpeg']:
-            try:
-                subprocess.call([program, '-version'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
+            if check_executable(program, ['-version']):
                 break
-            except (OSError, IOError):
-                pass
         else:
             self.report_error(u'm3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
         cmd = [program] + args
