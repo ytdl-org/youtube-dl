@@ -28,51 +28,53 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
     """Information Extractor for Dailymotion"""
 
     _VALID_URL = r'(?i)(?:https?://)?(?:(www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(embed|#)/)?video/(?P<id>[^/?_]+)'
-    IE_NAME = u'dailymotion'
+    IE_NAME = 'dailymotion'
 
     _FORMATS = [
-        (u'stream_h264_ld_url', u'ld'),
-        (u'stream_h264_url', u'standard'),
-        (u'stream_h264_hq_url', u'hq'),
-        (u'stream_h264_hd_url', u'hd'),
-        (u'stream_h264_hd1080_url', u'hd180'),
+        ('stream_h264_ld_url', 'ld'),
+        ('stream_h264_url', 'standard'),
+        ('stream_h264_hq_url', 'hq'),
+        ('stream_h264_hd_url', 'hd'),
+        ('stream_h264_hd1080_url', 'hd180'),
     ]
 
     _TESTS = [
         {
-            u'url': u'http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech',
-            u'file': u'x33vw9.mp4',
-            u'md5': u'392c4b85a60a90dc4792da41ce3144eb',
-            u'info_dict': {
-                u"uploader": u"Amphora Alex and Van .", 
-                u"title": u"Tutoriel de Youtubeur\"DL DES VIDEO DE YOUTUBE\""
+            'url': 'http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech',
+            'md5': '392c4b85a60a90dc4792da41ce3144eb',
+            'info_dict': {
+                'id': 'x33vw9',
+                'ext': 'mp4',
+                'uploader': 'Amphora Alex and Van .',
+                'title': 'Tutoriel de Youtubeur"DL DES VIDEO DE YOUTUBE"',
             }
         },
         # Vevo video
         {
-            u'url': u'http://www.dailymotion.com/video/x149uew_katy-perry-roar-official_musi',
-            u'file': u'USUV71301934.mp4',
-            u'info_dict': {
-                u'title': u'Roar (Official)',
-                u'uploader': u'Katy Perry',
-                u'upload_date': u'20130905',
+            'url': 'http://www.dailymotion.com/video/x149uew_katy-perry-roar-official_musi',
+            'info_dict': {
+                'title': 'Roar (Official)',
+                'id': 'USUV71301934',
+                'ext': 'mp4',
+                'uploader': 'Katy Perry',
+                'upload_date': '20130905',
             },
-            u'params': {
-                u'skip_download': True,
+            'params': {
+                'skip_download': True,
             },
-            u'skip': u'VEVO is only available in some countries',
+            'skip': 'VEVO is only available in some countries',
         },
         # age-restricted video
         {
-            u'url': u'http://www.dailymotion.com/video/xyh2zz_leanna-decker-cyber-girl-of-the-year-desires-nude-playboy-plus_redband',
-            u'file': u'xyh2zz.mp4',
-            u'md5': u'0d667a7b9cebecc3c89ee93099c4159d',
-            u'info_dict': {
-                u'title': 'Leanna Decker - Cyber Girl Of The Year Desires Nude [Playboy Plus]',
-                u'uploader': 'HotWaves1012',
-                u'age_limit': 18,
+            'url': 'http://www.dailymotion.com/video/xyh2zz_leanna-decker-cyber-girl-of-the-year-desires-nude-playboy-plus_redband',
+            'md5': '0d667a7b9cebecc3c89ee93099c4159d',
+            'info_dict': {
+                'id': 'xyh2zz',
+                'ext': 'mp4',
+                'title': 'Leanna Decker - Cyber Girl Of The Year Desires Nude [Playboy Plus]',
+                'uploader': 'HotWaves1012',
+                'age_limit': 18,
             }
-
         }
     ]
 
