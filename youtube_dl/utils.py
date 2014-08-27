@@ -298,30 +298,6 @@ def xpath_with_ns(path, ns_map):
             replaced.append('{%s}%s' % (ns_map[ns], tag))
     return '/'.join(replaced)
 
-def htmlentity_transform(matchobj):
-    """Transforms an HTML entity to a character.
-
-    This function receives a match object and is intended to be used with
-    the re.sub() function.
-    """
-    entity = matchobj.group(1)
-
-    # Known non-numeric HTML entity
-    if entity in compat_html_entities.name2codepoint:
-        return compat_chr(compat_html_entities.name2codepoint[entity])
-
-    mobj = re.match(u'(?u)#(x?\\d+)', entity)
-    if mobj is not None:
-        numstr = mobj.group(1)
-        if numstr.startswith(u'x'):
-            base = 16
-            numstr = u'0%s' % numstr
-        else:
-            base = 10
-        return compat_chr(int(numstr, base))
-
-    # Unknown entity in name, return its literal representation
-    return (u'&%s;' % entity)
 
 compat_html_parser.locatestarttagend = re.compile(r"""<[a-zA-Z][-.a-zA-Z0-9:_]*(?:\s+(?:(?<=['"\s])[^\s/>][^\s/=>]*(?:\s*=+\s*(?:'[^']*'|"[^"]*"|(?!['"])[^>\s]*))?\s*)*)?\s*""", re.VERBOSE) # backport bugfix
 class BaseHTMLParser(compat_html_parser.HTMLParser):
@@ -543,13 +519,33 @@ def orderedSet(iterable):
     return res
 
 
+def _htmlentity_transform(entity):
+    """Transforms an HTML entity to a character."""
+    # Known non-numeric HTML entity
+    if entity in compat_html_entities.name2codepoint:
+        return compat_chr(compat_html_entities.name2codepoint[entity])
+
+    mobj = re.match(r'#(x?[0-9]+)', entity)
+    if mobj is not None:
+        numstr = mobj.group(1)
+        if numstr.startswith(u'x'):
+            base = 16
+            numstr = u'0%s' % numstr
+        else:
+            base = 10
+        return compat_chr(int(numstr, base))
+
+    # Unknown entity in name, return its literal representation
+    return (u'&%s;' % entity)
+
+
 def unescapeHTML(s):
     if s is None:
         return None
     assert type(s) == compat_str
 
-    result = re.sub(r'(?u)&(.+?);', htmlentity_transform, s)
-    return result
+    return re.sub(
+        r'&([^;]+);', lambda m: _htmlentity_transform(m.group(1)), s)
 
 
 def encodeFilename(s, for_subprocess=False):
