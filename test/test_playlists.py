@@ -87,38 +87,6 @@ class TestPlaylists(unittest.TestCase):
         assertGreaterEqual(self, len(result['entries']), 100)
         self.assertEqual(result['title'], 'Rémi Gaillard')
 
-    def test_vimeo_channel(self):
-        dl = FakeYDL()
-        ie = VimeoChannelIE(dl)
-        result = ie.extract('http://vimeo.com/channels/tributes')
-        self.assertIsPlaylist(result)
-        self.assertEqual(result['title'], 'Vimeo Tributes')
-        self.assertTrue(len(result['entries']) > 24)
-
-    def test_vimeo_user(self):
-        dl = FakeYDL()
-        ie = VimeoUserIE(dl)
-        result = ie.extract('http://vimeo.com/nkistudio/videos')
-        self.assertIsPlaylist(result)
-        self.assertEqual(result['title'], 'Nki')
-        self.assertTrue(len(result['entries']) > 65)
-
-    def test_vimeo_album(self):
-        dl = FakeYDL()
-        ie = VimeoAlbumIE(dl)
-        result = ie.extract('http://vimeo.com/album/2632481')
-        self.assertIsPlaylist(result)
-        self.assertEqual(result['title'], 'Staff Favorites: November 2013')
-        self.assertTrue(len(result['entries']) > 12)
-
-    def test_vimeo_groups(self):
-        dl = FakeYDL()
-        ie = VimeoGroupsIE(dl)
-        result = ie.extract('http://vimeo.com/groups/rolexawards')
-        self.assertIsPlaylist(result)
-        self.assertEqual(result['title'], 'Rolex Awards for Enterprise')
-        self.assertTrue(len(result['entries']) > 72)
-
     def test_vine_user(self):
         dl = FakeYDL()
         ie = VineUserIE(dl)
