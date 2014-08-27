@@ -8,9 +8,10 @@ import time
 
 from .common import FileDownloader
 from ..utils import (
+    check_executable,
+    compat_str,
     encodeFilename,
     format_bytes,
-    compat_str,
 )
 
 
@@ -103,9 +104,7 @@ class RtmpFD(FileDownloader):
         test = self.params.get('test', False)
 
         # Check for rtmpdump first
-        try:
-            subprocess.call(['rtmpdump', '-h'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
-        except (OSError, IOError):
+        if not check_executable('rtmpdump', ['-h']):
             self.report_error('RTMP download detected but "rtmpdump" could not be run. Please install it.')
             return False
 
