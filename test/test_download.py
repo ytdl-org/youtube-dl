@@ -103,8 +103,11 @@ def generator(test_case):
         def get_tc_filename(tc):
             return tc.get('file') or ydl.prepare_filename(tc.get('info_dict', {}))
 
-        def try_rm_tcs_files():
-            for tc in test_cases:
+        res_dict = None
+        def try_rm_tcs_files(tcs=None):
+            if tcs is None:
+                tcs = test_cases
+            for tc in tcs:
                 tc_filename = get_tc_filename(tc)
                 try_rm(tc_filename)
                 try_rm(tc_filename + '.part')
@@ -148,7 +151,14 @@ def generator(test_case):
                 self.assertEqual(
                     len(res_dict['entries']),
                     test_case['playlist_count'],
-                    'Expected at %d in playlist %s, but got %d.')
+                    'Expected %d entries in playlist %s, but got %d.' % (
+                        len(res_dict['entries']),
+                        test_case['url'],
+                        test_case['playlist_count']))
+            if 'playlist_duration_sum' in test_case:
+                got_duration = sum(e['duration'] for e in res_dict['entries'])
+                self.assertEqual(
+                    test_case['playlist_duration_sum'], got_duration)
 
             for tc in test_cases:
                 tc_filename = get_tc_filename(tc)
@@ -166,6 +176,11 @@ def generator(test_case):
                 expect_info_dict(self, tc.get('info_dict', {}), info_dict)
         finally:
             try_rm_tcs_files()
+            if is_playlist and res_dict is not None:
+                # Remove all other files that may have been extracted if the
+                # extractor returns full results even with extract_flat
+                res_tcs = [{'info_dict': e} for e in res_dict['entries']]
+                try_rm_tcs_files(res_tcs)
 
     return test_template
 
