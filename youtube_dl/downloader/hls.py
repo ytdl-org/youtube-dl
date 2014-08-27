@@ -24,6 +24,7 @@ class HlsFD(FileDownloader):
                 break
         else:
             self.report_error(u'm3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
+            return False
         cmd = [program] + args
 
         retval = subprocess.call(cmd)
