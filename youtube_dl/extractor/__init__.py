@@ -9,7 +9,7 @@ from .allocine import AllocineIE
 from .aparat import AparatIE
 from .appletrailers import AppleTrailersIE
 from .archiveorg import ArchiveOrgIE
-from .ard import ARDIE
+from .ard import ARDIE, ARDMediathekIE
 from .arte import (
     ArteTvIE,
     ArteTVPlus7IE,

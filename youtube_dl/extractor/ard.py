@@ -10,10 +10,14 @@ from ..utils import (
     qualities,
     compat_urllib_parse_urlparse,
     compat_urllib_parse,
+    int_or_none,
+    parse_duration,
+    unified_strdate,
 )
 
 
-class ARDIE(InfoExtractor):
+class ARDMediathekIE(InfoExtractor):
+    IE_NAME = 'ARD:mediathek'
     _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.daserste\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
 
     _TESTS = [{
@@ -128,3 +132,60 @@ class ARDIE(InfoExtractor):
             'formats': formats,
             'thumbnail': thumbnail,
         }
+
+
+class ARDIE(InfoExtractor):
+    _VALID_URL = '(?P<mainurl>https?://(www\.)?daserste\.de/[^?#]+/videos/(?P<display_id>[^/?#]+)-(?P<id>[0-9]+))\.html'
+    _TEST = {
+        'url': 'http://www.daserste.de/information/reportage-dokumentation/dokus/videos/die-story-im-ersten-mission-unter-falscher-flagge-100.html',
+        'md5': 'd216c3a86493f9322545e045ddc3eb35',
+        'info_dict': {
+            'display_id': 'die-story-im-ersten-mission-unter-falscher-flagge',
+            'id': '100',
+            'ext': 'mp4',
+            'duration': 2600,
+            'title': 'Die Story im Ersten: Mission unter falscher Flagge',
+            'upload_date': '20140804',
+            'thumbnail': 're:^https?://.*\.jpg$',
+        }
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        display_id = mobj.group('display_id')
+
+        player_url = mobj.group('mainurl') + '~playerXml.xml'
+        doc = self._download_xml(player_url, display_id)
+        video_node = doc.find('./video')
+        upload_date = unified_strdate(video_node.find('./broadcastDate').text)
+        thumbnail = video_node.find('.//teaserImage//variant/url').text
+
+        formats = []
+        for a in video_node.findall('.//asset'):
+            f = {
+                'format_id': a.attrib['type'],
+                'width': int_or_none(a.find('./frameWidth').text),
+                'height': int_or_none(a.find('./frameHeight').text),
+                'vbr': int_or_none(a.find('./bitrateVideo').text),
+                'abr': int_or_none(a.find('./bitrateAudio').text),
+                'vcodec': a.find('./codecVideo').text,
+                'tbr': int_or_none(a.find('./totalBitrate').text),
+            }
+            if a.find('./serverPrefix').text:
+                f['url'] = a.find('./serverPrefix').text
+                f['playpath'] = a.find('./fileName').text
+            else:
+                f['url'] = a.find('./fileName').text
+            formats.append(f)
+        self._sort_formats(formats)
+
+        return {
+            'id': mobj.group('id'),
+            'formats': formats,
+            'display_id': display_id,
+            'title': video_node.find('./title').text,
+            'duration': parse_duration(video_node.find('./duration').text),
+            'upload_date': upload_date,
+            'thumbnail': thumbnail,
+        }
+
