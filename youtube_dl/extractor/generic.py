@@ -12,6 +12,7 @@ from ..utils import (
     compat_urlparse,
     compat_xml_parse_error,
 
+    determine_ext,
     ExtractorError,
     float_or_none,
     HEADRequest,
