@@ -96,7 +96,7 @@ class BandcampAlbumIE(InfoExtractor):
     IE_NAME = 'Bandcamp:album'
     _VALID_URL = r'https?://(?:(?P<subdomain>[^.]+)\.)?bandcamp\.com(?:/album/(?P<title>[^?#]+))'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://blazo.bandcamp.com/album/jazz-format-mixtape-vol-1',
         'playlist': [
             {
@@ -118,7 +118,13 @@ class BandcampAlbumIE(InfoExtractor):
             'playlistend': 2
         },
         'skip': 'Bandcamp imposes download limits. See test_playlists:test_bandcamp_album for the playlist test'
-    }
+    }, {
+        'url': 'http://nightbringer.bandcamp.com/album/hierophany-of-the-open-grave',
+        'info_dict': {
+            'title': 'Hierophany of the Open Grave',
+        },
+        'playlist_mincount': 9,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

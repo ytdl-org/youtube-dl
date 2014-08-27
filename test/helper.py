@@ -103,7 +103,8 @@ def expect_info_dict(self, expected_dict, got_dict):
 
             self.assertTrue(
                 isinstance(got, compat_str),
-                'Expected a %r object, but got %r' % (compat_str, type(got)))
+                u'Expected a %s object, but got %s for field %s' % (
+                    compat_str.__name__, type(got).__name__, info_field))
             self.assertTrue(
                 match_rex.match(got),
                 u'field %s (value: %r) should match %r' % (info_field, got, match_str))

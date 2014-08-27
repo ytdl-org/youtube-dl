@@ -34,6 +34,13 @@ class CSpanIE(InfoExtractor):
             'title': 'International Health Care Models',
             'description': 'md5:7a985a2d595dba00af3d9c9f0783c967',
         }
+    }, {
+        'url': 'http://www.c-span.org/video/?318608-1/gm-ignition-switch-recall',
+        'info_dict': {
+            'id': '342759',
+            'title': 'General Motors Ignition Switch Recall',
+        },
+        'playlist_duration_sum': 14855,
     }]
 
     def _real_extract(self, url):

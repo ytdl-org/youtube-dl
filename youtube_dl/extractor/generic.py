@@ -351,6 +351,20 @@ class GenericIE(InfoExtractor):
                 'description': 're:'
             },
             'playlist_mincount': 11,
+        },
+        # Multiple brightcove videos
+        # https://github.com/rg3/youtube-dl/issues/2283
+        {
+            'url': 'http://www.newyorker.com/online/blogs/newsdesk/2014/01/always-never-nuclear-command-and-control.html',
+            'info_dict': {
+                'id': 'always-never',
+                'title': 'Always / Never - The New Yorker',
+            },
+            'playlist_count': 3,
+            'params': {
+                'extract_flat': False,
+                'skip_download': True,
+            }
         }
     ]
 

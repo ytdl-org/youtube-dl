@@ -1,3 +1,6 @@
+#coding: utf-8
+from __future__ import unicode_literals
+
 import re
 import json
 import itertools
@@ -99,8 +102,8 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             webpage)
         if m_vevo is not None:
             vevo_id = m_vevo.group('id')
-            self.to_screen(u'Vevo video detected: %s' % vevo_id)
-            return self.url_result(u'vevo:%s' % vevo_id, ie='Vevo')
+            self.to_screen('Vevo video detected: %s' % vevo_id)
+            return self.url_result('vevo:%s' % vevo_id, ie='Vevo')
 
         age_limit = self._rta_search(webpage)
 
@@ -111,7 +114,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
 
         embed_url = 'http://www.dailymotion.com/embed/video/%s' % video_id
         embed_page = self._download_webpage(embed_url, video_id,
-                                            u'Downloading embed page')
+                                            'Downloading embed page')
         info = self._search_regex(r'var info = ({.*?}),$', embed_page,
             'video info', flags=re.MULTILINE)
         info = json.loads(info)
@@ -136,7 +139,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
                     'height': height,
                 })
         if not formats:
-            raise ExtractorError(u'Unable to extract video URL')
+            raise ExtractorError('Unable to extract video URL')
 
         # subtitles
         video_subtitles = self.extract_subtitles(video_id, webpage)
@@ -145,7 +148,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             return
 
         view_count = self._search_regex(
-            r'video_views_count[^>]+>\s+([\d\.,]+)', webpage, u'view count', fatal=False)
+            r'video_views_count[^>]+>\s+([\d\.,]+)', webpage, 'view count', fatal=False)
         if view_count is not None:
             view_count = str_to_int(view_count)
 
@@ -167,28 +170,35 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
                 'https://api.dailymotion.com/video/%s/subtitles?fields=id,language,url' % video_id,
                 video_id, note=False)
         except ExtractorError as err:
-            self._downloader.report_warning(u'unable to download video subtitles: %s' % compat_str(err))
+            self._downloader.report_warning('unable to download video subtitles: %s' % compat_str(err))
             return {}
         info = json.loads(sub_list)
         if (info['total'] > 0):
             sub_lang_list = dict((l['language'], l['url']) for l in info['list'])
             return sub_lang_list
-        self._downloader.report_warning(u'video doesn\'t have subtitles')
+        self._downloader.report_warning('video doesn\'t have subtitles')
         return {}
 
 
 class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
-    IE_NAME = u'dailymotion:playlist'
+    IE_NAME = 'dailymotion:playlist'
     _VALID_URL = r'(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/playlist/(?P<id>.+?)/'
     _MORE_PAGES_INDICATOR = r'(?s)<div class="pages[^"]*">.*?<a\s+class="[^"]*?icon-arrow_right[^"]*?"'
     _PAGE_TEMPLATE = 'https://www.dailymotion.com/playlist/%s/%s'
+    _TESTS = [{
+        'url': 'http://www.dailymotion.com/playlist/xv4bw_nqtv_sport/1#video=xl8v3q',
+        'info_dict': {
+            'title': 'SPORT',
+        },
+        'playlist_mincount': 20,
+    }]
 
     def _extract_entries(self, id):
         video_ids = []
         for pagenum in itertools.count(1):
             request = self._build_request(self._PAGE_TEMPLATE % (id, pagenum))
             webpage = self._download_webpage(request,
-                                             id, u'Downloading page %s' % pagenum)
+                                             id, 'Downloading page %s' % pagenum)
 
             video_ids.extend(re.findall(r'data-xid="(.+?)"', webpage))
 
@@ -211,9 +221,17 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
 
 
 class DailymotionUserIE(DailymotionPlaylistIE):
-    IE_NAME = u'dailymotion:user'
+    IE_NAME = 'dailymotion:user'
     _VALID_URL = r'https?://(?:www\.)?dailymotion\.[a-z]{2,3}/user/(?P<user>[^/]+)'
     _PAGE_TEMPLATE = 'http://www.dailymotion.com/user/%s/%s'
+    _TESTS = [{
+        'url': 'https://www.dailymotion.com/user/nqtv',
+        'info_dict': {
+            'id': 'nqtv',
+            'title': 'Rémi Gaillard',
+        },
+        'playlist_mincount': 100,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -221,7 +239,7 @@ class DailymotionUserIE(DailymotionPlaylistIE):
         webpage = self._download_webpage(url, user)
         full_user = unescapeHTML(self._html_search_regex(
             r'<a class="nav-image" title="([^"]+)" href="/%s">' % re.escape(user),
-            webpage, u'user', flags=re.DOTALL))
+            webpage, 'user'))
 
         return {
             '_type': 'playlist',

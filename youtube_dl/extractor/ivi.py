@@ -127,6 +127,21 @@ class IviCompilationIE(InfoExtractor):
     IE_DESC = 'ivi.ru compilations'
     IE_NAME = 'ivi:compilation'
     _VALID_URL = r'https?://(?:www\.)?ivi\.ru/watch/(?!\d+)(?P<compilationid>[a-z\d_-]+)(?:/season(?P<seasonid>\d+))?$'
+    _TESTS = [{
+        'url': 'http://www.ivi.ru/watch/dvoe_iz_lartsa',
+        'info_dict': {
+            'id': 'dvoe_iz_lartsa',
+            'title': 'Двое из ларца (2006 - 2008)',
+        },
+        'playlist_mincount': 24,
+    }, {
+        'url': 'http://www.ivi.ru/watch/dvoe_iz_lartsa/season1',
+        'info_dict': {
+            'id': 'dvoe_iz_lartsa/season1',
+            'title': 'Двое из ларца (2006 - 2008) 1 сезон',
+        },
+        'playlist_mincount': 12,
+    }]
 
     def _extract_entries(self, html, compilation_id):
         return [self.url_result('http://www.ivi.ru/watch/%s/%s' % (compilation_id, serie), 'Ivi')

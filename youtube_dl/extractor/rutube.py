@@ -74,6 +74,13 @@ class RutubeChannelIE(InfoExtractor):
     IE_NAME = 'rutube:channel'
     IE_DESC = 'Rutube channels'
     _VALID_URL = r'http://rutube\.ru/tags/video/(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'http://rutube.ru/tags/video/1800/',
+        'info_dict': {
+            'id': '1800',
+        },
+        'playlist_mincount': 68,
+    }]
 
     _PAGE_TEMPLATE = 'http://rutube.ru/api/tags/video/%s/?page=%s&format=json'
 
@@ -101,6 +108,7 @@ class RutubeMovieIE(RutubeChannelIE):
     IE_NAME = 'rutube:movie'
     IE_DESC = 'Rutube movies'
     _VALID_URL = r'http://rutube\.ru/metainfo/tv/(?P<id>\d+)'
+    _TESTS = []
 
     _MOVIE_TEMPLATE = 'http://rutube.ru/api/metainfo/tv/%s/?format=json'
     _PAGE_TEMPLATE = 'http://rutube.ru/api/metainfo/tv/%s/video?page=%s&format=json'
@@ -119,5 +127,12 @@ class RutubePersonIE(RutubeChannelIE):
     IE_NAME = 'rutube:person'
     IE_DESC = 'Rutube person videos'
     _VALID_URL = r'http://rutube\.ru/video/person/(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'http://rutube.ru/video/person/313878/',
+        'info_dict': {
+            'id': '313878',
+        },
+        'playlist_mincount': 37,
+    }]
 
     _PAGE_TEMPLATE = 'http://rutube.ru/api/video/person/%s/?page=%s&format=json'

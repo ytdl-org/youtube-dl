@@ -106,6 +106,13 @@ class TeacherTubeUserIE(InfoExtractor):
         \s*
         <a\s+href="(https?://(?:www\.)?teachertube\.com/(?:video|audio)/[^"]+)"
     '''
+    _TEST = {
+        'url': 'http://www.teachertube.com/user/profile/rbhagwati2',
+        'info_dict': {
+            'id': 'rbhagwati2'
+        },
+        'playlist_mincount': 179,
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

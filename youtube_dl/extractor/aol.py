@@ -21,7 +21,7 @@ class AolIE(InfoExtractor):
         (?:$|\?)
     '''
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://on.aol.com/video/u-s--official-warns-of-largest-ever-irs-phone-scam-518167793?icid=OnHomepageC2Wide_MustSee_Img',
         'md5': '18ef68f48740e86ae94b98da815eec42',
         'info_dict': {
@@ -30,7 +30,14 @@ class AolIE(InfoExtractor):
             'title': 'U.S. Official Warns Of \'Largest Ever\' IRS Phone Scam',
         },
         'add_ie': ['FiveMin'],
-    }
+    }, {
+        'url': 'http://on.aol.com/playlist/brace-yourself---todays-weirdest-news-152147?icid=OnHomepageC4_Omg_Img#_videoid=518184316',
+        'info_dict': {
+            'id': '152147',
+            'title': 'Brace Yourself - Today\'s Weirdest News',
+        },
+        'playlist_mincount': 10,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

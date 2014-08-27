@@ -152,9 +152,10 @@ def generator(test_case):
                     len(res_dict['entries']),
                     test_case['playlist_count'],
                     'Expected %d entries in playlist %s, but got %d.' % (
-                        len(res_dict['entries']),
+                        test_case['playlist_count'],
                         test_case['url'],
-                        test_case['playlist_count']))
+                        len(res_dict['entries']),
+                    ))
             if 'playlist_duration_sum' in test_case:
                 got_duration = sum(e['duration'] for e in res_dict['entries'])
                 self.assertEqual(

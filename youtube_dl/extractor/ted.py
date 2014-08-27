@@ -58,6 +58,13 @@ class TEDIE(SubtitlesInfoExtractor):
             'uploader': 'Gabby Giffords and Mark Kelly',
             'description': 'md5:5174aed4d0f16021b704120360f72b92',
         },
+    }, {
+        'url': 'http://www.ted.com/playlists/who_are_the_hackers',
+        'info_dict': {
+            'id': '10',
+            'title': 'Who are the hackers?',
+        },
+        'playlist_mincount': 6,
     }]
 
     _NATIVE_FORMATS = {
