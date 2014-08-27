@@ -42,5 +42,5 @@ class HlsFD(FileDownloader):
             return True
         else:
             self.to_stderr(u"\n")
-            self.report_error(u'ffmpeg exited with code %d' % retval)
+            self.report_error(u'%s exited with code %d' % (program, retval))
             return False
