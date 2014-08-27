@@ -109,7 +109,9 @@ class TestAllURLsMatching(unittest.TestCase):
                 if type(ie).__name__ in ('GenericIE', tc['name'] + 'IE'):
                     self.assertTrue(ie.suitable(url), '%s should match URL %r' % (type(ie).__name__, url))
                 else:
-                    self.assertFalse(ie.suitable(url), '%s should not match URL %r' % (type(ie).__name__, url))
+                    self.assertFalse(
+                        ie.suitable(url),
+                        '%s should not match URL %r . That URL belongs to %s.' % (type(ie).__name__, url, tc['name']))
 
     def test_keywords(self):
         self.assertMatch(':ytsubs', ['youtube:subscriptions'])
