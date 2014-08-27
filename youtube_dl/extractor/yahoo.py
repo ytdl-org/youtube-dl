@@ -71,7 +71,8 @@ class YahooIE(InfoExtractor):
         if items_json is None:
             CONTENT_ID_REGEXES = [
                 r'YUI\.namespace\("Media"\)\.CONTENT_ID\s*=\s*"([^"]+)"',
-                r'root\.App\.Cache\.context\.videoCache\.curVideo = \{"([^"]+)"'
+                r'root\.App\.Cache\.context\.videoCache\.curVideo = \{"([^"]+)"',
+                r'"first_videoid"\s*:\s*"([^"]+)"',
             ]
             long_id = self._search_regex(CONTENT_ID_REGEXES, webpage, 'content ID')
             video_id = long_id
