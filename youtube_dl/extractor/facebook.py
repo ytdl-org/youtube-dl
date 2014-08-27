@@ -21,14 +21,14 @@ class FacebookIE(InfoExtractor):
     _VALID_URL = r'''(?x)
         https?://(?:\w+\.)?facebook\.com/
         (?:[^#]*?\#!/)?
-        (?:video/video\.php|photo\.php|video/embed)\?(?:.*?)
+        (?:video/video\.php|photo\.php|video\.php|video/embed)\?(?:.*?)
         (?:v|video_id)=(?P<id>[0-9]+)
         (?:.*)'''
     _LOGIN_URL = 'https://www.facebook.com/login.php?next=http%3A%2F%2Ffacebook.com%2Fhome.php&login_attempt=1'
     _CHECKPOINT_URL = 'https://www.facebook.com/checkpoint/?next=http%3A%2F%2Ffacebook.com%2Fhome.php&_fb_noscript=1'
     _NETRC_MACHINE = 'facebook'
     IE_NAME = 'facebook'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://www.facebook.com/photo.php?v=120708114770723',
         'md5': '48975a41ccc4b7a581abd68651c1a5a8',
         'info_dict': {
@@ -37,7 +37,10 @@ class FacebookIE(InfoExtractor):
             'duration': 279,
             'title': 'PEOPLE ARE AWESOME 2013',
         }
-    }
+    }, {
+        'url': 'https://www.facebook.com/video.php?v=10204634152394104',
+        'only_matching': True,
+    }]
 
     def _login(self):
         (useremail, password) = self._get_login_info()
