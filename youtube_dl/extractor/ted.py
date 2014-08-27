@@ -51,7 +51,6 @@ class TEDIE(SubtitlesInfoExtractor):
         }
     }, {
         'url': 'http://www.ted.com/talks/gabby_giffords_and_mark_kelly_be_passionate_be_courageous_be_your_best',
-        'md5': '49144e345a899b8cb34d315f3b9cfeeb',
         'info_dict': {
             'id': '1972',
             'ext': 'mp4',
