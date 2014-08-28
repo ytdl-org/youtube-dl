@@ -56,8 +56,8 @@ class PromptFileIE(InfoExtractor):
             'format_id': 'sd',
             'url': url,
             'ext': determine_ext(title),
-            'quality': 1,
         }]
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
