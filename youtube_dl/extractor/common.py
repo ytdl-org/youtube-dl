@@ -664,7 +664,7 @@ class InfoExtractor(object):
             elif line.startswith('#') or not line.strip():
                 continue
             else:
-                if last_info is none:
+                if last_info is None:
                     formats.append({'url': line})
                     continue
                 tbr = int_or_none(last_info.get('BANDWIDTH'), scale=1000)
