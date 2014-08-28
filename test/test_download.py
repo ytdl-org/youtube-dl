@@ -28,6 +28,7 @@ from youtube_dl.utils import (
     compat_HTTPError,
     DownloadError,
     ExtractorError,
+    format_bytes,
     UnavailableVideoError,
 )
 from youtube_dl.extractor import get_info_extractor
@@ -171,6 +172,16 @@ def generator(test_case):
                 if 'md5' in tc:
                     md5_for_file = _file_md5(tc_filename)
                     self.assertEqual(md5_for_file, tc['md5'])
+                expected_minsize = tc.get('file_minsize', 10000)
+                if expected_minsize is not None:
+                    if params.get('test'):
+                        expected_minsize = max(expected_minsize, 10000)
+                    got_fsize = os.path.getsize(tc_filename)
+                    assertGreaterEqual(
+                        self, got_fsize, expected_minsize,
+                        'Expected %s to be at least %s, but it\'s only %s ' %
+                        (tc_filename, format_bytes(expected_minsize),
+                            format_bytes(got_fsize)))
                 with io.open(info_json_fn, encoding='utf-8') as infof:
                     info_dict = json.load(infof)
 
