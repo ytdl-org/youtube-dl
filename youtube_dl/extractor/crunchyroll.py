@@ -17,6 +17,7 @@ from ..utils import (
     intlist_to_bytes,
     unified_strdate,
     clean_html,
+    urlencode_postdata,
 )
 from ..aes import (
     aes_cbc_decrypt,
@@ -50,6 +51,24 @@ class CrunchyrollIE(InfoExtractor):
         '720': ('62', '106'),
         '1080': ('80', '108'),
     }
+
+    def _login(self):
+        (username, password) = self._get_login_info()
+        if username is None:
+            return
+        self.report_login()
+        login_url = 'https://www.crunchyroll.com/?a=formhandler'
+        data = urlencode_postdata({
+            'formname': 'RpcApiUser_Login',
+            'name': username,
+            'password': password,
+        })
+        login_request = compat_urllib_request.Request(login_url, data)
+        login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        self._download_webpage(login_request, None, False, 'Wrong login info')
+
+    def _real_initialize(self):
+        self._login()
 
     def _decrypt_subtitles(self, data, iv, id):
         data = bytes_to_intlist(data)
