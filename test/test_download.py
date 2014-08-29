@@ -167,21 +167,21 @@ def generator(test_case):
                 if not test_case.get('params', {}).get('skip_download', False):
                     self.assertTrue(os.path.exists(tc_filename), msg='Missing file ' + tc_filename)
                     self.assertTrue(tc_filename in finished_hook_called)
+                    expected_minsize = tc.get('file_minsize', 10000)
+                    if expected_minsize is not None:
+                        if params.get('test'):
+                            expected_minsize = max(expected_minsize, 10000)
+                        got_fsize = os.path.getsize(tc_filename)
+                        assertGreaterEqual(
+                            self, got_fsize, expected_minsize,
+                            'Expected %s to be at least %s, but it\'s only %s ' %
+                            (tc_filename, format_bytes(expected_minsize),
+                                format_bytes(got_fsize)))
+                    if 'md5' in tc:
+                        md5_for_file = _file_md5(tc_filename)
+                        self.assertEqual(md5_for_file, tc['md5'])
                 info_json_fn = os.path.splitext(tc_filename)[0] + '.info.json'
                 self.assertTrue(os.path.exists(info_json_fn))
-                if 'md5' in tc:
-                    md5_for_file = _file_md5(tc_filename)
-                    self.assertEqual(md5_for_file, tc['md5'])
-                expected_minsize = tc.get('file_minsize', 10000)
-                if expected_minsize is not None:
-                    if params.get('test'):
-                        expected_minsize = max(expected_minsize, 10000)
-                    got_fsize = os.path.getsize(tc_filename)
-                    assertGreaterEqual(
-                        self, got_fsize, expected_minsize,
-                        'Expected %s to be at least %s, but it\'s only %s ' %
-                        (tc_filename, format_bytes(expected_minsize),
-                            format_bytes(got_fsize)))
                 with io.open(info_json_fn, encoding='utf-8') as infof:
                     info_dict = json.load(infof)
 
