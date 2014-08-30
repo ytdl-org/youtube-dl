@@ -16,7 +16,6 @@ class AnySexIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Busty and sexy blondie in her bikini strips for you',
             'duration': 270,
-            'view_count': 3652
         }
     }
 
@@ -39,6 +38,6 @@ class AnySexIE(InfoExtractor):
             'ext': 'mp4',
             'url': video_url,
             'title': title,
-            'duration': duration,
+            'duration': int_or_none(duration),
             'view_count': int_or_none(view_count),
         }
