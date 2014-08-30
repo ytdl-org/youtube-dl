@@ -134,6 +134,7 @@ from .grooveshark import GroovesharkIE
 from .hark import HarkIE
 from .helsinki import HelsinkiIE
 from .hentaistigma import HentaiStigmaIE
+from .hornbunny import HornBunnyIE
 from .hotnewhiphop import HotNewHipHopIE
 from .howcast import HowcastIE
 from .howstuffworks import HowStuffWorksIE
