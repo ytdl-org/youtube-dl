@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import int_or_none
 
 class AnySexIE(InfoExtractor):
     _VALID_URL = r'http?://(?:www\.)?anysex\.com/(?P<id>\d+)/?'
@@ -14,7 +15,8 @@ class AnySexIE(InfoExtractor):
             'id': '156592',
             'ext': 'mp4',
             'title': 'Busty and sexy blondie in her bikini strips for you',
-            'duration': 270
+            'duration': 270,
+            'view_count': 3652
         }
     }
 
@@ -38,5 +40,5 @@ class AnySexIE(InfoExtractor):
             'url': video_url,
             'title': title,
             'duration': duration,
-            'view_count': view_count
+            'view_count': int_or_none(view_count),
         }
