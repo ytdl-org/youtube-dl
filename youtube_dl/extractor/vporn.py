@@ -35,7 +35,11 @@ class VpornIE(InfoExtractor):
         duration = int(mobj.group('minutes')) * 60 + int(mobj.group('seconds')) if mobj else None
 
         mobj = re.search(r'<span>((?P<thousands>\d+),)?(?P<units>\d+) VIEWS</span>', webpage)
-        view_count = int(mobj.group('thousands')) * 1000 + int(mobj.group('units')) if mobj else None
+        try:
+            view_count = int(mobj.group('units'))
+            view_count += int(mobj.group('thousands')) * 1000
+        except:
+            pass
 
         return {
             'id': video_id,
