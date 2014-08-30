@@ -34,7 +34,11 @@ class EpornerIE(InfoExtractor):
         duration = int(mobj.group('minutes')) * 60 + int(mobj.group('seconds')) if mobj else None
 
         mobj = re.search(r'id="cinemaviews">((?P<thousands>\d+),)?(?P<units>\d+)<small>views', webpage)
-        view_count = int(mobj.group('thousands')) * 1000 + int(mobj.group('units')) if mobj else None
+        try:
+            view_count = int(mobj.group('units'))
+            view_count += int(mobj.group('thousands')) * 1000
+        except:
+            pass
 
         return {
             'id': video_id,
