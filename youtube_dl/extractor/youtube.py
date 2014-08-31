@@ -316,6 +316,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 u"upload_date": u"20121002",
                 u"description": u"test chars:  \"'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .",
                 u"categories": [u'Science & Technology'],
+                'like_count': int,
+                'dislike_count': int,
             }
         },
         {
