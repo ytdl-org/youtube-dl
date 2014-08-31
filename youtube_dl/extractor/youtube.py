@@ -1434,12 +1434,6 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
             paging = mobj.group('paging')
         return self.playlist_result(feed_entries, playlist_title=self._PLAYLIST_TITLE)
 
-class YoutubeSubscriptionsIE(YoutubeFeedsInfoExtractor):
-    IE_DESC = u'YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)'
-    _VALID_URL = r'https?://www\.youtube\.com/feed/subscriptions|:ytsubs(?:criptions)?'
-    _FEED_NAME = 'subscriptions'
-    _PLAYLIST_TITLE = u'Youtube Subscriptions'
-
 class YoutubeRecommendedIE(YoutubeFeedsInfoExtractor):
     IE_DESC = u'YouTube.com recommended videos, "ytrec" keyword (requires authentication)'
     _VALID_URL = r'https?://www\.youtube\.com/feed/recommended|:ytrec(?:ommended)?'
@@ -1470,6 +1464,43 @@ class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
         webpage = self._download_webpage('https://www.youtube.com/my_favorites', 'Youtube Favourites videos')
         playlist_id = self._search_regex(r'list=(.+?)["&]', webpage, u'favourites playlist id')
         return self.url_result(playlist_id, 'YoutubePlaylist')
+
+
+class YoutubeSubscriptionsIE(YoutubePlaylistIE):
+    IE_NAME = u'youtube:subscriptions'
+    IE_DESC = u'YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)'
+    _VALID_URL = r'https?://www\.youtube\.com/feed/subscriptions|:ytsubs(?:criptions)?'
+
+    def _real_extract(self, url):
+        title = u'Youtube Subscriptions'
+        page = self._download_webpage('https://www.youtube.com/feed/subscriptions', title)
+
+        # The extraction process is the same as for playlists, but the regex
+        # for the video ids doesn't contain an index
+        ids = []
+        more_widget_html = content_html = page
+
+        for page_num in itertools.count(1):
+            matches = re.findall(r'href="\s*/watch\?v=([0-9A-Za-z_-]{11})', content_html)
+            new_ids = orderedSet(matches)
+            ids.extend(new_ids)
+
+            mobj = re.search(r'data-uix-load-more-href="/?(?P<more>[^"]+)"', more_widget_html)
+            if not mobj:
+                break
+
+            more = self._download_json(
+                'https://youtube.com/%s' % mobj.group('more'), title,
+                'Downloading page #%s' % page_num,
+                transform_source=uppercase_escape)
+            content_html = more['content_html']
+            more_widget_html = more['load_more_widget_html']
+
+        return {
+            '_type': 'playlist',
+            'title': title,
+            'entries': self._ids_to_results(ids),
+        }
 
 
 class YoutubeTruncatedURLIE(InfoExtractor):
