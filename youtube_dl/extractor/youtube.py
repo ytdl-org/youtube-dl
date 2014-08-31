@@ -813,15 +813,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             else:
                 video_description = u''
 
-        def _extract_count(klass):
+        def _extract_count(count_name):
             count = self._search_regex(
-                r'class="%s">([\d,]+)</span>' % re.escape(klass),
-                video_webpage, klass, default=None)
+                r'id="watch-%s"[^>]*>.*?([\d,]+)\s*</span>' % re.escape(count_name),
+                video_webpage, count_name, default=None)
             if count is not None:
                 return int(count.replace(',', ''))
             return None
-        like_count = _extract_count(u'likes-count')
-        dislike_count = _extract_count(u'dislikes-count')
+        like_count = _extract_count(u'like')
+        dislike_count = _extract_count(u'dislike')
 
         # subtitles
         video_subtitles = self.extract_subtitles(video_id, video_webpage)
