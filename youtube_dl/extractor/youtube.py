@@ -1055,21 +1055,26 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         self._login()
 
     def _ids_to_results(self, ids):
-        return [self.url_result(vid_id, 'Youtube', video_id=vid_id)
-                       for vid_id in ids]
+        return [
+            self.url_result(vid_id, 'Youtube', video_id=vid_id)
+            for vid_id in ids]
 
     def _extract_mix(self, playlist_id):
         # The mixes are generated from a a single video
         # the id of the playlist is just 'RD' + video_id
         url = 'https://youtube.com/watch?v=%s&list=%s' % (playlist_id[-11:], playlist_id)
-        webpage = self._download_webpage(url, playlist_id, u'Downloading Youtube mix')
+        webpage = self._download_webpage(
+            url, playlist_id, u'Downloading Youtube mix')
         search_title = lambda class_name: get_element_by_attribute('class', class_name, webpage)
-        title_span = (search_title('playlist-title') or
-            search_title('title long-title') or search_title('title'))
+        title_span = (
+            search_title('playlist-title') or
+            search_title('title long-title') or
+            search_title('title'))
         title = clean_html(title_span)
-        video_re = r'''(?x)data-video-username=".*?".*?
-                       href="/watch\?v=([0-9A-Za-z_-]{11})&amp;[^"]*?list=%s''' % re.escape(playlist_id)
-        ids = orderedSet(re.findall(video_re, webpage, flags=re.DOTALL))
+        ids = orderedSet(re.findall(
+            r'''(?xs)data-video-username=".*?".*?
+                       href="/watch\?v=([0-9A-Za-z_-]{11})&amp;[^"]*?list=%s''' % re.escape(playlist_id),
+            webpage))
         url_results = self._ids_to_results(ids)
 
         return self.playlist_result(url_results, playlist_id, title)
@@ -1162,6 +1167,7 @@ class YoutubeTopListIE(YoutubePlaylistIE):
             msg = u'Downloading Youtube mix'
             if i > 0:
                 msg += ', retry #%d' % i
+
             webpage = self._download_webpage(url, title, msg)
             ids = orderedSet(re.findall(video_re, webpage))
             if ids:
