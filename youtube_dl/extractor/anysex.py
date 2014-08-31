@@ -1,13 +1,16 @@
-# coding: utf-8
 from __future__ import unicode_literals
 
 import re
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    parse_duration,
+    int_or_none,
+)
+
 
 class AnySexIE(InfoExtractor):
-    _VALID_URL = r'http?://(?:www\.)?anysex\.com/(?P<id>\d+)/?'
+    _VALID_URL = r'https?://(?:www\.)?anysex\.com/(?P<id>\d+)'
     _TEST = {
         'url': 'http://anysex.com/156592/',
         'md5': '023e9fbb7f7987f5529a394c34ad3d3d',
@@ -15,6 +18,8 @@ class AnySexIE(InfoExtractor):
             'id': '156592',
             'ext': 'mp4',
             'title': 'Busty and sexy blondie in her bikini strips for you',
+            'description': 'md5:de9e418178e2931c10b62966474e1383',
+            'categories': ['Erotic'],
             'duration': 270,
         }
     }
@@ -24,20 +29,32 @@ class AnySexIE(InfoExtractor):
         video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id)
+
+        video_url = self._html_search_regex(r"video_url\s*:\s*'([^']+)'", webpage, 'video URL')
+
         title = self._html_search_regex(r'<title>(.*?)</title>', webpage, 'title')
-        video_url = self._html_search_regex(r'video_url: \'(.*?)\',', webpage, 'video_url')
-        thumbnail = self._html_search_regex(r'preview_url: \'(.*?)\',', webpage, 'thumbnail')
+        description = self._html_search_regex(
+            r'<div class="description">([^<]+)</div>', webpage, 'description', fatal=False)
+        thumbnail = self._html_search_regex(
+            r'preview_url\s*:\s*\'(.*?)\'', webpage, 'thumbnail', fatal=False)
 
-        mobj = re.search(r'<b>Duration:</b> (?P<minutes>\d+):(?P<seconds>\d+)<', webpage)
-        duration = int(mobj.group('minutes')) * 60 + int(mobj.group('seconds')) if mobj else None
+        categories = re.findall(
+            r'<a href="http://anysex\.com/categories/[^"]+" title="[^"]*">([^<]+)</a>', webpage)
 
-        view_count = self._html_search_regex(r'<b>Views:</b> (\d+)', webpage, 'view count', fatal=False)
+        duration = parse_duration(self._search_regex(
+            r'<b>Duration:</b> (\d+:\d+)', webpage, 'duration', fatal=False))
+
+        view_count = int_or_none(self._html_search_regex(
+            r'<b>Views:</b> (\d+)', webpage, 'view count', fatal=False))
 
         return {
             'id': video_id,
-            'ext': 'mp4',
             'url': video_url,
+            'ext': 'mp4',
             'title': title,
-            'duration': int_or_none(duration),
-            'view_count': int_or_none(view_count),
+            'description': description,
+            'thumbnail': thumbnail,
+            'categories': categories,
+            'duration': duration,
+            'view_count': view_count,
         }
