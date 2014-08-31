@@ -6,6 +6,8 @@ from .common import InfoExtractor
 from ..utils import (
     parse_duration,
     int_or_none,
+    qualities,
+    determine_ext,
 )
 
 
@@ -19,6 +21,7 @@ class SunPornoIE(InfoExtractor):
             'ext': 'flv',
             'title': 'md5:0a400058e8105d39e35c35e7c5184164',
             'description': 'md5:a31241990e1bd3a64e72ae99afb325fb',
+            'thumbnail': 're:^https?://.*\.jpg$',
             'duration': 302,
         }
     }
@@ -29,29 +32,37 @@ class SunPornoIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        video_url = self._html_search_regex(
-            r'videoSource\s*=\s*\'<source\s*src="([^"]*)"', webpage, 'video URL')
-
-        title = self._html_search_regex(r'<title>([^<]*)</title>', webpage, 'title')
-
-        description = self._html_search_regex(
-            r'<meta name="description" content="([^"]*)"', webpage, 'description', fatal=False)
-        
+        title = self._html_search_regex(r'<title>([^<]+)</title>', webpage, 'title')
+        description = self._html_search_meta('description', webpage, 'description')
         thumbnail = self._html_search_regex(
-            r'poster="([^"]*)"', webpage, 'thumbnail', fatal=False)
+            r'poster="([^"]+)"', webpage, 'thumbnail', fatal=False)
 
         duration = parse_duration(self._search_regex(
             r'<span>Duration: (\d+:\d+)</span>', webpage, 'duration', fatal=False))
 
         view_count = int_or_none(self._html_search_regex(
             r'<span class="views">(\d+)</span>', webpage, 'view count', fatal=False))
+        comment_count = int_or_none(self._html_search_regex(
+            r'(\d+)</b> Comments?', webpage, 'comment count', fatal=False))
+
+        formats = []
+        quality = qualities(['mp4', 'flv'])
+        for video_url in re.findall(r'<source src="([^"]+)"', webpage):
+            video_ext = determine_ext(video_url)
+            formats.append({
+                'url': video_url,
+                'format_id': video_ext,
+                'quality': quality(video_ext),
+            })
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'url': video_url,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
             'duration': duration,
             'view_count': view_count,
+            'comment_count': comment_count,
+            'formats': formats,
         }
