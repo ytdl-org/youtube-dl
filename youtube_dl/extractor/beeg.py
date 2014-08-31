@@ -15,6 +15,8 @@ class BeegIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Sultry Striptease',
             'description': 'md5:6db3c6177972822aaba18652ff59c773',
+            'categories': list,  # NSFW
+            'thumbnail': 're:https?://.*\.jpg$',
         }
     }
 
@@ -24,15 +26,18 @@ class BeegIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        video_url = self._html_search_regex(r"'480p'\s*:\s*'([^']+)'", webpage, 'video URL')
+        video_url = self._html_search_regex(
+            r"'480p'\s*:\s*'([^']+)'", webpage, 'video URL')
 
-        title = self._html_search_regex(r'<title>([^<]+)\s*-\s*beeg\.?</title>', webpage, 'title')
+        title = self._html_search_regex(
+            r'<title>([^<]+)\s*-\s*beeg\.?</title>', webpage, 'title')
         
         description = self._html_search_regex(
-            r'<meta name="description" content="([^"]*)"', webpage, 'description', fatal=False)
-        
+            r'<meta name="description" content="([^"]*)"',
+            webpage, 'description', fatal=False)
         thumbnail = self._html_search_regex(
-            r'\'previewer.url\'\s*:\s*"([^"]*)"', webpage, 'thumbnail', fatal=False)
+            r'\'previewer.url\'\s*:\s*"([^"]*)"',
+            webpage, 'thumbnail', fatal=False)
 
         categories_str = self._html_search_regex(
             r'<meta name="keywords" content="([^"]+)"', webpage, 'categories', fatal=False)
