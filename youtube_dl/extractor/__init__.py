@@ -4,6 +4,7 @@ from .addanime import AddAnimeIE
 from .adultswim import AdultSwimIE
 from .aftonbladet import AftonbladetIE
 from .anitube import AnitubeIE
+from .anysex import AnySexIE
 from .aol import AolIE
 from .allocine import AllocineIE
 from .aparat import AparatIE
