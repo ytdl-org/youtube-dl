@@ -20,6 +20,14 @@ class TudouIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.jpg$',
         }
     }, {
+        'url': 'http://www.tudou.com/programs/view/ajX3gyhL0pc/',
+        'info_dict': {
+            'id': '117049447',
+            'ext': 'f4v',
+            'title': 'La Sylphide-Bolshoi-Ekaterina Krysanova & Vyacheslav Lopatin 2012',
+            'thumbnail': 're:^https?://.*\.jpg$',
+        }
+    }, {
         'url': 'http://www.tudou.com/albumplay/TenTw_JgiPM/PzsAs5usU9A.html',
         'info_dict': {
             'title': 'todo.mp4',
