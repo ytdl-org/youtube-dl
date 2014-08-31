@@ -58,7 +58,8 @@ class TudouIE(InfoExtractor):
         # It looks like the keys are the arguments that have to be passed as
         # the hd field in the request url, we pick the higher
         # Also, filter non-number qualities (see issue #3643).
-        quality = sorted(filter(lambda k: k.isdigit(), segments.keys()))[-1]
+        quality = sorted(filter(lambda k: k.isdigit(), segments.keys()),
+                         key=lambda k: int(k))[-1]
         parts = segments[quality]
         result = []
         len_parts = len(parts)
