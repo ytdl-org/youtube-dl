@@ -5,6 +5,7 @@ import re
 import json
 import base64
 import zlib
+import xml.etree.ElementTree
 
 from hashlib import sha1
 from math import pow, sqrt, floor
@@ -17,6 +18,7 @@ from ..utils import (
     intlist_to_bytes,
     unified_strdate,
     clean_html,
+    urlencode_postdata,
 )
 from ..aes import (
     aes_cbc_decrypt,
@@ -50,6 +52,26 @@ class CrunchyrollIE(InfoExtractor):
         '720': ('62', '106'),
         '1080': ('80', '108'),
     }
+
+    def _login(self):
+        (username, password) = self._get_login_info()
+        if username is None:
+            return
+        self.report_login()
+        login_url = 'https://www.crunchyroll.com/?a=formhandler'
+        data = urlencode_postdata({
+            'formname': 'RpcApiUser_Login',
+            'name': username,
+            'password': password,
+        })
+        login_request = compat_urllib_request.Request(login_url, data)
+        login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        self._download_webpage(login_request, None, False, 'Wrong login info')
+
+
+    def _real_initialize(self):
+        self._login()
+
 
     def _decrypt_subtitles(self, data, iv, id):
         data = bytes_to_intlist(data)
@@ -95,6 +117,75 @@ class CrunchyrollIE(InfoExtractor):
             if not text:
                 continue
             output += '%d\n%s --> %s\n%s\n\n' % (i, start, end, text)
+        return output
+
+    def _convert_subtitles_to_ass(self, subtitles):
+        output = ''
+
+        def ass_bool(strvalue):
+            assvalue = '0'
+            if strvalue == '1':
+                assvalue = '-1'
+            return assvalue
+
+        sub_root = xml.etree.ElementTree.fromstring(subtitles)
+        if not sub_root:
+            return output
+
+        output = '[Script Info]\n'
+        output += 'Title: %s\n' % sub_root.attrib["title"]
+        output += 'ScriptType: v4.00+\n'
+        output += 'WrapStyle: %s\n' % sub_root.attrib["wrap_style"]
+        output += 'PlayResX: %s\n' % sub_root.attrib["play_res_x"]
+        output += 'PlayResY: %s\n' % sub_root.attrib["play_res_y"]
+        output += """ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+"""
+        for style in sub_root.findall('./styles/style'):
+            output += 'Style: ' + style.attrib["name"]
+            output += ',' + style.attrib["font_name"]
+            output += ',' + style.attrib["font_size"]
+            output += ',' + style.attrib["primary_colour"]
+            output += ',' + style.attrib["secondary_colour"]
+            output += ',' + style.attrib["outline_colour"]
+            output += ',' + style.attrib["back_colour"]
+            output += ',' + ass_bool(style.attrib["bold"])
+            output += ',' + ass_bool(style.attrib["italic"])
+            output += ',' + ass_bool(style.attrib["underline"])
+            output += ',' + ass_bool(style.attrib["strikeout"])
+            output += ',' + style.attrib["scale_x"]
+            output += ',' + style.attrib["scale_y"]
+            output += ',' + style.attrib["spacing"]
+            output += ',' + style.attrib["angle"]
+            output += ',' + style.attrib["border_style"]
+            output += ',' + style.attrib["outline"]
+            output += ',' + style.attrib["shadow"]
+            output += ',' + style.attrib["alignment"]
+            output += ',' + style.attrib["margin_l"]
+            output += ',' + style.attrib["margin_r"]
+            output += ',' + style.attrib["margin_v"]
+            output += ',' + style.attrib["encoding"]
+            output += '\n'
+
+        output += """
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+"""
+        for event in sub_root.findall('./events/event'):
+            output += 'Dialogue: 0'
+            output += ',' + event.attrib["start"]
+            output += ',' + event.attrib["end"]
+            output += ',' + event.attrib["style"]
+            output += ',' + event.attrib["name"]
+            output += ',' + event.attrib["margin_l"]
+            output += ',' + event.attrib["margin_r"]
+            output += ',' + event.attrib["margin_v"]
+            output += ',' + event.attrib["effect"]
+            output += ',' + event.attrib["text"]
+            output += '\n'
+
         return output
 
     def _real_extract(self,url):
@@ -158,6 +249,7 @@ class CrunchyrollIE(InfoExtractor):
             })
 
         subtitles = {}
+        sub_format = self._downloader.params.get('subtitlesformat', 'srt')
         for sub_id, sub_name in re.findall(r'\?ssid=([0-9]+)" title="([^"]+)', webpage):
             sub_page = self._download_webpage('http://www.crunchyroll.com/xml/?req=RpcApiSubtitle_GetXml&subtitle_script_id='+sub_id,\
                                               video_id, note='Downloading subtitles for '+sub_name)
@@ -174,7 +266,10 @@ class CrunchyrollIE(InfoExtractor):
             lang_code = self._search_regex(r'lang_code=["\']([^"\']+)', subtitle, 'subtitle_lang_code', fatal=False)
             if not lang_code:
                 continue
-            subtitles[lang_code] = self._convert_subtitles_to_srt(subtitle)
+            if sub_format == 'ass':
+                subtitles[lang_code] = self._convert_subtitles_to_ass(subtitle)
+            else:
+                subtitles[lang_code] = self._convert_subtitles_to_srt(subtitle)
 
         return {
             'id':          video_id,
