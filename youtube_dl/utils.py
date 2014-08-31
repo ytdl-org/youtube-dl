@@ -1141,10 +1141,10 @@ else:
     import fcntl
 
     def _lock_file(f, exclusive):
-        fcntl.lockf(f, fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
+        fcntl.flock(f, fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
 
     def _unlock_file(f):
-        fcntl.lockf(f, fcntl.LOCK_UN)
+        fcntl.flock(f, fcntl.LOCK_UN)
 
 
 class locked_file(object):
