@@ -876,7 +876,7 @@ def _real_main(argv=None):
                 ydl.to_screen(u'No cache dir specified (Did you combine --no-cache-dir and --rm-cache-dir?)')
             else:
                 if ('.cache' not in opts.cachedir) or ('youtube-dl' not in opts.cachedir):
-                    ydl.to_screen(u'Not removing directory %s - this does not look like a cache dir')
+                    ydl.to_screen(u'Not removing directory %s - this does not look like a cache dir' % opts.cachedir)
                     retcode = 141
                 else:
                     ydl.to_screen(
