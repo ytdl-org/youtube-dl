@@ -4,7 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    parse_duration,
+)
+
 
 class HornBunnyIE(InfoExtractor):
     _VALID_URL = r'http?://(?:www\.)?hornbunny\.com/videos/(?P<title_dash>[a-z-]+)-(?P<id>\d+)\.html'
@@ -15,7 +19,8 @@ class HornBunnyIE(InfoExtractor):
             'id': '5227',
             'ext': 'flv',
             'title': 'panty slut jerk off instruction',
-            'duration': 550
+            'duration': 550,
+            'age_limit': 18,
         }
     }
 
@@ -23,16 +28,22 @@ class HornBunnyIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        webpage = self._download_webpage(url, video_id)
-        title = self._html_search_regex(r'class="title">(.*?)</h2>', webpage, 'title')
-        redirect_url = self._html_search_regex(r'pg&settings=(.*?)\|0"\);', webpage, 'title')
+        webpage = self._download_webpage(
+            url, video_id, note='Downloading initial webpage')
+        title = self._html_search_regex(
+            r'class="title">(.*?)</h2>', webpage, 'title')
+        redirect_url = self._html_search_regex(
+            r'pg&settings=(.*?)\|0"\);', webpage, 'title')
         webpage2 = self._download_webpage(redirect_url, video_id)
-        video_url = self._html_search_regex(r'flvMask:(.*?);', webpage2, 'video_url')
+        video_url = self._html_search_regex(
+            r'flvMask:(.*?);', webpage2, 'video_url')
         
-        mobj = re.search(r'<strong>Runtime:</strong> (?P<minutes>\d+):(?P<seconds>\d+)</div>', webpage)
-        duration = int(mobj.group('minutes')) * 60 + int(mobj.group('seconds')) if mobj else None
-
-        view_count = self._html_search_regex(r'<strong>Views:</strong>  (\d+)</div>', webpage, 'view count', fatal=False)
+        duration = parse_duration(self._search_regex(
+            r'<strong>Runtime:</strong>\s*([0-9:]+)</div>',
+            webpage, 'duration', fatal=False))
+        view_count = int_or_none(self._search_regex(
+            r'<strong>Views:</strong>\s*(\d+)</div>',
+            webpage, 'view count', fatal=False))
 
         return {
             'id': video_id,
@@ -40,5 +51,6 @@ class HornBunnyIE(InfoExtractor):
             'title': title,
             'ext': 'flv',
             'duration': duration,
-            'view_count': int_or_none(view_count),
+            'view_count': view_count,
+            'age_limit': 18,
         }
