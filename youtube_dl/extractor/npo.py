@@ -5,6 +5,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     unified_strdate,
+    qualities,
 )
 
 
@@ -17,7 +18,7 @@ class NPOIE(InfoExtractor):
         'md5': '4b3f9c429157ec4775f2c9cb7b911016',
         'info_dict': {
             'id': 'VPWON_1220719',
-            'ext': 'mp4',
+            'ext': 'm4v',
             'title': 'Nieuwsuur',
             'description': 'Dagelijks tussen tien en elf: nieuws, sport en achtergronden.',
             'upload_date': '20140622',
@@ -39,24 +40,32 @@ class NPOIE(InfoExtractor):
             video_id,
             note='Downloading token'
         )
-        token = self._search_regex(r'npoplayer.token = "(.+?)"', token_page, 'token')
-        streams_info = self._download_json(
-            'http://ida.omroep.nl/odi/?prid=%s&puboptions=h264_std&adaptive=yes&token=%s' % (video_id, token),
-            video_id
-        )
+        token = self._search_regex(r'npoplayer\.token = "(.+?)"', token_page, 'token')
 
-        stream_info = self._download_json(
-            streams_info['streams'][0] + '&type=json',
-            video_id,
-            'Downloading stream info'
-        )
+        formats = []
+        quality = qualities(['adaptive', 'h264_sb', 'h264_bb', 'h264_std'])
+        for format_id in metadata['pubopties']:
+            streams_info = self._download_json(
+                'http://ida.omroep.nl/odi/?prid=%s&puboptions=%s&adaptive=yes&token=%s' % (video_id, format_id, token),
+                video_id, 'Downloading %s streams info' % format_id)
+            stream_info = self._download_json(
+                streams_info['streams'][0] + '&type=json',
+                video_id, 'Downloading %s stream info' % format_id)
+            if format_id == 'adaptive':
+                formats.extend(self._extract_m3u8_formats(stream_info['url'], video_id))
+            else:
+                formats.append({
+                    'url': stream_info['url'],
+                    'format_id': format_id,
+                    'quality': quality(format_id),
+                })
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
             'title': metadata['titel'],
-            'ext': 'mp4',
-            'url': stream_info['url'],
             'description': metadata['info'],
             'thumbnail': metadata['images'][-1]['url'],
             'upload_date': unified_strdate(metadata['gidsdatum']),
+            'formats': formats,
         }
