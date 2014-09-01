@@ -212,6 +212,9 @@ class ComedyCentralShowsIE(InfoExtractor):
                     'ext': self._video_extensions.get(format, 'mp4'),
                     'height': h,
                     'width': w,
+
+                    'format_note': 'HTTP 400 at the moment (patches welcome!)',
+                    'preference': -100,
                 })
                 formats.append({
                     'format_id': 'rtmp-%s' % format,
