@@ -21,6 +21,7 @@ class AnySexIE(InfoExtractor):
             'description': 'md5:de9e418178e2931c10b62966474e1383',
             'categories': ['Erotic'],
             'duration': 270,
+            'age_limit': 18,
         }
     }
 
@@ -43,7 +44,6 @@ class AnySexIE(InfoExtractor):
 
         duration = parse_duration(self._search_regex(
             r'<b>Duration:</b> (\d+:\d+)', webpage, 'duration', fatal=False))
-
         view_count = int_or_none(self._html_search_regex(
             r'<b>Views:</b> (\d+)', webpage, 'view count', fatal=False))
 
@@ -57,4 +57,5 @@ class AnySexIE(InfoExtractor):
             'categories': categories,
             'duration': duration,
             'view_count': view_count,
+            'age_limit': 18,
         }
