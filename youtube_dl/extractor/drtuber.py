@@ -16,6 +16,7 @@ class DrTuberIE(InfoExtractor):
             'title': 'Hot Perky Blonde Naked Golf',
             'categories': list,  # NSFW
             'thumbnail': 're:https?://.*\.jpg$',
+            'age_limit': 18,
         }
     }
 
@@ -35,9 +36,9 @@ class DrTuberIE(InfoExtractor):
             r'poster="([^"]+)"',
             webpage, 'thumbnail', fatal=False)
 
-        categories_str = self._html_search_regex(
+        cats_str = self._html_search_regex(
             r'<meta name="keywords" content="([^"]+)"', webpage, 'categories', fatal=False)
-        categories = categories_str.split(' ')
+        categories = None if cats_str is None else cats_str.split(' ')
 
         return {
             'id': video_id,
@@ -45,4 +46,5 @@ class DrTuberIE(InfoExtractor):
             'title': title,
             'thumbnail': thumbnail,
             'categories': categories,
+            'age_limit': self._rta_search(webpage),
         }
