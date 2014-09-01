@@ -17,6 +17,7 @@ class BeegIE(InfoExtractor):
             'description': 'md5:6db3c6177972822aaba18652ff59c773',
             'categories': list,  # NSFW
             'thumbnail': 're:https?://.*\.jpg$',
+            'age_limit': 18,
         }
     }
 
@@ -41,7 +42,9 @@ class BeegIE(InfoExtractor):
 
         categories_str = self._html_search_regex(
             r'<meta name="keywords" content="([^"]+)"', webpage, 'categories', fatal=False)
-        categories = categories_str.split(',')
+        categories = (
+            None if categories_str is None
+            else categories_str.split(','))
 
         return {
             'id': video_id,
@@ -50,4 +53,5 @@ class BeegIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
             'categories': categories,
+            'age_limit': 18,
         }
