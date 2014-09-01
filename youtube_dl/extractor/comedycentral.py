@@ -50,7 +50,7 @@ class ComedyCentralShowsIE(InfoExtractor):
                           (?P<interview>
                               extended-interviews/(?P<interID>[0-9a-z]+)/(?:playlist_tds_extended_)?(?P<interview_title>.*?)(/.*?)?)))
                      (?:[?#].*|$)'''
-    _TEST = {
+    _TESTS = [{
         'url': 'http://thedailyshow.cc.com/watch/thu-december-13-2012/kristen-stewart',
         'md5': '4e2f5cb088a83cd8cdb7756132f9739d',
         'info_dict': {
@@ -61,7 +61,31 @@ class ComedyCentralShowsIE(InfoExtractor):
             'uploader': 'thedailyshow',
             'title': 'thedailyshow kristen-stewart part 1',
         }
-    }
+    }, {
+        'url': 'http://thedailyshow.cc.com/extended-interviews/xm3fnq/andrew-napolitano-extended-interview',
+        'only_matching': True,
+    }, {
+        'url': 'http://thecolbertreport.cc.com/videos/29w6fx/-realhumanpraise-for-fox-news',
+        'only_matching': True,
+    }, {
+        'url': 'http://thecolbertreport.cc.com/videos/gh6urb/neil-degrasse-tyson-pt--1?xrs=eml_col_031114',
+        'only_matching': True,
+    }, {
+        'url': 'http://thedailyshow.cc.com/guests/michael-lewis/3efna8/exclusive---michael-lewis-extended-interview-pt--3',
+        'only_matching': True,
+    }, {
+        'url': 'http://thedailyshow.cc.com/episodes/sy7yv0/april-8--2014---denis-leary',
+        'only_matching': True,
+    }, {
+        'url': 'http://thecolbertreport.cc.com/episodes/8ase07/april-8--2014---jane-goodall',
+        'only_matching': True,
+    }, {
+        'url': 'http://thedailyshow.cc.com/video-playlists/npde3s/the-daily-show-19088-highlights',
+        'only_matching': True,
+    }, {
+        'url': 'http://thedailyshow.cc.com/special-editions/2l8fdb/special-edition---a-look-back-at-food',
+        'only_matching': True,
+    }]
 
     _available_formats = ['3500', '2200', '1700', '1200', '750', '400']
 
