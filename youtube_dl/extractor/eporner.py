@@ -21,6 +21,7 @@ class EpornerIE(InfoExtractor):
             'title': 'Infamous Tiffany Teen Strip Tease Video',
             'duration': 194,
             'view_count': int,
+            'age_limit': 18,
         }
     }
 
@@ -35,9 +36,10 @@ class EpornerIE(InfoExtractor):
             r'<script type="text/javascript" src="/config5/%s/([a-f\d]+)/">' % video_id,
             webpage, 'redirect_code')
         redirect_url = 'http://www.eporner.com/config5/%s/%s' % (video_id, redirect_code)
-        webpage2 = self._download_webpage(redirect_url, video_id)
+        player_code = self._download_webpage(
+            redirect_url, video_id, note='Downloading player config')
         video_url = self._html_search_regex(
-            r'file: "(.*?)",', webpage2, 'video_url')
+            r'file: "(.*?)",', player_code, 'video_url')
 
         duration = parse_duration(self._search_regex(
             r'class="mbtim">([0-9:]+)</div>', webpage, 'duration',
@@ -52,4 +54,5 @@ class EpornerIE(InfoExtractor):
             'title': title,
             'duration': duration,
             'view_count': view_count,
+            'age_limit': self._rta_search(webpage),
         }
