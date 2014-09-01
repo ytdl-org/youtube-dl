@@ -234,6 +234,7 @@ from .niconico import NiconicoIE
 from .ninegag import NineGagIE
 from .noco import NocoIE
 from .normalboots import NormalbootsIE
+from .nosvideo import NosVideoIE
 from .novamov import NovaMovIE
 from .nowness import NownessIE
 from .nowvideo import NowVideoIE
