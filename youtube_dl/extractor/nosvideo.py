@@ -7,7 +7,6 @@ from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
     compat_urllib_request,
-    determine_ext,
     xpath_with_ns,
 )
 
@@ -52,12 +51,10 @@ class NosVideoIE(InfoExtractor):
         title = _find(track, './xspf:title')
         url = _find(track, './xspf:file')
         thumbnail = _find(track, './xspf:image')
-        ext = determine_ext(title)
 
         formats = [{
             'format_id': 'sd',
             'url': url,
-            'ext': ext,
         }]
 
         return {
