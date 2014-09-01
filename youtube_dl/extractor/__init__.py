@@ -70,6 +70,7 @@ from .daum import DaumIE
 from .dfb import DFBIE
 from .dotsub import DotsubIE
 from .dreisat import DreiSatIE
+from .drtuber import DrTuberIE
 from .drtv import DRTVIE
 from .dump import DumpIE
 from .defense import DefenseGouvFrIE
