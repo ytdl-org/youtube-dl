@@ -677,9 +677,12 @@ class InfoExtractor(object):
                 }
                 codecs = last_info.get('CODECS')
                 if codecs:
-                    video, audio = codecs.split(',')
-                    f['vcodec'] = video.partition('.')[0]
-                    f['acodec'] = audio.partition('.')[0]
+                    # TODO: looks like video codec is not always necessarily goes first
+                    va_codecs = codecs.split(',')
+                    if va_codecs[0]:
+                        f['vcodec'] = va_codecs[0].partition('.')[0]
+                    if len(va_codecs) > 1 and va_codecs[1]:
+                        f['acodec'] = va_codecs[1].partition('.')[0]
                 resolution = last_info.get('RESOLUTION')
                 if resolution:
                     width_str, height_str = resolution.split('x')
