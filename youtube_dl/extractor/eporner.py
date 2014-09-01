@@ -21,6 +21,7 @@ class EpornerIE(InfoExtractor):
             'title': 'Infamous Tiffany Teen Strip Tease Video',
             'duration': 194,
             'view_count': int,
+            'age_limit': 18,
         }
     }
 
@@ -52,4 +53,5 @@ class EpornerIE(InfoExtractor):
             'title': title,
             'duration': duration,
             'view_count': view_count,
+            'age_limit': 18,
         }

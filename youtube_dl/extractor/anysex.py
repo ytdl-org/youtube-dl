@@ -21,6 +21,7 @@ class AnySexIE(InfoExtractor):
             'description': 'md5:de9e418178e2931c10b62966474e1383',
             'categories': ['Erotic'],
             'duration': 270,
+            'age_limit': 18,
         }
     }
 
@@ -57,4 +58,5 @@ class AnySexIE(InfoExtractor):
             'categories': categories,
             'duration': duration,
             'view_count': view_count,
+            'age_limit': 18,
         }

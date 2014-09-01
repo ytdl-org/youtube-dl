@@ -23,6 +23,7 @@ class SunPornoIE(InfoExtractor):
             'description': 'md5:a31241990e1bd3a64e72ae99afb325fb',
             'thumbnail': 're:^https?://.*\.jpg$',
             'duration': 302,
+            'age_limit': 18,
         }
     }
 
@@ -65,4 +66,5 @@ class SunPornoIE(InfoExtractor):
             'view_count': view_count,
             'comment_count': comment_count,
             'formats': formats,
+            'age_limit': 18,
         }

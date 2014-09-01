@@ -15,7 +15,8 @@ class HornBunnyIE(InfoExtractor):
             'id': '5227',
             'ext': 'flv',
             'title': 'panty slut jerk off instruction',
-            'duration': 550
+            'duration': 550,
+            'age_limit': 18,
         }
     }
 
@@ -41,4 +42,5 @@ class HornBunnyIE(InfoExtractor):
             'ext': 'flv',
             'duration': duration,
             'view_count': int_or_none(view_count),
+            'age_limit': 18,
         }

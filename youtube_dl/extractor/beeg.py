@@ -17,6 +17,7 @@ class BeegIE(InfoExtractor):
             'description': 'md5:6db3c6177972822aaba18652ff59c773',
             'categories': list,  # NSFW
             'thumbnail': 're:https?://.*\.jpg$',
+            'age_limit': 18,
         }
     }
 
@@ -50,4 +51,5 @@ class BeegIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
             'categories': categories,
+            'age_limit': 18,
         }
