@@ -13,6 +13,7 @@ class DrTuberIE(InfoExtractor):
         'md5': '93e680cf2536ad0dfb7e74d94a89facd',
         'info_dict': {
             'id': '1740434',
+            'display_id': 'hot-perky-blonde-naked-golf',
             'ext': 'mp4',
             'title': 'Hot Perky Blonde Naked Golf',
             'like_count': int,
