@@ -366,7 +366,22 @@ class GenericIE(InfoExtractor):
                 'extract_flat': False,
                 'skip_download': True,
             }
-        }
+        },
+        # MLB embed
+        {
+            'url': 'http://umpire-empire.com/index.php/topic/58125-laz-decides-no-thats-low/',
+            'md5': '96f09a37e44da40dd083e12d9a683327',
+            'info_dict': {
+                'id': '33322633',
+                'ext': 'mp4',
+                'title': 'Ump changes call to ball',
+                'description': 'md5:71c11215384298a172a6dcb4c2e20685',
+                'duration': 48,
+                'timestamp': 1401537900,
+                'upload_date': '20140531',
+                'thumbnail': 're:^https?://.*\.jpg$',
+            },
+        },
     ]
 
     def report_download_webpage(self, video_id):
@@ -808,6 +823,12 @@ class GenericIE(InfoExtractor):
             webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'SBS')
+
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>https?://m\.mlb\.com/shared/video/embed/embed\.html\?.+?)\1',
+            webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'MLB')
 
         # Start with something easy: JW Player in SWFObject
         found = re.findall(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
