@@ -27,8 +27,16 @@ class BeegIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        video_url = self._html_search_regex(
-            r"'480p'\s*:\s*'([^']+)'", webpage, 'video URL')
+        quality_arr = self._search_regex(
+            r'(?s)var\s+qualityArr\s*=\s*{\s*(.+?)\s*}', webpage, 'quality formats')
+
+        formats = [{
+            'url': fmt[1],
+            'format_id': fmt[0],
+            'height': int(fmt[0][:-1]),
+        } for fmt in re.findall(r"'([^']+)'\s*:\s*'([^']+)'", quality_arr)]
+
+        self._sort_formats(formats)
 
         title = self._html_search_regex(
             r'<title>([^<]+)\s*-\s*beeg\.?</title>', webpage, 'title')
@@ -48,10 +56,10 @@ class BeegIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'url': video_url,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
             'categories': categories,
+            'formats': formats,
             'age_limit': 18,
         }
