@@ -7,7 +7,7 @@ from ..utils import str_to_int
 
 
 class DrTuberIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?drtuber\.com/video/(?P<id>\d+)/(?P<title_dash>[\w-]+)'
+    _VALID_URL = r'https?://(?:www\.)?drtuber\.com/video/(?P<id>\d+)/(?P<display_id>[\w-]+)'
     _TEST = {
         'url': 'http://www.drtuber.com/video/1740434/hot-perky-blonde-naked-golf',
         'md5': '93e680cf2536ad0dfb7e74d94a89facd',
@@ -27,8 +27,9 @@ class DrTuberIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
+        display_id = mobj.group('display_id')
 
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(url, display_id)
 
         video_url = self._html_search_regex(
             r'<source src="([^"]+)"', webpage, 'video URL')
@@ -56,6 +57,7 @@ class DrTuberIE(InfoExtractor):
 
         return {
             'id': video_id,
+            'display_id': display_id,
             'url': video_url,
             'title': title,
             'thumbnail': thumbnail,
