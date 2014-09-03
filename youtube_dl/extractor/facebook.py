@@ -79,7 +79,8 @@ class FacebookIE(InfoExtractor):
 
             check_form = {
                 'fb_dtsg': self._search_regex(r'name="fb_dtsg" value="(.+?)"', login_results, 'fb_dtsg'),
-                'h': self._search_regex(r'name="h" value="(\w*?)"', login_results, 'h'),
+                'h': self._search_regex(
+                    r'name="h"\s+(?:\w+="[^"]+"\s+)*?value="([^"]+)"', login_results, 'h'),
                 'name_action_selected': 'dont_save',
             }
             check_req = compat_urllib_request.Request(self._CHECKPOINT_URL, urlencode_postdata(check_form))
