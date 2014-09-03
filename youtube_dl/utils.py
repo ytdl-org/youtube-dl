@@ -1321,7 +1321,7 @@ def str_to_int(int_str):
     """ A more relaxed version of int_or_none """
     if int_str is None:
         return None
-    int_str = re.sub(r'[,\.]', u'', int_str)
+    int_str = re.sub(r'[,\.\+]', u'', int_str)
     return int(int_str)
 
 
