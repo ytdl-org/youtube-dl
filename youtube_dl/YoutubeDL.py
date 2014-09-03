@@ -57,6 +57,7 @@ from .utils import (
     YoutubeDLHandler,
     prepend_extension,
 )
+from .cache import Cache
 from .extractor import get_info_extractor, gen_extractors
 from .downloader import get_suitable_downloader
 from .postprocessor import FFmpegMergerPP
@@ -133,7 +134,7 @@ class YoutubeDL(object):
     daterange:         A DateRange object, download only if the upload_date is in the range.
     skip_download:     Skip the actual download of the video file
     cachedir:          Location of the cache files in the filesystem.
-                       None to disable filesystem cache.
+                       False to disable filesystem cache.
     noplaylist:        Download single video instead of a playlist if in doubt.
     age_limit:         An integer representing the user's age in years.
                        Unsuitable videos for the given age are skipped.
@@ -195,6 +196,7 @@ class YoutubeDL(object):
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
         self._err_file = sys.stderr
         self.params = params
+        self.cache = Cache(self)
 
         if params.get('bidi_workaround', False):
             try:

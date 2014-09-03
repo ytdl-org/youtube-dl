@@ -1,7 +1,5 @@
 # coding: utf-8
 
-import errno
-import io
 import itertools
 import json
 import os.path
@@ -21,7 +19,6 @@ from ..utils import (
     compat_str,
 
     clean_html,
-    get_cachedir,
     get_element_by_id,
     get_element_by_attribute,
     ExtractorError,
@@ -30,7 +27,6 @@ from ..utils import (
     unescapeHTML,
     unified_strdate,
     orderedSet,
-    write_json_file,
     uppercase_escape,
 )
 
@@ -435,26 +431,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         func_id = '%s_%s_%s' % (
             player_type, player_id, self._signature_cache_id(example_sig))
         assert os.path.basename(func_id) == func_id
-        cache_dir = get_cachedir(self._downloader.params)
 
-        cache_enabled = cache_dir is not None
-        if cache_enabled:
-            cache_fn = os.path.join(os.path.expanduser(cache_dir),
-                                    u'youtube-sigfuncs',
-                                    func_id + '.json')
-            try:
-                with io.open(cache_fn, 'r', encoding='utf-8') as cachef:
-                    cache_spec = json.load(cachef)
-                return lambda s: u''.join(s[i] for i in cache_spec)
-            except IOError:
-                pass  # No cache available
-            except ValueError:
-                try:
-                    file_size = os.path.getsize(cache_fn)
-                except (OSError, IOError) as oe:
-                    file_size = str(oe)
-                self._downloader.report_warning(
-                    u'Cache %s failed (%s)' % (cache_fn, file_size))
+        cache_spec = self._downloader.cache.load(u'youtube-sigfuncs', func_id)
+        if cache_spec is not None:
+            return lambda s: u''.join(s[i] for i in cache_spec)
 
         if player_type == 'js':
             code = self._download_webpage(
@@ -472,22 +452,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         else:
             assert False, 'Invalid player type %r' % player_type
 
-        if cache_enabled:
-            try:
-                test_string = u''.join(map(compat_chr, range(len(example_sig))))
-                cache_res = res(test_string)
-                cache_spec = [ord(c) for c in cache_res]
-                try:
-                    os.makedirs(os.path.dirname(cache_fn))
-                except OSError as ose:
-                    if ose.errno != errno.EEXIST:
-                        raise
-                write_json_file(cache_spec, cache_fn)
-            except Exception:
-                tb = traceback.format_exc()
-                self._downloader.report_warning(
-                    u'Writing cache to %r failed: %s' % (cache_fn, tb))
+        if cache_spec is None:
+            test_string = u''.join(map(compat_chr, range(len(example_sig))))
+            cache_res = res(test_string)
+            cache_spec = [ord(c) for c in cache_res]
 
+        self._downloader.cache.store(u'youtube-sigfuncs', func_id, cache_spec)
         return res
 
     def _print_sig_code(self, func, example_sig):

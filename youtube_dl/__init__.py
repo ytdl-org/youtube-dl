@@ -84,7 +84,6 @@ import optparse
 import os
 import random
 import shlex
-import shutil
 import sys
 
 
@@ -96,7 +95,6 @@ from .utils import (
     decodeOption,
     get_term_width,
     DownloadError,
-    get_cachedir,
     MaxDownloadsReached,
     preferredencoding,
     read_batch_urls,
@@ -518,10 +516,10 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option('--cookies',
             dest='cookiefile', metavar='FILE', help='file to read cookies from and dump cookie jar in')
     filesystem.add_option(
-        '--cache-dir', dest='cachedir', default=get_cachedir(), metavar='DIR',
+        '--cache-dir', dest='cachedir', default=None, metavar='DIR',
         help='Location in the filesystem where youtube-dl can store some downloaded information permanently. By default $XDG_CACHE_HOME/youtube-dl or ~/.cache/youtube-dl . At the moment, only YouTube player files (for videos with obfuscated signatures) are cached, but that may change.')
     filesystem.add_option(
-        '--no-cache-dir', action='store_const', const=None, dest='cachedir',
+        '--no-cache-dir', action='store_const', const=False, dest='cachedir',
         help='Disable filesystem caching')
     filesystem.add_option(
         '--rm-cache-dir', action='store_true', dest='rm_cachedir',
@@ -872,20 +870,7 @@ def _real_main(argv=None):
 
         # Remove cache dir
         if opts.rm_cachedir:
-            if opts.cachedir is None:
-                ydl.to_screen(u'No cache dir specified (Did you combine --no-cache-dir and --rm-cache-dir?)')
-            else:
-                if ('.cache' not in opts.cachedir) or ('youtube-dl' not in opts.cachedir):
-                    ydl.to_screen(u'Not removing directory %s - this does not look like a cache dir' % opts.cachedir)
-                    retcode = 141
-                else:
-                    ydl.to_screen(
-                        u'Removing cache dir %s .' % opts.cachedir,
-                        skip_eol=True)
-                    if os.path.exists(opts.cachedir):
-                        ydl.to_screen(u'.', skip_eol=True)
-                        shutil.rmtree(opts.cachedir)
-                    ydl.to_screen(u'.')
+            ydl.cache.remove()
 
         # Maybe do nothing
         if (len(all_urls) < 1) and (opts.load_info_filename is None):

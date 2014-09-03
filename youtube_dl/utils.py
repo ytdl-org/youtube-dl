@@ -1076,12 +1076,6 @@ def intlist_to_bytes(xs):
         return bytes(xs)
 
 
-def get_cachedir(params={}):
-    cache_root = os.environ.get('XDG_CACHE_HOME',
-                                os.path.expanduser('~/.cache'))
-    return params.get('cachedir', os.path.join(cache_root, 'youtube-dl'))
-
-
 # Cross-platform file locking
 if sys.platform == 'win32':
     import ctypes.wintypes
