@@ -86,7 +86,7 @@ from .ellentv import (
     EllenTVClipsIE,
 )
 from .elpais import ElPaisIE
-from .empflix import EmpflixIE
+from .empflix import EMPFlixIE
 from .engadget import EngadgetIE
 from .eporner import EpornerIE
 from .escapist import EscapistIE
