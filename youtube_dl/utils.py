@@ -1336,7 +1336,7 @@ def parse_duration(s):
     s = s.strip()
 
     m = re.match(
-        r'(?:(?:(?P<hours>[0-9]+)\s*(?:[:h]|hours?)\s*)?(?P<mins>[0-9]+)\s*(?:[:m]|mins?|minutes?)\s*)?(?P<secs>[0-9]+)(?P<ms>\.[0-9]+)?\s*(?:s|secs?|seconds?)?$', s)
+        r'(?i)(?:(?:(?P<hours>[0-9]+)\s*(?:[:h]|hours?)\s*)?(?P<mins>[0-9]+)\s*(?:[:m]|mins?|minutes?)\s*)?(?P<secs>[0-9]+)(?P<ms>\.[0-9]+)?\s*(?:s|secs?|seconds?)?$', s)
     if not m:
         return None
     res = int(m.group('secs'))
