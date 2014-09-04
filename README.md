@@ -533,6 +533,57 @@ If you want to add support for a new site, you can follow this quick list (assum
 
 In any case, thank you very much for your contributions!
 
+### Registering your extractor through setuptools entry-points
+
+It's also possible to register youtube-dl extractors from within third-party Python packages. This is useful if, for instance, you already have a Python package that deals with some complex site and including such extractor in youtube-dl would not be possible due to complex dependencies or something like that. In this case you can create an extractor inside your package and register it into youtube-dl through [setuptools entry-points](http://pythonhosted.org/setuptools/pkg_resources.html#entry-points).
+
+Considering your package is called `mypackage` you could do it like this:
+
+1. Make your package depend on youtube-dl as an [optional extra](http://pythonhosted.org//setuptools/setuptools.html#declaring-extras-optional-features-with-their-own-dependencies).
+    ```python
+    # yourpackage/setup.py
+    setup(
+        ...
+        extras_require = {
+            'youtube-dl': ['youtubel_dl'],
+        },
+    )
+    ```
+2. Declare an [entry point](http://pythonhosted.org//setuptools/setuptools.html#entry-points) for your extractor.
+    ```python
+    # yourpackage/setup.py
+    setup(
+        ...
+        extras_require = {
+            'youtube-dl': ['youtubel_dl'],
+        },
+        entry_points = {
+            'youtube_dl.extractors': [
+                'yourservice = yourpackage.youtube_dl_extractor:YourExtractorIE'
+            ],
+        },
+    )
+    ```
+3. Create the extractor you just declared.
+    ```python
+    # coding: utf-8
+    # yourpackage/youtube_dl_extractor.py
+    from __future__ import unicode_literals
+
+    import re
+
+    from youtube_dl.common import InfoExtractor
+
+    class YourExtractorIE(InfoExtractor):
+        _VALID_URL = r'https?://(?:www\.)?yourextractor\.com/watch/(?P<id>[0-9]+)'
+        ...
+    ```
+4. Instruct your package's users to install it with youtube-dl support and use it like this:
+   ```bash
+   $ pip install yourpackage[youtube-dl]
+   $ youtube-dl http://www.yourextractor.com/watch/12345
+   ```
+
 # EMBEDDING YOUTUBE-DL
 
 youtube-dl makes the best effort to be a good command-line program, and thus should be callable from any programming language. If you encounter any problems parsing its output, feel free to [create a report](https://github.com/rg3/youtube-dl/issues/new).
