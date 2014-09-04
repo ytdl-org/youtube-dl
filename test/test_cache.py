@@ -43,16 +43,16 @@ class TestCache(unittest.TestCase):
         })
         c = Cache(ydl)
         obj = {'x': 1, 'y': ['ä', '\\a', True]}
-        self.assertEqual(c.load('test_cache', 'k'), None)
-        c.store('test_cache', 'k', obj)
+        self.assertEqual(c.load('test_cache', 'k.'), None)
+        c.store('test_cache', 'k.', obj)
         self.assertEqual(c.load('test_cache', 'k2'), None)
         self.assertFalse(_is_empty(self.test_dir))
-        self.assertEqual(c.load('test_cache', 'k'), obj)
+        self.assertEqual(c.load('test_cache', 'k.'), obj)
         self.assertEqual(c.load('test_cache', 'y'), None)
-        self.assertEqual(c.load('test_cache2', 'k'), None)
+        self.assertEqual(c.load('test_cache2', 'k.'), None)
         c.remove()
         self.assertFalse(os.path.exists(self.test_dir))
-        self.assertEqual(c.load('test_cache', 'k'), None)
+        self.assertEqual(c.load('test_cache', 'k.'), None)
 
 
 if __name__ == '__main__':
