@@ -78,7 +78,8 @@ class ArteTVPlus7IE(InfoExtractor):
 
     def _extract_from_webpage(self, webpage, video_id, lang):
         json_url = self._html_search_regex(
-            r'arte_vp_url="(.*?)"', webpage, 'json vp url')
+            [r'arte_vp_url="(.*?)"', r'data-url="([^"]+)"'],
+            webpage, 'json vp url')
         return self._extract_from_json_url(json_url, video_id, lang)
 
     def _extract_from_json_url(self, json_url, video_id, lang):
