@@ -16,17 +16,29 @@ class UnistraIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        id = re.match(self._VALID_URL, url).group(1)
-        webpage = self._download_webpage(url, id)
-        file = re.search(r'file: "(.*?)",', webpage).group(1)
+        video_id = re.match(self._VALID_URL, url).group(1)
+        webpage = self._download_webpage(url, video_id)
+        width = re.search(r'width: "(\d*?)",', webpage).group(1)
+        height = re.search(r'height: "(\d*?)",', webpage).group(1)
+        files = re.findall(r'file: "(.*?)"', webpage)
+        video_url = 'http://vod-flash.u-strasbg.fr:8080'
+        formats = [{
+            'format_id': 'SD',
+            'url': video_url + files[0],
+            'ext': 'mp4',
+            'resolution': width + 'x' + height
+            }]
+        if files[1] != files[0]:
+            formats.append({
+            'format_id': 'HD',
+            'url': video_url + files[1],
+            'ext': 'mp4'
+            })
         title = self._html_search_regex(r'<title>UTV - (.*?)</', webpage, u'title')
 
-        video_url = 'http://vod-flash.u-strasbg.fr:8080/' + file
-
-        return {'id': id,
+        return {'id': video_id,
                 'title': title,
-                'ext': 'mp4',
-                'url': video_url,
                 'description': self._html_search_regex(r'<meta name="Description" content="(.*?)"', webpage, u'description', flags=re.DOTALL),
                 'thumbnail': self._search_regex(r'image: "(.*?)"', webpage, u'thumbnail'),
+                'formats': formats
                 }
