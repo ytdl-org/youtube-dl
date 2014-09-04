@@ -47,7 +47,7 @@ class ToypicsUserIE(InfoExtractor):
         'info_dict': {
             'id': 'Mikey',
         },
-        'playlist_mincount': 9917,
+        'playlist_mincount': 19,
     }
 
     def _real_extract(self, url):
