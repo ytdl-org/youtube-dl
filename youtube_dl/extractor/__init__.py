@@ -62,6 +62,7 @@ from .dailymotion import (
     DailymotionUserIE,
 )
 from .daum import DaumIE
+from .dbtv import DBTVIE
 from .dotsub import DotsubIE
 from .dreisat import DreiSatIE
 from .drtv import DRTVIE
