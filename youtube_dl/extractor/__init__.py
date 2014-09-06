@@ -296,6 +296,7 @@ from .scivee import SciVeeIE
 from .screencast import ScreencastIE
 from .servingsys import ServingSysIE
 from .shared import SharedIE
+from .sharesix import ShareSixIE
 from .sina import SinaIE
 from .slideshare import SlideshareIE
 from .slutload import SlutloadIE
