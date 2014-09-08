@@ -375,6 +375,7 @@ from .veehd import VeeHDIE
 from .veoh import VeohIE
 from .vesti import VestiIE
 from .vevo import VevoIE
+from .vgtv import VGTVIE
 from .vh1 import VH1IE
 from .viddler import ViddlerIE
 from .videobam import VideoBamIE
