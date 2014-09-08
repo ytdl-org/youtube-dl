@@ -22,7 +22,8 @@ class VGTVIE(InfoExtractor):
                 'thumbnail': 're:^https?://.*\.jpg',
                 'duration': 648.000,
                 'timestamp': 1404626400,
-                'upload_date': '20140706'
+                'upload_date': '20140706',
+                'view_count': int,
             },
         },
         {
@@ -36,7 +37,8 @@ class VGTVIE(InfoExtractor):
                 'thumbnail': 're:^https?://.*\.jpg',
                 'duration': 9056.000,
                 'timestamp': 1410113864,
-                'upload_date': '20140907'
+                'upload_date': '20140907',
+                'view_count': int,
             },
             'params': {
                 # m3u8 download
@@ -54,7 +56,8 @@ class VGTVIE(InfoExtractor):
                 'thumbnail': 're:^https?://.*\.jpg',
                 'duration': 0,
                 'timestamp': 1407423348,
-                'upload_date': '20140807'
+                'upload_date': '20140807',
+                'view_count': int,
             },
             'params': {
                 # m3u8 download
