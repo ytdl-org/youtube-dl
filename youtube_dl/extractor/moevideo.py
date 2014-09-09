@@ -34,7 +34,7 @@ class MoeVideoIE(InfoExtractor):
                 'width': 540,
                 'height': 360,
                 'duration': 179,
-                'filesize_approx': 17822500,
+                'filesize': 17822500,
             }
         },
         {
@@ -49,7 +49,7 @@ class MoeVideoIE(InfoExtractor):
                 'width': 480,
                 'height': 296,
                 'duration': 6027,
-                'filesize_approx': 588257923,
+                'filesize': 588257923,
             }
         },
     ]
@@ -99,7 +99,7 @@ class MoeVideoIE(InfoExtractor):
             'url': video_url,
             'width': width,
             'height': height,
-            'filesize_approx': filesize,
+            'filesize': filesize,
         }]
 
         return {
