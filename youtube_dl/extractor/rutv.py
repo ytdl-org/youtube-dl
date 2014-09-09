@@ -100,7 +100,7 @@ class RUTVIE(InfoExtractor):
             return mobj.group('url')
 
         mobj = re.search(
-            r'<meta[^>]+?property=(["\'])og:video\1[^>]+?content=(["\'])(?P<url>http://player\.(?:rutv\.ru|vgtrk\.com)/flash2v/container\.swf\?id=.+?\2)',
+            r'<meta[^>]+?property=(["\'])og:video\1[^>]+?content=(["\'])(?P<url>https?://player\.(?:rutv\.ru|vgtrk\.com)/flash2v/container\.swf\?id=.+?\2)',
             webpage)
         if mobj:
             return mobj.group('url')
