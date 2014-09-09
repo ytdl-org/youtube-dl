@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class KhanAcademyIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:www\.)?khanacademy\.org/(?P<key>[^/]+)/(?:[^/]+/){,2}(?P<id>[^?#/]+)(?:$|[?#])'
+    _VALID_URL = r'^https?://(?:(?:www|api)\.)?khanacademy\.org/(?P<key>[^/]+)/(?:[^/]+/){,2}(?P<id>[^?#/]+)(?:$|[?#])'
     IE_NAME = 'KhanAcademy'
 
     _TESTS = [{
