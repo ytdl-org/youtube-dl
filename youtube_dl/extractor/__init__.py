@@ -200,6 +200,7 @@ from .mitele import MiTeleIE
 from .mixcloud import MixcloudIE
 from .mlb import MLBIE
 from .mpora import MporaIE
+from .moevideo import MoeVideoIE
 from .mofosex import MofosexIE
 from .mojvideo import MojvideoIE
 from .mooshare import MooshareIE
