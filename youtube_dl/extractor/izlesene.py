@@ -18,7 +18,6 @@ class IzleseneIE(InfoExtractor):
         https?://(?:(?:www|m)\.)?izlesene\.com/
         (?:video|embedplayer)/(?:[^/]+/)?(?P<id>[0-9]+)
         '''
-    _STREAM_URL = 'http://panel.izlesene.com/api/streamurl/{id:}/{format:}'
     _TESTS = [
         {
             'url': 'http://www.izlesene.com/video/sevincten-cildirtan-dogum-gunu-hediyesi/7599694',
