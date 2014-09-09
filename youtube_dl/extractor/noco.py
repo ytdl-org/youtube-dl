@@ -5,7 +5,10 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    compat_urllib_request,
+    compat_urllib_parse,
     ExtractorError,
+    clean_html,
     unified_strdate,
     compat_str,
 )
@@ -13,6 +16,8 @@ from ..utils import (
 
 class NocoIE(InfoExtractor):
     _VALID_URL = r'http://(?:(?:www\.)?noco\.tv/emission/|player\.noco\.tv/\?idvideo=)(?P<id>\d+)'
+    _LOGIN_URL = 'http://noco.tv/do.php'
+    _NETRC_MACHINE = 'noco'
 
     _TEST = {
         'url': 'http://noco.tv/emission/11538/nolife/ami-ami-idol-hello-france/',
@@ -29,6 +34,28 @@ class NocoIE(InfoExtractor):
         },
         'skip': 'Requires noco account',
     }
+
+    def _real_initialize(self):
+        self._login()
+
+    def _login(self):
+        (username, password) = self._get_login_info()
+        if username is None:
+            return
+
+        login_form = {
+            'a': 'login',
+            'cookie': '1',
+            'username': username,
+            'password': password,
+        }
+        request = compat_urllib_request.Request(self._LOGIN_URL, compat_urllib_parse.urlencode(login_form))
+        request.add_header('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8')
+
+        login = self._download_json(request, None, 'Logging in as %s' % username)
+
+        if 'erreur' in login:
+            raise  ExtractorError('Unable to login: %s' % clean_html(login['erreur']), expected=True)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
