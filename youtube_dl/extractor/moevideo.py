@@ -14,10 +14,10 @@ from ..utils import (
 
 
 class MoeVideoIE(InfoExtractor):
-    IE_DESC = 'moevideo.net and playreplay.net'
+    IE_DESC = 'LetitBit video services: moevideo.net, playreplay.net and videochart.net'
     _VALID_URL = r'''(?x)
         https?://(?P<host>(?:www\.)?
-        (?:moevideo\.net|playreplay\.net))/
+        (?:(?:moevideo|playreplay|videochart)\.net))/
         (?:video|framevideo)/(?P<id>[0-9]+\.[0-9A-Za-z]+)'''
     _API_URL = 'http://api.letitbit.net/'
     _API_KEY = 'tVL0gjqo5'
