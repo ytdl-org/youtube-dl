@@ -628,7 +628,7 @@ class GenericIE(InfoExtractor):
                 embedSWF\(?:\s*
             )
             (["\'])
-                (?P<url>(?:https?:)?//(?:www\.)?youtube\.com/
+                (?P<url>(?:https?:)?//(?:www\.)?youtube(?:-nocookie)?\.com/
                 (?:embed|v)/.+?)
             \1''', webpage)
         if matches:
