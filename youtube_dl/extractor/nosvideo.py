@@ -5,8 +5,9 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_urllib_parse,
+    ExtractorError,
     compat_urllib_request,
+    urlencode_postdata,
     xpath_with_ns,
 )
 
@@ -18,6 +19,7 @@ class NosVideoIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?nosvideo\.com/' + \
                  '(?:embed/|\?v=)(?P<id>[A-Za-z0-9]{12})/?'
     _PLAYLIST_URL = 'http://nosvideo.com/xml/{xml_id:s}.xml'
+    _FILE_DELETED_REGEX = r'<b>File Not Found</b>'
     _TEST = {
         'url': 'http://nosvideo.com/?v=drlp6s40kg54',
         'md5': '4b4ac54c6ad5d70ab88f2c2c6ccec71c',
@@ -38,11 +40,14 @@ class NosVideoIE(InfoExtractor):
             'op': 'download1',
             'method_free': 'Continue to Video',
         }
-        post = compat_urllib_parse.urlencode(fields)
-        req = compat_urllib_request.Request(url, post)
+        req = compat_urllib_request.Request(url, urlencode_postdata(fields))
         req.add_header('Content-type', 'application/x-www-form-urlencoded')
         webpage = self._download_webpage(req, video_id,
                                          'Downloading download page')
+        if re.search(self._FILE_DELETED_REGEX, webpage) is not None:
+            raise ExtractorError('Video %s does not exist' % video_id,
+                                 expected=True)
+
         xml_id = self._search_regex(r'php\|([^\|]+)\|', webpage, 'XML ID')
         playlist_url = self._PLAYLIST_URL.format(xml_id=xml_id)
         playlist = self._download_xml(playlist_url, video_id)
