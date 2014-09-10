@@ -21,10 +21,10 @@ class NosVideoIE(InfoExtractor):
     _PLAYLIST_URL = 'http://nosvideo.com/xml/{xml_id:s}.xml'
     _FILE_DELETED_REGEX = r'<b>File Not Found</b>'
     _TEST = {
-        'url': 'http://nosvideo.com/?v=drlp6s40kg54',
-        'md5': '4b4ac54c6ad5d70ab88f2c2c6ccec71c',
+        'url': 'http://nosvideo.com/?v=mu8fle7g7rpq',
+        'md5': '6124ed47130d8be3eacae635b071e6b6',
         'info_dict': {
-            'id': 'drlp6s40kg54',
+            'id': 'mu8fle7g7rpq',
             'ext': 'mp4',
             'title': 'big_buck_bunny_480p_surround-fix.avi.mp4',
             'thumbnail': 're:^https?://.*\.jpg$',
