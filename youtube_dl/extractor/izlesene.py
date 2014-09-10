@@ -9,6 +9,7 @@ from ..utils import (
     parse_iso8601,
     determine_ext,
     int_or_none,
+    float_or_none,
     str_to_int,
 )
 
@@ -70,11 +71,9 @@ class IzleseneIE(InfoExtractor):
         timestamp = parse_iso8601(self._html_search_meta(
             'uploadDate', webpage, 'upload date', fatal=False))
 
-        duration = int_or_none(self._html_search_regex(
+        duration = float_or_none(self._html_search_regex(
             r'"videoduration"\s*:\s*"([^"]+)"',
-            webpage, 'duration', fatal=False))
-        if duration:
-            duration /= 1000.0
+            webpage, 'duration', fatal=False), scale=1000)
 
         view_count = str_to_int(get_element_by_id('videoViewCount', webpage))
         comment_count = self._html_search_regex(
