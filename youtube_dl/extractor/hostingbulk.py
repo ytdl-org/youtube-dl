@@ -57,17 +57,13 @@ class HostingBulkIE(InfoExtractor):
         thumbnail = self._search_regex(
             r'<img src="([^"]+)".+?class="pic"',
             webpage, 'thumbnail', fatal=False)
-        rand = self._search_regex(
-            r'<input.+?name="rand" value="([^"]+)">', webpage, 'rand')
 
-        fields = {
-            'id': video_id,
-            'method_free': '',
-            'method_premium': '',
-            'op': 'download2',
-            'rand': rand,
-            'referer': '',
-        }
+        fields = dict(re.findall(r'''(?x)<input\s+
+            type="hidden"\s+
+            name="([^"]+)"\s+
+            value="([^"]*)"
+            ''', webpage))
+
         request = compat_urllib_request.Request(url, urlencode_postdata(fields))
         request.add_header('Content-type', 'application/x-www-form-urlencoded')
         response = self._request_webpage(request, video_id,
