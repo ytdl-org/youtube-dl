@@ -199,7 +199,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     IE_DESC = u'YouTube.com'
     _VALID_URL = r"""(?x)^
                      (
-                         (?:https?://|//)?                                    # http(s):// or protocol-independent URL (optional)
+                         (?:https?://|//)                                    # http(s):// or protocol-independent URL
                          (?:(?:(?:(?:\w+\.)?[yY][oO][uU][tT][uU][bB][eE](?:-nocookie)?\.com/|
                             (?:www\.)?deturl\.com/www\.youtube\.com/|
                             (?:www\.)?pwnyoutube\.com/|
@@ -217,7 +217,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                              )
                          ))
                          |youtu\.be/                                          # just youtu.be/xxxx
-                         |https?://(?:www\.)?cleanvideosearch\.com/media/action/yt/watch\?videoId=
+                         |(?:www\.)?cleanvideosearch\.com/media/action/yt/watch\?videoId=
                          )
                      )?                                                       # all until now is optional -> you can pass the naked ID
                      ([0-9A-Za-z_-]{11})                                      # here is it! the YouTube video ID
