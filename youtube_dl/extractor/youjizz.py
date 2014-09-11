@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class YouJizzIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:\w+\.)?youjizz\.com/videos/(?P<videoid>[^.]+)\.html$'
+    _VALID_URL = r'^https?://(?:\w+\.)?youjizz\.com/videos/(?P<videoid>[^.]+)\.html$'
     _TEST = {
         'url': 'http://www.youjizz.com/videos/zeichentrick-1-2189178.html',
         'file': '2189178.flv',
