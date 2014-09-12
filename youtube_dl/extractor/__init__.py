@@ -131,6 +131,10 @@ from .gametrailers import GametrailersIE
 from .gdcvault import GDCVaultIE
 from .generic import GenericIE
 from .godtube import GodTubeIE
+from .gogoanime import (
+    GoGoAnimeIE,
+    GoGoAnimeSearchIE
+)
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
 from .gorillavid import GorillaVidIE
@@ -258,6 +262,11 @@ from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
 from .photobucket import PhotobucketIE
+from .play44 import (
+    Play44IE,
+    ByZooIE,
+    Video44IE
+)
 from .playfm import PlayFMIE
 from .playvid import PlayvidIE
 from .podomatic import PodomaticIE
@@ -308,6 +317,10 @@ from .smotri import (
 from .snotr import SnotrIE
 from .sockshare import SockshareIE
 from .sohu import SohuIE
+from .soulanime import (
+    SoulAnimeWatchingIE,
+    SoulAnimeSeriesIE
+)
 from .soundcloud import (
     SoundcloudIE,
     SoundcloudSetIE,
@@ -381,6 +394,7 @@ from .viddler import ViddlerIE
 from .videobam import VideoBamIE
 from .videodetective import VideoDetectiveIE
 from .videolecturesnet import VideoLecturesNetIE
+from .videofun import VideoFunIE
 from .videofyme import VideofyMeIE
 from .videopremium import VideoPremiumIE
 from .videott import VideoTtIE
