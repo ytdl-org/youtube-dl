@@ -617,7 +617,7 @@ def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
                     self.sock = sock
                     self._tunnel()
                 try:
-                    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv3)
+                    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_TLSv1)
                 except ssl.SSLError:
                     self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv23)
 
@@ -625,8 +625,14 @@ def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
             def https_open(self, req):
                 return self.do_open(HTTPSConnectionV3, req)
         return HTTPSHandlerV3(**kwargs)
-    else:
-        context = ssl.SSLContext(ssl.PROTOCOL_SSLv3)
+    elif hasattr(ssl, 'create_default_context'):  # Python >= 3.4
+        context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        context.options &= ~ssl.OP_NO_SSLv3  # Allow older, not-as-secure SSLv3
+        if opts_no_check_certificate:
+            context.verify_mode = ssl.CERT_NONE
+        return compat_urllib_request.HTTPSHandler(context=context, **kwargs)
+    else:  # Python < 3.4
+        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
         context.verify_mode = (ssl.CERT_NONE
                                if opts_no_check_certificate
                                else ssl.CERT_REQUIRED)
