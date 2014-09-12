@@ -28,6 +28,7 @@ from .utils import (
     compat_str,
     compat_urllib_error,
     compat_urllib_request,
+    compat_urllib_parse_urlparse,
     ContentTooShortError,
     date_from_str,
     DateRange,
@@ -1241,6 +1242,31 @@ class YoutubeDL(object):
 
     def urlopen(self, req):
         """ Start an HTTP download """
+
+        # urllib chokes on URLs with non-ASCII characters (see http://bugs.python.org/issue3991)
+        # Working around by replacing request's original URL with escaped one
+
+        url = req if isinstance(req, compat_str) else req.get_full_url()
+
+        def escape(component):
+            return compat_cookiejar.escape_path(component.encode('utf-8'))
+
+        url_parsed = compat_urllib_parse_urlparse(url)
+        url_escaped = url_parsed._replace(
+            path=escape(url_parsed.path),
+            query=escape(url_parsed.query),
+            fragment=escape(url_parsed.fragment)
+        ).geturl()
+
+        # Substitute URL if any change after escaping
+        if url != url_escaped:
+            if isinstance(req, compat_str):
+                req = url_escaped
+            else:
+                req = compat_urllib_request.Request(
+                    url_escaped, data=req.data, headers=req.headers,
+                    origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
+
         return self._opener.open(req, timeout=self._socket_timeout)
 
     def print_debug_header(self):
