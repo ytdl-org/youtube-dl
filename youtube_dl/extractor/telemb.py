@@ -1,40 +1,77 @@
+# coding: utf-8
+from __future__ import unicode_literals
+
 import re
-# -*- coding: utf-8 -*-
-# needed for the title french ê!  coding utf-8- -*- 
-# based on the vine.co and lots of help from https://filippo.io/add-support-for-a-new-video-site-to-youtube-dl/
+
 from .common import InfoExtractor
+from ..utils import remove_start
 
 
-class TelembIE(InfoExtractor):
-
-    _VALID_URL = r'https?://www\.telemb\.be/(?P<id>.*)'
-
-    _TEST = {
-        u'url': u'http://www.telemb.be/mons-cook-with-danielle-des-cours-de-cuisine-en-anglais-_d_13466.html',
-        u'file': u'mons-cook-with-danielle-des-cours-de-cuisine-en-anglais-_d_13466.html.mp4',
-        u'md5': u'f45ea69878516ba039835794e0f8f783',
-        u'info_dict': { 
-            u"title": u'TéléMB : Mons - Cook with Danielle : des cours de cuisine en anglais ! - Les reportages'
-        }
-    }
+class TeleMBIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?telemb\.be/(?P<display_id>.+?)_d_(?P<id>\d+)\.html'
+    _TESTS = [
+        {
+            'url': 'http://www.telemb.be/mons-cook-with-danielle-des-cours-de-cuisine-en-anglais-_d_13466.html',
+            'md5': 'f45ea69878516ba039835794e0f8f783',
+            'info_dict': {
+                'id': '13466',
+                'display_id': 'mons-cook-with-danielle-des-cours-de-cuisine-en-anglais-',
+                'ext': 'mp4',
+                'title': 'Mons - Cook with Danielle : des cours de cuisine en anglais ! - Les reportages',
+                'description': 'md5:bc5225f47b17c309761c856ad4776265',
+                'thumbnail': 're:^http://.*\.(?:jpg|png)$',
+            }
+        },
+        {
+            'url': 'http://telemb.be/les-reportages-havre-incendie-mortel_d_13514.html',
+            'md5': '6e9682736e5ccd4eab7f21e855350733',
+            'info_dict': {
+                'id': '13514',
+                'display_id': 'les-reportages-havre-incendie-mortel',
+                'ext': 'mp4',
+                'title': 'Havré - Incendie mortel - Les reportages',
+                'description': 'md5:5e54cb449acb029c2b7734e2d946bd4a',
+                'thumbnail': 're:^http://.*\.(?:jpg|png)$',
+            }
+        },
+    ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-
         video_id = mobj.group('id')
-        webpage_url = 'http://www.telemb.be/' + video_id
-        webpage = self._download_webpage(webpage_url, video_id)
+        display_id = mobj.group('display_id')
 
+        webpage = self._download_webpage(url, display_id)
 
-        self.report_extraction(video_id)
+        formats = []
+        for video_url in re.findall(r'file\s*:\s*"([^"]+)"', webpage):
+            fmt = {
+                'url': video_url,
+                'format_id': video_url.split(':')[0]
+            }
+            rtmp = re.search(r'^(?P<url>rtmp://[^/]+/(?P<app>.+))/(?P<playpath>mp4:.+)$', video_url)
+            if rtmp:
+                fmt.update({
+                    'play_path': rtmp.group('playpath'),
+                    'app': rtmp.group('app'),
+                    'player_url': 'http://p.jwpcdn.com/6/10/jwplayer.flash.swf',
+                    'page_url': 'http://www.telemb.be',
+                    'preference': -1,
+                })
+            formats.append(fmt)
+        self._sort_formats(formats)
 
-        video_url = self._html_search_regex(r'"(http://wowza\.imust\.org/srv/vod/.*\.mp4)"',
-            webpage, u'video URL')
+        title = remove_start(self._og_search_title(webpage), 'TéléMB : ')
+        description = self._html_search_regex(
+            r'<meta property="og:description" content="(.+?)" />',
+            webpage, 'description', fatal=False)
+        thumbnail = self._og_search_thumbnail(webpage)
 
-        return [{
-            'id':        video_id,
-            'url':       video_url,
-            'ext':       'mp4',
-            'title':     self._og_search_title(webpage),
-            'thumbnail': self._og_search_thumbnail(webpage),
-        }]
+        return {
+            'id': video_id,
+            'display_id': display_id,
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'formats': formats,
+        }
