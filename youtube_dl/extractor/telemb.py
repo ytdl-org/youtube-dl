@@ -23,6 +23,7 @@ class TeleMBIE(InfoExtractor):
             }
         },
         {
+            # non-ASCII characters in download URL
             'url': 'http://telemb.be/les-reportages-havre-incendie-mortel_d_13514.html',
             'md5': '6e9682736e5ccd4eab7f21e855350733',
             'info_dict': {
