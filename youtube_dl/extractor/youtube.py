@@ -1020,6 +1020,13 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
     _MORE_PAGES_INDICATOR = r'data-link-type="next"'
     _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)'
     IE_NAME = u'youtube:playlist'
+    _TESTS = [{
+        'url': 'https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re',
+        'info_dict': {
+            'title': 'ytdl test PL',
+        },
+        'playlist_count': 3,
+    }]
 
     def _real_initialize(self):
         self._login()
@@ -1118,6 +1125,7 @@ class YoutubeTopListIE(YoutubePlaylistIE):
     IE_DESC = (u'YouTube.com top lists, "yttoplist:{channel}:{list title}"'
         u' (Example: "yttoplist:music:Top Tracks")')
     _VALID_URL = r'yttoplist:(?P<chann>.*?):(?P<title>.*?)$'
+    _TESTS = []
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -1447,6 +1455,7 @@ class YoutubeSubscriptionsIE(YoutubePlaylistIE):
     IE_NAME = u'youtube:subscriptions'
     IE_DESC = u'YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)'
     _VALID_URL = r'https?://www\.youtube\.com/feed/subscriptions|:ytsubs(?:criptions)?'
+    _TESTS = []
 
     def _real_extract(self, url):
         title = u'Youtube Subscriptions'
