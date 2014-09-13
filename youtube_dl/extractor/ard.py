@@ -13,6 +13,7 @@ from ..utils import (
     int_or_none,
     parse_duration,
     unified_strdate,
+    xpath_text,
 )
 
 
@@ -157,8 +158,9 @@ class ARDIE(InfoExtractor):
         player_url = mobj.group('mainurl') + '~playerXml.xml'
         doc = self._download_xml(player_url, display_id)
         video_node = doc.find('./video')
-        upload_date = unified_strdate(video_node.find('./broadcastDate').text)
-        thumbnail = video_node.find('.//teaserImage//variant/url').text
+        upload_date = unified_strdate(xpath_text(
+            video_node, './broadcastDate'))
+        thumbnail = xpath_text(video_node, './/teaserImage//variant/url')
 
         formats = []
         for a in video_node.findall('.//asset'):

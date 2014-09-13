@@ -304,6 +304,17 @@ def xpath_with_ns(path, ns_map):
     return '/'.join(replaced)
 
 
+def xpath_text(node, xpath, name=None, fatal=False):
+    n = node.find(xpath)
+    if n is None:
+        if fatal:
+            name = xpath if name is None else name
+            raise ExtractorError('Could not find XML element %s' % name)
+        else:
+            return None
+    return n.text
+
+
 compat_html_parser.locatestarttagend = re.compile(r"""<[a-zA-Z][-.a-zA-Z0-9:_]*(?:\s+(?:(?<=['"\s])[^\s/>][^\s/=>]*(?:\s*=+\s*(?:'[^']*'|"[^"]*"|(?!['"])[^>\s]*))?\s*)*)?\s*""", re.VERBOSE) # backport bugfix
 class BaseHTMLParser(compat_html_parser.HTMLParser):
     def __init(self):
