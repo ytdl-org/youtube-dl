@@ -1423,7 +1423,7 @@ def escape_rfc3986(s):
     """Escape non-ASCII characters as suggested by RFC 3986"""
     if sys.version_info < (3, 0) and isinstance(s, unicode):
         s = s.encode('utf-8')
-    return compat_urllib_parse.quote(s, "%/;:@&=+$,!~*'()?#[]") #"%/;:@&=+$,!~*'()?#[]+"   #?#[]+
+    return compat_urllib_parse.quote(s, "%/;:@&=+$,!~*'()?#[]")
 
 
 def escape_url(url):
