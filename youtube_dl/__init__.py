@@ -86,6 +86,9 @@ import random
 import sys
 
 
+from .options import (
+    parseOpts,
+)
 from .utils import (
     compat_getpass,
     compat_print,
@@ -94,7 +97,6 @@ from .utils import (
     decodeOption,
     DownloadError,
     MaxDownloadsReached,
-    parseOpts,
     preferredencoding,
     read_batch_urls,
     SameFileError,
