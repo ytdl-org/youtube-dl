@@ -325,7 +325,7 @@ from .southpark import (
 )
 from .space import SpaceIE
 from .spankwire import SpankwireIE
-from .spiegel import SpiegelIE
+from .spiegel import SpiegelIE, SpiegelArticleIE
 from .spiegeltv import SpiegeltvIE
 from .spike import SpikeIE
 from .sportdeutschland import SportDeutschlandIE
