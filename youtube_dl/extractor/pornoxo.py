@@ -4,9 +4,9 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    parse_duration,
     str_to_int,
 )
+
 
 class PornoXOIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?pornoxo\.com/videos/(?P<id>\d+)/(?P<display_id>[^/]+)\.html'
@@ -44,7 +44,7 @@ class PornoXOIE(InfoExtractor):
             r'\'image\'\s*:\s*"([^"]+)"', webpage, 'thumbnail', fatal=False)
 
         view_count = str_to_int(self._html_search_regex(
-            r'Views:\s*(\d+)', webpage, 'view count', fatal=False))
+            r'[vV]iews:\s*([0-9,]+)', webpage, 'view count', fatal=False))
 
         categories_str = self._html_search_regex(
             r'<meta name="description" content=".*featuring\s*([^"]+)"',
@@ -52,7 +52,6 @@ class PornoXOIE(InfoExtractor):
         categories = (
             None if categories_str is None
             else categories_str.split(','))
-
 
         return {
             'id': video_id,
