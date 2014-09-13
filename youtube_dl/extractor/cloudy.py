@@ -8,6 +8,7 @@ from ..utils import (
     ExtractorError,
     compat_parse_qs,
     compat_urllib_parse,
+    remove_end,
 )
 
 
@@ -52,13 +53,15 @@ class CloudyIE(InfoExtractor):
 
         title = data.get('title', [None])[0]
         if title:
-            title = title.replace('&asdasdas', '').strip()
+            title = remove_end(title, '&asdasdas').strip()
 
         formats = []
-        formats.append({
-            'format_id': 'sd',
-            'url': data.get('url', [None])[0],
-        })
+        video_url = data.get('url', [None])[0]
+        if video_url:
+            formats.append({
+                'format_id': 'sd',
+                'url': video_url,
+            })
 
         return {
             'id': video_id,
