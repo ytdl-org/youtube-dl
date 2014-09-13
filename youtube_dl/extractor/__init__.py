@@ -46,6 +46,7 @@ from .cinemassacre import CinemassacreIE
 from .clipfish import ClipfishIE
 from .cliphunter import CliphunterIE
 from .clipsyndicate import ClipsyndicateIE
+from .cloudy import CloudyIE
 from .clubic import ClubicIE
 from .cmt import CMTIE
 from .cnet import CNETIE
