@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     int_or_none,
     orderedSet,
 )
@@ -21,6 +22,7 @@ class DeezerPlaylistIE(InfoExtractor):
             'thumbnail': 're:^https?://cdn-images.deezer.com/images/cover/.*\.jpg$',
         },
         'playlist_count': 30,
+        'skip': 'Only available in .de',
     }
 
     def _real_extract(self, url):
@@ -31,6 +33,13 @@ class DeezerPlaylistIE(InfoExtractor):
         playlist_id = mobj.group('id')
 
         webpage = self._download_webpage(url, playlist_id)
+        geoblocking_msg = self._html_search_regex(
+            r'<p class="soon-txt">(.*?)</p>', webpage, 'geoblocking message',
+            default=None)
+        if geoblocking_msg is not None:
+            raise ExtractorError(
+                'Deezer said: %s' % geoblocking_msg, expected=True)
+
         data_json = self._search_regex(
             r'naboo\.display\(\'[^\']+\',\s*(.*?)\);\n', webpage, 'data JSON')
         data = json.loads(data_json)
