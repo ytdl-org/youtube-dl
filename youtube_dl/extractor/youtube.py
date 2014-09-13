@@ -1397,6 +1397,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
                                           u'%s feed' % self._FEED_NAME,
                                           u'Downloading page %s' % i)
             feed_html = info.get('feed_html') or info.get('content_html')
+            load_more_widget_html = info.get('load_more_widget_html') or feed_html
             m_ids = re.finditer(r'"/watch\?v=(.*?)["&]', feed_html)
             ids = orderedSet(m.group(1) for m in m_ids)
             feed_entries.extend(
@@ -1404,7 +1405,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
                 for video_id in ids)
             mobj = re.search(
                 r'data-uix-load-more-href="/?[^"]+paging=(?P<paging>\d+)',
-                feed_html)
+                load_more_widget_html)
             if mobj is None:
                 break
             paging = mobj.group('paging')
