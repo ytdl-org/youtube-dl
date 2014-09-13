@@ -52,20 +52,6 @@ class SWRMediathekIE(InfoExtractor):
             'uploader': 'SWR 2',
             'uploader_id': '284670',
         }
-    }, {
-        'url': 'http://swrmediathek.de/content/player.htm?show=52dc7e00-15c5-11e4-84bc-0026b975f2e6',
-        'md5': '881531487d0633080a8cc88d31ef896f',
-        'info_dict': {
-            'id': '52dc7e00-15c5-11e4-84bc-0026b975f2e6',
-            'ext': 'mp4',
-            'title': 'Familienspaß am Bodensee',
-            'description': 'md5:0b591225a32cfde7be1629ed49fe4315',
-            'thumbnail': 're:http://.*\.jpg',
-            'duration': 1784,
-            'upload_date': '20140727',
-            'uploader': 'SWR Fernsehen BW',
-            'uploader_id': '281130',
-        }
     }]
 
     def _real_extract(self, url):
