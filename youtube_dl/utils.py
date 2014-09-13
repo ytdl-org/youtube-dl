@@ -305,6 +305,9 @@ def xpath_with_ns(path, ns_map):
 
 
 def xpath_text(node, xpath, name=None, fatal=False):
+    if sys.version_info < (2, 7):  # Crazy 2.6
+        xpath = xpath.encode('ascii')
+
     n = node.find(xpath)
     if n is None:
         if fatal:
