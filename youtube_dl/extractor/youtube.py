@@ -221,6 +221,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                          )
                      )?                                                       # all until now is optional -> you can pass the naked ID
                      ([0-9A-Za-z_-]{11})                                      # here is it! the YouTube video ID
+                     (?!.*?&list=)                                            # combined list/video URLs are handled by the playlist IE
                      (?(1).+)?                                                # if we found the ID, everything can follow
                      $"""
     _NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
@@ -386,13 +387,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             },
         },
     ]
-
-
-    @classmethod
-    def suitable(cls, url):
-        """Receives a URL and returns True if suitable for this IE."""
-        if YoutubePlaylistIE.suitable(url): return False
-        return re.match(cls._VALID_URL, url) is not None
 
     def __init__(self, *args, **kwargs):
         super(YoutubeIE, self).__init__(*args, **kwargs)
@@ -1026,6 +1020,39 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
             'title': 'ytdl test PL',
         },
         'playlist_count': 3,
+    }, {
+        'url': 'https://www.youtube.com/playlist?list=PLtPgu7CB4gbZDA7i_euNxn75ISqxwZPYx',
+        'info_dict': {
+            'title': 'YDL_Empty_List',
+        },
+        'playlist_count': 0,
+    }, {
+        'note': 'Playlist with deleted videos (#651). As a bonus, the video #51 is also twice in this list.',
+        'url': 'https://www.youtube.com/playlist?list=PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC',
+        'info_dict': {
+            'title': '29C3: Not my department',
+        },
+        'playlist_count': 95,
+    }, {
+        'note': 'issue #673',
+        'url': 'PLBB231211A4F62143',
+        'info_dict': {
+            'title': 'Team Fortress 2 (Class-based LP)',
+        },
+        'playlist_mincount': 26,
+    }, {
+        'note': 'Large playlist',
+        'url': 'https://www.youtube.com/playlist?list=UUBABnxM4Ar9ten8Mdjj1j0Q',
+        'info_dict': {
+            'title': 'Uploads from Cauchemar',
+        },
+        'playlist_mincount': 799,
+    }, {
+        'url': 'PLtPgu7CB4gbY9oDN3drwC3cMbJggS7dKl',
+        'info_dict': {
+            'title': 'YDL_safe_search',
+        },
+        'playlist_count': 2,
     }]
 
     def _real_initialize(self):
