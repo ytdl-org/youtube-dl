@@ -408,29 +408,53 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option('--skip-download',
             action='store_true', dest='skip_download', help='do not download the video', default=False)
     verbosity.add_option('-g', '--get-url',
-            action='store_true', dest='geturl', help='simulate, quiet but print URL', default=False)
+            action='store_true', dest='geturl', help='simulate, quiet but print URL (deprecated, use --print-url or -G with --simulate instead)', default=False)
     verbosity.add_option('-e', '--get-title',
-            action='store_true', dest='gettitle', help='simulate, quiet but print title', default=False)
+            action='store_true', dest='gettitle', help='simulate, quiet but print title (deprecated, use --print-title or -E with --simulate instead)', default=False)
     verbosity.add_option('--get-id',
-            action='store_true', dest='getid', help='simulate, quiet but print id', default=False)
+            action='store_true', dest='getid', help='simulate, quiet but print id (deprecated, use --print-id with --simulate instead)', default=False)
     verbosity.add_option('--get-thumbnail',
             action='store_true', dest='getthumbnail',
-            help='simulate, quiet but print thumbnail URL', default=False)
+            help='simulate, quiet but print thumbnail URL (deprecated, use --print-thumbnail with --simulate instead)', default=False)
     verbosity.add_option('--get-description',
             action='store_true', dest='getdescription',
-            help='simulate, quiet but print video description', default=False)
+            help='simulate, quiet but print video description (deprecated, use --print-description with --simulate instead)', default=False)
     verbosity.add_option('--get-duration',
             action='store_true', dest='getduration',
-            help='simulate, quiet but print video length', default=False)
+            help='simulate, quiet but print video length (deprecated, use --print-duration with --simulate instead)', default=False)
     verbosity.add_option('--get-filename',
             action='store_true', dest='getfilename',
-            help='simulate, quiet but print output filename', default=False)
+            help='simulate, quiet but print output filename (deprecated, use --print-filename with --simulate instead)', default=False)
     verbosity.add_option('--get-format',
             action='store_true', dest='getformat',
-            help='simulate, quiet but print output format', default=False)
+            help='simulate, quiet but print output format (deprecated, use --print-format with --simulate instead)', default=False)
     verbosity.add_option('-j', '--dump-json',
             action='store_true', dest='dumpjson',
-            help='simulate, quiet but print JSON information. See --output for a description of available keys.', default=False)
+            help='simulate, quiet but print JSON information (deprecated, use --print-json or -J with --simulate instead).', default=False)
+    verbosity.add_option('-G', '--print-url',
+            action='store_true', dest='printurl', help='be quiet but print URL', default=False)
+    verbosity.add_option('-E', '--print-title',
+            action='store_true', dest='printtitle', help='be quiet but print title', default=False)
+    verbosity.add_option('--print-id',
+            action='store_true', dest='printid', help='be quiet but print id', default=False)
+    verbosity.add_option('--print-thumbnail',
+            action='store_true', dest='printthumbnail',
+            help='be quiet but print thumbnail URL', default=False)
+    verbosity.add_option('--print-description',
+            action='store_true', dest='printdescription',
+            help='be quiet but print video description', default=False)
+    verbosity.add_option('--print-duration',
+            action='store_true', dest='printduration',
+            help='be quiet but print video length', default=False)
+    verbosity.add_option('--print-filename',
+            action='store_true', dest='printfilename',
+            help='be quiet but print output filename', default=False)
+    verbosity.add_option('--print-format',
+            action='store_true', dest='printformat',
+            help='be quiet but print output format', default=False)
+    verbosity.add_option('-J', '--print-json',
+            action='store_true', dest='printjson',
+            help='be quiet but print JSON information. See --output for a description of available keys.', default=False)
     verbosity.add_option('--newline',
             action='store_true', dest='progress_with_newline', help='output progress bar as new lines', default=False)
     verbosity.add_option('--no-progress',
@@ -750,28 +774,36 @@ def _real_main(argv=None):
                      u' file! Use "{0}.%(ext)s" instead of "{0}" as the output'
                      u' template'.format(outtmpl))
 
-    any_printing = opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.getduration or opts.dumpjson
+    any_getting = opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.getduration or opts.dumpjson
     download_archive_fn = os.path.expanduser(opts.download_archive) if opts.download_archive is not None else opts.download_archive
-
+    
+    if any_getting:
+        self.report_warning('--get-* options and their short counterparts are deprecated, please use their --print-* alternative with --simulate.')
+    
     ydl_opts = {
         'usenetrc': opts.usenetrc,
         'username': opts.username,
         'password': opts.password,
         'twofactor': opts.twofactor,
         'videopassword': opts.videopassword,
-        'quiet': (opts.quiet or any_printing),
+        'quiet': (opts.quiet or any_getting or
+                  (opts.printurl         or opts.printtitle     or
+                   opts.printid          or opts.printthumbnail or
+                   opts.printdescription or opts.printfilename  or
+                   opts.printformat      or opts.printduration  or
+                   opts.printjson)),
         'no_warnings': opts.no_warnings,
-        'forceurl': opts.geturl,
-        'forcetitle': opts.gettitle,
-        'forceid': opts.getid,
-        'forcethumbnail': opts.getthumbnail,
-        'forcedescription': opts.getdescription,
-        'forceduration': opts.getduration,
-        'forcefilename': opts.getfilename,
-        'forceformat': opts.getformat,
-        'forcejson': opts.dumpjson,
+        'forceurl': (opts.geturl or opts.printurl),
+        'forcetitle': (opts.gettitle or opts.printtitle),
+        'forceid': (opts.getid or opts.printid),
+        'forcethumbnail': (opts.getthumbnail or opts.printthumbnail),
+        'forcedescription': (opts.getdescription or opts.printdescription),
+        'forceduration': (opts.getduration or opts.printduration),
+        'forcefilename': (opts.getfilename or opts.printfilename),
+        'forceformat': (opts.getformat or opts.printformat),
+        'forcejson': (opts.dumpjson or opts.printjson),
         'simulate': opts.simulate,
-        'skip_download': (opts.skip_download or opts.simulate or any_printing),
+        'skip_download': (opts.skip_download or opts.simulate or any_getting),
         'format': opts.format,
         'format_limit': opts.format_limit,
         'listformats': opts.listformats,
@@ -836,6 +868,7 @@ def _real_main(argv=None):
         'encoding': opts.encoding,
         'exec_cmd': opts.exec_cmd,
     }
+
 
     with YoutubeDL(ydl_opts) as ydl:
         ydl.print_debug_header()
