@@ -360,7 +360,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             u"info_dict": {
                 u"upload_date": "20121002",
                 u"uploader_id": "8KVIDEO",
-                u"description": "No description available.",
+                u"description": '',
                 u"uploader": "8KVIDEO",
                 u"title": "UHDTV TEST 8K VIDEO.mp4"
             },
