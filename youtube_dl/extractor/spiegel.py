@@ -29,16 +29,6 @@ class SpiegelIE(InfoExtractor):
             'description': 'md5:c2322b65e58f385a820c10fa03b2d088',
             'duration': 983,
         },
-    }, {
-        'url': 'http://www.spiegel.de/video/johann-westhauser-videobotschaft-des-hoehlenforschers-video-1502367.html',
-        'md5': '54f58ba0e752e3c07bc2a26222dd0acf',
-        'info_dict': {
-            'id': '1502367',
-            'ext': 'mp4',
-            'title': 'Videobotschaft: Höhlenforscher Westhauser dankt seinen Rettern',
-            'description': 'md5:c6f1ec11413ebd1088b6813943e5fc91',
-            'duration': 42,
-        },
     }]
 
     def _real_extract(self, url):
