@@ -280,6 +280,11 @@ if sys.version_info >= (2, 7):
         return node.find(expr)
 else:
     def find_xpath_attr(node, xpath, key, val):
+        # Here comes the crazy part: In 2.6, if the xpath is a unicode,
+        # .//node does not match if a node is a direct child of . !
+        if isinstance(xpath, unicode):
+            xpath = xpath.encode('ascii')
+
         for f in node.findall(xpath):
             if f.attrib.get(key) == val:
                 return f
