@@ -277,6 +277,10 @@ def parseOpts(overrideArguments=None):
         '--playlist-end',
         dest='playlistend', metavar='NUMBER', default=None, type=int,
         help='playlist video to end at (default is last)')
+    selection.add_option(
+        '--playlist-reverse',
+        action='store_true',
+        help='Download playlist videos in reverse order')
     selection.add_option('--match-title', dest='matchtitle', metavar='REGEX',help='download only matching titles (regex or caseless sub-string)')
     selection.add_option('--reject-title', dest='rejecttitle', metavar='REGEX',help='skip download for matching titles (regex or caseless sub-string)')
     selection.add_option('--max-downloads', metavar='NUMBER',
@@ -789,6 +793,7 @@ def _real_main(argv=None):
         'progress_with_newline': opts.progress_with_newline,
         'playliststart': opts.playliststart,
         'playlistend': opts.playlistend,
+        'playlistreverse': opts.playlist_reverse,
         'noplaylist': opts.noplaylist,
         'logtostderr': opts.outtmpl == '-',
         'consoletitle': opts.consoletitle,
