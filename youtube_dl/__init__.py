@@ -268,6 +268,8 @@ def parseOpts(overrideArguments=None):
         '--ignore-config',
         action='store_true',
         help='Do not read configuration files. When given in the global configuration file /etc/youtube-dl.conf: do not read the user configuration in ~/.config/youtube-dl.conf (%APPDATA%/youtube-dl/config.txt on Windows)')
+    general.add_option('--bind-ip', metavar='IP', dest='bind_ip',
+        help='When making client TCP/IP connections, bind to IP on the local machine. This option can be useful if your machine is bound to multiple IPs.')
 
     selection.add_option(
         '--playlist-start',
@@ -601,6 +603,29 @@ def _real_main(argv=None):
     setproctitle(u'youtube-dl')
 
     parser, opts, args = parseOpts(argv)
+
+    if opts.bind_ip is not None:
+        import socket
+
+        class SocketWrapper(socket._socketobject):
+            def __init__(self, sock):
+                self.sock = sock
+                self.__class__ = type(sock.__class__.__name__, (self.__class__, sock.__class__), {})
+
+            def connect(self, address):
+                self.sock.bind((opts.bind_ip, 0))
+                self.sock.connect(address)
+
+            def __getattr__(self, attr):
+                if attr == 'connect':
+                    return self.connect
+                return getattr(self.sock, attr)
+
+        # Replace socket function with one that returns wrapped socket object
+        real_socket = socket.socket
+        def wrap_socket(*args, **kwargs):
+            return SocketWrapper(real_socket(*args, **kwargs))
+        socket.socket = wrap_socket
 
     # Set user agent
     if opts.user_agent is not None:
