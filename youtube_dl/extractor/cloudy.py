@@ -9,6 +9,8 @@ from ..utils import (
     compat_parse_qs,
     compat_urllib_parse,
     remove_end,
+    HEADRequest,
+    compat_HTTPError,
 )
 
 
@@ -21,6 +23,7 @@ class CloudyIE(InfoExtractor):
         '''
     _EMBED_URL = 'http://www.%s/embed.php?id=%s'
     _API_URL = 'http://www.%s/api/player.api.php?%s'
+    _MAX_TRIES = 2
     _TESTS = [
         {
             'url': 'https://www.cloudy.ec/v/af511e2527aac',
@@ -42,23 +45,29 @@ class CloudyIE(InfoExtractor):
         }
     ]
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_host = mobj.group('host')
-        video_id = mobj.group('id')
+    def _extract_video(self, video_host, video_id, file_key, error_url=None, try_num=0):
 
-        url = self._EMBED_URL % (video_host, video_id)
-        webpage = self._download_webpage(url, video_id)
+        if try_num > self._MAX_TRIES - 1:
+            raise ExtractorError('Unable to extract video URL', expected=True)
 
-        file_key = self._search_regex(
-            r'filekey\s*=\s*"([^"]+)"', webpage, 'file_key')
-        data_url = self._API_URL % (video_host, compat_urllib_parse.urlencode({
+        form = {
             'file': video_id,
             'key': file_key,
-        }))
+        }
+
+        if error_url:
+            form.update({
+                'numOfErrors': try_num,
+                'errorCode': '404',
+                'errorUrl': error_url,
+            })
+
+        data_url = self._API_URL % (video_host, compat_urllib_parse.urlencode(form))
         player_data = self._download_webpage(
             data_url, video_id, 'Downloading player data')
         data = compat_parse_qs(player_data)
+
+        try_num += 1
 
         if 'error' in data:
             raise ExtractorError(
@@ -69,16 +78,31 @@ class CloudyIE(InfoExtractor):
         if title:
             title = remove_end(title, '&asdasdas').strip()
 
-        formats = []
         video_url = data.get('url', [None])[0]
+
         if video_url:
-            formats.append({
-                'format_id': 'sd',
-                'url': video_url,
-            })
+            try:
+                self._request_webpage(HEADRequest(video_url), video_id, 'Checking video URL')
+            except ExtractorError as e:
+                if isinstance(e.cause, compat_HTTPError) and e.cause.code in [404, 410]:
+                    self.report_warning('Invalid video URL, requesting another', video_id)
+                    return self._extract_video(video_host, video_id, file_key, video_url, try_num)
 
         return {
             'id': video_id,
+            'url': video_url,
             'title': title,
-            'formats': formats,
         }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_host = mobj.group('host')
+        video_id = mobj.group('id')
+
+        url = self._EMBED_URL % (video_host, video_id)
+        webpage = self._download_webpage(url, video_id)
+
+        file_key = self._search_regex(
+            r'filekey\s*=\s*"([^"]+)"', webpage, 'file_key')
+
+        return self._extract_video(video_host, video_id, file_key)
