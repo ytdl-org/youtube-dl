@@ -8,7 +8,7 @@ from ..utils import url_basename
 
 
 class BehindKinkIE(InfoExtractor):
-    _VALID_URL = r'(?:http://)(?:www\.)?behindkink\.com/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})/(?P<id>[^/?_]+)'
+    _VALID_URL = r'http://(?:www\.)?behindkink\.com/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})/(?P<id>[^/#?_]+)'
     _TEST = {
         'url': 'http://www.behindkink.com/2014/08/14/ab1576-performers-voice-finally-heard-the-bill-is-killed/',
         'md5': '41ad01222b8442089a55528fec43ec01',
@@ -31,8 +31,7 @@ class BehindKinkIE(InfoExtractor):
         day = mobj.group('day')
         upload_date = year + month + day
 
-        webpage_url = 'http://www.behindkink.com/' + year + '/' + month + '/' + day + '/' + display_id
-        webpage = self._download_webpage(webpage_url, display_id)
+        webpage = self._download_webpage(url, display_id)
 
         self.report_extraction(display_id)
         video_url = self._search_regex(
@@ -41,7 +40,6 @@ class BehindKinkIE(InfoExtractor):
 
         video_id = url_basename(video_url)
         video_id = video_id.split('_')[0]
-        self.report_extraction(video_id)
 
         return {
             'id': video_id,
