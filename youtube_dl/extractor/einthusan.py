@@ -10,7 +10,7 @@ class EinthusanIE(InfoExtractor):
     _VALID_URL = r'http://(?:www\.)?einthusan\.com/movies/watch.php\?(.*)?id=(?P<id>[0-9]+).*?'
     _TESTS = [
         {
-            'url': 'http://www.einthusan.com/movies/watch.php?hindimoviesonline=Ek+Villain&lang=hindi&id=2447',
+            'url': 'http://www.einthusan.com/movies/watch.php?id=2447',
             'md5': 'af244f4458cd667205e513d75da5b8b1',
             'info_dict': {
                 'id': '2447',
