@@ -28,6 +28,7 @@ from .utils import (
     compat_str,
     compat_urllib_error,
     compat_urllib_request,
+    escape_url,
     ContentTooShortError,
     date_from_str,
     DateRange,
@@ -1241,6 +1242,25 @@ class YoutubeDL(object):
 
     def urlopen(self, req):
         """ Start an HTTP download """
+
+        # According to RFC 3986, URLs can not contain non-ASCII characters, however this is not
+        # always respected by websites, some tend to give out URLs with non percent-encoded
+        # non-ASCII characters (see telemb.py, ard.py [#3412])
+        # urllib chokes on URLs with non-ASCII characters (see http://bugs.python.org/issue3991)
+        # To work around aforementioned issue we will replace request's original URL with
+        # percent-encoded one
+        url = req if isinstance(req, compat_str) else req.get_full_url()
+        url_escaped = escape_url(url)
+
+        # Substitute URL if any change after escaping
+        if url != url_escaped:
+            if isinstance(req, compat_str):
+                req = url_escaped
+            else:
+                req = compat_urllib_request.Request(
+                    url_escaped, data=req.data, headers=req.headers,
+                    origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
+
         return self._opener.open(req, timeout=self._socket_timeout)
 
     def print_debug_header(self):

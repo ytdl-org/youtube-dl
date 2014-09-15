@@ -1437,6 +1437,24 @@ def uppercase_escape(s):
         lambda m: unicode_escape(m.group(0))[0],
         s)
 
+
+def escape_rfc3986(s):
+    """Escape non-ASCII characters as suggested by RFC 3986"""
+    if sys.version_info < (3, 0) and isinstance(s, unicode):
+        s = s.encode('utf-8')
+    return compat_urllib_parse.quote(s, "%/;:@&=+$,!~*'()?#[]")
+
+
+def escape_url(url):
+    """Escape URL as suggested by RFC 3986"""
+    url_parsed = compat_urllib_parse_urlparse(url)
+    return url_parsed._replace(
+        path=escape_rfc3986(url_parsed.path),
+        params=escape_rfc3986(url_parsed.params),
+        query=escape_rfc3986(url_parsed.query),
+        fragment=escape_rfc3986(url_parsed.fragment)
+    ).geturl()
+
 try:
     struct.pack(u'!I', 0)
 except TypeError:

@@ -41,6 +41,8 @@ from youtube_dl.utils import (
     strip_jsonp,
     uppercase_escape,
     limit_length,
+    escape_rfc3986,
+    escape_url,
 )
 
 
@@ -293,6 +295,35 @@ class TestUtil(unittest.TestCase):
         self.assertTrue(
             limit_length('foo bar baz asd', 12).startswith('foo bar'))
         self.assertTrue('...' in limit_length('foo bar baz asd', 12))
+
+    def test_escape_rfc3986(self):
+        reserved = "!*'();:@&=+$,/?#[]"
+        unreserved = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~'
+        self.assertEqual(escape_rfc3986(reserved), reserved)
+        self.assertEqual(escape_rfc3986(unreserved), unreserved)
+        self.assertEqual(escape_rfc3986('тест'), '%D1%82%D0%B5%D1%81%D1%82')
+        self.assertEqual(escape_rfc3986('%D1%82%D0%B5%D1%81%D1%82'), '%D1%82%D0%B5%D1%81%D1%82')
+        self.assertEqual(escape_rfc3986('foo bar'), 'foo%20bar')
+        self.assertEqual(escape_rfc3986('foo%20bar'), 'foo%20bar')
+
+    def test_escape_url(self):
+        self.assertEqual(
+            escape_url('http://wowza.imust.org/srv/vod/telemb/new/UPLOAD/UPLOAD/20224_IncendieHavré_FD.mp4'),
+            'http://wowza.imust.org/srv/vod/telemb/new/UPLOAD/UPLOAD/20224_IncendieHavre%CC%81_FD.mp4'
+        )
+        self.assertEqual(
+            escape_url('http://www.ardmediathek.de/tv/Sturm-der-Liebe/Folge-2036-Zu-Mann-und-Frau-erklärt/Das-Erste/Video?documentId=22673108&bcastId=5290'),
+            'http://www.ardmediathek.de/tv/Sturm-der-Liebe/Folge-2036-Zu-Mann-und-Frau-erkl%C3%A4rt/Das-Erste/Video?documentId=22673108&bcastId=5290'
+        )
+        self.assertEqual(
+            escape_url('http://тест.рф/фрагмент'),
+            'http://тест.рф/%D1%84%D1%80%D0%B0%D0%B3%D0%BC%D0%B5%D0%BD%D1%82'
+        )
+        self.assertEqual(
+            escape_url('http://тест.рф/абв?абв=абв#абв'),
+            'http://тест.рф/%D0%B0%D0%B1%D0%B2?%D0%B0%D0%B1%D0%B2=%D0%B0%D0%B1%D0%B2#%D0%B0%D0%B1%D0%B2'
+        )
+        self.assertEqual(escape_url('http://vimeo.com/56015672#at=0'), 'http://vimeo.com/56015672#at=0')
 
 if __name__ == '__main__':
     unittest.main()
