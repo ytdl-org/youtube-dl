@@ -12,8 +12,8 @@ from ..utils import (
     compat_urllib_parse,
     compat_urllib_request,
     urlencode_postdata,
-
     ExtractorError,
+    limit_length,
 )
 
 
@@ -36,6 +36,14 @@ class FacebookIE(InfoExtractor):
             'ext': 'mp4',
             'duration': 38,
             'title': 'Did you know Kei Nishikori is the first Asian man to ever reach a Grand Slam fin...',
+        }
+    }, {
+        'note': 'Video without discernible title',
+        'url': 'https://www.facebook.com/video.php?v=274175099429670',
+        'info_dict': {
+            'id': '274175099429670',
+            'ext': 'mp4',
+            'title': 'Facebook video #274175099429670',
         }
     }, {
         'url': 'https://www.facebook.com/video.php?v=10204634152394104',
@@ -131,8 +139,7 @@ class FacebookIE(InfoExtractor):
             video_title = self._html_search_regex(
                 r'(?s)<span class="fbPhotosPhotoCaption".*?id="fbPhotoPageCaption"><span class="hasCaption">(.*?)</span>',
                 webpage, 'alternative title', default=None)
-            if len(video_title) > 80 + 3:
-                video_title = video_title[:80] + '...'
+            video_title = limit_length(video_title, 80)
         if not video_title:
             video_title = 'Facebook video #%s' % video_id
 

@@ -40,6 +40,7 @@ from youtube_dl.utils import (
     parse_iso8601,
     strip_jsonp,
     uppercase_escape,
+    limit_length,
 )
 
 
@@ -285,6 +286,13 @@ class TestUtil(unittest.TestCase):
     def test_uppercase_escape(self):
         self.assertEqual(uppercase_escape('aä'), 'aä')
         self.assertEqual(uppercase_escape('\\U0001d550'), '𝕐')
+
+    def test_limit_length(self):
+        self.assertEqual(limit_length(None, 12), None)
+        self.assertEqual(limit_length('foo', 12), 'foo')
+        self.assertTrue(
+            limit_length('foo bar baz asd', 12).startswith('foo bar'))
+        self.assertTrue('...' in limit_length('foo bar baz asd', 12))
 
 if __name__ == '__main__':
     unittest.main()

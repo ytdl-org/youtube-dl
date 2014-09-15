@@ -1571,3 +1571,13 @@ except AttributeError:
         if ret:
             raise subprocess.CalledProcessError(ret, p.args, output=output)
         return output
+
+
+def limit_length(s, length):
+    """ Add ellipses to overly long strings """
+    if s is None:
+        return None
+    ELLIPSES = '...'
+    if len(s) > length:
+        return s[:length - len(ELLIPSES)] + ELLIPSES
+    return s
