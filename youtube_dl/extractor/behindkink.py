@@ -33,7 +33,6 @@ class BehindKinkIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        self.report_extraction(display_id)
         video_url = self._search_regex(
             r"'file':\s*'([^']+)'",
             webpage, 'URL base')
