@@ -8,11 +8,11 @@ from ..utils import (
     ExtractorError,
     compat_urllib_request,
     urlencode_postdata,
+    xpath_text,
     xpath_with_ns,
 )
 
 _x = lambda p: xpath_with_ns(p, {'xspf': 'http://xspf.org/ns/0/'})
-_find = lambda el, p: el.find(_x(p)).text.strip()
 
 
 class NosVideoIE(InfoExtractor):
@@ -53,9 +53,15 @@ class NosVideoIE(InfoExtractor):
         playlist = self._download_xml(playlist_url, video_id)
 
         track = playlist.find(_x('.//xspf:track'))
-        title = _find(track, './xspf:title')
-        url = _find(track, './xspf:file')
-        thumbnail = _find(track, './xspf:image')
+        if track is None:
+            raise ExtractorError(
+                'XML playlist is missing the \'track\' element',
+                expected=True)
+        title = xpath_text(track, _x('./xspf:title'), 'title')
+        url = xpath_text(track, _x('./xspf:file'), 'URL', fatal=True)
+        thumbnail = xpath_text(track, _x('./xspf:image'), 'thumbnail')
+        if title is not None:
+            title = title.strip()
 
         formats = [{
             'format_id': 'sd',
