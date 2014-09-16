@@ -6,6 +6,7 @@ from .aftonbladet import AftonbladetIE
 from .anitube import AnitubeIE
 from .anysex import AnySexIE
 from .aol import AolIE
+from .allmyvideos import AllmyvideosIE
 from .allocine import AllocineIE
 from .aparat import AparatIE
 from .appletrailers import AppleTrailersIE
