@@ -52,7 +52,7 @@ class BlinkxIE(InfoExtractor):
                     'height': int(m['h']),
                 })
             elif m['type'] == 'original':
-                duration = m['d']
+                duration = float(m['d'])
             elif m['type'] == 'youtube':
                 yt_id = m['link']
                 self.to_screen('Youtube video detected: %s' % yt_id)

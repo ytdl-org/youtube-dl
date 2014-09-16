@@ -59,6 +59,13 @@ class BambuserChannelIE(InfoExtractor):
     _VALID_URL = r'https?://bambuser\.com/channel/(?P<user>.*?)(?:/|#|\?|$)'
     # The maximum number we can get with each request
     _STEP = 50
+    _TEST = {
+        'url': 'http://bambuser.com/channel/pixelversity',
+        'info_dict': {
+            'title': 'pixelversity',
+        },
+        'playlist_mincount': 60,
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -73,10 +80,10 @@ class BambuserChannelIE(InfoExtractor):
             req = compat_urllib_request.Request(req_url)
             # Without setting this header, we wouldn't get any result
             req.add_header('Referer', 'http://bambuser.com/channel/%s' % user)
-            info_json = self._download_webpage(req, user,
-                'Downloading page %d' % i)
-            results = json.loads(info_json)['result']
-            if len(results) == 0:
+            data = self._download_json(
+                req, user, 'Downloading page %d' % i)
+            results = data['result']
+            if not results:
                 break
             last_id = results[-1]['vid']
             urls.extend(self.url_result(v['page'], 'Bambuser') for v in results)

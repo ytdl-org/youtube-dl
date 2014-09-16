@@ -12,32 +12,43 @@ from ..utils import (
     compat_urllib_parse,
     compat_urllib_request,
     urlencode_postdata,
-
     ExtractorError,
+    limit_length,
 )
 
 
 class FacebookIE(InfoExtractor):
     _VALID_URL = r'''(?x)
         https?://(?:\w+\.)?facebook\.com/
-        (?:[^#?]*\#!/)?
-        (?:video/video\.php|photo\.php|video/embed)\?(?:.*?)
+        (?:[^#]*?\#!/)?
+        (?:video/video\.php|photo\.php|video\.php|video/embed)\?(?:.*?)
         (?:v|video_id)=(?P<id>[0-9]+)
         (?:.*)'''
     _LOGIN_URL = 'https://www.facebook.com/login.php?next=http%3A%2F%2Ffacebook.com%2Fhome.php&login_attempt=1'
     _CHECKPOINT_URL = 'https://www.facebook.com/checkpoint/?next=http%3A%2F%2Ffacebook.com%2Fhome.php&_fb_noscript=1'
     _NETRC_MACHINE = 'facebook'
     IE_NAME = 'facebook'
-    _TEST = {
-        'url': 'https://www.facebook.com/photo.php?v=120708114770723',
-        'md5': '48975a41ccc4b7a581abd68651c1a5a8',
+    _TESTS = [{
+        'url': 'https://www.facebook.com/video.php?v=637842556329505&fref=nf',
+        'md5': '6a40d33c0eccbb1af76cf0485a052659',
         'info_dict': {
-            'id': '120708114770723',
+            'id': '637842556329505',
             'ext': 'mp4',
-            'duration': 279,
-            'title': 'PEOPLE ARE AWESOME 2013',
+            'duration': 38,
+            'title': 'Did you know Kei Nishikori is the first Asian man to ever reach a Grand Slam fin...',
         }
-    }
+    }, {
+        'note': 'Video without discernible title',
+        'url': 'https://www.facebook.com/video.php?v=274175099429670',
+        'info_dict': {
+            'id': '274175099429670',
+            'ext': 'mp4',
+            'title': 'Facebook video #274175099429670',
+        }
+    }, {
+        'url': 'https://www.facebook.com/video.php?v=10204634152394104',
+        'only_matching': True,
+    }]
 
     def _login(self):
         (useremail, password) = self._get_login_info()
@@ -76,7 +87,8 @@ class FacebookIE(InfoExtractor):
 
             check_form = {
                 'fb_dtsg': self._search_regex(r'name="fb_dtsg" value="(.+?)"', login_results, 'fb_dtsg'),
-                'h': self._search_regex(r'name="h" value="(\w*?)"', login_results, 'h'),
+                'h': self._search_regex(
+                    r'name="h"\s+(?:\w+="[^"]+"\s+)*?value="([^"]+)"', login_results, 'h'),
                 'name_action_selected': 'dont_save',
             }
             check_req = compat_urllib_request.Request(self._CHECKPOINT_URL, urlencode_postdata(check_form))
@@ -121,7 +133,15 @@ class FacebookIE(InfoExtractor):
             raise ExtractorError('Cannot find video URL')
 
         video_title = self._html_search_regex(
-            r'<h2 class="uiHeaderTitle">([^<]*)</h2>', webpage, 'title')
+            r'<h2 class="uiHeaderTitle">([^<]*)</h2>', webpage, 'title',
+            fatal=False)
+        if not video_title:
+            video_title = self._html_search_regex(
+                r'(?s)<span class="fbPhotosPhotoCaption".*?id="fbPhotoPageCaption"><span class="hasCaption">(.*?)</span>',
+                webpage, 'alternative title', default=None)
+            video_title = limit_length(video_title, 80)
+        if not video_title:
+            video_title = 'Facebook video #%s' % video_id
 
         return {
             'id': video_id,

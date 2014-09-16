@@ -11,8 +11,7 @@ from ..utils import compat_urllib_parse_unquote
 class DropboxIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?dropbox[.]com/s/(?P<id>[a-zA-Z0-9]{15})/(?P<title>[^?#]*)'
     _TEST = {
-        'url': 'https://www.dropbox.com/s/nelirfsxnmcfbfh/youtube-dl%20test%20video%20%27%C3%A4%22BaW_jenozKc.mp4',
-        'md5': '8a3d905427a6951ccb9eb292f154530b',
+        'url': 'https://www.dropbox.com/s/nelirfsxnmcfbfh/youtube-dl%20test%20video%20%27%C3%A4%22BaW_jenozKc.mp4?dl=0',
         'info_dict': {
             'id': 'nelirfsxnmcfbfh',
             'ext': 'mp4',
@@ -25,7 +24,9 @@ class DropboxIE(InfoExtractor):
         video_id = mobj.group('id')
         fn = compat_urllib_parse_unquote(mobj.group('title'))
         title = os.path.splitext(fn)[0]
-        video_url = url + '?dl=1'
+        video_url = (
+            re.sub(r'[?&]dl=0', '', url) +
+            ('?' if '?' in url else '&') + 'dl=1')
 
         return {
             'id': video_id,

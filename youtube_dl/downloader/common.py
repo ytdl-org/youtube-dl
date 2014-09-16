@@ -292,7 +292,7 @@ class FileDownloader(object):
 
     def real_download(self, filename, info_dict):
         """Real download process. Redefine in subclasses."""
-        raise NotImplementedError(u'This method must be implemented by sublcasses')
+        raise NotImplementedError(u'This method must be implemented by subclasses')
 
     def _hook_progress(self, status):
         for ph in self._progress_hooks:

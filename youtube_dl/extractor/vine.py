@@ -65,6 +65,13 @@ class VineUserIE(InfoExtractor):
     IE_NAME = 'vine:user'
     _VALID_URL = r'(?:https?://)?vine\.co/(?P<user>[^/]+)/?(\?.*)?$'
     _VINE_BASE_URL = "https://vine.co/"
+    _TEST = {
+        'url': 'https://vine.co/Visa',
+        'info_dict': {
+            'id': 'Visa',
+        },
+        'playlist_mincount': 47,
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

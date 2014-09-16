@@ -36,7 +36,7 @@ class EscapistIE(InfoExtractor):
             r'<meta name="description" content="([^"]*)"',
             webpage, 'description', fatal=False)
 
-        playerUrl = self._og_search_video_url(webpage, name=u'player URL')
+        playerUrl = self._og_search_video_url(webpage, name='player URL')
 
         title = self._html_search_regex(
             r'<meta name="title" content="([^"]*)"',

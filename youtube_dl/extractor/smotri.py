@@ -267,6 +267,14 @@ class SmotriCommunityIE(InfoExtractor):
     IE_DESC = 'Smotri.com community videos'
     IE_NAME = 'smotri:community'
     _VALID_URL = r'^https?://(?:www\.)?smotri\.com/community/video/(?P<communityid>[0-9A-Za-z_\'-]+)'
+    _TEST = {
+        'url': 'http://smotri.com/community/video/kommuna',
+        'info_dict': {
+            'id': 'kommuna',
+            'title': 'КПРФ',
+        },
+        'playlist_mincount': 4,
+    }
     
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -289,6 +297,14 @@ class SmotriUserIE(InfoExtractor):
     IE_DESC = 'Smotri.com user videos'
     IE_NAME = 'smotri:user'
     _VALID_URL = r'^https?://(?:www\.)?smotri\.com/user/(?P<userid>[0-9A-Za-z_\'-]+)'
+    _TESTS = [{
+        'url': 'http://smotri.com/user/inspector',
+        'info_dict': {
+            'id': 'inspector',
+            'title': 'Inspector',
+        },
+        'playlist_mincount': 9,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

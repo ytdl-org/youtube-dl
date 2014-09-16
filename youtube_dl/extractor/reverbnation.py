@@ -1,23 +1,23 @@
 from __future__ import unicode_literals
 
 import re
-import time
 
 from .common import InfoExtractor
-from ..utils import strip_jsonp
+from ..utils import str_or_none
 
 
 class ReverbNationIE(InfoExtractor):
     _VALID_URL = r'^https?://(?:www\.)?reverbnation\.com/.*?/song/(?P<id>\d+).*?$'
     _TESTS = [{
         'url': 'http://www.reverbnation.com/alkilados/song/16965047-mona-lisa',
-        'file': '16965047.mp3',
         'md5': '3da12ebca28c67c111a7f8b262d3f7a7',
         'info_dict': {
+            "id": "16965047",
+            "ext": "mp3",
             "title": "MONA LISA",
             "uploader": "ALKILADOS",
-            "uploader_id": 216429,
-            "thumbnail": "//gp1.wac.edgecastcdn.net/802892/production_public/Photo/13761700/image/1366002176_AVATAR_MONA_LISA.jpg"
+            "uploader_id": "216429",
+            "thumbnail": "re:^https://gp1\.wac\.edgecastcdn\.net/.*?\.jpg$"
         },
     }]
 
@@ -26,10 +26,8 @@ class ReverbNationIE(InfoExtractor):
         song_id = mobj.group('id')
 
         api_res = self._download_json(
-            'https://api.reverbnation.com/song/%s?callback=api_response_5&_=%d'
-                % (song_id, int(time.time() * 1000)),
+            'https://api.reverbnation.com/song/%s' % song_id,
             song_id,
-            transform_source=strip_jsonp,
             note='Downloading information of song %s' % song_id
         )
 
@@ -38,8 +36,9 @@ class ReverbNationIE(InfoExtractor):
             'title': api_res.get('name'),
             'url': api_res.get('url'),
             'uploader': api_res.get('artist', {}).get('name'),
-            'uploader_id': api_res.get('artist', {}).get('id'),
-            'thumbnail': api_res.get('image', api_res.get('thumbnail')),
+            'uploader_id': str_or_none(api_res.get('artist', {}).get('id')),
+            'thumbnail': self._proto_relative_url(
+                api_res.get('image', api_res.get('thumbnail'))),
             'ext': 'mp3',
             'vcodec': 'none',
         }

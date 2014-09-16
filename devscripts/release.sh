@@ -73,7 +73,6 @@ RELEASE_FILES="youtube-dl youtube-dl.exe youtube-dl-$version.tar.gz"
 (cd build/$version/ && sha1sum $RELEASE_FILES > SHA1SUMS)
 (cd build/$version/ && sha256sum $RELEASE_FILES > SHA2-256SUMS)
 (cd build/$version/ && sha512sum $RELEASE_FILES > SHA2-512SUMS)
-git checkout HEAD -- youtube-dl youtube-dl.exe
 
 /bin/echo -e "\n### Signing and uploading the new binaries to yt-dl.org ..."
 for f in $RELEASE_FILES; do gpg --passphrase-repeat 5 --detach-sig "build/$version/$f"; done

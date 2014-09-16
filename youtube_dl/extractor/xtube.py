@@ -77,9 +77,17 @@ class XTubeIE(InfoExtractor):
             'age_limit': 18,
         }
 
+
 class XTubeUserIE(InfoExtractor):
     IE_DESC = 'XTube user profile'
     _VALID_URL = r'https?://(?:www\.)?xtube\.com/community/profile\.php\?(.*?)user=(?P<username>[^&#]+)(?:$|[&#])'
+    _TEST = {
+        'url': 'http://www.xtube.com/community/profile.php?user=greenshowers',
+        'info_dict': {
+            'id': 'greenshowers',
+        },
+        'playlist_mincount': 155,
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

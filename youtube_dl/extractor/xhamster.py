@@ -14,11 +14,10 @@ from ..utils import (
 
 class XHamsterIE(InfoExtractor):
     """Information Extractor for xHamster"""
-    _VALID_URL = r'http://(?:www\.)?xhamster\.com/movies/(?P<id>[0-9]+)/(?P<seo>.+?)\.html(?:\?.*)?'
+    _VALID_URL = r'http://(?:.+?\.)?xhamster\.com/movies/(?P<id>[0-9]+)/(?P<seo>.+?)\.html(?:\?.*)?'
     _TESTS = [
         {
             'url': 'http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html',
-            'md5': '8281348b8d3c53d39fffb377d24eac4e',
             'info_dict': {
                 'id': '1509445',
                 'ext': 'mp4',
@@ -31,7 +30,6 @@ class XHamsterIE(InfoExtractor):
         },
         {
             'url': 'http://xhamster.com/movies/2221348/britney_spears_sexy_booty.html?hd',
-            'md5': '4cbd8d56708ecb4fb4124c23e4acb81a',
             'info_dict': {
                 'id': '2221348',
                 'ext': 'mp4',

@@ -8,18 +8,20 @@ import re
 from .common import InfoExtractor
 from .youtube import YoutubeIE
 from ..utils import (
-    compat_urllib_error,
     compat_urllib_parse,
-    compat_urllib_request,
     compat_urlparse,
     compat_xml_parse_error,
 
+    determine_ext,
     ExtractorError,
+    float_or_none,
     HEADRequest,
+    orderedSet,
     parse_xml,
     smuggle_url,
     unescapeHTML,
     unified_strdate,
+    unsmuggle_url,
     url_basename,
 )
 from .brightcove import BrightcoveIE
@@ -289,6 +291,97 @@ class GenericIE(InfoExtractor):
                 'description': 'Mario\'s life in the fast lane has never looked so good.',
             },
         },
+        # YouTube embed via <data-embed-url="">
+        {
+            'url': 'https://play.google.com/store/apps/details?id=com.gameloft.android.ANMP.GloftA8HM',
+            'info_dict': {
+                'id': 'jpSGZsgga_I',
+                'ext': 'mp4',
+                'title': 'Asphalt 8: Airborne - Launch Trailer',
+                'uploader': 'Gameloft',
+                'uploader_id': 'gameloft',
+                'upload_date': '20130821',
+                'description': 'md5:87bd95f13d8be3e7da87a5f2c443106a',
+            },
+            'params': {
+                'skip_download': True,
+            }
+        },
+        # Camtasia studio
+        {
+            'url': 'http://www.ll.mit.edu/workshops/education/videocourses/antennas/lecture1/video/',
+            'playlist': [{
+                'md5': '0c5e352edabf715d762b0ad4e6d9ee67',
+                'info_dict': {
+                    'id': 'Fenn-AA_PA_Radar_Course_Lecture_1c_Final',
+                    'title': 'Fenn-AA_PA_Radar_Course_Lecture_1c_Final - video1',
+                    'ext': 'flv',
+                    'duration': 2235.90,
+                }
+            }, {
+                'md5': '10e4bb3aaca9fd630e273ff92d9f3c63',
+                'info_dict': {
+                    'id': 'Fenn-AA_PA_Radar_Course_Lecture_1c_Final_PIP',
+                    'title': 'Fenn-AA_PA_Radar_Course_Lecture_1c_Final - pip',
+                    'ext': 'flv',
+                    'duration': 2235.93,
+                }
+            }],
+            'info_dict': {
+                'title': 'Fenn-AA_PA_Radar_Course_Lecture_1c_Final',
+            }
+        },
+        # Flowplayer
+        {
+            'url': 'http://www.handjobhub.com/video/busty-blonde-siri-tit-fuck-while-wank-6313.html',
+            'md5': '9d65602bf31c6e20014319c7d07fba27',
+            'info_dict': {
+                'id': '5123ea6d5e5a7',
+                'ext': 'mp4',
+                'age_limit': 18,
+                'uploader': 'www.handjobhub.com',
+                'title': 'Busty Blonde Siri Tit Fuck While Wank at Handjob Hub',
+            }
+        },
+        # RSS feed
+        {
+            'url': 'http://phihag.de/2014/youtube-dl/rss2.xml',
+            'info_dict': {
+                'id': 'http://phihag.de/2014/youtube-dl/rss2.xml',
+                'title': 'Zero Punctuation',
+                'description': 're:'
+            },
+            'playlist_mincount': 11,
+        },
+        # Multiple brightcove videos
+        # https://github.com/rg3/youtube-dl/issues/2283
+        {
+            'url': 'http://www.newyorker.com/online/blogs/newsdesk/2014/01/always-never-nuclear-command-and-control.html',
+            'info_dict': {
+                'id': 'always-never',
+                'title': 'Always / Never - The New Yorker',
+            },
+            'playlist_count': 3,
+            'params': {
+                'extract_flat': False,
+                'skip_download': True,
+            }
+        },
+        # MLB embed
+        {
+            'url': 'http://umpire-empire.com/index.php/topic/58125-laz-decides-no-thats-low/',
+            'md5': '96f09a37e44da40dd083e12d9a683327',
+            'info_dict': {
+                'id': '33322633',
+                'ext': 'mp4',
+                'title': 'Ump changes call to ball',
+                'description': 'md5:71c11215384298a172a6dcb4c2e20685',
+                'duration': 48,
+                'timestamp': 1401537900,
+                'upload_date': '20140531',
+                'thumbnail': 're:^https?://.*\.jpg$',
+            },
+        },
     ]
 
     def report_download_webpage(self, video_id):
@@ -300,58 +393,6 @@ class GenericIE(InfoExtractor):
     def report_following_redirect(self, new_url):
         """Report information extraction."""
         self._downloader.to_screen('[redirect] Following redirect to %s' % new_url)
-
-    def _send_head(self, url):
-        """Check if it is a redirect, like url shorteners, in case return the new url."""
-
-        class HEADRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
-            """
-            Subclass the HTTPRedirectHandler to make it use our
-            HEADRequest also on the redirected URL
-            """
-            def redirect_request(self, req, fp, code, msg, headers, newurl):
-                if code in (301, 302, 303, 307):
-                    newurl = newurl.replace(' ', '%20')
-                    newheaders = dict((k,v) for k,v in req.headers.items()
-                                      if k.lower() not in ("content-length", "content-type"))
-                    try:
-                        # This function was deprecated in python 3.3 and removed in 3.4
-                        origin_req_host = req.get_origin_req_host()
-                    except AttributeError:
-                        origin_req_host = req.origin_req_host
-                    return HEADRequest(newurl,
-                                       headers=newheaders,
-                                       origin_req_host=origin_req_host,
-                                       unverifiable=True)
-                else:
-                    raise compat_urllib_error.HTTPError(req.get_full_url(), code, msg, headers, fp)
-
-        class HTTPMethodFallback(compat_urllib_request.BaseHandler):
-            """
-            Fallback to GET if HEAD is not allowed (405 HTTP error)
-            """
-            def http_error_405(self, req, fp, code, msg, headers):
-                fp.read()
-                fp.close()
-
-                newheaders = dict((k,v) for k,v in req.headers.items()
-                                  if k.lower() not in ("content-length", "content-type"))
-                return self.parent.open(compat_urllib_request.Request(req.get_full_url(),
-                                                 headers=newheaders,
-                                                 origin_req_host=req.get_origin_req_host(),
-                                                 unverifiable=True))
-
-        # Build our opener
-        opener = compat_urllib_request.OpenerDirector()
-        for handler in [compat_urllib_request.HTTPHandler, compat_urllib_request.HTTPDefaultErrorHandler,
-                        HTTPMethodFallback, HEADRedirectHandler,
-                        compat_urllib_request.HTTPErrorProcessor, compat_urllib_request.HTTPSHandler]:
-            opener.add_handler(handler())
-
-        response = opener.open(HEADRequest(url))
-        if response is None:
-            raise ExtractorError('Invalid URL protocol')
-        return response
 
     def _extract_rss(self, url, video_id, doc):
         playlist_title = doc.find('./channel/title').text
@@ -372,6 +413,43 @@ class GenericIE(InfoExtractor):
             'entries': entries,
         }
 
+    def _extract_camtasia(self, url, video_id, webpage):
+        """ Returns None if no camtasia video can be found. """
+
+        camtasia_cfg = self._search_regex(
+            r'fo\.addVariable\(\s*"csConfigFile",\s*"([^"]+)"\s*\);',
+            webpage, 'camtasia configuration file', default=None)
+        if camtasia_cfg is None:
+            return None
+
+        title = self._html_search_meta('DC.title', webpage, fatal=True)
+
+        camtasia_url = compat_urlparse.urljoin(url, camtasia_cfg)
+        camtasia_cfg = self._download_xml(
+            camtasia_url, video_id,
+            note='Downloading camtasia configuration',
+            errnote='Failed to download camtasia configuration')
+        fileset_node = camtasia_cfg.find('./playlist/array/fileset')
+
+        entries = []
+        for n in fileset_node.getchildren():
+            url_n = n.find('./uri')
+            if url_n is None:
+                continue
+
+            entries.append({
+                'id': os.path.splitext(url_n.text.rpartition('/')[2])[0],
+                'title': '%s - %s' % (title, n.tag),
+                'url': compat_urlparse.urljoin(url, url_n.text),
+                'duration': float_or_none(n.find('./duration').text),
+            })
+
+        return {
+            '_type': 'playlist',
+            'entries': entries,
+            'title': title,
+        }
+
     def _real_extract(self, url):
         if url.startswith('//'):
             return {
@@ -383,13 +461,13 @@ class GenericIE(InfoExtractor):
         if not parsed_url.scheme:
             default_search = self._downloader.params.get('default_search')
             if default_search is None:
-                default_search = 'error'
+                default_search = 'fixup_error'
 
-            if default_search in ('auto', 'auto_warning'):
+            if default_search in ('auto', 'auto_warning', 'fixup_error'):
                 if '/' in url:
                     self._downloader.report_warning('The url doesn\'t specify the protocol, trying with http')
                     return self.url_result('http://' + url)
-                else:
+                elif default_search != 'fixup_error':
                     if default_search == 'auto_warning':
                         if re.match(r'^(?:url|URL)$', url):
                             raise ExtractorError(
@@ -399,7 +477,8 @@ class GenericIE(InfoExtractor):
                             self._downloader.report_warning(
                                 'Falling back to youtube search for  %s . Set --default-search "auto" to suppress this warning.' % url)
                     return self.url_result('ytsearch:' + url)
-            elif default_search == 'error':
+
+            if default_search in ('error', 'fixup_error'):
                 raise ExtractorError(
                     ('%r is not a valid URL. '
                      'Set --default-search "ytsearch" (or run  youtube-dl "ytsearch:%s" ) to search YouTube'
@@ -407,17 +486,31 @@ class GenericIE(InfoExtractor):
             else:
                 assert ':' in default_search
                 return self.url_result(default_search + url)
-        video_id = os.path.splitext(url.rstrip('/').split('/')[-1])[0]
+
+        url, smuggled_data = unsmuggle_url(url)
+        force_videoid = None
+        if smuggled_data and 'force_videoid' in smuggled_data:
+            force_videoid = smuggled_data['force_videoid']
+            video_id = force_videoid
+        else:
+            video_id = os.path.splitext(url.rstrip('/').split('/')[-1])[0]
 
         self.to_screen('%s: Requesting header' % video_id)
 
-        try:
-            response = self._send_head(url)
+        head_req = HEADRequest(url)
+        response = self._request_webpage(
+            head_req, video_id,
+            note=False, errnote='Could not send HEAD request to %s' % url,
+            fatal=False)
 
+        if response is not False:
             # Check for redirect
             new_url = response.geturl()
             if url != new_url:
                 self.report_following_redirect(new_url)
+                if force_videoid:
+                    new_url = smuggle_url(
+                        new_url, {'force_videoid': force_videoid})
                 return self.url_result(new_url)
 
             # Check for direct link to a video
@@ -438,10 +531,6 @@ class GenericIE(InfoExtractor):
                     'upload_date': upload_date,
                 }
 
-        except compat_urllib_error.HTTPError:
-            # This may be a stupid server that doesn't like HEAD, our UA, or so
-            pass
-
         try:
             webpage = self._download_webpage(url, video_id)
         except ValueError:
@@ -459,6 +548,11 @@ class GenericIE(InfoExtractor):
         except compat_xml_parse_error:
             pass
 
+        # Is it a Camtasia project?
+        camtasia_res = self._extract_camtasia(url, video_id, webpage)
+        if camtasia_res is not None:
+            return camtasia_res
+
         # Sometimes embedded video player is hidden behind percent encoding
         # (e.g. https://github.com/rg3/youtube-dl/issues/2448)
         # Unescaping the whole page allows to handle those cases in a generic way
@@ -474,9 +568,25 @@ class GenericIE(InfoExtractor):
             r'(?s)<title>(.*?)</title>', webpage, 'video title',
             default='video')
 
+        # Try to detect age limit automatically
+        age_limit = self._rta_search(webpage)
+        # And then there are the jokers who advertise that they use RTA,
+        # but actually don't.
+        AGE_LIMIT_MARKERS = [
+            r'Proudly Labeled <a href="http://www.rtalabel.org/" title="Restricted to Adults">RTA</a>',
+        ]
+        if any(re.search(marker, webpage) for marker in AGE_LIMIT_MARKERS):
+            age_limit = 18
+
         # video uploader is domain name
         video_uploader = self._search_regex(
             r'^(?:https?://)?([^/]*)/.*', url, 'video uploader')
+
+        # Helper method
+        def _playlist_from_matches(matches, getter, ie=None):
+            urlrs = orderedSet(self.url_result(getter(m), ie) for m in matches)
+            return self.playlist_result(
+                urlrs, playlist_id=video_id, playlist_title=video_title)
 
         # Look for BrightCove:
         bc_urls = BrightcoveIE._extract_brightcove_urls(webpage)
@@ -513,27 +623,24 @@ class GenericIE(InfoExtractor):
         matches = re.findall(r'''(?x)
             (?:
                 <iframe[^>]+?src=|
+                data-video-url=|
                 <embed[^>]+?src=|
                 embedSWF\(?:\s*
             )
             (["\'])
-                (?P<url>(?:https?:)?//(?:www\.)?youtube\.com/
+                (?P<url>(?:https?:)?//(?:www\.)?youtube(?:-nocookie)?\.com/
                 (?:embed|v)/.+?)
             \1''', webpage)
         if matches:
-            urlrs = [self.url_result(unescapeHTML(tuppl[1]), 'Youtube')
-                     for tuppl in matches]
-            return self.playlist_result(
-                urlrs, playlist_id=video_id, playlist_title=video_title)
+            return _playlist_from_matches(
+                matches, lambda m: unescapeHTML(m[1]), ie='Youtube')
 
         # Look for embedded Dailymotion player
         matches = re.findall(
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/embed/video/.+?)\1', webpage)
         if matches:
-            urlrs = [self.url_result(unescapeHTML(tuppl[1]))
-                     for tuppl in matches]
-            return self.playlist_result(
-                urlrs, playlist_id=video_id, playlist_title=video_title)
+            return _playlist_from_matches(
+                matches, lambda m: unescapeHTML(m[1]))
 
         # Look for embedded Wistia player
         match = re.search(
@@ -552,7 +659,7 @@ class GenericIE(InfoExtractor):
         mobj = re.search(r'<meta\s[^>]*https?://api\.blip\.tv/\w+/redirect/\w+/(\d+)', webpage)
         if mobj:
             return self.url_result('http://blip.tv/a/a-'+mobj.group(1), 'BlipTV')
-        mobj = re.search(r'<(?:iframe|embed|object)\s[^>]*(https?://(?:\w+\.)?blip\.tv/(?:play/|api\.swf#)[a-zA-Z0-9]+)', webpage)
+        mobj = re.search(r'<(?:iframe|embed|object)\s[^>]*(https?://(?:\w+\.)?blip\.tv/(?:play/|api\.swf#)[a-zA-Z0-9_]+)', webpage)
         if mobj:
             return self.url_result(mobj.group(1), 'BlipTV')
 
@@ -647,10 +754,8 @@ class GenericIE(InfoExtractor):
         # Look for funnyordie embed
         matches = re.findall(r'<iframe[^>]+?src="(https?://(?:www\.)?funnyordie\.com/embed/[^"]+)"', webpage)
         if matches:
-            urlrs = [self.url_result(unescapeHTML(eurl), 'FunnyOrDie')
-                     for eurl in matches]
-            return self.playlist_result(
-                urlrs, playlist_id=video_id, playlist_title=video_title)
+            return _playlist_from_matches(
+                matches, getter=unescapeHTML, ie='FunnyOrDie')
 
         # Look for embedded RUTV player
         rutv_url = RUTVIE._extract_url(webpage)
@@ -705,6 +810,26 @@ class GenericIE(InfoExtractor):
             url = unescapeHTML(mobj.group('url'))
             return self.url_result(url, ie='MTVServicesEmbedded')
 
+        # Look for embedded yahoo player
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>https?://(?:screen|movies)\.yahoo\.com/.+?\.html\?format=embed)\1',
+            webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'Yahoo')
+
+        # Look for embedded sbs.com.au player
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>https?://(?:www\.)sbs\.com\.au/ondemand/video/single/.+?)\1',
+            webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'SBS')
+
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>https?://m\.mlb\.com/shared/video/embed/embed\.html\?.+?)\1',
+            webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'MLB')
+
         # Start with something easy: JW Player in SWFObject
         found = re.findall(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
         if not found:
@@ -723,6 +848,14 @@ class GenericIE(InfoExtractor):
             # Broaden the findall a little bit: JWPlayer JS loader
             found = re.findall(r'[^A-Za-z0-9]?file["\']?:\s*["\'](http(?![^\'"]+\.[0-9]+[\'"])[^\'"]+)["\']', webpage)
         if not found:
+            # Flow player
+            found = re.findall(r'''(?xs)
+                flowplayer\("[^"]+",\s*
+                    \{[^}]+?\}\s*,
+                    \s*{[^}]+? ["']?clip["']?\s*:\s*\{\s*
+                        ["']?url["']?\s*:\s*["']([^"']+)["']
+            ''', webpage)
+        if not found:
             # Try to find twitter cards info
             found = re.findall(r'<meta (?:property|name)="twitter:player:stream" (?:content|value)="(.+?)"', webpage)
         if not found:
@@ -731,10 +864,16 @@ class GenericIE(InfoExtractor):
             m_video_type = re.findall(r'<meta.*?property="og:video:type".*?content="video/(.*?)"', webpage)
             # We only look in og:video if the MIME type is a video, don't try if it's a Flash player:
             if m_video_type is not None:
-                found = re.findall(r'<meta.*?property="og:video".*?content="(.*?)"', webpage)
+                def check_video(vurl):
+                    vpath = compat_urlparse.urlparse(vurl).path
+                    vext = determine_ext(vpath)
+                    return '.' in vpath and vext not in ('swf', 'png', 'jpg')
+                found = list(filter(
+                    check_video,
+                    re.findall(r'<meta.*?property="og:video".*?content="(.*?)"', webpage)))
         if not found:
             # HTML5 video
-            found = re.findall(r'(?s)<video[^<]*(?:>.*?<source.*?)? src="([^"]+)"', webpage)
+            found = re.findall(r'(?s)<video[^<]*(?:>.*?<source[^>]+)? src="([^"]+)"', webpage)
         if not found:
             found = re.search(
                 r'(?i)<meta\s+(?=(?:[a-z-]+="[^"]+"\s+)*http-equiv="refresh")'
@@ -768,6 +907,7 @@ class GenericIE(InfoExtractor):
                 'url': video_url,
                 'uploader': video_uploader,
                 'title': video_title,
+                'age_limit': age_limit,
             })
 
         if len(entries) == 1:

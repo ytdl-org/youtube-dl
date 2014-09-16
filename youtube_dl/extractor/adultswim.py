@@ -75,7 +75,9 @@ class AdultSwimIE(InfoExtractor):
         video_path = mobj.group('path')
 
         webpage = self._download_webpage(url, video_path)
-        episode_id = self._html_search_regex(r'<link rel="video_src" href="http://i\.adultswim\.com/adultswim/adultswimtv/tools/swf/viralplayer.swf\?id=([0-9a-f]+?)"\s*/?\s*>', webpage, 'episode_id')
+        episode_id = self._html_search_regex(
+            r'<link rel="video_src" href="http://i\.adultswim\.com/adultswim/adultswimtv/tools/swf/viralplayer.swf\?id=([0-9a-f]+?)"\s*/?\s*>',
+            webpage, 'episode_id')
         title = self._og_search_title(webpage)
 
         index_url = 'http://asfix.adultswim.com/asfix-svc/episodeSearch/getEpisodesByIDs?networkName=AS&ids=%s' % episode_id
@@ -97,7 +99,9 @@ class AdultSwimIE(InfoExtractor):
             duration = segment_el.attrib.get('duration')
 
             segment_url = 'http://asfix.adultswim.com/asfix-svc/episodeservices/getCvpPlaylist?networkName=AS&id=%s' % segment_id
-            idoc = self._download_xml(segment_url, segment_title, 'Downloading segment information', 'Unable to download segment information')
+            idoc = self._download_xml(
+                segment_url, segment_title,
+                'Downloading segment information', 'Unable to download segment information')
 
             formats = []
             file_els = idoc.findall('.//files/file')

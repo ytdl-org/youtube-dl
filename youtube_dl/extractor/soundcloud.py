@@ -28,7 +28,8 @@ class SoundcloudIE(InfoExtractor):
     _VALID_URL = r'''(?x)^(?:https?://)?
                     (?:(?:(?:www\.|m\.)?soundcloud\.com/
                             (?P<uploader>[\w\d-]+)/
-                            (?!sets/)(?P<title>[\w\d-]+)/?
+                            (?!sets/|likes/?(?:$|[?#]))
+                            (?P<title>[\w\d-]+)/?
                             (?P<token>[^?]+?)?(?:[?].*)?$)
                        |(?:api\.soundcloud\.com/tracks/(?P<track_id>\d+))
                        |(?P<player>(?:w|player|p.)\.soundcloud\.com/player/?.*?url=.*)
@@ -221,13 +222,16 @@ class SoundcloudIE(InfoExtractor):
 class SoundcloudSetIE(SoundcloudIE):
     _VALID_URL = r'https?://(?:www\.)?soundcloud\.com/([\w\d-]+)/sets/([\w\d-]+)'
     IE_NAME = 'soundcloud:set'
-    # it's in tests/test_playlists.py
-    _TESTS = []
+    _TESTS = [{
+        'url': 'https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep',
+        'info_dict': {
+            'title': 'The Royal Concept EP',
+        },
+        'playlist_mincount': 6,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError('Invalid URL: %s' % url)
 
         # extract uploader (which is in the url)
         uploader = mobj.group(1)
@@ -246,20 +250,32 @@ class SoundcloudSetIE(SoundcloudIE):
                 self._downloader.report_error('unable to download video webpage: %s' % compat_str(err['error_message']))
             return
 
-        self.report_extraction(full_title)
-        return {'_type': 'playlist',
-                'entries': [self._extract_info_dict(track) for track in info['tracks']],
-                'id': info['id'],
-                'title': info['title'],
-                }
+        return {
+            '_type': 'playlist',
+            'entries': [self._extract_info_dict(track) for track in info['tracks']],
+            'id': info['id'],
+            'title': info['title'],
+        }
 
 
 class SoundcloudUserIE(SoundcloudIE):
     _VALID_URL = r'https?://(www\.)?soundcloud\.com/(?P<user>[^/]+)/?((?P<rsrc>tracks|likes)/?)?(\?.*)?$'
     IE_NAME = 'soundcloud:user'
-
-    # it's in tests/test_playlists.py
-    _TESTS = []
+    _TESTS = [{
+        'url': 'https://soundcloud.com/the-concept-band',
+        'info_dict': {
+            'id': '9615865',
+            'title': 'The Royal Concept',
+        },
+        'playlist_mincount': 12
+    }, {
+        'url': 'https://soundcloud.com/the-concept-band/likes',
+        'info_dict': {
+            'id': '9615865',
+            'title': 'The Royal Concept',
+        },
+        'playlist_mincount': 1,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -301,9 +317,18 @@ class SoundcloudUserIE(SoundcloudIE):
 class SoundcloudPlaylistIE(SoundcloudIE):
     _VALID_URL = r'https?://api\.soundcloud\.com/playlists/(?P<id>[0-9]+)'
     IE_NAME = 'soundcloud:playlist'
+    _TESTS = [
 
-     # it's in tests/test_playlists.py
-    _TESTS = []
+        {
+            'url': 'http://api.soundcloud.com/playlists/4110309',
+            'info_dict': {
+                'id': '4110309',
+                'title': 'TILT Brass - Bowery Poetry Club, August \'03 [Non-Site SCR 02]',
+                'description': 're:.*?TILT Brass - Bowery Poetry Club',
+            },
+            'playlist_count': 6,
+        }
+    ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

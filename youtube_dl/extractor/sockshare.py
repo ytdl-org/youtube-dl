@@ -61,7 +61,10 @@ class SockshareIE(InfoExtractor):
             r'<a href="([^"]*)".+class="download_file_link"',
             webpage, 'file url')
         video_url = "http://www.sockshare.com" + video_url
-        title = self._html_search_regex(r'<h1>(.+)<strong>', webpage, 'title')
+        title = self._html_search_regex((
+            r'<h1>(.+)<strong>',
+            r'var name = "([^"]+)";'),
+            webpage, 'title', default=None)
         thumbnail = self._html_search_regex(
             r'<img\s+src="([^"]*)".+?name="bg"',
             webpage, 'thumbnail')

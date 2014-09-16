@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import unicode_literals
+
 # Allow direct execution
 import os
 import sys
@@ -16,52 +18,64 @@ from youtube_dl.utils import compat_str, compat_urlretrieve
 
 _TESTS = [
     (
-        u'https://s.ytimg.com/yts/jsbin/html5player-vflHOr_nV.js',
-        u'js',
+        'https://s.ytimg.com/yts/jsbin/html5player-vflHOr_nV.js',
+        'js',
         86,
-        u'>=<;:/.-[+*)(\'&%$#"!ZYX0VUTSRQPONMLKJIHGFEDCBA\\yxwvutsrqponmlkjihgfedcba987654321',
+        '>=<;:/.-[+*)(\'&%$#"!ZYX0VUTSRQPONMLKJIHGFEDCBA\\yxwvutsrqponmlkjihgfedcba987654321',
     ),
     (
-        u'https://s.ytimg.com/yts/jsbin/html5player-vfldJ8xgI.js',
-        u'js',
+        'https://s.ytimg.com/yts/jsbin/html5player-vfldJ8xgI.js',
+        'js',
         85,
-        u'3456789a0cdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRS[UVWXYZ!"#$%&\'()*+,-./:;<=>?@',
+        '3456789a0cdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRS[UVWXYZ!"#$%&\'()*+,-./:;<=>?@',
     ),
     (
-        u'https://s.ytimg.com/yts/jsbin/html5player-vfle-mVwz.js',
-        u'js',
+        'https://s.ytimg.com/yts/jsbin/html5player-vfle-mVwz.js',
+        'js',
         90,
-        u']\\[@?>=<;:/.-,+*)(\'&%$#"hZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjiagfedcb39876',
+        ']\\[@?>=<;:/.-,+*)(\'&%$#"hZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjiagfedcb39876',
     ),
     (
-        u'https://s.ytimg.com/yts/jsbin/html5player-en_US-vfl0Cbn9e.js',
-        u'js',
+        'https://s.ytimg.com/yts/jsbin/html5player-en_US-vfl0Cbn9e.js',
+        'js',
         84,
-        u'O1I3456789abcde0ghijklmnopqrstuvwxyzABCDEFGHfJKLMN2PQRSTUVW@YZ!"#$%&\'()*+,-./:;<=',
+        'O1I3456789abcde0ghijklmnopqrstuvwxyzABCDEFGHfJKLMN2PQRSTUVW@YZ!"#$%&\'()*+,-./:;<=',
     ),
     (
-        u'https://s.ytimg.com/yts/jsbin/html5player-en_US-vflXGBaUN.js',
-        u'js',
-        u'2ACFC7A61CA478CD21425E5A57EBD73DDC78E22A.2094302436B2D377D14A3BBA23022D023B8BC25AA',
-        u'A52CB8B320D22032ABB3A41D773D2B6342034902.A22E87CDD37DBE75A5E52412DC874AC16A7CFCA2',
+        'https://s.ytimg.com/yts/jsbin/html5player-en_US-vflXGBaUN.js',
+        'js',
+        '2ACFC7A61CA478CD21425E5A57EBD73DDC78E22A.2094302436B2D377D14A3BBA23022D023B8BC25AA',
+        'A52CB8B320D22032ABB3A41D773D2B6342034902.A22E87CDD37DBE75A5E52412DC874AC16A7CFCA2',
     ),
     (
-        u'http://s.ytimg.com/yts/swfbin/player-vfl5vIhK2/watch_as3.swf',
-        u'swf',
+        'http://s.ytimg.com/yts/swfbin/player-vfl5vIhK2/watch_as3.swf',
+        'swf',
         86,
-        u'O1I3456789abcde0ghijklmnopqrstuvwxyzABCDEFGHfJKLMN2PQRSTUVWXY\\!"#$%&\'()*+,-./:;<=>?'
+        'O1I3456789abcde0ghijklmnopqrstuvwxyzABCDEFGHfJKLMN2PQRSTUVWXY\\!"#$%&\'()*+,-./:;<=>?'
     ),
     (
-        u'http://s.ytimg.com/yts/swfbin/player-vflmDyk47/watch_as3.swf',
-        u'swf',
-        u'F375F75BF2AFDAAF2666E43868D46816F83F13E81C46.3725A8218E446A0DECD33F79DC282994D6AA92C92C9',
-        u'9C29AA6D499282CD97F33DCED0A644E8128A5273.64C18E31F38361864D86834E6662FAADFA2FB57F'
+        'http://s.ytimg.com/yts/swfbin/player-vflmDyk47/watch_as3.swf',
+        'swf',
+        'F375F75BF2AFDAAF2666E43868D46816F83F13E81C46.3725A8218E446A0DECD33F79DC282994D6AA92C92C9',
+        '9C29AA6D499282CD97F33DCED0A644E8128A5273.64C18E31F38361864D86834E6662FAADFA2FB57F'
     ),
     (
-        u'https://s.ytimg.com/yts/jsbin/html5player-en_US-vflBb0OQx.js',
-        u'js',
+        'https://s.ytimg.com/yts/jsbin/html5player-en_US-vflBb0OQx.js',
+        'js',
         84,
-        u'123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ0STUVWXYZ!"#$%&\'()*+,@./:;<=>'
+        '123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ0STUVWXYZ!"#$%&\'()*+,@./:;<=>'
+    ),
+    (
+        'https://s.ytimg.com/yts/jsbin/html5player-en_US-vfl9FYC6l.js',
+        'js',
+        83,
+        '123456789abcdefghijklmnopqr0tuvwxyzABCDETGHIJKLMNOPQRS>UVWXYZ!"#$%&\'()*+,-./:;<=F'
+    ),
+    (
+        'https://s.ytimg.com/yts/jsbin/html5player-en_US-vflCGk6yw/html5player.js',
+        'js',
+        '4646B5181C6C3020DF1D9C7FCFEA.AD80ABF70C39BD369CCCAE780AFBB98FA6B6CB42766249D9488C288',
+        '82C8849D94266724DC6B6AF89BBFA087EACCD963.B93C07FBA084ACAEFCF7C9D1FD0203C6C1815B6B'
     )
 ]
 
@@ -75,7 +89,7 @@ class TestSignature(unittest.TestCase):
 
 
 def make_tfunc(url, stype, sig_input, expected_sig):
-    m = re.match(r'.*-([a-zA-Z0-9_-]+)(?:/watch_as3)?\.[a-z]+$', url)
+    m = re.match(r'.*-([a-zA-Z0-9_-]+)(?:/watch_as3|/html5player)?\.[a-z]+$', url)
     assert m, '%r should follow URL format' % url
     test_id = m.group(1)
 

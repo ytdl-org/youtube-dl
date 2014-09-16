@@ -51,7 +51,6 @@ class TEDIE(SubtitlesInfoExtractor):
         }
     }, {
         'url': 'http://www.ted.com/talks/gabby_giffords_and_mark_kelly_be_passionate_be_courageous_be_your_best',
-        'md5': '49144e345a899b8cb34d315f3b9cfeeb',
         'info_dict': {
             'id': '1972',
             'ext': 'mp4',
@@ -59,6 +58,13 @@ class TEDIE(SubtitlesInfoExtractor):
             'uploader': 'Gabby Giffords and Mark Kelly',
             'description': 'md5:5174aed4d0f16021b704120360f72b92',
         },
+    }, {
+        'url': 'http://www.ted.com/playlists/who_are_the_hackers',
+        'info_dict': {
+            'id': '10',
+            'title': 'Who are the hackers?',
+        },
+        'playlist_mincount': 6,
     }]
 
     _NATIVE_FORMATS = {

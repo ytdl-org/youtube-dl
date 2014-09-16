@@ -10,6 +10,7 @@ from .ffmpeg import (
     FFmpegJoinVideosPP,
 )
 from .xattrpp import XAttrMetadataPP
+from .execafterdownload import ExecAfterDownloadPP
 
 __all__ = [
     'AtomicParsleyPP',
@@ -21,4 +22,5 @@ __all__ = [
     'FFmpegEmbedSubtitlePP',
     'FFmpegJoinVideosPP',
     'XAttrMetadataPP',
+    'ExecAfterDownloadPP',
 ]

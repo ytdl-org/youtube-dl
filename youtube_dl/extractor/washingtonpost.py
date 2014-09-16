@@ -13,6 +13,9 @@ class WashingtonPostIE(InfoExtractor):
     _VALID_URL = r'^https?://(?:www\.)?washingtonpost\.com/.*?/(?P<id>[^/]+)/(?:$|[?#])'
     _TEST = {
         'url': 'http://www.washingtonpost.com/sf/national/2014/03/22/sinkhole-of-bureaucracy/',
+        'info_dict': {
+            'title': 'Sinkhole of bureaucracy',
+        },
         'playlist': [{
             'md5': 'c3f4b4922ffa259243f68e928db2db8c',
             'info_dict': {

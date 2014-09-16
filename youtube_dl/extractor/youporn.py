@@ -23,7 +23,6 @@ class YouPornIE(InfoExtractor):
     _VALID_URL = r'^(?P<proto>https?://)(?:www\.)?(?P<url>youporn\.com/watch/(?P<videoid>[0-9]+)/(?P<title>[^/]+))'
     _TEST = {
         'url': 'http://www.youporn.com/watch/505835/sex-ed-is-it-safe-to-masturbate-daily/',
-        'md5': '71ec5fcfddacf80f495efa8b6a8d9a89',
         'info_dict': {
             'id': '505835',
             'ext': 'mp4',

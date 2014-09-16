@@ -8,7 +8,7 @@ from ..utils import parse_duration
 
 
 class SWRMediathekIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?swrmediathek\.de/player\.htm\?show=(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
+    _VALID_URL = r'https?://(?:www\.)?swrmediathek\.de/(?:content/)?player\.htm\?show=(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
 
     _TESTS = [{
         'url': 'http://swrmediathek.de/player.htm?show=849790d0-dab8-11e3-a953-0026b975f2e6',

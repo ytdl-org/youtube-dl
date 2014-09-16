@@ -25,7 +25,7 @@ class CBSIE(InfoExtractor):
     }, {
         'url': 'http://www.cbs.com/shows/liveonletterman/artist/221752/st-vincent/',
         'info_dict': {
-            'id': 'P9gjWjelt6iP',
+            'id': 'WWF_5KqY3PK1',
             'ext': 'flv',
             'title': 'Live on Letterman - St. Vincent',
             'description': 'Live On Letterman: St. Vincent in concert from New York\'s Ed Sullivan Theater on Tuesday, July 16, 2014.',

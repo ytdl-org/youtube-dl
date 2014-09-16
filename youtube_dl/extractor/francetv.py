@@ -19,17 +19,35 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
             + video_id, video_id, 'Downloading XML config')
 
         manifest_url = info.find('videos/video/url').text
-        video_url = manifest_url.replace('manifest.f4m', 'index_2_av.m3u8')
-        video_url = video_url.replace('/z/', '/i/')
+        manifest_url = manifest_url.replace('/z/', '/i/')
+        
+        if manifest_url.startswith('rtmp'):
+            formats = [{'url': manifest_url, 'ext': 'flv'}]
+        else:
+            formats = []
+            available_formats = self._search_regex(r'/[^,]*,(.*?),k\.mp4', manifest_url, 'available formats')
+            for index, format_descr in enumerate(available_formats.split(',')):
+                format_info = {
+                    'url': manifest_url.replace('manifest.f4m', 'index_%d_av.m3u8' % index),
+                    'ext': 'mp4',
+                }
+                m_resolution = re.search(r'(?P<width>\d+)x(?P<height>\d+)', format_descr)
+                if m_resolution is not None:
+                    format_info.update({
+                        'width': int(m_resolution.group('width')),
+                        'height': int(m_resolution.group('height')),
+                    })
+                formats.append(format_info)
+
         thumbnail_path = info.find('image').text
 
-        return {'id': video_id,
-                'ext': 'flv' if video_url.startswith('rtmp') else 'mp4',
-                'url': video_url,
-                'title': info.find('titre').text,
-                'thumbnail': compat_urlparse.urljoin('http://pluzz.francetv.fr', thumbnail_path),
-                'description': info.find('synopsis').text,
-                }
+        return {
+            'id': video_id,
+            'title': info.find('titre').text,
+            'formats': formats,
+            'thumbnail': compat_urlparse.urljoin('http://pluzz.francetv.fr', thumbnail_path),
+            'description': info.find('synopsis').text,
+        }
 
 
 class PluzzIE(FranceTVBaseInfoExtractor):

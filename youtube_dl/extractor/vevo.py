@@ -177,6 +177,7 @@ class VevoIE(InfoExtractor):
             self._downloader.report_warning(
                 'Cannot download SMIL information, falling back to JSON ..')
 
+        self._sort_formats(formats)
         timestamp_ms = int(self._search_regex(
             r'/Date\((\d+)\)/', video_info['launchDate'], 'launch date'))
 

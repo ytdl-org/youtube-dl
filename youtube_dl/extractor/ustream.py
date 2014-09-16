@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import json
 import re
 
 from .common import InfoExtractor
@@ -68,21 +67,36 @@ class UstreamIE(InfoExtractor):
 class UstreamChannelIE(InfoExtractor):
     _VALID_URL = r'https?://www\.ustream\.tv/channel/(?P<slug>.+)'
     IE_NAME = 'ustream:channel'
+    _TEST = {
+        'url': 'http://www.ustream.tv/channel/channeljapan',
+        'info_dict': {
+            'id': '10874166',
+        },
+        'playlist_mincount': 54,
+    }
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
-        slug = m.group('slug')
-        webpage = self._download_webpage(url, slug)
+        display_id = m.group('slug')
+        webpage = self._download_webpage(url, display_id)
         channel_id = get_meta_content('ustream:channel_id', webpage)
 
         BASE = 'http://www.ustream.tv'
         next_url = '/ajax/socialstream/videos/%s/1.json' % channel_id
         video_ids = []
         while next_url:
-            reply = json.loads(self._download_webpage(compat_urlparse.urljoin(BASE, next_url), channel_id))
+            reply = self._download_json(
+                compat_urlparse.urljoin(BASE, next_url), display_id,
+                note='Downloading video information (next: %d)' % (len(video_ids) + 1))
             video_ids.extend(re.findall(r'data-content-id="(\d.*)"', reply['data']))
             next_url = reply['nextUrl']
 
-        urls = ['http://www.ustream.tv/recorded/' + vid for vid in video_ids]
-        url_entries = [self.url_result(eurl, 'Ustream') for eurl in urls]
-        return self.playlist_result(url_entries, channel_id)
+        entries = [
+            self.url_result('http://www.ustream.tv/recorded/' + vid, 'Ustream')
+            for vid in video_ids]
+        return {
+            '_type': 'playlist',
+            'id': channel_id,
+            'display_id': display_id,
+            'entries': entries,
+        }

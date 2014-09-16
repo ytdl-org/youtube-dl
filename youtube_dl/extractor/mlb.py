@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class MLBIE(InfoExtractor):
-    _VALID_URL = r'https?://m\.mlb\.com/(?:.*?/)?video/(?:topic/[\da-z_-]+/)?v(?P<id>n?\d+)'
+    _VALID_URL = r'https?://m\.mlb\.com/(?:(?:.*?/)?video/(?:topic/[\da-z_-]+/)?v|shared/video/embed/embed\.html\?.*?\bcontent_id=)(?P<id>n?\d+)'
     _TESTS = [
         {
             'url': 'http://m.mlb.com/sea/video/topic/51231442/v34698933/nymsea-ackley-robs-a-home-run-with-an-amazing-catch/?c_id=sea',
@@ -68,6 +68,10 @@ class MLBIE(InfoExtractor):
                 'upload_date': '20140715',
                 'thumbnail': 're:^https?://.*\.jpg$',
             },
+        },
+        {
+            'url': 'http://m.mlb.com/shared/video/embed/embed.html?content_id=35692085&topic_id=6479266&width=400&height=224&property=mlb',
+            'only_matching': True,
         },
     ]
 

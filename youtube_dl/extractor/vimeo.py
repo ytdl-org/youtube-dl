@@ -57,6 +57,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
         (?P<proto>(?:https?:)?//)?
         (?:(?:www|(?P<player>player))\.)?
         vimeo(?P<pro>pro)?\.com/
+        (?!channels/[^/?#]+/?(?:$|[?#])|album/)
         (?:.*?/)?
         (?:(?:play_redirect_hls|moogaloop\.swf)\?clip_id=)?
         (?:videos?/)?
@@ -122,6 +123,21 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
             },
         },
         {
+            'url': 'http://vimeo.com/channels/keypeele/75629013',
+            'md5': '2f86a05afe9d7abc0b9126d229bbe15d',
+            'note': 'Video is freely available via original URL '
+                    'and protected with password when accessed via http://vimeo.com/75629013',
+            'info_dict': {
+                'id': '75629013',
+                'ext': 'mp4',
+                'title': 'Key & Peele: Terrorist Interrogation',
+                'description': 'md5:8678b246399b070816b12313e8b4eb5c',
+                'uploader_id': 'atencio',
+                'uploader': 'Peter Atencio',
+                'duration': 187,
+            },
+        },
+        {
             'url': 'http://vimeo.com/76979871',
             'md5': '3363dd6ffebe3784d56f4132317fd446',
             'note': 'Video with subtitles',
@@ -137,15 +153,6 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
             }
         },
     ]
-
-    @classmethod
-    def suitable(cls, url):
-        if VimeoChannelIE.suitable(url):
-            # Otherwise channel urls like http://vimeo.com/channels/31259 would
-            # match
-            return False
-        else:
-            return super(VimeoIE, cls).suitable(url)
 
     def _verify_video_password(self, url, video_id, webpage):
         password = self._downloader.params.get('videopassword', None)
@@ -190,14 +197,14 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
         if data is not None:
             headers = headers.copy()
             headers.update(data)
+        if 'Referer' not in headers:
+            headers['Referer'] = url
 
         # Extract ID from URL
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         if mobj.group('pro') or mobj.group('player'):
             url = 'http://player.vimeo.com/video/' + video_id
-        else:
-            url = 'https://vimeo.com/' + video_id
 
         # Retrieve video webpage to extract further information
         request = compat_urllib_request.Request(url, None, headers)
@@ -263,7 +270,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
         if video_thumbnail is None:
             video_thumbs = config["video"].get("thumbs")
             if video_thumbs and isinstance(video_thumbs, dict):
-                _, video_thumbnail = sorted((int(width), t_url) for (width, t_url) in video_thumbs.items())[-1]
+                _, video_thumbnail = sorted((int(width if width.isdigit() else 0), t_url) for (width, t_url) in video_thumbs.items())[-1]
 
         # Extract video description
         video_description = None
@@ -365,9 +372,16 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
 
 class VimeoChannelIE(InfoExtractor):
     IE_NAME = 'vimeo:channel'
-    _VALID_URL = r'(?:https?://)?vimeo\.com/channels/(?P<id>[^/]+)/?(\?.*)?$'
+    _VALID_URL = r'https?://vimeo\.com/channels/(?P<id>[^/?#]+)/?(?:$|[?#])'
     _MORE_PAGES_INDICATOR = r'<a.+?rel="next"'
     _TITLE_RE = r'<link rel="alternate"[^>]+?title="(.*?)"'
+    _TESTS = [{
+        'url': 'http://vimeo.com/channels/tributes',
+        'info_dict': {
+            'title': 'Vimeo Tributes',
+        },
+        'playlist_mincount': 25,
+    }]
 
     def _page_url(self, base_url, pagenum):
         return '%s/videos/page:%d/' % (base_url, pagenum)
@@ -401,14 +415,15 @@ class VimeoChannelIE(InfoExtractor):
 
 class VimeoUserIE(VimeoChannelIE):
     IE_NAME = 'vimeo:user'
-    _VALID_URL = r'(?:https?://)?vimeo\.com/(?P<name>[^/]+)(?:/videos|[#?]|$)'
+    _VALID_URL = r'https?://vimeo\.com/(?![0-9]+(?:$|[?#/]))(?P<name>[^/]+)(?:/videos|[#?]|$)'
     _TITLE_RE = r'<a[^>]+?class="user">([^<>]+?)</a>'
-
-    @classmethod
-    def suitable(cls, url):
-        if VimeoChannelIE.suitable(url) or VimeoIE.suitable(url) or VimeoAlbumIE.suitable(url) or VimeoGroupsIE.suitable(url):
-            return False
-        return super(VimeoUserIE, cls).suitable(url)
+    _TESTS = [{
+        'url': 'http://vimeo.com/nkistudio/videos',
+        'info_dict': {
+            'title': 'Nki',
+        },
+        'playlist_mincount': 66,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -418,8 +433,15 @@ class VimeoUserIE(VimeoChannelIE):
 
 class VimeoAlbumIE(VimeoChannelIE):
     IE_NAME = 'vimeo:album'
-    _VALID_URL = r'(?:https?://)?vimeo\.com/album/(?P<id>\d+)'
+    _VALID_URL = r'https?://vimeo\.com/album/(?P<id>\d+)'
     _TITLE_RE = r'<header id="page_header">\n\s*<h1>(.*?)</h1>'
+    _TESTS = [{
+        'url': 'http://vimeo.com/album/2632481',
+        'info_dict': {
+            'title': 'Staff Favorites: November 2013',
+        },
+        'playlist_mincount': 13,
+    }]
 
     def _page_url(self, base_url, pagenum):
         return '%s/page:%d/' % (base_url, pagenum)
@@ -433,6 +455,13 @@ class VimeoAlbumIE(VimeoChannelIE):
 class VimeoGroupsIE(VimeoAlbumIE):
     IE_NAME = 'vimeo:group'
     _VALID_URL = r'(?:https?://)?vimeo\.com/groups/(?P<name>[^/]+)'
+    _TESTS = [{
+        'url': 'http://vimeo.com/groups/rolexawards',
+        'info_dict': {
+            'title': 'Rolex Awards for Enterprise',
+        },
+        'playlist_mincount': 73,
+    }]
 
     def _extract_list_title(self, webpage):
         return self._og_search_title(webpage)
@@ -446,8 +475,8 @@ class VimeoGroupsIE(VimeoAlbumIE):
 class VimeoReviewIE(InfoExtractor):
     IE_NAME = 'vimeo:review'
     IE_DESC = 'Review pages on vimeo'
-    _VALID_URL = r'(?:https?://)?vimeo\.com/[^/]+/review/(?P<id>[^/]+)'
-    _TEST = {
+    _VALID_URL = r'https?://vimeo\.com/[^/]+/review/(?P<id>[^/]+)'
+    _TESTS = [{
         'url': 'https://vimeo.com/user21297594/review/75524534/3c257a1b5d',
         'file': '75524534.mp4',
         'md5': 'c507a72f780cacc12b2248bb4006d253',
@@ -455,7 +484,19 @@ class VimeoReviewIE(InfoExtractor):
             'title': "DICK HARDWICK 'Comedian'",
             'uploader': 'Richard Hardwick',
         }
-    }
+    }, {
+        'note': 'video player needs Referer',
+        'url': 'http://vimeo.com/user22258446/review/91613211/13f927e053',
+        'md5': '6295fdab8f4bf6a002d058b2c6dce276',
+        'info_dict': {
+            'id': '91613211',
+            'ext': 'mp4',
+            'title': 'Death by dogma versus assembling agile - Sander Hoogendoorn',
+            'uploader': 'DevWeek Events',
+            'duration': 2773,
+            'thumbnail': 're:^https?://.*\.jpg$',
+        }
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -470,6 +511,10 @@ class VimeoWatchLaterIE(VimeoBaseInfoExtractor, VimeoChannelIE):
     _VALID_URL = r'https?://vimeo\.com/home/watchlater|:vimeowatchlater'
     _LOGIN_REQUIRED = True
     _TITLE_RE = r'href="/home/watchlater".*?>(.*?)<'
+    _TESTS = [{
+        'url': 'http://vimeo.com/home/watchlater',
+        'only_matching': True,
+    }]
 
     def _real_initialize(self):
         self._login()

@@ -10,7 +10,7 @@ class BloombergIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://www.bloomberg.com/video/shah-s-presentation-on-foreign-exchange-strategies-qurhIVlJSB6hzkVi229d8g.html',
-        'md5': '7bf08858ff7c203c870e8a6190e221e5',
+        # The md5 checksum changes
         'info_dict': {
             'id': 'qurhIVlJSB6hzkVi229d8g',
             'ext': 'flv',
@@ -31,8 +31,7 @@ class BloombergIE(InfoExtractor):
         return {
             'id': name.split('-')[-1],
             'title': title,
-            'url': f4m_url,
-            'ext': 'flv',
+            'formats': self._extract_f4m_formats(f4m_url, name),
             'description': self._og_search_description(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
         }

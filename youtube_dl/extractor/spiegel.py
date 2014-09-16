@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import compat_urlparse
 
 
 class SpiegelIE(InfoExtractor):
@@ -27,16 +28,6 @@ class SpiegelIE(InfoExtractor):
             'title': 'Schach-WM in der Videoanalyse: Carlsen nutzt die Fehlgriffe des Titelverteidigers',
             'description': 'md5:c2322b65e58f385a820c10fa03b2d088',
             'duration': 983,
-        },
-    }, {
-        'url': 'http://www.spiegel.de/video/johann-westhauser-videobotschaft-des-hoehlenforschers-video-1502367.html',
-        'md5': '54f58ba0e752e3c07bc2a26222dd0acf',
-        'info_dict': {
-            'id': '1502367',
-            'ext': 'mp4',
-            'title': 'Videobotschaft: Höhlenforscher Westhauser dankt seinen Rettern',
-            'description': 'md5:c6f1ec11413ebd1088b6813943e5fc91',
-            'duration': 42,
         },
     }]
 
@@ -81,4 +72,35 @@ class SpiegelIE(InfoExtractor):
             'description': description,
             'duration': duration,
             'formats': formats,
+        }
+
+
+class SpiegelArticleIE(InfoExtractor):
+    _VALID_URL = 'https?://www\.spiegel\.de/(?!video/)[^?#]*?-(?P<id>[0-9]+)\.html'
+    IE_NAME = 'Spiegel:Article'
+    IE_DESC = 'Articles on spiegel.de'
+    _TEST = {
+        'url': 'http://www.spiegel.de/sport/sonst/badminton-wm-die-randsportart-soll-populaerer-werden-a-987092.html',
+        'info_dict': {
+            'id': '1516455',
+            'ext': 'mp4',
+            'title': 'Faszination Badminton: Nennt es bloß nicht Federball',
+            'description': 're:^Patrick Kämnitz gehört.{100,}',
+        },
+    }
+
+    def _real_extract(self, url):
+        m = re.match(self._VALID_URL, url)
+        video_id = m.group('id')
+
+        webpage = self._download_webpage(url, video_id)
+        video_link = self._search_regex(
+            r'<a href="([^"]+)" onclick="return spOpenVideo\(this,', webpage,
+            'video page URL')
+        video_url = compat_urlparse.urljoin(
+            self.http_scheme() + '//spiegel.de/', video_link)
+
+        return {
+            '_type': 'url',
+            'url': video_url,
         }

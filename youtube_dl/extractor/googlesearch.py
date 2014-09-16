@@ -14,6 +14,14 @@ class GoogleSearchIE(SearchInfoExtractor):
     _MAX_RESULTS = 1000
     IE_NAME = 'video.google:search'
     _SEARCH_KEY = 'gvsearch'
+    _TEST = {
+        'url': 'gvsearch15:python language',
+        'info_dict': {
+            'id': 'python language',
+            'title': 'python language',
+        },
+        'playlist_count': 15,
+    }
 
     def _get_n_results(self, query, n):
         """Get a specified number of results for a query"""

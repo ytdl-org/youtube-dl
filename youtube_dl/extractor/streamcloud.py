@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import unicode_literals
+
 import re
 import time
 
@@ -10,18 +12,18 @@ from ..utils import (
 
 
 class StreamcloudIE(InfoExtractor):
-    IE_NAME = u'streamcloud.eu'
+    IE_NAME = 'streamcloud.eu'
     _VALID_URL = r'https?://streamcloud\.eu/(?P<id>[a-zA-Z0-9_-]+)/(?P<fname>[^#?]*)\.html'
 
     _TEST = {
-        u'url': u'http://streamcloud.eu/skp9j99s4bpz/youtube-dl_test_video_____________-BaW_jenozKc.mp4.html',
-        u'file': u'skp9j99s4bpz.mp4',
-        u'md5': u'6bea4c7fa5daaacc2a946b7146286686',
-        u'info_dict': {
-            u'title': u'youtube-dl test video  \'/\\ ä ↭',
-            u'duration': 9,
+        'url': 'http://streamcloud.eu/skp9j99s4bpz/youtube-dl_test_video_____________-BaW_jenozKc.mp4.html',
+        'md5': '6bea4c7fa5daaacc2a946b7146286686',
+        'info_dict': {
+            'id': 'skp9j99s4bpz',
+            'ext': 'mp4',
+            'title': 'youtube-dl test video  \'/\\ ä ↭',
         },
-        u'skip': u'Only available from the EU'
+        'skip': 'Only available from the EU'
     }
 
     def _real_extract(self, url):
@@ -46,21 +48,17 @@ class StreamcloudIE(InfoExtractor):
         req = compat_urllib_request.Request(url, post, headers)
 
         webpage = self._download_webpage(
-            req, video_id, note=u'Downloading video page ...')
+            req, video_id, note='Downloading video page ...')
         title = self._html_search_regex(
-            r'<h1[^>]*>([^<]+)<', webpage, u'title')
+            r'<h1[^>]*>([^<]+)<', webpage, 'title')
         video_url = self._search_regex(
-            r'file:\s*"([^"]+)"', webpage, u'video URL')
-        duration_str = self._search_regex(
-            r'duration:\s*"?([0-9]+)"?', webpage, u'duration', fatal=False)
-        duration = None if duration_str is None else int(duration_str)
+            r'file:\s*"([^"]+)"', webpage, 'video URL')
         thumbnail = self._search_regex(
-            r'image:\s*"([^"]+)"', webpage, u'thumbnail URL', fatal=False)
+            r'image:\s*"([^"]+)"', webpage, 'thumbnail URL', fatal=False)
 
         return {
             'id': video_id,
             'title': title,
             'url': video_url,
-            'duration': duration,
             'thumbnail': thumbnail,
         }

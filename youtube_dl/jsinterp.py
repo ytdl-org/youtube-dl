@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import json
 import re
 
 from .utils import (
@@ -40,8 +41,9 @@ class JSInterpreter(object):
             assign = lambda v: v
             expr = stmt[len('return '):]
         else:
-            raise ExtractorError(
-                'Cannot determine left side of statement in %r' % stmt)
+            # Try interpreting it as an expression
+            expr = stmt
+            assign = lambda v: v
 
         v = self.interpret_expression(expr, local_vars, allow_recursion)
         return assign(v)
@@ -53,35 +55,63 @@ class JSInterpreter(object):
         if expr.isalpha():
             return local_vars[expr]
 
-        m = re.match(r'^(?P<in>[a-z]+)\.(?P<member>.*)$', expr)
-        if m:
-            member = m.group('member')
-            variable = m.group('in')
+        try:
+            return json.loads(expr)
+        except ValueError:
+            pass
 
-            if variable not in local_vars:
+        m = re.match(
+            r'^(?P<var>[a-zA-Z0-9_]+)\.(?P<member>[^(]+)(?:\(+(?P<args>[^()]*)\))?$',
+            expr)
+        if m:
+            variable = m.group('var')
+            member = m.group('member')
+            arg_str = m.group('args')
+
+            if variable in local_vars:
+                obj = local_vars[variable]
+            else:
                 if variable not in self._objects:
                     self._objects[variable] = self.extract_object(variable)
                 obj = self._objects[variable]
-                key, args = member.split('(', 1)
-                args = args.strip(')')
-                argvals = [int(v) if v.isdigit() else local_vars[v]
-                           for v in args.split(',')]
-                return obj[key](argvals)
 
-            val = local_vars[variable]
-            if member == 'split("")':
-                return list(val)
-            if member == 'join("")':
-                return ''.join(val)
-            if member == 'length':
-                return len(val)
-            if member == 'reverse()':
-                return val[::-1]
-            slice_m = re.match(r'slice\((?P<idx>.*)\)', member)
-            if slice_m:
-                idx = self.interpret_expression(
-                    slice_m.group('idx'), local_vars, allow_recursion - 1)
-                return val[idx:]
+            if arg_str is None:
+                # Member access
+                if member == 'length':
+                    return len(obj)
+                return obj[member]
+
+            assert expr.endswith(')')
+            # Function call
+            if arg_str == '':
+                argvals = tuple()
+            else:
+                argvals = tuple([
+                    self.interpret_expression(v, local_vars, allow_recursion)
+                    for v in arg_str.split(',')])
+
+            if member == 'split':
+                assert argvals == ('',)
+                return list(obj)
+            if member == 'join':
+                assert len(argvals) == 1
+                return argvals[0].join(obj)
+            if member == 'reverse':
+                assert len(argvals) == 0
+                obj.reverse()
+                return obj
+            if member == 'slice':
+                assert len(argvals) == 1
+                return obj[argvals[0]:]
+            if member == 'splice':
+                assert isinstance(obj, list)
+                index, howMany = argvals
+                res = []
+                for i in range(index, min(index + howMany, len(obj))):
+                    res.append(obj.pop(index))
+                return res
+
+            return obj[member](argvals)
 
         m = re.match(
             r'^(?P<in>[a-z]+)\[(?P<idx>.+)\]$', expr)
@@ -103,10 +133,11 @@ class JSInterpreter(object):
             r'^(?P<func>[a-zA-Z$]+)\((?P<args>[a-z0-9,]+)\)$', expr)
         if m:
             fname = m.group('func')
+            argvals = tuple([
+                int(v) if v.isdigit() else local_vars[v]
+                for v in m.group('args').split(',')])
             if fname not in self._functions:
                 self._functions[fname] = self.extract_function(fname)
-            argvals = [int(v) if v.isdigit() else local_vars[v]
-                       for v in m.group('args').split(',')]
             return self._functions[fname](argvals)
         raise ExtractorError('Unsupported JS expression %r' % expr)
 

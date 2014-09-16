@@ -8,6 +8,7 @@ from ..utils import (
     compat_urllib_request,
 )
 
+
 class GDCVaultIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?gdcvault\.com/play/(?P<id>\d+)/(?P<name>(\w|-)+)'
     _TESTS = [
@@ -31,6 +32,15 @@ class GDCVaultIE(InfoExtractor):
                 'skip_download': True,  # Requires rtmpdump
             }
         },
+        {
+            'url': 'http://www.gdcvault.com/play/1015301/Thexder-Meets-Windows-95-or',
+            'md5': 'a5eb77996ef82118afbbe8e48731b98e',
+            'info_dict': {
+                'id': '1015301',
+                'ext': 'flv',
+                'title': 'Thexder Meets Windows 95, or Writing Great Games in the Windows 95 Environment',
+            }
+        }
     ]
 
     def _parse_mp4(self, xml_description):
@@ -103,18 +113,40 @@ class GDCVaultIE(InfoExtractor):
         webpage_url = 'http://www.gdcvault.com/play/' + video_id
         start_page = self._download_webpage(webpage_url, video_id)
 
-        xml_root = self._html_search_regex(r'<iframe src="(?P<xml_root>.*?)player.html.*?".*?</iframe>', start_page, 'xml root', None, False)
+        direct_url = self._search_regex(
+            r's1\.addVariable\("file",\s*encodeURIComponent\("(/[^"]+)"\)\);',
+            start_page, 'url', default=None)
+        if direct_url:
+            video_url = 'http://www.gdcvault.com/' + direct_url
+            title = self._html_search_regex(
+                r'<td><strong>Session Name</strong></td>\s*<td>(.*?)</td>',
+                start_page, 'title')
 
+            return {
+                'id': video_id,
+                'url': video_url,
+                'ext': 'flv',
+                'title': title,
+            }
+
+        xml_root = self._html_search_regex(
+            r'<iframe src="(?P<xml_root>.*?)player.html.*?".*?</iframe>',
+            start_page, 'xml root', default=None)
         if xml_root is None:
             # Probably need to authenticate
-            start_page = self._login(webpage_url, video_id)
-            if start_page is None:
+            login_res = self._login(webpage_url, video_id)
+            if login_res is None:
                 self.report_warning('Could not login.')
             else:
+                start_page = login_res
                 # Grab the url from the authenticated page
-                xml_root = self._html_search_regex(r'<iframe src="(?P<xml_root>.*?)player.html.*?".*?</iframe>', start_page, 'xml root')
+                xml_root = self._html_search_regex(
+                    r'<iframe src="(.*?)player.html.*?".*?</iframe>',
+                    start_page, 'xml root')
 
-        xml_name = self._html_search_regex(r'<iframe src=".*?\?xml=(?P<xml_file>.+?\.xml).*?".*?</iframe>', start_page, 'xml filename', None, False)
+        xml_name = self._html_search_regex(
+            r'<iframe src=".*?\?xml=(.+?\.xml).*?".*?</iframe>',
+            start_page, 'xml filename', default=None)
         if xml_name is None:
             # Fallback to the older format
             xml_name = self._html_search_regex(r'<iframe src=".*?\?xmlURL=xml/(?P<xml_file>.+?\.xml).*?".*?</iframe>', start_page, 'xml filename')

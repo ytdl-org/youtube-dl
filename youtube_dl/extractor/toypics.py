@@ -42,6 +42,13 @@ class ToypicsIE(InfoExtractor):
 class ToypicsUserIE(InfoExtractor):
     IE_DESC = 'Toypics user profile'
     _VALID_URL = r'http://videos\.toypics\.net/(?P<username>[^/?]+)(?:$|[?#])'
+    _TEST = {
+        'url': 'http://videos.toypics.net/Mikey',
+        'info_dict': {
+            'id': 'Mikey',
+        },
+        'playlist_mincount': 19,
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

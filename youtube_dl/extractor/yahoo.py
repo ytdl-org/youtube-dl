@@ -15,7 +15,7 @@ from ..utils import (
 
 class YahooIE(InfoExtractor):
     IE_DESC = 'Yahoo screen and movies'
-    _VALID_URL = r'https?://(?:screen|movies)\.yahoo\.com/.*?-(?P<id>[0-9]+)(?:-[a-z]+)?\.html'
+    _VALID_URL = r'(?P<url>https?://(?:screen|movies)\.yahoo\.com/.*?-(?P<id>[0-9]+)(?:-[a-z]+)?\.html)'
     _TESTS = [
         {
             'url': 'http://screen.yahoo.com/julian-smith-travis-legg-watch-214727115.html',
@@ -46,12 +46,23 @@ class YahooIE(InfoExtractor):
                 'title': 'The World Loves Spider-Man',
                 'description': '''People all over the world are celebrating the release of \"The Amazing Spider-Man 2.\" We're taking a look at the enthusiastic response Spider-Man has received from viewers all over the world.''',
             }
-        }
+        },
+        {
+            'url': 'https://screen.yahoo.com/community/community-sizzle-reel-203225340.html?format=embed',
+            'md5': '60e8ac193d8fb71997caa8fce54c6460',
+            'info_dict': {
+                'id': '4fe78544-8d48-39d8-97cd-13f205d9fcdb',
+                'ext': 'mp4',
+                'title': "Yahoo Saves 'Community'",
+                'description': 'md5:4d4145af2fd3de00cbb6c1d664105053',
+            }
+        },
     ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
+        url = mobj.group('url')
         webpage = self._download_webpage(url, video_id)
 
         items_json = self._search_regex(
@@ -60,7 +71,8 @@ class YahooIE(InfoExtractor):
         if items_json is None:
             CONTENT_ID_REGEXES = [
                 r'YUI\.namespace\("Media"\)\.CONTENT_ID\s*=\s*"([^"]+)"',
-                r'root\.App\.Cache\.context\.videoCache\.curVideo = \{"([^"]+)"'
+                r'root\.App\.Cache\.context\.videoCache\.curVideo = \{"([^"]+)"',
+                r'"first_videoid"\s*:\s*"([^"]+)"',
             ]
             long_id = self._search_regex(CONTENT_ID_REGEXES, webpage, 'content ID')
             video_id = long_id

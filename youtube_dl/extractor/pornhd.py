@@ -27,47 +27,40 @@ class PornHdIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        title = self._og_search_title(webpage)
-        TITLE_SUFFIX = ' porn HD Video | PornHD.com '
-        if title.endswith(TITLE_SUFFIX):
-            title = title[:-len(TITLE_SUFFIX)]
-
+        title = self._html_search_regex(
+            r'<title>(.+) porn HD.+?</title>', webpage, 'title')
         description = self._html_search_regex(
             r'<div class="description">([^<]+)</div>', webpage, 'description', fatal=False)
         view_count = int_or_none(self._html_search_regex(
-            r'(\d+) views 	</span>', webpage, 'view count', fatal=False))
+            r'(\d+) views\s*</span>', webpage, 'view count', fatal=False))
 
-        formats = [
-            {
-                'url': format_url,
-                'ext': format.lower(),
-                'format_id': '%s-%s' % (format.lower(), quality.lower()),
-                'quality': 1 if quality.lower() == 'high' else 0,
-            } for format, quality, format_url in re.findall(
-                r'var __video([\da-zA-Z]+?)(Low|High)StreamUrl = \'(http://.+?)\?noProxy=1\'', webpage)
-        ]
+        videos = re.findall(
+            r'var __video([\da-zA-Z]+?)(Low|High)StreamUrl = \'(http://.+?)\?noProxy=1\'', webpage)
 
         mobj = re.search(r'flashVars = (?P<flashvars>{.+?});', webpage)
         if mobj:
             flashvars = json.loads(mobj.group('flashvars'))
-            formats.extend([
-                {
-                    'url': flashvars['hashlink'].replace('?noProxy=1', ''),
-                    'ext': 'flv',
-                    'format_id': 'flv-low',
-                    'quality': 0,
-                },
-                {
-                    'url': flashvars['hd'].replace('?noProxy=1', ''),
-                    'ext': 'flv',
-                    'format_id': 'flv-high',
-                    'quality': 1,
-                }
-            ])
+            for key, quality in [('hashlink', 'low'), ('hd', 'high')]:
+                redirect_url = flashvars.get(key)
+                if redirect_url:
+                    videos.append(('flv', quality, redirect_url))
             thumbnail = flashvars['urlWallpaper']
         else:
             thumbnail = self._og_search_thumbnail(webpage)
 
+        formats = []
+        for format_, quality, redirect_url in videos:
+            format_id = '%s-%s' % (format_.lower(), quality.lower())
+            video_url = self._download_webpage(
+                redirect_url, video_id, 'Downloading %s video link' % format_id, fatal=False)
+            if not video_url:
+                continue
+            formats.append({
+                'url': video_url,
+                'ext': format_.lower(),
+                'format_id': format_id,
+                'quality': 1 if quality.lower() == 'high' else 0,
+            })
         self._sort_formats(formats)
 
         return {

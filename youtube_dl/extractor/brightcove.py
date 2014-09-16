@@ -154,12 +154,14 @@ class BrightcoveIE(InfoExtractor):
     def _extract_brightcove_urls(cls, webpage):
         """Return a list of all Brightcove URLs from the webpage """
 
-        url_m = re.search(r'<meta\s+property="og:video"\s+content="(http://c.brightcove.com/[^"]+)"', webpage)
+        url_m = re.search(
+            r'<meta\s+property="og:video"\s+content="(https?://(?:secure|c)\.brightcove.com/[^"]+)"',
+            webpage)
         if url_m:
             url = unescapeHTML(url_m.group(1))
             # Some sites don't add it, we can't download with this url, for example:
             # http://www.ktvu.com/videos/news/raw-video-caltrain-releases-video-of-man-almost/vCTZdY/
-            if 'playerKey' in url:
+            if 'playerKey' in url or 'videoId' in url:
                 return [url]
 
         matches = re.findall(
@@ -188,9 +190,13 @@ class BrightcoveIE(InfoExtractor):
             referer = smuggled_data.get('Referer', url)
             return self._get_video_info(
                 videoPlayer[0], query_str, query, referer=referer)
-        else:
+        elif 'playerKey' in query:
             player_key = query['playerKey']
             return self._get_playlist_info(player_key[0])
+        else:
+            raise ExtractorError(
+                'Cannot find playerKey= variable. Did you forget quotes in a shell invocation?',
+                expected=True)
 
     def _get_video_info(self, video_id, query_str, query, referer=None):
         request_url = self._FEDERATED_URL_TEMPLATE % query_str
@@ -201,6 +207,13 @@ class BrightcoveIE(InfoExtractor):
         if referer is not None:
             req.add_header('Referer', referer)
         webpage = self._download_webpage(req, video_id)
+
+        error_msg = self._html_search_regex(
+            r"<h1>We're sorry.</h1>\s*<p>(.*?)</p>", webpage,
+            'error message', default=None)
+        if error_msg is not None:
+            raise ExtractorError(
+                'brightcove said: %s' % error_msg, expected=True)
 
         self.report_extraction(video_id)
         info = self._search_regex(r'var experienceJSON = ({.*});', webpage, 'json')
