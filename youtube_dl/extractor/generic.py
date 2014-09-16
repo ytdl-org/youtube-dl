@@ -877,7 +877,7 @@ class GenericIE(InfoExtractor):
         if not found:
             found = re.search(
                 r'(?i)<meta\s+(?=(?:[a-z-]+="[^"]+"\s+)*http-equiv="refresh")'
-                r'(?:[a-z-]+="[^"]+"\s+)*?content="[0-9]{,2};url=\'([^\']+)\'"',
+                r'(?:[a-z-]+="[^"]+"\s+)*?content="[0-9]{,2};url=\'?([^\'"]+)',
                 webpage)
             if found:
                 new_url = found.group(1)
