@@ -16,7 +16,7 @@ class AllmyvideosIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://allmyvideos.net/jih3nce3x6wn',
-        'md5': '8f26c1e7102556a0d7f24306d32c2092',
+        'md5': '710883dee1bfc370ecf9fa6a89307c88',
         'info_dict': {
             'id': 'jih3nce3x6wn',
             'ext': 'mp4',
