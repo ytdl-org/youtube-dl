@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import os.path
 import re
 
 from .common import InfoExtractor
@@ -16,7 +17,7 @@ class AllmyvideosIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://allmyvideos.net/jih3nce3x6wn',
-        'md5': '8f26c1e7102556a0d7f24306d32c2092',
+        'md5': '710883dee1bfc370ecf9fa6a89307c88',
         'info_dict': {
             'id': 'jih3nce3x6wn',
             'ext': 'mp4',
@@ -30,22 +31,29 @@ class AllmyvideosIE(InfoExtractor):
 
         orig_webpage = self._download_webpage(url, video_id)
         fields = re.findall(r'type="hidden" name="(.+?)"\s* value="?(.+?)">', orig_webpage)
-        data = {}
-        for name, value in fields:
-            data[name] = value
+        data = dict(fields)
 
         post = compat_urllib_parse.urlencode(data)
         headers = {
             b'Content-Type': b'application/x-www-form-urlencoded',
         }
         req = compat_urllib_request.Request(url, post, headers)
-        webpage = self._download_webpage(req, video_id, note='Downloading video page ...')
+        webpage = self._download_webpage(
+            req, video_id, note='Downloading video page ...')
+
+        title = os.path.splitext(data['fname'])[0]
 
         #Could be several links with different quality
         links = re.findall(r'"file" : "?(.+?)",', webpage)
+        # Assume the links are ordered in quality
+        formats = [{
+            'url': l,
+            'quality': i,
+        } for i, l in enumerate(links)]
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'title': data['fname'][:len(data['fname'])-4],  #Remove .mp4 extension
-            'url': links[len(links)-1]                      #Choose the higher quality link
+            'title': title,
+            'formats': formats,
         }
