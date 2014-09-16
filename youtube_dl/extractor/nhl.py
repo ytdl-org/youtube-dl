@@ -46,9 +46,9 @@ class NHLBaseInfoExtractor(InfoExtractor):
 
 class NHLIE(NHLBaseInfoExtractor):
     IE_NAME = 'nhl.com'
-    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/console\?.*?(?:[?&])id=(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/console(?:\?(?:.*?[?&])?)id=(?P<id>[0-9]+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://video.canucks.nhl.com/videocenter/console?catid=6?id=453614',
         'info_dict': {
             'id': '453614',
@@ -58,7 +58,10 @@ class NHLIE(NHLBaseInfoExtractor):
             'duration': 18,
             'upload_date': '20131006',
         },
-    }
+    }, {
+        'url': 'http://video.flames.nhl.com/videocenter/console?id=630616',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
