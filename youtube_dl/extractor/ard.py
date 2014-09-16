@@ -51,9 +51,6 @@ class ARDMediathekIE(InfoExtractor):
         else:
             video_id = m.group('video_id')
 
-        urlp = compat_urllib_parse_urlparse(url)
-        url = urlp._replace(path=compat_urllib_parse.quote(urlp.path.encode('utf-8'))).geturl()
-
         webpage = self._download_webpage(url, video_id)
 
         if '>Der gewünschte Beitrag ist nicht mehr verfügbar.<' in webpage:
