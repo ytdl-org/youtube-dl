@@ -76,6 +76,7 @@ __authors__  = (
     'Aaron McDaniel (mcd1992)',
     'Magnus Kolstad',
     'Hari Padmanaban',
+    'Carlos Ramos',
 )
 
 __license__ = 'Public Domain'
