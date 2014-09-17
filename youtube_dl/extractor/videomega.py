@@ -34,22 +34,20 @@ class VideoMegaIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         escaped_data = self._search_regex(
-            'unescape\("([^"]+)"\)', webpage, 'escaped data')
+            r'unescape\("([^"]+)"\)', webpage, 'escaped data')
         playlist = compat_urllib_parse.unquote(escaped_data)
 
         thumbnail = self._search_regex(
             r'image:\s*"([^"]+)"', playlist, 'thumbnail', fatal=False)
         url = self._search_regex(r'file:\s*"([^"]+)"', playlist, 'URL')
-        title = self._html_search_regex(
-            r'<title>(.*?)</title>', webpage, 'title')
-        if title:
-            title = remove_start(title, 'VideoMega.tv - ')
+        title = remove_start(self._html_search_regex(
+            r'<title>(.*?)</title>', webpage, 'title'), 'VideoMega.tv - ')
 
-        formats = []
-        formats.append({
+        formats = [{
             'format_id': 'sd',
             'url': url,
-        })
+        }]
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
