@@ -393,6 +393,7 @@ from .videobam import VideoBamIE
 from .videodetective import VideoDetectiveIE
 from .videolecturesnet import VideoLecturesNetIE
 from .videofyme import VideofyMeIE
+from .videomega import VideoMegaIE
 from .videopremium import VideoPremiumIE
 from .videott import VideoTtIE
 from .videoweed import VideoWeedIE
