@@ -150,7 +150,6 @@ from .howcast import HowcastIE
 from .howstuffworks import HowStuffWorksIE
 from .huffpost import HuffPostIE
 from .hypem import HypemIE
-from .hypestat import HypestatIE
 from .iconosquare import IconosquareIE
 from .ign import IGNIE, OneUPIE
 from .imdb import (
@@ -209,6 +208,7 @@ from .mpora import MporaIE
 from .moevideo import MoeVideoIE
 from .mofosex import MofosexIE
 from .mojvideo import MojvideoIE
+from .moniker import MonikerIE
 from .mooshare import MooshareIE
 from .morningstar import MorningstarIE
 from .motherless import MotherlessIE

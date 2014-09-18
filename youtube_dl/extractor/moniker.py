@@ -11,7 +11,7 @@ from ..utils import (
 )
 
 
-class HypestatIE(InfoExtractor):
+class MonikerIE(InfoExtractor):
     IE_DESC = 'allmyvideos.net and vidspot.net'
     _VALID_URL = r'https?://(?:www\.)?(?:allmyvideos|vidspot)\.net/(?P<id>[a-zA-Z0-9_-]+)'
 
