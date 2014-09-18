@@ -71,6 +71,7 @@ class IGNIE(InfoExtractor):
 
     def _find_video_id(self, webpage):
         res_id = [
+            r'"video_id"\s*:\s*"(.*?)"',
             r'data-video-id="(.+?)"',
             r'<object id="vid_(.+?)"',
             r'<meta name="og:image" content=".*/(.+?)-(.+?)/.+.jpg"',
@@ -85,7 +86,7 @@ class IGNIE(InfoExtractor):
         webpage = self._download_webpage(url, name_or_id)
         if page_type != 'video':
             multiple_urls = re.findall(
-                '<param name="flashvars" value="[^"]*?url=(https?://www\.ign\.com/videos/.*?)["&]',
+                '<param name="flashvars"[^>]*value="[^"]*?url=(https?://www\.ign\.com/videos/.*?)["&]',
                 webpage)
             if multiple_urls:
                 return [self.url_result(u, ie='IGN') for u in multiple_urls]
