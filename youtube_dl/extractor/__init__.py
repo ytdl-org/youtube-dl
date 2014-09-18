@@ -6,7 +6,6 @@ from .aftonbladet import AftonbladetIE
 from .anitube import AnitubeIE
 from .anysex import AnySexIE
 from .aol import AolIE
-from .allmyvideos import AllmyvideosIE
 from .allocine import AllocineIE
 from .aparat import AparatIE
 from .appletrailers import AppleTrailersIE
@@ -151,6 +150,7 @@ from .howcast import HowcastIE
 from .howstuffworks import HowStuffWorksIE
 from .huffpost import HuffPostIE
 from .hypem import HypemIE
+from .hypestat import HypestatIE
 from .iconosquare import IconosquareIE
 from .ign import IGNIE, OneUPIE
 from .imdb import (

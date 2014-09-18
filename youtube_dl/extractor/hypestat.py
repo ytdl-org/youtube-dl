@@ -11,11 +11,11 @@ from ..utils import (
 )
 
 
-class AllmyvideosIE(InfoExtractor):
-    IE_NAME = 'allmyvideos.net'
-    _VALID_URL = r'https?://allmyvideos\.net/(?P<id>[a-zA-Z0-9_-]+)'
+class HypestatIE(InfoExtractor):
+    IE_DESC = 'allmyvideos.net and vidspot.net'
+    _VALID_URL = r'https?://(?:allmyvideos|vidspot)\.net/(?P<id>[a-zA-Z0-9_-]+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://allmyvideos.net/jih3nce3x6wn',
         'md5': '710883dee1bfc370ecf9fa6a89307c88',
         'info_dict': {
@@ -23,7 +23,15 @@ class AllmyvideosIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'youtube-dl test video',
         },
-    }
+    }, {
+        'url': 'http://vidspot.net/l2ngsmhs8ci5',
+        'md5': '710883dee1bfc370ecf9fa6a89307c88',
+        'info_dict': {
+            'id': 'l2ngsmhs8ci5',
+            'ext': 'mp4',
+            'title': 'youtube-dl test video',
+        },
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
