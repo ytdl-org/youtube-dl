@@ -809,28 +809,29 @@ class YoutubeDL(object):
         if req_format in ('-1', 'all'):
             formats_to_download = formats
         else:
-            # We can accept formats requested in the format: 34/5/best, we pick
-            # the first that is available, starting from left
-            req_formats = req_format.split('/')
-            for rf in req_formats:
-                if re.match(r'.+?\+.+?', rf) is not None:
-                    # Two formats have been requested like '137+139'
-                    format_1, format_2 = rf.split('+')
-                    formats_info = (self.select_format(format_1, formats),
-                        self.select_format(format_2, formats))
-                    if all(formats_info):
-                        selected_format = {
-                            'requested_formats': formats_info,
-                            'format': rf,
-                            'ext': formats_info[0]['ext'],
-                        }
+            for rfstr in req_format.split(','):
+                # We can accept formats requested in the format: 34/5/best, we pick
+                # the first that is available, starting from left
+                req_formats = rfstr.split('/')
+                for rf in req_formats:
+                    if re.match(r'.+?\+.+?', rf) is not None:
+                        # Two formats have been requested like '137+139'
+                        format_1, format_2 = rf.split('+')
+                        formats_info = (self.select_format(format_1, formats),
+                            self.select_format(format_2, formats))
+                        if all(formats_info):
+                            selected_format = {
+                                'requested_formats': formats_info,
+                                'format': rf,
+                                'ext': formats_info[0]['ext'],
+                            }
+                        else:
+                            selected_format = None
                     else:
-                        selected_format = None
-                else:
-                    selected_format = self.select_format(rf, formats)
-                if selected_format is not None:
-                    formats_to_download = [selected_format]
-                    break
+                        selected_format = self.select_format(rf, formats)
+                    if selected_format is not None:
+                        formats_to_download.append(selected_format)
+                        break
         if not formats_to_download:
             raise ExtractorError('requested format not available',
                                  expected=True)
