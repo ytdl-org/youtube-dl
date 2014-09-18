@@ -238,7 +238,7 @@ class SoundcloudIE(InfoExtractor):
 
 
 class SoundcloudSetIE(SoundcloudIE):
-    _VALID_URL = r'https?://(?:www\.)?soundcloud\.com/([\w\d-]+)/sets/([\w\d-]+)'
+    _VALID_URL = r'https?://(?:www\.)?soundcloud\.com/(?P<uploader>[\w\d-]+)/sets/(?P<slug_title>[\w\d-]+)(?:/(?P<token>[^?/]+))?'
     IE_NAME = 'soundcloud:set'
     _TESTS = [{
         'url': 'https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep',
@@ -252,14 +252,19 @@ class SoundcloudSetIE(SoundcloudIE):
         mobj = re.match(self._VALID_URL, url)
 
         # extract uploader (which is in the url)
-        uploader = mobj.group(1)
+        uploader = mobj.group('uploader')
         # extract simple title (uploader + slug of song title)
-        slug_title = mobj.group(2)
+        slug_title = mobj.group('slug_title')
         full_title = '%s/sets/%s' % (uploader, slug_title)
+        url = 'http://soundcloud.com/%s/sets/%s' % (uploader, slug_title)
+
+        token = mobj.group('token')
+        if token:
+            full_title += '/' + token
+            url += '/' + token
 
         self.report_resolve(full_title)
 
-        url = 'http://soundcloud.com/%s/sets/%s' % (uploader, slug_title)
         resolv_url = self._resolv_url(url)
         info = self._download_json(resolv_url, full_title)
 
@@ -270,7 +275,7 @@ class SoundcloudSetIE(SoundcloudIE):
 
         return {
             '_type': 'playlist',
-            'entries': [self._extract_info_dict(track) for track in info['tracks']],
+            'entries': [self._extract_info_dict(track, secret_token=token) for track in info['tracks']],
             'id': info['id'],
             'title': info['title'],
         }
@@ -333,7 +338,7 @@ class SoundcloudUserIE(SoundcloudIE):
 
 
 class SoundcloudPlaylistIE(SoundcloudIE):
-    _VALID_URL = r'https?://api\.soundcloud\.com/playlists/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://api\.soundcloud\.com/playlists/(?P<id>[0-9]+)(?:/?\?secret_token=(?P<token>[^&]+?))$'
     IE_NAME = 'soundcloud:playlist'
     _TESTS = [
 
@@ -353,14 +358,21 @@ class SoundcloudPlaylistIE(SoundcloudIE):
         playlist_id = mobj.group('id')
         base_url = '%s//api.soundcloud.com/playlists/%s.json?' % (self.http_scheme(), playlist_id)
 
-        data = compat_urllib_parse.urlencode({
+        data_dict = {
             'client_id': self._CLIENT_ID,
-        })
+        }
+        token = mobj.group('token')
+
+        if token:
+            data_dict['secret_token'] = token
+
+        data = compat_urllib_parse.urlencode(data_dict)
         data = self._download_json(
             base_url + data, playlist_id, 'Downloading playlist')
 
         entries = [
-            self._extract_info_dict(t, quiet=True) for t in data['tracks']]
+            self._extract_info_dict(t, quiet=True, secret_token=token)
+                for t in data['tracks']]
 
         return {
             '_type': 'playlist',
