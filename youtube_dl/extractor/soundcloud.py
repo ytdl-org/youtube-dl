@@ -338,20 +338,17 @@ class SoundcloudUserIE(SoundcloudIE):
 
 
 class SoundcloudPlaylistIE(SoundcloudIE):
-    _VALID_URL = r'https?://api\.soundcloud\.com/playlists/(?P<id>[0-9]+)(?:/?\?secret_token=(?P<token>[^&]+?))$'
+    _VALID_URL = r'https?://api\.soundcloud\.com/playlists/(?P<id>[0-9]+)(?:/?\?secret_token=(?P<token>[^&]+?))?$'
     IE_NAME = 'soundcloud:playlist'
-    _TESTS = [
-
-        {
-            'url': 'http://api.soundcloud.com/playlists/4110309',
-            'info_dict': {
-                'id': '4110309',
-                'title': 'TILT Brass - Bowery Poetry Club, August \'03 [Non-Site SCR 02]',
-                'description': 're:.*?TILT Brass - Bowery Poetry Club',
-            },
-            'playlist_count': 6,
-        }
-    ]
+    _TESTS = [{
+        'url': 'http://api.soundcloud.com/playlists/4110309',
+        'info_dict': {
+            'id': '4110309',
+            'title': 'TILT Brass - Bowery Poetry Club, August \'03 [Non-Site SCR 02]',
+            'description': 're:.*?TILT Brass - Bowery Poetry Club',
+        },
+        'playlist_count': 6,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
