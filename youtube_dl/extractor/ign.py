@@ -112,13 +112,13 @@ class IGNIE(InfoExtractor):
 
 
 class OneUPIE(IGNIE):
-    _VALID_URL = r'https?://gamevideos\.1up\.com/(?P<type>video)/id/(?P<name_or_id>.+)'
+    _VALID_URL = r'https?://gamevideos\.1up\.com/(?P<type>video)/id/(?P<name_or_id>.+)\.html'
     IE_NAME = '1up.com'
 
     _DESCRIPTION_RE = r'<div id="vid_summary">(.+?)</div>'
 
     _TESTS = [{
-        'url': 'http://gamevideos.1up.com/video/id/34976',
+        'url': 'http://gamevideos.1up.com/video/id/34976.html',
         'md5': '68a54ce4ebc772e4b71e3123d413163d',
         'info_dict': {
             'id': '34976',
