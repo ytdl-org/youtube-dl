@@ -708,7 +708,7 @@ class YoutubeDL(object):
             if video_formats:
                 return video_formats[0]
         else:
-            extensions = ['mp4', 'flv', 'webm', '3gp']
+            extensions = ['mp4', 'flv', 'webm', '3gp', 'm4a']
             if format_spec in extensions:
                 filter_f = lambda f: f['ext'] == format_spec
             else:
