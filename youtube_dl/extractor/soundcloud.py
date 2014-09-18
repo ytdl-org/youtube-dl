@@ -31,7 +31,8 @@ class SoundcloudIE(InfoExtractor):
                             (?!sets/|likes/?(?:$|[?#]))
                             (?P<title>[\w\d-]+)/?
                             (?P<token>[^?]+?)?(?:[?].*)?$)
-                       |(?:api\.soundcloud\.com/tracks/(?P<track_id>\d+))
+                       |(?:api\.soundcloud\.com/tracks/(?P<track_id>\d+)
+                          (?:/?\?secret_token=(?P<secret_token>[^&]+?))?$)
                        |(?P<player>(?:w|player|p.)\.soundcloud\.com/player/?.*?url=.*)
                     )
                     '''
@@ -69,6 +70,20 @@ class SoundcloudIE(InfoExtractor):
         # private link
         {
             'url': 'https://soundcloud.com/jaimemf/youtube-dl-test-video-a-y-baw/s-8Pjrp',
+            'md5': 'aa0dd32bfea9b0c5ef4f02aacd080604',
+            'info_dict': {
+                'id': '123998367',
+                'ext': 'mp3',
+                'title': 'Youtube - Dl Test Video \'\' Ä↭',
+                'uploader': 'jaimeMF',
+                'description': 'test chars:  \"\'/\\ä↭',
+                'upload_date': '20131209',
+                'duration': 9,
+            },
+        },
+        # private link (alt format)
+        {
+            'url': 'https://api.soundcloud.com/tracks/123998367?secret_token=s-8Pjrp',
             'md5': 'aa0dd32bfea9b0c5ef4f02aacd080604',
             'info_dict': {
                 'id': '123998367',
@@ -197,6 +212,9 @@ class SoundcloudIE(InfoExtractor):
         if track_id is not None:
             info_json_url = 'http://api.soundcloud.com/tracks/' + track_id + '.json?client_id=' + self._CLIENT_ID
             full_title = track_id
+            token = mobj.group('secret_token')
+            if token:
+                info_json_url += "&secret_token=" + token
         elif mobj.group('player'):
             query = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
             return self.url_result(query['url'][0])
