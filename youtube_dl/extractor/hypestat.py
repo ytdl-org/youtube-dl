@@ -13,7 +13,7 @@ from ..utils import (
 
 class HypestatIE(InfoExtractor):
     IE_DESC = 'allmyvideos.net and vidspot.net'
-    _VALID_URL = r'https?://(?:allmyvideos|vidspot)\.net/(?P<id>[a-zA-Z0-9_-]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:allmyvideos|vidspot)\.net/(?P<id>[a-zA-Z0-9_-]+)'
 
     _TESTS = [{
         'url': 'http://allmyvideos.net/jih3nce3x6wn',
@@ -31,6 +31,9 @@ class HypestatIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'youtube-dl test video',
         },
+    }, {
+        'url': 'https://www.vidspot.net/l2ngsmhs8ci5',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
