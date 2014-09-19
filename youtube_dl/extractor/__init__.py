@@ -221,6 +221,7 @@ from .mtv import (
     MTVServicesEmbeddedIE,
     MTVIggyIE,
 )
+from .muenchentv import MuenchenTVIE
 from .musicplayon import MusicPlayOnIE
 from .musicvault import MusicVaultIE
 from .muzu import MuzuTVIE
