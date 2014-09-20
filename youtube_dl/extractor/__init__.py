@@ -25,6 +25,7 @@ from .bambuser import BambuserIE, BambuserChannelIE
 from .bandcamp import BandcampIE, BandcampAlbumIE
 from .bbccouk import BBCCoUkIE
 from .beeg import BeegIE
+from .behindkink import BehindKinkIE
 from .bilibili import BiliBiliIE
 from .blinkx import BlinkxIE
 from .bliptv import BlipTVIE, BlipTVUserIE
@@ -46,6 +47,7 @@ from .cinemassacre import CinemassacreIE
 from .clipfish import ClipfishIE
 from .cliphunter import CliphunterIE
 from .clipsyndicate import ClipsyndicateIE
+from .cloudy import CloudyIE
 from .clubic import ClubicIE
 from .cmt import CMTIE
 from .cnet import CNETIE
@@ -68,6 +70,7 @@ from .dailymotion import (
 )
 from .daum import DaumIE
 from .dbtv import DBTVIE
+from .deezer import DeezerPlaylistIE
 from .dfb import DFBIE
 from .dotsub import DotsubIE
 from .dreisat import DreiSatIE
@@ -81,6 +84,7 @@ from .dropbox import DropboxIE
 from .ebaumsworld import EbaumsWorldIE
 from .ehow import EHowIE
 from .eighttracks import EightTracksIE
+from .einthusan import EinthusanIE
 from .eitb import EitbIE
 from .ellentv import (
     EllenTVIE,
@@ -140,6 +144,7 @@ from .hark import HarkIE
 from .helsinki import HelsinkiIE
 from .hentaistigma import HentaiStigmaIE
 from .hornbunny import HornBunnyIE
+from .hostingbulk import HostingBulkIE
 from .hotnewhiphop import HotNewHipHopIE
 from .howcast import HowcastIE
 from .howstuffworks import HowStuffWorksIE
@@ -200,8 +205,10 @@ from .mitele import MiTeleIE
 from .mixcloud import MixcloudIE
 from .mlb import MLBIE
 from .mpora import MporaIE
+from .moevideo import MoeVideoIE
 from .mofosex import MofosexIE
 from .mojvideo import MojvideoIE
+from .moniker import MonikerIE
 from .mooshare import MooshareIE
 from .morningstar import MorningstarIE
 from .motherless import MotherlessIE
@@ -214,6 +221,7 @@ from .mtv import (
     MTVServicesEmbeddedIE,
     MTVIggyIE,
 )
+from .muenchentv import MuenchenTVIE
 from .musicplayon import MusicPlayOnIE
 from .musicvault import MusicVaultIE
 from .muzu import MuzuTVIE
@@ -264,6 +272,7 @@ from .podomatic import PodomaticIE
 from .pornhd import PornHdIE
 from .pornhub import PornHubIE
 from .pornotube import PornotubeIE
+from .pornoxo import PornoXOIE
 from .promptfile import PromptFileIE
 from .prosiebensat1 import ProSiebenSat1IE
 from .pyvideo import PyvideoIE
@@ -296,6 +305,7 @@ from .scivee import SciVeeIE
 from .screencast import ScreencastIE
 from .servingsys import ServingSysIE
 from .shared import SharedIE
+from .sharesix import ShareSixIE
 from .sina import SinaIE
 from .slideshare import SlideshareIE
 from .slutload import SlutloadIE
@@ -321,7 +331,7 @@ from .southpark import (
 )
 from .space import SpaceIE
 from .spankwire import SpankwireIE
-from .spiegel import SpiegelIE
+from .spiegel import SpiegelIE, SpiegelArticleIE
 from .spiegeltv import SpiegeltvIE
 from .spike import SpikeIE
 from .sportdeutschland import SportDeutschlandIE
@@ -342,6 +352,7 @@ from .teachingchannel import TeachingChannelIE
 from .teamcoco import TeamcocoIE
 from .techtalks import TechTalksIE
 from .ted import TEDIE
+from .telemb import TeleMBIE
 from .tenplay import TenPlayIE
 from .testurl import TestURLIE
 from .tf1 import TF1IE
@@ -358,6 +369,7 @@ from .trutube import TruTubeIE
 from .tube8 import Tube8IE
 from .tudou import TudouIE
 from .tumblr import TumblrIE
+from .turbo import TurboIE
 from .tutv import TutvIE
 from .tvigle import TvigleIE
 from .tvp import TvpIE
@@ -382,6 +394,7 @@ from .videobam import VideoBamIE
 from .videodetective import VideoDetectiveIE
 from .videolecturesnet import VideoLecturesNetIE
 from .videofyme import VideofyMeIE
+from .videomega import VideoMegaIE
 from .videopremium import VideoPremiumIE
 from .videott import VideoTtIE
 from .videoweed import VideoWeedIE

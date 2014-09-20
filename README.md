@@ -227,12 +227,15 @@ which means you can modify it, redistribute it or use it however you like.
 
 ## Video Format Options:
     -f, --format FORMAT              video format code, specify the order of
-                                     preference using slashes: "-f 22/17/18".
-                                     "-f mp4" and "-f flv" are also supported.
-                                     You can also use the special names "best",
-                                     "bestvideo", "bestaudio", "worst",
-                                     "worstvideo" and "worstaudio". By default,
-                                     youtube-dl will pick the best quality.
+                                     preference using slashes: -f 22/17/18 .  -f
+                                     mp4 , -f m4a and  -f flv  are also
+                                     supported. You can also use the special
+                                     names "best", "bestvideo", "bestaudio",
+                                     "worst", "worstvideo" and "worstaudio". By
+                                     default, youtube-dl will pick the best
+                                     quality. Use commas to download multiple
+                                     audio formats, such as  -f
+                                     136/137/mp4/bestvideo,140/m4a/bestaudio
     --all-formats                    download all available video formats
     --prefer-free-formats            prefer free video formats unless a specific
                                      one is requested
@@ -344,6 +347,25 @@ $ youtube-dl --dateafter 20000101 --datebefore 20091231
 ```
 
 # FAQ
+
+### I'm getting an error `Unable to extract OpenGraph title` on YouTube playlists
+
+YouTube changed their playlist format in March 2014 and later on, so you'll need at least youtube-dl 2014.07.25 to download all YouTube videos.
+
+If you have installed youtube-dl with a package manager, pip, setup.py or a tarball, please use that to update. Note that Ubuntu packages do not seem to get updated anymore. Since we are not affiliated with Ubuntu, there is little we can do. Feel free to report bugs to the Ubuntu packaging guys - all they have to do is update the package to a somewhat recent version.
+
+Alternatively, uninstall the youtube-dl package and follow [our manual installation instructions](http://rg3.github.io/youtube-dl/download.html). In a pinch, this should do if you used `apt-get` before to install youtube-dl:
+
+```
+sudo apt-get remove -y youtube-dl
+sudo wget https://yt-dl.org/latest/youtube-dl -O /usr/local/bin/youtube-dl
+sudo chmod a+x /usr/local/bin/youtube-dl
+hash -r
+```
+
+### Do I always have to pass in `--max-quality FORMAT`, or `-citw`?
+
+By default, youtube-dl intends to have the best options (incidentally, if you have a convincing case that these should be different, [please file an issue where you explain that](https://yt-dl.org/bug)). Therefore, it is unnecessary and sometimes harmful to copy long option strings from webpages. In particular, `--max-quality` *limits* the video quality (so if you want the best quality, do NOT pass it in), and the only option out of `-citw` that is regularly useful is `-i`.
 
 ### Can you please put the -b option back?
 

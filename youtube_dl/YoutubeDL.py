@@ -28,6 +28,7 @@ from .utils import (
     compat_str,
     compat_urllib_error,
     compat_urllib_request,
+    escape_url,
     ContentTooShortError,
     date_from_str,
     DateRange,
@@ -707,7 +708,7 @@ class YoutubeDL(object):
             if video_formats:
                 return video_formats[0]
         else:
-            extensions = ['mp4', 'flv', 'webm', '3gp']
+            extensions = ['mp4', 'flv', 'webm', '3gp', 'm4a']
             if format_spec in extensions:
                 filter_f = lambda f: f['ext'] == format_spec
             else:
@@ -808,28 +809,29 @@ class YoutubeDL(object):
         if req_format in ('-1', 'all'):
             formats_to_download = formats
         else:
-            # We can accept formats requested in the format: 34/5/best, we pick
-            # the first that is available, starting from left
-            req_formats = req_format.split('/')
-            for rf in req_formats:
-                if re.match(r'.+?\+.+?', rf) is not None:
-                    # Two formats have been requested like '137+139'
-                    format_1, format_2 = rf.split('+')
-                    formats_info = (self.select_format(format_1, formats),
-                        self.select_format(format_2, formats))
-                    if all(formats_info):
-                        selected_format = {
-                            'requested_formats': formats_info,
-                            'format': rf,
-                            'ext': formats_info[0]['ext'],
-                        }
+            for rfstr in req_format.split(','):
+                # We can accept formats requested in the format: 34/5/best, we pick
+                # the first that is available, starting from left
+                req_formats = rfstr.split('/')
+                for rf in req_formats:
+                    if re.match(r'.+?\+.+?', rf) is not None:
+                        # Two formats have been requested like '137+139'
+                        format_1, format_2 = rf.split('+')
+                        formats_info = (self.select_format(format_1, formats),
+                            self.select_format(format_2, formats))
+                        if all(formats_info):
+                            selected_format = {
+                                'requested_formats': formats_info,
+                                'format': rf,
+                                'ext': formats_info[0]['ext'],
+                            }
+                        else:
+                            selected_format = None
                     else:
-                        selected_format = None
-                else:
-                    selected_format = self.select_format(rf, formats)
-                if selected_format is not None:
-                    formats_to_download = [selected_format]
-                    break
+                        selected_format = self.select_format(rf, formats)
+                    if selected_format is not None:
+                        formats_to_download.append(selected_format)
+                        break
         if not formats_to_download:
             raise ExtractorError('requested format not available',
                                  expected=True)
@@ -1241,6 +1243,25 @@ class YoutubeDL(object):
 
     def urlopen(self, req):
         """ Start an HTTP download """
+
+        # According to RFC 3986, URLs can not contain non-ASCII characters, however this is not
+        # always respected by websites, some tend to give out URLs with non percent-encoded
+        # non-ASCII characters (see telemb.py, ard.py [#3412])
+        # urllib chokes on URLs with non-ASCII characters (see http://bugs.python.org/issue3991)
+        # To work around aforementioned issue we will replace request's original URL with
+        # percent-encoded one
+        url = req if isinstance(req, compat_str) else req.get_full_url()
+        url_escaped = escape_url(url)
+
+        # Substitute URL if any change after escaping
+        if url != url_escaped:
+            if isinstance(req, compat_str):
+                req = url_escaped
+            else:
+                req = compat_urllib_request.Request(
+                    url_escaped, data=req.data, headers=req.headers,
+                    origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
+
         return self._opener.open(req, timeout=self._socket_timeout)
 
     def print_debug_header(self):

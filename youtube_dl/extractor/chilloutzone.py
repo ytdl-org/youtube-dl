@@ -42,7 +42,7 @@ class ChilloutzoneIE(InfoExtractor):
             'id': '85523671',
             'ext': 'mp4',
             'title': 'The Sunday Times - Icons',
-            'description': 'md5:a5f7ff82e2f7a9ed77473fe666954e84',
+            'description': 're:(?s)^Watch the making of - makingoficons.com.{300,}',
             'uploader': 'Us',
             'uploader_id': 'usfilms',
             'upload_date': '20140131'

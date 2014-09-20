@@ -71,6 +71,7 @@ class IGNIE(InfoExtractor):
 
     def _find_video_id(self, webpage):
         res_id = [
+            r'"video_id"\s*:\s*"(.*?)"',
             r'data-video-id="(.+?)"',
             r'<object id="vid_(.+?)"',
             r'<meta name="og:image" content=".*/(.+?)-(.+?)/.+.jpg"',
@@ -85,7 +86,7 @@ class IGNIE(InfoExtractor):
         webpage = self._download_webpage(url, name_or_id)
         if page_type != 'video':
             multiple_urls = re.findall(
-                '<param name="flashvars" value="[^"]*?url=(https?://www\.ign\.com/videos/.*?)["&]',
+                '<param name="flashvars"[^>]*value="[^"]*?url=(https?://www\.ign\.com/videos/.*?)["&]',
                 webpage)
             if multiple_urls:
                 return [self.url_result(u, ie='IGN') for u in multiple_urls]
@@ -111,13 +112,13 @@ class IGNIE(InfoExtractor):
 
 
 class OneUPIE(IGNIE):
-    _VALID_URL = r'https?://gamevideos\.1up\.com/(?P<type>video)/id/(?P<name_or_id>.+)'
+    _VALID_URL = r'https?://gamevideos\.1up\.com/(?P<type>video)/id/(?P<name_or_id>.+)\.html'
     IE_NAME = '1up.com'
 
     _DESCRIPTION_RE = r'<div id="vid_summary">(.+?)</div>'
 
     _TESTS = [{
-        'url': 'http://gamevideos.1up.com/video/id/34976',
+        'url': 'http://gamevideos.1up.com/video/id/34976.html',
         'md5': '68a54ce4ebc772e4b71e3123d413163d',
         'info_dict': {
             'id': '34976',

@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class TumblrIE(InfoExtractor):
-    _VALID_URL = r'http://(?P<blog_name>.*?)\.tumblr\.com/((post)|(video))/(?P<id>\d*)($|/)'
+    _VALID_URL = r'http://(?P<blog_name>.*?)\.tumblr\.com/(?:post|video)/(?P<id>[0-9]+)(?:$|[/?#])'
     _TESTS = [{
         'url': 'http://tatianamaslanydaily.tumblr.com/post/54196191430/orphan-black-dvd-extra-behind-the-scenes',
         'md5': '479bb068e5b16462f5176a6828829767',
@@ -56,13 +56,15 @@ class TumblrIE(InfoExtractor):
 
         # The only place where you can get a title, it's not complete,
         # but searching in other places doesn't work for all videos
-        video_title = self._html_search_regex(r'<title>(?P<title>.*?)(?: \| Tumblr)?</title>',
-            webpage, 'title', flags=re.DOTALL)
+        video_title = self._html_search_regex(
+            r'(?s)<title>(?P<title>.*?)(?: \| Tumblr)?</title>',
+            webpage, 'title')
 
-        return [{'id': video_id,
-                 'url': video_url,
-                 'title': video_title,
-                 'description': self._html_search_meta('description', webpage),
-                 'thumbnail': video_thumbnail,
-                 'ext': ext
-                 }]
+        return {
+            'id': video_id,
+             'url': video_url,
+             'title': video_title,
+             'description': self._html_search_meta('description', webpage),
+             'thumbnail': video_thumbnail,
+             'ext': ext,
+        }

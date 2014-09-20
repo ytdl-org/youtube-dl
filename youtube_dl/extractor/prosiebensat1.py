@@ -145,7 +145,6 @@ class ProSiebenSat1IE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Kurztrips zum Valentinstag',
                 'description': 'md5:8ba6301e70351ae0bedf8da00f7ba528',
-                'upload_date': '20130206',
                 'duration': 307.24,
             },
             'params': {
@@ -240,7 +239,7 @@ class ProSiebenSat1IE(InfoExtractor):
         thumbnail = self._og_search_thumbnail(page)
 
         upload_date = unified_strdate(self._html_search_regex(
-            self._UPLOAD_DATE_REGEXES, page, 'upload date', fatal=False))
+            self._UPLOAD_DATE_REGEXES, page, 'upload date', default=None))
 
         formats = []
 
@@ -249,7 +248,7 @@ class ProSiebenSat1IE(InfoExtractor):
             urls_sources = urls_sources.values()
 
         def fix_bitrate(bitrate):
-            return bitrate / 1000 if bitrate % 1000 == 0 else bitrate
+            return (bitrate // 1000) if bitrate % 1000 == 0 else bitrate
 
         for source in urls_sources:
             protocol = source['protocol']

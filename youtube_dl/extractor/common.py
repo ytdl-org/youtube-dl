@@ -130,6 +130,8 @@ class InfoExtractor(object):
                     by YoutubeDL if it's missing)
     categories:     A list of categories that the video falls in, for example
                     ["Sports", "Berlin"]
+    is_live:        True, False, or None (=unknown). Whether this video is a
+                    live stream that goes on instead of a fixed-length video.
 
     Unless mentioned otherwise, the fields should be Unicode strings.
 

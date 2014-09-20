@@ -9,29 +9,50 @@ from ..utils import (
     parse_iso8601,
     determine_ext,
     int_or_none,
+    float_or_none,
     str_to_int,
 )
 
 
 class IzleseneIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www|m)\.)?izlesene\.com/(?:video|embedplayer)/(?:[^/]+/)?(?P<id>[0-9]+)'
-    _STREAM_URL = 'http://panel.izlesene.com/api/streamurl/{id:}/{format:}'
-    _TEST = {
-        'url': 'http://www.izlesene.com/video/sevincten-cildirtan-dogum-gunu-hediyesi/7599694',
-        'md5': '4384f9f0ea65086734b881085ee05ac2',
-        'info_dict': {
-            'id': '7599694',
-            'ext': 'mp4',
-            'title': 'Sevinçten Çıldırtan Doğum Günü Hediyesi',
-            'description': 'Annesi oğluna doğum günü hediyesi olarak minecraft cd si alıyor, ve çocuk hunharca seviniyor',
-            'thumbnail': 're:^http://.*\.jpg',
-            'uploader_id': 'pelikzzle',
-            'timestamp': 1404298698,
-            'upload_date': '20140702',
-            'duration': 95.395,
-            'age_limit': 0,
-        }
-    }
+    _VALID_URL = r'''(?x)
+        https?://(?:(?:www|m)\.)?izlesene\.com/
+        (?:video|embedplayer)/(?:[^/]+/)?(?P<id>[0-9]+)
+        '''
+    _TESTS = [
+        {
+            'url': 'http://www.izlesene.com/video/sevincten-cildirtan-dogum-gunu-hediyesi/7599694',
+            'md5': '4384f9f0ea65086734b881085ee05ac2',
+            'info_dict': {
+                'id': '7599694',
+                'ext': 'mp4',
+                'title': 'Sevinçten Çıldırtan Doğum Günü Hediyesi',
+                'description': 'md5:253753e2655dde93f59f74b572454f6d',
+                'thumbnail': 're:^http://.*\.jpg',
+                'uploader_id': 'pelikzzle',
+                'timestamp': 1404298698,
+                'upload_date': '20140702',
+                'duration': 95.395,
+                'age_limit': 0,
+            }
+        },
+        {
+            'url': 'http://www.izlesene.com/video/tarkan-dortmund-2006-konseri/17997',
+            'md5': '97f09b6872bffa284cb7fa4f6910cb72',
+            'info_dict': {
+                'id': '17997',
+                'ext': 'mp4',
+                'title': 'Tarkan Dortmund 2006 Konseri',
+                'description': 'Tarkan Dortmund 2006 Konseri',
+                'thumbnail': 're:^http://.*\.jpg',
+                'uploader_id': 'parlayankiz',
+                'timestamp': 1163318593,
+                'upload_date': '20061112',
+                'duration': 253.666,
+                'age_limit': 0,
+            }
+        },
+    ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -45,18 +66,19 @@ class IzleseneIE(InfoExtractor):
         thumbnail = self._og_search_thumbnail(webpage)
 
         uploader = self._html_search_regex(
-            r"adduserUsername\s*=\s*'([^']+)';", webpage, 'uploader', fatal=False, default='')
+            r"adduserUsername\s*=\s*'([^']+)';",
+            webpage, 'uploader', fatal=False, default='')
         timestamp = parse_iso8601(self._html_search_meta(
             'uploadDate', webpage, 'upload date', fatal=False))
 
-        duration = int_or_none(self._html_search_regex(
-            r'"videoduration"\s*:\s*"([^"]+)"', webpage, 'duration', fatal=False))
-        if duration:
-            duration /= 1000.0
+        duration = float_or_none(self._html_search_regex(
+            r'"videoduration"\s*:\s*"([^"]+)"',
+            webpage, 'duration', fatal=False), scale=1000)
 
         view_count = str_to_int(get_element_by_id('videoViewCount', webpage))
         comment_count = self._html_search_regex(
-            r'comment_count\s*=\s*\'([^\']+)\';', webpage, 'uploader', fatal=False)
+            r'comment_count\s*=\s*\'([^\']+)\';',
+            webpage, 'comment_count', fatal=False)
 
         family_friendly = self._html_search_meta(
             'isFamilyFriendly', webpage, 'age limit', fatal=False)
@@ -66,20 +88,26 @@ class IzleseneIE(InfoExtractor):
         ext = determine_ext(content_url, 'mp4')
 
         # Might be empty for some videos.
-        qualities = self._html_search_regex(
-            r'"quality"\s*:\s*"([^"]+)"', webpage, 'qualities', fatal=False, default='')
+        streams = self._html_search_regex(
+            r'"qualitylevel"\s*:\s*"([^"]+)"',
+            webpage, 'streams', fatal=False, default='')
 
         formats = []
-        for quality in qualities.split('|'):
-            json = self._download_json(
-                self._STREAM_URL.format(id=video_id, format=quality), video_id,
-                note='Getting video URL for "%s" quality' % quality,
-                errnote='Failed to get video URL for "%s" quality' % quality
-            )
+        if streams:
+            for stream in streams.split('|'):
+                quality, url = re.search(r'\[(\w+)\](.+)', stream).groups()
+                formats.append({
+                    'format_id': '%sp' % quality if quality else 'sd',
+                    'url': url,
+                    'ext': ext,
+                })
+        else:
+            stream_url = self._search_regex(
+                r'"streamurl"\s?:\s?"([^"]+)"', webpage, 'stream URL')
             formats.append({
-                'url': json.get('streamurl'),
+                'format_id': 'sd',
+                'url': stream_url,
                 'ext': ext,
-                'format_id': '%sp' % quality if quality else 'sd',
             })
 
         return {

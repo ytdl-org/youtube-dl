@@ -280,6 +280,11 @@ if sys.version_info >= (2, 7):
         return node.find(expr)
 else:
     def find_xpath_attr(node, xpath, key, val):
+        # Here comes the crazy part: In 2.6, if the xpath is a unicode,
+        # .//node does not match if a node is a direct child of . !
+        if isinstance(xpath, unicode):
+            xpath = xpath.encode('ascii')
+
         for f in node.findall(xpath):
             if f.attrib.get(key) == val:
                 return f
@@ -297,6 +302,20 @@ def xpath_with_ns(path, ns_map):
             ns, tag = c
             replaced.append('{%s}%s' % (ns_map[ns], tag))
     return '/'.join(replaced)
+
+
+def xpath_text(node, xpath, name=None, fatal=False):
+    if sys.version_info < (2, 7):  # Crazy 2.6
+        xpath = xpath.encode('ascii')
+
+    n = node.find(xpath)
+    if n is None:
+        if fatal:
+            name = xpath if name is None else name
+            raise ExtractorError('Could not find XML element %s' % name)
+        else:
+            return None
+    return n.text
 
 
 compat_html_parser.locatestarttagend = re.compile(r"""<[a-zA-Z][-.a-zA-Z0-9:_]*(?:\s+(?:(?<=['"\s])[^\s/>][^\s/=>]*(?:\s*=+\s*(?:'[^']*'|"[^"]*"|(?!['"])[^>\s]*))?\s*)*)?\s*""", re.VERBOSE) # backport bugfix
@@ -617,7 +636,7 @@ def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
                     self.sock = sock
                     self._tunnel()
                 try:
-                    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv3)
+                    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_TLSv1)
                 except ssl.SSLError:
                     self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv23)
 
@@ -625,8 +644,14 @@ def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
             def https_open(self, req):
                 return self.do_open(HTTPSConnectionV3, req)
         return HTTPSHandlerV3(**kwargs)
-    else:
-        context = ssl.SSLContext(ssl.PROTOCOL_SSLv3)
+    elif hasattr(ssl, 'create_default_context'):  # Python >= 3.4
+        context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        context.options &= ~ssl.OP_NO_SSLv3  # Allow older, not-as-secure SSLv3
+        if opts_no_check_certificate:
+            context.verify_mode = ssl.CERT_NONE
+        return compat_urllib_request.HTTPSHandler(context=context, **kwargs)
+    else:  # Python < 3.4
+        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
         context.verify_mode = (ssl.CERT_NONE
                                if opts_no_check_certificate
                                else ssl.CERT_REQUIRED)
@@ -1412,6 +1437,24 @@ def uppercase_escape(s):
         lambda m: unicode_escape(m.group(0))[0],
         s)
 
+
+def escape_rfc3986(s):
+    """Escape non-ASCII characters as suggested by RFC 3986"""
+    if sys.version_info < (3, 0) and isinstance(s, unicode):
+        s = s.encode('utf-8')
+    return compat_urllib_parse.quote(s, "%/;:@&=+$,!~*'()?#[]")
+
+
+def escape_url(url):
+    """Escape URL as suggested by RFC 3986"""
+    url_parsed = compat_urllib_parse_urlparse(url)
+    return url_parsed._replace(
+        path=escape_rfc3986(url_parsed.path),
+        params=escape_rfc3986(url_parsed.params),
+        query=escape_rfc3986(url_parsed.query),
+        fragment=escape_rfc3986(url_parsed.fragment)
+    ).geturl()
+
 try:
     struct.pack(u'!I', 0)
 except TypeError:
@@ -1546,3 +1589,13 @@ except AttributeError:
         if ret:
             raise subprocess.CalledProcessError(ret, p.args, output=output)
         return output
+
+
+def limit_length(s, length):
+    """ Add ellipses to overly long strings """
+    if s is None:
+        return None
+    ELLIPSES = '...'
+    if len(s) > length:
+        return s[:length - len(ELLIPSES)] + ELLIPSES
+    return s

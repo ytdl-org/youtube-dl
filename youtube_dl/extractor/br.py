@@ -29,17 +29,6 @@ class BRIE(InfoExtractor):
             }
         },
         {
-            'url': 'http://www.br.de/mediathek/video/sendungen/unter-unserem-himmel/unter-unserem-himmel-alpen-ueber-den-pass-100.html',
-            'md5': 'ab451b09d861dbed7d7cc9ab0be19ebe',
-            'info_dict': {
-                'id': '2c060e69-3a27-4e13-b0f0-668fac17d812',
-                'ext': 'mp4',
-                'title': 'Über den Pass',
-                'description': 'Die Eroberung der Alpen: Über den Pass',
-                'duration': 2588,
-            }
-        },
-        {
             'url': 'http://www.br.de/nachrichten/schaeuble-haushaltsentwurf-bundestag-100.html',
             'md5': '3db0df1a9a9cd9fa0c70e6ea8aa8e820',
             'info_dict': {

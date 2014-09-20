@@ -31,7 +31,8 @@ class SoundcloudIE(InfoExtractor):
                             (?!sets/|likes/?(?:$|[?#]))
                             (?P<title>[\w\d-]+)/?
                             (?P<token>[^?]+?)?(?:[?].*)?$)
-                       |(?:api\.soundcloud\.com/tracks/(?P<track_id>\d+))
+                       |(?:api\.soundcloud\.com/tracks/(?P<track_id>\d+)
+                          (?:/?\?secret_token=(?P<secret_token>[^&]+?))?$)
                        |(?P<player>(?:w|player|p.)\.soundcloud\.com/player/?.*?url=.*)
                     )
                     '''
@@ -69,6 +70,20 @@ class SoundcloudIE(InfoExtractor):
         # private link
         {
             'url': 'https://soundcloud.com/jaimemf/youtube-dl-test-video-a-y-baw/s-8Pjrp',
+            'md5': 'aa0dd32bfea9b0c5ef4f02aacd080604',
+            'info_dict': {
+                'id': '123998367',
+                'ext': 'mp3',
+                'title': 'Youtube - Dl Test Video \'\' Ä↭',
+                'uploader': 'jaimeMF',
+                'description': 'test chars:  \"\'/\\ä↭',
+                'upload_date': '20131209',
+                'duration': 9,
+            },
+        },
+        # private link (alt format)
+        {
+            'url': 'https://api.soundcloud.com/tracks/123998367?secret_token=s-8Pjrp',
             'md5': 'aa0dd32bfea9b0c5ef4f02aacd080604',
             'info_dict': {
                 'id': '123998367',
@@ -197,6 +212,9 @@ class SoundcloudIE(InfoExtractor):
         if track_id is not None:
             info_json_url = 'http://api.soundcloud.com/tracks/' + track_id + '.json?client_id=' + self._CLIENT_ID
             full_title = track_id
+            token = mobj.group('secret_token')
+            if token:
+                info_json_url += "&secret_token=" + token
         elif mobj.group('player'):
             query = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
             return self.url_result(query['url'][0])
@@ -220,7 +238,7 @@ class SoundcloudIE(InfoExtractor):
 
 
 class SoundcloudSetIE(SoundcloudIE):
-    _VALID_URL = r'https?://(?:www\.)?soundcloud\.com/([\w\d-]+)/sets/([\w\d-]+)'
+    _VALID_URL = r'https?://(?:www\.)?soundcloud\.com/(?P<uploader>[\w\d-]+)/sets/(?P<slug_title>[\w\d-]+)(?:/(?P<token>[^?/]+))?'
     IE_NAME = 'soundcloud:set'
     _TESTS = [{
         'url': 'https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep',
@@ -234,14 +252,19 @@ class SoundcloudSetIE(SoundcloudIE):
         mobj = re.match(self._VALID_URL, url)
 
         # extract uploader (which is in the url)
-        uploader = mobj.group(1)
+        uploader = mobj.group('uploader')
         # extract simple title (uploader + slug of song title)
-        slug_title = mobj.group(2)
+        slug_title = mobj.group('slug_title')
         full_title = '%s/sets/%s' % (uploader, slug_title)
+        url = 'http://soundcloud.com/%s/sets/%s' % (uploader, slug_title)
+
+        token = mobj.group('token')
+        if token:
+            full_title += '/' + token
+            url += '/' + token
 
         self.report_resolve(full_title)
 
-        url = 'http://soundcloud.com/%s/sets/%s' % (uploader, slug_title)
         resolv_url = self._resolv_url(url)
         info = self._download_json(resolv_url, full_title)
 
@@ -252,7 +275,7 @@ class SoundcloudSetIE(SoundcloudIE):
 
         return {
             '_type': 'playlist',
-            'entries': [self._extract_info_dict(track) for track in info['tracks']],
+            'entries': [self._extract_info_dict(track, secret_token=token) for track in info['tracks']],
             'id': info['id'],
             'title': info['title'],
         }
@@ -315,34 +338,38 @@ class SoundcloudUserIE(SoundcloudIE):
 
 
 class SoundcloudPlaylistIE(SoundcloudIE):
-    _VALID_URL = r'https?://api\.soundcloud\.com/playlists/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://api\.soundcloud\.com/playlists/(?P<id>[0-9]+)(?:/?\?secret_token=(?P<token>[^&]+?))?$'
     IE_NAME = 'soundcloud:playlist'
-    _TESTS = [
-
-        {
-            'url': 'http://api.soundcloud.com/playlists/4110309',
-            'info_dict': {
-                'id': '4110309',
-                'title': 'TILT Brass - Bowery Poetry Club, August \'03 [Non-Site SCR 02]',
-                'description': 're:.*?TILT Brass - Bowery Poetry Club',
-            },
-            'playlist_count': 6,
-        }
-    ]
+    _TESTS = [{
+        'url': 'http://api.soundcloud.com/playlists/4110309',
+        'info_dict': {
+            'id': '4110309',
+            'title': 'TILT Brass - Bowery Poetry Club, August \'03 [Non-Site SCR 02]',
+            'description': 're:.*?TILT Brass - Bowery Poetry Club',
+        },
+        'playlist_count': 6,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         playlist_id = mobj.group('id')
         base_url = '%s//api.soundcloud.com/playlists/%s.json?' % (self.http_scheme(), playlist_id)
 
-        data = compat_urllib_parse.urlencode({
+        data_dict = {
             'client_id': self._CLIENT_ID,
-        })
+        }
+        token = mobj.group('token')
+
+        if token:
+            data_dict['secret_token'] = token
+
+        data = compat_urllib_parse.urlencode(data_dict)
         data = self._download_json(
             base_url + data, playlist_id, 'Downloading playlist')
 
         entries = [
-            self._extract_info_dict(t, quiet=True) for t in data['tracks']]
+            self._extract_info_dict(t, quiet=True, secret_token=token)
+                for t in data['tracks']]
 
         return {
             '_type': 'playlist',

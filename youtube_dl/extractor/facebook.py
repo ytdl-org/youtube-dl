@@ -12,8 +12,8 @@ from ..utils import (
     compat_urllib_parse,
     compat_urllib_request,
     urlencode_postdata,
-
     ExtractorError,
+    limit_length,
 )
 
 
@@ -29,13 +29,21 @@ class FacebookIE(InfoExtractor):
     _NETRC_MACHINE = 'facebook'
     IE_NAME = 'facebook'
     _TESTS = [{
-        'url': 'https://www.facebook.com/photo.php?v=120708114770723',
-        'md5': '48975a41ccc4b7a581abd68651c1a5a8',
+        'url': 'https://www.facebook.com/video.php?v=637842556329505&fref=nf',
+        'md5': '6a40d33c0eccbb1af76cf0485a052659',
         'info_dict': {
-            'id': '120708114770723',
+            'id': '637842556329505',
             'ext': 'mp4',
-            'duration': 279,
-            'title': 'PEOPLE ARE AWESOME 2013',
+            'duration': 38,
+            'title': 'Did you know Kei Nishikori is the first Asian man to ever reach a Grand Slam fin...',
+        }
+    }, {
+        'note': 'Video without discernible title',
+        'url': 'https://www.facebook.com/video.php?v=274175099429670',
+        'info_dict': {
+            'id': '274175099429670',
+            'ext': 'mp4',
+            'title': 'Facebook video #274175099429670',
         }
     }, {
         'url': 'https://www.facebook.com/video.php?v=10204634152394104',
@@ -125,7 +133,15 @@ class FacebookIE(InfoExtractor):
             raise ExtractorError('Cannot find video URL')
 
         video_title = self._html_search_regex(
-            r'<h2 class="uiHeaderTitle">([^<]*)</h2>', webpage, 'title')
+            r'<h2 class="uiHeaderTitle">([^<]*)</h2>', webpage, 'title',
+            fatal=False)
+        if not video_title:
+            video_title = self._html_search_regex(
+                r'(?s)<span class="fbPhotosPhotoCaption".*?id="fbPhotoPageCaption"><span class="hasCaption">(.*?)</span>',
+                webpage, 'alternative title', default=None)
+            video_title = limit_length(video_title, 80)
+        if not video_title:
+            video_title = 'Facebook video #%s' % video_id
 
         return {
             'id': video_id,

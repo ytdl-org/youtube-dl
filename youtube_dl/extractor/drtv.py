@@ -8,7 +8,7 @@ from ..utils import parse_iso8601
 
 
 class DRTVIE(SubtitlesInfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?dr\.dk/tv/se/[^/]+/(?P<id>[\da-z-]+)'
+    _VALID_URL = r'http://(?:www\.)?dr\.dk/tv/se/(?:[^/]+/)+(?P<id>[\da-z-]+)(?:[/#?]|$)'
 
     _TEST = {
         'url': 'http://www.dr.dk/tv/se/partiets-mand/partiets-mand-7-8',

@@ -8,45 +8,68 @@ import json
 from .common import InfoExtractor
 from ..utils import (
     compat_urlparse,
+    ExtractorError,
+    clean_html,
+    parse_duration,
+    compat_urllib_parse_urlparse,
+    int_or_none,
 )
 
 
 class FranceTVBaseInfoExtractor(InfoExtractor):
-    def _extract_video(self, video_id):
-        info = self._download_xml(
-            'http://www.francetvinfo.fr/appftv/webservices/video/'
-            'getInfosOeuvre.php?id-diffusion='
-            + video_id, video_id, 'Downloading XML config')
+    def _extract_video(self, video_id, catalogue):
+        info = self._download_json(
+            'http://webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/?idDiffusion=%s&catalogue=%s'
+            % (video_id, catalogue),
+            video_id, 'Downloading video JSON')
 
-        manifest_url = info.find('videos/video/url').text
-        manifest_url = manifest_url.replace('/z/', '/i/')
-        
-        if manifest_url.startswith('rtmp'):
-            formats = [{'url': manifest_url, 'ext': 'flv'}]
-        else:
-            formats = []
-            available_formats = self._search_regex(r'/[^,]*,(.*?),k\.mp4', manifest_url, 'available formats')
-            for index, format_descr in enumerate(available_formats.split(',')):
-                format_info = {
-                    'url': manifest_url.replace('manifest.f4m', 'index_%d_av.m3u8' % index),
-                    'ext': 'mp4',
-                }
-                m_resolution = re.search(r'(?P<width>\d+)x(?P<height>\d+)', format_descr)
-                if m_resolution is not None:
-                    format_info.update({
-                        'width': int(m_resolution.group('width')),
-                        'height': int(m_resolution.group('height')),
-                    })
-                formats.append(format_info)
+        if info.get('status') == 'NOK':
+            raise ExtractorError(
+                '%s returned error: %s' % (self.IE_NAME, info['message']), expected=True)
 
-        thumbnail_path = info.find('image').text
+        formats = []
+        for video in info['videos']:
+            if video['statut'] != 'ONLINE':
+                continue
+            video_url = video['url']
+            if not video_url:
+                continue
+            format_id = video['format']
+            if video_url.endswith('.f4m'):
+                video_url_parsed = compat_urllib_parse_urlparse(video_url)
+                f4m_url = self._download_webpage(
+                    'http://hdfauth.francetv.fr/esi/urltokengen2.html?url=%s' % video_url_parsed.path,
+                    video_id, 'Downloading f4m manifest token', fatal=False)
+                if f4m_url:
+                    f4m_formats = self._extract_f4m_formats(f4m_url, video_id)
+                    for f4m_format in f4m_formats:
+                        f4m_format['preference'] = 1
+                    formats.extend(f4m_formats)
+            elif video_url.endswith('.m3u8'):
+                formats.extend(self._extract_m3u8_formats(video_url, video_id))
+            elif video_url.startswith('rtmp'):
+                formats.append({
+                    'url': video_url,
+                    'format_id': 'rtmp-%s' % format_id,
+                    'ext': 'flv',
+                    'preference': 1,
+                })
+            else:
+                formats.append({
+                    'url': video_url,
+                    'format_id': format_id,
+                    'preference': 2,
+                })
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'title': info.find('titre').text,
+            'title': info['titre'],
+            'description': clean_html(info['synopsis']),
+            'thumbnail': compat_urlparse.urljoin('http://pluzz.francetv.fr', info['image']),
+            'duration': parse_duration(info['duree']),
+            'timestamp': int_or_none(info['diffusion']['timestamp']),
             'formats': formats,
-            'thumbnail': compat_urlparse.urljoin('http://pluzz.francetv.fr', thumbnail_path),
-            'description': info.find('synopsis').text,
         }
 
 
@@ -61,7 +84,7 @@ class PluzzIE(FranceTVBaseInfoExtractor):
         webpage = self._download_webpage(url, title)
         video_id = self._search_regex(
             r'data-diffusion="(\d+)"', webpage, 'ID')
-        return self._extract_video(video_id)
+        return self._extract_video(video_id, 'Pluzz')
 
 
 class FranceTvInfoIE(FranceTVBaseInfoExtractor):
@@ -70,13 +93,13 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-lundi-26-aout-2013_393427.html',
+        'md5': '9cecf35f99c4079c199e9817882a9a1c',
         'info_dict': {
             'id': '84981923',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Soir 3',
-        },
-        'params': {
-            'skip_download': True,
+            'upload_date': '20130826',
+            'timestamp': 1377548400,
         },
     }, {
         'url': 'http://www.francetvinfo.fr/elections/europeennes/direct-europeennes-regardez-le-debat-entre-les-candidats-a-la-presidence-de-la-commission_600639.html',
@@ -88,15 +111,17 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
         },
         'params': {
             'skip_download': 'HLS (reqires ffmpeg)'
-        }
+        },
+        'skip': 'Ce direct est terminé et sera disponible en rattrapage dans quelques minutes.',
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         page_title = mobj.group('title')
         webpage = self._download_webpage(url, page_title)
-        video_id = self._search_regex(r'id-video=((?:[^0-9]*?_)?[0-9]+)[@"]', webpage, 'video id')
-        return self._extract_video(video_id)
+        video_id, catalogue = self._search_regex(
+            r'id-video=([^@]+@[^"]+)', webpage, 'video id').split('@')
+        return self._extract_video(video_id, catalogue)
 
 
 class FranceTVIE(FranceTVBaseInfoExtractor):
@@ -112,91 +137,77 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
         # france2
         {
             'url': 'http://www.france2.fr/emissions/13h15-le-samedi-le-dimanche/videos/75540104',
-            'file': '75540104.mp4',
+            'md5': 'c03fc87cb85429ffd55df32b9fc05523',
             'info_dict': {
-                'title': '13h15, le samedi...',
-                'description': 'md5:2e5b58ba7a2d3692b35c792be081a03d',
-            },
-            'params': {
-                # m3u8 download
-                'skip_download': True,
+                'id': '109169362',
+                'ext': 'flv',
+                'title': '13h15, le dimanche...',
+                'description': 'md5:9a0932bb465f22d377a449be9d1a0ff7',
+                'upload_date': '20140914',
+                'timestamp': 1410693600,
             },
         },
         # france3
         {
             'url': 'http://www.france3.fr/emissions/pieces-a-conviction/diffusions/13-11-2013_145575',
+            'md5': '679bb8f8921f8623bd658fa2f8364da0',
             'info_dict': {
                 'id': '000702326_CAPP_PicesconvictionExtrait313022013_120220131722_Au',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'Le scandale du prix des médicaments',
                 'description': 'md5:1384089fbee2f04fc6c9de025ee2e9ce',
-            },
-            'params': {
-                # rtmp download
-                'skip_download': True,
+                'upload_date': '20131113',
+                'timestamp': 1384380000,
             },
         },
         # france4
         {
             'url': 'http://www.france4.fr/emissions/hero-corp/videos/rhozet_herocorp_bonus_1_20131106_1923_06112013172108_F4',
+            'md5': 'a182bf8d2c43d88d46ec48fbdd260c1c',
             'info_dict': {
                 'id': 'rhozet_herocorp_bonus_1_20131106_1923_06112013172108_F4',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'Hero Corp Making of - Extrait 1',
                 'description': 'md5:c87d54871b1790679aec1197e73d650a',
-            },
-            'params': {
-                # rtmp download
-                'skip_download': True,
+                'upload_date': '20131106',
+                'timestamp': 1383766500,
             },
         },
         # france5
         {
             'url': 'http://www.france5.fr/emissions/c-a-dire/videos/92837968',
+            'md5': '78f0f4064f9074438e660785bbf2c5d9',
             'info_dict': {
-                'id': '92837968',
-                'ext': 'mp4',
+                'id': '108961659',
+                'ext': 'flv',
                 'title': 'C à dire ?!',
-                'description': 'md5:fb1db1cbad784dcce7c7a7bd177c8e2f',
-            },
-            'params': {
-                # m3u8 download
-                'skip_download': True,
+                'description': 'md5:1a4aeab476eb657bf57c4ff122129f81',
+                'upload_date': '20140915',
+                'timestamp': 1410795000,
             },
         },
         # franceo
         {
             'url': 'http://www.franceo.fr/jt/info-afrique/04-12-2013',
+            'md5': '52f0bfe202848b15915a2f39aaa8981b',
             'info_dict': {
-                'id': '92327925',
-                'ext': 'mp4',
-                'title': 'Infô-Afrique',
+                'id': '108634970',
+                'ext': 'flv',
+                'title': 'Infô Afrique',
                 'description': 'md5:ebf346da789428841bee0fd2a935ea55',
+                'upload_date': '20140915',
+                'timestamp': 1410822000,
             },
-            'params': {
-                # m3u8 download
-                'skip_download': True,
-            },
-            'skip': 'The id changes frequently',
         },
     ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        if mobj.group('key'):
-            webpage = self._download_webpage(url, mobj.group('key'))
-            id_res = [
-                (r'''(?x)<div\s+class="video-player">\s*
-                    <a\s+href="http://videos.francetv.fr/video/([0-9]+)"\s+
-                    class="francetv-video-player">'''),
-                (r'<a id="player_direct" href="http://info\.francetelevisions'
-                 '\.fr/\?id-video=([^"/&]+)'),
-                (r'<a class="video" id="ftv_player_(.+?)"'),
-            ]
-            video_id = self._html_search_regex(id_res, webpage, 'video ID')
-        else:
-            video_id = mobj.group('id')
-        return self._extract_video(video_id)
+        webpage = self._download_webpage(url, mobj.group('key') or mobj.group('id'))
+        video_id, catalogue = self._html_search_regex(
+            r'href="http://videos\.francetv\.fr/video/([^@]+@[^"]+)"',
+            webpage, 'video ID').split('@')
+        return self._extract_video(video_id, catalogue)
 
 
 class GenerationQuoiIE(InfoExtractor):
@@ -232,16 +243,15 @@ class CultureboxIE(FranceTVBaseInfoExtractor):
     _VALID_URL = r'https?://(?:m\.)?culturebox\.francetvinfo\.fr/(?P<name>.*?)(\?|$)'
 
     _TEST = {
-        'url': 'http://culturebox.francetvinfo.fr/einstein-on-the-beach-au-theatre-du-chatelet-146813',
+        'url': 'http://culturebox.francetvinfo.fr/festivals/dans-les-jardins-de-william-christie/dans-les-jardins-de-william-christie-le-camus-162553',
+        'md5': '5ad6dec1ffb2a3fbcb20cc4b744be8d6',
         'info_dict': {
-            'id': 'EV_6785',
-            'ext': 'mp4',
-            'title': 'Einstein on the beach au Théâtre du Châtelet',
-            'description': 'md5:9ce2888b1efefc617b5e58b3f6200eeb',
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
+            'id': 'EV_22853',
+            'ext': 'flv',
+            'title': 'Dans les jardins de William Christie - Le Camus',
+            'description': 'md5:4710c82315c40f0c865ca8b9a68b5299',
+            'upload_date': '20140829',
+            'timestamp': 1409317200,
         },
     }
 
@@ -249,5 +259,7 @@ class CultureboxIE(FranceTVBaseInfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         name = mobj.group('name')
         webpage = self._download_webpage(url, name)
-        video_id = self._search_regex(r'"http://videos\.francetv\.fr/video/(.*?)"', webpage, 'video id')
-        return self._extract_video(video_id)
+        video_id, catalogue = self._search_regex(
+            r'"http://videos\.francetv\.fr/video/([^@]+@[^"]+)"', webpage, 'video id').split('@')
+
+        return self._extract_video(video_id, catalogue)

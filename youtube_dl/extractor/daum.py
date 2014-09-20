@@ -11,10 +11,10 @@ from ..utils import (
 
 
 class DaumIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:m\.)?tvpot\.daum\.net/.*?clipid=(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:m\.)?tvpot\.daum\.net/(?:v/|.*?clipid=)(?P<id>[^?#&]+)'
     IE_NAME = 'daum.net'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://tvpot.daum.net/clip/ClipView.do?clipid=52554690',
         'info_dict': {
             'id': '52554690',
@@ -24,11 +24,17 @@ class DaumIE(InfoExtractor):
             'upload_date': '20130831',
             'duration': 3868,
         },
-    }
+    }, {
+        'url': 'http://tvpot.daum.net/v/vab4dyeDBysyBssyukBUjBz',
+        'only_matching': True,
+    }, {
+        'url': 'http://tvpot.daum.net/v/07dXWRka62Y%24',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group(1)
+        video_id = mobj.group('id')
         canonical_url = 'http://tvpot.daum.net/v/%s' % video_id
         webpage = self._download_webpage(canonical_url, video_id)
         full_id = self._search_regex(
@@ -42,7 +48,6 @@ class DaumIE(InfoExtractor):
             'http://videofarm.daum.net/controller/api/open/v1_2/MovieData.apixml?' + query,
             video_id, 'Downloading video formats info')
 
-        self.to_screen(u'%s: Getting video urls' % video_id)
         formats = []
         for format_el in urls.findall('result/output_list/output_list'):
             profile = format_el.attrib['profile']
@@ -52,7 +57,7 @@ class DaumIE(InfoExtractor):
             })
             url_doc = self._download_xml(
                 'http://videofarm.daum.net/controller/api/open/v1_2/MovieLocation.apixml?' + format_query,
-                video_id, note=False)
+                video_id, note='Downloading video data for %s format' % profile)
             format_url = url_doc.find('result/url').text
             formats.append({
                 'url': format_url,
