@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 import re
+import time
+import hashlib
 
 from .common import InfoExtractor
 from ..utils import (
@@ -17,6 +19,7 @@ from ..utils import (
 class NocoIE(InfoExtractor):
     _VALID_URL = r'http://(?:(?:www\.)?noco\.tv/emission/|player\.noco\.tv/\?idvideo=)(?P<id>\d+)'
     _LOGIN_URL = 'http://noco.tv/do.php'
+    _API_URL_TEMPLATE = 'https://api.noco.tv/1.1/%s?ts=%s&tk=%s'
     _NETRC_MACHINE = 'noco'
 
     _TEST = {
@@ -55,33 +58,52 @@ class NocoIE(InfoExtractor):
         login = self._download_json(request, None, 'Logging in as %s' % username)
 
         if 'erreur' in login:
-            raise  ExtractorError('Unable to login: %s' % clean_html(login['erreur']), expected=True)
+            raise ExtractorError('Unable to login: %s' % clean_html(login['erreur']), expected=True)
+
+    def _call_api(self, path, video_id, note):
+        ts = compat_str(int(time.time() * 1000))
+        tk = hashlib.md5(hashlib.md5(ts).hexdigest() + '#8S?uCraTedap6a').hexdigest()
+        url = self._API_URL_TEMPLATE % (path, ts, tk)
+
+        resp = self._download_json(url, video_id, note)
+
+        if isinstance(resp, dict) and resp.get('error'):
+            self._raise_error(resp['error'], resp['description'])
+
+        return resp
+
+    def _raise_error(self, error, description):
+        raise ExtractorError(
+            '%s returned error: %s - %s' % (self.IE_NAME, error, description),
+            expected=True)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        medias = self._download_json(
-            'https://api.noco.tv/1.0/video/medias/%s' % video_id, video_id, 'Downloading video JSON')
+        medias = self._call_api(
+            'shows/%s/medias' % video_id,
+            video_id, 'Downloading video JSON')
+
+        qualities = self._call_api(
+            'qualities',
+            video_id, 'Downloading qualities JSON')
 
         formats = []
 
-        for fmt in medias['fr']['video_list']['default']['quality_list']:
-            format_id = fmt['quality_key']
+        for format_id, fmt in medias['fr']['video_list']['none']['quality_list'].items():
 
-            file = self._download_json(
-                'https://api.noco.tv/1.0/video/file/%s/fr/%s' % (format_id.lower(), video_id),
+            video = self._call_api(
+                'shows/%s/video/%s/fr' % (video_id, format_id.lower()),
                 video_id, 'Downloading %s video JSON' % format_id)
 
-            file_url = file['file']
+            file_url = video['file']
             if not file_url:
                 continue
 
-            if file_url == 'forbidden':
-                raise ExtractorError(
-                    '%s returned error: %s - %s' % (
-                        self.IE_NAME, file['popmessage']['title'], file['popmessage']['message']),
-                    expected=True)
+            if file_url in ['forbidden', 'not found']:
+                popmessage = video['popmessage']
+                self._raise_error(popmessage['title'], popmessage['message'])
 
             formats.append({
                 'url': file_url,
@@ -91,20 +113,31 @@ class NocoIE(InfoExtractor):
                 'abr': fmt['audiobitrate'],
                 'vbr': fmt['videobitrate'],
                 'filesize': fmt['filesize'],
-                'format_note': fmt['quality_name'],
-                'preference': fmt['priority'],
+                'format_note': qualities[format_id]['quality_name'],
+                'preference': qualities[format_id]['priority'],
             })
 
         self._sort_formats(formats)
 
-        show = self._download_json(
-            'https://api.noco.tv/1.0/shows/show/%s' % video_id, video_id, 'Downloading show JSON')[0]
+        show = self._call_api(
+            'shows/by_id/%s' % video_id,
+            video_id, 'Downloading show JSON')[0]
 
-        upload_date = unified_strdate(show['indexed'])
+        upload_date = unified_strdate(show['online_date_start_utc'])
         uploader = show['partner_name']
         uploader_id = show['partner_key']
         duration = show['duration_ms'] / 1000.0
-        thumbnail = show['screenshot']
+
+        thumbnails = []
+        for thumbnail_key, thumbnail_url in show.items():
+            m = re.search(r'^screenshot_(?P<width>\d+)x(?P<height>\d+)$', thumbnail_key)
+            if not m:
+                continue
+            thumbnails.append({
+                'url': thumbnail_url,
+                'width': int(m.group('width')),
+                'height': int(m.group('height')),
+            })
 
         episode = show.get('show_TT') or show.get('show_OT')
         family = show.get('family_TT') or show.get('family_OT')
@@ -124,7 +157,7 @@ class NocoIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'description': description,
-            'thumbnail': thumbnail,
+            'thumbnails': thumbnails,
             'upload_date': upload_date,
             'uploader': uploader,
             'uploader_id': uploader_id,
