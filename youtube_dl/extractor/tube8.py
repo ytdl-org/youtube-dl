@@ -14,7 +14,7 @@ from ..aes import aes_decrypt_text
 
 
 class Tube8IE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tube8\.com/(?:[^/]+/){2}(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?tube8\.com/(?:gay/|shemale/)?(?:[^/]+/){2}(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.tube8.com/teen/kasia-music-video/229795/',
         'md5': '44bf12b98313827dd52d35b8706a4ea0',
