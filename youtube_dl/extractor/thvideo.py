@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class THVideoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?thvideo\.tv/v/th(?P<id>[0-9]+)'
+    _VALID_URL = r'http://(?:www\.)?thvideo\.tv/(?:v/th|mobile\.php\?cid=)(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://thvideo.tv/v/th1987/',
         'md5': 'fa107b1f73817e325e9433505a70db50',
@@ -30,18 +30,22 @@ class THVideoIE(InfoExtractor):
         video_id = mobj.group('id')
 
         # extract download link from mobile player page
-        webpage_player = self._download_webpage('http://thvideo.tv/mobile.php?cid=%s-0' % video_id, video_id)
-        video_url = self._html_search_regex(r'<source src="(.*?)" type', webpage_player, 'video url')
+        webpage_player = self._download_webpage(
+            'http://thvideo.tv/mobile.php?cid=%s-0' % (video_id),
+            video_id, note='Downloading video source page')
+        video_url = self._html_search_regex(
+            r'<source src="(.*?)" type', webpage_player, 'video url')
 
         # extract video info from main page
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(
+            'http://thvideo.tv/v/th%s' % (video_id), video_id)
         title = self._og_search_title(webpage)
         display_id = 'th%s' % video_id
         thumbnail = self._og_search_thumbnail(webpage)
         description = self._og_search_description(webpage)
-        upload_date_raw = self._html_search_regex(r'span itemprop="datePublished" content="(.*?)">', webpage,
-                                                  'upload date', fatal=False)
-        upload_date = unified_strdate(upload_date_raw)
+        upload_date = unified_strdate(self._html_search_regex(
+            r'span itemprop="datePublished" content="(.*?)">', webpage,
+            'upload date', fatal=False))
 
         return {
             'id': video_id,
