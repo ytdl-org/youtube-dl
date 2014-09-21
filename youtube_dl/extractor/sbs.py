@@ -21,7 +21,7 @@ class SBSIE(InfoExtractor):
         'md5': '3150cf278965eeabb5b4cea1c963fe0a',
         'info_dict': {
             'id': '320403011771',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Dingo Conservation',
             'description': 'Dingoes are on the brink of extinction; most of the animals we think are dingoes are in fact crossbred with wild dogs. This family run a dingo conservation park to prevent their extinction',
             'thumbnail': 're:http://.*\.jpg',
