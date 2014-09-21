@@ -448,6 +448,7 @@ from .yahoo import (
 from .youjizz import YouJizzIE
 from .youku import YoukuIE
 from .youporn import YouPornIE
+from .yourupload import YourUploadIE
 from .youtube import (
     YoutubeIE,
     YoutubeChannelIE,
