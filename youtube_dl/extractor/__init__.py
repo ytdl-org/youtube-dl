@@ -199,6 +199,7 @@ from .malemotion import MalemotionIE
 from .mdr import MDRIE
 from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
+from .mgoon import MgoonIE
 from .ministrygrid import MinistryGridIE
 from .mit import TechTVMITIE, MITIE, OCWMITIE
 from .mitele import MiTeleIE
