@@ -62,10 +62,7 @@ class ThePlatformIE(InfoExtractor):
             # the parameters are from syfy.com, other sites may use others,
             # they also work for nbc.com
             f4m_url += '&g=UXWGVKRWHFSP&hdcore=3.0.3'
-            formats = [{
-                'ext': 'flv',
-                'url': f4m_url,
-            }]
+            formats = self._extract_f4m_formats(f4m_url, video_id)
         else:
             base_url = head.find(_x('smil:meta')).attrib['base']
             switch = body.find(_x('smil:switch'))
