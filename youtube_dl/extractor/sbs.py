@@ -12,7 +12,7 @@ from ..utils import (
 
 class SBSIE(InfoExtractor):
     IE_DESC = 'sbs.com.au'
-    _VALID_URL = r'https?://(?:www\.)?sbs\.com\.au/ondemand/video/single/(?P<id>[0-9]+)/'
+    _VALID_URL = r'https?://(?:www\.)?sbs\.com\.au/ondemand/video/(?:single/)?(?P<id>[0-9]+)'
 
     _TESTS = [{
         # Original URL is handled by the generic IE which finds the iframe:
@@ -27,6 +27,10 @@ class SBSIE(InfoExtractor):
             'thumbnail': 're:http://.*\.jpg',
         },
         'add_ies': ['generic'],
+    },
+    {
+        'url': 'http://www.sbs.com.au/ondemand/video/320403011771/Dingo-Conservation-The-Feed',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
