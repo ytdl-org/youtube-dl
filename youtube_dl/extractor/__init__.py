@@ -240,6 +240,7 @@ from .ndtv import NDTVIE
 from .newgrounds import NewgroundsIE
 from .newstube import NewstubeIE
 from .nfb import NFBIE
+from .nfl import NFLIE
 from .nhl import NHLIE, NHLVideocenterIE
 from .niconico import NiconicoIE
 from .ninegag import NineGagIE
