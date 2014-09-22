@@ -249,7 +249,10 @@ from .nosvideo import NosVideoIE
 from .novamov import NovaMovIE
 from .nowness import NownessIE
 from .nowvideo import NowVideoIE
-from .npo import NPOIE
+from .npo import (
+    NPOIE,
+    TegenlichtVproIE,
+)
 from .nrk import (
     NRKIE,
     NRKTVIE,

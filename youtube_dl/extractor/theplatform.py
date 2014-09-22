@@ -5,6 +5,7 @@ import json
 
 from .common import InfoExtractor
 from ..utils import (
+    compat_str,
     ExtractorError,
     xpath_with_ns,
 )
@@ -55,36 +56,44 @@ class ThePlatformIE(InfoExtractor):
         body = meta.find(_x('smil:body'))
 
         f4m_node = body.find(_x('smil:seq//smil:video'))
-        if f4m_node is not None:
+        if f4m_node is not None and '.f4m' in f4m_node.attrib['src']:
             f4m_url = f4m_node.attrib['src']
             if 'manifest.f4m?' not in f4m_url:
                 f4m_url += '?'
             # the parameters are from syfy.com, other sites may use others,
             # they also work for nbc.com
             f4m_url += '&g=UXWGVKRWHFSP&hdcore=3.0.3'
-            formats = [{
-                'ext': 'flv',
-                'url': f4m_url,
-            }]
+            formats = self._extract_f4m_formats(f4m_url, video_id)
         else:
-            base_url = head.find(_x('smil:meta')).attrib['base']
-            switch = body.find(_x('smil:switch'))
             formats = []
-            for f in switch.findall(_x('smil:video')):
-                attr = f.attrib
-                width = int(attr['width'])
-                height = int(attr['height'])
-                vbr = int(attr['system-bitrate']) // 1000
-                format_id = '%dx%d_%dk' % (width, height, vbr)
-                formats.append({
-                    'format_id': format_id,
-                    'url': base_url,
-                    'play_path': 'mp4:' + attr['src'],
-                    'ext': 'flv',
-                    'width': width,
-                    'height': height,
-                    'vbr': vbr,
-                })
+            switch = body.find(_x('smil:switch'))
+            if switch is not None:
+                base_url = head.find(_x('smil:meta')).attrib['base']
+                for f in switch.findall(_x('smil:video')):
+                    attr = f.attrib
+                    width = int(attr['width'])
+                    height = int(attr['height'])
+                    vbr = int(attr['system-bitrate']) // 1000
+                    format_id = '%dx%d_%dk' % (width, height, vbr)
+                    formats.append({
+                        'format_id': format_id,
+                        'url': base_url,
+                        'play_path': 'mp4:' + attr['src'],
+                        'ext': 'flv',
+                        'width': width,
+                        'height': height,
+                        'vbr': vbr,
+                    })
+            else:
+                switch = body.find(_x('smil:seq//smil:switch'))
+                for f in switch.findall(_x('smil:video')):
+                    attr = f.attrib
+                    vbr = int(attr['system-bitrate']) // 1000
+                    formats.append({
+                        'format_id': compat_str(vbr),
+                        'url': attr['src'],
+                        'vbr': vbr,
+                    })
             self._sort_formats(formats)
 
         return {

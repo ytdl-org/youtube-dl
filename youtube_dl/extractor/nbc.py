@@ -16,9 +16,9 @@ class NBCIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://www.nbc.com/chicago-fire/video/i-am-a-firefighter/2734188',
-        'md5': '54d0fbc33e0b853a65d7b4de5c06d64e',
+        # md5 checksum is not stable
         'info_dict': {
-            'id': 'u1RInQZRN7QJ',
+            'id': 'bTmnLCvIbaaH',
             'ext': 'flv',
             'title': 'I Am a Firefighter',
             'description': 'An emergency puts Dawson\'sf irefighter skills to the ultimate test in this four-part digital series.',

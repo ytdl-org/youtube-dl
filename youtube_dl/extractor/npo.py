@@ -7,6 +7,7 @@ from ..utils import (
     unified_strdate,
     parse_duration,
     qualities,
+    url_basename,
 )
 
 
@@ -55,7 +56,9 @@ class NPOIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
+        return self._get_info(video_id)
 
+    def _get_info(self, video_id):
         metadata = self._download_json(
             'http://e.omroep.nl/metadata/aflevering/%s' % video_id,
             video_id,
@@ -106,3 +109,30 @@ class NPOIE(InfoExtractor):
             'duration': parse_duration(metadata.get('tijdsduur')),
             'formats': formats,
         }
+
+
+class TegenlichtVproIE(NPOIE):
+    IE_NAME = 'tegenlicht.vpro.nl'
+    _VALID_URL = r'https?://tegenlicht\.vpro\.nl/afleveringen/.*?'
+
+    _TESTS = [
+        {
+            'url': 'http://tegenlicht.vpro.nl/afleveringen/2012-2013/de-toekomst-komt-uit-afrika.html',
+            'md5': 'f8065e4e5a7824068ed3c7e783178f2c',
+            'info_dict': {
+                'id': 'VPWON_1169289',
+                'ext': 'm4v',
+                'title': 'Tegenlicht',
+                'description': 'md5:d6476bceb17a8c103c76c3b708f05dd1',
+                'upload_date': '20130225',
+            },
+        },
+    ]
+
+    def _real_extract(self, url):
+        name = url_basename(url)
+        webpage = self._download_webpage(url, name)
+        urn = self._html_search_meta('mediaurn', webpage)
+        info_page = self._download_json(
+            'http://rs.vpro.nl/v2/api/media/%s.json' % urn, name)
+        return self._get_info(info_page['mid'])

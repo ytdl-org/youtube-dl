@@ -16,6 +16,7 @@ from ..utils import (
     format_bytes,
     encodeFilename,
     sanitize_open,
+    xpath_text,
 )
 
 
@@ -251,6 +252,8 @@ class F4mFD(FileDownloader):
             # We only download the first fragment
             fragments_list = fragments_list[:1]
         total_frags = len(fragments_list)
+        # For some akamai manifests we'll need to add a query to the fragment url
+        akamai_pv = xpath_text(doc, _add_ns('pv-2.0'))
 
         tmpfilename = self.temp_name(filename)
         (dest_stream, tmpfilename) = sanitize_open(tmpfilename, 'wb')
@@ -290,6 +293,8 @@ class F4mFD(FileDownloader):
         for (seg_i, frag_i) in fragments_list:
             name = 'Seg%d-Frag%d' % (seg_i, frag_i)
             url = base_url + name
+            if akamai_pv:
+                url += '?' + akamai_pv.strip(';')
             frag_filename = '%s-%s' % (tmpfilename, name)
             success = http_dl.download(frag_filename, {'url': url})
             if not success:
