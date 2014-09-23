@@ -17,7 +17,7 @@ class NFLIE(InfoExtractor):
     _PLAYER_CONFIG_URL = 'http://www.nfl.com/static/content/static/config/video/config.json'
     _TEST = {
         'url': 'http://www.nfl.com/videos/nfl-game-highlights/0ap3000000398478/Week-3-Redskins-vs-Eagles-highlights',
-        'skip_download': True,  # md5 sum fluctuates
+        # 'md5': '5eb8c40a727dda106d510e5d6ffa79e5',  # md5 checksum fluctuates
         'info_dict': {
             'id': '0ap3000000398478',
             'ext': 'mp4',
