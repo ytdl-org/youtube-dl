@@ -62,7 +62,7 @@ class NocoIE(InfoExtractor):
 
     def _call_api(self, path, video_id, note):
         ts = compat_str(int(time.time() * 1000))
-        tk = hashlib.md5(hashlib.md5(ts).hexdigest() + '#8S?uCraTedap6a').hexdigest()
+        tk = hashlib.md5((hashlib.md5(ts.encode('ascii')).hexdigest() + '#8S?uCraTedap6a').encode('ascii')).hexdigest()
         url = self._API_URL_TEMPLATE % (path, ts, tk)
 
         resp = self._download_json(url, video_id, note)
