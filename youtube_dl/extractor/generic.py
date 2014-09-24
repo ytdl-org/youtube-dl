@@ -631,7 +631,7 @@ class GenericIE(InfoExtractor):
             )
             (["\'])
                 (?P<url>(?:https?:)?//(?:www\.)?youtube(?:-nocookie)?\.com/
-                (?:embed|v)/.+?)
+                (?:embed|v|p)/.+?)
             \1''', webpage)
         if matches:
             return _playlist_from_matches(

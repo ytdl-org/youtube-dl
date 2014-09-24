@@ -1068,6 +1068,13 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         'info_dict': {
             'title': 'JODA15',
         }
+    }, {
+        'note': 'Embedded SWF player',
+        'url': 'http://www.youtube.com/p/YN5VISEtHet5D4NEvfTd0zcgFk84NqFZ?hl=en_US&fs=1&rel=0',
+        'playlist_count': 4,
+        'info_dict': {
+            'title': 'JODA7',
+        }
     }]
 
     def _real_initialize(self):
