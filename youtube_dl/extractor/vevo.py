@@ -191,30 +191,6 @@ class VevoIE(InfoExtractor):
         # Download via HLS API
         formats.extend(self._download_api_formats(video_id))
 
-        # Download SMIL
-        smil_blocks = sorted((
-            f for f in video_info['videoVersions']
-            if f['sourceType'] == 13),
-            key=lambda f: f['version'])
-
-        smil_url = '%s/Video/V2/VFILE/%s/%sr.smil' % (
-            self._SMIL_BASE_URL, video_id, video_id.lower())
-        if smil_blocks:
-            smil_url_m = self._search_regex(
-                r'url="([^"]+)"', smil_blocks[-1]['data'], 'SMIL URL',
-                fatal=False)
-            if smil_url_m is not None:
-                smil_url = smil_url_m
-        try:
-            smil_xml = self._download_webpage(smil_url, video_id,
-                                              'Downloading SMIL info')
-            formats.extend(self._formats_from_smil(smil_xml))
-        except ExtractorError as ee:
-            if not isinstance(ee.cause, compat_HTTPError):
-                raise
-            self._downloader.report_warning(
-                'Cannot download SMIL information, falling back to JSON ..')
-
         self._sort_formats(formats)
         timestamp_ms = int(self._search_regex(
             r'/Date\((\d+)\)/', video_info['launchDate'], 'launch date'))
