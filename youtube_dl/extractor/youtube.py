@@ -307,69 +307,74 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     IE_NAME = 'youtube'
     _TESTS = [
         {
-            u"url":  u"http://www.youtube.com/watch?v=BaW_jenozKc",
-            u"file":  u"BaW_jenozKc.mp4",
-            u"info_dict": {
-                u"title": u"youtube-dl test video \"'/\\ä↭𝕐",
-                u"uploader": u"Philipp Hagemeister",
-                u"uploader_id": u"phihag",
-                u"upload_date": u"20121002",
-                u"description": u"test chars:  \"'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .",
-                u"categories": [u'Science & Technology'],
+            'url': 'http://www.youtube.com/watch?v=BaW_jenozKc',
+            'info_dict': {
+                'id': 'BaW_jenozKc',
+                'ext': 'mp4',
+                'title': 'youtube-dl test video "\'/\\ä↭𝕐',
+                'uploader': 'Philipp Hagemeister',
+                'uploader_id': 'phihag',
+                'upload_date': '20121002',
+                'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .',
+                'categories': ['Science & Technology'],
                 'like_count': int,
                 'dislike_count': int,
             }
         },
         {
-            u"url":  u"http://www.youtube.com/watch?v=UxxajLWwzqY",
-            u"file":  u"UxxajLWwzqY.mp4",
-            u"note": u"Test generic use_cipher_signature video (#897)",
-            u"info_dict": {
-                u"upload_date": u"20120506",
-                u"title": u"Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]",
-                u"description": u"md5:fea86fda2d5a5784273df5c7cc994d9f",
-                u"uploader": u"Icona Pop",
-                u"uploader_id": u"IconaPop"
+            'url': 'http://www.youtube.com/watch?v=UxxajLWwzqY',
+            'note': 'Test generic use_cipher_signature video (#897)',
+            'info_dict': {
+                'id': 'UxxajLWwzqY',
+                'ext': 'mp4',
+                'upload_date': '20120506',
+                'title': 'Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]',
+                'description': 'md5:fea86fda2d5a5784273df5c7cc994d9f',
+                'uploader': 'Icona Pop',
+                'uploader_id': 'IconaPop',
             }
         },
         {
-            u"url":  u"https://www.youtube.com/watch?v=07FYdnEawAQ",
-            u"file":  u"07FYdnEawAQ.mp4",
-            u"note": u"Test VEVO video with age protection (#956)",
-            u"info_dict": {
-                u"upload_date": u"20130703",
-                u"title": u"Justin Timberlake - Tunnel Vision (Explicit)",
-                u"description": u"md5:64249768eec3bc4276236606ea996373",
-                u"uploader": u"justintimberlakeVEVO",
-                u"uploader_id": u"justintimberlakeVEVO"
+            'url': 'https://www.youtube.com/watch?v=07FYdnEawAQ',
+            'note': 'Test VEVO video with age protection (#956)',
+            'info_dict': {
+                'id': '07FYdnEawAQ',
+                'ext': 'mp4',
+                'upload_date': '20130703',
+                'title': 'Justin Timberlake - Tunnel Vision (Explicit)',
+                'description': 'md5:64249768eec3bc4276236606ea996373',
+                'uploader': 'justintimberlakeVEVO',
+                'uploader_id': 'justintimberlakeVEVO',
             }
         },
         {
-            u"url":  u"//www.YouTube.com/watch?v=yZIXLfi8CZQ",
-            u"file":  u"yZIXLfi8CZQ.mp4",
-            u"note": u"Embed-only video (#1746)",
-            u"info_dict": {
-                u"upload_date": u"20120608",
-                u"title": u"Principal Sexually Assaults A Teacher - Episode 117 - 8th June 2012",
-                u"description": u"md5:09b78bd971f1e3e289601dfba15ca4f7",
-                u"uploader": u"SET India",
-                u"uploader_id": u"setindia"
+            'url': '//www.YouTube.com/watch?v=yZIXLfi8CZQ',
+            'note': 'Embed-only video (#1746)',
+            'info_dict': {
+                'id': 'yZIXLfi8CZQ',
+                'ext': 'mp4',
+                'upload_date': '20120608',
+                'title': 'Principal Sexually Assaults A Teacher - Episode 117 - 8th June 2012',
+                'description': 'md5:09b78bd971f1e3e289601dfba15ca4f7',
+                'uploader': 'SET India',
+                'uploader_id': 'setindia'
             }
         },
         {
-            u"url": u"http://www.youtube.com/watch?v=a9LDPn-MO4I",
-            u"file": u"a9LDPn-MO4I.m4a",
-            u"note": u"256k DASH audio (format 141) via DASH manifest",
-            u"info_dict": {
-                u"upload_date": "20121002",
-                u"uploader_id": "8KVIDEO",
-                u"description": '',
-                u"uploader": "8KVIDEO",
-                u"title": "UHDTV TEST 8K VIDEO.mp4"
+            'url': 'http://www.youtube.com/watch?v=a9LDPn-MO4I',
+            'note': '256k DASH audio (format 141) via DASH manifest',
+            'info_dict': {
+                'id': 'a9LDPn-MO4I',
+                'ext': 'm4a',
+                'upload_date': '20121002',
+                'uploader_id': '8KVIDEO',
+                'description': '',
+                'uploader': '8KVIDEO',
+                'title': 'UHDTV TEST 8K VIDEO.mp4'
             },
-            u"params": {
-                u"youtube_include_dash_manifest": True,
-                u"format": "141",
+            'params': {
+                'youtube_include_dash_manifest': True,
+                'format': '141',
             },
         },
         # DASH manifest with encrypted signature
@@ -384,7 +389,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'uploader_id': 'AfrojackVEVO',
                 'upload_date': '20131011',
             },
-            u"params": {
+            'params': {
                 'youtube_include_dash_manifest': True,
                 'format': '141',
             },
