@@ -584,7 +584,9 @@ class GenericIE(InfoExtractor):
 
         # Helper method
         def _playlist_from_matches(matches, getter, ie=None):
-            urlrs = orderedSet(self.url_result(getter(m), ie) for m in matches)
+            urlrs = orderedSet(
+                self.url_result(self._proto_relative_url(getter(m)), ie)
+                for m in matches)
             return self.playlist_result(
                 urlrs, playlist_id=video_id, playlist_title=video_title)
 
@@ -633,7 +635,7 @@ class GenericIE(InfoExtractor):
             \1''', webpage)
         if matches:
             return _playlist_from_matches(
-                matches, lambda m: unescapeHTML(m[1]), ie='Youtube')
+                matches, lambda m: unescapeHTML(m[1]))
 
         # Look for embedded Dailymotion player
         matches = re.findall(
