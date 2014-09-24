@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from .common import FileDownloader
 from .hls import HlsFD
+from .hls import NativeHlsFD
 from .http import HttpFD
 from .mplayer import MplayerFD
 from .rtmp import RtmpFD
@@ -19,6 +20,8 @@ def get_suitable_downloader(info_dict):
 
     if url.startswith('rtmp'):
         return RtmpFD
+    if protocol == 'm3u8_native':
+        return NativeHlsFD
     if (protocol == 'm3u8') or (protocol is None and determine_ext(url) == 'm3u8'):
         return HlsFD
     if url.startswith('mms') or url.startswith('rtsp'):

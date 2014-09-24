@@ -15,6 +15,7 @@ from ..utils import (
     compat_http_client,
     compat_urllib_error,
     compat_urllib_parse_urlparse,
+    compat_urlparse,
     compat_str,
 
     clean_html,
@@ -640,7 +641,9 @@ class InfoExtractor(object):
 
         return formats
 
-    def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None):
+    def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
+                              entry_protocol='m3u8', preference=None):
+
         formats = [{
             'format_id': 'm3u8-meta',
             'url': m3u8_url,
@@ -650,6 +653,11 @@ class InfoExtractor(object):
             'resolution': 'multiple',
             'format_note': 'Quality selection URL',
         }]
+
+        format_url = lambda u: (
+            u
+            if re.match(r'^https?://', u)
+            else compat_urlparse.urljoin(m3u8_url, u))
 
         m3u8_doc = self._download_webpage(m3u8_url, video_id)
         last_info = None
@@ -667,15 +675,17 @@ class InfoExtractor(object):
                 continue
             else:
                 if last_info is None:
-                    formats.append({'url': line})
+                    formats.append({'url': format_url(line)})
                     continue
                 tbr = int_or_none(last_info.get('BANDWIDTH'), scale=1000)
 
                 f = {
                     'format_id': 'm3u8-%d' % (tbr if tbr else len(formats)),
-                    'url': line.strip(),
+                    'url': format_url(line.strip()),
                     'tbr': tbr,
                     'ext': ext,
+                    'protocol': entry_protocol,
+                    'preference': preference,
                 }
                 codecs = last_info.get('CODECS')
                 if codecs:

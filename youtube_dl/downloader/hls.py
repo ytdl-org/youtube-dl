@@ -1,8 +1,12 @@
+from __future__ import unicode_literals
+
 import os
+import re
 import subprocess
 
 from .common import FileDownloader
 from ..utils import (
+    compat_urlparse,
     check_executable,
     encodeFilename,
 )
@@ -43,3 +47,46 @@ class HlsFD(FileDownloader):
             self.to_stderr(u"\n")
             self.report_error(u'%s exited with code %d' % (program, retval))
             return False
+
+
+class NativeHlsFD(FileDownloader):
+    """ A more limited implementation that does not require ffmpeg """
+
+    def real_download(self, filename, info_dict):
+        url = info_dict['url']
+        self.report_destination(filename)
+        tmpfilename = self.temp_name(filename)
+
+        self.to_screen(
+            '[hlsnative] %s: Downloading m3u8 manifest' % info_dict['id'])
+        data = self.ydl.urlopen(url).read()
+        s = data.decode('utf-8', 'ignore')
+        segment_urls = []
+        for line in s.splitlines():
+            line = line.strip()
+            if line and not line.startswith('#'):
+                segment_url = (
+                    line
+                    if re.match(r'^https?://', line)
+                    else compat_urlparse.urljoin(url, line))
+                segment_urls.append(segment_url)
+
+        byte_counter = 0
+        with open(tmpfilename, 'wb') as outf:
+            for i, segurl in enumerate(segment_urls):
+                segment = self.ydl.urlopen(segurl).read()
+                outf.write(segment)
+                byte_counter += len(segment)
+                self.to_screen(
+                    '[hlsnative] %s: Downloading segment %d / %d' %
+                    (info_dict['id'], i + 1, len(segment_urls)))
+
+        self._hook_progress({
+            'downloaded_bytes': byte_counter,
+            'total_bytes': byte_counter,
+            'filename': filename,
+            'status': 'finished',
+        })
+        self.try_rename(tmpfilename, filename)
+        return True
+
