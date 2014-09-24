@@ -46,7 +46,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     def _set_language(self):
         return bool(self._download_webpage(
             self._LANG_URL, None,
-            note=u'Setting language', errnote='unable to set language',
+            note='Setting language', errnote='unable to set language',
             fatal=False))
 
     def _login(self):
@@ -61,13 +61,13 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         # No authentication to be performed
         if username is None:
             if self._LOGIN_REQUIRED:
-                raise ExtractorError(u'No login info available, needed for using %s.' % self.IE_NAME, expected=True)
+                raise ExtractorError('No login info available, needed for using %s.' % self.IE_NAME, expected=True)
             return True
 
         login_page = self._download_webpage(
             self._LOGIN_URL, None,
-            note=u'Downloading login page',
-            errnote=u'unable to fetch login page', fatal=False)
+            note='Downloading login page',
+            errnote='unable to fetch login page', fatal=False)
         if login_page is False:
             return
 
@@ -105,12 +105,12 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         req = compat_urllib_request.Request(self._LOGIN_URL, login_data)
         login_results = self._download_webpage(
             req, None,
-            note=u'Logging in', errnote=u'unable to log in', fatal=False)
+            note='Logging in', errnote='unable to log in', fatal=False)
         if login_results is False:
             return False
 
         if re.search(r'id="errormsg_0_Passwd"', login_results) is not None:
-            raise ExtractorError(u'Please use your account password and a two-factor code instead of an application-specific password.', expected=True)
+            raise ExtractorError('Please use your account password and a two-factor code instead of an application-specific password.', expected=True)
 
         # Two-Factor
         # TODO add SMS and phone call support - these require making a request and then prompting the user
@@ -119,19 +119,19 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             tfa_code = self._get_tfa_info()
 
             if tfa_code is None:
-                self._downloader.report_warning(u'Two-factor authentication required. Provide it with --twofactor <code>')
-                self._downloader.report_warning(u'(Note that only TOTP (Google Authenticator App) codes work at this time.)')
+                self._downloader.report_warning('Two-factor authentication required. Provide it with --twofactor <code>')
+                self._downloader.report_warning('(Note that only TOTP (Google Authenticator App) codes work at this time.)')
                 return False
 
             # Unlike the first login form, secTok and timeStmp are both required for the TFA form
 
             match = re.search(r'id="secTok"\n\s+value=\'(.+)\'/>', login_results, re.M | re.U)
             if match is None:
-                self._downloader.report_warning(u'Failed to get secTok - did the page structure change?')
+                self._downloader.report_warning('Failed to get secTok - did the page structure change?')
             secTok = match.group(1)
             match = re.search(r'id="timeStmp"\n\s+value=\'(.+)\'/>', login_results, re.M | re.U)
             if match is None:
-                self._downloader.report_warning(u'Failed to get timeStmp - did the page structure change?')
+                self._downloader.report_warning('Failed to get timeStmp - did the page structure change?')
             timeStmp = match.group(1)
 
             tfa_form_strs = {
@@ -155,23 +155,23 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             tfa_req = compat_urllib_request.Request(self._TWOFACTOR_URL, tfa_data)
             tfa_results = self._download_webpage(
                 tfa_req, None,
-                note=u'Submitting TFA code', errnote=u'unable to submit tfa', fatal=False)
+                note='Submitting TFA code', errnote='unable to submit tfa', fatal=False)
 
             if tfa_results is False:
                 return False
 
             if re.search(r'(?i)<form[^>]* id="gaia_secondfactorform"', tfa_results) is not None:
-                self._downloader.report_warning(u'Two-factor code expired. Please try again, or use a one-use backup code instead.')
+                self._downloader.report_warning('Two-factor code expired. Please try again, or use a one-use backup code instead.')
                 return False
             if re.search(r'(?i)<form[^>]* id="gaia_loginform"', tfa_results) is not None:
-                self._downloader.report_warning(u'unable to log in - did the page structure change?')
+                self._downloader.report_warning('unable to log in - did the page structure change?')
                 return False
             if re.search(r'smsauth-interstitial-reviewsettings', tfa_results) is not None:
-                self._downloader.report_warning(u'Your Google account has a security notice. Please log in on your web browser, resolve the notice, and try again.')
+                self._downloader.report_warning('Your Google account has a security notice. Please log in on your web browser, resolve the notice, and try again.')
                 return False
 
         if re.search(r'(?i)<form[^>]* id="gaia_loginform"', login_results) is not None:
-            self._downloader.report_warning(u'unable to log in: bad username or password')
+            self._downloader.report_warning('unable to log in: bad username or password')
             return False
         return True
 
@@ -185,7 +185,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
         self._download_webpage(
             req, None,
-            note=u'Confirming age', errnote=u'Unable to confirm age')
+            note='Confirming age', errnote='Unable to confirm age')
         return True
 
     def _real_initialize(self):
@@ -402,19 +402,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
     def report_video_info_webpage_download(self, video_id):
         """Report attempt to download video info webpage."""
-        self.to_screen(u'%s: Downloading video info webpage' % video_id)
+        self.to_screen('%s: Downloading video info webpage' % video_id)
 
     def report_information_extraction(self, video_id):
         """Report attempt to extract video information."""
-        self.to_screen(u'%s: Extracting video information' % video_id)
+        self.to_screen('%s: Extracting video information' % video_id)
 
     def report_unavailable_format(self, video_id, format):
         """Report extracted video URL."""
-        self.to_screen(u'%s: Format %s not available' % (video_id, format))
+        self.to_screen('%s: Format %s not available' % (video_id, format))
 
     def report_rtmp_download(self):
         """Indicate the download will use the RTMP protocol."""
-        self.to_screen(u'RTMP download detected')
+        self.to_screen('RTMP download detected')
 
     def _signature_cache_id(self, example_sig):
         """ Return a string representation of a signature """
@@ -434,21 +434,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             player_type, player_id, self._signature_cache_id(example_sig))
         assert os.path.basename(func_id) == func_id
 
-        cache_spec = self._downloader.cache.load(u'youtube-sigfuncs', func_id)
+        cache_spec = self._downloader.cache.load('youtube-sigfuncs', func_id)
         if cache_spec is not None:
             return lambda s: ''.join(s[i] for i in cache_spec)
 
         if player_type == 'js':
             code = self._download_webpage(
                 player_url, video_id,
-                note=u'Downloading %s player %s' % (player_type, player_id),
-                errnote=u'Download of %s failed' % player_url)
+                note='Downloading %s player %s' % (player_type, player_id),
+                errnote='Download of %s failed' % player_url)
             res = self._parse_sig_js(code)
         elif player_type == 'swf':
             urlh = self._request_webpage(
                 player_url, video_id,
-                note=u'Downloading %s player %s' % (player_type, player_id),
-                errnote=u'Download of %s failed' % player_url)
+                note='Downloading %s player %s' % (player_type, player_id),
+                errnote='Download of %s failed' % player_url)
             code = urlh.read()
             res = self._parse_sig_swf(code)
         else:
@@ -459,15 +459,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             cache_res = res(test_string)
             cache_spec = [ord(c) for c in cache_res]
 
-        self._downloader.cache.store(u'youtube-sigfuncs', func_id, cache_spec)
+        self._downloader.cache.store('youtube-sigfuncs', func_id, cache_spec)
         return res
 
     def _print_sig_code(self, func, example_sig):
         def gen_sig_code(idxs):
             def _genslice(start, end, step):
                 starts = '' if start == 0 else str(start)
-                ends = (u':%d' % (end+step)) if end + step >= 0 else ':'
-                steps = '' if step == 1 else (u':%d' % step)
+                ends = (':%d' % (end+step)) if end + step >= 0 else ':'
+                steps = '' if step == 1 else (':%d' % step)
                 return 's[%s%s%s]' % (starts, ends, steps)
 
             step = None
@@ -497,9 +497,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         expr_code = ' + '.join(gen_sig_code(cache_spec))
         signature_id_tuple = '(%s)' % (
             ', '.join(compat_str(len(p)) for p in example_sig.split('.')))
-        code = (u'if tuple(len(p) for p in s.split(\'.\')) == %s:\n'
+        code = ('if tuple(len(p) for p in s.split(\'.\')) == %s:\n'
                 '    return %s\n') % (signature_id_tuple, expr_code)
-        self.to_screen(u'Extracted signature function:\n' + code)
+        self.to_screen('Extracted signature function:\n' + code)
 
     def _parse_sig_js(self, jscode):
         funcname = self._search_regex(
@@ -521,9 +521,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         """Turn the encrypted s field into a working signature"""
 
         if player_url is None:
-            raise ExtractorError(u'Cannot decrypt signature without player_url')
+            raise ExtractorError('Cannot decrypt signature without player_url')
 
-        if player_url.startswith(u'//'):
+        if player_url.startswith('//'):
             player_url = 'https:' + player_url
         try:
             player_id = (player_url, self._signature_cache_id(s))
@@ -547,7 +547,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'https://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id,
                 video_id, note=False)
         except ExtractorError as err:
-            self._downloader.report_warning(u'unable to download video subtitles: %s' % compat_str(err))
+            self._downloader.report_warning('unable to download video subtitles: %s' % compat_str(err))
             return {}
         lang_list = re.findall(r'name="([^"]*)"[^>]+lang_code="([\w\-]+)"', sub_list)
 
@@ -565,7 +565,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             url = 'https://www.youtube.com/api/timedtext?' + params
             sub_lang_list[lang] = url
         if not sub_lang_list:
-            self._downloader.report_warning(u'video doesn\'t have subtitles')
+            self._downloader.report_warning('video doesn\'t have subtitles')
             return {}
         return sub_lang_list
 
@@ -573,7 +573,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         """We need the webpage for getting the captions url, pass it as an
            argument to speed up the process."""
         sub_format = self._downloader.params.get('subtitlesformat', 'srt')
-        self.to_screen(u'%s: Looking for automatic captions' % video_id)
+        self.to_screen('%s: Looking for automatic captions' % video_id)
         mobj = re.search(r';ytplayer.config = ({.*?});', webpage)
         err_msg = 'Couldn\'t find automatic captions for %s' % video_id
         if mobj is None:
@@ -594,7 +594,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             caption_list = self._download_xml(list_url, video_id)
             original_lang_node = caption_list.find('track')
             if original_lang_node is None or original_lang_node.attrib.get('kind') != 'asr' :
-                self._downloader.report_warning(u'Video doesn\'t have automatic captions')
+                self._downloader.report_warning('Video doesn\'t have automatic captions')
                 return {}
             original_lang = original_lang_node.attrib['lang_code']
 
@@ -620,7 +620,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
     def extract_id(cls, url):
         mobj = re.match(cls._VALID_URL, url, re.VERBOSE)
         if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
+            raise ExtractorError('Invalid URL: %s' % url)
         video_id = mobj.group(2)
         return video_id
 
@@ -640,7 +640,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
     def _extract_annotations(self, video_id):
         url = 'https://www.youtube.com/annotations_invideo?features=1&legacy=1&video_id=%s' % video_id
-        return self._download_webpage(url, video_id, note=u'Searching for annotations.', errnote=u'Unable to download video annotations.')
+        return self._download_webpage(url, video_id, note='Searching for annotations.', errnote='Unable to download video annotations.')
 
     def _real_extract(self, url):
         proto = (
@@ -710,14 +710,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         # Check for "rental" videos
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
-            raise ExtractorError(u'"rental" videos not supported')
+            raise ExtractorError('"rental" videos not supported')
 
         # Start extracting information
         self.report_information_extraction(video_id)
 
         # uploader
         if 'author' not in video_info:
-            raise ExtractorError(u'Unable to extract uploader name')
+            raise ExtractorError('Unable to extract uploader name')
         video_uploader = compat_urllib_parse.unquote_plus(video_info['author'][0])
 
         # uploader_id
@@ -726,13 +726,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         if mobj is not None:
             video_uploader_id = mobj.group(1)
         else:
-            self._downloader.report_warning(u'unable to extract uploader nickname')
+            self._downloader.report_warning('unable to extract uploader nickname')
 
         # title
         if 'title' in video_info:
             video_title = video_info['title'][0]
         else:
-            self._downloader.report_warning(u'Unable to extract video title')
+            self._downloader.report_warning('Unable to extract video title')
             video_title = '_'
 
         # thumbnail image
@@ -742,7 +742,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         if m_thumb is not None:
             video_thumbnail = m_thumb.group(1)
         elif 'thumbnail_url' not in video_info:
-            self._downloader.report_warning(u'unable to extract video thumbnail')
+            self._downloader.report_warning('unable to extract video thumbnail')
             video_thumbnail = None
         else:   # don't panic if we can't find it
             video_thumbnail = compat_urllib_parse.unquote_plus(video_info['thumbnail_url'][0])
@@ -796,8 +796,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             if count is not None:
                 return int(count.replace(',', ''))
             return None
-        like_count = _extract_count(u'like')
-        dislike_count = _extract_count(u'dislike')
+        like_count = _extract_count('like')
+        dislike_count = _extract_count('dislike')
 
         # subtitles
         video_subtitles = self.extract_subtitles(video_id, video_webpage)
@@ -807,7 +807,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             return
 
         if 'length_seconds' not in video_info:
-            self._downloader.report_warning(u'unable to extract video duration')
+            self._downloader.report_warning('unable to extract video duration')
             video_duration = None
         else:
             video_duration = int(compat_urllib_parse.unquote_plus(video_info['length_seconds'][0]))
@@ -828,11 +828,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             # Easy way to know if the 's' value is in url_encoded_fmt_stream_map
             # this signatures are encrypted
             if 'url_encoded_fmt_stream_map' not in args:
-                raise ValueError(u'No stream_map present')  # caught below
+                raise ValueError('No stream_map present')  # caught below
             re_signature = re.compile(r'[&,]s=')
             m_s = re_signature.search(args['url_encoded_fmt_stream_map'])
             if m_s is not None:
-                self.to_screen(u'%s: Encrypted signatures detected.' % video_id)
+                self.to_screen('%s: Encrypted signatures detected.' % video_id)
                 video_info['url_encoded_fmt_stream_map'] = [args['url_encoded_fmt_stream_map']]
             m_s = re_signature.search(args.get('adaptive_fmts', ''))
             if m_s is not None:
@@ -910,7 +910,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                                 player_desc = 'html5 player %s' % player_version
 
                         parts_sizes = self._signature_cache_id(encrypted_sig)
-                        self.to_screen(u'{%s} signature length %s, %s' %
+                        self.to_screen('{%s} signature length %s, %s' %
                             (format_id, parts_sizes, player_desc))
 
                     signature = self._decrypt_signature(
@@ -925,7 +925,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             url_map = self._extract_from_m3u8(manifest_url, video_id)
             formats = _map_to_format_list(url_map)
         else:
-            raise ExtractorError(u'no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
+            raise ExtractorError('no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
 
         # Look for the DASH manifest
         if (self._downloader.params.get('youtube_include_dash_manifest', False)):
@@ -946,9 +946,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 dash_manifest_url = re.sub(r'/s/([\w\.]+)', decrypt_sig, dash_manifest_url)
                 dash_doc = self._download_xml(
                     dash_manifest_url, video_id,
-                    note=u'Downloading DASH manifest',
-                    errnote=u'Could not download DASH manifest')
-                for r in dash_doc.findall(u'.//{urn:mpeg:DASH:schema:MPD:2011}Representation'):
+                    note='Downloading DASH manifest',
+                    errnote='Could not download DASH manifest')
+                for r in dash_doc.findall('.//{urn:mpeg:DASH:schema:MPD:2011}Representation'):
                     url_el = r.find('{urn:mpeg:DASH:schema:MPD:2011}BaseURL')
                     if url_el is None:
                         continue
@@ -974,7 +974,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                         existing_format.update(f)
 
             except (ExtractorError, KeyError) as e:
-                self.report_warning(u'Skipping DASH manifest: %s' % e, video_id)
+                self.report_warning('Skipping DASH manifest: %s' % e, video_id)
 
         self._sort_formats(formats)
 
@@ -1095,7 +1095,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         # Extract playlist id
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
+            raise ExtractorError('Invalid URL: %s' % url)
         playlist_id = mobj.group(1) or mobj.group(2)
 
         # Check if it's a video-specific URL
@@ -1103,16 +1103,16 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         if 'v' in query_dict:
             video_id = query_dict['v'][0]
             if self._downloader.params.get('noplaylist'):
-                self.to_screen(u'Downloading just video %s because of --no-playlist' % video_id)
+                self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
                 return self.url_result(video_id, 'Youtube', video_id=video_id)
             else:
-                self.to_screen(u'Downloading playlist %s - add --no-playlist to just download video %s' % (playlist_id, video_id))
+                self.to_screen('Downloading playlist %s - add --no-playlist to just download video %s' % (playlist_id, video_id))
 
         if playlist_id.startswith('RD'):
             # Mixes require a custom extraction process
             return self._extract_mix(playlist_id)
         if playlist_id.startswith('TL'):
-            raise ExtractorError(u'For downloading YouTube.com top lists, use '
+            raise ExtractorError('For downloading YouTube.com top lists, use '
                 'the "yttoplist" keyword, for example "youtube-dl \'yttoplist:music:Top Tracks\'"', expected=True)
 
         url = self._TEMPLATE_URL % playlist_id
@@ -1157,7 +1157,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
 
 class YoutubeTopListIE(YoutubePlaylistIE):
     IE_NAME = 'youtube:toplist'
-    IE_DESC = (u'YouTube.com top lists, "yttoplist:{channel}:{list title}"'
+    IE_DESC = ('YouTube.com top lists, "yttoplist:{channel}:{list title}"'
         ' (Example: "yttoplist:music:Top Tracks")')
     _VALID_URL = r'yttoplist:(?P<chann>.*?):(?P<title>.*?)$'
     _TESTS = []
@@ -1207,7 +1207,7 @@ class YoutubeChannelIE(InfoExtractor):
         # Extract channel id
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
+            raise ExtractorError('Invalid URL: %s' % url)
 
         # Download channel page
         channel_id = mobj.group(1)
@@ -1229,7 +1229,7 @@ class YoutubeChannelIE(InfoExtractor):
             for pagenum in itertools.count(1):
                 url = self._MORE_PAGES_URL % (pagenum, channel_id)
                 page = self._download_json(
-                    url, channel_id, note=u'Downloading page #%s' % pagenum,
+                    url, channel_id, note='Downloading page #%s' % pagenum,
                     transform_source=uppercase_escape)
 
                 ids_in_page = self.extract_videos_from_page(page['content_html'])
@@ -1238,7 +1238,7 @@ class YoutubeChannelIE(InfoExtractor):
                 if self._MORE_PAGES_INDICATOR not in page['load_more_widget_html']:
                     break
 
-        self._downloader.to_screen(u'[youtube] Channel %s: Found %i videos' % (channel_id, len(video_ids)))
+        self._downloader.to_screen('[youtube] Channel %s: Found %i videos' % (channel_id, len(video_ids)))
 
         url_entries = [self.url_result(video_id, 'Youtube', video_id=video_id)
                        for video_id in video_ids]
@@ -1265,7 +1265,7 @@ class YoutubeUserIE(InfoExtractor):
         # Extract username
         mobj = re.match(self._VALID_URL, url)
         if mobj is None:
-            raise ExtractorError(u'Invalid URL: %s' % url)
+            raise ExtractorError('Invalid URL: %s' % url)
 
         username = mobj.group(1)
 
@@ -1286,7 +1286,7 @@ class YoutubeUserIE(InfoExtractor):
             try:
                 response = json.loads(page)
             except ValueError as err:
-                raise ExtractorError(u'Invalid JSON in API response: ' + compat_str(err))
+                raise ExtractorError('Invalid JSON in API response: ' + compat_str(err))
             if 'entry' not in response['feed']:
                 return
 
@@ -1327,9 +1327,9 @@ class YoutubeSearchIE(SearchInfoExtractor):
                 compat_urllib_parse.quote_plus(query.encode('utf-8')),
                 (PAGE_SIZE * pagenum) + 1)
             data_json = self._download_webpage(
-                result_url, video_id=u'query "%s"' % query,
-                note=u'Downloading page %s' % (pagenum + 1),
-                errnote=u'Unable to download API page')
+                result_url, video_id='query "%s"' % query,
+                note='Downloading page %s' % (pagenum + 1),
+                errnote='Unable to download API page')
             data = json.loads(data_json)
             api_response = data['data']
 
@@ -1404,7 +1404,7 @@ class YoutubeShowIE(InfoExtractor):
         webpage = self._download_webpage(url, show_name, 'Downloading show webpage')
         # There's one playlist for each season of the show
         m_seasons = list(re.finditer(r'href="(/playlist\?list=.*?)"', webpage))
-        self.to_screen(u'%s: Found %s seasons' % (show_name, len(m_seasons)))
+        self.to_screen('%s: Found %s seasons' % (show_name, len(m_seasons)))
         return [self.url_result('https://www.youtube.com' + season.group(1), 'YoutubePlaylist') for season in m_seasons]
 
 
