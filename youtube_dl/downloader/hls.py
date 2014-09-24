@@ -7,6 +7,7 @@ import subprocess
 from .common import FileDownloader
 from ..utils import (
     compat_urlparse,
+    compat_urllib_request,
     check_executable,
     encodeFilename,
 )
@@ -71,15 +72,26 @@ class NativeHlsFD(FileDownloader):
                     else compat_urlparse.urljoin(url, line))
                 segment_urls.append(segment_url)
 
+        is_test = self.params.get('test', False)
+        remaining_bytes = self._TEST_FILE_SIZE if is_test else None
         byte_counter = 0
         with open(tmpfilename, 'wb') as outf:
             for i, segurl in enumerate(segment_urls):
-                segment = self.ydl.urlopen(segurl).read()
-                outf.write(segment)
-                byte_counter += len(segment)
                 self.to_screen(
                     '[hlsnative] %s: Downloading segment %d / %d' %
                     (info_dict['id'], i + 1, len(segment_urls)))
+                seg_req = compat_urllib_request.Request(segurl)
+                if remaining_bytes:
+                    seg_req.add_header('Range', 'bytes=0-%d' % (remaining_bytes - 1))
+
+                segment = self.ydl.urlopen(seg_req).read()
+                if remaining_bytes:
+                    segment = segment[:remaining_bytes]
+                    remaining_bytes -= len(segment)
+                outf.write(segment)
+                byte_counter += len(segment)
+                if remaining_bytes <= 0:
+                    break
 
         self._hook_progress({
             'downloaded_bytes': byte_counter,

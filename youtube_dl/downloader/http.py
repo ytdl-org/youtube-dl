@@ -14,8 +14,6 @@ from ..utils import (
 
 
 class HttpFD(FileDownloader):
-    _TEST_FILE_SIZE = 10241
-
     def real_download(self, filename, info_dict):
         url = info_dict['url']
         tmpfilename = self.temp_name(filename)

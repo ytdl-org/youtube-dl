@@ -25,7 +25,7 @@ class VevoIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.vevo.com/watch/hurts/somebody-to-die-for/GB1101300280',
-        "md5": "06bea460acb744eab74a9d7dcb4bfd61",
+        "md5": "95ee28ee45e70130e3ab02b0f579ae23",
         'info_dict': {
             'id': 'GB1101300280',
             'ext': 'mp4',
@@ -41,7 +41,7 @@ class VevoIE(InfoExtractor):
     }, {
         'note': 'v3 SMIL format',
         'url': 'http://www.vevo.com/watch/cassadee-pope/i-wish-i-could-break-your-heart/USUV71302923',
-        'md5': '893ec0e0d4426a1d96c01de8f2bdff58',
+        'md5': 'f6ab09b034f8c22969020b042e5ac7fc',
         'info_dict': {
             'id': 'USUV71302923',
             'ext': 'mp4',
