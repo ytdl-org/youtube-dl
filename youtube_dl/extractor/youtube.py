@@ -211,7 +211,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                             youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
                          (?:                                                  # the various things that can precede the ID:
-                             (?:(?:v|embed|e)/)                               # v/ or embed/ or e/
+                             (?:(?:v|embed|e)/(?!videoseries))                # v/ or embed/ or e/
                              |(?:                                             # or the v= param in all its forms
                                  (?:(?:watch|movie)(?:_popup)?(?:\.php)?/?)?  # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
                                  (?:\?|\#!?)                                  # the params delimiter ? or # or #!
@@ -1005,7 +1005,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                         (?:\w+\.)?
                         youtube\.com/
                         (?:
-                           (?:course|view_play_list|my_playlists|artist|playlist|watch)
+                           (?:course|view_play_list|my_playlists|artist|playlist|watch|embed/videoseries)
                            \? (?:.*?&)*? (?:p|a|list)=
                         |  p/
                         )
@@ -1061,6 +1061,13 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
             'title': 'YDL_safe_search',
         },
         'playlist_count': 2,
+    }, {
+        'note': 'embedded',
+        'url': 'http://www.youtube.com/embed/videoseries?list=PL6IaIsEjSbf96XFRuNccS_RuEXwNdsoEu',
+        'playlist_count': 4,
+        'info_dict': {
+            'title': 'JODA15',
+        }
     }]
 
     def _real_initialize(self):
