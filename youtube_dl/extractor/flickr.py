@@ -10,13 +10,13 @@ from ..utils import (
 
 
 class FlickrIE(InfoExtractor):
-    """Information Extractor for Flickr videos"""
-    _VALID_URL = r'(?:https?://)?(?:www\.|secure\.)?flickr\.com/photos/(?P<uploader_id>[\w\-_@]+)/(?P<id>\d+).*'
+    _VALID_URL = r'https?://(?:www\.|secure\.)?flickr\.com/photos/(?P<uploader_id>[\w\-_@]+)/(?P<id>\d+).*'
     _TEST = {
         'url': 'http://www.flickr.com/photos/forestwander-nature-pictures/5645318632/in/photostream/',
-        'file': '5645318632.mp4',
         'md5': '6fdc01adbc89d72fc9c4f15b4a4ba87b',
         'info_dict': {
+            'id': '5645318632',
+            'ext': 'mp4',
             "description": "Waterfalls in the Springtime at Dark Hollow Waterfalls. These are located just off of Skyline Drive in Virginia. They are only about 6/10 of a mile hike but it is a pretty steep hill and a good climb back up.", 
             "uploader_id": "forestwander-nature-pictures", 
             "title": "Dark Hollow Waterfalls"
@@ -49,12 +49,12 @@ class FlickrIE(InfoExtractor):
             raise ExtractorError('Unable to extract video url')
         video_url = mobj.group(1) + unescapeHTML(mobj.group(2))
 
-        return [{
-            'id':          video_id,
-            'url':         video_url,
-            'ext':         'mp4',
-            'title':       self._og_search_title(webpage),
+        return {
+            'id': video_id,
+            'url': video_url,
+            'ext': 'mp4',
+            'title': self._og_search_title(webpage),
             'description': self._og_search_description(webpage),
-            'thumbnail':   self._og_search_thumbnail(webpage),
+            'thumbnail': self._og_search_thumbnail(webpage),
             'uploader_id': video_uploader_id,
-        }]
+        }
