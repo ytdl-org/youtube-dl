@@ -1160,16 +1160,25 @@ class YoutubeTopListIE(YoutubePlaylistIE):
     IE_DESC = ('YouTube.com top lists, "yttoplist:{channel}:{list title}"'
         ' (Example: "yttoplist:music:Top Tracks")')
     _VALID_URL = r'yttoplist:(?P<chann>.*?):(?P<title>.*?)$'
-    _TESTS = []
+    _TESTS = [{
+        'url': 'yttoplist:music:Trending',
+        'playlist_mincount': 5,
+        'skip': 'Only works for logged-in users',
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         channel = mobj.group('chann')
         title = mobj.group('title')
         query = compat_urllib_parse.urlencode({'title': title})
-        playlist_re = 'href="([^"]+?%s.*?)"' % re.escape(query)
-        channel_page = self._download_webpage('https://www.youtube.com/%s' % channel, title)
-        link = self._html_search_regex(playlist_re, channel_page, 'list')
+        channel_page = self._download_webpage(
+            'https://www.youtube.com/%s' % channel, title)
+        link = self._html_search_regex(
+            r'''(?x)
+                <a\s+href="([^"]+)".*?>\s*
+                <span\s+class="branded-page-module-title-text">\s*
+                <span[^>]*>.*?%s.*?</span>''' % re.escape(query),
+            channel_page, 'list')
         url = compat_urlparse.urljoin('https://www.youtube.com/', link)
         
         video_re = r'data-index="\d+".*?data-video-id="([0-9A-Za-z_-]{11})"'
@@ -1195,6 +1204,11 @@ class YoutubeChannelIE(InfoExtractor):
     _MORE_PAGES_INDICATOR = 'yt-uix-load-more'
     _MORE_PAGES_URL = 'https://www.youtube.com/c4_browse_ajax?action_load_more_videos=1&flow=list&paging=%s&view=0&sort=da&channel_id=%s'
     IE_NAME = 'youtube:channel'
+    _TESTS = [{
+        'note': 'paginated channel',
+        'url': 'https://www.youtube.com/channel/UCKfVa3S1e4PHvxWcwyMMg8w',
+        'playlist_mincount': 91,
+    }]
 
     def extract_videos_from_page(self, page):
         ids_in_page = []
@@ -1252,6 +1266,17 @@ class YoutubeUserIE(InfoExtractor):
     _GDATA_PAGE_SIZE = 50
     _GDATA_URL = 'https://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d&alt=json'
     IE_NAME = 'youtube:user'
+
+    _TESTS = [{
+        'url': 'https://www.youtube.com/user/TheLinuxFoundation',
+        'playlist_mincount': 320,
+        'info_dict': {
+            'title': 'TheLinuxFoundation',
+        }
+    }, {
+        'url': 'ytuser:phihag',
+        'only_matching': True,
+    }]
 
     @classmethod
     def suitable(cls, url):
@@ -1361,6 +1386,13 @@ class YoutubeSearchURLIE(InfoExtractor):
     IE_DESC = 'YouTube.com search URLs'
     IE_NAME = 'youtube:search_url'
     _VALID_URL = r'https?://(?:www\.)?youtube\.com/results\?(.*?&)?search_query=(?P<query>[^&]+)(?:[&]|$)'
+    _TESTS = [{
+        'url': 'https://www.youtube.com/results?baz=bar&search_query=youtube-dl+test+video&filters=video&lclk=video',
+        'playlist_mincount': 5,
+        'info_dict': {
+            'title': 'youtube-dl test video',
+        }
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -1395,17 +1427,38 @@ class YoutubeSearchURLIE(InfoExtractor):
 
 class YoutubeShowIE(InfoExtractor):
     IE_DESC = 'YouTube.com (multi-season) shows'
-    _VALID_URL = r'https?://www\.youtube\.com/show/(.*)'
+    _VALID_URL = r'https?://www\.youtube\.com/show/(?P<id>[^?#]*)'
     IE_NAME = 'youtube:show'
+    _TESTS = [{
+        'url': 'http://www.youtube.com/show/airdisasters',
+        'playlist_mincount': 3,
+        'info_dict': {
+            'id': 'airdisasters',
+            'title': 'Air Disasters',
+        }
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        show_name = mobj.group(1)
-        webpage = self._download_webpage(url, show_name, 'Downloading show webpage')
+        playlist_id = mobj.group('id')
+        webpage = self._download_webpage(
+            url, playlist_id, 'Downloading show webpage')
         # There's one playlist for each season of the show
         m_seasons = list(re.finditer(r'href="(/playlist\?list=.*?)"', webpage))
-        self.to_screen('%s: Found %s seasons' % (show_name, len(m_seasons)))
-        return [self.url_result('https://www.youtube.com' + season.group(1), 'YoutubePlaylist') for season in m_seasons]
+        self.to_screen('%s: Found %s seasons' % (playlist_id, len(m_seasons)))
+        entries = [
+            self.url_result(
+                'https://www.youtube.com' + season.group(1), 'YoutubePlaylist')
+            for season in m_seasons
+        ]
+        title = self._og_search_title(webpage, fatal=False)
+
+        return {
+            '_type': 'playlist',
+            'id': playlist_id,
+            'title': title,
+            'entries': entries,
+        }
 
 
 class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
