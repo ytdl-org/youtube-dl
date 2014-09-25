@@ -284,8 +284,19 @@ class FileDownloader(object):
         """Download to a filename using the info from info_dict
         Return True on success and False otherwise
         """
+        nooverwrites_and_exists = (
+            self.params.get('nooverwrites', False)
+            and os.path.exists(encodeFilename(filename))
+        )
+
+        continuedl_and_exists = (
+            self.params.get('continuedl', False)
+            and os.path.isfile(encodeFilename(filename))
+            and not self.params.get('nopart', False)
+        )
+
         # Check file already present
-        if filename != '-' and self.params.get('continuedl', False) and os.path.isfile(encodeFilename(filename)) and not self.params.get('nopart', False):
+        if filename != '-' and nooverwrites_and_exists or continuedl_and_exists:
             self.report_file_already_downloaded(filename)
             self._hook_progress({
                 'filename': filename,

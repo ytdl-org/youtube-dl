@@ -1121,49 +1121,46 @@ class YoutubeDL(object):
                                             (info_dict['thumbnail'], compat_str(err)))
 
         if not self.params.get('skip_download', False):
-            if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(filename)):
-                success = True
-            else:
-                try:
-                    def dl(name, info):
-                        fd = get_suitable_downloader(info)(self, self.params)
-                        for ph in self._progress_hooks:
-                            fd.add_progress_hook(ph)
-                        if self.params.get('verbose'):
-                            self.to_stdout('[debug] Invoking downloader on %r' % info.get('url'))
-                        return fd.download(name, info)
-                    if info_dict.get('requested_formats') is not None:
-                        downloaded = []
-                        success = True
-                        merger = FFmpegMergerPP(self, not self.params.get('keepvideo'))
-                        if not merger._executable:
-                            postprocessors = []
-                            self.report_warning('You have requested multiple '
-                                                'formats but ffmpeg or avconv are not installed.'
-                                                ' The formats won\'t be merged')
-                        else:
-                            postprocessors = [merger]
-                        for f in info_dict['requested_formats']:
-                            new_info = dict(info_dict)
-                            new_info.update(f)
-                            fname = self.prepare_filename(new_info)
-                            fname = prepend_extension(fname, 'f%s' % f['format_id'])
-                            downloaded.append(fname)
-                            partial_success = dl(fname, new_info)
-                            success = success and partial_success
-                        info_dict['__postprocessors'] = postprocessors
-                        info_dict['__files_to_merge'] = downloaded
+            try:
+                def dl(name, info):
+                    fd = get_suitable_downloader(info)(self, self.params)
+                    for ph in self._progress_hooks:
+                        fd.add_progress_hook(ph)
+                    if self.params.get('verbose'):
+                        self.to_stdout('[debug] Invoking downloader on %r' % info.get('url'))
+                    return fd.download(name, info)
+                if info_dict.get('requested_formats') is not None:
+                    downloaded = []
+                    success = True
+                    merger = FFmpegMergerPP(self, not self.params.get('keepvideo'))
+                    if not merger._executable:
+                        postprocessors = []
+                        self.report_warning('You have requested multiple '
+                                            'formats but ffmpeg or avconv are not installed.'
+                                            ' The formats won\'t be merged')
                     else:
-                        # Just a single file
-                        success = dl(filename, info_dict)
-                except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                    self.report_error('unable to download video data: %s' % str(err))
-                    return
-                except (OSError, IOError) as err:
-                    raise UnavailableVideoError(err)
-                except (ContentTooShortError, ) as err:
-                    self.report_error('content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
-                    return
+                        postprocessors = [merger]
+                    for f in info_dict['requested_formats']:
+                        new_info = dict(info_dict)
+                        new_info.update(f)
+                        fname = self.prepare_filename(new_info)
+                        fname = prepend_extension(fname, 'f%s' % f['format_id'])
+                        downloaded.append(fname)
+                        partial_success = dl(fname, new_info)
+                        success = success and partial_success
+                    info_dict['__postprocessors'] = postprocessors
+                    info_dict['__files_to_merge'] = downloaded
+                else:
+                    # Just a single file
+                    success = dl(filename, info_dict)
+            except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+                self.report_error('unable to download video data: %s' % str(err))
+                return
+            except (OSError, IOError) as err:
+                raise UnavailableVideoError(err)
+            except (ContentTooShortError, ) as err:
+                self.report_error('content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
+                return
 
             if success:
                 # Fixup content
