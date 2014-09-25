@@ -1,13 +1,14 @@
 from __future__ import unicode_literals
 
-import json
 import re
 
 from .common import InfoExtractor
+from ..utils import ExtractorError, compat_urllib_request
 
 
 class WistiaIE(InfoExtractor):
     _VALID_URL = r'https?://(?:fast\.)?wistia\.net/embed/iframe/(?P<id>[a-z0-9]+)'
+    _API_URL = 'http://fast.wistia.com/embed/medias/{0:}.json'
 
     _TEST = {
         'url': 'http://fast.wistia.net/embed/iframe/sh7fpupwlt',
@@ -24,11 +25,13 @@ class WistiaIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        webpage = self._download_webpage(url, video_id)
-        data_json = self._html_search_regex(
-            r'Wistia\.iframeInit\((.*?), {}\);', webpage, 'video data')
-
-        data = json.loads(data_json)
+        request = compat_urllib_request.Request(self._API_URL.format(video_id))
+        request.add_header('Referer', url)  # Some videos require this.
+        data_json = self._download_json(request, video_id)
+        if data_json.get('error'):
+            raise ExtractorError('Error while getting the playlist',
+                                 expected=True)
+        data = data_json['media']
 
         formats = []
         thumbnails = []

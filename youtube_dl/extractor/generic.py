@@ -382,6 +382,19 @@ class GenericIE(InfoExtractor):
                 'thumbnail': 're:^https?://.*\.jpg$',
             },
         },
+        # Wistia embed
+        {
+            'url': 'http://education-portal.com/academy/lesson/north-american-exploration-failed-colonies-of-spain-france-england.html#lesson',
+            'md5': '8788b683c777a5cf25621eaf286d0c23',
+            'info_dict': {
+                'id': '1cfaf6b7ea',
+                'ext': 'mov',
+                'title': 'md5:51364a8d3d009997ba99656004b5e20d',
+                'duration': 643.0,
+                'filesize': 182808282,
+                'uploader': 'education-portal.com',
+            },
+        },
     ]
 
     def report_download_webpage(self, video_id):
@@ -655,6 +668,16 @@ class GenericIE(InfoExtractor):
                 'uploader': video_uploader,
                 'title': video_title,
                 'id': video_id,
+            }
+        match = re.search(r'(?:id=["\']wistia_|data-wistiaid=["\']|Wistia\.embed\(["\'])(?P<id>[^"\']+)', webpage)
+        if match:
+            return {
+                '_type': 'url_transparent',
+                'url': 'http://fast.wistia.net/embed/iframe/{0:}'.format(match.group('id')),
+                'ie_key': 'Wistia',
+                'uploader': video_uploader,
+                'title': video_title,
+                'id': match.group('id')
             }
 
         # Look for embedded blip.tv player
