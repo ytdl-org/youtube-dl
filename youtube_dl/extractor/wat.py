@@ -40,6 +40,7 @@ class WatIE(InfoExtractor):
                 'upload_date': '20140816',
                 'duration': 2910,
             },
+            'skip': "Ce contenu n'est pas disponible pour l'instant.",
         },
     ]
 
