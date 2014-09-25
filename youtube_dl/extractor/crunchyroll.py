@@ -9,7 +9,7 @@ import xml.etree.ElementTree
 
 from hashlib import sha1
 from math import pow, sqrt, floor
-from .common import InfoExtractor
+from .subtitles import SubtitlesInfoExtractor
 from ..utils import (
     ExtractorError,
     compat_urllib_parse,
@@ -26,7 +26,7 @@ from ..aes import (
 )
 
 
-class CrunchyrollIE(InfoExtractor):
+class CrunchyrollIE(SubtitlesInfoExtractor):
     _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.com/(?:[^/]*/[^/?&]*?|media/\?id=)(?P<video_id>[0-9]+))(?:[/?&]|$)'
     _TEST = {
         'url': 'http://www.crunchyroll.com/wanna-be-the-strongest-in-the-world/episode-1-an-idol-wrestler-is-born-645513',
@@ -270,6 +270,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 subtitles[lang_code] = self._convert_subtitles_to_ass(subtitle)
             else:
                 subtitles[lang_code] = self._convert_subtitles_to_srt(subtitle)
+
+        if self._downloader.params.get('listsubtitles', False):
+            self._list_available_subtitles(video_id, subtitles)
+            return
 
         return {
             'id':          video_id,
