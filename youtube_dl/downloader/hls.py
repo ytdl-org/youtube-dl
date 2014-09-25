@@ -81,16 +81,16 @@ class NativeHlsFD(FileDownloader):
                     '[hlsnative] %s: Downloading segment %d / %d' %
                     (info_dict['id'], i + 1, len(segment_urls)))
                 seg_req = compat_urllib_request.Request(segurl)
-                if remaining_bytes:
+                if remaining_bytes is not None:
                     seg_req.add_header('Range', 'bytes=0-%d' % (remaining_bytes - 1))
 
                 segment = self.ydl.urlopen(seg_req).read()
-                if remaining_bytes:
+                if remaining_bytes is not None:
                     segment = segment[:remaining_bytes]
                     remaining_bytes -= len(segment)
                 outf.write(segment)
                 byte_counter += len(segment)
-                if remaining_bytes <= 0:
+                if remaining_bytes is not None and remaining_bytes <= 0:
                     break
 
         self._hook_progress({
