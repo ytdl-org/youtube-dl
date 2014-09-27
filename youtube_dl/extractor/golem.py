@@ -22,7 +22,7 @@ class GolemIE(InfoExtractor):
         }
     }
 
-    _CONFIG = 'https://video.golem.de/xml/{}.xml'
+    _CONFIG = 'https://video.golem.de/xml/{0}.xml'
     _PREFIX = 'http://video.golem.de'
 
     def _warn(self, fmt, *args):
@@ -33,7 +33,7 @@ class GolemIE(InfoExtractor):
 
         url = elem.findtext('./url')
         if url == '':
-            self._warn("{}: url: empty, skipping", format_id)
+            self._warn("{0}: url: empty, skipping", format_id)
             return None
 
         fmt = {
@@ -44,7 +44,7 @@ class GolemIE(InfoExtractor):
         try:
             _, ext = elem.findtext('./filename', '').rsplit('.', 1)
         except ValueError:
-            self._warn('{}: ext: missing extension', format_id)
+            self._warn('{0}: ext: missing extension', format_id)
         else:
             fmt['ext'] = ext
 
@@ -53,21 +53,21 @@ class GolemIE(InfoExtractor):
             try:
                 fmt['filesize'] = int(filesize)
             except ValueError as e:
-                self._warn('{}: filesize: {}', format_id, e)
+                self._warn('{0}: filesize: {1}', format_id, e)
 
         width = elem.get('width')
         if width is not None:
             try:
                 fmt['width'] = int(width)
             except ValueError as e:
-                self._warn('{}: width: {}', format_id, e)
+                self._warn('{0}: width: {1}', format_id, e)
 
         height = elem.get('height')
         if height is not None:
             try:
                 fmt['height'] = int(height)
             except ValueError as e:
-                self._warn('{}: height: {}', format_id, e)
+                self._warn('{0}: height: {1}', format_id, e)
 
         return fmt
 
@@ -84,14 +84,14 @@ class GolemIE(InfoExtractor):
             try:
                 thumb['width'] = int(width)
             except ValueError as e:
-                self._warn('thumbnail: width: {}', e)
+                self._warn('thumbnail: width: {0}', e)
 
         height = elem.get('height')
         if height is not None:
             try:
                 thumb['height'] = int(height)
             except ValueError as e:
-                self._warn('thumbnail: height: {}', e)
+                self._warn('thumbnail: height: {0}', e)
 
         return thumb
 
@@ -126,6 +126,6 @@ class GolemIE(InfoExtractor):
             try:
                 info['duration'] = round(float(playtime))
             except ValueError as e:
-                self._warn('duration: {}', e)
+                self._warn('duration: {0}', e)
 
         return info
