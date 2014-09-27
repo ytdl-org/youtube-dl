@@ -78,6 +78,7 @@ __authors__  = (
     'Hari Padmanaban',
     'Carlos Ramos',
     '5moufl',
+    'lenaten',
 )
 
 __license__ = 'Public Domain'
