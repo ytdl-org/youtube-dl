@@ -19,7 +19,7 @@ class Vbox7IE(InfoExtractor):
         'md5': '99f65c0c9ef9b682b97313e052734c3f',
         'info_dict': {
             'id': '249bb972c2',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Смях! Чудо - чист за секунди - Скрита камера',
         },
     }
@@ -50,7 +50,6 @@ class Vbox7IE(InfoExtractor):
         return {
             'id': video_id,
             'url': final_url,
-            'ext': 'flv',
             'title': title,
             'thumbnail': thumbnail_url,
         }
