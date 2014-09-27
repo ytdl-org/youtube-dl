@@ -7,6 +7,7 @@ from ..utils import (
     compat_urllib_parse_urlparse,
     compat_urllib_request,
     compat_urllib_parse,
+    str_to_int,
 )
 
 
@@ -20,6 +21,7 @@ class ExtremeTubeIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Music Video 14 british euro brit european cumshots swallow',
             'uploader': 'unknown',
+            'view_count': int,
             'age_limit': 18,
         }
     }, {
@@ -39,8 +41,12 @@ class ExtremeTubeIE(InfoExtractor):
         video_title = self._html_search_regex(
             r'<h1 [^>]*?title="([^"]+)"[^>]*>', webpage, 'title')
         uploader = self._html_search_regex(
-            r'>Posted by:(?=<)(?:\s|<[^>]*>)*(.+?)\|', webpage, 'uploader',
-            fatal=False)
+            r'Uploaded by:\s*</strong>\s*(.+?)\s*</div>',
+            webpage, 'uploader', fatal=False)
+        view_count = str_to_int(self._html_search_regex(
+            r'Views:\s*</strong>\s*<span>([\d,\.]+)</span>',
+            webpage, 'view count', fatal=False))
+
         video_url = compat_urllib_parse.unquote(self._html_search_regex(
             r'video_url=(.+?)&amp;', webpage, 'video_url'))
         path = compat_urllib_parse_urlparse(video_url).path
@@ -51,6 +57,7 @@ class ExtremeTubeIE(InfoExtractor):
             'id': video_id,
             'title': video_title,
             'uploader': uploader,
+            'view_count': view_count,
             'url': video_url,
             'format': format,
             'format_id': format,
