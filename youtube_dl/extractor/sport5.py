@@ -4,67 +4,89 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from youtube_dl.utils import compat_str, compat_urlretrieve
-
+from ..utils import ExtractorError
 
 
 class Sport5IE(InfoExtractor):
-    _VALID_URL = r'http://.*sport5\.co\.il'
-    _TESTS = [{
+    _VALID_URL = r'http://(?:www|vod)?\.sport5\.co\.il/.*\b(?:Vi|docID)=(?P<id>\d+)'
+    _TESTS = [
+        {
             'url': 'http://vod.sport5.co.il/?Vc=147&Vi=176331&Page=1',
             'info_dict': {
                 'id': 's5-Y59xx1-GUh2',
                 'ext': 'mp4',
-                'title': 'md5:4a2a5eba7e7dc88fdc446cbca8a41c79',
-            }
+                'title': 'ולנסיה-קורדובה 0:3',
+                'description': 'אלקאסר, גאייה ופגולי סידרו לקבוצה של נונו ניצחון על קורדובה ואת המקום הראשון בליגה',
+                'duration': 228,
+                'categories': list,
+            },
+            'skip': 'Blocked outside of Israel',
         }, {
             'url': 'http://www.sport5.co.il/articles.aspx?FolderID=3075&docID=176372&lang=HE',
             'info_dict': {
                 'id': 's5-SiXxx1-hKh2',
                 'ext': 'mp4',
-                'title': 'md5:5cb1c6bfc0f16086e59f6683013f8e02',
-            }
+                'title': 'GOALS_CELTIC_270914.mp4',
+                'description': '',
+                'duration': 87,
+                'categories': list,
+            },
+            'skip': 'Blocked outside of Israel',
         }
     ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        media_id = mobj.group('id')
 
-        webpage = self._download_webpage(url, '')
+        webpage = self._download_webpage(url, media_id)
 
-        media_id = self._html_search_regex('clipId=(s5-\w+-\w+)', webpage, 'media id')
+        video_id = self._html_search_regex('clipId=([\w-]+)', webpage, 'video id')
 
-        xml = self._download_xml(
-            'http://sport5-metadata-rr-d.nsacdn.com/vod/vod/%s/HDS/metadata.xml' % media_id,
-            media_id, 'Downloading media XML')
+        metadata = self._download_xml(
+            'http://sport5-metadata-rr-d.nsacdn.com/vod/vod/%s/HDS/metadata.xml' % video_id,
+            video_id)
 
-        title = xml.find('./Title').text
-        duration = xml.find('./Duration').text
-        description = xml.find('./Description').text
-        thumbnail = xml.find('./PosterLinks/PosterIMG').text
-        player_url = xml.find('./PlaybackLinks/PlayerUrl').text
-        file_els = xml.findall('./PlaybackLinks/FileURL')
+        error = metadata.find('./Error')
+        if error is not None:
+            raise ExtractorError(
+                '%s returned error: %s - %s' % (
+                    self.IE_NAME,
+                    error.find('./Name').text,
+                    error.find('./Description').text),
+                expected=True)
 
-        formats = []
+        title = metadata.find('./Title').text
+        description = metadata.find('./Description').text
+        duration = int(metadata.find('./Duration').text)
 
-        for file_el in file_els:
-            bitrate = file_el.attrib.get('bitrate')
-            width = int(file_el.attrib.get('width'))
-            height = int(file_el.attrib.get('height'))
-            formats.append({
-                'url': compat_str(file_el.text),
-                'ext': 'mp4',
-                'height': height,
-                'width': width
-            })
+        posters_el = metadata.find('./PosterLinks')
+        thumbnails = [{
+            'url': thumbnail.text,
+            'width': int(thumbnail.get('width')),
+            'height': int(thumbnail.get('height')),
+        } for thumbnail in posters_el.findall('./PosterIMG')] if posters_el is not None else []
 
+        categories_el = metadata.find('./Categories')
+        categories = [
+            cat.get('name') for cat in categories_el.findall('./Category')
+        ] if categories_el is not None else []
+
+        formats = [{
+            'url': fmt.text,
+            'ext': 'mp4',
+            'vbr': int(fmt.get('bitrate')),
+            'width': int(fmt.get('width')),
+            'height': int(fmt.get('height')),
+        } for fmt in metadata.findall('./PlaybackLinks/FileURL')]
         self._sort_formats(formats)
 
         return {
-            'id': media_id,
+            'id': video_id,
             'title': title,
-            'thumbnail': thumbnail,
+            'description': description,
+            'thumbnails': thumbnails,
             'duration': duration,
+            'categories': categories,
             'formats': formats,
-            'player_url': player_url,
         }
