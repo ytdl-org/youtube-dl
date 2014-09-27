@@ -339,8 +339,8 @@ from .spankwire import SpankwireIE
 from .spiegel import SpiegelIE, SpiegelArticleIE
 from .spiegeltv import SpiegeltvIE
 from .spike import SpikeIE
-from .sportdeutschland import SportDeutschlandIE
 from .sport5 import Sport5IE
+from .sportdeutschland import SportDeutschlandIE
 from .stanfordoc import StanfordOpenClassroomIE
 from .steam import SteamIE
 from .streamcloud import StreamcloudIE
