@@ -35,7 +35,7 @@ class AnySexIE(InfoExtractor):
 
         title = self._html_search_regex(r'<title>(.*?)</title>', webpage, 'title')
         description = self._html_search_regex(
-            r'<div class="description">([^<]+)</div>', webpage, 'description', fatal=False)
+            r'<div class="description"[^>]*>([^<]+)</div>', webpage, 'description', fatal=False)
         thumbnail = self._html_search_regex(
             r'preview_url\s*:\s*\'(.*?)\'', webpage, 'thumbnail', fatal=False)
 
@@ -43,7 +43,7 @@ class AnySexIE(InfoExtractor):
             r'<a href="http://anysex\.com/categories/[^"]+" title="[^"]*">([^<]+)</a>', webpage)
 
         duration = parse_duration(self._search_regex(
-            r'<b>Duration:</b> (\d+:\d+)', webpage, 'duration', fatal=False))
+            r'<b>Duration:</b> (?:<q itemprop="duration">)?(\d+:\d+)', webpage, 'duration', fatal=False))
         view_count = int_or_none(self._html_search_regex(
             r'<b>Views:</b> (\d+)', webpage, 'view count', fatal=False))
 
