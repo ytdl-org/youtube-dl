@@ -88,8 +88,7 @@ class HeiseIE(InfoExtractor):
             for res, obj in rs.items():
                 format_id = '{0}_{1}'.format(t, res)
 
-                if (not obj or not obj.get('url') or
-                        not isinstance(obj['url'], str)):
+                if not obj or not obj.get('url'):
                     self._warn('formats: {0}: no url', format_id)
                     continue
 
@@ -107,11 +106,11 @@ class HeiseIE(InfoExtractor):
         self._sort_formats(formats)
         info['formats'] = formats
 
-        if config.get('poster') and isinstance(config['poster'], str):
+        if config.get('poster'):
             info['thumbnail'] = config['poster']
 
         date = get_meta_content('date', html)
-        if date and isinstance(date, str):
+        if date:
             try:
                 info['timestamp'] = parse_iso8601(date)
             except ValueError as e:
