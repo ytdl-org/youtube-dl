@@ -1250,7 +1250,7 @@ class YoutubeDL(object):
         # urllib chokes on URLs with non-ASCII characters (see http://bugs.python.org/issue3991)
         # To work around aforementioned issue we will replace request's original URL with
         # percent-encoded one
-        req_is_string = isinstance(req, basestring)
+        req_is_string = isinstance(req, basestring if sys.version_info < (3, 0) else compat_str)
         url = req if req_is_string else req.get_full_url()
         url_escaped = escape_url(url)
 
