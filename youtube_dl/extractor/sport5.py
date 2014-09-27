@@ -22,7 +22,7 @@ class Sport5IE(InfoExtractor):
             'info_dict': {
                 'id': 's5-SiXxx1-hKh2',
                 'ext': 'mp4',
-                'title': 'md5:5cb1c6bfc0f16086e59f6683013f8e02',
+                'title': 'md5:b4a6d0a441874baf772c4c809c2576bf',
             }
         }
     ]
