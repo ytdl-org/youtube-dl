@@ -451,6 +451,7 @@ from .yahoo import (
     YahooNewsIE,
     YahooSearchIE,
 )
+from .ynet import YnetIE
 from .youjizz import YouJizzIE
 from .youku import YoukuIE
 from .youporn import YouPornIE
