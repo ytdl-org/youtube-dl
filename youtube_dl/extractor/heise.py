@@ -27,6 +27,7 @@ class HeiseIE(InfoExtractor):
             'format_id': 'mp4_720',
             'timestamp': 1411812600,
             'upload_date': '20140927',
+            'description': 'In uplink-Episode 3.3 geht es darum, wie man sich von Cloud-Anbietern emanzipieren kann, worauf man beim Kauf einer Tastatur achten sollte und was Smartphones über uns verraten.',
         }
     }
 
@@ -42,6 +43,7 @@ class HeiseIE(InfoExtractor):
             'id': video_id,
             'thumbnail': config.get('poster'),
             'timestamp': parse_iso8601(get_meta_content('date', webpage)),
+            'description': self._og_search_description(webpage),
         }
 
         title = get_meta_content('fulltitle', webpage)
