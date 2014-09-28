@@ -87,7 +87,7 @@ def parseOpts(overrideArguments=None):
         for private_opt in ['-p', '--password', '-u', '--username', '--video-password']:
             try:
                 i = opts.index(private_opt)
-                opts[i+1] = '<PRIVATE>'
+                opts[i+1] = 'PRIVATE'
             except ValueError:
                 pass
         return opts
