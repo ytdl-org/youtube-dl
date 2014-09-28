@@ -1384,13 +1384,15 @@ def check_executable(exe, args=[]):
 
 
 class PagedList(object):
-    def __init__(self, pagefunc, pagesize):
-        self._pagefunc = pagefunc
-        self._pagesize = pagesize
-
     def __len__(self):
         # This is only useful for tests
         return len(self.getslice())
+
+
+class OnDemandPagedList(PagedList):
+    def __init__(self, pagefunc, pagesize):
+        self._pagefunc = pagefunc
+        self._pagesize = pagesize
 
     def getslice(self, start=0, end=None):
         res = []
@@ -1427,6 +1429,35 @@ class PagedList(object):
             # break out early as well
             if end == nextfirstid:
                 break
+        return res
+
+
+class InAdvancePagedList(PagedList):
+    def __init__(self, pagefunc, pagecount, pagesize):
+        self._pagefunc = pagefunc
+        self._pagecount = pagecount
+        self._pagesize = pagesize
+
+    def getslice(self, start=0, end=None):
+        res = []
+        start_page = start // self._pagesize
+        end_page = (
+            self._pagecount if end is None else (end // self._pagesize + 1))
+        skip_elems = start - start_page * self._pagesize
+        only_more = None if end is None else end - start
+        for pagenum in range(start_page, end_page):
+            page = list(self._pagefunc(pagenum))
+            if skip_elems:
+                page = page[skip_elems:]
+                skip_elems = None
+            if only_more is not None:
+                if len(page) < only_more:
+                    only_more -= len(page)
+                else:
+                    page = page[:only_more]
+                    res.extend(page)
+                    break
+            res.extend(page)
         return res
 
 

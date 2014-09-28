@@ -8,18 +8,19 @@ import itertools
 from .common import InfoExtractor
 from .subtitles import SubtitlesInfoExtractor
 from ..utils import (
+    clean_html,
     compat_HTTPError,
     compat_urllib_parse,
     compat_urllib_request,
-    clean_html,
-    get_element_by_attribute,
+    compat_urlparse,
     ExtractorError,
+    get_element_by_attribute,
+    InAdvancePagedList,
+    int_or_none,
     RegexNotFoundError,
-    smuggle_url,
     std_headers,
     unsmuggle_url,
     urlencode_postdata,
-    int_or_none,
 )
 
 
@@ -533,32 +534,55 @@ class VimeoWatchLaterIE(VimeoBaseInfoExtractor, VimeoChannelIE):
 
 
 class VimeoLikesIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?vimeo\.com/user(?P<id>[0-9]+)/likes(?:$|[?#])'
+    _VALID_URL = r'https?://(?:www\.)?vimeo\.com/user(?P<id>[0-9]+)/likes/?(?:$|[?#]|sort:)'
     IE_NAME = 'vimeo:likes'
     IE_DESC = 'Vimeo user likes'
     _TEST = {
-        'url': 'https://vimeo.com/user20132939/likes',
-        'playlist_mincount': 4,
-        'add_ies': ['Generic'],
+        'url': 'https://vimeo.com/user755559/likes/',
+        'playlist_mincount': 293,
         "info_dict": {
-            "description": "Videos Philipp Hagemeister likes on Vimeo.",
-            "title": "Vimeo / Philipp Hagemeister's likes",
-        },
-        'params': {
-            'extract_flat': False,
+            "description": "See all the videos urza likes",
+            "title": 'Videos urza likes',
         },
     }
 
     def _real_extract(self, url):
         user_id = self._match_id(url)
-        rss_url = '%s//vimeo.com/user%s/likes/rss' % (
-            self.http_scheme(), user_id)
-        surl = smuggle_url(rss_url, {
-            'force_videoid': '%s_likes' % user_id,
-            'to_generic': True,
-        })
+        webpage = self._download_webpage(url, user_id)
+        page_count = self._int(
+            self._search_regex(
+                r'''(?x)<li><a\s+href="[^"]+"\s+data-page="([0-9]+)">
+                    .*?</a></li>\s*<li\s+class="pagination_next">
+                ''', webpage, 'page count'),
+            'page count', fatal=True)
+        PAGE_SIZE = 12
+        title = self._html_search_regex(
+            r'(?s)<h1>(.+?)</h1>', webpage, 'title', fatal=False)
+        description = self._html_search_meta('description', webpage)
+
+        def _get_page(idx):
+            page_url = '%s//vimeo.com/user%s/likes/page:%d/sort:date' % (
+                self.http_scheme(), user_id, idx + 1)
+            webpage = self._download_webpage(
+                page_url, user_id,
+                note='Downloading page %d/%d' % (idx + 1, page_count))
+            video_list = self._search_regex(
+                r'(?s)<ol class="js-browse_list[^"]+"[^>]*>(.*?)</ol>',
+                webpage, 'video content')
+            paths = re.findall(
+                r'<li[^>]*>\s*<a\s+href="([^"]+)"', video_list)
+            for path in paths:
+                yield {
+                    '_type': 'url',
+                    'url': compat_urlparse.urljoin(page_url, path),
+                }
+
+        pl = InAdvancePagedList(_get_page, page_count, PAGE_SIZE)
 
         return {
-            '_type': 'url',
-            'url': surl,
+            '_type': 'playlist',
+            'id': 'user%s_likes' % user_id,
+            'title': title,
+            'description': description,
+            'entries': pl,
         }

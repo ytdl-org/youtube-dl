@@ -26,7 +26,7 @@ from ..utils import (
     get_element_by_attribute,
     ExtractorError,
     int_or_none,
-    PagedList,
+    OnDemandPagedList,
     unescapeHTML,
     unified_strdate,
     orderedSet,
@@ -1341,7 +1341,7 @@ class YoutubeUserIE(InfoExtractor):
                     'id': video_id,
                     'title': title,
                 }
-        url_results = PagedList(download_page, self._GDATA_PAGE_SIZE)
+        url_results = OnDemandPagedList(download_page, self._GDATA_PAGE_SIZE)
 
         return self.playlist_result(url_results, playlist_title=username)
 

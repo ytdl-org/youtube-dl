@@ -22,7 +22,8 @@ from youtube_dl.utils import (
     fix_xml_ampersands,
     get_meta_content,
     orderedSet,
-    PagedList,
+    OnDemandPagedList,
+    InAdvancePagedList,
     parse_duration,
     read_batch_urls,
     sanitize_filename,
@@ -246,8 +247,12 @@ class TestUtil(unittest.TestCase):
                 for i in range(firstid, upto):
                     yield i
 
-            pl = PagedList(get_page, pagesize)
+            pl = OnDemandPagedList(get_page, pagesize)
             got = pl.getslice(*sliceargs)
+            self.assertEqual(got, expected)
+
+            iapl = InAdvancePagedList(get_page, size // pagesize + 1, pagesize)
+            got = iapl.getslice(*sliceargs)
             self.assertEqual(got, expected)
 
         testPL(5, 2, (), [0, 1, 2, 3, 4])
