@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import re
-import time
 import os.path
 
 from .common import InfoExtractor
