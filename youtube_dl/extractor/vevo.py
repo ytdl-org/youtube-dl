@@ -5,7 +5,6 @@ import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_HTTPError,
     compat_urllib_request,
     ExtractorError,
 )

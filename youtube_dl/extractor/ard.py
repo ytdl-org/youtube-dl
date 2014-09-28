@@ -8,8 +8,6 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     qualities,
-    compat_urllib_parse_urlparse,
-    compat_urllib_parse,
     int_or_none,
     parse_duration,
     unified_strdate,
