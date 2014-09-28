@@ -142,6 +142,7 @@ from .gorillavid import GorillaVidIE
 from .goshgay import GoshgayIE
 from .grooveshark import GroovesharkIE
 from .hark import HarkIE
+from .heise import HeiseIE
 from .helsinki import HelsinkiIE
 from .hentaistigma import HentaiStigmaIE
 from .hornbunny import HornBunnyIE
