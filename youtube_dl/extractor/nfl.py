@@ -17,11 +17,11 @@ class NFLIE(InfoExtractor):
     _PLAYER_CONFIG_URL = 'http://www.nfl.com/static/content/static/config/video/config.json'
     _TEST = {
         'url': 'http://www.nfl.com/videos/nfl-game-highlights/0ap3000000398478/Week-3-Redskins-vs-Eagles-highlights',
-        # 'md5': '5eb8c40a727dda106d510e5d6ffa79e5',  # md5 checksum fluctuates
+        'md5': '394ef771ddcd1354f665b471d78ec4c6',
         'info_dict': {
             'id': '0ap3000000398478',
             'ext': 'mp4',
-            'title': 'Week 3: Washington Redskins vs. Philadelphia Eagles highlights',
+            'title': 'Week 3: Redskins vs. Eagles highlights',
             'description': 'md5:56323bfb0ac4ee5ab24bd05fdf3bf478',
             'upload_date': '20140921',
             'timestamp': 1411337580,
@@ -66,9 +66,9 @@ class NFLIE(InfoExtractor):
             )
 
             if protocol == 'rtmp':
-                preference = -2
-            elif 'prog' in name.lower():
                 preference = -1
+            elif 'prog' in name.lower():
+                preference = 1
             else:
                 preference = 0
 
@@ -94,7 +94,7 @@ class NFLIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': video_data.get('storyHeadline'),
+            'title': video_data.get('headline'),
             'formats': formats,
             'description': video_data.get('caption'),
             'duration': video_data.get('duration'),
