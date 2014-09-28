@@ -26,8 +26,7 @@ class THVideoIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         # extract download link from mobile player page
         webpage_player = self._download_webpage(
@@ -71,13 +70,15 @@ class THVideoPlaylistIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        webpage = self._download_webpage(url, 'playlist')
-        mobj = re.match(self._VALID_URL, url)
-        list_id = mobj.group('id')
-        list_title = self._html_search_regex(r'<h1 class="show_title">(.*?)<b id', webpage, 'playlist title')
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+        list_title = self._html_search_regex(
+            r'<h1 class="show_title">(.*?)<b id', webpage, 'playlist title',
+            fatal=False)
 
         entries = [
             self.url_result('http://thvideo.tv/v/th' + id, 'THVideo')
             for id in re.findall(r'<dd><a href="http://thvideo.tv/v/th(\d+)/" target=', webpage)]
 
-        return self.playlist_result(entries, list_id, list_title)
+        return self.playlist_result(entries, playlist_id, list_title)
