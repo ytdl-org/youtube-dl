@@ -22,6 +22,7 @@ class MuenchenTVIE(InfoExtractor):
             'ext': 'mp4',
             'title': 're:^münchen.tv-Livestream [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
             'is_live': True,
+            'thumbnail': 're:^https?://.*\.jpg$'
         },
         'params': {
             'skip_download': True,
@@ -70,5 +71,6 @@ class MuenchenTVIE(InfoExtractor):
             'title': title,
             'formats': formats,
             'is_live': True,
+            'thumbnail': thumbnail,
         }
 
