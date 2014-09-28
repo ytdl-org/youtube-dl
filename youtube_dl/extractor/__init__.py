@@ -261,6 +261,7 @@ from .nrk import (
 from .ntv import NTVIE
 from .nytimes import NYTimesIE
 from .nuvid import NuvidIE
+from .oktoberfesttv import OktoberfestTVIE
 from .ooyala import OoyalaIE
 from .orf import (
     ORFTVthekIE,
