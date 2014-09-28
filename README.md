@@ -449,7 +449,7 @@ If you want to add support for a new site, you can follow this quick list (assum
         _VALID_URL = r'https?://(?:www\.)?yourextractor\.com/watch/(?P<id>[0-9]+)'
         _TEST = {
             'url': 'http://yourextractor.com/watch/42',
-            'md5': 'TODO: md5 sum of the first 10KiB of the video file',
+            'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
             'info_dict': {
                 'id': '42',
                 'ext': 'mp4',
