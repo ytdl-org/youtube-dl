@@ -442,8 +442,6 @@ If you want to add support for a new site, you can follow this quick list (assum
     # coding: utf-8
     from __future__ import unicode_literals
 
-    import re
-
     from .common import InfoExtractor
 
 
@@ -466,8 +464,7 @@ If you want to add support for a new site, you can follow this quick list (assum
         }
 
         def _real_extract(self, url):
-            mobj = re.match(self._VALID_URL, url)
-            video_id = mobj.group('id')
+            video_id = self._match_id(url)
 
             # TODO more code goes here, for example ...
             webpage = self._download_webpage(url, video_id)
