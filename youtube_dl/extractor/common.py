@@ -22,6 +22,7 @@ from ..utils import (
     clean_html,
     compiled_regex_type,
     ExtractorError,
+    float_or_none,
     int_or_none,
     RegexNotFoundError,
     sanitize_filename,
@@ -719,6 +720,28 @@ class InfoExtractor(object):
         now = datetime.datetime.now()
         now_str = now.strftime("%Y-%m-%d %H:%M")
         return name + ' ' + now_str
+
+    def _int(self, v, name, fatal=False, **kwargs):
+        res = int_or_none(v, **kwargs)
+        if 'get_attr' in kwargs:
+            print(getattr(v, kwargs['get_attr']))
+        if res is None:
+            msg = 'Failed to extract %s: Could not parse value %r' % (name, v)
+            if fatal:
+                raise ExtractorError(msg)
+            else:
+                self._downloader.report_warning(msg)
+        return res
+
+    def _float(self, v, name, fatal=False, **kwargs):
+        res = float_or_none(v, **kwargs)
+        if res is None:
+            msg = 'Failed to extract %s: Could not parse value %r' % (name, v)
+            if fatal:
+                raise ExtractorError(msg)
+            else:
+                self._downloader.report_warning(msg)
+        return res
 
 
 class SearchInfoExtractor(InfoExtractor):

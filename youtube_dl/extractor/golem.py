@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import compat_urlparse
+from ..utils import (
+    compat_urlparse,
+    determine_ext,
+)
 
 
 class GolemIE(InfoExtractor):
@@ -17,115 +20,54 @@ class GolemIE(InfoExtractor):
             'format_id': 'high',
             'ext': 'mp4',
             'title': 'iPhone 6 und 6 Plus - Test',
-            'duration': 300,
+            'duration': 300.44,
             'filesize': 65309548,
         }
     }
 
-    _CONFIG = 'https://video.golem.de/xml/{0}.xml'
     _PREFIX = 'http://video.golem.de'
 
-    def _warn(self, fmt, *args):
-        self.report_warning(fmt.format(*args), self._id)
-
-    def _extract_format(self, elem):
-        format_id = elem.tag
-
-        url = elem.findtext('./url')
-        if url == '':
-            self._warn("{0}: url: empty, skipping", format_id)
-            return None
-
-        fmt = {
-            'format_id': format_id,
-            'url': compat_urlparse.urljoin(self._PREFIX, url)
-        }
-
-        try:
-            _, ext = elem.findtext('./filename', '').rsplit('.', 1)
-        except ValueError:
-            self._warn('{0}: ext: missing extension', format_id)
-        else:
-            fmt['ext'] = ext
-
-        filesize = elem.findtext('./filesize')
-        if filesize is not None:
-            try:
-                fmt['filesize'] = int(filesize)
-            except ValueError as e:
-                self._warn('{0}: filesize: {1}', format_id, e)
-
-        width = elem.get('width')
-        if width is not None:
-            try:
-                fmt['width'] = int(width)
-            except ValueError as e:
-                self._warn('{0}: width: {1}', format_id, e)
-
-        height = elem.get('height')
-        if height is not None:
-            try:
-                fmt['height'] = int(height)
-            except ValueError as e:
-                self._warn('{0}: height: {1}', format_id, e)
-
-        return fmt
-
-    def _extract_thumbnail(self, elem):
-        url = elem.findtext('./url')
-        if url == '':
-            return None
-        thumb = {
-            'url': compat_urlparse.urljoin(self._PREFIX, url)
-        }
-
-        width = elem.get('width')
-        if width is not None:
-            try:
-                thumb['width'] = int(width)
-            except ValueError as e:
-                self._warn('thumbnail: width: {0}', e)
-
-        height = elem.get('height')
-        if height is not None:
-            try:
-                thumb['height'] = int(height)
-            except ValueError as e:
-                self._warn('thumbnail: height: {0}', e)
-
-        return thumb
-
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        self._id = mobj.group('id')
+        video_id = self._match_id(url)
 
-        config = self._download_xml(self._CONFIG.format(self._id), self._id)
+        config = self._download_xml(
+            'https://video.golem.de/xml/{0}.xml'.format(video_id), video_id)
 
         info = {
-            'id': self._id,
-            'title': config.findtext('./title', 'golem')
+            'id': video_id,
+            'title': config.findtext('./title', 'golem'),
+            'duration': self._float(config.findtext('./playtime'), 'duration'),
         }
 
         formats = []
         for e in config.findall('./*[url]'):
-            fmt = self._extract_format(e)
-            if fmt is not None:
-                formats.append(fmt)
+            url = e.findtext('./url')
+            if not url:
+                self._downloader.report_warning(
+                    "{0}: url: empty, skipping".format(e.tag))
+                continue
+
+            formats.append({
+                'format_id': e.tag,
+                'url': compat_urlparse.urljoin(self._PREFIX, url),
+                'height': self._int(e.get('height'), 'height'),
+                'width': self._int(e.get('width'), 'width'),
+                'filesize': self._int(e.findtext('filesize'), 'filesize'),
+                'ext': determine_ext(e.findtext('./filename')),
+            })
         self._sort_formats(formats)
         info['formats'] = formats
 
         thumbnails = []
         for e in config.findall('.//teaser[url]'):
-            thumb = self._extract_thumbnail(e)
-            if thumb is not None:
-                thumbnails.append(thumb)
+            url = e.findtext('./url')
+            if not url:
+                continue
+            thumbnails.append({
+                'url': compat_urlparse.urljoin(self._PREFIX, url),
+                'width': self._int(e.get('width'), 'thumbnail width'),
+                'height': self._int(e.get('height'), 'thumbnail height'),
+            })
         info['thumbnails'] = thumbnails
-
-        playtime = config.findtext('./playtime')
-        if playtime is not None:
-            try:
-                info['duration'] = round(float(playtime))
-            except ValueError as e:
-                self._warn('duration: {0}', e)
 
         return info
