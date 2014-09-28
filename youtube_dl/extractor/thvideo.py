@@ -57,3 +57,27 @@ class THVideoIE(InfoExtractor):
             'description': description,
             'upload_date': upload_date
         }
+
+
+class THVideoPlaylistIE(InfoExtractor):
+    _VALID_URL = r'http?://(?:www\.)?thvideo\.tv/mylist(?P<id>[0-9]+)'
+    _TEST = {
+        'url': 'http://thvideo.tv/mylist2',
+        'info_dict': {
+            'id': '2',
+            'title': '幻想万華鏡',
+        },
+        'playlist_mincount': 23,
+    }
+
+    def _real_extract(self, url):
+        webpage = self._download_webpage(url, 'playlist')
+        mobj = re.match(self._VALID_URL, url)
+        list_id = mobj.group('id')
+        list_title = self._html_search_regex(r'<h1 class="show_title">(.*?)<b id', webpage, 'playlist title')
+
+        entries = [
+            self.url_result('http://thvideo.tv/v/th' + id, 'THVideo')
+            for id in re.findall(r'<dd><a href="http://thvideo.tv/v/th(\d+)/" target=', webpage)]
+
+        return self.playlist_result(entries, list_id, list_title)
