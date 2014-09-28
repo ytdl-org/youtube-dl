@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import base64
+import datetime
 import hashlib
 import json
 import netrc
@@ -704,6 +705,12 @@ class InfoExtractor(object):
                 last_info = {}
         self._sort_formats(formats)
         return formats
+
+    def _live_title(self, name):
+        """ Generate the title for a live video """
+        now = datetime.datetime.now()
+        now_str = now.strftime("%Y-%m-%d %H:%M")
+        return name + ' ' + now_str
 
 
 class SearchInfoExtractor(InfoExtractor):

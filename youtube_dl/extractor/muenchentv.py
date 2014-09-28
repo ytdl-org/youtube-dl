@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import datetime
 import json
 
 from .common import InfoExtractor
@@ -33,9 +32,7 @@ class MuenchenTVIE(InfoExtractor):
         display_id = 'live'
         webpage = self._download_webpage(url, display_id)
 
-        now = datetime.datetime.now()
-        now_str = now.strftime("%Y-%m-%d %H:%M")
-        title = self._og_search_title(webpage) + ' ' + now_str
+        title = self._live_title(self._og_search_title(webpage))
 
         data_js = self._search_regex(
             r'(?s)\nplaylist:\s*(\[.*?}\]),related:',
