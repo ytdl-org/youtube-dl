@@ -14,7 +14,7 @@ from ..utils import (
 
 class PlayedIE(InfoExtractor):
     IE_NAME = 'played.to'
-    _VALID_URL = r'https?://played\.to/(?P<id>[a-zA-Z0-9_-]+)'
+    _VALID_URL = r'https?://(?:www\.)?played\.to/(?P<id>[a-zA-Z0-9_-]+)'
 
     _TEST = {
         'url': 'http://played.to/j2f2sfiiukgt',
@@ -27,15 +27,14 @@ class PlayedIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         orig_webpage = self._download_webpage(url, video_id)
-        fields = re.findall(r'type="hidden" name="(.+?)"\s* value="?(.+?)">', orig_webpage)
+        fields = re.findall(
+            r'type="hidden" name="([^"]+)"\s+value="([^"]+)">', orig_webpage)
         data = dict(fields)
 
-        self.to_screen('%s: Waiting for timeout' % video_id)
-        time.sleep(2)
+        self._sleep(2, video_id)
 
         post = compat_urllib_parse.urlencode(data)
         headers = {
