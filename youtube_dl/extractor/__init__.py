@@ -412,11 +412,12 @@ from .videoweed import VideoWeedIE
 from .vidme import VidmeIE
 from .vimeo import (
     VimeoIE,
-    VimeoChannelIE,
-    VimeoUserIE,
     VimeoAlbumIE,
+    VimeoChannelIE,
     VimeoGroupsIE,
+    VimeoLikesIE,
     VimeoReviewIE,
+    VimeoUserIE,
     VimeoWatchLaterIE,
 )
 from .vimple import VimpleIE

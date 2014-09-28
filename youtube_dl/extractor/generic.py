@@ -397,12 +397,6 @@ class GenericIE(InfoExtractor):
         },
     ]
 
-    def report_download_webpage(self, video_id):
-        """Report webpage download."""
-        if not self._downloader.params.get('test', False):
-            self._downloader.report_warning('Falling back on generic information extractor.')
-        super(GenericIE, self).report_download_webpage(video_id)
-
     def report_following_redirect(self, new_url):
         """Report information extraction."""
         self._downloader.to_screen('[redirect] Following redirect to %s' % new_url)
@@ -502,6 +496,7 @@ class GenericIE(InfoExtractor):
 
         url, smuggled_data = unsmuggle_url(url)
         force_videoid = None
+        is_intentional = smuggled_data and smuggled_data.get('to_generic')
         if smuggled_data and 'force_videoid' in smuggled_data:
             force_videoid = smuggled_data['force_videoid']
             video_id = force_videoid
@@ -543,6 +538,9 @@ class GenericIE(InfoExtractor):
                     }],
                     'upload_date': upload_date,
                 }
+
+        if not self._downloader.params.get('test', False) and not is_intentional:
+            self._downloader.report_warning('Falling back on generic information extractor.')
 
         try:
             webpage = self._download_webpage(url, video_id)

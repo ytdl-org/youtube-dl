@@ -139,7 +139,9 @@ def generator(test_case):
 
             if is_playlist:
                 self.assertEqual(res_dict['_type'], 'playlist')
+                self.assertTrue('entries' in res_dict)
                 expect_info_dict(self, test_case.get('info_dict', {}), res_dict)
+
             if 'playlist_mincount' in test_case:
                 assertGreaterEqual(
                     self,
@@ -188,7 +190,7 @@ def generator(test_case):
                 expect_info_dict(self, tc.get('info_dict', {}), info_dict)
         finally:
             try_rm_tcs_files()
-            if is_playlist and res_dict is not None:
+            if is_playlist and res_dict is not None and res_dict.get('entries'):
                 # Remove all other files that may have been extracted if the
                 # extractor returns full results even with extract_flat
                 res_tcs = [{'info_dict': e} for e in res_dict['entries']]

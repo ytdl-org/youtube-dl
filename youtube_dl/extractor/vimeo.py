@@ -15,6 +15,7 @@ from ..utils import (
     get_element_by_attribute,
     ExtractorError,
     RegexNotFoundError,
+    smuggle_url,
     std_headers,
     unsmuggle_url,
     urlencode_postdata,
@@ -529,3 +530,35 @@ class VimeoWatchLaterIE(VimeoBaseInfoExtractor, VimeoChannelIE):
 
     def _real_extract(self, url):
         return self._extract_videos('watchlater', 'https://vimeo.com/home/watchlater')
+
+
+class VimeoLikesIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?vimeo\.com/user(?P<id>[0-9]+)/likes(?:$|[?#])'
+    IE_NAME = 'vimeo:likes'
+    IE_DESC = 'Vimeo user likes'
+    _TEST = {
+        'url': 'https://vimeo.com/user20132939/likes',
+        'playlist_mincount': 4,
+        'add_ies': ['Generic'],
+        "info_dict": {
+            "description": "Videos Philipp Hagemeister likes on Vimeo.",
+            "title": "Vimeo / Philipp Hagemeister's likes",
+        },
+        'params': {
+            'extract_flat': False,
+        },
+    }
+
+    def _real_extract(self, url):
+        user_id = self._match_id(url)
+        rss_url = '%s//vimeo.com/user%s/likes/rss' % (
+            self.http_scheme(), user_id)
+        surl = smuggle_url(rss_url, {
+            'force_videoid': '%s_likes' % user_id,
+            'to_generic': True,
+        })
+
+        return {
+            '_type': 'url',
+            'url': surl,
+        }
