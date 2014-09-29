@@ -190,6 +190,7 @@ from .livestream import (
     LivestreamOriginalIE,
     LivestreamShortenerIE,
 )
+from .lrt import LRTIE
 from .lynda import (
     LyndaIE,
     LyndaCourseIE
