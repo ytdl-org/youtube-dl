@@ -91,6 +91,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
                 'uploader_id': 'openstreetmapus',
                 'uploader': 'OpenStreetMap US',
                 'title': 'Andy Allan - Putting the Carto into OpenStreetMap Cartography',
+                'description': 'md5:380943ec71b89736ff4bf27183233d09',
                 'duration': 1595,
             },
         },
@@ -105,6 +106,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
                 'uploader': 'The BLN & Business of Software',
                 'uploader_id': 'theblnbusinessofsoftware',
                 'duration': 3610,
+                'description': None,
             },
         },
         {
@@ -119,6 +121,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
                 'uploader_id': 'user18948128',
                 'uploader': 'Jaime Marquínez Ferrándiz',
                 'duration': 10,
+                'description': 'This is "youtube-dl password protected test video" by Jaime Marquínez Ferrándiz on Vimeo, the home for high quality videos and the people who love them.',
             },
             'params': {
                 'videopassword': 'youtube-dl',
@@ -205,6 +208,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
         # Extract ID from URL
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
+        orig_url = url
         if mobj.group('pro') or mobj.group('player'):
             url = 'http://player.vimeo.com/video/' + video_id
 
@@ -275,9 +279,23 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
                 _, video_thumbnail = sorted((int(width if width.isdigit() else 0), t_url) for (width, t_url) in video_thumbs.items())[-1]
 
         # Extract video description
+
         video_description = self._html_search_regex(
-            r'(?s)<div class="[^"]*description"[^>]*>(.*?)</div>',
-            webpage, 'description', fatal=False)
+            r'(?s)<div\s+class="[^"]*description[^"]*"[^>]*>(.*?)</div>',
+            webpage, 'description', default=None)
+        if not video_description:
+            video_description = self._html_search_meta(
+                'description', webpage, default=None)
+        if not video_description and mobj.group('pro'):
+            orig_webpage = self._download_webpage(
+                orig_url, video_id,
+                note='Downloading webpage for description',
+                fatal=False)
+            if orig_webpage:
+                video_description = self._html_search_meta(
+                    'description', orig_webpage, default=None)
+        if not video_description and not mobj.group('player'):
+            self._downloader.report_warning('Cannot find video description')
 
         # Extract video duration
         video_duration = int_or_none(config["video"].get("duration"))
