@@ -38,16 +38,6 @@ class YahooIE(InfoExtractor):
             },
         },
         {
-            'url': 'https://movies.yahoo.com/video/world-loves-spider-man-190819223.html',
-            'md5': '410b7104aa9893b765bc22787a22f3d9',
-            'info_dict': {
-                'id': '516ed8e2-2c4f-339f-a211-7a8b49d30845',
-                'ext': 'mp4',
-                'title': 'The World Loves Spider-Man',
-                'description': '''People all over the world are celebrating the release of \"The Amazing Spider-Man 2.\" We're taking a look at the enthusiastic response Spider-Man has received from viewers all over the world.''',
-            }
-        },
-        {
             'url': 'https://screen.yahoo.com/community/community-sizzle-reel-203225340.html?format=embed',
             'md5': '60e8ac193d8fb71997caa8fce54c6460',
             'info_dict': {
