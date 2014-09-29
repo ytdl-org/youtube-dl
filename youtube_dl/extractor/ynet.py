@@ -13,7 +13,7 @@ class YnetIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://hot.ynet.co.il/home/0,7340,L-11659-99244,00.html',
-            'md5': '002b44ee2f33d50363a1c153bed524cf',
+            'md5': '4b29cb57c3dddd57642b3f051f535b07',
             'info_dict': {
                 'id': 'L-11659-99244',
                 'ext': 'flv',
@@ -22,7 +22,7 @@ class YnetIE(InfoExtractor):
             }
         }, {
             'url': 'http://hot.ynet.co.il/home/0,7340,L-8859-84418,00.html',
-            'md5': '6455046ae1b48cf7e2b7cae285e53a16',
+            'md5': '8194c2ea221e9a639cac96b6b0753dc5',
             'info_dict': {
                 'id': 'L-8859-84418',
                 'ext': 'flv',
@@ -33,9 +33,7 @@ class YnetIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         content = compat_urllib_parse.unquote_plus(self._og_search_video_url(webpage))
