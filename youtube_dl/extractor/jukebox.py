@@ -11,10 +11,9 @@ from ..utils import (
 
 
 class JukeboxIE(InfoExtractor):
-    _VALID_URL = r'^http://www\.jukebox?\..+?\/.+[,](?P<video_id>[a-z0-9\-]+)\.html'
+    _VALID_URL = r'^http://www\.jukebox?\..+?\/.+[,](?P<id>[a-z0-9\-]+)\.html'
     _TEST = {
         'url': 'http://www.jukebox.es/kosheen/videoclip,pride,r303r.html',
-        'md5': '1574e9b4d6438446d5b7dbcdf2786276',
         'info_dict': {
             'id': 'r303r',
             'ext': 'flv',
@@ -24,8 +23,7 @@ class JukeboxIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('video_id')
+        video_id = self._match_id(url)
 
         html = self._download_webpage(url, video_id)
         iframe_url = unescapeHTML(self._search_regex(r'<iframe .*src="([^"]*)"', html, 'iframe url'))
