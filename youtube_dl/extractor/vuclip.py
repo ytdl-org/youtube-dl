@@ -28,9 +28,7 @@ class VuClipIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        #webpage = self._download_webpage(url, video_id)
-        import io
-        webpage = io.open('922692425_http_-_m.vuclip.com_wcid=922692425_fid=70295_z=1010_nvar_frm=index.html.dump', encoding='utf-8').read()
+        webpage = self._download_webpage(url, video_id)
         ad_m = re.search(
             r'''value="No.*?" onClick="location.href='([^"']+)'"''', webpage)
         if ad_m:
