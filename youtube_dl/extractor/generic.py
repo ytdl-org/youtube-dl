@@ -180,13 +180,13 @@ class GenericIE(InfoExtractor):
         # Embedded TED video
         {
             'url': 'http://en.support.wordpress.com/videos/ted-talks/',
-            'md5': 'deeeabcc1085eb2ba205474e7235a3d5',
+            'md5': '65fdff94098e4a607385a60c5177c638',
             'info_dict': {
-                'id': '981',
+                'id': '1969',
                 'ext': 'mp4',
-                'title': 'My web playroom',
-                'uploader': 'Ze Frank',
-                'description': 'md5:ddb2a40ecd6b6a147e400e535874947b',
+                'title': 'Hidden miracles of the natural world',
+                'uploader': 'Louie Schwartzberg',
+                'description': 'md5:8145d19d320ff3e52f28401f4c4283b9',
             }
         },
         # Embeded Ustream video
@@ -295,13 +295,13 @@ class GenericIE(InfoExtractor):
         {
             'url': 'https://play.google.com/store/apps/details?id=com.gameloft.android.ANMP.GloftA8HM',
             'info_dict': {
-                'id': 'jpSGZsgga_I',
+                'id': '4vAffPZIT44',
                 'ext': 'mp4',
-                'title': 'Asphalt 8: Airborne - Launch Trailer',
+                'title': 'Asphalt 8: Airborne - Update - Welcome to Dubai!',
                 'uploader': 'Gameloft',
                 'uploader_id': 'gameloft',
-                'upload_date': '20130821',
-                'description': 'md5:87bd95f13d8be3e7da87a5f2c443106a',
+                'upload_date': '20140828',
+                'description': 'md5:c80da9ed3d83ae6d1876c834de03e1c4',
             },
             'params': {
                 'skip_download': True,

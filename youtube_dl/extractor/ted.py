@@ -149,7 +149,7 @@ class TEDIE(SubtitlesInfoExtractor):
             thumbnail = 'http://' + thumbnail
         return {
             'id': video_id,
-            'title': talk_info['title'],
+            'title': talk_info['title'].strip(),
             'uploader': talk_info['speaker'],
             'thumbnail': thumbnail,
             'description': self._og_search_description(webpage),
