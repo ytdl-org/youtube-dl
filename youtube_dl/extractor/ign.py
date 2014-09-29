@@ -89,7 +89,12 @@ class IGNIE(InfoExtractor):
                 '<param name="flashvars"[^>]*value="[^"]*?url=(https?://www\.ign\.com/videos/.*?)["&]',
                 webpage)
             if multiple_urls:
-                return [self.url_result(u, ie='IGN') for u in multiple_urls]
+                entries = [self.url_result(u, ie='IGN') for u in multiple_urls]
+                return {
+                    '_type': 'playlist',
+                    'id': name_or_id,
+                    'entries': entries,
+                }
 
         video_id = self._find_video_id(webpage)
         result = self._get_video_info(video_id)
