@@ -799,6 +799,12 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
                 del req.headers['User-agent']
             req.headers['User-agent'] = req.headers['Youtubedl-user-agent']
             del req.headers['Youtubedl-user-agent']
+
+        if sys.version_info < (2, 7) and '#' in req.get_full_url():
+            # Python 2.6 is brain-dead when it comes to fragments
+            req._Request__original = req._Request__original.partition('#')[0]
+            req._Request__r_type = req._Request__r_type.partition('#')[0]
+
         return req
 
     def http_response(self, req, resp):
