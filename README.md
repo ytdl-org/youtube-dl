@@ -348,20 +348,33 @@ $ youtube-dl --dateafter 20000101 --datebefore 20091231
 
 # FAQ
 
-### I'm getting an error `Unable to extract OpenGraph title` on YouTube playlists
+### How do I update youtube-dl?
 
-YouTube changed their playlist format in March 2014 and later on, so you'll need at least youtube-dl 2014.07.25 to download all YouTube videos.
+If you've followed [our manual installation instructions](http://rg3.github.io/youtube-dl/download.html), you can simply run `youtube-dl -U` (or, on Linux, `sudo youtube-dl -U`).
 
-If you have installed youtube-dl with a package manager, pip, setup.py or a tarball, please use that to update. Note that Ubuntu packages do not seem to get updated anymore. Since we are not affiliated with Ubuntu, there is little we can do. Feel free to report bugs to the Ubuntu packaging guys - all they have to do is update the package to a somewhat recent version.
+If you have used pip, a simple `sudo pip install -U youtube-dl` is sufficient to update.
 
-Alternatively, uninstall the youtube-dl package and follow [our manual installation instructions](http://rg3.github.io/youtube-dl/download.html). In a pinch, this should do if you used `apt-get` before to install youtube-dl:
+If you have installed youtube-dl using a package manager like *apt-get* or *yum*, use the standard system update mechanism to update. Note that distribution packages are often outdated. As a rule of thumb, youtube-dl releases at least once a month, and often weekly or even daily. Simply go to http://yt-dl.org/ to find out the current version. Unfortunately, there is nothing we youtube-dl developers can do if your distributions serves a really outdated version. You can (and should) complain to your distribution in their bugtracker or support forum.
+
+As a last resort, you can also uninstall the version installed by your package manager and follow our manual installation instructions. For that, remove the distribution's package, with a line like
+
+    sudo apt-get remove -y youtube-dl
+
+Afterwards, simply follow [our manual installation instructions](http://rg3.github.io/youtube-dl/download.html):
 
 ```
-sudo apt-get remove -y youtube-dl
 sudo wget https://yt-dl.org/latest/youtube-dl -O /usr/local/bin/youtube-dl
 sudo chmod a+x /usr/local/bin/youtube-dl
 hash -r
 ```
+
+Again, from then on you'll be able to update with `sudo youtube-dl -U`.
+
+### I'm getting an error `Unable to extract OpenGraph title` on YouTube playlists
+
+YouTube changed their playlist format in March 2014 and later on, so you'll need at least youtube-dl 2014.07.25 to download all YouTube videos.
+
+If you have installed youtube-dl with a package manager, pip, setup.py or a tarball, please use that to update. Note that Ubuntu packages do not seem to get updated anymore. Since we are not affiliated with Ubuntu, there is little we can do. Feel free to report bugs to the Ubuntu packaging guys - all they have to do is update the package to a somewhat recent version. See above for a way to update.
 
 ### Do I always have to pass in `--max-quality FORMAT`, or `-citw`?
 
