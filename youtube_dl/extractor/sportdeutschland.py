@@ -17,11 +17,11 @@ class SportDeutschlandIE(InfoExtractor):
         'info_dict': {
             'id': 'live-li-ning-badminton-weltmeisterschaft-2014-kopenhagen',
             'ext': 'mp4',
-            'title': 'LIVE: Li-Ning Badminton Weltmeisterschaft 2014 Kopenhagen',
+            'title': 're:Li-Ning Badminton Weltmeisterschaft 2014 Kopenhagen',
             'categories': ['Badminton'],
             'view_count': int,
             'thumbnail': 're:^https?://.*\.jpg$',
-            'description': 're:^Die Badminton-WM 2014 aus Kopenhagen LIVE',
+            'description': 're:Die Badminton-WM 2014 aus Kopenhagen bei Sportdeutschland\.TV',
             'timestamp': int,
             'upload_date': 're:^201408[23][0-9]$',
         },
