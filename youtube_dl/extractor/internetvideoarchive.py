@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import re
 
 from .common import InfoExtractor
@@ -12,12 +14,13 @@ class InternetVideoArchiveIE(InfoExtractor):
     _VALID_URL = r'https?://video\.internetvideoarchive\.net/flash/players/.*?\?.*?publishedid.*?'
 
     _TEST = {
-        u'url': u'http://video.internetvideoarchive.net/flash/players/flashconfiguration.aspx?customerid=69249&publishedid=452693&playerid=247',
-        u'file': u'452693.mp4',
-        u'info_dict': {
-            u'title': u'SKYFALL',
-            u'description': u'In SKYFALL, Bond\'s loyalty to M is tested as her past comes back to haunt her. As MI6 comes under attack, 007 must track down and destroy the threat, no matter how personal the cost.',
-            u'duration': 153,
+        'url': 'http://video.internetvideoarchive.net/flash/players/flashconfiguration.aspx?customerid=69249&publishedid=452693&playerid=247',
+        'info_dict': {
+            'id': '452693',
+            'ext': 'mp4',
+            'title': 'SKYFALL',
+            'description': 'In SKYFALL, Bond\'s loyalty to M is tested as her past comes back to haunt her. As MI6 comes under attack, 007 must track down and destroy the threat, no matter how personal the cost.',
+            'duration': 153,
         },
     }
 
@@ -42,7 +45,7 @@ class InternetVideoArchiveIE(InfoExtractor):
         url = self._build_url(query)
 
         flashconfiguration = self._download_xml(url, video_id,
-            u'Downloading flash configuration')
+            'Downloading flash configuration')
         file_url = flashconfiguration.find('file').text
         file_url = file_url.replace('/playlist.aspx', '/mrssplaylist.aspx')
         # Replace some of the parameters in the query to get the best quality
@@ -51,7 +54,7 @@ class InternetVideoArchiveIE(InfoExtractor):
             lambda m: self._clean_query(m.group()),
             file_url)
         info = self._download_xml(file_url, video_id,
-            u'Downloading video info')
+            'Downloading video info')
         item = info.find('channel/item')
 
         def _bp(p):
