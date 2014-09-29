@@ -35,7 +35,6 @@ class CliphunterIE(InfoExtractor):
             'title': 'Fun Jynx Maze solo',
             'thumbnail': 're:^https?://.*\.jpg$',
             'age_limit': 18,
-            'duration': 1317,
         }
     }
 
@@ -86,14 +85,11 @@ class CliphunterIE(InfoExtractor):
         thumbnail = self._search_regex(
             r"var\s+mov_thumb\s*=\s*'([^']+)';",
             webpage, 'thumbnail', fatal=False)
-        duration = int_or_none(self._search_regex(
-            r'pl_dur\s*=\s*([0-9]+)', webpage, 'duration', fatal=False))
 
         return {
             'id': video_id,
             'title': video_title,
             'formats': formats,
-            'duration': duration,
             'age_limit': self._rta_search(webpage),
             'thumbnail': thumbnail,
         }
