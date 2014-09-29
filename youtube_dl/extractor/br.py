@@ -26,6 +26,8 @@ class BRIE(InfoExtractor):
                 'title': 'Wenn das Traditions-Theater wackelt',
                 'description': 'Heimatsound-Festival 2014: Wenn das Traditions-Theater wackelt',
                 'duration': 34,
+                'uploader': 'BR',
+                'upload_date': '20140802',
             }
         },
         {
@@ -66,8 +68,7 @@ class BRIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        display_id = mobj.group('id')
+        display_id = self._match_id(url)
         page = self._download_webpage(url, display_id)
         xml_url = self._search_regex(
             r"return BRavFramework\.register\(BRavFramework\('avPlayer_(?:[a-f0-9-]{36})'\)\.setup\({dataURL:'(/(?:[a-z0-9\-]+/)+[a-z0-9/~_.-]+)'}\)\);", page, 'XMLURL')
