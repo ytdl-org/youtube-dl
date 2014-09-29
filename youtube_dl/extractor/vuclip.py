@@ -53,7 +53,7 @@ class VuClipIE(InfoExtractor):
                 )
                 (.*?)
                 (?:
-                    <a\s+href="fblike'|<div\s+class="social">
+                    <a\s+href="fblike|<div\s+class="social">
                 )
             ''', webpage, 'links')
         title = self._html_search_regex(
