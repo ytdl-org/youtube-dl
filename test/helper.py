@@ -14,6 +14,7 @@ from youtube_dl import YoutubeDL
 from youtube_dl.utils import (
     compat_str,
     preferredencoding,
+    write_string,
 )
 
 
@@ -136,7 +137,15 @@ def expect_info_dict(self, expected_dict, got_dict):
         if value and key in ('title', 'description', 'uploader', 'upload_date', 'timestamp', 'uploader_id', 'location'))
     missing_keys = set(test_info_dict.keys()) - set(expected_dict.keys())
     if missing_keys:
-        sys.stderr.write('\n"info_dict": ' + json.dumps(test_info_dict, ensure_ascii=False, indent=4) + '\n')
+        def _repr(v):
+            if isinstance(v, compat_str):
+                return "'%s'" % v.replace('\\', '\\\\').replace("'", "\\'")
+            else:
+                return repr(v)
+        info_dict_str = ''.join(
+            '    %s: %s,\n' % (_repr(k), _repr(v))
+            for k, v in test_info_dict.items())
+        write_string('\n"info_dict": {' + info_dict_str + '}\n', out=sys.stderr)
         self.assertFalse(
             missing_keys,
             'Missing keys in test definition: %s' % (
