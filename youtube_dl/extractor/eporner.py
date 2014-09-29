@@ -14,11 +14,11 @@ class EpornerIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?eporner\.com/hd-porn/(?P<id>\d+)/(?P<display_id>[\w-]+)'
     _TEST = {
         'url': 'http://www.eporner.com/hd-porn/95008/Infamous-Tiffany-Teen-Strip-Tease-Video/',
-        'md5': '3b427ae4b9d60619106de3185c2987cd',
+        'md5': '39d486f046212d8e1b911c52ab4691f8',
         'info_dict': {
             'id': '95008',
             'display_id': 'Infamous-Tiffany-Teen-Strip-Tease-Video',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Infamous Tiffany Teen Strip Tease Video',
             'duration': 194,
             'view_count': int,
