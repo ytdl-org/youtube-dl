@@ -35,7 +35,7 @@ class FacebookIE(InfoExtractor):
             'id': '637842556329505',
             'ext': 'mp4',
             'duration': 38,
-            'title': 'Did you know Kei Nishikori is the first Asian man to ever reach a Grand Slam fin...',
+            'title': 're:Did you know Kei Nishikori is the first Asian man to ever reach a Grand Slam',
         }
     }, {
         'note': 'Video without discernible title',
