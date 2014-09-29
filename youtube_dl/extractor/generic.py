@@ -155,7 +155,6 @@ class GenericIE(InfoExtractor):
         # funnyordie embed
         {
             'url': 'http://www.theguardian.com/world/2014/mar/11/obama-zach-galifianakis-between-two-ferns',
-            'md5': '7cf780be104d40fea7bae52eed4a470e',
             'info_dict': {
                 'id': '18e820ec3f',
                 'ext': 'mp4',
