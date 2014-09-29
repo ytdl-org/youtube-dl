@@ -86,11 +86,15 @@ class ArteTVPlus7IE(InfoExtractor):
         info = self._download_json(json_url, video_id)
         player_info = info['videoJsonPlayer']
 
+        upload_date_str = player_info.get('shootingDate')
+        if not upload_date_str:
+            upload_date_str = player_info.get('VDA', '').split(' ')[0]
+
         info_dict = {
             'id': player_info['VID'],
             'title': player_info['VTI'],
             'description': player_info.get('VDE'),
-            'upload_date': unified_strdate(player_info.get('VDA', '').split(' ')[0]),
+            'upload_date': unified_strdate(upload_date_str),
             'thumbnail': player_info.get('programImage') or player_info.get('VTU', {}).get('IUR'),
         }
 
