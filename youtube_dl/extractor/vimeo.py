@@ -275,18 +275,9 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
                 _, video_thumbnail = sorted((int(width if width.isdigit() else 0), t_url) for (width, t_url) in video_thumbs.items())[-1]
 
         # Extract video description
-        video_description = None
-        try:
-            video_description = get_element_by_attribute("class", "description_wrapper", webpage)
-            if video_description:
-                video_description = clean_html(video_description)
-        except AssertionError as err:
-            # On some pages like (http://player.vimeo.com/video/54469442) the
-            # html tags are not closed, python 2.6 cannot handle it
-            if err.args[0] == 'we should not get here!':
-                pass
-            else:
-                raise
+        video_description = self._html_search_regex(
+            r'(?s)<div class="[^"]*description"[^>]*>(.*?)</div>',
+            webpage, 'description', fatal=False)
 
         # Extract video duration
         video_duration = int_or_none(config["video"].get("duration"))
