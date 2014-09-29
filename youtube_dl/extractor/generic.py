@@ -225,21 +225,6 @@ class GenericIE(InfoExtractor):
                 'skip_download': 'Requires rtmpdump'
             }
         },
-        # smotri embed
-        {
-            'url': 'http://rbctv.rbc.ru/archive/news/562949990879132.shtml',
-            'md5': 'ec40048448e9284c9a1de77bb188108b',
-            'info_dict': {
-                'id': 'v27008541fad',
-                'ext': 'mp4',
-                'title': 'Крым и Севастополь вошли в состав России',
-                'description': 'md5:fae01b61f68984c7bd2fa741e11c3175',
-                'duration': 900,
-                'upload_date': '20140318',
-                'uploader': 'rbctv_2012_4',
-                'uploader_id': 'rbctv_2012_4',
-            },
-        },
         # Condé Nast embed
         {
             'url': 'http://www.wired.com/2014/04/honda-asimo/',
