@@ -655,9 +655,17 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         # Get video webpage
         url = proto + '://www.youtube.com/watch?v=%s&gl=US&hl=en&has_verified=1' % video_id
-        req = compat_urllib_request.Request(url)
-        req.add_header('Cookie', 'PREF=hl=en')
-        video_webpage = self._download_webpage(req, video_id)
+        pref_cookies = [
+            c for c in self._downloader.cookiejar
+            if c.domain == '.youtube.com' and c.name == 'PREF']
+        for pc in pref_cookies:
+            if 'hl=' in pc.value:
+                pc.value = re.sub(r'hl=[^&]+', 'hl=en', pc.value)
+            else:
+                if pc.value:
+                    pc.value += '&'
+                pc.value += 'hl=en'
+        video_webpage = self._download_webpage(url, video_id)
 
         # Attempt to extract SWF player URL
         mobj = re.search(r'swfConfig.*?"(https?:\\/\\/.*?watch.*?-.*?\.swf)"', video_webpage)
