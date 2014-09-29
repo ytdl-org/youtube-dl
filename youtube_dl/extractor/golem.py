@@ -38,11 +38,9 @@ class GolemIE(InfoExtractor):
         }
 
         formats = []
-        for e in config.findall('./*[url]'):
+        for e in config:
             url = e.findtext('./url')
             if not url:
-                self._downloader.report_warning(
-                    "{0}: url: empty, skipping".format(e.tag))
                 continue
 
             formats.append({
@@ -57,7 +55,7 @@ class GolemIE(InfoExtractor):
         info['formats'] = formats
 
         thumbnails = []
-        for e in config.findall('.//teaser[url]'):
+        for e in config.findall('.//teaser'):
             url = e.findtext('./url')
             if not url:
                 continue
