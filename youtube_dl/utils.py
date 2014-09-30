@@ -673,6 +673,8 @@ class ExtractorError(Exception):
             expected = True
         if video_id is not None:
             msg = video_id + ': ' + msg
+        if cause:
+            msg += u' (caused by %r)' % cause
         if not expected:
             msg = msg + u'; please report this issue on https://yt-dl.org/bug . Be sure to call youtube-dl with the --verbose flag and include its complete output. Make sure you are using the latest version; type  youtube-dl -U  to update.'
         super(ExtractorError, self).__init__(msg)
@@ -1598,7 +1600,9 @@ def js_to_json(code):
             ([{,]\s*)
             ("[^"]*"|\'[^\']*\'|[a-z0-9A-Z]+)
             (:\s*)
-            ([0-9.]+|true|false|"[^"]*"|\'[^\']*\'|\[|\{)
+            ([0-9.]+|true|false|"[^"]*"|\'[^\']*\'|
+                (?=\[|\{)
+            )
         ''', fix_kv, code)
     res = re.sub(r',(\s*\])', lambda m: m.group(1), res)
     return res

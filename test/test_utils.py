@@ -44,6 +44,7 @@ from youtube_dl.utils import (
     limit_length,
     escape_rfc3986,
     escape_url,
+    js_to_json,
 )
 
 
@@ -330,6 +331,15 @@ class TestUtil(unittest.TestCase):
             'http://тест.рф/%D0%B0%D0%B1%D0%B2?%D0%B0%D0%B1%D0%B2=%D0%B0%D0%B1%D0%B2#%D0%B0%D0%B1%D0%B2'
         )
         self.assertEqual(escape_url('http://vimeo.com/56015672#at=0'), 'http://vimeo.com/56015672#at=0')
+
+    def test_js_to_json(self):
+        inp = '''{
+                'clip':{'provider':'pseudo'}
+        }'''
+        self.assertEqual(js_to_json(inp), '''{
+                "clip":{"provider":"pseudo"}
+        }''')
+        json.loads(js_to_json(inp))
 
 if __name__ == '__main__':
     unittest.main()
