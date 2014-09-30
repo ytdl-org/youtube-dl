@@ -71,6 +71,7 @@ class TvigleIE(InfoExtractor):
                     'format_id': '%s-%s' % (vcodec, quality),
                     'vcodec': vcodec,
                     'height': int(quality[:-1]),
+                    'filesize': item['video_files_size'][vcodec][quality],
                 })
         self._sort_formats(formats)
 
