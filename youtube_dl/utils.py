@@ -1580,29 +1580,24 @@ def strip_jsonp(code):
 
 def js_to_json(code):
     def fix_kv(m):
-        key = m.group(2)
-        if key.startswith("'"):
-            assert key.endswith("'")
-            assert '"' not in key
-            key = '"%s"' % key[1:-1]
-        elif not key.startswith('"'):
-            key = '"%s"' % key
-
-        value = m.group(4)
-        if value.startswith("'"):
-            assert value.endswith("'")
-            assert '"' not in value
-            value = '"%s"' % value[1:-1]
-
-        return m.group(1) + key + m.group(3) + value
+        v = m.group(0)
+        if v in ('true', 'false', 'null'):
+            return v
+        if v.startswith('"'):
+            return v
+        if v.startswith("'"):
+            v = v[1:-1]
+            v = re.sub(r"\\\\|\\'|\"", lambda m: {
+                '\\\\': '\\\\',
+                "\\'": "'",
+                '"': '\\"',
+            }[m.group(0)], v)
+        return '"%s"' % v
 
     res = re.sub(r'''(?x)
-            ([{,]\s*)
-            ("[^"]*"|\'[^\']*\'|[a-z0-9A-Z]+)
-            (:\s*)
-            ([0-9.]+|true|false|"[^"]*"|\'[^\']*\'|
-                (?=\[|\{)
-            )
+        "(?:[^"\\]*(?:\\\\|\\")?)*"|
+        '(?:[^'\\]*(?:\\\\|\\')?)*'|
+        [a-zA-Z_][a-zA-Z_0-9]*
         ''', fix_kv, code)
     res = re.sub(r',(\s*\])', lambda m: m.group(1), res)
     return res

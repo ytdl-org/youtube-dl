@@ -332,14 +332,28 @@ class TestUtil(unittest.TestCase):
         )
         self.assertEqual(escape_url('http://vimeo.com/56015672#at=0'), 'http://vimeo.com/56015672#at=0')
 
-    def test_js_to_json(self):
+    def test_js_to_json_realworld(self):
         inp = '''{
-                'clip':{'provider':'pseudo'}
+            'clip':{'provider':'pseudo'}
         }'''
         self.assertEqual(js_to_json(inp), '''{
-                "clip":{"provider":"pseudo"}
+            "clip":{"provider":"pseudo"}
         }''')
         json.loads(js_to_json(inp))
+
+        inp = '''{
+            'playlist':[{'controls':{'all':null}}]
+        }'''
+        self.assertEqual(js_to_json(inp), '''{
+            "playlist":[{"controls":{"all":null}}]
+        }''')
+
+    def test_js_to_json_edgecases(self):
+        on = js_to_json("{abc_def:'1\\'\\\\2\\\\\\'3\"4'}")
+        self.assertEqual(json.loads(on), {"abc_def": "1'\\2\\'3\"4"})
+
+        on = js_to_json('{"abc": true}')
+        self.assertEqual(json.loads(on), {'abc': True})
 
 if __name__ == '__main__':
     unittest.main()

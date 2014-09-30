@@ -334,7 +334,11 @@ class InfoExtractor(object):
         try:
             return json.loads(json_string)
         except ValueError as ve:
-            raise ExtractorError('Failed to download JSON', cause=ve)
+            errmsg = '%s: Failed to parse JSON ' % video_id
+            if fatal:
+                raise ExtractorError(errmsg, cause=ve)
+            else:
+                self.report_warning(errmsg + str(ve))
 
     def report_warning(self, msg, video_id=None):
         idstr = '' if video_id is None else '%s: ' % video_id
