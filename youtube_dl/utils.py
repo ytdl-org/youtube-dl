@@ -203,6 +203,48 @@ def compat_ord(c):
     if type(c) is int: return c
     else: return ord(c)
 
+
+# Environment variables should be decoded with filesystem encoding
+# otherwise this results in issues like #3854 #2918 #3217
+if sys.version_info >= (3, 0):
+    compat_getenv = os.getenv
+    compat_expanduser = os.path.expanduser
+else:
+    def compat_getenv(key, default=None):
+        env = os.getenv(key, default)
+        if env:
+            env = env.decode(get_filesystem_encoding())
+        return env
+
+    def compat_expanduser(path):
+        """Expand ~ and ~user constructs.
+
+        If user or $HOME is unknown, do nothing."""
+        if path[:1] != '~':
+            return path
+        i, n = 1, len(path)
+        while i < n and path[i] not in '/\\':
+            i += 1
+
+        if 'HOME' in os.environ:
+            userhome = compat_getenv('HOME')
+        elif 'USERPROFILE' in os.environ:
+            userhome = compat_getenv('USERPROFILE')
+        elif not 'HOMEPATH' in os.environ:
+            return path
+        else:
+            try:
+                drive = compat_getenv('HOMEDRIVE')
+            except KeyError:
+                drive = ''
+            userhome = os.path.join(drive, compat_getenv('HOMEPATH'))
+
+        if i != 1:  # ~user
+            userhome = os.path.join(os.path.dirname(userhome), path[1:i])
+
+        return userhome + path[i:]
+
+
 # This is not clearly defined otherwise
 compiled_regex_type = type(re.compile(''))
 
@@ -1204,11 +1246,14 @@ class locked_file(object):
         return self.f.read(*args)
 
 
+def get_filesystem_encoding():
+    encoding = sys.getfilesystemencoding()
+    return encoding if encoding is not None else 'utf-8'
+
+
 def shell_quote(args):
     quoted_args = []
-    encoding = sys.getfilesystemencoding()
-    if encoding is None:
-        encoding = 'utf-8'
+    encoding = get_filesystem_encoding()
     for a in args:
         if isinstance(a, bytes):
             # We may get a filename encoded with 'encodeFilename'
@@ -1258,7 +1303,7 @@ def format_bytes(bytes):
 
 
 def get_term_width():
-    columns = os.environ.get('COLUMNS', None)
+    columns = compat_getenv('COLUMNS', None)
     if columns:
         return int(columns)
 

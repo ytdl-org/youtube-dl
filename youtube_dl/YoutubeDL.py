@@ -24,6 +24,7 @@ if os.name == 'nt':
 
 from .utils import (
     compat_cookiejar,
+    compat_expanduser,
     compat_http_client,
     compat_str,
     compat_urllib_error,
@@ -447,7 +448,7 @@ class YoutubeDL(object):
             template_dict = collections.defaultdict(lambda: 'NA', template_dict)
 
             outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
-            tmpl = os.path.expanduser(outtmpl)
+            tmpl = compat_expanduser(outtmpl)
             filename = tmpl % template_dict
             return filename
         except ValueError as err:

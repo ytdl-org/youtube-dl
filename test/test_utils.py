@@ -44,6 +44,9 @@ from youtube_dl.utils import (
     limit_length,
     escape_rfc3986,
     escape_url,
+    get_filesystem_encoding,
+    compat_getenv,
+    compat_expanduser,
 )
 
 
@@ -330,6 +333,16 @@ class TestUtil(unittest.TestCase):
             'http://тест.рф/%D0%B0%D0%B1%D0%B2?%D0%B0%D0%B1%D0%B2=%D0%B0%D0%B1%D0%B2#%D0%B0%D0%B1%D0%B2'
         )
         self.assertEqual(escape_url('http://vimeo.com/56015672#at=0'), 'http://vimeo.com/56015672#at=0')
+
+    def test_compat_getenv(self):
+        test_str = 'тест'
+        os.environ['YOUTUBE-DL-TEST'] = test_str.encode(get_filesystem_encoding())
+        self.assertEqual(compat_getenv('YOUTUBE-DL-TEST'), test_str)
+
+    def test_compat_expanduser(self):
+        test_str = 'C:\Documents and Settings\тест\Application Data'
+        os.environ['HOME'] = test_str.encode(get_filesystem_encoding())
+        self.assertEqual(compat_expanduser('~'), test_str)
 
 if __name__ == '__main__':
     unittest.main()
