@@ -31,7 +31,7 @@ class VGTVIE(InfoExtractor):
             'url': 'http://www.vgtv.no/#!/live/100764/opptak-vgtv-foelger-em-kvalifiseringen',
             'info_dict': {
                 'id': '100764',
-                'ext': 'mp4',
+                'ext': 'flv',
                 'title': 'OPPTAK: VGTV følger EM-kvalifiseringen',
                 'description': 'md5:3772d9c0dc2dff92a886b60039a7d4d3',
                 'thumbnail': 're:^https?://.*\.jpg',
@@ -50,7 +50,7 @@ class VGTVIE(InfoExtractor):
             'url': 'http://www.vgtv.no/#!/live/100015/direkte-her-kan-du-se-laksen-live-fra-suldalslaagen',
             'info_dict': {
                 'id': '100015',
-                'ext': 'mp4',
+                'ext': 'flv',
                 'title': 'DIREKTE: Her kan du se laksen live fra Suldalslågen!',
                 'description': 'md5:9a60cc23fa349f761628924e56eeec2d',
                 'thumbnail': 're:^https?://.*\.jpg',
