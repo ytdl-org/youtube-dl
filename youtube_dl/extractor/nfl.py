@@ -6,7 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    compat_urllib_parse,
+    compat_urllib_parse_urlparse,
     int_or_none,
     remove_end,
 )
@@ -90,7 +90,7 @@ class NFLIE(InfoExtractor):
         cdn_data = video_data.get('cdnData', {})
         streams = cdn_data.get('bitrateInfo', [])
         if cdn_data.get('format') == 'EXTERNAL_HTTP_STREAM':
-            parts = compat_urllib_parse.urlparse(cdn_data.get('uri'))
+            parts = compat_urllib_parse_urlparse(cdn_data.get('uri'))
             protocol, host = parts.scheme, parts.netloc
             for stream in streams:
                 formats.append(
