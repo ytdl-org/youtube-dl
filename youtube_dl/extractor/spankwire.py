@@ -45,7 +45,7 @@ class SpankwireIE(InfoExtractor):
             r'<div\s+id="descriptionContent">([^<]+)<',
             webpage, 'description', fatal=False)
         thumbnail = self._html_search_regex(
-            r'playerData\.screenShot\s*=\s*"([^"]+)"',
+            r'playerData\.screenShot\s*=\s*["\']([^"\']+)["\']',
             webpage, 'thumbnail', fatal=False)
 
         uploader = self._html_search_regex(
@@ -67,7 +67,7 @@ class SpankwireIE(InfoExtractor):
 
         video_urls = list(map(
             compat_urllib_parse.unquote,
-            re.findall(r'playerData\.cdnPath[0-9]{3,}\s*=\s*"([^"]+)', webpage)))
+            re.findall(r'playerData\.cdnPath[0-9]{3,}\s*=\s*["\']([^"\']+)["\']', webpage)))
         if webpage.find('flashvars\.encrypted = "true"') != -1:
             password = self._html_search_regex(
                 r'flashvars\.video_title = "([^"]+)',
