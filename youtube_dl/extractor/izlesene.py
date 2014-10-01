@@ -63,7 +63,8 @@ class IzleseneIE(InfoExtractor):
 
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage)
-        thumbnail = self._og_search_thumbnail(webpage)
+        thumbnail = self._proto_relative_url(
+            self._og_search_thumbnail(webpage), scheme='http:')
 
         uploader = self._html_search_regex(
             r"adduserUsername\s*=\s*'([^']+)';",
