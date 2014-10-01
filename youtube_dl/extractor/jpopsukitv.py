@@ -12,7 +12,7 @@ from ..utils import (
 
 class JpopsukiIE(InfoExtractor):
     IE_NAME = 'jpopsuki.tv'
-    _VALID_URL = r'https?://(?:www\.)?jpopsuki\.tv/video/(.*?)/(?P<id>\S+)'
+    _VALID_URL = r'https?://(?:www\.)?jpopsuki\.tv/(category/)?video/(.*?)/(?P<id>\S+)'
 
     _TEST = {
         'url': 'http://www.jpopsuki.tv/video/ayumi-hamasaki---evolution/00be659d23b0b40508169cdee4545771',
