@@ -17,6 +17,7 @@ class TapelyIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?tape\.ly/(?P<id>[A-Za-z0-9\-_]+)(?:/(?P<songnr>\d+))?'
     _API_URL = 'http://tape.ly/showtape?id={0:}'
     _S3_SONG_URL = 'http://mytape.s3.amazonaws.com/{0:}'
+    _SOUNDCLOUD_SONG_URL = 'http://api.soundcloud.com{0:}'
     _TESTS = [
         {
             'url': 'http://tape.ly/my-grief-as-told-by-water',
@@ -68,8 +69,14 @@ class TapelyIE(InfoExtractor):
                 })
                 entries.append(entry)
             elif song['source'] == 'YT':
-                _, _, yt_id = song['filename'].split('/')
+                self.to_screen('YouTube video detected')
+                yt_id = song['filename'].replace('/youtube/', '')
                 entry.update(self.url_result(yt_id, 'Youtube', video_id=yt_id))
+                entries.append(entry)
+            elif song['source'] == 'SC':
+                self.to_screen('SoundCloud song detected')
+                sc_url = self._SOUNDCLOUD_SONG_URL.format(song['filename'])
+                entry.update(self.url_result(sc_url, 'Soundcloud'))
                 entries.append(entry)
             else:
                 self.report_warning('Unknown song source: %s' % song['source'])
