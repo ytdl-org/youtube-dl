@@ -12,14 +12,14 @@ from ..utils import (
 
 class JpopsukiIE(InfoExtractor):
     IE_NAME = 'jpopsuki.tv'
-    _VALID_URL = r'https?://(?:www\.)?jpopsuki\.tv/(category/)?video/(.*?)/(?P<id>\S+)'
+    _VALID_URL = r'https?://(?:www\.)?jpopsuki\.tv/(?:category/)?video/[^/]+/(?P<id>\S+)'
 
     _TEST = {
         'url': 'http://www.jpopsuki.tv/video/ayumi-hamasaki---evolution/00be659d23b0b40508169cdee4545771',
         'md5': '88018c0c1a9b1387940e90ec9e7e198e',
-        'file': '00be659d23b0b40508169cdee4545771.mp4',
         'info_dict': {
             'id': '00be659d23b0b40508169cdee4545771',
+            'ext': 'mp4',
             'title': 'ayumi hamasaki - evolution',
             'description': 'Release date: 2001.01.31\r\n浜崎あゆみ - evolution',
             'thumbnail': 'http://www.jpopsuki.tv/cache/89722c74d2a2ebe58bcac65321c115b2.jpg',
