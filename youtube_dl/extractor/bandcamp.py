@@ -15,13 +15,23 @@ class BandcampIE(InfoExtractor):
     _VALID_URL = r'https?://.*?\.bandcamp\.com/track/(?P<title>.*)'
     _TESTS = [{
         'url': 'http://youtube-dl.bandcamp.com/track/youtube-dl-test-song',
-        'file': '1812978515.mp3',
         'md5': 'c557841d5e50261777a6585648adf439',
         'info_dict': {
-            "title": "youtube-dl  \"'/\\\u00e4\u21ad - youtube-dl test song \"'/\\\u00e4\u21ad",
-            "duration": 9.8485,
+            'id': '1812978515',
+            'ext': 'mp3',
+            'title': "youtube-dl  \"'/\\\u00e4\u21ad - youtube-dl test song \"'/\\\u00e4\u21ad",
+            'duration': 9.8485,
         },
         '_skip': 'There is a limit of 200 free downloads / month for the test song'
+    }, {
+        'url': 'http://benprunty.bandcamp.com/track/lanius-battle',
+        'md5': '2b68e5851514c20efdff2afc5603b8b4',
+        'info_dict': {
+            'id': '2650410135',
+            'ext': 'mp3',
+            'title': 'Lanius (Battle)',
+            'uploader': 'Ben Prunty Music',
+        },
     }]
 
     def _real_extract(self, url):
@@ -59,9 +69,9 @@ class BandcampIE(InfoExtractor):
                 raise ExtractorError('No free songs found')
 
         download_link = m_download.group(1)
-        video_id = re.search(
-            r'var TralbumData = {(.*?)id: (?P<id>\d*?)$',
-            webpage, re.MULTILINE | re.DOTALL).group('id')
+        video_id = self._search_regex(
+            r'var TralbumData = {.*?id: (?P<id>\d+),?$',
+            webpage, 'video id', flags=re.MULTILINE | re.DOTALL)
 
         download_webpage = self._download_webpage(download_link, video_id, 'Downloading free downloads page')
         # We get the dictionary of the track from some javascript code
