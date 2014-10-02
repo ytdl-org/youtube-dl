@@ -1,8 +1,6 @@
 # coding=utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -30,8 +28,7 @@ class JpopsukiIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
 
@@ -47,11 +44,9 @@ class JpopsukiIE(InfoExtractor):
         uploader_id = self._html_search_regex(
             r'<li>from: <a href="/user/view/user/\S*?/uid/(\d*)',
             webpage, 'video uploader_id', fatal=False)
-        upload_date = self._html_search_regex(
+        upload_date = unified_strdate(self._html_search_regex(
             r'<li>uploaded: (.*?)</li>', webpage, 'video upload_date',
-            fatal=False)
-        if upload_date is not None:
-            upload_date = unified_strdate(upload_date)
+            fatal=False))
         view_count_str = self._html_search_regex(
             r'<li>Hits: ([0-9]+?)</li>', webpage, 'video view_count',
             fatal=False)
