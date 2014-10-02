@@ -639,6 +639,16 @@ class GenericIE(InfoExtractor):
             return _playlist_from_matches(
                 matches, lambda m: unescapeHTML(m[1]))
 
+        # Look for embedded Dailymotion playlist player (#3822)
+        m = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.[a-z]{2,3}/widget/jukebox\?.+?)\1', webpage)
+        if m:
+            playlists = re.findall(
+                r'list\[\]=/playlist/([^/]+)/', unescapeHTML(m.group('url')))
+            if playlists:
+                return _playlist_from_matches(
+                    playlists, lambda p: '//dailymotion.com/playlist/%s' % p)
+
         # Look for embedded Wistia player
         match = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:fast\.)?wistia\.net/embed/iframe/.+?)\1', webpage)
