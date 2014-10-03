@@ -138,6 +138,8 @@ class InfoExtractor(object):
 
     Unless mentioned otherwise, the fields should be Unicode strings.
 
+    Unless mentioned otherwise, None is equivalent to absence of information.
+
     Subclasses of this one should re-define the _real_initialize() and
     _real_extract() methods and define a _VALID_URL regexp.
     Probably, they should also be added to the list of extractors.
