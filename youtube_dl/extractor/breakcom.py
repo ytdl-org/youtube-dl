@@ -4,6 +4,10 @@ import re
 import json
 
 from .common import InfoExtractor
+from ..utils import (
+    int_or_none,
+    parse_age_limit,
+)
 
 
 class BreakIE(InfoExtractor):
@@ -28,15 +32,33 @@ class BreakIE(InfoExtractor):
         info = json.loads(self._search_regex(
             r'var embedVars = ({.*})\s*?</script>',
             webpage, 'info json', flags=re.DOTALL))
-        video_url = info['videoUri']
+
         youtube_id = info.get('youtubeId')
         if youtube_id:
             return self.url_result(youtube_id, 'Youtube')
 
-        final_url = video_url + '?' + info['AuthToken']
+        formats = [{
+            'url': media['uri'] + '?' + info['AuthToken'],
+            'tbr': media['bitRate'],
+            'width': media['width'],
+            'height': media['height'],
+        } for media in info['media']]
+
+        if not formats:
+            formats.append({
+                'url': info['videoUri']
+            })
+
+        self._sort_formats(formats)
+
+        duration = int_or_none(info.get('videoLengthInSeconds'))
+        age_limit = parse_age_limit(info.get('audienceRating'))
+
         return {
             'id': video_id,
-            'url': final_url,
             'title': info['contentName'],
             'thumbnail': info['thumbUri'],
+            'duration': duration,
+            'age_limit': age_limit,
+            'formats': formats,
         }
