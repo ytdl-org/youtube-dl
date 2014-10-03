@@ -275,6 +275,7 @@ from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
 from .photobucket import PhotobucketIE
+from .planetaplay import PlanetaPlayIE
 from .played import PlayedIE
 from .playfm import PlayFMIE
 from .playvid import PlayvidIE
