@@ -54,7 +54,7 @@ youtube-dl: youtube_dl/*.py youtube_dl/*/*.py
 	chmod a+x youtube-dl
 
 README.md: youtube_dl/*.py youtube_dl/*/*.py
-	COLUMNS=80 python -m youtube_dl --help | python devscripts/make_readme.py
+	COLUMNS=80 python -m youtube_dl.__main__ --help | python devscripts/make_readme.py
 
 README.txt: README.md
 	pandoc -f markdown -t plain README.md -o README.txt
