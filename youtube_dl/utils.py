@@ -1574,6 +1574,13 @@ US_RATINGS = {
 }
 
 
+def parse_age_limit(s):
+    if s is None:
+        return 0
+    m = re.match(r'^(?P<age>\d{1,2})\+?$', s)
+    return int(m.group('age')) if m else US_RATINGS.get(s, 0)
+
+
 def strip_jsonp(code):
     return re.sub(r'(?s)^[a-zA-Z0-9_]+\s*\(\s*(.*)\);?\s*?\s*$', r'\1', code)
 
