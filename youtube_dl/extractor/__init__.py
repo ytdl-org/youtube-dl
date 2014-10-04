@@ -134,6 +134,7 @@ from .gamestar import GameStarIE
 from .gametrailers import GametrailersIE
 from .gdcvault import GDCVaultIE
 from .generic import GenericIE
+from .globo import GloboIE
 from .godtube import GodTubeIE
 from .golem import GolemIE
 from .googleplus import GooglePlusIE
