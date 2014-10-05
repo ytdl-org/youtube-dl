@@ -12,10 +12,10 @@ from ..utils import (
 
 
 class GorillaVidIE(InfoExtractor):
-    IE_DESC = 'GorillaVid.in and daclips.in'
+    IE_DESC = 'GorillaVid.in, daclips.in and movpod.in'
     _VALID_URL = r'''(?x)
         https?://(?P<host>(?:www\.)?
-            (?:daclips\.in|gorillavid\.in))/
+            (?:daclips\.in|gorillavid\.in|movpod\.in))/
         (?:embed-)?(?P<id>[0-9a-zA-Z]+)(?:-[0-9]+x[0-9]+\.html)?
     '''
 
@@ -46,6 +46,9 @@ class GorillaVidIE(InfoExtractor):
             'title': 'Micro Pig piglets ready on 16th July 2009',
             'thumbnail': 're:http://.*\.jpg',
         },
+    }, {
+        'url': 'http://movpod.in/0wguyyxi1yca',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
