@@ -20,6 +20,8 @@ class GorillaVidIE(InfoExtractor):
         (?:embed-)?(?P<id>[0-9a-zA-Z]+)(?:-[0-9]+x[0-9]+\.html)?
     '''
 
+    _FILE_NOT_FOUND_REGEX = r'>(?:404 - )?File Not Found<'
+
     _TESTS = [{
         'url': 'http://gorillavid.in/06y9juieqpmi',
         'md5': '5ae4a3580620380619678ee4875893ba',
@@ -57,6 +59,9 @@ class GorillaVidIE(InfoExtractor):
         video_id = mobj.group('id')
 
         webpage = self._download_webpage('http://%s/%s' % (mobj.group('host'), video_id), video_id)
+
+        if re.search(self._FILE_NOT_FOUND_REGEX, webpage) is not None:
+            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
 
         fields = dict(re.findall(r'''(?x)<input\s+
             type="hidden"\s+
