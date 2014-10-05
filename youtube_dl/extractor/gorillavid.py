@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     determine_ext,
     compat_urllib_parse,
     compat_urllib_request,
@@ -25,7 +26,7 @@ class GorillaVidIE(InfoExtractor):
         'info_dict': {
             'id': '06y9juieqpmi',
             'ext': 'flv',
-            'title': 'Rebecca Black My Moment Official Music Video Reaction',
+            'title': 'Rebecca Black My Moment Official Music Video Reaction-6GK87Rc8bzQ',
             'thumbnail': 're:http://.*\.jpg',
         },
     }, {
@@ -72,14 +73,14 @@ class GorillaVidIE(InfoExtractor):
 
             webpage = self._download_webpage(req, video_id, 'Downloading video page')
 
-        title = self._search_regex(r'style="z-index: [0-9]+;">([0-9a-zA-Z ]+)(?:-.+)?</span>', webpage, 'title')
-        thumbnail = self._search_regex(r'image:\'(http[^\']+)\',', webpage, 'thumbnail')
-        url = self._search_regex(r'file: \'(http[^\']+)\',', webpage, 'file url')
+        title = self._search_regex(r'style="z-index: [0-9]+;">([^<]+)</span>', webpage, 'title')
+        video_url = self._search_regex(r'file\s*:\s*\'(http[^\']+)\',', webpage, 'file url')
+        thumbnail = self._search_regex(r'image\s*:\s*\'(http[^\']+)\',', webpage, 'thumbnail', fatal=False)
 
         formats = [{
             'format_id': 'sd',
-            'url': url,
-            'ext': determine_ext(url),
+            'url': video_url,
+            'ext': determine_ext(video_url),
             'quality': 1,
         }]
 
