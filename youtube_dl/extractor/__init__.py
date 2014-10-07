@@ -440,6 +440,7 @@ from .vporn import VpornIE
 from .vube import VubeIE
 from .vuclip import VuClipIE
 from .vulture import VultureIE
+from .walla import WallaIE
 from .washingtonpost import WashingtonPostIE
 from .wat import WatIE
 from .wayofthemaster import WayOfTheMasterIE

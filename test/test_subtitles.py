@@ -15,6 +15,7 @@ from youtube_dl.extractor import (
     DailymotionIE,
     TEDIE,
     VimeoIE,
+    WallaIE,
 )
 
 
@@ -277,6 +278,33 @@ class TestVimeoSubtitles(BaseTestSubtitles):
         subtitles = self.getSubtitles()
         for lang in langs:
             self.assertTrue(subtitles.get(lang) is not None, u'Subtitles for \'%s\' not extracted' % lang)
+
+
+class TestWallsSubtitles(BaseTestSubtitles):
+    url = 'http://vod.walla.co.il/movie/2705958/the-yes-men'
+    IE = WallaIE
+
+    def test_list_subtitles(self):
+        self.DL.expect_warning(u'Automatic Captions not supported by this server')
+        self.DL.params['listsubtitles'] = True
+        info_dict = self.getInfoDict()
+        self.assertEqual(info_dict, None)
+
+    def test_allsubtitles(self):
+        self.DL.expect_warning(u'Automatic Captions not supported by this server')
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(set(subtitles.keys()), set(['heb']))
+        self.assertEqual(md5(subtitles['heb']), 'e758c5d7cb982f6bef14f377ec7a3920')
+
+    def test_nosubtitles(self):
+        self.DL.expect_warning(u'video doesn\'t have subtitles')
+        self.url = 'http://vod.walla.co.il/movie/2642630/one-direction-all-for-one'
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(len(subtitles), 0)
 
 
 if __name__ == '__main__':
