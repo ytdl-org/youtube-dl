@@ -847,47 +847,51 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'MLB')
 
+        def check_video(vurl):
+            vpath = compat_urlparse.urlparse(vurl).path
+            vext = determine_ext(vpath)
+            return '.' in vpath and vext not in ('swf', 'png', 'jpg', 'srt', 'sbv', 'sub', 'vtt', 'ttml')
+
+        def filter_video(urls):
+            return list(filter(check_video, urls))
+
         # Start with something easy: JW Player in SWFObject
-        found = re.findall(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage)
+        found = filter_video(re.findall(r'flashvars: [\'"](?:.*&)?file=(http[^\'"&]*)', webpage))
         if not found:
             # Look for gorilla-vid style embedding
-            found = re.findall(r'''(?sx)
+            found = filter_video(re.findall(r'''(?sx)
                 (?:
                     jw_plugins|
                     JWPlayerOptions|
                     jwplayer\s*\(\s*["'][^'"]+["']\s*\)\s*\.setup
                 )
-                .*?file\s*:\s*["\'](.*?)["\']''', webpage)
+                .*?file\s*:\s*["\'](.*?)["\']''', webpage))
         if not found:
             # Broaden the search a little bit
-            found = re.findall(r'[^A-Za-z0-9]?(?:file|source)=(http[^\'"&]*)', webpage)
+            found = filter_video(re.findall(r'[^A-Za-z0-9]?(?:file|source)=(http[^\'"&]*)', webpage))
         if not found:
             # Broaden the findall a little bit: JWPlayer JS loader
-            found = re.findall(r'[^A-Za-z0-9]?file["\']?:\s*["\'](http(?![^\'"]+\.[0-9]+[\'"])[^\'"]+)["\']', webpage)
+            found = filter_video(re.findall(
+                r'[^A-Za-z0-9]?file["\']?:\s*["\'](http(?![^\'"]+\.[0-9]+[\'"])[^\'"]+)["\']', webpage))
         if not found:
             # Flow player
-            found = re.findall(r'''(?xs)
+            found = filter_video(re.findall(r'''(?xs)
                 flowplayer\("[^"]+",\s*
                     \{[^}]+?\}\s*,
                     \s*{[^}]+? ["']?clip["']?\s*:\s*\{\s*
                         ["']?url["']?\s*:\s*["']([^"']+)["']
-            ''', webpage)
+            ''', webpage))
         if not found:
             # Try to find twitter cards info
-            found = re.findall(r'<meta (?:property|name)="twitter:player:stream" (?:content|value)="(.+?)"', webpage)
+            found = filter_video(re.findall(
+                r'<meta (?:property|name)="twitter:player:stream" (?:content|value)="(.+?)"', webpage))
         if not found:
             # We look for Open Graph info:
             # We have to match any number spaces between elements, some sites try to align them (eg.: statigr.am)
             m_video_type = re.findall(r'<meta.*?property="og:video:type".*?content="video/(.*?)"', webpage)
             # We only look in og:video if the MIME type is a video, don't try if it's a Flash player:
             if m_video_type is not None:
-                def check_video(vurl):
-                    vpath = compat_urlparse.urlparse(vurl).path
-                    vext = determine_ext(vpath)
-                    return '.' in vpath and vext not in ('swf', 'png', 'jpg')
-                found = list(filter(
-                    check_video,
-                    re.findall(r'<meta.*?property="og:video".*?content="(.*?)"', webpage)))
+                found = filter_video(re.findall(r'<meta.*?property="og:video".*?content="(.*?)"', webpage))
         if not found:
             # HTML5 video
             found = re.findall(r'(?s)<video[^<]*(?:>.*?<source[^>]+)? src="([^"]+)"', webpage)
