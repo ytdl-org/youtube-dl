@@ -6,7 +6,6 @@ from .common import InfoExtractor
 from ..utils import (
     parse_duration,
     parse_iso8601,
-    find_xpath_attr,
 )
 
 
