@@ -347,6 +347,7 @@ from .spiegel import SpiegelIE, SpiegelArticleIE
 from .spiegeltv import SpiegeltvIE
 from .spike import SpikeIE
 from .sport5 import Sport5IE
+from .sportbox import SportBoxIE
 from .sportdeutschland import SportDeutschlandIE
 from .stanfordoc import StanfordOpenClassroomIE
 from .steam import SteamIE
