@@ -88,8 +88,9 @@ class MLBIE(InfoExtractor):
         duration = parse_duration(detail.find('./duration').text)
         timestamp = parse_iso8601(detail.attrib['date'][:-5])
 
-        thumbnail = find_xpath_attr(
-            detail, './thumbnailScenarios/thumbnailScenario', 'type', '45').text
+        thumbnails = [{
+            'url': thumbnail.text,
+        } for thumbnail in detail.findall('./thumbnailScenarios/thumbnailScenario')]
 
         formats = []
         for media_url in detail.findall('./url'):
@@ -116,5 +117,5 @@ class MLBIE(InfoExtractor):
             'duration': duration,
             'timestamp': timestamp,
             'formats': formats,
-            'thumbnail': thumbnail,
+            'thumbnails': thumbnails,
         }
