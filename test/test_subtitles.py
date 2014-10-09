@@ -280,7 +280,7 @@ class TestVimeoSubtitles(BaseTestSubtitles):
             self.assertTrue(subtitles.get(lang) is not None, u'Subtitles for \'%s\' not extracted' % lang)
 
 
-class TestWallsSubtitles(BaseTestSubtitles):
+class TestWallaSubtitles(BaseTestSubtitles):
     url = 'http://vod.walla.co.il/movie/2705958/the-yes-men'
     IE = WallaIE
 
