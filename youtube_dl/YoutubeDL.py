@@ -228,11 +228,11 @@ class YoutubeDL(object):
 
         if (sys.version_info >= (3,) and sys.platform != 'win32' and
                 sys.getfilesystemencoding() in ['ascii', 'ANSI_X3.4-1968']
-                and not params['restrictfilenames']):
+                and not params.get('restrictfilenames', False)):
             # On Python 3, the Unicode filesystem API will throw errors (#1474)
             self.report_warning(
                 'Assuming --restrict-filenames since file system encoding '
-                'cannot encode all charactes. '
+                'cannot encode all characters. '
                 'Set the LC_ALL environment variable to fix this.')
             self.params['restrictfilenames'] = True
 
