@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import itertools
@@ -15,7 +16,7 @@ from ..utils import (
 
 class YahooIE(InfoExtractor):
     IE_DESC = 'Yahoo screen and movies'
-    _VALID_URL = r'(?P<url>https?://(?:screen|movies)\.yahoo\.com/.*?-(?P<id>[0-9]+)(?:-[a-z]+)?\.html)'
+    _VALID_URL = r'(?P<url>https?://(?:.+?\.)?(?:screen|movies)\.yahoo\.com/.*?-(?P<id>[0-9]+)(?:-[a-z]+)?\.html)'
     _TESTS = [
         {
             'url': 'http://screen.yahoo.com/julian-smith-travis-legg-watch-214727115.html',
@@ -25,6 +26,7 @@ class YahooIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Julian Smith & Travis Legg Watch Julian Smith',
                 'description': 'Julian and Travis watch Julian Smith',
+                'duration': 6863,
             },
         },
         {
@@ -34,7 +36,8 @@ class YahooIE(InfoExtractor):
                 'id': 'd1dedf8c-d58c-38c3-8963-e899929ae0a9',
                 'ext': 'mp4',
                 'title': 'Codefellas - The Cougar Lies with Spanish Moss',
-                'description': 'Agent Topple\'s mustache does its dirty work, and Nicole brokers a deal for peace. But why is the NSA collecting millions of Instagram brunch photos? And if your waffles have nothing to hide, what are they so worried about?',
+                'description': 'md5:66b627ab0a282b26352136ca96ce73c1',
+                'duration': 151,
             },
         },
         {
@@ -45,6 +48,29 @@ class YahooIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': "Yahoo Saves 'Community'",
                 'description': 'md5:4d4145af2fd3de00cbb6c1d664105053',
+                'duration': 170,
+            }
+        },
+        {
+            'url': 'https://tw.screen.yahoo.com/taipei-opinion-poll/選情站報-街頭民調-台北市篇-102823042.html',
+            'md5': '92a7fdd8a08783c68a174d7aa067dde8',
+            'info_dict': {
+                'id': '7a23b569-7bea-36cb-85b9-bd5301a0a1fb',
+                'ext': 'mp4',
+                'title': '選情站報 街頭民調 台北市篇',
+                'description': '選情站報 街頭民調 台北市篇',
+                'duration': 429,
+            }
+        },
+        {
+            'url': 'https://uk.screen.yahoo.com/editor-picks/cute-raccoon-freed-drain-using-091756545.html  ',
+            'md5': '0b51660361f0e27c9789e7037ef76f4b',
+            'info_dict': {
+                'id': 'b3affa53-2e14-3590-852b-0e0db6cd1a58',
+                'ext': 'mp4',
+                'title': 'Cute Raccoon Freed From Drain\u00a0Using Angle Grinder',
+                'description': 'md5:f66c890e1490f4910a9953c941dee944',
+                'duration': 97,
             }
         },
     ]
@@ -75,9 +101,11 @@ class YahooIE(InfoExtractor):
         return self._get_info(long_id, video_id, webpage)
 
     def _get_info(self, long_id, video_id, webpage):
+        region = self._search_regex(
+            r'"region"\s*:\s*"([^"]+)"', webpage, 'region', fatal=False, default='US')
         query = ('SELECT * FROM yahoo.media.video.streams WHERE id="%s"'
-                 ' AND plrs="86Gj0vCaSzV_Iuf6hNylf2" AND region="US"'
-                 ' AND protocol="http"' % long_id)
+                 ' AND plrs="86Gj0vCaSzV_Iuf6hNylf2" AND region="%s"'
+                 ' AND protocol="http"' % (long_id, region))
         data = compat_urllib_parse.urlencode({
             'q': query,
             'env': 'prod',
@@ -118,6 +146,7 @@ class YahooIE(InfoExtractor):
             'formats': formats,
             'description': clean_html(meta['description']),
             'thumbnail': meta['thumbnail'] if meta.get('thumbnail') else self._og_search_thumbnail(webpage),
+            'duration': int_or_none(meta.get('duration')),
         }
 
 
