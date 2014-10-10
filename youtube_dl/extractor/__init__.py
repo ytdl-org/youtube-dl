@@ -463,7 +463,6 @@ from .xvideos import XVideosIE
 from .xtube import XTubeUserIE, XTubeIE
 from .yahoo import (
     YahooIE,
-    #YahooNewsIE,
     YahooSearchIE,
 )
 from .ynet import YnetIE
