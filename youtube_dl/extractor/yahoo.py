@@ -7,6 +7,7 @@ import re
 
 from .common import InfoExtractor, SearchInfoExtractor
 from ..utils import (
+    ExtractorError,
     compat_urllib_parse,
     compat_urlparse,
     clean_html,
@@ -16,7 +17,7 @@ from ..utils import (
 
 class YahooIE(InfoExtractor):
     IE_DESC = 'Yahoo screen and movies'
-    _VALID_URL = r'(?P<url>https?://(?:.+?\.)?(?:screen|movies)\.yahoo\.com/.*?-(?P<id>[0-9]+)(?:-[a-z]+)?\.html)'
+    _VALID_URL = r'(?P<url>(?P<host>https?://(?:[a-zA-Z]{2}\.)?[\da-zA-Z_-]+\.yahoo\.com)/(?:[^/]+/)*(?P<display_id>.+?)-(?P<id>[0-9]+)(?:-[a-z]+)?\.html)'
     _TESTS = [
         {
             'url': 'http://screen.yahoo.com/julian-smith-travis-legg-watch-214727115.html',
@@ -63,7 +64,7 @@ class YahooIE(InfoExtractor):
             }
         },
         {
-            'url': 'https://uk.screen.yahoo.com/editor-picks/cute-raccoon-freed-drain-using-091756545.html  ',
+            'url': 'https://uk.screen.yahoo.com/editor-picks/cute-raccoon-freed-drain-using-091756545.html',
             'md5': '0b51660361f0e27c9789e7037ef76f4b',
             'info_dict': {
                 'id': 'b3affa53-2e14-3590-852b-0e0db6cd1a58',
@@ -73,13 +74,70 @@ class YahooIE(InfoExtractor):
                 'duration': 97,
             }
         },
+        {
+            'url': 'https://ca.sports.yahoo.com/video/program-makes-hockey-more-affordable-013127711.html',
+            'md5': '57e06440778b1828a6079d2f744212c4',
+            'info_dict': {
+                'id': 'c9fa2a36-0d4d-3937-b8f6-cc0fb1881e73',
+                'ext': 'mp4',
+                'title': 'Program that makes hockey more affordable not offered in Manitoba',
+                'description': 'md5:c54a609f4c078d92b74ffb9bf1f496f4',
+                'duration': 121,
+            }
+        }, {
+            'url': 'https://ca.finance.yahoo.com/news/20-most-valuable-brands-world-112600775.html',
+            'md5': '3e401e4eed6325aa29d9b96125fd5b4f',
+            'info_dict': {
+                'id': 'c1b4c09c-8ed8-3b65-8b05-169c55358a83',
+                'ext': 'mp4',
+                'title': "Apple Is The World's Most Valuable Brand",
+                'description': 'md5:73eabc1a11c6f59752593b2ceefa1262',
+                'duration': 21,
+            }
+        }, {
+            'url': 'http://news.yahoo.com/video/china-moses-crazy-blues-104538833.html',
+            'md5': '67010fdf3a08d290e060a4dd96baa07b',
+            'info_dict': {
+                'id': 'f885cf7f-43d4-3450-9fac-46ac30ece521',
+                'ext': 'mp4',
+                'title': 'China Moses Is Crazy About the Blues',
+                'description': 'md5:9900ab8cd5808175c7b3fe55b979bed0',
+                'duration': 128,
+            }
+        }, {
+            'url': 'https://in.lifestyle.yahoo.com/video/connect-dots-dark-side-virgo-090247395.html',
+            'md5': 'd9a083ccf1379127bf25699d67e4791b',
+            'info_dict': {
+                'id': '52aeeaa3-b3d1-30d8-9ef8-5d0cf05efb7c',
+                'ext': 'mp4',
+                'title': 'Connect the Dots: Dark Side of Virgo',
+                'description': 'md5:1428185051cfd1949807ad4ff6d3686a',
+                'duration': 201,
+            }
+        }, {
+            'url': 'https://gma.yahoo.com/pizza-delivery-man-surprised-huge-tip-college-kids-195200785.html',
+            'only_matching': True,
+        }
     ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        display_id = mobj.group('display_id')
         url = mobj.group('url')
-        webpage = self._download_webpage(url, video_id)
+        host = mobj.group('host')
+        webpage = self._download_webpage(url, display_id)
+
+        # Look for iframed media first
+        iframe_m = re.search(r'<iframe[^>]+src="(/video/.+?-\d+\.html\?format=embed.*?)"', webpage)
+        if iframe_m:
+            iframepage = self._download_webpage(
+                host + iframe_m.group(1), display_id, 'Downloading iframe webpage')
+            items_json = self._search_regex(
+                r'mediaItems: (\[.+?\])$', iframepage, 'items', flags=re.MULTILINE, default=None)
+            if items_json:
+                items = json.loads(items_json)
+                video_id = items[0]['id']
+                return self._get_info(video_id, display_id, webpage)
 
         items_json = self._search_regex(
             r'mediaItems: ({.*?})$', webpage, 'items', flags=re.MULTILINE,
@@ -90,22 +148,22 @@ class YahooIE(InfoExtractor):
                 r'root\.App\.Cache\.context\.videoCache\.curVideo = \{"([^"]+)"',
                 r'"first_videoid"\s*:\s*"([^"]+)"',
             ]
-            long_id = self._search_regex(CONTENT_ID_REGEXES, webpage, 'content ID')
-            video_id = long_id
+            video_id = self._search_regex(CONTENT_ID_REGEXES, webpage, 'content ID')
         else:
             items = json.loads(items_json)
             info = items['mediaItems']['query']['results']['mediaObj'][0]
             # The 'meta' field is not always in the video webpage, we request it
             # from another page
-            long_id = info['id']
-        return self._get_info(long_id, video_id, webpage)
+            video_id = info['id']
+        return self._get_info(video_id, display_id, webpage)
 
-    def _get_info(self, long_id, video_id, webpage):
+    def _get_info(self, video_id, display_id, webpage):
         region = self._search_regex(
-            r'"region"\s*:\s*"([^"]+)"', webpage, 'region', fatal=False, default='US')
+            r'\\?"region\\?"\s*:\s*\\?"([^"]+?)\\?"',
+            webpage, 'region', fatal=False, default='US')
         query = ('SELECT * FROM yahoo.media.video.streams WHERE id="%s"'
                  ' AND plrs="86Gj0vCaSzV_Iuf6hNylf2" AND region="%s"'
-                 ' AND protocol="http"' % (long_id, region))
+                 ' AND protocol="http"' % (video_id, region))
         data = compat_urllib_parse.urlencode({
             'q': query,
             'env': 'prod',
@@ -113,9 +171,17 @@ class YahooIE(InfoExtractor):
         })
         query_result = self._download_json(
             'http://video.query.yahoo.com/v1/public/yql?' + data,
-            video_id, 'Downloading video info')
+            display_id, 'Downloading video info')
+
         info = query_result['query']['results']['mediaObj'][0]
-        meta = info['meta']
+        meta = info.get('meta')
+
+        if not meta:
+            msg = info['status'].get('msg')
+            if msg:
+                raise ExtractorError(
+                    '%s returned error: %s' % (self.IE_NAME, msg), expected=True)
+            raise ExtractorError('Unable to extract media object meta')
 
         formats = []
         for s in info['streams']:
@@ -142,35 +208,13 @@ class YahooIE(InfoExtractor):
 
         return {
             'id': video_id,
+            'display_id': display_id,
             'title': meta['title'],
             'formats': formats,
             'description': clean_html(meta['description']),
             'thumbnail': meta['thumbnail'] if meta.get('thumbnail') else self._og_search_thumbnail(webpage),
             'duration': int_or_none(meta.get('duration')),
         }
-
-
-class YahooNewsIE(YahooIE):
-    IE_NAME = 'yahoo:news'
-    _VALID_URL = r'http://news\.yahoo\.com/video/.*?-(?P<id>\d*?)\.html'
-
-    _TESTS = [{
-        'url': 'http://news.yahoo.com/video/china-moses-crazy-blues-104538833.html',
-        'md5': '67010fdf3a08d290e060a4dd96baa07b',
-        'info_dict': {
-            'id': '104538833',
-            'ext': 'mp4',
-            'title': 'China Moses Is Crazy About the Blues',
-            'description': 'md5:9900ab8cd5808175c7b3fe55b979bed0',
-        },
-    }]
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        webpage = self._download_webpage(url, video_id)
-        long_id = self._search_regex(r'contentId: \'(.+?)\',', webpage, 'long id')
-        return self._get_info(long_id, video_id, webpage)
 
 
 class YahooSearchIE(SearchInfoExtractor):
