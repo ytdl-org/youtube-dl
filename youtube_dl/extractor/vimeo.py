@@ -56,7 +56,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
 
     # _VALID_URL matches Vimeo URLs
     _VALID_URL = r'''(?x)
-        (?P<proto>(?:https?:)?//)?
+        https?://
         (?:(?:www|(?P<player>player))\.)?
         vimeo(?P<pro>pro)?\.com/
         (?!channels/[^/?#]+/?(?:$|[?#])|album/)
