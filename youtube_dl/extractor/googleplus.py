@@ -64,7 +64,7 @@ class GooglePlusIE(InfoExtractor):
         webpage = self._download_webpage(video_page, video_id, 'Downloading video page')
 
         # Extract video links all sizes
-        pattern = r'\d+,\d+,(\d+),"(http\://redirector\.googlevideo\.com.*?)"'
+        pattern = r'\d+,\d+,(\d+),"(https\://redirector\.googlevideo\.com.*?)"'
         mobj = re.findall(pattern, webpage)
         if len(mobj) == 0:
             raise ExtractorError('Unable to extract video links')
