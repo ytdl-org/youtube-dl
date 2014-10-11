@@ -18,16 +18,16 @@ class NDRIE(InfoExtractor):
 
     _TESTS = [
         {
-            'url': 'http://www.ndr.de/fernsehen/media/dienordreportage325.html',
-            'md5': '4a4eeafd17c3058b65f0c8f091355855',
+            'url': 'http://www.ndr.de/fernsehen/sendungen/nordmagazin/Kartoffeltage-in-der-Lewitz,nordmagazin25866.html',
+            'md5': '5bc5f5b92c82c0f8b26cddca34f8bb2c',
             'note': 'Video file',
             'info_dict': {
-                'id': '325',
+                'id': '25866',
                 'ext': 'mp4',
-                'title': 'Blaue Bohnen aus Blocken',
-                'description': 'md5:190d71ba2ccddc805ed01547718963bc',
-                'duration': 1715,
-            },
+                'title': 'Kartoffeltage in der Lewitz',
+                'description': 'md5:16d4d66907f541692e8182c33270f29a',
+                'duration': 166,
+            }
         },
         {
             'url': 'http://www.ndr.de/info/audio51535.html',
