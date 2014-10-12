@@ -371,6 +371,7 @@ from .telemb import TeleMBIE
 from .tenplay import TenPlayIE
 from .testurl import TestURLIE
 from .tf1 import TF1IE
+from .theonion import TheOnionIE
 from .theplatform import ThePlatformIE
 from .thesixtyone import TheSixtyOneIE
 from .thisav import ThisAVIE
