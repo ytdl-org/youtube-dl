@@ -205,7 +205,7 @@ def parseOpts(overrideArguments=None):
         help='Try to download the DASH manifest on YouTube videos (experimental)')
 
     authentication.add_option('-u', '--username',
-            dest='username', metavar='USERNAME', help='account username')
+            dest='username', metavar='USERNAME', help='login with this account ID')
     authentication.add_option('-p', '--password',
             dest='password', metavar='PASSWORD', help='account password')
     authentication.add_option('-2', '--twofactor',
