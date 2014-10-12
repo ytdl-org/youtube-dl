@@ -225,10 +225,6 @@ def parseOpts(overrideArguments=None):
         '--include-ads',
         dest='include_ads', action='store_true',
         help='Download advertisements as well (experimental)')
-    selection.add_option(
-        '--youtube-include-dash-manifest',
-        action='store_true', dest='youtube_include_dash_manifest', default=False,
-        help='Try to download the DASH manifest on YouTube videos (experimental)')
 
     authentication = optparse.OptionGroup(parser, 'Authentication Options')
     authentication.add_option(
@@ -273,6 +269,14 @@ def parseOpts(overrideArguments=None):
         '-F', '--list-formats',
         action='store_true', dest='listformats',
         help='list all available formats')
+    video_format.add_option(
+        '--youtube-include-dash-manifest',
+        action='store_true', dest='youtube_include_dash_manifest', default=True,
+        help=optparse.SUPPRESS_HELP)
+    video_format.add_option(
+        '--youtube-skip-dash-manifest',
+        action='store_false', dest='youtube_include_dash_manifest',
+        help='Do not download the DASH manifest on YouTube videos')
 
     subtitles = optparse.OptionGroup(parser, 'Subtitle Options')
     subtitles.add_option(
