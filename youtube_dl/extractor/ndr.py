@@ -25,7 +25,7 @@ class NDRIE(InfoExtractor):
                 'id': '25866',
                 'ext': 'mp4',
                 'title': 'Kartoffeltage in der Lewitz',
-                'description': 'md5:16d4d66907f541692e8182c33270f29a',
+                'description': 'md5:48c4c04dde604c8a9971b3d4e3b9eaa8',
                 'duration': 166,
             }
         },
