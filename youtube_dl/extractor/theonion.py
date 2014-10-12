@@ -36,8 +36,7 @@ class TheOnionIE(InfoExtractor):
         sources = re.findall(r'<source src="([^"]+)" type="([^"]+)"', webpage)
         if not sources:
             raise ExtractorError(
-                'No sources found for video %s' % (self.IE_NAME, video_id),
-                expected=True)
+                'No sources found for video %s' % video_id, expected=True)
 
         formats = []
         for src, type_ in sources:
