@@ -87,6 +87,15 @@ class BrightcoveIE(InfoExtractor):
                 'description': 'UCI MTB World Cup 2014: Fort William, UK - Downhill Finals',
             },
         },
+        {
+            # playlist test
+            # from http://support.brightcove.com/en/video-cloud/docs/playlist-support-single-video-players
+            'url': 'http://c.brightcove.com/services/viewer/htmlFederated?playerID=3550052898001&playerKey=AQ%7E%7E%2CAAABmA9XpXk%7E%2C-Kp7jNgisre1fG5OdqpAFUTcs0lP_ZoL',
+            'info_dict': {
+                'title': 'Sealife',
+            },
+            'playlist_mincount': 7,
+        },
     ]
 
     @classmethod
