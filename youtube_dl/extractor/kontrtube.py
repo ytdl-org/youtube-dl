@@ -34,7 +34,7 @@ class KontrTubeIE(InfoExtractor):
         video_url = self._html_search_regex(r"video_url: '(.+?)/?',", webpage, 'video URL')
         thumbnail = self._html_search_regex(r"preview_url: '(.+?)/?',", webpage, 'video thumbnail', fatal=False)
         title = self._html_search_regex(
-            r'<title>(.+?) - Труба зовёт - Интересный видеохостинг</title>', webpage, 'video title')
+            r'<title>(.+?)</title>', webpage, 'video title')
         description = self._html_search_meta('description', webpage, 'video description')
 
         mobj = re.search(
