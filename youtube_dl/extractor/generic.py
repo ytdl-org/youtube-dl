@@ -28,6 +28,7 @@ from .brightcove import BrightcoveIE
 from .ooyala import OoyalaIE
 from .rutv import RUTVIE
 from .smotri import SmotriIE
+from .condenast import CondeNastIE
 
 
 class GenericIE(InfoExtractor):
@@ -846,6 +847,12 @@ class GenericIE(InfoExtractor):
             webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'MLB')
+
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>%s)\1' % CondeNastIE.EMBED_URL,
+            webpage)
+        if mobj is not None:
+            return self.url_result(self._proto_relative_url(mobj.group('url'), scheme='http:'), 'CondeNast')
 
         def check_video(vurl):
             vpath = compat_urlparse.urlparse(vurl).path
