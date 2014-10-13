@@ -99,8 +99,6 @@ which means you can modify it, redistribute it or use it however you like.
                                      downloaded videos in it.
     --include-ads                    Download advertisements as well
                                      (experimental)
-    --youtube-include-dash-manifest  Try to download the DASH manifest on
-                                     YouTube videos (experimental)
 
 ## Download Options:
     -r, --rate-limit LIMIT           maximum download rate in bytes per second
@@ -158,7 +156,8 @@ which means you can modify it, redistribute it or use it however you like.
                                      downloads if possible.
     --no-continue                    do not resume partially downloaded files
                                      (restart from beginning)
-    --no-part                        do not use .part files
+    --no-part                        do not use .part files - write directly
+                                     into output file
     --no-mtime                       do not use the Last-modified header to set
                                      the file modification time
     --write-description              write video description to a .description
@@ -216,7 +215,7 @@ which means you can modify it, redistribute it or use it however you like.
                                      information about the video. (Currently
                                      supported only for YouTube)
     --user-agent UA                  specify a custom user agent
-    --referer REF                    specify a custom referer, use if the video
+    --referer URL                    specify a custom referer, use if the video
                                      access is restricted to one domain
     --add-header FIELD:VALUE         specify a custom HTTP header and its value,
                                      separated by a colon ':'. You can use this
@@ -241,6 +240,8 @@ which means you can modify it, redistribute it or use it however you like.
                                      one is requested
     --max-quality FORMAT             highest quality format to download
     -F, --list-formats               list all available formats
+    --youtube-skip-dash-manifest     Do not download the DASH manifest on
+                                     YouTube videos
 
 ## Subtitle Options:
     --write-sub                      write subtitle file
@@ -256,7 +257,7 @@ which means you can modify it, redistribute it or use it however you like.
                                      language tags like 'en,pt'
 
 ## Authentication Options:
-    -u, --username USERNAME          account username
+    -u, --username USERNAME          login with this account ID
     -p, --password PASSWORD          account password
     -2, --twofactor TWOFACTOR        two-factor auth code
     -n, --netrc                      use .netrc authentication data
@@ -267,7 +268,7 @@ which means you can modify it, redistribute it or use it however you like.
                                      (requires ffmpeg or avconv and ffprobe or
                                      avprobe)
     --audio-format FORMAT            "best", "aac", "vorbis", "mp3", "m4a",
-                                     "opus", or "wav"; best by default
+                                     "opus", or "wav"; "best" by default
     --audio-quality QUALITY          ffmpeg/avconv audio quality specification,
                                      insert a value between 0 (better) and 9
                                      (worse) for VBR or a specific bitrate like
