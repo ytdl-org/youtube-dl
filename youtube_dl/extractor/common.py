@@ -281,6 +281,12 @@ class InfoExtractor(object):
             raw_filename = basen + '.dump'
             filename = sanitize_filename(raw_filename, restricted=True)
             self.to_screen('Saving request to ' + filename)
+            # Working around MAX_PATH limitation on Windows (see
+            # http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx)
+            if os.name == 'nt':
+                absfilepath = os.path.abspath(filename)
+                if len(absfilepath) > 259:
+                    filename = '\\\\?\\' + absfilepath
             with open(filename, 'wb') as outf:
                 outf.write(webpage_bytes)
 
