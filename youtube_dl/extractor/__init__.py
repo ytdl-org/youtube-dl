@@ -445,6 +445,7 @@ from .vulture import VultureIE
 from .walla import WallaIE
 from .washingtonpost import WashingtonPostIE
 from .wat import WatIE
+from .watchindianporn import WatchIndianPornIE
 from .wayofthemaster import WayOfTheMasterIE
 from .wdr import (
     WDRIE,
