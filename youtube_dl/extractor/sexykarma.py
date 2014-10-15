@@ -56,6 +56,8 @@ class SexyKarmaIE(InfoExtractor):
         d = datetime.datetime.strptime(date, '%B %d, %Y')
         upload_date = d.strftime('%Y%m%d')
 
+        categories = re.findall(r'http://www.sexykarma.com/gonewild/search/video/(?:.+?)"><span>(.*?)</span>', webpage)
+
         return {
             'id': video_id,
             'title': title,
@@ -65,6 +67,7 @@ class SexyKarmaIE(InfoExtractor):
             'duration': duration,
             'view_count': view_count,
             'upload_date': upload_date,
+            'categories': categories,
         }
 
     def _to_seconds(self, timestr):
