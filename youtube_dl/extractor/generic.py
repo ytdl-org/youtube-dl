@@ -609,13 +609,13 @@ class GenericIE(InfoExtractor):
         if mobj:
             player_url = unescapeHTML(mobj.group('url'))
             surl = smuggle_url(player_url, {'Referer': url})
-            return self.url_result(surl, 'Vimeo')
+            return self.url_result(surl)
 
         # Look for embedded (swf embed) Vimeo player
         mobj = re.search(
-            r'<embed[^>]+?src="(https?://(?:www\.)?vimeo\.com/moogaloop\.swf.+?)"', webpage)
+            r'<embed[^>]+?src="((?:https?:)?//(?:www\.)?vimeo\.com/moogaloop\.swf.+?)"', webpage)
         if mobj:
-            return self.url_result(mobj.group(1), 'Vimeo')
+            return self.url_result(mobj.group(1))
 
         # Look for embedded YouTube player
         matches = re.findall(r'''(?x)
