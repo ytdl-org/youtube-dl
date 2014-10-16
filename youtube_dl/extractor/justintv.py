@@ -10,6 +10,7 @@ from ..utils import (
     compat_str,
     ExtractorError,
     formatSeconds,
+    parse_iso8601,
 )
 
 
@@ -43,6 +44,8 @@ class JustinTVIE(InfoExtractor):
         }
     }
 
+    _API_BASE = 'https://api.twitch.tv'
+
     # Return count of items, list of *valid* items
     def _parse_page(self, url, video_id, counter):
         info_json = self._download_webpage(
@@ -74,18 +77,84 @@ class JustinTVIE(InfoExtractor):
                 })
         return (len(response), info)
 
+    def _handle_error(self, response):
+        if not isinstance(response, dict):
+            return
+        error = response.get('error')
+        if error:
+            raise ExtractorError(
+                '%s returned error: %s - %s' % (self.IE_NAME, error, response.get('message')),
+                expected=True)
+
+    def _download_json(self, url, video_id, note='Downloading JSON metadata'):
+        response = super(JustinTVIE, self)._download_json(url, video_id, note)
+        self._handle_error(response)
+        return response
+
+    def _extract_media(self, item, item_id):
+
+        ITEMS = {
+            'a': 'video',
+            'c': 'chapter',
+        }
+
+        info = self._extract_info(self._download_json(
+            '%s/kraken/videos/%s%s' % (self._API_BASE, item, item_id), item_id,
+            'Downloading %s info JSON' % ITEMS[item]))
+
+        response = self._download_json(
+            '%s/api/videos/%s%s' % (self._API_BASE, item, item_id), item_id,
+            'Downloading %s playlist JSON' % ITEMS[item])
+
+        entries = []
+        chunks = response['chunks']
+        qualities = list(chunks.keys())
+        for num, fragment in enumerate(zip(*chunks.values()), start=1):
+            formats = []
+            for fmt_num, fragment_fmt in enumerate(fragment):
+                format_id = qualities[fmt_num]
+                fmt = {
+                    'url': fragment_fmt['url'],
+                    'format_id': format_id,
+                    'quality': 1 if format_id == 'live' else 0,
+                }
+                m = re.search(r'^(?P<height>\d+)[Pp]', format_id)
+                if m:
+                    fmt['height'] = int(m.group('height'))
+                formats.append(fmt)
+            self._sort_formats(formats)
+            entry = dict(info)
+            entry['title'] = '%s part %d' % (entry['title'], num)
+            entry['formats'] = formats
+            entries.append(entry)
+        return entries
+
+    def _extract_info(self, info):
+        return {
+            'id': info['_id'],
+            'title': info['title'],
+            'description': info['description'],
+            'duration': info['length'],
+            'thumbnail': info['preview'],
+            'uploader': info['channel']['display_name'],
+            'uploader_id': info['channel']['name'],
+            'timestamp': parse_iso8601(info['recorded_at']),
+            'view_count': info['views'],
+        }
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
 
-        api_base = 'http://api.justin.tv'
+        api_base = 'http://api.twitch.tv'
         paged = False
         if mobj.group('channelid'):
             paged = True
             video_id = mobj.group('channelid')
             api = api_base + '/channel/archives/%s.json' % video_id
         elif mobj.group('chapterid'):
-            chapter_id = mobj.group('chapterid')
+            return self._extract_media('c', mobj.group('chapterid'))
 
+            """
             webpage = self._download_webpage(url, chapter_id)
             m = re.search(r'PP\.archive_id = "([0-9]+)";', webpage)
             if not m:
@@ -133,9 +202,9 @@ class JustinTVIE(InfoExtractor):
                 'uploader_id': chapter_info['channel']['name'],
             }
             return info
+            """
         else:
-            video_id = mobj.group('videoid')
-            api = api_base + '/broadcast/by_archive/%s.json' % video_id
+            return self._extract_media('a', mobj.group('videoid'))
 
         entries = []
         offset = 0
