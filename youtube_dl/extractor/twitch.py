@@ -24,18 +24,28 @@ class TwitchIE(InfoExtractor):
         """
     _PAGE_LIMIT = 100
     _API_BASE = 'https://api.twitch.tv'
-    _TEST = {
-        'url': 'http://www.twitch.tv/thegamedevhub/b/296128360',
-        'md5': 'ecaa8a790c22a40770901460af191c9a',
+    _TESTS = [{
+        'url': 'http://www.twitch.tv/riotgames/b/577357806',
         'info_dict': {
-            'id': '296128360',
-            'ext': 'flv',
-            'upload_date': '20110927',
-            'uploader_id': 25114803,
-            'uploader': 'thegamedevhub',
-            'title': 'Beginner Series - Scripting With Python Pt.1'
-        }
-    }
+            'id': 'a577357806',
+            'title': 'Worlds Semifinals - Star Horn Royal Club vs. OMG',
+        },
+        'playlist_mincount': 12,
+    }, {
+        'url': 'http://www.twitch.tv/acracingleague/c/5285812',
+        'info_dict': {
+            'id': 'c5285812',
+            'title': 'ACRL Off Season - Sports Cars @ Nordschleife',
+        },
+        'playlist_mincount': 3,
+    }, {
+        'url': 'http://www.twitch.tv/vanillatv',
+        'info_dict': {
+            'id': 'vanillatv',
+            'title': 'VanillaTV',
+        },
+        'playlist_mincount': 412,
+    }]
 
     def _handle_error(self, response):
         if not isinstance(response, dict):
@@ -80,10 +90,11 @@ class TwitchIE(InfoExtractor):
                 formats.append(fmt)
             self._sort_formats(formats)
             entry = dict(info)
+            entry['id'] = '%s_%d' % (entry['id'], num),
             entry['title'] = '%s part %d' % (entry['title'], num)
             entry['formats'] = formats
             entries.append(entry)
-        return entries
+        return self.playlist_result(entries, info['id'], info['title'])
 
     def _extract_info(self, info):
         return {
