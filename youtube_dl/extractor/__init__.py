@@ -173,7 +173,6 @@ from .jadorecettepub import JadoreCettePubIE
 from .jeuxvideo import JeuxVideoIE
 from .jove import JoveIE
 from .jukebox import JukeboxIE
-from .justintv import JustinTVIE
 from .jpopsukitv import JpopsukiIE
 from .kankan import KankanIE
 from .keezmovies import KeezMoviesIE
@@ -395,6 +394,7 @@ from .tutv import TutvIE
 from .tvigle import TvigleIE
 from .tvp import TvpIE
 from .tvplay import TVPlayIE
+from .twitch import TwitchIE
 from .ubu import UbuIE
 from .udemy import (
     UdemyIE,

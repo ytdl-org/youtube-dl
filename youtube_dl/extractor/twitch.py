@@ -1,26 +1,20 @@
 from __future__ import unicode_literals
 
 import itertools
-import json
-import os
 import re
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_str,
     ExtractorError,
-    formatSeconds,
     parse_iso8601,
 )
 
 
-class JustinTVIE(InfoExtractor):
-    """Information extractor for justin.tv and twitch.tv"""
+class TwitchIE(InfoExtractor):
     # TODO: One broadcast may be split into multiple videos. The key
     # 'broadcast_id' is the same for all parts, and 'broadcast_part'
     # starts at 1 and increases. Can we treat all parts as one video?
-
-    _VALID_URL = r"""(?x)^(?:http://)?(?:www\.)?(?:twitch|justin)\.tv/
+    _VALID_URL = r"""(?x)^(?:http://)?(?:www\.)?twitch\.tv/
         (?:
             (?P<channelid>[^/]+)|
             (?:(?:[^/]+)/b/(?P<videoid>[^/]+))|
@@ -28,9 +22,8 @@ class JustinTVIE(InfoExtractor):
         )
         /?(?:\#.*)?$
         """
-    _JUSTIN_PAGE_LIMIT = 100
-    IE_NAME = 'justin.tv'
-    IE_DESC = 'justin.tv and twitch.tv'
+    _PAGE_LIMIT = 100
+    _API_BASE = 'https://api.twitch.tv'
     _TEST = {
         'url': 'http://www.twitch.tv/thegamedevhub/b/296128360',
         'md5': 'ecaa8a790c22a40770901460af191c9a',
@@ -44,39 +37,6 @@ class JustinTVIE(InfoExtractor):
         }
     }
 
-    _API_BASE = 'https://api.twitch.tv'
-
-    # Return count of items, list of *valid* items
-    def _parse_page(self, url, video_id, counter):
-        info_json = self._download_webpage(
-            url, video_id,
-            'Downloading video info JSON on page %d' % counter,
-            'Unable to download video info JSON %d' % counter)
-
-        response = json.loads(info_json)
-        if type(response) != list:
-            error_text = response.get('error', 'unknown error')
-            raise ExtractorError('Justin.tv API: %s' % error_text)
-        info = []
-        for clip in response:
-            video_url = clip['video_file_url']
-            if video_url:
-                video_extension = os.path.splitext(video_url)[1][1:]
-                video_date = re.sub('-', '', clip['start_time'][:10])
-                video_uploader_id = clip.get('user_id', clip.get('channel_id'))
-                video_id = clip['id']
-                video_title = clip.get('title', video_id)
-                info.append({
-                    'id': compat_str(video_id),
-                    'url': video_url,
-                    'title': video_title,
-                    'uploader': clip.get('channel_name', video_uploader_id),
-                    'uploader_id': video_uploader_id,
-                    'upload_date': video_date,
-                    'ext': video_extension,
-                })
-        return (len(response), info)
-
     def _handle_error(self, response):
         if not isinstance(response, dict):
             return
@@ -87,25 +47,21 @@ class JustinTVIE(InfoExtractor):
                 expected=True)
 
     def _download_json(self, url, video_id, note='Downloading JSON metadata'):
-        response = super(JustinTVIE, self)._download_json(url, video_id, note)
+        response = super(TwitchIE, self)._download_json(url, video_id, note)
         self._handle_error(response)
         return response
 
     def _extract_media(self, item, item_id):
-
         ITEMS = {
             'a': 'video',
             'c': 'chapter',
         }
-
         info = self._extract_info(self._download_json(
             '%s/kraken/videos/%s%s' % (self._API_BASE, item, item_id), item_id,
             'Downloading %s info JSON' % ITEMS[item]))
-
         response = self._download_json(
             '%s/api/videos/%s%s' % (self._API_BASE, item, item_id), item_id,
             'Downloading %s playlist JSON' % ITEMS[item])
-
         entries = []
         chunks = response['chunks']
         qualities = list(chunks.keys())
@@ -144,14 +100,7 @@ class JustinTVIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-
-        api_base = 'http://api.twitch.tv'
-        paged = False
-        if mobj.group('channelid'):
-            paged = True
-            video_id = mobj.group('channelid')
-            api = api_base + '/channel/archives/%s.json' % video_id
-        elif mobj.group('chapterid'):
+        if mobj.group('chapterid'):
             return self._extract_media('c', mobj.group('chapterid'))
 
             """
@@ -203,22 +152,25 @@ class JustinTVIE(InfoExtractor):
             }
             return info
             """
-        else:
+        elif mobj.group('videoid'):
             return self._extract_media('a', mobj.group('videoid'))
-
-        entries = []
-        offset = 0
-        limit = self._JUSTIN_PAGE_LIMIT
-        for counter in itertools.count(1):
-            page_url = api + ('?offset=%d&limit=%d' % (offset, limit))
-            page_count, page_info = self._parse_page(
-                page_url, video_id, counter)
-            entries.extend(page_info)
-            if not paged or page_count != limit:
-                break
-            offset += limit
-        return {
-            '_type': 'playlist',
-            'id': video_id,
-            'entries': entries,
-        }
+        elif mobj.group('channelid'):
+            channel_id = mobj.group('channelid')
+            info = self._download_json(
+                '%s/kraken/channels/%s' % (self._API_BASE, channel_id),
+                channel_id, 'Downloading channel info JSON')
+            channel_name = info.get('display_name') or info.get('name')
+            entries = []
+            offset = 0
+            limit = self._PAGE_LIMIT
+            for counter in itertools.count(1):
+                response = self._download_json(
+                    '%s/kraken/channels/%s/videos/?offset=%d&limit=%d'
+                    % (self._API_BASE, channel_id, offset, limit),
+                    channel_id, 'Downloading channel videos JSON page %d' % counter)
+                videos = response['videos']
+                if not videos:
+                    break
+                entries.extend([self.url_result(video['url'], 'Twitch') for video in videos])
+                offset += limit
+            return self.playlist_result(entries, channel_id, channel_name)
