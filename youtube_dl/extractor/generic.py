@@ -654,15 +654,17 @@ class GenericIE(InfoExtractor):
         match = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:fast\.)?wistia\.net/embed/iframe/.+?)\1', webpage)
         if match:
+            embed_url = self._proto_relative_url(
+                unescapeHTML(match.group('url')))
             return {
                 '_type': 'url_transparent',
-                'url': unescapeHTML(match.group('url')),
+                'url': embed_url,
                 'ie_key': 'Wistia',
                 'uploader': video_uploader,
                 'title': video_title,
                 'id': video_id,
             }
-        match = re.search(r'(?:id=["\']wistia_|data-wistiaid=["\']|Wistia\.embed\(["\'])(?P<id>[^"\']+)', webpage)
+        match = re.search(r'(?:id=["\']wistia_|data-wistia-?id=["\']|Wistia\.embed\(["\'])(?P<id>[^"\']+)', webpage)
         if match:
             return {
                 '_type': 'url_transparent',
