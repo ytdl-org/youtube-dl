@@ -317,7 +317,7 @@ from .youtube import (
     YoutubeWatchLaterIE,
 )
 from .zdf import ZDFIE
-
+from .vidzi import VidziIE
 
 _ALL_CLASSES = [
     klass
