@@ -157,6 +157,18 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
                 'duration': 62,
             }
         },
+        {
+            # from https://www.ouya.tv/game/Pier-Solar-and-the-Great-Architects/
+            'url': 'https://player.vimeo.com/video/98044508',
+            'note': 'The js code contains assignments to the same variable as the config',
+            'info_dict': {
+                'id': '98044508',
+                'ext': 'mp4',
+                'title': 'Pier Solar OUYA Official Trailer',
+                'uploader': 'Tulio Gonçalves',
+                'uploader_id': 'user28849593',
+            },
+        },
     ]
 
     def _verify_video_password(self, url, video_id, webpage):
@@ -244,7 +256,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
                 # We try to find out to which variable is assigned the config dic
                 m_variable_name = re.search('(\w)\.video\.id', webpage)
                 if m_variable_name is not None:
-                    config_re = r'%s=({.+?});' % re.escape(m_variable_name.group(1))
+                    config_re = r'%s=({[^}].+?});' % re.escape(m_variable_name.group(1))
                 else:
                     config_re = [r' = {config:({.+?}),assets:', r'(?:[abc])=({.+?});']
                 config = self._search_regex(config_re, webpage, 'info section',
