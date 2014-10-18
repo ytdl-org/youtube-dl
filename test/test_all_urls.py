@@ -14,7 +14,7 @@ from test.helper import gettestcases
 from youtube_dl.extractor import (
     FacebookIE,
     gen_extractors,
-    JustinTVIE,
+    TwitchIE,
     YoutubeIE,
 )
 
@@ -72,21 +72,17 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch('http://www.youtube.com/results?search_query=making+mustard', ['youtube:search_url'])
         self.assertMatch('https://www.youtube.com/results?baz=bar&search_query=youtube-dl+test+video&filters=video&lclk=video', ['youtube:search_url'])
 
-    def test_justin_tv_channelid_matching(self):
-        self.assertTrue(JustinTVIE.suitable('justin.tv/vanillatv'))
-        self.assertTrue(JustinTVIE.suitable('twitch.tv/vanillatv'))
-        self.assertTrue(JustinTVIE.suitable('www.justin.tv/vanillatv'))
-        self.assertTrue(JustinTVIE.suitable('www.twitch.tv/vanillatv'))
-        self.assertTrue(JustinTVIE.suitable('http://www.justin.tv/vanillatv'))
-        self.assertTrue(JustinTVIE.suitable('http://www.twitch.tv/vanillatv'))
-        self.assertTrue(JustinTVIE.suitable('http://www.justin.tv/vanillatv/'))
-        self.assertTrue(JustinTVIE.suitable('http://www.twitch.tv/vanillatv/'))
+    def test_twitch_channelid_matching(self):
+        self.assertTrue(TwitchIE.suitable('twitch.tv/vanillatv'))
+        self.assertTrue(TwitchIE.suitable('www.twitch.tv/vanillatv'))
+        self.assertTrue(TwitchIE.suitable('http://www.twitch.tv/vanillatv'))
+        self.assertTrue(TwitchIE.suitable('http://www.twitch.tv/vanillatv/'))
 
-    def test_justintv_videoid_matching(self):
-        self.assertTrue(JustinTVIE.suitable('http://www.twitch.tv/vanillatv/b/328087483'))
+    def test_twitch_videoid_matching(self):
+        self.assertTrue(TwitchIE.suitable('http://www.twitch.tv/vanillatv/b/328087483'))
 
-    def test_justin_tv_chapterid_matching(self):
-        self.assertTrue(JustinTVIE.suitable('http://www.twitch.tv/tsm_theoddone/c/2349361'))
+    def test_twitch_chapterid_matching(self):
+        self.assertTrue(TwitchIE.suitable('http://www.twitch.tv/tsm_theoddone/c/2349361'))
 
     def test_youtube_extract(self):
         assertExtractId = lambda url, id: self.assertEqual(YoutubeIE.extract_id(url), id)
