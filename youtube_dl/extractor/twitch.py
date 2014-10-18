@@ -90,7 +90,7 @@ class TwitchIE(InfoExtractor):
                 formats.append(fmt)
             self._sort_formats(formats)
             entry = dict(info)
-            entry['id'] = '%s_%d' % (entry['id'], num),
+            entry['id'] = '%s_%d' % (entry['id'], num)
             entry['title'] = '%s part %d' % (entry['title'], num)
             entry['formats'] = formats
             entries.append(entry)
