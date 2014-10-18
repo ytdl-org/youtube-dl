@@ -315,6 +315,7 @@ from .sbs import SBSIE
 from .scivee import SciVeeIE
 from .screencast import ScreencastIE
 from .servingsys import ServingSysIE
+from .sexykarma import SexyKarmaIE
 from .shared import SharedIE
 from .sharesix import ShareSixIE
 from .sina import SinaIE
