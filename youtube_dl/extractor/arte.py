@@ -160,6 +160,9 @@ class ArteTVPlus7IE(InfoExtractor):
                 format_id = '%s-%s' % (quality, format_info['versionCode'])
             else:
                 format_id = quality
+            media_type = format_info.get('mediaType')
+            if media_type is not None:
+                format_id += '-%s' % media_type
             info = {
                 'format_id': format_id,
                 'format_note': format_info.get('versionLibelle'),
