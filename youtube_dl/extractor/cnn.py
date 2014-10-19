@@ -12,7 +12,7 @@ from ..utils import (
 
 class CNNIE(InfoExtractor):
     _VALID_URL = r'''(?x)https?://((edition|www)\.)?cnn\.com/video/(data/.+?|\?)/
-        (?P<path>.+?/(?P<title>[^/]+?)(?:\.cnn|(?=&)))'''
+        (?P<path>.+?/(?P<title>[^/]+?)(?:\.cnn(-ap)?|(?=&)))'''
 
     _TESTS = [{
         'url': 'http://edition.cnn.com/video/?/video/sports/2013/06/09/nadal-1-on-1.cnn',
