@@ -12,6 +12,7 @@ from ..utils import (
     get_element_by_id,
     compat_str,
     get_element_by_attribute,
+    int_or_none,
 )
 
 # There are different sources of video in arte.tv, the extraction process 
@@ -98,7 +99,11 @@ class ArteTVPlus7IE(InfoExtractor):
             'thumbnail': player_info.get('programImage') or player_info.get('VTU', {}).get('IUR'),
         }
 
-        all_formats = player_info['VSR'].values()
+        all_formats = []
+        for format_id, format_dict in player_info['VSR'].items():
+            fmt = dict(format_dict)
+            fmt['format_id'] = format_id
+            all_formats.append(fmt)
         # Some formats use the m3u8 protocol
         all_formats = list(filter(lambda f: f.get('videoFormat') != 'M3U8', all_formats))
         def _match_lang(f):
@@ -149,25 +154,12 @@ class ArteTVPlus7IE(InfoExtractor):
                 )
         formats = sorted(formats, key=sort_key)
         def _format(format_info):
-            quality = ''
-            height = format_info.get('height')
-            if height is not None:
-                quality = compat_str(height)
-            bitrate = format_info.get('bitrate')
-            if bitrate is not None:
-                quality += '-%d' % bitrate
-            if format_info.get('versionCode') is not None:
-                format_id = '%s-%s' % (quality, format_info['versionCode'])
-            else:
-                format_id = quality
-            media_type = format_info.get('mediaType')
-            if media_type is not None:
-                format_id += '-%s' % media_type
             info = {
-                'format_id': format_id,
-                'format_note': format_info.get('versionLibelle'),
-                'width': format_info.get('width'),
-                'height': height,
+                'format_id': format_info['format_id'],
+                'format_note': '%s, %s' % (format_info.get('versionCode'), format_info.get('versionLibelle')),
+                'width': int_or_none(format_info.get('width')),
+                'height': int_or_none(format_info.get('height')),
+                'tbr': int_or_none(format_info.get('bitrate')),
             }
             if format_info['mediaType'] == 'rtmp':
                 info['url'] = format_info['streamer']
