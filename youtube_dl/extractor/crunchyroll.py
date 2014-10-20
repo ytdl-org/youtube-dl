@@ -24,6 +24,7 @@ from ..aes import (
     aes_cbc_decrypt,
     inc,
 )
+from .common import InfoExtractor
 
 
 class CrunchyrollIE(SubtitlesInfoExtractor):
@@ -284,4 +285,38 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             'upload_date': video_upload_date,
             'subtitles':   subtitles,
             'formats':     formats,
+        }
+
+
+class CrunchyrollShowPlaylistIE(InfoExtractor):
+    IE_NAME = "crunchyroll:playlist"
+    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.com/(?!(?:news|anime-news|library|forum|launchcalendar|lineup|store|comics|freetrial|login))(?P<show>[\w\-]+))/?$'
+    _TITLE_EXTR = r'<span\s+itemprop="name">\s*(?P<showtitle>[\w\s]+)'
+
+    _TESTS = [{
+        'url' : 'http://www.crunchyroll.com/attack-on-titan',
+        'info_dict' : {
+            'title' : 'Attack on Titan'
+        },
+        'playlist_count' : 15
+    }]
+
+    def _extract_title_entries(self,id,webpage):
+        _EPISODE_ID_EXTR = r'id="showview_videos_media_(?P<vidid>\d+)".*?href="/{0}/(?P<vidurl>[\w\-]+-(?P=vidid))"'.format(id)
+        title = self._html_search_regex(self._TITLE_EXTR,webpage,"title",flags=re.UNICODE|re.MULTILINE)
+        episode_urls = [self.url_result('http://www.crunchyroll.com/{0}/{1}'.format(id, showmatch[1])) for
+                    showmatch in re.findall(_EPISODE_ID_EXTR, webpage,re.UNICODE|re.MULTILINE|re.DOTALL)]
+        return title, episode_urls
+
+
+    def _real_extract(self, url):
+        url_match = re.match(self._VALID_URL,url)
+        show_id = url_match.group('show')
+        webpage = self._download_webpage(url,show_id)
+        (title,entries) = self._extract_title_entries(show_id,webpage)
+        return {
+            '_type' : 'playlist',
+            'id' : show_id,
+            'title' : title,
+            'entries' : entries
         }
