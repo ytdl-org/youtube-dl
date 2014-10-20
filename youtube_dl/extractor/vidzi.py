@@ -4,12 +4,12 @@ from .common import InfoExtractor
 class VidziIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?vidzi\.tv/(?P<id>\w+)'
     _TEST = {
-        'url': 'http://vidzi.tv/m1chxrwq7bx9',
-        'md5': '5c4c4a8ca2281a199c8eefe8f411d630',
+        'url': 'http://vidzi.tv/h8gbz2rn51vk.html',
+        'md5': '4a48137d9fa8a7d848a64485aed68889',
         'info_dict': {
-            'id': 'm1chxrwq7bx9',
+            'id': 'h8gbz2rn51vk',
             'ext': 'mp4',
-            'title': 'Watch Cadbury Dream Factory S01E04 HDTV x264 FiHTV mp4',
+            'title': 'Watch my4 mp4',
         },
     }
 

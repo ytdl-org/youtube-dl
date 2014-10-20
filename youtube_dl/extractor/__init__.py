@@ -268,6 +268,7 @@ from .videodetective import VideoDetectiveIE
 from .videolecturesnet import VideoLecturesNetIE
 from .videofyme import VideofyMeIE
 from .videopremium import VideoPremiumIE
+from .vidzi import VidziIE
 from .vimeo import (
     VimeoIE,
     VimeoChannelIE,
@@ -317,7 +318,7 @@ from .youtube import (
     YoutubeWatchLaterIE,
 )
 from .zdf import ZDFIE
-from .vidzi import VidziIE
+
 
 _ALL_CLASSES = [
     klass
