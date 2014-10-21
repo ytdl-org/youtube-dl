@@ -91,9 +91,14 @@ class ArteTVPlus7IE(InfoExtractor):
         if not upload_date_str:
             upload_date_str = player_info.get('VDA', '').split(' ')[0]
 
+        title = player_info['VTI'].strip()
+        subtitle = player_info.get('VSU', '').strip()
+        if subtitle:
+            title += ' - %s' % subtitle
+
         info_dict = {
             'id': player_info['VID'],
-            'title': player_info['VTI'],
+            'title': title,
             'description': player_info.get('VDE'),
             'upload_date': unified_strdate(upload_date_str),
             'thumbnail': player_info.get('programImage') or player_info.get('VTU', {}).get('IUR'),
