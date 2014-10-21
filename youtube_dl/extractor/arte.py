@@ -10,7 +10,6 @@ from ..utils import (
     unified_strdate,
     determine_ext,
     get_element_by_id,
-    compat_str,
     get_element_by_attribute,
     int_or_none,
 )
