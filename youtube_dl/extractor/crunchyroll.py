@@ -306,6 +306,7 @@ class CrunchyrollShowPlaylistIE(InfoExtractor):
         title = self._html_search_regex(self._TITLE_EXTR,webpage,"title",flags=re.UNICODE|re.MULTILINE)
         episode_urls = [self.url_result('http://www.crunchyroll.com/{0}/{1}'.format(id, showmatch[1])) for
                     showmatch in re.findall(_EPISODE_ID_EXTR, webpage,re.UNICODE|re.MULTILINE|re.DOTALL)]
+        episode_urls.reverse()
         return title, episode_urls
 
 
