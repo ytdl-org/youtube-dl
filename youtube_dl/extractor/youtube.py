@@ -191,8 +191,9 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     def _real_initialize(self):
         if self._downloader is None:
             return
-        if not self._set_language():
-            return
+        if self._get_login_info()[0] is not None:
+            if not self._set_language():
+                return
         if not self._login():
             return
         self._confirm_age()
