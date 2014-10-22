@@ -56,7 +56,7 @@ class ARDMediathekIE(InfoExtractor):
         if '>Der gewünschte Beitrag ist nicht mehr verfügbar.<' in webpage:
             raise ExtractorError('Video %s is no longer available' % video_id, expected=True)
 
-        if re.search(r'rss=true', url):
+        if re.search(r'[\?&]rss($|[=&])', url):
             doc = parse_xml(webpage)
             if doc.tag == 'rss':
                 return GenericIE()._extract_rss(url, video_id, doc)
