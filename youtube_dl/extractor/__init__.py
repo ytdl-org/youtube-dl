@@ -20,6 +20,7 @@ from .arte import (
     ArteTVDDCIE,
     ArteTVEmbedIE,
 )
+from .audiomack import AudiomackIE
 from .auengine import AUEngineIE
 from .bambuser import BambuserIE, BambuserChannelIE
 from .bandcamp import BandcampIE, BandcampAlbumIE
