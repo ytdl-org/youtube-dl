@@ -80,8 +80,14 @@ class PBSIE(InfoExtractor):
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'upload_date': '20140122',
             }
+        },
+        {
+            'url': 'http://www.pbs.org/wgbh/pages/frontline/united-states-of-secrets/',
+            'info_dict': {
+                'id': 'united-states-of-secrets',
+            },
+            'playlist_count': 2,
         }
-
     ]
 
     def _extract_webpage(self, url):
@@ -95,6 +101,12 @@ class PBSIE(InfoExtractor):
             upload_date = unified_strdate(self._search_regex(
                 r'<input type="hidden" id="air_date_[0-9]+" value="([^"]+)"',
                 webpage, 'upload date', default=None))
+
+            # tabbed frontline videos
+            tabbed_videos = re.findall(
+                r'<div[^>]+class="videotab[^"]*"[^>]+vid="(\d+)"', webpage)
+            if tabbed_videos:
+                return tabbed_videos, presumptive_id, upload_date
 
             MEDIA_ID_REGEXES = [
                 r"div\s*:\s*'videoembed'\s*,\s*mediaid\s*:\s*'(\d+)'",  # frontline video embed
@@ -129,6 +141,12 @@ class PBSIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id, display_id, upload_date = self._extract_webpage(url)
+
+        if isinstance(video_id, list):
+            entries = [self.url_result(
+                'http://video.pbs.org/video/%s' % vid_id, 'PBS', vid_id)
+                for vid_id in video_id]
+            return self.playlist_result(entries, display_id)
 
         info_url = 'http://video.pbs.org/videoInfo/%s?format=json' % video_id
         info = self._download_json(info_url, display_id)
