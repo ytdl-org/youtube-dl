@@ -380,6 +380,17 @@ class GenericIE(InfoExtractor):
                 'uploader': 'education-portal.com',
             },
         },
+        {
+            'url': 'http://thoughtworks.wistia.com/medias/uxjb0lwrcz',
+            'md5': 'baf49c2baa8a7de5f3fc145a8506dcd4',
+            'info_dict': {
+                'id': 'uxjb0lwrcz',
+                'ext': 'mp4',
+                'title': 'Conversation about Hexagonal Rails Part 1 - ThoughtWorks',
+                'duration': 1715.0,
+                'uploader': 'thoughtworks.wistia.com',
+            },   
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -652,7 +663,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded Wistia player
         match = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:fast\.)?wistia\.net/embed/iframe/.+?)\1', webpage)
+            r'(?:<meta content|<iframe[^>]+?src)=(["\'])(?P<url>(?:https?:)?//(?:fast\.)?wistia\.net/embed/iframe/.+?)\1', webpage)
         if match:
             embed_url = self._proto_relative_url(
                 unescapeHTML(match.group('url')))
@@ -664,6 +675,7 @@ class GenericIE(InfoExtractor):
                 'title': video_title,
                 'id': video_id,
             }
+            
         match = re.search(r'(?:id=["\']wistia_|data-wistia-?id=["\']|Wistia\.embed\(["\'])(?P<id>[^"\']+)', webpage)
         if match:
             return {
