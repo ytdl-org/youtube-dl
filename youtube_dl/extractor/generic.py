@@ -487,7 +487,8 @@ class GenericIE(InfoExtractor):
                      'Set --default-search "ytsearch" (or run  youtube-dl "ytsearch:%s" ) to search YouTube'
                     ) % (url, url), expected=True)
             else:
-                assert ':' in default_search
+                if ':' not in default_search:
+                    default_search += ':'
                 return self.url_result(default_search + url)
 
         url, smuggled_data = unsmuggle_url(url)

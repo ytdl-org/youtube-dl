@@ -255,8 +255,6 @@ def _real_main(argv=None):
         date = DateRange.day(opts.date)
     else:
         date = DateRange(opts.dateafter, opts.datebefore)
-    if opts.default_search not in ('auto', 'auto_warning', 'error', 'fixup_error', None) and ':' not in opts.default_search:
-        parser.error(u'--default-search invalid; did you forget a colon (:) at the end?')
 
     # Do not download videos when there are audio-only formats
     if opts.extractaudio and not opts.keepvideo and opts.format is None:
