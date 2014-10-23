@@ -663,7 +663,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded Wistia player
         match = re.search(
-            r'(?:<meta content|<iframe[^>]+?src)=(["\'])(?P<url>(?:https?:)?//(?:fast\.)?wistia\.net/embed/iframe/.+?)\1', webpage)
+            r'<(?:meta[^>]+?content|iframe[^>]+?src)=(["\'])(?P<url>(?:https?:)?//(?:fast\.)?wistia\.net/embed/iframe/.+?)\1', webpage)
         if match:
             embed_url = self._proto_relative_url(
                 unescapeHTML(match.group('url')))
