@@ -39,6 +39,7 @@ class CrunchyrollIE(SubtitlesInfoExtractor):
             'thumbnail': 'http://img1.ak.crunchyroll.com/i/spire1-tmb/20c6b5e10f1a47b10516877d3c039cae1380951166_full.jpg',
             'uploader': 'Yomiuri Telecasting Corporation (YTV)',
             'upload_date': '20131013',
+            'url': 're:(?!.*&amp)',
         },
         'params': {
             # rtmp
@@ -237,12 +238,14 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             streamdata_req.data = 'req=RpcApiVideoEncode%5FGetStreamInfo&video%5Fencode%5Fquality='+stream_quality+'&media%5Fid='+stream_id+'&video%5Fformat='+stream_format
             streamdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
             streamdata_req.add_header('Content-Length', str(len(streamdata_req.data)))
-            streamdata = self._download_webpage(streamdata_req, video_id, note='Downloading media info for '+video_format)
-            video_url = self._search_regex(r'<host>([^<]+)', streamdata, 'video_url')
-            video_play_path = self._search_regex(r'<file>([^<]+)', streamdata, 'video_play_path')
+            streamdata = self._download_xml(
+                streamdata_req, video_id,
+                note='Downloading media info for %s' % video_format)
+            video_url = streamdata.find('.//host').text
+            video_play_path = streamdata.find('.//file').text
             formats.append({
                 'url': video_url,
-                'play_path':   video_play_path,
+                'play_path': video_play_path,
                 'ext': 'flv',
                 'format': video_format,
                 'format_id': video_format,
