@@ -42,7 +42,7 @@ class CinemassacreIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
         video_date = mobj.group('date_Y') + mobj.group('date_m') + mobj.group('date_d')
-        mobj = re.search(r'src="(?P<embed_url>http://player\.screenwavemedia\.com/play/[a-zA-Z]+\.php\?id=(?:Cinemassacre-)?(?P<video_id>.+?))"', webpage)
+        mobj = re.search(r'src="(?P<embed_url>http://player\.screenwavemedia\.com/play/[a-zA-Z]+\.php\?[^"]*\bid=(?:Cinemassacre-)?(?P<video_id>.+?))"', webpage)
         if not mobj:
             raise ExtractorError('Can\'t extract embed url and video id')
         playerdata_url = mobj.group('embed_url')
@@ -53,17 +53,22 @@ class CinemassacreIE(InfoExtractor):
         video_description = self._html_search_regex(
             r'<div class="entry-content">(?P<description>.+?)</div>',
             webpage, 'description', flags=re.DOTALL, fatal=False)
+        video_thumbnail = self._og_search_thumbnail(webpage)
 
         playerdata = self._download_webpage(playerdata_url, video_id, 'Downloading player webpage')
-        video_thumbnail = self._search_regex(
-            r'image: \'(?P<thumbnail>[^\']+)\'', playerdata, 'thumbnail', fatal=False)
-        sd_url = self._search_regex(r'file: \'([^\']+)\', label: \'SD\'', playerdata, 'sd_file')
-        videolist_url = self._search_regex(r'file: \'([^\']+\.smil)\'}', playerdata, 'videolist_url')
 
+        vidurl = self._search_regex(
+            r'\'vidurl\'\s*:\s*"([^\']+)"', playerdata, 'vidurl').replace('\\/', '/')
+        vidid = self._search_regex(
+            r'\'vidid\'\s*:\s*"([^\']+)"', playerdata, 'vidid')
+        videoserver = self._html_search_regex(
+            r"'videoserver'\s*:\s*'([^']+)'", playerdata, 'videoserver')
+
+        videolist_url = 'http://%s/vod/smil:%s.smil/jwplayer.smil' % (videoserver, vidid)
         videolist = self._download_xml(videolist_url, video_id, 'Downloading videolist XML')
 
         formats = []
-        baseurl = sd_url[:sd_url.rfind('/')+1]
+        baseurl = vidurl[:vidurl.rfind('/')+1]
         for video in videolist.findall('.//video'):
             src = video.get('src')
             if not src:
