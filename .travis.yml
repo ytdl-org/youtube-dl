@@ -4,7 +4,22 @@ python:
   - "2.7"
   - "3.3"
   - "3.4"
-script: nosetests test --verbose
+
+before_install:
+  - uname -a
+  - lsb_release --all
+
+install:
+  - sudo apt-get --assume-yes install pandoc
+
+script:
+  - make clean
+  - make
+  - make test
+  - sudo make install
+  - which youtube-dl
+  - youtube-dl --version
+
 notifications:
   email:
     - filippo.valsorda@gmail.com
