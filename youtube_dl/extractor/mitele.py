@@ -6,6 +6,7 @@ import json
 from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
+    compat_urlparse,
     get_element_by_attribute,
     parse_duration,
     strip_jsonp,
@@ -43,7 +44,7 @@ class MiTeleIE(InfoExtractor):
         if not domain.startswith('http'):
             # only happens in telecinco.es videos
             domain = 'http://' + domain
-        info_url = compat_urllib_parse.urljoin(
+        info_url = compat_urlparse.urljoin(
             domain,
             compat_urllib_parse.unquote(embed_data['flashvars']['host'])
         )
