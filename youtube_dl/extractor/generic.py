@@ -380,6 +380,16 @@ class GenericIE(InfoExtractor):
                 'uploader': 'education-portal.com',
             },
         },
+        {
+            'url': 'http://thoughtworks.wistia.com/medias/uxjb0lwrcz',
+            'md5': 'baf49c2baa8a7de5f3fc145a8506dcd4',
+            'info_dict': {
+                'id': 'uxjb0lwrcz',
+                'ext': 'mp4',
+                'title': 'Conversation about Hexagonal Rails Part 1',
+                'duration': 1715.0,
+            },   
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -651,6 +661,10 @@ class GenericIE(InfoExtractor):
                     playlists, lambda p: '//dailymotion.com/playlist/%s' % p)
 
         # Look for embedded Wistia player
+        mobj = re.search(r'<meta content=(["\'])(?P<url>https?://fast\.wistia\.net/embed/iframe/(?P<id>[a-zA-Z0-9_]+)(["\']))', webpage)
+        if mobj:
+            return self.url_result(mobj.group('url'), 'Wistia')
+        
         match = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:fast\.)?wistia\.net/embed/iframe/.+?)\1', webpage)
         if match:
@@ -664,6 +678,7 @@ class GenericIE(InfoExtractor):
                 'title': video_title,
                 'id': video_id,
             }
+            
         match = re.search(r'(?:id=["\']wistia_|data-wistia-?id=["\']|Wistia\.embed\(["\'])(?P<id>[^"\']+)', webpage)
         if match:
             return {
