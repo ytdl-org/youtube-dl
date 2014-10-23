@@ -648,6 +648,8 @@ class InfoExtractor(object):
 
         formats = []
         media_nodes = manifest.findall('{http://ns.adobe.com/f4m/1.0}media')
+        if not media_nodes:
+            media_nodes = manifest.findall('{http://ns.adobe.com/f4m/2.0}media')
         for i, media_el in enumerate(media_nodes):
             tbr = int_or_none(media_el.attrib.get('bitrate'))
             format_id = 'f4m-%d' % (i if tbr is None else tbr)
