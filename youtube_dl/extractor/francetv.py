@@ -58,7 +58,7 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
                 formats.append({
                     'url': video_url,
                     'format_id': format_id,
-                    'preference': 2,
+                    'preference': -1,
                 })
         self._sort_formats(formats)
 
