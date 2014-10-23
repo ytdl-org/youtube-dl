@@ -37,7 +37,7 @@ class FunnyOrDieIE(InfoExtractor):
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
 
-        links = re.findall(r'<source src="([^"]+/v)\d+\.([^"]+)" type=\'video', webpage)
+        links = re.findall(r'<source src="([^"]+/v)[^"]+\.([^"]+)" type=\'video', webpage)
         if not links:
             raise ExtractorError('No media links available for %s' % video_id)
 
