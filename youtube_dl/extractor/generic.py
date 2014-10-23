@@ -386,8 +386,9 @@ class GenericIE(InfoExtractor):
             'info_dict': {
                 'id': 'uxjb0lwrcz',
                 'ext': 'mp4',
-                'title': 'Conversation about Hexagonal Rails Part 1',
+                'title': 'Conversation about Hexagonal Rails Part 1 - ThoughtWorks',
                 'duration': 1715.0,
+                'uploader': 'thoughtworks.wistia.com',
             },   
         },
     ]
@@ -661,12 +662,8 @@ class GenericIE(InfoExtractor):
                     playlists, lambda p: '//dailymotion.com/playlist/%s' % p)
 
         # Look for embedded Wistia player
-        mobj = re.search(r'<meta content=(["\'])(?P<url>https?://fast\.wistia\.net/embed/iframe/(?P<id>[a-zA-Z0-9_]+)(["\']))', webpage)
-        if mobj:
-            return self.url_result(mobj.group('url'), 'Wistia')
-        
         match = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:fast\.)?wistia\.net/embed/iframe/.+?)\1', webpage)
+            r'(?:<meta content|<iframe[^>]+?src)=(["\'])(?P<url>(?:https?:)?//(?:fast\.)?wistia\.net/embed/iframe/.+?)\1', webpage)
         if match:
             embed_url = self._proto_relative_url(
                 unescapeHTML(match.group('url')))
