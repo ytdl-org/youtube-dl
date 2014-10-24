@@ -618,7 +618,7 @@ class InfoExtractor(object):
         formats.sort(key=_formats_key)
 
     def http_scheme(self):
-        """ Either "https:" or "https:", depending on the user's preferences """
+        """ Either "http:" or "https:", depending on the user's preferences """
         return (
             'http:'
             if self._downloader.params.get('prefer_insecure', False)
