@@ -15,10 +15,10 @@ class MotherlessIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://motherless.com/AC3FFE1',
-            'md5': '5527fef81d2e529215dad3c2d744a7d9',
+            'md5': '310f62e325a9fafe64f68c0bccb6e75f',
             'info_dict': {
                 'id': 'AC3FFE1',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'Fucked in the ass while playing PS3',
                 'categories': ['Gaming', 'anal', 'reluctant', 'rough', 'Wife'],
                 'upload_date': '20100913',
