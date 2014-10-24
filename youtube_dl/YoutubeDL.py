@@ -574,7 +574,6 @@ class YoutubeDL(object):
             extract_flat = self.params.get('extract_flat', False)
             if ((extract_flat == 'in_playlist' and 'playlist' in extra_info) or
                     extract_flat is True):
-                self.add_extra_info(ie_result, extra_info)
                 if self.params.get('forcejson', False):
                     self.to_stdout(json.dumps(ie_result))
                 return ie_result
