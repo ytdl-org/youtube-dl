@@ -89,6 +89,10 @@ class InfoExtractor(object):
                                  format, irrespective of the file format.
                                  -1 for default (order by other properties),
                                  -2 or smaller for less than default.
+                    * source_preference  Order number for this video source
+                                  (quality takes higher priority)
+                                 -1 for default (order by other properties),
+                                 -2 or smaller for less than default.
                     * http_referer  HTTP Referer header value to set.
                     * http_method  HTTP method to use for the download.
                     * http_headers  A dictionary of additional HTTP headers
@@ -613,6 +617,7 @@ class InfoExtractor(object):
                 audio_ext_preference,
                 f.get('filesize') if f.get('filesize') is not None else -1,
                 f.get('filesize_approx') if f.get('filesize_approx') is not None else -1,
+                f.get('source_preference') if f.get('source_preference') is not None else -1,
                 f.get('format_id'),
             )
         formats.sort(key=_formats_key)
