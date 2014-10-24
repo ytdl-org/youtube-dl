@@ -165,6 +165,8 @@ class YoutubeDL(object):
                        'auto' for elaborate guessing
     encoding:          Use this encoding instead of the system-specified.
     extract_flat:      Do not resolve URLs, return the immediate result.
+                       Pass in 'in_playlist' to only show this behavior for
+                       playlist items.
 
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:
@@ -568,8 +570,13 @@ class YoutubeDL(object):
 
         result_type = ie_result.get('_type', 'video')
 
-        if self.params.get('extract_flat', False):
-            if result_type in ('url', 'url_transparent'):
+        if result_type in ('url', 'url_transparent'):
+            extract_flat = self.params.get('extract_flat', False)
+            if ((extract_flat == 'in_playlist' and 'playlist' in extra_info) or
+                    extract_flat is True):
+                self.add_extra_info(ie_result, extra_info)
+                if self.params.get('forcejson', False):
+                    self.to_stdout(json.dumps(ie_result))
                 return ie_result
 
         if result_type == 'video':

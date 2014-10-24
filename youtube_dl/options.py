@@ -159,6 +159,11 @@ def parseOpts(overrideArguments=None):
         '--ignore-config',
         action='store_true',
         help='Do not read configuration files. When given in the global configuration file /etc/youtube-dl.conf: do not read the user configuration in ~/.config/youtube-dl.conf (%APPDATA%/youtube-dl/config.txt on Windows)')
+    general.add_option(
+        '--flat-playlist',
+        action='store_const', dest='extract_flat', const='in_playlist',
+        default=False,
+        help='Do not extract the videos of a playlist, only list them.')
 
     selection = optparse.OptionGroup(parser, 'Video Selection')
     selection.add_option(

@@ -367,6 +367,7 @@ def _real_main(argv=None):
         'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,
         'encoding': opts.encoding,
         'exec_cmd': opts.exec_cmd,
+        'extract_flat': opts.extract_flat,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
