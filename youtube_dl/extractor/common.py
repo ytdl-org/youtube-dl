@@ -647,10 +647,14 @@ class InfoExtractor(object):
             'Unable to download f4m manifest')
 
         formats = []
+        manifest_version = '1.0'
         media_nodes = manifest.findall('{http://ns.adobe.com/f4m/1.0}media')
         if not media_nodes:
+            manifest_version = '2.0'
             media_nodes = manifest.findall('{http://ns.adobe.com/f4m/2.0}media')
         for i, media_el in enumerate(media_nodes):
+            if manifest_version == '2.0':
+                manifest_url = '/'.join(manifest_url.split('/')[:-1]) + '/' + media_el.attrib.get('href')
             tbr = int_or_none(media_el.attrib.get('bitrate'))
             format_id = 'f4m-%d' % (i if tbr is None else tbr)
             formats.append({
