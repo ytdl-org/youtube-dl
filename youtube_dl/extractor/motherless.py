@@ -40,6 +40,20 @@ class MotherlessIE(InfoExtractor):
                 'thumbnail': 're:http://.*\.jpg',
                 'age_limit': 18,
             }
+        },
+        {
+            'url': 'http://motherless.com/g/cosplay/633979F',
+            'md5': '0b2a43f447a49c3e649c93ad1fafa4a0',
+            'info_dict': {
+                'id': '633979F',
+                'ext': 'mp4',
+                'title': 'Turtlette',
+                'categories': ['superheroine heroine  superher'],
+                'upload_date': '20140827',
+                'uploader_id': 'shade0230',
+                'thumbnail': 're:http://.*\.jpg',
+                'age_limit': 18,
+            }
         }
     ]
 
