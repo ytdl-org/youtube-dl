@@ -423,6 +423,7 @@ from .videopremium import VideoPremiumIE
 from .videott import VideoTtIE
 from .videoweed import VideoWeedIE
 from .vidme import VidmeIE
+from .vidzi import VidziIE
 from .vimeo import (
     VimeoIE,
     VimeoAlbumIE,
@@ -491,9 +492,7 @@ from .youtube import (
     YoutubeUserIE,
     YoutubeWatchLaterIE,
 )
-
 from .zdf import ZDFIE
-from .vidzi import VidziIE
 
 _ALL_CLASSES = [
     klass
