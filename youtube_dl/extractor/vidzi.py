@@ -1,5 +1,7 @@
-import re
+from __future__ import unicode_literals
+
 from .common import InfoExtractor
+
 
 class VidziIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?vidzi\.tv/(?P<id>\w+)'
@@ -14,12 +16,13 @@ class VidziIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         
-        webpage = self._download_webpage('http://vidzi.tv/' + video_id, video_id)
-        video_url = self._html_search_regex(r'{\s*file\s*:\s*"([^"]+)"\s*}', webpage, u'vidzi url')
-        title = self._html_search_regex(r'<Title>([^<]+)<\/Title>', webpage, u'vidzi title')
+        webpage = self._download_webpage(url, video_id)
+        video_url = self._html_search_regex(
+            r'{\s*file\s*:\s*"([^"]+)"\s*}', webpage, 'video url')
+        title = self._html_search_regex(
+            r'<Title>([^<]+)<\/Title>', webpage, 'title')
         
         return {
             'id': video_id,
