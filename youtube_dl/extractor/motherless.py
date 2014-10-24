@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class MotherlessIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?motherless\.com/(?P<id>[A-Z0-9]+)'
+    _VALID_URL = r'http://(?:www\.)?motherless\.com/(?:g/[a-z0-9_]+/)?(?P<id>[A-Z0-9]+)'
     _TESTS = [
         {
             'url': 'http://motherless.com/AC3FFE1',
