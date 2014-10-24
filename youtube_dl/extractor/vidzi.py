@@ -1,3 +1,4 @@
+#coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
@@ -6,12 +7,12 @@ from .common import InfoExtractor
 class VidziIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?vidzi\.tv/(?P<id>\w+)'
     _TEST = {
-        'url': 'http://vidzi.tv/m1chxrwq7bx9',
-        'md5': '5c4c4a8ca2281a199c8eefe8f411d630',
+        'url': 'http://vidzi.tv/cghql9yq6emu.html',
+        'md5': '4f16c71ca0c8c8635ab6932b5f3f1660',
         'info_dict': {
-            'id': 'm1chxrwq7bx9',
+            'id': 'cghql9yq6emu',
             'ext': 'mp4',
-            'title': 'Watch Cadbury Dream Factory S01E04 HDTV x264 FiHTV mp4',
+            'title': 'youtube-dl test video  1\\\\2\'3/4<5\\\\6ä7↭',
         },
     }
 
@@ -22,12 +23,11 @@ class VidziIE(InfoExtractor):
         video_url = self._html_search_regex(
             r'{\s*file\s*:\s*"([^"]+)"\s*}', webpage, 'video url')
         title = self._html_search_regex(
-            r'<Title>([^<]+)<\/Title>', webpage, 'title')
+            r'(?s)<h2 class="video-title">(.*?)</h2>', webpage, 'title')
         
         return {
             'id': video_id,
             'title': title,
             'url': video_url,
-            'ext': 'mp4',
         }
         
