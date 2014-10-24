@@ -1,0 +1,53 @@
+# coding: utf-8
+from __future__ import unicode_literals
+
+from .common import InfoExtractor
+
+from ..utils import (
+    float_or_none,
+)
+
+
+class RteIE(InfoExtractor):
+    _VALID_URL = r'http?://(?:www\.)?rte\.ie/player/in/show/(?P<id>[0-9]+)/'
+    _TEST = {
+        'url': 'http://www.rte.ie/player/in/show/10336191/',
+        'info_dict': {
+            'id': '10336191',
+            'ext': 'mp4',
+            'title': 'Nine News',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'description': 'The One O\'Clock News followed by Weather.',
+            'duration': 1622963.0,
+        }
+    }
+    
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+        title = self._og_search_title(webpage)
+        
+        description = self._search_regex(r'<meta name="description" content="(.*?)" />', webpage, 'description')
+        duration = float_or_none(self._html_search_meta('duration', webpage, 'duration'))
+        
+        thumbnail_id = self._search_regex(r'<meta name="thumbnail" content="uri:irus:(.*?)" />', webpage, 'thumbnail')
+        thumbnail = 'http://img.rasset.ie/' + thumbnail_id + '.jpg' 
+        
+        feeds_url = self._html_search_meta("feeds-prefix", webpage, 'feeds url') + video_id
+        json_string = self._download_json(feeds_url, video_id)
+        
+        # f4m_url = server + relative_url
+        f4m_url = json_string['shows'][0]['media:group'][0]['rte:server'] + json_string['shows'][0]['media:group'][0]['url']
+        f4m_formats = self._extract_f4m_formats(f4m_url, video_id)
+        for f in f4m_formats:
+            del f['tbr']
+        
+        return {
+            'id': video_id,
+            'title': title,
+            'formats': f4m_formats,
+            'description': description,
+            'thumbnail': thumbnail,
+            'duration': duration,
+        }

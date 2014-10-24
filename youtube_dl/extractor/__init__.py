@@ -297,6 +297,7 @@ from .ro220 import Ro220IE
 from .rottentomatoes import RottenTomatoesIE
 from .roxwel import RoxwelIE
 from .rtbf import RTBFIE
+from .rte import RteIE
 from .rtlnl import RtlXlIE
 from .rtlnow import RTLnowIE
 from .rts import RTSIE
