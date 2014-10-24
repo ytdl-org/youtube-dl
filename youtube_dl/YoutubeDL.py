@@ -107,6 +107,8 @@ class YoutubeDL(object):
     forcefilename:     Force printing final filename.
     forceduration:     Force printing duration.
     forcejson:         Force printing info_dict as JSON.
+    dump_single_json:  Force printing the info_dict of the whole playlist
+                       (or video) as a single JSON line.
     simulate:          Do not download the video files.
     format:            Video format code.
     format_limit:      Highest quality format to try.
@@ -903,6 +905,8 @@ class YoutubeDL(object):
         if self.params.get('forcejson', False):
             info_dict['_filename'] = filename
             self.to_stdout(json.dumps(info_dict))
+        if self.params.get('dump_single_json', False):
+            info_dict['_filename'] = filename
 
         # Do nothing else if in simulate mode
         if self.params.get('simulate', False):
@@ -1070,12 +1074,15 @@ class YoutubeDL(object):
         for url in url_list:
             try:
                 #It also downloads the videos
-                self.extract_info(url)
+                res = self.extract_info(url)
             except UnavailableVideoError:
                 self.report_error('unable to download video')
             except MaxDownloadsReached:
                 self.to_screen('[info] Maximum number of downloaded files reached.')
                 raise
+            else:
+                if self.params.get('dump_single_json', False):
+                    self.to_stdout(json.dumps(res))
 
         return self._download_retcode
 

@@ -418,6 +418,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='dumpjson', default=False,
         help='simulate, quiet but print JSON information. See --output for a description of available keys.')
     verbosity.add_option(
+        '-J', '--dump-single-json',
+        action='store_true', dest='dump_single_json', default=False,
+        help='simulate, quiet but print JSON information for each command-line argument. If the URL refers to a playlist, dump the whole playlist information in a single line.')
+    verbosity.add_option(
         '--newline',
         action='store_true', dest='progress_with_newline', default=False,
         help='output progress bar as new lines')

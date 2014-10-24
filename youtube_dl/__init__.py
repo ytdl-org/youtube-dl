@@ -284,7 +284,7 @@ def _real_main(argv=None):
                      u' file! Use "{0}.%(ext)s" instead of "{0}" as the output'
                      u' template'.format(outtmpl))
 
-    any_printing = opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.getduration or opts.dumpjson
+    any_printing = opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.getduration or opts.dumpjson or opts.dump_single_json
     download_archive_fn = os.path.expanduser(opts.download_archive) if opts.download_archive is not None else opts.download_archive
 
     ydl_opts = {
@@ -304,6 +304,7 @@ def _real_main(argv=None):
         'forcefilename': opts.getfilename,
         'forceformat': opts.getformat,
         'forcejson': opts.dumpjson,
+        'dump_single_json': opts.dump_single_json,
         'simulate': opts.simulate,
         'skip_download': (opts.skip_download or opts.simulate or any_printing),
         'format': opts.format,
