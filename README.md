@@ -199,6 +199,10 @@ which means you can modify it, redistribute it or use it however you like.
     -j, --dump-json                  simulate, quiet but print JSON information.
                                      See --output for a description of available
                                      keys.
+    -J, --dump-single-json           simulate, quiet but print JSON information
+                                     for each command-line argument. If the URL
+                                     refers to a playlist, dump the whole
+                                     playlist information in a single line.
     --newline                        output progress bar as new lines
     --no-progress                    do not print progress bar
     --console-title                  display progress in console titlebar
