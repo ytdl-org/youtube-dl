@@ -80,6 +80,7 @@ __authors__  = (
     '5moufl',
     'lenaten',
     'Dennis Scheiba',
+    'Damon Timm',
 )
 
 __license__ = 'Public Domain'
