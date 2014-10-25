@@ -82,6 +82,7 @@ __authors__  = (
     'Dennis Scheiba',
     'Damon Timm',
     'winwon',
+    'Xavier Beynon'
 )
 
 __license__ = 'Public Domain'
