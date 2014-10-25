@@ -22,21 +22,23 @@ class NHLBaseInfoExtractor(InfoExtractor):
         self.report_extraction(video_id)
 
         initial_video_url = info['publishPoint']
-        data = compat_urllib_parse.urlencode({
-            'type': 'fvod',
-            'path': initial_video_url.replace('.mp4', '_sd.mp4'),
-        })
-        path_url = 'http://video.nhl.com/videocenter/servlets/encryptvideopath?' + data
-        path_doc = self._download_xml(
-            path_url, video_id, 'Downloading final video url')
-        video_url = path_doc.find('path').text
+        if info['formats'] == '1':
+            data = compat_urllib_parse.urlencode({
+                'type': 'fvod',
+                'path': initial_video_url.replace('.mp4', '_sd.mp4'),
+            })
+            path_url = 'http://video.nhl.com/videocenter/servlets/encryptvideopath?' + data
+            path_doc = self._download_xml(
+                path_url, video_id, 'Downloading final video url')
+            video_url = path_doc.find('path').text
+        else:
+           video_url = initial_video_url
 
         join = compat_urlparse.urljoin
         return {
             'id': video_id,
             'title': info['name'],
             'url': video_url,
-            'ext': determine_ext(video_url),
             'description': info['description'],
             'duration': int(info['duration']),
             'thumbnail': join(join(video_url, '/u/'), info['bigImage']),
@@ -46,10 +48,11 @@ class NHLBaseInfoExtractor(InfoExtractor):
 
 class NHLIE(NHLBaseInfoExtractor):
     IE_NAME = 'nhl.com'
-    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/console(?:\?(?:.*?[?&])?)id=(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/console(?:\?(?:.*?[?&])?)id=(?P<id>[0-9a-z-]+)'
 
     _TESTS = [{
         'url': 'http://video.canucks.nhl.com/videocenter/console?catid=6?id=453614',
+        'md5': 'db704a4ea09e8d3988c85e36cc892d09',
         'info_dict': {
             'id': '453614',
             'ext': 'mp4',
@@ -57,6 +60,17 @@ class NHLIE(NHLBaseInfoExtractor):
             'description': 'Dale Weise scores his first of the season to put the Canucks up 4-3.',
             'duration': 18,
             'upload_date': '20131006',
+        },
+    }, {
+        'url': 'http://video.nhl.com/videocenter/console?id=2014020024-628-h',
+        'md5': 'd22e82bc592f52d37d24b03531ee9696',
+        'info_dict': {
+            'id': '2014020024-628-h',
+            'ext': 'mp4',
+            'title': 'Alex Galchenyuk Goal on Ray Emery (14:40/3rd)',
+            'description': 'Home broadcast - Montreal Canadiens at Philadelphia Flyers - October 11, 2014',
+            'duration': 0,
+            'upload_date': '20141011',
         },
     }, {
         'url': 'http://video.flames.nhl.com/videocenter/console?id=630616',
