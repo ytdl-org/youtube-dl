@@ -40,14 +40,15 @@ class SoundcloudIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://soundcloud.com/ethmusic/lostin-powers-she-so-heavy',
-            'file': '62986583.mp3',
             'md5': 'ebef0a451b909710ed1d7787dddbf0d7',
             'info_dict': {
-                "upload_date": "20121011",
-                "description": "No Downloads untill we record the finished version this weekend, i was too pumped n i had to post it , earl is prolly gonna b hella p.o'd",
-                "uploader": "E.T. ExTerrestrial Music",
-                "title": "Lostin Powers - She so Heavy (SneakPreview) Adrian Ackers Blueprint 1",
-                "duration": 143,
+                'id': '62986583',
+                'ext': 'mp3',
+                'upload_date': '20121011',
+                'description': 'No Downloads untill we record the finished version this weekend, i was too pumped n i had to post it , earl is prolly gonna b hella p.o\'d',
+                'uploader': 'E.T. ExTerrestrial Music',
+                'title': 'Lostin Powers - She so Heavy (SneakPreview) Adrian Ackers Blueprint 1',
+                'duration': 143,
             }
         },
         # not streamable song
@@ -103,7 +104,7 @@ class SoundcloudIE(InfoExtractor):
                 'id': '128590877',
                 'ext': 'mp3',
                 'title': 'Bus Brakes',
-                'description': 'md5:0170be75dd395c96025d210d261c784e',
+                'description': 'md5:0053ca6396e8d2fd7b7e1595ef12ab66',
                 'uploader': 'oddsamples',
                 'upload_date': '20140109',
                 'duration': 17,
