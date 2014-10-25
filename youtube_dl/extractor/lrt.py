@@ -22,7 +22,7 @@ class LRTIE(InfoExtractor):
             'id': '54391',
             'ext': 'mp4',
             'title': 'Septynios Kauno dienos',
-            'description': 'Kauno miesto ir apskrities naujienos',
+            'description': 'md5:24d84534c7dc76581e59f5689462411a',
             'duration': 1783,
         },
         'params': {
