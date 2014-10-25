@@ -52,8 +52,7 @@ class AudiomackIE(InfoExtractor):
         #Audiomack wraps a lot of soundcloud tracks in their branded wrapper
         # - if so, pass the work off to the soundcloud extractor
         if SoundcloudIE.suitable(realurl):
-            sc = SoundcloudIE(downloader=self._downloader)
-            return sc._real_extract(realurl)
+            return {'_type': 'url', 'url': realurl, 'ie_key': 'Soundcloud'}
         else:
             #Pull out metadata
             page = self._download_webpage(url, id)
