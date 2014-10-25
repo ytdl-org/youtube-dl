@@ -79,6 +79,7 @@ __authors__  = (
     'Carlos Ramos',
     '5moufl',
     'lenaten',
+    'Xavier Beynon'
 )
 
 __license__ = 'Public Domain'
