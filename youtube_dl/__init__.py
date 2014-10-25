@@ -81,6 +81,7 @@ __authors__  = (
     'lenaten',
     'Dennis Scheiba',
     'Damon Timm',
+    'winwon',
 )
 
 __license__ = 'Public Domain'
