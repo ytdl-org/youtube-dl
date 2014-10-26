@@ -13,7 +13,6 @@ class YnetIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://hot.ynet.co.il/home/0,7340,L-11659-99244,00.html',
-            'md5': '4b29cb57c3dddd57642b3f051f535b07',
             'info_dict': {
                 'id': 'L-11659-99244',
                 'ext': 'flv',
@@ -22,7 +21,6 @@ class YnetIE(InfoExtractor):
             }
         }, {
             'url': 'http://hot.ynet.co.il/home/0,7340,L-8859-84418,00.html',
-            'md5': '8194c2ea221e9a639cac96b6b0753dc5',
             'info_dict': {
                 'id': 'L-8859-84418',
                 'ext': 'flv',
