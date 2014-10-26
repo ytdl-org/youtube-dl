@@ -185,8 +185,8 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
         self._download_webpage(
             req, None,
-            note='Confirming age', errnote='Unable to confirm age')
-        return True
+            note='Confirming age', errnote='Unable to confirm age',
+            fatal=False)
 
     def _real_initialize(self):
         if self._downloader is None:
