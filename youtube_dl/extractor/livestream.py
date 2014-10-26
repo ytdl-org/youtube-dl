@@ -190,7 +190,8 @@ class LivestreamOriginalIE(InfoExtractor):
             'id': video_id,
             'title': item.find('title').text,
             'url': 'rtmp://extondemand.livestream.com/ondemand',
-            'play_path': 'mp4:trans/dv15/mogulus-{0}.mp4'.format(path),
+            'play_path': 'trans/dv15/mogulus-{0}'.format(path),
+            'player_url': 'http://static.livestream.com/chromelessPlayer/v21/playerapi.swf?hash=5uetk&v=0803&classid=D27CDB6E-AE6D-11cf-96B8-444553540000&jsEnabled=false&wmode=opaque',
             'ext': 'flv',
             'thumbnail': thumbnail_url,
         }
