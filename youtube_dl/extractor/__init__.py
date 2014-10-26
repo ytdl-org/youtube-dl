@@ -355,6 +355,7 @@ from .spike import SpikeIE
 from .sport5 import Sport5IE
 from .sportbox import SportBoxIE
 from .sportdeutschland import SportDeutschlandIE
+from .srmediathek import SRMediathekIE
 from .stanfordoc import StanfordOpenClassroomIE
 from .steam import SteamIE
 from .streamcloud import StreamcloudIE
