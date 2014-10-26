@@ -293,34 +293,36 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 class CrunchyrollShowPlaylistIE(InfoExtractor):
     IE_NAME = "crunchyroll:playlist"
-    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.com/(?!(?:news|anime-news|library|forum|launchcalendar|lineup|store|comics|freetrial|login))(?P<show>[\w\-]+))/?$'
-    _TITLE_EXTR = r'<span\s+itemprop="name">\s*(?P<showtitle>[\w\s]+)'
+    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.com/(?!(?:news|anime-news|library|forum|launchcalendar|lineup|store|comics|freetrial|login))(?P<id>[\w\-]+))/?$'
 
     _TESTS = [{
-        'url' : 'http://www.crunchyroll.com/attack-on-titan',
-        'info_dict' : {
-            'title' : 'Attack on Titan'
+        'url': 'http://www.crunchyroll.com/a-bridge-to-the-starry-skies-hoshizora-e-kakaru-hashi',
+        'info_dict': {
+            'id': 'a-bridge-to-the-starry-skies-hoshizora-e-kakaru-hashi',
+            'title': 'A Bridge to the Starry Skies - Hoshizora e Kakaru Hashi'
         },
-        'playlist_count' : 15
+        'playlist_count': 13,
     }]
 
-    def _extract_title_entries(self,id,webpage):
-        _EPISODE_ID_EXTR = r'id="showview_videos_media_(?P<vidid>\d+)".*?href="/{0}/(?P<vidurl>[\w\-]+-(?P=vidid))"'.format(id)
-        title = self._html_search_regex(self._TITLE_EXTR,webpage,"title",flags=re.UNICODE|re.MULTILINE)
-        episode_urls = [self.url_result('http://www.crunchyroll.com/{0}/{1}'.format(id, showmatch[1])) for
-                    showmatch in re.findall(_EPISODE_ID_EXTR, webpage,re.UNICODE|re.MULTILINE|re.DOTALL)]
-        episode_urls.reverse()
-        return title, episode_urls
-
-
     def _real_extract(self, url):
-        url_match = re.match(self._VALID_URL,url)
-        show_id = url_match.group('show')
-        webpage = self._download_webpage(url,show_id)
-        (title,entries) = self._extract_title_entries(show_id,webpage)
+        show_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, show_id)
+        title = self._html_search_regex(
+            r'(?s)<h1[^>]*>\s*<span itemprop="name">(.*?)</span>',
+            webpage, 'title')
+        episode_paths = re.findall(
+            r'(?s)<li id="showview_videos_media_[0-9]+"[^>]+>.*?<a href="([^"]+)"',
+            webpage)
+        entries = [
+            self.url_result('http://www.crunchyroll.com' + ep, 'Crunchyroll')
+            for ep in episode_paths
+        ]
+        entries.reverse()
+
         return {
-            '_type' : 'playlist',
-            'id' : show_id,
-            'title' : title,
-            'entries' : entries
+            '_type': 'playlist',
+            'id': show_id,
+            'title': title,
+            'entries': entries,
         }
