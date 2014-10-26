@@ -512,7 +512,7 @@ class VimeoReviewIE(InfoExtractor):
         'info_dict': {
             'id': '91613211',
             'ext': 'mp4',
-            'title': 'Death by dogma versus assembling agile - Sander Hoogendoorn',
+            'title': 're:(?i)^Death by dogma versus assembling agile . Sander Hoogendoorn',
             'uploader': 'DevWeek Events',
             'duration': 2773,
             'thumbnail': 're:^https?://.*\.jpg$',
