@@ -325,7 +325,7 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'age_limit': 18,
                 'uploader': 'www.handjobhub.com',
-                'title': 'Busty Blonde Siri Tit Fuck While Wank at Handjob Hub',
+                'title': 'Busty Blonde Siri Tit Fuck While Wank at HandjobHub.com',
             }
         },
         # RSS feed
