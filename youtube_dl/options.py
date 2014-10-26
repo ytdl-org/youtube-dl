@@ -6,6 +6,8 @@ import shlex
 import sys
 
 from .utils import (
+    compat_expanduser,
+    compat_getenv,
     get_term_width,
     write_string,
 )
@@ -27,19 +29,19 @@ def parseOpts(overrideArguments=None):
         return res
 
     def _readUserConf():
-        xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
+        xdg_config_home = compat_getenv('XDG_CONFIG_HOME')
         if xdg_config_home:
             userConfFile = os.path.join(xdg_config_home, 'youtube-dl', 'config')
             if not os.path.isfile(userConfFile):
                 userConfFile = os.path.join(xdg_config_home, 'youtube-dl.conf')
         else:
-            userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl', 'config')
+            userConfFile = os.path.join(compat_expanduser('~'), '.config', 'youtube-dl', 'config')
             if not os.path.isfile(userConfFile):
-                userConfFile = os.path.join(os.path.expanduser('~'), '.config', 'youtube-dl.conf')
+                userConfFile = os.path.join(compat_expanduser('~'), '.config', 'youtube-dl.conf')
         userConf = _readOptions(userConfFile, None)
 
         if userConf is None:
-            appdata_dir = os.environ.get('appdata')
+            appdata_dir = compat_getenv('appdata')
             if appdata_dir:
                 userConf = _readOptions(
                     os.path.join(appdata_dir, 'youtube-dl', 'config'),
@@ -51,11 +53,11 @@ def parseOpts(overrideArguments=None):
 
         if userConf is None:
             userConf = _readOptions(
-                os.path.join(os.path.expanduser('~'), 'youtube-dl.conf'),
+                os.path.join(compat_expanduser('~'), 'youtube-dl.conf'),
                 default=None)
         if userConf is None:
             userConf = _readOptions(
-                os.path.join(os.path.expanduser('~'), 'youtube-dl.conf.txt'),
+                os.path.join(compat_expanduser('~'), 'youtube-dl.conf.txt'),
                 default=None)
 
         if userConf is None:
