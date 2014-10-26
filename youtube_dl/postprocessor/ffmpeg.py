@@ -42,7 +42,7 @@ class FFmpegPostProcessorError(PostProcessingError):
 
 
 class FFmpegPostProcessor(PostProcessor):
-    def __init__(self, downloader, deletetempfiles=False):
+    def __init__(self, downloader=None, deletetempfiles=False):
         PostProcessor.__init__(self, downloader)
         self._versions = self.get_versions()
         self._deletetempfiles = deletetempfiles
@@ -56,7 +56,8 @@ class FFmpegPostProcessor(PostProcessor):
                 self._versions[self._executable], REQUIRED_VERSION):
             warning = u'Your copy of %s is outdated, update %s to version %s or newer if you encounter any errors.' % (
                 self._executable, self._executable, REQUIRED_VERSION)
-            self._downloader.report_warning(warning)
+            if self._downloader:
+                self._downloader.report_warning(warning)
 
     @staticmethod
     def get_versions():
