@@ -141,6 +141,7 @@ class SoundcloudIE(InfoExtractor):
             'description': info['description'],
             'thumbnail': thumbnail,
             'duration': int_or_none(info.get('duration'), 1000),
+            'webpage_url': info.get('permalink_url'),
         }
         formats = []
         if info.get('downloadable', False):
