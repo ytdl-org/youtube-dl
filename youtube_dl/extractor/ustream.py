@@ -72,7 +72,7 @@ class UstreamChannelIE(InfoExtractor):
         'info_dict': {
             'id': '10874166',
         },
-        'playlist_mincount': 54,
+        'playlist_mincount': 17,
     }
 
     def _real_extract(self, url):
