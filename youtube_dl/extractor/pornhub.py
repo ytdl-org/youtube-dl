@@ -16,13 +16,14 @@ from ..aes import (
 
 
 class PornHubIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>pornhub\.com/view_video\.php\?viewkey=(?P<videoid>[0-9a-f]+))'
+    _VALID_URL = r'^https?://(?:www\.)?pornhub\.com/view_video\.php\?viewkey=(?P<id>[0-9a-f]+)'
     _TEST = {
         'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
-        'file': '648719015.mp4',
         'md5': '882f488fa1f0026f023f33576004a2ed',
         'info_dict': {
-            "uploader": "BABES-COM",
+            'id': '648719015',
+            'ext': 'mp4',
+            "uploader": "Babes",
             "title": "Seductive Indian beauty strips down and fingers her pink pussy",
             "age_limit": 18
         }
@@ -35,9 +36,7 @@ class PornHubIE(InfoExtractor):
         return count
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('videoid')
-        url = 'http://www.' + mobj.group('url')
+        video_id = self._match_id(url)
 
         req = compat_urllib_request.Request(url)
         req.add_header('Cookie', 'age_verified=1')
@@ -45,7 +44,7 @@ class PornHubIE(InfoExtractor):
 
         video_title = self._html_search_regex(r'<h1 [^>]+>([^<]+)', webpage, 'title')
         video_uploader = self._html_search_regex(
-            r'(?s)From:&nbsp;.+?<(?:a href="/users/|<span class="username)[^>]+>(.+?)<',
+            r'(?s)From:&nbsp;.+?<(?:a href="/users/|a href="/channels/|<span class="username)[^>]+>(.+?)<',
             webpage, 'uploader', fatal=False)
         thumbnail = self._html_search_regex(r'"image_url":"([^"]+)', webpage, 'thumbnail', fatal=False)
         if thumbnail:

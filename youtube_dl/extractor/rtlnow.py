@@ -81,7 +81,7 @@ class RTLnowIE(InfoExtractor):
                 'id': '99205',
                 'ext': 'flv',
                 'title': 'Medicopter 117 - Angst!',
-                'description': 'md5:895b1df01639b5f61a04fc305a5cb94d',
+                'description': 're:^Im Therapiezentrum \'Sonnalm\' kommen durch eine Unachtsamkeit die für die B.handlung mit Phobikern gehaltenen Voglespinnen frei\. Eine Ausreißerin',
                 'thumbnail': 'http://autoimg.static-fra.de/superrtlnow/287529/1500x1500/image2.jpg',
                 'upload_date': '20080928',
                 'duration': 2691,
