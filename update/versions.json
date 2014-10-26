@@ -1,6 +1,6 @@
 {
-    "latest": "2014.10.26.1",
-    "signature": "002c8030066a1558266ff6e2de8ff306dd21d2479a1c263c8662dd2bf3ac26e5c055da11ddf0889fea1338d60514b244d0e2e17dfffce69de5c5ae59a7b4c61f0976b2f8898611b2e34251102402e466c85bd515186d83477e6687638641bc32ba7e44e4fbcafc68247991e82516c0aa3a53be627d78928c9459a312b7aa51b6",
+    "latest": "2014.10.26.2",
+    "signature": "7c88941c90a7881cc934bf771e16f6c5ea411523ca72f3ae0df3dad350261abce6202ea58debd7a6f6dd31384541e171bc9730334691e49dfcb170b3df59a34fefcd47b9d57aa9008373db0c417b9d6947127dfcdf8ceeb07280d20c9ad83370f2fdef10f06f0b66704f9491360e0b47339d8d74beaba463aebcc8bf383baad8",
     "versions": {
         "2012.02.22": {
             "bin": [
@@ -5704,6 +5704,20 @@
             "tar": [
                 "https://yt-dl.org/downloads/2014.10.26.1/youtube-dl-2014.10.26.1.tar.gz",
                 "dc44550aecd8d5326dca784d0fd7e5b93b0cebdc58d641bd27e674e26d059e26"
+            ]
+        },
+        "2014.10.26.2": {
+            "bin": [
+                "https://yt-dl.org/downloads/2014.10.26.2/youtube-dl",
+                "2e5c4b2f9a7bf4412dcce0b9f6b75191937074de0be812757beabb0114a88a07"
+            ],
+            "exe": [
+                "https://yt-dl.org/downloads/2014.10.26.2/youtube-dl.exe",
+                "75fcda0d064af8d0cdffc4620f338bb256a45cb2eb6d8a230c0dda93adfef14a"
+            ],
+            "tar": [
+                "https://yt-dl.org/downloads/2014.10.26.2/youtube-dl-2014.10.26.2.tar.gz",
+                "8f1ce592916d2a5d673cda5cb8e652ed105c77c00a051fa67c116e3cc1733056"
             ]
         }
     }
