@@ -62,7 +62,7 @@ from .utils import (
 from .cache import Cache
 from .extractor import get_info_extractor, gen_extractors
 from .downloader import get_suitable_downloader
-from .postprocessor import FFmpegMergerPP
+from .postprocessor import FFmpegMergerPP, FFmpegPostProcessor
 from .version import __version__
 
 
@@ -1311,8 +1311,18 @@ class YoutubeDL(object):
                 sys.exc_clear()
             except:
                 pass
-        self._write_string('[debug] Python version %s - %s' %
-                     (platform.python_version(), platform_name()) + '\n')
+        self._write_string('[debug] Python version %s - %s\n' % (
+            platform.python_version(), platform_name()))
+
+        exe_versions = FFmpegPostProcessor.get_versions()
+        exe_str = ', '.join(
+            '%s %s' % (exe, v)
+            for exe, v in sorted(exe_versions.items())
+            if v
+        )
+        if not exe_str:
+            exe_str = 'none'
+        self._write_string('[debug] exe versions: %s\n' % exe_str)
 
         proxy_map = {}
         for handler in self._opener.handlers:

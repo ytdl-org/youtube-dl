@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 import sys
 import time
@@ -18,6 +19,23 @@ from ..utils import (
 )
 
 
+def get_version(executable):
+    """ Returns the version of the specified executable,
+    or False if the executable is not present """
+    try:
+        out, err = subprocess.Popen(
+            [executable, '-version'],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+    except OSError:
+        return False
+    firstline = out.partition(b'\n')[0].decode('ascii', 'ignore')
+    m = re.search(r'version\s+([0-9._-a-zA-Z]+)', firstline)
+    if not m:
+        return u'present'
+    else:
+        return m.group(1)
+
+
 class FFmpegPostProcessorError(PostProcessingError):
     pass
 
@@ -25,22 +43,26 @@ class FFmpegPostProcessorError(PostProcessingError):
 class FFmpegPostProcessor(PostProcessor):
     def __init__(self, downloader=None, deletetempfiles=False):
         PostProcessor.__init__(self, downloader)
-        self._exes = self.detect_executables()
+        self._versions = self.get_versions()
         self._deletetempfiles = deletetempfiles
 
     @staticmethod
-    def detect_executables():
+    def get_versions():
         programs = ['avprobe', 'avconv', 'ffmpeg', 'ffprobe']
-        return dict((program, check_executable(program, ['-version'])) for program in programs)
+        return dict((program, get_version(program)) for program in programs)
 
     def _get_executable(self):
         if self._downloader.params.get('prefer_ffmpeg', False):
-            return self._exes['ffmpeg'] or self._exes['avconv']
+            prefs = ('ffmpeg', 'avconv')
         else:
-            return self._exes['avconv'] or self._exes['ffmpeg']
+            prefs = ('avconv', 'ffmpeg')
+        for p in prefs:
+            if self._versions[p]:
+                return p
+        return None
 
     def _uses_avconv(self):
-        return self._get_executable() == self._exes['avconv']
+        return self._get_executable() == 'avconv'
 
     def run_ffmpeg_multiple_files(self, input_paths, out_path, opts):
         if not self._get_executable():
