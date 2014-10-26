@@ -75,6 +75,17 @@ class FFmpegPostProcessor(PostProcessor):
                 return p
         return None
 
+    @property
+    def _probe_executable(self):
+        if self._downloader.params.get('prefer_ffmpeg', False):
+            prefs = ('ffproe', 'avprobe')
+        else:
+            prefs = ('avprobe', 'ffprobe')
+        for p in prefs:
+            if self._versions[p]:
+                return p
+        return None
+
     def _uses_avconv(self):
         return self._executable == 'avconv'
 
@@ -120,11 +131,12 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         self._nopostoverwrites = nopostoverwrites
 
     def get_audio_codec(self, path):
-        if not self._exes['ffprobe'] and not self._exes['avprobe']:
+
+        if not self._probe_executable:
             raise PostProcessingError(u'ffprobe or avprobe not found. Please install one.')
         try:
             cmd = [
-                self._exes['avprobe'] or self._exes['ffprobe'],
+                self._probe_executable,
                 '-show_streams',
                 encodeFilename(self._ffmpeg_filename_argument(path), True)]
             handle = subprocess.Popen(cmd, stderr=compat_subprocess_get_DEVNULL(), stdout=subprocess.PIPE)
