@@ -17,7 +17,7 @@ class VGTVIE(InfoExtractor):
             'info_dict': {
                 'id': '84196',
                 'ext': 'mp4',
-                'title': 'Hevnen er søt episode 10: Abu',
+                'title': 'Hevnen er søt episode 1:10 - Abu',
                 'description': 'md5:e25e4badb5f544b04341e14abdc72234',
                 'thumbnail': 're:^https?://.*\.jpg',
                 'duration': 648.000,
