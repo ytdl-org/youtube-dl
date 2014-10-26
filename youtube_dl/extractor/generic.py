@@ -559,7 +559,7 @@ class GenericIE(InfoExtractor):
             self._downloader.report_warning('Falling back on generic information extractor.')
 
         if full_response:
-            webpage = _webpage_read_content(url, video_id)
+            webpage = self._webpage_read_content(full_response, url, video_id)
         else:
             webpage = self._download_webpage(url, video_id)
         self.report_extraction(video_id)
