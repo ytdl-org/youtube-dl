@@ -78,7 +78,7 @@ class FFmpegPostProcessor(PostProcessor):
     @property
     def _probe_executable(self):
         if self._downloader.params.get('prefer_ffmpeg', False):
-            prefs = ('ffproe', 'avprobe')
+            prefs = ('ffprobe', 'avprobe')
         else:
             prefs = ('avprobe', 'ffprobe')
         for p in prefs:
