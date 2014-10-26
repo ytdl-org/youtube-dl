@@ -171,3 +171,13 @@ def assertGreaterEqual(self, got, expected, msg=None):
         if msg is None:
             msg = '%r not greater than or equal to %r' % (got, expected)
         self.assertTrue(got >= expected, msg)
+
+
+def expect_warnings(ydl, warnings_re):
+    real_warning = ydl.report_warning
+
+    def _report_warning(w):
+        if not any(re.search(w_re, w) for w_re in warnings_re):
+            real_warning(w)
+
+    ydl.report_warning = _report_warning

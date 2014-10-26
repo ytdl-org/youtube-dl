@@ -389,8 +389,23 @@ class GenericIE(InfoExtractor):
                 'title': 'Conversation about Hexagonal Rails Part 1 - ThoughtWorks',
                 'duration': 1715.0,
                 'uploader': 'thoughtworks.wistia.com',
-            },   
+            },
         },
+        # Direct download with broken HEAD
+        {
+            'url': 'http://ai-radio.org:8000/radio.opus',
+            'info_dict': {
+                'id': 'radio',
+                'ext': 'opus',
+                'title': 'radio',
+            },
+            'params': {
+                'skip_download': True,  # infinite live stream
+            },
+            'expected_warnings': [
+                r'501.*Not Implemented'
+            ],
+        }
     ]
 
     def report_following_redirect(self, new_url):
