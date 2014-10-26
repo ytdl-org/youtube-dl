@@ -62,7 +62,10 @@ from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
 from .condenast import CondeNastIE
 from .cracked import CrackedIE
 from .criterion import CriterionIE
-from .crunchyroll import CrunchyrollIE
+from .crunchyroll import (
+    CrunchyrollIE,
+    CrunchyrollShowPlaylistIE
+)
 from .cspan import CSpanIE
 from .d8 import D8IE
 from .dailymotion import (
