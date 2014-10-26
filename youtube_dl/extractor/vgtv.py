@@ -67,9 +67,7 @@ class VGTVIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         data = self._download_json(
             'http://svp.vg.no/svp/api/v1/vgtv/assets/%s?appName=vgtv-website' % video_id,
             video_id, 'Downloading media JSON')
