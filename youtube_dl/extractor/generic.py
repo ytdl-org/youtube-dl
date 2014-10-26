@@ -503,14 +503,14 @@ class GenericIE(InfoExtractor):
         self.to_screen('%s: Requesting header' % video_id)
 
         head_req = HEADRequest(url)
-        response = self._request_webpage(
+        head_response = self._request_webpage(
             head_req, video_id,
             note=False, errnote='Could not send HEAD request to %s' % url,
             fatal=False)
 
-        if response is not False:
+        if head_response is not False:
             # Check for redirect
-            new_url = response.geturl()
+            new_url = head_response.geturl()
             if url != new_url:
                 self.report_following_redirect(new_url)
                 if force_videoid:
@@ -518,34 +518,35 @@ class GenericIE(InfoExtractor):
                         new_url, {'force_videoid': force_videoid})
                 return self.url_result(new_url)
 
-            # Check for direct link to a video
-            content_type = response.headers.get('Content-Type', '')
-            m = re.match(r'^(?P<type>audio|video|application(?=/ogg$))/(?P<format_id>.+)$', content_type)
-            if m:
-                upload_date = response.headers.get('Last-Modified')
-                if upload_date:
-                    upload_date = unified_strdate(upload_date)
-                return {
-                    'id': video_id,
-                    'title': os.path.splitext(url_basename(url))[0],
-                    'formats': [{
-                        'format_id': m.group('format_id'),
-                        'url': url,
-                        'vcodec': 'none' if m.group('type') == 'audio' else None
-                    }],
-                    'upload_date': upload_date,
-                }
+        full_response = None
+        if head_response is False:
+            full_response = self._request_webpage(url, video_id)
+            head_response = full_response
+
+        # Check for direct link to a video
+        content_type = head_response.headers.get('Content-Type', '')
+        m = re.match(r'^(?P<type>audio|video|application(?=/ogg$))/(?P<format_id>.+)$', content_type)
+        if m:
+            upload_date = unified_strdate(
+                head_response.headers.get('Last-Modified'))
+            return {
+                'id': video_id,
+                'title': os.path.splitext(url_basename(url))[0],
+                'formats': [{
+                    'format_id': m.group('format_id'),
+                    'url': url,
+                    'vcodec': 'none' if m.group('type') == 'audio' else None
+                }],
+                'upload_date': upload_date,
+            }
 
         if not self._downloader.params.get('test', False) and not is_intentional:
             self._downloader.report_warning('Falling back on generic information extractor.')
 
-        try:
+        if full_response:
+            webpage = _webpage_read_content(url, video_id)
+        else:
             webpage = self._download_webpage(url, video_id)
-        except ValueError:
-            # since this is the last-resort InfoExtractor, if
-            # this error is thrown, it'll be thrown here
-            raise ExtractorError('Failed to download URL: %s' % url)
-
         self.report_extraction(video_id)
 
         # Is it an RSS feed?

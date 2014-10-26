@@ -242,7 +242,6 @@ class InfoExtractor(object):
 
     def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None, fatal=True):
         """ Returns a tuple (page content as string, URL handle) """
-
         # Strip hashes from the URL (#1038)
         if isinstance(url_or_request, (compat_str, str)):
             url_or_request = url_or_request.partition('#')[0]
@@ -251,6 +250,10 @@ class InfoExtractor(object):
         if urlh is False:
             assert not fatal
             return False
+        content = self._webpage_read_content(urlh, url_or_request, video_id, note, errnote, fatal)
+        return (content, urlh)
+
+    def _webpage_read_content(self, urlh, url_or_request, video_id, note=None, errnote=None, fatal=True):
         content_type = urlh.headers.get('Content-Type', '')
         webpage_bytes = urlh.read()
         m = re.match(r'[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+\s*;\s*charset=(.+)', content_type)
@@ -309,7 +312,7 @@ class InfoExtractor(object):
                 msg += ' Visit %s for more details' % blocked_iframe
             raise ExtractorError(msg, expected=True)
 
-        return (content, urlh)
+        return content
 
     def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True):
         """ Returns the data of the page as a string """
