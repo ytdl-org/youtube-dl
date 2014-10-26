@@ -185,7 +185,9 @@ def generator(test_case):
                         md5_for_file = _file_md5(tc_filename)
                         self.assertEqual(md5_for_file, tc['md5'])
                 info_json_fn = os.path.splitext(tc_filename)[0] + '.info.json'
-                self.assertTrue(os.path.exists(info_json_fn))
+                self.assertTrue(
+                    os.path.exists(info_json_fn),
+                    'Missing info file %s' % info_json_fn)
                 with io.open(info_json_fn, encoding='utf-8') as infof:
                     info_dict = json.load(infof)
 
