@@ -635,7 +635,8 @@ class GenericIE(InfoExtractor):
                 <iframe[^>]+?src=|
                 data-video-url=|
                 <embed[^>]+?src=|
-                embedSWF\(?:\s*
+                embedSWF\(?:\s*|
+                new\s+SWFObject\(
             )
             (["\'])
                 (?P<url>(?:https?:)?//(?:www\.)?youtube(?:-nocookie)?\.com/
