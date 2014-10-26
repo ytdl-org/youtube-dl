@@ -1723,3 +1723,16 @@ def limit_length(s, length):
     if len(s) > length:
         return s[:length - len(ELLIPSES)] + ELLIPSES
     return s
+
+
+def version_tuple(v):
+    return [int(e) for e in v.split('.')]
+
+
+def is_outdated_version(version, limit, assume_new=True):
+    if not version:
+        return not assume_new
+    try:
+        return version_tuple(version) < version_tuple(limit)
+    except ValueError:
+        return not assume_new
