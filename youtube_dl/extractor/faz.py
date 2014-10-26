@@ -2,9 +2,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-)
 
 
 class FazIE(InfoExtractor):

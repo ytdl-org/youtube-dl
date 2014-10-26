@@ -8,7 +8,6 @@ import time
 from .common import AudioConversionError, PostProcessor
 
 from ..utils import (
-    check_executable,
     compat_subprocess_get_DEVNULL,
     encodeArgument,
     encodeFilename,

@@ -7,7 +7,6 @@ from .common import InfoExtractor
 from ..utils import (
     compat_urlparse,
     compat_urllib_parse,
-    determine_ext,
     unified_strdate,
 )
 

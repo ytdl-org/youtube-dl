@@ -8,13 +8,11 @@ import itertools
 from .common import InfoExtractor
 from .subtitles import SubtitlesInfoExtractor
 from ..utils import (
-    clean_html,
     compat_HTTPError,
     compat_urllib_parse,
     compat_urllib_request,
     compat_urlparse,
     ExtractorError,
-    get_element_by_attribute,
     InAdvancePagedList,
     int_or_none,
     RegexNotFoundError,

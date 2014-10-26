@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from .soundcloud import SoundcloudIE
 from ..utils import ExtractorError
-import datetime
+
 import time
 
 
