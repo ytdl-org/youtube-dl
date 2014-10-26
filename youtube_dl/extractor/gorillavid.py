@@ -46,9 +46,9 @@ class GorillaVidIE(InfoExtractor):
         'info_dict': {
             'id': '3rso4kdn6f9m',
             'ext': 'mp4',
-            'title': 'Micro Pig piglets ready on 16th July 2009',
+            'title': 'Micro Pig piglets ready on 16th July 2009-bG0PdrCdxUc',
             'thumbnail': 're:http://.*\.jpg',
-        },
+        }
     }, {
         'url': 'http://movpod.in/0wguyyxi1yca',
         'only_matching': True,
