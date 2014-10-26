@@ -14,7 +14,6 @@ from ..utils import (
 
 class PromptFileIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?promptfile\.com/l/(?P<id>[0-9A-Z\-]+)'
-    _FILE_NOT_FOUND_REGEX = r'<div.+id="not_found_msg".+>.+</div>[^-]'
     _TEST = {
         'url': 'http://www.promptfile.com/l/D21B4746E9-F01462F0FF',
         'md5': 'd1451b6302da7215485837aaea882c4c',
@@ -27,11 +26,10 @@ class PromptFileIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        if re.search(self._FILE_NOT_FOUND_REGEX, webpage) is not None:
+        if re.search(r'<div.+id="not_found_msg".+>(?!We are).+</div>[^-]', webpage) is not None:
             raise ExtractorError('Video %s does not exist' % video_id,
                                  expected=True)
 
