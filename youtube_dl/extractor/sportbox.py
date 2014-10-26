@@ -26,7 +26,6 @@ class SportBoxIE(InfoExtractor):
                 'timestamp': 1411896237,
                 'upload_date': '20140928',
                 'duration': 4846,
-                'view_count': int,
             },
             'params': {
                 # m3u8 download
@@ -65,8 +64,6 @@ class SportBoxIE(InfoExtractor):
             r'<span itemprop="uploadDate">([^<]+)</span>', webpage, 'timestamp', fatal=False))
         duration = parse_duration(self._html_search_regex(
             r'<meta itemprop="duration" content="PT([^"]+)">', webpage, 'duration', fatal=False))
-        view_count = int_or_none(self._html_search_regex(
-            r'<span>Просмотров: (\d+)</span>', player, 'view count', fatal=False))
 
         return {
             'id': video_id,
@@ -76,6 +73,5 @@ class SportBoxIE(InfoExtractor):
             'thumbnail': thumbnail,
             'timestamp': timestamp,
             'duration': duration,
-            'view_count': view_count,
             'formats': formats,
         }
