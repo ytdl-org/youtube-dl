@@ -93,7 +93,6 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-lundi-26-aout-2013_393427.html',
-        'md5': '9cecf35f99c4079c199e9817882a9a1c',
         'info_dict': {
             'id': '84981923',
             'ext': 'flv',
