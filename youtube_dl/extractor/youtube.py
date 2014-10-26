@@ -1057,7 +1057,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         'note': 'issue #673',
         'url': 'PLBB231211A4F62143',
         'info_dict': {
-            'title': 'Team Fortress 2 (Class-based LP)',
+            'title': '[OLD]Team Fortress 2 (Class-based LP)',
         },
         'playlist_mincount': 26,
     }, {
