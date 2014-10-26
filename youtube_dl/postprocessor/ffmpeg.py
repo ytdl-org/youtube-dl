@@ -26,7 +26,7 @@ def get_version(executable):
     try:
         out, err = subprocess.Popen(
             [executable, '-version'],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
     except OSError:
         return False
     firstline = out.partition(b'\n')[0].decode('ascii', 'ignore')
