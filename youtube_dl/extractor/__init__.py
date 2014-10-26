@@ -27,7 +27,6 @@ from .bandcamp import BandcampIE, BandcampAlbumIE
 from .bbccouk import BBCCoUkIE
 from .beeg import BeegIE
 from .behindkink import BehindKinkIE
-from .belgiannational import BelgianNationalIE
 from .bild import BildIE
 from .bilibili import BiliBiliIE
 from .blinkx import BlinkxIE
@@ -446,6 +445,7 @@ from .viki import VikiIE
 from .vk import VKIE
 from .vodlocker import VodlockerIE
 from .vporn import VpornIE
+from .vrt import VRTIE
 from .vube import VubeIE
 from .vuclip import VuClipIE
 from .vulture import VultureIE
