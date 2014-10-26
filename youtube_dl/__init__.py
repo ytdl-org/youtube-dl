@@ -98,6 +98,7 @@ from .options import (
     parseOpts,
 )
 from .utils import (
+    compat_expanduser,
     compat_getpass,
     compat_print,
     DateRange,
@@ -287,7 +288,7 @@ def _real_main(argv=None):
                      u' template'.format(outtmpl))
 
     any_printing = opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.getduration or opts.dumpjson or opts.dump_single_json
-    download_archive_fn = os.path.expanduser(opts.download_archive) if opts.download_archive is not None else opts.download_archive
+    download_archive_fn = compat_expanduser(opts.download_archive) if opts.download_archive is not None else opts.download_archive
 
     ydl_opts = {
         'usenetrc': opts.usenetrc,

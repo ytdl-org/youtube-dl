@@ -45,6 +45,9 @@ from youtube_dl.utils import (
     escape_rfc3986,
     escape_url,
     js_to_json,
+    get_filesystem_encoding,
+    compat_getenv,
+    compat_expanduser,
 )
 
 
@@ -354,6 +357,16 @@ class TestUtil(unittest.TestCase):
 
         on = js_to_json('{"abc": true}')
         self.assertEqual(json.loads(on), {'abc': True})
+
+    def test_compat_getenv(self):
+        test_str = 'тест'
+        os.environ['YOUTUBE-DL-TEST'] = test_str.encode(get_filesystem_encoding())
+        self.assertEqual(compat_getenv('YOUTUBE-DL-TEST'), test_str)
+
+    def test_compat_expanduser(self):
+        test_str = 'C:\Documents and Settings\тест\Application Data'
+        os.environ['HOME'] = test_str.encode(get_filesystem_encoding())
+        self.assertEqual(compat_expanduser('~'), test_str)
 
 if __name__ == '__main__':
     unittest.main()
