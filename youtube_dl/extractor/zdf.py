@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class ZDFIE(InfoExtractor):
-    _VALID_URL = r'^https?://www\.zdf\.de/ZDFmediathek(?P<hash>#)?/(.*beitrag/(?:video/)?)(?P<video_id>[0-9]+)(?:/[^/?]+)?(?:\?.*)?'
+    _VALID_URL = r'^https?://www\.zdf\.de/ZDFmediathek(?P<hash>#)?/(.*beitrag/(?:video/)?)(?P<id>[0-9]+)(?:/[^/?]+)?(?:\?.*)?'
 
     _TEST = {
         'url': 'http://www.zdf.de/ZDFmediathek/beitrag/video/2037704/ZDFspezial---Ende-des-Machtpokers--?bc=sts;stt',
@@ -29,8 +29,7 @@ class ZDFIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('video_id')
+        video_id = self._match_id(url)
 
         xml_url = 'http://www.zdf.de/ZDFmediathek/xmlservice/web/beitragsDetails?ak=web&id=%s' % video_id
         doc = self._download_xml(
