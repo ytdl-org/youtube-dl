@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from .generic import GenericIE
 from ..utils import (
     determine_ext,
     ExtractorError,
@@ -12,6 +13,7 @@ from ..utils import (
     parse_duration,
     unified_strdate,
     xpath_text,
+    parse_xml,
 )
 
 
@@ -53,6 +55,11 @@ class ARDMediathekIE(InfoExtractor):
 
         if '>Der gewünschte Beitrag ist nicht mehr verfügbar.<' in webpage:
             raise ExtractorError('Video %s is no longer available' % video_id, expected=True)
+
+        if re.search(r'[\?&]rss($|[=&])', url):
+            doc = parse_xml(webpage)
+            if doc.tag == 'rss':
+                return GenericIE()._extract_rss(url, video_id, doc)
 
         title = self._html_search_regex(
             [r'<h1(?:\s+class="boxTopHeadline")?>(.*?)</h1>',
