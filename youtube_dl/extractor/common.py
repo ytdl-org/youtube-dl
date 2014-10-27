@@ -689,7 +689,10 @@ class InfoExtractor(object):
             if re.match(r'^https?://', u)
             else compat_urlparse.urljoin(m3u8_url, u))
 
-        m3u8_doc = self._download_webpage(m3u8_url, video_id)
+        m3u8_doc = self._download_webpage(
+            m3u8_url, video_id,
+            note='Downloading m3u8 information',
+            errnote='Failed to download m3u8 information')
         last_info = None
         kv_rex = re.compile(
             r'(?P<key>[a-zA-Z_-]+)=(?P<val>"[^"]+"|[^",]+)(?:,|$)')
