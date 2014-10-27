@@ -26,8 +26,7 @@ class NBCIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         theplatform_url = self._search_regex('class="video-player video-player-full" data-mpx-url="(.*?)"', webpage, 'theplatform url')
         if theplatform_url.startswith('//'):
@@ -57,7 +56,7 @@ class NBCNewsIE(InfoExtractor):
             'md5': 'b2421750c9f260783721d898f4c42063',
             'info_dict': {
                 'id': 'I1wpAI_zmhsQ',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'How Twitter Reacted To The Snowden Interview',
                 'description': 'md5:65a0bd5d76fe114f3c2727aa3a81fe64',
             },
@@ -97,6 +96,8 @@ class NBCNewsIE(InfoExtractor):
             ]
 
             for base_url in base_urls:
+                if not base_url:
+                    continue
                 playlist_url = base_url + '?form=MPXNBCNewsAPI'
                 all_videos = self._download_json(playlist_url, title)['videos']
 
