@@ -280,6 +280,7 @@ from .orf import (
 from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
+from .phoenix import PhoenixIE
 from .photobucket import PhotobucketIE
 from .planetaplay import PlanetaPlayIE
 from .played import PlayedIE
