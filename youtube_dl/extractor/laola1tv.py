@@ -23,6 +23,8 @@ class Laola1TvIE(InfoExtractor):
         }
     }
 
+    _BROKEN = True  # Not really - extractor works fine, but f4m downloader does not support live streams yet.
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
