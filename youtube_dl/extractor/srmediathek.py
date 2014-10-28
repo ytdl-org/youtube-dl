@@ -26,9 +26,9 @@ class SRMediathekIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        urls = json.loads(js_to_json(self._search_regex(
+        murls = json.loads(js_to_json(self._search_regex(
             r'var mediaURLs\s*=\s*(.*?);\n', webpage, 'video URLs')))
-        formats = [{'url': url} for url in urls]
+        formats = [{'url': murl} for murl in murls]
         self._sort_formats(formats)
 
         title = json.loads(js_to_json(self._search_regex(
