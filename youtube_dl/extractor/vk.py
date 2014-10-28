@@ -142,6 +142,10 @@ class VKIE(InfoExtractor):
             raise ExtractorError('This video is only available for registered users, '
                 'use --username and --password options to provide account credentials.', expected=True)
 
+        if '<!>Unknown error' in info_page:
+            raise ExtractorError(
+                'Video %s does not exist' % video_id, expected=True)
+
         m_yt = re.search(r'src="(http://www.youtube.com/.*?)"', info_page)
         if m_yt is not None:
             self.to_screen('Youtube video detected')
