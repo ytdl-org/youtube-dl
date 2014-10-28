@@ -294,6 +294,7 @@ from .pornoxo import PornoXOIE
 from .promptfile import PromptFileIE
 from .prosiebensat1 import ProSiebenSat1IE
 from .pyvideo import PyvideoIE
+from .quickvid import QuickVidIE
 from .radiofrance import RadioFranceIE
 from .rai import RaiIE
 from .rbmaradio import RBMARadioIE
