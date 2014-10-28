@@ -189,7 +189,7 @@ class YoutubeDL(object):
     _num_downloads = None
     _screen_file = None
 
-    def __init__(self, params=None):
+    def __init__(self, params=None, auto_init=True):
         """Create a FileDownloader object with the given options."""
         if params is None:
             params = {}
@@ -245,6 +245,10 @@ class YoutubeDL(object):
             self.report_warning('%(stitle)s is deprecated. Use the %(title)s and the --restrict-filenames flag(which also secures %(uploader)s et al) instead.')
 
         self._setup_opener()
+
+        if auto_init:
+            self.print_debug_header()
+            self.add_default_info_extractors()
 
     def add_info_extractor(self, ie):
         """Add an InfoExtractor object to the end of the list."""

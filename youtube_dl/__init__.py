@@ -293,9 +293,6 @@ def _real_main(argv=None):
     }
 
     with YoutubeDL(ydl_opts) as ydl:
-        ydl.print_debug_header()
-        ydl.add_default_info_extractors()
-
         # PostProcessors
         # Add the metadata pp first, the other pps will copy it
         if opts.addmetadata:
