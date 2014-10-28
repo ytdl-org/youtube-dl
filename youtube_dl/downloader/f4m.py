@@ -244,9 +244,16 @@ class F4mFD(FileDownloader):
                 lambda f: int(f[0]) == requested_bitrate, formats))[0]
 
         base_url = compat_urlparse.urljoin(man_url, media.attrib['url'])
-        bootstrap = base64.b64decode(doc.find(_add_ns('bootstrapInfo')).text)
+        bootstrap_node = doc.find(_add_ns('bootstrapInfo'))
+        if bootstrap_node.text is None:
+            bootstrap_url = compat_urlparse.urljoin(
+                base_url, bootstrap_node.attrib['url'])
+            bootstrap = self.ydl.urlopen(bootstrap_url).read()
+        else:
+            bootstrap = base64.b64decode(bootstrap_node.text)
         metadata = base64.b64decode(media.find(_add_ns('metadata')).text)
         boot_info = read_bootstrap_info(bootstrap)
+
         fragments_list = build_fragments_list(boot_info)
         if self.params.get('test', False):
             # We only download the first fragment
