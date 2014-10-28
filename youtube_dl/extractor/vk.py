@@ -138,9 +138,19 @@ class VKIE(InfoExtractor):
         info_url = 'http://vk.com/al_video.php?act=show&al=1&video=%s' % video_id
         info_page = self._download_webpage(info_url, video_id)
 
-        if re.search(r'<!>Please log in or <', info_page):
-            raise ExtractorError('This video is only available for registered users, '
-                'use --username and --password options to provide account credentials.', expected=True)
+        ERRORS = {
+            r'>Видеозапись .*? была изъята из публичного доступа в связи с обращением правообладателя.<':
+                'Video %s has been removed from public access due to rightholder complaint.',
+            r'<!>Please log in or <':
+                'Video %s is only available for registered users, '
+                'use --username and --password options to provide account credentials.',
+            '<!>Unknown error':
+                'Video %s does not exist.'
+        }
+
+        for error_re, error_msg in ERRORS.items():
+            if re.search(error_re, info_page):
+                raise ExtractorError(error_msg % video_id, expected=True)
 
         m_yt = re.search(r'src="(http://www.youtube.com/.*?)"', info_page)
         if m_yt is not None:
