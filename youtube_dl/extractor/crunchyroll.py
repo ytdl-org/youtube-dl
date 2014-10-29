@@ -109,19 +109,17 @@ class CrunchyrollIE(SubtitlesInfoExtractor):
         decrypted_data = intlist_to_bytes(aes_cbc_decrypt(data, key, iv))
         return zlib.decompress(decrypted_data)
 
-    def _convert_subtitles_to_srt(self, subtitles):
+    def _convert_subtitles_to_srt(self, sub_root):
         output = ''
-        for i, (start, end, text) in enumerate(re.findall(r'<event [^>]*?start="([^"]+)" [^>]*?end="([^"]+)" [^>]*?text="([^"]+)"[^>]*?>', subtitles), 1):
-            start = start.replace('.', ',')
-            end = end.replace('.', ',')
-            text = clean_html(text)
-            text = text.replace('\\N', '\n')
-            if not text:
-                continue
+
+        for i, event in enumerate(sub_root.findall('./events/event'), 1):
+            start = event.attrib['start'].replace('.', ',')
+            end = event.attrib['end'].replace('.', ',')
+            text = event.attrib['text'].replace('\\N', '\n')
             output += '%d\n%s --> %s\n%s\n\n' % (i, start, end, text)
         return output
 
-    def _convert_subtitles_to_ass(self, subtitles):
+    def _convert_subtitles_to_ass(self, sub_root):
         output = ''
 
         def ass_bool(strvalue):
@@ -129,10 +127,6 @@ class CrunchyrollIE(SubtitlesInfoExtractor):
             if strvalue == '1':
                 assvalue = '-1'
             return assvalue
-
-        sub_root = xml.etree.ElementTree.fromstring(subtitles)
-        if not sub_root:
-            return output
 
         output = '[Script Info]\n'
         output += 'Title: %s\n' % sub_root.attrib["title"]
@@ -270,10 +264,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             lang_code = self._search_regex(r'lang_code=["\']([^"\']+)', subtitle, 'subtitle_lang_code', fatal=False)
             if not lang_code:
                 continue
+            sub_root = xml.etree.ElementTree.fromstring(subtitle)
+            if not sub_root:
+                subtitles[lang_code] = ''
             if sub_format == 'ass':
-                subtitles[lang_code] = self._convert_subtitles_to_ass(subtitle)
+                subtitles[lang_code] = self._convert_subtitles_to_ass(sub_root)
             else:
-                subtitles[lang_code] = self._convert_subtitles_to_srt(subtitle)
+                subtitles[lang_code] = self._convert_subtitles_to_srt(sub_root)
 
         if self._downloader.params.get('listsubtitles', False):
             self._list_available_subtitles(video_id, subtitles)
