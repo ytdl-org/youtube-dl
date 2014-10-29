@@ -361,12 +361,14 @@ class TestUtil(unittest.TestCase):
 
     def test_compat_getenv(self):
         test_str = 'тест'
-        os.environ['YOUTUBE-DL-TEST'] = test_str.encode(get_filesystem_encoding())
+        os.environ['YOUTUBE-DL-TEST'] = (test_str if sys.version_info >= (3, 0)
+            else test_str.encode(get_filesystem_encoding()))
         self.assertEqual(compat_getenv('YOUTUBE-DL-TEST'), test_str)
 
     def test_compat_expanduser(self):
         test_str = 'C:\Documents and Settings\тест\Application Data'
-        os.environ['HOME'] = test_str.encode(get_filesystem_encoding())
+        os.environ['HOME'] = (test_str if sys.version_info >= (3, 0)
+            else test_str.encode(get_filesystem_encoding()))
         self.assertEqual(compat_expanduser('~'), test_str)
 
 if __name__ == '__main__':

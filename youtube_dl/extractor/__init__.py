@@ -252,7 +252,7 @@ from .newstube import NewstubeIE
 from .nfb import NFBIE
 from .nfl import NFLIE
 from .nhl import NHLIE, NHLVideocenterIE
-from .niconico import NiconicoIE
+from .niconico import NiconicoIE, NiconicoPlaylistIE
 from .ninegag import NineGagIE
 from .noco import NocoIE
 from .normalboots import NormalbootsIE
