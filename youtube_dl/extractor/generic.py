@@ -405,6 +405,18 @@ class GenericIE(InfoExtractor):
             'expected_warnings': [
                 r'501.*Not Implemented'
             ],
+        },
+        # Soundcloud embed
+        {
+            'url': 'http://nakedsecurity.sophos.com/2014/10/29/sscc-171-are-you-sure-that-1234-is-a-bad-password-podcast/',
+            'info_dict': {
+                'id': '174391317',
+                'ext': 'mp3',
+                'description': 'md5:ff867d6b555488ad3c52572bb33d432c',
+                'uploader': 'Sophos Security',
+                'title': 'Chet Chat 171 - Oct 29, 2014',
+                'upload_date': '20141029',
+            }
         }
     ]
 
@@ -838,7 +850,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embeded soundcloud player
         mobj = re.search(
-            r'<iframe src="(?P<url>https?://(?:w\.)?soundcloud\.com/player[^"]+)"',
+            r'<iframe\s+(?:[a-zA-Z0-9_-]+="[^"]+"\s+)*src="(?P<url>https?://(?:w\.)?soundcloud\.com/player[^"]+)"',
             webpage)
         if mobj is not None:
             url = unescapeHTML(mobj.group('url'))
