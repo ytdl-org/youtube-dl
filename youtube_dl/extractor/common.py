@@ -619,6 +619,7 @@ class InfoExtractor(object):
                 f.get('vbr') if f.get('vbr') is not None else -1,
                 f.get('abr') if f.get('abr') is not None else -1,
                 audio_ext_preference,
+                f.get('fps') if f.get('fps') is not None else -1,
                 f.get('filesize') if f.get('filesize') is not None else -1,
                 f.get('filesize_approx') if f.get('filesize_approx') is not None else -1,
                 f.get('source_preference') if f.get('source_preference') is not None else -1,
