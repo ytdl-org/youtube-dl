@@ -1211,6 +1211,8 @@ class YoutubeDL(object):
             res += 'video@'
         if fdict.get('vbr') is not None:
             res += '%4dk' % fdict['vbr']
+        if fdict.get('fps') is not None:
+            res += ', %sfps' % fdict['fps']
         if fdict.get('acodec') is not None:
             if res:
                 res += ', '

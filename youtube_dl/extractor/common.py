@@ -72,6 +72,7 @@ class InfoExtractor(object):
                     * acodec     Name of the audio codec in use
                     * asr        Audio sampling rate in Hertz
                     * vbr        Average video bitrate in KBit/s
+                    * fps        Frame rate
                     * vcodec     Name of the video codec in use
                     * container  Name of the container format
                     * filesize   The number of bytes, if known in advance
