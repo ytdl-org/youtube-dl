@@ -887,7 +887,7 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'), 'SBS')
 
         mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https?://m\.mlb\.com/shared/video/embed/embed\.html\?.+?)\1',
+            r'<iframe[^>]+?src=(["\'])(?P<url>https?://m(?:lb)?\.mlb\.com/shared/video/embed/embed\.html\?.+?)\1',
             webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'MLB')
