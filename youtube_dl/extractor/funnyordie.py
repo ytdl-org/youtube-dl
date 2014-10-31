@@ -8,7 +8,7 @@ from ..utils import ExtractorError
 
 
 class FunnyOrDieIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?funnyordie\.com/(?P<type>embed|videos)/(?P<id>[0-9a-f]+)(?:$|[?#/])'
+    _VALID_URL = r'https?://(?:www\.)?funnyordie\.com/(?P<type>embed|articles|videos)/(?P<id>[0-9a-f]+)(?:$|[?#/])'
     _TESTS = [{
         'url': 'http://www.funnyordie.com/videos/0732f586d7/heart-shaped-box-literal-video-version',
         'md5': 'bcd81e0c4f26189ee09be362ad6e6ba9',
