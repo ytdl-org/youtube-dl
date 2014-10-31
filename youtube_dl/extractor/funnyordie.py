@@ -29,6 +29,9 @@ class FunnyOrDieIE(InfoExtractor):
             'description': 'Please use this to sell something.  www.jonlajoie.com',
             'thumbnail': 're:^http:.*\.jpg$',
         },
+    }, {
+        'url': 'http://www.funnyordie.com/articles/ebf5e34fc8/10-hours-of-walking-in-nyc-as-a-man',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
