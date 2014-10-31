@@ -11,11 +11,15 @@ from ..utils import (
 
 
 class CanalplusIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.canalplus\.fr/.*?/(?P<path>.*)|player\.canalplus\.fr/#/(?P<id>[0-9]+))'
-    _VIDEO_INFO_TEMPLATE = 'http://service.canal-plus.com/video/rest/getVideosLiees/cplus/%s'
-    IE_NAME = 'canalplus.fr'
+    IE_DESC = 'canalplus.fr and piwiplus.fr'
+    _VALID_URL = r'https?://(?:www\.(?P<site>canal|piwi)plus\.fr/.*?/(?P<path>.*)|player\.canalplus\.fr/#/(?P<id>[0-9]+))'
+    _VIDEO_INFO_TEMPLATE = 'http://service.canal-plus.com/video/rest/getVideosLiees/%s/%s'
+    _SITE_ID_MAP = {
+        'canal': 'cplus',
+        'piwi': 'teletoon',
+    }
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.canalplus.fr/c-infos-documentaires/pid1830-c-zapping.html?vid=922470',
         'md5': '3db39fb48b9685438ecf33a1078023e4',
         'info_dict': {
@@ -25,20 +29,33 @@ class CanalplusIE(InfoExtractor):
             'description': 'Le meilleur de toutes les chaînes, tous les jours.\nEmission du 26 août 2013',
             'upload_date': '20130826',
         },
-    }
+    }, {
+        'url': 'http://www.piwiplus.fr/videos-piwi/pid1405-le-labyrinthe-boing-super-ranger.html?vid=1108190',
+        'md5': '3db39fb48b9685438ecf33a1078023e4',
+        'info_dict': {
+            'id': '1108190',
+            'ext': 'flv',
+            'title': 'Le labyrinthe - Boing super ranger',
+            'description': 'md5:',
+            'upload_date': '20140724',
+        },
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.groupdict().get('id')
+
+        site_id = self._SITE_ID_MAP[mobj.group('site') or 'canal']
 
         # Beware, some subclasses do not define an id group
         display_id = url_basename(mobj.group('path'))
 
         if video_id is None:
             webpage = self._download_webpage(url, display_id)
-            video_id = self._search_regex(r'<canal:player videoId="(\d+)"', webpage, 'video id')
+            video_id = self._search_regex(
+                r'<canal:player[^>]+?videoId="(\d+)"', webpage, 'video id')
 
-        info_url = self._VIDEO_INFO_TEMPLATE % video_id
+        info_url = self._VIDEO_INFO_TEMPLATE % (site_id, video_id)
         doc = self._download_xml(info_url, video_id, 'Downloading video XML')
 
         video_info = [video for video in doc if video.find('ID').text == video_id][0]
