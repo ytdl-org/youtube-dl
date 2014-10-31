@@ -283,6 +283,7 @@ from .patreon import PatreonIE
 from .pbs import PBSIE
 from .phoenix import PhoenixIE
 from .photobucket import PhotobucketIE
+from .piwiplus import PiwiplusIE
 from .planetaplay import PlanetaPlayIE
 from .played import PlayedIE
 from .playfm import PlayFMIE
