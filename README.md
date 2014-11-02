@@ -500,7 +500,7 @@ If you want to add support for a new site, you can follow this quick list (assum
 6. Run `python test/test_download.py TestDownload.test_YourExtractor`. This *should fail* at first, but you can continually re-run it until you're done. If you decide to add more than one test, then rename ``_TEST`` to ``_TESTS`` and make it into a list of dictionaries. The tests will be then be named `TestDownload.test_YourExtractor`, `TestDownload.test_YourExtractor_1`, `TestDownload.test_YourExtractor_2`, etc.
 7. Have a look at [`youtube_dl/common/extractor/common.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py) for possible helper methods and a [detailed description of what your extractor should return](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L38). Add tests and code for as many as you want.
 8. If you can, check the code with [pyflakes](https://pypi.python.org/pypi/pyflakes) (a good idea) and [pep8](https://pypi.python.org/pypi/pep8) (optional, ignore E501).
-9. When the tests pass, [add](https://www.kernel.org/pub/software/scm/git/docs/git-add.html) the new files and [commit](https://www.kernel.org/pub/software/scm/git/docs/git-commit.html) them and [push](https://www.kernel.org/pub/software/scm/git/docs/git-push.html) the result, like this:
+9. When the tests pass, [add](http://git-scm.com/docs/git-add) the new files and [commit](http://git-scm.com/docs/git-commit) them and [push](http://git-scm.com/docs/git-push) the result, like this:
 
         $ git add youtube_dl/extractor/__init__.py
         $ git add youtube_dl/extractor/yourextractor.py
