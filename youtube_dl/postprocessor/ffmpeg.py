@@ -11,29 +11,13 @@ from ..utils import (
     compat_subprocess_get_DEVNULL,
     encodeArgument,
     encodeFilename,
+    get_exe_version,
     is_outdated_version,
     PostProcessingError,
     prepend_extension,
     shell_quote,
     subtitles_filename,
 )
-
-
-def get_version(executable):
-    """ Returns the version of the specified executable,
-    or False if the executable is not present """
-    try:
-        out, err = subprocess.Popen(
-            [executable, '-version'],
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
-    except OSError:
-        return False
-    firstline = out.partition(b'\n')[0].decode('ascii', 'ignore')
-    m = re.search(r'version\s+([0-9._-a-zA-Z]+)', firstline)
-    if not m:
-        return u'present'
-    else:
-        return m.group(1)
 
 
 class FFmpegPostProcessorError(PostProcessingError):
@@ -61,7 +45,7 @@ class FFmpegPostProcessor(PostProcessor):
     @staticmethod
     def get_versions():
         programs = ['avprobe', 'avconv', 'ffmpeg', 'ffprobe']
-        return dict((program, get_version(program)) for program in programs)
+        return dict((p, get_exe_version(p, args=['-version'])) for p in programs)
 
     @property
     def _executable(self):

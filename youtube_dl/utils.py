@@ -1472,6 +1472,25 @@ def check_executable(exe, args=[]):
     return exe
 
 
+def get_exe_version(exe, args=['--version'],
+                    version_re=r'version\s+([0-9._-a-zA-Z]+)',
+                    unrecognized=u'present'):
+    """ Returns the version of the specified executable,
+    or False if the executable is not present """
+    try:
+        out, err = subprocess.Popen(
+            [exe] + args,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
+    except OSError:
+        return False
+    firstline = out.partition(b'\n')[0].decode('ascii', 'ignore')
+    m = re.search(version_re, firstline)
+    if m:
+        return m.group(1)
+    else:
+        return unrecognized
+
+
 class PagedList(object):
     def __len__(self):
         # This is only useful for tests
