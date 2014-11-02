@@ -57,7 +57,7 @@ class FakeYDL(YoutubeDL):
         # Different instances of the downloader can't share the same dictionary
         # some test set the "sublang" parameter, which would break the md5 checks.
         params = get_params(override=override)
-        super(FakeYDL, self).__init__(params)
+        super(FakeYDL, self).__init__(params, auto_init=False)
         self.result = []
         
     def to_screen(self, s, skip_eol=None):

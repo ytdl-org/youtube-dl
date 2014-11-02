@@ -96,7 +96,7 @@ def generator(test_case):
             params.setdefault('extract_flat', True)
             params.setdefault('skip_download', True)
 
-        ydl = YoutubeDL(params)
+        ydl = YoutubeDL(params, auto_init=False)
         ydl.add_default_info_extractors()
         finished_hook_called = set()
         def _hook(status):
