@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import getpass
 import os
 import subprocess
