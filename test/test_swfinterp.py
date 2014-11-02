@@ -37,7 +37,9 @@ def _make_testfunc(testfile):
                 or os.path.getmtime(swf_file) < os.path.getmtime(as_file)):
             # Recompile
             try:
-                subprocess.check_call(['mxmlc', '-output', swf_file, as_file])
+                subprocess.check_call([
+                    'mxmlc', '-output', swf_file,
+                    '-static-link-runtime-shared-libraries', as_file])
             except OSError as ose:
                 if ose.errno == errno.ENOENT:
                     print('mxmlc not found! Skipping test.')
