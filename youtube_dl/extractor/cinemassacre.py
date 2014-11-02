@@ -59,12 +59,9 @@ class CinemassacreIE(InfoExtractor):
 
         vidurl = self._search_regex(
             r'\'vidurl\'\s*:\s*"([^\']+)"', playerdata, 'vidurl').replace('\\/', '/')
-        vidid = self._search_regex(
-            r'\'vidid\'\s*:\s*"([^\']+)"', playerdata, 'vidid')
-        videoserver = self._html_search_regex(
-            r"'videoserver'\s*:\s*'([^']+)'", playerdata, 'videoserver')
 
-        videolist_url = 'http://%s/vod/smil:%s.smil/jwplayer.smil' % (videoserver, vidid)
+        videolist_url = self._search_regex(
+            r"file\s*:\s*'(http.+?/jwplayer\.smil)'", playerdata, 'jwplayer.smil')
         videolist = self._download_xml(videolist_url, video_id, 'Downloading videolist XML')
 
         formats = []
