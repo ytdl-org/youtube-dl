@@ -62,6 +62,7 @@ from .utils import (
 from .cache import Cache
 from .extractor import get_info_extractor, gen_extractors
 from .downloader import get_suitable_downloader
+from .downloader.rtmp import rtmpdump_version
 from .postprocessor import FFmpegMergerPP, FFmpegPostProcessor
 from .version import __version__
 
@@ -1321,6 +1322,7 @@ class YoutubeDL(object):
             platform.python_version(), platform_name()))
 
         exe_versions = FFmpegPostProcessor.get_versions()
+        exe_versions['rtmpdump'] = rtmpdump_version()
         exe_str = ', '.join(
             '%s %s' % (exe, v)
             for exe, v in sorted(exe_versions.items())

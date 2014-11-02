@@ -12,7 +12,13 @@ from ..utils import (
     compat_str,
     encodeFilename,
     format_bytes,
+    get_exe_version,
 )
+
+
+def rtmpdump_version():
+    return get_exe_version(
+        'rtmpdump', ['--help'], r'(?i)RTMPDump\s*v?([0-9a-zA-Z._-]+)')
 
 
 class RtmpFD(FileDownloader):
