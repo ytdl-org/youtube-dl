@@ -5,7 +5,8 @@ import os.path
 import re
 
 from .common import InfoExtractor
-from ..utils import compat_urllib_parse_unquote, url_basename
+from ..compat import compat_urllib_parse_unquote
+from ..utils import url_basename
 
 
 class DropboxIE(InfoExtractor):

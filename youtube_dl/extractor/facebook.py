@@ -5,12 +5,14 @@ import re
 import socket
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_http_client,
     compat_str,
     compat_urllib_error,
     compat_urllib_parse,
     compat_urllib_request,
+)
+from ..utils import (
     urlencode_postdata,
     ExtractorError,
     limit_length,

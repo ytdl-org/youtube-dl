@@ -3,10 +3,12 @@ import subprocess
 import sys
 
 from .common import PostProcessor
+from ..compat import (
+    subprocess_check_output
+)
 from ..utils import (
     check_executable,
     hyphenate_date,
-    subprocess_check_output
 )
 
 

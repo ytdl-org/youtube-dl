@@ -13,10 +13,12 @@ import sys
 from .options import (
     parseOpts,
 )
-from .utils import (
+from .compat import (
     compat_expanduser,
     compat_getpass,
     compat_print,
+)
+from .utils import (
     DateRange,
     DEFAULT_OUTTMPL,
     decodeOption,

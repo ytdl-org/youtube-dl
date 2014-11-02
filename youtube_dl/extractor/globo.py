@@ -5,12 +5,14 @@ import random
 import math
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    float_or_none,
+from ..compat import (
     compat_str,
     compat_chr,
     compat_ord,
+)
+from ..utils import (
+    ExtractorError,
+    float_or_none,
 )
 
 

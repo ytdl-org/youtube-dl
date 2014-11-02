@@ -12,13 +12,14 @@ import sys
 import time
 import xml.etree.ElementTree
 
-from ..utils import (
+from ..compat import (
     compat_http_client,
     compat_urllib_error,
     compat_urllib_parse_urlparse,
     compat_urlparse,
     compat_str,
-
+)
+from ..utils import (
     clean_html,
     compiled_regex_type,
     ExtractorError,

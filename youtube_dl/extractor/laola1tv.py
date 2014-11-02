@@ -4,6 +4,7 @@ import random
 import re
 
 from .common import InfoExtractor
+from ..utils import ExtractorError
 
 
 class Laola1TvIE(InfoExtractor):

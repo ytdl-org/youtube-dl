@@ -7,11 +7,13 @@ import itertools
 
 from .common import InfoExtractor
 from .subtitles import SubtitlesInfoExtractor
-from ..utils import (
+from ..compat import (
     compat_HTTPError,
     compat_urllib_parse,
     compat_urllib_request,
     compat_urlparse,
+)
+from ..utils import (
     ExtractorError,
     InAdvancePagedList,
     int_or_none,

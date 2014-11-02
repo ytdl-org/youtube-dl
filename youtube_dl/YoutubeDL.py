@@ -22,13 +22,15 @@ import traceback
 if os.name == 'nt':
     import ctypes
 
-from .utils import (
+from .compat import (
     compat_cookiejar,
     compat_expanduser,
     compat_http_client,
     compat_str,
     compat_urllib_error,
     compat_urllib_request,
+)
+from .utils import (
     escape_url,
     ContentTooShortError,
     date_from_str,

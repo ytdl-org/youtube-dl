@@ -3,10 +3,8 @@ from __future__ import unicode_literals
 import subprocess
 
 from .common import PostProcessor
-from ..utils import (
-    shlex_quote,
-    PostProcessingError,
-)
+from ..compat import shlex_quote
+from ..utils import PostProcessingError
 
 
 class ExecAfterDownloadPP(PostProcessor):

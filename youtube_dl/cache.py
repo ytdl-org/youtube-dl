@@ -8,10 +8,8 @@ import re
 import shutil
 import traceback
 
-from .utils import (
-    compat_expanduser,
-    write_json_file,
-)
+from .compat import compat_expanduser
+from .utils import write_json_file
 
 
 class Cache(object):

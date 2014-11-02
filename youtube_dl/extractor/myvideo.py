@@ -7,11 +7,12 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_ord,
     compat_urllib_parse,
     compat_urllib_request,
-
+)
+from ..utils import (
     ExtractorError,
 )
 

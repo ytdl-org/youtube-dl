@@ -7,11 +7,12 @@ import re
 
 from .common import InfoExtractor
 from .youtube import YoutubeIE
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
     compat_urlparse,
     compat_xml_parse_error,
-
+)
+from ..utils import (
     determine_ext,
     ExtractorError,
     float_or_none,

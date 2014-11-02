@@ -4,13 +4,15 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
+from ..compat import (
     compat_parse_qs,
     compat_urllib_parse,
-    remove_end,
-    HEADRequest,
     compat_HTTPError,
+)
+from ..utils import (
+    ExtractorError,
+    HEADRequest,
+    remove_end,
 )
 
 

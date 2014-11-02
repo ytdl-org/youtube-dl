@@ -5,9 +5,11 @@ import optparse
 import shlex
 import sys
 
-from .utils import (
+from .compat import (
     compat_expanduser,
     compat_getenv,
+)
+from .utils import (
     get_term_width,
     write_string,
 )

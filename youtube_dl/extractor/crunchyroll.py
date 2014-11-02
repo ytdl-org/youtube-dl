@@ -17,7 +17,6 @@ from ..utils import (
     bytes_to_intlist,
     intlist_to_bytes,
     unified_strdate,
-    clean_html,
     urlencode_postdata,
 )
 from ..aes import (

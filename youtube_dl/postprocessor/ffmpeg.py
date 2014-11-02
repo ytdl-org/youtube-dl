@@ -1,5 +1,4 @@
 import os
-import re
 import subprocess
 import sys
 import time
@@ -7,8 +6,10 @@ import time
 
 from .common import AudioConversionError, PostProcessor
 
-from ..utils import (
+from ..compat import (
     compat_subprocess_get_DEVNULL,
+)
+from ..utils import (
     encodeArgument,
     encodeFilename,
     get_exe_version,
