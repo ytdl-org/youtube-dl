@@ -23,10 +23,12 @@ import json
 import socket
 
 import youtube_dl.YoutubeDL
-from youtube_dl.utils import (
+from youtube_dl.compat import (
     compat_http_client,
     compat_urllib_error,
     compat_HTTPError,
+)
+from youtube_dl.utils import (
     DownloadError,
     ExtractorError,
     format_bytes,
