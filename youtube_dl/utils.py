@@ -8,7 +8,6 @@ import ctypes
 import datetime
 import email.utils
 import errno
-import getpass
 import gzip
 import itertools
 import io

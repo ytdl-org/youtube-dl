@@ -280,6 +280,7 @@ except AttributeError:
 if sys.version_info < (3, 0) and sys.platform == 'win32':
     def compat_getpass(prompt, *args, **kwargs):
         if isinstance(prompt, compat_str):
+            from .utils import preferredencoding
             prompt = prompt.encode(preferredencoding())
         return getpass.getpass(prompt, *args, **kwargs)
 else:
