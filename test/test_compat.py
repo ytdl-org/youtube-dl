@@ -37,7 +37,7 @@ class TestCompat(unittest.TestCase):
         all_names = youtube_dl.compat.__all__
         present_names = set(filter(
             lambda c: '_' in c and not c.startswith('_'),
-            dir(youtube_dl.compat)))
+            dir(youtube_dl.compat))) - set(['unicode_literals'])
         self.assertEqual(all_names, sorted(present_names))
 
 if __name__ == '__main__':
