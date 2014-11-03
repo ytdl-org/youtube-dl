@@ -29,7 +29,7 @@ class TruTubeIE(InfoExtractor):
 
         # filehd is always 404
         video_url = xpath_text(config, './file', 'video URL', fatal=True)
-        title = xpath_text(config, './title', 'title')
+        title = xpath_text(config, './title', 'title').strip()
         thumbnail = xpath_text(config, './image', ' thumbnail')
 
         return {
