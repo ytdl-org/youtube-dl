@@ -100,6 +100,20 @@ class GenericIE(InfoExtractor):
                 'uploader': 'Championat',
             },
         },
+        {
+            'add_ie': ['Brightcove'],
+            'url': 'http://www.kijk.nl/sbs6/leermijvrouwenkennen/videos/jqMiXKAYan2S/aflevering-1',
+            'info_dict': {
+                'id': '3866516442001',
+                'ext': 'flv',
+                'title': 'Leer mij vrouwen kennen: Aflevering 1',
+                'description': 'Leer mij vrouwen kennen: Aflevering 1',
+                'uploader': 'SBS Broadcasting',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
         # Direct link to a video
         {
             'url': 'http://media.w3.org/2010/05/sintel/trailer.mp4',
