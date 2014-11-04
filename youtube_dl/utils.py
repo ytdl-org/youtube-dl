@@ -152,86 +152,6 @@ def xpath_text(node, xpath, name=None, fatal=False):
     return n.text
 
 
-if sys.version_info < (2, 7):
-    compat_html_parser.locatestarttagend = re.compile(r"""<[a-zA-Z][-.a-zA-Z0-9:_]*(?:\s+(?:(?<=['"\s])[^\s/>][^\s/=>]*(?:\s*=+\s*(?:'[^']*'|"[^"]*"|(?!['"])[^>\s]*))?\s*)*)?\s*""", re.VERBOSE) # backport bugfix
-
-class BaseHTMLParser(compat_html_parser.HTMLParser):
-    def __init(self):
-        compat_html_parser.HTMLParser.__init__(self)
-        self.html = None
-
-    def loads(self, html):
-        self.html = html
-        self.feed(html)
-        self.close()
-
-class AttrParser(BaseHTMLParser):
-    """Modified HTMLParser that isolates a tag with the specified attribute"""
-    def __init__(self, attribute, value):
-        self.attribute = attribute
-        self.value = value
-        self.result = None
-        self.started = False
-        self.depth = {}
-        self.watch_startpos = False
-        self.error_count = 0
-        BaseHTMLParser.__init__(self)
-
-    def error(self, message):
-        if self.error_count > 10 or self.started:
-            raise compat_html_parser.HTMLParseError(message, self.getpos())
-        self.rawdata = '\n'.join(self.html.split('\n')[self.getpos()[0]:]) # skip one line
-        self.error_count += 1
-        self.goahead(1)
-
-    def handle_starttag(self, tag, attrs):
-        attrs = dict(attrs)
-        if self.started:
-            self.find_startpos(None)
-        if self.attribute in attrs and attrs[self.attribute] == self.value:
-            self.result = [tag]
-            self.started = True
-            self.watch_startpos = True
-        if self.started:
-            if not tag in self.depth: self.depth[tag] = 0
-            self.depth[tag] += 1
-
-    def handle_endtag(self, tag):
-        if self.started:
-            if tag in self.depth: self.depth[tag] -= 1
-            if self.depth[self.result[0]] == 0:
-                self.started = False
-                self.result.append(self.getpos())
-
-    def find_startpos(self, x):
-        """Needed to put the start position of the result (self.result[1])
-        after the opening tag with the requested id"""
-        if self.watch_startpos:
-            self.watch_startpos = False
-            self.result.append(self.getpos())
-    handle_entityref = handle_charref = handle_data = handle_comment = \
-    handle_decl = handle_pi = unknown_decl = find_startpos
-
-    def get_result(self):
-        if self.result is None:
-            return None
-        if len(self.result) != 3:
-            return None
-        lines = self.html.split('\n')
-        lines = lines[self.result[1][0]-1:self.result[2][0]]
-        lines[0] = lines[0][self.result[1][1]:]
-        if len(lines) == 1:
-            lines[-1] = lines[-1][:self.result[2][1]-self.result[1][1]]
-        lines[-1] = lines[-1][:self.result[2][1]]
-        return '\n'.join(lines).strip()
-# Hack for https://github.com/rg3/youtube-dl/issues/662
-if sys.version_info < (2, 7, 3):
-    AttrParser.parse_endtag = (lambda self, i:
-        i + len("</scr'+'ipt>")
-        if self.rawdata[i:].startswith("</scr'+'ipt>")
-        else compat_html_parser.HTMLParser.parse_endtag(self, i))
-
-
 def get_element_by_id(id, html):
     """Return the content of the tag with the specified ID in the passed HTML document"""
     return get_element_by_attribute("id", id, html)
@@ -239,34 +159,25 @@ def get_element_by_id(id, html):
 
 def get_element_by_attribute(attribute, value, html):
     """Return the content of the tag with the specified attribute in the passed HTML document"""
-    parser = AttrParser(attribute, value)
-    try:
-        parser.loads(html)
-    except compat_html_parser.HTMLParseError:
-        pass
-    return parser.get_result()
 
-class MetaParser(BaseHTMLParser):
-    """
-    Modified HTMLParser that isolates a meta tag with the specified name 
-    attribute.
-    """
-    def __init__(self, name):
-        BaseHTMLParser.__init__(self)
-        self.name = name
-        self.content = None
-        self.result = None
+    m = re.search(r'''(?xs)
+        <([a-zA-Z0-9:._-]+)
+         (?:\s+[a-zA-Z0-9:._-]+(?:=[a-zA-Z0-9:._-]+|="[^"]+"|='[^']+'))*?
+         \s+%s=['"]?%s['"]?
+         (?:\s+[a-zA-Z0-9:._-]+(?:=[a-zA-Z0-9:._-]+|="[^"]+"|='[^']+'))*?
+        \s*>
+        (?P<content>.*?)
+        </\1>
+    ''' % (re.escape(attribute), re.escape(value)), html)
 
-    def handle_starttag(self, tag, attrs):
-        if tag != 'meta':
-            return
-        attrs = dict(attrs)
-        if attrs.get('name') == self.name:
-            self.result = attrs.get('content')
+    if not m:
+        return None
+    res = m.group('content')
 
-    def get_result(self):
-        return self.result
+    if res.startswith('"') or res.startswith("'"):
+        res = res[1:-1]
 
+    return unescapeHTML(res)
 
 
 def clean_html(html):
