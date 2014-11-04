@@ -1301,7 +1301,7 @@ class YoutubeDL(object):
             '[debug] Encodings: locale %s, fs %s, out %s, pref %s\n' % (
                 locale.getpreferredencoding(),
                 sys.getfilesystemencoding(),
-                sys.stdout.encoding,
+                sys.stdout.encoding if hasattr(sys.stdout, 'encoding') else None,
                 self.get_encoding()))
         write_string(encoding_str, encoding=None)
 
