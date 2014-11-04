@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    get_meta_content,
+    determine_ext,
     int_or_none,
     parse_iso8601,
 )
@@ -25,11 +25,11 @@ class HeiseIE(InfoExtractor):
             'title': (
                 "Podcast: c't uplink 3.3 – Owncloud / Tastaturen / Peilsender Smartphone"
             ),
-            'format_id': 'mp4_720',
+            'format_id': 'mp4_720p',
             'timestamp': 1411812600,
             'upload_date': '20140927',
             'description': 'In uplink-Episode 3.3 geht es darum, wie man sich von Cloud-Anbietern emanzipieren kann, worauf man beim Kauf einer Tastatur achten sollte und was Smartphones über uns verraten.',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': 're:^https?://.*\.jpe?g$',
         }
     }
 
@@ -49,11 +49,12 @@ class HeiseIE(InfoExtractor):
         info = {
             'id': video_id,
             'thumbnail': self._og_search_thumbnail(webpage),
-            'timestamp': parse_iso8601(get_meta_content('date', webpage)),
+            'timestamp': parse_iso8601(
+                self._html_search_meta('date', webpage)),
             'description': self._og_search_description(webpage),
         }
 
-        title = get_meta_content('fulltitle', webpage)
+        title = self._html_search_meta('fulltitle', webpage)
         if title:
             info['title'] = title
         else:
@@ -64,9 +65,12 @@ class HeiseIE(InfoExtractor):
             label = source_node.attrib['label']
             height = int_or_none(self._search_regex(
                 r'^(.*?_)?([0-9]+)p$', label, 'height', default=None))
+            video_url = source_node.attrib['file']
+            ext = determine_ext(video_url, '')
             formats.append({
-                'url': source_node.attrib['file'],
+                'url': video_url,
                 'format_note': label,
+                'format_id': '%s_%s' % (ext, label),
                 'height': height,
             })
         self._sort_formats(formats)

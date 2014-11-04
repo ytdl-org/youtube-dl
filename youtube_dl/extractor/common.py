@@ -404,7 +404,7 @@ class InfoExtractor(object):
             video_info['title'] = playlist_title
         return video_info
 
-    def _search_regex(self, pattern, string, name, default=_NO_DEFAULT, fatal=True, flags=0):
+    def _search_regex(self, pattern, string, name, default=_NO_DEFAULT, fatal=True, flags=0, group=None):
         """
         Perform a regex search on the given string, using a single or a list of
         patterns returning the first matching group.
@@ -425,8 +425,11 @@ class InfoExtractor(object):
             _name = name
 
         if mobj:
-            # return the first matching group
-            return next(g for g in mobj.groups() if g is not None)
+            if group is None:
+                # return the first matching group
+                return next(g for g in mobj.groups() if g is not None)
+            else:
+                return mobj.group(group)
         elif default is not _NO_DEFAULT:
             return default
         elif fatal:
@@ -436,11 +439,11 @@ class InfoExtractor(object):
                 'please report this issue on http://yt-dl.org/bug' % _name)
             return None
 
-    def _html_search_regex(self, pattern, string, name, default=_NO_DEFAULT, fatal=True, flags=0):
+    def _html_search_regex(self, pattern, string, name, default=_NO_DEFAULT, fatal=True, flags=0, group=None):
         """
         Like _search_regex, but strips HTML tags and unescapes entities.
         """
-        res = self._search_regex(pattern, string, name, default, fatal, flags)
+        res = self._search_regex(pattern, string, name, default, fatal, flags, group)
         if res:
             return clean_html(res).strip()
         else:
@@ -534,9 +537,9 @@ class InfoExtractor(object):
             display_name = name
         return self._html_search_regex(
             r'''(?ix)<meta
-                    (?=[^>]+(?:itemprop|name|property)=["\']?%s["\']?)
-                    [^>]+content=["\']([^"\']+)["\']''' % re.escape(name),
-            html, display_name, fatal=fatal, **kwargs)
+                    (?=[^>]+(?:itemprop|name|property)=(["\']?)%s\1)
+                    [^>]+content=(["\'])(?P<content>.*?)\1''' % re.escape(name),
+            html, display_name, fatal=fatal, group='content', **kwargs)
 
     def _dc_search_uploader(self, html):
         return self._html_search_meta('dc.creator', html, 'uploader')
