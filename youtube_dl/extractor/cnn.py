@@ -16,9 +16,10 @@ class CNNIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://edition.cnn.com/video/?/video/sports/2013/06/09/nadal-1-on-1.cnn',
-        'file': 'sports_2013_06_09_nadal-1-on-1.cnn.mp4',
         'md5': '3e6121ea48df7e2259fe73a0628605c4',
         'info_dict': {
+            'id': 'sports_2013_06_09_nadal-1-on-1.cnn',
+            'ext': 'mp4',
             'title': 'Nadal wins 8th French Open title',
             'description': 'World Sport\'s Amanda Davies chats with 2013 French Open champion Rafael Nadal.',
             'duration': 135,
@@ -27,9 +28,10 @@ class CNNIE(InfoExtractor):
     },
     {
         "url": "http://edition.cnn.com/video/?/video/us/2013/08/21/sot-student-gives-epic-speech.georgia-institute-of-technology&utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+rss%2Fcnn_topstories+%28RSS%3A+Top+Stories%29",
-        "file": "us_2013_08_21_sot-student-gives-epic-speech.georgia-institute-of-technology.mp4",
         "md5": "b5cc60c60a3477d185af8f19a2a26f4e",
         "info_dict": {
+            'id': 'us/2013/08/21/sot-student-gives-epic-speech.georgia-institute-of-technology',
+            'ext': 'mp4',
             "title": "Student's epic speech stuns new freshmen",
             "description": "A Georgia Tech student welcomes the incoming freshmen with an epic speech backed by music from \"2001: A Space Odyssey.\"",
             "upload_date": "20130821",
