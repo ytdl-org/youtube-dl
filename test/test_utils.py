@@ -20,7 +20,6 @@ from youtube_dl.utils import (
     encodeFilename,
     find_xpath_attr,
     fix_xml_ampersands,
-    get_meta_content,
     orderedSet,
     OnDemandPagedList,
     InAdvancePagedList,
@@ -154,17 +153,6 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(find_xpath_attr(doc, './/fourohfour', 'n', 'v'), None)
         self.assertEqual(find_xpath_attr(doc, './/node', 'x', 'a'), doc[1])
         self.assertEqual(find_xpath_attr(doc, './/node', 'y', 'c'), doc[2])
-
-    def test_meta_parser(self):
-        testhtml = '''
-        <head>
-            <meta name="description" content="foo &amp; bar">
-            <meta content='Plato' name='author'/>
-        </head>
-        '''
-        get_meta = lambda name: get_meta_content(name, testhtml)
-        self.assertEqual(get_meta('description'), 'foo & bar')
-        self.assertEqual(get_meta('author'), 'Plato')
 
     def test_xpath_with_ns(self):
         testxml = '''<root xmlns:media="http://example.com/">

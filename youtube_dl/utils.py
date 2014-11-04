@@ -231,9 +231,11 @@ if sys.version_info < (2, 7, 3):
         if self.rawdata[i:].startswith("</scr'+'ipt>")
         else compat_html_parser.HTMLParser.parse_endtag(self, i))
 
+
 def get_element_by_id(id, html):
     """Return the content of the tag with the specified ID in the passed HTML document"""
     return get_element_by_attribute("id", id, html)
+
 
 def get_element_by_attribute(attribute, value, html):
     """Return the content of the tag with the specified attribute in the passed HTML document"""
@@ -265,16 +267,6 @@ class MetaParser(BaseHTMLParser):
     def get_result(self):
         return self.result
 
-def get_meta_content(name, html):
-    """
-    Return the content attribute from the meta tag with the given name attribute.
-    """
-    parser = MetaParser(name)
-    try:
-        parser.loads(html)
-    except compat_html_parser.HTMLParseError:
-        pass
-    return parser.get_result()
 
 
 def clean_html(html):
