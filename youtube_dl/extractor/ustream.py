@@ -5,7 +5,6 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     compat_urlparse,
-    get_meta_content,
 )
 
 
@@ -79,7 +78,7 @@ class UstreamChannelIE(InfoExtractor):
         m = re.match(self._VALID_URL, url)
         display_id = m.group('slug')
         webpage = self._download_webpage(url, display_id)
-        channel_id = get_meta_content('ustream:channel_id', webpage)
+        channel_id = self._html_search_meta('ustream:channel_id', webpage)
 
         BASE = 'http://www.ustream.tv'
         next_url = '/ajax/socialstream/videos/%s/1.json' % channel_id
