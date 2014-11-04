@@ -5,11 +5,11 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    get_element_by_id,
-    parse_iso8601,
     determine_ext,
-    int_or_none,
     float_or_none,
+    get_element_by_id,
+    int_or_none,
+    parse_iso8601,
     str_to_int,
 )
 
@@ -30,7 +30,7 @@ class IzleseneIE(InfoExtractor):
                 'description': 'md5:253753e2655dde93f59f74b572454f6d',
                 'thumbnail': 're:^http://.*\.jpg',
                 'uploader_id': 'pelikzzle',
-                'timestamp': 1404298698,
+                'timestamp': 1404302298,
                 'upload_date': '20140702',
                 'duration': 95.395,
                 'age_limit': 0,
@@ -46,7 +46,7 @@ class IzleseneIE(InfoExtractor):
                 'description': 'Tarkan Dortmund 2006 Konseri',
                 'thumbnail': 're:^http://.*\.jpg',
                 'uploader_id': 'parlayankiz',
-                'timestamp': 1163318593,
+                'timestamp': 1163322193,
                 'upload_date': '20061112',
                 'duration': 253.666,
                 'age_limit': 0,
@@ -55,10 +55,9 @@ class IzleseneIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        url = 'http://www.izlesene.com/video/%s' % video_id
+        video_id = self._match_id(url)
 
+        url = 'http://www.izlesene.com/video/%s' % video_id
         webpage = self._download_webpage(url, video_id)
 
         title = self._og_search_title(webpage)
