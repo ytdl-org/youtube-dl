@@ -684,7 +684,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         # Get video info
         self.report_video_info_webpage_download(video_id)
         if re.search(r'player-age-gate-content">', video_webpage) is not None:
-            self.report_age_confirmation()
             age_gate = True
             # We simulate the access to the video from www.youtube.com/v/{video_id}
             # this can be viewed without login into Youtube
@@ -692,12 +691,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'video_id': video_id,
                 'eurl': 'https://youtube.googleapis.com/v/' + video_id,
                 'sts': self._search_regex(
-                    r'"sts"\s*:\s*(\d+)', video_webpage, 'sts'),
+                    r'"sts"\s*:\s*(\d+)', video_webpage, 'sts', default=''),
             })
             video_info_url = proto + '://www.youtube.com/get_video_info?' + data
-            video_info_webpage = self._download_webpage(video_info_url, video_id,
-                                    note=False,
-                                    errnote='unable to download video info webpage')
+            video_info_webpage = self._download_webpage(
+                video_info_url, video_id,
+                note='Refetching age-gated webpage',
+                errnote='unable to download video info webpage')
             video_info = compat_parse_qs(video_info_webpage)
         else:
             age_gate = False
