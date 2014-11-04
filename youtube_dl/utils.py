@@ -34,7 +34,6 @@ from .compat import (
     compat_chr,
     compat_getenv,
     compat_html_entities,
-    compat_html_parser,
     compat_parse_qs,
     compat_str,
     compat_urllib_error,
