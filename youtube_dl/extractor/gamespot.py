@@ -8,7 +8,6 @@ from ..utils import (
     compat_urllib_parse,
     compat_urlparse,
     unescapeHTML,
-    get_meta_content,
 )
 
 
