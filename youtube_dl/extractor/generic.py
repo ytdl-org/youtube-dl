@@ -101,17 +101,19 @@ class GenericIE(InfoExtractor):
             },
         },
         {
+            # https://github.com/rg3/youtube-dl/issues/3541
             'add_ie': ['Brightcove'],
             'url': 'http://www.kijk.nl/sbs6/leermijvrouwenkennen/videos/jqMiXKAYan2S/aflevering-1',
             'info_dict': {
                 'id': '3866516442001',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'Leer mij vrouwen kennen: Aflevering 1',
                 'description': 'Leer mij vrouwen kennen: Aflevering 1',
                 'uploader': 'SBS Broadcasting',
             },
+            'skip': 'Restricted to Netherlands',
             'params': {
-                'skip_download': True,
+                'skip_download': True,  # m3u8 download
             },
         },
         # Direct link to a video

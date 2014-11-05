@@ -14,6 +14,7 @@ from ..utils import (
     compat_str,
     compat_urllib_request,
     compat_parse_qs,
+    compat_urllib_parse_urlparse,
 
     determine_ext,
     ExtractorError,
@@ -263,10 +264,16 @@ class BrightcoveIE(InfoExtractor):
                 if not url:
                     continue
                 if rend['remote']:
-                    # This type of renditions are served through akamaihd.net,
-                    # but they don't use f4m manifests
-                    url = url.replace('control/', '') + '?&v=3.3.0&fp=13&r=FEEFJ&g=RTSJIMBMPFPB'
-                    ext = 'flv'
+                    url_comp = compat_urllib_parse_urlparse(url)
+                    if url_comp.path.endswith('.m3u8'):
+                        formats.extend(
+                            self._extract_m3u8_formats(url, info['id'], 'mp4'))
+                        continue
+                    elif 'akamaihd.net' in url_comp.netloc:
+                        # This type of renditions are served through
+                        # akamaihd.net, but they don't use f4m manifests
+                        url = url.replace('control/', '') + '?&v=3.3.0&fp=13&r=FEEFJ&g=RTSJIMBMPFPB'
+                        ext = 'flv'
                 else:
                     ext = determine_ext(url)
                 size = rend.get('size')
