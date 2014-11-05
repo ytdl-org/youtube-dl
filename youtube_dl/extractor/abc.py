@@ -11,13 +11,13 @@ class ABCIE(InfoExtractor):
     _VALID_URL = r'http://www\.abc\.net\.au/news/[^/]+/[^/]+/(?P<id>\d+)'
 
     _TEST = {
-        'url': 'http://www.abc.net.au/news/2014-07-25/bringing-asylum-seekers-to-australia-would-give/5624716',
-        'md5': 'dad6f8ad011a70d9ddf887ce6d5d0742',
+        'url': 'http://www.abc.net.au/news/2014-11-05/australia-to-staff-ebola-treatment-centre-in-sierra-leone/5868334',
+        'md5': 'cb3dd03b18455a661071ee1e28344d9f',
         'info_dict': {
-            'id': '5624716',
+            'id': '5868334',
             'ext': 'mp4',
-            'title': 'Bringing asylum seekers to Australia would give them right to asylum claims: professor',
-            'description': 'md5:ba36fa5e27e5c9251fd929d339aea4af',
+            'title': 'Australia to help staff Ebola treatment centre in Sierra Leone',
+            'description': 'md5:809ad29c67a05f54eb41f2a105693a67',
         },
     }
 
