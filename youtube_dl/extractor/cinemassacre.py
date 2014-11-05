@@ -42,11 +42,12 @@ class CinemassacreIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
         video_date = mobj.group('date_Y') + mobj.group('date_m') + mobj.group('date_d')
-        mobj = re.search(r'src="(?P<embed_url>http://player\.screenwavemedia\.com/play/[a-zA-Z]+\.php\?[^"]*\bid=(?:Cinemassacre-)?(?P<video_id>.+?))"', webpage)
+        mobj = re.search(r'src="(?P<embed_url>http://player\.screenwavemedia\.com/play/[a-zA-Z]+\.php\?[^"]*\bid=(?P<full_video_id>(?:Cinemassacre-)?(?P<video_id>.+?)))"', webpage)
         if not mobj:
             raise ExtractorError('Can\'t extract embed url and video id')
         playerdata_url = mobj.group('embed_url')
         video_id = mobj.group('video_id')
+        full_video_id = mobj.group('full_video_id')
 
         video_title = self._html_search_regex(
             r'<title>(?P<title>.+?)\|', webpage, 'title')
@@ -60,37 +61,52 @@ class CinemassacreIE(InfoExtractor):
         vidurl = self._search_regex(
             r'\'vidurl\'\s*:\s*"([^\']+)"', playerdata, 'vidurl').replace('\\/', '/')
 
-        videolist_url = self._search_regex(
-            r"file\s*:\s*'(http.+?/jwplayer\.smil)'", playerdata, 'jwplayer.smil')
-        videolist = self._download_xml(videolist_url, video_id, 'Downloading videolist XML')
+        videolist_url = None
 
-        formats = []
-        baseurl = vidurl[:vidurl.rfind('/')+1]
-        for video in videolist.findall('.//video'):
-            src = video.get('src')
-            if not src:
-                continue
-            file_ = src.partition(':')[-1]
-            width = int_or_none(video.get('width'))
-            height = int_or_none(video.get('height'))
-            bitrate = int_or_none(video.get('system-bitrate'))
-            format = {
-                'url': baseurl + file_,
-                'format_id': src.rpartition('.')[0].rpartition('_')[-1],
-            }
-            if width or height:
-                format.update({
-                    'tbr': bitrate // 1000 if bitrate else None,
-                    'width': width,
-                    'height': height,
-                })
-            else:
-                format.update({
-                    'abr': bitrate // 1000 if bitrate else None,
-                    'vcodec': 'none',
-                })
-            formats.append(format)
-        self._sort_formats(formats)
+        mobj = re.search(r"'videoserver'\s*:\s*'(?P<videoserver>[^']+)'", playerdata)
+        if mobj:
+            videoserver = mobj.group('videoserver')
+            mobj = re.search(r'\'vidid\'\s*:\s*"(?P<vidid>[^\']+)"', playerdata)
+            vidid = mobj.group('vidid') if mobj else full_video_id
+            videolist_url = 'http://%s/vod/smil:%s.smil/jwplayer.smil' % (videoserver, vidid)
+        else:
+            mobj = re.search(r"file\s*:\s*'(?P<smil>http.+?/jwplayer\.smil)'", playerdata)
+            if mobj:
+                videolist_url = mobj.group('smil')
+
+        if videolist_url:
+            videolist = self._download_xml(videolist_url, video_id, 'Downloading videolist XML')
+            formats = []
+            baseurl = vidurl[:vidurl.rfind('/')+1]
+            for video in videolist.findall('.//video'):
+                src = video.get('src')
+                if not src:
+                    continue
+                file_ = src.partition(':')[-1]
+                width = int_or_none(video.get('width'))
+                height = int_or_none(video.get('height'))
+                bitrate = int_or_none(video.get('system-bitrate'))
+                format = {
+                    'url': baseurl + file_,
+                    'format_id': src.rpartition('.')[0].rpartition('_')[-1],
+                }
+                if width or height:
+                    format.update({
+                        'tbr': bitrate // 1000 if bitrate else None,
+                        'width': width,
+                        'height': height,
+                    })
+                else:
+                    format.update({
+                        'abr': bitrate // 1000 if bitrate else None,
+                        'vcodec': 'none',
+                    })
+                formats.append(format)
+            self._sort_formats(formats)
+        else:
+            formats = [{
+                'url': vidurl,
+            }]
 
         return {
             'id': video_id,
