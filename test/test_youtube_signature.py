@@ -14,7 +14,7 @@ import re
 import string
 
 from youtube_dl.extractor import YoutubeIE
-from youtube_dl.utils import compat_str, compat_urlretrieve
+from youtube_dl.compat import compat_str, compat_urlretrieve
 
 _TESTS = [
     (
