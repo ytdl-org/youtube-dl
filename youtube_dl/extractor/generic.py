@@ -576,6 +576,7 @@ class GenericIE(InfoExtractor):
             return {
                 'id': video_id,
                 'title': os.path.splitext(url_basename(url))[0],
+                'direct': True,
                 'formats': [{
                     'format_id': m.group('format_id'),
                     'url': url,
