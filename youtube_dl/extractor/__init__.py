@@ -127,6 +127,7 @@ from .francetv import (
 )
 from .freesound import FreesoundIE
 from .freespeech import FreespeechIE
+from .freevideo import FreeVideoIE
 from .funnyordie import FunnyOrDieIE
 from .gamekings import GamekingsIE
 from .gameone import (
