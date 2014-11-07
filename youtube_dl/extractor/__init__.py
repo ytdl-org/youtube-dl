@@ -141,6 +141,7 @@ from .generic import GenericIE
 from .glide import GlideIE
 from .globo import GloboIE
 from .godtube import GodTubeIE
+from .goldenmoustache import GoldenMoustacheIE
 from .golem import GolemIE
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
