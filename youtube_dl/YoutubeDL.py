@@ -835,6 +835,13 @@ class YoutubeDL(object):
                         format_1, format_2 = rf.split('+')
                         formats_info = (self.select_format(format_1, formats),
                             self.select_format(format_2, formats))
+                        # The first format must contain the video and the
+                        # second the audio
+                        if formats_info[0].get('vcodec') == 'none':
+                            self.report_error('The first format must contain '
+                                'the video, try using "-f %s+%s"' %
+                                (format_2, format_1))
+                            return
                         if all(formats_info):
                             selected_format = {
                                 'requested_formats': formats_info,
