@@ -131,17 +131,19 @@ which means you can modify it, redistribute it or use it however you like.
                                      %(upload_date)s for the upload date
                                      (YYYYMMDD), %(extractor)s for the provider
                                      (youtube, metacafe, etc), %(id)s for the
-                                     video id, %(playlist)s for the playlist the
+                                     video id, %(playlist_title)s,
+                                     %(playlist_id)s, or %(playlist)s (=title if
+                                     present, ID otherwise) for the playlist the
                                      video is in, %(playlist_index)s for the
-                                     position in the playlist and %% for a
-                                     literal percent. %(height)s and %(width)s
-                                     for the width and height of the video
-                                     format. %(resolution)s for a textual
+                                     position in the playlist. %(height)s and
+                                     %(width)s for the width and height of the
+                                     video format. %(resolution)s for a textual
                                      description of the resolution of the video
-                                     format. Use - to output to stdout. Can also
-                                     be used to download to a different
-                                     directory, for example with -o '/my/downloa
-                                     ds/%(uploader)s/%(title)s-%(id)s.%(ext)s' .
+                                     format. %% for a literal percent. Use - to
+                                     output to stdout. Can also be used to
+                                     download to a different directory, for
+                                     example with -o '/my/downloads/%(uploader)s
+                                     /%(title)s-%(id)s.%(ext)s' .
     --autonumber-size NUMBER         Specifies the number of digits in
                                      %(autonumber)s when it is present in output
                                      filename template or --auto-number option
@@ -239,8 +241,13 @@ which means you can modify it, redistribute it or use it however you like.
                                      "worst", "worstvideo" and "worstaudio". By
                                      default, youtube-dl will pick the best
                                      quality. Use commas to download multiple
-                                     audio formats, such as  -f
-                                     136/137/mp4/bestvideo,140/m4a/bestaudio
+                                     audio formats, such as -f
+                                     136/137/mp4/bestvideo,140/m4a/bestaudio.
+                                     You can merge the video and audio of two
+                                     formats into a single file using -f <video-
+                                     format>+<audio-format> (requires ffmpeg or
+                                     avconv), for example -f
+                                     bestvideo+bestaudio.
     --all-formats                    download all available video formats
     --prefer-free-formats            prefer free video formats unless a specific
                                      one is requested
