@@ -49,7 +49,7 @@ class WrzutaIE(InfoExtractor):
 
         quality = qualities(['SD', 'MQ', 'HQ', 'HD'])
 
-        audio_table = {'flv': 'mp3', 'webm': 'ogg'}
+        audio_table = {'flv': 'mp3', 'webm': 'ogg', 'mp3': 'mp3'}
 
         embedpage = self._download_json('http://www.wrzuta.pl/npp/embed/%s/%s' % (uploader, video_id), video_id)
 

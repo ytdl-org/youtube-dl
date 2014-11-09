@@ -421,6 +421,7 @@ from .vesti import VestiIE
 from .vevo import VevoIE
 from .vgtv import VGTVIE
 from .vh1 import VH1IE
+from .vice import ViceIE
 from .viddler import ViddlerIE
 from .videobam import VideoBamIE
 from .videodetective import VideoDetectiveIE

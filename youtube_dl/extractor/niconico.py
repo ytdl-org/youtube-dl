@@ -175,7 +175,8 @@ class NiconicoPlaylistIE(InfoExtractor):
         entries = [{
             '_type': 'url',
             'ie_key': NiconicoIE.ie_key(),
-            'url': 'http://www.nicovideo.jp/watch/%s' % entry['item_id'],
+            'url': ('http://www.nicovideo.jp/watch/%s' %
+                entry['item_data']['video_id']),
         } for entry in entries]
 
         return {
