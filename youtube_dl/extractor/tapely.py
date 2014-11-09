@@ -50,6 +50,7 @@ class TapelyIE(InfoExtractor):
         request = compat_urllib_request.Request(playlist_url)
         request.add_header('X-Requested-With', 'XMLHttpRequest')
         request.add_header('Accept', 'application/json')
+        request.add_header('Referer', url)
 
         playlist = self._download_json(request, display_id)
 
