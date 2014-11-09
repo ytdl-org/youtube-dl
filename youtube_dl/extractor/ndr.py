@@ -67,7 +67,7 @@ class NDRIE(InfoExtractor):
 
         thumbnail = None
 
-        video_url = re.search(r'''3: \{src:'(?P<video>.+?)\.hi\.mp4', type:"video/mp4"},''', page)
+        video_url = re.search(r'''3: \{src:'(?P<video>.+?)\.(lo|hi|hq)\.mp4', type:"video/mp4"},''', page)
         if video_url:
             thumbnails = re.findall(r'''\d+: \{src: "([^"]+)"(?: \|\| '[^']+')?, quality: '([^']+)'}''', page)
             if thumbnails:
