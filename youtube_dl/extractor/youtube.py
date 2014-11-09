@@ -1043,6 +1043,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         'url': 'https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re',
         'info_dict': {
             'title': 'ytdl test PL',
+            'id': 'PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re',
         },
         'playlist_count': 3,
     }, {
