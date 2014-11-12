@@ -110,20 +110,25 @@ class BandcampAlbumIE(InfoExtractor):
         'url': 'http://blazo.bandcamp.com/album/jazz-format-mixtape-vol-1',
         'playlist': [
             {
-                'file': '1353101989.mp3',
                 'md5': '39bc1eded3476e927c724321ddf116cf',
                 'info_dict': {
+                    'id': '1353101989',
+                    'ext': 'mp3',
                     'title': 'Intro',
                 }
             },
             {
-                'file': '38097443.mp3',
                 'md5': '1a2c32e2691474643e912cc6cd4bffaa',
                 'info_dict': {
+                    'id': '38097443',
+                    'ext': 'mp3',
                     'title': 'Kero One - Keep It Alive (Blazo remix)',
                 }
             },
         ],
+        'info_dict': {
+            'title': 'Jazz Format Mixtape vol.1',
+        },
         'params': {
             'playlistend': 2
         },
