@@ -94,7 +94,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
 
         # It may just embed a vevo video:
         m_vevo = re.search(
-            r'<link rel="video_src" href="[^"]*?vevo.com[^"]*?videoId=(?P<id>[\w]*)',
+            r'<link rel="video_src" href="[^"]*?vevo.com[^"]*?video=(?P<id>[\w]*)',
             webpage)
         if m_vevo is not None:
             vevo_id = m_vevo.group('id')
