@@ -33,7 +33,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         m = re.match(r'^rtmpe?://.*?/(?P<finalid>gsp\..+?/.*)$', rtmp_video_url)
         if not m:
             return rtmp_video_url
-        base = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=1+_pxI0=Ripod-h264+_pxL0=undefined+_pxM0=+_pxK=18639+_pxE=mp4/44620/mtvnorigin/'
+        base = 'http://viacommtvstrmfs.fplive.net/'
         return base + m.group('finalid')
 
     def _get_feed_url(self, uri):
