@@ -38,6 +38,7 @@ class TEDIE(SubtitlesInfoExtractor):
                 'actively fooling us.'),
             'uploader': 'Dan Dennett',
             'width': 854,
+            'duration': 1308,
         }
     }, {
         'url': 'http://www.ted.com/watch/ted-institute/ted-bcg/vishal-sikka-the-beauty-and-power-of-algorithms',
@@ -57,6 +58,7 @@ class TEDIE(SubtitlesInfoExtractor):
             'title': 'Be passionate. Be courageous. Be your best.',
             'uploader': 'Gabby Giffords and Mark Kelly',
             'description': 'md5:5174aed4d0f16021b704120360f72b92',
+            'duration': 1128,
         },
     }, {
         'url': 'http://www.ted.com/playlists/who_are_the_hackers',
@@ -178,6 +180,7 @@ class TEDIE(SubtitlesInfoExtractor):
             'description': self._og_search_description(webpage),
             'subtitles': video_subtitles,
             'formats': formats,
+            'duration': talk_info.get('duration'),
         }
 
     def _get_available_subtitles(self, video_id, talk_info):
