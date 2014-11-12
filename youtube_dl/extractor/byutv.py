@@ -10,12 +10,12 @@ from ..utils import ExtractorError
 class BYUtvIE(InfoExtractor):
     _VALID_URL = r'^https?://(?:www\.)?byutv.org/watch/[0-9a-f-]+/(?P<video_id>[^/?#]+)'
     _TEST = {
-        'url': 'http://www.byutv.org/watch/44e80f7b-e3ba-43ba-8c51-b1fd96c94a79/granite-flats-talking',
+        'url': 'http://www.byutv.org/watch/6587b9a3-89d2-42a6-a7f7-fd2f81840a7d/studio-c-season-5-episode-5',
         'info_dict': {
-            'id': 'granite-flats-talking',
+            'id': 'studio-c-season-5-episode-5',
             'ext': 'mp4',
-            'description': 'md5:4e9a7ce60f209a33eca0ac65b4918e1c',
-            'title': 'Talking',
+            'description': 'md5:5438d33774b6bdc662f9485a340401cc',
+            'title': 'Season 5 Episode 5',
             'thumbnail': 're:^https?://.*promo.*'
         },
         'params': {
