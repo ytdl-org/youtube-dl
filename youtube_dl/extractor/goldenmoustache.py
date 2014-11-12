@@ -18,26 +18,24 @@ class GoldenMoustacheIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Suricate - Le Poker',
             'description': 'md5:3d1f242f44f8c8cb0a106f1fd08e5dc9',
-            'thumbnail': 'md5:fd41386bc1f932552622da4a7e9a7242',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'view_count': int,
         }
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        video_url = self._html_search_regex(r'data-src-type="mp4" data-src="([^"]+)"', webpage, 'video URL')
-
-        title = self._html_search_regex(r'<title>(.*?) - Golden Moustache</title>', webpage, 'title')
-
-        thumbnail = self._html_search_meta('og:image', webpage, 'thumbnail')
-         
-        description = self._html_search_meta('og:description', webpage, 'description')
-
+        video_url = self._html_search_regex(
+            r'data-src-type="mp4" data-src="([^"]+)"', webpage, 'video URL')
+        title = self._html_search_regex(
+            r'<title>(.*?) - Golden Moustache</title>', webpage, 'title')
+        thumbnail = self._og_search_thumbnail(webpage)
+        description = self._og_search_description(webpage)
         view_count = int_or_none(self._html_search_regex(
-            r'<strong>(\d+)</strong>\s*VUES</span>', webpage, 'view count', fatal=False))
+            r'<strong>([0-9]+)</strong>\s*VUES</span>',
+            webpage, 'view count', fatal=False))
 
         return {
             'id': video_id,
