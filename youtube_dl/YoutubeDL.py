@@ -1306,11 +1306,13 @@ class YoutubeDL(object):
             self.report_warning(
                 'Your Python is broken! Update to a newer and supported version')
 
+        stdout_encoding = getattr(
+            sys.stdout, 'encoding', 'missing (%s)' % type(sys.stdout).__name__)
         encoding_str = (
             '[debug] Encodings: locale %s, fs %s, out %s, pref %s\n' % (
                 locale.getpreferredencoding(),
                 sys.getfilesystemencoding(),
-                sys.stdout.encoding,
+                stdout_encoding,
                 self.get_encoding()))
         write_string(encoding_str, encoding=None)
 
