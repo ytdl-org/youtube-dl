@@ -21,7 +21,6 @@ class FunnyOrDieIE(InfoExtractor):
         },
     }, {
         'url': 'http://www.funnyordie.com/embed/e402820827',
-        'md5': '29f4c5e5a61ca39dfd7e8348a75d0aad',
         'info_dict': {
             'id': 'e402820827',
             'ext': 'mp4',
