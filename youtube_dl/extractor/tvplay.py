@@ -4,9 +4,9 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
-    compat_str,
     parse_iso8601,
     qualities,
 )
@@ -176,8 +176,7 @@ class TVPlayIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         video = self._download_json(
             'http://playapi.mtgx.tv/v1/videos/%s' % video_id, video_id, 'Downloading video JSON')
@@ -208,6 +207,10 @@ class TVPlayIE(InfoExtractor):
                     'app': m.group('app'),
                     'play_path': m.group('playpath'),
                 })
+            elif video_url.endswith('.f4m'):
+                formats.extend(self._extract_f4m_formats(
+                    video_url + '?hdcore=3.5.0&plugin=aasp-3.5.0.151.81', video_id))
+                continue
             else:
                 fmt.update({
                     'url': video_url,
