@@ -16,6 +16,7 @@ import json
 import xml.etree.ElementTree
 
 from youtube_dl.utils import (
+    clean_html,
     DateRange,
     encodeFilename,
     find_xpath_attr,
@@ -344,6 +345,10 @@ class TestUtil(unittest.TestCase):
 
         on = js_to_json('{"abc": true}')
         self.assertEqual(json.loads(on), {'abc': True})
+
+    def test_clean_html(self):
+        self.assertEqual(clean_html('a:\nb'), 'a: b')
+        self.assertEqual(clean_html('a:\n   "b"'), 'a:    "b"')
 
 if __name__ == '__main__':
     unittest.main()
