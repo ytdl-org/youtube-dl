@@ -434,7 +434,17 @@ class GenericIE(InfoExtractor):
                 'title': 'Chet Chat 171 - Oct 29, 2014',
                 'upload_date': '20141029',
             }
-        }
+        },
+        # Livestream embed
+        {
+            'url': 'http://www.esa.int/Our_Activities/Space_Science/Rosetta/Philae_comet_touch-down_webcast',
+            'info_dict': {
+                'id': '67864563',
+                'ext': 'flv',
+                'upload_date': '20141112',
+                'title': 'Rosetta #CometLanding webcast HL 10',
+            }
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -915,6 +925,12 @@ class GenericIE(InfoExtractor):
             webpage)
         if mobj is not None:
             return self.url_result(self._proto_relative_url(mobj.group('url'), scheme='http:'), 'CondeNast')
+
+        mobj = re.search(
+            r'<iframe[^>]+src="(?P<url>https?://new\.livestream\.com/[^"]+/player[^"]+)"',
+            webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'Livestream')
 
         def check_video(vurl):
             vpath = compat_urlparse.urlparse(vurl).path
