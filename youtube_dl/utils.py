@@ -843,7 +843,7 @@ def bytes_to_intlist(bs):
 def intlist_to_bytes(xs):
     if not xs:
         return b''
-    return struct.pack('%dB' % len(xs), *xs)
+    return struct_pack('%dB' % len(xs), *xs)
 
 
 # Cross-platform file locking
