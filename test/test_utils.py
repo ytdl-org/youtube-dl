@@ -46,6 +46,7 @@ from youtube_dl.utils import (
     escape_url,
     js_to_json,
     get_filesystem_encoding,
+    intlist_to_bytes,
 )
 
 
@@ -349,6 +350,11 @@ class TestUtil(unittest.TestCase):
     def test_clean_html(self):
         self.assertEqual(clean_html('a:\nb'), 'a: b')
         self.assertEqual(clean_html('a:\n   "b"'), 'a:    "b"')
+
+    def test_intlist_to_bytes(self):
+        self.assertEqual(
+            intlist_to_bytes([0, 1, 127, 128, 255]),
+            b'\x00\x01\x7f\x80\xff')
 
 if __name__ == '__main__':
     unittest.main()
