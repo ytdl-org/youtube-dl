@@ -22,13 +22,11 @@ class SexuIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        quality_arr = self._search_regex(r'sources:\s*\[([^\]]+)\]', webpage, 'quality formats')
-
+        quality_arr = self._search_regex(
+            r'sources:\s*\[([^\]]+)\]', webpage, 'forrmat string')
         formats = [{
             'url': fmt[0].replace('\\', ''),
             'format_id': fmt[1],
@@ -37,15 +35,17 @@ class SexuIE(InfoExtractor):
         self._sort_formats(formats)
 
         title = self._html_search_regex(
-            r'<title>([^<]+)\s*-\s*Sexu.Com</title>', webpage, 'title')
+            r'<title>([^<]+)\s*-\s*Sexu\.Com</title>', webpage, 'title')
 
-        description = self._html_search_meta('description', webpage, 'description')
+        description = self._html_search_meta(
+            'description', webpage, 'description')
 
         thumbnail = self._html_search_regex(
             r'image:\s*"([^"]+)"',
             webpage, 'thumbnail', fatal=False)
 
-        categories_str = self._html_search_meta('keywords', webpage, 'categories', fatal=False)
+        categories_str = self._html_search_meta(
+            'keywords', webpage, 'categories')
         categories = (
             None if categories_str is None
             else categories_str.split(','))
