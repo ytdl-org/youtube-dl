@@ -20,7 +20,7 @@ class EpornerIE(InfoExtractor):
             'display_id': 'Infamous-Tiffany-Teen-Strip-Tease-Video',
             'ext': 'mp4',
             'title': 'Infamous Tiffany Teen Strip Tease Video',
-            'duration': 194,
+            'duration': 849,
             'view_count': int,
             'age_limit': 18,
         }
