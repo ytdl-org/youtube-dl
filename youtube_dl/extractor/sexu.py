@@ -13,7 +13,7 @@ class SexuIE(InfoExtractor):
         'info_dict': {
             'id': '961791',
             'ext': 'mp4',
-            'title': 'md5:033cf4a71907aac2758e82f55894a129',
+            'title': 'md5:4d05a19a5fc049a63dbbaf05fb71d91b',
             'description': 'md5:c5ed8625eb386855d5a7967bd7b77a54',
             'categories': list,  # NSFW
             'thumbnail': 're:https?://.*\.jpg$',
