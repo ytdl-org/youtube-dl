@@ -5,6 +5,6 @@ RewriteRule ^ip/?$ ip.php
 
 RewriteRule ^bugs?/? https://github.com/rg3/youtube-dl/issues [R=302,L]
 RewriteRule ^reporting/? https://github.com/rg3/youtube-dl/blob/master/README.md#bugs [R=302,L,NE]
-RewriteRule ^update$ https://github.com/rg3/youtube-dl/blob/master/README.md#how-do-i-update-youtube-dl [R=302,L]
+RewriteRule ^update$ https://github.com/rg3/youtube-dl/blob/master/README.md#how-do-i-update-youtube-dl [R=302,L,NE]
 
 
