@@ -31,7 +31,7 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
     }
 
 
-class ComedyCentralShowsIE(InfoExtractor):
+class ComedyCentralShowsIE(MTVServicesInfoExtractor):
     IE_DESC = 'The Daily Show / The Colbert Report'
     # urls can be abbreviations like :thedailyshow or :colbert
     # urls for episodes like:
@@ -108,14 +108,6 @@ class ComedyCentralShowsIE(InfoExtractor):
         '750': (512, 288),
         '400': (384, 216),
     }
-
-    @staticmethod
-    def _transform_rtmp_url(rtmp_video_url):
-        m = re.match(r'^rtmpe?://.*?/(?P<finalid>gsp\.comedystor/.*)$', rtmp_video_url)
-        if not m:
-            raise ExtractorError('Cannot transform RTMP url')
-        base = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=1+_pxI0=Ripod-h264+_pxL0=undefined+_pxM0=+_pxK=18639+_pxE=mp4/44620/mtvnorigin/'
-        return base + m.group('finalid')
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url, re.VERBOSE)
@@ -212,9 +204,6 @@ class ComedyCentralShowsIE(InfoExtractor):
                     'ext': self._video_extensions.get(format, 'mp4'),
                     'height': h,
                     'width': w,
-
-                    'format_note': 'HTTP 400 at the moment (patches welcome!)',
-                    'preference': -100,
                 })
                 formats.append({
                     'format_id': 'rtmp-%s' % format,
