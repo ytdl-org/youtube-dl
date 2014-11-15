@@ -6,7 +6,7 @@ from ..utils import float_or_none
 
 
 class SpiegeltvIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?spiegel\.tv/filme/(?P<id>[\-a-z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?spiegel\.tv/(?:#/)?filme/(?P<id>[\-a-z0-9]+)'
     _TESTS = [{
         'url': 'http://www.spiegel.tv/filme/flug-mh370/',
         'info_dict': {
@@ -20,9 +20,14 @@ class SpiegeltvIE(InfoExtractor):
             # rtmp download
             'skip_download': True,
         }
+    }, {
+        'url': 'http://www.spiegel.tv/#/filme/alleskino-die-wahrheit-ueber-maenner/',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
+        if '/#/' in url:
+            url = url.replace('/#/', '/')
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         title = self._html_search_regex(r'<h1.*?>(.*?)</h1>', webpage, 'title')
