@@ -106,10 +106,12 @@ def parseOpts(overrideArguments=None):
     fmt.format_option_strings = _format_option_string
 
     kw = {
-        'version': __version__,
-        'formatter': fmt,
-        'usage': '%prog [options] url [url...]',
-        'conflict_handler': 'resolve',
+        # The b prefix is for Python 2.6.0 - 2.6.4:
+        # http://bugs.python.org/issue2646
+        b'version': __version__,
+        b'formatter': fmt,
+        b'usage': '%prog [options] url [url...]',
+        b'conflict_handler': 'resolve',
     }
 
     parser = optparse.OptionParser(**kw)
