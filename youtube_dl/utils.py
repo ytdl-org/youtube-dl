@@ -73,10 +73,22 @@ def preferredencoding():
 def write_json_file(obj, fn):
     """ Encode obj as JSON and write it to fn, atomically """
 
+    if sys.version_info < (3, 0):
+        encoding = get_filesystem_encoding()
+        # os.path.basename returns a bytes object, but NamedTemporaryFile
+        # will fail if the filename contains non ascii characters unless we
+        # use a unicode object
+        path_basename = lambda f: os.path.basename(fn).decode(encoding)
+        # the same for os.path.dirname
+        path_dirname = lambda f: os.path.dirname(fn).decode(encoding)
+    else:
+        path_basename = os.path.basename
+        path_dirname = os.path.dirname
+
     args = {
         'suffix': '.tmp',
-        'prefix': os.path.basename(fn) + '.',
-        'dir': os.path.dirname(fn),
+        'prefix': path_basename(fn) + '.',
+        'dir': path_dirname(fn),
         'delete': False,
     }
 
