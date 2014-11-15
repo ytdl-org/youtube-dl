@@ -288,6 +288,14 @@ if sys.version_info < (3, 0) and sys.platform == 'win32':
 else:
     compat_getpass = getpass.getpass
 
+# Old 2.6 and 2.7 releases require kwargs to be bytes
+try:
+    (lambda x: x)(**{'x': 0})
+except TypeError:
+    def compat_kwargs(kwargs):
+        return dict((bytes(k), v) for k, v in kwargs.items())
+else:
+    compat_kwargs = lambda kwargs: kwargs
 
 __all__ = [
     'compat_HTTPError',
@@ -299,6 +307,7 @@ __all__ = [
     'compat_html_entities',
     'compat_html_parser',
     'compat_http_client',
+    'compat_kwargs',
     'compat_ord',
     'compat_parse_qs',
     'compat_print',

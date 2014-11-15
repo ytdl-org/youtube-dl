@@ -8,6 +8,7 @@ import sys
 from .compat import (
     compat_expanduser,
     compat_getenv,
+    compat_kwargs,
 )
 from .utils import (
     get_term_width,
@@ -112,7 +113,7 @@ def parseOpts(overrideArguments=None):
         'conflict_handler': 'resolve',
     }
 
-    parser = optparse.OptionParser(**kw)
+    parser = optparse.OptionParser(**compat_kwargs(kw))
 
     general = optparse.OptionGroup(parser, 'General Options')
     general.add_option(
