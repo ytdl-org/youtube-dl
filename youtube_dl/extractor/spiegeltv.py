@@ -1,13 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 from .common import InfoExtractor
+from ..utils import float_or_none
 
 
 class SpiegeltvIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?spiegel\.tv/filme/(?P<id>[\-a-z0-9]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.spiegel.tv/filme/flug-mh370/',
         'info_dict': {
             'id': 'flug-mh370',
@@ -20,12 +20,10 @@ class SpiegeltvIE(InfoExtractor):
             # rtmp download
             'skip_download': True,
         }
-    }
+    }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         title = self._html_search_regex(r'<h1.*?>(.*?)</h1>', webpage, 'title')
 
@@ -61,12 +59,8 @@ class SpiegeltvIE(InfoExtractor):
             })
 
         description = media_json['subtitle']
-        duration = media_json['duration_in_ms'] / 1000.
-
-        if is_wide:
-            format = '16x9'
-        else:
-            format = '4x3'
+        duration = float_or_none(media_json.get('duration_in_ms'), scale=1000)
+        format = '16x9' if is_wide else '4x3'
 
         url = server + 'mp4:' + uuid + '_spiegeltv_0500_' + format + '.m4v'
 
