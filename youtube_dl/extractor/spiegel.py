@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import compat_urlparse
+from .spiegeltv import SpiegeltvIE
 
 
 class SpiegelIE(InfoExtractor):
@@ -42,7 +43,11 @@ class SpiegelIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        webpage, handle = self._download_webpage_handle(url, video_id)
+
+        # 302 to spiegel.tv, like http://www.spiegel.de/video/der-film-zum-wochenende-die-wahrheit-ueber-maenner-video-99003272.html
+        if SpiegeltvIE.suitable(handle.geturl()):
+            return self.url_result(handle.geturl(), 'Spiegeltv')
 
         title = re.sub(r'\s+', ' ', self._html_search_regex(
             r'(?s)<(?:h1|div) class="module-title"[^>]*>(.*?)</(?:h1|div)>',
