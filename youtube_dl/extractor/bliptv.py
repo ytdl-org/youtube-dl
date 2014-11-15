@@ -71,11 +71,12 @@ class BlipTVIE(SubtitlesInfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         lookup_id = mobj.group('lookup_id')
 
-        # See https://github.com/rg3/youtube-dl/issues/857
+        # See https://github.com/rg3/youtube-dl/issues/857 and
+        # https://github.com/rg3/youtube-dl/issues/4197
         if lookup_id:
             info_page = self._download_webpage(
                 'http://blip.tv/play/%s.x?p=1' % lookup_id, lookup_id, 'Resolving lookup id')
-            video_id = self._search_regex(r'data-episode-id="([0-9]+)', info_page, 'video_id')
+            video_id = self._search_regex(r'config\.id\s*=\s*"([0-9]+)', info_page, 'video_id')
         else:
             video_id = mobj.group('id')
 
