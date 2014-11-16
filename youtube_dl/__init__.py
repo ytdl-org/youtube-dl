@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
+
 __license__ = 'Public Domain'
 
 import codecs
@@ -55,7 +57,7 @@ def _real_main(argv=None):
         # https://github.com/rg3/youtube-dl/issues/820
         codecs.register(lambda name: codecs.lookup('utf-8') if name == 'cp65001' else None)
 
-    setproctitle(u'youtube-dl')
+    setproctitle('youtube-dl')
 
     parser, opts, args = parseOpts(argv)
 
@@ -71,10 +73,10 @@ def _real_main(argv=None):
     if opts.headers is not None:
         for h in opts.headers:
             if h.find(':', 1) < 0:
-                parser.error(u'wrong header formatting, it should be key:value, not "%s"'%h)
+                parser.error('wrong header formatting, it should be key:value, not "%s"'%h)
             key, value = h.split(':', 2)
             if opts.verbose:
-                write_string(u'[debug] Adding header from command line option %s:%s\n'%(key, value))
+                write_string('[debug] Adding header from command line option %s:%s\n'%(key, value))
             std_headers[key] = value
 
     # Dump user agent
@@ -92,9 +94,9 @@ def _real_main(argv=None):
                 batchfd = io.open(opts.batchfile, 'r', encoding='utf-8', errors='ignore')
             batch_urls = read_batch_urls(batchfd)
             if opts.verbose:
-                write_string(u'[debug] Batch file urls: ' + repr(batch_urls) + u'\n')
+                write_string('[debug] Batch file urls: ' + repr(batch_urls) + '\n')
         except IOError:
-            sys.exit(u'ERROR: batch file could not be read')
+            sys.exit('ERROR: batch file could not be read')
     all_urls = batch_urls + args
     all_urls = [url.strip() for url in all_urls]
     _enc = preferredencoding()
@@ -107,7 +109,7 @@ def _real_main(argv=None):
             compat_print(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else ''))
             matchedUrls = [url for url in all_urls if ie.suitable(url)]
             for mu in matchedUrls:
-                compat_print(u'  ' + mu)
+                compat_print('  ' + mu)
         sys.exit(0)
     if opts.list_extractor_descriptions:
         for ie in sorted(extractors, key=lambda ie: ie.IE_NAME.lower()):
@@ -117,63 +119,63 @@ def _real_main(argv=None):
             if desc is False:
                 continue
             if hasattr(ie, 'SEARCH_KEY'):
-                _SEARCHES = (u'cute kittens', u'slithering pythons', u'falling cat', u'angry poodle', u'purple fish', u'running tortoise', u'sleeping bunny')
-                _COUNTS = (u'', u'5', u'10', u'all')
-                desc += u' (Example: "%s%s:%s" )' % (ie.SEARCH_KEY, random.choice(_COUNTS), random.choice(_SEARCHES))
+                _SEARCHES = ('cute kittens', 'slithering pythons', 'falling cat', 'angry poodle', 'purple fish', 'running tortoise', 'sleeping bunny')
+                _COUNTS = ('', '5', '10', 'all')
+                desc += ' (Example: "%s%s:%s" )' % (ie.SEARCH_KEY, random.choice(_COUNTS), random.choice(_SEARCHES))
             compat_print(desc)
         sys.exit(0)
 
 
     # Conflicting, missing and erroneous options
     if opts.usenetrc and (opts.username is not None or opts.password is not None):
-        parser.error(u'using .netrc conflicts with giving username/password')
+        parser.error('using .netrc conflicts with giving username/password')
     if opts.password is not None and opts.username is None:
-        parser.error(u'account username missing\n')
+        parser.error('account username missing\n')
     if opts.outtmpl is not None and (opts.usetitle or opts.autonumber or opts.useid):
-        parser.error(u'using output template conflicts with using title, video ID or auto number')
+        parser.error('using output template conflicts with using title, video ID or auto number')
     if opts.usetitle and opts.useid:
-        parser.error(u'using title conflicts with using video ID')
+        parser.error('using title conflicts with using video ID')
     if opts.username is not None and opts.password is None:
-        opts.password = compat_getpass(u'Type account password and press [Return]: ')
+        opts.password = compat_getpass('Type account password and press [Return]: ')
     if opts.ratelimit is not None:
         numeric_limit = FileDownloader.parse_bytes(opts.ratelimit)
         if numeric_limit is None:
-            parser.error(u'invalid rate limit specified')
+            parser.error('invalid rate limit specified')
         opts.ratelimit = numeric_limit
     if opts.min_filesize is not None:
         numeric_limit = FileDownloader.parse_bytes(opts.min_filesize)
         if numeric_limit is None:
-            parser.error(u'invalid min_filesize specified')
+            parser.error('invalid min_filesize specified')
         opts.min_filesize = numeric_limit
     if opts.max_filesize is not None:
         numeric_limit = FileDownloader.parse_bytes(opts.max_filesize)
         if numeric_limit is None:
-            parser.error(u'invalid max_filesize specified')
+            parser.error('invalid max_filesize specified')
         opts.max_filesize = numeric_limit
     if opts.retries is not None:
         try:
             opts.retries = int(opts.retries)
         except (TypeError, ValueError):
-            parser.error(u'invalid retry count specified')
+            parser.error('invalid retry count specified')
     if opts.buffersize is not None:
         numeric_buffersize = FileDownloader.parse_bytes(opts.buffersize)
         if numeric_buffersize is None:
-            parser.error(u'invalid buffer size specified')
+            parser.error('invalid buffer size specified')
         opts.buffersize = numeric_buffersize
     if opts.playliststart <= 0:
-        raise ValueError(u'Playlist start must be positive')
+        raise ValueError('Playlist start must be positive')
     if opts.playlistend not in (-1, None) and opts.playlistend < opts.playliststart:
-        raise ValueError(u'Playlist end must be greater than playlist start')
+        raise ValueError('Playlist end must be greater than playlist start')
     if opts.extractaudio:
         if opts.audioformat not in ['best', 'aac', 'mp3', 'm4a', 'opus', 'vorbis', 'wav']:
-            parser.error(u'invalid audio format specified')
+            parser.error('invalid audio format specified')
     if opts.audioquality:
         opts.audioquality = opts.audioquality.strip('k').strip('K')
         if not opts.audioquality.isdigit():
-            parser.error(u'invalid audio quality specified')
+            parser.error('invalid audio quality specified')
     if opts.recodevideo is not None:
         if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg', 'mkv']:
-            parser.error(u'invalid video recode format specified')
+            parser.error('invalid video recode format specified')
     if opts.date is not None:
         date = DateRange.day(opts.date)
     else:
@@ -193,17 +195,17 @@ def _real_main(argv=None):
         if opts.outtmpl is not None:
             opts.outtmpl = opts.outtmpl.decode(preferredencoding())
     outtmpl =((opts.outtmpl is not None and opts.outtmpl)
-            or (opts.format == '-1' and opts.usetitle and u'%(title)s-%(id)s-%(format)s.%(ext)s')
-            or (opts.format == '-1' and u'%(id)s-%(format)s.%(ext)s')
-            or (opts.usetitle and opts.autonumber and u'%(autonumber)s-%(title)s-%(id)s.%(ext)s')
-            or (opts.usetitle and u'%(title)s-%(id)s.%(ext)s')
-            or (opts.useid and u'%(id)s.%(ext)s')
-            or (opts.autonumber and u'%(autonumber)s-%(id)s.%(ext)s')
+            or (opts.format == '-1' and opts.usetitle and '%(title)s-%(id)s-%(format)s.%(ext)s')
+            or (opts.format == '-1' and '%(id)s-%(format)s.%(ext)s')
+            or (opts.usetitle and opts.autonumber and '%(autonumber)s-%(title)s-%(id)s.%(ext)s')
+            or (opts.usetitle and '%(title)s-%(id)s.%(ext)s')
+            or (opts.useid and '%(id)s.%(ext)s')
+            or (opts.autonumber and '%(autonumber)s-%(id)s.%(ext)s')
             or DEFAULT_OUTTMPL)
     if not os.path.splitext(outtmpl)[1] and opts.extractaudio:
-        parser.error(u'Cannot download a video and extract audio into the same'
-                     u' file! Use "{0}.%(ext)s" instead of "{0}" as the output'
-                     u' template'.format(outtmpl))
+        parser.error('Cannot download a video and extract audio into the same'
+                     ' file! Use "{0}.%(ext)s" instead of "{0}" as the output'
+                     ' template'.format(outtmpl))
 
     any_printing = opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.getduration or opts.dumpjson or opts.dump_single_json
     download_archive_fn = compat_expanduser(opts.download_archive) if opts.download_archive is not None else opts.download_archive
@@ -330,7 +332,7 @@ def _real_main(argv=None):
         # Maybe do nothing
         if (len(all_urls) < 1) and (opts.load_info_filename is None):
             if not (opts.update_self or opts.rm_cachedir):
-                parser.error(u'you must provide at least one URL')
+                parser.error('you must provide at least one URL')
             else:
                 sys.exit()
 
@@ -340,7 +342,7 @@ def _real_main(argv=None):
             else:
                 retcode = ydl.download(all_urls)
         except MaxDownloadsReached:
-            ydl.to_screen(u'--max-download limit reached, aborting.')
+            ydl.to_screen('--max-download limit reached, aborting.')
             retcode = 101
 
     sys.exit(retcode)
@@ -352,6 +354,6 @@ def main(argv=None):
     except DownloadError:
         sys.exit(1)
     except SameFileError:
-        sys.exit(u'ERROR: fixed output name but more than one file to download')
+        sys.exit('ERROR: fixed output name but more than one file to download')
     except KeyboardInterrupt:
-        sys.exit(u'\nERROR: Interrupted by user')
+        sys.exit('\nERROR: Interrupted by user')
