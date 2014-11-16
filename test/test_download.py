@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import unicode_literals
+
 # Allow direct execution
 import os
 import sys
@@ -210,9 +212,9 @@ for n, test_case in enumerate(defs):
     tname = 'test_' + str(test_case['name'])
     i = 1
     while hasattr(TestDownload, tname):
-        tname = 'test_'  + str(test_case['name']) + '_' + str(i)
+        tname = 'test_%s_%d' % (test_case['name'], i)
         i += 1
-    test_method.__name__ = tname
+    test_method.__name__ = str(tname)
     setattr(TestDownload, test_method.__name__, test_method)
     del test_method
 

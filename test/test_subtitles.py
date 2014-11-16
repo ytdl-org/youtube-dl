@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import unicode_literals
 
 # Allow direct execution
 import os
@@ -74,7 +75,7 @@ class TestYoutubeSubtitles(BaseTestSubtitles):
         self.assertEqual(md5(subtitles['en']), '3cb210999d3e021bd6c7f0ea751eab06')
 
     def test_youtube_list_subtitles(self):
-        self.DL.expect_warning(u'Video doesn\'t have automatic captions')
+        self.DL.expect_warning('Video doesn\'t have automatic captions')
         self.DL.params['listsubtitles'] = True
         info_dict = self.getInfoDict()
         self.assertEqual(info_dict, None)
@@ -87,7 +88,7 @@ class TestYoutubeSubtitles(BaseTestSubtitles):
         self.assertTrue(subtitles['it'] is not None)
 
     def test_youtube_nosubtitles(self):
-        self.DL.expect_warning(u'video doesn\'t have subtitles')
+        self.DL.expect_warning('video doesn\'t have subtitles')
         self.url = 'n5BB19UTcdA'
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
@@ -101,7 +102,7 @@ class TestYoutubeSubtitles(BaseTestSubtitles):
         self.DL.params['subtitleslangs'] = langs
         subtitles = self.getSubtitles()
         for lang in langs:
-            self.assertTrue(subtitles.get(lang) is not None, u'Subtitles for \'%s\' not extracted' % lang)
+            self.assertTrue(subtitles.get(lang) is not None, 'Subtitles for \'%s\' not extracted' % lang)
 
 
 class TestDailymotionSubtitles(BaseTestSubtitles):
@@ -130,20 +131,20 @@ class TestDailymotionSubtitles(BaseTestSubtitles):
         self.assertEqual(len(subtitles.keys()), 5)
 
     def test_list_subtitles(self):
-        self.DL.expect_warning(u'Automatic Captions not supported by this server')
+        self.DL.expect_warning('Automatic Captions not supported by this server')
         self.DL.params['listsubtitles'] = True
         info_dict = self.getInfoDict()
         self.assertEqual(info_dict, None)
 
     def test_automatic_captions(self):
-        self.DL.expect_warning(u'Automatic Captions not supported by this server')
+        self.DL.expect_warning('Automatic Captions not supported by this server')
         self.DL.params['writeautomaticsub'] = True
         self.DL.params['subtitleslang'] = ['en']
         subtitles = self.getSubtitles()
         self.assertTrue(len(subtitles.keys()) == 0)
 
     def test_nosubtitles(self):
-        self.DL.expect_warning(u'video doesn\'t have subtitles')
+        self.DL.expect_warning('video doesn\'t have subtitles')
         self.url = 'http://www.dailymotion.com/video/x12u166_le-zapping-tele-star-du-08-aout-2013_tv'
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
@@ -156,7 +157,7 @@ class TestDailymotionSubtitles(BaseTestSubtitles):
         self.DL.params['subtitleslangs'] = langs
         subtitles = self.getSubtitles()
         for lang in langs:
-            self.assertTrue(subtitles.get(lang) is not None, u'Subtitles for \'%s\' not extracted' % lang)
+            self.assertTrue(subtitles.get(lang) is not None, 'Subtitles for \'%s\' not extracted' % lang)
 
 
 class TestTedSubtitles(BaseTestSubtitles):
@@ -185,13 +186,13 @@ class TestTedSubtitles(BaseTestSubtitles):
         self.assertTrue(len(subtitles.keys()) >= 28)
 
     def test_list_subtitles(self):
-        self.DL.expect_warning(u'Automatic Captions not supported by this server')
+        self.DL.expect_warning('Automatic Captions not supported by this server')
         self.DL.params['listsubtitles'] = True
         info_dict = self.getInfoDict()
         self.assertEqual(info_dict, None)
 
     def test_automatic_captions(self):
-        self.DL.expect_warning(u'Automatic Captions not supported by this server')
+        self.DL.expect_warning('Automatic Captions not supported by this server')
         self.DL.params['writeautomaticsub'] = True
         self.DL.params['subtitleslang'] = ['en']
         subtitles = self.getSubtitles()
@@ -203,7 +204,7 @@ class TestTedSubtitles(BaseTestSubtitles):
         self.DL.params['subtitleslangs'] = langs
         subtitles = self.getSubtitles()
         for lang in langs:
-            self.assertTrue(subtitles.get(lang) is not None, u'Subtitles for \'%s\' not extracted' % lang)
+            self.assertTrue(subtitles.get(lang) is not None, 'Subtitles for \'%s\' not extracted' % lang)
 
 
 class TestBlipTVSubtitles(BaseTestSubtitles):
@@ -211,13 +212,13 @@ class TestBlipTVSubtitles(BaseTestSubtitles):
     IE = BlipTVIE
 
     def test_list_subtitles(self):
-        self.DL.expect_warning(u'Automatic Captions not supported by this server')
+        self.DL.expect_warning('Automatic Captions not supported by this server')
         self.DL.params['listsubtitles'] = True
         info_dict = self.getInfoDict()
         self.assertEqual(info_dict, None)
 
     def test_allsubtitles(self):
-        self.DL.expect_warning(u'Automatic Captions not supported by this server')
+        self.DL.expect_warning('Automatic Captions not supported by this server')
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
@@ -251,20 +252,20 @@ class TestVimeoSubtitles(BaseTestSubtitles):
         self.assertEqual(set(subtitles.keys()), set(['de', 'en', 'es', 'fr']))
 
     def test_list_subtitles(self):
-        self.DL.expect_warning(u'Automatic Captions not supported by this server')
+        self.DL.expect_warning('Automatic Captions not supported by this server')
         self.DL.params['listsubtitles'] = True
         info_dict = self.getInfoDict()
         self.assertEqual(info_dict, None)
 
     def test_automatic_captions(self):
-        self.DL.expect_warning(u'Automatic Captions not supported by this server')
+        self.DL.expect_warning('Automatic Captions not supported by this server')
         self.DL.params['writeautomaticsub'] = True
         self.DL.params['subtitleslang'] = ['en']
         subtitles = self.getSubtitles()
         self.assertTrue(len(subtitles.keys()) == 0)
 
     def test_nosubtitles(self):
-        self.DL.expect_warning(u'video doesn\'t have subtitles')
+        self.DL.expect_warning('video doesn\'t have subtitles')
         self.url = 'http://vimeo.com/56015672'
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
@@ -277,7 +278,7 @@ class TestVimeoSubtitles(BaseTestSubtitles):
         self.DL.params['subtitleslangs'] = langs
         subtitles = self.getSubtitles()
         for lang in langs:
-            self.assertTrue(subtitles.get(lang) is not None, u'Subtitles for \'%s\' not extracted' % lang)
+            self.assertTrue(subtitles.get(lang) is not None, 'Subtitles for \'%s\' not extracted' % lang)
 
 
 class TestWallaSubtitles(BaseTestSubtitles):
@@ -285,13 +286,13 @@ class TestWallaSubtitles(BaseTestSubtitles):
     IE = WallaIE
 
     def test_list_subtitles(self):
-        self.DL.expect_warning(u'Automatic Captions not supported by this server')
+        self.DL.expect_warning('Automatic Captions not supported by this server')
         self.DL.params['listsubtitles'] = True
         info_dict = self.getInfoDict()
         self.assertEqual(info_dict, None)
 
     def test_allsubtitles(self):
-        self.DL.expect_warning(u'Automatic Captions not supported by this server')
+        self.DL.expect_warning('Automatic Captions not supported by this server')
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
@@ -299,7 +300,7 @@ class TestWallaSubtitles(BaseTestSubtitles):
         self.assertEqual(md5(subtitles['heb']), 'e758c5d7cb982f6bef14f377ec7a3920')
 
     def test_nosubtitles(self):
-        self.DL.expect_warning(u'video doesn\'t have subtitles')
+        self.DL.expect_warning('video doesn\'t have subtitles')
         self.url = 'http://vod.walla.co.il/movie/2642630/one-direction-all-for-one'
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
