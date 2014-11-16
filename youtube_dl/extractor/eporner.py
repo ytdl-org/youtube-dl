@@ -20,7 +20,7 @@ class EpornerIE(InfoExtractor):
             'display_id': 'Infamous-Tiffany-Teen-Strip-Tease-Video',
             'ext': 'mp4',
             'title': 'Infamous Tiffany Teen Strip Tease Video',
-            'duration': 194,
+            'duration': 1838,
             'view_count': int,
             'age_limit': 18,
         }
@@ -57,9 +57,7 @@ class EpornerIE(InfoExtractor):
             formats.append(fmt)
         self._sort_formats(formats)
 
-        duration = parse_duration(self._search_regex(
-            r'class="mbtim">([0-9:]+)</div>', webpage, 'duration',
-            fatal=False))
+        duration = parse_duration(self._html_search_meta('duration', webpage))
         view_count = str_to_int(self._search_regex(
             r'id="cinemaviews">\s*([0-9,]+)\s*<small>views',
             webpage, 'view count', fatal=False))
