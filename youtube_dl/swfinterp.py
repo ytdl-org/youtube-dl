@@ -149,6 +149,11 @@ def _read_byte(reader):
 
 
 StringClass = _AVMClass('(no name idx)', 'String')
+ByteArrayClass = _AVMClass('(no name idx)', 'ByteArray')
+_builtin_classes = {
+    StringClass.name: StringClass,
+    ByteArrayClass.name: ByteArrayClass,
+}
 
 
 class _Undefined(object):
@@ -468,8 +473,28 @@ class SWFInterpreter(object):
                         [stack.pop() for _ in range(arg_count)]))
                     obj = stack.pop()
 
-                    if isinstance(obj, _AVMClass_Object):
+                    if obj == StringClass:
+                        if mname == 'String':
+                            assert len(args) == 1
+                            assert isinstance(args[0], (
+                                int, compat_str, _Undefined))
+                            if args[0] == undefined:
+                                res = 'undefined'
+                            else:
+                                res = compat_str(args[0])
+                            stack.append(res)
+                            continue
+                        else:
+                            raise NotImplementedError(
+                                'Function String.%s is not yet implemented'
+                                % mname)
+                    elif isinstance(obj, _AVMClass_Object):
                         func = self.extract_function(obj.avm_class, mname)
+                        res = func(args)
+                        stack.append(res)
+                        continue
+                    elif isinstance(obj, _AVMClass):
+                        func = self.extract_function(obj, mname)
                         res = func(args)
                         stack.append(res)
                         continue
@@ -504,21 +529,6 @@ class SWFInterpreter(object):
                             res = args[0].join(obj)
                             stack.append(res)
                             continue
-                    elif obj == StringClass:
-                        if mname == 'String':
-                            assert len(args) == 1
-                            assert isinstance(args[0], (
-                                int, compat_str, _Undefined))
-                            if args[0] == undefined:
-                                res = 'undefined'
-                            else:
-                                res = compat_str(args[0])
-                            stack.append(res)
-                            continue
-                        else:
-                            raise NotImplementedError(
-                                'Function String.%s is not yet implemented'
-                                % mname)
                     raise NotImplementedError(
                         'Unsupported property %r on %r'
                         % (mname, obj))
@@ -582,8 +592,8 @@ class SWFInterpreter(object):
                             break
                     else:
                         res = scopes[0]
-                    if mname not in res and mname == 'String':
-                        stack.append(StringClass)
+                    if mname not in res and mname in _builtin_classes:
+                        stack.append(_builtin_classes[mname])
                     else:
                         stack.append(res[mname])
                 elif opcode == 94:  # findproperty
