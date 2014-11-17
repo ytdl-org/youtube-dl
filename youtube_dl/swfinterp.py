@@ -151,6 +151,16 @@ def _read_byte(reader):
 StringClass = _AVMClass('(no name idx)', 'String')
 
 
+class _Undefined(object):
+    def __boolean__(self):
+        return False
+
+    def __hash__(self):
+        return 0
+
+undefined = _Undefined()
+
+
 class SWFInterpreter(object):
     def __init__(self, file_contents):
         self._patched_functions = {}
@@ -423,6 +433,8 @@ class SWFInterpreter(object):
                         coder.seek(coder.tell() + offset)
                 elif opcode == 32:  # pushnull
                     stack.append(None)
+                elif opcode == 33:  # pushundefined
+                    stack.append(undefined)
                 elif opcode == 36:  # pushbyte
                     v = _read_byte(coder)
                     stack.append(v)
@@ -430,6 +442,8 @@ class SWFInterpreter(object):
                     stack.append(True)
                 elif opcode == 39:  # pushfalse
                     stack.append(False)
+                elif opcode == 40:  # pushnan
+                    stack.append(float('NaN'))
                 elif opcode == 42:  # dup
                     value = stack[-1]
                     stack.append(value)
@@ -493,8 +507,12 @@ class SWFInterpreter(object):
                     elif obj == StringClass:
                         if mname == 'String':
                             assert len(args) == 1
-                            assert isinstance(args[0], (int, compat_str))
-                            res = compat_str(args[0])
+                            assert isinstance(args[0], (
+                                int, compat_str, _Undefined))
+                            if args[0] == undefined:
+                                res = 'undefined'
+                            else:
+                                res = compat_str(args[0])
                             stack.append(res)
                             continue
                         else:
@@ -505,7 +523,7 @@ class SWFInterpreter(object):
                         'Unsupported property %r on %r'
                         % (mname, obj))
                 elif opcode == 71:  # returnvoid
-                    res = None
+                    res = undefined
                     return res
                 elif opcode == 72:  # returnvalue
                     res = stack.pop()
@@ -533,13 +551,13 @@ class SWFInterpreter(object):
                     if isinstance(obj, _AVMClass_Object):
                         func = self.extract_function(obj.avm_class, mname)
                         res = func(args)
-                        assert res is None
+                        assert res is undefined
                         continue
                     if isinstance(obj, _ScopeDict):
                         assert mname in obj.avm_class.method_names
                         func = self.extract_function(obj.avm_class, mname)
                         res = func(args)
-                        assert res is None
+                        assert res is undefined
                         continue
                     if mname == 'reverse':
                         assert isinstance(obj, list)
@@ -617,7 +635,7 @@ class SWFInterpreter(object):
                         obj = stack.pop()
                         assert isinstance(obj, (dict, _ScopeDict)), \
                             'Accessing member %r on %r' % (pname, obj)
-                        res = obj.get(pname, None)
+                        res = obj.get(pname, undefined)
                         stack.append(res)
                     else:  # Assume attribute access
                         idx = stack.pop()
@@ -631,8 +649,24 @@ class SWFInterpreter(object):
                     stack.append(intvalue)
                 elif opcode == 128:  # coerce
                     u30()
+                elif opcode == 130:  # coerce_a
+                    value = stack.pop()
+                    # um, yes, it's any value
+                    stack.append(value)
                 elif opcode == 133:  # coerce_s
                     assert isinstance(stack[-1], (type(None), compat_str))
+                elif opcode == 147:  # decrement
+                    value = stack.pop()
+                    assert isinstance(value, int)
+                    stack.append(value - 1)
+                elif opcode == 149:  # typeof
+                    value = stack.pop()
+                    return {
+                        _Undefined: 'undefined',
+                        compat_str: 'String',
+                        int: 'Number',
+                        float: 'Number',
+                    }[type(value)]
                 elif opcode == 160:  # add
                     value2 = stack.pop()
                     value1 = stack.pop()
