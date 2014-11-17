@@ -393,7 +393,10 @@ class SWFInterpreter(object):
                 self._classes_by_name, avm_class.variables])
             while True:
                 opcode = _read_byte(coder)
-                if opcode == 17:  # iftrue
+                if opcode == 16:  # jump
+                    offset = s24()
+                    coder.seek(coder.tell() + offset)
+                elif opcode == 17:  # iftrue
                     offset = s24()
                     value = stack.pop()
                     if value:
@@ -403,6 +406,20 @@ class SWFInterpreter(object):
                     value = stack.pop()
                     if not value:
                         coder.seek(coder.tell() + offset)
+                elif opcode == 19:  # ifeq
+                    offset = s24()
+                    value2 = stack.pop()
+                    value1 = stack.pop()
+                    if value2 == value1:
+                        coder.seek(coder.tell() + offset)
+                elif opcode == 20:  # ifne
+                    offset = s24()
+                    value2 = stack.pop()
+                    value1 = stack.pop()
+                    if value2 != value1:
+                        coder.seek(coder.tell() + offset)
+                elif opcode == 32:  # pushnull
+                    stack.append(None)
                 elif opcode == 36:  # pushbyte
                     v = _read_byte(coder)
                     stack.append(v)
