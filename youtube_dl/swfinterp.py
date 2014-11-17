@@ -170,6 +170,10 @@ class _Undefined(object):
     def __hash__(self):
         return 0
 
+    def __str__(self):
+        return 'undefined'
+    __repr__ = __str__
+
 undefined = _Undefined()
 
 
@@ -686,6 +690,7 @@ class SWFInterpreter(object):
                         res = _builtin_classes[mname]
                     else:
                         # Assume unitialized
+                        # TODO warn here
                         res = undefined
                     stack.append(res)
                 elif opcode == 97:  # setproperty
