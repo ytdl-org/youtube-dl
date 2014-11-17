@@ -71,6 +71,7 @@ class _AVMClass(object):
         self.method_pyfunctions = {}
 
         self.variables = _ScopeDict(self)
+        self.constants = {}
 
     def make_object(self):
         return _AVMClass_Object(self)
@@ -189,11 +190,13 @@ class SWFInterpreter(object):
 
         # Constant pool
         int_count = u30()
+        self.constant_ints = [0]
         for _c in range(1, int_count):
-            s32()
+            self.constant_ints.append(s32())
+        self.constant_uints = [0]
         uint_count = u30()
         for _c in range(1, uint_count):
-            u32()
+            self.constant_uints.append(u32())
         double_count = u30()
         read_bytes(max(0, (double_count - 1)) * 8)
         string_count = u30()
@@ -281,13 +284,28 @@ class SWFInterpreter(object):
             kind = kind_full & 0x0f
             attrs = kind_full >> 4
             methods = {}
-            if kind in [0x00, 0x06]:  # Slot or Const
+            constants = None
+            if kind == 0x00:  # Slot
                 u30()  # Slot id
                 u30()  # type_name_idx
                 vindex = u30()
                 if vindex != 0:
                     read_byte()  # vkind
-            elif kind in [0x01, 0x02, 0x03]:  # Method / Getter / Setter
+            elif kind == 0x06:  # Const
+                u30()  # Slot id
+                u30()  # type_name_idx
+                vindex = u30()
+                vkind = 'any'
+                if vindex != 0:
+                    vkind = read_byte()
+                if vkind == 0x03:  # Constant_Int
+                    value = self.constant_ints[vindex]
+                elif vkind == 0x04:  # Constant_UInt
+                    value = self.constant_uints[vindex]
+                else:
+                    return {}, None  # Ignore silently for now
+                constants = {self.multinames[trait_name_idx]: value}
+            elif kind in (0x01, 0x02, 0x03):  # Method / Getter / Setter
                 u30()  # disp_id
                 method_idx = u30()
                 methods[self.multinames[trait_name_idx]] = method_idx
@@ -306,7 +324,7 @@ class SWFInterpreter(object):
                 for _c3 in range(metadata_count):
                     u30()  # metadata index
 
-            return methods
+            return methods, constants
 
         # Classes
         class_count = u30()
@@ -328,8 +346,9 @@ class SWFInterpreter(object):
             u30()  # iinit
             trait_count = u30()
             for _c2 in range(trait_count):
-                trait_methods = parse_traits_info()
+                trait_methods, constants = parse_traits_info()
                 avm_class.register_methods(trait_methods)
+                assert constants is None
 
         assert len(classes) == class_count
         self._classes_by_name = dict((c.name, c) for c in classes)
@@ -338,8 +357,10 @@ class SWFInterpreter(object):
             u30()  # cinit
             trait_count = u30()
             for _c2 in range(trait_count):
-                trait_methods = parse_traits_info()
+                trait_methods, trait_constants = parse_traits_info()
                 avm_class.register_methods(trait_methods)
+                if trait_constants:
+                    avm_class.constants.update(trait_constants)
 
         # Scripts
         script_count = u30()
@@ -633,9 +654,11 @@ class SWFInterpreter(object):
                             break
                     else:
                         scope = avm_class.variables
-                    # I cannot find where static variables are initialized
-                    # so let's just return None
-                    res = scope.get(mname)
+
+                    if mname in scope:
+                        res = scope[mname]
+                    else:
+                        res = avm_class.constants[mname]
                     stack.append(res)
                 elif opcode == 97:  # setproperty
                     index = u30()
