@@ -16,7 +16,7 @@ from ..utils import (
 
 class VKIE(InfoExtractor):
     IE_NAME = 'vk.com'
-    _VALID_URL = r'https?://(?:m\.)?vk\.com/(?:video_ext\.php\?.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+)|(?:.+?\?.*?z=)?video(?P<videoid>.*?)(?:\?|%2F|$))'
+    _VALID_URL = r'https?://(?:m\.)?vk\.com/(?:video_ext\.php\?.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+)|(?:.+?\?.*?z=)?video(?P<videoid>[^s].*?)(?:\?|%2F|$))'
     _NETRC_MACHINE = 'vk'
 
     _TESTS = [
@@ -185,3 +185,38 @@ class VKIE(InfoExtractor):
             'uploader': data.get('md_author'),
             'duration': data.get('duration')
         }
+
+
+class VKUserVideosIE(InfoExtractor):
+    IE_NAME = 'vk.com:user-videos'
+    IE_DESC = 'All of a user\'s videos'
+    _VALID_URL = r'https?://(?:m\.)?vk\.com/videos([0-9]+)'
+    _TEMPLATE_URL = 'https://vk.com/videos'
+    _TEST = {
+        'url': 'http://vk.com/videos205387401',
+        'playlist_mincount': 4,
+    }
+
+    def extract_videos_from_page(self, page):
+        ids_in_page = []
+        for mobj in re.finditer(r'href="/video([0-9_]+)"', page):
+            if mobj.group(1) not in ids_in_page:
+                ids_in_page.append(mobj.group(1))
+        return ids_in_page
+
+    def _real_extract(self, url):
+        # Extract page id
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            raise ExtractorError('Invalid URL: %s' % url)
+
+        # Download page and get video ids
+        page_id = mobj.group(1)
+        page = self._download_webpage(url, page_id)
+        video_ids = self.extract_videos_from_page(page)
+
+        self._downloader.to_screen('[vk] User videos %s: Found %i videos' % (page_id, len(video_ids)))
+
+        url_entries = [self.url_result('http://vk.com/video' + video_id, 'VK', video_id=video_id)
+                       for video_id in video_ids]
+        return self.playlist_result(url_entries, page_id)
