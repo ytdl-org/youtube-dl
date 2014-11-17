@@ -62,13 +62,14 @@ class _ScopeDict(dict):
 
 
 class _AVMClass(object):
-    def __init__(self, name_idx, name):
+    def __init__(self, name_idx, name, static_properties=None):
         self.name_idx = name_idx
         self.name = name
         self.method_names = {}
         self.method_idxs = {}
         self.methods = {}
         self.method_pyfunctions = {}
+        self.static_properties = static_properties if static_properties else {}
 
         self.variables = _ScopeDict(self)
         self.constants = {}
@@ -151,15 +152,20 @@ def _read_byte(reader):
 
 StringClass = _AVMClass('(no name idx)', 'String')
 ByteArrayClass = _AVMClass('(no name idx)', 'ByteArray')
+TimerClass = _AVMClass('(no name idx)', 'Timer')
+TimerEventClass = _AVMClass('(no name idx)', 'TimerEvent', {'TIMER': 'timer'})
 _builtin_classes = {
     StringClass.name: StringClass,
     ByteArrayClass.name: ByteArrayClass,
+    TimerClass.name: TimerClass,
+    TimerEventClass.name: TimerEventClass,
 }
 
 
 class _Undefined(object):
-    def __boolean__(self):
+    def __bool__(self):
         return False
+    __nonzero__ = __bool__
 
     def __hash__(self):
         return 0
@@ -169,7 +175,9 @@ undefined = _Undefined()
 
 class SWFInterpreter(object):
     def __init__(self, file_contents):
-        self._patched_functions = {}
+        self._patched_functions = {
+            (TimerClass, 'addEventListener'): lambda params: undefined,
+        }
         code_tag = next(tag
                         for tag_code, tag in _extract_tags(file_contents)
                         if tag_code == 82)
@@ -346,9 +354,10 @@ class SWFInterpreter(object):
             u30()  # iinit
             trait_count = u30()
             for _c2 in range(trait_count):
-                trait_methods, constants = parse_traits_info()
+                trait_methods, trait_constants = parse_traits_info()
                 avm_class.register_methods(trait_methods)
-                assert constants is None
+                if trait_constants:
+                    avm_class.constants.update(trait_constants)
 
         assert len(classes) == class_count
         self._classes_by_name = dict((c.name, c) for c in classes)
@@ -439,7 +448,7 @@ class SWFInterpreter(object):
             registers = [avm_class.variables] + list(args) + [None] * m.local_count
             stack = []
             scopes = collections.deque([
-                self._classes_by_name, avm_class.variables])
+                self._classes_by_name, avm_class.constants, avm_class.variables])
             while True:
                 opcode = _read_byte(coder)
                 if opcode == 9:  # label
@@ -587,6 +596,12 @@ class SWFInterpreter(object):
                 elif opcode == 72:  # returnvalue
                     res = stack.pop()
                     return res
+                elif opcode == 73:  # constructsuper
+                    # Not yet implemented, just hope it works without it
+                    arg_count = u30()
+                    args = list(reversed(
+                        [stack.pop() for _ in range(arg_count)]))
+                    obj = stack.pop()
                 elif opcode == 74:  # constructproperty
                     index = u30()
                     arg_count = u30()
@@ -667,8 +682,11 @@ class SWFInterpreter(object):
 
                     if mname in scope:
                         res = scope[mname]
+                    elif mname in _builtin_classes:
+                        res = _builtin_classes[mname]
                     else:
-                        res = avm_class.constants[mname]
+                        # Assume unitialized
+                        res = undefined
                     stack.append(res)
                 elif opcode == 97:  # setproperty
                     index = u30()
@@ -694,7 +712,12 @@ class SWFInterpreter(object):
                         stack.append(len(obj))
                     elif isinstance(pname, compat_str):  # Member access
                         obj = stack.pop()
-                        assert isinstance(obj, (dict, _ScopeDict)), \
+                        if isinstance(obj, _AVMClass):
+                            res = obj.static_properties[pname]
+                            stack.append(res)
+                            continue
+
+                        assert isinstance(obj, (dict, _ScopeDict)),\
                             'Accessing member %r on %r' % (pname, obj)
                         res = obj.get(pname, undefined)
                         stack.append(res)
