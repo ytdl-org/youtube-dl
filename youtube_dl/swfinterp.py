@@ -504,6 +504,9 @@ class SWFInterpreter(object):
                     raise NotImplementedError(
                         'Unsupported property %r on %r'
                         % (mname, obj))
+                elif opcode == 71:  # returnvoid
+                    res = None
+                    return res
                 elif opcode == 72:  # returnvalue
                     res = stack.pop()
                     return res
@@ -527,6 +530,17 @@ class SWFInterpreter(object):
                     args = list(reversed(
                         [stack.pop() for _ in range(arg_count)]))
                     obj = stack.pop()
+                    if isinstance(obj, _AVMClass_Object):
+                        func = self.extract_function(obj.avm_class, mname)
+                        res = func(args)
+                        assert res is None
+                        continue
+                    if isinstance(obj, _ScopeDict):
+                        assert mname in obj.avm_class.method_names
+                        func = self.extract_function(obj.avm_class, mname)
+                        res = func(args)
+                        assert res is None
+                        continue
                     if mname == 'reverse':
                         assert isinstance(obj, list)
                         obj.reverse()
@@ -603,7 +617,8 @@ class SWFInterpreter(object):
                         obj = stack.pop()
                         assert isinstance(obj, (dict, _ScopeDict)), \
                             'Accessing member %r on %r' % (pname, obj)
-                        stack.append(obj[pname])
+                        res = obj.get(pname, None)
+                        stack.append(res)
                     else:  # Assume attribute access
                         idx = stack.pop()
                         assert isinstance(idx, int)
