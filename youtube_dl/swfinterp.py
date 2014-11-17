@@ -354,7 +354,7 @@ class SWFInterpreter(object):
         self._classes_by_name = dict((c.name, c) for c in classes)
 
         for avm_class in classes:
-            u30()  # cinit
+            avm_class.cinit_idx = u30()
             trait_count = u30()
             for _c2 in range(trait_count):
                 trait_methods, trait_constants = parse_traits_info()
@@ -373,6 +373,7 @@ class SWFInterpreter(object):
         # Method bodies
         method_body_count = u30()
         Method = collections.namedtuple('Method', ['code', 'local_count'])
+        self._all_methods = []
         for _c in range(method_body_count):
             method_idx = u30()
             u30()  # max_stack
@@ -381,9 +382,10 @@ class SWFInterpreter(object):
             u30()  # max_scope_depth
             code_length = u30()
             code = read_bytes(code_length)
+            m = Method(code, local_count)
+            self._all_methods.append(m)
             for avm_class in classes:
                 if method_idx in avm_class.method_idxs:
-                    m = Method(code, local_count)
                     avm_class.methods[avm_class.method_idxs[method_idx]] = m
             exception_count = u30()
             for _c2 in range(exception_count):
@@ -401,11 +403,19 @@ class SWFInterpreter(object):
     def patch_function(self, avm_class, func_name, f):
         self._patched_functions[(avm_class, func_name)] = f
 
-    def extract_class(self, class_name):
+    def extract_class(self, class_name, call_cinit=True):
         try:
-            return self._classes_by_name[class_name]
+            res = self._classes_by_name[class_name]
         except KeyError:
             raise ExtractorError('Class %r not found' % class_name)
+
+        if call_cinit and hasattr(res, 'cinit_idx'):
+            res.register_methods({'$cinit': res.cinit_idx})
+            res.methods['$cinit'] = self._all_methods[res.cinit_idx]
+            cinit = self.extract_function(res, '$cinit')
+            cinit([])
+
+        return res
 
     def extract_function(self, avm_class, func_name):
         p = self._patched_functions.get((avm_class, func_name))
@@ -694,6 +704,14 @@ class SWFInterpreter(object):
                         obj = stack.pop()
                         assert isinstance(obj, list)
                         stack.append(obj[idx])
+                elif opcode == 104:  # initproperty
+                    index = u30()
+                    value = stack.pop()
+                    idx = self.multinames[index]
+                    if isinstance(idx, _Multiname):
+                        idx = stack.pop()
+                    obj = stack.pop()
+                    obj[idx] = value
                 elif opcode == 115:  # convert_
                     value = stack.pop()
                     intvalue = int(value)
