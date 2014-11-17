@@ -150,6 +150,7 @@ def _read_byte(reader):
 
 class SWFInterpreter(object):
     def __init__(self, file_contents):
+        self._patched_functions = {}
         code_tag = next(tag
                         for tag_code, tag in _extract_tags(file_contents)
                         if tag_code == 82)
@@ -354,6 +355,9 @@ class SWFInterpreter(object):
 
         assert p + code_reader.tell() == len(code_tag)
 
+    def patch_function(self, avm_class, func_name, f):
+        self._patched_functions[(avm_class, func_name)] = f
+
     def extract_class(self, class_name):
         try:
             return self._classes_by_name[class_name]
@@ -361,6 +365,9 @@ class SWFInterpreter(object):
             raise ExtractorError('Class %r not found' % class_name)
 
     def extract_function(self, avm_class, func_name):
+        p = self._patched_functions.get((avm_class, func_name))
+        if p:
+            return p
         if func_name in avm_class.method_pyfunctions:
             return avm_class.method_pyfunctions[func_name]
         if func_name in self._classes_by_name:
