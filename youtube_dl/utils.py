@@ -63,7 +63,7 @@ def preferredencoding():
     """
     try:
         pref = locale.getpreferredencoding()
-        u'TEST'.encode(pref)
+        'TEST'.encode(pref)
     except:
         pref = 'UTF-8'
 
@@ -215,7 +215,7 @@ def sanitize_open(filename, open_mode):
     It returns the tuple (stream, definitive_file_name).
     """
     try:
-        if filename == u'-':
+        if filename == '-':
             if sys.platform == 'win32':
                 import msvcrt
                 msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
@@ -228,7 +228,7 @@ def sanitize_open(filename, open_mode):
 
         # In case of error, try to remove win32 forbidden chars
         alt_filename = os.path.join(
-                        re.sub(u'[/<>:"\\|\\\\?\\*]', u'#', path_part)
+                        re.sub('[/<>:"\\|\\\\?\\*]', '#', path_part)
                         for path_part in os.path.split(filename)
                        )
         if alt_filename == filename:
@@ -267,7 +267,7 @@ def sanitize_filename(s, restricted=False, is_id=False):
             return '_'
         return char
 
-    result = u''.join(map(replace_insane, s))
+    result = ''.join(map(replace_insane, s))
     if not is_id:
         while '__' in result:
             result = result.replace('__', '_')
@@ -297,15 +297,15 @@ def _htmlentity_transform(entity):
     mobj = re.match(r'#(x?[0-9]+)', entity)
     if mobj is not None:
         numstr = mobj.group(1)
-        if numstr.startswith(u'x'):
+        if numstr.startswith('x'):
             base = 16
-            numstr = u'0%s' % numstr
+            numstr = '0%s' % numstr
         else:
             base = 10
         return compat_chr(int(numstr, base))
 
     # Unknown entity in name, return its literal representation
-    return (u'&%s;' % entity)
+    return ('&%s;' % entity)
 
 
 def unescapeHTML(s):
@@ -329,7 +329,7 @@ def encodeFilename(s, for_subprocess=False):
         return s
 
     if sys.platform == 'win32' and sys.getwindowsversion()[0] >= 5:
-        # Pass u'' directly to use Unicode APIs on Windows 2000 and up
+        # Pass '' directly to use Unicode APIs on Windows 2000 and up
         # (Detecting Windows NT 4 is tricky because 'major >= 4' would
         # match Windows 9x series as well. Besides, NT 4 is obsolete.)
         if not for_subprocess:
@@ -424,9 +424,9 @@ class ExtractorError(Exception):
         if video_id is not None:
             msg = video_id + ': ' + msg
         if cause:
-            msg += u' (caused by %r)' % cause
+            msg += ' (caused by %r)' % cause
         if not expected:
-            msg = msg + u'; please report this issue on https://yt-dl.org/bug . Be sure to call youtube-dl with the --verbose flag and include its complete output. Make sure you are using the latest version; type  youtube-dl -U  to update.'
+            msg = msg + '; please report this issue on https://yt-dl.org/bug . Be sure to call youtube-dl with the --verbose flag and include its complete output. Make sure you are using the latest version; type  youtube-dl -U  to update.'
         super(ExtractorError, self).__init__(msg)
 
         self.traceback = tb
@@ -437,7 +437,7 @@ class ExtractorError(Exception):
     def format_traceback(self):
         if self.traceback is None:
             return None
-        return u''.join(traceback.format_tb(self.traceback))
+        return ''.join(traceback.format_tb(self.traceback))
 
 
 class RegexNotFoundError(ExtractorError):
@@ -665,17 +665,17 @@ def unified_strdate(date_str):
             upload_date = datetime.datetime(*timetuple[:6]).strftime('%Y%m%d')
     return upload_date
 
-def determine_ext(url, default_ext=u'unknown_video'):
+def determine_ext(url, default_ext='unknown_video'):
     if url is None:
         return default_ext
-    guess = url.partition(u'?')[0].rpartition(u'.')[2]
+    guess = url.partition('?')[0].rpartition('.')[2]
     if re.match(r'^[A-Za-z0-9]+$', guess):
         return guess
     else:
         return default_ext
 
 def subtitles_filename(filename, sub_lang, sub_format):
-    return filename.rsplit('.', 1)[0] + u'.' + sub_lang + u'.' + sub_format
+    return filename.rsplit('.', 1)[0] + '.' + sub_lang + '.' + sub_format
 
 def date_from_str(date_str):
     """
@@ -967,7 +967,7 @@ def shell_quote(args):
             # We may get a filename encoded with 'encodeFilename'
             a = a.decode(encoding)
         quoted_args.append(pipes.quote(a))
-    return u' '.join(quoted_args)
+    return ' '.join(quoted_args)
 
 
 def takewhile_inclusive(pred, seq):
@@ -983,31 +983,31 @@ def smuggle_url(url, data):
     """ Pass additional data in a URL for internal use. """
 
     sdata = compat_urllib_parse.urlencode(
-        {u'__youtubedl_smuggle': json.dumps(data)})
-    return url + u'#' + sdata
+        {'__youtubedl_smuggle': json.dumps(data)})
+    return url + '#' + sdata
 
 
 def unsmuggle_url(smug_url, default=None):
     if not '#__youtubedl_smuggle' in smug_url:
         return smug_url, default
-    url, _, sdata = smug_url.rpartition(u'#')
-    jsond = compat_parse_qs(sdata)[u'__youtubedl_smuggle'][0]
+    url, _, sdata = smug_url.rpartition('#')
+    jsond = compat_parse_qs(sdata)['__youtubedl_smuggle'][0]
     data = json.loads(jsond)
     return url, data
 
 
 def format_bytes(bytes):
     if bytes is None:
-        return u'N/A'
+        return 'N/A'
     if type(bytes) is str:
         bytes = float(bytes)
     if bytes == 0.0:
         exponent = 0
     else:
         exponent = int(math.log(bytes, 1024.0))
-    suffix = [u'B', u'KiB', u'MiB', u'GiB', u'TiB', u'PiB', u'EiB', u'ZiB', u'YiB'][exponent]
+    suffix = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'][exponent]
     converted = float(bytes) / float(1024 ** exponent)
-    return u'%.2f%s' % (converted, suffix)
+    return '%.2f%s' % (converted, suffix)
 
 
 def get_term_width():
@@ -1030,8 +1030,8 @@ def month_by_name(name):
     """ Return the number of a month by (locale-independently) English name """
 
     ENGLISH_NAMES = [
-        u'January', u'February', u'March', u'April', u'May', u'June',
-        u'July', u'August', u'September', u'October', u'November', u'December']
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December']
     try:
         return ENGLISH_NAMES.index(name) + 1
     except ValueError:
@@ -1042,7 +1042,7 @@ def fix_xml_ampersands(xml_str):
     """Replace all the '&' by '&amp;' in XML"""
     return re.sub(
         r'&(?!amp;|lt;|gt;|apos;|quot;|#x[0-9a-fA-F]{,4};|#[0-9]{,4};)',
-        u'&amp;',
+        '&amp;',
         xml_str)
 
 
@@ -1075,7 +1075,7 @@ def remove_end(s, end):
 
 def url_basename(url):
     path = compat_urlparse.urlparse(url).path
-    return path.strip(u'/').split(u'/')[-1]
+    return path.strip('/').split('/')[-1]
 
 
 class HEADRequest(compat_urllib_request.Request):
@@ -1100,7 +1100,7 @@ def str_to_int(int_str):
     """ A more relaxed version of int_or_none """
     if int_str is None:
         return None
-    int_str = re.sub(r'[,\.\+]', u'', int_str)
+    int_str = re.sub(r'[,\.\+]', '', int_str)
     return int(int_str)
 
 
@@ -1135,7 +1135,7 @@ def parse_duration(s):
 
 def prepend_extension(filename, ext):
     name, real_ext = os.path.splitext(filename) 
-    return u'{0}.{1}{2}'.format(name, ext, real_ext)
+    return '{0}.{1}{2}'.format(name, ext, real_ext)
 
 
 def check_executable(exe, args=[]):
@@ -1150,7 +1150,7 @@ def check_executable(exe, args=[]):
 
 def get_exe_version(exe, args=['--version'],
                     version_re=r'version\s+([0-9._-a-zA-Z]+)',
-                    unrecognized=u'present'):
+                    unrecognized='present'):
     """ Returns the version of the specified executable,
     or False if the executable is not present """
     try:
@@ -1271,7 +1271,7 @@ def escape_url(url):
     ).geturl()
 
 try:
-    struct.pack(u'!I', 0)
+    struct.pack('!I', 0)
 except TypeError:
     # In Python 2.6 (and some 2.7 versions), struct requires a bytes argument
     def struct_pack(spec, *args):
@@ -1292,7 +1292,7 @@ def read_batch_urls(batch_fd):
     def fixup(url):
         if not isinstance(url, compat_str):
             url = url.decode('utf-8', 'replace')
-        BOM_UTF8 = u'\xef\xbb\xbf'
+        BOM_UTF8 = '\xef\xbb\xbf'
         if url.startswith(BOM_UTF8):
             url = url[len(BOM_UTF8):]
         url = url.strip()
