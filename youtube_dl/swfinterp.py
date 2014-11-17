@@ -629,6 +629,11 @@ class SWFInterpreter(object):
                     value1 = stack.pop()
                     res = value1 % value2
                     stack.append(res)
+                elif opcode == 171:  # equals
+                    value2 = stack.pop()
+                    value1 = stack.pop()
+                    result = value1 == value2
+                    stack.append(result)
                 elif opcode == 175:  # greaterequals
                     value2 = stack.pop()
                     value1 = stack.pop()
