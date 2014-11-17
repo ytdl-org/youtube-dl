@@ -148,6 +148,9 @@ def _read_byte(reader):
     return res
 
 
+StringClass = _AVMClass('(no name idx)', 'String')
+
+
 class SWFInterpreter(object):
     def __init__(self, file_contents):
         self._patched_functions = {}
@@ -483,6 +486,17 @@ class SWFInterpreter(object):
                             res = args[0].join(obj)
                             stack.append(res)
                             continue
+                    elif obj == StringClass:
+                        if mname == 'String':
+                            assert len(args) == 1
+                            assert isinstance(args[0], (int, compat_str))
+                            res = compat_str(args[0])
+                            stack.append(res)
+                            continue
+                        else:
+                            raise NotImplementedError(
+                                'Function String.%s is not yet implemented'
+                                % mname)
                     raise NotImplementedError(
                         'Unsupported property %r on %r'
                         % (mname, obj))
@@ -532,7 +546,10 @@ class SWFInterpreter(object):
                             break
                     else:
                         res = scopes[0]
-                    stack.append(res[mname])
+                    if mname not in res and mname == 'String':
+                        stack.append(StringClass)
+                    else:
+                        stack.append(res[mname])
                 elif opcode == 94:  # findproperty
                     index = u30()
                     mname = self.multinames[index]
@@ -576,7 +593,7 @@ class SWFInterpreter(object):
                     pname = self.multinames[index]
                     if pname == 'length':
                         obj = stack.pop()
-                        assert isinstance(obj, list)
+                        assert isinstance(obj, (compat_str, list))
                         stack.append(len(obj))
                     elif isinstance(pname, compat_str):  # Member access
                         obj = stack.pop()
