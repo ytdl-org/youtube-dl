@@ -411,7 +411,9 @@ class SWFInterpreter(object):
                 self._classes_by_name, avm_class.variables])
             while True:
                 opcode = _read_byte(coder)
-                if opcode == 16:  # jump
+                if opcode == 9:  # label
+                    pass  # Spec says: "Do nothing."
+                elif opcode == 16:  # jump
                     offset = s24()
                     coder.seek(coder.tell() + offset)
                 elif opcode == 17:  # iftrue
@@ -435,6 +437,12 @@ class SWFInterpreter(object):
                     value2 = stack.pop()
                     value1 = stack.pop()
                     if value2 != value1:
+                        coder.seek(coder.tell() + offset)
+                elif opcode == 21:  # iflt
+                    offset = s24()
+                    value2 = stack.pop()
+                    value1 = stack.pop()
+                    if value1 < value2:
                         coder.seek(coder.tell() + offset)
                 elif opcode == 32:  # pushnull
                     stack.append(None)
@@ -514,6 +522,13 @@ class SWFInterpreter(object):
                                 res = list(obj)
                             else:
                                 res = obj.split(args[0])
+                            stack.append(res)
+                            continue
+                        elif mname == 'charCodeAt':
+                            assert len(args) <= 1
+                            idx = 0 if len(args) == 0 else args[0]
+                            assert isinstance(idx, int)
+                            res = ord(obj[idx])
                             stack.append(res)
                             continue
                     elif isinstance(obj, list):
@@ -687,6 +702,11 @@ class SWFInterpreter(object):
                     value1 = stack.pop()
                     res = value1 - value2
                     stack.append(res)
+                elif opcode == 162:  # multiply
+                    value2 = stack.pop()
+                    value1 = stack.pop()
+                    res = value1 * value2
+                    stack.append(res)
                 elif opcode == 164:  # modulo
                     value2 = stack.pop()
                     value1 = stack.pop()
@@ -702,6 +722,10 @@ class SWFInterpreter(object):
                     value1 = stack.pop()
                     result = value1 >= value2
                     stack.append(result)
+                elif opcode == 192:  # increment_i
+                    value = stack.pop()
+                    assert isinstance(value, int)
+                    stack.append(value + 1)
                 elif opcode == 208:  # getlocal_0
                     stack.append(registers[0])
                 elif opcode == 209:  # getlocal_1
