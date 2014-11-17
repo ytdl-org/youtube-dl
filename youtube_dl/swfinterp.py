@@ -213,6 +213,10 @@ class SWFInterpreter(object):
                 u30()  # namespace_idx
                 name_idx = u30()
                 self.multinames.append(self.constant_strings[name_idx])
+            elif kind == 0x09:
+                name_idx = u30()
+                u30()
+                self.multinames.append(self.constant_strings[name_idx])
             else:
                 self.multinames.append(_Multiname(kind))
                 for _c2 in range(MULTINAME_SIZES[kind]):
@@ -557,6 +561,11 @@ class SWFInterpreter(object):
                         obj = stack.pop()
                         assert isinstance(obj, list)
                         stack.append(len(obj))
+                    elif isinstance(pname, compat_str):  # Member access
+                        obj = stack.pop()
+                        assert isinstance(obj, (dict, _ScopeDict)), \
+                            'Accessing member on %r' % obj
+                        stack.append(obj[pname])
                     else:  # Assume attribute access
                         idx = stack.pop()
                         assert isinstance(idx, int)
