@@ -564,7 +564,7 @@ class SWFInterpreter(object):
                     elif isinstance(pname, compat_str):  # Member access
                         obj = stack.pop()
                         assert isinstance(obj, (dict, _ScopeDict)), \
-                            'Accessing member on %r' % obj
+                            'Accessing member %r on %r' % (pname, obj)
                         stack.append(obj[pname])
                     else:  # Assume attribute access
                         idx = stack.pop()

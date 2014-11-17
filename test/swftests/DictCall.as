@@ -4,7 +4,7 @@
 package {
 public class DictCall {
     public static function main(d:Object):int{
-    	return d.x + d.y;
+        return d.x + d.y;
     }
 }
 }
