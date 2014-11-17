@@ -426,6 +426,10 @@ class SWFInterpreter(object):
                 elif opcode == 36:  # pushbyte
                     v = _read_byte(coder)
                     stack.append(v)
+                elif opcode == 38:  # pushtrue
+                    stack.append(True)
+                elif opcode == 39:  # pushfalse
+                    stack.append(False)
                 elif opcode == 42:  # dup
                     value = stack[-1]
                     stack.append(value)
