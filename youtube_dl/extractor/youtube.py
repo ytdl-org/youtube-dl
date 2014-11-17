@@ -991,7 +991,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                         existing_format.update(f)
 
             except (ExtractorError, KeyError) as e:
-                self.report_warning('Skipping DASH manifest: %s' % e, video_id)
+                self.report_warning('Skipping DASH manifest: %r' % e, video_id)
 
         self._sort_formats(formats)
 
