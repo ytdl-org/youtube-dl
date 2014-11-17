@@ -451,6 +451,9 @@ class SWFInterpreter(object):
                 elif opcode == 36:  # pushbyte
                     v = _read_byte(coder)
                     stack.append(v)
+                elif opcode == 37:  # pushshort
+                    v = u30()
+                    stack.append(v)
                 elif opcode == 38:  # pushtrue
                     stack.append(True)
                 elif opcode == 39:  # pushfalse
@@ -711,6 +714,13 @@ class SWFInterpreter(object):
                     value2 = stack.pop()
                     value1 = stack.pop()
                     res = value1 % value2
+                    stack.append(res)
+                elif opcode == 168:  # bitand
+                    value2 = stack.pop()
+                    value1 = stack.pop()
+                    assert isinstance(value1, int)
+                    assert isinstance(value2, int)
+                    res = value1 & value2
                     stack.append(res)
                 elif opcode == 171:  # equals
                     value2 = stack.pop()
