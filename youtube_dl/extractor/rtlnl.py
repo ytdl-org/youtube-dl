@@ -55,6 +55,7 @@ class RtlXlIE(InfoExtractor):
             {
                 'url': PG_URL_TEMPLATE % ('a3m', video_urlpart),
                 'format_id': 'pg-hd',
+                'quality': 0,
             }
         ])
 
