@@ -1001,7 +1001,7 @@ class YoutubeDL(object):
             else:
                 self.to_screen('[info] Writing video description metadata as JSON to: ' + infofn)
                 try:
-                    write_json_file(info_dict, encodeFilename(infofn))
+                    write_json_file(info_dict, infofn)
                 except (OSError, IOError):
                     self.report_error('Cannot write metadata to JSON file ' + infofn)
                     return

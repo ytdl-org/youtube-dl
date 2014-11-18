@@ -73,6 +73,7 @@ def preferredencoding():
 def write_json_file(obj, fn):
     """ Encode obj as JSON and write it to fn, atomically """
 
+    fn = encodeFilename(fn)
     if sys.version_info < (3, 0):
         encoding = get_filesystem_encoding()
         # os.path.basename returns a bytes object, but NamedTemporaryFile

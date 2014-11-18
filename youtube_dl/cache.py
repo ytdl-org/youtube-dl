@@ -8,7 +8,7 @@ import re
 import shutil
 import traceback
 
-from .compat import compat_expanduser
+from .compat import compat_expanduser, compat_getenv
 from .utils import write_json_file
 
 
@@ -19,7 +19,7 @@ class Cache(object):
     def _get_root_dir(self):
         res = self._ydl.params.get('cachedir')
         if res is None:
-            cache_root = os.environ.get('XDG_CACHE_HOME', '~/.cache')
+            cache_root = compat_getenv('XDG_CACHE_HOME', '~/.cache')
             res = os.path.join(cache_root, 'youtube-dl')
         return compat_expanduser(res)
 
