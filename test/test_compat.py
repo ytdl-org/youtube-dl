@@ -26,11 +26,13 @@ class TestCompat(unittest.TestCase):
         self.assertEqual(compat_getenv('YOUTUBE-DL-TEST'), test_str)
 
     def test_compat_expanduser(self):
+        old_home = os.environ.get('HOME')
         test_str = 'C:\Documents and Settings\тест\Application Data'
         os.environ['HOME'] = (
             test_str if sys.version_info >= (3, 0)
             else test_str.encode(get_filesystem_encoding()))
         self.assertEqual(compat_expanduser('~'), test_str)
+        os.environ['HOME'] = old_home
 
     def test_all_present(self):
         import youtube_dl.compat
