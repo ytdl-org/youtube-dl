@@ -11,7 +11,7 @@ from ..utils import (
     compat_urllib_parse,
     compat_str,
     unescapeHTML,
-)
+    unified_strdate)
 
 
 class VKIE(InfoExtractor):
@@ -169,6 +169,12 @@ class VKIE(InfoExtractor):
         data_json = self._search_regex(r'var vars = ({.*?});', info_page, 'vars')
         data = json.loads(data_json)
 
+        # Extract upload date
+        upload_date = None
+        mobj = re.search(r'id="mv_date_wrap".*?Added ([a-zA-Z]+ [0-9]+), ([0-9]+) at', info_page)
+        if mobj is not None:
+            upload_date = unified_strdate(mobj.group(1) + ' ' + mobj.group(2))
+
         formats = [{
             'format_id': k,
             'url': v,
@@ -183,7 +189,8 @@ class VKIE(InfoExtractor):
             'title': unescapeHTML(data['md_title']),
             'thumbnail': data.get('jpg'),
             'uploader': data.get('md_author'),
-            'duration': data.get('duration')
+            'duration': data.get('duration'),
+            'upload_date': upload_date,
         }
 
 
