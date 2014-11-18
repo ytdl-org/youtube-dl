@@ -190,7 +190,7 @@ class VKIE(InfoExtractor):
 class VKUserVideosIE(InfoExtractor):
     IE_NAME = 'vk.com:user-videos'
     IE_DESC = 'All of a user\'s videos'
-    _VALID_URL = r'https?://(?:m\.)?vk\.com/videos([0-9]+)'
+    _VALID_URL = r'https?://(?:m\.)?vk\.com/videos([0-9]+)(?:m\?.*)?'
     _TEMPLATE_URL = 'https://vk.com/videos'
     _TEST = {
         'url': 'http://vk.com/videos205387401',
