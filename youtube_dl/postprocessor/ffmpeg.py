@@ -235,9 +235,10 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
 
 class FFmpegVideoConvertor(FFmpegPostProcessor):
-    def __init__(self, downloader=None,preferedformat=None):
+    def __init__(self, downloader=None,preferedformat=None,opts=[]):
         super(FFmpegVideoConvertor, self).__init__(downloader)
         self._preferedformat=preferedformat
+        self._opts = opts
 
     def run(self, information):
         path = information['filepath']
@@ -247,7 +248,7 @@ class FFmpegVideoConvertor(FFmpegPostProcessor):
             self._downloader.to_screen(u'[ffmpeg] Not converting video file %s - already is in target format %s' % (path, self._preferedformat))
             return True,information
         self._downloader.to_screen(u'['+'ffmpeg'+'] Converting video from %s to %s, Destination: ' % (information['ext'], self._preferedformat) +outpath)
-        self.run_ffmpeg(path, outpath, [])
+        self.run_ffmpeg(path, outpath, self._opts)
         information['filepath'] = outpath
         information['format'] = self._preferedformat
         information['ext'] = self._preferedformat
