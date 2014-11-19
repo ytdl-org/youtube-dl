@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import getpass
+import optparse
 import os
 import subprocess
 import sys
@@ -297,6 +298,26 @@ except TypeError:
 else:
     compat_kwargs = lambda kwargs: kwargs
 
+
+# Fix https://github.com/rg3/youtube-dl/issues/4223
+# See http://bugs.python.org/issue9161 for what is broken
+def workaround_optparse_bug9161():
+    try:
+        optparse.OptionGroup('foo').add_option('-t')
+    except TypeError:
+        real_add_option = optparse.OptionGroup.add_option
+
+        def _compat_add_option(self, *args, **kwargs):
+            enc = lambda v: (
+                v.encode('ascii', 'replace') if isinstance(v, compat_str)
+                else v)
+            bargs = [enc(a) for a in args]
+            bkwargs = dict(
+                (k, enc(v)) for k, v in kwargs.items())
+            return real_add_option(self, *bargs, **bkwargs)
+        optparse.OptionGroup.add_option = _compat_add_option
+
+
 __all__ = [
     'compat_HTTPError',
     'compat_chr',
@@ -323,4 +344,5 @@ __all__ = [
     'compat_xml_parse_error',
     'shlex_quote',
     'subprocess_check_output',
+    'workaround_optparse_bug9161',
 ]

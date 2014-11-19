@@ -19,6 +19,7 @@ from .compat import (
     compat_expanduser,
     compat_getpass,
     compat_print,
+    workaround_optparse_bug9161,
 )
 from .utils import (
     DateRange,
@@ -56,6 +57,8 @@ def _real_main(argv=None):
     if sys.platform == 'win32':
         # https://github.com/rg3/youtube-dl/issues/820
         codecs.register(lambda name: codecs.lookup('utf-8') if name == 'cp65001' else None)
+
+    workaround_optparse_bug9161()
 
     setproctitle('youtube-dl')
 
