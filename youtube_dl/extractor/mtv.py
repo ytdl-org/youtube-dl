@@ -145,7 +145,8 @@ class MTVServicesInfoExtractor(InfoExtractor):
         idoc = self._download_xml(
             feed_url + '?' + data, video_id,
             'Downloading info', transform_source=fix_xml_ampersands)
-        return [self._get_video_info(item) for item in idoc.findall('.//item')]
+        return self.playlist_result(
+            [self._get_video_info(item) for item in idoc.findall('.//item')])
 
     def _real_extract(self, url):
         title = url_basename(url)
