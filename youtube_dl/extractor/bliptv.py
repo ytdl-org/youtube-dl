@@ -166,9 +166,17 @@ class BlipTVIE(SubtitlesInfoExtractor):
 
 
 class BlipTVUserIE(InfoExtractor):
-    _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?blip\.tv/)|bliptvuser:)(?!api\.swf)([^/]+)/*$'
+    _VALID_URL = r'(?:(?:https?://(?:\w+\.)?blip\.tv/)|bliptvuser:)(?!api\.swf)([^/]+)/*$'
     _PAGE_SIZE = 12
     IE_NAME = 'blip.tv:user'
+    _TEST = {
+        'url': 'http://blip.tv/actone',
+        'info_dict': {
+            'id': 'actone',
+            'title': 'Act One: The Series',
+        },
+        'playlist_count': 5,
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -179,6 +187,7 @@ class BlipTVUserIE(InfoExtractor):
         page = self._download_webpage(url, username, 'Downloading user page')
         mobj = re.search(r'data-users-id="([^"]+)"', page)
         page_base = page_base % mobj.group(1)
+        title = self._og_search_title(page)
 
         # Download video ids using BlipTV Ajax calls. Result size per
         # query is limited (currently to 12 videos) so we need to query
@@ -215,4 +224,5 @@ class BlipTVUserIE(InfoExtractor):
 
         urls = ['http://blip.tv/%s' % video_id for video_id in video_ids]
         url_entries = [self.url_result(vurl, 'BlipTV') for vurl in urls]
-        return [self.playlist_result(url_entries, playlist_title=username)]
+        return self.playlist_result(
+            url_entries, playlist_title=title, playlist_id=username)
