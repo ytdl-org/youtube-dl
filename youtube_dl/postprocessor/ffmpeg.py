@@ -79,6 +79,7 @@ class FFmpegPostProcessor(PostProcessor):
         files_cmd = []
         for path in input_paths:
             files_cmd.extend(['-i', encodeFilename(path, True)])
+        oldest_mtime = min(os.stat(path).st_mtime for path in input_paths)
         cmd = ([self._executable, '-y'] + files_cmd
                + [encodeArgument(o) for o in opts] +
                [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
@@ -91,6 +92,7 @@ class FFmpegPostProcessor(PostProcessor):
             stderr = stderr.decode('utf-8', 'replace')
             msg = stderr.strip().split('\n')[-1]
             raise FFmpegPostProcessorError(msg)
+        os.utime(out_path, (oldest_mtime, oldest_mtime))
         if self._deletetempfiles:
             for ipath in input_paths:
                 os.remove(ipath)
