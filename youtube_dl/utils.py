@@ -420,6 +420,7 @@ def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
             pass  # Python < 3.4
         return compat_urllib_request.HTTPSHandler(context=context, **kwargs)
 
+
 class ExtractorError(Exception):
     """Error during info extraction."""
     def __init__(self, msg, tb=None, expected=False, cause=None, video_id=None):
@@ -434,7 +435,13 @@ class ExtractorError(Exception):
         if cause:
             msg += ' (caused by %r)' % cause
         if not expected:
-            msg = msg + '; please report this issue on https://yt-dl.org/bug . Be sure to call youtube-dl with the --verbose flag and include its complete output. Make sure you are using the latest version; type  youtube-dl -U  to update.'
+            if ytdl_is_updateable():
+                update_cmd = 'type  youtube-dl -U  to update'
+            else:
+                update_cmd = 'see  https://yt-dl.org/update  on how to update'
+            msg += '; please report this issue on https://yt-dl.org/bug .'
+            msg += ' Make sure you are using the latest version; %s.' % update_cmd
+            msg += ' Be sure to call youtube-dl with the --verbose flag and include its complete output.'
         super(ExtractorError, self).__init__(msg)
 
         self.traceback = tb
@@ -1419,3 +1426,10 @@ def is_outdated_version(version, limit, assume_new=True):
         return version_tuple(version) < version_tuple(limit)
     except ValueError:
         return not assume_new
+
+
+def ytdl_is_updateable():
+    """ Returns if youtube-dl can be updated with -U """
+    from zipimport import zipimporter
+
+    return isinstance(globals().get('__loader__'), zipimporter) or hasattr(sys, 'frozen')
