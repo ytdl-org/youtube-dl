@@ -43,7 +43,11 @@ class InfoExtractor(object):
     information possibly downloading the video to the file system, among
     other possible outcomes.
 
-    The dictionaries must include the following fields:
+    The type field determines the the type of the result.
+    By far the most common value (and the default if _type is missing) is
+    "video", which indicates a single video.
+
+    For a video, the dictionaries must include the following fields:
 
     id:             Video identifier.
     title:          Video title, unescaped.
@@ -150,6 +154,38 @@ class InfoExtractor(object):
     Unless mentioned otherwise, the fields should be Unicode strings.
 
     Unless mentioned otherwise, None is equivalent to absence of information.
+
+
+    _type "playlist" indicates multiple videos.
+    There must be a key "entries", which is a list or a PagedList object, each
+    element of which is a valid dictionary under this specfication.
+
+    Additionally, playlists can have "title" and "id" attributes with the same
+    semantics as videos (see above).
+
+
+    _type "multi_video" indicates that there are multiple videos that
+    form a single show, for examples multiple acts of an opera or TV episode.
+    It must have an entries key like a playlist and contain all the keys
+    required for a video at the same time.
+
+
+    _type "url" indicates that the video must be extracted from another
+    location, possibly by a different extractor. Its only required key is:
+    "url" - the next URL to extract.
+
+    Additionally, it may have properties believed to be identical to the
+    resolved entity, for example "title" if the title of the referred video is
+    known ahead of time.
+
+
+    _type "url_transparent" entities have the same specification as "url", but
+    indicate that the given additional information is more precise than the one
+    associated with the resolved URL.
+    This is useful when a site employs a video service that hosts the video and
+    its technical metadata, but that video service does not embed a useful
+    title, description etc.
+
 
     Subclasses of this one should re-define the _real_initialize() and
     _real_extract() methods and define a _VALID_URL regexp.
