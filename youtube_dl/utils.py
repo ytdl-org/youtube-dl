@@ -71,7 +71,7 @@ def preferredencoding():
 
 
 def write_json_file(obj, fn):
-    """ Encode obj as JSON and write it to fn, atomically """
+    """ Encode obj as JSON and write it to fn, atomically if possible """
 
     fn = encodeFilename(fn)
     if sys.version_info < (3, 0) and sys.platform != 'win32':
@@ -108,6 +108,13 @@ def write_json_file(obj, fn):
     try:
         with tf:
             json.dump(obj, tf)
+        if sys.platform == 'win32':
+            # Need to remove existing file on Windows, else os.rename raises
+            # WindowsError or FileExistsError.
+            try:
+                os.unlink(fn)
+            except OSError:
+                pass
         os.rename(tf.name, fn)
     except:
         try:
