@@ -109,9 +109,7 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url, re.VERBOSE)
-        if mobj is None:
-            raise ExtractorError('Invalid URL: %s' % url)
+        mobj = re.match(self._VALID_URL, url)
 
         if mobj.group('shortname'):
             if mobj.group('shortname') in ('tds', 'thedailyshow'):
