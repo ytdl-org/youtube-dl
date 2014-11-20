@@ -74,7 +74,7 @@ def write_json_file(obj, fn):
     """ Encode obj as JSON and write it to fn, atomically """
 
     fn = encodeFilename(fn)
-    if sys.version_info < (3, 0):
+    if sys.version_info < (3, 0) and sys.platform != 'win32':
         encoding = get_filesystem_encoding()
         # os.path.basename returns a bytes object, but NamedTemporaryFile
         # will fail if the filename contains non ascii characters unless we
