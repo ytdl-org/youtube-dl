@@ -679,6 +679,9 @@ class YoutubeDL(object):
             ie_result['entries'] = playlist_results
             return ie_result
         elif result_type == 'compat_list':
+            self.report_warning(
+                'Extractor %s returned a compat_list result. '
+                'It needs to be updated.' % ie_result.get('extractor'))
             def _fixup(r):
                 self.add_extra_info(r,
                     {
