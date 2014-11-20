@@ -221,7 +221,7 @@ class BrightcoveIE(InfoExtractor):
         webpage = self._download_webpage(req, video_id)
 
         error_msg = self._html_search_regex(
-            r"<h1>We're sorry.</h1>\s*<p>(.*?)</p>", webpage,
+            r"<h1>We're sorry.</h1>([\s\n]*<p>.*?</p>)+", webpage,
             'error message', default=None)
         if error_msg is not None:
             raise ExtractorError(
