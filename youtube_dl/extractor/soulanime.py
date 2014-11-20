@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class SoulAnimeBaseIE(InfoExtractor):
-    _VID_VALID_URL = r'http://[w.]*soul-anime\.net/watching/(?P<id>[^/]+)'
+    _VID_VALID_URL = r'http://[w.]*soul-anime\.net/watch[^/]*/(?P<id>[^/]+)'
 
     _VIDEO_URL_REGEX = r'<div id="download">[^<]*<a href="(?P<url>[^"]+)"'
 
@@ -62,7 +62,7 @@ class SoulAnimeSeriesIE(InfoExtractor):
 
     _VALID_URL = r'http://[w.]*soul-anime\.net/anime./(?P<id>[^/]+)'
 
-    _EPISODE_REGEX = r'<option value="(/watching/[^"]+)">[^<]*</option>'
+    _EPISODE_REGEX = r'<option value="(/watch[^/]*/[^"]+)">[^<]*</option>'
 
     _TEST = {
         'url': 'http://www.soul-anime.net/anime1/black-rock-shooter-tv/',
