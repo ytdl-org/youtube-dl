@@ -111,6 +111,8 @@ class BrightcoveIE(InfoExtractor):
                             lambda m: m.group(1) + '/>', object_str)
         # Fix up some stupid XML, see https://github.com/rg3/youtube-dl/issues/1608
         object_str = object_str.replace('<--', '<!--')
+        # remove namespace to simplify extraction
+        object_str = re.sub(r'(<object[^>]*)(xmlns=".*?")', r'\1', object_str)
         object_str = fix_xml_ampersands(object_str)
 
         object_doc = xml.etree.ElementTree.fromstring(object_str.encode('utf-8'))
@@ -219,7 +221,7 @@ class BrightcoveIE(InfoExtractor):
         webpage = self._download_webpage(req, video_id)
 
         error_msg = self._html_search_regex(
-            r"<h1>We're sorry.</h1>\s*<p>(.*?)</p>", webpage,
+            r"<h1>We're sorry.</h1>([\s\n]*<p>.*?</p>)+", webpage,
             'error message', default=None)
         if error_msg is not None:
             raise ExtractorError(
