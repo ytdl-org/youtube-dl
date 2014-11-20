@@ -5,7 +5,6 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    ExtractorError,
     find_xpath_attr,
     unified_strdate,
     get_element_by_id,

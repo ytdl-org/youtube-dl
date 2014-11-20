@@ -306,7 +306,7 @@ def workaround_optparse_bug9161():
     og = optparse.OptionGroup(op, 'foo')
     try:
         og.add_option('-t')
-    except TypeError as te:
+    except TypeError:
         real_add_option = optparse.OptionGroup.add_option
 
         def _compat_add_option(self, *args, **kwargs):
