@@ -87,6 +87,11 @@ class InfoExtractor(object):
                                  by this field, regardless of all other values.
                                  -1 for default (order by other properties),
                                  -2 or smaller for less than default.
+                    * language_preference  Is this in the correct requested
+                                 language?
+                                 10 if it's what the URL is about,
+                                 -1 for default (don't know),
+                                 -10 otherwise, other values reserved for now.
                     * quality    Order number of the video quality of this
                                  format, irrespective of the file format.
                                  -1 for default (order by other properties),
@@ -615,6 +620,7 @@ class InfoExtractor(object):
 
             return (
                 preference,
+                f.get('language_preference') if f.get('language_preference') is not None else -1,
                 f.get('quality') if f.get('quality') is not None else -1,
                 f.get('height') if f.get('height') is not None else -1,
                 f.get('width') if f.get('width') is not None else -1,
