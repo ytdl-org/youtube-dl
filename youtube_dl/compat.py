@@ -302,9 +302,11 @@ else:
 # Fix https://github.com/rg3/youtube-dl/issues/4223
 # See http://bugs.python.org/issue9161 for what is broken
 def workaround_optparse_bug9161():
+    op = optparse.OptionParser()
+    og = optparse.OptionGroup(op, 'foo')
     try:
-        optparse.OptionGroup('foo').add_option('-t')
-    except TypeError:
+        og.add_option('-t')
+    except TypeError as te:
         real_add_option = optparse.OptionGroup.add_option
 
         def _compat_add_option(self, *args, **kwargs):
