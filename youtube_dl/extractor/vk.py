@@ -29,6 +29,7 @@ class VKIE(InfoExtractor):
                 'title': 'ProtivoGunz - Хуёвая песня',
                 'uploader': 're:Noize MC.*',
                 'duration': 195,
+                'upload_date': '20120212',
             },
         },
         {
@@ -52,6 +53,7 @@ class VKIE(InfoExtractor):
                 'uploader': 'Vladimir Gavrin',
                 'title': 'Lin Dan',
                 'duration': 101,
+                'upload_date': '20120730',
             }
         },
         {
@@ -88,6 +90,7 @@ class VKIE(InfoExtractor):
                 'uploader': 'Киномания - лучшее из мира кино',
                 'title': ' ',
                 'duration': 7291,
+                'upload_date': '20140328',
             },
             'skip': 'Requires vk account credentials',
         },
@@ -100,6 +103,7 @@ class VKIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Книга Илая',
                 'duration': 6771,
+                'upload_date': '20140626',
             },
             'skip': 'Only works from Russia',
         },
