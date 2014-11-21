@@ -33,14 +33,15 @@ class VKIE(InfoExtractor):
             },
         },
         {
-            'url': 'http://vk.com/video4643923_163339118',
-            'md5': 'f79bccb5cd182b1f43502ca5685b2b36',
+            'url': 'http://vk.com/video205387401_165548505',
+            'md5': '6c0aeb2e90396ba97035b9cbde548700',
             'info_dict': {
-                'id': '163339118',
+                'id': '165548505',
                 'ext': 'mp4',
-                'uploader': 'Elya Iskhakova',
-                'title': 'Dream Theater - Hollow Years Live at Budokan 720*',
-                'duration': 558,
+                'uploader': 'Tom Cruise',
+                'title': 'No name',
+                'duration': 9,
+                'upload_date': '20130721'
             }
         },
         {
@@ -57,6 +58,8 @@ class VKIE(InfoExtractor):
             }
         },
         {
+            # VIDEO NOW REMOVED
+            # please update if you find a video whose URL follows the same pattern
             'url': 'http://vk.com/video-8871596_164049491',
             'md5': 'a590bcaf3d543576c9bd162812387666',
             'note': 'Only available for registered users',
@@ -66,10 +69,13 @@ class VKIE(InfoExtractor):
                 'uploader': 'Триллеры',
                 'title': '► Бойцовский клуб / Fight Club 1999 [HD 720]',
                 'duration': 8352,
+                'upload_date': '20121218'
             },
             'skip': 'Requires vk account credentials',
         },
         {
+            # VIDEO NOW REMOVED
+            # please update if you find a video whose URL follows the same pattern
             'url': 'http://vk.com/feed?z=video-43215063_166094326%2Fbb50cacd3177146d7a',
             'md5': 'd82c22e449f036282d1d3f7f4d276869',
             'info_dict': {
@@ -78,6 +84,7 @@ class VKIE(InfoExtractor):
                 'uploader': 'Киномания - лучшее из мира кино',
                 'title': 'Запах женщины (1992)',
                 'duration': 9392,
+                'upload_date': '20130914'
             },
             'skip': 'Requires vk account credentials',
         },
@@ -177,6 +184,7 @@ class VKIE(InfoExtractor):
         upload_date = None
         mobj = re.search(r'id="mv_date_wrap".*?Added ([a-zA-Z]+ [0-9]+), ([0-9]+) at', info_page)
         if mobj is not None:
+            x = mobj.group(1) + ' ' + mobj.group(2)
             upload_date = unified_strdate(mobj.group(1) + ' ' + mobj.group(2))
 
         formats = [{
