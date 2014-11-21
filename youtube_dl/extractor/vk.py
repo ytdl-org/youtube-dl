@@ -11,7 +11,8 @@ from ..utils import (
     compat_urllib_parse,
     compat_str,
     unescapeHTML,
-    unified_strdate)
+    unified_strdate,
+    orderedSet)
 
 
 class VKIE(InfoExtractor):
@@ -216,13 +217,6 @@ class VKUserVideosIE(InfoExtractor):
         'playlist_mincount': 4,
     }
 
-    def extract_videos_from_page(self, page):
-        ids_in_page = []
-        for mobj in re.finditer(r'href="/video([0-9_]+)"', page):
-            if mobj.group(1) not in ids_in_page:
-                ids_in_page.append(mobj.group(1))
-        return ids_in_page
-
     def _real_extract(self, url):
         # Extract page id
         mobj = re.match(self._VALID_URL, url)
@@ -232,7 +226,7 @@ class VKUserVideosIE(InfoExtractor):
         # Download page and get video ids
         page_id = mobj.group(1)
         page = self._download_webpage(url, page_id)
-        video_ids = self.extract_videos_from_page(page)
+        video_ids = orderedSet(m.group(1) for m in re.finditer(r'href="/video([0-9_]+)"', page))
 
         self._downloader.to_screen('[vk] User videos %s: Found %i videos' % (page_id, len(video_ids)))
 
