@@ -218,13 +218,7 @@ class VKUserVideosIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        # Extract page id
-        mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError('Invalid URL: %s' % url)
-
-        # Download page and get video ids
-        page_id = mobj.group(1)
+        page_id = self._match_id(url)
         page = self._download_webpage(url, page_id)
         video_ids = orderedSet(m.group(1) for m in re.finditer(r'href="/video([0-9_]+)"', page))
 
