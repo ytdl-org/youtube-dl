@@ -115,6 +115,7 @@ from .fktv import (
     FKTVPosteckeIE,
 )
 from .flickr import FlickrIE
+from .folketinget import FolketingetIE
 from .fourtube import FourTubeIE
 from .franceculture import FranceCultureIE
 from .franceinter import FranceInterIE
