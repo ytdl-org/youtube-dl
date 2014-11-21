@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import determine_ext
 
 
 class SztvHuIE(InfoExtractor):
@@ -37,7 +36,6 @@ class SztvHuIE(InfoExtractor):
             'id': video_id,
             'url': video_url,
             'title': title,
-            'ext': determine_ext(video_url),
             'description': description,
             'thumbnail': thumbnail,
         }
