@@ -142,12 +142,14 @@ class VKIE(InfoExtractor):
 
         ERRORS = {
             r'>Видеозапись .*? была изъята из публичного доступа в связи с обращением правообладателя.<':
-                'Video %s has been removed from public access due to rightholder complaint.',
+            'Video %s has been removed from public access due to rightholder complaint.',
+
             r'<!>Please log in or <':
-                'Video %s is only available for registered users, '
-                'use --username and --password options to provide account credentials.',
-            '<!>Unknown error':
-                'Video %s does not exist.'
+            'Video %s is only available for registered users, '
+            'use --username and --password options to provide account credentials.',
+
+            r'<!>Unknown error':
+            'Video %s does not exist.'
         }
 
         for error_re, error_msg in ERRORS.items():
