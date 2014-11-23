@@ -380,6 +380,7 @@ from .teachingchannel import TeachingChannelIE
 from .teamcoco import TeamcocoIE
 from .techtalks import TechTalksIE
 from .ted import TEDIE
+from .telebruxelles import TeleBruxellesIE
 from .telecinco import TelecincoIE
 from .telemb import TeleMBIE
 from .tenplay import TenPlayIE
