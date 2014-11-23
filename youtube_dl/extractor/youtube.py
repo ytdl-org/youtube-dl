@@ -406,6 +406,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'format': '141',
             },
         },
+        # Controversy video
+        {
+            'url': 'https://www.youtube.com/watch?v=T4XJQO3qol8',
+            'info_dict': {
+                'id': 'T4XJQO3qol8',
+                'ext': 'mp4',
+                'upload_date': '20100909',
+                'uploader': 'The Amazing Atheist',
+                'uploader_id': 'TheAmazingAtheist',
+                'title': 'Burning Everyone\'s Koran',
+                'description': 'SUBSCRIBE: http://www.youtube.com/saturninefilms\n\nEven Obama has taken a stand against freedom on this issue: http://www.huffingtonpost.com/2010/09/09/obama-gma-interview-quran_n_710282.html',
+            }
+        }
     ]
 
     def __init__(self, *args, **kwargs):
@@ -666,7 +679,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         video_id = self.extract_id(url)
 
         # Get video webpage
-        url = proto + '://www.youtube.com/watch?v=%s&gl=US&hl=en&has_verified=1' % video_id
+        url = proto + '://www.youtube.com/watch?v=%s&gl=US&hl=en&has_verified=1&bpctr=9999999999' % video_id
         pref_cookies = [
             c for c in self._downloader.cookiejar
             if c.domain == '.youtube.com' and c.name == 'PREF']
