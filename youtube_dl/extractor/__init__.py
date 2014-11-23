@@ -511,6 +511,10 @@ from .youtube import (
     YoutubeWatchLaterIE,
 )
 from .zdf import ZDFIE
+from .zingmp3 import (
+    ZingMp3SongIE,
+    ZingMp3AlbumIE,
+)
 
 _ALL_CLASSES = [
     klass
