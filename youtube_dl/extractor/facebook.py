@@ -77,7 +77,7 @@ class FacebookIE(InfoExtractor):
             'legacy_return': '1',
             'timezone': '-60',
             'trynum': '1',
-            }
+        }
         request = compat_urllib_request.Request(self._LOGIN_URL, urlencode_postdata(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         try:

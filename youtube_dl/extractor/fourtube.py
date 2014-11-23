@@ -65,9 +65,9 @@ class FourTubeIE(InfoExtractor):
 
         token_url = "http://tkn.4tube.com/{0}/desktop/{1}".format(media_id, "+".join(sources))
         headers = {
-                b'Content-Type': b'application/x-www-form-urlencoded',
-                b'Origin': b'http://www.4tube.com',
-                }
+            b'Content-Type': b'application/x-www-form-urlencoded',
+            b'Origin': b'http://www.4tube.com',
+        }
         token_req = compat_urllib_request.Request(token_url, b'{}', headers)
         tokens = self._download_json(token_req, video_id)
 
@@ -76,7 +76,7 @@ class FourTubeIE(InfoExtractor):
             'format_id': format + 'p',
             'resolution': format + 'p',
             'quality': int(format),
-            } for format in sources]
+        } for format in sources]
 
         self._sort_formats(formats)
 

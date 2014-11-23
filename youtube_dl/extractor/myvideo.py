@@ -57,9 +57,9 @@ class MyVideoIE(InfoExtractor):
         video_id = mobj.group('id')
 
         GK = (
-          b'WXpnME1EZGhNRGhpTTJNM01XVmhOREU0WldNNVpHTTJOakpt'
-          b'TW1FMU5tVTBNR05pWkRaa05XRXhNVFJoWVRVd1ptSXhaVEV3'
-          b'TnpsbA0KTVRkbU1tSTRNdz09'
+            b'WXpnME1EZGhNRGhpTTJNM01XVmhOREU0WldNNVpHTTJOakpt'
+            b'TW1FMU5tVTBNR05pWkRaa05XRXhNVFJoWVRVd1ptSXhaVEV3'
+            b'TnpsbA0KTVRkbU1tSTRNdz09'
         )
 
         # Get video webpage

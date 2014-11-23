@@ -240,9 +240,9 @@ def sanitize_open(filename, open_mode):
 
         # In case of error, try to remove win32 forbidden chars
         alt_filename = os.path.join(
-                        re.sub('[/<>:"\\|\\\\?\\*]', '#', path_part)
-                        for path_part in os.path.split(filename)
-                       )
+            re.sub('[/<>:"\\|\\\\?\\*]', '#', path_part)
+            for path_part in os.path.split(filename)
+        )
         if alt_filename == filename:
             raise
         else:

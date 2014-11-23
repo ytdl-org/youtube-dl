@@ -63,8 +63,10 @@ class IGNIE(InfoExtractor):
                 'id': '078fdd005f6d3c02f63d795faa1b984f',
                 'ext': 'mp4',
                 'title': 'Rewind Theater - Wild Trailer Gamescom 2014',
-                'description': 'Giant skeletons, bloody hunts, and captivating'
-                    ' natural beauty take our breath away.',
+                'description': (
+                    'Giant skeletons, bloody hunts, and captivating'
+                    ' natural beauty take our breath away.'
+                ),
             },
         },
     ]

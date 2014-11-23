@@ -371,7 +371,7 @@ class SoundcloudPlaylistIE(SoundcloudIE):
 
         entries = [
             self._extract_info_dict(t, quiet=True, secret_token=token)
-                for t in data['tracks']]
+            for t in data['tracks']]
 
         return {
             '_type': 'playlist',

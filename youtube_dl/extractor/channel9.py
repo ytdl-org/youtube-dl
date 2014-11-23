@@ -188,16 +188,17 @@ class Channel9IE(InfoExtractor):
         view_count = self._extract_view_count(html)
         comment_count = self._extract_comment_count(html)
 
-        common = {'_type': 'video',
-                  'id': content_path,
-                  'description': description,
-                  'thumbnail': thumbnail,
-                  'duration': duration,
-                  'avg_rating': avg_rating,
-                  'rating_count': rating_count,
-                  'view_count': view_count,
-                  'comment_count': comment_count,
-                }
+        common = {
+            '_type': 'video',
+            'id': content_path,
+            'description': description,
+            'thumbnail': thumbnail,
+            'duration': duration,
+            'avg_rating': avg_rating,
+            'rating_count': rating_count,
+            'view_count': view_count,
+            'comment_count': comment_count,
+        }
 
         result = []
 

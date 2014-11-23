@@ -262,7 +262,8 @@ def parseOpts(overrideArguments=None):
     video_format.add_option(
         '-f', '--format',
         action='store', dest='format', metavar='FORMAT', default=None,
-        help='video format code, specify the order of preference using'
+        help=(
+            'video format code, specify the order of preference using'
             ' slashes: -f 22/17/18 .  -f mp4 , -f m4a and  -f flv  are also'
             ' supported. You can also use the special names "best",'
             ' "bestvideo", "bestaudio", "worst", "worstvideo" and'
@@ -271,7 +272,7 @@ def parseOpts(overrideArguments=None):
             ' -f  136/137/mp4/bestvideo,140/m4a/bestaudio.'
             ' You can merge the video and audio of two formats into a single'
             ' file using -f <video-format>+<audio-format> (requires ffmpeg or'
-            ' avconv), for example -f bestvideo+bestaudio.')
+            ' avconv), for example -f bestvideo+bestaudio.'))
     video_format.add_option(
         '--all-formats',
         action='store_const', dest='format', const='all',

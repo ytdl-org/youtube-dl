@@ -87,7 +87,7 @@ def key_expansion(data):
             temp = sub_bytes(temp)
             data += xor(temp, data[-key_size_bytes: 4 - key_size_bytes])
 
-        for _ in range(3 if key_size_bytes == 32  else 2 if key_size_bytes == 24 else 0):
+        for _ in range(3 if key_size_bytes == 32 else 2 if key_size_bytes == 24 else 0):
             temp = data[-4:]
             data += xor(temp, data[-key_size_bytes: 4 - key_size_bytes])
     data = data[:expanded_key_size_bytes]

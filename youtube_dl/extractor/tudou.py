@@ -36,7 +36,7 @@ class TudouIE(InfoExtractor):
         'skip': 'Only works from China'
     }]
 
-    def _url_for_id(self, id, quality = None):
+    def _url_for_id(self, id, quality=None):
         info_url = "http://v2.tudou.com/f?id=" + str(id)
         if quality:
             info_url += '&hd' + quality

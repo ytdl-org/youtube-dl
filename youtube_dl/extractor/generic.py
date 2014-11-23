@@ -537,9 +537,9 @@ class GenericIE(InfoExtractor):
 
             if default_search in ('error', 'fixup_error'):
                 raise ExtractorError(
-                    ('%r is not a valid URL. '
-                     'Set --default-search "ytsearch" (or run  youtube-dl "ytsearch:%s" ) to search YouTube'
-                    ) % (url, url), expected=True)
+                    '%r is not a valid URL. '
+                    'Set --default-search "ytsearch" (or run  youtube-dl "ytsearch:%s" ) to search YouTube'
+                    % (url, url), expected=True)
             else:
                 if ':' not in default_search:
                     default_search += ':'

@@ -189,7 +189,7 @@ def _real_main(argv=None):
 
     # --all-sub automatically sets --write-sub if --write-auto-sub is not given
     # this was the old behaviour if only --all-sub was given.
-    if opts.allsubtitles and (opts.writeautomaticsub == False):
+    if opts.allsubtitles and not opts.writeautomaticsub:
         opts.writesubtitles = True
 
     if sys.version_info < (3,):

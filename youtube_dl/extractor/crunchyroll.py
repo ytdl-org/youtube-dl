@@ -248,8 +248,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         subtitles = {}
         sub_format = self._downloader.params.get('subtitlesformat', 'srt')
         for sub_id, sub_name in re.findall(r'\?ssid=([0-9]+)" title="([^"]+)', webpage):
-            sub_page = self._download_webpage('http://www.crunchyroll.com/xml/?req=RpcApiSubtitle_GetXml&subtitle_script_id=' + sub_id,\
-                                              video_id, note='Downloading subtitles for ' + sub_name)
+            sub_page = self._download_webpage(
+                'http://www.crunchyroll.com/xml/?req=RpcApiSubtitle_GetXml&subtitle_script_id=' + sub_id,
+                video_id, note='Downloading subtitles for ' + sub_name)
             id = self._search_regex(r'id=\'([0-9]+)', sub_page, 'subtitle_id', fatal=False)
             iv = self._search_regex(r'<iv>([^<]+)', sub_page, 'subtitle_iv', fatal=False)
             data = self._search_regex(r'<data>([^<]+)', sub_page, 'subtitle_data', fatal=False)

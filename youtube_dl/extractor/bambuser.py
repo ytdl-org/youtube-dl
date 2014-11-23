@@ -73,10 +73,11 @@ class BambuserChannelIE(InfoExtractor):
         urls = []
         last_id = ''
         for i in itertools.count(1):
-            req_url = ('http://bambuser.com/xhr-api/index.php?username={user}'
-                       '&sort=created&access_mode=0%2C1%2C2&limit={count}'
-                       '&method=broadcast&format=json&vid_older_than={last}'
-                ).format(user=user, count=self._STEP, last=last_id)
+            req_url = (
+                'http://bambuser.com/xhr-api/index.php?username={user}'
+                '&sort=created&access_mode=0%2C1%2C2&limit={count}'
+                '&method=broadcast&format=json&vid_older_than={last}'
+            ).format(user=user, count=self._STEP, last=last_id)
             req = compat_urllib_request.Request(req_url)
             # Without setting this header, we wouldn't get any result
             req.add_header('Referer', 'http://bambuser.com/channel/%s' % user)

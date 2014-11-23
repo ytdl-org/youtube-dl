@@ -43,7 +43,7 @@ class IviIE(InfoExtractor):
                 'thumbnail': 'http://thumbs.ivi.ru/f15.vcp.digitalaccess.ru/contents/8/4/0068dc0677041f3336b7c2baad8fc0.jpg',
             },
             'skip': 'Only works from Russia',
-         }
+        }
     ]
 
     # Sorted by quality
