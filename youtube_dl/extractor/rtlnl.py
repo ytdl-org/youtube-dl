@@ -44,7 +44,7 @@ class RtlXlIE(InfoExtractor):
 
         formats = self._extract_m3u8_formats(m3u8_url, uuid, ext='mp4')
 
-        video_urlpart = videopath.split('/flash/')[1][:-4]
+        video_urlpart = videopath.split('/flash/')[1][:-5]
         PG_URL_TEMPLATE = 'http://pg.us.rtl.nl/rtlxl/network/%s/progressive/%s.mp4'
 
         formats.extend([
