@@ -184,7 +184,7 @@ class SmotriIE(InfoExtractor):
 
         view_count = self._html_search_regex(
             'Общее количество просмотров.*?<span class="Number">(\\d+)</span>',
-            webpage, 'view count', fatal=False, flags=re.MULTILINE|re.DOTALL)
+            webpage, 'view count', fatal=False, flags=re.MULTILINE | re.DOTALL)
 
         return {
             'id': video_id,

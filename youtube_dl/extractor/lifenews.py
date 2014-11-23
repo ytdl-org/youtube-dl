@@ -71,4 +71,4 @@ class LifeNewsIE(InfoExtractor):
         if len(videos) == 1:
             return make_entry(video_id, videos[0])
         else:
-            return [make_entry(video_id, media, video_number +1) for video_number, media in enumerate(videos)]
+            return [make_entry(video_id, media, video_number + 1) for video_number, media in enumerate(videos)]

@@ -32,7 +32,7 @@ def rsa_verify(message, signature, key):
     signature = signature[2:]
     if not b('\x00') in signature:
         return False
-    signature = signature[signature.index(b('\x00')) +1:]
+    signature = signature[signature.index(b('\x00')) + 1:]
     if not signature.startswith(b('\x30\x31\x30\x0D\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x01\x05\x00\x04\x20')):
         return False
     signature = signature[19:]
