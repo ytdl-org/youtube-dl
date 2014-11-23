@@ -37,11 +37,11 @@ class TudouIE(InfoExtractor):
     }]
 
     def _url_for_id(self, id, quality = None):
-        info_url = "http://v2.tudou.com/f?id="+str(id)
+        info_url = "http://v2.tudou.com/f?id=" + str(id)
         if quality:
             info_url += '&hd' + quality
         webpage = self._download_webpage(info_url, id, "Opening the info webpage")
-        final_url = self._html_search_regex('>(.+?)</f>',webpage, 'video url')
+        final_url = self._html_search_regex('>(.+?)</f>', webpage, 'video url')
         return final_url
 
     def _real_extract(self, url):

@@ -55,7 +55,7 @@ class FlvReader(io.BytesIO):
         if size == 1:
             real_size = self.read_unsigned_long_long()
             header_end = 16
-        return real_size, box_type, self.read(real_size-header_end)
+        return real_size, box_type, self.read(real_size - header_end)
 
     def read_asrt(self):
         # version
@@ -180,7 +180,7 @@ def build_fragments_list(boot_info):
     n_frags = segment_run_entry[1]
     fragment_run_entry_table = boot_info['fragments'][0]['fragments']
     first_frag_number = fragment_run_entry_table[0]['first']
-    for (i, frag_number) in zip(range(1, n_frags+1), itertools.count(first_frag_number)):
+    for (i, frag_number) in zip(range(1, n_frags + 1), itertools.count(first_frag_number)):
         res.append((1, frag_number))
     return res
 

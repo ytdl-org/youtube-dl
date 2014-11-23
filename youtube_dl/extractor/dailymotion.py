@@ -1,4 +1,4 @@
-#coding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -18,6 +18,7 @@ from ..utils import (
     unescapeHTML,
 )
 
+
 class DailymotionBaseInfoExtractor(InfoExtractor):
     @staticmethod
     def _build_request(url):
@@ -26,6 +27,7 @@ class DailymotionBaseInfoExtractor(InfoExtractor):
         request.add_header('Cookie', 'family_filter=off')
         request.add_header('Cookie', 'ff=off')
         return request
+
 
 class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
     """Information Extractor for Dailymotion"""

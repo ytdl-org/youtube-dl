@@ -23,6 +23,7 @@ EXTRA_ARGS = {
     'batch-file': ['--require-parameter'],
 }
 
+
 def build_completion(opt_parser):
     commands = []
 

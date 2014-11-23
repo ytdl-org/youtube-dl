@@ -97,7 +97,7 @@ class XTubeUserIE(InfoExtractor):
             url, username, note='Retrieving profile page')
 
         video_count = int(self._search_regex(
-            r'<strong>%s\'s Videos \(([0-9]+)\)</strong>'%username, profile_page,
+            r'<strong>%s\'s Videos \(([0-9]+)\)</strong>' % username, profile_page,
             'video count'))
 
         PAGE_SIZE = 25

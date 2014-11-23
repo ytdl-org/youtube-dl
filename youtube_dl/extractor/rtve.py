@@ -54,7 +54,6 @@ def _decrypt_url(png):
     return url
 
 
-
 class RTVEALaCartaIE(InfoExtractor):
     IE_NAME = 'rtve.es:alacarta'
     IE_DESC = 'RTVE a la carta'

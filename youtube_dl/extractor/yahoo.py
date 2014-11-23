@@ -229,7 +229,7 @@ class YahooSearchIE(SearchInfoExtractor):
         for pagenum in itertools.count(0):
             result_url = 'http://video.search.yahoo.com/search/?p=%s&fr=screen&o=js&gs=0&b=%d' % (compat_urllib_parse.quote_plus(query), pagenum * 30)
             info = self._download_json(result_url, query,
-                note='Downloading results page '+str(pagenum+1))
+                note='Downloading results page ' + str(pagenum + 1))
             m = info['m']
             results = info['results']
 

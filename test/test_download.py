@@ -40,17 +40,21 @@ from youtube_dl.extractor import get_info_extractor
 
 RETRIES = 3
 
+
 class YoutubeDL(youtube_dl.YoutubeDL):
     def __init__(self, *args, **kwargs):
         self.to_stderr = self.to_screen
         self.processed_info_dicts = []
         super(YoutubeDL, self).__init__(*args, **kwargs)
+
     def report_warning(self, message):
         # Don't accept warnings during tests
         raise ExtractorError(message)
+
     def process_info(self, info_dict):
         self.processed_info_dicts.append(info_dict)
         return super(YoutubeDL, self).process_info(info_dict)
+
 
 def _file_md5(fn):
     with open(fn, 'rb') as f:
@@ -61,10 +65,13 @@ defs = gettestcases()
 
 class TestDownload(unittest.TestCase):
     maxDiff = None
+
     def setUp(self):
         self.defs = defs
 
-### Dynamically generate tests
+# Dynamically generate tests
+
+
 def generator(test_case):
 
     def test_template(self):
@@ -101,6 +108,7 @@ def generator(test_case):
         ydl = YoutubeDL(params, auto_init=False)
         ydl.add_default_info_extractors()
         finished_hook_called = set()
+
         def _hook(status):
             if status['status'] == 'finished':
                 finished_hook_called.add(status['filename'])
@@ -111,6 +119,7 @@ def generator(test_case):
             return tc.get('file') or ydl.prepare_filename(tc.get('info_dict', {}))
 
         res_dict = None
+
         def try_rm_tcs_files(tcs=None):
             if tcs is None:
                 tcs = test_cases
@@ -206,7 +215,7 @@ def generator(test_case):
 
     return test_template
 
-### And add them to TestDownload
+# And add them to TestDownload
 for n, test_case in enumerate(defs):
     test_method = generator(test_case)
     tname = 'test_' + str(test_case['name'])

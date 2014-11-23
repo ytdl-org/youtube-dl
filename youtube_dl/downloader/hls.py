@@ -101,4 +101,3 @@ class NativeHlsFD(FileDownloader):
         })
         self.try_rename(tmpfilename, filename)
         return True
-

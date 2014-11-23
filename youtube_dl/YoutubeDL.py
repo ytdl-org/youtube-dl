@@ -29,7 +29,6 @@ from .compat import (
     compat_str,
     compat_urllib_error,
     compat_urllib_request,
-    shlex_quote,
 )
 from .utils import (
     escape_url,
@@ -552,7 +551,7 @@ class YoutubeDL(object):
 
             try:
                 ie_result = ie.extract(url)
-                if ie_result is None: # Finished already (backwards compatibility; listformats and friends should be moved here)
+                if ie_result is None:  # Finished already (backwards compatibility; listformats and friends should be moved here)
                     break
                 if isinstance(ie_result, list):
                     # Backwards compatibility: old IE result format
@@ -565,7 +564,7 @@ class YoutubeDL(object):
                     return self.process_ie_result(ie_result, download, extra_info)
                 else:
                     return ie_result
-            except ExtractorError as de: # An error we somewhat expected
+            except ExtractorError as de:  # An error we somewhat expected
                 self.report_error(compat_str(de), de.format_traceback())
                 break
             except MaxDownloadsReached:
@@ -700,6 +699,7 @@ class YoutubeDL(object):
             self.report_warning(
                 'Extractor %s returned a compat_list result. '
                 'It needs to be updated.' % ie_result.get('extractor'))
+
             def _fixup(r):
                 self.add_extra_info(r,
                     {
@@ -1010,7 +1010,7 @@ class YoutubeDL(object):
                     else:
                         self.to_screen('[info] Writing video subtitles to: ' + sub_filename)
                         with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
-                                subfile.write(sub)
+                            subfile.write(sub)
                 except (OSError, IOError):
                     self.report_error('Cannot write subtitles file ' + sub_filename)
                     return
@@ -1111,7 +1111,7 @@ class YoutubeDL(object):
 
         for url in url_list:
             try:
-                #It also downloads the videos
+                # It also downloads the videos
                 res = self.extract_info(url)
             except UnavailableVideoError:
                 self.report_error('unable to download video')
@@ -1428,4 +1428,3 @@ class YoutubeDL(object):
         if encoding is None:
             encoding = preferredencoding()
         return encoding
-

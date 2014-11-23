@@ -97,4 +97,3 @@ class OoyalaIE(InfoExtractor):
             }
         else:
             return self._extract_result(videos_info[0], videos_more_info)
-        

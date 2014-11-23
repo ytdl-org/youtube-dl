@@ -224,14 +224,14 @@ class SoundcloudIE(InfoExtractor):
             # extract uploader (which is in the url)
             uploader = mobj.group('uploader')
             # extract simple title (uploader + slug of song title)
-            slug_title =  mobj.group('title')
+            slug_title = mobj.group('title')
             token = mobj.group('token')
             full_title = resolve_title = '%s/%s' % (uploader, slug_title)
             if token:
                 resolve_title += '/%s' % token
-    
+
             self.report_resolve(full_title)
-    
+
             url = 'http://soundcloud.com/%s' % resolve_title
             info_json_url = self._resolv_url(url)
         info = self._download_json(info_json_url, full_title, 'Downloading info JSON')

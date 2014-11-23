@@ -26,4 +26,3 @@ class ExecAfterDownloadPP(PostProcessor):
                 'Command returned error code %d' % retCode)
 
         return None, information  # by default, keep file and do nothing
-

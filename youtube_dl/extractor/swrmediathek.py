@@ -80,7 +80,7 @@ class SWRMediathekIE(InfoExtractor):
 
             if media_type == 'Video':
                 fmt.update({
-                    'format_note': ['144p', '288p', '544p', '720p'][quality-1],
+                    'format_note': ['144p', '288p', '544p', '720p'][quality - 1],
                     'vcodec': codec,
                 })
             elif media_type == 'Audio':

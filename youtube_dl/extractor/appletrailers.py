@@ -70,11 +70,13 @@ class AppleTrailersIE(InfoExtractor):
         uploader_id = mobj.group('company')
 
         playlist_url = compat_urlparse.urljoin(url, 'includes/playlists/itunes.inc')
+
         def fix_html(s):
             s = re.sub(r'(?s)<script[^<]*?>.*?</script>', '', s)
             s = re.sub(r'<img ([^<]*?)>', r'<img \1/>', s)
             # The ' in the onClick attributes are not escaped, it couldn't be parsed
             # like: http://trailers.apple.com/trailers/wb/gravity/
+
             def _clean_json(m):
                 return 'iTunes.playURL(%s);' % m.group(1).replace('\'', '&#39;')
             s = re.sub(self._JSON_RE, _clean_json, s)

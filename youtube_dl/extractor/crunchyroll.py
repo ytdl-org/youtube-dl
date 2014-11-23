@@ -69,10 +69,8 @@ class CrunchyrollIE(SubtitlesInfoExtractor):
         login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         self._download_webpage(login_request, None, False, 'Wrong login info')
 
-
     def _real_initialize(self):
         self._login()
-
 
     def _decrypt_subtitles(self, data, iv, id):
         data = bytes_to_intlist(data)
@@ -99,8 +97,10 @@ class CrunchyrollIE(SubtitlesInfoExtractor):
             return shaHash + [0] * 12
 
         key = obfuscate_key(id)
+
         class Counter:
             __value = iv
+
             def next_value(self):
                 temp = self.__value
                 self.__value = inc(self.__value)
@@ -183,7 +183,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         return output
 
-    def _real_extract(self,url):
+    def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('video_id')
 
@@ -226,10 +226,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         formats = []
         for fmt in re.findall(r'\?p([0-9]{3,4})=1', webpage):
             stream_quality, stream_format = self._FORMAT_IDS[fmt]
-            video_format = fmt+'p'
+            video_format = fmt + 'p'
             streamdata_req = compat_urllib_request.Request('http://www.crunchyroll.com/xml/')
             # urlencode doesn't work!
-            streamdata_req.data = 'req=RpcApiVideoEncode%5FGetStreamInfo&video%5Fencode%5Fquality='+stream_quality+'&media%5Fid='+stream_id+'&video%5Fformat='+stream_format
+            streamdata_req.data = 'req=RpcApiVideoEncode%5FGetStreamInfo&video%5Fencode%5Fquality=' + stream_quality + '&media%5Fid=' + stream_id + '&video%5Fformat=' + stream_format
             streamdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
             streamdata_req.add_header('Content-Length', str(len(streamdata_req.data)))
             streamdata = self._download_xml(
@@ -248,8 +248,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         subtitles = {}
         sub_format = self._downloader.params.get('subtitlesformat', 'srt')
         for sub_id, sub_name in re.findall(r'\?ssid=([0-9]+)" title="([^"]+)', webpage):
-            sub_page = self._download_webpage('http://www.crunchyroll.com/xml/?req=RpcApiSubtitle_GetXml&subtitle_script_id='+sub_id,\
-                                              video_id, note='Downloading subtitles for '+sub_name)
+            sub_page = self._download_webpage('http://www.crunchyroll.com/xml/?req=RpcApiSubtitle_GetXml&subtitle_script_id=' + sub_id,\
+                                              video_id, note='Downloading subtitles for ' + sub_name)
             id = self._search_regex(r'id=\'([0-9]+)', sub_page, 'subtitle_id', fatal=False)
             iv = self._search_regex(r'<iv>([^<]+)', sub_page, 'subtitle_iv', fatal=False)
             data = self._search_regex(r'<data>([^<]+)', sub_page, 'subtitle_data', fatal=False)
@@ -274,14 +274,14 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             return
 
         return {
-            'id':          video_id,
-            'title':       video_title,
+            'id': video_id,
+            'title': video_title,
             'description': video_description,
-            'thumbnail':   video_thumbnail,
-            'uploader':    video_uploader,
+            'thumbnail': video_thumbnail,
+            'uploader': video_uploader,
             'upload_date': video_upload_date,
-            'subtitles':   subtitles,
-            'formats':     formats,
+            'subtitles': subtitles,
+            'formats': formats,
         }
 
 

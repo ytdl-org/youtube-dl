@@ -827,4 +827,3 @@ class SWFInterpreter(object):
 
         avm_class.method_pyfunctions[func_name] = resfunc
         return resfunc
-

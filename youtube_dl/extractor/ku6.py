@@ -30,4 +30,3 @@ class Ku6IE(InfoExtractor):
             'title': title,
             'url': downloadUrl
         }
-

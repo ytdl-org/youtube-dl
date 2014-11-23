@@ -13,7 +13,7 @@ class HowcastIE(InfoExtractor):
         'info_dict': {
             'id': '390161',
             'ext': 'mp4',
-            'description': 'The square knot, also known as the reef knot, is one of the oldest, most basic knots to tie, and can be used in many different ways. Here\'s the proper way to tie a square knot.', 
+            'description': 'The square knot, also known as the reef knot, is one of the oldest, most basic knots to tie, and can be used in many different ways. Here\'s the proper way to tie a square knot.',
             'title': 'How to Tie a Square Knot Properly',
         }
     }

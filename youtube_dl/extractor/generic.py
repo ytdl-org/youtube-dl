@@ -733,7 +733,7 @@ class GenericIE(InfoExtractor):
                 'title': video_title,
                 'id': video_id,
             }
-            
+
         match = re.search(r'(?:id=["\']wistia_|data-wistia-?id=["\']|Wistia\.embed\(["\'])(?P<id>[^"\']+)', webpage)
         if match:
             return {
@@ -748,7 +748,7 @@ class GenericIE(InfoExtractor):
         # Look for embedded blip.tv player
         mobj = re.search(r'<meta\s[^>]*https?://api\.blip\.tv/\w+/redirect/\w+/(\d+)', webpage)
         if mobj:
-            return self.url_result('http://blip.tv/a/a-'+mobj.group(1), 'BlipTV')
+            return self.url_result('http://blip.tv/a/a-' + mobj.group(1), 'BlipTV')
         mobj = re.search(r'<(?:iframe|embed|object)\s[^>]*(https?://(?:\w+\.)?blip\.tv/(?:play/|api\.swf#)[a-zA-Z0-9_]+)', webpage)
         if mobj:
             return self.url_result(mobj.group(1), 'BlipTV')
@@ -1025,4 +1025,3 @@ class GenericIE(InfoExtractor):
                 '_type': 'playlist',
                 'entries': entries,
             }
-

@@ -44,7 +44,7 @@ class MporaIE(InfoExtractor):
                     r'_([0-9]+)\.[a-zA-Z0-9]+$', src['src'],
                     False, default=None)
                 vcodec = src['type'].partition('/')[2]
-                
+
                 formats.append({
                     'format_id': encoding_id + '-' + vcodec,
                     'url': src['src'],

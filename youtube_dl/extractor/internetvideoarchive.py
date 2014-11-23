@@ -32,7 +32,7 @@ class InternetVideoArchiveIE(InfoExtractor):
     def _clean_query(query):
         NEEDED_ARGS = ['publishedid', 'customerid']
         query_dic = compat_urlparse.parse_qs(query)
-        cleaned_dic = dict((k,v[0]) for (k,v) in query_dic.items() if k in NEEDED_ARGS)
+        cleaned_dic = dict((k, v[0]) for (k, v) in query_dic.items() if k in NEEDED_ARGS)
         # Other player ids return m3u8 urls
         cleaned_dic['playerid'] = '247'
         cleaned_dic['videokbrate'] = '100000'

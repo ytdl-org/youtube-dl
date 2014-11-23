@@ -56,6 +56,7 @@ std_headers = {
     'Accept-Language': 'en-us,en;q=0.5',
 }
 
+
 def preferredencoding():
     """Get preferred encoding.
 
@@ -146,6 +147,8 @@ else:
 
 # On python2.6 the xml.etree.ElementTree.Element methods don't support
 # the namespace parameter
+
+
 def xpath_with_ns(path, ns_map):
     components = [c.split(':') for c in path.split('/')]
     replaced = []
@@ -256,6 +259,7 @@ def timeconvert(timestr):
         timestamp = email.utils.mktime_tz(timetuple)
     return timestamp
 
+
 def sanitize_filename(s, restricted=False, is_id=False):
     """Sanitizes a string so it could be used as part of a filename.
     If restricted is set, use a stricter subset of allowed characters.
@@ -287,6 +291,7 @@ def sanitize_filename(s, restricted=False, is_id=False):
         if not result:
             result = '_'
     return result
+
 
 def orderedSet(iterable):
     """ Remove all duplicates from the input iterable """
@@ -372,6 +377,7 @@ def decodeOption(optval):
     assert isinstance(optval, compat_str)
     return optval
 
+
 def formatSeconds(secs):
     if secs > 3600:
         return '%d:%02d:%02d' % (secs // 3600, (secs % 3600) // 60, secs % 60)
@@ -424,6 +430,7 @@ def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
 
 class ExtractorError(Exception):
     """Error during info extraction."""
+
     def __init__(self, msg, tb=None, expected=False, cause=None, video_id=None):
         """ tb, if given, is the original traceback (so that it can be printed out).
         If expected is set, this is a normal error message and most likely not a bug in youtube-dl.
@@ -468,6 +475,7 @@ class DownloadError(Exception):
     configured to continue on errors. They will contain the appropriate
     error message.
     """
+
     def __init__(self, msg, exc_info=None):
         """ exc_info, if given, is the original exception that caused the trouble (as returned by sys.exc_info()). """
         super(DownloadError, self).__init__(msg)
@@ -489,8 +497,10 @@ class PostProcessingError(Exception):
     This exception may be raised by PostProcessor's .run() method to
     indicate an error in the postprocessing task.
     """
+
     def __init__(self, msg):
         self.msg = msg
+
 
 class MaxDownloadsReached(Exception):
     """ --max-downloads limit has been reached. """
@@ -520,6 +530,7 @@ class ContentTooShortError(Exception):
     def __init__(self, downloaded, expected):
         self.downloaded = downloaded
         self.expected = expected
+
 
 class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     """Handler for HTTP requests and responses.
@@ -640,7 +651,7 @@ def unified_strdate(date_str):
         return None
 
     upload_date = None
-    #Replace commas
+    # Replace commas
     date_str = date_str.replace(',', ' ')
     # %z (UTC offset) is only supported in python>=3.2
     date_str = re.sub(r' ?(\+|-)[0-9]{2}:?[0-9]{2}$', '', date_str)
@@ -681,6 +692,7 @@ def unified_strdate(date_str):
             upload_date = datetime.datetime(*timetuple[:6]).strftime('%Y%m%d')
     return upload_date
 
+
 def determine_ext(url, default_ext='unknown_video'):
     if url is None:
         return default_ext
@@ -690,8 +702,10 @@ def determine_ext(url, default_ext='unknown_video'):
     else:
         return default_ext
 
+
 def subtitles_filename(filename, sub_lang, sub_format):
     return filename.rsplit('.', 1)[0] + '.' + sub_lang + '.' + sub_format
+
 
 def date_from_str(date_str):
     """
@@ -707,7 +721,7 @@ def date_from_str(date_str):
         if sign == '-':
             time = -time
         unit = match.group('unit')
-        #A bad aproximation?
+        # A bad aproximation?
         if unit == 'month':
             unit = 'day'
             time *= 30
@@ -718,7 +732,8 @@ def date_from_str(date_str):
         delta = datetime.timedelta(**{unit: time})
         return today + delta
     return datetime.datetime.strptime(date_str, "%Y%m%d").date()
-    
+
+
 def hyphenate_date(date_str):
     """
     Convert a date in 'YYYYMMDD' format to 'YYYY-MM-DD' format"""
@@ -728,8 +743,10 @@ def hyphenate_date(date_str):
     else:
         return date_str
 
+
 class DateRange(object):
     """Represents a time interval between two dates"""
+
     def __init__(self, start=None, end=None):
         """start and end must be strings in the format accepted by date"""
         if start is not None:
@@ -742,17 +759,20 @@ class DateRange(object):
             self.end = datetime.datetime.max.date()
         if self.start > self.end:
             raise ValueError('Date range: "%s" , the start date must be before the end date' % self)
+
     @classmethod
     def day(cls, day):
         """Returns a range that only contains the given day"""
-        return cls(day,day)
+        return cls(day, day)
+
     def __contains__(self, date):
         """Check if the date is in the range"""
         if not isinstance(date, datetime.date):
             date = date_from_str(date)
         return self.start <= date <= self.end
+
     def __str__(self):
-        return '%s - %s' % ( self.start.isoformat(), self.end.isoformat())
+        return '%s - %s' % (self.start.isoformat(), self.end.isoformat())
 
 
 def platform_name():
@@ -1150,7 +1170,7 @@ def parse_duration(s):
 
 
 def prepend_extension(filename, ext):
-    name, real_ext = os.path.splitext(filename) 
+    name, real_ext = os.path.splitext(filename)
     return '{0}.{1}{2}'.format(name, ext, real_ext)
 
 

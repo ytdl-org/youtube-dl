@@ -10,47 +10,47 @@ import sys
 
 try:
     import urllib.request as compat_urllib_request
-except ImportError: # Python 2
+except ImportError:  # Python 2
     import urllib2 as compat_urllib_request
 
 try:
     import urllib.error as compat_urllib_error
-except ImportError: # Python 2
+except ImportError:  # Python 2
     import urllib2 as compat_urllib_error
 
 try:
     import urllib.parse as compat_urllib_parse
-except ImportError: # Python 2
+except ImportError:  # Python 2
     import urllib as compat_urllib_parse
 
 try:
     from urllib.parse import urlparse as compat_urllib_parse_urlparse
-except ImportError: # Python 2
+except ImportError:  # Python 2
     from urlparse import urlparse as compat_urllib_parse_urlparse
 
 try:
     import urllib.parse as compat_urlparse
-except ImportError: # Python 2
+except ImportError:  # Python 2
     import urlparse as compat_urlparse
 
 try:
     import http.cookiejar as compat_cookiejar
-except ImportError: # Python 2
+except ImportError:  # Python 2
     import cookielib as compat_cookiejar
 
 try:
     import html.entities as compat_html_entities
-except ImportError: # Python 2
+except ImportError:  # Python 2
     import htmlentitydefs as compat_html_entities
 
 try:
     import html.parser as compat_html_parser
-except ImportError: # Python 2
+except ImportError:  # Python 2
     import HTMLParser as compat_html_parser
 
 try:
     import http.client as compat_http_client
-except ImportError: # Python 2
+except ImportError:  # Python 2
     import httplib as compat_http_client
 
 try:
@@ -111,7 +111,7 @@ except ImportError:
 
 try:
     from urllib.parse import parse_qs as compat_parse_qs
-except ImportError: # Python 2
+except ImportError:  # Python 2
     # HACK: The following is the correct parse_qs implementation from cpython 3's stdlib.
     # Python 2's version is apparently totally broken
 
@@ -157,12 +157,12 @@ except ImportError: # Python 2
         return parsed_result
 
 try:
-    compat_str = unicode # Python 2
+    compat_str = unicode  # Python 2
 except NameError:
     compat_str = str
 
 try:
-    compat_chr = unichr # Python 2
+    compat_chr = unichr  # Python 2
 except NameError:
     compat_chr = chr
 
@@ -182,8 +182,10 @@ except ImportError:  # Python < 3.3
 
 
 def compat_ord(c):
-    if type(c) is int: return c
-    else: return ord(c)
+    if type(c) is int:
+        return c
+    else:
+        return ord(c)
 
 
 if sys.version_info >= (3, 0):
@@ -254,7 +256,7 @@ else:
                     drive = ''
                 userhome = os.path.join(drive, compat_getenv('HOMEPATH'))
 
-            if i != 1: #~user
+            if i != 1:  # ~user
                 userhome = os.path.join(os.path.dirname(userhome), path[1:i])
 
             return userhome + path[i:]

@@ -195,7 +195,7 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
             duration = int(item.get('duration'))
 
             media_selection = self._download_xml(
-                'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s'  % programme_id,
+                'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s' % programme_id,
                 programme_id, 'Downloading media selection XML')
 
             for media in self._extract_medias(media_selection):

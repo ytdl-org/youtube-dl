@@ -9,6 +9,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 
 import youtube_dl
 
+
 def main():
     with open('supportedsites.html.in', 'r', encoding='utf-8') as tmplf:
         template = tmplf.read()

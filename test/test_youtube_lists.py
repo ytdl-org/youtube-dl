@@ -12,10 +12,6 @@ from test.helper import FakeYDL
 from youtube_dl.extractor import (
     YoutubePlaylistIE,
     YoutubeIE,
-    YoutubeChannelIE,
-    YoutubeShowIE,
-    YoutubeTopListIE,
-    YoutubeSearchURLIE,
 )
 
 
@@ -31,7 +27,7 @@ class TestYoutubeLists(unittest.TestCase):
         result = ie.extract('https://www.youtube.com/watch?v=FXxLjLQi3Fg&list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re')
         self.assertEqual(result['_type'], 'url')
         self.assertEqual(YoutubeIE().extract_id(result['url']), 'FXxLjLQi3Fg')
-    
+
     def test_youtube_course(self):
         dl = FakeYDL()
         ie = YoutubePlaylistIE(dl)

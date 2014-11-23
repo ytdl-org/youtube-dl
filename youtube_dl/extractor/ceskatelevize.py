@@ -92,7 +92,7 @@ class CeskaTelevizeIE(InfoExtractor):
         req.add_header('Referer', url)
 
         playlist = self._download_xml(req, video_id)
-        
+
         formats = []
         for i in playlist.find('smilRoot/body'):
             if 'AD' not in i.attrib['id']:

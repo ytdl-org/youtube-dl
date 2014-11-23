@@ -54,7 +54,7 @@ class MonikerIE(InfoExtractor):
 
         title = os.path.splitext(data['fname'])[0]
 
-        #Could be several links with different quality
+        # Could be several links with different quality
         links = re.findall(r'"file" : "?(.+?)",', webpage)
         # Assume the links are ordered in quality
         formats = [{

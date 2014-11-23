@@ -81,7 +81,7 @@ class FileDownloader(object):
         if total is None:
             return None
         dif = now - start
-        if current == 0 or dif < 0.001: # One millisecond
+        if current == 0 or dif < 0.001:  # One millisecond
             return None
         rate = float(current) / dif
         return int((float(total) - float(current)) / rate)
@@ -95,7 +95,7 @@ class FileDownloader(object):
     @staticmethod
     def calc_speed(start, now, bytes):
         dif = now - start
-        if bytes == 0 or dif < 0.001: # One millisecond
+        if bytes == 0 or dif < 0.001:  # One millisecond
             return None
         return float(bytes) / dif
 
@@ -108,7 +108,7 @@ class FileDownloader(object):
     @staticmethod
     def best_block_size(elapsed_time, bytes):
         new_min = max(bytes / 2.0, 1.0)
-        new_max = min(max(bytes * 2.0, 1.0), 4194304) # Do not surpass 4 MB
+        new_max = min(max(bytes * 2.0, 1.0), 4194304)  # Do not surpass 4 MB
         if elapsed_time < 0.001:
             return int(new_max)
         rate = bytes / elapsed_time

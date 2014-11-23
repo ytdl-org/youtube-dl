@@ -36,7 +36,7 @@ class VRTIE(InfoExtractor):
                 'timestamp': 1413835980.560,
                 'upload_date': '20141020',
                 'duration': 3238,
-            }  
+            }
         },
         # cobra.be
         {

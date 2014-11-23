@@ -33,7 +33,7 @@ class TeamcocoIE(InfoExtractor):
 
         display_id = mobj.group('display_id')
         webpage = self._download_webpage(url, display_id)
-        
+
         video_id = mobj.group("video_id")
         if not video_id:
             video_id = self._html_search_regex(

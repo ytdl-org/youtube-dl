@@ -4,7 +4,7 @@ import sys, os
 
 try:
     import urllib.request as compat_urllib_request
-except ImportError: # Python 2
+except ImportError:  # Python 2
     import urllib2 as compat_urllib_request
 
 sys.stderr.write(u'Hi! We changed distribution method and now youtube-dl needs to update itself one more time.\n')
@@ -12,9 +12,9 @@ sys.stderr.write(u'This will only happen once. Simply press enter to go on. Sorr
 sys.stderr.write(u'The new location of the binaries is https://github.com/rg3/youtube-dl/downloads, not the git repository.\n\n')
 
 try:
-	raw_input()
-except NameError: # Python 3
-	input()
+    raw_input()
+except NameError:  # Python 3
+    input()
 
 filename = sys.argv[0]
 

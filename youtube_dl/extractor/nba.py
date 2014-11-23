@@ -39,7 +39,6 @@ class NBAIE(InfoExtractor):
         duration = parse_duration(
             self._html_search_meta('duration', webpage, 'duration', fatal=False))
 
-
         return {
             'id': shortened_video_id,
             'url': video_url,

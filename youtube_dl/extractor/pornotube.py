@@ -38,7 +38,7 @@ class PornotubeIE(InfoExtractor):
         video_url = self._search_regex(VIDEO_URL_RE, webpage, 'video url')
         video_url = compat_urllib_parse.unquote(video_url)
 
-        #Get the uploaded date
+        # Get the uploaded date
         VIDEO_UPLOADED_RE = r'<div class="video_added_by">Added (?P<date>[0-9\/]+) by'
         upload_date = self._html_search_regex(VIDEO_UPLOADED_RE, webpage, 'upload date', fatal=False)
         if upload_date:

@@ -45,7 +45,6 @@ from youtube_dl.utils import (
     escape_rfc3986,
     escape_url,
     js_to_json,
-    get_filesystem_encoding,
     intlist_to_bytes,
     args_to_str,
 )
@@ -120,16 +119,16 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(orderedSet([1, 1, 2, 3, 4, 4, 5, 6, 7, 3, 5]), [1, 2, 3, 4, 5, 6, 7])
         self.assertEqual(orderedSet([]), [])
         self.assertEqual(orderedSet([1]), [1])
-        #keep the list ordered
+        # keep the list ordered
         self.assertEqual(orderedSet([135, 1, 1, 1]), [135, 1])
 
     def test_unescape_html(self):
         self.assertEqual(unescapeHTML('%20;'), '%20;')
         self.assertEqual(
             unescapeHTML('&eacute;'), 'é')
-        
+
     def test_daterange(self):
-        _20century = DateRange("19000101","20000101")
+        _20century = DateRange("19000101", "20000101")
         self.assertFalse("17890714" in _20century)
         _ac = DateRange("00010101")
         self.assertTrue("19690721" in _ac)

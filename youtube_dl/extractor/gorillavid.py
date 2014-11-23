@@ -69,7 +69,7 @@ class GorillaVidIE(InfoExtractor):
             (?:id="[^"]+"\s+)?
             value="([^"]*)"
             ''', webpage))
-        
+
         if fields['op'] == 'download1':
             post = compat_urllib_parse.urlencode(fields)
 

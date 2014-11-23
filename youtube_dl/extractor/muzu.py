@@ -37,7 +37,7 @@ class MuzuTVIE(InfoExtractor):
         player_info_page = self._download_webpage('http://player.muzu.tv/player/playerInit?ai=%s' % video_id,
                                                   video_id, u'Downloading player info')
         video_info = json.loads(player_info_page)['videos'][0]
-        for quality in ['1080' , '720', '480', '360']:
+        for quality in ['1080', '720', '480', '360']:
             if video_info.get('v%s' % quality):
                 break
 

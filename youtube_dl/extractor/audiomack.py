@@ -12,17 +12,17 @@ class AudiomackIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?audiomack\.com/song/(?P<id>[\w/-]+)'
     IE_NAME = 'audiomack'
     _TESTS = [
-        #hosted on audiomack
+        # hosted on audiomack
         {
             'url': 'http://www.audiomack.com/song/roosh-williams/extraordinary',
             'info_dict':
             {
-                'id' : 'roosh-williams/extraordinary',
+                'id': 'roosh-williams/extraordinary',
                 'ext': 'mp3',
                 'title': 'Roosh Williams - Extraordinary'
             }
         },
-        #hosted on soundcloud via audiomack
+        # hosted on soundcloud via audiomack
         {
             'url': 'http://www.audiomack.com/song/xclusiveszone/take-kare',
             'file': '172419696.mp3',
@@ -49,7 +49,7 @@ class AudiomackIE(InfoExtractor):
             raise ExtractorError("Unable to deduce api url of song")
         realurl = api_response["url"]
 
-        #Audiomack wraps a lot of soundcloud tracks in their branded wrapper
+        # Audiomack wraps a lot of soundcloud tracks in their branded wrapper
         # - if so, pass the work off to the soundcloud extractor
         if SoundcloudIE.suitable(realurl):
             return {'_type': 'url', 'url': realurl, 'ie_key': 'Soundcloud'}

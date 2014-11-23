@@ -47,4 +47,3 @@ class XBefIE(InfoExtractor):
             'thumbnail': thumbnail,
             'age_limit': 18,
         }
-
