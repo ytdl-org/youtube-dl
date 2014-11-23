@@ -31,7 +31,7 @@ class NHLBaseInfoExtractor(InfoExtractor):
                 path_url, video_id, 'Downloading final video url')
             video_url = path_doc.find('path').text
         else:
-           video_url = initial_video_url
+            video_url = initial_video_url
 
         join = compat_urlparse.urljoin
         return {

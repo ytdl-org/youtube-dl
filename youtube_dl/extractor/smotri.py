@@ -212,7 +212,7 @@ class SmotriCommunityIE(InfoExtractor):
         },
         'playlist_mincount': 4,
     }
-    
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         community_id = mobj.group('communityid')

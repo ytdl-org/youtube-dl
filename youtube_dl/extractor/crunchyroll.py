@@ -69,10 +69,8 @@ class CrunchyrollIE(SubtitlesInfoExtractor):
         login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         self._download_webpage(login_request, None, False, 'Wrong login info')
 
-
     def _real_initialize(self):
         self._login()
-
 
     def _decrypt_subtitles(self, data, iv, id):
         data = bytes_to_intlist(data)
@@ -99,8 +97,10 @@ class CrunchyrollIE(SubtitlesInfoExtractor):
             return shaHash + [0] * 12
 
         key = obfuscate_key(id)
+
         class Counter:
             __value = iv
+
             def next_value(self):
                 temp = self.__value
                 self.__value = inc(self.__value)
@@ -183,7 +183,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         return output
 
-    def _real_extract(self,url):
+    def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('video_id')
 

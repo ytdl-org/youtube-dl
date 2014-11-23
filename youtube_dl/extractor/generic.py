@@ -733,7 +733,7 @@ class GenericIE(InfoExtractor):
                 'title': video_title,
                 'id': video_id,
             }
-            
+
         match = re.search(r'(?:id=["\']wistia_|data-wistia-?id=["\']|Wistia\.embed\(["\'])(?P<id>[^"\']+)', webpage)
         if match:
             return {
@@ -1025,4 +1025,3 @@ class GenericIE(InfoExtractor):
                 '_type': 'playlist',
                 'entries': entries,
             }
-

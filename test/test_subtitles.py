@@ -23,6 +23,7 @@ from youtube_dl.extractor import (
 class BaseTestSubtitles(unittest.TestCase):
     url = None
     IE = None
+
     def setUp(self):
         self.DL = FakeYDL()
         self.ie = self.IE(self.DL)

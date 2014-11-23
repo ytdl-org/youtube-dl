@@ -73,4 +73,3 @@ atom_template = atom_template.replace('@ENTRIES@', entries_str)
 
 with io.open('update/releases.atom', 'w', encoding='utf-8') as atom_file:
     atom_file.write(atom_template)
-

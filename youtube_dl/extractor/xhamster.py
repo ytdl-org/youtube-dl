@@ -42,7 +42,7 @@ class XHamsterIE(InfoExtractor):
         }
     ]
 
-    def _real_extract(self,url):
+    def _real_extract(self, url):
         def extract_video_url(webpage):
             mp4 = re.search(r'<video\s+.*?file="([^"]+)".*?>', webpage)
             if mp4 is None:

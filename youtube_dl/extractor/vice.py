@@ -35,4 +35,3 @@ class ViceIE(InfoExtractor):
         except ExtractorError:
             raise ExtractorError('The page doesn\'t contain a video', expected=True)
         return self.url_result(ooyala_url, ie='Ooyala')
-

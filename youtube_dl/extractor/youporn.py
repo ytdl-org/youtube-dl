@@ -73,7 +73,7 @@ class YouPornIE(InfoExtractor):
         for encrypted_link in encrypted_links:
             link = aes_decrypt_text(encrypted_link, video_title, 32).decode('utf-8')
             links.append(link)
-        
+
         formats = []
         for link in links:
             # A link looks like this:
@@ -104,7 +104,7 @@ class YouPornIE(InfoExtractor):
 
         if not formats:
             raise ExtractorError(u'ERROR: no known formats available for video')
-        
+
         return {
             'id': video_id,
             'uploader': video_uploader,

@@ -59,7 +59,7 @@ class FakeYDL(YoutubeDL):
         params = get_params(override=override)
         super(FakeYDL, self).__init__(params, auto_init=False)
         self.result = []
-        
+
     def to_screen(self, s, skip_eol=None):
         print(s)
 
@@ -72,8 +72,10 @@ class FakeYDL(YoutubeDL):
     def expect_warning(self, regex):
         # Silence an expected warning matching a regex
         old_report_warning = self.report_warning
+
         def report_warning(self, message):
-            if re.match(regex, message): return
+            if re.match(regex, message):
+                return
             old_report_warning(message)
         self.report_warning = types.MethodType(report_warning, self)
 

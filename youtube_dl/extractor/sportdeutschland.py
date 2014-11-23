@@ -93,4 +93,3 @@ class SportDeutschlandIE(InfoExtractor):
             'rtmp_live': asset.get('live'),
             'timestamp': parse_iso8601(asset.get('date')),
         }
-

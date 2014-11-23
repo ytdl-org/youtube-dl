@@ -40,7 +40,7 @@ class NaverIE(InfoExtractor):
             raise ExtractorError('couldn\'t extract vid and key')
         vid = m_id.group(1)
         key = m_id.group(2)
-        query = compat_urllib_parse.urlencode({'vid': vid, 'inKey': key,})
+        query = compat_urllib_parse.urlencode({'vid': vid, 'inKey': key, })
         query_urls = compat_urllib_parse.urlencode({
             'masterVid': vid,
             'protocol': 'p2p',
@@ -65,7 +65,7 @@ class NaverIE(InfoExtractor):
             if domain.startswith('rtmp'):
                 f.update({
                     'ext': 'flv',
-                    'rtmp_protocol': '1', # rtmpt
+                    'rtmp_protocol': '1',  # rtmpt
                 })
             formats.append(f)
         self._sort_formats(formats)

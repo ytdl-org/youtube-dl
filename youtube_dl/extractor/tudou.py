@@ -41,7 +41,7 @@ class TudouIE(InfoExtractor):
         if quality:
             info_url += '&hd' + quality
         webpage = self._download_webpage(info_url, id, "Opening the info webpage")
-        final_url = self._html_search_regex('>(.+?)</f>',webpage, 'video url')
+        final_url = self._html_search_regex('>(.+?)</f>', webpage, 'video url')
         return final_url
 
     def _real_extract(self, url):

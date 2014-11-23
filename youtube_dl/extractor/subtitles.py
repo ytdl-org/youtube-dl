@@ -50,7 +50,7 @@ class SubtitlesInfoExtractor(InfoExtractor):
 
             sub_lang_list = {}
             for sub_lang in requested_langs:
-                if not sub_lang in available_subs_list:
+                if sub_lang not in available_subs_list:
                     self._downloader.report_warning(u'no closed captions found in the specified language "%s"' % sub_lang)
                     continue
                 sub_lang_list[sub_lang] = available_subs_list[sub_lang]

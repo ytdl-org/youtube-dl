@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 
+
 class AdultSwimIE(InfoExtractor):
     _VALID_URL = r'https?://video\.adultswim\.com/(?P<path>.+?)(?:\.html)?(?:\?.*)?(?:#.*)?$'
     _TEST = {

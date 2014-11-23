@@ -233,6 +233,7 @@ def rmtree(path):
 
 #==============================================================================
 
+
 class BuildError(Exception):
     def __init__(self, output, code=500):
         self.output = output
@@ -369,7 +370,7 @@ class Builder(PythonBuilder, GITBuilder, YoutubeDLBuilder, DownloadBuilder, Clea
 
 
 class BuildHTTPRequestHandler(BaseHTTPRequestHandler):
-    actionDict = { 'build': Builder, 'download': Builder } # They're the same, no more caching.
+    actionDict = {'build': Builder, 'download': Builder}  # They're the same, no more caching.
 
     def do_GET(self):
         path = urlparse.urlparse(self.path)

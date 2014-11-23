@@ -17,8 +17,8 @@ class FlickrIE(InfoExtractor):
         'info_dict': {
             'id': '5645318632',
             'ext': 'mp4',
-            "description": "Waterfalls in the Springtime at Dark Hollow Waterfalls. These are located just off of Skyline Drive in Virginia. They are only about 6/10 of a mile hike but it is a pretty steep hill and a good climb back up.", 
-            "uploader_id": "forestwander-nature-pictures", 
+            "description": "Waterfalls in the Springtime at Dark Hollow Waterfalls. These are located just off of Skyline Drive in Virginia. They are only about 6/10 of a mile hike but it is a pretty steep hill and a good climb back up.",
+            "uploader_id": "forestwander-nature-pictures",
             "title": "Dark Hollow Waterfalls"
         }
     }

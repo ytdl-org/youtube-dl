@@ -7,6 +7,7 @@ from ..utils import (
     compat_urllib_parse,
 )
 
+
 class MalemotionIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?malemotion\.com/video/(.+?)\.(?P<id>.+?)(#|$)'
     _TEST = {

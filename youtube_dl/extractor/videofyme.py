@@ -6,6 +6,7 @@ from ..utils import (
     determine_ext,
 )
 
+
 class VideofyMeIE(InfoExtractor):
     _VALID_URL = r'https?://(www\.videofy\.me/.+?|p\.videofy\.me/v)/(?P<id>\d+)(&|#|$)'
     IE_NAME = u'videofy.me'
@@ -20,7 +21,7 @@ class VideofyMeIE(InfoExtractor):
             u'uploader': u'VideofyMe',
             u'uploader_id': u'thisisvideofyme',
         },
-        
+
     }
 
     def _real_extract(self, url):
@@ -30,7 +31,7 @@ class VideofyMeIE(InfoExtractor):
                                             video_id)
         video = config.find('video')
         sources = video.find('sources')
-        url_node = next(node for node in [find_xpath_attr(sources, 'source', 'id', 'HQ %s' % key) 
+        url_node = next(node for node in [find_xpath_attr(sources, 'source', 'id', 'HQ %s' % key)
             for key in ['on', 'av', 'off']] if node is not None)
         video_url = url_node.find('url').text
 

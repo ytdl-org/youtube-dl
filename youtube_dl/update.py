@@ -13,13 +13,17 @@ from .utils import (
 )
 from .version import __version__
 
+
 def rsa_verify(message, signature, key):
     from struct import pack
     from hashlib import sha256
     from sys import version_info
+
     def b(x):
-        if version_info[0] == 2: return x
-        else: return x.encode('latin1')
+        if version_info[0] == 2:
+            return x
+        else:
+            return x.encode('latin1')
     assert(type(message) == type(b('')))
     block_size = 0
     n = key[0]
@@ -32,13 +36,17 @@ def rsa_verify(message, signature, key):
         raw_bytes.insert(0, pack("B", signature & 0xFF))
         signature >>= 8
     signature = (block_size - len(raw_bytes)) * b('\x00') + b('').join(raw_bytes)
-    if signature[0:2] != b('\x00\x01'): return False
+    if signature[0:2] != b('\x00\x01'):
+        return False
     signature = signature[2:]
-    if not b('\x00') in signature: return False
+    if not b('\x00') in signature:
+        return False
     signature = signature[signature.index(b('\x00'))+1:]
-    if not signature.startswith(b('\x30\x31\x30\x0D\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x01\x05\x00\x04\x20')): return False
+    if not signature.startswith(b('\x30\x31\x30\x0D\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x01\x05\x00\x04\x20')):
+        return False
     signature = signature[19:]
-    if signature != sha256(message).digest(): return False
+    if signature != sha256(message).digest():
+        return False
     return True
 
 
@@ -58,7 +66,8 @@ def update_self(to_screen, verbose):
     try:
         newversion = compat_urllib_request.urlopen(VERSION_URL).read().decode('utf-8').strip()
     except:
-        if verbose: to_screen(compat_str(traceback.format_exc()))
+        if verbose:
+            to_screen(compat_str(traceback.format_exc()))
         to_screen(u'ERROR: can\'t find the current version. Please try again later.')
         return
     if newversion == __version__:
@@ -70,7 +79,8 @@ def update_self(to_screen, verbose):
         versions_info = compat_urllib_request.urlopen(JSON_URL).read().decode('utf-8')
         versions_info = json.loads(versions_info)
     except:
-        if verbose: to_screen(compat_str(traceback.format_exc()))
+        if verbose:
+            to_screen(compat_str(traceback.format_exc()))
         to_screen(u'ERROR: can\'t obtain versions info. Please try again later.')
         return
     if not 'signature' in versions_info:
@@ -118,7 +128,8 @@ def update_self(to_screen, verbose):
             newcontent = urlh.read()
             urlh.close()
         except (IOError, OSError):
-            if verbose: to_screen(compat_str(traceback.format_exc()))
+            if verbose:
+                to_screen(compat_str(traceback.format_exc()))
             to_screen(u'ERROR: unable to download latest version')
             return
 
@@ -131,7 +142,8 @@ def update_self(to_screen, verbose):
             with open(exe + '.new', 'wb') as outf:
                 outf.write(newcontent)
         except (IOError, OSError):
-            if verbose: to_screen(compat_str(traceback.format_exc()))
+            if verbose:
+                to_screen(compat_str(traceback.format_exc()))
             to_screen(u'ERROR: unable to write the new version')
             return
 
@@ -150,7 +162,8 @@ start /b "" cmd /c del "%%~f0"&exit /b"
             subprocess.Popen([bat])  # Continues to run in the background
             return  # Do not show premature success messages
         except (IOError, OSError):
-            if verbose: to_screen(compat_str(traceback.format_exc()))
+            if verbose:
+                to_screen(compat_str(traceback.format_exc()))
             to_screen(u'ERROR: unable to overwrite current version')
             return
 
@@ -161,7 +174,8 @@ start /b "" cmd /c del "%%~f0"&exit /b"
             newcontent = urlh.read()
             urlh.close()
         except (IOError, OSError):
-            if verbose: to_screen(compat_str(traceback.format_exc()))
+            if verbose:
+                to_screen(compat_str(traceback.format_exc()))
             to_screen(u'ERROR: unable to download latest version')
             return
 
@@ -174,18 +188,21 @@ start /b "" cmd /c del "%%~f0"&exit /b"
             with open(filename, 'wb') as outf:
                 outf.write(newcontent)
         except (IOError, OSError):
-            if verbose: to_screen(compat_str(traceback.format_exc()))
+            if verbose:
+                to_screen(compat_str(traceback.format_exc()))
             to_screen(u'ERROR: unable to overwrite current version')
             return
 
     to_screen(u'Updated youtube-dl. Restart youtube-dl to use the new version.')
 
+
 def get_notes(versions, fromVersion):
     notes = []
-    for v,vdata in sorted(versions.items()):
+    for v, vdata in sorted(versions.items()):
         if v > fromVersion:
             notes.extend(vdata.get('notes', []))
     return notes
+
 
 def print_notes(to_screen, versions, fromVersion=__version__):
     notes = get_notes(versions, fromVersion)

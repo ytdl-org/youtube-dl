@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import int_or_none
 
+
 class PodomaticIE(InfoExtractor):
     IE_NAME = 'podomatic'
     _VALID_URL = r'^(?P<proto>https?)://(?P<channel>[^.]+)\.podomatic\.com/entry/(?P<id>[^?]+)'

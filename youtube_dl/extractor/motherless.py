@@ -72,7 +72,7 @@ class MotherlessIE(InfoExtractor):
         like_count = str_to_int(self._html_search_regex(
             r'<strong>Favorited</strong>\s+([^<]+)<',
             webpage, 'like count', fatal=False))
- 
+
         upload_date = self._html_search_regex(
             r'<strong>Uploaded</strong>\s+([^<]+)<', webpage, 'upload date')
         if 'Ago' in upload_date:

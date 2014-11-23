@@ -128,7 +128,6 @@ def _real_main(argv=None):
             compat_print(desc)
         sys.exit(0)
 
-
     # Conflicting, missing and erroneous options
     if opts.usenetrc and (opts.username is not None or opts.password is not None):
         parser.error('using .netrc conflicts with giving username/password')
@@ -197,7 +196,7 @@ def _real_main(argv=None):
         # In Python 2, sys.argv is a bytestring (also note http://bugs.python.org/issue2128 for Windows systems)
         if opts.outtmpl is not None:
             opts.outtmpl = opts.outtmpl.decode(preferredencoding())
-    outtmpl =((opts.outtmpl is not None and opts.outtmpl)
+    outtmpl = ((opts.outtmpl is not None and opts.outtmpl)
             or (opts.format == '-1' and opts.usetitle and '%(title)s-%(id)s-%(format)s.%(ext)s')
             or (opts.format == '-1' and '%(id)s-%(format)s.%(ext)s')
             or (opts.usetitle and opts.autonumber and '%(autonumber)s-%(title)s-%(id)s.%(ext)s')
@@ -316,7 +315,6 @@ def _real_main(argv=None):
             if not opts.addmetadata:
                 ydl.add_post_processor(FFmpegAudioFixPP())
             ydl.add_post_processor(AtomicParsleyPP())
-
 
         # Please keep ExecAfterDownload towards the bottom as it allows the user to modify the final file in any way.
         # So if the user is able to remove the file before your postprocessor runs it might cause a few problems.

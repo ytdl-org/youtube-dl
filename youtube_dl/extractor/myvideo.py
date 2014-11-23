@@ -33,7 +33,7 @@ class MyVideoIE(InfoExtractor):
     # Original Code from: https://github.com/dersphere/plugin.video.myvideo_de.git
     # Released into the Public Domain by Tristan Fischer on 2013-05-19
     # https://github.com/rg3/youtube-dl/pull/842
-    def __rc4crypt(self,data, key):
+    def __rc4crypt(self, data, key):
         x = 0
         box = list(range(256))
         for i in list(range(256)):
@@ -49,10 +49,10 @@ class MyVideoIE(InfoExtractor):
             out += chr(compat_ord(char) ^ box[(box[x] + box[y]) % 256])
         return out
 
-    def __md5(self,s):
+    def __md5(self, s):
         return hashlib.md5(s).hexdigest().encode()
 
-    def _real_extract(self,url):
+    def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
@@ -173,4 +173,3 @@ class MyVideoIE(InfoExtractor):
             'play_path': video_playpath,
             'player_url': video_swfobj,
         }
-

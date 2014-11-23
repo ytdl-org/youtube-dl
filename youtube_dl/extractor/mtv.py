@@ -60,7 +60,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         url = response.geturl()
         # Transform the url to get the best quality:
         url = re.sub(r'.+pxE=mp4', 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=0+_pxK=18639+_pxE=mp4', url, 1)
-        return [{'url': url,'ext': 'mp4'}]
+        return [{'url': url, 'ext': 'mp4'}]
 
     def _extract_video_formats(self, mdoc, mtvn_id):
         if re.match(r'.*/(error_country_block\.swf|geoblock\.mp4)$', mdoc.find('.//src').text) is not None:
@@ -240,7 +240,7 @@ class MTVIE(MTVServicesInfoExtractor):
         uri = mobj.groupdict().get('mgid')
         if uri is None:
             webpage = self._download_webpage(url, video_id)
-    
+
             # Some videos come from Vevo.com
             m_vevo = re.search(r'isVevoVideo = true;.*?vevoVideoId = "(.*?)";',
                                webpage, re.DOTALL)
@@ -248,7 +248,7 @@ class MTVIE(MTVServicesInfoExtractor):
                 vevo_id = m_vevo.group(1);
                 self.to_screen('Vevo video detected: %s' % vevo_id)
                 return self.url_result('vevo:%s' % vevo_id, ie='Vevo')
-    
+
             uri = self._html_search_regex(r'/uri/(.*?)\?', webpage, 'uri')
         return self._get_videos_info(uri)
 
