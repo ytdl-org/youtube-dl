@@ -334,10 +334,11 @@ def _real_main(argv=None):
 
         # Maybe do nothing
         if (len(all_urls) < 1) and (opts.load_info_filename is None):
-            if not (opts.update_self or opts.rm_cachedir):
-                parser.error('you must provide at least one URL')
-            else:
+            if opts.update_self or opts.rm_cachedir:
                 sys.exit()
+
+            ydl.warn_if_short_id(sys.argv[1:] if argv is None else argv)
+            parser.error('you must provide at least one URL')
 
         try:
             if opts.load_info_filename is not None:

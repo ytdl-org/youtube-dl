@@ -41,6 +41,7 @@ from .compat import (
     compat_urllib_parse_urlparse,
     compat_urllib_request,
     compat_urlparse,
+    shlex_quote,
 )
 
 
@@ -1433,3 +1434,8 @@ def ytdl_is_updateable():
     from zipimport import zipimporter
 
     return isinstance(globals().get('__loader__'), zipimporter) or hasattr(sys, 'frozen')
+
+
+def args_to_str(args):
+    # Get a short string representation for a subprocess command
+    return ' '.join(shlex_quote(a) for a in args)

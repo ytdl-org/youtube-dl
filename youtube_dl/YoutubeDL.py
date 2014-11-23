@@ -29,6 +29,7 @@ from .compat import (
     compat_str,
     compat_urllib_error,
     compat_urllib_request,
+    shlex_quote,
 )
 from .utils import (
     escape_url,
@@ -60,6 +61,7 @@ from .utils import (
     write_string,
     YoutubeDLHandler,
     prepend_extension,
+    args_to_str,
 )
 from .cache import Cache
 from .extractor import get_info_extractor, gen_extractors
@@ -252,6 +254,22 @@ class YoutubeDL(object):
         if auto_init:
             self.print_debug_header()
             self.add_default_info_extractors()
+
+    def warn_if_short_id(self, argv):
+        # short YouTube ID starting with dash?
+        idxs = [
+            i for i, a in enumerate(argv)
+            if re.match(r'^-[0-9A-Za-z_-]{10}$', a)]
+        if idxs:
+            correct_argv = (
+                ['youtube-dl'] +
+                [a for i, a in enumerate(argv) if i not in idxs] +
+                ['--'] + [argv[i] for i in idxs]
+            )
+            self.report_warning(
+                'Long argument string detected. '
+                'Use -- to separate parameters and URLs, like this:\n%s\n' %
+                args_to_str(correct_argv))
 
     def add_info_extractor(self, ie):
         """Add an InfoExtractor object to the end of the list."""
@@ -1410,3 +1428,4 @@ class YoutubeDL(object):
         if encoding is None:
             encoding = preferredencoding()
         return encoding
+

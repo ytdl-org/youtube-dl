@@ -47,6 +47,7 @@ from youtube_dl.utils import (
     js_to_json,
     get_filesystem_encoding,
     intlist_to_bytes,
+    args_to_str,
 )
 
 
@@ -360,6 +361,12 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(
             intlist_to_bytes([0, 1, 127, 128, 255]),
             b'\x00\x01\x7f\x80\xff')
+
+    def test_args_to_str(self):
+        self.assertEqual(
+            args_to_str(['foo', 'ba/r', '-baz', '2 be', '']),
+            'foo ba/r -baz \'2 be\' \'\''
+        )
 
 if __name__ == '__main__':
     unittest.main()

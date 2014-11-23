@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import getpass
 import optparse
 import os
+import re
 import subprocess
 import sys
 
@@ -174,7 +175,10 @@ try:
     from shlex import quote as shlex_quote
 except ImportError:  # Python < 3.3
     def shlex_quote(s):
-        return "'" + s.replace("'", "'\"'\"'") + "'"
+        if re.match(r'^[-_\w./]+$', s):
+            return s
+        else:
+            return "'" + s.replace("'", "'\"'\"'") + "'"
 
 
 def compat_ord(c):
