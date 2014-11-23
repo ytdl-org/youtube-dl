@@ -22,7 +22,7 @@ class MetacafeIE(InfoExtractor):
         # Youtube video
         {
             'add_ie': ['Youtube'],
-            'url':  'http://metacafe.com/watch/yt-_aUehQsCQtM/the_electric_company_short_i_pbs_kids_go/',
+            'url': 'http://metacafe.com/watch/yt-_aUehQsCQtM/the_electric_company_short_i_pbs_kids_go/',
             'info_dict': {
                 'id': '_aUehQsCQtM',
                 'ext': 'mp4',

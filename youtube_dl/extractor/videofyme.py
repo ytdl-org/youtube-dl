@@ -13,7 +13,7 @@ class VideofyMeIE(InfoExtractor):
 
     _TEST = {
         u'url': u'http://www.videofy.me/thisisvideofyme/1100701',
-        u'file':  u'1100701.mp4',
+        u'file': u'1100701.mp4',
         u'md5': u'c77d700bdc16ae2e9f3c26019bd96143',
         u'info_dict': {
             u'title': u'This is VideofyMe',

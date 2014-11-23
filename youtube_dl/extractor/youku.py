@@ -45,8 +45,8 @@ class YoukuIE(InfoExtractor):
         source = list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/\:._-1234567890")
         seed = float(seed)
         for i in range(len(source)):
-            seed  =  (seed * 211 + 30031) % 65536
-            index  =  math.floor(seed / 65536 * len(source))
+            seed = (seed * 211 + 30031) % 65536
+            index = math.floor(seed / 65536 * len(source))
             mixed.append(source[int(index)])
             source.remove(source[int(index)])
         # return ''.join(mixed)

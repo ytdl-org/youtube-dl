@@ -246,7 +246,7 @@ class FFmpegVideoConvertor(FFmpegPostProcessor):
         if information['ext'] == self._preferedformat:
             self._downloader.to_screen(u'[ffmpeg] Not converting video file %s - already is in target format %s' % (path, self._preferedformat))
             return True, information
-        self._downloader.to_screen(u'['+'ffmpeg'+'] Converting video from %s to %s, Destination: ' % (information['ext'], self._preferedformat) + outpath)
+        self._downloader.to_screen(u'[' +'ffmpeg' +'] Converting video from %s to %s, Destination: ' % (information['ext'], self._preferedformat) + outpath)
         self.run_ffmpeg(path, outpath, [])
         information['filepath'] = outpath
         information['format'] = self._preferedformat
@@ -466,7 +466,7 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
 
         opts = ['-map', '0:0', '-map', '0:1', '-c:v', 'copy', '-c:a', 'copy']
         for (i, lang) in enumerate(sub_langs):
-            opts.extend(['-map', '%d:0' % (i+1), '-c:s:%d' % i, 'mov_text'])
+            opts.extend(['-map', '%d:0' % (i +1), '-c:s:%d' % i, 'mov_text'])
             lang_code = self._conver_lang_code(lang)
             if lang_code is not None:
                 opts.extend(['-metadata:s:s:%d' % i, 'language=%s' % lang_code])

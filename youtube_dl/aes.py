@@ -24,8 +24,8 @@ def aes_ctr_decrypt(data, key, counter):
     decrypted_data = []
     for i in range(block_count):
         counter_block = counter.next_value()
-        block = data[i*BLOCK_SIZE_BYTES: (i+1)*BLOCK_SIZE_BYTES]
-        block += [0]*(BLOCK_SIZE_BYTES - len(block))
+        block = data[i *BLOCK_SIZE_BYTES: (i +1) *BLOCK_SIZE_BYTES]
+        block += [0] *(BLOCK_SIZE_BYTES - len(block))
 
         cipher_counter_block = aes_encrypt(counter_block, expanded_key)
         decrypted_data += xor(block, cipher_counter_block)
@@ -49,8 +49,8 @@ def aes_cbc_decrypt(data, key, iv):
     decrypted_data = []
     previous_cipher_block = iv
     for i in range(block_count):
-        block = data[i*BLOCK_SIZE_BYTES: (i+1)*BLOCK_SIZE_BYTES]
-        block += [0]*(BLOCK_SIZE_BYTES - len(block))
+        block = data[i *BLOCK_SIZE_BYTES: (i +1) *BLOCK_SIZE_BYTES]
+        block += [0] *(BLOCK_SIZE_BYTES - len(block))
 
         decrypted_block = aes_decrypt(block, expanded_key)
         decrypted_data += xor(decrypted_block, previous_cipher_block)
@@ -76,20 +76,20 @@ def key_expansion(data):
         temp = data[-4:]
         temp = key_schedule_core(temp, rcon_iteration)
         rcon_iteration += 1
-        data += xor(temp, data[-key_size_bytes: 4-key_size_bytes])
+        data += xor(temp, data[-key_size_bytes: 4 -key_size_bytes])
 
         for _ in range(3):
             temp = data[-4:]
-            data += xor(temp, data[-key_size_bytes: 4-key_size_bytes])
+            data += xor(temp, data[-key_size_bytes: 4 -key_size_bytes])
 
         if key_size_bytes == 32:
             temp = data[-4:]
             temp = sub_bytes(temp)
-            data += xor(temp, data[-key_size_bytes: 4-key_size_bytes])
+            data += xor(temp, data[-key_size_bytes: 4 -key_size_bytes])
 
         for _ in range(3 if key_size_bytes == 32  else 2 if key_size_bytes == 24 else 0):
             temp = data[-4:]
-            data += xor(temp, data[-key_size_bytes: 4-key_size_bytes])
+            data += xor(temp, data[-key_size_bytes: 4 -key_size_bytes])
     data = data[:expanded_key_size_bytes]
 
     return data
@@ -106,12 +106,12 @@ def aes_encrypt(data, expanded_key):
     rounds = len(expanded_key) // BLOCK_SIZE_BYTES - 1
 
     data = xor(data, expanded_key[:BLOCK_SIZE_BYTES])
-    for i in range(1, rounds+1):
+    for i in range(1, rounds +1):
         data = sub_bytes(data)
         data = shift_rows(data)
         if i != rounds:
             data = mix_columns(data)
-        data = xor(data, expanded_key[i*BLOCK_SIZE_BYTES: (i+1)*BLOCK_SIZE_BYTES])
+        data = xor(data, expanded_key[i *BLOCK_SIZE_BYTES: (i +1) *BLOCK_SIZE_BYTES])
 
     return data
 
@@ -127,7 +127,7 @@ def aes_decrypt(data, expanded_key):
     rounds = len(expanded_key) // BLOCK_SIZE_BYTES - 1
 
     for i in range(rounds, 0, -1):
-        data = xor(data, expanded_key[i*BLOCK_SIZE_BYTES: (i+1)*BLOCK_SIZE_BYTES])
+        data = xor(data, expanded_key[i *BLOCK_SIZE_BYTES: (i +1) *BLOCK_SIZE_BYTES])
         if i != rounds:
             data = mix_columns_inv(data)
         data = shift_rows_inv(data)
@@ -155,14 +155,14 @@ def aes_decrypt_text(data, password, key_size_bytes):
     data = bytes_to_intlist(base64.b64decode(data))
     password = bytes_to_intlist(password.encode('utf-8'))
 
-    key = password[:key_size_bytes] + [0]*(key_size_bytes - len(password))
+    key = password[:key_size_bytes] + [0] *(key_size_bytes - len(password))
     key = aes_encrypt(key[:BLOCK_SIZE_BYTES], key_expansion(key)) * (key_size_bytes // BLOCK_SIZE_BYTES)
 
     nonce = data[:NONCE_LENGTH_BYTES]
     cipher = data[NONCE_LENGTH_BYTES:]
 
     class Counter:
-        __value = nonce + [0]*(BLOCK_SIZE_BYTES - NONCE_LENGTH_BYTES)
+        __value = nonce + [0] *(BLOCK_SIZE_BYTES - NONCE_LENGTH_BYTES)
 
         def next_value(self):
             temp = self.__value
@@ -293,7 +293,7 @@ def mix_column(data, matrix):
 def mix_columns(data, matrix=MIX_COLUMN_MATRIX):
     data_mixed = []
     for i in range(4):
-        column = data[i*4: (i+1)*4]
+        column = data[i *4: (i +1) *4]
         data_mixed += mix_column(column, matrix)
     return data_mixed
 
@@ -320,7 +320,7 @@ def shift_rows_inv(data):
 
 def inc(data):
     data = data[:]  # copy
-    for i in range(len(data)-1, -1, -1):
+    for i in range(len(data) -1, -1, -1):
         if data[i] == 255:
             data[i] = 0
         else:

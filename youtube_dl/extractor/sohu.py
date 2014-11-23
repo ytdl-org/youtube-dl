@@ -69,7 +69,7 @@ class SohuIE(InfoExtractor):
                         (allot, prot, clipsURL[i], su[i]))
             part_str = self._download_webpage(
                 part_url, video_id,
-                note=u'Downloading part %d of %d' % (i+1, part_count))
+                note=u'Downloading part %d of %d' % (i +1, part_count))
 
             part_info = part_str.split('|')
             video_url = '%s%s?key=%s' % (part_info[0], su[i], part_info[3])

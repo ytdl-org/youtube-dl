@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 import hashlib
-import shutil
-import subprocess
-import tempfile
 import urllib.request
 import json
 

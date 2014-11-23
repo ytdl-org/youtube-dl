@@ -37,7 +37,7 @@ class TudouIE(InfoExtractor):
     }]
 
     def _url_for_id(self, id, quality = None):
-        info_url = "http://v2.tudou.com/f?id="+str(id)
+        info_url = "http://v2.tudou.com/f?id=" +str(id)
         if quality:
             info_url += '&hd' + quality
         webpage = self._download_webpage(info_url, id, "Opening the info webpage")

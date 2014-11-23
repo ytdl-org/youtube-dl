@@ -12,10 +12,6 @@ from test.helper import FakeYDL
 from youtube_dl.extractor import (
     YoutubePlaylistIE,
     YoutubeIE,
-    YoutubeChannelIE,
-    YoutubeShowIE,
-    YoutubeTopListIE,
-    YoutubeSearchURLIE,
 )
 
 

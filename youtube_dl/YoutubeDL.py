@@ -29,7 +29,6 @@ from .compat import (
     compat_str,
     compat_urllib_error,
     compat_urllib_request,
-    shlex_quote,
 )
 from .utils import (
     escape_url,

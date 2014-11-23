@@ -38,10 +38,10 @@ class ThisAVIE(InfoExtractor):
         ext = determine_ext(video_url)
 
         return {
-            'id':          video_id,
-            'url':         video_url,
-            'uploader':    uploader,
+            'id': video_id,
+            'url': video_url,
+            'uploader': uploader,
             'uploader_id': uploader_id,
-            'title':       title,
-            'ext':         ext,
+            'title': title,
+            'ext': ext,
         }

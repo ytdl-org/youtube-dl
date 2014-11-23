@@ -46,13 +46,13 @@ class RtmpFD(FileDownloader):
                     continue
                 mobj = re.search(r'([0-9]+\.[0-9]{3}) kB / [0-9]+\.[0-9]{2} sec \(([0-9]{1,2}\.[0-9])%\)', line)
                 if mobj:
-                    downloaded_data_len = int(float(mobj.group(1))*1024)
+                    downloaded_data_len = int(float(mobj.group(1)) *1024)
                     percent = float(mobj.group(2))
                     if not resume_percent:
                         resume_percent = percent
                         resume_downloaded_data_len = downloaded_data_len
-                    eta = self.calc_eta(start, time.time(), 100-resume_percent, percent-resume_percent)
-                    speed = self.calc_speed(start, time.time(), downloaded_data_len-resume_downloaded_data_len)
+                    eta = self.calc_eta(start, time.time(), 100 -resume_percent, percent -resume_percent)
+                    speed = self.calc_speed(start, time.time(), downloaded_data_len -resume_downloaded_data_len)
                     data_len = None
                     if percent > 0:
                         data_len = int(downloaded_data_len * 100 / percent)
@@ -72,7 +72,7 @@ class RtmpFD(FileDownloader):
                     # no percent for live streams
                     mobj = re.search(r'([0-9]+\.[0-9]{3}) kB / [0-9]+\.[0-9]{2} sec', line)
                     if mobj:
-                        downloaded_data_len = int(float(mobj.group(1))*1024)
+                        downloaded_data_len = int(float(mobj.group(1)) *1024)
                         time_now = time.time()
                         speed = self.calc_speed(start, time_now, downloaded_data_len)
                         self.report_progress_live_stream(downloaded_data_len, speed, time_now - start)
@@ -88,7 +88,7 @@ class RtmpFD(FileDownloader):
                         if not cursor_in_new_line:
                             self.to_screen('')
                         cursor_in_new_line = True
-                        self.to_screen('[rtmpdump] '+line)
+                        self.to_screen('[rtmpdump] ' +line)
             proc.wait()
             if not cursor_in_new_line:
                 self.to_screen('')

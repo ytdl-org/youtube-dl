@@ -118,5 +118,5 @@ class ThePlatformIE(InfoExtractor):
             'formats': formats,
             'description': info['description'],
             'thumbnail': info['defaultThumbnailUrl'],
-            'duration': info['duration']//1000,
+            'duration': info['duration'] //1000,
         }

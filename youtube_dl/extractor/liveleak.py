@@ -19,8 +19,7 @@ class LiveLeakIE(InfoExtractor):
             'uploader': 'ljfriel2',
             'title': 'Most unlucky car accident'
         }
-    },
-    {
+    }, {
         'url': 'http://www.liveleak.com/view?i=f93_1390833151',
         'md5': 'd3f1367d14cc3c15bf24fbfbe04b9abf',
         'info_dict': {
@@ -30,8 +29,7 @@ class LiveLeakIE(InfoExtractor):
             'uploader': 'ARD_Stinkt',
             'title': 'German Television does first Edward Snowden Interview (ENGLISH)',
         }
-    },
-    {
+    }, {
         'url': 'http://www.liveleak.com/view?i=4f7_1392687779',
         'md5': '42c6d97d54f1db107958760788c5f48f',
         'info_dict': {

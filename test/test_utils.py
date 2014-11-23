@@ -45,7 +45,6 @@ from youtube_dl.utils import (
     escape_rfc3986,
     escape_url,
     js_to_json,
-    get_filesystem_encoding,
     intlist_to_bytes,
     args_to_str,
 )

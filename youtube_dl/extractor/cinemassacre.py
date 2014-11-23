@@ -77,7 +77,7 @@ class CinemassacreIE(InfoExtractor):
         if videolist_url:
             videolist = self._download_xml(videolist_url, video_id, 'Downloading videolist XML')
             formats = []
-            baseurl = vidurl[:vidurl.rfind('/')+1]
+            baseurl = vidurl[:vidurl.rfind('/') +1]
             for video in videolist.findall('.//video'):
                 src = video.get('src')
                 if not src:
