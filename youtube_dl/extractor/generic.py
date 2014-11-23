@@ -784,7 +784,7 @@ class GenericIE(InfoExtractor):
 
         # Look for Ooyala videos
         mobj = (re.search(r'player.ooyala.com/[^"?]+\?[^"]*?(?:embedCode|ec)=(?P<ec>[^"&]+)', webpage) or
-             re.search(r'OO.Player.create\([\'"].*?[\'"],\s*[\'"](?P<ec>.{32})[\'"]', webpage))
+                re.search(r'OO.Player.create\([\'"].*?[\'"],\s*[\'"](?P<ec>.{32})[\'"]', webpage))
         if mobj is not None:
             return OoyalaIE._build_url_result(mobj.group('ec'))
 

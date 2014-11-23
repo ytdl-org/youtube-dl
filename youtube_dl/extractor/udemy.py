@@ -154,7 +154,7 @@ class UdemyCourseIE(UdemyIE):
             self.to_screen('%s: Already enrolled in' % course_id)
 
         response = self._download_json('https://www.udemy.com/api-1.1/courses/%s/curriculum' % course_id,
-            course_id, 'Downloading course curriculum')
+                                       course_id, 'Downloading course curriculum')
 
         entries = [
             self.url_result('https://www.udemy.com/%s/#/lecture/%s' % (course_path, asset['id']), 'Udemy')

@@ -142,7 +142,7 @@ def win_service_set_status(handle, status_code):
 
 def win_service_main(service_name, real_main, argc, argv_raw):
     try:
-        #args = [argv_raw[i].value for i in range(argc)]
+        # args = [argv_raw[i].value for i in range(argc)]
         stop_event = threading.Event()
         handler = HandlerEx(functools.partial(stop_event, win_service_handler))
         h = advapi32.RegisterServiceCtrlHandlerExW(service_name, handler, None)

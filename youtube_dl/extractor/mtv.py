@@ -53,7 +53,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         # Otherwise we get a webpage that would execute some javascript
         req.add_header('Youtubedl-user-agent', 'curl/7')
         webpage = self._download_webpage(req, mtvn_id,
-            'Downloading mobile page')
+                                         'Downloading mobile page')
         metrics_url = unescapeHTML(self._search_regex(r'<a href="(http://metrics.+?)"', webpage, 'url'))
         req = HEADRequest(metrics_url)
         response = self._request_webpage(req, mtvn_id, 'Resolving url')
@@ -66,10 +66,10 @@ class MTVServicesInfoExtractor(InfoExtractor):
         if re.match(r'.*/(error_country_block\.swf|geoblock\.mp4)$', mdoc.find('.//src').text) is not None:
             if mtvn_id is not None and self._MOBILE_TEMPLATE is not None:
                 self.to_screen('The normal version is not available from your '
-                    'country, trying with the mobile version')
+                               'country, trying with the mobile version')
                 return self._extract_mobile_video_formats(mtvn_id)
             raise ExtractorError('This video is not available from your country.',
-                expected=True)
+                                 expected=True)
 
         formats = []
         for rendition in mdoc.findall('.//rendition'):
@@ -98,7 +98,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
             mediagen_url += '&acceptMethods=fms'
 
         mediagen_doc = self._download_xml(mediagen_url, video_id,
-            'Downloading video urls')
+                                          'Downloading video urls')
 
         description_node = itemdoc.find('description')
         if description_node is not None:
@@ -126,7 +126,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         # This a short id that's used in the webpage urls
         mtvn_id = None
         mtvn_id_node = find_xpath_attr(itemdoc, './/{http://search.yahoo.com/mrss/}category',
-                'scheme', 'urn:mtvn:id')
+                                       'scheme', 'urn:mtvn:id')
         if mtvn_id_node is not None:
             mtvn_id = mtvn_id_node.text
 
@@ -188,7 +188,7 @@ class MTVServicesEmbeddedIE(MTVServicesInfoExtractor):
         video_id = self._id_from_uri(uri)
         site_id = uri.replace(video_id, '')
         config_url = ('http://media.mtvnservices.com/pmt/e1/players/{0}/'
-            'context4/context5/config.xml'.format(site_id))
+                      'context4/context5/config.xml'.format(site_id))
         config_doc = self._download_xml(config_url, video_id)
         feed_node = config_doc.find('.//feed')
         feed_url = feed_node.text.strip().split('?')[0]

@@ -82,7 +82,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
 
             rootURL = 'http://openclassroom.stanford.edu/MainFolder/HomePage.php'
             rootpage = self._download_webpage(rootURL, info['id'],
-                errnote='Unable to download course info page')
+                                              errnote='Unable to download course info page')
 
             links = orderedSet(re.findall('<a href="(CoursePage.php\?[^"]+)">', rootpage))
             info['entries'] = [self.url_result(

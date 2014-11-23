@@ -950,7 +950,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
                         parts_sizes = self._signature_cache_id(encrypted_sig)
                         self.to_screen('{%s} signature length %s, %s' %
-                            (format_id, parts_sizes, player_desc))
+                                       (format_id, parts_sizes, player_desc))
 
                     signature = self._decrypt_signature(
                         encrypted_sig, video_id, player_url, age_gate)
@@ -1214,7 +1214,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
 class YoutubeTopListIE(YoutubePlaylistIE):
     IE_NAME = 'youtube:toplist'
     IE_DESC = ('YouTube.com top lists, "yttoplist:{channel}:{list title}"'
-        ' (Example: "yttoplist:music:Top Tracks")')
+               ' (Example: "yttoplist:music:Top Tracks")')
     _VALID_URL = r'yttoplist:(?P<chann>.*?):(?P<title>.*?)$'
     _TESTS = [{
         'url': 'yttoplist:music:Trending',

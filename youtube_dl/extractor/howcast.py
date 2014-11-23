@@ -27,10 +27,10 @@ class HowcastIE(InfoExtractor):
         self.report_extraction(video_id)
 
         video_url = self._search_regex(r'\'?file\'?: "(http://mobile-media\.howcast\.com/[0-9]+\.mp4)',
-            webpage, 'video URL')
+                                       webpage, 'video URL')
 
         video_description = self._html_search_regex(r'<meta content=(?:"([^"]+)"|\'([^\']+)\') name=\'description\'',
-            webpage, 'description', fatal=False)
+                                                    webpage, 'description', fatal=False)
 
         return {
             'id': video_id,

@@ -225,13 +225,15 @@ class F4mFD(FileDownloader):
         self.to_screen('[download] Downloading f4m manifest')
         manifest = self.ydl.urlopen(man_url).read()
         self.report_destination(filename)
-        http_dl = HttpQuietDownloader(self.ydl,
+        http_dl = HttpQuietDownloader(
+            self.ydl,
             {
                 'continuedl': True,
                 'quiet': True,
                 'noprogress': True,
                 'test': self.params.get('test', False),
-            })
+            }
+        )
 
         doc = etree.fromstring(manifest)
         formats = [(int(f.attrib.get('bitrate', -1)), f) for f in doc.findall(_add_ns('media'))]
@@ -277,7 +279,7 @@ class F4mFD(FileDownloader):
         def frag_progress_hook(status):
             frag_total_bytes = status.get('total_bytes', 0)
             estimated_size = (state['downloaded_bytes'] +
-                (total_frags - state['frag_counter']) * frag_total_bytes)
+                              (total_frags - state['frag_counter']) * frag_total_bytes)
             if status['status'] == 'finished':
                 state['downloaded_bytes'] += frag_total_bytes
                 state['frag_counter'] += 1
@@ -287,13 +289,13 @@ class F4mFD(FileDownloader):
                 frag_downloaded_bytes = status['downloaded_bytes']
                 byte_counter = state['downloaded_bytes'] + frag_downloaded_bytes
                 frag_progress = self.calc_percent(frag_downloaded_bytes,
-                    frag_total_bytes)
+                                                  frag_total_bytes)
                 progress = self.calc_percent(state['frag_counter'], total_frags)
                 progress += frag_progress / float(total_frags)
 
             eta = self.calc_eta(start, time.time(), estimated_size, byte_counter)
             self.report_progress(progress, format_bytes(estimated_size),
-                status.get('speed'), eta)
+                                 status.get('speed'), eta)
         http_dl.add_progress_hook(frag_progress_hook)
 
         frags_filenames = []

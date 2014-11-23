@@ -28,11 +28,11 @@ class VideofyMeIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         config = self._download_xml('http://sunshine.videofy.me/?videoId=%s' % video_id,
-                                            video_id)
+                                    video_id)
         video = config.find('video')
         sources = video.find('sources')
         url_node = next(node for node in [find_xpath_attr(sources, 'source', 'id', 'HQ %s' % key)
-            for key in ['on', 'av', 'off']] if node is not None)
+                                          for key in ['on', 'av', 'off']] if node is not None)
         video_url = url_node.find('url').text
 
         return {'id': video_id,

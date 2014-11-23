@@ -27,8 +27,7 @@ class NineGagIE(InfoExtractor):
             "thumbnail": "re:^https?://",
         },
         'add_ie': ['Youtube']
-    },
-    {
+    }, {
         'url': 'http://9gag.tv/p/KklwM/alternate-banned-opening-scene-of-gravity?ref=fsidebar',
         'info_dict': {
             'id': 'KklwM',

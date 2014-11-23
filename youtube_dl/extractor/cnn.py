@@ -25,8 +25,7 @@ class CNNIE(InfoExtractor):
             'duration': 135,
             'upload_date': '20130609',
         },
-    },
-    {
+    }, {
         "url": "http://edition.cnn.com/video/?/video/us/2013/08/21/sot-student-gives-epic-speech.georgia-institute-of-technology&utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+rss%2Fcnn_topstories+%28RSS%3A+Top+Stories%29",
         "md5": "b5cc60c60a3477d185af8f19a2a26f4e",
         "info_dict": {

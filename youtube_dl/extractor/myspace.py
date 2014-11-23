@@ -53,7 +53,7 @@ class MySpaceIE(InfoExtractor):
             # songs don't store any useful info in the 'context' variable
             def search_data(name):
                 return self._search_regex(r'data-%s="(.*?)"' % name, webpage,
-                    name)
+                                          name)
             streamUrl = search_data('stream-url')
             info = {
                 'id': video_id,
@@ -63,7 +63,7 @@ class MySpaceIE(InfoExtractor):
             }
         else:
             context = json.loads(self._search_regex(r'context = ({.*?});', webpage,
-                u'context'))
+                                                    u'context'))
             video = context['video']
             streamUrl = video['streamUrl']
             info = {

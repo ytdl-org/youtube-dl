@@ -41,7 +41,7 @@ class WeiboIE(InfoExtractor):
         videos_urls = sorted(videos_urls, key=lambda u: 'video.sina.com' in u)
         player_url = videos_urls[-1]
         m_sina = re.match(r'https?://video\.sina\.com\.cn/v/b/(\d+)-\d+\.html',
-            player_url)
+                          player_url)
         if m_sina is not None:
             self.to_screen('Sina video detected')
             sina_id = m_sina.group(1)

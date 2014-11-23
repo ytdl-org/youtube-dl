@@ -45,22 +45,26 @@ class InternetVideoArchiveIE(InfoExtractor):
         url = self._build_url(query)
 
         flashconfiguration = self._download_xml(url, video_id,
-            'Downloading flash configuration')
+                                                'Downloading flash configuration')
         file_url = flashconfiguration.find('file').text
         file_url = file_url.replace('/playlist.aspx', '/mrssplaylist.aspx')
         # Replace some of the parameters in the query to get the best quality
         # and http links (no m3u8 manifests)
         file_url = re.sub(r'(?<=\?)(.+)$',
-            lambda m: self._clean_query(m.group()),
-            file_url)
+                          lambda m: self._clean_query(m.group()),
+                          file_url)
         info = self._download_xml(file_url, video_id,
-            'Downloading video info')
+                                  'Downloading video info')
         item = info.find('channel/item')
 
         def _bp(p):
-            return xpath_with_ns(p,
-                {'media': 'http://search.yahoo.com/mrss/',
-                'jwplayer': 'http://developer.longtailvideo.com/trac/wiki/FlashFormats'})
+            return xpath_with_ns(
+                p,
+                {
+                    'media': 'http://search.yahoo.com/mrss/',
+                    'jwplayer': 'http://developer.longtailvideo.com/trac/wiki/FlashFormats',
+                }
+            )
         formats = []
         for content in item.findall(_bp('media:group/media:content')):
             attr = content.attrib

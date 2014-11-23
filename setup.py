@@ -4,7 +4,6 @@
 from __future__ import print_function
 
 import os.path
-import pkg_resources
 import warnings
 import sys
 

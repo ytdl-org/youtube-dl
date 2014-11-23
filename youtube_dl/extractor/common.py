@@ -478,7 +478,7 @@ class InfoExtractor(object):
             raise RegexNotFoundError('Unable to extract %s' % _name)
         else:
             self._downloader.report_warning('unable to extract %s; '
-                'please report this issue on http://yt-dl.org/bug' % _name)
+                                            'please report this issue on http://yt-dl.org/bug' % _name)
             return None
 
     def _html_search_regex(self, pattern, string, name, default=_NO_DEFAULT, fatal=True, flags=0, group=None):
@@ -612,7 +612,7 @@ class InfoExtractor(object):
 
     def _twitter_search_player(self, html):
         return self._html_search_meta('twitter:player', html,
-            'twitter card player')
+                                      'twitter card player')
 
     def _sort_formats(self, formats):
         if not formats:

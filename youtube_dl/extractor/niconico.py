@@ -111,7 +111,7 @@ class NiconicoIE(InfoExtractor):
 
         if 'deleted=' in flv_info_webpage:
             raise ExtractorError('The video has been deleted.',
-                expected=True)
+                                 expected=True)
         video_real_url = compat_urlparse.parse_qs(flv_info_webpage)['url'][0]
 
         # Start extracting information
@@ -170,13 +170,13 @@ class NiconicoPlaylistIE(InfoExtractor):
         webpage = self._download_webpage(url, list_id)
 
         entries_json = self._search_regex(r'Mylist\.preload\(\d+, (\[.*\])\);',
-            webpage, 'entries')
+                                          webpage, 'entries')
         entries = json.loads(entries_json)
         entries = [{
             '_type': 'url',
             'ie_key': NiconicoIE.ie_key(),
             'url': ('http://www.nicovideo.jp/watch/%s' %
-                entry['item_data']['video_id']),
+                    entry['item_data']['video_id']),
         } for entry in entries]
 
         return {

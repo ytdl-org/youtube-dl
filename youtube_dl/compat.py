@@ -116,7 +116,7 @@ except ImportError:  # Python 2
     # Python 2's version is apparently totally broken
 
     def _parse_qsl(qs, keep_blank_values=False, strict_parsing=False,
-                encoding='utf-8', errors='replace'):
+                   encoding='utf-8', errors='replace'):
         qs, _coerce_result = qs, unicode
         pairs = [s2 for s1 in qs.split('&') for s2 in s1.split(';')]
         r = []
@@ -145,10 +145,10 @@ except ImportError:  # Python 2
         return r
 
     def compat_parse_qs(qs, keep_blank_values=False, strict_parsing=False,
-                encoding='utf-8', errors='replace'):
+                        encoding='utf-8', errors='replace'):
         parsed_result = {}
         pairs = _parse_qsl(qs, keep_blank_values, strict_parsing,
-                        encoding=encoding, errors=errors)
+                           encoding=encoding, errors=errors)
         for name, value in pairs:
             if name in parsed_result:
                 parsed_result[name].append(value)

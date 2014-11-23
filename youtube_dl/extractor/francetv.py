@@ -234,7 +234,7 @@ class GenerationQuoiIE(InfoExtractor):
         info_json = self._download_webpage(info_url, name)
         info = json.loads(info_json)
         return self.url_result('http://www.dailymotion.com/video/%s' % info['id'],
-            ie='Dailymotion')
+                               ie='Dailymotion')
 
 
 class CultureboxIE(FranceTVBaseInfoExtractor):
