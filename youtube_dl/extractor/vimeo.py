@@ -260,7 +260,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
                 else:
                     config_re = [r' = {config:({.+?}),assets:', r'(?:[abc])=({.+?});']
                 config = self._search_regex(config_re, webpage, 'info section',
-                    flags=re.DOTALL)
+                                            flags=re.DOTALL)
                 config = json.loads(config)
         except Exception as e:
             if re.search('The creator of this video has not given you permission to embed it on this domain.', webpage):

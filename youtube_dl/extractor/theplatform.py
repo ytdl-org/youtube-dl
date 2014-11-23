@@ -47,7 +47,7 @@ class ThePlatformIE(InfoExtractor):
             smil_url = config['releaseUrl'] + '&format=SMIL&formats=MPEG4&manifest=f4m'
         else:
             smil_url = ('http://link.theplatform.com/s/dJ5BDC/{0}/meta.smil?'
-                'format=smil&mbr=true'.format(video_id))
+                        'format=smil&mbr=true'.format(video_id))
 
         meta = self._download_xml(smil_url, video_id)
         try:

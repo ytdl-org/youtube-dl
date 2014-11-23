@@ -116,14 +116,14 @@ def expect_info_dict(self, expected_dict, got_dict):
         elif isinstance(expected, type):
             got = got_dict.get(info_field)
             self.assertTrue(isinstance(got, expected),
-                'Expected type %r for field %s, but got value %r of type %r' % (expected, info_field, got, type(got)))
+                            'Expected type %r for field %s, but got value %r of type %r' % (expected, info_field, got, type(got)))
         else:
             if isinstance(expected, compat_str) and expected.startswith('md5:'):
                 got = 'md5:' + md5(got_dict.get(info_field))
             else:
                 got = got_dict.get(info_field)
             self.assertEqual(expected, got,
-                'invalid value for field %s, expected %r, got %r' % (info_field, expected, got))
+                             'invalid value for field %s, expected %r, got %r' % (info_field, expected, got))
 
     # Check for the presence of mandatory fields
     if got_dict.get('_type') != 'playlist':
@@ -135,8 +135,8 @@ def expect_info_dict(self, expected_dict, got_dict):
 
     # Are checkable fields missing from the test case definition?
     test_info_dict = dict((key, value if not isinstance(value, compat_str) or len(value) < 250 else 'md5:' + md5(value))
-        for key, value in got_dict.items()
-        if value and key in ('title', 'description', 'uploader', 'upload_date', 'timestamp', 'uploader_id', 'location'))
+                          for key, value in got_dict.items()
+                          if value and key in ('title', 'description', 'uploader', 'upload_date', 'timestamp', 'uploader_id', 'location'))
     missing_keys = set(test_info_dict.keys()) - set(expected_dict.keys())
     if missing_keys:
         def _repr(v):

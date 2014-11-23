@@ -219,8 +219,8 @@ class MetacafeIE(InfoExtractor):
         description = self._og_search_description(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
         video_uploader = self._html_search_regex(
-                r'submitter=(.*?);|googletag\.pubads\(\)\.setTargeting\("(?:channel|submiter)","([^"]+)"\);',
-                webpage, 'uploader nickname', fatal=False)
+            r'submitter=(.*?);|googletag\.pubads\(\)\.setTargeting\("(?:channel|submiter)","([^"]+)"\);',
+            webpage, 'uploader nickname', fatal=False)
         duration = int_or_none(
             self._html_search_meta('video:duration', webpage))
 

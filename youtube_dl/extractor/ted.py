@@ -33,9 +33,9 @@ class TEDIE(SubtitlesInfoExtractor):
             'ext': 'mp4',
             'title': 'The illusion of consciousness',
             'description': ('Philosopher Dan Dennett makes a compelling '
-                'argument that not only don\'t we understand our own '
-                'consciousness, but that half the time our brains are '
-                'actively fooling us.'),
+                            'argument that not only don\'t we understand our own '
+                            'consciousness, but that half the time our brains are '
+                            'actively fooling us.'),
             'uploader': 'Dan Dennett',
             'width': 854,
             'duration': 1308,
@@ -93,7 +93,7 @@ class TEDIE(SubtitlesInfoExtractor):
 
     def _extract_info(self, webpage):
         info_json = self._search_regex(r'q\("\w+.init",({.+})\)</script>',
-            webpage, 'info json')
+                                       webpage, 'info json')
         return json.loads(info_json)
 
     def _real_extract(self, url):
@@ -113,7 +113,7 @@ class TEDIE(SubtitlesInfoExtractor):
         '''Returns the videos of the playlist'''
 
         webpage = self._download_webpage(url, name,
-            'Downloading playlist webpage')
+                                         'Downloading playlist webpage')
         info = self._extract_info(webpage)
         playlist_info = info['playlist']
 

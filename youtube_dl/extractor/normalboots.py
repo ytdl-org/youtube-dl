@@ -31,9 +31,9 @@ class NormalbootsIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
         video_uploader = self._html_search_regex(r'Posted\sby\s<a\shref="[A-Za-z0-9/]*">(?P<uploader>[A-Za-z]*)\s</a>',
-            webpage, 'uploader')
+                                                 webpage, 'uploader')
         raw_upload_date = self._html_search_regex('<span style="text-transform:uppercase; font-size:inherit;">[A-Za-z]+, (?P<date>.*)</span>',
-            webpage, 'date')
+                                                  webpage, 'date')
         video_upload_date = unified_strdate(raw_upload_date)
 
         player_url = self._html_search_regex(r'<iframe\swidth="[0-9]+"\sheight="[0-9]+"\ssrc="(?P<url>[\S]+)"', webpage, 'url')

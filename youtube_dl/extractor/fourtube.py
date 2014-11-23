@@ -55,7 +55,7 @@ class FourTubeIE(InfoExtractor):
         description = self._html_search_meta('description', webpage, 'description')
         if description:
             upload_date = self._search_regex(r'Published Date: (\d{2} [a-zA-Z]{3} \d{4})', description, 'upload date',
-                fatal=False)
+                                             fatal=False)
             if upload_date:
                 upload_date = unified_strdate(upload_date)
             view_count = self._search_regex(r'Views: ([\d,\.]+)', description, 'view count', fatal=False)

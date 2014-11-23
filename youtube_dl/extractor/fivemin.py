@@ -50,7 +50,7 @@ class FiveMinIE(InfoExtractor):
         video_id = mobj.group('id')
         embed_url = 'https://embed.5min.com/playerseed/?playList=%s' % video_id
         embed_page = self._download_webpage(embed_url, video_id,
-            'Downloading embed page')
+                                            'Downloading embed page')
         sid = self._search_regex(r'sid=(\d+)', embed_page, 'sid')
         query = compat_urllib_parse.urlencode({
             'func': 'GetResults',

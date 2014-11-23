@@ -121,7 +121,7 @@ class VKIE(InfoExtractor):
         }
 
         request = compat_urllib_request.Request('https://login.vk.com/?act=login',
-            compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+                                                compat_urllib_parse.urlencode(login_form).encode('utf-8'))
         login_page = self._download_webpage(request, None, note='Logging in as %s' % username)
 
         if re.search(r'onLoginFailed', login_page):
@@ -175,7 +175,7 @@ class VKIE(InfoExtractor):
         upload_date = None
         mobj = re.search(r'id="mv_date_wrap".*?Added ([a-zA-Z]+ [0-9]+), ([0-9]+) at', info_page)
         if mobj is not None:
-            x = mobj.group(1) + ' ' + mobj.group(2)
+            mobj.group(1) + ' ' + mobj.group(2)
             upload_date = unified_strdate(mobj.group(1) + ' ' + mobj.group(2))
 
         formats = [{

@@ -32,9 +32,9 @@ class FKTVIE(InfoExtractor):
         server = random.randint(2, 4)
         video_thumbnail = 'http://fernsehkritik.tv/images/magazin/folge%d.jpg' % episode
         start_webpage = self._download_webpage('http://fernsehkritik.tv/folge-%d/Start' % episode,
-            episode)
+                                               episode)
         playlist = self._search_regex(r'playlist = (\[.*?\]);', start_webpage,
-            'playlist', flags=re.DOTALL)
+                                      'playlist', flags=re.DOTALL)
         files = json.loads(re.sub('{[^{}]*?}', '{}', playlist))
         # TODO: return a single multipart video
         videos = []

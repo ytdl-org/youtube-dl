@@ -64,7 +64,7 @@ class YouPornIE(InfoExtractor):
         # Get all of the links from the page
         DOWNLOAD_LIST_RE = r'(?s)<ul class="downloadList">(?P<download_list>.*?)</ul>'
         download_list_html = self._search_regex(DOWNLOAD_LIST_RE,
-            webpage, 'download list').strip()
+                                                webpage, 'download list').strip()
         LINK_RE = r'<a href="([^"]+)">'
         links = re.findall(LINK_RE, download_list_html)
 

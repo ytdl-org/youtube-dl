@@ -9,7 +9,7 @@ from .common import InfoExtractor
 class DefenseGouvFrIE(InfoExtractor):
     IE_NAME = 'defense.gouv.fr'
     _VALID_URL = (r'http://.*?\.defense\.gouv\.fr/layout/set/'
-        r'ligthboxvideo/base-de-medias/webtv/(.*)')
+                  r'ligthboxvideo/base-de-medias/webtv/(.*)')
 
     _TEST = {
         'url': 'http://www.defense.gouv.fr/layout/set/ligthboxvideo/base-de-medias/webtv/attaque-chimique-syrienne-du-21-aout-2013-1',
@@ -28,9 +28,9 @@ class DefenseGouvFrIE(InfoExtractor):
             webpage, 'ID')
 
         json_url = ('http://static.videos.gouv.fr/brightcovehub/export/json/'
-            + video_id)
+                    + video_id)
         info = self._download_webpage(json_url, title,
-                                                  'Downloading JSON config')
+                                      'Downloading JSON config')
         video_url = json.loads(info)['renditions'][0]['url']
 
         return {'id': video_id,

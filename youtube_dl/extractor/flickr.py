@@ -37,7 +37,7 @@ class FlickrIE(InfoExtractor):
         first_xml = self._download_webpage(first_url, video_id, 'Downloading first data webpage')
 
         node_id = self._html_search_regex(r'<Item id="id">(\d+-\d+)</Item>',
-            first_xml, 'node_id')
+                                          first_xml, 'node_id')
 
         second_url = 'https://secure.flickr.com/video_playlist.gne?node_id=' + node_id + '&tech=flash&mode=playlist&bitrate=700&secret=' + secret + '&rd=video.yahoo.com&noad=1'
         second_xml = self._download_webpage(second_url, video_id, 'Downloading second data webpage')

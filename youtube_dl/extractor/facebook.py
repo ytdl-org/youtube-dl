@@ -60,8 +60,8 @@ class FacebookIE(InfoExtractor):
         login_page_req = compat_urllib_request.Request(self._LOGIN_URL)
         login_page_req.add_header('Cookie', 'locale=en_US')
         login_page = self._download_webpage(login_page_req, None,
-            note='Downloading login page',
-            errnote='Unable to download login page')
+                                            note='Downloading login page',
+                                            errnote='Unable to download login page')
         lsd = self._search_regex(
             r'<input type="hidden" name="lsd" value="([^"]*)"',
             login_page, 'lsd')
@@ -82,7 +82,7 @@ class FacebookIE(InfoExtractor):
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         try:
             login_results = self._download_webpage(request, None,
-                note='Logging in', errnote='unable to fetch login page')
+                                                   note='Logging in', errnote='unable to fetch login page')
             if re.search(r'<form(.*)name="login"(.*)</form>', login_results) is not None:
                 self._downloader.report_warning('unable to log in: bad username/password, or exceded login rate limit (~3/min). Check credentials or wait.')
                 return
@@ -96,7 +96,7 @@ class FacebookIE(InfoExtractor):
             check_req = compat_urllib_request.Request(self._CHECKPOINT_URL, urlencode_postdata(check_form))
             check_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
             check_response = self._download_webpage(check_req, None,
-                note='Confirming login')
+                                                    note='Confirming login')
             if re.search(r'id="checkpointSubmitButton"', check_response) is not None:
                 self._downloader.report_warning('Unable to confirm login, you have to login in your brower and authorize the login.')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:

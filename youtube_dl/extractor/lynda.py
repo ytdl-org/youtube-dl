@@ -45,7 +45,7 @@ class LyndaIE(SubtitlesInfoExtractor):
         video_id = mobj.group(1)
 
         page = self._download_webpage('http://www.lynda.com/ajax/player?videoId=%s&type=video' % video_id, video_id,
-            'Downloading video JSON')
+                                      'Downloading video JSON')
         video_json = json.loads(page)
 
         if 'Status' in video_json:

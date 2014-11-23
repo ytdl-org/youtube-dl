@@ -88,7 +88,7 @@ class AppleTrailersIE(InfoExtractor):
         for li in doc.findall('./div/ul/li'):
             on_click = li.find('.//a').attrib['onClick']
             trailer_info_json = self._search_regex(self._JSON_RE,
-                on_click, 'trailer info')
+                                                   on_click, 'trailer info')
             trailer_info = json.loads(trailer_info_json)
             title = trailer_info['title']
             video_id = movie + '-' + re.sub(r'[^a-zA-Z0-9]', '', title).lower()

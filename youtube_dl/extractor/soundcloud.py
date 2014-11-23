@@ -159,7 +159,7 @@ class SoundcloudIE(InfoExtractor):
 
         # We have to retrieve the url
         streams_url = ('http://api.soundcloud.com/i1/tracks/{0}/streams?'
-            'client_id={1}&secret_token={2}'.format(track_id, self._IPHONE_CLIENT_ID, secret_token))
+                       'client_id={1}&secret_token={2}'.format(track_id, self._IPHONE_CLIENT_ID, secret_token))
         format_dict = self._download_json(
             streams_url,
             track_id, 'Downloading track url')

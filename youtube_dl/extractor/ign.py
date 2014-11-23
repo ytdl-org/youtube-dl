@@ -99,7 +99,7 @@ class IGNIE(InfoExtractor):
         video_id = self._find_video_id(webpage)
         result = self._get_video_info(video_id)
         description = self._html_search_regex(self._DESCRIPTION_RE,
-            webpage, 'video description', flags=re.DOTALL)
+                                              webpage, 'video description', flags=re.DOTALL)
         result['description'] = description
         return result
 

@@ -74,7 +74,7 @@ class YoukuIE(InfoExtractor):
             # -8 means blocked outside China.
             error = config['data'][0].get('error')  # Chinese and English, separated by newline.
             raise ExtractorError(error or 'Server reported error %i' % error_code,
-                expected=True)
+                                 expected=True)
 
         video_title = config['data'][0]['title']
         seed = config['data'][0]['seed']

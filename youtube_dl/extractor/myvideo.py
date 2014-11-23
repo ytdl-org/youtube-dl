@@ -72,7 +72,7 @@ class MyVideoIE(InfoExtractor):
             video_url = mobj.group(1) + '.flv'
 
             video_title = self._html_search_regex('<title>([^<]+)</title>',
-                webpage, 'title')
+                                                  webpage, 'title')
 
             return {
                 'id': video_id,
@@ -162,7 +162,7 @@ class MyVideoIE(InfoExtractor):
         video_swfobj = compat_urllib_parse.unquote(video_swfobj)
 
         video_title = self._html_search_regex("<h1(?: class='globalHd')?>(.*?)</h1>",
-            webpage, 'title')
+                                              webpage, 'title')
 
         return {
             'id': video_id,

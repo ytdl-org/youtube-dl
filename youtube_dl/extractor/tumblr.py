@@ -43,7 +43,7 @@ class TumblrIE(InfoExtractor):
             webpage, 'iframe url')
         iframe = self._download_webpage(iframe_url, video_id)
         video_url = self._search_regex(r'<source src="([^"]+)"',
-            iframe, 'video url')
+                                       iframe, 'video url')
 
         # The only place where you can get a title, it's not complete,
         # but searching in other places doesn't work for all videos
