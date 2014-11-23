@@ -454,7 +454,10 @@ from .vine import (
     VineUserIE,
 )
 from .viki import VikiIE
-from .vk import VKIE
+from .vk import (
+    VKIE,
+    VKUserVideosIE,
+)
 from .vodlocker import VodlockerIE
 from .vporn import VpornIE
 from .vrt import VRTIE
