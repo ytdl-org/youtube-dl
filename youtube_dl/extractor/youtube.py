@@ -1558,20 +1558,20 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
         return self.playlist_result(feed_entries, playlist_title=self._PLAYLIST_TITLE)
 
 class YoutubeRecommendedIE(YoutubeFeedsInfoExtractor):
-    IE_DESC = 'YouTube.com recommended videos, "ytrec" keyword (requires authentication)'
+    IE_DESC = 'YouTube.com recommended videos, ":ytrec" for short (requires authentication)'
     _VALID_URL = r'https?://www\.youtube\.com/feed/recommended|:ytrec(?:ommended)?'
     _FEED_NAME = 'recommended'
     _PLAYLIST_TITLE = 'Youtube Recommended videos'
 
 class YoutubeWatchLaterIE(YoutubeFeedsInfoExtractor):
-    IE_DESC = 'Youtube watch later list, "ytwatchlater" keyword (requires authentication)'
+    IE_DESC = 'Youtube watch later list, ":ytwatchlater" for short (requires authentication)'
     _VALID_URL = r'https?://www\.youtube\.com/feed/watch_later|:ytwatchlater'
     _FEED_NAME = 'watch_later'
     _PLAYLIST_TITLE = 'Youtube Watch Later'
     _PERSONAL_FEED = True
 
 class YoutubeHistoryIE(YoutubeFeedsInfoExtractor):
-    IE_DESC = 'Youtube watch history, "ythistory" keyword (requires authentication)'
+    IE_DESC = 'Youtube watch history, ":ythistory" for short (requires authentication)'
     _VALID_URL = 'https?://www\.youtube\.com/feed/history|:ythistory'
     _FEED_NAME = 'history'
     _PERSONAL_FEED = True
@@ -1579,7 +1579,7 @@ class YoutubeHistoryIE(YoutubeFeedsInfoExtractor):
 
 class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
     IE_NAME = 'youtube:favorites'
-    IE_DESC = 'YouTube.com favourite videos, "ytfav" keyword (requires authentication)'
+    IE_DESC = 'YouTube.com favourite videos, ":ytfav" for short (requires authentication)'
     _VALID_URL = r'https?://www\.youtube\.com/my_favorites|:ytfav(?:ou?rites)?'
     _LOGIN_REQUIRED = True
 
