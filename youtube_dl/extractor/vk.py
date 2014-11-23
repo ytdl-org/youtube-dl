@@ -210,7 +210,10 @@ class VKUserVideosIE(InfoExtractor):
     def _real_extract(self, url):
         page_id = self._match_id(url)
         page = self._download_webpage(url, page_id)
-        video_ids = orderedSet(m.group(1) for m in re.finditer(r'href="/video([0-9_]+)"', page))
-        url_entries = [self.url_result('http://vk.com/video' + video_id, 'VK', video_id=video_id)
-                       for video_id in video_ids]
+        video_ids = orderedSet(
+            m.group(1) for m in re.finditer(r'href="/video([0-9_]+)"', page))
+        url_entries = [
+            self.url_result(
+                'http://vk.com/video' + video_id, 'VK', video_id=video_id)
+            for video_id in video_ids]
         return self.playlist_result(url_entries, page_id)
