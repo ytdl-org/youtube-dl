@@ -75,21 +75,6 @@ class VKIE(InfoExtractor):
             'skip': 'Requires vk account credentials',
         },
         {
-            # VIDEO NOW REMOVED
-            # please update if you find a video whose URL follows the same pattern
-            'url': 'http://vk.com/feed?z=video-43215063_166094326%2Fbb50cacd3177146d7a',
-            'md5': 'd82c22e449f036282d1d3f7f4d276869',
-            'info_dict': {
-                'id': '166094326',
-                'ext': 'mp4',
-                'uploader': 'Киномания - лучшее из мира кино',
-                'title': 'Запах женщины (1992)',
-                'duration': 9392,
-                'upload_date': '20130914'
-            },
-            'skip': 'Requires vk account credentials',
-        },
-        {
             'url': 'http://vk.com/hd_kino_mania?z=video-43215063_168067957%2F15c66b9b533119788d',
             'md5': '4d7a5ef8cf114dfa09577e57b2993202',
             'info_dict': {
@@ -114,6 +99,11 @@ class VKIE(InfoExtractor):
                 'upload_date': '20140626',
             },
             'skip': 'Only works from Russia',
+        },
+        {
+            # removed video, just testing that we match the pattern
+            'url': 'http://vk.com/feed?z=video-43215063_166094326%2Fbb50cacd3177146d7a',
+            'only_matching': True,
         },
     ]
 
