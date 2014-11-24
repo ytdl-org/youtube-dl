@@ -405,6 +405,7 @@ from .trutube import TruTubeIE
 from .tube8 import Tube8IE
 from .tudou import TudouIE
 from .tumblr import TumblrIE
+from .tunein import TuneInIE
 from .turbo import TurboIE
 from .tutv import TutvIE
 from .tvigle import TvigleIE
