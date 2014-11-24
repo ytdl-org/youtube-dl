@@ -26,6 +26,21 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
         if info.get('status') == 'NOK':
             raise ExtractorError(
                 '%s returned error: %s' % (self.IE_NAME, info['message']), expected=True)
+        allowed_countries = info['videos'][0].get('geoblocage')
+        if allowed_countries:
+            georestricted = True
+            geo_info = self._download_json(
+                'http://geo.francetv.fr/ws/edgescape.json', video_id,
+                'Downloading geo restriction info')
+            country = geo_info['reponse']['geo_info']['country_code']
+            if country not in allowed_countries:
+                raise ExtractorError(
+                    'The video is not available from your location',
+                    expected=True)
+        else:
+            georestricted = False
+
+
 
         formats = []
         for video in info['videos']:
@@ -36,6 +51,10 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
                 continue
             format_id = video['format']
             if video_url.endswith('.f4m'):
+                if georestricted:
+                    # See https://github.com/rg3/youtube-dl/issues/3963
+                    # m3u8 urls work fine
+                    continue
                 video_url_parsed = compat_urllib_parse_urlparse(video_url)
                 f4m_url = self._download_webpage(
                     'http://hdfauth.francetv.fr/esi/urltokengen2.html?url=%s' % video_url_parsed.path,
