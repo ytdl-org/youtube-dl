@@ -32,6 +32,7 @@ from .bilibili import BiliBiliIE
 from .blinkx import BlinkxIE
 from .bliptv import BlipTVIE, BlipTVUserIE
 from .bloomberg import BloombergIE
+from .bpb import BpbIE
 from .br import BRIE
 from .breakcom import BreakIE
 from .brightcove import BrightcoveIE
