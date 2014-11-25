@@ -21,19 +21,12 @@ class TMZIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
         webpage = self._download_webpage(url, video_id)
-
-        url = self._html_search_regex(r'<meta name="VideoURL" content="(.+)"', webpage, 'url')
-        title = self._html_search_regex(r'<meta property="og:title" content="(.+)"', webpage, 'title')
-        description = self._html_search_regex(r'<meta property="og:description" content="(.+)"', webpage, 'description')
-        thumbnail_url = self._html_search_regex(r'<meta name="ThumbURL" content="(.+)"', webpage, 'thumbnail url')
 
         return {
             'id': video_id,
-            'url': url,
-            'ext': 'mp4',
-            'title': title,
-            'description': description,
-            'thumbnail': thumbnail_url,
+            'url': self._html_search_meta('VideoURL', webpage, fatal=True),
+            'title': self._og_search_title(webpage),
+            'description': self._og_search_description(webpage),
+            'thumbnail': self._html_search_meta('ThumbURL', webpage),
         }
