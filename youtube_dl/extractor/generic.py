@@ -445,6 +445,14 @@ class GenericIE(InfoExtractor):
                 'title': 'Rosetta #CometLanding webcast HL 10',
             }
         },
+        # LazyYT
+        {
+            'url': 'http://discourse.ubuntu.com/t/unity-8-desktop-mode-windows-on-mir/1986',
+            'info_dict': {
+                'title': 'Unity 8 desktop-mode windows on Mir! - Ubuntu Discourse',
+            },
+            'playlist_mincount': 2,
+        }
     ]
 
     def report_following_redirect(self, new_url):
@@ -701,6 +709,12 @@ class GenericIE(InfoExtractor):
         if matches:
             return _playlist_from_matches(
                 matches, lambda m: unescapeHTML(m[1]))
+
+        # Look for lazyYT YouTube embed
+        matches = re.findall(
+            r'class="lazyYT" data-youtube-id="([^"]+)"', webpage)
+        if matches:
+            return _playlist_from_matches(matches, lambda m: unescapeHTML(m))
 
         # Look for embedded Dailymotion player
         matches = re.findall(
