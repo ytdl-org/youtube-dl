@@ -47,6 +47,7 @@ from youtube_dl.utils import (
     js_to_json,
     intlist_to_bytes,
     args_to_str,
+    parse_filesize,
 )
 
 
@@ -366,6 +367,15 @@ class TestUtil(unittest.TestCase):
             args_to_str(['foo', 'ba/r', '-baz', '2 be', '']),
             'foo ba/r -baz \'2 be\' \'\''
         )
+
+    def test_parse_filesize(self):
+        self.assertEqual(parse_filesize(None), None)
+        self.assertEqual(parse_filesize(''), None)
+        self.assertEqual(parse_filesize('91 B'), 91)
+        self.assertEqual(parse_filesize('foobar'), None)
+        self.assertEqual(parse_filesize('2 MiB'), 2097152)
+        self.assertEqual(parse_filesize('5 GB'), 5000000000)
+        self.assertEqual(parse_filesize('1.2Tb'), 1200000000000)
 
 if __name__ == '__main__':
     unittest.main()

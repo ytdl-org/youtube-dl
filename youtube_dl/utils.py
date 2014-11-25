@@ -1046,6 +1046,57 @@ def format_bytes(bytes):
     return '%.2f%s' % (converted, suffix)
 
 
+def parse_filesize(s):
+    if s is None:
+        return None
+
+    # The lower-case forms are of course incorrect and inofficial,
+    # but we support those too
+    _UNIT_TABLE = {
+        'B': 1,
+        'b': 1,
+        'KiB': 1024,
+        'KB': 1000,
+        'kB': 1024,
+        'Kb': 1000,
+        'MiB': 1024 ** 2,
+        'MB': 1000 ** 2,
+        'mB': 1024 ** 2,
+        'Mb': 1000 ** 2,
+        'GiB': 1024 ** 3,
+        'GB': 1000 ** 3,
+        'gB': 1024 ** 3,
+        'Gb': 1000 ** 3,
+        'TiB': 1024 ** 4,
+        'TB': 1000 ** 4,
+        'tB': 1024 ** 4,
+        'Tb': 1000 ** 4,
+        'PiB': 1024 ** 5,
+        'PB': 1000 ** 5,
+        'pB': 1024 ** 5,
+        'Pb': 1000 ** 5,
+        'EiB': 1024 ** 6,
+        'EB': 1000 ** 6,
+        'eB': 1024 ** 6,
+        'Eb': 1000 ** 6,
+        'ZiB': 1024 ** 7,
+        'ZB': 1000 ** 7,
+        'zB': 1024 ** 7,
+        'Zb': 1000 ** 7,
+        'YiB': 1024 ** 8,
+        'YB': 1000 ** 8,
+        'yB': 1024 ** 8,
+        'Yb': 1000 ** 8,
+    }
+
+    units_re = '|'.join(re.escape(u) for u in _UNIT_TABLE)
+    m = re.match(r'(?P<num>[0-9]+(?:\.[0-9]*)?)\s*(?P<unit>%s)' % units_re, s)
+    if not m:
+        return None
+
+    return int(float(m.group('num')) * _UNIT_TABLE[m.group('unit')])
+
+
 def get_term_width():
     columns = compat_getenv('COLUMNS', None)
     if columns:

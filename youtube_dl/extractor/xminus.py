@@ -2,7 +2,14 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..compat import (
+    compat_chr,
+    compat_ord,
+)
+from ..utils import (
+    int_or_none,
+    parse_filesize,
+)
 
 
 class XMinusIE(InfoExtractor):
@@ -15,39 +22,46 @@ class XMinusIE(InfoExtractor):
             'ext': 'mp3',
             'title': 'Леонид Агутин-Песенка шофера',
             'duration': 156,
+            'tbr': 320,
+            'filesize_approx': 5900000,
+            'view_count': int,
         }
     }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
-        # TODO more code goes here, for example ...
         webpage = self._download_webpage(url, video_id)
+
         artist = self._html_search_regex(
-            r'minus_track.artist="(.+?)"', webpage, 'artist')
+            r'minus_track\.artist="(.+?)"', webpage, 'artist')
         title = artist + '-' + self._html_search_regex(
-            r'minus_track.title="(.+?)"', webpage, 'title')
+            r'minus_track\.title="(.+?)"', webpage, 'title')
         duration = int_or_none(self._html_search_regex(
-            r'minus_track.dur_sec=\'([0-9]+?)\'', webpage, 'duration'))
+            r'minus_track\.dur_sec=\'([0-9]*?)\'',
+            webpage, 'duration', fatal=False))
+        filesize_approx = parse_filesize(self._html_search_regex(
+            r'<div class="filesize[^"]*"></div>\s*([0-9.]+\s*[a-zA-Z][bB])',
+            webpage, 'approximate filesize', fatal=False))
+        tbr = int_or_none(self._html_search_regex(
+            r'<div class="quality[^"]*"></div>\s*([0-9]+)\s*kbps',
+            webpage, 'bitrate', fatal=False))
+        view_count = int_or_none(self._html_search_regex(
+            r'<div class="quality.*?► ([0-9]+)',
+            webpage, 'view count', fatal=False))
+
         enc_token = self._html_search_regex(
             r'data-mt="(.*?)"', webpage, 'enc_token')
-        token = self._decode_token(enc_token)
-        url = 'http://x-minus.org/dwlf/{}/{}.mp3'.format(video_id, token)
+        token = ''.join(
+            c if pos == 3 else compat_chr(compat_ord(c) - 1)
+            for pos, c in enumerate(reversed(enc_token)))
+        video_url = 'http://x-minus.org/dwlf/%s/%s.mp3' % (video_id, token)
 
         return {
             'id': video_id,
             'title': title,
-            'url': url,
+            'url': video_url,
             'duration': duration,
+            'filesize_approx': filesize_approx,
+            'tbr': tbr,
+            'view_count': view_count,
         }
-
-    def _decode_token(self, enc_token):
-        token = ''
-        pos = 0
-        for c in reversed(enc_token):
-            if pos != 3:
-                token += chr(ord(c) - 1)
-            else:
-                token += c
-            pos += 1
-        return token
