@@ -500,6 +500,7 @@ If you want to add support for a new site, you can follow this quick list (assum
             return {
                 'id': video_id,
                 'title': title,
+                'description': self._og_search_description(webpage),
                 # TODO more properties (see youtube_dl/extractor/common.py)
             }
     ```
