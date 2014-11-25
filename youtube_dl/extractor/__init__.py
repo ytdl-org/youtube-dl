@@ -483,6 +483,7 @@ from .wrzuta import WrzutaIE
 from .xbef import XBefIE
 from .xboxclips import XboxClipsIE
 from .xhamster import XHamsterIE
+from .xminus import XMinusIE
 from .xnxx import XNXXIE
 from .xvideos import XVideosIE
 from .xtube import XTubeUserIE, XTubeIE
