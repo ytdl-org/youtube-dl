@@ -174,6 +174,8 @@ class YoutubeDL(object):
     extract_flat:      Do not resolve URLs, return the immediate result.
                        Pass in 'in_playlist' to only show this behavior for
                        playlist items.
+    no_playlist:       If the URL contains both a playlist and a video ID,
+                       download the video, not the playlist.
 
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:
