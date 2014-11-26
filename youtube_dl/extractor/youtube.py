@@ -609,9 +609,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             return {}
         player_config = json.loads(mobj.group(1))
         try:
-            args = player_config[u'args']
-            caption_url = args[u'ttsurl']
-            timestamp = args[u'timestamp']
+            args = player_config['args']
+            caption_url = args['ttsurl']
+            timestamp = args['timestamp']
             # We get the available subtitles
             list_params = compat_urllib_parse.urlencode({
                 'type': 'list',
