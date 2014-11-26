@@ -18,7 +18,7 @@ class BambuserIE(InfoExtractor):
     _TEST = {
         'url': 'http://bambuser.com/v/4050584',
         # MD5 seems to be flaky, see https://travis-ci.org/rg3/youtube-dl/jobs/14051016#L388
-        # u'md5': 'fba8f7693e48fd4e8641b3fd5539a641',
+        # 'md5': 'fba8f7693e48fd4e8641b3fd5539a641',
         'info_dict': {
             'id': '4050584',
             'ext': 'flv',

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from __future__ import unicode_literals, with_statement
 
 import rsa
 import json
@@ -29,4 +30,5 @@ signature = hexlify(rsa.pkcs1.sign(json.dumps(versions_info, sort_keys=True).enc
 print('signature: ' + signature)
 
 versions_info['signature'] = signature
-json.dump(versions_info, open('update/versions.json', 'w'), indent=4, sort_keys=True)
+with open('update/versions.json', 'w') as versionsf:
+    json.dump(versions_info, versionsf, indent=4, sort_keys=True)

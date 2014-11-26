@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 __all__ = ['aes_encrypt', 'key_expansion', 'aes_ctr_decrypt', 'aes_cbc_decrypt', 'aes_decrypt_text']
 
 import base64

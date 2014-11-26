@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 
 from .atomicparsley import AtomicParsleyPP
 from .ffmpeg import (

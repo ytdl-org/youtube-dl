@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import unicode_literals
 
 # Execute with
 # $ python youtube_dl/__main__.py (2.6+)
