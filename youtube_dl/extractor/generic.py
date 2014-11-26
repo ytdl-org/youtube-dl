@@ -452,7 +452,23 @@ class GenericIE(InfoExtractor):
                 'title': 'Unity 8 desktop-mode windows on Mir! - Ubuntu Discourse',
             },
             'playlist_mincount': 2,
+        },
+        # Direct link with incorrect MIME type
+        {
+            'url': 'http://ftp.nluug.nl/video/nluug/2014-11-20_nj14/zaal-2/5_Lennart_Poettering_-_Systemd.webm',
+            'md5': '4ccbebe5f36706d85221f204d7eb5913',
+            'info_dict': {
+                'url': 'http://ftp.nluug.nl/video/nluug/2014-11-20_nj14/zaal-2/5_Lennart_Poettering_-_Systemd.webm',
+                'id': '5_Lennart_Poettering_-_Systemd',
+                'ext': 'webm',
+                'title': '5_Lennart_Poettering_-_Systemd',
+                'upload_date': '20141120',
+            },
+            'expected_warnings': [
+                'URL could be a direct video link, returning it as such.'
+            ]
         }
+
     ]
 
     def report_following_redirect(self, new_url):
@@ -606,10 +622,28 @@ class GenericIE(InfoExtractor):
         if not self._downloader.params.get('test', False) and not is_intentional:
             self._downloader.report_warning('Falling back on generic information extractor.')
 
-        if full_response:
-            webpage = self._webpage_read_content(full_response, url, video_id)
-        else:
-            webpage = self._download_webpage(url, video_id)
+        if not full_response:
+            full_response = self._request_webpage(url, video_id)
+
+        # Maybe it's a direct link to a video?
+        # Be careful not to download the whole thing!
+        first_bytes = full_response.read(512)
+        if not re.match(r'^\s*<', first_bytes.decode('utf-8', 'replace')):
+            self._downloader.report_warning(
+                'URL could be a direct video link, returning it as such.')
+            upload_date = unified_strdate(
+                head_response.headers.get('Last-Modified'))
+            return {
+                'id': video_id,
+                'title': os.path.splitext(url_basename(url))[0],
+                'direct': True,
+                'url': url,
+                'upload_date': upload_date,
+            }
+
+        webpage = self._webpage_read_content(
+            full_response, url, video_id, prefix=first_bytes)
+
         self.report_extraction(video_id)
 
         # Is it an RSS feed?
