@@ -141,7 +141,7 @@ def expect_info_dict(self, expected_dict, got_dict):
     if missing_keys:
         def _repr(v):
             if isinstance(v, compat_str):
-                return "'%s'" % v.replace('\\', '\\\\').replace("'", "\\'")
+                return "'%s'" % v.replace('\\', '\\\\').replace("'", "\\'").replace('\n', '\\n')
             else:
                 return repr(v)
         info_dict_str = ''.join(
