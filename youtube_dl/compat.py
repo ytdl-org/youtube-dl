@@ -270,7 +270,7 @@ if sys.version_info < (3, 0):
         print(s.encode(preferredencoding(), 'xmlcharrefreplace'))
 else:
     def compat_print(s):
-        assert type(s) == type(u'')
+        assert isinstance(s, compat_str)
         print(s)
 
 
