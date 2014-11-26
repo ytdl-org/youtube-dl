@@ -40,12 +40,7 @@ class UdemyIE(InfoExtractor):
                 error_str += ' - %s' % error_data.get('formErrors')
             raise ExtractorError(error_str, expected=True)
 
-    def _download_json(self, url, video_id, note='Downloading JSON metadata'):
-        response = super(UdemyIE, self)._download_json(url, video_id, note)
-        self._handle_error(response)
-        return response
-
-    def _download_json_cookies(self, url, video_id, note):
+    def _download_json(self, url_or_request, video_id, note='Downloading JSON metadata'):
         headers = {
             'X-Udemy-Snail-Case': 'true',
             'X-Requested-With': 'XMLHttpRequest',
@@ -55,8 +50,16 @@ class UdemyIE(InfoExtractor):
                 headers['X-Udemy-Client-Id'] = cookie.value
             elif cookie.name == 'access_token':
                 headers['X-Udemy-Bearer-Token'] = cookie.value
-        request = compat_urllib_request.Request(url, headers=headers)
-        return self._download_json(request, video_id, note)
+
+        if isinstance(url_or_request, compat_urllib_request.Request):
+            for header, value in headers.items():
+                url_or_request.add_header(header, value)
+        else:
+            url_or_request = compat_urllib_request.Request(url_or_request, headers=headers)
+
+        response = super(UdemyIE, self)._download_json(url_or_request, video_id, note)
+        self._handle_error(response)
+        return response
 
     def _real_initialize(self):
         self._login()
@@ -87,7 +90,7 @@ class UdemyIE(InfoExtractor):
             'isSubmitted': '1',
         }
         request = compat_urllib_request.Request(
-            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form))
+            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
         response = self._download_json(
             request, None, 'Logging in as %s' % username)
 
@@ -100,7 +103,7 @@ class UdemyIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         lecture_id = mobj.group('id')
 
-        lecture = self._download_json_cookies(
+        lecture = self._download_json(
             'https://www.udemy.com/api-1.1/lectures/%s' % lecture_id,
             lecture_id, 'Downloading lecture JSON')
 
@@ -164,7 +167,7 @@ class UdemyCourseIE(UdemyIE):
         mobj = re.match(self._VALID_URL, url)
         course_path = mobj.group('coursepath')
 
-        response = self._download_json_cookies(
+        response = self._download_json(
             'https://www.udemy.com/api-1.1/courses/%s' % course_path,
             course_path, 'Downloading course JSON')
 
@@ -180,7 +183,7 @@ class UdemyCourseIE(UdemyIE):
         elif self._ALREADY_ENROLLED in webpage:
             self.to_screen('%s: Already enrolled in' % course_id)
 
-        response = self._download_json_cookies(
+        response = self._download_json(
             'https://www.udemy.com/api-1.1/courses/%s/curriculum' % course_id,
             course_id, 'Downloading course curriculum')
 
