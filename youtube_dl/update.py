@@ -19,7 +19,6 @@ from .version import __version__
 def rsa_verify(message, signature, key):
     from struct import pack
     from hashlib import sha256
-    from sys import version_info
 
     assert isinstance(message, bytes)
     block_size = 0
