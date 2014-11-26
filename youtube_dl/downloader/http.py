@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import os
 import time
 
@@ -106,7 +108,7 @@ class HttpFD(FileDownloader):
                 self.report_retry(count, retries)
 
         if count > retries:
-            self.report_error(u'giving up after %s retries' % retries)
+            self.report_error('giving up after %s retries' % retries)
             return False
 
         data_len = data.info().get('Content-length', None)
@@ -124,10 +126,10 @@ class HttpFD(FileDownloader):
             min_data_len = self.params.get("min_filesize", None)
             max_data_len = self.params.get("max_filesize", None)
             if min_data_len is not None and data_len < min_data_len:
-                self.to_screen(u'\r[download] File is smaller than min-filesize (%s bytes < %s bytes). Aborting.' % (data_len, min_data_len))
+                self.to_screen('\r[download] File is smaller than min-filesize (%s bytes < %s bytes). Aborting.' % (data_len, min_data_len))
                 return False
             if max_data_len is not None and data_len > max_data_len:
-                self.to_screen(u'\r[download] File is larger than max-filesize (%s bytes > %s bytes). Aborting.' % (data_len, max_data_len))
+                self.to_screen('\r[download] File is larger than max-filesize (%s bytes > %s bytes). Aborting.' % (data_len, max_data_len))
                 return False
 
         data_len_str = format_bytes(data_len)
@@ -151,13 +153,13 @@ class HttpFD(FileDownloader):
                     filename = self.undo_temp_name(tmpfilename)
                     self.report_destination(filename)
                 except (OSError, IOError) as err:
-                    self.report_error(u'unable to open for writing: %s' % str(err))
+                    self.report_error('unable to open for writing: %s' % str(err))
                     return False
             try:
                 stream.write(data_block)
             except (IOError, OSError) as err:
-                self.to_stderr(u"\n")
-                self.report_error(u'unable to write data: %s' % str(err))
+                self.to_stderr('\n')
+                self.report_error('unable to write data: %s' % str(err))
                 return False
             if not self.params.get('noresizebuffer', False):
                 block_size = self.best_block_size(after - before, len(data_block))
@@ -188,10 +190,10 @@ class HttpFD(FileDownloader):
             self.slow_down(start, byte_counter - resume_len)
 
         if stream is None:
-            self.to_stderr(u"\n")
-            self.report_error(u'Did not get any data blocks')
+            self.to_stderr('\n')
+            self.report_error('Did not get any data blocks')
             return False
-        if tmpfilename != u'-':
+        if tmpfilename != '-':
             stream.close()
         self.report_finish(data_len_str, (time.time() - start))
         if data_len is not None and byte_counter != data_len:
