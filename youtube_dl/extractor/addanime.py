@@ -15,8 +15,7 @@ from ..utils import (
 
 
 class AddAnimeIE(InfoExtractor):
-
-    _VALID_URL = r'^http://(?:\w+\.)?add-anime\.net/watch_video\.php\?(?:.*?)v=(?P<video_id>[\w_]+)(?:.*)'
+    _VALID_URL = r'^http://(?:\w+\.)?add-anime\.net/watch_video\.php\?(?:.*?)v=(?P<id>[\w_]+)(?:.*)'
     _TEST = {
         'url': 'http://www.add-anime.net/watch_video.php?v=24MR3YO5SAS9',
         'md5': '72954ea10bc979ab5e2eb288b21425a0',
@@ -29,9 +28,9 @@ class AddAnimeIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
+        video_id = self._match_id(url)
+
         try:
-            mobj = re.match(self._VALID_URL, url)
-            video_id = mobj.group('video_id')
             webpage = self._download_webpage(url, video_id)
         except ExtractorError as ee:
             if not isinstance(ee.cause, compat_HTTPError) or \
@@ -49,7 +48,7 @@ class AddAnimeIE(InfoExtractor):
                 r'a\.value = ([0-9]+)[+]([0-9]+)[*]([0-9]+);',
                 redir_webpage)
             if av is None:
-                raise ExtractorError(u'Cannot find redirect math task')
+                raise ExtractorError('Cannot find redirect math task')
             av_res = int(av.group(1)) + int(av.group(2)) * int(av.group(3))
 
             parsed_url = compat_urllib_parse_urlparse(url)
