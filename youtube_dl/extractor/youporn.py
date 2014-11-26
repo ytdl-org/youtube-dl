@@ -49,7 +49,7 @@ class YouPornIE(InfoExtractor):
         try:
             params = json.loads(json_params)
         except:
-            raise ExtractorError(u'Invalid JSON')
+            raise ExtractorError('Invalid JSON')
 
         self.report_extraction(video_id)
         try:
@@ -103,7 +103,7 @@ class YouPornIE(InfoExtractor):
         self._sort_formats(formats)
 
         if not formats:
-            raise ExtractorError(u'ERROR: no known formats available for video')
+            raise ExtractorError('ERROR: no known formats available for video')
 
         return {
             'id': video_id,

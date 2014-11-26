@@ -32,7 +32,7 @@ class SohuIE(InfoExtractor):
             data_url = base_data_url + str(vid_id)
             data_json = self._download_webpage(
                 data_url, video_id,
-                note=u'Downloading JSON data for ' + str(vid_id))
+                note='Downloading JSON data for ' + str(vid_id))
             return json.loads(data_json)
 
         mobj = re.match(self._VALID_URL, url)
@@ -53,7 +53,7 @@ class SohuIE(InfoExtractor):
                    for q in QUALITIES
                    if data['data'][q + 'Vid'] != 0]
         if not vid_ids:
-            raise ExtractorError(u'No formats available for this video')
+            raise ExtractorError('No formats available for this video')
 
         # For now, we just pick the highest available quality
         vid_id = vid_ids[-1]
@@ -71,7 +71,7 @@ class SohuIE(InfoExtractor):
                         (allot, prot, clipsURL[i], su[i]))
             part_str = self._download_webpage(
                 part_url, video_id,
-                note=u'Downloading part %d of %d' % (i + 1, part_count))
+                note='Downloading part %d of %d' % (i + 1, part_count))
 
             part_info = part_str.split('|')
             video_url = '%s%s?key=%s' % (part_info[0], su[i], part_info[3])

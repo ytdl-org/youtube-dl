@@ -73,7 +73,7 @@ class TudouIE(InfoExtractor):
         result = []
         len_parts = len(parts)
         if len_parts > 1:
-            self.to_screen(u'%s: found %s parts' % (video_id, len_parts))
+            self.to_screen('%s: found %s parts' % (video_id, len_parts))
         for part in parts:
             part_id = part['k']
             final_url = self._url_for_id(part_id, quality)
