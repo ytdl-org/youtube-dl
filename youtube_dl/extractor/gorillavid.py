@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class GorillaVidIE(InfoExtractor):
-    IE_DESC = 'GorillaVid.in, daclips.in and movpod.in'
+    IE_DESC = 'GorillaVid.in, daclips.in, movpod.in and fastvideo.in'
     _VALID_URL = r'''(?x)
         https?://(?P<host>(?:www\.)?
             (?:daclips\.in|gorillavid\.in|movpod\.in|fastvideo\.in))/
