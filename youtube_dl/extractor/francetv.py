@@ -40,8 +40,6 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
         else:
             georestricted = False
 
-
-
         formats = []
         for video in info['videos']:
             if video['statut'] != 'ONLINE':
