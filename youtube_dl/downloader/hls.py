@@ -28,14 +28,14 @@ class HlsFD(FileDownloader):
             if check_executable(program, ['-version']):
                 break
         else:
-            self.report_error(u'm3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
+            self.report_error('m3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
             return False
         cmd = [program] + args
 
         retval = subprocess.call(cmd)
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen(u'\r[%s] %s bytes' % (cmd[0], fsize))
+            self.to_screen('\r[%s] %s bytes' % (cmd[0], fsize))
             self.try_rename(tmpfilename, filename)
             self._hook_progress({
                 'downloaded_bytes': fsize,
@@ -45,8 +45,8 @@ class HlsFD(FileDownloader):
             })
             return True
         else:
-            self.to_stderr(u"\n")
-            self.report_error(u'%s exited with code %d' % (program, retval))
+            self.to_stderr('\n')
+            self.report_error('%s exited with code %d' % (program, retval))
             return False
 
 
