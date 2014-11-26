@@ -373,6 +373,7 @@ from .syfy import SyfyIE
 from .sztvhu import SztvHuIE
 from .tagesschau import TagesschauIE
 from .tapely import TapelyIE
+from .tass import TassIE
 from .teachertube import (
     TeacherTubeIE,
     TeacherTubeUserIE,
