@@ -97,7 +97,7 @@ def generator(test_case):
             return
         for other_ie in other_ies:
             if not other_ie.working():
-                print_skipping(u'test depends on %sIE, marked as not WORKING' % other_ie.ie_key())
+                print_skipping('test depends on %sIE, marked as not WORKING' % other_ie.ie_key())
                 return
 
         params = get_params(test_case.get('params', {}))
@@ -143,7 +143,7 @@ def generator(test_case):
                         raise
 
                     if try_num == RETRIES:
-                        report_warning(u'Failed due to network errors, skipping...')
+                        report_warning('Failed due to network errors, skipping...')
                         return
 
                     print('Retrying: {0} failed tries\n\n##########\n\n'.format(try_num))

@@ -171,7 +171,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(find('media:song/url').text, 'http://server.com/download.mp3')
 
     def test_smuggle_url(self):
-        data = {u"ö": u"ö", u"abc": [3]}
+        data = {"ö": "ö", "abc": [3]}
         url = 'https://foo.bar/baz?x=y#a'
         smug_url = smuggle_url(url, data)
         unsmug_url, unsmug_data = unsmuggle_url(smug_url)
