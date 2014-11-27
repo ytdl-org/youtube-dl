@@ -9,7 +9,7 @@ from .common import InfoExtractor
 
 class BuzzFeedIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?buzzfeed\.com/[^?#]*?/(?P<id>[^?#]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.buzzfeed.com/abagg/this-angry-ram-destroys-a-punching-bag-like-a-boss?utm_term=4ldqpia',
         'info_dict': {
             'id': 'this-angry-ram-destroys-a-punching-bag-like-a-boss',
@@ -27,21 +27,43 @@ class BuzzFeedIE(InfoExtractor):
                 'title': 'Angry Ram destroys a punching bag',
             }
         }]
-    }
+    }, {
+        'url': 'http://www.buzzfeed.com/sheridanwatson/look-at-this-cute-dog-omg?utm_term=4ldqpia',
+        'params': {
+            'skip_download': True,  # Got enough YouTube download tests
+        },
+        'info_dict': {
+            'description': 'Munchkin the Teddy Bear is back !',
+            'title': 'You Need To Stop What You\'re Doing And Watching This Dog Walk On A Treadmill',
+        },
+        'playlist': [{
+            'info_dict': {
+                'id': 'mVmBL8B-In0',
+                'ext': 'mp4',
+                'upload_date': '20141124',
+                'uploader_id': 'CindysMunchkin',
+                'description': '© 2014 Munchkin the Shih Tzu\nAll rights reserved\nFacebook: http://facebook.com/MunchkintheShihTzu',
+                'uploader': 'Munchkin the Shih Tzu',
+                'title': 'Munchkin the Teddy Bear gets her exercise',
+            },
+        }]
+    }]
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
         webpage = self._download_webpage(url, playlist_id)
 
         all_buckets = re.findall(
-            r'<div class="video-embed-videopost[^"]*".*?rel:bf_bucket_data=\'([^\']+)\'',
+            r'(?s)<div class="video-embed[^"]*"..*?rel:bf_bucket_data=\'([^\']+)\'',
             webpage)
+
         entries = []
         for bd_json in all_buckets:
             bd = json.loads(bd_json)
-            if 'video' not in bd:
+            video = bd.get('video') or bd.get('progload_video')
+            if not video:
                 continue
-            entries.append(self.url_result(bd['video']['url']))
+            entries.append(self.url_result(video['url']))
 
         return {
             '_type': 'playlist',
