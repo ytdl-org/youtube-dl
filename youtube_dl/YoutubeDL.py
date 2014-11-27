@@ -529,7 +529,7 @@ class YoutubeDL(object):
             info_dict.setdefault(key, value)
 
     def extract_info(self, url, download=True, ie_key=None, extra_info={},
-                     process=True):
+                     process=True, reverse=False):
         '''
         Returns a list with a dictionary for each video we find.
         If 'download', also downloads the videos.
@@ -561,7 +561,9 @@ class YoutubeDL(object):
                     }
                 self.add_default_extra_info(ie_result, ie, url)
                 if process:
-                    return self.process_ie_result(ie_result, download, extra_info)
+                    return self.process_ie_result(
+                        ie_result, download=download, extra_info=extra_info,
+                        reverse=reverse)
                 else:
                     return ie_result
             except ExtractorError as de:  # An error we somewhat expected
@@ -586,7 +588,9 @@ class YoutubeDL(object):
             'extractor_key': ie.ie_key(),
         })
 
-    def process_ie_result(self, ie_result, download=True, extra_info={}):
+    def process_ie_result(self, ie_result, download=True, reverse=False,
+                          extra_info={}):
+
         """
         Take the result of the ie(may be modified) and resolve all unresolved
         references (URLs, playlist items).
@@ -640,7 +644,8 @@ class YoutubeDL(object):
                     make_result(e) for e in new_result['entries']]
 
             return self.process_ie_result(
-                new_result, download=download, extra_info=extra_info)
+                new_result, download=download, extra_info=extra_info,
+                reverse=False)
         elif result_type == 'playlist' or result_type == 'multi_video':
             # We process each entry in the playlist
             playlist = ie_result.get('title', None) or ie_result.get('id', None)
@@ -670,6 +675,9 @@ class YoutubeDL(object):
                     "[%s] playlist %s: Downloading %d videos" %
                     (ie_result['extractor'], playlist, n_entries))
 
+            if reverse:
+                entries = reversed(entries)
+
             for i, entry in enumerate(entries, 1):
                 self.to_screen('[download] Downloading video #%s of %s' % (i, n_entries))
                 extra = {
@@ -691,7 +699,8 @@ class YoutubeDL(object):
 
                 entry_result = self.process_ie_result(entry,
                                                       download=download,
-                                                      extra_info=extra)
+                                                      extra_info=extra,
+                                                      reverse=reverse)
                 playlist_results.append(entry_result)
             ie_result['entries'] = playlist_results
             return ie_result
@@ -712,7 +721,8 @@ class YoutubeDL(object):
                 )
                 return r
             ie_result['entries'] = [
-                self.process_ie_result(_fixup(r), download, extra_info)
+                self.process_ie_result(_fixup(r), download=download,
+                    extra_info=extra_info, reverse=reverse)
                 for r in ie_result['entries']
             ]
             return ie_result
@@ -1103,7 +1113,7 @@ class YoutubeDL(object):
 
         self.record_download_archive(info_dict)
 
-    def download(self, url_list):
+    def download(self, url_list, reverse=True):
         """Download a given list of URLs."""
         outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
         if (len(url_list) > 1 and
@@ -1114,7 +1124,7 @@ class YoutubeDL(object):
         for url in url_list:
             try:
                 # It also downloads the videos
-                res = self.extract_info(url)
+                res = self.extract_info(url, reverse=reverse)
             except UnavailableVideoError:
                 self.report_error('unable to download video')
             except MaxDownloadsReached:
@@ -1126,11 +1136,11 @@ class YoutubeDL(object):
 
         return self._download_retcode
 
-    def download_with_info_file(self, info_filename):
+    def download_with_info_file(self, info_filename, reverse=False):
         with io.open(info_filename, 'r', encoding='utf-8') as f:
             info = json.load(f)
         try:
-            self.process_ie_result(info, download=True)
+            self.process_ie_result(info, download=True, reverse=reverse)
         except DownloadError:
             webpage_url = info.get('webpage_url')
             if webpage_url is not None:

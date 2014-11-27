@@ -342,7 +342,7 @@ def _real_main(argv=None):
             if opts.load_info_filename is not None:
                 retcode = ydl.download_with_info_file(opts.load_info_filename)
             else:
-                retcode = ydl.download(all_urls)
+                retcode = ydl.download(all_urls, reverse=opts.reverse_playlist)
         except MaxDownloadsReached:
             ydl.to_screen('--max-download limit reached, aborting.')
             retcode = 101
