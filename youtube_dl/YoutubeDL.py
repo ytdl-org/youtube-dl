@@ -548,7 +548,6 @@ class YoutubeDL(object):
             if not ie.working():
                 self.report_warning('The program functionality for this site has been marked as broken, '
                                     'and will probably not work.')
-
             try:
                 ie_result = ie.extract(url)
                 if ie_result is None:  # Finished already (backwards compatibility; listformats and friends should be moved here)
@@ -668,15 +667,19 @@ class YoutubeDL(object):
                     (ie_result['extractor'], playlist, n_all_entries, n_entries))
             else:
                 assert isinstance(ie_result['entries'], PagedList)
-                entries = ie_result['entries'].getslice(
-                    playliststart, playlistend)
+                entries = ie_result['entries']
+                if reverse:
+                    entries = entries.getslice(0, None)
+                    entries = entries[::-1]
+                    entries = entries[playliststart:playlistend]
+                else:
+                    entries = entries.getslice(
+                        playliststart, playlistend)
+
                 n_entries = len(entries)
                 self.to_screen(
                     "[%s] playlist %s: Downloading %d videos" %
                     (ie_result['extractor'], playlist, n_entries))
-
-            if reverse:
-                entries = reversed(entries)
 
             for i, entry in enumerate(entries, 1):
                 self.to_screen('[download] Downloading video #%s of %s' % (i, n_entries))

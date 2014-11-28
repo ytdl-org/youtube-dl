@@ -1265,16 +1265,19 @@ class OnDemandPagedList(PagedList):
         self._pagefunc = pagefunc
         self._pagesize = pagesize
 
-    def getslice(self, start=0, end=None):
+    def getslice(self, start=0, end=None, reverse=False):
         res = []
+
+        # r = list(itertools.count(start // self._pagesize))
+        # for pagenum in r:
         for pagenum in itertools.count(start // self._pagesize):
+            # absolute videos before current page; page 2 * 50 v/p = 100
             firstid = pagenum * self._pagesize
             nextfirstid = pagenum * self._pagesize + self._pagesize
             if start >= nextfirstid:
                 continue
 
             page_results = list(self._pagefunc(pagenum))
-
             startv = (
                 start % self._pagesize
                 if firstid <= start < nextfirstid
