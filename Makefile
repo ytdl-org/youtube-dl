@@ -1,4 +1,4 @@
-all: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish
+all: youtube-dl youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish
 
 clean:
 	rm -rf youtube-dl.1.temp.md youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz youtube-dl.zsh youtube-dl.fish *.dump *.part
@@ -59,7 +59,7 @@ README.md: youtube_dl/*.py youtube_dl/*/*.py
 README.txt: README.md
 	pandoc -f markdown -t plain README.md -o README.txt
 
-youtube-dl.1: README.md
+youtube-dl.1:
 	python devscripts/prepare_manpage.py >youtube-dl.1.temp.md
 	pandoc -s -f markdown -t man youtube-dl.1.temp.md -o youtube-dl.1
 	rm -f youtube-dl.1.temp.md

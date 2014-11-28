@@ -10,21 +10,23 @@ from ..utils import (
 
 
 class SoulAnimeBaseIE(InfoExtractor):
-    _VID_VALID_URL = r'http://[w.]*soul-anime\.net/watch[^/]*/(?P<id>[^/]+)'
+    _VID_VALID_URL = r'http://[w.]*soul-anime\.(?P<domain>[^/]+)/watch[^/]*/(?P<id>[^/]+)'
 
     _VIDEO_URL_REGEX = r'<div id="download">[^<]*<a href="(?P<url>[^"]+)"'
 
     def _down_vid(self, url):
         mobj = re.match(self._VID_VALID_URL, url)
         video_id = mobj.group('id')
+        domain = mobj.group('domain')
 
         page = self._download_webpage(url, video_id, "Downloading video page")
 
         video_url_encoded = self._html_search_regex(self._VIDEO_URL_REGEX, page, 'url', fatal=True)
-        video_url = "http://www.soul-anime.net" + video_url_encoded
+        video_url = "http://www.soul-anime." + domain + video_url_encoded
 
         vid = self._request_webpage(video_url, video_id)
-        ext = vid.getheader("Content-Type").split("/")[1]
+        #ext = vid.getheader("Content-Type").split("/")[1]
+	ext = vid.info().gettype().split("/")[1]
 
         return {
             'id': video_id,
@@ -60,7 +62,7 @@ class SoulAnimeSeriesIE(InfoExtractor):
     IE_NAME = "soulanime:series"
     IE_DESC = "SoulAnime Series"
 
-    _VALID_URL = r'http://[w.]*soul-anime\.net/anime./(?P<id>[^/]+)'
+    _VALID_URL = r'http://[w.]*soul-anime\.(?P<domain>[^/]+)/anime./(?P<id>[^/]+)'
 
     _EPISODE_REGEX = r'<option value="(/watch[^/]*/[^"]+)">[^<]*</option>'
 
@@ -75,6 +77,7 @@ class SoulAnimeSeriesIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         series_id = mobj.group('id')
+	domain = mobj.group('domain')
 
         pattern = re.compile(self._EPISODE_REGEX)
 
@@ -82,6 +85,6 @@ class SoulAnimeSeriesIE(InfoExtractor):
 
         mobj = pattern.findall(page)
 
-        entries = [self.url_result("http://www.soul-anime.net" + obj) for obj in mobj]
+        entries = [self.url_result("http://www.soul-anime." + domain + obj) for obj in mobj]
 
         return self.playlist_result(entries, series_id)
