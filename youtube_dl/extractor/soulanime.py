@@ -26,7 +26,7 @@ class SoulAnimeBaseIE(InfoExtractor):
 
         vid = self._request_webpage(video_url, video_id)
         #ext = vid.getheader("Content-Type").split("/")[1]
-	ext = vid.info().gettype().split("/")[1]
+        ext = vid.info().gettype().split("/")[1]
 
         return {
             'id': video_id,
