@@ -539,7 +539,7 @@ def gen_extractors():
     """
     return [klass() for klass in _ALL_CLASSES]
 
-def gen_plugin_extractors(plugin_dir, verbosity = False):
+def gen_plugin_extractors(plugin_dir):
     """ Return a list of an instance of every plugin extractor found in the
     plugin directory. Scan every .py file in plugin_dir for classes with names
     ending in 'IE'.
