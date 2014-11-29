@@ -64,6 +64,20 @@ class BlipTVIE(SubtitlesInfoExtractor):
                 'uploader': 'redvsblue',
                 'uploader_id': '792887',
             }
+        },
+        {
+            'url': 'http://blip.tv/play/gbk766dkj4Yn',
+            'md5': 'fe0a33f022d49399a241e84a8ea8b8e3',
+            'info_dict': {
+                'id': '1749452',
+                'ext': 'mp4',
+                'upload_date': '20090208',
+                'description': 'Witness the first appearance of the Nostalgia Critic character, as Doug reviews the movie Transformers.',
+                'title': 'Nostalgia Critic: Transformers',
+                'timestamp': 1234068723,
+                'uploader': 'NostalgiaCritic',
+                'uploader_id': '246467',
+            }
         }
     ]
 
@@ -74,11 +88,13 @@ class BlipTVIE(SubtitlesInfoExtractor):
         # See https://github.com/rg3/youtube-dl/issues/857 and
         # https://github.com/rg3/youtube-dl/issues/4197
         if lookup_id:
-            info_page = self._download_webpage(
-                'http://blip.tv/play/%s.x?p=1' % lookup_id, lookup_id, 'Resolving lookup id')
-            video_id = self._search_regex(r'config\.id\s*=\s*"([0-9]+)', info_page, 'video_id')
-        else:
-            video_id = mobj.group('id')
+            urlh = self._request_webpage(
+                'http://blip.tv/play/%s' % lookup_id, lookup_id, 'Resolving lookup id')
+            url = compat_urlparse.urlparse(urlh.geturl())
+            qs = compat_urlparse.parse_qs(url.query)
+            mobj = re.match(self._VALID_URL, qs['file'][0])
+
+        video_id = mobj.group('id')
 
         rss = self._download_xml('http://blip.tv/rss/flash/%s' % video_id, video_id, 'Downloading video RSS')
 
