@@ -38,7 +38,7 @@ from .update import update_self
 from .downloader import (
     FileDownloader,
 )
-from .extractor import gen_extractors
+from .extractor import gen_extractors, gen_plugin_extractors
 from .YoutubeDL import YoutubeDL
 from .postprocessor import (
     AtomicParsleyPP,
@@ -105,7 +105,13 @@ def _real_main(argv=None):
     _enc = preferredencoding()
     all_urls = [url.decode(_enc, 'ignore') if isinstance(url, bytes) else url for url in all_urls]
 
-    extractors = gen_extractors()
+    # Load plugin extractors
+    if os.path.isdir(opts.plugin_extractors_dir) and not opts.ignore_plugin_extractors:
+      extractors = gen_plugin_extractors(opts.plugin_extractors_dir)
+    else:
+      extractors = []
+    
+    extractors += gen_extractors()
 
     if opts.list_extractors:
         for ie in sorted(extractors, key=lambda ie: ie.IE_NAME.lower()):
