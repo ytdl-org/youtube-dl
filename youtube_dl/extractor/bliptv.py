@@ -130,7 +130,7 @@ class BlipTVIE(SubtitlesInfoExtractor):
             msg = self._download_webpage(
                 url + '?showplayer=20140425131715&referrer=http://blip.tv&mask=7&skin=flashvars&view=url',
                 video_id, 'Resolving URL for %s' % role)
-            real_url = compat_urlparse.parse_qs(msg)['message'][0]
+            real_url = compat_urlparse.parse_qs(msg.strip())['message'][0]
 
             media_type = media_content.get('type')
             if media_type == 'text/srt' or url.endswith('.srt'):
