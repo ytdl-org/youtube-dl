@@ -39,7 +39,6 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
     _TWOFACTOR_URL = 'https://accounts.google.com/SecondFactor'
     _LANG_URL = r'https://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
-    _AGE_URL = 'https://www.youtube.com/verify_age?next_url=/&gl=US&hl=en'
     _NETRC_MACHINE = 'youtube'
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = False
@@ -176,21 +175,6 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             return False
         return True
 
-    def _confirm_age(self):
-        age_form = {
-            'next_url': '/',
-            'action_confirm': 'Confirm',
-        }
-        req = compat_urllib_request.Request(
-            self._AGE_URL,
-            compat_urllib_parse.urlencode(age_form).encode('ascii')
-        )
-
-        self._download_webpage(
-            req, None,
-            note='Confirming age', errnote='Unable to confirm age',
-            fatal=False)
-
     def _real_initialize(self):
         if self._downloader is None:
             return
@@ -199,7 +183,6 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 return
         if not self._login():
             return
-        self._confirm_age()
 
 
 class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
