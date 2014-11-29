@@ -13,6 +13,7 @@ import time
 import xml.etree.ElementTree
 
 from ..compat import (
+    compat_cookiejar,
     compat_http_client,
     compat_urllib_error,
     compat_urllib_parse_urlparse,
@@ -816,6 +817,11 @@ class InfoExtractor(object):
             else:
                 self._downloader.report_warning(msg)
         return res
+
+    def _set_cookie(self, domain, name, value, expire_time=None):
+        cookie = compat_cookiejar.Cookie(0, name, value, None, None, domain, None,
+            None, '/', True, False, expire_time, '', None, None, None)
+        self._downloader.cookiejar.set_cookie(cookie)
 
 
 class SearchInfoExtractor(InfoExtractor):

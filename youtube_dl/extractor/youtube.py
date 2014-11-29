@@ -7,6 +7,7 @@ import itertools
 import json
 import os.path
 import re
+import time
 import traceback
 
 from .common import InfoExtractor, SearchInfoExtractor
@@ -38,16 +39,14 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     """Provide base functions for Youtube extractors"""
     _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
     _TWOFACTOR_URL = 'https://accounts.google.com/SecondFactor'
-    _LANG_URL = r'https://www.youtube.com/?hl=en&persist_hl=1&gl=US&persist_gl=1&opt_out_ackd=1'
     _NETRC_MACHINE = 'youtube'
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = False
 
     def _set_language(self):
-        return bool(self._download_webpage(
-            self._LANG_URL, None,
-            note='Setting language', errnote='unable to set language',
-            fatal=False))
+        self._set_cookie('.youtube.com', 'PREF', 'f1=50000000&hl=en',
+            # YouTube sets the expire time to about two months
+            expire_time=time.time() + 60*24*3600)
 
     def _login(self):
         """
@@ -178,9 +177,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     def _real_initialize(self):
         if self._downloader is None:
             return
-        if self._get_login_info()[0] is not None:
-            if not self._set_language():
-                return
+        self._set_language()
         if not self._login():
             return
 
@@ -667,16 +664,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         # Get video webpage
         url = proto + '://www.youtube.com/watch?v=%s&gl=US&hl=en&has_verified=1&bpctr=9999999999' % video_id
-        pref_cookies = [
-            c for c in self._downloader.cookiejar
-            if c.domain == '.youtube.com' and c.name == 'PREF']
-        for pc in pref_cookies:
-            if 'hl=' in pc.value:
-                pc.value = re.sub(r'hl=[^&]+', 'hl=en', pc.value)
-            else:
-                if pc.value:
-                    pc.value += '&'
-                pc.value += 'hl=en'
         video_webpage = self._download_webpage(url, video_id)
 
         # Attempt to extract SWF player URL
