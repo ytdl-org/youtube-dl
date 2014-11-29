@@ -523,6 +523,7 @@ from .zingmp3 import (
     ZingMp3SongIE,
     ZingMp3AlbumIE,
 )
+import os
 
 _ALL_CLASSES = [
     klass
@@ -538,7 +539,29 @@ def gen_extractors():
     """
     return [klass() for klass in _ALL_CLASSES]
 
+def gen_plugin_extractors(plugin_dir, verbosity = False):
+    """ Return a list of an instance of every plugin extractor found in the
+    plugin directory. Scan every .py file in plugin_dir for classes with names
+    ending in 'IE'.
+    """
+    classes = []
+    
+    for file_ in os.listdir(plugin_dir):
+      if not file_.endswith(".py"):
+        continue
+      
+      file_globals = {}
+      exec(open(os.path.join(plugin_dir, file_), "r").read(), file_globals)
+          
+      for name, class_ in file_globals.items():
+        if name.endswith("IE"):
+          #Add the class to this modules globals so that get_info_extractor works
+          globals()[name] = class_
+          classes.append(class_)
+          
+    return [class_() for class_ in classes]
 
 def get_info_extractor(ie_name):
     """Returns the info extractor class with the given ie_name"""
     return globals()[ie_name + 'IE']
+

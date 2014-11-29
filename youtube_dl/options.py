@@ -68,6 +68,18 @@ def parseOpts(overrideArguments=None):
 
         return userConf
 
+    def _get_default_plugin_extractors_dir():
+        """ Return the default plugin extractors directory.
+        If XDG_CONFIG_HOME is set, then the location is XDG_CONFIG_HOME/youtube-dl/extractors,
+        otherwise it is ~/.config/youtube-dl/extractors.
+        """
+        xdg_config_home = compat_getenv('XDG_CONFIG_HOME')
+        if xdg_config_home:
+          return os.path.join(xdg_config_home, 'youtube-dl', 'extractors')
+        else:
+          return os.path.join(compat_expanduser('~'), '.config', 'youtube-dl', 'extractors')
+          
+          
     def _format_option_string(option):
         ''' ('-o', '--option') -> -o, --format METAVAR'''
 
@@ -148,6 +160,15 @@ def parseOpts(overrideArguments=None):
         '--extractor-descriptions',
         action='store_true', dest='list_extractor_descriptions', default=False,
         help='Output descriptions of all supported extractors')
+    general.add_option(
+        '--plugin-extractors-dir', default=_get_default_plugin_extractors_dir(),
+        metavar='PATH',
+        action='store',
+        help='All .py files in this directory are scanned for extractor classes ending in IE and are loaded. (default: %default)')
+    general.add_option(
+        '--ignore-plugin-extractors',
+        action='store_true', default=False,
+        help='Do not load extractors in the plugin directory')
     general.add_option(
         '--proxy', dest='proxy',
         default=None, metavar='URL',
