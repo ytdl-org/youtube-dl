@@ -50,7 +50,7 @@ class XMinusIE(InfoExtractor):
             webpage, 'view count', fatal=False))
 
         enc_token = self._html_search_regex(
-            r'data-mt="(.*?)"', webpage, 'enc_token')
+            r'minus_track\.tkn="(.+?)"', webpage, 'enc_token')
         token = ''.join(
             c if pos == 3 else compat_chr(compat_ord(c) - 1)
             for pos, c in enumerate(reversed(enc_token)))
