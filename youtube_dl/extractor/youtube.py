@@ -675,7 +675,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             player_url = None
 
         # Get video info
-        self.report_video_info_webpage_download(video_id)
         if re.search(r'player-age-gate-content">', video_webpage) is not None:
             age_gate = True
             # We simulate the access to the video from www.youtube.com/v/{video_id}
@@ -694,15 +693,30 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             video_info = compat_parse_qs(video_info_webpage)
         else:
             age_gate = False
-            for el_type in ['&el=embedded', '&el=detailpage', '&el=vevo', '']:
-                video_info_url = (proto + '://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
-                                  % (video_id, el_type))
-                video_info_webpage = self._download_webpage(video_info_url, video_id,
-                                                            note=False,
-                                                            errnote='unable to download video info webpage')
-                video_info = compat_parse_qs(video_info_webpage)
-                if 'token' in video_info:
-                    break
+            try:
+                # Try looking directly into the video webpage
+                mobj = re.search(r';ytplayer\.config\s*=\s*({.*?});', video_webpage)
+                if not mobj:
+                    raise ValueError('Could not find ytplayer.config')  # caught below
+                json_code = uppercase_escape(mobj.group(1))
+                ytplayer_config = json.loads(json_code)
+                args = ytplayer_config['args']
+                # Convert to the same format returned by compat_parse_qs
+                video_info = dict((k, [v]) for k, v in args.items())
+                if 'url_encoded_fmt_stream_map' not in args:
+                    raise ValueError('No stream_map present')  # caught below
+            except ValueError:
+                # We fallback to the get_video_info pages (used by the embed page)
+                self.report_video_info_webpage_download(video_id)
+                for el_type in ['&el=embedded', '&el=detailpage', '&el=vevo', '']:
+                    video_info_url = (proto + '://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
+                        % (video_id, el_type))
+                    video_info_webpage = self._download_webpage(video_info_url,
+                        video_id, note=False,
+                        errnote='unable to download video info webpage')
+                    video_info = compat_parse_qs(video_info_webpage)
+                    if 'token' in video_info:
+                        break
         if 'token' not in video_info:
             if 'reason' in video_info:
                 raise ExtractorError(
@@ -826,32 +840,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         video_annotations = None
         if self._downloader.params.get('writeannotations', False):
             video_annotations = self._extract_annotations(video_id)
-
-        # Decide which formats to download
-        try:
-            mobj = re.search(r';ytplayer\.config\s*=\s*({.*?});', video_webpage)
-            if not mobj:
-                raise ValueError('Could not find vevo ID')
-            json_code = uppercase_escape(mobj.group(1))
-            ytplayer_config = json.loads(json_code)
-            args = ytplayer_config['args']
-            # Easy way to know if the 's' value is in url_encoded_fmt_stream_map
-            # this signatures are encrypted
-            if 'url_encoded_fmt_stream_map' not in args:
-                raise ValueError('No stream_map present')  # caught below
-            re_signature = re.compile(r'[&,]s=')
-            m_s = re_signature.search(args['url_encoded_fmt_stream_map'])
-            if m_s is not None:
-                self.to_screen('%s: Encrypted signatures detected.' % video_id)
-                video_info['url_encoded_fmt_stream_map'] = [args['url_encoded_fmt_stream_map']]
-            m_s = re_signature.search(args.get('adaptive_fmts', ''))
-            if m_s is not None:
-                if 'adaptive_fmts' in video_info:
-                    video_info['adaptive_fmts'][0] += ',' + args['adaptive_fmts']
-                else:
-                    video_info['adaptive_fmts'] = [args['adaptive_fmts']]
-        except ValueError:
-            pass
 
         def _map_to_format_list(urlmap):
             formats = []
