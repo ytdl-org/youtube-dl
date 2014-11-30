@@ -242,7 +242,7 @@ from .muenchentv import MuenchenTVIE
 from .musicplayon import MusicPlayOnIE
 from .musicvault import MusicVaultIE
 from .muzu import MuzuTVIE
-from .myspace import MySpaceIE
+from .myspace import MySpaceIE, MySpaceAlbumIE
 from .myspass import MySpassIE
 from .myvideo import MyVideoIE
 from .naver import NaverIE

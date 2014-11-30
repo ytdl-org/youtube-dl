@@ -131,3 +131,46 @@ class MySpaceIE(InfoExtractor):
             'ext': 'flv',
         })
         return info
+
+
+class MySpaceAlbumIE(InfoExtractor):
+    IE_NAME = 'MySpace:album'
+    _VALID_URL = r'https?://myspace\.com/([^/]+)/music/album/(?P<title>.*-)(?P<id>\d+)'
+
+    _TESTS = [{
+        'url': 'https://myspace.com/starset2/music/album/transmissions-19455773',
+        'info_dict': {
+            'title': 'Transmissions',
+            'id': '19455773',
+        },
+        'playlist_count': 14,
+        'skip': 'this album is only available in some countries',
+    }, {
+        'url': 'https://myspace.com/killsorrow/music/album/the-demo-18596029',
+        'info_dict': {
+            'title': 'The Demo',
+            'id': '18596029',
+        },
+        'playlist_count': 5,
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        playlist_id = mobj.group('id')
+        display_id = mobj.group('title') + playlist_id
+        webpage = self._download_webpage(url, display_id)
+        tracks_paths = re.findall(r'"music:song" content="(.*?)"', webpage)
+        if not tracks_paths:
+            self.to_screen('%s: No songs found, try using proxy' % display_id)
+            return
+        entries = [
+            self.url_result(t_path, ie=MySpaceIE.ie_key())
+            for t_path in tracks_paths]
+        title = self._og_search_title(webpage)
+        return {
+            '_type': 'playlist',
+            'id': playlist_id,
+            'display_id': display_id,
+            'title': title,
+            'entries': entries,
+        }
