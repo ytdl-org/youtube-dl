@@ -60,7 +60,9 @@ class MySpaceIE(InfoExtractor):
             info = {
                 'id': video_id,
                 'title': self._og_search_title(webpage),
+                'uploader': search_data('artist-name'),
                 'uploader_id': search_data('artist-username'),
+                'playlist': search_data('album-title'),
                 'thumbnail': self._og_search_thumbnail(webpage),
             }
         else:
