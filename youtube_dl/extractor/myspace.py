@@ -29,19 +29,42 @@ class MySpaceIE(InfoExtractor):
                 'skip_download': True,
             },
         },
-        # song
+        # songs
         {
-            'url': 'https://myspace.com/spiderbags/music/song/darkness-in-my-heart-39008454-27041242',
+            'url': 'https://myspace.com/killsorrow/music/song/of-weakened-soul...-93388656-103880681',
+            'md5': 'f1d7323321f6b7775bf1e3754c1707dc',
             'info_dict': {
-                'id': '39008454',
+                'id': '93388656',
                 'ext': 'flv',
-                'title': 'Darkness In My Heart',
-                'uploader_id': 'spiderbags',
+                'playlist': 'The Demo',
+                'title': 'Of weakened soul...',
+                'uploader': 'Killsorrow',
+                'uploader_id': 'killsorrow',
             },
             'params': {
                 # rtmp download
                 'skip_download': True,
             },
+        }, {
+            'add_ie': ['Vevo'],
+            'url': 'https://myspace.com/threedaysgrace/music/song/animal-i-have-become-28400208-28218041',
+            'info_dict': {
+                'id': u'USZM20600099',
+                'title': u'Animal I Have Become',
+                'uploader': u'Three Days Grace',
+                'timestamp': int,
+            },
+            'skip': 'VEVO is only available in some countries',
+        }, {
+            'add_ie': ['Youtube'],
+            'url': 'https://myspace.com/starset2/music/song/first-light-95799905-106964426',
+            'info_dict': {
+                'id': 'ypWvQgnJrSU',
+                'title': 'Starset - First Light',
+                'uploader': 'Jacob Soren',
+                'uploader_id': 'SorenPromotions',
+                'upload_date': '20140725',
+            }
         },
     ]
 
