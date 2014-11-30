@@ -238,7 +238,7 @@ class TestVimeoSubtitles(BaseTestSubtitles):
     def test_subtitles(self):
         self.DL.params['writesubtitles'] = True
         subtitles = self.getSubtitles()
-        self.assertEqual(md5(subtitles['en']), '8062383cf4dec168fc40a088aa6d5888')
+        self.assertEqual(md5(subtitles['en']), '26399116d23ae3cf2c087cea94bc43b4')
 
     def test_subtitles_lang(self):
         self.DL.params['writesubtitles'] = True
