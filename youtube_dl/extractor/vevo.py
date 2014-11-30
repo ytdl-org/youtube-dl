@@ -13,7 +13,7 @@ from ..utils import (
 class VevoIE(InfoExtractor):
     """
     Accepts urls from vevo.com or in the format 'vevo:{id}'
-    (currently used by MTVIE)
+    (currently used by MTVIE and MySpaceIE)
     """
     _VALID_URL = r'''(?x)
         (?:https?://www\.vevo\.com/watch/(?:[^/]+/(?:[^/]+/)?)?|
