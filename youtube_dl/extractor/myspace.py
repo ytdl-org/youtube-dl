@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_str,
 )
+from ..utils import ExtractorError
 
 
 class MySpaceIE(InfoExtractor):
@@ -65,6 +66,18 @@ class MySpaceIE(InfoExtractor):
                     r'''data-%s=([\'"])(.*?)\1''' % name,
                     song_data, name, default='', group=2)
             streamUrl = search_data('stream-url')
+            if not streamUrl:
+                vevo_id = search_data('vevo-id')
+                youtube_id = search_data('youtube-id')
+                if vevo_id:
+                    self.to_screen('Vevo video detected: %s' % vevo_id)
+                    return self.url_result('vevo:%s' % vevo_id, ie='Vevo')
+                elif youtube_id:
+                    self.to_screen('Youtube video detected: %s' % youtube_id)
+                    return self.url_result(youtube_id, ie='Youtube')
+                else:
+                    raise ExtractorError(
+                        'Found song but don\'t know how to download it')
             info = {
                 'id': video_id,
                 'title': self._og_search_title(webpage),
