@@ -4,7 +4,7 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
 )
 
@@ -52,8 +52,8 @@ class MySpaceIE(InfoExtractor):
         if mobj.group('mediatype').startswith('music/song'):
             # songs don't store any useful info in the 'context' variable
             def search_data(name):
-                return self._search_regex(r'data-%s="(.*?)"' % name, webpage,
-                    name)
+                return self._search_regex(
+                    r'data-%s="(.*?)"' % name, webpage, name)
             streamUrl = search_data('stream-url')
             info = {
                 'id': video_id,
@@ -62,8 +62,8 @@ class MySpaceIE(InfoExtractor):
                 'thumbnail': self._og_search_thumbnail(webpage),
             }
         else:
-            context = json.loads(self._search_regex(r'context = ({.*?});', webpage,
-                u'context'))
+            context = json.loads(self._search_regex(
+                r'context = ({.*?});', webpage, 'context'))
             video = context['video']
             streamUrl = video['streamUrl']
             info = {

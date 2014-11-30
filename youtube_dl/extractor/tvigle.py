@@ -17,16 +17,16 @@ class TvigleIE(InfoExtractor):
 
     _TESTS = [
         {
-            'url': 'http://www.tvigle.ru/video/brat-2/',
-            'md5': '72cb7eab33e54314e1790da402d3c9c3',
+            'url': 'http://www.tvigle.ru/video/brat/',
+            'md5': 'ff4344a4894b0524441fb6f8218dc716',
             'info_dict': {
-                'id': '5119390',
-                'display_id': 'brat-2',
+                'id': '5118490',
+                'display_id': 'brat',
                 'ext': 'mp4',
-                'title': 'Брат 2 ',
-                'description': 'md5:5751f4fe345a58e1692585c361294bd8',
-                'duration': 7356.369,
-                'age_limit': 0,
+                'title': 'Брат',
+                'description': 'md5:d16ac7c0b47052ea51fddb92c4e413eb',
+                'duration': 5722.6,
+                'age_limit': 16,
             },
         },
         {
@@ -71,6 +71,7 @@ class TvigleIE(InfoExtractor):
                     'format_id': '%s-%s' % (vcodec, quality),
                     'vcodec': vcodec,
                     'height': int(quality[:-1]),
+                    'filesize': item['video_files_size'][vcodec][quality],
                 })
         self._sort_formats(formats)
 

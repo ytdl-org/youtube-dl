@@ -266,6 +266,7 @@ class TestFormatSelection(unittest.TestCase):
             'ext': 'mp4',
             'width': None,
         }
+
         def fname(templ):
             ydl = YoutubeDL({'outtmpl': templ})
             return ydl.prepare_filename(info)

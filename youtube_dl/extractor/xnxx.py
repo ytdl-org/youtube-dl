@@ -30,14 +30,14 @@ class XNXXIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_url = self._search_regex(r'flv_url=(.*?)&amp;',
-            webpage, 'video URL')
+                                       webpage, 'video URL')
         video_url = compat_urllib_parse.unquote(video_url)
 
         video_title = self._html_search_regex(r'<title>(.*?)\s+-\s+XNXX.COM',
-            webpage, 'title')
+                                              webpage, 'title')
 
         video_thumbnail = self._search_regex(r'url_bigthumb=(.*?)&amp;',
-            webpage, 'thumbnail', fatal=False)
+                                             webpage, 'thumbnail', fatal=False)
 
         return {
             'id': video_id,

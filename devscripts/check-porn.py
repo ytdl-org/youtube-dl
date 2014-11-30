@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import unicode_literals
 
 """
 This script employs a VERY basic heuristic ('porn' in webpage.lower()) to check

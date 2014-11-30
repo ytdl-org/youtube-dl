@@ -6,6 +6,7 @@ import json
 from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
+    compat_urlparse,
     get_element_by_attribute,
     parse_duration,
     strip_jsonp,
@@ -39,13 +40,21 @@ class MiTeleIE(InfoExtractor):
         ).replace('\'', '"')
         embed_data = json.loads(embed_data_json)
 
-        info_url = embed_data['flashvars']['host']
+        domain = embed_data['mediaUrl']
+        if not domain.startswith('http'):
+            # only happens in telecinco.es videos
+            domain = 'http://' + domain
+        info_url = compat_urlparse.urljoin(
+            domain,
+            compat_urllib_parse.unquote(embed_data['flashvars']['host'])
+        )
         info_el = self._download_xml(info_url, episode).find('./video/info')
 
         video_link = info_el.find('videoUrl/link').text
         token_query = compat_urllib_parse.urlencode({'id': video_link})
         token_info = self._download_json(
-            'http://token.mitele.es/?' + token_query, episode,
+            embed_data['flashvars']['ov_tk'] + '?' + token_query,
+            episode,
             transform_source=strip_jsonp
         )
 

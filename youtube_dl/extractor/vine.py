@@ -70,7 +70,7 @@ class VineUserIE(InfoExtractor):
         'info_dict': {
             'id': 'Visa',
         },
-        'playlist_mincount': 47,
+        'playlist_mincount': 46,
     }
 
     def _real_extract(self, url):

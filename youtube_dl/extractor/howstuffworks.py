@@ -28,13 +28,13 @@ class HowStuffWorksIE(InfoExtractor):
             }
         },
         {
-            'url': 'http://adventure.howstuffworks.com/39516-deadliest-catch-jakes-farewell-pots-video.htm',
+            'url': 'http://adventure.howstuffworks.com/7199-survival-zone-food-and-water-in-the-savanna-video.htm',
             'info_dict': {
-                'id': '553470',
-                'display_id': 'deadliest-catch-jakes-farewell-pots',
+                'id': '453464',
+                'display_id': 'survival-zone-food-and-water-in-the-savanna',
                 'ext': 'mp4',
-                'title': 'Deadliest Catch: Jake\'s Farewell Pots',
-                'description': 'md5:9632c346d5e43ee238028c9cefd8dbbc',
+                'title': 'Survival Zone: Food and Water In the Savanna',
+                'description': 'md5:7e1c89f6411434970c15fa094170c371',
                 'thumbnail': 're:^https?://.*\.jpg$',
             },
             'params': {

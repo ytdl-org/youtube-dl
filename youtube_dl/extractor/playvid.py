@@ -4,6 +4,8 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
+    clean_html,
     compat_urllib_parse,
 )
 
@@ -27,6 +29,11 @@ class PlayvidIE(InfoExtractor):
         video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id)
+
+        m_error = re.search(
+            r'<div class="block-error">\s*<div class="heading">\s*<div>(?P<msg>.+?)</div>\s*</div>', webpage)
+        if m_error:
+            raise ExtractorError(clean_html(m_error.group('msg')), expected=True)
 
         video_title = None
         duration = None

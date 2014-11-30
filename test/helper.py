@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import errno
 import io
 import hashlib
@@ -12,6 +14,7 @@ from youtube_dl import YoutubeDL
 from youtube_dl.utils import (
     compat_str,
     preferredencoding,
+    write_string,
 )
 
 
@@ -40,10 +43,10 @@ def report_warning(message):
     If stderr is a tty file the 'WARNING:' will be colored
     '''
     if sys.stderr.isatty() and os.name != 'nt':
-        _msg_header = u'\033[0;33mWARNING:\033[0m'
+        _msg_header = '\033[0;33mWARNING:\033[0m'
     else:
-        _msg_header = u'WARNING:'
-    output = u'%s %s\n' % (_msg_header, message)
+        _msg_header = 'WARNING:'
+    output = '%s %s\n' % (_msg_header, message)
     if 'b' in getattr(sys.stderr, 'mode', '') or sys.version_info[0] < 3:
         output = output.encode(preferredencoding())
     sys.stderr.write(output)
@@ -54,9 +57,9 @@ class FakeYDL(YoutubeDL):
         # Different instances of the downloader can't share the same dictionary
         # some test set the "sublang" parameter, which would break the md5 checks.
         params = get_params(override=override)
-        super(FakeYDL, self).__init__(params)
+        super(FakeYDL, self).__init__(params, auto_init=False)
         self.result = []
-        
+
     def to_screen(self, s, skip_eol=None):
         print(s)
 
@@ -69,8 +72,10 @@ class FakeYDL(YoutubeDL):
     def expect_warning(self, regex):
         # Silence an expected warning matching a regex
         old_report_warning = self.report_warning
+
         def report_warning(self, message):
-            if re.match(regex, message): return
+            if re.match(regex, message):
+                return
             old_report_warning(message)
         self.report_warning = types.MethodType(report_warning, self)
 
@@ -103,22 +108,22 @@ def expect_info_dict(self, expected_dict, got_dict):
 
             self.assertTrue(
                 isinstance(got, compat_str),
-                u'Expected a %s object, but got %s for field %s' % (
+                'Expected a %s object, but got %s for field %s' % (
                     compat_str.__name__, type(got).__name__, info_field))
             self.assertTrue(
                 match_rex.match(got),
-                u'field %s (value: %r) should match %r' % (info_field, got, match_str))
+                'field %s (value: %r) should match %r' % (info_field, got, match_str))
         elif isinstance(expected, type):
             got = got_dict.get(info_field)
             self.assertTrue(isinstance(got, expected),
-                u'Expected type %r for field %s, but got value %r of type %r' % (expected, info_field, got, type(got)))
+                            'Expected type %r for field %s, but got value %r of type %r' % (expected, info_field, got, type(got)))
         else:
             if isinstance(expected, compat_str) and expected.startswith('md5:'):
                 got = 'md5:' + md5(got_dict.get(info_field))
             else:
                 got = got_dict.get(info_field)
             self.assertEqual(expected, got,
-                u'invalid value for field %s, expected %r, got %r' % (info_field, expected, got))
+                             'invalid value for field %s, expected %r, got %r' % (info_field, expected, got))
 
     # Check for the presence of mandatory fields
     if got_dict.get('_type') != 'playlist':
@@ -127,15 +132,24 @@ def expect_info_dict(self, expected_dict, got_dict):
     self.assertTrue(any(key in info_dict.keys() and info_dict[key] for key in ('url', 'parts')))
     # Check for mandatory fields that are automatically set by YoutubeDL
     for key in ['webpage_url', 'extractor', 'extractor_key']:
-        self.assertTrue(got_dict.get(key), u'Missing field: %s' % key)
+        self.assertTrue(got_dict.get(key), 'Missing field: %s' % key)
 
     # Are checkable fields missing from the test case definition?
     test_info_dict = dict((key, value if not isinstance(value, compat_str) or len(value) < 250 else 'md5:' + md5(value))
-        for key, value in got_dict.items()
-        if value and key in ('title', 'description', 'uploader', 'upload_date', 'timestamp', 'uploader_id', 'location'))
+                          for key, value in got_dict.items()
+                          if value and key in ('title', 'description', 'uploader', 'upload_date', 'timestamp', 'uploader_id', 'location'))
     missing_keys = set(test_info_dict.keys()) - set(expected_dict.keys())
     if missing_keys:
-        sys.stderr.write(u'\n"info_dict": ' + json.dumps(test_info_dict, ensure_ascii=False, indent=4) + u'\n')
+        def _repr(v):
+            if isinstance(v, compat_str):
+                return "'%s'" % v.replace('\\', '\\\\').replace("'", "\\'").replace('\n', '\\n')
+            else:
+                return repr(v)
+        info_dict_str = ''.join(
+            '    %s: %s,\n' % (_repr(k), _repr(v))
+            for k, v in test_info_dict.items())
+        write_string(
+            '\n\'info_dict\': {\n' + info_dict_str + '}\n', out=sys.stderr)
         self.assertFalse(
             missing_keys,
             'Missing keys in test definition: %s' % (
@@ -161,3 +175,13 @@ def assertGreaterEqual(self, got, expected, msg=None):
         if msg is None:
             msg = '%r not greater than or equal to %r' % (got, expected)
         self.assertTrue(got >= expected, msg)
+
+
+def expect_warnings(ydl, warnings_re):
+    real_warning = ydl.report_warning
+
+    def _report_warning(w):
+        if not any(re.search(w_re, w) for w_re in warnings_re):
+            real_warning(w)
+
+    ydl.report_warning = _report_warning

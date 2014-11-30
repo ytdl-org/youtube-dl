@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     compat_urlparse,
-    str_to_int,
     ExtractorError,
 )
-import json
 
 
 class GoshgayIE(InfoExtractor):
@@ -27,36 +23,27 @@ class GoshgayIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
-        title = self._search_regex(r'class="video-title"><h1>(.+?)<', webpage, 'title')
+        title = self._og_search_title(webpage)
+        thumbnail = self._og_search_thumbnail(webpage)
+        family_friendly = self._html_search_meta(
+            'isFamilyFriendly', webpage, default='false')
+        config_url = self._search_regex(
+            r"'config'\s*:\s*'([^']+)'", webpage, 'config URL')
 
-        player_config = self._search_regex(
-            r'(?s)jwplayer\("player"\)\.setup\(({.+?})\)', webpage, 'config settings')
-        player_vars = json.loads(player_config.replace("'", '"'))
-        width = str_to_int(player_vars.get('width'))
-        height = str_to_int(player_vars.get('height'))
-        config_uri = player_vars.get('config')
+        config = self._download_xml(
+            config_url, video_id, 'Downloading player config XML')
 
-        if config_uri is None:
-            raise ExtractorError('Missing config URI')
-        node = self._download_xml(config_uri, video_id, 'Downloading player config XML',
-                                  errnote='Unable to download XML')
-        if node is None:
+        if config is None:
             raise ExtractorError('Missing config XML')
-        if node.tag != 'config':
+        if config.tag != 'config':
             raise ExtractorError('Missing config attribute')
-        fns = node.findall('file')
-        imgs = node.findall('image')
-        if len(fns) != 1:
+        fns = config.findall('file')
+        if len(fns) < 1:
             raise ExtractorError('Missing media URI')
         video_url = fns[0].text
-        if len(imgs) < 1:
-            thumbnail = None
-        else:
-            thumbnail = imgs[0].text
 
         url_comp = compat_urlparse.urlparse(url)
         ref = "%s://%s%s" % (url_comp[0], url_comp[1], url_comp[2])
@@ -65,9 +52,7 @@ class GoshgayIE(InfoExtractor):
             'id': video_id,
             'url': video_url,
             'title': title,
-            'width': width,
-            'height': height,
             'thumbnail': thumbnail,
             'http_referer': ref,
-            'age_limit': 18,
+            'age_limit': 0 if family_friendly == 'true' else 18,
         }

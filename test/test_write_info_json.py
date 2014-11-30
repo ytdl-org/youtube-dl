@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
+from __future__ import unicode_literals
 
 # Allow direct execution
 import os
@@ -32,7 +33,7 @@ params = get_params({
 TEST_ID = 'BaW_jenozKc'
 INFO_JSON_FILE = TEST_ID + '.info.json'
 DESCRIPTION_FILE = TEST_ID + '.mp4.description'
-EXPECTED_DESCRIPTION = u'''test chars:  "'/\ä↭𝕐
+EXPECTED_DESCRIPTION = '''test chars:  "'/\ä↭𝕐
 test URL: https://github.com/rg3/youtube-dl/issues/1892
 
 This is a test video for youtube-dl.
@@ -53,11 +54,11 @@ class TestInfoJSON(unittest.TestCase):
         self.assertTrue(os.path.exists(INFO_JSON_FILE))
         with io.open(INFO_JSON_FILE, 'r', encoding='utf-8') as jsonf:
             jd = json.load(jsonf)
-        self.assertEqual(jd['upload_date'], u'20121002')
+        self.assertEqual(jd['upload_date'], '20121002')
         self.assertEqual(jd['description'], EXPECTED_DESCRIPTION)
         self.assertEqual(jd['id'], TEST_ID)
         self.assertEqual(jd['extractor'], 'youtube')
-        self.assertEqual(jd['title'], u'''youtube-dl test video "'/\ä↭𝕐''')
+        self.assertEqual(jd['title'], '''youtube-dl test video "'/\ä↭𝕐''')
         self.assertEqual(jd['uploader'], 'Philipp Hagemeister')
 
         self.assertTrue(os.path.exists(DESCRIPTION_FILE))

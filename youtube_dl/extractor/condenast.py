@@ -34,6 +34,8 @@ class CondeNastIE(InfoExtractor):
     _VALID_URL = r'http://(video|www|player)\.(?P<site>%s)\.com/(?P<type>watch|series|video|embed)/(?P<id>[^/?#]+)' % '|'.join(_SITES.keys())
     IE_DESC = 'Condé Nast media group: %s' % ', '.join(sorted(_SITES.values()))
 
+    EMBED_URL = r'(?:https?:)?//player\.(?P<site>%s)\.com/(?P<type>embed)/.+?' % '|'.join(_SITES.keys())
+
     _TEST = {
         'url': 'http://video.wired.com/watch/3d-printed-speakers-lit-with-led',
         'md5': '1921f713ed48aabd715691f774c451f7',

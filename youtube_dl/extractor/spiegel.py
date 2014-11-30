@@ -4,11 +4,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import compat_urlparse
+from ..compat import compat_urlparse
+from .spiegeltv import SpiegeltvIE
 
 
 class SpiegelIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?spiegel\.de/video/[^/]*-(?P<videoID>[0-9]+)(?:\.html)?(?:#.*)?$'
+    _VALID_URL = r'https?://(?:www\.)?spiegel\.de/video/[^/]*-(?P<id>[0-9]+)(?:-embed)?(?:\.html)?(?:#.*)?$'
     _TESTS = [{
         'url': 'http://www.spiegel.de/video/vulkan-tungurahua-in-ecuador-ist-wieder-aktiv-video-1259285.html',
         'md5': '2c2754212136f35fb4b19767d242f66e',
@@ -29,16 +30,28 @@ class SpiegelIE(InfoExtractor):
             'description': 'md5:c2322b65e58f385a820c10fa03b2d088',
             'duration': 983,
         },
+    }, {
+        'url': 'http://www.spiegel.de/video/astronaut-alexander-gerst-von-der-iss-station-beantwortet-fragen-video-1519126-embed.html',
+        'md5': 'd8eeca6bfc8f1cd6f490eb1f44695d51',
+        'info_dict': {
+            'id': '1519126',
+            'ext': 'mp4',
+            'description': 'SPIEGEL ONLINE-Nutzer durften den deutschen Astronauten Alexander Gerst über sein Leben auf der ISS-Station befragen. Hier kommen seine Antworten auf die besten sechs Fragen.',
+            'title': 'Fragen an Astronaut Alexander Gerst: "Bekommen Sie die Tageszeiten mit?"',
+        }
     }]
 
     def _real_extract(self, url):
-        m = re.match(self._VALID_URL, url)
-        video_id = m.group('videoID')
+        video_id = self._match_id(url)
+        webpage, handle = self._download_webpage_handle(url, video_id)
 
-        webpage = self._download_webpage(url, video_id)
+        # 302 to spiegel.tv, like http://www.spiegel.de/video/der-film-zum-wochenende-die-wahrheit-ueber-maenner-video-99003272.html
+        if SpiegeltvIE.suitable(handle.geturl()):
+            return self.url_result(handle.geturl(), 'Spiegeltv')
 
-        title = self._html_search_regex(
-            r'<div class="module-title">(.*?)</div>', webpage, 'title')
+        title = re.sub(r'\s+', ' ', self._html_search_regex(
+            r'(?s)<(?:h1|div) class="module-title"[^>]*>(.*?)</(?:h1|div)>',
+            webpage, 'title'))
         description = self._html_search_meta('description', webpage, 'description')
 
         base_url = self._search_regex(
@@ -79,7 +92,7 @@ class SpiegelArticleIE(InfoExtractor):
     _VALID_URL = 'https?://www\.spiegel\.de/(?!video/)[^?#]*?-(?P<id>[0-9]+)\.html'
     IE_NAME = 'Spiegel:Article'
     IE_DESC = 'Articles on spiegel.de'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.spiegel.de/sport/sonst/badminton-wm-die-randsportart-soll-populaerer-werden-a-987092.html',
         'info_dict': {
             'id': '1516455',
@@ -87,20 +100,34 @@ class SpiegelArticleIE(InfoExtractor):
             'title': 'Faszination Badminton: Nennt es bloß nicht Federball',
             'description': 're:^Patrick Kämnitz gehört.{100,}',
         },
-    }
+    }, {
+        'url': 'http://www.spiegel.de/wissenschaft/weltall/astronaut-alexander-gerst-antwortet-spiegel-online-lesern-a-989876.html',
+        'info_dict': {
+
+        },
+        'playlist_count': 6,
+    }]
 
     def _real_extract(self, url):
-        m = re.match(self._VALID_URL, url)
-        video_id = m.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
+        # Single video on top of the page
         video_link = self._search_regex(
             r'<a href="([^"]+)" onclick="return spOpenVideo\(this,', webpage,
-            'video page URL')
-        video_url = compat_urlparse.urljoin(
-            self.http_scheme() + '//spiegel.de/', video_link)
+            'video page URL', default=None)
+        if video_link:
+            video_url = compat_urlparse.urljoin(
+                self.http_scheme() + '//spiegel.de/', video_link)
+            return self.url_result(video_url)
 
-        return {
-            '_type': 'url',
-            'url': video_url,
-        }
+        # Multiple embedded videos
+        embeds = re.findall(
+            r'<div class="vid_holder[0-9]+.*?</div>\s*.*?url\s*=\s*"([^"]+)"',
+            webpage)
+        entries = [
+            self.url_result(compat_urlparse.urljoin(
+                self.http_scheme() + '//spiegel.de/', embed_path))
+            for embed_path in embeds
+        ]
+        return self.playlist_result(entries)

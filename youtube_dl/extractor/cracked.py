@@ -54,7 +54,7 @@ class CrackedIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'url':video_url,
+            'url': video_url,
             'title': title,
             'description': description,
             'timestamp': timestamp,

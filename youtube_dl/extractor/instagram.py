@@ -27,9 +27,9 @@ class InstagramIE(InfoExtractor):
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
         uploader_id = self._search_regex(r'"owner":{"username":"(.+?)"',
-            webpage, 'uploader id', fatal=False)
+                                         webpage, 'uploader id', fatal=False)
         desc = self._search_regex(r'"caption":"(.*?)"', webpage, 'description',
-            fatal=False)
+                                  fatal=False)
 
         return {
             'id': video_id,

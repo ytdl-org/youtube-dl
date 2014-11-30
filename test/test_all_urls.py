@@ -14,7 +14,7 @@ from test.helper import gettestcases
 from youtube_dl.extractor import (
     FacebookIE,
     gen_extractors,
-    JustinTVIE,
+    TwitchIE,
     YoutubeIE,
 )
 
@@ -32,19 +32,19 @@ class TestAllURLsMatching(unittest.TestCase):
     def test_youtube_playlist_matching(self):
         assertPlaylist = lambda url: self.assertMatch(url, ['youtube:playlist'])
         assertPlaylist('ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8')
-        assertPlaylist('UUBABnxM4Ar9ten8Mdjj1j0Q') #585
+        assertPlaylist('UUBABnxM4Ar9ten8Mdjj1j0Q')  # 585
         assertPlaylist('PL63F0C78739B09958')
         assertPlaylist('https://www.youtube.com/playlist?list=UUBABnxM4Ar9ten8Mdjj1j0Q')
         assertPlaylist('https://www.youtube.com/course?list=ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8')
         assertPlaylist('https://www.youtube.com/playlist?list=PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC')
-        assertPlaylist('https://www.youtube.com/watch?v=AV6J6_AeFEQ&playnext=1&list=PL4023E734DA416012') #668
+        assertPlaylist('https://www.youtube.com/watch?v=AV6J6_AeFEQ&playnext=1&list=PL4023E734DA416012')  # 668
         self.assertFalse('youtube:playlist' in self.matching_ies('PLtS2H6bU1M'))
         # Top tracks
         assertPlaylist('https://www.youtube.com/playlist?list=MCUS.20142101')
 
     def test_youtube_matching(self):
         self.assertTrue(YoutubeIE.suitable('PLtS2H6bU1M'))
-        self.assertFalse(YoutubeIE.suitable('https://www.youtube.com/watch?v=AV6J6_AeFEQ&playnext=1&list=PL4023E734DA416012')) #668
+        self.assertFalse(YoutubeIE.suitable('https://www.youtube.com/watch?v=AV6J6_AeFEQ&playnext=1&list=PL4023E734DA416012'))  # 668
         self.assertMatch('http://youtu.be/BaW_jenozKc', ['youtube'])
         self.assertMatch('http://www.youtube.com/v/BaW_jenozKc', ['youtube'])
         self.assertMatch('https://youtube.googleapis.com/v/BaW_jenozKc', ['youtube'])
@@ -72,21 +72,17 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch('http://www.youtube.com/results?search_query=making+mustard', ['youtube:search_url'])
         self.assertMatch('https://www.youtube.com/results?baz=bar&search_query=youtube-dl+test+video&filters=video&lclk=video', ['youtube:search_url'])
 
-    def test_justin_tv_channelid_matching(self):
-        self.assertTrue(JustinTVIE.suitable('justin.tv/vanillatv'))
-        self.assertTrue(JustinTVIE.suitable('twitch.tv/vanillatv'))
-        self.assertTrue(JustinTVIE.suitable('www.justin.tv/vanillatv'))
-        self.assertTrue(JustinTVIE.suitable('www.twitch.tv/vanillatv'))
-        self.assertTrue(JustinTVIE.suitable('http://www.justin.tv/vanillatv'))
-        self.assertTrue(JustinTVIE.suitable('http://www.twitch.tv/vanillatv'))
-        self.assertTrue(JustinTVIE.suitable('http://www.justin.tv/vanillatv/'))
-        self.assertTrue(JustinTVIE.suitable('http://www.twitch.tv/vanillatv/'))
+    def test_twitch_channelid_matching(self):
+        self.assertTrue(TwitchIE.suitable('twitch.tv/vanillatv'))
+        self.assertTrue(TwitchIE.suitable('www.twitch.tv/vanillatv'))
+        self.assertTrue(TwitchIE.suitable('http://www.twitch.tv/vanillatv'))
+        self.assertTrue(TwitchIE.suitable('http://www.twitch.tv/vanillatv/'))
 
-    def test_justintv_videoid_matching(self):
-        self.assertTrue(JustinTVIE.suitable('http://www.twitch.tv/vanillatv/b/328087483'))
+    def test_twitch_videoid_matching(self):
+        self.assertTrue(TwitchIE.suitable('http://www.twitch.tv/vanillatv/b/328087483'))
 
-    def test_justin_tv_chapterid_matching(self):
-        self.assertTrue(JustinTVIE.suitable('http://www.twitch.tv/tsm_theoddone/c/2349361'))
+    def test_twitch_chapterid_matching(self):
+        self.assertTrue(TwitchIE.suitable('http://www.twitch.tv/tsm_theoddone/c/2349361'))
 
     def test_youtube_extract(self):
         assertExtractId = lambda url, id: self.assertEqual(YoutubeIE.extract_id(url), id)

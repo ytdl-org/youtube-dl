@@ -16,6 +16,7 @@ from ..utils import (
     format_bytes,
     encodeFilename,
     sanitize_open,
+    xpath_text,
 )
 
 
@@ -54,7 +55,7 @@ class FlvReader(io.BytesIO):
         if size == 1:
             real_size = self.read_unsigned_long_long()
             header_end = 16
-        return real_size, box_type, self.read(real_size-header_end)
+        return real_size, box_type, self.read(real_size - header_end)
 
     def read_asrt(self):
         # version
@@ -179,7 +180,7 @@ def build_fragments_list(boot_info):
     n_frags = segment_run_entry[1]
     fragment_run_entry_table = boot_info['fragments'][0]['fragments']
     first_frag_number = fragment_run_entry_table[0]['first']
-    for (i, frag_number) in zip(range(1, n_frags+1), itertools.count(first_frag_number)):
+    for (i, frag_number) in zip(range(1, n_frags + 1), itertools.count(first_frag_number)):
         res.append((1, frag_number))
     return res
 
@@ -224,13 +225,15 @@ class F4mFD(FileDownloader):
         self.to_screen('[download] Downloading f4m manifest')
         manifest = self.ydl.urlopen(man_url).read()
         self.report_destination(filename)
-        http_dl = HttpQuietDownloader(self.ydl,
+        http_dl = HttpQuietDownloader(
+            self.ydl,
             {
                 'continuedl': True,
                 'quiet': True,
                 'noprogress': True,
                 'test': self.params.get('test', False),
-            })
+            }
+        )
 
         doc = etree.fromstring(manifest)
         formats = [(int(f.attrib.get('bitrate', -1)), f) for f in doc.findall(_add_ns('media'))]
@@ -243,14 +246,23 @@ class F4mFD(FileDownloader):
                 lambda f: int(f[0]) == requested_bitrate, formats))[0]
 
         base_url = compat_urlparse.urljoin(man_url, media.attrib['url'])
-        bootstrap = base64.b64decode(doc.find(_add_ns('bootstrapInfo')).text)
+        bootstrap_node = doc.find(_add_ns('bootstrapInfo'))
+        if bootstrap_node.text is None:
+            bootstrap_url = compat_urlparse.urljoin(
+                base_url, bootstrap_node.attrib['url'])
+            bootstrap = self.ydl.urlopen(bootstrap_url).read()
+        else:
+            bootstrap = base64.b64decode(bootstrap_node.text)
         metadata = base64.b64decode(media.find(_add_ns('metadata')).text)
         boot_info = read_bootstrap_info(bootstrap)
+
         fragments_list = build_fragments_list(boot_info)
         if self.params.get('test', False):
             # We only download the first fragment
             fragments_list = fragments_list[:1]
         total_frags = len(fragments_list)
+        # For some akamai manifests we'll need to add a query to the fragment url
+        akamai_pv = xpath_text(doc, _add_ns('pv-2.0'))
 
         tmpfilename = self.temp_name(filename)
         (dest_stream, tmpfilename) = sanitize_open(tmpfilename, 'wb')
@@ -267,7 +279,7 @@ class F4mFD(FileDownloader):
         def frag_progress_hook(status):
             frag_total_bytes = status.get('total_bytes', 0)
             estimated_size = (state['downloaded_bytes'] +
-                (total_frags - state['frag_counter']) * frag_total_bytes)
+                              (total_frags - state['frag_counter']) * frag_total_bytes)
             if status['status'] == 'finished':
                 state['downloaded_bytes'] += frag_total_bytes
                 state['frag_counter'] += 1
@@ -277,19 +289,21 @@ class F4mFD(FileDownloader):
                 frag_downloaded_bytes = status['downloaded_bytes']
                 byte_counter = state['downloaded_bytes'] + frag_downloaded_bytes
                 frag_progress = self.calc_percent(frag_downloaded_bytes,
-                    frag_total_bytes)
+                                                  frag_total_bytes)
                 progress = self.calc_percent(state['frag_counter'], total_frags)
                 progress += frag_progress / float(total_frags)
 
             eta = self.calc_eta(start, time.time(), estimated_size, byte_counter)
             self.report_progress(progress, format_bytes(estimated_size),
-                status.get('speed'), eta)
+                                 status.get('speed'), eta)
         http_dl.add_progress_hook(frag_progress_hook)
 
         frags_filenames = []
         for (seg_i, frag_i) in fragments_list:
             name = 'Seg%d-Frag%d' % (seg_i, frag_i)
             url = base_url + name
+            if akamai_pv:
+                url += '?' + akamai_pv.strip(';')
             frag_filename = '%s-%s' % (tmpfilename, name)
             success = http_dl.download(frag_filename, {'url': url})
             if not success:

@@ -6,12 +6,11 @@ from .common import InfoExtractor
 from ..utils import (
     parse_duration,
     parse_iso8601,
-    find_xpath_attr,
 )
 
 
 class MLBIE(InfoExtractor):
-    _VALID_URL = r'https?://m\.mlb\.com/(?:(?:.*?/)?video/(?:topic/[\da-z_-]+/)?v|shared/video/embed/embed\.html\?.*?\bcontent_id=)(?P<id>n?\d+)'
+    _VALID_URL = r'https?://m(?:lb)?\.mlb\.com/(?:(?:.*?/)?video/(?:topic/[\da-z_-]+/)?v|(?:shared/video/embed/embed\.html|[^/]+/video/play\.jsp)\?.*?\bcontent_id=)(?P<id>n?\d+)'
     _TESTS = [
         {
             'url': 'http://m.mlb.com/sea/video/topic/51231442/v34698933/nymsea-ackley-robs-a-home-run-with-an-amazing-catch/?c_id=sea',
@@ -73,6 +72,14 @@ class MLBIE(InfoExtractor):
             'url': 'http://m.mlb.com/shared/video/embed/embed.html?content_id=35692085&topic_id=6479266&width=400&height=224&property=mlb',
             'only_matching': True,
         },
+        {
+            'url': 'http://mlb.mlb.com/shared/video/embed/embed.html?content_id=36599553',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://mlb.mlb.com/es/video/play.jsp?content_id=36599553',
+            'only_matching': True,
+        },
     ]
 
     def _real_extract(self, url):
@@ -88,8 +95,9 @@ class MLBIE(InfoExtractor):
         duration = parse_duration(detail.find('./duration').text)
         timestamp = parse_iso8601(detail.attrib['date'][:-5])
 
-        thumbnail = find_xpath_attr(
-            detail, './thumbnailScenarios/thumbnailScenario', 'type', '45').text
+        thumbnails = [{
+            'url': thumbnail.text,
+        } for thumbnail in detail.findall('./thumbnailScenarios/thumbnailScenario')]
 
         formats = []
         for media_url in detail.findall('./url'):
@@ -116,5 +124,5 @@ class MLBIE(InfoExtractor):
             'duration': duration,
             'timestamp': timestamp,
             'formats': formats,
-            'thumbnail': thumbnail,
+            'thumbnails': thumbnails,
         }

@@ -5,7 +5,7 @@ import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_HTTPError,
+    compat_urllib_request,
     ExtractorError,
 )
 
@@ -24,7 +24,7 @@ class VevoIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.vevo.com/watch/hurts/somebody-to-die-for/GB1101300280',
-        "md5": "06bea460acb744eab74a9d7dcb4bfd61",
+        "md5": "95ee28ee45e70130e3ab02b0f579ae23",
         'info_dict': {
             'id': 'GB1101300280',
             'ext': 'mp4',
@@ -40,7 +40,7 @@ class VevoIE(InfoExtractor):
     }, {
         'note': 'v3 SMIL format',
         'url': 'http://www.vevo.com/watch/cassadee-pope/i-wish-i-could-break-your-heart/USUV71302923',
-        'md5': '893ec0e0d4426a1d96c01de8f2bdff58',
+        'md5': 'f6ab09b034f8c22969020b042e5ac7fc',
         'info_dict': {
             'id': 'USUV71302923',
             'ext': 'mp4',
@@ -68,6 +68,21 @@ class VevoIE(InfoExtractor):
         }
     }]
     _SMIL_BASE_URL = 'http://smil.lvl3.vevo.com/'
+
+    def _real_initialize(self):
+        req = compat_urllib_request.Request(
+            'http://www.vevo.com/auth', data=b'')
+        webpage = self._download_webpage(
+            req, None,
+            note='Retrieving oauth token',
+            errnote='Unable to retrieve oauth token',
+            fatal=False)
+        if webpage is False:
+            self._oauth_token = None
+        else:
+            self._oauth_token = self._search_regex(
+                r'access_token":\s*"([^"]+)"',
+                webpage, 'access token', fatal=False)
 
     def _formats_from_json(self, video_info):
         last_version = {'version': -1}
@@ -129,6 +144,26 @@ class VevoIE(InfoExtractor):
             })
         return formats
 
+    def _download_api_formats(self, video_id):
+        if not self._oauth_token:
+            self._downloader.report_warning(
+                'No oauth token available, skipping API HLS download')
+            return []
+
+        api_url = 'https://apiv2.vevo.com/video/%s/streams/hls?token=%s' % (
+            video_id, self._oauth_token)
+        api_data = self._download_json(
+            api_url, video_id,
+            note='Downloading HLS formats',
+            errnote='Failed to download HLS format list', fatal=False)
+        if api_data is None:
+            return []
+
+        m3u8_url = api_data[0]['url']
+        return self._extract_m3u8_formats(
+            m3u8_url, video_id, entry_protocol='m3u8_native', ext='mp4',
+            preference=0)
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
@@ -152,30 +187,8 @@ class VevoIE(InfoExtractor):
         else:
             age_limit = None
 
-        # Download SMIL
-        smil_blocks = sorted((
-            f for f in video_info['videoVersions']
-            if f['sourceType'] == 13),
-            key=lambda f: f['version'])
-
-        smil_url = '%s/Video/V2/VFILE/%s/%sr.smil' % (
-            self._SMIL_BASE_URL, video_id, video_id.lower())
-        if smil_blocks:
-            smil_url_m = self._search_regex(
-                r'url="([^"]+)"', smil_blocks[-1]['data'], 'SMIL URL',
-                fatal=False)
-            if smil_url_m is not None:
-                smil_url = smil_url_m
-
-        try:
-            smil_xml = self._download_webpage(smil_url, video_id,
-                                              'Downloading SMIL info')
-            formats.extend(self._formats_from_smil(smil_xml))
-        except ExtractorError as ee:
-            if not isinstance(ee.cause, compat_HTTPError):
-                raise
-            self._downloader.report_warning(
-                'Cannot download SMIL information, falling back to JSON ..')
+        # Download via HLS API
+        formats.extend(self._download_api_formats(video_id))
 
         self._sort_formats(formats)
         timestamp_ms = int(self._search_regex(

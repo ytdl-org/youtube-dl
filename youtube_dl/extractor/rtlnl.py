@@ -38,12 +38,13 @@ class RtlXlIE(InfoExtractor):
         progname = info['abstracts'][0]['name']
         subtitle = material['title'] or info['episodes'][0]['name']
 
-        videopath = material['videopath']
-        f4m_url = 'http://manifest.us.rtl.nl' + videopath
+        # Use unencrypted m3u8 streams (See https://github.com/rg3/youtube-dl/issues/4118)
+        videopath = material['videopath'].replace('.f4m', '.m3u8')
+        m3u8_url = 'http://manifest.us.rtl.nl' + videopath
 
-        formats = self._extract_f4m_formats(f4m_url, uuid)
+        formats = self._extract_m3u8_formats(m3u8_url, uuid, ext='mp4')
 
-        video_urlpart = videopath.split('/flash/')[1][:-4]
+        video_urlpart = videopath.split('/flash/')[1][:-5]
         PG_URL_TEMPLATE = 'http://pg.us.rtl.nl/rtlxl/network/%s/progressive/%s.mp4'
 
         formats.extend([
@@ -54,8 +55,11 @@ class RtlXlIE(InfoExtractor):
             {
                 'url': PG_URL_TEMPLATE % ('a3m', video_urlpart),
                 'format_id': 'pg-hd',
+                'quality': 0,
             }
         ])
+
+        self._sort_formats(formats)
 
         return {
             'id': uuid,

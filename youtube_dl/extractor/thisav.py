@@ -1,4 +1,4 @@
-#coding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -36,12 +36,12 @@ class ThisAVIE(InfoExtractor):
             r': <a href="http://www.thisav.com/user/[0-9]+/([^"]+)">(?:[^<]+)</a>',
             webpage, 'uploader id', fatal=False)
         ext = determine_ext(video_url)
-        
+
         return {
-            'id':          video_id,
-            'url':         video_url,
-            'uploader':    uploader,
+            'id': video_id,
+            'url': video_url,
+            'uploader': uploader,
             'uploader_id': uploader_id,
-            'title':       title,
-            'ext':         ext,
+            'title': title,
+            'ext': ext,
         }

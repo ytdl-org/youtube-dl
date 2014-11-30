@@ -165,10 +165,10 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
         webpage = self._download_webpage(url, group_id, 'Downloading video page')
         if re.search(r'id="emp-error" class="notinuk">', webpage):
             raise ExtractorError('Currently BBC iPlayer TV programmes are available to play in the UK only',
-                expected=True)
+                                 expected=True)
 
         playlist = self._download_xml('http://www.bbc.co.uk/iplayer/playlist/%s' % group_id, group_id,
-            'Downloading playlist XML')
+                                      'Downloading playlist XML')
 
         no_items = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}noItems')
         if no_items is not None:
@@ -195,7 +195,7 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
             duration = int(item.get('duration'))
 
             media_selection = self._download_xml(
-                'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s'  % programme_id,
+                'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s' % programme_id,
                 programme_id, 'Downloading media selection XML')
 
             for media in self._extract_medias(media_selection):

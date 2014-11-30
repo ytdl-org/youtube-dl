@@ -8,7 +8,7 @@ from ..utils import ExtractorError
 
 
 class FunnyOrDieIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?funnyordie\.com/(?P<type>embed|videos)/(?P<id>[0-9a-f]+)(?:$|[?#/])'
+    _VALID_URL = r'https?://(?:www\.)?funnyordie\.com/(?P<type>embed|articles|videos)/(?P<id>[0-9a-f]+)(?:$|[?#/])'
     _TESTS = [{
         'url': 'http://www.funnyordie.com/videos/0732f586d7/heart-shaped-box-literal-video-version',
         'md5': 'bcd81e0c4f26189ee09be362ad6e6ba9',
@@ -21,7 +21,6 @@ class FunnyOrDieIE(InfoExtractor):
         },
     }, {
         'url': 'http://www.funnyordie.com/embed/e402820827',
-        'md5': 'ff4d83318f89776ed0250634cfaa8d36',
         'info_dict': {
             'id': 'e402820827',
             'ext': 'mp4',
@@ -29,6 +28,9 @@ class FunnyOrDieIE(InfoExtractor):
             'description': 'Please use this to sell something.  www.jonlajoie.com',
             'thumbnail': 're:^http:.*\.jpg$',
         },
+    }, {
+        'url': 'http://www.funnyordie.com/articles/ebf5e34fc8/10-hours-of-walking-in-nyc-as-a-man',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -37,7 +39,7 @@ class FunnyOrDieIE(InfoExtractor):
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
 
-        links = re.findall(r'<source src="([^"]+/v)\d+\.([^"]+)" type=\'video', webpage)
+        links = re.findall(r'<source src="([^"]+/v)[^"]+\.([^"]+)" type=\'video', webpage)
         if not links:
             raise ExtractorError('No media links available for %s' % video_id)
 

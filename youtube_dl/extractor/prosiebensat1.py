@@ -144,7 +144,7 @@ class ProSiebenSat1IE(InfoExtractor):
                 'id': '2156342',
                 'ext': 'mp4',
                 'title': 'Kurztrips zum Valentinstag',
-                'description': 'md5:8ba6301e70351ae0bedf8da00f7ba528',
+                'description': 'Romantischer Kurztrip zum Valentinstag? Wir verraten, was sich hier wirklich lohnt.',
                 'duration': 307.24,
             },
             'params': {
@@ -180,12 +180,10 @@ class ProSiebenSat1IE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
 
-        page = self._download_webpage(url, video_id, 'Downloading page')
-
-        clip_id = self._html_search_regex(self._CLIPID_REGEXES, page, 'clip id')
+        clip_id = self._html_search_regex(self._CLIPID_REGEXES, webpage, 'clip id')
 
         access_token = 'testclient'
         client_name = 'kolibri-1.2.5'
@@ -234,12 +232,12 @@ class ProSiebenSat1IE(InfoExtractor):
 
         urls = self._download_json(url_api_url, clip_id, 'Downloading urls JSON')
 
-        title = self._html_search_regex(self._TITLE_REGEXES, page, 'title')
-        description = self._html_search_regex(self._DESCRIPTION_REGEXES, page, 'description', fatal=False)
-        thumbnail = self._og_search_thumbnail(page)
+        title = self._html_search_regex(self._TITLE_REGEXES, webpage, 'title')
+        description = self._html_search_regex(self._DESCRIPTION_REGEXES, webpage, 'description', fatal=False)
+        thumbnail = self._og_search_thumbnail(webpage)
 
         upload_date = unified_strdate(self._html_search_regex(
-            self._UPLOAD_DATE_REGEXES, page, 'upload date', default=None))
+            self._UPLOAD_DATE_REGEXES, webpage, 'upload date', default=None))
 
         formats = []
 

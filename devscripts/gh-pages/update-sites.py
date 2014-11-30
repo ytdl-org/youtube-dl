@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from __future__ import unicode_literals
 
 import sys
 import os
@@ -8,6 +9,7 @@ import textwrap
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import youtube_dl
+
 
 def main():
     with open('supportedsites.html.in', 'r', encoding='utf-8') as tmplf:
@@ -21,7 +23,7 @@ def main():
             continue
         elif ie_desc is not None:
             ie_html += ': {}'.format(ie.IE_DESC)
-        if ie.working() == False:
+        if not ie.working():
             ie_html += ' (Currently broken)'
         ie_htmls.append('<li>{}</li>'.format(ie_html))
 

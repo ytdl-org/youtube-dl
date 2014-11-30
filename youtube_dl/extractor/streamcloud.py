@@ -13,7 +13,7 @@ from ..utils import (
 
 class StreamcloudIE(InfoExtractor):
     IE_NAME = 'streamcloud.eu'
-    _VALID_URL = r'https?://streamcloud\.eu/(?P<id>[a-zA-Z0-9_-]+)/(?P<fname>[^#?]*)\.html'
+    _VALID_URL = r'https?://streamcloud\.eu/(?P<id>[a-zA-Z0-9_-]+)(?:/(?P<fname>[^#?]*)\.html)?'
 
     _TEST = {
         'url': 'http://streamcloud.eu/skp9j99s4bpz/youtube-dl_test_video_____________-BaW_jenozKc.mp4.html',
@@ -27,8 +27,8 @@ class StreamcloudIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
+        url = 'http://streamcloud.eu/%s' % video_id
 
         orig_webpage = self._download_webpage(url, video_id)
 

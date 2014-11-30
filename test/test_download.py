@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import unicode_literals
+
 # Allow direct execution
 import os
 import sys
@@ -8,6 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import (
     assertGreaterEqual,
+    expect_warnings,
     get_params,
     gettestcases,
     expect_info_dict,
@@ -22,10 +25,12 @@ import json
 import socket
 
 import youtube_dl.YoutubeDL
-from youtube_dl.utils import (
+from youtube_dl.compat import (
     compat_http_client,
     compat_urllib_error,
     compat_HTTPError,
+)
+from youtube_dl.utils import (
     DownloadError,
     ExtractorError,
     format_bytes,
@@ -35,17 +40,21 @@ from youtube_dl.extractor import get_info_extractor
 
 RETRIES = 3
 
+
 class YoutubeDL(youtube_dl.YoutubeDL):
     def __init__(self, *args, **kwargs):
         self.to_stderr = self.to_screen
         self.processed_info_dicts = []
         super(YoutubeDL, self).__init__(*args, **kwargs)
+
     def report_warning(self, message):
         # Don't accept warnings during tests
         raise ExtractorError(message)
+
     def process_info(self, info_dict):
         self.processed_info_dicts.append(info_dict)
         return super(YoutubeDL, self).process_info(info_dict)
+
 
 def _file_md5(fn):
     with open(fn, 'rb') as f:
@@ -56,10 +65,13 @@ defs = gettestcases()
 
 class TestDownload(unittest.TestCase):
     maxDiff = None
+
     def setUp(self):
         self.defs = defs
 
-### Dynamically generate tests
+# Dynamically generate tests
+
+
 def generator(test_case):
 
     def test_template(self):
@@ -85,7 +97,7 @@ def generator(test_case):
             return
         for other_ie in other_ies:
             if not other_ie.working():
-                print_skipping(u'test depends on %sIE, marked as not WORKING' % other_ie.ie_key())
+                print_skipping('test depends on %sIE, marked as not WORKING' % other_ie.ie_key())
                 return
 
         params = get_params(test_case.get('params', {}))
@@ -93,18 +105,21 @@ def generator(test_case):
             params.setdefault('extract_flat', True)
             params.setdefault('skip_download', True)
 
-        ydl = YoutubeDL(params)
+        ydl = YoutubeDL(params, auto_init=False)
         ydl.add_default_info_extractors()
         finished_hook_called = set()
+
         def _hook(status):
             if status['status'] == 'finished':
                 finished_hook_called.add(status['filename'])
         ydl.add_progress_hook(_hook)
+        expect_warnings(ydl, test_case.get('expected_warnings', []))
 
         def get_tc_filename(tc):
             return tc.get('file') or ydl.prepare_filename(tc.get('info_dict', {}))
 
         res_dict = None
+
         def try_rm_tcs_files(tcs=None):
             if tcs is None:
                 tcs = test_cases
@@ -128,7 +143,7 @@ def generator(test_case):
                         raise
 
                     if try_num == RETRIES:
-                        report_warning(u'Failed due to network errors, skipping...')
+                        report_warning('Failed due to network errors, skipping...')
                         return
 
                     print('Retrying: {0} failed tries\n\n##########\n\n'.format(try_num))
@@ -139,7 +154,9 @@ def generator(test_case):
 
             if is_playlist:
                 self.assertEqual(res_dict['_type'], 'playlist')
+                self.assertTrue('entries' in res_dict)
                 expect_info_dict(self, test_case.get('info_dict', {}), res_dict)
+
             if 'playlist_mincount' in test_case:
                 assertGreaterEqual(
                     self,
@@ -181,14 +198,16 @@ def generator(test_case):
                         md5_for_file = _file_md5(tc_filename)
                         self.assertEqual(md5_for_file, tc['md5'])
                 info_json_fn = os.path.splitext(tc_filename)[0] + '.info.json'
-                self.assertTrue(os.path.exists(info_json_fn))
+                self.assertTrue(
+                    os.path.exists(info_json_fn),
+                    'Missing info file %s' % info_json_fn)
                 with io.open(info_json_fn, encoding='utf-8') as infof:
                     info_dict = json.load(infof)
 
                 expect_info_dict(self, tc.get('info_dict', {}), info_dict)
         finally:
             try_rm_tcs_files()
-            if is_playlist and res_dict is not None:
+            if is_playlist and res_dict is not None and res_dict.get('entries'):
                 # Remove all other files that may have been extracted if the
                 # extractor returns full results even with extract_flat
                 res_tcs = [{'info_dict': e} for e in res_dict['entries']]
@@ -196,15 +215,15 @@ def generator(test_case):
 
     return test_template
 
-### And add them to TestDownload
+# And add them to TestDownload
 for n, test_case in enumerate(defs):
     test_method = generator(test_case)
     tname = 'test_' + str(test_case['name'])
     i = 1
     while hasattr(TestDownload, tname):
-        tname = 'test_'  + str(test_case['name']) + '_' + str(i)
+        tname = 'test_%s_%d' % (test_case['name'], i)
         i += 1
-    test_method.__name__ = tname
+    test_method.__name__ = str(tname)
     setattr(TestDownload, test_method.__name__, test_method)
     del test_method
 

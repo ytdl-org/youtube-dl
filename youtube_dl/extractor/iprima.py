@@ -54,7 +54,7 @@ class IPrimaIE(InfoExtractor):
 
         player_url = (
             'http://embed.livebox.cz/iprimaplay/player-embed-v2.js?__tok%s__=%s' %
-            (floor(random()*1073741824), floor(random()*1073741824))
+            (floor(random() * 1073741824), floor(random() * 1073741824))
         )
 
         req = compat_urllib_request.Request(player_url)

@@ -12,7 +12,7 @@ from ..utils import (
 
 class SBSIE(InfoExtractor):
     IE_DESC = 'sbs.com.au'
-    _VALID_URL = r'https?://(?:www\.)?sbs\.com\.au/ondemand/video/single/(?P<id>[0-9]+)/'
+    _VALID_URL = r'https?://(?:www\.)?sbs\.com\.au/ondemand/video/(?:single/)?(?P<id>[0-9]+)'
 
     _TESTS = [{
         # Original URL is handled by the generic IE which finds the iframe:
@@ -21,12 +21,15 @@ class SBSIE(InfoExtractor):
         'md5': '3150cf278965eeabb5b4cea1c963fe0a',
         'info_dict': {
             'id': '320403011771',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Dingo Conservation',
             'description': 'Dingoes are on the brink of extinction; most of the animals we think are dingoes are in fact crossbred with wild dogs. This family run a dingo conservation park to prevent their extinction',
             'thumbnail': 're:http://.*\.jpg',
         },
         'add_ies': ['generic'],
+    }, {
+        'url': 'http://www.sbs.com.au/ondemand/video/320403011771/Dingo-Conservation-The-Feed',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):

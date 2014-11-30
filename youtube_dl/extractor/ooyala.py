@@ -43,7 +43,7 @@ class OoyalaIE(InfoExtractor):
     @classmethod
     def _build_url_result(cls, embed_code):
         return cls.url_result(cls._url_for_embed_code(embed_code),
-            ie=cls.ie_key())
+                              ie=cls.ie_key())
 
     def _extract_result(self, info, more_info):
         return {
@@ -97,4 +97,3 @@ class OoyalaIE(InfoExtractor):
             }
         else:
             return self._extract_result(videos_info[0], videos_more_info)
-        

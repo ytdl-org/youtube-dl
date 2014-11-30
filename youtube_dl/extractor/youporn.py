@@ -49,7 +49,7 @@ class YouPornIE(InfoExtractor):
         try:
             params = json.loads(json_params)
         except:
-            raise ExtractorError(u'Invalid JSON')
+            raise ExtractorError('Invalid JSON')
 
         self.report_extraction(video_id)
         try:
@@ -64,7 +64,7 @@ class YouPornIE(InfoExtractor):
         # Get all of the links from the page
         DOWNLOAD_LIST_RE = r'(?s)<ul class="downloadList">(?P<download_list>.*?)</ul>'
         download_list_html = self._search_regex(DOWNLOAD_LIST_RE,
-            webpage, 'download list').strip()
+                                                webpage, 'download list').strip()
         LINK_RE = r'<a href="([^"]+)">'
         links = re.findall(LINK_RE, download_list_html)
 
@@ -73,7 +73,7 @@ class YouPornIE(InfoExtractor):
         for encrypted_link in encrypted_links:
             link = aes_decrypt_text(encrypted_link, video_title, 32).decode('utf-8')
             links.append(link)
-        
+
         formats = []
         for link in links:
             # A link looks like this:
@@ -103,8 +103,8 @@ class YouPornIE(InfoExtractor):
         self._sort_formats(formats)
 
         if not formats:
-            raise ExtractorError(u'ERROR: no known formats available for video')
-        
+            raise ExtractorError('ERROR: no known formats available for video')
+
         return {
             'id': video_id,
             'uploader': video_uploader,

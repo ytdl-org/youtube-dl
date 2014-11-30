@@ -6,6 +6,7 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     compat_str,
+    ExtractorError,
 )
 
 
@@ -16,6 +17,24 @@ class VubeIE(InfoExtractor):
 
     _TESTS = [
         {
+            'url': 'http://vube.com/trending/William+Wei/Y8NUZ69Tf7?t=s',
+            'md5': 'e7aabe1f8f1aa826b9e4735e1f9cee42',
+            'info_dict': {
+                'id': 'Y8NUZ69Tf7',
+                'ext': 'mp4',
+                'title': 'Best Drummer Ever [HD]',
+                'description': 'md5:2d63c4b277b85c2277761c2cf7337d71',
+                'thumbnail': 're:^https?://.*\.jpg',
+                'uploader': 'William',
+                'timestamp': 1406876915,
+                'upload_date': '20140801',
+                'duration': 258.051,
+                'like_count': int,
+                'dislike_count': int,
+                'comment_count': int,
+                'categories': ['amazing', 'hd', 'best drummer ever', 'william wei', 'bucket drumming', 'street drummer', 'epic street drumming'],
+            },
+        }, {
             'url': 'http://vube.com/Chiara+Grispo+Video+Channel/YL2qNPkqon',
             'md5': 'db7aba89d4603dadd627e9d1973946fe',
             'info_dict': {
@@ -32,7 +51,8 @@ class VubeIE(InfoExtractor):
                 'dislike_count': int,
                 'comment_count': int,
                 'categories': ['pop', 'music', 'cover', 'singing', 'jessie j', 'price tag', 'chiara grispo'],
-            }
+            },
+            'skip': 'Removed due to DMCA',
         },
         {
             'url': 'http://vube.com/SerainaMusic/my-7-year-old-sister-and-i-singing-alive-by-krewella/UeBhTudbfS?t=s&n=1',
@@ -51,7 +71,8 @@ class VubeIE(InfoExtractor):
                 'dislike_count': int,
                 'comment_count': int,
                 'categories': ['seraina', 'jessica', 'krewella', 'alive'],
-            }
+            },
+            'skip': 'Removed due to DMCA',
         }, {
             'url': 'http://vube.com/vote/Siren+Gene/0nmsMY5vEq?n=2&t=s',
             'md5': '0584fc13b50f887127d9d1007589d27f',
@@ -69,7 +90,8 @@ class VubeIE(InfoExtractor):
                 'dislike_count': int,
                 'comment_count': int,
                 'categories': ['let it go', 'cover', 'idina menzel', 'frozen', 'singing', 'disney', 'siren gene'],
-            }
+            },
+            'skip': 'Removed due to DMCA',
         }
     ]
 
@@ -101,6 +123,11 @@ class VubeIE(InfoExtractor):
             formats.append(fmt)
 
         self._sort_formats(formats)
+
+        if not formats and video.get('vst') == 'dmca':
+            raise ExtractorError(
+                'This video has been removed in response to a complaint received under the US Digital Millennium Copyright Act.',
+                expected=True)
 
         title = video['title']
         description = video.get('description')

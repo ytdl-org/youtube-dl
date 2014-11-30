@@ -8,12 +8,13 @@ import re
 
 
 from .common import InfoExtractor
-from ..utils import ExtractorError, compat_urllib_request, compat_html_parser
-
-from ..utils import (
+from ..compat import (
+    compat_html_parser,
     compat_urllib_parse,
+    compat_urllib_request,
     compat_urlparse,
 )
+from ..utils import ExtractorError
 
 
 class GroovesharkHtmlParser(compat_html_parser.HTMLParser):

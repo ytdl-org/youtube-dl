@@ -18,7 +18,7 @@ from ..utils import (
 
 class LivestreamIE(InfoExtractor):
     IE_NAME = 'livestream'
-    _VALID_URL = r'http://new\.livestream\.com/.*?/(?P<event_name>.*?)(/videos/(?P<id>\d+))?/?$'
+    _VALID_URL = r'https?://new\.livestream\.com/.*?/(?P<event_name>.*?)(/videos/(?P<id>[0-9]+)(?:/player)?)?/?(?:$|[?#])'
     _TESTS = [{
         'url': 'http://new.livestream.com/CoheedandCambria/WebsterHall/videos/4719370',
         'md5': '53274c76ba7754fb0e8d072716f2292b',
@@ -37,6 +37,9 @@ class LivestreamIE(InfoExtractor):
             'title': 'TEDCity2.0 (English)',
         },
         'playlist_mincount': 4,
+    }, {
+        'url': 'https://new.livestream.com/accounts/362/events/3557232/videos/67864563/player?autoPlay=false&height=360&mute=false&width=640',
+        'only_matching': True,
     }]
 
     def _parse_smil(self, video_id, smil_url):
@@ -190,7 +193,8 @@ class LivestreamOriginalIE(InfoExtractor):
             'id': video_id,
             'title': item.find('title').text,
             'url': 'rtmp://extondemand.livestream.com/ondemand',
-            'play_path': 'mp4:trans/dv15/mogulus-{0}.mp4'.format(path),
+            'play_path': 'trans/dv15/mogulus-{0}'.format(path),
+            'player_url': 'http://static.livestream.com/chromelessPlayer/v21/playerapi.swf?hash=5uetk&v=0803&classid=D27CDB6E-AE6D-11cf-96B8-444553540000&jsEnabled=false&wmode=opaque',
             'ext': 'flv',
             'thumbnail': thumbnail_url,
         }

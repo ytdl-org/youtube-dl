@@ -24,7 +24,7 @@ class ClipfishIE(InfoExtractor):
             'title': 'FIFA 14 - E3 2013 Trailer',
             'duration': 82,
         },
-        u'skip': 'Blocked in the US'
+        'skip': 'Blocked in the US'
     }
 
     def _real_extract(self, url):
@@ -34,7 +34,7 @@ class ClipfishIE(InfoExtractor):
         info_url = ('http://www.clipfish.de/devxml/videoinfo/%s?ts=%d' %
                     (video_id, int(time.time())))
         doc = self._download_xml(
-            info_url, video_id, note=u'Downloading info page')
+            info_url, video_id, note='Downloading info page')
         title = doc.find('title').text
         video_url = doc.find('filename').text
         if video_url is None:

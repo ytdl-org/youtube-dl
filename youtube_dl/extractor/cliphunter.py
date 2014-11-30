@@ -4,7 +4,6 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..utils import int_or_none
 
 
 _translation_table = {
@@ -35,14 +34,11 @@ class CliphunterIE(InfoExtractor):
             'title': 'Fun Jynx Maze solo',
             'thumbnail': 're:^https?://.*\.jpg$',
             'age_limit': 18,
-            'duration': 1317,
         }
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         video_title = self._search_regex(
@@ -86,14 +82,11 @@ class CliphunterIE(InfoExtractor):
         thumbnail = self._search_regex(
             r"var\s+mov_thumb\s*=\s*'([^']+)';",
             webpage, 'thumbnail', fatal=False)
-        duration = int_or_none(self._search_regex(
-            r'pl_dur\s*=\s*([0-9]+)', webpage, 'duration', fatal=False))
 
         return {
             'id': video_id,
             'title': video_title,
             'formats': formats,
-            'duration': duration,
             'age_limit': self._rta_search(webpage),
             'thumbnail': thumbnail,
         }

@@ -14,7 +14,7 @@ import re
 import string
 
 from youtube_dl.extractor import YoutubeIE
-from youtube_dl.utils import compat_str, compat_urlretrieve
+from youtube_dl.compat import compat_str, compat_urlretrieve
 
 _TESTS = [
     (
@@ -46,18 +46,6 @@ _TESTS = [
         'js',
         '2ACFC7A61CA478CD21425E5A57EBD73DDC78E22A.2094302436B2D377D14A3BBA23022D023B8BC25AA',
         'A52CB8B320D22032ABB3A41D773D2B6342034902.A22E87CDD37DBE75A5E52412DC874AC16A7CFCA2',
-    ),
-    (
-        'http://s.ytimg.com/yts/swfbin/player-vfl5vIhK2/watch_as3.swf',
-        'swf',
-        86,
-        'O1I3456789abcde0ghijklmnopqrstuvwxyzABCDEFGHfJKLMN2PQRSTUVWXY\\!"#$%&\'()*+,-./:;<=>?'
-    ),
-    (
-        'http://s.ytimg.com/yts/swfbin/player-vflmDyk47/watch_as3.swf',
-        'swf',
-        'F375F75BF2AFDAAF2666E43868D46816F83F13E81C46.3725A8218E446A0DECD33F79DC282994D6AA92C92C9',
-        '9C29AA6D499282CD97F33DCED0A644E8128A5273.64C18E31F38361864D86834E6662FAADFA2FB57F'
     ),
     (
         'https://s.ytimg.com/yts/jsbin/html5player-en_US-vflBb0OQx.js',

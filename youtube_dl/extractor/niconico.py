@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import re
+import json
 
 from .common import InfoExtractor
 from ..utils import (
@@ -11,6 +12,7 @@ from ..utils import (
     unified_strdate,
     parse_duration,
     int_or_none,
+    ExtractorError,
 )
 
 
@@ -39,18 +41,17 @@ class NiconicoIE(InfoExtractor):
 
     _VALID_URL = r'https?://(?:www\.|secure\.)?nicovideo\.jp/watch/((?:[a-z]{2})?[0-9]+)'
     _NETRC_MACHINE = 'niconico'
-    # Determine whether the downloader uses authentication to download video
-    _AUTHENTICATE = False
+    # Determine whether the downloader used authentication to download video
+    _AUTHENTICATED = False
 
     def _real_initialize(self):
-        if self._downloader.params.get('username', None) is not None:
-            self._AUTHENTICATE = True
-
-        if self._AUTHENTICATE:
-            self._login()
+        self._login()
 
     def _login(self):
         (username, password) = self._get_login_info()
+        # No authentication to be performed
+        if not username:
+            return True
 
         # Log in
         login_form_strs = {
@@ -68,6 +69,8 @@ class NiconicoIE(InfoExtractor):
         if re.search(r'(?i)<h1 class="mb8p4">Log in error</h1>', login_results) is not None:
             self._downloader.report_warning('unable to log in: bad username or password')
             return False
+        # Successful login
+        self._AUTHENTICATED = True
         return True
 
     def _real_extract(self, url):
@@ -82,7 +85,7 @@ class NiconicoIE(InfoExtractor):
             'http://ext.nicovideo.jp/api/getthumbinfo/' + video_id, video_id,
             note='Downloading video info page')
 
-        if self._AUTHENTICATE:
+        if self._AUTHENTICATED:
             # Get flv info
             flv_info_webpage = self._download_webpage(
                 'http://flapi.nicovideo.jp/api/getflv?v=' + video_id,
@@ -106,6 +109,9 @@ class NiconicoIE(InfoExtractor):
                 flv_info_request, video_id,
                 note='Downloading flv info', errnote='Unable to download flv info')
 
+        if 'deleted=' in flv_info_webpage:
+            raise ExtractorError('The video has been deleted.',
+                                 expected=True)
         video_real_url = compat_urlparse.parse_qs(flv_info_webpage)['url'][0]
 
         # Start extracting information
@@ -144,4 +150,38 @@ class NiconicoIE(InfoExtractor):
             'comment_count': comment_count,
             'duration': duration,
             'webpage_url': webpage_url,
+        }
+
+
+class NiconicoPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://www\.nicovideo\.jp/mylist/(?P<id>\d+)'
+
+    _TEST = {
+        'url': 'http://www.nicovideo.jp/mylist/27411728',
+        'info_dict': {
+            'id': '27411728',
+            'title': 'AKB48のオールナイトニッポン',
+        },
+        'playlist_mincount': 225,
+    }
+
+    def _real_extract(self, url):
+        list_id = self._match_id(url)
+        webpage = self._download_webpage(url, list_id)
+
+        entries_json = self._search_regex(r'Mylist\.preload\(\d+, (\[.*\])\);',
+                                          webpage, 'entries')
+        entries = json.loads(entries_json)
+        entries = [{
+            '_type': 'url',
+            'ie_key': NiconicoIE.ie_key(),
+            'url': ('http://www.nicovideo.jp/watch/%s' %
+                    entry['item_data']['video_id']),
+        } for entry in entries]
+
+        return {
+            '_type': 'playlist',
+            'title': self._search_regex(r'\s+name: "(.*?)"', webpage, 'title'),
+            'id': list_id,
+            'entries': entries,
         }

@@ -52,7 +52,7 @@ class LifeNewsIE(InfoExtractor):
             r'<div class=\'comments\'>\s*<span class=\'counter\'>(\d+)</span>', webpage, 'comment count', fatal=False)
 
         upload_date = self._html_search_regex(
-            r'<time datetime=\'([^\']+)\'>', webpage, 'upload date',fatal=False)
+            r'<time datetime=\'([^\']+)\'>', webpage, 'upload date', fatal=False)
         if upload_date is not None:
             upload_date = unified_strdate(upload_date)
 
@@ -71,4 +71,4 @@ class LifeNewsIE(InfoExtractor):
         if len(videos) == 1:
             return make_entry(video_id, videos[0])
         else:
-            return [make_entry(video_id, media, video_number+1) for video_number, media in enumerate(videos)]
+            return [make_entry(video_id, media, video_number + 1) for video_number, media in enumerate(videos)]

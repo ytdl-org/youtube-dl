@@ -64,6 +64,20 @@ class BlipTVIE(SubtitlesInfoExtractor):
                 'uploader': 'redvsblue',
                 'uploader_id': '792887',
             }
+        },
+        {
+            'url': 'http://blip.tv/play/gbk766dkj4Yn',
+            'md5': 'fe0a33f022d49399a241e84a8ea8b8e3',
+            'info_dict': {
+                'id': '1749452',
+                'ext': 'mp4',
+                'upload_date': '20090208',
+                'description': 'Witness the first appearance of the Nostalgia Critic character, as Doug reviews the movie Transformers.',
+                'title': 'Nostalgia Critic: Transformers',
+                'timestamp': 1234068723,
+                'uploader': 'NostalgiaCritic',
+                'uploader_id': '246467',
+            }
         }
     ]
 
@@ -71,13 +85,16 @@ class BlipTVIE(SubtitlesInfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         lookup_id = mobj.group('lookup_id')
 
-        # See https://github.com/rg3/youtube-dl/issues/857
+        # See https://github.com/rg3/youtube-dl/issues/857 and
+        # https://github.com/rg3/youtube-dl/issues/4197
         if lookup_id:
-            info_page = self._download_webpage(
-                'http://blip.tv/play/%s.x?p=1' % lookup_id, lookup_id, 'Resolving lookup id')
-            video_id = self._search_regex(r'data-episode-id="([0-9]+)', info_page, 'video_id')
-        else:
-            video_id = mobj.group('id')
+            urlh = self._request_webpage(
+                'http://blip.tv/play/%s' % lookup_id, lookup_id, 'Resolving lookup id')
+            url = compat_urlparse.urlparse(urlh.geturl())
+            qs = compat_urlparse.parse_qs(url.query)
+            mobj = re.match(self._VALID_URL, qs['file'][0])
+
+        video_id = mobj.group('id')
 
         rss = self._download_xml('http://blip.tv/rss/flash/%s' % video_id, video_id, 'Downloading video RSS')
 
@@ -113,7 +130,7 @@ class BlipTVIE(SubtitlesInfoExtractor):
             msg = self._download_webpage(
                 url + '?showplayer=20140425131715&referrer=http://blip.tv&mask=7&skin=flashvars&view=url',
                 video_id, 'Resolving URL for %s' % role)
-            real_url = compat_urlparse.parse_qs(msg)['message'][0]
+            real_url = compat_urlparse.parse_qs(msg.strip())['message'][0]
 
             media_type = media_content.get('type')
             if media_type == 'text/srt' or url.endswith('.srt'):
@@ -165,9 +182,17 @@ class BlipTVIE(SubtitlesInfoExtractor):
 
 
 class BlipTVUserIE(InfoExtractor):
-    _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?blip\.tv/)|bliptvuser:)(?!api\.swf)([^/]+)/*$'
+    _VALID_URL = r'(?:(?:https?://(?:\w+\.)?blip\.tv/)|bliptvuser:)(?!api\.swf)([^/]+)/*$'
     _PAGE_SIZE = 12
     IE_NAME = 'blip.tv:user'
+    _TEST = {
+        'url': 'http://blip.tv/actone',
+        'info_dict': {
+            'id': 'actone',
+            'title': 'Act One: The Series',
+        },
+        'playlist_count': 5,
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -178,6 +203,7 @@ class BlipTVUserIE(InfoExtractor):
         page = self._download_webpage(url, username, 'Downloading user page')
         mobj = re.search(r'data-users-id="([^"]+)"', page)
         page_base = page_base % mobj.group(1)
+        title = self._og_search_title(page)
 
         # Download video ids using BlipTV Ajax calls. Result size per
         # query is limited (currently to 12 videos) so we need to query
@@ -214,4 +240,5 @@ class BlipTVUserIE(InfoExtractor):
 
         urls = ['http://blip.tv/%s' % video_id for video_id in video_ids]
         url_entries = [self.url_result(vurl, 'BlipTV') for vurl in urls]
-        return [self.playlist_result(url_entries, playlist_title=username)]
+        return self.playlist_result(
+            url_entries, playlist_title=title, playlist_id=username)

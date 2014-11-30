@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
+from __future__ import unicode_literals
+
 import hashlib
-import shutil
-import subprocess
-import tempfile
 import urllib.request
 import json
 

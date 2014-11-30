@@ -19,7 +19,7 @@ class DrTuberIE(InfoExtractor):
             'like_count': int,
             'dislike_count': int,
             'comment_count': int,
-            'categories': list,  # NSFW
+            'categories': ['Babe', 'Blonde', 'Erotic', 'Outdoor', 'Softcore', 'Solo'],
             'thumbnail': 're:https?://.*\.jpg$',
             'age_limit': 18,
         }
@@ -52,9 +52,9 @@ class DrTuberIE(InfoExtractor):
             r'<span class="comments_count">([\d,\.]+)</span>',
             webpage, 'comment count', fatal=False))
 
-        cats_str = self._html_search_regex(
-            r'<meta name="keywords" content="([^"]+)"', webpage, 'categories', fatal=False)
-        categories = None if cats_str is None else cats_str.split(' ')
+        cats_str = self._search_regex(
+            r'<span>Categories:</span><div>(.+?)</div>', webpage, 'categories', fatal=False)
+        categories = [] if not cats_str else re.findall(r'<a title="([^"]+)"', cats_str)
 
         return {
             'id': video_id,

@@ -40,7 +40,7 @@ class BeegIE(InfoExtractor):
 
         title = self._html_search_regex(
             r'<title>([^<]+)\s*-\s*beeg\.?</title>', webpage, 'title')
-        
+
         description = self._html_search_regex(
             r'<meta name="description" content="([^"]*)"',
             webpage, 'description', fatal=False)

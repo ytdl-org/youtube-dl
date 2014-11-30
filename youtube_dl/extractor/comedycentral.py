@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from .mtv import MTVServicesInfoExtractor
 from ..utils import (
     compat_str,
@@ -31,7 +30,7 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
     }
 
 
-class ComedyCentralShowsIE(InfoExtractor):
+class ComedyCentralShowsIE(MTVServicesInfoExtractor):
     IE_DESC = 'The Daily Show / The Colbert Report'
     # urls can be abbreviations like :thedailyshow or :colbert
     # urls for episodes like:
@@ -109,18 +108,8 @@ class ComedyCentralShowsIE(InfoExtractor):
         '400': (384, 216),
     }
 
-    @staticmethod
-    def _transform_rtmp_url(rtmp_video_url):
-        m = re.match(r'^rtmpe?://.*?/(?P<finalid>gsp\.comedystor/.*)$', rtmp_video_url)
-        if not m:
-            raise ExtractorError('Cannot transform RTMP url')
-        base = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=1+_pxI0=Ripod-h264+_pxL0=undefined+_pxM0=+_pxK=18639+_pxE=mp4/44620/mtvnorigin/'
-        return base + m.group('finalid')
-
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url, re.VERBOSE)
-        if mobj is None:
-            raise ExtractorError('Invalid URL: %s' % url)
+        mobj = re.match(self._VALID_URL, url)
 
         if mobj.group('shortname'):
             if mobj.group('shortname') in ('tds', 'thedailyshow'):
@@ -212,9 +201,6 @@ class ComedyCentralShowsIE(InfoExtractor):
                     'ext': self._video_extensions.get(format, 'mp4'),
                     'height': h,
                     'width': w,
-
-                    'format_note': 'HTTP 400 at the moment (patches welcome!)',
-                    'preference': -100,
                 })
                 formats.append({
                     'format_id': 'rtmp-%s' % format,

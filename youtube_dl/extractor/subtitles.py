@@ -1,7 +1,8 @@
+from __future__ import unicode_literals
 from .common import InfoExtractor
 
+from ..compat import compat_str
 from ..utils import (
-    compat_str,
     ExtractorError,
 )
 
@@ -17,10 +18,10 @@ class SubtitlesInfoExtractor(InfoExtractor):
         sub_lang_list = self._get_available_subtitles(video_id, webpage)
         auto_captions_list = self._get_available_automatic_caption(video_id, webpage)
         sub_lang = ",".join(list(sub_lang_list.keys()))
-        self.to_screen(u'%s: Available subtitles for video: %s' %
+        self.to_screen('%s: Available subtitles for video: %s' %
                        (video_id, sub_lang))
         auto_lang = ",".join(auto_captions_list.keys())
-        self.to_screen(u'%s: Available automatic captions for video: %s' %
+        self.to_screen('%s: Available automatic captions for video: %s' %
                        (video_id, auto_lang))
 
     def extract_subtitles(self, video_id, webpage):
@@ -50,8 +51,8 @@ class SubtitlesInfoExtractor(InfoExtractor):
 
             sub_lang_list = {}
             for sub_lang in requested_langs:
-                if not sub_lang in available_subs_list:
-                    self._downloader.report_warning(u'no closed captions found in the specified language "%s"' % sub_lang)
+                if sub_lang not in available_subs_list:
+                    self._downloader.report_warning('no closed captions found in the specified language "%s"' % sub_lang)
                     continue
                 sub_lang_list[sub_lang] = available_subs_list[sub_lang]
 
@@ -70,10 +71,10 @@ class SubtitlesInfoExtractor(InfoExtractor):
         try:
             sub = self._download_subtitle_url(sub_lang, url)
         except ExtractorError as err:
-            self._downloader.report_warning(u'unable to download video subtitles for %s: %s' % (sub_lang, compat_str(err)))
+            self._downloader.report_warning('unable to download video subtitles for %s: %s' % (sub_lang, compat_str(err)))
             return
         if not sub:
-            self._downloader.report_warning(u'Did not fetch video subtitles')
+            self._downloader.report_warning('Did not fetch video subtitles')
             return
         return sub
 
@@ -94,5 +95,5 @@ class SubtitlesInfoExtractor(InfoExtractor):
         Must be redefined by the subclasses that support automatic captions,
         otherwise it will return {}
         """
-        self._downloader.report_warning(u'Automatic Captions not supported by this server')
+        self._downloader.report_warning('Automatic Captions not supported by this server')
         return {}

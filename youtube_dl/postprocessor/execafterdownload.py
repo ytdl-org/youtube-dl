@@ -3,10 +3,8 @@ from __future__ import unicode_literals
 import subprocess
 
 from .common import PostProcessor
-from ..utils import (
-    shlex_quote,
-    PostProcessingError,
-)
+from ..compat import shlex_quote
+from ..utils import PostProcessingError
 
 
 class ExecAfterDownloadPP(PostProcessor):
@@ -28,4 +26,3 @@ class ExecAfterDownloadPP(PostProcessor):
                 'Command returned error code %d' % retCode)
 
         return None, information  # by default, keep file and do nothing
-

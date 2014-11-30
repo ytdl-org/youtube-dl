@@ -1,7 +1,6 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import os.path
 import re
 import json
 import hashlib
@@ -12,15 +11,15 @@ from ..utils import (
     compat_urllib_parse,
     compat_urllib_request,
     ExtractorError,
-    url_basename,
     int_or_none,
+    unified_strdate,
 )
 
 
 class SmotriIE(InfoExtractor):
     IE_DESC = 'Smotri.com'
     IE_NAME = 'smotri'
-    _VALID_URL = r'^https?://(?:www\.)?(?:smotri\.com/video/view/\?id=|pics\.smotri\.com/(?:player|scrubber_custom8)\.swf\?file=)(?P<videoid>v(?P<realvideoid>[0-9]+)[a-z0-9]{4})'
+    _VALID_URL = r'^https?://(?:www\.)?(?:smotri\.com/video/view/\?id=|pics\.smotri\.com/(?:player|scrubber_custom8)\.swf\?file=)(?P<id>v(?P<realvideoid>[0-9]+)[a-z0-9]{4})'
     _NETRC_MACHINE = 'smotri'
 
     _TESTS = [
@@ -35,7 +34,6 @@ class SmotriIE(InfoExtractor):
                 'uploader': 'rbc2008',
                 'uploader_id': 'rbc08',
                 'upload_date': '20131118',
-                'description': 'катастрофа с камер видеонаблюдения, видео катастрофа с камер видеонаблюдения',
                 'thumbnail': 'http://frame6.loadup.ru/8b/a9/2610366.3.3.jpg',
             },
         },
@@ -50,7 +48,6 @@ class SmotriIE(InfoExtractor):
                 'uploader': 'Support Photofile@photofile',
                 'uploader_id': 'support-photofile',
                 'upload_date': '20070704',
-                'description': 'test, видео test',
                 'thumbnail': 'http://frame4.loadup.ru/03/ed/57591.2.3.jpg',
             },
         },
@@ -66,7 +63,6 @@ class SmotriIE(InfoExtractor):
                 'uploader_id': 'timoxa40',
                 'upload_date': '20100404',
                 'thumbnail': 'http://frame7.loadup.ru/af/3f/1390466.3.3.jpg',
-                'description': 'TOCCA_A_NOI_-_LE_COSE_NON_VANNO_CAMBIAMOLE_ORA-1, видео TOCCA_A_NOI_-_LE_COSE_NON_VANNO_CAMBIAMOLE_ORA-1',
             },
             'params': {
                 'videopassword': 'qwerty',
@@ -85,7 +81,6 @@ class SmotriIE(InfoExtractor):
                 'upload_date': '20101001',
                 'thumbnail': 'http://frame3.loadup.ru/75/75/1540889.1.3.jpg',
                 'age_limit': 18,
-                'description': 'этот ролик не покажут по ТВ, видео этот ролик не покажут по ТВ',
             },
             'params': {
                 'videopassword': '333'
@@ -102,16 +97,10 @@ class SmotriIE(InfoExtractor):
                 'uploader': 'HannahL',
                 'uploader_id': 'lisaha95',
                 'upload_date': '20090331',
-                'description': 'Shakira - Don\'t Bother, видео Shakira - Don\'t Bother',
                 'thumbnail': 'http://frame8.loadup.ru/44/0b/918809.7.3.jpg',
             },
         },
     ]
-
-    _SUCCESS = 0
-    _PASSWORD_NOT_VERIFIED = 1
-    _PASSWORD_DETECTED = 2
-    _VIDEO_NOT_FOUND = 3
 
     @classmethod
     def _extract_url(cls, webpage):
@@ -137,44 +126,44 @@ class SmotriIE(InfoExtractor):
         return self._html_search_meta(name, html, display_name)
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('videoid')
-        real_video_id = mobj.group('realvideoid')
+        video_id = self._match_id(url)
 
-        # Download video JSON data
-        video_json_url = 'http://smotri.com/vt.php?id=%s' % real_video_id
-        video_json_page = self._download_webpage(video_json_url, video_id, 'Downloading video JSON')
-        video_json = json.loads(video_json_page)
+        video_form = {
+            'ticket': video_id,
+            'video_url': '1',
+            'frame_url': '1',
+            'devid': 'LoadupFlashPlayer',
+            'getvideoinfo': '1',
+        }
 
-        status = video_json['status']
-        if status == self._VIDEO_NOT_FOUND:
+        request = compat_urllib_request.Request(
+            'http://smotri.com/video/view/url/bot/', compat_urllib_parse.urlencode(video_form))
+        request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+
+        video = self._download_json(request, video_id, 'Downloading video JSON')
+
+        if video.get('_moderate_no') or not video.get('moderated'):
+            raise ExtractorError('Video %s has not been approved by moderator' % video_id, expected=True)
+
+        if video.get('error'):
             raise ExtractorError('Video %s does not exist' % video_id, expected=True)
-        elif status == self._PASSWORD_DETECTED: # The video is protected by a password, retry with
-                                                # video-password set
-            video_password = self._downloader.params.get('videopassword', None)
-            if not video_password:
-                raise ExtractorError('This video is protected by a password, use the --video-password option', expected=True)
-            video_json_url += '&md5pass=%s' % hashlib.md5(video_password.encode('utf-8')).hexdigest()
-            video_json_page = self._download_webpage(video_json_url, video_id, 'Downloading video JSON (video-password set)')
-            video_json = json.loads(video_json_page)
-            status = video_json['status']
-            if status == self._PASSWORD_NOT_VERIFIED:
-                raise ExtractorError('Video password is invalid', expected=True)
 
-        if status != self._SUCCESS:
-            raise ExtractorError('Unexpected status value %s' % status)
-
-        # Extract the URL of the video
-        video_url = video_json['file_data']
+        video_url = video.get('_vidURL') or video.get('_vidURL_mp4')
+        title = video['title']
+        thumbnail = video['_imgURL']
+        upload_date = unified_strdate(video['added'])
+        uploader = video['userNick']
+        uploader_id = video['userLogin']
+        duration = int_or_none(video['duration'])
 
         # Video JSON does not provide enough meta data
         # We will extract some from the video web page instead
-        video_page_url = 'http://smotri.com/video/view/?id=%s' % video_id
-        video_page = self._download_webpage(video_page_url, video_id, 'Downloading video page')
+        webpage_url = 'http://smotri.com/video/view/?id=%s' % video_id
+        webpage = self._download_webpage(webpage_url, video_id, 'Downloading video page')
 
         # Warning if video is unavailable
         warning = self._html_search_regex(
-            r'<div class="videoUnModer">(.*?)</div>', video_page,
+            r'<div class="videoUnModer">(.*?)</div>', webpage,
             'warning message', default=None)
         if warning is not None:
             self._downloader.report_warning(
@@ -182,84 +171,32 @@ class SmotriIE(InfoExtractor):
                 (video_id, warning))
 
         # Adult content
-        if re.search('EroConfirmText">', video_page) is not None:
+        if re.search('EroConfirmText">', webpage) is not None:
             self.report_age_confirmation()
             confirm_string = self._html_search_regex(
                 r'<a href="/video/view/\?id=%s&confirm=([^"]+)" title="[^"]+">' % video_id,
-                video_page, 'confirm string')
-            confirm_url = video_page_url + '&confirm=%s' % confirm_string
-            video_page = self._download_webpage(confirm_url, video_id, 'Downloading video page (age confirmed)')
+                webpage, 'confirm string')
+            confirm_url = webpage_url + '&confirm=%s' % confirm_string
+            webpage = self._download_webpage(confirm_url, video_id, 'Downloading video page (age confirmed)')
             adult_content = True
         else:
             adult_content = False
 
-        # Extract the rest of meta data
-        video_title = self._search_meta('name', video_page, 'title')
-        if not video_title:
-            video_title = os.path.splitext(url_basename(video_url))[0]
-
-        video_description = self._search_meta('description', video_page)
-        END_TEXT = ' на сайте Smotri.com'
-        if video_description and video_description.endswith(END_TEXT):
-            video_description = video_description[:-len(END_TEXT)]
-        START_TEXT = 'Смотреть онлайн ролик '
-        if video_description and video_description.startswith(START_TEXT):
-            video_description = video_description[len(START_TEXT):]
-        video_thumbnail = self._search_meta('thumbnail', video_page)
-
-        upload_date_str = self._search_meta('uploadDate', video_page, 'upload date')
-        if upload_date_str:
-            upload_date_m = re.search(r'(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2})T', upload_date_str)
-            video_upload_date = (
-                (
-                    upload_date_m.group('year') +
-                    upload_date_m.group('month') +
-                    upload_date_m.group('day')
-                )
-                if upload_date_m else None
-            )
-        else:
-            video_upload_date = None
-
-        duration_str = self._search_meta('duration', video_page)
-        if duration_str:
-            duration_m = re.search(r'T(?P<hours>[0-9]{2})H(?P<minutes>[0-9]{2})M(?P<seconds>[0-9]{2})S', duration_str)
-            video_duration = (
-                (
-                    (int(duration_m.group('hours')) * 60 * 60) +
-                    (int(duration_m.group('minutes')) * 60) +
-                    int(duration_m.group('seconds'))
-                )
-                if duration_m else None
-            )
-        else:
-            video_duration = None
-
-        video_uploader = self._html_search_regex(
-            '<div class="DescrUser"><div>Автор.*?onmouseover="popup_user_info[^"]+">(.*?)</a>',
-            video_page, 'uploader', fatal=False, flags=re.MULTILINE|re.DOTALL)
-
-        video_uploader_id = self._html_search_regex(
-            '<div class="DescrUser"><div>Автор.*?onmouseover="popup_user_info\\(.*?\'([^\']+)\'\\);">',
-            video_page, 'uploader id', fatal=False, flags=re.MULTILINE|re.DOTALL)
-
-        video_view_count = self._html_search_regex(
+        view_count = self._html_search_regex(
             'Общее количество просмотров.*?<span class="Number">(\\d+)</span>',
-            video_page, 'view count', fatal=False, flags=re.MULTILINE|re.DOTALL)
+            webpage, 'view count', fatal=False, flags=re.MULTILINE | re.DOTALL)
 
         return {
             'id': video_id,
             'url': video_url,
-            'title': video_title,
-            'thumbnail': video_thumbnail,
-            'description': video_description,
-            'uploader': video_uploader,
-            'upload_date': video_upload_date,
-            'uploader_id': video_uploader_id,
-            'duration': video_duration,
-            'view_count': int_or_none(video_view_count),
+            'title': title,
+            'thumbnail': thumbnail,
+            'uploader': uploader,
+            'upload_date': upload_date,
+            'uploader_id': uploader_id,
+            'duration': duration,
+            'view_count': int_or_none(view_count),
             'age_limit': 18 if adult_content else 0,
-            'video_page_url': video_page_url
         }
 
 
@@ -275,7 +212,7 @@ class SmotriCommunityIE(InfoExtractor):
         },
         'playlist_mincount': 4,
     }
-    
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         community_id = mobj.group('communityid')
@@ -345,7 +282,7 @@ class SmotriBroadcastIE(InfoExtractor):
             (username, password) = self._get_login_info()
             if username is None:
                 raise ExtractorError('Erotic broadcasts allowed only for registered users, '
-                    'use --username and --password options to provide account credentials.', expected=True)
+                                     'use --username and --password options to provide account credentials.', expected=True)
 
             login_form = {
                 'login-hint53': '1',

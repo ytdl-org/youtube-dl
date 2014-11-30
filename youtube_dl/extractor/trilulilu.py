@@ -1,28 +1,28 @@
+from __future__ import unicode_literals
+
 import json
-import re
 
 from .common import InfoExtractor
 
 
 class TriluliluIE(InfoExtractor):
-    _VALID_URL = r'(?x)(?:https?://)?(?:www\.)?trilulilu\.ro/video-(?P<category>[^/]+)/(?P<video_id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?trilulilu\.ro/video-[^/]+/(?P<id>[^/]+)'
     _TEST = {
-        u"url": u"http://www.trilulilu.ro/video-animatie/big-buck-bunny-1",
-        u'file': u"big-buck-bunny-1.mp4",
-        u'info_dict': {
-            u"title": u"Big Buck Bunny",
-            u"description": u":) pentru copilul din noi",
+        'url': 'http://www.trilulilu.ro/video-animatie/big-buck-bunny-1',
+        'info_dict': {
+            'id': 'big-buck-bunny-1',
+            'ext': 'mp4',
+            'title': 'Big Buck Bunny',
+            'description': ':) pentru copilul din noi',
         },
         # Server ignores Range headers (--test)
-        u"params": {
-            u"skip_download": True
+        'params': {
+            'skip_download': True
         }
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('video_id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         title = self._og_search_title(webpage)
@@ -30,20 +30,20 @@ class TriluliluIE(InfoExtractor):
         description = self._og_search_description(webpage)
 
         log_str = self._search_regex(
-            r'block_flash_vars[ ]=[ ]({[^}]+})', webpage, u'log info')
+            r'block_flash_vars[ ]=[ ]({[^}]+})', webpage, 'log info')
         log = json.loads(log_str)
 
-        format_url = (u'http://fs%(server)s.trilulilu.ro/%(hash)s/'
-                      u'video-formats2' % log)
+        format_url = ('http://fs%(server)s.trilulilu.ro/%(hash)s/'
+                      'video-formats2' % log)
         format_doc = self._download_xml(
             format_url, video_id,
-            note=u'Downloading formats',
-            errnote=u'Error while downloading formats')
- 
+            note='Downloading formats',
+            errnote='Error while downloading formats')
+
         video_url_template = (
-            u'http://fs%(server)s.trilulilu.ro/stream.php?type=video'
-            u'&source=site&hash=%(hash)s&username=%(userid)s&'
-            u'key=ministhebest&format=%%s&sig=&exp=' %
+            'http://fs%(server)s.trilulilu.ro/stream.php?type=video'
+            '&source=site&hash=%(hash)s&username=%(userid)s&'
+            'key=ministhebest&format=%%s&sig=&exp=' %
             log)
         formats = [
             {
@@ -63,4 +63,3 @@ class TriluliluIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
         }
-

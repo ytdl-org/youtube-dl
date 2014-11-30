@@ -15,13 +15,23 @@ class BandcampIE(InfoExtractor):
     _VALID_URL = r'https?://.*?\.bandcamp\.com/track/(?P<title>.*)'
     _TESTS = [{
         'url': 'http://youtube-dl.bandcamp.com/track/youtube-dl-test-song',
-        'file': '1812978515.mp3',
         'md5': 'c557841d5e50261777a6585648adf439',
         'info_dict': {
-            "title": "youtube-dl  \"'/\\\u00e4\u21ad - youtube-dl test song \"'/\\\u00e4\u21ad",
-            "duration": 9.8485,
+            'id': '1812978515',
+            'ext': 'mp3',
+            'title': "youtube-dl  \"'/\\\u00e4\u21ad - youtube-dl test song \"'/\\\u00e4\u21ad",
+            'duration': 9.8485,
         },
         '_skip': 'There is a limit of 200 free downloads / month for the test song'
+    }, {
+        'url': 'http://benprunty.bandcamp.com/track/lanius-battle',
+        'md5': '2b68e5851514c20efdff2afc5603b8b4',
+        'info_dict': {
+            'id': '2650410135',
+            'ext': 'mp3',
+            'title': 'Lanius (Battle)',
+            'uploader': 'Ben Prunty Music',
+        },
     }]
 
     def _real_extract(self, url):
@@ -59,9 +69,9 @@ class BandcampIE(InfoExtractor):
                 raise ExtractorError('No free songs found')
 
         download_link = m_download.group(1)
-        video_id = re.search(
-            r'var TralbumData = {(.*?)id: (?P<id>\d*?)$',
-            webpage, re.MULTILINE | re.DOTALL).group('id')
+        video_id = self._search_regex(
+            r'var TralbumData = {.*?id: (?P<id>\d+),?$',
+            webpage, 'video id', flags=re.MULTILINE | re.DOTALL)
 
         download_webpage = self._download_webpage(download_link, video_id, 'Downloading free downloads page')
         # We get the dictionary of the track from some javascript code
@@ -73,12 +83,12 @@ class BandcampIE(InfoExtractor):
         initial_url = mp3_info['url']
         re_url = r'(?P<server>http://(.*?)\.bandcamp\.com)/download/track\?enc=mp3-320&fsig=(?P<fsig>.*?)&id=(?P<id>.*?)&ts=(?P<ts>.*)$'
         m_url = re.match(re_url, initial_url)
-        #We build the url we will use to get the final track url
+        # We build the url we will use to get the final track url
         # This url is build in Bandcamp in the script download_bunde_*.js
         request_url = '%s/statdownload/track?enc=mp3-320&fsig=%s&id=%s&ts=%s&.rand=665028774616&.vrs=1' % (m_url.group('server'), m_url.group('fsig'), video_id, m_url.group('ts'))
         final_url_webpage = self._download_webpage(request_url, video_id, 'Requesting download url')
         # If we could correctly generate the .rand field the url would be
-        #in the "download_url" key
+        # in the "download_url" key
         final_url = re.search(r'"retry_url":"(.*?)"', final_url_webpage).group(1)
 
         return {
@@ -100,20 +110,25 @@ class BandcampAlbumIE(InfoExtractor):
         'url': 'http://blazo.bandcamp.com/album/jazz-format-mixtape-vol-1',
         'playlist': [
             {
-                'file': '1353101989.mp3',
                 'md5': '39bc1eded3476e927c724321ddf116cf',
                 'info_dict': {
+                    'id': '1353101989',
+                    'ext': 'mp3',
                     'title': 'Intro',
                 }
             },
             {
-                'file': '38097443.mp3',
                 'md5': '1a2c32e2691474643e912cc6cd4bffaa',
                 'info_dict': {
+                    'id': '38097443',
+                    'ext': 'mp3',
                     'title': 'Kero One - Keep It Alive (Blazo remix)',
                 }
             },
         ],
+        'info_dict': {
+            'title': 'Jazz Format Mixtape vol.1',
+        },
         'params': {
             'playlistend': 2
         },

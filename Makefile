@@ -1,7 +1,7 @@
-all: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.fish
+all: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish
 
 clean:
-	rm -rf youtube-dl.1.temp.md youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz youtube-dl.fish
+	rm -rf youtube-dl.1.temp.md youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz youtube-dl.zsh youtube-dl.fish *.dump *.part
 
 cleanall: clean
 	rm -f youtube-dl youtube-dl.exe
@@ -9,6 +9,7 @@ cleanall: clean
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
 MANDIR ?= $(PREFIX)/man
+SHAREDIR ?= $(PREFIX)/share
 PYTHON ?= /usr/bin/env python
 
 # set SYSCONFDIR to /etc if PREFIX=/usr or PREFIX=/usr/local
@@ -22,13 +23,15 @@ else
 	endif
 endif
 
-install: youtube-dl youtube-dl.1 youtube-dl.bash-completion
+install: youtube-dl youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish
 	install -d $(DESTDIR)$(BINDIR)
 	install -m 755 youtube-dl $(DESTDIR)$(BINDIR)
 	install -d $(DESTDIR)$(MANDIR)/man1
 	install -m 644 youtube-dl.1 $(DESTDIR)$(MANDIR)/man1
 	install -d $(DESTDIR)$(SYSCONFDIR)/bash_completion.d
 	install -m 644 youtube-dl.bash-completion $(DESTDIR)$(SYSCONFDIR)/bash_completion.d/youtube-dl
+	install -d $(DESTDIR)$(SHAREDIR)/zsh/site-functions
+	install -m 644 youtube-dl.zsh $(DESTDIR)$(SHAREDIR)/zsh/site-functions/_youtube-dl
 	install -d $(DESTDIR)$(SYSCONFDIR)/fish/completions
 	install -m 644 youtube-dl.fish $(DESTDIR)$(SYSCONFDIR)/fish/completions/youtube-dl.fish
 
@@ -38,7 +41,7 @@ test:
 
 tar: youtube-dl.tar.gz
 
-.PHONY: all clean install test tar bash-completion pypi-files fish-completion
+.PHONY: all clean install test tar bash-completion pypi-files zsh-completion fish-completion
 
 pypi-files: youtube-dl.bash-completion README.txt youtube-dl.1 youtube-dl.fish
 
@@ -66,12 +69,17 @@ youtube-dl.bash-completion: youtube_dl/*.py youtube_dl/*/*.py devscripts/bash-co
 
 bash-completion: youtube-dl.bash-completion
 
+youtube-dl.zsh: youtube_dl/*.py youtube_dl/*/*.py devscripts/zsh-completion.in
+	python devscripts/zsh-completion.py
+
+zsh-completion: youtube-dl.zsh
+
 youtube-dl.fish: youtube_dl/*.py youtube_dl/*/*.py devscripts/fish-completion.in
 	python devscripts/fish-completion.py
 
 fish-completion: youtube-dl.fish
 
-youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.fish
+youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish
 	@tar -czf youtube-dl.tar.gz --transform "s|^|youtube-dl/|" --owner 0 --group 0 \
 		--exclude '*.DS_Store' \
 		--exclude '*.kate-swp' \
@@ -86,5 +94,5 @@ youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-
 		bin devscripts test youtube_dl docs \
 		LICENSE README.md README.txt \
 		Makefile MANIFEST.in youtube-dl.1 youtube-dl.bash-completion \
-		youtube-dl.fish setup.py \
+		youtube-dl.zsh youtube-dl.fish setup.py \
 		youtube-dl

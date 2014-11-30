@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import re
-
 from .subtitles import SubtitlesInfoExtractor
 from .common import ExtractorError
 from ..utils import parse_iso8601
@@ -25,8 +23,7 @@ class DRTVIE(SubtitlesInfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         programcard = self._download_json(
             'http://www.dr.dk/mu/programcard/expanded/%s' % video_id, video_id, 'Downloading video JSON')
@@ -35,7 +32,7 @@ class DRTVIE(SubtitlesInfoExtractor):
 
         title = data['Title']
         description = data['Description']
-        timestamp = parse_iso8601(data['CreatedTime'][:-5])
+        timestamp = parse_iso8601(data['CreatedTime'])
 
         thumbnail = None
         duration = None

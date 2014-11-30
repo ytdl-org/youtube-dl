@@ -11,7 +11,7 @@ class GamekingsIE(InfoExtractor):
         'url': 'http://www.gamekings.tv/videos/phoenix-wright-ace-attorney-dual-destinies-review/',
         # MD5 is flaky, seems to change regularly
         # 'md5': '2f32b1f7b80fdc5cb616efb4f387f8a3',
-        u'info_dict': {
+        'info_dict': {
             'id': '20130811',
             'ext': 'mp4',
             'title': 'Phoenix Wright: Ace Attorney \u2013 Dual Destinies Review',

@@ -33,8 +33,7 @@ class HuffPostIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         api_url = 'http://embed.live.huffingtonpost.com/api/segments/%s.json' % video_id
         data = self._download_json(api_url, video_id)['data']

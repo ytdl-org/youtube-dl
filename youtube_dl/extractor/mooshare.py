@@ -49,7 +49,7 @@ class MooshareIE(InfoExtractor):
         page = self._download_webpage(url, video_id, 'Downloading page')
 
         if re.search(r'>Video Not Found or Deleted<', page) is not None:
-            raise ExtractorError(u'Video %s does not exist' % video_id, expected=True)
+            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
 
         hash_key = self._html_search_regex(r'<input type="hidden" name="hash" value="([^"]+)">', page, 'hash')
         title = self._html_search_regex(r'(?m)<div class="blockTitle">\s*<h2>Watch ([^<]+)</h2>', page, 'title')
