@@ -1,3 +1,4 @@
+# encoding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -15,14 +16,14 @@ class MySpaceIE(InfoExtractor):
 
     _TESTS = [
         {
-            'url': 'https://myspace.com/coldplay/video/viva-la-vida/100008689',
+            'url': 'https://myspace.com/fiveminutestothestage/video/little-big-town/109594919',
             'info_dict': {
-                'id': '100008689',
+                'id': '109594919',
                 'ext': 'flv',
-                'title': 'Viva La Vida',
-                'description': 'The official Viva La Vida video, directed by Hype Williams',
-                'uploader': 'Coldplay',
-                'uploader_id': 'coldplay',
+                'title': 'Little Big Town',
+                'description': 'This country quartet was all smiles while playing a sold out show at the Pacific Amphitheatre in Orange County, California.',
+                'uploader': 'Five Minutes to the Stage',
+                'uploader_id': 'fiveminutestothestage',
             },
             'params': {
                 # rtmp download
@@ -32,7 +33,6 @@ class MySpaceIE(InfoExtractor):
         # songs
         {
             'url': 'https://myspace.com/killsorrow/music/song/of-weakened-soul...-93388656-103880681',
-            'md5': 'f1d7323321f6b7775bf1e3754c1707dc',
             'info_dict': {
                 'id': '93388656',
                 'ext': 'flv',
@@ -49,10 +49,12 @@ class MySpaceIE(InfoExtractor):
             'add_ie': ['Vevo'],
             'url': 'https://myspace.com/threedaysgrace/music/song/animal-i-have-become-28400208-28218041',
             'info_dict': {
-                'id': u'USZM20600099',
-                'title': u'Animal I Have Become',
-                'uploader': u'Three Days Grace',
+                'id': 'USZM20600099',
+                'ext': 'mp4',
+                'title': 'Animal I Have Become',
+                'uploader': 'Three Days Grace',
                 'timestamp': int,
+                'upload_date': '20060502',
             },
             'skip': 'VEVO is only available in some countries',
         }, {
@@ -60,7 +62,9 @@ class MySpaceIE(InfoExtractor):
             'url': 'https://myspace.com/starset2/music/song/first-light-95799905-106964426',
             'info_dict': {
                 'id': 'ypWvQgnJrSU',
+                'ext': 'mp4',
                 'title': 'Starset - First Light',
+                'description': 'md5:2d5db6c9d11d527683bcda818d332414',
                 'uploader': 'Jacob Soren',
                 'uploader_id': 'SorenPromotions',
                 'upload_date': '20140725',
