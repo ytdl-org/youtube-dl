@@ -10,7 +10,7 @@ from ..compat import (
 
 
 class MySpaceIE(InfoExtractor):
-    _VALID_URL = r'https?://myspace\.com/([^/]+)/(?P<mediatype>video/[^/]+/|music/song/.*?)(?P<id>\d+)'
+    _VALID_URL = r'https?://myspace\.com/([^/]+)/(?P<mediatype>video/[^/]+/|music/song/.*?-)(?P<id>\d+)-\d+$'
 
     _TESTS = [
         {
