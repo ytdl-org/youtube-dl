@@ -36,7 +36,6 @@ class MySpaceIE(InfoExtractor):
             'info_dict': {
                 'id': '93388656',
                 'ext': 'flv',
-                'playlist': 'The Demo',
                 'title': 'Of weakened soul...',
                 'uploader': 'Killsorrow',
                 'uploader_id': 'killsorrow',
@@ -85,13 +84,14 @@ class MySpaceIE(InfoExtractor):
                 r'''<button.*data-song-id=(["\'])%s\1.*''' % video_id,
                 webpage, 'song_data', default=None, group=0)
             if song_data is None:
-                self.to_screen(
+                # some songs in an album are not playable
+                self.report_warning(
                     '%s: No downloadable song on this page' % video_id)
                 return
             def search_data(name):
                 return self._search_regex(
-                    r'''data-%s=([\'"])(.*?)\1''' % name,
-                    song_data, name, default='', group=2)
+                    r'''data-%s=([\'"])(?P<data>.*?)\1''' % name,
+                    song_data, name, default='', group='data')
             streamUrl = search_data('stream-url')
             if not streamUrl:
                 vevo_id = search_data('vevo-id')
@@ -110,7 +110,6 @@ class MySpaceIE(InfoExtractor):
                 'title': self._og_search_title(webpage),
                 'uploader': search_data('artist-name'),
                 'uploader_id': search_data('artist-username'),
-                'playlist': search_data('album-title'),
                 'thumbnail': self._og_search_thumbnail(webpage),
             }
         else:
@@ -165,16 +164,16 @@ class MySpaceAlbumIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
         tracks_paths = re.findall(r'"music:song" content="(.*?)"', webpage)
         if not tracks_paths:
-            self.to_screen('%s: No songs found, try using proxy' % display_id)
-            return
+            raise ExtractorError(
+                '%s: No songs found, try using proxy' % display_id,
+                expected=True)
         entries = [
             self.url_result(t_path, ie=MySpaceIE.ie_key())
             for t_path in tracks_paths]
-        title = self._og_search_title(webpage)
         return {
             '_type': 'playlist',
             'id': playlist_id,
             'display_id': display_id,
-            'title': title,
+            'title': self._og_search_title(webpage),
             'entries': entries,
         }
