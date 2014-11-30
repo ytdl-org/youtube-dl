@@ -53,9 +53,17 @@ class MySpaceIE(InfoExtractor):
 
         if mobj.group('mediatype').startswith('music/song'):
             # songs don't store any useful info in the 'context' variable
+            song_data = self._search_regex(
+                r'''<button.*data-song-id=(["\'])%s\1.*''' % video_id,
+                webpage, 'song_data', default=None, group=0)
+            if song_data is None:
+                self.to_screen(
+                    '%s: No downloadable song on this page' % video_id)
+                return
             def search_data(name):
                 return self._search_regex(
-                    r'data-%s="(.*?)"' % name, webpage, name)
+                    r'''data-%s=([\'"])(.*?)\1''' % name,
+                    song_data, name, default='', group=2)
             streamUrl = search_data('stream-url')
             info = {
                 'id': video_id,
