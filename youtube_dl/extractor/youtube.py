@@ -402,7 +402,20 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'title': 'Burning Everyone\'s Koran',
                 'description': 'SUBSCRIBE: http://www.youtube.com/saturninefilms\n\nEven Obama has taken a stand against freedom on this issue: http://www.huffingtonpost.com/2010/09/09/obama-gma-interview-quran_n_710282.html',
             }
-        }
+        },
+        # Normal age-gate video (No vevo, embed allowed)
+        {
+            'url': 'http://youtube.com/watch?v=HtVdAasjOgU',
+            'info_dict': {
+                'id': 'HtVdAasjOgU',
+                'ext': 'mp4',
+                'title': 'The Witcher 3: Wild Hunt - The Sword Of Destiny Trailer',
+                'description': 'md5:eca57043abae25130f58f655ad9a7771',
+                'uploader': 'The Witcher',
+                'uploader_id': 'WitcherGame',
+                'upload_date': '20140605',
+            },
+        },
     ]
 
     def __init__(self, *args, **kwargs):
