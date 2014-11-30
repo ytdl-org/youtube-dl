@@ -933,10 +933,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 # However, in the case of an age restriction there won't be any embedded dashmpd in the video_webpage.
                 # Luckily, it seems, this case uses some kind of default signature (len == 86), so the
                 # combination of get_video_info and the _static_decrypt_signature() decryption fallback will work here.
-                if age_gate:
-                    dash_manifest_url = video_info.get('dashmpd')[0]
-                else:
-                    dash_manifest_url = ytplayer_config['args']['dashmpd']
+                dash_manifest_url = video_info.get('dashmpd')[0]
 
                 def decrypt_sig(mobj):
                     s = mobj.group(1)
