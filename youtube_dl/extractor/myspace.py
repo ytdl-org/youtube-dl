@@ -48,6 +48,8 @@ class MySpaceIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
+        player_url = self._search_regex(
+            r'playerSwf":"([^"?]*)', webpage, 'player URL')
 
         if mobj.group('mediatype').startswith('music/song'):
             # songs don't store any useful info in the 'context' variable
@@ -79,6 +81,7 @@ class MySpaceIE(InfoExtractor):
         info.update({
             'url': rtmp_url,
             'play_path': play_path,
+            'player_url': player_url,
             'ext': 'flv',
         })
         return info
