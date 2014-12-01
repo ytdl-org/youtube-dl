@@ -19,6 +19,7 @@ class TuneInIE(InfoExtractor):
         |tun\.in/(?P<redirect_id>[A-Za-z0-9]+)
     )
     '''
+    _API_URL_TEMPLATE = 'http://tunein.com/tuner/tune/?stationId={0:}&tuneType=Station'
 
     _INFO_DICT = {
         'id': '34682',
@@ -56,13 +57,10 @@ class TuneInIE(InfoExtractor):
             mobj = re.match(self._VALID_URL, url)
         station_id = mobj.group('id')
 
-        webpage = self._download_webpage(
-            url, station_id, note='Downloading station webpage')
+        station_info = self._download_json(
+            self._API_URL_TEMPLATE.format(station_id),
+            station_id, note='Downloading station JSON')
 
-        payload = self._html_search_regex(
-            r'(?m)TuneIn\.payload\s*=\s*(\{[^$]+?)$', webpage, 'JSON data')
-        json_data = json.loads(payload)
-        station_info = json_data['Station']['broadcast']
         title = station_info['Title']
         thumbnail = station_info.get('Logo')
         location = station_info.get('Location')
