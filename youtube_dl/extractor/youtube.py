@@ -971,6 +971,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                         'tbr': int_or_none(r.attrib.get('bandwidth'), 1000),
                         'asr': int_or_none(r.attrib.get('audioSamplingRate')),
                         'filesize': filesize,
+                        'fps': int_or_none(r.attrib.get('frameRate')),
                     }
                     try:
                         existing_format = next(
