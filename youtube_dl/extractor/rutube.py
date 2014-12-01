@@ -53,6 +53,7 @@ class RutubeIE(InfoExtractor):
         m3u8_url = options['video_balancer'].get('m3u8')
         if m3u8_url is None:
             raise ExtractorError('Couldn\'t find m3u8 manifest url')
+        formats = self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4')
 
         return {
             'id': video['id'],
@@ -60,8 +61,7 @@ class RutubeIE(InfoExtractor):
             'description': video['description'],
             'duration': video['duration'],
             'view_count': video['hits'],
-            'url': m3u8_url,
-            'ext': 'mp4',
+            'formats': formats,
             'thumbnail': video['thumbnail_url'],
             'uploader': author.get('name'),
             'uploader_id': compat_str(author['id']) if author else None,
