@@ -15,7 +15,7 @@ from ..utils import (
 
 class RTSIE(InfoExtractor):
     IE_DESC = 'RTS.ch'
-    _VALID_URL = r'^https?://(?:www\.)?rts\.ch/(?:(?:[^/]+/){2,}(?P<id>[0-9]+)-(?P<display_id>.+?)\.html|play/tv/[^/]+/video/(?P<display_id_new>.+?)\?id=(?P<id_new>[0-9]+))'
+    _VALID_URL = r'https?://(?:www\.)?rts\.ch/(?:(?:[^/]+/){2,}(?P<id>[0-9]+)-(?P<display_id>.+?)\.html|play/tv/[^/]+/video/(?P<display_id_new>.+?)\?id=(?P<id_new>[0-9]+))'
 
     _TESTS = [
         {
