@@ -90,7 +90,7 @@ class NHLIE(NHLBaseInfoExtractor):
 class NHLVideocenterIE(NHLBaseInfoExtractor):
     IE_NAME = 'nhl.com:videocenter'
     IE_DESC = 'NHL videocenter category'
-    _VALID_URL = r'https?://video\.(?P<team>[^.]*)\.nhl\.com/videocenter/(console\?.*?catid=(?P<catid>[0-9]+)(?![&?]id=).*?)?$'
+    _VALID_URL = r'https?://video\.(?P<team>[^.]*)\.nhl\.com/videocenter/(console\?[^(id=)]*catid=(?P<catid>[0-9]+)(?![&?]id=).*?)?$'
     _TEST = {
         'url': 'http://video.canucks.nhl.com/videocenter/console?catid=999',
         'info_dict': {
