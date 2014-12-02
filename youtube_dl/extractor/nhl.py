@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_urlparse,
     compat_urllib_parse,
+    compat_urllib_parse_urlparse
 )
 from ..utils import (
     unified_strdate,
@@ -24,9 +25,13 @@ class NHLBaseInfoExtractor(InfoExtractor):
 
         initial_video_url = info['publishPoint']
         if info['formats'] == '1':
+            parsed_url = compat_urllib_parse_urlparse(initial_video_url)
+            path = parsed_url.path
+            extension_index = path.rfind('.')
+            path = path[:extension_index] + '_sd' + path[extension_index:]
             data = compat_urllib_parse.urlencode({
                 'type': 'fvod',
-                'path': initial_video_url.replace('.mp4', '_sd.mp4'),
+                'path': compat_urlparse.urlunparse(parsed_url[:2] + (path,) + parsed_url[3:])
             })
             path_url = 'http://video.nhl.com/videocenter/servlets/encryptvideopath?' + data
             path_doc = self._download_xml(
@@ -72,6 +77,17 @@ class NHLIE(NHLBaseInfoExtractor):
             'description': 'Home broadcast - Montreal Canadiens at Philadelphia Flyers - October 11, 2014',
             'duration': 0,
             'upload_date': '20141011',
+        },
+    }, {
+        'url': 'http://video.mapleleafs.nhl.com/videocenter/console?id=58665&catid=802',
+        'md5': 'c78fc64ea01777e426cfc202b746c825',
+        'info_dict': {
+            'id': '58665',
+            'ext': 'flv',
+            'title': 'Classic Game In Six - April 22, 1979',
+            'description': 'It was the last playoff game for the Leafs in the decade, and the last time the Leafs and Habs played in the playoffs. Great game, not a great ending.',
+            'duration': 400,
+            'upload_date': '20100129'
         },
     }, {
         'url': 'http://video.flames.nhl.com/videocenter/console?id=630616',
