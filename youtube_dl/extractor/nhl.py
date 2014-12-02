@@ -26,9 +26,7 @@ class NHLBaseInfoExtractor(InfoExtractor):
         initial_video_url = info['publishPoint']
         if info['formats'] == '1':
             parsed_url = compat_urllib_parse_urlparse(initial_video_url)
-            path = parsed_url.path
-            extension_index = path.rfind('.')
-            path = path[:extension_index] + '_sd' + path[extension_index:]
+            path = parsed_url.path.replace('.', '_sd.', 1)
             data = compat_urllib_parse.urlencode({
                 'type': 'fvod',
                 'path': compat_urlparse.urlunparse(parsed_url[:2] + (path,) + parsed_url[3:])
