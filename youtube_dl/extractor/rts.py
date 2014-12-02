@@ -15,7 +15,7 @@ from ..utils import (
 
 class RTSIE(InfoExtractor):
     IE_DESC = 'RTS.ch'
-    _VALID_URL = r'^https?://(?:www\.)?rts\.ch/(?:(?:[^/]+/){2,}(?P<id>[0-9]+)-(?P<display_id>.+?)\.html|play/tv/-/video/(?P<display_id_new>.+?)\?id=(?P<id_new>[0-9]+))'
+    _VALID_URL = r'^https?://(?:www\.)?rts\.ch/(?:(?:[^/]+/){2,}(?P<id>[0-9]+)-(?P<display_id>.+?)\.html|play/tv/[^/]+/video/(?P<display_id_new>.+?)\?id=(?P<id_new>[0-9]+))'
 
     _TESTS = [
         {
@@ -117,6 +117,10 @@ class RTSIE(InfoExtractor):
                 'thumbnail': 're:^https?://.*\.image',
                 'view_count': int,
             },
+        },
+        {
+            'url': 'http://www.rts.ch/play/tv/le-19h30/video/le-chantier-du-nouveau-parlement-vaudois-a-permis-une-trouvaille-historique?id=6348280',
+            'only_matching': True,
         }
     ]
 
