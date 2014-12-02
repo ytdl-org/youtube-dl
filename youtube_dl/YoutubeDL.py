@@ -787,6 +787,10 @@ class YoutubeDL(object):
             info_dict['display_id'] = info_dict['id']
 
         if info_dict.get('upload_date') is None and info_dict.get('timestamp') is not None:
+            # Working around negative timestamps in Windows
+            # (see http://bugs.python.org/issue1646728)
+            if info_dict['timestamp'] < 0 and os.name == 'nt':
+                info_dict['timestamp'] = 0
             upload_date = datetime.datetime.utcfromtimestamp(
                 info_dict['timestamp'])
             info_dict['upload_date'] = upload_date.strftime('%Y%m%d')
