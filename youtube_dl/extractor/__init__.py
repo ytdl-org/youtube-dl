@@ -417,6 +417,7 @@ from .tutv import TutvIE
 from .tvigle import TvigleIE
 from .tvp import TvpIE
 from .tvplay import TVPlayIE
+from .twentyfourvideo import TwentyFourVideoIE
 from .twitch import TwitchIE
 from .ubu import UbuIE
 from .udemy import (
