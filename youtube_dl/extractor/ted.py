@@ -199,8 +199,9 @@ class TEDIE(SubtitlesInfoExtractor):
         webpage = self._download_webpage(url, name)
 
         config_json = self._html_search_regex(
-            r"data-config='([^']+)", webpage, 'config')
-        config = json.loads(config_json)
+            r'"pages\.jwplayer"\s*,\s*({.+?})\s*\)\s*</script>',
+            webpage, 'config')
+        config = json.loads(config_json)['config']
         video_url = config['video']['url']
         thumbnail = config.get('image', {}).get('url')
 
