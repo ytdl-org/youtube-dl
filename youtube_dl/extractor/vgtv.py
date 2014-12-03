@@ -17,7 +17,7 @@ class VGTVIE(InfoExtractor):
             'info_dict': {
                 'id': '84196',
                 'ext': 'mp4',
-                'title': 'Hevnen er søt episode 1:10 - Abu',
+                'title': 'Hevnen er søt: Episode 10 - Abu',
                 'description': 'md5:e25e4badb5f544b04341e14abdc72234',
                 'thumbnail': 're:^https?://.*\.jpg',
                 'duration': 648.000,
@@ -35,7 +35,7 @@ class VGTVIE(InfoExtractor):
                 'title': 'OPPTAK: VGTV følger EM-kvalifiseringen',
                 'description': 'md5:3772d9c0dc2dff92a886b60039a7d4d3',
                 'thumbnail': 're:^https?://.*\.jpg',
-                'duration': 9056.000,
+                'duration': 9103.0,
                 'timestamp': 1410113864,
                 'upload_date': '20140907',
                 'view_count': int,
