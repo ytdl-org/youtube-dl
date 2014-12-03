@@ -14,7 +14,7 @@ class BreakIE(InfoExtractor):
     _VALID_URL = r'http://(?:www\.)?break\.com/video/(?:[^/]+/)*.+-(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.break.com/video/when-girls-act-like-guys-2468056',
-        'md5': '33aa4ff477ecd124d18d7b5d23b87ce5',
+        'md5': '4bbfc5182cd98da6fd9fa25c14afa881',
         'info_dict': {
             'id': '2468056',
             'ext': 'mp4',
