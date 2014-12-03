@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-from .theoffice import TheOfficeIE
 from .abc import ABCIE
 from .academicearth import AcademicEarthCourseIE
 from .addanime import AddAnimeIE
@@ -392,6 +391,7 @@ from .telemb import TeleMBIE
 from .tenplay import TenPlayIE
 from .testurl import TestURLIE
 from .tf1 import TF1IE
+from .theoffice import TheOfficeIE
 from .theonion import TheOnionIE
 from .theplatform import ThePlatformIE
 from .thesixtyone import TheSixtyOneIE
