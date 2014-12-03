@@ -42,7 +42,7 @@ class BuzzFeedIE(InfoExtractor):
                 'ext': 'mp4',
                 'upload_date': '20141124',
                 'uploader_id': 'CindysMunchkin',
-                'description': '© 2014 Munchkin the Shih Tzu\nAll rights reserved\nFacebook: http://facebook.com/MunchkintheShihTzu',
+                'description': 'md5:b0c2b17d80f619c96112490678ee97f3',
                 'uploader': 'Munchkin the Shih Tzu',
                 'title': 'Munchkin the Teddy Bear gets her exercise',
             },
