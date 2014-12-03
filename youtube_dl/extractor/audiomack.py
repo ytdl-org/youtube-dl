@@ -24,17 +24,17 @@ class AudiomackIE(InfoExtractor):
         },
         # hosted on soundcloud via audiomack
         {
+            'add_ie': ['Soundcloud'],
             'url': 'http://www.audiomack.com/song/xclusiveszone/take-kare',
             'file': '172419696.mp3',
             'info_dict':
             {
-                'ext': 'mp3',
+                'description': 'md5:1fc3272ed7a635cce5be1568c2822997',
                 'title': 'Young Thug ft Lil Wayne - Take Kare',
-                "upload_date": "20141016",
-                "description": "New track produced by London On Da Track called “Take Kare\"\n\nhttp://instagram.com/theyoungthugworld\nhttps://www.facebook.com/ThuggerThuggerCashMoney\n",
-                "uploader": "Young Thug World"
+                'uploader':'Young Thug World',
+                'upload_date':'20141016',
             }
-        }
+        },
     ]
 
     def _real_extract(self, url):
