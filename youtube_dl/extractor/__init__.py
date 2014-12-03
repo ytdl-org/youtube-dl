@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from .theoffice import TheOfficeIE
 from .abc import ABCIE
 from .academicearth import AcademicEarthCourseIE
 from .addanime import AddAnimeIE
