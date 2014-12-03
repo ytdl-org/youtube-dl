@@ -265,6 +265,7 @@ class BrightcoveIE(InfoExtractor):
                 url = rend['defaultURL']
                 if not url:
                     continue
+                ext = None
                 if rend['remote']:
                     url_comp = compat_urllib_parse_urlparse(url)
                     if url_comp.path.endswith('.m3u8'):
@@ -276,7 +277,7 @@ class BrightcoveIE(InfoExtractor):
                         # akamaihd.net, but they don't use f4m manifests
                         url = url.replace('control/', '') + '?&v=3.3.0&fp=13&r=FEEFJ&g=RTSJIMBMPFPB'
                         ext = 'flv'
-                else:
+                if ext is None:
                     ext = determine_ext(url)
                 size = rend.get('size')
                 formats.append({
