@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import re
 import xml.etree.ElementTree
 
 from .subtitles import SubtitlesInfoExtractor
