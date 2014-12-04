@@ -110,3 +110,59 @@ class TvpIE(InfoExtractor):
                 'formats': formats,
             })
         return info_dict
+
+
+class TvpSeriesIE(InfoExtractor):
+    IE_NAME = 'tvp.pl:Series'
+    _VALID_URL = r'https?://vod\.tvp\.pl/(?:[^/]+/){2}(?P<id>[^/]+)/?$'
+
+    _TESTS = [
+        {
+            'url': 'http://vod.tvp.pl/filmy-fabularne/filmy-za-darmo/ogniem-i-mieczem',
+            'info_dict': {
+                'title': 'Ogniem i mieczem',
+                'id': '4278026',
+            },
+            'playlist_count': 4,
+        }, {
+            'url': 'http://vod.tvp.pl/audycje/podroze/boso-przez-swiat',
+            'info_dict': {
+                'title': 'Boso przez świat',
+                'id': '9329207',
+            },
+            'playlist_count': 86,
+        }
+    ]
+
+    def _force_download_webpage(self, url, v_id, tries=0):
+        if tries >= 5:
+            raise ExtractorError(
+                '%s: Cannot download webpage, try again later' % v_id)
+        # Sometimes happen, but in my tests second try always succeeded
+        try:
+            return self._download_webpage(url, v_id)
+        except IncompleteRead as e:
+            return self._force_download_webpage(url, v_id, tries+1)
+    
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._force_download_webpage(url, display_id)
+        title = self._html_search_regex(
+            r'(?s) id=[\'"]path[\'"]>(.*?)</span>', webpage, 'series')
+        title = title.split(' / ', 2)[-1]
+        playlist_id = self._search_regex(r'nodeId:\s*(\d+)', webpage, 'playlist id')
+        playlist = self._force_download_webpage(
+            'http://vod.tvp.pl/vod/seriesAjax?type=series&nodeId=%s&recommend'
+            'edId=0&sort=&page=0&pageSize=1000000' % playlist_id, display_id)
+        videos_paths = re.findall(
+            '(?s)class="shortTitle">.*?href="(/[^"]+)', playlist)
+        entries = [
+            self.url_result('http://vod.tvp.pl%s' % v_path, ie=TvpIE.ie_key())
+            for v_path in videos_paths]
+        return {
+            '_type': 'playlist',
+            'id': playlist_id,
+            'display_id': display_id,
+            'title': title,
+            'entries': entries,
+        }
