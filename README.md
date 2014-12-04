@@ -65,10 +65,10 @@ which means you can modify it, redistribute it or use it however you like.
                                      this is not possible instead of searching.
     --ignore-config                  Do not read configuration files. When given
                                      in the global configuration file /etc
-                                     /youtube-dl.conf: do not read the user
-                                     configuration in ~/.config/youtube-dl.conf
-                                     (%APPDATA%/youtube-dl/config.txt on
-                                     Windows)
+                                     /youtube-dl.conf: Do not read the user
+                                     configuration in ~/.config/youtube-
+                                     dl/config (%APPDATA%/youtube-dl/config.txt
+                                     on Windows)
     --flat-playlist                  Do not extract the videos of a playlist,
                                      only list them.
 
