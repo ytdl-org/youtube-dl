@@ -26,9 +26,10 @@ class AudiomackIE(InfoExtractor):
         {
             'add_ie': ['Soundcloud'],
             'url': 'http://www.audiomack.com/song/xclusiveszone/take-kare',
-            'file': '172419696.mp3',
             'info_dict':
             {
+                'id': '172419696',
+                'ext': 'mp3',
                 'description': 'md5:1fc3272ed7a635cce5be1568c2822997',
                 'title': 'Young Thug ft Lil Wayne - Take Kare',
                 'uploader':'Young Thug World',
