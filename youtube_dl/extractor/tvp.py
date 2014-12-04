@@ -127,26 +127,15 @@ class TvpSeriesIE(InfoExtractor):
         }
     ]
 
-    def _force_download_webpage(self, url, v_id, tries=0):
-        if tries >= 5:
-            raise ExtractorError(
-                '%s: Cannot download webpage, try again later' % v_id)
-        # Sometimes happen, but in my tests second try always succeeded
-        try:
-            return self._download_webpage(url, v_id)
-        except IncompleteRead as e:
-            return self._force_download_webpage(url, v_id, tries+1)
-    
     def _real_extract(self, url):
         display_id = self._match_id(url)
-        webpage = self._force_download_webpage(url, display_id)
+        webpage = self._download_webpage(url, display_id, tries=5)
         title = self._html_search_regex(
-            r'(?s) id=[\'"]path[\'"]>(.*?)</span>', webpage, 'series')
-        title = title.split(' / ', 2)[-1]
+            r'(?s) id=[\'"]path[\'"]>(?:.*? / ){2}(.*?)</span>', webpage, 'series')
         playlist_id = self._search_regex(r'nodeId:\s*(\d+)', webpage, 'playlist id')
-        playlist = self._force_download_webpage(
+        playlist = self._download_webpage(
             'http://vod.tvp.pl/vod/seriesAjax?type=series&nodeId=%s&recommend'
-            'edId=0&sort=&page=0&pageSize=1000000' % playlist_id, display_id)
+            'edId=0&sort=&page=0&pageSize=10000' % playlist_id, display_id, tries=5)
         videos_paths = re.findall(
             '(?s)class="shortTitle">.*?href="(/[^"]+)', playlist)
         entries = [
