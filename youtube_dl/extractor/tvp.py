@@ -79,15 +79,8 @@ class TvpIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'thumbnail': self._og_search_thumbnail(webpage),
-            'description': self._og_search_description(webpage, default=''),
+            'description': self._og_search_description(webpage),
         }
-        if mobj.group('type') == 'vod' and info_dict['description'] == '':
-            info_dict.update({
-                'description': self._html_search_regex(
-                    r'(?s)<div\s+class=[\'"]opis.*?</div>',
-                    self._download_webpage(url, video_id), 'description', group=0),
-            })
-
         video_url = self._search_regex(
             r'0:{src:([\'"])(?P<url>.*?)\1', webpage, 'formats', group='url', default=None)
         if video_url is None:
