@@ -4,7 +4,7 @@ from .common import InfoExtractor
 
 
 class MyVidsterIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?myvidster\.com/video/(?P<id>\d+)/.*$'
+    _VALID_URL = r'http://(?:www\.)?myvidster\.com/video/(?P<id>\d+)/'
 
     _TEST = {
         'url': 'http://www.myvidster.com/video/32059805/Hot_chemistry_with_raw_love_making',
@@ -15,6 +15,7 @@ class MyVidsterIE(InfoExtractor):
             'upload_date': '20141027',
             'uploader_id': 'utkualp',
             'ext': 'mp4',
+            'age_limit': 18,
         },
         'add_ie': ['XHamster'],
     }
