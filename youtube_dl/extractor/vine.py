@@ -63,29 +63,36 @@ class VineIE(InfoExtractor):
 
 class VineUserIE(InfoExtractor):
     IE_NAME = 'vine:user'
-    _VALID_URL = r'(?:https?://)?vine\.co/(?P<user>[^/]+)/?(\?.*)?$'
+    _VALID_URL = r'(?:https?://)?vine\.co/(?P<u>u/)?(?P<user>[^/]+)/?(\?.*)?$'
     _VINE_BASE_URL = "https://vine.co/"
-    _TEST = {
-        'url': 'https://vine.co/Visa',
-        'info_dict': {
-            'id': 'Visa',
+    _TESTS = [
+        {
+            'url': 'https://vine.co/Visa',
+            'info_dict': {
+                'id': 'Visa',
+            },
+            'playlist_mincount': 46,
         },
-        'playlist_mincount': 46,
-    }
+        {
+            'url': 'https://vine.co/u/941705360593584128',
+            'only_matching': True,
+        },
+    ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         user = mobj.group('user')
+        u = mobj.group('u')
 
-        profile_url = "%sapi/users/profiles/vanity/%s" % (
-            self._VINE_BASE_URL, user)
+        profile_url = "%sapi/users/profiles/%s%s" % (
+            self._VINE_BASE_URL, 'vanity/' if not u else '', user)
         profile_data = self._download_json(
             profile_url, user, note='Downloading user profile data')
 
         user_id = profile_data['data']['userId']
         timeline_data = []
         for pagenum in itertools.count(1):
-            timeline_url = "%sapi/timelines/users/%s?page=%s" % (
+            timeline_url = "%sapi/timelines/users/%s?page=%s&size=100" % (
                 self._VINE_BASE_URL, user_id, pagenum)
             timeline_page = self._download_json(
                 timeline_url, user, note='Downloading page %d' % pagenum)
