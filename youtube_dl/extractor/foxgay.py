@@ -14,14 +14,14 @@ class FoxgayIE(InfoExtractor):
             'title': 'md5:6122f7ae0fc6b21ebdf59c5e083ce25a',
             'description': 'md5:5e51dc4405f1fd315f7927daed2ce5cf',
             'age_limit': 18,
+            'thumbnail': 're:https?://.*\.jpg$',
         },
     }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
-        # Download the initial webpage and extract all available data.
         webpage = self._download_webpage(url, video_id)
+
         title = self._html_search_regex(
             r'<title>(?P<title>.*?)</title>',
             webpage, 'title', fatal=False)
