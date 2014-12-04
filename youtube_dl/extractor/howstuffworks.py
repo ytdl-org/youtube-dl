@@ -1,134 +1,75 @@
 from __future__ import unicode_literals
 
-import re
-import json
-import random
-import string
-
 from .common import InfoExtractor
-from ..utils import find_xpath_attr
 
 
 class HowStuffWorksIE(InfoExtractor):
     _VALID_URL = r'https?://[\da-z-]+\.howstuffworks\.com/(?:[^/]+/)*\d+-(?P<id>.+?)-video\.htm'
     _TESTS = [
         {
-            'url': 'http://adventure.howstuffworks.com/5266-cool-jobs-iditarod-musher-video.htm',
+            'url': 'http://adventure.howstuffworks.com/39521-deadliest-catch-nautical-collision-video.htm',
             'info_dict': {
-                'id': '450221',
-                'display_id': 'cool-jobs-iditarod-musher',
-                'ext': 'flv',
-                'title': 'Cool Jobs - Iditarod Musher',
-                'description': 'md5:82bb58438a88027b8186a1fccb365f90',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'id': '553475',
+                'ext': 'mp4',
+                'title': 'Deadliest Catch: Nautical Collision',
+                'description': 'Check out this clip to get an exclusive look at the Deadliest Catch crew back in action.',
+                'thumbnail': 'http://s.hswstatic.com/gif/videos/480x360/39521.jpg',
             },
-            'params': {
-                # md5 is not consistent
-                'skip_download': True
-            }
         },
         {
             'url': 'http://adventure.howstuffworks.com/7199-survival-zone-food-and-water-in-the-savanna-video.htm',
             'info_dict': {
                 'id': '453464',
-                'display_id': 'survival-zone-food-and-water-in-the-savanna',
                 'ext': 'mp4',
                 'title': 'Survival Zone: Food and Water In the Savanna',
-                'description': 'md5:7e1c89f6411434970c15fa094170c371',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'description': 'Learn how to find both food and water while trekking in the African savannah. In this video from the Discovery Channel.',
+                'thumbnail': 'http://s.hswstatic.com/gif/videos/480x360/7199.jpg',
             },
-            'params': {
-                # md5 is not consistent
-                'skip_download': True
-            }
         },
         {
-            'url': 'http://entertainment.howstuffworks.com/arts/2706-sword-swallowing-1-by-dan-meyer-video.htm',
+            'url': 'http://entertainment.howstuffworks.com/arts/34476-time-warp-fire-breathing-disaster-video.htm',
             'info_dict': {
-                'id': '440011',
-                'display_id': 'sword-swallowing-1-by-dan-meyer',
-                'ext': 'flv',
-                'title': 'Sword Swallowing #1 by Dan Meyer',
-                'description': 'md5:b2409e88172913e2e7d3d1159b0ef735',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'id': '487036',
+                'ext': 'mp4',
+                'title': 'Time Warp: Fire-Breathing Disaster',
+                'description': 'Fire-breathers are safe from flames when they angle their heads up as they blow -- see what would happen if they looked down instead. Check out this clip from Discovery\'s "Time Warp" series to learn more.',
+                'thumbnail': 'http://s.hswstatic.com/gif/videos/480x360/34476.jpg',
             },
-            'params': {
-                # md5 is not consistent
-                'skip_download': True
-            }
         },
     ]
 
+    def _extract_clip_info(self, key, clip_info, name=None, **kargs):
+        if name is None:
+            name = key
+        return self._html_search_regex(
+            r"\s*%s\s*: '?([^'\n]*[^'\n,])" % key, clip_info, name, **kargs)
+
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        display_id = mobj.group('id')
+        display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-
-        content_id = self._search_regex(r'var siteSectionId="(\d+)";', webpage, 'content id')
-
-        mp4 = self._search_regex(
-            r'''(?xs)var\s+clip\s*=\s*{\s*
-                .+?\s*
-                content_id\s*:\s*%s\s*,\s*
-                .+?\s*
-                mp4\s*:\s*\[(.*?),?\]\s*
-                };\s*
-                videoData\.push\(clip\);''' % content_id,
-            webpage, 'mp4', fatal=False, default=None)
-
-        smil = self._download_xml(
-            'http://services.media.howstuffworks.com/videos/%s/smil-service.smil' % content_id,
-            content_id, 'Downloading video SMIL')
-
-        http_base = find_xpath_attr(
-            smil,
-            './{0}head/{0}meta'.format('{http://www.w3.org/2001/SMIL20/Language}'),
-            'name',
-            'httpBase').get('content')
-
-        def random_string(str_len=0):
-            return ''.join([random.choice(string.ascii_uppercase) for _ in range(str_len)])
-
-        URL_SUFFIX = '?v=2.11.3&fp=LNX 11,2,202,356&r=%s&g=%s' % (random_string(5), random_string(12))
-
+        clip_info = self._search_regex('(?s)var clip = {(.*?)};', webpage, 'clip info')
+        video_id = self._extract_clip_info('content_id', clip_info, 'video id')
         formats = []
-
-        if mp4:
-            for video in json.loads('[%s]' % mp4):
-                bitrate = video['bitrate']
-                fmt = {
-                    'url': video['src'].replace('http://pmd.video.howstuffworks.com', http_base) + URL_SUFFIX,
-                    'format_id': bitrate,
-                }
-                m = re.search(r'(?P<vbr>\d+)[Kk]', bitrate)
-                if m:
-                    fmt['vbr'] = int(m.group('vbr'))
-                formats.append(fmt)
-        else:
-            for video in smil.findall(
-                    './/{0}body/{0}switch/{0}video'.format('{http://www.w3.org/2001/SMIL20/Language}')):
-                vbr = int(video.attrib['system-bitrate']) / 1000
-                formats.append({
-                    'url': '%s/%s%s' % (http_base, video.attrib['src'], URL_SUFFIX),
-                    'format_id': '%dk' % vbr,
-                    'vbr': vbr,
-                })
-
+        m3u8_url = self._extract_clip_info('m3u8', clip_info, 'm3u8 url', default=None)
+        if m3u8_url is not None:
+            formats += self._extract_m3u8_formats(m3u8_url , video_id, 'mp4')
+        mp4 = self._parse_json(
+            self._extract_clip_info(
+                'mp4', clip_info, 'formats').replace('},]','}]'), video_id)
+        for video in mp4:
+            formats.append({
+                'url': video['src'],
+                'format_id': video['bitrate'],
+                'tbr': int(video['bitrate'].rstrip('k')),
+            })
         self._sort_formats(formats)
 
-        title = self._og_search_title(webpage)
-        TITLE_SUFFIX = ' : HowStuffWorks'
-        if title.endswith(TITLE_SUFFIX):
-            title = title[:-len(TITLE_SUFFIX)]
-
-        description = self._og_search_description(webpage)
-        thumbnail = self._og_search_thumbnail(webpage)
-
         return {
-            'id': content_id,
+            'id': video_id,
             'display_id': display_id,
-            'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
+            'title': self._extract_clip_info('clip_title', clip_info, 'title'),
+            'description': self._extract_clip_info('caption', clip_info, 'description', fatal=False),
+            'thumbnail': self._extract_clip_info('video_still_url', clip_info, 'thumbnail'),
+            'duration': self._extract_clip_info('duration', clip_info),
             'formats': formats,
         }
