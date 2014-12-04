@@ -376,6 +376,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_filesize('2 MiB'), 2097152)
         self.assertEqual(parse_filesize('5 GB'), 5000000000)
         self.assertEqual(parse_filesize('1.2Tb'), 1200000000000)
+        self.assertEqual(parse_filesize('1,24 KB'), 1240)
 
 if __name__ == '__main__':
     unittest.main()

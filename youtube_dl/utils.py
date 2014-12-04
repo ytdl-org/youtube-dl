@@ -1090,11 +1090,14 @@ def parse_filesize(s):
     }
 
     units_re = '|'.join(re.escape(u) for u in _UNIT_TABLE)
-    m = re.match(r'(?P<num>[0-9]+(?:\.[0-9]*)?)\s*(?P<unit>%s)' % units_re, s)
+    m = re.match(
+        r'(?P<num>[0-9]+(?:[,.][0-9]*)?)\s*(?P<unit>%s)' % units_re, s)
     if not m:
         return None
 
-    return int(float(m.group('num')) * _UNIT_TABLE[m.group('unit')])
+    num_str = m.group('num').replace(',', '.')
+    mult = _UNIT_TABLE[m.group('unit')]
+    return int(float(num_str) * mult)
 
 
 def get_term_width():
