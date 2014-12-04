@@ -220,6 +220,9 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_duration('0s'), 0)
         self.assertEqual(parse_duration('01:02:03.05'), 3723.05)
         self.assertEqual(parse_duration('T30M38S'), 1838)
+        self.assertEqual(parse_duration('5 s'), 5)
+        self.assertEqual(parse_duration('3 min'), 180)
+        self.assertEqual(parse_duration('2.5 hours'), 9000)
 
     def test_fix_xml_ampersands(self):
         self.assertEqual(

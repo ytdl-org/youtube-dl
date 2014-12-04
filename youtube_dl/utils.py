@@ -1206,18 +1206,29 @@ def parse_duration(s):
 
     m = re.match(
         r'''(?ix)T?
+        (?:
+            (?P<only_mins>[0-9.]+)\s*(?:mins?|minutes?)\s*|
+            (?P<only_hours>[0-9.]+)\s*(?:hours?)|
+
             (?:
                 (?:(?P<hours>[0-9]+)\s*(?:[:h]|hours?)\s*)?
                 (?P<mins>[0-9]+)\s*(?:[:m]|mins?|minutes?)\s*
             )?
-            (?P<secs>[0-9]+)(?P<ms>\.[0-9]+)?\s*(?:s|secs?|seconds?)?$''', s)
+            (?P<secs>[0-9]+)(?P<ms>\.[0-9]+)?\s*(?:s|secs?|seconds?)?
+        )$''', s)
     if not m:
         return None
-    res = int(m.group('secs'))
+    res = 0
+    if m.group('only_mins'):
+        return float_or_none(m.group('only_mins'), invscale=60)
+    if m.group('only_hours'):
+        return float_or_none(m.group('only_hours'), invscale=60 * 60)
+    if m.group('secs'):
+        res += int(m.group('secs'))
     if m.group('mins'):
         res += int(m.group('mins')) * 60
-        if m.group('hours'):
-            res += int(m.group('hours')) * 60 * 60
+    if m.group('hours'):
+        res += int(m.group('hours')) * 60 * 60
     if m.group('ms'):
         res += float(m.group('ms'))
     return res

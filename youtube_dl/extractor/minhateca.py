@@ -8,6 +8,7 @@ from ..compat import (
 )
 from ..utils import (
     int_or_none,
+    parse_duration,
     parse_filesize,
 )
 
@@ -52,8 +53,8 @@ class MinhatecaIE(InfoExtractor):
         filesize_approx = parse_filesize(self._html_search_regex(
             r'<p class="fileSize">(.*?)</p>',
             webpage, 'file size approximation', fatal=False))
-        duration = int_or_none(self._html_search_regex(
-            r'(?s)<p class="fileLeng[ht][th]">.*?([0-9]+)\s*s',
+        duration = parse_duration(self._html_search_regex(
+            r'(?s)<p class="fileLeng[ht][th]">.*?class="bold">(.*?)<',
             webpage, 'duration', fatal=False))
         view_count = int_or_none(self._html_search_regex(
             r'<p class="downloadsCounter">([0-9]+)</p>',
