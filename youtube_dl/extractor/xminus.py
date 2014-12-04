@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import (
     compat_chr,
@@ -25,6 +27,7 @@ class XMinusIE(InfoExtractor):
             'tbr': 320,
             'filesize_approx': 5900000,
             'view_count': int,
+            'description': 'md5:03238c5b663810bc79cf42ef3c03e371',
         }
     }
 
@@ -48,6 +51,11 @@ class XMinusIE(InfoExtractor):
         view_count = int_or_none(self._html_search_regex(
             r'<div class="quality.*?► ([0-9]+)',
             webpage, 'view count', fatal=False))
+        description = self._html_search_regex(
+            r'(?s)<div id="song_texts">(.*?)</div><br',
+            webpage, 'song lyrics', fatal=False)
+        if description:
+            description = re.sub(' *\r *', '\n', description)
 
         enc_token = self._html_search_regex(
             r'minus_track\.tkn="(.+?)"', webpage, 'enc_token')
@@ -64,4 +72,5 @@ class XMinusIE(InfoExtractor):
             'filesize_approx': filesize_approx,
             'tbr': tbr,
             'view_count': view_count,
+            'description': description,
         }
