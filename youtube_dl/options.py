@@ -163,7 +163,10 @@ def parseOpts(overrideArguments=None):
     general.add_option(
         '--ignore-config',
         action='store_true',
-        help='Do not read configuration files. When given in the global configuration file /etc/youtube-dl.conf: do not read the user configuration in ~/.config/youtube-dl.conf (%APPDATA%/youtube-dl/config.txt on Windows)')
+        help='Do not read configuration files. '
+        'When given in the global configuration file /etc/youtube-dl.conf: '
+        'Do not read the user configuration in ~/.config/youtube-dl/config '
+        '(%APPDATA%/youtube-dl/config.txt on Windows)')
     general.add_option(
         '--flat-playlist',
         action='store_const', dest='extract_flat', const='in_playlist',
