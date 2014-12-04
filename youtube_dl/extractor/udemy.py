@@ -97,11 +97,8 @@ class UdemyIE(InfoExtractor):
         if 'returnUrl' not in response:
             raise ExtractorError('Unable to log in')
 
-
-
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        lecture_id = mobj.group('id')
+        lecture_id = self._match_id(url)
 
         lecture = self._download_json(
             'https://www.udemy.com/api-1.1/lectures/%s' % lecture_id,

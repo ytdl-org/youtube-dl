@@ -819,7 +819,8 @@ class InfoExtractor(object):
         return res
 
     def _set_cookie(self, domain, name, value, expire_time=None):
-        cookie = compat_cookiejar.Cookie(0, name, value, None, None, domain, None,
+        cookie = compat_cookiejar.Cookie(
+            0, name, value, None, None, domain, None,
             None, '/', True, False, expire_time, '', None, None, None)
         self._downloader.cookiejar.set_cookie(cookie)
 

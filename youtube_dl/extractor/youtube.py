@@ -44,9 +44,10 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     _LOGIN_REQUIRED = False
 
     def _set_language(self):
-        self._set_cookie('.youtube.com', 'PREF', 'f1=50000000&hl=en',
+        self._set_cookie(
+            '.youtube.com', 'PREF', 'f1=50000000&hl=en',
             # YouTube sets the expire time to about two months
-            expire_time=time.time() + 60*24*3600)
+            expire_time=time.time() + 2 * 30 * 24 * 3600)
 
     def _login(self):
         """
@@ -722,9 +723,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 # We fallback to the get_video_info pages (used by the embed page)
                 self.report_video_info_webpage_download(video_id)
                 for el_type in ['&el=embedded', '&el=detailpage', '&el=vevo', '']:
-                    video_info_url = (proto + '://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
-                        % (video_id, el_type))
-                    video_info_webpage = self._download_webpage(video_info_url,
+                    video_info_url = (
+                        '%s://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
+                        % (proto, video_id, el_type))
+                    video_info_webpage = self._download_webpage(
+                        video_info_url,
                         video_id, note=False,
                         errnote='unable to download video info webpage')
                     video_info = compat_parse_qs(video_info_webpage)
