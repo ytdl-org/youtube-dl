@@ -28,14 +28,8 @@ class TagesschauIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
-        if video_id.startswith('-'):
-            display_id = video_id.strip('-')
-        else:
-            display_id = video_id
-
+        video_id = self._match_id(url)
+        display_id = video_id.lstrip('-')
         webpage = self._download_webpage(url, display_id)
 
         playerpage = self._download_webpage(
