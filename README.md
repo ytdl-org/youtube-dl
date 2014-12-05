@@ -102,6 +102,7 @@ which means you can modify it, redistribute it or use it however you like.
                                      downloaded videos in it.
     --include-ads                    Download advertisements as well
                                      (experimental)
+    --reverse-playlist               Reverses video order in playlist
 
 ## Download Options:
     -r, --rate-limit LIMIT           maximum download rate in bytes per second

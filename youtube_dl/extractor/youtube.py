@@ -1357,7 +1357,7 @@ class YoutubeUserIE(InfoExtractor):
         # page by page until there are no video ids - it means we got
         # all of them.
 
-        def download_page(pagenum):
+        def download_page(pagenum, reverse=False):
             start_index = pagenum * self._GDATA_PAGE_SIZE + 1
 
             gdata_url = self._GDATA_URL % (username, self._GDATA_PAGE_SIZE, start_index)
