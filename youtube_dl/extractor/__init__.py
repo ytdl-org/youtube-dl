@@ -24,6 +24,7 @@ from .arte import (
 )
 from .audiomack import AudiomackIE
 from .auengine import AUEngineIE
+from .azubu import AzubuIE
 from .bambuser import BambuserIE, BambuserChannelIE
 from .bandcamp import BandcampIE, BandcampAlbumIE
 from .bbccouk import BBCCoUkIE
