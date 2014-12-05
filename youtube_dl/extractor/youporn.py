@@ -45,7 +45,9 @@ class YouPornIE(InfoExtractor):
         age_limit = self._rta_search(webpage)
 
         # Get JSON parameters
-        json_params = self._search_regex(r'var currentVideo = new Video\((.*)\);', webpage, 'JSON parameters')
+        json_params = self._search_regex(
+            r'var currentVideo = new Video\((.*)\)[,;]',
+            webpage, 'JSON parameters')
         try:
             params = json.loads(json_params)
         except:
