@@ -135,7 +135,7 @@ class EightTracksIE(InfoExtractor):
                     if download_tries > 3:
                         raise
                     else:
-                        ++download_tries
+                        download_tries += 1
                         time.sleep(avg_song_duration)
 
             api_data = json.loads(api_json)
