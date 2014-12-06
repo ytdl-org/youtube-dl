@@ -86,7 +86,7 @@ class ProSiebenSat1IE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Im Interview: Kai Wiesinger',
                 'description': 'md5:e4e5370652ec63b95023e914190b4eb9',
-                'upload_date': '20140225',
+                'upload_date': '20140203',
                 'duration': 522.56,
             },
             'params': {
@@ -101,7 +101,7 @@ class ProSiebenSat1IE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Jagd auf Fertigkost im Elsthal - Teil 2',
                 'description': 'md5:2669cde3febe9bce13904f701e774eb6',
-                'upload_date': '20140225',
+                'upload_date': '20141014',
                 'duration': 2410.44,
             },
             'params': {
@@ -168,6 +168,7 @@ class ProSiebenSat1IE(InfoExtractor):
         r'"clip_id"\s*:\s+"(\d+)"',
         r'clipid: "(\d+)"',
         r'clip[iI]d=(\d+)',
+        r"'itemImageUrl'\s*:\s*'/dynamic/thumbnails/full/\d+/(\d+)",
     ]
     _TITLE_REGEXES = [
         r'<h2 class="subtitle" itemprop="name">\s*(.+?)</h2>',
