@@ -70,7 +70,7 @@ class TagesschauIE(InfoExtractor):
                 webpage, 'download links')
             links = re.finditer(
                 r'<div class="button" title="(?P<title>[^"]*)"><a href="(?P<url>[^"]+)">(?P<name>.+?)</a></div>',
-                webpage)
+                download_text)
             formats = []
             for l in links:
                 format_id = self._search_regex(
