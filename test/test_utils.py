@@ -385,7 +385,7 @@ class TestUtil(unittest.TestCase):
     def test_version_tuple(self):
         self.assertEqual(version_tuple('1'), (1,))
         self.assertEqual(version_tuple('10.23.344'), (10, 23, 344))
-        self.assertEqual(version_tuple('10-6'), (10, 6))  # avconv style
+        self.assertEqual(version_tuple('10.1-6'), (10, 1, 6))  # avconv style
 
 if __name__ == '__main__':
     unittest.main()
