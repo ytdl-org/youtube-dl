@@ -11,7 +11,7 @@ from ..utils import (
 
 class NBAIE(InfoExtractor):
     _VALID_URL = r'https?://(?:watch\.|www\.)?nba\.com/(?:nba/)?video(?P<id>/[^?]*?)/?(?:/index\.html)?(?:\?.*)?$'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.nba.com/video/games/nets/2012/12/04/0021200253-okc-bkn-recap.nba/index.html',
         'md5': 'c0edcfc37607344e2ff8f13c378c88a4',
         'info_dict': {
@@ -21,7 +21,10 @@ class NBAIE(InfoExtractor):
             'description': 'Kevin Durant scores 32 points and dishes out six assists as the Thunder beat the Nets in Brooklyn.',
             'duration': 181,
         },
-    }
+    }, {
+        'url': 'http://www.nba.com/video/games/hornets/2014/12/05/0021400276-nyk-cha-play5.nba/',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
