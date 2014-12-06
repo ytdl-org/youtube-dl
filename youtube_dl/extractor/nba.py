@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class NBAIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:watch\.|www\.)?nba\.com/(?:nba/)?video(?P<id>/[^?]*?)(?:/index\.html)?(?:\?.*)?$'
+    _VALID_URL = r'https?://(?:watch\.|www\.)?nba\.com/(?:nba/)?video(?P<id>/[^?]*?)/?(?:/index\.html)?(?:\?.*)?$'
     _TEST = {
         'url': 'http://www.nba.com/video/games/nets/2012/12/04/0021200253-okc-bkn-recap.nba/index.html',
         'md5': 'c0edcfc37607344e2ff8f13c378c88a4',
