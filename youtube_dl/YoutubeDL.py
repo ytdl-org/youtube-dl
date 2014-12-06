@@ -7,6 +7,7 @@ import collections
 import datetime
 import errno
 import io
+import itertools
 import json
 import locale
 import os
@@ -654,17 +655,24 @@ class YoutubeDL(object):
             if playlistend == -1:
                 playlistend = None
 
-            if isinstance(ie_result['entries'], list):
-                n_all_entries = len(ie_result['entries'])
-                entries = ie_result['entries'][playliststart:playlistend]
+            ie_entries = ie_result['entries']
+            if isinstance(ie_entries, list):
+                n_all_entries = len(ie_entries)
+                entries = ie_entries[playliststart:playlistend]
                 n_entries = len(entries)
                 self.to_screen(
                     "[%s] playlist %s: Collected %d video ids (downloading %d of them)" %
                     (ie_result['extractor'], playlist, n_all_entries, n_entries))
-            else:
-                assert isinstance(ie_result['entries'], PagedList)
-                entries = ie_result['entries'].getslice(
+            elif isinstance(ie_entries, PagedList):
+                entries = ie_entries.getslice(
                     playliststart, playlistend)
+                n_entries = len(entries)
+                self.to_screen(
+                    "[%s] playlist %s: Downloading %d videos" %
+                    (ie_result['extractor'], playlist, n_entries))
+            else:  # iterable
+                entries = list(itertools.islice(
+                    ie_entries, playliststart, playlistend))
                 n_entries = len(entries)
                 self.to_screen(
                     "[%s] playlist %s: Downloading %d videos" %

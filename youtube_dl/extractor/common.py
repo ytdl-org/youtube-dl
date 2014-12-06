@@ -158,8 +158,8 @@ class InfoExtractor(object):
 
 
     _type "playlist" indicates multiple videos.
-    There must be a key "entries", which is a list or a PagedList object, each
-    element of which is a valid dictionary under this specfication.
+    There must be a key "entries", which is a list, an iterable, or a PagedList
+    object, each element of which is a valid dictionary by this specification.
 
     Additionally, playlists can have "title" and "id" attributes with the same
     semantics as videos (see above).

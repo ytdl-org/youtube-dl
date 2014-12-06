@@ -1262,8 +1262,12 @@ class YoutubeChannelIE(InfoExtractor):
             # The videos are contained in a single page
             # the ajax pages can't be used, they are empty
             video_ids = self.extract_videos_from_page(channel_page)
-        else:
-            # Download all channel pages using the json-based channel_ajax query
+            entries = [
+                self.url_result(video_id, 'Youtube', video_id=video_id)
+                for video_id in video_ids]
+            return self.playlist_result(entries, channel_id)
+
+        def _entries():
             for pagenum in itertools.count(1):
                 url = self._MORE_PAGES_URL % (pagenum, channel_id)
                 page = self._download_json(
@@ -1271,16 +1275,14 @@ class YoutubeChannelIE(InfoExtractor):
                     transform_source=uppercase_escape)
 
                 ids_in_page = self.extract_videos_from_page(page['content_html'])
-                video_ids.extend(ids_in_page)
+                for video_id in ids_in_page:
+                    yield self.url_result(
+                        video_id, 'Youtube', video_id=video_id)
 
                 if self._MORE_PAGES_INDICATOR not in page['load_more_widget_html']:
                     break
 
-        self._downloader.to_screen('[youtube] Channel %s: Found %i videos' % (channel_id, len(video_ids)))
-
-        url_entries = [self.url_result(video_id, 'Youtube', video_id=video_id)
-                       for video_id in video_ids]
-        return self.playlist_result(url_entries, channel_id)
+        return self.playlist_result(_entries(), channel_id)
 
 
 class YoutubeUserIE(InfoExtractor):
