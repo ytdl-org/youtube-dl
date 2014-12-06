@@ -24,9 +24,7 @@ class NBAIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         video_url = 'http://ht-mobile.cdn.turner.com/nba/big' + video_id + '_nba_1280x720.mp4'
@@ -37,7 +35,7 @@ class NBAIE(InfoExtractor):
 
         description = self._og_search_description(webpage)
         duration = parse_duration(
-            self._html_search_meta('duration', webpage, 'duration', fatal=False))
+            self._html_search_meta('duration', webpage, 'duration'))
 
         return {
             'id': shortened_video_id,
