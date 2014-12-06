@@ -4,6 +4,7 @@ import os
 import re
 import subprocess
 
+from ..postprocessor.ffmpeg import FFmpegPostProcessor
 from .common import FileDownloader
 from ..utils import (
     compat_urlparse,
@@ -31,6 +32,9 @@ class HlsFD(FileDownloader):
             self.report_error('m3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
             return False
         cmd = [program] + args
+
+        ffpp = FFmpegPostProcessor(downloader=self)
+        ffpp.check_version()
 
         retval = subprocess.call(cmd)
         if retval == 0:

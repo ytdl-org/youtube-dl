@@ -1502,7 +1502,7 @@ def limit_length(s, length):
 
 
 def version_tuple(v):
-    return [int(e) for e in v.split('.')]
+    return tuple(int(e) for e in re.split(r'[-.]', v))
 
 
 def is_outdated_version(version, limit, assume_new=True):

@@ -37,11 +37,11 @@ class FFmpegPostProcessor(PostProcessor):
         if not self._executable:
             raise FFmpegPostProcessorError('ffmpeg or avconv not found. Please install one.')
 
-        REQUIRED_VERSION = '1.0'
+        required_version = '10-0' if self._uses_avconv() else '1.0'
         if is_outdated_version(
-                self._versions[self._executable], REQUIRED_VERSION):
+                self._versions[self._executable], required_version):
             warning = 'Your copy of %s is outdated, update %s to version %s or newer if you encounter any errors.' % (
-                self._executable, self._executable, REQUIRED_VERSION)
+                self._executable, self._executable, required_version)
             if self._downloader:
                 self._downloader.report_warning(warning)
 

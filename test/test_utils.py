@@ -48,6 +48,7 @@ from youtube_dl.utils import (
     intlist_to_bytes,
     args_to_str,
     parse_filesize,
+    version_tuple,
 )
 
 
@@ -380,6 +381,11 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_filesize('5 GB'), 5000000000)
         self.assertEqual(parse_filesize('1.2Tb'), 1200000000000)
         self.assertEqual(parse_filesize('1,24 KB'), 1240)
+
+    def test_version_tuple(self):
+        self.assertEqual(version_tuple('1'), (1,))
+        self.assertEqual(version_tuple('10.23.344'), (10, 23, 344))
+        self.assertEqual(version_tuple('10-6'), (10, 6))  # avconv style
 
 if __name__ == '__main__':
     unittest.main()
