@@ -1229,7 +1229,7 @@ class YoutubeTopListIE(YoutubePlaylistIE):
 
 class YoutubeChannelIE(InfoExtractor):
     IE_DESC = 'YouTube.com channels'
-    _VALID_URL = r"^(?:https?://)?(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com)/channel/([0-9A-Za-z_-]+)"
+    _VALID_URL = r'https?://(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com)/channel/(?P<id>[0-9A-Za-z_-]+)'
     _MORE_PAGES_INDICATOR = 'yt-uix-load-more'
     _MORE_PAGES_URL = 'https://www.youtube.com/c4_browse_ajax?action_load_more_videos=1&flow=list&paging=%s&view=0&sort=da&channel_id=%s'
     IE_NAME = 'youtube:channel'
@@ -1247,13 +1247,8 @@ class YoutubeChannelIE(InfoExtractor):
         return ids_in_page
 
     def _real_extract(self, url):
-        # Extract channel id
-        mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError('Invalid URL: %s' % url)
+        channel_id = self._match_id(url)
 
-        # Download channel page
-        channel_id = mobj.group(1)
         video_ids = []
         url = 'https://www.youtube.com/channel/%s/videos' % channel_id
         channel_page = self._download_webpage(url, channel_id)
@@ -1290,7 +1285,7 @@ class YoutubeChannelIE(InfoExtractor):
 
 class YoutubeUserIE(InfoExtractor):
     IE_DESC = 'YouTube.com user videos (URL or "ytuser" keyword)'
-    _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?youtube\.com/(?:user/)?(?!(?:attribution_link|watch|results)(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)([A-Za-z0-9_-]+)'
+    _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?youtube\.com/(?:user/)?(?!(?:attribution_link|watch|results)(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)(?P<id>[A-Za-z0-9_-]+)'
     _TEMPLATE_URL = 'https://gdata.youtube.com/feeds/api/users/%s'
     _GDATA_PAGE_SIZE = 50
     _GDATA_URL = 'https://gdata.youtube.com/feeds/api/users/%s/uploads?max-results=%d&start-index=%d&alt=json'
@@ -1318,12 +1313,7 @@ class YoutubeUserIE(InfoExtractor):
             return super(YoutubeUserIE, cls).suitable(url)
 
     def _real_extract(self, url):
-        # Extract username
-        mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError('Invalid URL: %s' % url)
-
-        username = mobj.group(1)
+        username = self._match_id(url)
 
         # Download video ids using YouTube Data API. Result size per
         # query is limited (currently to 50 videos) so we need to query
