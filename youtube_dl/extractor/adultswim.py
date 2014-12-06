@@ -16,7 +16,7 @@ class AdultSwimIE(InfoExtractor):
     _TESTS = [{
         'url': 'http://adultswim.com/videos/rick-and-morty/pilot',
         'playlist': [
-           {
+            {
                 'md5': '247572debc75c7652f253c8daa51a14d',
                 'info_dict': {
                     'id': 'rQxZvXQ4ROaSOqq-or2Mow-0',
