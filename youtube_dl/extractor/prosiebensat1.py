@@ -8,6 +8,7 @@ from .common import InfoExtractor
 from ..utils import (
     compat_urllib_parse,
     unified_strdate,
+    ExtractorError,
 )
 
 
@@ -152,6 +153,15 @@ class ProSiebenSat1IE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        {
+            'url': 'http://www.prosieben.de/tv/joko-gegen-klaas/videos/playlists/episode-8-ganze-folge-playlist',
+            'info_dict': {
+                'id': '439664',
+                'title': 'Episode 8 - Ganze Folge - Playlist',
+                'description': 'Das finale und härteste Duell aller Zeiten ist vorbei! Der Weltmeister für dieses Jahr steht! Alle packenden Duelle der achten Episode von "Joko gegen Klaas - das Duell um die Welt" seht ihr hier noch einmal in voller Länge!',
+            },
+            'playlist_count': 2,
+        },
     ]
 
     _CLIPID_REGEXES = [
@@ -178,10 +188,47 @@ class ProSiebenSat1IE(InfoExtractor):
         r'<span style="padding-left: 4px;line-height:20px; color:#404040">(\d{2}\.\d{2}\.\d{4})</span>',
         r'(\d{2}\.\d{2}\.\d{4}) \| \d{2}:\d{2} Min<br/>',
     ]
+    _ITEM_TYPE_REGEXES = [
+        r"'itemType'\s*:\s*'([^']*)'",
+    ]
+    _ITEM_ID_REGEXES = [
+        r"'itemId'\s*:\s*'([^']*)'",
+    ]
+    _PLAYLIST_CLIPS_REGEXES = [
+        r'data-qvt=.+?<a href="([^"]+)"',
+    ]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
+        item_type = self._html_search_regex(self._ITEM_TYPE_REGEXES, webpage, 'item type', default='CLIP')
+        if item_type == 'CLIP':
+            return self._clip_extract(url, webpage)
+        elif item_type == 'PLAYLIST':
+            playlist_id = self._html_search_regex(self._ITEM_ID_REGEXES, webpage, 'playlist id')
+
+            for regex in self._PLAYLIST_CLIPS_REGEXES:
+                playlist_clips = re.findall(regex, webpage, re.DOTALL)
+                if playlist_clips:
+                    title = self._html_search_regex(self._TITLE_REGEXES, webpage, 'title')
+                    description = self._html_search_regex(self._DESCRIPTION_REGEXES, webpage, 'description', fatal=False)
+                    root_url = re.match('(.+?//.+?)/', url).group(1)
+
+                    return {
+                        '_type': 'playlist',
+                        'id': playlist_id,
+                        'title': title,
+                        'description': description,
+                        'entries': [self._clip_extract(root_url + clip_path) for clip_path in playlist_clips]
+                    }
+        else:
+            raise ExtractorError('Unknown item type "%s"' % item_type)
+
+    def _clip_extract(self, url, webpage=None):
+        if webpage is None:
+            video_id = self._match_id(url)
+            webpage = self._download_webpage(url, video_id)
 
         clip_id = self._html_search_regex(self._CLIPID_REGEXES, webpage, 'clip id')
 
