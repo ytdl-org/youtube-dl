@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
+    month_by_name,
     int_or_none,
 )
 
@@ -13,6 +14,7 @@ class ScreenwaveMediaIE(InfoExtractor):
     _VALID_URL = r'(?:http://)?(?' \
         r':(?P<generic>player\.screenwavemedia\.com/play/[a-zA-Z]+\.php\?[^"]*\bid=(?P<video_id>.+))' \
         r'|(?P<cinemassacre>(?:www\.)?cinemassacre\.com/(?P<cm_date_Y>[0-9]{4})/(?P<cm_date_m>[0-9]{2})/(?P<cm_date_d>[0-9]{2})/(?P<cm_display_id>[^?#/]+))' \
+        r'|(?P<teamfourstar>(?:www\.)?teamfourstar\.com/video/(?P<tfs_display_id>[a-z0-9\-]+)/?)' \
         r')'
 
     _TESTS = [
@@ -55,6 +57,34 @@ class ScreenwaveMediaIE(InfoExtractor):
         video_description = self._html_search_regex(
             r'<div class="entry-content">(?P<description>.+?)</div>',
             webpage, 'description', flags=re.DOTALL, fatal=False)
+        video_thumbnail = self._og_search_thumbnail(webpage)
+
+        return {
+            'title': video_title,
+            'description': video_description,
+            'upload_date': video_date,
+            'thumbnail': video_thumbnail,
+            '_embed_url': playerdata_url,
+        }
+
+    def _teamfourstar_get_info(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        display_id = mobj.group('tfs_display_id')
+        webpage = self._download_webpage(url, display_id)
+
+        mobj = re.search(r'src="(?P<embed_url>http://player\.screenwavemedia\.com/play/[a-zA-Z]+\.php\?[^"]*\bid=.+?)"', webpage)
+        if not mobj:
+            raise ExtractorError('Can\'t extract embed url and video id')
+        playerdata_url = mobj.group('embed_url')
+
+        video_title = self._html_search_regex(
+            r'<div class="heroheadingtitle">(?P<title>.+?)</div>', webpage, 'title')
+        video_date = self._html_search_regex(
+            r'<div class="heroheadingdate">(?P<date>.+?)</div>', webpage, 'date')
+        mobj = re.match('(?P<month>[A-Z][a-z]+) (?P<day>\d+), (?P<year>\d+)', video_date)
+        video_date = '%04u%02u%02u' % (int(mobj.group('year')), month_by_name(mobj.group('month')), int(mobj.group('day')))
+        video_description = self._html_search_regex(
+            r'<div class="postcontent">(?P<description>.+?)</div>', webpage, 'description', flags=re.DOTALL)
         video_thumbnail = self._og_search_thumbnail(webpage)
 
         return {
@@ -148,6 +178,8 @@ class ScreenwaveMediaIE(InfoExtractor):
         if mobj:
             if mobj.group('cinemassacre'):
                 site_info = self._cinemassacre_get_info(url)
+            elif mobj.group('teamfourstar'):
+                site_info = self._teamfourstar_get_info(url)
 
         if not swm_info:
             if site_info:
