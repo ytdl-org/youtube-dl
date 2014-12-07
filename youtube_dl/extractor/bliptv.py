@@ -78,7 +78,24 @@ class BlipTVIE(SubtitlesInfoExtractor):
                 'uploader': 'NostalgiaCritic',
                 'uploader_id': '246467',
             }
-        }
+        },
+        {
+            # https://github.com/rg3/youtube-dl/pull/4404
+            'note': 'Audio only',
+            'url': 'http://blip.tv/hilarios-productions/weekly-manga-recap-kingdom-7119982',
+            'md5': '76c0a56f24e769ceaab21fbb6416a351',
+            'info_dict': {
+                'id': '7103299',
+                'ext': 'flv',
+                'title': 'Weekly Manga Recap: Kingdom',
+                'description': 'And then Shin breaks the enemy line, and he&apos;s all like HWAH! And then he slices a guy and it&apos;s all like FWASHING! And... it&apos;s really hard to describe the best parts of this series without breaking down into sound effects, okay?',
+                'timestamp': 1417660321,
+                'upload_date': '20141204',
+                'uploader': 'The Rollo T',
+                'uploader_id': '407429',
+                'duration': 7251,
+            }
+        },
     ]
 
     def _real_extract(self, url):
