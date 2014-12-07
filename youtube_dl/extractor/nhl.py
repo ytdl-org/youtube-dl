@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import re
 import json
+import os
 
 from .common import InfoExtractor
 from ..compat import (
@@ -26,7 +27,8 @@ class NHLBaseInfoExtractor(InfoExtractor):
         initial_video_url = info['publishPoint']
         if info['formats'] == '1':
             parsed_url = compat_urllib_parse_urlparse(initial_video_url)
-            path = parsed_url.path.replace('.', '_sd.', 1)
+            filename, ext = os.path.splitext(parsed_url.path)
+            path = '%s_sd%s' % (filename, ext)
             data = compat_urllib_parse.urlencode({
                 'type': 'fvod',
                 'path': compat_urlparse.urlunparse(parsed_url[:2] + (path,) + parsed_url[3:])
