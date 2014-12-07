@@ -141,6 +141,16 @@ class BlipTVIE(SubtitlesInfoExtractor):
                 langcode = LANGS.get(lang, lang)
                 subtitles[langcode] = url
             elif media_type.startswith('video/'):
+                width = 0
+                height = 0
+                try:
+                    width = int(media_content.get('width'))
+                except ValueError:
+                    pass
+                try:
+                    height = int(media_content.get('height'))
+                except ValueError:
+                    pass
                 formats.append({
                     'url': real_url,
                     'format_id': role,
@@ -148,8 +158,8 @@ class BlipTVIE(SubtitlesInfoExtractor):
                     'vcodec': media_content.get(blip('vcodec')),
                     'acodec': media_content.get(blip('acodec')),
                     'filesize': media_content.get('filesize'),
-                    'width': int(media_content.get('width')),
-                    'height': int(media_content.get('height')),
+                    'width': width,
+                    'height': height,
                 })
         self._sort_formats(formats)
 
