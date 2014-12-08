@@ -1,32 +1,30 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     float_or_none,
-    str_to_int,
+    parse_age_limit,
 )
 
 
 class TvigleIE(InfoExtractor):
     IE_NAME = 'tvigle'
     IE_DESC = 'Интернет-телевидение Tvigle.ru'
-    _VALID_URL = r'http://(?:www\.)?tvigle\.ru/(?:[^/]+/)+(?P<display_id>[^/]+)/$'
+    _VALID_URL = r'http://(?:www\.)?tvigle\.ru/(?:[^/]+/)+(?P<id>[^/]+)/$'
 
     _TESTS = [
         {
-            'url': 'http://www.tvigle.ru/video/brat/',
-            'md5': 'ff4344a4894b0524441fb6f8218dc716',
+            'url': 'http://www.tvigle.ru/video/sokrat/',
+            'md5': '36514aed3657d4f70b4b2cef8eb520cd',
             'info_dict': {
-                'id': '5118490',
-                'display_id': 'brat',
-                'ext': 'mp4',
-                'title': 'Брат',
-                'description': 'md5:d16ac7c0b47052ea51fddb92c4e413eb',
-                'duration': 5722.6,
-                'age_limit': 16,
+                'id': '1848932',
+                'display_id': 'sokrat',
+                'ext': 'flv',
+                'title': 'Сократ',
+                'description': 'md5:a05bd01be310074d5833efc6743be95e',
+                'duration': 6586,
+                'age_limit': 0,
             },
         },
         {
@@ -44,8 +42,7 @@ class TvigleIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        display_id = mobj.group('display_id')
+        display_id = self._match_id(url)
 
         webpage = self._download_webpage(url, display_id)
 
@@ -60,8 +57,8 @@ class TvigleIE(InfoExtractor):
         title = item['title']
         description = item['description']
         thumbnail = item['thumbnail']
-        duration = float_or_none(item['durationMilliseconds'], 1000)
-        age_limit = str_to_int(item['ageRestrictions'])
+        duration = float_or_none(item.get('durationMilliseconds'), 1000)
+        age_limit = parse_age_limit(item.get('ageRestrictions'))
 
         formats = []
         for vcodec, fmts in item['videos'].items():
