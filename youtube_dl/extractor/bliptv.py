@@ -4,13 +4,17 @@ import re
 
 from .common import InfoExtractor
 from .subtitles import SubtitlesInfoExtractor
-from ..utils import (
-    compat_urllib_request,
-    unescapeHTML,
-    parse_iso8601,
-    compat_urlparse,
-    clean_html,
+
+from ..compat import (
     compat_str,
+    compat_urllib_request,
+    compat_urlparse,
+)
+from ..utils import (
+    clean_html,
+    int_or_none,
+    parse_iso8601,
+    unescapeHTML,
 )
 
 
@@ -78,7 +82,25 @@ class BlipTVIE(SubtitlesInfoExtractor):
                 'uploader': 'NostalgiaCritic',
                 'uploader_id': '246467',
             }
-        }
+        },
+        {
+            # https://github.com/rg3/youtube-dl/pull/4404
+            'note': 'Audio only',
+            'url': 'http://blip.tv/hilarios-productions/weekly-manga-recap-kingdom-7119982',
+            'md5': '76c0a56f24e769ceaab21fbb6416a351',
+            'info_dict': {
+                'id': '7103299',
+                'ext': 'flv',
+                'title': 'Weekly Manga Recap: Kingdom',
+                'description': 'And then Shin breaks the enemy line, and he&apos;s all like HWAH! And then he slices a guy and it&apos;s all like FWASHING! And... it&apos;s really hard to describe the best parts of this series without breaking down into sound effects, okay?',
+                'timestamp': 1417660321,
+                'upload_date': '20141204',
+                'uploader': 'The Rollo T',
+                'uploader_id': '407429',
+                'duration': 7251,
+                'vcodec': 'none',
+            }
+        },
     ]
 
     def _real_extract(self, url):
@@ -145,11 +167,11 @@ class BlipTVIE(SubtitlesInfoExtractor):
                     'url': real_url,
                     'format_id': role,
                     'format_note': media_type,
-                    'vcodec': media_content.get(blip('vcodec')),
+                    'vcodec': media_content.get(blip('vcodec')) or 'none',
                     'acodec': media_content.get(blip('acodec')),
                     'filesize': media_content.get('filesize'),
-                    'width': int(media_content.get('width')),
-                    'height': int(media_content.get('height')),
+                    'width': int_or_none(media_content.get('width')),
+                    'height': int_or_none(media_content.get('height')),
                 })
         self._sort_formats(formats)
 
