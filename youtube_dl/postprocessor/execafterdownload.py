@@ -14,7 +14,7 @@ class ExecAfterDownloadPP(PostProcessor):
 
     def run(self, information):
         cmd = self.exec_cmd
-        if not '{}' in cmd:
+        if '{}' not in cmd:
             cmd += ' {}'
 
         cmd = cmd.replace('{}', shlex_quote(information['filepath']))

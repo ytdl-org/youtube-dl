@@ -247,7 +247,7 @@ else:
                 userhome = compat_getenv('HOME')
             elif 'USERPROFILE' in os.environ:
                 userhome = compat_getenv('USERPROFILE')
-            elif not 'HOMEPATH' in os.environ:
+            elif 'HOMEPATH' not in os.environ:
                 return path
             else:
                 try:

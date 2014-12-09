@@ -79,7 +79,7 @@ def update_self(to_screen, verbose):
             to_screen(compat_str(traceback.format_exc()))
         to_screen('ERROR: can\'t obtain versions info. Please try again later.')
         return
-    if not 'signature' in versions_info:
+    if 'signature' not in versions_info:
         to_screen('ERROR: the versions file is not signed or corrupted. Aborting.')
         return
     signature = versions_info['signature']
