@@ -30,6 +30,7 @@ from .bandcamp import BandcampIE, BandcampAlbumIE
 from .bbccouk import BBCCoUkIE
 from .beeg import BeegIE
 from .behindkink import BehindKinkIE
+from .bet import BetIE
 from .bild import BildIE
 from .bilibili import BiliBiliIE
 from .blinkx import BlinkxIE
