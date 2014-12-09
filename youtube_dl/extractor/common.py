@@ -174,9 +174,10 @@ class InfoExtractor(object):
     _type "url" indicates that the video must be extracted from another
     location, possibly by a different extractor. Its only required key is:
     "url" - the next URL to extract.
-
-    Additionally, it may have properties believed to be identical to the
-    resolved entity, for example "title" if the title of the referred video is
+    The key "ie_key" can be set to the class name (minus the trailing "IE",
+    e.g. "Youtube") if the extractor class is known in advance.
+    Additionally, the dictionary may have any properties of the resolved entity
+    known in advance, for example "title" if the title of the referred video is
     known ahead of time.
 
 
