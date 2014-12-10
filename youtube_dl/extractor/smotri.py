@@ -274,15 +274,18 @@ class SmotriBroadcastIE(InfoExtractor):
         broadcast_page = self._download_webpage(broadcast_url, broadcast_id, 'Downloading broadcast page')
 
         if re.search('>Режиссер с логином <br/>"%s"<br/> <span>не существует<' % broadcast_id, broadcast_page) is not None:
-            raise ExtractorError('Broadcast %s does not exist' % broadcast_id, expected=True)
+            raise ExtractorError(
+                'Broadcast %s does not exist' % broadcast_id, expected=True)
 
         # Adult content
         if re.search('EroConfirmText">', broadcast_page) is not None:
 
             (username, password) = self._get_login_info()
             if username is None:
-                raise ExtractorError('Erotic broadcasts allowed only for registered users, '
-                                     'use --username and --password options to provide account credentials.', expected=True)
+                raise ExtractorError(
+                    'Erotic broadcasts allowed only for registered users, '
+                    'use --username and --password options to provide account credentials.',
+                    expected=True)
 
             login_form = {
                 'login-hint53': '1',
@@ -291,9 +294,11 @@ class SmotriBroadcastIE(InfoExtractor):
                 'password': password,
             }
 
-            request = compat_urllib_request.Request(broadcast_url + '/?no_redirect=1', compat_urllib_parse.urlencode(login_form))
+            request = compat_urllib_request.Request(
+                broadcast_url + '/?no_redirect=1', compat_urllib_parse.urlencode(login_form))
             request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-            broadcast_page = self._download_webpage(request, broadcast_id, 'Logging in and confirming age')
+            broadcast_page = self._download_webpage(
+                request, broadcast_id, 'Logging in and confirming age')
 
             if re.search('>Неверный логин или пароль<', broadcast_page) is not None:
                 raise ExtractorError('Unable to log in: bad username or password', expected=True)
@@ -303,7 +308,7 @@ class SmotriBroadcastIE(InfoExtractor):
             adult_content = False
 
         ticket = self._html_search_regex(
-            'window\.broadcast_control\.addFlashVar\\(\'file\', \'([^\']+)\'\\);',
+            r"window\.broadcast_control\.addFlashVar\('file'\s*,\s*'([^']+)'\)",
             broadcast_page, 'broadcast ticket')
 
         url = 'http://smotri.com/broadcast/view/url/?ticket=%s' % ticket
@@ -312,26 +317,31 @@ class SmotriBroadcastIE(InfoExtractor):
         if broadcast_password:
             url += '&pass=%s' % hashlib.md5(broadcast_password.encode('utf-8')).hexdigest()
 
-        broadcast_json_page = self._download_webpage(url, broadcast_id, 'Downloading broadcast JSON')
+        broadcast_json_page = self._download_webpage(
+            url, broadcast_id, 'Downloading broadcast JSON')
 
         try:
             broadcast_json = json.loads(broadcast_json_page)
 
             protected_broadcast = broadcast_json['_pass_protected'] == 1
             if protected_broadcast and not broadcast_password:
-                raise ExtractorError('This broadcast is protected by a password, use the --video-password option', expected=True)
+                raise ExtractorError(
+                    'This broadcast is protected by a password, use the --video-password option',
+                    expected=True)
 
             broadcast_offline = broadcast_json['is_play'] == 0
             if broadcast_offline:
                 raise ExtractorError('Broadcast %s is offline' % broadcast_id, expected=True)
 
             rtmp_url = broadcast_json['_server']
-            if not rtmp_url.startswith('rtmp://'):
+            mobj = re.search(r'^rtmp://[^/]+/(?P<app>.+)/?$', rtmp_url)
+            if not mobj:
                 raise ExtractorError('Unexpected broadcast rtmp URL')
 
             broadcast_playpath = broadcast_json['_streamName']
+            broadcast_app = '%s/%s' % (mobj.group('app'), broadcast_json['_vidURL'])
             broadcast_thumbnail = broadcast_json['_imgURL']
-            broadcast_title = broadcast_json['title']
+            broadcast_title = self._live_title(broadcast_json['title'])
             broadcast_description = broadcast_json['description']
             broadcaster_nick = broadcast_json['nick']
             broadcaster_login = broadcast_json['login']
@@ -352,6 +362,9 @@ class SmotriBroadcastIE(InfoExtractor):
             'age_limit': 18 if adult_content else 0,
             'ext': 'flv',
             'play_path': broadcast_playpath,
+            'player_url': 'http://pics.smotri.com/broadcast_play.swf',
+            'app': broadcast_app,
             'rtmp_live': True,
-            'rtmp_conn': rtmp_conn
+            'rtmp_conn': rtmp_conn,
+            'is_live': True,
         }
