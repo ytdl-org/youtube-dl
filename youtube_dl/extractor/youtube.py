@@ -682,7 +682,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         url = 'https://www.youtube.com/annotations_invideo?features=1&legacy=1&video_id=%s' % video_id
         return self._download_webpage(url, video_id, note='Searching for annotations.', errnote='Unable to download video annotations.')
 
-    def _parse_dash_manifest(self, video_id, dash_manifest_url):
+    def _parse_dash_manifest(
+            self, video_id, dash_manifest_url, player_url, age_gate):
         def decrypt_sig(mobj):
             s = mobj.group(1)
             dec_s = self._decrypt_signature(s, video_id, player_url, age_gate)
@@ -1005,7 +1006,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 dash_manifest_url = dash_mpd[0]
                 try:
                     dash_formats = self._parse_dash_manifest(
-                        video_id, dash_manifest_url)
+                        video_id, dash_manifest_url, player_url, age_gate)
                 except (ExtractorError, KeyError) as e:
                     self.report_warning(
                         'Skipping DASH manifest: %r' % e, video_id)
