@@ -13,9 +13,10 @@ from ..compat import (
     compat_urllib_request,
 )
 from ..utils import (
-    urlencode_postdata,
     ExtractorError,
+    int_or_none,
     limit_length,
+    urlencode_postdata,
 )
 
 
@@ -36,7 +37,6 @@ class FacebookIE(InfoExtractor):
         'info_dict': {
             'id': '637842556329505',
             'ext': 'mp4',
-            'duration': 38,
             'title': 're:Did you know Kei Nishikori is the first Asian man to ever reach a Grand Slam',
         }
     }, {
@@ -107,9 +107,7 @@ class FacebookIE(InfoExtractor):
         self._login()
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         url = 'https://www.facebook.com/video/video.php?v=%s' % video_id
         webpage = self._download_webpage(url, video_id)
 
@@ -149,6 +147,6 @@ class FacebookIE(InfoExtractor):
             'id': video_id,
             'title': video_title,
             'url': video_url,
-            'duration': int(video_data['video_duration']),
-            'thumbnail': video_data['thumbnail_src'],
+            'duration': int_or_none(video_data.get('video_duration')),
+            'thumbnail': video_data.get('thumbnail_src'),
         }
