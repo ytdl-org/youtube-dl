@@ -526,7 +526,7 @@ from .youtube import (
     YoutubeUserIE,
     YoutubeWatchLaterIE,
 )
-from .zdf import ZDFIE
+from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import (
     ZingMp3SongIE,
     ZingMp3AlbumIE,
