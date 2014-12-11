@@ -10,15 +10,15 @@ from ..utils import url_basename
 class BehindKinkIE(InfoExtractor):
     _VALID_URL = r'http://(?:www\.)?behindkink\.com/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})/(?P<id>[^/#?_]+)'
     _TEST = {
-        'url': 'http://www.behindkink.com/2014/08/14/ab1576-performers-voice-finally-heard-the-bill-is-killed/',
-        'md5': '41ad01222b8442089a55528fec43ec01',
+        'url': 'http://www.behindkink.com/2014/12/05/what-are-you-passionate-about-marley-blaze/',
+        'md5': '507b57d8fdcd75a41a9a7bdb7989c762',
         'info_dict': {
-            'id': '36370',
+            'id': '37127',
             'ext': 'mp4',
-            'title': 'AB1576 - PERFORMERS VOICE FINALLY HEARD - THE BILL IS KILLED!',
-            'description': 'The adult industry voice was finally heard as Assembly Bill 1576 remained\xa0 in suspense today at the Senate Appropriations Hearing. AB1576 was, among other industry damaging issues, a condom mandate...',
-            'upload_date': '20140814',
-            'thumbnail': 'http://www.behindkink.com/wp-content/uploads/2014/08/36370_AB1576_Win.jpg',
+            'title': 'What are you passionate about – Marley Blaze',
+            'description': 'Getting a better understanding of the talent that comes through the doors of the Armory is one of our missions at Behind Kink. Asking the question what are you passionate about helps us get a littl...',
+            'upload_date': '20141205',
+            'thumbnail': 'http://www.behindkink.com/wp-content/uploads/2014/12/blaze-1.jpg',
             'age_limit': 18,
         }
     }
