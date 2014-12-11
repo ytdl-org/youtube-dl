@@ -433,6 +433,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             'expected_warnings': [
                 'DASH manifest missing',
             ]
+        },
+        # Olympics (https://github.com/rg3/youtube-dl/issues/4431)
+        {
+            'url': 'lqQg6PlCWgI',
+            'info_dict': {
+                'id': 'lqQg6PlCWgI',
+                'ext': 'mp4',
+                
+            }
         }
     ]
 
