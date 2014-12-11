@@ -86,6 +86,26 @@ def extract_from_xml_url(ie, video_id, xml_url):
     }
 
 
+def extract_channel_from_xml_url(ie, channel_id, xml_url):
+    doc = ie._download_xml(
+        xml_url, channel_id,
+        note='Downloading channel info',
+        errnote='Failed to download channel info')
+
+    title = doc.find('.//information/title').text
+    description = doc.find('.//information/detail').text
+    assets = [{'id': asset.find('./details/assetId').text,
+               'type': asset.find('./type').text,
+               } for asset in doc.findall('.//teasers/teaser')]
+
+    return {
+        'id': channel_id,
+        'title': title,
+        'description': description,
+        'assets': assets,
+    }
+
+
 class ZDFIE(InfoExtractor):
     _VALID_URL = r'^https?://www\.zdf\.de/ZDFmediathek(?P<hash>#)?/(.*beitrag/(?:video/)?)(?P<id>[0-9]+)(?:/[^/?]+)?(?:\?.*)?'
 
@@ -104,8 +124,67 @@ class ZDFIE(InfoExtractor):
         'skip': 'Videos on ZDF.de are depublicised in short order',
     }
 
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-
+    def _extract_video(self, video_id):
         xml_url = 'http://www.zdf.de/ZDFmediathek/xmlservice/web/beitragsDetails?ak=web&id=%s' % video_id
         return extract_from_xml_url(self, video_id, xml_url)
+
+    def _real_extract(self, url):
+        return self._extract_video(self._match_id(url))
+
+
+class ZDFChannelIE(ZDFIE):
+    _VALID_URL = r'^https?://www\.zdf\.de/ZDFmediathek(?P<hash>#)?/(.*kanaluebersicht/)(?P<id>[0-9]+)'
+
+    _TEST = {
+        'url': 'http://www.zdf.de/ZDFmediathek#/kanaluebersicht/1586442/sendung/Titanic',
+        'info_dict': {
+            'id': '1586442',
+            'title': 'Titanic',
+            'description': 'md5:444c048cfe3fdc2561be7de4bcbf1d04',
+        },
+        'playlist_count': 3,
+    }
+
+    def _extract_channel(self, channel_id):
+        def load_chunks(channel_id, chunk_length):
+            offset = 0
+            while True:
+                url = ('http://www.zdf.de/ZDFmediathek/xmlservice/web/aktuellste?ak=web&offset=%d&maxLength=%d&id=%s'
+                       % (offset, chunk_length, channel_id))
+                result = extract_channel_from_xml_url(self, channel_id, url)
+                yield result
+                if len(result['assets']) < chunk_length:
+                    return
+                offset += chunk_length
+
+        def load_channel(channel_id):
+            chunks = list(load_chunks(channel_id, 50))  # The server rejects higher values
+            assets = [asset for chunk in chunks for asset in chunk['assets']]
+            video_ids = [asset['id'] for asset in
+                         filter(lambda asset: asset['type'] == 'video',
+                                assets)]
+            topic_ids = [asset['id'] for asset in
+                         filter(lambda asset: asset['type'] == 'thema',
+                                assets)]
+            if topic_ids:
+                video_ids = reduce(list.__add__,
+                                   [load_channel(topic_id)['video_ids']
+                                    for topic_id in topic_ids],
+                                   video_ids)
+
+            result = chunks[0]
+            result['video_ids'] = video_ids
+            return result
+
+        channel = load_channel(channel_id)
+        return {
+            '_type': 'playlist',
+            'id': channel['id'],
+            'title': channel['title'],
+            'description': channel['description'],
+            'entries': [self._extract_video(video_id)
+                        for video_id in channel['video_ids']],
+        }
+
+    def _real_extract(self, url):
+        return self._extract_channel(self._match_id(url))
