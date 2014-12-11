@@ -51,7 +51,6 @@ from .cbsnews import CBSNewsIE
 from .ceskatelevize import CeskaTelevizeIE
 from .channel9 import Channel9IE
 from .chilloutzone import ChilloutzoneIE
-from .cinemassacre import CinemassacreIE
 from .clipfish import ClipfishIE
 from .cliphunter import CliphunterIE
 from .clipsyndicate import ClipsyndicateIE
@@ -336,6 +335,7 @@ from .savefrom import SaveFromIE
 from .sbs import SBSIE
 from .scivee import SciVeeIE
 from .screencast import ScreencastIE
+from .screenwavemedia import ScreenwaveMediaIE
 from .servingsys import ServingSysIE
 from .sexu import SexuIE
 from .sexykarma import SexyKarmaIE
