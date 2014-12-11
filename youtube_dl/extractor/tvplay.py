@@ -182,8 +182,8 @@ class TVPlayIE(InfoExtractor):
             'http://playapi.mtgx.tv/v1/videos/%s' % video_id, video_id, 'Downloading video JSON')
 
         if video['is_geo_blocked']:
-            raise ExtractorError(
-                'This content is not available in your country due to copyright reasons', expected=True)
+            self.report_warning(
+                'This content might not be available in your country due to copyright reasons')
 
         streams = self._download_json(
             'http://playapi.mtgx.tv/v1/videos/stream/%s' % video_id, video_id, 'Downloading streams JSON')
