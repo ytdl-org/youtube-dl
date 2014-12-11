@@ -34,8 +34,7 @@ class BehindKinkIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         video_url = self._search_regex(
-            r"'file':\s*'([^']+)'",
-            webpage, 'URL base')
+            r'<source src="(.*?)" type="video/mp4" />', webpage, 'video URL')
 
         video_id = url_basename(video_url)
         video_id = video_id.split('_')[0]
