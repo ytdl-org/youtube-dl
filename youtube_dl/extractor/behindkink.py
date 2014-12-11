@@ -16,7 +16,7 @@ class BehindKinkIE(InfoExtractor):
             'id': '37127',
             'ext': 'mp4',
             'title': 'What are you passionate about – Marley Blaze',
-            'description': 'Getting a better understanding of the talent that comes through the doors of the Armory is one of our missions at Behind Kink. Asking the question what are you passionate about helps us get a littl...',
+            'description': 'md5:aee8e9611b4ff70186f752975d9b94b4',
             'upload_date': '20141205',
             'thumbnail': 'http://www.behindkink.com/wp-content/uploads/2014/12/blaze-1.jpg',
             'age_limit': 18,
@@ -26,25 +26,19 @@ class BehindKinkIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         display_id = mobj.group('id')
-        year = mobj.group('year')
-        month = mobj.group('month')
-        day = mobj.group('day')
-        upload_date = year + month + day
 
         webpage = self._download_webpage(url, display_id)
 
         video_url = self._search_regex(
-            r'<source src="(.*?)" type="video/mp4" />', webpage, 'video URL')
-
-        video_id = url_basename(video_url)
-        video_id = video_id.split('_')[0]
+            r'<source src="([^"]+)"', webpage, 'video URL')
+        video_id =  url_basename(video_url).split('_')[0]
+        upload_date = mobj.group('year') + mobj.group('month') + mobj.group('day')
 
         return {
             'id': video_id,
-            'url': video_url,
-            'ext': 'mp4',
-            'title': self._og_search_title(webpage),
             'display_id': display_id,
+            'url': video_url,
+            'title': self._og_search_title(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
             'description': self._og_search_description(webpage),
             'upload_date': upload_date,
