@@ -712,8 +712,10 @@ def date_from_str(date_str):
     Return a datetime object from a string in the format YYYYMMDD or
     (now|today)[+-][0-9](day|week|month|year)(s)?"""
     today = datetime.date.today()
-    if date_str == 'now'or date_str == 'today':
+    if date_str in ('now', 'today'):
         return today
+    if date_str == 'yesterday':
+        return today - datetime.timedelta(days=1)
     match = re.match('(now|today)(?P<sign>[+-])(?P<time>\d+)(?P<unit>day|week|month|year)(s)?', date_str)
     if match is not None:
         sign = match.group('sign')
