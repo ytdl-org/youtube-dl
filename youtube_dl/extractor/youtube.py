@@ -1010,9 +1010,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         # Look for the DASH manifest
         if self._downloader.params.get('youtube_include_dash_manifest', True):
             dash_mpd = video_info.get('dashmpd')
-            if not dash_mpd:
-                self.report_warning('%s: DASH manifest missing' % video_id)
-            else:
+            if dash_mpd:
                 dash_manifest_url = dash_mpd[0]
                 try:
                     dash_formats = self._parse_dash_manifest(
