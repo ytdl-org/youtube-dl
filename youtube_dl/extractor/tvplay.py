@@ -6,7 +6,6 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
-    ExtractorError,
     parse_iso8601,
     qualities,
 )

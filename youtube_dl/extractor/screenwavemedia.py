@@ -5,9 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    ExtractorError,
     int_or_none,
-    month_by_name,
     unified_strdate,
 )
 

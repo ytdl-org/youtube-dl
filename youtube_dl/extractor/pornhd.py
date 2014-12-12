@@ -8,7 +8,6 @@ from ..utils import (
     int_or_none,
     js_to_json,
     qualities,
-    determine_ext,
 )
 
 
