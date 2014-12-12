@@ -323,6 +323,7 @@ from .roxwel import RoxwelIE
 from .rtbf import RTBFIE
 from .rtlnl import RtlXlIE
 from .rtlnow import RTLnowIE
+from .rtp import RTPIE
 from .rts import RTSIE
 from .rtve import RTVEALaCartaIE, RTVELiveIE
 from .ruhd import RUHDIE
