@@ -18,11 +18,10 @@ class UrortIE(InfoExtractor):
         'url': 'https://urort.p3.no/#!/Band/Gerilja',
         'md5': '5ed31a924be8a05e47812678a86e127b',
         'info_dict': {
-            'id': '33124-4',
+            'id': '33124-24',
             'ext': 'mp3',
             'title': 'The Bomb',
             'thumbnail': 're:^https?://.+\.jpg',
-            'like_count': int,
             'uploader': 'Gerilja',
             'uploader_id': 'Gerilja',
             'upload_date': '20100323',
@@ -36,20 +35,28 @@ class UrortIE(InfoExtractor):
         playlist_id = self._match_id(url)
 
         fstr = compat_urllib_parse.quote("InternalBandUrl eq '%s'" % playlist_id)
-        json_url = 'http://urort.p3.no/breeze/urort/TrackDtos?$filter=' + fstr
+        json_url = 'http://urort.p3.no/breeze/urort/TrackDTOViews?$filter=%s&$orderby=Released%%20desc&$expand=Tags%%2CFiles' % fstr
         songs = self._download_json(json_url, playlist_id)
-
-        entries = [{
-            'id': '%d-%s' % (s['BandId'], s['$id']),
-            'title': s['Title'],
-            'url': s['TrackUrl'],
-            'ext': 'mp3',
-            'uploader_id': playlist_id,
-            'uploader': s.get('BandName', playlist_id),
-            'like_count': s.get('LikeCount'),
-            'thumbnail': 'http://urort.p3.no/cloud/images/%s' % s['Image'],
-            'upload_date': unified_strdate(s.get('Released')),
-        } for s in songs]
+        entries = []
+        for s in songs:
+            formats = [{
+                'tbr': f.get('Quality'),
+                'ext': f['FileType'],
+                'format_id': '%s-%s' % (f['FileType'], f.get('Quality', '')),
+                'url': 'http://p3urort.blob.core.windows.net/tracks/%s' % f['FileRef'],
+                'preference': 3 if f['FileType'] == 'mp3' else 2,
+            } for f in s['Files']]
+            self._sort_formats(formats)
+            e = {
+                'id': '%d-%s' % (s['BandId'], s['$id']),
+                'title': s['Title'],
+                'uploader_id': playlist_id,
+                'uploader': s.get('BandName', playlist_id),
+                'thumbnail': 'http://urort.p3.no/cloud/images/%s' % s['Image'],
+                'upload_date': unified_strdate(s.get('Released')),
+                'formats': formats,
+            }
+            entries.append(e)
 
         return {
             '_type': 'playlist',
