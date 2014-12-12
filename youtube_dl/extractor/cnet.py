@@ -2,12 +2,10 @@
 from __future__ import unicode_literals
 
 import json
-import re
 
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    int_or_none,
 )
 
 
