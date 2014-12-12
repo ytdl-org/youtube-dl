@@ -136,16 +136,21 @@ class HttpFD(FileDownloader):
         byte_counter = 0 + resume_len
         block_size = self.params.get('buffersize', 1024)
         start = time.time()
+
+        # measure time over whole while-loop, so slow_down() and best_block_size() work together properly
+        now = None  # needed for slow_down() in the first loop run
+        before = start  # start measuring
         while True:
+
             # Download and write
-            before = time.time()
             data_block = data.read(block_size if not is_test else min(block_size, data_len - byte_counter))
-            after = time.time()
-            if len(data_block) == 0:
-                break
             byte_counter += len(data_block)
 
-            # Open file just in time
+            # exit loop when download is finished
+            if len(data_block) == 0:
+                break
+
+            # Open destination file just in time
             if stream is None:
                 try:
                     (stream, tmpfilename) = sanitize_open(tmpfilename, open_mode)
@@ -161,11 +166,22 @@ class HttpFD(FileDownloader):
                 self.to_stderr('\n')
                 self.report_error('unable to write data: %s' % str(err))
                 return False
+
+            # Apply rate limit
+            self.slow_down(start, now, byte_counter - resume_len)
+
+            # end measuring of one loop run
+            now = time.time()
+            after = now
+
+            # Adjust block size
             if not self.params.get('noresizebuffer', False):
                 block_size = self.best_block_size(after - before, len(data_block))
 
+            before = after
+
             # Progress message
-            speed = self.calc_speed(start, time.time(), byte_counter - resume_len)
+            speed = self.calc_speed(start, now, byte_counter - resume_len)
             if data_len is None:
                 eta = percent = None
             else:
@@ -185,9 +201,6 @@ class HttpFD(FileDownloader):
 
             if is_test and byte_counter == data_len:
                 break
-
-            # Apply rate limit
-            self.slow_down(start, byte_counter - resume_len)
 
         if stream is None:
             self.to_stderr('\n')
