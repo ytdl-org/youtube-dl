@@ -485,10 +485,6 @@ def parseOpts(overrideArguments=None):
         '--id', default=False,
         action='store_true', dest='useid', help='use only video ID in file name')
     filesystem.add_option(
-        '-A', '--auto-number',
-        action='store_true', dest='autonumber', default=False,
-        help='number downloaded files starting from 00000')
-    filesystem.add_option(
         '-o', '--output',
         dest='outtmpl', metavar='TEMPLATE',
         help=('output filename template. Use %(title)s to get the title, '
@@ -515,6 +511,10 @@ def parseOpts(overrideArguments=None):
         '--restrict-filenames',
         action='store_true', dest='restrictfilenames', default=False,
         help='Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames')
+    filesystem.add_option(
+        '-A', '--auto-number',
+        action='store_true', dest='autonumber', default=False,
+        help='[deprecated; use  -o "%(autonumber)s-%(title)s.%(ext)s" ] number downloaded files starting from 00000')
     filesystem.add_option(
         '-t', '--title',
         action='store_true', dest='usetitle', default=False,
