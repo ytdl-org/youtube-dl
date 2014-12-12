@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 
+import ctypes
 import getpass
 import optparse
 import os
+import platform
 import re
 import subprocess
 import sys
@@ -326,6 +328,22 @@ def workaround_optparse_bug9161():
         optparse.OptionGroup.add_option = _compat_add_option
 
 
+if platform.python_implementation() == 'PyPy':
+    # PyPy expects byte strings as Windows function names
+    # https://github.com/rg3/youtube-dl/pull/4392
+    def compat_WINFUNCTYPE(*args, **kwargs):
+        real = ctypes.WINFUNCTYPE(*args, **kwargs)
+
+        def resf(tpl, *args, **kwargs):
+            funcname, dll = tpl
+            return real((str(funcname), dll), *args, **kwargs)
+
+        return resf
+else:
+    def compat_WINFUNCTYPE(*args, **kwargs):
+        return ctypes.WINFUNCTYPE(*args, **kwargs)
+
+
 __all__ = [
     'compat_HTTPError',
     'compat_chr',
@@ -349,6 +367,7 @@ __all__ = [
     'compat_urllib_request',
     'compat_urlparse',
     'compat_urlretrieve',
+    'compat_WINFUNCTYPE',
     'compat_xml_parse_error',
     'shlex_quote',
     'subprocess_check_output',

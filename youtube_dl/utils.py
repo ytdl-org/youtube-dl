@@ -41,6 +41,7 @@ from .compat import (
     compat_urllib_parse_urlparse,
     compat_urllib_request,
     compat_urlparse,
+    compat_WINFUNCTYPE,
     shlex_quote,
 )
 
@@ -817,21 +818,21 @@ def _windows_write_string(s, out):
     if fileno not in WIN_OUTPUT_IDS:
         return False
 
-    GetStdHandle = ctypes.WINFUNCTYPE(
+    GetStdHandle = compat_WINFUNCTYPE(
         ctypes.wintypes.HANDLE, ctypes.wintypes.DWORD)(
         ("GetStdHandle", ctypes.windll.kernel32))
     h = GetStdHandle(WIN_OUTPUT_IDS[fileno])
 
-    WriteConsoleW = ctypes.WINFUNCTYPE(
+    WriteConsoleW = compat_WINFUNCTYPE(
         ctypes.wintypes.BOOL, ctypes.wintypes.HANDLE, ctypes.wintypes.LPWSTR,
         ctypes.wintypes.DWORD, ctypes.POINTER(ctypes.wintypes.DWORD),
         ctypes.wintypes.LPVOID)(("WriteConsoleW", ctypes.windll.kernel32))
     written = ctypes.wintypes.DWORD(0)
 
-    GetFileType = ctypes.WINFUNCTYPE(ctypes.wintypes.DWORD, ctypes.wintypes.DWORD)(("GetFileType", ctypes.windll.kernel32))
+    GetFileType = compat_WINFUNCTYPE(ctypes.wintypes.DWORD, ctypes.wintypes.DWORD)(("GetFileType", ctypes.windll.kernel32))
     FILE_TYPE_CHAR = 0x0002
     FILE_TYPE_REMOTE = 0x8000
-    GetConsoleMode = ctypes.WINFUNCTYPE(
+    GetConsoleMode = compat_WINFUNCTYPE(
         ctypes.wintypes.BOOL, ctypes.wintypes.HANDLE,
         ctypes.POINTER(ctypes.wintypes.DWORD))(
         ("GetConsoleMode", ctypes.windll.kernel32))
