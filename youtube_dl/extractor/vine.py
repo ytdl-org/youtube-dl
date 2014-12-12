@@ -17,6 +17,7 @@ class VineIE(InfoExtractor):
             'id': 'b9KOOWX7HUx',
             'ext': 'mp4',
             'title': 'Chicken.',
+            'alt_title': 'Vine by Jack Dorsey',
             'description': 'Chicken.',
             'upload_date': '20130519',
             'uploader': 'Jack Dorsey',
@@ -44,6 +45,7 @@ class VineIE(InfoExtractor):
         return {
             'id': video_id,
             'title': self._og_search_title(webpage),
+            'alt_title': self._og_search_description(webpage),
             'description': data['description'],
             'thumbnail': data['thumbnailUrl'],
             'upload_date': unified_strdate(data['created']),
