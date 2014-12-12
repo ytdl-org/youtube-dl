@@ -33,13 +33,11 @@ class UrortIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        playlist_id = mobj.group('id')
+        playlist_id = self._match_id(url)
 
         fstr = compat_urllib_parse.quote("InternalBandUrl eq '%s'" % playlist_id)
         json_url = 'http://urort.p3.no/breeze/urort/TrackDtos?$filter=' + fstr
         songs = self._download_json(json_url, playlist_id)
-        print(songs[0])
 
         entries = [{
             'id': '%d-%s' % (s['BandId'], s['$id']),
