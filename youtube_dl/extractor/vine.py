@@ -25,26 +25,21 @@ class VineIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage('https://vine.co/v/' + video_id, video_id)
 
         data = json.loads(self._html_search_regex(
             r'window\.POST_DATA = { %s: ({.+?}) }' % video_id, webpage, 'vine data'))
 
-        formats = [
-            {
-                'url': data['videoLowURL'],
-                'ext': 'mp4',
-                'format_id': 'low',
-            },
-            {
-                'url': data['videoUrl'],
-                'ext': 'mp4',
-                'format_id': 'standard',
-            }
-        ]
+        formats = [{
+            'url': data['videoLowURL'],
+            'ext': 'mp4',
+            'format_id': 'low',
+        }, {
+            'url': data['videoUrl'],
+            'ext': 'mp4',
+            'format_id': 'standard',
+        }]
 
         return {
             'id': video_id,
