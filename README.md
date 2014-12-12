@@ -75,7 +75,6 @@ which means you can modify it, redistribute it or use it however you like.
 ## Video Selection:
     --playlist-start NUMBER          playlist video to start at (default is 1)
     --playlist-end NUMBER            playlist video to end at (default is last)
-    --playlist-reverse               Download playlist videos in reverse order
     --match-title REGEX              download only matching titles (regex or
                                      caseless sub-string)
     --reject-title REGEX             skip download for matching titles (regex or
@@ -114,12 +113,12 @@ which means you can modify it, redistribute it or use it however you like.
                                      size. By default, the buffer size is
                                      automatically resized from an initial value
                                      of SIZE.
+    --playlist-reverse               Download playlist videos in reverse order
 
 ## Filesystem Options:
     -a, --batch-file FILE            file containing URLs to download ('-' for
                                      stdin)
     --id                             use only video ID in file name
-    -A, --auto-number                number downloaded files starting from 00000
     -o, --output TEMPLATE            output filename template. Use %(title)s to
                                      get the title, %(uploader)s for the
                                      uploader name, %(uploader_id)s for the
@@ -153,6 +152,9 @@ which means you can modify it, redistribute it or use it however you like.
     --restrict-filenames             Restrict filenames to only ASCII
                                      characters, and avoid "&" and spaces in
                                      filenames
+    -A, --auto-number                [deprecated; use  -o
+                                     "%(autonumber)s-%(title)s.%(ext)s" ] number
+                                     downloaded files starting from 00000
     -t, --title                      [deprecated] use title in file name
                                      (default)
     -l, --literal                    [deprecated] alias of --title
