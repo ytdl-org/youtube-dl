@@ -3,12 +3,14 @@ from __future__ import unicode_literals
 
 import binascii
 import collections
+import ctypes
 import email
 import getpass
 import io
 import itertools
 import optparse
 import os
+import platform
 import re
 import shlex
 import shutil
@@ -2906,6 +2908,24 @@ except ImportError:  # not 2.6+ or is 3.x
     except ImportError:
         compat_zip = zip
 
+if platform.python_implementation() == 'PyPy' and sys.pypy_version_info < (5, 4, 0):
+    # PyPy2 prior to version 5.4.0 expects byte strings as Windows function
+    # names, see the original PyPy issue [1] and the youtube-dl one [2].
+    # 1. https://bitbucket.org/pypy/pypy/issues/2360/windows-ctypescdll-typeerror-function-name
+    # 2. https://github.com/rg3/youtube-dl/pull/4392
+    def compat_ctypes_WINFUNCTYPE(*args, **kwargs):
+        real = ctypes.WINFUNCTYPE(*args, **kwargs)
+
+        def resf(tpl, *args, **kwargs):
+            funcname, dll = tpl
+            return real((str(funcname), dll), *args, **kwargs)
+
+        return resf
+else:
+    def compat_ctypes_WINFUNCTYPE(*args, **kwargs):
+        return ctypes.WINFUNCTYPE(*args, **kwargs)
+
+
 __all__ = [
     'compat_HTMLParseError',
     'compat_HTMLParser',
@@ -2914,6 +2934,7 @@ __all__ = [
     'compat_chr',
     'compat_cookiejar',
     'compat_cookies',
+    'compat_ctypes_WINFUNCTYPE',
     'compat_etree_fromstring',
     'compat_etree_register_namespace',
     'compat_expanduser',
