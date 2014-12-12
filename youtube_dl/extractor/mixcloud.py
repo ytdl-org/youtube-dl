@@ -70,7 +70,7 @@ class MixcloudIE(InfoExtractor):
             raise ExtractorError('Unable to extract track url')
 
         PREFIX = (
-            r'<div class="cloudcast-play-button-container[^"]*?"'
+            r'<span class="play-button[^"]*?"'
             r'(?:\s+[a-zA-Z0-9-]+(?:="[^"]+")?)*?\s+')
         title = self._html_search_regex(
             PREFIX + r'm-title="([^"]+)"', webpage, 'title')
