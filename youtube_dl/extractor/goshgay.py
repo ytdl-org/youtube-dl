@@ -2,14 +2,14 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_urlparse
 from ..utils import (
-    compat_urlparse,
     ExtractorError,
 )
 
 
 class GoshgayIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)www.goshgay.com/video(?P<id>\d+?)($|/)'
+    _VALID_URL = r'https?://www\.goshgay\.com/video(?P<id>\d+?)($|/)'
     _TEST = {
         'url': 'http://www.goshgay.com/video4116282',
         'md5': '268b9f3c3229105c57859e166dd72b03',
@@ -24,8 +24,8 @@ class GoshgayIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
         webpage = self._download_webpage(url, video_id)
+
         title = self._og_search_title(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
         family_friendly = self._html_search_meta(
