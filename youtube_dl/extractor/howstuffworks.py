@@ -1,7 +1,12 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import find_xpath_attr
+from ..utils import (
+    find_xpath_attr,
+    int_or_none,
+    js_to_json,
+    unescapeHTML,
+)
 
 
 class HowStuffWorksIE(InfoExtractor):
@@ -14,7 +19,9 @@ class HowStuffWorksIE(InfoExtractor):
                 'ext': 'flv',
                 'title': 'Cool Jobs - Iditarod Musher',
                 'description': 'Cold sleds, freezing temps and warm dog breath... an Iditarod musher\'s dream. Kasey-Dee Gardner jumps on a sled to find out what the big deal is.',
-                'thumbnail': 'http://s.hswstatic.com/gif/videos/480x360/5266.jpg',
+                'display_id': 'cool-jobs-iditarod-musher',
+                'thumbnail': 're:^https?://.*\.jpg$',
+                'duration': 161,
             },
         },
         {
@@ -24,7 +31,8 @@ class HowStuffWorksIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Survival Zone: Food and Water In the Savanna',
                 'description': 'Learn how to find both food and water while trekking in the African savannah. In this video from the Discovery Channel.',
-                'thumbnail': 'http://s.hswstatic.com/gif/videos/480x360/7199.jpg',
+                'display_id': 'survival-zone-food-and-water-in-the-savanna',
+                'thumbnail': 're:^https?://.*\.jpg$',
             },
         },
         {
@@ -34,7 +42,8 @@ class HowStuffWorksIE(InfoExtractor):
                 'ext': 'flv',
                 'title': 'Sword Swallowing #1 by Dan Meyer',
                 'description': 'Video footage (1 of 3) used by permission of the owner Dan Meyer through Sword Swallowers Association International <www.swordswallow.org>',
-                'thumbnail': 'http://s.hswstatic.com/gif/videos/480x360/118306353233.jpg',
+                'display_id': 'sword-swallowing-1-by-dan-meyer',
+                'thumbnail': 're:^https?://.*\.jpg$',
             },
         },
     ]
@@ -42,23 +51,17 @@ class HowStuffWorksIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        clip_info = self._search_regex('(?s)var clip = {(.*?)};', webpage, 'clip info')
+        clip_js = self._search_regex(
+            r'(?s)var clip = ({.*?});', webpage, 'clip info')
+        clip_info = self._parse_json(
+            clip_js, display_id, transform_source=js_to_json)
 
-        def extract_clip_info(key, clip_info, name=None, **kargs):
-            if name is None:
-                name = key
-            return self._html_search_regex(
-                r"\s*%s\s*: '?([^'\n]*[^'\n,])" % key, clip_info, name, **kargs)
-
-        video_id = extract_clip_info('content_id', clip_info, 'video id')
+        video_id = clip_info['content_id']
         formats = []
-        m3u8_url = extract_clip_info('m3u8', clip_info, 'm3u8 url', default=None)
-        if m3u8_url is not None:
-            formats += self._extract_m3u8_formats(m3u8_url , video_id, 'mp4')
-        mp4 = self._parse_json(
-            extract_clip_info(
-                'mp4', clip_info, 'formats').replace('},]','}]'), video_id)
-        for video in mp4:
+        m3u8_url = clip_info.get('m3u8')
+        if m3u8_url:
+            formats += self._extract_m3u8_formats(m3u8_url, video_id, 'mp4')
+        for video in clip_info.get('mp4', []):
             formats.append({
                 'url': video['src'],
                 'format_id': video['bitrate'],
@@ -80,7 +83,7 @@ class HowStuffWorksIE(InfoExtractor):
 
             for video in smil.findall(
                     './{0}body/{0}switch/{0}video'.format('{http://www.w3.org/2001/SMIL20/Language}')):
-                vbr = int(video.attrib['system-bitrate']) / 1000
+                vbr = int_or_none(video.attrib['system-bitrate'], scale=1000)
                 formats.append({
                     'url': '%s/%s%s' % (http_base, video.attrib['src'], URL_SUFFIX),
                     'format_id': '%dk' % vbr,
@@ -90,11 +93,11 @@ class HowStuffWorksIE(InfoExtractor):
         self._sort_formats(formats)
 
         return {
-            'id': video_id,
+            'id': '%s' % video_id,
             'display_id': display_id,
-            'title': extract_clip_info('clip_title', clip_info, 'title'),
-            'description': extract_clip_info('caption', clip_info, 'description', fatal=False),
-            'thumbnail': extract_clip_info('video_still_url', clip_info, 'thumbnail'),
-            'duration': extract_clip_info('duration', clip_info),
+            'title': unescapeHTML(clip_info['clip_title']),
+            'description': unescapeHTML(clip_info.get('caption')),
+            'thumbnail': clip_info.get('video_still_url'),
+            'duration': clip_info.get('duration'),
             'formats': formats,
         }
