@@ -151,6 +151,7 @@ class FileDownloader(object):
         rate_limit = self.params.get('ratelimit', None)
         if rate_limit is None or byte_counter == 0:
             return
+        rate_limit=rate_limit/2
         now = time.time()
         elapsed = now - start_time
         if elapsed <= 0.0:
