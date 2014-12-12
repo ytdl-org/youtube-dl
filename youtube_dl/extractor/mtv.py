@@ -178,7 +178,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
                 'title': '{0} - {1}'.format(show_name, video_name),
                 'description': description,
                 'thumbnail': thumbnail,
-                'formats': self._entry_formats_to_parts(videos_info),
+                'formats': self._entry_formats_to_parts(videos_info['entries']),
             }
         return videos_info
 
