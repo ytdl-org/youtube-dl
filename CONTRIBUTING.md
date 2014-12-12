@@ -134,17 +134,3 @@ If you want to add support for a new site, you can follow this quick list (assum
 
 In any case, thank you very much for your contributions!
 
-# EMBEDDING YOUTUBE-DL
-
-youtube-dl makes the best effort to be a good command-line program, and thus should be callable from any programming language. If you encounter any problems parsing its output, feel free to [create a report](https://github.com/rg3/youtube-dl/issues/new).
-
-From a Python program, you can embed youtube-dl in a more powerful fashion, like this:
-
-    import youtube_dl
-
-    ydl_opts = {}
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        ydl.download(['http://www.youtube.com/watch?v=BaW_jenozKc'])
-
-Most likely, you'll want to use various options. For a list of what can be done, have a look at [youtube_dl/YoutubeDL.py](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/YoutubeDL.py#L69). For a start, if you want to intercept youtube-dl's output, set a `logger` object.
-
