@@ -388,7 +388,13 @@ def formatSeconds(secs):
 
 
 def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
-    if sys.version_info < (3, 2):
+    if hasattr(ssl, 'create_default_context'):  # Python >= 3.4 or 2.7.9
+        context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        context.options &= ~ssl.OP_NO_SSLv3  # Allow older, not-as-secure SSLv3
+        if opts_no_check_certificate:
+            context.verify_mode = ssl.CERT_NONE
+        return compat_urllib_request.HTTPSHandler(context=context, **kwargs)
+    elif sys.version_info < (3, 2):
         import httplib
 
         class HTTPSConnectionV3(httplib.HTTPSConnection):
@@ -409,12 +415,6 @@ def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
             def https_open(self, req):
                 return self.do_open(HTTPSConnectionV3, req)
         return HTTPSHandlerV3(**kwargs)
-    elif hasattr(ssl, 'create_default_context'):  # Python >= 3.4
-        context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-        context.options &= ~ssl.OP_NO_SSLv3  # Allow older, not-as-secure SSLv3
-        if opts_no_check_certificate:
-            context.verify_mode = ssl.CERT_NONE
-        return compat_urllib_request.HTTPSHandler(context=context, **kwargs)
     else:  # Python < 3.4
         context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
         context.verify_mode = (ssl.CERT_NONE
