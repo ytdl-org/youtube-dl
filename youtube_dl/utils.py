@@ -166,7 +166,7 @@ def xpath_text(node, xpath, name=None, fatal=False):
         xpath = xpath.encode('ascii')
 
     n = node.find(xpath)
-    if n is None:
+    if n is None or n.text is None:
         if fatal:
             name = xpath if name is None else name
             raise ExtractorError('Could not find XML element %s' % name)
@@ -644,17 +644,19 @@ def parse_iso8601(date_str, delimiter='T'):
     return calendar.timegm(dt.timetuple())
 
 
-def unified_strdate(date_str):
+def unified_strdate(date_str, day_first=True):
     """Return a string with the date in the format YYYYMMDD"""
 
     if date_str is None:
         return None
-
     upload_date = None
     # Replace commas
     date_str = date_str.replace(',', ' ')
     # %z (UTC offset) is only supported in python>=3.2
     date_str = re.sub(r' ?(\+|-)[0-9]{2}:?[0-9]{2}$', '', date_str)
+    # Remove AM/PM + timezone
+    date_str = re.sub(r'(?i)\s*(?:AM|PM)\s+[A-Z]+', '', date_str)
+
     format_expressions = [
         '%d %B %Y',
         '%d %b %Y',
@@ -669,7 +671,6 @@ def unified_strdate(date_str):
         '%d/%m/%Y',
         '%d/%m/%y',
         '%Y/%m/%d %H:%M:%S',
-        '%d/%m/%Y %H:%M:%S',
         '%Y-%m-%d %H:%M:%S',
         '%Y-%m-%d %H:%M:%S.%f',
         '%d.%m.%Y %H:%M',
@@ -681,6 +682,14 @@ def unified_strdate(date_str):
         '%Y-%m-%dT%H:%M:%S.%f',
         '%Y-%m-%dT%H:%M',
     ]
+    if day_first:
+        format_expressions.extend([
+            '%d/%m/%Y %H:%M:%S',
+        ])
+    else:
+        format_expressions.extend([
+            '%m/%d/%Y %H:%M:%S',
+        ])
     for expression in format_expressions:
         try:
             upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')

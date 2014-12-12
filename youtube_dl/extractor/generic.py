@@ -467,8 +467,17 @@ class GenericIE(InfoExtractor):
             'expected_warnings': [
                 'URL could be a direct video link, returning it as such.'
             ]
-        }
-
+        },
+        # Cinchcast embed
+        {
+            'url': 'http://undergroundwellness.com/podcasts/306-5-steps-to-permanent-gut-healing/',
+            'info_dict': {
+                'id': '7141703',
+                'ext': 'mp3',
+                'upload_date': '20141126',
+                'title': 'Jack Tips: 5 Steps to Permanent Gut Healing',
+            }
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -961,6 +970,13 @@ class GenericIE(InfoExtractor):
             webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'SBS')
+
+        # Look for embedded Cinchcast player
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>https?://player\.cinchcast\.com/.+?)\1',
+            webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'Cinchcast')
 
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>https?://m(?:lb)?\.mlb\.com/shared/video/embed/embed\.html\?.+?)\1',
