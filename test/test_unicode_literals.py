@@ -1,5 +1,11 @@
 from __future__ import unicode_literals
 
+# Allow direct execution
+import os
+import sys
+import unittest
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import io
 import os
 import re
@@ -12,6 +18,9 @@ IGNORED_FILES = [
     'conf.py',
     'buildserver.py',
 ]
+
+
+from helper import assertRegexpMatches
 
 
 class TestUnicodeLiterals(unittest.TestCase):
@@ -29,9 +38,10 @@ class TestUnicodeLiterals(unittest.TestCase):
 
                 if "'" not in code and '"' not in code:
                     continue
-                self.assertRegexpMatches(
+                assertRegexpMatches(
+                    self,
                     code,
-                    r'(?:#.*\n*)?from __future__ import (?:[a-z_]+,\s*)*unicode_literals',
+                    r'(?:(?:#.*?|\s*)\n)*from __future__ import (?:[a-z_]+,\s*)*unicode_literals',
                     'unicode_literals import  missing in %s' % fn)
 
                 m = re.search(r'(?<=\s)u[\'"](?!\)|,|$)', code)

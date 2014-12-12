@@ -161,7 +161,9 @@ def assertRegexpMatches(self, text, regexp, msg=None):
     else:
         m = re.match(regexp, text)
         if not m:
-            note = 'Regexp didn\'t match: %r not found in %r' % (regexp, text)
+            note = 'Regexp didn\'t match: %r not found' % (regexp)
+            if len(text) < 1000:
+                note += ' in %r' % text
             if msg is None:
                 msg = note
             else:
