@@ -622,15 +622,13 @@ class YoutubeDL(object):
                 ie_result['url'], ie_key=ie_result.get('ie_key'),
                 extra_info=extra_info, download=False, process=False)
 
-            new_result = ie_result.copy()
-            for f in ('_type', 'id', 'url', 'ext', 'player_url', 'formats',
-                      'entries', 'ie_key', 'duration',
-                      'subtitles', 'annotations', 'format',
-                      'thumbnail', 'thumbnails'):
-                if f in new_result:
-                    del new_result[f]
-                if f in info:
-                    new_result[f] = info[f]
+            force_properties = dict(
+                (k, v) for k, v in ie_result.items() if v is not None)
+            for f in ('_type', 'url'):
+                if f in force_properties:
+                    del force_properties[f]
+            new_result = info.copy()
+            new_result.update(force_properties)
 
             assert new_result.get('_type') != 'url_transparent'
 
