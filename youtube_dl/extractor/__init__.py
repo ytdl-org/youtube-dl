@@ -48,7 +48,6 @@ from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
 from .cbs import CBSIE
 from .cbsnews import CBSNewsIE
-from .ccc import ComCarCoffIE
 from .ceskatelevize import CeskaTelevizeIE
 from .channel9 import Channel9IE
 from .chilloutzone import ChilloutzoneIE
@@ -66,6 +65,7 @@ from .cnn import (
 )
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
+from .comcarcoff import ComCarCoffIE
 from .condenast import CondeNastIE
 from .cracked import CrackedIE
 from .criterion import CriterionIE
