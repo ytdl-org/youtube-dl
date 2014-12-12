@@ -1072,7 +1072,6 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                         ((?:PL|LL|EC|UU|FL|RD)[0-9A-Za-z-_]{10,})
                      )"""
     _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s'
-    _MORE_PAGES_INDICATOR = r'data-link-type="next"'
     _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)'
     IE_NAME = 'youtube:playlist'
     _TESTS = [{
