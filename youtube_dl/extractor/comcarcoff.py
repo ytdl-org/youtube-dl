@@ -6,7 +6,7 @@ from ..utils import parse_iso8601
 
 
 class ComCarCoffIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?comediansincarsgettingcoffee\.com/(?P<id>[a-z0-9\-]+)/?'
+    _VALID_URL = r'http://(?:www\.)?comediansincarsgettingcoffee\.com/(?P<id>[a-z0-9\-]*)'
     _TESTS = [{
         'url': 'http://comediansincarsgettingcoffee.com/miranda-sings-happy-thanksgiving-miranda/',
         'info_dict': {
@@ -25,6 +25,8 @@ class ComCarCoffIE(InfoExtractor):
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
+        if not display_id:
+            display_id = 'comediansincarsgettingcoffee.com'
         webpage = self._download_webpage(url, display_id)
 
         full_data = json.loads(self._search_regex(
