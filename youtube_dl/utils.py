@@ -421,10 +421,6 @@ def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
                                if opts_no_check_certificate
                                else ssl.CERT_REQUIRED)
         context.set_default_verify_paths()
-        try:
-            context.load_default_certs()
-        except AttributeError:
-            pass  # Python < 3.4
         return compat_urllib_request.HTTPSHandler(context=context, **kwargs)
 
 
