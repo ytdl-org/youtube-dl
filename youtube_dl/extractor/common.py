@@ -392,6 +392,10 @@ class InfoExtractor(object):
             url_or_request, video_id, note, errnote, fatal=fatal)
         if (not fatal) and json_string is False:
             return None
+        return self._parse_json(
+            json_string, video_id, transform_source=transform_source, fatal=fatal)
+
+    def _parse_json(self, json_string, video_id, transform_source=None, fatal=True):
         if transform_source:
             json_string = transform_source(json_string)
         try:
