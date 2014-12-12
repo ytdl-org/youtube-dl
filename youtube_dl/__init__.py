@@ -51,7 +51,6 @@ from .postprocessor import (
     ExecAfterDownloadPP,
 )
 
-
 def _real_main(argv=None):
     # Compatibility fixes for Windows
     if sys.platform == 'win32':

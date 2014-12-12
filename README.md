@@ -239,8 +239,9 @@ which means you can modify it, redistribute it or use it however you like.
                                      mp4 , -f m4a and  -f flv  are also
                                      supported. You can also use the special
                                      names "best", "bestvideo", "bestaudio",
-                                     "worst", "worstvideo" and "worstaudio". By
-                                     default, youtube-dl will pick the best
+                                     "worst", "worstvideo" and "worstaudio".
+                                     Use a plus sign to mix formats: -f 22+140
+                                     By default, youtube-dl will pick the best
                                      quality. Use commas to download multiple
                                      audio formats, such as -f
                                      136/137/mp4/bestvideo,140/m4a/bestaudio.
