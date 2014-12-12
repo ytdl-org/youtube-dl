@@ -335,7 +335,7 @@ from .savefrom import SaveFromIE
 from .sbs import SBSIE
 from .scivee import SciVeeIE
 from .screencast import ScreencastIE
-from .screenwavemedia import ScreenwaveMediaIE
+from .screenwavemedia import CinemassacreIE, ScreenwaveMediaIE, TeamFourIE
 from .servingsys import ServingSysIE
 from .sexu import SexuIE
 from .sexykarma import SexyKarmaIE

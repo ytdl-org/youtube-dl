@@ -622,23 +622,17 @@ class YoutubeDL(object):
                 ie_result['url'], ie_key=ie_result.get('ie_key'),
                 extra_info=extra_info, download=False, process=False)
 
-            def make_result(embedded_info):
-                new_result = ie_result.copy()
-                for f in ('_type', 'url', 'ext', 'player_url', 'formats',
-                          'entries', 'ie_key', 'duration',
-                          'subtitles', 'annotations', 'format',
-                          'thumbnail', 'thumbnails'):
-                    if f in new_result:
-                        del new_result[f]
-                    if f in embedded_info:
-                        new_result[f] = embedded_info[f]
-                return new_result
-            new_result = make_result(info)
+            new_result = ie_result.copy()
+            for f in ('_type', 'id', 'url', 'ext', 'player_url', 'formats',
+                      'entries', 'ie_key', 'duration',
+                      'subtitles', 'annotations', 'format',
+                      'thumbnail', 'thumbnails'):
+                if f in new_result:
+                    del new_result[f]
+                if f in info:
+                    new_result[f] = info[f]
 
             assert new_result.get('_type') != 'url_transparent'
-            if new_result.get('_type') == 'compat_list':
-                new_result['entries'] = [
-                    make_result(e) for e in new_result['entries']]
 
             return self.process_ie_result(
                 new_result, download=download, extra_info=extra_info)
