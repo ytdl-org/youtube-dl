@@ -1269,8 +1269,6 @@ class YoutubeTopListIE(YoutubePlaylistIE):
 class YoutubeChannelIE(InfoExtractor):
     IE_DESC = 'YouTube.com channels'
     _VALID_URL = r'https?://(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com)/channel/(?P<id>[0-9A-Za-z_-]+)'
-    _MORE_PAGES_INDICATOR = 'yt-uix-load-more'
-    _MORE_PAGES_URL = 'https://www.youtube.com/c4_browse_ajax?action_load_more_videos=1&flow=list&paging=%s&view=0&sort=da&channel_id=%s'
     IE_NAME = 'youtube:channel'
     _TESTS = [{
         'note': 'paginated channel',
@@ -1307,19 +1305,26 @@ class YoutubeChannelIE(InfoExtractor):
             return self.playlist_result(entries, channel_id)
 
         def _entries():
+            more_widget_html = content_html = channel_page
             for pagenum in itertools.count(1):
-                url = self._MORE_PAGES_URL % (pagenum, channel_id)
-                page = self._download_json(
-                    url, channel_id, note='Downloading page #%s' % pagenum,
-                    transform_source=uppercase_escape)
 
-                ids_in_page = self.extract_videos_from_page(page['content_html'])
+                ids_in_page = self.extract_videos_from_page(content_html)
                 for video_id in ids_in_page:
                     yield self.url_result(
                         video_id, 'Youtube', video_id=video_id)
 
-                if self._MORE_PAGES_INDICATOR not in page['load_more_widget_html']:
+                mobj = re.search(
+                    r'data-uix-load-more-href="/?(?P<more>[^"]+)"',
+                    more_widget_html)
+                if not mobj:
                     break
+
+                more = self._download_json(
+                    'https://youtube.com/%s' % mobj.group('more'), channel_id,
+                    'Downloading page #%s' % (pagenum + 1),
+                    transform_source=uppercase_escape)
+                content_html = more['content_html']
+                more_widget_html = more['load_more_widget_html']
 
         return self.playlist_result(_entries(), channel_id)
 
