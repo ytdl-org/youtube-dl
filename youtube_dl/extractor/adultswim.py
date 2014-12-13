@@ -7,6 +7,8 @@ import json
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
+    xpath_text,
+    float_or_none,
 )
 
 
@@ -128,7 +130,8 @@ class AdultSwimIE(InfoExtractor):
                 segment_url, segment_title,
                 'Downloading segment information', 'Unable to download segment information')
 
-            segment_duration = idoc.find('.//trt').text.strip()
+            segment_duration = float_or_none(
+                xpath_text(idoc, './/trt', 'segment duration').strip())
 
             formats = []
             file_els = idoc.findall('.//files/file')
