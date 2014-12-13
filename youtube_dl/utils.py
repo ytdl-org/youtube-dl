@@ -393,8 +393,14 @@ def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
         context.options &= ~ssl.OP_NO_SSLv3  # Allow older, not-as-secure SSLv3
         if opts_no_check_certificate:
             context.verify_mode = ssl.CERT_NONE
-        return compat_urllib_request.HTTPSHandler(context=context, **kwargs)
-    elif sys.version_info < (3, 2):
+        try:
+            return compat_urllib_request.HTTPSHandler(context=context, **kwargs)
+        except TypeError:
+            # Python 2.7.8
+            # (create_default_context present but HTTPSHandler has no context=)
+            pass
+
+    if sys.version_info < (3, 2):
         import httplib
 
         class HTTPSConnectionV3(httplib.HTTPSConnection):
