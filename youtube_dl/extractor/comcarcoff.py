@@ -53,4 +53,5 @@ class ComCarCoffIE(InfoExtractor):
             'timestamp': parse_iso8601(video_data.get('pubDate')),
             'thumbnails': thumbnails,
             'formats': formats,
+            'webpage_url': 'http://comediansincarsgettingcoffee.com/%s' % (video_data.get('urlSlug', video_data.get('slug'))),
         }
