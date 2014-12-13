@@ -364,6 +364,15 @@ $ # will only download the videos uploaded in the 200x decade
 $ youtube-dl --dateafter 20000101 --datebefore 20091231
 ```
 
+# Tips
+
+Donwload viewo with audio formet:
+
+```bash
+# Example: download https://www.youtube.com/watch?v=nfWlot6h_JM
+$ youtube-dl nfWlot6h_JM --audio-format=mp3 --extract-audio -o 'randomname.%(ext)s'
+```
+
 # FAQ
 
 ### How do I update youtube-dl?
