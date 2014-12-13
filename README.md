@@ -2,17 +2,18 @@ youtube-dl - download videos from youtube.com or other video platforms
 
 # TABLE OF CONTENT
 
-- [SYNOPSIS](#SYNOPSIS)
-- [DESCRIPTION](#)
-- [OPTIONS](#)
-- [CONFIGURATION](#)
-- [OUTPUT TEMPLATE](#)
-- [VIDEO SELECTION](#)
-- [TIPS](#)
-- [FAQ](#)
-- [DEVELOPER INSTRUCTIONS](#)
-- [BUGS](#)
-- [COPYRIGHT](#)
+- [SYNOPSIS](#synopsis)
+- [INSTALLATION](#installation)
+- [DESCRIPTION](#description)
+- [OPTIONS](#options)
+- [CONFIGURATION](#configuration)
+- [OUTPUT TEMPLATE](#output-template)
+- [VIDEO SELECTION](#video-selection)
+- [TIPS](#tips)
+- [FAQ](#fqa)
+- [DEVELOPER INSTRUCTIONS](#developer-instructions)
+- [BUGS](#bugs)
+- [COPYRIGHT](#copyright)
 
 # SYNOPSIS
 **youtube-dl** [OPTIONS] URL [URL...]
