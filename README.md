@@ -381,7 +381,9 @@ $ youtube-dl --dateafter 20000101 --datebefore 20091231
 
 # TIPS
 
-Donwload viewo with audio formet:
+Here are a great tips to help you use it usefully below:
+
+Download only audio file.(You can use it on iTunes)
 
 ```bash
 # Example: download https://www.youtube.com/watch?v=nfWlot6h_JM
