@@ -379,7 +379,7 @@ $ # will only download the videos uploaded in the 200x decade
 $ youtube-dl --dateafter 20000101 --datebefore 20091231
 ```
 
-# Tips
+# TIPS
 
 Donwload viewo with audio formet:
 
