@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from .fivemin import FiveMinIE
 from ..utils import (
     url_basename,
 )
@@ -27,11 +26,10 @@ class EngadgetIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         if video_id is not None:
-            return FiveMinIE._build_result(video_id)
+            return self.url_result('5min:%s' % video_id)
         else:
             title = url_basename(url)
             webpage = self._download_webpage(url, title)
@@ -39,5 +37,5 @@ class EngadgetIE(InfoExtractor):
             return {
                 '_type': 'playlist',
                 'title': title,
-                'entries': [FiveMinIE._build_result(id) for id in ids]
+                'entries': [self.url_result('5min:%s' % vid) for vid in ids]
             }
