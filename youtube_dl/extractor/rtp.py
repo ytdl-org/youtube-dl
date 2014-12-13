@@ -8,8 +8,8 @@ from ..utils import js_to_json
 
 
 class RTPIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?rtp\.pt/play/p(?P<program_id>[0-9]+)/e(?P<id>[0-9]+)/?'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?rtp\.pt/play/p(?P<program_id>[0-9]+)/(?P<id>[^/?#]+)/?'
+    _TESTS = [{
         'url': 'http://www.rtp.pt/play/p405/e174042/paixoes-cruzadas',
         'info_dict': {
             'id': '174042',
@@ -21,7 +21,10 @@ class RTPIE(InfoExtractor):
         'params': {
             'skip_download': True,  # RTMP download
         },
-    }
+    }, {
+        'url': 'http://www.rtp.pt/play/p831/a-quimica-das-coisas',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
