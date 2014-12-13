@@ -390,7 +390,9 @@ def formatSeconds(secs):
 def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
     if hasattr(ssl, 'create_default_context'):  # Python >= 3.4 or 2.7.9
         context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-        context.options &= ~ssl.OP_NO_SSLv3  # Allow older, not-as-secure SSLv3
+        # options can only be cleared with openssl >= 0.9.8m
+        if ssl.OPENSSL_VERSION_INFO >= (0, 9, 8, 13, 15):
+            context.options &= ~ssl.OP_NO_SSLv3  # Allow older, not-as-secure SSLv3
         if opts_no_check_certificate:
             context.verify_mode = ssl.CERT_NONE
         return compat_urllib_request.HTTPSHandler(context=context, **kwargs)
