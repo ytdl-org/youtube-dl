@@ -233,6 +233,7 @@ class F4mFD(FileDownloader):
                 'continuedl': True,
                 'quiet': True,
                 'noprogress': True,
+                'ratelimit': self.params.get('ratelimit', None),
                 'test': self.params.get('test', False),
             }
         )
