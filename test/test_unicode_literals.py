@@ -20,7 +20,7 @@ IGNORED_FILES = [
 ]
 
 
-from helper import assertRegexpMatches
+from test.helper import assertRegexpMatches
 
 
 class TestUnicodeLiterals(unittest.TestCase):
