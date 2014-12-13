@@ -209,7 +209,7 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
         webpage = self._download_webpage(url, group_id, 'Downloading video page')
 
         programme_id = self._search_regex(
-            r'"vpid"\s*:\s*"([\da-z]{8})"', webpage, 'vpid', fatal=False)
+            r'"vpid"\s*:\s*"([\da-z]{8})"', webpage, 'vpid', fatal=False, default=None)
         if programme_id:
             player = self._download_json(
                 'http://www.bbc.co.uk/iplayer/episode/%s.json' % group_id,
