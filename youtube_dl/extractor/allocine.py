@@ -5,10 +5,9 @@ import re
 import json
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
-    compat_str,
     qualities,
-    determine_ext,
 )
 
 
@@ -75,9 +74,7 @@ class AllocineIE(InfoExtractor):
                     'format_id': format_id,
                     'quality': quality(format_id),
                     'url': v,
-                    'ext': determine_ext(v),
                 })
-
         self._sort_formats(formats)
 
         return {

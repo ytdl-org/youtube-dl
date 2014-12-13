@@ -5,8 +5,10 @@ import json
 
 from .common import InfoExtractor
 from .youtube import YoutubeIE
-from ..utils import (
+from ..compat import (
     compat_urlparse,
+)
+from ..utils import (
     clean_html,
     ExtractorError,
     get_element_by_id,

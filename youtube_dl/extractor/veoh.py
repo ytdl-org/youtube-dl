@@ -4,8 +4,10 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_request,
+)
+from ..utils import (
     int_or_none,
     ExtractorError,
 )

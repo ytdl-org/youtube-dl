@@ -1,13 +1,16 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from ..utils import (
-    ExtractorError,
+import re
+
+from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
-    determine_ext,
 )
-import re
+from ..utils import (
+    determine_ext,
+    ExtractorError,
+)
 
 from .common import InfoExtractor
 
@@ -27,9 +30,7 @@ class SockshareIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         url = 'http://sockshare.com/file/%s' % video_id
         webpage = self._download_webpage(url, video_id)
 

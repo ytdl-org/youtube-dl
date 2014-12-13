@@ -5,11 +5,12 @@ import re
 import itertools
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
     compat_urlparse,
     compat_urllib_parse,
-
+)
+from ..utils import (
     ExtractorError,
     int_or_none,
     unified_strdate,

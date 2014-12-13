@@ -3,16 +3,18 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse_urlparse,
     compat_urllib_request,
     compat_urllib_parse,
+)
+from ..utils import (
     str_to_int,
 )
 
 
 class ExtremeTubeIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>extremetube\.com/.*?video/.+?(?P<videoid>[0-9]+))(?:[/?&]|$)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>extremetube\.com/.*?video/.+?(?P<id>[0-9]+))(?:[/?&]|$)'
     _TESTS = [{
         'url': 'http://www.extremetube.com/video/music-video-14-british-euro-brit-european-cumshots-swallow-652431',
         'md5': '1fb9228f5e3332ec8c057d6ac36f33e0',
@@ -31,7 +33,7 @@ class ExtremeTubeIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('videoid')
+        video_id = mobj.group('id')
         url = 'http://www.' + mobj.group('url')
 
         req = compat_urllib_request.Request(url)

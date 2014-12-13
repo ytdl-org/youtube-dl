@@ -4,10 +4,12 @@ import re
 import time
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
+from ..compat import (
     compat_urllib_request,
     compat_urllib_parse,
+)
+from ..utils import (
+    ExtractorError,
 )
 
 
@@ -43,9 +45,7 @@ class MooshareIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         page = self._download_webpage(url, video_id, 'Downloading page')
 
         if re.search(r'>Video Not Found or Deleted<', page) is not None:

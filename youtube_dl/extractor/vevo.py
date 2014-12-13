@@ -4,8 +4,10 @@ import re
 import xml.etree.ElementTree
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_request,
+)
+from ..utils import (
     ExtractorError,
 )
 

@@ -4,10 +4,12 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urlparse,
-    get_element_by_id,
+)
+from ..utils import (
     clean_html,
+    get_element_by_id,
 )
 
 
@@ -26,8 +28,7 @@ class VeeHDIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         # VeeHD seems to send garbage on the first request.
         # See https://github.com/rg3/youtube-dl/issues/2102

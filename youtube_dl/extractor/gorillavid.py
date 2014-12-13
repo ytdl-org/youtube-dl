@@ -4,11 +4,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    determine_ext,
+from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
+)
+from ..utils import (
+    ExtractorError,
     int_or_none,
 )
 
@@ -106,7 +107,6 @@ class GorillaVidIE(InfoExtractor):
         formats = [{
             'format_id': 'sd',
             'url': video_url,
-            'ext': determine_ext(video_url),
             'quality': 1,
         }]
 

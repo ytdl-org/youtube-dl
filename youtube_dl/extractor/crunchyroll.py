@@ -10,10 +10,12 @@ import xml.etree.ElementTree
 from hashlib import sha1
 from math import pow, sqrt, floor
 from .subtitles import SubtitlesInfoExtractor
-from ..utils import (
-    ExtractorError,
+from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
+)
+from ..utils import (
+    ExtractorError,
     bytes_to_intlist,
     intlist_to_bytes,
     unified_strdate,

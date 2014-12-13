@@ -4,10 +4,12 @@ import os
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
+    compat_urllib_parse,
     compat_urllib_parse_urlparse,
     compat_urllib_request,
-    compat_urllib_parse,
+)
+from ..utils import (
     str_to_int,
 )
 from ..aes import (
@@ -16,7 +18,7 @@ from ..aes import (
 
 
 class PornHubIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:www\.)?pornhub\.com/view_video\.php\?viewkey=(?P<id>[0-9a-f]+)'
+    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/view_video\.php\?viewkey=(?P<id>[0-9a-f]+)'
     _TEST = {
         'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
         'md5': '882f488fa1f0026f023f33576004a2ed',

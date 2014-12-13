@@ -6,20 +6,21 @@ import json
 import xml.etree.ElementTree
 
 from .common import InfoExtractor
-from ..utils import (
-    compat_urllib_parse,
-    find_xpath_attr,
-    fix_xml_ampersands,
-    compat_urlparse,
-    compat_str,
-    compat_urllib_request,
+from ..compat import (
     compat_parse_qs,
+    compat_str,
+    compat_urllib_parse,
     compat_urllib_parse_urlparse,
-
+    compat_urllib_request,
+    compat_urlparse,
+)
+from ..utils import (
     determine_ext,
     ExtractorError,
-    unsmuggle_url,
+    find_xpath_attr,
+    fix_xml_ampersands,
     unescapeHTML,
+    unsmuggle_url,
 )
 
 

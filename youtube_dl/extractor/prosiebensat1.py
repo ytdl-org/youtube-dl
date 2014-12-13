@@ -5,8 +5,10 @@ import re
 
 from hashlib import sha1
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
+)
+from ..utils import (
     unified_strdate,
 )
 

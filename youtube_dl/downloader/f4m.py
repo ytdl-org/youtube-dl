@@ -9,10 +9,12 @@ import xml.etree.ElementTree as etree
 
 from .common import FileDownloader
 from .http import HttpFD
+from ..compat import (
+    compat_urlparse,
+)
 from ..utils import (
     struct_pack,
     struct_unpack,
-    compat_urlparse,
     format_bytes,
     encodeFilename,
     sanitize_open,

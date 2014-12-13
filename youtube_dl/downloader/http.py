@@ -4,11 +4,12 @@ import os
 import time
 
 from .common import FileDownloader
-from ..utils import (
+from ..compat import (
     compat_urllib_request,
     compat_urllib_error,
+)
+from ..utils import (
     ContentTooShortError,
-
     encodeFilename,
     sanitize_open,
     format_bytes,

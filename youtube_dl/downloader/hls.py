@@ -6,9 +6,11 @@ import subprocess
 
 from ..postprocessor.ffmpeg import FFmpegPostProcessor
 from .common import FileDownloader
-from ..utils import (
+from ..compat import (
     compat_urlparse,
     compat_urllib_request,
+)
+from ..utils import (
     check_executable,
     encodeFilename,
 )

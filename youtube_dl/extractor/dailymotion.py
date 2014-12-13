@@ -8,13 +8,15 @@ import itertools
 from .common import InfoExtractor
 from .subtitles import SubtitlesInfoExtractor
 
-from ..utils import (
-    compat_urllib_request,
+from ..compat import (
     compat_str,
+    compat_urllib_request,
+)
+from ..utils import (
+    ExtractorError,
+    int_or_none,
     orderedSet,
     str_to_int,
-    int_or_none,
-    ExtractorError,
     unescapeHTML,
 )
 

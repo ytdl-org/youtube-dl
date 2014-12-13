@@ -68,4 +68,3 @@ class AolIE(InfoExtractor):
             'title': title,
             'entries': entries,
         }
-

@@ -6,11 +6,13 @@ import json
 import re
 
 from .common import InfoExtractor, SearchInfoExtractor
-from ..utils import (
-    ExtractorError,
+from ..compat import (
     compat_urllib_parse,
     compat_urlparse,
+)
+from ..utils import (
     clean_html,
+    ExtractorError,
     int_or_none,
 )
 

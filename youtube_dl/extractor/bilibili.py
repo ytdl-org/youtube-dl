@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_parse_qs
 from ..utils import (
-    compat_parse_qs,
     ExtractorError,
     int_or_none,
     unified_strdate,
@@ -29,10 +29,9 @@ class BiliBiliIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
         video_code = self._search_regex(
             r'(?s)<div itemprop="video".*?>(.*?)</div>', webpage, 'video code')
 

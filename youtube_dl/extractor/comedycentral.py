@@ -3,9 +3,11 @@ from __future__ import unicode_literals
 import re
 
 from .mtv import MTVServicesInfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
     compat_urllib_parse,
+)
+from ..utils import (
     ExtractorError,
     float_or_none,
     unified_strdate,

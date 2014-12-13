@@ -7,9 +7,11 @@ import hashlib
 import uuid
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
+)
+from ..utils import (
     ExtractorError,
     int_or_none,
     unified_strdate,

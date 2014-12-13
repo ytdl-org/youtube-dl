@@ -5,12 +5,14 @@ import json
 
 from .subtitles import SubtitlesInfoExtractor
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
+    compat_str,
     compat_urllib_parse,
     compat_urllib_request,
+)
+from ..utils import (
     ExtractorError,
     int_or_none,
-    compat_str,
 )
 
 

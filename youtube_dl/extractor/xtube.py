@@ -4,15 +4,17 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_request,
+)
+from ..utils import (
     parse_duration,
     str_to_int,
 )
 
 
 class XTubeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>xtube\.com/watch\.php\?v=(?P<videoid>[^/?&]+))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>xtube\.com/watch\.php\?v=(?P<id>[^/?&]+))'
     _TEST = {
         'url': 'http://www.xtube.com/watch.php?v=kVTUy_G222_',
         'md5': '092fbdd3cbe292c920ef6fc6a8a9cdab',
@@ -29,7 +31,7 @@ class XTubeIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('videoid')
+        video_id = mobj.group('id')
         url = 'http://www.' + mobj.group('url')
 
         req = compat_urllib_request.Request(url)

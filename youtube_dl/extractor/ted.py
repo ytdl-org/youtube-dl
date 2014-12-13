@@ -5,7 +5,7 @@ import re
 
 from .subtitles import SubtitlesInfoExtractor
 
-from ..utils import (
+from ..compat import (
     compat_str,
 )
 

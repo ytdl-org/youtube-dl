@@ -4,8 +4,10 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
+)
+from ..utils import (
     ExtractorError,
     find_xpath_attr,
 )

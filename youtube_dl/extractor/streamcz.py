@@ -1,13 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import re
-import json
-
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-)
 from ..utils import (
     int_or_none,
 )

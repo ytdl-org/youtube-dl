@@ -1,10 +1,9 @@
 from __future__ import unicode_literals
 
 import base64
-import re
 
 from .common import InfoExtractor
-from ..utils import compat_parse_qs
+from ..compat import compat_parse_qs
 
 
 class TutvIE(InfoExtractor):
@@ -20,10 +19,9 @@ class TutvIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
         internal_id = self._search_regex(r'codVideo=([0-9]+)', webpage, 'internal video ID')
 
         data_content = self._download_webpage(

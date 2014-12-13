@@ -5,14 +5,17 @@ import re
 import json
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_str,
+    compat_urllib_parse,
+    compat_urllib_request,
+)
 from ..utils import (
     ExtractorError,
-    compat_urllib_request,
-    compat_urllib_parse,
-    compat_str,
+    orderedSet,
     unescapeHTML,
     unified_strdate,
-    orderedSet)
+)
 
 
 class VKIE(InfoExtractor):

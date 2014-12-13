@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_urllib_parse
 from ..utils import (
-    compat_urllib_parse,
     xpath_text,
     xpath_with_ns,
     int_or_none,

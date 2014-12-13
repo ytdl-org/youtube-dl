@@ -5,8 +5,8 @@ import re
 import sys
 import time
 
+from ..compat import compat_str
 from ..utils import (
-    compat_str,
     encodeFilename,
     format_bytes,
     timeconvert,

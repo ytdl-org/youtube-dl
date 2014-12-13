@@ -5,10 +5,12 @@ import re
 import itertools
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
-    unified_strdate,
+)
+from ..utils import (
     ExtractorError,
+    unified_strdate,
 )
 
 
@@ -36,9 +38,7 @@ class RutubeIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         video = self._download_json(
             'http://rutube.ru/api/video/%s/?format=json' % video_id,
             video_id, 'Downloading video JSON')
@@ -114,8 +114,7 @@ class RutubeMovieIE(RutubeChannelIE):
     _PAGE_TEMPLATE = 'http://rutube.ru/api/metainfo/tv/%s/video?page=%s&format=json'
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        movie_id = mobj.group('id')
+        movie_id = self._match_id(url)
         movie = self._download_json(
             self._MOVIE_TEMPLATE % movie_id, movie_id,
             'Downloading movie JSON')

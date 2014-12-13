@@ -3,12 +3,14 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_request,
-    unified_strdate,
-    str_to_int,
-    parse_duration,
+)
+from ..utils import (
     clean_html,
+    parse_duration,
+    str_to_int,
+    unified_strdate,
 )
 
 
@@ -31,9 +33,7 @@ class FourTubeIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         webpage_url = 'http://www.4tube.com/videos/' + video_id
         webpage = self._download_webpage(webpage_url, video_id)
 
