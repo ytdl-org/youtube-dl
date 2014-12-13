@@ -20,21 +20,23 @@ class ORFTVthekIE(InfoExtractor):
     _VALID_URL = r'https?://tvthek\.orf\.at/(?:programs/.+?/episodes|topics/.+?|program/[^/]+)/(?P<id>\d+)'
 
     _TEST = {
-        'url': 'http://tvthek.orf.at/program/matinee-Was-Sie-schon-immer-ueber-Klassik-wissen-wollten/7317210/Was-Sie-schon-immer-ueber-Klassik-wissen-wollten/7319746/Was-Sie-schon-immer-ueber-Klassik-wissen-wollten/7319747',
-        'file': '7319747.mp4',
-        'md5': 'bd803c5d8c32d3c64a0ea4b4eeddf375',
-        'info_dict': {
-            'title': 'Was Sie schon immer über Klassik wissen wollten',
-            'description': 'md5:0ddf0d5f0060bd53f744edaa5c2e04a4',
-            'duration': 3508,
-            'upload_date': '20140105',
-        },
+        'url': 'http://tvthek.orf.at/program/Aufgetischt/2745173/Aufgetischt-Mit-der-Steirischen-Tafelrunde/8891389',
+        'playlist': [{
+            'md5': '2942210346ed779588f428a92db88712',
+            'info_dict': {
+                'id': '8896777',
+                'ext': 'mp4',
+                'title': 'Aufgetischt: Mit der Steirischen Tafelrunde',
+                'description': 'md5:c1272f0245537812d4e36419c207b67d',
+                'duration': 2668,
+                'upload_date': '20141208',
+            },
+        }],
         'skip': 'Blocked outside of Austria',
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        playlist_id = mobj.group('id')
+        playlist_id = self._match_id(url)
         webpage = self._download_webpage(url, playlist_id)
 
         data_json = self._search_regex(
@@ -120,9 +122,7 @@ class ORFOE1IE(InfoExtractor):
     _VALID_URL = r'http://oe1\.orf\.at/programm/(?P<id>[0-9]+)'
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        show_id = mobj.group('id')
-
+        show_id = self._match_id(url)
         data = self._download_json(
             'http://oe1.orf.at/programm/%s/konsole' % show_id,
             show_id
