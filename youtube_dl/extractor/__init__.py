@@ -510,6 +510,7 @@ from .yahoo import (
     YahooIE,
     YahooSearchIE,
 )
+from .yesjapan import YesJapanIE
 from .ynet import YnetIE
 from .youjizz import YouJizzIE
 from .youku import YoukuIE
