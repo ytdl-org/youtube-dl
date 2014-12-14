@@ -35,13 +35,27 @@ install: youtube-dl youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtu
 	install -d $(DESTDIR)$(SYSCONFDIR)/fish/completions
 	install -m 644 youtube-dl.fish $(DESTDIR)$(SYSCONFDIR)/fish/completions/youtube-dl.fish
 
+codetest:
+	PYFLAKES_OUT=$$(pyflakes youtube_dl | grep -v youtube_dl/extractor/__init__.py); \
+	if test -n "$$PYFLAKES_OUT"; then \
+		echo "$$PYFLAKES_OUT"; \
+		exit 1; \
+	fi
+	pep8 . --ignore E501
+
 test:
 	#nosetests --with-coverage --cover-package=youtube_dl --cover-html --verbose --processes 4 test
 	nosetests --verbose test
+	$(MAKE) codetest
+
+ot: offlinetest
+
+offlinetest: codetest
+	nosetests --verbose test --exclude test_download --exclude test_age_restriction --exclude test_subtitles
 
 tar: youtube-dl.tar.gz
 
-.PHONY: all clean install test tar bash-completion pypi-files zsh-completion fish-completion
+.PHONY: all clean install test tar bash-completion pypi-files zsh-completion fish-completion ot offlinetest codetest
 
 pypi-files: youtube-dl.bash-completion README.txt youtube-dl.1 youtube-dl.fish
 
