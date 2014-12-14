@@ -38,7 +38,7 @@ class YesJapanIE(InfoExtractor):
         submit_info = get_element_by_attribute('class', 'pm-submit-data', webpage)
         if submit_info:
             timestamp = parse_iso8601(self._search_regex(
-                r'datetime="([^"]+)"', webpage, 'upload date', fatal=False, default=None))
+                r'datetime="([^"]+)"', submit_info, 'upload date', fatal=False, default=None))
 
         # attempt to resolve the final URL in order to get a proper extension
         redirect_req = HEADRequest(video_url)
