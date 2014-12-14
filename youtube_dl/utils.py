@@ -1262,18 +1262,25 @@ def check_executable(exe, args=[]):
 
 
 def get_exe_version(exe, args=['--version'],
-                    version_re=r'version\s+([0-9._-a-zA-Z]+)',
-                    unrecognized='present'):
+                    version_re=None, unrecognized='present'):
     """ Returns the version of the specified executable,
     or False if the executable is not present """
     try:
-        out, err = subprocess.Popen(
+        out, _ = subprocess.Popen(
             [exe] + args,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
     except OSError:
         return False
-    firstline = out.partition(b'\n')[0].decode('ascii', 'ignore')
-    m = re.search(version_re, firstline)
+    if isinstance(out, bytes):  # Python 2.x
+        out = out.decode('ascii', 'ignore')
+    return detect_exe_version(out, version_re, unrecognized)
+
+
+def detect_exe_version(output, version_re=None, unrecognized='present'):
+    assert isinstance(output, compat_str)
+    if version_re is None:
+        version_re = r'version\s+([-0-9._a-zA-Z]+)'
+    m = re.search(version_re, output)
     if m:
         return m.group(1)
     else:
