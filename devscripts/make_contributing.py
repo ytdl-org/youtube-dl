@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 from __future__ import unicode_literals
 
-import argparse
 import io
+import optparse
 import re
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        'INFILE', help='README.md file name to read from')
-    parser.add_argument(
-        'OUTFILE', help='CONTRIBUTING.md file name to write to')
-    args = parser.parse_args()
+    parser = optparse.OptionParser(usage='%prog INFILE OUTFILE')
+    options, args = parser.parse_args()
+    if len(args) != 2:
+        parser.error('Expected an input and an output filename')
 
-    with io.open(args.INFILE, encoding='utf-8') as inf:
+    infile, outfile = args
+
+    with io.open(infile, encoding='utf-8') as inf:
         readme = inf.read()
 
     bug_text = re.search(
@@ -25,7 +25,7 @@ def main():
 
     out = bug_text + dev_text
 
-    with io.open(args.OUTFILE, 'w', encoding='utf-8') as outf:
+    with io.open(outfile, 'w', encoding='utf-8') as outf:
         outf.write(out)
 
 if __name__ == '__main__':
