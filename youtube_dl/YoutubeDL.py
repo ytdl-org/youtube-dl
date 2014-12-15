@@ -121,7 +121,7 @@ class YoutubeDL(object):
     dump_single_json:  Force printing the info_dict of the whole playlist
                        (or video) as a single JSON line.
     simulate:          Do not download the video files.
-    format:            Video format code.
+    format:            Video format code. See options.py for more information.
     format_limit:      Highest quality format to try.
     outtmpl:           Template for output names.
     restrictfilenames: Do not allow "&" and spaces in file names
