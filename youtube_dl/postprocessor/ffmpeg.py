@@ -236,9 +236,9 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         return self._nopostoverwrites, information
 
 
-class FFmpegVideoConvertor(FFmpegPostProcessor):
+class FFmpegVideoConvertorPP(FFmpegPostProcessor):
     def __init__(self, downloader=None, preferedformat=None):
-        super(FFmpegVideoConvertor, self).__init__(downloader)
+        super(FFmpegVideoConvertorPP, self).__init__(downloader)
         self._preferedformat = preferedformat
 
     def run(self, information):

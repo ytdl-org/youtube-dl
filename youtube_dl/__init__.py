@@ -40,16 +40,6 @@ from .downloader import (
 )
 from .extractor import gen_extractors
 from .YoutubeDL import YoutubeDL
-from .postprocessor import (
-    AtomicParsleyPP,
-    FFmpegAudioFixPP,
-    FFmpegMetadataPP,
-    FFmpegVideoConvertor,
-    FFmpegExtractAudioPP,
-    FFmpegEmbedSubtitlePP,
-    XAttrMetadataPP,
-    ExecAfterDownloadPP,
-)
 
 
 def _real_main(argv=None):
@@ -212,6 +202,43 @@ def _real_main(argv=None):
     any_printing = opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.getduration or opts.dumpjson or opts.dump_single_json
     download_archive_fn = compat_expanduser(opts.download_archive) if opts.download_archive is not None else opts.download_archive
 
+    # PostProcessors
+    postprocessors = []
+    # Add the metadata pp first, the other pps will copy it
+    if opts.addmetadata:
+        postprocessors.append({'key': 'FFmpegMetadata'})
+    if opts.extractaudio:
+        postprocessors.append({
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': opts.audioformat,
+            'preferredquality': opts.audioquality,
+            'nopostoverwrites': opts.nopostoverwrites,
+        })
+    if opts.recodevideo:
+        postprocessors.append({
+            'key': 'FFmpegVideoConvertor',
+            'preferedformat': opts.recodevideo,
+        })
+    if opts.embedsubtitles:
+        postprocessors.append({
+            'key': 'FFmpegEmbedSubtitle',
+            'subtitlesformat': opts.subtitlesformat,
+        })
+    if opts.xattrs:
+        postprocessors.append({'key': 'XAttrMetadata'})
+    if opts.embedthumbnail:
+        if not opts.addmetadata:
+            postprocessors.append({'key': 'FFmpegAudioFix'})
+        postprocessors.append({'key': 'AtomicParsley'})
+    # Please keep ExecAfterDownload towards the bottom as it allows the user to modify the final file in any way.
+    # So if the user is able to remove the file before your postprocessor runs it might cause a few problems.
+    if opts.exec_cmd:
+        postprocessors.append({
+            'key': 'ExecAfterDownload',
+            'verboseOutput': opts.verbose,
+            'exec_cmd': opts.exec_cmd,
+        })
+
     ydl_opts = {
         'usenetrc': opts.usenetrc,
         'username': opts.username,
@@ -297,32 +324,10 @@ def _real_main(argv=None):
         'encoding': opts.encoding,
         'exec_cmd': opts.exec_cmd,
         'extract_flat': opts.extract_flat,
+        'postprocessors': postprocessors,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
-        # PostProcessors
-        # Add the metadata pp first, the other pps will copy it
-        if opts.addmetadata:
-            ydl.add_post_processor(FFmpegMetadataPP())
-        if opts.extractaudio:
-            ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
-        if opts.recodevideo:
-            ydl.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
-        if opts.embedsubtitles:
-            ydl.add_post_processor(FFmpegEmbedSubtitlePP(subtitlesformat=opts.subtitlesformat))
-        if opts.xattrs:
-            ydl.add_post_processor(XAttrMetadataPP())
-        if opts.embedthumbnail:
-            if not opts.addmetadata:
-                ydl.add_post_processor(FFmpegAudioFixPP())
-            ydl.add_post_processor(AtomicParsleyPP())
-
-        # Please keep ExecAfterDownload towards the bottom as it allows the user to modify the final file in any way.
-        # So if the user is able to remove the file before your postprocessor runs it might cause a few problems.
-        if opts.exec_cmd:
-            ydl.add_post_processor(ExecAfterDownloadPP(
-                verboseOutput=opts.verbose, exec_cmd=opts.exec_cmd))
-
         # Update version
         if opts.update_self:
             update_self(ydl.to_screen, opts.verbose)

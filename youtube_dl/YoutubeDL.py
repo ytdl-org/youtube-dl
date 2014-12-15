@@ -27,6 +27,7 @@ from .compat import (
     compat_cookiejar,
     compat_expanduser,
     compat_http_client,
+    compat_kwargs,
     compat_str,
     compat_urllib_error,
     compat_urllib_request,
@@ -67,7 +68,11 @@ from .cache import Cache
 from .extractor import get_info_extractor, gen_extractors
 from .downloader import get_suitable_downloader
 from .downloader.rtmp import rtmpdump_version
-from .postprocessor import FFmpegMergerPP, FFmpegPostProcessor
+from .postprocessor import (
+    FFmpegMergerPP,
+    FFmpegPostProcessor,
+    get_postprocessor,
+)
 from .version import __version__
 
 
@@ -176,6 +181,11 @@ class YoutubeDL(object):
     extract_flat:      Do not resolve URLs, return the immediate result.
                        Pass in 'in_playlist' to only show this behavior for
                        playlist items.
+    postprocessors:    A list of dictionaries, each with an entry
+                       key:  The name of the postprocessor. See
+                             youtube_dl/postprocessor/__init__.py for a list.
+                       as well as any further keyword arguments for the
+                       postprocessor.
 
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:
@@ -255,6 +265,13 @@ class YoutubeDL(object):
         if auto_init:
             self.print_debug_header()
             self.add_default_info_extractors()
+
+        for pp_def_raw in self.params.get('postprocessors', []):
+            pp_class = get_postprocessor(pp_def_raw['key'])
+            pp_def = dict(pp_def_raw)
+            del pp_def['key']
+            pp = pp_class(self, **compat_kwargs(pp_def))
+            self.add_post_processor(pp)
 
     def warn_if_short_id(self, argv):
         # short YouTube ID starting with dash?
