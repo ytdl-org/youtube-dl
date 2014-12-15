@@ -712,7 +712,7 @@ class YoutubeDL(object):
                 entries = entries[::-1]
 
             for i, entry in enumerate(entries, 1):
-                self.to_screen('[download] Downloading video #%s of %s' % (i, n_entries))
+                self.to_screen('[download] Downloading video %s of %s' % (i, n_entries))
                 extra = {
                     'n_entries': n_entries,
                     'playlist': playlist,
