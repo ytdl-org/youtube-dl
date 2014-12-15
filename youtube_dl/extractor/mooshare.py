@@ -64,8 +64,7 @@ class MooshareIE(InfoExtractor):
             'http://mooshare.biz/%s' % video_id, compat_urllib_parse.urlencode(download_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
 
-        self.to_screen('%s: Waiting for timeout' % video_id)
-        time.sleep(5)
+        self._sleep(5, video_id)
 
         video_page = self._download_webpage(request, video_id, 'Downloading video page')
 
