@@ -537,7 +537,7 @@ From a Python program, you can embed youtube-dl in a more powerful fashion, like
 
 Most likely, you'll want to use various options. For a list of what can be done, have a look at [youtube_dl/YoutubeDL.py](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/YoutubeDL.py#L69). For a start, if you want to intercept youtube-dl's output, set a `logger` object.
 
-Here's a more complete example of a program that only outputs errors, and downloads/converts the video as mp3:
+Here's a more complete example of a program that outputs only errors (and a short message after the download is finished), and downloads/converts the video to an mp3 file:
 
 
     import youtube_dl
@@ -553,6 +553,12 @@ Here's a more complete example of a program that only outputs errors, and downlo
         def error(self, msg):
             print(msg)
 
+
+    def my_hook(d):
+        if d['status'] == 'finished':
+            print('Done downloading, now converting ...')
+
+
     ydl_opts = {
         'format': 'bestaudio/best',
         'postprocessors': [{
@@ -561,6 +567,7 @@ Here's a more complete example of a program that only outputs errors, and downlo
             'preferredquality': '64',
         }],
         'logger': MyLogger(),
+        'progress_hooks': [my_hook],
     }
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         ydl.download(['http://www.youtube.com/watch?v=BaW_jenozKc'])

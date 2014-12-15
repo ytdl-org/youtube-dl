@@ -182,10 +182,27 @@ class YoutubeDL(object):
                        Pass in 'in_playlist' to only show this behavior for
                        playlist items.
     postprocessors:    A list of dictionaries, each with an entry
-                       key:  The name of the postprocessor. See
-                             youtube_dl/postprocessor/__init__.py for a list.
+                       * key:  The name of the postprocessor. See
+                               youtube_dl/postprocessor/__init__.py for a list.
                        as well as any further keyword arguments for the
                        postprocessor.
+    progress_hooks:    A list of functions that get called on download
+                       progress, with a dictionary with the entries
+                       * filename: The final filename
+                       * status: One of "downloading" and "finished"
+
+                       The dict may also have some of the following entries:
+
+                       * downloaded_bytes: Bytes on disk
+                       * total_bytes: Size of the whole file, None if unknown
+                       * tmpfilename: The filename we're currently writing to
+                       * eta: The estimated time in seconds, None if unknown
+                       * speed: The download speed in bytes/second, None if
+                                unknown
+
+                       Progress hooks are guaranteed to be called at least once
+                       (with status "finished") if the download is successful.
+
 
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:
@@ -272,6 +289,9 @@ class YoutubeDL(object):
             del pp_def['key']
             pp = pp_class(self, **compat_kwargs(pp_def))
             self.add_post_processor(pp)
+
+        for ph in self.params.get('progress_hooks', []):
+            self.add_progress_hook(ph)
 
     def warn_if_short_id(self, argv):
         # short YouTube ID starting with dash?

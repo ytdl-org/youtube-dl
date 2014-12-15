@@ -305,19 +305,6 @@ class FileDownloader(object):
             ph(status)
 
     def add_progress_hook(self, ph):
-        """ ph gets called on download progress, with a dictionary with the entries
-        * filename: The final filename
-        * status: One of "downloading" and "finished"
-
-        It can also have some of the following entries:
-
-        * downloaded_bytes: Bytes on disks
-        * total_bytes: Total bytes, None if unknown
-        * tmpfilename: The filename we're currently writing to
-        * eta: The estimated time in seconds, None if unknown
-        * speed: The download speed in bytes/second, None if unknown
-
-        Hooks are guaranteed to be called at least once (with status "finished")
-        if the download is successful.
-        """
+        # See YoutubeDl.py (search for progress_hooks) for a description of
+        # this interface
         self._progress_hooks.append(ph)
