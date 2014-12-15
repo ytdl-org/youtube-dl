@@ -529,17 +529,19 @@ youtube-dl makes the best effort to be a good command-line program, and thus sho
 
 From a Python program, you can embed youtube-dl in a more powerful fashion, like this:
 
+    ```python
     import youtube_dl
 
     ydl_opts = {}
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         ydl.download(['http://www.youtube.com/watch?v=BaW_jenozKc'])
+    ```
 
 Most likely, you'll want to use various options. For a list of what can be done, have a look at [youtube_dl/YoutubeDL.py](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/YoutubeDL.py#L69). For a start, if you want to intercept youtube-dl's output, set a `logger` object.
 
 Here's a more complete example of a program that outputs only errors (and a short message after the download is finished), and downloads/converts the video to an mp3 file:
 
-
+    ```python
     import youtube_dl
 
 
@@ -571,6 +573,7 @@ Here's a more complete example of a program that outputs only errors (and a shor
     }
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         ydl.download(['http://www.youtube.com/watch?v=BaW_jenozKc'])
+    ```
 
 # BUGS
 
