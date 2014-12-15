@@ -37,7 +37,7 @@ echo '</ul>';
     <tr><td><a class="button" id="main-homepage" href="http://rg3.github.com/youtube-dl/">Homepage</a></td></tr>
     <tr><td><a class="button" id="g" href="http://rg3.github.com/youtube-dl/download.html">Download instructions</a></td></tr>
     <tr><td><a class="button" id="r" href="http://rg3.github.com/youtube-dl/documentation.html">Documentation</a></td></tr>
-	<tr><td><a class="button" id="main-support" href="https://github.com/rg3/youtube-dl/issues/new">Support</a></td></tr>
+	<tr><td><a class="button" id="main-support" href="https://github.com/rg3/youtube-dl/issues/">Support</a></td></tr>
 	<tr><td><a class="button" id="y" href="https://github.com/rg3/youtube-dl/">Develop</a></td></tr>
 	<tr><td><a class="button" id="b" href="http://rg3.github.com/youtube-dl/about.html">About</a></td></tr>
 </table>
