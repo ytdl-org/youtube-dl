@@ -564,7 +564,7 @@ Here's a more complete example of a program that outputs only errors (and a shor
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
-            'preferredquality': '64',
+            'preferredquality': '192',
         }],
         'logger': MyLogger(),
         'progress_hooks': [my_hook],
