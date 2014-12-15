@@ -1128,6 +1128,13 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         'info_dict': {
             'title': 'JODA7',
         }
+    }, {
+        'note': 'Buggy playlist: the webpage has a "Load more" button but it doesn\'t have more videos',
+        'url': 'https://www.youtube.com/playlist?list=UUXw-G3eDE9trcvY2sBMM_aA',
+        'info_dict': {
+                'title': 'Uploads from Interstellar Movie',
+        },
+        'playlist_mincout': 21,
     }]
 
     def _real_initialize(self):
@@ -1212,6 +1219,10 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                 'Downloading page #%s' % page_num,
                 transform_source=uppercase_escape)
             content_html = more['content_html']
+            if not content_html.strip():
+                # Some webpages show a "Load more" button but they don't
+                # have more videos
+                break
             more_widget_html = more['load_more_widget_html']
 
         playlist_title = self._html_search_regex(
