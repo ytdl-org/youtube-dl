@@ -1,7 +1,15 @@
 youtube-dl - download videos from youtube.com or other video platforms
 
-# SYNOPSIS
-**youtube-dl** [OPTIONS] URL [URL...]
+- [INSTALLATION](#installation)
+- [DESCRIPTION](#description)
+- [OPTIONS](#options)
+- [CONFIGURATION](#configuration)
+- [OUTPUT TEMPLATE](#output-template)
+- [VIDEO SELECTION](#video-selection)
+- [FAQ](#faq)
+- [DEVELOPER INSTRUCTIONS](#developer-instructions)
+- [BUGS](#bugs)
+- [COPYRIGHT](#copyright)
 
 # INSTALLATION
 
@@ -33,6 +41,8 @@ YouTube.com and a few more sites. It requires the Python interpreter, version
 2.6, 2.7, or 3.2+, and it is not platform specific. It should work on
 your Unix box, on Windows or on Mac OS X. It is released to the public domain,
 which means you can modify it, redistribute it or use it however you like.
+
+    youtube-dl [OPTIONS] URL [URL...]
 
 # OPTIONS
     -h, --help                       print this help text and exit
