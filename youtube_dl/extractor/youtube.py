@@ -1566,9 +1566,11 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
         feed_entries = []
         paging = 0
         for i in itertools.count(1):
-            info = self._download_json(self._FEED_TEMPLATE % paging,
-                                       '%s feed' % self._FEED_NAME,
-                                       'Downloading page %s' % i)
+            info = self._download_json(
+                self._FEED_TEMPLATE % paging,
+                '%s feed' % self._FEED_NAME,
+                'Downloading page %s' % i,
+                transform_source=uppercase_escape)
             feed_html = info.get('feed_html') or info.get('content_html')
             load_more_widget_html = info.get('load_more_widget_html') or feed_html
             m_ids = re.finditer(r'"/watch\?v=(.*?)["&]', feed_html)
