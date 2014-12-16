@@ -17,7 +17,7 @@ from ..utils import (
 
 class TechTVMITIE(InfoExtractor):
     IE_NAME = 'techtv.mit.edu'
-    _VALID_URL = r'https?://techtv\.mit\.edu/(videos|embeds)/(?P<id>\d+)'
+    _VALID_URL = r'https?://techtv\.mit\.edu/(?:videos|embeds)/(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://techtv.mit.edu/videos/25418-mit-dna-learning-center-set',
@@ -31,8 +31,7 @@ class TechTVMITIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         raw_page = self._download_webpage(
             'http://techtv.mit.edu/videos/%s' % video_id, video_id)
         clean_page = re.compile(r'<!--.*?-->', re.S).sub('', raw_page)
@@ -106,7 +105,7 @@ class OCWMITIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Lecture 7: Multiple Discrete Random Variables: Expectations, Conditioning, Independence',
                 'description': 'In this lecture, the professor discussed multiple random variables, expectations, and binomial distribution.',
-                #'subtitles': 'http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-041-probabilistic-systems-analysis-and-applied-probability-fall-2010/video-lectures/lecture-7-multiple-variables-expectations-independence/MIT6_041F11_lec07_300k.mp4.srt'
+                # 'subtitles': 'http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-041-probabilistic-systems-analysis-and-applied-probability-fall-2010/video-lectures/lecture-7-multiple-variables-expectations-independence/MIT6_041F11_lec07_300k.mp4.srt'
             }
         },
         {
@@ -116,7 +115,7 @@ class OCWMITIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Session 1: Introduction to Derivatives',
                 'description': 'This section contains lecture video excerpts, lecture notes, an interactive mathlet with supporting documents, and problem solving videos.',
-                #'subtitles': 'http://ocw.mit.edu//courses/mathematics/18-01sc-single-variable-calculus-fall-2010/ocw-18.01-f07-lec01_300k.SRT'
+                # 'subtitles': 'http://ocw.mit.edu//courses/mathematics/18-01sc-single-variable-calculus-fall-2010/ocw-18.01-f07-lec01_300k.SRT'
             }
         }
     ]
