@@ -5,6 +5,7 @@ from .academicearth import AcademicEarthCourseIE
 from .addanime import AddAnimeIE
 from .adultswim import AdultSwimIE
 from .aftonbladet import AftonbladetIE
+from .aljazeera import AlJazeeraIE
 from .anitube import AnitubeIE
 from .anysex import AnySexIE
 from .aol import AolIE
