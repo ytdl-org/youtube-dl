@@ -17,9 +17,9 @@ from ..utils import (
 class ORFTVthekIE(InfoExtractor):
     IE_NAME = 'orf:tvthek'
     IE_DESC = 'ORF TVthek'
-    _VALID_URL = r'https?://tvthek\.orf\.at/(?:programs/.+?/episodes|topics/.+?|program/[^/]+)/(?P<id>\d+)'
+    _VALID_URL = r'https?://tvthek\.orf\.at/(?:programs/.+?/episodes|topics?/.+?|program/[^/]+)/(?P<id>\d+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://tvthek.orf.at/program/Aufgetischt/2745173/Aufgetischt-Mit-der-Steirischen-Tafelrunde/8891389',
         'playlist': [{
             'md5': '2942210346ed779588f428a92db88712',
@@ -32,8 +32,21 @@ class ORFTVthekIE(InfoExtractor):
                 'upload_date': '20141208',
             },
         }],
-        'skip': 'Blocked outside of Austria',
-    }
+        'skip': 'Blocked outside of Austria / Germany',
+    }, {
+        'url': 'http://tvthek.orf.at/topic/Im-Wandel-der-Zeit/8002126/Best-of-Ingrid-Thurnher/7982256',
+        'playlist': [{
+            'md5': '68f543909aea49d621dfc7703a11cfaf',
+            'info_dict': {
+                'id': '7982259',
+                'ext': 'mp4',
+                'title': 'Best of Ingrid Thurnher',
+                'upload_date': '20140527',
+                'description': 'Viele Jahre war Ingrid Thurnher das "Gesicht" der ZIB 2. Vor ihrem Wechsel zur ZIB 2 im jahr 1995 moderierte sie unter anderem "Land und Leute", "Österreich-Bild" und "Niederösterreich heute".',
+            }
+        }],
+        '_skip': 'Blocked outside of Austria / Germany',
+    }]
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
@@ -45,7 +58,9 @@ class ORFTVthekIE(InfoExtractor):
 
         def get_segments(all_data):
             for data in all_data:
-                if data['name'] == 'Tracker::EPISODE_DETAIL_PAGE_OVER_PROGRAM':
+                if data['name'] in (
+                        'Tracker::EPISODE_DETAIL_PAGE_OVER_PROGRAM',
+                        'Tracker::EPISODE_DETAIL_PAGE_OVER_TOPIC'):
                     return data['values']['segments']
 
         sdata = get_segments(all_data)
