@@ -1,5 +1,20 @@
 youtube-dl - download videos from youtube.com or other video platforms
 
+# TABLE OF CONTENT
+
+- [SYNOPSIS](#synopsis)
+- [INSTALLATION](#installation)
+- [DESCRIPTION](#description)
+- [OPTIONS](#options)
+- [CONFIGURATION](#configuration)
+- [OUTPUT TEMPLATE](#output-template)
+- [VIDEO SELECTION](#video-selection)
+- [TIPS](#tips)
+- [FAQ](#faq)
+- [DEVELOPER INSTRUCTIONS](#developer-instructions)
+- [BUGS](#bugs)
+- [COPYRIGHT](#copyright)
+
 # SYNOPSIS
 **youtube-dl** [OPTIONS] URL [URL...]
 
@@ -362,6 +377,17 @@ $ youtube-dl --date 19700101
 
 $ # will only download the videos uploaded in the 200x decade
 $ youtube-dl --dateafter 20000101 --datebefore 20091231
+```
+
+# TIPS
+
+Here are a great tips to help you use it usefully below:
+
+Download only audio file.(You can use it on iTunes)
+
+```bash
+# Example: download https://www.youtube.com/watch?v=nfWlot6h_JM
+$ youtube-dl nfWlot6h_JM --audio-format=mp3 --extract-audio -o 'randomname.%(ext)s'
 ```
 
 # FAQ
