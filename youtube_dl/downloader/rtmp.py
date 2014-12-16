@@ -185,7 +185,7 @@ class RtmpFD(FileDownloader):
             cursize = os.path.getsize(encodeFilename(tmpfilename))
             if prevsize == cursize and retval == RD_FAILED:
                 break
-             # Some rtmp streams seem abort after ~ 99.8%. Don't complain for those
+            # Some rtmp streams seem abort after ~ 99.8%. Don't complain for those
             if prevsize == cursize and retval == RD_INCOMPLETE and cursize > 1024:
                 self.to_screen('[rtmpdump] Could not download the whole video. This can happen for some advertisements.')
                 retval = RD_SUCCESS

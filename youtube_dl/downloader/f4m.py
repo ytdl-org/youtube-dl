@@ -203,7 +203,7 @@ def write_flv_header(stream, metadata):
     stream.write(b'\x00\x00\x00\x00\x00\x00\x00')
     stream.write(metadata)
     # Magic numbers extracted from the output files produced by AdobeHDS.php
-    #(https://github.com/K-S-V/Scripts)
+    # (https://github.com/K-S-V/Scripts)
     stream.write(b'\x00\x00\x01\x73')
 
 
