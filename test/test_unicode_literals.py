@@ -7,9 +7,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import io
-import os
 import re
-import unittest
 
 rootDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
