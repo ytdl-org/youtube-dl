@@ -25,7 +25,7 @@ from ..utils import (
 
 
 class BrightcoveIE(InfoExtractor):
-    _VALID_URL = r'https?://.*brightcove\.com/(services|viewer).*?\?(?P<query>.*)'
+    _VALID_URL = r'(?:https?://.*brightcove\.com/(services|viewer).*?\?|brightcove:)(?P<query>.*)'
     _FEDERATED_URL_TEMPLATE = 'http://c.brightcove.com/services/viewer/htmlFederated?%s'
 
     _TESTS = [

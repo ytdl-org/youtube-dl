@@ -24,9 +24,10 @@ class AlJazeeraIE(InfoExtractor):
 
         return {
             '_type': 'url',
-            'url':
-                'http://c.brightcove.com/services/viewer/federated_f9?'
-                '&playerKey=AQ~~%2CAAAAmtVJIFk~%2CTVGOQ5ZTwJbeMWnq5d_H4MOM57xfzApc'
-                '&%40videoPlayer={0}'.format(brightcove_id),
+            'url': (
+                'brightcove:'
+                'playerKey=AQ~~%2CAAAAmtVJIFk~%2CTVGOQ5ZTwJbeMWnq5d_H4MOM57xfzApc'
+                '&%40videoPlayer={0}'.format(brightcove_id)
+            ),
             'ie_key': 'Brightcove',
         }
