@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class AllocineIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?allocine\.fr/(?P<typ>article|video|film)/(fichearticle_gen_carticle=|player_gen_cmedia=|fichefilm_gen_cfilm=)(?P<id>[0-9]+)(?:\.html)?'
+    _VALID_URL = r'https?://(?:www\.)?allocine\.fr/(?P<typ>article|video|film)/(fichearticle_gen_carticle=|player_gen_cmedia=|fichefilm_gen_cfilm=|video-)(?P<id>[0-9]+)(?:\.html)?'
 
     _TESTS = [{
         'url': 'http://www.allocine.fr/article/fichearticle_gen_carticle=18635087.html',
