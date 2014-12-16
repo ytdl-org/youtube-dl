@@ -54,7 +54,7 @@ class NHLBaseInfoExtractor(InfoExtractor):
 
 class NHLIE(NHLBaseInfoExtractor):
     IE_NAME = 'nhl.com'
-    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/console(?:\?(?:.*?[?&])?)id=(?P<id>[0-9a-z-]+)'
+    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/console(?:\?(?:.*?[?&])?)id=(?P<id>[-0-9a-zA-Z]+)'
 
     _TESTS = [{
         'url': 'http://video.canucks.nhl.com/videocenter/console?catid=6?id=453614',
