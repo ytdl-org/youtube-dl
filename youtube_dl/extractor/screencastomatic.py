@@ -31,7 +31,6 @@ class ScreencastOMaticIE(InfoExtractor):
             r"(?s)jwplayer\('mp4Player'\).setup\((\{.*?\})\);",
             webpage, 'setup code')
         data = self._parse_json(setup_js, video_id, transform_source=js_to_json)
-        modes = data['modes']
         try:
             video_data = next(
                 m for m in data['modes'] if m.get('type') == 'html5')
