@@ -1149,8 +1149,8 @@ class YoutubeDL(object):
                 except (PostProcessingError) as err:
                     self.report_error('postprocessing: %s' % str(err))
                     return
+                self.record_download_archive(info_dict)
 
-        self.record_download_archive(info_dict)
 
     def download(self, url_list):
         """Download a given list of URLs."""
