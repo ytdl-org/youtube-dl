@@ -1151,7 +1151,6 @@ class YoutubeDL(object):
                     return
                 self.record_download_archive(info_dict)
 
-
     def download(self, url_list):
         """Download a given list of URLs."""
         outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
