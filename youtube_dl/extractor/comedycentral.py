@@ -44,13 +44,14 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
                           (?P<showname>thedailyshow|thecolbertreport)\.(?:cc\.)?com/
                          ((?:full-)?episodes/(?:[0-9a-z]{6}/)?(?P<episode>.*)|
                           (?P<clip>
-                              (?:(?:guests/[^/]+|videos|video-playlists|special-editions|news-team/[^/]+)/[^/]+/(?P<videotitle>[^/?#]+))
+                              (?:(?:guests/[^/]+|videos|special-editions|news-team/[^/]+)/[^/]+/(?P<videotitle>[^/?#]+))
+                              |video-playlists/[^/?#]+/(?P<playlistName>[^/?#]+)(/[^/?#]+)?
                               |(the-colbert-report-(videos|collections)/(?P<clipID>[0-9]+)/[^/]*/(?P<cntitle>.*?))
                               |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*))
                           )|
                           (?P<interview>
                               extended-interviews/(?P<interID>[0-9a-z]+)/(?:playlist_tds_extended_)?(?P<interview_title>.*?)(/.*?)?)))
-                     '''
+                     (?:[?#].*|$)'''
     _TESTS = [{
         'url': 'http://thedailyshow.cc.com/watch/thu-december-13-2012/kristen-stewart',
         'md5': '4e2f5cb088a83cd8cdb7756132f9739d',
@@ -129,6 +130,9 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
                 epTitle = mobj.group('videotitle')
             elif mobj.group('showname') == 'thedailyshow':
                 epTitle = mobj.group('tdstitle')
+            elif mobj.group('playlistName'):
+                epTitle = mobj.group('playlistName')
+                dlNewest = False
             else:
                 epTitle = mobj.group('cntitle')
             dlNewest = False
