@@ -285,7 +285,7 @@ class FileDownloader(object):
         Return True on success and False otherwise
         """
         # Check file already present
-        if self.params.get('continuedl', False) and os.path.isfile(encodeFilename(filename)) and not self.params.get('nopart', False):
+        if filename != '-' and self.params.get('continuedl', False) and os.path.isfile(encodeFilename(filename)) and not self.params.get('nopart', False):
             self.report_file_already_downloaded(filename)
             self._hook_progress({
                 'filename': filename,
