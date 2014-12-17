@@ -50,7 +50,7 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
                           )|
                           (?P<interview>
                               extended-interviews/(?P<interID>[0-9a-z]+)/(?:playlist_tds_extended_)?(?P<interview_title>.*?)(/.*?)?)))
-                     (?:[?#].*|$)'''
+                     '''
     _TESTS = [{
         'url': 'http://thedailyshow.cc.com/watch/thu-december-13-2012/kristen-stewart',
         'md5': '4e2f5cb088a83cd8cdb7756132f9739d',
@@ -82,6 +82,9 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://thedailyshow.cc.com/video-playlists/npde3s/the-daily-show-19088-highlights',
+        'only_matching': True,
+    }, {
+        'url': 'http://thedailyshow.cc.com/video-playlists/t6d9sg/the-daily-show-20038-highlights/be3cwo',
         'only_matching': True,
     }, {
         'url': 'http://thedailyshow.cc.com/special-editions/2l8fdb/special-edition---a-look-back-at-food',
