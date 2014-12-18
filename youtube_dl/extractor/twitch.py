@@ -22,6 +22,7 @@ class TwitchIE(InfoExtractor):
     _VALID_URL = r"""(?x)^(?:http://)?(?:www\.)?twitch\.tv/
         (?:
             (?P<channelid>[^/]+)|
+            (?:(?:[^/]+)/v/(?P<vodid>[^/]+))|
             (?:(?:[^/]+)/b/(?P<videoid>[^/]+))|
             (?:(?:[^/]+)/c/(?P<chapterid>[^/]+))
         )
@@ -70,11 +71,24 @@ class TwitchIE(InfoExtractor):
     def _extract_media(self, item, item_id):
         ITEMS = {
             'a': 'video',
+            'v': 'vod',
             'c': 'chapter',
         }
         info = self._extract_info(self._download_json(
             '%s/kraken/videos/%s%s' % (self._API_BASE, item, item_id), item_id,
             'Downloading %s info JSON' % ITEMS[item]))
+
+        if item == 'v':
+            access_token = self._download_json(
+                '%s/api/vods/%s/access_token' % (self._API_BASE, item_id), item_id,
+                'Downloading %s access token' % ITEMS[item])
+            formats = self._extract_m3u8_formats(
+                'http://usher.twitch.tv/vod/%s?nauth=%s&nauthsig=%s'
+                % (item_id, access_token['token'], access_token['sig']),
+                item_id, 'mp4')
+            info['formats'] = formats
+            return info
+
         response = self._download_json(
             '%s/api/videos/%s%s' % (self._API_BASE, item, item_id), item_id,
             'Downloading %s playlist JSON' % ITEMS[item])
@@ -209,6 +223,8 @@ class TwitchIE(InfoExtractor):
             """
         elif mobj.group('videoid'):
             return self._extract_media('a', mobj.group('videoid'))
+        elif mobj.group('vodid'):
+            return self._extract_media('v', mobj.group('vodid'))
         elif mobj.group('channelid'):
             channel_id = mobj.group('channelid')
             info = self._download_json(
