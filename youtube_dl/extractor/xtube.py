@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_request,
+    compat_urllib_parse,
 )
 from ..utils import (
     parse_duration,
@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class XTubeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>xtube\.com/watch\.php\?v=(?P<id>[^/?&]+))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>xtube\.com/watch\.php\?v=(?P<id>[^/?&#]+))'
     _TEST = {
         'url': 'http://www.xtube.com/watch.php?v=kVTUy_G222_',
         'md5': '092fbdd3cbe292c920ef6fc6a8a9cdab',
@@ -30,41 +30,49 @@ class XTubeIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        url = 'http://www.' + mobj.group('url')
+        video_id = self._match_id(url)
 
         req = compat_urllib_request.Request(url)
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
 
-        video_title = self._html_search_regex(r'<p class="title">([^<]+)', webpage, 'title')
+        video_title = self._html_search_regex(
+            r'<p class="title">([^<]+)', webpage, 'title')
         video_uploader = self._html_search_regex(
-            r'so_s\.addVariable\("owner_u", "([^"]+)', webpage, 'uploader', fatal=False)
+            [r"var\s+contentOwnerId\s*=\s*'([^']+)",
+             r'By:\s*<a href="/community/profile\.php?user=([^"]+)'],
+            webpage, 'uploader', fatal=False)
         video_description = self._html_search_regex(
-            r'<p class="fieldsDesc">([^<]+)', webpage, 'description', fatal=False)
+            r'<p class="fieldsDesc">([^<]+)',
+            webpage, 'description', fatal=False)
         duration = parse_duration(self._html_search_regex(
-            r'<span class="bold">Runtime:</span> ([^<]+)</p>', webpage, 'duration', fatal=False))
-        view_count = self._html_search_regex(
-            r'<span class="bold">Views:</span> ([\d,\.]+)</p>', webpage, 'view count', fatal=False)
-        if view_count:
-            view_count = str_to_int(view_count)
-        comment_count = self._html_search_regex(
-            r'<div id="commentBar">([\d,\.]+) Comments</div>', webpage, 'comment count', fatal=False)
-        if comment_count:
-            comment_count = str_to_int(comment_count)
+            r'<span class="bold">Runtime:</span> ([^<]+)</p>',
+            webpage, 'duration', fatal=False))
+        view_count = str_to_int(self._html_search_regex(
+            r'<span class="bold">Views:</span> ([\d,\.]+)</p>',
+            webpage, 'view count', fatal=False))
+        comment_count = str_to_int(self._html_search_regex(
+            r'<div id="commentBar">([\d,\.]+) Comments</div>',
+            webpage, 'comment count', fatal=False))
 
-        player_quality_option = json.loads(self._html_search_regex(
-            r'playerQualityOption = ({.+?});', webpage, 'player quality option'))
-
-        QUALITIES = ['3gp', 'mp4_normal', 'mp4_high', 'flv', 'mp4_ultra', 'mp4_720', 'mp4_1080']
-        formats = [
-            {
-                'url': furl,
+        formats = []
+        for format_id, video_url in re.findall(
+                r'flashvars\.quality_(.+?)\s*=\s*"([^"]+)"', webpage):
+            fmt = {
+                'url': compat_urllib_parse.unquote(video_url),
                 'format_id': format_id,
-                'preference': QUALITIES.index(format_id) if format_id in QUALITIES else -1,
-            } for format_id, furl in player_quality_option.items()
-        ]
+            }
+            m = re.search(r'^(?P<height>\d+)[pP]', format_id)
+            if m:
+                fmt['height'] = int(m.group('height'))
+            formats.append(fmt)
+
+        if not formats:
+            video_url = compat_urllib_parse.unquote(self._search_regex(
+                r'flashvars\.video_url\s*=\s*"([^"]+)"',
+                webpage, 'video URL'))
+            formats.append({'url': video_url})
+
         self._sort_formats(formats)
 
         return {
