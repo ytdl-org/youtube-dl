@@ -264,6 +264,7 @@ from .nbc import (
 )
 from .ndr import NDRIE
 from .ndtv import NDTVIE
+from .nerdcubed import NerdCubedFeedIE
 from .newgrounds import NewgroundsIE
 from .newstube import NewstubeIE
 from .nfb import NFBIE
