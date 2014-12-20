@@ -9,6 +9,7 @@ from ..utils import (
     qualities,
     strip_jsonp,
     url_basename,
+    fix_xml_ampersands,
 )
 
 
@@ -51,7 +52,21 @@ class NPOIE(InfoExtractor):
                 'upload_date': '20130225',
                 'duration': 3000,
             },
-        }
+        },
+        {
+            'url': 'http://www.npo.nl/de-nieuwe-mens-deel-1/21-07-2010/WO_VPRO_043706',
+            'info_dict': {
+                'id': 'WO_VPRO_043706',
+                'ext': 'wmv',
+                'title': 'De nieuwe mens - Deel 1',
+                'description': 'md5:518ae51ba1293ffb80d8d8ce90b74e4b',
+                'duration': 4680,
+            },
+            'params': {
+                # mplayer mms download
+                'skip_download': True,
+            }
+        },
     ]
 
     def _real_extract(self, url):
@@ -74,31 +89,58 @@ class NPOIE(InfoExtractor):
         token = self._search_regex(r'npoplayer\.token = "(.+?)"', token_page, 'token')
 
         formats = []
-        quality = qualities(['adaptive', 'wmv_sb', 'h264_sb', 'wmv_bb', 'h264_bb', 'wvc1_std', 'h264_std'])
-        for format_id in metadata['pubopties']:
-            format_info = self._download_json(
-                'http://ida.omroep.nl/odi/?prid=%s&puboptions=%s&adaptive=yes&token=%s' % (video_id, format_id, token),
-                video_id, 'Downloading %s JSON' % format_id)
-            if format_info.get('error_code', 0) or format_info.get('errorcode', 0):
-                continue
-            streams = format_info.get('streams')
-            if streams:
-                video_info = self._download_json(
-                    streams[0] + '&type=json',
-                    video_id, 'Downloading %s stream JSON' % format_id)
-            else:
-                video_info = format_info
-            video_url = video_info.get('url')
-            if not video_url:
-                continue
-            if format_id == 'adaptive':
-                formats.extend(self._extract_m3u8_formats(video_url, video_id))
-            else:
+
+        pubopties = metadata.get('pubopties')
+        if pubopties:
+            quality = qualities(['adaptive', 'wmv_sb', 'h264_sb', 'wmv_bb', 'h264_bb', 'wvc1_std', 'h264_std'])
+            for format_id in pubopties:
+                format_info = self._download_json(
+                    'http://ida.omroep.nl/odi/?prid=%s&puboptions=%s&adaptive=yes&token=%s'
+                    % (video_id, format_id, token),
+                    video_id, 'Downloading %s JSON' % format_id)
+                if format_info.get('error_code', 0) or format_info.get('errorcode', 0):
+                    continue
+                streams = format_info.get('streams')
+                if streams:
+                    video_info = self._download_json(
+                        streams[0] + '&type=json',
+                        video_id, 'Downloading %s stream JSON' % format_id)
+                else:
+                    video_info = format_info
+                video_url = video_info.get('url')
+                if not video_url:
+                    continue
+                if format_id == 'adaptive':
+                    formats.extend(self._extract_m3u8_formats(video_url, video_id))
+                else:
+                    formats.append({
+                        'url': video_url,
+                        'format_id': format_id,
+                        'quality': quality(format_id),
+                    })
+
+        streams = metadata.get('streams')
+        if streams:
+            for i, stream in enumerate(streams):
+                stream_url = stream.get('url')
+                if not stream_url:
+                    continue
+                asx = self._download_xml(
+                    stream_url, video_id,
+                    'Downloading stream %d ASX playlist' % i,
+                    transform_source=fix_xml_ampersands)
+                ref = asx.find('./ENTRY/Ref')
+                if ref is None:
+                    continue
+                video_url = ref.get('href')
+                if not video_url:
+                    continue
                 formats.append({
                     'url': video_url,
-                    'format_id': format_id,
-                    'quality': quality(format_id),
+                    'ext': stream.get('formaat', 'asf'),
+                    'quality': stream.get('kwaliteit'),
                 })
+
         self._sort_formats(formats)
 
         return {
