@@ -18,7 +18,7 @@ class NerdCubedFeedIE(InfoExtractor):
 
     def _real_extract(self, url):
         feed = self._download_json(url, url, "Downloading NerdCubed JSON feed")
-        
+
         entries = [{
             '_type': 'url',
             'title': feed_entry['title'],
@@ -33,4 +33,3 @@ class NerdCubedFeedIE(InfoExtractor):
             'id': 'nerdcubed-feed',
             'entries': entries,
         }
-
