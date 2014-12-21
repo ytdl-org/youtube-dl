@@ -12,7 +12,7 @@ class RTPIE(InfoExtractor):
     _TESTS = [{
         'url': 'http://www.rtp.pt/play/p405/e174042/paixoes-cruzadas',
         'info_dict': {
-            'id': '174042',
+            'id': 'e174042',
             'ext': 'mp3',
             'title': 'Paixões Cruzadas',
             'description': 'As paixões musicais de António Cartaxo e António Macedo',
