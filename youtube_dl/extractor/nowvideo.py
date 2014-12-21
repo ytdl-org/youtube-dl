@@ -7,7 +7,7 @@ class NowVideoIE(NovaMovIE):
     IE_NAME = 'nowvideo'
     IE_DESC = 'NowVideo'
 
-    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'nowvideo\.(?:ch|sx|eu|at|ag|co)'}
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'nowvideo\.(?:ch|sx|eu|at|ag|co|li)'}
 
     _HOST = 'www.nowvideo.ch'
 

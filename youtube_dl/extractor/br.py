@@ -1,41 +1,31 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     int_or_none,
+    parse_duration,
 )
 
 
 class BRIE(InfoExtractor):
     IE_DESC = 'Bayerischer Rundfunk Mediathek'
-    _VALID_URL = r'https?://(?:www\.)?br\.de/(?:[a-z0-9\-]+/)+(?P<id>[a-z0-9\-]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?br\.de/(?:[a-z0-9\-_]+/)+(?P<id>[a-z0-9\-_]+)\.html'
     _BASE_URL = 'http://www.br.de'
 
     _TESTS = [
         {
-            'url': 'http://www.br.de/mediathek/video/anselm-gruen-114.html',
-            'md5': 'c4f83cf0f023ba5875aba0bf46860df2',
+            'url': 'http://www.br.de/mediathek/video/sendungen/heimatsound/heimatsound-festival-2014-trailer-100.html',
+            'md5': '93556dd2bcb2948d9259f8670c516d59',
             'info_dict': {
-                'id': '2c8d81c5-6fb7-4a74-88d4-e768e5856532',
+                'id': '25e279aa-1ffd-40fd-9955-5325bd48a53a',
                 'ext': 'mp4',
-                'title': 'Feiern und Verzichten',
-                'description': 'Anselm Grün: Feiern und Verzichten',
-                'uploader': 'BR/Birgit Baier',
-                'upload_date': '20140301',
-            }
-        },
-        {
-            'url': 'http://www.br.de/mediathek/video/sendungen/unter-unserem-himmel/unter-unserem-himmel-alpen-ueber-den-pass-100.html',
-            'md5': 'ab451b09d861dbed7d7cc9ab0be19ebe',
-            'info_dict': {
-                'id': '2c060e69-3a27-4e13-b0f0-668fac17d812',
-                'ext': 'mp4',
-                'title': 'Über den Pass',
-                'description': 'Die Eroberung der Alpen: Über den Pass',
+                'title': 'Wenn das Traditions-Theater wackelt',
+                'description': 'Heimatsound-Festival 2014: Wenn das Traditions-Theater wackelt',
+                'duration': 34,
+                'uploader': 'BR',
+                'upload_date': '20140802',
             }
         },
         {
@@ -46,6 +36,7 @@ class BRIE(InfoExtractor):
                 'ext': 'aac',
                 'title': '"Keine neuen Schulden im nächsten Jahr"',
                 'description': 'Haushaltsentwurf: "Keine neuen Schulden im nächsten Jahr"',
+                'duration': 64,
             }
         },
         {
@@ -56,6 +47,7 @@ class BRIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Umweltbewusster Häuslebauer',
                 'description': 'Uwe Erdelt: Umweltbewusster Häuslebauer',
+                'duration': 116,
             }
         },
         {
@@ -66,6 +58,7 @@ class BRIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Folge 1 - Metaphysik',
                 'description': 'Kant für Anfänger: Folge 1 - Metaphysik',
+                'duration': 893,
                 'uploader': 'Eva Maria Steimle',
                 'upload_date': '20140117',
             }
@@ -73,8 +66,7 @@ class BRIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        display_id = mobj.group('id')
+        display_id = self._match_id(url)
         page = self._download_webpage(url, display_id)
         xml_url = self._search_regex(
             r"return BRavFramework\.register\(BRavFramework\('avPlayer_(?:[a-f0-9-]{36})'\)\.setup\({dataURL:'(/(?:[a-z0-9\-]+/)+[a-z0-9/~_.-]+)'}\)\);", page, 'XMLURL')
@@ -86,6 +78,7 @@ class BRIE(InfoExtractor):
             media = {
                 'id': xml_media.get('externalId'),
                 'title': xml_media.find('title').text,
+                'duration': parse_duration(xml_media.find('duration').text),
                 'formats': self._extract_formats(xml_media.find('assets')),
                 'thumbnails': self._extract_thumbnails(xml_media.find('teaserImage/variants')),
                 'description': ' '.join(xml_media.find('shareTitle').text.splitlines()),

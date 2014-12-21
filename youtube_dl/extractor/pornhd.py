@@ -4,19 +4,26 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    js_to_json,
+    qualities,
+)
 
 
 class PornHdIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?pornhd\.com/(?:[a-z]{2,4}/)?videos/(?P<id>\d+)'
+    _VALID_URL = r'http://(?:www\.)?pornhd\.com/(?:[a-z]{2,4}/)?videos/(?P<id>\d+)(?:/(?P<display_id>.+))?'
     _TEST = {
         'url': 'http://www.pornhd.com/videos/1962/sierra-day-gets-his-cum-all-over-herself-hd-porn-video',
         'md5': '956b8ca569f7f4d8ec563e2c41598441',
         'info_dict': {
             'id': '1962',
+            'display_id': 'sierra-day-gets-his-cum-all-over-herself-hd-porn-video',
             'ext': 'mp4',
             'title': 'Sierra loves doing laundry',
             'description': 'md5:8ff0523848ac2b8f9b065ba781ccf294',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'view_count': int,
             'age_limit': 18,
         }
     }
@@ -24,54 +31,36 @@ class PornHdIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
+        display_id = mobj.group('display_id')
 
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(url, display_id or video_id)
 
-        title = self._og_search_title(webpage)
-        TITLE_SUFFIX = ' porn HD Video | PornHD.com '
-        if title.endswith(TITLE_SUFFIX):
-            title = title[:-len(TITLE_SUFFIX)]
-
+        title = self._html_search_regex(
+            r'<title>(.+) porn HD.+?</title>', webpage, 'title')
         description = self._html_search_regex(
             r'<div class="description">([^<]+)</div>', webpage, 'description', fatal=False)
         view_count = int_or_none(self._html_search_regex(
-            r'(\d+) views 	</span>', webpage, 'view count', fatal=False))
+            r'(\d+) views\s*</span>', webpage, 'view count', fatal=False))
+        thumbnail = self._search_regex(
+            r"'poster'\s*:\s*'([^']+)'", webpage, 'thumbnail', fatal=False)
 
-        formats = [
-            {
-                'url': format_url,
-                'ext': format.lower(),
-                'format_id': '%s-%s' % (format.lower(), quality.lower()),
-                'quality': 1 if quality.lower() == 'high' else 0,
-            } for format, quality, format_url in re.findall(
-                r'var __video([\da-zA-Z]+?)(Low|High)StreamUrl = \'(http://.+?)\?noProxy=1\'', webpage)
-        ]
-
-        mobj = re.search(r'flashVars = (?P<flashvars>{.+?});', webpage)
-        if mobj:
-            flashvars = json.loads(mobj.group('flashvars'))
-            formats.extend([
-                {
-                    'url': flashvars['hashlink'].replace('?noProxy=1', ''),
-                    'ext': 'flv',
-                    'format_id': 'flv-low',
-                    'quality': 0,
-                },
-                {
-                    'url': flashvars['hd'].replace('?noProxy=1', ''),
-                    'ext': 'flv',
-                    'format_id': 'flv-high',
-                    'quality': 1,
-                }
-            ])
-            thumbnail = flashvars['urlWallpaper']
-        else:
-            thumbnail = self._og_search_thumbnail(webpage)
-
+        quality = qualities(['sd', 'hd'])
+        sources = json.loads(js_to_json(self._search_regex(
+            r"(?s)'sources'\s*:\s*(\{.+?\})\s*\}\);", webpage, 'sources')))
+        formats = []
+        for container, s in sources.items():
+            for qname, video_url in s.items():
+                formats.append({
+                    'url': video_url,
+                    'container': container,
+                    'format_id': '%s-%s' % (container, qname),
+                    'quality': quality(qname),
+                })
         self._sort_formats(formats)
 
         return {
             'id': video_id,
+            'display_id': display_id,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,

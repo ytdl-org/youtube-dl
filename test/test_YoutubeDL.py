@@ -67,7 +67,7 @@ class TestFormatSelection(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['ext'], 'mp4')
 
-        # No prefer_free_formats => prefer mp4 and flv for greater compatibilty
+        # No prefer_free_formats => prefer mp4 and flv for greater compatibility
         ydl = YDL()
         ydl.params['prefer_free_formats'] = False
         formats = [
@@ -221,7 +221,7 @@ class TestFormatSelection(unittest.TestCase):
             '138', '137', '248', '136', '247', '135', '246',
             '245', '244', '134', '243', '133', '242', '160',
             # Dash audio
-            '141', '172', '140', '139', '171',
+            '141', '172', '140', '171', '139',
         ]
 
         for f1id, f2id in zip(order, order[1:]):
@@ -266,6 +266,7 @@ class TestFormatSelection(unittest.TestCase):
             'ext': 'mp4',
             'width': None,
         }
+
         def fname(templ):
             ydl = YoutubeDL({'outtmpl': templ})
             return ydl.prepare_filename(info)
@@ -279,7 +280,7 @@ class TestFormatSelection(unittest.TestCase):
         self.assertEqual(ydl._format_note({}), '')
         assertRegexpMatches(self, ydl._format_note({
             'vbr': 10,
-        }), '^x\s*10k$')
+        }), '^\s*10k$')
 
 if __name__ == '__main__':
     unittest.main()

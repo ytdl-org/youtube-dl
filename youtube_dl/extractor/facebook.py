@@ -5,39 +5,52 @@ import re
 import socket
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_http_client,
     compat_str,
     compat_urllib_error,
     compat_urllib_parse,
     compat_urllib_request,
-    urlencode_postdata,
-
+)
+from ..utils import (
     ExtractorError,
+    int_or_none,
+    limit_length,
+    urlencode_postdata,
 )
 
 
 class FacebookIE(InfoExtractor):
     _VALID_URL = r'''(?x)
         https?://(?:\w+\.)?facebook\.com/
-        (?:[^#?]*\#!/)?
-        (?:video/video\.php|photo\.php|video/embed)\?(?:.*?)
+        (?:[^#]*?\#!/)?
+        (?:video/video\.php|photo\.php|video\.php|video/embed)\?(?:.*?)
         (?:v|video_id)=(?P<id>[0-9]+)
         (?:.*)'''
     _LOGIN_URL = 'https://www.facebook.com/login.php?next=http%3A%2F%2Ffacebook.com%2Fhome.php&login_attempt=1'
     _CHECKPOINT_URL = 'https://www.facebook.com/checkpoint/?next=http%3A%2F%2Ffacebook.com%2Fhome.php&_fb_noscript=1'
     _NETRC_MACHINE = 'facebook'
     IE_NAME = 'facebook'
-    _TEST = {
-        'url': 'https://www.facebook.com/photo.php?v=120708114770723',
-        'md5': '48975a41ccc4b7a581abd68651c1a5a8',
+    _TESTS = [{
+        'url': 'https://www.facebook.com/video.php?v=637842556329505&fref=nf',
+        'md5': '6a40d33c0eccbb1af76cf0485a052659',
         'info_dict': {
-            'id': '120708114770723',
+            'id': '637842556329505',
             'ext': 'mp4',
-            'duration': 279,
-            'title': 'PEOPLE ARE AWESOME 2013',
+            'title': 're:Did you know Kei Nishikori is the first Asian man to ever reach a Grand Slam',
         }
-    }
+    }, {
+        'note': 'Video without discernible title',
+        'url': 'https://www.facebook.com/video.php?v=274175099429670',
+        'info_dict': {
+            'id': '274175099429670',
+            'ext': 'mp4',
+            'title': 'Facebook video #274175099429670',
+        }
+    }, {
+        'url': 'https://www.facebook.com/video.php?v=10204634152394104',
+        'only_matching': True,
+    }]
 
     def _login(self):
         (useremail, password) = self._get_login_info()
@@ -47,8 +60,8 @@ class FacebookIE(InfoExtractor):
         login_page_req = compat_urllib_request.Request(self._LOGIN_URL)
         login_page_req.add_header('Cookie', 'locale=en_US')
         login_page = self._download_webpage(login_page_req, None,
-            note='Downloading login page',
-            errnote='Unable to download login page')
+                                            note='Downloading login page',
+                                            errnote='Unable to download login page')
         lsd = self._search_regex(
             r'<input type="hidden" name="lsd" value="([^"]*)"',
             login_page, 'lsd')
@@ -64,25 +77,26 @@ class FacebookIE(InfoExtractor):
             'legacy_return': '1',
             'timezone': '-60',
             'trynum': '1',
-            }
+        }
         request = compat_urllib_request.Request(self._LOGIN_URL, urlencode_postdata(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         try:
             login_results = self._download_webpage(request, None,
-                note='Logging in', errnote='unable to fetch login page')
+                                                   note='Logging in', errnote='unable to fetch login page')
             if re.search(r'<form(.*)name="login"(.*)</form>', login_results) is not None:
                 self._downloader.report_warning('unable to log in: bad username/password, or exceded login rate limit (~3/min). Check credentials or wait.')
                 return
 
             check_form = {
                 'fb_dtsg': self._search_regex(r'name="fb_dtsg" value="(.+?)"', login_results, 'fb_dtsg'),
-                'h': self._search_regex(r'name="h" value="(\w*?)"', login_results, 'h'),
+                'h': self._search_regex(
+                    r'name="h"\s+(?:\w+="[^"]+"\s+)*?value="([^"]+)"', login_results, 'h'),
                 'name_action_selected': 'dont_save',
             }
             check_req = compat_urllib_request.Request(self._CHECKPOINT_URL, urlencode_postdata(check_form))
             check_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
             check_response = self._download_webpage(check_req, None,
-                note='Confirming login')
+                                                    note='Confirming login')
             if re.search(r'id="checkpointSubmitButton"', check_response) is not None:
                 self._downloader.report_warning('Unable to confirm login, you have to login in your brower and authorize the login.')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
@@ -93,9 +107,7 @@ class FacebookIE(InfoExtractor):
         self._login()
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         url = 'https://www.facebook.com/video/video.php?v=%s' % video_id
         webpage = self._download_webpage(url, video_id)
 
@@ -121,12 +133,20 @@ class FacebookIE(InfoExtractor):
             raise ExtractorError('Cannot find video URL')
 
         video_title = self._html_search_regex(
-            r'<h2 class="uiHeaderTitle">([^<]*)</h2>', webpage, 'title')
+            r'<h2 class="uiHeaderTitle">([^<]*)</h2>', webpage, 'title',
+            fatal=False)
+        if not video_title:
+            video_title = self._html_search_regex(
+                r'(?s)<span class="fbPhotosPhotoCaption".*?id="fbPhotoPageCaption"><span class="hasCaption">(.*?)</span>',
+                webpage, 'alternative title', default=None)
+            video_title = limit_length(video_title, 80)
+        if not video_title:
+            video_title = 'Facebook video #%s' % video_id
 
         return {
             'id': video_id,
             'title': video_title,
             'url': video_url,
-            'duration': int(video_data['video_duration']),
-            'thumbnail': video_data['thumbnail_src'],
+            'duration': int_or_none(video_data.get('video_duration')),
+            'thumbnail': video_data.get('thumbnail_src'),
         }

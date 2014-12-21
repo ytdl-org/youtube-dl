@@ -4,7 +4,7 @@ import os
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse_urlparse,
     compat_urllib_request,
     compat_urllib_parse,
@@ -15,7 +15,7 @@ from ..aes import (
 
 
 class KeezMoviesIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:www\.)?keezmovies\.com/video/.+?(?P<videoid>[0-9]+)(?:[/?&]|$)'
+    _VALID_URL = r'https?://(?:www\.)?keezmovies\.com/video/.+?(?P<id>[0-9]+)(?:[/?&]|$)'
     _TEST = {
         'url': 'http://www.keezmovies.com/video/petite-asian-lady-mai-playing-in-bathtub-1214711',
         'file': '1214711.mp4',
@@ -27,8 +27,7 @@ class KeezMoviesIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('videoid')
+        video_id = self._match_id(url)
 
         req = compat_urllib_request.Request(url)
         req.add_header('Cookie', 'age_verified=1')

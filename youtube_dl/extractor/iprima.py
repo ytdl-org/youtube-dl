@@ -6,8 +6,10 @@ from random import random
 from math import floor
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_request,
+)
+from ..utils import (
     ExtractorError,
 )
 
@@ -54,7 +56,7 @@ class IPrimaIE(InfoExtractor):
 
         player_url = (
             'http://embed.livebox.cz/iprimaplay/player-embed-v2.js?__tok%s__=%s' %
-            (floor(random()*1073741824), floor(random()*1073741824))
+            (floor(random() * 1073741824), floor(random() * 1073741824))
         )
 
         req = compat_urllib_request.Request(player_url)

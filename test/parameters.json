@@ -27,7 +27,6 @@
     "rejecttitle": null, 
     "retries": 10, 
     "simulate": false, 
-    "skip_download": false, 
     "subtitleslang": null, 
     "subtitlesformat": "srt",
     "test": true, 

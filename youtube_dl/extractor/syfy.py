@@ -10,7 +10,6 @@ class SyfyIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.syfy.com/videos/Robot%20Combat%20League/Behind%20the%20Scenes/vid:2631458',
-        'md5': 'e07de1d52c7278adbb9b9b1c93a66849',
         'info_dict': {
             'id': 'NmqMrGnXvmO1',
             'ext': 'flv',

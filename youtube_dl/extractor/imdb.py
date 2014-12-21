@@ -4,9 +4,8 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urlparse,
-    get_element_by_attribute,
 )
 
 
@@ -27,10 +26,11 @@ class ImdbIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage('http://www.imdb.com/video/imdb/vi%s' % video_id, video_id)
-        descr = get_element_by_attribute('itemprop', 'description', webpage)
+        descr = self._html_search_regex(
+            r'(?s)<span itemprop="description">(.*?)</span>',
+            webpage, 'description', fatal=False)
         available_formats = re.findall(
             r'case \'(?P<f_id>.*?)\' :$\s+url = \'(?P<path>.*?)\'', webpage,
             flags=re.MULTILINE)
@@ -63,11 +63,17 @@ class ImdbListIE(InfoExtractor):
     IE_NAME = 'imdb:list'
     IE_DESC = 'Internet Movie Database lists'
     _VALID_URL = r'http://www\.imdb\.com/list/(?P<id>[\da-zA-Z_-]{11})'
-    
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        list_id = mobj.group('id')
+    _TEST = {
+        'url': 'http://www.imdb.com/list/JFs9NWw6XI0',
+        'info_dict': {
+            'id': 'JFs9NWw6XI0',
+            'title': 'March 23, 2012 Releases',
+        },
+        'playlist_count': 7,
+    }
 
+    def _real_extract(self, url):
+        list_id = self._match_id(url)
         webpage = self._download_webpage(url, list_id)
         entries = [
             self.url_result('http://www.imdb.com' + m, 'Imdb')

@@ -41,4 +41,3 @@ class RingTVIE(InfoExtractor):
             'thumbnail': thumbnail_url,
             'description': description,
         }
-

@@ -23,12 +23,14 @@ class NineGagIE(InfoExtractor):
             "ext": "mp4",
             "description": "This 3-minute video will make you smile and then make you feel untalented and insignificant. Anyway, you should share this awesomeness. (Thanks, Dino!)",
             "title": "\"People Are Awesome 2013\" Is Absolutely Awesome",
+            'uploader_id': 'UCdEH6EjDKwtTe-sO2f0_1XA',
+            'uploader': 'CompilationChannel',
+            'upload_date': '20131110',
             "view_count": int,
             "thumbnail": "re:^https?://",
         },
         'add_ie': ['Youtube']
-    },
-    {
+    }, {
         'url': 'http://9gag.tv/p/KklwM/alternate-banned-opening-scene-of-gravity?ref=fsidebar',
         'info_dict': {
             'id': 'KklwM',
@@ -36,6 +38,9 @@ class NineGagIE(InfoExtractor):
             'display_id': 'alternate-banned-opening-scene-of-gravity',
             "description": "While Gravity was a pretty awesome movie already, YouTuber Krishna Shenoi came up with a way to improve upon it, introducing a much better solution to Sandra Bullock's seemingly endless tumble in space. The ending is priceless.",
             'title': "Banned Opening Scene Of \"Gravity\" That Changes The Whole Movie",
+            'uploader': 'Krishna Shenoi',
+            'upload_date': '20140401',
+            'uploader_id': 'krishnashenoi93',
         },
     }]
 
@@ -47,7 +52,7 @@ class NineGagIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         post_view = json.loads(self._html_search_regex(
-            r'var postView = new app\.PostView\({\s*post:\s*({.+?}),', webpage, 'post view'))
+            r'var postView = new app\.PostView\({\s*post:\s*({.+?}),\s*posts:\s*prefetchedCurrentPost', webpage, 'post view'))
 
         youtube_id = post_view['videoExternalId']
         title = post_view['title']

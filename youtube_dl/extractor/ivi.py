@@ -5,8 +5,10 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_request,
+)
+from ..utils import (
     ExtractorError,
 )
 
@@ -14,7 +16,7 @@ from ..utils import (
 class IviIE(InfoExtractor):
     IE_DESC = 'ivi.ru'
     IE_NAME = 'ivi'
-    _VALID_URL = r'https?://(?:www\.)?ivi\.ru/watch(?:/(?P<compilationid>[^/]+))?/(?P<videoid>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?ivi\.ru/(?:watch/(?:[^/]+/)?|video/player\?.*?videoId=)(?P<videoid>\d+)'
 
     _TESTS = [
         # Single movie
@@ -33,17 +35,17 @@ class IviIE(InfoExtractor):
         },
         # Serial's serie
         {
-            'url': 'http://www.ivi.ru/watch/dezhurnyi_angel/74791',
-            'md5': '3e6cc9a848c1d2ebcc6476444967baa9',
+            'url': 'http://www.ivi.ru/watch/dvoe_iz_lartsa/9549',
+            'md5': '221f56b35e3ed815fde2df71032f4b3e',
             'info_dict': {
-                'id': '74791',
+                'id': '9549',
                 'ext': 'mp4',
-                'title': 'Дежурный ангел - 1 серия',
-                'duration': 2490,
-                'thumbnail': 'http://thumbs.ivi.ru/f7.vcp.digitalaccess.ru/contents/8/e/bc2f6c2b6e5d291152fdd32c059141.jpg',
+                'title': 'Двое из ларца - Серия 1',
+                'duration': 2655,
+                'thumbnail': 'http://thumbs.ivi.ru/f15.vcp.digitalaccess.ru/contents/8/4/0068dc0677041f3336b7c2baad8fc0.jpg',
             },
             'skip': 'Only works from Russia',
-         }
+        }
     ]
 
     # Sorted by quality
@@ -102,7 +104,7 @@ class IviIE(InfoExtractor):
         compilation = result['compilation']
         title = result['title']
 
-        title = '%s - %s' % (compilation, title) if compilation is not None else title  
+        title = '%s - %s' % (compilation, title) if compilation is not None else title
 
         previews = result['preview']
         previews.sort(key=lambda fmt: self._known_thumbnails.index(fmt['content_format']))
@@ -127,6 +129,21 @@ class IviCompilationIE(InfoExtractor):
     IE_DESC = 'ivi.ru compilations'
     IE_NAME = 'ivi:compilation'
     _VALID_URL = r'https?://(?:www\.)?ivi\.ru/watch/(?!\d+)(?P<compilationid>[a-z\d_-]+)(?:/season(?P<seasonid>\d+))?$'
+    _TESTS = [{
+        'url': 'http://www.ivi.ru/watch/dvoe_iz_lartsa',
+        'info_dict': {
+            'id': 'dvoe_iz_lartsa',
+            'title': 'Двое из ларца (2006 - 2008)',
+        },
+        'playlist_mincount': 24,
+    }, {
+        'url': 'http://www.ivi.ru/watch/dvoe_iz_lartsa/season1',
+        'info_dict': {
+            'id': 'dvoe_iz_lartsa/season1',
+            'title': 'Двое из ларца (2006 - 2008) 1 сезон',
+        },
+        'playlist_mincount': 12,
+    }]
 
     def _extract_entries(self, html, compilation_id):
         return [self.url_result('http://www.ivi.ru/watch/%s/%s' % (compilation_id, serie), 'Ivi')
@@ -137,17 +154,17 @@ class IviCompilationIE(InfoExtractor):
         compilation_id = mobj.group('compilationid')
         season_id = mobj.group('seasonid')
 
-        if season_id is not None: # Season link
+        if season_id is not None:  # Season link
             season_page = self._download_webpage(url, compilation_id, 'Downloading season %s web page' % season_id)
             playlist_id = '%s/season%s' % (compilation_id, season_id)
             playlist_title = self._html_search_meta('title', season_page, 'title')
             entries = self._extract_entries(season_page, compilation_id)
-        else: # Compilation link            
+        else:  # Compilation link
             compilation_page = self._download_webpage(url, compilation_id, 'Downloading compilation web page')
             playlist_id = compilation_id
             playlist_title = self._html_search_meta('title', compilation_page, 'title')
             seasons = re.findall(r'<a href="/watch/%s/season(\d+)">[^<]+</a>' % compilation_id, compilation_page)
-            if len(seasons) == 0: # No seasons in this compilation
+            if len(seasons) == 0:  # No seasons in this compilation
                 entries = self._extract_entries(compilation_page, compilation_id)
             else:
                 entries = []

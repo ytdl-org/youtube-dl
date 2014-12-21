@@ -2,15 +2,18 @@
 from __future__ import unicode_literals
 
 import re
+import json
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
     compat_urlparse,
-    compat_str,
-
+)
+from ..utils import (
     ExtractorError,
+    int_or_none,
+    parse_duration,
     unified_strdate,
 )
 
@@ -30,6 +33,7 @@ class NiconicoIE(InfoExtractor):
             'uploader_id': '2698420',
             'upload_date': '20131123',
             'description': '(c) copyright 2008, Blender Foundation / www.bigbuckbunny.org',
+            'duration': 33,
         },
         'params': {
             'username': 'ydl.niconico@gmail.com',
@@ -37,17 +41,19 @@ class NiconicoIE(InfoExtractor):
         },
     }
 
-    _VALID_URL = r'^https?://(?:www\.|secure\.)?nicovideo\.jp/watch/([a-z][a-z][0-9]+)(?:.*)$'
+    _VALID_URL = r'https?://(?:www\.|secure\.)?nicovideo\.jp/watch/((?:[a-z]{2})?[0-9]+)'
     _NETRC_MACHINE = 'niconico'
+    # Determine whether the downloader used authentication to download video
+    _AUTHENTICATED = False
 
     def _real_initialize(self):
         self._login()
 
     def _login(self):
         (username, password) = self._get_login_info()
-        if username is None:
-            # Login is required
-            raise ExtractorError('No login info available, needed for using %s.' % self.IE_NAME, expected=True)
+        # No authentication to be performed
+        if not username:
+            return True
 
         # Log in
         login_form_strs = {
@@ -65,6 +71,8 @@ class NiconicoIE(InfoExtractor):
         if re.search(r'(?i)<h1 class="mb8p4">Log in error</h1>', login_results) is not None:
             self._downloader.report_warning('unable to log in: bad username or password')
             return False
+        # Successful login
+        self._AUTHENTICATED = True
         return True
 
     def _real_extract(self, url):
@@ -79,44 +87,103 @@ class NiconicoIE(InfoExtractor):
             'http://ext.nicovideo.jp/api/getthumbinfo/' + video_id, video_id,
             note='Downloading video info page')
 
-        # Get flv info
-        flv_info_webpage = self._download_webpage(
-            'http://flapi.nicovideo.jp/api/getflv?v=' + video_id,
-            video_id, 'Downloading flv info')
+        if self._AUTHENTICATED:
+            # Get flv info
+            flv_info_webpage = self._download_webpage(
+                'http://flapi.nicovideo.jp/api/getflv?v=' + video_id,
+                video_id, 'Downloading flv info')
+        else:
+            # Get external player info
+            ext_player_info = self._download_webpage(
+                'http://ext.nicovideo.jp/thumb_watch/' + video_id, video_id)
+            thumb_play_key = self._search_regex(
+                r'\'thumbPlayKey\'\s*:\s*\'(.*?)\'', ext_player_info, 'thumbPlayKey')
+
+            # Get flv info
+            flv_info_data = compat_urllib_parse.urlencode({
+                'k': thumb_play_key,
+                'v': video_id
+            })
+            flv_info_request = compat_urllib_request.Request(
+                'http://ext.nicovideo.jp/thumb_watch', flv_info_data,
+                {'Content-Type': 'application/x-www-form-urlencoded'})
+            flv_info_webpage = self._download_webpage(
+                flv_info_request, video_id,
+                note='Downloading flv info', errnote='Unable to download flv info')
+
+        if 'deleted=' in flv_info_webpage:
+            raise ExtractorError('The video has been deleted.',
+                                 expected=True)
         video_real_url = compat_urlparse.parse_qs(flv_info_webpage)['url'][0]
 
         # Start extracting information
-        video_title = video_info.find('.//title').text
-        video_extension = video_info.find('.//movie_type').text
-        video_format = video_extension.upper()
-        video_thumbnail = video_info.find('.//thumbnail_url').text
-        video_description = video_info.find('.//description').text
-        video_uploader_id = video_info.find('.//user_id').text
-        video_upload_date = unified_strdate(video_info.find('.//first_retrieve').text.split('+')[0])
-        video_view_count = video_info.find('.//view_counter').text
-        video_webpage_url = video_info.find('.//watch_url').text
+        title = video_info.find('.//title').text
+        extension = video_info.find('.//movie_type').text
+        video_format = extension.upper()
+        thumbnail = video_info.find('.//thumbnail_url').text
+        description = video_info.find('.//description').text
+        upload_date = unified_strdate(video_info.find('.//first_retrieve').text.split('+')[0])
+        view_count = int_or_none(video_info.find('.//view_counter').text)
+        comment_count = int_or_none(video_info.find('.//comment_num').text)
+        duration = parse_duration(video_info.find('.//length').text)
+        webpage_url = video_info.find('.//watch_url').text
 
-        # uploader
-        video_uploader = video_uploader_id
-        url = 'http://seiga.nicovideo.jp/api/user/info?id=' + video_uploader_id
-        try:
-            user_info = self._download_xml(
-                url, video_id, note='Downloading user information')
-            video_uploader = user_info.find('.//nickname').text
-        except ExtractorError as err:
-            self._downloader.report_warning('Unable to download user info webpage: %s' % compat_str(err))
+        if video_info.find('.//ch_id') is not None:
+            uploader_id = video_info.find('.//ch_id').text
+            uploader = video_info.find('.//ch_name').text
+        elif video_info.find('.//user_id') is not None:
+            uploader_id = video_info.find('.//user_id').text
+            uploader = video_info.find('.//user_nickname').text
+        else:
+            uploader_id = uploader = None
 
         return {
             'id': video_id,
             'url': video_real_url,
-            'title': video_title,
-            'ext': video_extension,
+            'title': title,
+            'ext': extension,
             'format': video_format,
-            'thumbnail': video_thumbnail,
-            'description': video_description,
-            'uploader': video_uploader,
-            'upload_date': video_upload_date,
-            'uploader_id': video_uploader_id,
-            'view_count': video_view_count,
-            'webpage_url': video_webpage_url,
+            'thumbnail': thumbnail,
+            'description': description,
+            'uploader': uploader,
+            'upload_date': upload_date,
+            'uploader_id': uploader_id,
+            'view_count': view_count,
+            'comment_count': comment_count,
+            'duration': duration,
+            'webpage_url': webpage_url,
+        }
+
+
+class NiconicoPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://www\.nicovideo\.jp/mylist/(?P<id>\d+)'
+
+    _TEST = {
+        'url': 'http://www.nicovideo.jp/mylist/27411728',
+        'info_dict': {
+            'id': '27411728',
+            'title': 'AKB48のオールナイトニッポン',
+        },
+        'playlist_mincount': 225,
+    }
+
+    def _real_extract(self, url):
+        list_id = self._match_id(url)
+        webpage = self._download_webpage(url, list_id)
+
+        entries_json = self._search_regex(r'Mylist\.preload\(\d+, (\[.*\])\);',
+                                          webpage, 'entries')
+        entries = json.loads(entries_json)
+        entries = [{
+            '_type': 'url',
+            'ie_key': NiconicoIE.ie_key(),
+            'url': ('http://www.nicovideo.jp/watch/%s' %
+                    entry['item_data']['video_id']),
+        } for entry in entries]
+
+        return {
+            '_type': 'playlist',
+            'title': self._search_regex(r'\s+name: "(.*?)"', webpage, 'title'),
+            'id': list_id,
+            'entries': entries,
         }

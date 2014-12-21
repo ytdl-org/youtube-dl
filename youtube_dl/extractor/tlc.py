@@ -5,6 +5,7 @@ import re
 from .common import InfoExtractor
 from .brightcove import BrightcoveIE
 from .discovery import DiscoveryIE
+from ..compat import compat_urlparse
 
 
 class TlcIE(DiscoveryIE):
@@ -35,9 +36,10 @@ class TlcDeIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Breaking Amish: Die Welt da draußen',
             'uploader': 'Discovery Networks - Germany',
-            'description': 'Vier Amische und eine Mennonitin wagen in New York'
+            'description': (
+                'Vier Amische und eine Mennonitin wagen in New York'
                 '  den Sprung in ein komplett anderes Leben. Begleitet sie auf'
-                ' ihrem spannenden Weg.',
+                ' ihrem spannenden Weg.'),
         },
     }
 
@@ -51,6 +53,10 @@ class TlcDeIE(InfoExtractor):
         # Otherwise we don't get the correct 'BrightcoveExperience' element,
         # example: http://www.tlc.de/sendungen/cake-boss/videos/cake-boss-cannoli-drama/
         iframe_url = iframe_url.replace('.htm?', '.php?')
+        url_fragment = compat_urlparse.urlparse(url).fragment
+        if url_fragment:
+            # Since the fragment is not send to the server, we always get the same iframe
+            iframe_url = re.sub(r'playlist=(\d+)', 'playlist=%s' % url_fragment, iframe_url)
         iframe = self._download_webpage(iframe_url, title)
 
         return {

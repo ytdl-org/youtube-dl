@@ -6,33 +6,37 @@ import json
 import xml.etree.ElementTree
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
+    compat_parse_qs,
+    compat_str,
     compat_urllib_parse,
+    compat_urllib_parse_urlparse,
+    compat_urllib_request,
+    compat_urlparse,
+)
+from ..utils import (
+    determine_ext,
+    ExtractorError,
     find_xpath_attr,
     fix_xml_ampersands,
-    compat_urlparse,
-    compat_str,
-    compat_urllib_request,
-    compat_parse_qs,
-
-    ExtractorError,
-    unsmuggle_url,
     unescapeHTML,
+    unsmuggle_url,
 )
 
 
 class BrightcoveIE(InfoExtractor):
-    _VALID_URL = r'https?://.*brightcove\.com/(services|viewer).*\?(?P<query>.*)'
+    _VALID_URL = r'(?:https?://.*brightcove\.com/(services|viewer).*?\?|brightcove:)(?P<query>.*)'
     _FEDERATED_URL_TEMPLATE = 'http://c.brightcove.com/services/viewer/htmlFederated?%s'
 
     _TESTS = [
         {
             # From http://www.8tv.cat/8aldia/videos/xavier-sala-i-martin-aquesta-tarda-a-8-al-dia/
             'url': 'http://c.brightcove.com/services/viewer/htmlFederated?playerID=1654948606001&flashID=myExperience&%40videoPlayer=2371591881001',
-            'file': '2371591881001.mp4',
             'md5': '5423e113865d26e40624dce2e4b45d95',
             'note': 'Test Brightcove downloads and detection in GenericIE',
             'info_dict': {
+                'id': '2371591881001',
+                'ext': 'mp4',
                 'title': 'Xavier Sala i Martín: “Un banc que no presta és un banc zombi que no serveix per a res”',
                 'uploader': '8TV',
                 'description': 'md5:a950cc4285c43e44d763d036710cd9cd',
@@ -41,8 +45,9 @@ class BrightcoveIE(InfoExtractor):
         {
             # From http://medianetwork.oracle.com/video/player/1785452137001
             'url': 'http://c.brightcove.com/services/viewer/htmlFederated?playerID=1217746023001&flashID=myPlayer&%40videoPlayer=1785452137001',
-            'file': '1785452137001.flv',
             'info_dict': {
+                'id': '1785452137001',
+                'ext': 'flv',
                 'title': 'JVMLS 2012: Arrays 2.0 - Opportunities and Challenges',
                 'description': 'John Rose speaks at the JVM Language Summit, August 1, 2012.',
                 'uploader': 'Oracle',
@@ -70,7 +75,29 @@ class BrightcoveIE(InfoExtractor):
                 'description': 'md5:363109c02998fee92ec02211bd8000df',
                 'uploader': 'National Ballet of Canada',
             },
-        }
+        },
+        {
+            # test flv videos served by akamaihd.net
+            # From http://www.redbull.com/en/bike/stories/1331655643987/replay-uci-dh-world-cup-2014-from-fort-william
+            'url': 'http://c.brightcove.com/services/viewer/htmlFederated?%40videoPlayer=ref%3ABC2996102916001&linkBaseURL=http%3A%2F%2Fwww.redbull.com%2Fen%2Fbike%2Fvideos%2F1331655630249%2Freplay-uci-fort-william-2014-dh&playerKey=AQ%7E%7E%2CAAAApYJ7UqE%7E%2Cxqr_zXk0I-zzNndy8NlHogrCb5QdyZRf&playerID=1398061561001#__youtubedl_smuggle=%7B%22Referer%22%3A+%22http%3A%2F%2Fwww.redbull.com%2Fen%2Fbike%2Fstories%2F1331655643987%2Freplay-uci-dh-world-cup-2014-from-fort-william%22%7D',
+            # The md5 checksum changes on each download
+            'info_dict': {
+                'id': '2996102916001',
+                'ext': 'flv',
+                'title': 'UCI MTB World Cup 2014: Fort William, UK - Downhill Finals',
+                'uploader': 'Red Bull TV',
+                'description': 'UCI MTB World Cup 2014: Fort William, UK - Downhill Finals',
+            },
+        },
+        {
+            # playlist test
+            # from http://support.brightcove.com/en/video-cloud/docs/playlist-support-single-video-players
+            'url': 'http://c.brightcove.com/services/viewer/htmlFederated?playerID=3550052898001&playerKey=AQ%7E%7E%2CAAABmA9XpXk%7E%2C-Kp7jNgisre1fG5OdqpAFUTcs0lP_ZoL',
+            'info_dict': {
+                'title': 'Sealife',
+            },
+            'playlist_mincount': 7,
+        },
     ]
 
     @classmethod
@@ -85,6 +112,8 @@ class BrightcoveIE(InfoExtractor):
                             lambda m: m.group(1) + '/>', object_str)
         # Fix up some stupid XML, see https://github.com/rg3/youtube-dl/issues/1608
         object_str = object_str.replace('<--', '<!--')
+        # remove namespace to simplify extraction
+        object_str = re.sub(r'(<object[^>]*)(xmlns=".*?")', r'\1', object_str)
         object_str = fix_xml_ampersands(object_str)
 
         object_doc = xml.etree.ElementTree.fromstring(object_str.encode('utf-8'))
@@ -138,12 +167,14 @@ class BrightcoveIE(InfoExtractor):
     def _extract_brightcove_urls(cls, webpage):
         """Return a list of all Brightcove URLs from the webpage """
 
-        url_m = re.search(r'<meta\s+property="og:video"\s+content="(http://c.brightcove.com/[^"]+)"', webpage)
+        url_m = re.search(
+            r'<meta\s+property="og:video"\s+content="(https?://(?:secure|c)\.brightcove.com/[^"]+)"',
+            webpage)
         if url_m:
             url = unescapeHTML(url_m.group(1))
             # Some sites don't add it, we can't download with this url, for example:
             # http://www.ktvu.com/videos/news/raw-video-caltrain-releases-video-of-man-almost/vCTZdY/
-            if 'playerKey' in url:
+            if 'playerKey' in url or 'videoId' in url:
                 return [url]
 
         matches = re.findall(
@@ -172,9 +203,13 @@ class BrightcoveIE(InfoExtractor):
             referer = smuggled_data.get('Referer', url)
             return self._get_video_info(
                 videoPlayer[0], query_str, query, referer=referer)
-        else:
+        elif 'playerKey' in query:
             player_key = query['playerKey']
             return self._get_playlist_info(player_key[0])
+        else:
+            raise ExtractorError(
+                'Cannot find playerKey= variable. Did you forget quotes in a shell invocation?',
+                expected=True)
 
     def _get_video_info(self, video_id, query_str, query, referer=None):
         request_url = self._FEDERATED_URL_TEMPLATE % query_str
@@ -186,8 +221,15 @@ class BrightcoveIE(InfoExtractor):
             req.add_header('Referer', referer)
         webpage = self._download_webpage(req, video_id)
 
+        error_msg = self._html_search_regex(
+            r"<h1>We're sorry.</h1>([\s\n]*<p>.*?</p>)+", webpage,
+            'error message', default=None)
+        if error_msg is not None:
+            raise ExtractorError(
+                'brightcove said: %s' % error_msg, expected=True)
+
         self.report_extraction(video_id)
-        info = self._search_regex(r'var experienceJSON = ({.*?});', webpage, 'json')
+        info = self._search_regex(r'var experienceJSON = ({.*});', webpage, 'json')
         info = json.loads(info)['data']
         video_info = info['programmedContent']['videoPlayer']['mediaDTO']
         video_info['_youtubedl_adServerURL'] = info.get('adServerURL')
@@ -219,12 +261,35 @@ class BrightcoveIE(InfoExtractor):
 
         renditions = video_info.get('renditions')
         if renditions:
-            renditions = sorted(renditions, key=lambda r: r['size'])
-            info['formats'] = [{
-                'url': rend['defaultURL'],
-                'height': rend.get('frameHeight'),
-                'width': rend.get('frameWidth'),
-            } for rend in renditions]
+            formats = []
+            for rend in renditions:
+                url = rend['defaultURL']
+                if not url:
+                    continue
+                ext = None
+                if rend['remote']:
+                    url_comp = compat_urllib_parse_urlparse(url)
+                    if url_comp.path.endswith('.m3u8'):
+                        formats.extend(
+                            self._extract_m3u8_formats(url, info['id'], 'mp4'))
+                        continue
+                    elif 'akamaihd.net' in url_comp.netloc:
+                        # This type of renditions are served through
+                        # akamaihd.net, but they don't use f4m manifests
+                        url = url.replace('control/', '') + '?&v=3.3.0&fp=13&r=FEEFJ&g=RTSJIMBMPFPB'
+                        ext = 'flv'
+                if ext is None:
+                    ext = determine_ext(url)
+                size = rend.get('size')
+                formats.append({
+                    'url': url,
+                    'ext': ext,
+                    'height': rend.get('frameHeight'),
+                    'width': rend.get('frameWidth'),
+                    'filesize': size if size != 0 else None,
+                })
+            self._sort_formats(formats)
+            info['formats'] = formats
         elif video_info.get('FLVFullLengthURL') is not None:
             info.update({
                 'url': video_info['FLVFullLengthURL'],

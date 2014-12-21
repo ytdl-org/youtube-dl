@@ -1,39 +1,37 @@
-# coding: utf-8
+from __future__ import unicode_literals
 
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    unified_strdate,
-)
+from ..utils import unified_strdate
 
 
 class DreiSatIE(InfoExtractor):
     IE_NAME = '3sat'
     _VALID_URL = r'(?:http://)?(?:www\.)?3sat\.de/mediathek/(?:index\.php)?\?(?:(?:mode|display)=[^&]+&)*obj=(?P<id>[0-9]+)$'
     _TEST = {
-        u"url": u"http://www.3sat.de/mediathek/index.php?obj=36983",
-        u'file': u'36983.mp4',
-        u'md5': u'9dcfe344732808dbfcc901537973c922',
-        u'info_dict': {
-            u"title": u"Kaffeeland Schweiz",
-            u"description": u"Über 80 Kaffeeröstereien liefern in der Schweiz das Getränk, in das das Land so vernarrt ist: Mehr als 1000 Tassen trinkt ein Schweizer pro Jahr. SCHWEIZWEIT nimmt die Kaffeekultur unter die...", 
-            u"uploader": u"3sat",
-            u"upload_date": u"20130622"
+        'url': 'http://www.3sat.de/mediathek/index.php?obj=36983',
+        'md5': '9dcfe344732808dbfcc901537973c922',
+        'info_dict': {
+            'id': '36983',
+            'ext': 'mp4',
+            'title': 'Kaffeeland Schweiz',
+            'description': 'md5:cc4424b18b75ae9948b13929a0814033',
+            'uploader': '3sat',
+            'upload_date': '20130622'
         }
     }
-
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         details_url = 'http://www.3sat.de/mediathek/xmlservice/web/beitragsDetails?ak=web&id=%s' % video_id
-        details_doc = self._download_xml(details_url, video_id, note=u'Downloading video details')
+        details_doc = self._download_xml(details_url, video_id, 'Downloading video details')
 
         thumbnail_els = details_doc.findall('.//teaserimage')
         thumbnails = [{
-            'width': te.attrib['key'].partition('x')[0],
-            'height': te.attrib['key'].partition('x')[2],
+            'width': int(te.attrib['key'].partition('x')[0]),
+            'height': int(te.attrib['key'].partition('x')[2]),
             'url': te.text,
         } for te in thumbnail_els]
 

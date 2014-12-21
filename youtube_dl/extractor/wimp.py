@@ -37,7 +37,7 @@ class WimpIE(InfoExtractor):
         video_id = mobj.group(1)
         webpage = self._download_webpage(url, video_id)
         video_url = self._search_regex(
-            r's1\.addVariable\("file",\s*"([^"]+)"\);', webpage, 'video URL')
+            r"[\"']file[\"']\s*[:,]\s*[\"'](.+?)[\"']", webpage, 'video URL')
         if YoutubeIE.suitable(video_url):
             self.to_screen('Found YouTube video')
             return {

@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
     compat_urllib_parse,
+)
+from ..utils import (
     ExtractorError,
 )
 
@@ -13,7 +13,7 @@ from ..utils import (
 class FiveMinIE(InfoExtractor):
     IE_NAME = '5min'
     _VALID_URL = r'''(?x)
-        (?:https?://[^/]*?5min\.com/Scripts/PlayerSeed\.js\?(.*?&)?playList=|
+        (?:https?://[^/]*?5min\.com/Scripts/PlayerSeed\.js\?(?:.*?&)?playList=|
             5min:)
         (?P<id>\d+)
         '''
@@ -41,16 +41,11 @@ class FiveMinIE(InfoExtractor):
         },
     ]
 
-    @classmethod
-    def _build_result(cls, video_id):
-        return cls.url_result('5min:%s' % video_id, cls.ie_key())
-
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         embed_url = 'https://embed.5min.com/playerseed/?playList=%s' % video_id
         embed_page = self._download_webpage(embed_url, video_id,
-            'Downloading embed page')
+                                            'Downloading embed page')
         sid = self._search_regex(r'sid=(\d+)', embed_page, 'sid')
         query = compat_urllib_parse.urlencode({
             'func': 'GetResults',

@@ -1,10 +1,12 @@
+from __future__ import unicode_literals
+
 import os
 import re
 import sys
 import time
 
+from ..compat import compat_str
 from ..utils import (
-    compat_str,
     encodeFilename,
     format_bytes,
     timeconvert,
@@ -42,6 +44,7 @@ class FileDownloader(object):
     Subclasses of this one must re-define the real_download method.
     """
 
+    _TEST_FILE_SIZE = 10241
     params = None
 
     def __init__(self, ydl, params):
@@ -77,8 +80,10 @@ class FileDownloader(object):
     def calc_eta(start, now, total, current):
         if total is None:
             return None
+        if now is None:
+            now = time.time()
         dif = now - start
-        if current == 0 or dif < 0.001: # One millisecond
+        if current == 0 or dif < 0.001:  # One millisecond
             return None
         rate = float(current) / dif
         return int((float(total) - float(current)) / rate)
@@ -92,7 +97,7 @@ class FileDownloader(object):
     @staticmethod
     def calc_speed(start, now, bytes):
         dif = now - start
-        if bytes == 0 or dif < 0.001: # One millisecond
+        if bytes == 0 or dif < 0.001:  # One millisecond
             return None
         return float(bytes) / dif
 
@@ -105,7 +110,7 @@ class FileDownloader(object):
     @staticmethod
     def best_block_size(elapsed_time, bytes):
         new_min = max(bytes / 2.0, 1.0)
-        new_max = min(max(bytes * 2.0, 1.0), 4194304) # Do not surpass 4 MB
+        new_max = min(max(bytes * 2.0, 1.0), 4194304)  # Do not surpass 4 MB
         if elapsed_time < 0.001:
             return int(new_max)
         rate = bytes / elapsed_time
@@ -143,29 +148,30 @@ class FileDownloader(object):
     def report_error(self, *args, **kargs):
         self.ydl.report_error(*args, **kargs)
 
-    def slow_down(self, start_time, byte_counter):
+    def slow_down(self, start_time, now, byte_counter):
         """Sleep if the download speed is over the rate limit."""
         rate_limit = self.params.get('ratelimit', None)
         if rate_limit is None or byte_counter == 0:
             return
-        now = time.time()
+        if now is None:
+            now = time.time()
         elapsed = now - start_time
         if elapsed <= 0.0:
             return
         speed = float(byte_counter) / elapsed
         if speed > rate_limit:
-            time.sleep((byte_counter - rate_limit * (now - start_time)) / rate_limit)
+            time.sleep(max((byte_counter // rate_limit) - elapsed, 0))
 
     def temp_name(self, filename):
         """Returns a temporary filename for the given filename."""
-        if self.params.get('nopart', False) or filename == u'-' or \
+        if self.params.get('nopart', False) or filename == '-' or \
                 (os.path.exists(encodeFilename(filename)) and not os.path.isfile(encodeFilename(filename))):
             return filename
-        return filename + u'.part'
+        return filename + '.part'
 
     def undo_temp_name(self, filename):
-        if filename.endswith(u'.part'):
-            return filename[:-len(u'.part')]
+        if filename.endswith('.part'):
+            return filename[:-len('.part')]
         return filename
 
     def try_rename(self, old_filename, new_filename):
@@ -174,7 +180,7 @@ class FileDownloader(object):
                 return
             os.rename(encodeFilename(old_filename), encodeFilename(new_filename))
         except (IOError, OSError) as err:
-            self.report_error(u'unable to rename file: %s' % compat_str(err))
+            self.report_error('unable to rename file: %s' % compat_str(err))
 
     def try_utime(self, filename, last_modified_hdr):
         """Try to set the last-modified time of the given file."""
@@ -199,10 +205,10 @@ class FileDownloader(object):
 
     def report_destination(self, filename):
         """Report destination filename."""
-        self.to_screen(u'[download] Destination: ' + filename)
+        self.to_screen('[download] Destination: ' + filename)
 
     def _report_progress_status(self, msg, is_last_line=False):
-        fullmsg = u'[download] ' + msg
+        fullmsg = '[download] ' + msg
         if self.params.get('progress_with_newline', False):
             self.to_screen(fullmsg)
         else:
@@ -210,13 +216,13 @@ class FileDownloader(object):
                 prev_len = getattr(self, '_report_progress_prev_line_length',
                                    0)
                 if prev_len > len(fullmsg):
-                    fullmsg += u' ' * (prev_len - len(fullmsg))
+                    fullmsg += ' ' * (prev_len - len(fullmsg))
                 self._report_progress_prev_line_length = len(fullmsg)
-                clear_line = u'\r'
+                clear_line = '\r'
             else:
-                clear_line = (u'\r\x1b[K' if sys.stderr.isatty() else u'\r')
+                clear_line = ('\r\x1b[K' if sys.stderr.isatty() else '\r')
             self.to_screen(clear_line + fullmsg, skip_eol=not is_last_line)
-        self.to_console_title(u'youtube-dl ' + msg)
+        self.to_console_title('youtube-dl ' + msg)
 
     def report_progress(self, percent, data_len_str, speed, eta):
         """Report download progress."""
@@ -232,7 +238,7 @@ class FileDownloader(object):
             percent_str = 'Unknown %'
         speed_str = self.format_speed(speed)
 
-        msg = (u'%s of %s at %s ETA %s' %
+        msg = ('%s of %s at %s ETA %s' %
                (percent_str, data_len_str, speed_str, eta_str))
         self._report_progress_status(msg)
 
@@ -242,44 +248,44 @@ class FileDownloader(object):
         downloaded_str = format_bytes(downloaded_data_len)
         speed_str = self.format_speed(speed)
         elapsed_str = FileDownloader.format_seconds(elapsed)
-        msg = u'%s at %s (%s)' % (downloaded_str, speed_str, elapsed_str)
+        msg = '%s at %s (%s)' % (downloaded_str, speed_str, elapsed_str)
         self._report_progress_status(msg)
 
     def report_finish(self, data_len_str, tot_time):
         """Report download finished."""
         if self.params.get('noprogress', False):
-            self.to_screen(u'[download] Download completed')
+            self.to_screen('[download] Download completed')
         else:
             self._report_progress_status(
-                (u'100%% of %s in %s' %
+                ('100%% of %s in %s' %
                  (data_len_str, self.format_seconds(tot_time))),
                 is_last_line=True)
 
     def report_resuming_byte(self, resume_len):
         """Report attempt to resume at given byte."""
-        self.to_screen(u'[download] Resuming download at byte %s' % resume_len)
+        self.to_screen('[download] Resuming download at byte %s' % resume_len)
 
     def report_retry(self, count, retries):
         """Report retry in case of HTTP error 5xx"""
-        self.to_screen(u'[download] Got server HTTP error. Retrying (attempt %d of %d)...' % (count, retries))
+        self.to_screen('[download] Got server HTTP error. Retrying (attempt %d of %d)...' % (count, retries))
 
     def report_file_already_downloaded(self, file_name):
         """Report file has already been fully downloaded."""
         try:
-            self.to_screen(u'[download] %s has already been downloaded' % file_name)
+            self.to_screen('[download] %s has already been downloaded' % file_name)
         except UnicodeEncodeError:
-            self.to_screen(u'[download] The file has already been downloaded')
+            self.to_screen('[download] The file has already been downloaded')
 
     def report_unable_to_resume(self):
         """Report it was impossible to resume download."""
-        self.to_screen(u'[download] Unable to resume')
+        self.to_screen('[download] Unable to resume')
 
     def download(self, filename, info_dict):
         """Download to a filename using the info from info_dict
         Return True on success and False otherwise
         """
         # Check file already present
-        if self.params.get('continuedl', False) and os.path.isfile(encodeFilename(filename)) and not self.params.get('nopart', False):
+        if filename != '-' and self.params.get('continuedl', False) and os.path.isfile(encodeFilename(filename)) and not self.params.get('nopart', False):
             self.report_file_already_downloaded(filename)
             self._hook_progress({
                 'filename': filename,
@@ -292,26 +298,13 @@ class FileDownloader(object):
 
     def real_download(self, filename, info_dict):
         """Real download process. Redefine in subclasses."""
-        raise NotImplementedError(u'This method must be implemented by sublcasses')
+        raise NotImplementedError('This method must be implemented by subclasses')
 
     def _hook_progress(self, status):
         for ph in self._progress_hooks:
             ph(status)
 
     def add_progress_hook(self, ph):
-        """ ph gets called on download progress, with a dictionary with the entries
-        * filename: The final filename
-        * status: One of "downloading" and "finished"
-
-        It can also have some of the following entries:
-
-        * downloaded_bytes: Bytes on disks
-        * total_bytes: Total bytes, None if unknown
-        * tmpfilename: The filename we're currently writing to
-        * eta: The estimated time in seconds, None if unknown
-        * speed: The download speed in bytes/second, None if unknown
-
-        Hooks are guaranteed to be called at least once (with status "finished")
-        if the download is successful.
-        """
+        # See YoutubeDl.py (search for progress_hooks) for a description of
+        # this interface
         self._progress_hooks.append(ph)

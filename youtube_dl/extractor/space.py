@@ -33,5 +33,6 @@ class SpaceIE(InfoExtractor):
             # Other videos works fine with the info from the object
             brightcove_url = BrightcoveIE._extract_brightcove_url(webpage)
         if brightcove_url is None:
-            raise ExtractorError(u'The webpage does not contain a video', expected=True)
+            raise ExtractorError(
+                'The webpage does not contain a video', expected=True)
         return self.url_result(brightcove_url, BrightcoveIE.ie_key())

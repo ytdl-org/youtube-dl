@@ -1,53 +1,94 @@
-import re
+from __future__ import unicode_literals
+
+import json
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_urllib_request,
+)
 from ..utils import (
-    compat_urllib_parse,
-
-    unified_strdate,
+    int_or_none,
 )
 
 
 class PornotubeIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:\w+\.)?pornotube\.com(/c/(?P<channel>[0-9]+))?(/m/(?P<videoid>[0-9]+))(/(?P<title>.+))$'
+    _VALID_URL = r'https?://(?:\w+\.)?pornotube\.com/(?:[^?#]*?)/video/(?P<id>[0-9]+)'
     _TEST = {
-        u'url': u'http://pornotube.com/c/173/m/1689755/Marilyn-Monroe-Bathing',
-        u'file': u'1689755.flv',
-        u'md5': u'374dd6dcedd24234453b295209aa69b6',
-        u'info_dict': {
-            u"upload_date": u"20090708", 
-            u"title": u"Marilyn-Monroe-Bathing",
-            u"age_limit": 18
+        'url': 'http://www.pornotube.com/orientation/straight/video/4964/title/weird-hot-and-wet-science',
+        'md5': '60fc5a4f0d93a97968fc7999d98260c9',
+        'info_dict': {
+            'id': '4964',
+            'ext': 'mp4',
+            'upload_date': '20141203',
+            'title': 'Weird Hot and Wet Science',
+            'description': 'md5:a8304bef7ef06cb4ab476ca6029b01b0',
+            'categories': ['Adult Humor', 'Blondes'],
+            'uploader': 'Alpha Blue Archives',
+            'thumbnail': 're:^https?://.*\\.jpg$',
+            'timestamp': 1417582800,
+            'age_limit': 18,
         }
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
+        video_id = self._match_id(url)
 
-        video_id = mobj.group('videoid')
-        video_title = mobj.group('title')
+        # Fetch origin token
+        js_config = self._download_webpage(
+            'http://www.pornotube.com/assets/src/app/config.js', video_id,
+            note='Download JS config')
+        originAuthenticationSpaceKey = self._search_regex(
+            r"constant\('originAuthenticationSpaceKey',\s*'([^']+)'",
+            js_config, 'originAuthenticationSpaceKey')
 
-        # Get webpage content
-        webpage = self._download_webpage(url, video_id)
+        # Fetch actual token
+        token_req_data = {
+            'authenticationSpaceKey': originAuthenticationSpaceKey,
+            'credentials': 'Clip Application',
+        }
+        token_req = compat_urllib_request.Request(
+            'https://api.aebn.net/auth/v1/token/primal',
+            data=json.dumps(token_req_data).encode('utf-8'))
+        token_req.add_header('Content-Type', 'application/json')
+        token_req.add_header('Origin', 'http://www.pornotube.com')
+        token_answer = self._download_json(
+            token_req, video_id, note='Requesting primal token')
+        token = token_answer['tokenKey']
 
-        # Get the video URL
-        VIDEO_URL_RE = r'url: "(?P<url>http://video[0-9].pornotube.com/.+\.flv)",'
-        video_url = self._search_regex(VIDEO_URL_RE, webpage, u'video url')
-        video_url = compat_urllib_parse.unquote(video_url)
+        # Get video URL
+        delivery_req = compat_urllib_request.Request(
+            'https://api.aebn.net/delivery/v1/clips/%s/MP4' % video_id)
+        delivery_req.add_header('Authorization', token)
+        delivery_info = self._download_json(
+            delivery_req, video_id, note='Downloading delivery information')
+        video_url = delivery_info['mediaUrl']
 
-        #Get the uploaded date
-        VIDEO_UPLOADED_RE = r'<div class="video_added_by">Added (?P<date>[0-9\/]+) by'
-        upload_date = self._html_search_regex(VIDEO_UPLOADED_RE, webpage, u'upload date', fatal=False)
-        if upload_date: upload_date = unified_strdate(upload_date)
-        age_limit = self._rta_search(webpage)
+        # Get additional info (title etc.)
+        info_req = compat_urllib_request.Request(
+            'https://api.aebn.net/content/v1/clips/%s?expand='
+            'title,description,primaryImageNumber,startSecond,endSecond,'
+            'movie.title,movie.MovieId,movie.boxCoverFront,movie.stars,'
+            'movie.studios,stars.name,studios.name,categories.name,'
+            'clipActive,movieActive,publishDate,orientations' % video_id)
+        info_req.add_header('Authorization', token)
+        info = self._download_json(
+            info_req, video_id, note='Downloading metadata')
 
-        info = {'id': video_id,
-                'url': video_url,
-                'uploader': None,
-                'upload_date': upload_date,
-                'title': video_title,
-                'ext': 'flv',
-                'format': 'flv',
-                'age_limit': age_limit}
+        timestamp = int_or_none(info.get('publishDate'), scale=1000)
+        uploader = info.get('studios', [{}])[0].get('name')
+        movie_id = info['movie']['movieId']
+        thumbnail = 'http://pic.aebn.net/dis/t/%s/%s_%08d.jpg' % (
+            movie_id, movie_id, info['primaryImageNumber'])
+        categories = [c['name'] for c in info.get('categories')]
 
-        return [info]
+        return {
+            'id': video_id,
+            'url': video_url,
+            'title': info['title'],
+            'description': info.get('description'),
+            'timestamp': timestamp,
+            'uploader': uploader,
+            'thumbnail': thumbnail,
+            'categories': categories,
+            'age_limit': 18,
+        }

@@ -3,9 +3,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
+)
+from ..utils import (
     ExtractorError,
 )
 
@@ -40,8 +42,24 @@ class UdemyIE(InfoExtractor):
                 error_str += ' - %s' % error_data.get('formErrors')
             raise ExtractorError(error_str, expected=True)
 
-    def _download_json(self, url, video_id, note='Downloading JSON metadata'):
-        response = super(UdemyIE, self)._download_json(url, video_id, note)
+    def _download_json(self, url_or_request, video_id, note='Downloading JSON metadata'):
+        headers = {
+            'X-Udemy-Snail-Case': 'true',
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+        for cookie in self._downloader.cookiejar:
+            if cookie.name == 'client_id':
+                headers['X-Udemy-Client-Id'] = cookie.value
+            elif cookie.name == 'access_token':
+                headers['X-Udemy-Bearer-Token'] = cookie.value
+
+        if isinstance(url_or_request, compat_urllib_request.Request):
+            for header, value in headers.items():
+                url_or_request.add_header(header, value)
+        else:
+            url_or_request = compat_urllib_request.Request(url_or_request, headers=headers)
+
+        response = super(UdemyIE, self)._download_json(url_or_request, video_id, note)
         self._handle_error(response)
         return response
 
@@ -62,7 +80,9 @@ class UdemyIE(InfoExtractor):
         if login_popup == '<div class="run-command close-popup redirect" data-url="https://www.udemy.com/"></div>':
             return
 
-        csrf = self._html_search_regex(r'<input type="hidden" name="csrf" value="(.+?)"', login_popup, 'csrf token')
+        csrf = self._html_search_regex(
+            r'<input type="hidden" name="csrf" value="(.+?)"',
+            login_popup, 'csrf token')
 
         login_form = {
             'email': username,
@@ -71,42 +91,49 @@ class UdemyIE(InfoExtractor):
             'displayType': 'json',
             'isSubmitted': '1',
         }
-        request = compat_urllib_request.Request(self._LOGIN_URL, compat_urllib_parse.urlencode(login_form))
-        response = self._download_json(request, None, 'Logging in as %s' % username)
+        request = compat_urllib_request.Request(
+            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+        response = self._download_json(
+            request, None, 'Logging in as %s' % username)
 
         if 'returnUrl' not in response:
             raise ExtractorError('Unable to log in')
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        lecture_id = mobj.group('id')
+        lecture_id = self._match_id(url)
 
         lecture = self._download_json(
-            'https://www.udemy.com/api-1.1/lectures/%s' % lecture_id, lecture_id, 'Downloading lecture JSON')
+            'https://www.udemy.com/api-1.1/lectures/%s' % lecture_id,
+            lecture_id, 'Downloading lecture JSON')
 
-        if lecture['assetType'] != 'Video':
-            raise ExtractorError('Lecture %s is not a video' % lecture_id, expected=True)
+        asset_type = lecture.get('assetType') or lecture.get('asset_type')
+        if asset_type != 'Video':
+            raise ExtractorError(
+                'Lecture %s is not a video' % lecture_id, expected=True)
 
         asset = lecture['asset']
 
-        stream_url = asset['streamUrl']
+        stream_url = asset.get('streamUrl') or asset.get('stream_url')
         mobj = re.search(r'(https?://www\.youtube\.com/watch\?v=.*)', stream_url)
         if mobj:
             return self.url_result(mobj.group(1), 'Youtube')
 
         video_id = asset['id']
-        thumbnail = asset['thumbnailUrl']
+        thumbnail = asset.get('thumbnailUrl') or asset.get('thumbnail_url')
         duration = asset['data']['duration']
 
-        download_url = asset['downloadUrl']
+        download_url = asset.get('downloadUrl') or asset.get('download_url')
+
+        video = download_url.get('Video') or download_url.get('video')
+        video_480p = download_url.get('Video480p') or download_url.get('video_480p')
 
         formats = [
             {
-                'url': download_url['Video480p'][0],
+                'url': video_480p[0],
                 'format_id': '360p',
             },
             {
-                'url': download_url['Video'][0],
+                'url': video[0],
                 'format_id': '720p',
             },
         ]
@@ -140,25 +167,29 @@ class UdemyCourseIE(UdemyIE):
         course_path = mobj.group('coursepath')
 
         response = self._download_json(
-            'https://www.udemy.com/api-1.1/courses/%s' % course_path, course_path, 'Downloading course JSON')
+            'https://www.udemy.com/api-1.1/courses/%s' % course_path,
+            course_path, 'Downloading course JSON')
 
         course_id = int(response['id'])
         course_title = response['title']
 
         webpage = self._download_webpage(
-            'https://www.udemy.com/course/subscribe/?courseId=%s' % course_id, course_id, 'Enrolling in the course')
+            'https://www.udemy.com/course/subscribe/?courseId=%s' % course_id,
+            course_id, 'Enrolling in the course')
 
         if self._SUCCESSFULLY_ENROLLED in webpage:
             self.to_screen('%s: Successfully enrolled in' % course_id)
         elif self._ALREADY_ENROLLED in webpage:
             self.to_screen('%s: Already enrolled in' % course_id)
 
-        response = self._download_json('https://www.udemy.com/api-1.1/courses/%s/curriculum' % course_id,
+        response = self._download_json(
+            'https://www.udemy.com/api-1.1/courses/%s/curriculum' % course_id,
             course_id, 'Downloading course curriculum')
 
         entries = [
-            self.url_result('https://www.udemy.com/%s/#/lecture/%s' % (course_path, asset['id']), 'Udemy')
-            for asset in response if asset.get('assetType') == 'Video'
+            self.url_result(
+                'https://www.udemy.com/%s/#/lecture/%s' % (course_path, asset['id']), 'Udemy')
+            for asset in response if asset.get('assetType') or asset.get('asset_type') == 'Video'
         ]
 
         return self.playlist_result(entries, course_id, course_title)

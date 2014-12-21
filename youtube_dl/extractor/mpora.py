@@ -28,7 +28,7 @@ class MporaIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
         data_json = self._search_regex(
-            r"new FM\.Player\('[^']+',\s*(\{.*?)\);\n", webpage, 'json')
+            r"new FM\.Player\('[^']+',\s*(\{.*?)\).player;", webpage, 'json')
 
         data = json.loads(data_json)
 
@@ -44,7 +44,7 @@ class MporaIE(InfoExtractor):
                     r'_([0-9]+)\.[a-zA-Z0-9]+$', src['src'],
                     False, default=None)
                 vcodec = src['type'].partition('/')[2]
-                
+
                 formats.append({
                     'format_id': encoding_id + '-' + vcodec,
                     'url': src['src'],

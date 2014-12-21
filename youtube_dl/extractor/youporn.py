@@ -6,10 +6,11 @@ import re
 import sys
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse_urlparse,
     compat_urllib_request,
-
+)
+from ..utils import (
     ExtractorError,
     unescapeHTML,
     unified_strdate,
@@ -23,7 +24,6 @@ class YouPornIE(InfoExtractor):
     _VALID_URL = r'^(?P<proto>https?://)(?:www\.)?(?P<url>youporn\.com/watch/(?P<videoid>[0-9]+)/(?P<title>[^/]+))'
     _TEST = {
         'url': 'http://www.youporn.com/watch/505835/sex-ed-is-it-safe-to-masturbate-daily/',
-        'md5': '71ec5fcfddacf80f495efa8b6a8d9a89',
         'info_dict': {
             'id': '505835',
             'ext': 'mp4',
@@ -46,11 +46,13 @@ class YouPornIE(InfoExtractor):
         age_limit = self._rta_search(webpage)
 
         # Get JSON parameters
-        json_params = self._search_regex(r'var currentVideo = new Video\((.*)\);', webpage, 'JSON parameters')
+        json_params = self._search_regex(
+            r'var currentVideo = new Video\((.*)\)[,;]',
+            webpage, 'JSON parameters')
         try:
             params = json.loads(json_params)
         except:
-            raise ExtractorError(u'Invalid JSON')
+            raise ExtractorError('Invalid JSON')
 
         self.report_extraction(video_id)
         try:
@@ -65,7 +67,7 @@ class YouPornIE(InfoExtractor):
         # Get all of the links from the page
         DOWNLOAD_LIST_RE = r'(?s)<ul class="downloadList">(?P<download_list>.*?)</ul>'
         download_list_html = self._search_regex(DOWNLOAD_LIST_RE,
-            webpage, 'download list').strip()
+                                                webpage, 'download list').strip()
         LINK_RE = r'<a href="([^"]+)">'
         links = re.findall(LINK_RE, download_list_html)
 
@@ -74,7 +76,7 @@ class YouPornIE(InfoExtractor):
         for encrypted_link in encrypted_links:
             link = aes_decrypt_text(encrypted_link, video_title, 32).decode('utf-8')
             links.append(link)
-        
+
         formats = []
         for link in links:
             # A link looks like this:
@@ -104,8 +106,8 @@ class YouPornIE(InfoExtractor):
         self._sort_formats(formats)
 
         if not formats:
-            raise ExtractorError(u'ERROR: no known formats available for video')
-        
+            raise ExtractorError('ERROR: no known formats available for video')
+
         return {
             'id': video_id,
             'uploader': video_uploader,

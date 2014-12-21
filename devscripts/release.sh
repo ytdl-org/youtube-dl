@@ -45,9 +45,9 @@ fi
 /bin/echo -e "\n### Changing version in version.py..."
 sed -i "s/__version__ = '.*'/__version__ = '$version'/" youtube_dl/version.py
 
-/bin/echo -e "\n### Committing CHANGELOG README.md and youtube_dl/version.py..."
+/bin/echo -e "\n### Committing README.md and youtube_dl/version.py..."
 make README.md
-git add CHANGELOG README.md youtube_dl/version.py
+git add README.md youtube_dl/version.py
 git commit -m "release $version"
 
 /bin/echo -e "\n### Now tagging, signing and pushing..."
@@ -73,7 +73,6 @@ RELEASE_FILES="youtube-dl youtube-dl.exe youtube-dl-$version.tar.gz"
 (cd build/$version/ && sha1sum $RELEASE_FILES > SHA1SUMS)
 (cd build/$version/ && sha256sum $RELEASE_FILES > SHA2-256SUMS)
 (cd build/$version/ && sha512sum $RELEASE_FILES > SHA2-512SUMS)
-git checkout HEAD -- youtube-dl youtube-dl.exe
 
 /bin/echo -e "\n### Signing and uploading the new binaries to yt-dl.org ..."
 for f in $RELEASE_FILES; do gpg --passphrase-repeat 5 --detach-sig "build/$version/$f"; done

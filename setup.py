@@ -4,7 +4,6 @@
 from __future__ import print_function
 
 import os.path
-import pkg_resources
 import warnings
 import sys
 
@@ -48,6 +47,7 @@ if len(sys.argv) >= 2 and sys.argv[1] == 'py2exe':
 else:
     files_spec = [
         ('etc/bash_completion.d', ['youtube-dl.bash-completion']),
+        ('etc/fish/completions', ['youtube-dl.fish']),
         ('share/doc/youtube_dl', ['README.txt']),
         ('share/man/man1', ['youtube-dl.1'])
     ]
@@ -102,7 +102,9 @@ setup(
         "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.3"
+        "Programming Language :: Python :: 3.2",
+        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
     ],
 
     **params

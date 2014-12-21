@@ -6,10 +6,11 @@ import os
 import subprocess
 
 from .common import PostProcessor
-
+from ..compat import (
+    compat_urlretrieve,
+)
 from ..utils import (
     check_executable,
-    compat_urlretrieve,
     encodeFilename,
     PostProcessingError,
     prepend_extension,

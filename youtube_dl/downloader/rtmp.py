@@ -7,11 +7,18 @@ import sys
 import time
 
 from .common import FileDownloader
+from ..compat import compat_str
 from ..utils import (
+    check_executable,
     encodeFilename,
     format_bytes,
-    compat_str,
+    get_exe_version,
 )
+
+
+def rtmpdump_version():
+    return get_exe_version(
+        'rtmpdump', ['--help'], r'(?i)RTMPDump\s*v?([0-9a-zA-Z._-]+)')
 
 
 class RtmpFD(FileDownloader):
@@ -39,13 +46,13 @@ class RtmpFD(FileDownloader):
                     continue
                 mobj = re.search(r'([0-9]+\.[0-9]{3}) kB / [0-9]+\.[0-9]{2} sec \(([0-9]{1,2}\.[0-9])%\)', line)
                 if mobj:
-                    downloaded_data_len = int(float(mobj.group(1))*1024)
+                    downloaded_data_len = int(float(mobj.group(1)) * 1024)
                     percent = float(mobj.group(2))
                     if not resume_percent:
                         resume_percent = percent
                         resume_downloaded_data_len = downloaded_data_len
-                    eta = self.calc_eta(start, time.time(), 100-resume_percent, percent-resume_percent)
-                    speed = self.calc_speed(start, time.time(), downloaded_data_len-resume_downloaded_data_len)
+                    eta = self.calc_eta(start, time.time(), 100 - resume_percent, percent - resume_percent)
+                    speed = self.calc_speed(start, time.time(), downloaded_data_len - resume_downloaded_data_len)
                     data_len = None
                     if percent > 0:
                         data_len = int(downloaded_data_len * 100 / percent)
@@ -65,7 +72,7 @@ class RtmpFD(FileDownloader):
                     # no percent for live streams
                     mobj = re.search(r'([0-9]+\.[0-9]{3}) kB / [0-9]+\.[0-9]{2} sec', line)
                     if mobj:
-                        downloaded_data_len = int(float(mobj.group(1))*1024)
+                        downloaded_data_len = int(float(mobj.group(1)) * 1024)
                         time_now = time.time()
                         speed = self.calc_speed(start, time_now, downloaded_data_len)
                         self.report_progress_live_stream(downloaded_data_len, speed, time_now - start)
@@ -81,7 +88,7 @@ class RtmpFD(FileDownloader):
                         if not cursor_in_new_line:
                             self.to_screen('')
                         cursor_in_new_line = True
-                        self.to_screen('[rtmpdump] '+line)
+                        self.to_screen('[rtmpdump] ' + line)
             proc.wait()
             if not cursor_in_new_line:
                 self.to_screen('')
@@ -96,16 +103,15 @@ class RtmpFD(FileDownloader):
         flash_version = info_dict.get('flash_version', None)
         live = info_dict.get('rtmp_live', False)
         conn = info_dict.get('rtmp_conn', None)
+        protocol = info_dict.get('rtmp_protocol', None)
 
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
         test = self.params.get('test', False)
 
         # Check for rtmpdump first
-        try:
-            subprocess.call(['rtmpdump', '-h'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
-        except (OSError, IOError):
-            self.report_error('RTMP download detected but "rtmpdump" could not be run')
+        if not check_executable('rtmpdump', ['-h']):
+            self.report_error('RTMP download detected but "rtmpdump" could not be run. Please install it.')
             return False
 
         # Download using rtmpdump. rtmpdump returns exit code 2 when
@@ -133,6 +139,8 @@ class RtmpFD(FileDownloader):
                 basic_args += ['--conn', entry]
         elif isinstance(conn, compat_str):
             basic_args += ['--conn', conn]
+        if protocol is not None:
+            basic_args += ['--protocol', protocol]
         args = basic_args + [[], ['--resume', '--skip', '1']][not live and self.params.get('continuedl', False)]
 
         if sys.platform == 'win32' and sys.version_info < (3, 0):
@@ -172,12 +180,12 @@ class RtmpFD(FileDownloader):
         while (retval == RD_INCOMPLETE or retval == RD_FAILED) and not test and not live:
             prevsize = os.path.getsize(encodeFilename(tmpfilename))
             self.to_screen('[rtmpdump] %s bytes' % prevsize)
-            time.sleep(5.0) # This seems to be needed
+            time.sleep(5.0)  # This seems to be needed
             retval = run_rtmpdump(basic_args + ['-e'] + [[], ['-k', '1']][retval == RD_FAILED])
             cursize = os.path.getsize(encodeFilename(tmpfilename))
             if prevsize == cursize and retval == RD_FAILED:
                 break
-             # Some rtmp streams seem abort after ~ 99.8%. Don't complain for those
+            # Some rtmp streams seem abort after ~ 99.8%. Don't complain for those
             if prevsize == cursize and retval == RD_INCOMPLETE and cursize > 1024:
                 self.to_screen('[rtmpdump] Could not download the whole video. This can happen for some advertisements.')
                 retval = RD_SUCCESS

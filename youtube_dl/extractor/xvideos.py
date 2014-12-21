@@ -3,51 +3,48 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
+)
+from ..utils import (
+    clean_html,
+    ExtractorError,
 )
 
 
 class XVideosIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?xvideos\.com/video([0-9]+)(?:.*)'
+    _VALID_URL = r'https?://(?:www\.)?xvideos\.com/video(?P<id>[0-9]+)(?:.*)'
     _TEST = {
-        'url': 'http://www.xvideos.com/video939581/funny_porns_by_s_-1',
-        'file': '939581.flv',
-        'md5': '1d0c835822f0a71a7bf011855db929d0',
+        'url': 'http://www.xvideos.com/video4588838/biker_takes_his_girl',
+        'md5': '4b46ae6ea5e6e9086e714d883313c0c9',
         'info_dict': {
-            "title": "Funny Porns By >>>>S<<<<<< -1",
-            "age_limit": 18,
+            'id': '4588838',
+            'ext': 'flv',
+            'title': 'Biker Takes his Girl',
+            'age_limit': 18,
         }
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group(1)
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        self.report_extraction(video_id)
+        mobj = re.search(r'<h1 class="inlineError">(.+?)</h1>', webpage)
+        if mobj:
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, clean_html(mobj.group(1))), expected=True)
 
-        # Extract video URL
         video_url = compat_urllib_parse.unquote(
             self._search_regex(r'flv_url=(.+?)&', webpage, 'video URL'))
-
-        # Extract title
         video_title = self._html_search_regex(
             r'<title>(.*?)\s+-\s+XVID', webpage, 'title')
-
-        # Extract video thumbnail
         video_thumbnail = self._search_regex(
             r'url_bigthumb=(.+?)&amp', webpage, 'thumbnail', fatal=False)
 
         return {
             'id': video_id,
             'url': video_url,
-            'uploader': None,
-            'upload_date': None,
             'title': video_title,
             'ext': 'flv',
             'thumbnail': video_thumbnail,
-            'description': None,
             'age_limit': 18,
         }

@@ -1,11 +1,14 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_parse_qs,
     compat_urlparse,
+)
+from ..utils import (
     determine_ext,
     unified_strdate,
 )
@@ -54,14 +57,14 @@ class WDRIE(InfoExtractor):
             },
         },
         {
-            'url': 'http://www.funkhauseuropa.de/av/audiogrenzenlosleckerbaklava101-audioplayer.html',
-            'md5': 'cfff440d4ee64114083ac44676df5d15',
+            'url': 'http://www.funkhauseuropa.de/av/audioflaviacoelhoamaramar100-audioplayer.html',
+            'md5': '99a1443ff29af19f6c52cf6f4dc1f4aa',
             'info_dict': {
-                'id': 'mdb-363068',
+                'id': 'mdb-478135',
                 'ext': 'mp3',
-                'title': 'Grenzenlos lecker - Baklava',
+                'title': 'Flavia Coelho: Amar é Amar',
                 'description': 'md5:7b29e97e10dfb6e265238b32fa35b23a',
-                'upload_date': '20140311',
+                'upload_date': '20140717',
             },
         },
     ]
@@ -80,7 +83,7 @@ class WDRIE(InfoExtractor):
             ]
             return self.playlist_result(entries, page_id)
 
-        flashvars = compat_urlparse.parse_qs(
+        flashvars = compat_parse_qs(
             self._html_search_regex(r'<param name="flashvars" value="([^"]+)"', webpage, 'flashvars'))
 
         page_id = flashvars['trackerClipId'][0]
@@ -112,6 +115,35 @@ class WDRIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
             'upload_date': upload_date,
+        }
+
+
+class WDRMobileIE(InfoExtractor):
+    _VALID_URL = r'''(?x)
+        https?://mobile-ondemand\.wdr\.de/
+        .*?/fsk(?P<age_limit>[0-9]+)
+        /[0-9]+/[0-9]+/
+        (?P<id>[0-9]+)_(?P<title>[0-9]+)'''
+    IE_NAME = 'wdr:mobile'
+    _TEST = {
+        'url': 'http://mobile-ondemand.wdr.de/CMS2010/mdb/ondemand/weltweit/fsk0/42/421735/421735_4283021.mp4',
+        'info_dict': {
+            'title': '4283021',
+            'id': '421735',
+            'ext': 'mp4',
+            'age_limit': 0,
+        },
+        'skip': 'Problems with loading data.'
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        return {
+            'id': mobj.group('id'),
+            'title': mobj.group('title'),
+            'age_limit': int(mobj.group('age_limit')),
+            'url': url,
+            'user_agent': 'mobile',
         }
 
 

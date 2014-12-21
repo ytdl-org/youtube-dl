@@ -1,8 +1,17 @@
+from __future__ import unicode_literals
+
 import os
+import re
 import subprocess
 
+from ..postprocessor.ffmpeg import FFmpegPostProcessor
 from .common import FileDownloader
+from ..compat import (
+    compat_urlparse,
+    compat_urllib_request,
+)
 from ..utils import (
+    check_executable,
     encodeFilename,
 )
 
@@ -19,19 +28,20 @@ class HlsFD(FileDownloader):
             encodeFilename(tmpfilename, for_subprocess=True)]
 
         for program in ['avconv', 'ffmpeg']:
-            try:
-                subprocess.call([program, '-version'], stdout=(open(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
+            if check_executable(program, ['-version']):
                 break
-            except (OSError, IOError):
-                pass
         else:
-            self.report_error(u'm3u8 download detected but ffmpeg or avconv could not be found')
+            self.report_error('m3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
+            return False
         cmd = [program] + args
+
+        ffpp = FFmpegPostProcessor(downloader=self)
+        ffpp.check_version()
 
         retval = subprocess.call(cmd)
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen(u'\r[%s] %s bytes' % (cmd[0], fsize))
+            self.to_screen('\r[%s] %s bytes' % (cmd[0], fsize))
             self.try_rename(tmpfilename, filename)
             self._hook_progress({
                 'downloaded_bytes': fsize,
@@ -41,6 +51,59 @@ class HlsFD(FileDownloader):
             })
             return True
         else:
-            self.to_stderr(u"\n")
-            self.report_error(u'ffmpeg exited with code %d' % retval)
+            self.to_stderr('\n')
+            self.report_error('%s exited with code %d' % (program, retval))
             return False
+
+
+class NativeHlsFD(FileDownloader):
+    """ A more limited implementation that does not require ffmpeg """
+
+    def real_download(self, filename, info_dict):
+        url = info_dict['url']
+        self.report_destination(filename)
+        tmpfilename = self.temp_name(filename)
+
+        self.to_screen(
+            '[hlsnative] %s: Downloading m3u8 manifest' % info_dict['id'])
+        data = self.ydl.urlopen(url).read()
+        s = data.decode('utf-8', 'ignore')
+        segment_urls = []
+        for line in s.splitlines():
+            line = line.strip()
+            if line and not line.startswith('#'):
+                segment_url = (
+                    line
+                    if re.match(r'^https?://', line)
+                    else compat_urlparse.urljoin(url, line))
+                segment_urls.append(segment_url)
+
+        is_test = self.params.get('test', False)
+        remaining_bytes = self._TEST_FILE_SIZE if is_test else None
+        byte_counter = 0
+        with open(tmpfilename, 'wb') as outf:
+            for i, segurl in enumerate(segment_urls):
+                self.to_screen(
+                    '[hlsnative] %s: Downloading segment %d / %d' %
+                    (info_dict['id'], i + 1, len(segment_urls)))
+                seg_req = compat_urllib_request.Request(segurl)
+                if remaining_bytes is not None:
+                    seg_req.add_header('Range', 'bytes=0-%d' % (remaining_bytes - 1))
+
+                segment = self.ydl.urlopen(seg_req).read()
+                if remaining_bytes is not None:
+                    segment = segment[:remaining_bytes]
+                    remaining_bytes -= len(segment)
+                outf.write(segment)
+                byte_counter += len(segment)
+                if remaining_bytes is not None and remaining_bytes <= 0:
+                    break
+
+        self._hook_progress({
+            'downloaded_bytes': byte_counter,
+            'total_bytes': byte_counter,
+            'filename': filename,
+            'status': 'finished',
+        })
+        self.try_rename(tmpfilename, filename)
+        return True

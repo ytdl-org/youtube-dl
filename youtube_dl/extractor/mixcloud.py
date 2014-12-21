@@ -3,10 +3,14 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    unified_strdate,
+from ..compat import (
     compat_urllib_parse,
+)
+from ..utils import (
     ExtractorError,
+    HEADRequest,
+    int_or_none,
+    parse_iso8601,
 )
 
 
@@ -24,24 +28,28 @@ class MixcloudIE(InfoExtractor):
             'uploader': 'Daniel Holbach',
             'uploader_id': 'dholbach',
             'upload_date': '20111115',
+            'timestamp': 1321359578,
+            'thumbnail': 're:https?://.*\.jpg',
+            'view_count': int,
+            'like_count': int,
         },
     }
 
-    def check_urls(self, url_list):
-        """Returns 1st active url from list"""
-        for url in url_list:
+    def _get_url(self, track_id, template_url):
+        server_count = 30
+        for i in range(server_count):
+            url = template_url % i
             try:
                 # We only want to know if the request succeed
                 # don't download the whole file
-                self._request_webpage(url, None, False)
+                self._request_webpage(
+                    HEADRequest(url), track_id,
+                    'Checking URL %d/%d ...' % (i + 1, server_count + 1))
                 return url
             except ExtractorError:
-                url = None
+                pass
 
         return None
-
-    def _get_url(self, template_url):
-        return self.check_urls(template_url % i for i in range(30))
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -51,30 +59,51 @@ class MixcloudIE(InfoExtractor):
 
         webpage = self._download_webpage(url, track_id)
 
-        api_url = 'http://api.mixcloud.com/%s/%s/' % (uploader, cloudcast_name)
-        info = self._download_json(
-            api_url, track_id, 'Downloading cloudcast info')
-
         preview_url = self._search_regex(
             r'\s(?:data-preview-url|m-preview)="(.+?)"', webpage, 'preview url')
         song_url = preview_url.replace('/previews/', '/c/originals/')
         template_url = re.sub(r'(stream\d*)', 'stream%d', song_url)
-        final_song_url = self._get_url(template_url)
+        final_song_url = self._get_url(track_id, template_url)
         if final_song_url is None:
             self.to_screen('Trying with m4a extension')
             template_url = template_url.replace('.mp3', '.m4a').replace('originals/', 'm4a/64/')
-            final_song_url = self._get_url(template_url)
+            final_song_url = self._get_url(track_id, template_url)
         if final_song_url is None:
-            raise ExtractorError(u'Unable to extract track url')
+            raise ExtractorError('Unable to extract track url')
+
+        PREFIX = (
+            r'<span class="play-button[^"]*?"'
+            r'(?:\s+[a-zA-Z0-9-]+(?:="[^"]+")?)*?\s+')
+        title = self._html_search_regex(
+            PREFIX + r'm-title="([^"]+)"', webpage, 'title')
+        thumbnail = self._proto_relative_url(self._html_search_regex(
+            PREFIX + r'm-thumbnail-url="([^"]+)"', webpage, 'thumbnail',
+            fatal=False))
+        uploader = self._html_search_regex(
+            PREFIX + r'm-owner-name="([^"]+)"',
+            webpage, 'uploader', fatal=False)
+        uploader_id = self._search_regex(
+            r'\s+"profile": "([^"]+)",', webpage, 'uploader id', fatal=False)
+        description = self._og_search_description(webpage)
+        like_count = int_or_none(self._search_regex(
+            r'<meta itemprop="interactionCount" content="UserLikes:([0-9]+)"',
+            webpage, 'like count', fatal=False))
+        view_count = int_or_none(self._search_regex(
+            r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
+            webpage, 'play count', fatal=False))
+        timestamp = parse_iso8601(self._search_regex(
+            r'<time itemprop="dateCreated" datetime="([^"]+)">',
+            webpage, 'upload date'))
 
         return {
             'id': track_id,
-            'title': info['name'],
+            'title': title,
             'url': final_song_url,
-            'description': info.get('description'),
-            'thumbnail': info['pictures'].get('extra_large'),
-            'uploader': info['user']['name'],
-            'uploader_id': info['user']['username'],
-            'upload_date': unified_strdate(info['created_time']),
-            'view_count': info['play_count'],
+            'description': description,
+            'thumbnail': thumbnail,
+            'uploader': uploader,
+            'uploader_id': uploader_id,
+            'timestamp': timestamp,
+            'view_count': view_count,
+            'like_count': like_count,
         }

@@ -142,7 +142,7 @@ def win_service_set_status(handle, status_code):
 
 def win_service_main(service_name, real_main, argc, argv_raw):
     try:
-        #args = [argv_raw[i].value for i in range(argc)]
+        # args = [argv_raw[i].value for i in range(argc)]
         stop_event = threading.Event()
         handler = HandlerEx(functools.partial(stop_event, win_service_handler))
         h = advapi32.RegisterServiceCtrlHandlerExW(service_name, handler, None)
@@ -232,6 +232,7 @@ def rmtree(path):
     os.rmdir(path)
 
 #==============================================================================
+
 
 class BuildError(Exception):
     def __init__(self, output, code=500):
@@ -369,7 +370,7 @@ class Builder(PythonBuilder, GITBuilder, YoutubeDLBuilder, DownloadBuilder, Clea
 
 
 class BuildHTTPRequestHandler(BaseHTTPRequestHandler):
-    actionDict = { 'build': Builder, 'download': Builder } # They're the same, no more caching.
+    actionDict = {'build': Builder, 'download': Builder}  # They're the same, no more caching.
 
     def do_GET(self):
         path = urlparse.urlparse(self.path)

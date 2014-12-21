@@ -11,10 +11,9 @@ from ..utils import (
 
 
 class JukeboxIE(InfoExtractor):
-    _VALID_URL = r'^http://www\.jukebox?\..+?\/.+[,](?P<video_id>[a-z0-9\-]+)\.html'
+    _VALID_URL = r'^http://www\.jukebox?\..+?\/.+[,](?P<id>[a-z0-9\-]+)\.html'
     _TEST = {
         'url': 'http://www.jukebox.es/kosheen/videoclip,pride,r303r.html',
-        'md5': '1574e9b4d6438446d5b7dbcdf2786276',
         'info_dict': {
             'id': 'r303r',
             'ext': 'flv',
@@ -24,8 +23,7 @@ class JukeboxIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('video_id')
+        video_id = self._match_id(url)
 
         html = self._download_webpage(url, video_id)
         iframe_url = unescapeHTML(self._search_regex(r'<iframe .*src="([^"]*)"', html, 'iframe url'))
@@ -38,7 +36,7 @@ class JukeboxIE(InfoExtractor):
 
         try:
             video_url = self._search_regex(r'"config":{"file":"(?P<video_url>http:[^"]+\?mdtk=[0-9]+)"',
-                iframe_html, 'video url')
+                                           iframe_html, 'video url')
             video_url = unescapeHTML(video_url).replace('\/', '/')
         except RegexNotFoundError:
             youtube_url = self._search_regex(
@@ -49,9 +47,9 @@ class JukeboxIE(InfoExtractor):
             return self.url_result(youtube_url, ie='Youtube')
 
         title = self._html_search_regex(r'<h1 class="inline">([^<]+)</h1>',
-            html, 'title')
+                                        html, 'title')
         artist = self._html_search_regex(r'<span id="infos_article_artist">([^<]+)</span>',
-            html, 'artist')
+                                         html, 'artist')
 
         return {
             'id': video_id,

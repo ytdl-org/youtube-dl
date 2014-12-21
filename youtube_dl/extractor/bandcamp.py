@@ -4,9 +4,11 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
     compat_urlparse,
+)
+from ..utils import (
     ExtractorError,
 )
 
@@ -15,63 +17,67 @@ class BandcampIE(InfoExtractor):
     _VALID_URL = r'https?://.*?\.bandcamp\.com/track/(?P<title>.*)'
     _TESTS = [{
         'url': 'http://youtube-dl.bandcamp.com/track/youtube-dl-test-song',
-        'file': '1812978515.mp3',
         'md5': 'c557841d5e50261777a6585648adf439',
         'info_dict': {
-            "title": "youtube-dl  \"'/\\\u00e4\u21ad - youtube-dl test song \"'/\\\u00e4\u21ad",
-            "duration": 10,
+            'id': '1812978515',
+            'ext': 'mp3',
+            'title': "youtube-dl  \"'/\\\u00e4\u21ad - youtube-dl test song \"'/\\\u00e4\u21ad",
+            'duration': 9.8485,
         },
         '_skip': 'There is a limit of 200 free downloads / month for the test song'
+    }, {
+        'url': 'http://benprunty.bandcamp.com/track/lanius-battle',
+        'md5': '2b68e5851514c20efdff2afc5603b8b4',
+        'info_dict': {
+            'id': '2650410135',
+            'ext': 'mp3',
+            'title': 'Lanius (Battle)',
+            'uploader': 'Ben Prunty Music',
+        },
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         title = mobj.group('title')
         webpage = self._download_webpage(url, title)
-        # We get the link to the free download page
         m_download = re.search(r'freeDownloadPage: "(.*?)"', webpage)
-        if m_download is None:
+        if not m_download:
             m_trackinfo = re.search(r'trackinfo: (.+),\s*?\n', webpage)
             if m_trackinfo:
                 json_code = m_trackinfo.group(1)
-                data = json.loads(json_code)
-                d = data[0]
+                data = json.loads(json_code)[0]
 
-                duration = int(round(d['duration']))
                 formats = []
-                for format_id, format_url in d['file'].items():
-                    ext, _, abr_str = format_id.partition('-')
-
+                for format_id, format_url in data['file'].items():
+                    ext, abr_str = format_id.split('-', 1)
                     formats.append({
                         'format_id': format_id,
                         'url': format_url,
-                        'ext': format_id.partition('-')[0],
+                        'ext': ext,
                         'vcodec': 'none',
-                        'acodec': format_id.partition('-')[0],
-                        'abr': int(format_id.partition('-')[2]),
+                        'acodec': ext,
+                        'abr': int(abr_str),
                     })
 
                 self._sort_formats(formats)
 
                 return {
-                    'id': compat_str(d['id']),
-                    'title': d['title'],
+                    'id': compat_str(data['id']),
+                    'title': data['title'],
                     'formats': formats,
-                    'duration': duration,
+                    'duration': float(data['duration']),
                 }
             else:
                 raise ExtractorError('No free songs found')
 
         download_link = m_download.group(1)
-        video_id = re.search(
-            r'var TralbumData = {(.*?)id: (?P<id>\d*?)$',
-            webpage, re.MULTILINE | re.DOTALL).group('id')
+        video_id = self._search_regex(
+            r'var TralbumData = {.*?id: (?P<id>\d+),?$',
+            webpage, 'video id', flags=re.MULTILINE | re.DOTALL)
 
-        download_webpage = self._download_webpage(download_link, video_id,
-                                                  'Downloading free downloads page')
-        # We get the dictionary of the track from some javascrip code
-        info = re.search(r'items: (.*?),$',
-                         download_webpage, re.MULTILINE).group(1)
+        download_webpage = self._download_webpage(download_link, video_id, 'Downloading free downloads page')
+        # We get the dictionary of the track from some javascript code
+        info = re.search(r'items: (.*?),$', download_webpage, re.MULTILINE).group(1)
         info = json.loads(info)[0]
         # We pick mp3-320 for now, until format selection can be easily implemented.
         mp3_info = info['downloads']['mp3-320']
@@ -79,12 +85,12 @@ class BandcampIE(InfoExtractor):
         initial_url = mp3_info['url']
         re_url = r'(?P<server>http://(.*?)\.bandcamp\.com)/download/track\?enc=mp3-320&fsig=(?P<fsig>.*?)&id=(?P<id>.*?)&ts=(?P<ts>.*)$'
         m_url = re.match(re_url, initial_url)
-        #We build the url we will use to get the final track url
+        # We build the url we will use to get the final track url
         # This url is build in Bandcamp in the script download_bunde_*.js
         request_url = '%s/statdownload/track?enc=mp3-320&fsig=%s&id=%s&ts=%s&.rand=665028774616&.vrs=1' % (m_url.group('server'), m_url.group('fsig'), video_id, m_url.group('ts'))
         final_url_webpage = self._download_webpage(request_url, video_id, 'Requesting download url')
         # If we could correctly generate the .rand field the url would be
-        #in the "download_url" key
+        # in the "download_url" key
         final_url = re.search(r'"retry_url":"(.*?)"', final_url_webpage).group(1)
 
         return {
@@ -100,31 +106,48 @@ class BandcampIE(InfoExtractor):
 
 class BandcampAlbumIE(InfoExtractor):
     IE_NAME = 'Bandcamp:album'
-    _VALID_URL = r'https?://(?:(?P<subdomain>[^.]+)\.)?bandcamp\.com(?:/album/(?P<title>[^?#]+))?'
+    _VALID_URL = r'https?://(?:(?P<subdomain>[^.]+)\.)?bandcamp\.com(?:/album/(?P<title>[^?#]+)|/?(?:$|[?#]))'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://blazo.bandcamp.com/album/jazz-format-mixtape-vol-1',
         'playlist': [
             {
-                'file': '1353101989.mp3',
                 'md5': '39bc1eded3476e927c724321ddf116cf',
                 'info_dict': {
+                    'id': '1353101989',
+                    'ext': 'mp3',
                     'title': 'Intro',
                 }
             },
             {
-                'file': '38097443.mp3',
                 'md5': '1a2c32e2691474643e912cc6cd4bffaa',
                 'info_dict': {
+                    'id': '38097443',
+                    'ext': 'mp3',
                     'title': 'Kero One - Keep It Alive (Blazo remix)',
                 }
             },
         ],
+        'info_dict': {
+            'title': 'Jazz Format Mixtape vol.1',
+        },
         'params': {
             'playlistend': 2
         },
-        'skip': 'Bancamp imposes download limits. See test_playlists:test_bandcamp_album for the playlist test'
-    }
+        'skip': 'Bandcamp imposes download limits. See test_playlists:test_bandcamp_album for the playlist test'
+    }, {
+        'url': 'http://nightbringer.bandcamp.com/album/hierophany-of-the-open-grave',
+        'info_dict': {
+            'title': 'Hierophany of the Open Grave',
+        },
+        'playlist_mincount': 9,
+    }, {
+        'url': 'http://dotscale.bandcamp.com',
+        'info_dict': {
+            'title': 'Loom',
+        },
+        'playlist_mincount': 7,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

@@ -5,7 +5,7 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_parse_qs,
     compat_urlparse,
 )

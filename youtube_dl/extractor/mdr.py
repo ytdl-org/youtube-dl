@@ -7,7 +7,7 @@ from .common import InfoExtractor
 
 class MDRIE(InfoExtractor):
     _VALID_URL = r'^(?P<domain>https?://(?:www\.)?mdr\.de)/(?:.*)/(?P<type>video|audio)(?P<video_id>[^/_]+)(?:_|\.html)'
-    
+
     # No tests, MDR regularily deletes its videos
     _TEST = {
         'url': 'http://www.mdr.de/fakt/video189002.html',

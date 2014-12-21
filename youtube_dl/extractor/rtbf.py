@@ -30,7 +30,7 @@ class RTBFIE(InfoExtractor):
         page = self._download_webpage('https://www.rtbf.be/video/embed?id=%s' % video_id, video_id)
 
         data = json.loads(self._html_search_regex(
-            r'<div class="js-player-embed" data-video="([^"]+)"', page, 'data video'))['data']
+            r'<div class="js-player-embed(?: player-embed)?" data-video="([^"]+)"', page, 'data video'))['data']
 
         video_url = data.get('downloadUrl') or data.get('url')
 

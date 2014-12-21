@@ -3,13 +3,14 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
+    compat_urllib_parse,
     compat_urllib_parse_urlparse,
     compat_urllib_request,
-    compat_urllib_parse,
-    unified_strdate,
+)
+from ..utils import (
     str_to_int,
-    int_or_none,
+    unified_strdate,
 )
 from ..aes import aes_decrypt_text
 
@@ -40,31 +41,42 @@ class SpankwireIE(InfoExtractor):
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
 
-        title = self._html_search_regex(r'<h1>([^<]+)', webpage, 'title')
+        title = self._html_search_regex(
+            r'<h1>([^<]+)', webpage, 'title')
         description = self._html_search_regex(
-            r'<div\s+id="descriptionContent">([^<]+)<', webpage, 'description', fatal=False)
+            r'<div\s+id="descriptionContent">([^<]+)<',
+            webpage, 'description', fatal=False)
         thumbnail = self._html_search_regex(
-            r'flashvars\.image_url = "([^"]+)', webpage, 'thumbnail', fatal=False)
+            r'playerData\.screenShot\s*=\s*["\']([^"\']+)["\']',
+            webpage, 'thumbnail', fatal=False)
 
         uploader = self._html_search_regex(
-            r'by:\s*<a [^>]*>(.+?)</a>', webpage, 'uploader', fatal=False)
+            r'by:\s*<a [^>]*>(.+?)</a>',
+            webpage, 'uploader', fatal=False)
         uploader_id = self._html_search_regex(
-            r'by:\s*<a href="/Profile\.aspx\?.*?UserId=(\d+).*?"', webpage, 'uploader id', fatal=False)
-        upload_date = self._html_search_regex(r'</a> on (.+?) at \d+:\d+', webpage, 'upload date', fatal=False)
-        if upload_date:
-            upload_date = unified_strdate(upload_date)
-        
-        view_count = self._html_search_regex(
-            r'<div id="viewsCounter"><span>([^<]+)</span> views</div>', webpage, 'view count', fatal=False)
-        if view_count:
-            view_count = str_to_int(view_count)
-        comment_count = int_or_none(self._html_search_regex(
-            r'<span id="spCommentCount">\s*(\d+)</span> Comments</div>', webpage, 'comment count', fatal=False))
+            r'by:\s*<a href="/Profile\.aspx\?.*?UserId=(\d+).*?"',
+            webpage, 'uploader id', fatal=False)
+        upload_date = unified_strdate(self._html_search_regex(
+            r'</a> on (.+?) at \d+:\d+',
+            webpage, 'upload date', fatal=False))
 
-        video_urls = list(map(compat_urllib_parse.unquote , re.findall(r'flashvars\.quality_[0-9]{3}p = "([^"]+)', webpage)))
+        view_count = str_to_int(self._html_search_regex(
+            r'<div id="viewsCounter"><span>([\d,\.]+)</span> views</div>',
+            webpage, 'view count', fatal=False))
+        comment_count = str_to_int(self._html_search_regex(
+            r'Comments<span[^>]+>\s*\(([\d,\.]+)\)</span>',
+            webpage, 'comment count', fatal=False))
+
+        video_urls = list(map(
+            compat_urllib_parse.unquote,
+            re.findall(r'playerData\.cdnPath[0-9]{3,}\s*=\s*["\']([^"\']+)["\']', webpage)))
         if webpage.find('flashvars\.encrypted = "true"') != -1:
-            password = self._html_search_regex(r'flashvars\.video_title = "([^"]+)', webpage, 'password').replace('+', ' ')
-            video_urls = list(map(lambda s: aes_decrypt_text(s, password, 32).decode('utf-8'), video_urls))
+            password = self._html_search_regex(
+                r'flashvars\.video_title = "([^"]+)',
+                webpage, 'password').replace('+', ' ')
+            video_urls = list(map(
+                lambda s: aes_decrypt_text(s, password, 32).decode('utf-8'),
+                video_urls))
 
         formats = []
         for video_url in video_urls:

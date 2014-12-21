@@ -3,8 +3,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_request,
+)
+from ..utils import (
     ExtractorError,
 )
 
@@ -12,10 +14,11 @@ from ..utils import (
 class EveryonesMixtapeIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?everyonesmixtape\.com/#/mix/(?P<id>[0-9a-zA-Z]+)(?:/(?P<songnr>[0-9]))?$'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://everyonesmixtape.com/#/mix/m7m0jJAbMQi/5',
-        'file': '5bfseWNmlds.mp4',
         "info_dict": {
+            'id': '5bfseWNmlds',
+            'ext': 'mp4',
             "title": "Passion Pit - \"Sleepyhead\" (Official Music Video)",
             "uploader": "FKR.TV",
             "uploader_id": "frenchkissrecords",
@@ -25,7 +28,14 @@ class EveryonesMixtapeIE(InfoExtractor):
         'params': {
             'skip_download': True,  # This is simply YouTube
         }
-    }
+    }, {
+        'url': 'http://everyonesmixtape.com/#/mix/m7m0jJAbMQi',
+        'info_dict': {
+            'id': 'm7m0jJAbMQi',
+            'title': 'Driving',
+        },
+        'playlist_count': 24
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

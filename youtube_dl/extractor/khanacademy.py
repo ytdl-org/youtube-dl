@@ -9,21 +9,30 @@ from ..utils import (
 
 
 class KhanAcademyIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:www\.)?khanacademy\.org/(?P<key>[^/]+)/(?:[^/]+/){,2}(?P<id>[^?#/]+)(?:$|[?#])'
+    _VALID_URL = r'^https?://(?:(?:www|api)\.)?khanacademy\.org/(?P<key>[^/]+)/(?:[^/]+/){,2}(?P<id>[^?#/]+)(?:$|[?#])'
     IE_NAME = 'KhanAcademy'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.khanacademy.org/video/one-time-pad',
-        'file': 'one-time-pad.mp4',
         'md5': '7021db7f2d47d4fff89b13177cb1e8f4',
         'info_dict': {
+            'id': 'one-time-pad',
+            'ext': 'mp4',
             'title': 'The one-time pad',
             'description': 'The perfect cipher',
             'duration': 176,
             'uploader': 'Brit Cruise',
             'upload_date': '20120411',
         }
-    }
+    }, {
+        'url': 'https://www.khanacademy.org/math/applied-math/cryptography',
+        'info_dict': {
+            'id': 'cryptography',
+            'title': 'Journey into cryptography',
+            'description': 'How have humans protected their secret messages through history? What has changed today?',
+        },
+        'playlist_mincount': 3,
+    }]
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)

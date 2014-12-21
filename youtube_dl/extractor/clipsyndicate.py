@@ -39,6 +39,7 @@ class ClipsyndicateIE(InfoExtractor):
             transform_source=fix_xml_ampersands)
 
         track_doc = pdoc.find('trackList/track')
+
         def find_param(name):
             node = find_xpath_attr(track_doc, './/param', 'name', name)
             if node is not None:

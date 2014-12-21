@@ -1,8 +1,13 @@
+from __future__ import unicode_literals
+
 import os
 import subprocess
 import sys
 
 from .common import PostProcessor
+from ..compat import (
+    subprocess_check_output
+)
 from ..utils import (
     check_executable,
     hyphenate_date,
@@ -57,7 +62,7 @@ class XAttrMetadataPP(PostProcessor):
                         elif user_has_xattr:
                             cmd = ['xattr', '-w', key, value, path]
 
-                        subprocess.check_output(cmd)
+                        subprocess_check_output(cmd)
 
                 else:
                     # On Unix, and can't find pyxattr, setfattr, or xattr.
@@ -105,4 +110,3 @@ class XAttrMetadataPP(PostProcessor):
         except (subprocess.CalledProcessError, OSError):
             self._downloader.report_error("This filesystem doesn't support extended attributes. (You may have to enable them in your /etc/fstab)")
             return False, info
-

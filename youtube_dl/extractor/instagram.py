@@ -27,9 +27,9 @@ class InstagramIE(InfoExtractor):
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
         uploader_id = self._search_regex(r'"owner":{"username":"(.+?)"',
-            webpage, 'uploader id', fatal=False)
+                                         webpage, 'uploader id', fatal=False)
         desc = self._search_regex(r'"caption":"(.*?)"', webpage, 'description',
-            fatal=False)
+                                  fatal=False)
 
         return {
             'id': video_id,
@@ -46,6 +46,30 @@ class InstagramUserIE(InfoExtractor):
     _VALID_URL = r'http://instagram\.com/(?P<username>[^/]{2,})/?(?:$|[?#])'
     IE_DESC = 'Instagram user profile'
     IE_NAME = 'instagram:user'
+    _TEST = {
+        'url': 'http://instagram.com/porsche',
+        'info_dict': {
+            'id': 'porsche',
+            'title': 'porsche',
+        },
+        'playlist_mincount': 2,
+        'playlist': [{
+            'info_dict': {
+                'id': '614605558512799803_462752227',
+                'ext': 'mp4',
+                'title': '#Porsche Intelligent Performance.',
+                'thumbnail': 're:^https?://.*\.jpg',
+                'uploader': 'Porsche',
+                'uploader_id': 'porsche',
+                'timestamp': 1387486713,
+                'upload_date': '20131219',
+            },
+        }],
+        'params': {
+            'extract_flat': True,
+            'skip_download': True,
+        }
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

@@ -2,11 +2,12 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from .mtv import MTVServicesInfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
     compat_urllib_parse,
+)
+from ..utils import (
     ExtractorError,
     float_or_none,
     unified_strdate,
@@ -14,13 +15,13 @@ from ..utils import (
 
 
 class ComedyCentralIE(MTVServicesInfoExtractor):
-    _VALID_URL = r'''(?x)https?://(?:www\.)?(comedycentral|cc)\.com/
-        (video-clips|episodes|cc-studios|video-collections)
+    _VALID_URL = r'''(?x)https?://(?:www\.)?cc\.com/
+        (video-clips|episodes|cc-studios|video-collections|full-episodes)
         /(?P<title>.*)'''
     _FEED_URL = 'http://comedycentral.com/feeds/mrss/'
 
     _TEST = {
-        'url': 'http://www.comedycentral.com/video-clips/kllhuv/stand-up-greg-fitzsimmons--uncensored---too-good-of-a-mother',
+        'url': 'http://www.cc.com/video-clips/kllhuv/stand-up-greg-fitzsimmons--uncensored---too-good-of-a-mother',
         'md5': 'c4f48e9eda1b16dd10add0744344b6d8',
         'info_dict': {
             'id': 'cef0cbb3-e776-4bc9-b62e-8016deccb354',
@@ -31,7 +32,7 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
     }
 
 
-class ComedyCentralShowsIE(InfoExtractor):
+class ComedyCentralShowsIE(MTVServicesInfoExtractor):
     IE_DESC = 'The Daily Show / The Colbert Report'
     # urls can be abbreviations like :thedailyshow or :colbert
     # urls for episodes like:
@@ -43,14 +44,14 @@ class ComedyCentralShowsIE(InfoExtractor):
                           (?P<showname>thedailyshow|thecolbertreport)\.(?:cc\.)?com/
                          ((?:full-)?episodes/(?:[0-9a-z]{6}/)?(?P<episode>.*)|
                           (?P<clip>
-                              (?:(?:guests/[^/]+|videos|video-playlists|special-editions)/[^/]+/(?P<videotitle>[^/?#]+))
+                              (?:(?:guests/[^/]+|videos|video-playlists|special-editions|news-team/[^/]+)/[^/]+/(?P<videotitle>[^/?#]+))
                               |(the-colbert-report-(videos|collections)/(?P<clipID>[0-9]+)/[^/]*/(?P<cntitle>.*?))
                               |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*))
                           )|
                           (?P<interview>
                               extended-interviews/(?P<interID>[0-9a-z]+)/(?:playlist_tds_extended_)?(?P<interview_title>.*?)(/.*?)?)))
-                     (?:[?#].*|$)'''
-    _TEST = {
+                     '''
+    _TESTS = [{
         'url': 'http://thedailyshow.cc.com/watch/thu-december-13-2012/kristen-stewart',
         'md5': '4e2f5cb088a83cd8cdb7756132f9739d',
         'info_dict': {
@@ -61,7 +62,37 @@ class ComedyCentralShowsIE(InfoExtractor):
             'uploader': 'thedailyshow',
             'title': 'thedailyshow kristen-stewart part 1',
         }
-    }
+    }, {
+        'url': 'http://thedailyshow.cc.com/extended-interviews/xm3fnq/andrew-napolitano-extended-interview',
+        'only_matching': True,
+    }, {
+        'url': 'http://thecolbertreport.cc.com/videos/29w6fx/-realhumanpraise-for-fox-news',
+        'only_matching': True,
+    }, {
+        'url': 'http://thecolbertreport.cc.com/videos/gh6urb/neil-degrasse-tyson-pt--1?xrs=eml_col_031114',
+        'only_matching': True,
+    }, {
+        'url': 'http://thedailyshow.cc.com/guests/michael-lewis/3efna8/exclusive---michael-lewis-extended-interview-pt--3',
+        'only_matching': True,
+    }, {
+        'url': 'http://thedailyshow.cc.com/episodes/sy7yv0/april-8--2014---denis-leary',
+        'only_matching': True,
+    }, {
+        'url': 'http://thecolbertreport.cc.com/episodes/8ase07/april-8--2014---jane-goodall',
+        'only_matching': True,
+    }, {
+        'url': 'http://thedailyshow.cc.com/video-playlists/npde3s/the-daily-show-19088-highlights',
+        'only_matching': True,
+    }, {
+        'url': 'http://thedailyshow.cc.com/video-playlists/t6d9sg/the-daily-show-20038-highlights/be3cwo',
+        'only_matching': True,
+    }, {
+        'url': 'http://thedailyshow.cc.com/special-editions/2l8fdb/special-edition---a-look-back-at-food',
+        'only_matching': True,
+    }, {
+        'url': 'http://thedailyshow.cc.com/news-team/michael-che/7wnfel/we-need-to-talk-about-israel',
+        'only_matching': True,
+    }]
 
     _available_formats = ['3500', '2200', '1700', '1200', '750', '400']
 
@@ -82,18 +113,8 @@ class ComedyCentralShowsIE(InfoExtractor):
         '400': (384, 216),
     }
 
-    @staticmethod
-    def _transform_rtmp_url(rtmp_video_url):
-        m = re.match(r'^rtmpe?://.*?/(?P<finalid>gsp\.comedystor/.*)$', rtmp_video_url)
-        if not m:
-            raise ExtractorError('Cannot transform RTMP url')
-        base = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=1+_pxI0=Ripod-h264+_pxL0=undefined+_pxM0=+_pxK=18639+_pxE=mp4/44620/mtvnorigin/'
-        return base + m.group('finalid')
-
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url, re.VERBOSE)
-        if mobj is None:
-            raise ExtractorError('Invalid URL: %s' % url)
+        mobj = re.match(self._VALID_URL, url)
 
         if mobj.group('shortname'):
             if mobj.group('shortname') in ('tds', 'thedailyshow'):
@@ -130,7 +151,7 @@ class ComedyCentralShowsIE(InfoExtractor):
                 raise ExtractorError('Invalid redirected URL: ' + url)
             if mobj.group('episode') == '':
                 raise ExtractorError('Redirected URL is still not specific: ' + url)
-            epTitle = mobj.group('episode').rpartition('/')[-1]
+            epTitle = (mobj.group('episode') or mobj.group('videotitle')).rpartition('/')[-1]
 
         mMovieParams = re.findall('(?:<param name="movie" value="|var url = ")(http://media.mtvnservices.com/([^"]*(?:episode|video).*?:.*?))"', webpage)
         if len(mMovieParams) == 0:
@@ -188,7 +209,7 @@ class ComedyCentralShowsIE(InfoExtractor):
                 })
                 formats.append({
                     'format_id': 'rtmp-%s' % format,
-                    'url': rtmp_video_url,
+                    'url': rtmp_video_url.replace('viacomccstrm', 'viacommtvstrm'),
                     'ext': self._video_extensions.get(format, 'mp4'),
                     'height': h,
                     'width': w,

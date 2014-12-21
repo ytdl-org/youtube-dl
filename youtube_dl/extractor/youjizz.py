@@ -9,40 +9,30 @@ from ..utils import (
 
 
 class YouJizzIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:\w+\.)?youjizz\.com/videos/(?P<videoid>[^.]+)\.html$'
+    _VALID_URL = r'https?://(?:\w+\.)?youjizz\.com/videos/[^/#?]+-(?P<id>[0-9]+)\.html(?:$|[?#])'
     _TEST = {
         'url': 'http://www.youjizz.com/videos/zeichentrick-1-2189178.html',
-        'file': '2189178.flv',
         'md5': '07e15fa469ba384c7693fd246905547c',
         'info_dict': {
+            'id': '2189178',
+            'ext': 'flv',
             "title": "Zeichentrick 1",
             "age_limit": 18,
         }
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-
-        video_id = mobj.group('videoid')
-
-        # Get webpage content
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-
         age_limit = self._rta_search(webpage)
+        video_title = self._html_search_regex(
+            r'<title>\s*(.*)\s*</title>', webpage, 'title')
 
-        # Get the video title
-        video_title = self._html_search_regex(r'<title>(?P<title>.*)</title>',
-            webpage, 'title').strip()
-
-        # Get the embed page
-        result = re.search(r'https?://www.youjizz.com/videos/embed/(?P<videoid>[0-9]+)', webpage)
-        if result is None:
-            raise ExtractorError('ERROR: unable to extract embed page')
-
-        embed_page_url = result.group(0).strip()
-        video_id = result.group('videoid')
-
-        webpage = self._download_webpage(embed_page_url, video_id)
+        embed_page_url = self._search_regex(
+            r'(https?://www.youjizz.com/videos/embed/[0-9]+)',
+            webpage, 'embed page')
+        webpage = self._download_webpage(
+            embed_page_url, video_id, note='downloading embed page')
 
         # Get the video URL
         m_playlist = re.search(r'so.addVariable\("playlist", ?"(?P<playlist>.+?)"\);', webpage)

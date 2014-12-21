@@ -18,6 +18,7 @@ class IGNIE(InfoExtractor):
     _DESCRIPTION_RE = [
         r'<span class="page-object-description">(.+?)</span>',
         r'id="my_show_video">.*?<p>(.*?)</p>',
+        r'<meta name="description" content="(.*?)"',
     ]
 
     _TESTS = [
@@ -55,13 +56,28 @@ class IGNIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        {
+            'url': 'http://www.ign.com/articles/2014/08/15/rewind-theater-wild-trailer-gamescom-2014?watch',
+            'md5': '4e9a0bda1e5eebd31ddcf86ec0b9b3c7',
+            'info_dict': {
+                'id': '078fdd005f6d3c02f63d795faa1b984f',
+                'ext': 'mp4',
+                'title': 'Rewind Theater - Wild Trailer Gamescom 2014',
+                'description': (
+                    'Giant skeletons, bloody hunts, and captivating'
+                    ' natural beauty take our breath away.'
+                ),
+            },
+        },
     ]
 
     def _find_video_id(self, webpage):
         res_id = [
+            r'"video_id"\s*:\s*"(.*?)"',
             r'data-video-id="(.+?)"',
             r'<object id="vid_(.+?)"',
             r'<meta name="og:image" content=".*/(.+?)-(.+?)/.+.jpg"',
+            r'class="hero-poster[^"]*?"[^>]*id="(.+?)"',
         ]
         return self._search_regex(res_id, webpage, 'video id')
 
@@ -70,20 +86,22 @@ class IGNIE(InfoExtractor):
         name_or_id = mobj.group('name_or_id')
         page_type = mobj.group('type')
         webpage = self._download_webpage(url, name_or_id)
-        if page_type == 'articles':
-            video_url = self._search_regex(r'var videoUrl = "(.+?)"', webpage, 'video url')
-            return self.url_result(video_url, ie='IGN')
-        elif page_type != 'video':
+        if page_type != 'video':
             multiple_urls = re.findall(
-                '<param name="flashvars" value="[^"]*?url=(https?://www\.ign\.com/videos/.*?)["&]',
+                '<param name="flashvars"[^>]*value="[^"]*?url=(https?://www\.ign\.com/videos/.*?)["&]',
                 webpage)
             if multiple_urls:
-                return [self.url_result(u, ie='IGN') for u in multiple_urls]
+                entries = [self.url_result(u, ie='IGN') for u in multiple_urls]
+                return {
+                    '_type': 'playlist',
+                    'id': name_or_id,
+                    'entries': entries,
+                }
 
         video_id = self._find_video_id(webpage)
         result = self._get_video_info(video_id)
         description = self._html_search_regex(self._DESCRIPTION_RE,
-            webpage, 'video description', flags=re.DOTALL)
+                                              webpage, 'video description', flags=re.DOTALL)
         result['description'] = description
         return result
 
@@ -101,13 +119,13 @@ class IGNIE(InfoExtractor):
 
 
 class OneUPIE(IGNIE):
-    _VALID_URL = r'https?://gamevideos\.1up\.com/(?P<type>video)/id/(?P<name_or_id>.+)'
+    _VALID_URL = r'https?://gamevideos\.1up\.com/(?P<type>video)/id/(?P<name_or_id>.+)\.html'
     IE_NAME = '1up.com'
 
     _DESCRIPTION_RE = r'<div id="vid_summary">(.+?)</div>'
 
     _TESTS = [{
-        'url': 'http://gamevideos.1up.com/video/id/34976',
+        'url': 'http://gamevideos.1up.com/video/id/34976.html',
         'md5': '68a54ce4ebc772e4b71e3123d413163d',
         'info_dict': {
             'id': '34976',

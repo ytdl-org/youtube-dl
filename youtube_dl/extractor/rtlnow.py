@@ -81,7 +81,7 @@ class RTLnowIE(InfoExtractor):
                 'id': '99205',
                 'ext': 'flv',
                 'title': 'Medicopter 117 - Angst!',
-                'description': 'md5:895b1df01639b5f61a04fc305a5cb94d',
+                'description': 're:^Im Therapiezentrum \'Sonnalm\' kommen durch eine Unachtsamkeit die für die B.handlung mit Phobikern gehaltenen Voglespinnen frei\. Eine Ausreißerin',
                 'thumbnail': 'http://autoimg.static-fra.de/superrtlnow/287529/1500x1500/image2.jpg',
                 'upload_date': '20080928',
                 'duration': 2691,
@@ -92,16 +92,7 @@ class RTLnowIE(InfoExtractor):
         },
         {
             'url': 'http://www.n-tvnow.de/deluxe-alles-was-spass-macht/thema-ua-luxushotel-fuer-vierbeiner.php?container_id=153819&player=1&season=0',
-            'info_dict': {
-                'id': '153819',
-                'ext': 'flv',
-                'title': 'Deluxe - Alles was Spaß macht - Thema u.a.: Luxushotel für Vierbeiner',
-                'description': 'md5:c3705e1bb32e1a5b2bcd634fc065c631',
-                'thumbnail': 'http://autoimg.static-fra.de/ntvnow/383157/1500x1500/image2.jpg',
-                'upload_date': '20140221',
-                'duration': 2429,
-            },
-            'skip': 'Only works from Germany',
+            'only_matching': True,
         },
     ]
 
@@ -131,7 +122,7 @@ class RTLnowIE(InfoExtractor):
         playerdata = self._download_xml(playerdata_url, video_id, 'Downloading player data XML')
 
         videoinfo = playerdata.find('./playlist/videoinfo')
-        
+
         formats = []
         for filename in videoinfo.findall('filename'):
             mobj = re.search(r'(?P<url>rtmpe://(?:[^/]+/){2})(?P<play_path>.+)', filename.text)

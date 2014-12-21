@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import unicode_literals
 
 # Allow direct execution
 import os
@@ -13,13 +14,13 @@ from youtube_dl import YoutubeDL
 
 
 def _download_restricted(url, filename, age):
-    """ Returns true iff the file has been downloaded """
+    """ Returns true if the file has been downloaded """
 
     params = {
         'age_limit': age,
         'skip_download': True,
         'writeinfojson': True,
-        "outtmpl": "%(id)s.%(ext)s",
+        'outtmpl': '%(id)s.%(ext)s',
     }
     ydl = YoutubeDL(params)
     ydl.add_default_info_extractors()
