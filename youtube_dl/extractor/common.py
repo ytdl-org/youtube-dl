@@ -40,7 +40,7 @@ class InfoExtractor(object):
     information about the video (or videos) the URL refers to. This
     information includes the real video URL, the video title, author and
     others. The information is stored in a dictionary which is then
-    passed to the FileDownloader. The FileDownloader processes this
+    passed to the YoutubeDL. The YoutubeDL processes this
     information possibly downloading the video to the file system, among
     other possible outcomes.
 
