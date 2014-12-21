@@ -12,6 +12,7 @@ from ..compat import (
 )
 from ..utils import (
     clean_html,
+    unescapeHTML,
     ExtractorError,
     int_or_none,
 )
@@ -117,6 +118,16 @@ class YahooIE(InfoExtractor):
                 'duration': 201,
             }
         }, {
+            'url': 'https://www.yahoo.com/movies/v/true-story-trailer-173000497.html',
+            'md5': '989396ae73d20c6f057746fb226aa215',
+            'info_dict': {
+                'id': '071c4013-ce30-3a93-a5b2-e0413cd4a9d1',
+                'ext': 'mp4',
+                'title': '\'True Story\' Trailer',
+                'description': 'True Story',
+                'duration': 150,
+            },
+        }, {
             'url': 'https://gma.yahoo.com/pizza-delivery-man-surprised-huge-tip-college-kids-195200785.html',
             'only_matching': True,
         }
@@ -125,6 +136,7 @@ class YahooIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         display_id = mobj.group('display_id')
+        page_id = mobj.group('id')
         url = mobj.group('url')
         host = mobj.group('host')
         webpage = self._download_webpage(url, display_id)
@@ -149,6 +161,7 @@ class YahooIE(InfoExtractor):
                 r'YUI\.namespace\("Media"\)\.CONTENT_ID\s*=\s*"([^"]+)"',
                 r'root\.App\.Cache\.context\.videoCache\.curVideo = \{"([^"]+)"',
                 r'"first_videoid"\s*:\s*"([^"]+)"',
+                r'%s[^}]*"ccm_id"\s*:\s*"([^"]+)"' % re.escape(page_id),
             ]
             video_id = self._search_regex(CONTENT_ID_REGEXES, webpage, 'content ID')
         else:
@@ -211,7 +224,7 @@ class YahooIE(InfoExtractor):
         return {
             'id': video_id,
             'display_id': display_id,
-            'title': meta['title'],
+            'title': unescapeHTML(meta['title']),
             'formats': formats,
             'description': clean_html(meta['description']),
             'thumbnail': meta['thumbnail'] if meta.get('thumbnail') else self._og_search_thumbnail(webpage),
