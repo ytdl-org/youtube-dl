@@ -56,14 +56,14 @@ class YahooIE(InfoExtractor):
             }
         },
         {
-            'url': 'https://tw.screen.yahoo.com/taipei-opinion-poll/選情站報-街頭民調-台北市篇-102823042.html',
-            'md5': '92a7fdd8a08783c68a174d7aa067dde8',
+            'url': 'https://tw.screen.yahoo.com/election-2014-askmayor/敢問市長-黃秀霜批賴清德-非常高傲-033009720.html',
+            'md5': '3a09cf59349cfaddae1797acc3c087fc',
             'info_dict': {
-                'id': '7a23b569-7bea-36cb-85b9-bd5301a0a1fb',
+                'id': 'cac903b3-fcf4-3c14-b632-643ab541712f',
                 'ext': 'mp4',
-                'title': '選情站報 街頭民調 台北市篇',
-                'description': '選情站報 街頭民調 台北市篇',
-                'duration': 429,
+                'title': '敢問市長／黃秀霜批賴清德「非常高傲」',
+                'description': '直言台南沒捷運 交通居五都之末',
+                'duration': 396,
             }
         },
         {
@@ -88,14 +88,14 @@ class YahooIE(InfoExtractor):
                 'duration': 121,
             }
         }, {
-            'url': 'https://ca.finance.yahoo.com/news/20-most-valuable-brands-world-112600775.html',
-            'md5': '3e401e4eed6325aa29d9b96125fd5b4f',
+            'url': 'https://ca.finance.yahoo.com/news/hackers-sony-more-trouble-well-154609075.html',
+            'md5': '226a895aae7e21b0129e2a2006fe9690',
             'info_dict': {
-                'id': 'c1b4c09c-8ed8-3b65-8b05-169c55358a83',
+                'id': 'e624c4bc-3389-34de-9dfc-025f74943409',
                 'ext': 'mp4',
-                'title': "Apple Is The World's Most Valuable Brand",
-                'description': 'md5:73eabc1a11c6f59752593b2ceefa1262',
-                'duration': 21,
+                'title': '\'The Interview\' TV Spot: War',
+                'description': 'The Interview',
+                'duration': 30,
             }
         }, {
             'url': 'http://news.yahoo.com/video/china-moses-crazy-blues-104538833.html',
