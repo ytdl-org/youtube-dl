@@ -1016,13 +1016,13 @@ class YoutubeDL(object):
             descfn = filename + '.description'
             if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(descfn)):
                 self.to_screen('[info] Video description is already present')
+            elif info_dict.get('description') is None:
+                self.report_warning('There\'s no description to write.')
             else:
                 try:
                     self.to_screen('[info] Writing video description to: ' + descfn)
                     with io.open(encodeFilename(descfn), 'w', encoding='utf-8') as descfile:
                         descfile.write(info_dict['description'])
-                except (KeyError, TypeError):
-                    self.report_warning('There\'s no description to write.')
                 except (OSError, IOError):
                     self.report_error('Cannot write description file ' + descfn)
                     return
