@@ -92,7 +92,7 @@ class DVTVIE(InfoExtractor):
         return {
             'id': metadata['mediaid'],
             'title': unescapeHTML(metadata['title']),
-            'thumbnail': self._proto_relative_url(metadata['image']),
+            'thumbnail': self._proto_relative_url(metadata['image'], 'http:'),
             'formats': formats
         }
 
