@@ -22,7 +22,7 @@ class InternetVideoArchiveIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'SKYFALL',
             'description': 'In SKYFALL, Bond\'s loyalty to M is tested as her past comes back to haunt her. As MI6 comes under attack, 007 must track down and destroy the threat, no matter how personal the cost.',
-            'duration': 149,
+            'duration': 152,
         },
     }
 
