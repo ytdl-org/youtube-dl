@@ -176,17 +176,15 @@ class YahooIE(InfoExtractor):
         region = self._search_regex(
             r'\\?"region\\?"\s*:\s*\\?"([^"]+?)\\?"',
             webpage, 'region', fatal=False, default='US')
-        query = ('SELECT * FROM yahoo.media.video.streams WHERE id="%s"'
-                 ' AND plrs="86Gj0vCaSzV_Iuf6hNylf2" AND region="%s"'
-                 ' AND protocol="http"' % (video_id, region))
         data = compat_urllib_parse.urlencode({
-            'q': query,
-            'env': 'prod',
-            'format': 'json',
+            'protocol': 'http',
+            'region': region,
         })
+        query_url = (
+            'https://video.media.yql.yahoo.com/v1/video/sapi/streams/'
+            '{id}?{data}'.format(id=video_id, data=data))
         query_result = self._download_json(
-            'http://video.query.yahoo.com/v1/public/yql?' + data,
-            display_id, 'Downloading video info')
+            query_url, display_id, 'Downloading video info')
 
         info = query_result['query']['results']['mediaObj'][0]
         meta = info.get('meta')
