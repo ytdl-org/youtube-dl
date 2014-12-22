@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from .abc import ABCIE
 from .academicearth import AcademicEarthCourseIE
 from .addanime import AddAnimeIE
+from .adobetv import AdobeTVIE
 from .adultswim import AdultSwimIE
 from .aftonbladet import AftonbladetIE
 from .aljazeera import AlJazeeraIE
