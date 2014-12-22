@@ -64,6 +64,7 @@ from .cnet import CNETIE
 from .cnn import (
     CNNIE,
     CNNBlogsIE,
+    CNNArticleIE,
 )
 from .collegehumor import CollegeHumorIE
 from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
