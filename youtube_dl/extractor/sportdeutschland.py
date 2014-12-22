@@ -60,9 +60,10 @@ class SportDeutschlandIE(InfoExtractor):
 
         categories = list(data.get('section', {}).get('tags', {}).values())
         asset = data['asset']
+        assets_info = self._download_json(asset['url'], video_id)
 
         formats = []
-        smil_url = asset['video']
+        smil_url = assets_info['video']
         if '.smil' in smil_url:
             m3u8_url = smil_url.replace('.smil', '.m3u8')
             formats.extend(
