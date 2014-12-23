@@ -237,7 +237,7 @@ def parseOpts(overrideArguments=None):
         help='Download advertisements as well (experimental)')
     selection.add_option(
         '--reverse-playlist',
-        dest='reverse_playlist', action='store_true', help='Reverses video order in playlist')
+        dest='reverse_playlist', action='store_true', help='Reverse playlists')
 
     authentication = optparse.OptionGroup(parser, 'Authentication Options')
     authentication.add_option(

@@ -34,8 +34,6 @@ YouTube.com and a few more sites. It requires the Python interpreter, version
 your Unix box, on Windows or on Mac OS X. It is released to the public domain,
 which means you can modify it, redistribute it or use it however you like.
 
-This is a modified version to enable the reversal of a playlist. It works for me, and that is all I can promise.
-
 # OPTIONS
     -h, --help                       print this help text and exit
     --version                        print program version and exit
@@ -104,7 +102,6 @@ This is a modified version to enable the reversal of a playlist. It works for me
                                      downloaded videos in it.
     --include-ads                    Download advertisements as well
                                      (experimental)
-    --reverse-playlist               Reverses video order in playlist
 
 ## Download Options:
     -r, --rate-limit LIMIT           maximum download rate in bytes per second
