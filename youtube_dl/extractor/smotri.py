@@ -69,6 +69,7 @@ class SmotriIE(InfoExtractor):
             'params': {
                 'videopassword': 'qwerty',
             },
+            'skip': 'Video is not approved by moderator',
         },
         # age limit + video-password
         {
@@ -86,7 +87,8 @@ class SmotriIE(InfoExtractor):
             },
             'params': {
                 'videopassword': '333'
-            }
+            },
+            'skip': 'Video is not approved by moderator',
         },
         # swf player
         {
