@@ -80,3 +80,88 @@ class Video44IE(Play44IE):
             'description': 'chaoshead-12'
         }
     }
+
+class VideoWingIE(Play44IE):
+    IE_NAME = "videowing"
+    IE_DESC = "VideoWing"
+
+    _VALID_URL = r'http://[w.]*videowing\.[^/]*/.*video=/*(?P<id>[^&].).*'
+
+    _TEST = {
+        'url': 'http://videowing.me/embed?w=718&h=438&video=ongoing/boku_wa_tomodachi_ga_sukunai_-_05.mp4',
+        'md5': '4ed320e353ed26c742c4f12a9c210b60',
+        'info_dict': {
+            'id': 'boku_wa_tomodachi_ga_sukunai_-_05',
+            'ext': 'mp4',
+            'title': 'boku_wa_tomodachi_ga_sukunai_-_05',
+            'description': 'boku_wa_tomodachi_ga_sukunai_-_05'
+        }
+    }
+
+class PlayPandaIE(Play44IE):
+    IE_NAME = "playpanda"
+    IE_DESC = "PlayPanda"
+
+    _VALID_URL = r'http://[w.]*playpanda\.[^/]*/.*vid=/*(?P<id>[^&].).*'
+
+    _TEST = {
+        'url': 'http://playpanda.net/embed.php?w=718&h=438&vid=at/nw/boku_wa_tomodachi_ga_sukunai_-_05.mp4',
+        'md5': '4ed320e353ed26c742c4f12a9c210b60',
+        'info_dict': {
+            'id': 'boku_wa_tomodachi_ga_sukunai_-_05',
+            'ext': 'mp4',
+            'title': 'boku_wa_tomodachi_ga_sukunai_-_05',
+            'description': 'boku_wa_tomodachi_ga_sukunai_-_05'
+        }
+    }
+
+class VideoZooIE(Play44IE):
+    IE_NAME = "videozoo"
+    IE_DESC = "videozoo"
+
+    _VALID_URL = r'http://[w.]*videozoo\.[^/]*/.*vid=/*(?P<id>[^&].).*'
+
+    _TEST = {
+        'url': 'http://videozoo.me/embed.php?w=718&h=438&vid=at/nw/boku_wa_tomodachi_ga_sukunai_-_05.mp4',
+        'md5': '4ed320e353ed26c742c4f12a9c210b60',
+        'info_dict': {
+            'id': 'boku_wa_tomodachi_ga_sukunai_-_05',
+            'ext': 'mp4',
+            'title': 'boku_wa_tomodachi_ga_sukunai_-_05',
+            'description': 'boku_wa_tomodachi_ga_sukunai_-_05'
+        }
+    }
+
+class PlayBBIE(Play44IE):
+    IE_NAME = "playbb"
+    IE_DESC = "PlayBB"
+
+    _VALID_URL = r'http://[w.]*playbb\.[^/]*/.*vid=/*(?P<id>[^&].).*'
+
+    _TEST = {
+        'url': 'http://playbb.me/embed.php?w=718&h=438&vid=at/nw/boku_wa_tomodachi_ga_sukunai_-_05.mp4',
+        'md5': '4ed320e353ed26c742c4f12a9c210b60',
+        'info_dict': {
+            'id': 'boku_wa_tomodachi_ga_sukunai_-_05',
+            'ext': 'mp4',
+            'title': 'boku_wa_tomodachi_ga_sukunai_-_05',
+            'description': 'boku_wa_tomodachi_ga_sukunai_-_05'
+        }
+    }
+
+class EasyVideoIE(Play44IE):
+    IE_NAME = "easyvideo"
+    IE_DESC = "EasyVideo"
+
+    _VALID_URL = r'http://[w.]*easyvideo\.[^/]*/.*file=/*(?P<id>[^&].).*'
+
+    _TEST = {
+        'url': 'http://easyvideo.me/gogo/?w=718&h=438&file=bokuwatomodachigasukunai-04.flv&sv=1',
+        'md5': '26178b57629b7650106d72b191137176',
+        'info_dict': {
+            'id': 'bokuwatomodachigasukunai-04',
+            'ext': 'mp4',
+            'title': 'bokuwatomodachigasukunai-04',
+            'description': 'bokuwatomodachigasukunai-04'
+        }
+    }

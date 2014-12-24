@@ -293,7 +293,12 @@ from .played import PlayedIE
 from .play44 import (
     Play44IE,
     ByZooIE,
-    Video44IE
+    Video44IE,
+    VideoWingIE,
+    PlayPandaIE,
+    VideoZooIE,
+    PlayBBIE,
+    EasyVideoIE
 )
 from .playfm import PlayFMIE
 from .playvid import PlayvidIE

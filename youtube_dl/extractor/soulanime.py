@@ -77,7 +77,7 @@ class SoulAnimeSeriesIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         series_id = mobj.group('id')
-	domain = mobj.group('domain')
+        domain = mobj.group('domain')
 
         pattern = re.compile(self._EPISODE_REGEX)
 
