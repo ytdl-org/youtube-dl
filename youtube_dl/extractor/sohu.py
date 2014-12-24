@@ -56,7 +56,7 @@ class SohuIE(InfoExtractor):
             raise ExtractorError('No formats available for this video')
 
         # For now, we just pick the highest available quality
-        vid_id = vid_ids[-1]
+        vid_id = vid_ids[0]
 
         format_data = data if vid == vid_id else _fetch_data(vid_id, mytv)
         part_count = format_data['data']['totalBlocks']
