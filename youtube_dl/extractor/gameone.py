@@ -6,7 +6,9 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     xpath_with_ns,
-    parse_iso8601
+    parse_iso8601,
+    float_or_none,
+    int_or_none,
 )
 
 NAMESPACE_MAP = {
@@ -47,7 +49,7 @@ class GameOneIE(InfoExtractor):
                 'description': 'Jet Set Radio HD, Tekken Tag Tournament 2, Source Filmmaker',
                 'timestamp': 1347971451,
                 'title': 'Game One - Folge 220',
-                'duration': 896,
+                'duration': 896.62,
                 'age_limit': 16,
             }
         }
@@ -83,13 +85,13 @@ class GameOneIE(InfoExtractor):
             video_id,
             'Downloading media:content')
         rendition_items = content.findall('.//rendition')
-        duration = int(rendition_items[0].get('duration').split('.')[0])
+        duration = float_or_none(rendition_items[0].get('duration'))
         formats = [
             {
                 'url': re.sub(r'.*/(r2)', RAW_MP4_URL + r'\1', r.find('./src').text),
-                'width': int(r.get('width')),
-                'height': int(r.get('height')),
-                'tbr': int(r.get('bitrate')),
+                'width': int_or_none(r.get('width')),
+                'height': int_or_none(r.get('height')),
+                'tbr': int_or_none(r.get('bitrate')),
             }
             for r in rendition_items
         ]
