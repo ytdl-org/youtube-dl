@@ -5,8 +5,8 @@ import re
 import sys
 import time
 
+from ..compat import compat_str
 from ..utils import (
-    compat_str,
     encodeFilename,
     format_bytes,
     timeconvert,
@@ -80,8 +80,10 @@ class FileDownloader(object):
     def calc_eta(start, now, total, current):
         if total is None:
             return None
+        if now is None:
+            now = time.time()
         dif = now - start
-        if current == 0 or dif < 0.001: # One millisecond
+        if current == 0 or dif < 0.001:  # One millisecond
             return None
         rate = float(current) / dif
         return int((float(total) - float(current)) / rate)
@@ -95,7 +97,7 @@ class FileDownloader(object):
     @staticmethod
     def calc_speed(start, now, bytes):
         dif = now - start
-        if bytes == 0 or dif < 0.001: # One millisecond
+        if bytes == 0 or dif < 0.001:  # One millisecond
             return None
         return float(bytes) / dif
 
@@ -108,7 +110,7 @@ class FileDownloader(object):
     @staticmethod
     def best_block_size(elapsed_time, bytes):
         new_min = max(bytes / 2.0, 1.0)
-        new_max = min(max(bytes * 2.0, 1.0), 4194304) # Do not surpass 4 MB
+        new_max = min(max(bytes * 2.0, 1.0), 4194304)  # Do not surpass 4 MB
         if elapsed_time < 0.001:
             return int(new_max)
         rate = bytes / elapsed_time
@@ -146,18 +148,19 @@ class FileDownloader(object):
     def report_error(self, *args, **kargs):
         self.ydl.report_error(*args, **kargs)
 
-    def slow_down(self, start_time, byte_counter):
+    def slow_down(self, start_time, now, byte_counter):
         """Sleep if the download speed is over the rate limit."""
         rate_limit = self.params.get('ratelimit', None)
         if rate_limit is None or byte_counter == 0:
             return
-        now = time.time()
+        if now is None:
+            now = time.time()
         elapsed = now - start_time
         if elapsed <= 0.0:
             return
         speed = float(byte_counter) / elapsed
         if speed > rate_limit:
-            time.sleep((byte_counter - rate_limit * (now - start_time)) / rate_limit)
+            time.sleep(max((byte_counter // rate_limit) - elapsed, 0))
 
     def temp_name(self, filename):
         """Returns a temporary filename for the given filename."""
@@ -282,7 +285,7 @@ class FileDownloader(object):
         Return True on success and False otherwise
         """
         # Check file already present
-        if self.params.get('continuedl', False) and os.path.isfile(encodeFilename(filename)) and not self.params.get('nopart', False):
+        if filename != '-' and self.params.get('continuedl', False) and os.path.isfile(encodeFilename(filename)) and not self.params.get('nopart', False):
             self.report_file_already_downloaded(filename)
             self._hook_progress({
                 'filename': filename,
@@ -302,19 +305,6 @@ class FileDownloader(object):
             ph(status)
 
     def add_progress_hook(self, ph):
-        """ ph gets called on download progress, with a dictionary with the entries
-        * filename: The final filename
-        * status: One of "downloading" and "finished"
-
-        It can also have some of the following entries:
-
-        * downloaded_bytes: Bytes on disks
-        * total_bytes: Total bytes, None if unknown
-        * tmpfilename: The filename we're currently writing to
-        * eta: The estimated time in seconds, None if unknown
-        * speed: The download speed in bytes/second, None if unknown
-
-        Hooks are guaranteed to be called at least once (with status "finished")
-        if the download is successful.
-        """
+        # See YoutubeDl.py (search for progress_hooks) for a description of
+        # this interface
         self._progress_hooks.append(ph)

@@ -63,8 +63,10 @@ class IGNIE(InfoExtractor):
                 'id': '078fdd005f6d3c02f63d795faa1b984f',
                 'ext': 'mp4',
                 'title': 'Rewind Theater - Wild Trailer Gamescom 2014',
-                'description': 'Giant skeletons, bloody hunts, and captivating'
-                    ' natural beauty take our breath away.',
+                'description': (
+                    'Giant skeletons, bloody hunts, and captivating'
+                    ' natural beauty take our breath away.'
+                ),
             },
         },
     ]
@@ -99,7 +101,7 @@ class IGNIE(InfoExtractor):
         video_id = self._find_video_id(webpage)
         result = self._get_video_info(video_id)
         description = self._html_search_regex(self._DESCRIPTION_RE,
-            webpage, 'video description', flags=re.DOTALL)
+                                              webpage, 'video description', flags=re.DOTALL)
         result['description'] = description
         return result
 

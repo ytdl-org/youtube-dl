@@ -1,19 +1,20 @@
 #! -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import re
 import hashlib
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
+from ..compat import (
     compat_urllib_request,
     compat_urlparse,
+)
+from ..utils import (
+    ExtractorError,
 )
 
 
 class FC2IE(InfoExtractor):
-    _VALID_URL = r'^http://video\.fc2\.com/((?P<lang>[^/]+)/)?content/(?P<id>[^/]+)'
+    _VALID_URL = r'^http://video\.fc2\.com/(?:[^/]+/)?content/(?P<id>[^/]+)'
     IE_NAME = 'fc2'
     _TEST = {
         'url': 'http://video.fc2.com/en/content/20121103kUan1KHs',
@@ -26,9 +27,7 @@ class FC2IE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         self._downloader.cookiejar.clear_session_cookies()  # must clear
 
@@ -40,7 +39,7 @@ class FC2IE(InfoExtractor):
 
         info_url = (
             "http://video.fc2.com/ginfo.php?mimi={1:s}&href={2:s}&v={0:s}&fversion=WIN%2011%2C6%2C602%2C180&from=2&otag=0&upid={0:s}&tk=null&".
-            format(video_id, mimi, compat_urllib_request.quote(refer, safe='').replace('.','%2E')))
+            format(video_id, mimi, compat_urllib_request.quote(refer, safe='').replace('.', '%2E')))
 
         info_webpage = self._download_webpage(
             info_url, video_id, note='Downloading info page')

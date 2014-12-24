@@ -40,16 +40,6 @@ from .downloader import (
 )
 from .extractor import gen_extractors
 from .YoutubeDL import YoutubeDL
-from .postprocessor import (
-    AtomicParsleyPP,
-    FFmpegAudioFixPP,
-    FFmpegMetadataPP,
-    FFmpegVideoConvertor,
-    FFmpegExtractAudioPP,
-    FFmpegEmbedSubtitlePP,
-    XAttrMetadataPP,
-    ExecAfterDownloadPP,
-)
 
 
 def _real_main(argv=None):
@@ -76,10 +66,10 @@ def _real_main(argv=None):
     if opts.headers is not None:
         for h in opts.headers:
             if h.find(':', 1) < 0:
-                parser.error('wrong header formatting, it should be key:value, not "%s"'%h)
+                parser.error('wrong header formatting, it should be key:value, not "%s"' % h)
             key, value = h.split(':', 2)
             if opts.verbose:
-                write_string('[debug] Adding header from command line option %s:%s\n'%(key, value))
+                write_string('[debug] Adding header from command line option %s:%s\n' % (key, value))
             std_headers[key] = value
 
     # Dump user agent
@@ -127,7 +117,6 @@ def _real_main(argv=None):
                 desc += ' (Example: "%s%s:%s" )' % (ie.SEARCH_KEY, random.choice(_COUNTS), random.choice(_SEARCHES))
             compat_print(desc)
         sys.exit(0)
-
 
     # Conflicting, missing and erroneous options
     if opts.usenetrc and (opts.username is not None or opts.password is not None):
@@ -190,21 +179,21 @@ def _real_main(argv=None):
 
     # --all-sub automatically sets --write-sub if --write-auto-sub is not given
     # this was the old behaviour if only --all-sub was given.
-    if opts.allsubtitles and (opts.writeautomaticsub == False):
+    if opts.allsubtitles and not opts.writeautomaticsub:
         opts.writesubtitles = True
 
     if sys.version_info < (3,):
         # In Python 2, sys.argv is a bytestring (also note http://bugs.python.org/issue2128 for Windows systems)
         if opts.outtmpl is not None:
             opts.outtmpl = opts.outtmpl.decode(preferredencoding())
-    outtmpl =((opts.outtmpl is not None and opts.outtmpl)
-            or (opts.format == '-1' and opts.usetitle and '%(title)s-%(id)s-%(format)s.%(ext)s')
-            or (opts.format == '-1' and '%(id)s-%(format)s.%(ext)s')
-            or (opts.usetitle and opts.autonumber and '%(autonumber)s-%(title)s-%(id)s.%(ext)s')
-            or (opts.usetitle and '%(title)s-%(id)s.%(ext)s')
-            or (opts.useid and '%(id)s.%(ext)s')
-            or (opts.autonumber and '%(autonumber)s-%(id)s.%(ext)s')
-            or DEFAULT_OUTTMPL)
+    outtmpl = ((opts.outtmpl is not None and opts.outtmpl)
+               or (opts.format == '-1' and opts.usetitle and '%(title)s-%(id)s-%(format)s.%(ext)s')
+               or (opts.format == '-1' and '%(id)s-%(format)s.%(ext)s')
+               or (opts.usetitle and opts.autonumber and '%(autonumber)s-%(title)s-%(id)s.%(ext)s')
+               or (opts.usetitle and '%(title)s-%(id)s.%(ext)s')
+               or (opts.useid and '%(id)s.%(ext)s')
+               or (opts.autonumber and '%(autonumber)s-%(id)s.%(ext)s')
+               or DEFAULT_OUTTMPL)
     if not os.path.splitext(outtmpl)[1] and opts.extractaudio:
         parser.error('Cannot download a video and extract audio into the same'
                      ' file! Use "{0}.%(ext)s" instead of "{0}" as the output'
@@ -212,6 +201,43 @@ def _real_main(argv=None):
 
     any_printing = opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.getduration or opts.dumpjson or opts.dump_single_json
     download_archive_fn = compat_expanduser(opts.download_archive) if opts.download_archive is not None else opts.download_archive
+
+    # PostProcessors
+    postprocessors = []
+    # Add the metadata pp first, the other pps will copy it
+    if opts.addmetadata:
+        postprocessors.append({'key': 'FFmpegMetadata'})
+    if opts.extractaudio:
+        postprocessors.append({
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': opts.audioformat,
+            'preferredquality': opts.audioquality,
+            'nopostoverwrites': opts.nopostoverwrites,
+        })
+    if opts.recodevideo:
+        postprocessors.append({
+            'key': 'FFmpegVideoConvertor',
+            'preferedformat': opts.recodevideo,
+        })
+    if opts.embedsubtitles:
+        postprocessors.append({
+            'key': 'FFmpegEmbedSubtitle',
+            'subtitlesformat': opts.subtitlesformat,
+        })
+    if opts.xattrs:
+        postprocessors.append({'key': 'XAttrMetadata'})
+    if opts.embedthumbnail:
+        if not opts.addmetadata:
+            postprocessors.append({'key': 'FFmpegAudioFix'})
+        postprocessors.append({'key': 'AtomicParsley'})
+    # Please keep ExecAfterDownload towards the bottom as it allows the user to modify the final file in any way.
+    # So if the user is able to remove the file before your postprocessor runs it might cause a few problems.
+    if opts.exec_cmd:
+        postprocessors.append({
+            'key': 'ExecAfterDownload',
+            'verboseOutput': opts.verbose,
+            'exec_cmd': opts.exec_cmd,
+        })
 
     ydl_opts = {
         'usenetrc': opts.usenetrc,
@@ -250,6 +276,7 @@ def _real_main(argv=None):
         'progress_with_newline': opts.progress_with_newline,
         'playliststart': opts.playliststart,
         'playlistend': opts.playlistend,
+        'playlistreverse': opts.playlist_reverse,
         'noplaylist': opts.noplaylist,
         'logtostderr': opts.outtmpl == '-',
         'consoletitle': opts.consoletitle,
@@ -297,33 +324,10 @@ def _real_main(argv=None):
         'encoding': opts.encoding,
         'exec_cmd': opts.exec_cmd,
         'extract_flat': opts.extract_flat,
+        'postprocessors': postprocessors,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
-        # PostProcessors
-        # Add the metadata pp first, the other pps will copy it
-        if opts.addmetadata:
-            ydl.add_post_processor(FFmpegMetadataPP())
-        if opts.extractaudio:
-            ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=opts.audioformat, preferredquality=opts.audioquality, nopostoverwrites=opts.nopostoverwrites))
-        if opts.recodevideo:
-            ydl.add_post_processor(FFmpegVideoConvertor(preferedformat=opts.recodevideo))
-        if opts.embedsubtitles:
-            ydl.add_post_processor(FFmpegEmbedSubtitlePP(subtitlesformat=opts.subtitlesformat))
-        if opts.xattrs:
-            ydl.add_post_processor(XAttrMetadataPP())
-        if opts.embedthumbnail:
-            if not opts.addmetadata:
-                ydl.add_post_processor(FFmpegAudioFixPP())
-            ydl.add_post_processor(AtomicParsleyPP())
-
-
-        # Please keep ExecAfterDownload towards the bottom as it allows the user to modify the final file in any way.
-        # So if the user is able to remove the file before your postprocessor runs it might cause a few problems.
-        if opts.exec_cmd:
-            ydl.add_post_processor(ExecAfterDownloadPP(
-                verboseOutput=opts.verbose, exec_cmd=opts.exec_cmd))
-
         # Update version
         if opts.update_self:
             update_self(ydl.to_screen, opts.verbose)
@@ -334,10 +338,11 @@ def _real_main(argv=None):
 
         # Maybe do nothing
         if (len(all_urls) < 1) and (opts.load_info_filename is None):
-            if not (opts.update_self or opts.rm_cachedir):
-                parser.error('you must provide at least one URL')
-            else:
+            if opts.update_self or opts.rm_cachedir:
                 sys.exit()
+
+            ydl.warn_if_short_id(sys.argv[1:] if argv is None else argv)
+            parser.error('you must provide at least one URL')
 
         try:
             if opts.load_info_filename is not None:

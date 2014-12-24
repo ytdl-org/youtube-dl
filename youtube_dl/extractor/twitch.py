@@ -1,9 +1,14 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import itertools
 import re
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_urllib_parse,
+    compat_urllib_request,
+)
 from ..utils import (
     ExtractorError,
     parse_iso8601,
@@ -17,6 +22,7 @@ class TwitchIE(InfoExtractor):
     _VALID_URL = r"""(?x)^(?:http://)?(?:www\.)?twitch\.tv/
         (?:
             (?P<channelid>[^/]+)|
+            (?:(?:[^/]+)/v/(?P<vodid>[^/]+))|
             (?:(?:[^/]+)/b/(?P<videoid>[^/]+))|
             (?:(?:[^/]+)/c/(?P<chapterid>[^/]+))
         )
@@ -24,6 +30,7 @@ class TwitchIE(InfoExtractor):
         """
     _PAGE_LIMIT = 100
     _API_BASE = 'https://api.twitch.tv'
+    _LOGIN_URL = 'https://secure.twitch.tv/user/login'
     _TESTS = [{
         'url': 'http://www.twitch.tv/riotgames/b/577357806',
         'info_dict': {
@@ -64,11 +71,24 @@ class TwitchIE(InfoExtractor):
     def _extract_media(self, item, item_id):
         ITEMS = {
             'a': 'video',
+            'v': 'vod',
             'c': 'chapter',
         }
         info = self._extract_info(self._download_json(
             '%s/kraken/videos/%s%s' % (self._API_BASE, item, item_id), item_id,
             'Downloading %s info JSON' % ITEMS[item]))
+
+        if item == 'v':
+            access_token = self._download_json(
+                '%s/api/vods/%s/access_token' % (self._API_BASE, item_id), item_id,
+                'Downloading %s access token' % ITEMS[item])
+            formats = self._extract_m3u8_formats(
+                'http://usher.twitch.tv/vod/%s?nauth=%s&nauthsig=%s'
+                % (item_id, access_token['token'], access_token['sig']),
+                item_id, 'mp4')
+            info['formats'] = formats
+            return info
+
         response = self._download_json(
             '%s/api/videos/%s%s' % (self._API_BASE, item, item_id), item_id,
             'Downloading %s playlist JSON' % ITEMS[item])
@@ -108,6 +128,44 @@ class TwitchIE(InfoExtractor):
             'timestamp': parse_iso8601(info['recorded_at']),
             'view_count': info['views'],
         }
+
+    def _real_initialize(self):
+        self._login()
+
+    def _login(self):
+        (username, password) = self._get_login_info()
+        if username is None:
+            return
+
+        login_page = self._download_webpage(
+            self._LOGIN_URL, None, 'Downloading login page')
+
+        authenticity_token = self._search_regex(
+            r'<input name="authenticity_token" type="hidden" value="([^"]+)"',
+            login_page, 'authenticity token')
+
+        login_form = {
+            'utf8': '✓'.encode('utf-8'),
+            'authenticity_token': authenticity_token,
+            'redirect_on_login': '',
+            'embed_form': 'false',
+            'mp_source_action': '',
+            'follow': '',
+            'user[login]': username,
+            'user[password]': password,
+        }
+
+        request = compat_urllib_request.Request(
+            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+        request.add_header('Referer', self._LOGIN_URL)
+        response = self._download_webpage(
+            request, None, 'Logging in as %s' % username)
+
+        m = re.search(
+            r"id=([\"'])login_error_message\1[^>]*>(?P<msg>[^<]+)", response)
+        if m:
+            raise ExtractorError(
+                'Unable to login: %s' % m.group('msg').strip(), expected=True)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -165,6 +223,8 @@ class TwitchIE(InfoExtractor):
             """
         elif mobj.group('videoid'):
             return self._extract_media('a', mobj.group('videoid'))
+        elif mobj.group('vodid'):
+            return self._extract_media('v', mobj.group('vodid'))
         elif mobj.group('channelid'):
             channel_id = mobj.group('channelid')
             info = self._download_json(

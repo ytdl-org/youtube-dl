@@ -163,7 +163,10 @@ def parseOpts(overrideArguments=None):
     general.add_option(
         '--ignore-config',
         action='store_true',
-        help='Do not read configuration files. When given in the global configuration file /etc/youtube-dl.conf: do not read the user configuration in ~/.config/youtube-dl.conf (%APPDATA%/youtube-dl/config.txt on Windows)')
+        help='Do not read configuration files. '
+        'When given in the global configuration file /etc/youtube-dl.conf: '
+        'Do not read the user configuration in ~/.config/youtube-dl/config '
+        '(%APPDATA%/youtube-dl/config.txt on Windows)')
     general.add_option(
         '--flat-playlist',
         action='store_const', dest='extract_flat', const='in_playlist',
@@ -222,7 +225,7 @@ def parseOpts(overrideArguments=None):
     selection.add_option(
         '--no-playlist',
         action='store_true', dest='noplaylist', default=False,
-        help='download only the currently playing video')
+        help='If the URL refers to a video and a playlist, download only the video.')
     selection.add_option(
         '--age-limit',
         metavar='YEARS', dest='age_limit', default=None, type=int,
@@ -262,7 +265,8 @@ def parseOpts(overrideArguments=None):
     video_format.add_option(
         '-f', '--format',
         action='store', dest='format', metavar='FORMAT', default=None,
-        help='video format code, specify the order of preference using'
+        help=(
+            'video format code, specify the order of preference using'
             ' slashes: -f 22/17/18 .  -f mp4 , -f m4a and  -f flv  are also'
             ' supported. You can also use the special names "best",'
             ' "bestvideo", "bestaudio", "worst", "worstvideo" and'
@@ -271,7 +275,7 @@ def parseOpts(overrideArguments=None):
             ' -f  136/137/mp4/bestvideo,140/m4a/bestaudio.'
             ' You can merge the video and audio of two formats into a single'
             ' file using -f <video-format>+<audio-format> (requires ffmpeg or'
-            ' avconv), for example -f bestvideo+bestaudio.')
+            ' avconv), for example -f bestvideo+bestaudio.'))
     video_format.add_option(
         '--all-formats',
         action='store_const', dest='format', const='all',
@@ -345,6 +349,10 @@ def parseOpts(overrideArguments=None):
         '--test',
         action='store_true', dest='test', default=False,
         help=optparse.SUPPRESS_HELP)
+    downloader.add_option(
+        '--playlist-reverse',
+        action='store_true',
+        help='Download playlist videos in reverse order')
 
     workarounds = optparse.OptionGroup(parser, 'Workarounds')
     workarounds.add_option(
@@ -477,10 +485,6 @@ def parseOpts(overrideArguments=None):
         '--id', default=False,
         action='store_true', dest='useid', help='use only video ID in file name')
     filesystem.add_option(
-        '-A', '--auto-number',
-        action='store_true', dest='autonumber', default=False,
-        help='number downloaded files starting from 00000')
-    filesystem.add_option(
         '-o', '--output',
         dest='outtmpl', metavar='TEMPLATE',
         help=('output filename template. Use %(title)s to get the title, '
@@ -507,6 +511,10 @@ def parseOpts(overrideArguments=None):
         '--restrict-filenames',
         action='store_true', dest='restrictfilenames', default=False,
         help='Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames')
+    filesystem.add_option(
+        '-A', '--auto-number',
+        action='store_true', dest='autonumber', default=False,
+        help='[deprecated; use  -o "%(autonumber)s-%(title)s.%(ext)s" ] number downloaded files starting from 00000')
     filesystem.add_option(
         '-t', '--title',
         action='store_true', dest='usetitle', default=False,
@@ -621,7 +629,7 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '--exec',
         metavar='CMD', dest='exec_cmd',
-        help='Execute a command on the file after downloading, similar to find\'s -exec syntax. Example: --exec \'adb push {} /sdcard/Music/ && rm {}\'' )
+        help='Execute a command on the file after downloading, similar to find\'s -exec syntax. Example: --exec \'adb push {} /sdcard/Music/ && rm {}\'')
 
     parser.add_option_group(general)
     parser.add_option_group(selection)

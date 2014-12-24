@@ -5,12 +5,14 @@ import json
 
 from .subtitles import SubtitlesInfoExtractor
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
+    compat_str,
     compat_urllib_parse,
     compat_urllib_request,
+)
+from ..utils import (
     ExtractorError,
     int_or_none,
-    compat_str,
 )
 
 
@@ -45,7 +47,7 @@ class LyndaIE(SubtitlesInfoExtractor):
         video_id = mobj.group(1)
 
         page = self._download_webpage('http://www.lynda.com/ajax/player?videoId=%s&type=video' % video_id, video_id,
-            'Downloading video JSON')
+                                      'Downloading video JSON')
         video_json = json.loads(page)
 
         if 'Status' in video_json:
@@ -109,7 +111,7 @@ class LyndaIE(SubtitlesInfoExtractor):
             'password': password,
             'remember': 'false',
             'stayPut': 'false'
-        }        
+        }
         request = compat_urllib_request.Request(self._LOGIN_URL, compat_urllib_parse.urlencode(login_form))
         login_page = self._download_webpage(request, None, 'Logging in as %s' % username)
 
@@ -117,7 +119,7 @@ class LyndaIE(SubtitlesInfoExtractor):
         m = re.search(r'loginResultJson = \'(?P<json>[^\']+)\';', login_page)
         if m is not None:
             response = m.group('json')
-            response_json = json.loads(response)            
+            response_json = json.loads(response)
             state = response_json['state']
 
             if state == 'notlogged':
@@ -187,7 +189,7 @@ class LyndaCourseIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         course_path = mobj.group('coursepath')
         course_id = mobj.group('courseid')
-        
+
         page = self._download_webpage('http://www.lynda.com/ajax/player?courseId=%s&type=course' % course_id,
                                       course_id, 'Downloading course JSON')
         course_json = json.loads(page)

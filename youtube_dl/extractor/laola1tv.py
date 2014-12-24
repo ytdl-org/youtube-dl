@@ -75,4 +75,3 @@ class Laola1TvIE(InfoExtractor):
             'categories': categories,
             'ext': 'mp4',
         }
-

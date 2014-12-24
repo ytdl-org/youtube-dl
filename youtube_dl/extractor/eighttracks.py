@@ -6,7 +6,7 @@ import random
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
 )
 
@@ -125,7 +125,7 @@ class EightTracksIE(InfoExtractor):
             info = {
                 'id': compat_str(track_data['id']),
                 'url': track_data['track_file_stream_url'],
-                'title': track_data['performer'] + u' - ' + track_data['name'],
+                'title': track_data['performer'] + ' - ' + track_data['name'],
                 'raw_title': track_data['name'],
                 'uploader_id': data['user']['login'],
                 'ext': 'm4a',

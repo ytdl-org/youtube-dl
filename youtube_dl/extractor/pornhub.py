@@ -4,10 +4,12 @@ import os
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
+    compat_urllib_parse,
     compat_urllib_parse_urlparse,
     compat_urllib_request,
-    compat_urllib_parse,
+)
+from ..utils import (
     str_to_int,
 )
 from ..aes import (
@@ -16,7 +18,7 @@ from ..aes import (
 
 
 class PornHubIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:www\.)?pornhub\.com/view_video\.php\?viewkey=(?P<id>[0-9a-f]+)'
+    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/view_video\.php\?viewkey=(?P<id>[0-9a-f]+)'
     _TEST = {
         'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
         'md5': '882f488fa1f0026f023f33576004a2ed',
@@ -56,7 +58,7 @@ class PornHubIE(InfoExtractor):
         comment_count = self._extract_count(
             r'All comments \(<var class="videoCommentCount">([\d,\.]+)</var>', webpage, 'comment')
 
-        video_urls = list(map(compat_urllib_parse.unquote , re.findall(r'"quality_[0-9]{3}p":"([^"]+)', webpage)))
+        video_urls = list(map(compat_urllib_parse.unquote, re.findall(r'"quality_[0-9]{3}p":"([^"]+)', webpage)))
         if webpage.find('"encrypted":true') != -1:
             password = compat_urllib_parse.unquote_plus(self._html_search_regex(r'"video_title":"([^"]+)', webpage, 'password'))
             video_urls = list(map(lambda s: aes_decrypt_text(s, password, 32).decode('utf-8'), video_urls))

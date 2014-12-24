@@ -4,9 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_parse_qs,
     compat_urlparse,
+)
+from ..utils import (
     determine_ext,
     unified_strdate,
 )
@@ -141,7 +143,6 @@ class WDRMobileIE(InfoExtractor):
             'title': mobj.group('title'),
             'age_limit': int(mobj.group('age_limit')),
             'url': url,
-            'ext': determine_ext(url),
             'user_agent': 'mobile',
         }
 

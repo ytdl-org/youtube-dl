@@ -5,11 +5,12 @@ import re
 import itertools
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
     compat_urlparse,
     compat_urllib_parse,
-
+)
+from ..utils import (
     ExtractorError,
     int_or_none,
     unified_strdate,
@@ -32,7 +33,7 @@ class SoundcloudIE(InfoExtractor):
                             (?P<title>[\w\d-]+)/?
                             (?P<token>[^?]+?)?(?:[?].*)?$)
                        |(?:api\.soundcloud\.com/tracks/(?P<track_id>\d+)
-                          (?:/?\?secret_token=(?P<secret_token>[^&]+?))?$)
+                          (?:/?\?secret_token=(?P<secret_token>[^&]+))?)
                        |(?P<player>(?:w|player|p.)\.soundcloud\.com/player/?.*?url=.*)
                     )
                     '''
@@ -159,7 +160,7 @@ class SoundcloudIE(InfoExtractor):
 
         # We have to retrieve the url
         streams_url = ('http://api.soundcloud.com/i1/tracks/{0}/streams?'
-            'client_id={1}&secret_token={2}'.format(track_id, self._IPHONE_CLIENT_ID, secret_token))
+                       'client_id={1}&secret_token={2}'.format(track_id, self._IPHONE_CLIENT_ID, secret_token))
         format_dict = self._download_json(
             streams_url,
             track_id, 'Downloading track url')
@@ -224,14 +225,14 @@ class SoundcloudIE(InfoExtractor):
             # extract uploader (which is in the url)
             uploader = mobj.group('uploader')
             # extract simple title (uploader + slug of song title)
-            slug_title =  mobj.group('title')
+            slug_title = mobj.group('title')
             token = mobj.group('token')
             full_title = resolve_title = '%s/%s' % (uploader, slug_title)
             if token:
                 resolve_title += '/%s' % token
-    
+
             self.report_resolve(full_title)
-    
+
             url = 'http://soundcloud.com/%s' % resolve_title
             info_json_url = self._resolv_url(url)
         info = self._download_json(info_json_url, full_title, 'Downloading info JSON')
@@ -371,7 +372,7 @@ class SoundcloudPlaylistIE(SoundcloudIE):
 
         entries = [
             self._extract_info_dict(t, quiet=True, secret_token=token)
-                for t in data['tracks']]
+            for t in data['tracks']]
 
         return {
             '_type': 'playlist',

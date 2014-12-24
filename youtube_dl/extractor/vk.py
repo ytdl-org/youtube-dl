@@ -5,18 +5,22 @@ import re
 import json
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_str,
+    compat_urllib_parse,
+    compat_urllib_request,
+)
 from ..utils import (
     ExtractorError,
-    compat_urllib_request,
-    compat_urllib_parse,
-    compat_str,
+    orderedSet,
     unescapeHTML,
+    unified_strdate,
 )
 
 
 class VKIE(InfoExtractor):
     IE_NAME = 'vk.com'
-    _VALID_URL = r'https?://(?:m\.)?vk\.com/(?:video_ext\.php\?.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+)|(?:.+?\?.*?z=)?video(?P<videoid>.*?)(?:\?|%2F|$))'
+    _VALID_URL = r'https?://(?:m\.)?vk\.com/(?:video_ext\.php\?.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+)|(?:.+?\?.*?z=)?video(?P<videoid>[^s].*?)(?:\?|%2F|$))'
     _NETRC_MACHINE = 'vk'
 
     _TESTS = [
@@ -29,17 +33,19 @@ class VKIE(InfoExtractor):
                 'title': 'ProtivoGunz - Хуёвая песня',
                 'uploader': 're:Noize MC.*',
                 'duration': 195,
+                'upload_date': '20120212',
             },
         },
         {
-            'url': 'http://vk.com/video4643923_163339118',
-            'md5': 'f79bccb5cd182b1f43502ca5685b2b36',
+            'url': 'http://vk.com/video205387401_165548505',
+            'md5': '6c0aeb2e90396ba97035b9cbde548700',
             'info_dict': {
-                'id': '163339118',
+                'id': '165548505',
                 'ext': 'mp4',
-                'uploader': 'Elya Iskhakova',
-                'title': 'Dream Theater - Hollow Years Live at Budokan 720*',
-                'duration': 558,
+                'uploader': 'Tom Cruise',
+                'title': 'No name',
+                'duration': 9,
+                'upload_date': '20130721'
             }
         },
         {
@@ -52,9 +58,12 @@ class VKIE(InfoExtractor):
                 'uploader': 'Vladimir Gavrin',
                 'title': 'Lin Dan',
                 'duration': 101,
+                'upload_date': '20120730',
             }
         },
         {
+            # VIDEO NOW REMOVED
+            # please update if you find a video whose URL follows the same pattern
             'url': 'http://vk.com/video-8871596_164049491',
             'md5': 'a590bcaf3d543576c9bd162812387666',
             'note': 'Only available for registered users',
@@ -64,18 +73,7 @@ class VKIE(InfoExtractor):
                 'uploader': 'Триллеры',
                 'title': '► Бойцовский клуб / Fight Club 1999 [HD 720]',
                 'duration': 8352,
-            },
-            'skip': 'Requires vk account credentials',
-        },
-        {
-            'url': 'http://vk.com/feed?z=video-43215063_166094326%2Fbb50cacd3177146d7a',
-            'md5': 'd82c22e449f036282d1d3f7f4d276869',
-            'info_dict': {
-                'id': '166094326',
-                'ext': 'mp4',
-                'uploader': 'Киномания - лучшее из мира кино',
-                'title': 'Запах женщины (1992)',
-                'duration': 9392,
+                'upload_date': '20121218'
             },
             'skip': 'Requires vk account credentials',
         },
@@ -88,6 +86,7 @@ class VKIE(InfoExtractor):
                 'uploader': 'Киномания - лучшее из мира кино',
                 'title': ' ',
                 'duration': 7291,
+                'upload_date': '20140328',
             },
             'skip': 'Requires vk account credentials',
         },
@@ -100,8 +99,14 @@ class VKIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Книга Илая',
                 'duration': 6771,
+                'upload_date': '20140626',
             },
             'skip': 'Only works from Russia',
+        },
+        {
+            # removed video, just testing that we match the pattern
+            'url': 'http://vk.com/feed?z=video-43215063_166094326%2Fbb50cacd3177146d7a',
+            'only_matching': True,
         },
     ]
 
@@ -119,7 +124,7 @@ class VKIE(InfoExtractor):
         }
 
         request = compat_urllib_request.Request('https://login.vk.com/?act=login',
-            compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+                                                compat_urllib_parse.urlencode(login_form).encode('utf-8'))
         login_page = self._download_webpage(request, None, note='Logging in as %s' % username)
 
         if re.search(r'onLoginFailed', login_page):
@@ -140,12 +145,14 @@ class VKIE(InfoExtractor):
 
         ERRORS = {
             r'>Видеозапись .*? была изъята из публичного доступа в связи с обращением правообладателя.<':
-                'Video %s has been removed from public access due to rightholder complaint.',
+            'Video %s has been removed from public access due to rightholder complaint.',
+
             r'<!>Please log in or <':
-                'Video %s is only available for registered users, '
-                'use --username and --password options to provide account credentials.',
-            '<!>Unknown error':
-                'Video %s does not exist.'
+            'Video %s is only available for registered users, '
+            'use --username and --password options to provide account credentials.',
+
+            r'<!>Unknown error':
+            'Video %s does not exist.'
         }
 
         for error_re, error_msg in ERRORS.items():
@@ -169,6 +176,13 @@ class VKIE(InfoExtractor):
         data_json = self._search_regex(r'var vars = ({.*?});', info_page, 'vars')
         data = json.loads(data_json)
 
+        # Extract upload date
+        upload_date = None
+        mobj = re.search(r'id="mv_date_wrap".*?Added ([a-zA-Z]+ [0-9]+), ([0-9]+) at', info_page)
+        if mobj is not None:
+            mobj.group(1) + ' ' + mobj.group(2)
+            upload_date = unified_strdate(mobj.group(1) + ' ' + mobj.group(2))
+
         formats = [{
             'format_id': k,
             'url': v,
@@ -183,5 +197,28 @@ class VKIE(InfoExtractor):
             'title': unescapeHTML(data['md_title']),
             'thumbnail': data.get('jpg'),
             'uploader': data.get('md_author'),
-            'duration': data.get('duration')
+            'duration': data.get('duration'),
+            'upload_date': upload_date,
         }
+
+
+class VKUserVideosIE(InfoExtractor):
+    IE_NAME = 'vk.com:user-videos'
+    IE_DESC = 'vk.com:All of a user\'s videos'
+    _VALID_URL = r'https?://vk\.com/videos(?P<id>[0-9]+)(?:m\?.*)?'
+    _TEMPLATE_URL = 'https://vk.com/videos'
+    _TEST = {
+        'url': 'http://vk.com/videos205387401',
+        'playlist_mincount': 4,
+    }
+
+    def _real_extract(self, url):
+        page_id = self._match_id(url)
+        page = self._download_webpage(url, page_id)
+        video_ids = orderedSet(
+            m.group(1) for m in re.finditer(r'href="/video([0-9_]+)"', page))
+        url_entries = [
+            self.url_result(
+                'http://vk.com/video' + video_id, 'VK', video_id=video_id)
+            for video_id in video_ids]
+        return self.playlist_result(url_entries, page_id)

@@ -4,10 +4,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    clean_html,
+from ..compat import (
     compat_urllib_request,
+)
+from ..utils import (
+    clean_html,
+    ExtractorError,
     float_or_none,
     parse_iso8601,
 )

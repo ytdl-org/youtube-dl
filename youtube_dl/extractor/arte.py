@@ -13,7 +13,7 @@ from ..utils import (
     qualities,
 )
 
-# There are different sources of video in arte.tv, the extraction process 
+# There are different sources of video in arte.tv, the extraction process
 # is different for each one. The videos usually expire in 7 days, so we can't
 # add tests.
 

@@ -9,10 +9,12 @@ import xml.etree.ElementTree as etree
 
 from .common import FileDownloader
 from .http import HttpFD
+from ..compat import (
+    compat_urlparse,
+)
 from ..utils import (
     struct_pack,
     struct_unpack,
-    compat_urlparse,
     format_bytes,
     encodeFilename,
     sanitize_open,
@@ -55,7 +57,7 @@ class FlvReader(io.BytesIO):
         if size == 1:
             real_size = self.read_unsigned_long_long()
             header_end = 16
-        return real_size, box_type, self.read(real_size-header_end)
+        return real_size, box_type, self.read(real_size - header_end)
 
     def read_asrt(self):
         # version
@@ -180,7 +182,7 @@ def build_fragments_list(boot_info):
     n_frags = segment_run_entry[1]
     fragment_run_entry_table = boot_info['fragments'][0]['fragments']
     first_frag_number = fragment_run_entry_table[0]['first']
-    for (i, frag_number) in zip(range(1, n_frags+1), itertools.count(first_frag_number)):
+    for (i, frag_number) in zip(range(1, n_frags + 1), itertools.count(first_frag_number)):
         res.append((1, frag_number))
     return res
 
@@ -201,7 +203,7 @@ def write_flv_header(stream, metadata):
     stream.write(b'\x00\x00\x00\x00\x00\x00\x00')
     stream.write(metadata)
     # Magic numbers extracted from the output files produced by AdobeHDS.php
-    #(https://github.com/K-S-V/Scripts)
+    # (https://github.com/K-S-V/Scripts)
     stream.write(b'\x00\x00\x01\x73')
 
 
@@ -225,13 +227,16 @@ class F4mFD(FileDownloader):
         self.to_screen('[download] Downloading f4m manifest')
         manifest = self.ydl.urlopen(man_url).read()
         self.report_destination(filename)
-        http_dl = HttpQuietDownloader(self.ydl,
+        http_dl = HttpQuietDownloader(
+            self.ydl,
             {
                 'continuedl': True,
                 'quiet': True,
                 'noprogress': True,
+                'ratelimit': self.params.get('ratelimit', None),
                 'test': self.params.get('test', False),
-            })
+            }
+        )
 
         doc = etree.fromstring(manifest)
         formats = [(int(f.attrib.get('bitrate', -1)), f) for f in doc.findall(_add_ns('media'))]
@@ -277,7 +282,7 @@ class F4mFD(FileDownloader):
         def frag_progress_hook(status):
             frag_total_bytes = status.get('total_bytes', 0)
             estimated_size = (state['downloaded_bytes'] +
-                (total_frags - state['frag_counter']) * frag_total_bytes)
+                              (total_frags - state['frag_counter']) * frag_total_bytes)
             if status['status'] == 'finished':
                 state['downloaded_bytes'] += frag_total_bytes
                 state['frag_counter'] += 1
@@ -287,13 +292,13 @@ class F4mFD(FileDownloader):
                 frag_downloaded_bytes = status['downloaded_bytes']
                 byte_counter = state['downloaded_bytes'] + frag_downloaded_bytes
                 frag_progress = self.calc_percent(frag_downloaded_bytes,
-                    frag_total_bytes)
+                                                  frag_total_bytes)
                 progress = self.calc_percent(state['frag_counter'], total_frags)
                 progress += frag_progress / float(total_frags)
 
             eta = self.calc_eta(start, time.time(), estimated_size, byte_counter)
             self.report_progress(progress, format_bytes(estimated_size),
-                status.get('speed'), eta)
+                                 status.get('speed'), eta)
         http_dl.add_progress_hook(frag_progress_hook)
 
         frags_filenames = []

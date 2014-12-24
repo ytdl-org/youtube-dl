@@ -8,7 +8,6 @@ class TenPlayIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?ten(play)?\.com\.au/.+'
     _TEST = {
         'url': 'http://tenplay.com.au/ten-insider/extra/season-2013/tenplay-tv-your-way',
-        #'md5': 'd68703d9f73dc8fccf3320ab34202590',
         'info_dict': {
             'id': '2695695426001',
             'ext': 'flv',

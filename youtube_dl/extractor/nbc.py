@@ -4,31 +4,47 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
+)
+from ..utils import (
     ExtractorError,
     find_xpath_attr,
 )
 
 
 class NBCIE(InfoExtractor):
-    _VALID_URL = r'http://www\.nbc\.com/[^/]+/video/[^/]+/(?P<id>n?\d+)'
+    _VALID_URL = r'http://www\.nbc\.com/(?:[^/]+/)+(?P<id>n?\d+)'
 
-    _TEST = {
-        'url': 'http://www.nbc.com/chicago-fire/video/i-am-a-firefighter/2734188',
-        # md5 checksum is not stable
-        'info_dict': {
-            'id': 'bTmnLCvIbaaH',
-            'ext': 'flv',
-            'title': 'I Am a Firefighter',
-            'description': 'An emergency puts Dawson\'sf irefighter skills to the ultimate test in this four-part digital series.',
+    _TESTS = [
+        {
+            'url': 'http://www.nbc.com/chicago-fire/video/i-am-a-firefighter/2734188',
+            # md5 checksum is not stable
+            'info_dict': {
+                'id': 'bTmnLCvIbaaH',
+                'ext': 'flv',
+                'title': 'I Am a Firefighter',
+                'description': 'An emergency puts Dawson\'sf irefighter skills to the ultimate test in this four-part digital series.',
+            },
         },
-    }
+        {
+            'url': 'http://www.nbc.com/the-tonight-show/episodes/176',
+            'info_dict': {
+                'id': 'XwU9KZkp98TH',
+                'ext': 'flv',
+                'title': 'Ricky Gervais, Steven Van Zandt, ILoveMakonnen',
+                'description': 'A brand new episode of The Tonight Show welcomes Ricky Gervais, Steven Van Zandt and ILoveMakonnen.',
+            },
+            'skip': 'Only works from US',
+        },
+    ]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        theplatform_url = self._search_regex('class="video-player video-player-full" data-mpx-url="(.*?)"', webpage, 'theplatform url')
+        theplatform_url = self._search_regex(
+            '(?:class="video-player video-player-full" data-mpx-url|class="player" src)="(.*?)"',
+            webpage, 'theplatform url').replace('_no_endcard', '')
         if theplatform_url.startswith('//'):
             theplatform_url = 'http:' + theplatform_url
         return self.url_result(theplatform_url)

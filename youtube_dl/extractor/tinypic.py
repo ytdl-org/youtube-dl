@@ -26,9 +26,9 @@ class TinyPicIE(InfoExtractor):
         video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id, 'Downloading page')
-        
+
         mobj = re.search(r'(?m)fo\.addVariable\("file",\s"(?P<fileid>[\da-z]+)"\);\n'
-            '\s+fo\.addVariable\("s",\s"(?P<serverid>\d+)"\);', webpage)
+                         '\s+fo\.addVariable\("s",\s"(?P<serverid>\d+)"\);', webpage)
         if mobj is None:
             raise ExtractorError('Video %s does not exist' % video_id, expected=True)
 

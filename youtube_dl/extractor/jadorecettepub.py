@@ -45,4 +45,3 @@ class JadoreCettePubIE(InfoExtractor):
             'title': title,
             'description': description,
         }
-

@@ -3,8 +3,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
+)
+from ..utils import (
     ExtractorError,
     HEADRequest,
     int_or_none,
@@ -70,7 +72,7 @@ class MixcloudIE(InfoExtractor):
             raise ExtractorError('Unable to extract track url')
 
         PREFIX = (
-            r'<div class="cloudcast-play-button-container[^"]*?"'
+            r'<span class="play-button[^"]*?"'
             r'(?:\s+[a-zA-Z0-9-]+(?:="[^"]+")?)*?\s+')
         title = self._html_search_regex(
             PREFIX + r'm-title="([^"]+)"', webpage, 'title')

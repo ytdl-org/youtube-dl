@@ -6,13 +6,15 @@ import time
 import hashlib
 
 from .common import InfoExtractor
-from ..utils import (
-    compat_urllib_request,
-    compat_urllib_parse,
-    ExtractorError,
-    clean_html,
-    unified_strdate,
+from ..compat import (
     compat_str,
+    compat_urllib_parse,
+    compat_urllib_request,
+)
+from ..utils import (
+    clean_html,
+    ExtractorError,
+    unified_strdate,
 )
 
 
@@ -20,6 +22,7 @@ class NocoIE(InfoExtractor):
     _VALID_URL = r'http://(?:(?:www\.)?noco\.tv/emission/|player\.noco\.tv/\?idvideo=)(?P<id>\d+)'
     _LOGIN_URL = 'http://noco.tv/do.php'
     _API_URL_TEMPLATE = 'https://api.noco.tv/1.1/%s?ts=%s&tk=%s'
+    _SUB_LANG_TEMPLATE = '&sub_lang=%s'
     _NETRC_MACHINE = 'noco'
 
     _TEST = {
@@ -60,10 +63,12 @@ class NocoIE(InfoExtractor):
         if 'erreur' in login:
             raise ExtractorError('Unable to login: %s' % clean_html(login['erreur']), expected=True)
 
-    def _call_api(self, path, video_id, note):
+    def _call_api(self, path, video_id, note, sub_lang=None):
         ts = compat_str(int(time.time() * 1000))
         tk = hashlib.md5((hashlib.md5(ts.encode('ascii')).hexdigest() + '#8S?uCraTedap6a').encode('ascii')).hexdigest()
         url = self._API_URL_TEMPLATE % (path, ts, tk)
+        if sub_lang:
+            url += self._SUB_LANG_TEMPLATE % sub_lang
 
         resp = self._download_json(url, video_id, note)
 
@@ -91,31 +96,34 @@ class NocoIE(InfoExtractor):
 
         formats = []
 
-        for format_id, fmt in medias['fr']['video_list']['none']['quality_list'].items():
+        for lang, lang_dict in medias['fr']['video_list'].items():
+            for format_id, fmt in lang_dict['quality_list'].items():
+                format_id_extended = '%s-%s' % (lang, format_id) if lang != 'none' else format_id
 
-            video = self._call_api(
-                'shows/%s/video/%s/fr' % (video_id, format_id.lower()),
-                video_id, 'Downloading %s video JSON' % format_id)
+                video = self._call_api(
+                    'shows/%s/video/%s/fr' % (video_id, format_id.lower()),
+                    video_id, 'Downloading %s video JSON' % format_id_extended,
+                    lang if lang != 'none' else None)
 
-            file_url = video['file']
-            if not file_url:
-                continue
+                file_url = video['file']
+                if not file_url:
+                    continue
 
-            if file_url in ['forbidden', 'not found']:
-                popmessage = video['popmessage']
-                self._raise_error(popmessage['title'], popmessage['message'])
+                if file_url in ['forbidden', 'not found']:
+                    popmessage = video['popmessage']
+                    self._raise_error(popmessage['title'], popmessage['message'])
 
-            formats.append({
-                'url': file_url,
-                'format_id': format_id,
-                'width': fmt['res_width'],
-                'height': fmt['res_lines'],
-                'abr': fmt['audiobitrate'],
-                'vbr': fmt['videobitrate'],
-                'filesize': fmt['filesize'],
-                'format_note': qualities[format_id]['quality_name'],
-                'preference': qualities[format_id]['priority'],
-            })
+                formats.append({
+                    'url': file_url,
+                    'format_id': format_id_extended,
+                    'width': fmt['res_width'],
+                    'height': fmt['res_lines'],
+                    'abr': fmt['audiobitrate'],
+                    'vbr': fmt['videobitrate'],
+                    'filesize': fmt['filesize'],
+                    'format_note': qualities[format_id]['quality_name'],
+                    'preference': qualities[format_id]['priority'],
+                })
 
         self._sort_formats(formats)
 

@@ -17,24 +17,39 @@ from ..utils import (
 class ORFTVthekIE(InfoExtractor):
     IE_NAME = 'orf:tvthek'
     IE_DESC = 'ORF TVthek'
-    _VALID_URL = r'https?://tvthek\.orf\.at/(?:programs/.+?/episodes|topics/.+?|program/[^/]+)/(?P<id>\d+)'
+    _VALID_URL = r'https?://tvthek\.orf\.at/(?:programs/.+?/episodes|topics?/.+?|program/[^/]+)/(?P<id>\d+)'
 
-    _TEST = {
-        'url': 'http://tvthek.orf.at/program/matinee-Was-Sie-schon-immer-ueber-Klassik-wissen-wollten/7317210/Was-Sie-schon-immer-ueber-Klassik-wissen-wollten/7319746/Was-Sie-schon-immer-ueber-Klassik-wissen-wollten/7319747',
-        'file': '7319747.mp4',
-        'md5': 'bd803c5d8c32d3c64a0ea4b4eeddf375',
-        'info_dict': {
-            'title': 'Was Sie schon immer über Klassik wissen wollten',
-            'description': 'md5:0ddf0d5f0060bd53f744edaa5c2e04a4',
-            'duration': 3508,
-            'upload_date': '20140105',
-        },
-        'skip': 'Blocked outside of Austria',
-    }
+    _TESTS = [{
+        'url': 'http://tvthek.orf.at/program/Aufgetischt/2745173/Aufgetischt-Mit-der-Steirischen-Tafelrunde/8891389',
+        'playlist': [{
+            'md5': '2942210346ed779588f428a92db88712',
+            'info_dict': {
+                'id': '8896777',
+                'ext': 'mp4',
+                'title': 'Aufgetischt: Mit der Steirischen Tafelrunde',
+                'description': 'md5:c1272f0245537812d4e36419c207b67d',
+                'duration': 2668,
+                'upload_date': '20141208',
+            },
+        }],
+        'skip': 'Blocked outside of Austria / Germany',
+    }, {
+        'url': 'http://tvthek.orf.at/topic/Im-Wandel-der-Zeit/8002126/Best-of-Ingrid-Thurnher/7982256',
+        'playlist': [{
+            'md5': '68f543909aea49d621dfc7703a11cfaf',
+            'info_dict': {
+                'id': '7982259',
+                'ext': 'mp4',
+                'title': 'Best of Ingrid Thurnher',
+                'upload_date': '20140527',
+                'description': 'Viele Jahre war Ingrid Thurnher das "Gesicht" der ZIB 2. Vor ihrem Wechsel zur ZIB 2 im jahr 1995 moderierte sie unter anderem "Land und Leute", "Österreich-Bild" und "Niederösterreich heute".',
+            }
+        }],
+        '_skip': 'Blocked outside of Austria / Germany',
+    }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        playlist_id = mobj.group('id')
+        playlist_id = self._match_id(url)
         webpage = self._download_webpage(url, playlist_id)
 
         data_json = self._search_regex(
@@ -43,7 +58,9 @@ class ORFTVthekIE(InfoExtractor):
 
         def get_segments(all_data):
             for data in all_data:
-                if data['name'] == 'Tracker::EPISODE_DETAIL_PAGE_OVER_PROGRAM':
+                if data['name'] in (
+                        'Tracker::EPISODE_DETAIL_PAGE_OVER_PROGRAM',
+                        'Tracker::EPISODE_DETAIL_PAGE_OVER_TOPIC'):
                     return data['values']['segments']
 
         sdata = get_segments(all_data)
@@ -120,9 +137,7 @@ class ORFOE1IE(InfoExtractor):
     _VALID_URL = r'http://oe1\.orf\.at/programm/(?P<id>[0-9]+)'
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        show_id = mobj.group('id')
-
+        show_id = self._match_id(url)
         data = self._download_json(
             'http://oe1.orf.at/programm/%s/konsole' % show_id,
             show_id

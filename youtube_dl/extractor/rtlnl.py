@@ -28,9 +28,8 @@ class RtlXlIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         uuid = mobj.group('uuid')
 
-        # Use m3u8 streams (see https://github.com/rg3/youtube-dl/issues/4118)
         info = self._download_json(
-            'http://www.rtl.nl/system/s4m/vfd/version=2/uuid=%s/d=pc/fmt=adaptive/' % uuid,
+            'http://www.rtl.nl/system/s4m/vfd/version=2/uuid=%s/fmt=flash/' % uuid,
             uuid)
 
         material = info['material'][0]
@@ -39,12 +38,13 @@ class RtlXlIE(InfoExtractor):
         progname = info['abstracts'][0]['name']
         subtitle = material['title'] or info['episodes'][0]['name']
 
-        videopath = material['videopath']
+        # Use unencrypted m3u8 streams (See https://github.com/rg3/youtube-dl/issues/4118)
+        videopath = material['videopath'].replace('.f4m', '.m3u8')
         m3u8_url = 'http://manifest.us.rtl.nl' + videopath
 
         formats = self._extract_m3u8_formats(m3u8_url, uuid, ext='mp4')
 
-        video_urlpart = videopath.split('/adaptive/')[1][:-4]
+        video_urlpart = videopath.split('/flash/')[1][:-5]
         PG_URL_TEMPLATE = 'http://pg.us.rtl.nl/rtlxl/network/%s/progressive/%s.mp4'
 
         formats.extend([

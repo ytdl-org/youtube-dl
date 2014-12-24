@@ -6,13 +6,15 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import (
-    compat_urlparse,
-    ExtractorError,
-    clean_html,
-    parse_duration,
+from ..compat import (
     compat_urllib_parse_urlparse,
+    compat_urlparse,
+)
+from ..utils import (
+    clean_html,
+    ExtractorError,
     int_or_none,
+    parse_duration,
 )
 
 
@@ -26,6 +28,19 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
         if info.get('status') == 'NOK':
             raise ExtractorError(
                 '%s returned error: %s' % (self.IE_NAME, info['message']), expected=True)
+        allowed_countries = info['videos'][0].get('geoblocage')
+        if allowed_countries:
+            georestricted = True
+            geo_info = self._download_json(
+                'http://geo.francetv.fr/ws/edgescape.json', video_id,
+                'Downloading geo restriction info')
+            country = geo_info['reponse']['geo_info']['country_code']
+            if country not in allowed_countries:
+                raise ExtractorError(
+                    'The video is not available from your location',
+                    expected=True)
+        else:
+            georestricted = False
 
         formats = []
         for video in info['videos']:
@@ -36,6 +51,10 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
                 continue
             format_id = video['format']
             if video_url.endswith('.f4m'):
+                if georestricted:
+                    # See https://github.com/rg3/youtube-dl/issues/3963
+                    # m3u8 urls work fine
+                    continue
                 video_url_parsed = compat_urllib_parse_urlparse(video_url)
                 f4m_url = self._download_webpage(
                     'http://hdfauth.francetv.fr/esi/urltokengen2.html?url=%s' % video_url_parsed.path,
@@ -234,7 +253,7 @@ class GenerationQuoiIE(InfoExtractor):
         info_json = self._download_webpage(info_url, name)
         info = json.loads(info_json)
         return self.url_result('http://www.dailymotion.com/video/%s' % info['id'],
-            ie='Dailymotion')
+                               ie='Dailymotion')
 
 
 class CultureboxIE(FranceTVBaseInfoExtractor):

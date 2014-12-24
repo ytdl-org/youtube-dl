@@ -13,9 +13,10 @@ from ..compat import (
     compat_urllib_request,
 )
 from ..utils import (
-    urlencode_postdata,
     ExtractorError,
+    int_or_none,
     limit_length,
+    urlencode_postdata,
 )
 
 
@@ -36,7 +37,6 @@ class FacebookIE(InfoExtractor):
         'info_dict': {
             'id': '637842556329505',
             'ext': 'mp4',
-            'duration': 38,
             'title': 're:Did you know Kei Nishikori is the first Asian man to ever reach a Grand Slam',
         }
     }, {
@@ -60,8 +60,8 @@ class FacebookIE(InfoExtractor):
         login_page_req = compat_urllib_request.Request(self._LOGIN_URL)
         login_page_req.add_header('Cookie', 'locale=en_US')
         login_page = self._download_webpage(login_page_req, None,
-            note='Downloading login page',
-            errnote='Unable to download login page')
+                                            note='Downloading login page',
+                                            errnote='Unable to download login page')
         lsd = self._search_regex(
             r'<input type="hidden" name="lsd" value="([^"]*)"',
             login_page, 'lsd')
@@ -77,12 +77,12 @@ class FacebookIE(InfoExtractor):
             'legacy_return': '1',
             'timezone': '-60',
             'trynum': '1',
-            }
+        }
         request = compat_urllib_request.Request(self._LOGIN_URL, urlencode_postdata(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         try:
             login_results = self._download_webpage(request, None,
-                note='Logging in', errnote='unable to fetch login page')
+                                                   note='Logging in', errnote='unable to fetch login page')
             if re.search(r'<form(.*)name="login"(.*)</form>', login_results) is not None:
                 self._downloader.report_warning('unable to log in: bad username/password, or exceded login rate limit (~3/min). Check credentials or wait.')
                 return
@@ -96,7 +96,7 @@ class FacebookIE(InfoExtractor):
             check_req = compat_urllib_request.Request(self._CHECKPOINT_URL, urlencode_postdata(check_form))
             check_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
             check_response = self._download_webpage(check_req, None,
-                note='Confirming login')
+                                                    note='Confirming login')
             if re.search(r'id="checkpointSubmitButton"', check_response) is not None:
                 self._downloader.report_warning('Unable to confirm login, you have to login in your brower and authorize the login.')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
@@ -107,9 +107,7 @@ class FacebookIE(InfoExtractor):
         self._login()
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         url = 'https://www.facebook.com/video/video.php?v=%s' % video_id
         webpage = self._download_webpage(url, video_id)
 
@@ -149,6 +147,6 @@ class FacebookIE(InfoExtractor):
             'id': video_id,
             'title': video_title,
             'url': video_url,
-            'duration': int(video_data['video_duration']),
-            'thumbnail': video_data['thumbnail_src'],
+            'duration': int_or_none(video_data.get('video_duration')),
+            'thumbnail': video_data.get('thumbnail_src'),
         }

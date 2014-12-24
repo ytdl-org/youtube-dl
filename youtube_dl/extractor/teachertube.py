@@ -121,7 +121,7 @@ class TeacherTubeUserIE(InfoExtractor):
         urls = []
         webpage = self._download_webpage(url, user_id)
         urls.extend(re.findall(self._MEDIA_RE, webpage))
-        
+
         pages = re.findall(r'/ajax-user/user-videos/%s\?page=([0-9]+)' % user_id, webpage)[:-1]
         for p in pages:
             more = 'http://www.teachertube.com/ajax-user/user-videos/%s?page=%s' % (user_id, p)

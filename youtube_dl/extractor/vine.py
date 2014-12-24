@@ -17,6 +17,7 @@ class VineIE(InfoExtractor):
             'id': 'b9KOOWX7HUx',
             'ext': 'mp4',
             'title': 'Chicken.',
+            'alt_title': 'Vine by Jack Dorsey',
             'description': 'Chicken.',
             'upload_date': '20130519',
             'uploader': 'Jack Dorsey',
@@ -25,30 +26,26 @@ class VineIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage('https://vine.co/v/' + video_id, video_id)
 
         data = json.loads(self._html_search_regex(
             r'window\.POST_DATA = { %s: ({.+?}) }' % video_id, webpage, 'vine data'))
 
-        formats = [
-            {
-                'url': data['videoLowURL'],
-                'ext': 'mp4',
-                'format_id': 'low',
-            },
-            {
-                'url': data['videoUrl'],
-                'ext': 'mp4',
-                'format_id': 'standard',
-            }
-        ]
+        formats = [{
+            'url': data['videoLowURL'],
+            'ext': 'mp4',
+            'format_id': 'low',
+        }, {
+            'url': data['videoUrl'],
+            'ext': 'mp4',
+            'format_id': 'standard',
+        }]
 
         return {
             'id': video_id,
             'title': self._og_search_title(webpage),
+            'alt_title': self._og_search_description(webpage),
             'description': data['description'],
             'thumbnail': data['thumbnailUrl'],
             'upload_date': unified_strdate(data['created']),
@@ -63,29 +60,36 @@ class VineIE(InfoExtractor):
 
 class VineUserIE(InfoExtractor):
     IE_NAME = 'vine:user'
-    _VALID_URL = r'(?:https?://)?vine\.co/(?P<user>[^/]+)/?(\?.*)?$'
+    _VALID_URL = r'(?:https?://)?vine\.co/(?P<u>u/)?(?P<user>[^/]+)/?(\?.*)?$'
     _VINE_BASE_URL = "https://vine.co/"
-    _TEST = {
-        'url': 'https://vine.co/Visa',
-        'info_dict': {
-            'id': 'Visa',
+    _TESTS = [
+        {
+            'url': 'https://vine.co/Visa',
+            'info_dict': {
+                'id': 'Visa',
+            },
+            'playlist_mincount': 46,
         },
-        'playlist_mincount': 46,
-    }
+        {
+            'url': 'https://vine.co/u/941705360593584128',
+            'only_matching': True,
+        },
+    ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         user = mobj.group('user')
+        u = mobj.group('u')
 
-        profile_url = "%sapi/users/profiles/vanity/%s" % (
-            self._VINE_BASE_URL, user)
+        profile_url = "%sapi/users/profiles/%s%s" % (
+            self._VINE_BASE_URL, 'vanity/' if not u else '', user)
         profile_data = self._download_json(
             profile_url, user, note='Downloading user profile data')
 
         user_id = profile_data['data']['userId']
         timeline_data = []
         for pagenum in itertools.count(1):
-            timeline_url = "%sapi/timelines/users/%s?page=%s" % (
+            timeline_url = "%sapi/timelines/users/%s?page=%s&size=100" % (
                 self._VINE_BASE_URL, user_id, pagenum)
             timeline_page = self._download_json(
                 timeline_url, user, note='Downloading page %d' % pagenum)

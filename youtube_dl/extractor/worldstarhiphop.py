@@ -51,4 +51,3 @@ class WorldStarHipHopIE(InfoExtractor):
             'title': video_title,
             'thumbnail': thumbnail,
         }
-

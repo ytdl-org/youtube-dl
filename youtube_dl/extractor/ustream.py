@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urlparse,
 )
 
@@ -45,13 +45,13 @@ class UstreamIE(InfoExtractor):
         self.report_extraction(video_id)
 
         video_title = self._html_search_regex(r'data-title="(?P<title>.+)"',
-            webpage, 'title')
+                                              webpage, 'title')
 
         uploader = self._html_search_regex(r'data-content-type="channel".*?>(?P<uploader>.*?)</a>',
-            webpage, 'uploader', fatal=False, flags=re.DOTALL)
+                                           webpage, 'uploader', fatal=False, flags=re.DOTALL)
 
         thumbnail = self._html_search_regex(r'<link rel="image_src" href="(?P<thumb>.*?)"',
-            webpage, 'thumbnail', fatal=False)
+                                            webpage, 'thumbnail', fatal=False)
 
         return {
             'id': video_id,

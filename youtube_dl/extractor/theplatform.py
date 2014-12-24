@@ -3,9 +3,11 @@ from __future__ import unicode_literals
 import re
 import json
 
-from .common import InfoExtractor
-from ..utils import (
+from .subtitles import SubtitlesInfoExtractor
+from ..compat import (
     compat_str,
+)
+from ..utils import (
     determine_ext,
     ExtractorError,
     xpath_with_ns,
@@ -14,7 +16,7 @@ from ..utils import (
 _x = lambda p: xpath_with_ns(p, {'smil': 'http://www.w3.org/2005/SMIL21/Language'})
 
 
-class ThePlatformIE(InfoExtractor):
+class ThePlatformIE(SubtitlesInfoExtractor):
     _VALID_URL = r'''(?x)
         (?:https?://(?:link|player)\.theplatform\.com/[sp]/[^/]+/
            (?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/)?
@@ -35,19 +37,19 @@ class ThePlatformIE(InfoExtractor):
             'skip_download': True,
         },
     }
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         if mobj.group('config'):
-            config_url = url+ '&form=json'
+            config_url = url + '&form=json'
             config_url = config_url.replace('swf/', 'config/')
             config_url = config_url.replace('onsite/', 'onsite/config/')
             config = self._download_json(config_url, video_id, 'Downloading config')
             smil_url = config['releaseUrl'] + '&format=SMIL&formats=MPEG4&manifest=f4m'
         else:
             smil_url = ('http://link.theplatform.com/s/dJ5BDC/{0}/meta.smil?'
-                'format=smil&mbr=true'.format(video_id))
-
+                        'format=smil&mbr=true'.format(video_id))
 
         meta = self._download_xml(smil_url, video_id)
         try:
@@ -63,6 +65,20 @@ class ThePlatformIE(InfoExtractor):
         info_url = 'http://link.theplatform.com/s/dJ5BDC/{0}?format=preview'.format(video_id)
         info_json = self._download_webpage(info_url, video_id)
         info = json.loads(info_json)
+
+        subtitles = {}
+        captions = info.get('captions')
+        if isinstance(captions, list):
+            for caption in captions:
+                lang, src = caption.get('lang'), caption.get('src')
+                if lang and src:
+                    subtitles[lang] = src
+
+        if self._downloader.params.get('listsubtitles', False):
+            self._list_available_subtitles(video_id, subtitles)
+            return
+
+        subtitles = self.extract_subtitles(video_id, subtitles)
 
         head = meta.find(_x('smil:head'))
         body = meta.find(_x('smil:body'))
@@ -115,8 +131,9 @@ class ThePlatformIE(InfoExtractor):
         return {
             'id': video_id,
             'title': info['title'],
+            'subtitles': subtitles,
             'formats': formats,
             'description': info['description'],
             'thumbnail': info['defaultThumbnailUrl'],
-            'duration': info['duration']//1000,
+            'duration': info['duration'] // 1000,
         }

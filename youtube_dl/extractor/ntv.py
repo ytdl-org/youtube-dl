@@ -130,7 +130,7 @@ class NTVIE(InfoExtractor):
                 'rtmp_conn': 'B:1',
                 'player_url': 'http://www.ntv.ru/swf/vps1.swf?update=20131128',
                 'page_url': 'http://www.ntv.ru',
-                'flash_ver': 'LNX 11,2,202,341',
+                'flash_version': 'LNX 11,2,202,341',
                 'rtmp_live': True,
                 'ext': 'flv',
                 'filesize': int(size.text),

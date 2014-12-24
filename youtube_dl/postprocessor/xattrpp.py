@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import os
 import subprocess
 import sys
@@ -108,4 +110,3 @@ class XAttrMetadataPP(PostProcessor):
         except (subprocess.CalledProcessError, OSError):
             self._downloader.report_error("This filesystem doesn't support extended attributes. (You may have to enable them in your /etc/fstab)")
             return False, info
-

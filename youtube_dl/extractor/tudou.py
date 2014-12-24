@@ -36,12 +36,12 @@ class TudouIE(InfoExtractor):
         'skip': 'Only works from China'
     }]
 
-    def _url_for_id(self, id, quality = None):
-        info_url = "http://v2.tudou.com/f?id="+str(id)
+    def _url_for_id(self, id, quality=None):
+        info_url = "http://v2.tudou.com/f?id=" + str(id)
         if quality:
             info_url += '&hd' + quality
         webpage = self._download_webpage(info_url, id, "Opening the info webpage")
-        final_url = self._html_search_regex('>(.+?)</f>',webpage, 'video url')
+        final_url = self._html_search_regex('>(.+?)</f>', webpage, 'video url')
         return final_url
 
     def _real_extract(self, url):
@@ -73,7 +73,7 @@ class TudouIE(InfoExtractor):
         result = []
         len_parts = len(parts)
         if len_parts > 1:
-            self.to_screen(u'%s: found %s parts' % (video_id, len_parts))
+            self.to_screen('%s: found %s parts' % (video_id, len_parts))
         for part in parts:
             part_id = part['k']
             final_url = self._url_for_id(part_id, quality)

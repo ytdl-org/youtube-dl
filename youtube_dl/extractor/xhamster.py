@@ -42,7 +42,7 @@ class XHamsterIE(InfoExtractor):
         }
     ]
 
-    def _real_extract(self,url):
+    def _real_extract(self, url):
         def extract_video_url(webpage):
             mp4 = re.search(r'<video\s+.*?file="([^"]+)".*?>', webpage)
             if mp4 is None:
@@ -67,17 +67,17 @@ class XHamsterIE(InfoExtractor):
         description = mobj.group(1) if mobj else None
 
         upload_date = self._html_search_regex(r'hint=\'(\d{4}-\d{2}-\d{2}) \d{2}:\d{2}:\d{2} [A-Z]{3,4}\'',
-            webpage, 'upload date', fatal=False)
+                                              webpage, 'upload date', fatal=False)
         if upload_date:
             upload_date = unified_strdate(upload_date)
 
         uploader_id = self._html_search_regex(r'<a href=\'/user/[^>]+>(?P<uploader_id>[^<]+)',
-            webpage, 'uploader id', default='anonymous')
+                                              webpage, 'uploader id', default='anonymous')
 
         thumbnail = self._html_search_regex(r'<video\s+.*?poster="([^"]+)".*?>', webpage, 'thumbnail', fatal=False)
 
         duration = parse_duration(self._html_search_regex(r'<span>Runtime:</span> (\d+:\d+)</div>',
-            webpage, 'duration', fatal=False))
+                                                          webpage, 'duration', fatal=False))
 
         view_count = self._html_search_regex(r'<span>Views:</span> ([^<]+)</div>', webpage, 'view count', fatal=False)
         if view_count:

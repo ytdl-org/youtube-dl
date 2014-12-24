@@ -59,7 +59,7 @@ class FakeYDL(YoutubeDL):
         params = get_params(override=override)
         super(FakeYDL, self).__init__(params, auto_init=False)
         self.result = []
-        
+
     def to_screen(self, s, skip_eol=None):
         print(s)
 
@@ -72,8 +72,10 @@ class FakeYDL(YoutubeDL):
     def expect_warning(self, regex):
         # Silence an expected warning matching a regex
         old_report_warning = self.report_warning
+
         def report_warning(self, message):
-            if re.match(regex, message): return
+            if re.match(regex, message):
+                return
             old_report_warning(message)
         self.report_warning = types.MethodType(report_warning, self)
 
@@ -114,14 +116,14 @@ def expect_info_dict(self, expected_dict, got_dict):
         elif isinstance(expected, type):
             got = got_dict.get(info_field)
             self.assertTrue(isinstance(got, expected),
-                'Expected type %r for field %s, but got value %r of type %r' % (expected, info_field, got, type(got)))
+                            'Expected type %r for field %s, but got value %r of type %r' % (expected, info_field, got, type(got)))
         else:
             if isinstance(expected, compat_str) and expected.startswith('md5:'):
                 got = 'md5:' + md5(got_dict.get(info_field))
             else:
                 got = got_dict.get(info_field)
             self.assertEqual(expected, got,
-                'invalid value for field %s, expected %r, got %r' % (info_field, expected, got))
+                             'invalid value for field %s, expected %r, got %r' % (info_field, expected, got))
 
     # Check for the presence of mandatory fields
     if got_dict.get('_type') != 'playlist':
@@ -133,13 +135,13 @@ def expect_info_dict(self, expected_dict, got_dict):
 
     # Are checkable fields missing from the test case definition?
     test_info_dict = dict((key, value if not isinstance(value, compat_str) or len(value) < 250 else 'md5:' + md5(value))
-        for key, value in got_dict.items()
-        if value and key in ('title', 'description', 'uploader', 'upload_date', 'timestamp', 'uploader_id', 'location'))
+                          for key, value in got_dict.items()
+                          if value and key in ('title', 'description', 'uploader', 'upload_date', 'timestamp', 'uploader_id', 'location'))
     missing_keys = set(test_info_dict.keys()) - set(expected_dict.keys())
     if missing_keys:
         def _repr(v):
             if isinstance(v, compat_str):
-                return "'%s'" % v.replace('\\', '\\\\').replace("'", "\\'")
+                return "'%s'" % v.replace('\\', '\\\\').replace("'", "\\'").replace('\n', '\\n')
             else:
                 return repr(v)
         info_dict_str = ''.join(
@@ -159,7 +161,9 @@ def assertRegexpMatches(self, text, regexp, msg=None):
     else:
         m = re.match(regexp, text)
         if not m:
-            note = 'Regexp didn\'t match: %r not found in %r' % (regexp, text)
+            note = 'Regexp didn\'t match: %r not found' % (regexp)
+            if len(text) < 1000:
+                note += ' in %r' % text
             if msg is None:
                 msg = note
             else:

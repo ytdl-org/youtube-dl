@@ -1,9 +1,10 @@
 from __future__ import unicode_literals
 
-import re
+import xml.etree.ElementTree
 
 from .subtitles import SubtitlesInfoExtractor
 from ..utils import ExtractorError
+from ..compat import compat_HTTPError
 
 
 class BBCCoUkIE(SubtitlesInfoExtractor):
@@ -55,7 +56,22 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
                 'skip_download': True,
             },
             'skip': 'Currently BBC iPlayer TV programmes are available to play in the UK only',
-        }
+        },
+        {
+            'url': 'http://www.bbc.co.uk/iplayer/episode/p026c7jt/tomorrows-worlds-the-unearthly-history-of-science-fiction-2-invasion',
+            'info_dict': {
+                'id': 'b03k3pb7',
+                'ext': 'flv',
+                'title': "Tomorrow's Worlds: The Unearthly History of Science Fiction",
+                'description': '2. Invasion',
+                'duration': 3600,
+            },
+            'params': {
+                # rtmp download
+                'skip_download': True,
+            },
+            'skip': 'Currently BBC iPlayer TV programmes are available to play in the UK only',
+        },
     ]
 
     def _extract_asx_playlist(self, connection, programme_id):
@@ -102,6 +118,10 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
         return playlist.findall('./{http://bbc.co.uk/2008/emp/playlist}item')
 
     def _extract_medias(self, media_selection):
+        error = media_selection.find('./{http://bbc.co.uk/2008/mp/mediaselection}error')
+        if error is not None:
+            raise ExtractorError(
+                '%s returned error: %s' % (self.IE_NAME, error.get('id')), expected=True)
         return media_selection.findall('./{http://bbc.co.uk/2008/mp/mediaselection}media')
 
     def _extract_connections(self, media):
@@ -158,54 +178,73 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
             subtitles[lang] = srt
         return subtitles
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        group_id = mobj.group('id')
-
-        webpage = self._download_webpage(url, group_id, 'Downloading video page')
-        if re.search(r'id="emp-error" class="notinuk">', webpage):
-            raise ExtractorError('Currently BBC iPlayer TV programmes are available to play in the UK only',
-                expected=True)
-
-        playlist = self._download_xml('http://www.bbc.co.uk/iplayer/playlist/%s' % group_id, group_id,
-            'Downloading playlist XML')
-
-        no_items = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}noItems')
-        if no_items is not None:
-            reason = no_items.get('reason')
-            if reason == 'preAvailability':
-                msg = 'Episode %s is not yet available' % group_id
-            elif reason == 'postAvailability':
-                msg = 'Episode %s is no longer available' % group_id
+    def _download_media_selector(self, programme_id):
+        try:
+            media_selection = self._download_xml(
+                'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s' % programme_id,
+                programme_id, 'Downloading media selection XML')
+        except ExtractorError as ee:
+            if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 403:
+                media_selection = xml.etree.ElementTree.fromstring(ee.cause.read().encode('utf-8'))
             else:
-                msg = 'Episode %s is not available: %s' % (group_id, reason)
-            raise ExtractorError(msg, expected=True)
+                raise
 
         formats = []
         subtitles = None
 
-        for item in self._extract_items(playlist):
-            kind = item.get('kind')
-            if kind != 'programme' and kind != 'radioProgramme':
-                continue
-            title = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}title').text
-            description = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}summary').text
+        for media in self._extract_medias(media_selection):
+            kind = media.get('kind')
+            if kind == 'audio':
+                formats.extend(self._extract_audio(media, programme_id))
+            elif kind == 'video':
+                formats.extend(self._extract_video(media, programme_id))
+            elif kind == 'captions':
+                subtitles = self._extract_captions(media, programme_id)
 
-            programme_id = item.get('identifier')
-            duration = int(item.get('duration'))
+        return formats, subtitles
 
-            media_selection = self._download_xml(
-                'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s'  % programme_id,
-                programme_id, 'Downloading media selection XML')
+    def _real_extract(self, url):
+        group_id = self._match_id(url)
 
-            for media in self._extract_medias(media_selection):
-                kind = media.get('kind')
-                if kind == 'audio':
-                    formats.extend(self._extract_audio(media, programme_id))
-                elif kind == 'video':
-                    formats.extend(self._extract_video(media, programme_id))
-                elif kind == 'captions':
-                    subtitles = self._extract_captions(media, programme_id)
+        webpage = self._download_webpage(url, group_id, 'Downloading video page')
+
+        programme_id = self._search_regex(
+            r'"vpid"\s*:\s*"([\da-z]{8})"', webpage, 'vpid', fatal=False, default=None)
+        if programme_id:
+            player = self._download_json(
+                'http://www.bbc.co.uk/iplayer/episode/%s.json' % group_id,
+                group_id)['jsConf']['player']
+            title = player['title']
+            description = player['subtitle']
+            duration = player['duration']
+            formats, subtitles = self._download_media_selector(programme_id)
+        else:
+            playlist = self._download_xml(
+                'http://www.bbc.co.uk/iplayer/playlist/%s' % group_id,
+                group_id, 'Downloading playlist XML')
+
+            no_items = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}noItems')
+            if no_items is not None:
+                reason = no_items.get('reason')
+                if reason == 'preAvailability':
+                    msg = 'Episode %s is not yet available' % group_id
+                elif reason == 'postAvailability':
+                    msg = 'Episode %s is no longer available' % group_id
+                elif reason == 'noMedia':
+                    msg = 'Episode %s is not currently available' % group_id
+                else:
+                    msg = 'Episode %s is not available: %s' % (group_id, reason)
+                raise ExtractorError(msg, expected=True)
+
+            for item in self._extract_items(playlist):
+                kind = item.get('kind')
+                if kind != 'programme' and kind != 'radioProgramme':
+                    continue
+                title = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}title').text
+                description = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}summary').text
+                programme_id = item.get('identifier')
+                duration = int(item.get('duration'))
+                formats, subtitles = self._download_media_selector(programme_id)
 
         if self._downloader.params.get('listsubtitles', False):
             self._list_available_subtitles(programme_id, subtitles)

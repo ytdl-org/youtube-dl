@@ -13,8 +13,10 @@ class KickStarterIE(InfoExtractor):
             'id': '1404461844',
             'ext': 'mp4',
             'title': 'Intersection: The Story of Josh Grant by Kyle Cowling',
-            'description': 'A unique motocross documentary that examines the '
-                'life and mind of one of sports most elite athletes: Josh Grant.',
+            'description': (
+                'A unique motocross documentary that examines the '
+                'life and mind of one of sports most elite athletes: Josh Grant.'
+            ),
         },
     }, {
         'note': 'Embedded video (not using the native kickstarter video service)',

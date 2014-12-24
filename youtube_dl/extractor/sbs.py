@@ -27,8 +27,7 @@ class SBSIE(InfoExtractor):
             'thumbnail': 're:http://.*\.jpg',
         },
         'add_ies': ['generic'],
-    },
-    {
+    }, {
         'url': 'http://www.sbs.com.au/ondemand/video/320403011771/Dingo-Conservation-The-Feed',
         'only_matching': True,
     }]

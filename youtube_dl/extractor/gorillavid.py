@@ -4,19 +4,21 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    determine_ext,
+from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
+)
+from ..utils import (
+    ExtractorError,
+    int_or_none,
 )
 
 
 class GorillaVidIE(InfoExtractor):
-    IE_DESC = 'GorillaVid.in, daclips.in and movpod.in'
+    IE_DESC = 'GorillaVid.in, daclips.in, movpod.in and fastvideo.in'
     _VALID_URL = r'''(?x)
         https?://(?P<host>(?:www\.)?
-            (?:daclips\.in|gorillavid\.in|movpod\.in))/
+            (?:daclips\.in|gorillavid\.in|movpod\.in|fastvideo\.in))/
         (?:embed-)?(?P<id>[0-9a-zA-Z]+)(?:-[0-9]+x[0-9]+\.html)?
     '''
 
@@ -50,6 +52,16 @@ class GorillaVidIE(InfoExtractor):
             'thumbnail': 're:http://.*\.jpg',
         }
     }, {
+        # video with countdown timeout
+        'url': 'http://fastvideo.in/1qmdn1lmsmbw',
+        'md5': '8b87ec3f6564a3108a0e8e66594842ba',
+        'info_dict': {
+            'id': '1qmdn1lmsmbw',
+            'ext': 'mp4',
+            'title': 'Man of Steel - Trailer',
+            'thumbnail': 're:http://.*\.jpg',
+        },
+    }, {
         'url': 'http://movpod.in/0wguyyxi1yca',
         'only_matching': True,
     }]
@@ -69,8 +81,14 @@ class GorillaVidIE(InfoExtractor):
             (?:id="[^"]+"\s+)?
             value="([^"]*)"
             ''', webpage))
-        
+
         if fields['op'] == 'download1':
+            countdown = int_or_none(self._search_regex(
+                r'<span id="countdown_str">(?:[Ww]ait)?\s*<span id="cxc">(\d+)</span>\s*(?:seconds?)?</span>',
+                webpage, 'countdown', default=None))
+            if countdown:
+                self._sleep(countdown, video_id)
+
             post = compat_urllib_parse.urlencode(fields)
 
             req = compat_urllib_request.Request(url, post)
@@ -78,14 +96,17 @@ class GorillaVidIE(InfoExtractor):
 
             webpage = self._download_webpage(req, video_id, 'Downloading video page')
 
-        title = self._search_regex(r'style="z-index: [0-9]+;">([^<]+)</span>', webpage, 'title')
-        video_url = self._search_regex(r'file\s*:\s*\'(http[^\']+)\',', webpage, 'file url')
-        thumbnail = self._search_regex(r'image\s*:\s*\'(http[^\']+)\',', webpage, 'thumbnail', fatal=False)
+        title = self._search_regex(
+            r'style="z-index: [0-9]+;">([^<]+)</span>',
+            webpage, 'title', default=None) or self._og_search_title(webpage)
+        video_url = self._search_regex(
+            r'file\s*:\s*["\'](http[^"\']+)["\'],', webpage, 'file url')
+        thumbnail = self._search_regex(
+            r'image\s*:\s*["\'](http[^"\']+)["\'],', webpage, 'thumbnail', fatal=False)
 
         formats = [{
             'format_id': 'sd',
             'url': video_url,
-            'ext': determine_ext(video_url),
             'quality': 1,
         }]
 

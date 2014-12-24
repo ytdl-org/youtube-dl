@@ -122,7 +122,7 @@ class RTLnowIE(InfoExtractor):
         playerdata = self._download_xml(playerdata_url, video_id, 'Downloading player data XML')
 
         videoinfo = playerdata.find('./playlist/videoinfo')
-        
+
         formats = []
         for filename in videoinfo.findall('filename'):
             mobj = re.search(r'(?P<url>rtmpe://(?:[^/]+/){2})(?P<play_path>.+)', filename.text)

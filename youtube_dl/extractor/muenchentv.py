@@ -73,4 +73,3 @@ class MuenchenTVIE(InfoExtractor):
             'is_live': True,
             'thumbnail': thumbnail,
         }
-

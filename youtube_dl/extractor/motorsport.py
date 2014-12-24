@@ -3,13 +3,14 @@ from __future__ import unicode_literals
 
 import hashlib
 import json
-import re
 import time
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_parse_qs,
     compat_str,
+)
+from ..utils import (
     int_or_none,
 )
 
@@ -32,10 +33,9 @@ class MotorsportIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        display_id = mobj.group('id')
-
+        display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
+
         flashvars_code = self._html_search_regex(
             r'<embed id="player".*?flashvars="([^"]+)"', webpage, 'flashvars')
         flashvars = compat_parse_qs(flashvars_code)

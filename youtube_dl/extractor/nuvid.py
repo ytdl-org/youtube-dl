@@ -3,15 +3,17 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_urllib_request,
+)
 from ..utils import (
     parse_duration,
     unified_strdate,
-    compat_urllib_request,
 )
 
 
 class NuvidIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:www|m)\.nuvid\.com/video/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www|m)\.nuvid\.com/video/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://m.nuvid.com/video/1310741/',
         'md5': 'eab207b7ac4fccfb4e23c86201f11277',
@@ -26,8 +28,7 @@ class NuvidIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         formats = []
 

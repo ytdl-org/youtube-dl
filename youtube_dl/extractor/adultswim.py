@@ -2,122 +2,150 @@
 from __future__ import unicode_literals
 
 import re
+import json
 
 from .common import InfoExtractor
+from ..utils import (
+    ExtractorError,
+    xpath_text,
+    float_or_none,
+)
+
 
 class AdultSwimIE(InfoExtractor):
-    _VALID_URL = r'https?://video\.adultswim\.com/(?P<path>.+?)(?:\.html)?(?:\?.*)?(?:#.*)?$'
-    _TEST = {
-        'url': 'http://video.adultswim.com/rick-and-morty/close-rick-counters-of-the-rick-kind.html?x=y#title',
+    _VALID_URL = r'https?://(?:www\.)?adultswim\.com/videos/(?P<is_playlist>playlists/)?(?P<show_path>[^/]+)/(?P<episode_path>[^/?#]+)/?'
+
+    _TESTS = [{
+        'url': 'http://adultswim.com/videos/rick-and-morty/pilot',
         'playlist': [
             {
-                'md5': '4da359ec73b58df4575cd01a610ba5dc',
+                'md5': '247572debc75c7652f253c8daa51a14d',
                 'info_dict': {
-                    'id': '8a250ba1450996e901453d7f02ca02f5',
+                    'id': 'rQxZvXQ4ROaSOqq-or2Mow-0',
                     'ext': 'flv',
-                    'title': 'Rick and Morty Close Rick-Counters of the Rick Kind part 1',
-                    'description': 'Rick has a run in with some old associates, resulting in a fallout with Morty. You got any chips, broh?',
-                    'uploader': 'Rick and Morty',
-                    'thumbnail': 'http://i.cdn.turner.com/asfix/repository/8a250ba13f865824013fc9db8b6b0400/thumbnail_267549017116827057.jpg'
-                }
+                    'title': 'Rick and Morty - Pilot Part 1',
+                    'description': "Rick moves in with his daughter's family and establishes himself as a bad influence on his grandson, Morty. "
+                },
             },
             {
-                'md5': 'ffbdf55af9331c509d95350bd0cc1819',
+                'md5': '77b0e037a4b20ec6b98671c4c379f48d',
                 'info_dict': {
-                    'id': '8a250ba1450996e901453d7f4bd102f6',
+                    'id': 'rQxZvXQ4ROaSOqq-or2Mow-3',
                     'ext': 'flv',
-                    'title': 'Rick and Morty Close Rick-Counters of the Rick Kind part 2',
-                    'description': 'Rick has a run in with some old associates, resulting in a fallout with Morty. You got any chips, broh?',
-                    'uploader': 'Rick and Morty',
-                    'thumbnail': 'http://i.cdn.turner.com/asfix/repository/8a250ba13f865824013fc9db8b6b0400/thumbnail_267549017116827057.jpg'
-                }
+                    'title': 'Rick and Morty - Pilot Part 4',
+                    'description': "Rick moves in with his daughter's family and establishes himself as a bad influence on his grandson, Morty. "
+                },
             },
+        ],
+        'info_dict': {
+            'title': 'Rick and Morty - Pilot',
+            'description': "Rick moves in with his daughter's family and establishes himself as a bad influence on his grandson, Morty. "
+        }
+    }, {
+        'url': 'http://www.adultswim.com/videos/playlists/american-parenting/putting-francine-out-of-business/',
+        'playlist': [
             {
-                'md5': 'b92409635540304280b4b6c36bd14a0a',
+                'md5': '2eb5c06d0f9a1539da3718d897f13ec5',
                 'info_dict': {
-                    'id': '8a250ba1450996e901453d7fa73c02f7',
+                    'id': '-t8CamQlQ2aYZ49ItZCFog-0',
                     'ext': 'flv',
-                    'title': 'Rick and Morty Close Rick-Counters of the Rick Kind part 3',
-                    'description': 'Rick has a run in with some old associates, resulting in a fallout with Morty. You got any chips, broh?',
-                    'uploader': 'Rick and Morty',
-                    'thumbnail': 'http://i.cdn.turner.com/asfix/repository/8a250ba13f865824013fc9db8b6b0400/thumbnail_267549017116827057.jpg'
-                }
-            },
-            {
-                'md5': 'e8818891d60e47b29cd89d7b0278156d',
-                'info_dict': {
-                    'id': '8a250ba1450996e901453d7fc8ba02f8',
-                    'ext': 'flv',
-                    'title': 'Rick and Morty Close Rick-Counters of the Rick Kind part 4',
-                    'description': 'Rick has a run in with some old associates, resulting in a fallout with Morty. You got any chips, broh?',
-                    'uploader': 'Rick and Morty',
-                    'thumbnail': 'http://i.cdn.turner.com/asfix/repository/8a250ba13f865824013fc9db8b6b0400/thumbnail_267549017116827057.jpg'
-                }
+                    'title': 'American Dad - Putting Francine Out of Business',
+                    'description': 'Stan hatches a plan to get Francine out of the real estate business.Watch more American Dad on [adult swim].'
+                },
             }
-        ]
-    }
+        ],
+        'info_dict': {
+            'title': 'American Dad - Putting Francine Out of Business',
+            'description': 'Stan hatches a plan to get Francine out of the real estate business.Watch more American Dad on [adult swim].'
+        },
+    }]
 
-    _video_extensions = {
-        '3500': 'flv',
-        '640': 'mp4',
-        '150': 'mp4',
-        'ipad': 'm3u8',
-        'iphone': 'm3u8'
-    }
-    _video_dimensions = {
-        '3500': (1280, 720),
-        '640': (480, 270),
-        '150': (320, 180)
-    }
+    @staticmethod
+    def find_video_info(collection, slug):
+        for video in collection.get('videos'):
+            if video.get('slug') == slug:
+                return video
+
+    @staticmethod
+    def find_collection_by_linkURL(collections, linkURL):
+        for collection in collections:
+            if collection.get('linkURL') == linkURL:
+                return collection
+
+    @staticmethod
+    def find_collection_containing_video(collections, slug):
+        for collection in collections:
+            for video in collection.get('videos'):
+                if video.get('slug') == slug:
+                    return collection, video
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_path = mobj.group('path')
+        show_path = mobj.group('show_path')
+        episode_path = mobj.group('episode_path')
+        is_playlist = True if mobj.group('is_playlist') else False
 
-        webpage = self._download_webpage(url, video_path)
-        episode_id = self._html_search_regex(
-            r'<link rel="video_src" href="http://i\.adultswim\.com/adultswim/adultswimtv/tools/swf/viralplayer.swf\?id=([0-9a-f]+?)"\s*/?\s*>',
-            webpage, 'episode_id')
-        title = self._og_search_title(webpage)
+        webpage = self._download_webpage(url, episode_path)
 
-        index_url = 'http://asfix.adultswim.com/asfix-svc/episodeSearch/getEpisodesByIDs?networkName=AS&ids=%s' % episode_id
-        idoc = self._download_xml(index_url, title, 'Downloading episode index', 'Unable to download episode index')
+        # Extract the value of `bootstrappedData` from the Javascript in the page.
+        bootstrappedDataJS = self._search_regex(r'var bootstrappedData = ({.*});', webpage, episode_path)
 
-        episode_el = idoc.find('.//episode')
-        show_title = episode_el.attrib.get('collectionTitle')
-        episode_title = episode_el.attrib.get('title')
-        thumbnail = episode_el.attrib.get('thumbnailUrl')
-        description = episode_el.find('./description').text.strip()
+        try:
+            bootstrappedData = json.loads(bootstrappedDataJS)
+        except ValueError as ve:
+            errmsg = '%s: Failed to parse JSON ' % episode_path
+            raise ExtractorError(errmsg, cause=ve)
+
+        # Downloading videos from a /videos/playlist/ URL needs to be handled differently.
+        # NOTE: We are only downloading one video (the current one) not the playlist
+        if is_playlist:
+            collections = bootstrappedData['playlists']['collections']
+            collection = self.find_collection_by_linkURL(collections, show_path)
+            video_info = self.find_video_info(collection, episode_path)
+
+            show_title = video_info['showTitle']
+            segment_ids = [video_info['videoPlaybackID']]
+        else:
+            collections = bootstrappedData['show']['collections']
+            collection, video_info = self.find_collection_containing_video(collections, episode_path)
+
+            show = bootstrappedData['show']
+            show_title = show['title']
+            segment_ids = [clip['videoPlaybackID'] for clip in video_info['clips']]
+
+        episode_id = video_info['id']
+        episode_title = video_info['title']
+        episode_description = video_info['description']
+        episode_duration = video_info.get('duration')
 
         entries = []
-        segment_els = episode_el.findall('./segments/segment')
+        for part_num, segment_id in enumerate(segment_ids):
+            segment_url = 'http://www.adultswim.com/videos/api/v0/assets?id=%s&platform=mobile' % segment_id
 
-        for part_num, segment_el in enumerate(segment_els):
-            segment_id = segment_el.attrib.get('id')
-            segment_title = '%s %s part %d' % (show_title, episode_title, part_num + 1)
-            thumbnail = segment_el.attrib.get('thumbnailUrl')
-            duration = segment_el.attrib.get('duration')
+            segment_title = '%s - %s' % (show_title, episode_title)
+            if len(segment_ids) > 1:
+                segment_title += ' Part %d' % (part_num + 1)
 
-            segment_url = 'http://asfix.adultswim.com/asfix-svc/episodeservices/getCvpPlaylist?networkName=AS&id=%s' % segment_id
             idoc = self._download_xml(
                 segment_url, segment_title,
                 'Downloading segment information', 'Unable to download segment information')
+
+            segment_duration = float_or_none(
+                xpath_text(idoc, './/trt', 'segment duration').strip())
 
             formats = []
             file_els = idoc.findall('.//files/file')
 
             for file_el in file_els:
                 bitrate = file_el.attrib.get('bitrate')
-                type = file_el.attrib.get('type')
-                width, height = self._video_dimensions.get(bitrate, (None, None))
+                ftype = file_el.attrib.get('type')
+
                 formats.append({
-                    'format_id': '%s-%s' % (bitrate, type),
-                    'url': file_el.text,
-                    'ext': self._video_extensions.get(bitrate, 'mp4'),
+                    'format_id': '%s_%s' % (bitrate, ftype),
+                    'url': file_el.text.strip(),
                     # The bitrate may not be a number (for example: 'iphone')
                     'tbr': int(bitrate) if bitrate.isdigit() else None,
-                    'height': height,
-                    'width': width
+                    'quality': 1 if ftype == 'hd' else -1
                 })
 
             self._sort_formats(formats)
@@ -126,18 +154,16 @@ class AdultSwimIE(InfoExtractor):
                 'id': segment_id,
                 'title': segment_title,
                 'formats': formats,
-                'uploader': show_title,
-                'thumbnail': thumbnail,
-                'duration': duration,
-                'description': description
+                'duration': segment_duration,
+                'description': episode_description
             })
 
         return {
             '_type': 'playlist',
             'id': episode_id,
-            'display_id': video_path,
+            'display_id': episode_path,
             'entries': entries,
-            'title': '%s %s' % (show_title, episode_title),
-            'description': description,
-            'thumbnail': thumbnail
+            'title': '%s - %s' % (show_title, episode_title),
+            'description': episode_description,
+            'duration': episode_duration
         }

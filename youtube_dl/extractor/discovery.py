@@ -16,9 +16,9 @@ class DiscoveryIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'MythBusters: Mission Impossible Outtakes',
             'description': ('Watch Jamie Hyneman and Adam Savage practice being'
-                ' each other -- to the point of confusing Jamie\'s dog -- and '
-                'don\'t miss Adam moon-walking as Jamie ... behind Jamie\'s'
-                ' back.'),
+                            ' each other -- to the point of confusing Jamie\'s dog -- and '
+                            'don\'t miss Adam moon-walking as Jamie ... behind Jamie\'s'
+                            ' back.'),
             'duration': 156,
         },
     }
@@ -29,7 +29,7 @@ class DiscoveryIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_list_json = self._search_regex(r'var videoListJSON = ({.*?});',
-            webpage, 'video list', flags=re.DOTALL)
+                                             webpage, 'video list', flags=re.DOTALL)
         video_list = json.loads(video_list_json)
         info = video_list['clips'][0]
         formats = []

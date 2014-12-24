@@ -3,12 +3,14 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_request,
-    unified_strdate,
-    str_to_int,
-    parse_duration,
+)
+from ..utils import (
     clean_html,
+    parse_duration,
+    str_to_int,
+    unified_strdate,
 )
 
 
@@ -31,9 +33,7 @@ class FourTubeIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         webpage_url = 'http://www.4tube.com/videos/' + video_id
         webpage = self._download_webpage(webpage_url, video_id)
 
@@ -55,7 +55,7 @@ class FourTubeIE(InfoExtractor):
         description = self._html_search_meta('description', webpage, 'description')
         if description:
             upload_date = self._search_regex(r'Published Date: (\d{2} [a-zA-Z]{3} \d{4})', description, 'upload date',
-                fatal=False)
+                                             fatal=False)
             if upload_date:
                 upload_date = unified_strdate(upload_date)
             view_count = self._search_regex(r'Views: ([\d,\.]+)', description, 'view count', fatal=False)
@@ -65,9 +65,9 @@ class FourTubeIE(InfoExtractor):
 
         token_url = "http://tkn.4tube.com/{0}/desktop/{1}".format(media_id, "+".join(sources))
         headers = {
-                b'Content-Type': b'application/x-www-form-urlencoded',
-                b'Origin': b'http://www.4tube.com',
-                }
+            b'Content-Type': b'application/x-www-form-urlencoded',
+            b'Origin': b'http://www.4tube.com',
+        }
         token_req = compat_urllib_request.Request(token_url, b'{}', headers)
         tokens = self._download_json(token_req, video_id)
 
@@ -76,7 +76,7 @@ class FourTubeIE(InfoExtractor):
             'format_id': format + 'p',
             'resolution': format + 'p',
             'quality': int(format),
-            } for format in sources]
+        } for format in sources]
 
         self._sort_formats(formats)
 

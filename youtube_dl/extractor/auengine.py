@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_urllib_parse
 from ..utils import (
-    compat_urllib_parse,
     determine_ext,
     ExtractorError,
 )

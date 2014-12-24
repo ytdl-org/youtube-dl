@@ -5,7 +5,7 @@ import re
 from .common import InfoExtractor
 from .brightcove import BrightcoveIE
 from .discovery import DiscoveryIE
-from ..utils import compat_urlparse
+from ..compat import compat_urlparse
 
 
 class TlcIE(DiscoveryIE):
@@ -36,9 +36,10 @@ class TlcDeIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Breaking Amish: Die Welt da draußen',
             'uploader': 'Discovery Networks - Germany',
-            'description': 'Vier Amische und eine Mennonitin wagen in New York'
+            'description': (
+                'Vier Amische und eine Mennonitin wagen in New York'
                 '  den Sprung in ein komplett anderes Leben. Begleitet sie auf'
-                ' ihrem spannenden Weg.',
+                ' ihrem spannenden Weg.'),
         },
     }
 

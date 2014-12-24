@@ -1,10 +1,9 @@
 from __future__ import unicode_literals
 
 import base64
-import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
 )
 
@@ -24,9 +23,7 @@ class InfoQIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         video_title = self._html_search_regex(r'<title>(.*?)</title>', webpage, 'title')

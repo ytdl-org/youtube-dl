@@ -41,6 +41,7 @@ from .compat import (
     compat_urllib_parse_urlparse,
     compat_urllib_request,
     compat_urlparse,
+    shlex_quote,
 )
 
 
@@ -54,6 +55,7 @@ std_headers = {
     'Accept-Encoding': 'gzip, deflate',
     'Accept-Language': 'en-us,en;q=0.5',
 }
+
 
 def preferredencoding():
     """Get preferred encoding.
@@ -129,7 +131,7 @@ if sys.version_info >= (2, 7):
         """ Find the xpath xpath[@key=val] """
         assert re.match(r'^[a-zA-Z-]+$', key)
         assert re.match(r'^[a-zA-Z0-9@\s:._-]*$', val)
-        expr = xpath + u"[@%s='%s']" % (key, val)
+        expr = xpath + "[@%s='%s']" % (key, val)
         return node.find(expr)
 else:
     def find_xpath_attr(node, xpath, key, val):
@@ -145,6 +147,8 @@ else:
 
 # On python2.6 the xml.etree.ElementTree.Element methods don't support
 # the namespace parameter
+
+
 def xpath_with_ns(path, ns_map):
     components = [c.split(':') for c in path.split('/')]
     replaced = []
@@ -162,7 +166,7 @@ def xpath_text(node, xpath, name=None, fatal=False):
         xpath = xpath.encode('ascii')
 
     n = node.find(xpath)
-    if n is None:
+    if n is None or n.text is None:
         if fatal:
             name = xpath if name is None else name
             raise ExtractorError('Could not find XML element %s' % name)
@@ -236,9 +240,9 @@ def sanitize_open(filename, open_mode):
 
         # In case of error, try to remove win32 forbidden chars
         alt_filename = os.path.join(
-                        re.sub('[/<>:"\\|\\\\?\\*]', '#', path_part)
-                        for path_part in os.path.split(filename)
-                       )
+            re.sub('[/<>:"\\|\\\\?\\*]', '#', path_part)
+            for path_part in os.path.split(filename)
+        )
         if alt_filename == filename:
             raise
         else:
@@ -254,6 +258,7 @@ def timeconvert(timestr):
     if timetuple is not None:
         timestamp = email.utils.mktime_tz(timetuple)
     return timestamp
+
 
 def sanitize_filename(s, restricted=False, is_id=False):
     """Sanitizes a string so it could be used as part of a filename.
@@ -286,6 +291,7 @@ def sanitize_filename(s, restricted=False, is_id=False):
         if not result:
             result = '_'
     return result
+
 
 def orderedSet(iterable):
     """ Remove all duplicates from the input iterable """
@@ -357,7 +363,7 @@ def encodeArgument(s):
     if not isinstance(s, compat_str):
         # Legacy code that uses byte strings
         # Uncomment the following line after fixing all post processors
-        #assert False, 'Internal error: %r should be of type %r, is %r' % (s, compat_str, type(s))
+        # assert False, 'Internal error: %r should be of type %r, is %r' % (s, compat_str, type(s))
         s = s.decode('ascii')
     return encodeFilename(s, True)
 
@@ -371,6 +377,7 @@ def decodeOption(optval):
     assert isinstance(optval, compat_str)
     return optval
 
+
 def formatSeconds(secs):
     if secs > 3600:
         return '%d:%02d:%02d' % (secs // 3600, (secs % 3600) // 60, secs % 60)
@@ -381,6 +388,17 @@ def formatSeconds(secs):
 
 
 def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
+    if hasattr(ssl, 'create_default_context'):  # Python >= 3.4 or 2.7.9
+        context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        if opts_no_check_certificate:
+            context.verify_mode = ssl.CERT_NONE
+        try:
+            return compat_urllib_request.HTTPSHandler(context=context, **kwargs)
+        except TypeError:
+            # Python 2.7.8
+            # (create_default_context present but HTTPSHandler has no context=)
+            pass
+
     if sys.version_info < (3, 2):
         import httplib
 
@@ -402,27 +420,18 @@ def make_HTTPS_handler(opts_no_check_certificate, **kwargs):
             def https_open(self, req):
                 return self.do_open(HTTPSConnectionV3, req)
         return HTTPSHandlerV3(**kwargs)
-    elif hasattr(ssl, 'create_default_context'):  # Python >= 3.4
-        context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-        context.options &= ~ssl.OP_NO_SSLv3  # Allow older, not-as-secure SSLv3
-        if opts_no_check_certificate:
-            context.verify_mode = ssl.CERT_NONE
-        return compat_urllib_request.HTTPSHandler(context=context, **kwargs)
     else:  # Python < 3.4
         context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
         context.verify_mode = (ssl.CERT_NONE
                                if opts_no_check_certificate
                                else ssl.CERT_REQUIRED)
         context.set_default_verify_paths()
-        try:
-            context.load_default_certs()
-        except AttributeError:
-            pass  # Python < 3.4
         return compat_urllib_request.HTTPSHandler(context=context, **kwargs)
 
 
 class ExtractorError(Exception):
     """Error during info extraction."""
+
     def __init__(self, msg, tb=None, expected=False, cause=None, video_id=None):
         """ tb, if given, is the original traceback (so that it can be printed out).
         If expected is set, this is a normal error message and most likely not a bug in youtube-dl.
@@ -467,6 +476,7 @@ class DownloadError(Exception):
     configured to continue on errors. They will contain the appropriate
     error message.
     """
+
     def __init__(self, msg, exc_info=None):
         """ exc_info, if given, is the original exception that caused the trouble (as returned by sys.exc_info()). """
         super(DownloadError, self).__init__(msg)
@@ -488,8 +498,10 @@ class PostProcessingError(Exception):
     This exception may be raised by PostProcessor's .run() method to
     indicate an error in the postprocessing task.
     """
+
     def __init__(self, msg):
         self.msg = msg
+
 
 class MaxDownloadsReached(Exception):
     """ --max-downloads limit has been reached. """
@@ -519,6 +531,7 @@ class ContentTooShortError(Exception):
     def __init__(self, downloaded, expected):
         self.downloaded = downloaded
         self.expected = expected
+
 
 class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     """Handler for HTTP requests and responses.
@@ -632,17 +645,19 @@ def parse_iso8601(date_str, delimiter='T'):
     return calendar.timegm(dt.timetuple())
 
 
-def unified_strdate(date_str):
+def unified_strdate(date_str, day_first=True):
     """Return a string with the date in the format YYYYMMDD"""
 
     if date_str is None:
         return None
-
     upload_date = None
-    #Replace commas
+    # Replace commas
     date_str = date_str.replace(',', ' ')
     # %z (UTC offset) is only supported in python>=3.2
     date_str = re.sub(r' ?(\+|-)[0-9]{2}:?[0-9]{2}$', '', date_str)
+    # Remove AM/PM + timezone
+    date_str = re.sub(r'(?i)\s*(?:AM|PM)\s+[A-Z]+', '', date_str)
+
     format_expressions = [
         '%d %B %Y',
         '%d %b %Y',
@@ -657,7 +672,6 @@ def unified_strdate(date_str):
         '%d/%m/%Y',
         '%d/%m/%y',
         '%Y/%m/%d %H:%M:%S',
-        '%d/%m/%Y %H:%M:%S',
         '%Y-%m-%d %H:%M:%S',
         '%Y-%m-%d %H:%M:%S.%f',
         '%d.%m.%Y %H:%M',
@@ -669,6 +683,14 @@ def unified_strdate(date_str):
         '%Y-%m-%dT%H:%M:%S.%f',
         '%Y-%m-%dT%H:%M',
     ]
+    if day_first:
+        format_expressions.extend([
+            '%d/%m/%Y %H:%M:%S',
+        ])
+    else:
+        format_expressions.extend([
+            '%m/%d/%Y %H:%M:%S',
+        ])
     for expression in format_expressions:
         try:
             upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')
@@ -680,6 +702,7 @@ def unified_strdate(date_str):
             upload_date = datetime.datetime(*timetuple[:6]).strftime('%Y%m%d')
     return upload_date
 
+
 def determine_ext(url, default_ext='unknown_video'):
     if url is None:
         return default_ext
@@ -689,16 +712,20 @@ def determine_ext(url, default_ext='unknown_video'):
     else:
         return default_ext
 
+
 def subtitles_filename(filename, sub_lang, sub_format):
     return filename.rsplit('.', 1)[0] + '.' + sub_lang + '.' + sub_format
+
 
 def date_from_str(date_str):
     """
     Return a datetime object from a string in the format YYYYMMDD or
     (now|today)[+-][0-9](day|week|month|year)(s)?"""
     today = datetime.date.today()
-    if date_str == 'now'or date_str == 'today':
+    if date_str in ('now', 'today'):
         return today
+    if date_str == 'yesterday':
+        return today - datetime.timedelta(days=1)
     match = re.match('(now|today)(?P<sign>[+-])(?P<time>\d+)(?P<unit>day|week|month|year)(s)?', date_str)
     if match is not None:
         sign = match.group('sign')
@@ -706,7 +733,7 @@ def date_from_str(date_str):
         if sign == '-':
             time = -time
         unit = match.group('unit')
-        #A bad aproximation?
+        # A bad aproximation?
         if unit == 'month':
             unit = 'day'
             time *= 30
@@ -717,7 +744,8 @@ def date_from_str(date_str):
         delta = datetime.timedelta(**{unit: time})
         return today + delta
     return datetime.datetime.strptime(date_str, "%Y%m%d").date()
-    
+
+
 def hyphenate_date(date_str):
     """
     Convert a date in 'YYYYMMDD' format to 'YYYY-MM-DD' format"""
@@ -727,8 +755,10 @@ def hyphenate_date(date_str):
     else:
         return date_str
 
+
 class DateRange(object):
     """Represents a time interval between two dates"""
+
     def __init__(self, start=None, end=None):
         """start and end must be strings in the format accepted by date"""
         if start is not None:
@@ -741,17 +771,20 @@ class DateRange(object):
             self.end = datetime.datetime.max.date()
         if self.start > self.end:
             raise ValueError('Date range: "%s" , the start date must be before the end date' % self)
+
     @classmethod
     def day(cls, day):
         """Returns a range that only contains the given day"""
-        return cls(day,day)
+        return cls(day, day)
+
     def __contains__(self, date):
         """Check if the date is in the range"""
         if not isinstance(date, datetime.date):
             date = date_from_str(date)
         return self.start <= date <= self.end
+
     def __str__(self):
-        return '%s - %s' % ( self.start.isoformat(), self.end.isoformat())
+        return '%s - %s' % (self.start.isoformat(), self.end.isoformat())
 
 
 def platform_name():
@@ -787,22 +820,22 @@ def _windows_write_string(s, out):
 
     GetStdHandle = ctypes.WINFUNCTYPE(
         ctypes.wintypes.HANDLE, ctypes.wintypes.DWORD)(
-        ("GetStdHandle", ctypes.windll.kernel32))
+        (b"GetStdHandle", ctypes.windll.kernel32))
     h = GetStdHandle(WIN_OUTPUT_IDS[fileno])
 
     WriteConsoleW = ctypes.WINFUNCTYPE(
         ctypes.wintypes.BOOL, ctypes.wintypes.HANDLE, ctypes.wintypes.LPWSTR,
         ctypes.wintypes.DWORD, ctypes.POINTER(ctypes.wintypes.DWORD),
-        ctypes.wintypes.LPVOID)(("WriteConsoleW", ctypes.windll.kernel32))
+        ctypes.wintypes.LPVOID)((b"WriteConsoleW", ctypes.windll.kernel32))
     written = ctypes.wintypes.DWORD(0)
 
-    GetFileType = ctypes.WINFUNCTYPE(ctypes.wintypes.DWORD, ctypes.wintypes.DWORD)(("GetFileType", ctypes.windll.kernel32))
+    GetFileType = ctypes.WINFUNCTYPE(ctypes.wintypes.DWORD, ctypes.wintypes.DWORD)((b"GetFileType", ctypes.windll.kernel32))
     FILE_TYPE_CHAR = 0x0002
     FILE_TYPE_REMOTE = 0x8000
     GetConsoleMode = ctypes.WINFUNCTYPE(
         ctypes.wintypes.BOOL, ctypes.wintypes.HANDLE,
         ctypes.POINTER(ctypes.wintypes.DWORD))(
-        ("GetConsoleMode", ctypes.windll.kernel32))
+        (b"GetConsoleMode", ctypes.windll.kernel32))
     INVALID_HANDLE_VALUE = ctypes.wintypes.DWORD(-1).value
 
     def not_a_console(handle):
@@ -1003,7 +1036,7 @@ def smuggle_url(url, data):
 
 
 def unsmuggle_url(smug_url, default=None):
-    if not '#__youtubedl_smuggle' in smug_url:
+    if '#__youtubedl_smuggle' not in smug_url:
         return smug_url, default
     url, _, sdata = smug_url.rpartition('#')
     jsond = compat_parse_qs(sdata)['__youtubedl_smuggle'][0]
@@ -1023,6 +1056,60 @@ def format_bytes(bytes):
     suffix = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'][exponent]
     converted = float(bytes) / float(1024 ** exponent)
     return '%.2f%s' % (converted, suffix)
+
+
+def parse_filesize(s):
+    if s is None:
+        return None
+
+    # The lower-case forms are of course incorrect and inofficial,
+    # but we support those too
+    _UNIT_TABLE = {
+        'B': 1,
+        'b': 1,
+        'KiB': 1024,
+        'KB': 1000,
+        'kB': 1024,
+        'Kb': 1000,
+        'MiB': 1024 ** 2,
+        'MB': 1000 ** 2,
+        'mB': 1024 ** 2,
+        'Mb': 1000 ** 2,
+        'GiB': 1024 ** 3,
+        'GB': 1000 ** 3,
+        'gB': 1024 ** 3,
+        'Gb': 1000 ** 3,
+        'TiB': 1024 ** 4,
+        'TB': 1000 ** 4,
+        'tB': 1024 ** 4,
+        'Tb': 1000 ** 4,
+        'PiB': 1024 ** 5,
+        'PB': 1000 ** 5,
+        'pB': 1024 ** 5,
+        'Pb': 1000 ** 5,
+        'EiB': 1024 ** 6,
+        'EB': 1000 ** 6,
+        'eB': 1024 ** 6,
+        'Eb': 1000 ** 6,
+        'ZiB': 1024 ** 7,
+        'ZB': 1000 ** 7,
+        'zB': 1024 ** 7,
+        'Zb': 1000 ** 7,
+        'YiB': 1024 ** 8,
+        'YB': 1000 ** 8,
+        'yB': 1024 ** 8,
+        'Yb': 1000 ** 8,
+    }
+
+    units_re = '|'.join(re.escape(u) for u in _UNIT_TABLE)
+    m = re.match(
+        r'(?P<num>[0-9]+(?:[,.][0-9]*)?)\s*(?P<unit>%s)' % units_re, s)
+    if not m:
+        return None
+
+    num_str = m.group('num').replace(',', '.')
+    mult = _UNIT_TABLE[m.group('unit')]
+    return int(float(num_str) * mult)
 
 
 def get_term_width():
@@ -1131,25 +1218,36 @@ def parse_duration(s):
 
     m = re.match(
         r'''(?ix)T?
+        (?:
+            (?P<only_mins>[0-9.]+)\s*(?:mins?|minutes?)\s*|
+            (?P<only_hours>[0-9.]+)\s*(?:hours?)|
+
             (?:
                 (?:(?P<hours>[0-9]+)\s*(?:[:h]|hours?)\s*)?
                 (?P<mins>[0-9]+)\s*(?:[:m]|mins?|minutes?)\s*
             )?
-            (?P<secs>[0-9]+)(?P<ms>\.[0-9]+)?\s*(?:s|secs?|seconds?)?$''', s)
+            (?P<secs>[0-9]+)(?P<ms>\.[0-9]+)?\s*(?:s|secs?|seconds?)?
+        )$''', s)
     if not m:
         return None
-    res = int(m.group('secs'))
+    res = 0
+    if m.group('only_mins'):
+        return float_or_none(m.group('only_mins'), invscale=60)
+    if m.group('only_hours'):
+        return float_or_none(m.group('only_hours'), invscale=60 * 60)
+    if m.group('secs'):
+        res += int(m.group('secs'))
     if m.group('mins'):
         res += int(m.group('mins')) * 60
-        if m.group('hours'):
-            res += int(m.group('hours')) * 60 * 60
+    if m.group('hours'):
+        res += int(m.group('hours')) * 60 * 60
     if m.group('ms'):
         res += float(m.group('ms'))
     return res
 
 
 def prepend_extension(filename, ext):
-    name, real_ext = os.path.splitext(filename) 
+    name, real_ext = os.path.splitext(filename)
     return '{0}.{1}{2}'.format(name, ext, real_ext)
 
 
@@ -1164,18 +1262,25 @@ def check_executable(exe, args=[]):
 
 
 def get_exe_version(exe, args=['--version'],
-                    version_re=r'version\s+([0-9._-a-zA-Z]+)',
-                    unrecognized='present'):
+                    version_re=None, unrecognized='present'):
     """ Returns the version of the specified executable,
     or False if the executable is not present """
     try:
-        out, err = subprocess.Popen(
+        out, _ = subprocess.Popen(
             [exe] + args,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
     except OSError:
         return False
-    firstline = out.partition(b'\n')[0].decode('ascii', 'ignore')
-    m = re.search(version_re, firstline)
+    if isinstance(out, bytes):  # Python 2.x
+        out = out.decode('ascii', 'ignore')
+    return detect_exe_version(out, version_re, unrecognized)
+
+
+def detect_exe_version(output, version_re=None, unrecognized='present'):
+    assert isinstance(output, compat_str)
+    if version_re is None:
+        version_re = r'version\s+([-0-9._a-zA-Z]+)'
+    m = re.search(version_re, output)
     if m:
         return m.group(1)
     else:
@@ -1416,7 +1521,7 @@ def limit_length(s, length):
 
 
 def version_tuple(v):
-    return [int(e) for e in v.split('.')]
+    return tuple(int(e) for e in re.split(r'[-.]', v))
 
 
 def is_outdated_version(version, limit, assume_new=True):
@@ -1433,3 +1538,8 @@ def ytdl_is_updateable():
     from zipimport import zipimporter
 
     return isinstance(globals().get('__loader__'), zipimporter) or hasattr(sys, 'frozen')
+
+
+def args_to_str(args):
+    # Get a short string representation for a subprocess command
+    return ' '.join(shlex_quote(a) for a in args)

@@ -13,6 +13,7 @@ import time
 import xml.etree.ElementTree
 
 from ..compat import (
+    compat_cookiejar,
     compat_http_client,
     compat_urllib_error,
     compat_urllib_parse_urlparse,
@@ -39,7 +40,7 @@ class InfoExtractor(object):
     information about the video (or videos) the URL refers to. This
     information includes the real video URL, the video title, author and
     others. The information is stored in a dictionary which is then
-    passed to the FileDownloader. The FileDownloader processes this
+    passed to the YoutubeDL. The YoutubeDL processes this
     information possibly downloading the video to the file system, among
     other possible outcomes.
 
@@ -117,6 +118,7 @@ class InfoExtractor(object):
 
     The following fields are optional:
 
+    alt_title:      A secondary title of the video.
     display_id      An alternative identifier for the video, not necessarily
                     unique, but available before title. Typically, id is
                     something like "4234987", title "Dancing naked mole rats",
@@ -128,7 +130,7 @@ class InfoExtractor(object):
                         * "resolution" (optional, string "{width}x{height"},
                                         deprecated)
     thumbnail:      Full URL to a video thumbnail image.
-    description:    One-line video description.
+    description:    Full video description.
     uploader:       Full name of the video uploader.
     timestamp:      UNIX timestamp of the moment the video became available.
     upload_date:    Video upload date (YYYYMMDD).
@@ -157,8 +159,8 @@ class InfoExtractor(object):
 
 
     _type "playlist" indicates multiple videos.
-    There must be a key "entries", which is a list or a PagedList object, each
-    element of which is a valid dictionary under this specfication.
+    There must be a key "entries", which is a list, an iterable, or a PagedList
+    object, each element of which is a valid dictionary by this specification.
 
     Additionally, playlists can have "title" and "id" attributes with the same
     semantics as videos (see above).
@@ -173,9 +175,10 @@ class InfoExtractor(object):
     _type "url" indicates that the video must be extracted from another
     location, possibly by a different extractor. Its only required key is:
     "url" - the next URL to extract.
-
-    Additionally, it may have properties believed to be identical to the
-    resolved entity, for example "title" if the title of the referred video is
+    The key "ie_key" can be set to the class name (minus the trailing "IE",
+    e.g. "Youtube") if the extractor class is known in advance.
+    Additionally, the dictionary may have any properties of the resolved entity
+    known in advance, for example "title" if the title of the referred video is
     known ahead of time.
 
 
@@ -296,9 +299,11 @@ class InfoExtractor(object):
         content = self._webpage_read_content(urlh, url_or_request, video_id, note, errnote, fatal)
         return (content, urlh)
 
-    def _webpage_read_content(self, urlh, url_or_request, video_id, note=None, errnote=None, fatal=True):
+    def _webpage_read_content(self, urlh, url_or_request, video_id, note=None, errnote=None, fatal=True, prefix=None):
         content_type = urlh.headers.get('Content-Type', '')
         webpage_bytes = urlh.read()
+        if prefix is not None:
+            webpage_bytes = prefix + webpage_bytes
         m = re.match(r'[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+\s*;\s*charset=(.+)', content_type)
         if m:
             encoding = m.group(1)
@@ -387,6 +392,10 @@ class InfoExtractor(object):
             url_or_request, video_id, note, errnote, fatal=fatal)
         if (not fatal) and json_string is False:
             return None
+        return self._parse_json(
+            json_string, video_id, transform_source=transform_source, fatal=fatal)
+
+    def _parse_json(self, json_string, video_id, transform_source=None, fatal=True):
         if transform_source:
             json_string = transform_source(json_string)
         try:
@@ -423,19 +432,20 @@ class InfoExtractor(object):
         """Report attempt to log in."""
         self.to_screen('Logging in')
 
-    #Methods for following #608
+    # Methods for following #608
     @staticmethod
     def url_result(url, ie=None, video_id=None):
         """Returns a url that points to a page that should be processed"""
-        #TODO: ie should be the class used for getting the info
+        # TODO: ie should be the class used for getting the info
         video_info = {'_type': 'url',
                       'url': url,
                       'ie_key': ie}
         if video_id is not None:
             video_info['id'] = video_id
         return video_info
+
     @staticmethod
-    def playlist_result(entries, playlist_id=None, playlist_title=None):
+    def playlist_result(entries, playlist_id=None, playlist_title=None, playlist_description=None):
         """Returns a playlist"""
         video_info = {'_type': 'playlist',
                       'entries': entries}
@@ -443,6 +453,8 @@ class InfoExtractor(object):
             video_info['id'] = playlist_id
         if playlist_title:
             video_info['title'] = playlist_title
+        if playlist_description:
+            video_info['description'] = playlist_description
         return video_info
 
     def _search_regex(self, pattern, string, name, default=_NO_DEFAULT, fatal=True, flags=0, group=None):
@@ -477,7 +489,7 @@ class InfoExtractor(object):
             raise RegexNotFoundError('Unable to extract %s' % _name)
         else:
             self._downloader.report_warning('unable to extract %s; '
-                'please report this issue on http://yt-dl.org/bug' % _name)
+                                            'please report this issue on http://yt-dl.org/bug' % _name)
             return None
 
     def _html_search_regex(self, pattern, string, name, default=_NO_DEFAULT, fatal=True, flags=0, group=None):
@@ -517,7 +529,7 @@ class InfoExtractor(object):
                     raise netrc.NetrcParseError('No authenticators for %s' % self._NETRC_MACHINE)
             except (IOError, netrc.NetrcParseError) as err:
                 self._downloader.report_warning('parsing .netrc: %s' % compat_str(err))
-        
+
         return (username, password)
 
     def _get_tfa_info(self):
@@ -611,7 +623,7 @@ class InfoExtractor(object):
 
     def _twitter_search_player(self, html):
         return self._html_search_meta('twitter:player', html,
-            'twitter card player')
+                                      'twitter card player')
 
     def _sort_formats(self, formats):
         if not formats:
@@ -786,6 +798,49 @@ class InfoExtractor(object):
         self._sort_formats(formats)
         return formats
 
+    # TODO: improve extraction
+    def _extract_smil_formats(self, smil_url, video_id):
+        smil = self._download_xml(
+            smil_url, video_id, 'Downloading SMIL file',
+            'Unable to download SMIL file')
+
+        base = smil.find('./head/meta').get('base')
+
+        formats = []
+        rtmp_count = 0
+        for video in smil.findall('./body/switch/video'):
+            src = video.get('src')
+            if not src:
+                continue
+            bitrate = int_or_none(video.get('system-bitrate') or video.get('systemBitrate'), 1000)
+            width = int_or_none(video.get('width'))
+            height = int_or_none(video.get('height'))
+            proto = video.get('proto')
+            if not proto:
+                if base:
+                    if base.startswith('rtmp'):
+                        proto = 'rtmp'
+                    elif base.startswith('http'):
+                        proto = 'http'
+            ext = video.get('ext')
+            if proto == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(src, video_id, ext))
+            elif proto == 'rtmp':
+                rtmp_count += 1
+                streamer = video.get('streamer') or base
+                formats.append({
+                    'url': streamer,
+                    'play_path': src,
+                    'ext': 'flv',
+                    'format_id': 'rtmp-%d' % (rtmp_count if bitrate is None else bitrate),
+                    'tbr': bitrate,
+                    'width': width,
+                    'height': height,
+                })
+        self._sort_formats(formats)
+
+        return formats
+
     def _live_title(self, name):
         """ Generate the title for a live video """
         now = datetime.datetime.now()
@@ -813,6 +868,12 @@ class InfoExtractor(object):
             else:
                 self._downloader.report_warning(msg)
         return res
+
+    def _set_cookie(self, domain, name, value, expire_time=None):
+        cookie = compat_cookiejar.Cookie(
+            0, name, value, None, None, domain, None,
+            None, '/', True, False, expire_time, '', None, None, None)
+        self._downloader.cookiejar.set_cookie(cookie)
 
 
 class SearchInfoExtractor(InfoExtractor):

@@ -5,7 +5,7 @@ import os.path
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
 )
@@ -37,10 +37,9 @@ class MonikerIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         orig_webpage = self._download_webpage(url, video_id)
+
         fields = re.findall(r'type="hidden" name="(.+?)"\s* value="?(.+?)">', orig_webpage)
         data = dict(fields)
 
@@ -54,7 +53,7 @@ class MonikerIE(InfoExtractor):
 
         title = os.path.splitext(data['fname'])[0]
 
-        #Could be several links with different quality
+        # Could be several links with different quality
         links = re.findall(r'"file" : "?(.+?)",', webpage)
         # Assume the links are ordered in quality
         formats = [{

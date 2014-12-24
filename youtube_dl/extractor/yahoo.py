@@ -6,11 +6,14 @@ import json
 import re
 
 from .common import InfoExtractor, SearchInfoExtractor
-from ..utils import (
-    ExtractorError,
+from ..compat import (
     compat_urllib_parse,
     compat_urlparse,
+)
+from ..utils import (
     clean_html,
+    unescapeHTML,
+    ExtractorError,
     int_or_none,
 )
 
@@ -53,14 +56,14 @@ class YahooIE(InfoExtractor):
             }
         },
         {
-            'url': 'https://tw.screen.yahoo.com/taipei-opinion-poll/選情站報-街頭民調-台北市篇-102823042.html',
-            'md5': '92a7fdd8a08783c68a174d7aa067dde8',
+            'url': 'https://tw.screen.yahoo.com/election-2014-askmayor/敢問市長-黃秀霜批賴清德-非常高傲-033009720.html',
+            'md5': '3a09cf59349cfaddae1797acc3c087fc',
             'info_dict': {
-                'id': '7a23b569-7bea-36cb-85b9-bd5301a0a1fb',
+                'id': 'cac903b3-fcf4-3c14-b632-643ab541712f',
                 'ext': 'mp4',
-                'title': '選情站報 街頭民調 台北市篇',
-                'description': '選情站報 街頭民調 台北市篇',
-                'duration': 429,
+                'title': '敢問市長／黃秀霜批賴清德「非常高傲」',
+                'description': '直言台南沒捷運 交通居五都之末',
+                'duration': 396,
             }
         },
         {
@@ -85,14 +88,14 @@ class YahooIE(InfoExtractor):
                 'duration': 121,
             }
         }, {
-            'url': 'https://ca.finance.yahoo.com/news/20-most-valuable-brands-world-112600775.html',
-            'md5': '3e401e4eed6325aa29d9b96125fd5b4f',
+            'url': 'https://ca.finance.yahoo.com/news/hackers-sony-more-trouble-well-154609075.html',
+            'md5': '226a895aae7e21b0129e2a2006fe9690',
             'info_dict': {
-                'id': 'c1b4c09c-8ed8-3b65-8b05-169c55358a83',
+                'id': 'e624c4bc-3389-34de-9dfc-025f74943409',
                 'ext': 'mp4',
-                'title': "Apple Is The World's Most Valuable Brand",
-                'description': 'md5:73eabc1a11c6f59752593b2ceefa1262',
-                'duration': 21,
+                'title': '\'The Interview\' TV Spot: War',
+                'description': 'The Interview',
+                'duration': 30,
             }
         }, {
             'url': 'http://news.yahoo.com/video/china-moses-crazy-blues-104538833.html',
@@ -115,6 +118,16 @@ class YahooIE(InfoExtractor):
                 'duration': 201,
             }
         }, {
+            'url': 'https://www.yahoo.com/movies/v/true-story-trailer-173000497.html',
+            'md5': '989396ae73d20c6f057746fb226aa215',
+            'info_dict': {
+                'id': '071c4013-ce30-3a93-a5b2-e0413cd4a9d1',
+                'ext': 'mp4',
+                'title': '\'True Story\' Trailer',
+                'description': 'True Story',
+                'duration': 150,
+            },
+        }, {
             'url': 'https://gma.yahoo.com/pizza-delivery-man-surprised-huge-tip-college-kids-195200785.html',
             'only_matching': True,
         }
@@ -123,6 +136,7 @@ class YahooIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         display_id = mobj.group('display_id')
+        page_id = mobj.group('id')
         url = mobj.group('url')
         host = mobj.group('host')
         webpage = self._download_webpage(url, display_id)
@@ -147,6 +161,7 @@ class YahooIE(InfoExtractor):
                 r'YUI\.namespace\("Media"\)\.CONTENT_ID\s*=\s*"([^"]+)"',
                 r'root\.App\.Cache\.context\.videoCache\.curVideo = \{"([^"]+)"',
                 r'"first_videoid"\s*:\s*"([^"]+)"',
+                r'%s[^}]*"ccm_id"\s*:\s*"([^"]+)"' % re.escape(page_id),
             ]
             video_id = self._search_regex(CONTENT_ID_REGEXES, webpage, 'content ID')
         else:
@@ -161,17 +176,15 @@ class YahooIE(InfoExtractor):
         region = self._search_regex(
             r'\\?"region\\?"\s*:\s*\\?"([^"]+?)\\?"',
             webpage, 'region', fatal=False, default='US')
-        query = ('SELECT * FROM yahoo.media.video.streams WHERE id="%s"'
-                 ' AND plrs="86Gj0vCaSzV_Iuf6hNylf2" AND region="%s"'
-                 ' AND protocol="http"' % (video_id, region))
         data = compat_urllib_parse.urlencode({
-            'q': query,
-            'env': 'prod',
-            'format': 'json',
+            'protocol': 'http',
+            'region': region,
         })
+        query_url = (
+            'https://video.media.yql.yahoo.com/v1/video/sapi/streams/'
+            '{id}?{data}'.format(id=video_id, data=data))
         query_result = self._download_json(
-            'http://video.query.yahoo.com/v1/public/yql?' + data,
-            display_id, 'Downloading video info')
+            query_url, display_id, 'Downloading video info')
 
         info = query_result['query']['results']['mediaObj'][0]
         meta = info.get('meta')
@@ -209,7 +222,7 @@ class YahooIE(InfoExtractor):
         return {
             'id': video_id,
             'display_id': display_id,
-            'title': meta['title'],
+            'title': unescapeHTML(meta['title']),
             'formats': formats,
             'description': clean_html(meta['description']),
             'thumbnail': meta['thumbnail'] if meta.get('thumbnail') else self._og_search_thumbnail(webpage),
@@ -229,7 +242,7 @@ class YahooSearchIE(SearchInfoExtractor):
         for pagenum in itertools.count(0):
             result_url = 'http://video.search.yahoo.com/search/?p=%s&fr=screen&o=js&gs=0&b=%d' % (compat_urllib_parse.quote_plus(query), pagenum * 30)
             info = self._download_json(result_url, query,
-                note='Downloading results page '+str(pagenum+1))
+                                       note='Downloading results page ' + str(pagenum + 1))
             m = info['m']
             results = info['results']
 

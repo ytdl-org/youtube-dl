@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
+from ..compat import (
     compat_parse_qs,
     compat_urllib_request,
+)
+from ..utils import (
+    ExtractorError,
 )
 
 
@@ -57,8 +57,7 @@ class ScreencastIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         video_url = self._html_search_regex(
@@ -96,7 +95,7 @@ class ScreencastIE(InfoExtractor):
         if title is None:
             title = self._html_search_regex(
                 [r'<b>Title:</b> ([^<]*)</div>',
-                r'class="tabSeperator">></span><span class="tabText">(.*?)<'],
+                 r'class="tabSeperator">></span><span class="tabText">(.*?)<'],
                 webpage, 'title')
         thumbnail = self._og_search_thumbnail(webpage)
         description = self._og_search_description(webpage, default=None)

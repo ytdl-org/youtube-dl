@@ -1,12 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import functools
 import re
 
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     unified_strdate,
+    OnDemandPagedList,
 )
 
 
@@ -87,7 +89,7 @@ def extract_from_xml_url(ie, video_id, xml_url):
 
 
 class ZDFIE(InfoExtractor):
-    _VALID_URL = r'^https?://www\.zdf\.de/ZDFmediathek(?P<hash>#)?/(.*beitrag/(?:video/)?)(?P<id>[0-9]+)(?:/[^/?]+)?(?:\?.*)?'
+    _VALID_URL = r'(?:zdf:|zdf:video:|https?://www\.zdf\.de/ZDFmediathek(?:#)?/(.*beitrag/(?:video/)?))(?P<id>[0-9]+)(?:/[^/?]+)?(?:\?.*)?'
 
     _TEST = {
         'url': 'http://www.zdf.de/ZDFmediathek/beitrag/video/2037704/ZDFspezial---Ende-des-Machtpokers--?bc=sts;stt',
@@ -106,6 +108,52 @@ class ZDFIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
         xml_url = 'http://www.zdf.de/ZDFmediathek/xmlservice/web/beitragsDetails?ak=web&id=%s' % video_id
         return extract_from_xml_url(self, video_id, xml_url)
+
+
+class ZDFChannelIE(InfoExtractor):
+    _VALID_URL = r'(?:zdf:topic:|https?://www\.zdf\.de/ZDFmediathek(?:#)?/.*kanaluebersicht/)(?P<id>[0-9]+)'
+    _TEST = {
+        'url': 'http://www.zdf.de/ZDFmediathek#/kanaluebersicht/1586442/sendung/Titanic',
+        'info_dict': {
+            'id': '1586442',
+        },
+        'playlist_count': 4,
+    }
+    _PAGE_SIZE = 50
+
+    def _fetch_page(self, channel_id, page):
+        offset = page * self._PAGE_SIZE
+        xml_url = (
+            'http://www.zdf.de/ZDFmediathek/xmlservice/web/aktuellste?ak=web&offset=%d&maxLength=%d&id=%s'
+            % (offset, self._PAGE_SIZE, channel_id))
+        doc = self._download_xml(
+            xml_url, channel_id,
+            note='Downloading channel info',
+            errnote='Failed to download channel info')
+
+        title = doc.find('.//information/title').text
+        description = doc.find('.//information/detail').text
+        for asset in doc.findall('.//teasers/teaser'):
+            a_type = asset.find('./type').text
+            a_id = asset.find('./details/assetId').text
+            if a_type not in ('video', 'topic'):
+                continue
+            yield {
+                '_type': 'url',
+                'playlist_title': title,
+                'playlist_description': description,
+                'url': 'zdf:%s:%s' % (a_type, a_id),
+            }
+
+    def _real_extract(self, url):
+        channel_id = self._match_id(url)
+        entries = OnDemandPagedList(
+            functools.partial(self._fetch_page, channel_id), self._PAGE_SIZE)
+
+        return {
+            '_type': 'playlist',
+            'id': channel_id,
+            'entries': entries,
+        }

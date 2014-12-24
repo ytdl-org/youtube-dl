@@ -2,11 +2,15 @@ from __future__ import unicode_literals
 
 import re
 import json
+import os
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urlparse,
     compat_urllib_parse,
+    compat_urllib_parse_urlparse
+)
+from ..utils import (
     unified_strdate,
 )
 
@@ -22,16 +26,19 @@ class NHLBaseInfoExtractor(InfoExtractor):
 
         initial_video_url = info['publishPoint']
         if info['formats'] == '1':
+            parsed_url = compat_urllib_parse_urlparse(initial_video_url)
+            filename, ext = os.path.splitext(parsed_url.path)
+            path = '%s_sd%s' % (filename, ext)
             data = compat_urllib_parse.urlencode({
                 'type': 'fvod',
-                'path': initial_video_url.replace('.mp4', '_sd.mp4'),
+                'path': compat_urlparse.urlunparse(parsed_url[:2] + (path,) + parsed_url[3:])
             })
             path_url = 'http://video.nhl.com/videocenter/servlets/encryptvideopath?' + data
             path_doc = self._download_xml(
                 path_url, video_id, 'Downloading final video url')
             video_url = path_doc.find('path').text
         else:
-           video_url = initial_video_url
+            video_url = initial_video_url
 
         join = compat_urlparse.urljoin
         return {
@@ -47,7 +54,7 @@ class NHLBaseInfoExtractor(InfoExtractor):
 
 class NHLIE(NHLBaseInfoExtractor):
     IE_NAME = 'nhl.com'
-    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/console(?:\?(?:.*?[?&])?)id=(?P<id>[0-9a-z-]+)'
+    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/console(?:\?(?:.*?[?&])?)id=(?P<id>[-0-9a-zA-Z]+)'
 
     _TESTS = [{
         'url': 'http://video.canucks.nhl.com/videocenter/console?catid=6?id=453614',
@@ -72,6 +79,17 @@ class NHLIE(NHLBaseInfoExtractor):
             'upload_date': '20141011',
         },
     }, {
+        'url': 'http://video.mapleleafs.nhl.com/videocenter/console?id=58665&catid=802',
+        'md5': 'c78fc64ea01777e426cfc202b746c825',
+        'info_dict': {
+            'id': '58665',
+            'ext': 'flv',
+            'title': 'Classic Game In Six - April 22, 1979',
+            'description': 'It was the last playoff game for the Leafs in the decade, and the last time the Leafs and Habs played in the playoffs. Great game, not a great ending.',
+            'duration': 400,
+            'upload_date': '20100129'
+        },
+    }, {
         'url': 'http://video.flames.nhl.com/videocenter/console?id=630616',
         'only_matching': True,
     }]
@@ -88,7 +106,7 @@ class NHLIE(NHLBaseInfoExtractor):
 class NHLVideocenterIE(NHLBaseInfoExtractor):
     IE_NAME = 'nhl.com:videocenter'
     IE_DESC = 'NHL videocenter category'
-    _VALID_URL = r'https?://video\.(?P<team>[^.]*)\.nhl\.com/videocenter/(console\?.*?catid=(?P<catid>[0-9]+)(?![&?]id=).*?)?$'
+    _VALID_URL = r'https?://video\.(?P<team>[^.]*)\.nhl\.com/videocenter/(console\?[^(id=)]*catid=(?P<catid>[0-9]+)(?![&?]id=).*?)?$'
     _TEST = {
         'url': 'http://video.canucks.nhl.com/videocenter/console?catid=999',
         'info_dict': {
@@ -122,10 +140,10 @@ class NHLVideocenterIE(NHLBaseInfoExtractor):
         response = self._download_webpage(request_url, playlist_title)
         response = self._fix_json(response)
         if not response.strip():
-            self._downloader.report_warning(u'Got an empty reponse, trying '
+            self._downloader.report_warning('Got an empty reponse, trying '
                                             'adding the "newvideos" parameter')
             response = self._download_webpage(request_url + '&newvideos=true',
-                playlist_title)
+                                              playlist_title)
             response = self._fix_json(response)
         videos = json.loads(response)
 

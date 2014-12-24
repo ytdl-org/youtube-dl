@@ -1,4 +1,4 @@
-#coding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
@@ -18,16 +18,15 @@ class VidziIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        
+
         webpage = self._download_webpage(url, video_id)
         video_url = self._html_search_regex(
             r'{\s*file\s*:\s*"([^"]+)"\s*}', webpage, 'video url')
         title = self._html_search_regex(
             r'(?s)<h2 class="video-title">(.*?)</h2>', webpage, 'title')
-        
+
         return {
             'id': video_id,
             'title': title,
             'url': video_url,
         }
-        

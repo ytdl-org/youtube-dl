@@ -71,7 +71,7 @@ class TNAFlixIE(InfoExtractor):
                 fmt['height'] = int(m.group(1))
             formats.append(fmt)
         self._sort_formats(formats)
-        
+
         return {
             'id': video_id,
             'display_id': display_id,

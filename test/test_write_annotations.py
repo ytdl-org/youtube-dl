@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
+from __future__ import unicode_literals
 
 # Allow direct execution
 import os
@@ -31,19 +32,18 @@ params = get_params({
 })
 
 
-
 TEST_ID = 'gr51aVj-mLg'
 ANNOTATIONS_FILE = TEST_ID + '.flv.annotations.xml'
 EXPECTED_ANNOTATIONS = ['Speech bubble', 'Note', 'Title', 'Spotlight', 'Label']
+
 
 class TestAnnotations(unittest.TestCase):
     def setUp(self):
         # Clear old files
         self.tearDown()
 
-
     def test_info_json(self):
-        expected = list(EXPECTED_ANNOTATIONS) #Two annotations could have the same text.
+        expected = list(EXPECTED_ANNOTATIONS)  # Two annotations could have the same text.
         ie = youtube_dl.extractor.YoutubeIE()
         ydl = YoutubeDL(params)
         ydl.add_info_extractor(ie)
@@ -51,7 +51,7 @@ class TestAnnotations(unittest.TestCase):
         self.assertTrue(os.path.exists(ANNOTATIONS_FILE))
         annoxml = None
         with io.open(ANNOTATIONS_FILE, 'r', encoding='utf-8') as annof:
-                annoxml = xml.etree.ElementTree.parse(annof)
+            annoxml = xml.etree.ElementTree.parse(annof)
         self.assertTrue(annoxml is not None, 'Failed to parse annotations XML')
         root = annoxml.getroot()
         self.assertEqual(root.tag, 'document')
@@ -59,18 +59,17 @@ class TestAnnotations(unittest.TestCase):
         self.assertEqual(annotationsTag.tag, 'annotations')
         annotations = annotationsTag.findall('annotation')
 
-        #Not all the annotations have TEXT children and the annotations are returned unsorted.
+        # Not all the annotations have TEXT children and the annotations are returned unsorted.
         for a in annotations:
-                self.assertEqual(a.tag, 'annotation')
-                if a.get('type') == 'text':
-                        textTag = a.find('TEXT')
-                        text = textTag.text
-                        self.assertTrue(text in expected) #assertIn only added in python 2.7
-                        #remove the first occurance, there could be more than one annotation with the same text
-                        expected.remove(text)
-        #We should have seen (and removed) all the expected annotation texts.
+            self.assertEqual(a.tag, 'annotation')
+            if a.get('type') == 'text':
+                textTag = a.find('TEXT')
+                text = textTag.text
+                self.assertTrue(text in expected)  # assertIn only added in python 2.7
+                # remove the first occurance, there could be more than one annotation with the same text
+                expected.remove(text)
+        # We should have seen (and removed) all the expected annotation texts.
         self.assertEqual(len(expected), 0, 'Not all expected annotations were found.')
-        
 
     def tearDown(self):
         try_rm(ANNOTATIONS_FILE)

@@ -1,7 +1,7 @@
-all: youtube-dl youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish
+all: youtube-dl README.md CONTRIBUTING.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish
 
 clean:
-	rm -rf youtube-dl.1.temp.md youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz youtube-dl.zsh youtube-dl.fish *.dump *.part
+	rm -rf youtube-dl.1.temp.md youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz youtube-dl.zsh youtube-dl.fish *.dump *.part *.info.json CONTRIBUTING.md.tmp
 
 cleanall: clean
 	rm -f youtube-dl youtube-dl.exe
@@ -35,13 +35,22 @@ install: youtube-dl youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtu
 	install -d $(DESTDIR)$(SYSCONFDIR)/fish/completions
 	install -m 644 youtube-dl.fish $(DESTDIR)$(SYSCONFDIR)/fish/completions/youtube-dl.fish
 
+codetest:
+	flake8 .
+
 test:
 	#nosetests --with-coverage --cover-package=youtube_dl --cover-html --verbose --processes 4 test
 	nosetests --verbose test
+	$(MAKE) codetest
+
+ot: offlinetest
+
+offlinetest: codetest
+	nosetests --verbose test --exclude test_download --exclude test_age_restriction --exclude test_subtitles --exclude test_write_annotations
 
 tar: youtube-dl.tar.gz
 
-.PHONY: all clean install test tar bash-completion pypi-files zsh-completion fish-completion
+.PHONY: all clean install test tar bash-completion pypi-files zsh-completion fish-completion ot offlinetest codetest
 
 pypi-files: youtube-dl.bash-completion README.txt youtube-dl.1 youtube-dl.fish
 
@@ -55,6 +64,9 @@ youtube-dl: youtube_dl/*.py youtube_dl/*/*.py
 
 README.md: youtube_dl/*.py youtube_dl/*/*.py
 	COLUMNS=80 python -m youtube_dl --help | python devscripts/make_readme.py
+
+CONTRIBUTING.md: README.md
+	python devscripts/make_contributing.py README.md CONTRIBUTING.md
 
 README.txt: README.md
 	pandoc -f markdown -t plain README.md -o README.txt

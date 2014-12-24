@@ -61,7 +61,7 @@ class JSInterpreter(object):
             pass
 
         m = re.match(
-            r'^(?P<var>[a-zA-Z0-9_]+)\.(?P<member>[^(]+)(?:\(+(?P<args>[^()]*)\))?$',
+            r'^(?P<var>[$a-zA-Z0-9_]+)\.(?P<member>[^(]+)(?:\(+(?P<args>[^()]*)\))?$',
             expr)
         if m:
             variable = m.group('var')

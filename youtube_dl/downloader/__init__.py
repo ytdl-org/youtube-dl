@@ -30,3 +30,8 @@ def get_suitable_downloader(info_dict):
         return F4mFD
     else:
         return HttpFD
+
+__all__ = [
+    'get_suitable_downloader',
+    'FileDownloader',
+]

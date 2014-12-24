@@ -45,4 +45,4 @@ class CBSIE(InfoExtractor):
         real_id = self._search_regex(
             r"video\.settings\.pid\s*=\s*'([^']+)';",
             webpage, 'real video ID')
-        return self.url_result(u'theplatform:%s' % real_id)
+        return self.url_result('theplatform:%s' % real_id)

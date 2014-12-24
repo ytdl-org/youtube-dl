@@ -1,12 +1,15 @@
+from __future__ import unicode_literals
+
 import os
 import time
 
 from .common import FileDownloader
-from ..utils import (
+from ..compat import (
     compat_urllib_request,
     compat_urllib_error,
+)
+from ..utils import (
     ContentTooShortError,
-
     encodeFilename,
     sanitize_open,
     format_bytes,
@@ -106,7 +109,7 @@ class HttpFD(FileDownloader):
                 self.report_retry(count, retries)
 
         if count > retries:
-            self.report_error(u'giving up after %s retries' % retries)
+            self.report_error('giving up after %s retries' % retries)
             return False
 
         data_len = data.info().get('Content-length', None)
@@ -124,26 +127,31 @@ class HttpFD(FileDownloader):
             min_data_len = self.params.get("min_filesize", None)
             max_data_len = self.params.get("max_filesize", None)
             if min_data_len is not None and data_len < min_data_len:
-                self.to_screen(u'\r[download] File is smaller than min-filesize (%s bytes < %s bytes). Aborting.' % (data_len, min_data_len))
+                self.to_screen('\r[download] File is smaller than min-filesize (%s bytes < %s bytes). Aborting.' % (data_len, min_data_len))
                 return False
             if max_data_len is not None and data_len > max_data_len:
-                self.to_screen(u'\r[download] File is larger than max-filesize (%s bytes > %s bytes). Aborting.' % (data_len, max_data_len))
+                self.to_screen('\r[download] File is larger than max-filesize (%s bytes > %s bytes). Aborting.' % (data_len, max_data_len))
                 return False
 
         data_len_str = format_bytes(data_len)
         byte_counter = 0 + resume_len
         block_size = self.params.get('buffersize', 1024)
         start = time.time()
+
+        # measure time over whole while-loop, so slow_down() and best_block_size() work together properly
+        now = None  # needed for slow_down() in the first loop run
+        before = start  # start measuring
         while True:
+
             # Download and write
-            before = time.time()
             data_block = data.read(block_size if not is_test else min(block_size, data_len - byte_counter))
-            after = time.time()
-            if len(data_block) == 0:
-                break
             byte_counter += len(data_block)
 
-            # Open file just in time
+            # exit loop when download is finished
+            if len(data_block) == 0:
+                break
+
+            # Open destination file just in time
             if stream is None:
                 try:
                     (stream, tmpfilename) = sanitize_open(tmpfilename, open_mode)
@@ -151,19 +159,30 @@ class HttpFD(FileDownloader):
                     filename = self.undo_temp_name(tmpfilename)
                     self.report_destination(filename)
                 except (OSError, IOError) as err:
-                    self.report_error(u'unable to open for writing: %s' % str(err))
+                    self.report_error('unable to open for writing: %s' % str(err))
                     return False
             try:
                 stream.write(data_block)
             except (IOError, OSError) as err:
-                self.to_stderr(u"\n")
-                self.report_error(u'unable to write data: %s' % str(err))
+                self.to_stderr('\n')
+                self.report_error('unable to write data: %s' % str(err))
                 return False
+
+            # Apply rate limit
+            self.slow_down(start, now, byte_counter - resume_len)
+
+            # end measuring of one loop run
+            now = time.time()
+            after = now
+
+            # Adjust block size
             if not self.params.get('noresizebuffer', False):
                 block_size = self.best_block_size(after - before, len(data_block))
 
+            before = after
+
             # Progress message
-            speed = self.calc_speed(start, time.time(), byte_counter - resume_len)
+            speed = self.calc_speed(start, now, byte_counter - resume_len)
             if data_len is None:
                 eta = percent = None
             else:
@@ -184,14 +203,11 @@ class HttpFD(FileDownloader):
             if is_test and byte_counter == data_len:
                 break
 
-            # Apply rate limit
-            self.slow_down(start, byte_counter - resume_len)
-
         if stream is None:
-            self.to_stderr(u"\n")
-            self.report_error(u'Did not get any data blocks')
+            self.to_stderr('\n')
+            self.report_error('Did not get any data blocks')
             return False
-        if tmpfilename != u'-':
+        if tmpfilename != '-':
             stream.close()
         self.report_finish(data_len_str, (time.time() - start))
         if data_len is not None and byte_counter != data_len:

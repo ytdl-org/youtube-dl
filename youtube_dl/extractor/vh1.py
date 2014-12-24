@@ -121,4 +121,7 @@ class VH1IE(MTVIE):
         idoc = self._download_xml(
             doc_url, video_id,
             'Downloading info', transform_source=fix_xml_ampersands)
-        return [self._get_video_info(item) for item in idoc.findall('.//item')]
+        return self.playlist_result(
+            [self._get_video_info(item) for item in idoc.findall('.//item')],
+            playlist_id=video_id,
+        )

@@ -5,10 +5,12 @@ import re
 import itertools
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
-    unified_strdate,
+)
+from ..utils import (
     ExtractorError,
+    unified_strdate,
 )
 
 
@@ -36,9 +38,7 @@ class RutubeIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         video = self._download_json(
             'http://rutube.ru/api/video/%s/?format=json' % video_id,
             video_id, 'Downloading video JSON')
@@ -53,6 +53,7 @@ class RutubeIE(InfoExtractor):
         m3u8_url = options['video_balancer'].get('m3u8')
         if m3u8_url is None:
             raise ExtractorError('Couldn\'t find m3u8 manifest url')
+        formats = self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4')
 
         return {
             'id': video['id'],
@@ -60,8 +61,7 @@ class RutubeIE(InfoExtractor):
             'description': video['description'],
             'duration': video['duration'],
             'view_count': video['hits'],
-            'url': m3u8_url,
-            'ext': 'mp4',
+            'formats': formats,
             'thumbnail': video['thumbnail_url'],
             'uploader': author.get('name'),
             'uploader_id': compat_str(author['id']) if author else None,
@@ -114,8 +114,7 @@ class RutubeMovieIE(RutubeChannelIE):
     _PAGE_TEMPLATE = 'http://rutube.ru/api/metainfo/tv/%s/video?page=%s&format=json'
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        movie_id = mobj.group('id')
+        movie_id = self._match_id(url)
         movie = self._download_json(
             self._MOVIE_TEMPLATE % movie_id, movie_id,
             'Downloading movie JSON')

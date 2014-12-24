@@ -26,7 +26,7 @@ class SlutloadIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_title = self._html_search_regex(r'<h1><strong>([^<]+)</strong>',
-            webpage, 'title').strip()
+                                              webpage, 'title').strip()
 
         video_url = self._html_search_regex(
             r'(?s)<div id="vidPlayer"\s+data-url="([^"]+)"',
