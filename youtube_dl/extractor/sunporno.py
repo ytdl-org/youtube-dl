@@ -39,7 +39,7 @@ class SunPornoIE(InfoExtractor):
             r'poster="([^"]+)"', webpage, 'thumbnail', fatal=False)
 
         duration = parse_duration(self._search_regex(
-            r'Duration:\s*(\d+:\d+)\s*<', webpage, 'duration', fatal=False))
+            r'Duration:[^\d]+(\d+:\d+)\s*<', webpage, 'duration', fatal=False))
 
         view_count = int_or_none(self._html_search_regex(
             r'class="views">\s*(\d+)\s*<', webpage, 'view count', fatal=False))
