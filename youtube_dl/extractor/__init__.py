@@ -166,6 +166,7 @@ from .grooveshark import GroovesharkIE
 from .groupon import GrouponIE
 from .hark import HarkIE
 from .heise import HeiseIE
+from .hellporno import HellPornoIE
 from .helsinki import HelsinkiIE
 from .hentaistigma import HentaiStigmaIE
 from .hornbunny import HornBunnyIE
