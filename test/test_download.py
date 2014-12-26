@@ -155,7 +155,7 @@ def generator(test_case):
             if is_playlist:
                 self.assertEqual(res_dict['_type'], 'playlist')
                 self.assertTrue('entries' in res_dict)
-                expect_info_dict(self, test_case.get('info_dict', {}), res_dict)
+                expect_info_dict(self, res_dict, test_case.get('info_dict', {}))
 
             if 'playlist_mincount' in test_case:
                 assertGreaterEqual(
@@ -204,7 +204,7 @@ def generator(test_case):
                 with io.open(info_json_fn, encoding='utf-8') as infof:
                     info_dict = json.load(infof)
 
-                expect_info_dict(self, tc.get('info_dict', {}), info_dict)
+                expect_info_dict(self, info_dict, tc.get('info_dict', {}))
         finally:
             try_rm_tcs_files()
             if is_playlist and res_dict is not None and res_dict.get('entries'):

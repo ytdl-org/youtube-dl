@@ -99,7 +99,7 @@ def gettestcases(include_onlymatching=False):
 md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
 
 
-def expect_info_dict(self, expected_dict, got_dict):
+def expect_info_dict(self, got_dict, expected_dict):
     for info_field, expected in expected_dict.items():
         if isinstance(expected, compat_str) and expected.startswith('re:'):
             got = got_dict.get(info_field)
