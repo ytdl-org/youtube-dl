@@ -1,54 +1,77 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
+from ..utils import (
+    parse_iso8601,
+    parse_duration,
+    parse_filesize,
+    int_or_none,
+)
+
 
 class AlphaPornoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?alphaporno\.com/videos/(?P<display_id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?alphaporno\.com/videos/(?P<id>[^/]+)'
     _TEST = {
         'url': 'http://www.alphaporno.com/videos/sensual-striptease-porn-with-samantha-alexandra/',
         'md5': 'feb6d3bba8848cd54467a87ad34bd38e',
         'info_dict': {
             'id': '258807',
+            'display_id': 'sensual-striptease-porn-with-samantha-alexandra',
             'ext': 'mp4',
-            'title': 'Sensual striptease porn with Samantha Alexandra - Striptease Porn',
-            'description': 'md5:c4447dc80e5be4c5f2711f7806e45424',
-            'categories': list,  # NSFW
+            'title': 'Sensual striptease porn with Samantha Alexandra',
             'thumbnail': 're:https?://.*\.jpg$',
+            'timestamp': 1418694611,
+            'upload_date': '20141216',
+            'duration': 387,
+            'filesize_approx': 54120000,
+            'tbr': 1145,
+            'categories': list,
             'age_limit': 18,
         }
     }
 
     def _real_extract(self, url):
-        webpage = self._download_webpage(url, 'main')
+        display_id = self._match_id(url)
 
-        video_id = self._html_search_regex(r'video_id:\s*\'([^\']+)\'', webpage, 'id')
+        webpage = self._download_webpage(url, display_id)
 
-        video_url = self._html_search_regex(r'video_url:\s*\'([^\']+)\'', webpage, 'video_url')
+        video_id = self._search_regex(
+            r"video_id\s*:\s*'([^']+)'", webpage, 'video id', default=None)
 
-        ext = self._html_search_meta('encodingFormat', webpage, 'ext')[1:]
+        video_url = self._search_regex(
+            r"video_url\s*:\s*'([^']+)'", webpage, 'video url')
+        ext = self._html_search_meta(
+            'encodingFormat', webpage, 'ext', default='.mp4')[1:]
 
-        title = self._html_search_regex(
-            r'<title>([^<]+)</title>', webpage, 'title')
+        title = self._search_regex(
+            [r'<meta content="([^"]+)" itemprop="description">',
+             r'class="title" itemprop="name">([^<]+)<'],
+            webpage, 'title')
+        thumbnail = self._html_search_meta('thumbnail', webpage, 'thumbnail')
+        timestamp = parse_iso8601(self._html_search_meta(
+            'uploadDate', webpage, 'upload date'))
+        duration = parse_duration(self._html_search_meta(
+            'duration', webpage, 'duration'))
+        filesize_approx = parse_filesize(self._html_search_meta(
+            'contentSize', webpage, 'file size'))
+        bitrate = int_or_none(self._html_search_meta(
+            'bitrate', webpage, 'bitrate'))
+        categories = self._html_search_meta(
+            'keywords', webpage, 'categories', default='').split(',')
 
-        description = self._html_search_meta('description', webpage, 'description', fatal=False)
-
-        thumbnail = self._html_search_meta('thumbnail', webpage, 'thumbnail', fatal=False)
-
-        categories_str = self._html_search_meta(
-            'keywords', webpage, 'categories', fatal=False)
-        categories = (
-            None if categories_str is None
-            else categories_str.split(','))
+        age_limit = self._rta_search(webpage)
 
         return {
             'id': video_id,
+            'display_id': display_id,
             'url': video_url,
-            'title': title,
             'ext': ext,
-            'description': description,
+            'title': title,
             'thumbnail': thumbnail,
+            'timestamp': timestamp,
+            'duration': duration,
+            'filesize_approx': filesize_approx,
+            'tbr': bitrate,
             'categories': categories,
-            'age_limit': 18,
+            'age_limit': age_limit,
         }
