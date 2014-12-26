@@ -385,6 +385,11 @@ def parseOpts(overrideArguments=None):
         '--bidi-workaround',
         dest='bidi_workaround', action='store_true',
         help='Work around terminals that lack bidirectional text support. Requires bidiv or fribidi executable in PATH')
+    workarounds.add_option(
+    	'--fallback-mkv',
+    	dest='fallback_mkv', action='store_true',
+    	help='If downloading separate vieo and audio (e.g. -f bestvideo+bestaudio) and merging fails, try to use an mkv container'
+    )
 
     verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
     verbosity.add_option(

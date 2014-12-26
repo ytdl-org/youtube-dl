@@ -516,13 +516,30 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         return True, info
 
-
 class FFmpegMergerPP(FFmpegPostProcessor):
     def run(self, info):
         filename = info['filepath']
         args = ['-c', 'copy', '-map', '0:v:0', '-map', '1:a:0', '-shortest']
         self._downloader.to_screen('[ffmpeg] Merging formats into "%s"' % filename)
-        self.run_ffmpeg_multiple_files(info['__files_to_merge'], filename, args)
+        #first attempt to merge them as normal but if a merge error happens attempt to eat it and try again with mkv output
+        #attempt to merge the files into the filename that the upstream methods have determined
+	#there's little point to try to guess from the start which video format will be compatible with which audio
+	#if the standard merge fails, fallback to mkv instead
+        try:
+        	self.run_ffmpeg_multiple_files(info['__files_to_merge'], filename, args)
+        except FFmpegPostProcessorError as fpe:
+        	if self._downloader.params.get('fallback_mkv', False) and "incorrect codec parameters" in fpe.msg.lower():
+        		warning = "Could not merge to %s format, ffmpeg said: '%s'\nAttempting to merge to mkv instead" % (info['ext'], fpe.msg)
+        		self._downloader.report_warning(warning)
+        		fname, ext = os.path.splitext(filename)
+        		mkv_filename = fname + ".mkv"
+        		self._downloader.to_screen('[ffmpeg] Merging formats into "%s"' % mkv_filename)
+        		self.run_ffmpeg_multiple_files(info['__files_to_merge'], mkv_filename, args)
+        		os.remove(encodeFilename(filename))
+        		info['filepath'] = mkv_filename
+        		info['ext'] = 'mkv'
+        	else:
+        		raise fpe	
         return True, info
 
 

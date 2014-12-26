@@ -324,6 +324,7 @@ def _real_main(argv=None):
         'encoding': opts.encoding,
         'exec_cmd': opts.exec_cmd,
         'extract_flat': opts.extract_flat,
+        'fallback_mkv': opts.fallback_mkv,
         'postprocessors': postprocessors,
     }
 
