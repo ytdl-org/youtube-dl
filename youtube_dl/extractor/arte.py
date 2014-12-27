@@ -106,45 +106,46 @@ class ArteTVPlus7IE(InfoExtractor):
         formats = []
         for format_id, format_dict in player_info['VSR'].items():
             f = dict(format_dict)
-            versionCode = f.get('versionCode')
-
-            langcode = {
-                'fr': 'F',
-                'de': 'A',
-            }.get(lang, lang)
-            lang_rexs = [r'VO?%s' % langcode, r'VO?.-ST%s' % langcode]
-            lang_pref = (
-                None if versionCode is None else (
-                    10 if any(re.match(r, versionCode) for r in lang_rexs)
-                    else -10))
-            source_pref = 0
-            if versionCode is not None:
-                # The original version with subtitles has lower relevance
-                if re.match(r'VO-ST(F|A)', versionCode):
-                    source_pref -= 10
-                # The version with sourds/mal subtitles has also lower relevance
-                elif re.match(r'VO?(F|A)-STM\1', versionCode):
-                    source_pref -= 9
-            format = {
-                'format_id': format_id,
-                'preference': -10 if f.get('videoFormat') == 'M3U8' else None,
-                'language_preference': lang_pref,
-                'format_note': '%s, %s' % (f.get('versionCode'), f.get('versionLibelle')),
-                'width': int_or_none(f.get('width')),
-                'height': int_or_none(f.get('height')),
-                'tbr': int_or_none(f.get('bitrate')),
-                'quality': qfunc(f['quality']),
-                'source_preference': source_pref,
-            }
-
-            if f.get('mediaType') == 'rtmp':
-                format['url'] = f['streamer']
-                format['play_path'] = 'mp4:' + f['url']
-                format['ext'] = 'flv'
-            else:
-                format['url'] = f['url']
-
-            formats.append(format)
+            if  'quality' in f :
+                versionCode = f.get('versionCode')
+    
+                langcode = {
+                    'fr': 'F',
+                    'de': 'A',
+                }.get(lang, lang)
+                lang_rexs = [r'VO?%s' % langcode, r'VO?.-ST%s' % langcode]
+                lang_pref = (
+                    None if versionCode is None else (
+                        10 if any(re.match(r, versionCode) for r in lang_rexs)
+                        else -10))
+                source_pref = 0
+                if versionCode is not None:
+                    # The original version with subtitles has lower relevance
+                    if re.match(r'VO-ST(F|A)', versionCode):
+                        source_pref -= 10
+                    # The version with sourds/mal subtitles has also lower relevance
+                    elif re.match(r'VO?(F|A)-STM\1', versionCode):
+                        source_pref -= 9
+                format = {
+                    'format_id': format_id,
+                    'preference': -10 if f.get('videoFormat') == 'M3U8' else None,
+                    'language_preference': lang_pref,
+                    'format_note': '%s, %s' % (f.get('versionCode'), f.get('versionLibelle')),
+                    'width': int_or_none(f.get('width')),
+                    'height': int_or_none(f.get('height')),
+                    'tbr': int_or_none(f.get('bitrate')),
+                    'quality': qfunc(f['quality']),
+                    'source_preference': source_pref,
+                }
+    
+                if f.get('mediaType') == 'rtmp':
+                    format['url'] = f['streamer']
+                    format['play_path'] = 'mp4:' + f['url']
+                    format['ext'] = 'flv'
+                else:
+                    format['url'] = f['url']
+    
+                formats.append(format)
 
         self._sort_formats(formats)
 
