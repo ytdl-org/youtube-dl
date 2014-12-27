@@ -521,10 +521,9 @@ class FFmpegMergerPP(FFmpegPostProcessor):
         filename = info['filepath']
         args = ['-c', 'copy', '-map', '0:v:0', '-map', '1:a:0', '-shortest']
         self._downloader.to_screen('[ffmpeg] Merging formats into "%s"' % filename)
-        #first attempt to merge them as normal but if a merge error happens attempt to eat it and try again with mkv output
         #attempt to merge the files into the filename that the upstream methods have determined
 	#there's little point to try to guess from the start which video format will be compatible with which audio
-	#if the standard merge fails, fallback to mkv instead
+	#so instead just try merging with what we have and see what happens
         try:
         	self.run_ffmpeg_multiple_files(info['__files_to_merge'], filename, args)
         except FFmpegPostProcessorError as fpe:
