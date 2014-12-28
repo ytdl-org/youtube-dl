@@ -133,7 +133,7 @@ class ArteTVPlus7IE(InfoExtractor):
                 'width': int_or_none(f.get('width')),
                 'height': int_or_none(f.get('height')),
                 'tbr': int_or_none(f.get('bitrate')),
-                'quality': qfunc(f['quality']),
+                'quality': qfunc(f.get('quality')),
                 'source_preference': source_pref,
             }
 
