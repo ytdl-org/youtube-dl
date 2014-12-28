@@ -37,7 +37,7 @@ class ArteTvIE(InfoExtractor):
             config_xml_url, video_id, note='Downloading configuration')
 
         formats = [{
-            'forma_id': q.attrib['quality'],
+            'format_id': q.attrib['quality'],
             # The playpath starts at 'mp4:', if we don't manually
             # split the url, rtmpdump will incorrectly parse them
             'url': q.text.split('mp4:', 1)[0],
