@@ -25,6 +25,12 @@ class ArchiveOrgIE(InfoExtractor):
         }
     }
 
+    def get_optional_metadata(self, data, field):
+        try:
+            return data['metadata'][field][0]
+        except KeyError:
+            return None
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
@@ -33,10 +39,12 @@ class ArchiveOrgIE(InfoExtractor):
         json_data = self._download_webpage(json_url, video_id)
         data = json.loads(json_data)
 
-        title = data['metadata']['title'][0]
-        description = data['metadata']['description'][0]
-        uploader = data['metadata']['creator'][0]
-        upload_date = unified_strdate(data['metadata']['date'][0])
+        title = self.get_optional_metadata(data, 'title')
+        description = self.get_optional_metadata(data, 'description')
+        uploader = self.get_optional_metadata(data, 'creator')
+        upload_date = self.get_optional_metadata(data, 'date')
+        if upload_date:
+            upload_date = unified_strdate(upload_date)
 
         formats = [
             {
