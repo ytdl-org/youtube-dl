@@ -127,3 +127,28 @@ class CNNBlogsIE(InfoExtractor):
             'url': cnn_url,
             'ie_key': CNNIE.ie_key(),
         }
+
+
+class CNNArticleIE(InfoExtractor):
+    _VALID_URL = r'https?://((edition|www)\.)?cnn\.com/(?!video/)'
+    _TEST = {
+        'url': 'http://www.cnn.com/2014/12/21/politics/obama-north-koreas-hack-not-war-but-cyber-vandalism/',
+        'md5': '275b326f85d80dff7592a9820f5dc887',
+        'info_dict': {
+            'id': 'bestoftv/2014/12/21/sotu-crowley-president-obama-north-korea-not-going-to-be-intimidated.cnn',
+            'ext': 'mp4',
+            'title': 'Obama: We\'re not going to be intimidated',
+            'description': 'md5:e735586f3dc936075fa654a4d91b21f9',
+            'upload_date': '20141220',
+        },
+        'add_ie': ['CNN'],
+    }
+
+    def _real_extract(self, url):
+        webpage = self._download_webpage(url, url_basename(url))
+        cnn_url = self._html_search_regex(r"video:\s*'([^']+)'", webpage, 'cnn url')
+        return {
+            '_type': 'url',
+            'url': r'http://cnn.com/video/?/video/' + cnn_url,
+            'ie_key': CNNIE.ie_key(),
+        }
