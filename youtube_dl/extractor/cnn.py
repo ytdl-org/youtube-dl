@@ -12,7 +12,7 @@ from ..utils import (
 
 class CNNIE(InfoExtractor):
     _VALID_URL = r'''(?x)https?://(?:(?:edition|www)\.)?cnn\.com/video/(?:data/.+?|\?)/
-        (?P<path>.+?/(?P<title>[^/]+?)(?:\.cnn(?:-ap)?|(?=&)))'''
+        (?P<path>.+?/(?P<title>[^/]+?)(?:\.(?:cnn|hln)(?:-ap)?|(?=&)))'''
 
     _TESTS = [{
         'url': 'http://edition.cnn.com/video/?/video/sports/2013/06/09/nadal-1-on-1.cnn',
@@ -34,6 +34,16 @@ class CNNIE(InfoExtractor):
             "title": "Student's epic speech stuns new freshmen",
             "description": "A Georgia Tech student welcomes the incoming freshmen with an epic speech backed by music from \"2001: A Space Odyssey.\"",
             "upload_date": "20130821",
+        }
+    }, {
+        'url': 'http://www.cnn.com/video/data/2.0/video/living/2014/12/22/growing-america-nashville-salemtown-board-episode-1.hln.html',
+        'md5': 'f14d02ebd264df951feb2400e2c25a1b',
+        'info_dict': {
+            'id': 'living/2014/12/22/growing-america-nashville-salemtown-board-episode-1.hln',
+            'ext': 'mp4',
+            'title': 'Nashville Ep. 1: Hand crafted skateboards',
+            'description': 'md5:e7223a503315c9f150acac52e76de086',
+            'upload_date': '20141222',
         }
     }]
 
