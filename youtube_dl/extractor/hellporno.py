@@ -1,5 +1,12 @@
 from __future__ import unicode_literals
+
+import re
+
 from .common import InfoExtractor
+from ..utils import (
+    js_to_json,
+    remove_end,
+)
 
 
 class HellPornoIE(InfoExtractor):
@@ -19,23 +26,36 @@ class HellPornoIE(InfoExtractor):
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
+
         webpage = self._download_webpage(url, display_id)
 
-        video_id = self._html_search_regex(
-            r'video_id:\s*\'([^\']+)\'', webpage, 'id')
+        title = remove_end(self._html_search_regex(
+            r'<title>([^<]+)</title>', webpage, 'title'), ' - Hell Porno')
 
-        ext = self._html_search_regex(
-            r'postfix:\s*\'([^\']+)\'', webpage, 'ext')[1:]
+        flashvars = self._parse_json(self._search_regex(
+            r'var\s+flashvars\s*=\s*({.+?});', webpage, 'flashvars'),
+            display_id, transform_source=js_to_json)
 
-        video_url = self._html_search_regex(
-            r'video_url:\s*\'([^\']+)\'', webpage, 'video_url')
+        video_id = flashvars.get('video_id')
+        thumbnail = flashvars.get('preview_url')
+        ext = flashvars.get('postfix', '.mp4')[1:]
 
-        title = self._html_search_regex(
-            r'<title>([^<]+)\s*-\s*Hell Porno</title>', webpage, 'title')
-
-        thumbnail = self._html_search_regex(
-            r'preview_url:\s*\'([^\']+)\'',
-            webpage, 'thumbnail', fatal=False)
+        formats = []
+        for video_url_key in ['video_url', 'video_alt_url']:
+            video_url = flashvars.get(video_url_key)
+            if not video_url:
+                continue
+            video_text = flashvars.get('%s_text' % video_url_key)
+            fmt = {
+                'url': video_url,
+                'ext': ext,
+                'format_id': video_text,
+            }
+            m = re.search(r'^(?P<height>\d+)[pP]', video_text)
+            if m:
+                fmt['height'] = int(m.group('height'))
+            formats.append(fmt)
+        self._sort_formats(formats)
 
         categories = self._html_search_meta(
             'keywords', webpage, 'categories', default='').split(',')
@@ -43,10 +63,9 @@ class HellPornoIE(InfoExtractor):
         return {
             'id': video_id,
             'display_id': display_id,
-            'url': video_url,
             'title': title,
-            'ext': ext,
             'thumbnail': thumbnail,
             'categories': categories,
             'age_limit': 18,
+            'formats': formats,
         }
