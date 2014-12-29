@@ -20,35 +20,51 @@ class XXXYMoviesIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Ecstatic Orgasm Sofcore',
             'duration': 931,
+            'categories': list,
+            'view_count': int,
+            'like_count': int,
+            'dislike_count': int,
             'age_limit': 18,
         }
     }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-
         video_id = mobj.group('id')
         display_id = mobj.group('display_id')
 
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(url, display_id)
 
-        video_url = self._html_search_regex(
+        video_url = self._search_regex(
             r"video_url\s*:\s*'([^']+)'", webpage, 'video URL')
 
         title = self._html_search_regex(
-            r'<title>(.*?)\s*-\s*XXXYMovies.com</title>', webpage, 'title')
+            [r'<div class="block_header">\s*<h1>([^<]+)</h1>',
+             r'<title>(.*?)\s*-\s*XXXYMovies\.com</title>'],
+            webpage, 'title')
 
-        thumbnail = self._html_search_regex(
-            r'preview_url\s*:\s*\'(.*?)\'', webpage, 'thumbnail', fatal=False)
+        thumbnail = self._search_regex(
+            r"preview_url\s*:\s*'([^']+)'",
+            webpage, 'thumbnail', fatal=False)
 
         categories = self._html_search_meta(
             'keywords', webpage, 'categories', default='').split(',')
 
         duration = parse_duration(self._search_regex(
-            r'<span>Duration:</span>\s*(\d+:\d+)', webpage, 'duration', fatal=False))
+            r'<span>Duration:</span>\s*(\d+:\d+)',
+            webpage, 'duration', fatal=False))
 
         view_count = int_or_none(self._html_search_regex(
-            r'<div class="video_views">\s*(\d+)', webpage, 'view count', fatal=False))
+            r'<div class="video_views">\s*(\d+)',
+            webpage, 'view count', fatal=False))
+        like_count = int_or_none(self._search_regex(
+            r'>\s*Likes? <b>\((\d+)\)',
+            webpage, 'like count', fatal=False))
+        dislike_count = int_or_none(self._search_regex(
+            r'>\s*Dislike <b>\((\d+)\)</b>',
+            webpage, 'dislike count', fatal=False))
+
+        age_limit = self._rta_search(webpage)
 
         return {
             'id': video_id,
@@ -59,5 +75,7 @@ class XXXYMoviesIE(InfoExtractor):
             'categories': categories,
             'duration': duration,
             'view_count': view_count,
-            'age_limit': 18,
+            'like_count': like_count,
+            'dislike_count': dislike_count,
+            'age_limit': age_limit,
         }
