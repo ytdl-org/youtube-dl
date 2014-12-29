@@ -1,14 +1,20 @@
 # coding: utf-8
 from __future__ import unicode_literals
+
 import re
 
 from .common import InfoExtractor
 from ..utils import (
-    unified_strdate,
+    clean_html,
+    parse_iso8601,
+    float_or_none,
+    int_or_none,
+    compat_str,
 )
 
 
 class HitboxIE(InfoExtractor):
+    IE_NAME = 'hitbox'
     _VALID_URL = r'https?://(?:www\.)?hitbox\.tv/video/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.hitbox.tv/video/203213',
@@ -16,13 +22,14 @@ class HitboxIE(InfoExtractor):
             'id': '203213',
             'title': 'hitbox @ gamescom, Sub Button Hype extended, Giveaway - hitbox News Update with Oxy',
             'alt_title': 'hitboxlive - Aug 9th #6',
-            'description': '\n',
+            'description': '',
             'ext': 'mp4',
             'thumbnail': 're:^https?://.*\.jpg$',
-            'duration': 215,
+            'duration': 215.1666,
             'resolution': 'HD 720p',
-            'uploader_id': 'hitboxlive',
+            'uploader': 'hitboxlive',
             'view_count': int,
+            'timestamp': 1407576133,
             'upload_date': '20140809',
             'categories': ['Live Show'],
         },
@@ -35,8 +42,7 @@ class HitboxIE(InfoExtractor):
     def _extract_metadata(self, url, video_id):
         thumb_base = 'https://edge.sf.hitbox.tv'
         metadata = self._download_json(
-            '%s/%s' % (url, video_id), video_id
-        )
+            '%s/%s' % (url, video_id), video_id)
 
         date = 'media_live_since'
         media_type = 'livestream'
@@ -47,11 +53,13 @@ class HitboxIE(InfoExtractor):
         video_meta = metadata.get(media_type, [])[0]
         title = video_meta.get('media_status')
         alt_title = video_meta.get('media_title')
-        description = video_meta.get('media_description_md')
-        duration = int(float(video_meta.get('media_duration')))
+        description = clean_html(
+            video_meta.get('media_description') or
+            video_meta.get('media_description_md'))
+        duration = float_or_none(video_meta.get('media_duration'))
         uploader = video_meta.get('media_user_name')
-        views = int(video_meta.get('media_views'))
-        upload_date = unified_strdate(video_meta.get(date))
+        views = int_or_none(video_meta.get('media_views'))
+        timestamp = parse_iso8601(video_meta.get(date), ' ')
         categories = [video_meta.get('category_name')]
         thumbs = [
             {'url': thumb_base + video_meta.get('media_thumbnail'),
@@ -70,9 +78,9 @@ class HitboxIE(InfoExtractor):
             'ext': 'mp4',
             'thumbnails': thumbs,
             'duration': duration,
-            'uploader_id': uploader,
+            'uploader': uploader,
             'view_count': views,
-            'upload_date': upload_date,
+            'timestamp': timestamp,
             'categories': categories,
         }
 
@@ -81,13 +89,11 @@ class HitboxIE(InfoExtractor):
 
         metadata = self._extract_metadata(
             'https://www.hitbox.tv/api/media/video',
-            video_id
-        )
+            video_id)
 
         player_config = self._download_json(
-            'https://www.hitbox.tv/api/player/config/video/%s' % (video_id),
-            video_id
-        )
+            'https://www.hitbox.tv/api/player/config/video/%s' % video_id,
+            video_id)
 
         clip = player_config.get('clip')
         video_url = clip.get('url')
@@ -101,16 +107,18 @@ class HitboxIE(InfoExtractor):
 
 
 class HitboxLiveIE(HitboxIE):
+    IE_NAME = 'hitbox:live'
     _VALID_URL = r'https?://(?:www\.)?hitbox\.tv/(?!video)(?P<id>.+)'
     _TEST = {
         'url': 'http://www.hitbox.tv/dimak',
         'info_dict': {
             'id': 'dimak',
             'ext': 'mp4',
-            'description': str,
-            'upload_date': str,
-            'title': str,
-            'uploader_id': 'Dimak',
+            'description': 'md5:c9f80fa4410bc588d7faa40003fc7d0e',
+            'timestamp': int,
+            'upload_date': compat_str,
+            'title': compat_str,
+            'uploader': 'Dimak',
         },
         'params': {
             # live
@@ -123,13 +131,11 @@ class HitboxLiveIE(HitboxIE):
 
         metadata = self._extract_metadata(
             'https://www.hitbox.tv/api/media/live',
-            video_id
-        )
+            video_id)
 
         player_config = self._download_json(
-            'https://www.hitbox.tv/api/player/config/live/%s' % (video_id),
-            video_id
-        )
+            'https://www.hitbox.tv/api/player/config/live/%s' % video_id,
+            video_id)
 
         formats = []
         cdns = player_config.get('cdns')
