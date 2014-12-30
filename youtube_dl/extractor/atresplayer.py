@@ -56,7 +56,10 @@ class AtresPlayerIE(InfoExtractor):
             self._TIME_API_URL,
             video_id, 'Downloading timestamp', fatal=False), 1000, time.time())
         timestamp_shifted = compat_str(timestamp + self._TIMESTAMP_SHIFT)
-        token = hmac.new(self._MAGIC.encode('utf-8'), episode_id + timestamp_shifted).hexdigest()
+        token = hmac.new(
+            self._MAGIC.encode('ascii'),
+            (episode_id + timestamp_shifted).encode('utf-8')
+        ).hexdigest()
 
         formats = []
         for fmt in ['windows', 'android_tablet']:
