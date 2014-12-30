@@ -23,6 +23,7 @@ from ..utils import (
     unescapeHTML,
     unified_strdate,
     unsmuggle_url,
+    UnsupportedError,
     url_basename,
 )
 from .brightcove import BrightcoveIE
@@ -1057,7 +1058,7 @@ class GenericIE(InfoExtractor):
                     'url': new_url,
                 }
         if not found:
-            raise ExtractorError('Unsupported URL: %s' % url)
+            raise UnsupportedError(url)
 
         entries = []
         for video_url in found:

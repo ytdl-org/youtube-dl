@@ -464,6 +464,13 @@ class ExtractorError(Exception):
         return ''.join(traceback.format_tb(self.traceback))
 
 
+class UnsupportedError(ExtractorError):
+    def __init__(self, url):
+        super(UnsupportedError, self).__init__(
+            'Unsupported URL: %s' % url, expected=True)
+        self.url = url
+
+
 class RegexNotFoundError(ExtractorError):
     """Error when a regex didn't match"""
     pass
