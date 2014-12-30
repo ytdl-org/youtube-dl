@@ -25,6 +25,7 @@ from .arte import (
     ArteTVDDCIE,
     ArteTVEmbedIE,
 )
+from .atresplayer import AtresPlayerIE
 from .audiomack import AudiomackIE
 from .auengine import AUEngineIE
 from .azubu import AzubuIE
