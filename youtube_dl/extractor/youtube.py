@@ -418,6 +418,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'upload_date': '20140605',
             },
         },
+        # Age-gate video with encrypted signature
+        {
+            'url': 'http://www.youtube.com/watch?v=6kLq3WMV1nU',
+            'info_dict': {
+                'id': '6kLq3WMV1nU',
+                'ext': 'mp4',
+                'title': 'Dedication To My Ex (Miss That) (Lyric Video)',
+                'description': 'md5:33765bb339e1b47e7e72b5490139bb41',
+                'uploader': 'LloydVEVO',
+                'uploader_id': 'LloydVEVO',
+                'upload_date': '20110629',
+            },
+        },
         # video_info is None (https://github.com/rg3/youtube-dl/issues/4421)
         {
             'url': '__2ABJjxzNo',
