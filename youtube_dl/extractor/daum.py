@@ -38,7 +38,7 @@ class DaumIE(InfoExtractor):
         canonical_url = 'http://tvpot.daum.net/v/%s' % video_id
         webpage = self._download_webpage(canonical_url, video_id)
         full_id = self._search_regex(
-            r'<iframe src="http://videofarm.daum.net/controller/video/viewer/Video.html\?.*?vid=(.+?)[&"]',
+            r'src=["\']http://videofarm\.daum\.net/controller/video/viewer/Video\.html\?.*?vid=(.+?)[&"\']',
             webpage, 'full id')
         query = compat_urllib_parse.urlencode({'vid': full_id})
         info = self._download_xml(

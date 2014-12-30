@@ -418,6 +418,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'upload_date': '20140605',
             },
         },
+        # Age-gate video with encrypted signature
+        {
+            'url': 'http://www.youtube.com/watch?v=6kLq3WMV1nU',
+            'info_dict': {
+                'id': '6kLq3WMV1nU',
+                'ext': 'mp4',
+                'title': 'Dedication To My Ex (Miss That) (Lyric Video)',
+                'description': 'md5:33765bb339e1b47e7e72b5490139bb41',
+                'uploader': 'LloydVEVO',
+                'uploader_id': 'LloydVEVO',
+                'upload_date': '20110629',
+            },
+        },
         # video_info is None (https://github.com/rg3/youtube-dl/issues/4421)
         {
             'url': '__2ABJjxzNo',
@@ -766,11 +779,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             age_gate = True
             # We simulate the access to the video from www.youtube.com/v/{video_id}
             # this can be viewed without login into Youtube
+            url = proto + '://www.youtube.com/embed/%s' % video_id
+            embed_webpage = self._download_webpage(url, video_id, 'Downloading embed webpage')
             data = compat_urllib_parse.urlencode({
                 'video_id': video_id,
                 'eurl': 'https://youtube.googleapis.com/v/' + video_id,
                 'sts': self._search_regex(
-                    r'"sts"\s*:\s*(\d+)', video_webpage, 'sts', default=''),
+                    r'"sts"\s*:\s*(\d+)', embed_webpage, 'sts', default=''),
             })
             video_info_url = proto + '://www.youtube.com/get_video_info?' + data
             video_info_webpage = self._download_webpage(
@@ -968,11 +983,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 elif 's' in url_data:
                     encrypted_sig = url_data['s'][0]
 
-                    if not age_gate:
-                        jsplayer_url_json = self._search_regex(
-                            r'"assets":.+?"js":\s*("[^"]+")',
-                            video_webpage, 'JS player URL')
-                        player_url = json.loads(jsplayer_url_json)
+                    jsplayer_url_json = self._search_regex(
+                        r'"assets":.+?"js":\s*("[^"]+")',
+                        embed_webpage if age_gate else video_webpage, 'JS player URL')
+                    player_url = json.loads(jsplayer_url_json)
                     if player_url is None:
                         player_url_json = self._search_regex(
                             r'ytplayer\.config.*?"url"\s*:\s*("[^"]+")',

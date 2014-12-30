@@ -25,6 +25,7 @@ from .arte import (
     ArteTVDDCIE,
     ArteTVEmbedIE,
 )
+from .atresplayer import AtresPlayerIE
 from .audiomack import AudiomackIE
 from .auengine import AUEngineIE
 from .azubu import AzubuIE
@@ -169,8 +170,10 @@ from .grooveshark import GroovesharkIE
 from .groupon import GrouponIE
 from .hark import HarkIE
 from .heise import HeiseIE
+from .hellporno import HellPornoIE
 from .helsinki import HelsinkiIE
 from .hentaistigma import HentaiStigmaIE
+from .hitbox import HitboxIE, HitboxLiveIE
 from .hornbunny import HornBunnyIE
 from .hostingbulk import HostingBulkIE
 from .hotnewhiphop import HotNewHipHopIE
@@ -515,6 +518,7 @@ from .xminus import XMinusIE
 from .xnxx import XNXXIE
 from .xvideos import XVideosIE
 from .xtube import XTubeUserIE, XTubeIE
+from .xxxymovies import XXXYMoviesIE
 from .yahoo import (
     YahooIE,
     YahooSearchIE,
