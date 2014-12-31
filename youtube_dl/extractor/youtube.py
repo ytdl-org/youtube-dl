@@ -612,24 +612,23 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
     def _get_available_subtitles(self, video_id, webpage):
         try:
-            sub_list = self._download_webpage(
+            subs_doc = self._download_xml(
                 'https://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id,
                 video_id, note=False)
         except ExtractorError as err:
             self._downloader.report_warning('unable to download video subtitles: %s' % compat_str(err))
             return {}
-        lang_list = re.findall(r'name="([^"]*)"[^>]+lang_code="([\w\-]+)"', sub_list)
 
         sub_lang_list = {}
-        for l in lang_list:
-            lang = l[1]
+        for track in subs_doc.findall('track'):
+            lang = track.attrib['lang_code']
             if lang in sub_lang_list:
                 continue
             params = compat_urllib_parse.urlencode({
                 'lang': lang,
                 'v': video_id,
                 'fmt': self._downloader.params.get('subtitlesformat', 'srt'),
-                'name': unescapeHTML(l[0]).encode('utf-8'),
+                'name': track.attrib['name'].encode('utf-8'),
             })
             url = 'https://www.youtube.com/api/timedtext?' + params
             sub_lang_list[lang] = url
