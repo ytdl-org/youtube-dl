@@ -299,6 +299,7 @@ from .nytimes import NYTimesIE
 from .nuvid import NuvidIE
 from .oktoberfesttv import OktoberfestTVIE
 from .ooyala import OoyalaIE
+from .openfilm import OpenFilmIE
 from .orf import (
     ORFTVthekIE,
     ORFOE1IE,
