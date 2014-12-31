@@ -30,7 +30,7 @@ class SlideshareIE(InfoExtractor):
         page_title = mobj.group('title')
         webpage = self._download_webpage(url, page_title)
         slideshare_obj = self._search_regex(
-            r'var slideshare_object =  ({.*?}); var user_info =',
+            r'var\s+slideshare_object\s*=\s*({.*?});\s*var\s+user_info\s*=',
             webpage, 'slideshare object')
         info = json.loads(slideshare_obj)
         if info['slideshow']['type'] != 'video':
@@ -41,7 +41,7 @@ class SlideshareIE(InfoExtractor):
         ext = info['jsplayer']['video_extension']
         video_url = compat_urlparse.urljoin(bucket, doc + '-SD.' + ext)
         description = self._html_search_regex(
-            r'<p\s+(?:style="[^"]*"\s+)?class=".*?description.*?"[^>]*>(.*?)</p>', webpage,
+            r'(?s)<p[^>]+itemprop="description"[^>]*>(.+?)</p>', webpage,
             'description', fatal=False)
 
         return {
