@@ -589,7 +589,7 @@ class InfoExtractor(object):
         if display_name is None:
             display_name = name
         return self._html_search_regex(
-            r'''(?ix)<meta
+            r'''(?isx)<meta
                     (?=[^>]+(?:itemprop|name|property)=(["\']?)%s\1)
                     [^>]+content=(["\'])(?P<content>.*?)\1''' % re.escape(name),
             html, display_name, fatal=fatal, group='content', **kwargs)
