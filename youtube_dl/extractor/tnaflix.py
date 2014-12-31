@@ -49,8 +49,8 @@ class TNAFlixIE(InfoExtractor):
         if duration:
             duration = parse_duration(duration[1:])
 
-        cfg_url = self._html_search_regex(
-            self._CONFIG_REGEX, webpage, 'flashvars.config')
+        cfg_url = self._proto_relative_url(self._html_search_regex(
+            self._CONFIG_REGEX, webpage, 'flashvars.config'), 'http:')
 
         cfg_xml = self._download_xml(
             cfg_url, display_id, note='Downloading metadata',
