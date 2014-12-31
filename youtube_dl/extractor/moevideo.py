@@ -52,7 +52,8 @@ class MoeVideoIE(InfoExtractor):
                 'height': 296,
                 'duration': 6027,
                 'filesize': 588257923,
-            }
+            },
+            'skip': 'Video has been removed',
         },
     ]
 
