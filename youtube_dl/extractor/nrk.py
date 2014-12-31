@@ -77,7 +77,7 @@ class NRKTVIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
-            'md5': '7b96112fbae1faf09a6f9ae1aff6cb84',
+            'md5': 'adf2c5454fa2bf032f47a9f8fb351342',
             'info_dict': {
                 'id': 'MUHH48000314',
                 'ext': 'flv',
@@ -89,7 +89,7 @@ class NRKTVIE(InfoExtractor):
         },
         {
             'url': 'http://tv.nrk.no/program/mdfp15000514',
-            'md5': 'af01795a31f1cf7265c8657534d8077b',
+            'md5': '383650ece2b25ecec996ad7b5bb2a384',
             'info_dict': {
                 'id': 'mdfp15000514',
                 'ext': 'flv',
