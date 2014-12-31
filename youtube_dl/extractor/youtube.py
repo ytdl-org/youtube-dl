@@ -662,10 +662,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             list_url = caption_url + '&' + list_params
             caption_list = self._download_xml(list_url, video_id)
             original_lang_node = caption_list.find('track')
-            if original_lang_node is None or original_lang_node.attrib.get('kind') != 'asr':
+            if original_lang_node is None:
                 self._downloader.report_warning('Video doesn\'t have automatic captions')
                 return {}
             original_lang = original_lang_node.attrib['lang_code']
+            caption_kind = original_lang_node.attrib.get('kind', '')
 
             sub_lang_list = {}
             for lang_node in caption_list.findall('target'):
@@ -675,7 +676,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                     'tlang': sub_lang,
                     'fmt': sub_format,
                     'ts': timestamp,
-                    'kind': 'asr',
+                    'kind': caption_kind,
                 })
                 sub_lang_list[sub_lang] = caption_url + '&' + params
             return sub_lang_list

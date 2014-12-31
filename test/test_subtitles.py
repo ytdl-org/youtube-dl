@@ -88,6 +88,14 @@ class TestYoutubeSubtitles(BaseTestSubtitles):
         subtitles = self.getSubtitles()
         self.assertTrue(subtitles['it'] is not None)
 
+    def test_youtube_translated_subtitles(self):
+        # This video has a subtitles track, which can be translated
+        self.url = 'Ky9eprVWzlI'
+        self.DL.params['writeautomaticsub'] = True
+        self.DL.params['subtitleslangs'] = ['it']
+        subtitles = self.getSubtitles()
+        self.assertTrue(subtitles['it'] is not None)
+
     def test_youtube_nosubtitles(self):
         self.DL.expect_warning('video doesn\'t have subtitles')
         self.url = 'n5BB19UTcdA'
