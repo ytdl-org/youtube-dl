@@ -11,6 +11,7 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
+    float_or_none,
 )
 
 
@@ -19,41 +20,33 @@ class CeskaTelevizeIE(InfoExtractor):
 
     _TESTS = [
         {
-            'url': 'http://www.ceskatelevize.cz/ivysilani/10532695142-prvni-republika/213512120230004-spanelska-chripka',
+            'url': 'http://www.ceskatelevize.cz/ivysilani/ivysilani/10441294653-hyde-park-civilizace/214411058091220',
             'info_dict': {
-                'id': '213512120230004',
-                'ext': 'flv',
-                'title': 'První republika: Španělská chřipka',
-                'duration': 3107.4,
+                'id': '214411058091220',
+                'ext': 'mp4',
+                'title': 'Hyde Park Civilizace',
+                'description': 'Věda a současná civilizace. Interaktivní pořad - prostor pro vaše otázky a komentáře',
+                'thumbnail': 're:^https?://.*\.jpg',
+                'duration': 3350,
             },
             'params': {
-                'skip_download': True,  # requires rtmpdump
+                # m3u8 download
+                'skip_download': True,
             },
-            'skip': 'Works only from Czech Republic.',
-        },
-        {
-            'url': 'http://www.ceskatelevize.cz/ivysilani/1030584952-tsatsiki-maminka-a-policajt',
-            'info_dict': {
-                'id': '20138143440',
-                'ext': 'flv',
-                'title': 'Tsatsiki, maminka a policajt',
-                'duration': 6754.1,
-            },
-            'params': {
-                'skip_download': True,  # requires rtmpdump
-            },
-            'skip': 'Works only from Czech Republic.',
         },
         {
             'url': 'http://www.ceskatelevize.cz/ivysilani/10532695142-prvni-republika/bonus/14716-zpevacka-z-duparny-bobina',
             'info_dict': {
                 'id': '14716',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'První republika: Zpěvačka z Dupárny Bobina',
-                'duration': 90,
+                'description': 'Sága mapující atmosféru první republiky od r. 1918 do r. 1945.',
+                'thumbnail': 're:^https?://.*\.jpg',
+                'duration': 88.4,
             },
             'params': {
-                'skip_download': True,  # requires rtmpdump
+                # m3u8 download
+                'skip_download': True,
             },
         },
     ]
@@ -80,8 +73,9 @@ class CeskaTelevizeIE(InfoExtractor):
             'requestSource': 'iVysilani',
         }
 
-        req = compat_urllib_request.Request('http://www.ceskatelevize.cz/ivysilani/ajax/get-playlist-url',
-                                            data=compat_urllib_parse.urlencode(data))
+        req = compat_urllib_request.Request(
+            'http://www.ceskatelevize.cz/ivysilani/ajax/get-client-playlist',
+            data=compat_urllib_parse.urlencode(data))
 
         req.add_header('Content-type', 'application/x-www-form-urlencoded')
         req.add_header('x-addr', '127.0.0.1')
@@ -90,39 +84,31 @@ class CeskaTelevizeIE(InfoExtractor):
 
         playlistpage = self._download_json(req, video_id)
 
-        req = compat_urllib_request.Request(compat_urllib_parse.unquote(playlistpage['url']))
+        playlist_url = playlistpage['url']
+        if playlist_url == 'error_region':
+            raise ExtractorError(NOT_AVAILABLE_STRING, expected=True)
+
+        req = compat_urllib_request.Request(compat_urllib_parse.unquote(playlist_url))
         req.add_header('Referer', url)
 
-        playlist = self._download_xml(req, video_id)
+        playlist = self._download_json(req, video_id)
 
+        item = playlist['playlist'][0]
         formats = []
-        for i in playlist.find('smilRoot/body'):
-            if 'AD' not in i.attrib['id']:
-                base_url = i.attrib['base']
-                parsedurl = compat_urllib_parse_urlparse(base_url)
-                duration = i.attrib['duration']
-
-                for video in i.findall('video'):
-                    if video.attrib['label'] != 'AD':
-                        format_id = video.attrib['label']
-                        play_path = video.attrib['src']
-                        vbr = int(video.attrib['system-bitrate'])
-
-                        formats.append({
-                            'format_id': format_id,
-                            'url': base_url,
-                            'vbr': vbr,
-                            'play_path': play_path,
-                            'app': parsedurl.path[1:] + '?' + parsedurl.query,
-                            'rtmp_live': True,
-                            'ext': 'flv',
-                        })
-
+        for format_id, stream_url in item['streamUrls'].items():
+            formats.extend(self._extract_m3u8_formats(stream_url, video_id, 'mp4'))
         self._sort_formats(formats)
+
+        title = self._og_search_title(webpage)
+        description = self._og_search_description(webpage)
+        duration = float_or_none(item.get('duration'))
+        thumbnail = item.get('previewImageUrl')
 
         return {
             'id': episode_id,
-            'title': self._html_search_regex(r'<title>(.+?) — iVysílání — Česká televize</title>', webpage, 'title'),
-            'duration': float(duration),
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'duration': duration,
             'formats': formats,
         }
