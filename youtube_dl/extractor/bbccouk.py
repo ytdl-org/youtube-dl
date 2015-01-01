@@ -241,8 +241,8 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
 
         # fallback to legacy playlist
         playlist = self._download_xml(
-                'http://www.bbc.co.uk/iplayer/playlist/%s' % playlist_id,
-                playlist_id, 'Downloading legacy playlist XML')
+            'http://www.bbc.co.uk/iplayer/playlist/%s' % playlist_id,
+            playlist_id, 'Downloading legacy playlist XML')
 
         no_items = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}noItems')
         if no_items is not None:
