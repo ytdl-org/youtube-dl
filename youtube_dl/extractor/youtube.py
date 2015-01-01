@@ -1701,3 +1701,20 @@ class YoutubeTruncatedURLIE(InfoExtractor):
             '"http://www.youtube.com/watch?feature=foo&v=BaW_jenozKc" '
             ' or simply  youtube-dl BaW_jenozKc  .',
             expected=True)
+
+
+class YoutubeTruncatedIDIE(InfoExtractor):
+    IE_NAME = 'youtube:truncated_id'
+    IE_DESC = False  # Do not list
+    _VALID_URL = r'https?://(?:www\.)youtube\.com/watch\?v=(?P<id>[0-9A-Za-z_-]{1,10})$'
+
+    _TESTS = [{
+        'url': 'https://www.youtube.com/watch?v=N_708QY7Ob',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        raise ExtractorError(
+            'Incomplete YouTube ID %s. URL %s looks truncated.' % (video_id, url),
+            expected=True)
