@@ -18,8 +18,8 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
             'info_dict': {
                 'id': 'b039d07m',
                 'ext': 'flv',
-                'title': 'Kaleidoscope: Leonard Cohen',
-                'description': 'md5:db4755d7a665ae72343779f7dacb402c',
+                'title': 'Kaleidoscope, Leonard Cohen',
+                'description': 'The Canadian poet and songwriter reflects on his musical career.',
                 'duration': 1740,
             },
             'params': {
