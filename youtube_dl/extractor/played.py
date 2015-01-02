@@ -26,6 +26,7 @@ class PlayedIE(InfoExtractor):
             'ext': 'flv',
             'title': 'youtube-dl_test_video.mp4',
         },
+        'skip': 'Removed for copyright infringement.',  # oh wow
     }
 
     def _real_extract(self, url):
