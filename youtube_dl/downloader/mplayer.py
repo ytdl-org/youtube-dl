@@ -6,6 +6,7 @@ import subprocess
 from .common import FileDownloader
 from ..compat import compat_subprocess_get_DEVNULL
 from ..utils import (
+    check_executable,
     encodeFilename,
 )
 
@@ -20,11 +21,7 @@ class MplayerFD(FileDownloader):
             'mplayer', '-really-quiet', '-vo', 'null', '-vc', 'dummy',
             '-dumpstream', '-dumpfile', tmpfilename, url]
         # Check for mplayer first
-        try:
-            subprocess.call(
-                ['mplayer', '-h'],
-                stdout=compat_subprocess_get_DEVNULL(), stderr=subprocess.STDOUT)
-        except (OSError, IOError):
+        if not check_executable('mplayer', ['-h']):
             self.report_error('MMS or RTSP download detected but "%s" could not be run' % args[0])
             return False
 
