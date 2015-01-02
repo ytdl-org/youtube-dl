@@ -699,9 +699,9 @@ class GenericIE(InfoExtractor):
             r'^(?:https?://)?([^/]*)/.*', url, 'video uploader')
 
         # Helper method
-        def _playlist_from_matches(matches, getter, ie=None):
+        def _playlist_from_matches(matches, getter=None, ie=None):
             urlrs = orderedSet(
-                self.url_result(self._proto_relative_url(getter(m)), ie)
+                self.url_result(self._proto_relative_url(getter(m) if getter else m), ie)
                 for m in matches)
             return self.playlist_result(
                 urlrs, playlist_id=video_id, playlist_title=video_title)
