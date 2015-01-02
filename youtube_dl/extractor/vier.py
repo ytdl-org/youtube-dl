@@ -63,7 +63,7 @@ class VierIE(InfoExtractor):
 
 class VierVideosIE(InfoExtractor):
     IE_NAME = 'vier:videos'
-    _VALID_URL = r'https?://(?:www\.)?vier\.be/(?P<program>[^/]+)/videos(?:\?.*\bpage=(?P<page>\d+))?'
+    _VALID_URL = r'https?://(?:www\.)?vier\.be/(?P<program>[^/]+)/videos(?:\?.*\bpage=(?P<page>\d+)|$)'
     _TESTS = [{
         'url': 'http://www.vier.be/demoestuin/videos',
         'info_dict': {
