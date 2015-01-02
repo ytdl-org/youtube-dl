@@ -10,13 +10,14 @@ from ..utils import int_or_none
 class KontrTubeIE(InfoExtractor):
     IE_NAME = 'kontrtube'
     IE_DESC = 'KontrTube.ru - Труба зовёт'
-    _VALID_URL = r'http://(?:www\.)?kontrtube\.ru/videos/(?P<id>\d+)/.+'
+    _VALID_URL = r'http://(?:www\.)?kontrtube\.ru/videos/(?P<id>\d+)/(?P<display_id>[^/]+)/'
 
     _TEST = {
         'url': 'http://www.kontrtube.ru/videos/2678/nad-olimpiyskoy-derevney-v-sochi-podnyat-rossiyskiy-flag/',
         'md5': '975a991a4926c9a85f383a736a2e6b80',
         'info_dict': {
             'id': '2678',
+            'display_id': 'nad-olimpiyskoy-derevney-v-sochi-podnyat-rossiyskiy-flag',
             'ext': 'mp4',
             'title': 'Над олимпийской деревней в Сочи поднят российский флаг',
             'description': 'md5:80edc4c613d5887ae8ccf1d59432be41',
@@ -28,21 +29,28 @@ class KontrTubeIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
+        display_id = mobj.group('display_id')
 
-        webpage = self._download_webpage(url, video_id, 'Downloading page')
+        webpage = self._download_webpage(
+            url, display_id, 'Downloading page')
 
-        video_url = self._html_search_regex(r"video_url: '(.+?)/?',", webpage, 'video URL')
-        thumbnail = self._html_search_regex(r"preview_url: '(.+?)/?',", webpage, 'video thumbnail', fatal=False)
+        video_url = self._html_search_regex(
+            r"video_url\s*:\s*'(.+?)/?',", webpage, 'video URL')
+        thumbnail = self._html_search_regex(
+            r"preview_url\s*:\s*'(.+?)/?',", webpage, 'video thumbnail', fatal=False)
         title = self._html_search_regex(
             r'<title>(.+?)</title>', webpage, 'video title')
-        description = self._html_search_meta('description', webpage, 'video description')
+        description = self._html_search_meta(
+            'description', webpage, 'video description')
 
         mobj = re.search(
-            r'<div class="col_2">Длительность: <span>(?P<minutes>\d+)м:(?P<seconds>\d+)с</span></div>', webpage)
+            r'<div class="col_2">Длительность: <span>(?P<minutes>\d+)м:(?P<seconds>\d+)с</span></div>',
+            webpage)
         duration = int(mobj.group('minutes')) * 60 + int(mobj.group('seconds')) if mobj else None
 
         view_count = self._html_search_regex(
-            r'<div class="col_2">Просмотров: <span>(\d+)</span></div>', webpage, 'view count', fatal=False)
+            r'<div class="col_2">Просмотров: <span>(\d+)</span></div>',
+            webpage, 'view count', fatal=False)
 
         comment_count = None
         comment_str = self._html_search_regex(
@@ -56,6 +64,7 @@ class KontrTubeIE(InfoExtractor):
 
         return {
             'id': video_id,
+            'display_id': display_id,
             'url': video_url,
             'thumbnail': thumbnail,
             'title': title,
