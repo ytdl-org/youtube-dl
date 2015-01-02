@@ -228,7 +228,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         video_thumbnail = self._search_regex(r'<episode_image_url>([^<]+)', playerdata, 'thumbnail', fatal=False)
 
         formats = []
-        for fmt in re.findall(r'\?p([0-9]{3,4})=1', webpage):
+        for fmt in re.findall(r'showmedia\.([0-9]{3,4})p', webpage):
             stream_quality, stream_format = self._FORMAT_IDS[fmt]
             video_format = fmt + 'p'
             streamdata_req = compat_urllib_request.Request('http://www.crunchyroll.com/xml/')
