@@ -40,7 +40,7 @@ class XTubeIE(InfoExtractor):
             r'<p class="title">([^<]+)', webpage, 'title')
         video_uploader = self._html_search_regex(
             [r"var\s+contentOwnerId\s*=\s*'([^']+)",
-             r'By:\s*<a href="/community/profile\.php?user=([^"]+)'],
+             r'By:\s*<a href="/community/profile\.php\?user=([^"]+)'],
             webpage, 'uploader', fatal=False)
         video_description = self._html_search_regex(
             r'<p class="fieldsDesc">([^<]+)',
