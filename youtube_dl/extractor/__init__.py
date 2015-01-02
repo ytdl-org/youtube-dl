@@ -474,6 +474,7 @@ from .videott import VideoTtIE
 from .videoweed import VideoWeedIE
 from .vidme import VidmeIE
 from .vidzi import VidziIE
+from .vier import VierIE, VierVideosIE
 from .vimeo import (
     VimeoIE,
     VimeoAlbumIE,
