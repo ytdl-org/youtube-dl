@@ -16,7 +16,7 @@ class BetIE(InfoExtractor):
         {
             'url': 'http://www.bet.com/news/politics/2014/12/08/in-bet-exclusive-obama-talks-race-and-racism.html',
             'info_dict': {
-                'id': '417cd61c-c793-4e8e-b006-e445ecc45add',
+                'id': '406429c6-1b8a-463e-83fc-814adb81a9db',
                 'display_id': 'in-bet-exclusive-obama-talks-race-and-racism',
                 'ext': 'flv',
                 'title': 'BET News Presents: A Conversation With President Obama',
