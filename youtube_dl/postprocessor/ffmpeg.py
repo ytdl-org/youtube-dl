@@ -80,8 +80,8 @@ class FFmpegPostProcessor(PostProcessor):
 
         files_cmd = []
         for path in input_paths:
-            files_cmd.extend(['-i', encodeFilename(path, True)])
-        cmd = ([self._executable, '-y'] + files_cmd
+            files_cmd.extend([encodeArgument('-i'), encodeFilename(path, True)])
+        cmd = ([encodeArgument(self._executable), encodeArgument('-y')] + files_cmd
                + [encodeArgument(o) for o in opts] +
                [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
 
