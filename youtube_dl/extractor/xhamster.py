@@ -14,7 +14,7 @@ from ..utils import (
 
 class XHamsterIE(InfoExtractor):
     """Information Extractor for xHamster"""
-    _VALID_URL = r'http://(?:.+?\.)?xhamster\.com/movies/(?P<id>[0-9]+)/(?P<seo>.+?)\.html(?:\?.*)?'
+    _VALID_URL = r'(?P<proto>https?)://(?:.+?\.)?xhamster\.com/movies/(?P<id>[0-9]+)/(?P<seo>.+?)\.html(?:\?.*)?'
     _TESTS = [
         {
             'url': 'http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html',
@@ -39,6 +39,30 @@ class XHamsterIE(InfoExtractor):
                 'duration': 200,
                 'age_limit': 18,
             }
+        },
+        {
+            'url': 'https://xhamster.com/movies/2272726/amber_slayed_by_the_knight.html',
+            'info_dict': {
+                'id': '2272726',
+                'ext': 'mp4',
+                'title': 'Amber slayed by the Knight',
+                'upload_date': '20131009',
+                'uploader_id': 'amberblank',
+                'duration': 149,
+                'age_limit': 18,
+            }
+        },
+        {
+            "url": "https://xhamster.com/movies/1444747/hotkinkyjo_amp_asian_girl_elbow_deep_anal_fisting_and_footing.html",
+            'info_dict': {
+                "id": "1444747",
+                'ext': 'mp4',
+                "title": "HOTKINKYJO & ASIAN GIRL ELBOW DEEP ANAL FISTING AND FOOTING",
+                "upload_date": "20120922",
+                "uploader_id": "alex1981",
+                "duration": 80,
+                "age_limit": 18,
+            }
         }
     ]
 
@@ -57,7 +81,8 @@ class XHamsterIE(InfoExtractor):
 
         video_id = mobj.group('id')
         seo = mobj.group('seo')
-        mrss_url = 'http://xhamster.com/movies/%s/%s.html' % (video_id, seo)
+        proto = mobj.group('proto')
+        mrss_url = '%s://xhamster.com/movies/%s/%s.html' % (proto, video_id, seo)
         webpage = self._download_webpage(mrss_url, video_id)
 
         title = self._html_search_regex(r'<title>(?P<title>.+?) - xHamster\.com</title>', webpage, 'title')
