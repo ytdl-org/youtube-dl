@@ -42,28 +42,8 @@ class XHamsterIE(InfoExtractor):
         },
         {
             'url': 'https://xhamster.com/movies/2272726/amber_slayed_by_the_knight.html',
-            'info_dict': {
-                'id': '2272726',
-                'ext': 'mp4',
-                'title': 'Amber slayed by the Knight',
-                'upload_date': '20131009',
-                'uploader_id': 'amberblank',
-                'duration': 149,
-                'age_limit': 18,
-            }
+            'only_matching': True,
         },
-        {
-            "url": "https://xhamster.com/movies/1444747/hotkinkyjo_amp_asian_girl_elbow_deep_anal_fisting_and_footing.html",
-            'info_dict': {
-                "id": "1444747",
-                'ext': 'mp4',
-                "title": "HOTKINKYJO & ASIAN GIRL ELBOW DEEP ANAL FISTING AND FOOTING",
-                "upload_date": "20120922",
-                "uploader_id": "alex1981",
-                "duration": 80,
-                "age_limit": 18,
-            }
-        }
     ]
 
     def _real_extract(self, url):
