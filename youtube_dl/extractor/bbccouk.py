@@ -10,7 +10,7 @@ from ..compat import compat_HTTPError
 class BBCCoUkIE(SubtitlesInfoExtractor):
     IE_NAME = 'bbc.co.uk'
     IE_DESC = 'BBC iPlayer'
-    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:programmes|iplayer/episode)/(?P<id>[\da-z]{8})'
+    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:programmes|iplayer/(?:episode|playlist))/(?P<id>[\da-z]{8})'
 
     _TESTS = [
         {
@@ -84,6 +84,9 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
                 # rtmp download
                 'skip_download': True,
             }
+        }, {
+            'url': 'http://www.bbc.co.uk/iplayer/playlist/p01dvks4',
+            'only_matching': True,
         }
     ]
 
