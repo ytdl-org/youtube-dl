@@ -1,75 +1,118 @@
-from .common import InfoExtractor
-from ..utils import escape_url
+# coding: utf-8
+from __future__ import unicode_literals
 
 import re
 
-class VierIE (InfoExtractor):
-  _VALID_URL = r'(?:http://)?www.vier.be/(?P<program>.*)/videos/(.+?)/(?P<id>\d*)'
-  _TEST = {
-      'url': 'http://www.vier.be/planb/videos/het-wordt-warm-de-moestuin/16129',
-      'md5': 'bf48f4eb998cbde44ecd02fc42c51149',
-      'info_dict': {
-          'id': '16129',
-          'ext': 'mp4',
-          'title': 'Het wordt warm in De Moestuin',
-          'description': 'De vele uren werk eisen hun tol. Wim droomt van assistentie...',
-      },
-  }
+from .common import InfoExtractor
 
-  def _real_extract (self, url):
-    mobj = re.match (self._VALID_URL, url)
 
-    program = mobj.group ('program')
-    video_id = mobj.group ('id')
+class VierIE(InfoExtractor):
+    IE_NAME = 'vier'
+    _VALID_URL = r'https?://(?:www\.)?vier\.be/(?:[^/]+/videos/(?P<display_id>[^/]+)(?:/(?P<id>\d+))?|video/v3/embed/(?P<embed_id>\d+))'
+    _TESTS = [{
+        'url': 'http://www.vier.be/planb/videos/het-wordt-warm-de-moestuin/16129',
+        'info_dict': {
+            'id': '16129',
+            'display_id': 'het-wordt-warm-de-moestuin',
+            'ext': 'mp4',
+            'title': 'Het wordt warm in De Moestuin',
+            'description': 'De vele uren werk eisen hun tol. Wim droomt van assistentie...',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://www.vier.be/planb/videos/mieren-herders-van-de-bladluizen',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.vier.be/video/v3/embed/16129',
+        'only_matching': True,
+    }]
 
-    webpage = self._download_webpage (url, video_id)
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        embed_id = mobj.group('embed_id')
+        display_id = mobj.group('display_id') or embed_id
 
-    title = self._html_search_regex(r'<meta property="og:title" content="(.+?)" />', webpage, u'title')
-    description = self._html_search_regex (r'<meta property="og:description" content="(.+?)" />', webpage, u'description')
-    vod_id =  self._html_search_regex(r'"filename" : "(.+?)"', webpage, u'playlist URL')
-    url = escape_url ("http://vod.streamcloud.be/vier_vod/mp4:_definst_/" + vod_id + ".mp4/playlist.m3u8")
+        webpage = self._download_webpage(url, display_id)
 
-    return {
-        'id': video_id,
-        'title': title,
-        'description': description,
-        'formats': self._extract_m3u8_formats(url, video_id, 'mp4'),
-    }
+        video_id = self._search_regex(
+            r'"nid"\s*:\s*"(\d+)"', webpage, 'video id')
+        application = self._search_regex(
+            r'"application"\s*:\s*"([^"]+)"', webpage, 'application', default='vier_vod')
+        filename = self._search_regex(
+            r'"filename"\s*:\s*"([^"]+)"', webpage, 'filename')
 
-class VierVideosIE (InfoExtractor):
-  _VALID_URL = r'http://www.vier.be/(?P<program>.*)/videos(\?page=(?P<page>\d*))?$'
-  _TESTS = [{
-    'url': 'http://www.vier.be/demoestuin/videos',
-    'info_dict': {
-      'id': 'demoestuin page(0)',
-    },
-    'playlist_mincount': 20,
-  },
-  {
-    'url': 'http://www.vier.be/demoestuin/videos?page=6',
-    'info_dict': {
-      'id': 'demoestuin page(6)',
-    },
-    'playlist_mincount': 20,
-  }]
+        playlist_url = 'http://vod.streamcloud.be/%s/mp4:_definst_/%s.mp4/playlist.m3u8' % (application, filename)
+        formats = self._extract_m3u8_formats(playlist_url, display_id, 'mp4')
 
-  def _real_extract (self, url):
-    mobj = re.match (self._VALID_URL, url)
+        title = self._og_search_title(webpage, default=display_id)
+        description = self._og_search_description(webpage, default=None)
+        thumbnail = self._og_search_thumbnail(webpage, default=None)
 
-    program = mobj.group ('program')
-    page = mobj.group ('page')
-    if page == None:
-      page = 0
-
-    videos_id = program + " page(" + str (page) + ")"
-    videos_page = self._download_webpage (url, videos_id, note='Retrieving videos page')
-
-    return {
-        '_type': 'playlist',
-        'id': videos_id,
-        'entries': [{
-            '_type': 'url',
-            'url': "http://www.vier.be/" + eurl[0],
-            'ie_key': 'Vier',
-          } for eurl in re.findall (r'<h3><a href="(.+?)">(.+?)</a></h3>', videos_page)]
+        return {
+            'id': video_id,
+            'display_id': display_id,
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'formats': formats,
         }
+
+
+class VierVideosIE(InfoExtractor):
+    IE_NAME = 'vier:videos'
+    _VALID_URL = r'https?://(?:www\.)?vier\.be/(?P<program>[^/]+)/videos(?:\?page=(?P<page>\d+))?$'
+    _TESTS = [{
+        'url': 'http://www.vier.be/demoestuin/videos',
+        'info_dict': {
+            'id': 'demoestuin',
+        },
+        'playlist_mincount': 153,
+    }, {
+        'url': 'http://www.vier.be/demoestuin/videos?page=6',
+        'info_dict': {
+            'id': 'demoestuin-page6',
+        },
+        'playlist_mincount': 20,
+    }, {
+        'url': 'http://www.vier.be/demoestuin/videos?page=7',
+        'info_dict': {
+            'id': 'demoestuin-page7',
+        },
+        'playlist_mincount': 13,
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        program = mobj.group('program')
+
+        webpage = self._download_webpage(url, program)
+
+        page_id = mobj.group('page')
+        if page_id:
+            page_id = int(page_id)
+            start_page = page_id
+            last_page = start_page + 1
+            playlist_id = '%s-page%d' % (program, page_id)
+        else:
+            start_page = 0
+            last_page = int(self._search_regex(
+                r'videos\?page=(\d+)">laatste</a>',
+                webpage, 'last page', default=0)) + 1
+            playlist_id = program
+
+        entries = []
+        for current_page_id in range(start_page, last_page):
+            current_page = self._download_webpage(
+                'http://www.vier.be/%s/videos?page=%d' % (program, current_page_id),
+                program,
+                'Downloading page %d' % (current_page_id + 1)) if current_page_id != page_id else webpage
+            page_entries = [
+                self.url_result('http://www.vier.be' + video_url, 'Vier')
+                for video_url in re.findall(
+                    r'<h3><a href="(/[^/]+/videos/[^/]+(?:/\d+)?)">', current_page)]
+            entries.extend(page_entries)
+
+        return self.playlist_result(entries, playlist_id)
