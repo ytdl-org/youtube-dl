@@ -5,6 +5,8 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
+    HEADRequest,
     unified_strdate,
     url_basename,
     qualities,
@@ -75,6 +77,16 @@ class CanalplusIE(InfoExtractor):
         infos = video_info.find('INFOS')
 
         preference = qualities(['MOBILE', 'BAS_DEBIT', 'HAUT_DEBIT', 'HD', 'HLS', 'HDS'])
+
+        fmt_url = next(iter(media.find('VIDEOS'))).text
+        if '/geo' in fmt_url.lower():
+            response = self._request_webpage(
+                HEADRequest(fmt_url), video_id,
+                'Checking if the video is georestricted')
+            if '/blocage' in response.geturl():
+                raise ExtractorError(
+                    'The video is not available in your country',
+                    expected=True)
 
         formats = []
         for fmt in media.find('VIDEOS'):
