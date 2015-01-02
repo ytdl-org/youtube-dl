@@ -905,6 +905,11 @@ class GenericIE(InfoExtractor):
             return _playlist_from_matches(
                 matches, getter=unescapeHTML, ie='FunnyOrDie')
 
+        # Look for BBC iPlayer embed
+        matches = re.findall(r'setPlaylist\("(https?://www\.bbc\.co\.uk/iplayer/[^/]+/[\da-z]{8})"\)', webpage)
+        if matches:
+            return self.playlist_result([self.url_result(video_url, ie='BBCCoUk') for video_url in matches])
+
         # Look for embedded RUTV player
         rutv_url = RUTVIE._extract_url(webpage)
         if rutv_url:
