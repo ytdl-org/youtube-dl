@@ -92,6 +92,8 @@ class InfoExtractor(object):
                                  by this field, regardless of all other values.
                                  -1 for default (order by other properties),
                                  -2 or smaller for less than default.
+                                 < -1000 to hide the format (if there is
+                                    another one which is strictly better)
                     * language_preference  Is this in the correct requested
                                  language?
                                  10 if it's what the URL is about,

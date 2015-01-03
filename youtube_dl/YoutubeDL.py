@@ -1333,7 +1333,9 @@ class YoutubeDL(object):
         formats = info_dict.get('formats', [info_dict])
         idlen = max(len('format code'),
                     max(len(f['format_id']) for f in formats))
-        formats_s = [line(f, idlen) for f in formats]
+        formats_s = [
+            line(f, idlen) for f in formats
+            if f.get('preference') is None or f['preference'] >= -1000]
         if len(formats) > 1:
             formats_s[0] += (' ' if self._format_note(formats[0]) else '') + '(worst)'
             formats_s[-1] += (' ' if self._format_note(formats[-1]) else '') + '(best)'

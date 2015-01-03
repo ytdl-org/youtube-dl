@@ -256,7 +256,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         '135': {'ext': 'mp4', 'height': 480, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
         '136': {'ext': 'mp4', 'height': 720, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
         '137': {'ext': 'mp4', 'height': 1080, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
-        '138': {'ext': 'mp4', 'height': 2160, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
+        '138': {'ext': 'mp4', 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},  # Height can vary (https://github.com/rg3/youtube-dl/issues/4559)
         '160': {'ext': 'mp4', 'height': 144, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
         '264': {'ext': 'mp4', 'height': 1440, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
         '298': {'ext': 'mp4', 'height': 720, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'fps': 60, 'vcodec': 'h264'},
@@ -736,6 +736,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'format_id': format_id,
                 'url': video_url,
                 'width': int_or_none(r.attrib.get('width')),
+                'height': int_or_none(r.attrib.get('height')),
                 'tbr': int_or_none(r.attrib.get('bandwidth'), 1000),
                 'asr': int_or_none(r.attrib.get('audioSamplingRate')),
                 'filesize': filesize,
@@ -746,7 +747,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                     fo for fo in formats
                     if fo['format_id'] == format_id)
             except StopIteration:
-                f.update(self._formats.get(format_id, {}))
+                f.update(self._formats.get(format_id, {}).items())
                 formats.append(f)
             else:
                 existing_format.update(f)
@@ -1040,6 +1041,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                     self.report_warning(
                         'Skipping DASH manifest: %r' % e, video_id)
                 else:
+                    # Hide the formats we found through non-DASH
+                    dash_keys = set(df['format_id'] for df in dash_formats)
+                    for f in formats:
+                        if f['format_id'] in dash_keys:
+                            f['format_id'] = 'nondash-%s' % f['format_id']
+                            f['preference'] -= 10000
                     formats.extend(dash_formats)
 
         self._sort_formats(formats)
