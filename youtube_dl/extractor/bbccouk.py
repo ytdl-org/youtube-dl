@@ -10,7 +10,7 @@ from ..compat import compat_HTTPError
 class BBCCoUkIE(SubtitlesInfoExtractor):
     IE_NAME = 'bbc.co.uk'
     IE_DESC = 'BBC iPlayer'
-    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:programmes|iplayer/(?:episode|playlist))/(?P<id>[\da-z]{8})'
+    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:(?:(?:programmes|iplayer/(?:episode|playlist))/)|music/clips[/#])(?P<id>[\da-z]{8})'
 
     _TESTS = [
         {
@@ -85,7 +85,38 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
                 'skip_download': True,
             }
         }, {
+            'url': 'http://www.bbc.co.uk/music/clips/p02frcc3',
+            'note': 'Audio',
+            'info_dict': {
+                'id': 'p02frcch',
+                'ext': 'flv',
+                'title': 'Pete Tong, Past, Present and Future Special, Madeon - After Hours mix',
+                'description': 'French house superstar Madeon takes us out of the club and onto the after party.',
+                'duration': 3507,
+            },
+            'params': {
+                # rtmp download
+                'skip_download': True,
+            }
+        }, {
+            'url': 'http://www.bbc.co.uk/music/clips/p025c0zz',
+            'note': 'Video',
+            'info_dict': {
+                'id': 'p025c103',
+                'ext': 'flv',
+                'title': 'Reading and Leeds Festival, 2014, Rae Morris - Closer (Live on BBC Three)',
+                'description': 'Rae Morris performs Closer for BBC Three at Reading 2014',
+                'duration': 226,
+            },
+            'params': {
+                # rtmp download
+                'skip_download': True,
+            }
+        }, {
             'url': 'http://www.bbc.co.uk/iplayer/playlist/p01dvks4',
+            'only_matching': True,
+        }, {
+            'url': 'http://www.bbc.co.uk/music/clips#p02frcc3',
             'only_matching': True,
         }
     ]
