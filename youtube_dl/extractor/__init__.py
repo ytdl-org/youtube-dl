@@ -504,6 +504,10 @@ from .vulture import VultureIE
 from .walla import WallaIE
 from .washingtonpost import WashingtonPostIE
 from .wat import WatIE
+from .watch_tv_series import (
+    WatchTvSeriesSeasonIE,
+    WatchTvSeriesEpisodeIE,
+)
 from .wayofthemaster import WayOfTheMasterIE
 from .wdr import (
     WDRIE,
