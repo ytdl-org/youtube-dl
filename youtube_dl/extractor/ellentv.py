@@ -19,6 +19,7 @@ class EllenTVIE(InfoExtractor):
             'id': '0-7jqrsr18',
             'ext': 'mp4',
             'title': 'What\'s Wrong with These Photos? A Whole Lot',
+            'description': 'md5:35f152dc66b587cf13e6d2cf4fa467f6',
             'timestamp': 1406876400,
             'upload_date': '20140801',
         }
@@ -29,6 +30,7 @@ class EllenTVIE(InfoExtractor):
             'id': '0-dvzmabd5',
             'ext': 'mp4',
             'title': '1 year old twin sister makes her brother laugh',
+            'description': '1 year old twin sister makes her brother laugh',
             'timestamp': 1419542075,
             'upload_date': '20141225',
         }
@@ -38,14 +40,20 @@ class EllenTVIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
+        video_url = self._html_search_meta('VideoURL', webpage, 'url')
+        title = self._og_search_title(webpage, default=None) or self._search_regex(
+            r'pageName\s*=\s*"([^"]+)"', webpage, 'title')
+        description = self._html_search_meta(
+            'description', webpage, 'description') or self._og_search_description(webpage)
         timestamp = parse_iso8601(self._search_regex(
             r'<span class="publish-date"><time datetime="([^"]+)">',
             webpage, 'timestamp'))
 
         return {
             'id': video_id,
-            'title': self._og_search_title(webpage),
-            'url': self._html_search_meta('VideoURL', webpage, 'url'),
+            'url': video_url,
+            'title': title,
+            'description': description,
             'timestamp': timestamp,
         }
 
