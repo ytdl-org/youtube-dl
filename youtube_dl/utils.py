@@ -1560,4 +1560,3 @@ def urlhandle_detect_ext(url_handle):
         getheader = url_handle.info().getheader
 
     return getheader('Content-Type').split("/")[1]
-
