@@ -40,7 +40,7 @@ class TF1IE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         embed_url = self._html_search_regex(
-            r'["\'](http(?:s)?://www.wat.tv/embedframe/.*?)["\']', webpage, 'embed url')
+            r'["\'](https?://www.wat.tv/embedframe/.*?)["\']', webpage, 'embed url')
         embed_page = self._download_webpage(embed_url, video_id,
                                             'Downloading embed player page')
         wat_id = self._search_regex(r'UVID=(.*?)&', embed_page, 'wat id')
