@@ -4,7 +4,6 @@ import os
 import subprocess
 
 from .common import FileDownloader
-from ..compat import compat_subprocess_get_DEVNULL
 from ..utils import (
     check_executable,
     encodeFilename,
