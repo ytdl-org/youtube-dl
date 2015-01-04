@@ -46,7 +46,7 @@ test:
 ot: offlinetest
 
 offlinetest: codetest
-	nosetests --verbose test --exclude test_download --exclude test_age_restriction --exclude test_subtitles --exclude test_write_annotations
+	nosetests --verbose test --exclude test_download --exclude test_age_restriction --exclude test_subtitles --exclude test_write_annotations --exclude test_youtube_lists
 
 tar: youtube-dl.tar.gz
 
