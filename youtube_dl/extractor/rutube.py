@@ -70,6 +70,37 @@ class RutubeIE(InfoExtractor):
         }
 
 
+class RutubeEmbedIE(InfoExtractor):
+    IE_NAME = 'rutube:embed'
+    IE_DESC = 'Rutube embedded videos'
+    _VALID_URL = 'https?://rutube\.ru/video/embed/(?P<id>[0-9]+)'
+
+    _TEST = {
+        'url': 'http://rutube.ru/video/embed/6722881?vk_puid37=&vk_puid38=',
+        'info_dict': {
+            'id': 'a10e53b86e8f349080f718582ce4c661',
+            'ext': 'mp4',
+            'upload_date': '20131223',
+            'uploader_id': '297833',
+            'description': 'Видео группы ★http://vk.com/foxkidsreset★ музей Fox Kids и Jetix<br/><br/> восстановлено и сделано в шикоформате subziro89 http://vk.com/subziro89',
+            'uploader': 'subziro89 ILya',
+            'title': 'Мистический городок Эйри в Индиан 5 серия озвучка subziro89',
+        },
+        'params': {
+            'skip_download': 'Requires ffmpeg',
+        },
+    }
+
+    def _real_extract(self, url):
+        embed_id = self._match_id(url)
+        webpage = self._download_webpage(url, embed_id)
+
+        canonical_url = self._html_search_regex(
+            r'<link\s+rel="canonical"\s+href="([^"]+?)"', webpage,
+            'Canonical URL')
+        return self.url_result(canonical_url, 'Rutube')
+
+
 class RutubeChannelIE(InfoExtractor):
     IE_NAME = 'rutube:channel'
     IE_DESC = 'Rutube channels'

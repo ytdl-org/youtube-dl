@@ -164,6 +164,15 @@ class VKIE(InfoExtractor):
             self.to_screen('Youtube video detected')
             return self.url_result(m_yt.group(1), 'Youtube')
 
+        m_rutube = re.search(
+            r'\ssrc="((?:https?:)?//rutube\.ru\\?/video\\?/embed(?:.*?))\\?"', info_page)
+        assert m_rutube
+        if m_rutube is not None:
+            self.to_screen('rutube video detected')
+            rutube_url = self._proto_relative_url(
+                m_rutube.group(1).replace('\\', ''))
+            return self.url_result(rutube_url)
+
         m_opts = re.search(r'(?s)var\s+opts\s*=\s*({.*?});', info_page)
         if m_opts:
             m_opts_url = re.search(r"url\s*:\s*'([^']+)", m_opts.group(1))

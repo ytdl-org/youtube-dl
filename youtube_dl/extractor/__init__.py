@@ -359,6 +359,7 @@ from .ruhd import RUHDIE
 from .rutube import (
     RutubeIE,
     RutubeChannelIE,
+    RutubeEmbedIE,
     RutubeMovieIE,
     RutubePersonIE,
 )
