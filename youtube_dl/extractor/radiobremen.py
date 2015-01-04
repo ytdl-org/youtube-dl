@@ -16,7 +16,6 @@ class RadioBremenIE(InfoExtractor):
         'info_dict': {
             'id': '114720',
             'ext': 'mp4',
-            'height': 288,
             'width': 512,
             'title': 'buten un binnen vom 22. Dezember',
             'description': 'Unter anderem mit diesen Themen: 45 Flüchtlinge sind in Worpswede angekommen +++ Freies Internet für alle: Bremer arbeiten an einem flächendeckenden W-Lan-Netzwerk +++ Aktivisten kämpfen für das Unibad +++ So war das Wetter 2014 +++',
