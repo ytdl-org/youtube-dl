@@ -24,10 +24,11 @@ class TF1IE(InfoExtractor):
     }, {
         'url': 'http://www.tfou.fr/chuggington/videos/le-grand-mysterioso-chuggington-7085291-739.html',
         'info_dict': {
-            'id': '7085291',
+            'id': '12043945',
             'ext': 'mp4',
             'title': 'Le grand Mystérioso - Chuggington',
-            'description': 'Emery rêve qu\'un article lui soit consacré dans le journal.',
+            'description': 'Le grand Mystérioso - Emery rêve qu\'un article lui soit consacré dans le journal.',
+            'upload_date': '20150103',
         },
         'params': {
             # Sometimes wat serves the whole file with the --test option
