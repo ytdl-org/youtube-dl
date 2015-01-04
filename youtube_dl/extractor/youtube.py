@@ -1206,9 +1206,6 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         if playlist_id.startswith('RD'):
             # Mixes require a custom extraction process
             return self._extract_mix(playlist_id)
-        if playlist_id.startswith('TL'):
-            raise ExtractorError('For downloading YouTube.com top lists, use '
-                                 'the "yttoplist" keyword, for example "youtube-dl \'yttoplist:music:Top Tracks\'"', expected=True)
 
         url = self._TEMPLATE_URL % playlist_id
         page = self._download_webpage(url, playlist_id)
@@ -1252,49 +1249,6 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
 
         url_results = self._ids_to_results(ids)
         return self.playlist_result(url_results, playlist_id, playlist_title)
-
-
-class YoutubeTopListIE(YoutubePlaylistIE):
-    IE_NAME = 'youtube:toplist'
-    IE_DESC = ('YouTube.com top lists, "yttoplist:{channel}:{list title}"'
-               ' (Example: "yttoplist:music:Top Tracks")')
-    _VALID_URL = r'yttoplist:(?P<chann>.*?):(?P<title>.*?)$'
-    _TESTS = [{
-        'url': 'yttoplist:music:Trending',
-        'playlist_mincount': 5,
-        'skip': 'Only works for logged-in users',
-    }]
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        channel = mobj.group('chann')
-        title = mobj.group('title')
-        query = compat_urllib_parse.urlencode({'title': title})
-        channel_page = self._download_webpage(
-            'https://www.youtube.com/%s' % channel, title)
-        link = self._html_search_regex(
-            r'''(?x)
-                <a\s+href="([^"]+)".*?>\s*
-                <span\s+class="branded-page-module-title-text">\s*
-                <span[^>]*>.*?%s.*?</span>''' % re.escape(query),
-            channel_page, 'list')
-        url = compat_urlparse.urljoin('https://www.youtube.com/', link)
-
-        video_re = r'data-index="\d+".*?data-video-id="([0-9A-Za-z_-]{11})"'
-        ids = []
-        # sometimes the webpage doesn't contain the videos
-        # retry until we get them
-        for i in itertools.count(0):
-            msg = 'Downloading Youtube mix'
-            if i > 0:
-                msg += ', retry #%d' % i
-
-            webpage = self._download_webpage(url, title, msg)
-            ids = orderedSet(re.findall(video_re, webpage))
-            if ids:
-                break
-        url_results = self._ids_to_results(ids)
-        return self.playlist_result(url_results, playlist_title=title)
 
 
 class YoutubeChannelIE(InfoExtractor):

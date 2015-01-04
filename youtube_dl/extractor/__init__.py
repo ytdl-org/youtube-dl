@@ -546,7 +546,6 @@ from .youtube import (
     YoutubeSearchURLIE,
     YoutubeShowIE,
     YoutubeSubscriptionsIE,
-    YoutubeTopListIE,
     YoutubeTruncatedIDIE,
     YoutubeTruncatedURLIE,
     YoutubeUserIE,
