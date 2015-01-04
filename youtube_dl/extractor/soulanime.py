@@ -3,6 +3,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import (
+    HEADRequest,
+    urlhandle_detect_ext,
+)
 
 
 class SoulAnimeWatchingIE(InfoExtractor):
@@ -31,8 +35,10 @@ class SoulAnimeWatchingIE(InfoExtractor):
             r'<div id="download">[^<]*<a href="(?P<url>[^"]+)"', page, 'url')
         video_url = "http://www.soul-anime." + domain + video_url_encoded
 
-        vid = self._request_webpage(video_url, video_id)
-        ext = vid.info().gettype().split("/")[1]
+        ext_req = HEADRequest(video_url)
+        ext_handle = self._request_webpage(
+            ext_req, video_id, note='Determining extension')
+        ext = urlhandle_detect_ext(ext_handle)
 
         return {
             'id': video_id,

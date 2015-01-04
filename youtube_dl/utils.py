@@ -1550,3 +1550,14 @@ def ytdl_is_updateable():
 def args_to_str(args):
     # Get a short string representation for a subprocess command
     return ' '.join(shlex_quote(a) for a in args)
+
+
+def urlhandle_detect_ext(url_handle):
+    try:
+        url_handle.headers
+        getheader = lambda h: url_handle.headers[h]
+    except AttributeError:  # Python < 3
+        getheader = url_handle.info().getheader
+
+    return getheader('Content-Type').split("/")[1]
+
