@@ -14,27 +14,16 @@ class VimpleIE(InfoExtractor):
     IE_DESC = 'Vimple.ru'
     _VALID_URL = r'https?://(player.vimple.ru/iframe|vimple.ru)/(?P<id>[a-f0-9]{10,})'
     _TESTS = [
-        # Quality: Large, from iframe
         {
-            'url': 'http://player.vimple.ru/iframe/b132bdfd71b546d3972f9ab9a25f201c',
+            'url': 'http://vimple.ru/c0f6b1687dcd4000a97ebe70068039cf',
+            'md5': '2e750a330ed211d3fd41821c6ad9a279',
             'info_dict': {
-                'id': 'b132bdfd71b546d3972f9ab9a25f201c',
-                'title': 'great-escape-minecraft.flv',
+                'id': 'c0f6b1687dcd4000a97ebe70068039cf',
                 'ext': 'mp4',
-                'duration': 352,
-                'webpage_url': 'http://vimple.ru/b132bdfd71b546d3972f9ab9a25f201c',
+                'title': 'Sunset',
+                'duration': 20,
+                'thumbnail': 're:https?://.*?\.jpg',
             },
-        },
-        # Quality: Medium, from mainpage
-        {
-            'url': 'http://vimple.ru/a15950562888453b8e6f9572dc8600cd',
-            'info_dict': {
-                'id': 'a15950562888453b8e6f9572dc8600cd',
-                'title': 'DB 01',
-                'ext': 'flv',
-                'duration': 1484,
-                'webpage_url': 'http://vimple.ru/a15950562888453b8e6f9572dc8600cd',
-            }
         },
     ]
 
