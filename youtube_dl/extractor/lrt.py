@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
 from ..utils import (
@@ -28,7 +27,6 @@ class LRTIE(InfoExtractor):
         'params': {
             'skip_download': True,  # HLS download
         },
-
     }
 
     def _real_extract(self, url):
@@ -44,7 +42,9 @@ class LRTIE(InfoExtractor):
 
         formats = []
         for js in re.findall(r'(?s)config:\s*(\{.*?\})', webpage):
-            data = json.loads(js_to_json(js))
+            data = self._parse_json(js, video_id, transform_source=js_to_json)
+            if 'provider' not in data:
+                continue
             if data['provider'] == 'rtmp':
                 formats.append({
                     'format_id': 'rtmp',
