@@ -191,6 +191,10 @@ def write_unsigned_int(stream, val):
     stream.write(struct_pack('!I', val))
 
 
+def write_unsigned_int_24(stream, val):
+    stream.write(struct_pack('!I', val)[1:])
+
+
 def write_flv_header(stream):
     """Writes the FLV header to stream"""
     # FLV header
@@ -202,13 +206,12 @@ def write_flv_header(stream):
 
 def write_metadata_tag(stream, metadata):
     """Writes optional metadata tag to stream"""
+    SCRIPT_TAG = b'\x12'
     FLV_TAG_HEADER_LEN = 11
 
     if metadata:
-        # Script data
-        stream.write(b'\x12')
-        # Size of the metadata with 3 bytes
-        stream.write(struct_pack('!L', len(metadata))[1:])
+        stream.write(SCRIPT_TAG)
+        write_unsigned_int_24(stream, len(metadata))
         stream.write(b'\x00\x00\x00\x00\x00\x00\x00')
         stream.write(metadata)
         write_unsigned_int(stream, FLV_TAG_HEADER_LEN + len(metadata))
