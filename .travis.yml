@@ -9,7 +9,6 @@ notifications:
   email:
     - filippo.valsorda@gmail.com
     - phihag@phihag.de
-    - jaime.marquinez.ferrandiz+travis@gmail.com
     - yasoob.khld@gmail.com
 #  irc:
 #    channels:
