@@ -8,7 +8,7 @@ from ..utils import parse_duration
 
 class RtlXlIE(InfoExtractor):
     IE_NAME = 'rtlxl.nl'
-    _VALID_URL = r'https?://www\.rtlxl\.nl/#!/[^/]+/(?P<uuid>[^/?]+)'
+    _VALID_URL = r'https?://(www\.)?rtlxl\.nl/#!/[^/]+/(?P<uuid>[^/?]+)'
 
     _TEST = {
         'url': 'http://www.rtlxl.nl/#!/rtl-nieuws-132237/6e4203a6-0a5e-3596-8424-c599a59e0677',
