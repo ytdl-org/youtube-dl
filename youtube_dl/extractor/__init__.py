@@ -511,6 +511,7 @@ from .wdr import (
     WDRMobileIE,
     WDRMausIE,
 )
+from .webofstories import WebOfStoriesIE
 from .weibo import WeiboIE
 from .wimp import WimpIE
 from .wistia import WistiaIE
