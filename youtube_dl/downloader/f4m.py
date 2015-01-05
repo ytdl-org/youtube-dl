@@ -187,6 +187,10 @@ def build_fragments_list(boot_info):
     return res
 
 
+def write_unsigned_int(stream, val):
+    stream.write(struct_pack('!I', val))
+
+
 def write_flv_header(stream):
     """Writes the FLV header to stream"""
     # FLV header
@@ -198,6 +202,8 @@ def write_flv_header(stream):
 
 def write_metadata_tag(stream, metadata):
     """Writes optional metadata tag to stream"""
+    FLV_TAG_HEADER_LEN = 11
+
     if metadata:
         # Script data
         stream.write(b'\x12')
@@ -205,9 +211,7 @@ def write_metadata_tag(stream, metadata):
         stream.write(struct_pack('!L', len(metadata))[1:])
         stream.write(b'\x00\x00\x00\x00\x00\x00\x00')
         stream.write(metadata)
-        # Magic numbers extracted from the output files produced by AdobeHDS.php
-        # (https://github.com/K-S-V/Scripts)
-        stream.write(b'\x00\x00\x01\x73')
+        write_unsigned_int(stream, FLV_TAG_HEADER_LEN + len(metadata))
 
 
 def _add_ns(prop):
