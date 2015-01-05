@@ -7,6 +7,7 @@ from ..compat import compat_urllib_parse
 from ..utils import (
     determine_ext,
     ExtractorError,
+    remove_end,
 )
 
 
@@ -27,18 +28,18 @@ class AUEngineIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
-        title = self._html_search_regex(r'<title>(?P<title>.+?)</title>', webpage, 'title')
-        title = title.strip()
-        video_url = re.findall(r'http://\w+.auengine.com/vod/.*[^\W]', webpage)
-        video_url = map(compat_urllib_parse.unquote, video_url)[0]
-        thumbnail = re.findall(r'http://\w+.auengine.com/thumb/.*[^\W]', webpage)
-        thumbnail = map(compat_urllib_parse.unquote, thumbnail)[0]
+        title = self._html_search_regex(
+            r'<title>\s*(?P<title>.+?)\s*</title>', webpage, 'title')
+        video_urls = re.findall(r'http://\w+.auengine.com/vod/.*[^\W]', webpage)
+        video_url = compat_urllib_parse.unquote(video_urls[0])
+        thumbnails = re.findall(r'http://\w+.auengine.com/thumb/.*[^\W]', webpage)
+        thumbnail = compat_urllib_parse.unquote(thumbnails[0])
 
-        if video_url == "" and thumbnail =="":
+        if not video_url:
             raise ExtractorError('Could not find video URL')
+
         ext = '.' + determine_ext(video_url)
-        if ext == title[-len(ext):]:
-            title = title[:-len(ext)]
+        title = remove_end(title, ext)
 
         return {
             'id': video_id,
@@ -47,4 +48,3 @@ class AUEngineIE(InfoExtractor):
             'thumbnail': thumbnail,
             'http_referer': 'http://www.auengine.com/flowplayer/flowplayer.commercial-3.2.14.swf',
         }
-
