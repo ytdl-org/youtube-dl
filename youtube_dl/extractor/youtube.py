@@ -1046,7 +1046,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                     for f in formats:
                         if f['format_id'] in dash_keys:
                             f['format_id'] = 'nondash-%s' % f['format_id']
-                            f['preference'] -= 10000
+                            f['preference'] = f.get('preference', 0) - 10000
                     formats.extend(dash_formats)
 
         self._sort_formats(formats)
