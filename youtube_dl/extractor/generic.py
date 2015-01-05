@@ -926,7 +926,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded TED player
         mobj = re.search(
-                r'<iframe[^>]+?src=(["\'])(?P<url>https?://embed(?:-ssl)?\.ted\.com/.+?)\1', webpage)
+            r'<iframe[^>]+?src=(["\'])(?P<url>https?://embed(?:-ssl)?\.ted\.com/.+?)\1', webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'TED')
 
