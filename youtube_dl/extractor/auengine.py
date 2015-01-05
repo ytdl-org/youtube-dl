@@ -29,17 +29,12 @@ class AUEngineIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         title = self._html_search_regex(r'<title>(?P<title>.+?)</title>', webpage, 'title')
         title = title.strip()
-        links = re.findall(r'\s(?:file|url):\s*["\']([^\'"]+)["\']', webpage)
-        links = map(compat_urllib_parse.unquote, links)
+        video_url = re.findall(r'http://\w+.auengine.com/vod/.*[^\W]', webpage)
+        video_url = map(compat_urllib_parse.unquote, video_url)[0]
+        thumbnail = re.findall(r'http://\w+.auengine.com/thumb/.*[^\W]', webpage)
+        thumbnail = map(compat_urllib_parse.unquote, thumbnail)[0]
 
-        thumbnail = None
-        video_url = None
-        for link in links:
-            if link.endswith('.png'):
-                thumbnail = link
-            elif '/videos/' in link:
-                video_url = link
-        if not video_url:
+        if video_url == "" and thumbnail =="":
             raise ExtractorError('Could not find video URL')
         ext = '.' + determine_ext(video_url)
         if ext == title[-len(ext):]:
@@ -52,3 +47,4 @@ class AUEngineIE(InfoExtractor):
             'thumbnail': thumbnail,
             'http_referer': 'http://www.auengine.com/flowplayer/flowplayer.commercial-3.2.14.swf',
         }
+
