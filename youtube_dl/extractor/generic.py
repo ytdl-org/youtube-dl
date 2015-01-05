@@ -131,12 +131,13 @@ class GenericIE(InfoExtractor):
         # ooyala video
         {
             'url': 'http://www.rollingstone.com/music/videos/norwegian-dj-cashmere-cat-goes-spartan-on-with-me-premiere-20131219',
-            'md5': '5644c6ca5d5782c1d0d350dad9bd840c',
+            'md5': '166dd577b433b4d4ebfee10b0824d8ff',
             'info_dict': {
                 'id': 'BwY2RxaTrTkslxOfcan0UCf0YqyvWysJ',
                 'ext': 'mp4',
                 'title': '2cc213299525360.mov',  # that's what we get
             },
+            'add_ie': ['Ooyala'],
         },
         # google redirect
         {
@@ -146,7 +147,7 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'upload_date': '20130224',
                 'uploader_id': 'TheVerge',
-                'description': 'Chris Ziegler takes a look at the Alcatel OneTouch Fire and the ZTE Open; two of the first Firefox OS handsets to be officially announced.',
+                'description': 're:^Chris Ziegler takes a look at the\.*',
                 'uploader': 'The Verge',
                 'title': 'First Firefox OS phones side-by-side',
             },
