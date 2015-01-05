@@ -22,7 +22,11 @@ class NormalbootsIE(InfoExtractor):
             'description': 'Jon is late for Christmas. Typical. Thanks to: Paul Ritchey for Co-Writing/Filming: http://www.youtube.com/user/ContinueShow Michael Azzi for Christmas Intro Animation: http://michafrar.tumblr.com/ Jerrod Waters for Christmas Intro Music: http://www.youtube.com/user/xXJerryTerryXx Casey Ormond for ‘Tense Battle Theme’:\xa0http://www.youtube.com/Kiamet/',
             'uploader': 'JonTron',
             'upload_date': '20140125',
-        }
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        },
     }
 
     def _real_extract(self, url):
