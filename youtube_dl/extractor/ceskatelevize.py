@@ -145,7 +145,7 @@ class CeskaTelevizeIE(SubtitlesInfoExtractor):
                 if m:
                     yield m.group(1)
                     start, stop = (_msectotimecode(int(t)) for t in m.groups()[1:])
-                    yield "{} --> {}".format(start, stop)
+                    yield "{0} --> {1}".format(start, stop)
                 else:
                     yield line
 
