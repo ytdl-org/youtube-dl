@@ -17,6 +17,7 @@ from youtube_dl.extractor import (
     TEDIE,
     VimeoIE,
     WallaIE,
+    CeskaTelevizeIE,
 )
 
 
@@ -311,6 +312,33 @@ class TestWallaSubtitles(BaseTestSubtitles):
     def test_nosubtitles(self):
         self.DL.expect_warning('video doesn\'t have subtitles')
         self.url = 'http://vod.walla.co.il/movie/2642630/one-direction-all-for-one'
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(len(subtitles), 0)
+
+
+class TestCeskaTelevizeSubtitles(BaseTestSubtitles):
+    url = 'http://www.ceskatelevize.cz/ivysilani/10600540290-u6-uzasny-svet-techniky'
+    IE = CeskaTelevizeIE
+
+    def test_list_subtitles(self):
+        self.DL.expect_warning('Automatic Captions not supported by this server')
+        self.DL.params['listsubtitles'] = True
+        info_dict = self.getInfoDict()
+        self.assertEqual(info_dict, None)
+
+    def test_allsubtitles(self):
+        self.DL.expect_warning('Automatic Captions not supported by this server')
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(set(subtitles.keys()), set(['cs']))
+        self.assertEqual(md5(subtitles['cs']), '9bf52d9549533c32c427e264bf0847d4')
+
+    def test_nosubtitles(self):
+        self.DL.expect_warning('video doesn\'t have subtitles')
+        self.url = 'http://www.ceskatelevize.cz/ivysilani/ivysilani/10441294653-hyde-park-civilizace/214411058091220'
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
