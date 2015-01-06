@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
+from .subtitles import SubtitlesInfoExtractor
 from ..compat import (
     compat_urllib_request,
     compat_urllib_parse,
@@ -12,10 +12,11 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     float_or_none,
+    HEADRequest,
 )
 
 
-class CeskaTelevizeIE(InfoExtractor):
+class CeskaTelevizeIE(SubtitlesInfoExtractor):
     _VALID_URL = r'https?://www\.ceskatelevize\.cz/(porady|ivysilani)/(.+/)?(?P<id>[^?#]+)'
 
     _TESTS = [
@@ -104,6 +105,15 @@ class CeskaTelevizeIE(InfoExtractor):
         duration = float_or_none(item.get('duration'))
         thumbnail = item.get('previewImageUrl')
 
+        # subtitles
+        subtitles = self.extract_subtitles(video_id, webpage)
+
+        if self._downloader.params.get('listsubtitles', False):
+            self._list_available_subtitles(video_id, webpage)
+            return
+
+        subtitles = self._fix_subtitles(self.extract_subtitles(video_id, webpage))
+
         return {
             'id': episode_id,
             'title': title,
@@ -111,4 +121,45 @@ class CeskaTelevizeIE(InfoExtractor):
             'thumbnail': thumbnail,
             'duration': duration,
             'formats': formats,
+            'subtitles': subtitles,
         }
+
+    def _fix_subtitles(self, subtitles):
+        """ Convert milisecond-based subtitles to SRT """
+        if subtitles is None:
+            return subtitles  # subtitles not requested
+
+        def _msectotimecode(msec):
+            """ Helper utility to convert miliseconds to timecode """
+            components = []
+            for divider in [1000, 60, 60, 100]:
+                components.append(msec % divider)
+                msec //= divider
+            return "{3:02}:{2:02}:{1:02},{0:03}".format(*components)
+
+        def _fix_subtitle(subtitle):
+            for line in subtitle.splitlines():
+                m = re.match(r"^ *([0-9]+); *([0-9]+) +([0-9]+) *$", line)
+                if m:
+                    yield m.group(1)
+                    start, stop = (_msectotimecode(int(t)) for t in m.groups()[1:])
+                    yield "{} --> {}".format(start, stop)
+                else:
+                    yield line
+
+        fixed_subtitles = {}
+        for k, v in subtitles.items():
+            fixed_subtitles[k] = "\r\n".join(_fix_subtitle(v))
+        return fixed_subtitles
+
+    def _get_available_subtitles(self, video_id, webpage):
+        video_id = video_id.partition('-')[0]
+        url = 'http://imgct.ceskatelevize.cz/cache/data/ivysilani/' \
+              'subtitles/{}/{}/sub.txt'.format(video_id[:3], video_id)
+        req = HEADRequest(url)
+        sub = self._request_webpage(
+            req, video_id,
+            note="Checking subtitles",
+            errnote="No subtitles found",
+            fatal=False)
+        return {'cs': url} if sub else {}
