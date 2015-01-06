@@ -159,6 +159,7 @@ from .gametrailers import GametrailersIE
 from .gdcvault import GDCVaultIE
 from .generic import GenericIE
 from .giantbomb import GiantBombIE
+from .giga import GigaIE
 from .glide import GlideIE
 from .globo import GloboIE
 from .godtube import GodTubeIE
