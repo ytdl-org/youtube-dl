@@ -24,7 +24,7 @@ class SexyKarmaIE(InfoExtractor):
             'title': 'Taking a quick pee.',
             'thumbnail': 're:^https?://.*\.jpg$',
             'uploader': 'wildginger7',
-            'upload_date': '20141007',
+            'upload_date': '20141008',
             'duration': 22,
             'view_count': int,
             'comment_count': int,
@@ -45,6 +45,7 @@ class SexyKarmaIE(InfoExtractor):
             'view_count': int,
             'comment_count': int,
             'categories': list,
+            'age_limit': 18,
         }
     }, {
         'url': 'http://www.watchindianporn.net/video/desi-dancer-namrata-stripping-completely-nude-and-dancing-on-a-hot-number-dW2mtctxJfs.html',
@@ -61,6 +62,7 @@ class SexyKarmaIE(InfoExtractor):
             'view_count': int,
             'comment_count': int,
             'categories': list,
+            'age_limit': 18,
         }
     }]
 
@@ -114,4 +116,5 @@ class SexyKarmaIE(InfoExtractor):
             'view_count': view_count,
             'comment_count': comment_count,
             'categories': categories,
+            'age_limit': 18,
         }
