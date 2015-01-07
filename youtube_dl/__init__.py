@@ -38,7 +38,7 @@ from .update import update_self
 from .downloader import (
     FileDownloader,
 )
-from .extractor import list_extractors
+from .extractor import gen_extractors, list_extractors
 from .YoutubeDL import YoutubeDL
 
 
@@ -363,3 +363,5 @@ def main(argv=None):
         sys.exit('ERROR: fixed output name but more than one file to download')
     except KeyboardInterrupt:
         sys.exit('\nERROR: Interrupted by user')
+
+__all__ = ['main', 'YoutubeDL', 'gen_extractors', 'list_extractors']
