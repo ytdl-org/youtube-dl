@@ -111,9 +111,6 @@ class NRKTVIE(InfoExtractor):
                 'upload_date': '20150106',
             },
             'skip': 'Only works from Norway',
-            'params': {
-                'proxy': '127.0.0.1:8118',
-            },
         },
         {
             'url': 'http://tv.nrk.no/serie/tour-de-ski/MSPO40010515/06-01-2015',
@@ -147,9 +144,6 @@ class NRKTVIE(InfoExtractor):
                 'duration': 6947.5199999999995,
             },
             'skip': 'Only works from Norway',
-            'params': {
-                'proxy': '127.0.0.1:8118',
-            },
         }
     ]
 
