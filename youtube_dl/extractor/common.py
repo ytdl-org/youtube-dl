@@ -594,7 +594,7 @@ class InfoExtractor(object):
         return self._html_search_regex(
             r'''(?isx)<meta
                     (?=[^>]+(?:itemprop|name|property)=(["\']?)%s\1)
-                    [^>]+content=(["\'])(?P<content>.*?)\1''' % re.escape(name),
+                    [^>]+?content=(["\'])(?P<content>.*?)\2''' % re.escape(name),
             html, display_name, fatal=fatal, group='content', **kwargs)
 
     def _dc_search_uploader(self, html):
