@@ -105,6 +105,9 @@ class OCWMITIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Lecture 7: Multiple Discrete Random Variables: Expectations, Conditioning, Independence',
                 'description': 'In this lecture, the professor discussed multiple random variables, expectations, and binomial distribution.',
+                'upload_date': '20121109',
+                'uploader_id': 'MIT',
+                'uploader': 'MIT OpenCourseWare',
                 # 'subtitles': 'http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-041-probabilistic-systems-analysis-and-applied-probability-fall-2010/video-lectures/lecture-7-multiple-variables-expectations-independence/MIT6_041F11_lec07_300k.mp4.srt'
             }
         },
@@ -114,6 +117,9 @@ class OCWMITIE(InfoExtractor):
                 'id': '7K1sB05pE0A',
                 'ext': 'mp4',
                 'title': 'Session 1: Introduction to Derivatives',
+                'upload_date': '20090818',
+                'uploader_id': 'MIT',
+                'uploader': 'MIT OpenCourseWare',
                 'description': 'This section contains lecture video excerpts, lecture notes, an interactive mathlet with supporting documents, and problem solving videos.',
                 # 'subtitles': 'http://ocw.mit.edu//courses/mathematics/18-01sc-single-variable-calculus-fall-2010/ocw-18.01-f07-lec01_300k.SRT'
             }
