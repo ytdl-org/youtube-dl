@@ -560,8 +560,6 @@ from .zingmp3 import (
     ZingMp3AlbumIE,
 )
 
-from ..utils import age_restricted
-
 _ALL_CLASSES = [
     klass
     for name, klass in globals().items()
