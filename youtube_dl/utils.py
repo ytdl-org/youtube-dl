@@ -1560,3 +1560,13 @@ def urlhandle_detect_ext(url_handle):
         getheader = url_handle.info().getheader
 
     return getheader('Content-Type').split("/")[1]
+
+
+def age_restricted(content_limit, age_limit):
+    """ Returns True iff the content should be blocked """
+
+    if age_limit is None:  # No limit set
+        return False
+    if content_limit is None:
+        return False  # Content available for everyone
+    return age_limit < content_limit

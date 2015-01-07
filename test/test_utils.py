@@ -16,6 +16,7 @@ import json
 import xml.etree.ElementTree
 
 from youtube_dl.utils import (
+    age_restricted,
     args_to_str,
     clean_html,
     DateRange,
@@ -401,6 +402,13 @@ built on May 15 2014 22:09:06 with gcc 4.8.2 (GCC)'''), 'N-63176-g1fb4685')
 Trying to open render node...
 Success at /dev/dri/renderD128.
 ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
+
+    def test_age_restricted(self):
+        self.assertFalse(age_restricted(None, 10))  # unrestricted content
+        self.assertFalse(age_restricted(1, None))  # unrestricted policy
+        self.assertFalse(age_restricted(8, 10))
+        self.assertTrue(age_restricted(18, 14))
+        self.assertFalse(age_restricted(18, 18))
 
 if __name__ == '__main__':
     unittest.main()

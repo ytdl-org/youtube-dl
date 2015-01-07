@@ -21,6 +21,7 @@ from ..compat import (
     compat_str,
 )
 from ..utils import (
+    age_restricted,
     clean_html,
     compiled_regex_type,
     ExtractorError,
@@ -876,6 +877,35 @@ class InfoExtractor(object):
             0, name, value, None, None, domain, None,
             None, '/', True, False, expire_time, '', None, None, None)
         self._downloader.cookiejar.set_cookie(cookie)
+
+    def get_testcases(self, include_onlymatching=False):
+        t = getattr(self, '_TEST', None)
+        if t:
+            assert not hasattr(self, '_TESTS'), \
+                '%s has _TEST and _TESTS' % type(self).__name__
+            tests = [t]
+        else:
+            tests = getattr(self, '_TESTS', [])
+        for t in tests:
+            if not include_onlymatching and t.get('only_matching', False):
+                continue
+            t['name'] = type(self).__name__[:-len('IE')]
+            yield t
+
+    def is_suitable(self, age_limit):
+        """ Test whether the extractor is generally suitable for the given
+        age limit (i.e. pornographic sites are not, all others usually are) """
+
+        any_restricted = False
+        for tc in self.get_testcases(include_onlymatching=False):
+            if 'playlist' in tc:
+                tc = tc['playlist'][0]
+            is_restricted = age_restricted(
+                tc.get('info_dict', {}).get('age_limit'), age_limit)
+            if not is_restricted:
+                return True
+            any_restricted = any_restricted or is_restricted
+        return not any_restricted
 
 
 class SearchInfoExtractor(InfoExtractor):

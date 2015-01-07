@@ -82,18 +82,8 @@ class FakeYDL(YoutubeDL):
 
 def gettestcases(include_onlymatching=False):
     for ie in youtube_dl.extractor.gen_extractors():
-        t = getattr(ie, '_TEST', None)
-        if t:
-            assert not hasattr(ie, '_TESTS'), \
-                '%s has _TEST and _TESTS' % type(ie).__name__
-            tests = [t]
-        else:
-            tests = getattr(ie, '_TESTS', [])
-        for t in tests:
-            if not include_onlymatching and t.get('only_matching', False):
-                continue
-            t['name'] = type(ie).__name__[:-len('IE')]
-            yield t
+        for tc in ie.get_testcases(include_onlymatching):
+            yield tc
 
 
 md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
