@@ -4,9 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_parse_qs
 from ..utils import (
-    ExtractorError,
     int_or_none,
     unified_strdate,
 )
@@ -54,45 +52,38 @@ class BiliBiliIE(InfoExtractor):
         thumbnail = self._html_search_meta(
             'thumbnailUrl', video_code, 'thumbnail', fatal=False)
 
-        player_params = compat_parse_qs(self._html_search_regex(
-            r'<iframe .*?class="player" src="https://secure\.bilibili\.(?:tv|com)/secure,([^"]+)"',
-            webpage, 'player params'))
+        cid = self._search_regex(r'cid=(\d+)', webpage, 'cid')
 
-        if 'cid' in player_params:
-            cid = player_params['cid'][0]
+        lq_doc = self._download_xml(
+            'http://interface.bilibili.com/v_cdn_play?appkey=1&cid=%s' % cid,
+            video_id,
+            note='Downloading LQ video info'
+        )
+        lq_durl = lq_doc.find('./durl')
+        formats = [{
+            'format_id': 'lq',
+            'quality': 1,
+            'url': lq_durl.find('./url').text,
+            'filesize': int_or_none(
+                lq_durl.find('./size'), get_attr='text'),
+        }]
 
-            lq_doc = self._download_xml(
-                'http://interface.bilibili.cn/v_cdn_play?cid=%s' % cid,
-                video_id,
-                note='Downloading LQ video info'
-            )
-            lq_durl = lq_doc.find('.//durl')
-            formats = [{
-                'format_id': 'lq',
-                'quality': 1,
-                'url': lq_durl.find('./url').text,
+        hq_doc = self._download_xml(
+            'http://interface.bilibili.com/playurl?appkey=1&cid=%s' % cid,
+            video_id,
+            note='Downloading HQ video info',
+            fatal=False,
+        )
+        if hq_doc is not False:
+            hq_durl = hq_doc.find('./durl')
+            formats.append({
+                'format_id': 'hq',
+                'quality': 2,
+                'ext': 'flv',
+                'url': hq_durl.find('./url').text,
                 'filesize': int_or_none(
-                    lq_durl.find('./size'), get_attr='text'),
-            }]
-
-            hq_doc = self._download_xml(
-                'http://interface.bilibili.cn/playurl?cid=%s' % cid,
-                video_id,
-                note='Downloading HQ video info',
-                fatal=False,
-            )
-            if hq_doc is not False:
-                hq_durl = hq_doc.find('.//durl')
-                formats.append({
-                    'format_id': 'hq',
-                    'quality': 2,
-                    'ext': 'flv',
-                    'url': hq_durl.find('./url').text,
-                    'filesize': int_or_none(
-                        hq_durl.find('./size'), get_attr='text'),
-                })
-        else:
-            raise ExtractorError('Unsupported player parameters: %r' % (player_params,))
+                    hq_durl.find('./size'), get_attr='text'),
+            })
 
         self._sort_formats(formats)
         return {
