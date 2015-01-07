@@ -38,7 +38,7 @@ from .update import update_self
 from .downloader import (
     FileDownloader,
 )
-from .extractor import gen_extractors
+from .extractor import list_extractors
 from .YoutubeDL import YoutubeDL
 
 
@@ -95,17 +95,15 @@ def _real_main(argv=None):
     _enc = preferredencoding()
     all_urls = [url.decode(_enc, 'ignore') if isinstance(url, bytes) else url for url in all_urls]
 
-    extractors = gen_extractors()
-
     if opts.list_extractors:
-        for ie in sorted(extractors, key=lambda ie: ie.IE_NAME.lower()):
+        for ie in list_extractors(opts.age_limit):
             compat_print(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else ''))
             matchedUrls = [url for url in all_urls if ie.suitable(url)]
             for mu in matchedUrls:
                 compat_print('  ' + mu)
         sys.exit(0)
     if opts.list_extractor_descriptions:
-        for ie in sorted(extractors, key=lambda ie: ie.IE_NAME.lower()):
+        for ie in list_extractors(opts.age_limit):
             if not ie._WORKING:
                 continue
             desc = getattr(ie, 'IE_DESC', ie.IE_NAME)

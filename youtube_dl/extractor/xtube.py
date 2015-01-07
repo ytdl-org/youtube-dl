@@ -95,6 +95,7 @@ class XTubeUserIE(InfoExtractor):
         'url': 'http://www.xtube.com/community/profile.php?user=greenshowers',
         'info_dict': {
             'id': 'greenshowers',
+            'age_limit': 18,
         },
         'playlist_mincount': 155,
     }
@@ -124,6 +125,7 @@ class XTubeUserIE(InfoExtractor):
         return {
             '_type': 'playlist',
             'id': username,
+            'age_limit': 18,
             'entries': [{
                 '_type': 'url',
                 'url': eurl,

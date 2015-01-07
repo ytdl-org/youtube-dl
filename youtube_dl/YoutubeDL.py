@@ -63,6 +63,7 @@ from .utils import (
     YoutubeDLHandler,
     prepend_extension,
     args_to_str,
+    age_restricted,
 )
 from .cache import Cache
 from .extractor import get_info_extractor, gen_extractors
@@ -550,13 +551,8 @@ class YoutubeDL(object):
             max_views = self.params.get('max_views')
             if max_views is not None and view_count > max_views:
                 return 'Skipping %s, because it has exceeded the maximum view count (%d/%d)' % (video_title, view_count, max_views)
-        age_limit = self.params.get('age_limit')
-        if age_limit is not None:
-            actual_age_limit = info_dict.get('age_limit')
-            if actual_age_limit is None:
-                actual_age_limit = 0
-            if age_limit < actual_age_limit:
-                return 'Skipping "' + title + '" because it is age restricted'
+        if age_restricted(info_dict.get('age_limit'), self.params.get('age_limit')):
+            return 'Skipping "%s" because it is age restricted' % title
         if self.in_download_archive(info_dict):
             return '%s has already been recorded in archive' % video_title
         return None
