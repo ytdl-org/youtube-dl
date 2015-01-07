@@ -10,14 +10,14 @@ from ..utils import (
 
 
 class WashingtonPostIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:www\.)?washingtonpost\.com/.*?/(?P<id>[^/]+)/(?:$|[?#])'
+    _VALID_URL = r'https?://(?:www\.)?washingtonpost\.com/.*?/(?P<id>[^/]+)/(?:$|[?#])'
     _TEST = {
         'url': 'http://www.washingtonpost.com/sf/national/2014/03/22/sinkhole-of-bureaucracy/',
         'info_dict': {
             'title': 'Sinkhole of bureaucracy',
         },
         'playlist': [{
-            'md5': 'c3f4b4922ffa259243f68e928db2db8c',
+            'md5': '79132cc09ec5309fa590ae46e4cc31bc',
             'info_dict': {
                 'id': 'fc433c38-b146-11e3-b8b3-44b1d1cd4c1f',
                 'ext': 'mp4',
@@ -29,7 +29,7 @@ class WashingtonPostIE(InfoExtractor):
                 'upload_date': '20140322',
             },
         }, {
-            'md5': 'f645a07652c2950cd9134bb852c5f5eb',
+            'md5': 'e1d5734c06865cc504ad99dc2de0d443',
             'info_dict': {
                 'id': '41255e28-b14a-11e3-b8b3-44b1d1cd4c1f',
                 'ext': 'mp4',
@@ -44,10 +44,9 @@ class WashingtonPostIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        page_id = mobj.group('id')
-
+        page_id = self._match_id(url)
         webpage = self._download_webpage(url, page_id)
+
         title = self._og_search_title(webpage)
         uuids = re.findall(r'data-video-uuid="([^"]+)"', webpage)
         entries = []
