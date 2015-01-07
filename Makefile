@@ -63,7 +63,7 @@ youtube-dl: youtube_dl/*.py youtube_dl/*/*.py
 	chmod a+x youtube-dl
 
 README.md: youtube_dl/*.py youtube_dl/*/*.py
-	COLUMNS=80 python -m youtube_dl --help | python devscripts/make_readme.py
+	COLUMNS=80 python youtube_dl/__main__.py --help | python devscripts/make_readme.py
 
 CONTRIBUTING.md: README.md
 	python devscripts/make_contributing.py README.md CONTRIBUTING.md
