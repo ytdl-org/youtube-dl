@@ -13,7 +13,7 @@ from ..utils import (
 
 class FKTVIE(InfoExtractor):
     IE_NAME = 'fernsehkritik.tv'
-    _VALID_URL = r'http://(?:www\.)?fernsehkritik\.tv/folge-(?P<ep>[0-9]+)(?:/.*)?'
+    _VALID_URL = r'http://(?:www\.)?fernsehkritik\.tv/folge-(?P<id>[0-9]+)(?:/.*)?'
 
     _TEST = {
         'url': 'http://fernsehkritik.tv/folge-1',
@@ -26,29 +26,32 @@ class FKTVIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        episode = int(mobj.group('ep'))
+        episode = int(self._match_id(url))
 
-        server = random.randint(2, 4)
-        video_thumbnail = 'http://fernsehkritik.tv/images/magazin/folge%d.jpg' % episode
-        start_webpage = self._download_webpage('http://fernsehkritik.tv/folge-%d/Start' % episode,
+        video_thumbnail = 'http://fernsehkritik.tv/images/magazin/folge%s.jpg' % episode
+        start_webpage = self._download_webpage('http://fernsehkritik.tv/folge-%s/Start' % episode,
                                                episode)
         playlist = self._search_regex(r'playlist = (\[.*?\]);', start_webpage,
                                       'playlist', flags=re.DOTALL)
         files = json.loads(re.sub('{[^{}]*?}', '{}', playlist))
-        # TODO: return a single multipart video
+
         videos = []
         for i, _ in enumerate(files, 1):
             video_id = '%04d%d' % (episode, i)
-            video_url = 'http://dl%d.fernsehkritik.tv/fernsehkritik%d%s.flv' % (server, episode, '' if i == 1 else '-%d' % i)
+            video_url = 'http://fernsehkritik.tv/js/directme.php?file=%s%s.flv' % (episode, '' if i == 1 else '-%d' % i)
             videos.append({
+                'ext': 'flv',
                 'id': video_id,
                 'url': video_url,
                 'title': clean_html(get_element_by_id('eptitle', start_webpage)),
                 'description': clean_html(get_element_by_id('contentlist', start_webpage)),
                 'thumbnail': video_thumbnail
             })
-        return videos
+        return {
+            '_type': 'multi_video',
+            'entries': videos,
+            'id': 'folge-%s' % episode,
+        }
 
 
 class FKTVPosteckeIE(InfoExtractor):
