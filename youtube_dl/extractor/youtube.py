@@ -414,7 +414,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'id': 'HtVdAasjOgU',
                 'ext': 'mp4',
                 'title': 'The Witcher 3: Wild Hunt - The Sword Of Destiny Trailer',
-                'description': 'md5:eca57043abae25130f58f655ad9a7771',
+                'description': 're:(?s).{100,}About the Game\n.*?The Witcher 3: Wild Hunt.{100,}',
                 'uploader': 'The Witcher',
                 'uploader_id': 'WitcherGame',
                 'upload_date': '20140605',
