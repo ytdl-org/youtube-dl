@@ -16,7 +16,7 @@ class BetIE(InfoExtractor):
         {
             'url': 'http://www.bet.com/news/politics/2014/12/08/in-bet-exclusive-obama-talks-race-and-racism.html',
             'info_dict': {
-                'id': '406429c6-1b8a-463e-83fc-814adb81a9db',
+                'id': '740ab250-bb94-4a8a-8787-fe0de7c74471',
                 'display_id': 'in-bet-exclusive-obama-talks-race-and-racism',
                 'ext': 'flv',
                 'title': 'BET News Presents: A Conversation With President Obama',
@@ -35,7 +35,7 @@ class BetIE(InfoExtractor):
         {
             'url': 'http://www.bet.com/video/news/national/2014/justice-for-ferguson-a-community-reacts.html',
             'info_dict': {
-                'id': '4160e53b-ad41-43b1-980f-8d85f63121f4',
+                'id': 'bcd1b1df-673a-42cf-8d01-b282db608f2d',
                 'display_id': 'justice-for-ferguson-a-community-reacts',
                 'ext': 'flv',
                 'title': 'Justice for Ferguson: A Community Reacts',
@@ -55,7 +55,6 @@ class BetIE(InfoExtractor):
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
-
         webpage = self._download_webpage(url, display_id)
 
         media_url = compat_urllib_parse.unquote(self._search_regex(
