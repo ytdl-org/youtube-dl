@@ -44,7 +44,7 @@ In particular, every site support request issue should only pertain to services 
 
 ###  Is anyone going to need the feature?
 
-Only post features that you (or an incapicated friend you can personally talk to) require. Do not post features because they seem like a good idea. If they are really useful, they will be requested by someone who requires them.
+Only post features that you (or an incapacitated friend you can personally talk to) require. Do not post features because they seem like a good idea. If they are really useful, they will be requested by someone who requires them.
 
 ###  Is your question about youtube-dl?
 
