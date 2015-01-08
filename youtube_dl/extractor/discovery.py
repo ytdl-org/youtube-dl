@@ -1,47 +1,45 @@
 from __future__ import unicode_literals
 
-import re
-import json
-
 from .common import InfoExtractor
+from ..utils import (
+    parse_iso8601,
+    int_or_none,
+)
 
 
 class DiscoveryIE(InfoExtractor):
-    _VALID_URL = r'http://www\.discovery\.com\/[a-zA-Z0-9\-]*/[a-zA-Z0-9\-]*/videos/(?P<id>[a-zA-Z0-9\-]*)(.htm)?'
+    _VALID_URL = r'http://www\.discovery\.com\/[a-zA-Z0-9\-]*/[a-zA-Z0-9\-]*/videos/(?P<id>[a-zA-Z0-9_\-]*)(?:\.htm)?'
     _TEST = {
         'url': 'http://www.discovery.com/tv-shows/mythbusters/videos/mission-impossible-outtakes.htm',
-        'md5': 'e12614f9ee303a6ccef415cb0793eba2',
+        'md5': '3c69d77d9b0d82bfd5e5932a60f26504',
         'info_dict': {
-            'id': '614784',
-            'ext': 'mp4',
-            'title': 'MythBusters: Mission Impossible Outtakes',
+            'id': 'mission-impossible-outtakes',
+            'ext': 'flv',
+            'title': 'Mission Impossible Outtakes',
             'description': ('Watch Jamie Hyneman and Adam Savage practice being'
                             ' each other -- to the point of confusing Jamie\'s dog -- and '
                             'don\'t miss Adam moon-walking as Jamie ... behind Jamie\'s'
                             ' back.'),
             'duration': 156,
+            'timestamp': 1303099200,
+            'upload_date': '20110418',
         },
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        video_list_json = self._search_regex(r'var videoListJSON = ({.*?});',
-                                             webpage, 'video list', flags=re.DOTALL)
-        video_list = json.loads(video_list_json)
-        info = video_list['clips'][0]
-        formats = []
-        for f in info['mp4']:
-            formats.append(
-                {'url': f['src'], 'ext': 'mp4', 'tbr': int(f['bitrate'][:-1])})
+        info = self._parse_json(self._search_regex(
+            r'(?s)<script type="application/ld\+json">(.*?)</script>',
+            webpage, 'video info'), video_id)
 
         return {
-            'id': info['contentId'],
-            'title': video_list['name'],
-            'formats': formats,
-            'description': info['videoCaption'],
-            'thumbnail': info.get('videoStillURL') or info.get('thumbnailURL'),
-            'duration': info['duration'],
+            'id': video_id,
+            'title': info['name'],
+            'url': info['contentURL'],
+            'description': info.get('description'),
+            'thumbnail': info.get('thumbnailUrl'),
+            'timestamp': parse_iso8601(info.get('uploadDate')),
+            'duration': int_or_none(info.get('duration')),
         }
