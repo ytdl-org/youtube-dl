@@ -248,14 +248,15 @@ which means you can modify it, redistribute it or use it however you like.
 
 ## Video Format Options:
     -f, --format FORMAT              video format code, specify the order of
-                                     preference using slashes: -f 22/17/18 .  -f
-                                     mp4 , -f m4a and  -f flv  are also
-                                     supported. You can also use the special
-                                     names "best", "bestvideo", "bestaudio",
-                                     "worst", "worstvideo" and "worstaudio". By
-                                     default, youtube-dl will pick the best
-                                     quality. Use commas to download multiple
-                                     audio formats, such as -f
+                                     preference using slashes, as in -f 22/17/18
+                                     .  Instead of format codes, you can select
+                                     by extension for the extensions aac, m4a,
+                                     mp3, mp4, ogg, wav, webm. You can also use
+                                     the special names "best", "bestvideo",
+                                     "bestaudio", "worst".  By default, youtube-
+                                     dl will pick the best quality. Use commas
+                                     to download multiple audio formats, such as
+                                     -f
                                      136/137/mp4/bestvideo,140/m4a/bestaudio.
                                      You can merge the video and audio of two
                                      formats into a single file using -f <video-
