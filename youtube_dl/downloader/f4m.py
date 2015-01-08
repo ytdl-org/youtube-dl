@@ -187,24 +187,34 @@ def build_fragments_list(boot_info):
     return res
 
 
-def write_flv_header(stream, metadata):
-    """Writes the FLV header and the metadata to stream"""
+def write_unsigned_int(stream, val):
+    stream.write(struct_pack('!I', val))
+
+
+def write_unsigned_int_24(stream, val):
+    stream.write(struct_pack('!I', val)[1:])
+
+
+def write_flv_header(stream):
+    """Writes the FLV header to stream"""
     # FLV header
     stream.write(b'FLV\x01')
     stream.write(b'\x05')
     stream.write(b'\x00\x00\x00\x09')
-    # FLV File body
     stream.write(b'\x00\x00\x00\x00')
-    # FLVTAG
-    # Script data
-    stream.write(b'\x12')
-    # Size of the metadata with 3 bytes
-    stream.write(struct_pack('!L', len(metadata))[1:])
-    stream.write(b'\x00\x00\x00\x00\x00\x00\x00')
-    stream.write(metadata)
-    # Magic numbers extracted from the output files produced by AdobeHDS.php
-    # (https://github.com/K-S-V/Scripts)
-    stream.write(b'\x00\x00\x01\x73')
+
+
+def write_metadata_tag(stream, metadata):
+    """Writes optional metadata tag to stream"""
+    SCRIPT_TAG = b'\x12'
+    FLV_TAG_HEADER_LEN = 11
+
+    if metadata:
+        stream.write(SCRIPT_TAG)
+        write_unsigned_int_24(stream, len(metadata))
+        stream.write(b'\x00\x00\x00\x00\x00\x00\x00')
+        stream.write(metadata)
+        write_unsigned_int(stream, FLV_TAG_HEADER_LEN + len(metadata))
 
 
 def _add_ns(prop):
@@ -256,7 +266,11 @@ class F4mFD(FileDownloader):
             bootstrap = self.ydl.urlopen(bootstrap_url).read()
         else:
             bootstrap = base64.b64decode(bootstrap_node.text)
-        metadata = base64.b64decode(media.find(_add_ns('metadata')).text)
+        metadata_node = media.find(_add_ns('metadata'))
+        if metadata_node is not None:
+            metadata = base64.b64decode(metadata_node.text)
+        else:
+            metadata = None
         boot_info = read_bootstrap_info(bootstrap)
 
         fragments_list = build_fragments_list(boot_info)
@@ -269,7 +283,8 @@ class F4mFD(FileDownloader):
 
         tmpfilename = self.temp_name(filename)
         (dest_stream, tmpfilename) = sanitize_open(tmpfilename, 'wb')
-        write_flv_header(dest_stream, metadata)
+        write_flv_header(dest_stream)
+        write_metadata_tag(dest_stream, metadata)
 
         # This dict stores the download progress, it's updated by the progress
         # hook
