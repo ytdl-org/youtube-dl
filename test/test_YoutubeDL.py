@@ -8,6 +8,8 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import copy
+
 from test.helper import FakeYDL, assertRegexpMatches
 from youtube_dl import YoutubeDL
 from youtube_dl.extractor import YoutubeIE
@@ -191,6 +193,37 @@ class TestFormatSelection(unittest.TestCase):
         ydl.process_ie_result(info_dict.copy())
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], 'vid-high')
+
+    def test_format_selection_audio_exts(self):
+        formats = [
+            {'format_id': 'mp3-64', 'ext': 'mp3', 'abr': 64, 'url': 'http://_', 'vcodec': 'none'},
+            {'format_id': 'ogg-64', 'ext': 'ogg', 'abr': 64, 'url': 'http://_', 'vcodec': 'none'},
+            {'format_id': 'aac-64', 'ext': 'aac', 'abr': 64, 'url': 'http://_', 'vcodec': 'none'},
+            {'format_id': 'mp3-32', 'ext': 'mp3', 'abr': 32, 'url': 'http://_', 'vcodec': 'none'},
+            {'format_id': 'aac-32', 'ext': 'aac', 'abr': 32, 'url': 'http://_', 'vcodec': 'none'},
+        ]
+
+        info_dict = _make_result(formats)
+        ydl = YDL({'format': 'best'})
+        ie = YoutubeIE(ydl)
+        ie._sort_formats(info_dict['formats'])
+        ydl.process_ie_result(copy.deepcopy(info_dict))
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'aac-64')
+
+        ydl = YDL({'format': 'mp3'})
+        ie = YoutubeIE(ydl)
+        ie._sort_formats(info_dict['formats'])
+        ydl.process_ie_result(copy.deepcopy(info_dict))
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'mp3-64')
+
+        ydl = YDL({'prefer_free_formats': True})
+        ie = YoutubeIE(ydl)
+        ie._sort_formats(info_dict['formats'])
+        ydl.process_ie_result(copy.deepcopy(info_dict))
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'ogg-64')
 
     def test_format_selection_video(self):
         formats = [
