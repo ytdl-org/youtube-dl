@@ -119,7 +119,7 @@ class ZDFChannelIE(InfoExtractor):
         'info_dict': {
             'id': '1586442',
         },
-        'playlist_count': 4,
+        'playlist_count': 3,
     }
     _PAGE_SIZE = 50
 
