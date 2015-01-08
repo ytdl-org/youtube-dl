@@ -446,6 +446,11 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='dump_single_json', default=False,
         help='simulate, quiet but print JSON information for each command-line argument. If the URL refers to a playlist, dump the whole playlist information in a single line.')
     verbosity.add_option(
+        '--print-json',
+        action='store_true', dest='print_json', default=False,
+        help='Be quiet and print the video information as JSON (video is still being downloaded).',
+    )
+    verbosity.add_option(
         '--newline',
         action='store_true', dest='progress_with_newline', default=False,
         help='output progress bar as new lines')
