@@ -24,7 +24,7 @@ class TuneInIE(InfoExtractor):
     _INFO_DICT = {
         'id': '34682',
         'title': 'Jazz 24 on 88.5 Jazz24 - KPLU-HD2',
-        'ext': 'AAC',
+        'ext': 'aac',
         'thumbnail': 're:^https?://.*\.png$',
         'location': 'Tacoma, WA',
     }
@@ -78,14 +78,21 @@ class TuneInIE(InfoExtractor):
         for stream in streams:
             if stream.get('Type') == 'Live':
                 is_live = True
+            reliability = stream.get('Reliability')
+            format_note = (
+                'Reliability: %d%%' % reliability
+                if reliability is not None else None)
             formats.append({
+                'preference': (
+                    0 if reliability is None or reliability > 90
+                    else 1),
                 'abr': stream.get('Bandwidth'),
-                'ext': stream.get('MediaType'),
+                'ext': stream.get('MediaType').lower(),
                 'acodec': stream.get('MediaType'),
                 'vcodec': 'none',
                 'url': stream.get('Url'),
-                # Sometimes streams with the highest quality do not exist
-                'preference': stream.get('Reliability'),
+                'source_preference': reliability,
+                'format_note': format_note,
             })
         self._sort_formats(formats)
 
