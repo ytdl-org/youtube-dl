@@ -110,6 +110,20 @@ def expect_info_dict(self, got_dict, expected_dict):
         else:
             if isinstance(expected, compat_str) and expected.startswith('md5:'):
                 got = 'md5:' + md5(got_dict.get(info_field))
+            elif isinstance(expected, compat_str) and expected.startswith('mincount:'):
+                got = got_dict.get(info_field)
+                self.assertTrue(
+                    isinstance(got, list),
+                    'Expected field %s to be a list, but it is of type %s' % (
+                        info_field, type(got).__name__))
+                expected_num = int(expected.partition(':')[2])
+                assertGreaterEqual(
+                    self, len(got), expected_num,
+                    'Expected %d items in field %s, but only got %d' % (
+                        expected_num, info_field, len(got)
+                    )
+                )
+                continue
             else:
                 got = got_dict.get(info_field)
             self.assertEqual(expected, got,

@@ -274,6 +274,7 @@ from .nbc import (
 )
 from .ndr import NDRIE
 from .ndtv import NDTVIE
+from .netzkino import NetzkinoIE
 from .nerdcubed import NerdCubedFeedIE
 from .newgrounds import NewgroundsIE
 from .newstube import NewstubeIE

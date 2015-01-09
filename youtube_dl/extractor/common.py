@@ -147,6 +147,17 @@ class InfoExtractor(object):
     like_count:     Number of positive ratings of the video
     dislike_count:  Number of negative ratings of the video
     comment_count:  Number of comments on the video
+    comments:       A list of comments, each with one or more of the following
+                    properties (all but one of text or html optional):
+                        * "author" - human-readable name of the comment author
+                        * "author_id" - user ID of the comment author
+                        * "id" - Comment ID
+                        * "html" - Comment as HTML
+                        * "text" - Plain text of the comment
+                        * "timestamp" - UNIX timestamp of comment
+                        * "parent" - ID of the comment this one is replying to.
+                                     Set to "root" to indicate that this is a
+                                     comment to the original video.
     age_limit:      Age restriction for the video, as an integer (years)
     webpage_url:    The url to the video webpage, if given to youtube-dl it
                     should allow to get the same result again. (It will be set

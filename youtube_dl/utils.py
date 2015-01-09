@@ -205,6 +205,10 @@ def get_element_by_attribute(attribute, value, html):
 
 def clean_html(html):
     """Clean an HTML snippet into a readable string"""
+
+    if html is None:  # Convenience for sanitizing descriptions etc.
+        return html
+
     # Newline vs <br />
     html = html.replace('\n', ' ')
     html = re.sub(r'\s*<\s*br\s*/?\s*>\s*', '\n', html)
