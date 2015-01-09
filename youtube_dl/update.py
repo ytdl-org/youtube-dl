@@ -13,6 +13,7 @@ from .compat import (
     compat_str,
     compat_urllib_request,
 )
+from .utils import make_HTTPS_handler
 from .version import __version__
 
 
@@ -58,9 +59,12 @@ def update_self(to_screen, verbose):
         to_screen('It looks like you installed youtube-dl with a package manager, pip, setup.py or a tarball. Please use that to update.')
         return
 
+    https_handler = make_HTTPS_handler(False)
+    opener = compat_urllib_request.build_opener(https_handler)
+
     # Check if there is a new version
     try:
-        newversion = compat_urllib_request.urlopen(VERSION_URL).read().decode('utf-8').strip()
+        newversion = opener.open(VERSION_URL).read().decode('utf-8').strip()
     except:
         if verbose:
             to_screen(compat_str(traceback.format_exc()))
@@ -72,7 +76,7 @@ def update_self(to_screen, verbose):
 
     # Download and check versions info
     try:
-        versions_info = compat_urllib_request.urlopen(JSON_URL).read().decode('utf-8')
+        versions_info = opener.open(JSON_URL).read().decode('utf-8')
         versions_info = json.loads(versions_info)
     except:
         if verbose:
@@ -120,7 +124,7 @@ def update_self(to_screen, verbose):
             return
 
         try:
-            urlh = compat_urllib_request.urlopen(version['exe'][0])
+            urlh = opener.open(version['exe'][0])
             newcontent = urlh.read()
             urlh.close()
         except (IOError, OSError):
@@ -166,7 +170,7 @@ start /b "" cmd /c del "%%~f0"&exit /b"
     # Zip unix package
     elif isinstance(globals().get('__loader__'), zipimporter):
         try:
-            urlh = compat_urllib_request.urlopen(version['bin'][0])
+            urlh = opener.open(version['bin'][0])
             newcontent = urlh.read()
             urlh.close()
         except (IOError, OSError):
