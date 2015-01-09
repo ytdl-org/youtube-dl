@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import itertools
 import re
 
 from .common import InfoExtractor
@@ -67,6 +68,10 @@ class WDRIE(InfoExtractor):
                 'upload_date': '20140717',
             },
         },
+        {
+            'url': 'http://www1.wdr.de/mediathek/video/sendungen/quarks_und_co/filterseite-quarks-und-co100.html',
+            'playlist_mincount': 146,
+        }
     ]
 
     def _real_extract(self, url):
@@ -81,6 +86,27 @@ class WDRIE(InfoExtractor):
                 self.url_result(page_url + href, 'WDR')
                 for href in re.findall(r'<a href="/?(.+?%s\.html)" rel="nofollow"' % self._PLAYER_REGEX, webpage)
             ]
+
+            if entries:  # Playlist page
+                return self.playlist_result(entries, page_id)
+
+            # Overview page
+            entries = []
+            for page_num in itertools.count(2):
+                hrefs = re.findall(
+                    r'<li class="mediathekvideo"\s*>\s*<img[^>]*>\s*<a href="(/mediathek/video/[^"]+)"',
+                    webpage)
+                entries.extend(
+                    self.url_result(page_url + href, 'WDR')
+                    for href in hrefs)
+                next_url_m = re.search(
+                    r'<li class="nextToLast">\s*<a href="([^"]+)"', webpage)
+                if not next_url_m:
+                    break
+                next_url = page_url + next_url_m.group(1)
+                webpage = self._download_webpage(
+                    next_url, page_id,
+                    note='Downloading playlist page %d' % page_num)
             return self.playlist_result(entries, page_id)
 
         flashvars = compat_parse_qs(
