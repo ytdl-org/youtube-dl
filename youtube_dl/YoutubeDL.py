@@ -913,6 +913,14 @@ class YoutubeDL(object):
                                 'requested_formats': formats_info,
                                 'format': rf,
                                 'ext': formats_info[0]['ext'],
+                                'width': formats_info[0].get('width'),
+                                'height': formats_info[0].get('height'),
+                                'resolution': formats_info[0].get('resolution'),
+                                'fps': formats_info[0].get('fps'),
+                                'vcodec': formats_info[0].get('vcodec'),
+                                'vbr': formats_info[0].get('vbr'),
+                                'acodec': formats_info[1].get('acodec'),
+                                'abr': formats_info[1].get('abr'),
                             }
                         else:
                             selected_format = None
