@@ -166,7 +166,6 @@ class VKIE(InfoExtractor):
 
         m_rutube = re.search(
             r'\ssrc="((?:https?:)?//rutube\.ru\\?/video\\?/embed(?:.*?))\\?"', info_page)
-        assert m_rutube
         if m_rutube is not None:
             self.to_screen('rutube video detected')
             rutube_url = self._proto_relative_url(
