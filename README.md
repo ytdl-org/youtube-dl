@@ -450,6 +450,14 @@ Since June 2012 (#342) youtube-dl is packed as an executable zipfile, simply unz
 
 To run the exe you need to install first the [Microsoft Visual C++ 2008 Redistributable Package](http://www.microsoft.com/en-us/download/details.aspx?id=29).
 
+### On Windows, how should I set up ffmpeg and youtube-dl? Where should I put the exe files?
+
+If you put youtube-dl and ffmpeg in the same directory that you're running the command from, it will work, but that's rather cumbersome.
+
+To make a different directory work - either for ffmpeg, or for youtube-dl, or for both - simply create the directory (say, `C:\bin`, or `C:\Users\<User name>\bin`), put all the executables directly in there, and then [set your PATH environment variable](https://www.java.com/en/download/help/path.xml) to include that directory.
+
+From then on, after restarting your shell, you will be able to access both youtube-dl and ffmpeg (and youtube-dl will be able to find ffmpeg) by simply typing `youtube-dl` or `ffmpeg`, no matter what directory you're in.
+
 ### How can I detect whether a given URL is supported by youtube-dl?
 
 For one, have a look at the [list of supported sites](docs/supportedsites). Note that it can sometimes happen that the site changes its URL scheme (say, from http://example.com/v/1234567 to http://example.com/v/1234567 ) and youtube-dl reports an URL of a service in that list as unsupported. In that case, simply report a bug.
