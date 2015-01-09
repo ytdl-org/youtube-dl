@@ -219,6 +219,8 @@ which means you can modify it, redistribute it or use it however you like.
                                      for each command-line argument. If the URL
                                      refers to a playlist, dump the whole
                                      playlist information in a single line.
+    --print-json                     Be quiet and print the video information as
+                                     JSON (video is still being downloaded).
     --newline                        output progress bar as new lines
     --no-progress                    do not print progress bar
     --console-title                  display progress in console titlebar
