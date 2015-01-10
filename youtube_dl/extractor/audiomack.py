@@ -1,11 +1,15 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import itertools
+import time
+
 from .common import InfoExtractor
 from .soundcloud import SoundcloudIE
-from ..utils import ExtractorError
-
-import time
+from ..utils import (
+    ExtractorError,
+    url_basename,
+)
 
 
 class AudiomackIE(InfoExtractor):
@@ -19,7 +23,7 @@ class AudiomackIE(InfoExtractor):
             {
                 'id': '310086',
                 'ext': 'mp3',
-                'artist': 'Roosh Williams',
+                'uploader': 'Roosh Williams',
                 'title': 'Extraordinary'
             }
         },
@@ -37,17 +41,6 @@ class AudiomackIE(InfoExtractor):
             }
         },
     ]
-
-    @staticmethod
-    def create_song_dictionary(api_response, album_url_tag, track_no=0):
-        # All keys are the same in audiomack api and InfoExtractor format
-        entry = {key: api_response[key] for key in ['title', 'artist', 'id', 'url'] if key in api_response}
-        # Fudge values in the face of missing metadata
-        if 'id' not in entry:
-            entry['id'] = track_no
-        if 'title' not in entry:
-            entry['title'] = album_url_tag
-        return entry
 
     def _real_extract(self, url):
         # URLs end with [uploader name]/[uploader title]
@@ -70,7 +63,12 @@ class AudiomackIE(InfoExtractor):
         if SoundcloudIE.suitable(api_response['url']):
             return {'_type': 'url', 'url': api_response['url'], 'ie_key': 'Soundcloud'}
 
-        return self.create_song_dictionary(api_response, album_url_tag)
+        return {
+            'id': api_response.get('id', album_url_tag),
+            'uploader': api_response.get('artist'),
+            'title': api_response.get('title'),
+            'url': api_response['url'],
+        }
 
 
 class AudiomackAlbumIE(InfoExtractor):
@@ -90,7 +88,17 @@ class AudiomackAlbumIE(InfoExtractor):
         # Album playlist ripped from fakeshoredrive with no metadata
         {
             'url': 'http://www.audiomack.com/album/fakeshoredrive/ppp-pistol-p-project',
-            'playlist_count': 10
+            'playlist': [{
+                'info_dict': {
+                    'title': '9.-heaven-or-hell-chimaca-ft-zuse-prod-by-dj-fu',
+                    'id': '9.-heaven-or-hell-chimaca-ft-zuse-prod-by-dj-fu',
+                    'ext': 'mp3',
+                }
+            }],
+            'params': {
+                'playliststart': 8,
+                'playlistend': 8,
+            }
         }
     ]
 
@@ -102,11 +110,12 @@ class AudiomackAlbumIE(InfoExtractor):
         result = {'_type': 'playlist', 'entries': []}
         # There is no one endpoint for album metadata - instead it is included/repeated in each song's metadata
         # Therefore we don't know how many songs the album has and must infi-loop until failure
-        track_no = 0
-        while True:
+        for track_no in itertools.count():
             # Get song's metadata
-            api_response = self._download_json('http://www.audiomack.com/api/music/url/album/%s/%d?extended=1&_=%d'
-                                               % (album_url_tag, track_no, time.time()), album_url_tag)
+            api_response = self._download_json(
+                'http://www.audiomack.com/api/music/url/album/%s/%d?extended=1&_=%d'
+                % (album_url_tag, track_no, time.time()), album_url_tag,
+                note='Querying song information (%d)' % (track_no + 1))
 
             # Total failure, only occurs when url is totally wrong
             # Won't happen in middle of valid playlist (next case)
@@ -120,6 +129,11 @@ class AudiomackAlbumIE(InfoExtractor):
                 for resultkey, apikey in [('id', 'album_id'), ('title', 'album_title')]:
                     if apikey in api_response and resultkey not in result:
                         result[resultkey] = api_response[apikey]
-                result['entries'].append(AudiomackIE.create_song_dictionary(api_response, album_url_tag, track_no))
-            track_no += 1
+                song_id = url_basename(api_response['url']).rpartition('.')[0]
+                result['entries'].append({
+                    'id': api_response.get('id', song_id),
+                    'uploader': api_response.get('artist'),
+                    'title': api_response.get('title', song_id),
+                    'url': api_response['url'],
+                })
         return result
