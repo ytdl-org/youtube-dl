@@ -26,6 +26,7 @@ from .arte import (
     ArteTVEmbedIE,
 )
 from .atresplayer import AtresPlayerIE
+from .atttechchannel import ATTTechChannelIE
 from .audiomack import AudiomackIE, AudiomackAlbumIE
 from .auengine import AUEngineIE
 from .azubu import AzubuIE
