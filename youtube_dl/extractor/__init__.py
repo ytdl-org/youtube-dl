@@ -447,7 +447,7 @@ from .tunein import TuneInIE
 from .turbo import TurboIE
 from .tutv import TutvIE
 from .tvigle import TvigleIE
-from .tvp import TvpIE
+from .tvp import TvpIE, TvpSeriesIE
 from .tvplay import TVPlayIE
 from .twentyfourvideo import TwentyFourVideoIE
 from .twitch import TwitchIE
