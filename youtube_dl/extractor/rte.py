@@ -24,7 +24,7 @@ class RteIE(InfoExtractor):
             'skip_download': 'f4m fails with --test atm'
         }
     }
-    
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
