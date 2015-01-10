@@ -82,7 +82,8 @@ class FFmpegPostProcessor(PostProcessor):
     def run_ffmpeg_multiple_files(self, input_paths, out_path, opts):
         self.check_version()
 
-        oldest_mtime = min(os.stat(path).st_mtime for path in input_paths)
+        oldest_mtime = min(
+            os.stat(encodeFilename(path)).st_mtime for path in input_paths)
 
         files_cmd = []
         for path in input_paths:
@@ -100,7 +101,7 @@ class FFmpegPostProcessor(PostProcessor):
             stderr = stderr.decode('utf-8', 'replace')
             msg = stderr.strip().split('\n')[-1]
             raise FFmpegPostProcessorError(msg)
-        os.utime(out_path, (oldest_mtime, oldest_mtime))
+        os.utime(encodeFilename(out_path), (oldest_mtime, oldest_mtime))
         if self._deletetempfiles:
             for ipath in input_paths:
                 os.remove(ipath)
