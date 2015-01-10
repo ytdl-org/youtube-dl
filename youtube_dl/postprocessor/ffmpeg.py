@@ -82,12 +82,14 @@ class FFmpegPostProcessor(PostProcessor):
     def run_ffmpeg_multiple_files(self, input_paths, out_path, opts):
         self.check_version()
 
+        oldest_mtime = min(os.stat(path).st_mtime for path in input_paths)
+
         files_cmd = []
         for path in input_paths:
             files_cmd.extend([encodeArgument('-i'), encodeFilename(path, True)])
         cmd = ([encodeFilename(self._executable, True), encodeArgument('-y')] +
-               files_cmd
-               + [encodeArgument(o) for o in opts] +
+               files_cmd +
+               [encodeArgument(o) for o in opts] +
                [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
 
         if self._downloader.params.get('verbose', False):
@@ -98,6 +100,7 @@ class FFmpegPostProcessor(PostProcessor):
             stderr = stderr.decode('utf-8', 'replace')
             msg = stderr.strip().split('\n')[-1]
             raise FFmpegPostProcessorError(msg)
+        os.utime(out_path, (oldest_mtime, oldest_mtime))
         if self._deletetempfiles:
             for ipath in input_paths:
                 os.remove(ipath)
