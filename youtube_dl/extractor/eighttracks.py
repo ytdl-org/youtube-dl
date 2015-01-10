@@ -122,7 +122,6 @@ class EightTracksIE(InfoExtractor):
         entries = []
 
         for i in range(track_count):
-            
             api_json = None
             download_tries = 0
 
