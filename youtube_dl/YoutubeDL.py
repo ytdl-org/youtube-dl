@@ -912,7 +912,7 @@ class YoutubeDL(object):
                             selected_format = {
                                 'requested_formats': formats_info,
                                 'format': rf,
-                                'ext': formats_info[0]['ext'],
+                                'ext': self.params['merge_output_format'] if self.params['merge_output_format'] is not None else formats_info[0]['ext'],
                             }
                         else:
                             selected_format = None
