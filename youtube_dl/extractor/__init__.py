@@ -207,6 +207,7 @@ from .jove import JoveIE
 from .jukebox import JukeboxIE
 from .jpopsukitv import JpopsukiIE
 from .kankan import KankanIE
+from .karaoketv import KaraoketvIE
 from .keezmovies import KeezMoviesIE
 from .khanacademy import KhanAcademyIE
 from .kickstarter import KickStarterIE
