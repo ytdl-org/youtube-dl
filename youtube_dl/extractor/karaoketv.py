@@ -1,12 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-import json
-import sys
-
 from .common import InfoExtractor
-from ..utils import compat_urllib_parse, ExtractorError
+from ..compat import compat_urllib_parse
+from ..utils import (
+    ExtractorError,
+    js_to_json,
+)
 
 
 class KaraoketvIE(InfoExtractor):
@@ -21,22 +21,16 @@ class KaraoketvIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-
-        # BUG: SSL23_GET_SERVER_HELLO:unknown protocol 
-        if sys.hexversion < 0x03000000:
-            raise ExtractorError("Only python 3 supported.\n")
-
-        mobj = re.match(self._VALID_URL, url)
-        
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        settings_json = compat_urllib_parse.unquote_plus(self._search_regex(r'config=(.*)', self._og_search_video_url(webpage ,video_id), ''))
-        
-        urls_info_webpage = self._download_webpage(settings_json, 'Downloading settings json')
+        page_video_url = self._og_search_video_url(webpage, video_id)
+        config_json = compat_urllib_parse.unquote_plus(self._search_regex(
+            r'config=(.*)', page_video_url, 'configuration'))
 
-        urls_info_json = json.loads(urls_info_webpage.replace('\'', '"'))
+        urls_info_json = self._download_json(
+            config_json, video_id, 'Downloading configuration',
+            transform_source=js_to_json)
 
         url = urls_info_json['playlist'][0]['url']
 
