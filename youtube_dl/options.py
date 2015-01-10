@@ -179,6 +179,16 @@ def parseOpts(overrideArguments=None):
         metavar='IP', dest='source_address', default=None,
         help='Client-side IP address to bind to (experimental)',
     )
+    network.add_option(
+        '-4', '--force-ipv4',
+        action='store_const', const='0.0.0.0', dest='source_address',
+        help='Make all connections via IPv4 (experimental)',
+    )
+    network.add_option(
+        '-6', '--force-ipv6',
+        action='store_const', const='::', dest='source_address',
+        help='Make all connections via IPv6 (experimental)',
+    )
 
     selection = optparse.OptionGroup(parser, 'Video Selection')
     selection.add_option(
