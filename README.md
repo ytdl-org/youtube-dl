@@ -239,6 +239,8 @@ which means you can modify it, redistribute it or use it however you like.
                                      files in the current directory to debug
                                      problems
     --print-traffic                  Display sent and read HTTP traffic
+    -C, --call-home                  Contact the youtube-dl server for
+                                     debugging. (Experimental)
 
 ## Workarounds:
     --encoding ENCODING              Force the specified encoding (experimental)
