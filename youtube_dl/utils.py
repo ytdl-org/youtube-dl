@@ -679,9 +679,6 @@ def unified_strdate(date_str, day_first=True):
         '%b %dth %Y %I:%M%p',
         '%Y-%m-%d',
         '%Y/%m/%d',
-        '%d.%m.%Y',
-        '%d/%m/%Y',
-        '%d/%m/%y',
         '%Y/%m/%d %H:%M:%S',
         '%Y-%m-%d %H:%M:%S',
         '%Y-%m-%d %H:%M:%S.%f',
@@ -696,10 +693,16 @@ def unified_strdate(date_str, day_first=True):
     ]
     if day_first:
         format_expressions.extend([
+            '%d.%m.%Y',
+            '%d/%m/%Y',
+            '%d/%m/%y',
             '%d/%m/%Y %H:%M:%S',
         ])
     else:
         format_expressions.extend([
+            '%m.%d.%Y',
+            '%m/%d/%Y',
+            '%m/%d/%y',
             '%m/%d/%Y %H:%M:%S',
         ])
     for expression in format_expressions:
