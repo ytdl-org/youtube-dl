@@ -632,6 +632,13 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='xattrs', default=False,
         help='write metadata to the video file\'s xattrs (using dublin core and xdg standards)')
     postproc.add_option(
+        '--fixup',
+        metavar='POLICY', dest='fixup', default='detect_or_warn',
+        help='(experimental) Automatically correct known faults of the file. '
+             'One of never (do nothing), warn (only emit a warning), '
+             'detect_or_warn(check whether we can do anything about it, warn '
+             'otherwise')
+    postproc.add_option(
         '--prefer-avconv',
         action='store_false', dest='prefer_ffmpeg',
         help='Prefer avconv over ffmpeg for running the postprocessors (default)')

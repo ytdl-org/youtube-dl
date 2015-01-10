@@ -51,6 +51,10 @@ class FFmpegPostProcessor(PostProcessor):
         return dict((p, get_exe_version(p, args=['-version'])) for p in programs)
 
     @property
+    def available(self):
+        return self._executable is not None
+
+    @property
     def _executable(self):
         if self._downloader.params.get('prefer_ffmpeg', False):
             prefs = ('ffmpeg', 'avconv')
@@ -534,6 +538,25 @@ class FFmpegAudioFixPP(FFmpegPostProcessor):
 
         options = ['-vn', '-acodec', 'copy']
         self._downloader.to_screen('[ffmpeg] Fixing audio file "%s"' % filename)
+        self.run_ffmpeg(filename, temp_filename, options)
+
+        os.remove(encodeFilename(filename))
+        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+
+        return True, info
+
+
+class FFmpegFixupStretchedPP(FFmpegPostProcessor):
+    def run(self, info):
+        stretched_ratio = info.get('stretched_ratio')
+        if stretched_ratio is None or stretched_ratio == 1:
+            return
+
+        filename = info['filepath']
+        temp_filename = prepend_extension(filename, 'temp')
+
+        options = ['-c', 'copy', '-aspect', '%f' % stretched_ratio]
+        self._downloader.to_screen('[ffmpeg] Fixing aspect ratio in "%s"' % filename)
         self.run_ffmpeg(filename, temp_filename, options)
 
         os.remove(encodeFilename(filename))

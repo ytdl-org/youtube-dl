@@ -465,6 +465,20 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'skip_download': 'requires avconv',
             }
         },
+        # Non-square pixels
+        {
+            'url': 'https://www.youtube.com/watch?v=_b-2C3KPAM0',
+            'info_dict': {
+                'id': '_b-2C3KPAM0',
+                'ext': 'mp4',
+                'stretched_ratio': 16 / 9.,
+                'upload_date': '20110310',
+                'uploader_id': 'AllenMeow',
+                'description': 'made by Wacom from Korea | 字幕&加油添醋 by TY\'s Allen | 感謝heylisa00cavey1001同學熱情提供梗及翻譯',
+                'uploader': '孫艾倫',
+                'title': '[A-made] 變態妍字幕版 太妍 我就是這樣的人',
+            },
+        }
     ]
 
     def __init__(self, *args, **kwargs):
@@ -1050,6 +1064,16 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                             f['format_id'] = 'nondash-%s' % f['format_id']
                             f['preference'] = f.get('preference', 0) - 10000
                     formats.extend(dash_formats)
+
+        # Check for malformed aspect ratio
+        stretched_m = re.search(
+            r'<meta\s+property="og:video:tag".*?content="yt:stretch=(?P<w>[0-9]+):(?P<h>[0-9]+)">',
+            video_webpage)
+        if stretched_m:
+            ratio = float(stretched_m.group('w')) / float(stretched_m.group('h'))
+            for f in formats:
+                if f.get('vcodec') != 'none':
+                    f['stretched_ratio'] = ratio
 
         self._sort_formats(formats)
 

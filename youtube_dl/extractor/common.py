@@ -114,6 +114,9 @@ class InfoExtractor(object):
                                  to add to the request.
                     * http_post_data  Additional data to send with a POST
                                  request.
+                    * stretched_ratio  If given and not 1, indicates that the
+                                       video's pixels are not square.
+                                       width : height ratio as float.
     url:            Final video URL.
     ext:            Video filename extension.
     format:         The video format, defaults to ext (used for --get-format)

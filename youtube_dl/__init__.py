@@ -326,6 +326,7 @@ def _real_main(argv=None):
         'extract_flat': opts.extract_flat,
         'merge_output_format': opts.merge_output_format,
         'postprocessors': postprocessors,
+        'fixup': opts.fixup,
     }
 
     with YoutubeDL(ydl_opts) as ydl:

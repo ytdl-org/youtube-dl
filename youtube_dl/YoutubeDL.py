@@ -70,6 +70,7 @@ from .extractor import get_info_extractor, gen_extractors
 from .downloader import get_suitable_downloader
 from .downloader.rtmp import rtmpdump_version
 from .postprocessor import (
+    FFmpegFixupStretchedPP,
     FFmpegMergerPP,
     FFmpegPostProcessor,
     get_postprocessor,
@@ -204,6 +205,12 @@ class YoutubeDL(object):
                        Progress hooks are guaranteed to be called at least once
                        (with status "finished") if the download is successful.
     merge_output_format: Extension to use when merging formats.
+    fixup:             Automatically correct known faults of the file.
+                       One of:
+                       - "never": do nothing
+                       - "warn": only emit a warning
+                       - "detect_or_warn": check whether we can do anything
+                                           about it, warn otherwise
 
 
     The following parameters are not used by YoutubeDL itself, they are used by
@@ -924,6 +931,7 @@ class YoutubeDL(object):
                                 'fps': formats_info[0].get('fps'),
                                 'vcodec': formats_info[0].get('vcodec'),
                                 'vbr': formats_info[0].get('vbr'),
+                                'stretched_ratio': formats_info[0].get('stretched_ratio'),
                                 'acodec': formats_info[1].get('acodec'),
                                 'abr': formats_info[1].get('abr'),
                                 'ext': output_ext,
@@ -1154,6 +1162,27 @@ class YoutubeDL(object):
                     return
 
             if success:
+                # Fixup content
+                stretched_ratio = info_dict.get('stretched_ratio')
+                if stretched_ratio is not None and stretched_ratio != 1:
+                    fixup_policy = self.params.get('fixup')
+                    if fixup_policy is None:
+                        fixup_policy = 'detect_or_warn'
+                    if fixup_policy == 'warn':
+                        self.report_warning('%s: Non-uniform pixel ratio (%s)' % (
+                            info_dict['id'], stretched_ratio))
+                    elif fixup_policy == 'detect_or_warn':
+                        stretched_pp = FFmpegFixupStretchedPP(self)
+                        if stretched_pp.available:
+                            info_dict.setdefault('__postprocessors', [])
+                            info_dict['__postprocessors'].append(stretched_pp)
+                        else:
+                            self.report_warning(
+                                '%s: Non-uniform pixel ratio (%s). Install ffmpeg or avconv to fix this automatically.' % (
+                                    info_dict['id'], stretched_ratio))
+                    else:
+                        assert fixup_policy == 'ignore'
+
                 try:
                     self.post_process(filename, info_dict)
                 except (PostProcessingError) as err:
