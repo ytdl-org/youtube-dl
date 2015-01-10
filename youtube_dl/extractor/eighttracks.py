@@ -4,11 +4,12 @@ from __future__ import unicode_literals
 import json
 import random
 import re
-import time
 
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
+)
+from ..utils import (
     ExtractorError,
 )
 
@@ -115,7 +116,7 @@ class EightTracksIE(InfoExtractor):
         mix_id = data['id']
         track_count = data['tracks_count']
         duration = data['duration']
-        avg_song_duration = duration / track_count
+        avg_song_duration = float(duration) / track_count
         first_url = 'http://8tracks.com/sets/%s/play?player=sm&mix_id=%s&format=jsonh' % (session, mix_id)
         next_url = first_url
         entries = []
@@ -136,7 +137,7 @@ class EightTracksIE(InfoExtractor):
                         raise
                     else:
                         download_tries += 1
-                        time.sleep(avg_song_duration)
+                        self._sleep(avg_song_duration, playlist_id)
 
             api_data = json.loads(api_json)
             track_data = api_data['set']['track']
