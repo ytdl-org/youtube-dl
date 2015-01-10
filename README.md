@@ -272,6 +272,10 @@ which means you can modify it, redistribute it or use it however you like.
     -F, --list-formats               list all available formats
     --youtube-skip-dash-manifest     Do not download the DASH manifest on
                                      YouTube videos
+    --merge-output-format FORMAT     If a merge is required (e.g.
+                                     bestvideo+bestaudio), output to given
+                                     container format. One of mkv, mp4, ogg,
+                                     webm, flv.Ignored if no merge is required
 
 ## Subtitle Options:
     --write-sub                      write subtitle file
@@ -318,6 +322,11 @@ which means you can modify it, redistribute it or use it however you like.
     --add-metadata                   write metadata to the video file
     --xattrs                         write metadata to the video file's xattrs
                                      (using dublin core and xdg standards)
+    --fixup POLICY                   (experimental) Automatically correct known
+                                     faults of the file. One of never (do
+                                     nothing), warn (only emit a warning),
+                                     detect_or_warn(check whether we can do
+                                     anything about it, warn otherwise
     --prefer-avconv                  Prefer avconv over ffmpeg for running the
                                      postprocessors (default)
     --prefer-ffmpeg                  Prefer ffmpeg over avconv for running the
