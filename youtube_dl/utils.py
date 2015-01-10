@@ -545,7 +545,7 @@ class ContentTooShortError(Exception):
         self.expected = expected
 
 
-def _create_http_connection(ydl_handler, http_class, is_https=False, *args, **kwargs):
+def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
     hc = http_class(*args, **kwargs)
     source_address = ydl_handler._params.get('source_address')
     if source_address is not None:
@@ -589,7 +589,7 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
 
     def http_open(self, req):
         return self.do_open(functools.partial(
-            _create_http_connection, self, compat_http_client.HTTPConnection),
+            _create_http_connection, self, compat_http_client.HTTPConnection, False),
             req)
 
     @staticmethod
