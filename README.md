@@ -60,10 +60,6 @@ which means you can modify it, redistribute it or use it however you like.
                                      they would handle
     --extractor-descriptions         Output descriptions of all supported
                                      extractors
-    --proxy URL                      Use the specified HTTP/HTTPS proxy. Pass in
-                                     an empty string (--proxy "") for direct
-                                     connection
-    --socket-timeout None            Time to wait before giving up, in seconds
     --default-search PREFIX          Use this prefix for unqualified URLs. For
                                      example "gvsearch2:" downloads two videos
                                      from google videos for  youtube-dl "large
@@ -81,6 +77,18 @@ which means you can modify it, redistribute it or use it however you like.
                                      on Windows)
     --flat-playlist                  Do not extract the videos of a playlist,
                                      only list them.
+
+## Network Options:
+    --proxy URL                      Use the specified HTTP/HTTPS proxy. Pass in
+                                     an empty string (--proxy "") for direct
+                                     connection
+    --socket-timeout SECONDS         Time to wait before giving up, in seconds
+    --source-address IP              Client-side IP address to bind to
+                                     (experimental)
+    -4, --force-ipv4                 Make all connections via IPv4
+                                     (experimental)
+    -6, --force-ipv6                 Make all connections via IPv6
+                                     (experimental)
 
 ## Video Selection:
     --playlist-start NUMBER          playlist video to start at (default is 1)
