@@ -627,7 +627,9 @@ with youtube_dl.YoutubeDL(ydl_opts) as ydl:
 
 Bugs and suggestions should be reported at: <https://github.com/rg3/youtube-dl/issues> . Unless you were prompted so or there is another pertinent reason (e.g. GitHub fails to accept the bug report), please do not send bug reports via personal email. For discussions, join us in the irc channel #youtube-dl on freenode.
 
-Please include the full output of the command when run with `--verbose`. The output (including the first lines) contain important debugging information. Issues without the full output are often not reproducible and therefore do not get solved in short order, if ever.
+**Please include the full output of youtube-dl when run with `-v`**.
+
+The output (including the first lines) contain important debugging information. Issues without the full output are often not reproducible and therefore do not get solved in short order, if ever.
 
 Please re-read your issue once again to avoid a couple of common mistakes (you can and should use this as a checklist):
 
