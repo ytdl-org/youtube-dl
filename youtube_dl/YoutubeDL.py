@@ -58,6 +58,7 @@ from .utils import (
     takewhile_inclusive,
     UnavailableVideoError,
     url_basename,
+    version_tuple,
     write_json_file,
     write_string,
     YoutubeDLHandler,
@@ -212,6 +213,8 @@ class YoutubeDL(object):
                        - "detect_or_warn": check whether we can do anything
                                            about it, warn otherwise
     source_address:    (Experimental) Client-side IP address to bind to.
+    call_home:         (Experimental) Boolean, true iff we are allowed to
+                       contact the youtube-dl servers for debugging.
 
 
     The following parameters are not used by YoutubeDL itself, they are used by
@@ -1463,6 +1466,17 @@ class YoutubeDL(object):
             if hasattr(handler, 'proxies'):
                 proxy_map.update(handler.proxies)
         self._write_string('[debug] Proxy map: ' + compat_str(proxy_map) + '\n')
+
+        if self.params.get('call_home', False):
+            ipaddr = self.urlopen('https://yt-dl.org/ip').read().decode('utf-8')
+            self._write_string('[debug] Public IP address: %s\n' % ipaddr)
+            latest_version = self.urlopen(
+                'https://yt-dl.org/latest/version').read().decode('utf-8')
+            if version_tuple(latest_version) > version_tuple(__version__):
+                self.report_warning(
+                    'You are using an outdated version (newest version: %s)! '
+                    'See https://yt-dl.org/update if you need help updating.' %
+                    latest_version)
 
     def _setup_opener(self):
         timeout_val = self.params.get('socket_timeout')

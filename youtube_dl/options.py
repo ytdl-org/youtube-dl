@@ -505,6 +505,10 @@ def parseOpts(overrideArguments=None):
         '--print-traffic',
         dest='debug_printtraffic', action='store_true', default=False,
         help='Display sent and read HTTP traffic')
+    verbosity.add_option(
+        '-C', '--call-home',
+        dest='call_home', action='store_true', default=False,
+        help='Contact the youtube-dl server for debugging. (Experimental)')
 
     filesystem = optparse.OptionGroup(parser, 'Filesystem Options')
     filesystem.add_option(

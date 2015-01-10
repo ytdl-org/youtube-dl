@@ -328,6 +328,7 @@ def _real_main(argv=None):
         'postprocessors': postprocessors,
         'fixup': opts.fixup,
         'source_address': opts.source_address,
+        'call_home': opts.call_home,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
