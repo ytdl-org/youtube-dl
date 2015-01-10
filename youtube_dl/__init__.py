@@ -166,6 +166,9 @@ def _real_main(argv=None):
     if opts.recodevideo is not None:
         if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg', 'mkv']:
             parser.error('invalid video recode format specified')
+    if opts.merge_output_format is not None and not '+' in opts.format: #if merge format output is used on videos that don't require merging, ignore
+        opts.merge_output_format = None
+        
     if opts.date is not None:
         date = DateRange.day(opts.date)
     else:
@@ -323,6 +326,7 @@ def _real_main(argv=None):
         'encoding': opts.encoding,
         'exec_cmd': opts.exec_cmd,
         'extract_flat': opts.extract_flat,
+        'merge_output_format': opts.merge_output_format,
         'postprocessors': postprocessors,
     }
 

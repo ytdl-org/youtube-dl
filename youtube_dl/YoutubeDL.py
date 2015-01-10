@@ -203,6 +203,7 @@ class YoutubeDL(object):
 
                        Progress hooks are guaranteed to be called at least once
                        (with status "finished") if the download is successful.
+    merge_output_format: Extension to use when merging formats.
 
 
     The following parameters are not used by YoutubeDL itself, they are used by
@@ -909,6 +910,10 @@ class YoutubeDL(object):
                                                   'contain the video, try using '
                                                   '"-f %s+%s"' % (format_2, format_1))
                                 return
+                            output_ext = (
+                                formats_info[0]['ext']
+                                if self.params.get('merge_output_format') is None
+                                else self.params['merge_output_format'])
                             selected_format = {
                                 'requested_formats': formats_info,
                                 'format': rf,
@@ -921,6 +926,7 @@ class YoutubeDL(object):
                                 'vbr': formats_info[0].get('vbr'),
                                 'acodec': formats_info[1].get('acodec'),
                                 'abr': formats_info[1].get('abr'),
+                                'ext': output_ext,
                             }
                         else:
                             selected_format = None
