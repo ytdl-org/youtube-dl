@@ -508,7 +508,11 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option(
         '-C', '--call-home',
         dest='call_home', action='store_true', default=False,
-        help='Contact the youtube-dl server for debugging. (Experimental)')
+        help='Contact the youtube-dl server for debugging.')
+    verbosity.add_option(
+        '--no-call-home',
+        dest='call_home', action='store_false', default=False,
+        help='Do NOT contact the youtube-dl server for debugging.')
 
     filesystem = optparse.OptionGroup(parser, 'Filesystem Options')
     filesystem.add_option(

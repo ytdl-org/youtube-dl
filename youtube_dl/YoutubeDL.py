@@ -213,8 +213,8 @@ class YoutubeDL(object):
                        - "detect_or_warn": check whether we can do anything
                                            about it, warn otherwise
     source_address:    (Experimental) Client-side IP address to bind to.
-    call_home:         (Experimental) Boolean, true iff we are allowed to
-                       contact the youtube-dl servers for debugging.
+    call_home:         Boolean, true iff we are allowed to contact the
+                       youtube-dl servers for debugging.
 
 
     The following parameters are not used by YoutubeDL itself, they are used by
