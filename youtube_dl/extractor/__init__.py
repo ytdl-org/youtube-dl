@@ -70,6 +70,7 @@ from .cnn import (
     CNNArticleIE,
 )
 from .collegehumor import CollegeHumorIE
+from .collegerama import CollegeRamaIE
 from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
 from .comcarcoff import ComCarCoffIE
 from .commonmistakes import CommonMistakesIE
