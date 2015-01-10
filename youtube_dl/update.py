@@ -59,7 +59,7 @@ def update_self(to_screen, verbose):
         to_screen('It looks like you installed youtube-dl with a package manager, pip, setup.py or a tarball. Please use that to update.')
         return
 
-    https_handler = make_HTTPS_handler(False)
+    https_handler = make_HTTPS_handler({})
     opener = compat_urllib_request.build_opener(https_handler)
 
     # Check if there is a new version

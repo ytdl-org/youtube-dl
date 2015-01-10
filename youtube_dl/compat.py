@@ -4,6 +4,7 @@ import getpass
 import optparse
 import os
 import re
+import socket
 import subprocess
 import sys
 
@@ -307,6 +308,32 @@ else:
     compat_kwargs = lambda kwargs: kwargs
 
 
+if sys.version_info < (2, 7):
+    def compat_socket_create_connection(address, timeout, source_address=None):
+        host, port = address
+        err = None
+        for res in socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM):
+            af, socktype, proto, canonname, sa = res
+            sock = None
+            try:
+                sock = socket.socket(af, socktype, proto)
+                sock.settimeout(timeout)
+                if source_address:
+                    sock.bind(source_address)
+                sock.connect(sa)
+                return sock
+            except socket.error as _:
+                err = _
+                if sock is not None:
+                    sock.close()
+        if err is not None:
+            raise err
+        else:
+            raise error("getaddrinfo returns an empty list")
+else:
+    compat_socket_create_connection = socket.create_connection
+
+
 # Fix https://github.com/rg3/youtube-dl/issues/4223
 # See http://bugs.python.org/issue9161 for what is broken
 def workaround_optparse_bug9161():
@@ -343,6 +370,7 @@ __all__ = [
     'compat_parse_qs',
     'compat_print',
     'compat_str',
+    'compat_socket_create_connection',
     'compat_subprocess_get_DEVNULL',
     'compat_urllib_error',
     'compat_urllib_parse',

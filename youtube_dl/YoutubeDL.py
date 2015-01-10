@@ -211,6 +211,7 @@ class YoutubeDL(object):
                        - "warn": only emit a warning
                        - "detect_or_warn": check whether we can do anything
                                            about it, warn otherwise
+    source_address:    (Experimental) Client-side IP address to bind to.
 
 
     The following parameters are not used by YoutubeDL itself, they are used by
@@ -1493,9 +1494,8 @@ class YoutubeDL(object):
         proxy_handler = compat_urllib_request.ProxyHandler(proxies)
 
         debuglevel = 1 if self.params.get('debug_printtraffic') else 0
-        https_handler = make_HTTPS_handler(
-            self.params.get('nocheckcertificate', False), debuglevel=debuglevel)
-        ydlh = YoutubeDLHandler(debuglevel=debuglevel)
+        https_handler = make_HTTPS_handler(self.params, debuglevel=debuglevel)
+        ydlh = YoutubeDLHandler(self.params, debuglevel=debuglevel)
         opener = compat_urllib_request.build_opener(
             https_handler, proxy_handler, cookie_processor, ydlh)
         # Delete the default user-agent header, which would otherwise apply in

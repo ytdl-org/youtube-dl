@@ -149,14 +149,6 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='list_extractor_descriptions', default=False,
         help='Output descriptions of all supported extractors')
     general.add_option(
-        '--proxy', dest='proxy',
-        default=None, metavar='URL',
-        help='Use the specified HTTP/HTTPS proxy. Pass in an empty string (--proxy "") for direct connection')
-    general.add_option(
-        '--socket-timeout',
-        dest='socket_timeout', type=float, default=None,
-        help='Time to wait before giving up, in seconds')
-    general.add_option(
         '--default-search',
         dest='default_search', metavar='PREFIX',
         help='Use this prefix for unqualified URLs. For example "gvsearch2:" downloads two videos from google videos for  youtube-dl "large apple". Use the value "auto" to let youtube-dl guess ("auto_warning" to emit a warning when guessing). "error" just throws an error. The default value "fixup_error" repairs broken URLs, but emits an error if this is not possible instead of searching.')
@@ -172,6 +164,21 @@ def parseOpts(overrideArguments=None):
         action='store_const', dest='extract_flat', const='in_playlist',
         default=False,
         help='Do not extract the videos of a playlist, only list them.')
+
+    network = optparse.OptionGroup(parser, 'Network Options')
+    network.add_option(
+        '--proxy', dest='proxy',
+        default=None, metavar='URL',
+        help='Use the specified HTTP/HTTPS proxy. Pass in an empty string (--proxy "") for direct connection')
+    network.add_option(
+        '--socket-timeout',
+        dest='socket_timeout', type=float, default=None, metavar='SECONDS',
+        help='Time to wait before giving up, in seconds')
+    network.add_option(
+        '--source-address',
+        metavar='IP', dest='source_address', default=None,
+        help='Client-side IP address to bind to (experimental)',
+    )
 
     selection = optparse.OptionGroup(parser, 'Video Selection')
     selection.add_option(
@@ -652,6 +659,7 @@ def parseOpts(overrideArguments=None):
         help='Execute a command on the file after downloading, similar to find\'s -exec syntax. Example: --exec \'adb push {} /sdcard/Music/ && rm {}\'')
 
     parser.add_option_group(general)
+    parser.add_option_group(network)
     parser.add_option_group(selection)
     parser.add_option_group(downloader)
     parser.add_option_group(filesystem)

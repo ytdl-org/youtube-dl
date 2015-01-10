@@ -327,6 +327,7 @@ def _real_main(argv=None):
         'merge_output_format': opts.merge_output_format,
         'postprocessors': postprocessors,
         'fixup': opts.fixup,
+        'source_address': opts.source_address,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
