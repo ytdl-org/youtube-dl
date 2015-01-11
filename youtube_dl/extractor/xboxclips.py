@@ -30,7 +30,7 @@ class XboxClipsIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_url = self._html_search_regex(
-            r'>(?:Link|Download): <a href="([^"]+)">', webpage, 'video URL')
+            r'>(?:Link|Download): <a[^>]+href="([^"]+)"', webpage, 'video URL')
         title = self._html_search_regex(
             r'<title>XboxClips \| ([^<]+)</title>', webpage, 'title')
         upload_date = unified_strdate(self._html_search_regex(
