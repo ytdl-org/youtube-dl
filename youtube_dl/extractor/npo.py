@@ -10,6 +10,7 @@ from ..utils import (
     strip_jsonp,
     url_basename,
     fix_xml_ampersands,
+    determine_ext,
 )
 
 
@@ -124,6 +125,12 @@ class NPOIE(InfoExtractor):
             for i, stream in enumerate(streams):
                 stream_url = stream.get('url')
                 if not stream_url:
+                    continue
+                if determine_ext(stream_url).lower() != 'asf':
+                    formats.append({
+                        'url': stream_url,
+                        'quality': stream.get('kwaliteit'),
+                    })
                     continue
                 asx = self._download_xml(
                     stream_url, video_id,
