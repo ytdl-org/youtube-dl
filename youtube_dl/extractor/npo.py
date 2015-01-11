@@ -68,6 +68,16 @@ class NPOIE(InfoExtractor):
                 'skip_download': True,
             }
         },
+        # non asf in streams
+        {
+            'url': 'http://www.npo.nl/hoe-gaat-europa-verder-na-parijs/10-01-2015/WO_NOS_762771',
+            'md5': 'b3da13de374cbe2d5332a7e910bef97f',
+            'info_dict': {
+                'id': 'WO_NOS_762771',
+                'ext': 'mp4',
+                'title': 'Hoe gaat Europa verder na Parijs?',
+            },
+        },
     ]
 
     def _real_extract(self, url):
@@ -126,7 +136,7 @@ class NPOIE(InfoExtractor):
                 stream_url = stream.get('url')
                 if not stream_url:
                     continue
-                if determine_ext(stream_url).lower() != 'asf':
+                if not '.asf' in stream_url:
                     formats.append({
                         'url': stream_url,
                         'quality': stream.get('kwaliteit'),
