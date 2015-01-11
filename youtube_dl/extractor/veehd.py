@@ -18,13 +18,13 @@ class VeeHDIE(InfoExtractor):
     _VALID_URL = r'https?://veehd\.com/video/(?P<id>\d+)'
 
     _TEST = {
-        'url': 'http://veehd.com/video/4686958',
+        'url': 'http://veehd.com/video/4639434_Solar-Sinter',
         'info_dict': {
-            'id': '4686958',
+            'id': '4639434',
             'ext': 'mp4',
-            'title': 'Time Lapse View from Space ( ISS)',
-            'uploader_id': 'spotted',
-            'description': 'md5:f0094c4cf3a72e22bc4e4239ef767ad7',
+            'title': 'Solar Sinter',
+            'uploader_id': 'VideoEyes',
+            'description': 'md5:46a840e8692ddbaffb5f81d9885cb457',
         },
     }
 
