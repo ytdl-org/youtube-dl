@@ -79,6 +79,10 @@ class TestUtil(unittest.TestCase):
         tests = '\u043a\u0438\u0440\u0438\u043b\u043b\u0438\u0446\u0430'
         self.assertEqual(sanitize_filename(tests), tests)
 
+        self.assertEqual(
+            sanitize_filename('New World record at 0:12:34'),
+            'New World record at 0_12_34')
+
         forbidden = '"\0\\/'
         for fc in forbidden:
             for fbc in forbidden:
