@@ -348,7 +348,16 @@ which means you can modify it, redistribute it or use it however you like.
 
 # CONFIGURATION
 
-You can configure youtube-dl by placing default arguments (such as `--extract-audio --no-mtime` to always extract the audio and not copy the mtime) into `/etc/youtube-dl.conf` and/or `~/.config/youtube-dl/config`. On Windows, the configuration file locations are `%APPDATA%\youtube-dl\config.txt` and `C:\Users\<user name>\youtube-dl.conf`.
+**On Mac:** You can configure youtube-dl by placing default arguments into `/etc/youtube-dl.conf` and/or `~/.config/youtube-dl.conf`.
+
+**On Windows:** The configuration file locations are `%APPDATA%\youtube-dl\config.txt` and `C:\Users\<user name>\youtube-dl.conf`.
+
+**Example youtube-dl.conf:**
+To always extract the audio and not copy the mtime:
+```
+--extract-audio
+--no-mtime
+```
 
 # OUTPUT TEMPLATE
 
