@@ -47,18 +47,35 @@ class VeeHDIE(InfoExtractor):
         self._download_webpage(player_url, video_id, 'Requesting player page')
         player_page = self._download_webpage(
             player_url, video_id, 'Downloading player page')
-        config_json = self._search_regex(
-            r'value=\'config=({.+?})\'', player_page, 'config json')
-        config = json.loads(config_json)
 
-        video_url = compat_urlparse.unquote(config['clip']['url'])
+        config_json = self._search_regex(
+            r'value=\'config=({.+?})\'', player_page, 'config json', default=None)
+
+        if config_json:
+            config = json.loads(config_json)
+            video_url = compat_urlparse.unquote(config['clip']['url'])
+        else:
+            iframe_src = self._search_regex(
+                r'<iframe[^>]+src="/?([^"]+)"', player_page, 'iframe url')
+            iframe_url = 'http://veehd.com/%s' % iframe_src
+
+            self._download_webpage(iframe_url, video_id, 'Requesting iframe page')
+            iframe_page = self._download_webpage(
+                iframe_url, video_id, 'Downloading iframe page')
+
+            video_url = self._search_regex(
+                r"file\s*:\s*'([^']+)'", iframe_page, 'video url')
+
         title = clean_html(get_element_by_id('videoName', webpage).rpartition('|')[0])
-        uploader_id = self._html_search_regex(r'<a href="/profile/\d+">(.+?)</a>',
-                                              webpage, 'uploader')
-        thumbnail = self._search_regex(r'<img id="veehdpreview" src="(.+?)"',
-                                       webpage, 'thumbnail')
-        description = self._html_search_regex(r'<td class="infodropdown".*?<div>(.*?)<ul',
-                                              webpage, 'description', flags=re.DOTALL)
+        uploader_id = self._html_search_regex(
+            r'<a href="/profile/\d+">(.+?)</a>',
+            webpage, 'uploader')
+        thumbnail = self._search_regex(
+            r'<img id="veehdpreview" src="(.+?)"',
+            webpage, 'thumbnail')
+        description = self._html_search_regex(
+            r'<td class="infodropdown".*?<div>(.*?)<ul',
+            webpage, 'description', flags=re.DOTALL)
 
         return {
             '_type': 'video',
