@@ -329,7 +329,7 @@ if sys.version_info < (2, 7):
         if err is not None:
             raise err
         else:
-            raise error("getaddrinfo returns an empty list")
+            raise socket.error("getaddrinfo returns an empty list")
 else:
     compat_socket_create_connection = socket.create_connection
 
