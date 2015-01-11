@@ -4,13 +4,12 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    unified_strdate,
+    fix_xml_ampersands,
     parse_duration,
     qualities,
     strip_jsonp,
+    unified_strdate,
     url_basename,
-    fix_xml_ampersands,
-    determine_ext,
 )
 
 
@@ -136,7 +135,7 @@ class NPOIE(InfoExtractor):
                 stream_url = stream.get('url')
                 if not stream_url:
                     continue
-                if not '.asf' in stream_url:
+                if '.asf' not in stream_url:
                     formats.append({
                         'url': stream_url,
                         'quality': stream.get('kwaliteit'),
