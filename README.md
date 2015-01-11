@@ -240,7 +240,9 @@ which means you can modify it, redistribute it or use it however you like.
                                      problems
     --print-traffic                  Display sent and read HTTP traffic
     -C, --call-home                  Contact the youtube-dl server for
-                                     debugging. (Experimental)
+                                     debugging.
+    --no-call-home                   Do NOT contact the youtube-dl server for
+                                     debugging.
 
 ## Workarounds:
     --encoding ENCODING              Force the specified encoding (experimental)
