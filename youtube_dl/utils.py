@@ -1269,7 +1269,7 @@ def float_or_none(v, scale=1, invscale=1, default=None):
 
 
 def parse_duration(s):
-    if s is None:
+    if not isinstance(s, basestring if sys.version_info < (3, 0) else compat_str):
         return None
 
     s = s.strip()
