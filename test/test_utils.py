@@ -212,6 +212,8 @@ class TestUtil(unittest.TestCase):
 
     def test_parse_duration(self):
         self.assertEqual(parse_duration(None), None)
+        self.assertEqual(parse_duration(False), None)
+        self.assertEqual(parse_duration('invalid'), None)
         self.assertEqual(parse_duration('1'), 1)
         self.assertEqual(parse_duration('1337:12'), 80232)
         self.assertEqual(parse_duration('9:12:43'), 33163)
