@@ -226,6 +226,7 @@ from .livestream import (
     LivestreamOriginalIE,
     LivestreamShortenerIE,
 )
+from .lnkgo import LnkGoIE
 from .lrt import LRTIE
 from .lynda import (
     LyndaIE,
