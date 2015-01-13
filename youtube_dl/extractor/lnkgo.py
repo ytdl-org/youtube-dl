@@ -62,16 +62,18 @@ class LnkGoIE(InfoExtractor):
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage)
 
-        thumbnail = self._og_search_thumbnail(webpage)
         thumbnail_w = int_or_none(
             self._og_search_property('image:width', webpage, 'thumbnail width', fatal=False))
         thumbnail_h = int_or_none(
             self._og_search_property('image:height', webpage, 'thumbnail height', fatal=False))
-        thumbnails = [{
-            'url': thumbnail,
-            'width': thumbnail_w,
-            'height': thumbnail_h,
-        }]
+        thumbnail = {
+            'url': self._og_search_thumbnail(webpage),
+        }
+        if thumbnail_w and thumbnail_h:
+            thumbnail.update({
+                'width': thumbnail_w,
+                'height': thumbnail_h,
+            })
 
         upload_date = unified_strdate(self._search_regex(
             r'class="meta-item\sair-time">.*?<strong>([^<]+)</strong>', webpage, 'upload date', fatal=False))
@@ -80,7 +82,7 @@ class LnkGoIE(InfoExtractor):
 
         pg_rating = self._search_regex(
             r'pgrating="([^"]+)"', webpage, 'PG rating', fatal=False, default='')
-        age_limit = self._AGE_LIMITS.get(pg_rating, 0)
+        age_limit = self._AGE_LIMITS.get(pg_rating.upper(), 0)
 
         sources_js = self._search_regex(
             r'(?s)sources:\s(\[.*?\]),', webpage, 'sources')
@@ -114,7 +116,7 @@ class LnkGoIE(InfoExtractor):
             'display_id': display_id,
             'title': title,
             'formats': formats,
-            'thumbnails': thumbnails,
+            'thumbnails': [thumbnail],
             'duration': duration,
             'description': description,
             'age_limit': age_limit,
