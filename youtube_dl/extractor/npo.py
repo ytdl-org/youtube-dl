@@ -13,7 +13,16 @@ from ..utils import (
 )
 
 
-class NPOIE(InfoExtractor):
+class NPOBaseIE(InfoExtractor):
+    def _get_token(self, video_id):
+        token_page = self._download_webpage(
+            'http://ida.omroep.nl/npoplayer/i.js',
+            video_id, note='Downloading token')
+        return self._search_regex(
+            r'npoplayer\.token = "(.+?)"', token_page, 'token')
+
+
+class NPOIE(NPOBaseIE):
     IE_NAME = 'npo.nl'
     _VALID_URL = r'https?://www\.npo\.nl/[^/]+/[^/]+/(?P<id>[^/?]+)'
 
@@ -80,8 +89,7 @@ class NPOIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         return self._get_info(video_id)
 
     def _get_info(self, video_id):
@@ -91,12 +99,8 @@ class NPOIE(InfoExtractor):
             # We have to remove the javascript callback
             transform_source=strip_jsonp,
         )
-        token_page = self._download_webpage(
-            'http://ida.omroep.nl/npoplayer/i.js',
-            video_id,
-            note='Downloading token'
-        )
-        token = self._search_regex(r'npoplayer\.token = "(.+?)"', token_page, 'token')
+
+        token = self._get_token(video_id)
 
         formats = []
 
@@ -167,6 +171,83 @@ class NPOIE(InfoExtractor):
             'upload_date': unified_strdate(metadata.get('gidsdatum')),
             'duration': parse_duration(metadata.get('tijdsduur')),
             'formats': formats,
+        }
+
+
+class NPOLiveIE(NPOBaseIE):
+    IE_NAME = 'npo.nl:live'
+    _VALID_URL = r'https?://www\.npo\.nl/live/(?P<id>.+)'
+
+    _TEST = {
+        'url': 'http://www.npo.nl/live/npo-1',
+        'info_dict': {
+            'id': 'LI_NEDERLAND1_136692',
+            'display_id': 'npo-1',
+            'ext': 'mp4',
+            'title': 're:^Nederland 1 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'description': 'Livestream',
+            'is_live': True,
+        },
+        'params': {
+            'skip_download': True,
+        }
+    }
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, display_id)
+
+        live_id = self._search_regex(
+            r'data-prid="([^"]+)"', webpage, 'live id')
+
+        metadata = self._download_json(
+            'http://e.omroep.nl/metadata/%s' % live_id,
+            display_id, transform_source=strip_jsonp)
+
+        token = self._get_token(display_id)
+
+        formats = []
+
+        streams = metadata.get('streams')
+        if streams:
+            for stream in streams:
+                stream_type = stream.get('type').lower()
+                if stream_type == 'ss':
+                    continue
+                stream_info = self._download_json(
+                    'http://ida.omroep.nl/aapi/?stream=%s&token=%s&type=jsonp'
+                    % (stream.get('url'), token),
+                    display_id, 'Downloading %s JSON' % stream_type)
+                if stream_info.get('error_code', 0) or stream_info.get('errorcode', 0):
+                    continue
+                stream_url = self._download_json(
+                    stream_info['stream'], display_id,
+                    'Downloading %s URL' % stream_type,
+                    transform_source=strip_jsonp)
+                if stream_type == 'hds':
+                    f4m_formats = self._extract_f4m_formats(stream_url, display_id)
+                    # f4m downloader downloads only piece of live stream
+                    for f4m_format in f4m_formats:
+                        f4m_format['preference'] = -1
+                    formats.extend(f4m_formats)
+                elif stream_type == 'hls':
+                    formats.extend(self._extract_m3u8_formats(stream_url, display_id, 'mp4'))
+                else:
+                    formats.append({
+                        'url': stream_url,
+                    })
+
+        self._sort_formats(formats)
+
+        return {
+            'id': live_id,
+            'display_id': display_id,
+            'title': self._live_title(metadata['titel']),
+            'description': metadata['info'],
+            'thumbnail': metadata.get('images', [{'url': None}])[-1]['url'],
+            'formats': formats,
+            'is_live': True,
         }
 
 

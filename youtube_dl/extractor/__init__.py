@@ -295,6 +295,7 @@ from .nowness import NownessIE
 from .nowvideo import NowVideoIE
 from .npo import (
     NPOIE,
+    NPOLiveIE,
     TegenlichtVproIE,
 )
 from .nrk import (
