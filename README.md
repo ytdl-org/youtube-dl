@@ -444,9 +444,15 @@ Apparently YouTube requires you to pass a CAPTCHA test if you download too much.
 
 Once the video is fully downloaded, use any video player, such as [vlc](http://www.videolan.org) or [mplayer](http://www.mplayerhq.hu/).
 
-### The links provided by youtube-dl -g are not working anymore
+### I extracted a video URL with -g, but it does not play on another machine / in my webbrowser.
 
-The URLs youtube-dl outputs require the downloader to have the correct cookies. Use the `--cookies` option to write the required cookies into a file, and advise your downloader to read cookies from that file. Some sites also require a common user agent to be used, use `--dump-user-agent` to see the one in use by youtube-dl.
+It depends a lot on the service. In many cases, requests for the video (to download/play it) must come from the same IP address and with the same cookies.  Use the `--cookies` option to write the required cookies into a file, and advise your downloader to read cookies from that file. Some sites also require a common user agent to be used, use `--dump-user-agent` to see the one in use by youtube-dl.
+
+It may be beneficial to use IPv6; in some cases, the restrictions are only applied to IPv4. Some services (sometimes only for a subset of videos) do not restrict the video URL by IP address, cookie, or user-agent, but these are the exception rather than the rule.
+
+Please bear in mind that some URL protocols are **not** supported by browsers out of the box, including RTMP. If you are using -g, your own downloader must support these as well.
+
+If you want to play the video on a machine that is not running youtube-dl, you can relay the video content from the machine that runs youtube-dl. You can use `-o -` to let youtube-dl stream a video to stdout, or simply allow the player to download the files written by youtube-dl in turn.
 
 ### ERROR: no fmt_url_map or conn information found in video info
 
