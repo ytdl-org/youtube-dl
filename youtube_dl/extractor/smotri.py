@@ -90,6 +90,20 @@ class SmotriIE(InfoExtractor):
             },
             'skip': 'Video is not approved by moderator',
         },
+        # not approved by moderator, but available
+        {
+            'url': 'http://smotri.com/video/view/?id=v28888533b73',
+            'md5': 'f44bc7adac90af518ef1ecf04893bb34',
+            'info_dict': {
+                'id': 'v28888533b73',
+                'ext': 'mp4',
+                'title': 'Russian Spies Killed By ISIL Child Soldier',
+                'uploader': 'Mopeder',
+                'uploader_id': 'mopeder',
+                'duration': 71,
+                'thumbnail': 'http://frame9.loadup.ru/d7/32/2888853.2.3.jpg',
+            },
+        },
         # swf player
         {
             'url': 'http://pics.smotri.com/scrubber_custom8.swf?file=v9188090500',
@@ -146,13 +160,16 @@ class SmotriIE(InfoExtractor):
 
         video = self._download_json(request, video_id, 'Downloading video JSON')
 
-        if video.get('_moderate_no') or not video.get('moderated'):
-            raise ExtractorError('Video %s has not been approved by moderator' % video_id, expected=True)
-
-        if video.get('error'):
-            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
-
         video_url = video.get('_vidURL') or video.get('_vidURL_mp4')
+
+        if not video_url:
+            if video.get('_moderate_no') or not video.get('moderated'):
+                raise ExtractorError(
+                    'Video %s has not been approved by moderator' % video_id, expected=True)
+
+            if video.get('error'):
+                raise ExtractorError('Video %s does not exist' % video_id, expected=True)
+
         title = video['title']
         thumbnail = video['_imgURL']
         upload_date = unified_strdate(video['added'])
