@@ -4,7 +4,14 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
+from ..compat import (
+    compat_urlparse,
+    compat_HTTPError,
+)
+from ..utils import (
+    HEADRequest,
+    ExtractorError,
+)
 from .spiegeltv import SpiegeltvIE
 
 
@@ -60,21 +67,31 @@ class SpiegelIE(InfoExtractor):
         xml_url = base_url + video_id + '.xml'
         idoc = self._download_xml(xml_url, video_id)
 
-        formats = [
-            {
-                'format_id': n.tag.rpartition('type')[2],
-                'url': base_url + n.find('./filename').text,
-                'width': int(n.find('./width').text),
-                'height': int(n.find('./height').text),
-                'abr': int(n.find('./audiobitrate').text),
-                'vbr': int(n.find('./videobitrate').text),
-                'vcodec': n.find('./codec').text,
-                'acodec': 'MP4A',
-            }
-            for n in list(idoc)
-            # Blacklist type 6, it's extremely LQ and not available on the same server
-            if n.tag.startswith('type') and n.tag != 'type6'
-        ]
+        formats = []
+        for n in list(idoc):
+            if n.tag.startswith('type') and n.tag != 'type6':
+                format_id = n.tag.rpartition('type')[2]
+                video_url = base_url + n.find('./filename').text
+                # Test video URLs beforehand as some of them are invalid
+                try:
+                    self._request_webpage(
+                        HEADRequest(video_url), video_id,
+                        'Checking %s video URL' % format_id)
+                except ExtractorError as e:
+                    if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
+                        self.report_warning(
+                            '%s video URL is invalid, skipping' % format_id, video_id)
+                        continue
+                formats.append({
+                    'format_id': format_id,
+                    'url': video_url,
+                    'width': int(n.find('./width').text),
+                    'height': int(n.find('./height').text),
+                    'abr': int(n.find('./audiobitrate').text),
+                    'vbr': int(n.find('./videobitrate').text),
+                    'vcodec': n.find('./codec').text,
+                    'acodec': 'MP4A',
+                })
         duration = float(idoc[0].findall('./duration')[0].text)
 
         self._sort_formats(formats)
