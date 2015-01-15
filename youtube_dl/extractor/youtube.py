@@ -588,7 +588,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
     def _parse_sig_js(self, jscode):
         funcname = self._search_regex(
-            r'\.sig\|\|([a-zA-Z0-9]+)\(', jscode,
+            r'\.sig\|\|([a-zA-Z0-9\$]+)\(', jscode,
             'Initial JS player signature function name')
 
         jsi = JSInterpreter(jscode)
