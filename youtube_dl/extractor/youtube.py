@@ -394,6 +394,23 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                 'format': '141',
             },
         },
+        # JS player signature function name containing $
+        {
+            'url': 'https://www.youtube.com/watch?v=nfWlot6h_JM',
+            'info_dict': {
+                'id': 'nfWlot6h_JM',
+                'ext': 'm4a',
+                'title': 'Taylor Swift - Shake It Off',
+                'description': 'md5:2acfda1b285bdd478ccec22f9918199d',
+                'uploader': 'TaylorSwiftVEVO',
+                'uploader_id': 'TaylorSwiftVEVO',
+                'upload_date': '20140818',
+            },
+            'params': {
+                'youtube_include_dash_manifest': True,
+                'format': '141',
+            },
+        },
         # Controversy video
         {
             'url': 'https://www.youtube.com/watch?v=T4XJQO3qol8',
@@ -588,7 +605,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
     def _parse_sig_js(self, jscode):
         funcname = self._search_regex(
-            r'\.sig\|\|([a-zA-Z0-9\$]+)\(', jscode,
+            r'\.sig\|\|([a-zA-Z0-9$]+)\(', jscode,
             'Initial JS player signature function name')
 
         jsi = JSInterpreter(jscode)
