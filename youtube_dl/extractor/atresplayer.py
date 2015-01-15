@@ -4,9 +4,12 @@ import time
 import hmac
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
+    compat_urllib_parse,
     compat_urllib_request,
+)
+from ..utils import (
     int_or_none,
     float_or_none,
     xpath_text,
@@ -43,6 +46,33 @@ class AtresPlayerIE(InfoExtractor):
     _URL_VIDEO_TEMPLATE = 'https://servicios.atresplayer.com/api/urlVideo/{1}/{0}/{1}|{2}|{3}.json'
     _PLAYER_URL_TEMPLATE = 'https://servicios.atresplayer.com/episode/getplayer.json?episodePk=%s'
     _EPISODE_URL_TEMPLATE = 'http://www.atresplayer.com/episodexml/%s'
+
+    _LOGIN_URL = 'https://servicios.atresplayer.com/j_spring_security_check'
+
+    def _real_initialize(self):
+        self._login()
+
+    def _login(self):
+        (username, password) = self._get_login_info()
+        if username is None:
+            return
+
+        login_form = {
+            'j_username': username,
+            'j_password': password,
+        }
+
+        request = compat_urllib_request.Request(
+            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+        request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        response = self._download_webpage(
+            request, None, 'Logging in as %s' % username)
+
+        error = self._html_search_regex(
+            r'(?s)<ul class="list_error">(.+?)</ul>', response, 'error', default=None)
+        if error:
+            raise ExtractorError(
+                'Unable to login: %s' % error, expected=True)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
