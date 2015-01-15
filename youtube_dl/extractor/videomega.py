@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
+    compat_urllib_request,
 )
 from ..utils import (
     remove_start,
@@ -16,20 +17,23 @@ class VideoMegaIE(InfoExtractor):
         (?:iframe\.php)?\?ref=(?P<id>[A-Za-z0-9]+)
         '''
     _TEST = {
-        'url': 'http://videomega.tv/?ref=GKeGPVedBe',
-        'md5': '240fb5bcf9199961f48eb17839b084d6',
+        'url': 'http://videomega.tv/?ref=QR0HCUHI1661IHUCH0RQ',
+        'md5': 'bf5c2f95c4c917536e80936af7bc51e1',
         'info_dict': {
-            'id': 'GKeGPVedBe',
+            'id': 'QR0HCUHI1661IHUCH0RQ',
             'ext': 'mp4',
-            'title': 'XXL - All Sports United',
+            'title': 'Big Buck Bunny',
             'thumbnail': 're:^https?://.*\.jpg$',
         }
     }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        url = 'http://videomega.tv/iframe.php?ref={0:}'.format(video_id)
-        webpage = self._download_webpage(url, video_id)
+
+        iframe_url = 'http://videomega.tv/iframe.php?ref={0:}'.format(video_id)
+        req = compat_urllib_request.Request(iframe_url)
+        req.add_header('Referer', url)
+        webpage = self._download_webpage(req, video_id)
 
         escaped_data = self._search_regex(
             r'unescape\("([^"]+)"\)', webpage, 'escaped data')
@@ -37,13 +41,13 @@ class VideoMegaIE(InfoExtractor):
 
         thumbnail = self._search_regex(
             r'image:\s*"([^"]+)"', playlist, 'thumbnail', fatal=False)
-        url = self._search_regex(r'file:\s*"([^"]+)"', playlist, 'URL')
+        video_url = self._search_regex(r'file:\s*"([^"]+)"', playlist, 'URL')
         title = remove_start(self._html_search_regex(
             r'<title>(.*?)</title>', webpage, 'title'), 'VideoMega.tv - ')
 
         formats = [{
             'format_id': 'sd',
-            'url': url,
+            'url': video_url,
         }]
         self._sort_formats(formats)
 
@@ -52,4 +56,5 @@ class VideoMegaIE(InfoExtractor):
             'title': title,
             'formats': formats,
             'thumbnail': thumbnail,
+            'http_referer': iframe_url,
         }
