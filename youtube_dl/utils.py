@@ -1277,7 +1277,7 @@ def parse_duration(s):
     s = s.strip()
 
     m = re.match(
-        r'''(?ix)T?
+        r'''(?ix)(?:P?T)?
         (?:
             (?P<only_mins>[0-9.]+)\s*(?:mins?|minutes?)\s*|
             (?P<only_hours>[0-9.]+)\s*(?:hours?)|
