@@ -481,15 +481,15 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
             # Don't copy the existing subtitles, we may be running the
             # postprocessor a second time
             '-map', '-0:s',
+            '-c:s', 'mov_text',
         ]
         for (i, lang) in enumerate(sub_langs):
-            opts.extend(['-map', '%d:0' % (i + 1), '-c:s:%d' % i, 'mov_text'])
+            opts.extend(['-map', '%d:0' % (i + 1)])
             lang_code = self._conver_lang_code(lang)
             if lang_code is not None:
                 opts.extend(['-metadata:s:s:%d' % i, 'language=%s' % lang_code])
-        opts.extend(['-f', 'mp4'])
 
-        temp_filename = filename + '.temp'
+        temp_filename = prepend_extension(filename, 'temp')
         self._downloader.to_screen('[ffmpeg] Embedding subtitles in \'%s\'' % filename)
         self.run_ffmpeg_multiple_files(input_files, temp_filename, opts)
         os.remove(encodeFilename(filename))
