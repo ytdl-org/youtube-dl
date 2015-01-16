@@ -475,7 +475,13 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
         filename = information['filepath']
         input_files = [filename] + [subtitles_filename(filename, lang, self._subformat) for lang in sub_langs]
 
-        opts = ['-map', '0:0', '-map', '0:1', '-c:v', 'copy', '-c:a', 'copy']
+        opts = [
+            '-map', '0',
+            '-c', 'copy',
+            # Don't copy the existing subtitles, we may be running the
+            # postprocessor a second time
+            '-map', '-0:s',
+        ]
         for (i, lang) in enumerate(sub_langs):
             opts.extend(['-map', '%d:0' % (i + 1), '-c:s:%d' % i, 'mov_text'])
             lang_code = self._conver_lang_code(lang)
