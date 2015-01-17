@@ -264,7 +264,7 @@ def parseOpts(overrideArguments=None):
     authentication.add_option(
         '-p', '--password',
         dest='password', metavar='PASSWORD',
-        help='account password')
+        help='account password. If this option is left out, youtube-dl will ask interactively.')
     authentication.add_option(
         '-2', '--twofactor',
         dest='twofactor', metavar='TWOFACTOR',
