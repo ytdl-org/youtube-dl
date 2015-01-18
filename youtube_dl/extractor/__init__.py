@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from .abc import ABCIE
+from .abc7news import Abc7NewsIE
 from .academicearth import AcademicEarthCourseIE
 from .addanime import AddAnimeIE
 from .adobetv import AdobeTVIE
