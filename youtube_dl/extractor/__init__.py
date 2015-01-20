@@ -346,6 +346,7 @@ from .rottentomatoes import RottenTomatoesIE
 from .roxwel import RoxwelIE
 from .rtbf import RTBFIE
 from .rte import RteIE
+from .rtllu import RtlluIE
 from .rtlnl import RtlXlIE
 from .rtlnow import RTLnowIE
 from .rtp import RTPIE
