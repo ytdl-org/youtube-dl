@@ -6,6 +6,7 @@ import json
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
+    compat_HTTPError,
 )
 from ..utils import (
     ExtractorError,
@@ -78,6 +79,16 @@ class NBCNewsIE(InfoExtractor):
             },
             'add_ie': ['ThePlatform'],
         },
+        {
+            'url': 'http://www.nbcnews.com/feature/dateline-full-episodes/full-episode-family-business-n285156',
+            'md5': 'fdbf39ab73a72df5896b6234ff98518a',
+            'info_dict': {
+                'id': 'Wjf9EDR3A_60',
+                'ext': 'mp4',
+                'title': 'FULL EPISODE: Family Business',
+                'description': 'md5:757988edbaae9d7be1d585eb5d55cc04',
+            },
+        },
     ]
 
     def _real_extract(self, url):
@@ -115,10 +126,19 @@ class NBCNewsIE(InfoExtractor):
                 if not base_url:
                     continue
                 playlist_url = base_url + '?form=MPXNBCNewsAPI'
-                all_videos = self._download_json(playlist_url, title)['videos']
 
                 try:
-                    info = next(v for v in all_videos if v['mpxId'] == mpxid)
+                    all_videos = self._download_json(playlist_url, title)
+                except ExtractorError as ee:
+                    if isinstance(ee.cause, compat_HTTPError):
+                        continue
+                    raise
+
+                if not all_videos or not 'videos' in all_videos:
+                    continue
+
+                try:
+                    info = next(v for v in all_videos['videos'] if v['mpxId'] == mpxid)
                     break
                 except StopIteration:
                     continue
