@@ -409,6 +409,7 @@ from .stanfordoc import StanfordOpenClassroomIE
 from .steam import SteamIE
 from .streamcloud import StreamcloudIE
 from .streamcz import StreamCZIE
+from .streetvoice import StreetVoiceIE
 from .sunporno import SunPornoIE
 from .swrmediathek import SWRMediathekIE
 from .syfy import SyfyIE
