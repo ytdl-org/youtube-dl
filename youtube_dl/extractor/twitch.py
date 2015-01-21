@@ -241,7 +241,7 @@ class TwitchProfileIE(TwitchPlaylistBaseIE):
 
 
 class TwitchPastBroadcastsIE(TwitchPlaylistBaseIE):
-    IE_NAME = 'twitch:profile'
+    IE_NAME = 'twitch:past_broadcasts'
     _VALID_URL = r'%s/(?P<id>[^/]+)/profile/past_broadcasts/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
     _PLAYLIST_URL = TwitchPlaylistBaseIE._PLAYLIST_URL + '&broadcasts=true'
     _PLAYLIST_TYPE = 'past broadcasts'
