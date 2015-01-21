@@ -51,7 +51,7 @@ class CNNIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         path = mobj.group('path')
         page_title = mobj.group('title')
-        info_url = 'http://cnn.com/video/data/3.0/%s/index.xml' % path
+        info_url = 'http://edition.cnn.com/video/data/3.0/%s/index.xml' % path
         info = self._download_xml(info_url, page_title)
 
         formats = []
