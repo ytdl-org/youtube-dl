@@ -176,6 +176,7 @@ from .goshgay import GoshgayIE
 from .grooveshark import GroovesharkIE
 from .groupon import GrouponIE
 from .hark import HarkIE
+from .hearthisat import HearThisAtIE
 from .heise import HeiseIE
 from .hellporno import HellPornoIE
 from .helsinki import HelsinkiIE
