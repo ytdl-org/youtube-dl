@@ -134,7 +134,7 @@ class NBCNewsIE(InfoExtractor):
                         continue
                     raise
 
-                if not all_videos or not 'videos' in all_videos:
+                if not all_videos or 'videos' not in all_videos:
                     continue
 
                 try:
