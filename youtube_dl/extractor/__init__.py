@@ -458,7 +458,13 @@ from .tvigle import TvigleIE
 from .tvp import TvpIE, TvpSeriesIE
 from .tvplay import TVPlayIE
 from .twentyfourvideo import TwentyFourVideoIE
-from .twitch import TwitchIE
+from .twitch import (
+    TwitchVideoIE,
+    TwitchChapterIE,
+    TwitchVodIE,
+    TwitchProfileIE,
+    TwitchPastBroadcastsIE,
+)
 from .ubu import UbuIE
 from .udemy import (
     UdemyIE,

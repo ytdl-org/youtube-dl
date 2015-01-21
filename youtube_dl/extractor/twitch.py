@@ -15,44 +15,11 @@ from ..utils import (
 )
 
 
-class TwitchIE(InfoExtractor):
-    # TODO: One broadcast may be split into multiple videos. The key
-    # 'broadcast_id' is the same for all parts, and 'broadcast_part'
-    # starts at 1 and increases. Can we treat all parts as one video?
-    _VALID_URL = r"""(?x)^(?:http://)?(?:www\.)?twitch\.tv/
-        (?:
-            (?P<channelid>[^/]+)|
-            (?:(?:[^/]+)/v/(?P<vodid>[^/]+))|
-            (?:(?:[^/]+)/b/(?P<videoid>[^/]+))|
-            (?:(?:[^/]+)/c/(?P<chapterid>[^/]+))
-        )
-        /?(?:\#.*)?$
-        """
-    _PAGE_LIMIT = 100
+class TwitchBaseIE(InfoExtractor):
+    _VALID_URL_BASE = r'http://(?:www\.)?twitch\.tv'
+
     _API_BASE = 'https://api.twitch.tv'
     _LOGIN_URL = 'https://secure.twitch.tv/user/login'
-    _TESTS = [{
-        'url': 'http://www.twitch.tv/riotgames/b/577357806',
-        'info_dict': {
-            'id': 'a577357806',
-            'title': 'Worlds Semifinals - Star Horn Royal Club vs. OMG',
-        },
-        'playlist_mincount': 12,
-    }, {
-        'url': 'http://www.twitch.tv/acracingleague/c/5285812',
-        'info_dict': {
-            'id': 'c5285812',
-            'title': 'ACRL Off Season - Sports Cars @ Nordschleife',
-        },
-        'playlist_mincount': 3,
-    }, {
-        'url': 'http://www.twitch.tv/vanillatv',
-        'info_dict': {
-            'id': 'vanillatv',
-            'title': 'VanillaTV',
-        },
-        'playlist_mincount': 412,
-    }]
 
     def _handle_error(self, response):
         if not isinstance(response, dict):
@@ -64,70 +31,9 @@ class TwitchIE(InfoExtractor):
                 expected=True)
 
     def _download_json(self, url, video_id, note='Downloading JSON metadata'):
-        response = super(TwitchIE, self)._download_json(url, video_id, note)
+        response = super(TwitchBaseIE, self)._download_json(url, video_id, note)
         self._handle_error(response)
         return response
-
-    def _extract_media(self, item, item_id):
-        ITEMS = {
-            'a': 'video',
-            'v': 'vod',
-            'c': 'chapter',
-        }
-        info = self._extract_info(self._download_json(
-            '%s/kraken/videos/%s%s' % (self._API_BASE, item, item_id), item_id,
-            'Downloading %s info JSON' % ITEMS[item]))
-
-        if item == 'v':
-            access_token = self._download_json(
-                '%s/api/vods/%s/access_token' % (self._API_BASE, item_id), item_id,
-                'Downloading %s access token' % ITEMS[item])
-            formats = self._extract_m3u8_formats(
-                'http://usher.twitch.tv/vod/%s?nauth=%s&nauthsig=%s'
-                % (item_id, access_token['token'], access_token['sig']),
-                item_id, 'mp4')
-            info['formats'] = formats
-            return info
-
-        response = self._download_json(
-            '%s/api/videos/%s%s' % (self._API_BASE, item, item_id), item_id,
-            'Downloading %s playlist JSON' % ITEMS[item])
-        entries = []
-        chunks = response['chunks']
-        qualities = list(chunks.keys())
-        for num, fragment in enumerate(zip(*chunks.values()), start=1):
-            formats = []
-            for fmt_num, fragment_fmt in enumerate(fragment):
-                format_id = qualities[fmt_num]
-                fmt = {
-                    'url': fragment_fmt['url'],
-                    'format_id': format_id,
-                    'quality': 1 if format_id == 'live' else 0,
-                }
-                m = re.search(r'^(?P<height>\d+)[Pp]', format_id)
-                if m:
-                    fmt['height'] = int(m.group('height'))
-                formats.append(fmt)
-            self._sort_formats(formats)
-            entry = dict(info)
-            entry['id'] = '%s_%d' % (entry['id'], num)
-            entry['title'] = '%s part %d' % (entry['title'], num)
-            entry['formats'] = formats
-            entries.append(entry)
-        return self.playlist_result(entries, info['id'], info['title'])
-
-    def _extract_info(self, info):
-        return {
-            'id': info['_id'],
-            'title': info['title'],
-            'description': info['description'],
-            'duration': info['length'],
-            'thumbnail': info['preview'],
-            'uploader': info['channel']['display_name'],
-            'uploader_id': info['channel']['name'],
-            'timestamp': parse_iso8601(info['recorded_at']),
-            'view_count': info['views'],
-        }
 
     def _real_initialize(self):
         self._login()
@@ -167,81 +73,184 @@ class TwitchIE(InfoExtractor):
             raise ExtractorError(
                 'Unable to login: %s' % m.group('msg').strip(), expected=True)
 
+
+class TwitchItemBaseIE(TwitchBaseIE):
+    def _download_info(self, item, item_id):
+        return self._extract_info(self._download_json(
+            '%s/kraken/videos/%s%s' % (self._API_BASE, item, item_id), item_id,
+            'Downloading %s info JSON' % self._ITEM_TYPE))
+
+    def _extract_media(self, item_id):
+        info = self._download_info(self._ITEM_SHORTCUT, item_id)
+        response = self._download_json(
+            '%s/api/videos/%s%s' % (self._API_BASE, self._ITEM_SHORTCUT, item_id), item_id,
+            'Downloading %s playlist JSON' % self._ITEM_TYPE)
+        entries = []
+        chunks = response['chunks']
+        qualities = list(chunks.keys())
+        for num, fragment in enumerate(zip(*chunks.values()), start=1):
+            formats = []
+            for fmt_num, fragment_fmt in enumerate(fragment):
+                format_id = qualities[fmt_num]
+                fmt = {
+                    'url': fragment_fmt['url'],
+                    'format_id': format_id,
+                    'quality': 1 if format_id == 'live' else 0,
+                }
+                m = re.search(r'^(?P<height>\d+)[Pp]', format_id)
+                if m:
+                    fmt['height'] = int(m.group('height'))
+                formats.append(fmt)
+            self._sort_formats(formats)
+            entry = dict(info)
+            entry['id'] = '%s_%d' % (entry['id'], num)
+            entry['title'] = '%s part %d' % (entry['title'], num)
+            entry['formats'] = formats
+            entries.append(entry)
+        return self.playlist_result(entries, info['id'], info['title'])
+
+    def _extract_info(self, info):
+        return {
+            'id': info['_id'],
+            'title': info['title'],
+            'description': info['description'],
+            'duration': info['length'],
+            'thumbnail': info['preview'],
+            'uploader': info['channel']['display_name'],
+            'uploader_id': info['channel']['name'],
+            'timestamp': parse_iso8601(info['recorded_at']),
+            'view_count': info['views'],
+        }
+
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        if mobj.group('chapterid'):
-            return self._extract_media('c', mobj.group('chapterid'))
+        return self._extract_media(self._match_id(url))
 
-            """
-            webpage = self._download_webpage(url, chapter_id)
-            m = re.search(r'PP\.archive_id = "([0-9]+)";', webpage)
-            if not m:
-                raise ExtractorError('Cannot find archive of a chapter')
-            archive_id = m.group(1)
 
-            api = api_base + '/broadcast/by_chapter/%s.xml' % chapter_id
-            doc = self._download_xml(
-                api, chapter_id,
-                note='Downloading chapter information',
-                errnote='Chapter information download failed')
-            for a in doc.findall('.//archive'):
-                if archive_id == a.find('./id').text:
-                    break
-            else:
-                raise ExtractorError('Could not find chapter in chapter information')
+class TwitchVideoIE(TwitchItemBaseIE):
+    IE_NAME = 'twitch:video'
+    _VALID_URL = r'%s/[^/]+/b/(?P<id>[^/]+)' % TwitchBaseIE._VALID_URL_BASE
+    _ITEM_TYPE = 'video'
+    _ITEM_SHORTCUT = 'a'
 
-            video_url = a.find('./video_file_url').text
-            video_ext = video_url.rpartition('.')[2] or 'flv'
+    _TEST = {
+        'url': 'http://www.twitch.tv/riotgames/b/577357806',
+        'info_dict': {
+            'id': 'a577357806',
+            'title': 'Worlds Semifinals - Star Horn Royal Club vs. OMG',
+        },
+        'playlist_mincount': 12,
+    }
 
-            chapter_api_url = 'https://api.twitch.tv/kraken/videos/c' + chapter_id
-            chapter_info = self._download_json(
-                chapter_api_url, 'c' + chapter_id,
-                note='Downloading chapter metadata',
-                errnote='Download of chapter metadata failed')
 
-            bracket_start = int(doc.find('.//bracket_start').text)
-            bracket_end = int(doc.find('.//bracket_end').text)
+class TwitchChapterIE(TwitchItemBaseIE):
+    IE_NAME = 'twitch:chapter'
+    _VALID_URL = r'%s/[^/]+/c/(?P<id>[^/]+)' % TwitchBaseIE._VALID_URL_BASE
+    _ITEM_TYPE = 'chapter'
+    _ITEM_SHORTCUT = 'c'
 
-            # TODO determine start (and probably fix up file)
-            #  youtube-dl -v http://www.twitch.tv/firmbelief/c/1757457
-            #video_url += '?start=' + TODO:start_timestamp
-            # bracket_start is 13290, but we want 51670615
-            self._downloader.report_warning('Chapter detected, but we can just download the whole file. '
-                                            'Chapter starts at %s and ends at %s' % (formatSeconds(bracket_start), formatSeconds(bracket_end)))
+    _TEST = {
+        'url': 'http://www.twitch.tv/acracingleague/c/5285812',
+        'info_dict': {
+            'id': 'c5285812',
+            'title': 'ACRL Off Season - Sports Cars @ Nordschleife',
+        },
+        'playlist_mincount': 3,
+    }
 
-            info = {
-                'id': 'c' + chapter_id,
-                'url': video_url,
-                'ext': video_ext,
-                'title': chapter_info['title'],
-                'thumbnail': chapter_info['preview'],
-                'description': chapter_info['description'],
-                'uploader': chapter_info['channel']['display_name'],
-                'uploader_id': chapter_info['channel']['name'],
-            }
-            return info
-            """
-        elif mobj.group('videoid'):
-            return self._extract_media('a', mobj.group('videoid'))
-        elif mobj.group('vodid'):
-            return self._extract_media('v', mobj.group('vodid'))
-        elif mobj.group('channelid'):
-            channel_id = mobj.group('channelid')
-            info = self._download_json(
-                '%s/kraken/channels/%s' % (self._API_BASE, channel_id),
-                channel_id, 'Downloading channel info JSON')
-            channel_name = info.get('display_name') or info.get('name')
-            entries = []
-            offset = 0
-            limit = self._PAGE_LIMIT
-            for counter in itertools.count(1):
-                response = self._download_json(
-                    '%s/kraken/channels/%s/videos/?offset=%d&limit=%d'
-                    % (self._API_BASE, channel_id, offset, limit),
-                    channel_id, 'Downloading channel videos JSON page %d' % counter)
-                videos = response['videos']
-                if not videos:
-                    break
-                entries.extend([self.url_result(video['url'], 'Twitch') for video in videos])
-                offset += limit
-            return self.playlist_result(entries, channel_id, channel_name)
+
+class TwitchVodIE(TwitchItemBaseIE):
+    IE_NAME = 'twitch:vod'
+    _VALID_URL = r'%s/[^/]+/v/(?P<id>[^/]+)' % TwitchBaseIE._VALID_URL_BASE
+    _ITEM_TYPE = 'vod'
+    _ITEM_SHORTCUT = 'v'
+
+    _TEST = {
+        'url': 'http://www.twitch.tv/ksptv/v/3622000',
+        'info_dict': {
+            'id': 'v3622000',
+            'ext': 'mp4',
+            'title': '''KSPTV: Squadcast: "Everyone's on vacation so here's Dahud" Edition!''',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'duration': 6951,
+            'timestamp': 1419028564,
+            'upload_date': '20141219',
+            'uploader': 'KSPTV',
+            'uploader_id': 'ksptv',
+            'view_count': int,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        item_id = self._match_id(url)
+        info = self._download_info(self._ITEM_SHORTCUT, item_id)
+        access_token = self._download_json(
+            '%s/api/vods/%s/access_token' % (self._API_BASE, item_id), item_id,
+            'Downloading %s access token' % self._ITEM_TYPE)
+        formats = self._extract_m3u8_formats(
+            'http://usher.twitch.tv/vod/%s?nauth=%s&nauthsig=%s'
+            % (item_id, access_token['token'], access_token['sig']),
+            item_id, 'mp4')
+        info['formats'] = formats
+        return info
+
+
+class TwitchPlaylistBaseIE(TwitchBaseIE):
+    _PLAYLIST_URL = '%s/kraken/channels/%%s/videos/?offset=%%d&limit=%%d' % TwitchBaseIE._API_BASE
+    _PAGE_LIMIT = 100
+
+    def _extract_playlist(self, channel_id):
+        info = self._download_json(
+            '%s/kraken/channels/%s' % (self._API_BASE, channel_id),
+            channel_id, 'Downloading channel info JSON')
+        channel_name = info.get('display_name') or info.get('name')
+        entries = []
+        offset = 0
+        limit = self._PAGE_LIMIT
+        for counter in itertools.count(1):
+            response = self._download_json(
+                self._PLAYLIST_URL % (channel_id, offset, limit),
+                channel_id, 'Downloading %s videos JSON page %d' % (self._PLAYLIST_TYPE, counter))
+            videos = response['videos']
+            if not videos:
+                break
+            entries.extend([self.url_result(video['url']) for video in videos])
+            offset += limit
+        return self.playlist_result(entries, channel_id, channel_name)
+
+    def _real_extract(self, url):
+        return self._extract_playlist(self._match_id(url))
+
+
+class TwitchProfileIE(TwitchPlaylistBaseIE):
+    IE_NAME = 'twitch:profile'
+    _VALID_URL = r'%s/(?P<id>[^/]+)/profile/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
+    _PLAYLIST_TYPE = 'profile'
+
+    _TEST = {
+        'url': 'http://www.twitch.tv/vanillatv/profile',
+        'info_dict': {
+            'id': 'vanillatv',
+            'title': 'VanillaTV',
+        },
+        'playlist_mincount': 412,
+    }
+
+
+class TwitchPastBroadcastsIE(TwitchPlaylistBaseIE):
+    IE_NAME = 'twitch:profile'
+    _VALID_URL = r'%s/(?P<id>[^/]+)/profile/past_broadcasts/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
+    _PLAYLIST_URL = TwitchPlaylistBaseIE._PLAYLIST_URL + '&broadcasts=true'
+    _PLAYLIST_TYPE = 'past broadcasts'
+
+    _TEST = {
+        'url': 'http://www.twitch.tv/spamfish/profile/past_broadcasts',
+        'info_dict': {
+            'id': 'spamfish',
+            'title': 'Spamfish',
+        },
+        'playlist_mincount': 54,
+    }
