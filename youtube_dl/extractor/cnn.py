@@ -143,13 +143,13 @@ class CNNArticleIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?:edition|www)\.)?cnn\.com/(?!video/)'
     _TEST = {
         'url': 'http://www.cnn.com/2014/12/21/politics/obama-north-koreas-hack-not-war-but-cyber-vandalism/',
-        'md5': '275b326f85d80dff7592a9820f5dc887',
+        'md5': '689034c2a3d9c6dc4aa72d65a81efd01',
         'info_dict': {
-            'id': 'bestoftv/2014/12/21/sotu-crowley-president-obama-north-korea-not-going-to-be-intimidated.cnn',
+            'id': 'bestoftv/2014/12/21/ip-north-korea-obama.cnn',
             'ext': 'mp4',
-            'title': 'Obama: We\'re not going to be intimidated',
-            'description': 'md5:e735586f3dc936075fa654a4d91b21f9',
-            'upload_date': '20141220',
+            'title': 'Obama: Cyberattack not an act of war',
+            'description': 'md5:51ce6750450603795cad0cdfbd7d05c5',
+            'upload_date': '20141221',
         },
         'add_ie': ['CNN'],
     }
