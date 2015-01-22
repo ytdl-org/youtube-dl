@@ -34,12 +34,12 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
 
 class ComedyCentralShowsIE(MTVServicesInfoExtractor):
     IE_DESC = 'The Daily Show / The Colbert Report'
-    # urls can be abbreviations like :thedailyshow or :colbert
+    # urls can be abbreviations like :thedailyshow
     # urls for episodes like:
     # or urls for clips like: http://www.thedailyshow.com/watch/mon-december-10-2012/any-given-gun-day
     #                     or: http://www.colbertnation.com/the-colbert-report-videos/421667/november-29-2012/moon-shattering-news
     #                     or: http://www.colbertnation.com/the-colbert-report-collections/422008/festival-of-lights/79524
-    _VALID_URL = r'''(?x)^(:(?P<shortname>tds|thedailyshow|cr|colbert|colbertnation|colbertreport)
+    _VALID_URL = r'''(?x)^(:(?P<shortname>tds|thedailyshow)
                       |https?://(:www\.)?
                           (?P<showname>thedailyshow|thecolbertreport)\.(?:cc\.)?com/
                          ((?:full-)?episodes/(?:[0-9a-z]{6}/)?(?P<episode>.*)|

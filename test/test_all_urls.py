@@ -115,8 +115,6 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch(':ythistory', ['youtube:history'])
         self.assertMatch(':thedailyshow', ['ComedyCentralShows'])
         self.assertMatch(':tds', ['ComedyCentralShows'])
-        self.assertMatch(':colbertreport', ['ComedyCentralShows'])
-        self.assertMatch(':cr', ['ComedyCentralShows'])
 
     def test_vimeo_matching(self):
         self.assertMatch('http://vimeo.com/channels/tributes', ['vimeo:channel'])
