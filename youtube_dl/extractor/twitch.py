@@ -6,6 +6,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_str,
     compat_urllib_parse,
     compat_urllib_request,
 )
@@ -16,9 +17,10 @@ from ..utils import (
 
 
 class TwitchBaseIE(InfoExtractor):
-    _VALID_URL_BASE = r'http://(?:www\.)?twitch\.tv'
+    _VALID_URL_BASE = r'https?://(?:www\.)?twitch\.tv'
 
     _API_BASE = 'https://api.twitch.tv'
+    _USHER_BASE = 'http://usher.twitch.tv'
     _LOGIN_URL = 'https://secure.twitch.tv/user/login'
 
     def _handle_error(self, response):
@@ -191,8 +193,8 @@ class TwitchVodIE(TwitchItemBaseIE):
             '%s/api/vods/%s/access_token' % (self._API_BASE, item_id), item_id,
             'Downloading %s access token' % self._ITEM_TYPE)
         formats = self._extract_m3u8_formats(
-            'http://usher.twitch.tv/vod/%s?nauth=%s&nauthsig=%s'
-            % (item_id, access_token['token'], access_token['sig']),
+            '%s/vod/%s?nauth=%s&nauthsig=%s'
+            % (self._USHER_BASE, item_id, access_token['token'], access_token['sig']),
             item_id, 'mp4')
         info['formats'] = formats
         return info
@@ -254,3 +256,92 @@ class TwitchPastBroadcastsIE(TwitchPlaylistBaseIE):
         },
         'playlist_mincount': 54,
     }
+
+
+class TwitchStreamIE(TwitchBaseIE):
+    IE_NAME = 'twitch:stream'
+    _VALID_URL = r'%s/(?P<id>[^/]+)/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
+
+    _TEST = {
+        'url': 'http://www.twitch.tv/shroomztv',
+        'info_dict': {
+            'id': '12772022048',
+            'display_id': 'shroomztv',
+            'ext': 'mp4',
+            'title': 're:^ShroomzTV [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'description': 'H1Z1 - lonewolfing with ShroomzTV | A3 Battle Royale later - @ShroomzTV',
+            'is_live': True,
+            'timestamp': 1421928037,
+            'upload_date': '20150122',
+            'uploader': 'ShroomzTV',
+            'uploader_id': 'shroomztv',
+            'view_count': int,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        channel_id = self._match_id(url)
+
+        stream = self._download_json(
+            '%s/kraken/streams/%s' % (self._API_BASE, channel_id), channel_id,
+            'Downloading stream JSON').get('stream')
+
+        # Fallback on profile extraction if stream is offline
+        if not stream:
+            return self.url_result(
+                'http://www.twitch.tv/%s/profile' % channel_id,
+                'TwitchProfile', channel_id)
+
+        access_token = self._download_json(
+            '%s/api/channels/%s/access_token' % (self._API_BASE, channel_id), channel_id,
+            'Downloading channel access token')
+
+        query = {
+            'allow_source': 'true',
+            'p': '9386337',
+            'player': 'twitchweb',
+            'segment_preference': '4',
+            'sig': access_token['sig'],
+            'token': access_token['token'],
+        }
+
+        formats = self._extract_m3u8_formats(
+            '%s/api/channel/hls/%s.m3u8?%s'
+            % (self._USHER_BASE, channel_id, compat_urllib_parse.urlencode(query).encode('utf-8')),
+            channel_id, 'mp4')
+
+        view_count = stream.get('viewers')
+        timestamp = parse_iso8601(stream.get('created_at'))
+
+        channel = stream['channel']
+        title = self._live_title(channel.get('display_name') or channel.get('name'))
+        description = channel.get('status')
+
+        thumbnails = []
+        for thumbnail_key, thumbnail_url in stream['preview'].items():
+            m = re.search(r'(?P<width>\d+)x(?P<height>\d+)\.jpg$', thumbnail_key)
+            if not m:
+                continue
+            thumbnails.append({
+                'url': thumbnail_url,
+                'width': int(m.group('width')),
+                'height': int(m.group('height')),
+            })
+
+        return {
+            'id': compat_str(stream['_id']),
+            'display_id': channel_id,
+            'title': title,
+            'description': description,
+            'thumbnails': thumbnails,
+            'uploader': channel.get('display_name'),
+            'uploader_id': channel.get('name'),
+            'timestamp': timestamp,
+            'view_count': view_count,
+            'formats': formats,
+            'is_live': True,
+        }

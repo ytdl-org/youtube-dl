@@ -466,6 +466,7 @@ from .twitch import (
     TwitchVodIE,
     TwitchProfileIE,
     TwitchPastBroadcastsIE,
+    TwitchStreamIE,
 )
 from .ubu import UbuIE
 from .udemy import (
