@@ -75,7 +75,7 @@ class HearThisAtIE(InfoExtractor):
         formats = []
         mp3_url = self._search_regex(
             r'(?s)<a class="player-link"\s+(?:[a-zA-Z0-9_:-]+="[^"]+"\s+)*?data-mp3="([^"]+)"',
-            webpage, 'title', fatal=False)
+            webpage, 'mp3 URL', fatal=False)
         if mp3_url:
             formats.append({
                 'format_id': 'mp3',
