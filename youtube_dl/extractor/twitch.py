@@ -148,14 +148,17 @@ class TwitchChapterIE(TwitchItemBaseIE):
     _ITEM_TYPE = 'chapter'
     _ITEM_SHORTCUT = 'c'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.twitch.tv/acracingleague/c/5285812',
         'info_dict': {
             'id': 'c5285812',
             'title': 'ACRL Off Season - Sports Cars @ Nordschleife',
         },
         'playlist_mincount': 3,
-    }
+    }, {
+        'url': 'http://www.twitch.tv/tsm_theoddone/c/2349361',
+        'only_matching': True,
+    }]
 
 
 class TwitchVodIE(TwitchItemBaseIE):
