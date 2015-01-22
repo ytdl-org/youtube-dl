@@ -10,6 +10,7 @@ import io
 import itertools
 import json
 import locale
+import operator
 import os
 import platform
 import re
@@ -49,6 +50,7 @@ from .utils import (
     make_HTTPS_handler,
     MaxDownloadsReached,
     PagedList,
+    parse_filesize,
     PostProcessingError,
     platform_name,
     preferredencoding,
@@ -768,7 +770,59 @@ class YoutubeDL(object):
         else:
             raise Exception('Invalid result type: %s' % result_type)
 
+    def _apply_format_filter(self, format_spec, available_formats):
+        " Returns a tuple of the remaining format_spec and filtered formats "
+
+        OPERATORS = {
+            '<': operator.lt,
+            '<=': operator.le,
+            '>': operator.gt,
+            '>=': operator.ge,
+            '=': operator.eq,
+            '!=': operator.ne,
+        }
+        operator_rex = re.compile(r'''(?x)\s*\[
+            (?P<key>width|height|tbr|abr|vbr|filesize)
+            \s*(?P<op>%s)(?P<none_inclusive>\s*\?)?\s*
+            (?P<value>[0-9.]+(?:[kKmMgGtTpPeEzZyY]i?[Bb]?)?)
+            \]$
+            ''' % '|'.join(map(re.escape, OPERATORS.keys())))
+        m = operator_rex.search(format_spec)
+        if not m:
+            raise ValueError('Invalid format specification %r' % format_spec)
+
+        try:
+            comparison_value = int(m.group('value'))
+        except ValueError:
+            comparison_value = parse_filesize(m.group('value'))
+            if comparison_value is None:
+                comparison_value = parse_filesize(m.group('value') + 'B')
+            if comparison_value is None:
+                raise ValueError(
+                    'Invalid value %r in format specification %r' % (
+                        m.group('value'), format_spec))
+        op = OPERATORS[m.group('op')]
+
+        def _filter(f):
+            actual_value = f.get(m.group('key'))
+            if actual_value is None:
+                return m.group('none_inclusive')
+            return op(actual_value, comparison_value)
+        new_formats = [f for f in available_formats if _filter(f)]
+
+        new_format_spec = format_spec[:-len(m.group(0))]
+        if not new_format_spec:
+            new_format_spec = 'best'
+
+        return (new_format_spec, new_formats)
+
     def select_format(self, format_spec, available_formats):
+        while format_spec.endswith(']'):
+            format_spec, available_formats = self._apply_format_filter(
+                format_spec, available_formats)
+        if not available_formats:
+            return None
+
         if format_spec == 'best' or format_spec is None:
             return available_formats[-1]
         elif format_spec == 'worst':
