@@ -1612,6 +1612,14 @@ def urlhandle_detect_ext(url_handle):
     except AttributeError:  # Python < 3
         getheader = url_handle.info().getheader
 
+    cd = getheader('Content-Disposition')
+    if cd:
+        m = re.match(r'attachment;\s*filename="(?P<filename>[^"]+)"', cd)
+        if m:
+            e = determine_ext(m.group('filename'), default_ext=None)
+            if e:
+                return e
+
     return getheader('Content-Type').split("/")[1]
 
 

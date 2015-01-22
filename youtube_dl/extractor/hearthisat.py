@@ -4,10 +4,15 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_request
+from ..compat import (
+    compat_urllib_request,
+    compat_urlparse,
+)
 from ..utils import (
+    HEADRequest,
     str_to_int,
     urlencode_postdata,
+    urlhandle_detect_ext,
 )
 
 
@@ -16,10 +21,10 @@ class HearThisAtIE(InfoExtractor):
     _PLAYLIST_URL = 'https://hearthis.at/playlist.php'
     _TEST = {
         'url': 'https://hearthis.at/moofi/dr-kreep',
-        'md5': 'd594c573227a89f4256f0b03e68c80cc',
+        'md5': 'ab6ec33c8fed6556029337c7885eb4e0',
         'info_dict': {
             'id': '150939',
-            'ext': 'mp3',
+            'ext': 'wav',
             'title': 'Moofi - Dr. Kreep',
             'thumbnail': 're:^https?://.*\.jpg$',
             'timestamp': 1421564134,
@@ -67,18 +72,38 @@ class HearThisAtIE(InfoExtractor):
         timestamp = str_to_int(self._search_regex(
             r'<span[^>]+class="calctime"[^>]+data-time="(\d+)', webpage, 'timestamp', fatal=False))
 
-        track_url = self._search_regex(
-            r'<a[^>]+data-mp3="([^"]+)"', webpage, 'track URL')
-
-        formats = [{
-            'format_id': 'mp3',
-            'url': track_url,
-            'vcodec': 'none',
-        }]
+        formats = []
+        mp3_url = self._search_regex(
+            r'(?s)<a class="player-link"\s+(?:[a-zA-Z0-9_:-]+="[^"]+"\s+)*?data-mp3="([^"]+)"',
+            webpage, 'title', fatal=False)
+        if mp3_url:
+            formats.append({
+                'format_id': 'mp3',
+                'vcodec': 'none',
+                'acodec': 'mp3',
+                'url': mp3_url,
+            })
+        download_path = self._search_regex(
+            r'<a class="[^"]*download_fct[^"]*"\s+href="([^"]+)"',
+            webpage, 'download URL', default=None)
+        if download_path:
+            download_url = compat_urlparse.urljoin(url, download_path)
+            ext_req = HEADRequest(download_url)
+            ext_handle = self._request_webpage(
+                ext_req, display_id, note='Determining extension')
+            ext = urlhandle_detect_ext(ext_handle)
+            formats.append({
+                'format_id': 'download',
+                'vcodec': 'none',
+                'ext': ext,
+                'url': download_url,
+                'preference': 2,  # Usually better quality
+            })
+        self._sort_formats(formats)
 
         return {
             'id': track_id,
-            'display-id': display_id,
+            'display_id': display_id,
             'title': title,
             'formats': formats,
             'thumbnail': thumbnail,
