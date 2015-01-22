@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import itertools
 import re
+import random
 
 from .common import InfoExtractor
 from ..compat import (
@@ -305,7 +306,7 @@ class TwitchStreamIE(TwitchBaseIE):
 
         query = {
             'allow_source': 'true',
-            'p': '9386337',
+            'p': random.randint(1000000, 10000000),
             'player': 'twitchweb',
             'segment_preference': '4',
             'sig': access_token['sig'],
