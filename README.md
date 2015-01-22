@@ -304,7 +304,8 @@ which means you can modify it, redistribute it or use it however you like.
 
 ## Authentication Options:
     -u, --username USERNAME          login with this account ID
-    -p, --password PASSWORD          account password
+    -p, --password PASSWORD          account password. If this option is left
+                                     out, youtube-dl will ask interactively.
     -2, --twofactor TWOFACTOR        two-factor auth code
     -n, --netrc                      use .netrc authentication data
     --video-password PASSWORD        video password (vimeo, smotri)
