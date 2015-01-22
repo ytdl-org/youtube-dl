@@ -488,6 +488,10 @@ To make a different directory work - either for ffmpeg, or for youtube-dl, or fo
 
 From then on, after restarting your shell, you will be able to access both youtube-dl and ffmpeg (and youtube-dl will be able to find ffmpeg) by simply typing `youtube-dl` or `ffmpeg`, no matter what directory you're in.
 
+### How do I put downloads into a specific folder?
+
+Use the `-o` to specify an [output template](#output-template), for example `-o "/home/user/videos/%(title)s-%(id)s.%(ext)s"`. If you want this for all of your downloads, put the option into your [configuration file](#configuration).
+
 ### How can I detect whether a given URL is supported by youtube-dl?
 
 For one, have a look at the [list of supported sites](docs/supportedsites). Note that it can sometimes happen that the site changes its URL scheme (say, from http://example.com/v/1234567 to http://example.com/v/1234567 ) and youtube-dl reports an URL of a service in that list as unsupported. In that case, simply report a bug.
