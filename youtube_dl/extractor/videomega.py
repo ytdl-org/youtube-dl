@@ -1,12 +1,15 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
 )
 from ..utils import (
+    ExtractorError,
     remove_start,
 )
 
@@ -35,8 +38,11 @@ class VideoMegaIE(InfoExtractor):
         req.add_header('Referer', url)
         webpage = self._download_webpage(req, video_id)
 
-        escaped_data = self._search_regex(
-            r'unescape\("([^"]+)"\)', webpage, 'escaped data')
+        try:
+            escaped_data = re.findall(r'unescape\("([^"]+)"\)', webpage)[-1]
+        except IndexError:
+            raise ExtractorError('Unable to extract escaped data')
+
         playlist = compat_urllib_parse.unquote(escaped_data)
 
         thumbnail = self._search_regex(
