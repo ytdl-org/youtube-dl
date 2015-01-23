@@ -11,10 +11,10 @@ class LiveLeakIE(InfoExtractor):
     _VALID_URL = r'^(?:http://)?(?:\w+\.)?liveleak\.com/view\?(?:.*?)i=(?P<video_id>[\w_]+)(?:.*)'
     _TESTS = [{
         'url': 'http://www.liveleak.com/view?i=757_1364311680',
-        'md5': '0813c2430bea7a46bf13acf3406992f4',
+        'md5': '50f79e05ba149149c1b4ea961223d5b3',
         'info_dict': {
             'id': '757_1364311680',
-            'ext': 'mp4',
+            'ext': 'flv',
             'description': 'extremely bad day for this guy..!',
             'uploader': 'ljfriel2',
             'title': 'Most unlucky car accident'
@@ -82,7 +82,8 @@ class LiveLeakIE(InfoExtractor):
 
         formats = [{
             'format_note': s.get('label'),
-            'url': s['file'],
+            # removing this from the URL gives us the raw video without LiveLeak branding
+            'url': s['file'].replace('.h264_base.mp4', ''),
         } for s in sources]
         self._sort_formats(formats)
 
