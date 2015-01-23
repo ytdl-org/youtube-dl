@@ -489,6 +489,16 @@ class GenericIE(InfoExtractor):
                 'title': 'Jack Tips: 5 Steps to Permanent Gut Healing',
             }
         },
+        # Cinerama player
+        {
+            'url': 'http://www.abc.net.au/7.30/content/2015/s4164797.htm',
+            'info_dict': {
+                'id': '730m_DandD_1901_512k',
+                'ext': 'mp4',
+                'uploader': 'www.abc.net.au',
+                'title': 'Game of Thrones with dice - Dungeons and Dragons fantasy role-playing game gets new life - 19/01/2015',
+            }
+        }
     ]
 
     def report_following_redirect(self, new_url):
@@ -1046,6 +1056,10 @@ class GenericIE(InfoExtractor):
                     \s*{[^}]+? ["']?clip["']?\s*:\s*\{\s*
                         ["']?url["']?\s*:\s*["']([^"']+)["']
             ''', webpage))
+        if not found:
+            # Cinerama player
+            found = re.findall(
+                r"cinerama\.embedPlayer\(\s*\'[^']+\',\s*'([^']+)'", webpage)
         if not found:
             # Try to find twitter cards info
             found = filter_video(re.findall(
