@@ -220,12 +220,18 @@ class TwitchPlaylistBaseIE(TwitchBaseIE):
             response = self._download_json(
                 self._PLAYLIST_URL % (channel_id, offset, limit),
                 channel_id, 'Downloading %s videos JSON page %d' % (self._PLAYLIST_TYPE, counter))
-            videos = response['videos']
-            if not videos:
+            page_entries = self._extract_playlist_page(response)
+            if not page_entries:
                 break
-            entries.extend([self.url_result(video['url']) for video in videos])
+            entries.extend(page_entries)
             offset += limit
-        return self.playlist_result(entries, channel_id, channel_name)
+        return self.playlist_result(
+            [self.url_result(entry) for entry in set(entries)],
+            channel_id, channel_name)
+
+    def _extract_playlist_page(self, response):
+        videos = response.get('videos')
+        return [video['url'] for video in videos] if videos else []
 
     def _real_extract(self, url):
         return self._extract_playlist(self._match_id(url))
@@ -260,6 +266,31 @@ class TwitchPastBroadcastsIE(TwitchPlaylistBaseIE):
         },
         'playlist_mincount': 54,
     }
+
+
+class TwitchBookmarksIE(TwitchPlaylistBaseIE):
+    IE_NAME = 'twitch:bookmarks'
+    _VALID_URL = r'%s/(?P<id>[^/]+)/profile/bookmarks/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
+    _PLAYLIST_URL = '%s/api/bookmark/?user=%%s&offset=%%d&limit=%%d' % TwitchBaseIE._API_BASE
+    _PLAYLIST_TYPE = 'bookmarks'
+
+    _TEST = {
+        'url': 'http://www.twitch.tv/ognos/profile/bookmarks',
+        'info_dict': {
+            'id': 'ognos',
+            'title': 'Ognos',
+        },
+        'playlist_mincount': 3,
+    }
+
+    def _extract_playlist_page(self, response):
+        entries = []
+        for bookmark in response.get('bookmarks', []):
+            video = bookmark.get('video')
+            if not video:
+                continue
+            entries.append(video['url'])
+        return entries
 
 
 class TwitchStreamIE(TwitchBaseIE):
