@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from .abc import ABCIE
+from .abc7news import Abc7NewsIE
 from .academicearth import AcademicEarthCourseIE
 from .addanime import AddAnimeIE
 from .adobetv import AdobeTVIE
@@ -175,6 +176,7 @@ from .goshgay import GoshgayIE
 from .grooveshark import GroovesharkIE
 from .groupon import GrouponIE
 from .hark import HarkIE
+from .hearthisat import HearThisAtIE
 from .heise import HeiseIE
 from .hellporno import HellPornoIE
 from .helsinki import HelsinkiIE
@@ -409,6 +411,7 @@ from .stanfordoc import StanfordOpenClassroomIE
 from .steam import SteamIE
 from .streamcloud import StreamcloudIE
 from .streamcz import StreamCZIE
+from .streetvoice import StreetVoiceIE
 from .sunporno import SunPornoIE
 from .swrmediathek import SWRMediathekIE
 from .syfy import SyfyIE
@@ -430,6 +433,7 @@ from .telemb import TeleMBIE
 from .teletask import TeleTaskIE
 from .tenplay import TenPlayIE
 from .testurl import TestURLIE
+from .testtube import TestTubeIE
 from .tf1 import TF1IE
 from .theonion import TheOnionIE
 from .theplatform import ThePlatformIE
@@ -458,7 +462,14 @@ from .tvigle import TvigleIE
 from .tvp import TvpIE, TvpSeriesIE
 from .tvplay import TVPlayIE
 from .twentyfourvideo import TwentyFourVideoIE
-from .twitch import TwitchIE
+from .twitch import (
+    TwitchVideoIE,
+    TwitchChapterIE,
+    TwitchVodIE,
+    TwitchProfileIE,
+    TwitchPastBroadcastsIE,
+    TwitchStreamIE,
+)
 from .ubu import UbuIE
 from .udemy import (
     UdemyIE,

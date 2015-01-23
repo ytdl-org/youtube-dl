@@ -7,10 +7,9 @@ from ..compat import (
     compat_urllib_request,
 )
 from ..utils import (
-    clean_html,
     parse_duration,
+    parse_iso8601,
     str_to_int,
-    unified_strdate,
 )
 
 
@@ -28,68 +27,81 @@ class FourTubeIE(InfoExtractor):
             'uploader': 'WCP Club',
             'uploader_id': 'wcp-club',
             'upload_date': '20131031',
+            'timestamp': 1383263892,
             'duration': 583,
+            'view_count': int,
+            'like_count': int,
+            'categories': list,
         }
     }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage_url = 'http://www.4tube.com/videos/' + video_id
-        webpage = self._download_webpage(webpage_url, video_id)
+        webpage = self._download_webpage(url, video_id)
 
-        self.report_extraction(video_id)
+        title = self._html_search_meta('name', webpage)
+        timestamp = parse_iso8601(self._html_search_meta(
+            'uploadDate', webpage))
+        thumbnail = self._html_search_meta('thumbnailUrl', webpage)
+        uploader_id = self._html_search_regex(
+            r'<a class="img-avatar" href="[^"]+/channels/([^/"]+)" title="Go to [^"]+ page">',
+            webpage, 'uploader id')
+        uploader = self._html_search_regex(
+            r'<a class="img-avatar" href="[^"]+/channels/[^/"]+" title="Go to ([^"]+) page">',
+            webpage, 'uploader')
 
-        playlist_json = self._html_search_regex(r'var playerConfigPlaylist\s+=\s+([^;]+)', webpage, 'Playlist')
-        media_id = self._search_regex(r'idMedia:\s*(\d+)', playlist_json, 'Media Id')
-        sources = self._search_regex(r'sources:\s*\[([^\]]*)\]', playlist_json, 'Sources').split(',')
-        title = self._search_regex(r'title:\s*"([^"]*)', playlist_json, 'Title')
-        thumbnail_url = self._search_regex(r'image:\s*"([^"]*)', playlist_json, 'Thumbnail', fatal=False)
+        categories_html = self._search_regex(
+            r'(?s)><i class="icon icon-tag"></i>\s*Categories / Tags\s*.*?<ul class="list">(.*?)</ul>',
+            webpage, 'categories', fatal=False)
+        categories = None
+        if categories_html:
+            categories = [
+                c.strip() for c in re.findall(
+                    r'(?s)<li><a.*?>(.*?)</a>', categories_html)]
 
-        uploader_str = self._search_regex(r'<span>Uploaded by</span>(.*?)<span>', webpage, 'uploader', fatal=False)
-        mobj = re.search(r'<a href="/sites/(?P<id>[^"]+)"><strong>(?P<name>[^<]+)</strong></a>', uploader_str)
-        (uploader, uploader_id) = (mobj.group('name'), mobj.group('id')) if mobj else (clean_html(uploader_str), None)
+        view_count = str_to_int(self._search_regex(
+            r'<meta itemprop="interactionCount" content="UserPlays:([0-9,]+)">',
+            webpage, 'view count', fatal=False))
+        like_count = str_to_int(self._search_regex(
+            r'<meta itemprop="interactionCount" content="UserLikes:([0-9,]+)">',
+            webpage, 'like count', fatal=False))
+        duration = parse_duration(self._html_search_meta('duration', webpage))
 
-        upload_date = None
-        view_count = None
-        duration = None
-        description = self._html_search_meta('description', webpage, 'description')
-        if description:
-            upload_date = self._search_regex(r'Published Date: (\d{2} [a-zA-Z]{3} \d{4})', description, 'upload date',
-                                             fatal=False)
-            if upload_date:
-                upload_date = unified_strdate(upload_date)
-            view_count = self._search_regex(r'Views: ([\d,\.]+)', description, 'view count', fatal=False)
-            if view_count:
-                view_count = str_to_int(view_count)
-            duration = parse_duration(self._search_regex(r'Length: (\d+m\d+s)', description, 'duration', fatal=False))
+        params_js = self._search_regex(
+            r'\$\.ajax\(url,\ opts\);\s*\}\s*\}\)\(([0-9,\[\] ]+)\)',
+            webpage, 'initialization parameters'
+        )
+        params = self._parse_json('[%s]' % params_js, video_id)
+        media_id = params[0]
+        sources = ['%s' % p for p in params[2]]
 
-        token_url = "http://tkn.4tube.com/{0}/desktop/{1}".format(media_id, "+".join(sources))
+        token_url = 'http://tkn.4tube.com/{0}/desktop/{1}'.format(
+            media_id, '+'.join(sources))
         headers = {
             b'Content-Type': b'application/x-www-form-urlencoded',
             b'Origin': b'http://www.4tube.com',
         }
         token_req = compat_urllib_request.Request(token_url, b'{}', headers)
         tokens = self._download_json(token_req, video_id)
-
         formats = [{
             'url': tokens[format]['token'],
             'format_id': format + 'p',
             'resolution': format + 'p',
             'quality': int(format),
         } for format in sources]
-
         self._sort_formats(formats)
 
         return {
             'id': video_id,
             'title': title,
             'formats': formats,
-            'thumbnail': thumbnail_url,
+            'categories': categories,
+            'thumbnail': thumbnail,
             'uploader': uploader,
             'uploader_id': uploader_id,
-            'upload_date': upload_date,
+            'timestamp': timestamp,
+            'like_count': like_count,
             'view_count': view_count,
             'duration': duration,
             'age_limit': 18,
-            'webpage_url': webpage_url,
         }

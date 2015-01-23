@@ -267,10 +267,22 @@ which means you can modify it, redistribute it or use it however you like.
                                      by extension for the extensions aac, m4a,
                                      mp3, mp4, ogg, wav, webm. You can also use
                                      the special names "best", "bestvideo",
-                                     "bestaudio", "worst".  By default, youtube-
-                                     dl will pick the best quality. Use commas
-                                     to download multiple audio formats, such as
-                                     -f
+                                     "bestaudio", "worst".  You can filter the
+                                     video results by putting a condition in
+                                     brackets, as in -f "best[height=720]" (or
+                                     -f "[filesize>10M]").  This works for
+                                     filesize, height, width, tbr, abr, and vbr
+                                     and the comparisons <, <=, >, >=, =, != .
+                                     Formats for which the value is not known
+                                     are excluded unless you put a question mark
+                                     (?) after the operator. You can combine
+                                     format filters, so  -f "[height <=?
+                                     720][tbr>500]" selects up to 720p videos
+                                     (or videos where the height is not known)
+                                     with a bitrate of at least 500 KBit/s. By
+                                     default, youtube-dl will pick the best
+                                     quality. Use commas to download multiple
+                                     audio formats, such as -f
                                      136/137/mp4/bestvideo,140/m4a/bestaudio.
                                      You can merge the video and audio of two
                                      formats into a single file using -f <video-
@@ -304,7 +316,8 @@ which means you can modify it, redistribute it or use it however you like.
 
 ## Authentication Options:
     -u, --username USERNAME          login with this account ID
-    -p, --password PASSWORD          account password
+    -p, --password PASSWORD          account password. If this option is left
+                                     out, youtube-dl will ask interactively.
     -2, --twofactor TWOFACTOR        two-factor auth code
     -n, --netrc                      use .netrc authentication data
     --video-password PASSWORD        video password (vimeo, smotri)
@@ -486,6 +499,10 @@ If you put youtube-dl and ffmpeg in the same directory that you're running the c
 To make a different directory work - either for ffmpeg, or for youtube-dl, or for both - simply create the directory (say, `C:\bin`, or `C:\Users\<User name>\bin`), put all the executables directly in there, and then [set your PATH environment variable](https://www.java.com/en/download/help/path.xml) to include that directory.
 
 From then on, after restarting your shell, you will be able to access both youtube-dl and ffmpeg (and youtube-dl will be able to find ffmpeg) by simply typing `youtube-dl` or `ffmpeg`, no matter what directory you're in.
+
+### How do I put downloads into a specific folder?
+
+Use the `-o` to specify an [output template](#output-template), for example `-o "/home/user/videos/%(title)s-%(id)s.%(ext)s"`. If you want this for all of your downloads, put the option into your [configuration file](#configuration).
 
 ### How can I detect whether a given URL is supported by youtube-dl?
 

@@ -28,6 +28,7 @@ from youtube_dl.utils import (
     fix_xml_ampersands,
     InAdvancePagedList,
     intlist_to_bytes,
+    is_html,
     js_to_json,
     limit_length,
     OnDemandPagedList,
@@ -416,6 +417,22 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
         self.assertFalse(age_restricted(8, 10))
         self.assertTrue(age_restricted(18, 14))
         self.assertFalse(age_restricted(18, 18))
+
+    def test_is_html(self):
+        self.assertFalse(is_html(b'\x49\x44\x43<html'))
+        self.assertTrue(is_html(b'<!DOCTYPE foo>\xaaa'))
+        self.assertTrue(is_html(  # UTF-8 with BOM
+            b'\xef\xbb\xbf<!DOCTYPE foo>\xaaa'))
+        self.assertTrue(is_html(  # UTF-16-LE
+            b'\xff\xfe<\x00h\x00t\x00m\x00l\x00>\x00\xe4\x00'
+        ))
+        self.assertTrue(is_html(  # UTF-16-BE
+            b'\xfe\xff\x00<\x00h\x00t\x00m\x00l\x00>\x00\xe4'
+        ))
+        self.assertTrue(is_html(  # UTF-32-BE
+            b'\x00\x00\xFE\xFF\x00\x00\x00<\x00\x00\x00h\x00\x00\x00t\x00\x00\x00m\x00\x00\x00l\x00\x00\x00>\x00\x00\x00\xe4'))
+        self.assertTrue(is_html(  # UTF-32-LE
+            b'\xFF\xFE\x00\x00<\x00\x00\x00h\x00\x00\x00t\x00\x00\x00m\x00\x00\x00l\x00\x00\x00>\x00\x00\x00\xe4\x00\x00\x00'))
 
 if __name__ == '__main__':
     unittest.main()

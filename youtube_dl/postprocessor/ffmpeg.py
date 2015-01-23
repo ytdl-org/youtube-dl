@@ -475,15 +475,21 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
         filename = information['filepath']
         input_files = [filename] + [subtitles_filename(filename, lang, self._subformat) for lang in sub_langs]
 
-        opts = ['-map', '0:0', '-map', '0:1', '-c:v', 'copy', '-c:a', 'copy']
+        opts = [
+            '-map', '0',
+            '-c', 'copy',
+            # Don't copy the existing subtitles, we may be running the
+            # postprocessor a second time
+            '-map', '-0:s',
+            '-c:s', 'mov_text',
+        ]
         for (i, lang) in enumerate(sub_langs):
-            opts.extend(['-map', '%d:0' % (i + 1), '-c:s:%d' % i, 'mov_text'])
+            opts.extend(['-map', '%d:0' % (i + 1)])
             lang_code = self._conver_lang_code(lang)
             if lang_code is not None:
                 opts.extend(['-metadata:s:s:%d' % i, 'language=%s' % lang_code])
-        opts.extend(['-f', 'mp4'])
 
-        temp_filename = filename + '.temp'
+        temp_filename = prepend_extension(filename, 'temp')
         self._downloader.to_screen('[ffmpeg] Embedding subtitles in \'%s\'' % filename)
         self.run_ffmpeg_multiple_files(input_files, temp_filename, opts)
         os.remove(encodeFilename(filename))
@@ -503,6 +509,10 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
             metadata['artist'] = info['uploader']
         elif info.get('uploader_id') is not None:
             metadata['artist'] = info['uploader_id']
+        if info.get('description') is not None:
+            metadata['description'] = info['description']
+        if info.get('webpage_url') is not None:
+            metadata['comment'] = info['webpage_url']
 
         if not metadata:
             self._downloader.to_screen('[ffmpeg] There isn\'t any metadata to add')

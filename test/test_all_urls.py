@@ -14,7 +14,6 @@ from test.helper import gettestcases
 from youtube_dl.extractor import (
     FacebookIE,
     gen_extractors,
-    TwitchIE,
     YoutubeIE,
 )
 
@@ -72,18 +71,6 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch('http://www.youtube.com/results?search_query=making+mustard', ['youtube:search_url'])
         self.assertMatch('https://www.youtube.com/results?baz=bar&search_query=youtube-dl+test+video&filters=video&lclk=video', ['youtube:search_url'])
 
-    def test_twitch_channelid_matching(self):
-        self.assertTrue(TwitchIE.suitable('twitch.tv/vanillatv'))
-        self.assertTrue(TwitchIE.suitable('www.twitch.tv/vanillatv'))
-        self.assertTrue(TwitchIE.suitable('http://www.twitch.tv/vanillatv'))
-        self.assertTrue(TwitchIE.suitable('http://www.twitch.tv/vanillatv/'))
-
-    def test_twitch_videoid_matching(self):
-        self.assertTrue(TwitchIE.suitable('http://www.twitch.tv/vanillatv/b/328087483'))
-
-    def test_twitch_chapterid_matching(self):
-        self.assertTrue(TwitchIE.suitable('http://www.twitch.tv/tsm_theoddone/c/2349361'))
-
     def test_youtube_extract(self):
         assertExtractId = lambda url, id: self.assertEqual(YoutubeIE.extract_id(url), id)
         assertExtractId('http://www.youtube.com/watch?&v=BaW_jenozKc', 'BaW_jenozKc')
@@ -115,8 +102,6 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch(':ythistory', ['youtube:history'])
         self.assertMatch(':thedailyshow', ['ComedyCentralShows'])
         self.assertMatch(':tds', ['ComedyCentralShows'])
-        self.assertMatch(':colbertreport', ['ComedyCentralShows'])
-        self.assertMatch(':cr', ['ComedyCentralShows'])
 
     def test_vimeo_matching(self):
         self.assertMatch('http://vimeo.com/channels/tributes', ['vimeo:channel'])

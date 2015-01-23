@@ -281,6 +281,61 @@ class TestFormatSelection(unittest.TestCase):
             downloaded = ydl.downloaded_info_dicts[0]
             self.assertEqual(downloaded['format_id'], f1id)
 
+    def test_format_filtering(self):
+        formats = [
+            {'format_id': 'A', 'filesize': 500, 'width': 1000},
+            {'format_id': 'B', 'filesize': 1000, 'width': 500},
+            {'format_id': 'C', 'filesize': 1000, 'width': 400},
+            {'format_id': 'D', 'filesize': 2000, 'width': 600},
+            {'format_id': 'E', 'filesize': 3000},
+            {'format_id': 'F'},
+            {'format_id': 'G', 'filesize': 1000000},
+        ]
+        for f in formats:
+            f['url'] = 'http://_/'
+            f['ext'] = 'unknown'
+        info_dict = _make_result(formats)
+
+        ydl = YDL({'format': 'best[filesize<3000]'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'D')
+
+        ydl = YDL({'format': 'best[filesize<=3000]'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'E')
+
+        ydl = YDL({'format': 'best[filesize <= ? 3000]'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'F')
+
+        ydl = YDL({'format': 'best [filesize = 1000] [width>450]'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'B')
+
+        ydl = YDL({'format': 'best [filesize = 1000] [width!=450]'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'C')
+
+        ydl = YDL({'format': '[filesize>?1]'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'G')
+
+        ydl = YDL({'format': '[filesize<1M]'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'E')
+
+        ydl = YDL({'format': '[filesize<1MiB]'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'G')
+
     def test_add_extra_info(self):
         test_dict = {
             'extractor': 'Foo',

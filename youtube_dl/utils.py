@@ -612,7 +612,9 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
 
     def http_request(self, req):
         for h, v in std_headers.items():
-            if h not in req.headers:
+            # Capitalize is needed because of Python bug 2275: http://bugs.python.org/issue2275
+            # The dict keys are capitalized because of this bug by urllib
+            if h.capitalize() not in req.headers:
                 req.add_header(h, v)
         if 'Youtubedl-no-compression' in req.headers:
             if 'Accept-encoding' in req.headers:
@@ -1277,7 +1279,7 @@ def parse_duration(s):
     s = s.strip()
 
     m = re.match(
-        r'''(?ix)T?
+        r'''(?ix)(?:P?T)?
         (?:
             (?P<only_mins>[0-9.]+)\s*(?:mins?|minutes?)\s*|
             (?P<only_hours>[0-9.]+)\s*(?:hours?)|
@@ -1612,6 +1614,14 @@ def urlhandle_detect_ext(url_handle):
     except AttributeError:  # Python < 3
         getheader = url_handle.info().getheader
 
+    cd = getheader('Content-Disposition')
+    if cd:
+        m = re.match(r'attachment;\s*filename="(?P<filename>[^"]+)"', cd)
+        if m:
+            e = determine_ext(m.group('filename'), default_ext=None)
+            if e:
+                return e
+
     return getheader('Content-Type').split("/")[1]
 
 
@@ -1623,3 +1633,23 @@ def age_restricted(content_limit, age_limit):
     if content_limit is None:
         return False  # Content available for everyone
     return age_limit < content_limit
+
+
+def is_html(first_bytes):
+    """ Detect whether a file contains HTML by examining its first bytes. """
+
+    BOMS = [
+        (b'\xef\xbb\xbf', 'utf-8'),
+        (b'\x00\x00\xfe\xff', 'utf-32-be'),
+        (b'\xff\xfe\x00\x00', 'utf-32-le'),
+        (b'\xff\xfe', 'utf-16-le'),
+        (b'\xfe\xff', 'utf-16-be'),
+    ]
+    for bom, enc in BOMS:
+        if first_bytes.startswith(bom):
+            s = first_bytes[len(bom):].decode(enc, 'replace')
+            break
+    else:
+        s = first_bytes.decode('utf-8', 'replace')
+
+    return re.match(r'^\s*<', s)

@@ -10,6 +10,7 @@ from ..compat import (
     compat_urllib_request,
 )
 from ..utils import (
+    ExtractorError,
     str_to_int,
 )
 from ..aes import (
@@ -43,6 +44,15 @@ class PornHubIE(InfoExtractor):
         req = compat_urllib_request.Request(url)
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
+
+        error_msg = self._html_search_regex(
+            r'(?s)<div class="userMessageSection[^"]*".*?>(.*?)</div>',
+            webpage, 'error message', default=None)
+        if error_msg:
+            error_msg = re.sub(r'\s+', ' ', error_msg)
+            raise ExtractorError(
+                'PornHub said: %s' % error_msg,
+                expected=True, video_id=video_id)
 
         video_title = self._html_search_regex(r'<h1 [^>]+>([^<]+)', webpage, 'title')
         video_uploader = self._html_search_regex(
