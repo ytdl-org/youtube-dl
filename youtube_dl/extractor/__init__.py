@@ -467,6 +467,7 @@ from .twitch import (
     TwitchVodIE,
     TwitchProfileIE,
     TwitchPastBroadcastsIE,
+    TwitchBookmarksIE,
     TwitchStreamIE,
 )
 from .ubu import UbuIE

@@ -105,13 +105,22 @@ class AtresPlayerIE(InfoExtractor):
                 raise ExtractorError(
                     '%s returned error: %s' % (self.IE_NAME, result), expected=True)
 
-            for _, video_url in fmt_json['resultObject'].items():
+            for format_id, video_url in fmt_json['resultObject'].items():
+                if format_id == 'token' or not video_url.startswith('http'):
+                    continue
                 if video_url.endswith('/Manifest'):
-                    formats.extend(self._extract_f4m_formats(video_url[:-9] + '/manifest.f4m', video_id))
+                    if 'geodeswowsmpra3player' in video_url:
+                        f4m_path = video_url.split('smil:', 1)[-1].split('free_', 1)[0]
+                        f4m_url = 'http://drg.antena3.com/{0}hds/es/sd.f4m'.format(f4m_path)
+                        # this videos are protected by DRM, the f4m downloader doesn't support them
+                        continue
+                    else:
+                        f4m_url = video_url[:-9] + '/manifest.f4m'
+                    formats.extend(self._extract_f4m_formats(f4m_url, video_id))
                 else:
                     formats.append({
                         'url': video_url,
-                        'format_id': 'android',
+                        'format_id': 'android-%s' % format_id,
                         'preference': 1,
                     })
         self._sort_formats(formats)

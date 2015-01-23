@@ -177,13 +177,12 @@ def build_fragments_list(boot_info):
     """ Return a list of (segment, fragment) for each fragment in the video """
     res = []
     segment_run_table = boot_info['segments'][0]
-    # I've only found videos with one segment
-    segment_run_entry = segment_run_table['segment_run'][0]
-    n_frags = segment_run_entry[1]
     fragment_run_entry_table = boot_info['fragments'][0]['fragments']
     first_frag_number = fragment_run_entry_table[0]['first']
-    for (i, frag_number) in zip(range(1, n_frags + 1), itertools.count(first_frag_number)):
-        res.append((1, frag_number))
+    fragments_counter = itertools.count(first_frag_number)
+    for segment, fragments_count in segment_run_table['segment_run']:
+        for _ in range(fragments_count):
+            res.append((segment, next(fragments_counter)))
     return res
 
 
