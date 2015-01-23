@@ -132,11 +132,6 @@ def _real_main(argv=None):
         if numeric_limit is None:
             parser.error('invalid rate limit specified')
         opts.ratelimit = numeric_limit
-    if opts.sleepinterval is not None:
-        try:
-            opts.sleepinterval = abs(int(opts.sleepinterval))
-        except ValueError:
-            parser.error(u'invalid sleep interval specified')
     if opts.min_filesize is not None:
         numeric_limit = FileDownloader.parse_bytes(opts.min_filesize)
         if numeric_limit is None:
@@ -272,7 +267,6 @@ def _real_main(argv=None):
         'restrictfilenames': opts.restrictfilenames,
         'ignoreerrors': opts.ignoreerrors,
         'ratelimit': opts.ratelimit,
-        'sleepinterval': opts.sleepinterval,
         'nooverwrites': opts.nooverwrites,
         'retries': opts.retries,
         'buffersize': opts.buffersize,
