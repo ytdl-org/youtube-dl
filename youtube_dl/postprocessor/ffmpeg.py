@@ -509,6 +509,10 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
             metadata['artist'] = info['uploader']
         elif info.get('uploader_id') is not None:
             metadata['artist'] = info['uploader_id']
+        if info.get('description') is not None:
+            metadata['description'] = info['description']
+        if info.get('webpage_url') is not None:
+            metadata['comment'] = info['webpage_url']
 
         if not metadata:
             self._downloader.to_screen('[ffmpeg] There isn\'t any metadata to add')
