@@ -105,7 +105,9 @@ class AtresPlayerIE(InfoExtractor):
                 raise ExtractorError(
                     '%s returned error: %s' % (self.IE_NAME, result), expected=True)
 
-            for _, video_url in fmt_json['resultObject'].items():
+            for format_id, video_url in fmt_json['resultObject'].items():
+                if format_id == 'token' or not video_url.startswith('http'):
+                    continue
                 if video_url.endswith('/Manifest'):
                     if 'geodeswowsmpra3player' in video_url:
                         f4m_path = video_url.split('smil:', 1)[-1].split('free_', 1)[0]
@@ -118,7 +120,7 @@ class AtresPlayerIE(InfoExtractor):
                 else:
                     formats.append({
                         'url': video_url,
-                        'format_id': 'android',
+                        'format_id': 'android-%s' % format_id,
                         'preference': 1,
                     })
         self._sort_formats(formats)
