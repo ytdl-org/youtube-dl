@@ -863,6 +863,9 @@ def _windows_write_string(s, out):
     except AttributeError:
         # If the output stream doesn't have a fileno, it's virtual
         return False
+    except io.UnsupportedOperation:
+        # Some strange Windows pseudo files?
+        return False
     if fileno not in WIN_OUTPUT_IDS:
         return False
 
