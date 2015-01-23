@@ -564,13 +564,31 @@ class FFmpegFixupStretchedPP(FFmpegPostProcessor):
     def run(self, info):
         stretched_ratio = info.get('stretched_ratio')
         if stretched_ratio is None or stretched_ratio == 1:
-            return
+            return True, info
 
         filename = info['filepath']
         temp_filename = prepend_extension(filename, 'temp')
 
         options = ['-c', 'copy', '-aspect', '%f' % stretched_ratio]
         self._downloader.to_screen('[ffmpeg] Fixing aspect ratio in "%s"' % filename)
+        self.run_ffmpeg(filename, temp_filename, options)
+
+        os.remove(encodeFilename(filename))
+        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+
+        return True, info
+
+
+class FFmpegFixupM4aPP(FFmpegPostProcessor):
+    def run(self, info):
+        if info.get('container') != 'm4a_dash':
+            return True, info
+
+        filename = info['filepath']
+        temp_filename = prepend_extension(filename, 'temp')
+
+        options = ['-c', 'copy', '-f', 'mp4']
+        self._downloader.to_screen('[ffmpeg] Correcting container in "%s"' % filename)
         self.run_ffmpeg(filename, temp_filename, options)
 
         os.remove(encodeFilename(filename))

@@ -73,6 +73,7 @@ from .extractor import get_info_extractor, gen_extractors
 from .downloader import get_suitable_downloader
 from .downloader.rtmp import rtmpdump_version
 from .postprocessor import (
+    FFmpegFixupM4aPP,
     FFmpegFixupStretchedPP,
     FFmpegMergerPP,
     FFmpegPostProcessor,
@@ -213,7 +214,7 @@ class YoutubeDL(object):
                        - "never": do nothing
                        - "warn": only emit a warning
                        - "detect_or_warn": check whether we can do anything
-                                           about it, warn otherwise
+                                           about it, warn otherwise (default)
     source_address:    (Experimental) Client-side IP address to bind to.
     call_home:         Boolean, true iff we are allowed to contact the
                        youtube-dl servers for debugging.
@@ -1219,11 +1220,12 @@ class YoutubeDL(object):
 
             if success:
                 # Fixup content
+                fixup_policy = self.params.get('fixup')
+                if fixup_policy is None:
+                    fixup_policy = 'detect_or_warn'
+
                 stretched_ratio = info_dict.get('stretched_ratio')
                 if stretched_ratio is not None and stretched_ratio != 1:
-                    fixup_policy = self.params.get('fixup')
-                    if fixup_policy is None:
-                        fixup_policy = 'detect_or_warn'
                     if fixup_policy == 'warn':
                         self.report_warning('%s: Non-uniform pixel ratio (%s)' % (
                             info_dict['id'], stretched_ratio))
@@ -1237,7 +1239,23 @@ class YoutubeDL(object):
                                 '%s: Non-uniform pixel ratio (%s). Install ffmpeg or avconv to fix this automatically.' % (
                                     info_dict['id'], stretched_ratio))
                     else:
-                        assert fixup_policy == 'ignore'
+                        assert fixup_policy in ('ignore', 'never')
+
+                if info_dict.get('requested_formats') is None and info_dict.get('container') == 'm4a_dash':
+                    if fixup_policy == 'warn':
+                        self.report_warning('%s: writing DASH m4a. Only some players support this container.' % (
+                            info_dict['id']))
+                    elif fixup_policy == 'detect_or_warn':
+                        fixup_pp = FFmpegFixupM4aPP(self)
+                        if fixup_pp.available:
+                            info_dict.setdefault('__postprocessors', [])
+                            info_dict['__postprocessors'].append(fixup_pp)
+                        else:
+                            self.report_warning(
+                                '%s: writing DASH m4a. Only some players support this container. Install ffmpeg or avconv to fix this automatically.' % (
+                                    info_dict['id']))
+                    else:
+                        assert fixup_policy in ('ignore', 'never')
 
                 try:
                     self.post_process(filename, info_dict)
