@@ -1179,7 +1179,7 @@ class YoutubeDL(object):
         if not self.params.get('skip_download', False):
             try:
                 def dl(name, info):
-                    fd = get_suitable_downloader(info)(self, self.params)
+                    fd = get_suitable_downloader(info, self.params)(self, self.params)
                     for ph in self._progress_hooks:
                         fd.add_progress_hook(ph)
                     if self.params.get('verbose'):
