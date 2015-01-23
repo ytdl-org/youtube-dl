@@ -284,6 +284,7 @@ class FileDownloader(object):
         """Download to a filename using the info from info_dict
         Return True on success and False otherwise
         """
+
         nooverwrites_and_exists = (
             self.params.get('nooverwrites', False)
             and os.path.exists(encodeFilename(filename))
@@ -304,6 +305,11 @@ class FileDownloader(object):
                 'total_bytes': os.path.getsize(encodeFilename(filename)),
             })
             return True
+
+        sleep_interval = self.params.get('sleep_interval')
+        if sleep_interval:
+            self.to_screen('[download] Sleeping %s seconds...' % sleep_interval)
+            time.sleep(sleep_interval)
 
         return self.real_download(filename, info_dict)
 

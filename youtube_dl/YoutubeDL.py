@@ -217,6 +217,7 @@ class YoutubeDL(object):
     source_address:    (Experimental) Client-side IP address to bind to.
     call_home:         Boolean, true iff we are allowed to contact the
                        youtube-dl servers for debugging.
+    sleep_interval:    Number of seconds to sleep before each download.
 
 
     The following parameters are not used by YoutubeDL itself, they are used by

@@ -421,6 +421,10 @@ def parseOpts(overrideArguments=None):
         '--bidi-workaround',
         dest='bidi_workaround', action='store_true',
         help='Work around terminals that lack bidirectional text support. Requires bidiv or fribidi executable in PATH')
+    workarounds.add_option(
+        '--sleep-interval', metavar='SECONDS',
+        dest='sleep_interval',
+        help='Number of seconds to sleep before each download.')
 
     verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
     verbosity.add_option(
