@@ -1631,3 +1631,23 @@ def age_restricted(content_limit, age_limit):
     if content_limit is None:
         return False  # Content available for everyone
     return age_limit < content_limit
+
+
+def is_html(first_bytes):
+    """ Detect whether a file contains HTML by examining its first bytes. """
+
+    BOMS = [
+        (b'\xef\xbb\xbf', 'utf-8'),
+        (b'\x00\x00\xfe\xff', 'utf-32-be'),
+        (b'\xff\xfe\x00\x00', 'utf-32-le'),
+        (b'\xff\xfe', 'utf-16-le'),
+        (b'\xfe\xff', 'utf-16-be'),
+    ]
+    for bom, enc in BOMS:
+        if first_bytes.startswith(bom):
+            s = first_bytes[len(bom):].decode(enc, 'replace')
+            break
+    else:
+        s = first_bytes.decode('utf-8', 'replace')
+
+    return re.match(r'^\s*<', s)

@@ -17,6 +17,7 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     HEADRequest,
+    is_html,
     orderedSet,
     parse_xml,
     smuggle_url,
@@ -647,7 +648,7 @@ class GenericIE(InfoExtractor):
         # Maybe it's a direct link to a video?
         # Be careful not to download the whole thing!
         first_bytes = full_response.read(512)
-        if not re.match(r'^\s*<', first_bytes.decode('utf-8', 'replace')):
+        if not is_html(first_bytes):
             self._downloader.report_warning(
                 'URL could be a direct video link, returning it as such.')
             upload_date = unified_strdate(
