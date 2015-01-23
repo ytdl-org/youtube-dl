@@ -82,7 +82,8 @@ class LiveLeakIE(InfoExtractor):
 
         formats = [{
             'format_note': s.get('label'),
-            'url': s['file'],
+            # removing this from the URL gives us the raw video without LiveLeak branding
+            'url': s['file'].replace('.h264_base.mp4', ''),
         } for s in sources]
         self._sort_formats(formats)
 
