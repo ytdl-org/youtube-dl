@@ -8,7 +8,7 @@ from ..utils import int_or_none
 
 
 class LiveLeakIE(InfoExtractor):
-    _VALID_URL = r'^(?:http://)?(?:\w+\.)?liveleak\.com/view\?(?:.*?)i=(?P<video_id>[\w_]+)(?:.*)'
+    _VALID_URL = r'https?://(?:\w+\.)?liveleak\.com/view\?(?:.*?)i=(?P<id>[\w_]+)(?:.*)'
     _TESTS = [{
         'url': 'http://www.liveleak.com/view?i=757_1364311680',
         'md5': '0813c2430bea7a46bf13acf3406992f4',
@@ -43,8 +43,7 @@ class LiveLeakIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('video_id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         video_title = self._og_search_title(webpage).replace('LiveLeak.com -', '').strip()
