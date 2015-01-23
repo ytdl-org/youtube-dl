@@ -612,7 +612,9 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
 
     def http_request(self, req):
         for h, v in std_headers.items():
-            if h not in req.headers:
+            # Capitalize is needed because of Python bug 2275: http://bugs.python.org/issue2275
+            # The dict keys are capitalized because of this bug by urllib
+            if h.capitalize() not in req.headers:
                 req.add_header(h, v)
         if 'Youtubedl-no-compression' in req.headers:
             if 'Accept-encoding' in req.headers:
