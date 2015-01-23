@@ -411,25 +411,9 @@ def make_HTTPS_handler(params, **kwargs):
             pass
 
     if sys.version_info < (3, 2):
-        import httplib
-
-        class HTTPSConnectionV3(httplib.HTTPSConnection):
-            def __init__(self, *args, **kwargs):
-                httplib.HTTPSConnection.__init__(self, *args, **kwargs)
-
-            def connect(self):
-                sock = socket.create_connection((self.host, self.port), self.timeout)
-                if getattr(self, '_tunnel_host', False):
-                    self.sock = sock
-                    self._tunnel()
-                try:
-                    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_TLSv1)
-                except ssl.SSLError:
-                    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv23)
-
-        return YoutubeDLHTTPSHandler(params, https_conn_class=HTTPSConnectionV3, **kwargs)
+        return YoutubeDLHTTPSHandler(params, **kwargs)
     else:  # Python < 3.4
-        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
         context.verify_mode = (ssl.CERT_NONE
                                if opts_no_check_certificate
                                else ssl.CERT_REQUIRED)
@@ -560,7 +544,9 @@ def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
                 sock = compat_socket_create_connection(
                     (self.host, self.port), self.timeout, sa)
                 if is_https:
-                    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file)
+                    self.sock = ssl.wrap_socket(
+                        sock, self.key_file, self.cert_file,
+                        ssl_version=ssl.PROTOCOL_TLSv1)
                 else:
                     self.sock = sock
             hc.connect = functools.partial(_hc_connect, hc)
