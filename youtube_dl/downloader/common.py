@@ -325,3 +325,24 @@ class FileDownloader(object):
         # See YoutubeDl.py (search for progress_hooks) for a description of
         # this interface
         self._progress_hooks.append(ph)
+
+    def _debug_cmd(self, args, subprocess_encoding, exe=None):
+        if not self.params.get('verbose', False):
+            return
+
+        if exe is None:
+            exe = os.path.basename(args[0])
+
+        if subprocess_encoding:
+            str_args = [
+                a.decode(subprocess_encoding) if isinstance(a, bytes) else a
+                for a in args]
+        else:
+            str_args = args
+        try:
+            import pipes
+            shell_quote = lambda args: ' '.join(map(pipes.quote, str_args))
+        except ImportError:
+            shell_quote = repr
+        self.to_screen('[debug] %s command line: %s' % (
+            exe, shell_quote(str_args)))

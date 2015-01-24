@@ -1,12 +1,13 @@
 from __future__ import unicode_literals
 
 from .common import FileDownloader
+from .external import get_external_downloader
+from .f4m import F4mFD
 from .hls import HlsFD
 from .hls import NativeHlsFD
 from .http import HttpFD
 from .mplayer import MplayerFD
 from .rtmp import RtmpFD
-from .f4m import F4mFD
 
 from ..utils import (
     determine_protocol,
@@ -26,6 +27,12 @@ def get_suitable_downloader(info_dict, params={}):
     """Get the downloader class that can handle the info dict."""
     protocol = determine_protocol(info_dict)
     info_dict['protocol'] = protocol
+
+    external_downloader = params.get('external_downloader')
+    if external_downloader is not None:
+        ed = get_external_downloader(external_downloader)
+        if ed.supports(info_dict):
+            return ed
 
     return PROTOCOL_MAP.get(protocol, HttpFD)
 

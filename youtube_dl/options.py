@@ -5,6 +5,7 @@ import optparse
 import shlex
 import sys
 
+from .downloader.external import list_external_downloaders
 from .compat import (
     compat_expanduser,
     compat_getenv,
@@ -389,6 +390,11 @@ def parseOpts(overrideArguments=None):
         '--playlist-reverse',
         action='store_true',
         help='Download playlist videos in reverse order')
+    downloader.add_option(
+        '--external-downloader',
+        dest='external_downloader', metavar='COMMAND',
+        help='(experimental) Use the specified external downloader. '
+             'Currently supports %s' % ','.join(list_external_downloaders()))
 
     workarounds = optparse.OptionGroup(parser, 'Workarounds')
     workarounds.add_option(

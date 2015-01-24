@@ -152,19 +152,7 @@ class RtmpFD(FileDownloader):
         else:
             subprocess_encoding = None
 
-        if self.params.get('verbose', False):
-            if subprocess_encoding:
-                str_args = [
-                    a.decode(subprocess_encoding) if isinstance(a, bytes) else a
-                    for a in args]
-            else:
-                str_args = args
-            try:
-                import pipes
-                shell_quote = lambda args: ' '.join(map(pipes.quote, str_args))
-            except ImportError:
-                shell_quote = repr
-            self.to_screen('[debug] rtmpdump command line: ' + shell_quote(str_args))
+        self._debug_cmd(args, subprocess_encoding, exe='rtmpdump')
 
         RD_SUCCESS = 0
         RD_FAILED = 1

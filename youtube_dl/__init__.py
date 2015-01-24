@@ -330,6 +330,7 @@ def _real_main(argv=None):
         'source_address': opts.source_address,
         'call_home': opts.call_home,
         'sleep_interval': opts.sleep_interval,
+        'external_downloader': opts.external_downloader,
     }
 
     with YoutubeDL(ydl_opts) as ydl:

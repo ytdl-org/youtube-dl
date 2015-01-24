@@ -219,6 +219,7 @@ class YoutubeDL(object):
     call_home:         Boolean, true iff we are allowed to contact the
                        youtube-dl servers for debugging.
     sleep_interval:    Number of seconds to sleep before each download.
+    external_downloader:  Executable of the external downloader to call.
 
 
     The following parameters are not used by YoutubeDL itself, they are used by
