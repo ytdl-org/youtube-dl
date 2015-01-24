@@ -1682,11 +1682,17 @@ class YoutubeTruncatedURLIE(InfoExtractor):
     IE_NAME = 'youtube:truncated_url'
     IE_DESC = False  # Do not list
     _VALID_URL = r'''(?x)
-        (?:https?://)?[^/]+/watch\?(?:
+        (?:https?://)?
+        (?:\w+\.)?[yY][oO][uU][tT][uU][bB][eE](?:-nocookie)?\.com/
+        (?:watch\?(?:
             feature=[a-z_]+|
-            annotation_id=annotation_[^&]+
-        )?$|
-        (?:https?://)?(?:www\.)?youtube\.com/attribution_link\?a=[^&]+$
+            annotation_id=annotation_[^&]+|
+            x-yt-cl=[0-9]+|
+        )?
+        |
+            attribution_link\?a=[^&]+
+        )
+        $
     '''
 
     _TESTS = [{
@@ -1694,6 +1700,12 @@ class YoutubeTruncatedURLIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.youtube.com/watch?',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/watch?x-yt-cl=84503534',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/watch?feature=foo',
         'only_matching': True,
     }]
 
@@ -1710,7 +1722,7 @@ class YoutubeTruncatedURLIE(InfoExtractor):
 class YoutubeTruncatedIDIE(InfoExtractor):
     IE_NAME = 'youtube:truncated_id'
     IE_DESC = False  # Do not list
-    _VALID_URL = r'https?://(?:www\.)youtube\.com/watch\?v=(?P<id>[0-9A-Za-z_-]{1,10})$'
+    _VALID_URL = r'https?://(?:www\.)?youtube\.com/watch\?v=(?P<id>[0-9A-Za-z_-]{1,10})$'
 
     _TESTS = [{
         'url': 'https://www.youtube.com/watch?v=N_708QY7Ob',
