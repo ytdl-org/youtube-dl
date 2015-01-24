@@ -892,6 +892,9 @@ class YoutubeDL(object):
             def get_full_url(self):
                 return self.url
 
+            def is_unverifiable(self):
+                return self.unverifiable
+
             def has_header(self, h):
                 return h in self.headers
 
