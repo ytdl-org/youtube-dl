@@ -49,9 +49,9 @@ class ExternalFD(FileDownloader):
     def _calc_headers(self, info_dict):
         res = std_headers.copy()
 
-        ua = info_dict.get('user_agent')
-        if ua is not None:
-            res['User-Agent'] = ua
+        add_headers = info_dict.get('http_headers')
+        if add_headers:
+            res.update(add_headers)
 
         cookies = self._calc_cookies(info_dict)
         if cookies:
