@@ -56,6 +56,7 @@ from .utils import (
     preferredencoding,
     SameFileError,
     sanitize_filename,
+    std_headers,
     subtitles_filename,
     takewhile_inclusive,
     UnavailableVideoError,
@@ -865,6 +866,36 @@ class YoutubeDL(object):
                 return matches[-1]
         return None
 
+    def _calc_headers(self, info_dict):
+        res = std_headers.copy()
+
+        add_headers = info_dict.get('http_headers')
+        if add_headers:
+            res.update(add_headers)
+
+        cookies = self._calc_cookies(info_dict)
+        if cookies:
+            res['Cookie'] = cookies
+
+        return res
+
+    def _calc_cookies(self, info_dict):
+        class _PseudoRequest(object):
+            def __init__(self, url):
+                self.url = url
+                self.headers = {}
+                self.unverifiable = False
+
+            def add_unredirected_header(self, k, v):
+                self.headers[k] = v
+
+            def get_full_url(self):
+                return self.url
+
+        pr = _PseudoRequest(info_dict['url'])
+        self.cookiejar.add_cookie_header(pr)
+        return pr.headers.get('Cookie')
+
     def process_video_result(self, info_dict, download=True):
         assert info_dict.get('_type', 'video') == 'video'
 
@@ -933,6 +964,11 @@ class YoutubeDL(object):
             # Automatically determine file extension if missing
             if 'ext' not in format:
                 format['ext'] = determine_ext(format['url']).lower()
+            # Add HTTP headers, so that external programs can use them from the
+            # json output
+            full_format_info = info_dict.copy()
+            full_format_info.update(format)
+            format['http_headers'] = self._calc_headers(full_format_info)
 
         format_limit = self.params.get('format_limit', None)
         if format_limit:

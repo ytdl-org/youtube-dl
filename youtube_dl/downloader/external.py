@@ -7,7 +7,6 @@ import sys
 from .common import FileDownloader
 from ..utils import (
     encodeFilename,
-    std_headers,
 )
 
 
@@ -46,42 +45,6 @@ class ExternalFD(FileDownloader):
     def supports(cls, info_dict):
         return info_dict['protocol'] in ('http', 'https', 'ftp', 'ftps')
 
-    def _calc_headers(self, info_dict):
-        res = std_headers.copy()
-
-        add_headers = info_dict.get('http_headers')
-        if add_headers:
-            res.update(add_headers)
-
-        cookies = self._calc_cookies(info_dict)
-        if cookies:
-            res['Cookie'] = cookies
-
-        return res
-
-    def _calc_cookies(self, info_dict):
-        class _PseudoRequest(object):
-            def __init__(self, url):
-                self.url = url
-                self.headers = {}
-                self.unverifiable = False
-
-            def add_unredirected_header(self, k, v):
-                self.headers[k] = v
-
-            def get_full_url(self):
-                return self.url
-
-            def is_unverifiable(self):
-                return self.unverifiable
-
-            def has_header(self, h):
-                return h in self.headers
-
-        pr = _PseudoRequest(info_dict['url'])
-        self.ydl.cookiejar.add_cookie_header(pr)
-        return pr.headers.get('Cookie')
-
     def _call_downloader(self, tmpfilename, info_dict):
         """ Either overwrite this or implement _make_cmd """
         cmd = self._make_cmd(tmpfilename, info_dict)
@@ -107,7 +70,7 @@ class ExternalFD(FileDownloader):
 class CurlFD(ExternalFD):
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '-o', tmpfilename]
-        for key, val in self._calc_headers(info_dict).items():
+        for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += ['--', info_dict['url']]
         return cmd
@@ -116,7 +79,7 @@ class CurlFD(ExternalFD):
 class WgetFD(ExternalFD):
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '-O', tmpfilename, '-nv', '--no-cookies']
-        for key, val in self._calc_headers(info_dict).items():
+        for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += ['--', info_dict['url']]
         return cmd
@@ -131,7 +94,7 @@ class Aria2cFD(ExternalFD):
         if dn:
             cmd += ['--dir', dn]
         cmd += ['--out', os.path.basename(tmpfilename)]
-        for key, val in self._calc_headers(info_dict).items():
+        for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += ['--', info_dict['url']]
         return cmd
