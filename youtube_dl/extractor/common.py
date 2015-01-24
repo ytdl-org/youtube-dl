@@ -108,7 +108,6 @@ class InfoExtractor(object):
                                   (quality takes higher priority)
                                  -1 for default (order by other properties),
                                  -2 or smaller for less than default.
-                    * http_referer  HTTP Referer header value to set.
                     * http_method  HTTP method to use for the download.
                     * http_headers  A dictionary of additional HTTP headers
                                  to add to the request.
