@@ -13,7 +13,7 @@ from ..utils import (
 class VideoTtIE(InfoExtractor):
     ID_NAME = 'video.tt'
     IE_DESC = 'video.tt - Your True Tube'
-    _VALID_URL = r'http://(?:www\.)?video\.tt/(?:video/|watch_video\.php\?v=)(?P<id>[\da-zA-Z]{9})'
+    _VALID_URL = r'http://(?:www\.)?video\.tt/(?:video\/|embed\/|watch_video\.php\?v=)(?P<id>[\da-zA-Z]{9})'
 
     _TEST = {
         'url': 'http://www.video.tt/watch_video.php?v=amd5YujV8',
