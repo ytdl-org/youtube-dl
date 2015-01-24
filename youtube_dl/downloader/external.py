@@ -97,11 +97,20 @@ class ExternalFD(FileDownloader):
         self._debug_cmd(cmd, subprocess_encoding)
 
         p = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = p.communicate()
+            cmd, stderr=subprocess.PIPE)
+        _, stderr = p.communicate()
         if p.returncode != 0:
             self.to_stderr(stderr)
         return p.returncode
+
+
+class CurlFD(ExternalFD):
+    def _make_cmd(self, tmpfilename, info_dict):
+        cmd = [self.exe, '-o', tmpfilename]
+        for key, val in self._calc_headers(info_dict).items():
+            cmd += ['--header', '%s: %s' % (key, val)]
+        cmd += ['--', info_dict['url']]
+        return cmd
 
 
 class WgetFD(ExternalFD):
@@ -112,6 +121,20 @@ class WgetFD(ExternalFD):
         cmd += ['--', info_dict['url']]
         return cmd
 
+
+class Aria2cFD(ExternalFD):
+    def _make_cmd(self, tmpfilename, info_dict):
+        cmd = [
+            self.exe, '-c',
+            '--min-split-size', '1M', '--max-connection-per-server', '4']
+        dn = os.path.dirname(tmpfilename)
+        if dn:
+            cmd += ['--dir', dn]
+        cmd += ['--out', os.path.basename(tmpfilename)]
+        for key, val in self._calc_headers(info_dict).items():
+            cmd += ['--header', '%s: %s' % (key, val)]
+        cmd += ['--', info_dict['url']]
+        return cmd
 
 _BY_NAME = dict(
     (klass.get_basename(), klass)
