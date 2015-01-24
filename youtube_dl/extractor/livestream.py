@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import re
 import json
+import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..compat import (
