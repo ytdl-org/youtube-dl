@@ -25,7 +25,7 @@ class HttpFD(FileDownloader):
         # Do not include the Accept-Encoding header
         headers = {'Youtubedl-no-compression': 'True'}
         if 'user_agent' in info_dict:
-            headers['Youtubedl-user-agent'] = info_dict['user_agent']
+            headers['User-agent'] = info_dict['user_agent']
         if 'http_referer' in info_dict:
             headers['Referer'] = info_dict['http_referer']
         add_headers = info_dict.get('http_headers')

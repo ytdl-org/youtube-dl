@@ -53,7 +53,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         webpage_url = self._MOBILE_TEMPLATE % mtvn_id
         req = compat_urllib_request.Request(webpage_url)
         # Otherwise we get a webpage that would execute some javascript
-        req.add_header('Youtubedl-user-agent', 'curl/7')
+        req.add_header('User-Agent', 'curl/7')
         webpage = self._download_webpage(req, mtvn_id,
                                          'Downloading mobile page')
         metrics_url = unescapeHTML(self._search_regex(r'<a href="(http://metrics.+?)"', webpage, 'url'))

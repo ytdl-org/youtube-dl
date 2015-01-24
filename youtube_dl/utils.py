@@ -606,11 +606,6 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
             if 'Accept-encoding' in req.headers:
                 del req.headers['Accept-encoding']
             del req.headers['Youtubedl-no-compression']
-        if 'Youtubedl-user-agent' in req.headers:
-            if 'User-agent' in req.headers:
-                del req.headers['User-agent']
-            req.headers['User-agent'] = req.headers['Youtubedl-user-agent']
-            del req.headers['Youtubedl-user-agent']
 
         if sys.version_info < (2, 7) and '#' in req.get_full_url():
             # Python 2.6 is brain-dead when it comes to fragments

@@ -95,7 +95,7 @@ class AtresPlayerIE(SubtitlesInfoExtractor):
         for fmt in ['windows', 'android_tablet']:
             request = compat_urllib_request.Request(
                 self._URL_VIDEO_TEMPLATE.format(fmt, episode_id, timestamp_shifted, token))
-            request.add_header('Youtubedl-user-agent', self._USER_AGENT)
+            request.add_header('User-Agent', self._USER_AGENT)
 
             fmt_json = self._download_json(
                 request, video_id, 'Downloading %s video JSON' % fmt)
