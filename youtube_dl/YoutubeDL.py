@@ -54,6 +54,7 @@ from .utils import (
     PostProcessingError,
     platform_name,
     preferredencoding,
+    render_table,
     SameFileError,
     sanitize_filename,
     std_headers,
@@ -221,6 +222,8 @@ class YoutubeDL(object):
                        youtube-dl servers for debugging.
     sleep_interval:    Number of seconds to sleep before each download.
     external_downloader:  Executable of the external downloader to call.
+    listformats:       Print an overview of available video formats and exit.
+    list_thumbnails:   Print a table of all thumbnails and exit.
 
 
     The following parameters are not used by YoutubeDL itself, they are used by
@@ -916,9 +919,14 @@ class YoutubeDL(object):
             info_dict['playlist_index'] = None
 
         thumbnails = info_dict.get('thumbnails')
+        if thumbnails is None:
+            thumbnail = info_dict.get('thumbnail')
+            if thumbnail:
+                thumbnails = [{'url': thumbnail}]
         if thumbnails:
             thumbnails.sort(key=lambda t: (
-                t.get('width'), t.get('height'), t.get('url')))
+                t.get('preference'), t.get('width'), t.get('height'),
+                t.get('id'), t.get('url')))
             for t in thumbnails:
                 if 'width' in t and 'height' in t:
                     t['resolution'] = '%dx%d' % (t['width'], t['height'])
@@ -990,8 +998,11 @@ class YoutubeDL(object):
             # element in the 'formats' field in info_dict is info_dict itself,
             # wich can't be exported to json
             info_dict['formats'] = formats
-        if self.params.get('listformats', None):
+        if self.params.get('listformats'):
             self.list_formats(info_dict)
+            return
+        if self.params.get('list_thumbnails'):
+            self.list_thumbnails(info_dict)
             return
 
         req_format = self.params.get('format')
@@ -1500,8 +1511,26 @@ class YoutubeDL(object):
         header_line = line({
             'format_id': 'format code', 'ext': 'extension',
             'resolution': 'resolution', 'format_note': 'note'}, idlen=idlen)
-        self.to_screen('[info] Available formats for %s:\n%s\n%s' %
-                       (info_dict['id'], header_line, '\n'.join(formats_s)))
+        self.to_screen(
+            '[info] Available formats for %s:\n%s\n%s' %
+            (info_dict['id'], header_line, '\n'.join(formats_s)))
+
+    def list_thumbnails(self, info_dict):
+        thumbnails = info_dict.get('thumbnails')
+        if not thumbnails:
+            tn_url = info_dict.get('thumbnail')
+            if tn_url:
+                thumbnails = [{'id': '0', 'url': tn_url}]
+            else:
+                self.to_screen(
+                    '[info] No thumbnails present for %s' % info_dict['id'])
+                return
+
+        self.to_screen(
+            '[info] Thumbnails for %s:' % info_dict['id'])
+        self.to_screen(render_table(
+            ['ID', 'width', 'height', 'URL'],
+            [[t['id'], t.get('width', 'unknown'), t.get('height', 'unknown'), t['url']] for t in thumbnails]))
 
     def urlopen(self, req):
         """ Start an HTTP download """

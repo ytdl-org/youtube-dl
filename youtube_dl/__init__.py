@@ -331,6 +331,7 @@ def _real_main(argv=None):
         'call_home': opts.call_home,
         'sleep_interval': opts.sleep_interval,
         'external_downloader': opts.external_downloader,
+        'list_thumbnails': opts.list_thumbnails,
     }
 
     with YoutubeDL(ydl_opts) as ydl:

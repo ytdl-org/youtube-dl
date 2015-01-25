@@ -615,10 +615,6 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='writeannotations', default=False,
         help='write video annotations to a .annotation file')
     filesystem.add_option(
-        '--write-thumbnail',
-        action='store_true', dest='writethumbnail', default=False,
-        help='write thumbnail image to disk')
-    filesystem.add_option(
         '--load-info',
         dest='load_info_filename', metavar='FILE',
         help='json file containing the video information (created with the "--write-json" option)')
@@ -636,6 +632,16 @@ def parseOpts(overrideArguments=None):
         '--rm-cache-dir',
         action='store_true', dest='rm_cachedir',
         help='Delete all filesystem cache files')
+
+    thumbnail = optparse.OptionGroup(parser, 'Thumbnail images')
+    thumbnail.add_option(
+        '--write-thumbnail',
+        action='store_true', dest='writethumbnail', default=False,
+        help='write thumbnail image to disk')
+    thumbnail.add_option(
+        '--list-thumbnails',
+        action='store_true', dest='list_thumbnails', default=False,
+        help='Simulate and list all available thumbnail formats')
 
     postproc = optparse.OptionGroup(parser, 'Post-processing Options')
     postproc.add_option(
@@ -702,6 +708,7 @@ def parseOpts(overrideArguments=None):
     parser.add_option_group(selection)
     parser.add_option_group(downloader)
     parser.add_option_group(filesystem)
+    parser.add_option_group(thumbnail)
     parser.add_option_group(verbosity)
     parser.add_option_group(workarounds)
     parser.add_option_group(video_format)

@@ -129,7 +129,9 @@ class InfoExtractor(object):
                     something like "4234987", title "Dancing naked mole rats",
                     and display_id "dancing-naked-mole-rats"
     thumbnails:     A list of dictionaries, with the following entries:
+                        * "id" (optional, string) - Thumbnail format ID
                         * "url"
+                        * "preference" (optional, int) - quality of the image
                         * "width" (optional, int)
                         * "height" (optional, int)
                         * "resolution" (optional, string "{width}x{height"},
