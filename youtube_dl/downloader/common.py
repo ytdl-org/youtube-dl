@@ -25,21 +25,23 @@ class FileDownloader(object):
 
     Available options:
 
-    verbose:           Print additional info to stdout.
-    quiet:             Do not print messages to stdout.
-    ratelimit:         Download speed limit, in bytes/sec.
-    retries:           Number of times to retry for HTTP error 5xx
-    buffersize:        Size of download buffer in bytes.
-    noresizebuffer:    Do not automatically resize the download buffer.
-    continuedl:        Try to continue downloads if possible.
-    noprogress:        Do not print the progress bar.
-    logtostderr:       Log messages to stderr instead of stdout.
-    consoletitle:      Display progress in console window's titlebar.
-    nopart:            Do not use temporary .part files.
-    updatetime:        Use the Last-modified header to set output file timestamps.
-    test:              Download only first bytes to test the downloader.
-    min_filesize:      Skip files smaller than this size
-    max_filesize:      Skip files larger than this size
+    verbose:            Print additional info to stdout.
+    quiet:              Do not print messages to stdout.
+    ratelimit:          Download speed limit, in bytes/sec.
+    retries:            Number of times to retry for HTTP error 5xx
+    buffersize:         Size of download buffer in bytes.
+    noresizebuffer:     Do not automatically resize the download buffer.
+    continuedl:         Try to continue downloads if possible.
+    noprogress:         Do not print the progress bar.
+    logtostderr:        Log messages to stderr instead of stdout.
+    consoletitle:       Display progress in console window's titlebar.
+    nopart:             Do not use temporary .part files.
+    updatetime:         Use the Last-modified header to set output file timestamps.
+    test:               Download only first bytes to test the downloader.
+    min_filesize:       Skip files smaller than this size
+    max_filesize:       Skip files larger than this size
+    xattr_set_filesize: Set ytdl.filesize user xattribute with expected size.
+                        (experimenatal)
 
     Subclasses of this one must re-define the real_download method.
     """

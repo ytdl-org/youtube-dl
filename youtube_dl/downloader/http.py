@@ -157,6 +157,14 @@ class HttpFD(FileDownloader):
                 except (OSError, IOError) as err:
                     self.report_error('unable to open for writing: %s' % str(err))
                     return False
+
+                if self.params.get('xattr_set_filesize', False) and data_len is not None:
+                    try:
+                        import xattr
+                        xattr.setxattr(tmpfilename, 'user.ytdl.filesize', str(data_len))
+                    except(OSError, IOError, ImportError) as err:
+                        self.report_error('unable to set filesize xattr: %s' % str(err))
+
             try:
                 stream.write(data_block)
             except (IOError, OSError) as err:

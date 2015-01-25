@@ -241,6 +241,11 @@ def _real_main(argv=None):
             'verboseOutput': opts.verbose,
             'exec_cmd': opts.exec_cmd,
         })
+    if opts.xattr_set_filesize:
+        try:
+            import xattr
+        except ImportError:
+            parser.error('setting filesize xattr requested but python-xattr is not available')
 
     ydl_opts = {
         'usenetrc': opts.usenetrc,
@@ -337,6 +342,7 @@ def _real_main(argv=None):
         'external_downloader': opts.external_downloader,
         'list_thumbnails': opts.list_thumbnails,
         'playlist_items': opts.playlist_items,
+        'xattr_set_filesize': opts.xattr_set_filesize,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
