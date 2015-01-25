@@ -102,6 +102,7 @@ class SmotriIE(InfoExtractor):
                 'uploader_id': 'mopeder',
                 'duration': 71,
                 'thumbnail': 'http://frame9.loadup.ru/d7/32/2888853.2.3.jpg',
+                'upload_date': '20150114',
             },
         },
         # swf player
