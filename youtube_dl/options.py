@@ -377,7 +377,7 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '-R', '--retries',
         dest='retries', metavar='RETRIES', default=10,
-        help='number of retries (default is %default)')
+        help='number of retries (default is %default), or "infinite".')
     downloader.add_option(
         '--buffer-size',
         dest='buffersize', metavar='SIZE', default='1024',
