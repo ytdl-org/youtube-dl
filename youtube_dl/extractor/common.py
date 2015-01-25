@@ -114,8 +114,11 @@ class InfoExtractor(object):
                     * http_post_data  Additional data to send with a POST
                                  request.
                     * stretched_ratio  If given and not 1, indicates that the
-                                       video's pixels are not square.
-                                       width : height ratio as float.
+                                 video's pixels are not square.
+                                 width : height ratio as float.
+                    * no_resume  The server does not support resuming the
+                                 (HTTP or RTMP) download. Boolean.
+
     url:            Final video URL.
     ext:            Video filename extension.
     format:         The video format, defaults to ext (used for --get-format)

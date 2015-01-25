@@ -105,7 +105,8 @@ class RtmpFD(FileDownloader):
         conn = info_dict.get('rtmp_conn', None)
         protocol = info_dict.get('rtmp_protocol', None)
         no_resume = info_dict.get('no_resume', False)
-        
+        continue_dl = info_dict.get('continuedl', False)
+
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
         test = self.params.get('test', False)
@@ -142,10 +143,12 @@ class RtmpFD(FileDownloader):
             basic_args += ['--conn', conn]
         if protocol is not None:
             basic_args += ['--protocol', protocol]
-        if not no_resume:
-            basic_args += ['--resume']
-        
-        args = basic_args + [[], ['--skip', '1']][not live and self.params.get('continuedl', False)]
+
+        args = basic_args
+        if not no_resume and continue_dl and not live:
+            args += ['--resume']
+        if not live and continue_dl:
+            args += ['--skip', '1']
 
         if sys.platform == 'win32' and sys.version_info < (3, 0):
             # Windows subprocess module does not actually support Unicode
