@@ -85,6 +85,7 @@ class LyndaIE(SubtitlesInfoExtractor):
                 } for format_id, video_url in prioritized_streams['0'].items()
             ])
 
+        self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
         if self._downloader.params.get('listsubtitles', False):
