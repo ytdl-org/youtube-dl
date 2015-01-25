@@ -93,6 +93,14 @@ which means you can modify it, redistribute it or use it however you like.
 ## Video Selection:
     --playlist-start NUMBER          playlist video to start at (default is 1)
     --playlist-end NUMBER            playlist video to end at (default is last)
+    --playlist-items ITEM_SPEC       playlist video items to download. Specify
+                                     indices of the videos in the playlist
+                                     seperated by commas like: "--playlist-items
+                                     1,2,5,8" if you want to download videos
+                                     indexed 1, 2, 5, 8 in the playlist. You can
+                                     specify range: "--playlist-items
+                                     1-3,7,10-13", it will download the videos
+                                     at index 1, 2, 3, 7, 10, 11, 12 and 13.
     --match-title REGEX              download only matching titles (regex or
                                      caseless sub-string)
     --reject-title REGEX             skip download for matching titles (regex or
@@ -124,7 +132,8 @@ which means you can modify it, redistribute it or use it however you like.
 ## Download Options:
     -r, --rate-limit LIMIT           maximum download rate in bytes per second
                                      (e.g. 50K or 4.2M)
-    -R, --retries RETRIES            number of retries (default is 10)
+    -R, --retries RETRIES            number of retries (default is 10), or
+                                     "infinite".
     --buffer-size SIZE               size of download buffer (e.g. 1024 or 16K)
                                      (default is 1024)
     --no-resize-buffer               do not automatically adjust the buffer
@@ -132,6 +141,11 @@ which means you can modify it, redistribute it or use it however you like.
                                      automatically resized from an initial value
                                      of SIZE.
     --playlist-reverse               Download playlist videos in reverse order
+    --xattr-set-filesize             (experimental) set file xattribute
+                                     ytdl.filesize with expected filesize
+    --external-downloader COMMAND    (experimental) Use the specified external
+                                     downloader. Currently supports
+                                     aria2c,curl,wget
 
 ## Filesystem Options:
     -a, --batch-file FILE            file containing URLs to download ('-' for
@@ -191,7 +205,6 @@ which means you can modify it, redistribute it or use it however you like.
     --write-info-json                write video metadata to a .info.json file
     --write-annotations              write video annotations to a .annotation
                                      file
-    --write-thumbnail                write thumbnail image to disk
     --load-info FILE                 json file containing the video information
                                      (created with the "--write-json" option)
     --cookies FILE                   file to read cookies from and dump cookie
@@ -205,6 +218,12 @@ which means you can modify it, redistribute it or use it however you like.
                                      cached, but that may change.
     --no-cache-dir                   Disable filesystem caching
     --rm-cache-dir                   Delete all filesystem cache files
+
+## Thumbnail images:
+    --write-thumbnail                write thumbnail image to disk
+    --write-all-thumbnails           write all thumbnail image formats to disk
+    --list-thumbnails                Simulate and list all available thumbnail
+                                     formats
 
 ## Verbosity / Simulation Options:
     -q, --quiet                      activates quiet mode
