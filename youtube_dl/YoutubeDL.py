@@ -198,11 +198,12 @@ class YoutubeDL(object):
                        postprocessor.
     progress_hooks:    A list of functions that get called on download
                        progress, with a dictionary with the entries
-                       * filename: The final filename
-                       * status: One of "downloading" and "finished"
+                       * status: One of "downloading" and "finished".
+                                 Check this first and ignore unknown values.
 
-                       The dict may also have some of the following entries:
-
+                       If status is one of "downloading" or "finished", the
+                       following properties may also be present:
+                       * filename: The final filename (always present)
                        * downloaded_bytes: Bytes on disk
                        * total_bytes: Size of the whole file, None if unknown
                        * tmpfilename: The filename we're currently writing to
@@ -1251,6 +1252,7 @@ class YoutubeDL(object):
                     if self.params.get('verbose'):
                         self.to_stdout('[debug] Invoking downloader on %r' % info.get('url'))
                     return fd.download(name, info)
+
                 if info_dict.get('requested_formats') is not None:
                     downloaded = []
                     success = True
