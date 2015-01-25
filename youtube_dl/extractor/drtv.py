@@ -48,14 +48,20 @@ class DRTVIE(SubtitlesInfoExtractor):
             elif asset['Kind'] == 'VideoResource':
                 duration = asset['DurationInMilliseconds'] / 1000.0
                 restricted_to_denmark = asset['RestrictedToDenmark']
+                spoken_subtitles = asset['Target'] == 'SpokenSubtitles'
                 for link in asset['Links']:
                     target = link['Target']
                     uri = link['Uri']
+                    format_id = target
+                    preference = -1 if target == 'HDS' else -2
+                    if spoken_subtitles:
+                        preference -= 2
+                        format_id += '-spoken-subtitles'
                     formats.append({
                         'url': uri + '?hdcore=3.3.0&plugin=aasp-3.3.0.99.43' if target == 'HDS' else uri,
-                        'format_id': target,
+                        'format_id': format_id,
                         'ext': link['FileFormat'],
-                        'preference': -1 if target == 'HDS' else -2,
+                        'preference': preference,
                     })
                 subtitles_list = asset.get('SubtitlesList')
                 if isinstance(subtitles_list, list):

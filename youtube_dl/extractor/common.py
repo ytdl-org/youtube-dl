@@ -14,6 +14,7 @@ import xml.etree.ElementTree
 
 from ..compat import (
     compat_cookiejar,
+    compat_HTTPError,
     compat_http_client,
     compat_urllib_error,
     compat_urllib_parse_urlparse,
@@ -26,6 +27,7 @@ from ..utils import (
     compiled_regex_type,
     ExtractorError,
     float_or_none,
+    HEADRequest,
     int_or_none,
     RegexNotFoundError,
     sanitize_filename,
@@ -715,6 +717,27 @@ class InfoExtractor(object):
                 f.get('format_id'),
             )
         formats.sort(key=_formats_key)
+
+    def _check_formats(self, formats, video_id):
+        if formats:
+            formats[:] = filter(
+                lambda f: self._is_valid_url(
+                    f['url'], video_id,
+                    item='%s video format' % f.get('format_id') if f.get('format_id') else 'video'),
+                formats)
+
+    def _is_valid_url(self, url, video_id, item='video'):
+        try:
+            self._request_webpage(
+                HEADRequest(url), video_id,
+                'Checking %s URL' % item)
+            return True
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError):
+                self.report_warning(
+                    '%s URL is invalid, skipping' % item, video_id)
+                return False
+            raise
 
     def http_scheme(self):
         """ Either "http:" or "https:", depending on the user's preferences """
