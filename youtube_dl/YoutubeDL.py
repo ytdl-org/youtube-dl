@@ -137,6 +137,7 @@ class YoutubeDL(object):
     nooverwrites:      Prevent overwriting files.
     playliststart:     Playlist item to start at.
     playlistend:       Playlist item to end at.
+    playlist_items:    Specific indices of playlist to download.
     playlistreverse:   Download playlist items in reverse order.
     matchtitle:        Download only matching titles.
     rejecttitle:       Reject downloads for matching titles.
@@ -703,24 +704,51 @@ class YoutubeDL(object):
             if playlistend == -1:
                 playlistend = None
 
+            playlistitems_str = self.params.get('playlist_items', None)
+            playlistitems = None
+            if playlistitems_str is not None:
+                def iter_playlistitems(format):
+                    for string_segment in format.split(','):
+                        if '-' in string_segment:
+                            start, end = string_segment.split('-')
+                            for item in range(int(start), int(end) + 1):
+                                yield int(item)
+                        else:
+                            yield int(string_segment)
+                playlistitems = iter_playlistitems(playlistitems_str)
+
             ie_entries = ie_result['entries']
             if isinstance(ie_entries, list):
                 n_all_entries = len(ie_entries)
-                entries = ie_entries[playliststart:playlistend]
+                if playlistitems:
+                    entries = [ie_entries[i - 1] for i in playlistitems]
+                else:
+                    entries = ie_entries[playliststart:playlistend]
                 n_entries = len(entries)
                 self.to_screen(
                     "[%s] playlist %s: Collected %d video ids (downloading %d of them)" %
                     (ie_result['extractor'], playlist, n_all_entries, n_entries))
             elif isinstance(ie_entries, PagedList):
-                entries = ie_entries.getslice(
-                    playliststart, playlistend)
+                if playlistitems:
+                    entries = []
+                    for item in playlistitems:
+                        entries.extend(ie_entries.getslice(
+                            item - 1, item
+                        ))
+                else:
+                    entries = ie_entries.getslice(
+                        playliststart, playlistend)
                 n_entries = len(entries)
                 self.to_screen(
                     "[%s] playlist %s: Downloading %d videos" %
                     (ie_result['extractor'], playlist, n_entries))
             else:  # iterable
-                entries = list(itertools.islice(
-                    ie_entries, playliststart, playlistend))
+                if playlistitems:
+                    entry_list = list(ie_entries)
+                    entries = [entry_list[i - 1] for i in playlistitems]
+                else:
+                    entries = list(itertools.islice(
+                        ie_entries, playliststart, playlistend))
                 n_entries = len(entries)
                 self.to_screen(
                     "[%s] playlist %s: Downloading %d videos" %

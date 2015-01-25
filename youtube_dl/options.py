@@ -201,6 +201,10 @@ def parseOpts(overrideArguments=None):
         dest='playlistend', metavar='NUMBER', default=None, type=int,
         help='playlist video to end at (default is last)')
     selection.add_option(
+        '--playlist-items',
+        dest='playlist_items', metavar='ITEM_SPEC', default=None,
+        help='playlist video items to download. Specify indices of the videos in the playlist seperated by commas like: "--playlist-items 1,2,5,8" if you want to download videos indexed 1, 2, 5, 8 in the playlist. You can specify range: "--playlist-items 1-3,7,10-13", it will download the videos at index 1, 2, 3, 7, 10, 11, 12 and 13.')
+    selection.add_option(
         '--match-title',
         dest='matchtitle', metavar='REGEX',
         help='download only matching titles (regex or caseless sub-string)')
