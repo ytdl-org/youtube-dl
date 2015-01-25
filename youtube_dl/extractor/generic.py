@@ -362,7 +362,7 @@ class GenericIE(InfoExtractor):
             'info_dict': {
                 'id': 'http://phihag.de/2014/youtube-dl/rss2.xml',
                 'title': 'Zero Punctuation',
-                'description': 're:'
+                'description': 're:.*groundbreaking video review series.*'
             },
             'playlist_mincount': 11,
         },
