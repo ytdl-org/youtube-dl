@@ -349,6 +349,7 @@ from .rtbf import RTBFIE
 from .rte import RteIE
 from .rtlnl import RtlXlIE
 from .rtlnow import RTLnowIE
+from .rtl2 import RTL2IE
 from .rtp import RTPIE
 from .rts import RTSIE
 from .rtve import RTVEALaCartaIE, RTVELiveIE
