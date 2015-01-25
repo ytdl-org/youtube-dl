@@ -244,6 +244,7 @@ def _real_main(argv=None):
     if opts.xattr_set_filesize:
         try:
             import xattr
+            xattr  # Confuse flake8
         except ImportError:
             parser.error('setting filesize xattr requested but python-xattr is not available')
 
