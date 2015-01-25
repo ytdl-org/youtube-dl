@@ -16,6 +16,7 @@ class FolketingetIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?ft\.dk/webtv/video/[^?#]*?\.(?P<id>[0-9]+)\.aspx'
     _TEST = {
         'url': 'http://www.ft.dk/webtv/video/20141/eru/td.1165642.aspx?as=1#player',
+        'md5': '6269e8626fa1a891bf5369b386ae996a',
         'info_dict': {
             'id': '1165642',
             'ext': 'mp4',
@@ -29,9 +30,6 @@ class FolketingetIE(InfoExtractor):
             'upload_date': '20141120',
             'duration': 3960,
         },
-        'params': {
-            'skip_download': 'rtmpdump required',
-        }
     }
 
     def _real_extract(self, url):
