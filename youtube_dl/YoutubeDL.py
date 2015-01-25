@@ -146,6 +146,7 @@ class YoutubeDL(object):
     writeinfojson:     Write the video description to a .info.json file
     writeannotations:  Write the video annotations to a .annotations.xml file
     writethumbnail:    Write the thumbnail image to a file
+    write_all_thumbnails:  Write all thumbnail formats to files
     writesubtitles:    Write the video subtitles to a file
     writeautomaticsub: Write the automatic subtitles to a file
     allsubtitles:      Downloads all the subtitles of the video
@@ -1210,25 +1211,7 @@ class YoutubeDL(object):
                     self.report_error('Cannot write metadata to JSON file ' + infofn)
                     return
 
-        if self.params.get('writethumbnail', False):
-            if info_dict.get('thumbnail') is not None:
-                thumb_format = determine_ext(info_dict['thumbnail'], 'jpg')
-                thumb_filename = os.path.splitext(filename)[0] + '.' + thumb_format
-                if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(thumb_filename)):
-                    self.to_screen('[%s] %s: Thumbnail is already present' %
-                                   (info_dict['extractor'], info_dict['id']))
-                else:
-                    self.to_screen('[%s] %s: Downloading thumbnail ...' %
-                                   (info_dict['extractor'], info_dict['id']))
-                    try:
-                        uf = self.urlopen(info_dict['thumbnail'])
-                        with open(thumb_filename, 'wb') as thumbf:
-                            shutil.copyfileobj(uf, thumbf)
-                        self.to_screen('[%s] %s: Writing thumbnail to: %s' %
-                                       (info_dict['extractor'], info_dict['id'], thumb_filename))
-                    except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                        self.report_warning('Unable to download thumbnail "%s": %s' %
-                                            (info_dict['thumbnail'], compat_str(err)))
+        self._write_thumbnails(info_dict, filename)
 
         if not self.params.get('skip_download', False):
             try:
@@ -1676,3 +1659,39 @@ class YoutubeDL(object):
         if encoding is None:
             encoding = preferredencoding()
         return encoding
+
+    def _write_thumbnails(self, info_dict, filename):
+        if self.params.get('writethumbnail', False):
+            thumbnails = info_dict.get('thumbnails')
+            if thumbnails:
+                thumbnails = [thumbnails[-1]]
+        elif self.params.get('write_all_thumbnails', False):
+            thumbnails = info_dict.get('thumbnails')
+        else:
+            return
+
+        if not thumbnails:
+            # No thumbnails present, so return immediately
+            return
+
+        for t in thumbnails:
+            thumb_ext = determine_ext(t['url'], 'jpg')
+            suffix = '_%s' % t['id'] if len(thumbnails) > 1 else ''
+            thumb_display_id = '%s ' % t['id'] if len(thumbnails) > 1 else ''
+            thumb_filename = os.path.splitext(filename)[0] + suffix + '.' + thumb_ext
+
+            if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(thumb_filename)):
+                self.to_screen('[%s] %s: Thumbnail %sis already present' %
+                               (info_dict['extractor'], info_dict['id'], thumb_display_id))
+            else:
+                self.to_screen('[%s] %s: Downloading thumbnail %s...' %
+                               (info_dict['extractor'], info_dict['id'], thumb_display_id))
+                try:
+                    uf = self.urlopen(t['url'])
+                    with open(thumb_filename, 'wb') as thumbf:
+                        shutil.copyfileobj(uf, thumbf)
+                    self.to_screen('[%s] %s: Writing thumbnail %sto: %s' %
+                                   (info_dict['extractor'], info_dict['id'], thumb_display_id, thumb_filename))
+                except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+                    self.report_warning('Unable to download thumbnail "%s": %s' %
+                                        (t['url'], compat_str(err)))

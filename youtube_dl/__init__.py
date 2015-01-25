@@ -286,6 +286,7 @@ def _real_main(argv=None):
         'writeannotations': opts.writeannotations,
         'writeinfojson': opts.writeinfojson,
         'writethumbnail': opts.writethumbnail,
+        'write_all_thumbnails': opts.write_all_thumbnails,
         'writesubtitles': opts.writesubtitles,
         'writeautomaticsub': opts.writeautomaticsub,
         'allsubtitles': opts.allsubtitles,

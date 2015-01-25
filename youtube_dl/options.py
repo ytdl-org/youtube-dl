@@ -639,6 +639,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='writethumbnail', default=False,
         help='write thumbnail image to disk')
     thumbnail.add_option(
+        '--write-all-thumbnails',
+        action='store_true', dest='write_all_thumbnails', default=False,
+        help='write all thumbnail image formats to disk')
+    thumbnail.add_option(
         '--list-thumbnails',
         action='store_true', dest='list_thumbnails', default=False,
         help='Simulate and list all available thumbnail formats')
