@@ -297,7 +297,7 @@ def parseOpts(overrideArguments=None):
             ' You can filter the video results by putting a condition in'
             ' brackets, as in -f "best[height=720]"'
             ' (or -f "[filesize>10M]"). '
-            ' This works for filesize, height, width, tbr, abr, and vbr'
+            ' This works for filesize, height, width, tbr, abr, vbr, and fps'
             ' and the comparisons <, <=, >, >=, =, != .'
             ' Formats for which the value is not known are excluded unless you'
             ' put a question mark (?) after the operator.'

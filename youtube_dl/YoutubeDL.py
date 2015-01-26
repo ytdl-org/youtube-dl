@@ -820,7 +820,7 @@ class YoutubeDL(object):
             '!=': operator.ne,
         }
         operator_rex = re.compile(r'''(?x)\s*\[
-            (?P<key>width|height|tbr|abr|vbr|filesize)
+            (?P<key>width|height|tbr|abr|vbr|filesize|fps)
             \s*(?P<op>%s)(?P<none_inclusive>\s*\?)?\s*
             (?P<value>[0-9.]+(?:[kKmMgGtTpPeEzZyY]i?[Bb]?)?)
             \]$
