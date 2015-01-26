@@ -1130,7 +1130,7 @@ class YoutubeDL(object):
 
         self._num_downloads += 1
 
-        filename = self.prepare_filename(info_dict)
+        info_dict['_filename'] = filename = self.prepare_filename(info_dict)
 
         # Forced printings
         if self.params.get('forcetitle', False):
@@ -1155,10 +1155,7 @@ class YoutubeDL(object):
         if self.params.get('forceformat', False):
             self.to_stdout(info_dict['format'])
         if self.params.get('forcejson', False):
-            info_dict['_filename'] = filename
             self.to_stdout(json.dumps(info_dict))
-        if self.params.get('dump_single_json', False):
-            info_dict['_filename'] = filename
 
         # Do nothing else if in simulate mode
         if self.params.get('simulate', False):
