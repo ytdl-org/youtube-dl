@@ -33,7 +33,10 @@ class XuiteIE(InfoExtractor):
             'uploader_id': '15973816',
             'uploader': '阿能',
             'timestamp': 1314932940,
-            'title': '孤單南半球-歐德陽'
+            'title': '孤單南半球-歐德陽',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'categories': ['個人短片'],
+            'duration': 247.246
         }
     }, {
         # Audio with alternative form of url
@@ -47,6 +50,9 @@ class XuiteIE(InfoExtractor):
             'uploader': '蠍',
             'timestamp': 1293367080,
             'title': '孫燕姿-眼淚成詩',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'categories': ['個人短片'],
+            'duration': 223.19
         }
     }, {
         # Video with only one format
@@ -60,6 +66,9 @@ class XuiteIE(InfoExtractor):
             'uploader': 'Valen',
             'timestamp': 1299383640,
             'title': '孫燕姿 - 眼淚成詩',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'categories': ['影視娛樂'],
+            'duration': 217.399
         }
     }, {
         # Video with two formats
@@ -73,6 +82,9 @@ class XuiteIE(InfoExtractor):
             'uploader': '我只是想認真點',
             'timestamp': 1421481240,
             'title': '暗殺教室 02',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'categories': ['電玩動漫'],
+            'duration': 1384.907
         }
     }]
 
