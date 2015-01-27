@@ -129,17 +129,17 @@ class XuiteIE(InfoExtractor):
         }
 
         if 'hq_src' in flv_config:
-            src = flv_config['src']
-            src_hq = flv_config['hq_src']
-            ret_attrs['formats'] = [{
-                'url': src,
-                'ext': self._guess_ext(src),
-                'format_id': self._type_string(src)
-            }, {
-                'url': src_hq,
-                'ext': self._guess_ext(src_hq),
-                'format_id': self._type_string(src_hq)
-            }]
+            urls = [flv_config['src'], flv_config['hq_src']]
+
+            ret_attrs['formats'] = []
+
+            for url in urls:
+                ret_attrs['formats'].append({
+                    'url': url,
+                    'ext': self._guess_ext(url),
+                    'format_id': self._type_string(url),
+                    'height': int(self._type_string(url))
+                })
         else:
             ret_attrs['url'] = flv_config['src']
             ret_attrs['ext'] = self._guess_ext(flv_config['src'])
