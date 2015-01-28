@@ -26,6 +26,7 @@ class ViddlerIE(InfoExtractor):
             'duration': 100.89,
             'thumbnail': 're:^https?://.*\.jpg$',
             'view_count': int,
+            'comment_count': int,
             'categories': ['video content', 'high quality video', 'video made easy', 'how to produce video with limited resources', 'viddler'],
         }
     }, {
@@ -38,6 +39,8 @@ class ViddlerIE(InfoExtractor):
             'upload_date': '20150126',
             'uploader': 'deadspin',
             'timestamp': 1422285291,
+            'view_count': int,
+            'comment_count': int,
         }
     }, {
         'url': 'http://www.viddler.com/player/221ebbbd/0/',
@@ -50,6 +53,8 @@ class ViddlerIE(InfoExtractor):
             'upload_date': '20140929',
             'uploader': 'BCLETeens',
             'timestamp': 1411997190,
+            'view_count': int,
+            'comment_count': int,
         }
     }]
 
@@ -67,8 +72,9 @@ class ViddlerIE(InfoExtractor):
         for filed in data['files']:
             if filed.get('status', 'ready') != 'ready':
                 continue
+            format_id = filed.get('profile_id') or filed['profile_name']
             f = {
-                'format_id': filed['profile_id'] or filed['profile_name'],
+                'format_id': format_id,
                 'format_note': filed['profile_name'],
                 'url': self._proto_relative_url(filed['url']),
                 'width': int_or_none(filed.get('width')),
@@ -82,14 +88,14 @@ class ViddlerIE(InfoExtractor):
             if filed.get('cdn_url'):
                 f = f.copy()
                 f['url'] = self._proto_relative_url(filed['cdn_url'], 'http:')
-                f['format_id'] = (filed['profile_id'] or filed['profile_name']) + '-cdn'
+                f['format_id'] = format_id + '-cdn'
                 f['source_preference'] = 1
                 formats.append(f)
 
             if filed.get('html5_video_source'):
                 f = f.copy()
                 f['url'] = self._proto_relative_url(filed['html5_video_source'])
-                f['format_id'] = (filed['profile_id'] or filed['profile_name']) + '-html5'
+                f['format_id'] = format_id + '-html5'
                 f['source_preference'] = 0
                 formats.append(f)
         self._sort_formats(formats)
@@ -107,5 +113,6 @@ class ViddlerIE(InfoExtractor):
             'uploader': data.get('author'),
             'duration': float_or_none(data.get('length')),
             'view_count': int_or_none(data.get('view_count')),
+            'comment_count': int_or_none(data.get('comment_count')),
             'categories': categories,
         }
