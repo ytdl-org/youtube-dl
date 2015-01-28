@@ -89,6 +89,7 @@ from .dailymotion import (
 )
 from .daum import DaumIE
 from .dbtv import DBTVIE
+from .dctp import DctpTvIE
 from .deezer import DeezerPlaylistIE
 from .dfb import DFBIE
 from .dotsub import DotsubIE
