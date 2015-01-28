@@ -3,8 +3,16 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
+
 class DctpTvIE(InfoExtractor):
     _VALID_URL = r'^http://www.dctp.tv/(#/)?filme/(?P<id>.+?)/$'
+    _TEST = {
+        'url': 'http://www.dctp.tv/filme/videoinstallation-fuer-eine-kaufhausfassade/',
+        'info_dict': {
+            'id': 'videoinstallation-fuer-eine-kaufhausfassade',
+            'ext': 'flv',
+            'title': 'Videoinstallation für eine Kaufhausfassade'}
+        }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -37,5 +45,4 @@ class DctpTvIE(InfoExtractor):
             'real_time': True,
             'ext': 'flv'
         }
-
 
