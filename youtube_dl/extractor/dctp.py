@@ -37,12 +37,13 @@ class DctpTvIE(InfoExtractor):
         url = servers_json[0]['endpoint']
 
         return {
-            'id': video_id,
+            'id': object_id,
             'title': title,
             'format': 'rtmp',
             'url': url,
             'play_path': play_path,
             'real_time': True,
-            'ext': 'flv'
+            'ext': 'flv',
+            'display_id': video_id
         }
 
