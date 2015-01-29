@@ -654,9 +654,14 @@ class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
         self._params = params
 
     def https_open(self, req):
+        kwargs = {}
+        if hasattr(self, '_context'):  # python > 2.6
+            kwargs['context'] = self._context
+        if hasattr(self, '_check_hostname'):  # python 3.x
+            kwargs['check_hostname'] = self._check_hostname
         return self.do_open(functools.partial(
             _create_http_connection, self, self._https_conn_class, True),
-            req)
+            req, **kwargs)
 
 
 def parse_iso8601(date_str, delimiter='T'):
