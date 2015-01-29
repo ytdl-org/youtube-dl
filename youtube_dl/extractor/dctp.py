@@ -9,7 +9,8 @@ class DctpTvIE(InfoExtractor):
     _TEST = {
         'url': 'http://www.dctp.tv/filme/videoinstallation-fuer-eine-kaufhausfassade/',
         'info_dict': {
-            'id': 'videoinstallation-fuer-eine-kaufhausfassade',
+            'id': '1324',
+            'display_id': 'videoinstallation-fuer-eine-kaufhausfassade',
             'ext': 'flv',
             'title': 'Videoinstallation für eine Kaufhausfassade'}
         }
@@ -21,7 +22,7 @@ class DctpTvIE(InfoExtractor):
         version = version_json['version_name']
         info_json = self._download_json(
             '{0}{1}/restapi/slugs/{2}.json'.format(base_url, version, video_id), video_id)
-        object_id = info_json['object_id']
+        object_id = str(info_json['object_id'])
         meta_json = self._download_json(
             '{0}{1}/restapi/media/{2}.json'.format(base_url, version, object_id), video_id)
         uuid = meta_json['uuid']
