@@ -20,10 +20,10 @@ class DctpTvIE(InfoExtractor):
         version_json = self._download_json(base_url + 'version.json', video_id)
         version = version_json['version_name']
         info_json = self._download_json(
-            '{}{}/restapi/slugs/{}.json'.format(base_url, version, video_id), video_id)
+            '{0}{1}/restapi/slugs/{2}.json'.format(base_url, version, video_id), video_id)
         object_id = info_json['object_id']
         meta_json = self._download_json(
-            '{}{}/restapi/media/{}.json'.format(base_url, version, object_id), video_id)
+            '{0}{1}/restapi/media/{2}.json'.format(base_url, version, object_id), video_id)
         uuid = meta_json['uuid']
         title = meta_json['title']
         wide = meta_json['is_wide']
@@ -31,7 +31,7 @@ class DctpTvIE(InfoExtractor):
             ratio = '16x9'
         else:
             ratio = '4x3'
-        play_path = 'mp4:{}_dctp_0500_{}.m4v'.format(uuid, ratio)
+        play_path = 'mp4:{0}_dctp_0500_{1}.m4v'.format(uuid, ratio)
 
         servers_json = self._download_json('http://www.dctp.tv/streaming_servers/', video_id)
         url = servers_json[0]['endpoint']
