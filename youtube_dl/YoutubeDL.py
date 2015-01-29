@@ -958,7 +958,7 @@ class YoutubeDL(object):
         if thumbnails is None:
             thumbnail = info_dict.get('thumbnail')
             if thumbnail:
-                thumbnails = [{'url': thumbnail}]
+                info_dict['thumbnails'] = thumbnails = [{'url': thumbnail}]
         if thumbnails:
             thumbnails.sort(key=lambda t: (
                 t.get('preference'), t.get('width'), t.get('height'),
