@@ -8,7 +8,7 @@ from ..utils import js_to_json
 
 
 class SRMediathekIE(InfoExtractor):
-    IE_DESC = 'Süddeutscher Rundfunk'
+    IE_DESC = 'Saarländischer Rundfunk'
     _VALID_URL = r'https?://sr-mediathek\.sr-online\.de/index\.php\?.*?&id=(?P<id>[0-9]+)'
 
     _TEST = {
