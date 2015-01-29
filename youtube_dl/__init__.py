@@ -361,7 +361,8 @@ def _real_main(argv=None):
                 sys.exit()
 
             ydl.warn_if_short_id(sys.argv[1:] if argv is None else argv)
-            parser.error('you must provide at least one URL')
+            parser.error('You must provide at least one URL.\n'
+                         'For more details on how to use the program type "youtube-dl -h"')
 
         try:
             if opts.load_info_filename is not None:
