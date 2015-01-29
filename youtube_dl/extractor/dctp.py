@@ -43,7 +43,7 @@ class DctpTvIE(InfoExtractor):
             'format': 'rtmp',
             'url': url,
             'play_path': play_path,
-            'real_time': True,
+            'rtmp_real_time': True,
             'ext': 'flv',
             'display_id': video_id
         }
