@@ -74,7 +74,8 @@ class RTVEALaCartaIE(InfoExtractor):
             'id': '1694255',
             'ext': 'flv',
             'title': 'TODO',
-        }
+        },
+        'skip': 'The f4m manifest can\'t be used yet',
     }]
 
     def _real_extract(self, url):
@@ -86,6 +87,18 @@ class RTVEALaCartaIE(InfoExtractor):
         png_url = 'http://www.rtve.es/ztnr/movil/thumbnail/default/videos/%s.png' % video_id
         png = self._download_webpage(png_url, video_id, 'Downloading url information')
         video_url = _decrypt_url(png)
+        if not video_url.endswith('.f4m'):
+            auth_url = video_url.replace(
+                'resources/', 'auth/resources/'
+            ).replace('.net.rtve', '.multimedia.cdn.rtve')
+            video_path = self._download_webpage(
+                auth_url, video_id, 'Getting video url')
+            # Use mvod.akcdn instead of flash.akamaihd.multimedia.cdn to get
+            # the right Content-Length header and the mp4 format
+            video_url = (
+                'http://mvod.akcdn.rtve.es/{0}&v=2.6.8'
+                '&fp=MAC%2016,0,0,296&r=MRUGG&g=OEOJWFXNFGCP'.format(video_path)
+            )
 
         return {
             'id': video_id,
