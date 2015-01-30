@@ -285,6 +285,12 @@ from .netzkino import NetzkinoIE
 from .nerdcubed import NerdCubedFeedIE
 from .newgrounds import NewgroundsIE
 from .newstube import NewstubeIE
+from .nextmedia import (
+    NextMediaIE,
+    NextMediaActionNewsIE,
+    AppleDailyRealtimeNewsIE,
+    AppleDailyAnimationNewsIE
+)
 from .nfb import NFBIE
 from .nfl import NFLIE
 from .nhl import NHLIE, NHLVideocenterIE
