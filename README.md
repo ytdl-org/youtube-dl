@@ -525,6 +525,13 @@ From then on, after restarting your shell, you will be able to access both youtu
 
 Use the `-o` to specify an [output template](#output-template), for example `-o "/home/user/videos/%(title)s-%(id)s.%(ext)s"`. If you want this for all of your downloads, put the option into your [configuration file](#configuration).
 
+### How do I download a video starting with a `-` ?
+
+Either prepend `http://www.youtube.com/watch?v=` or separate the ID from the options with `--`:
+
+    youtube-dl -- -wNyEUrxzFU
+    youtube-dl "http://www.youtube.com/watch?v=-wNyEUrxzFU"
+
 ### How can I detect whether a given URL is supported by youtube-dl?
 
 For one, have a look at the [list of supported sites](docs/supportedsites). Note that it can sometimes happen that the site changes its URL scheme (say, from http://example.com/v/1234567 to http://example.com/v/1234567 ) and youtube-dl reports an URL of a service in that list as unsupported. In that case, simply report a bug.
