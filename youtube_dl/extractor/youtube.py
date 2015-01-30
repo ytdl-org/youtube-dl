@@ -28,7 +28,6 @@ from ..utils import (
     get_element_by_attribute,
     get_element_by_id,
     int_or_none,
-    js_to_json,
     OnDemandPagedList,
     orderedSet,
     unescapeHTML,
