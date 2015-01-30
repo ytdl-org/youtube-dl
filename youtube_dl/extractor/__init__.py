@@ -82,6 +82,7 @@ from .crunchyroll import (
     CrunchyrollShowPlaylistIE
 )
 from .cspan import CSpanIE
+from .ctsnews import CtsNewsIE
 from .dailymotion import (
     DailymotionIE,
     DailymotionPlaylistIE,
