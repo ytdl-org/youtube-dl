@@ -13,8 +13,9 @@ class DctpTvIE(InfoExtractor):
             'id': '1324',
             'display_id': 'videoinstallation-fuer-eine-kaufhausfassade',
             'ext': 'flv',
-            'title': 'Videoinstallation für eine Kaufhausfassade'}
+            'title': 'Videoinstallation für eine Kaufhausfassade'
         }
+    }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -54,4 +55,3 @@ class DctpTvIE(InfoExtractor):
             'ext': 'flv',
             'display_id': video_id
         }
-
