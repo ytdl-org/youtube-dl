@@ -122,7 +122,6 @@ class AppleTrailersIE(InfoExtractor):
             playlist.append({
                 '_type': 'video',
                 'id': video_id,
-                'title': title,
                 'formats': formats,
                 'title': title,
                 'duration': duration,
