@@ -7,8 +7,8 @@ from .mtv import MTVServicesInfoExtractor
 
 class SpikeIE(MTVServicesInfoExtractor):
     _VALID_URL = r'''(?x)https?://
-        (www\.spike\.com/(video-clips|episodes)/.+|
-         m\.spike\.com/videos/video.rbml\?id=(?P<mobile_id>[^&]+))
+        (?:www\.spike\.com/(?:video-clips|(?:full-)?episodes)/.+|
+         m\.spike\.com/videos/video\.rbml\?id=(?P<id>[^&]+))
         '''
     _TEST = {
         'url': 'http://www.spike.com/video-clips/lhtu8m/auction-hunters-can-allen-ride-a-hundred-year-old-motorcycle',
