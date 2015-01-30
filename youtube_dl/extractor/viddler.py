@@ -6,7 +6,7 @@ from ..utils import (
     int_or_none,
 )
 from ..compat import (
-   compat_urllib_request
+    compat_urllib_request
 )
 
 
