@@ -2,10 +2,11 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
+from .subtitles import SubtitlesInfoExtractor
 from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
+    compat_str,
 )
 from ..utils import (
     ExtractorError,
@@ -22,7 +23,7 @@ def _media_xml_tag(tag):
     return '{http://search.yahoo.com/mrss/}%s' % tag
 
 
-class MTVServicesInfoExtractor(InfoExtractor):
+class MTVServicesInfoExtractor(SubtitlesInfoExtractor):
     _MOBILE_TEMPLATE = None
 
     @staticmethod
@@ -89,6 +90,28 @@ class MTVServicesInfoExtractor(InfoExtractor):
         self._sort_formats(formats)
         return formats
 
+    def _extract_subtitles(self, mdoc, mtvn_id):
+        subtitles = {}
+        FORMATS = {
+            'scc': 'cea-608',
+            'eia-608': 'cea-608',
+            'xml': 'ttml',
+        }
+        subtitles_format = FORMATS.get(
+            self._downloader.params.get('subtitlesformat'), 'ttml')
+        for transcript in mdoc.findall('.//transcript'):
+            if transcript.get('kind') != 'captions':
+                continue
+            lang = transcript.get('srclang')
+            for typographic in transcript.findall('./typographic'):
+                captions_format = typographic.get('format')
+                if captions_format == subtitles_format:
+                    subtitles[lang] = compat_str(typographic.get('src'))
+                    break
+        if self._downloader.params.get('listsubtitles', False):
+            self._list_available_subtitles(mtvn_id, subtitles)
+        return self.extract_subtitles(mtvn_id, subtitles)
+
     def _get_video_info(self, itemdoc):
         uri = itemdoc.find('guid').text
         video_id = self._id_from_uri(uri)
@@ -135,6 +158,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         return {
             'title': title,
             'formats': self._extract_video_formats(mediagen_doc, mtvn_id),
+            'subtitles': self._extract_subtitles(mediagen_doc, mtvn_id),
             'id': video_id,
             'thumbnail': self._get_thumbnail_url(uri, itemdoc),
             'description': description,
@@ -167,7 +191,11 @@ class MTVServicesInfoExtractor(InfoExtractor):
             mgid = self._search_regex(
                 [r'data-mgid="(.*?)"', r'swfobject.embedSWF\(".*?(mgid:.*?)"'],
                 webpage, 'mgid')
-        return self._get_videos_info(mgid)
+
+        videos_info = self._get_videos_info(mgid)
+        if self._downloader.params.get('listsubtitles', False):
+            return
+        return videos_info
 
 
 class MTVServicesEmbeddedIE(MTVServicesInfoExtractor):
