@@ -1074,7 +1074,8 @@ class YoutubeDL(object):
                             selected_format = {
                                 'requested_formats': formats_info,
                                 'format': rf,
-                                'format_id': rf,
+                                'format_id': '%s+%s' % (formats_info[0].get('format_id'),
+                                                        formats_info[1].get('format_id')),
                                 'width': formats_info[0].get('width'),
                                 'height': formats_info[0].get('height'),
                                 'resolution': formats_info[0].get('resolution'),
