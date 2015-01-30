@@ -108,7 +108,7 @@ class SmotriIE(InfoExtractor):
         # swf player
         {
             'url': 'http://pics.smotri.com/scrubber_custom8.swf?file=v9188090500',
-            'md5': '4d47034979d9390d14acdf59c4935bc2',
+            'md5': '31099eeb4bc906712c5f40092045108d',
             'info_dict': {
                 'id': 'v9188090500',
                 'ext': 'mp4',
@@ -139,9 +139,6 @@ class SmotriIE(InfoExtractor):
     def _search_meta(self, name, html, display_name=None):
         if display_name is None:
             display_name = name
-        return self._html_search_regex(
-            r'<meta itemprop="%s" content="([^"]+)" />' % re.escape(name),
-            html, display_name, fatal=False)
         return self._html_search_meta(name, html, display_name)
 
     def _real_extract(self, url):
