@@ -14,6 +14,7 @@ import threading
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
 class HTTPTestRequestHandler(compat_http_server.BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         pass
