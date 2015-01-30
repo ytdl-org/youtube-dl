@@ -294,7 +294,11 @@ from .nextmedia import (
 )
 from .nfb import NFBIE
 from .nfl import NFLIE
-from .nhl import NHLIE, NHLVideocenterIE
+from .nhl import (
+    NHLIE,
+    NHLNewsIE,
+    NHLVideocenterIE,
+)
 from .niconico import NiconicoIE, NiconicoPlaylistIE
 from .ninegag import NineGagIE
 from .noco import NocoIE
