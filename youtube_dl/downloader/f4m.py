@@ -230,6 +230,23 @@ class F4mFD(FileDownloader):
     A downloader for f4m manifests or AdobeHDS.
     """
 
+    def _get_unencrypted_media(self, doc):
+        media=doc.findall(_add_ns('media'))
+        if not media:
+            self.report_error('No media found')
+        for e in (doc.findall(_add_ns('drmAdditionalHeader')) +
+                  doc.findall(_add_ns('drmAdditionalHeaderSet'))):
+            # If id attribute is missing it's valid for all media nodes
+            # without drmAdditionalHeaderId or drmAdditionalHeaderSetId attribute
+            if not 'id' in e.attrib:
+                self.report_error('Media is DRM protected')
+        media = list(filter(lambda e: 'drmAdditionalHeaderId' not in e.attrib and
+                                      'drmAdditionalHeaderSetId' not in e.attrib,
+                            media))
+        if not media:
+            self.report_error('Media is DRM protected')
+        return media
+
     def real_download(self, filename, info_dict):
         man_url = info_dict['url']
         requested_bitrate = info_dict.get('tbr')
@@ -248,7 +265,8 @@ class F4mFD(FileDownloader):
         )
 
         doc = etree.fromstring(manifest)
-        formats = [(int(f.attrib.get('bitrate', -1)), f) for f in doc.findall(_add_ns('media'))]
+        formats = [(int(f.attrib.get('bitrate', -1)), f)
+                   for f in self._get_unencrypted_media(doc)]
         if requested_bitrate is None:
             # get the best format
             formats = sorted(formats, key=lambda f: f[0])
