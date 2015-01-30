@@ -72,6 +72,11 @@ except ImportError:
     compat_subprocess_get_DEVNULL = lambda: open(os.path.devnull, 'w')
 
 try:
+    import http.server as compat_http_server
+except ImportError:
+    import BaseHTTPServer as compat_http_server
+
+try:
     from urllib.parse import unquote as compat_urllib_parse_unquote
 except ImportError:
     def compat_urllib_parse_unquote(string, encoding='utf-8', errors='replace'):
@@ -365,6 +370,7 @@ __all__ = [
     'compat_html_entities',
     'compat_html_parser',
     'compat_http_client',
+    'compat_http_server',
     'compat_kwargs',
     'compat_ord',
     'compat_parse_qs',
