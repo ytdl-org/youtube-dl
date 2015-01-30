@@ -238,13 +238,13 @@ class F4mFD(FileDownloader):
                   doc.findall(_add_ns('drmAdditionalHeaderSet'))):
             # If id attribute is missing it's valid for all media nodes
             # without drmAdditionalHeaderId or drmAdditionalHeaderSetId attribute
-            if not 'id' in e.attrib:
-                self.report_error('Media is DRM protected')
+            if 'id' not in e.attrib:
+                self.report_error('Missing ID in f4m DRM')
         media = list(filter(lambda e: 'drmAdditionalHeaderId' not in e.attrib and
                                       'drmAdditionalHeaderSetId' not in e.attrib,
                             media))
         if not media:
-            self.report_error('Media is DRM protected')
+            self.report_error('Unsupported DRM')
         return media
 
     def real_download(self, filename, info_dict):
