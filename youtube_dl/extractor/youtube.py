@@ -1688,6 +1688,7 @@ class YoutubeTruncatedURLIE(InfoExtractor):
             feature=[a-z_]+|
             annotation_id=annotation_[^&]+|
             x-yt-cl=[0-9]+|
+            hl=[^&]*|
         )?
         |
             attribution_link\?a=[^&]+
@@ -1706,6 +1707,9 @@ class YoutubeTruncatedURLIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.youtube.com/watch?feature=foo',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/watch?hl=en-GB',
         'only_matching': True,
     }]
 
