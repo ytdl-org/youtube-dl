@@ -292,9 +292,9 @@ which means you can modify it, redistribute it or use it however you like.
                                      video results by putting a condition in
                                      brackets, as in -f "best[height=720]" (or
                                      -f "[filesize>10M]").  This works for
-                                     filesize, height, width, tbr, abr, and vbr
-                                     and the comparisons <, <=, >, >=, =, != .
-                                     Formats for which the value is not known
+                                     filesize, height, width, tbr, abr, vbr, and
+                                     fps and the comparisons <, <=, >, >=, =, !=
+                                     . Formats for which the value is not known
                                      are excluded unless you put a question mark
                                      (?) after the operator. You can combine
                                      format filters, so  -f "[height <=?
