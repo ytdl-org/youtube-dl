@@ -9,7 +9,6 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     HEADRequest,
-    int_or_none,
     str_to_int,
     parse_iso8601,
 )
