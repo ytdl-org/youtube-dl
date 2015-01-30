@@ -25,8 +25,7 @@ class SpikeIE(MTVServicesInfoExtractor):
     _MOBILE_TEMPLATE = 'http://m.spike.com/videos/video.rbml?id=%s'
 
     def _real_extract(self, url):
-        mobj = re.search(self._VALID_URL, url)
-        mobile_id = mobj.group('mobile_id')
-        if mobile_id is not None:
+        mobile_id = self._match_id(url)
+        if mobile_id:
             url = 'http://www.spike.com/video-clips/%s' % mobile_id
         return super(SpikeIE, self)._real_extract(url)
