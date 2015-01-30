@@ -77,9 +77,11 @@ For a complete list, see the <a href="supportedsites.html">Supported sites</a> p
 <li><em>ext</em>: The sequence will be replaced by the appropriate extension (like <em>flv</em> or <em>mp4</em>).</li>
 <li><em>epoch</em>: The sequence will be replaced by the Unix epoch when creating the file.</li>
 <li><em>autonumber</em>: The sequence will be replaced by a five-digit number that will be increased with each download, starting at zero.</li>
+<li><em>playlist</em>: The name or the id of the playlist that contains the video.</li>
+<li><em>playlist_index</em>: The index of the video in the playlist, a five-digit number.</li>
 </ul>
 
-<p>The current default template is <em>%(id)s.%(ext)s</em>, but that will be switchted to <em>%(title)s-%(id)s.%(ext)s</em> (which can be requested with <code>-t</code> at the moment).</p>
+<p>The current default template is <em>%(title)s-%(id)s.%(ext)s</em>.</p>
 
 <p>In some cases, you don't want special characters such as 中, spaces, or &amp;, such as when transferring the downloaded filename to a Windows system or the filename through an 8bit-unsafe channel. In these cases, add the <code>--restrict-filenames</code> flag to get a shorter title:</p>
 
