@@ -148,9 +148,15 @@ def expect_info_dict(self, got_dict, expected_dict):
                 return "'%s'" % v.replace('\\', '\\\\').replace("'", "\\'").replace('\n', '\\n')
             else:
                 return repr(v)
-        info_dict_str = ''.join(
-            '    %s: %s,\n' % (_repr(k), _repr(v))
-            for k, v in test_info_dict.items())
+        info_dict_str = ''
+        if len(missing_keys) != len(expected_dict):
+            info_dict_str += ''.join(
+                '    %s: %s,\n' % (_repr(k), _repr(v))
+                for k, v in test_info_dict.items() if k not in missing_keys)
+            info_dict_str += '\n'
+        info_dict_str += ''.join(
+            '    %s: %s,\n' % (_repr(k), _repr(test_info_dict[k]))
+            for k in missing_keys)
         write_string(
             '\n\'info_dict\': {\n' + info_dict_str + '}\n', out=sys.stderr)
         self.assertFalse(
