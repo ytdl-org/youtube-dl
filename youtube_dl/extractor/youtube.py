@@ -28,6 +28,7 @@ from ..utils import (
     get_element_by_attribute,
     get_element_by_id,
     int_or_none,
+    js_to_json,
     OnDemandPagedList,
     orderedSet,
     unescapeHTML,
@@ -809,6 +810,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             player_url = None
 
         # Get video info
+        embed_webpage = None
         if re.search(r'player-age-gate-content">', video_webpage) is not None:
             age_gate = True
             # We simulate the access to the video from www.youtube.com/v/{video_id}
@@ -1016,10 +1018,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                     url += '&signature=' + url_data['sig'][0]
                 elif 's' in url_data:
                     encrypted_sig = url_data['s'][0]
+                    ASSETS_RE = r'"assets":.+?"js":\s*("[^"]+")'
 
                     jsplayer_url_json = self._search_regex(
-                        r'"assets":.+?"js":\s*("[^"]+")',
-                        embed_webpage if age_gate else video_webpage, 'JS player URL')
+                        ASSETS_RE,
+                        embed_webpage if age_gate else video_webpage,
+                        'JS player URL (1)', default=None)
+                    if not jsplayer_url_json and not age_gate:
+                        # We need the embed website after all
+                        if embed_webpage is None:
+                            embed_url = proto + '://www.youtube.com/embed/%s' % video_id
+                            embed_webpage = self._download_webpage(
+                                embed_url, video_id, 'Downloading embed webpage')
+                        jsplayer_url_json = self._search_regex(
+                            ASSETS_RE, embed_webpage, 'JS player URL')
+
                     player_url = json.loads(jsplayer_url_json)
                     if player_url is None:
                         player_url_json = self._search_regex(
