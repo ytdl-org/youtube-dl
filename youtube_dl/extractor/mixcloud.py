@@ -10,6 +10,7 @@ from ..utils import (
     ExtractorError,
     HEADRequest,
     int_or_none,
+    str_to_int,
     parse_iso8601,
 )
 
@@ -85,15 +86,17 @@ class MixcloudIE(InfoExtractor):
         uploader_id = self._search_regex(
             r'\s+"profile": "([^"]+)",', webpage, 'uploader id', fatal=False)
         description = self._og_search_description(webpage)
-        like_count = int_or_none(self._search_regex(
-            r'<meta itemprop="interactionCount" content="UserLikes:([0-9]+)"',
+        like_count = str_to_int(self._search_regex(
+            [r'<meta itemprop="interactionCount" content="UserLikes:([0-9]+)"',
+             r'/favorites/?">([0-9]+)<'],
             webpage, 'like count', fatal=False))
-        view_count = int_or_none(self._search_regex(
-            r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
+        view_count = str_to_int(self._search_regex(
+            [r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
+             r'/listeners/?">([0-9,.]+)</a>'],
             webpage, 'play count', fatal=False))
         timestamp = parse_iso8601(self._search_regex(
             r'<time itemprop="dateCreated" datetime="([^"]+)">',
-            webpage, 'upload date'))
+            webpage, 'upload date', default=None))
 
         return {
             'id': track_id,
