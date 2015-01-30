@@ -83,7 +83,7 @@ class GroovesharkIE(InfoExtractor):
         return compat_urlparse.urlunparse((uri.scheme, uri.netloc, obj['attrs']['data'], None, None, None))
 
     def _transform_bootstrap(self, js):
-        return re.split('(?m)^\s*try\s*{', js)[0] \
+        return re.split('(?m)^\s*try\s*\{', js)[0] \
                  .split(' = ', 1)[1].strip().rstrip(';')
 
     def _transform_meta(self, js):
