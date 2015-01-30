@@ -58,7 +58,8 @@ class CtsNewsIE(InfoExtractor):
             feed_url = self._html_search_regex(
                 r'(http://news\.cts\.com\.tw/action/mp4feed\.php\?news_id=\d+)',
                 page, 'feed url')
-            video_url = self._download_webpage(feed_url, news_id)
+            video_url = self._download_webpage(
+                feed_url, news_id, note='Fetching feed')
         else:
             self.to_screen('Not CTSPlayer video, trying Youtube...')
             youtube_url = self._search_regex(
@@ -83,14 +84,6 @@ class CtsNewsIE(InfoExtractor):
         datetime_str = datetime_str.replace('/', '-') + ':00+0800'
         timestamp = parse_iso8601(datetime_str, delimiter=' ')
 
-        # Note: the news count may decrease as time goes by
-        # It should be a bug in CTS website
-        req = compat_urllib_request.Request(
-            'http://news.cts.com.tw/action/news_count.php?callback=cb&news_id=' + news_id)
-        req.add_header('Referer', url)
-        newscount_page = self._download_webpage(req, news_id)
-        news_count = self._search_regex(r'cb\((\d+)\)', newscount_page, 'news count')
-
         return {
             'id': news_id,
             'url': video_url,
@@ -98,5 +91,4 @@ class CtsNewsIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
             'timestamp': timestamp,
-            'view_count': news_count,
         }
