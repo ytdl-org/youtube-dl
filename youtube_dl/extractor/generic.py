@@ -1073,7 +1073,7 @@ class GenericIE(InfoExtractor):
             found = filter_video(re.findall(r'''(?xs)
                 flowplayer\("[^"]+",\s*
                     \{[^}]+?\}\s*,
-                    \s*{[^}]+? ["']?clip["']?\s*:\s*\{\s*
+                    \s*\{[^}]+? ["']?clip["']?\s*:\s*\{\s*
                         ["']?url["']?\s*:\s*["']([^"']+)["']
             ''', webpage))
         if not found:
