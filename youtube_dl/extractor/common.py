@@ -89,7 +89,8 @@ class InfoExtractor(object):
                     * player_url SWF Player URL (used for rtmpdump).
                     * protocol   The protocol that will be used for the actual
                                  download, lower-case.
-                                 "http", "https", "rtsp", "rtmp", "m3u8" or so.
+                                 "http", "https", "rtsp", "rtmp", "rtmpe",
+                                 "m3u8", or "m3u8_native".
                     * preference Order number of this format. If this field is
                                  present and not None, the formats get sorted
                                  by this field, regardless of all other values.
