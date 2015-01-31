@@ -70,6 +70,19 @@ class GloboIE(InfoExtractor):
                 'like_count': int,
             }
         },
+        {
+            'url': 'http://globotv.globo.com/canal-brasil/sangue-latino/t/todos-os-videos/v/ator-e-diretor-argentino-ricado-darin-fala-sobre-utopias-e-suas-perdas/3928201/',
+            'md5': 'c1defca721ce25b2354e927d3e4b3dec',
+            'info_dict': {
+                'id': '3928201',
+                'ext': 'mp4',
+                'title': 'Ator e diretor argentino, Ricado Darín fala sobre utopias e suas perdas',
+                'duration': 1472.906,
+                'uploader': 'Canal Brasil',
+                'uploader_id': 705,
+                'like_count': int,
+            }
+        },
     ]
 
     class MD5():
@@ -355,7 +368,9 @@ class GloboIE(InfoExtractor):
 
         for resource in video['resources']:
             resource_id = resource.get('_id')
-            if not resource_id:
+            resource_height = resource.get('height')
+
+            if not (resource_id or resource_height):
                 continue
 
             security = self._download_json(
@@ -384,7 +399,7 @@ class GloboIE(InfoExtractor):
             formats.append({
                 'url': '%s?h=%s&k=%s' % (resource['url'], signed_hash, 'flash'),
                 'format_id': resource_id,
-                'height': resource['height']
+                'height': resource_height
             })
 
         self._sort_formats(formats)
