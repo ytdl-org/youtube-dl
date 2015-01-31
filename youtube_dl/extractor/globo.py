@@ -368,9 +368,7 @@ class GloboIE(InfoExtractor):
 
         for resource in video['resources']:
             resource_id = resource.get('_id')
-            resource_height = resource.get('height')
-
-            if not (resource_id or resource_height):
+            if not resource_id:
                 continue
 
             security = self._download_json(
@@ -396,11 +394,16 @@ class GloboIE(InfoExtractor):
             signed_md5 = self.MD5.b64_md5(received_md5 + compat_str(sign_time) + padding)
             signed_hash = hash_code + compat_str(received_time) + received_random + compat_str(sign_time) + padding + signed_md5
 
-            formats.append({
-                'url': '%s?h=%s&k=%s' % (resource['url'], signed_hash, 'flash'),
-                'format_id': resource_id,
-                'height': resource_height
-            })
+            resource_url = resource['url']
+            signed_url = '%s?h=%s&k=%s' % (resource_url, signed_hash, 'flash')
+            if resource_id.endswith('m3u8') or resource_url.endswith('.m3u8'):
+                formats.extend(self._extract_m3u8_formats(signed_url, resource_id, 'mp4'))
+            else:
+                formats.append({
+                    'url': signed_url,
+                    'format_id': resource_id,
+                    'height': resource.get('height'),
+                })
 
         self._sort_formats(formats)
 
