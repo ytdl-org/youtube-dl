@@ -71,25 +71,28 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
             'description': 'Carnegie Endowment Senior Associate Sarah Chayes discusses how corrupt institutions function throughout the world in her book "Thieves of State: Why Corruption Threatens Global Security."',
             'title': 'thedailyshow Sarah Chayes Extended Interview',
         },
-        'playlist': [{
-            'info_dict': {
-                'id': '0baad492-cbec-4ec1-9e50-ad91c291127f',
-                'ext': 'mp4',
-                'upload_date': '20150129',
-                'description': 'Carnegie Endowment Senior Associate Sarah Chayes discusses how corrupt institutions function throughout the world in her book "Thieves of State: Why Corruption Threatens Global Security."',
-                'uploader': 'thedailyshow',
-                'title': 'thedailyshow sarah-chayes-extended-interview part 1',
-            }
-         }, {
-            'info_dict': {
-                'id': '1e4fb91b-8ce7-4277-bd7c-98c9f1bbd283',
-                'ext': 'mp4',
-                'upload_date': '20150129',
-                'description': 'Carnegie Endowment Senior Associate Sarah Chayes discusses how corrupt institutions function throughout the world in her book "Thieves of State: Why Corruption Threatens Global Security."',
-                'uploader': 'thedailyshow',
-                'title': 'thedailyshow sarah-chayes-extended-interview part 2',
-            }
-        }],
+        'playlist': [
+            {
+                'info_dict': {
+                    'id': '0baad492-cbec-4ec1-9e50-ad91c291127f',
+                    'ext': 'mp4',
+                    'upload_date': '20150129',
+                    'description': 'Carnegie Endowment Senior Associate Sarah Chayes discusses how corrupt institutions function throughout the world in her book "Thieves of State: Why Corruption Threatens Global Security."',
+                    'uploader': 'thedailyshow',
+                    'title': 'thedailyshow sarah-chayes-extended-interview part 1',
+                },
+            },
+            {
+                'info_dict': {
+                    'id': '1e4fb91b-8ce7-4277-bd7c-98c9f1bbd283',
+                    'ext': 'mp4',
+                    'upload_date': '20150129',
+                    'description': 'Carnegie Endowment Senior Associate Sarah Chayes discusses how corrupt institutions function throughout the world in her book "Thieves of State: Why Corruption Threatens Global Security."',
+                    'uploader': 'thedailyshow',
+                    'title': 'thedailyshow sarah-chayes-extended-interview part 2',
+                },
+            },
+        ],
         'params': {
             'skip_download': True,
         },

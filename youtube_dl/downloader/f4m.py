@@ -231,7 +231,7 @@ class F4mFD(FileDownloader):
     """
 
     def _get_unencrypted_media(self, doc):
-        media=doc.findall(_add_ns('media'))
+        media = doc.findall(_add_ns('media'))
         if not media:
             self.report_error('No media found')
         for e in (doc.findall(_add_ns('drmAdditionalHeader')) +
