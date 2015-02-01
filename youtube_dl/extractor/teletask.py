@@ -11,6 +11,7 @@ class TeleTaskIE(InfoExtractor):
     _TEST = {
         'url': 'http://www.tele-task.de/archive/video/html5/26168/',
         'info_dict': {
+            'id': '26168',
             'title': 'Duplicate Detection',
         },
         'playlist': [{
@@ -34,7 +35,6 @@ class TeleTaskIE(InfoExtractor):
 
     def _real_extract(self, url):
         lecture_id = self._match_id(url)
-
         webpage = self._download_webpage(url, lecture_id)
 
         title = self._html_search_regex(
