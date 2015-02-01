@@ -16,8 +16,9 @@ class TouTvIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://www.tou.tv/30-vies/S04E41',
-        'file': '30-vies_S04E41.mp4',
         'info_dict': {
+            'id': '30-vies_S04E41',
+            'ext': 'mp4',
             'title': '30 vies Saison 4 / Épisode 41',
             'description': 'md5:da363002db82ccbe4dafeb9cab039b09',
             'age_limit': 8,
