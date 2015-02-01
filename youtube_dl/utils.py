@@ -32,6 +32,7 @@ import xml.etree.ElementTree
 import zlib
 
 from .compat import (
+    compat_basestring,
     compat_chr,
     compat_getenv,
     compat_html_entities,
@@ -140,7 +141,7 @@ else:
     def find_xpath_attr(node, xpath, key, val):
         # Here comes the crazy part: In 2.6, if the xpath is a unicode,
         # .//node does not match if a node is a direct child of . !
-        if isinstance(xpath, unicode):
+        if isinstance(xpath, compat_str):
             xpath = xpath.encode('ascii')
 
         for f in node.findall(xpath):
@@ -1262,7 +1263,7 @@ def float_or_none(v, scale=1, invscale=1, default=None):
 
 
 def parse_duration(s):
-    if not isinstance(s, basestring if sys.version_info < (3, 0) else compat_str):
+    if not isinstance(s, compat_basestring):
         return None
 
     s = s.strip()
@@ -1426,7 +1427,7 @@ def uppercase_escape(s):
 
 def escape_rfc3986(s):
     """Escape non-ASCII characters as suggested by RFC 3986"""
-    if sys.version_info < (3, 0) and isinstance(s, unicode):
+    if sys.version_info < (3, 0) and isinstance(s, compat_str):
         s = s.encode('utf-8')
     return compat_urllib_parse.quote(s, b"%/;:@&=+$,!~*'()?#[]")
 
