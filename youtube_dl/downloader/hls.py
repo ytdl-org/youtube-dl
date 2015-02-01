@@ -29,15 +29,15 @@ class HlsFD(FileDownloader):
             return False
         ffpp.check_version()
 
-        args = [encodeArgument(opt) for opt in ('-y', '-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
+        args = [
+            encodeArgument(opt)
+            for opt in (program, '-y', '-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
         args.append(encodeFilename(tmpfilename, True))
 
-        cmd = [encodeArgument(program)] + args
-
-        retval = subprocess.call(cmd)
+        retval = subprocess.call(args)
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen('\r[%s] %s bytes' % (cmd[0], fsize))
+            self.to_screen('\r[%s] %s bytes' % (args[0], fsize))
             self.try_rename(tmpfilename, filename)
             self._hook_progress({
                 'downloaded_bytes': fsize,
