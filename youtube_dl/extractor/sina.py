@@ -11,7 +11,7 @@ from ..compat import (
 
 
 class SinaIE(InfoExtractor):
-    _VALID_URL = r'''https?://(.*?\.)?video\.sina\.com\.cn/
+    _VALID_URL = r'''(?x)https?://(.*?\.)?video\.sina\.com\.cn/
                         (
                             (.+?/(((?P<pseudo_id>\d+).html)|(.*?(\#|(vid=)|b/)(?P<id>\d+?)($|&|\-))))
                             |
@@ -23,9 +23,10 @@ class SinaIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://video.sina.com.cn/news/vlist/zt/chczlj2013/?opsubject_id=top12#110028898',
-            'file': '110028898.flv',
             'md5': 'd65dd22ddcf44e38ce2bf58a10c3e71f',
             'info_dict': {
+                'id': '110028898',
+                'ext': 'flv',
                 'title': '《中国新闻》 朝鲜要求巴拿马立即释放被扣船员',
             }
         },
@@ -38,10 +39,6 @@ class SinaIE(InfoExtractor):
             },
         },
     ]
-
-    @classmethod
-    def suitable(cls, url):
-        return re.match(cls._VALID_URL, url, flags=re.VERBOSE) is not None
 
     def _extract_video(self, video_id):
         data = compat_urllib_parse.urlencode({'vid': video_id})
@@ -59,7 +56,7 @@ class SinaIE(InfoExtractor):
                 }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url, flags=re.VERBOSE)
+        mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         if mobj.group('token') is not None:
             # The video id is in the redirected url
