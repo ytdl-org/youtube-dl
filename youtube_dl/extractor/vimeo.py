@@ -501,9 +501,10 @@ class VimeoReviewIE(InfoExtractor):
     _VALID_URL = r'https?://vimeo\.com/[^/]+/review/(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'https://vimeo.com/user21297594/review/75524534/3c257a1b5d',
-        'file': '75524534.mp4',
         'md5': 'c507a72f780cacc12b2248bb4006d253',
         'info_dict': {
+            'id': '75524534',
+            'ext': 'mp4',
             'title': "DICK HARDWICK 'Comedian'",
             'uploader': 'Richard Hardwick',
         }
