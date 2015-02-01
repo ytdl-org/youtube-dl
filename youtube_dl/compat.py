@@ -120,9 +120,9 @@ except NameError:
     compat_str = str
 
 try:
-    compat_basestr = basestring  # Python 2
+    compat_basestring = basestring  # Python 2
 except NameError:
-    compat_basestr = str
+    compat_basestring = str
 
 try:
     compat_chr = unichr  # Python 2
@@ -367,6 +367,7 @@ def workaround_optparse_bug9161():
 
 __all__ = [
     'compat_HTTPError',
+    'compat_basestring',
     'compat_chr',
     'compat_cookiejar',
     'compat_expanduser',
