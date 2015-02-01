@@ -1160,6 +1160,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
     }, {
         'url': 'https://www.youtube.com/playlist?list=PLtPgu7CB4gbZDA7i_euNxn75ISqxwZPYx',
         'info_dict': {
+            'id': 'PLtPgu7CB4gbZDA7i_euNxn75ISqxwZPYx',
             'title': 'YDL_Empty_List',
         },
         'playlist_count': 0,
@@ -1168,6 +1169,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         'url': 'https://www.youtube.com/playlist?list=PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC',
         'info_dict': {
             'title': '29C3: Not my department',
+            'id': 'PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC',
         },
         'playlist_count': 95,
     }, {
@@ -1175,6 +1177,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         'url': 'PLBB231211A4F62143',
         'info_dict': {
             'title': '[OLD]Team Fortress 2 (Class-based LP)',
+            'id': 'PLBB231211A4F62143',
         },
         'playlist_mincount': 26,
     }, {
@@ -1182,12 +1185,14 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         'url': 'https://www.youtube.com/playlist?list=UUBABnxM4Ar9ten8Mdjj1j0Q',
         'info_dict': {
             'title': 'Uploads from Cauchemar',
+            'id': 'UUBABnxM4Ar9ten8Mdjj1j0Q',
         },
         'playlist_mincount': 799,
     }, {
         'url': 'PLtPgu7CB4gbY9oDN3drwC3cMbJggS7dKl',
         'info_dict': {
             'title': 'YDL_safe_search',
+            'id': 'PLtPgu7CB4gbY9oDN3drwC3cMbJggS7dKl',
         },
         'playlist_count': 2,
     }, {
@@ -1196,6 +1201,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         'playlist_count': 4,
         'info_dict': {
             'title': 'JODA15',
+            'id': 'PL6IaIsEjSbf96XFRuNccS_RuEXwNdsoEu',
         }
     }, {
         'note': 'Embedded SWF player',
@@ -1203,12 +1209,14 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         'playlist_count': 4,
         'info_dict': {
             'title': 'JODA7',
+            'id': 'YN5VISEtHet5D4NEvfTd0zcgFk84NqFZ',
         }
     }, {
         'note': 'Buggy playlist: the webpage has a "Load more" button but it doesn\'t have more videos',
         'url': 'https://www.youtube.com/playlist?list=UUXw-G3eDE9trcvY2sBMM_aA',
         'info_dict': {
-                'title': 'Uploads from Interstellar Movie',
+            'title': 'Uploads from Interstellar Movie',
+            'id': 'UUXw-G3eDE9trcvY2sBMM_aA',
         },
         'playlist_mincout': 21,
     }]
@@ -1314,6 +1322,9 @@ class YoutubeChannelIE(InfoExtractor):
         'note': 'paginated channel',
         'url': 'https://www.youtube.com/channel/UCKfVa3S1e4PHvxWcwyMMg8w',
         'playlist_mincount': 91,
+        'info_dict': {
+            'id': 'UCKfVa3S1e4PHvxWcwyMMg8w',
+        }
     }]
 
     def extract_videos_from_page(self, page):
