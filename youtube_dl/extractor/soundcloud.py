@@ -246,6 +246,7 @@ class SoundcloudSetIE(SoundcloudIE):
     _TESTS = [{
         'url': 'https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep',
         'info_dict': {
+            'id': '2284613',
             'title': 'The Royal Concept EP',
         },
         'playlist_mincount': 6,
@@ -279,7 +280,7 @@ class SoundcloudSetIE(SoundcloudIE):
         return {
             '_type': 'playlist',
             'entries': [self._extract_info_dict(track, secret_token=token) for track in info['tracks']],
-            'id': info['id'],
+            'id': '%s' % info['id'],
             'title': info['title'],
         }
 
