@@ -79,12 +79,15 @@ class MTVServicesInfoExtractor(SubtitlesInfoExtractor):
             try:
                 _, _, ext = rendition.attrib['type'].partition('/')
                 rtmp_video_url = rendition.find('./src').text
-                formats.append({'ext': ext,
-                                'url': self._transform_rtmp_url(rtmp_video_url),
-                                'format_id': rendition.get('bitrate'),
-                                'width': int(rendition.get('width')),
-                                'height': int(rendition.get('height')),
-                                })
+                if rtmp_video_url.endswith('siteunavail.png'):
+                    continue
+                formats.append({
+                    'ext': ext,
+                    'url': self._transform_rtmp_url(rtmp_video_url),
+                    'format_id': rendition.get('bitrate'),
+                    'width': int(rendition.get('width')),
+                    'height': int(rendition.get('height')),
+                })
             except (KeyError, TypeError):
                 raise ExtractorError('Invalid rendition field.')
         self._sort_formats(formats)
@@ -240,24 +243,13 @@ class MTVIE(MTVServicesInfoExtractor):
     _TESTS = [
         {
             'url': 'http://www.mtv.com/videos/misc/853555/ours-vh1-storytellers.jhtml',
-            'file': '853555.mp4',
             'md5': '850f3f143316b1e71fa56a4edfd6e0f8',
             'info_dict': {
+                'id': '853555',
+                'ext': 'mp4',
                 'title': 'Taylor Swift - "Ours (VH1 Storytellers)"',
                 'description': 'Album: Taylor Swift performs "Ours" for VH1 Storytellers at Harvey Mudd College.',
             },
-        },
-        {
-            'add_ie': ['Vevo'],
-            'url': 'http://www.mtv.com/videos/taylor-swift/916187/everything-has-changed-ft-ed-sheeran.jhtml',
-            'file': 'USCJY1331283.mp4',
-            'md5': '73b4e7fcadd88929292fe52c3ced8caf',
-            'info_dict': {
-                'title': 'Everything Has Changed',
-                'upload_date': '20130606',
-                'uploader': 'Taylor Swift',
-            },
-            'skip': 'VEVO is only available in some countries',
         },
     ]
 
@@ -272,8 +264,8 @@ class MTVIE(MTVServicesInfoExtractor):
             webpage = self._download_webpage(url, video_id)
 
             # Some videos come from Vevo.com
-            m_vevo = re.search(r'isVevoVideo = true;.*?vevoVideoId = "(.*?)";',
-                               webpage, re.DOTALL)
+            m_vevo = re.search(
+                r'(?s)isVevoVideo = true;.*?vevoVideoId = "(.*?)";', webpage)
             if m_vevo:
                 vevo_id = m_vevo.group(1)
                 self.to_screen('Vevo video detected: %s' % vevo_id)
