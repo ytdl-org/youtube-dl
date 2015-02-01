@@ -11,6 +11,7 @@ from ..compat import (
     compat_urllib_request,
 )
 from ..utils import (
+    encodeArgument,
     encodeFilename,
 )
 
@@ -21,18 +22,17 @@ class HlsFD(FileDownloader):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
 
-        args = [
-            '-y', '-i', url, '-f', 'mp4', '-c', 'copy',
-            '-bsf:a', 'aac_adtstoasc',
-            encodeFilename(tmpfilename, for_subprocess=True)]
-
         ffpp = FFmpegPostProcessor(downloader=self)
         program = ffpp._executable
         if program is None:
             self.report_error('m3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
             return False
         ffpp.check_version()
-        cmd = [program] + args
+
+        args = [encodeArgument(opt) for opt in ('-y', '-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
+        args.append(encodeFilename(tmpfilename, True))
+
+        cmd = [encodeArgument(program)] + args
 
         retval = subprocess.call(cmd)
         if retval == 0:
