@@ -9,7 +9,7 @@ from ..utils import (
 )
 
 
-class NTVIE(InfoExtractor):
+class NTVRuIE(InfoExtractor):
     _VALID_URL = r'http://(?:www\.)?ntv\.ru/(?P<id>.+)'
 
     _TESTS = [
@@ -92,9 +92,7 @@ class NTVIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         page = self._download_webpage(url, video_id)
 
         video_id = self._html_search_regex(self._VIDEO_ID_REGEXES, page, 'video id')

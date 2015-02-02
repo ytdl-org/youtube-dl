@@ -317,7 +317,7 @@ from .nrk import (
     NRKIE,
     NRKTVIE,
 )
-from .ntv import NTVIE
+from .ntvru import NTVRuIE
 from .nytimes import NYTimesIE
 from .nuvid import NuvidIE
 from .oktoberfesttv import OktoberfestTVIE
