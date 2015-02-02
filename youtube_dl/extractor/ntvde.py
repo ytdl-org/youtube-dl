@@ -15,7 +15,7 @@ class NTVDeIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.n-tv.de/mediathek/videos/panorama/Schnee-und-Glaette-fuehren-zu-zahlreichen-Unfaellen-und-Staus-article14438086.html',
-        'md5': 'd37b7df1eea32265c51a062499ca488f',
+        'md5': '6ef2514d4b1e8e03ca24b49e2f167153',
         'info_dict': {
             'id': '14438086',
             'ext': 'mp4',
@@ -46,11 +46,14 @@ class NTVDeIE(InfoExtractor):
             'format_id': 'flash',
             'url': 'rtmp://fms.n-tv.de/' + vdata['video'],
         }, {
-            'format_id': 'mp4',
+            'format_id': 'mobile',
             'url': 'http://video.n-tv.de' + vdata['videoMp4'],
+            'tbr': 400,  # estimation
         }]
         m3u8_url = 'http://video.n-tv.de' + vdata['videoM3u8']
-        formats.extend(self._extract_m3u8_formats(m3u8_url, video_id))
+        formats.extend(self._extract_m3u8_formats(
+            m3u8_url, video_id, ext='mp4',
+            entry_protocol='m3u8_native', preference=0))
         self._sort_formats(formats)
 
         return {
