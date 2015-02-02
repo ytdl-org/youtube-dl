@@ -17,7 +17,7 @@ _OPERATORS = [
     ('-', operator.sub),
     ('+', operator.add),
     ('%', operator.mod),
-    ('/', operator.div),
+    ('/', operator.truediv),
     ('*', operator.mul),
 ]
 _ASSIGN_OPERATORS = [(op + '=', opfunc) for op, opfunc in _OPERATORS]
