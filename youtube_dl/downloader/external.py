@@ -45,6 +45,12 @@ class ExternalFD(FileDownloader):
     def supports(cls, info_dict):
         return info_dict['protocol'] in ('http', 'https', 'ftp', 'ftps')
 
+    def _source_address(self, command_option):
+        command_part = []
+        if self.ydl.params['source_address'] is not None:
+            command_part = [command_option, self.ydl.params['source_address']]
+        return command_part
+
     def _call_downloader(self, tmpfilename, info_dict):
         """ Either overwrite this or implement _make_cmd """
         cmd = self._make_cmd(tmpfilename, info_dict)
@@ -72,6 +78,7 @@ class CurlFD(ExternalFD):
         cmd = [self.exe, '-o', tmpfilename]
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
+        cmd += self._source_address('--interface')
         cmd += ['--', info_dict['url']]
         return cmd
 
@@ -81,6 +88,7 @@ class WgetFD(ExternalFD):
         cmd = [self.exe, '-O', tmpfilename, '-nv', '--no-cookies']
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
+        cmd += self._source_address('--bind-address')
         cmd += ['--', info_dict['url']]
         return cmd
 
@@ -96,6 +104,7 @@ class Aria2cFD(ExternalFD):
         cmd += ['--out', os.path.basename(tmpfilename)]
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
+        cmd += self._source_address('--interface')
         cmd += ['--', info_dict['url']]
         return cmd
 
