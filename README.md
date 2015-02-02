@@ -368,11 +368,11 @@ which means you can modify it, redistribute it or use it however you like.
     --add-metadata                   write metadata to the video file
     --xattrs                         write metadata to the video file's xattrs
                                      (using dublin core and xdg standards)
-    --fixup POLICY                   (experimental) Automatically correct known
-                                     faults of the file. One of never (do
-                                     nothing), warn (only emit a warning),
-                                     detect_or_warn(check whether we can do
-                                     anything about it, warn otherwise
+    --fixup POLICY                   Automatically correct known faults of the
+                                     file. One of never (do nothing), warn (only
+                                     emit a warning), detect_or_warn(the
+                                     default; fix file if we can, warn
+                                     otherwise)
     --prefer-avconv                  Prefer avconv over ffmpeg for running the
                                      postprocessors (default)
     --prefer-ffmpeg                  Prefer ffmpeg over avconv for running the
