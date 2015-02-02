@@ -9,6 +9,7 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
+    int_or_none,
 )
 
 
@@ -192,9 +193,29 @@ class VevoIE(InfoExtractor):
         # Download via HLS API
         formats.extend(self._download_api_formats(video_id))
 
+        # Download SMIL
+        smil_blocks = sorted((
+            f for f in video_info['videoVersions']
+            if f['sourceType'] == 13),
+            key=lambda f: f['version'])
+        smil_url = '%s/Video/V2/VFILE/%s/%sr.smil' % (
+            self._SMIL_BASE_URL, video_id, video_id.lower())
+        if smil_blocks:
+            smil_url_m = self._search_regex(
+                r'url="([^"]+)"', smil_blocks[-1]['data'], 'SMIL URL',
+                default=None)
+            if smil_url_m is not None:
+                smil_url = smil_url_m
+        if smil_url:
+            smil_xml = self._download_webpage(
+                smil_url, video_id, 'Downloading SMIL info', fatal=False)
+            if smil_xml:
+                formats.extend(self._formats_from_smil(smil_xml))
+
         self._sort_formats(formats)
-        timestamp_ms = int(self._search_regex(
-            r'/Date\((\d+)\)/', video_info['launchDate'], 'launch date'))
+        timestamp_ms = int_or_none(self._search_regex(
+            r'/Date\((\d+)\)/',
+            video_info['launchDate'], 'launch date', fatal=False))
 
         return {
             'id': video_id,
