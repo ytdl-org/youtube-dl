@@ -46,7 +46,18 @@ class NFLIE(InfoExtractor):
                 'timestamp': 1388354455,
                 'thumbnail': 're:^https?://.*\.jpg$',
             }
-        }
+        },
+        {
+            'url': 'http://www.nfl.com/news/story/0ap3000000467586/article/patriots-seahawks-involved-in-lategame-skirmish',
+            'info_dict': {
+                'id': '0ap3000000467607',
+                'ext': 'mp4',
+                'title': 'Frustrations flare on the field',
+                'description': 'Emotions ran high at the end of the Super Bowl on both sides of the ball after a dramatic finish.',
+                'timestamp': 1422850320,
+                'upload_date': '20150202',
+            },
+        },
     ]
 
     @staticmethod
@@ -80,7 +91,11 @@ class NFLIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         config_url = NFLIE.prepend_host(host, self._search_regex(
-            r'(?:config|configURL)\s*:\s*"([^"]+)"', webpage, 'config URL'))
+            r'(?:config|configURL)\s*:\s*"([^"]+)"', webpage, 'config URL',
+            default='static/content/static/config/video/config.json'))
+        # For articles, the id in the url is not the video id
+        video_id = self._search_regex(
+            r'contentId\s*:\s*"([^"]+)"', webpage, 'video id', default=video_id)
         config = self._download_json(config_url, video_id,
                                      note='Downloading player config')
         url_template = NFLIE.prepend_host(
