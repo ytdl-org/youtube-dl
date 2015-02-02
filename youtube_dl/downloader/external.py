@@ -47,8 +47,8 @@ class ExternalFD(FileDownloader):
 
     def _source_address(self, command_option):
         command_part = []
-        source_address = self.ydl.params.get('source_address')
-        if source_address is None:
+        source_address = self.params.get('source_address')
+        if source_address:
             command_part = [command_option, source_address]
         return command_part
 
