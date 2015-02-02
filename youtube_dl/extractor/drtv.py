@@ -25,9 +25,15 @@ class DRTVIE(SubtitlesInfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        programcard = self._download_json(
-            'http://www.dr.dk/mu/programcard/expanded/%s' % video_id, video_id, 'Downloading video JSON')
+        webpage = self._download_webpage(url, video_id)
 
+        video_id = self._search_regex(
+            r'data-(?:material-identifier|episode-slug)="([^"]+)"',
+            webpage, 'video id')
+
+        programcard = self._download_json(
+            'http://www.dr.dk/mu/programcard/expanded/%s' % video_id,
+            video_id, 'Downloading video JSON')
         data = programcard['Data'][0]
 
         title = data['Title']
