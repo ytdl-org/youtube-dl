@@ -46,11 +46,10 @@ class ExternalFD(FileDownloader):
         return info_dict['protocol'] in ('http', 'https', 'ftp', 'ftps')
 
     def _source_address(self, command_option):
-        command_part = []
         source_address = self.params.get('source_address')
-        if source_address:
-            command_part = [command_option, source_address]
-        return command_part
+        if source_address is None:
+            return []
+        return [command_option, source_address]
 
     def _call_downloader(self, tmpfilename, info_dict):
         """ Either overwrite this or implement _make_cmd """
