@@ -102,11 +102,11 @@ class HttpFD(FileDownloader):
                             resume_len = 0
                             open_mode = 'wb'
                             break
-
             except SocketError as e:
                 if e.errno != errno.ECONNRESET:
-                    raise # Not error we are looking for
-                pass
+                    # Connection reset is no problem, just retry
+                    raise
+
             # Retry
             count += 1
             if count <= retries:
