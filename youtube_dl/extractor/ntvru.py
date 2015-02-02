@@ -10,6 +10,7 @@ from ..utils import (
 
 
 class NTVRuIE(InfoExtractor):
+    IE_NAME = 'ntv.ru'
     _VALID_URL = r'http://(?:www\.)?ntv\.ru/(?P<id>.+)'
 
     _TESTS = [

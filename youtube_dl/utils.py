@@ -1275,7 +1275,10 @@ def parse_duration(s):
             (?P<only_hours>[0-9.]+)\s*(?:hours?)|
 
             (?:
-                (?:(?P<hours>[0-9]+)\s*(?:[:h]|hours?)\s*)?
+                (?:
+                    (?:(?P<days>[0-9]+)\s*(?:[:d]|days?)\s*)?
+                    (?P<hours>[0-9]+)\s*(?:[:h]|hours?)\s*
+                )?
                 (?P<mins>[0-9]+)\s*(?:[:m]|mins?|minutes?)\s*
             )?
             (?P<secs>[0-9]+)(?P<ms>\.[0-9]+)?\s*(?:s|secs?|seconds?)?
@@ -1293,6 +1296,8 @@ def parse_duration(s):
         res += int(m.group('mins')) * 60
     if m.group('hours'):
         res += int(m.group('hours')) * 60 * 60
+    if m.group('days'):
+        res += int(m.group('days')) * 24 * 60 * 60
     if m.group('ms'):
         res += float(m.group('ms'))
     return res
@@ -1543,7 +1548,7 @@ def js_to_json(code):
     res = re.sub(r'''(?x)
         "(?:[^"\\]*(?:\\\\|\\")?)*"|
         '(?:[^'\\]*(?:\\\\|\\')?)*'|
-        [a-zA-Z_][a-zA-Z_0-9]*
+        [a-zA-Z_][.a-zA-Z_0-9]*
         ''', fix_kv, code)
     res = re.sub(r',(\s*\])', lambda m: m.group(1), res)
     return res

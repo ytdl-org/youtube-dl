@@ -238,6 +238,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_duration('5 s'), 5)
         self.assertEqual(parse_duration('3 min'), 180)
         self.assertEqual(parse_duration('2.5 hours'), 9000)
+        self.assertEqual(parse_duration('02:03:04'), 7384)
+        self.assertEqual(parse_duration('01:02:03:04'), 93784)
 
     def test_fix_xml_ampersands(self):
         self.assertEqual(
@@ -370,6 +372,16 @@ class TestUtil(unittest.TestCase):
 
         on = js_to_json('{"abc": true}')
         self.assertEqual(json.loads(on), {'abc': True})
+
+        # Ignore JavaScript code as well
+        on = js_to_json('''{
+            "x": 1,
+            y: "a",
+            z: some.code
+        }''')
+        d = json.loads(on)
+        self.assertEqual(d['x'], 1)
+        self.assertEqual(d['y'], 'a')
 
     def test_clean_html(self):
         self.assertEqual(clean_html('a:\nb'), 'a: b')
