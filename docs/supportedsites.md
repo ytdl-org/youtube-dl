@@ -9,6 +9,7 @@
  - **8tracks**
  - **9gag**
  - **abc.net.au**
+ - **Abc7News**
  - **AcademicEarth:Course**
  - **AddAnime**
  - **AdobeTV**
@@ -16,9 +17,12 @@
  - **Aftonbladet**
  - **AlJazeera**
  - **Allocine**
+ - **AlphaPorno**
  - **anitube.se**
  - **AnySex**
  - **Aparat**
+ - **AppleDailyAnimationNews**
+ - **AppleDailyRealtimeNews**
  - **AppleTrailers**
  - **archive.org**: archive.org videos
  - **ARD**
@@ -30,8 +34,10 @@
  - **arte.tv:ddc**
  - **arte.tv:embed**
  - **arte.tv:future**
+ - **AtresPlayer**
+ - **ATTTechChannel**
  - **audiomack**
- - **AUEngine**
+ - **audiomack:album**
  - **Azubu**
  - **bambuser**
  - **bambuser:channel**
@@ -71,8 +77,10 @@
  - **cmt.com**
  - **CNET**
  - **CNN**
+ - **CNNArticle**
  - **CNNBlogs**
  - **CollegeHumor**
+ - **CollegeRama**
  - **ComCarCoff**
  - **ComedyCentral**
  - **ComedyCentralShows**: The Daily Show / The Colbert Report
@@ -82,23 +90,27 @@
  - **Crunchyroll**
  - **crunchyroll:playlist**
  - **CSpan**: C-SPAN
+ - **CtsNews**
  - **culturebox.francetvinfo.fr**
  - **dailymotion**
  - **dailymotion:playlist**
  - **dailymotion:user**
  - **daum.net**
  - **DBTV**
+ - **DctpTv**
  - **DeezerPlaylist**
  - **defense.gouv.fr**
  - **Discovery**
  - **divxstage**: DivxStage
  - **Dotsub**
+ - **DRBonanza**
  - **Dropbox**
  - **DrTuber**
  - **DRTV**
  - **Dump**
  - **dvtv**: http://video.aktualne.cz/
  - **EbaumsWorld**
+ - **EchoMsk**
  - **eHow**
  - **Einthusan**
  - **eitb.tv**
@@ -108,6 +120,7 @@
  - **EMPFlix**
  - **Engadget**
  - **Eporner**
+ - **EroProfile**
  - **Escapist**
  - **EveryonesMixtape**
  - **exfm**: ex.fm
@@ -143,6 +156,7 @@
  - **GDCVault**
  - **generic**: Generic downloader that works on some sites
  - **GiantBomb**
+ - **Giga**
  - **Glide**: Glide mobile video messages (glide.me)
  - **Globo**
  - **GodTube**
@@ -153,9 +167,14 @@
  - **Grooveshark**
  - **Groupon**
  - **Hark**
+ - **HearThisAt**
  - **Heise**
+ - **HellPorno**
  - **Helsinki**: helsinki.fi
  - **HentaiStigma**
+ - **HistoricFilms**
+ - **hitbox**
+ - **hitbox:live**
  - **HornBunny**
  - **HostingBulk**
  - **HotNewHipHop**
@@ -182,6 +201,7 @@
  - **jpopsuki.tv**
  - **Jukebox**
  - **Kankan**
+ - **Karaoketv**
  - **keek**
  - **KeezMovies**
  - **KhanAcademy**
@@ -195,6 +215,7 @@
  - **LiveLeak**
  - **livestream**
  - **livestream:original**
+ - **LnkGo**
  - **lrt.lt**
  - **lynda**: lynda.com videos
  - **lynda:course**: lynda.com online courses
@@ -235,6 +256,7 @@
  - **MySpass**
  - **myvideo**
  - **MyVidster**
+ - **n-tv.de**
  - **Naver**
  - **NBA**
  - **NBC**
@@ -242,11 +264,16 @@
  - **ndr**: NDR.de - Mediathek
  - **NDTV**
  - **NerdCubedFeed**
+ - **Nerdist**
+ - **Netzkino**
  - **Newgrounds**
  - **Newstube**
+ - **NextMedia**
+ - **NextMediaActionNews**
  - **nfb**: National Film Board of Canada
  - **nfl.com**
  - **nhl.com**
+ - **nhl.com:news**: NHL news
  - **nhl.com:videocenter**: NHL videocenter category
  - **niconico**: ニコニコ動画
  - **NiconicoPlaylist**
@@ -257,18 +284,20 @@
  - **Nowness**
  - **nowvideo**: NowVideo
  - **npo.nl**
+ - **npo.nl:live**
  - **NRK**
  - **NRKTV**
- - **NTV**
+ - **ntv.ru**
  - **Nuvid**
  - **NYTimes**
  - **ocw.mit.edu**
  - **OktoberfestTV**
  - **on.aol.com**
  - **Ooyala**
+ - **OpenFilm**
+ - **orf:fm4**: radio FM4
  - **orf:oe1**: Radio Österreich 1
  - **orf:tvthek**: ORF TVthek
- - **ORFFM4**: radio FM4
  - **parliamentlive.tv**: UK parliament videos
  - **Patreon**
  - **PBS**
@@ -290,6 +319,7 @@
  - **Pyvideo**
  - **QuickVid**
  - **radio.de**
+ - **radiobremen**
  - **radiofrance**
  - **Rai**
  - **RBMARadio**
@@ -300,6 +330,8 @@
  - **RottenTomatoes**
  - **Roxwel**
  - **RTBF**
+ - **Rte**
+ - **RTL2**
  - **RTLnow**
  - **rtlxl.nl**
  - **RTP**
@@ -309,6 +341,7 @@
  - **RUHD**
  - **rutube**: Rutube videos
  - **rutube:channel**: Rutube channels
+ - **rutube:embed**: Rutube embedded videos
  - **rutube:movie**: Rutube movies
  - **rutube:person**: Rutube person videos
  - **RUTV**: RUTV.RU
@@ -351,11 +384,12 @@
  - **Sport5**
  - **SportBox**
  - **SportDeutschland**
- - **SRMediathek**: Süddeutscher Rundfunk
+ - **SRMediathek**: Saarländischer Rundfunk
  - **stanfordoc**: Stanford Open ClassRoom
  - **Steam**
  - **streamcloud.eu**
  - **StreamCZ**
+ - **StreetVoice**
  - **SunPorno**
  - **SWRMediathek**
  - **Syfy**
@@ -375,7 +409,9 @@
  - **TeleBruxelles**
  - **telecinco.es**
  - **TeleMB**
+ - **TeleTask**
  - **TenPlay**
+ - **TestTube**
  - **TF1**
  - **TheOnion**
  - **ThePlatform**
@@ -403,8 +439,15 @@
  - **tv.dfb.de**
  - **tvigle**: Интернет-телевидение Tvigle.ru
  - **tvp.pl**
+ - **tvp.pl:Series**
  - **TVPlay**: TV3Play and related services
- - **Twitch**
+ - **twitch:bookmarks**
+ - **twitch:chapter**
+ - **twitch:past_broadcasts**
+ - **twitch:profile**
+ - **twitch:stream**
+ - **twitch:video**
+ - **twitch:vod**
  - **Ubu**
  - **udemy**
  - **udemy:course**
@@ -433,6 +476,8 @@
  - **videoweed**: VideoWeed
  - **Vidme**
  - **Vidzi**
+ - **vier**
+ - **vier:videos**
  - **viki**
  - **vimeo**
  - **vimeo:album**
@@ -460,6 +505,7 @@
  - **WDR**
  - **wdr:mobile**
  - **WDRMaus**: Sendung mit der Maus
+ - **WebOfStories**
  - **Weibo**
  - **Wimp**
  - **Wistia**
@@ -472,7 +518,9 @@
  - **XNXX**
  - **XTube**
  - **XTubeUser**: XTube user profile
+ - **Xuite**
  - **XVideos**
+ - **XXXYMovies**
  - **Yahoo**: Yahoo screen and movies
  - **YesJapan**
  - **Ynet**
@@ -491,7 +539,6 @@
  - **youtube:search_url**: YouTube.com search URLs
  - **youtube:show**: YouTube.com (multi-season) shows
  - **youtube:subscriptions**: YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)
- - **youtube:toplist**: YouTube.com top lists, "yttoplist:{channel}:{list title}" (Example: "yttoplist:music:Top Tracks")
  - **youtube:user**: YouTube.com user videos (URL or "ytuser" keyword)
  - **youtube:watch_later**: Youtube watch later list, ":ytwatchlater" for short (requires authentication)
  - **ZDF**
