@@ -35,7 +35,7 @@ if [ ! -z "$useless_files" ]; then echo "ERROR: Non-.py files in youtube_dl: $us
 if [ ! -f "updates_key.pem" ]; then echo 'ERROR: updates_key.pem missing'; exit 1; fi
 
 /bin/echo -e "\n### First of all, testing..."
-make cleanall
+make clean
 if $skip_tests ; then
     echo 'SKIPPING TESTS'
 else
