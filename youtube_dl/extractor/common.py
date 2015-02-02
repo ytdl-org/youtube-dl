@@ -860,10 +860,13 @@ class InfoExtractor(object):
         return formats
 
     # TODO: improve extraction
-    def _extract_smil_formats(self, smil_url, video_id):
+    def _extract_smil_formats(self, smil_url, video_id, fatal=True):
         smil = self._download_xml(
             smil_url, video_id, 'Downloading SMIL file',
-            'Unable to download SMIL file')
+            'Unable to download SMIL file', fatal=fatal)
+        if smil is False:
+            assert not fatal
+            return []
 
         base = smil.find('./head/meta').get('base')
 
