@@ -103,6 +103,16 @@ def expect_info_dict(self, got_dict, expected_dict):
             self.assertTrue(
                 match_rex.match(got),
                 'field %s (value: %r) should match %r' % (info_field, got, match_str))
+        elif isinstance(expected, compat_str) and expected.startswith('startswith:'):
+            got = got_dict.get(info_field)
+            start_str = expected[len('startswith:'):]
+            self.assertTrue(
+                isinstance(got, compat_str),
+                'Expected a %s object, but got %s for field %s' % (
+                    compat_str.__name__, type(got).__name__, info_field))
+            self.assertTrue(
+                got.startswith(start_str),
+                'field %s (value: %r) should start with %r' % (info_field, got, start_str))
         elif isinstance(expected, type):
             got = got_dict.get(info_field)
             self.assertTrue(isinstance(got, expected),
