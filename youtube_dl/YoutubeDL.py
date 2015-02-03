@@ -964,9 +964,11 @@ class YoutubeDL(object):
             thumbnails.sort(key=lambda t: (
                 t.get('preference'), t.get('width'), t.get('height'),
                 t.get('id'), t.get('url')))
-            for t in thumbnails:
+            for i, t in enumerate(thumbnails):
                 if 'width' in t and 'height' in t:
                     t['resolution'] = '%dx%d' % (t['width'], t['height'])
+                if t.get('id') is None:
+                    t['id'] = '%d' % i
 
         if thumbnails and 'thumbnail' not in info_dict:
             info_dict['thumbnail'] = thumbnails[-1]['url']
