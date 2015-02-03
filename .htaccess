@@ -7,3 +7,6 @@ RewriteRule ^bugs?/? https://github.com/rg3/youtube-dl/issues [R=302,L]
 RewriteRule ^reporting/? https://github.com/rg3/youtube-dl/blob/master/README.md#bugs [R=302,L,NE]
 RewriteRule ^update$ https://github.com/rg3/youtube-dl/blob/master/README.md#how-do-i-update-youtube-dl [R=302,L,NE]
 RewriteRule ^donat(e|ions)$ https://rg3.github.io/youtube-dl/donations.html [R=302,L]
+RewriteRule ^faq-anime$ https://github.com/rg3/youtube-dl/blob/master/README.md#can-you-add-support-for-this-anime-video-site-or-site-which-shows-current-movies-for-free [R=302,L]
+
+
