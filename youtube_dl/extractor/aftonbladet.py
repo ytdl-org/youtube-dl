@@ -1,8 +1,6 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 
 
@@ -21,9 +19,7 @@ class AftonbladetIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.search(self._VALID_URL, url)
-
-        video_id = mobj.group('video_id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         # find internal video meta data
