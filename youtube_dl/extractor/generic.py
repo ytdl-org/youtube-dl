@@ -140,6 +140,19 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': ['Ooyala'],
         },
+        # multiple ooyala embeds on SBN network websites
+        {
+            'url': 'http://www.sbnation.com/college-football-recruiting/2015/2/3/7970291/national-signing-day-rationalizations-itll-be-ok-itll-be-ok',
+            'info_dict': {
+                'id': 'national-signing-day-rationalizations-itll-be-ok-itll-be-ok',
+                'title': '25 lies you will tell yourself on National Signing Day - SBNation.com',
+            },
+            'playlist_mincount': 3,
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': ['Ooyala'],
+        },
         # google redirect
         {
             'url': 'http://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&ved=0CCUQtwIwAA&url=http%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DcmQHVoWB5FY&ei=F-sNU-LLCaXk4QT52ICQBQ&usg=AFQjCNEw4hL29zgOohLXvpJ-Bdh2bils1Q&bvm=bv.61965928,d.bGE',
@@ -882,9 +895,18 @@ class GenericIE(InfoExtractor):
 
         # Look for Ooyala videos
         mobj = (re.search(r'player\.ooyala\.com/[^"?]+\?[^"]*?(?:embedCode|ec)=(?P<ec>[^"&]+)', webpage) or
-                re.search(r'OO\.Player\.create\([\'"].*?[\'"],\s*[\'"](?P<ec>.{32})[\'"]', webpage))
+                re.search(r'OO\.Player\.create\([\'"].*?[\'"],\s*[\'"](?P<ec>.{32})[\'"]', webpage) or
+                re.search(r'SBN\.VideoLinkset\.ooyala\([\'"](?P<ec>.{32})[\'"]\)', webpage))
         if mobj is not None:
             return OoyalaIE._build_url_result(mobj.group('ec'))
+
+        # Look for multiple Ooyala embeds on SBN network websites
+        mobj = re.search(r'SBN\.VideoLinkset\.entryGroup\((\[.*?\])', webpage)
+        if mobj is not None:
+            embeds = self._parse_json(mobj.group(1), video_id, fatal=False)
+            if embeds:
+                return _playlist_from_matches(
+                    embeds, getter=lambda v: OoyalaIE._url_for_embed_code(v['provider_video_id']), ie='Ooyala')
 
         # Look for Aparat videos
         mobj = re.search(r'<iframe .*?src="(http://www\.aparat\.com/video/[^"]+)"', webpage)
