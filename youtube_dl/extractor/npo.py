@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
+from .subtitles import SubtitlesInfoExtractor
 from ..utils import (
     fix_xml_ampersands,
     parse_duration,
@@ -11,7 +11,7 @@ from ..utils import (
 )
 
 
-class NPOBaseIE(InfoExtractor):
+class NPOBaseIE(SubtitlesInfoExtractor):
     def _get_token(self, video_id):
         token_page = self._download_webpage(
             'http://ida.omroep.nl/npoplayer/i.js',
@@ -161,6 +161,16 @@ class NPOIE(NPOBaseIE):
 
         self._sort_formats(formats)
 
+        subtitles = {}
+        if metadata.get('tt888') == 'ja':
+            subtitles['nl'] = 'http://e.omroep.nl/tt888/%s' % video_id
+
+        if self._downloader.params.get('listsubtitles', False):
+            self._list_available_subtitles(video_id, subtitles)
+            return
+
+        subtitles = self.extract_subtitles(video_id, subtitles)
+
         return {
             'id': video_id,
             'title': metadata['titel'],
@@ -169,6 +179,7 @@ class NPOIE(NPOBaseIE):
             'upload_date': unified_strdate(metadata.get('gidsdatum')),
             'duration': parse_duration(metadata.get('tijdsduur')),
             'formats': formats,
+            'subtitles': subtitles,
         }
 
 
