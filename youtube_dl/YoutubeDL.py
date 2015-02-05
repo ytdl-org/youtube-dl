@@ -1076,7 +1076,8 @@ class YoutubeDL(object):
                                 else self.params['merge_output_format'])
                             selected_format = {
                                 'requested_formats': formats_info,
-                                'format': rf,
+                                'format': '%s+%s' % (formats_info[0].get('format'),
+                                                     formats_info[1].get('format')),
                                 'format_id': '%s+%s' % (formats_info[0].get('format_id'),
                                                         formats_info[1].get('format_id')),
                                 'width': formats_info[0].get('width'),
