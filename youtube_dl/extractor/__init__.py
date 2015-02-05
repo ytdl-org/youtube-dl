@@ -475,6 +475,7 @@ from .tutv import TutvIE
 from .tvigle import TvigleIE
 from .tvp import TvpIE, TvpSeriesIE
 from .tvplay import TVPlayIE
+from .tweakers import TweakersIE
 from .twentyfourvideo import TwentyFourVideoIE
 from .twitch import (
     TwitchVideoIE,
