@@ -159,14 +159,17 @@ class NPOIE(NPOBaseIE):
                     'quality': stream.get('kwaliteit'),
                 })
 
-        subtitles = {}
-
-        tt888 = metadata.get('tt888')
-        if self._have_to_download_any_subtitles and tt888 == 'ja':
-            subtitles['nl'] = 'http://e.omroep.nl/tt888/%s' % video_id
-            subtitles = self.extract_subtitles(video_id, subtitles)
-
         self._sort_formats(formats)
+
+        subtitles = {}
+        if metadata.get('tt888') == 'ja':
+            subtitles['nl'] = 'http://e.omroep.nl/tt888/%s' % video_id
+
+        if self._downloader.params.get('listsubtitles', False):
+            self._list_available_subtitles(video_id, subtitles)
+            return
+
+        subtitles = self.extract_subtitles(video_id, subtitles)
 
         return {
             'id': video_id,
