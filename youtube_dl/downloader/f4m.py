@@ -331,6 +331,14 @@ class F4mFD(FileDownloader):
             eta = self.calc_eta(start, time.time(), estimated_size, byte_counter)
             self.report_progress(progress, format_bytes(estimated_size),
                                  status.get('speed'), eta)
+
+            # report totals to actual hooks
+            status['status'] = 'downloading'
+            #status['downloaded_bytes'] = state['downloaded_bytes'] ?
+            #status['total_bytes'] = ?
+            for hook in self._progress_hooks:
+                hook(status)
+
         http_dl.add_progress_hook(frag_progress_hook)
 
         frags_filenames = []
