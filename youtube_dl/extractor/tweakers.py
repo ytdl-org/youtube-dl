@@ -21,7 +21,7 @@ class TweakersIE(InfoExtractor):
     def _real_extract(self, url):
         splitted_url = re.split('.html|/', url)
         del splitted_url[-1]  # To remove extra '/' at the end
-        video_id = splitted_url[4]
+        video_id = self._match_id(url)
         title = splitted_url[5].title()  # Retrieve title for URL and capitalize
         splitted_url[3] = splitted_url[3] + '/player'  # Add /player to get the player page
         player_url = '/'.join(splitted_url) + '.html'
