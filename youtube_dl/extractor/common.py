@@ -778,7 +778,8 @@ class InfoExtractor(object):
             media_nodes = manifest.findall('{http://ns.adobe.com/f4m/2.0}media')
         for i, media_el in enumerate(media_nodes):
             if manifest_version == '2.0':
-                manifest_url = '/'.join(manifest_url.split('/')[:-1]) + '/' + media_el.attrib.get('href')
+                manifest_url = ('/'.join(manifest_url.split('/')[:-1]) + '/'
+                                + (media_el.attrib.get('href') or media_el.attrib.get('url')))
             tbr = int_or_none(media_el.attrib.get('bitrate'))
             formats.append({
                 'format_id': '-'.join(filter(None, [f4m_id, 'f4m-%d' % (i if tbr is None else tbr)])),
