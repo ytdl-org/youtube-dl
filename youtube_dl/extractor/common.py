@@ -765,7 +765,7 @@ class InfoExtractor(object):
         self.to_screen(msg)
         time.sleep(timeout)
 
-    def _extract_f4m_formats(self, manifest_url, video_id):
+    def _extract_f4m_formats(self, manifest_url, video_id, preference=None, f4m_id=None):
         manifest = self._download_xml(
             manifest_url, video_id, 'Downloading f4m manifest',
             'Unable to download f4m manifest')
@@ -780,24 +780,25 @@ class InfoExtractor(object):
             if manifest_version == '2.0':
                 manifest_url = '/'.join(manifest_url.split('/')[:-1]) + '/' + media_el.attrib.get('href')
             tbr = int_or_none(media_el.attrib.get('bitrate'))
-            format_id = 'f4m-%d' % (i if tbr is None else tbr)
             formats.append({
-                'format_id': format_id,
+                'format_id': '-'.join(filter(None, [f4m_id, 'f4m-%d' % (i if tbr is None else tbr)])),
                 'url': manifest_url,
                 'ext': 'flv',
                 'tbr': tbr,
                 'width': int_or_none(media_el.attrib.get('width')),
                 'height': int_or_none(media_el.attrib.get('height')),
+                'preference': preference,
             })
         self._sort_formats(formats)
 
         return formats
 
     def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
-                              entry_protocol='m3u8', preference=None):
+                              entry_protocol='m3u8', preference=None,
+                              m3u8_id=None):
 
         formats = [{
-            'format_id': 'm3u8-meta',
+            'format_id': '-'.join(filter(None, [m3u8_id, 'm3u8-meta'])),
             'url': m3u8_url,
             'ext': ext,
             'protocol': 'm3u8',
@@ -833,9 +834,8 @@ class InfoExtractor(object):
                     formats.append({'url': format_url(line)})
                     continue
                 tbr = int_or_none(last_info.get('BANDWIDTH'), scale=1000)
-
                 f = {
-                    'format_id': 'm3u8-%d' % (tbr if tbr else len(formats)),
+                    'format_id': '-'.join(filter(None, [m3u8_id, 'm3u8-%d' % (tbr if tbr else len(formats))])),
                     'url': format_url(line.strip()),
                     'tbr': tbr,
                     'ext': ext,
