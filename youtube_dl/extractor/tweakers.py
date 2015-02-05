@@ -25,10 +25,10 @@ class TweakersIE(InfoExtractor):
 
     def _real_extract(self, url):
         splitted_url = re.split('.html|/', url)
-        del splitted_url[-1] # To remove extra '/' at the end
+        del splitted_url[-1]  # To remove extra '/' at the end
         video_id = splitted_url[4]
-        title = splitted_url[5].title() # Retrieve title for URL and capitalize
-        splitted_url[3] = splitted_url[3] + '/player' # Add /player to get the player page
+        title = splitted_url[5].title()  # Retrieve title for URL and capitalize
+        splitted_url[3] = splitted_url[3] + '/player'  # Add /player to get the player page
         player_url = '/'.join(splitted_url) + '.html'
         player_page = self._download_webpage(player_url, video_id)
 
@@ -36,6 +36,6 @@ class TweakersIE(InfoExtractor):
             'id': video_id,
             'ext': 'mp4',
             'title': title,
-            'url':  re.findall('http.*mp4', player_page)[0],
+            'url': re.findall('http.*mp4', player_page)[0],
             'player_url': player_url
         }
