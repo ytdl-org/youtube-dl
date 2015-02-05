@@ -37,5 +37,4 @@ class TweakersIE(InfoExtractor):
             'ext': 'mp4',
             'title': title,
             'url': re.findall('http.*mp4', player_page)[0],
-            'player_url': player_url
         }
