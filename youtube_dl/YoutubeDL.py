@@ -938,6 +938,9 @@ class YoutubeDL(object):
             def has_header(self, h):
                 return h in self.headers
 
+            def get_header(self, h, default=None):
+                return self.headers.get(h, default)
+
         pr = _PseudoRequest(info_dict['url'])
         self.cookiejar.add_cookie_header(pr)
         return pr.headers.get('Cookie')
