@@ -166,14 +166,13 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         if filecodec is None:
             raise PostProcessingError('WARNING: unable to obtain file audio codec with ffprobe')
 
-        uses_avconv = self._uses_avconv()
         more_opts = []
         if self._preferredcodec == 'best' or self._preferredcodec == filecodec or (self._preferredcodec == 'm4a' and filecodec == 'aac'):
             if filecodec == 'aac' and self._preferredcodec in ['m4a', 'best']:
                 # Lossless, but in another container
                 acodec = 'copy'
                 extension = 'm4a'
-                more_opts = ['-bsf:a' if uses_avconv else '-absf', 'aac_adtstoasc']
+                more_opts = ['-bsf:a', 'aac_adtstoasc']
             elif filecodec in ['aac', 'mp3', 'vorbis', 'opus']:
                 # Lossless if possible
                 acodec = 'copy'
@@ -189,9 +188,9 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                 more_opts = []
                 if self._preferredquality is not None:
                     if int(self._preferredquality) < 10:
-                        more_opts += ['-q:a' if uses_avconv else '-aq', self._preferredquality]
+                        more_opts += ['-q:a', self._preferredquality]
                     else:
-                        more_opts += ['-b:a' if uses_avconv else '-ab', self._preferredquality + 'k']
+                        more_opts += ['-b:a', self._preferredquality + 'k']
         else:
             # We convert the audio (lossy)
             acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'm4a': 'aac', 'opus': 'opus', 'vorbis': 'libvorbis', 'wav': None}[self._preferredcodec]
@@ -200,13 +199,13 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             if self._preferredquality is not None:
                 # The opus codec doesn't support the -aq option
                 if int(self._preferredquality) < 10 and extension != 'opus':
-                    more_opts += ['-q:a' if uses_avconv else '-aq', self._preferredquality]
+                    more_opts += ['-q:a', self._preferredquality]
                 else:
-                    more_opts += ['-b:a' if uses_avconv else '-ab', self._preferredquality + 'k']
+                    more_opts += ['-b:a', self._preferredquality + 'k']
             if self._preferredcodec == 'aac':
                 more_opts += ['-f', 'adts']
             if self._preferredcodec == 'm4a':
-                more_opts += ['-bsf:a' if uses_avconv else '-absf', 'aac_adtstoasc']
+                more_opts += ['-bsf:a', 'aac_adtstoasc']
             if self._preferredcodec == 'vorbis':
                 extension = 'ogg'
             if self._preferredcodec == 'wav':
