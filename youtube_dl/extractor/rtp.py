@@ -49,6 +49,7 @@ class RTPIE(InfoExtractor):
             'ext': ext,
             'vcodec': config.get('type') == 'audio' and 'none' or None,
             'player_url': 'http://programas.rtp.pt/play/player.swf?v3',
+            'rtmp_real_time': True,
         }]
 
         return {
