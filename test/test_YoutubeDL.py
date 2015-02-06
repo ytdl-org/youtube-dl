@@ -377,7 +377,6 @@ class TestFormatSelection(unittest.TestCase):
 
         class SimplePP(PostProcessor):
             def run(self, info):
-                print(audiofile)
                 with open(audiofile, 'wt') as f:
                     f.write('EXAMPLE')
                 info['filepath']
