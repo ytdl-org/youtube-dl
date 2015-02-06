@@ -441,6 +441,7 @@
  - **tvp.pl**
  - **tvp.pl:Series**
  - **TVPlay**: TV3Play and related services
+ - **Tweakers**
  - **twitch:bookmarks**
  - **twitch:chapter**
  - **twitch:past_broadcasts**
