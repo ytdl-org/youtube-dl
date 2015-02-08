@@ -134,9 +134,18 @@ class RTLnowIE(InfoExtractor):
                     'player_url': video_page_url + 'includes/vodplayer.swf',
                 }
             else:
-                fmt = {
-                    'url': filename.text,
-                }
+                mobj = re.search(r'.*/(?P<hoster>[^/]+)/videos/(?P<play_path>.+)\.f4m', filename.text)
+                if mobj:
+                    fmt = {
+                        'url': 'rtmpe://fmspay-fra2.rtl.de/' + mobj.group('hoster'),
+                        'play_path': 'mp4:' + mobj.group('play_path'),
+                        'page_url': url,
+                        'player_url': video_page_url + 'includes/vodplayer.swf',
+                    }
+                else:
+                    fmt = {
+                        'url': filename.text,
+                    }
             fmt.update({
                 'width': int_or_none(filename.get('width')),
                 'height': int_or_none(filename.get('height')),
