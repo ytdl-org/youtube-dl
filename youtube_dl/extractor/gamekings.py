@@ -24,7 +24,8 @@ class GamekingsIE(InfoExtractor):
         'info_dict': {
             'id': '118933752',
             'ext': 'mp4',
-            'title': 'The Legend of Zelda: Majora’s Mask'
+            'title': 'The Legend of Zelda: Majora’s Mask',
+            'description': 'md5:9917825fe0e9f4057601fe1e38860de3'
             }
         }
     ]
@@ -41,7 +42,7 @@ class GamekingsIE(InfoExtractor):
 
         # Todo: add medium format
         video_url = video_url.replace(video_id, 'large/' + video_id)
-        if not (self._is_valid_url(video_url, video_id)):
+        if "vimeo" in video_url:
             video_url = video_url.replace('large/' + video_id, video_id)
             video_url = video_url.replace('http://stream.gamekings.tv/', '')
 
