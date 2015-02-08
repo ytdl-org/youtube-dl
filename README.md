@@ -294,7 +294,9 @@ which means you can modify it, redistribute it or use it however you like.
                                      -f "[filesize>10M]").  This works for
                                      filesize, height, width, tbr, abr, vbr, and
                                      fps and the comparisons <, <=, >, >=, =, !=
-                                     . Formats for which the value is not known
+                                     and for ext, acodec, vcodec, container and
+                                     protocol and the comparisons =, != .
+                                     Formats for which the value is not known
                                      are excluded unless you put a question mark
                                      (?) after the operator. You can combine
                                      format filters, so  -f "[height <=?

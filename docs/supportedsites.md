@@ -14,6 +14,7 @@
  - **AddAnime**
  - **AdobeTV**
  - **AdultSwim**
+ - **Aftenposten**
  - **Aftonbladet**
  - **AlJazeera**
  - **Allocine**
